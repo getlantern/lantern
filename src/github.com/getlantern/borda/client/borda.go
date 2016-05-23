@@ -1,4 +1,4 @@
-package borda
+package client
 
 import (
 	"encoding/json"

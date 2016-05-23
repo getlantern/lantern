@@ -36,7 +36,7 @@ func Enter() *Context {
 	ctx := &Context{context.Enter()}
 	// Using "application" allows us to distinguish between errors from the
 	// lantern client vs other sources like the http-proxy, etc.
-	return ctx.Put("application", "lantern-client")
+	return ctx.Put("app", "lantern-client")
 }
 
 // Go mimics the similar method from context.Context
