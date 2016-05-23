@@ -38,7 +38,7 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/welcome_text"
             android:adjustViewBounds="true"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="38dp"
             android:paddingBottom="10dp"
             android:background="@android:color/transparent"
             android:src="@drawable/pro_welcome"/>

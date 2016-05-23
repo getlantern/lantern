@@ -82,7 +82,7 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
         mContext = this.getApplicationContext();
         session = LanternApp.getSession();
 
-        segmented.setTintColor(getResources().getColor(R.color.pro_blue_color));
+        segmented.setTintColor(getResources().getColor(R.color.pink));
 
         cardBtn.setOnClickListener(this);
         alipayBtn.setOnClickListener(this);

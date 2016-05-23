@@ -23,6 +23,7 @@
         android:layout_width="fill_parent"
         android:layout_height="260dp"
         android:layout_weight="1"
+        android:gravity="center"
         android:background="@drawable/nav_background_white"
         android:elevation="2dp">
 
@@ -30,7 +31,8 @@
             android:id="@+id/invite_friends"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:scaleType="centerCrop"
+            android:adjustViewBounds="true"
+            android:layout_centerInParent="true"
             android:src="@drawable/coins"/>
     </RelativeLayout>
 
@@ -152,8 +154,6 @@
             android:lineSpacingExtra="5dp"
             android:text="@string/invite_friends_welcome"
             android:textSize="14sp"
-            android:textStyle="bold"
-            android:alpha=".87"
             android:layout_centerHorizontal="true"
             android:gravity="center"
             android:textColor="#000000"/>
@@ -166,9 +166,7 @@
             android:fontFamily="sans-serif"
             android:text="@string/your_referral_code"
             android:textAllCaps="true"       
-            android:textStyle="bold"
             android:textSize="12sp"
-            android:alpha=".87"
             android:gravity="center"
             android:textColor="#000000"/>          
 

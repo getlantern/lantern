@@ -89,6 +89,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="15dp"
+                    android:paddingBottom="22dp"
                     android:src="@drawable/logo_text"/>
 
             </LinearLayout>
