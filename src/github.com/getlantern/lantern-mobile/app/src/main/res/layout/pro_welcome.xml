@@ -13,7 +13,7 @@
         android:orientation="vertical"
         android:gravity="center_horizontal"
         android:layout_width="fill_parent"
-        android:layout_height="322dp"
+        android:layout_height="wrap_content"
         android:layout_weight="1"
         android:background="@color/accent_white"
         android:padding="8dp">
@@ -38,6 +38,7 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/welcome_text"
             android:adjustViewBounds="true"
+            android:layout_marginTop="10dp"
             android:paddingBottom="10dp"
             android:background="@android:color/transparent"
             android:src="@drawable/pro_welcome"/>
@@ -48,7 +49,6 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:background="#FFFFFF"
-        android:paddingTop="15dp"
         android:paddingBottom="15dp"
         android:layout_weight="1"
         android:padding="8dp">
@@ -63,7 +63,6 @@
                 android:layout_width="fill_parent"
                 android:layout_height="21dp"
                 android:fontFamily="sans-serif-medium"
-                android:layout_marginTop="5dp"
                 android:text="@string/thanks_purchase"
                 android:textSize="16sp"
                 android:layout_centerHorizontal="true"
