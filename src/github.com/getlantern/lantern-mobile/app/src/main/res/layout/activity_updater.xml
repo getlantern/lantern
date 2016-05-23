@@ -68,8 +68,8 @@
                 android:padding="8dp">
 
 
-                <android.support.v7.internal.widget.TintButton
-                    android:id="@+id/not_now"
+                <Button
+                    android:id="@+id/notNow"
                     style="?android:buttonStyleSmall"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -77,12 +77,12 @@
                     android:minHeight="48dp"
                     android:onClick="onClick"
                     android:textSize="20sp"
-                    android:textColor="#38c6f3"
+                    android:textColor="@color/pro_blue_color"
                     android:background="@drawable/not_now_btn"
                     android:text="@string/not_now"/>
 
-                <android.support.v7.internal.widget.TintButton
-                    android:id="@+id/install_update"
+                <Button
+                    android:id="@+id/installUpdate"
                     style="?android:buttonStyleSmall"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <resources>
-  <string name="app_name">Lantern</string>
+  <string name="app_name">蓝灯 (Lantern)</string>
   <string name="action_settings">设置</string>
   <string name="button_text">启动</string>
   <string name="drawer_open">打开抽屉</string>

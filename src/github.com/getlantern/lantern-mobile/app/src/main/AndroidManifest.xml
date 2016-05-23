@@ -124,7 +124,7 @@
  
 
         <activity
-            android:name=".activity.UpdaterActivity"
+            android:name=".activity.UpdateActivity_"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize"
             android:theme="@style/Theme.Blank.Dialog">
