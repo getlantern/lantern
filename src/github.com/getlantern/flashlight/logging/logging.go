@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/getlantern/appdir"
-	"github.com/getlantern/borda/client"
+	borda "github.com/getlantern/borda/client"
 	"github.com/getlantern/go-loggly"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/jibber_jabber"
@@ -128,13 +128,13 @@ func Configure(cloudConfigCA string, instanceID string,
 
 func initContext(instanceID string, version string, revisionDate string) {
 	context.PutGlobal("hostname", "hidden")
-	context.PutGlobal("instanceid", instanceID)
-	context.PutGlobal("osname", runtime.GOOS)
-	context.PutGlobal("osarch", runtime.GOARCH)
-	context.PutGlobal("appversion", fmt.Sprintf("%v (%v)", version, revisionDate))
-	context.PutGlobal("goversion", runtime.Version())
-	context.PutGlobalDynamic("country", func() interface{} { return geolookup.GetCountry(0) })
-	context.PutGlobalDynamic("clientip", func() interface{} { return geolookup.GetIP(0) })
+	context.PutGlobal("instance_id", instanceID)
+	context.PutGlobal("os_name", runtime.GOOS)
+	context.PutGlobal("os_arch", runtime.GOARCH)
+	context.PutGlobal("app_version", fmt.Sprintf("%v (%v)", version, revisionDate))
+	context.PutGlobal("go_version", runtime.Version())
+	context.PutGlobalDynamic("geo_country", func() interface{} { return geolookup.GetCountry(0) })
+	context.PutGlobalDynamic("client_ip", func() interface{} { return geolookup.GetIP(0) })
 	context.PutGlobalDynamic("timezone", func() interface{} { return time.Now().Format("MST") })
 	context.PutGlobalDynamic("locale_language", func() interface{} {
 		lang, _ := jibber_jabber.DetectLanguage()
@@ -146,7 +146,7 @@ func initContext(instanceID string, version string, revisionDate string) {
 	})
 
 	if osStr, err := osversion.GetHumanReadable(); err == nil {
-		context.PutGlobal("osversion", osStr)
+		context.PutGlobal("os_version", osStr)
 	}
 }
 
@@ -166,11 +166,11 @@ func Flush() {
 
 // Close stops logging.
 func Close() error {
+	bordaClient.Flush()
 	initLogging()
 	if logFile != nil {
 		return logFile.Close()
 	}
-	bordaClient.Flush()
 	return nil
 }
 
