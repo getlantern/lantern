@@ -23,6 +23,7 @@ func TestSuccess(t *testing.T) {
 	op := ops.Enter("test_success").Put("a", 1).PutDynamic("b", func() interface{} { return 2 })
 	defer op.Exit()
 	innerOp := op.Enter("inside")
+	innerOp.FailOnError(nil)
 	innerOp.Exit()
 
 	assert.Nil(t, reportedFailure)
@@ -49,7 +50,7 @@ func TestFailure(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	op.Go(func() {
-		op.Fail(errors.New("I failed").With("errorcontext", 5))
+		op.FailOnError(errors.New("I failed").With("errorcontext", 5))
 		wg.Done()
 	})
 	wg.Wait()
