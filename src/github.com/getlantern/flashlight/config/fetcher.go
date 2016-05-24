@@ -16,16 +16,17 @@ import (
 )
 
 const (
-	etag                  = "X-Lantern-Etag"
-	ifNoneMatch           = "X-Lantern-If-None-Match"
-	userIDHeader          = "X-Lantern-User-Id"
-	tokenHeader           = "X-Lantern-Pro-Token"
-	chainedCloudConfigURL = "http://config.getiantem.org/cloud.yaml.gz"
+	etag         = "X-Lantern-Etag"
+	ifNoneMatch  = "X-Lantern-If-None-Match"
+	userIDHeader = "X-Lantern-User-Id"
+	tokenHeader  = "X-Lantern-Pro-Token"
+
+	defaultChainedCloudConfigURL = "http://config.getiantem.org/cloud.yaml.gz"
 
 	// This is over HTTP because proxies do not forward X-Forwarded-For with HTTPS
 	// and because we only support falling back to direct domain fronting through
 	// the local proxy for HTTP.
-	frontedCloudConfigURL = "http://d2wi0vwulmtn99.cloudfront.net/cloud.yaml.gz"
+	defaultFrontedCloudConfigURL = "http://d2wi0vwulmtn99.cloudfront.net/cloud.yaml.gz"
 )
 
 var (
@@ -50,7 +51,11 @@ type UserConfig interface {
 // NewFetcher creates a new configuration fetcher with the specified
 // interface for obtaining the user ID and token if those are populated.
 func NewFetcher(conf UserConfig, rt http.RoundTripper) Fetcher {
-	return &fetcher{lastCloudConfigETag: map[string]string{}, user: conf, rt: rt}
+	return &fetcher{
+		lastCloudConfigETag: map[string]string{},
+		user:                conf,
+		rt:                  rt,
+	}
 }
 
 func (cf *fetcher) pollForConfig(currentCfg yamlconf.Config, stickyConfig bool) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
