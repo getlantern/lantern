@@ -40,31 +40,25 @@ var (
 // the cloud, in command line flags, or in local customizations during
 // development.
 type Config struct {
-	configDir          string
-	Version            int
-	CloudConfig        string
-	CloudConfigCA      string
-	FrontedCloudConfig string
-	CPUProfile         string
-	MemProfile         string
-	UpdateServerURL    string
-	Client             *client.ClientConfig
-	ProxiedSites       *proxiedsites.Config // List of proxied site domains that get routed through Lantern rather than accessed directly
-	TrustedCAs         []*fronted.CA
-}
-
-// Fetcher is an interface for fetching config updates.
-type Fetcher interface {
-	pollForConfig(ycfg yamlconf.Config, sticky bool) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error)
+	configDir       string
+	Version         int
+	CloudConfigCA   string
+	CPUProfile      string
+	MemProfile      string
+	UpdateServerURL string
+	Client          *client.ClientConfig
+	ProxiedSites    *proxiedsites.Config // List of proxied site domains that get routed through Lantern rather than accessed directly
+	TrustedCAs      []*fronted.CA
 }
 
 // StartPolling starts the process of polling for new configuration files.
 func (cfg *Config) StartPolling() {
 	// Force detour to whitelist chained domain
-	u, err := url.Parse(cfg.CloudConfig)
+	u, err := url.Parse(defaultChainedCloudConfigURL)
 	if err != nil {
 		log.Fatalf("Unable to parse chained cloud config URL: %v", err)
 	}
+	log.Debugf("Polling at %v", defaultChainedCloudConfigURL)
 	detour.ForceWhitelist(u.Host)
 
 	// No-op if already started.
@@ -107,7 +101,7 @@ func majorVersion(version string) string {
 func Init(userConfig UserConfig, version string, configDir string, stickyConfig bool, flags map[string]interface{}) (*Config, error) {
 	// Request the config via either chained servers or direct fronted servers.
 	cf := proxied.ParallelPreferChained()
-	fetcher := NewFetcher(userConfig, cf)
+	fetcher := NewFetcher(userConfig, cf, flags)
 
 	file := "lantern-" + version + ".yaml"
 	_, configPath, err := inConfigDir(configDir, file)
@@ -208,9 +202,9 @@ func (cfg *Config) SetVersion(version int) {
 
 // applyFlags updates this Config from any command-line flags that were passed
 // in.
-func (updated *Config) applyFlags(flags map[string]interface{}) error {
-	if updated.Client == nil {
-		updated.Client = &client.ClientConfig{}
+func (cfg *Config) applyFlags(flags map[string]interface{}) error {
+	if cfg.Client == nil {
+		cfg.Client = &client.ClientConfig{}
 	}
 
 	var visitErr error
@@ -219,26 +213,12 @@ func (updated *Config) applyFlags(flags map[string]interface{}) error {
 	for key, value := range flags {
 		switch key {
 		// General
-		case "cloudconfig":
-			updated.CloudConfig = value.(string)
 		case "cloudconfigca":
-			updated.CloudConfigCA = value.(string)
-		case "frontedconfig":
-			updated.FrontedCloudConfig = value.(string)
+			cfg.CloudConfigCA = value.(string)
 		case "cpuprofile":
-			updated.CPUProfile = value.(string)
+			cfg.CPUProfile = value.(string)
 		case "memprofile":
-			updated.MemProfile = value.(string)
-		case "staging":
-			log.Debugf("Staging variable: %v", value)
-			stage := value.(bool)
-			if stage {
-				log.Debug("Configuring for staging")
-				updated.CloudConfig = "http://config-staging.getiantem.org/cloud.yaml.gz"
-				updated.FrontedCloudConfig = "http://d33pfmbpauhmvd.cloudfront.net/cloud.yaml.gz"
-			} else {
-				log.Debug("Not configuring for staging")
-			}
+			cfg.MemProfile = value.(string)
 		}
 	}
 	if visitErr != nil {
@@ -257,14 +237,6 @@ func (updated *Config) applyFlags(flags map[string]interface{}) error {
 func (cfg *Config) ApplyDefaults() {
 	if cfg.UpdateServerURL == "" {
 		cfg.UpdateServerURL = "https://update.getlantern.org"
-	}
-
-	if cfg.CloudConfig == "" {
-		cfg.CloudConfig = defaultChainedCloudConfigURL
-	}
-
-	if cfg.FrontedCloudConfig == "" {
-		cfg.FrontedCloudConfig = defaultFrontedCloudConfigURL
 	}
 
 	if cfg.Client == nil {
