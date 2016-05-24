@@ -1,6 +1,8 @@
 package logging
 
 import (
+	"encoding/base64"
+	"encoding/binary"
 	"fmt"
 	"io"
 	"math"
@@ -123,7 +125,7 @@ func Configure(cloudConfigCA string, deviceID string,
 		success <- true
 	}()
 
-	enableBorda()
+	enableBorda(deviceID)
 	return
 }
 
@@ -353,7 +355,25 @@ func initBorda() {
 	})
 }
 
-func enableBorda() {
+func enableBorda(deviceID string) {
+	// Sample a subset of device ids
+	deviceIDBytes, base64Err := base64.StdEncoding.DecodeString(deviceID)
+	if base64Err != nil {
+		log.Debugf("Error decoding base64 deviceID: %v", base64Err)
+		return
+	}
+	var deviceIDInt uint64
+	if len(deviceIDBytes) < 4 {
+		log.Debugf("DeviceID too small: %v", base64Err)
+	} else if len(deviceIDBytes) < 8 {
+		deviceIDInt = uint64(binary.BigEndian.Uint32(deviceIDBytes))
+	} else {
+		deviceIDInt = binary.BigEndian.Uint64(deviceIDBytes)
+	}
+	if deviceIDInt%uint64(1/.0001) != 0 {
+		log.Trace("DeviceID not being sampled")
+	}
+
 	reporter := func(failure error, ctx map[string]interface{}) {
 		values := map[string]float64{}
 		if failure != nil {

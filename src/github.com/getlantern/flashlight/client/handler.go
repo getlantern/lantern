@@ -145,18 +145,24 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request, op 
 // pipeData pipes data between the client and proxy connections.  It's also
 // responsible for responding to the initial CONNECT request with a 200 OK.
 func pipeData(clientConn net.Conn, connOut net.Conn, op *ops.Op, closeFunc func()) {
+	writeErrCh := make(chan error)
 	// Start piping from client to proxy
 	op.Go(func() {
-		if _, err := io.Copy(connOut, clientConn); err != nil {
-			log.Debug(op.Error(errors.New("Error piping data from client to proxy: %v", err)))
+		_, writeErr := io.Copy(connOut, clientConn)
+		if writeErr != nil {
+			writeErrCh <- writeErr
 		}
-		closeFunc()
 	})
 
 	// Then start copying from proxy to client.
-	if _, err := io.Copy(clientConn, connOut); err != nil {
-		log.Debug(op.Error(errors.New("Error piping data from proxy to client: %v", err)))
+	_, readErr := io.Copy(clientConn, connOut)
+	writeErr := <-writeErrCh
+	if readErr != nil {
+		log.Error(op.Error(errors.New("Error piping data from proxy to client: %v", readErr)))
+	} else if writeErr != nil {
+		log.Error(errors.New("Error piping data from client to proxy: %v", writeErr))
 	}
+
 	closeFunc()
 }
 

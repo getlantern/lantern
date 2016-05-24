@@ -38,7 +38,7 @@ func TestLoggly(t *testing.T) {
 	loggly := loggly.New("token not required")
 	loggly.Writer = &buf
 	r := logglyErrorReporter{client: loggly}
-	golog.RegisterReporter(r.Report, false)
+	golog.RegisterReporter(r.Report)
 	log := golog.LoggerFor("test")
 
 	log.Error("")
