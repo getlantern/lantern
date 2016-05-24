@@ -159,7 +159,7 @@ func (c *Client) ReducingSubmitter(name string, maxBufferSize int, reduce Reduce
 }
 
 func (c *Client) sendPeriodically() {
-	log.Debugf("Reporting errors to Borda every %v", c.options.BatchInterval)
+	log.Debugf("Reporting to Borda every %v", c.options.BatchInterval)
 	for range time.NewTicker(c.options.BatchInterval).C {
 		c.Flush()
 	}
