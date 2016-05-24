@@ -21,7 +21,7 @@ import (
 	"github.com/getlantern/golog"
 	"github.com/getlantern/keyman"
 
-	"github.com/getlantern/flashlight/context"
+	"github.com/getlantern/flashlight/ops"
 )
 
 const (
@@ -112,11 +112,11 @@ func (cf *chainedAndFronted) setFetcher(fetcher http.RoundTripper) {
 
 // Do will attempt to execute the specified HTTP request using only a chained fetcher
 func (cf *chainedAndFronted) RoundTrip(req *http.Request) (*http.Response, error) {
-	ctx := context.Enter().Request(req)
-	defer ctx.Exit()
+	op := ops.Enter("chainedandfronted").Request(req)
+	defer op.Exit()
 
 	resp, err := cf.getFetcher().RoundTrip(req)
-	ctx.Response(resp)
+	op.Response(resp)
 	if err != nil {
 		log.Error(err)
 		// If there's an error, switch back to using the dual fetcher.
@@ -164,15 +164,15 @@ func (df *dualFetcher) RoundTrip(req *http.Request) (*http.Response, error) {
 func (df *dualFetcher) do(req *http.Request, chainedFunc func(*http.Request) (*http.Response, error), ddfFunc func(*http.Request) (*http.Response, error)) (*http.Response, error) {
 	log.Debugf("Using dual fronter")
 
-	ctx := context.Enter().Request(req)
-	defer ctx.Exit()
+	op := ops.Enter("dualfetcher").Request(req)
+	defer op.Exit()
 
 	parallel := df.cf.parallel
 	frontedURL := req.Header.Get(lanternFrontedURL)
 	req.Header.Del(lanternFrontedURL)
 
 	if frontedURL == "" {
-		return nil, errors.New("Callers MUST specify the fronted URL in the Lantern-Fronted-URL header")
+		return nil, op.Error(errors.New("Callers MUST specify the fronted URL in the Lantern-Fronted-URL header"))
 	}
 
 	// Make a copy of the original requeest headers to include in the fronted
@@ -199,7 +199,7 @@ func (df *dualFetcher) do(req *http.Request, chainedFunc func(*http.Request) (*h
 			errs <- err
 			return err
 		}
-		ctx.Response(resp)
+		op.Response(resp)
 		if asIs {
 			log.Debug("Passing response as is")
 			responses <- resp
@@ -221,8 +221,8 @@ func (df *dualFetcher) do(req *http.Request, chainedFunc func(*http.Request) (*h
 
 	doFronted := func() {
 		log.Debug("In fronted")
-		ctx.
-			ProxyType(context.ProxyFronted).
+		op.
+			ProxyType(ops.ProxyFronted).
 			Put("fronted_url", frontedURL)
 		if frontedReq, err := http.NewRequest(req.Method, frontedURL, nil); err != nil {
 			errs <- errors.Wrap(err)
@@ -264,7 +264,7 @@ func (df *dualFetcher) do(req *http.Request, chainedFunc func(*http.Request) (*h
 		finalResponseCh := make(chan *http.Response, 1)
 		finalErrorCh := make(chan error, 1)
 
-		context.Go(func() {
+		ops.Go(func() {
 			readResponses(finalResponseCh, responses, finalErrorCh, errs)
 		})
 
@@ -280,24 +280,26 @@ func (df *dualFetcher) do(req *http.Request, chainedFunc func(*http.Request) (*h
 	if frontOnly {
 		log.Debug("Forcing domain-fronting")
 		doFronted()
-		return getResponse()
+		resp, err := getResponse()
+		return resp, op.Error(err)
 	}
 
 	if parallel {
-		context.Go(doFronted)
-		context.Go(doChained)
-		return getResponseParallel()
+		ops.Go(doFronted)
+		ops.Go(doChained)
+		resp, err := getResponseParallel()
+		return resp, op.Error(err)
 	}
 
 	doChained()
 	resp, err := getResponse()
 	if err != nil {
-		log.ReportedError(errors.New("Chained failed, trying fronted: %v", err))
+		log.Errorf("Chained failed, trying fronted: %v", err)
 		doFronted()
 		resp, err = getResponse()
 		log.Debugf("Result of fronting: %v", err)
 	}
-	return resp, err
+	return resp, op.Error(err)
 }
 
 func readResponses(finalResponse chan *http.Response, responses chan *http.Response, finalErr chan error, errs chan error) {
@@ -397,10 +399,10 @@ func chained(rootCA string, persistent bool) (http.RoundTripper, error) {
 	}
 
 	return AsRoundTripper(func(req *http.Request) (*http.Response, error) {
-		ctx := context.Enter().ProxyType(context.ProxyChained).Request(req)
-		defer ctx.Exit()
+		op := ops.Enter("chained").ProxyType(ops.ProxyChained).Request(req)
+		defer op.Exit()
 		resp, err := tr.RoundTrip(req)
-		ctx.Response(resp)
+		op.Response(resp)
 		return resp, errors.Wrap(err)
 	}), nil
 }

@@ -14,6 +14,7 @@ import (
 
 	"github.com/getlantern/appdir"
 	borda "github.com/getlantern/borda/client"
+	"github.com/getlantern/context"
 	"github.com/getlantern/go-loggly"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/jibber_jabber"
@@ -21,8 +22,8 @@ import (
 	"github.com/getlantern/rotator"
 	"github.com/getlantern/wfilter"
 
-	"github.com/getlantern/flashlight/context"
 	"github.com/getlantern/flashlight/geolookup"
+	"github.com/getlantern/flashlight/ops"
 	"github.com/getlantern/flashlight/proxied"
 )
 
@@ -202,7 +203,7 @@ func enableLoggly(cloudConfigCA string) {
 	client := loggly.New(logglyToken, logglyTag)
 	client.SetHTTPClient(&http.Client{Transport: rt})
 	le := &logglyErrorReporter{client}
-	golog.RegisterReporter(le.Report, false)
+	golog.RegisterReporter(le.Report)
 }
 
 func isDuplicate(msg string) bool {
@@ -337,7 +338,8 @@ func initBorda() {
 			Transport: proxied.AsRoundTripper(func(req *http.Request) (*http.Response, error) {
 				frontedURL := *req.URL
 				frontedURL.Host = "d157vud77ygy87.cloudfront.net"
-				defer context.Enter().Process("report_to_borda").Request(req).Exit()
+				op := ops.Enter("report_to_borda").Request(req)
+				defer op.Exit()
 				proxied.PrepareForFronting(req, frontedURL.String())
 				return rt.RoundTrip(req)
 			}),
@@ -352,12 +354,18 @@ func initBorda() {
 }
 
 func enableBorda() {
-	errorReporter := func(err error, logText string, ctx map[string]interface{}) {
-		reportErr := reportToBorda(map[string]float64{"error_count": 1}, ctx)
+	reporter := func(failure error, ctx map[string]interface{}) {
+		values := map[string]float64{}
+		if failure != nil {
+			values["error_count"] = 1
+		} else {
+			values["success_count"] = 1
+		}
+		reportErr := reportToBorda(values, ctx)
 		if reportErr != nil {
 			log.Errorf("Error reporting error to borda: %v", reportErr)
 		}
 	}
 
-	golog.RegisterReporter(errorReporter, true)
+	ops.RegisterReporter(reporter)
 }
