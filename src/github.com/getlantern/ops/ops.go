@@ -40,8 +40,9 @@ type Op interface {
 	PutDynamic(key string, valueFN func() interface{}) Op
 
 	// Fail marks this op as failed. If fail is called multiple times, the latest
-	// error will be reported as the failure.
-	Fail(err error) Op
+	// error will be reported as the failure. Returns the original error for
+	// convenient chaining.
+	Fail(err error) error
 }
 
 type op struct {
@@ -98,7 +99,7 @@ func (o *op) PutDynamic(key string, valueFN func() interface{}) Op {
 	return o
 }
 
-func (o *op) Fail(err error) Op {
+func (o *op) Fail(err error) error {
 	o.failure = err
-	return o
+	return err
 }
