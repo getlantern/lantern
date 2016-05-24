@@ -8,6 +8,8 @@ import (
 	"net"
 	"net/http"
 	"sync"
+	"sync/atomic"
+	"time"
 
 	"github.com/getlantern/golog"
 )
@@ -17,14 +19,20 @@ const (
 )
 
 var (
+	// When Dial() is called after an idle period larger than
+	// RecheckAfterIdleFor, Balancer will recheck all dialers to make sure they
+	// are alive and have up-to-date metrics.
+	RecheckAfterIdleFor = 1 * time.Minute
+
 	log = golog.LoggerFor("balancer")
 )
 
-// Balancer balances connections established by one or more Dialers.
+// Balancer balances connections among multiple Dialers.
 type Balancer struct {
-	mu      sync.RWMutex
-	dialers dialerHeap
-	trusted dialerHeap
+	mu           sync.RWMutex
+	dialers      dialerHeap
+	trusted      dialerHeap
+	lastDialTime atomic.Value // time.Time
 }
 
 // New creates a new Balancer using the supplied Strategy and Dialers.
@@ -45,6 +53,8 @@ func New(st Strategy, dialers ...*Dialer) *Balancer {
 	bal := &Balancer{dialers: st(dls), trusted: st(tdls)}
 	heap.Init(&bal.dialers)
 	heap.Init(&bal.trusted)
+	// Force checking all dialers on first Dial()
+	bal.lastDialTime.Store(time.Time{})
 	return bal
 }
 
@@ -63,6 +73,13 @@ func (b *Balancer) OnRequest(req *http.Request) {
 // either manages to connect, or runs out of dialers in which case it returns an
 // error.
 func (b *Balancer) Dial(network, addr string) (net.Conn, error) {
+	lastDialTime := b.lastDialTime.Load().(time.Time)
+	idled := time.Since(lastDialTime)
+	if idled > RecheckAfterIdleFor {
+		log.Debugf("Balancer idled for %s, start checking all dialers", idled)
+		b.checkDialers()
+	}
+	defer b.lastDialTime.Store(time.Now())
 	var dialers dialerHeap
 
 	_, port, _ := net.SplitHostPort(addr)
@@ -106,5 +123,12 @@ func (b *Balancer) Close() {
 	b.dialers.dialers = nil
 	for _, d := range oldDialers.dialers {
 		d.Stop()
+	}
+}
+
+// Parallel check all dialers
+func (b *Balancer) checkDialers() {
+	for _, d := range b.dialers.dialers {
+		go d.check()
 	}
 }

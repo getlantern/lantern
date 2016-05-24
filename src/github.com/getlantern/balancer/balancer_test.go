@@ -150,26 +150,57 @@ func TestTrusted(t *testing.T) {
 	assert.Equal(t, dialCount, 2, "should dial untrusted dialer")
 }
 
-func echoServer() (addr string, l net.Listener) {
-	l, err := net.Listen("tcp", "localhost:0")
-	if err != nil {
-		log.Fatalf("Unable to listen: %s", err)
-	}
-	go func() {
-		for {
-			c, err := l.Accept()
-			if err == nil {
-				go func() {
-					_, err = io.Copy(c, c)
-					if err != nil {
-						log.Fatalf("Unable to echo: %s", err)
-					}
-				}()
+func TestCheck(t *testing.T) {
+	oldRecheckAfterIdleFor := RecheckAfterIdleFor
+	RecheckAfterIdleFor = 100 * time.Millisecond
+	defer func() { RecheckAfterIdleFor = oldRecheckAfterIdleFor }()
+	oldNextCheckFactor := nextCheckFactor
+	nextCheckFactor = 100 * time.Millisecond
+	defer func() { nextCheckFactor = oldNextCheckFactor }()
+
+	var wg sync.WaitGroup
+	var failToDial uint32 = 0
+	d := &Dialer{
+		DialFN: func(network, addr string) (net.Conn, error) {
+			if atomic.LoadUint32(&failToDial) == 1 {
+				return nil, fmt.Errorf("fail intentionally")
+			} else {
+				return nil, nil
 			}
-		}
-	}()
-	addr = l.Addr().String()
-	return
+		},
+		Check: func() bool {
+			wg.Done()
+			return atomic.LoadUint32(&failToDial) == 0
+		},
+		Trusted: true,
+	}
+	bal := New(Sticky, d)
+
+	// check when dial for the first time
+	wg.Add(1)
+	_, err := bal.Dial("tcp", "does-not-exist.com:80")
+	assert.NoError(t, err)
+	wg.Wait()
+
+	// recheck when dial after idled for a while
+	wg.Add(1)
+	time.Sleep(200 * time.Millisecond)
+	_, err = bal.Dial("tcp", "does-not-exist.com:80")
+	assert.NoError(t, err)
+	wg.Wait()
+
+	// not recheck with consecutive successes
+	_, err = bal.Dial("tcp", "does-not-exist.com:80")
+	assert.NoError(t, err)
+
+	// recheck failed dialer
+	atomic.StoreUint32(&failToDial, 1)
+	wg.Add(1)
+	_, err = bal.Dial("tcp", "does-not-exist.com:80")
+	assert.Error(t, err)
+	_, err = bal.Dial("tcp", "does-not-exist.com:80")
+	assert.Error(t, err)
+	wg.Wait()
 }
 
 func newDialer(id int) *Dialer {
