@@ -59,9 +59,9 @@ type Fetcher interface {
 }
 
 // StartPolling starts the process of polling for new configuration files.
-func StartPolling() {
+func (cfg *Config) StartPolling() {
 	// Force detour to whitelist chained domain
-	u, err := url.Parse(chainedCloudConfigURL)
+	u, err := url.Parse(cfg.CloudConfig)
 	if err != nil {
 		log.Fatalf("Unable to parse chained cloud config URL: %v", err)
 	}
@@ -77,6 +77,12 @@ func validateConfig(_cfg yamlconf.Config) error {
 	cfg, ok := _cfg.(*Config)
 	if !ok {
 		return fmt.Errorf("Config is not a flashlight config!")
+	}
+	if cfg.Client == nil {
+		return fmt.Errorf("No client config")
+	}
+	if cfg.Client.ChainedServers == nil {
+		return fmt.Errorf("No chained servers")
 	}
 	nc := len(cfg.Client.ChainedServers)
 
@@ -228,6 +234,10 @@ func (updated *Config) applyFlags(flags map[string]interface{}) error {
 			updated.CPUProfile = value.(string)
 		case "memprofile":
 			updated.MemProfile = value.(string)
+		case "staging":
+			log.Debug("Configuring for staging")
+			updated.CloudConfig = "http://config-staging.getiantem.org/cloud.yaml.gz"
+			updated.FrontedCloudConfig = "http://d33pfmbpauhmvd.cloudfront.net/cloud.yaml.gz"
 		}
 	}
 	if visitErr != nil {
@@ -249,11 +259,11 @@ func (cfg *Config) ApplyDefaults() {
 	}
 
 	if cfg.CloudConfig == "" {
-		cfg.CloudConfig = chainedCloudConfigURL
+		cfg.CloudConfig = defaultChainedCloudConfigURL
 	}
 
 	if cfg.FrontedCloudConfig == "" {
-		cfg.FrontedCloudConfig = frontedCloudConfigURL
+		cfg.FrontedCloudConfig = defaultFrontedCloudConfigURL
 	}
 
 	if cfg.Client == nil {
