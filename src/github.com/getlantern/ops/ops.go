@@ -59,11 +59,11 @@ func RegisterReporter(reporter Reporter) {
 // Enter enters a new level on the current Op's Context stack, creating a new Op
 // if necessary.
 func Enter(name string) Op {
-	return &op{ctx: context.Enter().Put("op", name)}
+	return &op{ctx: context.Enter().Put("op", name).PutIfAbsent("root_op", name)}
 }
 
 func (o *op) Enter(name string) Op {
-	return &op{ctx: o.ctx.Enter().Put("op", name)}
+	return &op{ctx: o.ctx.Enter().Put("op", name).PutIfAbsent("root_op", name)}
 }
 
 func (o *op) Go(fn func()) {
