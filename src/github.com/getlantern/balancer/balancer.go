@@ -128,7 +128,9 @@ func (b *Balancer) Close() {
 
 // Parallel check all dialers
 func (b *Balancer) checkDialers() {
+	b.mu.RLock()
 	for _, d := range b.dialers.dialers {
 		go d.check()
 	}
+	b.mu.RUnlock()
 }
