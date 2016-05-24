@@ -230,9 +230,15 @@ func (updated *Config) applyFlags(flags map[string]interface{}) error {
 		case "memprofile":
 			updated.MemProfile = value.(string)
 		case "staging":
-			log.Debug("Configuring for staging")
-			updated.CloudConfig = "http://config-staging.getiantem.org/cloud.yaml.gz"
-			updated.FrontedCloudConfig = "http://d33pfmbpauhmvd.cloudfront.net/cloud.yaml.gz"
+			log.Debugf("Staging variable: %v", value)
+			stage := value.(bool)
+			if stage {
+				log.Debug("Configuring for staging")
+				updated.CloudConfig = "http://config-staging.getiantem.org/cloud.yaml.gz"
+				updated.FrontedCloudConfig = "http://d33pfmbpauhmvd.cloudfront.net/cloud.yaml.gz"
+			} else {
+				log.Debug("Not configuring for staging")
+			}
 		}
 	}
 	if visitErr != nil {

@@ -1,6 +1,8 @@
 package config
 
 import (
+	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,11 +11,18 @@ import (
 // TestStagingSetup tests to make sure our staging config flag sets the
 // appropriate URLs for staging servers.
 func TestStagingSetup(t *testing.T) {
+	configDir, errr := ioutil.TempDir("", "config-testing")
+	if errr != nil {
+		log.Fatal(errr)
+	}
+
+	defer os.RemoveAll(configDir)
+
 	userConfig := &userConfig{}
 	version := "test-version"
 	flagsAsMap := make(map[string]interface{})
+	flagsAsMap["staging"] = false
 
-	configDir := ""
 	stickyConfig := false
 	var cfg *Config
 	var err error
