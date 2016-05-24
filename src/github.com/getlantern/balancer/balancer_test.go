@@ -20,6 +20,7 @@ var (
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
+	nextCheckFactor = 100 * time.Millisecond
 }
 
 func TestNoDialers(t *testing.T) {
@@ -154,19 +155,15 @@ func TestCheck(t *testing.T) {
 	oldRecheckAfterIdleFor := RecheckAfterIdleFor
 	RecheckAfterIdleFor = 100 * time.Millisecond
 	defer func() { RecheckAfterIdleFor = oldRecheckAfterIdleFor }()
-	oldNextCheckFactor := nextCheckFactor
-	nextCheckFactor = 100 * time.Millisecond
-	defer func() { nextCheckFactor = oldNextCheckFactor }()
 
 	var wg sync.WaitGroup
-	var failToDial uint32 = 0
+	var failToDial uint32
 	d := &Dialer{
 		DialFN: func(network, addr string) (net.Conn, error) {
 			if atomic.LoadUint32(&failToDial) == 1 {
 				return nil, fmt.Errorf("fail intentionally")
-			} else {
-				return nil, nil
 			}
+			return nil, nil
 		},
 		Check: func() bool {
 			wg.Done()
