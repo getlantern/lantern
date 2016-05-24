@@ -30,7 +30,7 @@ type Op interface {
 	Go(fn func())
 
 	// Exit exits the current level on this Context stack.
-	Exit() Op
+	Exit()
 
 	// Put puts a key->value pair into the current level of the context stack.
 	Put(key string, value interface{}) Op
@@ -76,7 +76,7 @@ func Go(fn func()) {
 	context.Go(fn)
 }
 
-func (o *op) Exit() Op {
+func (o *op) Exit() {
 	var reportersCopy []Reporter
 	reportersMutex.RLock()
 	if len(reporters) > 0 {
@@ -91,7 +91,6 @@ func (o *op) Exit() Op {
 			reporter(o.failure, ctx)
 		}
 	}
-	return &op{ctx: o.ctx.Exit()}
 }
 
 func (o *op) Put(key string, value interface{}) Op {
