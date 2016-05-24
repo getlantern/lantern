@@ -21,14 +21,17 @@ func TestSuccess(t *testing.T) {
 	ops.RegisterReporter(report)
 	context.PutGlobal("g", "g1")
 	op := ops.Enter("test_success").Put("a", 1).PutDynamic("b", func() interface{} { return 2 })
-	op.Exit()
+	defer op.Exit()
+	innerOp := op.Enter("inside")
+	innerOp.Exit()
 
 	assert.Nil(t, reportedFailure)
 	expectedCtx := map[string]interface{}{
-		"op": "test_success",
-		"g":  "g1",
-		"a":  1,
-		"b":  2,
+		"op":      "inside",
+		"root_op": "test_success",
+		"g":       "g1",
+		"a":       1,
+		"b":       2,
 	}
 	assert.Equal(t, expectedCtx, reportedCtx)
 }
