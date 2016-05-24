@@ -309,32 +309,32 @@ func (cfg *Config) applyClientDefaults() {
 // updateFrom creates a new Config by 'merging' the given yaml into this Config.
 // The masquerade sets, the collections of servers, and the trusted CAs in the
 // update yaml  completely replace the ones in the original Config.
-func (updated *Config) updateFrom(updateBytes []byte) error {
+func (cfg *Config) updateFrom(updateBytes []byte) error {
 	// XXX: does this need a mutex, along with everyone that uses the config?
-	oldChainedServers := updated.Client.ChainedServers
-	oldMasqueradeSets := updated.Client.MasqueradeSets
-	oldTrustedCAs := updated.TrustedCAs
-	updated.Client.ChainedServers = map[string]*client.ChainedServerInfo{}
-	updated.Client.MasqueradeSets = map[string][]*fronted.Masquerade{}
-	updated.TrustedCAs = []*fronted.CA{}
-	err := yaml.Unmarshal(updateBytes, updated)
+	oldChainedServers := cfg.Client.ChainedServers
+	oldMasqueradeSets := cfg.Client.MasqueradeSets
+	oldTrustedCAs := cfg.TrustedCAs
+	cfg.Client.ChainedServers = map[string]*client.ChainedServerInfo{}
+	cfg.Client.MasqueradeSets = map[string][]*fronted.Masquerade{}
+	cfg.TrustedCAs = []*fronted.CA{}
+	err := yaml.Unmarshal(updateBytes, cfg)
 	if err != nil {
-		updated.Client.ChainedServers = oldChainedServers
-		updated.Client.MasqueradeSets = oldMasqueradeSets
-		updated.TrustedCAs = oldTrustedCAs
+		cfg.Client.ChainedServers = oldChainedServers
+		cfg.Client.MasqueradeSets = oldMasqueradeSets
+		cfg.TrustedCAs = oldTrustedCAs
 		return fmt.Errorf("Unable to unmarshal YAML for update: %s", err)
 	}
 	// Deduplicate global proxiedsites
-	if len(updated.ProxiedSites.Cloud) > 0 {
+	if len(cfg.ProxiedSites.Cloud) > 0 {
 		wlDomains := make(map[string]bool)
-		for _, domain := range updated.ProxiedSites.Cloud {
+		for _, domain := range cfg.ProxiedSites.Cloud {
 			wlDomains[domain] = true
 		}
-		updated.ProxiedSites.Cloud = make([]string, 0, len(wlDomains))
+		cfg.ProxiedSites.Cloud = make([]string, 0, len(wlDomains))
 		for domain := range wlDomains {
-			updated.ProxiedSites.Cloud = append(updated.ProxiedSites.Cloud, domain)
+			cfg.ProxiedSites.Cloud = append(cfg.ProxiedSites.Cloud, domain)
 		}
-		sort.Strings(updated.ProxiedSites.Cloud)
+		sort.Strings(cfg.ProxiedSites.Cloud)
 	}
 	return nil
 }
