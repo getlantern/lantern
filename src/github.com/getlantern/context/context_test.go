@@ -92,7 +92,8 @@ func TestStack(t *testing.T) {
 		"d": 5,
 	})
 
-	c = c.Exit()
+	c.Exit()
+	c = currentContext()
 	assert.NotNil(t, c)
 	assertContents(Map{
 		"a": 1,
@@ -100,18 +101,21 @@ func TestStack(t *testing.T) {
 		"c": 3,
 	})
 
-	c = c.Exit()
+	c.Exit()
+	c = currentContext()
 	assert.NotNil(t, c)
 	assertContents(Map{
 		"a": 1,
 	})
 
 	// Last exit
-	assert.Nil(t, c.Exit())
+	c.Exit()
+	assert.Nil(t, currentContext())
 	assertContents(Map{})
 
 	// Exit again, just for good measure
-	assert.Nil(t, c.Exit())
+	c.Exit()
+	assert.Nil(t, currentContext())
 	assertContents(Map{})
 
 	// Spawn a goroutine with no existing contexts
