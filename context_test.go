@@ -25,7 +25,8 @@ func TestStack(t *testing.T) {
 		Put("b", 2)
 	c = Enter().
 		PutDynamic("c", func() interface{} { return 4 }).
-		Put("d", 5)
+		PutIfAbsent("d", 5).
+		PutIfAbsent("a", 11)
 
 	// Put something in the penultimate context and make sure it doesn't override
 	// what's set in the ultimate context
