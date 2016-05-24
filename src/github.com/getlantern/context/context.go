@@ -36,7 +36,7 @@ type Context interface {
 	Go(fn func())
 
 	// Exit exits the current level on this Context stack.
-	Exit() Context
+	Exit()
 
 	// Put puts a key->value pair into the current level of the context stack.
 	Put(key string, value interface{}) Context
@@ -133,7 +133,7 @@ func makeContext(id uint64, parent *context, branchedFrom *context) *context {
 	}
 }
 
-func (c *context) Exit() Context {
+func (c *context) Exit() {
 	c.mx.RLock()
 	id := c.id
 	parent := c.parent
@@ -142,12 +142,11 @@ func (c *context) Exit() Context {
 		allmx.Lock()
 		delete(contexts, id)
 		allmx.Unlock()
-		return nil
+		return
 	}
 	allmx.Lock()
 	contexts[id] = parent
 	allmx.Unlock()
-	return parent
 }
 
 func (c *context) Put(key string, value interface{}) Context {
