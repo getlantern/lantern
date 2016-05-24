@@ -67,13 +67,13 @@ func TestProxying(t *testing.T) {
 	// We have to write out a config file so that Lantern doesn't try to use the
 	// default config, which would go to some remote proxies that can't talk to
 	// our fake config server.
-	err = writeConfig(configAddr)
+	err = writeConfig()
 	if !assert.NoError(t, err) {
 		return
 	}
 
 	// Starts the Lantern App
-	err = startApp(t)
+	err = startApp(t, configAddr)
 	if !assert.NoError(t, err) {
 		return
 	}
@@ -138,15 +138,14 @@ func startConfigServer(t *testing.T) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("Unable to listen for config server connection: %v", err)
 	}
-	configAddr := l.Addr().String()
 	go func() {
-		err := http.Serve(l, http.HandlerFunc(serveConfig(t, configAddr)))
+		err := http.Serve(l, http.HandlerFunc(serveConfig(t)))
 		assert.NoError(t, err, "Unable to serve config")
 	}()
-	return configAddr, nil
+	return l.Addr().String(), nil
 }
 
-func serveConfig(t *testing.T, configAddr string) func(http.ResponseWriter, *http.Request) {
+func serveConfig(t *testing.T) func(http.ResponseWriter, *http.Request) {
 	return func(resp http.ResponseWriter, req *http.Request) {
 		obfs4 := atomic.LoadUint32(&useOBFS4) == 1
 		version := "1"
@@ -159,7 +158,7 @@ func serveConfig(t *testing.T, configAddr string) func(http.ResponseWriter, *htt
 			return
 		}
 
-		cfg, err := buildConfig(configAddr, obfs4)
+		cfg, err := buildConfig(obfs4)
 		if err != nil {
 			t.Error(err)
 			resp.WriteHeader(http.StatusInternalServerError)
@@ -175,14 +174,14 @@ func serveConfig(t *testing.T, configAddr string) func(http.ResponseWriter, *htt
 	}
 }
 
-func writeConfig(configAddr string) error {
+func writeConfig() error {
 	filename := "lantern-9999.99.99.yaml"
 	err := os.Remove(filename)
 	if err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("Unable to delete existing yaml config: %v", err)
 	}
 
-	cfg, err := buildConfig(configAddr, false)
+	cfg, err := buildConfig(false)
 	if err != nil {
 		return err
 	}
@@ -190,7 +189,7 @@ func writeConfig(configAddr string) error {
 	return ioutil.WriteFile(filename, cfg, 0644)
 }
 
-func buildConfig(configAddr string, obfs4 bool) ([]byte, error) {
+func buildConfig(obfs4 bool) ([]byte, error) {
 	bytes, err := ioutil.ReadFile("./config-template.yaml")
 	if err != nil {
 		return nil, fmt.Errorf("Could not read config %v", err)
@@ -201,8 +200,6 @@ func buildConfig(configAddr string, obfs4 bool) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Could not unmarshal config %v", err)
 	}
-	cfg.CloudConfig = "http://" + configAddr
-	cfg.FrontedCloudConfig = cfg.CloudConfig
 
 	srv := cfg.Client.ChainedServers["fallback-template"]
 	srv.AuthToken = Token
@@ -236,8 +233,11 @@ func buildConfig(configAddr string, obfs4 bool) ([]byte, error) {
 	return out, nil
 }
 
-func startApp(t *testing.T) error {
+func startApp(t *testing.T, configAddr string) error {
+	configURL := "http://" + configAddr
 	flags := map[string]interface{}{
+		"cloudconfig":          configURL,
+		"frontedconfig":        configURL,
 		"addr":                 LocalProxyAddr,
 		"headless":             true,
 		"proxyall":             true,
