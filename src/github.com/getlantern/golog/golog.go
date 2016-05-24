@@ -27,10 +27,9 @@ import (
 )
 
 var (
-	outs                 atomic.Value
-	transparentReporters []ErrorReporter
-	explicitReporters    []ErrorReporter
-	reportersMutex       sync.RWMutex
+	outs           atomic.Value
+	reporters      []ErrorReporter
+	reportersMutex sync.RWMutex
 
 	bufferPool = bpool.NewBufferPool(200)
 )
@@ -54,16 +53,11 @@ func GetOutputs() *outputs {
 	return outs.Load().(*outputs)
 }
 
-// RegisterReporter registers the given ErrorReporter. If explicit is true, the
-// reporter only receives errors logged with ReportedError, otherwise the
-// reporter receives all errors.
-func RegisterReporter(reporter ErrorReporter, explicit bool) {
+// RegisterReporter registers the given ErrorReporter. All logged Errors are
+// sent to this reporter.
+func RegisterReporter(reporter ErrorReporter) {
 	reportersMutex.Lock()
-	if explicit {
-		explicitReporters = append(explicitReporters, reporter)
-	} else {
-		transparentReporters = append(transparentReporters, reporter)
-	}
+	reporters = append(reporters, reporter)
 	reportersMutex.Unlock()
 }
 
@@ -97,8 +91,6 @@ type Logger interface {
 
 	// Error logs to stderr
 	Error(arg interface{}) error
-	// ReportedError logs to stderr and reports the error to registered reporters
-	ReportedError(err error) error
 	// Errorf logs to stderr. It returns the first argument that's an error, or
 	// a new error built using fmt.Errorf if none of the arguments are errors.
 	Errorf(message string, args ...interface{}) error
@@ -253,14 +245,10 @@ func (l *logger) Debugf(message string, args ...interface{}) {
 }
 
 func (l *logger) Error(arg interface{}) error {
-	return l.errorSkipFrames(false, arg, 1)
+	return l.errorSkipFrames(arg, 1)
 }
 
-func (l *logger) ReportedError(err error) error {
-	return l.errorSkipFrames(true, err, 1)
-}
-
-func (l *logger) errorSkipFrames(reportRequested bool, arg interface{}, skipFrames int) error {
+func (l *logger) errorSkipFrames(arg interface{}, skipFrames int) error {
 	var err error
 	switch e := arg.(type) {
 	case error:
@@ -271,7 +259,7 @@ func (l *logger) errorSkipFrames(reportRequested bool, arg interface{}, skipFram
 	buf := bufferPool.Get()
 	defer bufferPool.Put(buf)
 	l.print(GetOutputs().ErrorOut, buf, skipFrames+4, "ERROR", err)
-	return report(reportRequested, err, buf.String())
+	return report(err, buf.String())
 }
 
 func (l *logger) Errorf(message string, args ...interface{}) error {
@@ -293,7 +281,7 @@ func (l *logger) Errorf(message string, args ...interface{}) error {
 	} else {
 		l.printf(GetOutputs().ErrorOut, buf, 4, "ERROR", err, message, args...)
 	}
-	return report(false, err, buf.String())
+	return report(err, buf.String())
 }
 
 func (l *logger) Fatal(arg interface{}) {
@@ -427,20 +415,21 @@ func printContext(buf *bytes.Buffer, err interface{}) {
 	buf.WriteByte(']')
 }
 
-func report(reportRequested bool, err error, text string) error {
+func report(err error, text string) error {
+	var reportersCopy []ErrorReporter
 	reportersMutex.RLock()
-	doReport := func(reporter ErrorReporter) {
-		// We include globals when reporting
-		reporter(err, hidden.Clean(text), context.AsMap(err, true))
-	}
-	for _, reporter := range transparentReporters {
-		doReport(reporter)
-	}
-	if reportRequested {
-		for _, reporter := range explicitReporters {
-			doReport(reporter)
-		}
+	if len(reporters) > 0 {
+		reportersCopy = make([]ErrorReporter, len(reporters))
+		copy(reportersCopy, reporters)
 	}
 	reportersMutex.RUnlock()
+
+	if len(reportersCopy) > 0 {
+		ctx := context.AsMap(err, true)
+		for _, reporter := range reportersCopy {
+			// We include globals when reporting
+			reporter(err, hidden.Clean(text), ctx)
+		}
+	}
 	return err
 }
