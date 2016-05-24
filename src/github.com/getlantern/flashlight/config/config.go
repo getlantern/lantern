@@ -78,12 +78,7 @@ func validateConfig(_cfg yamlconf.Config) error {
 	if !ok {
 		return fmt.Errorf("Config is not a flashlight config!")
 	}
-	if cfg.Client == nil {
-		return fmt.Errorf("No client config")
-	}
-	if cfg.Client.ChainedServers == nil {
-		return fmt.Errorf("No chained servers")
-	}
+
 	nc := len(cfg.Client.ChainedServers)
 
 	log.Debugf("Found %v chained servers in config on disk", nc)
