@@ -344,7 +344,7 @@ func initBorda() {
 		},
 	})
 
-	reportToBorda = bordaClient.ReducingSubmitter("errors", 1000, func(existingValues map[string]float64, newValues map[string]float64) {
+	reportToBorda = bordaClient.ReducingSubmitter("client_results", 1000, func(existingValues map[string]float64, newValues map[string]float64) {
 		for key, value := range newValues {
 			existingValues[key] += value
 		}
