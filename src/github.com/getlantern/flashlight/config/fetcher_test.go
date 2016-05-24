@@ -52,12 +52,21 @@ func TestStagingSetup(t *testing.T) {
 	assert.Equal(t, defaultChainedCloudConfigURL, fetch.chainedURL)
 	assert.Equal(t, defaultFrontedCloudConfigURL, fetch.frontedURL)
 
+	// Test that setting the URLs to use from the command line still works.
 	flags["cloudconfig"] = "testconfig"
 	flags["frontedconfig"] = "testconfig"
 	fetch = NewFetcher(&userConfig{}, rt, flags).(*fetcher)
 
 	assert.Equal(t, "testconfig", fetch.chainedURL)
 	assert.Equal(t, "testconfig", fetch.frontedURL)
+
+	// Blank flags should mean we use the default
+	flags["cloudconfig"] = ""
+	flags["frontedconfig"] = ""
+	fetch = NewFetcher(&userConfig{}, rt, flags).(*fetcher)
+
+	assert.Equal(t, defaultChainedCloudConfigURL, fetch.chainedURL)
+	assert.Equal(t, defaultFrontedCloudConfigURL, fetch.frontedURL)
 
 	flags["staging"] = true
 	fetch = NewFetcher(&userConfig{}, rt, flags).(*fetcher)

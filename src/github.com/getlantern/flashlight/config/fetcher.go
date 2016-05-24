@@ -64,25 +64,26 @@ func NewFetcher(conf UserConfig, rt http.RoundTripper, flags map[string]interfac
 	} else {
 		stage = false
 	}
-	var chained string
-	var fronted string
+	var chained string = defaultChainedCloudConfigURL
+	var fronted string = defaultFrontedCloudConfigURL
 	if stage {
 		log.Debug("Configuring for staging")
 		chained = "http://config-staging.getiantem.org/cloud.yaml.gz"
 		fronted = "http://d33pfmbpauhmvd.cloudfront.net/cloud.yaml.gz"
 	} else {
-		log.Debug("Not configuring for staging")
+		log.Debugf("Not configuring for staging. Using flags: %v", flags)
+
 		if s, ok := flags["cloudconfig"].(string); ok {
-			log.Debugf("Overridding chained URL from the command line %v", s)
-			chained = s
-		} else {
-			chained = defaultChainedCloudConfigURL
+			if len(s) > 0 {
+				log.Debugf("Overridding chained URL from the command line '%v'", s)
+				chained = s
+			}
 		}
 		if s, ok := flags["frontedconfig"].(string); ok {
-			log.Debugf("Overridding fronted URL from the command line %v", s)
-			fronted = s
-		} else {
-			fronted = defaultFrontedCloudConfigURL
+			if len(s) > 0 {
+				log.Debugf("Overridding fronted URL from the command line '%v'", s)
+				fronted = s
+			}
 		}
 	}
 
