@@ -10,7 +10,7 @@ import (
 
 // TestStagingSetup tests to make sure our staging config flag sets the
 // appropriate URLs for staging servers.
-func TestStagingSetup(t *testing.T) {
+func TestInit(t *testing.T) {
 	configDir, errr := ioutil.TempDir("", "config-testing")
 	if errr != nil {
 		log.Fatal(errr)
@@ -29,15 +29,8 @@ func TestStagingSetup(t *testing.T) {
 	cfg, err = Init(userConfig, version, configDir, stickyConfig, flagsAsMap)
 	assert.Nil(t, err)
 
-	assert.Equal(t, defaultChainedCloudConfigURL, cfg.CloudConfig)
-	assert.Equal(t, defaultFrontedCloudConfigURL, cfg.FrontedCloudConfig)
-
-	flagsAsMap["staging"] = true
-	cfg, err = Init(userConfig, version, configDir, stickyConfig, flagsAsMap)
-	assert.Nil(t, err)
-
-	assert.Equal(t, "http://config-staging.getiantem.org/cloud.yaml.gz", cfg.CloudConfig)
-	assert.Equal(t, "http://d33pfmbpauhmvd.cloudfront.net/cloud.yaml.gz", cfg.FrontedCloudConfig)
+	assert.Equal(t, configDir, cfg.configDir)
+	assert.Equal(t, "", cfg.CloudConfigCA)
 }
 
 func TestMajorVersion(t *testing.T) {
