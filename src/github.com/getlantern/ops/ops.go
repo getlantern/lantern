@@ -71,6 +71,11 @@ func (o *op) Go(fn func()) {
 	o.ctx.Go(fn)
 }
 
+// Go mimics the function from context.
+func Go(fn func()) {
+	context.Go(fn)
+}
+
 func (o *op) Exit() Op {
 	var reportersCopy []Reporter
 	reportersMutex.RLock()
