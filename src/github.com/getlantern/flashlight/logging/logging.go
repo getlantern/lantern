@@ -55,6 +55,17 @@ var (
 
 	bordaClient   *borda.Client
 	reportToBorda borda.Submitter
+
+	logglyKeyTranslations = map[string]string{
+		"device_id":       "instanceid",
+		"os_name":         "osName",
+		"os_arch":         "osArch",
+		"os_version":      "osVersion",
+		"locale_language": "language",
+		"geo_country":     "country",
+		"timezone":        "timeZone",
+		"app_version":     "version",
+	}
 )
 
 func init() {
@@ -270,8 +281,16 @@ func (r logglyErrorReporter) Report(err error, fullMessage string, ctx map[strin
 	}
 	prefix := fullMessage[0:firstColonPos]
 
+	translatedCtx := make(map[string]interface{}, len(ctx))
+	for key, value := range ctx {
+		tkey, found := logglyKeyTranslations[key]
+		if !found {
+			tkey = key
+		}
+		translatedCtx[tkey] = value
+	}
 	m := loggly.Message{
-		"extra":        ctx,
+		"extra":        translatedCtx,
 		"locationInfo": prefix,
 		"message":      message,
 		"fullMessage":  fullMessage,

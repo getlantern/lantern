@@ -73,7 +73,7 @@ func (op *Op) PutDynamic(key string, valueFN func() interface{}) *Op {
 
 // Error mimics the similar method from ops.op
 func (op *Op) Error(err error) error {
-	return op.wrapped.FailOnError(err)
+	return op.wrapped.Error(err)
 }
 
 // UserAgent attaches a user agent to the Context.
