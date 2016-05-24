@@ -8,7 +8,7 @@ import (
 
 	"github.com/getlantern/balancer"
 	"github.com/getlantern/chained"
-	"github.com/getlantern/flashlight/context"
+	"github.com/getlantern/flashlight/ops"
 	"github.com/getlantern/idletiming"
 )
 
@@ -92,10 +92,11 @@ func (s *ChainedServerInfo) Dialer(deviceID string) (*balancer.Dialer, error) {
 		Label:   label,
 		Trusted: s.Trusted,
 		DialFN: func(network, addr string) (net.Conn, error) {
-			defer context.Enter().ProxyType(context.ProxyChained).ProxyAddr(s.Addr)
+			op := ops.Enter("dial_for_balancer").ProxyType(ops.ProxyChained).ProxyAddr(s.Addr)
+			defer op.Exit()
 			conn, err := d(network, addr)
 			if err != nil {
-				return nil, err
+				return nil, op.Error(err)
 			}
 
 			conn = idletiming.Conn(conn, idleTimeout, func() {

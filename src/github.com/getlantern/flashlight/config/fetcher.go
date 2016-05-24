@@ -14,7 +14,7 @@ import (
 
 	"github.com/getlantern/yamlconf"
 
-	"github.com/getlantern/flashlight/context"
+	"github.com/getlantern/flashlight/ops"
 	"github.com/getlantern/flashlight/proxied"
 )
 
@@ -100,7 +100,7 @@ func (cf *fetcher) pollForConfig(currentCfg yamlconf.Config, stickyConfig bool) 
 }
 
 func (cf *fetcher) fetchCloudConfig(cfg *Config) ([]byte, error) {
-	defer context.Enter().Process("fetch_config").Exit()
+	defer ops.Enter("fetch_config").Exit()
 	log.Debugf("Fetching cloud config from %v (%v)", cfg.CloudConfig, cfg.FrontedCloudConfig)
 
 	url := cfg.CloudConfig

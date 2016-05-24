@@ -1,7 +1,6 @@
 package client
 
 import (
-	"fmt"
 	"io"
 	"net"
 	"net/http"
@@ -10,7 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/getlantern/flashlight/context"
+	"github.com/getlantern/errors"
+	"github.com/getlantern/flashlight/ops"
 )
 
 const (
@@ -23,31 +23,29 @@ const (
 func (client *Client) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	userAgent := req.Header.Get("User-Agent")
 
-	ctx := context.Enter().
-		Op("proxy").
+	op := ops.Enter("proxy").
 		UserAgent(userAgent).
 		Origin(req.Host)
-	defer ctx.Exit()
+	defer op.Exit()
 
 	if req.Method == httpConnectMethod {
 		// CONNECT requests are often used for HTTPS requests.
 		log.Tracef("Intercepting CONNECT %s", req.URL)
-		client.intercept(resp, req, ctx)
+		client.intercept(resp, req, op)
 	} else if rp, ok := client.rp.Get(1 * time.Minute); ok {
 		// Direct proxying can only be used for plain HTTP connections.
 		log.Debugf("Reverse proxying %s %v", req.Method, req.URL)
 		rp.(*httputil.ReverseProxy).ServeHTTP(resp, req)
 	} else {
 		log.Debugf("Could not get a reverse proxy connection -- responding bad gateway")
-		respondBadGateway(resp, "Unable to get a connection")
+		respondBadGateway(resp, op.Error(errors.New("Unable to get a connection")))
 	}
 }
 
 // intercept intercepts an HTTP CONNECT request, hijacks the underlying client
 // connection and starts piping the data over a new net.Conn obtained from the
 // given dial function.
-func (client *Client) intercept(resp http.ResponseWriter, req *http.Request, ctx *context.Context) {
-
+func (client *Client) intercept(resp http.ResponseWriter, req *http.Request, op *ops.Op) {
 	if req.Method != httpConnectMethod {
 		panic("Intercept used for non-CONNECT request!")
 	}
@@ -55,12 +53,12 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request, ctx
 	addr := hostIncludingPort(req, 443)
 	_, portString, err := net.SplitHostPort(addr)
 	if err != nil {
-		respondBadGateway(resp, fmt.Sprintf("Unable to determine port for address %v: %v", addr, err))
+		respondBadGateway(resp, op.Error(errors.New("Unable to determine port for address %v: %v", addr, err)))
 		return
 	}
 	port, err := strconv.Atoi(portString)
 	if err != nil {
-		respondBadGateway(resp, fmt.Sprintf("Unable to parse port %v for address %v: %v", addr, port, err))
+		respondBadGateway(resp, op.Error(errors.New("Unable to parse port %v for address %v: %v", addr, port, err)))
 		return
 	}
 
@@ -91,7 +89,7 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request, ctx
 
 	// Hijack underlying connection.
 	if clientConn, _, err = resp.(http.Hijacker).Hijack(); err != nil {
-		respondBadGateway(resp, fmt.Sprintf("Unable to hijack connection: %s", err))
+		respondBadGateway(resp, op.Error(errors.New("Unable to hijack connection: %s", err)))
 		return
 	}
 
@@ -123,15 +121,15 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request, ctx
 	}
 
 	if err != nil {
-		log.Debugf("Could not dial %v", err)
+		log.Debug(op.Error(errors.New("Could not dial %v", err)))
 		respondBadGatewayHijacked(clientConn, req)
 		return
 	}
 
 	success := make(chan bool, 1)
-	ctx.Go(func() {
+	op.Go(func() {
 		if e := respondOK(clientConn, req); e != nil {
-			log.Errorf("Unable to respond OK: %s", e)
+			log.Error(op.Error(errors.New("Unable to respond OK: %s", e)))
 			success <- false
 			return
 		}
@@ -140,24 +138,24 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request, ctx
 
 	if <-success {
 		// Pipe data between the client and the proxy.
-		pipeData(clientConn, connOut, ctx, func() { closeOnce.Do(closeConns) })
+		pipeData(clientConn, connOut, op, func() { closeOnce.Do(closeConns) })
 	}
 }
 
 // pipeData pipes data between the client and proxy connections.  It's also
 // responsible for responding to the initial CONNECT request with a 200 OK.
-func pipeData(clientConn net.Conn, connOut net.Conn, ctx *context.Context, closeFunc func()) {
+func pipeData(clientConn net.Conn, connOut net.Conn, op *ops.Op, closeFunc func()) {
 	// Start piping from client to proxy
-	ctx.Go(func() {
+	op.Go(func() {
 		if _, err := io.Copy(connOut, clientConn); err != nil {
-			log.Tracef("Error piping data from client to proxy: %s", err)
+			log.Debug(op.Error(errors.New("Error piping data from client to proxy: %v", err)))
 		}
 		closeFunc()
 	})
 
 	// Then start copying from proxy to client.
 	if _, err := io.Copy(clientConn, connOut); err != nil {
-		log.Tracef("Error piping data from proxy to client: %s", err)
+		log.Debug(op.Error(errors.New("Error piping data from proxy to client: %v", err)))
 	}
 	closeFunc()
 }
@@ -187,11 +185,11 @@ func respondHijacked(writer io.Writer, req *http.Request, statusCode int) error 
 	return resp.Write(writer)
 }
 
-func respondBadGateway(resp http.ResponseWriter, msg string) {
-	log.Debugf("Responding BadGateway: %v", msg)
+func respondBadGateway(resp http.ResponseWriter, err error) {
+	log.Debugf("Responding BadGateway: %v", err)
 	resp.WriteHeader(http.StatusBadGateway)
-	if _, err := resp.Write([]byte(msg)); err != nil {
-		log.Debugf("Error writing error to ResponseWriter: %s", err)
+	if _, writeError := resp.Write([]byte(err.Error())); writeError != nil {
+		log.Debugf("Error writing error to ResponseWriter: %v", writeError)
 	}
 }
 
