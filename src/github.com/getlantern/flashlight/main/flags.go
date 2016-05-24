@@ -8,7 +8,6 @@ var (
 	cloudconfig        = flag.String("cloudconfig", "", "optional http(s) URL to a cloud-based source for configuration updates")
 	cloudconfigca      = flag.String("cloudconfigca", "", "optional PEM encoded certificate used to verify TLS connections to fetch cloudconfig")
 	frontedconfig      = flag.String("frontedconfig", "", "optional http(s) URL to a cloud-based source for configuration updates")
-	instanceid         = flag.String("instanceid", "", "instanceId under which to report stats to statshub. If not specified, no stats are reported.")
 	registerat         = flag.String("registerat", "", "base URL for peer DNS registry at which to register (e.g. https://peerscanner.getiantem.org)")
 	country            = flag.String("country", "xx", "2 digit country code under which to report stats. Defaults to xx.")
 	cpuprofile         = flag.String("cpuprofile", "", "write cpu profile to given file")

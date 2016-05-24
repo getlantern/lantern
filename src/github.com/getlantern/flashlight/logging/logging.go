@@ -88,7 +88,7 @@ func EnableFileLogging() error {
 
 // Configure will set up logging. An empty "addr" will configure logging without a proxy
 // Returns a bool channel for optional blocking.
-func Configure(cloudConfigCA string, instanceID string,
+func Configure(cloudConfigCA string, deviceID string,
 	version string, revisionDate string) (success chan bool) {
 	success = make(chan bool, 1)
 
@@ -112,7 +112,7 @@ func Configure(cloudConfigCA string, instanceID string,
 		return
 	}
 
-	initContext(instanceID, version, revisionDate)
+	initContext(deviceID, version, revisionDate)
 
 	// Using a goroutine because we'll be using waitforserver and at this time
 	// the proxy is not yet ready.
@@ -126,9 +126,9 @@ func Configure(cloudConfigCA string, instanceID string,
 	return
 }
 
-func initContext(instanceID string, version string, revisionDate string) {
+func initContext(deviceID string, version string, revisionDate string) {
 	context.PutGlobal("hostname", "hidden")
-	context.PutGlobal("instance_id", instanceID)
+	context.PutGlobal("device_id", deviceID)
 	context.PutGlobal("os_name", runtime.GOOS)
 	context.PutGlobal("os_arch", runtime.GOARCH)
 	context.PutGlobal("app_version", fmt.Sprintf("%v (%v)", version, revisionDate))
