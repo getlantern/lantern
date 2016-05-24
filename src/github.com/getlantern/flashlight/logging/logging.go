@@ -289,6 +289,8 @@ func (r logglyErrorReporter) Report(err error, fullMessage string, ctx map[strin
 		}
 		translatedCtx[tkey] = value
 	}
+	translatedCtx["sessionUserAgents"] = getSessionUserAgents()
+
 	m := loggly.Message{
 		"extra":        translatedCtx,
 		"locationInfo": prefix,
