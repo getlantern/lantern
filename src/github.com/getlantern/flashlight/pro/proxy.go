@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	proAPIHost = "quiet-island-5559.herokuapp.com"
+	proAPIHost = "api.getiantem.org"
 )
 
 var (
