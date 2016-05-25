@@ -101,6 +101,8 @@ func (o *op) Exit() {
 			reporter(o.failure, ctx)
 		}
 	}
+
+	o.ctx.Exit()
 }
 
 func (o *op) Put(key string, value interface{}) Op {
