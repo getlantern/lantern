@@ -61,8 +61,6 @@ func NewFetcher(conf UserConfig, rt http.RoundTripper, flags map[string]interfac
 	var stage bool
 	if s, ok := flags["staging"].(bool); ok {
 		stage = s
-	} else {
-		stage = false
 	}
 	var chained string = defaultChainedCloudConfigURL
 	var fronted string = defaultFrontedCloudConfigURL
