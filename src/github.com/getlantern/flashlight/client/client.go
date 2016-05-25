@@ -12,12 +12,11 @@ import (
 
 	"github.com/armon/go-socks5"
 	"github.com/getlantern/balancer"
-	"github.com/getlantern/context"
 	"github.com/getlantern/detour"
 	"github.com/getlantern/eventual"
 	"github.com/getlantern/golog"
 
-	"github.com/getlantern/flashlight/logging"
+	"github.com/getlantern/flashlight/ops"
 )
 
 const (
@@ -206,15 +205,15 @@ func (client *Client) proxiedDialer(orig func(network, addr string) (net.Conn, e
 	detourDialer := detour.Dialer(orig)
 
 	return func(network, addr string) (net.Conn, error) {
-		ctx := context.Enter()
-		defer ctx.Exit()
+		op := ops.Enter("proxied_dialer")
+		defer op.Exit()
 
 		var proxied func(network, addr string) (net.Conn, error)
 		if client.proxyAll() {
-			ctx.Put("detour", false)
+			op.Put("detour", false)
 			proxied = orig
 		} else {
-			ctx.Put("detour", true)
+			op.Put("detour", true)
 			proxied = detourDialer
 		}
 
@@ -224,10 +223,7 @@ func (client *Client) proxiedDialer(orig func(network, addr string) (net.Conn, e
 			return net.Dial(network, rewritten)
 		}
 		conn, err := proxied(network, addr)
-		if err == nil {
-			logging.ReportSuccess("dial")
-		}
-		return conn, err
+		return conn, op.Error(err)
 	}
 }
 

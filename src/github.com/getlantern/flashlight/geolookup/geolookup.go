@@ -4,11 +4,11 @@ import (
 	"math"
 	"time"
 
-	"github.com/getlantern/context"
 	"github.com/getlantern/eventual"
 	geo "github.com/getlantern/geolookup"
 	"github.com/getlantern/golog"
 
+	"github.com/getlantern/flashlight/ops"
 	"github.com/getlantern/flashlight/proxied"
 )
 
@@ -73,8 +73,6 @@ func run() {
 }
 
 func lookup() *geoInfo {
-	defer context.Enter().Put("internal_op", "geolookup").Exit()
-
 	consecutiveFailures := 0
 
 	for {
@@ -96,11 +94,13 @@ func lookup() *geoInfo {
 }
 
 func doLookup() (*geoInfo, error) {
+	op := ops.Enter("geolookup")
+	defer op.Exit()
 	city, ip, err := geo.LookupIP("", proxied.ParallelPreferChained())
 
 	if err != nil {
 		log.Errorf("Could not lookup IP %v", err)
-		return nil, err
+		return nil, op.Error(err)
 	}
 	return &geoInfo{ip, city}, nil
 }
