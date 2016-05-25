@@ -65,10 +65,20 @@ func (op *Op) Put(key string, value interface{}) *Op {
 	return op
 }
 
+// PutGlobal mimics the similar method from ops
+func PutGlobal(key string, value interface{}) {
+	ops.PutGlobal(key, value)
+}
+
 // PutDynamic mimics the similar method from ops.Op
 func (op *Op) PutDynamic(key string, valueFN func() interface{}) *Op {
 	op.wrapped.PutDynamic(key, valueFN)
 	return op
+}
+
+// PutGlobalDynamic mimics the similar method from ops
+func PutGlobalDynamic(key string, valueFN func() interface{}) {
+	ops.PutGlobalDynamic(key, valueFN)
 }
 
 // Error mimics the similar method from ops.op
