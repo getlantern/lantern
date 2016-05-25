@@ -16,7 +16,6 @@ import (
 
 	"github.com/getlantern/appdir"
 	borda "github.com/getlantern/borda/client"
-	"github.com/getlantern/context"
 	"github.com/getlantern/go-loggly"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/jibber_jabber"
@@ -140,33 +139,33 @@ func Configure(cloudConfigCA string, deviceID string,
 }
 
 func initContext(deviceID string, version string, revisionDate string) {
-	context.PutGlobal("hostname", "hidden")
-	context.PutGlobal("device_id", deviceID)
-	context.PutGlobal("os_name", runtime.GOOS)
-	context.PutGlobal("os_arch", runtime.GOARCH)
-	context.PutGlobal("app_version", fmt.Sprintf("%v (%v)", version, revisionDate))
-	context.PutGlobal("go_version", runtime.Version())
-	context.PutGlobalDynamic("geo_country", func() interface{} { return geolookup.GetCountry(0) })
-	context.PutGlobalDynamic("client_ip", func() interface{} { return geolookup.GetIP(0) })
-	context.PutGlobalDynamic("timezone", func() interface{} { return time.Now().Format("MST") })
-	context.PutGlobalDynamic("locale_language", func() interface{} {
+	ops.PutGlobal("hostname", "hidden")
+	ops.PutGlobal("device_id", deviceID)
+	ops.PutGlobal("os_name", runtime.GOOS)
+	ops.PutGlobal("os_arch", runtime.GOARCH)
+	ops.PutGlobal("app_version", fmt.Sprintf("%v (%v)", version, revisionDate))
+	ops.PutGlobal("go_version", runtime.Version())
+	ops.PutGlobalDynamic("geo_country", func() interface{} { return geolookup.GetCountry(0) })
+	ops.PutGlobalDynamic("client_ip", func() interface{} { return geolookup.GetIP(0) })
+	ops.PutGlobalDynamic("timezone", func() interface{} { return time.Now().Format("MST") })
+	ops.PutGlobalDynamic("locale_language", func() interface{} {
 		lang, _ := jibber_jabber.DetectLanguage()
 		return lang
 	})
-	context.PutGlobalDynamic("locale_country", func() interface{} {
+	ops.PutGlobalDynamic("locale_country", func() interface{} {
 		country, _ := jibber_jabber.DetectTerritory()
 		return country
 	})
 
 	if osStr, err := osversion.GetHumanReadable(); err == nil {
-		context.PutGlobal("os_version", osStr)
+		ops.PutGlobal("os_version", osStr)
 	}
 }
 
 // SetExtraLogglyInfo supports setting an extra info value to include in Loggly
 // reports (for example Android application details)
 func SetExtraLogglyInfo(key, value string) {
-	context.PutGlobal(key, value)
+	ops.PutGlobal(key, value)
 }
 
 // Flush forces output flushing if the output is flushable
