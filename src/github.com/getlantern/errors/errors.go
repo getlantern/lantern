@@ -1,36 +1,59 @@
 /*
 Package errors defines error types used across Lantern project.
-  // initialize globally
-  errors.Initialize("appVersion", myErrorReporter, true)
-  ...
-  if n, err := Foo(); err != nil {
-    errors.Wrap(err).Report() // or simply errors.Report(err)
-  }
 
-Wrap() method will try as much as possible to extract details from the error
-passed in, if it's errors defined in Go standard library. For application
-defined error type, at least the Go type name and what err.Error() returns will
-be recorded.
+	n, err := Foo()
+	if err != nil {
+	    return n, errors.New("Unable to do Foo: %v", err)
+	}
 
-Extra fields can be chained in any order, at any time.
+or
 
-  func Connect(addr string) *structured {
-  	//...
-    return errors.New("some error").ProxyAddr(addr).
-	  WithOp("connect").With("some_counter", 1)
-  }
-  ...
-  req *http.Request = ...
-  if err := Connect(); err != nil {
-	err.Request(req).With("proxy_all", true).Report()
-  }
+  n, err := Foo()
+	return n, errors.Wrap(err)
 
-If logging=true when calling Initialize(), Report() will get a logger using
-golog.LoggerFor("<package-name-in-which-the-error-is-created">) and call its
-Error() method.
+New() method will create a new error with err as its cause. Wrap will wrap err,
+returning nil if err is nil.  If err is an error from Go's standard library,
+errors will extract details from that error, at least the Go type name and the
+return value of err.Error().
 
-It's the caller's responsibility to avoid race condition accessing same error
-instance from multiple goroutines.
+One can record the operation on which the error occurred using Op():
+
+  return n, errors.New("Unable to do Foo: %v", err).Op("FooDooer")
+
+One can also record additional data:
+
+  return n, errors.
+		New("Unable to do Foo: %v", err).
+		Op("FooDooer").
+		With("mydata", "myvalue").
+		With("moredata", 5)
+
+When used with github.com/getlantern/ops, Error captures its current context
+and propagates that data for use in calling layers.
+
+When used with github.com/getlantern/golog, Error provides stacktraces:
+
+	Hello World
+		at github.com/getlantern/errors.TestNewWithCause (errors_test.go:999)
+		at testing.tRunner (testing.go:999)
+		at runtime.goexit (asm_amd999.s:999)
+	Caused by: World
+		at github.com/getlantern/errors.buildCause (errors_test.go:999)
+		at github.com/getlantern/errors.TestNewWithCause (errors_test.go:999)
+		at testing.tRunner (testing.go:999)
+		at runtime.goexit (asm_amd999.s:999)
+	Caused by: orld
+	Caused by: ld
+		at github.com/getlantern/errors.buildSubSubCause (errors_test.go:999)
+		at github.com/getlantern/errors.buildSubCause (errors_test.go:999)
+		at github.com/getlantern/errors.buildCause (errors_test.go:999)
+		at github.com/getlantern/errors.TestNewWithCause (errors_test.go:999)
+		at testing.tRunner (testing.go:999)
+		at runtime.goexit (asm_amd999.s:999)
+	Caused by: d
+
+It's the caller's responsibility to avoid race conditions accessing the same
+error instance from multiple goroutines.
 */
 package errors
 
@@ -59,6 +82,7 @@ import (
 
 	"github.com/getlantern/context"
 	"github.com/getlantern/hidden"
+	"github.com/getlantern/ops"
 	"github.com/getlantern/stack"
 )
 
@@ -68,6 +92,8 @@ import (
 type Error interface {
 	error
 	context.Contextual
+
+	// MultiLinePrinter implements the interface golog.MultiLine
 	MultiLinePrinter() func(buf *bytes.Buffer) bool
 
 	// Op attaches a hint of the operation triggers this Error. Many error types
@@ -159,7 +185,6 @@ func (e *structured) Error() string {
 	return e.data["error"].(string) + e.hiddenID
 }
 
-// MultiLinePrinter implements the interface golog.MultiLine
 func (e *structured) MultiLinePrinter() func(buf *bytes.Buffer) bool {
 	first := true
 	indent := false
@@ -239,7 +264,7 @@ func buildError(desc string, wrapped error, cause Error) *structured {
 	e := &structured{
 		data: make(context.Map),
 		// We capture the current context to allow it to propagate to higher layers.
-		context: context.AsMap(nil, false),
+		context: ops.AsMap(nil, false),
 		cause:   cause,
 	}
 	e.save()
