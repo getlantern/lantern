@@ -52,7 +52,7 @@ type Config struct {
 }
 
 // StartPolling starts the process of polling for new configuration files.
-func (cfg *Config) StartPolling() {
+func StartPolling() {
 	// Force detour to whitelist chained domain
 	u, err := url.Parse(defaultChainedCloudConfigURL)
 	if err != nil {

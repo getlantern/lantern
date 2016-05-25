@@ -134,7 +134,7 @@ func Run(httpProxyAddr string,
 			// proxying capabilities of Lantern, so it needs everything to be properly
 			// set up with at least an initial bootstrap config (on first run) to
 			// complete successfully.
-			cfg.StartPolling()
+			config.StartPolling()
 			afterStart(cfg)
 		})
 		if err != nil {
