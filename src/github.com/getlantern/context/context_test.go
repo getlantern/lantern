@@ -8,10 +8,12 @@ import (
 )
 
 func TestStack(t *testing.T) {
+	cm := NewManager()
+	_cm := cm.(*manager)
 	// Put globals first
-	PutGlobal("a", -1) // This will get overriden in specific contexts
-	PutGlobal("ga", "i")
-	PutGlobalDynamic("gb", func() interface{} { return "ii" })
+	cm.PutGlobal("a", -1) // This will get overriden in specific contexts
+	cm.PutGlobal("ga", "i")
+	cm.PutGlobalDynamic("gb", func() interface{} { return "ii" })
 
 	// Use a Map as a Contextual
 	var contextual = Map{
@@ -19,11 +21,11 @@ func TestStack(t *testing.T) {
 		"contextual": "special",
 	}
 
-	c := Enter()
+	c := cm.Enter()
 	c.Put("a", 1)
-	penultimate := Enter().
+	penultimate := cm.Enter().
 		Put("b", 2)
-	c = Enter().
+	c = cm.Enter().
 		PutDynamic("c", func() interface{} { return 4 }).
 		PutIfAbsent("d", 5).
 		PutIfAbsent("a", 11)
@@ -40,20 +42,20 @@ func TestStack(t *testing.T) {
 	}
 
 	assertContents := func(expected Map) {
-		doAssertContents(expected, AsMap(nil, false), "AsMapwith(nil, false)")
+		doAssertContents(expected, cm.AsMap(nil, false), "AsMapwith(nil, false)")
 		expected["ga"] = "i"
 		expected["gb"] = "ii"
 		_, exists := expected["a"]
 		if !exists {
 			expected["a"] = -1
 		}
-		doAssertContents(expected, AsMap(nil, true), "AsMap(nil, true)")
+		doAssertContents(expected, cm.AsMap(nil, true), "AsMap(nil, true)")
 		expected["a"] = 0
 		expected["contextual"] = "special"
-		doAssertContents(expected, AsMap(contextual, true), "AsMapWith(contextual, true)")
+		doAssertContents(expected, cm.AsMap(contextual, true), "AsMapWith(contextual, true)")
 		delete(expected, "ga")
 		delete(expected, "gb")
-		doAssertContents(expected, AsMap(contextual, false), "AsMapWith(contextual, false)")
+		doAssertContents(expected, cm.AsMap(contextual, false), "AsMapWith(contextual, false)")
 	}
 
 	assertContents(Map{
@@ -65,8 +67,8 @@ func TestStack(t *testing.T) {
 
 	var wg sync.WaitGroup
 	wg.Add(1)
-	Go(func() {
-		defer Enter().Put("e", 6).Exit()
+	cm.Go(func() {
+		defer cm.Enter().Put("e", 6).Exit()
 		assertContents(Map{
 			"a": 1,
 			"b": 2,
@@ -79,7 +81,7 @@ func TestStack(t *testing.T) {
 	wg.Wait()
 
 	wg.Add(1)
-	Go(func() {
+	cm.Go(func() {
 		// This goroutine doesn't Exit. Still, we shouldn't leak anything.
 		wg.Done()
 	})
@@ -93,7 +95,7 @@ func TestStack(t *testing.T) {
 	})
 
 	c.Exit()
-	c = currentContext()
+	c = _cm.currentContext()
 	assert.NotNil(t, c)
 	assertContents(Map{
 		"a": 1,
@@ -102,7 +104,7 @@ func TestStack(t *testing.T) {
 	})
 
 	c.Exit()
-	c = currentContext()
+	c = _cm.currentContext()
 	assert.NotNil(t, c)
 	assertContents(Map{
 		"a": 1,
@@ -110,18 +112,18 @@ func TestStack(t *testing.T) {
 
 	// Last exit
 	c.Exit()
-	assert.Nil(t, currentContext())
+	assert.Nil(t, _cm.currentContext())
 	assertContents(Map{})
 
 	// Exit again, just for good measure
 	c.Exit()
-	assert.Nil(t, currentContext())
+	assert.Nil(t, _cm.currentContext())
 	assertContents(Map{})
 
 	// Spawn a goroutine with no existing contexts
 	wg.Add(1)
-	Go(func() {
-		defer Enter().Put("f", 7).Exit()
+	cm.Go(func() {
+		defer cm.Enter().Put("f", 7).Exit()
 		assertContents(Map{
 			"f": 7,
 		})
@@ -129,13 +131,14 @@ func TestStack(t *testing.T) {
 	})
 	wg.Wait()
 
-	allmx.RLock()
-	assert.Empty(t, contexts, "No contexts should be left")
-	allmx.RUnlock()
+	_cm.allmx.RLock()
+	assert.Empty(t, _cm.contexts, "No contexts should be left")
+	_cm.allmx.RUnlock()
 }
 
 func BenchmarkPut(b *testing.B) {
-	c := Enter()
+	cm := NewManager()
+	c := cm.Enter()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		c.Put("key", "value")
@@ -143,9 +146,10 @@ func BenchmarkPut(b *testing.B) {
 }
 
 func BenchmarkAsMap(b *testing.B) {
-	Enter().Put("a", 1).Put("b", 2)
+	cm := NewManager()
+	cm.Enter().Put("a", 1).Put("b", 2)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		AsMap(nil, true)
+		cm.AsMap(nil, true)
 	}
 }
