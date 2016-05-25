@@ -101,7 +101,8 @@ func EnableFileLogging() error {
 // Configure will set up logging. An empty "addr" will configure logging without a proxy
 // Returns a bool channel for optional blocking.
 func Configure(cloudConfigCA string, deviceID string,
-	version string, revisionDate string) (success chan bool) {
+	version string, revisionDate string,
+	bordaReportInterval time.Duration, bordaSamplePercentage float64) (success chan bool) {
 	success = make(chan bool, 1)
 
 	// Note: Returning from this function must always add a result to the
@@ -134,7 +135,13 @@ func Configure(cloudConfigCA string, deviceID string,
 		success <- true
 	}()
 
-	enableBorda(deviceID)
+	if bordaReportInterval > 0 {
+		log.Debug("Will report to borda")
+		enableBorda(bordaReportInterval, bordaSamplePercentage, deviceID)
+	} else {
+		log.Debug("Will not report to borda")
+	}
+
 	return
 }
 
@@ -178,7 +185,9 @@ func Flush() {
 
 // Close stops logging.
 func Close() error {
-	bordaClient.Flush()
+	if bordaClient != nil {
+		bordaClient.Flush()
+	}
 	initLogging()
 	if logFile != nil {
 		return logFile.Close()
@@ -339,11 +348,11 @@ func (t *nonStopWriter) flush() {
 	}
 }
 
-func enableBorda(deviceID string) {
+func enableBorda(bordaReportInterval time.Duration, bordaSamplePercentage float64, deviceID string) {
 	rt := proxied.ChainedThenFronted()
 
 	bordaClient = borda.NewClient(&borda.Options{
-		BatchInterval: 5 * time.Minute,
+		BatchInterval: bordaReportInterval,
 		Client: &http.Client{
 			Transport: proxied.AsRoundTripper(func(req *http.Request) (*http.Response, error) {
 				frontedURL := *req.URL
@@ -376,7 +385,7 @@ func enableBorda(deviceID string) {
 	} else {
 		deviceIDInt = binary.BigEndian.Uint64(deviceIDBytes)
 	}
-	if deviceIDInt%uint64(1/.0001) != 0 {
+	if deviceIDInt%uint64(1/bordaSamplePercentage) != 0 {
 		log.Debug("DeviceID not being sampled for borda")
 		return
 	}
