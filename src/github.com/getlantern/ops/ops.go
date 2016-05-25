@@ -91,9 +91,11 @@ func (o *op) Exit() {
 
 	if len(reportersCopy) > 0 {
 		ctx := o.ctx.AsMap(o.failure, true)
-		_, errorSet := ctx["error"]
-		if !errorSet {
-			ctx["error"] = o.failure.Error()
+		if o.failure != nil {
+			_, errorSet := ctx["error"]
+			if !errorSet {
+				ctx["error"] = o.failure.Error()
+			}
 		}
 		for _, reporter := range reportersCopy {
 			reporter(o.failure, ctx)
