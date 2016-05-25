@@ -53,8 +53,7 @@ var (
 	duplicates = make(map[string]bool)
 	dupLock    sync.Mutex
 
-	bordaClient   *borda.Client
-	reportToBorda borda.Submitter
+	bordaClient *borda.Client
 
 	logglyKeyTranslations = map[string]string{
 		"device_id":       "instanceid",
@@ -192,7 +191,6 @@ func initLogging() {
 	errorOut = timestamped(os.Stderr)
 	debugOut = timestamped(os.Stdout)
 	golog.SetOutputs(errorOut, debugOut)
-	initBorda()
 }
 
 // timestamped adds a timestamp to the beginning of log lines
@@ -342,7 +340,7 @@ func (t *nonStopWriter) flush() {
 	}
 }
 
-func initBorda() {
+func enableBorda(deviceID string) {
 	rt := proxied.ChainedThenFronted()
 
 	bordaClient = borda.NewClient(&borda.Options{
@@ -359,14 +357,12 @@ func initBorda() {
 		},
 	})
 
-	reportToBorda = bordaClient.ReducingSubmitter("client_results", 1000, func(existingValues map[string]float64, newValues map[string]float64) {
+	reportToBorda := bordaClient.ReducingSubmitter("client_results", 1000, func(existingValues map[string]float64, newValues map[string]float64) {
 		for key, value := range newValues {
 			existingValues[key] += value
 		}
 	})
-}
 
-func enableBorda(deviceID string) {
 	// Sample a subset of device ids
 	deviceIDBytes, base64Err := base64.StdEncoding.DecodeString(deviceID)
 	if base64Err != nil {
