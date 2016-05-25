@@ -378,7 +378,8 @@ func enableBorda(deviceID string) {
 		deviceIDInt = binary.BigEndian.Uint64(deviceIDBytes)
 	}
 	if deviceIDInt%uint64(1/.0001) != 0 {
-		log.Trace("DeviceID not being sampled")
+		log.Debug("DeviceID not being sampled for borda")
+		return
 	}
 
 	reporter := func(failure error, ctx map[string]interface{}) {
