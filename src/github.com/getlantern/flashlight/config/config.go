@@ -40,15 +40,17 @@ var (
 // the cloud, in command line flags, or in local customizations during
 // development.
 type Config struct {
-	configDir       string
-	Version         int
-	CloudConfigCA   string
-	CPUProfile      string
-	MemProfile      string
-	UpdateServerURL string
-	Client          *client.ClientConfig
-	ProxiedSites    *proxiedsites.Config // List of proxied site domains that get routed through Lantern rather than accessed directly
-	TrustedCAs      []*fronted.CA
+	configDir             string
+	Version               int
+	CloudConfigCA         string
+	CPUProfile            string
+	MemProfile            string
+	UpdateServerURL       string
+	BordaReportInterval   time.Duration
+	BordaSamplePercentage float64
+	Client                *client.ClientConfig
+	ProxiedSites          *proxiedsites.Config // List of proxied site domains that get routed through Lantern rather than accessed directly
+	TrustedCAs            []*fronted.CA
 }
 
 // StartPolling starts the process of polling for new configuration files.
@@ -219,6 +221,10 @@ func (cfg *Config) applyFlags(flags map[string]interface{}) error {
 			cfg.CPUProfile = value.(string)
 		case "memprofile":
 			cfg.MemProfile = value.(string)
+		case "borda-report-interval":
+			cfg.BordaReportInterval = value.(time.Duration)
+		case "borda-sample-percentage":
+			cfg.BordaSamplePercentage = value.(float64)
 		}
 	}
 	if visitErr != nil {
