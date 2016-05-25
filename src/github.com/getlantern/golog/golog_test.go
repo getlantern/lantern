@@ -11,15 +11,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/getlantern/context"
 	"github.com/getlantern/errors"
+	"github.com/getlantern/ops"
 
 	"github.com/stretchr/testify/assert"
 )
 
 var (
-	expectedLog      = "SEVERITY myprefix: golog_test.go:999 Hello world\nSEVERITY myprefix: golog_test.go:999 Hello true [cvarA=a cvarB=b]\n"
-	expectedErrorLog = `ERROR myprefix: golog_test.go:999 Hello world [cvarC=c cvarD=d error=Hello world error_type=errors.Error]
+	expectedLog      = "SEVERITY myprefix: golog_test.go:999 Hello world\nSEVERITY myprefix: golog_test.go:999 Hello true [cvarA=a cvarB=b op=name root_op=name]\n"
+	expectedErrorLog = `ERROR myprefix: golog_test.go:999 Hello world [cvarC=c cvarD=d error=Hello world error_type=errors.Error op=name root_op=name]
 ERROR myprefix: golog_test.go:999   at github.com/getlantern/golog.TestError (golog_test.go:999)
 ERROR myprefix: golog_test.go:999   at testing.tRunner (testing.go:999)
 ERROR myprefix: golog_test.go:999   at runtime.goexit (asm_amd999.s:999)
@@ -28,7 +28,7 @@ ERROR myprefix: golog_test.go:999   at github.com/getlantern/golog.errorReturner
 ERROR myprefix: golog_test.go:999   at github.com/getlantern/golog.TestError (golog_test.go:999)
 ERROR myprefix: golog_test.go:999   at testing.tRunner (testing.go:999)
 ERROR myprefix: golog_test.go:999   at runtime.goexit (asm_amd999.s:999)
-ERROR myprefix: golog_test.go:999 Hello true [cvarA=a cvarB=b cvarC=c error=Hello error_type=errors.Error]
+ERROR myprefix: golog_test.go:999 Hello true [cvarA=a cvarB=b cvarC=c error=Hello error_type=errors.Error op=name root_op=name]
 `
 	expectedTraceLog = "TRACE myprefix: golog_test.go:999 Hello world\nTRACE myprefix: golog_test.go:999 Hello true\nTRACE myprefix: golog_test.go:999 Gravy\nTRACE myprefix: golog_test.go:999 TraceWriter closed due to unexpected error: EOF\n"
 	expectedStdLog   = expectedLog
@@ -39,7 +39,7 @@ var (
 )
 
 func init() {
-	context.PutGlobal("global", "shouldn't show up")
+	ops.PutGlobal("global", "shouldn't show up")
 }
 
 func expected(severity string, log string) string {
@@ -55,7 +55,7 @@ func TestDebug(t *testing.T) {
 	SetOutputs(ioutil.Discard, out)
 	l := LoggerFor("myprefix")
 	l.Debug("Hello world")
-	defer context.Enter().Put("cvarA", "a").Put("cvarB", "b").Exit()
+	defer ops.Enter("name").Put("cvarA", "a").Put("cvarB", "b").Exit()
 	l.Debugf("Hello %v", true)
 	assert.Equal(t, expected("DEBUG", expectedLog), out.String())
 }
@@ -64,20 +64,20 @@ func TestError(t *testing.T) {
 	out := newBuffer()
 	SetOutputs(out, ioutil.Discard)
 	l := LoggerFor("myprefix")
-	ctx := context.Enter().Put("cvarC", "c")
+	ctx := ops.Enter("name").Put("cvarC", "c")
 	err := errorReturner()
 	err1 := errors.New("Hello %v", err)
 	err2 := errors.New("Hello")
 	ctx.Exit()
 	l.Error(err1)
-	defer context.Enter().Put("cvarA", "a").Put("cvarB", "b").Exit()
+	defer ops.Enter("name2").Put("cvarA", "a").Put("cvarB", "b").Exit()
 	l.Errorf("%v %v", err2, true)
 	t.Log(out.String())
 	assert.Equal(t, expectedErrorLog, out.String())
 }
 
 func errorReturner() error {
-	defer context.Enter().Put("cvarD", "d").Exit()
+	defer ops.Enter("name").Put("cvarD", "d").Exit()
 	return errors.New("world")
 }
 
@@ -144,7 +144,7 @@ func TestAsStdLogger(t *testing.T) {
 	l := LoggerFor("myprefix")
 	stdlog := l.AsStdLogger()
 	stdlog.Print("Hello world")
-	defer context.Enter().Put("cvarA", "a").Put("cvarB", "b").Exit()
+	defer ops.Enter("name").Put("cvarA", "a").Put("cvarB", "b").Exit()
 	stdlog.Printf("Hello %v", true)
 	assert.Equal(t, expected("ERROR", expectedStdLog), out.String())
 }
@@ -167,7 +167,7 @@ func TestAsStdLogger(t *testing.T) {
 // 	l := LoggerFor("myprefix")
 // 	trace := l.TraceOut()
 // 	trace.Write([]byte("Hello world\n"))
-// 	defer context.Enter().Put("cvarA", "a").Put("cvarB", "b").Exit()
+// 	defer ops.Enter().Put("cvarA", "a").Put("cvarB", "b").Exit()
 // 	trace.Write([]byte("Hello true\n"))
 // 	assert.Equal(t, expected("TRACE", expectedStdLog), out.String())
 // }

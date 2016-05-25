@@ -21,8 +21,8 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/getlantern/context"
 	"github.com/getlantern/hidden"
+	"github.com/getlantern/ops"
 	"github.com/oxtoacart/bpool"
 )
 
@@ -77,7 +77,7 @@ type MultiLine interface {
 }
 
 // ErrorReporter is a function to which the logger will report errors.
-// It the given error and corresponding logText along with associated
+// It the given error and corresponding logText along with associated ops
 // context. This should return quickly as it executes on the critical code
 // path. The recommended approach is to buffer as much as possible and discard
 // new reports if the buffer becomes saturated.
@@ -393,7 +393,7 @@ func errorOnLogging(err error) {
 
 func printContext(buf *bytes.Buffer, err interface{}) {
 	// Note - we don't include globals when printing in order to avoid polluting the text log
-	values := context.AsMap(err, false)
+	values := ops.AsMap(err, false)
 	if len(values) == 0 {
 		return
 	}
@@ -425,7 +425,7 @@ func report(err error, text string) error {
 	reportersMutex.RUnlock()
 
 	if len(reportersCopy) > 0 {
-		ctx := context.AsMap(err, true)
+		ctx := ops.AsMap(err, true)
 		for _, reporter := range reportersCopy {
 			// We include globals when reporting
 			reporter(err, hidden.Clean(text), ctx)
