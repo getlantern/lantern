@@ -4,7 +4,6 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/getlantern/context"
 	"github.com/getlantern/errors"
 	"github.com/getlantern/ops"
 	"github.com/stretchr/testify/assert"
@@ -19,7 +18,7 @@ func TestSuccess(t *testing.T) {
 	}
 
 	ops.RegisterReporter(report)
-	context.PutGlobal("g", "g1")
+	ops.PutGlobal("g", "g1")
 	op := ops.Enter("test_success").Put("a", 1).PutDynamic("b", func() interface{} { return 2 })
 	defer op.Exit()
 	innerOp := op.Enter("inside")

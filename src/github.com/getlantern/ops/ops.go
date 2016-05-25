@@ -13,6 +13,7 @@ import (
 )
 
 var (
+	cm             = context.NewManager()
 	reporters      []Reporter
 	reportersMutex sync.RWMutex
 )
@@ -64,7 +65,7 @@ func RegisterReporter(reporter Reporter) {
 // Enter enters a new level on the current Op's Context stack, creating a new Op
 // if necessary.
 func Enter(name string) Op {
-	return &op{ctx: context.Enter().Put("op", name).PutIfAbsent("root_op", name)}
+	return &op{ctx: cm.Enter().Put("op", name).PutIfAbsent("root_op", name)}
 }
 
 func (o *op) Enter(name string) Op {
@@ -75,9 +76,9 @@ func (o *op) Go(fn func()) {
 	o.ctx.Go(fn)
 }
 
-// Go mimics the function from context.
+// Go mimics the method from context.Manager.
 func Go(fn func()) {
-	context.Go(fn)
+	cm.Go(fn)
 }
 
 func (o *op) Exit() {
@@ -110,9 +111,24 @@ func (o *op) Put(key string, value interface{}) Op {
 	return o
 }
 
+// PutGlobal mimics the method from context.Manager.
+func PutGlobal(key string, value interface{}) {
+	cm.PutGlobal(key, value)
+}
+
 func (o *op) PutDynamic(key string, valueFN func() interface{}) Op {
 	o.ctx.PutDynamic(key, valueFN)
 	return o
+}
+
+// PutGlobalDynamic mimics the method from context.Manager.
+func PutGlobalDynamic(key string, valueFN func() interface{}) {
+	cm.PutGlobalDynamic(key, valueFN)
+}
+
+// AsMap mimics the method from context.Manager.
+func AsMap(obj interface{}, includeGlobals bool) context.Map {
+	return cm.AsMap(obj, includeGlobals)
 }
 
 func (o *op) Error(err error) error {
