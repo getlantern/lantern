@@ -22,6 +22,7 @@ var (
 	forceProxyAddr     = flag.String("force-proxy-addr", "", "if specified, force chained proxying to use this address instead of the configured one")
 	forceAuthToken     = flag.String("force-auth-token", "", "if specified, force chained proxying to use this auth token instead of the configured one")
 	readableconfig     = flag.Bool("readableconfig", false, "if specified, disables obfuscation of the config yaml so that it remains human readable")
+	staging            = flag.Bool("staging", false, "if true, run Lantern against our staging infrastructure")
 	help               = flag.Bool("help", false, "Get usage help")
 )
 

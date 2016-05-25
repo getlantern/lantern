@@ -1,62 +1,37 @@
 package config
 
 import (
+	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-/*
-func TestInitialConfig(t *testing.T) {
-	path, _ := ioutil.TempFile("", "config")
-
-	yamlPath := "test-packaged.yaml"
-	data, err := ioutil.ReadFile(yamlPath)
-	if err != nil {
-		// This will happen whenever there's no packaged settings, which is often
-		log.Debugf("Error reading file %v", err)
+// TestStagingSetup tests to make sure our staging config flag sets the
+// appropriate URLs for staging servers.
+func TestInit(t *testing.T) {
+	configDir, errr := ioutil.TempDir("", "config-testing")
+	if errr != nil {
+		log.Fatal(errr)
 	}
 
-	trimmed := strings.TrimSpace(string(data))
+	defer os.RemoveAll(configDir)
 
-	log.Debugf("Read bytes: %v", trimmed)
-	var s client.BootstrapSettings
-	err = yaml.Unmarshal([]byte(trimmed), &s)
+	userConfig := &userConfig{}
+	version := "test-version"
+	flagsAsMap := make(map[string]interface{})
+	flagsAsMap["staging"] = false
 
-	if err != nil {
-		log.Errorf("Could not read yaml: %v", err)
-	}
-	err = fetchInitialConfig(path.Name(), &s)
-	assert.Nil(t, err, "Should not get an error fetching config")
+	stickyConfig := false
+	var cfg *Config
+	var err error
+	cfg, err = Init(userConfig, version, configDir, stickyConfig, flagsAsMap)
+	assert.Nil(t, err)
+
+	assert.Equal(t, configDir, cfg.configDir)
+	assert.Equal(t, "", cfg.CloudConfigCA)
 }
-*/
-/*
-func TestCopyOldConfig(t *testing.T) {
-	existsFunc := func(file string) (string, bool) {
-		return "fullpath", true
-	}
-
-	path := copyNewest("lantern-2.yaml", existsFunc)
-	assert.Equal(t, "fullpath", path, "unexpected path used")
-
-	// Test with temp files to make sure the actual copy of an old file to a
-	// new one works.
-	tf, _ := ioutil.TempFile("", "2.0.1")
-	tf2, _ := ioutil.TempFile("", "2.0.2")
-
-	log.Debugf("Created temp file: %v", tf.Name())
-
-	existsFunc = func(file string) (string, bool) {
-		if file == "lantern-2.0.1.yaml" {
-			return tf.Name(), true
-		}
-		return tf2.Name(), false
-	}
-
-	path = copyNewest("lantern-2.yaml", existsFunc)
-	assert.Equal(t, tf.Name(), path, "unexpected path used")
-}
-*/
 
 func TestMajorVersion(t *testing.T) {
 	ver := "222.00.1"

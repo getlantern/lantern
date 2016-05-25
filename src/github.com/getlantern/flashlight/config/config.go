@@ -40,31 +40,25 @@ var (
 // the cloud, in command line flags, or in local customizations during
 // development.
 type Config struct {
-	configDir          string
-	Version            int
-	CloudConfig        string
-	CloudConfigCA      string
-	FrontedCloudConfig string
-	CPUProfile         string
-	MemProfile         string
-	UpdateServerURL    string
-	Client             *client.ClientConfig
-	ProxiedSites       *proxiedsites.Config // List of proxied site domains that get routed through Lantern rather than accessed directly
-	TrustedCAs         []*fronted.CA
-}
-
-// Fetcher is an interface for fetching config updates.
-type Fetcher interface {
-	pollForConfig(ycfg yamlconf.Config, sticky bool) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error)
+	configDir       string
+	Version         int
+	CloudConfigCA   string
+	CPUProfile      string
+	MemProfile      string
+	UpdateServerURL string
+	Client          *client.ClientConfig
+	ProxiedSites    *proxiedsites.Config // List of proxied site domains that get routed through Lantern rather than accessed directly
+	TrustedCAs      []*fronted.CA
 }
 
 // StartPolling starts the process of polling for new configuration files.
 func StartPolling() {
 	// Force detour to whitelist chained domain
-	u, err := url.Parse(chainedCloudConfigURL)
+	u, err := url.Parse(defaultChainedCloudConfigURL)
 	if err != nil {
 		log.Fatalf("Unable to parse chained cloud config URL: %v", err)
 	}
+	log.Debugf("Polling at %v", defaultChainedCloudConfigURL)
 	detour.ForceWhitelist(u.Host)
 
 	// No-op if already started.
@@ -78,6 +72,7 @@ func validateConfig(_cfg yamlconf.Config) error {
 	if !ok {
 		return fmt.Errorf("Config is not a flashlight config!")
 	}
+
 	nc := len(cfg.Client.ChainedServers)
 
 	log.Debugf("Found %v chained servers in config on disk", nc)
@@ -106,7 +101,7 @@ func majorVersion(version string) string {
 func Init(userConfig UserConfig, version string, configDir string, stickyConfig bool, flags map[string]interface{}) (*Config, error) {
 	// Request the config via either chained servers or direct fronted servers.
 	cf := proxied.ParallelPreferChained()
-	fetcher := NewFetcher(userConfig, cf)
+	fetcher := NewFetcher(userConfig, cf, flags)
 
 	file := "lantern-" + version + ".yaml"
 	_, configPath, err := inConfigDir(configDir, file)
@@ -207,9 +202,9 @@ func (cfg *Config) SetVersion(version int) {
 
 // applyFlags updates this Config from any command-line flags that were passed
 // in.
-func (updated *Config) applyFlags(flags map[string]interface{}) error {
-	if updated.Client == nil {
-		updated.Client = &client.ClientConfig{}
+func (cfg *Config) applyFlags(flags map[string]interface{}) error {
+	if cfg.Client == nil {
+		cfg.Client = &client.ClientConfig{}
 	}
 
 	var visitErr error
@@ -218,16 +213,12 @@ func (updated *Config) applyFlags(flags map[string]interface{}) error {
 	for key, value := range flags {
 		switch key {
 		// General
-		case "cloudconfig":
-			updated.CloudConfig = value.(string)
 		case "cloudconfigca":
-			updated.CloudConfigCA = value.(string)
-		case "frontedconfig":
-			updated.FrontedCloudConfig = value.(string)
+			cfg.CloudConfigCA = value.(string)
 		case "cpuprofile":
-			updated.CPUProfile = value.(string)
+			cfg.CPUProfile = value.(string)
 		case "memprofile":
-			updated.MemProfile = value.(string)
+			cfg.MemProfile = value.(string)
 		}
 	}
 	if visitErr != nil {
@@ -246,14 +237,6 @@ func (updated *Config) applyFlags(flags map[string]interface{}) error {
 func (cfg *Config) ApplyDefaults() {
 	if cfg.UpdateServerURL == "" {
 		cfg.UpdateServerURL = "https://update.getlantern.org"
-	}
-
-	if cfg.CloudConfig == "" {
-		cfg.CloudConfig = chainedCloudConfigURL
-	}
-
-	if cfg.FrontedCloudConfig == "" {
-		cfg.FrontedCloudConfig = frontedCloudConfigURL
 	}
 
 	if cfg.Client == nil {
@@ -326,32 +309,32 @@ func (cfg *Config) applyClientDefaults() {
 // updateFrom creates a new Config by 'merging' the given yaml into this Config.
 // The masquerade sets, the collections of servers, and the trusted CAs in the
 // update yaml  completely replace the ones in the original Config.
-func (updated *Config) updateFrom(updateBytes []byte) error {
+func (cfg *Config) updateFrom(updateBytes []byte) error {
 	// XXX: does this need a mutex, along with everyone that uses the config?
-	oldChainedServers := updated.Client.ChainedServers
-	oldMasqueradeSets := updated.Client.MasqueradeSets
-	oldTrustedCAs := updated.TrustedCAs
-	updated.Client.ChainedServers = map[string]*client.ChainedServerInfo{}
-	updated.Client.MasqueradeSets = map[string][]*fronted.Masquerade{}
-	updated.TrustedCAs = []*fronted.CA{}
-	err := yaml.Unmarshal(updateBytes, updated)
+	oldChainedServers := cfg.Client.ChainedServers
+	oldMasqueradeSets := cfg.Client.MasqueradeSets
+	oldTrustedCAs := cfg.TrustedCAs
+	cfg.Client.ChainedServers = map[string]*client.ChainedServerInfo{}
+	cfg.Client.MasqueradeSets = map[string][]*fronted.Masquerade{}
+	cfg.TrustedCAs = []*fronted.CA{}
+	err := yaml.Unmarshal(updateBytes, cfg)
 	if err != nil {
-		updated.Client.ChainedServers = oldChainedServers
-		updated.Client.MasqueradeSets = oldMasqueradeSets
-		updated.TrustedCAs = oldTrustedCAs
+		cfg.Client.ChainedServers = oldChainedServers
+		cfg.Client.MasqueradeSets = oldMasqueradeSets
+		cfg.TrustedCAs = oldTrustedCAs
 		return fmt.Errorf("Unable to unmarshal YAML for update: %s", err)
 	}
 	// Deduplicate global proxiedsites
-	if len(updated.ProxiedSites.Cloud) > 0 {
+	if len(cfg.ProxiedSites.Cloud) > 0 {
 		wlDomains := make(map[string]bool)
-		for _, domain := range updated.ProxiedSites.Cloud {
+		for _, domain := range cfg.ProxiedSites.Cloud {
 			wlDomains[domain] = true
 		}
-		updated.ProxiedSites.Cloud = make([]string, 0, len(wlDomains))
+		cfg.ProxiedSites.Cloud = make([]string, 0, len(wlDomains))
 		for domain := range wlDomains {
-			updated.ProxiedSites.Cloud = append(updated.ProxiedSites.Cloud, domain)
+			cfg.ProxiedSites.Cloud = append(cfg.ProxiedSites.Cloud, domain)
 		}
-		sort.Strings(updated.ProxiedSites.Cloud)
+		sort.Strings(cfg.ProxiedSites.Cloud)
 	}
 	return nil
 }
