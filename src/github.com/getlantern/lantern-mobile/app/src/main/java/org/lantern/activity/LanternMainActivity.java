@@ -13,6 +13,7 @@ import android.content.pm.PackageInfo;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.TransitionDrawable;
 import android.os.Build;
@@ -72,6 +73,8 @@ import com.ogaclejapan.smarttablayout.utils.v4.FragmentStatePagerItemAdapter;
 import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItems;
 import com.ogaclejapan.smarttablayout.SmartTabLayout;
 
+import com.kyleduo.switchbutton.SwitchButton;
+
 import go.lantern.Lantern;
 
 @Fullscreen
@@ -93,7 +96,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
     private ObjectAnimator colorFadeIn, colorFadeOut;
 
-    private static final int onColor = Color.parseColor("#39C2D6");
+    private static final int onColor = Color.parseColor("#00BCD4");
     private static final int offColor = Color.parseColor("#FFFFFF"); 
 
     ColorDrawable[] offTransColor = {new ColorDrawable(offColor), new ColorDrawable(onColor)};
@@ -111,7 +114,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     TextView versionNum;
 
     @ViewById
-    ToggleButton powerLantern;
+    SwitchButton powerLantern;
 
     @ViewById
     DrawerLayout drawerLayout;
@@ -177,16 +180,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         setVersionNum();
         setupStatusToast();
-        showFeedview();
         checkUpdateAfterDelay();
-    }
-
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-
-        // refresh feed whenever locale changes
-        refreshFeed(null);
     }
 
     @Override
@@ -195,6 +189,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         setupSideMenu();
         setBtnStatus();
+        showFeedview();
     }
 
     // update START/STOP power Lantern button
@@ -618,6 +613,8 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
     private void updateStatus(boolean useVpn) {
         displayStatus(useVpn);
+        powerLantern.setThumbColorRes(useVpn ? R.color.accent_white : R.color.accent_white);
+        powerLantern.setBackColorRes(useVpn ? R.color.on_color : R.color.pro_blue_color );
         changeFeedHeaderColor(useVpn);
         session.updateVpnPreference(useVpn);
     }
@@ -625,7 +622,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     @Click(R.id.powerLantern)
     public void switchLantern(View view) {
 
-        boolean on = ((ToggleButton)view).isChecked();
+        boolean on = ((SwitchButton)view).isChecked();
 
         if (!Utils.isNetworkAvailable(getApplicationContext())) {
             powerLantern.setChecked(false);

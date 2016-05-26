@@ -21,6 +21,27 @@
         android:paddingTop="15dp"
         android:paddingLeft="15dp"
         android:src="@drawable/menu" />
+
+    </RelativeLayout>
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <com.kyleduo.switchbutton.SwitchButton
+            android:id="@+id/powerLantern"
+            style="@style/SwitchButtonStyle"
+            kswTextOn="@string/on_text"
+            kswTextOff="@string/off_text"
+            android:adjustViewBounds="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:layout_gravity="top|right"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            />
     </RelativeLayout>
 
     <!-- The main content view -->
@@ -28,12 +49,12 @@
         xmlns:tools="http://schemas.android.com/tools" 
         android:layout_width="fill_parent"
         android:layout_height="fill_parent" 
-        android:paddingTop="18dp"
+        android:layout_marginTop="30dp"
         android:id="@+id/mainView"
         android:gravity="center"
         tools:context=".LanternMainActivity">
 
-        <ToggleButton
+        <!--<ToggleButton
             android:id="@+id/powerLantern"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"   
@@ -43,12 +64,11 @@
             android:checked="false"
             android:text="ToggleButton"
             android:textOff=""
-            android:textOn="" />
+            android:textOn="" />-->
 
 		<include
 			android:layout_width="match_parent"
 			android:layout_height="match_parent"
-			android:layout_below="@+id/powerLantern"
 			layout="@layout/feed_view"/>
     </RelativeLayout>
 
