@@ -158,6 +158,7 @@ func TestCheck(t *testing.T) {
 
 	var wg sync.WaitGroup
 	var failToDial uint32
+	var checkCount uint32
 	d := &Dialer{
 		DialFN: func(network, addr string) (net.Conn, error) {
 			if atomic.LoadUint32(&failToDial) == 1 {
@@ -166,6 +167,7 @@ func TestCheck(t *testing.T) {
 			return nil, nil
 		},
 		Check: func() bool {
+			atomic.AddUint32(&checkCount, 1)
 			wg.Done()
 			return atomic.LoadUint32(&failToDial) == 0
 		},
@@ -191,13 +193,15 @@ func TestCheck(t *testing.T) {
 	assert.NoError(t, err)
 
 	// recheck failed dialer
+	// The check count is time sensitive, can't rely on WaitGroup
+	before := atomic.LoadUint32(&checkCount)
+	wg.Add(5)
 	atomic.StoreUint32(&failToDial, 1)
-	wg.Add(1)
 	_, err = bal.Dial("tcp", "does-not-exist.com:80")
 	assert.Error(t, err)
-	_, err = bal.Dial("tcp", "does-not-exist.com:80")
-	assert.Error(t, err)
-	wg.Wait()
+	time.Sleep(100 * time.Millisecond)
+	after := atomic.LoadUint32(&checkCount)
+	assert.True(t, after > before, "should recheck failed dialer")
 }
 
 func newDialer(id int) *Dialer {
