@@ -13,7 +13,7 @@ var (
 	// Proxy server may add a client IP address to blacklist if it constantly
 	// makes connections without sending any request. Balancer will try to
 	// avoid being blacklisted. Current Lantern server has a threshold of 10.
-	ServerBlacklistingThreshold int32 = 10
+	serverBlacklistingThreshold int32 = 10
 
 	nextCheckFactor = 10 * time.Second
 )
@@ -153,7 +153,7 @@ func (d *dialer) markFailure() {
 	log.Tracef("Dialer %s consecutive failures: %d -> %d", d.Label, newCF-1, newCF)
 	// Don't bother to recheck if dialer is constantly failing.
 	// Balancer will recheck when there's traffic after idle for some time.
-	if newCF < ServerBlacklistingThreshold/2 {
+	if newCF < serverBlacklistingThreshold/2 {
 		atomic.StoreInt32(&d.consecSuccesses, 0)
 		nextCheck := randomize(time.Duration(newCF*newCF) * nextCheckFactor)
 		log.Debugf("Will recheck %s %v later because it failed for %d times", d.Label, nextCheck, newCF)
