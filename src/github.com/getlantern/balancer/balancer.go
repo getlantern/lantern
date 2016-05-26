@@ -20,9 +20,9 @@ const (
 
 var (
 	// When Dial() is called after an idle period larger than
-	// RecheckAfterIdleFor, Balancer will recheck all dialers to make sure they
+	// recheckAfterIdleFor, Balancer will recheck all dialers to make sure they
 	// are alive and have up-to-date metrics.
-	RecheckAfterIdleFor = 1 * time.Minute
+	recheckAfterIdleFor = 1 * time.Minute
 
 	log = golog.LoggerFor("balancer")
 )
@@ -75,7 +75,7 @@ func (b *Balancer) OnRequest(req *http.Request) {
 func (b *Balancer) Dial(network, addr string) (net.Conn, error) {
 	lastDialTime := b.lastDialTime.Load().(time.Time)
 	idled := time.Since(lastDialTime)
-	if idled > RecheckAfterIdleFor {
+	if idled > recheckAfterIdleFor {
 		log.Debugf("Balancer idled for %s, start checking all dialers", idled)
 		b.checkDialers()
 	}

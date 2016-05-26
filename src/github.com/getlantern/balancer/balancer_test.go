@@ -152,9 +152,9 @@ func TestTrusted(t *testing.T) {
 }
 
 func TestCheck(t *testing.T) {
-	oldRecheckAfterIdleFor := RecheckAfterIdleFor
-	RecheckAfterIdleFor = 100 * time.Millisecond
-	defer func() { RecheckAfterIdleFor = oldRecheckAfterIdleFor }()
+	oldrecheckAfterIdleFor := recheckAfterIdleFor
+	recheckAfterIdleFor = 100 * time.Millisecond
+	defer func() { recheckAfterIdleFor = oldrecheckAfterIdleFor }()
 
 	var wg sync.WaitGroup
 	var failToDial uint32
