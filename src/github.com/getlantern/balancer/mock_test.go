@@ -51,22 +51,24 @@ func RandomlyFailWithVariedDelay(failPercent int, delay time.Duration, delta tim
 	}
 }
 
-func EchoServer() net.Listener {
+func echoServer() (addr string, l net.Listener) {
 	l, err := net.Listen("tcp", "localhost:0")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Unable to listen: %s", err)
 	}
 	go func() {
 		for {
-			conn, err := l.Accept()
-			if err != nil {
-				log.Fatal(err)
+			c, err := l.Accept()
+			if err == nil {
+				go func() {
+					_, err = io.Copy(c, c)
+					if err != nil {
+						log.Fatalf("Unable to echo: %s", err)
+					}
+				}()
 			}
-			go func(c net.Conn) {
-				_, _ = io.Copy(c, c)
-				_ = c.Close()
-			}(conn)
 		}
 	}()
-	return l
+	addr = l.Addr().String()
+	return
 }
