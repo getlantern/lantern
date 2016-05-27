@@ -168,28 +168,28 @@ func (c *Client) sendPeriodically() {
 // Flush flushes any currently buffered data.
 func (c *Client) Flush() {
 	c.mx.Lock()
-	numMeasurements := 0
-	for _, buffer := range c.buffers {
-		numMeasurements += len(buffer)
-	}
-	if numMeasurements == 0 {
-		c.mx.Unlock()
-		log.Debug("Nothing to report")
-		return
-	}
-	batch := make([]*Measurement, 0, numMeasurements)
-	bufferCopies := make(map[int]map[string]*Measurement)
-	for bufferID, buffer := range c.buffers {
-		bufferCopy := make(map[string]*Measurement, len(buffer))
-		bufferCopies[bufferID] = buffer
-		for key, m := range buffer {
-			batch = append(batch, m)
-			bufferCopy[key] = m
-		}
-	}
+	currentBuffers := c.buffers
 	// Clear out buffers
 	c.buffers = make(map[int]map[string]*Measurement, len(c.buffers))
 	c.mx.Unlock()
+
+	// Count measurements
+	numMeasurements := 0
+	for _, buffer := range currentBuffers {
+		numMeasurements += len(buffer)
+	}
+	if numMeasurements == 0 {
+		log.Debug("Nothing to report")
+		return
+	}
+
+	// Make batch
+	batch := make([]*Measurement, 0, numMeasurements)
+	for _, buffer := range currentBuffers {
+		for _, m := range buffer {
+			batch = append(batch, m)
+		}
+	}
 
 	log.Debugf("Attempting to report %d measurements to Borda", len(batch))
 	err := c.doSendBatch(batch)
@@ -200,7 +200,7 @@ func (c *Client) Flush() {
 	log.Error(err)
 	log.Debugf("Rebuffering %d measurements", numMeasurements)
 	c.mx.Lock()
-	for bufferID, buffer := range bufferCopies {
+	for bufferID, buffer := range currentBuffers {
 		submitter := c.submitters[bufferID]
 		for key, m := range buffer {
 			submitter(key, m.Ts, m.Values, m.Dimensions)
