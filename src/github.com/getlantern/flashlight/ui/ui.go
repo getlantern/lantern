@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/getlantern/edgedetect"
+	"github.com/getlantern/flashlight/pro"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/tarfs"
 	"github.com/skratchdot/open-golang/open"
@@ -77,7 +78,9 @@ func Start(requestedAddr string, allowRemote bool, extUrl string) (string, error
 		return "", fmt.Errorf("Unable to resolve UI address: %v", err)
 	}
 
-	// initProServer("127.0.0.1:1233") // Experimental server.
+	go func() {
+		log.Fatal(pro.InitProxy("127.0.0.1:1233"))
+	}()
 
 	externalUrl = extUrl
 	if allowRemote {

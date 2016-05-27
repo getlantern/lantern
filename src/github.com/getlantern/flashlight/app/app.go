@@ -47,6 +47,7 @@ func (app *App) Init() {
 	// use buffered channel to avoid blocking the caller of 'AddExitFunc'
 	// the number 10 is arbitrary
 	app.chExitFuncs = make(chan func(), 10)
+	setupUserSignal()
 }
 
 // LogPanicAndExit logs a panic and then exits the application.

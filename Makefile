@@ -5,7 +5,7 @@ OSX_MIN_VERSION := 10.9
 get-command = $(shell which="$$(which $(1) 2> /dev/null)" && if [[ ! -z "$$which" ]]; then printf %q "$$which"; fi)
 
 DOCKER 		:= $(call get-command,docker)
-GO 		:= $(call get-command,go)
+GO  		:= $(call get-command,go)
 NODE 		:= $(call get-command,node)
 NPM 		:= $(call get-command,npm)
 GULP 		:= $(call get-command,gulp)
@@ -193,16 +193,9 @@ android-dist: genconfig android
 $(RESOURCES_DOT_GO): require-npm require-gulp
 	@source setenv.bash && \
 	LANTERN_UI="lantern-ui" && \
-	APP="$$LANTERN_UI/app" && \
 	DIST="$$LANTERN_UI/dist" && \
-	echo 'var LANTERN_BUILD_REVISION = "$(GIT_REVISION_SHORTCODE)";' > $$APP/js/revision.js && \
-	git update-index --assume-unchanged $$APP/js/revision.js && \
+	echo 'var LANTERN_BUILD_REVISION = "$(GIT_REVISION_SHORTCODE)";' > $$DIST/js/revision.js && \
 	DEST="$@" && \
-	cd $$LANTERN_UI && \
-	$(NPM) install && \
-	rm -Rf dist && \
-	$(GULP) build && \
-	cd - && \
 	rm -f bin/tarfs && \
 	go build -o bin/tarfs github.com/getlantern/tarfs/tarfs && \
 	echo "// +build !stub" > $$DEST && \
@@ -216,25 +209,25 @@ generate-windows-icon:
 	go install github.com/akavel/rsrc && \
   rsrc -ico installer-resources/windows/lantern.ico -o src/github.com/getlantern/flashlight/lantern_windows_386.syso
 
-assets: $(RESOURCES_DOT_GO)
+assets: clean-assets $(RESOURCES_DOT_GO)
 
-linux-386: $(RESOURCES_DOT_GO)
+linux-386: assets
 	@source setenv.bash && \
 	$(call build-tags) && \
 	CGO_ENABLED=1 GOOS=linux GOARCH=386 go build -a -o lantern_linux_386 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight/main
 
-linux-amd64: $(RESOURCES_DOT_GO)
+linux-amd64: assets
 	@source setenv.bash && \
 	$(call build-tags) && \
 	CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -a -o lantern_linux_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight/main
 
-linux-arm: $(RESOURCES_DOT_GO)
+linux-arm: assets
 	@source setenv.bash && \
 	HEADLESS=1 && \
 	$(call build-tags) && \
 	CGO_ENABLED=1 CC=arm-linux-gnueabi-gcc CXX=arm-linux-gnueabi-g++ CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7 go build -a -o lantern_linux_arm -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight/main
 
-windows: $(RESOURCES_DOT_GO)
+windows: assets
 	@source setenv.bash && \
 	$(call build-tags) && \
 	CGO_ENABLED=1 GOOS=windows GOARCH=386 go build -a -o lantern_windows_386.exe -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -H=windowsgui" github.com/getlantern/flashlight/main;
@@ -328,7 +321,7 @@ require-ruby:
 	(gem which octokit >/dev/null) || (echo 'Missing gem "octokit". Try sudo gem install octokit.' && exit 1) && \
 	(gem which mime-types >/dev/null) || (echo 'Missing gem "mime-types". Try sudo gem install mime-types.' && exit 1)
 
-darwin: $(RESOURCES_DOT_GO)
+darwin: assets
 	@echo "Building darwin/amd64..." && \
 	export OSX_DEV_SDK=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX$(OSX_MIN_VERSION).sdk && \
 	if [[ "$$(uname -s)" == "Darwin" ]]; then \
