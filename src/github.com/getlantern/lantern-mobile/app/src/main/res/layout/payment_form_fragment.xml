@@ -107,7 +107,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"
-        android:hint="@string/CVC" 
+        android:hint="@string/cvc" 
         android:background="@null"
         android:fontFamily="sans-serif" 
         android:drawableLeft="@drawable/cvv_inactive"
