@@ -137,7 +137,7 @@ func testAllFallbacks(fallbacks []client.ChainedServerInfo) (output *chan fullOu
 
 // Perform the test of an individual server
 func testFallbackServer(fb *client.ChainedServerInfo, workerID int) (output fullOutput) {
-	dialer, err := fb.Dialer(DeviceID)
+	dialer, err := client.ChainedDialer(fb, DeviceID)
 	if err != nil {
 		output.err = fmt.Errorf("%v: error building dialer: %v", fb.Addr, err)
 		return
