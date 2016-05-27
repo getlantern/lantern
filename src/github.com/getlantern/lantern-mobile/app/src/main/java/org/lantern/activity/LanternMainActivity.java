@@ -363,7 +363,9 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         menuMap.put(resources.getString(R.string.desktop_option), new Command() { 
             public void runCommand() {
-                startActivity(new Intent(activity, DesktopActivity_.class));
+
+                Intent intent = new Intent(activity, DesktopActivity_.class);
+                startActivity(intent);
             } 
         });
 

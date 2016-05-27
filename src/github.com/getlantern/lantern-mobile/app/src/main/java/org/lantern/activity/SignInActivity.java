@@ -47,7 +47,8 @@ public class SignInActivity extends FragmentActivity implements ProResponse {
 
     @Override
     public void onSuccess() {
-        startActivity(new Intent(this, VerifyCodeActivity_.class));
+        Intent intent = new Intent(this, VerifyCodeActivity_.class);
+        startActivity(intent);
     }
 
     @Override
