@@ -97,9 +97,14 @@ func (op *Op) Request(r *http.Request) *Op {
 	if r == nil {
 		return op
 	}
-	return op.Put("http_request_method", r.Method).
-		Put("http_request_host", r.Host).
-		Put("http_request_proto", r.Proto)
+	op.Put("http_method", r.Method).
+		Put("http_proto", r.Proto).
+		Put("origin", r.Host)
+	host, port, err := net.SplitHostPort(r.Host)
+	if err == nil {
+		op.Put("origin_host", host).Put("origin_port", port)
+	}
+	return op
 }
 
 // Response attaches key information of an `http.Response` to the Context. If
