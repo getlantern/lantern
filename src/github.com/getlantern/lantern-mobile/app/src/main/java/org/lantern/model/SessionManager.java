@@ -29,15 +29,15 @@ public class SessionManager extends Lantern.Session.Stub {
     private static final String REFERRAL_CODE = "referral";
     private static final String DEVICE_ID = "deviceid";
 
-    public static int chargeAmount = 0;
-    public static String chargeStr = "";
-
     private static final String USER_ID = "userid";
     private static final String PRO_USER = "prouser";
     private static final String PRO_PLAN = "proplan";
     private static final String TOKEN = "token";
     private static final String PREF_USE_VPN = "pref_vpn";
     private static final String PREF_NEWSFEED = "pref_newsfeed";
+
+    public static final String ONE_YEAR_PLAN = "Lantern Pro 1 Year";
+    public static final String TWO_YEAR_PLAN = "Lantern Pro 2 Year";
 
      // shared preferences mode
     private int PRIVATE_MODE = 0;

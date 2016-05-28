@@ -121,8 +121,10 @@
     <string name="get_pro_now">Get Pro Now</string>
     <string name="inviting_friends">Get Pro credits by inviting friends</string>
     <string name="select">Select</string>
-    <string name="twelve_months">for 12 months</string>
-    <string name="one_month">for 1 month</string>
+    <string name="one_year">for 1 year</string>
+    <string name="two_years">for 2 years</string>
+    <string name="one_year_cost">$20 (USD)</string>
+    <string name="two_year_cost">$36 (USD)</string>
     <string name="best_value">Best VALUE!</string>
     <string name="referral_code">Referral Code (optional)</string>
     <string name="total">Total:</string>

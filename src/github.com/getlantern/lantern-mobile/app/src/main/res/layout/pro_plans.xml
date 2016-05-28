@@ -101,7 +101,7 @@
             android:layout_width="match_parent">
 
             <RelativeLayout 
-                android:id="@+id/year_plan"
+                android:id="@+id/two_year_plan"
                 android:layout_width="fill_parent"
                 android:layout_height="130dp"
                 android:layout_weight="1"
@@ -127,7 +127,7 @@
                     android:textColor="@color/accent_white"/>
 
                 <TextView
-                    android:id="@+id/year_plan_cost"
+                    android:id="@+id/two_year_plan_cost"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif"
@@ -135,7 +135,7 @@
                     android:layout_alignParentStart="true"
                     android:layout_centerVertical ="true"
                     android:layout_marginLeft="13dp"
-                    android:text="$4.99/mo"
+                    android:text="@string/two_year_cost"
                     android:textSize="34sp"
                     android:textStyle="bold"
                     android:alpha=".87"
@@ -145,14 +145,14 @@
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif"
-                    android:layout_below="@+id/year_plan_cost"
+                    android:layout_below="@+id/two_year_plan_cost"
                     android:layout_marginLeft="13dp"
-                    android:text="@string/twelve_months"
+                    android:text="@string/two_years"
                     android:alpha=".54"
                     android:textColor="@color/black"/>
 
                 <Button
-                    android:id="@+id/yearBtn"
+                    android:id="@+id/twoYearBtn"
                     android:layout_height="36dp"
                     android:layout_width="88dp"
                     android:text="@string/select"
@@ -175,17 +175,17 @@
             </RelativeLayout>
 
             <RelativeLayout 
-                android:id="@+id/month_plan"
+                android:id="@+id/one_year_plan"
                 android:layout_width="fill_parent"
                 android:layout_height="110dp"
                 android:layout_weight="1"
-                android:background="@color/month_plan_bg"
+                android:background="@color/one_year_plan_bg"
                 android:paddingRight="8dp"
                 android:paddingBottom="8dp"
                 android:paddingLeft="8dp">
 
                 <TextView
-                    android:id="@+id/month_plan_cost"
+                    android:id="@+id/one_year_plan_cost"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif"
@@ -193,7 +193,7 @@
                     android:layout_alignParentStart="true"
                     android:layout_centerVertical="true"
                     android:layout_marginLeft="13dp"
-                    android:text="$7.99/mo"
+                    android:text="@string/one_year_cost"
                     android:textSize="34sp"
                     android:textStyle="bold"
                     android:alpha=".87"
@@ -203,15 +203,15 @@
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif"
-                    android:layout_below="@+id/month_plan_cost"
+                    android:layout_below="@+id/one_year_plan_cost"
                     android:layout_marginLeft="13dp"
-                    android:text="@string/one_month"
+                    android:text="@string/one_year"
                     android:alpha=".54"
                     android:textColor="@color/black"/>
 
 
                 <Button
-                    android:id="@+id/monthBtn"
+                    android:id="@+id/oneYearBtn"
                     android:layout_height="36dp"
                     android:layout_width="88dp"
                     android:text="@string/select"

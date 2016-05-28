@@ -46,14 +46,8 @@ public class PlansActivity extends FragmentActivity {
 
     private static final String TAG = "PlansActivity";
     private static final String mCheckoutUrl = 
-        "https://s3.amazonaws.com/lantern-android/checkout.html?amount=%d";
+        "https://s3.amazonaws.com/lantern-android/checkout.html?amount=%s";
     private static final boolean useAlipay = false;
-
-    private static final NumberFormat currencyFormatter = 
-        NumberFormat.getCurrencyInstance(new Locale("en", "US"));
-
-    private static final Integer monthCost = 799;
-    private static final Integer yearCost = 499 * 12;
 
     private SessionManager session;
 
@@ -61,7 +55,7 @@ public class PlansActivity extends FragmentActivity {
     String[] proFeaturesList;
 
     @ViewById
-    Button monthBtn, yearBtn;
+    Button oneYearBtn, twoYearBtn;
 
     @ViewById
     LinearLayout leftFeatures, rightFeatures;
@@ -87,30 +81,27 @@ public class PlansActivity extends FragmentActivity {
             i++;
         }
 
-        monthBtn.setTag(monthCost);
-        yearBtn.setTag(yearCost);
+        oneYearBtn.setTag(SessionManager.ONE_YEAR_PLAN);
+        twoYearBtn.setTag(SessionManager.TWO_YEAR_PLAN);
 
         plansView.bringToFront();
     }
 
     public void selectPlan(View view) {
-        Integer amount = (Integer)view.getTag();
+        String plan = (String)view.getTag();
 
-		Log.d(TAG, "Plan selected: " + amount);
+		Log.d(TAG, "Plan selected: " + plan);
 
         Intent intent;
 
         if (useAlipay) {
             Log.d(TAG, "Chinese user detected; opening Alipay by default");
             intent = new Intent(Intent.ACTION_VIEW);
-            intent.setData(Uri.parse(String.format(mCheckoutUrl, amount)));
+            intent.setData(Uri.parse(String.format(mCheckoutUrl, plan)));
 
         } else {
             intent = new Intent(this, PaymentActivity.class);
-
-            String amountStr = currencyFormatter.format(amount / 100.0);
-            SessionManager.chargeAmount = (Integer)amount;
-            SessionManager.chargeStr = amountStr;
+            PaymentActivity.plan = plan;
         }
 
         // make sure user links device before proceeding

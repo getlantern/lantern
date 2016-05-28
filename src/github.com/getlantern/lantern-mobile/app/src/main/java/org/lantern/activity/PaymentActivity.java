@@ -40,6 +40,9 @@ import org.lantern.model.SessionManager;
 import org.lantern.model.Utils;
 import org.lantern.R;
 
+import java.text.NumberFormat;
+import java.util.Locale;
+
 import com.thefinestartist.finestwebview.FinestWebView;
 
 import info.hoang8f.android.segmented.SegmentedGroup;
@@ -50,11 +53,20 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
     private static final String TAG = "PaymentActivity";
     private static final String mCheckoutUrl = "https://s3.amazonaws.com/lantern-android/checkout.html?plan=%s";
 
+    private static final NumberFormat currencyFormatter = 
+        NumberFormat.getCurrencyInstance(new Locale("en", "US"));
+
     private SessionManager session;
     private Context mContext;
 
     private ProgressDialogFragment progressFragment;
-    private int chargeAmount;
+
+    public static String plan;
+
+    private static final Integer oneYearCost = 2000;
+    private static final Integer twoYearCost = 3600;
+
+    private int chargeAmount = oneYearCost;
 
     @FragmentById(R.id.payment_form)
     PaymentFormFragment paymentForm;
@@ -89,11 +101,14 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
 
         Intent intent = getIntent();
 
-        chargeAmount = SessionManager.chargeAmount;
-        chargeAmountView.setText(SessionManager.chargeStr);
-
-        SessionManager.chargeAmount = 0;
-        SessionManager.chargeStr = "";
+        if (plan != null) {
+            if (plan.equals(SessionManager.ONE_YEAR_PLAN)) {
+                chargeAmount = oneYearCost;
+            } else {
+                chargeAmount = twoYearCost;
+            }
+        }
+        chargeAmountView.setText(currencyFormatter.format(chargeAmount / 100.0));
 
         checkoutBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -114,7 +129,7 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 String plan;
                 if (chargeAmount == 799) {
-                    plan = "month";
+                    plan = "Lantern Pro 1 Year";
                 } else {
                     plan = "year";
                 }
