@@ -371,22 +371,23 @@ func enableBorda(bordaReportInterval time.Duration, bordaSamplePercentage float6
 		}
 	})
 
-	// Sample a subset of device ids
+	// Sample a subset of device IDs.
+	// DeviceID is expected to be a Base64 encoded 48-bit (6 byte) MAC address
 	deviceIDBytes, base64Err := base64.StdEncoding.DecodeString(deviceID)
 	if base64Err != nil {
-		log.Debugf("Error decoding base64 deviceID: %v", base64Err)
+		log.Debugf("Error decoding base64 deviceID %v: %v", deviceID, base64Err)
 		return
 	}
 	var deviceIDInt uint64
-	if len(deviceIDBytes) < 4 {
-		log.Debugf("DeviceID too small: %v", base64Err)
-	} else if len(deviceIDBytes) < 8 {
-		deviceIDInt = uint64(binary.BigEndian.Uint32(deviceIDBytes))
-	} else {
-		deviceIDInt = binary.BigEndian.Uint64(deviceIDBytes)
+	if len(deviceIDBytes) != 6 {
+		log.Debugf("Unexpected DeviceID length %v: %d", deviceID, len(deviceIDBytes))
 	}
+	// Pad and decode to int
+	paddedDeviceIDBytes := append(deviceIDBytes, 0, 0)
+	// Use BigEndian because Mac address has most significant bytes on left
+	deviceIDInt = binary.BigEndian.Uint64(paddedDeviceIDBytes)
 	if deviceIDInt%uint64(1/bordaSamplePercentage) != 0 {
-		log.Debug("DeviceID not being sampled for borda")
+		log.Debugf("DeviceID %v not being sampled", deviceID)
 		return
 	}
 
