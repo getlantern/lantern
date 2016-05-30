@@ -1,0 +1,15 @@
+language: go
+go:
+- 1.6.2
+install:
+- curl https://s3-eu-west-1.amazonaws.com/uaalto/go1.6.2_lantern_20160503_linux_amd64.tar.gz | tar -xz -C /tmp
+- rm -Rf $GOROOT
+- mv /tmp/go $GOROOT
+- go get golang.org/x/tools/cmd/cover
+- go get -v github.com/axw/gocov/gocov
+- go get -v github.com/mattn/goveralls
+- go get -t
+script:
+- GOPATH=`pwd`:$GOPATH; go test -race -v -covermode=atomic -coverprofile=profile_tmp github.com/getlantern/http-proxy && tail -n +2 profile_tmp >> profile.cov && tail -n +2 profile_tmp >> profile.cov
+after_success:
+- GOPATH=`pwd`:$GOPATH $HOME/gopath/bin/goveralls -coverprofile=profile.cov -service=travis-ci
