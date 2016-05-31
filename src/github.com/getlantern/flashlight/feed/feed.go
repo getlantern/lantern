@@ -181,13 +181,23 @@ func doGetFeed(feedEndpoint string, locale string, shouldProxy bool, allStr stri
 		return
 	}
 
-	defer res.Body.Close()
+	defer func() {
+		if err := res.Body.Close(); err != nil {
+			handleError(fmt.Errorf("Error closing response body: %v", err))
+		}
+	}()
 
 	gzReader, err := gzip.NewReader(res.Body)
 	if err != nil {
 		handleError(fmt.Errorf("Unable to open gzip reader: %s", err))
 		return
 	}
+
+	defer func() {
+		if err := gzReader.Close(); err != nil {
+			handleError(fmt.Errorf("Unable to close gzip reader: %s", err))
+		}
+	}()
 
 	contents, err := ioutil.ReadAll(gzReader)
 	if err != nil {
