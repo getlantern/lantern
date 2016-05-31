@@ -81,10 +81,10 @@ func TestProxying(t *testing.T) {
 	// Makes a test request
 	testRequest(t, httpAddr, httpsAddr)
 
-	// Switch to obfs4, wait for a new config and test request again
-	atomic.StoreUint32(&useOBFS4, 1)
-	time.Sleep(2 * time.Second)
-	testRequest(t, httpAddr, httpsAddr)
+	// // Switch to obfs4, wait for a new config and test request again
+	// atomic.StoreUint32(&useOBFS4, 1)
+	// time.Sleep(2 * time.Second)
+	// testRequest(t, httpAddr, httpsAddr)
 }
 
 func startWebServer(t *testing.T) (string, string, error) {
@@ -130,7 +130,20 @@ func startProxyServer(t *testing.T) error {
 		assert.NoError(t, err, "Proxy server should have been able to listen")
 	}()
 
-	return waitforserver.WaitForServer("tcp", ProxyServerAddr, 10*time.Second)
+	err := waitforserver.WaitForServer("tcp", ProxyServerAddr, 10*time.Second)
+	if err != nil {
+		return err
+	}
+
+	// Wait for cert file to show up
+	var statErr error
+	for i := 0; i < 10; i++ {
+		_, statErr = os.Stat(CertFile)
+		if statErr != nil {
+			time.Sleep(250 * time.Millisecond)
+		}
+	}
+	return statErr
 }
 
 func startConfigServer(t *testing.T) (string, error) {
