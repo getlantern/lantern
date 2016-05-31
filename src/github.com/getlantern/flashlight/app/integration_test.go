@@ -113,13 +113,13 @@ func serveContent(resp http.ResponseWriter, req *http.Request) {
 }
 
 func startProxyServer(t *testing.T) error {
-	s := &httpproxylantern.Server{
+	s := &proxy.Proxy{
 		TestingLocal: true,
 		Addr:         ProxyServerAddr,
 		Obfs4Addr:    OBFS4ServerAddr,
 		Obfs4Dir:     ".",
 		Token:        Token,
-		Keyfile:      KeyFile,
+		KeyFile:      KeyFile,
 		CertFile:     CertFile,
 		IdleClose:    30,
 		HTTPS:        true,
