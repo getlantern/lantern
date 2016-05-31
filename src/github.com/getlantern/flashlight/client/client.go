@@ -15,7 +15,6 @@ import (
 	"github.com/getlantern/detour"
 	"github.com/getlantern/eventual"
 	"github.com/getlantern/golog"
-	"github.com/getlantern/protected"
 )
 
 const (
@@ -234,7 +233,7 @@ func (client *Client) dialCONNECT(addr string, port int) (net.Conn, error) {
 		return d("tcp", addr)
 	}
 	log.Tracef("Port not allowed, bypassing proxy and sending CONNECT request directly to %v", addr)
-	return protected.Dial("tcp", addr, 1*time.Minute)
+	return dialDirect("tcp", addr, 1*time.Minute)
 }
 
 func (client *Client) shouldSendToProxy(port int) bool {
