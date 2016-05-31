@@ -132,11 +132,6 @@ func Resolve(addr string) (*net.TCPAddr, error) {
 //   specified system device (this is primarily
 //   used for Android VpnService routing functionality)
 func Dial(network, addr string, timeout time.Duration) (net.Conn, error) {
-	protect, _ := getCurrent()
-	if protect == nil {
-		return net.DialTimeout(network, addr, timeout)
-	}
-
 	host, port, err := SplitHostPort(addr)
 	if err != nil {
 		return nil, err
@@ -164,6 +159,7 @@ func Dial(network, addr string, timeout time.Duration) (net.Conn, error) {
 	defer conn.cleanup()
 
 	// Actually protect the underlying socket here
+	protect, _ := getCurrent()
 	err = protect(conn.socketFd)
 	if err != nil {
 		return nil, fmt.Errorf("Could not bind socket to system device: %v", err)
