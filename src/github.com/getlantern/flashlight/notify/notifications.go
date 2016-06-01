@@ -1,10 +1,6 @@
 package notify
 
-import (
-	"time"
-
-	"github.com/getlantern/golog"
-)
+import "github.com/getlantern/golog"
 
 var (
 	log = golog.LoggerFor("flashlight/notify")
@@ -37,13 +33,19 @@ type Notification struct {
 
 // Button is a button for a notification.
 type Button struct {
-	Title    string
-	IconURL  string
+	Title string
+
+	// IconURL is the optional URL to use for the button icon.
+	IconURL string
+
+	// ClickURL is an optional URL to open when the user clicks the button.
 	ClickURL string
 }
 
 // UISender is an interface for allowing this class to send thing to the UI.
 type UISender interface {
+
+	// Send sends the specified JSON message to the UI.
 	Send(interface{})
 }
 
@@ -55,25 +57,6 @@ func NewNotifications(register func(string) (UISender, error)) (Notifier, error)
 		return nil, err
 	}
 	n := &notifications{ui: uiSender}
-
-	go func() {
-		for {
-			buttons := []*Button{&Button{Title: "OK", ClickURL: "https://www.getlantern.org"}}
-			not := &Notification{
-				ID:                 "backendtesting",
-				Type:               "basic",
-				Title:              "Data Cap",
-				Message:            "Please fix this",
-				IconURL:            "lantern_logo.png",
-				RequireInteraction: true,
-				IsClickable:        true,
-				Buttons:            buttons,
-			}
-			n.Notify(not)
-			time.Sleep(30 * time.Second)
-		}
-	}()
-
 	return n, nil
 }
 

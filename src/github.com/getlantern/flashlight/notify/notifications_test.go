@@ -1,23 +1,23 @@
 package notify
 
 import (
-	"encoding/json"
 	"testing"
 
-	"github.com/getlantern/flashlight/ui"
 	"github.com/stretchr/testify/assert"
 )
 
 type sender struct {
+	out chan interface{}
 }
 
-func (s *sender) Send(interface{}) {
-
+func (s *sender) Send(in interface{}) {
+	s.out <- in
 }
 
 func TestNotify(t *testing.T) {
+	s := &sender{out: make(chan interface{})}
 	register := func(t string) (UISender, error) {
-		return &sender{}, nil
+		return s, nil
 	}
 	n, err := NewNotifications(register)
 	assert.Nil(t, err)
@@ -32,10 +32,7 @@ func TestNotify(t *testing.T) {
 	}
 	n.Notify(not)
 
-	b, err := json.Marshal(&ui.Envelope{
-		EnvelopeType: ui.EnvelopeType{Type: "notification"},
-		Message:      not,
-	})
+	incoming := <-s.out
 
-	log.Debugf("JSON:\n%v", string(b))
+	assert.Equal(t, not, incoming)
 }
