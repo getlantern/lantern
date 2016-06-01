@@ -16,6 +16,7 @@ import (
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/logging"
+	"github.com/getlantern/flashlight/notify"
 	"github.com/getlantern/flashlight/proxiedsites"
 	"github.com/getlantern/flashlight/ui"
 )
@@ -49,6 +50,16 @@ func (app *App) Init() {
 	// use buffered channel to avoid blocking the caller of 'AddExitFunc'
 	// the number 10 is arbitrary
 	app.chExitFuncs = make(chan func(), 10)
+
+	// I'm actually unclear why we can't just send ui.RegisterType directly to
+	// newNotifications here, but the compiler doesn't like it for some reason.
+	register := func(t string) (notify.UISender, error) {
+		return ui.RegisterType(t)
+	}
+	_, err := notify.NewNotifications(register)
+	if err != nil {
+		log.Debugf("Error creating notifications %v", err)
+	}
 }
 
 // LogPanicAndExit logs a panic and then exits the application.

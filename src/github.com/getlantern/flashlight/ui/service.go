@@ -46,6 +46,17 @@ func (s *Service) write() {
 	}
 }
 
+// Send sends the specified message on the outgoing channel to the UI.
+func (s *Service) Send(msg interface{}) {
+	s.Out <- msg
+}
+
+// RegisterType registers a specific type string with no callbacks or functions
+// for new messages.
+func RegisterType(t string) (*Service, error) {
+	return Register(t, nil, nil)
+}
+
 func Register(t string, newMessage func() interface{}, helloFn helloFnType) (*Service, error) {
 	log.Tracef("Registering UI service %s", t)
 	mu.Lock()

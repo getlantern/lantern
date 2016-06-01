@@ -3,6 +3,7 @@ package ui
 import (
 	"io"
 	"net/http"
+	"net/url"
 	"path"
 	"sync"
 
@@ -10,7 +11,7 @@ import (
 )
 
 const (
-	// Determines the chunking size of messages used by gorilla
+	// MaxMessageSize determines the chunking size of messages used by gorilla
 	MaxMessageSize = 1024
 )
 
@@ -18,7 +19,19 @@ var (
 	upgrader = &websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: MaxMessageSize,
-		// CheckOrigin:     func(r *http.Request) bool { return true }, // I need this to test Lantern UI from a different host.
+		//CheckOrigin:     func(r *http.Request) bool { return true }, // I need this to test Lantern UI from a different host.
+		CheckOrigin: func(req *http.Request) bool {
+			if checkSameOrigin(req) {
+				return true
+			}
+			ext := "chrome-extension://jmkbcmphlggipcjgddiceiknijmonnnk"
+			origin := req.Header.Get("Origin")
+			log.Debugf("Received origin: %v", origin)
+			if origin == ext {
+				return true
+			}
+			return false
+		},
 	}
 )
 
@@ -40,6 +53,19 @@ type UIChannel struct {
 
 type ConnectFunc func(write func([]byte) error) error
 
+// checkSameOrigin returns true if the origin is not set or is equal to the request host.
+func checkSameOrigin(r *http.Request) bool {
+	origin := r.Header["Origin"]
+	if len(origin) == 0 {
+		return true
+	}
+	u, err := url.Parse(origin[0])
+	if err != nil {
+		return false
+	}
+	return u.Host == r.Host
+}
+
 // NewChannel establishes a new channel to the UI at the given path. When the UI
 // connects to this path, we will establish a websocket to the UI to carry
 // messages for this UIChannel. The given onConnect function is called anytime
@@ -55,6 +81,7 @@ func NewChannel(p string, onConnect ConnectFunc) *UIChannel {
 			http.Error(resp, "Method not allowed", 405)
 			return
 		}
+
 		// Upgrade with a HTTP request returns a websocket connection
 		ws, err := upgrader.Upgrade(resp, req, nil)
 		if err != nil {
