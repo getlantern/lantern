@@ -51,14 +51,9 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request, op 
 	}
 
 	addr := hostIncludingPort(req, 443)
-	_, portString, err := net.SplitHostPort(addr)
+	port, err := client.portForAddress(addr)
 	if err != nil {
 		respondBadGateway(resp, op.Error(errors.New("Unable to determine port for address %v: %v", addr, err)))
-		return
-	}
-	port, err := strconv.Atoi(portString)
-	if err != nil {
-		respondBadGateway(resp, op.Error(errors.New("Unable to parse port %v for address %v: %v", addr, port, err)))
 		return
 	}
 
@@ -93,33 +88,7 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request, op 
 		return
 	}
 
-	sendToProxy := false
-	for _, proxiedPort := range client.cfg().ProxiedCONNECTPorts {
-		if port == proxiedPort {
-			sendToProxy = true
-			break
-		}
-	}
-
-	// Establish outbound connection
-	if sendToProxy {
-		log.Tracef("Proxying CONNECT request for %v", addr)
-		d := client.proxiedDialer(func(network, addr string) (net.Conn, error) {
-			// UGLY HACK ALERT! In this case, we know we need to send a CONNECT request
-			// to the chained server. We need to send that request from chained/dialer.go
-			// though because only it knows about the authentication token to use.
-			// We signal it to send the CONNECT here using the network transport argument
-			// that is effectively always "tcp" in the end, but we look for this
-			// special "transport" in the dialer and send a CONNECT request in that
-			// case.
-			return client.getBalancer().Dial("connect", addr)
-		})
-		connOut, err = d("tcp", addr)
-	} else {
-		log.Tracef("Port not allowed, bypassing proxy and sending CONNECT request directly to %v", addr)
-		connOut, err = net.Dial("tcp", addr)
-	}
-
+	connOut, err = client.dialCONNECT(addr, port)
 	if err != nil {
 		log.Debug(op.Error(errors.New("Could not dial %v", err)))
 		respondBadGatewayHijacked(clientConn, req)
