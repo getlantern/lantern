@@ -16,10 +16,14 @@ func (s *sender) Send(in interface{}) {
 
 func TestNotify(t *testing.T) {
 	s := &sender{out: make(chan interface{})}
+	var receivedType string
 	register := func(t string) (UISender, error) {
+		receivedType = t
 		return s, nil
 	}
+
 	n, err := NewNotifications(register)
+	assert.Equal(t, "notification", receivedType)
 	assert.Nil(t, err)
 
 	buttons := []*Button{&Button{Title: "OK"}}

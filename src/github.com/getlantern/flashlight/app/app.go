@@ -51,7 +51,12 @@ func (app *App) Init() {
 	// the number 10 is arbitrary
 	app.chExitFuncs = make(chan func(), 10)
 
-	_, err := notify.NewNotifications(ui.RegisterType)
+	// I'm actually unclear why we can't just send ui.RegisterType directly to
+	// newNotifications here, but the compiler doesn't like it for some reason.
+	register := func(t string) (notify.UISender, error) {
+		return ui.RegisterType(t)
+	}
+	_, err := notify.NewNotifications(register)
 	if err != nil {
 		log.Debugf("Error creating notifications %v", err)
 	}
