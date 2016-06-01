@@ -184,7 +184,7 @@ func (cf *fetcher) fetchCloudConfig(cfg *Config) ([]byte, error) {
 	}
 	defer func() {
 		if closeerr := resp.Body.Close(); closeerr != nil {
-			log.Debugf("Error closing response body: %v", closeerr)
+			log.Errorf("Error closing response body: %v", closeerr)
 		}
 	}()
 
@@ -203,6 +203,13 @@ func (cf *fetcher) fetchCloudConfig(cfg *Config) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to open gzip reader: %s", err)
 	}
+
+	defer func() {
+		if err := gzReader.Close(); err != nil {
+			log.Errorf("Unable to close gzip reader: %v", err)
+		}
+	}()
+
 	log.Debugf("Fetched cloud config")
 	return ioutil.ReadAll(gzReader)
 }

@@ -1,13 +1,21 @@
 package balancer
 
 import (
+	"math/rand"
 	"net"
 	"net/http"
 	"sync"
 	"sync/atomic"
 	"time"
+)
 
-	"github.com/getlantern/withtimeout"
+var (
+	// Proxy server may add a client IP address to blacklist if it constantly
+	// makes connections without sending any request. Balancer will try to
+	// avoid being blacklisted. Current Lantern server has a threshold of 10.
+	serverBlacklistingThreshold int32 = 10
+
+	nextCheckFactor = 10 * time.Second
 )
 
 // Dialer captures the configuration for dialing arbitrary addresses.
@@ -21,14 +29,12 @@ type Dialer struct {
 	// OnClose: (optional) callback for when this dialer is stopped.
 	OnClose func()
 
-	// Check: (optional) - a function that's used to test reachibility metrics
+	// Check: - a function that's used to test reachibility metrics
 	// periodically or if the dialer was failed to connect.
+	// It should return true for a successful check.
 	//
-	// Checks are scheduled at exponentially increasing intervals that are
-	// capped at 1 minute.
-	//
-	// If Check is not specified, a default Check will be used that makes an
-	// HTTP request to http://www.google.com/humans.txt using this Dialer.
+	// Checks are scheduled at exponentially increasing intervals if dialer is
+	// failed. Balancer will also schedule check when required.
 	Check func() bool
 
 	// Determines whether a dialer can be trusted with unencrypted traffic.
@@ -38,10 +44,6 @@ type Dialer struct {
 	OnRequest func(req *http.Request)
 }
 
-var (
-	maxCheckTimeout = 1 * time.Minute
-)
-
 type dialer struct {
 	// Ref dialer.EMADialTime() for the rationale
 	// Keep it at the top to make sure 64-bit alignment, see
@@ -49,7 +51,8 @@ type dialer struct {
 	emaDialTime int64
 
 	*Dialer
-	closeCh      chan struct{}
+	closeCh chan struct{}
+	// prevent race condition when calling Timer.Reset()
 	muCheckTimer sync.Mutex
 	checkTimer   *time.Timer
 
@@ -57,10 +60,12 @@ type dialer struct {
 	consecFailures  int32
 }
 
+const longDuration = 100000 * time.Hour
+
 func (d *dialer) Start() {
 	d.consecSuccesses = 1 // be optimistic
 	d.closeCh = make(chan struct{})
-	d.checkTimer = time.NewTimer(maxCheckTimeout)
+	d.checkTimer = time.NewTimer(longDuration)
 	if d.Check == nil {
 		d.Check = d.defaultCheck
 	}
@@ -75,23 +80,26 @@ func (d *dialer) Start() {
 				}
 				return
 			case <-d.checkTimer.C:
-				// We suspect that the check process may be causing users to get blacklisted.
-				// At the moment, it's not strictly necessary and won't be until we do
-				// multiple servers with pro, so let's skip it for now.
-				// TODO: reenable for Pro if necessary
-				if true {
-					continue
-				}
-				log.Tracef("Start checking dialer %s", d.Label)
-				ok := d.Check()
-				if ok {
-					d.markSuccess()
-				} else {
-					d.markFailure()
-				}
+				go d.check()
 			}
 		}
 	}()
+}
+
+func (d *dialer) check() {
+	log.Tracef("Start checking dialer %s", d.Label)
+	t := time.Now()
+	ok := d.Check()
+	if ok {
+		d.markSuccess()
+		// Check time is generally larger than dial time, but still
+		// meaningful when comparing latency across multiple
+		// dialers.
+		d.updateEMADialTime(time.Since(t))
+	} else {
+		log.Tracef("Dialer %s failed check", d.Label)
+		d.markFailure()
+	}
 }
 
 func (d *dialer) Stop() {
@@ -118,7 +126,7 @@ func (d *dialer) dial(network, addr string) (net.Conn, error) {
 		d.markFailure()
 	} else {
 		d.markSuccess()
-		d.updateEMADialTime(time.Now().Sub(t))
+		d.updateEMADialTime(time.Since(t))
 	}
 	return conn, err
 }
@@ -127,61 +135,40 @@ func (d *dialer) updateEMADialTime(t time.Duration) {
 	// Ref dialer.EMADialTime() for the rationale.
 	// The values is large enough to safely ignore decimals.
 	newEMA := (atomic.LoadInt64(&d.emaDialTime) + t.Nanoseconds()) / 2
-	log.Tracef("Dialer %s EMA(exponential moving average) dial time: %d", d.Label, newEMA)
+	log.Tracef("Dialer %s EMA dial time: %v", d.Label, time.Duration(newEMA))
 	atomic.StoreInt64(&d.emaDialTime, newEMA)
 }
 
 func (d *dialer) markSuccess() {
 	newCS := atomic.AddInt32(&d.consecSuccesses, 1)
 	log.Tracef("Dialer %s consecutive successes: %d -> %d", d.Label, newCS-1, newCS)
-	atomic.StoreInt32(&d.consecFailures, 0)
-	d.muCheckTimer.Lock()
-	d.checkTimer.Reset(maxCheckTimeout)
-	d.muCheckTimer.Unlock()
+	// only when state is changing
+	if newCS <= 2 {
+		atomic.StoreInt32(&d.consecFailures, 0)
+	}
 }
 
 func (d *dialer) markFailure() {
-	atomic.StoreInt32(&d.consecSuccesses, 0)
 	newCF := atomic.AddInt32(&d.consecFailures, 1)
 	log.Tracef("Dialer %s consecutive failures: %d -> %d", d.Label, newCF-1, newCF)
-	nextCheck := time.Duration(newCF*newCF) * 100 * time.Millisecond
-	if nextCheck > maxCheckTimeout {
-		nextCheck = maxCheckTimeout
+	// Don't bother to recheck if dialer is constantly failing.
+	// Balancer will recheck when there's traffic after idle for some time.
+	if newCF < serverBlacklistingThreshold/2 {
+		atomic.StoreInt32(&d.consecSuccesses, 0)
+		nextCheck := randomize(time.Duration(newCF*newCF) * nextCheckFactor)
+		log.Debugf("Will recheck %s %v later because it failed for %d times", d.Label, nextCheck, newCF)
+		d.muCheckTimer.Lock()
+		d.checkTimer.Reset(nextCheck)
+		d.muCheckTimer.Unlock()
 	}
-	d.muCheckTimer.Lock()
-	d.checkTimer.Reset(nextCheck)
-	d.muCheckTimer.Unlock()
 }
 
 func (d *dialer) defaultCheck() bool {
-	client := &http.Client{
-		Transport: &http.Transport{
-			DisableKeepAlives: true,
-			Dial:              d.dial,
-		},
-	}
-	ok, timedOut, _ := withtimeout.Do(60*time.Second, func() (interface{}, error) {
-		req, err := http.NewRequest("GET", "http://www.google.com/humans.txt", nil)
-		if err != nil {
-			log.Errorf("Could not create HTTP request?")
-			return false, nil
-		}
-		if d.OnRequest != nil {
-			d.OnRequest(req)
-		}
-		resp, err := client.Do(req)
-		if err != nil {
-			log.Debugf("Error testing dialer %s to humans.txt: %s", d.Label, err)
-			return false, nil
-		}
-		if err := resp.Body.Close(); err != nil {
-			log.Debugf("Unable to close response body: %v", err)
-		}
-		log.Tracef("Tested dialer %s to humans.txt, status code %d", d.Label, resp.StatusCode)
-		return resp.StatusCode == 200, nil
-	})
-	if timedOut {
-		log.Errorf("Timed out checking dialer at: %v", d.Label)
-	}
-	return !timedOut && ok.(bool)
+	log.Errorf("No check function provided for dialer %s", d.Label)
+	return false
+}
+
+// adds randomization to make requests less distinguishable on the network.
+func randomize(d time.Duration) time.Duration {
+	return time.Duration((d.Nanoseconds() / 2) + rand.Int63n(d.Nanoseconds()))
 }
