@@ -146,12 +146,14 @@ func Configure(cloudConfigCA string, deviceID string,
 }
 
 func initContext(deviceID string, version string, revisionDate string) {
-	ops.PutGlobal("hostname", "hidden")
-	ops.PutGlobal("device_id", deviceID)
-	ops.PutGlobal("os_name", runtime.GOOS)
-	ops.PutGlobal("os_arch", runtime.GOARCH)
+	// Using "application" allows us to distinguish between errors from the
+	// lantern client vs other sources like the http-proxy, etop.
+	ops.PutGlobal("app", "lantern-client")
 	ops.PutGlobal("app_version", fmt.Sprintf("%v (%v)", version, revisionDate))
 	ops.PutGlobal("go_version", runtime.Version())
+	ops.PutGlobal("os_name", runtime.GOOS)
+	ops.PutGlobal("os_arch", runtime.GOARCH)
+	ops.PutGlobal("device_id", deviceID)
 	ops.PutGlobalDynamic("geo_country", func() interface{} { return geolookup.GetCountry(0) })
 	ops.PutGlobalDynamic("client_ip", func() interface{} { return geolookup.GetIP(0) })
 	ops.PutGlobalDynamic("timezone", func() interface{} { return time.Now().Format("MST") })
@@ -296,6 +298,7 @@ func (r logglyErrorReporter) Report(err error, fullMessage string, ctx map[strin
 		translatedCtx[tkey] = value
 	}
 	translatedCtx["sessionUserAgents"] = getSessionUserAgents()
+	translatedCtx["hostname"] = "hidden"
 
 	m := loggly.Message{
 		"extra":        translatedCtx,

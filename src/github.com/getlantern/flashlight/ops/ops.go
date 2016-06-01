@@ -33,10 +33,7 @@ func (op *Op) Enter(name string) *Op {
 
 // Enter mimics the similar method from ops
 func Enter(name string) *Op {
-	op := &Op{ops.Enter(name)}
-	// Using "application" allows us to distinguish between errors from the
-	// lantern client vs other sources like the http-proxy, etop.
-	return op.Put("app", "lantern-client")
+	return &Op{ops.Enter(name)}
 }
 
 // RegisterReporter mimics the similar method from ops
