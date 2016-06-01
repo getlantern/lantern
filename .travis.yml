@@ -10,7 +10,7 @@ install:
 - sudo apt-get install make -y
 - go get golang.org/x/tools/cmd/cover
 - go get -v github.com/mattn/goveralls
-- curl https://s3-eu-west-1.amazonaws.com/uaalto/go1.6.2_lantern_20160503_linux_amd64.tar.gz | tar -xz -C /tmp && rm -Rf /usr/local/go && mv /tmp/go /usr/local
+- curl https://s3-eu-west-1.amazonaws.com/uaalto/go1.6.2_lantern_20160503_linux_amd64.tar.gz | tar -xz -C /tmp && rm -Rf /usr/local/go && sudo mv /tmp/go /usr/local
 before_script:
 - npm install -g gulp-cli
 script:
