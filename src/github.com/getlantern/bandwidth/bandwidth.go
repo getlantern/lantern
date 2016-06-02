@@ -17,7 +17,7 @@ var (
 	mutex sync.RWMutex
 
 	// Updates is a channel on which one can receive updates to the Quota
-	Updates = make(chan *Quota)
+	Updates = make(chan *Quota, 100)
 )
 
 // Quota encapsulates information about the user's bandwidth quota.
