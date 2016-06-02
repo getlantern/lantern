@@ -155,6 +155,11 @@ func (app *App) beforeStart(cfg *config.Config) bool {
 	}
 	client.UIAddr = actualUIAddr
 
+	err = serveBandwidth()
+	if err != nil {
+		log.Errorf("Unable to serve bandwidth to UI: %v", err)
+	}
+
 	// Only run analytics once on startup.
 	if settings.IsAutoReport() {
 		stopAnalytics := analytics.Start(settings.GetDeviceID(), flashlight.Version)
