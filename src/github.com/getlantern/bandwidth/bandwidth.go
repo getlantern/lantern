@@ -16,6 +16,8 @@ var (
 	quota *Quota
 	mutex sync.RWMutex
 
+	epoch = time.Date(2016, 1, 1, 0, 0, 0, 0, time.UTC)
+
 	// Updates is a channel on which one can receive updates to the Quota
 	Updates = make(chan *Quota, 100)
 )
@@ -42,7 +44,8 @@ func GetQuota() *Quota {
 //
 // <used> is the string representation of a 64-bit unsigned integer
 // <allowed> is the string representation of a 64-bit unsigned integer
-// <asof> is the 64-bit signed integer representing nanoseconds since epoch
+// <asof> is the 64-bit signed integer representing seconds since a custom
+// epoch (00:00:00 01/01/2016 UTC).
 func Track(resp *http.Response) {
 	xbq := resp.Header.Get("XBQ")
 	if xbq == "" {
@@ -71,7 +74,7 @@ func Track(resp *http.Response) {
 		log.Debugf("Malformed XBQ header %v, can't parse as of time: %v", err)
 		return
 	}
-	asof := time.Unix(0, asofInt)
+	asof := epoch.Add(time.Duration(asofInt) * time.Second)
 	mutex.Lock()
 	if quota == nil || quota.AsOf.Before(asof) {
 		quota = &Quota{allowed, used, asof}
