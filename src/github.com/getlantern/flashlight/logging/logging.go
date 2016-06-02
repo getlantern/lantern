@@ -148,33 +148,33 @@ func Configure(cloudConfigCA string, deviceID string,
 func initContext(deviceID string, version string, revisionDate string) {
 	// Using "application" allows us to distinguish between errors from the
 	// lantern client vs other sources like the http-proxy, etop.
-	ops.PutGlobal("app", "lantern-client")
-	ops.PutGlobal("app_version", fmt.Sprintf("%v (%v)", version, revisionDate))
-	ops.PutGlobal("go_version", runtime.Version())
-	ops.PutGlobal("os_name", runtime.GOOS)
-	ops.PutGlobal("os_arch", runtime.GOARCH)
-	ops.PutGlobal("device_id", deviceID)
-	ops.PutGlobalDynamic("geo_country", func() interface{} { return geolookup.GetCountry(0) })
-	ops.PutGlobalDynamic("client_ip", func() interface{} { return geolookup.GetIP(0) })
-	ops.PutGlobalDynamic("timezone", func() interface{} { return time.Now().Format("MST") })
-	ops.PutGlobalDynamic("locale_language", func() interface{} {
+	ops.SetGlobal("app", "lantern-client")
+	ops.SetGlobal("app_version", fmt.Sprintf("%v (%v)", version, revisionDate))
+	ops.SetGlobal("go_version", runtime.Version())
+	ops.SetGlobal("os_name", runtime.GOOS)
+	ops.SetGlobal("os_arch", runtime.GOARCH)
+	ops.SetGlobal("device_id", deviceID)
+	ops.SetGlobalDynamic("geo_country", func() interface{} { return geolookup.GetCountry(0) })
+	ops.SetGlobalDynamic("client_ip", func() interface{} { return geolookup.GetIP(0) })
+	ops.SetGlobalDynamic("timezone", func() interface{} { return time.Now().Format("MST") })
+	ops.SetGlobalDynamic("locale_language", func() interface{} {
 		lang, _ := jibber_jabber.DetectLanguage()
 		return lang
 	})
-	ops.PutGlobalDynamic("locale_country", func() interface{} {
+	ops.SetGlobalDynamic("locale_country", func() interface{} {
 		country, _ := jibber_jabber.DetectTerritory()
 		return country
 	})
 
 	if osStr, err := osversion.GetHumanReadable(); err == nil {
-		ops.PutGlobal("os_version", osStr)
+		ops.SetGlobal("os_version", osStr)
 	}
 }
 
 // SetExtraLogglyInfo supports setting an extra info value to include in Loggly
 // reports (for example Android application details)
 func SetExtraLogglyInfo(key, value string) {
-	ops.PutGlobal(key, value)
+	ops.SetGlobal(key, value)
 }
 
 // Flush forces output flushing if the output is flushable
@@ -360,8 +360,8 @@ func enableBorda(bordaReportInterval time.Duration, bordaSamplePercentage float6
 			Transport: proxied.AsRoundTripper(func(req *http.Request) (*http.Response, error) {
 				frontedURL := *req.URL
 				frontedURL.Host = "d157vud77ygy87.cloudfront.net"
-				op := ops.Enter("report_to_borda").Request(req)
-				defer op.Exit()
+				op := ops.Begin("report_to_borda").Request(req)
+				defer op.End()
 				proxied.PrepareForFronting(req, frontedURL.String())
 				return rt.RoundTrip(req)
 			}),

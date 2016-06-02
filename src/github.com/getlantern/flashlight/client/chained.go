@@ -114,13 +114,13 @@ func (s *chainedServer) dialer(deviceID string) (*balancer.Dialer, error) {
 		Label:   label,
 		Trusted: s.Trusted,
 		DialFN: func(network, addr string) (net.Conn, error) {
-			op := ops.Enter("dial_for_balancer").ProxyType(ops.ProxyChained).ProxyAddr(s.Addr)
-			defer op.Exit()
+			op := ops.Begin("dial_for_balancer").ProxyType(ops.ProxyChained).ProxyAddr(s.Addr)
+			defer op.End()
 			// Yeah any site visited through Lantern can be a check target
 			s.addCheckTarget(addr)
 			conn, err := d(network, addr)
 			if err != nil {
-				return nil, op.Error(err)
+				return nil, op.FailIf(err)
 			}
 			conn = idletiming.Conn(conn, idleTimeout, func() {
 				log.Debugf("Proxy connection to %s via %s idle for %v, closing", addr, conn.RemoteAddr(), idleTimeout)

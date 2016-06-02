@@ -201,15 +201,15 @@ func (client *Client) proxiedDialer(orig func(network, addr string) (net.Conn, e
 	detourDialer := detour.Dialer(orig)
 
 	return func(network, addr string) (net.Conn, error) {
-		op := ops.Enter("proxied_dialer")
-		defer op.Exit()
+		op := ops.Begin("proxied_dialer")
+		defer op.End()
 
 		var proxied func(network, addr string) (net.Conn, error)
 		if client.proxyAll() {
-			op.Put("detour", false)
+			op.Set("detour", false)
 			proxied = orig
 		} else {
-			op.Put("detour", true)
+			op.Set("detour", true)
 			proxied = detourDialer
 		}
 
@@ -219,7 +219,7 @@ func (client *Client) proxiedDialer(orig func(network, addr string) (net.Conn, e
 			return net.Dial(network, rewritten)
 		}
 		conn, err := proxied(network, addr)
-		return conn, op.Error(err)
+		return conn, op.FailIf(err)
 	}
 }
 

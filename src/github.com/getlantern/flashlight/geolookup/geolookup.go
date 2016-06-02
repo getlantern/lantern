@@ -94,13 +94,13 @@ func lookup() *geoInfo {
 }
 
 func doLookup() (*geoInfo, error) {
-	op := ops.Enter("geolookup")
-	defer op.Exit()
+	op := ops.Begin("geolookup")
+	defer op.End()
 	city, ip, err := geo.LookupIP("", proxied.ParallelPreferChained())
 
 	if err != nil {
 		log.Errorf("Could not lookup IP %v", err)
-		return nil, op.Error(err)
+		return nil, op.FailIf(err)
 	}
 	return &geoInfo{ip, city}, nil
 }

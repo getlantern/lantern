@@ -27,12 +27,12 @@ type Op struct {
 }
 
 // Enter mimics the similar method from ops.Op
-func (op *Op) Enter(name string) *Op {
+func (op *Op) Begin(name string) *Op {
 	return &Op{op.wrapped.Enter(name)}
 }
 
 // Enter mimics the similar method from ops
-func Enter(name string) *Op {
+func Begin(name string) *Op {
 	return &Op{ops.Enter(name)}
 }
 
@@ -52,40 +52,40 @@ func Go(fn func()) {
 }
 
 // Exit mimics the similar method from ops.Op
-func (op *Op) Exit() {
+func (op *Op) End() {
 	op.wrapped.Exit()
 }
 
 // Put mimics the similar method from ops.Op
-func (op *Op) Put(key string, value interface{}) *Op {
+func (op *Op) Set(key string, value interface{}) *Op {
 	op.wrapped.Put(key, value)
 	return op
 }
 
 // PutGlobal mimics the similar method from ops
-func PutGlobal(key string, value interface{}) {
+func SetGlobal(key string, value interface{}) {
 	ops.PutGlobal(key, value)
 }
 
 // PutDynamic mimics the similar method from ops.Op
-func (op *Op) PutDynamic(key string, valueFN func() interface{}) *Op {
+func (op *Op) SetDynamic(key string, valueFN func() interface{}) *Op {
 	op.wrapped.PutDynamic(key, valueFN)
 	return op
 }
 
 // PutGlobalDynamic mimics the similar method from ops
-func PutGlobalDynamic(key string, valueFN func() interface{}) {
+func SetGlobalDynamic(key string, valueFN func() interface{}) {
 	ops.PutGlobalDynamic(key, valueFN)
 }
 
 // Error mimics the similar method from ops.op
-func (op *Op) Error(err error) error {
+func (op *Op) FailIf(err error) error {
 	return op.wrapped.Error(err)
 }
 
 // UserAgent attaches a user agent to the Context.
 func (op *Op) UserAgent(v string) *Op {
-	op.Put("user_agent", v)
+	op.Set("user_agent", v)
 	return op
 }
 
@@ -94,12 +94,12 @@ func (op *Op) Request(r *http.Request) *Op {
 	if r == nil {
 		return op
 	}
-	op.Put("http_method", r.Method).
-		Put("http_proto", r.Proto).
-		Put("origin", r.Host)
+	op.Set("http_method", r.Method).
+		Set("http_proto", r.Proto).
+		Set("origin", r.Host)
 	host, port, err := net.SplitHostPort(r.Host)
 	if err == nil {
-		op.Put("origin_host", host).Put("origin_port", port)
+		op.Set("origin_host", host).Set("origin_port", port)
 	}
 	return op
 }
@@ -110,7 +110,7 @@ func (op *Op) Response(r *http.Response) *Op {
 	if r == nil {
 		return op
 	}
-	op.Put("http_response_status_code", r.StatusCode)
+	op.Set("http_response_status_code", r.StatusCode)
 	op.Request(r.Request)
 	return op
 }
@@ -124,7 +124,7 @@ func (op *Op) ChainedProxy(addr string, protocol string) *Op {
 
 // ProxyType attaches proxy type to the Context
 func (op *Op) ProxyType(v ProxyType) *Op {
-	return op.Put("proxy_type", v)
+	return op.Set("proxy_type", v)
 }
 
 // ProxyAddr attaches proxy server address to the Context
@@ -138,7 +138,7 @@ func (op *Op) ProxyAddr(v string) *Op {
 
 // ProxyProtocol attaches proxy server's protocol to the Context
 func (op *Op) ProxyProtocol(v string) *Op {
-	return op.Put("proxy_protocol", v)
+	return op.Set("proxy_protocol", v)
 }
 
 // Origin attaches the origin to the Contetx

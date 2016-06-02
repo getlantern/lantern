@@ -136,7 +136,7 @@ func (cf *fetcher) pollForConfig(currentCfg yamlconf.Config, stickyConfig bool) 
 }
 
 func (cf *fetcher) fetchCloudConfig(cfg *Config) ([]byte, error) {
-	defer ops.Enter("fetch_config").Exit()
+	defer ops.Begin("fetch_config").End()
 	log.Debugf("Fetching cloud config from %v (%v)", cf.chainedURL, cf.frontedURL)
 
 	url := cf.chainedURL
