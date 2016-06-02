@@ -187,7 +187,8 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         registerReceiver(mReceiver, filter);
 
         if (!session.isProUser()) {
-            String amount = String.format(getResources().getString(R.string.data_remaining), 300);
+            String quota = Lantern.GetBandwidthQuota()
+            String amount = String.format(getResources().getString(R.string.data_remaining), quota);
             dataRemaining.setText(amount);
             if (dataProgressBar != null) {
                 dataProgressBar.setVisibility(View.VISIBLE);

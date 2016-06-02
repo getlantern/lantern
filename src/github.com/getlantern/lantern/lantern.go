@@ -11,6 +11,7 @@ import (
 	"code.google.com/p/go-uuid/uuid"
 
 	"github.com/getlantern/autoupdate"
+	"github.com/getlantern/bandwidth"
 	"github.com/getlantern/flashlight"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
@@ -144,6 +145,12 @@ func CheckForUpdates(shouldProxy bool) (string, error) {
 // file destination.
 func DownloadUpdate(url, apkPath string, shouldProxy bool, updater Updater) {
 	autoupdate.UpdateMobile(shouldProxy, url, apkPath, updater)
+}
+
+func GetBandwidthQuota() string {
+	quota := bandwidth.GetQuota()
+	res := quota.MiBAllowed / quota.MiBAllowed
+	return string(res)
 }
 
 func GetFeed(locale string, allStr string, shouldProxy bool, provider FeedProvider) {
