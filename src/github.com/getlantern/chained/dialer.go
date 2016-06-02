@@ -6,6 +6,8 @@ import (
 	"net"
 	"net/http"
 	"strings"
+
+	"github.com/getlantern/bandwidth"
 )
 
 // Config is a configuration for a Dialer.
@@ -95,6 +97,7 @@ func checkCONNECTResponse(r *bufio.Reader, req *http.Request) error {
 	if !sameStatusCodeClass(http.StatusOK, resp.StatusCode) {
 		return fmt.Errorf("Bad status code on CONNECT response: %d", resp.StatusCode)
 	}
+	bandwidth.Track(resp)
 	return nil
 }
 
