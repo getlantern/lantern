@@ -137,10 +137,10 @@ func startProxyServer(t *testing.T) error {
 
 	// Wait for cert file to show up
 	var statErr error
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 400; i++ {
 		_, statErr = os.Stat(CertFile)
 		if statErr != nil {
-			time.Sleep(250 * time.Millisecond)
+			time.Sleep(25 * time.Millisecond)
 		}
 	}
 	return statErr
