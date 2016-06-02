@@ -41,13 +41,12 @@ func (client *Client) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 // connection and starts piping the data over a new net.Conn obtained from the
 // given dial function.
 func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
-
 	if req.Method != httpConnectMethod {
 		panic("Intercept used for non-CONNECT request!")
 	}
 
 	addr := hostIncludingPort(req, 443)
-	_, portString, err := net.SplitHostPort(addr)
+	host, portString, err := net.SplitHostPort(addr)
 	if err != nil {
 		respondBadGateway(resp, fmt.Sprintf("Unable to determine port for address %v: %v", addr, err))
 		return
@@ -95,6 +94,12 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 			sendToProxy = true
 			break
 		}
+	}
+
+	if host == LanternSpecialDomain {
+		// We want to allow any connections to the LanternSpecialDomain, even when
+		// using non-allowed ports.
+		sendToProxy = true
 	}
 
 	// Establish outbound connection
