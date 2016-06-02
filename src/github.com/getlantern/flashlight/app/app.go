@@ -156,7 +156,7 @@ func (app *App) beforeStart(cfg *config.Config) bool {
 	}
 	client.UIAddr = actualUIAddr
 
-	err = serveBandwidth()
+	err = serveBandwidth(app.uiaddr())
 	if err != nil {
 		log.Errorf("Unable to serve bandwidth to UI: %v", err)
 	}
