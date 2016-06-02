@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/getlantern/http-proxy/filters"
-	"github.com/getlantern/testify/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestFilterTunnelPorts(t *testing.T) {

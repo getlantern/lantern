@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"github.com/getlantern/keyman"
-	"github.com/getlantern/testify/assert"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/getlantern/http-proxy/commonfilter"
 	"github.com/getlantern/http-proxy/filters"
