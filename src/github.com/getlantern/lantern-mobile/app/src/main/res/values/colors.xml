@@ -3,6 +3,7 @@
     <color name="edittext_color">#BDBDBD</color>
     <color name="blue_color">#39C2D6</color>
     <color name="pro_blue_color">#00BCD4</color>
+    <color name="dark_pro_blue">#0097a7</color>
     <color name="on_color">#FFFF00</color>
     <color name="off_color">#BDBDBD</color>
     <color name="cyan">#0297A7</color>
@@ -15,6 +16,7 @@
     <color name="spinnerItem">#AAAAAA</color>
     <color name="editText">#AAAAAA</color>
     <color name="get_btn_text">#FEE900</color>
+    <color name="data_bar_color">#FEE900</color>
     <color name="two_year_plan_bg">#f5f5f5</color>
     <color name="one_year_plan_bg">#f5f5f5</color>
     <color name="best_value">#00bcd4</color>

@@ -31,8 +31,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -111,7 +113,10 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     private SessionManager session;
 
     @ViewById
-    TextView versionNum;
+    TextView versionNum, dataRemaining;
+
+    @ViewById
+    ProgressBar dataProgressBar;
 
     @ViewById
     SwitchButton powerLantern;
@@ -130,6 +135,9 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
     @ViewById
     ImageView menuIcon;
+
+    @ViewById
+    Button upgradeBtn;
 
     private ActionBarDrawerToggle mDrawerToggle;
 
@@ -178,9 +186,20 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         mReceiver = new LanternReceiver();
         registerReceiver(mReceiver, filter);
 
+        if (!session.isProUser()) {
+            String amount = String.format(getResources().getString(R.string.data_remaining), 300);
+            dataRemaining.setText(amount);
+            if (dataProgressBar != null) {
+                dataProgressBar.setVisibility(View.VISIBLE);
+                //dataProgressBar.setProgress(55);
+            }
+        }
+
+
         setVersionNum();
         setupStatusToast();
         checkUpdateAfterDelay();
+
     }
 
     @Override
@@ -456,6 +475,11 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     @Click(R.id.menuIcon)
     void menuButtonClicked() {
         drawerLayout.openDrawer(GravityCompat.START);
+    }
+
+    @Click(R.id.upgradeBtn)
+    void ugpradeBtnClicked() {
+        startActivity(new Intent(this, PlansActivity_.class)); 
     }
 
     @Click(R.id.backBtn)

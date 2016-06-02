@@ -11,6 +11,17 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
+        <View
+            android:id="@+id/topStripe"
+            android:background="@color/pro_blue_color"
+            android:layout_width = "match_parent"
+            android:layout_height="4dip"
+            android:layout_gravity="center"
+            android:layout_centerVertical ="true"
+            android:layout_alignParentTop="true"
+            />
+
+
     <ImageView
         android:id="@+id/menuIcon"
         android:layout_width="wrap_content"
@@ -54,22 +65,20 @@
         android:gravity="center"
         tools:context=".LanternMainActivity">
 
-        <!--<ToggleButton
-            android:id="@+id/powerLantern"
-            android:layout_height="wrap_content"
-            android:layout_width="wrap_content"   
-            android:background="@drawable/toggle_switch"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="20dp"
-            android:checked="false"
-            android:text="ToggleButton"
-            android:textOff=""
-            android:textOn="" />-->
-
 		<include
+            android:id="@+id/feedView"
 			android:layout_width="match_parent"
-			android:layout_height="match_parent"
+			android:layout_height="wrap_content"
+            android:layout_above="@+id/dataUsage"
 			layout="@layout/feed_view"/>
+
+        <include
+            android:id="@+id/dataUsage"
+            android:layout_width="match_parent"
+            android:layout_height="84dp"
+            android:layout_alignParentBottom="true"
+            layout="@layout/data_summary_view"/>
+        
     </RelativeLayout>
 
     <!-- The navigation drawer -->

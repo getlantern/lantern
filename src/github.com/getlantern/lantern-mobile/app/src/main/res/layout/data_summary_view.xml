@@ -1,0 +1,90 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="84dp"
+    android:background="@color/pro_blue_color"
+    android:paddingTop="12dp"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    android:paddingBottom="12dp">
+
+    <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android" 
+        android:id="@+id/progressBarView"
+        android:layout_width = "fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_gravity="center"
+        android:layout_centerHorizontal ="true"
+        android:paddingBottom="8dp" 
+        android:gravity="center">
+
+        <ProgressBar
+            android:id="@+id/dataProgressBar"          
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_centerHorizontal ="true"
+            android:maxHeight="6dip"
+            android:minHeight="6dip"
+            android:progressBackgroundTint="@color/dark_pro_blue"
+            android:indeterminate="false"
+            android:progress="70"
+            android:indeterminateTintMode="src_atop"
+            android:indeterminateTint="@color/data_bar_color"
+            />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/upgradeProText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/progressBarView"
+        android:layout_toLeftOf="@+id/upgradeBtn"
+        android:orientation="vertical" >
+
+        <TextView
+            android:id="@+id/dataRemaining"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:singleLine="true"
+            android:fontFamily="sans-serif-medium"
+            android:clickable="false"
+            android:text=""
+            android:textStyle="bold"
+            android:textSize="10sp"
+            android:textColor="@color/accent_white"/>
+
+        <TextView
+            android:id="@+id/upgrade_to_pro"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:singleLine="false"
+            android:fontFamily="sans-serif-medium"
+            android:clickable="false"
+            android:text="@string/upgrade_to_pro"
+            android:textSize="10sp"
+            android:textColor="@color/accent_white"/>
+    </LinearLayout>
+    <Button
+        android:id="@+id/upgradeBtn"
+        android:layout_height="36dp"
+        android:layout_width="88dp"
+        android:layout_below="@+id/progressBarView"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true" 
+        android:gravity="center"
+        android:text="@string/upgrade"
+        android:fontFamily="sans-serif-medium" 
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textAllCaps="true"
+        android:elevation="2dp"
+        android:minHeight="48dp"
+        android:textColor="@color/accent_white"
+        android:clickable = "true"
+        android:background="@drawable/send_btn"/>
+</RelativeLayout>

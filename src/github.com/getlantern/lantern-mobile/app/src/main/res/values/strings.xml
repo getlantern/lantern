@@ -137,6 +137,9 @@
     <string name="referral_promotion">Referral Promotion</string>
     <string name="get_lantern_pro">Get Lantern Pro</string>
     <string name="upgrade_to_lantern_pro">Upgrade to Lantern Pro</string>
+    <string name="upgrade_to_pro">Upgrade to Pro for unlimiated data, faster\n speed, and greater blocking resistance!</string>
+    <string name="data_remaining">%1$dMB Remaining of your free monthly data</string> 
+    <string name="upgrade">Upgrade</string>
     <string name="no_wall_at_all">No wall at all.</string>
     <string name="buy_pro_now">Buy Pro Now</string>
     <string name="update_billing_info">Update Billing Info</string>
