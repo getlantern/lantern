@@ -30,7 +30,7 @@ func (s *UserSignal) start() error {
 	helloFn := func(write func(interface{}) error) error {
 		return write("connected")
 	}
-	s.service, err = ui.Register("signal", nil, helloFn)
+	s.service, err = ui.Register("signal", helloFn)
 	return err
 }
 
