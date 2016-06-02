@@ -110,7 +110,7 @@ func (s *Settings) start() error {
 		defer s.Unlock()
 		return write(s)
 	}
-	service, err = ui.Register(messageType, nil, helloFn)
+	service, err = ui.Register(messageType, helloFn)
 	return err
 }
 
