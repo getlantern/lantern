@@ -119,15 +119,16 @@ public class SessionManager extends Lantern.Session.Stub {
 		}
 	}
 
-	public void setProUser(String email, String token, 
-			String plan) {
+    public void setProPlan(String plan) {
+        editor.putString(PRO_PLAN, plan).commit();
+    }
 
-		setStripeEmail(email);
-		setStripeToken(token);
-		setPlan(plan);
+	public void setProUser(String email, String token, String plan) {
+        this.stripeToken = token;
+        this.stripeEmail = email;
 
-		editor.putBoolean(PRO_USER, true);
-		editor.putString(PRO_PLAN, plan).commit();
+        editor.putString(PRO_PLAN, plan).commit();
+		editor.putBoolean(PRO_USER, true).commit();
 	}
 
 	public void setStripeToken(String token) {

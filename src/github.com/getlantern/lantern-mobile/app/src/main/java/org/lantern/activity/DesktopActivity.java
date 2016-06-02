@@ -87,7 +87,7 @@ public class DesktopActivity extends FragmentActivity {
         }
 
         // revert send button, separator back to defaults
-        sendBtn.setBackgroundResource(R.drawable.send_btn);
+        sendBtn.setBackgroundResource(R.drawable.send_btn); 
         sendBtn.setClickable(false);
         separator.setBackgroundResource(R.color.edittext_color);
         emailInput.setText("");

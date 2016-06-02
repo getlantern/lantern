@@ -80,9 +80,9 @@ public class InviteActivity extends FragmentActivity {
     public void textInvite(View view) {
         Log.d(TAG, "Invite friends button clicked!");
         Resources res = getResources();
-        Intent sendIntent = new Intent(Intent.ACTION_VIEW);         
+        Intent sendIntent = new Intent(Intent.ACTION_VIEW);
         sendIntent.setData(Uri.parse("sms:"));
-        sendIntent.putExtra("sms_body", 
+        sendIntent.putExtra("sms_body",
                 String.format(res.getString(R.string.receive_free_month), this.code));
         startActivity(sendIntent);
     }
@@ -90,12 +90,12 @@ public class InviteActivity extends FragmentActivity {
     public void emailInvite(View view) {
         Log.d(TAG, "Continue to Pro button clicked!");
 
-        Intent emailIntent = new Intent(Intent.ACTION_SENDTO, 
+        Intent emailIntent = new Intent(Intent.ACTION_SENDTO,
                 Uri.fromParts("mailto","", null));
         Resources res = getResources();
-        emailIntent.putExtra(Intent.EXTRA_SUBJECT, 
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT,
                 res.getString(R.string.pro_invitation_subject));
-        emailIntent.putExtra(Intent.EXTRA_TEXT, 
+        emailIntent.putExtra(Intent.EXTRA_TEXT,
             String.format(res.getString(R.string.receive_free_month), this.code));
         startActivity(Intent.createChooser(emailIntent, "Send email..."));
     }

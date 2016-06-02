@@ -58,7 +58,7 @@ import org.lantern.model.Shareable;
 import org.lantern.model.Utils;
 import org.lantern.R;
 
-import java.util.ArrayList; 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 
@@ -79,7 +79,7 @@ import go.lantern.Lantern;
 
 @Fullscreen
 @EActivity(R.layout.activity_lantern_main)
-public class LanternMainActivity extends AppCompatActivity implements 
+public class LanternMainActivity extends AppCompatActivity implements
 Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
     private static final String TAG = "LanternMainActivity";
@@ -97,10 +97,10 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     private ObjectAnimator colorFadeIn, colorFadeOut;
 
     private static final int onColor = Color.parseColor("#00BCD4");
-    private static final int offColor = Color.parseColor("#FFFFFF"); 
+    private static final int offColor = Color.parseColor("#FFFFFF");
 
     ColorDrawable[] offTransColor = {new ColorDrawable(offColor), new ColorDrawable(onColor)};
-    ColorDrawable[] onTransColor = {new ColorDrawable(onColor), new ColorDrawable(offColor)};     
+    ColorDrawable[] onTransColor = {new ColorDrawable(onColor), new ColorDrawable(offColor)};
 
     private TransitionDrawable offNavTrans = new TransitionDrawable(offTransColor);
     private TransitionDrawable onNavTrans = new TransitionDrawable(onTransColor);
@@ -303,7 +303,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             // 'Try Lantern Feed' when the feed is already hidden
             navItems.add(new NavItem(resources.getString(R.string.newsfeed_option), R.drawable.ic_feed));
         }
-        
+
         navItems.add(new NavItem(resources.getString(R.string.quit_option), 
                     R.drawable.ic_quit));
 
@@ -333,20 +333,20 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         menuMap.put(resources.getString(R.string.language), new Command() {
             public void runCommand() { startActivity(new Intent(activity, LanguageActivity_.class)); }
-        });                                                                                         
-        
+        });
+
         menuMap.put(resources.getString(R.string.check_for_update), new Command() {
             public void runCommand() {
                 checkUpdateAvailable(true);
             }
         });
 
-        menuMap.put(resources.getString(R.string.quit_option), new Command() { 
-            public void runCommand() { quitLantern(); } 
+        menuMap.put(resources.getString(R.string.quit_option), new Command() {
+            public void runCommand() { quitLantern(); }
         });
 
-        menuMap.put(resources.getString(R.string.contact_option), new Command() { 
-            public void runCommand() { contactOption(); } 
+        menuMap.put(resources.getString(R.string.contact_option), new Command() {
+            public void runCommand() { contactOption(); }
         });
 
         menuMap.put(resources.getString(R.string.newsfeed_off_option), new Command() {
@@ -361,20 +361,20 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             }
         });
 
-        menuMap.put(resources.getString(R.string.desktop_option), new Command() { 
+        menuMap.put(resources.getString(R.string.desktop_option), new Command() {
             public void runCommand() {
 
                 Intent intent = new Intent(activity, DesktopActivity_.class);
                 startActivity(intent);
-            } 
+            }
         });
 
-        menuMap.put(resources.getString(R.string.share_option), new Command() { 
+        menuMap.put(resources.getString(R.string.share_option), new Command() {
             public void runCommand() {
                 final Shareable shareable = new Shareable(activity);
                 shareable.showOption();
             }
-        });   
+        });
 
         // Populate the Navigtion Drawer with options
         drawerList.setAdapter(listAdapter);

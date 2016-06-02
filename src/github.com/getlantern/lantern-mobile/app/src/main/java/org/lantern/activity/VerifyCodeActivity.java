@@ -5,7 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
-import android.view.View;                          
+import android.view.View;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.EActivity;
@@ -36,7 +36,7 @@ public class VerifyCodeActivity extends FragmentActivity implements ProResponse 
 
     @Override
     public void onError() {
-        Utils.showErrorDialog(this, 
+        Utils.showErrorDialog(this,
                 getResources().getString(R.string.invalid_verification_code));
     }
 
@@ -44,7 +44,7 @@ public class VerifyCodeActivity extends FragmentActivity implements ProResponse 
     public void onSuccess() {
         session.linkDevice();
 
-        if (SessionManager.chargeAmount != 0) {
+        if (PaymentActivity.plan != null) {
             if (!session.isReferralApplied()) {
                 Intent i = new Intent(this,
                         ReferralCodeActivity_.class);
@@ -60,8 +60,7 @@ public class VerifyCodeActivity extends FragmentActivity implements ProResponse 
             intent = new Intent(this, LanternMainActivity_.class);
         } else {
             intent = new Intent(this, PaymentActivity_.class);
-        } 
-        
+        }
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();

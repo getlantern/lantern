@@ -8,7 +8,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;                          
+import android.view.View;
 import android.support.v4.app.FragmentActivity;
 
 import org.androidannotations.annotations.AfterViews;
@@ -54,8 +54,9 @@ public class WelcomeActivity extends FragmentActivity implements ProResponse {
 
             session.setProUser(stripeEmail, stripeToken,
                     plan);
+        } else {
+            playWelcomeSound();
         }
-        new ProRequest(this).execute("purchase");
     }
 
     @Override
@@ -80,6 +81,7 @@ public class WelcomeActivity extends FragmentActivity implements ProResponse {
     }
 
     public void playWelcomeSound() {
+        Log.d(TAG, "Playing Pro welcome sound!");
         mMediaPlayer = MediaPlayer.create(this, R.raw.welcome);
         mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         mMediaPlayer.setLooping(false);

@@ -31,10 +31,11 @@ var (
 // Feed contains the data we get back
 // from the public feed
 type Feed struct {
-	Feeds   map[string]*Source   `json:"feeds"`
-	Entries FeedItems            `json:"entries"`
-	Items   map[string]FeedItems `json:"-"`
-	Sorted  []string             `json:"sorted_feeds"`
+	Feeds     map[string]*Source   `json:"feeds"`
+	Entries   FeedItems            `json:"entries"`
+	Items     map[string]FeedItems `json:"-"`
+	Sorted    []string             `json:"sorted_feeds"`
+	sourceMap map[string]string    `json:"-"`
 }
 
 // Source represents a feed authority,
@@ -52,6 +53,7 @@ type FeedItem struct {
 	Title       string                 `json:"title"`
 	Link        string                 `json:"link"`
 	Image       string                 `json:"image"`
+	Date        string                 `json:"publishedDate"`
 	Meta        map[string]interface{} `json:"meta,omitempty"`
 	Content     string                 `json:"contentSnippetText"`
 	Source      string                 `json:"source"`
@@ -67,7 +69,7 @@ type FeedProvider interface {
 
 type FeedRetriever interface {
 	// AddFeed: used to add a new entry to a given feed
-	AddFeed(string, string, string, string)
+	AddFeed(string, string, string, string, string, string)
 }
 
 // FeedByName checks the previously created feed for an
@@ -76,8 +78,8 @@ func FeedByName(name string, retriever FeedRetriever) {
 	if feed != nil && feed.Items != nil {
 		if items, exists := feed.Items[name]; exists {
 			for _, i := range items {
-				retriever.AddFeed(i.Title, i.Description,
-					i.Image, i.Link)
+				retriever.AddFeed(feed.sourceMap[i.Source], i.Title, i.Date,
+					i.Description, i.Image, i.Link)
 			}
 		}
 	}
@@ -160,7 +162,9 @@ func doGetFeed(feedEndpoint string, locale string, shouldProxy bool, allStr stri
 		return
 	}
 
-	feed = &Feed{}
+	feed = &Feed{
+		sourceMap: make(map[string]string),
+	}
 
 	feedURL := getFeedURL(feedEndpoint, locale)
 	log.Debugf("Downloading latest feed from %s", feedURL)
@@ -228,8 +232,10 @@ func processFeed(allStr string, provider FeedProvider) {
 	// Get a list of feed sources and send those back to the UI
 	for _, source := range feed.Sorted {
 		if entry, exists := feed.Feeds[source]; exists {
+
 			if entry.Title != "" {
 				log.Debugf("Adding feed source: %s", entry.Title)
+				feed.sourceMap[source] = entry.Title
 				provider.AddSource(entry.Title)
 			} else {
 				log.Errorf("Skipping feed source: %s; missing title", source)

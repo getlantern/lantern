@@ -53,7 +53,8 @@ func newRequest(shouldProxy bool, session Session) (*proRequest, error) {
 }
 
 func newuser(r *proRequest) (*client.UserResponse, error) {
-	res, err := r.proClient.UserCreate(r.user, r.session.Locale())
+	r.proClient.SetLocale(r.session.Locale())
+	res, err := r.proClient.UserCreate(r.user)
 	if err != nil {
 		log.Errorf("Could not create new Pro user: %v", err)
 	} else {
@@ -67,13 +68,9 @@ func purchase(r *proRequest) (*client.UserResponse, error) {
 		IdempotencyKey: stripe.NewIdempotencyKey(),
 		StripeToken:    r.session.StripeToken(),
 		StripeEmail:    r.session.StripeEmail(),
+		Plan:           r.session.Plan(),
 	}
 
-	if r.session.Plan() == "year" {
-		purchase.Plan = client.PlanLanternPro1Y
-	} else {
-		purchase.Plan = client.PlanLanternPro1Y
-	}
 	return r.proClient.Purchase(r.user, purchase)
 }
 

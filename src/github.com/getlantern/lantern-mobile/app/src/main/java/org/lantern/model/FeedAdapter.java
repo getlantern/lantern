@@ -59,10 +59,12 @@ public class FeedAdapter extends BaseAdapter {
         TextView titleView = (TextView) view.findViewById(R.id.title);
         TextView descView = (TextView)view.findViewById(R.id.description);
         TextView urlView = (TextView)view.findViewById(R.id.link);
+        TextView sourceView = (TextView)view.findViewById(R.id.source);
 
         ImageView imageView = (ImageView) view.findViewById(R.id.image);
 
         FeedItem item = mFeedItems.get(position);
+        sourceView.setText(item.getSource());
         titleView.setText(item.getTitle());
         descView.setText(item.getDescription());
         urlView.setText(item.getUrl());

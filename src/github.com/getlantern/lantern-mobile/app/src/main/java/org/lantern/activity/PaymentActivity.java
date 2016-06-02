@@ -27,6 +27,7 @@ import com.stripe.android.model.Card;
 import com.stripe.android.model.Token;
 
 import org.androidannotations.annotations.AfterViews;
+import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.FragmentById;
 import org.androidannotations.annotations.ViewById;
@@ -66,8 +67,6 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
     private static final Integer oneYearCost = 2000;
     private static final Integer twoYearCost = 3600;
 
-    private int chargeAmount = oneYearCost;
-
     @FragmentById(R.id.payment_form)
     PaymentFormFragment paymentForm;
 
@@ -101,6 +100,7 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
 
         Intent intent = getIntent();
 
+        int chargeAmount = oneYearCost;
         if (plan != null) {
             if (plan.equals(SessionManager.ONE_YEAR_PLAN)) {
                 chargeAmount = oneYearCost;
@@ -120,6 +120,11 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
         progressFragment = ProgressDialogFragment.newInstance(R.string.progressMessage);
     }
 
+    @Click(R.id.checkoutBtn)
+    void checkout() {
+      submitCard();
+    }
+
     @Override
     public void onClick(View v) {
         Log.d(TAG, "onclick called...");
@@ -127,15 +132,8 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
             case R.id.alipayBtn:
                 Log.d(TAG, "Alipay button pressed");
                 Intent intent = new Intent(Intent.ACTION_VIEW);
-                String plan;
-                if (chargeAmount == 799) {
-                    plan = "Lantern Pro 1 Year";
-                } else {
-                    plan = "year";
-                }
-                loadWebView(plan);
-                //intent.setData(Uri.parse(String.format(mCheckoutUrl, plan)));
-                //startActivity(intent);
+                intent.setData(Uri.parse(String.format(mCheckoutUrl, plan)));
+                startActivity(intent);
                 return;
             case R.id.cardBtn:
                 Log.d(TAG, "Card button pressed");
@@ -274,8 +272,7 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
 
         String email = emailInput.getText().toString();
 
-        session.setProUser(email, token, 
-                chargeAmount == 799 ? "month" : "year");
+        session.setProUser(email, token, plan);
 
         // submit token to Pro server here
         new ProRequest(this).execute("purchase");

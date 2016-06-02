@@ -60,14 +60,13 @@ public class FeedFragment extends Fragment {
         @Override
         protected List<FeedItem> doInBackground(String... params) {
 
-            String name = params[0];
+            final String name = params[0];
 
             final List<FeedItem> items = new ArrayList<FeedItem>();
 
             Lantern.FeedByName(name, new Lantern.FeedRetriever.Stub() {
-                public void AddFeed(String title, String desc, 
-                        String image, String url) {
-                    items.add(new FeedItem(title, desc, image, url));
+                public void AddFeed(String source, String title, String date, String desc, String image, String url) {
+                    items.add(new FeedItem(source, title, date, desc, image, url));
                 }
             });
 
