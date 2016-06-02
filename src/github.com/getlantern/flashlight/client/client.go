@@ -32,8 +32,7 @@ var (
 	// UIAddr is the address at which UI is to be found
 	UIAddr string
 
-	addr = eventual.NewValue()
-
+	addr      = eventual.NewValue()
 	socksAddr = eventual.NewValue()
 )
 

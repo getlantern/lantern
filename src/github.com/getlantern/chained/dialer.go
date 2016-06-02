@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/getlantern/bandwidth"
 	"github.com/getlantern/errors"
 )
 
@@ -97,6 +98,7 @@ func checkCONNECTResponse(r *bufio.Reader, req *http.Request) error {
 	if !sameStatusCodeClass(http.StatusOK, resp.StatusCode) {
 		return fmt.Errorf("Bad status code on CONNECT response: %d", resp.StatusCode)
 	}
+	bandwidth.Track(resp)
 	return nil
 }
 
