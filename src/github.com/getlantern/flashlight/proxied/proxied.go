@@ -112,8 +112,8 @@ func (cf *chainedAndFronted) setFetcher(fetcher http.RoundTripper) {
 
 // Do will attempt to execute the specified HTTP request using only a chained fetcher
 func (cf *chainedAndFronted) RoundTrip(req *http.Request) (*http.Response, error) {
-	op := ops.Enter("chainedandfronted").Request(req)
-	defer op.Exit()
+	op := ops.Begin("chainedandfronted").Request(req)
+	defer op.End()
 
 	resp, err := cf.getFetcher().RoundTrip(req)
 	op.Response(resp)
@@ -164,15 +164,15 @@ func (df *dualFetcher) RoundTrip(req *http.Request) (*http.Response, error) {
 func (df *dualFetcher) do(req *http.Request, chainedFunc func(*http.Request) (*http.Response, error), ddfFunc func(*http.Request) (*http.Response, error)) (*http.Response, error) {
 	log.Debugf("Using dual fronter")
 
-	op := ops.Enter("dualfetcher").Request(req)
-	defer op.Exit()
+	op := ops.Begin("dualfetcher").Request(req)
+	defer op.End()
 
 	parallel := df.cf.parallel
 	frontedURL := req.Header.Get(lanternFrontedURL)
 	req.Header.Del(lanternFrontedURL)
 
 	if frontedURL == "" {
-		return nil, op.Error(errors.New("Callers MUST specify the fronted URL in the Lantern-Fronted-URL header"))
+		return nil, op.FailIf(errors.New("Callers MUST specify the fronted URL in the Lantern-Fronted-URL header"))
 	}
 
 	// Make a copy of the original requeest headers to include in the fronted
@@ -223,7 +223,7 @@ func (df *dualFetcher) do(req *http.Request, chainedFunc func(*http.Request) (*h
 		log.Debug("In fronted")
 		op.
 			ProxyType(ops.ProxyFronted).
-			Put("fronted_url", frontedURL)
+			Set("fronted_url", frontedURL)
 		if frontedReq, err := http.NewRequest(req.Method, frontedURL, nil); err != nil {
 			errs <- errors.Wrap(err)
 		} else {
@@ -281,14 +281,14 @@ func (df *dualFetcher) do(req *http.Request, chainedFunc func(*http.Request) (*h
 		log.Debug("Forcing domain-fronting")
 		doFronted()
 		resp, err := getResponse()
-		return resp, op.Error(err)
+		return resp, op.FailIf(err)
 	}
 
 	if parallel {
 		ops.Go(doFronted)
 		ops.Go(doChained)
 		resp, err := getResponseParallel()
-		return resp, op.Error(err)
+		return resp, op.FailIf(err)
 	}
 
 	doChained()
@@ -299,7 +299,7 @@ func (df *dualFetcher) do(req *http.Request, chainedFunc func(*http.Request) (*h
 		resp, err = getResponse()
 		log.Debugf("Result of fronting: %v", err)
 	}
-	return resp, op.Error(err)
+	return resp, op.FailIf(err)
 }
 
 func readResponses(finalResponse chan *http.Response, responses chan *http.Response, finalErr chan error, errs chan error) {
@@ -399,8 +399,8 @@ func chained(rootCA string, persistent bool) (http.RoundTripper, error) {
 	}
 
 	return AsRoundTripper(func(req *http.Request) (*http.Response, error) {
-		op := ops.Enter("chained").ProxyType(ops.ProxyChained).Request(req)
-		defer op.Exit()
+		op := ops.Begin("chained").ProxyType(ops.ProxyChained).Request(req)
+		defer op.End()
 		resp, err := tr.RoundTrip(req)
 		op.Response(resp)
 		return resp, errors.Wrap(err)

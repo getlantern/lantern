@@ -37,10 +37,10 @@ func defaultDialFactory(s *ChainedServerInfo, deviceID string) (dialFN, error) {
 	if s.Cert == "" && !forceProxy {
 		log.Error("No Cert configured for chained server, will dial with plain tcp")
 		dial = func() (net.Conn, error) {
-			op := ops.Enter("dial_to_chained").ChainedProxy(s.Addr, "http")
-			defer op.Exit()
+			op := ops.Begin("dial_to_chained").ChainedProxy(s.Addr, "http")
+			defer op.End()
 			conn, err := netd.Dial("tcp", addr)
-			return conn, op.Error(err)
+			return conn, op.FailIf(err)
 		}
 	} else {
 		log.Trace("Cert configured for chained server, will dial with tls over tcp")
@@ -51,23 +51,23 @@ func defaultDialFactory(s *ChainedServerInfo, deviceID string) (dialFN, error) {
 		x509cert := cert.X509()
 		sessionCache := tls.NewLRUClientSessionCache(1000)
 		dial = func() (net.Conn, error) {
-			op := ops.Enter("dial_to_chained").ChainedProxy(s.Addr, "https")
-			defer op.Exit()
+			op := ops.Begin("dial_to_chained").ChainedProxy(s.Addr, "https")
+			defer op.End()
 
 			conn, err := tlsdialer.DialWithDialer(netd, "tcp", addr, false, &tls.Config{
 				ClientSessionCache: sessionCache,
 				InsecureSkipVerify: true,
 			})
 			if err != nil {
-				return nil, op.Error(err)
+				return nil, op.FailIf(err)
 			}
 			if !forceProxy && !conn.ConnectionState().PeerCertificates[0].Equal(x509cert) {
 				if closeErr := conn.Close(); closeErr != nil {
 					log.Debugf("Error closing chained server connection: %s", closeErr)
 				}
-				return nil, log.Error(op.Error(errors.New("Server's certificate didn't match expected!")))
+				return nil, log.Error(op.FailIf(errors.New("Server's certificate didn't match expected!")))
 			}
-			return conn, op.Error(err)
+			return conn, op.FailIf(err)
 		}
 	}
 
@@ -95,9 +95,9 @@ func obfs4DialFactory(s *ChainedServerInfo, deviceID string) (dialFN, error) {
 	}
 
 	return func() (net.Conn, error) {
-		op := ops.Enter("dial_to_chained").ChainedProxy(s.Addr, "obfs4")
-		defer op.Exit()
+		op := ops.Begin("dial_to_chained").ChainedProxy(s.Addr, "obfs4")
+		defer op.End()
 		conn, err := cf.Dial("tcp", s.Addr, net.Dial, args)
-		return conn, op.Error(err)
+		return conn, op.FailIf(err)
 	}, nil
 }

@@ -23,10 +23,10 @@ const (
 func (client *Client) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	userAgent := req.Header.Get("User-Agent")
 
-	op := ops.Enter("proxy").
+	op := ops.Begin("proxy").
 		UserAgent(userAgent).
 		Origin(req.Host)
-	defer op.Exit()
+	defer op.End()
 
 	if req.Method == httpConnectMethod {
 		// CONNECT requests are often used for HTTPS requests.
@@ -38,7 +38,7 @@ func (client *Client) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		rp.(*httputil.ReverseProxy).ServeHTTP(resp, req)
 	} else {
 		log.Debugf("Could not get a reverse proxy connection -- responding bad gateway")
-		respondBadGateway(resp, op.Error(errors.New("Unable to get a connection")))
+		respondBadGateway(resp, op.FailIf(errors.New("Unable to get a connection")))
 	}
 }
 
@@ -53,7 +53,7 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request, op 
 	addr := hostIncludingPort(req, 443)
 	port, err := client.portForAddress(addr)
 	if err != nil {
-		respondBadGateway(resp, op.Error(errors.New("Unable to determine port for address %v: %v", addr, err)))
+		respondBadGateway(resp, op.FailIf(errors.New("Unable to determine port for address %v: %v", addr, err)))
 		return
 	}
 
@@ -84,13 +84,13 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request, op 
 
 	// Hijack underlying connection.
 	if clientConn, _, err = resp.(http.Hijacker).Hijack(); err != nil {
-		respondBadGateway(resp, op.Error(errors.New("Unable to hijack connection: %s", err)))
+		respondBadGateway(resp, op.FailIf(errors.New("Unable to hijack connection: %s", err)))
 		return
 	}
 
 	connOut, err = client.dialCONNECT(addr, port)
 	if err != nil {
-		log.Debug(op.Error(errors.New("Could not dial %v", err)))
+		log.Debug(op.FailIf(errors.New("Could not dial %v", err)))
 		respondBadGatewayHijacked(clientConn, req)
 		return
 	}
@@ -98,7 +98,7 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request, op 
 	success := make(chan bool, 1)
 	op.Go(func() {
 		if e := respondOK(clientConn, req); e != nil {
-			log.Error(op.Error(errors.New("Unable to respond OK: %s", e)))
+			log.Error(op.FailIf(errors.New("Unable to respond OK: %s", e)))
 			success <- false
 			return
 		}
@@ -127,7 +127,7 @@ func pipeData(clientConn net.Conn, connOut net.Conn, op *ops.Op, closeFunc func(
 	_, readErr := io.Copy(clientConn, connOut)
 	writeErr := <-writeErrCh
 	if readErr != nil {
-		log.Error(op.Error(errors.New("Error piping data from proxy to client: %v", readErr)))
+		log.Error(op.FailIf(errors.New("Error piping data from proxy to client: %v", readErr)))
 	} else if writeErr != nil {
 		log.Error(errors.New("Error piping data from client to proxy: %v", writeErr))
 	}
