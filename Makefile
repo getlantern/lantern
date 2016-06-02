@@ -394,8 +394,8 @@ packages: require-version require-secrets clean-desktop clean-mobile docker-asse
 docker-packages: packages
 
 release-qa: require-version require-s3cmd
-	@BASE_NAME="lantern-installer-qa" && \
-	BASE_NAME_MANOTO="lantern-installer-qa-manoto" && \
+	@BASE_NAME="lantern-installer-internal" && \
+	BASE_NAME_MANOTO="lantern-installer-internal-manoto" && \
 	rm -f $$BASE_NAME* && \
 	cp lantern-installer.exe $$BASE_NAME.exe && \
 	cp lantern-installer-manoto.exe $$BASE_NAME_MANOTO.exe && \
@@ -427,7 +427,7 @@ release-qa: require-version require-s3cmd
 	git push --tags -f
 
 release-beta: require-s3cmd
-	@BASE_NAME="lantern-installer-qa" && \
+	@BASE_NAME="lantern-installer-internal" && \
 	BETA_BASE_NAME="lantern-installer-beta" && \
 	for URL in $$($(S3CMD) ls s3://$(S3_BUCKET)/ | grep $$BASE_NAME | awk '{print $$4}'); do \
 		NAME=$$(basename $$URL) && \

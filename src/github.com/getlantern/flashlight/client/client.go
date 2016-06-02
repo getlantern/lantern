@@ -5,13 +5,13 @@ import (
 	"net"
 	"net/http"
 	"reflect"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 
 	"github.com/armon/go-socks5"
-	"github.com/getlantern/balancer"
 	"github.com/getlantern/detour"
 	"github.com/getlantern/eventual"
 	"github.com/getlantern/golog"
@@ -30,8 +30,7 @@ var (
 	// UIAddr is the address at which UI is to be found
 	UIAddr string
 
-	addr = eventual.NewValue()
-
+	addr      = eventual.NewValue()
 	socksAddr = eventual.NewValue()
 )
 
@@ -139,14 +138,11 @@ func (client *Client) ListenAndServeSOCKS5(requestedAddr string) error {
 
 	conf := &socks5.Config{
 		Dial: func(network, addr string) (net.Conn, error) {
-			bal, ok := client.bal.Get(1 * time.Minute)
-			if !ok {
-				return nil, fmt.Errorf("Unable to get balancer")
+			port, err := client.portForAddress(addr)
+			if err != nil {
+				return nil, err
 			}
-			// Using protocol "connect" will cause the balancer to issue an HTTP
-			// CONNECT request to the upstream proxy and return the resulting channel
-			// as a connection.
-			return bal.(*balancer.Balancer).Dial("connect", addr)
+			return client.dialCONNECT(addr, port)
 		},
 	}
 	server, err := socks5.New(conf)
@@ -217,6 +213,47 @@ func (client *Client) proxiedDialer(orig func(network, addr string) (net.Conn, e
 		}
 		return proxied(network, addr)
 	}
+}
+
+func (client *Client) dialCONNECT(addr string, port int) (net.Conn, error) {
+	// Establish outbound connection
+	if client.shouldSendToProxy(port) {
+		log.Tracef("Proxying CONNECT request for %v", addr)
+		d := client.proxiedDialer(func(network, addr string) (net.Conn, error) {
+			// UGLY HACK ALERT! In this case, we know we need to send a CONNECT request
+			// to the chained server. We need to send that request from chained/dialer.go
+			// though because only it knows about the authentication token to use.
+			// We signal it to send the CONNECT here using the network transport argument
+			// that is effectively always "tcp" in the end, but we look for this
+			// special "transport" in the dialer and send a CONNECT request in that
+			// case.
+			return client.getBalancer().Dial("connect", addr)
+		})
+		return d("tcp", addr)
+	}
+	log.Tracef("Port not allowed, bypassing proxy and sending CONNECT request directly to %v", addr)
+	return dialDirect("tcp", addr, 1*time.Minute)
+}
+
+func (client *Client) shouldSendToProxy(port int) bool {
+	for _, proxiedPort := range client.cfg().ProxiedCONNECTPorts {
+		if port == proxiedPort {
+			return true
+		}
+	}
+	return false
+}
+
+func (client *Client) portForAddress(addr string) (int, error) {
+	_, portString, err := net.SplitHostPort(addr)
+	if err != nil {
+		return 0, fmt.Errorf("Unable to determine port for address %v: %v", addr, err)
+	}
+	port, err := strconv.Atoi(portString)
+	if err != nil {
+		return 0, fmt.Errorf("Unable to parse port %v for address %v: %v", addr, port, err)
+	}
+	return port, nil
 }
 
 func isLanternSpecialDomain(addr string) bool {
