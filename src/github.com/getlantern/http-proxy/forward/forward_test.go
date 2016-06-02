@@ -7,7 +7,7 @@ import (
 
 	"github.com/getlantern/http-proxy/filters"
 
-	"github.com/getlantern/testify/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 type mockRT struct {
