@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/getlantern/balancer"
+	"github.com/getlantern/bandwidth"
 	"github.com/getlantern/flashlight/proxy"
 	"github.com/getlantern/flashlight/status"
 )
@@ -40,8 +41,10 @@ func (client *Client) newReverseProxy(bal *balancer.Balancer) *httputil.ReverseP
 			req.Header.Set("Host", req.Host)
 			onRequest(req)
 		},
-		Transport: &errorRewritingRoundTripper{
-			&noForwardedForRoundTripper{withDumpHeaders(false, transport)},
+		Transport: &bandwidthTrackingRoundTripper{
+			&errorRewritingRoundTripper{
+				&noForwardedForRoundTripper{withDumpHeaders(false, transport)},
+			},
 		},
 		// Set a FlushInterval to prevent overly aggressive buffering of
 		// responses, which helps keep memory usage down
@@ -130,4 +133,16 @@ type noForwardedForRoundTripper struct {
 func (rt *noForwardedForRoundTripper) RoundTrip(req *http.Request) (resp *http.Response, err error) {
 	req.Header.Del("X-Forwarded-For")
 	return rt.wrapped.RoundTrip(req)
+}
+
+type bandwidthTrackingRoundTripper struct {
+	wrapped http.RoundTripper
+}
+
+func (rt *bandwidthTrackingRoundTripper) RoundTrip(req *http.Request) (resp *http.Response, err error) {
+	resp, err = rt.wrapped.RoundTrip(req)
+	if err == nil {
+		bandwidth.Track(resp)
+	}
+	return resp, err
 }
