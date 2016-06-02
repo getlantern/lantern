@@ -36,7 +36,13 @@ func GetQuota() *Quota {
 }
 
 // Track updates the bandwith quota information based on the XBQ header in
-// the given response.
+// the given response. The header is expected to follow this format:
+//
+// <used>/<allowed>/<asof>
+//
+// <used> is the string representation of a 64-bit unsigned integer
+// <allowed> is the string representation of a 64-bit unsigned integer
+// <asof> is the 64-bit signed integer representing nanoseconds since epoch
 func Track(resp *http.Response) {
 	xbq := resp.Header.Get("XBQ")
 	if xbq == "" {
