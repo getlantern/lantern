@@ -190,7 +190,7 @@ docker-%: system-checks
 all: binaries
 android-dist: genconfig android
 
-$(RESOURCES_DOT_GO): require-npm require-gulp
+$(RESOURCES_DOT_GO): 
 	@source setenv.bash && \
 	LANTERN_UI="lantern-ui" && \
 	DIST="$$LANTERN_UI/dist" && \
@@ -300,15 +300,6 @@ require-wget:
 
 require-mercurial:
 	@if [[ -z "$$(which hg 2> /dev/null)" ]]; then echo 'Missing "hg" command.'; exit 1; fi
-
-require-node:
-	@if [[ -z "$(NODE)" ]]; then echo 'Missing "node" command.'; exit 1; fi
-
-require-gulp: require-node
-	@if [[ -z "$(GULP)" ]]; then echo 'Missing "gulp" command. Try "npm install -g gulp-cli"'; exit 1; fi
-
-require-npm: require-node
-	@if [[ -z "$(NPM)" ]]; then echo 'Missing "npm" command.'; exit 1; fi
 
 require-appdmg:
 	@if [[ -z "$(APPDMG)" ]]; then echo 'Missing "appdmg" command. Try sudo npm install -g appdmg.'; exit 1; fi
