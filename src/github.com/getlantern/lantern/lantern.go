@@ -149,7 +149,10 @@ func DownloadUpdate(url, apkPath string, shouldProxy bool, updater Updater) {
 
 func GetBandwidthQuota() string {
 	quota := bandwidth.GetQuota()
-	res := quota.MiBAllowed / quota.MiBAllowed
+	res := uint64(0)
+	if quota != nil {
+		res = quota.MiBAllowed / quota.MiBAllowed
+	}
 	return string(res)
 }
 
