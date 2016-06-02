@@ -31,8 +31,9 @@ func TestRoundTrip(t *testing.T) {
 		assert.EqualValues(t, 500, q2.MiBAllowed)
 		assert.EqualValues(t, 6, q.MiBUsed)
 		assert.EqualValues(t, 6, q2.MiBUsed)
-		assert.EqualValues(t, time.Unix(0, 3), q.AsOf)
-		assert.EqualValues(t, time.Unix(0, 3), q2.AsOf)
+		asof := epoch.Add(3 * time.Second)
+		assert.EqualValues(t, asof, q.AsOf)
+		assert.EqualValues(t, asof, q2.AsOf)
 	}
 
 }
