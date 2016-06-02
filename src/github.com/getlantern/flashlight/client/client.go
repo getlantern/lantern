@@ -220,9 +220,15 @@ func (client *Client) proxiedDialer(orig func(network, addr string) (net.Conn, e
 }
 
 func isLanternSpecialDomain(addr string) bool {
-	return strings.Index(addr, lanternSpecialDomainWithColon) == 0
+	return strings.HasPrefix(addr, lanternSpecialDomainWithColon)
 }
 
 func rewriteLanternSpecialDomain(addr string) string {
-	return UIAddr
+	if addr == lanternSpecialDomainWithColon+"80" {
+		// This is a special replacement for the ui.lantern.io:80 case.
+		return "127.0.0.1:16823"
+	}
+	// Let any other port pass as is.
+	addr = strings.Replace(addr, lanternSpecialDomainWithColon, "127.0.0.1:", 1)
+	return addr
 }
