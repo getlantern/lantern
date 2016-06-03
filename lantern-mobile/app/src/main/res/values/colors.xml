@@ -7,6 +7,7 @@
     <color name="on_color">#FFFF00</color>
     <color name="off_color">#BDBDBD</color>
     <color name="cyan">#0297A7</color>
+    <color name="available_for">#757576</color>
     <color name="cyan_header">#22BCD3</color>
     <color name="link_blue">#22BCD3</color>
     <color name="send_btn">#006064</color>
