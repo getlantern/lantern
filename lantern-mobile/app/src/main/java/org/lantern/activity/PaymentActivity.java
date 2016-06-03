@@ -64,8 +64,8 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
 
     public static String plan;
 
-    private static final Integer oneYearCost = 2000;
-    private static final Integer twoYearCost = 3600;
+    private static final Integer oneYearCost = 2700;
+    private static final Integer twoYearCost = 4800;
 
     @FragmentById(R.id.payment_form)
     PaymentFormFragment paymentForm;
@@ -256,6 +256,8 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
 
     @Override
     public void onSuccess() {
+        session.setIsProUser(true);
+
         Intent intent = new Intent(this, WelcomeActivity_.class);
         this.startActivity(intent);
     }

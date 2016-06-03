@@ -92,6 +92,8 @@ public class PlansActivity extends FragmentActivity {
 
 		Log.d(TAG, "Plan selected: " + plan);
 
+        session.setProPlan(plan);
+
         Intent intent;
 
         if (useAlipay) {

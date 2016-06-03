@@ -49,7 +49,7 @@
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-medium"
-                android:layout_marginTop="10dp"
+                android:paddingTop="10dp"
                 android:text="@string/upgrade_to_lantern_pro"
                 android:textSize="24sp"
                 android:layout_centerHorizontal="true"
@@ -62,11 +62,8 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:textColor="@color/black"
-                android:paddingLeft="20dp"
-                android:paddingRight="20dp"
-                android:paddingTop="20dp"
+                android:padding="20dp"
                 android:layout_gravity="center"
-                android:layout_weight="1"
                 android:orientation="horizontal" >
 
                 <LinearLayout
@@ -88,8 +85,20 @@
                     android:layout_weight="1"
                     android:orientation="vertical" />  
 
-
             </LinearLayout>
+
+            <TextView
+                android:id="@+id/available_for"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:layout_below="@+id/proFeatures"
+                android:paddingBottom="20dp"
+                android:fontFamily="sans-serif-light"
+                android:text="@string/pro_available_for"
+                android:textSize="10sp"
+                android:textColor="@color/available_for"/>
+
         </LinearLayout>
 
         <LinearLayout android:orientation="vertical"

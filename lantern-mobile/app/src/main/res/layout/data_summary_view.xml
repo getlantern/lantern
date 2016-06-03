@@ -31,7 +31,6 @@
             android:minHeight="6dip"
             android:progressBackgroundTint="@color/dark_pro_blue"
             android:indeterminate="false"
-            android:progress="70"
             android:indeterminateTintMode="src_atop"
             android:indeterminateTint="@color/data_bar_color"
             />

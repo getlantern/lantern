@@ -131,7 +131,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     ListView drawerList;
 
     @ViewById
-    View feedError, feedView;
+    View feedError, feedView, dataUsageView;
 
     @ViewById
     ImageView menuIcon;
@@ -186,17 +186,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         mReceiver = new LanternReceiver();
         registerReceiver(mReceiver, filter);
 
-        if (!session.isProUser()) {
-            String quota = Lantern.GetBandwidthQuota();
-            String amount = String.format(getResources().getString(R.string.data_remaining), quota);
-            dataRemaining.setText(amount);
-            if (dataProgressBar != null) {
-                dataProgressBar.setVisibility(View.VISIBLE);
-                //dataProgressBar.setProgress(55);
-            }
-        }
-
-
         setVersionNum();
         setupStatusToast();
         checkUpdateAfterDelay();
@@ -209,8 +198,25 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         setupSideMenu();
         setBtnStatus();
+        setBandwidthQuota();  
         showFeedview();
     }
+
+    private void setBandwidthQuota() {
+        if (!session.isProUser()) {
+            String quota = Lantern.GetBandwidthQuota();
+            String amount = String.format(getResources().getString(R.string.data_remaining), quota);
+            dataRemaining.setText(amount);
+            if (dataProgressBar != null) {
+                Log.d(TAG, "Current bandwidth quota: " + quota);
+                dataProgressBar.setProgress(Integer.parseInt(quota));
+            }
+        } else {
+            // hide data usage summary if its a pro user
+            dataUsageView.setVisibility(View.INVISIBLE);
+        }
+    }
+
 
     // update START/STOP power Lantern button
     // according to our stored preference

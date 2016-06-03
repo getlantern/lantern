@@ -57,7 +57,7 @@ public class ProRequest extends AsyncTask<String, Void, Boolean> {
         super.onPostExecute(success);
 
         if (progressFragment != null) {
-            progressFragment.dismiss();
+            progressFragment.dismissAllowingStateLoss();
         }
 
         if (success) {
