@@ -387,7 +387,7 @@ package-darwin: package-darwin-manoto
 
 binaries: docker-assets docker-linux docker-windows darwin
 
-packages: require-version require-secrets clean-desktop clean-mobile docker-assets docker-package-windows docker-package-linux package-darwin
+packages: require-version require-secrets clean-desktop clean-mobile docker-assets docker-package-windows docker-package-linux package-darwin package-android
 
 # Override implicit docker-packages to avoid building whole packages target in
 # docker, since it builds the pieces it needs in docker itself.
