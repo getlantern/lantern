@@ -1,23 +1,31 @@
 # notifier
-A library for sending native desktop notifications from Go. This uses
-platform-specific helper libraries as follows:
+A library for sending native desktop notifications from Go designed distribution particularly within other apps that care about install size. This uses platform-specific helper libraries as follows:
 
 * OSX: [Terminal Notifier](https://github.com/julienXX/terminal-notifier)
 * Windows: [notifu](https://www.paralint.com/projects/notifu/)
 
 Those libraries are embedded directly in Go in this library using [go-bindata](https://github.com/jteeuwen/go-bindata), so there are no external dependencies or expectations for installations on the user's system. These libraries were also chosen for their small size, particularly in the case of notifu, which is far smaller than things like Growl or Snarl.
 
-To generate updated embedded binaries, you can run, for example:
+
+To generate updated embedded binaries, you first need go-bindata:
 
 ```
 go get -u github.com/jteeuwen/go-bindata/...
+```
+
+Then you can run, for example:
+
+```
 cd platform/terminal-notifier-1.6.3
-go-bindata terminal-notifier.app/...
+go-bindata -pkg osx --nomemcopy -nocompress terminal-notifier.app/...
 mv bindata.go ../../osx
 ```
 
-You then have to manually change the package in `bindata.go` to `osx` instead of `main` in that
-case.
+```
+cd platform/notifu-1.6
+go-bindata -pkg win --nomemcopy -nocompress notifu.exe
+mv bindata.go ../../win
+```
 
 This is currently a work in progress and only runs on OSX and Windows and embeds
 all binaries for all platforms instead of dynamically only including the

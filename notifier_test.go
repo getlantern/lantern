@@ -1,7 +1,6 @@
 package notify
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -18,8 +17,7 @@ func TestNotify(t *testing.T) {
 		IconURL:  "http://127.0.0.1:2000/img/lantern_logo.png",
 	}
 
-	fmt.Printf("Notifying with %v", n)
 	err := n.Notify(msg)
 	assert.Nil(t, err, "got an error notifying user")
-	time.Sleep(1 * time.Second)
+	time.Sleep(3 * time.Second)
 }

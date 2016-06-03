@@ -53,9 +53,10 @@ func (n *windowsNotifier) Notify(msg *Notification) error {
 			if len(msg.ClickURL) > 0 {
 				open.Run(msg.ClickURL)
 			}
+			return nil
 		}
 		return fmt.Errorf("Notifu returned %v", err)
 	}
-	fmt.Printf("Received result: '%v'", string(result))
+	log.Debugf("Received result: '%v'", string(result))
 	return nil
 }
