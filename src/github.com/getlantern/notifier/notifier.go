@@ -1,6 +1,14 @@
 package notify
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/getlantern/golog"
+)
+
+var (
+	log = golog.LoggerFor("notifier")
+)
 
 // notifications is an internal representation of the Notifier interface.
 type notifications struct {
@@ -39,7 +47,7 @@ func (n *emptyNotifier) Notify(msg *Notification) error {
 func NewNotifications() Notifier {
 	n, err := newNotifier()
 	if err != nil {
-		fmt.Printf("Could not create notifier? %v", err)
+		log.Errorf("Could not create notifier? %v", err)
 		n = &emptyNotifier{}
 	}
 	return &notifications{notifier: n}
