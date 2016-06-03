@@ -104,13 +104,13 @@ func (b *Balancer) Dial(network, addr string) (net.Conn, error) {
 		d := heap.Pop(&dialers).(*dialer)
 		heap.Push(&dialers, d)
 		b.mu.Unlock()
-		log.Debugf("Dialing %s://%s with %s", network, addr, d.Label)
+		log.Tracef("Dialing %s://%s with %s", network, addr, d.Label)
 		conn, err := d.dial(network, addr)
 		if err != nil {
 			log.Errorf("Unable to dial via %v to %s://%s: %v on pass %v...continuing", d.Label, network, addr, err, i)
 			continue
 		}
-		log.Debugf("Successfully dialed via %v to %v://%v on pass %v", d.Label, network, addr, i)
+		log.Tracef("Successfully dialed via %v to %v://%v on pass %v", d.Label, network, addr, i)
 		return conn, nil
 	}
 	return nil, fmt.Errorf("Still unable to dial %s://%s after %d attempts", network, addr, dialAttempts)
