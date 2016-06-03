@@ -1,13 +1,29 @@
+// +build windows
+
 package notify
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os/exec"
 
 	"strings"
 
+	"github.com/getlantern/notifier/win"
 	"github.com/skratchdot/open-golang/open"
 )
+
+func newNotifier() (Notifier, error) {
+	if dir, err := ioutil.TempDir("", "notifu-notifier"); err != nil {
+		return nil, err
+	} else {
+		if err := win.RestoreAssets(dir, "notifu.exe"); err != nil {
+			return nil, err
+		}
+		fullPath := dir + "/notifu.exe"
+		return &windowsNotifier{path: fullPath}, nil
+	}
+}
 
 type windowsNotifier struct {
 	path string

@@ -1,9 +1,26 @@
+// +build darwin
+
 package notify
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os/exec"
+
+	"github.com/getlantern/notifier/osx"
 )
+
+func newNotifier() (Notifier, error) {
+	if dir, err := ioutil.TempDir("", "terminal-notifier"); err != nil {
+		return nil, err
+	} else {
+		if err := osx.RestoreAssets(dir, "terminal-notifier.app"); err != nil {
+			return nil, err
+		}
+		fullPath := dir + "/terminal-notifier.app/Contents/MacOS/terminal-notifier"
+		return &osxNotifier{path: fullPath}, nil
+	}
+}
 
 type osxNotifier struct {
 	path string
