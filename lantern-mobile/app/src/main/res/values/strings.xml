@@ -91,11 +91,9 @@
     </string-array>
     <string-array name="pro_features">
         <item>Faster Speed</item>
-        <item>More Reliable</item>
         <item>Unlimited Data</item>
-        <item>Multiple Devices</item>
         <item>Blocking Resistant</item>
-        <item>No Bullshit</item>
+        <item>Three Devices</item>
     </string-array>
     <string-array name="enter_code_steps">
         <item>Enter the verification code you received via SMS</item>
@@ -123,8 +121,8 @@
     <string name="select">Select</string>
     <string name="one_year">for 1 year</string>
     <string name="two_years">for 2 years</string>
-    <string name="one_year_cost">$20 (USD)</string>
-    <string name="two_year_cost">$36 (USD)</string>
+    <string name="one_year_cost">$27 (USD)</string>
+    <string name="two_year_cost">$48 (USD)</string>
     <string name="best_value">Best VALUE!</string>
     <string name="referral_code">Referral Code (optional)</string>
     <string name="total">Total:</string>
@@ -137,6 +135,7 @@
     <string name="referral_promotion">Referral Promotion</string>
     <string name="get_lantern_pro">Get Lantern Pro</string>
     <string name="upgrade_to_lantern_pro">Upgrade to Lantern Pro</string>
+    <string name="pro_available_for">For Windows, Android, Mac and Ubuntu. iOS coming soon</string>
     <string name="upgrade_to_pro">Upgrade to Pro for unlimiated data, faster\n speed, and greater blocking resistance!</string>
     <string name="data_remaining">%1$sMB Remaining of your free monthly data</string> 
     <string name="upgrade">Upgrade</string>
