@@ -69,11 +69,11 @@
             android:id="@+id/feedView"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-            android:layout_above="@+id/dataUsage"
+            android:layout_above="@+id/dataUsageView"
 			layout="@layout/feed_view"/>
 
         <include
-            android:id="@+id/dataUsage"
+            android:id="@+id/dataUsageView"
             android:layout_width="match_parent"
             android:layout_height="84dp"
             android:layout_alignParentBottom="true"

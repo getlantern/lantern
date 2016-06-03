@@ -36,8 +36,8 @@ public class SessionManager extends Lantern.Session.Stub {
     private static final String PREF_USE_VPN = "pref_vpn";
     private static final String PREF_NEWSFEED = "pref_newsfeed";
 
-    public static final String ONE_YEAR_PLAN = "Lantern Pro 1 Year";
-    public static final String TWO_YEAR_PLAN = "Lantern Pro 2 Year";
+    public static final String ONE_YEAR_PLAN = "Lantern Pro 1 Year Subscription";
+    public static final String TWO_YEAR_PLAN = "Lantern Pro 2 Year Subscription";
 
      // shared preferences mode
     private int PRIVATE_MODE = 0;
@@ -59,11 +59,6 @@ public class SessionManager extends Lantern.Session.Stub {
         this.mPrefs = context.getSharedPreferences(PREF_NAME, PRIVATE_MODE);
         this.editor = mPrefs.edit();
     }
-
-	public void checkProStatus() {
-		
-    	
-	}
 
     public boolean isDeviceLinked() {
         return mPrefs.getBoolean(DEVICE_LINKED, false);
@@ -107,7 +102,7 @@ public class SessionManager extends Lantern.Session.Stub {
 
 	public void setVerifyCode(String code) {
         this.verifyCode = code;
-	}                 
+	}
 
     public String VerifyCode() {
         return this.verifyCode;
@@ -120,6 +115,7 @@ public class SessionManager extends Lantern.Session.Stub {
 	}
 
     public void setProPlan(String plan) {
+        this.plan = plan;
         editor.putString(PRO_PLAN, plan).commit();
     }
 
@@ -128,8 +124,11 @@ public class SessionManager extends Lantern.Session.Stub {
         this.stripeEmail = email;
 
         editor.putString(PRO_PLAN, plan).commit();
-		editor.putBoolean(PRO_USER, true).commit();
 	}
+
+    public void setIsProUser(boolean isProUser) {
+        editor.putBoolean(PRO_USER, isProUser).commit();
+    }
 
 	public void setStripeToken(String token) {
         this.stripeToken = token;
@@ -198,7 +197,7 @@ public class SessionManager extends Lantern.Session.Stub {
 	}
 
 	public void setPlanText(TextView proAccountText, Resources res) {
-		String currentPlan = getPlan();
+		String currentPlan = this.plan;
 		if (currentPlan == null) {
 			return;
 		}
@@ -208,10 +207,6 @@ public class SessionManager extends Lantern.Session.Stub {
         } else if (currentPlan.equals("monthly")) {
 			proAccountText.setText(res.getString(R.string.pro_account_month_text));
         }
-	}
-
-	public void setPlan(String plan) {
-        this.plan = plan;
 	}
 
     public boolean useVpn() {
