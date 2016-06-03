@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"os"
+	"strconv"
 	"sync"
 	"time"
 
@@ -149,11 +150,11 @@ func DownloadUpdate(url, apkPath string, shouldProxy bool, updater Updater) {
 
 func GetBandwidthQuota() string {
 	quota := bandwidth.GetQuota()
-	res := uint64(0)
 	if quota != nil {
-		res = quota.MiBAllowed / quota.MiBAllowed
+		res := quota.MiBUsed / quota.MiBAllowed
+		return strconv.FormatUint(res, 10)
 	}
-	return string(res)
+	return "0"
 }
 
 func GetFeed(locale string, allStr string, shouldProxy bool, provider FeedProvider) {
