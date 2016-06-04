@@ -1,3 +1,2 @@
-github.com/getlantern/balancer
-github.com/getlantern/chained
+github.com/getlantern/detour
 github.com/getlantern/lantern
