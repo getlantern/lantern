@@ -1,7 +1,8 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="300dp"
+    android:layout_width="310dp"
     android:layout_height="wrap_content"
     android:layout_gravity="center"
+    android:paddingTop="10dp"
     android:orientation="horizontal">
 
     <TextView
