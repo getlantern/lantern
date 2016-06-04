@@ -68,13 +68,13 @@ func New(opts *Options) filters.Filter {
 }
 
 func (f *forwarder) Apply(w http.ResponseWriter, req *http.Request, next filters.Next) error {
-	op := ops.Enter("proxy_http")
-	defer op.Exit()
+	op := ops.Begin("proxy_http")
+	defer op.End()
 
 	// Create a copy of the request suitable for our needs
 	reqClone, err := f.cloneRequest(req, req.URL)
 	if err != nil {
-		return op.Error(filters.Fail("Error forwarding from %v to %v: %v", req.RemoteAddr, req.Host, err))
+		return op.FailIf(filters.Fail("Error forwarding from %v to %v: %v", req.RemoteAddr, req.Host, err))
 	}
 	f.Rewriter.Rewrite(reqClone)
 
@@ -90,7 +90,7 @@ func (f *forwarder) Apply(w http.ResponseWriter, req *http.Request, next filters
 	start := time.Now().UTC()
 	response, err := f.RoundTripper.RoundTrip(reqClone)
 	if err != nil {
-		return op.Error(filters.Fail("Error forwarding from %v to %v: %v", req.RemoteAddr, req.Host, err))
+		return op.FailIf(filters.Fail("Error forwarding from %v to %v: %v", req.RemoteAddr, req.Host, err))
 	}
 	log.Debugf("Round trip: %v, code: %v, duration: %v",
 		reqClone.URL, response.StatusCode, time.Now().UTC().Sub(start))

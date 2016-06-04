@@ -58,8 +58,8 @@ func (f *httpConnectHandler) Apply(w http.ResponseWriter, req *http.Request, nex
 		log.Tracef("httpConnectHandler Middleware received request:\n%s", reqStr)
 	}
 
-	op := ops.Enter("proxy_https")
-	defer op.Exit()
+	op := ops.Begin("proxy_https")
+	defer op.End()
 	if f.portAllowed(op, w, req) {
 		f.intercept(op, w, req)
 	}
