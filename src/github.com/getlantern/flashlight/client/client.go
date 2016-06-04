@@ -225,7 +225,7 @@ func (client *Client) proxiedDialer(orig func(network, addr string) (net.Conn, e
 
 func (client *Client) dialCONNECT(addr string, port int) (net.Conn, error) {
 	// Establish outbound connection
-	if client.shouldSendToProxy(port) {
+	if client.shouldSendToProxy(addr, port) {
 		log.Tracef("Proxying CONNECT request for %v", addr)
 		d := client.proxiedDialer(func(network, addr string) (net.Conn, error) {
 			// UGLY HACK ALERT! In this case, we know we need to send a CONNECT request
@@ -243,7 +243,10 @@ func (client *Client) dialCONNECT(addr string, port int) (net.Conn, error) {
 	return dialDirect("tcp", addr, 1*time.Minute)
 }
 
-func (client *Client) shouldSendToProxy(port int) bool {
+func (client *Client) shouldSendToProxy(addr string, port int) bool {
+	if isLanternSpecialDomain(addr) {
+		return true
+	}
 	for _, proxiedPort := range client.cfg().ProxiedCONNECTPorts {
 		if port == proxiedPort {
 			return true
