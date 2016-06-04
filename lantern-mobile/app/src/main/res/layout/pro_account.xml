@@ -35,7 +35,7 @@
 
         <RelativeLayout
             android:layout_gravity="center"
-            android:layout_width="300dp"
+            android:layout_width="290dp"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
@@ -43,7 +43,7 @@
                 android:id="@+id/verifiedPhoneNumber"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="20dp"
+                android:layout_marginLeft="15dp"
                 android:fontFamily="sans-serif-medium"
                 android:text="@string/verified_phone_number"
                 android:textSize="14sp"
@@ -88,11 +88,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif"
-            android:paddingTop="10dp"
-            android:lineSpacingExtra="5dp"
+            android:paddingTop="20dp"
+            android:lineSpacingExtra="10dp"
             android:text=""
             android:textSize="14sp"
-            android:paddingBottom="10dp"
+            android:paddingBottom="20dp"
             android:layout_centerHorizontal="true"
             android:gravity="center"
             android:textColor="@color/black"/>
