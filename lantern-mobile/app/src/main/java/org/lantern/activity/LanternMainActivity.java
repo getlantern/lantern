@@ -222,7 +222,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     // according to our stored preference
     public void setBtnStatus() {
         boolean useVpn = session.useVpn();
-        powerLantern.setChecked(useVpn);
+        //powerLantern.setChecked(useVpn);
 
         if (useVpn) {
             menuIcon.setImageResource(R.drawable.menu_white);
@@ -231,6 +231,18 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             menuIcon.setImageResource(R.drawable.menu);
             drawerLayout.setBackgroundColor(offColor);
         }
+        updateTheme(useVpn);
+    }
+
+    private void setButtonStatus(boolean useVpn) {
+        if (useVpn) {
+            menuIcon.setImageResource(R.drawable.menu_white);
+            drawerLayout.setBackgroundColor(onColor);
+        } else {
+            menuIcon.setImageResource(R.drawable.menu);
+            drawerLayout.setBackgroundColor(offColor);
+        }
+
     }
 
     // initialize and configure status toast (what's displayed
@@ -646,10 +658,14 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
     private void updateStatus(boolean useVpn) {
         displayStatus(useVpn);
+        updateTheme(useVpn);
+        session.updateVpnPreference(useVpn);
+    }
+
+    private void updateTheme(boolean useVpn) {
         powerLantern.setThumbColorRes(useVpn ? R.color.accent_white : R.color.accent_white);
         powerLantern.setBackColorRes(useVpn ? R.color.on_color : R.color.pro_blue_color );
         changeFeedHeaderColor(useVpn);
-        session.updateVpnPreference(useVpn);
     }
 
     @Click(R.id.powerLantern)

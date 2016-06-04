@@ -33,7 +33,8 @@
                 android:id="@+id/phone_layout"
                 android:orientation="horizontal"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" >
+                android:layout_height="wrap_content">
+
                 <ImageView
                     android:id="@+id/phone_icon"
                     android:layout_alignParentLeft="true"
@@ -52,11 +53,13 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif" 
+                    android:textSize="14dp"
+                    android:textStyle="bold"
                     android:textColor="@color/black"/>
 
             </LinearLayout>
 
-            <!--<View
+            <View
                 android:id="@+id/separator"
                 android:background="@color/edittext_color"
                 android:layout_below="@+id/phone_layout"
@@ -65,7 +68,7 @@
                 android:layout_marginLeft="40dp"
                 android:layout_centerVertical ="true"
                 android:layout_alignParentTop="true"
-                />-->
+                />
 
             <TextView
                 android:id="@+id/phoneDetails"
@@ -98,11 +101,13 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif" 
                 android:background="@null"
+                android:layout_marginLeft="10dp"
                 android:drawableLeft="@drawable/email_active"
                 android:drawablePadding="10dip"
                 android:hint=""
                 android:textColor="@color/black"
-                android:paddingRight="25dp"
+                android:textStyle="bold"
+                android:textSize="14dp"
                 android:autoText="false"
                 android:paddingTop="20dp"
                 android:paddingBottom="5dp"
