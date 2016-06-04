@@ -1,3 +1,4 @@
+github.com/getlantern/fdcount
 github.com/getlantern/appdir
 github.com/getlantern/balancer
 github.com/getlantern/bandwidth
@@ -11,7 +12,6 @@ github.com/getlantern/context
 github.com/getlantern/deepcopy
 github.com/getlantern/detour
 github.com/getlantern/eventual
-github.com/getlantern/fdcount
 github.com/getlantern/flashlight
 github.com/getlantern/flashlight/app
 github.com/getlantern/flashlight/client
