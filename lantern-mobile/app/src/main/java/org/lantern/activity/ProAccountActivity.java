@@ -118,14 +118,11 @@ public class ProAccountActivity extends FragmentActivity implements ProResponse 
         Log.d(TAG, "Renew Pro button clicked.");
     }
 
-    public void updateBillingInfo(View view) {
-
-    }
-
-    public void cancelPro(View view) {
+    public void unauthorizeDevice(View view) {
+        Log.d(TAG, "Unauthorize device button clicked.");
         AlertDialog.Builder builder = new AlertDialog.Builder(ProAccountActivity.this);
         Resources res = getResources();
-        builder.setMessage(res.getString(R.string.cancel_pro_confirmation)).setPositiveButton(res.getString(R.string.yes), dialogClickListener)
+        builder.setMessage(res.getString(R.string.unauthorize_confirmation)).setPositiveButton(res.getString(R.string.yes), dialogClickListener)
             .setNegativeButton(res.getString(R.string.no), dialogClickListener).show();
     }
 }

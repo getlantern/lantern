@@ -160,6 +160,7 @@
     <string name="pro_invitation_subject">Invitation to Join Lantern Pro</string>
     <string name="receive_free_month">For a free month of Lantern Pro, use this referral code: %1$s ; You can download it from here: https://bit.ly/1M8x04u</string>
 	<string name="cancel_pro_confirmation">Are you sure? This action cannot be undone! You can sign up for Pro again at any time.</string>
+    <string name="unauthorize_confirmation">Are you sure you want to unlink this device from your Pro account?</string>
 	<string name="yes">Yes</string>
 	<string name="no">No</string>
     <string name="item_image_contentDescription">Country flag</string>

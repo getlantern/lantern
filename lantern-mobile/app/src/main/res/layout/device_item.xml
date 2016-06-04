@@ -22,6 +22,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:clickable="true"
+        android:onClick="unauthorizeDevice"
         android:src="@drawable/unauthorize"/>
 
 </RelativeLayout>   

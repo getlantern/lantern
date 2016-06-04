@@ -43,7 +43,7 @@
                 android:id="@+id/verifiedPhoneNumber"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="10dp"
+                android:layout_marginLeft="5dp"
                 android:fontFamily="sans-serif-medium"
                 android:text="@string/verified_phone_number"
                 android:textSize="14sp"
