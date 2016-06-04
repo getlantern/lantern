@@ -18,12 +18,12 @@ func TestSuccess(t *testing.T) {
 	}
 
 	ops.RegisterReporter(report)
-	ops.PutGlobal("g", "g1")
-	op := ops.Enter("test_success").Put("a", 1).PutDynamic("b", func() interface{} { return 2 })
-	defer op.Exit()
-	innerOp := op.Enter("inside")
-	innerOp.Error(nil)
-	innerOp.Exit()
+	ops.SetGlobal("g", "g1")
+	op := ops.Begin("test_success").Set("a", 1).SetDynamic("b", func() interface{} { return 2 })
+	defer op.End()
+	innerOp := op.Begin("inside")
+	innerOp.FailIf(nil)
+	innerOp.End()
 
 	assert.Nil(t, reportedFailure)
 	expectedCtx := map[string]interface{}{
@@ -45,15 +45,15 @@ func TestFailure(t *testing.T) {
 	}
 
 	ops.RegisterReporter(report)
-	op := ops.Enter("test_failure")
+	op := ops.Begin("test_failure")
 	var wg sync.WaitGroup
 	wg.Add(1)
 	op.Go(func() {
-		op.Error(errors.New("I failed").With("errorcontext", 5))
+		op.FailIf(errors.New("I failed").With("errorcontext", 5))
 		wg.Done()
 	})
 	wg.Wait()
-	op.Exit()
+	op.End()
 
 	assert.Contains(t, reportedFailure.Error(), "I failed")
 	assert.Equal(t, 5, reportedCtx["errorcontext"])
