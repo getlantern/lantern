@@ -121,6 +121,18 @@ func run(configDir string) {
 		return
 	}
 
+	if err := logging.EnableFileLogging(configDir); err != nil {
+		log.Errorf("Unable to enable file logging: %v", err)
+		return
+	}
+	log.Debugf("Writing log messages to %s/lantern.log", configDir)
+
+	closeLogging := func() {
+		if err := logging.Close(); err != nil {
+			log.Errorf("Error closing log: %v", err)
+		}
+	}
+
 	flashlight.Run("127.0.0.1:0", // listen for HTTP on random address
 		"127.0.0.1:0", // listen for SOCKS on random address
 		configDir,     // place to store lantern configuration
@@ -131,7 +143,10 @@ func run(configDir string) {
 		func(cfg *config.Config) {},                   // afterStart()
 		func(cfg *config.Config) {},                   // onConfigUpdate
 		&userConfig{},
-		func(err error) {}, // onError
+		func(err error) {
+			closeLogging()
+
+		}, // onError
 		base64.StdEncoding.EncodeToString(uuid.NodeID()),
 	)
 }

@@ -58,8 +58,10 @@ func init() {
 }
 
 // EnableFileLogging enables sending Lantern logs to a file.
-func EnableFileLogging() error {
-	logdir := appdir.Logs("Lantern")
+func EnableFileLogging(logdir string) error {
+	if logdir == "" {
+		logdir = appdir.Logs("Lantern")
+	}
 	log.Debugf("Placing logs in %v", logdir)
 	if _, err := os.Stat(logdir); err != nil {
 		if os.IsNotExist(err) {

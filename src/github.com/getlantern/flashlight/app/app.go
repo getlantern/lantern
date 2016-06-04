@@ -52,7 +52,7 @@ func (app *App) Init() {
 
 // LogPanicAndExit logs a panic and then exits the application.
 func (app *App) LogPanicAndExit(msg string) {
-	if err := logging.EnableFileLogging(); err != nil {
+	if err := logging.EnableFileLogging(""); err != nil {
 		panic("Error initializing logging")
 	}
 

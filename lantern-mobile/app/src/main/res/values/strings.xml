@@ -43,6 +43,8 @@
     <string name="share_chooser_text">Share Lantern Android</string>
     <string name="success_email">Lantern Desktop has been e-mailed to you!</string>
     <string name="error_email">There was a problem sending you Lantern Desktop. Please try again later.</string>
+    <string name="success_log_email">Logs submitted successfully to Lantern!</string>
+    <string name="error_log_email">Error sending logs to Lantern. Please try again later.</string>
     <string name="invalid_email">Invalid e-mail address</string>
     <string name="no_internet_connection">No Internet connection available!</string>
     <string name="contact_email">team@getlantern.org</string>

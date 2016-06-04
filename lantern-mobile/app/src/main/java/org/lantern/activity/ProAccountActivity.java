@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Html;
 import android.util.Log;
@@ -19,12 +20,15 @@ import android.widget.TextView;
 
 import android.support.v4.app.FragmentActivity;
 
+import java.io.File;
+
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.ViewById;
 
 import org.lantern.LanternApp;
 import org.lantern.model.DeviceItem;
+import org.lantern.model.MailSender;
 import org.lantern.model.ProRequest;
 import org.lantern.model.SessionManager;
 import org.lantern.model.Utils;
@@ -112,6 +116,42 @@ public class ProAccountActivity extends FragmentActivity implements ProResponse 
 
     public void sendLogs(View view) {
         Log.d(TAG, "Send logs button clicked.");
+        final MailSender sender = new MailSender();
+        final String logDir = getApplicationContext().getFilesDir().getAbsolutePath();
+
+        AsyncTask<Void, Void, Boolean> asyncTask = new AsyncTask<Void, Void, Boolean>() {
+            @Override 
+            public Boolean doInBackground(Void... arg) {
+
+                try {
+                    sender.sendLogs(new File(logDir, ".lantern/lantern.log").toString());
+                    Log.d(TAG, "Successfully sent log contents");
+                    return true;
+                } catch (Exception e) {
+                    Log.e(TAG, e.getMessage(), e);     
+                }
+                return false;
+            }
+
+            @Override
+            protected void onPostExecute(Boolean success) {
+                super.onPostExecute(success);
+                String msg;
+                if (success) {
+                    msg = getResources().getString(R.string.success_log_email);
+                } else {
+                    msg = getResources().getString(R.string.error_log_email);
+                }
+                Utils.showAlertDialog(activity, "Lantern", msg);
+            }
+        };
+
+        if (Build.VERSION.SDK_INT >= 11) {
+            asyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        }
+        else {
+            asyncTask.execute();
+        }
     }
 
     public void renewPro(View view) {
