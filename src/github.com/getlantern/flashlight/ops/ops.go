@@ -26,14 +26,14 @@ type Op struct {
 	wrapped ops.Op
 }
 
-// Enter mimics the similar method from ops.Op
+// Begin mimics the similar method from ops.Op
 func (op *Op) Begin(name string) *Op {
-	return &Op{op.wrapped.Enter(name)}
+	return &Op{op.wrapped.Begin(name)}
 }
 
-// Enter mimics the similar method from ops
+// Begin mimics the similar method from ops
 func Begin(name string) *Op {
-	return &Op{ops.Enter(name)}
+	return &Op{ops.Begin(name)}
 }
 
 // RegisterReporter mimics the similar method from ops
@@ -51,36 +51,36 @@ func Go(fn func()) {
 	ops.Go(fn)
 }
 
-// Exit mimics the similar method from ops.Op
+// End mimics the similar method from ops.Op
 func (op *Op) End() {
-	op.wrapped.Exit()
+	op.wrapped.End()
 }
 
-// Put mimics the similar method from ops.Op
+// Set mimics the similar method from ops.Op
 func (op *Op) Set(key string, value interface{}) *Op {
-	op.wrapped.Put(key, value)
+	op.wrapped.Set(key, value)
 	return op
 }
 
-// PutGlobal mimics the similar method from ops
+// SetGlobal mimics the similar method from ops
 func SetGlobal(key string, value interface{}) {
-	ops.PutGlobal(key, value)
+	ops.SetGlobal(key, value)
 }
 
-// PutDynamic mimics the similar method from ops.Op
+// SetDynamic mimics the similar method from ops.Op
 func (op *Op) SetDynamic(key string, valueFN func() interface{}) *Op {
-	op.wrapped.PutDynamic(key, valueFN)
+	op.wrapped.SetDynamic(key, valueFN)
 	return op
 }
 
-// PutGlobalDynamic mimics the similar method from ops
+// SetGlobalDynamic mimics the similar method from ops
 func SetGlobalDynamic(key string, valueFN func() interface{}) {
-	ops.PutGlobalDynamic(key, valueFN)
+	ops.SetGlobalDynamic(key, valueFN)
 }
 
-// Error mimics the similar method from ops.op
+// FailIf mimics the similar method from ops.op
 func (op *Op) FailIf(err error) error {
-	return op.wrapped.Error(err)
+	return op.wrapped.FailIf(err)
 }
 
 // UserAgent attaches a user agent to the Context.
@@ -131,7 +131,7 @@ func (op *Op) ProxyType(v ProxyType) *Op {
 func (op *Op) ProxyAddr(v string) *Op {
 	host, port, err := net.SplitHostPort(v)
 	if err == nil {
-		op.wrapped.Put("proxy_host", host).Put("proxy_port", port)
+		op.Set("proxy_host", host).Set("proxy_port", port)
 	}
 	return op
 }
@@ -145,7 +145,7 @@ func (op *Op) ProxyProtocol(v string) *Op {
 func (op *Op) Origin(v string) *Op {
 	host, port, err := net.SplitHostPort(v)
 	if err == nil {
-		op.wrapped.Put("origin_host", host).Put("origin_port", port)
+		op.Set("origin_host", host).Set("origin_port", port)
 	}
 	return op
 }
