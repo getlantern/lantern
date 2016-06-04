@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.Html;
 import android.util.Log;
@@ -118,6 +119,8 @@ public class ProAccountActivity extends FragmentActivity implements ProResponse 
         Log.d(TAG, "Send logs button clicked.");
         final MailSender sender = new MailSender();
         final String logDir = getApplicationContext().getFilesDir().getAbsolutePath();
+
+        final ProAccountActivity activity = this;
 
         AsyncTask<Void, Void, Boolean> asyncTask = new AsyncTask<Void, Void, Boolean>() {
             @Override 
