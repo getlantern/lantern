@@ -39,7 +39,7 @@ var (
 )
 
 func init() {
-	ops.PutGlobal("global", "shouldn't show up")
+	ops.SetGlobal("global", "shouldn't show up")
 }
 
 func expected(severity string, log string) string {
@@ -55,7 +55,7 @@ func TestDebug(t *testing.T) {
 	SetOutputs(ioutil.Discard, out)
 	l := LoggerFor("myprefix")
 	l.Debug("Hello world")
-	defer ops.Enter("name").Put("cvarA", "a").Put("cvarB", "b").Exit()
+	defer ops.Begin("name").Set("cvarA", "a").Set("cvarB", "b").End()
 	l.Debugf("Hello %v", true)
 	assert.Equal(t, expected("DEBUG", expectedLog), out.String())
 }
@@ -64,20 +64,20 @@ func TestError(t *testing.T) {
 	out := newBuffer()
 	SetOutputs(out, ioutil.Discard)
 	l := LoggerFor("myprefix")
-	ctx := ops.Enter("name").Put("cvarC", "c")
+	ctx := ops.Begin("name").Set("cvarC", "c")
 	err := errorReturner()
 	err1 := errors.New("Hello %v", err)
 	err2 := errors.New("Hello")
-	ctx.Exit()
+	ctx.End()
 	l.Error(err1)
-	defer ops.Enter("name2").Put("cvarA", "a").Put("cvarB", "b").Exit()
+	defer ops.Begin("name2").Set("cvarA", "a").Set("cvarB", "b").End()
 	l.Errorf("%v %v", err2, true)
 	t.Log(out.String())
 	assert.Equal(t, expectedErrorLog, out.String())
 }
 
 func errorReturner() error {
-	defer ops.Enter("name").Put("cvarD", "d").Exit()
+	defer ops.Begin("name").Set("cvarD", "d").End()
 	return errors.New("world")
 }
 
@@ -144,7 +144,7 @@ func TestAsStdLogger(t *testing.T) {
 	l := LoggerFor("myprefix")
 	stdlog := l.AsStdLogger()
 	stdlog.Print("Hello world")
-	defer ops.Enter("name").Put("cvarA", "a").Put("cvarB", "b").Exit()
+	defer ops.Begin("name").Set("cvarA", "a").Set("cvarB", "b").End()
 	stdlog.Printf("Hello %v", true)
 	assert.Equal(t, expected("ERROR", expectedStdLog), out.String())
 }
@@ -167,7 +167,7 @@ func TestAsStdLogger(t *testing.T) {
 // 	l := LoggerFor("myprefix")
 // 	trace := l.TraceOut()
 // 	trace.Write([]byte("Hello world\n"))
-// 	defer ops.Enter().Put("cvarA", "a").Put("cvarB", "b").Exit()
+// 	defer ops.Begin().Set("cvarA", "a").Set("cvarB", "b").End()
 // 	trace.Write([]byte("Hello true\n"))
 // 	assert.Equal(t, expected("TRACE", expectedStdLog), out.String())
 // }
