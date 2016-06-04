@@ -15,6 +15,8 @@
   <string name="submit_code">提交代码</string>
   <string name="on_text">开</string>
   <string name="off_text">关</string>
+  <string name="lantern_off">蓝灯(Lantern)已关闭。请开启蓝灯(Lantern)来访问被墙的网站和应用！</string>
+  <string name="lantern_on">蓝灯(Lantern)已开启。你可以访问被墙的网站和应用了！</string>
   <string name="on_desc">您现在可以访问
 已被屏蔽的网站和服务</string>
   <string name="off_desc">点击按钮以访问

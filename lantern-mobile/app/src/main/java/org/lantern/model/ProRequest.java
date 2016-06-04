@@ -24,9 +24,9 @@ public class ProRequest extends AsyncTask<String, Void, Boolean> {
     private String errMsg;
     private SessionManager session;
 
-    public ProRequest(ProResponse response) {
+    public ProRequest(ProResponse response, boolean showProgress) {
         this.response = response;
-        if (response instanceof FragmentActivity) {
+        if (response instanceof FragmentActivity && showProgress) {
             manager = ((FragmentActivity)response).getSupportFragmentManager();
             progressFragment = ProgressDialogFragment.newInstance(R.string.progressMessage);
         }

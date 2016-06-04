@@ -1,16 +1,33 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/status_layout_root"
     android:orientation="horizontal"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:padding="8dp"
-    android:background="@android:color/transparent"
+    android:layout_width="wrap_content"
+    android:layout_height="200dp"
+    android:gravity="center"
+	android:padding="15dp"
+	android:layout_marginLeft="10dp"
+	android:layout_marginRight="10dp"
+	android:layout_marginBottom="10dp"
+    android:background="@color/black"
     >
     <ImageView
+        android:id="@+id/statusImage"
         android:layout_height="wrap_content"
-        android:layout_width="match_parent"
-        android:adjustViewBounds="true"
-        android:src="@drawable/toast_off"
-        android:id="@+id/status_image">
-    </ImageView>                      
+        android:layout_width="wrap_content"
+        android:layout_gravity="left"
+        android:paddingRight="15dp"
+        android:layout_toLeftOf="@+id/status_text"
+        android:src="@drawable/status_off_white">
+    </ImageView>
+    <TextView
+        android:id="@+id/statusText"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:fontFamily="sans-serif-medium" 
+        android:textColor="@color/accent_white"
+        android:layout_centerInParent="true"
+        android:gravity="left"
+        android:textSize="12sp"
+        android:text="@string/lantern_off">
+    </TextView>                      
 </LinearLayout>

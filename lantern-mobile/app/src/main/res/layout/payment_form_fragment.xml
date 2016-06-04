@@ -47,6 +47,8 @@
         android:paddingBottom="5dp"
         android:gravity="fill_horizontal"
         android:background="@null"
+        android:textStyle="bold"
+        android:textSize="14dp"
         android:hint="4242 4242 4242 4242" 
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:nextFocusDown="@+id/expMonth" 

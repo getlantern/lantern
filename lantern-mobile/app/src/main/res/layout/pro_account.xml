@@ -16,95 +16,140 @@
         lantern:backgroundColor="@drawable/nav_background_white"
         lantern:titleText="@string/pro_account_header"/>
 
-     <RelativeLayout
-        android:id="@+id/pro_account"
-        android:layout_width="fill_parent"
-        android:layout_height="202dp"
-        android:layout_weight="1"
-        android:background="@color/pro_blue_color"
-        android:elevation="2dp">
-
-        <ImageView
-            android:id="@+id/account_management"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:padding="12dp"
-            android:adjustViewBounds="true"
-            android:scaleType="center"
-            android:src="@drawable/account_management"/>
-    </RelativeLayout>
-
-    <RelativeLayout
+    <LinearLayout
         android:id="@+id/invite_bottom_sheet"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:background="#F4F6F6"
-        android:paddingTop="15dp"
-        android:paddingBottom="15dp"
-        android:layout_weight="1"
-        android:padding="8dp">
+        android:orientation="vertical"
+        android:gravity="center"
+        android:background="@color/accent_white">
+
+        <ImageView
+            android:id="@+id/account_management"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:paddingTop="28dp"
+            android:paddingBottom="28dp"
+            android:src="@drawable/account_management"/>
+
+        <RelativeLayout
+            android:layout_gravity="center"
+            android:layout_width="300dp"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/verifiedPhoneNumber"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:fontFamily="sans-serif-medium"
+                android:text="@string/verified_phone_number"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"/>
+
+            <TextView
+                android:id="@+id/phoneNumber"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:textSize="14sp"
+                android:layout_alignParentRight="true"  
+                android:textColor="@color/pink"/>
+
+        </RelativeLayout>
+
+        <TextView
+            android:id="@+id/devicesAuthorized"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:textSize="14sp"          
+            android:textColor="@color/black"
+            android:textStyle="bold"
+            android:paddingTop="30dp"
+            android:text="@string/devices_authorized"
+            />
 
         <LinearLayout
-            android:id="@+id/get_code_view"
-            android:orientation="vertical"
-            android:gravity="center"
+            android:id="@+id/deviceList"
             android:layout_width="fill_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:paddingLeft="10dp"
+            android:gravity="right"
+            android:layout_below="@+id/devicesAuthorized"
+            android:layout_gravity="right"
+            android:orientation="vertical" />  
 
-            <TextView
-                android:id="@+id/proAccountText"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:fontFamily="sans-serif-medium"
-                android:layout_marginTop="14dp"
-                android:text=""
-                android:textSize="14sp"
-                android:padding="20dp"
-                android:alpha=".87"
-                android:layout_centerHorizontal="true"
-                android:gravity="center"
-                android:textColor="#000000"/>
+        <TextView
+            android:id="@+id/proAccountText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif"
+            android:layout_marginTop="14dp"
+            android:lineSpacingExtra="10dp"
+            android:text=""
+            android:textSize="14sp"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:layout_centerHorizontal="true"
+            android:gravity="center"
+            android:textColor="@color/black"/>
 
-            <Button
-                android:id="@+id/cancelAccount"
-                android:layout_height="36dp"
-                android:layout_width="216dp"
-                android:layout_marginTop="40dp"
-                android:text="@string/update_billing_info"
-                android:fontFamily="sans-serif-medium" 
-                android:textSize="14sp"
-                android:elevation="2dp"
-                android:minHeight="48dp"
-                android:textAllCaps="true"
-                android:textColor="@color/accent_white"
-                android:textStyle="bold"
-                android:clickable = "true"
-                android:background="#0297A7"
-                android:layout_centerInParent="true"
-                android:onClick="updateBillingInfo" />
+        <Button
+            android:id="@+id/renewProBtn"
+            android:layout_height="36dp"
+            android:layout_width="216dp"
+            android:text="@string/renew_pro_account"
+            android:fontFamily="sans-serif-medium" 
+            android:textSize="14sp"
+            android:elevation="2dp"
+            android:minHeight="48dp"
+            android:textAllCaps="true"
+            android:textColor="@color/pink"
+            android:textStyle="bold"     
+            android:clickable = "true"
+            android:background="@drawable/text_invite"
+            android:layout_centerInParent="true"
+            android:onClick="renewPro" />
 
-            <TextView
-                android:id="@+id/cancelBtn"
-                android:layout_height="wrap_content"
-                android:layout_width="wrap_content"
-                android:text="@string/cancel_pro_account"
-                android:fontFamily="sans-serif-medium"
-                android:textSize="14sp"
-                android:clickable="true"
-                android:textColor="@color/link_blue"
-                android:layout_marginTop="20dp"
-                android:layout_gravity="center" 
-                android:gravity="center"
-                android:background="@null"
-                android:layout_centerHorizontal="true"
-                android:onClick="cancelPro"/>
+        <Button
+            android:id="@+id/changeNumberBtn"
+            android:layout_height="36dp"
+            android:layout_width="216dp"
+            android:text="@string/change_phone_number"
+            android:fontFamily="sans-serif-medium" 
+            android:textSize="14sp"
+            android:elevation="2dp"
+            android:minHeight="48dp"
+            android:textAllCaps="true"
+            android:textColor="@color/accent_white"
+            android:textStyle="bold"
+            android:clickable = "true"
+            android:layout_marginTop="10dp"
+            android:background="@color/pink"
+            android:layout_centerInParent="true"
+            android:onClick="changePhoneNumber" />
 
+        <TextView
+            android:id="@+id/sendLogsBtn"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:textSize="14sp"
+            android:clickable="true"
+            android:text="@string/send_us_your_logs"
+            android:textColor="@color/black"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:layout_centerInParent="true"
+            android:layout_gravity="center" 
+            android:gravity="center"
+            android:background="@null"
+            android:layout_centerHorizontal="true"
+            android:onClick="sendLogs"/>
 
-        </LinearLayout>
-
-    </RelativeLayout>
-
- 
- 
-
+    </LinearLayout>
 </LinearLayout>

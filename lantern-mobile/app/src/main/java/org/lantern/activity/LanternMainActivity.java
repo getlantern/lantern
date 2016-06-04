@@ -107,8 +107,9 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     private TransitionDrawable offNavTrans = new TransitionDrawable(offTransColor);
     private TransitionDrawable onNavTrans = new TransitionDrawable(onTransColor);
 
-    private ImageView statusImage;
     private Toast statusToast;
+	private ImageView statusImage;
+	private TextView statusText;
 
     private SessionManager session;
 
@@ -261,7 +262,8 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         LayoutInflater inflater = getLayoutInflater();
         statusLayout = inflater.inflate(R.layout.status_layout, 
                 (ViewGroup)findViewById(R.id.status_layout_root));
-        statusImage = (ImageView)statusLayout.findViewById(R.id.status_image);
+		statusImage = (ImageView)statusLayout.findViewById(R.id.statusImage);
+		statusText  = (TextView)statusLayout.findViewById(R.id.statusText);
         statusToast = new Toast(getApplicationContext());
         statusToast.setGravity(Gravity.BOTTOM|Gravity.FILL_HORIZONTAL, 0, 0);
         statusToast.setDuration(Toast.LENGTH_SHORT);
@@ -273,11 +275,13 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             // fade for the background color animation and switch
             // our image view to use the 'on' image resource
             colorFadeIn.start();
-            statusImage.setImageResource(R.drawable.toast_on);
+            statusImage.setImageResource(R.drawable.status_on_white);
+            statusText.setText(getResources().getString(R.string.lantern_on));
             menuIcon.setImageResource(R.drawable.menu_white);
         } else {
             colorFadeOut.start();
-            statusImage.setImageResource(R.drawable.toast_off);
+            statusImage.setImageResource(R.drawable.status_off_white);
+            statusText.setText(getResources().getString(R.string.lantern_off));
             menuIcon.setImageResource(R.drawable.menu);
         }
 

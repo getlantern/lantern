@@ -17,7 +17,6 @@ import org.androidannotations.annotations.ViewById;
 import org.androidannotations.annotations.ItemClick;
 
 import org.lantern.LanternApp;
-import org.lantern.model.ProRequest;
 import org.lantern.model.SessionManager;
 import org.lantern.model.Utils;
 import org.lantern.R;

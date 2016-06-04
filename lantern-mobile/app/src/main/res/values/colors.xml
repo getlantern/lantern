@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="edittext_color">#BDBDBD</color>
+    <color name="edittext_color">#000000</color>
     <color name="blue_color">#39C2D6</color>
+    <color name="toast_bg">#333333</color>
     <color name="pro_blue_color">#00BCD4</color>
     <color name="dark_pro_blue">#0097a7</color>
     <color name="on_color">#FFFF00</color>

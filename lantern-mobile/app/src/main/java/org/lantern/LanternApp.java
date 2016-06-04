@@ -19,7 +19,7 @@ public class LanternApp extends Application implements ProResponse {
         super.onCreate();
         Fabric.with(this, new Crashlytics());
         session = new SessionManager(getApplicationContext());
-        new ProRequest(this).execute("newuser");
+        new ProRequest(this, false).execute("newuser");
     }
 
     @Override

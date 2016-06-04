@@ -277,7 +277,7 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
         session.setProUser(email, token, plan);
 
         // submit token to Pro server here
-        new ProRequest(this).execute("purchase");
+        new ProRequest(this, false).execute("purchase");
     }
 
     private void handleError(String error) {

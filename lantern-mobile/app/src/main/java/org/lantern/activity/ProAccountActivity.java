@@ -8,10 +8,13 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.text.Html;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import android.support.v4.app.FragmentActivity;
@@ -21,6 +24,7 @@ import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.ViewById;
 
 import org.lantern.LanternApp;
+import org.lantern.model.DeviceItem;
 import org.lantern.model.ProRequest;
 import org.lantern.model.SessionManager;
 import org.lantern.model.Utils;
@@ -32,7 +36,13 @@ import go.lantern.Lantern;
 public class ProAccountActivity extends FragmentActivity implements ProResponse {
 
     @ViewById
-    TextView proAccountText;
+    TextView proAccountText, phoneNumber, sendLogsBtn;
+
+    @ViewById
+    Button renewProBtn, changeNumberBtn;
+
+    @ViewById
+    LinearLayout deviceList;
 
     private static final String TAG = "ProAccountActivity";
     private SessionManager session;
@@ -47,6 +57,17 @@ public class ProAccountActivity extends FragmentActivity implements ProResponse 
 
         session.setPlanText(proAccountText, getResources());
 
+        proAccountText.setText(String.format(getResources().getString(R.string.pro_account_expires), "03/15/2017", 6));
+        phoneNumber.setText("+1310-484-9264");
+
+        String[] devices = {android.os.Build.DEVICE, "Mac Desktop", "PC Desktop"};
+
+        for (String device : devices) {
+            final DeviceItem item = new DeviceItem(this);
+            item.name.setText(Html.fromHtml(String.format("&#8226; %s", device)));
+            deviceList.addView(item);
+        }
+
         final ProAccountActivity proAccountActivity = this;
 
         dialogClickListener = new DialogInterface.OnClickListener() {
@@ -54,7 +75,7 @@ public class ProAccountActivity extends FragmentActivity implements ProResponse 
             public void onClick(DialogInterface dialog, int which) {
                 switch (which) {
                     case DialogInterface.BUTTON_POSITIVE:
-                        new ProRequest(proAccountActivity).execute("cancel");
+                        //new ProRequest(proAccountActivity, true).execute("cancel");
                         break;
                     case DialogInterface.BUTTON_NEGATIVE:
                         // No button clicked
@@ -82,6 +103,19 @@ public class ProAccountActivity extends FragmentActivity implements ProResponse 
     public void onError() {
         Utils.showErrorDialog(this, 
                 getResources().getString(R.string.unable_to_cancel_account));
+    }
+
+    public void changePhoneNumber(View view) {
+        Log.d(TAG, "Change # button clicked."); 
+        startActivity(new Intent(this, SignInActivity.class));
+    }
+
+    public void sendLogs(View view) {
+        Log.d(TAG, "Send logs button clicked.");
+    }
+
+    public void renewPro(View view) {
+        Log.d(TAG, "Renew Pro button clicked.");
     }
 
     public void updateBillingInfo(View view) {

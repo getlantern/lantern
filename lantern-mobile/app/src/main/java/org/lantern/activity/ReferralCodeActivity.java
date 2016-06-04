@@ -68,7 +68,7 @@ public class ReferralCodeActivity extends FragmentActivity implements ProRespons
             String referral = fragment.getNumber();
             if (referral != null && !referral.equals("")) {
                 session.setReferral(referral);
-                new ProRequest(this).execute("referral");
+                new ProRequest(this, true).execute("referral");
             } else {
                 onError();
             }

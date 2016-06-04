@@ -61,7 +61,7 @@ public class SignInActivity extends FragmentActivity implements ProResponse {
             String number = fragment.getPhoneNumber();
             if (number != null) {
                     session.setPhoneNumber(number);
-                    new ProRequest(this).execute("number");
+                    new ProRequest(this, true).execute("number");
             } else {
                 onError();
             }

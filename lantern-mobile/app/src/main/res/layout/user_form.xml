@@ -122,6 +122,7 @@
                 android:layout_width = "wrap_content"
                 android:layout_gravity="center"
                 android:layout_height="1.5dip"
+				android:layout_marginLeft="30dp"
                 android:layout_centerVertical ="true"
                 android:layout_alignParentTop="true"
                 />

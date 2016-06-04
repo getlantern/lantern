@@ -71,7 +71,7 @@ public class VerifyCodeActivity extends FragmentActivity implements ProResponse 
             String code = fragment.getNumber();
             if (code != null) {
                 session.setVerifyCode(code);
-                new ProRequest(this).execute("code");
+                new ProRequest(this, true).execute("code");
             } else {
                 onError();
             }

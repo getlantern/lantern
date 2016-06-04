@@ -15,6 +15,8 @@
     <string name="submit_code">Submit Code</string>
     <string name="on_text">On</string>
     <string name="off_text">Off</string>
+    <string name="lantern_off">Lantern is Off. Flip the switch to access\n blocked sites and services!</string>
+    <string name="lantern_on">Lantern is On. You can now access\n blocked sites and services!</string>  
     <string name="on_desc">You can now access\r\nblocked sites and services</string>
     <string name="off_desc">Click the button to access blocked sites and services</string>
     <string name="service_connected">Lantern connected</string>
@@ -52,6 +54,12 @@
     <string name="error_update">Error Downloading Update</string>
     <string name="manual_update">Try manually installing the latest version from &lt;a href="https://lantern-android.io">here1&lt;/a></string>
     <string name="pro_welcome_text">Welcome to Lantern Pro!</string>
+	<string name="renew_pro_account">Renew Pro Account</string>
+	<string name="change_phone_number">Change Phone Number</string>
+	<string name="pro_account_expires">Your Pro account expires on %1$s\n. This includes your %2$d bonus months!</string>
+	<string name="verified_phone_number">Verified Phone Number:</string>
+	<string name="devices_authorized">Devices authorized to use your Pro account</string>
+    <string name="send_us_your_logs">Send us your Logs</string>
     <string name="thanks_purchase">Thanks for your purchase of Lantern Pro!</string>
     <string name="start_inviting">\r\nStart inviting!</string>
     <string name="invite_friends">Enter your e-mail to receive a code to share with your friends. Get a free month of PRO when they sign up!</string>
