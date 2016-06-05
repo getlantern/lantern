@@ -85,7 +85,7 @@ func TestWaitUntilNoneMatchOK(t *testing.T) {
 		}
 	}()
 
-	err = WaitUntilNoneMatch("TCP", wait*5)
+	err = WaitUntilNoneMatch("TCP", wait*50)
 	elapsed := time.Now().Sub(start)
 	assert.NoError(t, err, "Waiting should have succeeded")
 	assert.True(t, elapsed >= wait, "Should have waited a while")
@@ -102,7 +102,7 @@ func TestWaitUntilNoneMatchTimeout(t *testing.T) {
 		}
 	}()
 
-	wait := 200 * time.Millisecond
+	wait := 1000 * time.Millisecond
 	start := time.Now()
 	go func() {
 		time.Sleep(wait)
@@ -111,7 +111,7 @@ func TestWaitUntilNoneMatchTimeout(t *testing.T) {
 		}
 	}()
 
-	err = WaitUntilNoneMatch("TCP", wait/4)
+	err = WaitUntilNoneMatch("TCP", wait/50)
 	elapsed := time.Now().Sub(start)
 	assert.Error(t, err, "Waiting should have failed")
 	assert.True(t, elapsed < wait, "Should have waited less than time to close conn")
