@@ -3,7 +3,6 @@ package config
 import (
 	"crypto/x509"
 	"fmt"
-	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -11,7 +10,6 @@ import (
 	"time"
 
 	"github.com/getlantern/appdir"
-	"github.com/getlantern/detour"
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/keyman"
@@ -53,14 +51,6 @@ type Config struct {
 
 // StartPolling starts the process of polling for new configuration files.
 func StartPolling() {
-	// Force detour to whitelist chained domain
-	u, err := url.Parse(defaultChainedCloudConfigURL)
-	if err != nil {
-		log.Fatalf("Unable to parse chained cloud config URL: %v", err)
-	}
-	log.Debugf("Polling at %v", defaultChainedCloudConfigURL)
-	detour.ForceWhitelist(u.Host)
-
 	// No-op if already started.
 	m.StartPolling()
 }
