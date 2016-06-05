@@ -62,6 +62,16 @@
             android:name=".activity.WelcomeActivity_"
             android:screenOrientation="portrait"
             android:noHistory="true">
+        </activity>
+
+        <activity
+            android:name=".activity.InviteActivity_"
+            android:screenOrientation="portrait"/>
+
+        <activity
+            android:name=".activity.PaymentActivity_"
+            android:screenOrientation="portrait"
+            android:noHistory="true" >
 
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
@@ -73,15 +83,6 @@
                     android:host="pro"/>
             </intent-filter>
         </activity>
-
-        <activity
-            android:name=".activity.InviteActivity_"
-            android:screenOrientation="portrait"/>
-
-        <activity
-            android:name=".activity.PaymentActivity_"
-            android:screenOrientation="portrait"
-            android:noHistory="true" />
 
         <activity
             android:name=".activity.CheckoutActivity"

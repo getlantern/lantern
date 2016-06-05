@@ -118,6 +118,15 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
         });
 
         progressFragment = ProgressDialogFragment.newInstance(R.string.progressMessage);
+
+
+        Uri data = intent.getData();
+
+        if (data != null && data.getQueryParameter("stripeToken") != null) {
+            String stripeToken = data.getQueryParameter("stripeToken");
+            String stripeEmail = data.getQueryParameter("stripeEmail");  
+            finishProgress(stripeToken, stripeEmail);
+        }
     }
 
     @Click(R.id.checkoutBtn)
@@ -231,7 +240,7 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
             Stripe stripe = new Stripe();
             stripe.createToken(card, publishableApiKey, new TokenCallback() {
                 public void onSuccess(Token token) {
-                    finishProgress(token.getId());
+                    finishProgress(emailInput.getText().toString(), token.getId());
                 }
 
                 public void onError(Exception error) {
@@ -269,15 +278,14 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
     }
 
 
-    private void finishProgress(String token) {
-        progressFragment.dismiss();
-
-        String email = emailInput.getText().toString();
+    private void finishProgress(String email, String token) {
 
         session.setProUser(email, token, plan);
 
         // submit token to Pro server here
         new ProRequest(this, false).execute("purchase");
+
+        progressFragment.dismiss();
     }
 
     private void handleError(String error) {
