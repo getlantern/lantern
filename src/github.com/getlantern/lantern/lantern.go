@@ -30,7 +30,7 @@ var (
 	compileTimePackageVersion string
 
 	// if true, run Lantern against our staging infrastructure
-	debugMode = "false"
+	stagingMode = "false"
 
 	startOnce sync.Once
 )
@@ -139,7 +139,7 @@ func run(configDir string) {
 		}
 	}
 
-	staging, err := strconv.ParseBool(debugMode)
+	staging, err := strconv.ParseBool(stagingMode)
 	if err == nil {
 		flags["staging"] = staging
 	} else {
