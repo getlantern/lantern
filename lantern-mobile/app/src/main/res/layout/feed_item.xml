@@ -50,6 +50,8 @@
             android:layout_height="20dp"
             android:layout_gravity="right"
             android:layout_weight="0.1"
+            android:clickable="true"
+            android:onClick="shareFeedItem"
             android:layout_alignParentRight="true" 
             android:tag="shareIntent"
             android:src="@drawable/ic_share_black"
@@ -88,6 +90,7 @@
             android:maxLines="4"
             android:paddingTop="16dp"
             android:paddingBottom="10dp"
+            android:clickable="false"
             android:textColor="@color/black"
             android:textSize="10sp"
             android:layout_below="@id/title"  />
@@ -95,6 +98,7 @@
         <TextView
             android:id="@+id/link"
             android:visibility="invisible"
+            android:clickable="false"
             android:layout_width="wrap_content"
             android:layout_height="0dp"
             />

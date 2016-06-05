@@ -22,6 +22,7 @@ import android.os.Handler;
 import android.os.StrictMode;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.net.VpnService;
 import android.net.wifi.WifiManager;
 import android.util.Log;
@@ -814,12 +815,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         TextView url = (TextView)view.findViewById(R.id.link);
         Log.d(TAG, "Feed item clicked: " + url.getText());
 
-        String tag = (String)view.getTag();
-        if (tag != null && tag.equals("shareIntent") && url.getText() != null) {
-            shareFeedItem(view, url.getText().toString());
-            return;
-        }
-
         if (lastFeedSelected != null) {
             // whenever a user clicks on an article, send a custom event to GA 
             // that includes the source/feed category
@@ -839,10 +834,14 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             .show(url.getText().toString());
     }
 
-    private void shareFeedItem(View view, String url) {
+    public void shareFeedItem(View child) {
+        ViewGroup view = (ViewGroup) child.getParent().getParent();
+        TextView url = (TextView)view.findViewById(R.id.link);
+        Log.d(TAG, "Share feed item clicked: " + url.getText());
+       
         TextView title = (TextView)view.findViewById(R.id.title);
         if (title.getText() != null) {
-            String shareMsg = String.format(getResources().getString(R.string.share_feed_item), title.getText().toString(), url);
+            String shareMsg = String.format(getResources().getString(R.string.share_feed_item), title.getText().toString(), url.getText().toString());
             Log.d(TAG, "Share button pressed. Share message is " + shareMsg);
 
             Intent sendIntent = new Intent(Intent.ACTION_VIEW);

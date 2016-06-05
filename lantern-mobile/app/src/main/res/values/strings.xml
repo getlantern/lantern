@@ -161,7 +161,7 @@
     <string name="credits_applied">Your credits will be applied to your account on the next billing cycle.</string>
     <string name="pro_invitation_subject">Invitation to Join Lantern Pro</string>
     <string name="receive_free_month">For a free month of Lantern Pro, use this referral code: %1$s ; You can download it from here: https://bit.ly/1M8x04u</string>
-    <string name="share_feed_item">I\'m reading about %1$s at %2$s via Lantern. Use Lantern to access blocked sites and services. You can download it for Android here: https://bit.ly/lanternapk</string>
+    <string name="share_feed_item">I\'m reading about "%1$s" at %2$s via Lantern. Use Lantern to access blocked sites and services. You can download it for Android here: https://bit.ly/lanternapk</string>
 	<string name="cancel_pro_confirmation">Are you sure? This action cannot be undone! You can sign up for Pro again at any time.</string>
     <string name="unauthorize_confirmation">Are you sure you want to unlink this device from your Pro account?</string>
 	<string name="yes">Yes</string>
