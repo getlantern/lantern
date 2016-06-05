@@ -810,8 +810,15 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     }
 
     public void openFeedItem(View view) {
+
         TextView url = (TextView)view.findViewById(R.id.link);
         Log.d(TAG, "Feed item clicked: " + url.getText());
+
+        String tag = (String)view.getTag();
+        if (tag != null && tag.equals("shareIntent") && url.getText() != null) {
+            shareFeedItem(view, url.getText().toString());
+            return;
+        }
 
         if (lastFeedSelected != null) {
             // whenever a user clicks on an article, send a custom event to GA 
@@ -830,6 +837,19 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             // if we aren't in full-device VPN mode, configure the 
             // WebView to use our local proxy
             .show(url.getText().toString());
+    }
+
+    private void shareFeedItem(View view, String url) {
+        TextView title = (TextView)view.findViewById(R.id.title);
+        if (title.getText() != null) {
+            String shareMsg = String.format(getResources().getString(R.string.share_feed_item), title.getText().toString(), url);
+            Log.d(TAG, "Share button pressed. Share message is " + shareMsg);
+
+            Intent sendIntent = new Intent(Intent.ACTION_VIEW);
+            sendIntent.setData(Uri.parse("sms:"));
+            sendIntent.putExtra("sms_body", shareMsg);
+            startActivity(sendIntent);
+        }
     }
 
     public void changeFeedHeaderColor(boolean useVpn) {

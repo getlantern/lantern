@@ -51,6 +51,7 @@
             android:layout_gravity="right"
             android:layout_weight="0.1"
             android:layout_alignParentRight="true" 
+            android:tag="shareIntent"
             android:src="@drawable/ic_share_black"
             />
         </RelativeLayout>
