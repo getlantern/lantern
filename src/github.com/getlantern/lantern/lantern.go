@@ -119,6 +119,7 @@ func (uc *userConfig) GetUserID() int64 {
 
 func run(configDir string) {
 	flags := make(map[string]interface{})
+	flags["staging"] = false
 
 	err := os.MkdirAll(configDir, 0755)
 	if os.IsExist(err) {

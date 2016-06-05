@@ -21,8 +21,7 @@ const (
 	userIDHeader = "X-Lantern-User-Id"
 	tokenHeader  = "X-Lantern-Pro-Token"
 
-	//defaultChainedCloudConfigURL = "http://config.getiantem.org/cloud.yaml.gz"
-	defaultChainedCloudConfigURL = "http://config-staging.getiantem.org/cloud.yaml.gz"
+	defaultChainedCloudConfigURL = "http://config.getiantem.org/cloud.yaml.gz"
 
 	// This is over HTTP because proxies do not forward X-Forwarded-For with HTTPS
 	// and because we only support falling back to direct domain fronting through
