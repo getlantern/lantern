@@ -165,7 +165,7 @@ func (d *dialer) markFailure() {
 
 func (d *dialer) defaultCheck() bool {
 	log.Errorf("No check function provided for dialer %s", d.Label)
-	return false
+	return true
 }
 
 // adds randomization to make requests less distinguishable on the network.
