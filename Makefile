@@ -114,6 +114,9 @@ define build-tags
 	if [[ ! -z "$$HEADLESS" ]]; then \
 		BUILD_TAGS="$$BUILD_TAGS headless"; \
 	fi && \
+	if [[ ! -z "$$STAGING" ]]; then \
+		EXTRA_LDFLAGS="$$EXTRA_LDFLAGS -X github.com/getlantern/lantern.debugMode=$$STAGING"; \
+	fi && \
 	BUILD_TAGS=$$(echo $$BUILD_TAGS | xargs) && echo "Build tags: $$BUILD_TAGS" && \
 	EXTRA_LDFLAGS=$$(echo $$EXTRA_LDFLAGS | xargs) && echo "Extra ldflags: $$EXTRA_LDFLAGS"
 endef

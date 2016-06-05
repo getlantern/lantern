@@ -109,6 +109,14 @@ To install on the default device:
 make android-install
 ```
 
+## Staging
+
+To build mobile for staging, use the STAGING command line argument:
+
+```
+STAGING=true make android-debug android-install
+```
+
 ## Release
 
 To create a release build, add the following to your

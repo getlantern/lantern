@@ -29,6 +29,9 @@ var (
 	// compileTimePackageVersion is set at compile-time for production builds
 	compileTimePackageVersion string
 
+	// if true, run Lantern against our staging infrastructure
+	debugMode = "false"
+
 	startOnce sync.Once
 )
 
@@ -115,6 +118,8 @@ func (uc *userConfig) GetUserID() int64 {
 }
 
 func run(configDir string) {
+	flags := make(map[string]interface{})
+
 	err := os.MkdirAll(configDir, 0755)
 	if os.IsExist(err) {
 		log.Errorf("Unable to create configDir at %v: %v", configDir, err)
@@ -133,12 +138,19 @@ func run(configDir string) {
 		}
 	}
 
+	staging, err := strconv.ParseBool(debugMode)
+	if err == nil {
+		flags["staging"] = staging
+	} else {
+		log.Errorf("Error parsing boolean flag: %v", err)
+	}
+
 	flashlight.Run("127.0.0.1:0", // listen for HTTP on random address
 		"127.0.0.1:0", // listen for SOCKS on random address
 		configDir,     // place to store lantern configuration
 		false,         // don't make config sticky
-		func() bool { return true },                   // proxy all requests
-		make(map[string]interface{}),                  // no special configuration flags
+		func() bool { return true }, // proxy all requests
+		flags,
 		func(cfg *config.Config) bool { return true }, // beforeStart()
 		func(cfg *config.Config) {},                   // afterStart()
 		func(cfg *config.Config) {},                   // onConfigUpdate
