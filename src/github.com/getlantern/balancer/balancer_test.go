@@ -158,6 +158,7 @@ func TestCheck(t *testing.T) {
 
 	var wg sync.WaitGroup
 	var failToDial uint32
+	var checkCount uint32
 	d := &Dialer{
 		DialFN: func(network, addr string) (net.Conn, error) {
 			if atomic.LoadUint32(&failToDial) == 1 {
@@ -166,8 +167,10 @@ func TestCheck(t *testing.T) {
 			return nil, nil
 		},
 		Check: func() bool {
+			newCount := atomic.AddUint32(&checkCount, 1)
+			log.Debugf("Check() called %d times", newCount)
 			wg.Done()
-			return atomic.LoadUint32(&failToDial) == 0
+			return true
 		},
 		Trusted: true,
 	}
@@ -175,28 +178,27 @@ func TestCheck(t *testing.T) {
 
 	// check when dial for the first time
 	wg.Add(1)
-	_, err := bal.Dial("tcp", "does-not-exist.com:80")
+	_, err := bal.Dial("tcp", "check-first-time:80")
 	assert.NoError(t, err)
 	wg.Wait()
 
 	// recheck when dial after idled for a while
 	wg.Add(1)
 	time.Sleep(200 * time.Millisecond)
-	_, err = bal.Dial("tcp", "does-not-exist.com:80")
+	_, err = bal.Dial("tcp", "check-after-idle:80")
 	assert.NoError(t, err)
 	wg.Wait()
 
 	// not recheck with consecutive successes
-	_, err = bal.Dial("tcp", "does-not-exist.com:80")
+	_, err = bal.Dial("tcp", "not-check-for-consec-successes:80")
 	assert.NoError(t, err)
 
 	// recheck failed dialer
-	atomic.StoreUint32(&failToDial, 1)
 	wg.Add(1)
-	_, err = bal.Dial("tcp", "does-not-exist.com:80")
+	atomic.StoreUint32(&failToDial, 1)
+	_, err = bal.Dial("tcp", "check-failed-dialer:80")
 	assert.Error(t, err)
-	_, err = bal.Dial("tcp", "does-not-exist.com:80")
-	assert.Error(t, err)
+	time.Sleep(100 * time.Millisecond)
 	wg.Wait()
 }
 
