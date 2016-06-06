@@ -32,7 +32,7 @@ type Balancer struct {
 	mu           sync.RWMutex
 	dialers      dialerHeap
 	trusted      dialerHeap
-	lastDialTime atomic.Value // time.Time
+	lastDialTime int64 // Time.UnixNano()
 }
 
 // New creates a new Balancer using the supplied Strategy and Dialers.
@@ -53,8 +53,6 @@ func New(st Strategy, dialers ...*Dialer) *Balancer {
 	bal := &Balancer{dialers: st(dls), trusted: st(tdls)}
 	heap.Init(&bal.dialers)
 	heap.Init(&bal.trusted)
-	// Force checking all dialers on first Dial()
-	bal.lastDialTime.Store(time.Time{})
 	return bal
 }
 
@@ -73,13 +71,13 @@ func (b *Balancer) OnRequest(req *http.Request) {
 // either manages to connect, or runs out of dialers in which case it returns an
 // error.
 func (b *Balancer) Dial(network, addr string) (net.Conn, error) {
-	lastDialTime := b.lastDialTime.Load().(time.Time)
-	idled := time.Since(lastDialTime)
-	if idled > recheckAfterIdleFor {
-		log.Debugf("Balancer idled for %s, start checking all dialers", idled)
+	now := time.Now()
+	lastDialTime := time.Unix(0, atomic.SwapInt64(&b.lastDialTime, now.UnixNano()))
+	idlePeriod := now.Sub(lastDialTime)
+	if idlePeriod > recheckAfterIdleFor {
+		log.Debugf("Balancer idle for %s, start checking all dialers", idlePeriod)
 		b.checkDialers()
 	}
-	defer b.lastDialTime.Store(time.Now())
 	var dialers dialerHeap
 
 	_, port, _ := net.SplitHostPort(addr)
@@ -104,13 +102,13 @@ func (b *Balancer) Dial(network, addr string) (net.Conn, error) {
 		d := heap.Pop(&dialers).(*dialer)
 		heap.Push(&dialers, d)
 		b.mu.Unlock()
-		log.Debugf("Dialing %s://%s with %s", network, addr, d.Label)
+		log.Tracef("Dialing %s://%s with %s", network, addr, d.Label)
 		conn, err := d.dial(network, addr)
 		if err != nil {
 			log.Errorf("Unable to dial via %v to %s://%s: %v on pass %v...continuing", d.Label, network, addr, err, i)
 			continue
 		}
-		log.Debugf("Successfully dialed via %v to %v://%v on pass %v", d.Label, network, addr, i)
+		log.Tracef("Successfully dialed via %v to %v://%v on pass %v", d.Label, network, addr, i)
 		return conn, nil
 	}
 	return nil, fmt.Errorf("Still unable to dial %s://%s after %d attempts", network, addr, dialAttempts)

@@ -7,9 +7,11 @@ import (
 	"math/rand"
 	"net/http"
 	"net/http/httputil"
+	"net/url"
 	"strconv"
 	"time"
 
+	"github.com/getlantern/detour"
 	"github.com/getlantern/yamlconf"
 
 	"code.google.com/p/go-uuid/uuid"
@@ -84,6 +86,15 @@ func NewFetcher(conf UserConfig, rt http.RoundTripper, flags map[string]interfac
 			}
 		}
 	}
+
+	log.Debugf("Will poll for config at %v (%v)", chained, fronted)
+
+	// Force detour to whitelist chained domain
+	u, err := url.Parse(chained)
+	if err != nil {
+		log.Fatalf("Unable to parse chained cloud config URL: %v", err)
+	}
+	detour.ForceWhitelist(u.Host)
 
 	return &fetcher{
 		lastCloudConfigETag: map[string]string{},
