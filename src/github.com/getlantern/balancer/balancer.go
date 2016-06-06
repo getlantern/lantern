@@ -32,7 +32,7 @@ type Balancer struct {
 	mu           sync.RWMutex
 	dialers      dialerHeap
 	trusted      dialerHeap
-	lastDialTime int64 // Time.Unix()
+	lastDialTime int64 // Time.UnixNano()
 }
 
 // New creates a new Balancer using the supplied Strategy and Dialers.
@@ -72,7 +72,7 @@ func (b *Balancer) OnRequest(req *http.Request) {
 // error.
 func (b *Balancer) Dial(network, addr string) (net.Conn, error) {
 	now := time.Now()
-	lastDialTime := time.Unix(atomic.SwapInt64(&b.lastDialTime, now.Unix()), 0)
+	lastDialTime := time.Unix(0, atomic.SwapInt64(&b.lastDialTime, now.UnixNano()))
 	idlePeriod := now.Sub(lastDialTime)
 	if idlePeriod > recheckAfterIdleFor {
 		log.Debugf("Balancer idle for %s, start checking all dialers", idlePeriod)
