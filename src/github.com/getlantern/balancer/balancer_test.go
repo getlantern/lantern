@@ -167,9 +167,10 @@ func TestCheck(t *testing.T) {
 			return nil, nil
 		},
 		Check: func() bool {
-			atomic.AddUint32(&checkCount, 1)
+			newCount := atomic.AddUint32(&checkCount, 1)
+			log.Debugf("Check() called %d times", newCount)
 			wg.Done()
-			return atomic.LoadUint32(&failToDial) == 0
+			return true
 		},
 		Trusted: true,
 	}
@@ -177,31 +178,28 @@ func TestCheck(t *testing.T) {
 
 	// check when dial for the first time
 	wg.Add(1)
-	_, err := bal.Dial("tcp", "does-not-exist.com:80")
+	_, err := bal.Dial("tcp", "check-first-time:80")
 	assert.NoError(t, err)
 	wg.Wait()
 
 	// recheck when dial after idled for a while
 	wg.Add(1)
 	time.Sleep(200 * time.Millisecond)
-	_, err = bal.Dial("tcp", "does-not-exist.com:80")
+	_, err = bal.Dial("tcp", "check-after-idle:80")
 	assert.NoError(t, err)
 	wg.Wait()
 
 	// not recheck with consecutive successes
-	_, err = bal.Dial("tcp", "does-not-exist.com:80")
+	_, err = bal.Dial("tcp", "not-check-for-consec-successes:80")
 	assert.NoError(t, err)
 
 	// recheck failed dialer
-	// The check count is time sensitive, can't rely on WaitGroup
-	before := atomic.LoadUint32(&checkCount)
-	wg.Add(5)
+	wg.Add(1)
 	atomic.StoreUint32(&failToDial, 1)
-	_, err = bal.Dial("tcp", "does-not-exist.com:80")
+	_, err = bal.Dial("tcp", "check-failed-dialer:80")
 	assert.Error(t, err)
 	time.Sleep(100 * time.Millisecond)
-	after := atomic.LoadUint32(&checkCount)
-	assert.True(t, after > before, "should recheck failed dialer")
+	wg.Wait()
 }
 
 func newDialer(id int) *Dialer {
