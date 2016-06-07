@@ -30,6 +30,9 @@ func (e *structured) save() {
 }
 
 func get(hiddenID []byte) *structured {
+	if len(hiddenID) != 8 {
+		return nil
+	}
 	id := binary.BigEndian.Uint64(hiddenID)
 	hiddenMutex.RLock()
 	err := hiddenErrors[idxForID(id)]
