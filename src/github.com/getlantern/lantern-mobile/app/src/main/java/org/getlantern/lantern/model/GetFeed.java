@@ -41,7 +41,7 @@ public class GetFeed extends AsyncTask<String, Void, ArrayList<String>> {
         Log.d(TAG, String.format("Fetching public feed: locale=%s; proxy addr=%s", locale, proxyAddr));
         final ArrayList<String> sources = new ArrayList<String>();
 
-        Lantern.GetFeed(locale, allString, proxyAddr, new Lantern.FeedProvider.Stub() {
+        Lantern.GetFeed(locale, allString, proxyAddr, new Lantern.FeedProvider() {
             public void AddSource(String source) {
                 sources.add(source);
             }

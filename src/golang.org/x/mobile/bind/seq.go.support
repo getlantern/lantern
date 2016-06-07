@@ -28,9 +28,23 @@ func toError(s string) error {
 
 func init() {
 	_seq.FinalizeRef = func(ref *_seq.Ref) {
-		if ref.Num < 0 {
-			panic(fmt.Sprintf("not a foreign ref: %d", ref.Num))
+		refnum := ref.Bind_Num
+		if refnum < 0 {
+			panic(fmt.Sprintf("not a foreign ref: %d", refnum))
 		}
-		C.go_seq_dec_ref(C.int32_t(ref.Num))
+		C.go_seq_dec_ref(C.int32_t(refnum))
 	}
+	_seq.IncForeignRef = func(refnum int32) {
+		if refnum < 0 {
+			panic(fmt.Sprintf("not a foreign ref: %d", refnum))
+		}
+		C.go_seq_inc_ref(C.int32_t(refnum))
+	}
+}
+
+// IncGoRef is called by foreign code to pin a Go object while its refnum is crossing
+// the language barrier
+//export IncGoRef
+func IncGoRef(refnum C.int32_t) {
+	_seq.Inc(int32(refnum))
 }

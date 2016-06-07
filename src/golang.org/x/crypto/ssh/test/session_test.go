@@ -280,9 +280,9 @@ func TestCiphers(t *testing.T) {
 	var config ssh.Config
 	config.SetDefaults()
 	cipherOrder := config.Ciphers
-	// This cipher will not be tested when commented out in cipher.go it will
+	// These ciphers will not be tested when commented out in cipher.go it will
 	// fallback to the next available as per line 292.
-	cipherOrder = append(cipherOrder, "aes128-cbc")
+	cipherOrder = append(cipherOrder, "aes128-cbc", "3des-cbc")
 
 	for _, ciph := range cipherOrder {
 		server := newServer(t)
@@ -336,5 +336,30 @@ func TestKeyExchanges(t *testing.T) {
 		} else {
 			t.Errorf("failed for kex %q", kex)
 		}
+	}
+}
+
+func TestClientAuthAlgorithms(t *testing.T) {
+	for _, key := range []string{
+		"rsa",
+		"dsa",
+		"ecdsa",
+		"ed25519",
+	} {
+		server := newServer(t)
+		conf := clientConfig()
+		conf.SetDefaults()
+		conf.Auth = []ssh.AuthMethod{
+			ssh.PublicKeys(testSigners[key]),
+		}
+
+		conn, err := server.TryDial(conf)
+		if err == nil {
+			conn.Close()
+		} else {
+			t.Errorf("failed for key %q", key)
+		}
+
+		server.Shutdown()
 	}
 }
