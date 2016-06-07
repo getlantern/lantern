@@ -234,6 +234,7 @@ func (c *Client) doSendBatch(batch []*Measurement) error {
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 
 	switch resp.StatusCode {
 	case 201:
