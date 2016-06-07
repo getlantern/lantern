@@ -8,7 +8,6 @@ import (
 	"git.torproject.org/pluggable-transports/goptlib.git"
 
 	"github.com/Yawning/obfs4/transports/obfs4"
-	"github.com/getlantern/errors"
 	"github.com/getlantern/keyman"
 	"github.com/getlantern/tlsdialer"
 
@@ -65,7 +64,7 @@ func defaultDialFactory(s *ChainedServerInfo, deviceID string) (dialFN, error) {
 				if closeErr := conn.Close(); closeErr != nil {
 					log.Debugf("Error closing chained server connection: %s", closeErr)
 				}
-				return nil, log.Error(op.FailIf(errors.New("Server's certificate didn't match expected!")))
+				return nil, op.FailIf(log.Errorf("Server's certificate didn't match expected!"))
 			}
 			return conn, op.FailIf(err)
 		}

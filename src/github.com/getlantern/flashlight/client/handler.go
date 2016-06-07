@@ -98,7 +98,7 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request, op 
 	success := make(chan bool, 1)
 	op.Go(func() {
 		if e := respondOK(clientConn, req); e != nil {
-			log.Error(op.FailIf(errors.New("Unable to respond OK: %s", e)))
+			op.FailIf(log.Errorf("Unable to respond OK: %s", e))
 			success <- false
 			return
 		}
@@ -127,7 +127,7 @@ func pipeData(clientConn net.Conn, connOut net.Conn, op *ops.Op, closeFunc func(
 	_, readErr := io.Copy(clientConn, connOut)
 	writeErr := <-writeErrCh
 	if readErr != nil {
-		log.Error(op.FailIf(errors.New("Error piping data from proxy to client: %v", readErr)))
+		op.FailIf(log.Errorf("Error piping data from proxy to client: %v", readErr))
 	} else if writeErr != nil {
 		log.Error(errors.New("Error piping data from client to proxy: %v", writeErr))
 	}
