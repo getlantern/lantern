@@ -26,16 +26,6 @@ github.com/getlantern/geolookup
 github.com/getlantern/golog
 github.com/getlantern/hex
 github.com/getlantern/hidden
-github.com/getlantern/http-proxy/server
-github.com/getlantern/http-proxy/forward
-github.com/getlantern/http-proxy/httpconnect
-github.com/getlantern/http-proxy/logging
-github.com/getlantern/http-proxy-lantern
-github.com/getlantern/http-proxy-lantern/analytics
-github.com/getlantern/http-proxy-lantern/blacklist
-github.com/getlantern/http-proxy-lantern/configserverfilter
-github.com/getlantern/http-proxy-lantern/listeners
-github.com/getlantern/http-proxy-lantern/obfs4listener
 github.com/getlantern/idletiming
 github.com/getlantern/keyman
 github.com/getlantern/lantern
