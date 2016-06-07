@@ -12,6 +12,7 @@ github.com/getlantern/connpool
 github.com/getlantern/context
 github.com/getlantern/deepcopy
 github.com/getlantern/detour
+github.com/getlantern/errors
 github.com/getlantern/eventual
 github.com/getlantern/flashlight
 github.com/getlantern/flashlight/app
@@ -28,10 +29,12 @@ github.com/getlantern/hidden
 github.com/getlantern/idletiming
 github.com/getlantern/keyman
 github.com/getlantern/lantern
+github.com/getlantern/ops
 github.com/getlantern/osversion
 github.com/getlantern/pathreflect
 github.com/getlantern/proxiedsites
 github.com/getlantern/rotator
+github.com/getlantern/stack
 github.com/getlantern/tarfs
 github.com/getlantern/tlsdefaults
 github.com/getlantern/tlsdialer
