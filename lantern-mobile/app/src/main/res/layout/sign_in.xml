@@ -4,7 +4,7 @@
     android:layout_height="match_parent" 
     android:orientation="vertical"
     android:baselineAligned="false"
-    android:background="@color/card_bg"
+    android:background="@color/accent_white"
     android:id="@+id/desktopView"
     tools:context=".SignInActivity">
 
@@ -14,7 +14,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         class="org.lantern.fragment.TitleBar"
-        lantern:backgroundColor="@drawable/nav_background_white"
+        lantern:backgroundColor="@color/accent_white"
         lantern:titleText="@string/sign_in_pro"/>
 
     <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -26,7 +26,7 @@
         android:layout_width="wrap_content"
         android:orientation="vertical"
         android:elevation="5dp"
-        android:background="@android:drawable/dialog_holo_light_frame"
+        android:background="@color/accent_white"
         android:gravity="center_vertical|bottom">
 
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -38,7 +38,7 @@
             android:paddingRight="5dp"
             android:paddingLeft="5dp"
             android:paddingBottom="5dp"
-            android:background="#F4F6F6"
+            android:background="@color/accent_white"
             android:orientation="vertical"
             android:gravity="center_vertical"
             android:layout_gravity="center_vertical"> 

@@ -14,7 +14,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:elevation="5dp"
-        android:background="@android:drawable/dialog_holo_light_frame"
+        android:background="@color/accent_white"
         android:layout_centerHorizontal="true"
         android:padding="15dp"
         android:layout_marginLeft="10dp"
