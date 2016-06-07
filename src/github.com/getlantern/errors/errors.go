@@ -236,10 +236,12 @@ func (e *structured) MultiLinePrinter() func(buf *bytes.Buffer) bool {
 			err = err.cause.(*structured)
 			return true
 		}
-		buf.WriteString("at ")
-		call := err.callStack[stackPosition]
-		fmt.Fprintf(buf, "%+n (%s:%d)", call, call, call)
-		stackPosition++
+		if stackPosition < len(err.callStack) {
+			buf.WriteString("at ")
+			call := err.callStack[stackPosition]
+			fmt.Fprintf(buf, "%+n (%s:%d)", call, call, call)
+			stackPosition++
+		}
 		if stackPosition >= len(err.callStack) {
 			switch cause := err.cause.(type) {
 			case *structured:
