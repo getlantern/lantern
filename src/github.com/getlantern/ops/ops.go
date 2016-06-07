@@ -6,7 +6,6 @@
 package ops
 
 import (
-	"fmt"
 	"sync"
 	"sync/atomic"
 
@@ -47,10 +46,6 @@ type Op interface {
 	// called multiple times, the latest error will be reported as the failure.
 	// Returns the original error for convenient chaining.
 	FailIf(err error) error
-
-	// Errorf is a convenience method that constructs an error from the given msg
-	// and args and marks this Op as failed.
-	Errorf(msg string, args ...interface{}) error
 }
 
 type op struct {
@@ -143,8 +138,4 @@ func (o *op) FailIf(err error) error {
 		o.failure.Store(err)
 	}
 	return err
-}
-
-func (o *op) Errorf(msg string, args ...interface{}) error {
-	return o.FailIf(fmt.Errorf(msg, args...))
 }
