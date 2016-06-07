@@ -124,6 +124,12 @@ type structured struct {
 // New creates an Error with supplied description and format arguments to the
 // description. If any of the arguments is an error, we use that as the cause.
 func New(desc string, args ...interface{}) Error {
+	return NewOffset(1, desc, args...)
+}
+
+// NewOffset is like New but offsets the stack by the given offset. This is
+// useful for utilities like golog that may create errors on behalf of others.
+func NewOffset(offset int, desc string, args ...interface{}) Error {
 	var cause error
 	for _, arg := range args {
 		err, isError := arg.(error)
@@ -133,7 +139,7 @@ func New(desc string, args ...interface{}) Error {
 		}
 	}
 	e := buildError(fmt.Sprintf(desc, args...), nil, Wrap(cause))
-	e.attachStack(2)
+	e.attachStack(2 + offset)
 	return e
 }
 
