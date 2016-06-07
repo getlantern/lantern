@@ -54,7 +54,7 @@ public class Service extends VpnBuilder implements Runnable {
     public synchronized void run() {
         try {
             Log.d(TAG, "Loading Lantern library");
-            Lantern.ProtectConnections(getDnsResolver(getApplicationContext()), new Lantern.SocketProtector.Stub() {
+            Lantern.ProtectConnections(getDnsResolver(getApplicationContext()), new Lantern.SocketProtector() {
                 // Protect is used to exclude a socket specified by fileDescriptor
                 // from the VPN connection. Once protected, the underlying connection
                 // is bound to the VPN device and won't be forwarded

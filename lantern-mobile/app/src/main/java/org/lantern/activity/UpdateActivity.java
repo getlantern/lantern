@@ -118,7 +118,7 @@ public class UpdateActivity extends Activity {
 
             try {
 
-                Lantern.Updater.Stub updater = new Lantern.Updater.Stub() {
+                Lantern.Updater updater = new Lantern.Updater() {
                     public void PublishProgress(long percentage) {
                         publishProgress(percentage);
                     }

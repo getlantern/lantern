@@ -16,6 +16,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_centerVertical="true"
+		android:paddingTop="16dp"
         android:orientation="vertical" >
 
         <RelativeLayout
@@ -28,9 +29,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true" 
+            android:clickable="true"
+            android:onClick="sourceClicked"
             android:textSize="12dp"
             android:textStyle="bold"
-            android:textColor="@color/black"
+            android:textColor="@color/gray"
             />
 
           <TextView
@@ -64,7 +67,6 @@
             android:id="@+id/title"    
             android:fontFamily="sans-serif-medium"
             android:textSize="14sp"
-            android:textStyle="bold"
             android:textColor="@color/black"
             android:layout_alignParentTop="true"
             android:paddingTop="10dp"

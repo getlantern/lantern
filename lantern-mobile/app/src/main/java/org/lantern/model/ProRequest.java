@@ -1,5 +1,6 @@
 package org.lantern.model;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -21,8 +22,10 @@ public class ProRequest extends AsyncTask<String, Void, Boolean> {
     private ProgressDialogFragment progressFragment = null;
     private FragmentManager manager;
     private ProResponse response;
+    private FragmentActivity activity;
     private String errMsg;
     private SessionManager session;
+    private boolean noNetworkConnection = false;
 
     public ProRequest(ProResponse response, boolean showProgress) {
         this.response = response;
@@ -45,6 +48,20 @@ public class ProRequest extends AsyncTask<String, Void, Boolean> {
     protected Boolean doInBackground(String... params) {
         String command = params[0];
         try {
+
+            Context c;
+            if (response instanceof LanternApp) {
+                c = ((LanternApp)response).getApplicationContext();
+            } else {
+                c = ((FragmentActivity)response).getApplicationContext();
+            }
+
+
+            if (!Utils.isNetworkAvailable(c)) {
+                noNetworkConnection = true;
+                return false;
+            }
+
             return Lantern.ProRequest(session.shouldProxy(), command, session);
         } catch (Exception e) {
             Log.e(TAG, "Pro API request error: " + e.getMessage());
@@ -62,8 +79,15 @@ public class ProRequest extends AsyncTask<String, Void, Boolean> {
 
         if (success) {
             response.onSuccess();
-        } else {
-            response.onError();
+        } else {                   
+            if (noNetworkConnection && response instanceof FragmentActivity) {
+                FragmentActivity activity = (FragmentActivity)response;
+                Utils.showErrorDialog(activity, 
+                        activity.getResources().getString(R.string.no_internet_connection));
+
+            } else {
+                response.onError();
+            }
         }
     }
 }

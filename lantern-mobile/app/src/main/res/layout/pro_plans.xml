@@ -13,7 +13,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         class="org.lantern.fragment.TitleBar"
-        lantern:backgroundColor="@drawable/nav_background_white"
+        lantern:backgroundColor="@color/accent_white"
         lantern:titleText="@string/get_lantern_pro"/>
 
     <RelativeLayout
@@ -36,9 +36,8 @@
             <ImageView
                 android:id="@+id/wall"
                 android:layout_width="wrap_content"
-                android:layout_height="120dp"
+                android:layout_height="wrap_content"
                 android:paddingBottom="10dp"
-                android:layout_marginTop="24dp"
                 android:scaleType="fitXY"
                 android:layout_centerInParent="true"
                 android:adjustViewBounds="true"
@@ -93,7 +92,7 @@
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
                 android:layout_below="@+id/proFeatures"
-                android:paddingBottom="20dp"
+                android:paddingBottom="10dp"
                 android:fontFamily="sans-serif-light"
                 android:text="@string/pro_available_for"
                 android:textSize="10sp"
@@ -104,6 +103,7 @@
         <LinearLayout android:orientation="vertical"
             android:layout_alignParentBottom="true"
             android:layout_centerHorizontal="true"
+            android:layout_below="@+id/plansView"
             android:gravity="bottom"
             android:layout_weight="1"
             android:layout_height="256dp"
@@ -125,7 +125,7 @@
                     android:layout_width="104dp"
                     android:gravity="center"
                     android:elevation="1dp"
-                    android:paddingTop="10dp"
+                    android:paddingTop="5dp"
                     android:paddingBottom="5dp"
                     android:layout_marginLeft="30dp"
                     android:fontFamily="sans-serif-black"

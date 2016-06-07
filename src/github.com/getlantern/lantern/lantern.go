@@ -133,12 +133,6 @@ func run(configDir string) {
 	}
 	log.Debugf("Writing log messages to %s/lantern.log", configDir)
 
-	closeLogging := func() {
-		if err := logging.Close(); err != nil {
-			log.Errorf("Error closing log: %v", err)
-		}
-	}
-
 	staging, err := strconv.ParseBool(stagingMode)
 	if err == nil {
 		flags["staging"] = staging
@@ -156,10 +150,7 @@ func run(configDir string) {
 		func(cfg *config.Config) {},                   // afterStart()
 		func(cfg *config.Config) {},                   // onConfigUpdate
 		&userConfig{},
-		func(err error) {
-			closeLogging()
-
-		}, // onError
+		func(err error) {}, // onError
 		base64.StdEncoding.EncodeToString(uuid.NodeID()),
 	)
 }

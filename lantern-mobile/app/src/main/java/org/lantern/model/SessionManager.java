@@ -20,7 +20,7 @@ import org.lantern.R;
 
 import go.lantern.Lantern;
 
-public class SessionManager extends Lantern.Session.Stub {
+public class SessionManager implements Lantern.Session {
 
     private static final String TAG = "SessionManager";
     private static final String PREF_NAME = "LanternSession";
@@ -32,6 +32,7 @@ public class SessionManager extends Lantern.Session.Stub {
     private static final String USER_ID = "userid";
     private static final String PRO_USER = "prouser";
     private static final String PRO_PLAN = "proplan";
+    private static final String PHONE_NUMBER = "phonenumber";
     private static final String TOKEN = "token";
     private static final String PREF_USE_VPN = "pref_vpn";
     private static final String PREF_NEWSFEED = "pref_newsfeed";
@@ -94,9 +95,13 @@ public class SessionManager extends Lantern.Session.Stub {
 
 	public void setPhoneNumber(String number) {
         this.phoneNumber = number;
-	}
+        editor.putString(PHONE_NUMBER, number).commit();
+    }
 
     public String PhoneNumber() {
+        if (phoneNumber == null || phoneNumber.equals("")) {
+            return mPrefs.getString(PHONE_NUMBER, "");
+        }
         return phoneNumber;
     }
 
@@ -104,6 +109,7 @@ public class SessionManager extends Lantern.Session.Stub {
         this.verifyCode = code;
 	}
 
+    @Override
     public String VerifyCode() {
         return this.verifyCode;
     }
@@ -267,6 +273,7 @@ public class SessionManager extends Lantern.Session.Stub {
         // if the Lantern VPN is already running
         // then we just fetch the feed without
         // starting another local proxy
+
         if (Service.isRunning(this.context)) {
             return "";
         }
@@ -285,7 +292,7 @@ public class SessionManager extends Lantern.Session.Stub {
     }
 
 	public boolean shouldProxy() {
-		return !"".equals(startLocalProxy());
+		return false;
 	}
 
 }

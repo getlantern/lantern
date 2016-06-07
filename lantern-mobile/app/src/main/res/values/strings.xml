@@ -65,7 +65,7 @@
     <string name="thanks_purchase">Thanks for your purchase of Lantern Pro!</string>
     <string name="start_inviting">\r\nStart inviting!</string>
     <string name="invite_friends">Enter your e-mail to receive a code to share with your friends. Get a free month of PRO when they sign up!</string>
-    <string name="invite_friends_welcome">Invite friends and you will both get a free month of Lantern Pro when they sign up.</string>
+    <string name="invite_friends_welcome">When your friends purchase the two-year plan you will each get 3 months free, the one-year plan gets you each 1 month free</string>
     <string name="invite_friends_btn">Invite Friends</string>
     <string name="continue_to_pro">Continue to PRO</string>
     <string name="continue_to_checkout">Continue to Checkout</string>

@@ -125,7 +125,8 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
         if (data != null && data.getQueryParameter("stripeToken") != null) {
             String stripeToken = data.getQueryParameter("stripeToken");
             String stripeEmail = data.getQueryParameter("stripeEmail");  
-            finishProgress(stripeToken, stripeEmail);
+            startProgress();
+            finishProgress(stripeEmail, stripeToken.substring(1));
         }
     }
 
@@ -140,9 +141,10 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
         switch (v.getId()) {
             case R.id.alipayBtn:
                 Log.d(TAG, "Alipay button pressed");
-                Intent intent = new Intent(Intent.ACTION_VIEW);
+                loadWebView(plan);
+                /*Intent intent = new Intent(Intent.ACTION_VIEW);
                 intent.setData(Uri.parse(String.format(mCheckoutUrl, plan)));
-                startActivity(intent);
+                startActivity(intent);*/
                 return;
             case R.id.cardBtn:
                 Log.d(TAG, "Card button pressed");
@@ -280,12 +282,16 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
 
     private void finishProgress(String email, String token) {
 
+        Log.d(TAG, String.format("Email is %s token %s plan %s", email, token, plan));
+
         session.setProUser(email, token, plan);
 
         // submit token to Pro server here
         new ProRequest(this, false).execute("purchase");
 
-        progressFragment.dismiss();
+        if (progressFragment != null) {
+            progressFragment.dismiss();
+        }
     }
 
     private void handleError(String error) {

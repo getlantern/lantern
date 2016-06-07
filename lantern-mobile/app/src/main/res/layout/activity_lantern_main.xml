@@ -6,61 +6,61 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true">
 
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
-
-        <View
-            android:id="@+id/topStripe"
-            android:background="@color/pro_blue_color"
-            android:layout_width = "match_parent"
-            android:layout_height="4dip"
-            android:layout_gravity="center"
-            android:layout_centerVertical ="true"
-            android:layout_alignParentTop="true"
-            />
-
-
-    <ImageView
-        android:id="@+id/menuIcon"
+    <LinearLayout
+        android:id="@+id/topSection"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="top|left"
-        android:clickable="true"
-        android:adjustViewBounds="true"
-        android:paddingTop="15dp"
-        android:paddingLeft="15dp"
-        android:src="@drawable/menu" />
+        android:orientation="horizontal">
 
-    </RelativeLayout>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <View
+                android:id="@+id/topStripe"
+                android:background="@color/pro_blue_color"
+                android:layout_width = "match_parent"
+                android:layout_height="4dip"
+                android:layout_gravity="center"
+                android:layout_centerVertical ="true"
+                android:layout_alignParentTop="true"
+                />
 
 
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+            <ImageView
+                android:id="@+id/menuIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|left"
+                android:clickable="true"
+                android:adjustViewBounds="true"
+                android:paddingTop="15dp"
+                android:paddingLeft="15dp"
+                android:src="@drawable/menu" />
 
-        <com.kyleduo.switchbutton.SwitchButton
-            android:id="@+id/powerLantern"
-            style="@style/SwitchButtonStyle"
-            kswTextOn="@string/on_text"
-            kswTextOff="@string/off_text"
-            android:adjustViewBounds="true"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentTop="true"
-            android:layout_gravity="top|right"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            />
-    </RelativeLayout>
+            <com.kyleduo.switchbutton.SwitchButton
+                android:id="@+id/powerLantern"
+                style="@style/SwitchButtonStyle"
+                kswTextOn="@string/on_text"
+                kswTextOff="@string/off_text"
+                android:adjustViewBounds="true"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentTop="true"
+                android:layout_gravity="top|right"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                />
+        </RelativeLayout>
+    </LinearLayout>
 
     <!-- The main content view -->
     <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools" 
         android:layout_width="fill_parent"
         android:layout_height="fill_parent" 
-        android:layout_marginTop="30dp"
+        android:paddingTop="30dp"
+        android:layout_below="@+id/topSection"
         android:id="@+id/mainView"
         android:gravity="center"
         tools:context=".LanternMainActivity">
@@ -68,7 +68,7 @@
 		<include
             android:id="@+id/feedView"
 			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
+			android:layout_height="match_parent"
             android:layout_above="@+id/dataUsageView"
 			layout="@layout/feed_view"/>
 

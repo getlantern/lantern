@@ -215,7 +215,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             }
         } else {
             // hide data usage summary if its a pro user
-            dataUsageView.setVisibility(View.INVISIBLE);
+            dataUsageView.setVisibility(View.GONE);
         }
     }
 
@@ -866,6 +866,21 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             }
         }
     }
+	
+	private void setActiveHeaderColor(int position) {
+		int count = feedAdapter.getCount();
+		int white = getResources().getColor(R.color.accent_white);
+		int black = getResources().getColor(R.color.black);
+		boolean useVpn = Service.IsRunning;
+		for (int i = 0; i < count; i++) {
+			TextView view = (TextView) viewPagerTab.getTabAt(i);
+			if (i == position) {
+            	view.setTextColor(getResources().getColor(R.color.pink));
+			} else {
+            	view.setTextColor(useVpn ? white : black);
+			}
+		}
+	}
 
     public void setupFeed(final ArrayList<String> sources) {
 
@@ -902,18 +917,21 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             public void onPageSelected(int position) {
                 super.onPageSelected(position);
                 Fragment f = feedAdapter.getPage(position);
+				setActiveHeaderColor(position);
+
                 if (f instanceof FeedFragment) {
                     lastFeedSelected = ((FeedFragment)f).getFeedName();
                 }
             }
         });
 
+		changeFeedHeaderColor(Service.IsRunning);
+
         View tab = viewPagerTab.getTabAt(0);
         if (tab != null) {
             tab.setSelected(true);
+			((TextView)tab).setTextColor(getResources().getColor(R.color.pink));
         }
-
-        changeFeedHeaderColor(Service.IsRunning);
     }
 
     @Override

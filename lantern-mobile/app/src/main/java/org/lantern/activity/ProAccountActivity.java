@@ -62,8 +62,8 @@ public class ProAccountActivity extends FragmentActivity implements ProResponse 
 
         session.setPlanText(proAccountText, getResources());
 
-        proAccountText.setText(String.format(getResources().getString(R.string.pro_account_expires), "03/15/2017", 6));
-        phoneNumber.setText("+1310-484-9264");
+        proAccountText.setText(String.format(getResources().getString(R.string.pro_account_expires), "06/06/2017", 6));
+        phoneNumber.setText(session.PhoneNumber());
 
         String[] devices = {android.os.Build.DEVICE, "Mac Desktop", "PC Desktop"};
 

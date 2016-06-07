@@ -67,6 +67,8 @@ type generator struct {
 	interfaces []interfaceInfo
 	structs    []structInfo
 	otherNames []*types.TypeName
+	// allIntf contains interfaces from all bound packages.
+	allIntf []interfaceInfo
 }
 
 // pkgPrefix returns a prefix that disambiguates symbol names for binding
@@ -116,6 +118,21 @@ func (g *generator) init() {
 	}
 	if !hasExported {
 		g.errorf("no exported names in the package %q", g.pkg.Path())
+	}
+	for _, p := range g.allPkg {
+		scope := p.Scope()
+		for _, name := range scope.Names() {
+			obj := scope.Lookup(name)
+			if !obj.Exported() {
+				continue
+			}
+			if obj, ok := obj.(*types.TypeName); ok {
+				named := obj.Type().(*types.Named)
+				if t, ok := named.Underlying().(*types.Interface); ok {
+					g.allIntf = append(g.allIntf, interfaceInfo{obj, t, makeIfaceSummary(t)})
+				}
+			}
+		}
 	}
 }
 
@@ -227,8 +244,54 @@ func (g *generator) genInterfaceMethodSignature(m *types.Func, iName string, hea
 
 func (g *generator) validPkg(pkg *types.Package) bool {
 	for _, p := range g.allPkg {
-		if p.Path() == pkg.Path() {
+		if p == pkg {
 			return true
+		}
+	}
+	return false
+}
+
+// isSigSupported returns whether the generators can handle a given
+// function signature
+func (g *generator) isSigSupported(t types.Type) bool {
+	sig := t.(*types.Signature)
+	params := sig.Params()
+	for i := 0; i < params.Len(); i++ {
+		if !g.isSupported(params.At(i).Type()) {
+			return false
+		}
+	}
+	res := sig.Results()
+	for i := 0; i < res.Len(); i++ {
+		if !g.isSupported(res.At(i).Type()) {
+			return false
+		}
+	}
+	return true
+}
+
+// isSupported returns whether the generators can handle the type.
+func (g *generator) isSupported(t types.Type) bool {
+	if isErrorType(t) {
+		return true
+	}
+	switch t := t.(type) {
+	case *types.Basic:
+		return true
+	case *types.Slice:
+		switch e := t.Elem().(type) {
+		case *types.Basic:
+			return e.Kind() == types.Uint8
+		}
+	case *types.Pointer:
+		switch t := t.Elem().(type) {
+		case *types.Named:
+			return g.validPkg(t.Obj().Pkg())
+		}
+	case *types.Named:
+		switch t.Underlying().(type) {
+		case *types.Interface, *types.Pointer:
+			return g.validPkg(t.Obj().Pkg())
 		}
 	}
 	return false

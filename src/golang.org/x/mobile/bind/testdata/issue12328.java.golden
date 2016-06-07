@@ -19,12 +19,8 @@ public abstract class Issue12328 {
     
     private static native void init();
     
-    public static final class T implements go.Seq.Object {
-        private final go.Seq.Ref ref;
-        
-        private T(go.Seq.Ref ref) { this.ref = ref; }
-        
-        public final go.Seq.Ref ref() { return ref; }
+    public static final class T extends Seq.Proxy {
+        private T(go.Seq.Ref ref) { super(ref); }
         
         public final native String getErr();
         public final native void setErr(String v);

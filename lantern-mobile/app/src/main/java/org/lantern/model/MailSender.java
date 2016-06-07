@@ -36,7 +36,7 @@ public class MailSender {
 
             attachments.add(logContent);
 
-            sendMail("todd@getlantern.org", attachments);
+            sendMail("team@getlantern.org", attachments);
         } catch (Exception e) {
             Log.e(TAG, "Error sending log messages: " + e.getMessage());
         }

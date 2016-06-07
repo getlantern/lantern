@@ -74,6 +74,34 @@ static int numI = 0;
 }
 @end
 
+// Objective-C implementation of testpkg.InterfaceDupper.
+@interface IDup : NSObject <GoTestpkgInterfaceDupper> {
+}
+
+@end
+
+@implementation IDup {
+}
+
+- (id<GoTestpkgInterface>)iDup:(id<GoTestpkgInterface>)i {
+  return i;
+}
+@end
+
+// Objective-C implementation of testpkg.ConcreteDupper.
+@interface CDup : NSObject <GoTestpkgConcreteDupper> {
+}
+
+@end
+
+@implementation CDup {
+}
+
+- (GoTestpkgConcrete *)cDup:(GoTestpkgConcrete *)c {
+  return c;
+}
+@end
+
 @interface tests : XCTestCase
 
 @end
@@ -367,10 +395,15 @@ static int numI = 0;
 	[fields setS:s];
 }
 
-- (void)testIDup {
+- (void)testRoundTripEquality {
 	Number *want = [[Number alloc] init];
-	Number *got = GoTestpkgIDup(want);
+	Number *got = (Number *)GoTestpkgI2Dup(want);
 	XCTAssertEqual(got, want, @"ObjC object passed through Go should not be wrapped");
+
+	IDup *idup = [[IDup alloc] init];
+	XCTAssertTrue(GoTestpkgCallIDupper(idup), @"Go interface passed through ObjC should not be wrapped");
+	CDup *cdup = [[CDup alloc] init];
+	XCTAssertTrue(GoTestpkgCallCDupper(cdup), @"Go struct passed through ObjC should not be wrapped");
 }
 
 @end

@@ -15,7 +15,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         class="org.lantern.fragment.TitleBar"
-        lantern:backgroundColor="@drawable/nav_background_white"
+        lantern:backgroundColor="@color/accent_white"
         lantern:titleText="@string/get_free_months"/>
 
     <RelativeLayout
@@ -24,13 +24,15 @@
         android:layout_height="260dp"
         android:layout_weight="1"
         android:gravity="center"
-        android:background="@drawable/nav_background_white"
+        android:background="@color/accent_white"
         android:elevation="2dp">
 
         <ImageView
             android:id="@+id/invite_friends"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:paddingTop="26dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:scaleType="fitXY"
             android:adjustViewBounds="true"
             android:layout_centerInParent="true"
             android:src="@drawable/coins"/>

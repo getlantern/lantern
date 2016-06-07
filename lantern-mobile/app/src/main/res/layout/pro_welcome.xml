@@ -28,7 +28,6 @@
             android:text="@string/pro_welcome_text"
             android:layout_marginTop="10dp"
             android:elevation="2dp"
-            android:textStyle="bold"     
             android:textSize="19sp"
             android:textColor="@color/black"/>
 

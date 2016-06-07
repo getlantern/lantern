@@ -140,6 +140,7 @@ func (client *Client) ListenAndServeSOCKS5(requestedAddr string) error {
 		Dial: func(network, addr string) (net.Conn, error) {
 			port, err := client.portForAddress(addr)
 			if err != nil {
+				log.Errorf("Error determing port for address: %v", err)
 				return nil, err
 			}
 			return client.dialCONNECT(addr, port)
@@ -218,7 +219,7 @@ func (client *Client) proxiedDialer(orig func(network, addr string) (net.Conn, e
 func (client *Client) dialCONNECT(addr string, port int) (net.Conn, error) {
 	// Establish outbound connection
 	if client.shouldSendToProxy(addr, port) {
-		log.Tracef("Proxying CONNECT request for %v", addr)
+		log.Debugf("Proxying CONNECT request for %v", addr)
 		d := client.proxiedDialer(func(network, addr string) (net.Conn, error) {
 			// UGLY HACK ALERT! In this case, we know we need to send a CONNECT request
 			// to the chained server. We need to send that request from chained/dialer.go
@@ -231,7 +232,7 @@ func (client *Client) dialCONNECT(addr string, port int) (net.Conn, error) {
 		})
 		return d("tcp", addr)
 	}
-	log.Tracef("Port not allowed, bypassing proxy and sending CONNECT request directly to %v", addr)
+	log.Debugf("Port not allowed, bypassing proxy and sending CONNECT request directly to %v", addr)
 	return dialDirect("tcp", addr, 1*time.Minute)
 }
 
@@ -239,6 +240,7 @@ func (client *Client) shouldSendToProxy(addr string, port int) bool {
 	if isLanternSpecialDomain(addr) {
 		return true
 	}
+	log.Debugf("CONNECT PORTS: %v", client.cfg().ProxiedCONNECTPorts)
 	for _, proxiedPort := range client.cfg().ProxiedCONNECTPorts {
 		if port == proxiedPort {
 			return true
