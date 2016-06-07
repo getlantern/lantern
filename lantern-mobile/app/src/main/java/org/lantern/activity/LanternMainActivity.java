@@ -295,12 +295,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         final ArrayList<NavItem> navItems = new ArrayList<NavItem>();
         final ListAdapter listAdapter = new ListAdapter(this, navItems);  
 
-
-        if (!session.isDeviceLinked()) {
-            navItems.add(new NavItem(resources.getString(R.string.sign_in_pro), 
-                        R.drawable.sign_in));
-        }
-
         if (!session.isProUser()) {
             // 'Get Pro Now' menu option if not already a Pro user
             navItems.add(new NavItem(resources.getString(R.string.get_lantern_pro), R.drawable.pro_now));
@@ -308,9 +302,15 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             navItems.add(navItems.size(), new NavItem(resources.getString(R.string.pro_account_header), 
                         R.drawable.sign_in));
         }
+        navItems.add(new NavItem(resources.getString(R.string.get_free_months), R.drawable.get_free));
+
+
+        if (!session.isDeviceLinked()) {
+            navItems.add(new NavItem(resources.getString(R.string.sign_in_pro),
+                        R.drawable.sign_in));
+        }
 
         navItems.add(new NavItem(resources.getString(R.string.check_for_update), R.drawable.ic_update));
-        navItems.add(new NavItem(resources.getString(R.string.get_free_months), R.drawable.get_free));
         navItems.add(new NavItem(resources.getString(R.string.desktop_option), R.drawable.ic_desktop));
         navItems.add(new NavItem(resources.getString(R.string.language), R.drawable.language));
         navItems.add(new NavItem(resources.getString(R.string.share_option), R.drawable.ic_share));
