@@ -29,6 +29,9 @@ const (
 var (
 	log       = golog.LoggerFor("fronted")
 	_instance = eventual.NewValue()
+
+	// Shared client session cache for all connections
+	clientSessionCache = tls.NewLRUClientSessionCache(1000)
 )
 
 type direct struct {
@@ -143,6 +146,9 @@ func (d *direct) NewDirect() http.RoundTripper {
 			Dial:                d.Dial,
 			TLSHandshakeTimeout: 40 * time.Second,
 			DisableKeepAlives:   true,
+			TLSClientConfig: &tls.Config{
+				ClientSessionCache: clientSessionCache,
+			},
 		},
 	}
 }
