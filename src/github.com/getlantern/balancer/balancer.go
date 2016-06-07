@@ -7,11 +7,13 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 
 	"github.com/getlantern/golog"
+	"github.com/getlantern/protected"
 )
 
 const (
@@ -102,7 +104,12 @@ func (b *Balancer) Dial(network, addr string) (net.Conn, error) {
 		d := heap.Pop(&dialers).(*dialer)
 		heap.Push(&dialers, d)
 		b.mu.Unlock()
-		log.Tracef("Dialing %s://%s with %s", network, addr, d.Label)
+		log.Debugf("Dialing %s://%s with %s", network, addr, d.Label)
+		if strings.Contains(d.Label, addr) {
+			log.Debugf("Making a direct connection to %s", addr)
+			return protected.Dial(network, addr, 1*time.Minute)
+		}
+
 		conn, err := d.dial(network, addr)
 		if err != nil {
 			log.Errorf("Unable to dial via %v to %s://%s: %v on pass %v...continuing", d.Label, network, addr, err, i)

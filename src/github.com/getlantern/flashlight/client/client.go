@@ -240,7 +240,6 @@ func (client *Client) shouldSendToProxy(addr string, port int) bool {
 	if isLanternSpecialDomain(addr) {
 		return true
 	}
-	log.Debugf("CONNECT PORTS: %v", client.cfg().ProxiedCONNECTPorts)
 	for _, proxiedPort := range client.cfg().ProxiedCONNECTPorts {
 		if port == proxiedPort {
 			return true
