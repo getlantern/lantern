@@ -21,6 +21,7 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"github.com/getlantern/errors"
 	"github.com/getlantern/hidden"
 	"github.com/getlantern/ops"
 	"github.com/oxtoacart/bpool"
@@ -263,25 +264,7 @@ func (l *logger) errorSkipFrames(arg interface{}, skipFrames int) error {
 }
 
 func (l *logger) Errorf(message string, args ...interface{}) error {
-	var err error
-	var hasError bool
-	for _, arg := range args {
-		var candidate error
-		candidate, hasError = arg.(error)
-		if hasError {
-			err = candidate
-			break
-		}
-	}
-	buf := bufferPool.Get()
-	defer bufferPool.Put(buf)
-	if !hasError {
-		err = fmt.Errorf(message, args...)
-		l.print(GetOutputs().ErrorOut, buf, 4, "ERROR", err)
-	} else {
-		l.printf(GetOutputs().ErrorOut, buf, 4, "ERROR", err, message, args...)
-	}
-	return report(err, buf.String())
+	return l.errorSkipFrames(errors.NewOffset(1, message, args...), 1)
 }
 
 func (l *logger) Fatal(arg interface{}) {
