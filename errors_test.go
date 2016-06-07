@@ -21,16 +21,16 @@ func TestFull(t *testing.T) {
 
 	// Iterate past the size of the hidden buffer
 	for i := 0; i < len(hiddenErrors)*2; i++ {
-		op := ops.Enter("op1").Put("ca", 100).Put("cd", 100)
+		op := ops.Begin("op1").Set("ca", 100).Set("cd", 100)
 		e := New("Hello %v", "There").Op("My Op").With("DaTa_1", 1)
-		op.Exit()
+		op.End()
 		if firstErr == nil {
 			firstErr = e
 		}
 		assert.Equal(t, "Hello There", e.Error()[:11])
-		op = ops.Enter("op2").Put("ca", 200).Put("cb", 200).Put("cc", 200)
+		op = ops.Begin("op2").Set("ca", 200).Set("cb", 200).Set("cc", 200)
 		e3 := Wrap(fmt.Errorf("I'm wrapping your text: %v", e)).Op("outer op").With("dATA+1", i).With("cb", 300)
-		op.Exit()
+		op.End()
 		assert.Equal(t, e, e3.(*structured).cause, "Wrapping a regular error should have extracted the contained *Error")
 		m := make(context.Map)
 		e3.Fill(m)
