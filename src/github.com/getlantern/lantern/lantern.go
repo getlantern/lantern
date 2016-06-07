@@ -11,6 +11,7 @@ import (
 
 	"code.google.com/p/go-uuid/uuid"
 
+	"github.com/getlantern/appdir"
 	"github.com/getlantern/autoupdate"
 	"github.com/getlantern/bandwidth"
 	"github.com/getlantern/flashlight"
@@ -82,6 +83,9 @@ type Updater autoupdate.Updater
 // initial activity may be slow, so clients with low read timeouts may
 // time out.
 func Start(configDir string, timeoutMillis int) (*StartResult, error) {
+
+	appdir.SetHomeDir(configDir)
+
 	startOnce.Do(func() {
 		go run(configDir)
 	})
