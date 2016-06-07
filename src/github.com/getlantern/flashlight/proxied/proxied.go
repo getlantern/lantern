@@ -41,6 +41,9 @@ var (
 
 	// ErrUnsuccessfulResponseStatus indicates that a response status was unsuccessful
 	ErrUnsuccessfulResponseStatus = "unsuccessful response status"
+
+	// Shared client session cache for all connections
+	clientSessionCache = tls.NewLRUClientSessionCache(1000)
 )
 
 func success(resp *http.Response) bool {
@@ -378,6 +381,11 @@ func chained(rootCA string, persistent bool) (http.RoundTripper, error) {
 		// nothing to do with TCP keep alives along the lines of the KeepAlive
 		// variable in net.Dialer.
 		DisableKeepAlives: !persistent,
+
+		TLSClientConfig: &tls.Config{
+			// Cache TLS sessions for faster connection
+			ClientSessionCache: clientSessionCache,
+		},
 	}
 
 	if rootCA != "" {
@@ -385,9 +393,7 @@ func chained(rootCA string, persistent bool) (http.RoundTripper, error) {
 		if err != nil {
 			return nil, errors.Wrap(err).Op("DecodeRootCA")
 		}
-		tr.TLSClientConfig = &tls.Config{
-			RootCAs: caCert.PoolContainingCert(),
-		}
+		tr.TLSClientConfig.RootCAs = caCert.PoolContainingCert()
 	}
 
 	tr.Proxy = func(req *http.Request) (*url.URL, error) {
