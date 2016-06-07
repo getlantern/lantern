@@ -81,10 +81,10 @@ func TestProxying(t *testing.T) {
 	// Makes a test request
 	testRequest(t, httpAddr, httpsAddr)
 
-	// // Switch to obfs4, wait for a new config and test request again
-	// atomic.StoreUint32(&useOBFS4, 1)
-	// time.Sleep(2 * time.Second)
-	// testRequest(t, httpAddr, httpsAddr)
+	// Switch to obfs4, wait for a new config and test request again
+	atomic.StoreUint32(&useOBFS4, 1)
+	time.Sleep(2 * time.Second)
+	testRequest(t, httpAddr, httpsAddr)
 }
 
 func startWebServer(t *testing.T) (string, string, error) {
