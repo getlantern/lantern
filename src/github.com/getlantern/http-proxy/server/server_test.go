@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"crypto/tls"
@@ -22,7 +22,6 @@ import (
 	"github.com/getlantern/http-proxy/forward"
 	"github.com/getlantern/http-proxy/httpconnect"
 	"github.com/getlantern/http-proxy/listeners"
-	"github.com/getlantern/http-proxy/server"
 )
 
 const (
@@ -177,7 +176,7 @@ func impatientProxy(maxConns uint64, idleTimeout time.Duration) (string, error) 
 			IdleTimeout: idleTimeout,
 		}),
 	)
-	srv := server.NewServer(filterChain)
+	srv := NewServer(filterChain)
 
 	// Add net.Listener wrappers for inbound connections
 
@@ -491,7 +490,7 @@ type proxy struct {
 	addr     string
 }
 
-func basicServer(maxConns uint64, idleTimeout time.Duration) *server.Server {
+func basicServer(maxConns uint64, idleTimeout time.Duration) *Server {
 	filterChain := filters.Join(
 		commonfilter.New(&commonfilter.Options{
 			AllowLocalhost: testingLocal,
@@ -504,7 +503,7 @@ func basicServer(maxConns uint64, idleTimeout time.Duration) *server.Server {
 		}),
 	)
 	// Create server
-	srv := server.NewServer(filterChain)
+	srv := NewServer(filterChain)
 
 	// Add net.Listener wrappers for inbound connections
 	srv.AddListenerWrappers(
