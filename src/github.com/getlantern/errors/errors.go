@@ -322,10 +322,10 @@ func parseError(err error) (op string, goType string, desc string, extra map[str
 		if opError, ok := err.(*net.OpError); ok {
 			op = opError.Op
 			if opError.Source != nil {
-				extra["local_addr"] = opError.Source.String()
+				extra["remote_addr"] = opError.Source.String()
 			}
 			if opError.Addr != nil {
-				extra["remote_addr"] = opError.Addr.String()
+				extra["local_addr"] = opError.Addr.String()
 			}
 			extra["network"] = opError.Net
 			err = opError.Err
