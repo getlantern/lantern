@@ -19,29 +19,16 @@ public abstract class Issue12403 {
     
     private static native void init();
     
-    public interface Parsable extends go.Seq.Object {
+    public interface Parsable {
         public String FromJSON(String jstr);
         public String ToJSON() throws Exception;
-        public static abstract class Stub implements Parsable {
-            private final go.Seq.Ref ref;
-            public Stub() {
-                ref = go.Seq.createRef(this);
-            }
-            
-            public final go.Seq.Ref ref() { return ref; }
-            
-        }
-        
-        static final class Proxy implements Parsable {
-            private go.Seq.Ref ref;
-        
-            Proxy(go.Seq.Ref ref) { this.ref = ref; }
-        
-            public final go.Seq.Ref ref() { return ref; }
-        
-            public native String FromJSON(String jstr);
-            public native String ToJSON() throws Exception;
-        }
+    }
+    
+    private static final class proxyParsable extends Seq.Proxy implements Parsable {
+        proxyParsable(Seq.Ref ref) { super(ref); }
+    
+        public native String FromJSON(String jstr);
+        public native String ToJSON() throws Exception;
     }
     
     

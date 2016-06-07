@@ -15,3 +15,7 @@ import _ "golang.org/x/mobile/internal/mobileinit"
 
 // FinalizeRef is the finalizer used on foreign objects.
 var FinalizeRef func(ref *Ref)
+
+// IncRef increments the foreign reference count for ref while it is in transit.
+// The count is decremented after the ref is received and translated on the foreign side.
+var IncForeignRef func(refnum int32)

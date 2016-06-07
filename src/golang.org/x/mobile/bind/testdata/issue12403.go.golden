@@ -49,17 +49,17 @@ func proxyissue12403_Parsable_ToJSON(refnum C.int32_t) (C.nstring, C.nstring) {
 
 type proxyissue12403_Parsable _seq.Ref
 
-func (p *proxyissue12403_Parsable) Bind_proxy_refnum__() int32 { return p.Num }
+func (p *proxyissue12403_Parsable) Bind_proxy_refnum__() int32 { return (*_seq.Ref)(p).Bind_IncNum() }
 
 func (p *proxyissue12403_Parsable) FromJSON(param_jstr string) string {
 	_param_jstr := encodeString(param_jstr)
-	res := C.cproxyissue12403_Parsable_FromJSON(C.int32_t(p.Num), _param_jstr)
+	res := C.cproxyissue12403_Parsable_FromJSON(C.int32_t(p.Bind_proxy_refnum__()), _param_jstr)
 	_res := decodeString(res)
 	return _res
 }
 
 func (p *proxyissue12403_Parsable) ToJSON() (string, error) {
-	res := C.cproxyissue12403_Parsable_ToJSON(C.int32_t(p.Num))
+	res := C.cproxyissue12403_Parsable_ToJSON(C.int32_t(p.Bind_proxy_refnum__()))
 	res_0 := decodeString(res.r0)
 	res_1_str := decodeString(res.r1)
 	res_1 := toError(res_1_str)

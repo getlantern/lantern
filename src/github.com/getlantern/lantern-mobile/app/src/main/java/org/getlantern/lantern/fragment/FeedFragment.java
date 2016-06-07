@@ -64,7 +64,7 @@ public class FeedFragment extends Fragment {
 
             final List<FeedItem> items = new ArrayList<FeedItem>();
 
-            Lantern.FeedByName(name, new Lantern.FeedRetriever.Stub() {
+            Lantern.FeedByName(name, new Lantern.FeedRetriever() {
                 public void AddFeed(String title, String desc, 
                         String image, String url) {
                     items.add(new FeedItem(title, desc, image, url));
