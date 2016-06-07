@@ -224,27 +224,8 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     // according to our stored preference
     public void setBtnStatus() {
         boolean useVpn = session.useVpn();
-        //powerLantern.setChecked(useVpn);
-
-        if (useVpn) {
-            menuIcon.setImageResource(R.drawable.menu_white);
-            drawerLayout.setBackgroundColor(onColor);
-        } else {
-            menuIcon.setImageResource(R.drawable.menu);
-            drawerLayout.setBackgroundColor(offColor);
-        }
+        powerLantern.setChecked(useVpn);
         updateTheme(useVpn);
-    }
-
-    private void setButtonStatus(boolean useVpn) {
-        if (useVpn) {
-            menuIcon.setImageResource(R.drawable.menu_white);
-            drawerLayout.setBackgroundColor(onColor);
-        } else {
-            menuIcon.setImageResource(R.drawable.menu);
-            drawerLayout.setBackgroundColor(offColor);
-        }
-
     }
 
     // initialize and configure status toast (what's displayed
@@ -275,15 +256,11 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             // whenever we switch 'on', we want to trigger the color
             // fade for the background color animation and switch
             // our image view to use the 'on' image resource
-            colorFadeIn.start();
             statusImage.setImageResource(R.drawable.status_on_white);
             statusText.setText(getResources().getString(R.string.lantern_on));
-            menuIcon.setImageResource(R.drawable.menu_white);
         } else {
-            colorFadeOut.start();
             statusImage.setImageResource(R.drawable.status_off_white);
             statusText.setText(getResources().getString(R.string.lantern_off));
-            menuIcon.setImageResource(R.drawable.menu);
         }
 
         statusToast.setView(statusLayout);
@@ -668,9 +645,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     }
 
     private void updateTheme(boolean useVpn) {
-        powerLantern.setThumbColorRes(useVpn ? R.color.accent_white : R.color.accent_white);
         powerLantern.setBackColorRes(useVpn ? R.color.on_color : R.color.pro_blue_color );
-        changeFeedHeaderColor(useVpn);
     }
 
     @Click(R.id.powerLantern)
@@ -851,25 +826,8 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         }
     }
 
-    public void changeFeedHeaderColor(boolean useVpn) {
-        if (feedAdapter != null && viewPagerTab != null) {
-            int c;
-            if (useVpn) {
-                c = getResources().getColor(R.color.accent_white); 
-            } else {
-                c = getResources().getColor(R.color.black); 
-            }
-            int count = feedAdapter.getCount();
-            for (int i = 0; i < count; i++) {
-                TextView view = (TextView) viewPagerTab.getTabAt(i);
-                view.setTextColor(c);
-            }
-        }
-    }
-	
 	private void setActiveHeaderColor(int position) {
 		int count = feedAdapter.getCount();
-		int white = getResources().getColor(R.color.accent_white);
 		int black = getResources().getColor(R.color.black);
 		boolean useVpn = Service.IsRunning;
 		for (int i = 0; i < count; i++) {
@@ -877,7 +835,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 			if (i == position) {
             	view.setTextColor(getResources().getColor(R.color.pink));
 			} else {
-            	view.setTextColor(useVpn ? white : black);
+                view.setTextColor(black);
 			}
 		}
 	}
@@ -924,8 +882,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
                 }
             }
         });
-
-		changeFeedHeaderColor(Service.IsRunning);
 
         View tab = viewPagerTab.getTabAt(0);
         if (tab != null) {

@@ -292,7 +292,7 @@ public class SessionManager implements Lantern.Session {
     }
 
 	public boolean shouldProxy() {
-		return false;
+        return !"".equals(startLocalProxy());
 	}
 
 }
