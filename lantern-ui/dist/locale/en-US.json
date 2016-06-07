@@ -97,7 +97,7 @@
   "promotion.wrongCode": "The referral code is wrong.",
   "referral.code": "Your referral code",
   "referral.share": "Share your code:",
-  "referral.text": "Use my code %s to earn 1 Pro credit! @getlantern",
+  "referral.text": "Use my code %s and get 3 months free when you sign up! @getlantern",
   "settings.autoLaunch": "Run Lantern on System Start",
   "settings.autoReport": "Securely report usage statistics to contribute to Lantern",
   "settings.proxyAll": "Proxy all traffic",
