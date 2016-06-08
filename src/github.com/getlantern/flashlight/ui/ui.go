@@ -78,10 +78,6 @@ func Start(requestedAddr string, allowRemote bool, extUrl string) (string, error
 		return "", fmt.Errorf("Unable to resolve UI address: %v", err)
 	}
 
-	go func() {
-		log.Fatal(pro.InitProxy("127.0.0.1:1233"))
-	}()
-
 	externalUrl = extUrl
 	if allowRemote {
 		// If we want to allow remote connections, we have to bind all interfaces
@@ -126,6 +122,16 @@ func Start(requestedAddr string, allowRemote bool, extUrl string) (string, error
 		}
 	}()
 	uiaddr = fmt.Sprintf("http://%v", l.Addr().String())
+
+	go func() {
+		addr := l.Addr().String()
+		host, _, _ := net.SplitHostPort(addr)
+		if host == "" {
+			host = "127.0.0.1"
+		}
+		proxyAddr := fmt.Sprintf("%s:1233", host)
+		log.Fatal(pro.InitProxy(proxyAddr))
+	}()
 
 	// Note - we display the UI using the LanternSpecialDomain. This is necessary
 	// for Microsoft Edge on Windows 10 because, being a Windows Modern App, its
