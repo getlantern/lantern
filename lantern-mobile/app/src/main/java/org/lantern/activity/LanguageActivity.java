@@ -31,7 +31,7 @@ public class LanguageActivity extends FragmentActivity {
 
     private LangAdapter adapter;
     private static ArrayList<String> languages;
-	private static Map<String, Locale> localeMap;
+    private static Map<String, Locale> localeMap;
 
     @ViewById(R.id.list)
     ListView list;
@@ -142,7 +142,7 @@ public class LanguageActivity extends FragmentActivity {
 
     public void setLocale(String lang) { 
         Locale locale = localeMap.get(lang);
-		Log.d(TAG, "Language selected: " + lang);
+        Log.d(TAG, "Language selected: " + lang);
         Locale.setDefault(locale);
         Resources res = getResources(); 
         DisplayMetrics dm = res.getDisplayMetrics(); 

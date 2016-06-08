@@ -1,7 +1,5 @@
 package org.lantern.activity;
 
-import android.animation.ArgbEvaluator;
-import android.animation.ObjectAnimator;
 import android.app.Application;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -10,12 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
-import android.content.res.Configuration;
 import android.content.res.Resources;
-import android.graphics.Color;
-import android.graphics.PorterDuff;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.TransitionDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -39,7 +32,6 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 import android.view.MenuItem;
 import android.view.KeyEvent;
 import android.support.v4.widget.DrawerLayout;
@@ -96,17 +88,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     private FragmentStatePagerItemAdapter feedAdapter;
     private SmartTabLayout viewPagerTab;
     private String lastFeedSelected;
-
-    private ObjectAnimator colorFadeIn, colorFadeOut;
-
-    private static final int onColor = Color.parseColor("#00BCD4");
-    private static final int offColor = Color.parseColor("#FFFFFF");
-
-    ColorDrawable[] offTransColor = {new ColorDrawable(offColor), new ColorDrawable(onColor)};
-    ColorDrawable[] onTransColor = {new ColorDrawable(onColor), new ColorDrawable(offColor)};
-
-    private TransitionDrawable offNavTrans = new TransitionDrawable(offTransColor);
-    private TransitionDrawable onNavTrans = new TransitionDrawable(onTransColor);
 
     private Toast statusToast;
 	private ImageView statusImage;
@@ -231,15 +212,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     // initialize and configure status toast (what's displayed
     // whenever we use the on/off slider) 
     public void setupStatusToast() {
-
-        colorFadeIn = ObjectAnimator.ofObject(drawerLayout, "backgroundColor", new ArgbEvaluator(), offColor, onColor);
-        colorFadeOut = ObjectAnimator.ofObject(drawerLayout, "backgroundColor", new ArgbEvaluator(), onColor, offColor);
-
-        colorFadeIn.setDuration(500);
-        colorFadeOut.setDuration(500);
-
-        onNavTrans.startTransition(500);
-        offNavTrans.startTransition(500);
 
         LayoutInflater inflater = getLayoutInflater();
         statusLayout = inflater.inflate(R.layout.status_layout, 
@@ -833,7 +805,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 		for (int i = 0; i < count; i++) {
 			TextView view = (TextView) viewPagerTab.getTabAt(i);
 			if (i == position) {
-            	view.setTextColor(getResources().getColor(R.color.pink));
+				view.setTextColor(getResources().getColor(R.color.pink));
 			} else {
                 view.setTextColor(black);
 			}

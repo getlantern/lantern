@@ -65,6 +65,7 @@ type FeedItem struct {
 	Content     string                 `json:"contentSnippetText"`
 	Source      string                 `json:"source"`
 	Description string                 `json:"-"`
+	UseWideView bool                   `json:"-"`
 }
 
 type FeedItems []*FeedItem
@@ -76,7 +77,7 @@ type FeedProvider interface {
 
 type FeedRetriever interface {
 	// AddFeed: used to add a new entry to a given feed
-	AddFeed(string, string, string, string, string, string)
+	AddFeed(string, string, string, string, string, string, bool)
 }
 
 // FeedByName checks the previously created feed for an
@@ -85,21 +86,8 @@ func FeedByName(name string, retriever FeedRetriever) {
 	if feed != nil && feed.Items != nil {
 		if items, exists := feed.Items[name]; exists {
 			for _, i := range items {
-				img := i.Image
-
-				if len(i.Images) > 0 {
-					log.Debugf("images is %v", i.Images)
-					for _, k := range i.Images {
-						if k.Width > 350 {
-							log.Debugf("Updating image %s to %s", img, k.Url)
-							img = k.Url
-							break
-						}
-					}
-				}
-
 				retriever.AddFeed(feed.sourceMap[i.Source], i.Title, i.Date,
-					i.Description, img, i.Link)
+					i.Description, i.Image, i.Link, i.UseWideView)
 			}
 		}
 	}
@@ -238,6 +226,16 @@ func processFeed(allStr string, provider FeedProvider) {
 
 	// Add a (shortened) description to every article
 	for i, entry := range feed.Entries {
+		entry.UseWideView = false
+
+		for _, k := range entry.Images {
+			if k.Width > 350 {
+				entry.Image = k.Url
+				entry.UseWideView = true
+				break
+			}
+		}
+
 		desc := ""
 		if aDesc := entry.Meta["description"]; aDesc != nil {
 			desc = strings.TrimSpace(aDesc.(string))
@@ -252,23 +250,17 @@ func processFeed(allStr string, provider FeedProvider) {
 	// the 'all' tab contains every article that's not associated with an
 	// excluded feed.
 	all := make(FeedItems, 0, len(feed.Entries))
-	for _, entry := range feed.Entries {
+	for i, entry := range feed.Entries {
 		if !feed.Feeds[entry.Source].ExcludeFromAll {
 
-			img := entry.Image
-
-			if len(entry.Images) > 0 {
-				for _, k := range entry.Images {
-					if k.Width > 350 {
-						log.Debugf("Updating image %s to %s", img, k.Url)
-						img = k.Url
-						break
-					}
+			for _, k := range entry.Images {
+				if k.Width > 350 {
+					log.Debugf("Updating image %s to %s", feed.Entries[i].Image, k.Url)
+					feed.Entries[i].Image = k.Url
 				}
 			}
-			entry.Image = img
 
-			all = append(all, entry)
+			all = append(all, feed.Entries[i])
 		}
 	}
 	feed.Items[allStr] = all
