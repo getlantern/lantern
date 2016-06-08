@@ -180,29 +180,24 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         setupSideMenu();
         setBtnStatus();
-
-        final Handler handler = new Handler();
-        final Runnable updateBandwidth = new Runnable() {
+        showFeedview();
+        new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
                 if (!isFinishing()) {
                     setBandwidthQuota(); 
                 }
             }
-        };
-        handler.postDelayed(updateBandwidth, 3000);
-        showFeedview();
+        }, 4000);
     }
 
     private void setBandwidthQuota() {
         if (!session.isProUser()) {
             long quota = Lantern.GetBandwidthQuota();
             long remaining = Lantern.GetBandwidthRemaining();
-            Log.d(TAG, "Bandwidth remaining is " + remaining);
             String amount = String.format(getResources().getString(R.string.data_remaining), remaining);
             dataRemaining.setText(amount);
             if (dataProgressBar != null) {
-                Log.d(TAG, "Current bandwidth quota: " + quota);
                 dataProgressBar.setProgress((int)quota);
             }
         } else {
