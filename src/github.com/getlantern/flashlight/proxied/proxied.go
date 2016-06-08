@@ -387,6 +387,10 @@ func chained(rootCA string, persistent bool) (http.RoundTripper, error) {
 			ClientSessionCache: clientSessionCache,
 		},
 	}
+	if persistent {
+		tr.MaxIdleTime = 30 * time.Second
+		tr.EnforceMaxIdleTime()
+	}
 
 	if rootCA != "" {
 		caCert, err := keyman.LoadCertificateFromPEMBytes([]byte(rootCA))
