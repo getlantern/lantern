@@ -35,11 +35,13 @@ func serveBandwidth(uiaddr string) error {
 
 func notifyUser(n notify.Notifier, uiaddr string) {
 	// TODO: We need to translate these strings somehow.
+	logo := "http://" + uiaddr + "/img/lantern_logo.png"
+
 	msg := &notify.Notification{
 		Title:    "You have used your free monthly data",
 		Message:  "Upgrade to Pro to continue using Lantern",
 		ClickURL: uiaddr,
-		IconURL:  uiaddr + "/img/lantern_logo.png",
+		IconURL:  logo,
 	}
 	err := n.Notify(msg)
 	log.Errorf("Could not notify? %v", err)
