@@ -1,0 +1,38 @@
+{
+  "project_info": {
+    "project_number": "714458374144",
+    "project_id": "lantern-2c50c"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:714458374144:android:6add84b2714184c7",
+        "android_client_info": {
+          "package_name": "org.getlantern.lantern"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCCEKizUUlSHuyJ4XPjC1oP2qnYFYRcKNI"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 2,
+          "analytics_property": {
+            "tracking_id": "UA-21408036-14"
+          }
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

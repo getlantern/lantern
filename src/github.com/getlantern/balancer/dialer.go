@@ -87,7 +87,7 @@ func (d *dialer) Start() {
 }
 
 func (d *dialer) check() {
-	log.Tracef("Start checking dialer %s", d.Label)
+	log.Debugf("Start checking dialer %s", d.Label)
 	t := time.Now()
 	ok := d.Check()
 	if ok {

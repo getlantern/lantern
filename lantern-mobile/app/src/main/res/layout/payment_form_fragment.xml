@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:layout_width="334dp"
+    android:layout_gravity="center_vertical"
+    android:layout_height="wrap_content"
+    android:paddingLeft="8dp"
+    android:paddingRight="8dp">
+
+    <EditText
+        android:id="@+id/email"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="20dp"
+        android:paddingBottom="5dp"
+        android:drawableLeft="@drawable/email_active"
+        android:drawablePadding="10dip"
+        android:ems="10"
+        android:background="@null"
+        android:gravity="fill_horizontal"
+        android:hint="@string/email_hint"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:inputType="textEmailAddress" />
+
+    <View
+        android:id="@+id/emailSeparator"
+        android:background="@color/edittext_color"
+        android:layout_below="@+id/checkoutEmail"
+        android:layout_width = "fill_parent"
+        android:layout_height="1dip"
+        android:layout_marginLeft="20dp"
+        android:layout_centerVertical ="true"
+        android:layout_alignParentTop="true"
+        />                               
+
+    <EditText 
+        android:id="@+id/number" 
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:drawableLeft="@drawable/card_inactive"
+        android:drawablePadding="10dip"
+        android:fontFamily="sans-serif" 
+        android:textColor="@color/edittext_color"
+        android:ems="10"
+        android:paddingTop="40dp"
+        android:paddingBottom="5dp"
+        android:gravity="fill_horizontal"
+        android:background="@null"
+        android:textStyle="bold"
+        android:textSize="14dp"
+        android:hint="4242 4242 4242 4242" 
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:nextFocusDown="@+id/expMonth" 
+        android:nextFocusRight="@+id/expMonth" 
+        android:nextFocusForward="@+id/expMonth" 
+        android:inputType="number"
+        />
+
+    <View
+        android:background="@color/edittext_color"
+        android:layout_below="@+id/number"
+        android:layout_width = "fill_parent"
+        android:layout_height="1dip"
+        android:layout_marginLeft="20dp" 
+        android:layout_centerVertical ="true"
+        android:layout_alignParentTop="true"
+        />
+
+    <LinearLayout android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="30dp"
+        android:id="@+id/monthyear" 
+        android:drawablePadding="2dip"
+        android:weightSum="2"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/date_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/date_inactive"/>
+
+        <Spinner 
+            android:id="@+id/expMonth" 
+            style="@style/ExpMonth" 
+            android:nextFocusForward="@+id/expYear"/>
+
+        <Spinner 
+            android:id="@+id/expYear" 
+            style="@style/ExpYear" 
+            android:nextFocusForward="@+id/cvc"/>
+
+    </LinearLayout>
+
+    <View
+        android:background="@color/edittext_color"
+        android:layout_below="@+id/monthyear"
+        android:layout_width = "fill_parent"
+        android:layout_height="1dip"
+        android:layout_marginLeft="20dp"
+        android:layout_centerVertical ="true"
+        android:layout_alignParentTop="true"
+        />
+
+
+    <EditText 
+        android:id="@+id/cvc" 
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:hint="@string/cvc" 
+        android:background="@null"
+        android:fontFamily="sans-serif" 
+        android:drawableLeft="@drawable/cvv_inactive"
+        android:drawablePadding="10dip"
+        android:paddingTop="30dp"
+        android:autoText="false"
+        android:gravity="fill_horizontal"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:inputType="number"
+        />
+
+    <View
+        android:background="@color/edittext_color"
+        android:layout_below="@+id/cvc"
+        android:layout_width = "fill_parent"
+        android:layout_height="1dip"
+        android:layout_marginLeft="20dp"
+        android:layout_centerVertical ="true"
+        android:layout_alignParentTop="true"
+        />
+</LinearLayout>

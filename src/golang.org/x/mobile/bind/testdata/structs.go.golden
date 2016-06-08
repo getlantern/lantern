@@ -104,10 +104,10 @@ func proxystructs_I_M(refnum C.int32_t) {
 
 type proxystructs_I _seq.Ref
 
-func (p *proxystructs_I) Bind_proxy_refnum__() int32 { return p.Num }
+func (p *proxystructs_I) Bind_proxy_refnum__() int32 { return (*_seq.Ref)(p).Bind_IncNum() }
 
 func (p *proxystructs_I) M() {
-	C.cproxystructs_I_M(C.int32_t(p.Num))
+	C.cproxystructs_I_M(C.int32_t(p.Bind_proxy_refnum__()))
 }
 
 //export proxystructs__Identity

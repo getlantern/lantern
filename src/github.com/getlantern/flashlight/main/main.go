@@ -91,7 +91,7 @@ func _main(a *app.App) func() {
 }
 
 func doMain(a *app.App) error {
-	if err := logging.EnableFileLogging(); err != nil {
+	if err := logging.EnableFileLogging(""); err != nil {
 		return err
 	}
 
@@ -99,7 +99,7 @@ func doMain(a *app.App) error {
 	handleSignals(a)
 	a.AddExitFunc(func() {
 		if err := logging.Close(); err != nil {
-			log.Debugf("Error closing log: %v", err)
+			log.Errorf("Error closing log: %v", err)
 		}
 	})
 	a.AddExitFunc(quitSystray)

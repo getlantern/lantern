@@ -1,0 +1,247 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" 
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" 
+    android:orientation="vertical"
+    android:baselineAligned="false"
+    android:id="@+id/inviteView"
+    tools:context=".PlansActivity">
+
+    <fragment
+        xmlns:lantern="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/titlebar_fragment"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        class="org.lantern.fragment.TitleBar"
+        lantern:backgroundColor="@color/accent_white"
+        lantern:titleText="@string/get_lantern_pro"/>
+
+    <RelativeLayout
+        android:id="@+id/plans_bottom_sheet"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        android:layout_weight="1">
+
+
+        <LinearLayout
+            android:id="@+id/plans_view"
+            android:orientation="vertical"
+            android:scaleType="center"
+            android:background="@drawable/zigzag"
+            android:gravity="center"           
+            android:layout_width="fill_parent"
+            android:layout_height="320dp">
+
+            <ImageView
+                android:id="@+id/wall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingBottom="10dp"
+                android:scaleType="fitXY"
+                android:layout_centerInParent="true"
+                android:adjustViewBounds="true"
+                android:src="@drawable/wall"/>
+
+            <TextView
+                android:id="@+id/upgrade_to_lantern_pro"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:paddingTop="10dp"
+                android:text="@string/upgrade_to_lantern_pro"
+                android:textSize="24sp"
+                android:layout_centerHorizontal="true"
+                android:gravity="center"
+                android:textColor="#000000"/>
+
+            <LinearLayout
+                android:id="@+id/proFeatures"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textColor="@color/black"
+                android:padding="20dp"
+                android:layout_gravity="center"
+                android:orientation="horizontal" >
+
+                <LinearLayout
+                    android:id="@+id/leftFeatures"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="left"
+                    android:layout_gravity="left"
+                    android:layout_weight="1"
+                    android:orientation="vertical" />
+
+                <LinearLayout
+                    android:id="@+id/rightFeatures"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="10dp"
+                    android:gravity="right"
+                    android:layout_gravity="right"
+                    android:layout_weight="1"
+                    android:orientation="vertical" />  
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/available_for"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:layout_below="@+id/proFeatures"
+                android:paddingBottom="10dp"
+                android:fontFamily="sans-serif-light"
+                android:text="@string/pro_available_for"
+                android:textSize="10sp"
+                android:textColor="@color/available_for"/>
+
+        </LinearLayout>
+
+        <LinearLayout android:orientation="vertical"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@+id/plansView"
+            android:gravity="bottom"
+            android:layout_weight="1"
+            android:layout_height="256dp"
+            android:layout_width="match_parent">
+
+            <RelativeLayout 
+                android:id="@+id/two_year_plan"
+                android:layout_width="fill_parent"
+                android:layout_height="130dp"
+                android:layout_weight="1"
+                android:background="@drawable/year_background"
+                android:paddingLeft="8dp"
+                android:paddingRight="8dp"
+                android:paddingBottom="8dp">
+
+                <TextView
+                    android:id="@+id/best_value"
+                    android:layout_height="44dp"
+                    android:layout_width="104dp"
+                    android:gravity="center"
+                    android:elevation="1dp"
+                    android:paddingTop="5dp"
+                    android:paddingBottom="5dp"
+                    android:layout_marginLeft="30dp"
+                    android:fontFamily="sans-serif-black"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:text="@string/best_value"
+                    android:background="@drawable/best_value"
+                    android:textColor="@color/accent_white"/>
+
+                <TextView
+                    android:id="@+id/two_year_plan_cost"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif"
+                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical ="true"
+                    android:layout_marginLeft="13dp"
+                    android:text="@string/two_year_cost"
+                    android:textSize="34sp"
+                    android:textStyle="bold"
+                    android:alpha=".87"
+                    android:textColor="@color/black"/>
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif"
+                    android:layout_below="@+id/two_year_plan_cost"
+                    android:layout_marginLeft="13dp"
+                    android:text="@string/two_years"
+                    android:alpha=".54"
+                    android:textColor="@color/black"/>
+
+                <Button
+                    android:id="@+id/twoYearBtn"
+                    android:layout_height="36dp"
+                    android:layout_width="88dp"
+                    android:text="@string/select"
+                    android:fontFamily="sans-serif-medium" 
+                    android:textSize="14sp"
+                    android:elevation="2dp"
+                    android:minHeight="48dp"
+                    android:textAllCaps="true"
+                    android:textColor="@color/accent_white"
+                    android:textStyle="bold"     
+                    android:clickable = "true"
+                    android:background="@color/pink"
+                    android:layout_marginRight="10dp"
+                    android:layout_alignParentRight="true"
+                    android:layout_centerVertical ="true"
+                    android:layout_centerInParent="true"
+                    android:onClick="selectPlan" />
+
+
+            </RelativeLayout>
+
+            <RelativeLayout 
+                android:id="@+id/one_year_plan"
+                android:layout_width="fill_parent"
+                android:layout_height="110dp"
+                android:layout_weight="1"
+                android:background="@color/one_year_plan_bg"
+                android:paddingRight="8dp"
+                android:paddingBottom="8dp"
+                android:paddingLeft="8dp">
+
+                <TextView
+                    android:id="@+id/one_year_plan_cost"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif"
+                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginLeft="13dp"
+                    android:text="@string/one_year_cost"
+                    android:textSize="34sp"
+                    android:textStyle="bold"
+                    android:alpha=".87"
+                    android:textColor="@color/black"/>
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif"
+                    android:layout_below="@+id/one_year_plan_cost"
+                    android:layout_marginLeft="13dp"
+                    android:text="@string/one_year"
+                    android:alpha=".54"
+                    android:textColor="@color/black"/>
+
+
+                <Button
+                    android:id="@+id/oneYearBtn"
+                    android:layout_height="36dp"
+                    android:layout_width="88dp"
+                    android:text="@string/select"
+                    android:fontFamily="sans-serif-medium" 
+                    android:textSize="14sp"
+                    android:elevation="2dp"
+                    android:minHeight="48dp"
+                    android:textAllCaps="true"
+                    android:textColor="@color/accent_white"
+                    android:textStyle="bold"     
+                    android:clickable = "true"
+                    android:background="@color/pink"
+                    android:layout_marginRight="10dp"
+                    android:layout_alignParentRight="true"
+                    android:layout_centerVertical ="true"
+                    android:layout_centerInParent="true"
+                    android:onClick="selectPlan" />
+
+            </RelativeLayout>
+
+
+        </LinearLayout>
+    </RelativeLayout>
+</LinearLayout>

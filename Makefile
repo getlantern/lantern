@@ -61,7 +61,7 @@ DOCKER_IMAGE_TAG := lantern-builder
 
 S3_BUCKET ?= lantern
 ANDROID_S3_BUCKET ?= lantern-android
-ANDROID_BUILD_DIR := src/github.com/getlantern/lantern-mobile/app/build/outputs/apk
+ANDROID_BUILD_DIR := lantern-mobile/app/build/outputs/apk
 LANTERN_DEBUG_APK := lantern-debug.apk
 
 ANDROID_LIB_PKG := github.com/getlantern/lantern
@@ -87,7 +87,7 @@ ANDROID_TESTBED_ANDROID_SDK := $(ANDROID_TESTBED_LIBS)/android-sdk-debug.aar
 ANDROID_TESTBED_PUBSUB := $(ANDROID_TESTBED_LIBS)/pubsub-sdk-debug.aar
 ANDROID_TESTBED := $(ANDROID_TESTBED_DIR)/app/build/outputs/apk/app-debug.apk
 
-LANTERN_MOBILE_DIR := src/github.com/getlantern/lantern-mobile
+LANTERN_MOBILE_DIR := lantern-mobile
 LANTERN_MOBILE_LIBS := $(LANTERN_MOBILE_DIR)/app/libs
 TUN2SOCKS := $(LANTERN_MOBILE_DIR)/libs/armeabi-v7a/libtun2socks.so
 LANTERN_MOBILE_ARM_LIBS := $(LANTERN_MOBILE_LIBS)/armeabi-v7a
@@ -107,12 +107,15 @@ define build-tags
 	BUILD_TAGS="" && \
 	EXTRA_LDFLAGS="" && \
 	if [[ ! -z "$$VERSION" ]]; then \
-		EXTRA_LDFLAGS="-X github.com/getlantern/flashlight.compileTimePackageVersion=$$VERSION"; \
+		EXTRA_LDFLAGS="-X github.com/getlantern/lantern.compileTimePackageVersion=$$VERSION -X github.com/getlantern/flashlight.compileTimePackageVersion=$$VERSION"; \
 	else \
 		echo "** VERSION was not set, using default version. This is OK while in development."; \
 	fi && \
 	if [[ ! -z "$$HEADLESS" ]]; then \
 		BUILD_TAGS="$$BUILD_TAGS headless"; \
+	fi && \
+	if [[ ! -z "$$STAGING" ]]; then \
+		EXTRA_LDFLAGS="$$EXTRA_LDFLAGS -X github.com/getlantern/lantern.stagingMode=$$STAGING"; \
 	fi && \
 	BUILD_TAGS=$$(echo $$BUILD_TAGS | xargs) && echo "Build tags: $$BUILD_TAGS" && \
 	EXTRA_LDFLAGS=$$(echo $$EXTRA_LDFLAGS | xargs) && echo "Extra ldflags: $$EXTRA_LDFLAGS"
@@ -590,8 +593,7 @@ $(LANTERN_MOBILE_ANDROID_DEBUG): $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_AN
 		clean \
 		assembleDebug
 
-$(LANTERN_MOBILE_ANDROID_RELEASE): $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_SDK) $(LANTERN_MOBILE_PUBSUB)
-	@echo "Generating distribution package for android..."
+$(LANTERN_MOBILE_ANDROID_RELEASE): clean-mobile-lib $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_SDK) $(LANTERN_MOBILE_PUBSUB)
 	ln -f -s $$SECRETS_DIR/android/keystore.release.jks $(LANTERN_MOBILE_DIR)/app && \
 	gradle -PlanternVersion=$$VERSION -PlanternRevisionDate=$(REVISION_DATE) -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
 		clean \
@@ -609,6 +611,7 @@ clean-assets:
 	rm -f $(RESOURCES_DOT_GO)
 
 package-android: require-version require-secrets-dir $(LANTERN_MOBILE_ANDROID_RELEASE)
+	echo "Generating distribution package for Android" && \
 	cat lantern-installer.apk | bzip2 > update_android_arm.bz2 && \
 	echo "-> lantern-installer.apk"
 
@@ -636,6 +639,11 @@ clean-desktop: clean-assets
 	rm -f *.dmg && \
 	rm -f $(LANTERN_MOBILE_TUN2SOCKS) && \
 	rm -rf $(LANTERN_MOBILE_DIR)/libs/armeabi*
+
+clean-mobile-lib:
+	rm -f $(ANDROID_LIB) && \
+	rm -f $(LANTERN_MOBILE_ANDROID_LIB) && \
+	rm -f $(LANTERN_MOBILE_ANDROID_RELEASE)
 
 clean-mobile:
 	rm -f $(ANDROID_LIB) && \

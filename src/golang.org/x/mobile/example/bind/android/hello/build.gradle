@@ -4,7 +4,7 @@
  */
 
 plugins {
-    id "org.golang.mobile.bind" version "0.2.4"
+    id "org.golang.mobile.bind" version "0.2.6"
 }
 
 gobind {

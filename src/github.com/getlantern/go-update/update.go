@@ -161,6 +161,14 @@ type Update struct {
 	Signature []byte
 }
 
+func SetHttpClient(httpClient *http.Client) {
+	if httpClient == nil {
+		HTTPClient = &http.Client{}
+	} else {
+		HTTPClient = httpClient
+	}
+}
+
 func (u *Update) getPath() (string, error) {
 	if u.TargetPath == "" {
 		return osext.Executable()

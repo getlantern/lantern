@@ -1,0 +1,110 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" 
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" 
+    android:id="@+id/desktopView"
+    android:background="@color/accent_white"
+    tools:context=".DesktopActivity">
+
+    <fragment
+        xmlns:lantern="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/titlebar_fragment"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        class="org.lantern.fragment.TitleBar"
+        lantern:backgroundColor="@color/accent_white"
+        lantern:titleText="@string/lantern_desktop"/>
+
+
+            <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/titlebar_fragment"
+                android:layout_marginTop="36dp"      
+                android:layout_weight="1"
+                android:padding="15dp"
+                android:orientation="vertical"
+                android:gravity="center_vertical"
+                android:layout_gravity="center_vertical"> 
+
+
+                <ImageView
+                    android:id="@+id/desktop_graphic"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:layout_gravity="center"
+                    android:layout_alignParentTop="true"
+                    android:layout_centerHorizontal="true"
+                    android:src="@drawable/laptop"
+                    />                                  
+
+                <TextView
+                    android:id="@+id/receive_lantern"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:fontFamily="sans-serif" 
+                    android:textSize="16sp"
+                    android:gravity="center"
+                    android:singleLine="true"
+                    android:textColor="@color/black"
+                    android:text="@string/receive_lantern"
+                    android:textAppearance="?android:attr/textAppearanceSmall"/>
+
+                <EditText
+                    android:id="@+id/emailInput"
+                    android:layout_width="270dp"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif" 
+                    android:background="@null"
+                    android:hint="@string/email_hint"
+                    android:ems="10"
+                    android:textColor="@color/black"
+                    android:textSize="15dp"
+                    android:drawableLeft="@drawable/email_active"
+                    android:drawablePadding="5dp"
+                    android:paddingLeft="8dp"
+                    android:singleLine="true"
+                    android:autoText="false"
+                    android:layout_marginTop="25dp"
+                    android:layout_gravity="center"   
+                    android:gravity="left"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:inputType="textEmailAddress" />
+
+                <View
+                    android:id="@+id/separator"
+                    android:background="@color/black"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginLeft="10dp"
+                    android:layout_below="@+id/emailInput"
+                    android:layout_width = "220dp"
+                    android:layout_height="1dip"
+                    android:layout_gravity="center"
+                    android:layout_centerVertical ="true"
+                    android:layout_alignParentTop="true"
+                    />
+
+                <Button
+                    android:id="@+id/sendBtn"
+                    android:layout_height="41.5dp"
+                    android:layout_width="250dp"
+                    android:layout_marginTop="40dp"
+                    android:text="@string/send_desktop"
+                    android:fontFamily="sans-serif-medium" 
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textAllCaps="true"
+                    android:elevation="2dp"
+                    android:minHeight="48dp"
+                    android:layout_gravity="center"
+                    android:layout_centerHorizontal ="true"
+                    android:textColor="@color/accent_white"
+                    android:clickable = "true"
+                    android:background="@drawable/send_btn"
+                    android:onClick="sendDesktopVersion" />
+            </LinearLayout>
+    </RelativeLayout>
+

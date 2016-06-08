@@ -216,7 +216,7 @@ public class SeqTest extends InstrumentationTestCase {
     assertEquals("S should be collected", 1, collected);
   }
 
-  private class AnI extends Testpkg.I.Stub {
+  private class AnI implements Testpkg.I {
     public void E() throws Exception {
       throw new Exception("my exception from E");
     }
@@ -355,7 +355,7 @@ public class SeqTest extends InstrumentationTestCase {
 
   private int countI = 0;
 
-  private class CountI extends Testpkg.I.Stub {
+  private class CountI implements Testpkg.I {
     public void F() { countI++; }
 
     public void E() throws Exception {}
@@ -425,7 +425,7 @@ public class SeqTest extends InstrumentationTestCase {
 
   //test if we have JNI local reference table overflow error
   public void testLocalReferenceOverflow() {
-    Testpkg.CallWithCallback(new Testpkg.GoCallback.Stub() {
+    Testpkg.CallWithCallback(new Testpkg.GoCallback() {
 
       @Override
       public void VarUpdate() {
@@ -435,7 +435,7 @@ public class SeqTest extends InstrumentationTestCase {
   }
 
   public void testNullReferences() {
-    assertTrue(Testpkg.CallWithNull(null, new Testpkg.NullTest.Stub() {
+    assertTrue(Testpkg.CallWithNull(null, new Testpkg.NullTest() {
       public Testpkg.NullTest Null() {
         return null;
       }
@@ -445,7 +445,7 @@ public class SeqTest extends InstrumentationTestCase {
   }
 
   public void testPassByteArray() {
-    Testpkg.PassByteArray(new Testpkg.B.Stub() {
+    Testpkg.PassByteArray(new Testpkg.B() {
       @Override public void B(byte[] b) {
         byte[] want = new byte[]{1, 2, 3, 4};
         MoreAsserts.assertEquals("bytes should match", want, b);
@@ -468,14 +468,14 @@ public class SeqTest extends InstrumentationTestCase {
   }
 
   public void testGoroutineCallback() {
-    Testpkg.GoroutineCallback(new Testpkg.Receiver.Stub() {
+    Testpkg.GoroutineCallback(new Testpkg.Receiver() {
       @Override public void Hello(String msg) {
       }
     });
   }
 
   public void testImportedPkg() {
-    Testpkg.CallImportedI(new Secondpkg.I.Stub() {
+    Testpkg.CallImportedI(new Secondpkg.I() {
       @Override public long F(long i) {
         return i;
       }
@@ -496,10 +496,26 @@ public class SeqTest extends InstrumentationTestCase {
     fields.setS(s);
     Testpkg.WithImportedI(i);
     Testpkg.WithImportedS(s);
+
+    Secondpkg.IF f = new AnI();
+    f = Testpkg.New();
+    Secondpkg.Ser ser = Testpkg.NewSer();
   }
 
-  public void testIDup() {
+  public void testRoundtripEquality() {
     Testpkg.I want = new AnI();
     assertTrue("java object passed through Go should not be wrapped", want == Testpkg.IDup(want));
+    Testpkg.InterfaceDupper idup = new Testpkg.InterfaceDupper(){
+      @Override public Testpkg.Interface IDup(Testpkg.Interface i) {
+        return i;
+      }
+    };
+    assertTrue("Go interface passed through Java should not be wrapped", Testpkg.CallIDupper(idup));
+    Testpkg.ConcreteDupper cdup = new Testpkg.ConcreteDupper(){
+      @Override public Testpkg.Concrete CDup(Testpkg.Concrete c) {
+        return c;
+      }
+    };
+    assertTrue("Go struct passed through Java should not be wrapped", Testpkg.CallCDupper(cdup));
   }
 }

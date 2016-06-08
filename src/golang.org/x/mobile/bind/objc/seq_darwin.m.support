@@ -36,6 +36,15 @@
 //
 //  For Go type object, a objective-C proxy instance is created whenever
 //  the object reference is passed into objective-C.
+//
+//  While crossing the language barrier there is a brief window where the foreign
+//  proxy object might be finalized but the refnum is not yet translated to its object.
+//  If the proxy object was the last reference to the foreign object, the refnum
+//  will be invalid by the time it is looked up in the foreign reference tracker.
+//
+//  To make sure the foreign object is kept live while its refnum is in transit,
+//  increment its refererence count before crossing. The other side will decrement
+//  it again immediately after the refnum is converted to its object.
 
 // Note that this file is copied into and compiled with the generated
 // bindings.
@@ -87,6 +96,11 @@
 // When the counter reaches 0, the object is removed from the map.
 - (void)dec:(int32_t)refnum;
 
+// increments the counter of the objective-C object with the reference number.
+// This is called whenever a Go proxy is converted to its refnum and send
+// across the language barrier.
+- (void)inc:(int32_t)refnum;
+
 // returns the object of the reference number.
 - (id)get:(int32_t)refnum;
 
@@ -105,6 +119,12 @@ void init_seq() { tracker = [[RefTracker alloc] init]; }
 void go_seq_dec_ref(int32_t refnum) {
   @autoreleasepool {
     [tracker dec:refnum];
+  }
+}
+
+void go_seq_inc_ref(int32_t refnum) {
+  @autoreleasepool {
+    [tracker inc:refnum];
   }
 }
 
@@ -128,7 +148,12 @@ NSString *go_seq_to_objc_string(nstring str) {
 }
 
 id go_seq_objc_from_refnum(int32_t refnum) {
-  return [tracker get:refnum];
+  id obj = [tracker get:refnum];
+  // Go called IncForeignRef just before converting its proxy to its refnum. Decrement it here.
+  // It's very important to decrement *after* fetching the reference from the tracker, in case
+  // there are no other proxy references to the object.
+  [tracker dec:refnum];
+  return obj;
 }
 
 GoSeqRef *go_seq_from_refnum(int32_t refnum) {
@@ -149,7 +174,7 @@ int32_t go_seq_to_refnum(id obj) {
 }
 
 int32_t go_seq_go_to_refnum(GoSeqRef *ref) {
-  int32_t refnum = ref.refnum;
+  int32_t refnum = [ref incNum];
   if (!IS_FROM_GO(refnum)) {
     LOG_FATAL(@"go_seq_go_to_refnum on objective-c objects is not permitted");
   }
@@ -157,7 +182,7 @@ int32_t go_seq_go_to_refnum(GoSeqRef *ref) {
 }
 
 nbyteslice go_seq_from_objc_bytearray(NSData *data, int copy) {
-  struct nbyteslice res = {NULL, 0, NO};
+  struct nbyteslice res = {NULL, 0};
   int sz = data.length;
   if (sz == 0) {
     return res;
@@ -216,6 +241,11 @@ nstring go_seq_from_objc_string(NSString *s) {
   LOG_FATAL(@"GoSeqRef init is disallowed");
 }
 
+- (int32_t)incNum {
+  IncGoRef(_refnum);
+  return _refnum;
+}
+
 // called when an object from Go is passed in.
 - (instancetype)initWithRefnum:(int32_t)refnum obj:(id)obj {
   self = [super init];
@@ -270,6 +300,7 @@ nstring go_seq_from_objc_string(NSString *s) {
   self = [super init];
   if (self) {
     _next = 42;
+    _refs = [[NSMutableDictionary alloc] init];
     _objs = [[NSMutableDictionary alloc] init];
   }
   return self;
@@ -296,6 +327,21 @@ nstring go_seq_from_objc_string(NSString *s) {
     } else {
       counter.cnt = n - 1;
     }
+  }
+}
+
+// inc is called whenever a ObjC refnum crosses from Go to ObjC
+- (void)inc:(int32_t)refnum {
+  if (IS_FROM_GO(refnum)) {
+    LOG_FATAL(@"dec:invalid refnum for Objective-C objects");
+  }
+  @synchronized(self) {
+    id key = @(refnum);
+    RefCounter *counter = [_objs objectForKey:key];
+    if (counter == NULL) {
+      LOG_FATAL(@"unknown refnum");
+    }
+    counter.cnt++;
   }
 }
 

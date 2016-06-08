@@ -19,122 +19,86 @@ public abstract class Interfaces {
     
     private static native void init();
     
-    public interface Error extends go.Seq.Object {
+    public interface Error {
         public void Err() throws Exception;
-        public static abstract class Stub implements Error {
-            private final go.Seq.Ref ref;
-            public Stub() {
-                ref = go.Seq.createRef(this);
-            }
-            
-            public final go.Seq.Ref ref() { return ref; }
-            
-        }
-        
-        static final class Proxy implements Error {
-            private go.Seq.Ref ref;
-        
-            Proxy(go.Seq.Ref ref) { this.ref = ref; }
-        
-            public final go.Seq.Ref ref() { return ref; }
-        
-            public native void Err() throws Exception;
-        }
     }
     
-    public interface I extends go.Seq.Object {
+    private static final class proxyError extends Seq.Proxy implements Error {
+        proxyError(Seq.Ref ref) { super(ref); }
+    
+        public native void Err() throws Exception;
+    }
+    
+    public interface I {
         public int Rand();
-        public static abstract class Stub implements I {
-            private final go.Seq.Ref ref;
-            public Stub() {
-                ref = go.Seq.createRef(this);
-            }
-            
-            public final go.Seq.Ref ref() { return ref; }
-            
-        }
-        
-        static final class Proxy implements I {
-            private go.Seq.Ref ref;
-        
-            Proxy(go.Seq.Ref ref) { this.ref = ref; }
-        
-            public final go.Seq.Ref ref() { return ref; }
-        
-            public native int Rand();
-        }
     }
     
-    public interface I1 extends go.Seq.Object {
+    private static final class proxyI extends Seq.Proxy implements I {
+        proxyI(Seq.Ref ref) { super(ref); }
+    
+        public native int Rand();
+    }
+    
+    public interface I1 {
         public void J();
-        static final class Proxy implements I1 {
-            private go.Seq.Ref ref;
-        
-            Proxy(go.Seq.Ref ref) { this.ref = ref; }
-        
-            public final go.Seq.Ref ref() { return ref; }
-        
-            public native void J();
-        }
     }
     
-    public interface I2 extends go.Seq.Object {
+    private static final class proxyI1 extends Seq.Proxy implements I1 {
+        proxyI1(Seq.Ref ref) { super(ref); }
+    
+        public native void J();
+    }
+    
+    public interface I2 {
         public void G();
-        static final class Proxy implements I2 {
-            private go.Seq.Ref ref;
-        
-            Proxy(go.Seq.Ref ref) { this.ref = ref; }
-        
-            public final go.Seq.Ref ref() { return ref; }
-        
-            public native void G();
-        }
     }
     
-    public interface I3 extends go.Seq.Object {
+    private static final class proxyI2 extends Seq.Proxy implements I2 {
+        proxyI2(Seq.Ref ref) { super(ref); }
+    
+        public native void G();
+    }
+    
+    public interface I3 {
         public I1 F();
-        public static abstract class Stub implements I3 {
-            private final go.Seq.Ref ref;
-            public Stub() {
-                ref = go.Seq.createRef(this);
-            }
-            
-            public final go.Seq.Ref ref() { return ref; }
-            
-        }
-        
-        static final class Proxy implements I3 {
-            private go.Seq.Ref ref;
-        
-            Proxy(go.Seq.Ref ref) { this.ref = ref; }
-        
-            public final go.Seq.Ref ref() { return ref; }
-        
-            public native I1 F();
-        }
     }
     
-    public interface WithParam extends go.Seq.Object {
+    private static final class proxyI3 extends Seq.Proxy implements I3 {
+        proxyI3(Seq.Ref ref) { super(ref); }
+    
+        public native I1 F();
+    }
+    
+    public interface LargerI extends I, SameI {
+        public void AnotherFunc();
+        public int Rand();
+    }
+    
+    private static final class proxyLargerI extends Seq.Proxy implements LargerI {
+        proxyLargerI(Seq.Ref ref) { super(ref); }
+    
+        public native void AnotherFunc();
+        public native int Rand();
+    }
+    
+    public interface SameI {
+        public int Rand();
+    }
+    
+    private static final class proxySameI extends Seq.Proxy implements SameI {
+        proxySameI(Seq.Ref ref) { super(ref); }
+    
+        public native int Rand();
+    }
+    
+    public interface WithParam {
         public void HasParam(boolean p0);
-        public static abstract class Stub implements WithParam {
-            private final go.Seq.Ref ref;
-            public Stub() {
-                ref = go.Seq.createRef(this);
-            }
-            
-            public final go.Seq.Ref ref() { return ref; }
-            
-        }
-        
-        static final class Proxy implements WithParam {
-            private go.Seq.Ref ref;
-        
-            Proxy(go.Seq.Ref ref) { this.ref = ref; }
-        
-            public final go.Seq.Ref ref() { return ref; }
-        
-            public native void HasParam(boolean p0);
-        }
+    }
+    
+    private static final class proxyWithParam extends Seq.Proxy implements WithParam {
+        proxyWithParam(Seq.Ref ref) { super(ref); }
+    
+        public native void HasParam(boolean p0);
     }
     
     

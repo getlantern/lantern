@@ -20,7 +20,7 @@ Java_go_vars_Vars_init(JNIEnv *env, jclass _unused) {
     clazz = (*env)->FindClass(env, "go/vars/Vars$S");
     proxy_class_vars_S = (*env)->NewGlobalRef(env, clazz);
     proxy_class_vars_S_cons = (*env)->GetMethodID(env, clazz, "<init>", "(Lgo/Seq$Ref;)V");
-    clazz = (*env)->FindClass(env, "go/vars/Vars$I$Proxy");
+    clazz = (*env)->FindClass(env, "go/vars/Vars$proxyI");
     proxy_class_vars_I = (*env)->NewGlobalRef(env, clazz);
     proxy_class_vars_I_cons = (*env)->GetMethodID(env, clazz, "<init>", "(Lgo/Seq$Ref;)V");
     clazz = (*env)->FindClass(env, "go/vars/Vars$I");

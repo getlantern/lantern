@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:lantern="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools" 
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" 
+    android:orientation="vertical"
+    android:baselineAligned="false"
+    android:id="@+id/authDeviceView">
+
+    <RelativeLayout
+        android:id="@+id/auth_bottom_sheet"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:elevation="5dp"
+        android:background="@color/accent_white"
+        android:layout_centerHorizontal="true"
+        android:padding="15dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:id="@+id/phone_device_view"
+            android:visibility="gone"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_width="fill_parent"
+            android:layout_height="205dp">
+
+            <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:id="@+id/phone_layout"
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:id="@+id/phone_icon"
+                    android:layout_alignParentLeft="true"
+                    android:adjustViewBounds="true" 
+                    android:layout_alignParentStart="true"
+                    android:layout_marginTop="10dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingRight="5dp"
+                    android:paddingLeft="5dp"
+                    android:src="@drawable/phone"/>
+
+                <net.rimoto.intlphoneinput.IntlPhoneInput
+                    android:id="@+id/phone"
+                    android:layout_toLeftOf="@+id/phone_icon"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif" 
+                    android:textSize="14dp"
+                    android:textStyle="bold"
+                    android:textColor="@color/black"/>
+
+            </LinearLayout>
+
+            <View
+                android:id="@+id/separator"
+                android:background="@color/edittext_color"
+                android:layout_below="@+id/phone_layout"
+                android:layout_width = "fill_parent"
+                android:layout_height="1.5dip"
+                android:layout_marginLeft="40dp"
+                android:layout_centerVertical ="true"
+                android:layout_alignParentTop="true"
+                />
+
+            <TextView
+                android:id="@+id/phoneDetails"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:padding="10dp"
+                android:lineSpacingExtra="10dp"
+                android:fontFamily="sans-serif" 
+                android:text=""
+                android:alpha=".87"
+                android:textSize="14sp"
+                android:layout_centerHorizontal="true"
+                android:gravity="left"
+                android:textColor="@color/black"
+                android:textAppearance="?android:attr/textAppearanceSmall"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/auth_device_view"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_width="fill_parent"
+            android:layout_height="205dp">
+
+            <EditText
+                android:id="@+id/email"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif" 
+                android:background="@null"
+                android:layout_marginLeft="10dp"
+                android:drawableLeft="@drawable/email_active"
+                android:drawablePadding="10dip"
+                android:hint=""
+                android:textColor="@color/black"
+                android:textStyle="bold"
+                android:textSize="14dp"
+                android:autoText="false"
+                android:paddingTop="20dp"
+                android:paddingBottom="5dp"
+                android:gravity="fill_horizontal"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:inputType="textEmailAddress" />
+
+            <View
+                android:id="@+id/separator"
+                android:background="@color/edittext_color"
+                android:layout_below="@+id/email"
+                android:layout_width = "wrap_content"
+                android:layout_gravity="center"
+                android:layout_height="1.5dip"
+				android:layout_marginLeft="30dp"
+                android:layout_centerVertical ="true"
+                android:layout_alignParentTop="true"
+                />
+
+            <TextView
+                android:id="@+id/formDetails"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:padding="10dp"
+                android:lineSpacingExtra="10dp"
+                android:fontFamily="sans-serif" 
+                android:text=""
+                android:alpha=".87"
+                android:textSize="14sp"
+                android:layout_centerHorizontal="true"
+                android:gravity="left"
+                android:textColor="@color/black"
+                android:textAppearance="?android:attr/textAppearanceSmall"/>
+        </LinearLayout>
+    </RelativeLayout>
+
+    <Button
+        android:id="@+id/sendBtn"
+        android:layout_height="36dp"
+        android:layout_width="216dp"
+        android:layout_marginTop="20dp"
+        android:text="@string/send_link"
+        android:fontFamily="sans-serif-medium" 
+        android:textSize="14sp"
+        android:elevation="2dp"
+        android:minHeight="48dp"
+        android:textColor="@color/accent_white"
+        android:clickable = "true"
+        android:textAllCaps="true"
+        android:gravity="center"
+        android:layout_gravity="center" 
+        android:background="@drawable/send_btn"
+        android:onClick="sendResult" />
+
+    <TextView
+        android:id="@+id/continueBtn"
+        android:visibility="gone"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="@string/continue_to_checkout"
+        android:fontFamily="sans-serif-medium"
+        android:textSize="14sp"
+        android:clickable="true"
+        android:textColor="@color/link_blue"
+        android:layout_marginTop="20dp"
+        android:layout_gravity="center" 
+        android:gravity="center"
+        android:background="@null"
+        android:layout_centerHorizontal="true"
+        android:onClick="continueBtn"/>
+
+</LinearLayout>
