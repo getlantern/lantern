@@ -108,11 +108,7 @@ func (f *httpConnectHandler) intercept(op ops.Op, w http.ResponseWriter, req *ht
 		errorf(op, "Unable to dial %v: %v", req.Host, err)
 		return
 	}
-	connOut := idletiming.Conn(connOutRaw, f.IdleTimeout, func() {
-		if connOutRaw != nil {
-			connOutRaw.Close()
-		}
-	})
+	connOut := idletiming.Conn(connOutRaw, f.IdleTimeout, nil)
 
 	// Pipe data through CONNECT tunnel
 	closeConns := func() {
