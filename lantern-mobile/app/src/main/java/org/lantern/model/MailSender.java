@@ -2,15 +2,20 @@ package org.lantern.model;
 
 import com.microtripit.mandrillapp.lutung.MandrillApi;
 import com.microtripit.mandrillapp.lutung.view.MandrillMessage;
+import com.microtripit.mandrillapp.lutung.view.MandrillMessage.MergeVar;
+import com.microtripit.mandrillapp.lutung.view.MandrillMessage.MergeVarBucket;
 import com.microtripit.mandrillapp.lutung.view.MandrillMessageStatus;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 
 import android.util.Log;
 
+import org.lantern.LanternApp;
+import org.lantern.model.SessionManager;
 
 public class MailSender {   
 
@@ -20,6 +25,7 @@ public class MailSender {
     public synchronized void sendLogs(String logsFile) {
 
         try {
+            SessionManager session = LanternApp.getSession();
 
             Log.d(TAG, "Send logs clicked; log directory: " + logsFile);
 
@@ -36,17 +42,36 @@ public class MailSender {
 
             attachments.add(logContent);
 
-            sendMail("team@getlantern.org", attachments);
+            final HashMap<String,String> templateContent =
+                new HashMap<String,String>();
+            final MergeVar[] mergeValues = {
+                new MergeVar("protoken", session.Token()),
+                new MergeVar("deviceid", session.DeviceId()),
+                new MergeVar("emailaddress", session.StripeEmail()),
+                new MergeVar("phonenumber", session.PhoneNumber())
+            };
+
+            sendMail("team@getlantern.org", "user-send-logs", mergeValues, attachments);
         } catch (Exception e) {
             Log.e(TAG, "Error sending log messages: " + e.getMessage());
         }
     }
 
-    public synchronized void sendMail(String toEmail) throws Exception {                          
-        sendMail(toEmail, null);
+    public synchronized void sendMail(String toEmail) throws Exception {
+
+        final MergeVar[] mergeValues = {};
+
+        sendMail(toEmail, "download-link-from-lantern-website", mergeValues, null);
     }
 
-    public synchronized void sendMail(String toEmail, List<MandrillMessage.MessageContent> attachments) throws Exception {
+    public synchronized void sendMail(String toEmail, String template, final MergeVar[] mergeValues, List<MandrillMessage.MessageContent> attachments) throws Exception {
+
+
+        final Map<String, String> templateContent = new HashMap<String, String>();
+        for (MergeVar value : mergeValues)
+        {
+            templateContent.put(value.getName(), value.getContent().toString());
+        }
 
         MandrillApi mandrillApi = new MandrillApi(apiKey);
         MandrillMessage message = new MandrillMessage();
@@ -63,10 +88,17 @@ public class MailSender {
              message.setAttachments(attachments);
         }
 
-        final HashMap<String,String> templateContent =
-            new HashMap<String,String>();
-        templateContent.put("content", "example content");
-        mandrillApi.messages().sendTemplate("download-link-from-lantern-website",
+
+        final MandrillMessage.MergeVarBucket mergeBucket = new MandrillMessage.MergeVarBucket();
+        mergeBucket.setRcpt(toEmail);
+        mergeBucket.setVars(mergeValues);
+
+        final List<MergeVarBucket> mergeBuckets = new ArrayList<MergeVarBucket>();
+        mergeBuckets.add(mergeBucket);
+
+        message.setMergeVars(mergeBuckets);
+
+        mandrillApi.messages().sendTemplate(template,
                 templateContent, message, null);
     }   
 }  
