@@ -121,16 +121,12 @@ func Start(requestedAddr string, allowRemote bool, extUrl string) (string, error
 			log.Errorf("Error serving: %v", err)
 		}
 	}()
-	uiaddr = fmt.Sprintf("http://%v", l.Addr().String())
+	listenAddr := l.Addr().String()
+	uiaddr = fmt.Sprintf("http://%v", listenAddr)
 
+	proAddr := proProxyAddr(listenAddr)
 	go func() {
-		addr := l.Addr().String()
-		host, _, _ := net.SplitHostPort(addr)
-		if host == "" {
-			host = "127.0.0.1"
-		}
-		proxyAddr := fmt.Sprintf("%s:1233", host)
-		log.Fatal(pro.InitProxy(proxyAddr))
+		log.Fatal(pro.InitProxy(proAddr))
 	}()
 
 	// Note - we display the UI using the LanternSpecialDomain. This is necessary
@@ -145,7 +141,15 @@ func Start(requestedAddr string, allowRemote bool, extUrl string) (string, error
 	proxiedUIAddr = fmt.Sprintf("http://%v", client.LanternSpecialDomain)
 	log.Debugf("UI available at %v", uiaddr)
 
-	return l.Addr().String(), nil
+	return listenAddr, nil
+}
+
+func proProxyAddr(addr string) string {
+	host, _, _ := net.SplitHostPort(addr)
+	if host == "" {
+		host = "127.0.0.1"
+	}
+	return fmt.Sprintf("%s:1233", host)
 }
 
 func PreferProxiedUI(val bool) (newAddr string, addrChanged bool) {
