@@ -171,13 +171,26 @@ func DownloadUpdate(url, apkPath string, shouldProxy bool, updater Updater) {
 	autoupdate.UpdateMobile(shouldProxy, url, apkPath, updater)
 }
 
-func GetBandwidthQuota() string {
+func GetBandwidthRemaining() int {
+	remaining := 0
 	quota := bandwidth.GetQuota()
 	if quota != nil {
-		res := quota.MiBUsed / quota.MiBAllowed
-		return strconv.FormatUint(res, 10)
+		if quota.MiBUsed < quota.MiBAllowed {
+			remaining = int(quota.MiBAllowed - quota.MiBUsed)
+		}
 	}
-	return "0"
+	return remaining
+}
+
+func GetBandwidthQuota() int {
+	percent := 1.0
+	quota := bandwidth.GetQuota()
+	if quota != nil {
+		if quota.MiBUsed < quota.MiBAllowed {
+			percent = (float64(quota.MiBUsed) / float64(quota.MiBAllowed))
+		}
+	}
+	return int(100.0 * percent)
 }
 
 func GetFeed(locale string, allStr string, shouldProxy bool, provider FeedProvider) {

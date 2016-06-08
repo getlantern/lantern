@@ -90,8 +90,8 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     private String lastFeedSelected;
 
     private Toast statusToast;
-	private ImageView statusImage;
-	private TextView statusText;
+    private ImageView statusImage;
+    private TextView statusText;
 
     private SessionManager session;
 
@@ -172,7 +172,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         setVersionNum();
         setupStatusToast();
         checkUpdateAfterDelay();
-
     }
 
     @Override
@@ -181,18 +180,30 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         setupSideMenu();
         setBtnStatus();
-        setBandwidthQuota();  
+
+        final Handler handler = new Handler();
+        final Runnable updateBandwidth = new Runnable() {
+            @Override
+            public void run() {
+                if (!isFinishing()) {
+                    setBandwidthQuota(); 
+                }
+            }
+        };
+        handler.postDelayed(updateBandwidth, 3000);
         showFeedview();
     }
 
     private void setBandwidthQuota() {
         if (!session.isProUser()) {
-            String quota = Lantern.GetBandwidthQuota();
-            String amount = String.format(getResources().getString(R.string.data_remaining), quota);
+            long quota = Lantern.GetBandwidthQuota();
+            long remaining = Lantern.GetBandwidthRemaining();
+            Log.d(TAG, "Bandwidth remaining is " + remaining);
+            String amount = String.format(getResources().getString(R.string.data_remaining), remaining);
             dataRemaining.setText(amount);
             if (dataProgressBar != null) {
                 Log.d(TAG, "Current bandwidth quota: " + quota);
-                dataProgressBar.setProgress(Integer.parseInt(quota));
+                dataProgressBar.setProgress((int)quota);
             }
         } else {
             // hide data usage summary if its a pro user
@@ -216,8 +227,8 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         LayoutInflater inflater = getLayoutInflater();
         statusLayout = inflater.inflate(R.layout.status_layout, 
                 (ViewGroup)findViewById(R.id.status_layout_root));
-		statusImage = (ImageView)statusLayout.findViewById(R.id.statusImage);
-		statusText  = (TextView)statusLayout.findViewById(R.id.statusText);
+        statusImage = (ImageView)statusLayout.findViewById(R.id.statusImage);
+        statusText  = (TextView)statusLayout.findViewById(R.id.statusText);
         statusToast = new Toast(getApplicationContext());
         statusToast.setGravity(Gravity.BOTTOM|Gravity.FILL_HORIZONTAL, 0, 0);
         statusToast.setDuration(Toast.LENGTH_SHORT);
@@ -798,19 +809,19 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         }
     }
 
-	private void setActiveHeaderColor(int position) {
-		int count = feedAdapter.getCount();
-		int black = getResources().getColor(R.color.black);
-		boolean useVpn = Service.IsRunning;
-		for (int i = 0; i < count; i++) {
-			TextView view = (TextView) viewPagerTab.getTabAt(i);
-			if (i == position) {
-				view.setTextColor(getResources().getColor(R.color.pink));
-			} else {
+    private void setActiveHeaderColor(int position) {
+        int count = feedAdapter.getCount();
+        int black = getResources().getColor(R.color.black);
+        boolean useVpn = Service.IsRunning;
+        for (int i = 0; i < count; i++) {
+            TextView view = (TextView) viewPagerTab.getTabAt(i);
+            if (i == position) {
+                view.setTextColor(getResources().getColor(R.color.pink));
+            } else {
                 view.setTextColor(black);
-			}
-		}
-	}
+            }
+        }
+    }
 
     public void setupFeed(final ArrayList<String> sources) {
 
@@ -847,7 +858,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             public void onPageSelected(int position) {
                 super.onPageSelected(position);
                 Fragment f = feedAdapter.getPage(position);
-				setActiveHeaderColor(position);
+                setActiveHeaderColor(position);
 
                 if (f instanceof FeedFragment) {
                     lastFeedSelected = ((FeedFragment)f).getFeedName();
@@ -858,7 +869,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         View tab = viewPagerTab.getTabAt(0);
         if (tab != null) {
             tab.setSelected(true);
-			((TextView)tab).setTextColor(getResources().getColor(R.color.pink));
+            ((TextView)tab).setTextColor(getResources().getColor(R.color.pink));
         }
     }
 
