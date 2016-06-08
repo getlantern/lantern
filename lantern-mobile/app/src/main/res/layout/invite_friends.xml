@@ -192,7 +192,6 @@
                 android:text="@string/text_invite"
                 android:fontFamily="sans-serif-medium" 
                 android:textSize="14sp"
-                android:elevation="2dp"
                 android:minHeight="48dp"
                 android:textAllCaps="true"
                 android:textColor="@color/pink"

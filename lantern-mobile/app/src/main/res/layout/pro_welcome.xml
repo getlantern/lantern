@@ -7,6 +7,17 @@
     android:id="@+id/proWelcomeView"
     tools:context=".WelcomeActivity">
 
+    <fragment
+        xmlns:lantern="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/titlebar_fragment"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        class="org.lantern.fragment.TitleBar"
+        lantern:disableBackButton="true"
+        lantern:backgroundColor="@color/accent_white"
+        lantern:titleText="@string/pro_welcome_text"/>
+
+
     <LinearLayout
         android:id="@+id/welcome"
         android:layout_centerVertical="true"
@@ -15,21 +26,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:background="@color/accent_white"
-        android:padding="8dp">
-
-        <TextView
-            android:id="@+id/welcome_text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-medium"
-            android:layout_centerInParent="true"
-            android:gravity="center"
-            android:text="@string/pro_welcome_text"
-            android:layout_marginTop="10dp"
-            android:elevation="2dp"
-            android:textSize="19sp"
-            android:textColor="@color/black"/>
+        android:background="@color/accent_white">
 
         <ImageView
             android:id="@+id/pro_welcome"
