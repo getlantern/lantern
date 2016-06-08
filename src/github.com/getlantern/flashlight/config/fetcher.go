@@ -11,10 +11,12 @@ import (
 	"strconv"
 	"time"
 
+	"code.google.com/p/go-uuid/uuid"
 	"github.com/getlantern/detour"
 	"github.com/getlantern/yamlconf"
 
-	"code.google.com/p/go-uuid/uuid"
+	"github.com/getlantern/flashlight/ops"
+	"github.com/getlantern/flashlight/proxied"
 )
 
 const (
@@ -144,6 +146,7 @@ func (cf *fetcher) pollForConfig(currentCfg yamlconf.Config, stickyConfig bool) 
 }
 
 func (cf *fetcher) fetchCloudConfig(cfg *Config) ([]byte, error) {
+	defer ops.Begin("fetch_config").End()
 	log.Debugf("Fetching cloud config from %v (%v)", cf.chainedURL, cf.frontedURL)
 
 	url := cf.chainedURL
@@ -162,7 +165,7 @@ func (cf *fetcher) fetchCloudConfig(cfg *Config) ([]byte, error) {
 	// Prevents intermediate nodes (domain-fronters) from caching the content
 	req.Header.Set("Cache-Control", "no-cache")
 	// Set the fronted URL to lookup the config in parallel using chained and domain fronted servers.
-	req.Header.Set("Lantern-Fronted-URL", cf.frontedURL+cb)
+	proxied.PrepareForFronting(req, cf.frontedURL+cb)
 
 	id := cf.user.GetUserID()
 	if id != 0 {
