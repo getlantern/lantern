@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:gravity="center_horizontal"
+    android:background="@color/accent_white"
     android:layout_width="334dp"
     android:layout_gravity="center_vertical"
     android:layout_height="wrap_content"
@@ -38,7 +39,7 @@
         android:id="@+id/number" 
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:drawableLeft="@drawable/card_inactive"
+        android:drawableLeft="@drawable/ic_cc"
         android:drawablePadding="10dip"
         android:fontFamily="sans-serif" 
         android:textColor="@color/edittext_color"
@@ -79,7 +80,7 @@
             android:id="@+id/date_icon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/date_inactive"/>
+            android:src="@drawable/ic_date"/>
 
         <Spinner 
             android:id="@+id/expMonth" 
@@ -112,7 +113,7 @@
         android:hint="@string/cvc" 
         android:background="@null"
         android:fontFamily="sans-serif" 
-        android:drawableLeft="@drawable/cvv_inactive"
+        android:drawableLeft="@drawable/ic_cvv"
         android:drawablePadding="10dip"
         android:paddingTop="30dp"
         android:autoText="false"

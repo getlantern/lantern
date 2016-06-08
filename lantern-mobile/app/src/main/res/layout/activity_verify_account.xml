@@ -16,7 +16,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         class="org.lantern.fragment.TitleBar"
-        lantern:backgroundColor="@color/accent_white"
+        lantern:backgroundColor="@drawable/nav_background_white"
         lantern:titleText="@string/account_verification"/>
 
     <fragment

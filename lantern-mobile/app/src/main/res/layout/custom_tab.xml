@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:id="@+id/custom_text"
+  android:layout_width="wrap_content"
+  android:layout_height="match_parent"
+  android:background="?attr/selectableItemBackground"
+  android:gravity="center"
+  android:paddingLeft="24dp"
+  android:paddingRight="24dp"
+  android:textColor="@color/custom_tab"
+  android:textSize="14sp"
+  >
+
+</TextView>

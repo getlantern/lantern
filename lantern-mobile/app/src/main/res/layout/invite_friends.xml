@@ -23,7 +23,6 @@
         android:layout_width="fill_parent"
         android:layout_height="260dp"
         android:layout_weight="1"
-        android:gravity="center"
         android:background="@color/accent_white"
         android:elevation="2dp">
 
@@ -32,9 +31,8 @@
             android:paddingTop="26dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:scaleType="fitXY"
-            android:adjustViewBounds="true"
-            android:layout_centerInParent="true"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
             android:src="@drawable/coins"/>
     </RelativeLayout>
 
