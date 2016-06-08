@@ -49,10 +49,17 @@ type Source struct {
 	Entries        []int  `json:"entries"`
 }
 
+type Image struct {
+	Url    string `json:"url"`
+	Width  int    `json:"width"`
+	Height int    `json:"height"`
+}
+
 type FeedItem struct {
 	Title       string                 `json:"title"`
 	Link        string                 `json:"link"`
 	Image       string                 `json:"image"`
+	Images      []Image                `json:"images"`
 	Date        string                 `json:"publishedDate"`
 	Meta        map[string]interface{} `json:"meta,omitempty"`
 	Content     string                 `json:"contentSnippetText"`
@@ -78,8 +85,21 @@ func FeedByName(name string, retriever FeedRetriever) {
 	if feed != nil && feed.Items != nil {
 		if items, exists := feed.Items[name]; exists {
 			for _, i := range items {
+				img := i.Image
+
+				if len(i.Images) > 0 {
+					log.Debugf("images is %v", i.Images)
+					for _, k := range i.Images {
+						if k.Width > 350 {
+							log.Debugf("Updating image %s to %s", img, k.Url)
+							img = k.Url
+							break
+						}
+					}
+				}
+
 				retriever.AddFeed(feed.sourceMap[i.Source], i.Title, i.Date,
-					i.Description, i.Image, i.Link)
+					i.Description, img, i.Link)
 			}
 		}
 	}
@@ -234,6 +254,20 @@ func processFeed(allStr string, provider FeedProvider) {
 	all := make(FeedItems, 0, len(feed.Entries))
 	for _, entry := range feed.Entries {
 		if !feed.Feeds[entry.Source].ExcludeFromAll {
+
+			img := entry.Image
+
+			if len(entry.Images) > 0 {
+				for _, k := range entry.Images {
+					if k.Width > 350 {
+						log.Debugf("Updating image %s to %s", img, k.Url)
+						img = k.Url
+						break
+					}
+				}
+			}
+			entry.Image = img
+
 			all = append(all, entry)
 		}
 	}

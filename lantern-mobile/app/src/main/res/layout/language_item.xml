@@ -14,10 +14,9 @@
         android:textSize="14sp"
         android:textStyle="bold"
         android:gravity="center_horizontal"
-        android:textColor="#000000"
+        android:textColor="@color/black"
         android:fontFamily="sans-serif-medium"
         android:paddingLeft="10dp"
-        android:text="Line 1"
         android:layout_alignParentTop="true"/>
 
 </RelativeLayout>    

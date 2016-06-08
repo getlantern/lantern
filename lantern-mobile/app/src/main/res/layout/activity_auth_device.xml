@@ -7,7 +7,7 @@
     android:layout_height="match_parent" 
     android:orientation="vertical"
     android:baselineAligned="false"
-    android:background="@color/form_bg"
+    android:background="@color/accent_white"
     android:id="@+id/authDeviceView"
     tools:context=".AuthDeviceActivity">
 

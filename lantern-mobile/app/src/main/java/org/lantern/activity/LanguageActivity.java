@@ -5,7 +5,6 @@ import android.content.res.Configuration;
 import android.content.res.Resources; 
 import android.util.DisplayMetrics; 
 import android.util.Log;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import android.support.v4.app.FragmentActivity;
@@ -22,6 +21,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.HashMap;
 
+import org.lantern.model.LangAdapter;
 import org.lantern.R;
 
 @EActivity(R.layout.languages)
@@ -29,7 +29,7 @@ public class LanguageActivity extends FragmentActivity {
 
     private static final String TAG = "LanguageActivity";
 
-    private ArrayAdapter<String> adapter;
+    private LangAdapter adapter;
     private static ArrayList<String> languages;
 	private static Map<String, Locale> localeMap;
 
@@ -80,14 +80,16 @@ public class LanguageActivity extends FragmentActivity {
         }
 
         for (int i = 0; i < finalSize; i++) {
-            languages.add(preprocess[i].getLabel());                                             
+            languages.add(preprocess[i].getLabel());
             localeMap.put(preprocess[i].getLabel(), preprocess[i].getLocale());
         }
 
         Collections.sort(languages);
 
-        adapter = new ArrayAdapter<String>(this, R.layout.language_item, R.id.title, languages);
-        list.setAdapter(adapter); 
+        adapter = new LangAdapter(this, languages);
+        adapter.setLocaleMap(localeMap);
+        list.setAdapter(adapter);
+        list.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
     }         
 
     @ItemClick(R.id.list)
