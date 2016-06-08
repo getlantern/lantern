@@ -15,9 +15,10 @@ import (
 )
 
 // Close connections idle for a period to avoid dangling connections.
-// 1 hour is long enough to avoid interrupt normal connections but short enough
-// to eliminate "too many open files" error.
-var idleTimeout = 1 * time.Hour
+// 45 seconds is long enough to avoid interrupt normal connections but shor
+// shorter than the server-side timeout and short enough to eliminate
+// "too many open files" error.
+var idleTimeout = 45 * time.Second
 
 // Lantern internal sites won't be used as check target.
 var internalSiteSuffixes = []string{"getlantern.org", "getiantem.org", "lantern.io"}

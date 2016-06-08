@@ -395,6 +395,10 @@ func chained(rootCA string, persistent bool) (http.RoundTripper, error) {
 		}
 		tr.TLSClientConfig.RootCAs = caCert.PoolContainingCert()
 	}
+	if persistent {
+		tr.MaxIdleTime = 30 * time.Second
+		tr.EnforceMaxIdleTime()
+	}
 
 	tr.Proxy = func(req *http.Request) (*url.URL, error) {
 		proxyAddr, ok := getProxyAddr()
