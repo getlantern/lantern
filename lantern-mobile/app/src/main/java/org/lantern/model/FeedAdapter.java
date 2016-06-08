@@ -48,13 +48,20 @@ public class FeedAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         View view;
 
+		FeedItem item = mFeedItems.get(position);
+
         if (convertView == null) {
             LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            view = inflater.inflate(R.layout.feed_item, parent, false);
-        }
-        else {
-            view = convertView;
-        }
+
+			if (item.getWideView()) {
+				view = inflater.inflate(R.layout.feed_item_large, parent, false);
+			} else {
+				view = inflater.inflate(R.layout.feed_item, parent, false);
+			}
+		}
+		else {
+			view = convertView;
+		}
 
         TextView titleView = (TextView) view.findViewById(R.id.title);
         TextView descView = (TextView)view.findViewById(R.id.description);
@@ -63,7 +70,6 @@ public class FeedAdapter extends BaseAdapter {
 
         ImageView imageView = (ImageView) view.findViewById(R.id.image);
 
-        FeedItem item = mFeedItems.get(position);
         sourceView.setText(item.getSource());
         titleView.setText(item.getTitle());
         descView.setText(item.getDescription());
