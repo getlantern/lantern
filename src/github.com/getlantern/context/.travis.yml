@@ -1,0 +1,15 @@
+language: go
+
+go:
+  - 1.6.2
+
+install:
+  - go get -d -t -v ./...
+  - go build -v ./...
+  - go get golang.org/x/tools/cmd/cover
+  - go get -v github.com/axw/gocov/gocov
+  - go get -v github.com/mattn/goveralls
+
+script:
+  - go test -race -v -covermode=atomic -coverprofile=profile.cov
+  - $HOME/gopath/bin/goveralls -coverprofile=profile.cov -service=travis-ci

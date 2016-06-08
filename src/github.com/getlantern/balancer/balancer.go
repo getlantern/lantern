@@ -11,6 +11,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/getlantern/errors"
 	"github.com/getlantern/golog"
 )
 
@@ -105,7 +106,7 @@ func (b *Balancer) Dial(network, addr string) (net.Conn, error) {
 		log.Tracef("Dialing %s://%s with %s", network, addr, d.Label)
 		conn, err := d.dial(network, addr)
 		if err != nil {
-			log.Errorf("Unable to dial via %v to %s://%s: %v on pass %v...continuing", d.Label, network, addr, err, i)
+			log.Error(errors.New("Unable to dial via %v to %s://%s: %v on pass %v...continuing", d.Label, network, addr, err, i))
 			continue
 		}
 		log.Tracef("Successfully dialed via %v to %v://%v on pass %v", d.Label, network, addr, i)
