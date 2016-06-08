@@ -80,7 +80,7 @@ type IdleTimingConn struct {
 	halfIdleTimeout     time.Duration
 	activeCh            chan bool
 	closedCh            chan bool
-	closeMutex          sync.RWMutex
+	closeMutex          sync.RWMutex // prevents Close() from interfering with io operations
 	closed              bool
 	hasReadAfterIdle    int32
 	hasWrittenAfterIdle int32
@@ -272,7 +272,12 @@ func (c *IdleTimingConn) SetWriteDeadline(t time.Time) error {
 
 func (c *IdleTimingConn) markActive(n int) bool {
 	if n > 0 {
-		c.activeCh <- true
+		select {
+		case c.activeCh <- true:
+			// ok
+		default:
+			// still waiting to process previous markActive
+		}
 		return true
 	}
 	return false
