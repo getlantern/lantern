@@ -232,7 +232,6 @@ func processFeed(allStr string, provider FeedProvider) {
 			if k.Width > 350 {
 				entry.Image = k.Url
 				entry.UseWideView = true
-				break
 			}
 		}
 
