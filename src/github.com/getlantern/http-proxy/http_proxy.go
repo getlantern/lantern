@@ -9,6 +9,7 @@ import (
 	"github.com/getlantern/golog"
 
 	"github.com/getlantern/http-proxy/commonfilter"
+	"github.com/getlantern/http-proxy/filters"
 	"github.com/getlantern/http-proxy/forward"
 	"github.com/getlantern/http-proxy/httpconnect"
 	"github.com/getlantern/http-proxy/listeners"
@@ -45,28 +46,16 @@ func main() {
 		log.Error(err)
 	}
 
-	// Middleware (runs in reverse order as they are added)
-
-	// Middleware: Forward HTTP Messages
-	forwarder, err := forward.New(nil, forward.IdleTimeoutSetter(time.Duration(*idleClose)*time.Second))
-	if err != nil {
-		log.Error(err)
-	}
-
-	// Middleware: Handle HTTP CONNECT
-	httpConnect, err := httpconnect.New(forwarder, httpconnect.IdleTimeoutSetter(time.Duration(*idleClose)*time.Second))
-	if err != nil {
-		log.Error(err)
-	}
-
-	// Middleware: Common request filter
-	commonHandler, err := commonfilter.New(httpConnect, testingLocal)
-	if err != nil {
-		log.Error(err)
-	}
+	filterChain := filters.Join(
+		commonfilter.New(&commonfilter.Options{
+			AllowLocalhost: testingLocal,
+		}),
+		httpconnect.New(&httpconnect.Options{IdleTimeout: time.Duration(*idleClose) * time.Second}),
+		forward.New(&forward.Options{IdleTimeout: time.Duration(*idleClose) * time.Second}),
+	)
 
 	// Create server
-	srv := server.NewServer(commonHandler)
+	srv := server.NewServer(filterChain)
 
 	// Add net.Listener wrappers for inbound connections
 	srv.AddListenerWrappers(

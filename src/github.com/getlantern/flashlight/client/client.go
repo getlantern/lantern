@@ -15,6 +15,8 @@ import (
 	"github.com/getlantern/detour"
 	"github.com/getlantern/eventual"
 	"github.com/getlantern/golog"
+
+	"github.com/getlantern/flashlight/ops"
 )
 
 const (
@@ -199,10 +201,15 @@ func (client *Client) proxiedDialer(orig func(network, addr string) (net.Conn, e
 	detourDialer := detour.Dialer(orig)
 
 	return func(network, addr string) (net.Conn, error) {
+		op := ops.Begin("proxied_dialer")
+		defer op.End()
+
 		var proxied func(network, addr string) (net.Conn, error)
 		if client.proxyAll() {
+			op.Set("detour", false)
 			proxied = orig
 		} else {
+			op.Set("detour", true)
 			proxied = detourDialer
 		}
 
@@ -211,7 +218,8 @@ func (client *Client) proxiedDialer(orig func(network, addr string) (net.Conn, e
 			log.Tracef("Rewriting %v to %v", addr, rewritten)
 			return net.Dial(network, rewritten)
 		}
-		return proxied(network, addr)
+		conn, err := proxied(network, addr)
+		return conn, op.FailIf(err)
 	}
 }
 

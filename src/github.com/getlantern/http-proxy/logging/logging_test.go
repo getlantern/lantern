@@ -10,7 +10,7 @@ import (
 
 	"github.com/getlantern/go-loggly"
 	"github.com/getlantern/golog"
-	"github.com/getlantern/testify/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 type BadWriter struct{}

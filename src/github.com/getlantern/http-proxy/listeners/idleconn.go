@@ -38,14 +38,14 @@ func (l *idleConnListener) Accept() (c net.Conn, err error) {
 	sac, _ := conn.(WrapConnEmbeddable)
 	return &idleConn{
 		WrapConnEmbeddable: sac,
-		IdleTimingConn:     *iConn,
+		Conn:               iConn,
 	}, err
 }
 
 // Wrapped IdleTimingConn that supports OnState
 type idleConn struct {
 	WrapConnEmbeddable
-	idletiming.IdleTimingConn
+	net.Conn
 }
 
 func (c *idleConn) OnState(s http.ConnState) {
