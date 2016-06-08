@@ -70,7 +70,7 @@ android {
             minifyEnabled true
             shrinkResources true
             signingConfig signingConfigs.release
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro', '../../../../../MobileSDK/sdk/proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro', '../../../MobileSDK/sdk/proguard-rules.pro'
         }
 
         applicationVariants.all { variant ->
