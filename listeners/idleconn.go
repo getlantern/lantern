@@ -27,13 +27,7 @@ func (l *idleConnListener) Accept() (c net.Conn, err error) {
 		return nil, err
 	}
 
-	iConn := idletiming.Conn(
-		conn,
-		l.idleTimeout,
-		func() {
-			conn.Close()
-		},
-	)
+	iConn := idletiming.Conn(conn, l.idleTimeout, nil)
 
 	sac, _ := conn.(WrapConnEmbeddable)
 	return &idleConn{
