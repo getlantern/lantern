@@ -27,7 +27,7 @@ func defaultDialFactory(s *ChainedServerInfo, deviceID string) (dialFN, error) {
 	forceProxy := ForceChainedProxyAddr != ""
 	addr := s.Addr
 	if forceProxy {
-		log.Errorf("Forcing proxying to server at %v instead of configured server at %v", ForceChainedProxyAddr, s.Addr)
+		log.Debugf("Forcing proxying to server at %v instead of configured server at %v", ForceChainedProxyAddr, s.Addr)
 		addr = ForceChainedProxyAddr
 	}
 

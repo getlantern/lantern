@@ -70,12 +70,12 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request, op 
 	closeConns := func() {
 		if clientConn != nil {
 			if closeErr := clientConn.Close(); closeErr != nil {
-				log.Debugf("Error closing the out connection: %s", closeErr)
+				log.Tracef("Error closing the out connection: %s", closeErr)
 			}
 		}
 		if connOut != nil {
 			if closeErr := connOut.Close(); closeErr != nil {
-				log.Debugf("Error closing the client connection: %s", closeErr)
+				log.Tracef("Error closing the client connection: %s", closeErr)
 			}
 		}
 	}
@@ -114,13 +114,11 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request, op 
 // pipeData pipes data between the client and proxy connections.  It's also
 // responsible for responding to the initial CONNECT request with a 200 OK.
 func pipeData(clientConn net.Conn, connOut net.Conn, op *ops.Op, closeFunc func()) {
-	writeErrCh := make(chan error)
+	writeErrCh := make(chan error, 1)
 	// Start piping from client to proxy
 	op.Go(func() {
 		_, writeErr := io.Copy(connOut, clientConn)
-		if writeErr != nil {
-			writeErrCh <- writeErr
-		}
+		writeErrCh <- writeErr
 	})
 
 	// Then start copying from proxy to client.

@@ -47,11 +47,7 @@ func New(opts *Options) filters.Filter {
 				return nil, err
 			}
 
-			idleConn := idletiming.Conn(conn, opts.IdleTimeout, func() {
-				if conn != nil {
-					conn.Close()
-				}
-			})
+			idleConn := idletiming.Conn(conn, opts.IdleTimeout, nil)
 			return idleConn, err
 		}
 

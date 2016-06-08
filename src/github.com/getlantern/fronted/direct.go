@@ -234,10 +234,7 @@ func (d *direct) dialWith(in chan *Masquerade, network string) (net.Conn, bool, 
 
 				log.Trace("Wrapping connecting in idletiming connection")
 				conn = idletiming.Conn(conn, idleTimeout, func() {
-					log.Tracef("Connection to %v idle for %v, closing", conn.RemoteAddr(), idleTimeout)
-					if err := conn.Close(); err != nil {
-						log.Tracef("Unable to close connection: %v", err)
-					}
+					log.Tracef("Connection to %v idle for %v, closed", conn.RemoteAddr(), idleTimeout)
 				})
 				log.Trace("Returning connection")
 				return conn, true, nil
