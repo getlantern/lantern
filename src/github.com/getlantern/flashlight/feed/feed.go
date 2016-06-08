@@ -254,7 +254,9 @@ func processFeed(allStr string, provider FeedProvider) {
 
 			for _, k := range entry.Images {
 				if k.Width > 350 {
-					log.Debugf("Updating image %s to %s", feed.Entries[i].Image, k.Url)
+					// if we have a larger width image
+					// available, we set that as the default
+					// display image
 					feed.Entries[i].Image = k.Url
 				}
 			}
