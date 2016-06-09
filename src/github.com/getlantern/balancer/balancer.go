@@ -104,6 +104,7 @@ func (b *Balancer) Dial(network, addr string) (net.Conn, error) {
 		heap.Push(&dialers, d)
 		b.mu.Unlock()
 		log.Debugf("Dialing %s://%s with %s", network, addr, d.Label)
+		
 		conn, err := d.dial(network, addr)
 		if err != nil {
 			log.Error(errors.New("Unable to dial via %v to %s://%s: %v on pass %v...continuing", d.Label, network, addr, err, i))
