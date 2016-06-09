@@ -27,25 +27,19 @@ func (l *idleConnListener) Accept() (c net.Conn, err error) {
 		return nil, err
 	}
 
-	iConn := idletiming.Conn(
-		conn,
-		l.idleTimeout,
-		func() {
-			conn.Close()
-		},
-	)
+	iConn := idletiming.Conn(conn, l.idleTimeout, nil)
 
 	sac, _ := conn.(WrapConnEmbeddable)
 	return &idleConn{
 		WrapConnEmbeddable: sac,
-		IdleTimingConn:     *iConn,
+		Conn:               iConn,
 	}, err
 }
 
 // Wrapped IdleTimingConn that supports OnState
 type idleConn struct {
 	WrapConnEmbeddable
-	idletiming.IdleTimingConn
+	net.Conn
 }
 
 func (c *idleConn) OnState(s http.ConnState) {

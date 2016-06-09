@@ -113,13 +113,13 @@ func serveContent(resp http.ResponseWriter, req *http.Request) {
 }
 
 func startProxyServer(t *testing.T) error {
-	s := &httpproxylantern.Server{
+	s := &proxy.Proxy{
 		TestingLocal: true,
 		Addr:         ProxyServerAddr,
 		Obfs4Addr:    OBFS4ServerAddr,
 		Obfs4Dir:     ".",
 		Token:        Token,
-		Keyfile:      KeyFile,
+		KeyFile:      KeyFile,
 		CertFile:     CertFile,
 		IdleClose:    30,
 		HTTPS:        true,
@@ -130,7 +130,20 @@ func startProxyServer(t *testing.T) error {
 		assert.NoError(t, err, "Proxy server should have been able to listen")
 	}()
 
-	return waitforserver.WaitForServer("tcp", ProxyServerAddr, 10*time.Second)
+	err := waitforserver.WaitForServer("tcp", ProxyServerAddr, 10*time.Second)
+	if err != nil {
+		return err
+	}
+
+	// Wait for cert file to show up
+	var statErr error
+	for i := 0; i < 400; i++ {
+		_, statErr = os.Stat(CertFile)
+		if statErr != nil {
+			time.Sleep(25 * time.Millisecond)
+		}
+	}
+	return statErr
 }
 
 func startConfigServer(t *testing.T) (string, error) {

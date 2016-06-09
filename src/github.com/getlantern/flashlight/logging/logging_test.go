@@ -56,11 +56,12 @@ func TestLoggly(t *testing.T) {
 	var result map[string]interface{}
 	loggly := loggly.New("token not required")
 	loggly.Writer = &buf
-	lw := logglyErrorWriter{client: loggly}
-	golog.SetOutputs(lw, nil)
+	r := logglyErrorReporter{client: loggly}
+	golog.RegisterReporter(r.Report)
 	log := golog.LoggerFor("test")
 
 	log.Error("")
+	log.Debug(buf.String())
 	if assert.NoError(t, json.Unmarshal(buf.Bytes(), &result), "Unmarshal error") {
 		assert.Equal(t, "ERROR test", result["locationInfo"])
 		assert.Regexp(t, regexp.MustCompile("logging_test.go:([0-9]+)"), result["message"])

@@ -7,12 +7,14 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/getlantern/testify/assert"
+	"github.com/getlantern/http-proxy/filters"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestFilterTunnelPorts(t *testing.T) {
-	filter, _ := New(http.NotFoundHandler(), AllowedPorts([]int{443, 8080}))
-	server := httptest.NewServer(filter)
+	server := httptest.NewServer(filters.Join(
+		New(&Options{AllowedPorts: []int{443, 8080}}),
+		filters.Adapt(http.NotFoundHandler())))
 	defer server.Close()
 	u, _ := url.Parse(server.URL)
 	client := http.Client{Transport: &http.Transport{

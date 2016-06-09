@@ -1,55 +1,34 @@
 package commonfilter
 
 import (
-	"errors"
 	"net"
 	"net/http"
 	"strings"
 
 	"github.com/getlantern/golog"
-	"github.com/getlantern/http-proxy/utils"
+
+	"github.com/getlantern/http-proxy/filters"
 )
 
 var log = golog.LoggerFor("commonfilter")
 
-type CommonFilter struct {
-	errHandler utils.ErrorHandler
-	next       http.Handler
-
-	localIPs   []net.IP
-	exceptions []string
-
-	// Allow tests in localhost, because this filter blocks request to this address
-	testingLocalhost bool
+type Options struct {
+	AllowLocalhost bool
+	Exceptions     []string
 }
 
-type optSetter func(f *CommonFilter) error
-
-func SetException(addr string) optSetter {
-	return func(f *CommonFilter) error {
-		f.exceptions = append(f.exceptions, addr)
-		return nil
-	}
+type commonFilter struct {
+	*Options
+	localIPs []net.IP
 }
 
-func New(next http.Handler, testingLocalhost bool, setters ...optSetter) (*CommonFilter, error) {
-	f := &CommonFilter{
-		next:             next,
-		errHandler:       utils.DefaultHandler,
-		testingLocalhost: testingLocalhost,
-	}
-
-	for _, s := range setters {
-		if err := s(f); err != nil {
-			return nil, err
-		}
-	}
-
+func New(opts *Options) filters.Filter {
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
 		log.Errorf("Error enumerating local addresses: %v\n", err)
 	}
 
+	localIPs := make([]net.IP, 0, len(addrs))
 	for _, a := range addrs {
 		str := a.String()
 		idx := strings.Index(str, "/")
@@ -57,42 +36,36 @@ func New(next http.Handler, testingLocalhost bool, setters ...optSetter) (*Commo
 			str = str[:idx]
 		}
 		ip := net.ParseIP(str)
-		f.localIPs = append(f.localIPs, ip)
+		localIPs = append(localIPs, ip)
 	}
 
-	return f, nil
+	return &commonFilter{opts, localIPs}
 }
 
-func (f *CommonFilter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	if !f.testingLocalhost && !f.isException(req.URL.Host) {
+func (f *commonFilter) Apply(w http.ResponseWriter, req *http.Request, next filters.Next) error {
+	if !f.AllowLocalhost && !f.isException(req.URL.Host) {
 		reqAddr, err := net.ResolveTCPAddr("tcp", req.Host)
 
 		// If there was an error resolving is probably because it wasn't an address
 		// in the form localhost:port
 		if err == nil {
 			if reqAddr.IP.IsLoopback() {
-				f.errHandler.ServeHTTP(w, req, err)
-				return
+				return filters.Fail("%v requested loopback address %v (%v)", req.RemoteAddr, req.Host, reqAddr)
 			}
 			for _, ip := range f.localIPs {
 				if reqAddr.IP.Equal(ip) {
-					f.errHandler.ServeHTTP(w, req, err)
-					return
+					return filters.Fail("%v requested local address %v (%v)", req.RemoteAddr, req.Host, reqAddr)
 				}
 			}
 
 		}
 	}
 
-	if f.next == nil {
-		f.errHandler.ServeHTTP(w, req, errors.New("Next handler is not defined (nil)"))
-	} else {
-		f.next.ServeHTTP(w, req)
-	}
+	return next()
 }
 
-func (f *CommonFilter) isException(addr string) bool {
-	for _, a := range f.exceptions {
+func (f *commonFilter) isException(addr string) bool {
+	for _, a := range f.Exceptions {
 		if a == addr {
 			return true
 		}
