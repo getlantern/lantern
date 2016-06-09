@@ -154,8 +154,8 @@ func applyClientConfig(client *client.Client, cfg *config.Config, deviceID strin
 	} else {
 		fronted.Configure(certs, cfg.Client.MasqueradeSets, filepath.Join(appdir.General("Lantern"), "masquerade_cache"))
 	}
-	logging.Configure(cfg.CloudConfigCA, deviceID, Version, RevisionDate)
-	pro.Configure(cfg.CloudConfigCA)
+	logging.Configure(cfg.CloudConfigCA, deviceID, Version, RevisionDate, cfg.BordaReportInterval, cfg.BordaSamplePercentage)
+    pro.Configure(cfg.CloudConfigCA)
 	// Update client configuration
 	client.Configure(cfg.Client, deviceID)
 }

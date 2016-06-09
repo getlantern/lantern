@@ -9,103 +9,70 @@ import (
 	"time"
 
 	"github.com/getlantern/golog"
-	"github.com/getlantern/http-proxy/utils"
 	"github.com/getlantern/idletiming"
+	"github.com/getlantern/ops"
+
+	"github.com/getlantern/http-proxy/buffers"
+	"github.com/getlantern/http-proxy/filters"
 )
 
 var log = golog.LoggerFor("forward")
 
-type Forwarder struct {
-	errHandler   utils.ErrorHandler
-	roundTripper http.RoundTripper
-	rewriter     RequestRewriter
-	next         http.Handler
-
-	idleTimeout time.Duration
+type Options struct {
+	IdleTimeout  time.Duration
+	Rewriter     RequestRewriter
+	RoundTripper http.RoundTripper
 }
 
-type optSetter func(f *Forwarder) error
-
-func RoundTripper(r http.RoundTripper) optSetter {
-	return func(f *Forwarder) error {
-		f.roundTripper = r
-		return nil
-	}
+type forwarder struct {
+	*Options
 }
 
 type RequestRewriter interface {
 	Rewrite(r *http.Request)
 }
 
-func Rewriter(r RequestRewriter) optSetter {
-	return func(f *Forwarder) error {
-		f.rewriter = r
-		return nil
-	}
-}
-
-func IdleTimeoutSetter(i time.Duration) optSetter {
-	return func(f *Forwarder) error {
-		f.idleTimeout = i
-		return nil
-	}
-}
-
-func New(next http.Handler, setters ...optSetter) (*Forwarder, error) {
-	idleTimeoutPtr := new(time.Duration)
-	dialerFunc := func(network, addr string) (net.Conn, error) {
-		conn, err := net.DialTimeout(network, addr, time.Second*30)
-		if err != nil {
-			return nil, err
-		}
-
-		idleConn := idletiming.Conn(conn, *idleTimeoutPtr, func() {
-			if conn != nil {
-				conn.Close()
-			}
-		})
-		return idleConn, err
-	}
-
-	var timeoutTransport http.RoundTripper = &http.Transport{
-		Dial:                dialerFunc,
-		TLSHandshakeTimeout: 10 * time.Second,
-	}
-	f := &Forwarder{
-		errHandler:   utils.DefaultHandler,
-		roundTripper: timeoutTransport,
-		next:         next,
-		idleTimeout:  30 * time.Second,
-	}
-	for _, s := range setters {
-		if err := s(f); err != nil {
-			return nil, err
-		}
-	}
-
-	// Make sure we update the timeout that dialer is going to use
-	*idleTimeoutPtr = f.idleTimeout
-
-	if f.rewriter == nil {
-		f.rewriter = &HeaderRewriter{
+func New(opts *Options) filters.Filter {
+	if opts.Rewriter == nil {
+		opts.Rewriter = &HeaderRewriter{
 			TrustForwardHeader: true,
 			Hostname:           "",
 		}
 	}
 
-	return f, nil
+	if opts.RoundTripper == nil {
+		dialerFunc := func(network, addr string) (net.Conn, error) {
+			conn, err := net.DialTimeout(network, addr, time.Second*30)
+			if err != nil {
+				return nil, err
+			}
+
+			idleConn := idletiming.Conn(conn, opts.IdleTimeout, nil)
+			return idleConn, err
+		}
+
+		timeoutTransport := &http.Transport{
+			Dial:                dialerFunc,
+			TLSHandshakeTimeout: 10 * time.Second,
+			MaxIdleTime:         opts.IdleTimeout / 2, // remove idle keep-alive connections to avoid leaking memory
+		}
+		timeoutTransport.EnforceMaxIdleTime()
+		opts.RoundTripper = timeoutTransport
+	}
+
+	return &forwarder{opts}
 }
 
-func (f *Forwarder) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+func (f *forwarder) Apply(w http.ResponseWriter, req *http.Request, next filters.Next) error {
+	op := ops.Begin("proxy_http")
+	defer op.End()
 
 	// Create a copy of the request suitable for our needs
 	reqClone, err := f.cloneRequest(req, req.URL)
 	if err != nil {
-		log.Errorf("Error forwarding to %v, error: %v", req.Host, err)
-		f.errHandler.ServeHTTP(w, req, err)
-		return
+		return op.FailIf(filters.Fail("Error forwarding from %v to %v: %v", req.RemoteAddr, req.Host, err))
 	}
-	f.rewriter.Rewrite(reqClone)
+	f.Rewriter.Rewrite(reqClone)
 
 	if log.IsTraceEnabled() {
 		reqStr, _ := httputil.DumpRequest(req, false)
@@ -117,11 +84,9 @@ func (f *Forwarder) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	// Forward the request and get a response
 	start := time.Now().UTC()
-	response, err := f.roundTripper.RoundTrip(reqClone)
+	response, err := f.RoundTripper.RoundTrip(reqClone)
 	if err != nil {
-		log.Debugf("Error forwarding to %v, error: %v", req.Host, err)
-		f.errHandler.ServeHTTP(w, req, err)
-		return
+		return op.FailIf(filters.Fail("Error forwarding from %v to %v: %v", req.RemoteAddr, req.Host, err))
 	}
 	log.Debugf("Round trip: %v, code: %v, duration: %v",
 		reqClone.URL, response.StatusCode, time.Now().UTC().Sub(start))
@@ -137,16 +102,20 @@ func (f *Forwarder) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	// It became nil in a Co-Advisor test though the doc says it will never be nil
 	if response.Body != nil {
-		_, err = io.Copy(w, response.Body)
+		buf := buffers.Get()
+		defer buffers.Put(buf)
+		_, err = io.CopyBuffer(w, response.Body, buf)
 		if err != nil {
 			log.Debug(err)
 		}
 
 		response.Body.Close()
 	}
+
+	return filters.Stop()
 }
 
-func (f *Forwarder) cloneRequest(req *http.Request, u *url.URL) (*http.Request, error) {
+func (f *forwarder) cloneRequest(req *http.Request, u *url.URL) (*http.Request, error) {
 	outReq := new(http.Request)
 	// Beware, this will make a shallow copy. We have to copy all maps
 	*outReq = *req

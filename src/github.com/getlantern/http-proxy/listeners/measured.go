@@ -13,9 +13,9 @@ type stateAwareMeasuredListener struct {
 	measured.MeasuredListener
 }
 
-func NewMeasuredListener(l net.Listener, reportInterval time.Duration) net.Listener {
+func NewMeasuredListener(l net.Listener, reportInterval time.Duration, m *measured.Measured) net.Listener {
 	return &stateAwareMeasuredListener{
-		MeasuredListener: *measured.Listener(l, reportInterval),
+		MeasuredListener: *m.Listener(l, reportInterval),
 	}
 }
 
