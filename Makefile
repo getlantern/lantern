@@ -498,6 +498,10 @@ create-tag: require-version
 
 # This target requires a file called testpackages.txt that lists all packages to
 # test, one package per line, with no trailing newline on the last package.
+# The -coverprofile flag is required to produce a profile for goveralls coverage
+# reporting, and it only allows one package at a time, so we have to test each
+# package individually. This dramatically slows down the tests, but is needed
+# for coverage reporting. When simply testing locally, use make test instead.
 test-and-cover: $(RESOURCES_DOT_GO)
 	@echo "mode: count" > profile.cov && \
 	source setenv.bash && \
@@ -516,9 +520,8 @@ test: $(RESOURCES_DOT_GO)
 	if [ -f envvars.bash ]; then \
 		source envvars.bash; \
 	fi && \
-	for pkg in $$(cat testpackages.txt); do \
-		go test -race -v -tags="headless" $$pkg || exit 1; \
-	done
+	TP=$$(cat testpackages.txt) && \
+	go test -race -v -tags="headless" $$TP || exit 1; \
 
 genconfig:
 	@echo "Running genconfig..." && \
