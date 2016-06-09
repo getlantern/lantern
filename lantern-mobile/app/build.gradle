@@ -107,7 +107,6 @@ dependencies {
     compile(name:'pubsub-sdk-debug', ext:'aar')
 
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile gplay
 
     compile "com.android.support:support-v4:${supportLibVersion}"
     compile 'com.google.android.gms:play-services-gcm:9.0.0'
