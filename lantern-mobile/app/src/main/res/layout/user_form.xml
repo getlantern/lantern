@@ -172,7 +172,7 @@
         android:fontFamily="sans-serif-medium"
         android:textSize="14sp"
         android:clickable="true"
-        android:textColor="@color/link_blue"
+        android:textColor="@color/black"
         android:layout_marginTop="20dp"
         android:layout_gravity="center" 
         android:gravity="center"

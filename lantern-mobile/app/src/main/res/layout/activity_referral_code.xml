@@ -5,7 +5,7 @@
     xmlns:lantern="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent" 
-    android:background="@color/form_bg"
+    android:background="@color/accent_white"
     android:orientation="vertical"
     android:baselineAligned="false"
     android:id="@+id/referralView"

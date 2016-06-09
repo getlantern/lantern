@@ -51,7 +51,7 @@ public class MailSender {
                 new MergeVar("phonenumber", session.PhoneNumber())
             };
 
-            sendMail("team@getlantern.org", "user-send-logs", mergeValues, attachments);
+            sendMail("support@getlantern.org", "user-send-logs", mergeValues, attachments);
         } catch (Exception e) {
             Log.e(TAG, "Error sending log messages: " + e.getMessage());
         }

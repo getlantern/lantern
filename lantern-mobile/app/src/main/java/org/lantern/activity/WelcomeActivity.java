@@ -5,11 +5,15 @@ import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.support.v4.app.FragmentActivity;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.ViewById;
 
 import org.lantern.LanternApp;
 import org.lantern.model.SessionManager;
@@ -23,11 +27,23 @@ public class WelcomeActivity extends FragmentActivity {
     private SessionManager session;
     private MediaPlayer mMediaPlayer;
 
+    @ViewById
+    LinearLayout container;
+
+    @ViewById
+    TextView header;
+
     @AfterViews
     void afterViews() {
 
         mContext = this.getApplicationContext();
         session = LanternApp.getSession();
+
+        // we re-use the titlebar component here
+        // but center the label since there is no
+        // back button on this screen
+        header.setPadding(0, 0, 0, 0);
+        container.setGravity(Gravity.CENTER);
 
         playWelcomeSound();
     }

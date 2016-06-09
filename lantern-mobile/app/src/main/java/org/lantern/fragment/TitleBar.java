@@ -48,12 +48,10 @@ public class TitleBar extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.titlebar, container, true);
+        mBackBtn = (ImageView)view.findViewById(R.id.avatar);
 
         if (mDisableBackButton == null || !mDisableBackButton.booleanValue()) {
-            mBackBtn = (ImageView)view.findViewById(R.id.avatar);
-
             mBackBtn.setOnClickListener(new View.OnClickListener() {
-
                 @Override
                 public void onClick(View v) {
                     Log.d(TAG, "Back button pressed");
@@ -61,6 +59,8 @@ public class TitleBar extends Fragment {
                     activity.finish();
                 }
             });
+        } else {
+            mBackBtn.setVisibility(View.GONE);
         }
 
         if (mTitle != null) {
