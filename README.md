@@ -18,6 +18,9 @@
 
 ### Prerequisites
 
+* [Custom fork of Go](https://github.com/getlantern/go/tree/lantern) is
+  currently required. We'll eventually switch to Go 1.7 which supports what we
+  need due to [this](https://github.com/golang/go/issues/13998).
 * An OSX or Linux host. Building on Windows is only partially supported with
   the help of [Cygwin](https://www.cygwin.com/).
 * [Git](https://git-scm.com/downloads) - `brew install git`, `apt-get install git`, etc

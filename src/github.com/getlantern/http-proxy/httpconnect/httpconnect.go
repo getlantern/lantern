@@ -1,7 +1,6 @@
 package httpconnect
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -13,124 +12,103 @@ import (
 	"time"
 
 	"github.com/getlantern/golog"
-	"github.com/getlantern/http-proxy/utils"
 	"github.com/getlantern/idletiming"
+	"github.com/getlantern/ops"
+
+	"github.com/getlantern/http-proxy/buffers"
+	"github.com/getlantern/http-proxy/filters"
+	"github.com/getlantern/http-proxy/utils"
 )
 
 var log = golog.LoggerFor("httpconnect")
 
-type HTTPConnectHandler struct {
-	next         http.Handler
-	idleTimeout  time.Duration
-	allowedPorts []int
+type Options struct {
+	IdleTimeout  time.Duration
+	AllowedPorts []int
 }
 
-type optSetter func(f *HTTPConnectHandler) error
-
-func IdleTimeoutSetter(i time.Duration) optSetter {
-	return func(f *HTTPConnectHandler) error {
-		f.idleTimeout = i
-		return nil
-	}
+type httpConnectHandler struct {
+	*Options
 }
 
-func AllowedPorts(ports []int) optSetter {
-	return func(f *HTTPConnectHandler) error {
-		f.allowedPorts = ports
-		return nil
-	}
-}
-
-func AllowedPortsFromCSV(csv string) optSetter {
-	return func(f *HTTPConnectHandler) error {
-		fields := strings.Split(csv, ",")
-		ports := make([]int, len(fields))
-		for i, f := range fields {
-			p, err := strconv.Atoi(f)
-			if err != nil {
-				return err
-			}
-			ports[i] = p
-		}
-		f.allowedPorts = ports
-		return nil
-	}
-}
-
-func New(next http.Handler, setters ...optSetter) (*HTTPConnectHandler, error) {
-	if next == nil {
-		return nil, errors.New("Next handler is not defined (nil)")
-	}
-	f := &HTTPConnectHandler{next: next}
-	for _, s := range setters {
-		if err := s(f); err != nil {
+func AllowedPortsFromCSV(csv string) ([]int, error) {
+	fields := strings.Split(csv, ",")
+	ports := make([]int, len(fields))
+	for i, f := range fields {
+		p, err := strconv.Atoi(f)
+		if err != nil {
 			return nil, err
 		}
+		ports[i] = p
 	}
-
-	return f, nil
+	return ports, nil
 }
 
-func (f *HTTPConnectHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+func New(opts *Options) filters.Filter {
+	return &httpConnectHandler{opts}
+}
+
+func (f *httpConnectHandler) Apply(w http.ResponseWriter, req *http.Request, next filters.Next) error {
 	if req.Method != "CONNECT" {
-		f.next.ServeHTTP(w, req)
-		return
+		return next()
 	}
 
 	if log.IsTraceEnabled() {
 		reqStr, _ := httputil.DumpRequest(req, true)
-		log.Tracef("HTTPConnectHandler Middleware received request:\n%s", reqStr)
+		log.Tracef("httpConnectHandler Middleware received request:\n%s", reqStr)
 	}
 
-	if f.portAllowed(w, req) {
-		f.intercept(w, req)
+	op := ops.Begin("proxy_https")
+	defer op.End()
+	if f.portAllowed(op, w, req) {
+		f.intercept(op, w, req)
 	}
+
+	return filters.Stop()
 }
 
-func (f *HTTPConnectHandler) portAllowed(w http.ResponseWriter, req *http.Request) bool {
-	if len(f.allowedPorts) == 0 {
+func (f *httpConnectHandler) portAllowed(op ops.Op, w http.ResponseWriter, req *http.Request) bool {
+	if len(f.AllowedPorts) == 0 {
 		return true
 	}
-	log.Tracef("Checking CONNECT tunnel to %s against allowed ports %v", req.Host, f.allowedPorts)
+	log.Tracef("Checking CONNECT tunnel to %s against allowed ports %v", req.Host, f.AllowedPorts)
 	_, portString, err := net.SplitHostPort(req.Host)
 	if err != nil {
 		// CONNECT request should always include port in req.Host.
 		// Ref https://tools.ietf.org/html/rfc2817#section-5.2.
-		f.ServeError(w, req, http.StatusBadRequest, "No port field in Request-URI / Host header")
+		f.ServeError(op, w, req, http.StatusBadRequest, "No port field in Request-URI / Host header")
 		return false
 	}
 	port, err := strconv.Atoi(portString)
 	if err != nil {
-		f.ServeError(w, req, http.StatusBadRequest, "Invalid port")
+		f.ServeError(op, w, req, http.StatusBadRequest, "Invalid port")
 		return false
 	}
 
-	for _, p := range f.allowedPorts {
+	for _, p := range f.AllowedPorts {
 		if port == p {
 			return true
 		}
 	}
-	f.ServeError(w, req, http.StatusForbidden, "Port not allowed")
+	f.ServeError(op, w, req, http.StatusForbidden, "Port not allowed")
 	return false
 }
 
-func (f *HTTPConnectHandler) intercept(w http.ResponseWriter, req *http.Request) (err error) {
+func (f *httpConnectHandler) intercept(op ops.Op, w http.ResponseWriter, req *http.Request) (err error) {
 	utils.RespondOK(w, req)
 
 	clientConn, _, err := w.(http.Hijacker).Hijack()
 	if err != nil {
-		utils.RespondBadGateway(w, req, fmt.Sprintf("Unable to hijack connection: %s", err))
+		desc := errorf(op, "Unable to hijack connection: %s", err)
+		utils.RespondBadGateway(w, req, desc)
 		return
 	}
-	connOutRaw, err := net.Dial("tcp", req.Host)
+	connOutRaw, err := net.DialTimeout("tcp", req.Host, 10*time.Second)
 	if err != nil {
+		errorf(op, "Unable to dial %v: %v", req.Host, err)
 		return
 	}
-	connOut := idletiming.Conn(connOutRaw, f.idleTimeout, func() {
-		if connOutRaw != nil {
-			connOutRaw.Close()
-		}
-	})
+	connOut := idletiming.Conn(connOutRaw, f.IdleTimeout, nil)
 
 	// Pipe data through CONNECT tunnel
 	closeConns := func() {
@@ -145,24 +123,37 @@ func (f *HTTPConnectHandler) intercept(w http.ResponseWriter, req *http.Request)
 			}
 		}
 	}
-	var closeOnce sync.Once
-	go func() {
-		if _, err := io.Copy(connOut, clientConn); err != nil {
-			log.Debug(err)
-		}
-		closeOnce.Do(closeConns)
 
-	}()
-	if _, err := io.Copy(clientConn, connOut); err != nil {
-		log.Debug(err)
+	var readFinished sync.WaitGroup
+	readFinished.Add(1)
+	op.Go(func() {
+		buf := buffers.Get()
+		defer buffers.Put(buf)
+		_, readErr := io.CopyBuffer(connOut, clientConn, buf)
+		if readErr != nil {
+			log.Debug(errorf(op, "Unable to read from origin: %v", readErr))
+		}
+		readFinished.Done()
+	})
+
+	buf := buffers.Get()
+	defer buffers.Put(buf)
+	_, writeErr := io.CopyBuffer(clientConn, connOut, buf)
+	if writeErr != nil {
+		log.Debug(errorf(op, "Unable to write to origin: %v", writeErr))
 	}
-	closeOnce.Do(closeConns)
+	readFinished.Wait()
+	closeConns()
 
 	return
 }
 
-func (f *HTTPConnectHandler) ServeError(w http.ResponseWriter, req *http.Request, statusCode int, reason string) {
-	log.Debugf("Respond error to CONNECT request to %s: %d %s", req.Host, statusCode, reason)
+func (f *httpConnectHandler) ServeError(op ops.Op, w http.ResponseWriter, req *http.Request, statusCode int, reason interface{}) {
+	log.Error(errorf(op, "Respond error to CONNECT request to %s: %d %v", req.Host, statusCode, reason))
 	w.WriteHeader(statusCode)
-	w.Write([]byte(reason))
+	fmt.Fprintf(w, "%v", reason)
+}
+
+func errorf(op ops.Op, msg string, args ...interface{}) error {
+	return op.FailIf(fmt.Errorf(msg, args...))
 }

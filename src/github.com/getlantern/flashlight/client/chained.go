@@ -9,14 +9,17 @@ import (
 
 	"github.com/getlantern/balancer"
 	"github.com/getlantern/chained"
+	"github.com/getlantern/flashlight/ops"
 	"github.com/getlantern/idletiming"
 	"github.com/getlantern/withtimeout"
 )
 
-// Close connections idle for a period to avoid dangling connections.
-// 1 hour is long enough to avoid interrupt normal connections but short enough
-// to eliminate "too many open files" error.
-var idleTimeout = 1 * time.Hour
+// Close connections idle for a period to avoid dangling connections. 45 seconds
+// is long enough to avoid interrupt normal connections but shorter than the
+// idle timeout on the server to avoid running into closed connection problems.
+// 45 seconds is also longer than the MaxIdleTime on our http.Transport, so it
+// doesn't interfere with that.
+var idleTimeout = 45 * time.Second
 
 // Lantern internal sites won't be used as check target.
 var internalSiteSuffixes = []string{"getlantern.org", "getiantem.org", "lantern.io"}
@@ -113,17 +116,16 @@ func (s *chainedServer) dialer(deviceID string) (*balancer.Dialer, error) {
 		Label:   label,
 		Trusted: s.Trusted,
 		DialFN: func(network, addr string) (net.Conn, error) {
+			op := ops.Begin("dial_for_balancer").ProxyType(ops.ProxyChained).ProxyAddr(s.Addr)
+			defer op.End()
 			// Yeah any site visited through Lantern can be a check target
 			s.addCheckTarget(addr)
 			conn, err := d(network, addr)
 			if err != nil {
-				return nil, err
+				return nil, op.FailIf(err)
 			}
 			conn = idletiming.Conn(conn, idleTimeout, func() {
-				log.Debugf("Proxy connection to %s via %s idle for %v, closing", addr, conn.RemoteAddr(), idleTimeout)
-				if err := conn.Close(); err != nil {
-					log.Debugf("Unable to close connection: %v", err)
-				}
+				log.Debugf("Proxy connection to %s via %s idle for %v, closed", addr, conn.RemoteAddr(), idleTimeout)
 			})
 			return conn, nil
 		},
