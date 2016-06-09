@@ -7,5 +7,5 @@
         android:bottomLeftRadius="2dp"
         android:topLeftRadius="2dp"
         android:topRightRadius="2dp"/>
-    <stroke android:width="2px" android:color="@color/pink" />
+    <stroke android:width="1px" android:color="@color/pink" />
 </shape>   
