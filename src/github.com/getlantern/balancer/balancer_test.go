@@ -82,9 +82,9 @@ func TestRandomDialer(t *testing.T) {
 		}()
 	}
 	wg.Wait()
-	assertWithinRangeOf(t, atomic.LoadInt32(&d1Attempts), 1000, 100)
-	assertWithinRangeOf(t, atomic.LoadInt32(&d2Attempts), 1000, 100)
-	assertWithinRangeOf(t, atomic.LoadInt32(&d3Attempts), 1000, 100)
+	assertWithinRangeOf(t, atomic.LoadInt32(&d1Attempts), 1000, 200)
+	assertWithinRangeOf(t, atomic.LoadInt32(&d2Attempts), 1000, 200)
+	assertWithinRangeOf(t, atomic.LoadInt32(&d3Attempts), 1000, 200)
 }
 
 func assertWithinRangeOf(t *testing.T, actual int32, expected int32, margin int32) {
