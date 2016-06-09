@@ -41,7 +41,7 @@ var (
 
 // Fetcher is an interface for fetching config updates.
 type Fetcher interface {
-	pollForConfig(ycfg yamlconf.Config, sticky bool) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error)
+	pollForConfig(ycfg yamlconf.Config) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error)
 }
 
 // fetcher periodically fetches the latest cloud configuration.
@@ -107,7 +107,7 @@ func NewFetcher(conf UserConfig, rt http.RoundTripper, flags map[string]interfac
 	}
 }
 
-func (cf *fetcher) pollForConfig(currentCfg yamlconf.Config, stickyConfig bool) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
+func (cf *fetcher) pollForConfig(currentCfg yamlconf.Config) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
 	log.Debugf("Polling for config")
 	// By default, do nothing
 	mutate = func(ycfg yamlconf.Config) error {
@@ -116,10 +116,6 @@ func (cf *fetcher) pollForConfig(currentCfg yamlconf.Config, stickyConfig bool) 
 	}
 	cfg := currentCfg.(*Config)
 	waitTime = cf.cloudPollSleepTime()
-	if stickyConfig {
-		log.Debugf("Not downloading remote config with sticky config flag set")
-		return mutate, waitTime, nil
-	}
 
 	if bytes, err := cf.fetchCloudConfig(cfg); err != nil {
 		log.Errorf("Could not fetch cloud config %v", err)
