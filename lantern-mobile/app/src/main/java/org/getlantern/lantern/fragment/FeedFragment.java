@@ -10,14 +10,14 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 
 
-import org.getlantern.lantern.model.FeedAdapter;      
-import org.getlantern.lantern.model.FeedItem;      
+import org.getlantern.lantern.model.FeedAdapter;
+import org.getlantern.lantern.model.FeedItem;
 import org.getlantern.lantern.R;
 
-import java.util.ArrayList; 
+import java.util.ArrayList;
 import java.util.List;
 
-import go.lantern.Lantern;                    
+import go.lantern.Lantern;
 
 public class FeedFragment extends Fragment {
 
@@ -64,8 +64,8 @@ public class FeedFragment extends Fragment {
 
             final List<FeedItem> items = new ArrayList<FeedItem>();
 
-            Lantern.FeedByName(name, new Lantern.FeedRetriever.Stub() {
-                public void AddFeed(String title, String desc, 
+            Lantern.FeedByName(name, new Lantern.FeedRetriever() {
+                public void AddFeed(String title, String desc,
                         String image, String url) {
                     items.add(new FeedItem(title, desc, image, url));
                 }
@@ -82,7 +82,7 @@ public class FeedFragment extends Fragment {
             mFeedItems.addAll(items);
 
             if (feedName != null) {
-                Log.d(TAG, String.format("Feed %s has %d items", feedName, 
+                Log.d(TAG, String.format("Feed %s has %d items", feedName,
                             items.size()));
             }
 

@@ -19,12 +19,8 @@ public abstract class Structs {
     
     private static native void init();
     
-    public static final class S implements go.Seq.Object {
-        private final go.Seq.Ref ref;
-        
-        private S(go.Seq.Ref ref) { this.ref = ref; }
-        
-        public final go.Seq.Ref ref() { return ref; }
+    public static final class S extends Seq.Proxy {
+        private S(go.Seq.Ref ref) { super(ref); }
         
         public final native double getX();
         public final native void setX(double v);
@@ -65,12 +61,8 @@ public abstract class Structs {
         }
     }
     
-    public static final class S2 implements go.Seq.Object, I {
-        private final go.Seq.Ref ref;
-        
-        private S2(go.Seq.Ref ref) { this.ref = ref; }
-        
-        public final go.Seq.Ref ref() { return ref; }
+    public static final class S2 extends Seq.Proxy implements I {
+        private S2(go.Seq.Ref ref) { super(ref); }
         
         public native void M();
         public native String String();
@@ -91,27 +83,14 @@ public abstract class Structs {
         }
     }
     
-    public interface I extends go.Seq.Object {
+    public interface I {
         public void M();
-        public static abstract class Stub implements I {
-            private final go.Seq.Ref ref;
-            public Stub() {
-                ref = go.Seq.createRef(this);
-            }
-            
-            public final go.Seq.Ref ref() { return ref; }
-            
-        }
-        
-        static final class Proxy implements I {
-            private go.Seq.Ref ref;
-        
-            Proxy(go.Seq.Ref ref) { this.ref = ref; }
-        
-            public final go.Seq.Ref ref() { return ref; }
-        
-            public native void M();
-        }
+    }
+    
+    private static final class proxyI extends Seq.Proxy implements I {
+        proxyI(Seq.Ref ref) { super(ref); }
+    
+        public native void M();
     }
     
     

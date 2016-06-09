@@ -34,12 +34,14 @@
 // TODO(hyangah): update the doc as golang.org/issue/10933 is fixed.
 @interface GoSeqRef : NSObject {
 }
-@property int32_t refnum;
+@property(readonly) int32_t refnum;
 @property(strong) id obj; // NULL when representing a Go object.
 
 // new GoSeqRef object to proxy a Go object. The refnum must be
 // provided from Go side.
 - (instancetype)initWithRefnum:(int32_t)refnum obj:(id)obj;
+
+- (int32_t)incNum;
 
 @end
 
@@ -60,8 +62,12 @@ typedef int nint;
 
 extern void init_seq();
 // go_seq_dec_ref decrements the reference count for the
-// sepcified refnum. It is called from Go from a finalizer.
+// specified refnum. It is called from Go from a finalizer.
 extern void go_seq_dec_ref(int32_t refnum);
+// go_seq_inc_ref increments the reference count for the
+// specified refnum. It is called from Go just before converting
+// a proxy to its refnum.
+extern void go_seq_inc_ref(int32_t refnum);
 
 extern int32_t go_seq_to_refnum(id obj);
 // go_seq_go_to_refnum is a special case of go_seq_to_refnum

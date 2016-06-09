@@ -2,14 +2,28 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-#ifdef os_linux
-#include <GLES2/gl2.h> // install on Ubuntu with: sudo apt-get install libegl1-mesa-dev libgles2-mesa-dev libx11-dev
+#ifdef os_android
+// TODO(crawshaw): We could include <android/api-level.h> and
+// condition on __ANDROID_API__ to get GLES3 headers. However
+// we also need to add -lGLESv3 to LDFLAGS, which we cannot do
+// from inside an ifdef.
+#include <GLES2/gl2.h>
+#elif os_linux
+#include <GLES3/gl3.h> // install on Ubuntu with: sudo apt-get install libegl1-mesa-dev libgles2-mesa-dev libx11-dev
 #endif
+
 #ifdef os_ios
 #include <OpenGLES/ES2/glext.h>
 #endif
+
 #ifdef os_osx
 #include <OpenGL/gl3.h>
+#endif
+
+#if defined(GL_ES_VERSION_3_0) && GL_ES_VERSION_3_0
+#define GLES_VERSION "GL_ES_3_0"
+#else
+#define GLES_VERSION "GL_ES_2_0"
 #endif
 
 #include <stdint.h>
@@ -31,6 +45,7 @@ typedef enum {
 	glfnBlendEquationSeparate,
 	glfnBlendFunc,
 	glfnBlendFuncSeparate,
+	glfnBlitFramebuffer,
 	glfnBufferData,
 	glfnBufferSubData,
 	glfnCheckFramebufferStatus,
@@ -173,6 +188,8 @@ struct fnargs {
 	uintptr_t a5;
 	uintptr_t a6;
 	uintptr_t a7;
+	uintptr_t a8;
+	uintptr_t a9;
 };
 
 extern uintptr_t processFn(struct fnargs* args, char* parg);

@@ -97,6 +97,13 @@ func runBind(cmd *command) error {
 		return err
 	}
 
+	// check if any of the package is main
+	for _, pkg := range pkgs {
+		if pkg.Name == "main" {
+			return fmt.Errorf("binding 'main' package (%s) is not supported", pkg.ImportComment)
+		}
+	}
+
 	switch targetOS {
 	case "android":
 		return goAndroidBind(pkgs, targetArchs)
@@ -380,6 +387,7 @@ func loadExportData(pkgs []*build.Package, env []string, args ...string) ([]*typ
 		return nil, err
 	}
 	typePkgs := make([]*types.Package, len(pkgs))
+	imp := importer.Default()
 	for i, p := range pkgs {
 		importPath := p.ImportPath
 		src := filepath.Join(pkgdir(env), importPath+".a")
@@ -395,7 +403,7 @@ func loadExportData(pkgs []*build.Package, env []string, args ...string) ([]*typ
 		build.Default = ctx // copy
 		build.Default.GOARCH = goarch
 		build.Default.GOPATH = fakegopath
-		p, err := importer.Default().Import(importPath)
+		p, err := imp.Import(importPath)
 		build.Default = oldDefault
 		if err != nil {
 			return nil, err

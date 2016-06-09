@@ -8,6 +8,15 @@
 #include "_cgo_export.h"
 #include "work.h"
 
+#if defined(GL_ES_VERSION_3_0) && GL_ES_VERSION_3_0
+#else
+#include <stdio.h>
+void glBlitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter) {
+	printf("GLES3 function is missing\n");
+	exit(2);
+}
+#endif
+
 uintptr_t processFn(struct fnargs* args, char* parg) {
 	uintptr_t ret = 0;
 	switch (args->fn) {
@@ -49,6 +58,9 @@ uintptr_t processFn(struct fnargs* args, char* parg) {
 		break;
 	case glfnBlendFuncSeparate:
 		glBlendFuncSeparate((GLenum)args->a0, (GLenum)args->a1, (GLenum)args->a2, (GLenum)args->a3);
+		break;
+	case glfnBlitFramebuffer:
+		glBlitFramebuffer((GLint)args->a0, (GLint)args->a1, (GLint)args->a2, (GLint)args->a3, (GLint)args->a4, (GLint)args->a5, (GLint)args->a6, (GLint)args->a7, (GLbitfield)args->a8, (GLenum)args->a9);
 		break;
 	case glfnBufferData:
 		glBufferData((GLenum)args->a0, (GLsizeiptr)args->a1, (GLvoid*)parg, (GLenum)args->a2);

@@ -29,6 +29,7 @@ static jmethodID seq_throw_exc;
 static jmethodID seq_getRef;
 static jmethodID seq_decRef;
 static jmethodID seq_incRef;
+static jmethodID seq_incRefnum;
 
 static jmethodID throwable_getMessage;
 
@@ -235,6 +236,8 @@ jobject go_seq_from_refnum(JNIEnv *env, int32_t refnum, jclass proxy_class, jmet
 		LOG_FATAL("Unknown reference: %d", refnum);
 	}
 	if (refnum > 0) { // Java object
+		// Go incremented the reference count just before passing the refnum. Decrement it here.
+		(*env)->CallStaticVoidMethod(env, seq_class, seq_decRef, (jint)refnum);
 		// return ref.obj
 		return (*env)->GetObjectField(env, ref, ref_objField);
 	} else {
@@ -267,6 +270,11 @@ void go_seq_pop_local_frame(JNIEnv *env) {
 	(*env)->PopLocalFrame(env, NULL);
 }
 
+void go_seq_inc_ref(int32_t ref) {
+	JNIEnv *env = go_seq_get_thread_env();
+	(*env)->CallStaticVoidMethod(env, seq_class, seq_incRefnum, (jint)ref);
+}
+
 void go_seq_dec_ref(int32_t ref) {
 	JNIEnv *env = go_seq_get_thread_env();
 	(*env)->CallStaticVoidMethod(env, seq_class, seq_decRef, (jint)ref);
@@ -295,7 +303,11 @@ Java_go_Seq_init(JNIEnv *env, jclass clazz) {
 	if (seq_decRef == NULL) {
 		LOG_FATAL("failed to find method Seq.decRef");
 	}
-	seq_incRef = (*env)->GetStaticMethodID(env, seq_class, "incRef", "(Lgo/Seq$Object;)I");
+	seq_incRefnum = (*env)->GetStaticMethodID(env, seq_class, "incRefnum", "(I)V");
+	if (seq_incRefnum == NULL) {
+		LOG_FATAL("failed to find method Seq.incRefnum");
+	}
+	seq_incRef = (*env)->GetStaticMethodID(env, seq_class, "incRef", "(Ljava/lang/Object;)I");
 	if (seq_incRef == NULL) {
 		LOG_FATAL("failed to find method Seq.incRef");
 	}
@@ -311,7 +323,7 @@ Java_go_Seq_init(JNIEnv *env, jclass clazz) {
 	if (ref_class == NULL) {
 		LOG_FATAL("failed to find the Seq.Ref class");
 	}
-	ref_objField = (*env)->GetFieldID(env, ref_class, "obj", "Lgo/Seq$Object;");
+	ref_objField = (*env)->GetFieldID(env, ref_class, "obj", "Ljava/lang/Object;");
 	if (ref_objField == NULL) {
 		LOG_FATAL("failed to find the Seq.Ref.obj field");
 	}
@@ -320,4 +332,9 @@ Java_go_Seq_init(JNIEnv *env, jclass clazz) {
 JNIEXPORT void JNICALL
 Java_go_Seq_destroyRef(JNIEnv *env, jclass clazz, jint refnum) {
 	DestroyRef(refnum);
+}
+
+JNIEXPORT void JNICALL
+Java_go_Seq_incGoRef(JNIEnv *env, jclass clazz, jint refnum) {
+	IncGoRef(refnum);
 }

@@ -17,6 +17,7 @@ import (
 	"compress/gzip"
 	"crypto/sha256"
 	"encoding/hex"
+	"flag"
 	"fmt"
 	"hash"
 	"io"
@@ -29,7 +30,7 @@ import (
 	"runtime"
 )
 
-const ndkVersion = "ndk-r10e"
+const ndkVersion = "ndk-r11c"
 
 type version struct {
 	os   string
@@ -38,7 +39,6 @@ type version struct {
 
 var hosts = []version{
 	{"darwin", "x86_64"},
-	{"linux", "x86"},
 	{"linux", "x86_64"},
 	{"windows", "x86"},
 	{"windows", "x86_64"},
@@ -52,15 +52,19 @@ type target struct {
 }
 
 var targets = []target{
-	{"arm", "android-15", "arm-linux-androideabi-4.8", "arm-linux-androideabi"},
+	{"arm", "android-15", "arm-linux-androideabi-4.9", "arm-linux-androideabi"},
 	{"arm64", "android-21", "aarch64-linux-android-4.9", "aarch64-linux-android"},
-	{"x86", "android-15", "x86-4.8", "i686-linux-android"},
+	{"x86", "android-15", "x86-4.9", "i686-linux-android"},
 	{"x86_64", "android-21", "x86_64-4.9", "x86_64-linux-android"},
 }
 
-var tmpdir string
+var (
+	ndkdir = flag.String("ndkdir", "", "Directory for the downloaded NDKs for caching")
+	tmpdir string
+)
 
 func main() {
+	flag.Parse()
 	var err error
 	tmpdir, err = ioutil.TempDir("", "gomobile-release-")
 	if err != nil {
@@ -187,15 +191,14 @@ func mkALPkg() (err error) {
 }
 
 func fetchNDK(host version) (binPath, url string, err error) {
-	ndkName := "android-" + ndkVersion + "-" + host.os + "-" + host.arch + "."
-	if host.os == "windows" {
-		ndkName += "exe"
-	} else {
-		ndkName += "bin"
-	}
+	ndkName := "android-" + ndkVersion + "-" + host.os + "-" + host.arch + ".zip"
 
-	url = "http://dl.google.com/android/ndk/" + ndkName
-	binPath = tmpdir + "/" + ndkName
+	url = "https://dl.google.com/android/repository/" + ndkName
+	binPath = *ndkdir
+	if binPath == "" {
+		binPath = tmpdir
+	}
+	binPath += "/" + ndkName
 
 	if _, err := os.Stat(binPath); err == nil {
 		log.Printf("\t%q: using cached NDK\n", ndkName)
@@ -336,6 +339,9 @@ func fetch(dst, url string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	if sc := resp.StatusCode; sc != http.StatusOK {
+		return "", fmt.Errorf("invalid HTTP status %d", sc)
+	}
 	hashw := sha256.New()
 	_, err = io.Copy(io.MultiWriter(hashw, f), resp.Body)
 	err2 := resp.Body.Close()
@@ -353,11 +359,8 @@ func fetch(dst, url string) (string, error) {
 }
 
 func inflate(dst, path string) error {
-	p7zip := "7z"
-	if runtime.GOOS == "darwin" {
-		p7zip = "/Applications/Keka.app/Contents/Resources/keka7z"
-	}
-	cmd := exec.Command(p7zip, "x", path)
+	unzip := "unzip"
+	cmd := exec.Command(unzip, path)
 	cmd.Dir = dst
 	out, err := cmd.CombinedOutput()
 	if err != nil {

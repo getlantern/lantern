@@ -85,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
 
         /* For webview debugging - visit chrome://inspect/#devices */
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            if (0 != (getApplicationInfo().flags &= ApplicationInfo.FLAG_DEBUGGABLE))
+            if (0 != (getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE))
             { WebView.setWebContentsDebuggingEnabled(true); }
         }
     }

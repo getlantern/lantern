@@ -58,19 +58,21 @@ func proxyissue10788_TestInterface_MultipleUnnamedParams(refnum C.int32_t, param
 
 type proxyissue10788_TestInterface _seq.Ref
 
-func (p *proxyissue10788_TestInterface) Bind_proxy_refnum__() int32 { return p.Num }
+func (p *proxyissue10788_TestInterface) Bind_proxy_refnum__() int32 {
+	return (*_seq.Ref)(p).Bind_IncNum()
+}
 
 func (p *proxyissue10788_TestInterface) DoSomeWork(param_s *issue10788.TestStruct) {
 	var _param_s C.int32_t = _seq.NullRefNum
 	if param_s != nil {
 		_param_s = C.int32_t(_seq.ToRefNum(param_s))
 	}
-	C.cproxyissue10788_TestInterface_DoSomeWork(C.int32_t(p.Num), _param_s)
+	C.cproxyissue10788_TestInterface_DoSomeWork(C.int32_t(p.Bind_proxy_refnum__()), _param_s)
 }
 
 func (p *proxyissue10788_TestInterface) MultipleUnnamedParams(param_p0 int, param_p1 string, param_p2 int64) {
 	_param_p0 := C.nint(param_p0)
 	_param_p1 := encodeString(param_p1)
 	_param_p2 := C.int64_t(param_p2)
-	C.cproxyissue10788_TestInterface_MultipleUnnamedParams(C.int32_t(p.Num), _param_p0, _param_p1, _param_p2)
+	C.cproxyissue10788_TestInterface_MultipleUnnamedParams(C.int32_t(p.Bind_proxy_refnum__()), _param_p0, _param_p1, _param_p2)
 }
