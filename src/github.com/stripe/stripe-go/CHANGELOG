@@ -1,0 +1,278 @@
+15.2.0 2016-06-03
+	Add `ToValues` to `RequestValues` struct
+
+15.1.0 2016-05-26
+	Add `BusinessVatID` to customer creation parameters
+
+15.0.0 2016-05-24
+	Fix handling of nested objects in arrays in request parameters
+
+14.4.0 2016-05-24
+	Add granular error types in new `Err` field on `stripe.Error`
+
+14.3.0 2016-05-20
+	Allow Relay orders to be returned and add associated types
+
+14.2.3 2016-05-20
+	When creating a bank account token, only send routing number if it's been set
+
+14.2.2 2016-05-17
+	When creating a bank account, only send routing number if it's been set
+
+14.2.1 2016-05-17
+	Add missing SKU clinet to client API type
+
+14.2.0 2016-05-11
+	Add `Reversed` and `AmountReversed` fields to `Transfer`
+
+14.1.0 2016-05-05
+	Allow `default_for_currency` to be set when creating a card
+
+14.0.0 2016-05-04
+	Change the signature for `sub.Delete`. The customer ID is no longer required.
+
+13.12.0 2016-04-28
+	Add `Currency` to `Card`
+
+13.11.1 2016-04-22
+	Fix bug where new external accounts could not be marked default from token
+
+13.11.0 2016-04-21
+	Expose a number of list types that were previously internal (full list below)
+	Expose `stripe.AccountList`
+	Expose `stripe.TransactionList`
+	Expose `stripe.BitcoinReceiverList`
+	Expose `stripe.ChargeList`
+	Expose `stripe.CountrySpecList`
+	Expose `stripe.CouponList`
+	Expose `stripe.CustomerList`
+	Expose `stripe.DisputeList`
+	Expose `stripe.EventList`
+	Expose `stripe.FeeList`
+	Expose `stripe.FileUploadList`
+	Expose `stripe.InvoiceList`
+	Expose `stripe.OrderList`
+	Expose `stripe.ProductList`
+	Expose `stripe.RecipientList`
+	Expose `stripe.TransferList`
+	Switch to use of `stripe.BitcoinTransactionList`
+	Switch to use of `stripe.SKUList`
+
+13.10.1 2016-04-20
+	Add support for `TaxPercentZero` to invoice and subscription updates
+
+13.10.0 2016-04-19
+	Expose `stripe.PlanList` (previously an internal type)
+
+13.9.0 2016-04-18
+	Add `TaxPercentZero` struct to `InvoiceParams`
+	Add `TaxPercentZero` to `SubParams`
+
+13.8.0 2016-04-12
+	Add `Outcome` struct to `Charge`
+
+13.7.0 2016-04-06
+	Add `Description`, `IIN`, and `Issuer` to `Card`
+
+13.6.0 2016-04-05
+	Add `SourceType` (and associated constants) to `Transfer`
+
+13.5.0 2016-03-29
+	Add `Meta` (metadata) to `BankAccount`
+
+13.4.0 2016-03-29
+	Add `Meta` (metadata) to `Card`
+
+13.3.0 2016-03-29
+	Add `DefaultCurrency` to `CountrySpec`
+
+13.2.0 2016-03-18
+	Add `SourceTransfer` to `Charge`
+	Add `SourceTx` to `Transfer`
+
+13.1.0 2016-03-15
+	Add `Reject` on `Account` to support the new API feature
+
+13.0.0 2016-03-15
+	Upgrade API version to 2016-03-07
+	Remove `Account.BankAccounts` in favor of `ExternalAccounts`
+	Remove `Account.Currencies` in favor of `CountrySpec`
+
+12.1.0 2016-02-04
+	Add `ListParams.StripeAccount` for making list calls on behalf of connected accounts
+	Add `Params.StripeAccount` for symmetry with `ListParams.StripeAccount`
+	Deprecate `Params.Account` in favor of `Params.StripeAccount`
+
+12.0.0 2016-02-02
+	Add support for fetching events for managed accounts (`event.Get` now takes `Params`)
+
+11.5.0 2016-02-26
+	Allow a `PII.PersonalIDNumber` number to be used to create a token
+
+11.4.0 2016-02-24
+	Add missing subscription fields to `InvoiceParams` for use with `invoice.GetNext`
+
+11.3.0 2016-02-19
+	Add `AccountHolderName` and `AccountHolderType` to bank accounts
+
+11.2.0 2016-02-11
+	Add support for `CountrySpec`
+	Add `SSNProvided`, `PersonalIDProvided` and `BusinessTaxIDProvided` to `LegalEntity`
+
+11.1.2 2016-02-02
+	Fix card update method to correctly take expiration date
+
+11.1.1 2016-02-01
+	Fix recipient update so that it can take a bank token (like create)
+
+11.0.1 2016-01-11
+	Add missing field `country` to shipping details of `Charge` and `Customer`
+
+11.0.0 2016-01-07
+	Add missing field `Default` to `BankAccount`
+	Add `OrderParams` parameter to `Order` retrieval
+	Fix parameter bug when creating a new `Order`
+	Support special value of 'now' for trial end when updating subscriptions
+
+10.3.0 2015-12-10
+	Allow an account to be referenced when creating a card
+
+10.2.0 2015-12-04
+	Add `Update` function on `Coupon` client so that metadata can be set
+
+10.1.0 2015-12-01
+	Add a verification routine for external accounts
+
+10.0.0 2015-11-30
+	Return models along with `error` when deleting resources with `Del`
+	Fix bug where country parameter wasn't included for some account creation
+
+9.0.0 2015-11-13
+	Return model (`Sub`) when cancelling a subscription (`sub.Cancel`)
+
+8.0.0 2015-08-17
+	Add ability to list and retrieve refunds without a Charge
+
+7.0.0 2015-08-03
+	Add ability to list and retrieve disputes
+
+6.8.0 2015-07-29
+	Add ability to delete an account
+
+6.7.1 2015-07-17
+	Bug fixes
+
+6.7.0 2015-07-16
+	Expand logging object
+	Move proration date to subscription update
+	Send country when creating/updating account
+
+6.6.0 2015-07-06
+	Add request ID to errors
+
+6.5.0 2015-07-06
+	Update bank account creation API
+	Add destination, application fee, transfer to Charge struct
+	Add missing fields to invoice line item
+	Rename deprecated customer param value
+
+6.4.2 2015-06-23
+	Add BusinessUrl, BusinessUrl, BusinessPrimaryColor, SupportEmail, and
+	SupportUrl to Account.
+
+6.4.1 2015-06-16
+	Change card.dynamic_last_four to card.dynamic_last4
+
+6.4.0 2015-05-28
+	Rename customer.default_card -> default_source
+
+6.3.0 2015-05-19
+	Add shipping address to charges
+	Expose card.dynamic_last_four
+	Expose account.tos_acceptance
+	Bug fixes
+	Bump API version to most recent one
+
+6.2.0 2015-04-09
+	Bug fixes
+	Add Extra to parameters
+
+6.1.0 2015-03-17
+	Add TaxPercent for subscriptions
+	Event bug fixes
+
+6.0.0 2015-03-15
+	Add more operations for /accounts endpoint
+	Add /transfers/reversals endpoint
+	Add /accounts/bank_accounts endpoint
+	Add support for Stripe-Account header
+
+5.1.0 2015-02-25
+	Add new dispute status `warning_closed`
+	Add SubParams.TrialEndNow to support `trial_end = "now"`
+
+5.0.1 2015-02-25
+	Fix URL for upcoming invoices
+
+5.0.0 2015-02-19
+	Bump to API version 2014-02-18
+	Change Card, DefaultCard, Cards to Source, DefaultSource, Sources in Stripe response objects
+	Add paymentsource package for manipulating Customer's sources
+	Support Update action for Bitcoin Recievers
+
+4.4.3 2015-02-08
+	Modify NewIdempotencyKey() algorithm to increase likelihood of randomness
+
+4.4.2 2015-01-24
+	Add BankAccountParams.Token
+	Add Token.ClientIP
+	Add LogLevel
+
+4.4.0 2015-01-20
+	Add Bitcoin support
+
+4.3.0 2015-01-13
+	Added support for listing FileUploads
+	Mime parameter on FileUpload has been changed to Type
+
+4.2.1 2014-12-28
+	Handle charges with customer card tokens
+
+4.2.0 2014-12-18
+	Add idempotency support
+
+4.1.0 2014-12-17
+	Bump to API version 2014-12-17.
+
+4.0.0 2014-12-16
+	Add FileUpload resource. This brings in a new endpoint (uploads.stripe.com) and thus makes changes to some of the existing interfaces.
+	This also adds support for multipart content.
+
+3.1.0 2014-12-16
+	Add Charge.FraudDetails
+
+3.0.1 2014-12-15
+	Add timeout value to HTTP requests
+
+3.0.0 2014-12-05
+	Add Dispute.EvidenceDetails
+	Remove Dispute.DueDate
+	Change Dispute.Evidence from string to struct
+
+2.0.0 2014-11-26
+	Change List interface to .Next() and .Resource()
+	Better error messages for Get() methods
+	EventData.Raw contains the raw event message
+	SubParams.QuantityZero can be used for free subscriptions
+
+1.0.3 2014-10-22
+	Add AddMeta method
+
+1.0.2 2014-09-23
+	Minor fixes
+
+1.0.1 2014-09-23
+	Linter-based updates
+
+1.0.0 2014-09-22
+	initial version
