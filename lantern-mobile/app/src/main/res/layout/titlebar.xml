@@ -11,6 +11,7 @@
         android:layout_height="52dp">
 
         <LinearLayout
+            android:id="@+id/container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
@@ -35,7 +36,6 @@
                 android:gravity="center_vertical"
                 android:layout_centerVertical="true"
                 android:fontFamily="sans-serif-medium"
-                android:layout_toRightOf="@+id/avatar"
                 android:paddingLeft="30dp"
                 android:text=""
                 android:textSize="20sp"

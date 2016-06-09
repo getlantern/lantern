@@ -103,8 +103,9 @@ public class PlansActivity extends FragmentActivity {
 
         } else {
             intent = new Intent(this, PaymentActivity.class);
-            PaymentActivity.plan = plan;
         }
+
+        PaymentActivity.plan = plan;
 
         // make sure user links device before proceeding
         if (!session.deviceLinked()) {
