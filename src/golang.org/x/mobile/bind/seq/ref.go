@@ -42,7 +42,7 @@ func init() {
 // A Ref represents a Java or Go object passed across the language
 // boundary.
 type Ref struct {
-	Num int32
+	Bind_Num int32
 }
 
 type proxy interface {
@@ -88,7 +88,7 @@ func FromRefNum(num int32) *Ref {
 		return nil
 	}
 	ref := &Ref{num}
-	if ref.Num > 0 {
+	if num > 0 {
 		// This is a foreign object reference.
 		// Track its lifetime with a finalizer.
 		runtime.SetFinalizer(ref, FinalizeRef)
@@ -97,15 +97,39 @@ func FromRefNum(num int32) *Ref {
 	return ref
 }
 
+// Bind_IncNum increments the foreign reference count and
+// return the refnum.
+func (r *Ref) Bind_IncNum() int32 {
+	refnum := r.Bind_Num
+	IncForeignRef(refnum)
+	return refnum
+}
+
 // Get returns the underlying object.
 func (r *Ref) Get() interface{} {
+	refnum := r.Bind_Num
 	refs.Lock()
-	o, ok := refs.objs[r.Num]
+	o, ok := refs.objs[refnum]
 	refs.Unlock()
 	if !ok {
-		panic(fmt.Sprintf("unknown ref %d", r.Num))
+		panic(fmt.Sprintf("unknown ref %d", refnum))
 	}
+	// This is a Go reference and its refnum was incremented
+	// before crossing the language barrier.
+	Delete(refnum)
 	return o.obj
+}
+
+// Inc increments the reference count for a refnum. Called from Bind_proxy_refnum
+// functions.
+func Inc(num int32) {
+	refs.Lock()
+	o, ok := refs.objs[num]
+	if !ok {
+		panic(fmt.Sprintf("seq.Inc: unknown refnum: %d", num))
+	}
+	refs.objs[num] = countedObj{o.obj, o.cnt + 1}
+	refs.Unlock()
 }
 
 // Delete decrements the reference count and removes the pinned object
