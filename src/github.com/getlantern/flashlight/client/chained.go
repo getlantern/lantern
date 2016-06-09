@@ -129,7 +129,7 @@ func (s *chainedServer) dialer(deviceID string) (*balancer.Dialer, error) {
 				// Whenever full-device VPN mode is enabled, we need to make sure we ignore proxy
 				// requests from the first instance.
 				log.Debugf("Attempted to dial ourselves. Dialing directly to %s instead", addr)
-				conn, err = dialDirect("tcp", addr, 1*time.Minute)
+				conn, err = dialDirect(network, addr, 1*time.Minute)
 			} else {
 				// Yeah any site visited through Lantern can be a check target
 				s.addCheckTarget(addr)
