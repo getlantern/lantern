@@ -1,15 +1,14 @@
 apply plugin: 'com.android.application'
 apply plugin: 'io.fabric'
-apply plugin: 'com.google.gms.google-services'
 apply plugin: 'android-apt'
 
 android {
 
     useLibrary 'org.apache.http.legacy'
 
-    packagingOptions { 
-        exclude 'META-INF/LICENSE.txt' 
-        exclude 'META-INF/NOTICE.txt' 
+    packagingOptions {
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE.txt'
         exclude 'META-INF/maven/commons-io/commons-io/pom.xml'
         exclude 'META-INF/maven/commons-io/commons-io/pom.properties'
     }
@@ -108,9 +107,9 @@ dependencies {
     compile(name:'pubsub-sdk-debug', ext:'aar')
 
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile gplay
 
     compile "com.android.support:support-v4:${supportLibVersion}"
+    compile 'com.google.android.gms:play-services-gcm:9.0.0'
     compile "com.android.support:appcompat-v7:${supportLibVersion}"
     compile "com.android.support:design:${supportLibVersion}"
 
@@ -145,6 +144,8 @@ dependencies {
     apt "org.androidannotations:androidannotations:" + androidAnnotationsVersion
     compile("org.androidannotations:androidannotations-api:" + androidAnnotationsAPIVersion )
 
+    compile("net.rimoto:intlphoneinput:0.9.1")
+
     // Testing-only dependencies
     androidTestCompile 'com.android.support.test:runner:0.4'
     androidTestCompile 'com.android.support.test:rules:0.4'
@@ -157,3 +158,5 @@ apt {
         resourcePackageName 'org.lantern'
     }
 }
+
+apply plugin: 'com.google.gms.google-services'

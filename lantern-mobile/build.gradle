@@ -34,7 +34,6 @@ ext {
     deployScript = new File(lanternDir, 'deploy.gradle')
 
     libs = fileTree(dir: 'libs', include: ['*.jar'])
-    gplay   = 'com.google.android.gms:play-services-analytics:9.0.0'
     supportLibVersion = '23.2.1'
     mavenAntTasks = 'org.apache.maven:maven-ant-tasks:2.1.3'
 }
