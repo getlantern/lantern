@@ -2,7 +2,7 @@ SHELL := /bin/bash
 
 OSX_MIN_VERSION := 10.9
 
-SOURCES := $(shell find $(src) -name '*[^_test].go')
+SOURCES := $(shell find src -name '*[^_test].go')
 
 get-command = $(shell which="$$(which $(1) 2> /dev/null)" && if [[ ! -z "$$which" ]]; then printf %q "$$which"; fi)
 
