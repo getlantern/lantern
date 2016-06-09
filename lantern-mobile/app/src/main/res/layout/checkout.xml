@@ -70,6 +70,7 @@
         android:baselineAligned="false"
         android:id="@+id/cardView"
         android:clickable="true" 
+        android:focusable="true"
         android:focusableInTouchMode="true"
         tools:context=".PaymentActivity">
 
