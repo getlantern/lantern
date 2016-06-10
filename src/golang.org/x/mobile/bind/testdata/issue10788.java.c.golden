@@ -22,7 +22,7 @@ Java_go_issue10788_Issue10788_init(JNIEnv *env, jclass _unused) {
     clazz = (*env)->FindClass(env, "go/issue10788/Issue10788$TestStruct");
     proxy_class_issue10788_TestStruct = (*env)->NewGlobalRef(env, clazz);
     proxy_class_issue10788_TestStruct_cons = (*env)->GetMethodID(env, clazz, "<init>", "(Lgo/Seq$Ref;)V");
-    clazz = (*env)->FindClass(env, "go/issue10788/Issue10788$TestInterface$Proxy");
+    clazz = (*env)->FindClass(env, "go/issue10788/Issue10788$proxyTestInterface");
     proxy_class_issue10788_TestInterface = (*env)->NewGlobalRef(env, clazz);
     proxy_class_issue10788_TestInterface_cons = (*env)->GetMethodID(env, clazz, "<init>", "(Lgo/Seq$Ref;)V");
     clazz = (*env)->FindClass(env, "go/issue10788/Issue10788$TestInterface");
@@ -47,7 +47,7 @@ Java_go_issue10788_Issue10788_00024TestStruct_getValue(JNIEnv *env, jobject this
 }
 
 JNIEXPORT void JNICALL
-Java_go_issue10788_Issue10788_00024TestInterface_00024Proxy_DoSomeWork(JNIEnv* env, jobject this, jobject s) {
+Java_go_issue10788_Issue10788_00024proxyTestInterface_DoSomeWork(JNIEnv* env, jobject this, jobject s) {
     int32_t o = go_seq_to_refnum(env, this);
     int32_t _s = go_seq_to_refnum(env, s);
     proxyissue10788_TestInterface_DoSomeWork(o, _s);
@@ -62,7 +62,7 @@ void cproxyissue10788_TestInterface_DoSomeWork(int32_t refnum, int32_t s) {
 }
 
 JNIEXPORT void JNICALL
-Java_go_issue10788_Issue10788_00024TestInterface_00024Proxy_MultipleUnnamedParams(JNIEnv* env, jobject this, jlong p0, jstring p1, jlong p2) {
+Java_go_issue10788_Issue10788_00024proxyTestInterface_MultipleUnnamedParams(JNIEnv* env, jobject this, jlong p0, jstring p1, jlong p2) {
     int32_t o = go_seq_to_refnum(env, this);
     nint _p0 = (nint)p0;
     nstring _p1 = go_seq_from_java_string(env, p1);

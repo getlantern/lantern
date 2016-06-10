@@ -24,7 +24,7 @@ Java_go_ignore_Ignore_init(JNIEnv *env, jclass _unused) {
     clazz = (*env)->FindClass(env, "go/ignore/Ignore$S");
     proxy_class_ignore_S = (*env)->NewGlobalRef(env, clazz);
     proxy_class_ignore_S_cons = (*env)->GetMethodID(env, clazz, "<init>", "(Lgo/Seq$Ref;)V");
-    clazz = (*env)->FindClass(env, "go/ignore/Ignore$I$Proxy");
+    clazz = (*env)->FindClass(env, "go/ignore/Ignore$proxyI");
     proxy_class_ignore_I = (*env)->NewGlobalRef(env, clazz);
     proxy_class_ignore_I_cons = (*env)->GetMethodID(env, clazz, "<init>", "(Lgo/Seq$Ref;)V");
     clazz = (*env)->FindClass(env, "go/ignore/Ignore$I");

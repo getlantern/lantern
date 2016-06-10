@@ -23,7 +23,7 @@ var _ = _seq.FromRefNum
 
 type proxyvars_I _seq.Ref
 
-func (p *proxyvars_I) Bind_proxy_refnum__() int32 { return p.Num }
+func (p *proxyvars_I) Bind_proxy_refnum__() int32 { return (*_seq.Ref)(p).Bind_IncNum() }
 
 //export var_setvars_ABool
 func var_setvars_ABool(v C.char) {
@@ -181,7 +181,7 @@ func var_setvars_AnInterface(v C.int32_t) {
 	var _v vars.I
 	_v_ref := _seq.FromRefNum(int32(v))
 	if _v_ref != nil {
-		if _v_ref.Num < 0 { // go object
+		if v < 0 { // go object
 			_v = _v_ref.Get().(vars.I)
 		} else { // foreign object
 			_v = (*proxyvars_I)(_v_ref)

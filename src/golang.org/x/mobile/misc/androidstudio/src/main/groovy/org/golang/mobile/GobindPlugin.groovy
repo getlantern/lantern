@@ -95,7 +95,7 @@ class GobindTask extends DefaultTask implements OutputFileTask {
 				cmd << "android"
 			}
 			if (gomobileFlags) {
-				cmd = cmd+gomobileFlags.split(" ")
+				cmd.addAll(gomobileFlags.split(" "))
 			}
 			cmd.addAll(pkg.split(" "))
 

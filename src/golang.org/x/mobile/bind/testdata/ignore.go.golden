@@ -32,7 +32,7 @@ var _ = _seq.FromRefNum
 
 type proxyignore_I _seq.Ref
 
-func (p *proxyignore_I) Bind_proxy_refnum__() int32 { return p.Num }
+func (p *proxyignore_I) Bind_proxy_refnum__() int32 { return (*_seq.Ref)(p).Bind_IncNum() }
 
 // skipped method I.Argument with unsupported parameter or result types
 // skipped method I.Result with unsupported parameter or result types

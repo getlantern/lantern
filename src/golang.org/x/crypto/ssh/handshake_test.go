@@ -104,7 +104,7 @@ func TestHandshakeBasic(t *testing.T) {
 			}
 			if i == 5 {
 				// halfway through, we request a key change.
-				_, _, err := trC.sendKexInit(subsequentKeyExchange)
+				err := trC.sendKexInit(subsequentKeyExchange)
 				if err != nil {
 					t.Fatalf("sendKexInit: %v", err)
 				}
@@ -161,7 +161,7 @@ func TestHandshakeError(t *testing.T) {
 	}
 
 	// Now request a key change.
-	_, _, err = trC.sendKexInit(subsequentKeyExchange)
+	err = trC.sendKexInit(subsequentKeyExchange)
 	if err != nil {
 		t.Errorf("sendKexInit: %v", err)
 	}
@@ -184,6 +184,28 @@ func TestHandshakeError(t *testing.T) {
 	}
 }
 
+func TestForceFirstKex(t *testing.T) {
+	checker := &testChecker{}
+	trC, trS, err := handshakePair(&ClientConfig{HostKeyCallback: checker.Check}, "addr")
+	if err != nil {
+		t.Fatalf("handshakePair: %v", err)
+	}
+
+	defer trC.Close()
+	defer trS.Close()
+
+	trC.writePacket(Marshal(&serviceRequestMsg{serviceUserAuth}))
+
+	// We setup the initial key exchange, but the remote side
+	// tries to send serviceRequestMsg in cleartext, which is
+	// disallowed.
+
+	err = trS.sendKexInit(firstKeyExchange)
+	if err == nil {
+		t.Errorf("server first kex init should reject unexpected packet")
+	}
+}
+
 func TestHandshakeTwice(t *testing.T) {
 	checker := &testChecker{}
 	trC, trS, err := handshakePair(&ClientConfig{HostKeyCallback: checker.Check}, "addr")
@@ -194,18 +216,25 @@ func TestHandshakeTwice(t *testing.T) {
 	defer trC.Close()
 	defer trS.Close()
 
+	// Both sides should ask for the first key exchange first.
+	err = trS.sendKexInit(firstKeyExchange)
+	if err != nil {
+		t.Errorf("server sendKexInit: %v", err)
+	}
+
+	err = trC.sendKexInit(firstKeyExchange)
+	if err != nil {
+		t.Errorf("client sendKexInit: %v", err)
+	}
+
+	sent := 0
 	// send a packet
 	packet := make([]byte, 5)
 	packet[0] = msgRequestSuccess
 	if err := trC.writePacket(packet); err != nil {
 		t.Errorf("writePacket: %v", err)
 	}
-
-	// Now request a key change.
-	_, _, err = trC.sendKexInit(subsequentKeyExchange)
-	if err != nil {
-		t.Errorf("sendKexInit: %v", err)
-	}
+	sent++
 
 	// Send another packet. Use a fresh one, since writePacket destroys.
 	packet = make([]byte, 5)
@@ -213,9 +242,10 @@ func TestHandshakeTwice(t *testing.T) {
 	if err := trC.writePacket(packet); err != nil {
 		t.Errorf("writePacket: %v", err)
 	}
+	sent++
 
 	// 2nd key change.
-	_, _, err = trC.sendKexInit(subsequentKeyExchange)
+	err = trC.sendKexInit(subsequentKeyExchange)
 	if err != nil {
 		t.Errorf("sendKexInit: %v", err)
 	}
@@ -225,16 +255,14 @@ func TestHandshakeTwice(t *testing.T) {
 	if err := trC.writePacket(packet); err != nil {
 		t.Errorf("writePacket: %v", err)
 	}
+	sent++
 
 	packet = make([]byte, 5)
 	packet[0] = msgRequestSuccess
-	for i := 0; i < 5; i++ {
+	for i := 0; i < sent; i++ {
 		msg, err := trS.readPacket()
 		if err != nil {
 			t.Fatalf("server closed too soon: %v", err)
-		}
-		if msg[0] == msgNewKeys {
-			continue
 		}
 
 		if bytes.Compare(msg, packet) != 0 {

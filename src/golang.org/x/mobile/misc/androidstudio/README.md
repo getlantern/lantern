@@ -5,7 +5,7 @@ gobindPlugin invokes gomobile bind command on the specified package.
 build.gradle:
 <pre>
 plugins {
-  id "org.golang.mobile.bind" version "0.2.4"
+  id "org.golang.mobile.bind" version "0.2.6"
 }
 
 gobind {
@@ -23,6 +23,9 @@ gobind {
 
   // Absolute path to the go binary
   GO "/usr/local/go/bin/go"
+
+  // Pass extra parameters to command line
+  // GOMOBILEFLAGS "-javapkg my.java.package"
 }
 </pre>
 

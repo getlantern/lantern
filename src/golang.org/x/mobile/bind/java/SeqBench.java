@@ -17,12 +17,12 @@ import go.benchmark.Benchmark;
 
 public class SeqBench extends InstrumentationTestCase {
 
-  public static class AnI extends Benchmark.I.Stub {
+  public static class AnI implements Benchmark.I {
     @Override public void F() {
     }
   }
 
-  private static class Benchmarks extends Benchmark.Benchmarks.Stub {
+  private static class Benchmarks implements Benchmark.Benchmarks {
     private static Map<String, Runnable> benchmarks;
     private static ExecutorService executor = Executors.newSingleThreadExecutor();
 
