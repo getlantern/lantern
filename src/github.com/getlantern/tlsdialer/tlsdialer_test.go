@@ -74,7 +74,7 @@ func TestOKWithServerName(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	cwt, err := DialForTimings(new(net.Dialer), "tcp", ADDR, true, &tls.Config{
+	cwt, err := DialForTimings(net.DialTimeout, 0, time.Time{}, "tcp", ADDR, true, &tls.Config{
 		RootCAs: cert.PoolContainingCert(),
 	})
 	conn := cwt.Conn
