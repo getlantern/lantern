@@ -167,7 +167,7 @@ func Dial(network, addr string, timeout time.Duration) (net.Conn, error) {
 
 	err = conn.connectSocket()
 	if err != nil {
-		log.Errorf("Could not connect to socket: %v", host, port)
+		log.Errorf("Could not connect to socket: %v", err)
 		return nil, err
 	}
 

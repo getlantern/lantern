@@ -126,7 +126,7 @@
         <!-- List of Actions (pages) -->
         <ListView
             android:id="@+id/drawerList"
-            android:layout_width="280dp"
+            android:layout_width="285dp"
             android:layout_height="match_parent"
             android:layout_below="@+id/profileBox"
             android:choiceMode="singleChoice"

@@ -3,7 +3,6 @@ package appdir
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -30,18 +29,6 @@ func general(app string) string {
 		dir := homeDir
 		dirMutex.RUnlock()
 
-		// TODO: Go for Android currently doesn't support Home Directory.
-		// Remove as soon as this is available in the future
-		dir = filepath.Join(dir, strings.ToLower(app))
-
-		if _, err := os.Stat(dir); err != nil {
-			if os.IsNotExist(err) {
-				// Create log dir
-				if err := os.MkdirAll(dir, 0755); err != nil {
-					log.Errorf("Unable to create lantern dir at %s: %s", dir, err)
-				}
-			}
-		}
 		return dir
 	} else {
 		// It is more common on Linux to expect application related directories

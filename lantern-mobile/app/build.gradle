@@ -109,7 +109,7 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
 
     compile "com.android.support:support-v4:${supportLibVersion}"
-    compile 'com.google.android.gms:play-services-gcm:9.0.0'
+    compile "com.google.android.gms:play-services-analytics:9.0.0"
     compile "com.android.support:appcompat-v7:${supportLibVersion}"
     compile "com.android.support:design:${supportLibVersion}"
 
@@ -143,8 +143,6 @@ dependencies {
 
     apt "org.androidannotations:androidannotations:" + androidAnnotationsVersion
     compile("org.androidannotations:androidannotations-api:" + androidAnnotationsAPIVersion )
-
-    compile("net.rimoto:intlphoneinput:0.9.1")
 
     // Testing-only dependencies
     androidTestCompile 'com.android.support.test:runner:0.4'
