@@ -4,6 +4,8 @@ package withtimeout
 
 import (
 	"time"
+
+	"github.com/getlantern/ops"
 )
 
 const (
@@ -20,10 +22,10 @@ func (timeoutError) Error() string { return timeoutErrorString }
 func Do(timeout time.Duration, fn func() (interface{}, error)) (result interface{}, timedOut bool, err error) {
 	resultCh := make(chan *resultWithError, 1)
 
-	go func() {
+	ops.Go(func() {
 		result, err := fn()
 		resultCh <- &resultWithError{result, err}
-	}()
+	})
 
 	select {
 	case <-time.After(timeout):
