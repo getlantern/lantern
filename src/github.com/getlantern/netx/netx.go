@@ -19,7 +19,7 @@ func init() {
 	Reset()
 }
 
-// Dial is like DialTimeout using a default timeout of 30 seconds.
+// Dial is like DialTimeout using a default timeout of 1 minute.
 func Dial(net string, addr string) (net.Conn, error) {
 	return DialTimeout(net, addr, defaultDialTimeout)
 }
