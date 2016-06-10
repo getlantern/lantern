@@ -8,10 +8,6 @@ import (
 	"time"
 )
 
-const (
-	defaultDNSServer = "8.8.4.4"
-)
-
 var (
 	dial           atomic.Value
 	resolveTCPAddr atomic.Value
