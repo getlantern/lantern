@@ -63,7 +63,7 @@ DOCKER_IMAGE_TAG := lantern-builder
 
 S3_BUCKET ?= lantern
 ANDROID_S3_BUCKET ?= lantern-android
-ANDROID_BUILD_DIR := lantern-mobile/app/build/outputs/apk
+ANDROID_BUILD_DIR := src/github.com/getlantern/lantern-mobile/app/build/outputs/apk
 LANTERN_DEBUG_APK := lantern-debug.apk
 
 ANDROID_LIB_PKG := github.com/getlantern/lantern
@@ -89,7 +89,7 @@ ANDROID_TESTBED_ANDROID_SDK := $(ANDROID_TESTBED_LIBS)/android-sdk-debug.aar
 ANDROID_TESTBED_PUBSUB := $(ANDROID_TESTBED_LIBS)/pubsub-sdk-debug.aar
 ANDROID_TESTBED := $(ANDROID_TESTBED_DIR)/app/build/outputs/apk/app-debug.apk
 
-LANTERN_MOBILE_DIR := lantern-mobile
+LANTERN_MOBILE_DIR := src/github.com/getlantern/lantern-mobile
 LANTERN_MOBILE_LIBS := $(LANTERN_MOBILE_DIR)/app/libs
 TUN2SOCKS := $(LANTERN_MOBILE_DIR)/libs/armeabi-v7a/libtun2socks.so
 LANTERN_MOBILE_ARM_LIBS := $(LANTERN_MOBILE_LIBS)/armeabi-v7a
