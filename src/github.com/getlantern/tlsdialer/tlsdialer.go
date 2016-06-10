@@ -12,6 +12,7 @@ import (
 
 	"github.com/getlantern/golog"
 	"github.com/getlantern/netx"
+	"github.com/getlantern/ops"
 )
 
 var (
@@ -51,7 +52,7 @@ type ConnWithTimings struct {
 // connection's ConnectionState will never get populated. Use DialForTimings to
 // get back a data structure that includes the verified chains.
 func Dial(network, addr string, sendServerName bool, config *tls.Config) (*tls.Conn, error) {
-	return DialTimeout(netx.DialTimeout, 0, zeroTime, network, addr, sendServerName, config)
+	return DialTimeout(netx.DialTimeout, 1*time.Minute, zeroTime, network, addr, sendServerName, config)
 }
 
 // Like crypto/tls.DialWithDialer, but with the ability to control whether or
@@ -106,12 +107,12 @@ func DialForTimings(dial func(net string, addr string, timeout time.Duration) (n
 	} else {
 		log.Tracef("Resolving on goroutine")
 		resolvedCh := make(chan *net.TCPAddr, 10)
-		go func() {
+		ops.Go(func() {
 			resolved, resolveErr := netx.Resolve("tcp", addr)
 			log.Tracef("Resolution resulted in %s : %s", resolved, resolveErr)
 			resolvedCh <- resolved
 			errCh <- resolveErr
-		}()
+		})
 		err = <-errCh
 		if err == nil {
 			log.Tracef("No error, looking for resolved")
@@ -173,9 +174,9 @@ func DialForTimings(dial func(net string, addr string, timeout time.Duration) (n
 		err = conn.Handshake()
 	} else {
 		log.Trace("Handshaking on goroutine")
-		go func() {
+		ops.Go(func() {
 			errCh <- conn.Handshake()
-		}()
+		})
 		err = <-errCh
 	}
 	if err == nil {

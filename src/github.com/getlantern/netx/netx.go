@@ -16,12 +16,11 @@ var (
 	dial           atomic.Value
 	resolveTCPAddr atomic.Value
 
-	defaultDialTimeout = 60 * time.Second
+	defaultDialTimeout = 1 * time.Minute
 )
 
 func init() {
-	dial.Store(net.DialTimeout)
-	resolveTCPAddr.Store(net.ResolveTCPAddr)
+	Reset()
 }
 
 // Dial is like DialTimeout using a default timeout of 30 seconds.
@@ -48,4 +47,10 @@ func Resolve(network string, addr string) (*net.TCPAddr, error) {
 // OverrideResolve overrides the global resolve function.
 func OverrideResolve(resolveFN func(net string, addr string) (*net.TCPAddr, error)) {
 	resolveTCPAddr.Store(resolveFN)
+}
+
+// Reset resets netx to its default settings
+func Reset() {
+	OverrideDial(net.DialTimeout)
+	OverrideResolve(net.ResolveTCPAddr)
 }
