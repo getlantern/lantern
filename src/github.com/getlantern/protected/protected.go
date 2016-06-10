@@ -15,6 +15,10 @@ import (
 	"github.com/getlantern/golog"
 )
 
+var (
+	log = golog.LoggerFor("lantern-android.protected")
+)
+
 const (
 	defaultDnsServer = "8.8.4.4"
 	connectTimeOut   = 15 * time.Second
@@ -35,151 +39,137 @@ type ProtectedConn struct {
 	port     int
 }
 
-var (
-	log              = golog.LoggerFor("lantern-android.protected")
-	currentProtect   Protect
-	currentDnsServer string
-	mutex            sync.RWMutex
-)
-
-func Configure(protect Protect, dnsServer string) {
-	mutex.Lock()
-	currentProtect = protect
-	if dnsServer != "" {
-		currentDnsServer = dnsServer
-	} else {
+// Resolver returns a function that resolves the given address using a DNS
+// lookup on a UDP socket protected by the given Protect function.
+func Resolver(protect Protect, dnsServer string) func(addr string) (*net.TCPAddr, error) {
+	if dnsServer == "" {
 		dnsServer = defaultDnsServer
 	}
-	mutex.Unlock()
+	return func(addr string) (*net.TCPAddr, error) {
+		host, port, err := SplitHostPort(addr)
+		if err != nil {
+			return nil, err
+		}
+
+		// Check if we already have the IP address
+		IPAddr := net.ParseIP(host)
+		if IPAddr != nil {
+			return &net.TCPAddr{IP: IPAddr, Port: port}, nil
+		}
+
+		// Create a datagram socket
+		socketFd, err := syscall.Socket(syscall.AF_INET, syscall.SOCK_DGRAM, 0)
+		if err != nil {
+			return nil, fmt.Errorf("Error creating socket: %v", err)
+		}
+		defer syscall.Close(socketFd)
+
+		// Here we protect the underlying socket from the
+		// VPN connection by passing the file descriptor
+		// back to Java for exclusion
+		err = protect(socketFd)
+		if err != nil {
+			return nil, fmt.Errorf("Could not bind socket to system device: %v", err)
+		}
+
+		IPAddr = net.ParseIP(dnsServer)
+		if IPAddr == nil {
+			return nil, errors.New("invalid IP address")
+		}
+
+		var ip [4]byte
+		copy(ip[:], IPAddr.To4())
+		sockAddr := syscall.SockaddrInet4{Addr: ip, Port: dnsPort}
+
+		err = syscall.Connect(socketFd, &sockAddr)
+		if err != nil {
+			return nil, err
+		}
+
+		fd := uintptr(socketFd)
+		file := os.NewFile(fd, "")
+		defer file.Close()
+
+		// return a copy of the network connection
+		// represented by file
+		fileConn, err := net.FileConn(file)
+		if err != nil {
+			log.Errorf("Error returning a copy of the network connection: %v", err)
+			return nil, err
+		}
+
+		setQueryTimeouts(fileConn)
+
+		log.Debugf("performing dns lookup...!!")
+		result, err := dnsLookup(host, fileConn)
+		if err != nil {
+			log.Errorf("Error doing DNS resolution: %v", err)
+			return nil, err
+		}
+		ipAddr, err := result.PickRandomIP()
+		if err != nil {
+			log.Errorf("No IP address available: %v", err)
+			return nil, err
+		}
+		return &net.TCPAddr{IP: ipAddr, Port: port}, nil
+	}
 }
 
-// Resolve resolves the given address using a DNS lookup on a UDP socket
-// protected by the current Protector.
-func Resolve(addr string) (*net.TCPAddr, error) {
-	protect, dnsServer := getCurrent()
-
-	host, port, err := SplitHostPort(addr)
-	if err != nil {
-		return nil, err
-	}
-
-	// Check if we already have the IP address
-	IPAddr := net.ParseIP(host)
-	if IPAddr != nil {
-		return &net.TCPAddr{IP: IPAddr, Port: port}, nil
-	}
-
-	// Create a datagram socket
-	socketFd, err := syscall.Socket(syscall.AF_INET, syscall.SOCK_DGRAM, 0)
-	if err != nil {
-		return nil, fmt.Errorf("Error creating socket: %v", err)
-	}
-	defer syscall.Close(socketFd)
-
-	// Here we protect the underlying socket from the
-	// VPN connection by passing the file descriptor
-	// back to Java for exclusion
-	err = protect(socketFd)
-	if err != nil {
-		return nil, fmt.Errorf("Could not bind socket to system device: %v", err)
-	}
-
-	IPAddr = net.ParseIP(dnsServer)
-	if IPAddr == nil {
-		return nil, errors.New("invalid IP address")
-	}
-
-	var ip [4]byte
-	copy(ip[:], IPAddr.To4())
-	sockAddr := syscall.SockaddrInet4{Addr: ip, Port: dnsPort}
-
-	err = syscall.Connect(socketFd, &sockAddr)
-	if err != nil {
-		return nil, err
-	}
-
-	fd := uintptr(socketFd)
-	file := os.NewFile(fd, "")
-	defer file.Close()
-
-	// return a copy of the network connection
-	// represented by file
-	fileConn, err := net.FileConn(file)
-	if err != nil {
-		log.Errorf("Error returning a copy of the network connection: %v", err)
-		return nil, err
-	}
-
-	setQueryTimeouts(fileConn)
-
-	log.Debugf("performing dns lookup...!!")
-	result, err := dnsLookup(host, fileConn)
-	if err != nil {
-		log.Errorf("Error doing DNS resolution: %v", err)
-		return nil, err
-	}
-	ipAddr, err := result.PickRandomIP()
-	if err != nil {
-		log.Errorf("No IP address available: %v", err)
-		return nil, err
-	}
-	return &net.TCPAddr{IP: ipAddr, Port: port}, nil
-}
-
-// Dial creates a new protected connection, it assumes that the address has
-// already been resolved to an IPv4 address.
+// Dialer returns a function that creates a new protected connection. It
+// assumes that the address has already been resolved to an IPv4 address.
 // - syscall API calls are used to create and bind to the
 //   specified system device (this is primarily
 //   used for Android VpnService routing functionality)
-func Dial(network, addr string, timeout time.Duration) (net.Conn, error) {
-	host, port, err := SplitHostPort(addr)
-	if err != nil {
-		return nil, err
+func Dialer(protect Protect) func(network, addr string, timeout time.Duration) (net.Conn, error) {
+	return func(network, addr string, timeout time.Duration) (net.Conn, error) {
+		host, port, err := SplitHostPort(addr)
+		if err != nil {
+			return nil, err
+		}
+
+		conn := &ProtectedConn{
+			port: port,
+		}
+		// do DNS query
+		IPAddr := net.ParseIP(host)
+		if IPAddr == nil {
+			log.Errorf("Couldn't parse IP address %v", host)
+			return nil, err
+		}
+
+		copy(conn.ip[:], IPAddr.To4())
+
+		socketFd, err := syscall.Socket(syscall.AF_INET, syscall.SOCK_STREAM, 0)
+		if err != nil {
+			log.Errorf("Could not create socket: %v", err)
+			return nil, err
+		}
+		conn.socketFd = socketFd
+
+		defer conn.cleanup()
+
+		// Actually protect the underlying socket here
+		err = protect(conn.socketFd)
+		if err != nil {
+			return nil, fmt.Errorf("Could not bind socket to system device: %v", err)
+		}
+
+		err = conn.connectSocket()
+		if err != nil {
+			log.Errorf("Could not connect to socket: %v", err)
+			return nil, err
+		}
+
+		// finally, convert the socket fd to a net.Conn
+		err = conn.convert()
+		if err != nil {
+			log.Errorf("Error converting protected connection: %v", err)
+			return nil, err
+		}
+
+		conn.Conn.SetDeadline(time.Now().Add(timeout))
+		return conn, nil
 	}
-
-	conn := &ProtectedConn{
-		port: port,
-	}
-	// do DNS query
-	IPAddr := net.ParseIP(host)
-	if IPAddr == nil {
-		log.Errorf("Couldn't parse IP address %v", host)
-		return nil, err
-	}
-
-	copy(conn.ip[:], IPAddr.To4())
-
-	socketFd, err := syscall.Socket(syscall.AF_INET, syscall.SOCK_STREAM, 0)
-	if err != nil {
-		log.Errorf("Could not create socket: %v", err)
-		return nil, err
-	}
-	conn.socketFd = socketFd
-
-	defer conn.cleanup()
-
-	// Actually protect the underlying socket here
-	protect, _ := getCurrent()
-	err = protect(conn.socketFd)
-	if err != nil {
-		return nil, fmt.Errorf("Could not bind socket to system device: %v", err)
-	}
-
-	err = conn.connectSocket()
-	if err != nil {
-		log.Errorf("Could not connect to socket: %v", err)
-		return nil, err
-	}
-
-	// finally, convert the socket fd to a net.Conn
-	err = conn.convert()
-	if err != nil {
-		log.Errorf("Error converting protected connection: %v", err)
-		return nil, err
-	}
-
-	conn.Conn.SetDeadline(time.Now().Add(timeout))
-	return conn, nil
 }
 
 // connectSocket makes the connection to the given IP address port
@@ -216,7 +206,7 @@ func (conn *ProtectedConn) convert() error {
 	return nil
 }
 
-// cleanup is ran whenever we encounter a socket error
+// cleanup is run whenever we encounter a socket error
 // we use a mutex since this connection is active in a variety
 // of goroutines and to prevent any possible race conditions
 func (conn *ProtectedConn) cleanup() {
@@ -260,8 +250,8 @@ func setQueryTimeouts(c net.Conn) {
 	c.SetWriteDeadline(now.Add(writeDeadline))
 }
 
-// wrapper around net.SplitHostPort that also converts
-// uses strconv to convert the port to an int
+// SplitHostAndPort is a wrapper around net.SplitHostPort that also uses strconv
+// to convert the port to an int
 func SplitHostPort(addr string) (string, int, error) {
 	host, sPort, err := net.SplitHostPort(addr)
 	if err != nil {
@@ -274,10 +264,4 @@ func SplitHostPort(addr string) (string, int, error) {
 		return "", 0, err
 	}
 	return host, port, nil
-}
-
-func getCurrent() (Protect, string) {
-	mutex.RLock()
-	defer mutex.RUnlock()
-	return currentProtect, currentDnsServer
 }
