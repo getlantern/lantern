@@ -115,7 +115,7 @@
                 android:layout_height="130dp"
                 android:layout_weight="1"
                 android:background="@drawable/year_background"
-                android:paddingLeft="8dp"
+                android:paddingLeft="16dp"
                 android:paddingRight="8dp"
                 android:paddingBottom="8dp">
 
@@ -135,32 +135,28 @@
                     android:background="@drawable/best_value"
                     android:textColor="@color/accent_white"/>
 
-                <TextView
-                    android:id="@+id/twoYearCost"
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="sans-serif"
-                    android:layout_alignParentLeft="true"
-                    android:layout_alignParentStart="true"
-                    android:layout_centerVertical ="true"
-                    android:gravity="left|center_vertical"
-                    android:layout_marginLeft="13dp"
-                    android:text="@string/plan_cost"
-                    android:textSize="34sp"
-                    android:textStyle="bold"
-                    android:alpha=".87"
-                    android:textColor="@color/black"/>
+                    <TextView
+                        android:id="@+id/twoYearCost"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif"
+                        android:layout_alignParentLeft="true"
+                        android:layout_centerVertical ="true"
+                        android:text="@string/plan_cost"
+                        android:textSize="34sp"
+                        android:textStyle="bold"
+                        android:alpha=".87"
+                        android:textColor="@color/black"/>
 
-                <TextView
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="sans-serif"
-                    android:gravity="left|center_vertical"
-                    android:layout_below="@+id/twoYearCost"
-                    android:layout_marginLeft="18dp"
-                    android:text="@string/two_years"
-                    android:alpha=".54"
-                    android:textColor="@color/black"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif"
+                        android:layout_below="@+id/twoYearCost"
+                        android:paddingLeft="5dp"
+                        android:text="@string/two_years"
+                        android:alpha=".54"
+                        android:textColor="@color/black"/>
 
                 <Button
                     android:id="@+id/twoYearBtn"
@@ -217,6 +213,7 @@
                     android:layout_below="@+id/oneYearCost"
                     android:layout_marginLeft="13dp"
                     android:text="@string/one_year"
+                    android:paddingLeft="5dp"
                     android:alpha=".54"
                     android:textColor="@color/black"/>
 
