@@ -143,6 +143,7 @@
                     android:layout_alignParentLeft="true"
                     android:layout_alignParentStart="true"
                     android:layout_centerVertical ="true"
+                    android:gravity="left|center_vertical"
                     android:layout_marginLeft="13dp"
                     android:text="@string/plan_cost"
                     android:textSize="34sp"
@@ -154,8 +155,9 @@
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif"
+                    android:gravity="left|center_vertical"
                     android:layout_below="@+id/twoYearCost"
-                    android:layout_marginLeft="13dp"
+                    android:layout_marginLeft="18dp"
                     android:text="@string/two_years"
                     android:alpha=".54"
                     android:textColor="@color/black"/>

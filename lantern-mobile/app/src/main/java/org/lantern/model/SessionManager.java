@@ -10,13 +10,17 @@ import android.provider.Settings.Secure;
 import android.util.Log;
 import android.widget.TextView;
 
+import java.util.Currency;
 import java.util.Locale;
 
 import org.lantern.activity.SignInActivity;
 import org.lantern.mobilesdk.StartResult;
 import org.lantern.mobilesdk.LanternNotRunningException;
+import org.lantern.model.ProPlanEvent;
 import org.lantern.vpn.Service;
 import org.lantern.R;                                    
+
+import org.greenrobot.eventbus.EventBus;
 
 import go.lantern.Lantern;
 
@@ -40,6 +44,8 @@ public class SessionManager implements Lantern.Session {
     public static final String ONE_YEAR_PLAN = "Lantern Pro 1 Year Subscription";
     public static final String TWO_YEAR_PLAN = "Lantern Pro 2 Year Subscription";
 
+    private static final String defaultCurrencyCode = "usd";
+
      // shared preferences mode
     private int PRIVATE_MODE = 0;
 
@@ -53,12 +59,20 @@ public class SessionManager implements Lantern.Session {
     private String referral;
     private String verifyCode;
     private String plan;
+    private Locale locale;
+    private Currency currency;
 
 
     public SessionManager(Context context) {
         this.context = context;
         this.mPrefs = context.getSharedPreferences(PREF_NAME, PRIVATE_MODE);
         this.editor = mPrefs.edit();
+        this.locale = context.getResources().getConfiguration().locale;
+    }
+
+    public boolean isChineseUser() {
+        return this.locale.toString().equals("zh_CN") ||
+            this.locale.toString().equals("zh_TW");
     }
 
     public boolean isDeviceLinked() {
@@ -73,6 +87,16 @@ public class SessionManager implements Lantern.Session {
         return mPrefs.getBoolean(PRO_USER, false);
     }
 
+    public String Currency() {
+        Currency currency = Currency.getInstance(Locale.getDefault());
+        String code = currency.getCurrencyCode();
+        Log.d(TAG, "Current currency is " + code);
+        if (code != null) {
+            return code.toLowerCase();
+        }
+        return defaultCurrencyCode;
+    }
+
 	public void launchActivity(Class c, boolean clearTop) {
 		Intent i = new Intent(this.context, c);
 		// close all previous activities
@@ -84,6 +108,10 @@ public class SessionManager implements Lantern.Session {
 		// start sign in activity
 		this.context.startActivity(i);
 	}
+
+    public void AddPlan(String id, String description, boolean bestValue, long numYears, long price) {
+        EventBus.getDefault().post(new ProPlanEvent(id, description, bestValue, numYears, price));
+    }
 
 	public boolean deviceLinked() {
 		if (!this.isDeviceLinked()) {

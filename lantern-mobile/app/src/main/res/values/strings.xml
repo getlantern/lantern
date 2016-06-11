@@ -131,8 +131,7 @@
     <string name="select">Select</string>
     <string name="one_year">for 1 year</string>
     <string name="two_years">for 2 years</string>
-    <string name="one_year_cost">$27 (USD)</string>
-    <string name="two_year_cost">$48 (USD)</string>
+    <string name="plan_cost">%1$s%2$d (%3$s)</string>
     <string name="best_value">Best VALUE!</string>
     <string name="referral_code">Referral Code (optional)</string>
     <string name="total">Total:</string>
