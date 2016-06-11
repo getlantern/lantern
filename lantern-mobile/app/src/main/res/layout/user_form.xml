@@ -23,6 +23,8 @@
 
         <LinearLayout
             android:id="@+id/phone_device_view"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
             android:visibility="gone"
             android:orientation="vertical"
             android:gravity="center"
@@ -92,6 +94,8 @@
             android:id="@+id/auth_device_view"
             android:orientation="vertical"
             android:gravity="center"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
             android:layout_width="fill_parent"
             android:layout_height="205dp">
 
