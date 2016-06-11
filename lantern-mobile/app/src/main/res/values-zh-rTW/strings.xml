@@ -2,13 +2,46 @@
 <resources>
   <string name="app_name">Lantern</string>
   <string name="action_settings">設定</string>
+  <string name="button_text">開始</string>
+  <string name="email_hint">電子郵件</string>
   <string name="send_button">傳送</string>
+  <string name="send_sms">傳送簡訊</string>
+  <string name="apply_promotion">使用促銷</string>
+  <string name="submit_code">送出認證碼</string>
+  <string name="service_connected">Lantern 已連線</string>
+  <string name="desktop_option">桌面版本</string>
   <string name="contact_option">聯絡</string>
+  <string name="check_for_update">檢查更新</string>
+  <string name="updating_lantern">正在更新 Lantern</string>
+  <string name="cancel">取消</string>
+  <string name="privacy_policy">隱私政策</string>
+  <string name="share_option">分享</string>
   <string name="quit_option">退出</string>
   <string name="share_email_native"></string>
+  <string name="contact_email">team@getlantern.org</string>
+  <string name="update_available">有新版本 Lantern 可用！請問是否立即更新?</string>
+  <string name="not_now">下次</string>
   <string name="install_update">更新</string>
+  <string name="error_update">下載更新時錯誤</string>
+  <string name="manual_update">請嘗試從下列網址下載並安裝最新版 &lt;a href=\"https://lantern-android.io\"&gt;here1&lt;/a&gt;</string>
+  <string name="pro_welcome_text">歡迎來到 Lantern Pro！</string>
+  <string name="change_phone_number">變更手機號碼</string>
+  <string name="verified_phone_number">已驗證手機號碼：</string>
+  <string name="continue_to_pro">繼續使用付費版</string>
+  <string name="continue_to_checkout">繼續結帳</string>
+  <string name="free_pro_credits">免費的付費版點數</string>
+  <string name="get_pro_credits">取得免費的付費版點數</string>
   <string name="language">語言</string>
+  <string name="select">選擇</string>
+  <string name="one_year">一年期</string>
+  <string name="cancel_pro_account">取消付費帳號</string>
+  <string name="account_verification">帳號認證</string>
+  <string name="upgrade_to_lantern_pro">昇級到付費版</string>
+  <string name="buy_pro_now">購買付費版</string>
+  <string name="update_billing_info">更新支付資料</string>
   <string name="yes">是</string>
   <string name="no">否</string>
   <string name="item_preview_country">美國</string>
+  <string name="item_preview_dialCode">+1</string>
+  <string name="stripe_publishable_key"></string>
 </resources>

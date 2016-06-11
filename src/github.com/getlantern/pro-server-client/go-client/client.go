@@ -149,7 +149,7 @@ func (c *Client) SetLocale(locale string) {
 }
 
 // UserCreate creates an user without asking for any payment.
-func (c *Client) UserCreate(user User) (res *UserResponse, err error) {
+func (c *Client) UserCreate(user User) (res *Response, err error) {
 	var payload []byte
 	payload, err = c.post(`/user-create`, http.Header{
 		XLanternDeviceID: {user.Auth.DeviceID},
@@ -163,7 +163,7 @@ func (c *Client) UserCreate(user User) (res *UserResponse, err error) {
 
 // UserLinkConfigure allows the client to initiate the configuration of a
 // verified method of authenticating a user.
-func (c *Client) UserLinkConfigure(user User) (res *UserResponse, err error) {
+func (c *Client) UserLinkConfigure(user User) (res *Response, err error) {
 	var payload []byte
 	payload, err = c.post(`/user-link-configure`, user.headers(),
 		url.Values{
@@ -178,14 +178,14 @@ func (c *Client) UserLinkConfigure(user User) (res *UserResponse, err error) {
 }
 
 // CancelSubscription cancels the subscription.
-func (c *Client) CancelSubscription(user User) (*UserResponse, error) {
+func (c *Client) CancelSubscription(user User) (*Response, error) {
 	return c.SubscriptionUpdate(user, "cancel")
 }
 
 // SubscriptionUpdate changes the next billable term to the requested
 // subscription Id. It is used also to cancel a subscription, by providing the
 // subscription Id cancel.
-func (c *Client) SubscriptionUpdate(user User, subscriptionId string) (res *UserResponse, err error) {
+func (c *Client) SubscriptionUpdate(user User, subscriptionId string) (res *Response, err error) {
 	var payload []byte
 	payload, err = c.post(`/subscription-update`, user.headers(),
 		url.Values{
@@ -200,7 +200,7 @@ func (c *Client) SubscriptionUpdate(user User, subscriptionId string) (res *User
 }
 
 // RedeemReferralCode redeems a referral code.
-func (c *Client) RedeemReferralCode(user User, referralCode string) (res *UserResponse, err error) {
+func (c *Client) RedeemReferralCode(user User, referralCode string) (res *Response, err error) {
 	var payload []byte
 	payload, err = c.post(`/referral-attach`, user.headers(),
 		url.Values{
@@ -216,7 +216,7 @@ func (c *Client) RedeemReferralCode(user User, referralCode string) (res *UserRe
 
 // UserLinkValidate allows the client to initiate the configuration of a
 // verified method of authenticating a user.
-func (c *Client) UserLinkValidate(user User) (res *UserResponse, err error) {
+func (c *Client) UserLinkValidate(user User) (res *Response, err error) {
 	var payload []byte
 	payload, err = c.post(`/user-link-validate`, user.headers(),
 		url.Values{
@@ -231,7 +231,7 @@ func (c *Client) UserLinkValidate(user User) (res *UserResponse, err error) {
 }
 
 // UserLinkRequest Perform device linking or user recovery.
-func (c *Client) UserLinkRequest(user User) (res *UserResponse, err error) {
+func (c *Client) UserLinkRequest(user User) (res *Response, err error) {
 	var payload []byte
 	payload, err = c.post(`/user-link-request`, user.headers(),
 		url.Values{
@@ -247,7 +247,7 @@ func (c *Client) UserLinkRequest(user User) (res *UserResponse, err error) {
 
 // UserData Returns all user data, including payments, referrals and all
 // available fields.
-func (c *Client) UserData(user User) (res *UserResponse, err error) {
+func (c *Client) UserData(user User) (res *Response, err error) {
 	var payload []byte
 	payload, err = c.get(`/user-data`, user.headers(), nil)
 	if err != nil {
@@ -257,8 +257,19 @@ func (c *Client) UserData(user User) (res *UserResponse, err error) {
 	return
 }
 
+// UserCreate creates an user without asking for any payment.
+func (c *Client) Plans(user User) (res *Response, err error) {
+	var payload []byte
+	payload, err = c.get(`/plans`, user.headers(), nil)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(payload, &res)
+	return
+}
+
 // Purchase single endpoint used for performing purchases.
-func (c *Client) Purchase(user User, purchase Purchase) (res *UserResponse, err error) {
+func (c *Client) Purchase(user User, purchase Purchase) (res *Response, err error) {
 	var payload []byte
 	payload, err = c.post(`/purchase`, user.headers(),
 		url.Values{
@@ -277,7 +288,7 @@ func (c *Client) Purchase(user User, purchase Purchase) (res *UserResponse, err 
 
 // TokenReset Request a token change. This will generate a new one and send it
 // to the requesting device.
-func (c *Client) TokenReset(user User) (res *UserResponse, err error) {
+func (c *Client) TokenReset(user User) (res *Response, err error) {
 	var payload []byte
 	payload, err = c.post(`/token-reset`, user.headers(), nil)
 	if err != nil {
@@ -288,7 +299,7 @@ func (c *Client) TokenReset(user User) (res *UserResponse, err error) {
 }
 
 // ChargeByID Request payment details by id.
-func (c *Client) ChargeByID(user User, chargeID string) (res *UserResponse, err error) {
+func (c *Client) ChargeByID(user User, chargeID string) (res *Response, err error) {
 	var payload []byte
 	payload, err = c.get(`/charge-by-id`, user.headers(),
 		url.Values{

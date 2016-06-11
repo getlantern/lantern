@@ -22,6 +22,8 @@ import android.support.v4.app.FragmentActivity;
 
 import com.google.android.gms.analytics.HitBuilders;
 
+import java.util.Currency;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -91,6 +93,12 @@ public class Utils {
     public static void hideKeyboard(Context context, View view) {
         InputMethodManager inputMethodManager = (InputMethodManager)context.getSystemService(Activity.INPUT_METHOD_SERVICE);
         inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
+    }
+
+    public static String formatMoney(long amount) {
+        Currency currency = Currency.getInstance(Locale.getDefault());
+        String symbol = currency.getSymbol();
+        return String.format("%s%d", symbol, amount);
     }
 
     public static void showErrorDialog(final FragmentActivity activity, String error) {

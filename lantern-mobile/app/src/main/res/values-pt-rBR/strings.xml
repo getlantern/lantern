@@ -4,6 +4,7 @@
   <string name="action_settings">Configurações</string>
   <string name="send_button">Enviar</string>
   <string name="contact_option">Contato</string>
+  <string name="cancel">Cancela</string>
   <string name="share_option">Compartilhar</string>
   <string name="quit_option">Fechar</string>
   <string name="share_email_native"></string>
@@ -14,4 +15,5 @@
   <string name="yes">Sim</string>
   <string name="no">Não</string>
   <string name="item_preview_country">Estados Unidos</string>
+  <string name="stripe_publishable_key"></string>
 </resources>

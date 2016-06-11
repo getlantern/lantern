@@ -1,45 +1,34 @@
 package org.lantern.activity;
 
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Dialog;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
-import android.net.http.SslError;
-import android.os.Bundle;
-import android.os.Message;
 import android.support.v4.app.FragmentActivity;
-import android.text.Html;
 import android.util.Log;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.webkit.ConsoleMessage;
-import android.webkit.SslErrorHandler;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
-import android.webkit.WebChromeClient;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.ViewById;
 import org.androidannotations.annotations.res.StringArrayRes;
 
-import java.text.NumberFormat;
+import java.util.Currency;
 import java.util.Locale;
 
 import org.lantern.LanternApp;
 import org.lantern.activity.PaymentActivity;
-import org.lantern.activity.CheckoutActivity;
 import org.lantern.model.FeatureUi;
+import org.lantern.model.ProPlanEvent;
+import org.lantern.model.ProRequest;
 import org.lantern.model.SessionManager;
 import org.lantern.R;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+
+import go.lantern.Lantern;
 
 @EActivity(R.layout.pro_plans)
 public class PlansActivity extends FragmentActivity {
@@ -47,7 +36,7 @@ public class PlansActivity extends FragmentActivity {
     private static final String TAG = "PlansActivity";
     private static final String mCheckoutUrl = 
         "https://s3.amazonaws.com/lantern-android/checkout.html?amount=%s";
-    private static final boolean useAlipay = false;
+    private boolean useAlipay = false;
 
     private SessionManager session;
 
@@ -58,6 +47,9 @@ public class PlansActivity extends FragmentActivity {
     Button oneYearBtn, twoYearBtn;
 
     @ViewById
+    TextView oneYearCost, twoYearCost;
+
+    @ViewById
     LinearLayout leftFeatures, rightFeatures;
 
     @ViewById(R.id.plans_view)
@@ -65,7 +57,13 @@ public class PlansActivity extends FragmentActivity {
 
     @AfterViews
     void afterViews() {
+
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);         
+        }
+
         session = LanternApp.getSession();
+        useAlipay = session.isChineseUser();
 
         int i = 0;
         int mid = proFeaturesList.length/2;
@@ -85,6 +83,31 @@ public class PlansActivity extends FragmentActivity {
         twoYearBtn.setTag(SessionManager.TWO_YEAR_PLAN);
 
         plansView.bringToFront();
+
+        Lantern.ProRequest(session.shouldProxy(), "plans", session);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        EventBus.getDefault().unregister(this);
+    }
+
+    @Subscribe
+    public void onEvent(ProPlanEvent plan) {
+        Log.d(TAG, "Received a new pro plan: " + plan.getPlan());
+        Currency currency = Currency.getInstance(Locale.getDefault());
+        String symbol = currency.getSymbol();
+        long price = plan.getPrice()/100;
+        String costStr = String.format(getResources().getString(R.string.plan_cost),
+                symbol, price, currency.getCurrencyCode());
+        if (plan.numYears() == 1) {
+            oneYearCost.setText(costStr);
+            session.setOneYearCost(price);
+        } else {
+            twoYearCost.setText(costStr);
+            session.setTwoYearCost(price);
+        }
     }
 
     public void selectPlan(View view) {
@@ -104,8 +127,6 @@ public class PlansActivity extends FragmentActivity {
         } else {
             intent = new Intent(this, PaymentActivity.class);
         }
-
-        PaymentActivity.plan = plan;
 
         // make sure user links device before proceeding
         if (!session.deviceLinked()) {

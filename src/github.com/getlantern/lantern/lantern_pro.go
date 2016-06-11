@@ -6,6 +6,10 @@ import (
 	"github.com/stripe/stripe-go"
 )
 
+const (
+	defaultCurrencyCode = `usd`
+)
+
 type Session interface {
 	UserId() int
 	Code() string
@@ -21,6 +25,8 @@ type Session interface {
 	SetToken(string)
 	SetUserId(int)
 	SetCode(string)
+	Currency() string
+	AddPlan(string, string, bool, int, int)
 }
 
 type proRequest struct {
@@ -29,7 +35,7 @@ type proRequest struct {
 	session   Session
 }
 
-type proFunc func(*proRequest) (*client.UserResponse, error)
+type proFunc func(*proRequest) (*client.Response, error)
 
 func newRequest(shouldProxy bool, session Session) (*proRequest, error) {
 	httpClient, err := proxied.GetHTTPClient(shouldProxy)
@@ -52,7 +58,7 @@ func newRequest(shouldProxy bool, session Session) (*proRequest, error) {
 	return req, nil
 }
 
-func newuser(r *proRequest) (*client.UserResponse, error) {
+func newuser(r *proRequest) (*client.Response, error) {
 	r.proClient.SetLocale(r.session.Locale())
 	res, err := r.proClient.UserCreate(r.user)
 	if err != nil {
@@ -63,7 +69,7 @@ func newuser(r *proRequest) (*client.UserResponse, error) {
 	return res, err
 }
 
-func purchase(r *proRequest) (*client.UserResponse, error) {
+func purchase(r *proRequest) (*client.Response, error) {
 	purchase := client.Purchase{
 		IdempotencyKey: stripe.NewIdempotencyKey(),
 		StripeToken:    r.session.StripeToken(),
@@ -74,7 +80,7 @@ func purchase(r *proRequest) (*client.UserResponse, error) {
 	return r.proClient.Purchase(r.user, purchase)
 }
 
-func number(r *proRequest) (*client.UserResponse, error) {
+func number(r *proRequest) (*client.Response, error) {
 	r.user.PhoneNumber = r.session.PhoneNumber()
 	log.Debugf("Phone number is %v", r.user.PhoneNumber)
 	res, err := r.proClient.UserLinkConfigure(r.user)
@@ -88,17 +94,38 @@ func number(r *proRequest) (*client.UserResponse, error) {
 	return res, err
 }
 
-func code(r *proRequest) (*client.UserResponse, error) {
+func code(r *proRequest) (*client.Response, error) {
 	r.user.Code = r.session.VerifyCode()
 	return r.proClient.UserLinkValidate(r.user)
 }
 
-func referral(r *proRequest) (*client.UserResponse, error) {
+func referral(r *proRequest) (*client.Response, error) {
 	return r.proClient.RedeemReferralCode(r.user, r.session.Referral())
 }
 
-func cancel(r *proRequest) (*client.UserResponse, error) {
+func cancel(r *proRequest) (*client.Response, error) {
 	return r.proClient.CancelSubscription(r.user)
+}
+
+func plans(r *proRequest) (*client.Response, error) {
+	return r.proClient.Plans(r.user)
+}
+
+// addPlans gets the latest plan prices from the Pro server and
+// updates the 'Get Lantern Pro' screen w/ them.
+func addPlans(plans []client.Plan, session Session) {
+	for _, plan := range plans {
+
+		currency := session.Currency()
+		price, exists := plan.Price[currency]
+		if !exists {
+			// if we somehow have an invalid cucrency
+			// and its not found in our map, default to 'usd'
+			price, _ = plan.Price[defaultCurrencyCode]
+		}
+		session.AddPlan(plan.Id, plan.Description, plan.BestValue, plan.Duration.Years, price)
+	}
+
 }
 
 func ProRequest(shouldProxy bool, command string, session Session) bool {
@@ -110,11 +137,14 @@ func ProRequest(shouldProxy bool, command string, session Session) bool {
 	}
 	req.session = session
 
+	req.proClient.SetLocale(session.Locale())
+
 	log.Debugf("Received a %s pro request", command)
 
 	commands := map[string]proFunc{
 		"newuser":  newuser,
 		"purchase": purchase,
+		"plans":    plans,
 		"number":   number,
 		"code":     code,
 		"referral": referral,
@@ -127,7 +157,9 @@ func ProRequest(shouldProxy bool, command string, session Session) bool {
 		return false
 	}
 
-	if command == "newuser" {
+	if command == "plans" {
+		addPlans(res.Plans, session)
+	} else if command == "newuser" {
 		session.SetUserId(res.User.Auth.ID)
 		session.SetToken(res.User.Auth.Token)
 		session.SetCode(res.User.Referral)

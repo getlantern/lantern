@@ -5,18 +5,22 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.os.AsyncTask;
 import android.provider.Settings.Secure;
 import android.util.Log;
 import android.widget.TextView;
 
+import java.util.Currency;
 import java.util.Locale;
 
 import org.lantern.activity.SignInActivity;
 import org.lantern.mobilesdk.StartResult;
 import org.lantern.mobilesdk.LanternNotRunningException;
+import org.lantern.model.ProPlanEvent;
 import org.lantern.vpn.Service;
 import org.lantern.R;                                    
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 
 import go.lantern.Lantern;
 
@@ -37,8 +41,13 @@ public class SessionManager implements Lantern.Session {
     private static final String PREF_USE_VPN = "pref_vpn";
     private static final String PREF_NEWSFEED = "pref_newsfeed";
 
-    public static final String ONE_YEAR_PLAN = "Lantern Pro 1 Year Subscription";
-    public static final String TWO_YEAR_PLAN = "Lantern Pro 2 Year Subscription";
+    public static final String ONE_YEAR_PLAN = "1-yr";
+    public static final String TWO_YEAR_PLAN = "2-yr";
+
+    private long oneYearCost = 2700;
+    private long twoYearCost = 4800;
+
+    private static final String defaultCurrencyCode = "usd";
 
      // shared preferences mode
     private int PRIVATE_MODE = 0;
@@ -53,12 +62,21 @@ public class SessionManager implements Lantern.Session {
     private String referral;
     private String verifyCode;
     private String plan;
+    private Locale locale;
+    private Currency currency;
 
 
     public SessionManager(Context context) {
         this.context = context;
         this.mPrefs = context.getSharedPreferences(PREF_NAME, PRIVATE_MODE);
         this.editor = mPrefs.edit();
+        this.locale = context.getResources().getConfiguration().locale;
+    }
+
+    public boolean isChineseUser() {
+        Locale locale = Locale.getDefault();
+        return locale.equals(new Locale("zh", "CN")) ||
+            locale.equals(new Locale("zh", "TW"));
     }
 
     public boolean isDeviceLinked() {
@@ -73,6 +91,16 @@ public class SessionManager implements Lantern.Session {
         return mPrefs.getBoolean(PRO_USER, false);
     }
 
+    public String Currency() {
+        Currency currency = Currency.getInstance(Locale.getDefault());
+        String code = currency.getCurrencyCode();
+        Log.d(TAG, "Current currency is " + code);
+        if (code != null) {
+            return code.toLowerCase();
+        }
+        return defaultCurrencyCode;
+    }
+
 	public void launchActivity(Class c, boolean clearTop) {
 		Intent i = new Intent(this.context, c);
 		// close all previous activities
@@ -84,6 +112,34 @@ public class SessionManager implements Lantern.Session {
 		// start sign in activity
 		this.context.startActivity(i);
 	}
+
+    public Long getOneYearCost() {
+        return oneYearCost;
+    }
+
+    public Long getTwoYearCost() {
+        return twoYearCost;
+    }
+
+    public long getSelectedPlanCost() {
+        if (this.plan.equals(ONE_YEAR_PLAN)) {
+            return oneYearCost;
+        } else {
+            return twoYearCost;
+        }
+    }
+
+    public void setOneYearCost(long oneYearCost) {
+        this.oneYearCost = oneYearCost;
+    }
+
+    public void setTwoYearCost(long twoYearCost) {
+        this.twoYearCost = twoYearCost;
+    }                      
+
+    public void AddPlan(String id, String description, boolean bestValue, long numYears, long price) {
+        EventBus.getDefault().post(new ProPlanEvent(id, description, bestValue, numYears, price));
+    }
 
 	public boolean deviceLinked() {
 		if (!this.isDeviceLinked()) {
@@ -125,11 +181,13 @@ public class SessionManager implements Lantern.Session {
         editor.putString(PRO_PLAN, plan).commit();
     }
 
-	public void setProUser(String email, String token, String plan) {
+    public String getProPlan() {
+        return plan;
+    }
+
+	public void setProUser(String email, String token) {
         this.stripeToken = token;
         this.stripeEmail = email;
-
-        editor.putString(PRO_PLAN, plan).commit();
 	}
 
     public void setIsProUser(boolean isProUser) {

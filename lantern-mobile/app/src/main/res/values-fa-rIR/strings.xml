@@ -1,12 +1,13 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <resources>
-  <string name="app_name">‫لنترن</string>
+  <string name="app_name">فانوس</string>
   <string name="action_settings">تنظیمات</string>
   <string name="button_text">شروع</string>
   <string name="drawer_open">کشو باز</string>
   <string name="drawer_close">کشو بسته</string>
   <string name="default_fragment">به طور پیش فرض قطعه</string>
-  <string name="lantern_desktop">لنترن برای کامپیوتر</string>
+  <string name="receive_lantern">فانوس نسخه رایانه را ازطریق ایمیل دریافت نمایید</string>
+  <string name="lantern_desktop">فانوس رایانه</string>
   <string name="email_hint">ایمیل</string>
   <string name="send_button">ارسال</string>
   <string name="send_sms">ارسال پیامک</string>
@@ -16,6 +17,7 @@
   <string name="off_text">خاموش</string>
   <string name="desktop_option">نسخه دسکتاپ</string>
   <string name="contact_option">‫تماس‬</string>
+  <string name="cancel">انصراف</string>
   <string name="privacy_policy">حریم خصوصی</string>
   <string name="share_option">اشتراك گذاري</string>
   <string name="quit_option">خروج</string>
@@ -24,7 +26,8 @@
   <string name="share_chooser_text">شروع لنترن اندروید</string>
   <string name="contact_email">team@getlantern.org</string>
   <string name="contact_message">کمکم کنید</string>
-  <string name="contact_subject">لنترن اندروید</string>
+  <string name="contact_subject">فانوس آندروید</string>
+  <string name="update_available">نسخه جدیدی از فانوس موجودست آیا اکنون مایل به ارتقاء هستید؟ </string>
   <string name="not_now">الان نه</string>
   <string name="install_update">به روز رسانی</string>
   <string name="error_update">ایراد در دانلود به روز رسانی</string>
@@ -42,18 +45,15 @@
   <string name="send_link">ارسال لینک</string>
   <string name="invite_friends_header">دعوت از دوستان</string>
   <string name="select">انتخاب</string>
-  <string name="twelve_months">به مدت 12 ماه</string>
-  <string name="one_month">به مدت 1 ماه</string>
   <string name="best_value">بهترین مقدار!</string>
   <string name="total">جمع:</string>
   <string name="cancel_pro_account">لغو PRO حساب</string>
-  <string name="authorize_device_pro">اجازه دستگاه برای PRO</string>
   <string name="account_verification">تایید حساب</string>
   <string name="enter_verification_code">کد تایید را وارد کنید</string>
-  <string name="get_lantern_pro">دریافت لنترن پرو</string>
   <string name="yes">بله</string>
   <string name="no">خیر</string>
   <string name="item_image_contentDescription">پرچم کشور</string>
   <string name="item_preview_country">ایالات متحده آمریکا</string>
   <string name="item_preview_dialCode">+1</string>
+  <string name="stripe_publishable_key"></string>
 </resources>

@@ -3,11 +3,8 @@ package client
 type Response struct {
 	Status string `json:"status"`
 	Error  string `json:"error"`
-}
-
-type UserResponse struct {
-	Response `json:",inline"`
-	User     `json:",inline"`
+	User   `json:",inline"`
+	Plans  []Plan `json:",inline"`
 }
 
 type AutoconfResponse struct {

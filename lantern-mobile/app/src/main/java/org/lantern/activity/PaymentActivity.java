@@ -2,21 +2,15 @@ package org.lantern.activity;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.net.Uri;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.webkit.ConsoleMessage;
-import android.webkit.WebSettings;
 import android.webkit.WebView;
-import android.webkit.WebViewClient;
-import android.webkit.WebChromeClient;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
@@ -41,11 +35,6 @@ import org.lantern.model.SessionManager;
 import org.lantern.model.Utils;
 import org.lantern.R;
 
-import java.text.NumberFormat;
-import java.util.Locale;
-
-import com.thefinestartist.finestwebview.FinestWebView;
-
 import info.hoang8f.android.segmented.SegmentedGroup;
 
 @EActivity(R.layout.checkout)
@@ -54,18 +43,10 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
     private static final String TAG = "PaymentActivity";
     private static final String mCheckoutUrl = "https://s3.amazonaws.com/lantern-android/checkout.html?plan=%s";
 
-    private static final NumberFormat currencyFormatter = 
-        NumberFormat.getCurrencyInstance(new Locale("en", "US"));
-
     private SessionManager session;
     private Context mContext;
 
     private ProgressDialogFragment progressFragment;
-
-    public static String plan;
-
-    private static final Integer oneYearCost = 2700;
-    private static final Integer twoYearCost = 4800;
 
     @FragmentById(R.id.payment_form)
     PaymentFormFragment paymentForm;
@@ -100,25 +81,11 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
 
         Intent intent = getIntent();
 
-        int chargeAmount = oneYearCost;
-        if (plan != null) {
-            if (plan.equals(SessionManager.ONE_YEAR_PLAN)) {
-                chargeAmount = oneYearCost;
-            } else {
-                chargeAmount = twoYearCost;
-            }
-        }
-        chargeAmountView.setText(currencyFormatter.format(chargeAmount / 100.0));
-
-        checkoutBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                submitCard();
-            }
-        });
+        long chargeAmount = session.getSelectedPlanCost();
+        Log.d(TAG, "Charge amount is " + chargeAmount);
+        chargeAmountView.setText(Utils.formatMoney(chargeAmount));
 
         progressFragment = ProgressDialogFragment.newInstance(R.string.progressMessage);
-
 
         Uri data = intent.getData();
 
@@ -141,10 +108,9 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
         switch (v.getId()) {
             case R.id.alipayBtn:
                 Log.d(TAG, "Alipay button pressed");
-                loadWebView(plan);
-                /*Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setData(Uri.parse(String.format(mCheckoutUrl, plan)));
-                startActivity(intent);*/
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setData(Uri.parse(String.format(mCheckoutUrl, "")));
+                startActivity(intent);
                 return;
             case R.id.cardBtn:
                 Log.d(TAG, "Card button pressed");
@@ -152,68 +118,6 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
             default:
                 // Nothing to do
         }
-    }
-
-    // loads Stripe checkout inside of a WebView 
-    // for Alipay users
-    public void loadWebView(String plan) {
-
-        new FinestWebView.Builder(this)
-            .webViewSupportMultipleWindows(true)
-            .webViewJavaScriptEnabled(true)
-            .swipeRefreshColorRes(R.color.black)
-            .webViewAllowFileAccessFromFileURLs(true)
-            .webViewJavaScriptCanOpenWindowsAutomatically(true)
-            //.webViewLoadWithProxy(session.startLocalProxy(this))
-            .show(String.format(mCheckoutUrl, plan));
-
-        /*webView.clearCache(true);
-
-        WebSettings mWebSettings = webView.getSettings();
-        mWebSettings.setJavaScriptEnabled(true);
-        mWebSettings.setJavaScriptCanOpenWindowsAutomatically(true);
-        mWebSettings.setSupportMultipleWindows(true);
-        webView.setScrollBarStyle(View.SCROLLBARS_OUTSIDE_OVERLAY);
-        webView.setWebChromeClient(new MyWebChromeClient(mContext));
-        webView.setWebViewClient(new WebViewClient() {
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {    
-                // load the checkout page in the browser
-                view.loadUrl(url);    
-                return false;
-            }
-
-            @Override
-            public void onPageFinished(WebView view, String url) {
-                super.onPageFinished(view, url);
-            }
-        });
-        webView.loadUrl(String.format(mCheckoutUrl, chargeAmount));*/
-    }
-
-    private class MyWebChromeClient extends WebChromeClient {
-        private Context mContext;
-
-        public MyWebChromeClient(Context context) {
-            super();
-            this.mContext = context;
-        }
-
-        @Override
-        public boolean onConsoleMessage (ConsoleMessage consoleMessage) {
-            Log.d(TAG, "Got a new console message: " 
-                    + consoleMessage.message());
-            return true;
-        }
-
-        @Override
-        public boolean onJsAlert(WebView view, String url, String message, final android.webkit.JsResult result)  
-        {
-            Log.d("alert", message);
-            Toast.makeText(mContext, message, 3000).show();
-            result.confirm();
-            return true;
-        }; 
     }
 
     public void submitCard() {
@@ -282,9 +186,10 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
 
     private void finishProgress(String email, String token) {
 
-        Log.d(TAG, String.format("Email is %s token %s plan %s", email, token, plan));
+        Log.d(TAG, String.format("Email is %s token %s plan %s", 
+                    email, token, session.getProPlan()));
 
-        session.setProUser(email, token, plan);
+        session.setProUser(email, token);
 
         // submit token to Pro server here
         new ProRequest(this, false).execute("purchase");
