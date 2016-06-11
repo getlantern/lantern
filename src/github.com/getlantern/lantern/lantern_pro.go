@@ -111,6 +111,23 @@ func plans(r *proRequest) (*client.Response, error) {
 	return r.proClient.Plans(r.user)
 }
 
+// addPlans gets the latest plan prices from the Pro server and
+// updates the 'Get Lantern Pro' screen w/ them.
+func addPlans(plans []client.Plan, session Session) {
+	for _, plan := range plans {
+
+		currency := session.Currency()
+		price, exists := plan.Price[currency]
+		if !exists {
+			// if we somehow have an invalid cucrency
+			// and its not found in our map, default to 'usd'
+			price, _ = plan.Price[defaultCurrencyCode]
+		}
+		session.AddPlan(plan.Id, plan.Description, plan.BestValue, plan.Duration.Years, price)
+	}
+
+}
+
 func ProRequest(shouldProxy bool, command string, session Session) bool {
 
 	req, err := newRequest(shouldProxy, session)
@@ -141,21 +158,7 @@ func ProRequest(shouldProxy bool, command string, session Session) bool {
 	}
 
 	if command == "plans" {
-		for _, plan := range res.Plans {
-
-			currency := session.Currency()
-			log.Debugf("the user's currency is %s", currency)
-			log.Debugf("the corresponding price is %d", plan.Price[currency])
-			price, exists := plan.Price[currency]
-			if !exists {
-				price, _ = plan.Price[defaultCurrencyCode]
-			}
-
-			log.Debugf("Calling add plan with %s desc: %s best value %t price %d",
-				plan.Id, plan.Description, plan.BestValue, price)
-			session.AddPlan(plan.Id, plan.Description, plan.BestValue, plan.Duration.Years, price)
-		}
-
+		addPlans(res.Plans, session)
 	} else if command == "newuser" {
 		session.SetUserId(res.User.Auth.ID)
 		session.SetToken(res.User.Auth.Token)
