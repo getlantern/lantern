@@ -81,7 +81,6 @@
   "plans.title": "Lantern Pro Plans",
   "plans.platforms": "For Windows, Android, Mac, Ubuntu. iOS coming soon",
   "pro.apply": "Your credits will be applied to your account in the next billing cycle.",
-  "pro.credits": "You have %d Pro credits",
   "pro.title": "Invite friends, get Pro for free",
   "pro.subtitle": "When your friends purchase the two-year plan you will each get 3 months free, the one-year plan gets you each 1 month free.",
   "pro.share": "Share your code with friends to start earning more credits!",
@@ -107,7 +106,7 @@
   "share.lantern": "Share Lantern",
   "share.email": "Email",
   "share.email.title": "Lantern - Better than a VPN",
-  "share.email.body": "Download from https://bit.ly/lantern",
+  "share.email.body": "Download from https://bit.ly/lantern-en",
   "share.facebook": "Facebook",
   "share.gplus": "Google+",
   "share.text": "Lantern - Better than a VPN",
@@ -115,7 +114,7 @@
   "share.url": "https://getlantern.org",
   "share.wechat": "WeChat",
   "share.wechat.qr_title": "Scan with WeChat",
-  "share.wechat.text": "Lantern - Better than a VPN. Download from https://bit.ly/lantern",
+  "share.wechat.text": "Lantern - Better than a VPN. Download from https://bit.ly/lantern-en",
   "share.weibo": "Weibo",
   "status.off": "Lantern is OFF. You can't access blocked sites.",
   "status.on": "Lantern is ON. You can access blocked sites.",
@@ -136,6 +135,6 @@
   "messages.copied_to_clipboard": "Copied to clipboard!",
   "messages.datacap": "You have used your free monthly data. Upgrade to Lantern Pro to continue using Lantern",
   "freeProCredits.title": "Free Pro Credits",
-  "freeProCredits.shareWithFriends": "Share your code with friends, and you will each get a free month.",
-  "freeProCredits.smallPrint": "When friends use your code to purchase Lantern Pro, they will receive an additional free month. Once their purchase is confirmed, you will automatically get one Pro credit worth a free month of Lantern Pro for every friend that signs up!"
+  "freeProCredits.shareWithFriends": "Share your code with friends to get free months of Lantern.",
+  "freeProCredits.smallPrint": "When friends use your code to purchase Pro they will receive 3 free months with the two-year plan, or 1 month free with the one-year plan. Once the purchase is confirmed, you will get 1 to 3 months of Lantern Pro for every friend that signs up!"
 }
