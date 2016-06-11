@@ -136,7 +136,7 @@
                     android:textColor="@color/accent_white"/>
 
                 <TextView
-                    android:id="@+id/two_year_plan_cost"
+                    android:id="@+id/twoYearCost"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif"
@@ -144,7 +144,7 @@
                     android:layout_alignParentStart="true"
                     android:layout_centerVertical ="true"
                     android:layout_marginLeft="13dp"
-                    android:text="@string/two_year_cost"
+                    android:text="@string/plan_cost"
                     android:textSize="34sp"
                     android:textStyle="bold"
                     android:alpha=".87"
@@ -154,7 +154,7 @@
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif"
-                    android:layout_below="@+id/two_year_plan_cost"
+                    android:layout_below="@+id/twoYearCost"
                     android:layout_marginLeft="13dp"
                     android:text="@string/two_years"
                     android:alpha=".54"
@@ -194,7 +194,7 @@
                 android:paddingLeft="8dp">
 
                 <TextView
-                    android:id="@+id/one_year_plan_cost"
+                    android:id="@+id/oneYearCost"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif"
@@ -202,7 +202,7 @@
                     android:layout_alignParentStart="true"
                     android:layout_centerVertical="true"
                     android:layout_marginLeft="13dp"
-                    android:text="@string/one_year_cost"
+                    android:text="@string/plan_cost"
                     android:textSize="34sp"
                     android:textStyle="bold"
                     android:alpha=".87"
@@ -212,7 +212,7 @@
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif"
-                    android:layout_below="@+id/one_year_plan_cost"
+                    android:layout_below="@+id/oneYearCost"
                     android:layout_marginLeft="13dp"
                     android:text="@string/one_year"
                     android:alpha=".54"

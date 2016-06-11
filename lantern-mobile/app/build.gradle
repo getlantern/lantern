@@ -116,6 +116,9 @@ dependencies {
     // Mandrill dependencies
     compile 'commons-io:commons-io:2.4'
 
+    // lib that simplifies event bus communication between activities, fragments, threads, services, etc
+    compile 'org.greenrobot:eventbus:3.0.0'
+
     compile group: 'commons-codec', name: 'commons-codec', version: '1.5'
 
     // FinestWebView dependencies
