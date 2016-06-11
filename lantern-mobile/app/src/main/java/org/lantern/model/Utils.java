@@ -93,6 +93,12 @@ public class Utils {
         inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 
+    public static String formatMoney(long amount) {
+        Currency currency = Currency.getInstance(Locale.getDefault());
+        String symbol = currency.getSymbol();
+        return String.format("%s%d", symbol, amount);
+    }
+
     public static void showErrorDialog(final FragmentActivity activity, String error) {
         DialogFragment fragment = ErrorDialogFragment.newInstance(R.string.validation_errors, error);
         fragment.show(activity.getSupportFragmentManager(), "error");

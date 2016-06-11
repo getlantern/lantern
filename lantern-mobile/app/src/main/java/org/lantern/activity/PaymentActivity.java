@@ -51,8 +51,6 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
 
     private ProgressDialogFragment progressFragment;
 
-    public static String plan;
-
     @FragmentById(R.id.payment_form)
     PaymentFormFragment paymentForm;
 
@@ -86,31 +84,11 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
 
         Intent intent = getIntent();
 
-        long chargeAmount = session.getOneYearCost();
+        long chargeAmount = session.getSelectedPlanCost();
         Log.d(TAG, "Charge amount is " + chargeAmount);
-
-        if (plan != null) {
-            if (plan.equals(SessionManager.ONE_YEAR_PLAN)) {
-                chargeAmount = session.getOneYearCost();
-            } else {
-                chargeAmount = session.getTwoYearCost();
-            }
-        }
-
-        Currency currency = Currency.getInstance(Locale.getDefault());
-        String symbol = currency.getSymbol();
-
-        chargeAmountView.setText(String.format("%s%d", symbol, chargeAmount));
-
-        checkoutBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                submitCard();
-            }
-        });
+        chargeAmountView.setText(Utils.formatMoney(chargeAmount));
 
         progressFragment = ProgressDialogFragment.newInstance(R.string.progressMessage);
-
 
         Uri data = intent.getData();
 

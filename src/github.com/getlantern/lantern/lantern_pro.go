@@ -27,6 +27,7 @@ type Session interface {
 	SetCode(string)
 	Currency() string
 	AddPlan(string, string, bool, int, int)
+	Error(string)
 }
 
 type proRequest struct {

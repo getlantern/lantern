@@ -113,22 +113,20 @@ public class SessionManager implements Lantern.Session {
 		this.context.startActivity(i);
 	}
 
-    /*@Subscribe
-    public void onEvent(ProPlanEvent plan) {
-        long price = plan.getPrice()/100;
-        if (plan.numYears() == 1) {
-            oneYearCost = price;
-        } else {
-            twoYearCost = price;
-        }
-    }*/
-
     public Long getOneYearCost() {
         return oneYearCost;
     }
 
     public Long getTwoYearCost() {
         return twoYearCost;
+    }
+
+    public long getSelectedPlanCost() {
+        if (this.plan.equals(ONE_YEAR_PLAN)) {
+            return OneYearCost;
+        } else {
+            return twoYearCost;
+        }
     }
 
     public void setOneYearCost(long oneYearCost) {
