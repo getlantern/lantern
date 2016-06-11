@@ -123,7 +123,7 @@ public class SessionManager implements Lantern.Session {
 
     public long getSelectedPlanCost() {
         if (this.plan.equals(ONE_YEAR_PLAN)) {
-            return OneYearCost;
+            return oneYearCost;
         } else {
             return twoYearCost;
         }
@@ -181,11 +181,13 @@ public class SessionManager implements Lantern.Session {
         editor.putString(PRO_PLAN, plan).commit();
     }
 
-	public void setProUser(String email, String token, String plan) {
+    public String getProPlan() {
+        return plan;
+    }
+
+	public void setProUser(String email, String token) {
         this.stripeToken = token;
         this.stripeEmail = email;
-
-        editor.putString(PRO_PLAN, plan).commit();
 	}
 
     public void setIsProUser(boolean isProUser) {

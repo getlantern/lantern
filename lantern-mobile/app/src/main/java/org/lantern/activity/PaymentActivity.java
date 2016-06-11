@@ -35,9 +35,6 @@ import org.lantern.model.SessionManager;
 import org.lantern.model.Utils;
 import org.lantern.R;
 
-import java.util.Currency;
-import java.util.Locale;
-
 import info.hoang8f.android.segmented.SegmentedGroup;
 
 @EActivity(R.layout.checkout)
@@ -112,7 +109,7 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
             case R.id.alipayBtn:
                 Log.d(TAG, "Alipay button pressed");
                 Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setData(Uri.parse(String.format(mCheckoutUrl, plan)));
+                intent.setData(Uri.parse(String.format(mCheckoutUrl, "")));
                 startActivity(intent);
                 return;
             case R.id.cardBtn:
@@ -189,9 +186,10 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
 
     private void finishProgress(String email, String token) {
 
-        Log.d(TAG, String.format("Email is %s token %s plan %s", email, token, plan));
+        Log.d(TAG, String.format("Email is %s token %s plan %s", 
+                    email, token, session.getProPlan()));
 
-        session.setProUser(email, token, plan);
+        session.setProUser(email, token);
 
         // submit token to Pro server here
         new ProRequest(this, false).execute("purchase");

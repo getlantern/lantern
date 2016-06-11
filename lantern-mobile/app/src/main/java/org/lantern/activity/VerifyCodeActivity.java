@@ -1,25 +1,19 @@
 package org.lantern.activity;
 
-import android.app.Activity;
 import android.content.Intent;
-import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.EActivity;
-import org.androidannotations.annotations.ViewById;
 
 import org.lantern.LanternApp;
-import org.lantern.fragment.ProgressDialogFragment;
 import org.lantern.fragment.UserForm;
 import org.lantern.model.ProRequest;
 import org.lantern.model.SessionManager;
 import org.lantern.model.Utils;
 import org.lantern.R;
-
-import go.lantern.Lantern;
 
 @EActivity(R.layout.activity_verify_code)
 public class VerifyCodeActivity extends FragmentActivity implements ProResponse {
@@ -44,7 +38,7 @@ public class VerifyCodeActivity extends FragmentActivity implements ProResponse 
     public void onSuccess() {
         session.linkDevice();
 
-        if (PaymentActivity.plan != null) {
+        if (session.getProPlan() != null) {
             if (!session.isReferralApplied()) {
                 Intent i = new Intent(this,
                         ReferralCodeActivity_.class);
