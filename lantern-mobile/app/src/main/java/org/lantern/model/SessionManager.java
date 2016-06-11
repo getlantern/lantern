@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.os.AsyncTask;
 import android.provider.Settings.Secure;
 import android.util.Log;
 import android.widget.TextView;
@@ -21,6 +20,7 @@ import org.lantern.vpn.Service;
 import org.lantern.R;                                    
 
 import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 
 import go.lantern.Lantern;
 
@@ -41,8 +41,11 @@ public class SessionManager implements Lantern.Session {
     private static final String PREF_USE_VPN = "pref_vpn";
     private static final String PREF_NEWSFEED = "pref_newsfeed";
 
-    public static final String ONE_YEAR_PLAN = "Lantern Pro 1 Year Subscription";
-    public static final String TWO_YEAR_PLAN = "Lantern Pro 2 Year Subscription";
+    public static final String ONE_YEAR_PLAN = "1-yr";
+    public static final String TWO_YEAR_PLAN = "2-yr";
+
+    public static long ONE_YEAR_COST = 2700;
+    public static long TWO_YEAR_COST = 4800;
 
     private static final String defaultCurrencyCode = "usd";
 
@@ -71,8 +74,9 @@ public class SessionManager implements Lantern.Session {
     }
 
     public boolean isChineseUser() {
-        return this.locale.toString().equals("zh_CN") ||
-            this.locale.toString().equals("zh_TW");
+        Locale locale = Locale.getDefault();
+        return locale.equals(new Locale("zh", "CN")) ||
+            locale.equals(new Locale("zh", "TW"));
     }
 
     public boolean isDeviceLinked() {
@@ -108,6 +112,16 @@ public class SessionManager implements Lantern.Session {
 		// start sign in activity
 		this.context.startActivity(i);
 	}
+
+    @Subscribe
+    public void onEvent(ProPlanEvent plan) {
+        long price = plan.getPrice()/100;
+        if (plan.numYears() == 1) {
+            ONE_YEAR_COST = price;
+        } else {
+            TWO_YEAR_COST = price;
+        }
+    }
 
     public void AddPlan(String id, String description, boolean bestValue, long numYears, long price) {
         EventBus.getDefault().post(new ProPlanEvent(id, description, bestValue, numYears, price));
