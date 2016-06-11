@@ -44,8 +44,8 @@ public class SessionManager implements Lantern.Session {
     public static final String ONE_YEAR_PLAN = "1-yr";
     public static final String TWO_YEAR_PLAN = "2-yr";
 
-    public static long ONE_YEAR_COST = 2700;
-    public static long TWO_YEAR_COST = 4800;
+    private long oneYearCost = 2700;
+    private long twoYearCost = 4800;
 
     private static final String defaultCurrencyCode = "usd";
 
@@ -113,15 +113,31 @@ public class SessionManager implements Lantern.Session {
 		this.context.startActivity(i);
 	}
 
-    @Subscribe
+    /*@Subscribe
     public void onEvent(ProPlanEvent plan) {
         long price = plan.getPrice()/100;
         if (plan.numYears() == 1) {
-            ONE_YEAR_COST = price;
+            oneYearCost = price;
         } else {
-            TWO_YEAR_COST = price;
+            twoYearCost = price;
         }
+    }*/
+
+    public Long getOneYearCost() {
+        return oneYearCost;
     }
+
+    public Long getTwoYearCost() {
+        return twoYearCost;
+    }
+
+    public void setOneYearCost(long oneYearCost) {
+        this.oneYearCost = oneYearCost;
+    }
+
+    public void setTwoYearCost(long twoYearCost) {
+        this.twoYearCost = twoYearCost;
+    }                      
 
     public void AddPlan(String id, String description, boolean bestValue, long numYears, long price) {
         EventBus.getDefault().post(new ProPlanEvent(id, description, bestValue, numYears, price));

@@ -35,7 +35,7 @@ import org.lantern.model.SessionManager;
 import org.lantern.model.Utils;
 import org.lantern.R;
 
-import java.text.NumberFormat;
+import java.util.Currency;
 import java.util.Locale;
 
 import info.hoang8f.android.segmented.SegmentedGroup;
@@ -86,19 +86,21 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
 
         Intent intent = getIntent();
 
-        long chargeAmount = session.ONE_YEAR_COST;
+        long chargeAmount = session.getOneYearCost();
+        Log.d(TAG, "Charge amount is " + chargeAmount);
+
         if (plan != null) {
             if (plan.equals(SessionManager.ONE_YEAR_PLAN)) {
-                chargeAmount = SessionManager.ONE_YEAR_COST;
+                chargeAmount = session.getOneYearCost();
             } else {
-                chargeAmount = SessionManager.TWO_YEAR_COST;
+                chargeAmount = session.getTwoYearCost();
             }
         }
 
-        NumberFormat currencyFormatter = 
-            NumberFormat.getCurrencyInstance(Locale.getDefault());
-  
-        chargeAmountView.setText(currencyFormatter.format(chargeAmount / 100.0));
+        Currency currency = Currency.getInstance(Locale.getDefault());
+        String symbol = currency.getSymbol();
+
+        chargeAmountView.setText(String.format("%s%d", symbol, chargeAmount));
 
         checkoutBtn.setOnClickListener(new View.OnClickListener() {
             @Override

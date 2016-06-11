@@ -98,12 +98,15 @@ public class PlansActivity extends FragmentActivity {
         Log.d(TAG, "Received a new pro plan: " + plan.getPlan());
         Currency currency = Currency.getInstance(Locale.getDefault());
         String symbol = currency.getSymbol();
+        long price = plan.getPrice()/100;
         String costStr = String.format(getResources().getString(R.string.plan_cost),
-                symbol, plan.getPrice()/100, currency.getCurrencyCode());
+                symbol, price, currency.getCurrencyCode());
         if (plan.numYears() == 1) {
             oneYearCost.setText(costStr);
+            session.setOneYearCost(price);
         } else {
             twoYearCost.setText(costStr);
+            session.setTwoYearCost(price);
         }
     }
 
