@@ -18,9 +18,12 @@ fi
 export PATH=$GOPATH/bin:$PATH
 
 export LANTERN_GOROOT=$GOPATH/src/github.com/golang/go
-if [ -d $LANTERN_GOROOT ]; then
+
+if [ $LANTERN_GOROOT ]; then
 	export GOROOT=$LANTERN_GOROOT
 	export PATH=$GOROOT/bin:$PATH
-else
+fi
+
+if [ "$(go version | grep lantern)" = "" ]; then
 	(echo "Lantern requires a special fork of Go, use 'make lantern-go'" && exit 1)
 fi
