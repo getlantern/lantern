@@ -7,6 +7,8 @@
 
 #include <stdint.h>
 #include <android/log.h>
+// For abort()
+#include <stdlib.h>
 #include <jni.h>
 
 #define LOG_INFO(...) __android_log_print(ANDROID_LOG_INFO, "go/Seq", __VA_ARGS__)
@@ -31,6 +33,7 @@ typedef struct nbyteslice {
 typedef jlong nint;
 
 extern void go_seq_dec_ref(int32_t ref);
+extern void go_seq_inc_ref(int32_t ref);
 extern int32_t go_seq_to_refnum(JNIEnv *env, jobject o);
 extern jobject go_seq_from_refnum(JNIEnv *env, int32_t refnum, jclass proxy_class, jmethodID proxy_cons);
 

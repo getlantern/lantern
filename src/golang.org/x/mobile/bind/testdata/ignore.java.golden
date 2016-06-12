@@ -19,14 +19,10 @@ public abstract class Ignore {
     
     private static native void init();
     
-    public static final class S implements go.Seq.Object, I {
-        private final go.Seq.Ref ref;
+    public static final class S extends Seq.Proxy implements I {
+        private S(go.Seq.Ref ref) { super(ref); }
         
-        private S(go.Seq.Ref ref) { this.ref = ref; }
-        
-        public final go.Seq.Ref ref() { return ref; }
-        
-        // skipped field F.interface{} with unsupported type: %!T(MISSING)
+        // skipped field S.F with unsupported type: *types.Interface
         
         // skipped method S.Argument with unsupported parameter or return types
         
@@ -37,7 +33,7 @@ public abstract class Ignore {
                 return false;
             }
             S that = (S)o;
-            // skipped field F.interface{} with unsupported type: %!T(MISSING)
+            // skipped field S.F with unsupported type: *types.Interface
             
             return true;
         }
@@ -53,33 +49,20 @@ public abstract class Ignore {
         }
     }
     
-    public interface I extends go.Seq.Object {
+    public interface I {
         // skipped method I.Argument with unsupported parameter or return types
         
         // skipped method I.Result with unsupported parameter or return types
         
-        public static abstract class Stub implements I {
-            private final go.Seq.Ref ref;
-            public Stub() {
-                ref = go.Seq.createRef(this);
-            }
-            
-            public final go.Seq.Ref ref() { return ref; }
-            
-        }
+    }
+    
+    private static final class proxyI extends Seq.Proxy implements I {
+        proxyI(Seq.Ref ref) { super(ref); }
+    
+        // skipped method I.Argument with unsupported parameter or return types
         
-        static final class Proxy implements I {
-            private go.Seq.Ref ref;
+        // skipped method I.Result with unsupported parameter or return types
         
-            Proxy(go.Seq.Ref ref) { this.ref = ref; }
-        
-            public final go.Seq.Ref ref() { return ref; }
-        
-            // skipped method I.Argument with unsupported parameter or return types
-            
-            // skipped method I.Result with unsupported parameter or return types
-            
-        }
     }
     
     // skipped const NamedConst with unsupported type: *types.Const

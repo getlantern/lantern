@@ -26,7 +26,7 @@ Java_go_structs_Structs_init(JNIEnv *env, jclass _unused) {
     clazz = (*env)->FindClass(env, "go/structs/Structs$S2");
     proxy_class_structs_S2 = (*env)->NewGlobalRef(env, clazz);
     proxy_class_structs_S2_cons = (*env)->GetMethodID(env, clazz, "<init>", "(Lgo/Seq$Ref;)V");
-    clazz = (*env)->FindClass(env, "go/structs/Structs$I$Proxy");
+    clazz = (*env)->FindClass(env, "go/structs/Structs$proxyI");
     proxy_class_structs_I = (*env)->NewGlobalRef(env, clazz);
     proxy_class_structs_I_cons = (*env)->GetMethodID(env, clazz, "<init>", "(Lgo/Seq$Ref;)V");
     clazz = (*env)->FindClass(env, "go/structs/Structs$I");
@@ -115,7 +115,7 @@ Java_go_structs_Structs_00024S2_String(JNIEnv* env, jobject this) {
 }
 
 JNIEXPORT void JNICALL
-Java_go_structs_Structs_00024I_00024Proxy_M(JNIEnv* env, jobject this) {
+Java_go_structs_Structs_00024proxyI_M(JNIEnv* env, jobject this) {
     int32_t o = go_seq_to_refnum(env, this);
     proxystructs_I_M(o);
 }

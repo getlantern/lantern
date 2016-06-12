@@ -50,8 +50,8 @@ mkdir -p $WORK/main
 echo "{{template "infoplist" .Xinfo}}" > $WORK/main/Info.plist
 mkdir -p $WORK/main/Images.xcassets/AppIcon.appiconset
 echo "{{.Xcontents}}" > $WORK/main/Images.xcassets/AppIcon.appiconset/Contents.json
-GOOS=darwin GOARCH=arm GOARM=7 CC=clang-iphoneos CXX=clang-iphoneos CGO_CFLAGS=-isysroot=iphoneos -arch armv7 CGO_LDFLAGS=-isysroot=iphoneos -arch armv7 CGO_ENABLED=1 go build -p={{.NumCPU}} -pkgdir=$GOMOBILE/pkg_darwin_arm -tags="tag1,ios" -x -o=$WORK/arm golang.org/x/mobile/example/basic
-GOOS=darwin GOARCH=arm64 CC=clang-iphoneos CXX=clang-iphoneos CGO_CFLAGS=-isysroot=iphoneos -arch arm64 CGO_LDFLAGS=-isysroot=iphoneos -arch arm64 CGO_ENABLED=1 go build -p={{.NumCPU}} -pkgdir=$GOMOBILE/pkg_darwin_arm64 -tags="tag1,ios" -x -o=$WORK/arm64 golang.org/x/mobile/example/basic
+GOOS=darwin GOARCH=arm GOARM=7 CC=clang-iphoneos CXX=clang-iphoneos CGO_CFLAGS=-isysroot=iphoneos -miphoneos-version-min=6.1 -arch armv7 CGO_LDFLAGS=-isysroot=iphoneos -miphoneos-version-min=6.1 -arch armv7 CGO_ENABLED=1 go build -p={{.NumCPU}} -pkgdir=$GOMOBILE/pkg_darwin_arm -tags="tag1,ios" -x -o=$WORK/arm golang.org/x/mobile/example/basic
+GOOS=darwin GOARCH=arm64 CC=clang-iphoneos CXX=clang-iphoneos CGO_CFLAGS=-isysroot=iphoneos -miphoneos-version-min=6.1 -arch arm64 CGO_LDFLAGS=-isysroot=iphoneos -miphoneos-version-min=6.1 -arch arm64 CGO_ENABLED=1 go build -p={{.NumCPU}} -pkgdir=$GOMOBILE/pkg_darwin_arm64 -tags="tag1,ios" -x -o=$WORK/arm64 golang.org/x/mobile/example/basic
 xcrun lipo -create $WORK/arm $WORK/arm64 -o $WORK/main/main
 mkdir -p $WORK/main/assets
 xcrun xcodebuild -configuration Release -project $WORK/main.xcodeproj

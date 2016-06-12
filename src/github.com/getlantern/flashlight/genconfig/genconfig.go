@@ -270,9 +270,7 @@ func grabCerts() {
 			continue
 		}
 		log.Tracef("Grabbing certs for IP %s, domain %s", ip, domain)
-		cwt, err := tlsdialer.DialForTimings(&net.Dialer{
-			Timeout: 10 * time.Second,
-		}, "tcp", ip+":443", false, &tls.Config{ServerName: domain})
+		cwt, err := tlsdialer.DialForTimings(net.DialTimeout, 10*time.Second, time.Time{}, "tcp", ip+":443", false, &tls.Config{ServerName: domain})
 		if err != nil {
 			log.Errorf("Unable to dial IP %s, domain %s: %s", ip, domain, err)
 			continue

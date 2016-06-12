@@ -5,6 +5,7 @@
 package go;
 
 import java.util.Arrays;
+import java.util.IdentityHashMap;
 import java.util.logging.Logger;
 
 // Seq is a sequence of machine-dependent encoded values.
@@ -15,7 +16,7 @@ public class Seq {
 	// also known to bind/seq/ref.go and bind/objc/seq_darwin.m
 	private static final int NULL_REFNUM = 41;
 
-	// use single Ref for null Seq.Object
+	// use single Ref for null Object
 	public static final Ref nullRef = new Ref(NULL_REFNUM, null);
 
 	static {
@@ -50,44 +51,51 @@ public class Seq {
 	// ctx is an android.context.Context.
 	static native void setContext(java.lang.Object ctx);
 
-	public static int incRef(Seq.Object o) {
-		Ref ref = o.ref();
-		tracker.inc(ref);
-		return ref.refnum;
+	public static void incRefnum(int refnum) {
+		tracker.incRefnum(refnum);
+	}
+
+	public static int incRef(Object o) {
+		return tracker.inc(o);
 	}
 
 	public static Ref getRef(int refnum) {
 		return tracker.get(refnum);
 	}
 
+	// Increment the Go reference count before sending over a refnum.
+	static native void incGoRef(int refnum);
+
 	// Informs the Go ref tracker that Java is done with this ref.
 	static native void destroyRef(int refnum);
-
-	// createRef creates a Ref to a Java object.
-	public static Ref createRef(Seq.Object o) {
-		return tracker.createRef(o);
-	}
 
 	// decRef is called from seq.FinalizeRef
 	static void decRef(int refnum) {
 		tracker.dec(refnum);
 	}
 
-	// An Object is a Java object that matches a Go object.
-	// The implementation of the object may be in either Java or Go,
-	// with a proxy instance in the other language passing calls
-	// through to the other language.
-	//
-	// Don't implement an Object directly. Instead, look for the
-	// generated abstract Stub.
-	public interface Object {
-		public Ref ref();
+	// A Proxy is a Java object that proxies a Go object.
+	public static abstract class Proxy {
+		private final Ref ref;
+
+		protected Proxy(Ref ref) {
+			this.ref = ref;
+		}
+
+		public final int incRefnum() {
+			// The Go reference count need to be bumped while the
+			// refnum is passed to Go, to avoid finalizing and
+			// invalidating it before being translated on the Go side.
+			int refnum = ref.refnum;
+			incGoRef(refnum);
+			return refnum;
+		}
 	}
 
 	// A Ref is an object tagged with an integer for passing back and
 	// forth across the language boundary.
 	//
-	// A Ref may represent either an instance of a Java Object subclass,
+	// A Ref may represent either an instance of a Java object,
 	// or an instance of a Go object. The explicit allocation of a Ref
 	// is used to pin Go object instances when they are passed to Java.
 	// The Go Seq library maintains a reference to the instance in a map
@@ -98,11 +106,11 @@ public class Seq {
 		// refnum > 0: Java object tracked by Go
 		public final int refnum;
 
-		int refcnt;  // for Java obj: track how many times sent to Go.
+		private int refcnt;  // for Java obj: track how many times sent to Go.
 
-		public final Seq.Object obj;  // for Java obj: pointers to the Java obj.
+		public final Object obj;  // for Java obj: pointers to the Java obj.
 
-		Ref(int refnum, Seq.Object o) {
+		Ref(int refnum, Object o) {
 			this.refnum = refnum;
 			this.refcnt = 0;
 			this.obj = o;
@@ -115,6 +123,14 @@ public class Seq {
 				Seq.destroyRef(refnum);
 			}
 			super.finalize();
+		}
+
+		void inc() {
+			// Count how many times this ref's Java object is passed to Go.
+			if (refcnt == Integer.MAX_VALUE) {
+				throw new RuntimeException("refnum " + refnum + " overflow");
+			}
+			refcnt++;
 		}
 	}
 
@@ -134,28 +150,44 @@ public class Seq {
 		// The Ref obj field is non-null.
 		// This map pins Java objects so they don't get GCed while the
 		// only reference to them is held by Go code.
-		private RefMap javaObjs = new RefMap();
+		private final RefMap javaObjs = new RefMap();
+
+		// Java objects to refnum
+		private final IdentityHashMap<Object, Integer> javaRefs = new IdentityHashMap<>();
 
 		// inc increments the reference count of a Java object when it
-		// is sent to Go.
-		synchronized void inc(Ref ref) {
-			int refnum = ref.refnum;
-			if (refnum <= 0) {
-				// We don't keep track of the Go object.
-				return;
+		// is sent to Go. inc returns the refnum for the object.
+		synchronized int inc(Object o) {
+			if (o == null) {
+				return NULL_REFNUM;
 			}
-			if (refnum == NULL_REFNUM) {
-				return;
+			if (o instanceof Proxy) {
+				return ((Proxy)o).incRefnum();
 			}
-			// Count how many times this ref's Java object is passed to Go.
-			if (ref.refcnt == Integer.MAX_VALUE) {
-				throw new RuntimeException("refnum " + refnum + " overflow");
+			Integer refnumObj = javaRefs.get(o);
+			if (refnumObj == null) {
+				if (next == Integer.MAX_VALUE) {
+					throw new RuntimeException("createRef overflow for " + o);
+				}
+				refnumObj = next++;
+				javaRefs.put(o, refnumObj);
 			}
-			ref.refcnt++;
-			Ref obj = javaObjs.get(refnum);
-			if (obj == null) {
+			int refnum = refnumObj;
+			Ref ref = javaObjs.get(refnum);
+			if (ref == null) {
+				ref = new Ref(refnum, o);
 				javaObjs.put(refnum, ref);
 			}
+			ref.inc();
+			return refnum;
+		}
+
+		synchronized void incRefnum(int refnum) {
+			Ref ref = javaObjs.get(refnum);
+			if (ref == null) {
+				throw new RuntimeException("referenced Java object is not found: refnum="+refnum);
+			}
+			ref.inc();
 		}
 
 		// dec decrements the reference count of a Java object when
@@ -180,19 +212,8 @@ public class Seq {
 			obj.refcnt--;
 			if (obj.refcnt <= 0) {
 				javaObjs.remove(refnum);
+				javaRefs.remove(obj.obj);
 			}
-		}
-
-		synchronized Ref createRef(Seq.Object o) {
-			if (o == null) {
-				return Seq.nullRef;
-			}
-			if (next == Integer.MAX_VALUE) {
-				throw new RuntimeException("createRef overflow for " + o);
-			}
-			int refnum = next++;
-			Ref ref = new Ref(refnum, o);
-			return ref;
 		}
 
 		// get returns an existing Ref to either a Java or Go object.

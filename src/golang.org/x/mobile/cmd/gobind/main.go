@@ -48,8 +48,9 @@ func main() {
 	}
 
 	var allPkg []*types.Package
+	imp := importer.Default()
 	for _, arg := range flag.Args() {
-		pkg, err := importer.Default().Import(arg)
+		pkg, err := imp.Import(arg)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "could not import package %s: %v", arg, err)
 			os.Exit(1)

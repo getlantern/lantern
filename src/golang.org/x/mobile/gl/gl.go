@@ -1679,3 +1679,21 @@ func (ctx *context) Viewport(x, y, width, height int) {
 		},
 	})
 }
+
+func (ctx context3) BlitFramebuffer(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1 int, mask uint, filter Enum) {
+	ctx.enqueue(call{
+		args: fnargs{
+			fn: glfnBlitFramebuffer,
+			a0: uintptr(srcX0),
+			a1: uintptr(srcY0),
+			a2: uintptr(srcX1),
+			a3: uintptr(srcY1),
+			a4: uintptr(dstX0),
+			a5: uintptr(dstY0),
+			a6: uintptr(dstX1),
+			a7: uintptr(dstY1),
+			a8: uintptr(mask),
+			a9: filter.c(),
+		},
+	})
+}

@@ -113,6 +113,49 @@ static NSString* errDomain = @"go.interfaces";
 @end
 
 
+@implementation GoInterfacesLargerI {
+}
+
+- (id)initWithRef:(id)ref {
+	self = [super init];
+	if (self) { __ref = ref; }
+	return self;
+}
+
+- (void)anotherFunc {
+	int32_t refnum = go_seq_go_to_refnum(self._ref);
+	proxyinterfaces_LargerI_AnotherFunc(refnum);
+}
+
+- (int32_t)rand {
+	int32_t refnum = go_seq_go_to_refnum(self._ref);
+	int32_t r0 = proxyinterfaces_LargerI_Rand(refnum);
+	int32_t _ret0_ = (int32_t)r0;
+	return _ret0_;
+}
+
+@end
+
+
+@implementation GoInterfacesSameI {
+}
+
+- (id)initWithRef:(id)ref {
+	self = [super init];
+	if (self) { __ref = ref; }
+	return self;
+}
+
+- (int32_t)rand {
+	int32_t refnum = go_seq_go_to_refnum(self._ref);
+	int32_t r0 = proxyinterfaces_SameI_Rand(refnum);
+	int32_t _ret0_ = (int32_t)r0;
+	return _ret0_;
+}
+
+@end
+
+
 @implementation GoInterfacesWithParam {
 }
 
@@ -227,6 +270,31 @@ int32_t cproxyinterfaces_I3_F(int32_t refnum) {
 		} else {
 			_returnVal = go_seq_to_refnum(returnVal);
 		}
+		return _returnVal;
+	}
+}
+
+void cproxyinterfaces_LargerI_AnotherFunc(int32_t refnum) {
+	@autoreleasepool {
+		id<GoInterfacesLargerI> o = go_seq_objc_from_refnum(refnum);
+		[o anotherFunc];
+	}
+}
+
+int32_t cproxyinterfaces_LargerI_Rand(int32_t refnum) {
+	@autoreleasepool {
+		id<GoInterfacesLargerI> o = go_seq_objc_from_refnum(refnum);
+		int32_t returnVal = [o rand];
+		int32_t _returnVal = (int32_t)returnVal;
+		return _returnVal;
+	}
+}
+
+int32_t cproxyinterfaces_SameI_Rand(int32_t refnum) {
+	@autoreleasepool {
+		id<GoInterfacesSameI> o = go_seq_objc_from_refnum(refnum);
+		int32_t returnVal = [o rand];
+		int32_t _returnVal = (int32_t)returnVal;
 		return _returnVal;
 	}
 }

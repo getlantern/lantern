@@ -7,15 +7,13 @@ package main
 // Hashes were computed with 'go run release.go'
 
 var fetchHashes = map[string]string{
-	"android-ndk-r10e-darwin-x86_64.bin":      "728c309e606f63101f1258c9d3d579b80ac74fe74c511ebb71f460ce5c5d084e",
-	"gomobile-ndk-r10e-darwin-x86_64.tar.gz":  "e8bff8a56f5688ec849a95a4e85130ce02eff5c2d54e361103777c396db8d308",
-	"android-ndk-r10e-linux-x86.bin":          "92b07d25aaad9b341a7f2b2a62402d508e948bf2dea3ee7b65a6aeb18bca7df5",
-	"gomobile-ndk-r10e-linux-x86.tar.gz":      "4cc1dd2a1bdf4d81618223d6b25a9d5b5673389c5977a7bff85a89a15afd36a2",
-	"android-ndk-r10e-linux-x86_64.bin":       "102d6723f67ff1384330d12c45854315d6452d6510286f4e5891e00a5a8f1d5a",
-	"gomobile-ndk-r10e-linux-x86_64.tar.gz":   "bacfed664a7b69b1b693f246ea49a85f04f502bd1ae723351c5345ab5b2ba850",
-	"android-ndk-r10e-windows-x86.exe":        "5378a60a796de75a2d609b76f5c56df7a343511ec36a823bae8c7423591cc8f5",
-	"gomobile-ndk-r10e-windows-x86.tar.gz":    "4c0d647519a5d254d39a13f8ec85951ca378d8eb8463fdcde5c46490b1f2c382",
-	"android-ndk-r10e-windows-x86_64.exe":     "9bc55ea4b3ad38dcd34157528760e62183b63ebc4a38a6ca478889ff7583d9c1",
-	"gomobile-ndk-r10e-windows-x86_64.tar.gz": "582cc90605c8cc026be0d70ccf58d2ec44373f7e855fbb2faee59c2cf2f7121e",
-	"gomobile-openal-soft-1.16.0.1.tar.gz":    "ff7ff835355a1158001e6b6cc03d3a65abb508abc34a5f19ae9af0bdeadd978b",
+	"android-ndk-r11c-darwin-x86_64.zip":      "fe2f8986074717240df45f03e93a4436dac2040dc12fecee4853953d584424b3",
+	"gomobile-ndk-r11c-darwin-x86_64.tar.gz":  "1d563c5c27dcb3643eb3cbd4e44b535aec052c600350d6203374e0100b1d75ff",
+	"android-ndk-r11c-linux-x86_64.zip":       "ba85dbe4d370e4de567222f73a3e034d85fc3011b3cbd90697f3e8dcace3ad94",
+	"gomobile-ndk-r11c-linux-x86_64.tar.gz":   "eb0a657e03dad70dce33281414d2fdf38f2b313a8a1a4323d0648e9d16198d74",
+	"android-ndk-r11c-windows-x86.zip":        "eea7d148cf046baad2b8f3fd8e4a27d3695964079db0da6b9fca08051bb4dccb",
+	"gomobile-ndk-r11c-windows-x86.tar.gz":    "7f6b53f55993aa0deccace0ab2829ebb0e93d6bf2196a964f63bfde46da95d9e",
+	"android-ndk-r11c-windows-x86_64.zip":     "55c69f1d5a3602b3f6d6cea280b16938f17d6a4b509af01641d4db1280088d90",
+	"gomobile-ndk-r11c-windows-x86_64.tar.gz": "b3e1e17ec6d19b7512e6b5277fccc3a61e4c4b6bab6c4a3874d856c0332a61db",
+	"gomobile-openal-soft-1.16.0.1.tar.gz":    "84c9361734902df622dd49a8c0cfb0090fd7743a2cbf927a9ae85c4826beb173",
 }
