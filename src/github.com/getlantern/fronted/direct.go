@@ -252,7 +252,6 @@ func (d *direct) dialServerWith(masquerade *Masquerade) (net.Conn, error) {
 	conn, err := tlsdialer.DialTimeout(
 		netx.DialTimeout,
 		dialTimeout,
-		time.Time{},
 		"tcp",
 		masquerade.IpAddress+":443",
 		sendServerNameExtension, // SNI or no
