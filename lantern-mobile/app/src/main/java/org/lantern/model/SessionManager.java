@@ -10,7 +10,9 @@ import android.util.Log;
 import android.widget.TextView;
 
 import java.util.Currency;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 import org.lantern.activity.SignInActivity;
 import org.lantern.mobilesdk.StartResult;
@@ -41,13 +43,12 @@ public class SessionManager implements Lantern.Session {
     private static final String PREF_USE_VPN = "pref_vpn";
     private static final String PREF_NEWSFEED = "pref_newsfeed";
 
-    public static final String ONE_YEAR_PLAN = "1-yr";
-    public static final String TWO_YEAR_PLAN = "2-yr";
-
     private long oneYearCost = 2700;
     private long twoYearCost = 4800;
 
     private static final String defaultCurrencyCode = "usd";
+
+    private final Map<String, Long> prices = new HashMap<String, Long>();
 
      // shared preferences mode
     private int PRIVATE_MODE = 0;
@@ -122,11 +123,15 @@ public class SessionManager implements Lantern.Session {
     }
 
     public long getSelectedPlanCost() {
-        if (this.plan.equals(ONE_YEAR_PLAN)) {
-            return oneYearCost;
-        } else {
-            return twoYearCost;
+        Long price = prices.get(this.plan);
+        if (price != null) {
+            return price.longValue();
         }
+        return oneYearCost;
+    }
+
+    public void setPlanPrice(String plan, long price) {
+        prices.put(plan, price);
     }
 
     public void setOneYearCost(long oneYearCost) {
