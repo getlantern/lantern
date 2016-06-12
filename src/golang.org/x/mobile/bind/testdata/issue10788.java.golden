@@ -19,12 +19,8 @@ public abstract class Issue10788 {
     
     private static native void init();
     
-    public static final class TestStruct implements go.Seq.Object {
-        private final go.Seq.Ref ref;
-        
-        private TestStruct(go.Seq.Ref ref) { this.ref = ref; }
-        
-        public final go.Seq.Ref ref() { return ref; }
+    public static final class TestStruct extends Seq.Proxy {
+        private TestStruct(go.Seq.Ref ref) { super(ref); }
         
         public final native String getValue();
         public final native void setValue(String v);
@@ -58,29 +54,16 @@ public abstract class Issue10788 {
         }
     }
     
-    public interface TestInterface extends go.Seq.Object {
+    public interface TestInterface {
         public void DoSomeWork(TestStruct s);
         public void MultipleUnnamedParams(long p0, String p1, long p2);
-        public static abstract class Stub implements TestInterface {
-            private final go.Seq.Ref ref;
-            public Stub() {
-                ref = go.Seq.createRef(this);
-            }
-            
-            public final go.Seq.Ref ref() { return ref; }
-            
-        }
-        
-        static final class Proxy implements TestInterface {
-            private go.Seq.Ref ref;
-        
-            Proxy(go.Seq.Ref ref) { this.ref = ref; }
-        
-            public final go.Seq.Ref ref() { return ref; }
-        
-            public native void DoSomeWork(TestStruct s);
-            public native void MultipleUnnamedParams(long p0, String p1, long p2);
-        }
+    }
+    
+    private static final class proxyTestInterface extends Seq.Proxy implements TestInterface {
+        proxyTestInterface(Seq.Ref ref) { super(ref); }
+    
+        public native void DoSomeWork(TestStruct s);
+        public native void MultipleUnnamedParams(long p0, String p1, long p2);
     }
     
     

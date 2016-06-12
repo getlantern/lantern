@@ -90,16 +90,12 @@ For a Go interface:
 		p.Print("Hello, World!")
 	}
 
-gobind generates a Java stub that can be used to implement a Printer:
+gobind generates a Java interface that can be used to implement a Printer:
 
 	public abstract class Myfmt {
 		private Myfmt() {}
 		public interface Printer {
 			public void Print(String s);
-
-			public static abstract class Stub implements Printer {
-				...
-			}
 
 			...
 		}
@@ -107,10 +103,10 @@ gobind generates a Java stub that can be used to implement a Printer:
 		public static void PrintHello(Printer p) { ... }
 	}
 
-You can extend Myfmt.Printer.Stub to implement the Printer interface, and
-pass it to Go using the PrintHello package function:
+You can implement Myfmt.Printer, and pass it to Go using the PrintHello
+package function:
 
-	public class SysPrint extends Myfmt.Printer.Stub {
+	public class SysPrint implements Myfmt.Printer {
 		public void Print(String s) {
 			System.out.println(s);
 		}
@@ -205,8 +201,8 @@ of G, then the language bindings on each side must keep G and J live
 even if they are otherwise unreachable.
 
 We recommend that implementations of foreign interfaces do not hold
-references to proxies of objects. That is: if you extend a Stub in
-Java, do not store an instance of Seq.Object inside it.
+references to proxies of objects. That is: if you implement a Go
+interface in Java, do not store an instance of Seq.Object inside it.
 
 Further reading
 

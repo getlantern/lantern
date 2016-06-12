@@ -124,8 +124,8 @@ func envInit() (err error) {
 		"GOARM=7",
 		"CC=" + clang,
 		"CXX=" + clang,
-		"CGO_CFLAGS=" + cflags + " -arch " + archClang("arm"),
-		"CGO_LDFLAGS=" + cflags + " -arch " + archClang("arm"),
+		"CGO_CFLAGS=" + cflags + " -miphoneos-version-min=6.1 -arch " + archClang("arm"),
+		"CGO_LDFLAGS=" + cflags + " -miphoneos-version-min=6.1 -arch " + archClang("arm"),
 		"CGO_ENABLED=1",
 	}
 	darwinArmNM = "nm"
@@ -134,8 +134,8 @@ func envInit() (err error) {
 		"GOARCH=arm64",
 		"CC=" + clang,
 		"CXX=" + clang,
-		"CGO_CFLAGS=" + cflags + " -arch " + archClang("arm64"),
-		"CGO_LDFLAGS=" + cflags + " -arch " + archClang("arm64"),
+		"CGO_CFLAGS=" + cflags + " -miphoneos-version-min=6.1 -arch " + archClang("arm64"),
+		"CGO_LDFLAGS=" + cflags + " -miphoneos-version-min=6.1 -arch " + archClang("arm64"),
 		"CGO_ENABLED=1",
 	}
 
@@ -287,7 +287,7 @@ var ndk = ndkConfig{
 		arch:       "arm",
 		abi:        "armeabi-v7a",
 		platform:   "android-15",
-		gcc:        "arm-linux-androideabi-4.8",
+		gcc:        "arm-linux-androideabi-4.9",
 		toolPrefix: "arm-linux-androideabi",
 		minGoVer:   go1_5,
 	},
@@ -304,7 +304,7 @@ var ndk = ndkConfig{
 		arch:       "x86",
 		abi:        "x86",
 		platform:   "android-15",
-		gcc:        "x86-4.8",
+		gcc:        "x86-4.9",
 		toolPrefix: "i686-linux-android",
 		minGoVer:   go1_6,
 	},

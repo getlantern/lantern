@@ -23,6 +23,7 @@ import (
 
 	"golang.org/x/mobile/bind/testpkg/secondpkg"
 	"golang.org/x/mobile/bind/testpkg/simplepkg"
+	"golang.org/x/mobile/bind/testpkg/unboundpkg"
 )
 
 const (
@@ -50,6 +51,10 @@ var (
 	InterfaceVar2 I2
 	NodeVar       = &Node{V: "a struct var"}
 )
+
+type Nummer interface {
+	Num()
+}
 
 type I interface {
 	F()
@@ -136,6 +141,10 @@ func Add(x, y int) int {
 
 func NumSCollected() int {
 	return numSCollected
+}
+
+func I2Dup(i I2) I2 {
+	return i
 }
 
 func IDup(i I) I {
@@ -433,7 +442,12 @@ type (
 	ImportedI interface {
 		F(_ secondpkg.I)
 	}
+
+	AnSer struct{}
 )
+
+func (_ *AnSer) S(_ *secondpkg.S) {
+}
 
 func NewImportedFields() *ImportedFields {
 	return &ImportedFields{
@@ -462,6 +476,38 @@ func CallImportedI(i secondpkg.I) {
 	i.F(0)
 }
 
+func NewSer() *AnSer {
+	return nil
+}
+
 func NewSimpleS() *simplepkg.S {
 	return nil
+}
+
+func UnboundS(_ *unboundpkg.S) {
+}
+
+func UnboundI(_ unboundpkg.I) {
+}
+
+type (
+	InterfaceDupper interface {
+		IDup(i Interface) Interface
+	}
+
+	ConcreteDupper interface {
+		CDup(c *Concrete) *Concrete
+	}
+)
+
+func CallIDupper(d InterfaceDupper) bool {
+	var want Interface = new(Concrete)
+	got := d.IDup(want)
+	return got == want
+}
+
+func CallCDupper(d ConcreteDupper) bool {
+	want := new(Concrete)
+	got := d.CDup(want)
+	return got == want
 }
