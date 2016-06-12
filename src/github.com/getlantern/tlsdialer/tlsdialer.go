@@ -17,8 +17,6 @@ import (
 
 var (
 	log = golog.LoggerFor("tlsdialer")
-
-	zeroTime = time.Time{}
 )
 
 type timeoutError struct{}
@@ -52,46 +50,26 @@ type ConnWithTimings struct {
 // connection's ConnectionState will never get populated. Use DialForTimings to
 // get back a data structure that includes the verified chains.
 func Dial(network, addr string, sendServerName bool, config *tls.Config) (*tls.Conn, error) {
-	return DialTimeout(netx.DialTimeout, 1*time.Minute, zeroTime, network, addr, sendServerName, config)
+	return DialTimeout(netx.DialTimeout, 1*time.Minute, network, addr, sendServerName, config)
 }
 
-// Like crypto/tls.DialWithDialer, but with the ability to control whether or
-// not to send the ServerName extension in client handshakes through the
-// sendServerName flag.
-//
-// Note - if sendServerName is false, the VerifiedChains field on the
-// connection's ConnectionState will never get populated. Use DialForTimings to
-// get back a data structure that includes the verified chains.
-func DialWithDialer(dialer *net.Dialer, network, addr string, sendServerName bool, config *tls.Config) (*tls.Conn, error) {
-	result, err := DialForTimings(netx.DialTimeout, dialer.Timeout, dialer.Deadline, network, addr, sendServerName, config)
-	return result.Conn, err
-}
-
-// Like Dial, but timing out after the given timeout and before the given
-// deadline (if non-zero).
-func DialTimeout(dial func(net string, addr string, timeout time.Duration) (net.Conn, error), timeout time.Duration, deadline time.Time, network, addr string, sendServerName bool, config *tls.Config) (*tls.Conn, error) {
-	result, err := DialForTimings(dial, timeout, deadline, network, addr, sendServerName, config)
+// Like Dial, but timing out after the given timeout.
+func DialTimeout(dial func(net string, addr string, timeout time.Duration) (net.Conn, error), timeout time.Duration, network, addr string, sendServerName bool, config *tls.Config) (*tls.Conn, error) {
+	result, err := DialForTimings(dial, timeout, network, addr, sendServerName, config)
 	return result.Conn, err
 }
 
 // Like DialWithDialer but returns a data structure including timings and the
 // verified chains.
-func DialForTimings(dial func(net string, addr string, timeout time.Duration) (net.Conn, error), timeout time.Duration, deadline time.Time, network, addr string, sendServerName bool, config *tls.Config) (*ConnWithTimings, error) {
+func DialForTimings(dial func(net string, addr string, timeout time.Duration) (net.Conn, error), timeout time.Duration, network, addr string, sendServerName bool, config *tls.Config) (*ConnWithTimings, error) {
 	result := &ConnWithTimings{}
-
-	// We want the Timeout and Deadline values to cover the whole process: TCP
-	// connection and TLS handshake. This means that we also need to start our own
-	// timers now.
-	if !deadline.IsZero() {
-		deadlineTimeout := deadline.Sub(time.Now())
-		if timeout == 0 || deadlineTimeout < timeout {
-			timeout = deadlineTimeout
-		}
-	}
 
 	var errCh chan error
 
 	if timeout != 0 {
+		// We want the Timeout and Deadline values to cover the whole process: TCP
+		// connection and TLS handshake. This means that we also need to start our own
+		// timers now.
 		errCh = make(chan error, 10)
 		time.AfterFunc(timeout, func() {
 			errCh <- timeoutError{}
