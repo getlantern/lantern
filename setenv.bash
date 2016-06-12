@@ -18,8 +18,7 @@ fi
 export PATH=$GOPATH/bin:$PATH
 
 export LANTERN_GOROOT=$GOPATH/src/github.com/golang/go
-
-if [ $LANTERN_GOROOT ]; then
+if [ -d $LANTERN_GOROOT ]; then
 	export GOROOT=$LANTERN_GOROOT
 	export PATH=$GOROOT/bin:$PATH
 fi
