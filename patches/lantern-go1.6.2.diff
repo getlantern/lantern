@@ -1,0 +1,169 @@
+diff -Naur go/api/go1.6.txt lantern-go/api/go1.6.txt
+--- go/api/go1.6.txt	2016-04-19 23:50:06.000000000 +0000
++++ lantern-go/api/go1.6.txt	2016-06-12 12:26:17.303276464 +0000
+@@ -248,8 +248,11 @@
+ pkg net/http, const StatusTooManyRequests ideal-int
+ pkg net/http, const StatusUnavailableForLegalReasons = 451
+ pkg net/http, const StatusUnavailableForLegalReasons ideal-int
++pkg net/http, type Server struct, AcceptAnyHostHeader bool
+ pkg net/http, type Transport struct, ExpectContinueTimeout time.Duration
+ pkg net/http, type Transport struct, TLSNextProto map[string]func(string, *tls.Conn) RoundTripper
++pkg net/http, type Transport struct, MaxIdleTime time.Duration
++pkg net/http, method (*Transport) EnforceMaxIdleTime()
+ pkg net/http, var ErrSkipAltProtocol error
+ pkg net/http/httptest, method (*ResponseRecorder) WriteString(string) (int, error)
+ pkg net/http/httputil, type BufferPool interface { Get, Put }
+diff -Naur go/src/net/http/server.go lantern-go/src/net/http/server.go
+--- go/src/net/http/server.go	2016-04-19 23:50:08.000000000 +0000
++++ lantern-go/src/net/http/server.go	2016-06-12 12:26:17.679083561 +0000
+@@ -713,23 +713,25 @@
+ 	c.lastMethod = req.Method
+ 	c.r.setInfiniteReadLimit()
+ 
+-	hosts, haveHost := req.Header["Host"]
+-	if req.ProtoAtLeast(1, 1) && (!haveHost || len(hosts) == 0) {
+-		return nil, badRequestError("missing required Host header")
+-	}
+-	if len(hosts) > 1 {
+-		return nil, badRequestError("too many Host headers")
+-	}
+-	if len(hosts) == 1 && !validHostHeader(hosts[0]) {
+-		return nil, badRequestError("malformed Host header")
+-	}
+-	for k, vv := range req.Header {
+-		if !validHeaderName(k) {
+-			return nil, badRequestError("invalid header name")
+-		}
+-		for _, v := range vv {
+-			if !validHeaderValue(v) {
+-				return nil, badRequestError("invalid header value")
++	if !c.server.AcceptAnyHostHeader {
++		hosts, haveHost := req.Header["Host"]
++		if req.ProtoAtLeast(1, 1) && (!haveHost || len(hosts) == 0) {
++			return nil, badRequestError("missing required Host header")
++		}
++		if len(hosts) > 1 {
++			return nil, badRequestError("too many Host headers")
++		}
++		if len(hosts) == 1 && !validHostHeader(hosts[0]) {
++			return nil, badRequestError("malformed Host header")
++		}
++		for k, vv := range req.Header {
++			if !validHeaderName(k) {
++				return nil, badRequestError("invalid header name")
++			}
++			for _, v := range vv {
++				if !validHeaderValue(v) {
++					return nil, badRequestError("invalid header value")
++				}
+ 			}
+ 		}
+ 	}
+@@ -2007,6 +2009,10 @@
+ 	// standard logger.
+ 	ErrorLog *log.Logger
+ 
++	// AcceptAnyHostHeader, if set to true, forces the server to skip validation
++	// of host headers.
++	AcceptAnyHostHeader bool
++
+ 	disableKeepAlives int32     // accessed atomically.
+ 	nextProtoOnce     sync.Once // guards initialization of TLSNextProto in Serve
+ 	nextProtoErr      error
+diff -Naur go/src/net/http/transport.go lantern-go/src/net/http/transport.go
+--- go/src/net/http/transport.go	2016-04-19 23:50:08.000000000 +0000
++++ lantern-go/src/net/http/transport.go	2016-06-12 12:26:17.679083561 +0000
+@@ -122,6 +122,12 @@
+ 	// DefaultMaxIdleConnsPerHost is used.
+ 	MaxIdleConnsPerHost int
+ 
++	// MaxIdleTime, if non-zero, controls how long to hold on to keep-alive
++	// connections. Once a connection hits its MaxIdleTime, it will be closed.
++	// You need to call EnforceMaxIdleTime() at least once for this to be
++	// enforced on an ongoing basis.
++	MaxIdleTime time.Duration
++
+ 	// ResponseHeaderTimeout, if non-zero, specifies the amount of
+ 	// time to wait for a server's response headers after fully
+ 	// writing the request (including its body, if any). This
+@@ -151,6 +157,8 @@
+ 	nextProtoOnce sync.Once
+ 	h2transport   *http2Transport // non-nil if http2 wired up
+ 
++	maintainIdleOnce sync.Once
++
+ 	// TODO: tunable on global max cached connections
+ 	// TODO: tunable on timeout on cached connections
+ 	// TODO: tunable on max per-host TCP dials in flight (Issue 13957)
+@@ -415,6 +423,46 @@
+ 	}
+ }
+ 
++// EnforceMaxIdleTime checks for idle connections that have exceeded the
++// MaxIdleTime and closes them.
++func (t *Transport) EnforceMaxIdleTime() {
++	if t.MaxIdleTime == 0 {
++		// Nothing to maintain
++		return
++	}
++	t.maintainIdleOnce.Do(func() {
++		go func() {
++			for {
++				time.Sleep(t.MaxIdleTime / 10)
++				now := time.Now()
++				toClose := make([]*persistConn, 0)
++				t.idleMu.Lock()
++				for key, conns := range t.idleConn {
++					retainedConns := make([]*persistConn, 0, len(conns))
++					for _, pconn := range conns {
++						if now.Sub(pconn.lastIdled) > t.MaxIdleTime {
++							toClose = append(toClose, pconn)
++						} else {
++							retainedConns = append(retainedConns, pconn)
++						}
++					}
++					if len(retainedConns) == 0 {
++						delete(t.idleConn, key)
++					} else {
++						t.idleConn[key] = retainedConns
++					}
++				}
++				t.idleMu.Unlock()
++
++				// Close connections outside of mutex to minimize locking time
++				for _, pconn := range toClose {
++					pconn.close(errCloseIdleConns)
++				}
++			}
++		}()
++	})
++}
++
+ // CancelRequest cancels an in-flight request by closing its connection.
+ // CancelRequest should only be called after RoundTrip has returned.
+ //
+@@ -568,6 +616,7 @@
+ 			log.Fatalf("dup idle pconn %p in freelist", pconn)
+ 		}
+ 	}
++	pconn.lastIdled = time.Now()
+ 	t.idleConn[key] = append(t.idleConn[key], pconn)
+ 	t.idleMu.Unlock()
+ 	return nil
+@@ -1013,6 +1062,9 @@
+ 	// headers on each outbound request before it's written. (the
+ 	// original Request given to RoundTrip is not modified)
+ 	mutateHeaderFunc func(Header)
++
++	// when this connection was last idled
++	lastIdled time.Time
+ }
+ 
+ // isBroken reports whether this connection is in a known broken state.
+diff -Naur go/VERSION lantern-go/VERSION
+--- go/VERSION	2016-04-19 23:50:39.000000000 +0000
++++ lantern-go/VERSION	2016-06-12 13:30:10.047912042 +0000
+@@ -1 +1 @@
+-go1.6.2
+\ No newline at end of file
++go1.6.2_lantern_da425004
