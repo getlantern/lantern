@@ -277,6 +277,7 @@ func (c *Client) Purchase(user User, purchase Purchase) (res *Response, err erro
 			"idempotencyKey": {purchase.IdempotencyKey},
 			"stripeToken":    {purchase.StripeToken},
 			"plan":           {purchase.Plan},
+			"currency":       {purchase.Currency},
 		},
 	)
 	if err != nil {

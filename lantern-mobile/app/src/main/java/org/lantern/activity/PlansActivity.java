@@ -79,9 +79,6 @@ public class PlansActivity extends FragmentActivity {
             i++;
         }
 
-        oneYearBtn.setTag(SessionManager.ONE_YEAR_PLAN);
-        twoYearBtn.setTag(SessionManager.TWO_YEAR_PLAN);
-
         plansView.bringToFront();
 
         Lantern.ProRequest(session.shouldProxy(), "plans", session);
@@ -95,7 +92,7 @@ public class PlansActivity extends FragmentActivity {
 
     @Subscribe
     public void onEvent(ProPlanEvent plan) {
-        Log.d(TAG, "Received a new pro plan: " + plan.getPlan());
+        Log.d(TAG, "Received a new pro plan: " + plan.getPlanId());
         Currency currency = Currency.getInstance(Locale.getDefault());
         String symbol = currency.getSymbol();
         long price = plan.getPrice()/100;
@@ -103,15 +100,21 @@ public class PlansActivity extends FragmentActivity {
                 symbol, price, currency.getCurrencyCode());
         if (plan.numYears() == 1) {
             oneYearCost.setText(costStr);
+            oneYearBtn.setTag(plan.getPlanId());
             session.setOneYearCost(price);
         } else {
             twoYearCost.setText(costStr);
+            twoYearBtn.setTag(plan.getPlanId());
             session.setTwoYearCost(price);
         }
+        session.setPlanPrice(plan.getPlanId(), price);
     }
 
     public void selectPlan(View view) {
-        String plan = (String)view.getTag();
+        String plan = "s1y-cny";
+        if (view.getTag() != null) {
+            plan = (String)view.getTag();
+        }
 
 		Log.d(TAG, "Plan selected: " + plan);
 

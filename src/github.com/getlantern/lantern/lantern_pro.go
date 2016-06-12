@@ -75,6 +75,7 @@ func purchase(r *proRequest) (*client.Response, error) {
 		StripeToken:    r.session.StripeToken(),
 		StripeEmail:    r.session.StripeEmail(),
 		Plan:           r.session.Plan(),
+		Currency:       r.session.Currency(),
 	}
 
 	return r.proClient.Purchase(r.user, purchase)

@@ -24,7 +24,7 @@ public class ProPlanEvent {
         return price;
     }
 
-    public String getPlan() {
+    public String getPlanId() {
         return plan;
     }
 }
