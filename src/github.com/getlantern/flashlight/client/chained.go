@@ -11,6 +11,7 @@ import (
 	"github.com/getlantern/chained"
 	"github.com/getlantern/flashlight/ops"
 	"github.com/getlantern/idletiming"
+	"github.com/getlantern/netx"
 	"github.com/getlantern/withtimeout"
 )
 
@@ -116,7 +117,6 @@ func (s *chainedServer) dialer(deviceID string) (*balancer.Dialer, error) {
 		Label:   label,
 		Trusted: s.Trusted,
 		DialFN: func(network, addr string) (net.Conn, error) {
-
 			var conn net.Conn
 			var err error
 
@@ -129,7 +129,7 @@ func (s *chainedServer) dialer(deviceID string) (*balancer.Dialer, error) {
 				// Whenever full-device VPN mode is enabled, we need to make sure we ignore proxy
 				// requests from the first instance.
 				log.Debugf("Attempted to dial ourselves. Dialing directly to %s instead", addr)
-				conn, err = dialDirect(network, addr, 1*time.Minute)
+				conn, err = netx.DialTimeout(network, addr, 1*time.Minute)
 			} else {
 				// Yeah any site visited through Lantern can be a check target
 				s.addCheckTarget(addr)
@@ -139,7 +139,6 @@ func (s *chainedServer) dialer(deviceID string) (*balancer.Dialer, error) {
 			if err != nil {
 				return nil, op.FailIf(err)
 			}
-
 			conn = idletiming.Conn(conn, idleTimeout, func() {
 				log.Debugf("Proxy connection to %s via %s idle for %v, closed", addr, conn.RemoteAddr(), idleTimeout)
 			})

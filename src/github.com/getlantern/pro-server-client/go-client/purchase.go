@@ -5,4 +5,5 @@ type Purchase struct {
 	IdempotencyKey string `json:"idempotencyKey"`
 	StripeEmail    string `json:"stripeEmail"`
 	Plan           string `json:"plan"`
+	Currency       string `json:"currency"`
 }

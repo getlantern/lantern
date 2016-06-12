@@ -105,10 +105,6 @@ func Init(userConfig UserConfig, version string, configDir string, stickyConfig 
 	m = &yamlconf.Manager{
 		FilePath: configPath,
 
-		ValidateConfig: validateConfig,
-
-		DefaultConfig: MakeInitialConfig,
-
 		EmptyConfig: func() yamlconf.Config {
 			return &Config{configDir: configDir}
 		},
@@ -116,11 +112,18 @@ func Init(userConfig UserConfig, version string, configDir string, stickyConfig 
 			cfg := ycfg.(*Config)
 			return cfg.applyFlags(flags)
 		},
-		CustomPoll: func(ycfg yamlconf.Config) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
-			return fetcher.pollForConfig(ycfg, stickyConfig)
-		},
 		// Obfuscate on-disk contents of YAML file
 		Obfuscate: flags["readableconfig"] == nil || !flags["readableconfig"].(bool),
+	}
+
+	if stickyConfig {
+		log.Debug("stickyconfig set, using config from disk as-is")
+	} else {
+		m.ValidateConfig = validateConfig
+		m.DefaultConfig = MakeInitialConfig
+		m.CustomPoll = func(ycfg yamlconf.Config) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
+			return fetcher.pollForConfig(ycfg)
+		}
 	}
 	initial, err := m.Init()
 

@@ -23,17 +23,34 @@ func (p *testprotector) Protect(fileDescriptor int) error {
 	return nil
 }
 
-func TestConnect(t *testing.T) {
+func TestConnectIP(t *testing.T) {
 	p := &testprotector{}
-	Configure(p.Protect, "8.8.8.8")
+	pt := New(p.Protect, "8.8.8.8")
 	client := &http.Client{
 		Transport: &http.Transport{
 			Dial: func(netw, addr string) (net.Conn, error) {
-				resolved, err := Resolve(addr)
+				resolved, err := pt.Resolve("tcp", addr)
 				if err != nil {
 					return nil, err
 				}
-				return Dial(netw, resolved.String(), 10*time.Second)
+				return pt.Dial(netw, resolved.String(), 10*time.Second)
+			},
+			ResponseHeaderTimeout: time.Second * 2,
+		},
+	}
+	err := sendTestRequest(client, testAddr)
+	if assert.NoError(t, err, "Request should have succeeded") {
+		assert.NotEqual(t, 0, p.lastProtected, "Should have gotten file descriptor from protecting")
+	}
+}
+
+func TestConnectHost(t *testing.T) {
+	p := &testprotector{}
+	pt := New(p.Protect, "8.8.8.8")
+	client := &http.Client{
+		Transport: &http.Transport{
+			Dial: func(netw, addr string) (net.Conn, error) {
+				return pt.Dial(netw, addr, 10*time.Second)
 			},
 			ResponseHeaderTimeout: time.Second * 2,
 		},

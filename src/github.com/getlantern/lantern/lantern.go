@@ -20,8 +20,8 @@ import (
 	"github.com/getlantern/flashlight/feed"
 	"github.com/getlantern/flashlight/logging"
 	"github.com/getlantern/golog"
+	"github.com/getlantern/netx"
 	"github.com/getlantern/protected"
-	"github.com/getlantern/tlsdialer"
 )
 
 var (
@@ -47,16 +47,15 @@ type SocketProtector interface {
 // because it keeps Lantern's own connections from being captured by the VPN and
 // resulting in an infinite loop.
 func ProtectConnections(dnsServer string, protector SocketProtector) {
-	protected.Configure(protector.Protect, dnsServer)
-	tlsdialer.OverrideResolve(protected.Resolve)
-	tlsdialer.OverrideDial(protected.Dial)
+	p := protected.New(protector.Protect, dnsServer)
+	netx.OverrideDial(p.Dial)
+	netx.OverrideResolve(p.Resolve)
 }
 
 // RemoveOverrides removes the protected tlsdialer overrides
 // that allowed connections to bypass the VPN.
 func RemoveOverrides() {
-	tlsdialer.OverrideResolve(nil)
-	tlsdialer.OverrideDial(nil)
+	netx.Reset()
 }
 
 // StartResult provides information about the started Lantern

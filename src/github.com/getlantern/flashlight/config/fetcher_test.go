@@ -28,7 +28,7 @@ func TestFetcher(t *testing.T) {
 
 	cfg := &Config{}
 	cfg.ApplyDefaults()
-	mutate, waitTime, err := configFetcher.pollForConfig(cfg, false)
+	mutate, waitTime, err := configFetcher.pollForConfig(cfg)
 	assert.NoError(t, err)
 	assert.NotNil(t, mutate)
 	assert.NotNil(t, waitTime)
