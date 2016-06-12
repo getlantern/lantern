@@ -23,6 +23,8 @@ type fnargs struct {
 	a5 uintptr
 	a6 uintptr
 	a7 uintptr
+	a8 uintptr
+	a9 uintptr
 }
 
 type glfn int
@@ -41,6 +43,7 @@ const (
 	glfnBlendEquationSeparate
 	glfnBlendFunc
 	glfnBlendFuncSeparate
+	glfnBlitFramebuffer
 	glfnBufferData
 	glfnBufferSubData
 	glfnCheckFramebufferStatus

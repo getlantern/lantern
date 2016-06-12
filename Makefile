@@ -2,6 +2,8 @@ SHELL := /bin/bash
 
 OSX_MIN_VERSION := 10.9
 
+SOURCES := $(shell find src -name '*[^_test].go')
+
 get-command = $(shell which="$$(which $(1) 2> /dev/null)" && if [[ ! -z "$$which" ]]; then printf %q "$$which"; fi)
 
 DOCKER 		:= $(call get-command,docker)
@@ -103,6 +105,18 @@ LANTERN_YAML_PATH := installer-resources/lantern.yaml
 
 .PHONY: packages clean tun2socks android-lib android-sdk android-testbed android-debug android-release android-install docker-run
 
+define require-node
+	if [[ -z "$(NODE)" ]]; then echo 'Missing "node" command.'; exit 1; fi
+endef
+
+define require-gulp
+	$(call require-node) && if [[ -z "$(GULP)" ]]; then echo 'Missing "gulp" command. Try "npm install -g gulp-cli"'; exit 1; fi
+endef
+
+define require-npm
+	$(call require-node) && if [[ -z "$(NPM)" ]]; then echo 'Missing "npm" command.'; exit 1; fi
+endef
+
 define build-tags
 	BUILD_TAGS="" && \
 	EXTRA_LDFLAGS="" && \
@@ -193,8 +207,10 @@ docker-%: system-checks
 all: binaries
 android-dist: genconfig android
 
-$(RESOURCES_DOT_GO): 
-	@source setenv.bash && \
+$(RESOURCES_DOT_GO):
+	@$(call require-npm) && \
+	$(call require-gulp) && \
+	source setenv.bash && \
 	LANTERN_UI="lantern-ui" && \
 	DIST="$$LANTERN_UI/dist" && \
 	echo 'var LANTERN_BUILD_REVISION = "$(GIT_REVISION_SHORTCODE)";' > $$DIST/js/revision.js && \
@@ -214,23 +230,23 @@ generate-windows-icon:
 
 assets: clean-assets $(RESOURCES_DOT_GO)
 
-linux-386: assets
+linux-386: $(RESOURCES_DOT_GO) $(SOURCES)
 	@source setenv.bash && \
 	$(call build-tags) && \
 	CGO_ENABLED=1 GOOS=linux GOARCH=386 go build -a -o lantern_linux_386 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight/main
 
-linux-amd64: assets
+linux-amd64: $(RESOURCES_DOT_GO) $(SOURCES)
 	@source setenv.bash && \
 	$(call build-tags) && \
 	CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -a -o lantern_linux_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight/main
 
-linux-arm: assets
+linux-arm: $(RESOURCES_DOT_GO) $(SOURCES)
 	@source setenv.bash && \
 	HEADLESS=1 && \
 	$(call build-tags) && \
 	CGO_ENABLED=1 CC=arm-linux-gnueabi-gcc CXX=arm-linux-gnueabi-g++ CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7 go build -a -o lantern_linux_arm -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight/main
 
-windows: assets
+windows: $(RESOURCES_DOT_GO) $(SOURCES)
 	@source setenv.bash && \
 	$(call build-tags) && \
 	CGO_ENABLED=1 GOOS=windows GOARCH=386 go build -a -o lantern_windows_386.exe -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -H=windowsgui" github.com/getlantern/flashlight/main;
@@ -315,7 +331,7 @@ require-ruby:
 	(gem which octokit >/dev/null) || (echo 'Missing gem "octokit". Try sudo gem install octokit.' && exit 1) && \
 	(gem which mime-types >/dev/null) || (echo 'Missing gem "mime-types". Try sudo gem install mime-types.' && exit 1)
 
-darwin: assets
+darwin: $(RESOURCES_DOT_GO) $(SOURCES)
 	@echo "Building darwin/amd64..." && \
 	export OSX_DEV_SDK=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX$(OSX_MIN_VERSION).sdk && \
 	if [[ "$$(uname -s)" == "Darwin" ]]; then \
@@ -339,7 +355,7 @@ ifeq ($(OS),Windows_NT)
 		BUILD_RACE = '-x'
 endif
 
-lantern: $(RESOURCES_DOT_GO)
+lantern: $(RESOURCES_DOT_GO) $(SOURCES)
 	@echo "Building development lantern" && \
 	$(call build-tags) && \
 	source setenv.bash && \
@@ -485,6 +501,10 @@ create-tag: require-version
 
 # This target requires a file called testpackages.txt that lists all packages to
 # test, one package per line, with no trailing newline on the last package.
+# The -coverprofile flag is required to produce a profile for goveralls coverage
+# reporting, and it only allows one package at a time, so we have to test each
+# package individually. This dramatically slows down the tests, but is needed
+# for coverage reporting. When simply testing locally, use make test instead.
 test-and-cover: $(RESOURCES_DOT_GO)
 	@echo "mode: count" > profile.cov && \
 	source setenv.bash && \
@@ -503,9 +523,8 @@ test: $(RESOURCES_DOT_GO)
 	if [ -f envvars.bash ]; then \
 		source envvars.bash; \
 	fi && \
-	for pkg in $$(cat testpackages.txt); do \
-		go test -race -v -tags="headless" $$pkg || exit 1; \
-	done
+	TP=$$(cat testpackages.txt) && \
+	go test -race -v -tags="headless" $$TP || exit 1; \
 
 genconfig:
 	@echo "Running genconfig..." && \

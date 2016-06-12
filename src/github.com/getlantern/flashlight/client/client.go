@@ -15,6 +15,7 @@ import (
 	"github.com/getlantern/detour"
 	"github.com/getlantern/eventual"
 	"github.com/getlantern/golog"
+	"github.com/getlantern/netx"
 
 	"github.com/getlantern/flashlight/ops"
 )
@@ -240,8 +241,8 @@ func (client *Client) dialCONNECT(addr string, port int) (net.Conn, error) {
 		})
 		return d("tcp", addr)
 	}
-	log.Debugf("Port not allowed, bypassing proxy and sending CONNECT request directly to %v", addr)
-	return dialDirect("tcp", addr, 1*time.Minute)
+	log.Tracef("Port not allowed, bypassing proxy and sending CONNECT request directly to %v", addr)
+	return netx.DialTimeout("tcp", addr, 1*time.Minute)
 }
 
 func (client *Client) shouldSendToProxy(addr string, port int) bool {

@@ -9,6 +9,7 @@ import (
 
 	"github.com/Yawning/obfs4/transports/obfs4"
 	"github.com/getlantern/keyman"
+	"github.com/getlantern/netx"
 	"github.com/getlantern/tlsdialer"
 
 	"github.com/getlantern/flashlight/ops"
@@ -23,7 +24,6 @@ var pluggableTransports = map[string]dialFactory{
 }
 
 func defaultDialFactory(s *ChainedServerInfo, deviceID string) (dialFN, error) {
-	netd := &net.Dialer{Timeout: chainedDialTimeout}
 	forceProxy := ForceChainedProxyAddr != ""
 	addr := s.Addr
 	if forceProxy {
@@ -38,7 +38,7 @@ func defaultDialFactory(s *ChainedServerInfo, deviceID string) (dialFN, error) {
 		dial = func() (net.Conn, error) {
 			op := ops.Begin("dial_to_chained").ChainedProxy(s.Addr, "http")
 			defer op.End()
-			conn, err := netd.Dial("tcp", addr)
+			conn, err := netx.DialTimeout("tcp", addr, chainedDialTimeout)
 			return conn, op.FailIf(err)
 		}
 	} else {
@@ -53,7 +53,7 @@ func defaultDialFactory(s *ChainedServerInfo, deviceID string) (dialFN, error) {
 			op := ops.Begin("dial_to_chained").ChainedProxy(s.Addr, "https")
 			defer op.End()
 
-			conn, err := tlsdialer.DialWithDialer(netd, "tcp", addr, false, &tls.Config{
+			conn, err := tlsdialer.Dial("tcp", addr, false, &tls.Config{
 				ClientSessionCache: sessionCache,
 				InsecureSkipVerify: true,
 			})
@@ -96,7 +96,7 @@ func obfs4DialFactory(s *ChainedServerInfo, deviceID string) (dialFN, error) {
 	return func() (net.Conn, error) {
 		op := ops.Begin("dial_to_chained").ChainedProxy(s.Addr, "obfs4")
 		defer op.End()
-		conn, err := cf.Dial("tcp", s.Addr, net.Dial, args)
+		conn, err := cf.Dial("tcp", s.Addr, netx.Dial, args)
 		return conn, op.FailIf(err)
 	}, nil
 }

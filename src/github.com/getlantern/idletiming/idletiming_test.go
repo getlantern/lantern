@@ -104,9 +104,7 @@ func TestWrite(t *testing.T) {
 
 	time.Sleep(slightlyMoreThanClientTimeout)
 	_, err = c.Write(make([]byte, 10))
-	assert.Equal(t, io.EOF, err, "1st write after idle should return io.EOF")
-	_, err = c.Write(make([]byte, 10))
-	assert.Equal(t, ErrIdled, err, "2nd write after idle should return ErrIdled")
+	assert.Equal(t, ErrIdled, err, "Write after idle should return ErrIdled")
 
 	connTimesOutIn := c.TimesOutIn()
 	if connTimesOutIn > 0 {
