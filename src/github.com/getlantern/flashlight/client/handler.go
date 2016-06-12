@@ -125,11 +125,11 @@ func pipeData(clientConn net.Conn, connOut net.Conn, op *ops.Op, closeFunc func(
 	// Then start copying from proxy to client.
 	_, readErr := io.Copy(clientConn, connOut)
 	writeErr := <-writeErrCh
-	if readErr != nil {
-		op.FailIf(log.Errorf("Error piping data from proxy to client: %v", readErr))
+	// Note - we ignore idled errors because these are okay per the HTTP spec.
+	// See https://www.w3.org/Protocols/rfc2616/rfc2616-sec8.html#sec8.1.4
+	if readErr != nil && readErr != io.EOF {
+		log.Debugf("Error piping data from proxy to client: %v", readErr)
 	} else if writeErr != nil && writeErr != idletiming.ErrIdled {
-		// Note - we ignore idled errors because these are okay per the HTTP spec.
-		// See https://www.w3.org/Protocols/rfc2616/rfc2616-sec8.html#sec8.1.4
 		log.Debugf("Error piping data from client to proxy: %v", writeErr)
 	}
 
