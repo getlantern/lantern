@@ -55,7 +55,7 @@ func New(protect Protect, dnsServer string) *Protector {
 // Resolve resolves the given address using a DNS lookup on a UDP socket
 // protected by the given Protect function.
 func (p *Protector) Resolve(network string, addr string) (*net.TCPAddr, error) {
-	op := ops.Begin("protected-resolve").Set("origin", addr)
+	op := ops.Begin("protected-resolve").Set("addr", addr)
 	defer op.End()
 	conn, err := p.resolve(op, network, addr)
 	return conn, op.FailIf(err)
@@ -135,7 +135,7 @@ func (p *Protector) resolve(op ops.Op, network string, addr string) (*net.TCPAdd
 //   specified system device (this is primarily
 //   used for Android VpnService routing functionality)
 func (p *Protector) Dial(network, addr string, timeout time.Duration) (net.Conn, error) {
-	op := ops.Begin("protected-dial").Set("origin", addr).Set("timeout", timeout.Seconds())
+	op := ops.Begin("protected-dial").Set("addr", addr).Set("timeout", timeout.Seconds())
 	defer op.End()
 	conn, err := p.dial(op, network, addr, timeout)
 	return conn, op.FailIf(err)
