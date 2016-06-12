@@ -75,15 +75,14 @@ type IdleTimingConn struct {
 	writeDeadline    int64
 	lastActivityTime int64
 
-	conn                net.Conn
-	idleTimeout         time.Duration
-	halfIdleTimeout     time.Duration
-	activeCh            chan bool
-	closedCh            chan bool
-	closeMutex          sync.RWMutex // prevents Close() from interfering with io operations
-	closed              bool
-	hasReadAfterIdle    int32
-	hasWrittenAfterIdle int32
+	conn             net.Conn
+	idleTimeout      time.Duration
+	halfIdleTimeout  time.Duration
+	activeCh         chan bool
+	closedCh         chan bool
+	closeMutex       sync.RWMutex // prevents Close() from interfering with io operations
+	closed           bool
+	hasReadAfterIdle int32
 }
 
 // TimesOutIn returns how much time is left before this connection will time
@@ -103,7 +102,7 @@ func (c *IdleTimingConn) Read(b []byte) (int, error) {
 	c.closeMutex.RLock()
 	defer c.closeMutex.RUnlock()
 
-	if err := c.checkClosed(&c.hasReadAfterIdle); err != nil {
+	if err := c.checkClosedFirstTime(&c.hasReadAfterIdle, io.EOF); err != nil {
 		return 0, err
 	}
 
@@ -151,7 +150,7 @@ func (c *IdleTimingConn) Write(b []byte) (int, error) {
 	c.closeMutex.RLock()
 	defer c.closeMutex.RUnlock()
 
-	if err := c.checkClosed(&c.hasWrittenAfterIdle); err != nil {
+	if err := c.checkClosed(); err != nil {
 		return 0, err
 	}
 
@@ -200,7 +199,7 @@ func (c *IdleTimingConn) Close() error {
 	c.closeMutex.Lock()
 	defer c.closeMutex.Unlock()
 
-	if err := c.checkClosed(nil); err != nil {
+	if err := c.checkClosed(); err != nil {
 		return err
 	}
 
@@ -233,7 +232,7 @@ func (c *IdleTimingConn) SetDeadline(t time.Time) error {
 	c.closeMutex.RLock()
 	defer c.closeMutex.RUnlock()
 
-	if err := c.checkClosed(nil); err != nil {
+	if err := c.checkClosed(); err != nil {
 		return err
 	}
 
@@ -250,7 +249,7 @@ func (c *IdleTimingConn) SetReadDeadline(t time.Time) error {
 	c.closeMutex.RLock()
 	defer c.closeMutex.RUnlock()
 
-	if err := c.checkClosed(nil); err != nil {
+	if err := c.checkClosed(); err != nil {
 		return err
 	}
 
@@ -262,7 +261,7 @@ func (c *IdleTimingConn) SetWriteDeadline(t time.Time) error {
 	c.closeMutex.RLock()
 	defer c.closeMutex.RUnlock()
 
-	if err := c.checkClosed(nil); err != nil {
+	if err := c.checkClosed(); err != nil {
 		return err
 	}
 
@@ -283,10 +282,14 @@ func (c *IdleTimingConn) markActive(n int) bool {
 	return false
 }
 
-func (c *IdleTimingConn) checkClosed(hasDone *int32) error {
+func (c *IdleTimingConn) checkClosed() error {
+	return c.checkClosedFirstTime(nil, nil)
+}
+
+func (c *IdleTimingConn) checkClosedFirstTime(hasDone *int32, firstTimeError error) error {
 	if c.closed {
 		if hasDone != nil && atomic.CompareAndSwapInt32(hasDone, 0, 1) {
-			return io.EOF
+			return firstTimeError
 		}
 		return ErrIdled
 	}

@@ -103,6 +103,13 @@ func main() {
 		if fn.Recv == nil || fn.Recv.List[0].Names[0].Name != "ctx" {
 			continue
 		}
+		tname := "<unknown>"
+		t := fn.Recv.List[0].Type
+		if star, ok := t.(*ast.StarExpr); ok {
+			tname = "*" + star.X.(*ast.Ident).Name
+		} else if t, ok := t.(*ast.Ident); ok {
+			tname = t.Name
+		}
 
 		var (
 			params      []string
@@ -112,7 +119,7 @@ func main() {
 		)
 
 		// Print function signature.
-		fmt.Fprintf(buf, "func (ctx *context) %s(", fn.Name.Name)
+		fmt.Fprintf(buf, "func (ctx %s) %s(", tname, fn.Name.Name)
 		for i, p := range fn.Type.Params.List {
 			if i > 0 {
 				fmt.Fprint(buf, ", ")

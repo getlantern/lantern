@@ -8,7 +8,7 @@ import android.widget.ProgressBar;
 import org.getlantern.lantern.activity.LanternMainActivity;
 import org.getlantern.lantern.R;
 
-import java.util.ArrayList; 
+import java.util.ArrayList;
 import java.util.Locale;
 
 import go.lantern.Lantern;
@@ -55,5 +55,4 @@ public class GetFeed extends AsyncTask<String, Void, ArrayList<String>> {
         progressBar.setVisibility(View.GONE);
         activity.setupFeed(sources);
     }
-}   
-
+}

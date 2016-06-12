@@ -3,7 +3,15 @@
 // license that can be found in the LICENSE file.
 
 /*
-Package gl implements Go bindings for OpenGL ES 2.
+Package gl implements Go bindings for OpenGL ES 2.0 and ES 3.0.
+
+The GL functions are defined on a Context object that is responsible for
+tracking a GL context. Typically a windowing system package (such as
+golang.org/x/exp/shiny/screen) will call NewContext and provide
+a gl.Context for a user application.
+
+If the gl package is compiled on a platform capable of supporting ES 3.0,
+the gl.Context object also implements gl.Context3.
 
 The bindings are deliberately minimal, staying as close the C API as
 possible. The semantics of each function maps onto functions

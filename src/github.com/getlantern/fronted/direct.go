@@ -16,6 +16,7 @@ import (
 	"github.com/getlantern/eventual"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/idletiming"
+	"github.com/getlantern/netx"
 	"github.com/getlantern/tlsdialer"
 )
 
@@ -248,10 +249,9 @@ func (d *direct) dialServerWith(masquerade *Masquerade) (net.Conn, error) {
 	dialTimeout := 10 * time.Second
 	sendServerNameExtension := false
 
-	cwt, err := tlsdialer.DialForTimings(
-		&net.Dialer{
-			Timeout: dialTimeout,
-		},
+	conn, err := tlsdialer.DialTimeout(
+		netx.DialTimeout,
+		dialTimeout,
 		"tcp",
 		masquerade.IpAddress+":443",
 		sendServerNameExtension, // SNI or no
@@ -260,7 +260,7 @@ func (d *direct) dialServerWith(masquerade *Masquerade) (net.Conn, error) {
 	if err != nil && masquerade != nil {
 		err = fmt.Errorf("Unable to dial masquerade %s: %s", masquerade.Domain, err)
 	}
-	return cwt.Conn, err
+	return conn, err
 }
 
 // tlsConfig builds a tls.Config for dialing the upstream host. Constructed
