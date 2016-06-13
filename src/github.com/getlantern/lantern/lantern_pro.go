@@ -145,7 +145,6 @@ func ProRequest(shouldProxy bool, command string, session Session) bool {
 
 	res, err := commands[command](req)
 	if err != nil || res.Status != "ok" {
-		log.Debugf("STATUS IS %s", res.Status)
 		log.Errorf("Error making request to Pro server: %v", err)
 		return false
 	}
@@ -154,8 +153,6 @@ func ProRequest(shouldProxy bool, command string, session Session) bool {
 		for _, plan := range res.Plans {
 
 			currency := session.Currency()
-			log.Debugf("the user's currency is %s", currency)
-			log.Debugf("the corresponding price is %d", plan.Price[currency])
 			price, exists := plan.Price[currency]
 			if !exists {
 				price, _ = plan.Price[defaultCurrencyCode]
