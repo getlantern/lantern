@@ -12,7 +12,6 @@ import (
 	"code.google.com/p/go-uuid/uuid"
 
 	"github.com/getlantern/appdir"
-	"github.com/getlantern/i18n"
 	"github.com/getlantern/launcher"
 	"github.com/getlantern/yaml"
 
@@ -250,7 +249,7 @@ func (s *Settings) GetSystemProxy() bool {
 
 // SetLanguage sets the user language
 func (s *Settings) SetLanguage(language string) {
-	i18n.SetLocale(language)
+	refreshSystray(language)
 	s.Lock()
 	defer s.unlockAndSave()
 	s.Language = language
