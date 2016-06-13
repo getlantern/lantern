@@ -73,6 +73,7 @@ func (app *App) Run() error {
 		log.Debug("Running headless")
 		return app.run()
 	}
+	// configureSystemTray relies on i18n being initialized.
 	i18nInit()
 	if err := configureSystemTray(app); err != nil {
 		return err

@@ -12,7 +12,7 @@ import (
 	"github.com/getlantern/flashlight/ui"
 )
 
-var tray struct {
+var menu struct {
 	enable bool
 	show   *systray.MenuItem
 	quit   *systray.MenuItem
@@ -28,8 +28,8 @@ func QuitSystray() {
 }
 
 func configureSystemTray(a *App) error {
-	tray.enable = a.ShowUI
-	if !tray.enable {
+	menu.enable = a.ShowUI
+	if !menu.enable {
 		return nil
 	}
 	icon, err := icons.Asset("icons/16on.ico")
@@ -38,14 +38,14 @@ func configureSystemTray(a *App) error {
 	}
 	systray.SetIcon(icon)
 	systray.SetTooltip("Lantern")
-	tray.show = systray.AddMenuItem(i18n.T("TRAY_SHOW_LANTERN"), i18n.T("SHOW"))
-	tray.quit = systray.AddMenuItem(i18n.T("TRAY_QUIT"), i18n.T("QUIT"))
+	menu.show = systray.AddMenuItem(i18n.T("TRAY_SHOW_LANTERN"), i18n.T("SHOW"))
+	menu.quit = systray.AddMenuItem(i18n.T("TRAY_QUIT"), i18n.T("QUIT"))
 	go func() {
 		for {
 			select {
-			case <-tray.show.ClickedCh:
+			case <-menu.show.ClickedCh:
 				ui.Show()
-			case <-tray.quit.ClickedCh:
+			case <-menu.quit.ClickedCh:
 				a.Exit(nil)
 				return
 			}
@@ -56,14 +56,14 @@ func configureSystemTray(a *App) error {
 }
 
 func refreshSystray(language string) {
-	if !tray.enable {
+	if !menu.enable {
 		return
 	}
 	if err := i18n.SetLocale(language); err != nil {
 		log.Debugf("i18n.SetLocale failed: %q", err)
 	}
-	tray.show.SetTitle(i18n.T("TRAY_SHOW_LANTERN"))
-	tray.show.SetTooltip(i18n.T("SHOW"))
-	tray.quit.SetTitle(i18n.T("TRAY_QUIT"))
-	tray.quit.SetTooltip(i18n.T("QUIT"))
+	menu.show.SetTitle(i18n.T("TRAY_SHOW_LANTERN"))
+	menu.show.SetTooltip(i18n.T("SHOW"))
+	menu.quit.SetTitle(i18n.T("TRAY_QUIT"))
+	menu.quit.SetTooltip(i18n.T("QUIT"))
 }

@@ -12,3 +12,6 @@ func QuitSystray() {
 func configureSystemTray(a *App) error {
 	return nil
 }
+
+func refreshSystray(language string) {
+}
