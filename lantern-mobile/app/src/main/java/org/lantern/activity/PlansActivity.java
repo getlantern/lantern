@@ -91,22 +91,13 @@ public class PlansActivity extends FragmentActivity implements ProResponse {
 
     private void updatePrices(Locale locale) {
         List<ProPlan> plans = session.getPlans(locale);
-        if (plans == null) {
-            Locale en = new Locale("en", "US");
-            if (!locale.equals(en)) {
-                updatePrices(en);
-            }
-            return;
-        }
+        session.printDefault();
 
         for (ProPlan plan : plans) {
-            if (plan.numYears() == 1) {
-                oneYearCost.setText(plan.getCostStr());
-                oneYearBtn.setTag(plan.getPlanId());
-            } else {
-                twoYearCost.setText(plan.getCostStr());
-                twoYearBtn.setTag(plan.getPlanId());
-            }
+            Log.d(TAG, String.format("Plan id is %s price %d cost str %s",
+                    plan.getPlanId(), plan.getPrice(),
+                    plan.getCostStr()));
+            updatePrice(plan);
         }
     }
 
@@ -122,12 +113,24 @@ public class PlansActivity extends FragmentActivity implements ProResponse {
 
     @Override
     public void onError() {
+
+    }
+
+    private void updatePrice(ProPlan plan) {
+        if (plan.numYears() == 1) {
+            oneYearCost.setText(plan.getCostStr());
+            oneYearBtn.setTag(plan.getPlanId());
+        } else {
+            twoYearCost.setText(plan.getCostStr());
+            twoYearBtn.setTag(plan.getPlanId());
+        }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEventMainThread(ProPlan plan) {
         Log.d(TAG, "Received a new pro plan: " + plan.getPlanId());
         session.savePlan(getResources(), plan);
+        updatePrice(plan);
     }
 
     public void selectPlan(View view) {

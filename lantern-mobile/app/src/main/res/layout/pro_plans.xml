@@ -114,7 +114,7 @@
                 android:layout_width="fill_parent"
                 android:layout_height="130dp"
                 android:layout_weight="1"
-                android:background="@drawable/year_background"
+                android:background="@color/two_year_plan_bg"
                 android:paddingLeft="16dp"
                 android:paddingRight="8dp"
                 android:paddingBottom="8dp">
@@ -186,7 +186,7 @@
                 android:layout_width="fill_parent"
                 android:layout_height="110dp"
                 android:layout_weight="1"
-                android:background="@color/one_year_plan_bg"
+                android:background="@drawable/year_background"
                 android:paddingRight="8dp"
                 android:paddingBottom="8dp"
                 android:paddingLeft="8dp">

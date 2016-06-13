@@ -12,6 +12,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import org.androidannotations.annotations.AfterViews;
+import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.ViewById;
 
@@ -33,7 +34,7 @@ public class InviteActivity extends FragmentActivity {
     private SessionManager session;
     private String code;
 
-    @ViewById(R.id.referral_code)
+    @ViewById
     TextView referralCode;
 
     @ViewById(R.id.referral_code_view)
@@ -63,6 +64,21 @@ public class InviteActivity extends FragmentActivity {
 
     private void finishProgress() {
         progressFragment.dismiss();
+    }
+
+    @Click(R.id.referralCode)
+    void referralCodeClicked() {
+        if (referralCode.getText() != null) {
+            String shareReferralText = String.format(
+                    getResources().getString(R.string.share_referral_text), referralCode.getText().toString());
+            Utils.copyToClipboard(getApplicationContext(),
+                    "Referral Code",
+                    shareReferralText);
+            Utils.showToastMessage(getLayoutInflater(), 
+                    this,
+                    getApplicationContext(), 
+                    getResources().getString(R.string.copied_to_clipboard));
+        }
     }
 
     public void textInvite(View view) {

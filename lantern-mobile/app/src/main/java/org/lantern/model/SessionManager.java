@@ -53,10 +53,15 @@ public class SessionManager implements Lantern.Session {
     private final Map<String, ProPlan> plans = new HashMap<String, ProPlan>();
     private final Map<Locale, List<ProPlan>> localePlans = new HashMap<Locale, List<ProPlan>>();
 
+    // Default Pro Plans
+    private final Locale enLocale = new Locale("en", "US");
+    private final List<ProPlan> defaultPlans;
+
      // shared preferences mode
     private int PRIVATE_MODE = 0;
 
     private Context context;
+    private Resources resources;
     private SharedPreferences mPrefs;
     private Editor editor;
 
@@ -74,7 +79,20 @@ public class SessionManager implements Lantern.Session {
         this.context = context;
         this.mPrefs = context.getSharedPreferences(PREF_NAME, PRIVATE_MODE);
         this.editor = mPrefs.edit();
-        this.locale = context.getResources().getConfiguration().locale;
+        this.resources = context.getResources();
+        this.locale = resources.getConfiguration().locale;
+        this.defaultPlans = new ArrayList<ProPlan>();
+        this.defaultPlans.add(createPlan(enLocale, "1y-usd",
+                    "One Year Plan", false, 1, 2700));
+        this.defaultPlans.add(createPlan(enLocale, "2y-usd",
+                    "Two Year Plan", true, 2, 4800));
+    }
+
+    public void printDefault() {
+        for (ProPlan p : defaultPlans) {
+            Log.d(TAG, String.format("Default %s %d plan cost str: %s", 
+                    p.getPlanId(), p.getPrice(), p.getCostStr()));
+        }
     }
 
     public boolean isChineseUser() {
@@ -136,6 +154,26 @@ public class SessionManager implements Lantern.Session {
         return oneYearCost;
     }
 
+    public static ProPlan createPlan(Locale locale, String id, 
+            String description, boolean bestValue, long numYears, 
+            long price) {
+        ProPlan plan = new ProPlan(id, description, bestValue,
+                numYears, price);
+
+        Currency currency = Currency.getInstance(locale);
+        String symbol = currency.getSymbol();
+        long fmtPrice = price/100;
+
+        String costStr = String.format("%s%d (%s)",
+                symbol, fmtPrice, currency.getCurrencyCode());
+
+        plan.setPrice(price);
+        plan.setLocale(locale);
+        plan.setCostStr(costStr);
+
+        return plan;
+    }
+
     public void savePlan(Resources resources, ProPlan plan) {
         Locale locale = Locale.getDefault();
         Currency currency = Currency.getInstance(locale);
@@ -170,7 +208,11 @@ public class SessionManager implements Lantern.Session {
     }
 
     public List<ProPlan> getPlans(Locale locale) {
-        return localePlans.get(locale);
+        List<ProPlan> plans = localePlans.get(locale);
+        if (plans == null || plans.isEmpty()) {
+            return defaultPlans;
+        }
+        return plans;
     }
 
     public void setOneYearCost(long oneYearCost) {

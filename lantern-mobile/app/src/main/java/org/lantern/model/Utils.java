@@ -2,6 +2,8 @@ package org.lantern.model;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ClipboardManager;
+import android.content.ClipData;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -11,11 +13,17 @@ import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
@@ -62,6 +70,27 @@ public class Utils {
             Log.e(TAG, "Error fetching package information: " + e.getMessage());
         }
         return false;
+    }
+
+    public static void copyToClipboard(Context context, String label, 
+            String text) {
+        ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE); 
+        ClipData clip = ClipData.newPlainText(label, text);
+        clipboard.setPrimaryClip(clip);
+    }
+
+    public static void showToastMessage(LayoutInflater inflater, Activity activity, Context context, String message) {
+        View statusLayout = inflater.inflate(R.layout.status_layout, 
+                (ViewGroup)activity.findViewById(R.id.status_layout_root));
+        TextView statusText  = (TextView)statusLayout.findViewById(R.id.statusText);
+        ImageView statusImage = (ImageView)statusLayout.findViewById(R.id.statusImage);
+        statusImage.setImageResource(R.drawable.status_on_white);
+        statusText.setText(context.getResources().getString(R.string.copied_to_clipboard));
+        Toast statusToast = new Toast(context);
+        statusToast.setGravity(Gravity.BOTTOM|Gravity.FILL_HORIZONTAL, 0, 0);
+        statusToast.setDuration(Toast.LENGTH_SHORT);
+        statusToast.setView(statusLayout);
+        statusToast.show();
     }
 
     // isPlayVersion checks whether or not the user installed Lantern via

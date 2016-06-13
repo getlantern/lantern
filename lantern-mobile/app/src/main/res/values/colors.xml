@@ -19,8 +19,8 @@
     <color name="editText">#AAAAAA</color>
     <color name="get_btn_text">#FEE900</color>
     <color name="data_bar_color">#FEE900</color>
+    <color name="one_year_plan_bg">#e0e0e0</color>
     <color name="two_year_plan_bg">#f5f5f5</color>
-    <color name="one_year_plan_bg">#f5f5f5</color>
     <color name="best_value">#00bcd4</color>
     <color name="text_shadow">#7F000000</color>
     <color name="free_credits">#FFFF00</color>

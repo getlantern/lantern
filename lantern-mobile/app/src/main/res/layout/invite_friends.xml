@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent" 
     android:orientation="vertical"
+    android:background="@color/accent_white"
     android:baselineAligned="false"
     android:id="@+id/inviteView"
     tools:context=".InviteActivity">
@@ -23,7 +24,6 @@
         android:layout_width="fill_parent"
         android:layout_height="260dp"
         android:layout_weight="1"
-        android:background="@color/accent_white"
         android:elevation="2dp">
 
         <ImageView
@@ -80,7 +80,7 @@
             android:textColor="#000000"/>          
 
         <TextView
-            android:id="@+id/referral_code"
+            android:id="@+id/referralCode"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"
