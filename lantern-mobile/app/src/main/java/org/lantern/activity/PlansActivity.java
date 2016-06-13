@@ -15,23 +15,26 @@ import org.androidannotations.annotations.ViewById;
 import org.androidannotations.annotations.res.StringArrayRes;
 
 import java.util.Currency;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import org.lantern.LanternApp;
 import org.lantern.activity.PaymentActivity;
 import org.lantern.model.FeatureUi;
-import org.lantern.model.ProPlanEvent;
+import org.lantern.model.ProPlan;
 import org.lantern.model.ProRequest;
 import org.lantern.model.SessionManager;
 import org.lantern.R;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import go.lantern.Lantern;
 
 @EActivity(R.layout.pro_plans)
-public class PlansActivity extends FragmentActivity {
+public class PlansActivity extends FragmentActivity implements ProResponse {
 
     private static final String TAG = "PlansActivity";
     private static final String mCheckoutUrl = 
@@ -81,7 +84,30 @@ public class PlansActivity extends FragmentActivity {
 
         plansView.bringToFront();
 
-        Lantern.ProRequest(session.shouldProxy(), "plans", session);
+        updatePrices(Locale.getDefault());
+
+        new ProRequest(this, false).execute("plans");
+    }
+
+    private void updatePrices(Locale locale) {
+        List<ProPlan> plans = session.getPlans(locale);
+        if (plans == null) {
+            Locale en = new Locale("en", "US");
+            if (!locale.equals(en)) {
+                updatePrices(en);
+            }
+            return;
+        }
+
+        for (ProPlan plan : plans) {
+            if (plan.numYears() == 1) {
+                oneYearCost.setText(plan.getCostStr());
+                oneYearBtn.setTag(plan.getPlanId());
+            } else {
+                twoYearCost.setText(plan.getCostStr());
+                twoYearBtn.setTag(plan.getPlanId());
+            }
+        }
     }
 
     @Override
@@ -90,24 +116,18 @@ public class PlansActivity extends FragmentActivity {
         EventBus.getDefault().unregister(this);
     }
 
-    @Subscribe
-    public void onEvent(ProPlanEvent plan) {
+    @Override
+    public void onSuccess() {
+    }
+
+    @Override
+    public void onError() {
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEventMainThread(ProPlan plan) {
         Log.d(TAG, "Received a new pro plan: " + plan.getPlanId());
-        Currency currency = Currency.getInstance(Locale.getDefault());
-        String symbol = currency.getSymbol();
-        long price = plan.getPrice()/100;
-        String costStr = String.format(getResources().getString(R.string.plan_cost),
-                symbol, price, currency.getCurrencyCode());
-        if (plan.numYears() == 1) {
-            oneYearCost.setText(costStr);
-            oneYearBtn.setTag(plan.getPlanId());
-            session.setOneYearCost(price);
-        } else {
-            twoYearCost.setText(costStr);
-            twoYearBtn.setTag(plan.getPlanId());
-            session.setTwoYearCost(price);
-        }
-        session.setPlanPrice(plan.getPlanId(), price);
+        session.savePlan(getResources(), plan);
     }
 
     public void selectPlan(View view) {

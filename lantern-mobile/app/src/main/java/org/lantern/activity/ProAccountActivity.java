@@ -1,21 +1,17 @@
 package org.lantern.activity;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
-import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.os.Bundle;
 import android.text.Html;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -30,7 +26,6 @@ import org.androidannotations.annotations.ViewById;
 import org.lantern.LanternApp;
 import org.lantern.model.DeviceItem;
 import org.lantern.model.MailSender;
-import org.lantern.model.ProRequest;
 import org.lantern.model.SessionManager;
 import org.lantern.model.Utils;
 import org.lantern.R;
@@ -41,7 +36,7 @@ import go.lantern.Lantern;
 public class ProAccountActivity extends FragmentActivity implements ProResponse {
 
     @ViewById
-    TextView proAccountText, phoneNumber, sendLogsBtn;
+    TextView proAccountText, phoneNumber, sendLogsBtn, logoutBtn, deviceName;
 
     @ViewById
     Button renewProBtn, changeNumberBtn;
@@ -65,13 +60,15 @@ public class ProAccountActivity extends FragmentActivity implements ProResponse 
         proAccountText.setText(String.format(getResources().getString(R.string.pro_account_expires), "06/06/2017", 6));
         phoneNumber.setText(session.PhoneNumber());
 
-        String[] devices = {android.os.Build.DEVICE, "Mac Desktop", "PC Desktop"};
+        deviceName.setText(android.os.Build.MODEL);
+
+        /*String[] devices = {android.os.Build.DEVICE, "Mac Desktop", "PC Desktop"};
 
         for (String device : devices) {
             final DeviceItem item = new DeviceItem(this);
             item.name.setText(Html.fromHtml(String.format("&#8226; %s", device)));
             deviceList.addView(item);
-        }
+        }*/
 
         final ProAccountActivity proAccountActivity = this;
 
@@ -113,6 +110,12 @@ public class ProAccountActivity extends FragmentActivity implements ProResponse 
     public void changePhoneNumber(View view) {
         Log.d(TAG, "Change # button clicked."); 
         startActivity(new Intent(this, SignInActivity.class));
+    }
+
+    public void logout(View view) {
+        Log.d(TAG, "Logout button clicked.");
+        session.unlinkDevice();
+        startActivity(new Intent(this, LanternMainActivity_.class));
     }
 
     public void sendLogs(View view) {

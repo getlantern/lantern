@@ -8,6 +8,8 @@ import (
 type User struct {
 	Email         string `json:"email"`
 	PhoneNumber   string `json:"telephone"`
+	UserStatus    string `json:"userStatus"`
+	Locale        string `json:"locale"`
 	Expiration    int64  `json:"expiration"`
 	AutoconfToken string `json:"autoconfToken"`
 	Subscription  string `json:"subscription"`

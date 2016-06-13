@@ -34,6 +34,7 @@
             android:src="@drawable/account_management"/>
 
         <RelativeLayout
+            android:id="@+id/verifiedNumberSection"
             android:layout_gravity="center"
             android:layout_width="290dp"
             android:layout_height="wrap_content"
@@ -61,6 +62,41 @@
 
         </RelativeLayout>
 
+        <RelativeLayout
+            android:layout_gravity="center"
+            android:layout_width="290dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/verifiedNumberSection"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/deviceName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:fontFamily="sans-serif-medium"
+                android:text=""
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"/>
+
+            <TextView
+                android:id="@+id/logoutBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:onClick="logout"
+                android:clickable="true"
+                android:focusable="true"
+                android:textAllCaps="true"
+                android:text="@string/logout"
+                android:textSize="14sp"
+                android:layout_alignParentRight="true"  
+                android:textColor="@color/pro_blue_color"/>
+
+        </RelativeLayout>
+
+
         <TextView
             android:id="@+id/devicesAuthorized"
             android:layout_width="wrap_content"
@@ -68,7 +104,6 @@
             android:fontFamily="sans-serif-medium"
             android:textSize="14sp"          
             android:textColor="@color/black"
-            android:textStyle="bold"
             android:paddingTop="20dp"
             android:text="@string/devices_authorized"
             />

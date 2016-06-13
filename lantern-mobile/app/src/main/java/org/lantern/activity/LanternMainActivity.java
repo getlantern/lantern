@@ -178,6 +178,11 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     protected void onResume() {
         super.onResume();
 
+        if (session.isProUser()) {
+            // hide data usage summary view right away if its a Pro user
+            dataUsageView.setVisibility(View.GONE);
+        }
+
         setupSideMenu();
         setBtnStatus();
         showFeedview();
@@ -200,9 +205,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             if (dataProgressBar != null) {
                 dataProgressBar.setProgress((int)quota);
             }
-        } else {
-            // hide data usage summary if its a pro user
-            dataUsageView.setVisibility(View.GONE);
         }
     }
 

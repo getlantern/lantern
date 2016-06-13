@@ -98,7 +98,7 @@ public class Utils {
     public static String formatMoney(long amount) {
         Currency currency = Currency.getInstance(Locale.getDefault());
         String symbol = currency.getSymbol();
-        return String.format("%s%d", symbol, amount);
+        return String.format("%s%d", symbol, amount/100);
     }
 
     public static void showErrorDialog(final FragmentActivity activity, String error) {

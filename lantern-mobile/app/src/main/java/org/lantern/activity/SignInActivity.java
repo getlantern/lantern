@@ -28,6 +28,8 @@ public class SignInActivity extends FragmentActivity implements ProResponse {
     private UserForm fragment;
     private SessionManager session;
 
+    private boolean signIn = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,6 +37,7 @@ public class SignInActivity extends FragmentActivity implements ProResponse {
         Intent intent = getIntent();
         if (intent != null && intent.getExtras() != null &&
                 intent.getExtras().getBoolean("signIn")) {
+            this.signIn = true;
             setContentView(R.layout.activity_auth_device);
         } else {
             setContentView(R.layout.activity_verify_account);
@@ -61,7 +64,8 @@ public class SignInActivity extends FragmentActivity implements ProResponse {
             String number = fragment.getPhoneNumber();
             if (number != null) {
                     session.setPhoneNumber(number);
-                    new ProRequest(this, true).execute("number");
+                    String command = signIn ? "signin" : "number";
+                    new ProRequest(this, true).execute(command);
             } else {
                 onError();
             }
