@@ -89,15 +89,23 @@ public class PlansActivity extends FragmentActivity implements ProResponse {
         new ProRequest(this, false).execute("plans");
     }
 
+    // updatePrices updates the stored plan prices 
+    // for the given locale
     private void updatePrices(Locale locale) {
         List<ProPlan> plans = session.getPlans(locale);
-        session.printDefault();
 
         for (ProPlan plan : plans) {
-            Log.d(TAG, String.format("Plan id is %s price %d cost str %s",
-                    plan.getPlanId(), plan.getPrice(),
-                    plan.getCostStr()));
             updatePrice(plan);
+        }
+    }
+
+    private void updatePrice(ProPlan plan) {
+        if (plan.numYears() == 1) {
+            oneYearCost.setText(plan.getCostStr());
+            oneYearBtn.setTag(plan.getPlanId());
+        } else {
+            twoYearCost.setText(plan.getCostStr());
+            twoYearBtn.setTag(plan.getPlanId());
         }
     }
 
@@ -114,16 +122,6 @@ public class PlansActivity extends FragmentActivity implements ProResponse {
     @Override
     public void onError() {
 
-    }
-
-    private void updatePrice(ProPlan plan) {
-        if (plan.numYears() == 1) {
-            oneYearCost.setText(plan.getCostStr());
-            oneYearBtn.setTag(plan.getPlanId());
-        } else {
-            twoYearCost.setText(plan.getCostStr());
-            twoYearBtn.setTag(plan.getPlanId());
-        }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

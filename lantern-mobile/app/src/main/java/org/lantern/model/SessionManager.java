@@ -88,13 +88,6 @@ public class SessionManager implements Lantern.Session {
                     "Two Year Plan", true, 2, 4800));
     }
 
-    public void printDefault() {
-        for (ProPlan p : defaultPlans) {
-            Log.d(TAG, String.format("Default %s %d plan cost str: %s", 
-                    p.getPlanId(), p.getPrice(), p.getCostStr()));
-        }
-    }
-
     public boolean isChineseUser() {
         Locale locale = Locale.getDefault();
         return locale.equals(new Locale("zh", "CN")) ||
