@@ -7,6 +7,7 @@ import (
 	_ "net/http/pprof"
 	"os"
 	"os/signal"
+	"runtime"
 	"strings"
 	"syscall"
 
@@ -23,6 +24,9 @@ var (
 )
 
 func main() {
+	// systray requires the goroutine locked with main thread, or the whole
+	// application will crash.
+	runtime.LockOSThread()
 	parseFlags()
 
 	a := &app.App{
