@@ -39,11 +39,10 @@
     <LinearLayout
         android:id="@+id/upgradeProText"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_alignParentLeft="true"
         android:layout_below="@+id/progressBarView"
         android:layout_toLeftOf="@+id/upgradeBtn"
-        android:layout_marginLeft="5dp"
         android:orientation="vertical" >
 
         <TextView
@@ -72,6 +71,8 @@
         android:id="@+id/upgradeBtn"
         android:layout_height="36dp"
         android:layout_width="88dp"
+        android:minHeight="0dp"
+        android:minWidth="0dp"
         android:layout_below="@+id/progressBarView"
         android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true" 
@@ -80,9 +81,7 @@
         android:fontFamily="sans-serif-medium" 
         android:textSize="14sp"
         android:textAllCaps="true"
-        android:elevation="2dp"
-        android:minHeight="48dp"
         android:textColor="@color/accent_white"
         android:clickable = "true"
-        android:background="@drawable/send_btn"/>
+        android:background="@color/pink"/>
 </RelativeLayout>

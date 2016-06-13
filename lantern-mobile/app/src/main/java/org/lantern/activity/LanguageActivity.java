@@ -22,10 +22,11 @@ import java.util.Map;
 import java.util.HashMap;
 
 import org.lantern.model.LangAdapter;
+import org.lantern.model.ProRequest;
 import org.lantern.R;
 
 @EActivity(R.layout.languages)
-public class LanguageActivity extends FragmentActivity {
+public class LanguageActivity extends FragmentActivity implements ProResponse {
 
     private static final String TAG = "LanguageActivity";
 
@@ -140,6 +141,14 @@ public class LanguageActivity extends FragmentActivity {
         return l.getDisplayName(l);
     }
 
+    @Override
+    public void onSuccess() {
+    }
+
+    @Override
+    public void onError() {
+    }
+
     public void setLocale(String lang) { 
         Locale locale = localeMap.get(lang);
         Log.d(TAG, "Language selected: " + lang);
@@ -149,6 +158,7 @@ public class LanguageActivity extends FragmentActivity {
         Configuration conf = res.getConfiguration(); 
         conf.locale = locale; 
         getBaseContext().getResources().updateConfiguration(conf, dm); 
+        new ProRequest(this, false).execute("plans");  
         Intent refresh = new Intent(this, LanternMainActivity_.class); 
         refresh.setAction("restart");
         refresh.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);

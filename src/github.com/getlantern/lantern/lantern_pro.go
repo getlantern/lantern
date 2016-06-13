@@ -24,6 +24,7 @@ type Session interface {
 	StripeEmail() string
 	SetToken(string)
 	SetUserId(int)
+	UserData(string, int64, string)
 	SetCode(string)
 	Currency() string
 	AddPlan(string, string, bool, int, int)
@@ -83,20 +84,21 @@ func purchase(r *proRequest) (*client.Response, error) {
 
 func number(r *proRequest) (*client.Response, error) {
 	r.user.PhoneNumber = r.session.PhoneNumber()
-	log.Debugf("Phone number is %v", r.user.PhoneNumber)
 	res, err := r.proClient.UserLinkConfigure(r.user)
-	if err != nil || res.Status == "error" {
-		res, err := r.proClient.UserLinkRequest(r.user)
-		if err != nil {
-			log.Errorf("Could not verify device: %v", err)
-		}
-		return res, err
+	if err != nil || res.Status != "ok" {
+		return r.proClient.UserLinkRequest(r.user)
 	}
 	return res, err
 }
 
+func signin(r *proRequest) (*client.Response, error) {
+	r.user.PhoneNumber = r.session.PhoneNumber()
+	return r.proClient.UserLinkRequest(r.user)
+}
+
 func code(r *proRequest) (*client.Response, error) {
 	r.user.Code = r.session.VerifyCode()
+	log.Debugf("Verify code is %s", r.user.Code)
 	return r.proClient.UserLinkValidate(r.user)
 }
 
@@ -110,6 +112,10 @@ func cancel(r *proRequest) (*client.Response, error) {
 
 func plans(r *proRequest) (*client.Response, error) {
 	return r.proClient.Plans(r.user)
+}
+
+func userdata(r *proRequest) (*client.Response, error) {
+	return r.proClient.UserData(r.user)
 }
 
 func ProRequest(shouldProxy bool, command string, session Session) bool {
@@ -130,13 +136,16 @@ func ProRequest(shouldProxy bool, command string, session Session) bool {
 		"purchase": purchase,
 		"plans":    plans,
 		"number":   number,
+		"signin":   signin,
 		"code":     code,
+		"userdata": userdata,
 		"referral": referral,
 		"cancel":   cancel,
 	}
 
 	res, err := commands[command](req)
 	if err != nil || res.Status != "ok" {
+		log.Debugf("STATUS IS %s", res.Status)
 		log.Errorf("Error making request to Pro server: %v", err)
 		return false
 	}
@@ -157,10 +166,20 @@ func ProRequest(shouldProxy bool, command string, session Session) bool {
 			session.AddPlan(plan.Id, plan.Description, plan.BestValue, plan.Duration.Years, price)
 		}
 
+	} else if command == "signin" {
+		session.SetUserId(res.User.Auth.ID)
 	} else if command == "newuser" {
 		session.SetUserId(res.User.Auth.ID)
 		session.SetToken(res.User.Auth.Token)
 		session.SetCode(res.User.Referral)
+	} else if command == "code" {
+		res, err = commands["userdata"](req)
+		log.Debugf("STATUS IS %s", res.Status)
+		if err != nil || res.Status != "ok" {
+			log.Errorf("Error making request to Pro server: %v", err)
+			return false
+		}
+		session.UserData(res.User.UserStatus, res.User.Expiration, res.User.Subscription)
 	}
 
 	return true
