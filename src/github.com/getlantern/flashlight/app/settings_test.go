@@ -28,6 +28,7 @@ func TestRead(t *testing.T) {
 	assert.Equal(t, s.GetUserID(), uid)
 	assert.Equal(t, s.GetSystemProxy(), true)
 	assert.Equal(t, s.IsAutoReport(), true)
+	assert.Equal(t, s.GetLanguage(), "")
 
 	// Start with raw JSON so we actually decode the map from scratch, as that
 	// will then simulate real world use where we rely on Go to generate the
@@ -39,7 +40,8 @@ func TestRead(t *testing.T) {
 		"autoLaunch": false,
 		"systemProxy": false,
 		"deviceID": "8208fja09493",
-		"userID": 890238588
+		"userID": 890238588,
+		"language": "en-US"
 	}`)
 
 	var m map[string]interface{}
@@ -62,6 +64,7 @@ func TestRead(t *testing.T) {
 	assert.Equal(t, s.IsAutoReport(), false)
 	assert.Equal(t, s.GetUserID(), uid)
 	assert.Equal(t, s.GetDeviceID(), base64.StdEncoding.EncodeToString(uuid.NodeID()))
+	assert.Equal(t, s.GetLanguage(), "en-US")
 
 	// Test that setting something random doesn't break stuff.
 	m["randomjfdklajfla"] = "fadldjfdla"

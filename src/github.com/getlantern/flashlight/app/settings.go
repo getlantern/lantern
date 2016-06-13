@@ -12,6 +12,7 @@ import (
 	"code.google.com/p/go-uuid/uuid"
 
 	"github.com/getlantern/appdir"
+	"github.com/getlantern/i18n"
 	"github.com/getlantern/launcher"
 	"github.com/getlantern/yaml"
 
@@ -39,6 +40,8 @@ type Settings struct {
 	AutoLaunch  bool `json:"autoLaunch"`
 	ProxyAll    bool `json:"proxyAll"`
 	SystemProxy bool `json:"systemProxy"`
+
+	Language string `json:"language,omitempty"`
 
 	Version      string `json:"version" yaml:"-"`
 	BuildDate    string `json:"buildDate" yaml:"-"`
@@ -132,6 +135,9 @@ func (s *Settings) read(in <-chan interface{}, out chan<- interface{}) {
 		s.checkBool(data, "proxyAll", s.SetProxyAll)
 		s.checkBool(data, "autoLaunch", s.SetAutoLaunch)
 		s.checkBool(data, "systemProxy", s.SetSystemProxy)
+
+		s.checkString(data, "language", s.SetLanguage)
+
 		s.checkNum(data, "userID", s.SetUserID)
 		s.checkString(data, "userToken", s.SetToken)
 
@@ -140,31 +146,47 @@ func (s *Settings) read(in <-chan interface{}, out chan<- interface{}) {
 }
 
 func (s *Settings) checkBool(data map[string]interface{}, name string, f func(bool)) {
-	if v, ok := data[name].(bool); ok {
-		f(v)
-	} else {
-		log.Errorf("Could not convert %v in %v", name, data)
+	v, exist := data[name]
+	if !exist {
+		return
 	}
+	b, ok := v.(bool)
+	if !ok {
+		log.Errorf("Could not convert %v in %v", name, data)
+		return
+	}
+	f(b)
 }
 
 func (s *Settings) checkNum(data map[string]interface{}, name string, f func(int64)) {
-	if v, ok := data[name].(json.Number); ok {
-		if bigint, err := v.Int64(); err != nil {
-			log.Errorf("Could not get int64 value for %v with error %v", name, err)
-		} else {
-			f(bigint)
-		}
-	} else {
-		log.Errorf("Could not convert %v of type %v", name, reflect.TypeOf(data[name]))
+	v, exist := data[name]
+	if !exist {
+		return
 	}
+	number, ok := v.(json.Number)
+	if !ok {
+		log.Errorf("Could not convert %v of type %v", name, reflect.TypeOf(v))
+		return
+	}
+	bigint, err := number.Int64()
+	if err != nil {
+		log.Errorf("Could not get int64 value for %v with error %v", name, err)
+		return
+	}
+	f(bigint)
 }
 
 func (s *Settings) checkString(data map[string]interface{}, name string, f func(string)) {
-	if v, ok := data[name].(string); ok {
-		f(v)
-	} else {
-		log.Errorf("Could not convert %v in %v", name, data)
+	v, exist := data[name]
+	if !exist {
+		return
 	}
+	str, ok := v.(string)
+	if !ok {
+		log.Errorf("Could not convert %v in %v", name, data)
+		return
+	}
+	f(str)
 }
 
 // Save saves settings to disk.
@@ -224,6 +246,21 @@ func (s *Settings) GetSystemProxy() bool {
 	s.RLock()
 	defer s.RUnlock()
 	return s.SystemProxy
+}
+
+// SetLanguage sets the user language
+func (s *Settings) SetLanguage(language string) {
+	i18n.SetLocale(language)
+	s.Lock()
+	defer s.unlockAndSave()
+	s.Language = language
+}
+
+// GetLanguage returns the user language
+func (s *Settings) GetLanguage() string {
+	s.RLock()
+	defer s.RUnlock()
+	return s.Language
 }
 
 // SetDeviceID sets the device ID
