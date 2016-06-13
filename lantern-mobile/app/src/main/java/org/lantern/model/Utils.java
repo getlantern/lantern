@@ -86,11 +86,11 @@ public class Utils {
         ImageView statusImage = (ImageView)statusLayout.findViewById(R.id.statusImage);
         statusImage.setImageResource(R.drawable.status_on_white);
         statusText.setText(context.getResources().getString(R.string.copied_to_clipboard));
-        Toast statusToast = new Toast(context);
-        statusToast.setGravity(Gravity.BOTTOM|Gravity.FILL_HORIZONTAL, 0, 0);
-        statusToast.setDuration(Toast.LENGTH_SHORT);
-        statusToast.setView(statusLayout);
-        statusToast.show();
+        Toast toast = new Toast(context);
+        toast.setGravity(Gravity.BOTTOM|Gravity.FILL_HORIZONTAL, 0, 0);
+        toast.setDuration(Toast.LENGTH_SHORT);
+        toast.setView(statusLayout);
+        toast.show();
     }
 
     // isPlayVersion checks whether or not the user installed Lantern via
