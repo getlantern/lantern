@@ -39,7 +39,7 @@
     <LinearLayout
         android:id="@+id/upgradeProText"
         android:layout_width="wrap_content"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_below="@+id/progressBarView"
         android:layout_toLeftOf="@+id/upgradeBtn"

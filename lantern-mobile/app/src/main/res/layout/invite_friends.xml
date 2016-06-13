@@ -40,102 +40,11 @@
         android:id="@+id/invite_bottom_sheet"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:background="@color/card_bg"
+        android:background="@color/accent_white"
         android:paddingTop="15dp"
         android:paddingBottom="15dp"
         android:layout_weight="1"
         android:padding="8dp">
-
-
-        <LinearLayout
-            android:id="@+id/get_code_view"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:visibility="invisible"                 
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content">
-
-            <TextView
-                android:id="@+id/get_code_text"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:fontFamily="sans-serif"
-                android:layout_marginTop="10dp"
-                android:padding="5dp"
-                android:lineSpacingExtra="5dp"
-                android:text="@string/invite_friends"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:alpha=".87"
-                android:layout_centerHorizontal="true"
-                android:gravity="center"
-                android:textColor="#000000"/>
-
-            <EditText
-                android:id="@+id/email"
-                android:layout_width = "fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="15dp"
-                android:layout_marginLeft="10dp"
-                android:layout_marginRight="10dp"
-                android:fontFamily="sans-serif" 
-                android:drawableLeft="@drawable/email_inactive"
-                android:drawablePadding="10dip"
-                android:background="@null"
-                android:hint="@string/email_hint"
-                android:gravity="fill_horizontal"
-                android:ems="10"
-                android:textColor="#BDBDBD"
-                android:autoText="false"
-                android:paddingBottom="5dp"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:inputType="textEmailAddress" />
-
-            <View
-                android:id="@+id/emailSeparator"
-                android:background="@color/edittext_color"
-                android:layout_below="@+id/email"
-                android:layout_width = "match_parent"
-                android:layout_marginLeft="27dp"
-                android:layout_height="1.5dip"
-                android:gravity="center"
-                android:layout_centerVertical ="true"
-                android:layout_alignParentTop="true"
-                />
-
-            <TextView
-                android:id="@+id/previous_code"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:fontFamily="sans-serif"
-                android:layout_marginTop="14dp"
-                android:lineSpacingExtra="5dp"
-                android:text="@string/previous_code"
-                android:textSize="12sp"
-                android:alpha=".54"
-                android:layout_centerHorizontal="true"
-                android:gravity="center"
-                android:textColor="#000000"/>         
-
-
-            <Button
-                android:id="@+id/getCodeBtn"
-                android:layout_height="36dp"
-                android:layout_width="216dp"
-                android:text="@string/get_code"
-                android:fontFamily="sans-serif-medium" 
-                android:textSize="14sp"
-                android:elevation="2dp"
-                android:minHeight="48dp"
-                android:textAllCaps="true"
-                android:textColor="@color/accent_white"
-                android:textStyle="bold"
-                android:clickable = "true"
-                android:layout_marginTop="20dp"
-                android:background="#0297A7"
-                android:layout_centerInParent="true"/>
-
-        </LinearLayout>
 
         <LinearLayout 
             android:id="@+id/referral_code_view"

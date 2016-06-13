@@ -33,9 +33,6 @@ public class InviteActivity extends FragmentActivity {
     private SessionManager session;
     private String code;
 
-    @ViewById(R.id.email)
-    EditText emailInput;
-
     @ViewById(R.id.referral_code)
     TextView referralCode;
 
@@ -50,8 +47,6 @@ public class InviteActivity extends FragmentActivity {
         mPrefs = Utils.getSharedPrefs(mContext);
 
         progressFragment = ProgressDialogFragment.newInstance(R.string.progressMessage2);
-
-        Utils.configureEmailInput(emailInput, findViewById(R.id.emailSeparator));
     }
 
     @Override
