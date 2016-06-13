@@ -98,7 +98,6 @@ func signin(r *proRequest) (*client.Response, error) {
 
 func code(r *proRequest) (*client.Response, error) {
 	r.user.Code = r.session.VerifyCode()
-	log.Debugf("Verify code is %s", r.user.Code)
 	return r.proClient.UserLinkValidate(r.user)
 }
 
