@@ -57,6 +57,7 @@
     <string name="manual_update">Try manually installing the latest version from &lt;a href="https://lantern-android.io">here1&lt;/a></string>
     <string name="pro_welcome_text">Welcome to Lantern Pro!</string>
 	<string name="renew_pro_account">Renew Pro Account</string>
+    <string name="logout">Log Out</string>
 	<string name="change_phone_number">Change Phone Number</string>
 	<string name="pro_account_expires">Your Pro account expires on %1$s\n. This includes your %2$d bonus months!</string>
 	<string name="verified_phone_number">Verified Phone Number:</string>
