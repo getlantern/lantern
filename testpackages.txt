@@ -30,6 +30,7 @@ github.com/getlantern/idletiming
 github.com/getlantern/keyman
 github.com/getlantern/lantern
 github.com/getlantern/measured
+github.com/getlantern/netx
 github.com/getlantern/ops
 github.com/getlantern/osversion
 github.com/getlantern/pathreflect
