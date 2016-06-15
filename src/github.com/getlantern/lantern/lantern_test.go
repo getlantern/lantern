@@ -29,9 +29,6 @@ func TestProxying(t *testing.T) {
 			newResult, err := Start("testapp", 5000)
 			if assert.NoError(t, err, "Should have been able to start lantern twice") {
 				if assert.Equal(t, result.HTTPAddr, newResult.HTTPAddr, "2nd start should have resulted in the same address") {
-					// The below is a hack that allows the test to pass while our default
-					// fallback server is bad.
-					time.Sleep(2 * time.Second)
 					err := testProxiedRequest(result.HTTPAddr, false)
 					if assert.NoError(t, err, "Proxying request via HTTP should have worked") {
 						err := testProxiedRequest(result.SOCKS5Addr, true)
