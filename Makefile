@@ -685,7 +685,7 @@ clean-mobile:
 clean-tooling:
 	rm -rf bin && \
 	rm -rf pkg && \
-	rm src/github.com/golang/go/src/runtime/internal/sys/zversion.go
+	rm -f src/github.com/golang/go/src/runtime/internal/sys/zversion.go
 
 clean: clean-tooling clean-desktop clean-mobile
 
