@@ -9,7 +9,7 @@ git:
 install:
   - sudo apt-get install make -y
   - rm -rf /usr/local/go
-  - curl https://s3-eu-west-1.amazonaws.com/uaalto/go1.6.2_lantern_20160503_linux_amd64.tar.gz | tar -xzf - -C /usr/local
+  - curl https://s3-eu-west-1.amazonaws.com/uaalto/go1.6.2_lantern_20160503_linux_amd64.tar.gz | sudo tar -xzf - -C /usr/local
   - go version
   - go get golang.org/x/tools/cmd/cover
   - go get -v github.com/mattn/goveralls
