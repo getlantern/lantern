@@ -12,10 +12,16 @@ import (
 	"github.com/getlantern/errors"
 	"github.com/getlantern/flashlight/ops"
 	"github.com/getlantern/idletiming"
+	"github.com/getlantern/netx"
+	"github.com/oxtoacart/bpool"
 )
 
 const (
 	httpConnectMethod = "CONNECT" // HTTP CONNECT method
+)
+
+var (
+	buffers = bpool.NewBytePool(100, 32768)
 )
 
 // ServeHTTP implements the method from interface http.Handler using the latest
@@ -115,16 +121,11 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request, op 
 // pipeData pipes data between the client and proxy connections.  It's also
 // responsible for responding to the initial CONNECT request with a 200 OK.
 func pipeData(clientConn net.Conn, connOut net.Conn, op *ops.Op, closeFunc func()) {
-	writeErrCh := make(chan error, 1)
-	// Start piping from client to proxy
-	op.Go(func() {
-		_, writeErr := io.Copy(connOut, clientConn)
-		writeErrCh <- writeErr
-	})
-
-	// Then start copying from proxy to client.
-	_, readErr := io.Copy(clientConn, connOut)
-	writeErr := <-writeErrCh
+	bufOut := buffers.Get()
+	bufIn := buffers.Get()
+	defer buffers.Put(bufOut)
+	defer buffers.Put(bufIn)
+	writeErr, readErr := netx.BidiCopy(connOut, clientConn, bufOut, bufIn)
 	// Note - we ignore idled errors because these are okay per the HTTP spec.
 	// See https://www.w3.org/Protocols/rfc2616/rfc2616-sec8.html#sec8.1.4
 	if readErr != nil && readErr != io.EOF {
