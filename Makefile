@@ -42,6 +42,7 @@ PACKAGED_YAML := .packaged-lantern.yaml
 MANOTO_YAML := .packaged-lantern-manoto.yaml
 
 RESOURCES_DOT_GO := ./src/github.com/getlantern/flashlight/ui/resources.go
+ZVERSION_GO := ./src/github.com/getlantern/go/src/runtime/internal/sys/zversion.go
 
 ifdef SECRETS_DIR
 BNS_CERT := $(SECRETS_DIR)/bns.pfx
@@ -650,7 +651,7 @@ exec:
 	@source setenv.bash && \
 	eval $$CMD
 
-lantern-go: src/github.com/golang/go/src/runtime/internal/sys/zversion.go
+lantern-go: $(ZVERSION_GO)
 
 clean-desktop: clean-assets
 	rm -f lantern && \
@@ -684,14 +685,13 @@ clean-mobile:
 
 clean-tooling:
 	rm -rf bin && \
-	rm -rf pkg && \
-	rm -f src/github.com/golang/go/src/runtime/internal/sys/zversion.go
+	rm -rf pkg
 
 clean: clean-tooling clean-desktop clean-mobile
 
-src/github.com/golang/go/src/runtime/internal/sys/zversion.go:
-	rm -rf src/github.com/golang/go && \
-	mkdir -p src/github.com/golang && \
-	curl --progress $(GO_SOURCE) | tar xzf - -C src/github.com/golang && \
-	(cd src/github.com/golang && patch -p0 < ../../../patches/lantern-go*.diff) && \
-	(cd src/github.com/golang/go/src && GOROOT_BOOTSTRAP=$$GOROOT ./all.bash); \
+$(ZVERSION_GO):
+	rm -rf src/github.com/getlantern/go && \
+	mkdir -p src/github.com/getlantern && \
+	curl --progress $(GO_SOURCE) | tar xzf - -C src/github.com/getlantern && \
+	(cd src/github.com/getlantern && patch -p0 < ../../../patches/lantern-go*.diff) && \
+	(cd src/github.com/getlantern/go/src && GOROOT_BOOTSTRAP=$$GOROOT ./all.bash); \

@@ -66,4 +66,4 @@ src/github.com/getlantern/flashlight/app/*.pem
 src/github.com/getlantern/flashlight/app/lantern-9999.99.99.yaml
 src/github.com/getlantern/flashlight/app/obfs4_bridgeline.txt
 src/github.com/getlantern/flashlight/app/obfs4_state.json
-src/github.com/golang/go
+src/github.com/getlantern/go

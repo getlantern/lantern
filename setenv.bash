@@ -24,5 +24,5 @@ if [ -d $LANTERN_GOROOT ]; then
 fi
 
 if [ "$(go version | grep lantern)" = "" ]; then
-	(echo "Lantern requires a special fork of Go, use 'make lantern-go'" && exit 1)
+	(echo "#### Lantern requires a special fork of Go, use 'make lantern-go'" && exit 1)
 fi
