@@ -39,7 +39,7 @@ public class ProAccountActivity extends FragmentActivity implements ProResponse 
     TextView proAccountText, emailAddress, sendLogsBtn, logoutBtn, deviceName;
 
     @ViewById
-    Button renewProBtn, changeNumberBtn;
+    Button renewProBtn, changeEmailBtn;
 
     @ViewById
     LinearLayout deviceList;
