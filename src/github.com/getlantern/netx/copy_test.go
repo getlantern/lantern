@@ -20,7 +20,7 @@ func TestSimulatedProxy(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(2)
 	// Start "server"
-	ls, err := net.Listen("tcp", ":0")
+	ls, err := net.Listen("tcp4", ":0")
 	if !assert.NoError(t, err, "Server unable to listen") {
 		return
 	}
@@ -43,7 +43,7 @@ func TestSimulatedProxy(t *testing.T) {
 	}()
 
 	// Start "proxy"
-	lp, err := net.Listen("tcp", ":0")
+	lp, err := net.Listen("tcp4", ":0")
 	if !assert.NoError(t, err, "Proxy unable to listen") {
 		return
 	}
@@ -56,7 +56,7 @@ func TestSimulatedProxy(t *testing.T) {
 		}
 		defer in.Close()
 
-		out, err := net.DialTimeout("tcp", ls.Addr().String(), 250*time.Millisecond)
+		out, err := net.DialTimeout("tcp4", ls.Addr().String(), 250*time.Millisecond)
 		if !assert.NoError(t, err, "Proxy unable to dial server") {
 			return
 		}
@@ -69,7 +69,7 @@ func TestSimulatedProxy(t *testing.T) {
 	}()
 
 	// Mimic client
-	conn, err := net.DialTimeout("tcp", lp.Addr().String(), 250*time.Millisecond)
+	conn, err := net.DialTimeout("tcp4", lp.Addr().String(), 250*time.Millisecond)
 	if !assert.NoError(t, err, "Unable to dial") {
 		return
 	}
