@@ -34,25 +34,25 @@
             android:src="@drawable/account_management"/>
 
         <RelativeLayout
-            android:id="@+id/verifiedNumberSection"
+            android:id="@+id/verifiedEmailSection"
             android:layout_gravity="center"
             android:layout_width="290dp"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/verifiedPhoneNumber"
+                android:id="@+id/verifiedEmailAddress"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="5dp"
                 android:fontFamily="sans-serif-medium"
-                android:text="@string/verified_phone_number"
+                android:text="@string/email_address"
                 android:textSize="14sp"
                 android:textStyle="bold"
                 android:textColor="@color/black"/>
 
             <TextView
-                android:id="@+id/phoneNumber"
+                android:id="@+id/emailAddress"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-medium"
@@ -149,10 +149,10 @@
             android:onClick="renewPro" />
 
         <Button
-            android:id="@+id/changeNumberBtn"
+            android:id="@+id/changeEmailBtn"
             android:layout_height="36dp"
             android:layout_width="216dp"
-            android:text="@string/change_phone_number"
+            android:text="@string/change_email_address"
             android:fontFamily="sans-serif-medium" 
             android:textSize="14sp"
             android:elevation="2dp"
@@ -163,7 +163,7 @@
             android:layout_marginTop="10dp"
             android:background="@color/pink"
             android:layout_centerInParent="true"
-            android:onClick="changePhoneNumber" />
+            android:onClick="changeEmailAddress" />
 
         <TextView
             android:id="@+id/sendLogsBtn"

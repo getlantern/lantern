@@ -35,13 +35,14 @@ import org.lantern.model.SessionManager;
 import org.lantern.model.Utils;
 import org.lantern.R;
 
+import com.thefinestartist.finestwebview.FinestWebView;
 import info.hoang8f.android.segmented.SegmentedGroup;
 
 @EActivity(R.layout.checkout)
 public class PaymentActivity extends FragmentActivity implements ProResponse, View.OnClickListener {
 
     private static final String TAG = "PaymentActivity";
-    private static final String mCheckoutUrl = "https://s3.amazonaws.com/lantern-android/checkout.html?plan=%s";
+    private static final String mCheckoutUrl = "https://stripe.com/docs/checkout?plan=%s";
 
     private SessionManager session;
     private Context mContext;
@@ -108,9 +109,22 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
         switch (v.getId()) {
             case R.id.alipayBtn:
                 Log.d(TAG, "Alipay button pressed");
-                Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setData(Uri.parse(String.format(mCheckoutUrl, "")));
-                startActivity(intent);
+                String url = String.format(mCheckoutUrl, "");
+                new FinestWebView.Builder(this)
+                    .webViewUseWideViewPort(true)
+                    .webViewUserAgentString("Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.4) Gecko/20100101 Firefox/4.0")
+                    .webViewSupportMultipleWindows(true)
+                    .webViewJavaScriptEnabled(true)
+                    .swipeRefreshColorRes(R.color.black)
+                    .webViewAllowFileAccessFromFileURLs(true)
+                    .webViewJavaScriptCanOpenWindowsAutomatically(true)
+                    // if we aren't in full-device VPN mode, configure the 
+                    // WebView to use our local proxy
+                    .show(url);
+
+                /*Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setData(Uri.parse(url));
+                startActivity(intent);*/
                 return;
             case R.id.cardBtn:
                 Log.d(TAG, "Card button pressed");

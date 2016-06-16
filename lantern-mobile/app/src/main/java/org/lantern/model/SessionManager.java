@@ -41,6 +41,7 @@ public class SessionManager implements Lantern.Session {
     private static final String PRO_USER = "prouser";
     private static final String PRO_PLAN = "proplan";
     private static final String PHONE_NUMBER = "phonenumber";
+    private static final String EMAIL_ADDRESS = "emailAddress";
     private static final String TOKEN = "token";
     private static final String PREF_USE_VPN = "pref_vpn";
     private static final String PREF_NEWSFEED = "pref_newsfeed";
@@ -65,9 +66,7 @@ public class SessionManager implements Lantern.Session {
     private SharedPreferences mPrefs;
     private Editor editor;
 
-    private String phoneNumber;
     private String stripeToken;
-    private String stripeEmail;
     private String referral;
     private String verifyCode;
     private String plan;
@@ -229,15 +228,11 @@ public class SessionManager implements Lantern.Session {
 	}
 
 	public void setPhoneNumber(String number) {
-        this.phoneNumber = number;
         editor.putString(PHONE_NUMBER, number).commit();
     }
 
     public String PhoneNumber() {
-        if (phoneNumber == null || phoneNumber.equals("")) {
-            return mPrefs.getString(PHONE_NUMBER, "");
-        }
-        return phoneNumber;
+        return mPrefs.getString(PHONE_NUMBER, "");
     }
 
 	public void setVerifyCode(String code) {
@@ -270,7 +265,7 @@ public class SessionManager implements Lantern.Session {
 
 	public void setProUser(String email, String token) {
         this.stripeToken = token;
-        this.stripeEmail = email;
+        editor.putString(EMAIL_ADDRESS, email).commit();
 	}
 
     public void setIsProUser(boolean isProUser) {
@@ -282,8 +277,8 @@ public class SessionManager implements Lantern.Session {
 	}
 
 	public void setStripeEmail(String email) {
-        this.stripeEmail = email;
-	}
+        editor.putString(EMAIL_ADDRESS, email).commit();
+    }
 
 	public void SetCode(String referral) {
 		editor.putString(REFERRAL_CODE, referral).commit();
@@ -298,7 +293,7 @@ public class SessionManager implements Lantern.Session {
     }
 
     public String StripeEmail() {
-        return this.stripeEmail;
+        return mPrefs.getString(EMAIL_ADDRESS, "");
     }
 
 	public void SetUserId(long userId) {

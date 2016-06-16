@@ -24,7 +24,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         class="org.lantern.fragment.UserForm"
-        lantern:sendBtnText="@string/send_sms"
+        lantern:sendBtnText="@string/send_email"
         lantern:formType="phone"
         lantern:formList="@array/authorize_device_list"/>
 

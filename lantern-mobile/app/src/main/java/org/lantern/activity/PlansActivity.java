@@ -152,11 +152,6 @@ public class PlansActivity extends FragmentActivity implements ProResponse {
             intent = new Intent(this, PaymentActivity.class);
         }
 
-        // make sure user links device before proceeding
-        if (!session.deviceLinked()) {
-            return;
-        }
-
         if (!session.isReferralApplied()) {
             Intent i = new Intent(this,
                     ReferralCodeActivity_.class);

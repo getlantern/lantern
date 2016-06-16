@@ -36,7 +36,7 @@ import go.lantern.Lantern;
 public class ProAccountActivity extends FragmentActivity implements ProResponse {
 
     @ViewById
-    TextView proAccountText, phoneNumber, sendLogsBtn, logoutBtn, deviceName;
+    TextView proAccountText, emailAddress, sendLogsBtn, logoutBtn, deviceName;
 
     @ViewById
     Button renewProBtn, changeNumberBtn;
@@ -58,7 +58,7 @@ public class ProAccountActivity extends FragmentActivity implements ProResponse 
         session.setPlanText(proAccountText, getResources());
 
         proAccountText.setText(String.format(getResources().getString(R.string.pro_account_expires), "06/06/2017", 6));
-        phoneNumber.setText(session.PhoneNumber());
+        emailAddress.setText(session.EmailAddress());
 
         deviceName.setText(android.os.Build.MODEL);
 
@@ -107,8 +107,8 @@ public class ProAccountActivity extends FragmentActivity implements ProResponse 
                 getResources().getString(R.string.unable_to_cancel_account));
     }
 
-    public void changePhoneNumber(View view) {
-        Log.d(TAG, "Change # button clicked."); 
+    public void changeEmailAddress(View view) {
+        Log.d(TAG, "Change email button clicked."); 
         startActivity(new Intent(this, SignInActivity.class));
     }
 
@@ -120,44 +120,7 @@ public class ProAccountActivity extends FragmentActivity implements ProResponse 
 
     public void sendLogs(View view) {
         Log.d(TAG, "Send logs button clicked.");
-        final MailSender sender = new MailSender();
-        final String logDir = getApplicationContext().getFilesDir().getAbsolutePath();
-
-        final ProAccountActivity activity = this;
-
-        AsyncTask<Void, Void, Boolean> asyncTask = new AsyncTask<Void, Void, Boolean>() {
-            @Override 
-            public Boolean doInBackground(Void... arg) {
-
-                try {
-                    sender.sendLogs(new File(logDir, ".lantern/lantern.log").toString());
-                    Log.d(TAG, "Successfully sent log contents");
-                    return true;
-                } catch (Exception e) {
-                    Log.e(TAG, e.getMessage(), e);     
-                }
-                return false;
-            }
-
-            @Override
-            protected void onPostExecute(Boolean success) {
-                super.onPostExecute(success);
-                String msg;
-                if (success) {
-                    msg = getResources().getString(R.string.success_log_email);
-                } else {
-                    msg = getResources().getString(R.string.error_log_email);
-                }
-                Utils.showAlertDialog(activity, "Lantern", msg);
-            }
-        };
-
-        if (Build.VERSION.SDK_INT >= 11) {
-            asyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-        }
-        else {
-            asyncTask.execute();
-        }
+		Utils.sendLogs(getApplicationContext(), this);
     }
 
     public void renewPro(View view) {

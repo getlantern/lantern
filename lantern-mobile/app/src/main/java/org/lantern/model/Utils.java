@@ -12,6 +12,8 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.Uri;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -30,6 +32,7 @@ import android.support.v4.app.FragmentActivity;
 
 import com.google.android.gms.analytics.HitBuilders;
 
+import java.io.File;
 import java.util.Currency;
 import java.util.Locale;
 import java.util.regex.Matcher;
@@ -92,6 +95,47 @@ public class Utils {
         toast.setView(statusLayout);
         toast.show();
     }
+
+
+	public static void sendLogs(final Context context, final Activity activity) {
+		Log.d(TAG, "Send logs button clicked.");
+		final MailSender sender = new MailSender();
+		final String logDir = context.getFilesDir().getAbsolutePath();
+
+		AsyncTask<Void, Void, Boolean> asyncTask = new AsyncTask<Void, Void, Boolean>() {
+			@Override 
+			public Boolean doInBackground(Void... arg) {
+
+				try {
+					sender.sendLogs(new File(logDir, ".lantern/lantern.log").toString());
+					Log.d(TAG, "Successfully sent log contents");
+					return true;
+				} catch (Exception e) {
+					Log.e(TAG, e.getMessage(), e);     
+				}
+				return false;
+			}
+
+			@Override
+			protected void onPostExecute(Boolean success) {
+				super.onPostExecute(success);
+				String msg;
+				if (success) {
+					msg = context.getResources().getString(R.string.success_log_email);
+				} else {
+					msg = context.getResources().getString(R.string.error_log_email);
+				}
+				showAlertDialog(activity, "Lantern", msg);
+			}
+		};
+
+		if (Build.VERSION.SDK_INT >= 11) {
+			asyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+		}
+		else {
+			asyncTask.execute();
+		}
+	}                                      
 
     // isPlayVersion checks whether or not the user installed Lantern via
     // the Google Play store
