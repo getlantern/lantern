@@ -23,11 +23,10 @@ import java.util.HashMap;
 
 import org.lantern.model.LangAdapter;
 import org.lantern.model.ProRequest;
-import org.lantern.model.ProResponse;
 import org.lantern.R;
 
 @EActivity(R.layout.languages)
-public class LanguageActivity extends FragmentActivity implements ProResponse {
+public class LanguageActivity extends FragmentActivity {
 
     private static final String TAG = "LanguageActivity";
 

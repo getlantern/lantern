@@ -26,7 +26,6 @@ import java.util.ArrayList;
 
 import org.lantern.model.Utils;
 import org.lantern.R;
-import net.rimoto.intlphoneinput.IntlPhoneInput;
 
 public class UserForm extends Fragment {
     private static final String TAG = "UserForm";
@@ -37,8 +36,6 @@ public class UserForm extends Fragment {
     private EditText textInput;
 
     private CharSequence[] mFormDetails;
-
-    private IntlPhoneInput phoneInput;
 
     private static final String BULLET_SYMBOL = "&#8226";
 
