@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.text.Html;
 import android.util.Log;
@@ -17,23 +16,18 @@ import android.widget.TextView;
 
 import android.support.v4.app.FragmentActivity;
 
-import java.io.File;
-
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.ViewById;
 
 import org.lantern.LanternApp;
 import org.lantern.model.DeviceItem;
-import org.lantern.model.MailSender;
 import org.lantern.model.SessionManager;
 import org.lantern.model.Utils;
 import org.lantern.R;
 
-import go.lantern.Lantern;
-
 @EActivity(R.layout.pro_account)
-public class ProAccountActivity extends FragmentActivity implements ProResponse {
+public class ProAccountActivity extends FragmentActivity {
 
     @ViewById
     TextView proAccountText, emailAddress, sendLogsBtn, logoutBtn, deviceName;
@@ -91,25 +85,6 @@ public class ProAccountActivity extends FragmentActivity implements ProResponse 
             }
         };
 
-    }
-
-    @Override
-    public void onSuccess() {
-        // clear user preferences now and unlink device
-        session.unlinkDevice();
-        // After logout, redirect to main screen
-        Intent i = new Intent(this, LanternMainActivity_.class);
-        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(i);
-
-        finish();
-    }
-
-    @Override
-    public void onError() {
-        Utils.showErrorDialog(this, 
-                getResources().getString(R.string.unable_to_cancel_account));
     }
 
     public void changeEmailAddress(View view) {

@@ -31,6 +31,7 @@ import org.lantern.fragment.ErrorDialogFragment;
 import org.lantern.fragment.PaymentFormFragment;
 import org.lantern.fragment.ProgressDialogFragment;
 import org.lantern.model.ProRequest;
+import org.lantern.model.ProResponse;
 import org.lantern.model.SessionManager;
 import org.lantern.model.Utils;
 import org.lantern.R;
@@ -184,19 +185,15 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
     }
 
     @Override
-    public void onSuccess() {
+    public void onResult(boolean success) {
+        if (!success) {
+            Utils.showErrorDialog(this, 
+                    getResources().getString(R.string.invalid_payment_method));
+            return;
+        }
         session.setIsProUser(true);
-
-        Intent intent = new Intent(this, WelcomeActivity_.class);
-        this.startActivity(intent);
+        startActivity(new Intent(this, WelcomeActivity_.class));
     }
-
-    @Override
-    public void onError() {
-        Utils.showErrorDialog(this, 
-                getResources().getString(R.string.invalid_payment_method));
-    }
-
 
     private void finishProgress(String email, String token) {
 
@@ -206,7 +203,7 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
         session.setProUser(email, token);
 
         // submit token to Pro server here
-        new ProRequest(this, false).execute("purchase");
+        new ProRequest(getApplicationContext(), false, this).execute("purchase");
 
         if (progressFragment != null) {
             progressFragment.dismiss();

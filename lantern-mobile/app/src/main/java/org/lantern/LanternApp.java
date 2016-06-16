@@ -1,22 +1,21 @@
 package org.lantern;
 
 import android.app.Application;
+import android.content.Context;
 import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
 import io.fabric.sdk.android.Fabric;
 
-import org.lantern.activity.ProResponse;
 import org.lantern.model.ProPlan;
 import org.lantern.model.ProRequest;
 import org.lantern.model.SessionManager;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
 
 
-public class LanternApp extends Application implements ProResponse {
+public class LanternApp extends Application {
     private static final String TAG = "LanternApp";
     private static SessionManager session;
 
@@ -31,19 +30,10 @@ public class LanternApp extends Application implements ProResponse {
         }
 
         Fabric.with(this, new Crashlytics());
-        session = new SessionManager(getApplicationContext());
-        new ProRequest(this, false).execute("plans");
-        new ProRequest(this, false).execute("newuser");
-    }
-
-    @Override
-    public void onSuccess() {
-
-    }
-
-    @Override
-    public void onError() {
-
+		Context context = getApplicationContext();
+        session = new SessionManager(context);
+		new ProRequest(context, false, null).execute("plans");
+		new ProRequest(context, false, null).execute("newuser");
     }
 
     @Subscribe

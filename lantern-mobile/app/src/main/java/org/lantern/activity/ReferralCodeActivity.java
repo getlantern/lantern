@@ -18,6 +18,7 @@ import org.androidannotations.annotations.ViewById;
 import org.lantern.LanternApp;
 import org.lantern.fragment.UserForm;
 import org.lantern.model.ProRequest;
+import org.lantern.model.ProResponse;
 import org.lantern.model.SessionManager;
 import org.lantern.model.Utils;
 import org.lantern.R;
@@ -52,27 +53,29 @@ public class ReferralCodeActivity extends FragmentActivity implements ProRespons
         fragment = (UserForm) getSupportFragmentManager().findFragmentById(R.id.user_form_fragment);
     }
 
-    @Override
-    public void onError() {
-        Utils.showErrorDialog(this, "Invalid referral code");
-    }
-
-    @Override
-    public void onSuccess() {
-        session.setReferralApplied();
-        launchCheckout();
-    }
+	@Override
+	public void onResult(boolean success) {
+    	if (!success) {
+			Utils.showErrorDialog(this, getResources().getString(R.string.invalid_referral_code));
+			return;
+		}
+		session.setReferralApplied();
+		launchCheckout();
+	}
 
     public void sendResult(View view) {
         if (fragment != null) {
             String referral = fragment.getNumber();
-            if (referral != null && !referral.equals("")) {
-                session.setReferral(referral);
-                new ProRequest(this, true).execute("referral");
-            } else {
-                onError();
-            }
-        }
+
+			if (referral == null || referral.equals("")) {
+				Utils.showErrorDialog(this, getResources().getString(R.string.invalid_referral_code));
+				return;
+			}
+
+			session.setReferral(referral);
+			new ProRequest(getApplicationContext(), true, 
+				this).execute("referral");
+		}
     }
 
     public void launchCheckout() {

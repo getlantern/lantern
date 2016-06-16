@@ -182,7 +182,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         if (session.isProUser()) {
             // hide data usage summary view right away if its a Pro user
             dataUsageView.setVisibility(View.GONE);
-            new ProRequest(this, false).execute("userdata");
+            new ProRequest(getApplicationContext(), false, null).execute("userdata");
         }
 
         setupSideMenu();
@@ -196,9 +196,10 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
                 }
             }
         }, 4000);
-    }
+	}
 
-    private void setBandwidthQuota() {
+	private void setBandwidthQuota() {
+
         if (!session.isProUser()) {
             long quota = Lantern.GetBandwidthQuota();
             long remaining = Lantern.GetBandwidthRemaining();

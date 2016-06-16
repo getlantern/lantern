@@ -34,7 +34,7 @@ import org.greenrobot.eventbus.ThreadMode;
 import go.lantern.Lantern;
 
 @EActivity(R.layout.pro_plans)
-public class PlansActivity extends FragmentActivity implements ProResponse {
+public class PlansActivity extends FragmentActivity {
 
     private static final String TAG = "PlansActivity";
     private static final String mCheckoutUrl = 
@@ -86,7 +86,7 @@ public class PlansActivity extends FragmentActivity implements ProResponse {
 
         updatePrices(Locale.getDefault());
 
-        new ProRequest(this, false).execute("plans");
+        new ProRequest(this, false, null).execute("plans");
     }
 
     // updatePrices updates the stored plan prices 
@@ -113,15 +113,6 @@ public class PlansActivity extends FragmentActivity implements ProResponse {
     protected void onDestroy() {
         super.onDestroy();
         EventBus.getDefault().unregister(this);
-    }
-
-    @Override
-    public void onSuccess() {
-    }
-
-    @Override
-    public void onError() {
-
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

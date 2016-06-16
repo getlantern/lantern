@@ -11,6 +11,7 @@ import org.androidannotations.annotations.EActivity;
 import org.lantern.LanternApp;
 import org.lantern.fragment.UserForm;
 import org.lantern.model.ProRequest;
+import org.lantern.model.ProResponse;
 import org.lantern.model.SessionManager;
 import org.lantern.model.Utils;
 import org.lantern.R;
@@ -29,13 +30,11 @@ public class VerifyCodeActivity extends FragmentActivity implements ProResponse 
     }
 
     @Override
-    public void onError() {
-        Utils.showErrorDialog(this,
-                getResources().getString(R.string.invalid_verification_code));
-    }
-
-    @Override
-    public void onSuccess() {
+    public void onResult(boolean success) {
+        if (!success) {
+            onError();
+            return;
+        }
         session.linkDevice();
 
         if (session.getProPlan() != null) {
@@ -59,19 +58,23 @@ public class VerifyCodeActivity extends FragmentActivity implements ProResponse 
         }
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
-        finish();
+        finish();   
     }
 
     public void sendResult(View view) {
-        if (fragment != null) {
-            String code = fragment.getNumber();
-            if (code != null) {
-                session.setVerifyCode(code);
-                new ProRequest(this, true).execute("code");
-            } else {
-                onError();
-            }
+        if (fragment == null) {
+            Log.e(TAG, "Missing fragment in VerifyCodeActivity");
+            return;
         }
+
+        String code = fragment.getNumber();
+        if (code == null) {
+            onError();
+            return;
+        }
+
+        session.setVerifyCode(code);
+        new ProRequest(getApplicationContext(), true, this).execute("code");
     }
 }
  

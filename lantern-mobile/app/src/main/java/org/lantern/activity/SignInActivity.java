@@ -12,6 +12,7 @@ import org.lantern.LanternApp;
 import org.lantern.fragment.ProgressDialogFragment;
 import org.lantern.fragment.UserForm;
 import org.lantern.model.ProRequest;
+import org.lantern.model.ProResponse;
 import org.lantern.model.SessionManager;
 import org.lantern.model.Utils;
 import org.lantern.R;
@@ -48,27 +49,32 @@ public class SignInActivity extends FragmentActivity implements ProResponse {
         fragment = (UserForm) getSupportFragmentManager().findFragmentById(R.id.user_form_fragment);
     }
 
-    @Override
-    public void onSuccess() {
-        Intent intent = new Intent(this, VerifyCodeActivity_.class);
-        startActivity(intent);
-    }
+	@Override
+	public void onResult(boolean success) {
+    	if (!success) {
+			onError();
+        	return;
+		}
+		startActivity(new Intent(this, VerifyCodeActivity_.class));
+	}
 
-    @Override
     public void onError() {
-        Utils.showErrorDialog(this, "Invalid phone number");
+        Utils.showErrorDialog(this, getResources().getString(R.string.invalid_email));
     }
 
     public void sendResult(View view) {
-        if (fragment != null) {
-            String number = fragment.getPhoneNumber();
-            if (number != null) {
-                    session.setPhoneNumber(number);
-                    String command = signIn ? "signin" : "number";
-                    new ProRequest(this, true).execute(command);
-            } else {
-                onError();
-            }
-        }
+		if (fragment == null) {
+        	Log.e(TAG, "Missing fragment in SigninActivity");
+			return;
+		}
+		String number = fragment.getEmailAddress();
+		if (number == null) {
+        	onError();
+			return;
+		}
+
+		session.setPhoneNumber(number);
+		String command = signIn ? "signin" : "number";
+		new ProRequest(getApplicationContext(), true, this).execute(command);
     }
 }

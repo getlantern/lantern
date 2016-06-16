@@ -1,10 +1,10 @@
 package org.lantern.model;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import org.lantern.activity.ProResponse;
 import org.lantern.fragment.ProgressDialogFragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -19,21 +19,24 @@ public class ProRequest extends AsyncTask<String, Void, Boolean> {
 
     private static final String TAG = "ProRequest";
 
+	private ProResponse callback;
+
+    private Context context;
+    private String command;
     private ProgressDialogFragment progressFragment = null;
     private FragmentManager manager;
-    private ProResponse response;
-    private FragmentActivity activity;
     private String errMsg;
     private SessionManager session;
     private boolean noNetworkConnection = false;
 
-    public ProRequest(ProResponse response, boolean showProgress) {
-        this.response = response;
-        if (response instanceof FragmentActivity && showProgress) {
-            manager = ((FragmentActivity)response).getSupportFragmentManager();
+    public ProRequest(Context context, boolean showProgress, ProResponse callback) {
+        this.context = context;
+	    this.callback = callback;
+        this.session = LanternApp.getSession();
+
+        if (showProgress) {
             progressFragment = ProgressDialogFragment.newInstance(R.string.progressMessage);
         }
-        session = LanternApp.getSession();
     }
 
     @Override
@@ -46,18 +49,10 @@ public class ProRequest extends AsyncTask<String, Void, Boolean> {
 
     @Override
     protected Boolean doInBackground(String... params) {
-        String command = params[0];
+        this.command = params[0];
         try {
 
-            Context c;
-            if (response instanceof LanternApp) {
-                c = ((LanternApp)response).getApplicationContext();
-            } else {
-                c = ((FragmentActivity)response).getApplicationContext();
-            }
-
-
-            if (!Utils.isNetworkAvailable(c)) {
+            if (!Utils.isNetworkAvailable(context)) {
                 noNetworkConnection = true;
                 return false;
             }
@@ -77,17 +72,8 @@ public class ProRequest extends AsyncTask<String, Void, Boolean> {
             progressFragment.dismissAllowingStateLoss();
         }
 
-        if (success) {
-            response.onSuccess();
-        } else {                   
-            if (noNetworkConnection && response instanceof FragmentActivity) {
-                FragmentActivity activity = (FragmentActivity)response;
-                Utils.showErrorDialog(activity, 
-                        activity.getResources().getString(R.string.no_internet_connection));
-
-            } else {
-                response.onError();
-            }
-        }
+		if (callback != null) {
+			callback.onResult(success);
+		}
     }
 }
