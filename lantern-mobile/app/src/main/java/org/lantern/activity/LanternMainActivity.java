@@ -591,7 +591,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         powerLantern.setLayoutParams(lp);
     }
 
-    // removeRule updates a relative layout to remove the given rule 
+    // removeRule updates a relative layout to remove the given rule
     // note: removeRule was only added in API level 17
     private void removeRule(RelativeLayout.LayoutParams lp, int rule) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) { // API 17
@@ -606,7 +606,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         final ArrayList<NavItem> navItems,
         final Resources resources,
         final boolean showFeed) {
-      
         // store show/hide feed preference
         session.updateFeedPreference(showFeed);
         showFeedview();
@@ -645,11 +644,11 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         if (!Utils.isNetworkAvailable(getApplicationContext())) {
             powerLantern.setChecked(false);
             if (on) {
-                // User tried to turn Lantern on, but there's no 
+                // User tried to turn Lantern on, but there's no
                 // Internet connection available.
-                Utils.showAlertDialog(this, "Lantern", 
+                Utils.showAlertDialog(this, "Lantern",
                         getResources().getString(R.string.no_internet_connection));
-            } 
+            }
             return;
         }
 
@@ -672,7 +671,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
                     updateStatus(true);
                     org.lantern.mobilesdk.Lantern.disable(getApplicationContext());
                     sendIntentToService();
-                }    
+                }
             } catch (Exception e) {
                 Log.e(TAG, "Could not establish VPN connection: " + e.getMessage());
                 powerLantern.setChecked(false);
@@ -691,8 +690,8 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         }, 2000);
     }
 
-    // override onKeyDown and onBackPressed default 
-    // behavior to prevent back button from interfering 
+    // override onKeyDown and onBackPressed default
+    // behavior to prevent back button from interfering
     // with on/off switch
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event)  {
@@ -780,7 +779,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         Log.d(TAG, "Feed item clicked: " + url.getText());
 
         if (lastFeedSelected != null) {
-            // whenever a user clicks on an article, send a custom event to GA 
+            // whenever a user clicks on an article, send a custom event to GA
             // that includes the source/feed category
             Utils.sendFeedEvent(getApplicationContext(),
                     String.format("feed-%s", lastFeedSelected));
@@ -793,7 +792,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             .webViewAllowFileAccessFromFileURLs(true)
             .webViewJavaScriptCanOpenWindowsAutomatically(true)
             .webViewLoadWithProxy(session.startLocalProxy())
-            // if we aren't in full-device VPN mode, configure the 
+            // if we aren't in full-device VPN mode, configure the
             // WebView to use our local proxy
             .show(url.getText().toString());
     }
@@ -802,7 +801,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         ViewGroup view = (ViewGroup) child.getParent().getParent();
         TextView url = (TextView)view.findViewById(R.id.link);
         Log.d(TAG, "Share feed item clicked: " + url.getText());
-       
         TextView title = (TextView)view.findViewById(R.id.title);
         if (title.getText() != null) {
             String shareMsg = String.format(getResources().getString(R.string.share_feed_item), title.getText().toString(), url.getText().toString());
@@ -917,7 +915,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         }
     }
 
-    // LanternReceiver is used to capture broadcasts 
+    // LanternReceiver is used to capture broadcasts
     // such as network connectivity and when the app
     // is powered off
     public class LanternReceiver extends BroadcastReceiver {
@@ -927,7 +925,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
             if (isInitialStickyBroadcast()) {
                 // We only want to handle connectivity changes
-                // so ignore the initial sticky broadcast for 
+                // so ignore the initial sticky broadcast for
                 // NETWORK_STATE_CHANGED_ACTION.
                 return;
             }
@@ -958,7 +956,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         }
     }
 
-    public void onActivityResumed(Activity activity) { 
+    public void onActivityResumed(Activity activity) {
         // we only want to refresh the public feed whenever the
         // app returns to the foreground instead of every
         // time the main activity is resumed
