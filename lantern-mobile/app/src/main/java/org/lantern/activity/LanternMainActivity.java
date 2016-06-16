@@ -48,6 +48,7 @@ import org.lantern.fragment.FeedFragment;
 import org.lantern.model.GetFeed;
 import org.lantern.model.ListAdapter;
 import org.lantern.model.NavItem;
+import org.lantern.model.ProRequest;
 import org.lantern.model.SessionManager;
 import org.lantern.model.Shareable;
 import org.lantern.model.Utils;
@@ -181,6 +182,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         if (session.isProUser()) {
             // hide data usage summary view right away if its a Pro user
             dataUsageView.setVisibility(View.GONE);
+            new ProRequest(this, false).execute("userdata");
         }
 
         setupSideMenu();

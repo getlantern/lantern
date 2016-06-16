@@ -47,7 +47,7 @@ public class MailSender {
             final MergeVar[] mergeValues = {
                 new MergeVar("protoken", session.Token()),
                 new MergeVar("deviceid", session.DeviceId()),
-                new MergeVar("emailaddress", session.StripeEmail()),
+                new MergeVar("emailaddress", session.EmailAddress()),
                 new MergeVar("phonenumber", session.PhoneNumber())
             };
 

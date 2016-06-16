@@ -9,8 +9,10 @@ import android.provider.Settings.Secure;
 import android.util.Log;
 import android.widget.TextView;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Currency;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -42,6 +44,7 @@ public class SessionManager implements Lantern.Session {
     private static final String PRO_PLAN = "proplan";
     private static final String PHONE_NUMBER = "phonenumber";
     private static final String EMAIL_ADDRESS = "emailAddress";
+    private static final String EXPIRY_DATE = "expirydate";
     private static final String TOKEN = "token";
     private static final String PREF_USE_VPN = "pref_vpn";
     private static final String PREF_NEWSFEED = "pref_newsfeed";
@@ -246,6 +249,19 @@ public class SessionManager implements Lantern.Session {
 
     public void UserData(String userStatus, long expiration, String subscription) {
         Log.d(TAG, String.format("Got user data; status=%s expiration=%s subscription=%s", userStatus, expiration, subscription));
+        setExpiration(expiration);
+    }
+
+    private void setExpiration(long expiration) {
+        Date expiry = new Date(expiration * 1000);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+        String dateToStr = dateFormat.format(expiry);
+        Log.d(TAG, "Lantern pro expiration date: " + dateToStr);
+        editor.putString(EXPIRY_DATE, dateToStr).commit();
+    }
+
+    public String getExpiration() {
+        return mPrefs.getString(EXPIRY_DATE, "");
     }
 
 	public void proUserStatus(String status) {
@@ -292,7 +308,7 @@ public class SessionManager implements Lantern.Session {
         return this.stripeToken;
     }
 
-    public String StripeEmail() {
+    public String EmailAddress() {
         return mPrefs.getString(EMAIL_ADDRESS, "");
     }
 

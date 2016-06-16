@@ -21,7 +21,7 @@ type Session interface {
 	Token() string
 	Plan() string
 	StripeToken() string
-	StripeEmail() string
+	EmailAddress() string
 	SetToken(string)
 	SetUserId(int)
 	UserData(string, int64, string)
@@ -74,7 +74,7 @@ func purchase(r *proRequest) (*client.Response, error) {
 	purchase := client.Purchase{
 		IdempotencyKey: stripe.NewIdempotencyKey(),
 		StripeToken:    r.session.StripeToken(),
-		StripeEmail:    r.session.StripeEmail(),
+		StripeEmail:    r.session.EmailAddress(),
 		Plan:           r.session.Plan(),
 		Currency:       r.session.Currency(),
 	}
@@ -170,7 +170,6 @@ func ProRequest(shouldProxy bool, command string, session Session) bool {
 		session.SetCode(res.User.Referral)
 	} else if command == "code" {
 		res, err = commands["userdata"](req)
-		log.Debugf("STATUS IS %s", res.Status)
 		if err != nil || res.Status != "ok" {
 			log.Errorf("Error making request to Pro server: %v", err)
 			return false

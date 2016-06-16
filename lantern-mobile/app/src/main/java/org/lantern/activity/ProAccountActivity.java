@@ -55,9 +55,14 @@ public class ProAccountActivity extends FragmentActivity implements ProResponse 
 
         session = LanternApp.getSession();
 
+        if (!session.deviceLinked()) {
+            finish();
+            return;
+        }
+
         session.setPlanText(proAccountText, getResources());
 
-        proAccountText.setText(String.format(getResources().getString(R.string.pro_account_expires), "06/06/2017", 6));
+        proAccountText.setText(String.format(getResources().getString(R.string.pro_account_expires), session.getExpiration(), 6));
         emailAddress.setText(session.EmailAddress());
 
         deviceName.setText(android.os.Build.MODEL);
