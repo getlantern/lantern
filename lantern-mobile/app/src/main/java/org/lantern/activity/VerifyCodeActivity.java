@@ -7,6 +7,7 @@ import android.view.View;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.FragmentById;
 
 import org.lantern.LanternApp;
 import org.lantern.fragment.UserForm;
@@ -21,12 +22,13 @@ public class VerifyCodeActivity extends FragmentActivity implements ProResponse 
     private static final String TAG = "VerifyCodeActivity";
 
     private SessionManager session;
-    private UserForm fragment;
+
+    @FragmentById(R.id.user_form_fragment)
+    UserForm fragment;
 
     @AfterViews
     void afterViews() {
         session = LanternApp.getSession();
-        fragment = (UserForm) getSupportFragmentManager().findFragmentById(R.id.user_form_fragment);
     }
 
     @Override
@@ -61,13 +63,18 @@ public class VerifyCodeActivity extends FragmentActivity implements ProResponse 
         finish();   
     }
 
+    public void onError() {
+        Utils.showErrorDialog(this,
+            getResources().getString(R.string.invalid_verification_code));
+    }
+
     public void sendResult(View view) {
         if (fragment == null) {
             Log.e(TAG, "Missing fragment in VerifyCodeActivity");
             return;
         }
 
-        String code = fragment.getNumber();
+        String code = fragment.getUserInput();
         if (code == null) {
             onError();
             return;

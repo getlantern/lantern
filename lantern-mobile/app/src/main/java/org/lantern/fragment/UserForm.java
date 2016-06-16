@@ -50,12 +50,7 @@ public class UserForm extends Fragment {
         }
 
         if (mFormDetails != null) {
-            TextView formDetails;
-            if (mFormType != null && mFormType.equals("phone")) {
-                formDetails = (TextView)view.findViewById(R.id.phoneDetails);
-            } else {
-                formDetails = (TextView)view.findViewById(R.id.formDetails);
-            }
+            TextView formDetails = (TextView)view.findViewById(R.id.formDetails);
             ArrayList<String> items = new ArrayList<String>();
 
             for (CharSequence s : Arrays.asList(mFormDetails)) {
@@ -68,16 +63,9 @@ public class UserForm extends Fragment {
 
         textInput = (EditText)view.findViewById(R.id.email);
         LinearLayout normView  = (LinearLayout)view.findViewById(R.id.auth_device_view);
-        LinearLayout phoneView  = (LinearLayout)view.findViewById(R.id.phone_device_view);
 
-        if (mFormType != null && mFormType.equals("phone")) {
-            phoneInput = (IntlPhoneInput)view.findViewById(R.id.phone);
-            normView.setVisibility(View.INVISIBLE);
-            phoneView.setVisibility(View.VISIBLE);
-        } else {
-            View separator = view.findViewById(R.id.separator);
-            //Utils.configureEmailInput(textInput, separator);
-        }
+        View separator = view.findViewById(R.id.separator);
+        Utils.configureEmailInput(textInput, separator);
 
         if (mFormType != null) {
             if (mFormType.equals("verify")) {
@@ -106,19 +94,7 @@ public class UserForm extends Fragment {
         mFormType = a.getString(R.styleable.UserForm_formType);
     }
 
-    // this method returns null if the phone number entered
-    // is invalid
-    public String getPhoneNumber() {
-        if (phoneInput != null) {
-            if (!phoneInput.isValid()) {
-                return null;
-            }
-            return phoneInput.getNumber();
-        }
-        return null;
-    }
-
-    public String getNumber() {
+    public String getUserInput() {
         if (textInput != null) {
             return textInput.getText().toString();
         }

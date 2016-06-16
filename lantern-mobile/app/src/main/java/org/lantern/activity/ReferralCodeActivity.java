@@ -65,7 +65,7 @@ public class ReferralCodeActivity extends FragmentActivity implements ProRespons
 
     public void sendResult(View view) {
         if (fragment != null) {
-            String referral = fragment.getNumber();
+            String referral = fragment.getUserInput();
 
 			if (referral == null || referral.equals("")) {
 				Utils.showErrorDialog(this, getResources().getString(R.string.invalid_referral_code));

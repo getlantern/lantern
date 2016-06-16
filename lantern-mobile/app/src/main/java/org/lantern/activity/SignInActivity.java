@@ -67,7 +67,7 @@ public class SignInActivity extends FragmentActivity implements ProResponse {
         	Log.e(TAG, "Missing fragment in SigninActivity");
 			return;
 		}
-		String number = fragment.getEmailAddress();
+		String number = fragment.getUserInput();
 		if (number == null) {
         	onError();
 			return;
