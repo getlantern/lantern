@@ -270,7 +270,7 @@ func grabCerts() {
 			continue
 		}
 		log.Tracef("Grabbing certs for IP %s, domain %s", ip, domain)
-		cwt, err := tlsdialer.DialForTimings(net.DialTimeout, 10*time.Second, time.Time{}, "tcp", ip+":443", false, &tls.Config{ServerName: domain})
+		cwt, err := tlsdialer.DialForTimings(net.DialTimeout, 10*time.Second, "tcp", ip+":443", false, &tls.Config{ServerName: domain})
 		if err != nil {
 			log.Errorf("Unable to dial IP %s, domain %s: %s", ip, domain, err)
 			continue
@@ -358,7 +358,7 @@ func buildModel(cas map[string]*castat, masquerades []*masquerade, useFallbacks 
 			fb["cert"] = strings.Replace(cert, "\n", "\\n", -1)
 
 			info := f
-			dialer, err := info.Dialer(defaultDeviceID)
+			dialer, err := client.ChainedDialer(info, defaultDeviceID)
 			if err != nil {
 				log.Debugf("Skipping fallback %v because of error building dialer: %v", f.Addr, err)
 				continue
