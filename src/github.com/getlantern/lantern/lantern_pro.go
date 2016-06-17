@@ -21,7 +21,7 @@ type Session interface {
 	Token() string
 	Plan() string
 	StripeToken() string
-	EmailAddress() string
+	Email() string
 	SetToken(string)
 	SetUserId(int)
 	UserData(string, int64, string)
@@ -74,7 +74,7 @@ func purchase(r *proRequest) (*client.Response, error) {
 	purchase := client.Purchase{
 		IdempotencyKey: stripe.NewIdempotencyKey(),
 		StripeToken:    r.session.StripeToken(),
-		StripeEmail:    r.session.EmailAddress(),
+		StripeEmail:    r.session.Email(),
 		Plan:           r.session.Plan(),
 		Currency:       r.session.Currency(),
 	}
@@ -83,7 +83,7 @@ func purchase(r *proRequest) (*client.Response, error) {
 }
 
 func number(r *proRequest) (*client.Response, error) {
-	r.user.PhoneNumber = r.session.PhoneNumber()
+	r.user.Email = r.session.Email()
 	res, err := r.proClient.UserLinkConfigure(r.user)
 	if err != nil || res.Status != "ok" {
 		return r.proClient.UserLinkRequest(r.user)
@@ -92,7 +92,7 @@ func number(r *proRequest) (*client.Response, error) {
 }
 
 func signin(r *proRequest) (*client.Response, error) {
-	r.user.PhoneNumber = r.session.PhoneNumber()
+	r.user.Email = r.session.Email()
 	return r.proClient.UserLinkRequest(r.user)
 }
 

@@ -235,7 +235,8 @@ func (c *Client) UserLinkRequest(user User) (res *Response, err error) {
 	var payload []byte
 	payload, err = c.post(`/user-link-request`, user.headers(),
 		url.Values{
-			"telephone": {user.PhoneNumber},
+			"email":      {user.Email},
+			"deviceName": {user.Auth.DeviceID},
 		},
 	)
 	if err != nil {

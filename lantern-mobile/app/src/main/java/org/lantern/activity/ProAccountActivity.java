@@ -57,7 +57,7 @@ public class ProAccountActivity extends FragmentActivity {
         session.setPlanText(proAccountText, getResources());
 
         proAccountText.setText(String.format(getResources().getString(R.string.pro_account_expires), session.getExpiration(), 6));
-        emailAddress.setText(session.EmailAddress());
+        emailAddress.setText(session.Email());
 
         deviceName.setText(android.os.Build.MODEL);
 

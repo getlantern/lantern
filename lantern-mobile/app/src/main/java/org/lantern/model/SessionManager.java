@@ -308,7 +308,7 @@ public class SessionManager implements Lantern.Session {
         return this.stripeToken;
     }
 
-    public String EmailAddress() {
+    public String Email() {
         return mPrefs.getString(EMAIL_ADDRESS, "");
     }
 
