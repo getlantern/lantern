@@ -2,6 +2,7 @@ package netx
 
 import (
 	"io"
+	"io/ioutil"
 	"net"
 	"sync"
 	"testing"
@@ -39,6 +40,8 @@ func TestSimulatedProxy(t *testing.T) {
 		}
 		_, err = conn.Write(b)
 		assert.NoError(t, err, "Unable to write to proxy")
+		// Keep reading from the connection until the client closes it
+		io.Copy(ioutil.Discard, conn)
 		wg.Done()
 	}()
 
