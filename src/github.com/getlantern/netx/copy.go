@@ -5,6 +5,8 @@ import (
 	"net"
 	"sync/atomic"
 	"time"
+
+	"github.com/getlantern/errors"
 )
 
 var (
@@ -41,7 +43,7 @@ func doCopy(dst net.Conn, src net.Conn, buf []byte, errCh chan error, stop *uint
 		if nr > 0 {
 			nw, ew := dst.Write(buf[0:nr])
 			if ew != nil && !isTimeout(err) {
-				err = ew
+				err = errors.New("Error writing: %v", ew)
 				break
 			}
 			if nr != nw {
@@ -53,7 +55,7 @@ func doCopy(dst net.Conn, src net.Conn, buf []byte, errCh chan error, stop *uint
 			break
 		}
 		if er != nil && !isTimeout(er) {
-			err = er
+			err = errors.New("Error reading: %v", er)
 			break
 		}
 	}
