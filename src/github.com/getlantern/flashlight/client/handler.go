@@ -125,7 +125,7 @@ func pipeData(clientConn net.Conn, connOut net.Conn, op *ops.Op, closeFunc func(
 	bufIn := buffers.Get()
 	defer buffers.Put(bufOut)
 	defer buffers.Put(bufIn)
-	writeErr, readErr := netx.BidiCopy(connOut, clientConn, bufOut, bufIn)
+	writeErr, readErr := netx.BidiCopy(connOut, clientConn, bufOut, bufIn, 30*time.Second)
 	// Note - we ignore idled errors because these are okay per the HTTP spec.
 	// See https://www.w3.org/Protocols/rfc2616/rfc2616-sec8.html#sec8.1.4
 	if readErr != nil && readErr != io.EOF {
