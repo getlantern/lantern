@@ -23,6 +23,8 @@ func TestSimulatedProxy(t *testing.T) {
 		data[i] = 5
 	}
 
+	writeTimeout := copyTimeout * 10
+
 	_, fdc, err := fdcount.Matching("TCP")
 	if err != nil {
 		t.Fatal(err)
@@ -75,7 +77,7 @@ func TestSimulatedProxy(t *testing.T) {
 		}
 		defer out.Close()
 
-		errOut, errIn := BidiCopy(out, in, make([]byte, 32768), make([]byte, 32768), 5*time.Second)
+		errOut, errIn := BidiCopy(out, in, make([]byte, 32768), make([]byte, 32768), writeTimeout)
 		assert.NoError(t, errOut, "Error copying to server")
 		assert.Equal(t, io.ErrShortWrite, errIn, "Should have received ErrShortWrite copying to client")
 		wg.Done()
@@ -105,7 +107,7 @@ func TestSimulatedProxy(t *testing.T) {
 		}
 		if i >= len(read)*9/10 {
 			// Sleep really long to force a short write
-			time.Sleep(350 * time.Millisecond)
+			time.Sleep(writeTimeout * 2)
 		} else {
 			// Sleep slightly longer than copyTimeout to force looping on write
 			time.Sleep(copyTimeout * 2)
