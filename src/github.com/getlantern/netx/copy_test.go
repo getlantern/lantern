@@ -13,6 +13,16 @@ import (
 )
 
 func TestSimulatedProxy(t *testing.T) {
+	originalCopyTimeout := copyTimeout
+	copyTimeout = 5 * time.Millisecond
+	defer func() {
+		copyTimeout = originalCopyTimeout
+	}()
+	data := make([]byte, 3000000)
+	for i := 0; i < len(data); i++ {
+		data[i] = 5
+	}
+
 	_, fdc, err := fdcount.Matching("TCP")
 	if err != nil {
 		t.Fatal(err)
@@ -33,13 +43,13 @@ func TestSimulatedProxy(t *testing.T) {
 			return
 		}
 		defer conn.Close()
-		b := make([]byte, 5)
+		b := make([]byte, len(data))
 		_, err = io.ReadFull(conn, b)
 		if !assert.NoError(t, err, "Unable to read from proxy") {
 			return
 		}
 		_, err = conn.Write(b)
-		assert.NoError(t, err, "Unable to write to proxy")
+		assert.Error(t, err, "Writing to proxy should fail because client timed out on reading")
 		// Keep reading from the connection until the client closes it
 		io.Copy(ioutil.Discard, conn)
 		wg.Done()
@@ -65,9 +75,9 @@ func TestSimulatedProxy(t *testing.T) {
 		}
 		defer out.Close()
 
-		errOut, errIn := BidiCopy(out, in, make([]byte, 32768), make([]byte, 32768))
+		errOut, errIn := BidiCopy(out, in, make([]byte, 32768), make([]byte, 32768), 5*time.Second)
 		assert.NoError(t, errOut, "Error copying to server")
-		assert.NoError(t, errIn, "Error copying to client")
+		assert.Equal(t, io.ErrShortWrite, errIn, "Should have received ErrShortWrite copying to client")
 		wg.Done()
 	}()
 
@@ -77,20 +87,31 @@ func TestSimulatedProxy(t *testing.T) {
 		return
 	}
 
-	data := []byte("Hello copying world")
 	_, err = conn.Write(data)
 	if !assert.NoError(t, err, "Unable to write from client") {
 		return
 	}
-	read := make([]byte, 5)
-	n, err := io.ReadFull(conn, read)
-	if !assert.NoError(t, err, "Unable to read to client") {
-		return
+	read := make([]byte, len(data))
+	// Read slowly
+	i := 0
+	for {
+		n, err := conn.Read(read[i : i+len(read)/10])
+		i += n
+		if err == io.EOF {
+			break
+		}
+		if !assert.NoError(t, err, "Unable to read to client") {
+			return
+		}
+		if i >= len(read)*9/10 {
+			// Sleep really long to force a short write
+			time.Sleep(350 * time.Millisecond)
+		} else {
+			// Sleep slightly longer than copyTimeout to force looping on write
+			time.Sleep(copyTimeout * 2)
+		}
 	}
-	if !assert.EqualValues(t, 5, n, "Wrong amount of data read by client") {
-		return
-	}
-	assert.Equal(t, "Hello", string(read), "Client read wrong data")
+	assert.EqualValues(t, data[:i], read[:i], "Client read wrong data")
 	conn.Close()
 
 	wg.Wait()
