@@ -18,12 +18,12 @@ func TestSimulatedProxy(t *testing.T) {
 	defer func() {
 		copyTimeout = originalCopyTimeout
 	}()
-	data := make([]byte, 3000000)
+	data := make([]byte, 30000000)
 	for i := 0; i < len(data); i++ {
 		data[i] = 5
 	}
 
-	writeTimeout := copyTimeout * 10
+	writeTimeout := copyTimeout * 25
 
 	_, fdc, err := fdcount.Matching("TCP")
 	if err != nil {
@@ -97,7 +97,11 @@ func TestSimulatedProxy(t *testing.T) {
 	// Read slowly
 	i := 0
 	for {
-		n, err := conn.Read(read[i : i+len(read)/10])
+		end := i + len(read)/10
+		if end > len(read) {
+			end = len(read)
+		}
+		n, err := conn.Read(read[i:end])
 		i += n
 		if err == io.EOF {
 			break
