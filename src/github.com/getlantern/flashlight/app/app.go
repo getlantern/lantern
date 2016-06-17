@@ -201,18 +201,18 @@ func (app *App) showExistingUI(addr string) error {
 	log.Debugf("Hitting local URL: %v", url)
 	resp, err := http.Get(url)
 	if err != nil {
-		log.Debugf("Could not hit local lantern")
-		if resp.Body != nil {
-			if err = resp.Body.Close(); err != nil {
-				log.Debugf("Error closing body! %s", err)
-			}
-		}
+		log.Debugf("Could not hit local lantern: %s", err)
 		return err
-	} else if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Unexpected response from existing Lantern: %d", resp.StatusCode)
-	} else {
-		return nil
 	}
+	if resp.Body != nil {
+		if err = resp.Body.Close(); err != nil {
+			log.Debugf("Error closing body! %s", err)
+		}
+	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Unexpected response from existing Lantern: %d", resp.StatusCode)
+	}
+	return nil
 }
 
 // AddExitFunc adds a function to be called before the application exits.
