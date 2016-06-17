@@ -32,8 +32,8 @@ public class LanternApp extends Application {
         Fabric.with(this, new Crashlytics());
 		Context context = getApplicationContext();
         session = new SessionManager(context);
+        session.newUser();
 		new ProRequest(context, false, null).execute("plans");
-		new ProRequest(context, false, null).execute("newuser");
     }
 
     @Subscribe

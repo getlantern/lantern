@@ -21,7 +21,9 @@ import java.util.Map;
 import org.lantern.activity.SignInActivity;
 import org.lantern.mobilesdk.StartResult;
 import org.lantern.mobilesdk.LanternNotRunningException;
+import org.lantern.model.Device;
 import org.lantern.model.ProPlan;
+import org.lantern.model.ProRequest;
 import org.lantern.vpn.Service;
 import org.lantern.R;                                    
 
@@ -51,6 +53,8 @@ public class SessionManager implements Lantern.Session {
 
     private long oneYearCost = 2700;
     private long twoYearCost = 4800;
+
+    private List<Device> devices = new ArrayList<Device>();
 
     private static final String defaultCurrencyCode = "usd";
 
@@ -88,6 +92,15 @@ public class SessionManager implements Lantern.Session {
                     "One Year Plan", false, 1, 2700));
         this.defaultPlans.add(createPlan(enLocale, "2y-usd",
                     "Two Year Plan", true, 2, 4800));
+    }
+
+    public void newUser() {
+        String proToken = Token();
+        if (proToken == null || proToken.equals("")) {
+            new ProRequest(context, false, null).execute("newuser");
+        } else {
+            Log.d(TAG, "Pro token is " + proToken);
+        }
     }
 
     public boolean isChineseUser() {
@@ -147,6 +160,14 @@ public class SessionManager implements Lantern.Session {
             }
         }
         return oneYearCost;
+    }
+
+    public void AddDevice(String id, String name) {
+        devices.add(new Device(id, name));
+    }
+
+    public List<Device> getDevices() {
+        return devices;
     }
 
     public static ProPlan createPlan(Locale locale, String id, 
@@ -254,7 +275,7 @@ public class SessionManager implements Lantern.Session {
 
     private void setExpiration(long expiration) {
         Date expiry = new Date(expiration * 1000);
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
         String dateToStr = dateFormat.format(expiry);
         Log.d(TAG, "Lantern pro expiration date: " + dateToStr);
         editor.putString(EXPIRY_DATE, dateToStr).commit();
@@ -292,7 +313,7 @@ public class SessionManager implements Lantern.Session {
         this.stripeToken = token;
 	}
 
-	public void setStripeEmail(String email) {
+	public void setEmail(String email) {
         editor.putString(EMAIL_ADDRESS, email).commit();
     }
 
@@ -408,6 +429,8 @@ public class SessionManager implements Lantern.Session {
 	}
 
 	public void unlinkDevice() {
+        devices.clear();
+
         editor.putBoolean(PRO_USER, false);
         editor.putBoolean(DEVICE_LINKED, false);
         editor.remove(PHONE_NUMBER);

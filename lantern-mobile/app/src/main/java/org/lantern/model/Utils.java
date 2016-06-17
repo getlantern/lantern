@@ -180,6 +180,10 @@ public class Utils {
     }
 
     public static boolean isEmailValid(String email) {
+        if (email == null || email.equals("")) {
+            return false;
+        }
+
         String expression = "^[\\w\\.-]+@([\\w\\-]+\\.)+[A-Z]{2,4}$";
         Pattern pattern = Pattern.compile(expression, Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(email);

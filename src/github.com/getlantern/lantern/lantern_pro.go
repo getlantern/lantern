@@ -28,6 +28,7 @@ type Session interface {
 	SetCode(string)
 	Currency() string
 	AddPlan(string, string, bool, int, int)
+	AddDevice(string, string)
 }
 
 type proRequest struct {
@@ -66,6 +67,9 @@ func newuser(r *proRequest) (*client.Response, error) {
 		log.Errorf("Could not create new Pro user: %v", err)
 	} else {
 		log.Debugf("Created new user with referral %s token %s id %d", res.User.Referral, res.User.Auth.Token, res.User.Auth.ID)
+		r.session.SetUserId(res.User.Auth.ID)
+		r.session.SetToken(res.User.Auth.Token)
+		r.session.SetCode(res.User.Referral)
 	}
 	return res, err
 }
@@ -80,15 +84,6 @@ func purchase(r *proRequest) (*client.Response, error) {
 	}
 
 	return r.proClient.Purchase(r.user, purchase)
-}
-
-func number(r *proRequest) (*client.Response, error) {
-	r.user.Email = r.session.Email()
-	res, err := r.proClient.UserLinkConfigure(r.user)
-	if err != nil || res.Status != "ok" {
-		return r.proClient.UserLinkRequest(r.user)
-	}
-	return res, err
 }
 
 func signin(r *proRequest) (*client.Response, error) {
@@ -114,7 +109,16 @@ func plans(r *proRequest) (*client.Response, error) {
 }
 
 func userdata(r *proRequest) (*client.Response, error) {
-	return r.proClient.UserData(r.user)
+	res, err := r.proClient.UserData(r.user)
+	if err != nil {
+		log.Errorf("Error getting Pro user data: %v", err)
+		return res, err
+	}
+	for _, device := range res.User.Devices {
+		r.session.AddDevice(device.Id, device.Name)
+	}
+	r.session.UserData(res.User.UserStatus, res.User.Expiration, res.User.Subscription)
+	return res, err
 }
 
 func ProRequest(shouldProxy bool, command string, session Session) bool {
@@ -134,7 +138,6 @@ func ProRequest(shouldProxy bool, command string, session Session) bool {
 		"newuser":  newuser,
 		"purchase": purchase,
 		"plans":    plans,
-		"number":   number,
 		"signin":   signin,
 		"code":     code,
 		"userdata": userdata,
@@ -164,17 +167,6 @@ func ProRequest(shouldProxy bool, command string, session Session) bool {
 
 	} else if command == "signin" {
 		session.SetUserId(res.User.Auth.ID)
-	} else if command == "newuser" {
-		session.SetUserId(res.User.Auth.ID)
-		session.SetToken(res.User.Auth.Token)
-		session.SetCode(res.User.Referral)
-	} else if command == "code" {
-		res, err = commands["userdata"](req)
-		if err != nil || res.Status != "ok" {
-			log.Errorf("Error making request to Pro server: %v", err)
-			return false
-		}
-		session.UserData(res.User.UserStatus, res.User.Expiration, res.User.Subscription)
 	}
 
 	return true

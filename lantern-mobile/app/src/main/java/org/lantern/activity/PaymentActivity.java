@@ -191,6 +191,7 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
                     getResources().getString(R.string.invalid_payment_method));
             return;
         }
+        session.linkDevice();
         session.setIsProUser(true);
         startActivity(new Intent(this, WelcomeActivity_.class));
     }

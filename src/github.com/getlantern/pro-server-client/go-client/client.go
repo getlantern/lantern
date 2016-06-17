@@ -279,6 +279,7 @@ func (c *Client) Purchase(user User, purchase Purchase) (res *Response, err erro
 			"stripeToken":    {purchase.StripeToken},
 			"plan":           {purchase.Plan},
 			"currency":       {purchase.Currency},
+			"deviceName":     {user.Auth.DeviceID},
 		},
 	)
 	if err != nil {

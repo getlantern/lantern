@@ -1,13 +1,9 @@
 package org.lantern.model;
 
-import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
-
-import org.lantern.fragment.ProgressDialogFragment;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
 
 import org.lantern.LanternApp;                   
 import org.lantern.R;
@@ -23,8 +19,7 @@ public class ProRequest extends AsyncTask<String, Void, Boolean> {
 
     private Context context;
     private String command;
-    private ProgressDialogFragment progressFragment = null;
-    private FragmentManager manager;
+    private ProgressDialog dialog;
     private String errMsg;
     private SessionManager session;
     private boolean noNetworkConnection = false;
@@ -35,15 +30,16 @@ public class ProRequest extends AsyncTask<String, Void, Boolean> {
         this.session = LanternApp.getSession();
 
         if (showProgress) {
-            progressFragment = ProgressDialogFragment.newInstance(R.string.progressMessage);
+            dialog = new ProgressDialog(context);
         }
     }
 
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        if (progressFragment != null) {
-            progressFragment.show(manager, "progress");
+        if (dialog != null) {
+            dialog.setMessage(context.getResources().getString(R.string.sending_request));
+            dialog.show();
         }
     }
 
@@ -68,8 +64,8 @@ public class ProRequest extends AsyncTask<String, Void, Boolean> {
     protected void onPostExecute(Boolean success) {
         super.onPostExecute(success);
 
-        if (progressFragment != null) {
-            progressFragment.dismissAllowingStateLoss();
+        if (dialog != null && dialog.isShowing()) {
+            dialog.dismiss();
         }
 
 		if (callback != null) {

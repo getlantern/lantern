@@ -5,16 +5,22 @@ import (
 	"strconv"
 )
 
+type Device struct {
+	Id   string `json:"id"`
+	Name string `json:"name"`
+}
+
 type User struct {
-	Email         string `json:"email"`
-	PhoneNumber   string `json:"telephone"`
-	UserStatus    string `json:"userStatus"`
-	Locale        string `json:"locale"`
-	Expiration    int64  `json:"expiration"`
-	AutoconfToken string `json:"autoconfToken"`
-	Subscription  string `json:"subscription"`
-	Code          string `json:"code"`
-	Referral      string `json:"referral"`
+	Email         string   `json:"email"`
+	PhoneNumber   string   `json:"telephone"`
+	UserStatus    string   `json:"userStatus"`
+	Locale        string   `json:"locale"`
+	Expiration    int64    `json:"expiration"`
+	AutoconfToken string   `json:"autoconfToken"`
+	Subscription  string   `json:"subscription"`
+	Devices       []Device `json:"devices"`
+	Code          string   `json:"code"`
+	Referral      string   `json:"referral"`
 	Auth          `json:",inline"`
 }
 

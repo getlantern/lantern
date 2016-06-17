@@ -21,7 +21,8 @@ import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.ViewById;
 
 import org.lantern.LanternApp;
-import org.lantern.model.DeviceItem;
+import org.lantern.model.Device;
+import org.lantern.model.DeviceView;
 import org.lantern.model.SessionManager;
 import org.lantern.model.Utils;
 import org.lantern.R;
@@ -61,14 +62,6 @@ public class ProAccountActivity extends FragmentActivity {
 
         deviceName.setText(android.os.Build.MODEL);
 
-        /*String[] devices = {android.os.Build.DEVICE, "Mac Desktop", "PC Desktop"};
-
-        for (String device : devices) {
-            final DeviceItem item = new DeviceItem(this);
-            item.name.setText(Html.fromHtml(String.format("&#8226; %s", device)));
-            deviceList.addView(item);
-        }*/
-
         final ProAccountActivity proAccountActivity = this;
 
         dialogClickListener = new DialogInterface.OnClickListener() {
@@ -84,7 +77,17 @@ public class ProAccountActivity extends FragmentActivity {
                 }
             }
         };
+    }
 
+    public void updateDeviceList() {
+        for (Device device : session.getDevices()) {
+            final DeviceView view = new DeviceView(this);
+            String name = device.getName();
+            view.name.setText(Html.fromHtml(String.format("&#8226; %s", name)));
+            // set the unauthorize/X button tag to the device id
+            view.unauthorize.setTag(device.getId());
+            deviceList.addView(view);
+        }
     }
 
     public void changeEmailAddress(View view) {

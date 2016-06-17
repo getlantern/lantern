@@ -81,7 +81,7 @@ public class VerifyCodeActivity extends FragmentActivity implements ProResponse 
         }
 
         session.setVerifyCode(code);
-        new ProRequest(getApplicationContext(), true, this).execute("code");
+        new ProRequest(VerifyCodeActivity.this, true, this).execute("code");
     }
 }
  
