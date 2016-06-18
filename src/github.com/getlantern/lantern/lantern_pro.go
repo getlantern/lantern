@@ -17,7 +17,6 @@ type Session interface {
 	DeviceId() string
 	Locale() string
 	Referral() string
-	PhoneNumber() string
 	Token() string
 	Plan() string
 	StripeToken() string

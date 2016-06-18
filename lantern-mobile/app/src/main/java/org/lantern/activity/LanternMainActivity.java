@@ -332,10 +332,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             }
         });
 
-        menuMap.put(resources.getString(R.string.send_logs), new Command() {
-            public void runCommand() { Utils.sendLogs(context, activity); }
-        });
-
         menuMap.put(resources.getString(R.string.get_free_months), new Command() {
             public void runCommand() { startActivity(new Intent(activity, InviteActivity_.class)); }
         });

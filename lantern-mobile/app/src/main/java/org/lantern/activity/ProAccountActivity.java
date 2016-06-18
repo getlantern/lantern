@@ -25,6 +25,7 @@ import org.lantern.model.Device;
 import org.lantern.model.DeviceView;
 import org.lantern.model.SessionManager;
 import org.lantern.model.Utils;
+import org.lantern.model.MailSender;
 import org.lantern.R;
 
 @EActivity(R.layout.pro_account)
@@ -103,7 +104,7 @@ public class ProAccountActivity extends FragmentActivity {
 
     public void sendLogs(View view) {
         Log.d(TAG, "Send logs button clicked.");
-		Utils.sendLogs(getApplicationContext(), this);
+        new MailSender(context, "user-send-logs").execute("support@getlantern.org");
     }
 
     public void renewPro(View view) {

@@ -1,5 +1,11 @@
 package org.lantern.model;
 
+import android.app.Activity;
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.os.AsyncTask;
+import android.util.Log;
+
 import com.microtripit.mandrillapp.lutung.MandrillApi;
 import com.microtripit.mandrillapp.lutung.view.MandrillMessage;
 import com.microtripit.mandrillapp.lutung.view.MandrillMessage.MergeVar;
@@ -12,64 +18,60 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 
-import android.util.Log;
-
 import org.lantern.LanternApp;
-import org.lantern.model.SessionManager;
+import org.lantern.R;
 
-public class MailSender {   
+public class MailSender extends AsyncTask<String, Void, Boolean> {   
 
     private static final String TAG = "MailSender";
     private final String apiKey = "fmYlUdjEpGGonI4NDx9xeA";
 
-    public synchronized void sendLogs(String logsFile) {
+    private ProgressDialog dialog;
 
-        try {
-            SessionManager session = LanternApp.getSession();
+    private String fromEmail = "support@getlantern.org";
+    private String template;
+    private SessionManager session;
+    private Context context;
+    private MergeVar[] mergeValues;
+    private List<MandrillMessage.MessageContent> attachments = new ArrayList<MandrillMessage.MessageContent>();
 
-            Log.d(TAG, "Send logs clicked; log directory: " + logsFile);
+    public MailSender(Context context, String template) {
+        this.context = context;
+        this.template = template;
+        this.session = LanternApp.getSession();
+        this.dialog = new ProgressDialog(context);
 
-            byte[] bytes = org.apache.commons.io.FileUtils.readFileToByteArray(new File(logsFile));
-
-            List<MandrillMessage.MessageContent> attachments = new ArrayList<MandrillMessage.MessageContent>();
-
-            MandrillMessage.MessageContent logContent = new MandrillMessage.MessageContent();
-            logContent.setType("text/plain");
-            logContent.setName("lantern.log");
-            org.apache.commons.codec.binary.Base64 base64 = new org.apache.commons.codec.binary.Base64();
-            String encoded = new String(base64.encode(bytes));
-            logContent.setContent(encoded);
-
-            attachments.add(logContent);
-
-            final HashMap<String,String> templateContent =
-                new HashMap<String,String>();
-            final MergeVar[] mergeValues = {
+        if (template.equals("user-send-logs")) {
+            mergeValues = new MergeVar[]{
                 new MergeVar("protoken", session.Token()),
                 new MergeVar("deviceid", session.DeviceId()),
                 new MergeVar("emailaddress", session.Email())
             };
-
-            sendMail("todd@getlantern.org", "user-send-logs", mergeValues, attachments);
-        } catch (Exception e) {
-            Log.e(TAG, "Error sending log messages", e);
         }
     }
 
-    public synchronized void sendMail(String toEmail) throws Exception {
-
-        final MergeVar[] mergeValues = {};
-
-        sendMail(toEmail, "download-link-from-lantern-website", mergeValues, null);
+    @Override
+    protected void onPreExecute() {
+        if (dialog != null) {
+            dialog.setMessage(context.getResources().getString(R.string.sending_request));
+            dialog.show();
+        }
     }
 
-    public synchronized void sendMail(String toEmail, String template, final MergeVar[] mergeValues, List<MandrillMessage.MessageContent> attachments) throws Exception {
+    @Override
+    protected Boolean doInBackground(String... params) {
+        String toEmail = params[0];
 
+        if (template.equals("user-send-logs")) {
+            addSendLogs();
+        }
 
         final Map<String, String> templateContent = new HashMap<String, String>();
-        for (MergeVar value : mergeValues)
-        {
-            templateContent.put(value.getName(), value.getContent().toString());
+        if (mergeValues != null) {
+            for (MergeVar value : mergeValues)
+            {
+                templateContent.put(value.getName(), value.getContent().toString());
+            }
         }
 
         MandrillApi mandrillApi = new MandrillApi(apiKey);
@@ -84,7 +86,7 @@ public class MailSender {
         message.setPreserveRecipients(true);
 
         if (attachments != null && attachments.size() > 0) {
-             message.setAttachments(attachments);
+            message.setAttachments(attachments);
         }
 
 
@@ -97,7 +99,52 @@ public class MailSender {
 
         message.setMergeVars(mergeBuckets);
 
-        mandrillApi.messages().sendTemplate(template,
-                templateContent, message, null);
-    }   
+        try {
+            mandrillApi.messages().sendTemplate(template,
+                    templateContent, message, null); 
+        } catch (Exception e) {
+            Log.e(TAG, "Error trying to send mail: ", e);
+            return false;
+        }
+
+        return true;
+
+    }
+
+    @Override
+    protected void onPostExecute(Boolean success) {
+        super.onPostExecute(success);
+
+        if (dialog != null && dialog.isShowing()) {
+            dialog.dismiss();
+        }
+
+        String msg;
+        if (success) {
+            Log.d(TAG, "Successfully called send mail");
+            msg = context.getResources().getString(R.string.success_email);
+        } else {
+            msg = context.getResources().getString(R.string.error_email);
+        }
+        Utils.showAlertDialog((Activity)context, "Lantern", msg);
+    }
+
+    private void addSendLogs() {
+        final String logDir = context.getFilesDir().getAbsolutePath();
+
+        try {
+            byte[] bytes = org.apache.commons.io.FileUtils.readFileToByteArray(new File(logDir, ".lantern/lantern.log"));
+
+            MandrillMessage.MessageContent logContent = new MandrillMessage.MessageContent();
+            logContent.setType("text/plain");
+            logContent.setName("lantern.log");
+            org.apache.commons.codec.binary.Base64 base64 = new org.apache.commons.codec.binary.Base64();
+            String encoded = new String(base64.encode(bytes));
+            logContent.setContent(encoded);
+
+            attachments.add(logContent);
+        } catch (Exception e) {
+            Log.e(TAG, "Unable to attach log file", e);
+        }
+    }
 }  
