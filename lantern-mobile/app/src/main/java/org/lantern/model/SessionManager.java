@@ -54,7 +54,7 @@ public class SessionManager implements Lantern.Session {
     private long oneYearCost = 2700;
     private long twoYearCost = 4800;
 
-    private List<Device> devices = new ArrayList<Device>();
+    private Map<String, Device> devices = new HashMap<String, Device>();
 
     private static final String defaultCurrencyCode = "usd";
 
@@ -116,6 +116,10 @@ public class SessionManager implements Lantern.Session {
         return mPrefs.getBoolean(REFERRAL_APPLIED, false);
     }
 
+    public int getNumFreeMonths() {
+        return 0;
+    }
+
     public boolean isProUser() {
         return mPrefs.getBoolean(PRO_USER, false);
     }
@@ -166,10 +170,10 @@ public class SessionManager implements Lantern.Session {
     }
 
     public void AddDevice(String id, String name) {
-        devices.add(new Device(id, name));
+        devices.put(id, new Device(id, name));
     }
 
-    public List<Device> getDevices() {
+    public Map<String, Device> getDevices() {
         return devices;
     }
 

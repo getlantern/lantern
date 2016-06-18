@@ -32,6 +32,7 @@ public class MailSender extends AsyncTask<String, Void, Boolean> {
     private String template;
     private SessionManager session;
     private Context context;
+    private boolean sendLogs = false;
     private MergeVar[] mergeValues;
     private List<MandrillMessage.MessageContent> attachments = new ArrayList<MandrillMessage.MessageContent>();
 
@@ -42,6 +43,7 @@ public class MailSender extends AsyncTask<String, Void, Boolean> {
         this.dialog = new ProgressDialog(context);
 
         if (template.equals("user-send-logs")) {
+            sendLogs = true;
             mergeValues = new MergeVar[]{
                 new MergeVar("protoken", session.Token()),
                 new MergeVar("deviceid", session.DeviceId()),
@@ -111,6 +113,17 @@ public class MailSender extends AsyncTask<String, Void, Boolean> {
 
     }
 
+    private String getResponseMessage(boolean success) {
+        int msg;
+        if (success) {
+            Log.d(TAG, "Successfully called send mail");
+            msg = sendLogs ? R.string.success_log_email : R.string.success_email;
+        } else {
+            msg = sendLogs ? R.string.error_log_email : R.string.error_email;
+        }
+        return context.getResources().getString(msg);
+    }
+
     @Override
     protected void onPostExecute(Boolean success) {
         super.onPostExecute(success);
@@ -118,15 +131,7 @@ public class MailSender extends AsyncTask<String, Void, Boolean> {
         if (dialog != null && dialog.isShowing()) {
             dialog.dismiss();
         }
-
-        String msg;
-        if (success) {
-            Log.d(TAG, "Successfully called send mail");
-            msg = context.getResources().getString(R.string.success_email);
-        } else {
-            msg = context.getResources().getString(R.string.error_email);
-        }
-        Utils.showAlertDialog((Activity)context, "Lantern", msg);
+        Utils.showAlertDialog((Activity)context, "Lantern", getResponseMessage(success));
     }
 
     private void addSendLogs() {

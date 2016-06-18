@@ -32,7 +32,7 @@ import org.lantern.R;
 public class ProAccountActivity extends FragmentActivity {
 
     @ViewById
-    TextView proAccountText, emailAddress, sendLogsBtn, logoutBtn, deviceName;
+    TextView proAccountText, freeMonthsText, emailAddress, sendLogsBtn, logoutBtn, deviceName;
 
     @ViewById
     Button renewProBtn;
@@ -58,7 +58,16 @@ public class ProAccountActivity extends FragmentActivity {
 
         session.setPlanText(proAccountText, getResources());
 
-        proAccountText.setText(String.format(getResources().getString(R.string.pro_account_expires), session.getExpiration(), 6));
+        proAccountText.setText(String.format(getResources().getString(R.string.pro_account_expires), session.getExpiration()));
+
+        int numFreeMonths = session.getNumFreeMonths();
+        if (numFreeMonths > 0) {
+            freeMonthsText.setVisibility(View.VISIBLE);
+            freeMonthsText.setText(String.format(getResources().getString(R.string.includes_free_months), numFreeMonths));
+        }
+
+        updateDeviceList();
+
         emailAddress.setText(session.Email());
 
         deviceName.setText(android.os.Build.MODEL);
@@ -81,7 +90,7 @@ public class ProAccountActivity extends FragmentActivity {
     }
 
     public void updateDeviceList() {
-        for (Device device : session.getDevices()) {
+        for (Device device : session.getDevices().values()) {
             final DeviceView view = new DeviceView(this);
             String name = device.getName();
             view.name.setText(Html.fromHtml(String.format("&#8226; %s", name)));
@@ -104,7 +113,7 @@ public class ProAccountActivity extends FragmentActivity {
 
     public void sendLogs(View view) {
         Log.d(TAG, "Send logs button clicked.");
-        new MailSender(context, "user-send-logs").execute("support@getlantern.org");
+        new MailSender(ProAccountActivity.this, "user-send-logs").execute("todd@getlantern.org");
     }
 
     public void renewPro(View view) {
