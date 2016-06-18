@@ -214,7 +214,7 @@ func (c *Client) RedeemReferralCode(user User, referralCode string) (res *Respon
 	return
 }
 
-// UserLinkValidate allows the client to initiate the configuration of a
+// allows the client to initiate the configuration of a
 // verified method of authenticating a user.
 func (c *Client) UserLinkValidate(user User) (res *Response, err error) {
 	var payload []byte

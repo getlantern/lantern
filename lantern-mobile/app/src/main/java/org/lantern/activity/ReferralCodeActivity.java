@@ -73,7 +73,7 @@ public class ReferralCodeActivity extends FragmentActivity implements ProRespons
 			}
 
 			session.setReferral(referral);
-			new ProRequest(getApplicationContext(), true, 
+			new ProRequest(ReferralCodeActivity.this, true, 
 				this).execute("referral");
 		}
     }

@@ -61,7 +61,8 @@
   <string name="pro_welcome_text">欢迎使用蓝灯专业版！</string>
   <string name="renew_pro_account">续订 Pro 账户</string>
   <string name="change_phone_number">更改手机号码</string>
-  <string name="pro_account_expires">您的 Pro 账户将在 %1$s\n 过期。这包括您 %2$d 个月的奖励！</string>
+  <string name="pro_account_expires">您的 Pro 账户将在 %1$s\n 过期。</string>
+  <string name="include_free_months">这包括您 %2$d 个月的奖励！</string>
   <string name="verified_phone_number">已验证手机号码：</string>
   <string name="devices_authorized">已授权使用您的 Pro 的设备</string>
   <string name="send_us_your_logs">给我们发送您的日志</string>

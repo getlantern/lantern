@@ -132,9 +132,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         getApplication().registerActivityLifecycleCallbacks(this);
 
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
-
         lastFeedSelected = getResources().getString(R.string.all_feeds);
 
         // we want to use the ActionBar from the AppCompat
@@ -145,7 +142,9 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         }
 
         // make sure to show status bar
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        if (getWindow() != null) {
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        }
 
         context = getApplicationContext();
         session = LanternApp.getSession();
@@ -153,7 +152,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         // since onCreate is only called when the main activity
         // is first created, we clear shared preferences in case
         // Lantern was forcibly stopped during a previous run
-        if (!Service.isRunning(context)) {
+        if (!Service.isRunning(LanternMainActivity.this)) {
             session.clearVpnPreference();
         }
 
@@ -182,7 +181,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         if (session.isProUser()) {
             // hide data usage summary view right away if its a Pro user
             dataUsageView.setVisibility(View.GONE);
-            new ProRequest(getApplicationContext(), false, null).execute("userdata");
+            new ProRequest(LanternMainActivity.this, false, null).execute("userdata");
         }
 
         setBtnStatus();
@@ -196,7 +195,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
                     setBandwidthQuota(); 
                 }
             }
-        }, 4000);
+        }, 7000);
 	}
 
 	private void setBandwidthQuota() {
@@ -585,7 +584,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
                 public void run() {
                     new GetFeed(activity).execute(shouldProxy);
                 }
-            }, 2000);
+            }, 5000);
         } else {
             feedView.setVisibility(View.INVISIBLE);
             lp.addRule(RelativeLayout.CENTER_VERTICAL);
@@ -643,7 +642,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         boolean on = ((SwitchButton)view).isChecked();
 
-        if (!Utils.isNetworkAvailable(getApplicationContext())) {
+        if (!Utils.isNetworkAvailable(LanternMainActivity.this)) {
             powerLantern.setChecked(false);
             if (on) {
                 // User tried to turn Lantern on, but there's no
@@ -664,14 +663,14 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             // We should only have one active VPN connection per client
             try {
                 Log.d(TAG, "Load VPN configuration");
-                Intent intent = VpnService.prepare(getApplicationContext());
+                Intent intent = VpnService.prepare(LanternMainActivity.this);
                 if (intent != null) {
                     Log.w(TAG,"Requesting VPN connection");
                     startActivityForResult(intent, REQUEST_VPN);
                 } else {
                     Log.d(TAG, "VPN enabled, starting Lantern...");
                     updateStatus(true);
-                    org.lantern.mobilesdk.Lantern.disable(getApplicationContext());
+                    org.lantern.mobilesdk.Lantern.disable(LanternMainActivity.this);
                     sendIntentToService();
                 }
             } catch (Exception e) {
@@ -783,7 +782,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         if (lastFeedSelected != null) {
             // whenever a user clicks on an article, send a custom event to GA
             // that includes the source/feed category
-            Utils.sendFeedEvent(getApplicationContext(),
+            Utils.sendFeedEvent(LanternMainActivity.this,
                     String.format("feed-%s", lastFeedSelected));
         }
 
@@ -886,7 +885,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             boolean useVpn = response == RESULT_OK;
             updateStatus(useVpn);
             if (useVpn) {
-                org.lantern.mobilesdk.Lantern.disable(getApplicationContext());
+                org.lantern.mobilesdk.Lantern.disable(LanternMainActivity.this);
                 sendIntentToService();
             }
         }
@@ -948,7 +947,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
                         if (session.useVpn()) {
                             // whenever a user disconnects from Wifi and Lantern is running
                             updateStatus(false);
-                            org.lantern.mobilesdk.Lantern.disable(getApplicationContext());
+                            org.lantern.mobilesdk.Lantern.disable(LanternMainActivity.this);
                             powerLantern.setChecked(false);
                             Service.IsRunning = false;
                         }

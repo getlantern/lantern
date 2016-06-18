@@ -137,7 +137,6 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/proAccountText"
             android:visibility="gone"
-
             android:fontFamily="sans-serif"
             android:paddingTop="20dp"
             android:lineSpacingExtra="10dp"

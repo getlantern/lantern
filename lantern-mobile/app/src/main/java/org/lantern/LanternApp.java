@@ -2,6 +2,7 @@ package org.lantern;
 
 import android.app.Application;
 import android.content.Context;
+import android.os.Handler;
 import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
@@ -28,12 +29,18 @@ public class LanternApp extends Application {
             // in the Application class
             EventBus.getDefault().register(this);
         }
-
+ 
         Fabric.with(this, new Crashlytics());
-		Context context = getApplicationContext();
+		final Context context = getApplicationContext();
         session = new SessionManager(context);
-        session.newUser();
-		new ProRequest(context, false, null).execute("plans");
+        session.shouldProxy();
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                session.newUser();
+                new ProRequest(context, false, null).execute("plans");
+            }
+        }, 6000);
     }
 
     @Subscribe

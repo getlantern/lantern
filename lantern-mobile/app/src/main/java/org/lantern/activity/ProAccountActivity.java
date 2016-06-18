@@ -113,7 +113,7 @@ public class ProAccountActivity extends FragmentActivity {
 
     public void sendLogs(View view) {
         Log.d(TAG, "Send logs button clicked.");
-        new MailSender(ProAccountActivity.this, "user-send-logs").execute("todd@getlantern.org");
+        new MailSender(ProAccountActivity.this, "user-send-logs").execute("support@getlantern.org");
     }
 
     public void renewPro(View view) {

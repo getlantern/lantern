@@ -46,7 +46,6 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
     private static final String mCheckoutUrl = "https://s3.amazonaws.com/lantern-android/checkout.html?price=%d&currency=%s";
 
     private SessionManager session;
-    private Context context;
 
     private long chargeAmount;
 
@@ -75,7 +74,6 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
 
     @AfterViews
     void afterViews() {
-        context = getApplicationContext();
         session = LanternApp.getSession();
 
         segmented.setTintColor(getResources().getColor(R.color.pro_blue_color));
@@ -89,11 +87,16 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
         Log.d(TAG, "Charge amount is " + chargeAmount);
         chargeAmountView.setText(Utils.formatMoney(chargeAmount));
 
+        final Context context = PaymentActivity.this;
+
         dialog = new ProgressDialog(context);
+        dialog.setMessage(context.getResources().getString(R.string.sending_request));
 
         Uri data = intent.getData();
 
         if (data != null && data.getQueryParameter("stripeToken") != null) {
+            dialog.show();
+
             String stripeToken = data.getQueryParameter("stripeToken");
             String stripeEmail = data.getQueryParameter("stripeEmail");  
             Log.d(TAG, "From browser, token " + stripeToken + " " + stripeEmail);
@@ -176,11 +179,16 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
 
     @Override
     public void onResult(boolean success) {
+        if (dialog != null && dialog.isShowing()) {
+            dialog.dismiss();
+        }         
+
         if (!success) {
             Utils.showErrorDialog(this, 
                     getResources().getString(R.string.invalid_payment_method));
             return;
         }
+
         session.linkDevice();
         session.setIsProUser(true);
         startActivity(new Intent(this, WelcomeActivity_.class));
@@ -195,10 +203,6 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
 
         // submit token to Pro server here
         new ProRequest(PaymentActivity.this, false, this).execute("purchase");
-
-        if (dialog != null && dialog.isShowing()) {
-            dialog.dismiss();
-        }
     }
 
     private void handleError(String error) {
