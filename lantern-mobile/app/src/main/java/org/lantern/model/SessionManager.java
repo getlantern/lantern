@@ -254,14 +254,6 @@ public class SessionManager implements Lantern.Session {
 		return true;
 	}
 
-	public void setPhoneNumber(String number) {
-        editor.putString(PHONE_NUMBER, number).commit();
-    }
-
-    public String PhoneNumber() {
-        return mPrefs.getString(PHONE_NUMBER, "");
-    }
-
 	public void setVerifyCode(String code) {
         Log.d(TAG, "Verify code set to " + code);
         this.verifyCode = code;

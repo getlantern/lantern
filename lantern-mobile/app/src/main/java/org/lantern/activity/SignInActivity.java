@@ -49,27 +49,27 @@ public class SignInActivity extends FragmentActivity implements ProResponse {
         fragment = (UserForm) getSupportFragmentManager().findFragmentById(R.id.user_form_fragment);
     }
 
-	@Override
-	public void onResult(boolean success) {
-    	if (!success) {
-			onError();
-        	return;
-		}
+    @Override
+    public void onResult(boolean success) {
+        if (!success) {
+            onError();
+            return;
+        }
         Intent intent = new Intent(this, VerifyCodeActivity_.class);
         intent.putExtra("signIn", true);
         startActivity(intent);
-	}
+    }
 
     public void onError() {
         Utils.showErrorDialog(this, getResources().getString(R.string.invalid_email));
     }
 
     public void sendResult(View view) {
-		if (fragment == null) {
-        	Log.e(TAG, "Missing fragment in SigninActivity");
-			return;
-		}
-		String email = fragment.getUserInput();
+        if (fragment == null) {
+            Log.e(TAG, "Missing fragment in SigninActivity");
+            return;
+        }
+        String email = fragment.getUserInput();
 
         if (!Utils.isEmailValid(email)) {
             onError();
@@ -78,7 +78,7 @@ public class SignInActivity extends FragmentActivity implements ProResponse {
 
         session.setEmail(email);
 
-		new ProRequest(SignInActivity.this, 
+        new ProRequest(SignInActivity.this, 
                 true, this).execute("signin");
     }
 }
