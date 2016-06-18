@@ -89,9 +89,11 @@ func purchase(r *proRequest) (*client.Response, error) {
 func signin(r *proRequest) (*client.Response, error) {
 	r.user.Email = r.session.Email()
 	res, err := r.proClient.UserLinkRequest(r.user)
-	if err == nil {
-		session.SetUserId(res.User.Auth.ID)
+	if err != nil {
+		log.Errorf("Could not complete signin: %v", err)
+		return res, err
 	}
+	r.session.SetUserId(res.User.Auth.ID)
 	return res, err
 }
 

@@ -185,9 +185,10 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             new ProRequest(getApplicationContext(), false, null).execute("userdata");
         }
 
-        setupSideMenu();
         setBtnStatus();
+        setupSideMenu();
         showFeedview();
+
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -582,8 +583,14 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             feedView.setVisibility(View.VISIBLE);
             removeRule(lp, RelativeLayout.CENTER_VERTICAL);
 
-            // now actually refresh the news feed
-            new GetFeed(this).execute(session.shouldProxy());
+            final boolean shouldProxy = session.shouldProxy();
+            final LanternMainActivity activity = this;
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    new GetFeed(activity).execute(shouldProxy);
+                }
+            }, 2000);
         } else {
             feedView.setVisibility(View.INVISIBLE);
             lp.addRule(RelativeLayout.CENTER_VERTICAL);

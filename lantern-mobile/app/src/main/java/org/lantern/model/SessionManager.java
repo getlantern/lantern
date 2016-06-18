@@ -466,6 +466,7 @@ public class SessionManager implements Lantern.Session {
 
             StartResult result = org.lantern.mobilesdk.Lantern.enable(this.context, 
                 startTimeoutMillis, updateProxySettings, analyticsTrackingID);
+
             return result.getHTTPAddr();
         }  catch (LanternNotRunningException lnre) {
             throw new RuntimeException("Lantern failed to start: " + lnre.getMessage(), lnre);
