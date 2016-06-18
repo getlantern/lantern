@@ -299,7 +299,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         navItems.add(new NavItem(resources.getString(R.string.language), R.drawable.language));
         navItems.add(new NavItem(resources.getString(R.string.share_option), R.drawable.ic_share));
         navItems.add(new NavItem(resources.getString(R.string.contact_option), R.drawable.ic_contact));
-		navItems.add(new NavItem(resources.getString(R.string.send_logs), R.drawable.ic_update));
+		//navItems.add(new NavItem(resources.getString(R.string.send_logs), R.drawable.ic_update));
 
         if (session.showFeed())  {
             // 'Turn off Feed' when the feed is already shown
@@ -332,10 +332,9 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             }
         });
 
-		menuMap.put(resources.getString(R.string.send_logs), new Command() {
-	public void runCommand() { Utils.sendLogs(context, activity); }
-
-});
+        menuMap.put(resources.getString(R.string.send_logs), new Command() {
+            public void runCommand() { Utils.sendLogs(context, activity); }
+        });
 
         menuMap.put(resources.getString(R.string.get_free_months), new Command() {
             public void runCommand() { startActivity(new Intent(activity, InviteActivity_.class)); }

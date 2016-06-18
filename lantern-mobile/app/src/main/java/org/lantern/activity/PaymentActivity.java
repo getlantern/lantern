@@ -43,10 +43,12 @@ import info.hoang8f.android.segmented.SegmentedGroup;
 public class PaymentActivity extends FragmentActivity implements ProResponse, View.OnClickListener {
 
     private static final String TAG = "PaymentActivity";
-    private static final String mCheckoutUrl = "https://s3.amazonaws.com/lantern-android/checkout.html?plan=%s";
+    private static final String mCheckoutUrl = "https://s3.amazonaws.com/lantern-android/checkout.html?price=%d&currency=%s";
 
     private SessionManager session;
     private Context context;
+
+    private long chargeAmount;
 
     private ProgressDialog dialog;
 
@@ -83,7 +85,7 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
 
         Intent intent = getIntent();
 
-        long chargeAmount = session.getSelectedPlanCost();
+        chargeAmount = session.getSelectedPlanCost();
         Log.d(TAG, "Charge amount is " + chargeAmount);
         chargeAmountView.setText(Utils.formatMoney(chargeAmount));
 
@@ -95,7 +97,7 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
             String stripeToken = data.getQueryParameter("stripeToken");
             String stripeEmail = data.getQueryParameter("stripeEmail");  
             Log.d(TAG, "From browser, token " + stripeToken + " " + stripeEmail);
-            finishProgress(stripeEmail, stripeToken.substring(1));
+            finishProgress(stripeEmail, stripeToken);
         }
     }
 
@@ -111,7 +113,8 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
             case R.id.alipayBtn:
                 Log.d(TAG, "Alipay button pressed");
                 Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setData(Uri.parse(String.format(mCheckoutUrl, session.getProPlan())));
+                String url = String.format(mCheckoutUrl, chargeAmount, session.Currency());
+                intent.setData(Uri.parse(url));
                 startActivity(intent);
                 return;
             case R.id.cardBtn:
@@ -191,7 +194,7 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
         session.setProUser(email, token);
 
         // submit token to Pro server here
-        new ProRequest(getApplicationContext(), false, this).execute("purchase");
+        new ProRequest(PaymentActivity.this, false, this).execute("purchase");
 
         if (dialog != null && dialog.isShowing()) {
             dialog.dismiss();
