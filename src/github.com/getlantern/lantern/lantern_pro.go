@@ -88,12 +88,23 @@ func purchase(r *proRequest) (*client.Response, error) {
 
 func signin(r *proRequest) (*client.Response, error) {
 	r.user.Email = r.session.Email()
-	return r.proClient.UserLinkRequest(r.user)
+	res, err := r.proClient.UserLinkRequest(r.user)
+	if err == nil {
+		session.SetUserId(res.User.Auth.ID)
+	}
+	return res, err
 }
 
 func code(r *proRequest) (*client.Response, error) {
 	r.user.Code = r.session.VerifyCode()
-	return r.proClient.UserLinkValidate(r.user)
+	res, err := r.proClient.UserLinkValidate(r.user)
+	if err != nil {
+		log.Errorf("Could not validate user code: %v", err)
+		return res, err
+	}
+	log.Debugf("New token is %s", res.User.Auth.Token)
+	r.session.SetToken(res.User.Auth.Token)
+	return res, err
 }
 
 func referral(r *proRequest) (*client.Response, error) {
@@ -105,7 +116,23 @@ func cancel(r *proRequest) (*client.Response, error) {
 }
 
 func plans(r *proRequest) (*client.Response, error) {
-	return r.proClient.Plans(r.user)
+	res, err := r.proClient.Plans(r.user)
+	if err != nil || len(res.Plans) == 0 {
+		return res, err
+	}
+	currency := r.session.Currency()
+	for _, plan := range res.Plans {
+		price, exists := plan.Price[currency]
+		if !exists {
+			price, _ = plan.Price[defaultCurrencyCode]
+		}
+
+		log.Debugf("Calling add plan with %s desc: %s best value %t price %d",
+			plan.Id, plan.Description, plan.BestValue, price)
+		r.session.AddPlan(plan.Id, plan.Description, plan.BestValue, plan.Duration.Years, price)
+	}
+
+	return res, err
 }
 
 func userdata(r *proRequest) (*client.Response, error) {
@@ -149,24 +176,6 @@ func ProRequest(shouldProxy bool, command string, session Session) bool {
 	if err != nil || res.Status != "ok" {
 		log.Errorf("Error making request to Pro server: %v", err)
 		return false
-	}
-
-	if command == "plans" {
-		for _, plan := range res.Plans {
-
-			currency := session.Currency()
-			price, exists := plan.Price[currency]
-			if !exists {
-				price, _ = plan.Price[defaultCurrencyCode]
-			}
-
-			log.Debugf("Calling add plan with %s desc: %s best value %t price %d",
-				plan.Id, plan.Description, plan.BestValue, price)
-			session.AddPlan(plan.Id, plan.Description, plan.BestValue, plan.Duration.Years, price)
-		}
-
-	} else if command == "signin" {
-		session.SetUserId(res.User.Auth.ID)
 	}
 
 	return true

@@ -76,7 +76,6 @@ public class SessionManager implements Lantern.Session {
     private String stripeToken;
     private String referral;
     private String verifyCode;
-    private String plan;
     private Locale locale;
     private Currency currency;
 
@@ -152,7 +151,11 @@ public class SessionManager implements Lantern.Session {
     }
 
     public long getSelectedPlanCost() {
-        ProPlan plan = plans.get(this.plan);
+        String currentPlan = getProPlan();
+        if (currentPlan == null) {
+            return oneYearCost;
+        }
+        ProPlan plan = plans.get(currentPlan);
         if (plan != null) {
             Long price = plan.getPrice();
             if (price != null) {
@@ -260,6 +263,7 @@ public class SessionManager implements Lantern.Session {
     }
 
 	public void setVerifyCode(String code) {
+        Log.d(TAG, "Verify code set to " + code);
         this.verifyCode = code;
 	}
 
@@ -292,12 +296,11 @@ public class SessionManager implements Lantern.Session {
 	}
 
     public void setProPlan(String plan) {
-        this.plan = plan;
         editor.putString(PRO_PLAN, plan).commit();
     }
 
     public String getProPlan() {
-        return plan;
+        return mPrefs.getString(PRO_PLAN, null);
     }
 
 	public void setProUser(String email, String token) {
@@ -376,7 +379,7 @@ public class SessionManager implements Lantern.Session {
 	}
 
 	public void setPlanText(TextView proAccountText, Resources res) {
-		String currentPlan = this.plan;
+		String currentPlan = getPlan();
 		if (currentPlan == null) {
 			return;
 		}
@@ -417,7 +420,7 @@ public class SessionManager implements Lantern.Session {
     }
 
     public String Plan() {
-        return plan;
+        return getProPlan();
     }
 
     public String Locale() {

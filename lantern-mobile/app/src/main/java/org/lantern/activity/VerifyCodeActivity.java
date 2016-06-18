@@ -7,6 +7,7 @@ import android.view.View;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.Extra;
 import org.androidannotations.annotations.FragmentById;
 
 import org.lantern.LanternApp;
@@ -23,6 +24,9 @@ public class VerifyCodeActivity extends FragmentActivity implements ProResponse 
 
     private SessionManager session;
 
+    @Extra("signIn")
+    boolean signIn = false;
+
     @FragmentById(R.id.user_form_fragment)
     UserForm fragment;
 
@@ -37,27 +41,20 @@ public class VerifyCodeActivity extends FragmentActivity implements ProResponse 
             onError();
             return;
         }
+
         session.linkDevice();
 
-        if (session.getProPlan() != null) {
-            if (!session.isReferralApplied()) {
-                Intent i = new Intent(this,
-                        ReferralCodeActivity_.class);
-                // close all previous activities
-                i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(i);
-                finish();
-                return;
-            }
-        }
-
-        Intent intent;
-        if (session.isProUser()) {
+        Intent intent;                                            
+        if (signIn) {
+            session.setIsProUser(true);
             intent = new Intent(this, LanternMainActivity_.class);
         } else {
-            intent = new Intent(this, PaymentActivity_.class);
+            intent = new Intent(this, ProAccountActivity_.class);
         }
+
+        new ProRequest(VerifyCodeActivity.this, false, null).execute("userdata");
+
+
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();   

@@ -1,5 +1,6 @@
 package org.lantern.activity;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
@@ -29,7 +30,6 @@ import org.androidannotations.annotations.ViewById;
 import org.lantern.LanternApp;
 import org.lantern.fragment.ErrorDialogFragment;
 import org.lantern.fragment.PaymentFormFragment;
-import org.lantern.fragment.ProgressDialogFragment;
 import org.lantern.model.ProRequest;
 import org.lantern.model.ProResponse;
 import org.lantern.model.SessionManager;
@@ -43,12 +43,12 @@ import info.hoang8f.android.segmented.SegmentedGroup;
 public class PaymentActivity extends FragmentActivity implements ProResponse, View.OnClickListener {
 
     private static final String TAG = "PaymentActivity";
-    private static final String mCheckoutUrl = "https://stripe.com/docs/checkout?plan=%s";
+    private static final String mCheckoutUrl = "https://s3.amazonaws.com/lantern-android/checkout.html?plan=%s";
 
     private SessionManager session;
-    private Context mContext;
+    private Context context;
 
-    private ProgressDialogFragment progressFragment;
+    private ProgressDialog dialog;
 
     @FragmentById(R.id.payment_form)
     PaymentFormFragment paymentForm;
@@ -73,7 +73,7 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
 
     @AfterViews
     void afterViews() {
-        mContext = this.getApplicationContext();
+        context = getApplicationContext();
         session = LanternApp.getSession();
 
         segmented.setTintColor(getResources().getColor(R.color.pro_blue_color));
@@ -87,14 +87,14 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
         Log.d(TAG, "Charge amount is " + chargeAmount);
         chargeAmountView.setText(Utils.formatMoney(chargeAmount));
 
-        progressFragment = ProgressDialogFragment.newInstance(R.string.progressMessage);
+        dialog = new ProgressDialog(context);
 
         Uri data = intent.getData();
 
         if (data != null && data.getQueryParameter("stripeToken") != null) {
             String stripeToken = data.getQueryParameter("stripeToken");
             String stripeEmail = data.getQueryParameter("stripeEmail");  
-            startProgress();
+            Log.d(TAG, "From browser, token " + stripeToken + " " + stripeEmail);
             finishProgress(stripeEmail, stripeToken.substring(1));
         }
     }
@@ -110,22 +110,9 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
         switch (v.getId()) {
             case R.id.alipayBtn:
                 Log.d(TAG, "Alipay button pressed");
-                String url = String.format(mCheckoutUrl, "");
-                new FinestWebView.Builder(this)
-                    .webViewUseWideViewPort(true)
-                    .webViewUserAgentString("Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.4) Gecko/20100101 Firefox/4.0")
-                    .webViewSupportMultipleWindows(true)
-                    .webViewJavaScriptEnabled(true)
-                    .swipeRefreshColorRes(R.color.black)
-                    .webViewAllowFileAccessFromFileURLs(true)
-                    .webViewJavaScriptCanOpenWindowsAutomatically(true)
-                    // if we aren't in full-device VPN mode, configure the 
-                    // WebView to use our local proxy
-                    .show(url);
-
-                /*Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setData(Uri.parse(url));
-                startActivity(intent);*/
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setData(Uri.parse(String.format(mCheckoutUrl, session.getProPlan())));
+                startActivity(intent);
                 return;
             case R.id.cardBtn:
                 Log.d(TAG, "Card button pressed");
@@ -181,7 +168,7 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
     }
 
     private void startProgress() {
-        progressFragment.show(getSupportFragmentManager(), "progress");
+        dialog.show();
     }
 
     @Override
@@ -206,8 +193,8 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
         // submit token to Pro server here
         new ProRequest(getApplicationContext(), false, this).execute("purchase");
 
-        if (progressFragment != null) {
-            progressFragment.dismiss();
+        if (dialog != null && dialog.isShowing()) {
+            dialog.dismiss();
         }
     }
 

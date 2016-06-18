@@ -55,7 +55,9 @@ public class SignInActivity extends FragmentActivity implements ProResponse {
 			onError();
         	return;
 		}
-		startActivity(new Intent(this, VerifyCodeActivity_.class));
+        Intent intent = new Intent(this, VerifyCodeActivity_.class);
+        intent.putExtra("signIn", true);
+        startActivity(intent);
 	}
 
     public void onError() {
