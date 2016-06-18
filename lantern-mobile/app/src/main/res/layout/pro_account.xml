@@ -148,23 +148,6 @@
             android:layout_centerInParent="true"
             android:onClick="renewPro" />
 
-        <Button
-            android:id="@+id/changeEmailBtn"
-            android:layout_height="36dp"
-            android:layout_width="216dp"
-            android:text="@string/change_email_address"
-            android:fontFamily="sans-serif-medium" 
-            android:textSize="14sp"
-            android:elevation="2dp"
-            android:minHeight="48dp"
-            android:textAllCaps="true"
-            android:textColor="@color/accent_white"
-            android:clickable = "true"
-            android:layout_marginTop="10dp"
-            android:background="@color/pink"
-            android:layout_centerInParent="true"
-            android:onClick="changeEmailAddress" />
-
         <TextView
             android:id="@+id/sendLogsBtn"
             android:layout_height="wrap_content"

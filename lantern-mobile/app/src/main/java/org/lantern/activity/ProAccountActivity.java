@@ -35,7 +35,7 @@ public class ProAccountActivity extends FragmentActivity {
     TextView proAccountText, emailAddress, sendLogsBtn, logoutBtn, deviceName;
 
     @ViewById
-    Button renewProBtn, changeEmailBtn;
+    Button renewProBtn;
 
     @ViewById
     LinearLayout deviceList;
@@ -109,6 +109,7 @@ public class ProAccountActivity extends FragmentActivity {
 
     public void renewPro(View view) {
         Log.d(TAG, "Renew Pro button clicked.");
+        startActivity(new Intent(this, PlansActivity_.class));
     }
 
     public void unauthorizeDevice(View view) {
