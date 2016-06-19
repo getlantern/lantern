@@ -193,7 +193,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             @Override
             public void run() {
                 if (!isFinishing()) {
-                    setBandwidthQuota(); 
+                    setBandwidthQuota();
                 }
             }
         }, 7000);
@@ -222,11 +222,11 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     }
 
     // initialize and configure status toast (what's displayed
-    // whenever we use the on/off slider) 
+    // whenever we use the on/off slider)
     public void setupStatusToast() {
 
         LayoutInflater inflater = getLayoutInflater();
-        statusLayout = inflater.inflate(R.layout.status_layout, 
+        statusLayout = inflater.inflate(R.layout.status_layout,
                 (ViewGroup)findViewById(R.id.status_layout_root));
         statusImage = (ImageView)statusLayout.findViewById(R.id.statusImage);
         statusText  = (TextView)statusLayout.findViewById(R.id.statusText);
@@ -251,7 +251,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         statusToast.show();
     }
 
-    // setVersionNum updates the version number that appears at the 
+    // setVersionNum updates the version number that appears at the
     // bottom of the side menu
     public void setVersionNum() {
         try {
@@ -277,13 +277,13 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         final Map<String, Command> menuMap = new HashMap<String, Command>();
         final ArrayList<NavItem> navItems = new ArrayList<NavItem>();
-        final ListAdapter listAdapter = new ListAdapter(this, navItems);  
+        final ListAdapter listAdapter = new ListAdapter(this, navItems);
 
         if (!session.isProUser()) {
             // 'Get Pro Now' menu option if not already a Pro user
             navItems.add(new NavItem(resources.getString(R.string.get_lantern_pro), R.drawable.pro_now));
         } else {
-            navItems.add(navItems.size(), new NavItem(resources.getString(R.string.pro_account_header), 
+            navItems.add(navItems.size(), new NavItem(resources.getString(R.string.pro_account_header),
                         R.drawable.sign_in));
         }
         navItems.add(new NavItem(resources.getString(R.string.get_free_months), R.drawable.get_free));
@@ -309,7 +309,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             navItems.add(new NavItem(resources.getString(R.string.newsfeed_option), R.drawable.ic_feed));
         }
 
-        navItems.add(new NavItem(resources.getString(R.string.quit_option), 
+        navItems.add(new NavItem(resources.getString(R.string.quit_option),
                     R.drawable.ic_quit));
 
         menuMap.put(resources.getString(R.string.sign_in_pro), new Command() {
@@ -317,7 +317,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
                 Intent intent = new Intent(activity, SignInActivity.class);
                 intent.putExtra("signIn", true);
                 startActivity(intent);
-            } 
+            }
         });
 
         menuMap.put(resources.getString(R.string.pro_account_header), new Command() {
@@ -328,7 +328,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         menuMap.put(resources.getString(R.string.get_lantern_pro), new Command() {
             public void runCommand() {
-                startActivity(new Intent(activity, PlansActivity_.class)); 
+                startActivity(new Intent(activity, PlansActivity_.class));
             }
         });
 
@@ -419,14 +419,14 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         drawerLayout.setDrawerListener(mDrawerToggle);
     }
 
-    // drawerItemClicked is called whenever an item in the 
+    // drawerItemClicked is called whenever an item in the
     // navigation menu is clicked on
     void drawerItemClicked(final Map<String, Command> menuMap,
             final ArrayList<NavItem> navItems,
             final int position) {
 
         if (position < 0 || position >= navItems.size()) {
-            menuError("Tried to access menu item outside index range"); 
+            menuError("Tried to access menu item outside index range");
             return;
         }
 
@@ -434,14 +434,14 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         NavItem item = navItems.get(position);
         if (item == null) {
-            menuError(String.format("Missing navigation item at position: %d", 
+            menuError(String.format("Missing navigation item at position: %d",
                         position));
             return;
         }
 
         String title = item.getTitle();
         if (title == null) {
-            menuError(String.format("Missing item title at position: %d", 
+            menuError(String.format("Missing item title at position: %d",
                         position));
             return;
         }
@@ -455,7 +455,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         drawerLayout.closeDrawer(drawerPane);
     }
 
-    // An error occurred performing some action on the 
+    // An error occurred performing some action on the
     // navigation drawer. Log the error and close the drawer
     void menuError(String errMsg) {
         if (errMsg != null) {
@@ -471,7 +471,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
     @Click(R.id.upgradeBtn)
     void ugpradeBtnClicked() {
-        startActivity(new Intent(this, PlansActivity_.class)); 
+        startActivity(new Intent(this, PlansActivity_.class));
     }
 
     @Click(R.id.backBtn)
@@ -540,7 +540,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         if (isPlayVersion) {
             // If the user installed the app via Google Play, we just open the Play store
             // because self-updating will not work:
-            // "An app downloaded from Google Play may not modify, replace, or update itself 
+            // "An app downloaded from Google Play may not modify, replace, or update itself
             // using any method other than Google Play's update mechanism"
             // https://play.google.com/about/privacy-and-security.html#malicious-behavior
             if (userClicked) {
