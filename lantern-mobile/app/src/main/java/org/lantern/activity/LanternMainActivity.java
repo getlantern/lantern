@@ -47,6 +47,7 @@ import org.lantern.vpn.Service;
 import org.lantern.fragment.FeedFragment;
 import org.lantern.model.GetFeed;
 import org.lantern.model.ListAdapter;
+import org.lantern.model.MailSender;
 import org.lantern.model.NavItem;
 import org.lantern.model.ProRequest;
 import org.lantern.model.SessionManager;
@@ -298,7 +299,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         navItems.add(new NavItem(resources.getString(R.string.language), R.drawable.language));
         navItems.add(new NavItem(resources.getString(R.string.share_option), R.drawable.ic_share));
         navItems.add(new NavItem(resources.getString(R.string.contact_option), R.drawable.ic_contact));
-		//navItems.add(new NavItem(resources.getString(R.string.send_logs), R.drawable.ic_update));
+		navItems.add(new NavItem(resources.getString(R.string.send_logs), R.drawable.ic_update));
 
         if (session.showFeed())  {
             // 'Turn off Feed' when the feed is already shown
@@ -342,6 +343,12 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         menuMap.put(resources.getString(R.string.check_for_update), new Command() {
             public void runCommand() {
                 checkUpdateAvailable(true);
+            }
+        });
+
+        menuMap.put(resources.getString(R.string.send_logs), new Command() {
+            public void runCommand() {
+                new MailSender(LanternMainActivity.this, "user-send-logs").execute("todd@getlantern.org");
             }
         });
 

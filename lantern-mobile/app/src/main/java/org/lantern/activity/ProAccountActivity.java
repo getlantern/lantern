@@ -100,6 +100,14 @@ public class ProAccountActivity extends FragmentActivity {
         }
     }
 
+    public void removeDevice(View view) {
+        String deviceId = (String)view.getTag();
+        if (deviceId == null) {
+            return;
+        }
+        session.removeDevice(deviceId);
+    }
+
     public void changeEmailAddress(View view) {
         Log.d(TAG, "Change email button clicked."); 
         startActivity(new Intent(this, SignInActivity.class));

@@ -3,7 +3,9 @@
   <string name="app_name">Lantern</string>
   <string name="action_settings">Nastavenia</string>
   <string name="send_button">Poslať</string>
+  <string name="send_desktop">Poslať</string>
   <string name="contact_option">Kontakt</string>
+  <string name="cancel">Zrušiť</string>
   <string name="quit_option">Ukončiť</string>
   <string name="share_email_native"></string>
   <string name="install_update">Aktualizácia</string>
@@ -11,4 +13,5 @@
   <string name="yes">Áno</string>
   <string name="no">Nie</string>
   <string name="item_preview_country">Spojené štáty</string>
+  <string name="stripe_publishable_key"></string>
 </resources>

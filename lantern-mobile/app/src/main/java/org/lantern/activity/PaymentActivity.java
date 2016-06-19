@@ -150,7 +150,7 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
 
         boolean validation = card.validateCard();
         if (validation) {
-            startProgress();
+            dialog.show();
             Stripe stripe = new Stripe();
             stripe.createToken(card, publishableApiKey, new TokenCallback() {
                 public void onSuccess(Token token) {
@@ -171,10 +171,6 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
         } else {
             handleError("The card details that you entered are invalid");
         }
-    }
-
-    private void startProgress() {
-        dialog.show();
     }
 
     @Override

@@ -9,10 +9,12 @@
   <string name="receive_lantern">Lantern desktop átvétele emaillel</string>
   <string name="email_hint">Email</string>
   <string name="send_button">Küldés</string>
+  <string name="send_desktop">Küldés</string>
   <string name="on_text">Be</string>
   <string name="off_text">Ki</string>
   <string name="desktop_option">Asztali Verzió</string>
   <string name="contact_option">Kapcsolat</string>
+  <string name="cancel">Mégsem</string>
   <string name="privacy_policy">Adatvédelmi Irányelvek</string>
   <string name="share_option">Megosztás</string>
   <string name="quit_option">Kilépés</string>
@@ -32,4 +34,5 @@
   <string name="yes">Igen</string>
   <string name="no">Nem</string>
   <string name="item_preview_country">Amerikai Egyesült Államok</string>
+  <string name="stripe_publishable_key"></string>
 </resources>

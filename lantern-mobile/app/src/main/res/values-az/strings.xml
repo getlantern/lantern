@@ -9,10 +9,12 @@
   <string name="receive_lantern">Lantern desktopu emaillə əldə et</string>
   <string name="email_hint">Email</string>
   <string name="send_button">Göndər</string>
+  <string name="send_desktop">Send</string>
   <string name="on_text">Açıq</string>
   <string name="off_text">Qapalı</string>
   <string name="desktop_option">Desktop Versiyası</string>
   <string name="contact_option">Contact</string>
+  <string name="cancel">Cancel</string>
   <string name="privacy_policy">Gizlilik Siyasəti</string>
   <string name="share_option">Paylaş</string>
   <string name="quit_option">Quit</string>
@@ -32,4 +34,5 @@
   <string name="yes">Bəli</string>
   <string name="no">Xeyr</string>
   <string name="item_preview_country">United States</string>
+  <string name="stripe_publishable_key"></string>
 </resources>

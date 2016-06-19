@@ -35,6 +35,12 @@ public class GetFeed extends AsyncTask<Boolean, Void, ArrayList<String>> {
 
     @Override
     protected ArrayList<String> doInBackground(Boolean... params) {
+
+        if (!Utils.isNetworkAvailable(activity)) {
+            // if there is no network connection, return right away
+            return null;
+        }
+
         boolean shouldProxy = params[0];
         String locale = Locale.getDefault().toString();
         Log.d(TAG, String.format("Fetching public feed: locale=%s", locale));
@@ -51,6 +57,7 @@ public class GetFeed extends AsyncTask<Boolean, Void, ArrayList<String>> {
     @Override
     protected void onPostExecute(ArrayList<String> sources) {
         super.onPostExecute(sources);
+
         progressBar.setVisibility(View.GONE);
         activity.setupFeed(sources);
     }

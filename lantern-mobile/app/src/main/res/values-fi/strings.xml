@@ -3,6 +3,8 @@
   <string name="app_name">Lantern</string>
   <string name="action_settings">Asetukset</string>
   <string name="send_button">Lähetä</string>
+  <string name="send_desktop">Lähetä</string>
+  <string name="cancel">Peru</string>
   <string name="share_option">Jaa</string>
   <string name="quit_option">Poistu</string>
   <string name="share_email_native"></string>
@@ -10,4 +12,5 @@
   <string name="language">Kieli</string>
   <string name="yes">Kyllä</string>
   <string name="no">En</string>
+  <string name="stripe_publishable_key"></string>
 </resources>

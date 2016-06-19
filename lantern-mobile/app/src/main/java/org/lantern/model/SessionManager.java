@@ -25,7 +25,7 @@ import org.lantern.model.Device;
 import org.lantern.model.ProPlan;
 import org.lantern.model.ProRequest;
 import org.lantern.vpn.Service;
-import org.lantern.R;                                    
+import org.lantern.R;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -173,12 +173,16 @@ public class SessionManager implements Lantern.Session {
         devices.put(id, new Device(id, name));
     }
 
+    public void removeDevice(String id) {
+        devices.remove(id);
+    }
+
     public Map<String, Device> getDevices() {
         return devices;
     }
 
-    public static ProPlan createPlan(Locale locale, String id, 
-            String description, boolean bestValue, long numYears, 
+    public static ProPlan createPlan(Locale locale, String id,
+            String description, boolean bestValue, long numYears,
             long price) {
         ProPlan plan = new ProPlan(id, description, bestValue,
                 numYears, price);
@@ -244,7 +248,7 @@ public class SessionManager implements Lantern.Session {
 
     public void setTwoYearCost(long twoYearCost) {
         this.twoYearCost = twoYearCost;
-    }                      
+    }
 
     public void AddPlan(String id, String description, boolean bestValue, long numYears, long price) {
         EventBus.getDefault().post(new ProPlan(id, description, bestValue, numYears, price));
@@ -318,7 +322,7 @@ public class SessionManager implements Lantern.Session {
 
 	public void SetCode(String referral) {
 		editor.putString(REFERRAL_CODE, referral).commit();
-	}      
+	}
 
 	public void SetToken(String token) {
 		editor.putString(TOKEN, token).commit();
@@ -397,7 +401,7 @@ public class SessionManager implements Lantern.Session {
 
     public void updateFeedPreference(boolean pref) {
         editor.putBoolean(PREF_NEWSFEED, pref).commit();
-    }   
+    }
 
     public boolean showFeed() {
         return mPrefs.getBoolean(PREF_NEWSFEED, true);
@@ -420,7 +424,7 @@ public class SessionManager implements Lantern.Session {
     }
 
     public String Locale() {
-        return Locale.getDefault().toString(); 
+        return Locale.getDefault().toString();
     }
 
 	public void setReferralApplied() {
@@ -460,13 +464,13 @@ public class SessionManager implements Lantern.Session {
             String analyticsTrackingID = ""; // don't track analytics since those are already being tracked elsewhere
             boolean updateProxySettings = true;
 
-            StartResult result = org.lantern.mobilesdk.Lantern.enable(this.context, 
+            StartResult result = org.lantern.mobilesdk.Lantern.enable(this.context,
                 startTimeoutMillis, updateProxySettings, analyticsTrackingID);
 
             return result.getHTTPAddr();
         }  catch (LanternNotRunningException lnre) {
             throw new RuntimeException("Lantern failed to start: " + lnre.getMessage(), lnre);
-        }  
+        }
     }
 
 	public boolean shouldProxy() {

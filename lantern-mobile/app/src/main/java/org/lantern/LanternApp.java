@@ -34,6 +34,8 @@ public class LanternApp extends Application {
 		final Context context = getApplicationContext();
         session = new SessionManager(context);
         session.shouldProxy();
+        // wait a few seconds while Lantern starts before
+        // making any Pro requests
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {

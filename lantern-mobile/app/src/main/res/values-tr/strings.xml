@@ -3,7 +3,9 @@
   <string name="app_name">Lantern</string>
   <string name="action_settings">Ayarlar</string>
   <string name="send_button">Gönder</string>
+  <string name="send_desktop">Gönder</string>
   <string name="contact_option">Bağlantı</string>
+  <string name="cancel">İptal</string>
   <string name="share_option">Paylaş</string>
   <string name="quit_option">Çık</string>
   <string name="share_email_native"></string>
@@ -14,4 +16,5 @@
   <string name="yes">Evet</string>
   <string name="no">Hayır</string>
   <string name="item_preview_country">Birleşik Devletler</string>
+  <string name="stripe_publishable_key"></string>
 </resources>

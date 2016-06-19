@@ -9,10 +9,12 @@
   <string name="receive_lantern">Dapatkan Lantern desktop lewat surel</string>
   <string name="email_hint">Surel</string>
   <string name="send_button">Send</string>
+  <string name="send_desktop">Send</string>
   <string name="on_text">Hidup</string>
   <string name="off_text">Mati</string>
   <string name="desktop_option">Versi Desktop</string>
   <string name="contact_option">Contact</string>
+  <string name="cancel">Cancel</string>
   <string name="privacy_policy">Kebijakan Privasi</string>
   <string name="share_option">Bagikan</string>
   <string name="quit_option">Quit</string>
@@ -28,4 +30,5 @@
   <string name="install_update">Update</string>
   <string name="language">Language</string>
   <string name="item_preview_country">United States</string>
+  <string name="stripe_publishable_key"></string>
 </resources>

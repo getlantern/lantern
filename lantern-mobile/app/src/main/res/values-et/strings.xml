@@ -3,10 +3,13 @@
   <string name="app_name">Lantern</string>
   <string name="action_settings">Seaded</string>
   <string name="send_button">Send</string>
+  <string name="send_desktop">Send</string>
   <string name="contact_option">Contact</string>
+  <string name="cancel">Loobu</string>
   <string name="quit_option">Välju</string>
   <string name="share_email_native"></string>
   <string name="install_update">Uuenda</string>
   <string name="language">Language</string>
   <string name="item_preview_country">United States</string>
+  <string name="stripe_publishable_key"></string>
 </resources>
