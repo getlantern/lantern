@@ -6,8 +6,9 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
-	"sync"
+	"time"
 
+	"github.com/getlantern/eventual"
 	"github.com/getlantern/flashlight/proxied"
 	"github.com/getlantern/golog"
 )
@@ -17,9 +18,8 @@ const (
 )
 
 var (
-	log      = golog.LoggerFor("flashlight.logging")
-	clientMu sync.RWMutex
-	httpC    *http.Client
+	log        = golog.LoggerFor("flashlight.pro")
+	httpClient = eventual.NewValue()
 )
 
 type proxyTransport struct {
@@ -27,13 +27,6 @@ type proxyTransport struct {
 }
 
 func (pt *proxyTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	clientMu.RLock()
-	defer clientMu.RUnlock()
-
-	if httpC == nil {
-		return nil, errors.New("Missing client.")
-	}
-
 	if req.Method == "OPTIONS" {
 		// No need to proxy the OPTIONS request.
 		res := &http.Response{
@@ -49,7 +42,13 @@ func (pt *proxyTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 		}
 		return res, nil
 	}
-	return httpC.Do(req)
+
+	client, resolved := httpClient.Get(60 * time.Second)
+	if !resolved {
+		log.Error("Trying to proxy pro before we have a client")
+		return nil, errors.New("Missing client.")
+	}
+	return client.(*http.Client).Do(req)
 }
 
 var proxyHandler = &httputil.ReverseProxy{
@@ -64,19 +63,19 @@ var proxyHandler = &httputil.ReverseProxy{
 	},
 }
 
+// Configure sets the CA to use for the cloud config.
 func Configure(cloudConfigCA string) {
-	clientMu.Lock()
-	defer clientMu.Unlock()
-
 	rt, err := proxied.ChainedPersistent(cloudConfigCA)
 	if err != nil {
 		log.Errorf("Could not create HTTP client: %v", err)
 		return
 	}
 
-	httpC = &http.Client{Transport: rt}
+	log.Debug("Setting http client")
+	httpClient.Set(&http.Client{Transport: rt})
 }
 
+// InitProxy starts the proxy listening on the specified host and port.
 func InitProxy(addr string) error {
 	return http.ListenAndServe(addr, proxyHandler)
 }
