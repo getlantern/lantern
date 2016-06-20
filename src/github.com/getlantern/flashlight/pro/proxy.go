@@ -43,7 +43,7 @@ func (pt *proxyTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 		return res, nil
 	}
 
-	client, resolved := httpClient.Get(30 * time.Second)
+	client, resolved := httpClient.Get(60 * time.Second)
 	if !resolved {
 		log.Error("Trying to proxy pro before we have a client")
 		return nil, errors.New("Missing client.")
