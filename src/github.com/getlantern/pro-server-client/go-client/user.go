@@ -19,7 +19,7 @@ type User struct {
 	AutoconfToken string   `json:"autoconfToken"`
 	Subscription  string   `json:"subscription"`
 	Devices       []Device `json:"devices"`
-	Code          string   `json:"code"`
+	Code          int      `json:"code"`
 	Referral      string   `json:"referral"`
 	Auth          `json:",inline"`
 }

@@ -1265,7 +1265,7 @@
     </string-array>
 
     <string-array name="year_array">
-        <item>Year</item>
+        <item>@string/year</item>
         <item>2016</item>
         <item>2017</item>
         <item>2018</item>
@@ -1274,7 +1274,7 @@
     </string-array>
 
     <string-array name="month_array">
-        <item>Month</item>
+        <item>@string/month</item>
         <item>1</item>
         <item>2</item>
         <item>3</item>

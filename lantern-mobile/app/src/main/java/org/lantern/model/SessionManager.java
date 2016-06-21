@@ -40,6 +40,7 @@ public class SessionManager implements Lantern.Session {
     private static final String REFERRAL_APPLIED = "ReferralApplied";
     private static final String REFERRAL_CODE = "referral";
     private static final String DEVICE_ID = "deviceid";
+    private static final String PLAN_COST = "%1$s%2$d (%3$s)";
 
     private static final String USER_ID = "userid";
     private static final String PRO_USER = "prouser";
@@ -75,7 +76,7 @@ public class SessionManager implements Lantern.Session {
 
     private String stripeToken;
     private String referral;
-    private String verifyCode;
+    private Long verifyCode;
     private Locale locale;
     private Currency currency;
 
@@ -208,8 +209,8 @@ public class SessionManager implements Lantern.Session {
         long price = plan.getPrice();
         long fmtPrice = price/100;
 
-        String costStr = String.format(resources.getString(R.string.plan_cost),
-                symbol, fmtPrice, currency.getCurrencyCode());
+        String costStr = String.format(PLAN_COST, symbol, fmtPrice, 
+                currency.getCurrencyCode());
 
         plan.setPrice(price);
         plan.setLocale(locale);
@@ -262,13 +263,12 @@ public class SessionManager implements Lantern.Session {
 		return true;
 	}
 
-	public void setVerifyCode(String code) {
+	public void setVerifyCode(long code) {
         Log.d(TAG, "Verify code set to " + code);
         this.verifyCode = code;
 	}
 
-    @Override
-    public String VerifyCode() {
+    public long VerifyCode() {
         return this.verifyCode;
     }
 
