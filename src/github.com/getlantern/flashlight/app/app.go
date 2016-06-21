@@ -179,7 +179,8 @@ func (app *App) GetSetting(attr string) interface{} {
 	}
 }
 
-// OnSettingChange sets a callback cb to get called when attr is changed from UI
+// OnSettingChange sets a callback cb to get called when attr is changed from UI.
+// When calling multiple times for same attr, only the last one takes effect.
 func (app *App) OnSettingChange(attr string, cb func(interface{})) {
 	settings.OnChange(attr, cb)
 }
