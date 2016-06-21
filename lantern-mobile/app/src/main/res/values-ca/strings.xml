@@ -13,7 +13,6 @@
   <string name="send_desktop">Envia</string>
   <string name="send_sms">Envia SMS</string>
   <string name="apply_promotion">Aplica la promoció</string>
-  <string name="submit_code">Envia el codi</string>
   <string name="on_text">Activació</string>
   <string name="off_text">Desactivació</string>
   <string name="lantern_off">El Lantern està apagat. Activeu l\'interruptor per accedir\n als llocs i serveis bloquejats.</string>
@@ -59,7 +58,6 @@
   <string name="pro_welcome_text">Benvinguts al Lantern PRO</string>
   <string name="renew_pro_account">Renoveu el compte Pro</string>
   <string name="change_phone_number">Canvieu el número de telèfon</string>
-  <string name="pro_account_expires">El vostre compte Pro finalitza el %1$s\n. Incloent els %2$d mesos de bonificació.</string>
   <string name="verified_phone_number">Número de telèfon verificat:</string>
   <string name="devices_authorized">Dispositius permesos a utilitzar el vostre compte Pro</string>
   <string name="send_us_your_logs">Envieu-nos els logs</string>
@@ -104,13 +102,6 @@
     <item>Dades sense límit</item>
     <item>Resistència al bloqueig</item>
     <item>Tres dispositius</item>
-  </string-array>
-  <string-array name="enter_code_steps">
-    <item>Introduïu el codi de verificació rebut via SMS</item>
-    <item>No heu rebut un codi? Si us plau, torneu enrere i proveu-ho de nou</item>
-  </string-array>
-  <string-array name="authorize_device_list">
-    <item>Si teniu un compte Lantern PRO en un altre dispositiu, si us plau introduïu el número de telèfon mòbil per a rebre un codi que autoritzi aquest dispositiu.</item>
   </string-array>
   <string-array name="verify_account_list">
     <item>Molt bé! Primer, verifiquem el vostre compte.</item>

@@ -29,7 +29,7 @@
             android:orientation="vertical"
             android:scaleType="center"
             android:background="@drawable/zigzag"
-            android:gravity="center"           
+            android:gravity="center"
             android:layout_width="fill_parent"
             android:layout_height="320dp">
 
@@ -82,7 +82,7 @@
                     android:gravity="right"
                     android:layout_gravity="right"
                     android:layout_weight="1"
-                    android:orientation="vertical" />  
+                    android:orientation="vertical" />
 
             </LinearLayout>
 
@@ -109,7 +109,7 @@
             android:layout_height="256dp"
             android:layout_width="match_parent">
 
-            <RelativeLayout 
+            <RelativeLayout
                 android:id="@+id/two_year_plan"
                 android:layout_width="fill_parent"
                 android:layout_height="130dp"
@@ -142,7 +142,6 @@
                         android:fontFamily="sans-serif"
                         android:layout_alignParentLeft="true"
                         android:layout_centerVertical ="true"
-                        android:text="@string/plan_cost"
                         android:textSize="34sp"
                         android:textStyle="bold"
                         android:alpha=".87"
@@ -163,13 +162,13 @@
                     android:layout_height="36dp"
                     android:layout_width="88dp"
                     android:text="@string/select"
-                    android:fontFamily="sans-serif-medium" 
+                    android:fontFamily="sans-serif-medium"
                     android:textSize="14sp"
                     android:elevation="2dp"
                     android:minHeight="48dp"
                     android:textAllCaps="true"
                     android:textColor="@color/accent_white"
-                    android:textStyle="bold"     
+                    android:textStyle="bold"
                     android:clickable = "true"
                     android:background="@color/pink"
                     android:layout_marginRight="10dp"
@@ -181,7 +180,7 @@
 
             </RelativeLayout>
 
-            <RelativeLayout 
+            <RelativeLayout
                 android:id="@+id/one_year_plan"
                 android:layout_width="fill_parent"
                 android:layout_height="110dp"
@@ -200,7 +199,6 @@
                     android:layout_alignParentStart="true"
                     android:layout_centerVertical="true"
                     android:layout_marginLeft="13dp"
-                    android:text="@string/plan_cost"
                     android:textSize="34sp"
                     android:textStyle="bold"
                     android:alpha=".87"
@@ -223,13 +221,13 @@
                     android:layout_height="36dp"
                     android:layout_width="88dp"
                     android:text="@string/select"
-                    android:fontFamily="sans-serif-medium" 
+                    android:fontFamily="sans-serif-medium"
                     android:textSize="14sp"
                     android:elevation="2dp"
                     android:minHeight="48dp"
                     android:textAllCaps="true"
                     android:textColor="@color/accent_white"
-                    android:textStyle="bold"     
+                    android:textStyle="bold"
                     android:clickable = "true"
                     android:background="@color/pink"
                     android:layout_marginRight="10dp"

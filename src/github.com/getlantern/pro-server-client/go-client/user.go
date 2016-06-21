@@ -5,8 +5,9 @@ import (
 )
 
 type Device struct {
-	Id   string `json:"id"`
-	Name string `json:"name"`
+	Id      string `json:"id"`
+	Name    string `json:"name"`
+	Created int64  `json:"created"`
 }
 
 type User struct {
