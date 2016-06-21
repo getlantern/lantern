@@ -23,7 +23,7 @@ type Session interface {
 	Email() string
 	SetToken(string)
 	SetUserId(string)
-	UserData(string, string, string)
+	UserData(string, int64, string)
 	SetCode(string)
 	Currency() string
 	AddPlan(string, string, bool, int, int)
