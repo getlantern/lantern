@@ -12,11 +12,13 @@ import (
 	"syscall"
 
 	"github.com/getlantern/golog"
+	"github.com/getlantern/i18n"
 	"github.com/mitchellh/panicwrap"
 
 	"github.com/getlantern/flashlight/app"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/logging"
+	"github.com/getlantern/flashlight/ui"
 )
 
 var (
@@ -73,7 +75,7 @@ func main() {
 	client.ForceAuthToken = *forceAuthToken
 
 	if a.ShowUI {
-		app.RunOnSystrayReady(_main(a))
+		runOnSystrayReady(_main(a))
 	} else {
 		log.Debug("Running headless")
 		_main(a)()
@@ -103,9 +105,29 @@ func doMain(a *app.App) error {
 			log.Errorf("Error closing log: %v", err)
 		}
 	})
-	a.AddExitFunc(app.QuitSystray)
+	a.AddExitFunc(quitSystray)
+
+	i18nInit()
+	if a.ShowUI {
+		if err := configureSystemTray(a); err != nil {
+			return err
+		}
+		a.OnSettingsChange("language", func(lang interface{}) {
+			refreshSystray(lang.(string))
+		})
+
+	}
 
 	return a.Run()
+}
+
+func i18nInit() {
+	i18n.SetMessagesFunc(func(filename string) ([]byte, error) {
+		return ui.Translations.Get(filename)
+	})
+	if err := i18n.UseOSLocale(); err != nil {
+		log.Debugf("i18n.UseOSLocale: %q", err)
+	}
 }
 
 func parseFlags() {

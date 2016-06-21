@@ -1,6 +1,6 @@
 // +build !headless
 
-package app
+package main
 
 import (
 	"fmt"
@@ -8,6 +8,7 @@ import (
 	"github.com/getlantern/i18n"
 	"github.com/getlantern/systray"
 
+	"github.com/getlantern/flashlight/app"
 	"github.com/getlantern/flashlight/icons"
 	"github.com/getlantern/flashlight/ui"
 )
@@ -18,16 +19,16 @@ var menu struct {
 	quit   *systray.MenuItem
 }
 
-func RunOnSystrayReady(f func()) {
+func runOnSystrayReady(f func()) {
 	systray.Run(f)
 }
 
-func QuitSystray() {
+func quitSystray() {
 	log.Debug("quitSystray")
 	systray.Quit()
 }
 
-func configureSystemTray(a *App) error {
+func configureSystemTray(a *app.App) error {
 	menu.enable = a.ShowUI
 	if !menu.enable {
 		return nil

@@ -46,6 +46,9 @@ type Settings struct {
 	BuildDate    string `json:"buildDate" yaml:"-"`
 	RevisionDate string `json:"revisionDate" yaml:"-"`
 
+	muNotifiers     sync.RWMutex                 `json:"-" yaml:"-"`
+	changeNotifiers map[string]func(interface{}) `json:"-" yaml:"-"`
+
 	sync.RWMutex `json:"-" yaml:"-"`
 }
 
@@ -63,6 +66,8 @@ func loadSettingsFrom(version, revisionDate, buildDate, path string) *Settings {
 		AutoLaunch:  true,
 		ProxyAll:    false,
 		SystemProxy: true,
+
+		changeNotifiers: make(map[string]func(interface{})),
 	}
 
 	// Use settings from disk if they're available.
@@ -155,6 +160,7 @@ func (s *Settings) checkBool(data map[string]interface{}, name string, f func(bo
 		return
 	}
 	f(b)
+	s.onChange(name, b)
 }
 
 func (s *Settings) checkNum(data map[string]interface{}, name string, f func(int64)) {
@@ -173,6 +179,7 @@ func (s *Settings) checkNum(data map[string]interface{}, name string, f func(int
 		return
 	}
 	f(bigint)
+	s.onChange(name, bigint)
 }
 
 func (s *Settings) checkString(data map[string]interface{}, name string, f func(string)) {
@@ -186,6 +193,7 @@ func (s *Settings) checkString(data map[string]interface{}, name string, f func(
 		return
 	}
 	f(str)
+	s.onChange(name, str)
 }
 
 // Save saves settings to disk.
@@ -249,7 +257,6 @@ func (s *Settings) GetSystemProxy() bool {
 
 // SetLanguage sets the user language
 func (s *Settings) SetLanguage(language string) {
-	refreshSystray(language)
 	s.Lock()
 	defer s.unlockAndSave()
 	s.Language = language
@@ -319,6 +326,23 @@ func (s *Settings) SetSystemProxy(enable bool) {
 			log.Debugf("System proxying disabled, redirect UI to: %v", preferredUIAddr)
 			service.Out <- map[string]string{"redirectTo": preferredUIAddr}
 		}
+	}
+}
+
+// OnChange sets a callback cb to get called when attr is changed from UI
+func (s *Settings) OnChange(attr string, cb func(interface{})) {
+	s.muNotifiers.Lock()
+	s.changeNotifiers[attr] = cb
+	s.muNotifiers.Unlock()
+}
+
+// onChange is called when attr is changed from UI
+func (s *Settings) onChange(attr string, value interface{}) {
+	s.muNotifiers.RLock()
+	fn := s.changeNotifiers[attr]
+	s.muNotifiers.RUnlock()
+	if fn != nil {
+		fn(value)
 	}
 }
 

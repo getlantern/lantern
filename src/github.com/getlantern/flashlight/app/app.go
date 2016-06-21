@@ -9,7 +9,6 @@ import (
 
 	"github.com/getlantern/flashlight"
 	"github.com/getlantern/golog"
-	"github.com/getlantern/i18n"
 	"github.com/getlantern/profiling"
 
 	"github.com/getlantern/flashlight/analytics"
@@ -69,19 +68,6 @@ func (app *App) LogPanicAndExit(msg string) {
 
 // Run starts the app. It will block until the app exits.
 func (app *App) Run() error {
-	if !app.ShowUI {
-		log.Debug("Running headless")
-		return app.run()
-	}
-	// configureSystemTray relies on i18n being initialized.
-	i18nInit()
-	if err := configureSystemTray(app); err != nil {
-		return err
-	}
-	return app.run()
-}
-
-func (app *App) run() error {
 	// Run below in separate goroutine as config.Init() can potentially block when Lantern runs
 	// for the first time. User can still quit Lantern through systray menu when it happens.
 	go func() {
@@ -183,6 +169,10 @@ func (app *App) beforeStart(cfg *config.Config) bool {
 	return true
 }
 
+func (app *App) OnSettingsChange(attr string, cb func(interface{})) {
+	settings.OnChange(attr, cb)
+}
+
 func (app *App) afterStart(cfg *config.Config) {
 	app.onConfigUpdate(cfg)
 	servePACFile()
@@ -256,16 +246,4 @@ func (app *App) waitForExit() error {
 
 func (app *App) uiaddr() string {
 	return app.Flags["uiaddr"].(string)
-}
-
-func i18nInit() {
-	i18n.SetMessagesFunc(func(filename string) ([]byte, error) {
-		return ui.Translations.Get(filename)
-	})
-	if err := i18n.SetLocale(settings.GetLanguage()); err != nil {
-		log.Debugf("i18n.SetLocale failed, fallback to OS default: %q", err)
-		if err = i18n.UseOSLocale(); err != nil {
-			log.Debugf("i18n.UseOSLocale: %q", err)
-		}
-	}
 }
