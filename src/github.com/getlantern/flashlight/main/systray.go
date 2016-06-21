@@ -61,7 +61,8 @@ func refreshSystray(language string) {
 		return
 	}
 	if err := i18n.SetLocale(language); err != nil {
-		log.Debugf("i18n.SetLocale failed: %q", err)
+		log.Errorf("i18n.SetLocale(%s) failed: %q", language, err)
+		return
 	}
 	menu.show.SetTitle(i18n.T("TRAY_SHOW_LANTERN"))
 	menu.show.SetTooltip(i18n.T("SHOW"))
