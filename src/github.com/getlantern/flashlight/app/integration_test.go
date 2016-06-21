@@ -1,5 +1,3 @@
-// +build asdf
-
 package app
 
 import (
