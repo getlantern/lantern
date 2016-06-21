@@ -20,6 +20,7 @@ const (
 	defaultFeedEndpoint = "https://feeds.getiantem.org/%s/feed.json"
 	fallbackEndpoint    = "https://feeds.getiantem.org/en_US/feed.json"
 	en                  = "en_US"
+	gb                  = "en_GB"
 )
 
 var (
@@ -307,9 +308,10 @@ func getFeedURL(feedEndpoint, defaultLocale string) string {
 }
 
 func determineLocale(defaultLocale string) string {
-	if defaultLocale == "" {
+	if defaultLocale == "" || defaultLocale == gb {
 		defaultLocale = en
 	}
+
 	// As of this writing the only countries we know of where we want a unique
 	// feed for the country that's different from the dominantly installed
 	// language are Iran and Malaysia. In both countries english is the most

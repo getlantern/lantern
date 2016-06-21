@@ -40,6 +40,7 @@ public class SessionManager implements Lantern.Session {
     private static final String REFERRAL_APPLIED = "ReferralApplied";
     private static final String REFERRAL_CODE = "referral";
     private static final String DEVICE_ID = "deviceid";
+    private static final String PLAN_COST = "%1$s%2$d (%3$s)";
 
     private static final String USER_ID = "userid";
     private static final String PRO_USER = "prouser";
@@ -208,8 +209,8 @@ public class SessionManager implements Lantern.Session {
         long price = plan.getPrice();
         long fmtPrice = price/100;
 
-        String costStr = String.format(resources.getString(R.string.plan_cost),
-                symbol, fmtPrice, currency.getCurrencyCode());
+        String costStr = String.format(PLAN_COST, symbol, fmtPrice, 
+                currency.getCurrencyCode());
 
         plan.setPrice(price);
         plan.setLocale(locale);
@@ -267,7 +268,6 @@ public class SessionManager implements Lantern.Session {
         this.verifyCode = code;
 	}
 
-    @Override
     public String VerifyCode() {
         return this.verifyCode;
     }
@@ -336,8 +336,8 @@ public class SessionManager implements Lantern.Session {
         return mPrefs.getString(EMAIL_ADDRESS, "");
     }
 
-	public void SetUserId(long userId) {
-		editor.putString(USER_ID, Long.toString(userId)).commit();
+	public void SetUserId(String userId) {
+		editor.putString(USER_ID, userId).commit();
 	}
 
 	private void setDeviceId(String deviceId) {
@@ -358,12 +358,8 @@ public class SessionManager implements Lantern.Session {
         return mPrefs.getString(REFERRAL_CODE, "");
     }
 
-	public long UserId() {
-        String userId = mPrefs.getString(USER_ID, "");
-        if (userId.equals("")) {
-            return 0;
-        }
-		return Long.parseLong(userId);
+	public String UserId() {
+        return mPrefs.getString(USER_ID, "");
 	}
 
 	public String getUserId() {

@@ -2,7 +2,6 @@ package client
 
 import (
 	"net/http"
-	"strconv"
 )
 
 type Device struct {
@@ -30,8 +29,8 @@ func (u User) headers() http.Header {
 	if u.Auth.DeviceID != "" {
 		h[XLanternDeviceID] = []string{u.Auth.DeviceID}
 	}
-	if u.ID != 0 {
-		h[XLanternUserID] = []string{strconv.Itoa(u.ID)}
+	if u.ID != "" {
+		h[XLanternUserID] = []string{u.ID}
 	}
 	if u.Auth.Token != "" {
 		h[XLanternProToken] = []string{u.Auth.Token}

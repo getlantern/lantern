@@ -38,7 +38,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:checked="true"
-            android:text="Card"
+            android:text="@string/card"
             style="@style/RadioButton" />
 
         <RadioButton
@@ -47,7 +47,7 @@
             android:layout_height="wrap_content"
             android:button="@android:color/transparent"
             android:background="@drawable/alipay"
-            android:text="Alipay"
+            android:text="@string/Alipay"
             style="@style/RadioButton" />
 
     </info.hoang8f.android.segmented.SegmentedGroup>

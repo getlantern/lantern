@@ -11,7 +11,7 @@ const (
 )
 
 type Session interface {
-	UserId() int
+	UserId() string
 	Code() string
 	VerifyCode() string
 	DeviceId() string
@@ -22,7 +22,7 @@ type Session interface {
 	StripeToken() string
 	Email() string
 	SetToken(string)
-	SetUserId(int)
+	SetUserId(string)
 	UserData(string, int64, string)
 	SetCode(string)
 	Currency() string
@@ -92,12 +92,12 @@ func signin(r *proRequest) (*client.Response, error) {
 		log.Errorf("Could not complete signin: %v", err)
 		return res, err
 	}
-	r.session.SetUserId(res.User.Auth.ID)
 	return res, err
 }
 
 func code(r *proRequest) (*client.Response, error) {
 	r.user.Code = r.session.VerifyCode()
+	log.Debugf("CODE IS SET TO %v", r.user.Code)
 	res, err := r.proClient.UserLinkValidate(r.user)
 	if err != nil {
 		log.Errorf("Could not validate user code: %v", err)

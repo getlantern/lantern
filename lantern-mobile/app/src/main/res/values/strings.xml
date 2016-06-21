@@ -42,6 +42,10 @@
     <string name="share_email_gmail">I\'m using Lantern for Android, and I\'ve attached the APK file!</string>
     <string name="share_sms">I\'m using Lantern for Android, download it here: https://bit.ly/lanternapk</string>
     <string name="share_chooser_text">Share Lantern Android</string>
+    <string name="card">Card</string>
+    <string name="Alipay">Alipay</string>
+    <string name="month">Month</string>
+    <string name="year">Year</string>
     <string name="success_email">Lantern Desktop has been e-mailed to you!</string>
     <string name="error_email">There was a problem sending you Lantern Desktop. Please try again later.</string>
     <string name="send_logs">Send Logs</string>
@@ -60,7 +64,7 @@
     <string name="manual_update">Try manually installing the latest version from &lt;a href="https://lantern-android.io">here1&lt;/a></string>
     <string name="pro_welcome_text">Welcome to Lantern Pro!</string>
 	<string name="renew_pro_account">Renew Pro Account</string>
-    <string name="logout">Log Out</string>
+    <string name="logout">Log out</string>
 	<string name="change_phone_number">Change Phone Number</string>
     <string name="change_email_address">Change Email Address</string>
     <string name="pro_account_expires">Your Pro account expires on %1$s</string>
@@ -87,7 +91,7 @@
     <string name="get_code_text">Enter your email to receive a code to share with your friends, get a free month of PRO when they sign up!</string>
     <string name="enter_your_email">Enter your email to receive a referral code</string>
     <string name="copied_to_clipboard">Referral code copied to clipboard!</string>
-    <string name="share_referral_text">Use my code %1$s to get up to 3 additional months free after purchase Download Lantern https://bit.ly/lanternapk</string>
+    <string name="share_referral_text">Use my code %1$s to get up to 3 additional months free after purchase. Download Lantern https://bit.ly/lanternapk</string>
     <string name="previous_code">If you have previously received a referral code\r\nplease make sure to use the same email address.</string>
     <string name="payment_plans">Lantern PRO Payment Plans</string>
     <string name="features_text">Lantern PRO Features</string>
@@ -141,7 +145,6 @@
     <string name="select">Select</string>
     <string name="one_year">for 1 year</string>
     <string name="two_years">for 2 years</string>
-    <string name="plan_cost">%1$s%2$d (%3$s)</string>
     <string name="best_value">Best VALUE!</string>
     <string name="referral_code">Referral Code (optional)</string>
     <string name="total">Total:</string>
@@ -155,7 +158,7 @@
     <string name="get_lantern_pro">Get Lantern Pro</string>
     <string name="upgrade_to_lantern_pro">Upgrade to Lantern Pro</string>
     <string name="pro_available_for">For Windows, Android, Mac and Ubuntu. iOS coming soon</string>
-    <string name="upgrade_to_pro">Upgrade to Pro for unlimited data, faster\nspeed,and greater blocking resistance!</string>
+    <string name="upgrade_to_pro">Upgrade to Pro for unlimited data, faster speed, and greater blocking resistance!</string>
     <string name="data_remaining">%1$sMB Remaining of your free monthly data</string> 
     <string name="upgrade">Upgrade</string>
     <string name="no_wall_at_all">No wall at all.</string>
