@@ -9,16 +9,15 @@
   "account.cancel": "Cancel Pro Account",
   "account.free.cap": "%s MB remaining of your free monthly data",
   "account.free.cap.upgrade": "Upgrade to Pro for unlimited data",
-  "account.pro.plan": "You currently have a Lantern Pro %s account.",
   "account.pro.charge": "Your account will automatically be charged for another year of Lantern Pro at the end of your billing cycle.",
   "account.upgrade": "Upgrade to Pro",
   "account.pro.email": "Email Address:",
   "account.pro.currentdevice": "Current Device:",
   "account.pro.removedevice": "REMOVE",
   "account.pro.devices": "Devices authorized to use your Pro account:",
-  "account.pro.device.confirm.title": "Remove?",
-  "account.pro.device.confirm": "Are you sure you want to remove this device?",
-
+  "account.pro.devices.headerDesc": "Your Pro account expires in %s days on %s",
+  "account.pro.device.confirm.title": "Deauthorize Device",
+  "account.pro.device.confirm": "Are you sure you want to remove '%s' from your Lantern Pro account?",
   "account.pro.device.one.title": "Only One Device",
   "account.pro.device.one": "Sorry, but you cannot remove your last authorized device.",
   "account.pro.renew": "RENEW PRO ACCOUNT",
@@ -147,6 +146,5 @@
   "messages.copied_to_clipboard": "Copied to clipboard!",
   "messages.datacap": "You have used your free monthly data. Upgrade to Lantern Pro to continue using Lantern",
   "freeProCredits.title": "Free Pro Credits",
-  "freeProCredits.shareWithFriends": "Share your code with friends to get free months of Lantern.",
-  "freeProCredits.smallPrint": "When friends use your code to purchase Pro they will receive 3 free months with the two-year plan, or 1 month free with the one-year plan. Once the purchase is confirmed, you will get 1 to 3 months of Lantern Pro for every friend that signs up!"
+  "freeProCredits.shareWithFriends": "When your friend purchases the two-year plan you will each get 3 months free, the one-year plan gets you each 1 month free."
 }
