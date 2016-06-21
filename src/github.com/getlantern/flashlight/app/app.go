@@ -169,7 +169,18 @@ func (app *App) beforeStart(cfg *config.Config) bool {
 	return true
 }
 
-func (app *App) OnSettingsChange(attr string, cb func(interface{})) {
+// GetSetting gets the in memory setting with the name specified by attr
+func (app *App) GetSetting(attr string) interface{} {
+	switch attr {
+	case "language":
+		return settings.GetLanguage()
+	default:
+		panic(fmt.Sprintf("get %s setting is not supported", attr))
+	}
+}
+
+// OnSettingChange sets a callback cb to get called when attr is changed from UI
+func (app *App) OnSettingChange(attr string, cb func(interface{})) {
 	settings.OnChange(attr, cb)
 }
 

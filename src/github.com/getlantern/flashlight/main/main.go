@@ -107,12 +107,13 @@ func doMain(a *app.App) error {
 	})
 	a.AddExitFunc(quitSystray)
 
-	i18nInit()
 	if a.ShowUI {
+		lang := a.GetSetting("language").(string)
+		i18nInit(lang)
 		if err := configureSystemTray(a); err != nil {
 			return err
 		}
-		a.OnSettingsChange("language", func(lang interface{}) {
+		a.OnSettingChange("language", func(lang interface{}) {
 			refreshSystray(lang.(string))
 		})
 
@@ -121,12 +122,15 @@ func doMain(a *app.App) error {
 	return a.Run()
 }
 
-func i18nInit() {
+func i18nInit(locale string) {
 	i18n.SetMessagesFunc(func(filename string) ([]byte, error) {
 		return ui.Translations.Get(filename)
 	})
-	if err := i18n.UseOSLocale(); err != nil {
-		log.Debugf("i18n.UseOSLocale: %q", err)
+	if err := i18n.SetLocale(locale); err != nil {
+		log.Debugf("i18n.SetLocale(%s) failed, fallback to OS default: %q", locale, err)
+		if err := i18n.UseOSLocale(); err != nil {
+			log.Debugf("i18n.UseOSLocale: %q", err)
+		}
 	}
 }
 
