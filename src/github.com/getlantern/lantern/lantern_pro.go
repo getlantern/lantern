@@ -97,14 +97,14 @@ func signin(r *proRequest) (*client.Response, error) {
 
 func code(r *proRequest) (*client.Response, error) {
 	r.user.Code = r.session.VerifyCode()
-	log.Debugf("CODE IS SET TO %v", r.user.Code)
 	res, err := r.proClient.UserLinkValidate(r.user)
 	if err != nil {
 		log.Errorf("Could not validate user code: %v", err)
 		return res, err
 	}
-	log.Debugf("New token is %s", res.User.Auth.Token)
+	log.Debugf("New token is %s user id %s", res.User.Auth.Token, res.User.Auth.ID)
 	r.session.SetToken(res.User.Auth.Token)
+	r.session.SetUserId(res.User.Auth.ID)
 	return res, err
 }
 

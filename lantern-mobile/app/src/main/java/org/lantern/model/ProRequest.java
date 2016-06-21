@@ -40,6 +40,10 @@ public class ProRequest extends AsyncTask<String, Void, Boolean> {
         if (dialog != null) {
             dialog.setMessage(context.getResources().getString(R.string.sending_request));
             dialog.show();
+            // if user touches outside the progress dialog,
+            // don't dismiss it
+            dialog.setCancelable(false);
+            dialog.setCanceledOnTouchOutside(false);
         }
     }
 

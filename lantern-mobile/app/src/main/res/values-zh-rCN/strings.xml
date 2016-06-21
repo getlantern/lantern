@@ -12,8 +12,9 @@
   <string name="send_button">发送</string>
   <string name="send_desktop">发送桌面版</string>
   <string name="send_sms">发送短信</string>
+  <string name="send_email">发送电子邮件</string>
   <string name="apply_promotion">应用优惠</string>
-  <string name="submit_code">提交代码</string>
+  <string name="submit_code">确认代码</string>
   <string name="on_text">开</string>
   <string name="off_text">关</string>
   <string name="lantern_off">蓝灯已关闭。点击右上方开关来打开蓝灯！</string>
@@ -44,11 +45,17 @@
   <string name="share_email_gmail">我正在使用蓝灯安卓版；附件中有 APK 文件！</string>
   <string name="share_sms">我正在使用蓝灯安卓版，下载地址: https://bit.ly/lanternapk</string>
   <string name="share_chooser_text">分享蓝灯安卓版</string>
+  <string name="card">信用卡</string>
+  <string name="Alipay">支付宝</string>
+  <string name="month">月</string>
+  <string name="year">年</string>
   <string name="success_email">蓝灯桌面版已通过电子邮件发给你！</string>
   <string name="error_email">向你发送蓝灯桌面版时遇到问题，请稍后再试。</string>
+  <string name="send_logs">发送日志</string>
   <string name="success_log_email">日志已成功提交蓝灯！</string>
   <string name="error_log_email">发送日志到蓝灯失败。请稍后再试。</string>
   <string name="invalid_email">无效的邮箱地址</string>
+  <string name="invalid_referral_code">无效引荐代码</string>
   <string name="no_internet_connection">没有可用的互联网连接！</string>
   <string name="contact_email">team@getlantern.org</string>
   <string name="contact_message">帮助我</string>
@@ -60,17 +67,21 @@
   <string name="manual_update">尝试从 &lt;a href=\"https://lantern-android.io\"&gt;here1&lt;/a&gt; 手动安装最新版本</string>
   <string name="pro_welcome_text">欢迎使用蓝灯专业版！</string>
   <string name="renew_pro_account">续订专业版账户</string>
-  <string name="logout">注销</string>
+  <string name="logout">退出登录</string>
   <string name="change_phone_number">更改手机号码</string>
-  <string name="pro_account_expires">您的专业版账户将在 %1$s\n 过期。这包括您 %2$d 个月的奖励！</string>
+  <string name="change_email_address">更改电子邮件地址</string>
+  <string name="pro_account_expires">您的 Pro 账户将在 %1$s 过期</string>
+  <string name="includes_free_months">这包括您的 %2$d 个月奖励！</string>
   <string name="verified_phone_number">已验证手机号码：</string>
   <string name="devices_authorized">已授权使用您的 Pro 的设备</string>
   <string name="send_us_your_logs">给我们发送您的日志</string>
   <string name="thanks_purchase">感谢您购买蓝灯专业版！</string>
   <string name="start_inviting">\r\n开始邀请！</string>
+  <string name="sending_request">正在处理请求</string>
   <string name="invite_friends">请输入您的电子邮件地址以接收与您的好友分享时要用的代码，以便在好友注册时获得免费一个月的 PRO 版试用。</string>
-  <string name="invite_friends_welcome">好友购买两年套餐后，双方都将赠送3个月的专业版使用时间；好友购买1年套餐后，双方都会获赠一个月的使用时间。</string>
+  <string name="invite_friends_welcome">好友购买两年套餐后，双方都将获赠3个月的专业版使用时间；好友购买1年套餐后，双方都会获赠一个月的使用时间。</string>
   <string name="invite_friends_btn">邀请好友</string>
+  <string name="email_address">电子邮件地址</string>
   <string name="continue_to_pro">继续使用专业版</string>
   <string name="continue_to_checkout">继续支付</string>
   <string name="free_pro_credits">免费 Pro 积分</string>
@@ -83,7 +94,7 @@
   <string name="get_code_text">请输入您的电子邮件地址以接收与您的好友分享时要用的代码，以便在好友注册时获得免费一个月的 PRO 版试用。</string>
   <string name="enter_your_email">请输入您的电子邮件地址以接收引荐代码</string>
   <string name="copied_to_clipboard">推荐码已复制到剪贴板</string>
-  <string name="share_referral_text">使用我的邀请码 %1$s 可在购买蓝灯后额外使用3个月 下载地址 https://bit.ly/lanternapk</string>
+  <string name="share_referral_text">使用我的代码 %1$s 在购买后将免费获得额外3个月的权限。下载 Lantern https://bit.ly/lanternapk</string>
   <string name="previous_code">如果您以前获取过引荐代码\r\n请务必使用相同的电子邮件地址。</string>
   <string name="payment_plans">蓝灯专业版套餐</string>
   <string name="features_text">蓝灯专业版功能</string>
@@ -112,11 +123,11 @@
     <item>最多三台设备</item>
   </string-array>
   <string-array name="enter_code_steps">
-    <item>请输入您通过短信（SMS）收到的验证码</item>
-    <item>没有收到验证码？请返回并重试</item>
+    <item>请输入您通过电子邮件接收到的验证代码</item>
+    <item>没有收到代码？请检查您的垃圾邮件文件夹并确保您的电子邮件地址输入正确。</item>
   </string-array>
   <string-array name="authorize_device_list">
-    <item>如果您已有一个用在另一个设备的蓝灯专业版账号，请输入您的手机号码以接收一个授权此设备的代码。</item>
+    <item>如果您已有一个用在另一个设备的 Lantern PRO 账号，请在这里输入您的电子邮件地址，接收一个代码以授权此设备。</item>
   </string-array>
   <string-array name="verify_account_list">
     <item>太好了！让我们首先验证您的账号吧。</item>
@@ -124,7 +135,7 @@
     <item>蓝灯永远不会与第三方共享您的手机号码。</item>
   </string-array>
   <string-array name="referral_promotion_list">
-    <item>朋友给您了蓝灯邀请码？输入该代码，您将在付款后获得免费一个月的蓝灯专业版版</item>
+    <item>朋友给您了蓝灯邀请码？输入该代码，您将在付款后获得免费一个月的蓝灯专业版</item>
   </string-array>
   <string name="send_link">发送链接</string>
   <string name="click_button">点击按钮以访问
@@ -138,7 +149,6 @@
   <string name="select">选择</string>
   <string name="one_year">1年</string>
   <string name="two_years">2年</string>
-  <string name="plan_cost">%1$s%2$d (%3$s)</string>
   <string name="best_value">超值！</string>
   <string name="referral_code">邀请码（可选）</string>
   <string name="total">总计：</string>
@@ -152,7 +162,7 @@
   <string name="get_lantern_pro">购买蓝灯专业版</string>
   <string name="upgrade_to_lantern_pro">升级到蓝灯专业版</string>
   <string name="pro_available_for">面向 Windows、Android、Mac 和 Ubuntu。iOS 版本即将发布</string>
-  <string name="upgrade_to_pro">升级到 Pro 获得无限制数据量、更快速度\n及更强抗封锁体验！</string>
+  <string name="upgrade_to_pro">升级到 Pro，无限数据量、更快速度、更佳抗封锁体验！</string>
   <string name="data_remaining">您本月的免费流量剩余 %1$sMB</string>
   <string name="upgrade">升级</string>
   <string name="no_wall_at_all">天下无墙</string>

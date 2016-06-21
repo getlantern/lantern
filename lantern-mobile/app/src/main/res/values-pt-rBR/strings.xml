@@ -12,6 +12,7 @@
   <string name="install_update">Atualizar</string>
   <string name="error_update">Erro ao baixar atualização</string>
   <string name="language">Idioma</string>
+  <string name="account_verification">Verificação de conta</string>
   <string name="yes">Sim</string>
   <string name="no">Não</string>
   <string name="item_preview_country">Estados Unidos</string>

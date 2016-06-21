@@ -12,8 +12,9 @@
   <string name="send_button">Enviar</string>
   <string name="send_desktop">Enviar</string>
   <string name="send_sms">Enviar SMS</string>
+  <string name="send_email">Enviar correo electrónico</string>
   <string name="apply_promotion">Aplicar promoción</string>
-  <string name="submit_code">Enviar código</string>
+  <string name="submit_code">Confirmar código</string>
   <string name="on_text">Activo</string>
   <string name="off_text">Inactivo</string>
   <string name="lantern_off">Lantern está apagado. ¡Accione el interruptor\npara acceder a sitios y servicios bloqueados!
@@ -44,11 +45,17 @@ acceder a sitios y servicios bloqueados!</string>
   <string name="share_email_gmail">¡Estoy usando Lantern para Android, y he adjuntado el fichero APK!</string>
   <string name="share_sms">Estoy usando Lantern para Android, descárguelo aquí: https://bit.ly/lanternapk</string>
   <string name="share_chooser_text">Compartir Lantern para Android</string>
+  <string name="card">Tarjeta</string>
+  <string name="Alipay">Alipay</string>
+  <string name="month">Mes</string>
+  <string name="year">Año</string>
   <string name="success_email">¡Se le ha enviado Lantern de Escritorio por correo electrónico!</string>
   <string name="error_email">Hubo un problema al enviarle Lantern de Escritorio. Por favor, inténtelo de nuevo.</string>
+  <string name="send_logs">Enviar registros (logs)</string>
   <string name="success_log_email">¡Se han enviado con éxito los registros (logs) a Lantern!</string>
   <string name="error_log_email">Error al enviar los registros (logs) a Lantern. Por favor, inténtelo de nuevo más tarde.</string>
   <string name="invalid_email">Dirección de correo no válida</string>
+  <string name="invalid_referral_code">Código de referencia no válido</string>
   <string name="no_internet_connection">¡No hay ninguna conexión a Internet disponible!</string>
   <string name="contact_email">team@getlantern.org</string>
   <string name="contact_message">Ayúdeme</string>
@@ -62,15 +69,19 @@ acceder a sitios y servicios bloqueados!</string>
   <string name="renew_pro_account">Renovar cuenta Pro</string>
   <string name="logout">Cerrar sesión</string>
   <string name="change_phone_number">Cambiar número de teléfono</string>
-  <string name="pro_account_expires">Su cuenta Pro caduca en %1$s.\n¡Esto incluye sus %2$d meses de bonificación!</string>
+  <string name="change_email_address">Cambiar dirección de correo electrónico</string>
+  <string name="pro_account_expires">Su cuenta Pro expira en %1$s</string>
+  <string name="includes_free_months">¡Esto incluye sus %2$d meses de bonificación!</string>
   <string name="verified_phone_number">Número de teléfono verificado:</string>
   <string name="devices_authorized">Dispositivos autorizados a usar su cuenta Pro</string>
   <string name="send_us_your_logs">Envíenos sus registros (logs)</string>
   <string name="thanks_purchase">¡Gracias por su compra de Lantern Pro!</string>
   <string name="start_inviting">\r\n¡Comience a invitar!</string>
+  <string name="sending_request">Procesando petición</string>
   <string name="invite_friends">Introduzca su dirección de correo electrónico para recibir un código que compartir con sus amigos. ¡Consiga un mes gratis de PRO cuando ellos se registren!</string>
   <string name="invite_friends_welcome">Cuando sus amigos adquieran una tarifa bianual, por cada uno ambos recibirán 3 meses de suscripción gratuita, por la tarifa anual ambos reciben 1 mes de suscripción gratuita.</string>
   <string name="invite_friends_btn">Invitar amigos</string>
+  <string name="email_address">Dirección de correo electrónico</string>
   <string name="continue_to_pro">Continuar hacia PRO</string>
   <string name="continue_to_checkout">Continuar para completar operación</string>
   <string name="free_pro_credits">Créditos PRO gratuitos</string>
@@ -83,7 +94,7 @@ acceder a sitios y servicios bloqueados!</string>
   <string name="get_code_text">Introduzca su correo electrónico para recibir un código para compartir con sus amigos, ¡obtenga un mes de PRO cuando se registren!</string>
   <string name="enter_your_email">Introduzca su correo electrónico para recibir un código de referencia</string>
   <string name="copied_to_clipboard">¡Código de referencia copiado al portapapeles!</string>
-  <string name="share_referral_text">Use mi código %1$s para recibir hasta 3 meses gratuitos adicionales tras la compra. Descargue Lantern en https://bit.ly/lanternapk</string>
+  <string name="share_referral_text">Use mi código %1$s para conseguir hasta 3 meses gratuitos adicionales tras la compra. Descargue Lantern https://bit.ly/lanternapk</string>
   <string name="previous_code">Si previamente ha recibido un código de referencia,\r\npor favor, asegúrese de usar la misma direccion de correo electrónico.</string>
   <string name="payment_plans">Planes de pago de Lantern PRO</string>
   <string name="features_text">Características de Lantern PRO</string>
@@ -112,11 +123,11 @@ acceder a sitios y servicios bloqueados!</string>
     <item>Tres dispositivos</item>
   </string-array>
   <string-array name="enter_code_steps">
-    <item>Introduzca el código de verificación que recibió vía SMS</item>
-    <item>¿No recibió el código? Por favor, vuelva y inténtelo de nuevo</item>
+    <item>Introduzca el código de verificación que recibió vía correo electrónico</item>
+    <item>¿No recibió un código? Compruebe su carpeta de spam y asegúrese de que introdujo su dirección de correo correctamente.</item>
   </string-array>
   <string-array name="authorize_device_list">
-    <item>Si tiene una cuenta de Lantern PRO en otro dispositivo, por favor, introduzca aquí su número de teléfono móvil para recibir un código con el que autorizar este dispositivo.</item>
+    <item>Si tiene una cuenta de Lantern PRO en otro dispositivo, por favor, introduzca su dirección de correo electrónico aquí para recibir un código con el que autorizar este dispositivo.</item>
   </string-array>
   <string-array name="verify_account_list">
     <item>¡Magnífico! Verifiquemos primero su cuenta.</item>
@@ -137,7 +148,6 @@ acceder a sitios y servicios bloqueados!</string>
   <string name="select">Seleccionar</string>
   <string name="one_year">por 1 año</string>
   <string name="two_years">por 2 años</string>
-  <string name="plan_cost">%1$s%2$d (%3$s)</string>
   <string name="best_value">¡Mejor VALOR!</string>
   <string name="referral_code">Código de referencia (opcional)</string>
   <string name="total">Total:</string>
@@ -152,7 +162,7 @@ acceder a sitios y servicios bloqueados!</string>
   <string name="upgrade_to_lantern_pro">Actualizar a Lantern Pro</string>
   <string name="pro_available_for">Para Windows, Android, Mac y Ubuntu. Próximamente para 
 iOS.</string>
-  <string name="upgrade_to_pro">¡Actualice a Pro para datos ilimitados, mayor\nvelocidad, y una mayor resistencia al bloqueo!</string>
+  <string name="upgrade_to_pro">¡Actualice a Pro para datos ilimitados, mayor velocidad, y una aún mayor resistencia al bloqueo!</string>
   <string name="data_remaining">Aún le quedan %1$s MB de su datos gratuitos mensuales</string>
   <string name="upgrade">Actualizar</string>
   <string name="no_wall_at_all">No hay barreras en absoluto.</string>

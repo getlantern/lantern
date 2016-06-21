@@ -12,8 +12,9 @@
   <string name="send_button">傳送</string>
   <string name="send_desktop">傳送桌面</string>
   <string name="send_sms">傳送簡訊</string>
+  <string name="send_email">寄出電子郵件</string>
   <string name="apply_promotion">使用促銷</string>
-  <string name="submit_code">送出認證碼</string>
+  <string name="submit_code">確認推薦碼</string>
   <string name="on_text">開啟</string>
   <string name="off_text">關閉</string>
   <string name="lantern_off">Lantern 目前關閉.打開開關以便訪造被封鎖的網址服務 !</string>
@@ -42,11 +43,17 @@
   <string name="share_email_gmail">我有使用Lantern安卓手機版,並且把它的安裝檔附在郵件夾檔中。</string>
   <string name="share_sms">我有使用Lantern安卓手機版，其下載處在： https://bit.ly/lanternapk</string>
   <string name="share_chooser_text">分享手機版Lantern</string>
+  <string name="card">信用卡</string>
+  <string name="Alipay">Alipay</string>
+  <string name="month">月</string>
+  <string name="year">年</string>
   <string name="success_email">Lantern電腦安裝檔已郵寄給你了！</string>
   <string name="error_email">傳送電腦Latern電腦安裝版的郵件出了點問題，請稍後再試。</string>
+  <string name="send_logs">送出活動記錄　</string>
   <string name="success_log_email">活動記錄成功地傳送到Latern!</string>
   <string name="error_log_email">要傳送給Latern的活動記錄出了點問題，請稍後再試。</string>
   <string name="invalid_email">無效的電子信箱位址</string>
+  <string name="invalid_referral_code">邀請碼無效</string>
   <string name="no_internet_connection">無網路連線！</string>
   <string name="contact_email">team@getlantern.org</string>
   <string name="contact_message">請求幫助</string>
@@ -60,15 +67,19 @@
   <string name="renew_pro_account">更新付費專業版帳號</string>
   <string name="logout">登出</string>
   <string name="change_phone_number">變更手機號碼</string>
-  <string name="pro_account_expires">付費版將在 %1$s\n到期，這已計入你另外賺取 %2$d 優惠月份!</string>
+  <string name="change_email_address">改變電子信箱位址</string>
+  <string name="pro_account_expires">你的專業付費版將在 %1$s到期</string>
+  <string name="includes_free_months">這包括了你 %2$d 紅利優惠月數!</string>
   <string name="verified_phone_number">已驗證手機號碼：</string>
   <string name="devices_authorized">裝置授權可使用付費版帳號</string>
   <string name="send_us_your_logs">將活動記錄寄給我們</string>
   <string name="thanks_purchase">感謝購買Lantern付費專業版</string>
   <string name="start_inviting">\r\n開始邀請！</string>
+  <string name="sending_request">處理請求中</string>
   <string name="invite_friends">輸入電子郵件以取得個人邀請碼，它可以用來分享給朋友，當好友註冊我們的服務時你則可得到一個月免費的專業版使用。</string>
   <string name="invite_friends_welcome">當你介紹的朋友購買了二年份的方案，你將可免費取得 3個月的專業版使用優惠,若友人購買一年份方案你則取得1個月專業版優惠。</string>
   <string name="invite_friends_btn">邀請朋友加入</string>
+  <string name="email_address">電子信箱位址</string>
   <string name="continue_to_pro">繼續使用付費版</string>
   <string name="continue_to_checkout">繼續結帳</string>
   <string name="free_pro_credits">免費的付費版點數</string>
@@ -81,7 +92,7 @@
   <string name="get_code_text">輸入電子郵件以取得個人邀請碼，它可以用來分享給朋友，當好友註冊我們的服務時你則可得到一個月免費的專業版使用。</string>
   <string name="enter_your_email">輸入電子郵件以取得個人邀請碼</string>
   <string name="copied_to_clipboard">邀請碼已複制到剪貼簿上</string>
-  <string name="share_referral_text">使用我的邀請碼 %1$s，在購買付費版後，可以再獲得最高3個月多出來的免費專業版使用時效，下載Lantern https://bit.ly/lanternapk</string>
+  <string name="share_referral_text">使用我的邀請碼 %1$s來獲取購買了付費版後，再最多到3個月的額外紅利免費專業版使用。下載Lantern https://bit.ly/lanternapk</string>
   <string name="previous_code">如果之前已收到邀請碼r\n請確認是使用同一個電子郵件地址</string>
   <string name="payment_plans">付費專業方案</string>
   <string name="features_text">付費專業版特色</string>
@@ -110,11 +121,11 @@
     <item>可支援三組設備</item>
   </string-array>
   <string-array name="enter_code_steps">
-    <item>輸入簡訊所收到的認證碼</item>
-    <item>沒有收到認證嗎?請回上一步再重試一次</item>
+    <item>輸入電子郵件上的認證碼</item>
+    <item>沒收到認證碼信件? 請先檢查垃圾信件箱並確認寫入了正確的電子郵件地址。</item>
   </string-array>
   <string-array name="authorize_device_list">
-    <item>若你在其它的設備上已有Lantern專業付費版帳號, 請輸入手機號碼以取得認證碼來授權這台設備。</item>
+    <item>如果你在其它設備上已有Lantern 專業版帳號，請在此輸入註冊的電子郵 件以透過電子郵件取得認證碼來授權這台設備啟用Lantern。</item>
   </string-array>
   <string-array name="verify_account_list">
     <item>太棒了! 先進行帳號認證吧</item>
@@ -135,7 +146,6 @@
   <string name="select">選擇</string>
   <string name="one_year">一年期</string>
   <string name="two_years">2年份</string>
-  <string name="plan_cost">%1$s%2$d (%3$s)</string>
   <string name="best_value">最佳價值</string>
   <string name="referral_code">邀請碼(optional)</string>
   <string name="total">總數:</string>
@@ -149,7 +159,7 @@
   <string name="get_lantern_pro">取得Lantern 付費專業版</string>
   <string name="upgrade_to_lantern_pro">昇級到付費版</string>
   <string name="pro_available_for"> Windows, Android, Mac, Ubuntu. iOS等版本即將發佈　　</string>
-  <string name="upgrade_to_pro">升級到付費版其無流量上限、速度更快、更能突破網路封鎖。</string>
+  <string name="upgrade_to_pro">升級到付費專業版以取得無限流量、更快的速度和更有效的封鎖抵抗</string>
   <string name="data_remaining">每月剩餘的免費容量還有%1$sMB </string>
   <string name="upgrade">㫒級　</string>
   <string name="no_wall_at_all">無牆可擋</string>

@@ -65,7 +65,6 @@ public class UserForm extends Fragment {
         LinearLayout normView  = (LinearLayout)view.findViewById(R.id.auth_device_view);
 
         View separator = view.findViewById(R.id.separator);
-        Utils.configureEmailInput(textInput, separator);
 
         if (mFormType != null) {
             if (mFormType.equals("verify")) {
@@ -75,6 +74,8 @@ public class UserForm extends Fragment {
                 textInput.setInputType(InputType.TYPE_CLASS_NUMBER);
             } else if (mFormType.equals("referral")) {
                 textInput.setCompoundDrawablesWithIntrinsicBounds( R.drawable.star, 0, 0, 0);
+            } else {
+                Utils.configureEmailInput(textInput, separator);
             }
         }
 
