@@ -44,5 +44,7 @@ func notifyUser(n notify.Notifier, uiaddr string) {
 		IconURL:  logo,
 	}
 	err := n.Notify(msg)
-	log.Errorf("Could not notify? %v", err)
+	if err != nil {
+		log.Errorf("Could not notify? %v", err)
+	}
 }
