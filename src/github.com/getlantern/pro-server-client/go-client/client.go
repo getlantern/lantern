@@ -9,7 +9,6 @@ import (
 	"math"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -221,7 +220,7 @@ func (c *Client) UserLinkValidate(user User) (res *Response, err error) {
 	var payload []byte
 	payload, err = c.post(`/user-link-validate`, user.headers(),
 		url.Values{
-			"code": {strconv.Itoa(user.Code)},
+			"code": {user.Code},
 		},
 	)
 	if err != nil {

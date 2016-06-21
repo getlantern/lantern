@@ -71,13 +71,12 @@ public class VerifyCodeActivity extends FragmentActivity implements ProResponse 
             return;
         }
 
-        String codeStr = fragment.getUserInput();
-        if (codeStr == null) {
+        String code = fragment.getUserInput();
+        if (code == null) {
             onError();
             return;
         }
 
-        long code = Long.parseLong(codeStr);
         session.setVerifyCode(code);
         new ProRequest(VerifyCodeActivity.this, true, this).execute("code");
     }

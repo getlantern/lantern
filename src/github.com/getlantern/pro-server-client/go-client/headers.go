@@ -1,7 +1,7 @@
 package client
 
 type Auth struct {
-	ID       int `json:"userId"`
+	ID       string `json:"userId"`
 	DeviceID string
 	Token    string `json:"token"`
 }

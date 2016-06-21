@@ -76,7 +76,7 @@ public class SessionManager implements Lantern.Session {
 
     private String stripeToken;
     private String referral;
-    private Long verifyCode;
+    private String verifyCode;
     private Locale locale;
     private Currency currency;
 
@@ -263,12 +263,12 @@ public class SessionManager implements Lantern.Session {
 		return true;
 	}
 
-	public void setVerifyCode(long code) {
+	public void setVerifyCode(String code) {
         Log.d(TAG, "Verify code set to " + code);
         this.verifyCode = code;
 	}
 
-    public long VerifyCode() {
+    public String VerifyCode() {
         return this.verifyCode;
     }
 
@@ -336,8 +336,8 @@ public class SessionManager implements Lantern.Session {
         return mPrefs.getString(EMAIL_ADDRESS, "");
     }
 
-	public void SetUserId(long userId) {
-		editor.putString(USER_ID, Long.toString(userId)).commit();
+	public void SetUserId(String userId) {
+		editor.putString(USER_ID, userId).commit();
 	}
 
 	private void setDeviceId(String deviceId) {
@@ -358,12 +358,8 @@ public class SessionManager implements Lantern.Session {
         return mPrefs.getString(REFERRAL_CODE, "");
     }
 
-	public long UserId() {
-        String userId = mPrefs.getString(USER_ID, "");
-        if (userId.equals("")) {
-            return 0;
-        }
-		return Long.parseLong(userId);
+	public String UserId() {
+        return mPrefs.getString(USER_ID, "");
 	}
 
 	public String getUserId() {

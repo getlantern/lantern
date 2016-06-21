@@ -11,9 +11,9 @@ const (
 )
 
 type Session interface {
-	UserId() int
+	UserId() string
 	Code() string
-	VerifyCode() int
+	VerifyCode() string
 	DeviceId() string
 	Locale() string
 	Referral() string
@@ -22,8 +22,8 @@ type Session interface {
 	StripeToken() string
 	Email() string
 	SetToken(string)
-	SetUserId(int)
-	UserData(string, int64, string)
+	SetUserId(string)
+	UserData(string, string, string)
 	SetCode(string)
 	Currency() string
 	AddPlan(string, string, bool, int, int)
