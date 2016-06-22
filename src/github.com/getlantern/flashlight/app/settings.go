@@ -3,6 +3,7 @@ package app
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
@@ -144,6 +145,7 @@ func newSettings() *Settings {
 			SNProxyAll:    false,
 			SNSystemProxy: true,
 			SNLanguage:    "",
+			SNUserToken:   "",
 		},
 		changeNotifiers: make(map[SettingName]func(interface{})),
 	}
@@ -351,21 +353,33 @@ func (s *Settings) SetSystemProxy(enable bool) {
 }
 
 func (s *Settings) getBool(name SettingName) bool {
-	return s.getVal(name).(bool)
+	if val, err := s.getVal(name); err != nil {
+		return val.(bool)
+	}
+	return false
 }
 
 func (s *Settings) getString(name SettingName) string {
-	return s.getVal(name).(string)
+	if val, err := s.getVal(name); err != nil {
+		return val.(string)
+	}
+	return ""
 }
 
 func (s *Settings) getInt64(name SettingName) int64 {
-	return s.getVal(name).(int64)
+	if val, err := s.getVal(name); err != nil {
+		return val.(int64)
+	}
+	return int64(0)
 }
 
-func (s *Settings) getVal(name SettingName) interface{} {
+func (s *Settings) getVal(name SettingName) (interface{}, error) {
 	s.RLock()
 	defer s.RUnlock()
-	return s.m[name]
+	if val, ok := s.m[name]; ok {
+		return val, nil
+	}
+	return nil, fmt.Errorf("No value for %v", name)
 }
 
 func (s *Settings) setVal(name SettingName, val interface{}) {
