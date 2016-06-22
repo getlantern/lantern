@@ -18,9 +18,57 @@ import (
 	"github.com/getlantern/flashlight/ui"
 )
 
+// SettingName is the name of a setting.
+type SettingName string
+
+const (
+	SNAutoReport  SettingName = "autoReport"
+	SNAutoLaunch  SettingName = "autoLaunch"
+	SNProxyAll    SettingName = "proxyAll"
+	SNSystemProxy SettingName = "systemProxy"
+
+	SNLanguage SettingName = "language"
+
+	SNDeviceID  SettingName = "deviceID"
+	SNUserID    SettingName = "userID"
+	SNUserToken SettingName = "userToken"
+
+	SNVersion      SettingName = "version"
+	SNBuildDate    SettingName = "buildDate"
+	SNRevisionDate SettingName = "revisionDate"
+)
+
+type settingType byte
+
+const (
+	stBool settingType = iota
+	stNumber
+	stString
+)
+
 const (
 	messageType = `settings`
 )
+
+var settingMeta = map[SettingName]struct {
+	sType   settingType
+	persist bool
+}{
+	SNAutoReport:  {stBool, true},
+	SNAutoLaunch:  {stBool, true},
+	SNProxyAll:    {stBool, true},
+	SNSystemProxy: {stBool, true},
+
+	SNLanguage: {stString, true},
+
+	// SNDeviceID: intentionally omit, to avoid setting it from UI
+	SNUserID:    {stNumber, true},
+	SNUserToken: {stString, true},
+
+	SNVersion:      {stString, false},
+	SNBuildDate:    {stString, false},
+	SNRevisionDate: {stString, false},
+}
 
 var (
 	service    *ui.Service
@@ -31,19 +79,10 @@ var (
 
 // Settings is a struct of all settings unique to this particular Lantern instance.
 type Settings struct {
-	DeviceID  string `json:"deviceID,omitempty"`
-	UserID    int64  `json:"userID,omitempty"`
-	UserToken string `json:"userToken,omitempty"`
+	muNotifiers     sync.RWMutex
+	changeNotifiers map[SettingName]func(interface{})
 
-	AutoReport  bool `json:"autoReport"`
-	AutoLaunch  bool `json:"autoLaunch"`
-	ProxyAll    bool `json:"proxyAll"`
-	SystemProxy bool `json:"systemProxy"`
-
-	Version      string `json:"version" yaml:"-"`
-	BuildDate    string `json:"buildDate" yaml:"-"`
-	RevisionDate string `json:"revisionDate" yaml:"-"`
-
+	m            map[SettingName]interface{}
 	sync.RWMutex `json:"-" yaml:"-"`
 }
 
@@ -56,12 +95,8 @@ func loadSettingsFrom(version, revisionDate, buildDate, path string) *Settings {
 	log.Debug("Loading settings")
 	// Create default settings that may or may not be overridden from an existing file
 	// on disk.
-	set := &Settings{
-		AutoReport:  true,
-		AutoLaunch:  true,
-		ProxyAll:    false,
-		SystemProxy: true,
-	}
+	sett := newSettings()
+	set := sett.m
 
 	// Use settings from disk if they're available.
 	if bytes, err := ioutil.ReadFile(path); err != nil {
@@ -75,35 +110,49 @@ func loadSettingsFrom(version, revisionDate, buildDate, path string) *Settings {
 
 	// We always just set the device ID to the MAC address on the system. Note
 	// this ignores what's on disk, if anything.
-	set.DeviceID = base64.StdEncoding.EncodeToString(uuid.NodeID())
+	set[SNDeviceID] = base64.StdEncoding.EncodeToString(uuid.NodeID())
 
-	if set.AutoLaunch {
-		launcher.CreateLaunchFile(set.AutoLaunch)
+	if sett.IsAutoLaunch() {
+		launcher.CreateLaunchFile(true)
 	}
 	// always override below 3 attributes as they are not meant to be persisted across versions
-	set.Version = version
-	set.BuildDate = buildDate
-	set.RevisionDate = revisionDate
+	set[SNVersion] = version
+	set[SNBuildDate] = buildDate
+	set[SNRevisionDate] = revisionDate
 
 	// Only configure the UI once. This will typically be the case in the normal
 	// application flow, but tests might call Load twice, for example, which we
 	// want to allow.
 	once.Do(func() {
-		err := set.start()
+		err := sett.start()
 		if err != nil {
 			log.Errorf("Unable to register settings service: %q", err)
 			return
 		}
-		go set.read(service.In, service.Out)
+		go sett.read(service.In, service.Out)
 	})
-	return set
+	return sett
+}
+
+func newSettings() *Settings {
+	return &Settings{
+		m: map[SettingName]interface{}{
+			SNUserID:      int64(0),
+			SNAutoReport:  true,
+			SNAutoLaunch:  true,
+			SNProxyAll:    false,
+			SNSystemProxy: true,
+			SNLanguage:    "",
+		},
+		changeNotifiers: make(map[SettingName]func(interface{})),
+	}
 }
 
 // start the settings service that synchronizes Lantern's configuration with every UI client
 func (s *Settings) start() error {
 	var err error
 
-	ui.PreferProxiedUI(s.SystemProxy)
+	ui.PreferProxiedUI(s.GetSystemProxy())
 	helloFn := func(write func(interface{}) error) error {
 		log.Debugf("Sending Lantern settings to new client")
 		s.Lock()
@@ -115,64 +164,73 @@ func (s *Settings) start() error {
 }
 
 func (s *Settings) read(in <-chan interface{}, out chan<- interface{}) {
-	log.Debugf("Reading settings messages!!")
+	log.Debugf("Start reading settings messages!!")
 	for message := range in {
-		log.Debugf("Read settings message!! %v", message)
+		log.Debugf("Read settings message %v", message)
 
-		// We're using a map here because we want to know when the user sends a
-		// false value.
-		var data map[string]interface{}
-		var decoded bool
-
-		if data, decoded = (message).(map[string]interface{}); !decoded {
+		data, ok := (message).(map[string]interface{})
+		if !ok {
 			continue
 		}
 
-		s.checkBool(data, "autoReport", s.SetAutoReport)
-		s.checkBool(data, "proxyAll", s.SetProxyAll)
-		s.checkBool(data, "autoLaunch", s.SetAutoLaunch)
-		s.checkBool(data, "systemProxy", s.SetSystemProxy)
-		s.checkNum(data, "userID", s.SetUserID)
-		s.checkString(data, "userToken", s.SetToken)
+		for k, v := range data {
+			name := SettingName(k)
+			t, exists := settingMeta[name]
+			if !exists {
+				log.Errorf("Unknown settings name %s", k)
+				continue
+			}
+			switch t.sType {
+			case stBool:
+				s.checkBool(name, v)
+			case stString:
+				s.checkString(name, v)
+			case stNumber:
+				s.checkNum(name, v)
+			}
+		}
 
 		out <- s
 	}
 }
 
-func (s *Settings) checkBool(data map[string]interface{}, name string, f func(bool)) {
-	if v, ok := data[name].(bool); ok {
-		f(v)
-	} else {
-		log.Errorf("Could not convert %v in %v", name, data)
+func (s *Settings) checkBool(name SettingName, v interface{}) {
+	b, ok := v.(bool)
+	if !ok {
+		log.Errorf("Could not convert %s(%v) to bool", name, v)
+		return
 	}
+	s.setVal(name, b)
 }
 
-func (s *Settings) checkNum(data map[string]interface{}, name string, f func(int64)) {
-	if v, ok := data[name].(json.Number); ok {
-		if bigint, err := v.Int64(); err != nil {
-			log.Errorf("Could not get int64 value for %v with error %v", name, err)
-		} else {
-			f(bigint)
-		}
-	} else {
-		log.Errorf("Could not convert %v of type %v", name, reflect.TypeOf(data[name]))
+func (s *Settings) checkNum(name SettingName, v interface{}) {
+	number, ok := v.(json.Number)
+	if !ok {
+		log.Errorf("Could not convert %v of type %v", name, reflect.TypeOf(v))
+		return
 	}
+	bigint, err := number.Int64()
+	if err != nil {
+		log.Errorf("Could not get int64 value for %v with error %v", name, err)
+		return
+	}
+	s.setVal(name, bigint)
 }
 
-func (s *Settings) checkString(data map[string]interface{}, name string, f func(string)) {
-	if v, ok := data[name].(string); ok {
-		f(v)
-	} else {
-		log.Errorf("Could not convert %v in %v", name, data)
+func (s *Settings) checkString(name SettingName, v interface{}) {
+	str, ok := v.(string)
+	if !ok {
+		log.Errorf("Could not convert %s(%v) to string", name, v)
+		return
 	}
+	s.setVal(name, str)
 }
 
 // Save saves settings to disk.
 func (s *Settings) save() {
 	log.Trace("Saving settings")
-	s.Lock()
-	defer s.Unlock()
-	if bytes, err := yaml.Marshal(s); err != nil {
+	toBeSaved := s.mapToSave()
+	if bytes, err := yaml.Marshal(toBeSaved); err != nil {
 		log.Errorf("Could not create yaml from settings %v", err)
 	} else if err := ioutil.WriteFile(path, bytes, 0644); err != nil {
 		log.Errorf("Could not write settings file %v", err)
@@ -181,49 +239,59 @@ func (s *Settings) save() {
 	}
 }
 
-// GetProxyAll returns whether or not to proxy all traffic.
-func (s *Settings) GetProxyAll() bool {
+func (s *Settings) mapToSave() map[SettingName]interface{} {
+	m := make(map[SettingName]interface{})
 	s.RLock()
 	defer s.RUnlock()
-	return s.ProxyAll
+	for k, v := range s.m {
+		if settingMeta[k].persist {
+			m[k] = v
+		}
+	}
+	return m
+}
+
+// GetProxyAll returns whether or not to proxy all traffic.
+func (s *Settings) GetProxyAll() bool {
+	return s.getBool(SNProxyAll)
 }
 
 // SetProxyAll sets whether or not to proxy all traffic.
 func (s *Settings) SetProxyAll(proxyAll bool) {
-	s.Lock()
-	defer s.unlockAndSave()
-	s.ProxyAll = proxyAll
+	s.setVal(SNProxyAll, proxyAll)
 	// Cycle the PAC file so that browser picks up changes
 	cyclePAC()
 }
 
 // IsAutoReport returns whether or not to auto-report debugging and analytics data.
 func (s *Settings) IsAutoReport() bool {
-	s.RLock()
-	defer s.RUnlock()
-	return s.AutoReport
+	return s.getBool(SNAutoReport)
 }
 
 // SetAutoReport sets whether or not to auto-report debugging and analytics data.
 func (s *Settings) SetAutoReport(auto bool) {
-	s.Lock()
-	defer s.unlockAndSave()
-	s.AutoReport = auto
+	s.setVal(SNAutoReport, auto)
 }
 
 // SetAutoLaunch sets whether or not to auto-launch Lantern on system startup.
 func (s *Settings) SetAutoLaunch(auto bool) {
-	s.Lock()
-	defer s.unlockAndSave()
-	s.AutoLaunch = auto
+	s.setVal(SNAutoLaunch, auto)
 	go launcher.CreateLaunchFile(auto)
 }
 
-// GetSystemProxy returns whether or not to set system proxy when lantern starts
-func (s *Settings) GetSystemProxy() bool {
-	s.RLock()
-	defer s.RUnlock()
-	return s.SystemProxy
+// IsAutoLaunch returns whether or not to auto-report debugging and analytics data.
+func (s *Settings) IsAutoLaunch() bool {
+	return s.getBool(SNAutoLaunch)
+}
+
+// SetLanguage sets the user language
+func (s *Settings) SetLanguage(language string) {
+	s.setVal(SNLanguage, language)
+}
+
+// GetLanguage returns the user language
+func (s *Settings) GetLanguage() string {
+	return s.getString(SNLanguage)
 }
 
 // SetDeviceID sets the device ID
@@ -233,45 +301,39 @@ func (s *Settings) SetDeviceID(deviceID string) {
 
 // GetDeviceID returns the unique ID of this device.
 func (s *Settings) GetDeviceID() string {
-	s.RLock()
-	defer s.RUnlock()
-	return s.DeviceID
+	return s.getString(SNDeviceID)
 }
 
 // SetToken sets the user token
 func (s *Settings) SetToken(token string) {
-	s.Lock()
-	defer s.unlockAndSave()
-	s.UserToken = token
+	s.setVal(SNUserToken, token)
 }
 
 // GetToken returns the user token
 func (s *Settings) GetToken() string {
-	s.RLock()
-	defer s.RUnlock()
-	return s.UserToken
+	return s.getString(SNUserToken)
 }
 
 // SetUserID sets the user ID
 func (s *Settings) SetUserID(id int64) {
-	s.Lock()
-	defer s.unlockAndSave()
-	s.UserID = id
+	s.setVal(SNUserID, id)
 }
 
 // GetUserID returns the user ID
 func (s *Settings) GetUserID() int64 {
-	s.RLock()
-	defer s.RUnlock()
-	return s.UserID
+	return s.getInt64(SNUserID)
+}
+
+// GetSystemProxy returns whether or not to set system proxy when lantern starts
+func (s *Settings) GetSystemProxy() bool {
+	return s.getBool(SNSystemProxy)
 }
 
 // SetSystemProxy sets whether or not to set system proxy when lantern starts
 func (s *Settings) SetSystemProxy(enable bool) {
-	s.Lock()
-	defer s.unlockAndSave()
-	changed := enable != s.SystemProxy
-	s.SystemProxy = enable
+	changed := enable != s.GetSystemProxy()
+
+	s.setVal(SNSystemProxy, enable)
 	if changed {
 		if enable {
 			pacOn()
@@ -286,9 +348,47 @@ func (s *Settings) SetSystemProxy(enable bool) {
 	}
 }
 
-// unlockAndSave releases the lock on writing to settings and then saves settings.
-func (s *Settings) unlockAndSave() {
-	// Note locks in go aren't reentrant, so we need to unlock before save locks again.
+func (s *Settings) getBool(name SettingName) bool {
+	return s.getVal(name).(bool)
+}
+
+func (s *Settings) getString(name SettingName) string {
+	return s.getVal(name).(string)
+}
+
+func (s *Settings) getInt64(name SettingName) int64 {
+	return s.getVal(name).(int64)
+}
+
+func (s *Settings) getVal(name SettingName) interface{} {
+	s.RLock()
+	defer s.RUnlock()
+	return s.m[name]
+}
+
+func (s *Settings) setVal(name SettingName, val interface{}) {
+	log.Debugf("Setting %v to %v in %v", name, val, s.m)
+	s.Lock()
+	s.m[name] = val
+	// Need to unlock here because s.save() will lock again.
 	s.Unlock()
 	s.save()
+	s.onChange(name, val)
+}
+
+// OnChange sets a callback cb to get called when attr is changed from UI.
+func (s *Settings) OnChange(attr SettingName, cb func(interface{})) {
+	s.muNotifiers.Lock()
+	s.changeNotifiers[attr] = cb
+	s.muNotifiers.Unlock()
+}
+
+// onChange is called when attr is changed from UI
+func (s *Settings) onChange(attr SettingName, value interface{}) {
+	s.muNotifiers.RLock()
+	fn := s.changeNotifiers[attr]
+	s.muNotifiers.RUnlock()
+	if fn != nil {
+		fn(value)
+	}
 }
