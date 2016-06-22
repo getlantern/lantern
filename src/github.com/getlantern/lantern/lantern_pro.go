@@ -158,6 +158,7 @@ func RemoveDevice(shouldProxy bool, deviceId string, session Session) bool {
 		log.Errorf("Error creating request: %v", err)
 		return false
 	}
+	log.Debugf("Calling user link remove on device %s", deviceId)
 	res, err := req.proClient.UserLinkRemove(req.user, deviceId)
 	if err != nil || res.Status != "ok" {
 		log.Errorf("Error removing device: %v status: %s", err, res.Status)

@@ -250,7 +250,7 @@ func (c *Client) UserLinkRemove(user User, deviceId string) (res *Response, err 
 	var payload []byte
 	payload, err = c.post(`/user-link-remove`, user.headers(),
 		url.Values{
-			"deviceId": {deviceId},
+			"deviceID": {deviceId},
 		},
 	)
 	if err != nil {
