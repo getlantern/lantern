@@ -53,23 +53,24 @@ const (
 )
 
 var settingMeta = map[SettingName]struct {
-	sType   settingType
-	persist bool
+	sType     settingType
+	persist   bool
+	omitempty bool
 }{
-	SNAutoReport:  {stBool, true},
-	SNAutoLaunch:  {stBool, true},
-	SNProxyAll:    {stBool, true},
-	SNSystemProxy: {stBool, true},
+	SNAutoReport:  {stBool, true, false},
+	SNAutoLaunch:  {stBool, true, false},
+	SNProxyAll:    {stBool, true, false},
+	SNSystemProxy: {stBool, true, false},
 
-	SNLanguage: {stString, true},
+	SNLanguage: {stString, true, true},
 
 	// SNDeviceID: intentionally omit, to avoid setting it from UI
-	SNUserID:    {stNumber, true},
-	SNUserToken: {stString, true},
+	SNUserID:    {stNumber, true, true},
+	SNUserToken: {stString, true, true},
 
-	SNVersion:      {stString, false},
-	SNBuildDate:    {stString, false},
-	SNRevisionDate: {stString, false},
+	SNVersion:      {stString, false, false},
+	SNBuildDate:    {stString, false, false},
+	SNRevisionDate: {stString, false, false},
 }
 
 var (
@@ -158,9 +159,8 @@ func (s *Settings) start() error {
 	ui.PreferProxiedUI(s.GetSystemProxy())
 	helloFn := func(write func(interface{}) error) error {
 		log.Debugf("Sending Lantern settings to new client")
-		s.Lock()
-		defer s.Unlock()
-		return write(s.m)
+		uiMap := s.uiMap()
+		return write(uiMap)
 	}
 	service, err = ui.Register(messageType, helloFn)
 	return err
@@ -255,6 +255,42 @@ func (s *Settings) mapToSave() map[string]interface{} {
 	return m
 }
 
+// uiMap makes a copy of our map for the UI with support for omitting empty
+// values.
+func (s *Settings) uiMap() map[string]interface{} {
+	m := make(map[string]interface{})
+	s.RLock()
+	defer s.RUnlock()
+	for key, v := range s.m {
+		meta := settingMeta[key]
+		k := string(key)
+		// This mimics https://golang.org/pkg/encoding/json/ for what are considered
+		// empty values.
+		if !meta.omitempty {
+			m[k] = v
+		} else {
+			if v == nil {
+				continue
+			}
+			switch meta.sType {
+			case stBool:
+				if v.(bool) {
+					m[k] = v
+				}
+			case stString:
+				if v != "" {
+					m[k] = v
+				}
+			case stNumber:
+				if v != 0 {
+					m[k] = v
+				}
+			}
+		}
+	}
+	return m
+}
+
 // GetProxyAll returns whether or not to proxy all traffic.
 func (s *Settings) GetProxyAll() bool {
 	return s.getBool(SNProxyAll)
@@ -336,7 +372,6 @@ func (s *Settings) GetSystemProxy() bool {
 // SetSystemProxy sets whether or not to set system proxy when lantern starts
 func (s *Settings) SetSystemProxy(enable bool) {
 	changed := enable != s.GetSystemProxy()
-
 	s.setVal(SNSystemProxy, enable)
 	if changed {
 		if enable {
@@ -353,21 +388,21 @@ func (s *Settings) SetSystemProxy(enable bool) {
 }
 
 func (s *Settings) getBool(name SettingName) bool {
-	if val, err := s.getVal(name); err != nil {
+	if val, err := s.getVal(name); err == nil {
 		return val.(bool)
 	}
 	return false
 }
 
 func (s *Settings) getString(name SettingName) string {
-	if val, err := s.getVal(name); err != nil {
+	if val, err := s.getVal(name); err == nil {
 		return val.(string)
 	}
 	return ""
 }
 
 func (s *Settings) getInt64(name SettingName) int64 {
-	if val, err := s.getVal(name); err != nil {
+	if val, err := s.getVal(name); err == nil {
 		return val.(int64)
 	}
 	return int64(0)
@@ -379,6 +414,7 @@ func (s *Settings) getVal(name SettingName) (interface{}, error) {
 	if val, ok := s.m[name]; ok {
 		return val, nil
 	}
+	log.Errorf("Could not get value for %s", name)
 	return nil, fmt.Errorf("No value for %v", name)
 }
 
