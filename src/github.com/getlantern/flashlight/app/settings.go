@@ -160,7 +160,7 @@ func (s *Settings) start() error {
 		log.Debugf("Sending Lantern settings to new client")
 		s.Lock()
 		defer s.Unlock()
-		return write(s)
+		return write(s.m)
 	}
 	service, err = ui.Register(messageType, helloFn)
 	return err
