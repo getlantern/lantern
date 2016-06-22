@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"sync"
 
 	"code.google.com/p/go-uuid/uuid"
@@ -239,13 +240,14 @@ func (s *Settings) save() {
 	}
 }
 
-func (s *Settings) mapToSave() map[SettingName]interface{} {
-	m := make(map[SettingName]interface{})
+func (s *Settings) mapToSave() map[string]interface{} {
+	m := make(map[string]interface{})
 	s.RLock()
 	defer s.RUnlock()
 	for k, v := range s.m {
 		if settingMeta[k].persist {
-			m[k] = v
+			key := strings.ToLower(string(k))
+			m[key] = v
 		}
 	}
 	return m
