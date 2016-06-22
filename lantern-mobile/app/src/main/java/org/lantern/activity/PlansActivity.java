@@ -39,8 +39,6 @@ public class PlansActivity extends FragmentActivity {
     private static final String TAG = "PlansActivity";
     private static final String mCheckoutUrl = 
         "https://s3.amazonaws.com/lantern-android/checkout.html?amount=%s";
-    private boolean useAlipay = false;
-
     private SessionManager session;
 
     @StringArrayRes(R.array.pro_features)
@@ -66,7 +64,6 @@ public class PlansActivity extends FragmentActivity {
         }
 
         session = LanternApp.getSession();
-        useAlipay = session.isChineseUser();
 
         int i = 0;
         int mid = proFeaturesList.length/2;
@@ -123,7 +120,7 @@ public class PlansActivity extends FragmentActivity {
     }
 
     public void selectPlan(View view) {
-        String plan = "s1y-cny";
+        String plan = "2y-usd";
         if (view.getTag() != null) {
             plan = (String)view.getTag();
         }
@@ -131,17 +128,6 @@ public class PlansActivity extends FragmentActivity {
 		Log.d(TAG, "Plan selected: " + plan);
 
         session.setProPlan(plan);
-
-        Intent intent;
-
-        if (useAlipay) {
-            Log.d(TAG, "Chinese user detected; opening Alipay by default");
-            intent = new Intent(Intent.ACTION_VIEW);
-            intent.setData(Uri.parse(String.format(mCheckoutUrl, plan)));
-
-        } else {
-            intent = new Intent(this, PaymentActivity.class);
-        }
 
         if (!session.isReferralApplied()) {
             Intent i = new Intent(this,
@@ -151,7 +137,11 @@ public class PlansActivity extends FragmentActivity {
             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(i);
         } else {
-            startActivity(intent);
+            if (!session.isChineseUser()) {
+                startActivity(new Intent(this, PaymentActivity.class));
+                return;
+            } 
+            PaymentActivity.openAlipay(PlansActivity.this, session);
         }
     }
 }  

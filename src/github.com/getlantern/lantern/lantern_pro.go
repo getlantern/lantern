@@ -11,10 +11,11 @@ const (
 )
 
 type Session interface {
-	UserId() string
+	UserId() int
 	Code() string
 	VerifyCode() string
 	DeviceId() string
+	DeviceName() string
 	Locale() string
 	Referral() string
 	Token() string
@@ -22,11 +23,11 @@ type Session interface {
 	StripeToken() string
 	Email() string
 	SetToken(string)
-	SetUserId(string)
+	SetUserId(int)
 	UserData(string, int64, string)
 	SetCode(string)
 	Currency() string
-	AddPlan(string, string, bool, int, int)
+	AddPlan(string, string, string, bool, int, int)
 	AddDevice(string, string)
 }
 
@@ -74,6 +75,7 @@ func newuser(r *proRequest) (*client.Response, error) {
 }
 
 func purchase(r *proRequest) (*client.Response, error) {
+
 	purchase := client.Purchase{
 		IdempotencyKey: stripe.NewIdempotencyKey(),
 		StripeToken:    r.session.StripeToken(),
@@ -82,12 +84,14 @@ func purchase(r *proRequest) (*client.Response, error) {
 		Currency:       r.session.Currency(),
 	}
 
-	return r.proClient.Purchase(r.user, purchase)
+	deviceName := r.session.DeviceName()
+
+	return r.proClient.Purchase(r.user, deviceName, purchase)
 }
 
 func signin(r *proRequest) (*client.Response, error) {
 	r.user.Email = r.session.Email()
-	res, err := r.proClient.UserLinkRequest(r.user)
+	res, err := r.proClient.UserLinkRequest(r.user, r.session.DeviceName())
 	if err != nil {
 		log.Errorf("Could not complete signin: %v", err)
 		return res, err
@@ -121,16 +125,17 @@ func plans(r *proRequest) (*client.Response, error) {
 	if err != nil || len(res.Plans) == 0 {
 		return res, err
 	}
-	currency := r.session.Currency()
 	for _, plan := range res.Plans {
-		price, exists := plan.Price[currency]
-		if !exists {
-			price, _ = plan.Price[defaultCurrencyCode]
+		var currency string
+		var price int
+		for currency, price = range plan.Price {
+			break
 		}
-
-		log.Debugf("Calling add plan with %s desc: %s best value %t price %d",
-			plan.Id, plan.Description, plan.BestValue, price)
-		r.session.AddPlan(plan.Id, plan.Description, plan.BestValue, plan.Duration.Years, price)
+		if currency != "" {
+			log.Debugf("Calling add plan with %s currency %s desc: %s best value %t price %d",
+				plan.Id, currency, plan.Description, plan.BestValue, price)
+			r.session.AddPlan(plan.Id, plan.Description, currency, plan.BestValue, plan.Duration.Years, price)
+		}
 	}
 
 	return res, err
@@ -147,6 +152,22 @@ func userdata(r *proRequest) (*client.Response, error) {
 	}
 	r.session.UserData(res.User.UserStatus, res.User.Expiration, res.User.Subscription)
 	return res, err
+}
+
+func RemoveDevice(shouldProxy bool, deviceId string, session Session) bool {
+	req, err := newRequest(shouldProxy, session)
+	if err != nil {
+		log.Errorf("Error creating request: %v", err)
+		return false
+	}
+	log.Debugf("Calling user link remove on device %s", deviceId)
+	res, err := req.proClient.UserLinkRemove(req.user, deviceId)
+	if err != nil || res.Status != "ok" {
+		log.Errorf("Error removing device: %v status: %s", err, res.Status)
+		return false
+	}
+
+	return true
 }
 
 func ProRequest(shouldProxy bool, command string, session Session) bool {

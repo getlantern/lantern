@@ -29,6 +29,7 @@ import android.widget.Toast;
 
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.content.ContextCompat;
 
 import com.google.android.gms.analytics.HitBuilders;
 
@@ -202,5 +203,9 @@ public class Utils {
                 .setCategory(category)
                 .setAction("click")
                 .build());
+    }
+
+    public static final int getColor(Context context, int id) {
+        return ContextCompat.getColor(context, id);
     }
 }

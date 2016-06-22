@@ -16,8 +16,8 @@
     <string name="submit_code">Confirm Code</string>
     <string name="on_text">On</string>
     <string name="off_text">Off</string>
-    <string name="lantern_off">Lantern is Off. Flip the switch to access\n blocked sites and services!</string>
-    <string name="lantern_on">Lantern is On. You can now access\n blocked sites and services!</string>  
+    <string name="lantern_off">Lantern is Off. Flip the switch to access blocked sites and services!</string>
+    <string name="lantern_on">Lantern is On. You can now access blocked sites and services!</string>  
     <string name="on_desc">You can now access\r\nblocked sites and services</string>
     <string name="off_desc">Click the button to access blocked sites and services</string>
     <string name="service_connected">Lantern connected</string>
@@ -54,6 +54,7 @@
     <string name="invalid_email">Invalid e-mail address</string>
     <string name="invalid_referral_code">Invalid referral code</string>
     <string name="no_internet_connection">No Internet connection available!</string>
+    <string name="unable_remove_device">Unable to remove device. Please try again later!</string>
     <string name="contact_email">team@getlantern.org</string>
     <string name="contact_message">Help Me</string>      
     <string name="contact_subject">Lantern Android</string>
@@ -132,8 +133,13 @@
         <item>Lantern will never share your number with third parties.</item>
     </string-array>
     <string-array name="referral_promotion_list">
-        <item>Did a friend share their referral code with you? Enter the code to receive a Lantern PRO credit worth one free month after checkout</item>
+        <item>Did a friend share the referral code with you? Enter the code to receive a Lantern Pro credit worth one free month after checkout.</item>
     </string-array>
+    <string-array name="referral_promotion_list_two_year">
+        <item>Did a friend share the referral code with you? Enter the code to get three additional months free after checkout.</item>
+    </string-array>      
+    <string name="only_one_device">Only One Device</string>
+    <string name="sorry_cannot_remove">Sorry, but you cannot remove your last authorized device</string>
     <string name="send_link">Send Link</string>
     <string name="click_button">Click the button to access blocked sites and services</string>
     <string name="lantern_pro">Lantern Pro</string>
@@ -142,6 +148,7 @@
     <string name="free_month">Get a free month of pro for each sign up</string>
     <string name="get_pro_now">Get Pro Now</string>
     <string name="inviting_friends">Get Pro credits by inviting friends</string>
+    <string name="data_cap">You have used your free monthly data. Upgrade to Lantern Pro to continue using Lantern.</string>
     <string name="select">Select</string>
     <string name="one_year">for 1 year</string>
     <string name="two_years">for 2 years</string>

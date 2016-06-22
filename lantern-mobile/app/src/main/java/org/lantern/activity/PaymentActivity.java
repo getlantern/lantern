@@ -43,7 +43,7 @@ import info.hoang8f.android.segmented.SegmentedGroup;
 public class PaymentActivity extends FragmentActivity implements ProResponse, View.OnClickListener {
 
     private static final String TAG = "PaymentActivity";
-    private static final String mCheckoutUrl = "https://s3.amazonaws.com/lantern-android/checkout.html?price=%d&currency=%s";
+    public static final String CHECKOUT_URL = "https://s3.amazonaws.com/lantern-android/checkout.html?price=%d&currency=%s";
 
     private SessionManager session;
 
@@ -90,6 +90,9 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
         final Context context = PaymentActivity.this;
 
         dialog = new ProgressDialog(context);
+        dialog.setCancelable(false);
+        dialog.setCanceledOnTouchOutside(false);
+
         dialog.setMessage(context.getResources().getString(R.string.sending_request));
 
         Uri data = intent.getData();
@@ -115,10 +118,7 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
         switch (v.getId()) {
             case R.id.alipayBtn:
                 Log.d(TAG, "Alipay button pressed");
-                Intent intent = new Intent(Intent.ACTION_VIEW);
-                String url = String.format(mCheckoutUrl, chargeAmount, session.Currency());
-                intent.setData(Uri.parse(url));
-                startActivity(intent);
+                openAlipay(PaymentActivity.this, session);
                 return;
             case R.id.cardBtn:
                 Log.d(TAG, "Card button pressed");
@@ -126,6 +126,15 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
             default:
                 // Nothing to do
         }
+    }
+
+    public static void openAlipay(Context c, SessionManager session) {
+        Log.d(TAG, "Chinese user detected; opening Alipay by default");
+        long amount = session.getSelectedPlanCost();
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        String url = String.format(CHECKOUT_URL, amount, session.Currency());
+        intent.setData(Uri.parse(url));
+        c.startActivity(intent);
     }
 
     public void submitCard() {
@@ -192,8 +201,10 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
 
     private void finishProgress(String email, String token) {
 
-        Log.d(TAG, String.format("Email is %s token %s plan %s", 
-                    email, token, session.getProPlan()));
+        String currency = session.getSelectedPlanCurrency();
+
+        Log.d(TAG, String.format("Email is %s token %s plan %s user id %s token %s plan %s currency %s device id %s", 
+                    email, token, session.Plan(), session.UserId(), session.Token(), session.getPlan(), currency, session.DeviceId()));
 
         session.setProUser(email, token);
 

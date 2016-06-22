@@ -78,7 +78,13 @@ public class ReferralCodeActivity extends FragmentActivity implements ProRespons
 		}
     }
 
-    public void launchCheckout() {
+    private void launchCheckout() {
+        if (session.isChineseUser()) {
+            PaymentActivity.openAlipay(ReferralCodeActivity.this, session); 
+            finish();
+            return;
+        }
+
         Intent intent = new Intent(this, PaymentActivity_.class);
         startActivity(intent);
         finish();

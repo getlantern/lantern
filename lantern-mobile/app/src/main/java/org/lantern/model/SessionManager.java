@@ -35,36 +35,36 @@ import go.lantern.Lantern;
 public class SessionManager implements Lantern.Session {
 
     private static final String TAG = "SessionManager";
+
+    // shared preferences
     private static final String PREF_NAME = "LanternSession";
     private static final String DEVICE_LINKED = "DeviceLinked";
     private static final String REFERRAL_APPLIED = "ReferralApplied";
     private static final String REFERRAL_CODE = "referral";
     private static final String DEVICE_ID = "deviceid";
-    private static final String PLAN_COST = "%1$s%2$d (%3$s)";
 
     private static final String USER_ID = "userid";
     private static final String PRO_USER = "prouser";
     private static final String PRO_PLAN = "proplan";
-    private static final String PHONE_NUMBER = "phonenumber";
     private static final String EMAIL_ADDRESS = "emailAddress";
     private static final String EXPIRY_DATE = "expirydate";
     private static final String TOKEN = "token";
     private static final String PREF_USE_VPN = "pref_vpn";
     private static final String PREF_NEWSFEED = "pref_newsfeed";
+    private static final String defaultCurrencyCode = "usd";
 
     private long oneYearCost = 2700;
     private long twoYearCost = 4800;
 
+    // the devices associated with a user's Pro account
     private Map<String, Device> devices = new HashMap<String, Device>();
-
-    private static final String defaultCurrencyCode = "usd";
-
     private final Map<String, ProPlan> plans = new HashMap<String, ProPlan>();
+
     private final Map<Locale, List<ProPlan>> localePlans = new HashMap<Locale, List<ProPlan>>();
 
     // Default Pro Plans
     private final Locale enLocale = new Locale("en", "US");
-    private final List<ProPlan> defaultPlans;
+    private final List<ProPlan> defaultPlans = new ArrayList<ProPlan>();
 
      // shared preferences mode
     private int PRIVATE_MODE = 0;
@@ -78,7 +78,6 @@ public class SessionManager implements Lantern.Session {
     private String referral;
     private String verifyCode;
     private Locale locale;
-    private Currency currency;
 
 
     public SessionManager(Context context) {
@@ -87,11 +86,10 @@ public class SessionManager implements Lantern.Session {
         this.editor = mPrefs.edit();
         this.resources = context.getResources();
         this.locale = resources.getConfiguration().locale;
-        this.defaultPlans = new ArrayList<ProPlan>();
         this.defaultPlans.add(createPlan(enLocale, "1y-usd",
-                    "One Year Plan", false, 1, 2700));
+                    "usd", "One Year Plan", false, 1, 2700));
         this.defaultPlans.add(createPlan(enLocale, "2y-usd",
-                    "Two Year Plan", true, 2, 4800));
+                    "usd", "Two Year Plan", true, 2, 4800));
     }
 
     public void newUser() {
@@ -126,11 +124,9 @@ public class SessionManager implements Lantern.Session {
     }
 
     public String Currency() {
-        Currency currency = Currency.getInstance(Locale.getDefault());
-        String code = currency.getCurrencyCode();
-        Log.d(TAG, "Current currency is " + code);
-        if (code != null) {
-            return code.toLowerCase();
+        ProPlan plan = getSelectedPlan();
+        if (plan != null) {
+            return plan.getCurrency();
         }
         return defaultCurrencyCode;
     }
@@ -155,23 +151,53 @@ public class SessionManager implements Lantern.Session {
         return twoYearCost;
     }
 
-    public long getSelectedPlanCost() {
-        String currentPlan = getProPlan();
+    public ProPlan getSelectedPlan() {
+        String currentPlan = getPlan();
         if (currentPlan == null) {
-            return oneYearCost;
+            Log.e(TAG, "Error trying to retrieve plan");
+            return null;
         }
-        ProPlan plan = plans.get(currentPlan);
+        Log.d(TAG, "Current plan is " + currentPlan);
+        return plans.get(currentPlan);
+    }
+
+    public long getSelectedPlanCost() {
+        ProPlan plan = getSelectedPlan();
         if (plan != null) {
             Long price = plan.getPrice();
             if (price != null) {
                 return price.longValue();
             }
+        } else {
+            Log.e(TAG, "Selected plan is null");
         }
         return oneYearCost;
     }
 
+    public String[] getReferralArray(Resources res) {
+        ProPlan plan = getSelectedPlan();
+        if (plan == null) {
+            return null;
+        }
+        if (plan.numYears() == 1) {
+            return res.getStringArray(R.array.referral_promotion_list);
+        } else {
+            return res.getStringArray(R.array.referral_promotion_list_two_year);
+        }
+    }
+
+    public String getSelectedPlanCurrency() {
+        ProPlan plan = getSelectedPlan();
+        if (plan != null) {
+            return plan.getCurrency();
+        }
+        return "usd";
+    }
+
     public void AddDevice(String id, String name) {
-        devices.put(id, new Device(id, name));
+        Device device = new Device(id, name);
+        devices.put(id, device);
+        EventBus.getDefault().post(device);
     }
 
     public void removeDevice(String id) {
@@ -183,45 +209,31 @@ public class SessionManager implements Lantern.Session {
     }
 
     public static ProPlan createPlan(Locale locale, String id,
+            String currency,
             String description, boolean bestValue, long numYears,
             long price) {
-        ProPlan plan = new ProPlan(id, description, bestValue,
-                numYears, price);
+        
+        ProPlan plan = new ProPlan(id, description, currency, 
+                bestValue, numYears, price);
 
-        Currency currency = Currency.getInstance(locale);
-        String symbol = currency.getSymbol();
-        long fmtPrice = price/100;
-
-        String costStr = String.format("%s%d (%s)",
-                symbol, fmtPrice, currency.getCurrencyCode());
-
-        plan.setPrice(price);
         plan.setLocale(locale);
-        plan.setCostStr(costStr);
 
         return plan;
     }
 
     public void savePlan(Resources resources, ProPlan plan) {
         Locale locale = Locale.getDefault();
-        Currency currency = Currency.getInstance(locale);
-        String symbol = currency.getSymbol();
-        long price = plan.getPrice();
-        long fmtPrice = price/100;
 
-        String costStr = String.format(PLAN_COST, symbol, fmtPrice, 
-                currency.getCurrencyCode());
+        Log.d(TAG, "Got a new plan! ID is " + plan.getPlanId());
 
-        plan.setPrice(price);
         plan.setLocale(locale);
-        plan.setCostStr(costStr);
         plans.put(plan.getPlanId(), plan);
         addLocalePlan(plan);
 
         if (plan.numYears() == 1) {
-            setOneYearCost(price);
+            setOneYearCost(plan.getPrice());
         } else {
-            setTwoYearCost(price);
+            setTwoYearCost(plan.getPrice());
         }
 
     }
@@ -251,8 +263,10 @@ public class SessionManager implements Lantern.Session {
         this.twoYearCost = twoYearCost;
     }
 
-    public void AddPlan(String id, String description, boolean bestValue, long numYears, long price) {
-        EventBus.getDefault().post(new ProPlan(id, description, bestValue, numYears, price));
+    public void AddPlan(String id, String description, String currency, 
+            boolean bestValue, long numYears, long price) {
+        EventBus.getDefault().post(new ProPlan(id, description, currency, 
+                    bestValue, numYears, price));
     }
 
 	public boolean deviceLinked() {
@@ -299,10 +313,6 @@ public class SessionManager implements Lantern.Session {
         editor.putString(PRO_PLAN, plan).commit();
     }
 
-    public String getProPlan() {
-        return mPrefs.getString(PRO_PLAN, null);
-    }
-
 	public void setProUser(String email, String token) {
         this.stripeToken = token;
         editor.putString(EMAIL_ADDRESS, email).commit();
@@ -336,8 +346,8 @@ public class SessionManager implements Lantern.Session {
         return mPrefs.getString(EMAIL_ADDRESS, "");
     }
 
-	public void SetUserId(String userId) {
-		editor.putString(USER_ID, userId).commit();
+	public void SetUserId(long userId) {
+		editor.putString(USER_ID, Long.toString(userId)).commit();
 	}
 
 	private void setDeviceId(String deviceId) {
@@ -353,17 +363,20 @@ public class SessionManager implements Lantern.Session {
         return deviceId;
     }
 
+	public String DeviceName() {
+		return android.os.Build.MODEL;
+	}
 
     public String Code() {
         return mPrefs.getString(REFERRAL_CODE, "");
     }
 
-	public String UserId() {
-        return mPrefs.getString(USER_ID, "");
-	}
-
-	public String getUserId() {
-		return mPrefs.getString(USER_ID, "");
+	public long UserId() {
+        String userId = mPrefs.getString(USER_ID, "");
+        if (userId.equals("")) {
+            return 0;
+        }
+        return Long.parseLong(userId);
 	}
 
 	public String Token() {
@@ -416,7 +429,7 @@ public class SessionManager implements Lantern.Session {
     }
 
     public String Plan() {
-        return getProPlan();
+        return getPlan();
     }
 
     public String Locale() {
@@ -432,7 +445,9 @@ public class SessionManager implements Lantern.Session {
 
         editor.putBoolean(PRO_USER, false);
         editor.putBoolean(DEVICE_LINKED, false);
-        editor.remove(PHONE_NUMBER);
+        editor.remove(TOKEN);
+        editor.remove(EMAIL_ADDRESS);
+        editor.remove(USER_ID);
         editor.remove(PRO_PLAN);
 		editor.commit();
 	}
