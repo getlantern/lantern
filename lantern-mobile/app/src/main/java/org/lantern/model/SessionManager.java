@@ -224,6 +224,8 @@ public class SessionManager implements Lantern.Session {
     public void savePlan(Resources resources, ProPlan plan) {
         Locale locale = Locale.getDefault();
 
+        Log.d(TAG, "Got a new plan! ID is " + plan.getPlanId());
+
         plan.setLocale(locale);
         plans.put(plan.getPlanId(), plan);
         addLocalePlan(plan);

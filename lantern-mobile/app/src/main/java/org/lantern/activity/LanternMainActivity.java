@@ -49,6 +49,7 @@ import org.lantern.model.GetFeed;
 import org.lantern.model.ListAdapter;
 import org.lantern.model.MailSender;
 import org.lantern.model.NavItem;
+import org.lantern.model.ProPlan;
 import org.lantern.model.ProRequest;
 import org.lantern.model.SessionManager;
 import org.lantern.model.Shareable;
@@ -71,6 +72,9 @@ import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItems;
 import com.ogaclejapan.smarttablayout.SmartTabLayout;
 
 import com.kyleduo.switchbutton.SwitchButton;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 
 import go.lantern.Lantern;
 
@@ -131,6 +135,13 @@ public class LanternMainActivity extends AppCompatActivity {
     @AfterViews
     void afterViews() {
 
+        if (!EventBus.getDefault().isRegistered(this)) {
+            // we don't have to unregister an EventBus if its
+            // in the Application class
+            EventBus.getDefault().register(this);
+        }
+
+
         lastFeedSelected = getResources().getString(R.string.all_feeds);
 
         // we want to use the ActionBar from the AppCompat
@@ -173,8 +184,25 @@ public class LanternMainActivity extends AppCompatActivity {
             .make(coordinatorLayout, getResources().getString(R.string.lantern_off), Snackbar.LENGTH_LONG);
         statusSnackbar = formatSnackbar(statusSnackbar);
 
+        // wait a few seconds while Lantern starts before
+        // making any Pro requests
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                session.newUser();
+                new ProRequest(context, false, null).execute("plans");
+            }
+        }, 4000);
+
         checkUpdateAfterDelay();
     }
+
+    @Subscribe
+    public void onEvent(ProPlan plan) {
+        Log.d(TAG, "Got a new PLAN: " + plan.getPlanId());
+        session.savePlan(getResources(), plan);
+    }
+
 
     @Override
     protected void onResume() {
@@ -745,6 +773,7 @@ public class LanternMainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        EventBus.getDefault().unregister(this);
 
         try {
             if (mReceiver != null) {
