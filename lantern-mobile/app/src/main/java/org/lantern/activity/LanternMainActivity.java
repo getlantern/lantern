@@ -10,6 +10,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
 import android.content.res.Resources;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -170,10 +171,7 @@ public class LanternMainActivity extends AppCompatActivity {
         setVersionNum();
         statusSnackbar = Snackbar
             .make(coordinatorLayout, getResources().getString(R.string.lantern_off), Snackbar.LENGTH_LONG);
-        View snackView = statusSnackbar.getView();
-        snackView.setBackgroundColor(Color.BLACK);
-        TextView tv = (TextView) snackView.findViewById(android.support.design.R.id.snackbar_text);
-        tv.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        statusSnackbar = formatSnackbar(statusSnackbar);
 
         checkUpdateAfterDelay();
     }
@@ -202,14 +200,22 @@ public class LanternMainActivity extends AppCompatActivity {
         }, 7000);
 	}
 
+    private Snackbar formatSnackbar(Snackbar snackbar) {
+        View snackView = snackbar.getView();
+        snackView.setBackgroundColor(Color.BLACK);
+        TextView tv = (TextView) snackView.findViewById(android.support.design.R.id.snackbar_text);
+        tv.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        return snackbar;
+    }
+
 	private void setBandwidthQuota() {
 
         if (!session.isProUser()) {
             long quota = Lantern.GetBandwidthQuota();
             long remaining = Lantern.GetBandwidthRemaining();
             String amount = String.format(getResources().getString(R.string.data_remaining), remaining);
-            if (remaining < 470) {
-                showBandwidthSnackbar();
+            if (remaining < 5) {
+                showFreeCapSnackbar();
             }
 
             dataRemaining.setText(amount);
@@ -219,7 +225,7 @@ public class LanternMainActivity extends AppCompatActivity {
         }
     }
 
-    private void showBandwidthSnackbar() {
+    private void showFreeCapSnackbar() {
         final LanternMainActivity activity = this;
         Resources res = getResources();
         Snackbar snackbar = Snackbar
@@ -230,6 +236,7 @@ public class LanternMainActivity extends AppCompatActivity {
                     activity.startActivity(new Intent(activity, ProAccountActivity_.class));
                 }
             });
+        snackbar = formatSnackbar(snackbar);
         snackbar.setActionTextColor(Utils.getColor(activity, R.color.pink));
         snackbar.show();
     }
