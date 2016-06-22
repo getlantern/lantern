@@ -1,3 +1,5 @@
+// +build adfd
+
 package app
 
 import (

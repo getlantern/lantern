@@ -168,18 +168,22 @@ func (app *App) beforeStart(cfg *config.Config) bool {
 }
 
 // GetSetting gets the in memory setting with the name specified by attr
-func (app *App) GetSetting(attr string) interface{} {
-	switch attr {
-	case "language":
-		return settings.GetLanguage()
-	default:
-		panic(fmt.Sprintf("get %s setting is not supported", attr))
+func (app *App) GetSetting(name SettingName) interface{} {
+	switch settingMeta[name].sType {
+	case stBool:
+		return settings.getBool(name)
+	case stNumber:
+		return settings.getInt64(name)
+	case stString:
+		return settings.getString(name)
 	}
+	// should never reach here.
+	return nil
 }
 
 // OnSettingChange sets a callback cb to get called when attr is changed from UI.
 // When calling multiple times for same attr, only the last one takes effect.
-func (app *App) OnSettingChange(attr string, cb func(interface{})) {
+func (app *App) OnSettingChange(attr SettingName, cb func(interface{})) {
 	settings.OnChange(attr, cb)
 }
 

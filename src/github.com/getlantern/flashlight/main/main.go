@@ -108,12 +108,12 @@ func doMain(a *app.App) error {
 	a.AddExitFunc(quitSystray)
 
 	if a.ShowUI {
-		lang := a.GetSetting("language").(string)
+		lang := a.GetSetting(app.SNLanguage).(string)
 		i18nInit(lang)
 		if err := configureSystemTray(a); err != nil {
 			return err
 		}
-		a.OnSettingChange("language", func(lang interface{}) {
+		a.OnSettingChange(app.SNLanguage, func(lang interface{}) {
 			refreshSystray(lang.(string))
 		})
 

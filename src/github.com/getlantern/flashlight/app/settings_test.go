@@ -34,7 +34,7 @@ func TestRead(t *testing.T) {
 	// will then simulate real world use where we rely on Go to generate the
 	// actual types of the JSON values. For example, all numbers will be
 	// decoded as float64.
-	var data = []byte(`{
+	var data = `{
 		"autoReport": false,
 		"proxyAll": true,
 		"autoLaunch": false,
@@ -42,10 +42,10 @@ func TestRead(t *testing.T) {
 		"deviceID": "8208fja09493",
 		"userID": 890238588,
 		"language": "en-US"
-	}`)
+	}`
 
 	var m map[string]interface{}
-	d := json.NewDecoder(strings.NewReader(string(data)))
+	d := json.NewDecoder(strings.NewReader(data))
 
 	// Make sure to use json.Number here to avoid issues with 64 bit integers.
 	d.UseNumber()
@@ -88,27 +88,24 @@ func TestRead(t *testing.T) {
 }
 
 func TestCheckNum(t *testing.T) {
+	snTest := SettingName("test")
 	set := newSettings()
-	m := make(map[string]interface{})
-
 	var val json.Number = "4809"
-	m["test"] = val
-
 	var expected int64 = 4809
-	set.checkNum(m, "test")
-	assert.Equal(t, expected, set.m["test"])
+	set.checkNum(snTest, val)
+	assert.Equal(t, expected, set.m[snTest])
 
-	set.checkString(m, "test")
+	set.checkString(snTest, val)
 
 	// The above should not have worked since it's not a string -- should
 	// still be an int64
-	assert.Equal(t, expected, set.m["test"])
+	assert.Equal(t, expected, set.m[snTest])
 
-	set.checkBool(m, "test")
+	set.checkBool(snTest, val)
 
 	// The above should not have worked since it's not a bool -- should
 	// still be an int64
-	assert.Equal(t, expected, set.m["test"])
+	assert.Equal(t, expected, set.m[snTest])
 }
 
 func TestNotPersistVersion(t *testing.T) {
@@ -125,7 +122,7 @@ func TestOnChange(t *testing.T) {
 	in := make(chan interface{})
 	out := make(chan interface{})
 	var changed string
-	set.OnChange("language", func(v interface{}) {
+	set.OnChange(SNLanguage, func(v interface{}) {
 		changed = v.(string)
 	})
 	go func() {
