@@ -18,6 +18,7 @@ import (
 	"github.com/getlantern/flashlight/ui"
 )
 
+// SettingName is the name of a setting.
 type SettingName string
 
 const (
@@ -343,21 +344,21 @@ func (s *Settings) SetSystemProxy(enable bool) {
 }
 
 func (s *Settings) getBool(name SettingName) bool {
-	s.RLock()
-	defer s.RUnlock()
-	return s.m[name].(bool)
+	return s.getVal(name).(bool)
 }
 
 func (s *Settings) getString(name SettingName) string {
-	s.RLock()
-	defer s.RUnlock()
-	return s.m[name].(string)
+	return s.getVal(name).(string)
 }
 
 func (s *Settings) getInt64(name SettingName) int64 {
+	return s.getVal(name).(int64)
+}
+
+func (s *Settings) getVal(name SettingName) interface{} {
 	s.RLock()
 	defer s.RUnlock()
-	return s.m[name].(int64)
+	return s.m[name]
 }
 
 func (s *Settings) setVal(name SettingName, val interface{}) {
