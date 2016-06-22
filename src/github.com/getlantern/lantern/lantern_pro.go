@@ -84,7 +84,9 @@ func purchase(r *proRequest) (*client.Response, error) {
 		Currency:       r.session.Currency(),
 	}
 
-	return r.proClient.Purchase(r.user, purchase)
+	deviceName := r.session.DeviceName()
+
+	return r.proClient.Purchase(r.user, deviceName, purchase)
 }
 
 func signin(r *proRequest) (*client.Response, error) {

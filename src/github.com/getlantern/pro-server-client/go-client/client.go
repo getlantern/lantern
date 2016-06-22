@@ -284,7 +284,7 @@ func (c *Client) Plans(user User) (res *Response, err error) {
 }
 
 // Purchase single endpoint used for performing purchases.
-func (c *Client) Purchase(user User, purchase Purchase) (res *Response, err error) {
+func (c *Client) Purchase(user User, deviceName string, purchase Purchase) (res *Response, err error) {
 	var payload []byte
 	payload, err = c.post(`/purchase`, user.headers(),
 		url.Values{
@@ -293,7 +293,7 @@ func (c *Client) Purchase(user User, purchase Purchase) (res *Response, err erro
 			"stripeToken":    {purchase.StripeToken},
 			"plan":           {purchase.Plan},
 			"currency":       {purchase.Currency},
-			"deviceName":     {user.Auth.DeviceID},
+			"deviceName":     {deviceName},
 		},
 	)
 	if err != nil {
