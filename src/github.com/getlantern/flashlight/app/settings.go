@@ -229,14 +229,7 @@ func (s *Settings) checkString(name SettingName, v interface{}) {
 // Save saves settings to disk.
 func (s *Settings) save() {
 	log.Trace("Saving settings")
-	toBeSaved := make(map[SettingName]interface{})
-	s.Lock()
-	for k, v := range s.m {
-		if settingMeta[k].persist {
-			toBeSaved[k] = v
-		}
-	}
-	s.Unlock()
+	toBeSaved := s.mapToSave()
 	if bytes, err := yaml.Marshal(toBeSaved); err != nil {
 		log.Errorf("Could not create yaml from settings %v", err)
 	} else if err := ioutil.WriteFile(path, bytes, 0644); err != nil {
@@ -244,6 +237,18 @@ func (s *Settings) save() {
 	} else {
 		log.Tracef("Saved settings to %s with contents %v", path, string(bytes))
 	}
+}
+
+func (s *Settings) mapToSave() map[SettingName]interface{} {
+	m := make(map[SettingName]interface{})
+	s.RLock()
+	defer s.RUnlock()
+	for k, v := range s.m {
+		if settingMeta[k].persist {
+			m[k] = v
+		}
+	}
+	return m
 }
 
 // GetProxyAll returns whether or not to proxy all traffic.
