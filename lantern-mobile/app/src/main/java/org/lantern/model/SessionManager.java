@@ -35,6 +35,8 @@ import go.lantern.Lantern;
 public class SessionManager implements Lantern.Session {
 
     private static final String TAG = "SessionManager";
+
+    // shared preferences
     private static final String PREF_NAME = "LanternSession";
     private static final String DEVICE_LINKED = "DeviceLinked";
     private static final String REFERRAL_APPLIED = "ReferralApplied";
@@ -44,21 +46,20 @@ public class SessionManager implements Lantern.Session {
     private static final String USER_ID = "userid";
     private static final String PRO_USER = "prouser";
     private static final String PRO_PLAN = "proplan";
-    private static final String PHONE_NUMBER = "phonenumber";
     private static final String EMAIL_ADDRESS = "emailAddress";
     private static final String EXPIRY_DATE = "expirydate";
     private static final String TOKEN = "token";
     private static final String PREF_USE_VPN = "pref_vpn";
     private static final String PREF_NEWSFEED = "pref_newsfeed";
+    private static final String defaultCurrencyCode = "usd";
 
     private long oneYearCost = 2700;
     private long twoYearCost = 4800;
 
+    // the devices associated with a user's Pro account
     private Map<String, Device> devices = new HashMap<String, Device>();
-
-    private static final String defaultCurrencyCode = "usd";
-
     private final Map<String, ProPlan> plans = new HashMap<String, ProPlan>();
+
     private final Map<Locale, List<ProPlan>> localePlans = new HashMap<Locale, List<ProPlan>>();
 
     // Default Pro Plans
@@ -77,7 +78,6 @@ public class SessionManager implements Lantern.Session {
     private String referral;
     private String verifyCode;
     private Locale locale;
-    private Currency currency;
 
 
     public SessionManager(Context context) {
@@ -124,16 +124,6 @@ public class SessionManager implements Lantern.Session {
     }
 
     public String Currency() {
-        Currency currency = Currency.getInstance(Locale.getDefault());
-        String code = currency.getCurrencyCode();
-        Log.d(TAG, "Current currency is " + code);
-        if (code != null) {
-            return code.toLowerCase();
-        }
-        return defaultCurrencyCode;
-    }
-
-    public String PlanCurrency() {
         ProPlan plan = getSelectedPlan();
         if (plan != null) {
             return plan.getCurrency();
@@ -182,6 +172,18 @@ public class SessionManager implements Lantern.Session {
             Log.e(TAG, "Selected plan is null");
         }
         return oneYearCost;
+    }
+
+    public String[] getReferralArray(Resources res) {
+        ProPlan plan = getSelectedPlan();
+        if (plan == null) {
+            return null;
+        }
+        if (plan.numYears() == 1) {
+            return res.getStringArray(R.array.referral_promotion_list);
+        } else {
+            return res.getStringArray(R.array.referral_promotion_list_two_year);
+        }
     }
 
     public String getSelectedPlanCurrency() {
@@ -441,7 +443,8 @@ public class SessionManager implements Lantern.Session {
 
         editor.putBoolean(PRO_USER, false);
         editor.putBoolean(DEVICE_LINKED, false);
-        editor.remove(PHONE_NUMBER);
+        editor.remove(EMAIL_ADDRESS);
+        editor.remove(USER_ID);
         editor.remove(PRO_PLAN);
 		editor.commit();
 	}

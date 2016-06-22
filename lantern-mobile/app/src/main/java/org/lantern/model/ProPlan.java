@@ -41,14 +41,11 @@ public class ProPlan {
             this.tag = PRO_TWO_YEAR;
         }
 
-        Currency currency = Currency.getInstance(currencyCode);
-        if (currency == null) {
-            Log.e(TAG, "Invalid currency: " + currencyCode);
-            currency = Currency.getInstance(defaultCurrencyCode);
-        }
-        long fmtPrice = price/100;
-        symbol = currency.getSymbol();
-        this.costStr = String.format(PLAN_COST, symbol, fmtPrice, currency.getCurrencyCode().toUpperCase());
+        formatCost();
+    }
+
+    public void setCurrency(String currencyCode) {
+
     }
 
     public Long numYears() {
@@ -91,8 +88,16 @@ public class ProPlan {
         return symbol;
     }
 
-    public void setCostStr(String costStr) {
-        this.costStr = costStr;
+    private void formatCost() {
+        Currency currency = Currency.getInstance(currencyCode);
+        if (currency == null) {
+            Log.e(TAG, "Invalid currency: " + currencyCode);
+            currency = Currency.getInstance(defaultCurrencyCode);
+        }
+        long fmtPrice = price/100;
+
+        this.symbol = currency.getSymbol();
+        this.costStr = String.format(PLAN_COST, symbol, fmtPrice, currency.getCurrencyCode().toUpperCase());
     }
 
     public void setPrice(long price) {

@@ -24,6 +24,7 @@ import android.support.v4.app.Fragment;
 import java.util.Arrays;
 import java.util.ArrayList;
 
+import org.lantern.LanternApp;
 import org.lantern.model.Utils;
 import org.lantern.R;
 
@@ -91,8 +92,12 @@ public class UserForm extends Fragment {
                 R.styleable.UserForm);
 
         mSendBtnText = a.getString(R.styleable.UserForm_sendBtnText);
-        mFormDetails = a.getTextArray(R.styleable.UserForm_formList);
         mFormType = a.getString(R.styleable.UserForm_formType);
+        if (mFormType != null && mFormType.equals("referral")) {
+            mFormDetails = LanternApp.getSession().getReferralArray(getResources());
+        } else {
+            mFormDetails = a.getTextArray(R.styleable.UserForm_formList);
+        }
     }
 
     public String getUserInput() {

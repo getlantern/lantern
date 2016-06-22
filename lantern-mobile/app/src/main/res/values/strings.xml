@@ -132,8 +132,13 @@
         <item>Lantern will never share your number with third parties.</item>
     </string-array>
     <string-array name="referral_promotion_list">
-        <item>Did a friend share the referral code with you? Enter the code to get three additional months free after check out.</item>
+        <item>Did a friend share the referral code with you? Enter the code to receive a Lantern Pro credit worth one free month after checkout.</item>
     </string-array>
+    <string-array name="referral_promotion_list_two_year">
+        <item>Did a friend share the referral code with you? Enter the code to get three additional months free after checkout.</item>
+    </string-array>      
+    <string name="only_one_device">Only One Device</string>
+    <string name="sorry_cannot_remove">Sorry, but you cannot remove your last authorized device</string>
     <string name="send_link">Send Link</string>
     <string name="click_button">Click the button to access blocked sites and services</string>
     <string name="lantern_pro">Lantern Pro</string>

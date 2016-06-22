@@ -27,7 +27,6 @@ type Session interface {
 	UserData(string, int64, string)
 	SetCode(string)
 	Currency() string
-	PlanCurrency() string
 	AddPlan(string, string, string, bool, int, int)
 	AddDevice(string, string)
 }
@@ -82,7 +81,7 @@ func purchase(r *proRequest) (*client.Response, error) {
 		StripeToken:    r.session.StripeToken(),
 		StripeEmail:    r.session.Email(),
 		Plan:           r.session.Plan(),
-		Currency:       r.session.PlanCurrency(),
+		Currency:       r.session.Currency(),
 	}
 
 	return r.proClient.Purchase(r.user, purchase)
@@ -124,21 +123,17 @@ func plans(r *proRequest) (*client.Response, error) {
 	if err != nil || len(res.Plans) == 0 {
 		return res, err
 	}
-	currency := r.session.Currency()
 	for _, plan := range res.Plans {
-		price, exists := plan.Price[currency]
-		if !exists {
-			var defaultKey string
-			for defaultKey, _ = range plan.Price {
-				break
-			}
-			price, _ = plan.Price[defaultKey]
-			currency = defaultKey
+		var currency string
+		var price int
+		for currency, price = range plan.Price {
+			break
 		}
-
-		log.Debugf("Calling add plan with %s currency %s desc: %s best value %t price %d",
-			plan.Id, currency, plan.Description, plan.BestValue, price)
-		r.session.AddPlan(plan.Id, plan.Description, currency, plan.BestValue, plan.Duration.Years, price)
+		if currency != "" {
+			log.Debugf("Calling add plan with %s currency %s desc: %s best value %t price %d",
+				plan.Id, currency, plan.Description, plan.BestValue, price)
+			r.session.AddPlan(plan.Id, plan.Description, currency, plan.BestValue, plan.Duration.Years, price)
+		}
 	}
 
 	return res, err

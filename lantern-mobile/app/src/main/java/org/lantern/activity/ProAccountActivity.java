@@ -2,7 +2,6 @@ package org.lantern.activity;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -16,6 +15,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import android.support.v4.app.FragmentActivity;
+import java.util.Map;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.EActivity;
@@ -47,6 +47,7 @@ public class ProAccountActivity extends FragmentActivity {
     private SessionManager session;
     private ProgressDialog dialog;
     private String toRemoveDeviceId;
+    private boolean onlyOneDevice = false;
 
     @AfterViews
     void afterViews() {
@@ -79,7 +80,12 @@ public class ProAccountActivity extends FragmentActivity {
     }
 
     public void updateDeviceList() {
-        for (Device device : session.getDevices().values()) {
+        Map<String, Device> devices = session.getDevices();
+        if (devices.size() == 1) {
+            onlyOneDevice = true;
+        }
+
+        for (Device device : devices.values()) {
             final DeviceView view = new DeviceView(this);
             String name = device.getName();
             view.name.setText(Html.fromHtml(String.format("&#8226; %s", name)));
@@ -123,6 +129,16 @@ public class ProAccountActivity extends FragmentActivity {
        	final String deviceId = (String)view.getTag();
         if (deviceId == null) {
             Log.e(TAG, "Error trying to get tag for device item; cannot unauthorize device");
+            return;
+        }
+
+        if (onlyOneDevice) {
+            Log.d(TAG, "Only one device found. Not letting user unauthorize it");
+            Resources res = getResources();
+
+            Utils.showAlertDialog(this, res.getString(R.string.only_one_device),
+                    res.getString(R.string.sorry_cannot_remove));
+            finish();
             return;
         }
 
