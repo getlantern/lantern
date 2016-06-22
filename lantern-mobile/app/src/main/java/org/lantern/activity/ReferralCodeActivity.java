@@ -53,29 +53,29 @@ public class ReferralCodeActivity extends FragmentActivity implements ProRespons
         fragment = (UserForm) getSupportFragmentManager().findFragmentById(R.id.user_form_fragment);
     }
 
-	@Override
-	public void onResult(boolean success) {
-    	if (!success) {
-			Utils.showErrorDialog(this, getResources().getString(R.string.invalid_referral_code));
-			return;
-		}
-		session.setReferralApplied();
-		launchCheckout();
-	}
+    @Override
+    public void onResult(boolean success) {
+        if (!success) {
+            Utils.showErrorDialog(this, getResources().getString(R.string.invalid_referral_code));
+            return;
+        }
+        session.setReferralApplied();
+        launchCheckout();
+    }
 
     public void sendResult(View view) {
         if (fragment != null) {
             String referral = fragment.getUserInput();
 
-			if (referral == null || referral.equals("")) {
-				Utils.showErrorDialog(this, getResources().getString(R.string.invalid_referral_code));
-				return;
-			}
+            if (referral == null || referral.equals("")) {
+                Utils.showErrorDialog(this, getResources().getString(R.string.invalid_referral_code));
+                return;
+            }
 
-			session.setReferral(referral);
-			new ProRequest(ReferralCodeActivity.this, true, 
-				this).execute("referral");
-		}
+            session.setReferral(referral);
+            new ProRequest(ReferralCodeActivity.this, true, 
+                this).execute("referral");
+        }
     }
 
     private void launchCheckout() {

@@ -140,7 +140,7 @@ public class ProAccountActivity extends FragmentActivity {
 
     public void unauthorizeDevice(View view) {
         Log.d(TAG, "Unauthorize device button clicked.");
-       	final String deviceId = (String)view.getTag();
+        final String deviceId = (String)view.getTag();
         if (deviceId == null) {
             Log.e(TAG, "Error trying to get tag for device item; cannot unauthorize device");
             return;
@@ -159,14 +159,14 @@ public class ProAccountActivity extends FragmentActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(ProAccountActivity.this);
         Resources res = getResources();
 
-		final boolean shouldProxy = session.shouldProxy();
+        final boolean shouldProxy = session.shouldProxy();
 
-		DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				switch (which) {
-					case DialogInterface.BUTTON_POSITIVE:
-						boolean success = Lantern.RemoveDevice(shouldProxy, deviceId, session);
+        DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which) {
+                    case DialogInterface.BUTTON_POSITIVE:
+                        boolean success = Lantern.RemoveDevice(shouldProxy, deviceId, session);
                         if (success) {
                             session.removeDevice(deviceId);
                             removeDeviceView(deviceId);
@@ -180,20 +180,20 @@ public class ProAccountActivity extends FragmentActivity {
                             Utils.showErrorDialog(ProAccountActivity.this,
                                     getResources().getString(R.string.unable_remove_device));
                         }
-						dialog.dismiss();
-						break;
-					case DialogInterface.BUTTON_NEGATIVE:
-						dialog.cancel();
-						// No button clicked
-						break;
-				}
-			}
-		};
+                        dialog.dismiss();
+                        break;
+                    case DialogInterface.BUTTON_NEGATIVE:
+                        dialog.cancel();
+                        // No button clicked
+                        break;
+                }
+            }
+        };
 
         builder.setMessage(res.getString(R.string.unauthorize_confirmation));
-		builder.setPositiveButton(res.getString(R.string.yes), dialogClickListener);
+        builder.setPositiveButton(res.getString(R.string.yes), dialogClickListener);
         builder.setNegativeButton(res.getString(R.string.no), dialogClickListener);
-		builder.show();
+        builder.show();
     }
 }
 

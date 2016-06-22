@@ -37,8 +37,6 @@ import go.lantern.Lantern;
 public class PlansActivity extends FragmentActivity {
 
     private static final String TAG = "PlansActivity";
-    private static final String mCheckoutUrl = 
-        "https://s3.amazonaws.com/lantern-android/checkout.html?amount=%s";
     private SessionManager session;
 
     @StringArrayRes(R.array.pro_features)
@@ -125,7 +123,7 @@ public class PlansActivity extends FragmentActivity {
             plan = (String)view.getTag();
         }
 
-		Log.d(TAG, "Plan selected: " + plan);
+        Log.d(TAG, "Plan selected: " + plan);
 
         session.setProPlan(plan);
 
