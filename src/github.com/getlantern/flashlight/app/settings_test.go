@@ -88,27 +88,27 @@ func TestRead(t *testing.T) {
 }
 
 func TestCheckNum(t *testing.T) {
-	set := &Settings{}
+	set := newSettings()
 	m := make(map[string]interface{})
 
 	var val json.Number = "4809"
 	m["test"] = val
 
 	var expected int64 = 4809
-	var received int64
-	set.checkNum(m, "test", func(val int64) {
-		received = val
-		assert.Equal(t, val, val)
-	})
-	assert.Equal(t, expected, received)
+	set.checkNum(m, "test")
+	assert.Equal(t, expected, set.m["test"])
 
-	set.checkString(m, "test", func(val string) {
-		assert.Fail(t, "Should not have been called")
-	})
+	set.checkString(m, "test")
 
-	set.checkBool(m, "test", func(val bool) {
-		assert.Fail(t, "Should not have been called")
-	})
+	// The above should not have worked since it's not a string -- should
+	// still be an int64
+	assert.Equal(t, expected, set.m["test"])
+
+	set.checkBool(m, "test")
+
+	// The above should not have worked since it's not a bool -- should
+	// still be an int64
+	assert.Equal(t, expected, set.m["test"])
 }
 
 func TestNotPersistVersion(t *testing.T) {
@@ -117,13 +117,11 @@ func TestNotPersistVersion(t *testing.T) {
 	revisionDate := "1970-1-1"
 	buildDate := "1970-1-1"
 	set := loadSettings(version, revisionDate, buildDate)
-	assert.Equal(t, version, set.Version, "Should be set to version")
+	assert.Equal(t, version, set.m["version"], "Should be set to version")
 }
 
 func TestOnChange(t *testing.T) {
-	set := &Settings{
-		changeNotifiers: make(map[string]func(interface{})),
-	}
+	set := newSettings()
 	in := make(chan interface{})
 	out := make(chan interface{})
 	var changed string
