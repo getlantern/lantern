@@ -54,6 +54,7 @@
     <string name="invalid_email">Invalid e-mail address</string>
     <string name="invalid_referral_code">Invalid referral code</string>
     <string name="no_internet_connection">No Internet connection available!</string>
+    <string name="unable_remove_device">Unable to remove device. Please try again later!</string>
     <string name="contact_email">team@getlantern.org</string>
     <string name="contact_message">Help Me</string>      
     <string name="contact_subject">Lantern Android</string>

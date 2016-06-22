@@ -153,6 +153,13 @@ public class ProAccountActivity extends FragmentActivity {
 				switch (which) {
 					case DialogInterface.BUTTON_POSITIVE:
 						boolean success = Lantern.RemoveDevice(shouldProxy, deviceId, session);
+                        if (success) {
+                            session.removeDevice(deviceId);
+                            updateDeviceList();
+                        } else {
+                            Utils.showErrorDialog(ProAccountActivity.this,
+                                    getResources().getString(R.string.unable_remove_device));
+                        }
 						dialog.dismiss();
 						break;
 					case DialogInterface.BUTTON_NEGATIVE:
