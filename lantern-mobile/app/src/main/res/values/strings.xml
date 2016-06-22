@@ -132,7 +132,7 @@
         <item>Lantern will never share your number with third parties.</item>
     </string-array>
     <string-array name="referral_promotion_list">
-        <item>Did a friend share their referral code with you? Enter the code to receive a Lantern PRO credit worth one free month after checkout</item>
+        <item>Did a friend share the referral code with you? Enter the code to get three additional months free after check out.</item>
     </string-array>
     <string name="send_link">Send Link</string>
     <string name="click_button">Click the button to access blocked sites and services</string>

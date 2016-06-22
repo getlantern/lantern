@@ -123,7 +123,7 @@ public class PlansActivity extends FragmentActivity {
     }
 
     public void selectPlan(View view) {
-        String plan = "s1y-cny";
+        String plan = "2y-usd";
         if (view.getTag() != null) {
             plan = (String)view.getTag();
         }

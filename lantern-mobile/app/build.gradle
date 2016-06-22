@@ -32,7 +32,11 @@ android {
         targetSdkVersion rootProject.targetSdkVersion
         applicationId "org.getlantern.lantern"
         versionCode code
-        versionName "$project.lanternVersion ($project.lanternRevisionDate)"
+        if (project.hasProperty('lanternVersion')) {
+            versionName "$project.lanternVersion ($project.lanternRevisionDate)"
+        } else {
+            versionName "3.0.0"
+        }
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
@@ -147,10 +151,10 @@ dependencies {
     apt "org.androidannotations:androidannotations:" + androidAnnotationsVersion
     compile("org.androidannotations:androidannotations-api:" + androidAnnotationsAPIVersion )
 
-    // Testing-only dependencies
-    androidTestCompile 'com.android.support.test:runner:0.4'
-    androidTestCompile 'com.android.support.test:rules:0.4'
-    androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.1'
+    /* Testing-only dependencies
+    androidTestCompile 'com.android.support.test:runner:0.5'
+    androidTestCompile 'com.android.support.test:rules:0.5'
+    androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.2'*/
 }
 
 apt {

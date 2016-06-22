@@ -41,6 +41,7 @@ public class LanternApp extends Application {
             public void run() {
                 session.newUser();
                 new ProRequest(context, false, null).execute("plans");
+                new ProRequest(context, false, null).execute("userdata");
             }
         }, 6000);
     }

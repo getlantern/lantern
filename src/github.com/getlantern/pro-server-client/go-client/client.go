@@ -231,12 +231,26 @@ func (c *Client) UserLinkValidate(user User) (res *Response, err error) {
 }
 
 // UserLinkRequest Perform device linking or user recovery.
-func (c *Client) UserLinkRequest(user User) (res *Response, err error) {
+func (c *Client) UserLinkRequest(user User, deviceName string) (res *Response, err error) {
 	var payload []byte
 	payload, err = c.post(`/user-link-request`, user.headers(),
 		url.Values{
 			"email":      {user.Email},
-			"deviceName": {user.Auth.DeviceID},
+			"deviceName": {deviceName},
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(payload, &res)
+	return
+}
+
+func (c *Client) UserLinkRemove(user User, deviceId string) (res *Response, err error) {
+	var payload []byte
+	payload, err = c.post(`/user-link-remove`, user.headers(),
+		url.Values{
+			"deviceId": {deviceId},
 		},
 	)
 	if err != nil {

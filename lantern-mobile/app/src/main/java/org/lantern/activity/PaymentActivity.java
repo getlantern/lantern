@@ -192,8 +192,10 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
 
     private void finishProgress(String email, String token) {
 
-        Log.d(TAG, String.format("Email is %s token %s plan %s", 
-                    email, token, session.getProPlan()));
+        String currency = session.getSelectedPlanCurrency();
+
+        Log.d(TAG, String.format("Email is %s token %s plan %s user id %s token %s plan %s currency %s device id %s", 
+                    email, token, session.Plan(), session.UserId(), session.Token(), session.getPlan(), currency, session.DeviceId()));
 
         session.setProUser(email, token);
 
