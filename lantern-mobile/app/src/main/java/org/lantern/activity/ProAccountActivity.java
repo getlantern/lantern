@@ -95,6 +95,20 @@ public class ProAccountActivity extends FragmentActivity {
         }
     }
 
+    private void removeDeviceView(String deviceId) {
+        for (int i = 0; i < deviceList.getChildCount(); i++) {
+            View v = deviceList.getChildAt(i);
+            if (v instanceof DeviceView) {
+                DeviceView dv = ((DeviceView)v);
+                String tag = dv.unauthorize.getTag();
+                if (tag.equals(deviceId)) {
+                    deviceList.removeView(v);
+                    return;
+                }
+            }
+        }
+    }
+
     public void removeDevice(View view) {
         String deviceId = (String)view.getTag();
         if (deviceId == null) {
@@ -155,8 +169,14 @@ public class ProAccountActivity extends FragmentActivity {
 						boolean success = Lantern.RemoveDevice(shouldProxy, deviceId, session);
                         if (success) {
                             session.removeDevice(deviceId);
-                            updateDeviceList();
+                            removeDeviceView(deviceId);
+                            if (deviceId.equals(session.DeviceId())) {
+                                // if one of the devices we removed is the current device
+                                // make sure to logout
+                                logout(null);
+                            }
                         } else {
+                            // encountered some issue removing the device; display an error
                             Utils.showErrorDialog(ProAccountActivity.this,
                                     getResources().getString(R.string.unable_remove_device));
                         }
