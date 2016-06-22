@@ -122,9 +122,9 @@ func (s *Settings) start() error {
 }
 
 func (s *Settings) read(in <-chan interface{}, out chan<- interface{}) {
-	log.Debugf("Reading settings messages!!")
+	log.Debugf("Start reading settings messages")
 	for message := range in {
-		log.Debugf("Read settings message!! %v", message)
+		log.Debugf("Read settings message %v", message)
 
 		// We're using a map here because we want to know when the user sends a
 		// false value.

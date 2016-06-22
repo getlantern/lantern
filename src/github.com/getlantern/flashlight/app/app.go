@@ -21,16 +21,13 @@ import (
 )
 
 var (
-	log      = golog.LoggerFor("flashlight")
+	log      = golog.LoggerFor("flashlight.app")
 	settings *Settings
 )
 
 func init() {
 	autoupdate.Version = flashlight.PackageVersion
-
 	rand.Seed(time.Now().UnixNano())
-
-	settings = loadSettings(flashlight.Version, flashlight.RevisionDate, flashlight.BuildDate)
 }
 
 // App is the core of the Lantern desktop application, in the form of a library.
@@ -43,6 +40,7 @@ type App struct {
 
 // Init initializes the App's state
 func (app *App) Init() {
+	settings = loadSettings(flashlight.Version, flashlight.RevisionDate, flashlight.BuildDate)
 	app.exitCh = make(chan error, 1)
 	// use buffered channel to avoid blocking the caller of 'AddExitFunc'
 	// the number 10 is arbitrary

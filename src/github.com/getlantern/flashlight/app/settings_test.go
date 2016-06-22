@@ -119,3 +119,21 @@ func TestNotPersistVersion(t *testing.T) {
 	set := loadSettings(version, revisionDate, buildDate)
 	assert.Equal(t, version, set.Version, "Should be set to version")
 }
+
+func TestOnChange(t *testing.T) {
+	set := &Settings{
+		changeNotifiers: make(map[string]func(interface{})),
+	}
+	in := make(chan interface{})
+	out := make(chan interface{})
+	var changed string
+	set.OnChange("language", func(v interface{}) {
+		changed = v.(string)
+	})
+	go func() {
+		set.read(in, out)
+	}()
+	in <- map[string]interface{}{"language": "en"}
+	_ = <-out
+	assert.Equal(t, "en", changed, "should call OnChange callback")
+}
