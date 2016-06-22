@@ -100,8 +100,8 @@ public class ProAccountActivity extends FragmentActivity {
             View v = deviceList.getChildAt(i);
             if (v instanceof DeviceView) {
                 DeviceView dv = ((DeviceView)v);
-                String tag = dv.unauthorize.getTag();
-                if (tag.equals(deviceId)) {
+                String tag = (String)dv.unauthorize.getTag();
+                if (tag != null && tag.equals(deviceId)) {
                     deviceList.removeView(v);
                     return;
                 }

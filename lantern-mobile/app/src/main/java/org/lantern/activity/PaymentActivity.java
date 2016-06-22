@@ -90,6 +90,9 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
         final Context context = PaymentActivity.this;
 
         dialog = new ProgressDialog(context);
+        dialog.setCancelable(false);
+        dialog.setCanceledOnTouchOutside(false);
+
         dialog.setMessage(context.getResources().getString(R.string.sending_request));
 
         Uri data = intent.getData();
