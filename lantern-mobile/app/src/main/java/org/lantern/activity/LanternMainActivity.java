@@ -9,18 +9,16 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
 import android.content.res.Resources;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.StrictMode;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.VpnService;
 import android.net.wifi.WifiManager;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -31,9 +29,10 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.view.MenuItem;
 import android.view.KeyEvent;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -76,8 +75,7 @@ import go.lantern.Lantern;
 
 @Fullscreen
 @EActivity(R.layout.activity_lantern_main)
-public class LanternMainActivity extends AppCompatActivity implements
-Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
+public class LanternMainActivity extends AppCompatActivity {
 
     private static final String TAG = "LanternMainActivity";
     private static final String PREFS_NAME = "LanternPrefs";
@@ -91,9 +89,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     private SmartTabLayout viewPagerTab;
     private String lastFeedSelected;
 
-    private Toast statusToast;
-    private ImageView statusImage;
-    private TextView statusText;
+    private Snackbar statusSnackbar;
 
     private SessionManager session;
 
@@ -113,6 +109,9 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     RelativeLayout drawerPane;
 
     @ViewById
+    CoordinatorLayout coordinatorLayout;
+
+    @ViewById
     ListView drawerList;
 
     @ViewById
@@ -130,8 +129,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
     @AfterViews
     void afterViews() {
-
-        getApplication().registerActivityLifecycleCallbacks(this);
 
         lastFeedSelected = getResources().getString(R.string.all_feeds);
 
@@ -171,7 +168,13 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         registerReceiver(mReceiver, filter);
 
         setVersionNum();
-        setupStatusToast();
+        statusSnackbar = Snackbar
+            .make(coordinatorLayout, getResources().getString(R.string.lantern_off), Snackbar.LENGTH_LONG);
+        View snackView = statusSnackbar.getView();
+        snackView.setBackgroundColor(Color.BLACK);
+        TextView tv = (TextView) snackView.findViewById(android.support.design.R.id.snackbar_text);
+        tv.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+
         checkUpdateAfterDelay();
     }
 
@@ -205,11 +208,30 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             long quota = Lantern.GetBandwidthQuota();
             long remaining = Lantern.GetBandwidthRemaining();
             String amount = String.format(getResources().getString(R.string.data_remaining), remaining);
+            if (remaining < 470) {
+                showBandwidthSnackbar();
+            }
+
             dataRemaining.setText(amount);
             if (dataProgressBar != null) {
                 dataProgressBar.setProgress((int)quota);
             }
         }
+    }
+
+    private void showBandwidthSnackbar() {
+        final LanternMainActivity activity = this;
+        Resources res = getResources();
+        Snackbar snackbar = Snackbar
+            .make(coordinatorLayout, res.getString(R.string.data_cap), Snackbar.LENGTH_LONG)
+            .setAction(getResources().getString(R.string.upgrade), new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    activity.startActivity(new Intent(activity, ProAccountActivity_.class));
+                }
+            });
+        snackbar.setActionTextColor(Utils.getColor(activity, R.color.pink));
+        snackbar.show();
     }
 
 
@@ -221,34 +243,25 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         updateTheme(useVpn);
     }
 
-    // initialize and configure status toast (what's displayed
-    // whenever we use the on/off slider)
-    public void setupStatusToast() {
-
-        LayoutInflater inflater = getLayoutInflater();
-        statusLayout = inflater.inflate(R.layout.status_layout,
-                (ViewGroup)findViewById(R.id.status_layout_root));
-        statusImage = (ImageView)statusLayout.findViewById(R.id.statusImage);
-        statusText  = (TextView)statusLayout.findViewById(R.id.statusText);
-        statusToast = new Toast(getApplicationContext());
-        statusToast.setGravity(Gravity.BOTTOM|Gravity.FILL_HORIZONTAL, 0, 0);
-        statusToast.setDuration(Toast.LENGTH_SHORT);
-    }
-
     public void displayStatus(final boolean useVpn) {
+        if (statusSnackbar == null) {
+            return;
+        }
+
+        View view = statusSnackbar.getView();
+        TextView tv = (TextView) view.findViewById(android.support.design.R.id.snackbar_text);
+        tv.setTextSize(14);
+        
         if (useVpn) {
             // whenever we switch 'on', we want to trigger the color
             // fade for the background color animation and switch
             // our image view to use the 'on' image resource
-            statusImage.setImageResource(R.drawable.status_on_white);
-            statusText.setText(getResources().getString(R.string.lantern_on));
+            tv.setText(getResources().getString(R.string.lantern_on));
         } else {
-            statusImage.setImageResource(R.drawable.status_off_white);
-            statusText.setText(getResources().getString(R.string.lantern_off));
+            tv.setText(getResources().getString(R.string.lantern_off));
         }
 
-        statusToast.setView(statusLayout);
-        statusToast.show();
+        statusSnackbar.show();
     }
 
     // setVersionNum updates the version number that appears at the
@@ -299,7 +312,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         navItems.add(new NavItem(resources.getString(R.string.language), R.drawable.language));
         navItems.add(new NavItem(resources.getString(R.string.share_option), R.drawable.ic_share));
         navItems.add(new NavItem(resources.getString(R.string.contact_option), R.drawable.ic_contact));
-		navItems.add(new NavItem(resources.getString(R.string.send_logs), R.drawable.ic_update));
+		navItems.add(new NavItem(resources.getString(R.string.send_logs), R.drawable.ic_logs));
 
         if (session.showFeed())  {
             // 'Turn off Feed' when the feed is already shown
@@ -726,13 +739,12 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     protected void onDestroy() {
         super.onDestroy();
 
-        getApplication().unregisterActivityLifecycleCallbacks(this);
         try {
             if (mReceiver != null) {
                 unregisterReceiver(mReceiver);
             }
         } catch (Exception e) {
-
+            Log.e(TAG, "Error trying to unregister broadcast receiver", e);
         }
     }
 
@@ -963,40 +975,4 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             }
         }
     }
-
-    public void onActivityResumed(Activity activity) {
-        // we only want to refresh the public feed whenever the
-        // app returns to the foreground instead of every
-        // time the main activity is resumed
-        if (isInBackground) {
-            Log.d(TAG, "App in foreground");
-            isInBackground = false;
-            refreshFeed(null);
-            checkUpdateAfterDelay();
-        }
-    }
-
-    // Below unused
-    public void onActivityCreated(Activity activity, Bundle savedInstanceState) {}
-
-    public void onActivityDestroyed(Activity activity) {}
-
-    public void onActivityPaused(Activity activity) {}
-
-    public void onActivitySaveInstanceState(Activity activity, Bundle outState) {}
-
-    public void onActivityStarted(Activity activity) {}
-
-    public void onActivityStopped(Activity activity) {}
-
-    @Override
-    public void onTrimMemory(int i) {
-        // this lets us know when the app process is no longer showing a user
-        // interface, i.e. when the app went into the background
-        if (i == ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN) {
-            Log.d(TAG, "App went to background");
-            isInBackground = true;
-        }
-    }
-
 }
