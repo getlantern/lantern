@@ -169,14 +169,19 @@ func (app *App) beforeStart(cfg *config.Config) bool {
 
 // GetSetting gets the in memory setting with the name specified by attr
 func (app *App) GetSetting(name SettingName) interface{} {
-	switch settingMeta[name].sType {
-	case stBool:
-		return settings.getBool(name)
-	case stNumber:
-		return settings.getInt64(name)
-	case stString:
-		return settings.getString(name)
+	if val, ok := settingMeta[name]; ok {
+		switch val.sType {
+		case stBool:
+			return settings.getBool(name)
+		case stNumber:
+			return settings.getInt64(name)
+		case stString:
+			return settings.getString(name)
+		}
+	} else {
+		log.Errorf("Looking for non-existent setting? %v", name)
 	}
+
 	// should never reach here.
 	return nil
 }
