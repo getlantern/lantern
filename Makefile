@@ -42,6 +42,7 @@ PACKAGED_YAML := .packaged-lantern.yaml
 MANOTO_YAML := .packaged-lantern-manoto.yaml
 
 RESOURCES_DOT_GO := ./src/github.com/getlantern/flashlight/ui/resources.go
+ZVERSION_GO := ./src/github.com/getlantern/go/src/runtime/internal/sys/zversion.go
 
 ifdef SECRETS_DIR
 BNS_CERT := $(SECRETS_DIR)/bns.pfx
@@ -102,6 +103,8 @@ LANTERN_MOBILE_ANDROID_RELEASE := $(LANTERN_MOBILE_DIR)/app/build/outputs/apk/ap
 
 LANTERN_YAML := lantern.yaml
 LANTERN_YAML_PATH := installer-resources/lantern.yaml
+
+GO_SOURCE ?= https://storage.googleapis.com/golang/go1.6.2.src.tar.gz
 
 .PHONY: packages clean tun2socks android-lib android-sdk android-testbed android-debug android-release android-install docker-run
 
@@ -648,6 +651,8 @@ exec:
 	@source setenv.bash && \
 	eval $$CMD
 
+lantern-go: $(ZVERSION_GO)
+
 clean-desktop: clean-assets
 	rm -f lantern && \
 	rm -f lantern_linux* && \
@@ -683,3 +688,10 @@ clean-tooling:
 	rm -rf pkg
 
 clean: clean-tooling clean-desktop clean-mobile
+
+$(ZVERSION_GO):
+	rm -rf src/github.com/getlantern/go && \
+	mkdir -p src/github.com/getlantern && \
+	curl --progress $(GO_SOURCE) | tar xzf - -C src/github.com/getlantern && \
+	(cd src/github.com/getlantern && patch -p0 < ../../../patches/lantern-go*.diff) && \
+	(cd src/github.com/getlantern/go/src && GOROOT_BOOTSTRAP=$$GOROOT ./all.bash); \

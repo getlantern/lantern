@@ -7,7 +7,7 @@ function die() {
 
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
-if [[ "$OSTYPE" == "cygwin" ]]; 
+if [[ "$OSTYPE" == "cygwin" ]];
 then
   export GOPATH=386 # Requires go1.5+
   export GOPATH=`cygpath --windows "$DIR"`
@@ -16,3 +16,13 @@ else
 fi
 
 export PATH=$GOPATH/bin:$PATH
+
+export LANTERN_GOROOT=$GOPATH/src/github.com/getlantern/go
+if [ -d $LANTERN_GOROOT ]; then
+	export GOROOT=$LANTERN_GOROOT
+	export PATH=$GOROOT/bin:$PATH
+fi
+
+if [ "$(go version | grep lantern)" = "" ]; then
+	(echo "#### Lantern requires a special fork of Go, use 'make lantern-go'" && exit 1)
+fi
