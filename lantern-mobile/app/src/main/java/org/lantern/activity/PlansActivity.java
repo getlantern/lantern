@@ -136,7 +136,7 @@ public class PlansActivity extends FragmentActivity {
             startActivity(i);
         } else {
             if (!session.isChineseUser()) {
-                startActivity(new Intent(this, PaymentActivity.class));
+                startActivity(new Intent(this, PaymentActivity_.class));
                 return;
             } 
             PaymentActivity.openAlipay(PlansActivity.this, session);
