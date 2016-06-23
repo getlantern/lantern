@@ -2,6 +2,7 @@ package app
 
 import (
 	"github.com/getlantern/bandwidth"
+	"github.com/getlantern/i18n"
 	"github.com/getlantern/notifier"
 
 	"github.com/getlantern/flashlight/ui"
@@ -38,8 +39,8 @@ func notifyUser(n notify.Notifier, uiaddr string) {
 	logo := "http://" + uiaddr + "/img/lantern_logo.png"
 
 	msg := &notify.Notification{
-		Title:    "You have used your free monthly data",
-		Message:  "Upgrade to Pro to continue using Lantern",
+		Title:    i18n.T("BACKEND_DATA_TITLE"),
+		Message:  i18n.T("BACKEND_DATA_MESSAGE"),
 		ClickURL: uiaddr,
 		IconURL:  logo,
 	}
