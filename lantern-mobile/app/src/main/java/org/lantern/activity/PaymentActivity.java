@@ -90,7 +90,7 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
                 intent.getExtras().getBoolean("referralApplied")) {
             // if the user successfully applied a promotion, show a snackbar
             // notification regarding this when they arrive on the checkout screen
-            Utils.showSnackbar(coordinatorLayout,
+            Utils.showPlainSnackbar(coordinatorLayout,
                     getResources().getString(R.string.referral_applied));
         }
 

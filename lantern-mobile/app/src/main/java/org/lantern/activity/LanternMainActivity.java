@@ -1,16 +1,11 @@
 package org.lantern.activity;
 
-import android.app.Application;
-import android.app.Activity;
 import android.content.BroadcastReceiver;
-import android.content.ComponentCallbacks2;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
 import android.content.res.Resources;
-import android.graphics.Color;
-import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -182,7 +177,7 @@ public class LanternMainActivity extends AppCompatActivity {
         setVersionNum();
         statusSnackbar = Snackbar
             .make(coordinatorLayout, getResources().getString(R.string.lantern_off), Snackbar.LENGTH_LONG);
-        statusSnackbar = formatSnackbar(statusSnackbar);
+        statusSnackbar = Utils.formatSnackbar(statusSnackbar);
 
         // wait a few seconds while Lantern starts before
         // making any Pro requests
@@ -228,22 +223,25 @@ public class LanternMainActivity extends AppCompatActivity {
         }, 7000);
 	}
 
-    private Snackbar formatSnackbar(Snackbar snackbar) {
-        View snackView = snackbar.getView();
-        snackView.setBackgroundColor(Color.BLACK);
-        TextView tv = (TextView) snackView.findViewById(android.support.design.R.id.snackbar_text);
-        tv.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
-        return snackbar;
-    }
-
 	private void setBandwidthQuota() {
 
         if (!session.isProUser()) {
             long quota = Lantern.GetBandwidthQuota();
             long remaining = Lantern.GetBandwidthRemaining();
-            String amount = String.format(getResources().getString(R.string.data_remaining), remaining);
+            String dataRemaining = getResources().getString(R.string.data_remaining);
+            String amount = String.format(dataRemaining, remaining);
             if (remaining < 5) {
-                showFreeCapSnackbar();
+                Utils.showSnackbar(coordinatorLayout,
+                        getResources().getString(R.string.data_cap),
+                        getResources().getString(R.string.upgrade),
+                        Utils.getColor(LanternMainActivity.this, R.color.pink),
+                        new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                LanternMainActivity.this.startActivity(new Intent(LanternMainActivity.this, 
+                                            PlansActivity_.class));
+                            }
+                });
             }
 
             dataRemaining.setText(amount);
@@ -252,23 +250,6 @@ public class LanternMainActivity extends AppCompatActivity {
             }
         }
     }
-
-    private void showFreeCapSnackbar() {
-        final LanternMainActivity activity = this;
-        Resources res = getResources();
-        Snackbar snackbar = Snackbar
-            .make(coordinatorLayout, res.getString(R.string.data_cap), Snackbar.LENGTH_LONG)
-            .setAction(getResources().getString(R.string.upgrade), new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    activity.startActivity(new Intent(activity, ProAccountActivity_.class));
-                }
-            });
-        snackbar = formatSnackbar(snackbar);
-        snackbar.setActionTextColor(Utils.getColor(activity, R.color.pink));
-        snackbar.show();
-    }
-
 
     // update START/STOP power Lantern button
     // according to our stored preference
@@ -286,7 +267,6 @@ public class LanternMainActivity extends AppCompatActivity {
         View view = statusSnackbar.getView();
         TextView tv = (TextView) view.findViewById(android.support.design.R.id.snackbar_text);
         tv.setTextSize(14);
-        
         if (useVpn) {
             // whenever we switch 'on', we want to trigger the color
             // fade for the background color animation and switch

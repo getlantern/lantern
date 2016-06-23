@@ -165,7 +165,7 @@ public class Utils {
                     emailInput.setCompoundDrawablesWithIntrinsicBounds(R.drawable.email_active, 0, 0, 0);
                 } else {
                     separator.setBackgroundResource(R.color.edittext_color);
-                    emailInput.setCompoundDrawablesWithIntrinsicBounds(R.drawable.email_inactive, 0, 0, 0);    
+                    emailInput.setCompoundDrawablesWithIntrinsicBounds(R.drawable.email_inactive, 0, 0, 0);
                 }
             }
         };
@@ -189,28 +189,43 @@ public class Utils {
         alertDialog.show();
     }
 
-    public static void showSnackbar(final CoordinatorLayout coordinatorLayout,
-            String message) {
-
-        Snackbar snackbar = Snackbar
-            .make(coordinatorLayout, message, Snackbar.LENGTH_LONG);
-        // format snackbar
+    public static Snackbar formatSnackbar(Snackbar snackbar) {
         View snackView = snackbar.getView();
         snackView.setBackgroundColor(Color.BLACK);
         TextView tv = (TextView) snackView.findViewById(android.support.design.R.id.snackbar_text);
         tv.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
         tv.setTextColor(Color.WHITE);
         tv.setTextSize(14);
-        snackbar.show();
+        tv.setMaxLines(4);
+        return snackbar;
+    }
+
+    public static void showPlainSnackbar(final CoordinatorLayout coordinatorLayout, String message) {
+        showSnackbar(coordinatorLayout, message, null, 0, null);
+    }
+
+    public static void showSnackbar(final CoordinatorLayout coordinatorLayout,
+            String message, String action, int actionTextColor, View.OnClickListener onClick) {
+
+        Snackbar snackBar = Snackbar
+            .make(coordinatorLayout, message, Snackbar.LENGTH_LONG);
+        // format snackbar
+        snackBar = formatSnackbar(snackBar);
+        if (action != null && onClick != null) {
+            snackBar.setAction(action, onClick);
+            snackBar.setActionTextColor(actionTextColor);
+        }
+
+        snackBar.show();
     }
 
     // isNetworkAvailable checks whether or not we are connected to
     // the Internet; if no connection is available, the toggle
     // switch is inactive
     public static boolean isNetworkAvailable(final Context context) {
-        final ConnectivityManager connectivityManager = 
+        final ConnectivityManager connectivityManager =
             ((ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE));
-        return connectivityManager.getActiveNetworkInfo() != null && 
+        return connectivityManager.getActiveNetworkInfo() != null &&
             connectivityManager.getActiveNetworkInfo().isConnectedOrConnecting();
     }
 
