@@ -228,8 +228,8 @@ public class LanternMainActivity extends AppCompatActivity {
         if (!session.isProUser()) {
             long quota = Lantern.GetBandwidthQuota();
             long remaining = Lantern.GetBandwidthRemaining();
-            String dataRemaining = getResources().getString(R.string.data_remaining);
-            String amount = String.format(dataRemaining, remaining);
+            String dataFmt = getResources().getString(R.string.data_remaining);
+            String amount = String.format(dataFmt, remaining);
             if (remaining < 5) {
                 Utils.showSnackbar(coordinatorLayout,
                         getResources().getString(R.string.data_cap),
