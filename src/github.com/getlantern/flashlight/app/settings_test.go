@@ -89,7 +89,7 @@ func TestRead(t *testing.T) {
 
 func TestCheckNum(t *testing.T) {
 	snTest := SettingName("test")
-	set := newSettings()
+	set := newSettings("/dev/null")
 	var val json.Number = "4809"
 	var expected int64 = 4809
 	set.checkNum(snTest, val)
@@ -108,17 +108,35 @@ func TestCheckNum(t *testing.T) {
 	assert.Equal(t, expected, set.m[snTest])
 }
 
-func TestNotPersistVersion(t *testing.T) {
-	path = "./test.yaml"
+func TestPersistAndLoad(t *testing.T) {
 	version := "version-not-on-disk"
 	revisionDate := "1970-1-1"
 	buildDate := "1970-1-1"
-	set := loadSettings(version, revisionDate, buildDate)
+	yamlFile := "./test.yaml"
+	set := loadSettingsFrom(version, revisionDate, buildDate, yamlFile)
 	assert.Equal(t, version, set.m["version"], "Should be set to version")
+	assert.Equal(t, revisionDate, set.m["revisionDate"], "Should be set to revisionDate")
+	assert.Equal(t, buildDate, set.m["buildDate"], "Should be set to buildDate")
+	assert.Equal(t, "en", set.GetLanguage(), "Should load language from file")
+	assert.Equal(t, int64(1), set.GetUserID(), "Should load user id from file")
+
+	set.SetLanguage("leet")
+	set.SetUserID(1234)
+	set2 := loadSettingsFrom(version, revisionDate, buildDate, yamlFile)
+	assert.Equal(t, "leet", set2.GetLanguage(), "Should save language to file and reload")
+	assert.Equal(t, int64(1234), set2.GetUserID(), "Should save user id to file and reload")
+	set2.SetLanguage("en")
+	set2.SetUserID(1)
+}
+
+func TestLoadLowerCased(t *testing.T) {
+	set := loadSettingsFrom("", "", "", "./lowercased.yaml")
+	assert.Equal(t, int64(1234), set.GetUserID(), "Should load user id from lower cased yaml")
+	assert.Equal(t, "abcd", set.GetToken(), "Should load user token from lower cased yaml")
 }
 
 func TestOnChange(t *testing.T) {
-	set := newSettings()
+	set := newSettings("/dev/null")
 	in := make(chan interface{})
 	out := make(chan interface{})
 	var changed string
