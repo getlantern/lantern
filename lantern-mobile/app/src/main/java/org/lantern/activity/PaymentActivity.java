@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.net.Uri;
+import android.support.design.widget.CoordinatorLayout;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -58,6 +59,9 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
     TextView chargeAmountView;
 
     @ViewById
+    CoordinatorLayout coordinatorLayout;
+
+    @ViewById
     View cardView;
 
     @ViewById
@@ -82,6 +86,13 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
         alipayBtn.setOnClickListener(this);
 
         Intent intent = getIntent();
+        if (intent != null && intent.getExtras() != null &&
+                intent.getExtras().getBoolean("referralApplied")) {
+            // if the user successfully applied a promotion, show a snackbar
+            // notification regarding this when they arrive on the checkout screen
+            Utils.showSnackbar(coordinatorLayout,
+                    getResources().getString(R.string.referral_applied));
+        }
 
         chargeAmount = session.getSelectedPlanCost();
         Log.d(TAG, "Charge amount is " + chargeAmount);
@@ -145,7 +156,6 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
             return;
         }
 
-        // TODO: replace with your own test key
         Log.d(TAG, "Submit card button clicked..");
         boolean isDebuggable =  ( 0 != ( getApplicationInfo().flags &= ApplicationInfo.FLAG_DEBUGGABLE ) );
         final String publishableApiKey = isDebuggable ?

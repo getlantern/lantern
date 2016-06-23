@@ -10,10 +10,14 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -183,6 +187,21 @@ public class Utils {
         }
         );
         alertDialog.show();
+    }
+
+    public static void showSnackbar(final CoordinatorLayout coordinatorLayout,
+            String message) {
+
+        Snackbar snackbar = Snackbar
+            .make(coordinatorLayout, message, Snackbar.LENGTH_LONG);
+        // format snackbar
+        View snackView = snackbar.getView();
+        snackView.setBackgroundColor(Color.BLACK);
+        TextView tv = (TextView) snackView.findViewById(android.support.design.R.id.snackbar_text);
+        tv.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        tv.setTextColor(Color.WHITE);
+        tv.setTextSize(14);
+        snackbar.show();
     }
 
     // isNetworkAvailable checks whether or not we are connected to

@@ -60,7 +60,7 @@ public class ReferralCodeActivity extends FragmentActivity implements ProRespons
             return;
         }
         session.setReferralApplied();
-        launchCheckout();
+        launchCheckout(true);
     }
 
     public void sendResult(View view) {
@@ -78,19 +78,19 @@ public class ReferralCodeActivity extends FragmentActivity implements ProRespons
         }
     }
 
-    private void launchCheckout() {
+    private void launchCheckout(boolean referralApplied) {
         if (session.isChineseUser()) {
             PaymentActivity.openAlipay(ReferralCodeActivity.this, session); 
-            finish();
             return;
         }
 
         Intent intent = new Intent(this, PaymentActivity_.class);
+        intent.putExtra("referralApplied", referralApplied);
         startActivity(intent);
         finish();
     }
 
     public void continueBtn(View view) {
-        launchCheckout();
+        launchCheckout(false);
     }
 }

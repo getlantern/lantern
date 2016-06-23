@@ -444,6 +444,7 @@ public class SessionManager implements Lantern.Session {
         devices.clear();
 
         editor.putBoolean(PRO_USER, false);
+        editor.putBoolean(REFERRAL_APPLIED, false);
         editor.putBoolean(DEVICE_LINKED, false);
         editor.remove(TOKEN);
         editor.remove(EMAIL_ADDRESS);
