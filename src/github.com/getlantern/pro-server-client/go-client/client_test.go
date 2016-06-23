@@ -57,7 +57,7 @@ var tc *Client
 func TestCreateClient(t *testing.T) {
 	stripe.Key = "sk_test_4MSPFce4ceaRL1D3pI1NV9Qo"
 
-	tc = NewClient()
+	tc = NewClient(nil)
 }
 
 func TestCreateUserA(t *testing.T) {
@@ -77,42 +77,6 @@ func TestCreateUserA(t *testing.T) {
 	userA.Token = res.User.Token
 
 	log.Println(userA)
-}
-
-func TestUserALinkConfigure(t *testing.T) {
-	userA.PhoneNumber = "+525518034861"
-
-	res, err := tc.UserLinkConfigure(userA)
-	assert.NoError(t, err)
-	assert.Equal(t, "ok", res.Status)
-}
-
-func TestUserALinkValidateError(t *testing.T) {
-	userA.Code = "6666" // Wrong code.
-
-	res, err := tc.UserLinkValidate(userA)
-	assert.NoError(t, err)
-	assert.Equal(t, "error", res.Status)
-}
-
-func TestUserALinkValidate(t *testing.T) {
-	userA.Code = "000000" // Master code.
-
-	res, err := tc.UserLinkValidate(userA)
-	assert.NoError(t, err)
-	assert.Equal(t, "ok", res.Status)
-
-	assert.True(t, res.User.Token != "")
-	userA.Token = res.User.Token
-}
-
-func TestUserALinkRequest(t *testing.T) {
-	userA.PhoneNumber = "+525518034861" // Wrong code.
-
-	res, err := tc.UserLinkRequest(userA)
-	assert.NoError(t, err) // TODO: json: cannot unmarshal string into Go value of type int
-	assert.Equal(t, "ok", res.Status)
-
 }
 
 func TestUserAData(t *testing.T) {
@@ -142,10 +106,11 @@ func TestPurchaseUserA(t *testing.T) {
 		StripeToken:    token.ID,
 		StripeEmail:    userA.Email,
 		IdempotencyKey: generateIdempotencyKey(),
-		Plan:           PlanLanternPro1Y,
+		Plan:           "2y-usd",
+		Currency:       "usd",
 	}
 
-	res, err := tc.Purchase(userA, pr)
+	res, err := tc.Purchase(userA, "testA", pr)
 	log.Println(res)
 	assert.NoError(t, err) // json: cannot unmarshal string into Go value of type int"
 	assert.Equal(t, "ok", res.Status)
@@ -196,17 +161,6 @@ func TestRedeemCodeUserB(t *testing.T) {
 	res, err := tc.RedeemReferralCode(userA, userB.Referral)
 	assert.NoError(t, err)
 	assert.Equal(t, "ok", res.Status)
-
-	log.Println(res)
-}
-
-func TestSubscriptionUpdateUserA(t *testing.T) {
-	res, err := tc.CancelSubscription(userA)
-	assert.NoError(t, err)
-
-	// TODO: not working right now
-	//assert.Equal(t, "ok", res.Status)
-	_ = res
 
 	log.Println(res)
 }
