@@ -8,7 +8,7 @@ Make sure that any chained servers you want to bake in are populated in fallback
 ./fetchcfg.py etc >> fallbacks.yaml
 ```
 
-Once this is done, copy the fallbacks.yaml to this directory and run ```./genconfig.bash```. That will generate a number of files, but **the only one that matters is ../config/resources.go**, and the script will automatically add that file for you to commit. **To manually confirm the process worked, check the generated lantern.yaml file. You can check the number of masquerades, for example, as in:
+Once this is done, copy the fallbacks.yaml to this directory and run ```./genconfig.bash```. That will generate a number of files, but **the only one that matters is ../config/resources.go**, and the script will automatically add that file for you to commit. **To manually confirm the process worked, check the generated lantern.yaml file**. You can check the number of masquerades, for example, as in:
 
 ```
 [genconfig (devel *)]$ grep ipaddress lantern.yaml | wc -l
