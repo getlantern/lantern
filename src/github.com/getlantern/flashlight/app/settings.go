@@ -74,10 +74,10 @@ var settingMeta = map[SettingName]struct {
 }
 
 var (
-	service    *ui.Service
-	httpClient *http.Client
-	path       = filepath.Join(appdir.General("Lantern"), "settings.yaml")
-	once       = &sync.Once{}
+	service     *ui.Service
+	httpClient  *http.Client
+	defaultPath = filepath.Join(appdir.General("Lantern"), "settings.yaml")
+	once        = &sync.Once{}
 )
 
 // Settings is a struct of all settings unique to this particular Lantern instance.
@@ -87,10 +87,11 @@ type Settings struct {
 
 	m            map[SettingName]interface{}
 	sync.RWMutex `json:"-" yaml:"-"`
+	filePath     string
 }
 
 func loadSettings(version, revisionDate, buildDate string) *Settings {
-	return loadSettingsFrom(version, revisionDate, buildDate, path)
+	return loadSettingsFrom(version, revisionDate, buildDate, defaultPath)
 }
 
 // loadSettings loads the initial settings at startup, either from disk or using defaults.
@@ -98,7 +99,7 @@ func loadSettingsFrom(version, revisionDate, buildDate, path string) *Settings {
 	log.Debug("Loading settings")
 	// Create default settings that may or may not be overridden from an existing file
 	// on disk.
-	sett := newSettings()
+	sett := newSettings(path)
 	set := sett.m
 
 	// Use settings from disk if they're available.
@@ -110,10 +111,19 @@ func loadSettingsFrom(version, revisionDate, buildDate, path string) *Settings {
 	} else {
 		log.Debugf("Loaded settings from %v", path)
 	}
+	// old lantern persist settings with all lower case, convert them to camel cased.
+	toCamelCase(set)
 
 	// We always just set the device ID to the MAC address on the system. Note
 	// this ignores what's on disk, if anything.
 	set[SNDeviceID] = base64.StdEncoding.EncodeToString(uuid.NodeID())
+
+	// SNUserID may be unmarshalled as int, which causes panic when GetUserID().
+	// Make sure to store it as int64.
+	switch id := set[SNUserID].(type) {
+	case int:
+		set[SNUserID] = int64(id)
+	}
 
 	if sett.IsAutoLaunch() {
 		launcher.CreateLaunchFile(true)
@@ -137,7 +147,17 @@ func loadSettingsFrom(version, revisionDate, buildDate, path string) *Settings {
 	return sett
 }
 
-func newSettings() *Settings {
+func toCamelCase(m map[SettingName]interface{}) {
+	for k, _ := range settingMeta {
+		lowerCased := SettingName(strings.ToLower(string(k)))
+		if v, exists := m[lowerCased]; exists {
+			delete(m, lowerCased)
+			m[k] = v
+		}
+	}
+}
+
+func newSettings(filePath string) *Settings {
 	return &Settings{
 		m: map[SettingName]interface{}{
 			SNUserID:      int64(0),
@@ -148,6 +168,7 @@ func newSettings() *Settings {
 			SNLanguage:    "",
 			SNUserToken:   "",
 		},
+		filePath:        filePath,
 		changeNotifiers: make(map[SettingName]func(interface{})),
 	}
 }
@@ -235,10 +256,10 @@ func (s *Settings) save() {
 	toBeSaved := s.mapToSave()
 	if bytes, err := yaml.Marshal(toBeSaved); err != nil {
 		log.Errorf("Could not create yaml from settings %v", err)
-	} else if err := ioutil.WriteFile(path, bytes, 0644); err != nil {
+	} else if err := ioutil.WriteFile(s.filePath, bytes, 0644); err != nil {
 		log.Errorf("Could not write settings file %v", err)
 	} else {
-		log.Tracef("Saved settings to %s with contents %v", path, string(bytes))
+		log.Tracef("Saved settings to %s with contents %v", s.filePath, string(bytes))
 	}
 }
 
@@ -248,8 +269,7 @@ func (s *Settings) mapToSave() map[string]interface{} {
 	defer s.RUnlock()
 	for k, v := range s.m {
 		if settingMeta[k].persist {
-			key := strings.ToLower(string(k))
-			m[key] = v
+			m[string(k)] = v
 		}
 	}
 	return m

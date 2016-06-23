@@ -3,4 +3,5 @@ autoReport: true
 language: en
 proxyAll: false
 systemProxy: true
-userID: 0
+userID: 1
+userToken: ""
