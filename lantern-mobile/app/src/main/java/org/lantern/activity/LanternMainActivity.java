@@ -786,6 +786,19 @@ public class LanternMainActivity extends AppCompatActivity {
     // opens an e-mail message with some default options
     private void contactOption() {
 
+        if (session.isChineseUser()) {
+            String forumUrl = "https://github.com/getlantern/forum/";
+            new FinestWebView.Builder(this)
+                .webViewSupportMultipleWindows(true)
+                .webViewJavaScriptEnabled(true)
+                .swipeRefreshColorRes(R.color.black)
+                .webViewAllowFileAccessFromFileURLs(true)
+                .webViewJavaScriptCanOpenWindowsAutomatically(true)
+                .webViewLoadWithProxy(session.startLocalProxy())
+                .show(forumUrl);
+            return;
+        }
+
         String contactEmail = getResources().getString(R.string.contact_email);
         Intent intent = new Intent(Intent.ACTION_SEND);
         intent.setType("plain/text");
