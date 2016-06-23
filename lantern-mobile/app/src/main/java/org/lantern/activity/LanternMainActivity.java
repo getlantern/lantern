@@ -396,7 +396,7 @@ public class LanternMainActivity extends AppCompatActivity {
 
         menuMap.put(resources.getString(R.string.send_logs), new Command() {
             public void runCommand() {
-                new MailSender(LanternMainActivity.this, "user-send-logs").execute("todd@getlantern.org");
+                new MailSender(LanternMainActivity.this, "user-send-logs").execute("");
             }
         });
 

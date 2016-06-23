@@ -16,6 +16,17 @@
 #   public *;
 #}
 
+# Ensure annotations are kept for runtime use.
+-keepattributes *Annotation*
+# Don't remove any GreenRobot classes
+-keep class de.greenrobot.** {*;}
+# Don't remove any methods that have the @Subscribe annotation
+-keepclassmembers class ** {
+    @de.greenrobot.event.Subscribe <methods>;
+}
+
+-keep enum org.greenrobot.eventbus.ThreadMode { *; }
+
 # necessary to use Glide (image caching library)
 -keep public class * implements com.bumptech.glide.module.GlideModule
 -keep public enum com.bumptech.glide.load.resource.bitmap.ImageHeaderParser$** {
@@ -23,7 +34,4 @@
     public *;
 }
 
--useuniqueclassmembernames
--keepattributes SourceFile,LineNumberTable
--allowaccessmodification
 -ignorewarnings

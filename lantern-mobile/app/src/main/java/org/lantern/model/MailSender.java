@@ -32,6 +32,7 @@ public class MailSender extends AsyncTask<String, Void, Boolean> {
     private String template;
     private SessionManager session;
     private Context context;
+    private String userEmail;
     private boolean sendLogs = false;
     private MergeVar[] mergeValues;
     private List<MandrillMessage.MessageContent> attachments = new ArrayList<MandrillMessage.MessageContent>();
@@ -40,14 +41,19 @@ public class MailSender extends AsyncTask<String, Void, Boolean> {
         this.context = context;
         this.template = template;
         this.session = LanternApp.getSession();
-        this.dialog = new ProgressDialog(context);
+
+        dialog = new ProgressDialog(context);
+        dialog.setCancelable(false);
+        dialog.setCanceledOnTouchOutside(false);
 
         if (template.equals("user-send-logs")) {
             sendLogs = true;
+            userEmail = session.Email();
             mergeValues = new MergeVar[]{
+                new MergeVar("userid", session.UserId()),
                 new MergeVar("protoken", session.Token()),
                 new MergeVar("deviceid", session.DeviceId()),
-                new MergeVar("emailaddress", session.Email())
+                new MergeVar("emailaddress", userEmail)
             };
         }
     }
@@ -66,6 +72,7 @@ public class MailSender extends AsyncTask<String, Void, Boolean> {
 
         if (template.equals("user-send-logs")) {
             addSendLogs();
+            toEmail = "support@getlantern.org";
         }
 
         final Map<String, String> templateContent = new HashMap<String, String>();
@@ -83,6 +90,11 @@ public class MailSender extends AsyncTask<String, Void, Boolean> {
         MandrillMessage.Recipient recipient = new MandrillMessage.Recipient();
         recipient.setEmail(toEmail);
         recipients.add(recipient);
+
+        if (userEmail != null && !userEmail.equals("")) {
+            recipient.setEmail(userEmail);
+            recipients.add(recipient);
+        }
 
         message.setTo(recipients);
         message.setPreserveRecipients(true);
