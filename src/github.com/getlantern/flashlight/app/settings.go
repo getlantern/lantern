@@ -85,9 +85,9 @@ type Settings struct {
 	muNotifiers     sync.RWMutex
 	changeNotifiers map[SettingName]func(interface{})
 
-	m            map[SettingName]interface{}
-	sync.RWMutex `json:"-" yaml:"-"`
-	filePath     string
+	m map[SettingName]interface{}
+	sync.RWMutex
+	filePath string
 }
 
 func loadSettings(version, revisionDate, buildDate string) *Settings {
@@ -148,7 +148,7 @@ func loadSettingsFrom(version, revisionDate, buildDate, path string) *Settings {
 }
 
 func toCamelCase(m map[SettingName]interface{}) {
-	for k, _ := range settingMeta {
+	for k := range settingMeta {
 		lowerCased := SettingName(strings.ToLower(string(k)))
 		if v, exists := m[lowerCased]; exists {
 			delete(m, lowerCased)
