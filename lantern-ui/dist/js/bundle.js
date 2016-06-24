@@ -8217,20 +8217,25 @@
 	    console.log('i18next language: ' + _i18next2.default.language + ' -> ' + lang);
 	    _i18next2.default.changeLanguage(lang, function (err, t) {
 	      if (err) {
-	        console.err(err);
+	        console.error(err);
 	      }
 	    });
 	  }
 
-	  if (state.user.deviceID) {
+	  var _state$backend$settin = state.backend.settings;
+	  var deviceID = _state$backend$settin.deviceID;
+	  var userID = _state$backend$settin.userID;
+	  var userToken = _state$backend$settin.userToken;
+
+	  if (deviceID) {
 	    // We need a device ID to configure the API client.
 	    if (!lang) {
 	      lang = window.navigator.userLanguage || window.navigator.language;
 	    }
 
-	    API.configure(state.user.deviceID, lang);
+	    API.configure(deviceID, lang);
 
-	    if (!state.user.id || !state.user.token) {
+	    if (!userID || !userToken) {
 	      var work = generateUserOnce.next();
 
 	      if (!work.done) {
@@ -8241,10 +8246,10 @@
 	      }
 	    } else {
 	      if (!API.getClient().userId) {
-	        API.setUserID(state.user.id);
+	        API.setUserID(userID);
 	      }
 	      if (!API.getClient().proToken) {
-	        API.setUserToken(state.user.token);
+	        API.setUserToken(userToken);
 	      }
 
 	      var _work = getUserOnce.next();
@@ -45564,11 +45569,11 @@
 	  _createClass(ReferralCode, [{
 	    key: 'render',
 	    value: function render() {
-	      var shareText = (0, _sprintfJs.sprintf)(this.props.t("referral.text"), this.props.user.referral);
+	      var shareText = (0, _sprintfJs.sprintf)(this.props.t("referral.text"), this.props.code);
 	      var shareURL = "https://getlantern.org";
 	      return _jsx('div', {}, void 0, _jsx('p', {}, void 0, this.props.t("referral.code")), _jsx('strong', {
 	        className: 'code'
-	      }, void 0, this.props.user.referral), _jsx('p', {}, void 0, this.props.t("referral.share")), _jsx('ul', {}, void 0, _jsx('li', {}, void 0, _jsx(_ShareButton.EmailShareButton, {
+	      }, void 0, this.props.code), _jsx('p', {}, void 0, this.props.t("referral.share")), _jsx('ul', {}, void 0, _jsx('li', {}, void 0, _jsx(_ShareButton.EmailShareButton, {
 	        shareText: shareText,
 	        shareURL: shareURL
 	      })), _jsx('li', {}, void 0, _jsx(_ShareButton.WebShareButton, {
@@ -45599,7 +45604,7 @@
 	// Which props do we want to inject, given the global state?
 	function select(state) {
 	  return {
-	    user: state.user
+	    code: state.pro.user.code
 	  };
 	}
 
@@ -47550,28 +47555,8 @@
 
 	/* MainNav functions */
 	/*
-	 * Actions change things in your application
-	 * Since this we use a uni-directional data flow (redux),
-	 * we have these actions which are the only way your application interacts with
-	 * your appliction state. This guarantees that your state is up to date and nobody
-	 * messes it up weirdly somewhere.
-	 *
-	 * To add a new Action:
-	 * 1) Import your constant
-	 * 2) Add a function like this:
-	 *    export function yourAction(var) {
-	 *        return { type: YOUR_ACTION_CONSTANT, var: var }
-	 *    }
-	 * 3) (optional) Add an async function like this:
-	 *    export function asyncYourAction(var) {
-	 *        return (dispatch) => {
-	 *             // Do async stuff here
-	 *             return dispatch(yourAction(var));
-	 *        };
-	 *    }
-	 *
-	 *    If you add an async function, remove the export from the function
-	 *    created in the second step
+	 * All actions related to the application itself, including UI transition and
+	 * click actions.
 	 */
 
 	// Disable the no-use-before-define eslint rule for this file
@@ -47642,17 +47627,9 @@
 	  return doOpenDialog({ open: false, dialog: null });
 	}
 
-	//export function asyncUserCreated(res) {
-	//  return {type: APP.USER, obj: {id: res.userId, referral: res.referral}}
-	//}
-
 	function asyncSetPro(value) {
 	  return { type: BACKEND.BACKEND_BECOME_PRO, value: value };
 	}
-
-	//export function asyncSetVerified(value) {
-	//  return {type: APP.USER, obj: {verified: value}}
-	//}
 
 	/* Settings Modal functions */
 	function asyncLanternStatus(obj) {
@@ -47693,7 +47670,6 @@
 	var OPEN_MENU = exports.OPEN_MENU = 'OPEN_MENU';
 	var DIALOG = exports.DIALOG = 'DIALOG';
 	var LANGUAGE = exports.LANGUAGE = 'LANGUAGE';
-	var USER = exports.USER = 'USER';
 	var LANTERN = exports.LANTERN = 'LANTERN';
 	var SENDING_EMAIL = exports.SENDING_EMAIL = 'SENDING_EMAIL';
 	var EMAIL_SENT = exports.EMAIL_SENT = 'EMAIL_SENT';
@@ -47729,6 +47705,10 @@
 	var _AppActions = __webpack_require__(656);
 
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	/*
+	 * All actions interacting with Lantern backend.
+	 */
 
 	/* eslint-disable no-use-before-define */
 
@@ -47951,7 +47931,11 @@
 
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-	var _marked = [getUserGenerator, createUserGenerator].map(regeneratorRuntime.mark); /* eslint-disable no-use-before-define */
+	var _marked = [getUserGenerator, createUserGenerator].map(regeneratorRuntime.mark); /*
+	                                                                                     * All actions interacting with Pro server.
+	                                                                                     */
+
+	/* eslint-disable no-use-before-define */
 
 	var client = void 0;
 
@@ -48070,7 +48054,7 @@
 	    return res;
 	  }, function (err) {
 	    dispatch(actions.overlayOff());
-	    if (err && err.errorId === "not_authorized") {
+	    if (err && err.errorId === "not-authorized") {
 	      // an incorrect user on server
 	      dispatch({ type: BACKEND.BACKEND_RESET });
 	      return;
@@ -60484,7 +60468,9 @@
 	  }, {
 	    key: 'render',
 	    value: function render() {
-	      var t = this.props.t;
+	      var _props = this.props;
+	      var t = _props.t;
+	      var user = _props.user;
 
 	      return _jsx('div', {
 	        id: 'screenPro',
@@ -60504,14 +60490,14 @@
 	      }, void 0, _jsx('div', {
 	        id: 'referral-desc'
 	      }, void 0, this.props.t("referral.code")), _jsx(_reactCopyToClipboard2.default, {
-	        text: (0, _sprintfJs.sprintf)(t("referral.text"), this.props.user.referral),
+	        text: (0, _sprintfJs.sprintf)(t("referral.text"), user.code),
 	        onCopy: this.handleAfterCopy
 	      }, void 0, _jsx('strong', {
 	        className: 'code'
-	      }, void 0, this.props.user.referral)))), _jsx('div', {
+	      }, void 0, user.code)))), _jsx('div', {
 	        className: 'column column-right'
 	      }, void 0, _jsx(_reactCopyToClipboard2.default, {
-	        text: (0, _sprintfJs.sprintf)(t("referral.text"), this.props.user.referral),
+	        text: (0, _sprintfJs.sprintf)(t("referral.text"), user.code),
 	        onCopy: this.handleAfterCopy
 	      }, void 0, _jsx(_raisedButton2.default, {
 	        id: 'buttonCopyCode',
@@ -60530,8 +60516,7 @@
 	// Which props do we want to inject, given the global state?
 	function select(state) {
 	  return {
-	    pro: state.pro,
-	    user: state.user
+	    user: state.pro.user
 	  };
 	}
 
@@ -61397,7 +61382,7 @@
 	    if (!this.props.backend.connected) {
 	      return false;
 	    }
-	    return !this.props.user.isPro();
+	    return !this.props.pro.isPro;
 	  },
 	  dialog: dialogs.DEVICE_AUTHORIZATION_DIALOG
 	}, {
@@ -61407,7 +61392,7 @@
 	    if (!this.props.backend.connected) {
 	      return false;
 	    }
-	    return this.props.user.isValidUser() && this.props.user.isPro();
+	    return this.props.pro.isPro;
 	  },
 	  icon: _jsx(_person2.default, {}),
 	  dialog: dialogs.ACCOUNT_MANAGEMENT_DIALOG
@@ -61538,7 +61523,6 @@
 	    _this.handleReload = _this.handleReload.bind(_this);
 	    _this._handleToggle = _this._handleToggle.bind(_this);
 	    _this._openDialog = _this._openDialog.bind(_this);
-	    _this._disconnectLantern = _this._disconnectLantern.bind(_this);
 	    return _this;
 	  }
 
@@ -61573,14 +61557,6 @@
 	      var action = item.onClick ? item.onClick.bind(this) : this._openDialog.bind(null, item);
 
 	      return this.getMenuItem(item, i, action);
-	    }
-	  }, {
-	    key: '_disconnectLantern',
-	    value: function _disconnectLantern() {
-	      var lantern = this.props.home.lantern;
-
-	      var status = lantern.status === 'off' ? 'on' : 'off';
-	      this.props.dispatch(actions.asyncLanternStatus({ status: status }));
 	    }
 	  }, {
 	    key: '_handleToggle',
@@ -61637,7 +61613,7 @@
 	        case dialogs.DEVICE_AUTHORIZATION_DIALOG:
 	          return _ref2;
 	        case dialogs.ACCOUNT_MANAGEMENT_DIALOG:
-	          if (!this.props.user.email) {
+	          if (!this.props.pro.user.email) {
 	            return _jsx(_ProAccountManagement2.default, {
 	              title: dialog.title,
 	              icon: _ref3
@@ -61756,7 +61732,6 @@
 	  return {
 	    backend: state.backend,
 	    home: state.home,
-	    user: state.user,
 	    pro: state.pro
 	  };
 	}
@@ -73624,6 +73599,10 @@
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+	/*
+	 * All actions interacting with 3rd party services.
+	 */
+
 	function asyncSendMobileLink(email) {
 	  return function (dispatch) {
 	    var api = 'https://mandrillapp.com/api/1.0/messages/send-template.json';
@@ -77890,7 +77869,9 @@
 	  }, {
 	    key: 'render',
 	    value: function render() {
-	      var t = this.props.t;
+	      var _props = this.props;
+	      var t = _props.t;
+	      var user = _props.user;
 
 	      return _jsx(_IllustratedDialog2.default, {
 	        title: t("freeProCredits.title"),
@@ -77910,11 +77891,11 @@
 	        id: 'pro-credits-code-header'
 	      }, void 0, this.props.t("referral.code")), _jsx('div', {
 	        id: 'pro-credits-code'
-	      }, void 0, _jsx('strong', {}, void 0, this.props.user.referral))), _jsx('div', {
+	      }, void 0, _jsx('strong', {}, void 0, user.code))), _jsx('div', {
 	        id: 'freeCopyCodeButton',
 	        className: 'column column-right'
 	      }, void 0, _jsx(_reactCopyToClipboard2.default, {
-	        text: (0, _sprintfJs.sprintf)(t("referral.text"), this.props.user.referral),
+	        text: (0, _sprintfJs.sprintf)(t("referral.text"), user.code),
 	        onCopy: this.handleAfterCopy
 	      }, void 0, _jsx(_raisedButton2.default, {
 	        className: 'buttonFreeCopyCode',
@@ -77932,8 +77913,7 @@
 	// Which props do we want to inject, given the global state?
 	function select(state) {
 	  return {
-	    pro: state.pro,
-	    user: state.user
+	    user: state.pro.user
 	  };
 	}
 
@@ -78495,12 +78475,11 @@
 	    value: function render() {
 	      var _props = this.props;
 	      var t = _props.t;
-	      var user = _props.user;
 	      var pro = _props.pro;
 	      var backend = _props.backend;
 
 
-	      if (!user || !user.ready || user.isPro() || pro.isPro) {
+	      if (!pro.user || pro.isPro) {
 	        return null;
 	      }
 
@@ -78582,7 +78561,6 @@
 	// Which props do we want to inject, given the global state?
 	function select(state) {
 	  return {
-	    user: state.user,
 	    pro: state.pro,
 	    backend: state.backend
 	  };
@@ -79464,23 +79442,18 @@
 
 	var _backendReducer2 = _interopRequireDefault(_backendReducer);
 
-	var _userReducer = __webpack_require__(819);
-
-	var _userReducer2 = _interopRequireDefault(_userReducer);
-
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	// Replace line below once you have several reducers with
-	// import { combineReducers } from 'redux';
+	/**
+	 * Combine all reducers in this file and export the combined reducers.
+	 * If we were to do this in store.js, reducers wouldn't be hot reloadable.
+	 */
+
 	var rootReducer = (0, _redux.combineReducers)({
 	  'home': _homeReducer2.default,
 	  'pro': _proReducer2.default,
-	  'backend': _backendReducer2.default,
-	  'user': _userReducer2.default
-	}); /**
-	     * Combine all reducers in this file and export the combined reducers.
-	     * If we were to do this in store.js, reducers wouldn't be hot reloadable.
-	     */
+	  'backend': _backendReducer2.default
+	});
 
 	exports.default = rootReducer;
 
@@ -79509,18 +79482,7 @@
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 	/*
-	 * The reducer takes care of our data
-	 * Using actions, we can change our application state
-	 * To add a new action, add it to the switch statement in the homeReducer function
-	 *
-	 * Example:
-	 * case YOUR_ACTION_CONSTANT:
-	 *   return assign({}, state, {
-	 *       stateVariable: action.var
-	 *   });
-	 *
-	 * To add a new reducer, add a file like this to the reducers folder, and
-	 * add it in the rootReducer.js.
+	 * Home reducer takes care of the state of desktop UI itself.
 	 */
 
 	var initialState = {
@@ -79530,13 +79492,6 @@
 	    dialog: ''
 	  },
 	  openMenu: false,
-	  user: {
-	    id: 0,
-	    referral: "",
-	    verified: false, // Wheter this user has provided any authentication method.
-	    pro: false,
-	    deadline: 'December 31 2016 23:59:59 GMT+02:00'
-	  },
 	  alert: {
 	    open: false,
 	    message: ""
@@ -79570,8 +79525,6 @@
 	      return (0, _assign.assignToEmpty)(state, { openMenu: action.status });
 	    case APP.LANGUAGE:
 	      return (0, _assign.assignToEmpty)(state, { language: action.name });
-	    case APP.USER:
-	      return (0, _assign.objectMerge)(state, { user: action.obj });
 	    case _BackendConstants.BACKEND_STATUS_CHANGED:
 	      if (action.status.connected) {
 	        return (0, _assign.assignToEmpty)(state, { lantern: { status: 'on' } });
@@ -79617,7 +79570,10 @@
 	  selectedPlan: null,
 	  verified: false,
 	  isPro: false
-	};
+	}; /*
+	    * Pro reducer keeps all the data of current user, plus temporary states
+	    * interacting with Pro server.
+	    */
 
 	function proReducer() {
 	  var state = arguments.length <= 0 || arguments[0] === undefined ? initialState : arguments[0];
@@ -79672,6 +79628,11 @@
 	var backend = _interopRequireWildcard(_BackendConstants);
 
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	/*
+	 * Pro reducer keeps all the data and the temporary states interacting with
+	 * Lantern backend.
+	 */
 
 	var initialState = {
 	  connected: false,
@@ -79728,72 +79689,6 @@
 	      return state;
 	  }
 	}
-
-/***/ },
-/* 819 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.default = userReducer;
-
-	var _assign = __webpack_require__(733);
-
-	var _BackendActions = __webpack_require__(658);
-
-	var backend = _interopRequireWildcard(_BackendActions);
-
-	var _BackendConstants = __webpack_require__(659);
-
-	var constants = _interopRequireWildcard(_BackendConstants);
-
-	var _AppActions = __webpack_require__(656);
-
-	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-	var initialState = {
-	  isValidUser: function isValidUser() {
-	    return this.id > 0;
-	  },
-	  isPro: function isPro() {
-	    return this.ready && this.expiration > 0;
-	  },
-
-	  ready: false
-	};
-
-	function userReducer() {
-	  var state = arguments.length <= 0 || arguments[0] === undefined ? initialState : arguments[0];
-	  var action = arguments[1];
-
-	  Object.freeze(state);
-
-	  switch (action.type) {
-	    case constants.BACKEND_RECEIVE_USER_DATA:
-	      return (0, _assign.objectMerge)(state, {
-	        referral: action.status.code,
-	        email: action.status.email,
-	        expiration: action.status.expiration,
-	        phone: action.status.phone,
-	        ready: true
-	      });
-	      break;
-	    case constants.BACKEND_MESSAGE_RECEIVED:
-	      if (action.status.type === 'settings') {
-	        return (0, _assign.objectMerge)(state, {
-	          id: action.status.message.userID,
-	          token: action.status.message.userToken,
-	          deviceID: action.status.message.deviceID
-	        });
-	      }
-	      break;
-	  }
-
-	  return state;
-	};
 
 /***/ }
 /******/ ]);
