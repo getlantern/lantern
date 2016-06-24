@@ -29614,6 +29614,10 @@
 
 	var _useQueries2 = _interopRequireDefault(_useQueries);
 
+	var _invariant = __webpack_require__(474);
+
+	var _invariant2 = _interopRequireDefault(_invariant);
+
 	var _react = __webpack_require__(300);
 
 	var _react2 = _interopRequireDefault(_react);
@@ -29642,6 +29646,12 @@
 
 	function isDeprecatedHistory(history) {
 	  return !history || !history.__v2_compatible__;
+	}
+
+	/* istanbul ignore next: sanity check */
+	function isUnsupportedHistory(history) {
+	  // v3 histories expose getCurrentLocation, but aren't currently supported.
+	  return history && history.getCurrentLocation;
 	}
 
 	var _React$PropTypes = _react2.default.PropTypes;
@@ -29733,6 +29743,8 @@
 	    var routes = _props2.routes;
 	    var children = _props2.children;
 
+
+	    !!isUnsupportedHistory(history) ?  false ? (0, _invariant2.default)(false, 'You have provided a history object created with history v3.x. ' + 'This version of React Router is not compatible with v3 history ' + 'objects. Please use history v2.x instead.') : (0, _invariant2.default)(false) : void 0;
 
 	    if (isDeprecatedHistory(history)) {
 	      history = this.wrapDeprecatedHistory(history);
@@ -32611,6 +32623,10 @@
 
 	var _routerWarning2 = _interopRequireDefault(_routerWarning);
 
+	var _invariant = __webpack_require__(474);
+
+	var _invariant2 = _interopRequireDefault(_invariant);
+
 	var _PropTypes = __webpack_require__(479);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -32697,6 +32713,8 @@
 	    };
 	  },
 	  handleClick: function handleClick(event) {
+	    !this.context.router ?  false ? (0, _invariant2.default)(false, '<Link>s rendered outside of a router context cannot handle clicks.') : (0, _invariant2.default)(false) : void 0;
+
 	    var allowTransition = true;
 
 	    if (this.props.onClick) this.props.onClick(event);
@@ -78470,12 +78488,16 @@
 	      this.props.dispatch(API.showPlans());
 	    }
 	  }, {
+	    key: 'calculateProgressStyle',
+	    value: function calculateProgressStyle() {}
+	  }, {
 	    key: 'render',
 	    value: function render() {
 	      var _props = this.props;
 	      var t = _props.t;
 	      var user = _props.user;
 	      var pro = _props.pro;
+	      var backend = _props.backend;
 
 
 	      if (!user || !user.ready || user.isPro() || pro.isPro) {
@@ -78494,47 +78516,46 @@
 	      // we need it to calculate the progress based on the percentage of
 	      // bandwidth used.
 	      var fullWidth = 200;
-	      if (this.props.backend.bandwidth) {
-	        var cap = this.props.backend.bandwidth.mibAllowed;
-	        if (cap < 0) {
-	          return null;
-	        }
-	        var used = this.props.backend.bandwidth.mibUsed;
-	        var percent;
-	        if (used > cap) {
-	          percent = 1;
-	        } else {
-	          percent = used / cap;
-	        }
-	        if (percent > 0.9) {
-	          progressStyle.backgroundColor = "#ff4081";
-	        } else {
-	          progressStyle.backgroundColor = "#ffea00";
-	        }
+	      if (backend.bandwidth) {
+	        var cap = backend.bandwidth.mibAllowed;
+	        if (cap > 0 && cap < 50000000) {
+	          var used = backend.bandwidth.mibUsed;
+	          var percent;
+	          if (used > cap) {
+	            percent = 1;
+	          } else {
+	            percent = used / cap;
+	          }
+	          if (percent > 0.9) {
+	            progressStyle.backgroundColor = "#ff4081";
+	          } else {
+	            progressStyle.backgroundColor = "#ffea00";
+	          }
 
-	        // Round the corners again if we're near the end.
-	        if (percent > 0.99) {
-	          progressStyle.borderTopRightRadius = 2;
-	          progressStyle.borderBottomRightRadius = 2;
-	        } else {
-	          progressStyle.borderTopRightRadius = 0;
-	          progressStyle.borderBottomRightRadius = 0;
-	        }
-	        progressStyle.width = parseInt(percent * fullWidth);
+	          // Round the corners again if we're near the end.
+	          if (percent > 0.99) {
+	            progressStyle.borderTopRightRadius = 2;
+	            progressStyle.borderBottomRightRadius = 2;
+	          } else {
+	            progressStyle.borderTopRightRadius = 0;
+	            progressStyle.borderBottomRightRadius = 0;
+	          }
+	          progressStyle.width = parseInt(percent * fullWidth);
 
-	        var remaining;
-	        if (used >= cap) {
-	          remaining = 0;
-	        } else {
-	          remaining = cap - used;
-	        }
+	          var remaining;
+	          if (used >= cap) {
+	            remaining = 0;
+	          } else {
+	            remaining = cap - used;
+	          }
 
-	        if (remaining < 5) {
-	          this.props.dispatch(actions.showNotificationWithAction(this.props.t("messages.datacap"), this.props.t("button.upgrade"), this.buypro.bind(this), true));
-	        }
+	          if (remaining < 5) {
+	            this.props.dispatch(actions.showNotificationWithAction(this.props.t("messages.datacap"), this.props.t("button.upgrade"), this.buypro.bind(this), true));
+	          }
 
-	        // Report megabytes to one decimel place.
-	        mb = remaining.toFixed(1);
+	          // Report megabytes to one decimel place.
+	          mb = remaining.toFixed(1);
+	        }
 	      }
 	      return _jsx('div', {
 	        id: 'datacap'
