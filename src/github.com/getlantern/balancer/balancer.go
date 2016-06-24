@@ -30,6 +30,7 @@ var (
 
 // Balancer balances connections among multiple Dialers.
 type Balancer struct {
+	st           Strategy
 	mu           sync.RWMutex
 	dialers      dialerHeap
 	trusted      dialerHeap
@@ -38,6 +39,13 @@ type Balancer struct {
 
 // New creates a new Balancer using the supplied Strategy and Dialers.
 func New(st Strategy, dialers ...*Dialer) *Balancer {
+	b := &Balancer{st: st}
+	b.Reset(dialers...)
+	return b
+}
+
+// Reset closes existing dialers and replaces them with new ones.
+func (b *Balancer) Reset(dialers ...*Dialer) {
 	var dls []*dialer
 	var tdls []*dialer
 
@@ -50,11 +58,16 @@ func New(st Strategy, dialers ...*Dialer) *Balancer {
 			tdls = append(tdls, dl)
 		}
 	}
-
-	bal := &Balancer{dialers: st(dls), trusted: st(tdls)}
-	heap.Init(&bal.dialers)
-	heap.Init(&bal.trusted)
-	return bal
+	b.mu.Lock()
+	oldDialers := b.dialers
+	b.dialers = b.st(dls)
+	b.trusted = b.st(tdls)
+	heap.Init(&b.dialers)
+	heap.Init(&b.trusted)
+	b.mu.Unlock()
+	for _, d := range oldDialers.dialers {
+		d.Stop()
+	}
 }
 
 // OnRequest calls Dialer.OnRequest for every dialer in this balancer.
@@ -79,29 +92,31 @@ func (b *Balancer) Dial(network, addr string) (net.Conn, error) {
 		log.Debugf("Balancer idle for %s, start checking all dialers", idlePeriod)
 		b.checkDialers()
 	}
-	var dialers dialerHeap
 
+	trustedOnly := false
 	_, port, _ := net.SplitHostPort(addr)
-
 	// We try to identify HTTP traffic (as opposed to HTTPS) by port and only
 	// send HTTP traffic to dialers marked as trusted.
 	if port == "" || port == "80" || port == "8080" {
-		if b.trusted.Len() == 0 {
-			return nil, fmt.Errorf("No trusted dialers!")
-		}
-		dialers = b.trusted
-	} else {
-		dialers = b.dialers
+		trustedOnly = true
 	}
 
 	for i := 0; i < dialAttempts; i++ {
-		if dialers.Len() == 0 {
-			return nil, fmt.Errorf("No dialers left to try on pass %v", i)
-		}
 		b.mu.Lock()
+		dialers := &b.dialers
+		if trustedOnly {
+			dialers = &b.trusted
+		}
+		if dialers.Len() == 0 {
+			b.mu.Unlock()
+			if trustedOnly {
+				return nil, fmt.Errorf("No trusted dialers")
+			}
+			return nil, fmt.Errorf("No dialers")
+		}
 		// heap will re-adjust based on new metrics
-		d := heap.Pop(&dialers).(*dialer)
-		heap.Push(&dialers, d)
+		d := heap.Pop(dialers).(*dialer)
+		heap.Push(dialers, d)
 		b.mu.Unlock()
 		log.Tracef("Dialing %s://%s with %s", network, addr, d.Label)
 		conn, err := d.dial(network, addr)
@@ -118,8 +133,10 @@ func (b *Balancer) Dial(network, addr string) (net.Conn, error) {
 // Close closes this Balancer, stopping all background processing. You must call
 // Close to avoid leaking goroutines.
 func (b *Balancer) Close() {
+	b.mu.Lock()
 	oldDialers := b.dialers
 	b.dialers.dialers = nil
+	b.mu.Unlock()
 	for _, d := range oldDialers.dialers {
 		d.Stop()
 	}
@@ -132,4 +149,40 @@ func (b *Balancer) checkDialers() {
 		go d.check()
 	}
 	b.mu.RUnlock()
+}
+
+type dialerHeap struct {
+	dialers  []*dialer
+	lessFunc func(i, j int) bool
+}
+
+func (s *dialerHeap) Len() int { return len(s.dialers) }
+
+func (s *dialerHeap) Swap(i, j int) {
+	s.dialers[i], s.dialers[j] = s.dialers[j], s.dialers[i]
+}
+
+func (s *dialerHeap) Less(i, j int) bool {
+	return s.lessFunc(i, j)
+}
+
+func (s *dialerHeap) Push(x interface{}) {
+	s.dialers = append(s.dialers, x.(*dialer))
+}
+
+func (s *dialerHeap) Pop() interface{} {
+	old := s.dialers
+	n := len(old)
+	x := old[n-1]
+	s.dialers = old[0 : n-1]
+	return x
+}
+
+func (s *dialerHeap) onRequest(req *http.Request) {
+	for _, d := range s.dialers {
+		if d.OnRequest != nil {
+			d.OnRequest(req)
+		}
+	}
+	return
 }
