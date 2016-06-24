@@ -116,11 +116,12 @@ func (s *notifyStatus) notifyFreeUser(n notify.Notifier, uiaddr, title, msg stri
 		return
 	}
 
-	logo := "http://" + uiaddr + "/img/lantern_logo.png"
+	addr := "http://" + uiaddr
+	logo := addr + "/img/lantern_logo.png"
 	note := &notify.Notification{
 		Title:    title,
 		Message:  msg,
-		ClickURL: uiaddr,
+		ClickURL: addr,
 		IconURL:  logo,
 	}
 
