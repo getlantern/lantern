@@ -202,6 +202,35 @@ func TestCheck(t *testing.T) {
 	wg.Wait()
 }
 
+func TestResetDailers(t *testing.T) {
+	addr, l := echoServer()
+	defer func() { _ = l.Close() }()
+	chReset := make(chan struct{})
+	chContinue := make(chan struct{})
+	bad := int32(0)
+	badDialer := newCondDialer(1, func() bool {
+		atomic.AddInt32(&bad, 1)
+		chReset <- struct{}{}
+		<-chContinue
+		return true
+	})
+	good := int32(0)
+	goodDialer := newCondDialer(2, func() bool {
+		atomic.AddInt32(&good, 1)
+		return false
+	})
+	b := New(Sticky, badDialer)
+	go func() {
+		<-chReset
+		b.Reset(goodDialer)
+		chContinue <- struct{}{}
+	}()
+	_, err := b.Dial("tcp", addr)
+	assert.NoError(t, err, "Should have no error dialing with resetted balancer")
+	assert.Equal(t, int32(1), atomic.LoadInt32(&bad), "should dial bad dialer only once")
+	assert.Equal(t, int32(1), atomic.LoadInt32(&good), "should dial good dialer only once")
+}
+
 func newDialer(id int) *Dialer {
 	dialer := &Dialer{
 		Label: fmt.Sprintf("Dialer %d", id),
