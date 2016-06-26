@@ -78475,11 +78475,12 @@
 	    value: function render() {
 	      var _props = this.props;
 	      var t = _props.t;
+	      var user = _props.user;
 	      var pro = _props.pro;
 	      var backend = _props.backend;
 
 
-	      if (!pro.user || pro.isPro) {
+	      if (!user || !user.ready || user.isPro() || pro.isPro) {
 	        return null;
 	      }
 
@@ -78497,45 +78498,48 @@
 	      var fullWidth = 200;
 	      if (backend.bandwidth) {
 	        var cap = backend.bandwidth.mibAllowed;
-	        if (cap > 0 && cap < 50000000) {
-	          var used = backend.bandwidth.mibUsed;
-	          var percent;
-	          if (used > cap) {
-	            percent = 1;
-	          } else {
-	            percent = used / cap;
-	          }
-	          if (percent > 0.9) {
-	            progressStyle.backgroundColor = "#ff4081";
-	          } else {
-	            progressStyle.backgroundColor = "#ffea00";
-	          }
-
-	          // Round the corners again if we're near the end.
-	          if (percent > 0.99) {
-	            progressStyle.borderTopRightRadius = 2;
-	            progressStyle.borderBottomRightRadius = 2;
-	          } else {
-	            progressStyle.borderTopRightRadius = 0;
-	            progressStyle.borderBottomRightRadius = 0;
-	          }
-	          progressStyle.width = parseInt(percent * fullWidth);
-
-	          var remaining;
-	          if (used >= cap) {
-	            remaining = 0;
-	          } else {
-	            remaining = cap - used;
-	          }
-
-	          if (remaining < 5) {
-	            this.props.dispatch(actions.showNotificationWithAction(this.props.t("messages.datacap"), this.props.t("button.upgrade"), this.buypro.bind(this), true));
-	          }
-
-	          // Report megabytes to one decimel place.
-	          mb = remaining.toFixed(1);
+	        //if (cap > 0 && cap < 50000000) {
+	        if (cap < 0) {
+	          return null;
 	        }
+	        var used = backend.bandwidth.mibUsed;
+	        var percent;
+	        if (used > cap) {
+	          percent = 1;
+	        } else {
+	          percent = used / cap;
+	        }
+	        if (percent > 0.9) {
+	          progressStyle.backgroundColor = "#ff4081";
+	        } else {
+	          progressStyle.backgroundColor = "#ffea00";
+	        }
+
+	        // Round the corners again if we're near the end.
+	        if (percent > 0.99) {
+	          progressStyle.borderTopRightRadius = 2;
+	          progressStyle.borderBottomRightRadius = 2;
+	        } else {
+	          progressStyle.borderTopRightRadius = 0;
+	          progressStyle.borderBottomRightRadius = 0;
+	        }
+	        progressStyle.width = parseInt(percent * fullWidth);
+
+	        var remaining;
+	        if (used >= cap) {
+	          remaining = 0;
+	        } else {
+	          remaining = cap - used;
+	        }
+
+	        if (remaining < 5) {
+	          this.props.dispatch(actions.showNotificationWithAction(this.props.t("messages.datacap"), this.props.t("button.upgrade"), this.buypro.bind(this), true));
+	        }
+
+	        // Report megabytes to one decimel place.
+	        mb = remaining.toFixed(1);
 	      }
+
 	      return _jsx('div', {
 	        id: 'datacap'
 	      }, void 0, _jsx('div', {
@@ -78561,6 +78565,7 @@
 	// Which props do we want to inject, given the global state?
 	function select(state) {
 	  return {
+	    user: state.user,
 	    pro: state.pro,
 	    backend: state.backend
 	  };
