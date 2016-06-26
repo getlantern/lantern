@@ -1154,6 +1154,13 @@ body {
   width: 90%;
 }
 
+/* fix https://github.com/getlantern/lantern/issues/4788 */
+
+.input_inline .input_inline_text input::-ms-clear {
+  width: 0;
+  height: 0;
+}
+
 .button_center {
   font-family: 'Roboto', 'Helvetica Neue Light', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
   font-weight: 500;
