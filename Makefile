@@ -375,7 +375,7 @@ package-darwin-manoto: require-version require-appdmg require-svgexport darwin
 		mkdir Lantern.app/Contents/Resources/en.lproj && \
 		cp installer-resources/$(MANOTO_YAML) Lantern.app/Contents/Resources/en.lproj/$(PACKAGED_YAML) && \
 		cp $(LANTERN_YAML_PATH) Lantern.app/Contents/Resources/en.lproj/$(LANTERN_YAML) && \
-		codesign --force -s "Developer ID Application: Brave New Software Project, Inc" -v Lantern.app && \
+		codesign --force -s "Developer ID Application: Brave New Software Project, Inc (ACZRKC3LQ9)" -v Lantern.app && \
 		cat Lantern.app/Contents/MacOS/lantern | bzip2 > update_darwin_amd64.bz2 && \
 		ls -l lantern_darwin_amd64 update_darwin_amd64.bz2 && \
 		rm -rf lantern-installer-manoto.dmg && \
@@ -406,7 +406,7 @@ package-darwin: package-darwin-manoto
 
 binaries: docker-assets docker-linux docker-windows darwin
 
-packages: require-version require-secrets clean-desktop clean-mobile docker-assets docker-package-windows docker-package-linux package-darwin package-android
+packages: require-version require-secrets clean-desktop clean-mobile docker-assets docker-package-windows docker-package-linux package-darwin package-android 
 
 # Override implicit docker-packages to avoid building whole packages target in
 # docker, since it builds the pieces it needs in docker itself.
@@ -607,10 +607,11 @@ $(LANTERN_MOBILE_PUBSUB): $(PUBSUB)
 	@mkdir -p $(LANTERN_MOBILE_LIBS) && \
 	cp $(PUBSUB) $(LANTERN_MOBILE_PUBSUB)
 
-$(LANTERN_MOBILE_ANDROID_DEBUG): $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_SDK) $(LANTERN_MOBILE_PUBSUB)
+$(LANTERN_MOBILE_ANDROID_DEBUG): clean-mobile-lib $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_SDK) $(LANTERN_MOBILE_PUBSUB)
 	@gradle -PlanternVersion=$(GIT_REVISION) -PlanternRevisionDate=$(REVISION_DATE) -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
 		clean \
-		assembleDebug
+		assembleDebug && \
+    cp $(LANTERN_MOBILE_ANDROID_DEBUG) lantern-installer.apk;
 
 $(LANTERN_MOBILE_ANDROID_RELEASE): clean-mobile-lib $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_SDK) $(LANTERN_MOBILE_PUBSUB)
 	ln -f -s $$SECRETS_DIR/android/keystore.release.jks $(LANTERN_MOBILE_DIR)/app && \
