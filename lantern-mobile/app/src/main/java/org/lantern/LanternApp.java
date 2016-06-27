@@ -11,6 +11,8 @@ import io.fabric.sdk.android.Fabric;
 import org.lantern.model.ProPlan;
 import org.lantern.model.ProRequest;
 import org.lantern.model.SessionManager;
+import org.lantern.pubsub.Client;
+import org.lantern.pubsub.PubSub;
 
 public class LanternApp extends Application {
     private static final String TAG = "LanternApp";
@@ -24,6 +26,8 @@ public class LanternApp extends Application {
 		final Context context = getApplicationContext();
         session = new SessionManager(context);
         session.shouldProxy();
+        PubSub.start(context);
+        PubSub.subscribe(context, Client.utf8(session.Token()));
     }
 
     public static SessionManager getSession() {

@@ -185,7 +185,7 @@ func GetBandwidthQuota() int {
 	percent := 1.0
 	quota := bandwidth.GetQuota()
 	if quota != nil {
-		if quota.MiBUsed < quota.MiBAllowed {
+		if quota.MiBUsed <= quota.MiBAllowed {
 			percent = (float64(quota.MiBUsed) / float64(quota.MiBAllowed))
 		}
 	}

@@ -192,12 +192,11 @@ public class LanternMainActivity extends AppCompatActivity {
         checkUpdateAfterDelay();
     }
 
-    @Subscribe
+    @org.greenrobot.eventbus.Subscribe 
     public void onEvent(ProPlan plan) {
         Log.d(TAG, "Got a new PLAN: " + plan.getPlanId());
         session.savePlan(getResources(), plan);
     }
-
 
     @Override
     protected void onResume() {
@@ -224,30 +223,37 @@ public class LanternMainActivity extends AppCompatActivity {
 	}
 
 	private void setBandwidthQuota() {
+        if (session.isProUser()) {
+            // do nothing data-related if its a pro user
+            return;
+        }
 
-        if (!session.isProUser()) {
-            long quota = Lantern.GetBandwidthQuota();
-            long remaining = Lantern.GetBandwidthRemaining();
-            String dataFmt = getResources().getString(R.string.data_remaining);
-            String amount = String.format(dataFmt, remaining);
-            if (remaining < 5) {
-                Utils.showSnackbar(coordinatorLayout,
-                        getResources().getString(R.string.data_cap),
-                        getResources().getString(R.string.upgrade),
-                        Utils.getColor(LanternMainActivity.this, R.color.pink),
-                        new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                                LanternMainActivity.this.startActivity(new Intent(LanternMainActivity.this, 
-                                            PlansActivity_.class));
-                            }
-                });
-            }
+        long quota = Lantern.GetBandwidthQuota();
+        long remaining = Lantern.GetBandwidthRemaining();
+        if (remaining < 0 || remaining > 500) {
+            return;
+        }
 
-            dataRemaining.setText(amount);
-            if (dataProgressBar != null) {
-                dataProgressBar.setProgress((int)quota);
-            }
+        String dataFmt = getResources().getString(R.string.data_remaining);
+        String amount = String.format(dataFmt, remaining);
+        if (remaining < 5) {
+            final LanternMainActivity activity = LanternMainActivity.this;
+            Utils.showSnackbar(coordinatorLayout,
+                    getResources().getString(R.string.data_cap),
+                    getResources().getString(R.string.upgrade),
+                    Utils.getColor(LanternMainActivity.this, R.color.pink),
+                    new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            Intent intent = new Intent(activity, PlansActivity_.class);
+                            activity.startActivity(intent);
+                        }
+                    });
+        }
+
+        dataRemaining.setText(amount);
+        if (dataProgressBar != null) {
+            dataProgressBar.setProgress((int)quota);
         }
     }
 

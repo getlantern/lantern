@@ -149,6 +149,7 @@
     <string name="free_month">Get a free month of pro for each sign up</string>
     <string name="get_pro_now">Get Pro Now</string>
     <string name="inviting_friends">Get Pro credits by inviting friends</string>
+    <string name="data_cap_percent">You have reached %1$s of your available Lantern data for the month.</string>
     <string name="data_cap">You have used your free monthly data. Upgrade to Lantern Pro to continue using Lantern.</string>
     <string name="select">Select</string>
     <string name="one_year">for 1 year</string>
