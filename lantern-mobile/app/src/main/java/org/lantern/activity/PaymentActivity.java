@@ -159,7 +159,7 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
         Log.d(TAG, "Submit card button clicked..");
         boolean isDebuggable =  ( 0 != ( getApplicationInfo().flags &= ApplicationInfo.FLAG_DEBUGGABLE ) );
         final String publishableApiKey = isDebuggable ?
-            "pk_test_4MSPZvz9QtXGWEKdODmzV9ql" :
+            "pk_live_4MSPfR6qNHMwjG86TZJv4NI0" :
             getString(R.string.stripe_publishable_key);
         Card card = new Card(
                 paymentForm.getCardNumber(),
