@@ -1268,7 +1268,7 @@ body {
   background: #212121 !important;
 
 }
-.leftNav div:first-child {
+.leftNav > div:first-child {
   margin-bottom: 36px;
 }
 .leftNav .menuItem{
@@ -1570,23 +1570,25 @@ body {
   line-height: 59px;
   margin-bottom: 20px;
 }
-#screenFree #buttonGetCredits #buttonBuyPro {
+#screenFree #freeButtons > div {
+  display: inline-block;
+}
+#screenFree #freeButtons button {
   border-radius: 4px;
 }
-#screenFree #buttonGetCredits {
+#screenFree #freeButtons #buttonGetCredits {
   background: #ffe900 !important
 }
-#screenFree #buttonGetCredits:hover,#screenFree #buttonGetCredits:focus{
+#screenFree #freeButtons #buttonGetCredits:hover,#screenFree #freeButtons #buttonGetCredits:focus{
   background: #ffe900 !important;
 }
-#screenFree #buttonBuyPro {
+#screenFree #freeButtons #buttonBuyPro {
   background: #ff4081 !important
 }
-#screenFree #buttonBuyPro:hover,#screenFree #buttonBuyPro:focus{
+#screenFree #freeButtons #buttonBuyPro:hover,#screenFree #freeButtons #buttonBuyPro:focus{
   background: #ff4081 !important;
 }
-#screenFree #paddingBetweenFreeButtons {
-  display: inline-block;
+#screenFree #freeButtons #paddingBetweenFreeButtons {
   width: 69px;
   font-weight: 400;
   font-size: 18px;
