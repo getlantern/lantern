@@ -190,5 +190,5 @@
     <string name="item_image_contentDescription">Country flag</string>
     <string name="item_preview_country">United States</string>
     <string name="item_preview_dialCode">+1</string>
-    <string name="stripe_publishable_key"></string>
+    <string name="stripe_publishable_key">pk_live_4MSPfR6qNHMwjG86TZJv4NI0</string>
 </resources>

@@ -129,7 +129,7 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
         switch (v.getId()) {
             case R.id.alipayBtn:
                 Log.d(TAG, "Alipay button pressed");
-                openAlipay(PaymentActivity.this, session);
+                openAlipayWebview(PaymentActivity.this, session);
                 return;
             case R.id.cardBtn:
                 Log.d(TAG, "Card button pressed");
@@ -148,6 +148,21 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
         c.startActivity(intent);
     }
 
+    private void openAlipayWebview(Context c, SessionManager session) {
+        Log.d(TAG, "Opening Alipay in a webview!!");
+        long amount = session.getSelectedPlanCost();
+        String url = String.format(CHECKOUT_URL, amount, session.Currency());
+
+        new FinestWebView.Builder(this)
+            .webViewSupportMultipleWindows(true)
+            .webViewJavaScriptEnabled(true)
+            .swipeRefreshColorRes(R.color.black)
+            .webViewAllowFileAccessFromFileURLs(true)
+            .webViewJavaScriptCanOpenWindowsAutomatically(true)
+            .webViewLoadWithProxy(session.startLocalProxy())
+            .show(url);
+    }
+
     public void submitCard() {
 
         final String email = emailInput.getText().toString();
@@ -159,7 +174,7 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
         Log.d(TAG, "Submit card button clicked..");
         boolean isDebuggable =  ( 0 != ( getApplicationInfo().flags &= ApplicationInfo.FLAG_DEBUGGABLE ) );
         final String publishableApiKey = isDebuggable ?
-            "pk_live_4MSPfR6qNHMwjG86TZJv4NI0" :
+            "pk_test_4MSPZvz9QtXGWEKdODmzV9ql" :
             getString(R.string.stripe_publishable_key);
         Card card = new Card(
                 paymentForm.getCardNumber(),
