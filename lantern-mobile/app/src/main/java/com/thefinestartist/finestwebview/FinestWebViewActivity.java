@@ -1170,7 +1170,8 @@ public class FinestWebViewActivity extends AppCompatActivity implements AppBarLa
             session.setProUser(email, token);
 
             // submit token to Pro server here
-            new ProRequest(FinestWebViewActivity.this, false, this).execute("purchase");
+            new ProRequest(FinestWebViewActivity.this, false, 
+                FinestWebViewActivity.this).execute("purchase");
         }
 
         @Override
