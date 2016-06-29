@@ -53,21 +53,30 @@ public class SessionManager implements Lantern.Session, Lantern.UserConfig {
     private static final String PREF_NEWSFEED = "pref_newsfeed";
     private static final String defaultCurrencyCode = "usd";
 
-    private long oneYearCost = 2700;
-    private long twoYearCost = 4800;
-
     // the devices associated with a user's Pro account
     private Map<String, Device> devices = new HashMap<String, Device>();
     private final Map<String, ProPlan> plans = new HashMap<String, ProPlan>();
 
     private final Map<Locale, List<ProPlan>> localePlans = new HashMap<Locale, List<ProPlan>>();
 
-    // Default Pro Plans
-    private final Locale enLocale = new Locale("en", "US");
-    private final List<ProPlan> defaultPlans = new ArrayList<ProPlan>();
+	private long oneYearCost = 2700;
+	private long twoYearCost = 4800;
+
+	// Default Pro Plans
+	private static final Locale enLocale = new Locale("en", "US");
+	private static final ProPlan defaultOneYearPlan = 
+		createPlan(enLocale, "1y-usd", "usd", "One Year Plan", false, 1, 2700);
+	private static final ProPlan defaultTwoYearPlan = 
+		createPlan(enLocale, "2y-usd", "usd", "Two Year Plan", true, 2, 4800); 
+	private static final List<ProPlan> defaultPlans = new ArrayList<ProPlan>() {
+		{
+			add(defaultOneYearPlan);
+			add(defaultTwoYearPlan);
+		}
+	};
 
      // shared preferences mode
-    private int PRIVATE_MODE = 0;
+    private static final int PRIVATE_MODE = 0;
 
     private Context context;
     private Resources resources;
@@ -85,11 +94,11 @@ public class SessionManager implements Lantern.Session, Lantern.UserConfig {
         this.mPrefs = context.getSharedPreferences(PREF_NAME, PRIVATE_MODE);
         this.editor = mPrefs.edit();
         this.resources = context.getResources();
-        this.locale = resources.getConfiguration().locale;
-        this.defaultPlans.add(createPlan(enLocale, "1y-usd",
-                    "usd", "One Year Plan", false, 1, 2700));
-        this.defaultPlans.add(createPlan(enLocale, "2y-usd",
-                    "usd", "Two Year Plan", true, 2, 4800));
+		if (resources.getConfiguration() != null) {
+        	this.locale = resources.getConfiguration().locale;
+		}
+		plans.put(defaultOneYearPlan.getPlanId(), defaultOneYearPlan);
+		plans.put(defaultTwoYearPlan.getPlanId(), defaultTwoYearPlan); 
     }
 
     public void newUser() {
@@ -177,7 +186,8 @@ public class SessionManager implements Lantern.Session, Lantern.UserConfig {
     public String[] getReferralArray(Resources res) {
         ProPlan plan = getSelectedPlan();
         if (plan == null) {
-            return null;
+			Log.d(TAG, "Selected plan is null. Returning default referral instructions");
+			return res.getStringArray(R.array.referral_promotion_list);
         }
         if (plan.numYears() == 1) {
             return res.getStringArray(R.array.referral_promotion_list);
@@ -248,11 +258,11 @@ public class SessionManager implements Lantern.Session, Lantern.UserConfig {
     }
 
     public List<ProPlan> getPlans(Locale locale) {
-        List<ProPlan> plans = localePlans.get(locale);
-        if (plans == null || plans.isEmpty()) {
+        List<ProPlan> nPlans = localePlans.get(locale);
+        if (nPlans == null || nPlans.isEmpty()) {
             return defaultPlans;
         }
-        return plans;
+        return nPlans;
     }
 
     public void setOneYearCost(long oneYearCost) {
