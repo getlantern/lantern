@@ -73,7 +73,7 @@ import org.lantern.R;
 /**
  * Created by Leonardo on 11/14/15.
  */
-public class FinestWebViewActivity extends AppCompatActivity implements AppBarLayout.OnOffsetChangedListener {
+public class FinestWebViewActivity extends AppCompatActivity implements AppBarLayout.OnOffsetChangedListener, ProResponse {
 
     private static final String TAG = "FinestWebViewActivity";
 
@@ -1082,7 +1082,22 @@ public class FinestWebViewActivity extends AppCompatActivity implements AppBarLa
         }
     }
 
-    public class MyWebViewClient extends WebViewClient implements ProResponse {
+
+    @Override
+    public void onResult(boolean success) {
+        if (!success) {
+            Utils.showAlertDialog(FinestWebViewActivity.this, 
+                    getResources().getString(R.string.app_name),
+                    getResources().getString(R.string.invalid_payment_method));
+            return;
+        }
+
+        session.linkDevice();
+        session.setIsProUser(true);
+        startActivity(new Intent(FinestWebViewActivity.this, WelcomeActivity_.class));
+    }              
+
+    public class MyWebViewClient extends WebViewClient {
 
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
@@ -1157,22 +1172,6 @@ public class FinestWebViewActivity extends AppCompatActivity implements AppBarLa
             // submit token to Pro server here
             new ProRequest(FinestWebViewActivity.this, false, this).execute("purchase");
         }
-
-
-        @Override
-        public void onResult(boolean success) {
-            if (!success) {
-                Utils.showAlertDialog(FinestWebViewActivity.this, 
-                        getResources().getString(R.string.app_name),
-                        getResources().getString(R.string.invalid_payment_method));
-                return;
-            }
-
-            session.linkDevice();
-            session.setIsProUser(true);
-            startActivity(new Intent(FinestWebViewActivity.this, WelcomeActivity_.class));
-        }
-
 
         @Override
         public void onLoadResource(WebView view, String url) {
