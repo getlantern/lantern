@@ -49,7 +49,7 @@ import info.hoang8f.android.segmented.SegmentedGroup;
 public class PaymentActivity extends FragmentActivity implements ProResponse, View.OnClickListener {
 
     private static final String TAG = "PaymentActivity";
-    public static final String CHECKOUT_URL = "https://s3.amazonaws.com/lantern-android/checkout.html?price=%d&currency=%s";
+    public static final String CHECKOUT_URL = "file:///android_asset/checkout.html?price=%d&currency=%s";
 
     private SessionManager session;
 
