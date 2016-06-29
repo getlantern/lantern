@@ -5,11 +5,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.net.Uri;
+import android.net.UrlQuerySanitizer;
 import android.support.design.widget.CoordinatorLayout;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -38,6 +41,7 @@ import org.lantern.model.Utils;
 import org.lantern.R;
 
 import com.thefinestartist.finestwebview.FinestWebView;
+import com.thefinestartist.finestwebview.FinestWebViewActivity.MyWebViewClient;
 import info.hoang8f.android.segmented.SegmentedGroup;
 
 @EActivity(R.layout.checkout)
@@ -150,8 +154,8 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
 
     private void openAlipayWebview(Context c, SessionManager session) {
         Log.d(TAG, "Opening Alipay in a webview!!");
-        long amount = session.getSelectedPlanCost();
-        String url = String.format(CHECKOUT_URL, amount, session.Currency());
+		long amount = session.getSelectedPlanCost();
+		String url = String.format(CHECKOUT_URL, amount, session.Currency());
 
         new FinestWebView.Builder(this)
             .webViewSupportMultipleWindows(true)

@@ -93,7 +93,7 @@ public class Utils {
         TextView statusText  = (TextView)statusLayout.findViewById(R.id.statusText);
         ImageView statusImage = (ImageView)statusLayout.findViewById(R.id.statusImage);
         statusImage.setImageResource(R.drawable.status_on_white);
-        statusText.setText(context.getResources().getString(R.string.copied_to_clipboard));
+        statusText.setText(context.getResources().getString(R.string.referral_copied_to_clipboard));
         Toast toast = new Toast(context);
         toast.setGravity(Gravity.BOTTOM|Gravity.FILL_HORIZONTAL, 0, 0);
         toast.setDuration(Toast.LENGTH_SHORT);

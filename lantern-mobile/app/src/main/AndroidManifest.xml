@@ -106,7 +106,6 @@
             android:screenOrientation="portrait"
             />
  
-
         <activity
             android:name=".activity.UpdateActivity_"
             android:screenOrientation="portrait"

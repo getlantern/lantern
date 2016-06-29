@@ -122,4 +122,32 @@
         <item name="android:textColor">@color/blue_color</item>
     </style>
 
+     <style name="FinestWebViewTheme" parent="Theme.AppCompat.NoActionBar">
+        <item name="colorPrimary">@color/finestWhite</item>
+        <item name="colorPrimaryDark">@color/finestGray</item>
+        <item name="colorAccent">@color/finestBlack</item>
+        <item name="android:textColorPrimary">@color/finestBlack</item>
+        <item name="android:textColorSecondary">@color/finestSilver</item>
+        <item name="windowActionModeOverlay">true</item>
+    </style>
+
+    <style name="FinestWebViewTheme.Fullscreen" parent="FinestWebViewTheme">
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowFullscreen">true</item>
+    </style>
+
+    <style name="FinestWebViewTheme.Light.Fullscreen" parent="FinestWebViewTheme.Light">
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowFullscreen">true</item>
+    </style>
+
+    <declare-styleable name="ShadowLayout">
+        <attr name="slCornerRadius" format="dimension"/>
+        <attr name="slShadowSize" format="dimension"/>
+        <attr name="slShadowColor" format="color"/>
+        <attr name="slDx" format="dimension"/>
+        <attr name="slDy" format="dimension"/>
+    </declare-styleable>
+ 
+
 </resources>
