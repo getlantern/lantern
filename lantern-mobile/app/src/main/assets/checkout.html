@@ -110,7 +110,7 @@ $(document).ready(function() {
 
     StripeCheckout.open({
         key: getParameterByName('key'),
-        image: 'file:///android_asset/img/lantern_logo.svg',
+        image: 'https://s3.amazonaws.com/lantern-android/img/lantern_logo.svg',
         amount: price,
         currency: currency,
         description: 'Lantern Pro',
