@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<set
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shareInterpolator="false"
+    android:zAdjustment="top">
+    <alpha
+        android:duration="150"
+        android:fillAfter="true"
+        android:fillBefore="false"
+        android:fillEnabled="true"
+        android:fromAlpha="1.0"
+        android:interpolator="@anim/accelerate_quart"
+        android:startOffset="100"
+        android:toAlpha="0.0" />
+    <translate
+        android:duration="250"
+        android:fillAfter="true"
+        android:fillBefore="true"
+        android:fillEnabled="true"
+        android:fromYDelta="0.0%"
+        android:interpolator="@anim/accelerate_quint"
+        android:toYDelta="4.999995%" />
+</set>

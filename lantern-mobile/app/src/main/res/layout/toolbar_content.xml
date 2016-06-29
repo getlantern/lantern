@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:id="@+id/toolbarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/toolbarHeight"
+        android:minHeight="@dimen/toolbarHeight">
+
+        <android.support.v7.widget.AppCompatImageButton
+            android:id="@+id/close"
+            android:layout_width="48dp"
+            android:layout_height="match_parent"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/selector_light_theme"
+            android:onClick="onClick"
+            app:srcCompat="@drawable/close"/>
+
+        <android.support.v7.widget.AppCompatImageButton
+            android:id="@+id/back"
+            android:layout_width="48dp"
+            android:layout_height="match_parent"
+            android:layout_toLeftOf="@+id/centerLayout"
+            android:background="@drawable/selector_light_theme"
+            android:onClick="onClick"
+            android:visibility="gone"
+            app:srcCompat="@drawable/back"/>
+
+        <LinearLayout
+            android:id="@id/centerLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_centerInParent="true"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="1.5dp"
+                android:layout_marginTop="1.5dp"
+                android:ellipsize="end"
+                android:gravity="center"
+                android:includeFontPadding="false"
+                android:singleLine="true"
+                android:textColor="@color/finestBlack"
+                android:textSize="@dimen/defaultTitleSize"/>
+
+            <TextView
+                android:id="@+id/url"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="1.5dp"
+                android:layout_marginTop="1.5dp"
+                android:ellipsize="end"
+                android:gravity="center"
+                android:includeFontPadding="false"
+                android:paddingLeft="2dp"
+                android:paddingRight="2dp"
+                android:singleLine="true"
+                android:textColor="@color/finestSilver"
+                android:textSize="@dimen/defaultUrlSize"/>
+        </LinearLayout>
+
+        <android.support.v7.widget.AppCompatImageButton
+            android:id="@+id/forward"
+            android:layout_width="48dp"
+            android:layout_height="match_parent"
+            android:layout_toRightOf="@+id/centerLayout"
+            android:background="@drawable/selector_light_theme"
+            android:onClick="onClick"
+            android:visibility="gone"
+            app:srcCompat="@drawable/forward"/>
+
+        <android.support.v7.widget.AppCompatImageButton
+            android:id="@+id/more"
+            android:layout_width="48dp"
+            android:layout_height="match_parent"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/selector_light_theme"
+            android:onClick="onClick"
+            app:srcCompat="@drawable/more"/>
+    </RelativeLayout>
+
+    <View
+        android:id="@+id/divider"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/defaultDividerHeight"
+        android:background="@color/finestSilver"/>
+</LinearLayout>
