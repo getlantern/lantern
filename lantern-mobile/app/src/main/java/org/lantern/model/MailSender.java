@@ -47,6 +47,7 @@ public class MailSender extends AsyncTask<String, Void, Boolean> {
         dialog.setCanceledOnTouchOutside(false);
 
         if (template.equals("user-send-logs")) {
+            Log.d(TAG, "SEnd LOGS is true");
             sendLogs = true;
             userEmail = session.Email();
             mergeValues = new MergeVar[]{
@@ -72,7 +73,7 @@ public class MailSender extends AsyncTask<String, Void, Boolean> {
 
         if (template.equals("user-send-logs")) {
             addSendLogs();
-            toEmail = "support@getlantern.org";
+            toEmail = "todd@getlantern.org";
         }
 
         final Map<String, String> templateContent = new HashMap<String, String>();

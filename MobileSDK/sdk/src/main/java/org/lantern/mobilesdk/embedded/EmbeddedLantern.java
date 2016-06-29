@@ -5,6 +5,7 @@ import android.content.Context;
 import org.lantern.mobilesdk.Lantern;
 import org.lantern.mobilesdk.LanternNotRunningException;
 import org.lantern.mobilesdk.StartResult;
+import go.lantern.Lantern.UserConfig;
 
 public class EmbeddedLantern extends Lantern {
     static {
@@ -15,13 +16,13 @@ public class EmbeddedLantern extends Lantern {
     }
 
     @Override
-    protected StartResult start(Context context, int timeoutMillis) throws LanternNotRunningException {
-        return start(configDirFor(context, ""), timeoutMillis);
+    protected StartResult start(Context context, int timeoutMillis, UserConfig user) throws LanternNotRunningException {
+        return start(configDirFor(context, ""), timeoutMillis, user);
     }
 
-    public StartResult start(String configDir, int timeoutMillis) throws LanternNotRunningException {
+    public StartResult start(String configDir, int timeoutMillis, UserConfig user) throws LanternNotRunningException {
         try {
-            go.lantern.Lantern.StartResult result = go.lantern.Lantern.Start(configDir, timeoutMillis);
+            go.lantern.Lantern.StartResult result = go.lantern.Lantern.Start(configDir, timeoutMillis, user);
             return new StartResult(result.getHTTPAddr(), result.getSOCKS5Addr());
         } catch (Exception e) {
             throw new LanternNotRunningException("Unable to start EmbeddedLantern: " + e.getMessage(), e);

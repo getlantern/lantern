@@ -40,11 +40,11 @@ import android.support.v4.widget.DrawerLayout;
 import org.lantern.LanternApp;
 import org.lantern.vpn.Service;
 import org.lantern.fragment.FeedFragment;
+import org.lantern.model.Bandwidth;
 import org.lantern.model.GetFeed;
 import org.lantern.model.ListAdapter;
 import org.lantern.model.MailSender;
 import org.lantern.model.NavItem;
-import org.lantern.model.ProPlan;
 import org.lantern.model.ProRequest;
 import org.lantern.model.SessionManager;
 import org.lantern.model.Shareable;
@@ -70,6 +70,7 @@ import com.kyleduo.switchbutton.SwitchButton;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import go.lantern.Lantern;
 
@@ -88,6 +89,8 @@ public class LanternMainActivity extends AppCompatActivity {
     private FragmentStatePagerItemAdapter feedAdapter;
     private SmartTabLayout viewPagerTab;
     private String lastFeedSelected;
+
+    private boolean firstRun = true;
 
     private Snackbar statusSnackbar;
 
@@ -115,6 +118,9 @@ public class LanternMainActivity extends AppCompatActivity {
     ListView drawerList;
 
     @ViewById
+    ProgressBar progressBar;
+
+    @ViewById
     View feedError, feedView, dataUsageView;
 
     @ViewById
@@ -131,9 +137,7 @@ public class LanternMainActivity extends AppCompatActivity {
     void afterViews() {
 
         if (!EventBus.getDefault().isRegistered(this)) {
-            // we don't have to unregister an EventBus if its
-            // in the Application class
-            EventBus.getDefault().register(this);
+            EventBus.getDefault().register(this);         
         }
 
 
@@ -159,6 +163,8 @@ public class LanternMainActivity extends AppCompatActivity {
         // Lantern was forcibly stopped during a previous run
         if (!Service.isRunning(LanternMainActivity.this)) {
             session.clearVpnPreference();
+        } else {
+            new GetFeed(this).execute(false);
         }
 
         // the ACTION_SHUTDOWN intent is broadcast when the phone is
@@ -179,23 +185,7 @@ public class LanternMainActivity extends AppCompatActivity {
             .make(coordinatorLayout, getResources().getString(R.string.lantern_off), Snackbar.LENGTH_LONG);
         statusSnackbar = Utils.formatSnackbar(statusSnackbar);
 
-        // wait a few seconds while Lantern starts before
-        // making any Pro requests
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                session.newUser();
-                new ProRequest(context, false, null).execute("plans");
-            }
-        }, 4000);
-
         checkUpdateAfterDelay();
-    }
-
-    @org.greenrobot.eventbus.Subscribe 
-    public void onEvent(ProPlan plan) {
-        Log.d(TAG, "Got a new PLAN: " + plan.getPlanId());
-        session.savePlan(getResources(), plan);
     }
 
     @Override
@@ -205,31 +195,27 @@ public class LanternMainActivity extends AppCompatActivity {
         if (session.isProUser()) {
             // hide data usage summary view right away if its a Pro user
             dataUsageView.setVisibility(View.GONE);
-            new ProRequest(LanternMainActivity.this, false, null).execute("userdata");
+            //new ProRequest(LanternMainActivity.this, false, null).execute("userdata");
         }
 
         setBtnStatus();
         setupSideMenu();
         showFeedview();
-
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (!isFinishing()) {
-                    setBandwidthQuota();
-                }
-            }
-        }, 7000);
+        firstRun = false;
 	}
 
-	private void setBandwidthQuota() {
+    @Click(R.id.progressBar)
+    public void feedProgressClicked(View view) {
+        progressBar.setVisibility(View.GONE);
+        showFeedError();
+    }
+
+	private void setBandwidthUpdate(long quota, long remaining) {
         if (session.isProUser()) {
             // do nothing data-related if its a pro user
             return;
         }
 
-        long quota = Lantern.GetBandwidthQuota();
-        long remaining = Lantern.GetBandwidthRemaining();
         if (remaining < 0 || remaining > 500) {
             return;
         }
@@ -237,7 +223,7 @@ public class LanternMainActivity extends AppCompatActivity {
         String dataFmt = getResources().getString(R.string.data_remaining);
         String amount = String.format(dataFmt, remaining);
         if (remaining < 5) {
-            final LanternMainActivity activity = LanternMainActivity.this;
+            /*final LanternMainActivity activity = LanternMainActivity.this;
             Utils.showSnackbar(coordinatorLayout,
                     getResources().getString(R.string.data_cap),
                     getResources().getString(R.string.upgrade),
@@ -248,7 +234,7 @@ public class LanternMainActivity extends AppCompatActivity {
                             Intent intent = new Intent(activity, PlansActivity_.class);
                             activity.startActivity(intent);
                         }
-                    });
+                    });*/
         }
 
         dataRemaining.setText(amount);
@@ -256,6 +242,14 @@ public class LanternMainActivity extends AppCompatActivity {
             dataProgressBar.setProgress((int)quota);
         }
     }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEventMainThread(Bandwidth update) {
+        if (update != null) {
+            setBandwidthUpdate(update.getQuota(), update.getRemaining());
+        }
+    }
+
 
     // update START/STOP power Lantern button
     // according to our stored preference
@@ -382,7 +376,7 @@ public class LanternMainActivity extends AppCompatActivity {
 
         menuMap.put(resources.getString(R.string.send_logs), new Command() {
             public void runCommand() {
-                new MailSender(LanternMainActivity.this, "user-send-logs").execute("");
+                new MailSender(LanternMainActivity.this, "user-send-logs").execute("todd@getlantern.org");
             }
         });
 
@@ -558,6 +552,11 @@ public class LanternMainActivity extends AppCompatActivity {
         updateHandler.postDelayed(checkUpdate, 8000);
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEventMainThread(ArrayList<String> sources) {
+        setupFeed(sources);
+    }
+
     // checkUpdateAvailable compares the current app version with the latest available
     // - If an update is available, we start the Update activity
     //   and prompt the user to download it
@@ -617,22 +616,16 @@ public class LanternMainActivity extends AppCompatActivity {
         if (session.showFeed()) {
             feedView.setVisibility(View.VISIBLE);
             removeRule(lp, RelativeLayout.CENTER_VERTICAL);
+            if (!firstRun) {
+                new GetFeed(this).execute(session.shouldProxy());
+            }
 
-            final boolean shouldProxy = session.shouldProxy();
-            final LanternMainActivity activity = this;
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    new GetFeed(activity).execute(shouldProxy);
-                }
-            }, 5000);
         } else {
             feedView.setVisibility(View.INVISIBLE);
             lp.addRule(RelativeLayout.CENTER_VERTICAL);
         }
         powerLantern.setLayoutParams(lp);
     }
-
     // removeRule updates a relative layout to remove the given rule
     // note: removeRule was only added in API level 17
     private void removeRule(RelativeLayout.LayoutParams lp, int rule) {
@@ -883,6 +876,8 @@ public class LanternMainActivity extends AppCompatActivity {
     }
 
     public void setupFeed(final ArrayList<String> sources) {
+
+        progressBar.setVisibility(View.GONE);
 
         final FragmentPagerItems.Creator c = FragmentPagerItems.with(this);
 

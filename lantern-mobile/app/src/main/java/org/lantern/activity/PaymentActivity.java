@@ -114,8 +114,7 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
         final Context context = PaymentActivity.this;
 
         dialog = new ProgressDialog(context);
-        dialog.setCancelable(false);
-        dialog.setCanceledOnTouchOutside(false);
+        dialog.setCancelable(true);
 
         dialog.setMessage(context.getResources().getString(R.string.sending_request));
 
@@ -230,6 +229,15 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
         startActivity(new Intent(this, WelcomeActivity_.class));
     }
 
+	@Override
+	public void onDestroy() {
+    	super.onDestroy();
+		if (dialog != null) {
+        	dialog.dismiss();
+			dialog = null;
+		}
+	}
+
     private void finishProgress(String email, String token) {
 
         String currency = session.getSelectedPlanCurrency();
@@ -244,6 +252,10 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
     }
 
     private void handleError(String error) {
+		if (dialog != null && dialog.isShowing()) {
+			dialog.dismiss();
+		}         
+
         DialogFragment fragment = ErrorDialogFragment.newInstance(R.string.validation_errors, error);
         fragment.show(getSupportFragmentManager(), "error");
     }

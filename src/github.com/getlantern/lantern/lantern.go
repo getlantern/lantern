@@ -64,6 +64,11 @@ type StartResult struct {
 	SOCKS5Addr string
 }
 
+type UserConfig interface {
+	AfterStart()
+	BandwidthUpdate(int, int)
+}
+
 type FeedProvider feed.FeedProvider
 type FeedRetriever feed.FeedRetriever
 type Updater autoupdate.Updater
@@ -81,12 +86,12 @@ type Updater autoupdate.Updater
 // start to use it, even as it finishes its initialization sequence. However,
 // initial activity may be slow, so clients with low read timeouts may
 // time out.
-func Start(configDir string, timeoutMillis int) (*StartResult, error) {
+func Start(configDir string, timeoutMillis int, user UserConfig) (*StartResult, error) {
 
 	appdir.SetHomeDir(configDir)
 
 	startOnce.Do(func() {
-		go run(configDir)
+		go run(configDir, user)
 	})
 
 	start := time.Now()
@@ -120,7 +125,7 @@ func (uc *userConfig) GetUserID() int64 {
 	return 0
 }
 
-func run(configDir string) {
+func run(configDir string, user UserConfig) {
 	flags := make(map[string]interface{})
 	flags["staging"] = false
 
@@ -149,13 +154,40 @@ func run(configDir string) {
 		false,         // don't make config sticky
 		func() bool { return true }, // proxy all requests
 		flags,
-		func(cfg *config.Config) bool { return true }, // beforeStart()
-		func(cfg *config.Config) {},                   // afterStart()
-		func(cfg *config.Config) {},                   // onConfigUpdate
+		func(cfg *config.Config) bool {
+			beforeStart(cfg, user)
+			return true
+		},
+		func(cfg *config.Config) {
+			afterStart(cfg, user)
+		},
+		func(cfg *config.Config) {}, // onConfigUpdate
 		&userConfig{},
 		func(err error) {}, // onError
 		base64.StdEncoding.EncodeToString(uuid.NodeID()),
 	)
+}
+
+func beforeStart(cfg *config.Config, user UserConfig) {
+	go func() {
+		for quota := range bandwidth.Updates {
+			remaining := 0
+			percent := 100
+			if quota != nil {
+				log.Debugf("Got bandwidth update..")
+				if quota.MiBUsed <= quota.MiBAllowed {
+					remaining = int(quota.MiBAllowed - quota.MiBUsed)
+					percent = int(100 * (float64(quota.MiBUsed) / float64(quota.MiBAllowed)))
+				}
+				user.BandwidthUpdate(remaining, percent)
+			}
+
+		}
+	}()
+}
+
+func afterStart(cfg *config.Config, user UserConfig) {
+	user.AfterStart()
 }
 
 // CheckForUpdates checks to see if a new version of Lantern is available

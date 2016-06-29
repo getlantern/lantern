@@ -32,7 +32,7 @@ import org.greenrobot.eventbus.Subscribe;
 
 import go.lantern.Lantern;
 
-public class SessionManager implements Lantern.Session {
+public class SessionManager implements Lantern.Session, Lantern.UserConfig {
 
     private static final String TAG = "SessionManager";
 
@@ -477,13 +477,24 @@ public class SessionManager implements Lantern.Session {
             boolean updateProxySettings = true;
 
             StartResult result = org.lantern.mobilesdk.Lantern.enable(this.context,
-                startTimeoutMillis, updateProxySettings, analyticsTrackingID);
+                startTimeoutMillis, updateProxySettings, analyticsTrackingID, this);
 
             return result.getHTTPAddr();
         }  catch (LanternNotRunningException lnre) {
             throw new RuntimeException("Lantern failed to start: " + lnre.getMessage(), lnre);
         }
     }
+
+    public void BandwidthUpdate(long quota, long remaining) {
+        EventBus.getDefault().post(new Bandwidth(quota, remaining));
+    }
+
+    public void AfterStart() {
+        newUser();
+        new GetFeed(this.context).execute(shouldProxy());
+        new ProRequest(this.context, false, null).execute("plans");
+    }
+
 
 	public boolean shouldProxy() {
         return !"".equals(startLocalProxy());

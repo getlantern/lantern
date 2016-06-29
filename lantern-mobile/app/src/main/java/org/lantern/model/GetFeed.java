@@ -1,5 +1,7 @@
 package org.lantern.model;
 
+import android.app.Activity;
+import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.view.View;
@@ -11,35 +13,25 @@ import org.lantern.R;
 import java.util.ArrayList; 
 import java.util.Locale;
 
+import org.greenrobot.eventbus.EventBus;
+
 import go.lantern.Lantern;
 
 public class GetFeed extends AsyncTask<Boolean, Void, ArrayList<String>> {
     private static final String TAG = "GetFeed";
 
+    private Context context;
     private LanternMainActivity activity;
     private String allString;
     private ProgressBar progressBar;
 
-    public GetFeed(LanternMainActivity activity) {
-        this.activity = activity;
-        this.allString = activity.getResources().getString(R.string.all_feeds);
-        progressBar = (ProgressBar)activity.findViewById(R.id.progressBar);
-    }
-
-    @Override
-    protected void onPreExecute() {
-        super.onPreExecute();
-        // show progress bar
-        progressBar.setVisibility(View.VISIBLE);
+    public GetFeed(Context context) {
+        this.context = context;
+        this.allString = context.getResources().getString(R.string.all_feeds);
     }
 
     @Override
     protected ArrayList<String> doInBackground(Boolean... params) {
-
-        if (!Utils.isNetworkAvailable(activity)) {
-            // if there is no network connection, return right away
-            return null;
-        }
 
         boolean shouldProxy = params[0];
         String locale = Locale.getDefault().toString();
@@ -58,8 +50,10 @@ public class GetFeed extends AsyncTask<Boolean, Void, ArrayList<String>> {
     protected void onPostExecute(ArrayList<String> sources) {
         super.onPostExecute(sources);
 
-        progressBar.setVisibility(View.GONE);
-        activity.setupFeed(sources);
+        if (progressBar != null) {
+            progressBar.setVisibility(View.GONE);
+        }
+        EventBus.getDefault().post(sources);
     }
 }   
 
