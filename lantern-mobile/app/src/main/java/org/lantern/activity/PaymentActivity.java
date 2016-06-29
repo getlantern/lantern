@@ -49,13 +49,16 @@ import info.hoang8f.android.segmented.SegmentedGroup;
 public class PaymentActivity extends FragmentActivity implements ProResponse, View.OnClickListener {
 
     private static final String TAG = "PaymentActivity";
-    public static final String CHECKOUT_URL = "file:///android_asset/checkout.html?price=%d&currency=%s";
+    public static final String CHECKOUT_URL = "file:///android_asset/checkout.html?key=%s&price=%d&currency=%s";
 
     private SessionManager session;
 
     private long chargeAmount;
 
     private ProgressDialog dialog;
+
+	private boolean isDebuggable;
+	private String apiKey;
 
     @FragmentById(R.id.payment_form)
     PaymentFormFragment paymentForm;
@@ -83,6 +86,11 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
 
     @AfterViews
     void afterViews() {
+	    isDebuggable =  ( 0 != ( getApplicationInfo().flags &= ApplicationInfo.FLAG_DEBUGGABLE ) );
+		apiKey = isDebuggable ?
+			"pk_test_4MSPZvz9QtXGWEKdODmzV9ql" :
+			getString(R.string.stripe_publishable_key);
+
         session = LanternApp.getSession();
 
         segmented.setTintColor(getResources().getColor(R.color.pro_blue_color));
@@ -147,7 +155,12 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
     public static void openAlipayWebview(Context c, SessionManager session) {
         Log.d(TAG, "Opening Alipay in a webview!!");
 		long amount = session.getSelectedPlanCost();
-		String url = String.format(CHECKOUT_URL, amount, session.Currency());
+		boolean isDebuggable =  ( 0 != ( c.getApplicationInfo().flags &= ApplicationInfo.FLAG_DEBUGGABLE ) );
+		String apiKey = isDebuggable ?
+			"pk_test_4MSPZvz9QtXGWEKdODmzV9ql" :
+			c.getString(R.string.stripe_publishable_key);
+
+		String url = String.format(CHECKOUT_URL, apiKey, amount, session.Currency());
 
         new FinestWebView.Builder((Activity)c)
             .webViewSupportMultipleWindows(true)
@@ -168,10 +181,6 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
         }
 
         Log.d(TAG, "Submit card button clicked..");
-        boolean isDebuggable =  ( 0 != ( getApplicationInfo().flags &= ApplicationInfo.FLAG_DEBUGGABLE ) );
-        final String publishableApiKey = isDebuggable ?
-            "pk_test_4MSPZvz9QtXGWEKdODmzV9ql" :
-            getString(R.string.stripe_publishable_key);
         Card card = new Card(
                 paymentForm.getCardNumber(),
                 paymentForm.getExpMonth(),
@@ -182,7 +191,7 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
         if (validation) {
             dialog.show();
             Stripe stripe = new Stripe();
-            stripe.createToken(card, publishableApiKey, new TokenCallback() {
+            stripe.createToken(card, apiKey, new TokenCallback() {
                 public void onSuccess(Token token) {
                     finishProgress(emailInput.getText().toString(), token.getId());
                 }
