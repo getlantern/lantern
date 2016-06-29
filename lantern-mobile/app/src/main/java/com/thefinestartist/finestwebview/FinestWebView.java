@@ -127,6 +127,7 @@ public class FinestWebView {
         protected Boolean webViewDisplayZoomControls;
         protected Boolean webViewAllowFileAccess;
         protected String webViewProxyAddr;
+        protected Boolean webViewInsideScrollStyle;
         protected WebViewClient webViewClient;
         protected Boolean webViewAllowContentAccess;
         protected Boolean webViewLoadWithOverviewMode;
@@ -703,6 +704,11 @@ public class FinestWebView {
 
         public Builder webViewLoadWithProxy(String webViewProxyAddr) {
             this.webViewProxyAddr = webViewProxyAddr;
+            return this;
+        }
+
+        public Builder webViewInsideScrollStyle(boolean insideStyle) {
+            this.webViewInsideScrollStyle = insideStyle;
             return this;
         }
 

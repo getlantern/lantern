@@ -165,6 +165,7 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
         new FinestWebView.Builder((Activity)c)
             .webViewSupportMultipleWindows(true)
             .webViewJavaScriptEnabled(true)
+			.webViewInsideScrollStyle(true)
             .swipeRefreshColorRes(R.color.black)
             .webViewAllowFileAccessFromFileURLs(true)
             .webViewJavaScriptCanOpenWindowsAutomatically(true)

@@ -173,6 +173,7 @@ public class FinestWebViewActivity extends AppCompatActivity implements AppBarLa
     protected String webViewStandardFontFamily;
     protected String webViewFixedFontFamily;
     protected String webViewProxyAddr;
+    protected Boolean webViewInsideScrollStyle;
     protected WebViewClient webViewClient;
     protected String webViewSansSerifFontFamily;
     protected String webViewSerifFontFamily;
@@ -701,6 +702,11 @@ public class FinestWebViewActivity extends AppCompatActivity implements AppBarLa
                 settings.setMixedContentMode(webViewMixedContentMode);
             if (webViewOffscreenPreRaster != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
                 settings.setOffscreenPreRaster(webViewOffscreenPreRaster);
+
+
+            if (webViewInsideScrollStyle != null) {
+                webView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
+            }
 
 //            // Other webview options
 //            webView.setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY);
