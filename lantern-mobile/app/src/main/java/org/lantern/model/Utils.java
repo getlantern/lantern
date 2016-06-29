@@ -173,7 +173,8 @@ public class Utils {
     }
 
 
-    public static void showAlertDialog(Activity activity, String title, String msg) {
+    public static void showAlertDialog(final Activity activity, String title, String msg, 
+        final boolean finish) {
         Log.d(TAG, "Showing alert dialog...");
 
         AlertDialog alertDialog = new AlertDialog.Builder(activity).create();
@@ -183,6 +184,9 @@ public class Utils {
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
+                        if (finish) {
+                            activity.finish();
+                        }
                     }
         }
         );

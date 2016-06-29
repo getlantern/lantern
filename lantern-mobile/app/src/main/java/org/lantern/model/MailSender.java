@@ -143,7 +143,7 @@ public class MailSender extends AsyncTask<String, Void, Boolean> {
         if (dialog != null && dialog.isShowing()) {
             dialog.dismiss();
         }
-        Utils.showAlertDialog((Activity)context, "Lantern", getResponseMessage(success));
+        Utils.showAlertDialog((Activity)context, "Lantern", getResponseMessage(success), false);
     }
 
     private void addSendLogs() {

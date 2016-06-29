@@ -520,7 +520,7 @@ public class LanternMainActivity extends AppCompatActivity {
 
         String noUpdateTitle = getResources().getString(R.string.no_update_available);
         String noUpdateMsg = String.format(getResources().getString(R.string.have_latest_version), appVersion);
-        Utils.showAlertDialog(this, noUpdateTitle, noUpdateMsg);
+        Utils.showAlertDialog(this, noUpdateTitle, noUpdateMsg, false);
     }
 
     // checkUpdateAfterDelay checks to see if a newer version of Lantern is available
@@ -591,7 +591,7 @@ public class LanternMainActivity extends AppCompatActivity {
             // An error occurred trying to check for a new version of Lantern
             if (userClicked) {
                 Utils.showAlertDialog(this, "Lantern",
-                        getResources().getString(R.string.error_checking_for_update));
+                        getResources().getString(R.string.error_checking_for_update), false);
             }
             return;
         }
@@ -689,7 +689,7 @@ public class LanternMainActivity extends AppCompatActivity {
                 // User tried to turn Lantern on, but there's no
                 // Internet connection available.
                 Utils.showAlertDialog(this, "Lantern",
-                        getResources().getString(R.string.no_internet_connection));
+                        getResources().getString(R.string.no_internet_connection), false);
             }
             return;
         }

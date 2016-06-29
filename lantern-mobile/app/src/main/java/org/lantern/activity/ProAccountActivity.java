@@ -151,8 +151,7 @@ public class ProAccountActivity extends FragmentActivity {
             Resources res = getResources();
 
             Utils.showAlertDialog(this, res.getString(R.string.only_one_device),
-                    res.getString(R.string.sorry_cannot_remove));
-            finish();
+                    res.getString(R.string.sorry_cannot_remove), true);
             return;
         }
 

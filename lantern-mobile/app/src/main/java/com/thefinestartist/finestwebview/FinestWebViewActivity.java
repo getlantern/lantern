@@ -1088,12 +1088,13 @@ public class FinestWebViewActivity extends AppCompatActivity implements AppBarLa
         if (!success) {
             Utils.showAlertDialog(FinestWebViewActivity.this, 
                     getResources().getString(R.string.app_name),
-                    getResources().getString(R.string.invalid_payment_method));
+                    getResources().getString(R.string.invalid_payment_method), true);
             return;
         }
 
         session.linkDevice();
         session.setIsProUser(true);
+        finish();
         startActivity(new Intent(FinestWebViewActivity.this, WelcomeActivity_.class));
     }              
 
@@ -1141,7 +1142,6 @@ public class FinestWebViewActivity extends AppCompatActivity implements AppBarLa
                     Log.d(TAG, "Got stripe token and email!!! " + stripeToken + " " + email);
                     finishProgress(email, stripeToken);
                 }
-                finish();
                 return true;
             } else if (url.endsWith(".mp4")) {
                 Intent intent = new Intent(Intent.ACTION_VIEW);
