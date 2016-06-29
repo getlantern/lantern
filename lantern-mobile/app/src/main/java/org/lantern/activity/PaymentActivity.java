@@ -1,5 +1,6 @@
 package org.lantern.activity;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -143,21 +144,12 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
         }
     }
 
-    public static void openAlipay(Context c, SessionManager session) {
-        Log.d(TAG, "Chinese user detected; opening Alipay by default");
-        long amount = session.getSelectedPlanCost();
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        String url = String.format(CHECKOUT_URL, amount, session.Currency());
-        intent.setData(Uri.parse(url));
-        c.startActivity(intent);
-    }
-
-    private void openAlipayWebview(Context c, SessionManager session) {
+    public static void openAlipayWebview(Context c, SessionManager session) {
         Log.d(TAG, "Opening Alipay in a webview!!");
 		long amount = session.getSelectedPlanCost();
 		String url = String.format(CHECKOUT_URL, amount, session.Currency());
 
-        new FinestWebView.Builder(this)
+        new FinestWebView.Builder((Activity)c)
             .webViewSupportMultipleWindows(true)
             .webViewJavaScriptEnabled(true)
             .swipeRefreshColorRes(R.color.black)

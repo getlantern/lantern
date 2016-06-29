@@ -139,7 +139,7 @@ public class PlansActivity extends FragmentActivity {
                 startActivity(new Intent(this, PaymentActivity_.class));
                 return;
             } 
-            PaymentActivity.openAlipay(PlansActivity.this, session);
+            PaymentActivity.openAlipayWebview(PlansActivity.this, session);
         }
     }
 }  
