@@ -28,9 +28,11 @@ func TestProxy(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
+	req.Header.Set("Origin", "a.com")
 	resp, err := (&http.Client{}).Do(req)
 	if assert.NoError(t, err, "OPTIONS request should succeed") {
 		assert.Equal(t, 200, resp.StatusCode, "should respond 200 to OPTIONS")
+		assert.Equal(t, "a.com", resp.Header.Get("Access-Control-Allow-Origin"), "should respond with correct header")
 		_ = resp.Body.Close()
 	}
 	assert.Nil(t, m.req, "should not pass the OPTIONS request to origin server")
@@ -40,6 +42,7 @@ func TestProxy(t *testing.T) {
 	resp, err = (&http.Client{}).Do(req)
 	if assert.NoError(t, err, "GET request should have no error") {
 		assert.Equal(t, 200, resp.StatusCode, "should respond 200 ok")
+		assert.Equal(t, "a.com", resp.Header.Get("Access-Control-Allow-Origin"), "should respond with correct header")
 		msg, _ := ioutil.ReadAll(resp.Body)
 		_ = resp.Body.Close()
 		assert.Equal(t, "GOOD", string(msg), "should respond expected body")
@@ -59,6 +62,7 @@ func (m *mockRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) 
 	m.req = req
 	resp := &http.Response{
 		StatusCode: 200,
+		Header:     http.Header{},
 		Body:       ioutil.NopCloser(strings.NewReader(m.msg)),
 	}
 	return resp, nil
