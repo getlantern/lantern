@@ -48,6 +48,8 @@ func (pt *proxyTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 		log.Error("Trying to proxy pro before we have a client")
 		return nil, errors.New("Missing client.")
 	}
+	// Workaround for https://github.com/getlantern/pro-server/issues/192
+	req.Header.Del("Origin")
 	return client.(*http.Client).Do(req)
 }
 
