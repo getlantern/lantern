@@ -89,7 +89,7 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
 	    isDebuggable =  ( 0 != ( getApplicationInfo().flags &= ApplicationInfo.FLAG_DEBUGGABLE ) );
 		apiKey = isDebuggable ?
 			"pk_test_4MSPZvz9QtXGWEKdODmzV9ql" :
-			getString(R.string.stripe_publishable_key);
+			"pk_live_4MSPfR6qNHMwjG86TZJv4NI0";
 
         session = LanternApp.getSession();
 
@@ -155,11 +155,11 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
         Log.d(TAG, "Opening Alipay in a webview!!");
 		long amount = session.getSelectedPlanCost();
 		boolean isDebuggable =  ( 0 != ( c.getApplicationInfo().flags &= ApplicationInfo.FLAG_DEBUGGABLE ) );
-		String apiKey = isDebuggable ?
+		String key = isDebuggable ?
 			"pk_test_4MSPZvz9QtXGWEKdODmzV9ql" :
-			c.getString(R.string.stripe_publishable_key);
+			"pk_live_4MSPfR6qNHMwjG86TZJv4NI0";
 
-		String url = String.format(CHECKOUT_URL, apiKey, amount, session.Currency());
+		String url = String.format(CHECKOUT_URL, key, amount, session.Currency());
 
         new FinestWebView.Builder((Activity)c)
             .webViewSupportMultipleWindows(true)
