@@ -44,4 +44,21 @@
     <color name="ksw_md_solid_disable">#BDBDBD</color>
     <color name="ksw_md_solid_checked_disable">#aaaaaa</color>
 
+    <color name="finestWhite10">#1AFFFFFF</color>
+    <color name="finestWhite20">#33FFFFFF</color>
+    <color name="finestWhite30">#4DFFFFFF</color>
+
+    <color name="finestGray10">#1AD2D2D2</color>
+    <color name="finestGray20">#33D2D2D2</color>
+
+    <color name="finestBlack05">#0D202020</color>
+    <color name="finestBlack10">#1A202020</color>
+    <color name="finestBlack20">#33202020</color>
+    <color name="finestBlack30">#4D202020</color>
+    <color name="finestBlack40">#66202020</color>
+
+    <color name="finestWhite">#FFFFFF</color>
+    <color name="finestBlack">#000000</color>
+    <color name="finestSilver">#A5A5A5</color>
+    <color name="finestGray">#E7E7E7</color>
 </resources>

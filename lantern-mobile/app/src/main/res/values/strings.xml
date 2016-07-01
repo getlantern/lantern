@@ -91,7 +91,7 @@
     <string name="get_code">Get Code</string>
     <string name="get_code_text">Enter your email to receive a code to share with your friends, get a free month of PRO when they sign up!</string>
     <string name="enter_your_email">Enter your email to receive a referral code</string>
-    <string name="copied_to_clipboard">Referral code copied to clipboard!</string>
+    <string name="referral_copied_to_clipboard">Referral code copied to clipboard!</string>
     <string name="share_referral_text">Use my code %1$s to get up to 3 additional months free after purchase. Download Lantern https://bit.ly/lanternapk</string>
     <string name="previous_code">If you have previously received a referral code\r\nplease make sure to use the same email address.</string>
     <string name="payment_plans">Lantern PRO Payment Plans</string>
@@ -190,5 +190,11 @@
     <string name="item_image_contentDescription">Country flag</string>
     <string name="item_preview_country">United States</string>
     <string name="item_preview_dialCode">+1</string>
-    <string name="stripe_publishable_key"></string>
+
+	<string name="refresh">Refresh</string>
+	<string name="find">Find</string>
+	<string name="share_via">Share via</string>
+	<string name="copy_link">Copy Link</string>
+	<string name="open_with">Open with</string>
+	<string name="copied_to_clipboard">Copied to clipboard</string>
 </resources>

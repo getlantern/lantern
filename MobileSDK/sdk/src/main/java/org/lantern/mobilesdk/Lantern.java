@@ -10,6 +10,9 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import go.lantern.Lantern.UserConfig;
+ 
+
 /**
  * API for embedding the Lantern proxy
  */
@@ -37,10 +40,10 @@ public abstract class Lantern {
      * lantern
      */
     public static StartResult enable(Context context, int timeoutMillis, boolean updateProxySettings,
-            String analyticsTrackingId)
+            String analyticsTrackingId, UserConfig user)
             throws LanternNotRunningException {
         return doEnable(context, timeoutMillis, analyticsTrackingId, updateProxySettings,
-                "org.lantern.mobilesdk.embedded.EmbeddedLantern");
+                "org.lantern.mobilesdk.embedded.EmbeddedLantern", user);
     }
 
     /**
@@ -54,17 +57,18 @@ public abstract class Lantern {
      * @throws LanternNotRunningException
      */
     public static StartResult enableAsService(Context context, int timeoutMillis, boolean updateProxySettings, 
-            String analyticsTrackingId)
+            String analyticsTrackingId, UserConfig user)
             throws LanternNotRunningException {
         return doEnable(context, timeoutMillis, analyticsTrackingId, updateProxySettings, 
-                "org.lantern.mobilesdk.LanternServiceManager");
+                "org.lantern.mobilesdk.LanternServiceManager", user);
     }
 
     private synchronized static StartResult doEnable(Context context, int timeoutMillis,
-            String analyticsTrackingId, boolean updateProxySettings, String implClassName)
+            String analyticsTrackingId, boolean updateProxySettings, 
+            String implClassName, UserConfig user)
             throws LanternNotRunningException {
         Lantern lantern = instanceOf(implClassName);
-        StartResult result = lantern.start(context, timeoutMillis);
+        StartResult result = lantern.start(context, timeoutMillis, user);
         if (updateProxySettings) {
             proxyOn(result.getHTTPAddr());
         }
@@ -95,7 +99,7 @@ public abstract class Lantern {
         }
     }
 
-    protected abstract StartResult start(Context context, int timeoutMillis) throws LanternNotRunningException;
+    protected abstract StartResult start(Context context, int timeoutMillis, UserConfig user) throws LanternNotRunningException;
 
     private static void proxyOn(String addr) {
         int lastIndexOfColon = addr.lastIndexOf(':');

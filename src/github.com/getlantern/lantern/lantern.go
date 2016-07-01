@@ -64,6 +64,11 @@ type StartResult struct {
 	SOCKS5Addr string
 }
 
+type UserConfig interface {
+	AfterStart()
+	BandwidthUpdate(int, int)
+}
+
 type FeedProvider feed.FeedProvider
 type FeedRetriever feed.FeedRetriever
 type Updater autoupdate.Updater
@@ -81,12 +86,12 @@ type Updater autoupdate.Updater
 // start to use it, even as it finishes its initialization sequence. However,
 // initial activity may be slow, so clients with low read timeouts may
 // time out.
-func Start(configDir string, timeoutMillis int) (*StartResult, error) {
+func Start(configDir string, timeoutMillis int, user UserConfig) (*StartResult, error) {
 
 	appdir.SetHomeDir(configDir)
 
 	startOnce.Do(func() {
-		go run(configDir)
+		go run(configDir, user)
 	})
 
 	start := time.Now()
@@ -120,7 +125,7 @@ func (uc *userConfig) GetUserID() int64 {
 	return 0
 }
 
-func run(configDir string) {
+func run(configDir string, user UserConfig) {
 	flags := make(map[string]interface{})
 	flags["staging"] = false
 
@@ -149,13 +154,51 @@ func run(configDir string) {
 		false,         // don't make config sticky
 		func() bool { return true }, // proxy all requests
 		flags,
-		func(cfg *config.Config) bool { return true }, // beforeStart()
-		func(cfg *config.Config) {},                   // afterStart()
-		func(cfg *config.Config) {},                   // onConfigUpdate
+		func(cfg *config.Config) bool {
+			beforeStart(cfg, user)
+			return true
+		},
+		func(cfg *config.Config) {
+			afterStart(cfg, user)
+		},
+		func(cfg *config.Config) {}, // onConfigUpdate
 		&userConfig{},
 		func(err error) {}, // onError
 		base64.StdEncoding.EncodeToString(uuid.NodeID()),
 	)
+}
+
+func beforeStart(cfg *config.Config, user UserConfig) {
+	go func() {
+		for quota := range bandwidth.Updates {
+
+			remaining := 0
+			percent := 100
+			if quota == nil {
+				continue
+			}
+
+			allowed := quota.MiBAllowed
+			if allowed < 0 || allowed > 50000000 {
+				continue
+			}
+
+			log.Debugf("Bandwidth: allowed %v used %v", quota.MiBAllowed, quota.MiBUsed)
+			if quota.MiBUsed >= quota.MiBAllowed {
+				percent = 100
+				remaining = 0
+			} else {
+				percent = int(100 * (float64(quota.MiBUsed) / float64(quota.MiBAllowed)))
+				remaining = int(quota.MiBAllowed - quota.MiBUsed)
+			}
+
+			user.BandwidthUpdate(percent, remaining)
+		}
+	}()
+}
+
+func afterStart(cfg *config.Config, user UserConfig) {
+	user.AfterStart()
 }
 
 // CheckForUpdates checks to see if a new version of Lantern is available
@@ -168,28 +211,6 @@ func CheckForUpdates(shouldProxy bool) (string, error) {
 // file destination.
 func DownloadUpdate(url, apkPath string, shouldProxy bool, updater Updater) {
 	autoupdate.UpdateMobile(shouldProxy, url, apkPath, updater)
-}
-
-func GetBandwidthRemaining() int {
-	remaining := 0
-	quota := bandwidth.GetQuota()
-	if quota != nil {
-		if quota.MiBUsed < quota.MiBAllowed {
-			remaining = int(quota.MiBAllowed - quota.MiBUsed)
-		}
-	}
-	return remaining
-}
-
-func GetBandwidthQuota() int {
-	percent := 1.0
-	quota := bandwidth.GetQuota()
-	if quota != nil {
-		if quota.MiBUsed <= quota.MiBAllowed {
-			percent = (float64(quota.MiBUsed) / float64(quota.MiBAllowed))
-		}
-	}
-	return int(100.0 * percent)
 }
 
 func GetFeed(locale string, allStr string, shouldProxy bool, provider FeedProvider) {

@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/menuLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clickable="true"
+    android:focusable="true"
+    android:onClick="onClick"
+    android:orientation="vertical"
+    android:visibility="gone">
+
+    <com.thefinestartist.finestwebview.views.ShadowLayout
+        android:id="@+id/shadowLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        app:slCornerRadius="@dimen/defaultMenuDropShadowCornerRadius"
+        app:slShadowColor="@color/finestBlack10"
+        app:slShadowSize="@dimen/defaultMenuDropShadowSize">
+
+        <LinearLayout
+            android:id="@+id/menuBackground"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="8dp"
+            android:paddingTop="8dp">
+
+            <LinearLayout
+                android:id="@+id/menuRefresh"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@drawable/selector_light_theme"
+                android:gravity="center_vertical|left"
+                android:onClick="onClick">
+
+                <TextView
+                    android:id="@+id/menuRefreshTv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:includeFontPadding="false"
+                    android:paddingLeft="16dp"
+                    android:paddingRight="32dp"
+                    android:singleLine="true"
+                    android:text="@string/refresh"
+                    android:textColor="@color/finestBlack"
+                    android:textSize="@dimen/defaultMenuTextSize" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/menuFind"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@drawable/selector_light_theme"
+                android:gravity="center_vertical|left"
+                android:onClick="onClick">
+
+                <TextView
+                    android:id="@+id/menuFindTv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:includeFontPadding="false"
+                    android:paddingLeft="16dp"
+                    android:paddingRight="32dp"
+                    android:singleLine="true"
+                    android:text="@string/find"
+                    android:textColor="@color/finestBlack"
+                    android:textSize="@dimen/defaultMenuTextSize" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/menuShareVia"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@drawable/selector_light_theme"
+                android:gravity="center_vertical|left"
+                android:onClick="onClick">
+
+                <TextView
+                    android:id="@+id/menuShareViaTv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:includeFontPadding="false"
+                    android:paddingLeft="16dp"
+                    android:paddingRight="32dp"
+                    android:singleLine="true"
+                    android:text="@string/share_via"
+                    android:textColor="@color/finestBlack"
+                    android:textSize="@dimen/defaultMenuTextSize" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/menuCopyLink"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@drawable/selector_light_theme"
+                android:gravity="center_vertical|left"
+                android:onClick="onClick">
+
+                <TextView
+                    android:id="@+id/menuCopyLinkTv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:includeFontPadding="false"
+                    android:paddingLeft="16dp"
+                    android:paddingRight="32dp"
+                    android:singleLine="true"
+                    android:text="@string/copy_link"
+                    android:textColor="@color/finestBlack"
+                    android:textSize="@dimen/defaultMenuTextSize" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/menuOpenWith"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@drawable/selector_light_theme"
+                android:gravity="center_vertical|left"
+                android:onClick="onClick">
+
+                <TextView
+                    android:id="@+id/menuOpenWithTv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:includeFontPadding="false"
+                    android:paddingLeft="16dp"
+                    android:paddingRight="32dp"
+                    android:singleLine="true"
+                    android:text="@string/open_with"
+                    android:textColor="@color/finestBlack"
+                    android:textSize="@dimen/defaultMenuTextSize" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </com.thefinestartist.finestwebview.views.ShadowLayout>
+</RelativeLayout>

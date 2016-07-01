@@ -21,6 +21,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.HashMap;
 
+import org.lantern.LanternApp;
+import org.lantern.model.GetFeed;
+import org.lantern.model.SessionManager;
 import org.lantern.model.LangAdapter;
 import org.lantern.model.ProRequest;
 import org.lantern.R;
@@ -33,12 +36,15 @@ public class LanguageActivity extends FragmentActivity {
     private LangAdapter adapter;
     private static ArrayList<String> languages;
     private static Map<String, Locale> localeMap;
+    private SessionManager session;
 
     @ViewById(R.id.list)
     ListView list;
 
     @AfterViews
     void afterViews() {
+        session = LanternApp.getSession();
+
         languages = new ArrayList<String>();
         localeMap = new HashMap<String, Locale>();
 
@@ -151,6 +157,7 @@ public class LanguageActivity extends FragmentActivity {
         conf.locale = locale; 
         getBaseContext().getResources().updateConfiguration(conf, dm); 
         new ProRequest(getApplicationContext(), false, null).execute("plans");  
+        new GetFeed(LanguageActivity.this).execute(session.shouldProxy());
         Intent refresh = new Intent(this, LanternMainActivity_.class); 
         refresh.setAction("restart");
         refresh.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);

@@ -16,6 +16,11 @@
 #   public *;
 #}
 
+-keep class com.crashlytics.** { *; }
+-keep class com.crashlytics.android.**
+-keep class com.stripe.** { *; }
+-keepattributes Signature
+
 # Ensure annotations are kept for runtime use.
 -keepattributes *Annotation*
 # Don't remove any GreenRobot classes

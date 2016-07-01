@@ -1,15 +1,19 @@
 package org.lantern.activity;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.net.Uri;
+import android.net.UrlQuerySanitizer;
 import android.support.design.widget.CoordinatorLayout;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -38,19 +42,23 @@ import org.lantern.model.Utils;
 import org.lantern.R;
 
 import com.thefinestartist.finestwebview.FinestWebView;
+import com.thefinestartist.finestwebview.FinestWebViewActivity.MyWebViewClient;
 import info.hoang8f.android.segmented.SegmentedGroup;
 
 @EActivity(R.layout.checkout)
 public class PaymentActivity extends FragmentActivity implements ProResponse, View.OnClickListener {
 
     private static final String TAG = "PaymentActivity";
-    public static final String CHECKOUT_URL = "https://s3.amazonaws.com/lantern-android/checkout.html?price=%d&currency=%s";
+    public static final String CHECKOUT_URL = "file:///android_asset/checkout.html?key=%s&price=%d&currency=%s";
 
     private SessionManager session;
 
     private long chargeAmount;
 
     private ProgressDialog dialog;
+
+	private boolean isDebuggable;
+	private String apiKey;
 
     @FragmentById(R.id.payment_form)
     PaymentFormFragment paymentForm;
@@ -78,6 +86,11 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
 
     @AfterViews
     void afterViews() {
+	    isDebuggable =  ( 0 != ( getApplicationInfo().flags &= ApplicationInfo.FLAG_DEBUGGABLE ) );
+		apiKey = isDebuggable ?
+			"pk_test_4MSPZvz9QtXGWEKdODmzV9ql" :
+			"pk_live_4MSPfR6qNHMwjG86TZJv4NI0";
+
         session = LanternApp.getSession();
 
         segmented.setTintColor(getResources().getColor(R.color.pro_blue_color));
@@ -96,13 +109,12 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
 
         chargeAmount = session.getSelectedPlanCost();
         Log.d(TAG, "Charge amount is " + chargeAmount);
-        chargeAmountView.setText(Utils.formatMoney(chargeAmount));
+        chargeAmountView.setText(Utils.formatMoney(session, chargeAmount));
 
         final Context context = PaymentActivity.this;
 
         dialog = new ProgressDialog(context);
-        dialog.setCancelable(false);
-        dialog.setCanceledOnTouchOutside(false);
+        dialog.setCancelable(true);
 
         dialog.setMessage(context.getResources().getString(R.string.sending_request));
 
@@ -129,7 +141,7 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
         switch (v.getId()) {
             case R.id.alipayBtn:
                 Log.d(TAG, "Alipay button pressed");
-                openAlipay(PaymentActivity.this, session);
+                openAlipayWebview(PaymentActivity.this, session);
                 return;
             case R.id.cardBtn:
                 Log.d(TAG, "Card button pressed");
@@ -139,13 +151,27 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
         }
     }
 
-    public static void openAlipay(Context c, SessionManager session) {
-        Log.d(TAG, "Chinese user detected; opening Alipay by default");
-        long amount = session.getSelectedPlanCost();
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        String url = String.format(CHECKOUT_URL, amount, session.Currency());
-        intent.setData(Uri.parse(url));
-        c.startActivity(intent);
+    public static void openAlipayWebview(Context c, SessionManager session) {
+        Log.d(TAG, "Opening Alipay in a webview!!");
+		long amount = session.getSelectedPlanCost();
+		boolean isDebuggable =  ( 0 != ( c.getApplicationInfo().flags &= ApplicationInfo.FLAG_DEBUGGABLE ) );
+		String key = isDebuggable ?
+			"pk_test_4MSPZvz9QtXGWEKdODmzV9ql" :
+			"pk_live_4MSPfR6qNHMwjG86TZJv4NI0";
+
+        String currency = session.getSelectedPlanCurrency();
+
+		String url = String.format(CHECKOUT_URL, key, amount, currency);
+
+        new FinestWebView.Builder((Activity)c)
+            .webViewSupportMultipleWindows(true)
+            .webViewJavaScriptEnabled(true)
+			.webViewInsideScrollStyle(true)
+            .swipeRefreshColorRes(R.color.black)
+            .webViewAllowFileAccessFromFileURLs(true)
+            .webViewJavaScriptCanOpenWindowsAutomatically(true)
+            .webViewLoadWithProxy(session.startLocalProxy())
+            .show(url);
     }
 
     public void submitCard() {
@@ -157,10 +183,6 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
         }
 
         Log.d(TAG, "Submit card button clicked..");
-        boolean isDebuggable =  ( 0 != ( getApplicationInfo().flags &= ApplicationInfo.FLAG_DEBUGGABLE ) );
-        final String publishableApiKey = isDebuggable ?
-            "pk_live_4MSPfR6qNHMwjG86TZJv4NI0" :
-            getString(R.string.stripe_publishable_key);
         Card card = new Card(
                 paymentForm.getCardNumber(),
                 paymentForm.getExpMonth(),
@@ -171,7 +193,7 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
         if (validation) {
             dialog.show();
             Stripe stripe = new Stripe();
-            stripe.createToken(card, publishableApiKey, new TokenCallback() {
+            stripe.createToken(card, apiKey, new TokenCallback() {
                 public void onSuccess(Token token) {
                     finishProgress(emailInput.getText().toString(), token.getId());
                 }
@@ -209,6 +231,15 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
         startActivity(new Intent(this, WelcomeActivity_.class));
     }
 
+	@Override
+	public void onDestroy() {
+    	super.onDestroy();
+		if (dialog != null) {
+        	dialog.dismiss();
+			dialog = null;
+		}
+	}
+
     private void finishProgress(String email, String token) {
 
         String currency = session.getSelectedPlanCurrency();
@@ -223,6 +254,10 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
     }
 
     private void handleError(String error) {
+		if (dialog != null && dialog.isShowing()) {
+			dialog.dismiss();
+		}         
+
         DialogFragment fragment = ErrorDialogFragment.newInstance(R.string.validation_errors, error);
         fragment.show(getSupportFragmentManager(), "error");
     }

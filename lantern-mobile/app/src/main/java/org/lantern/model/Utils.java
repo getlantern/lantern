@@ -93,7 +93,7 @@ public class Utils {
         TextView statusText  = (TextView)statusLayout.findViewById(R.id.statusText);
         ImageView statusImage = (ImageView)statusLayout.findViewById(R.id.statusImage);
         statusImage.setImageResource(R.drawable.status_on_white);
-        statusText.setText(context.getResources().getString(R.string.copied_to_clipboard));
+        statusText.setText(context.getResources().getString(R.string.referral_copied_to_clipboard));
         Toast toast = new Toast(context);
         toast.setGravity(Gravity.BOTTOM|Gravity.FILL_HORIZONTAL, 0, 0);
         toast.setDuration(Toast.LENGTH_SHORT);
@@ -132,8 +132,9 @@ public class Utils {
         inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 
-    public static String formatMoney(long amount) {
-        Currency currency = Currency.getInstance(Locale.getDefault());
+    public static String formatMoney(SessionManager session, long amount) {
+        String code = session.getSelectedPlanCurrency();
+        Currency currency = Currency.getInstance(code);
         String symbol = currency.getSymbol();
         return String.format("%s%d", symbol, amount/100);
     }
@@ -173,7 +174,8 @@ public class Utils {
     }
 
 
-    public static void showAlertDialog(Activity activity, String title, String msg) {
+    public static void showAlertDialog(final Activity activity, String title, String msg, 
+        final boolean finish) {
         Log.d(TAG, "Showing alert dialog...");
 
         AlertDialog alertDialog = new AlertDialog.Builder(activity).create();
@@ -183,6 +185,9 @@ public class Utils {
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
+                        if (finish) {
+                            activity.finish();
+                        }
                     }
         }
         );

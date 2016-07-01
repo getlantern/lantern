@@ -13,6 +13,9 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import go.lantern.Lantern.UserConfig;
+ 
+
 /**
  * A {@link Lantern} that uses a service to actually run Lantern. It is important that this class
  * not refer to the LanternService class directly in order to avoid loading the native library.
@@ -37,7 +40,7 @@ public class LanternServiceManager extends Lantern {
     }
 
     @Override
-    protected StartResult start(Context context, int timeoutMillis) throws LanternNotRunningException {
+    protected StartResult start(Context context, int timeoutMillis, UserConfig user) throws LanternNotRunningException {
         Log.i(TAG, "Requesting Start");
 
         // Wait for broadcast from service

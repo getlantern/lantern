@@ -28,7 +28,7 @@ public class LanternService extends IntentService {
         String configDir = intent.getStringExtra(LanternServiceManager.CONFIG_DIR);
         int timeoutMillis = intent.getIntExtra(LanternServiceManager.TIMEOUT_MILLIS, 0);
         try {
-            StartResult result = new EmbeddedLantern().start(configDir, timeoutMillis);
+            StartResult result = new EmbeddedLantern().start(configDir, timeoutMillis, null);
             Intent resultIntent = new Intent(LanternServiceManager.LANTERN_STARTED_INTENT);
             resultIntent.putExtra(LanternServiceManager.HTTP_ADDR, result.getHTTPAddr());
             resultIntent.putExtra(LanternServiceManager.SOCKS5_ADDR, result.getSOCKS5Addr());
