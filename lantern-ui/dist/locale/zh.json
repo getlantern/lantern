@@ -109,6 +109,7 @@
     "promotion.wrongCode": "邀请码不正确。",
     "promotion.promotion_applied_1y": "您的邀请码已生效！付款后您就能获赠一个月",
     "promotion.promotion_applied_2y": "您的邀请码已生效！付款后您就能获赠三个月",
+    "promotion.too_many_referrals": "别着急，邀请码只需要填一次！您获赠的时间付款后就能使用了",
     "referral.code": "您的邀请码",
     "referral.share": "分享您的邀请码：",
     "referral.text": "输入我的邀请码 %s ，额外获得三个月的蓝灯专业版！",
@@ -153,5 +154,5 @@
     "messages.fatal_error": "很抱歉，我们无法连接到蓝灯的服务器。请检查您的网络连接并重试。",
     "messages.backend_gone": "很抱歉，蓝灯似乎未在运行。请重启蓝灯并重试。",
     "freeProCredits.title": "免费使用专业版",
-    "freeProCredits.shareWithFriends": "好友购买两年套餐后，会赠送您三个月的专业版使用时间；好友购买一年套餐后，则赠送您一个月的使用时间。"
+    "freeProCredits.shareWithFriends": "好友购买两年套餐后，会赠送双方3个月专业版；好友购买一年套餐后，则赠送双方1个月。"
 }
