@@ -62,14 +62,9 @@ func TestNewWithCause(t *testing.T) {
 
 	// Make sure that stacktrace prints out okay
 	buf := &bytes.Buffer{}
-	print := outer.MultiLinePrinter()
-	for {
-		more := print(buf)
-		buf.WriteByte('\n')
-		if !more {
-			break
-		}
-	}
+	buf.WriteString(outer.Error())
+	buf.WriteByte('\n')
+	outer.PrintStack(buf)
 	expected := `Hello World
   at github.com/getlantern/errors.TestNewWithCause (errors_test.go:999)
   at testing.tRunner (testing.go:999)

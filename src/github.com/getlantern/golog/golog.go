@@ -67,16 +67,6 @@ type outputs struct {
 	DebugOut io.Writer
 }
 
-// MultiLine is an interface for arguments that support multi-line output.
-type MultiLine interface {
-	// MultiLinePrinter returns a function that can be used to print the
-	// multi-line output. The returned function writes one line to the buffer and
-	// returns true if there are more lines to write. This function does not need
-	// to take care of trailing carriage returns, golog handles that
-	// automatically.
-	MultiLinePrinter() func(buf *bytes.Buffer) bool
-}
-
 // ErrorReporter is a function to which the logger will report errors.
 // It the given error and corresponding message along with associated ops
 // context. This should return quickly as it executes on the critical code
@@ -181,27 +171,18 @@ func (l *logger) print(out io.Writer, skipFrames int, severity string, arg inter
 		buf.WriteString(linePrefix)
 	}
 	if arg != nil {
-		ml, isMultiline := arg.(MultiLine)
-		if !isMultiline {
+		err, isError := arg.(errors.Error)
+		if !isError {
 			writeHeader()
 			fmt.Fprintf(buf, "%v", arg)
 			printContext(buf, arg)
 			buf.WriteByte('\n')
 		} else {
-			mlp := ml.MultiLinePrinter()
-			first := true
-			for {
-				writeHeader()
-				more := mlp(buf)
-				if first {
-					printContext(buf, arg)
-					first = false
-				}
-				buf.WriteByte('\n')
-				if !more {
-					break
-				}
-			}
+			writeHeader()
+			buf.WriteString(err.Error())
+			printContext(buf, arg)
+			buf.WriteByte('\n')
+			err.PrintStack(buf)
 		}
 	}
 	b := []byte(hidden.Clean(buf.String()))
