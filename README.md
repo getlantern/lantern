@@ -3,11 +3,11 @@
 ## [🔴蓝灯(Lantern)最新版下载点这里🔴](https://github.com/getlantern/forum#蓝灯lantern最新版本下载)
 
 **If you're looking for Lantern installers, you can find all of them at the following links:**
-- [Android](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-3.0.1.apk)
-- [Windows XP SP 3 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-3.0.1.exe)
-- [OSX 10.8 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-3.0.1.dmg)
-- [Ubuntu 14.04 32 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-3.0.1-32-bit.deb)
-- [Ubuntu 14.04 64 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-3.0.1-64-bit.deb)
+- [Android](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-3.0.2.apk)
+- [Windows XP SP 3 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-3.0.2.exe)
+- [OSX 10.8 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-3.0.2.dmg)
+- [Ubuntu 14.04 32 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-3.0.2-32-bit.deb)
+- [Ubuntu 14.04 64 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-3.0.2-64-bit.deb)
 - [Arch Linux](https://aur.archlinux.org/packages/lantern)
 
 **If you're looking for help, please visit below user forums:**
