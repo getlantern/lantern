@@ -1,3 +1,5 @@
+// +build !mockupdate
+
 package app
 
 // This is the public key of the BNS cert. Incoming updates will be signed to
