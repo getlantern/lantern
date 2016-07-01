@@ -24,7 +24,7 @@ import org.lantern.R;
 public class MailSender extends AsyncTask<String, Void, Boolean> {   
 
     private static final String TAG = "MailSender";
-    private final String apiKey = "fmYlUdjEpGGonI4NDx9xeA";
+    private final String apiKey = "9Y-UIaDgJLU74gFYAmkgEg";
 
     private ProgressDialog dialog;
 
@@ -47,7 +47,6 @@ public class MailSender extends AsyncTask<String, Void, Boolean> {
         dialog.setCanceledOnTouchOutside(false);
 
         if (template.equals("user-send-logs")) {
-            Log.d(TAG, "SEnd LOGS is true");
             sendLogs = true;
             userEmail = session.Email();
             mergeValues = new MergeVar[]{
@@ -71,9 +70,9 @@ public class MailSender extends AsyncTask<String, Void, Boolean> {
     protected Boolean doInBackground(String... params) {
         String toEmail = params[0];
 
-        if (template.equals("user-send-logs")) {
+        if (sendLogs) {
             addSendLogs();
-            toEmail = "todd@getlantern.org";
+            toEmail = "support@getlantern.org";
         }
 
         final Map<String, String> templateContent = new HashMap<String, String>();
@@ -93,6 +92,7 @@ public class MailSender extends AsyncTask<String, Void, Boolean> {
         recipients.add(recipient);
 
         if (userEmail != null && !userEmail.equals("")) {
+            recipient = new MandrillMessage.Recipient();
             recipient.setEmail(userEmail);
             recipients.add(recipient);
         }
@@ -115,8 +115,13 @@ public class MailSender extends AsyncTask<String, Void, Boolean> {
         message.setMergeVars(mergeBuckets);
 
         try {
-            mandrillApi.messages().sendTemplate(template,
+            MandrillMessageStatus[] messageStatusReports = mandrillApi.messages().sendTemplate(template,
                     templateContent, message, null); 
+
+            for (MandrillMessageStatus messageStatus : messageStatusReports) {
+                String status = messageStatus.getStatus();
+                Log.d(TAG, "Send mail status: " + status);
+            }
         } catch (Exception e) {
             Log.e(TAG, "Error trying to send mail: ", e);
             return false;

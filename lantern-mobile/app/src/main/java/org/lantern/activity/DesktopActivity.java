@@ -49,7 +49,11 @@ public class DesktopActivity extends FragmentActivity {
         final DesktopActivity activity = this;
 
         Log.d(TAG, "Sending Lantern Desktop to " + email);
-        new MailSender(DesktopActivity.this, "download-link-from-lantern-website").execute(email);
+        MailSender mailSender = new MailSender(DesktopActivity.this, "download-link-from-lantern-website");
+        if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.HONEYCOMB)
+            mailSender.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, email);
+        else
+            mailSender.execute(email);
 
         // revert send button, separator back to defaults
         sendBtn.setBackgroundResource(R.drawable.send_btn); 

@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
 import android.content.res.Resources;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -383,7 +384,12 @@ public class LanternMainActivity extends AppCompatActivity {
 
         menuMap.put(resources.getString(R.string.send_logs), new Command() {
             public void runCommand() {
-                new MailSender(LanternMainActivity.this, "user-send-logs").execute("todd@getlantern.org");
+                MailSender mailSender = new MailSender(LanternMainActivity.this, "user-send-logs");
+                String toEmail = "support@getlantern.org";
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+                    mailSender.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, toEmail);
+                else
+                    mailSender.execute(toEmail);
             }
         });
 
