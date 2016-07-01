@@ -109,7 +109,7 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
 
         chargeAmount = session.getSelectedPlanCost();
         Log.d(TAG, "Charge amount is " + chargeAmount);
-        chargeAmountView.setText(Utils.formatMoney(chargeAmount));
+        chargeAmountView.setText(Utils.formatMoney(session, chargeAmount));
 
         final Context context = PaymentActivity.this;
 
@@ -159,7 +159,9 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
 			"pk_test_4MSPZvz9QtXGWEKdODmzV9ql" :
 			"pk_live_4MSPfR6qNHMwjG86TZJv4NI0";
 
-		String url = String.format(CHECKOUT_URL, key, amount, session.Currency());
+        String currency = session.getSelectedPlanCurrency();
+
+		String url = String.format(CHECKOUT_URL, key, amount, currency);
 
         new FinestWebView.Builder((Activity)c)
             .webViewSupportMultipleWindows(true)

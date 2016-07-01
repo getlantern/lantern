@@ -24,6 +24,7 @@ import org.lantern.mobilesdk.LanternNotRunningException;
 import org.lantern.model.Device;
 import org.lantern.model.ProPlan;
 import org.lantern.model.ProRequest;
+import org.lantern.model.UserStatus;
 import org.lantern.vpn.Service;
 import org.lantern.R;
 
@@ -298,6 +299,11 @@ public class SessionManager implements Lantern.Session, Lantern.UserConfig {
 
     public void UserData(String userStatus, long expiration, String subscription) {
         Log.d(TAG, String.format("Got user data; status=%s expiration=%s subscription=%s", userStatus, expiration, subscription));
+        if (userStatus != null && userStatus.equalsIgnoreCase("active")) {
+            linkDevice();
+            setIsProUser(true);
+            EventBus.getDefault().post(new UserStatus(true));  
+        }
         setExpiration(expiration);
     }
 
@@ -503,6 +509,7 @@ public class SessionManager implements Lantern.Session, Lantern.UserConfig {
         newUser();
         new GetFeed(this.context).execute(shouldProxy());
         new ProRequest(this.context, false, null).execute("plans");
+        new ProRequest(this.context, false, null).execute("userdata");
     }
 
 

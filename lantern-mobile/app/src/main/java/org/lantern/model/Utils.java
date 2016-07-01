@@ -132,8 +132,9 @@ public class Utils {
         inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 
-    public static String formatMoney(long amount) {
-        Currency currency = Currency.getInstance(Locale.getDefault());
+    public static String formatMoney(SessionManager session, long amount) {
+        String code = session.getSelectedPlanCurrency();
+        Currency currency = Currency.getInstance(code);
         String symbol = currency.getSymbol();
         return String.format("%s%d", symbol, amount/100);
     }

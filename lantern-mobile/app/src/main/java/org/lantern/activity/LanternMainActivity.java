@@ -48,6 +48,7 @@ import org.lantern.model.NavItem;
 import org.lantern.model.ProRequest;
 import org.lantern.model.SessionManager;
 import org.lantern.model.Shareable;
+import org.lantern.model.UserStatus;
 import org.lantern.model.Utils;
 import org.lantern.R;
 
@@ -185,7 +186,7 @@ public class LanternMainActivity extends AppCompatActivity {
             .make(coordinatorLayout, getResources().getString(R.string.lantern_off), Snackbar.LENGTH_LONG);
         statusSnackbar = Utils.formatSnackbar(statusSnackbar);
 
-        checkUpdateAfterDelay();
+        //checkUpdateAfterDelay();
     }
 
     @Override
@@ -195,7 +196,6 @@ public class LanternMainActivity extends AppCompatActivity {
         if (session.isProUser()) {
             // hide data usage summary view right away if its a Pro user
             dataUsageView.setVisibility(View.GONE);
-            //new ProRequest(LanternMainActivity.this, false, null).execute("userdata");
         }
 
         setBtnStatus();
@@ -216,9 +216,7 @@ public class LanternMainActivity extends AppCompatActivity {
             return;
         }
 
-        if (remaining < 0 || remaining > 500) {
-            return;
-        }
+		Log.d(TAG, "Bandwidth; quota: " + quota + " " + remaining);
 
         String dataFmt = getResources().getString(R.string.data_remaining);
         String amount = String.format(dataFmt, remaining);
@@ -236,6 +234,7 @@ public class LanternMainActivity extends AppCompatActivity {
                         }
                     });*/
         }
+		Log.d(TAG, "Amount is " + amount);
 
         dataRemaining.setText(amount);
         if (dataProgressBar != null) {
@@ -247,6 +246,14 @@ public class LanternMainActivity extends AppCompatActivity {
     public void onEventMainThread(Bandwidth update) {
         if (update != null) {
             setBandwidthUpdate(update.getQuota(), update.getRemaining());
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEventMainThread(UserStatus status) {
+        if (status != null && status.isActive()) {
+            dataUsageView.setVisibility(View.GONE);
+            setupSideMenu();
         }
     }
 
@@ -618,6 +625,7 @@ public class LanternMainActivity extends AppCompatActivity {
             removeRule(lp, RelativeLayout.CENTER_VERTICAL);
             if (!firstRun) {
                 new GetFeed(this).execute(session.shouldProxy());
+                new ProRequest(LanternMainActivity.this, false, null).execute("userdata");
             }
 
         } else {

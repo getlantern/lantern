@@ -171,17 +171,28 @@ func run(configDir string, user UserConfig) {
 func beforeStart(cfg *config.Config, user UserConfig) {
 	go func() {
 		for quota := range bandwidth.Updates {
+
 			remaining := 0
 			percent := 100
-			if quota != nil {
-				log.Debugf("Got bandwidth update..")
-				if quota.MiBUsed <= quota.MiBAllowed {
-					remaining = int(quota.MiBAllowed - quota.MiBUsed)
-					percent = int(100 * (float64(quota.MiBUsed) / float64(quota.MiBAllowed)))
-				}
-				user.BandwidthUpdate(remaining, percent)
+			if quota == nil {
+				continue
 			}
 
+			allowed := quota.MiBAllowed
+			if allowed < 0 || allowed > 50000000 {
+				continue
+			}
+
+			log.Debugf("Bandwidth: allowed %v used %v", quota.MiBAllowed, quota.MiBUsed)
+			if quota.MiBUsed >= quota.MiBAllowed {
+				percent = 100
+				remaining = 0
+			} else {
+				percent = int(100 * (float64(quota.MiBUsed) / float64(quota.MiBAllowed)))
+				remaining = int(quota.MiBAllowed - quota.MiBUsed)
+			}
+
+			user.BandwidthUpdate(percent, remaining)
 		}
 	}()
 }
@@ -200,28 +211,6 @@ func CheckForUpdates(shouldProxy bool) (string, error) {
 // file destination.
 func DownloadUpdate(url, apkPath string, shouldProxy bool, updater Updater) {
 	autoupdate.UpdateMobile(shouldProxy, url, apkPath, updater)
-}
-
-func GetBandwidthRemaining() int {
-	remaining := 0
-	quota := bandwidth.GetQuota()
-	if quota != nil {
-		if quota.MiBUsed < quota.MiBAllowed {
-			remaining = int(quota.MiBAllowed - quota.MiBUsed)
-		}
-	}
-	return remaining
-}
-
-func GetBandwidthQuota() int {
-	percent := 1.0
-	quota := bandwidth.GetQuota()
-	if quota != nil {
-		if quota.MiBUsed <= quota.MiBAllowed {
-			percent = (float64(quota.MiBUsed) / float64(quota.MiBAllowed))
-		}
-	}
-	return int(100.0 * percent)
 }
 
 func GetFeed(locale string, allStr string, shouldProxy bool, provider FeedProvider) {
