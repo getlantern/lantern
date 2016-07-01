@@ -183,7 +183,6 @@ func beforeStart(cfg *config.Config, user UserConfig) {
 				continue
 			}
 
-			log.Debugf("Bandwidth: allowed %v used %v", quota.MiBAllowed, quota.MiBUsed)
 			if quota.MiBUsed >= quota.MiBAllowed {
 				percent = 100
 				remaining = 0

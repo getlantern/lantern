@@ -106,7 +106,6 @@ func code(r *proRequest) (*client.Response, error) {
 		log.Errorf("Could not validate user code: %v", err)
 		return res, err
 	}
-	log.Debugf("New token is %s user id %s", res.User.Auth.Token, res.User.Auth.ID)
 	r.session.SetToken(res.User.Auth.Token)
 	r.session.SetUserId(res.User.Auth.ID)
 	return res, err

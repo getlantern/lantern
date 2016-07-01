@@ -490,7 +490,7 @@ public class SessionManager implements Lantern.Session, Lantern.UserConfig {
         try {
             int startTimeoutMillis = 60000;
             String analyticsTrackingID = ""; // don't track analytics since those are already being tracked elsewhere
-            boolean updateProxySettings = true;
+            boolean updateProxySettings = false;
 
             StartResult result = org.lantern.mobilesdk.Lantern.enable(this.context,
                 startTimeoutMillis, updateProxySettings, analyticsTrackingID, this);
