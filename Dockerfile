@@ -14,7 +14,7 @@ RUN mkdir -p $SECRETS
 RUN dnf install -y deltarpm && dnf update -y && dnf clean packages
 
 # Requisites for building Go.
-RUN dnf install -y git tar gzip curl hostname && dnf clean packages
+RUN dnf install -y git tar gzip curl hostname findutils && dnf clean packages
 
 # Compilers and tools for CGO.
 RUN dnf install -y gcc gcc-c++ libgcc.i686 gcc-c++.i686 && dnf clean packages
@@ -52,7 +52,7 @@ RUN dnf install -y osslsigncode mingw32-nsis && dnf clean packages
 RUN dnf install -y bzip2 && dnf clean packages
 
 # Requisites for genassets.
-RUN curl --silent --location https://rpm.nodesource.com/setup_5.x | bash -
+RUN curl --silent --location https://rpm.nodesource.com/setup_6.x | bash -
 RUN dnf -y install nodejs && dnf clean packages
 RUN npm install -g gulp
 
