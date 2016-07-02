@@ -50,6 +50,7 @@ func (pt *proxyTransport) RoundTrip(req *http.Request) (resp *http.Response, err
 		req.Header.Del("Origin")
 		resp, err = client.(*http.Client).Do(req)
 		if err != nil {
+			log.Errorf("Could not issue HTTP request? %v", err)
 			return
 		}
 	}
