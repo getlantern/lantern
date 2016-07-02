@@ -163,16 +163,17 @@ func (l *logger) print(out io.Writer, skipFrames int, severity string, arg inter
 	buf.WriteString(" ")
 	buf.WriteString(linePrefix)
 	if arg != nil {
-		err, isError := arg.(errors.Error)
-		if !isError {
-			fmt.Fprintf(buf, "%v", arg)
-			printContext(buf, arg)
-			buf.WriteByte('\n')
-		} else {
+		if err, isError := arg.(errors.Error); isError && err != nil {
 			buf.WriteString(err.Error())
 			printContext(buf, arg)
 			buf.WriteByte('\n')
-			err.PrintStack(buf)
+			if severity == "FATAL" || severity == "ERROR" {
+				err.PrintStack(buf)
+			}
+		} else {
+			fmt.Fprintf(buf, "%v", arg)
+			printContext(buf, arg)
+			buf.WriteByte('\n')
 		}
 	}
 	b := []byte(hidden.Clean(buf.String()))
