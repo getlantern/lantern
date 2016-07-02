@@ -2,7 +2,6 @@
 // debug messages to stdout. Trace logging is also supported.
 // Trace logs go to stdout as well, but they are only written if the program
 // is run with environment variable "TRACE=true".
-// A stack dump will be printed after the message if "PRINT_STACK=true".
 package golog
 
 import (
@@ -135,20 +134,15 @@ func LoggerFor(prefix string) Logger {
 		l.traceOut = ioutil.Discard
 	}
 
-	printStack := os.Getenv("PRINT_STACK")
-	l.printStack, _ = strconv.ParseBool(printStack)
-
 	return l
 }
 
 type logger struct {
-	prefix     string
-	traceOn    bool
-	traceOut   io.Writer
-	printStack bool
-	outs       atomic.Value
-	pc         []uintptr
-	funcForPc  *runtime.Func
+	prefix   string
+	traceOn  bool
+	traceOut io.Writer
+	outs     atomic.Value
+	pc       []uintptr
 }
 
 // attaches the file and line number corresponding to
@@ -190,10 +184,6 @@ func (l *logger) print(out io.Writer, skipFrames int, severity string, arg inter
 	if err != nil {
 		errorOnLogging(err)
 	}
-	if l.printStack {
-		l.doPrintStack()
-	}
-
 	return linePrefix
 }
 
@@ -212,9 +202,6 @@ func (l *logger) printf(out io.Writer, skipFrames int, severity string, err erro
 	_, err2 := out.Write(b)
 	if err2 != nil {
 		errorOnLogging(err)
-	}
-	if l.printStack {
-		l.doPrintStack()
 	}
 	return linePrefix
 }
@@ -328,26 +315,6 @@ func (w *errorWriter) Write(p []byte) (n int, err error) {
 
 func (l *logger) AsStdLogger() *log.Logger {
 	return log.New(&errorWriter{l}, "", 0)
-}
-
-func (l *logger) doPrintStack() {
-	var b []byte
-	buf := bytes.NewBuffer(b)
-	for _, pc := range l.pc {
-		funcForPc := runtime.FuncForPC(pc)
-		if funcForPc == nil {
-			break
-		}
-		name := funcForPc.Name()
-		if strings.HasPrefix(name, "runtime.") {
-			break
-		}
-		file, line := funcForPc.FileLine(pc)
-		fmt.Fprintf(buf, "\t%s\t%s: %d\n", name, file, line)
-	}
-	if _, err := buf.WriteTo(os.Stderr); err != nil {
-		errorOnLogging(err)
-	}
 }
 
 func errorOnLogging(err error) {
