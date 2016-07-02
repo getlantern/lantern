@@ -1,11 +1,11 @@
 package pro
 
 import (
-	"bytes"
 	"errors"
 	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
+	"strings"
 	"time"
 
 	"github.com/getlantern/eventual"
@@ -26,29 +26,36 @@ type proxyTransport struct {
 	// Satisfies http.RoundTripper
 }
 
-func (pt *proxyTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+func (pt *proxyTransport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
+	origin := req.Header.Get("Origin")
 	if req.Method == "OPTIONS" {
 		// No need to proxy the OPTIONS request.
-		res := &http.Response{
+		resp = &http.Response{
 			StatusCode: http.StatusOK,
 			Header: http.Header{
 				"Connection":                   {"keep-alive"},
 				"Access-Control-Allow-Methods": {"GET, POST"},
-				"Access-Control-Allow-Origin":  {req.Header.Get("Origin")},
 				"Access-Control-Allow-Headers": {req.Header.Get("Access-Control-Request-Headers")},
 				"Via": {"Lantern Client"},
 			},
-			Body: ioutil.NopCloser(bytes.NewBuffer([]byte("preflight complete"))),
+			Body: ioutil.NopCloser(strings.NewReader("preflight complete")),
 		}
-		return res, nil
+	} else {
+		client, resolved := httpClient.Get(60 * time.Second)
+		if !resolved {
+			log.Error("Trying to proxy pro before we have a client")
+			return nil, errors.New("Missing client.")
+		}
+		// Workaround for https://github.com/getlantern/pro-server/issues/192
+		req.Header.Del("Origin")
+		resp, err = client.(*http.Client).Do(req)
+		if err != nil {
+			log.Errorf("Could not issue HTTP request? %v", err)
+			return
+		}
 	}
-
-	client, resolved := httpClient.Get(60 * time.Second)
-	if !resolved {
-		log.Error("Trying to proxy pro before we have a client")
-		return nil, errors.New("Missing client.")
-	}
-	return client.(*http.Client).Do(req)
+	resp.Header.Set("Access-Control-Allow-Origin", origin)
+	return
 }
 
 var proxyHandler = &httputil.ReverseProxy{
