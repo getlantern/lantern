@@ -66,23 +66,23 @@ func TestNewWithCause(t *testing.T) {
 	buf.WriteByte('\n')
 	outer.PrintStack(buf)
 	expected := `Hello World
-  at github.com/getlantern/errors.TestNewWithCause (errors_test.go:999)
-  at testing.tRunner (testing.go:999)
-  at runtime.goexit (asm_amd999.s:999)
-Caused by: World
-  at github.com/getlantern/errors.buildCause (errors_test.go:999)
-  at github.com/getlantern/errors.TestNewWithCause (errors_test.go:999)
-  at testing.tRunner (testing.go:999)
-  at runtime.goexit (asm_amd999.s:999)
-Caused by: orld
-Caused by: ld
-  at github.com/getlantern/errors.buildSubSubCause (errors_test.go:999)
-  at github.com/getlantern/errors.buildSubCause (errors_test.go:999)
-  at github.com/getlantern/errors.buildCause (errors_test.go:999)
-  at github.com/getlantern/errors.TestNewWithCause (errors_test.go:999)
-  at testing.tRunner (testing.go:999)
-  at runtime.goexit (asm_amd999.s:999)
-Caused by: d
+    at github.com/getlantern/errors.TestNewWithCause (errors_test.go:999)
+    at testing.tRunner (testing.go:999)
+    at runtime.goexit (asm_amd999.s:999)
+  Caused by: World
+    at github.com/getlantern/errors.buildCause (errors_test.go:999)
+    at github.com/getlantern/errors.TestNewWithCause (errors_test.go:999)
+    at testing.tRunner (testing.go:999)
+    at runtime.goexit (asm_amd999.s:999)
+  Caused by: orld
+  Caused by: ld
+    at github.com/getlantern/errors.buildSubSubCause (errors_test.go:999)
+    at github.com/getlantern/errors.buildSubCause (errors_test.go:999)
+    at github.com/getlantern/errors.buildCause (errors_test.go:999)
+    at github.com/getlantern/errors.TestNewWithCause (errors_test.go:999)
+    at testing.tRunner (testing.go:999)
+    at runtime.goexit (asm_amd999.s:999)
+  Caused by: d
 `
 
 	assert.Equal(t, expected, replaceNumbers.ReplaceAllString(hidden.Clean(buf.String()), "999"))
