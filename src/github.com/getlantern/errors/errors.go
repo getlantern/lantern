@@ -230,14 +230,14 @@ func (e *structured) PrintStack(w io.Writer) {
 	for {
 		for stackPosition := 0; stackPosition < len(err.callStack); stackPosition++ {
 			call := err.callStack[stackPosition]
-			fmt.Fprintf(w, "  at %+n (%s:%d)\n", call, call, call)
+			fmt.Fprintf(w, "    at %+n (%s:%d)\n", call, call, call)
 		}
 		cause, ok := err.cause.(*structured)
 		if !ok || cause == nil {
 			return
 		}
 		err = cause
-		fmt.Fprintf(w, "Caused by: %v\n", err)
+		fmt.Fprintf(w, "  Caused by: %v\n", err)
 	}
 }
 
