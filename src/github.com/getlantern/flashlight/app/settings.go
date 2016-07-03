@@ -83,7 +83,7 @@ var (
 // Settings is a struct of all settings unique to this particular Lantern instance.
 type Settings struct {
 	muNotifiers     sync.RWMutex
-	changeNotifiers map[SettingName]func(interface{})
+	changeNotifiers map[SettingName][]func(interface{})
 
 	m map[SettingName]interface{}
 	sync.RWMutex
@@ -169,7 +169,7 @@ func newSettings(filePath string) *Settings {
 			SNUserToken:   "",
 		},
 		filePath:        filePath,
-		changeNotifiers: make(map[SettingName]func(interface{})),
+		changeNotifiers: make(map[SettingName][]func(interface{})),
 	}
 }
 
@@ -184,6 +184,14 @@ func (s *Settings) start() error {
 		return write(uiMap)
 	}
 	service, err = ui.Register(messageType, helloFn)
+	s.OnChange(SNSystemProxy, func(val interface{}) {
+		enable := val.(bool)
+		preferredUIAddr, addrChanged := ui.PreferProxiedUI(enable)
+		if !enable && addrChanged {
+			log.Debugf("System proxying disabled, redirect UI to: %v", preferredUIAddr)
+			service.Out <- map[string]string{"redirectTo": preferredUIAddr}
+		}
+	})
 	return err
 }
 
@@ -328,17 +336,6 @@ func (s *Settings) IsAutoReport() bool {
 	return s.getBool(SNAutoReport)
 }
 
-// SetAutoReport sets whether or not to auto-report debugging and analytics data.
-func (s *Settings) SetAutoReport(auto bool) {
-	s.setVal(SNAutoReport, auto)
-}
-
-// SetAutoLaunch sets whether or not to auto-launch Lantern on system startup.
-func (s *Settings) SetAutoLaunch(auto bool) {
-	s.setVal(SNAutoLaunch, auto)
-	go launcher.CreateLaunchFile(auto)
-}
-
 // IsAutoLaunch returns whether or not to auto-report debugging and analytics data.
 func (s *Settings) IsAutoLaunch() bool {
 	return s.getBool(SNAutoLaunch)
@@ -354,19 +351,9 @@ func (s *Settings) GetLanguage() string {
 	return s.getString(SNLanguage)
 }
 
-// SetDeviceID sets the device ID
-func (s *Settings) SetDeviceID(deviceID string) {
-	// Cannot set the device ID.
-}
-
 // GetDeviceID returns the unique ID of this device.
 func (s *Settings) GetDeviceID() string {
 	return s.getString(SNDeviceID)
-}
-
-// SetToken sets the user token
-func (s *Settings) SetToken(token string) {
-	s.setVal(SNUserToken, token)
 }
 
 // GetToken returns the user token
@@ -387,24 +374,6 @@ func (s *Settings) GetUserID() int64 {
 // GetSystemProxy returns whether or not to set system proxy when lantern starts
 func (s *Settings) GetSystemProxy() bool {
 	return s.getBool(SNSystemProxy)
-}
-
-// SetSystemProxy sets whether or not to set system proxy when lantern starts
-func (s *Settings) SetSystemProxy(enable bool) {
-	changed := enable != s.GetSystemProxy()
-	s.setVal(SNSystemProxy, enable)
-	if changed {
-		if enable {
-			pacOn()
-		} else {
-			pacOff()
-		}
-		preferredUIAddr, addrChanged := ui.PreferProxiedUI(enable)
-		if !enable && addrChanged {
-			log.Debugf("System proxying disabled, redirect UI to: %v", preferredUIAddr)
-			service.Out <- map[string]string{"redirectTo": preferredUIAddr}
-		}
-	}
 }
 
 func (s *Settings) getBool(name SettingName) bool {
@@ -451,16 +420,16 @@ func (s *Settings) setVal(name SettingName, val interface{}) {
 // OnChange sets a callback cb to get called when attr is changed from UI.
 func (s *Settings) OnChange(attr SettingName, cb func(interface{})) {
 	s.muNotifiers.Lock()
-	s.changeNotifiers[attr] = cb
+	s.changeNotifiers[attr] = append(s.changeNotifiers[attr], cb)
 	s.muNotifiers.Unlock()
 }
 
 // onChange is called when attr is changed from UI
 func (s *Settings) onChange(attr SettingName, value interface{}) {
 	s.muNotifiers.RLock()
-	fn := s.changeNotifiers[attr]
+	notifiers := s.changeNotifiers[attr]
 	s.muNotifiers.RUnlock()
-	if fn != nil {
+	for _, fn := range notifiers {
 		fn(value)
 	}
 }

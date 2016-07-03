@@ -139,14 +139,18 @@ func TestOnChange(t *testing.T) {
 	set := newSettings("/dev/null")
 	in := make(chan interface{})
 	out := make(chan interface{})
-	var changed string
+	var c1, c2 string
 	set.OnChange(SNLanguage, func(v interface{}) {
-		changed = v.(string)
+		c1 = v.(string)
+	})
+	set.OnChange(SNLanguage, func(v interface{}) {
+		c2 = v.(string)
 	})
 	go func() {
 		set.read(in, out)
 	}()
 	in <- map[string]interface{}{"language": "en"}
 	_ = <-out
-	assert.Equal(t, "en", changed, "should call OnChange callback")
+	assert.Equal(t, "en", c1, "should call OnChange callback")
+	assert.Equal(t, "en", c2, "should call all OnChange callbacks")
 }
