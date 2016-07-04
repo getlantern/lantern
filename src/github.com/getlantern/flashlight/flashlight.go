@@ -78,7 +78,6 @@ func Run(httpProxyAddr string,
 	configDir string,
 	stickyConfig bool,
 	proxyAll func() bool,
-	proTokenGetter func() string,
 	flagsAsMap map[string]interface{},
 	beforeStart func(cfg *config.Config) bool,
 	afterStart func(cfg *config.Config),
@@ -94,7 +93,7 @@ func Run(httpProxyAddr string,
 		return fmt.Errorf("Unable to initialize configuration: %v", err)
 	}
 
-	client := client.NewClient(proxyAll, proTokenGetter)
+	client := client.NewClient(proxyAll, userConfig.GetToken)
 	proxied.SetProxyAddr(client.Addr)
 
 	if beforeStart(cfg) {
