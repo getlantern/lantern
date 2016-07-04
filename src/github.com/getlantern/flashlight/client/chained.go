@@ -158,6 +158,8 @@ func (s *chainedServer) attachHeaders(req *http.Request, deviceID string, proTok
 	}
 	if authToken != "" {
 		req.Header.Add("X-Lantern-Auth-Token", authToken)
+	} else {
+		log.Errorf("No auth token for request to %v", req.URL)
 	}
 	req.Header.Set("X-Lantern-Device-Id", deviceID)
 	if token := proTokenGetter(); token != "" {
