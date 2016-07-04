@@ -16,7 +16,8 @@ func TestProxy(t *testing.T) {
 	m := &mockRoundTripper{msg: "GOOD"}
 	httpClient.Set(&http.Client{Transport: m})
 	addr := pickFreeAddr()
-	url := fmt.Sprintf("http://%s", addr)
+	url := fmt.Sprintf("http://%s/abc", addr)
+	ddfURL := fmt.Sprintf("http://%s/abc", proAPIDDFHost)
 	go func() {
 		t.Logf("Launching test server at %s", url)
 		InitProxy(addr)
@@ -50,6 +51,7 @@ func TestProxy(t *testing.T) {
 	if assert.NotNil(t, m.req, "should pass through non-OPTIONS requests to origin server") {
 		t.Log(m.req)
 		assert.Empty(t, m.req.Header.Get("Origin"), "should strip off Origin header")
+		assert.Equal(t, ddfURL, m.req.Header.Get("Lantern-Fronted-URL"), "should set fronted URL")
 	}
 }
 
