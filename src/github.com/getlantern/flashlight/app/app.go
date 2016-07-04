@@ -86,6 +86,7 @@ func (app *App) Run() error {
 			app.Flags["configdir"].(string),
 			app.Flags["stickyconfig"].(bool),
 			settings.GetProxyAll,
+			settings.GetToken,
 			app.Flags,
 			app.beforeStart,
 			app.afterStart,

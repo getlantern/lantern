@@ -153,6 +153,7 @@ func run(configDir string, user UserConfig) {
 		configDir,     // place to store lantern configuration
 		false,         // don't make config sticky
 		func() bool { return true }, // proxy all requests
+		func() string { return "" }, // no pro token
 		flags,
 		func(cfg *config.Config) bool {
 			beforeStart(cfg, user)

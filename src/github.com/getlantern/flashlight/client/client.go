@@ -58,17 +58,19 @@ type Client struct {
 
 	l net.Listener
 
-	proxyAll func() bool
+	proxyAll       func() bool
+	proTokenGetter func() string
 }
 
 // NewClient creates a new client that does things like starts the HTTP and
 // SOCKS proxies. It take a function for determing whether or not to proxy
-// all traffic.
-func NewClient(proxyAll func() bool) *Client {
+// all traffic, and another function to get Lantern Pro token when required.
+func NewClient(proxyAll func() bool, proTokenGetter func() string) *Client {
 	return &Client{
-		bal:      eventual.NewValue(),
-		rp:       eventual.NewValue(),
-		proxyAll: proxyAll,
+		bal:            eventual.NewValue(),
+		rp:             eventual.NewValue(),
+		proxyAll:       proxyAll,
+		proTokenGetter: proTokenGetter,
 	}
 }
 
