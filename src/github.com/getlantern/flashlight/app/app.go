@@ -198,6 +198,14 @@ func (app *App) afterStart(cfg *config.Config) {
 	if settings.GetSystemProxy() {
 		pacOn()
 	}
+	app.OnSettingChange(SNSystemProxy, func(val interface{}) {
+		enable := val.(bool)
+		if enable {
+			pacOn()
+		} else {
+			pacOff()
+		}
+	})
 
 	app.AddExitFunc(pacOff)
 	if app.ShowUI && !app.Flags["startup"].(bool) {
