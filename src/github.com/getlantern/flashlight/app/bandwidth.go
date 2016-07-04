@@ -1,6 +1,7 @@
 package app
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"sync"
@@ -105,14 +106,14 @@ func (s *notifyStatus) notifyCapHit(n notify.Notifier, uiaddr string) {
 
 func (s *notifyStatus) notifyFreeUser(n notify.Notifier, uiaddr, title, msg string) {
 	userID := settings.GetUserID()
-	status, err := s.userStatus(int(userID), settings.GetToken())
+	status, err := s.userStatus(settings.GetDeviceID(), int(userID), settings.GetToken())
 	if err != nil {
 		log.Errorf("Error getting user status? %v", err)
 		return
 	}
 	log.Debugf("User %d is %v", userID, status)
 	if status == "active" {
-		log.Debugf("Got a pro user")
+		log.Debugf("Not showing desktop notification for pro user")
 		return
 	}
 
@@ -131,10 +132,11 @@ func (s *notifyStatus) notifyFreeUser(n notify.Notifier, uiaddr, title, msg stri
 	}
 }
 
-func (s *notifyStatus) userStatus(id int, token string) (string, error) {
+func (s *notifyStatus) userStatus(deviceID string, userID int, proToken string) (string, error) {
 	user := proClient.User{Auth: proClient.Auth{
-		ID:    id,
-		Token: token,
+		DeviceID: deviceID,
+		ID:       userID,
+		Token:    proToken,
 	}}
 	http, err := proxied.GetHTTPClient(true)
 	if err != nil {
@@ -147,6 +149,8 @@ func (s *notifyStatus) userStatus(id int, token string) (string, error) {
 		log.Errorf("Fail to get user data: %v", err)
 		return "", err
 	}
-
+	if resp.Status == "error" {
+		return "", errors.New(resp.Error)
+	}
 	return resp.User.UserStatus, nil
 }
