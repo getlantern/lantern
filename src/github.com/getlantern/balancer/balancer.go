@@ -102,22 +102,10 @@ func (b *Balancer) Dial(network, addr string) (net.Conn, error) {
 	}
 
 	for i := 0; i < dialAttempts; i++ {
-		b.mu.Lock()
-		dialers := &b.dialers
-		if trustedOnly {
-			dialers = &b.trusted
+		d, pickErr := b.pickDialer(trustedOnly)
+		if pickErr != nil {
+			return nil, pickErr
 		}
-		if dialers.Len() == 0 {
-			b.mu.Unlock()
-			if trustedOnly {
-				return nil, fmt.Errorf("No trusted dialers")
-			}
-			return nil, fmt.Errorf("No dialers")
-		}
-		// heap will re-adjust based on new metrics
-		d := heap.Pop(dialers).(*dialer)
-		heap.Push(dialers, d)
-		b.mu.Unlock()
 		log.Tracef("Dialing %s://%s with %s", network, addr, d.Label)
 		conn, err := d.dial(network, addr)
 		if err != nil {
@@ -149,6 +137,25 @@ func (b *Balancer) checkDialers() {
 		go d.check()
 	}
 	b.mu.RUnlock()
+}
+
+func (b *Balancer) pickDialer(trustedOnly bool) (*dialer, error) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	dialers := &b.dialers
+	if trustedOnly {
+		dialers = &b.trusted
+	}
+	if dialers.Len() == 0 {
+		if trustedOnly {
+			return nil, fmt.Errorf("No trusted dialers")
+		}
+		return nil, fmt.Errorf("No dialers")
+	}
+	// heap will re-adjust based on new metrics
+	d := heap.Pop(dialers).(*dialer)
+	heap.Push(dialers, d)
+	return d, nil
 }
 
 type dialerHeap struct {
