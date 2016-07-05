@@ -53,10 +53,11 @@ func defaultDialFactory(s *ChainedServerInfo, deviceID string) (dialFN, error) {
 			op := ops.Begin("dial_to_chained").ChainedProxy(s.Addr, "https")
 			defer op.End()
 
-			conn, err := tlsdialer.Dial("tcp", addr, false, &tls.Config{
-				ClientSessionCache: sessionCache,
-				InsecureSkipVerify: true,
-			})
+			conn, err := tlsdialer.DialTimeout(netx.DialTimeout, chainedDialTimeout,
+				"tcp", addr, false, &tls.Config{
+					ClientSessionCache: sessionCache,
+					InsecureSkipVerify: true,
+				})
 			if err != nil {
 				return nil, op.FailIf(err)
 			}
