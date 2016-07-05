@@ -103,6 +103,7 @@ func (d *dialer) check() {
 }
 
 func (d *dialer) Stop() {
+	log.Tracef("Stopping dialer %s", d.Label)
 	d.closeCh <- struct{}{}
 }
 

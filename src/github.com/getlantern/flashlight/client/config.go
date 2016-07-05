@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	chainedDialTimeout = 30 * time.Second
+	chainedDialTimeout = 10 * time.Second
 )
 
 // ClientConfig captures configuration information for a Client

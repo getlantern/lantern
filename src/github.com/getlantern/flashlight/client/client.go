@@ -50,9 +50,6 @@ type Client struct {
 	priorCfg  *ClientConfig
 	cfgMutex  sync.RWMutex
 
-	// Balanced CONNECT dialers.
-	bal eventual.Value
-
 	// Reverse proxy
 	rp eventual.Value
 
@@ -66,7 +63,6 @@ type Client struct {
 // all traffic.
 func NewClient(proxyAll func() bool) *Client {
 	return &Client{
-		bal:      eventual.NewValue(),
 		rp:       eventual.NewValue(),
 		proxyAll: proxyAll,
 	}
@@ -178,11 +174,11 @@ func (client *Client) Configure(cfg *ClientConfig, deviceID string) {
 	log.Debugf("Requiring minimum QOS of %d", cfg.MinQOS)
 	client.cfgHolder.Store(cfg)
 
-	bal, err := client.initBalancer(cfg, deviceID)
+	err := client.initBalancer(cfg, deviceID)
 	if err != nil {
 		log.Error(err)
-	} else if bal != nil {
-		client.rp.Set(client.newReverseProxy(bal))
+	} else {
+		client.rp.Set(client.newReverseProxy())
 	}
 
 	client.priorCfg = cfg
@@ -236,7 +232,7 @@ func (client *Client) dialCONNECT(addr string, port int) (net.Conn, error) {
 			// that is effectively always "tcp" in the end, but we look for this
 			// special "transport" in the dialer and send a CONNECT request in that
 			// case.
-			return client.getBalancer().Dial("connect", addr)
+			return bal.Dial("connect", addr)
 		})
 		return d("tcp", addr)
 	}
