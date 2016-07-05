@@ -14,7 +14,7 @@ import (
 
 func TestProxy(t *testing.T) {
 	m := &mockRoundTripper{msg: "GOOD"}
-	httpClient.Set(&http.Client{Transport: m})
+	httpClient = &http.Client{Transport: m}
 	addr := pickFreeAddr()
 	url := fmt.Sprintf("http://%s/abc", addr)
 	ddfURL := fmt.Sprintf("http://%s/abc", proAPIDDFHost)
