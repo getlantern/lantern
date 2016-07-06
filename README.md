@@ -4,10 +4,10 @@
 
 **If you're looking for Lantern installers, you can find all of them at the following links:**
 - [Android](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-3.0.4.apk)
-- [Windows XP SP 3 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-3.0.5.exe)
-- [OSX 10.8 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-3.0.5.dmg)
-- [Ubuntu 14.04 32 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-3.0.5-32-bit.deb)
-- [Ubuntu 14.04 64 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-3.0.5-64-bit.deb)
+- [Windows XP SP 3 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-3.0.4.exe)
+- [OSX 10.8 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-3.0.4.dmg)
+- [Ubuntu 14.04 32 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-3.0.4-32-bit.deb)
+- [Ubuntu 14.04 64 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-3.0.4-64-bit.deb)
 - [Arch Linux](https://aur.archlinux.org/packages/lantern)
 
 **If you're looking for help, please visit below user forums:**
