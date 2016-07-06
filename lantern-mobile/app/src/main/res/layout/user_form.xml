@@ -67,6 +67,7 @@
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
+                android:layout_marginLeft="10dp"
                 android:padding="10dp"
                 android:lineSpacingExtra="10dp"
                 android:fontFamily="sans-serif"
@@ -74,7 +75,6 @@
                 android:alpha=".87"
                 android:textSize="14sp"
                 android:layout_centerHorizontal="true"
-                android:gravity="left"
                 android:textColor="@color/black"
                 android:textAppearance="?android:attr/textAppearanceSmall"/>
         </LinearLayout>
