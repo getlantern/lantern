@@ -150,8 +150,8 @@
     <string name="free_month">Get a free month of pro for each sign up</string>
     <string name="get_pro_now">Get Pro Now</string>
     <string name="inviting_friends">Get Pro credits by inviting friends</string>
-    <string name="data_cap_percent">You have reached %1$s of your available Lantern data for the month.</string>
-    <string name="data_cap">You have used your free monthly data. Upgrade to Lantern Pro to continue using Lantern.</string>
+    <string name="data_cap_percent">You have reached %1$s of your available Lantern high speed data for the month.</string>
+    <string name="data_cap">You have used your free monthly high speed data. Upgrade to Lantern Pro to continue using Lantern.</string>
     <string name="select">Select</string>
     <string name="one_year">for 1 year</string>
     <string name="two_years">for 2 years</string>
@@ -169,7 +169,7 @@
     <string name="upgrade_to_lantern_pro">Upgrade to Lantern Pro</string>
     <string name="pro_available_for">For Windows, Android, Mac and Ubuntu. iOS coming soon</string>
     <string name="upgrade_to_pro">Upgrade to Pro for unlimited data, faster speed, and greater blocking resistance!</string>
-    <string name="data_remaining">%1$sMB Remaining of your free monthly data</string> 
+    <string name="data_remaining">%1$sMB Remaining of your free monthly high speed data</string> 
     <string name="upgrade">Upgrade</string>
     <string name="no_wall_at_all">No wall at all.</string>
     <string name="buy_pro_now">Buy Pro Now</string>
