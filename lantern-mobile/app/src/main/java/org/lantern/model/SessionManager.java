@@ -429,7 +429,7 @@ public class SessionManager implements Lantern.Session, Lantern.UserConfig {
     }
 
     public boolean showFeed() {
-        return mPrefs.getBoolean(PREF_NEWSFEED, true);
+        return mPrefs.getBoolean(PREF_NEWSFEED, false);
     }
 
     public void clearVpnPreference() {

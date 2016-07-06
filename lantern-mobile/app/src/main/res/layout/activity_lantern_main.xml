@@ -50,8 +50,9 @@
                     android:src="@drawable/menu" />
 
                 <com.kyleduo.switchbutton.SwitchButton
-                    android:id="@+id/powerLantern"
+                    android:id="@+id/navPowerLantern"
                     style="@style/SwitchButtonStyle"
+                    android:visibility="gone"
                     kswTextOn="@string/on_text"
                     kswTextOff="@string/off_text"
                     android:adjustViewBounds="true"
@@ -69,11 +70,23 @@
             xmlns:tools="http://schemas.android.com/tools" 
             android:layout_width="fill_parent"
             android:layout_height="fill_parent" 
-            android:paddingTop="30dp"
             android:layout_below="@+id/topSection"
+            android:paddingTop="30dp"
             android:id="@+id/mainView"
             android:gravity="center"
             tools:context=".LanternMainActivity">
+
+            <com.kyleduo.switchbutton.SwitchButton
+                android:id="@+id/mainPowerLantern"
+                style="@style/SwitchButtonMainStyle"
+                kswTextOn="@string/on_text"
+                kswTextOff="@string/off_text"
+                android:adjustViewBounds="true"
+                android:layout_marginTop="100dp"
+                android:layout_centerHorizontal="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                />
 
             <include
                 android:id="@+id/feedView"

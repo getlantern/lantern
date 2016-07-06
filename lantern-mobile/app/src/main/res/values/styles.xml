@@ -39,6 +39,13 @@
         <item name="kswBackColor">@color/pro_blue_color</item>
     </style>
 
+    <style name="SwitchButtonMainStyle">
+        <item name="kswThumbWidth">40dp</item>
+        <item name="kswThumbHeight">40dp</item>
+        <item name="kswThumbColor">@color/accent_white</item>
+        <item name="kswBackColor">@color/pro_blue_color</item>
+    </style>
+
     <style name="TextField" parent="@android:style/Widget.EditText">
         <item name="android:layout_height">wrap_content</item>
         <item name="android:textColor">@color/editText</item>

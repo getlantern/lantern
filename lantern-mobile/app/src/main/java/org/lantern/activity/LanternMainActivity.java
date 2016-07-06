@@ -98,6 +98,10 @@ public class LanternMainActivity extends AppCompatActivity {
 
     private SessionManager session;
 
+    // the powerLantern switch is assigned according to which
+    // view is being shown (whether the newsfeed is hidden or not)
+    private SwitchButton powerLantern;
+
     @ViewById
     TextView versionNum, dataRemaining;
 
@@ -105,7 +109,7 @@ public class LanternMainActivity extends AppCompatActivity {
     ProgressBar dataProgressBar;
 
     @ViewById
-    SwitchButton powerLantern;
+    SwitchButton navPowerLantern, mainPowerLantern;
 
     @ViewById
     DrawerLayout drawerLayout;
@@ -263,6 +267,11 @@ public class LanternMainActivity extends AppCompatActivity {
     // according to our stored preference
     public void setBtnStatus() {
         boolean useVpn = session.useVpn();
+        if (session.showFeed()) {
+            powerLantern = navPowerLantern;
+        } else {
+            powerLantern = mainPowerLantern;
+        }
         powerLantern.setChecked(useVpn);
         updateTheme(useVpn);
     }
@@ -624,29 +633,20 @@ public class LanternMainActivity extends AppCompatActivity {
     // showFeedview optionally fetches the feed depending on the
     // user's preference and updates the position of the on/off switch
     private void showFeedview() {
-        RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) powerLantern.getLayoutParams();
 
         if (session.showFeed()) {
+            mainPowerLantern.setVisibility(View.GONE);
+            navPowerLantern.setVisibility(View.VISIBLE);
             feedView.setVisibility(View.VISIBLE);
-            removeRule(lp, RelativeLayout.CENTER_VERTICAL);
             if (!firstRun) {
                 new GetFeed(this).execute(session.shouldProxy());
                 new ProRequest(LanternMainActivity.this, false, null).execute("userdata");
             }
 
         } else {
+            mainPowerLantern.setVisibility(View.VISIBLE);
+            navPowerLantern.setVisibility(View.GONE);
             feedView.setVisibility(View.INVISIBLE);
-            lp.addRule(RelativeLayout.CENTER_VERTICAL);
-        }
-        powerLantern.setLayoutParams(lp);
-    }
-    // removeRule updates a relative layout to remove the given rule
-    // note: removeRule was only added in API level 17
-    private void removeRule(RelativeLayout.LayoutParams lp, int rule) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) { // API 17
-            lp.removeRule(rule);
-        } else {
-            lp.addRule(rule, 0);
         }
     }
 
@@ -657,6 +657,12 @@ public class LanternMainActivity extends AppCompatActivity {
         final boolean showFeed) {
         // store show/hide feed preference
         session.updateFeedPreference(showFeed);
+
+        if (showFeed)
+            powerLantern = navPowerLantern;
+        else
+            powerLantern = mainPowerLantern;
+
         showFeedview();
 
         for (NavItem item: navItems) {
@@ -685,7 +691,7 @@ public class LanternMainActivity extends AppCompatActivity {
         powerLantern.setBackColorRes(useVpn ? R.color.on_color : R.color.pro_blue_color );
     }
 
-    @Click(R.id.powerLantern)
+    @Click({R.id.navPowerLantern, R.id.mainPowerLantern})
     public void switchLantern(View view) {
 
         boolean on = ((SwitchButton)view).isChecked();
