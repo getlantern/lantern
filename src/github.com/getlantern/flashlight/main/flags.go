@@ -1,6 +1,9 @@
 package main
 
-import "flag"
+import (
+	"flag"
+	"time"
+)
 
 var (
 	addr                  = flag.String("addr", "", "ip:port on which to listen for requests. When running as a client proxy, we'll listen with http, when running as a server proxy we'll listen with https (required)")
@@ -23,8 +26,8 @@ var (
 	forceAuthToken        = flag.String("force-auth-token", "", "if specified, force chained proxying to use this auth token instead of the configured one")
 	readableconfig        = flag.Bool("readableconfig", false, "if specified, disables obfuscation of the config yaml so that it remains human readable")
 	staging               = flag.Bool("staging", false, "if true, run Lantern against our staging infrastructure")
-	bordaReportInterval   = flag.Duration("borda-report-interval", 0, "How frequently to report errors to borda. Set to 0 to disable reporting.")
-	bordaSamplePercentage = flag.Float64("borda-sample-percentage", 0.0001, "The percentage of devices to report to Borda (0.01 = 1%)")
+	bordaReportInterval   = flag.Duration("borda-report-interval", 5*time.Minute, "How frequently to report errors to borda. Set to 0 to disable reporting.")
+	bordaSamplePercentage = flag.Float64("borda-sample-percentage", 0.01, "The percentage of devices to report to Borda (0.01 = 1%)")
 	help                  = flag.Bool("help", false, "Get usage help")
 )
 
