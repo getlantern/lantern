@@ -30,11 +30,12 @@ var (
 
 // Balancer balances connections among multiple Dialers.
 type Balancer struct {
+	// make sure to align on 64bit boundary
+	lastDialTime int64 // Time.UnixNano()
 	st           Strategy
 	mu           sync.RWMutex
 	dialers      dialerHeap
 	trusted      dialerHeap
-	lastDialTime int64 // Time.UnixNano()
 }
 
 // New creates a new Balancer using the supplied Strategy and Dialers.
