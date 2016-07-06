@@ -160,7 +160,7 @@ type chainedFetcher struct {
 
 // Do will attempt to execute the specified HTTP request using only a chained fetcher
 func (cf *chainedFetcher) RoundTrip(req *http.Request) (*http.Response, error) {
-	log.Debugf("Using chained fronter")
+	log.Debugf("Using chained fetcher")
 	rt, err := ChainedNonPersistent("")
 	if err != nil {
 		return nil, err
@@ -358,7 +358,7 @@ func readResponses(finalResponse chan *http.Response, responses chan *http.Respo
 			}
 		}
 	case err := <-errs:
-		log.Debugf("Got an error: %v", err)
+		log.Debugf("Got an error in first response: %v", err)
 		// Just use whatever we get from the second response.
 		select {
 		case response := <-responses:

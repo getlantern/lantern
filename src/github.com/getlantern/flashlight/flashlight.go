@@ -13,7 +13,6 @@ import (
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/logging"
-	"github.com/getlantern/flashlight/pro"
 	"github.com/getlantern/flashlight/proxied"
 )
 
@@ -155,7 +154,6 @@ func applyClientConfig(client *client.Client, cfg *config.Config, deviceID strin
 		fronted.Configure(certs, cfg.Client.MasqueradeSets, filepath.Join(appdir.General("Lantern"), "masquerade_cache"))
 	}
 	logging.Configure(cfg.CloudConfigCA, deviceID, Version, RevisionDate, cfg.BordaReportInterval, cfg.BordaSamplePercentage)
-	pro.Configure(cfg.CloudConfigCA)
 	// Update client configuration
 	client.Configure(cfg.Client, deviceID)
 }
