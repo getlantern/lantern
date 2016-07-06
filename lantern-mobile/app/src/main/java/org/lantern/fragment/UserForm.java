@@ -55,11 +55,12 @@ public class UserForm extends Fragment {
             TextView formDetails = (TextView)view.findViewById(R.id.formDetails);
             ArrayList<String> items = new ArrayList<String>();
 
-            if (mFormType != null && mFormType.equals("referral")) {
-                for (CharSequence s : Arrays.asList(mFormDetails)) {
-                    // prepend list with bullet symbol
+            for (CharSequence s : Arrays.asList(mFormDetails)) {
+                // prepend list with bullet symbol
+                if (mFormType != null && mFormType.equals("referral"))
+                    items.add(s.toString());
+                else
                     items.add(BULLET_SYMBOL + " " + s);
-                }
             }
             // separate list of entries
             formDetails.setText(Html.fromHtml(TextUtils.join("<br/>", items)));

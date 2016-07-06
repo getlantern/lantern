@@ -139,7 +139,7 @@
     </string-array>
     <string-array name="referral_promotion_list_two_year">
         <item>If a friend shared their referral code with you, enter the code to receive three months of lantern pro free after checkout</item>
-    </string-array>      
+    </string-array>
     <string name="only_one_device">Only One Device</string>
     <string name="sorry_cannot_remove">Sorry, but you cannot remove your last authorized device</string>
     <string name="send_link">Send Link</string>
@@ -169,7 +169,7 @@
     <string name="upgrade_to_lantern_pro">Upgrade to Lantern Pro</string>
     <string name="pro_available_for">For Windows, Android, Mac and Ubuntu. iOS coming soon</string>
     <string name="upgrade_to_pro">Upgrade to Pro for unlimited data, faster speed, and greater blocking resistance!</string>
-    <string name="data_remaining">%1$sMB Remaining of your free monthly high speed data</string> 
+    <string name="data_remaining">%1$sMB Remaining of your free monthly high speed data</string>
     <string name="upgrade">Upgrade</string>
     <string name="no_wall_at_all">No wall at all.</string>
     <string name="buy_pro_now">Buy Pro Now</string>
