@@ -12,7 +12,7 @@
     <string name="send_desktop">Send Desktop</string>
     <string name="send_sms">Send SMS</string>
     <string name="send_email">Send Email</string>
-    <string name="apply_promotion">Apply Promotion</string>
+    <string name="apply_referral_code">Apply Referral Code</string>
     <string name="submit_code">Confirm Code</string>
     <string name="on_text">On</string>
     <string name="off_text">Off</string>
@@ -53,6 +53,7 @@
     <string name="error_log_email">Error sending logs to Lantern. Please try again later.</string>
     <string name="invalid_email">Invalid e-mail address</string>
     <string name="invalid_referral_code">Invalid referral code</string>
+    <string name="cannot_use_own_referral_code">Cannot use your own referral code for promotion</string>
     <string name="no_internet_connection">No Internet connection available!</string>
     <string name="unable_remove_device">Unable to remove device. Please try again later!</string>
     <string name="contact_email">team@getlantern.org</string>
@@ -64,14 +65,14 @@
     <string name="error_update">Error Downloading Update</string>
     <string name="manual_update">Try manually installing the latest version from &lt;a href="https://lantern-android.io">here1&lt;/a></string>
     <string name="pro_welcome_text">Welcome to Lantern Pro!</string>
-	<string name="renew_pro_account">Renew Pro Account</string>
+    <string name="renew_pro_account">Renew Pro Account</string>
     <string name="logout">Log out</string>
-	<string name="change_phone_number">Change Phone Number</string>
+    <string name="change_phone_number">Change Phone Number</string>
     <string name="change_email_address">Change Email Address</string>
     <string name="pro_account_expires">Your Pro account expires on %1$s</string>
     <string name="includes_free_months">This includes your %2$d bonus months!</string>
-	<string name="verified_phone_number">Verified Phone Number:</string>
-	<string name="devices_authorized">Devices authorized to use your Pro account</string>
+    <string name="verified_phone_number">Verified Phone Number:</string>
+    <string name="devices_authorized">Devices authorized to use your Pro account</string>
     <string name="send_us_your_logs">Send us your Logs</string>
     <string name="thanks_purchase">Thanks for your purchase of Lantern Pro!</string>
     <string name="start_inviting">\r\nStart inviting!</string>
@@ -81,7 +82,7 @@
     <string name="invite_friends_btn">Invite Friends</string>
     <string name="email_address">Email Address</string>
     <string name="continue_to_pro">Continue to PRO</string>
-    <string name="continue_to_checkout">Continue to Checkout</string>
+    <string name="skip_to_checkout">Skip to Checkout</string>
     <string name="free_pro_credits">Free Pro Credits</string>
     <string name="get_pro_credits">Get Free Pro Credits</string>
     <string name="get_free_months">Get Free Months</string>
@@ -96,7 +97,7 @@
     <string name="previous_code">If you have previously received a referral code\r\nplease make sure to use the same email address.</string>
     <string name="payment_plans">Lantern PRO Payment Plans</string>
     <string name="features_text">Lantern PRO Features</string>
-	<string name="checkout">Checkout</string>
+    <string name="checkout">Checkout</string>
     <string name="cvc">CVC</string>
     <string name="card_number">Card Number</string>
     <string name="validation_errors">Validation Errors</string>
@@ -134,10 +135,10 @@
         <item>Lantern will never share your number with third parties.</item>
     </string-array>
     <string-array name="referral_promotion_list">
-        <item>Did a friend share the referral code with you? Enter the code to receive a Lantern Pro credit worth one free month after checkout.</item>
+        <item>If a friend shared their referral code with you, enter the code to receive one free month of lantern pro free after checkout</item>
     </string-array>
     <string-array name="referral_promotion_list_two_year">
-        <item>Did a friend share the referral code with you? Enter the code to get three additional months free after checkout.</item>
+        <item>If a friend shared their referral code with you, enter the code to receive three months of lantern pro free after checkout</item>
     </string-array>      
     <string name="only_one_device">Only One Device</string>
     <string name="sorry_cannot_remove">Sorry, but you cannot remove your last authorized device</string>
@@ -155,7 +156,7 @@
     <string name="one_year">for 1 year</string>
     <string name="two_years">for 2 years</string>
     <string name="best_value">Best VALUE!</string>
-    <string name="referral_code">Referral Code (optional)</string>
+    <string name="referral_code_opt">Referral Code (optional)</string>
     <string name="total">Total:</string>
     <string name="pro_account_header">Pro Account Management</string>
     <string name="pro_account_month_text">You currently have a Lantern PRO monthly account. Your account will automatically be charged for another month of Lantern Pro at the end of the billing cycle.</string>
@@ -163,7 +164,7 @@
     <string name="cancel_pro_account">Cancel Pro Account</string>
     <string name="account_verification">Account Verification</string>
     <string name="enter_verification_code">Enter Verification Code</string>
-    <string name="referral_promotion">Referral Promotion</string>
+    <string name="referral_code">Referral Code</string>
     <string name="get_lantern_pro">Get Lantern Pro</string>
     <string name="upgrade_to_lantern_pro">Upgrade to Lantern Pro</string>
     <string name="pro_available_for">For Windows, Android, Mac and Ubuntu. iOS coming soon</string>
@@ -183,18 +184,18 @@
     <string name="pro_invitation_subject">Invitation to Join Lantern Pro</string>
     <string name="receive_free_month">For a free month of Lantern Pro, use this referral code: %1$s ; You can download it from here: https://bit.ly/1M8x04u</string>
     <string name="share_feed_item">I\'m reading about "%1$s" at %2$s via Lantern. Use Lantern to access blocked sites and services. You can download it for Android here: https://bit.ly/lanternapk</string>
-	<string name="cancel_pro_confirmation">Are you sure? This action cannot be undone! You can sign up for Pro again at any time.</string>
+    <string name="cancel_pro_confirmation">Are you sure? This action cannot be undone! You can sign up for Pro again at any time.</string>
     <string name="unauthorize_confirmation">Are you sure you want to unlink this device from your Pro account?</string>
-	<string name="yes">Yes</string>
-	<string name="no">No</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
     <string name="item_image_contentDescription">Country flag</string>
     <string name="item_preview_country">United States</string>
     <string name="item_preview_dialCode">+1</string>
 
-	<string name="refresh">Refresh</string>
-	<string name="find">Find</string>
-	<string name="share_via">Share via</string>
-	<string name="copy_link">Copy Link</string>
-	<string name="open_with">Open with</string>
-	<string name="copied_to_clipboard">Copied to clipboard</string>
+    <string name="refresh">Refresh</string>
+    <string name="find">Find</string>
+    <string name="share_via">Share via</string>
+    <string name="copy_link">Copy Link</string>
+    <string name="open_with">Open with</string>
+    <string name="copied_to_clipboard">Copied to clipboard</string>
 </resources>

@@ -17,7 +17,7 @@
         android:layout_height="wrap_content"
         class="org.lantern.fragment.TitleBar"
         lantern:backgroundColor="@drawable/nav_background_white"
-        lantern:titleText="@string/referral_promotion"/>
+        lantern:titleText="@string/referral_code"/>
 
     <fragment
         android:id="@+id/user_form_fragment"
@@ -26,7 +26,7 @@
         class="org.lantern.fragment.UserForm"
         lantern:formType="referral"
         lantern:formIcon="@drawable/star"
-        lantern:sendBtnText="@string/apply_promotion"
+        lantern:sendBtnText="@string/apply_referral_code"
         lantern:formList="@array/referral_promotion_list"/>
 
 </LinearLayout>  

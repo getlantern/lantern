@@ -98,21 +98,25 @@
         android:background="@drawable/send_btn"
         android:onClick="sendResult" />
 
-    <TextView
+    <Button
         android:id="@+id/continueBtn"
         android:visibility="gone"
-        android:layout_height="wrap_content"
-        android:layout_width="wrap_content"
-        android:text="@string/continue_to_checkout"
+        android:layout_height="36dp"
+        android:layout_width="216dp"
+        android:text="@string/skip_to_checkout"
         android:fontFamily="sans-serif-medium"
+        android:textAllCaps="true"
         android:textSize="14sp"
+        android:elevation="2dp"
+        andorid:minHeight="48dp"
         android:clickable="true"
-        android:textColor="@color/black"
-        android:layout_marginTop="20dp"
+        android:textColor="@color/accent_white"
+        android:layout_marginTop="10dp"
+        android:clickable="true"
         android:layout_gravity="center" 
         android:gravity="center"
-        android:background="@null"
-        android:layout_centerHorizontal="true"
+        android:background="@color/pink"
+        android:layout_centerInParent="true"
         android:onClick="continueBtn"/>
 
 </LinearLayout>

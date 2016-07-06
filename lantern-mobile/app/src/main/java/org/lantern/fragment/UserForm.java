@@ -51,12 +51,15 @@ public class UserForm extends Fragment {
         }
 
         if (mFormDetails != null) {
+
             TextView formDetails = (TextView)view.findViewById(R.id.formDetails);
             ArrayList<String> items = new ArrayList<String>();
 
-            for (CharSequence s : Arrays.asList(mFormDetails)) {
-                // prepend list with bullet symbol
-                items.add(BULLET_SYMBOL + " " + s);
+            if (mFormType != null && mFormType.equals("referral")) {
+                for (CharSequence s : Arrays.asList(mFormDetails)) {
+                    // prepend list with bullet symbol
+                    items.add(BULLET_SYMBOL + " " + s);
+                }
             }
             // separate list of entries
             formDetails.setText(Html.fromHtml(TextUtils.join("<br/>", items)));
@@ -75,6 +78,8 @@ public class UserForm extends Fragment {
                 textInput.setInputType(InputType.TYPE_CLASS_NUMBER);
             } else if (mFormType.equals("referral")) {
                 textInput.setCompoundDrawablesWithIntrinsicBounds( R.drawable.star, 0, 0, 0);
+                mSendBtn.setBackground(getContext().getResources().getDrawable(R.drawable.text_invite));
+                mSendBtn.setTextColor(getContext().getResources().getColor(R.color.pink));
             } else {
                 Utils.configureEmailInput(textInput, separator);
             }

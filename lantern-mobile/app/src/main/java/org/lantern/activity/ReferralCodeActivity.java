@@ -30,7 +30,7 @@ public class ReferralCodeActivity extends FragmentActivity implements ProRespons
     private static final String TAG = "ReferralCodeActivity";
 
     @ViewById
-    TextView continueBtn;
+    Button continueBtn;
 
     @ViewById
     EditText email;
@@ -69,6 +69,11 @@ public class ReferralCodeActivity extends FragmentActivity implements ProRespons
 
             if (referral == null || referral.equals("")) {
                 Utils.showErrorDialog(this, getResources().getString(R.string.invalid_referral_code));
+                return;
+            }
+
+            if (referral == session.Referral()) {
+                Utils.showErrorDialog(this, getResources().getString(R.string.cannot_use_own_referral_code));
                 return;
             }
 
