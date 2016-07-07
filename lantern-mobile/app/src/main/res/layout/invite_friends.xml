@@ -17,7 +17,7 @@
         android:layout_height="wrap_content"
         class="org.lantern.fragment.TitleBar"
         lantern:backgroundColor="@drawable/nav_background_white"
-        lantern:titleText="@string/get_free_months"/>
+        lantern:titleText="@string/invite_friends_btn"/>
 
     <RelativeLayout
         android:id="@+id/credits_left"
@@ -28,7 +28,7 @@
 
         <ImageView
             android:id="@+id/invite_friends"
-            android:paddingTop="26dp"
+            android:paddingTop="40dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
@@ -41,7 +41,6 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:background="@color/accent_white"
-        android:paddingTop="15dp"
         android:paddingBottom="15dp"
         android:layout_weight="1"
         android:padding="8dp">
@@ -53,12 +52,28 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content">
 
+            <TextView
+                android:id="@+id/share_with_friends"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:lineSpacingExtra="5dp"
+                android:text="@string/share_friends_text"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_centerHorizontal="true"
+                android:gravity="center"
+                android:textColor="@color/black"/>
+
+
          <TextView
             android:id="@+id/invite_friends_text"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif"
-            android:layout_marginTop="5dp"
+            android:layout_marginTop="15dp"
             android:padding="10dp"
             android:lineSpacingExtra="5dp"
             android:text="@string/invite_friends_welcome"
@@ -71,13 +86,13 @@
             android:id="@+id/your_referral_code"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="5dp"
             android:fontFamily="sans-serif"
-            android:text="@string/your_referral_code"
+            android:text="@string/share_your_referral_code"
             android:textAllCaps="true"       
             android:textSize="12sp"
             android:gravity="center"
-            android:textColor="#000000"/>          
+            android:textColor="@color/black"/>          
 
         <TextView
             android:id="@+id/referralCode"

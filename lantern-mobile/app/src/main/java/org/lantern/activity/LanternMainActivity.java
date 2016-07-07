@@ -331,7 +331,7 @@ public class LanternMainActivity extends AppCompatActivity {
             navItems.add(navItems.size(), new NavItem(resources.getString(R.string.pro_account_header),
                         R.drawable.sign_in));
         }
-        navItems.add(new NavItem(resources.getString(R.string.get_free_months), R.drawable.get_free));
+        navItems.add(new NavItem(resources.getString(R.string.invite_friends_btn), R.drawable.get_free));
 
 
         if (!session.isDeviceLinked()) {
@@ -377,7 +377,7 @@ public class LanternMainActivity extends AppCompatActivity {
             }
         });
 
-        menuMap.put(resources.getString(R.string.get_free_months), new Command() {
+        menuMap.put(resources.getString(R.string.invite_friends_btn), new Command() {
             public void runCommand() { startActivity(new Intent(activity, InviteActivity_.class)); }
         });
 

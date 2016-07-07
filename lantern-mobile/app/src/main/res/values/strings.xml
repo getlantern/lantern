@@ -80,6 +80,7 @@
     <string name="invite_friends">Enter your e-mail to receive a code to share with your friends. Get a free month of PRO when they sign up!</string>
     <string name="invite_friends_welcome">When your friends purchase the two-year plan you will each get 3 months free, the one-year plan gets you each 1 month free</string>
     <string name="invite_friends_btn">Invite Friends</string>
+    <string name="share_friends_text">Share with friends to earn free months!</string>
     <string name="email_address">Email Address</string>
     <string name="continue_to_pro">Continue to PRO</string>
     <string name="skip_to_checkout">Skip to Checkout</string>
@@ -88,7 +89,7 @@
     <string name="get_free_months">Get Free Months</string>
     <string name="text_invite">Text Invite</string>
     <string name="email_invite">Email Invite</string>
-    <string name="your_referral_code">Your Referral Code</string>
+    <string name="share_your_referral_code">Share Your Referral Code</string>
     <string name="get_code">Get Code</string>
     <string name="get_code_text">Enter your email to receive a code to share with your friends, get a free month of PRO when they sign up!</string>
     <string name="enter_your_email">Enter your email to receive a referral code</string>
@@ -145,6 +146,7 @@
     <string name="send_link">Send Link</string>
     <string name="click_button">Click the button to access blocked sites and services</string>
     <string name="lantern_pro">Lantern Pro</string>
+    <string name="lantern_pro_checkout">Lantern Pro Checkout</string>
     <string name="invite_friends_header">Invite friends</string>
     <string name="pro_desc">Faster, Smarter, more Resilient</string>
     <string name="free_month">Get a free month of pro for each sign up</string>

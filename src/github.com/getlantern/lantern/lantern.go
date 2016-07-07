@@ -202,7 +202,12 @@ func afterStart(cfg *config.Config, user UserConfig) {
 
 // CheckForUpdates checks to see if a new version of Lantern is available
 func CheckForUpdates(shouldProxy bool) (string, error) {
-	return autoupdate.CheckMobileUpdate(shouldProxy, config.DefaultUpdateServerURL,
+	updateServer := config.DefaultUpdateServerURL
+	if stagingMode == "true" {
+		updateServer = "http://update-stage.getlantern.org/"
+	}
+
+	return autoupdate.CheckMobileUpdate(shouldProxy, updateServer,
 		compileTimePackageVersion)
 }
 
