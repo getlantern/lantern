@@ -3,12 +3,10 @@ package autoupdate
 import (
 	"bytes"
 	"compress/bzip2"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/blang/semver"
 	"github.com/getlantern/flashlight/proxied"
@@ -52,11 +50,6 @@ func doCheckUpdate(shouldProxy bool, version, URL string, publicKey []byte) (str
 
 	// specify go-update should use our httpClient
 	update.SetHttpClient(httpClient)
-
-	if !strings.Contains(URL, "stage") {
-		URL = fmt.Sprintf("%s/update", URL)
-		log.Debugf("AUTO UPDATE URL IS --> %s", URL)
-	}
 
 	res, err := checkUpdate(version, URL, publicKey)
 	if err != nil {
