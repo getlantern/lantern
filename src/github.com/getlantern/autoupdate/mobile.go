@@ -79,7 +79,7 @@ func doCheckUpdate(shouldProxy bool, version, URL string, publicKey []byte) (str
 // CheckMobileUpdate checks if a new update is available for mobile.
 func CheckMobileUpdate(shouldProxy bool, updateServer, appVersion string) (string, error) {
 	return doCheckUpdate(shouldProxy, appVersion,
-		updateServer, []byte(PackagePublicKey))
+		updateServer+"/update", []byte(PackagePublicKey))
 }
 
 // UpdateMobile downloads the latest APK from the given url to file apkPath.

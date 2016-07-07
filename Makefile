@@ -30,7 +30,9 @@ BUILD_DATE := $(shell date -u +%Y%m%d.%H%M%S)
 
 LOGGLY_TOKEN := 2b68163b-89b6-4196-b878-c1aca4bbdf84
 
-LDFLAGS_NOSTRIP := -X github.com/getlantern/flashlight.Version=$(GIT_REVISION) -X github.com/getlantern/flashlight.RevisionDate=$(REVISION_DATE) -X github.com/getlantern/flashlight.BuildDate=$(BUILD_DATE) -X github.com/getlantern/flashlight/logging.logglyToken=$(LOGGLY_TOKEN) -X github.com/getlantern/flashlight/logging.logglyTag=$(LOGGLY_TAG)
+UPDATE_SERVER_URL ?=
+
+LDFLAGS_NOSTRIP := -X github.com/getlantern/flashlight.Version=$(GIT_REVISION) -X github.com/getlantern/flashlight.RevisionDate=$(REVISION_DATE) -X github.com/getlantern/flashlight.BuildDate=$(BUILD_DATE) -X github.com/getlantern/flashlight/logging.logglyToken=$(LOGGLY_TOKEN) -X github.com/getlantern/flashlight/logging.logglyTag=$(LOGGLY_TAG) -X github.com/getlantern/flashlight/config.DefaultUpdateServerURL="$(UPDATE_SERVER_URL)"
 LDFLAGS := $(LDFLAGS_NOSTRIP) -s
 LANTERN_DESCRIPTION := Censorship circumvention tool
 LANTERN_EXTENDED_DESCRIPTION := Lantern allows you to access sites blocked by internet censorship.\nWhen you run it, Lantern reroutes traffic to selected domains through servers located where such domains are uncensored.
@@ -408,7 +410,7 @@ package-darwin: package-darwin-manoto
 
 binaries: docker-assets docker-linux docker-windows darwin
 
-packages: require-version require-secrets clean-desktop clean-mobile docker-assets docker-package-windows docker-package-linux package-darwin package-android 
+packages: require-version require-secrets clean-desktop clean-mobile docker-assets docker-package-windows docker-package-linux package-darwin package-android
 
 # Override implicit docker-packages to avoid building whole packages target in
 # docker, since it builds the pieces it needs in docker itself.

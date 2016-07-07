@@ -15,7 +15,7 @@ import (
 var (
 	log = golog.LoggerFor("flashlight.autoupdate")
 
-	updateServerURL = config.DefaultUpdateServerURL
+	updateServerURL = config.UpdateServerURL
 	PublicKey       []byte
 	Version         string
 
