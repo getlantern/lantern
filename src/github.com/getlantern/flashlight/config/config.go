@@ -24,15 +24,15 @@ import (
 const (
 	cloudfront = "cloudfront"
 
-	// DefaultUpdateServerURL is the default URL to fetch updates from.
-	DefaultUpdateServerURL = "https://update.getlantern.org"
+	// defaultUpdateServerURL is the default URL to fetch updates from.
+	defaultUpdateServerURL = "https://update.getlantern.org"
 )
 
 var UpdateServerURL string
 
 func init() {
 	if UpdateServerURL == "" {
-		UpdateServerURL = DefaultUpdateServerURL
+		UpdateServerURL = defaultUpdateServerURL
 	}
 }
 
