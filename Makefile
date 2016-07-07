@@ -31,8 +31,7 @@ BUILD_DATE := $(shell date -u +%Y%m%d.%H%M%S)
 LOGGLY_TOKEN := 2b68163b-89b6-4196-b878-c1aca4bbdf84
 
 UPDATE_SERVER_URL ?=
-
-LDFLAGS_NOSTRIP := -X github.com/getlantern/flashlight.Version=$(GIT_REVISION) -X github.com/getlantern/flashlight.RevisionDate=$(REVISION_DATE) -X github.com/getlantern/flashlight.BuildDate=$(BUILD_DATE) -X github.com/getlantern/flashlight/logging.logglyToken=$(LOGGLY_TOKEN) -X github.com/getlantern/flashlight/logging.logglyTag=$(LOGGLY_TAG) -X github.com/getlantern/flashlight/config.DefaultUpdateServerURL="$(UPDATE_SERVER_URL)"
+LDFLAGS_NOSTRIP := -X github.com/getlantern/flashlight.Version=$(GIT_REVISION) -X github.com/getlantern/flashlight.RevisionDate=$(REVISION_DATE) -X github.com/getlantern/flashlight.BuildDate=$(BUILD_DATE) -X github.com/getlantern/flashlight/logging.logglyToken=$(LOGGLY_TOKEN) -X github.com/getlantern/flashlight/logging.logglyTag=$(LOGGLY_TAG) -X github.com/getlantern/flashlight/config.UpdateServerURL=$(UPDATE_SERVER_URL)
 LDFLAGS := $(LDFLAGS_NOSTRIP) -s
 LANTERN_DESCRIPTION := Censorship circumvention tool
 LANTERN_EXTENDED_DESCRIPTION := Lantern allows you to access sites blocked by internet censorship.\nWhen you run it, Lantern reroutes traffic to selected domains through servers located where such domains are uncensored.
@@ -107,7 +106,7 @@ LANTERN_YAML_PATH := installer-resources/lantern.yaml
 
 BUILD_TAGS ?=
 
-.PHONY: packages clean tun2socks android-lib android-sdk android-testbed android-debug android-release android-install docker-run
+.PHONY: packages clean tun2socks android-lib android-sdk android-testbed android-debug android-release android-install docker-run lantern
 
 define require-node
 	if [[ -z "$(NODE)" ]]; then echo 'Missing "node" command.'; exit 1; fi
