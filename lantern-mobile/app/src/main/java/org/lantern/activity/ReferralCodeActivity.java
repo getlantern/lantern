@@ -72,7 +72,7 @@ public class ReferralCodeActivity extends FragmentActivity implements ProRespons
                 return;
             }
 
-            if (referral == session.Referral()) {
+            if (referral.equalsIgnoreCase(session.Referral())) {
                 Utils.showErrorDialog(this, getResources().getString(R.string.cannot_use_own_referral_code));
                 return;
             }
