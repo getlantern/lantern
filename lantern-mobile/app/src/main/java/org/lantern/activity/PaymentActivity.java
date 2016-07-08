@@ -49,7 +49,7 @@ import info.hoang8f.android.segmented.SegmentedGroup;
 public class PaymentActivity extends FragmentActivity implements ProResponse, View.OnClickListener {
 
     private static final String TAG = "PaymentActivity";
-    public static final String CHECKOUT_URL = "file:///android_asset/checkout.html?key=%s&price=%d&currency=%s";
+    public static final String CHECKOUT_URL = "file:///android_asset/checkout.html?key=%s&price=%d&currency=%s&title=%s&description=%s";
 
     private SessionManager session;
 
@@ -161,7 +161,8 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
 
         String currency = session.getSelectedPlanCurrency();
 
-		String url = String.format(CHECKOUT_URL, key, amount, currency);
+		String url = String.format(CHECKOUT_URL, key, amount, 
+                currency, c.getResources().getString(R.string.lantern_pro_checkout), c.getResources().getString(R.string.lantern_pro));
 
         new FinestWebView.Builder((Activity)c)
             .webViewSupportMultipleWindows(true)

@@ -104,16 +104,21 @@ $(document).ready(function() {
         return decodeURIComponent(results[2].replace(/\+/g, " "));
     }
 
+    document.title = getParameterByName('title');
+
+
     var price = getParameterByName('price');
     if (!price) price = 4800;
     var currency = getParameterByName('currency');
+
+    var desc = getParameterByName('description');
 
     StripeCheckout.open({
         key: getParameterByName('key'),
         image: 'https://s3.amazonaws.com/lantern-android/img/lantern_logo.svg',
         amount: price,
         currency: currency,
-        description: 'Lantern Pro',
+        description: desc,
         locale: 'auto',
         alipay: true,
         token: function(token) {

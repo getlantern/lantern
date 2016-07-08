@@ -146,7 +146,9 @@
     <item>请输入您的手机号码以通过短信（SMS）接收一个验证码。</item>
     <item>蓝灯永远不会与第三方共享您的手机号码。</item>
   </string-array>
-  <string-array name="referral_promotion_list"/>
+  <string-array name="referral_promotion_list">
+    <item>如果你的朋友给你发送了邀请码，请输入邀请码。购买专业版后双方都会获赠一个月额外时间。</item>
+  </string-array>
   <string-array name="referral_promotion_list_two_year"/>
   <string name="only_one_device">最后一台设备</string>
   <string name="sorry_cannot_remove">抱歉，不可连最后一台设备也移除。</string>
