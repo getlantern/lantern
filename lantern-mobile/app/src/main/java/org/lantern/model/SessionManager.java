@@ -508,7 +508,9 @@ public class SessionManager implements Lantern.Session, Lantern.UserConfig {
     public void AfterStart() {
         new ProRequest(this.context, false, null).execute("plans");
         newUser();
-        new GetFeed(this.context).execute(shouldProxy());
+        if (showFeed()) {
+            new GetFeed(this.context).execute(shouldProxy());
+        }
         new ProRequest(this.context, false, null).execute("userdata");
     }
 
