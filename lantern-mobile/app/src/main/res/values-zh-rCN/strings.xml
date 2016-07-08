@@ -149,7 +149,9 @@
   <string-array name="referral_promotion_list">
     <item>如果你的朋友给你发送了邀请码，请输入邀请码。购买专业版后双方都会获赠一个月额外时间。</item>
   </string-array>
-  <string-array name="referral_promotion_list_two_year"/>
+  <string-array name="referral_promotion_list_two_year">
+    <item>如果你的朋友给你发送了邀请码，请输入邀请码。购买专业版后双方都会获赠三个月额外时间。</item>
+  </string-array>
   <string name="only_one_device">最后一台设备</string>
   <string name="sorry_cannot_remove">抱歉，不可连最后一台设备也移除。</string>
   <string name="send_link">发送链接</string>
