@@ -11,5 +11,5 @@
   <string name="install_update">يېڭىلاش</string>
   <string name="language">تىل</string>
   <string name="item_preview_country">ئامېرىكا قوشما شتاتلىرى</string>
-  <string name="stripe_publishable_key"></string>
+  <string name="refresh">يېڭىلاش</string>
 </resources>

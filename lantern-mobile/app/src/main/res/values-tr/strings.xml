@@ -16,5 +16,5 @@
   <string name="yes">Evet</string>
   <string name="no">Hayır</string>
   <string name="item_preview_country">Birleşik Devletler</string>
-  <string name="stripe_publishable_key"></string>
+  <string name="refresh">Yenile</string>
 </resources>

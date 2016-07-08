@@ -36,5 +36,5 @@
   <string name="no">Нет</string>
   <string name="item_image_contentDescription">Флаг страны</string>
   <string name="item_preview_country">США</string>
-  <string name="stripe_publishable_key"></string>
+  <string name="refresh">Обновить</string>
 </resources>

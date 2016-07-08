@@ -11,5 +11,5 @@
   <string name="install_update">Cập nhật phiên bản mới</string>
   <string name="language">Ngôn ngữ hiển thị</string>
   <string name="item_preview_country">United States</string>
-  <string name="stripe_publishable_key"></string>
+  <string name="refresh">Cập nhật lại</string>
 </resources>

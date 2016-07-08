@@ -11,7 +11,6 @@
   <string name="email_hint">ایمیل</string>
   <string name="send_button">ارسال</string>
   <string name="send_sms">ارسال پیامک</string>
-  <string name="apply_promotion">اعمال ارتقاء</string>
   <string name="on_text">روشن</string>
   <string name="off_text">خاموش</string>
   <string name="desktop_option">نسخه دسکتاپ</string>
@@ -31,10 +30,8 @@
   <string name="install_update">به روز رسانی</string>
   <string name="error_update">ایراد در دانلود به روز رسانی</string>
   <string name="invite_friends_btn">دعوت از دوستان</string>
-  <string name="continue_to_checkout">ادامه برای پرداخت صورتحساب</string>
   <string name="text_invite">متن دعوت</string>
   <string name="email_invite">ایمیل دعوت</string>
-  <string name="your_referral_code">کد ارجاع شما</string>
   <string name="get_code">دریافت کد</string>
   <string name="cvc">CVC</string>
   <string name="card_number">شماره کارت</string>
@@ -54,5 +51,5 @@
   <string name="item_image_contentDescription">پرچم کشور</string>
   <string name="item_preview_country">ایالات متحده آمریکا</string>
   <string name="item_preview_dialCode">+1</string>
-  <string name="stripe_publishable_key"></string>
+  <string name="refresh">ریفرش</string>
 </resources>

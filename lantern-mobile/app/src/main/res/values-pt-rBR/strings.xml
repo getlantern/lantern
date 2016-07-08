@@ -16,5 +16,5 @@
   <string name="yes">Sim</string>
   <string name="no">Não</string>
   <string name="item_preview_country">Estados Unidos</string>
-  <string name="stripe_publishable_key"></string>
+  <string name="refresh">Atualizar</string>
 </resources>

@@ -13,5 +13,5 @@
   <string name="yes">Так</string>
   <string name="no">Ні</string>
   <string name="item_preview_country">США</string>
-  <string name="stripe_publishable_key"></string>
+  <string name="refresh">Поновити</string>
 </resources>

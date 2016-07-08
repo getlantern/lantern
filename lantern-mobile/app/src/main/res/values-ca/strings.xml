@@ -12,11 +12,8 @@
   <string name="send_button">Envia</string>
   <string name="send_desktop">Envia</string>
   <string name="send_sms">Envia SMS</string>
-  <string name="apply_promotion">Aplica la promoció</string>
   <string name="on_text">Activació</string>
   <string name="off_text">Desactivació</string>
-  <string name="lantern_off">El Lantern està apagat. Activeu l\'interruptor per accedir\n als llocs i serveis bloquejats.</string>
-  <string name="lantern_on">El Lantern està encès. Ja podeu accedir\n als llocs i serveis bloquejats.</string>
   <string name="on_desc">Ja podeu accedir als\r\nserveis i llocs bloquejats</string>
   <string name="off_desc">Feu clic sobre el botó per accedir als serveis i llocs bloquejats</string>
   <string name="service_connected">Lantern connectat</string>
@@ -54,7 +51,7 @@
   <string name="not_now">Ara no</string>
   <string name="install_update">Actualitza</string>
   <string name="error_update">S\'ha produït un error descarregant l\'actualització</string>
-  <string name="manual_update">Proveu d\'instal·lar la darrera versió des d\'&lt;a href="https://lantern-android.io"&gt;aquí&lt;/a&gt;</string>
+  <string name="manual_update">Proveu d'instal·lar la darrera versió des d'&lt;a href="https://lantern-android.io"&gt;aquí&lt;/a&gt;</string>
   <string name="pro_welcome_text">Benvinguts al Lantern PRO</string>
   <string name="renew_pro_account">Renoveu el compte Pro</string>
   <string name="change_phone_number">Canvieu el número de telèfon</string>
@@ -66,13 +63,11 @@
   <string name="invite_friends">Introduïu l\'adreça de correu electrònic per rebre un codi per compartir amb els amics. Obteniu un mes gratuït del PRO quan s\'inscriguin. </string>
   <string name="invite_friends_btn">Convideu amics</string>
   <string name="continue_to_pro">Continua a PRO</string>
-  <string name="continue_to_checkout">Continua a la Revisió</string>
   <string name="free_pro_credits">Crèdits Pro gratuïts</string>
   <string name="get_pro_credits">Obtenir crèdits Pro gratuïts</string>
   <string name="get_free_months">Obtenir mesos gratuïts</string>
   <string name="text_invite">Escriviu la invitació</string>
   <string name="email_invite">Envieu la invitació per correu</string>
-  <string name="your_referral_code">El vostre codi de referència</string>
   <string name="get_code">Obtén Codi</string>
   <string name="get_code_text">Introduïu l\'adreça de correu electrònic per rebre un codi per compartir amb els amics. Obteniu un mes gratuït del PRO quan s\'inscriguin. </string>
   <string name="enter_your_email">Introduïu l\'adreça de correu electrònic per rebre un codi de referència</string>
@@ -108,9 +103,6 @@
     <item>Introduïu el número del telèfon mòbil per rebre el codi de verificació via SMS.</item>
     <item>El Lantern no compartirà mai el número amb terceres parts.</item>
   </string-array>
-  <string-array name="referral_promotion_list">
-    <item>Algun amic us ha compartit el codi de referència? Introduïu el codi per rebre un crèdit del Lantern PRO i gaudir d\'un mes gratuït</item>
-  </string-array>
   <string name="send_link">Envia enllaç</string>
   <string name="click_button">Feu clic sobre el botó per accedir a serveis i llocs bloquejats</string>
   <string name="lantern_pro">Lantern Pro</string>
@@ -123,7 +115,7 @@
   <string name="one_year">per 1 any</string>
   <string name="two_years">per 2 anys</string>
   <string name="best_value">El millor valor!</string>
-  <string name="referral_code">Codi de referència (opcional)</string>
+  <string name="referral_code_opt">Codi de referència (opcional)</string>
   <string name="total">Total:</string>
   <string name="pro_account_header">Gestió del compte Pro</string>
   <string name="pro_account_month_text">Actualment disposeu d\'un compte mensual del Lantern PRO. Al final del cicle de facturació, carregarem automàticament un altre mes al vostre compte.</string>
@@ -131,11 +123,9 @@
   <string name="cancel_pro_account">Cancel·la el compte PRO</string>
   <string name="account_verification">Verificació del compte</string>
   <string name="enter_verification_code">Introduïu el codi de verificació</string>
-  <string name="referral_promotion">Promoció de referència</string>
   <string name="get_lantern_pro">Obtenir Lantern Pro</string>
   <string name="upgrade_to_lantern_pro">Actualitza a Lantern Pro</string>
   <string name="pro_available_for">Per a Windows, Android, Mac i Ubuntu. Aviat per a iOS</string>
-  <string name="data_remaining">%1$sMB restants de les vostres dades mensuals gratuïtes</string>
   <string name="upgrade">Actualitza</string>
   <string name="no_wall_at_all">Sense murs.</string>
   <string name="buy_pro_now">Compreu el Pro ara</string>
@@ -157,5 +147,5 @@
   <string name="item_image_contentDescription">Bandera del país</string>
   <string name="item_preview_country">Estats Units</string>
   <string name="item_preview_dialCode">+1</string>
-  <string name="stripe_publishable_key"></string>
+  <string name="refresh">Actualitza</string>
 </resources>

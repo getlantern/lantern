@@ -13,5 +13,5 @@
   <string name="yes">Ναι </string>
   <string name="no">Όχι</string>
   <string name="item_preview_country">United States</string>
-  <string name="stripe_publishable_key"></string>
+  <string name="refresh">Ανανέωση</string>
 </resources>

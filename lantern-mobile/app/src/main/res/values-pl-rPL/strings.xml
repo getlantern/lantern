@@ -14,5 +14,5 @@
   <string name="language">Język</string>
   <string name="yes">Tak</string>
   <string name="item_preview_country">Stany Zjednoczone</string>
-  <string name="stripe_publishable_key"></string>
+  <string name="refresh">Odśwież</string>
 </resources>

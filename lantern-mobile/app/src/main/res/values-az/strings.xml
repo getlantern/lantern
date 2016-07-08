@@ -34,5 +34,5 @@
   <string name="yes">Bəli</string>
   <string name="no">Xeyr</string>
   <string name="item_preview_country">United States</string>
-  <string name="stripe_publishable_key"></string>
+  <string name="refresh">Yenilə</string>
 </resources>

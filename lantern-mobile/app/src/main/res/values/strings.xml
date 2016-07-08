@@ -17,7 +17,7 @@
     <string name="on_text">On</string>
     <string name="off_text">Off</string>
     <string name="lantern_off">Lantern is Off. Flip the switch to access blocked sites and services!</string>
-    <string name="lantern_on">Lantern is On. You can now access blocked sites and services!</string>  
+    <string name="lantern_on">Lantern is On. You can now access blocked sites and services!</string>
     <string name="on_desc">You can now access\r\nblocked sites and services</string>
     <string name="off_desc">Click the button to access blocked sites and services</string>
     <string name="service_connected">Lantern connected</string>
@@ -57,7 +57,7 @@
     <string name="no_internet_connection">No Internet connection available!</string>
     <string name="unable_remove_device">Unable to remove device. Please try again later!</string>
     <string name="contact_email">team@getlantern.org</string>
-    <string name="contact_message">Help Me</string>      
+    <string name="contact_message">Help Me</string>
     <string name="contact_subject">Lantern Android</string>
     <string name="update_available">A new version of Lantern is available! Would you like to upgrade now?</string>
     <string name="not_now">Not Now</string>
@@ -127,8 +127,16 @@
         <item>Enter the verification code you received via email</item>
         <item>Didn\'t receive a code? Check your spam folder and make sure you entered in your email address correctly.</item>
     </string-array>
+    <string-array name="enter_code_steps_referral">
+        <item>Enter the verification code you received via email to continue to Pro!</item>
+        <item>Didn\'t receive a code? Check your spam folder and make sure you entered in your email address correctly.</item>
+    </string-array>                                            
     <string-array name="authorize_device_list">
         <item>If you have a Lantern PRO account on another device, please enter your email address here to receive a code to authorize this device.</item>
+    </string-array>
+    <string-array name="enter_email_list">
+        <item>Enter your email address to authorize this device to use your free Lantern Pro months</item>
+        <item>We will send you an authorization code via email</item>
     </string-array>
     <string-array name="verify_account_list">
         <item>Great! Let\'s verify your account first.</item>
@@ -199,4 +207,13 @@
     <string name="copy_link">Copy Link</string>
     <string name="open_with">Open with</string>
     <string name="copied_to_clipboard">Copied to clipboard</string>
+    <string name="welcome_to_new">Welcome to the new and improved Lantern!</string>
+    <string name="now_using">You are now using the fastest and most stable Lantern to date.</string>
+    <string name="get_unlimited_data">To get unlimited data, ultimate speeds, and even stronger blocking resistance\nUPGRADE to Pro!</string>
+    <string name="start_using">Start Using Lantern</string>
+    <string name="device_already_registered">This email address is already a Pro subscriber. Please authorize this device here.</string>
+    <string name="referral_code_used">Your referral code was used by a friend to buy Pro. %d free months of Lantern Pro have been applied. Please confirm your email to start using Lantern Pro.</string>
+    <string name="congratulations">Congratulations!</string>
+    <string name="enter_email">Enter Email Address</string>
+    <string name="confirm_email">Confirm Email</string>
 </resources>

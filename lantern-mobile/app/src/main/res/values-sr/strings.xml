@@ -1,5 +1,4 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <resources>
   <string name="share_email_native"></string>
-  <string name="stripe_publishable_key"></string>
 </resources>

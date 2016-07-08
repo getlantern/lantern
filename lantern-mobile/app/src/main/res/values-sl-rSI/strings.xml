@@ -10,5 +10,5 @@
   <string name="install_update">Posodobi</string>
   <string name="language">Jezik</string>
   <string name="item_preview_country">Združene države Amerike</string>
-  <string name="stripe_publishable_key"></string>
+  <string name="refresh">Osveži</string>
 </resources>

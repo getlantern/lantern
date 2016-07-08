@@ -12,5 +12,5 @@
   <string name="language">Kieli</string>
   <string name="yes">Kyllä</string>
   <string name="no">En</string>
-  <string name="stripe_publishable_key"></string>
+  <string name="refresh">Virkistä</string>
 </resources>

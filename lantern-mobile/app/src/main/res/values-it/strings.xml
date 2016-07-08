@@ -29,7 +29,6 @@
   <string name="get_free_months">Ottieni mesi gratis</string>
   <string name="text_invite">Testo dell\'invito</string>
   <string name="email_invite">Email dell\'invito</string>
-  <string name="your_referral_code">Codice referenziale</string>
   <string name="get_code">Ottieni codice</string>
   <string name="checkout">Paga</string>
   <string name="cvc">CVC</string>
@@ -46,5 +45,5 @@
   <string name="yes">Si</string>
   <string name="no">No</string>
   <string name="item_preview_country">Stati Uniti</string>
-  <string name="stripe_publishable_key"></string>
+  <string name="refresh">Ricarica</string>
 </resources>

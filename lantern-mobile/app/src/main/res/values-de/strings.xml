@@ -9,7 +9,6 @@
   <string name="send_desktop">Senden</string>
   <string name="send_sms">SMS senden</string>
   <string name="send_email">E-Mail senden</string>
-  <string name="apply_promotion">Gutscheincode anwenden</string>
   <string name="submit_code">Code bestätigen</string>
   <string name="on_text">Ein</string>
   <string name="off_text">Aus</string>
@@ -68,12 +67,10 @@
   <string name="invite_friends_btn">Freunde einladen</string>
   <string name="email_address">E-Mail-Adresse</string>
   <string name="continue_to_pro">Weiter zu PRO</string>
-  <string name="continue_to_checkout">Weiter zum Probieren</string>
   <string name="email_invite">E-Mail-Einladung</string>
-  <string name="your_referral_code">Ihr Empfehlungscode</string>
   <string name="get_code">Code holen</string>
   <string name="enter_your_email">Geben Sie Ihre E-Mail-Adresse ein, um einen Empfehlungscode zu erhalten</string>
-  <string name="copied_to_clipboard">Empfehlungscode in die Zwischenablage kopiert!</string>
+  <string name="referral_copied_to_clipboard">Empfehlungscode in die Zwischenablage kopiert!</string>
   <string name="payment_plans">Lantern PRO-Zahlungspläne</string>
   <string name="features_text">Lantern PRO-Funktionen</string>
   <string name="checkout">Probieren</string>
@@ -89,6 +86,7 @@
   <string name="feed.error.try_again">Bitte versuchen Sie es erneut</string>
   <string name="authorize_device_pro">Gerät für Pro autorisieren</string>
   <string name="sign_in_pro">Bei Pro anmelden</string>
+  <string name="only_one_device">Nur ein Gerät</string>
   <string name="send_link">Link senden</string>
   <string name="click_button">Klicken Sie zum Zugriff auf blockierte Seiten und Dienste auf die Schaltfläche</string>
   <string name="lantern_pro">Lantern Pro</string>
@@ -98,16 +96,14 @@
   <string name="one_year">für 1 Jahr</string>
   <string name="two_years">für 2 Jahre</string>
   <string name="best_value">Mit dem besten PREIS-LEISTUNGS-VERHÄLTNIS!</string>
-  <string name="referral_code">Empfehlungscode (optional)</string>
+  <string name="referral_code_opt">Empfehlungscode (optional)</string>
   <string name="total">Gesamt:</string>
   <string name="pro_account_header">Pro-Kontoverwaltung</string>
   <string name="cancel_pro_account">Pro-Konto kündigen</string>
   <string name="account_verification">Kontobestätigung</string>
   <string name="enter_verification_code">Bestätigungscode eingeben</string>
-  <string name="referral_promotion">Empfehlungswerbung</string>
   <string name="get_lantern_pro">Lantern Pro erhalten</string>
   <string name="upgrade_to_lantern_pro">Auf Lantern PRO aufrüsten</string>
-  <string name="data_remaining">%1$s MB verbleiben von Ihren freien monatlichen Daten</string>
   <string name="upgrade">Aufrüsten</string>
   <string name="no_wall_at_all">Überhaupt keine Mauer.</string>
   <string name="buy_pro_now">Pro jetzt kaufen</string>
@@ -120,5 +116,5 @@
   <string name="item_image_contentDescription">Länderflagge</string>
   <string name="item_preview_country">USA</string>
   <string name="item_preview_dialCode">+1</string>
-  <string name="stripe_publishable_key"></string>
+  <string name="refresh">Auffrischen</string>
 </resources>

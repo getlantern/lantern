@@ -14,5 +14,5 @@
   <string name="yes">نعم</string>
   <string name="no">لا</string>
   <string name="item_preview_country">الولايات المتحدة</string>
-  <string name="stripe_publishable_key"></string>
+  <string name="refresh">تحديث</string>
 </resources>

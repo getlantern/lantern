@@ -34,5 +34,5 @@
   <string name="yes">Igen</string>
   <string name="no">Nem</string>
   <string name="item_preview_country">Amerikai Egyesült Államok</string>
-  <string name="stripe_publishable_key"></string>
+  <string name="refresh">Frissítés</string>
 </resources>

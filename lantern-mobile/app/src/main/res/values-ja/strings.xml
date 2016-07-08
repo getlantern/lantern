@@ -11,5 +11,5 @@
   <string name="install_update">アップデート</string>
   <string name="language">言語</string>
   <string name="item_preview_country">アメリカ合衆国</string>
-  <string name="stripe_publishable_key"></string>
+  <string name="refresh">更新する</string>
 </resources>

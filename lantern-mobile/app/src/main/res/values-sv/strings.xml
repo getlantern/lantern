@@ -13,5 +13,5 @@
   <string name="language">Språk</string>
   <string name="no">Nej</string>
   <string name="item_preview_country">Förenta Staterna</string>
-  <string name="stripe_publishable_key"></string>
+  <string name="refresh">Ladda om</string>
 </resources>

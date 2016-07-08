@@ -13,12 +13,12 @@
   <string name="send_desktop">Envoyer la version pour ordinateur</string>
   <string name="send_sms">Envoyer un SMS</string>
   <string name="send_email">Envoyer un courriel</string>
-  <string name="apply_promotion">Appliquer la promotion</string>
+  <string name="apply_referral_code">Utiliser le code de parrainage</string>
   <string name="submit_code">Confirmer le code</string>
   <string name="on_text">Marche</string>
   <string name="off_text">Arrêt</string>
-  <string name="lantern_off">Lantern est désactivée (Off). Basculer l\'interrupteur\npour accéder à des sites et à des services bloqués</string>
-  <string name="lantern_on">Lantern est activée (On). Vous pouvez maintenant\naccéder à des sites et à des services bloqués !</string>
+  <string name="lantern_off">Lantern est désactivée. Basculez l\'interrupteur pour accéder à des sites et à des services bloqués !</string>
+  <string name="lantern_on">Lantern est activée. Vous pouvez maintenant accéder à des sites et à des services bloqués !</string>
   <string name="on_desc">Vous pouvez maintenant accéder\r\nà des sites et à des services bloqués</string>
   <string name="off_desc">Cliquer sur le bouton pour accéder à des sites et à des services bloqués</string>
   <string name="service_connected">Lantern est connectée</string>
@@ -54,7 +54,9 @@
   <string name="error_log_email">Erreur lors de l\'envoi des journaux à Lantern. Veuillez ressayer plus tard.</string>
   <string name="invalid_email">Adresse courriel invalide</string>
   <string name="invalid_referral_code">Code de parrainage invalide</string>
+  <string name="cannot_use_own_referral_code">Vous ne pouvez pas utiliser votre propre code de parrainage</string>
   <string name="no_internet_connection">Aucune connexion Internet disponible !</string>
+  <string name="unable_remove_device">Impossible de retirer l\'appareil. Veuillez ressayer plus tard !</string>
   <string name="contact_email">team@getlantern.org</string>
   <string name="contact_message">Aidez-moi</string>
   <string name="contact_subject">Lantern pour Android</string>
@@ -79,24 +81,25 @@
   <string name="invite_friends">Saisissez votre adresse courriel pour recevoir un code à partager avec vos amis et pour obtenir gratuitement un mois de la version PRO s\'ils s\'inscrivent !</string>
   <string name="invite_friends_welcome">Si vos amis achètent le forfait de deux ans, ils ont obtiendront 3 mois gratuits, et vous aussi. Le forfait d\'un an fera gagner 1 mois gratuit à vous et à vos amis</string>
   <string name="invite_friends_btn">Inviter des amis</string>
+  <string name="share_friends_text">Partagez avec des amis pour obtenir des mois gratuits !</string>
   <string name="email_address">Adresse courriel</string>
-  <string name="continue_to_pro">Continuer vers PRO</string>
-  <string name="continue_to_checkout">Passer à la caisse</string>
-  <string name="free_pro_credits">Crédits PRO gratuits</string>
+  <string name="continue_to_pro">Continuer vers Pro</string>
+  <string name="skip_to_checkout">Passer à la caisse</string>
+  <string name="free_pro_credits">Crédits Pro gratuits</string>
   <string name="get_pro_credits">Obtenez des crédits Pro gratuits</string>
   <string name="get_free_months">Obtenir des mois gratuits</string>
   <string name="text_invite">Texto d\'invitation</string>
   <string name="email_invite">Courriel d\'invitation</string>
-  <string name="your_referral_code">Votre code de parrainage</string>
+  <string name="share_your_referral_code">Partagez votre code de parrainage</string>
   <string name="get_code">Obtenir un code</string>
-  <string name="get_code_text">Saisissez votre adresse courriel pour recevoir un code à partager avec vos amis et pour obtenir gratuitement un mois de la version PRO s\'ils s\'inscrivent !</string>
+  <string name="get_code_text">Saisissez votre adresse courriel pour recevoir un code à partager avec vos amis et pour obtenir gratuitement un mois de la version Pro s\'ils s\'inscrivent !</string>
   <string name="enter_your_email">Saisissez votre adresse courriel pour recevoir un code de parrainage</string>
-  <string name="copied_to_clipboard">Le code de parrainage a été copié dans le presse-papiers.</string>
+  <string name="referral_copied_to_clipboard">Le code de parrainage a été copié dans le presse-papiers !</string>
   <string name="share_referral_text">Utilise mon code %1$s afin d\'obtenir jusqu\'à mois supplémentaires gratuits après l\'achat.
 Télécharge Lantern https://bit.ly/lanternapk</string>
   <string name="previous_code">Si vous avez reçu un code de parrainage auparavant,\r\nveuillez vous assurer d\'utiliser la même adresse courriel.</string>
-  <string name="payment_plans">Forfaits de paiement Lantern PRO</string>
-  <string name="features_text">Caractéristiques de Lantern PRO</string>
+  <string name="payment_plans">Forfaits de paiement Lantern Pro</string>
+  <string name="features_text">Caractéristiques de Lantern Pro</string>
   <string name="checkout">Caisse</string>
   <string name="cvc">CVC</string>
   <string name="card_number">Numéro de carte</string>
@@ -105,6 +108,7 @@ Télécharge Lantern https://bit.ly/lanternapk</string>
   <string name="progressMessage">Traitement de la demande...</string>
   <string name="progressMessage2">Récupération du code de parrainage</string>
   <string name="language">Langue</string>
+  <string name="referral_applied">Les mois gratuits seront ajoutés après le passage en caisse, pour vous et votre ami !</string>
   <string name="all_feeds">tout</string>
   <string name="feed.error.oops">Oh oh !</string>
   <string name="feed.error.error_fetching_feed">Erreur de récupération du fil d\'actualité</string>
@@ -125,30 +129,40 @@ Télécharge Lantern https://bit.ly/lanternapk</string>
     <item>Saisissez le code de vérification reçu par courriel</item>
     <item>Vous n\'avez pas reçu de code ? Vérifiez votre dossier de pourriels et assurez-vous d\'avoir bien saisi votre adresse courriel</item>
   </string-array>
+  <string-array name="enter_code_steps_referral">
+    <item>Saisissez le code de vérification reçu par courriel afin de poursuivre vers la version Pro !</item>
+    <item>Vous n\'avez pas reçu de code ? Vérifiez votre dossier de pourriels et assurez-vous d\'avoir bien saisi votre adresse courriel.</item>
+  </string-array>
   <string-array name="authorize_device_list">
     <item>Si vous avez un compte Lantern Pro sur un autre appareil, veuillez saisir ici votre adresse de courriel afin de recevoir un code pour autoriser cet appareil.</item>
+  </string-array>
+  <string-array name="enter_email_list">
+    <item>Saisissez votre adresse courriel afin d\'autoriser cet appareil à utiliser vos mois gratuits de Lantern Pro</item>
+    <item>Nous vous enverrons un code d\'autorisation par courriel</item>
   </string-array>
   <string-array name="verify_account_list">
     <item>Très bien ! Vérifions d\'abord votre compte.</item>
     <item>Saisissez votre numéro de téléphone mobile afin de recevoir un code par SMS.</item>
     <item>Lantern ne partagera jamais votre numéro avec des tiers.</item>
   </string-array>
-  <string-array name="referral_promotion_list">
-    <item>Un ami a-t-il partagé son code de parrainage avec vous ? Saisissez le code afin de recevoir un crédit Lantern PRO équivalent à un mois gratuit après votre passage en caisse</item>
-  </string-array>
+  <string name="only_one_device">Un appareil seulement</string>
+  <string name="sorry_cannot_remove">Désolé, mais vous ne pouvez pas retirer votre dernier appareil autorisé</string>
   <string name="send_link">Envoyer le lien</string>
   <string name="click_button">Cliquer sur le bouton pour accéder à des sites et à des services bloqués</string>
   <string name="lantern_pro">Lantern Pro</string>
+  <string name="lantern_pro_checkout">Payement de Lantern Pro</string>
   <string name="invite_friends_header">Inviter des amis</string>
   <string name="pro_desc">Plus rapide, plus intelligent et plus résilient</string>
   <string name="free_month">Obtenez un mois gratuit de la version Pro pour chaque inscription</string>
   <string name="get_pro_now">Obtenir la version Pro maintenant</string>
   <string name="inviting_friends">Obtenir des crédits Pro en invitant des amis</string>
+  <string name="data_cap_percent">Vous avez atteint %1$s de vos données haute vitesse Lantern pour le mois.</string>
+  <string name="data_cap">Vous avez épuisé vos données haute vitesse mensuelles gratuites. Passez à Lantern Pro pour continuer à utiliser Lantern.</string>
   <string name="select">Choisir</string>
   <string name="one_year">pour 1 an</string>
   <string name="two_years">pour 2 ans</string>
   <string name="best_value">VALEUR optimale !</string>
-  <string name="referral_code">Code de parrainage (facultatif)</string>
+  <string name="referral_code_opt">Code de parrainage (facultatif)</string>
   <string name="total">Total :</string>
   <string name="pro_account_header">Gestion du compte Pro</string>
   <string name="pro_account_month_text">Vous détenez actuellement un compte mensuel Lantern Pro. Votre compte vous sera automatiquement facturé pour une mois supplémentaire de Lantern Pro à la fin du cycle de facturation.</string>
@@ -156,17 +170,17 @@ Télécharge Lantern https://bit.ly/lanternapk</string>
   <string name="cancel_pro_account">Annuler le compte Pro</string>
   <string name="account_verification">Vérification de compte</string>
   <string name="enter_verification_code">Saisir le code de vérification</string>
-  <string name="referral_promotion">Promotion de parrainage</string>
+  <string name="referral_code">Code de parrainage</string>
   <string name="get_lantern_pro">Obtenir Lantern Pro</string>
   <string name="upgrade_to_lantern_pro">Passer à Lantern Pro</string>
   <string name="pro_available_for">Pour Windows, Android, Mac et Ubuntu. iOS est pour bientôt</string>
   <string name="upgrade_to_pro">Passez à la version Pro et obtenez des données illimitées, une vitesse accrue et une plus grande résistance au blocage !</string>
-  <string name="data_remaining">%1$s Mo de données mensuelles gratuites restantes</string>
+  <string name="data_remaining">%1$s Mo de données haute vitesse mensuelles gratuites restantes</string>
   <string name="upgrade">Passez à la version Pro</string>
   <string name="no_wall_at_all">Sans aucune barrière.</string>
   <string name="buy_pro_now">Acheter Pro maintenant</string>
   <string name="update_billing_info">Mettre les infos de facturation à jour</string>
-  <string name="pro_credits_text">Invitez des amis, obtenez plus de crédits PRO</string>
+  <string name="pro_credits_text">Invitez des amis, obtenez plus de crédits Pro</string>
   <string name="could_not_complete_purchase">Impossible de traiter l\'achat de la version Pro pour l\'instant. Veuillez ressayer plus tard !</string>
   <string name="invalid_verification_code">Code de vérification invalide</string>
   <string name="invalid_payment_method">Méthode de paiement invalide</string>
@@ -177,11 +191,25 @@ Télécharge Lantern https://bit.ly/lanternapk</string>
   <string name="receive_free_month">Pour obternir un mois gratuit de Lantern Pro, utilisez ce code de parrainage : %1$s. Vous pouvez le télécharger ici : https://bit.ly/1M8x04u</string>
   <string name="share_feed_item">Je lis à propos de « %1$s » sur %2$s avec Lantern. Utilisez Lantern pour accéder à des sites et des services bloqués. Vous pouvez télécharger la version pour Android ici : https://bit.ly/lanternapk</string>
   <string name="cancel_pro_confirmation">Êtes-vous certain ? Cette action ne peut pas être annulée ! Vous pouvez vous inscrire à Pro à nouveau n\'importe quand.</string>
-  <string name="unauthorize_confirmation">Voulez-vous dissocier cet appareil de votre compte Pro ?</string>
+  <string name="unauthorize_confirmation">Voulez-vous vraiment dissocier cet appareil de votre compte Pro ?</string>
   <string name="yes">Oui</string>
   <string name="no">Non</string>
   <string name="item_image_contentDescription">Drapeau de pays</string>
   <string name="item_preview_country">États-Unis</string>
   <string name="item_preview_dialCode">+1</string>
-  <string name="stripe_publishable_key"></string>
+  <string name="refresh">Actualiser</string>
+  <string name="find">Trouver</string>
+  <string name="share_via">Partager par</string>
+  <string name="copy_link">Copier le lien</string>
+  <string name="open_with">Ouvrir avec</string>
+  <string name="copied_to_clipboard">Copié dans le presse-papiers</string>
+  <string name="welcome_to_new">Bienvenue au nouveau Lantern amélioré !</string>
+  <string name="now_using">Vous utilisez maintenant la version la plus rapide et la plus stable de Lantern.</string>
+  <string name="get_unlimited_data">Pour des données illimitées, une très grande vitesse et une résistance accrue au blocage\nPassez à la version Pro !</string>
+  <string name="start_using">Commencer à utiliser Lantern</string>
+  <string name="device_already_registered">Cette adresse courriel est déjà abonnée à la version Pro. Veuillez autoriser cet appareil ici.</string>
+  <string name="referral_code_used">Votre code de parrainage a été utilisé par un ami pour acheter la version Pro. %d mois gratuits de Lantern Pro ont été ajoutés. Veuillez confirmer votre adresse courriel pour commencer à utiliser Lantern Pro.</string>
+  <string name="congratulations">Félicitations !</string>
+  <string name="enter_email">Saisir l\'adresse courriel</string>
+  <string name="confirm_email">Confirmer l\'adresse courriel</string>
 </resources>

@@ -13,5 +13,5 @@
   <string name="yes">Áno</string>
   <string name="no">Nie</string>
   <string name="item_preview_country">Spojené štáty</string>
-  <string name="stripe_publishable_key"></string>
+  <string name="refresh">Obnoviť</string>
 </resources>

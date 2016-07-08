@@ -12,5 +12,5 @@
   <string name="install_update">업데이트</string>
   <string name="language">언어</string>
   <string name="item_preview_country">미국</string>
-  <string name="stripe_publishable_key"></string>
+  <string name="refresh">새로고침</string>
 </resources>

@@ -11,5 +11,5 @@
   <string name="install_update">மேம்படுத்து</string>
   <string name="language">மொழி</string>
   <string name="item_preview_country">ஐக்கிய அமெரிக்கா</string>
-  <string name="stripe_publishable_key"></string>
+  <string name="refresh">மீளேற்று</string>
 </resources>

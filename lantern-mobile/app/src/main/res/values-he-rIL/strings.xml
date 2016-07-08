@@ -10,5 +10,5 @@
   <string name="install_update">לעדכן</string>
   <string name="language">שפה</string>
   <string name="item_preview_country">ארצות הברית</string>
-  <string name="stripe_publishable_key"></string>
+  <string name="refresh">רענן</string>
 </resources>

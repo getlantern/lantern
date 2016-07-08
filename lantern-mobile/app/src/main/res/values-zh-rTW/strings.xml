@@ -13,12 +13,9 @@
   <string name="send_desktop">傳送桌面</string>
   <string name="send_sms">傳送簡訊</string>
   <string name="send_email">寄出電子郵件</string>
-  <string name="apply_promotion">使用促銷</string>
   <string name="submit_code">確認推薦碼</string>
   <string name="on_text">開啟</string>
   <string name="off_text">關閉</string>
-  <string name="lantern_off">Lantern 目前關閉.打開開關以便訪造被封鎖的網址服務 !</string>
-  <string name="lantern_on">Lantern開啟，可以造訪被封鎖的網址服務!</string>
   <string name="on_desc">現在可連上被封鎖的網址與服務。</string>
   <string name="off_desc">點擊按鈕以連上被封鎖的網址與服務。</string>
   <string name="service_connected">Lantern 已連線</string>
@@ -81,17 +78,15 @@
   <string name="invite_friends_btn">邀請朋友加入</string>
   <string name="email_address">電子信箱位址</string>
   <string name="continue_to_pro">繼續使用付費版</string>
-  <string name="continue_to_checkout">繼續結帳</string>
   <string name="free_pro_credits">免費的付費版點數</string>
   <string name="get_pro_credits">取得免費的付費版點數</string>
   <string name="get_free_months">取得免費付費版使用</string>
   <string name="text_invite">文字邀請</string>
   <string name="email_invite">電子郵件邀請</string>
-  <string name="your_referral_code">你的邀請碼</string>
   <string name="get_code">取得邀請碼</string>
   <string name="get_code_text">輸入電子郵件以取得個人邀請碼，它可以用來分享給朋友，當好友註冊我們的服務時你則可得到一個月免費的專業版使用。</string>
   <string name="enter_your_email">輸入電子郵件以取得個人邀請碼</string>
-  <string name="copied_to_clipboard">邀請碼已複制到剪貼簿上</string>
+  <string name="referral_copied_to_clipboard">邀請碼已複制到剪貼簿上</string>
   <string name="share_referral_text">使用我的邀請碼 %1$s來獲取購買了付費版後，再最多到3個月的額外紅利免費專業版使用。下載Lantern https://bit.ly/lanternapk</string>
   <string name="previous_code">如果之前已收到邀請碼r\n請確認是使用同一個電子郵件地址</string>
   <string name="payment_plans">付費專業方案</string>
@@ -132,9 +127,6 @@
     <item>輸入你的手機號碼以透過簡訊來取得認證嗎。</item>
     <item>Lantern 絕不會把你的手機資訊分享給第三者。</item>
   </string-array>
-  <string-array name="referral_promotion_list">
-    <item>有朋友分享了他/她的邀請碼給你嗎？輸入邀請碼可以在結完帳後多取得一個月的免費專業版使用。</item>
-  </string-array>
   <string name="send_link">傳送連結</string>
   <string name="click_button">點擊按鈕以連上被封鎖的網址與服務。</string>
   <string name="lantern_pro">Lantern 付費專業版</string>
@@ -147,7 +139,7 @@
   <string name="one_year">一年期</string>
   <string name="two_years">2年份</string>
   <string name="best_value">最佳價值</string>
-  <string name="referral_code">邀請碼(optional)</string>
+  <string name="referral_code_opt">邀請碼(optional)</string>
   <string name="total">總數:</string>
   <string name="pro_account_header">付費版帳號管理</string>
   <string name="pro_account_month_text">你目前使用月付專業版方案，你的帳戶將會到期日前自動被收取下一月的費用。</string>
@@ -155,12 +147,10 @@
   <string name="cancel_pro_account">取消付費帳號</string>
   <string name="account_verification">帳號認證</string>
   <string name="enter_verification_code">輸入認證碼</string>
-  <string name="referral_promotion">推薦促銷　</string>
   <string name="get_lantern_pro">取得Lantern 付費專業版</string>
   <string name="upgrade_to_lantern_pro">昇級到付費版</string>
   <string name="pro_available_for"> Windows, Android, Mac, Ubuntu. iOS等版本即將發佈　　</string>
   <string name="upgrade_to_pro">升級到付費專業版以取得無限流量、更快的速度和更有效的封鎖抵抗</string>
-  <string name="data_remaining">每月剩餘的免費容量還有%1$sMB </string>
   <string name="upgrade">㫒級　</string>
   <string name="no_wall_at_all">無牆可擋</string>
   <string name="buy_pro_now">購買付費版</string>
@@ -182,5 +172,5 @@
   <string name="item_image_contentDescription">國旗</string>
   <string name="item_preview_country">美國</string>
   <string name="item_preview_dialCode">+1</string>
-  <string name="stripe_publishable_key"></string>
+  <string name="refresh">重新整理</string>
 </resources>
