@@ -10,6 +10,7 @@ import (
 	"runtime"
 
 	"github.com/getlantern/go-update"
+	"github.com/getlantern/golog"
 	"github.com/kardianos/osext"
 )
 
@@ -19,6 +20,10 @@ const (
 	INITIATIVE_NEVER  Initiative = "never"
 	INITIATIVE_AUTO              = "auto"
 	INITIATIVE_MANUAL            = "manual"
+)
+
+var (
+	log = golog.LoggerFor("go-update.check")
 )
 
 var NoUpdateAvailable error = fmt.Errorf("No update available")
@@ -93,14 +98,16 @@ func (p *Params) CheckForUpdate(url string, up *update.Update) (*Result, error) 
 
 	// ignore errors auto-populating the checksum
 	// if it fails, you just won't be able to patch
-	if up.TargetPath == "" {
-		p.Checksum = defaultChecksum()
-	} else {
-		checksum, err := update.ChecksumForFile(up.TargetPath)
-		if err != nil {
-			return nil, err
+	if p.OS != "android" {
+		if up.TargetPath == "" {
+			p.Checksum = defaultChecksum()
+		} else {
+			checksum, err := update.ChecksumForFile(up.TargetPath)
+			if err != nil {
+				return nil, err
+			}
+			p.Checksum = hex.EncodeToString(checksum)
 		}
-		p.Checksum = hex.EncodeToString(checksum)
 	}
 
 	p.Tags["os"] = p.OS
@@ -109,11 +116,13 @@ func (p *Params) CheckForUpdate(url string, up *update.Update) (*Result, error) 
 
 	body, err := json.Marshal(p)
 	if err != nil {
+		log.Errorf("Error marshalling json for update request: %v", err)
 		return nil, err
 	}
 
 	resp, err := update.HTTPClient.Post(url, "application/json", bytes.NewReader(body))
 	if err != nil {
+		log.Errorf("Error submitting update request: %v", err)
 		return nil, err
 	}
 
@@ -125,11 +134,13 @@ func (p *Params) CheckForUpdate(url string, up *update.Update) (*Result, error) 
 	defer resp.Body.Close()
 	respBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
+		log.Errorf("Error reading response body from update server: %v", err)
 		return nil, err
 	}
 
 	result := &Result{up: up}
 	if err := json.Unmarshal(respBytes, result); err != nil {
+		log.Errorf("Error reading JSON response body from update server: %v", err)
 		return nil, err
 	}
 

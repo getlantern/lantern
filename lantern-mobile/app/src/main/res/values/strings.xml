@@ -1,0 +1,219 @@
+<resources>
+    <string name="app_name">Lantern</string>
+    <string name="action_settings">Settings</string>
+    <string name="button_text">Start</string>
+    <string name="drawer_open">Drawer Open</string>
+    <string name="drawer_close">Drawer Close</string>
+    <string name="default_fragment">Default Fragment</string>
+    <string name="receive_lantern">Receive Lantern desktop by email</string>
+    <string name="lantern_desktop">Lantern Desktop</string>
+    <string name="email_hint">Email</string>
+    <string name="send_button">Send</string>
+    <string name="send_desktop">Send Desktop</string>
+    <string name="send_sms">Send SMS</string>
+    <string name="send_email">Send Email</string>
+    <string name="apply_referral_code">Apply Referral Code</string>
+    <string name="submit_code">Confirm Code</string>
+    <string name="on_text">On</string>
+    <string name="off_text">Off</string>
+    <string name="lantern_off">Lantern is Off. Flip the switch to access blocked sites and services!</string>
+    <string name="lantern_on">Lantern is On. You can now access blocked sites and services!</string>
+    <string name="on_desc">You can now access\r\nblocked sites and services</string>
+    <string name="off_desc">Click the button to access blocked sites and services</string>
+    <string name="service_connected">Lantern connected</string>
+    <string name="desktop_option">Desktop Version</string>
+    <string name="contact_option">Contact</string>
+    <string name="check_for_update">Check for Update</string>
+    <string name="no_update_available">You\'re up to date!</string>
+    <string name="error_checking_for_update">Error checking for new version of Lantern</string>
+    <string name="have_latest_version">Lantern %1$s is the newest version available.</string>
+    <string name="updating_lantern">Updating Lantern</string>
+    <string name="cancel">Cancel</string>
+    <string name="newsfeed_option">Try Lanten Feed</string>
+    <string name="newsfeed_off_option">Turn off Feed</string>
+    <string name="privacy_policy">Privacy Policy</string>
+    <string name="share_option">Share</string>
+    <string name="quit_option">Quit</string>
+    <string name="share_email_native"></string>
+    <string name="share_email_subject">Lantern Android</string>
+    <string name="fatal_error">Lantern encountered a fatal error and is no longer running</string>
+    <string name="share_twitter">Check out Lantern Android: https://bit.ly/lanternapk</string>
+    <string name="share_facebook">I\'m using Lantern for Android, it\'s available here: https://bit.ly/lanternapk</string>
+    <string name="share_email_gmail">I\'m using Lantern for Android, and I\'ve attached the APK file!</string>
+    <string name="share_sms">I\'m using Lantern for Android, download it here: https://bit.ly/lanternapk</string>
+    <string name="share_chooser_text">Share Lantern Android</string>
+    <string name="card">Card</string>
+    <string name="Alipay">Alipay</string>
+    <string name="month">Month</string>
+    <string name="year">Year</string>
+    <string name="success_email">Lantern Desktop has been e-mailed to you!</string>
+    <string name="error_email">There was a problem sending you Lantern Desktop. Please try again later.</string>
+    <string name="send_logs">Send Logs</string>
+    <string name="success_log_email">Logs submitted successfully to Lantern!</string>
+    <string name="error_log_email">Error sending logs to Lantern. Please try again later.</string>
+    <string name="invalid_email">Invalid e-mail address</string>
+    <string name="invalid_referral_code">Invalid referral code</string>
+    <string name="cannot_use_own_referral_code">Cannot use your own referral code for promotion</string>
+    <string name="no_internet_connection">No Internet connection available!</string>
+    <string name="unable_remove_device">Unable to remove device. Please try again later!</string>
+    <string name="contact_email">team@getlantern.org</string>
+    <string name="contact_message">Help Me</string>
+    <string name="contact_subject">Lantern Android</string>
+    <string name="update_available">A new version of Lantern is available! Would you like to upgrade now?</string>
+    <string name="not_now">Not Now</string>
+    <string name="install_update">Update</string>
+    <string name="error_update">Error Downloading Update</string>
+    <string name="manual_update">Try manually installing the latest version from &lt;a href="https://lantern-android.io">here1&lt;/a></string>
+    <string name="pro_welcome_text">Welcome to Lantern Pro!</string>
+    <string name="renew_pro_account">Renew Pro Account</string>
+    <string name="logout">Log out</string>
+    <string name="change_phone_number">Change Phone Number</string>
+    <string name="change_email_address">Change Email Address</string>
+    <string name="pro_account_expires">Your Pro account expires on %1$s</string>
+    <string name="includes_free_months">This includes your %2$d bonus months!</string>
+    <string name="verified_phone_number">Verified Phone Number:</string>
+    <string name="devices_authorized">Devices authorized to use your Pro account</string>
+    <string name="send_us_your_logs">Send us your Logs</string>
+    <string name="thanks_purchase">Thanks for your purchase of Lantern Pro!</string>
+    <string name="start_inviting">\r\nStart inviting!</string>
+    <string name="sending_request">Processing request</string>
+    <string name="invite_friends">Enter your e-mail to receive a code to share with your friends. Get a free month of PRO when they sign up!</string>
+    <string name="invite_friends_welcome">When your friends purchase the two-year plan you will each get 3 months free, the one-year plan gets you each 1 month free</string>
+    <string name="invite_friends_btn">Invite Friends</string>
+    <string name="share_friends_text">Share with friends to earn free months!</string>
+    <string name="email_address">Email Address</string>
+    <string name="continue_to_pro">Continue to PRO</string>
+    <string name="skip_to_checkout">Skip to Checkout</string>
+    <string name="free_pro_credits">Free Pro Credits</string>
+    <string name="get_pro_credits">Get Free Pro Credits</string>
+    <string name="get_free_months">Get Free Months</string>
+    <string name="text_invite">Text Invite</string>
+    <string name="email_invite">Email Invite</string>
+    <string name="share_your_referral_code">Share Your Referral Code</string>
+    <string name="get_code">Get Code</string>
+    <string name="get_code_text">Enter your email to receive a code to share with your friends, get a free month of PRO when they sign up!</string>
+    <string name="enter_your_email">Enter your email to receive a referral code</string>
+    <string name="referral_copied_to_clipboard">Referral code copied to clipboard!</string>
+    <string name="share_referral_text">Use my code %1$s to get up to 3 additional months free after purchase. Download Lantern https://bit.ly/lanternapk</string>
+    <string name="previous_code">If you have previously received a referral code\r\nplease make sure to use the same email address.</string>
+    <string name="payment_plans">Lantern PRO Payment Plans</string>
+    <string name="features_text">Lantern PRO Features</string>
+    <string name="checkout">Checkout</string>
+    <string name="cvc">CVC</string>
+    <string name="card_number">Card Number</string>
+    <string name="validation_errors">Validation Errors</string>
+    <string name="ok">Ok</string>
+    <string name="progressMessage">Processing Request&#8230;</string>
+    <string name="progressMessage2">Retrieving referral code</string>
+    <string name="language">Language</string>
+    <string name="referral_applied">Your free months will be added for you and your friend once checkout is complete!</string>
+    <string name="all_feeds">all</string>
+    <string name="feed.error.oops">Oops!</string>
+    <string name="feed.error.error_fetching_feed">Error Fetching Feed</string>
+    <string name="feed.error.try_again">Please try again</string>
+    <string name="authorize_device_pro">Authorize Device for Pro</string>
+    <string name="sign_in_pro">Sign in to Pro</string>
+    <string-array name="sign_in_list">
+        <item>Enter your email and we will send you a link</item>
+        <item>Click the link to authorize this device to use your Lantern Pro account</item>
+    </string-array>
+    <string-array name="pro_features">
+        <item>Faster Speed</item>
+        <item>Unlimited Data</item>
+        <item>Blocking Resistant</item>
+        <item>Three Devices</item>
+    </string-array>
+    <string-array name="enter_code_steps">
+        <item>Enter the verification code you received via email</item>
+        <item>Didn\'t receive a code? Check your spam folder and make sure you entered in your email address correctly.</item>
+    </string-array>
+    <string-array name="enter_code_steps_referral">
+        <item>Enter the verification code you received via email to continue to Pro!</item>
+        <item>Didn\'t receive a code? Check your spam folder and make sure you entered in your email address correctly.</item>
+    </string-array>                                            
+    <string-array name="authorize_device_list">
+        <item>If you have a Lantern PRO account on another device, please enter your email address here to receive a code to authorize this device.</item>
+    </string-array>
+    <string-array name="enter_email_list">
+        <item>Enter your email address to authorize this device to use your free Lantern Pro months</item>
+        <item>We will send you an authorization code via email</item>
+    </string-array>
+    <string-array name="verify_account_list">
+        <item>Great! Let\'s verify your account first.</item>
+        <item>Enter your mobile phone number to receive a verification code via SMS.</item>
+        <item>Lantern will never share your number with third parties.</item>
+    </string-array>
+    <string-array name="referral_promotion_list">
+        <item>If a friend shared their referral code with you, enter the code to receive one free month of lantern pro free after checkout</item>
+    </string-array>
+    <string-array name="referral_promotion_list_two_year">
+        <item>If a friend shared their referral code with you, enter the code to receive three months of lantern pro free after checkout</item>
+    </string-array>
+    <string name="only_one_device">Only One Device</string>
+    <string name="sorry_cannot_remove">Sorry, but you cannot remove your last authorized device</string>
+    <string name="send_link">Send Link</string>
+    <string name="click_button">Click the button to access blocked sites and services</string>
+    <string name="lantern_pro">Lantern Pro</string>
+    <string name="lantern_pro_checkout">Lantern Pro Checkout</string>
+    <string name="invite_friends_header">Invite friends</string>
+    <string name="pro_desc">Faster, Smarter, more Resilient</string>
+    <string name="free_month">Get a free month of pro for each sign up</string>
+    <string name="get_pro_now">Get Pro Now</string>
+    <string name="inviting_friends">Get Pro credits by inviting friends</string>
+    <string name="data_cap_percent">You have reached %1$s of your available Lantern high speed data for the month.</string>
+    <string name="data_cap">You have used your free monthly high speed data. Upgrade to Lantern Pro to continue using Lantern.</string>
+    <string name="select">Select</string>
+    <string name="one_year">for 1 year</string>
+    <string name="two_years">for 2 years</string>
+    <string name="best_value">Best VALUE!</string>
+    <string name="referral_code_opt">Referral Code (optional)</string>
+    <string name="total">Total:</string>
+    <string name="pro_account_header">Pro Account Management</string>
+    <string name="pro_account_month_text">You currently have a Lantern PRO monthly account. Your account will automatically be charged for another month of Lantern Pro at the end of the billing cycle.</string>
+    <string name="pro_account_year_text">You currently have a Lantern Pro yearly account. Your account will automatically be charged for another year at the end of the billing cycle.</string>
+    <string name="cancel_pro_account">Cancel Pro Account</string>
+    <string name="account_verification">Account Verification</string>
+    <string name="enter_verification_code">Enter Verification Code</string>
+    <string name="referral_code">Referral Code</string>
+    <string name="get_lantern_pro">Get Lantern Pro</string>
+    <string name="upgrade_to_lantern_pro">Upgrade to Lantern Pro</string>
+    <string name="pro_available_for">For Windows, Android, Mac and Ubuntu. iOS coming soon</string>
+    <string name="upgrade_to_pro">Upgrade to Pro for unlimited data, faster speed, and greater blocking resistance!</string>
+    <string name="data_remaining">%1$sMB Left of your free monthly high speed data</string>
+    <string name="upgrade">Upgrade</string>
+    <string name="no_wall_at_all">No wall at all.</string>
+    <string name="buy_pro_now">Buy Pro Now</string>
+    <string name="update_billing_info">Update Billing Info</string>
+    <string name="pro_credits_text">Invite friends, get more Pro</string>
+    <string name="could_not_complete_purchase">Could not complete Pro purchase at this time. Try again later!</string>
+    <string name="invalid_verification_code">Invalid verification code</string>
+    <string name="invalid_payment_method">Invalid Payment method</string>
+    <string name="unable_to_cancel_account">Unable to cancel Pro Account! Please contact team@getlantern.org</string>
+    <string name="earn_free_month">Earn a free month for every friend that signs up</string>
+    <string name="credits_applied">Your credits will be applied to your account on the next billing cycle.</string>
+    <string name="pro_invitation_subject">Invitation to Join Lantern Pro</string>
+    <string name="receive_free_month">For a free month of Lantern Pro, use this referral code: %1$s ; You can download it from here: https://bit.ly/1M8x04u</string>
+    <string name="share_feed_item">I\'m reading about "%1$s" at %2$s via Lantern. Use Lantern to access blocked sites and services. You can download it for Android here: https://bit.ly/lanternapk</string>
+    <string name="cancel_pro_confirmation">Are you sure? This action cannot be undone! You can sign up for Pro again at any time.</string>
+    <string name="unauthorize_confirmation">Are you sure you want to unlink this device from your Pro account?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="item_image_contentDescription">Country flag</string>
+    <string name="item_preview_country">United States</string>
+    <string name="item_preview_dialCode">+1</string>
+    <string name="refresh">Refresh</string>
+    <string name="find">Find</string>
+    <string name="share_via">Share via</string>
+    <string name="copy_link">Copy Link</string>
+    <string name="open_with">Open with</string>
+    <string name="copied_to_clipboard">Copied to clipboard</string>
+    <string name="welcome_to_new">Welcome to the new and improved Lantern!</string>
+    <string name="now_using">You are now using the fastest and most stable Lantern to date.</string>
+    <string name="get_unlimited_data">To get unlimited data, ultimate speeds, and even stronger blocking resistance\nUPGRADE to Pro!</string>
+    <string name="start_using">Start Using Lantern</string>
+    <string name="device_already_registered">This email address is already a Pro subscriber. Please authorize this device here.</string>
+    <string name="referral_code_used">Your referral code was used by a friend to buy Pro. %d free months of Lantern Pro have been applied. Please confirm your email to start using Lantern Pro.</string>
+    <string name="congratulations">Congratulations!</string>
+    <string name="enter_email">Enter Email Address</string>
+    <string name="confirm_email">Confirm Email</string>
+</resources>

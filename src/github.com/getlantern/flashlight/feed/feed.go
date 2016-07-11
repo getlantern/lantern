@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/getlantern/flashlight/geolookup"
@@ -21,23 +20,23 @@ const (
 	defaultFeedEndpoint = "https://feeds.getiantem.org/%s/feed.json"
 	fallbackEndpoint    = "https://feeds.getiantem.org/en_US/feed.json"
 	en                  = "en_US"
+	gb                  = "en_GB"
 )
 
 var (
 	feed *Feed
 
-	_httpClient     *http.Client
-	httpClientMutex sync.Mutex
-	log             = golog.LoggerFor("feed")
+	log = golog.LoggerFor("feed")
 )
 
 // Feed contains the data we get back
 // from the public feed
 type Feed struct {
-	Feeds   map[string]*Source   `json:"feeds"`
-	Entries FeedItems            `json:"entries"`
-	Items   map[string]FeedItems `json:"-"`
-	Sorted  []string             `json:"sorted_feeds"`
+	Feeds     map[string]*Source   `json:"feeds"`
+	Entries   FeedItems            `json:"entries"`
+	Items     map[string]FeedItems `json:"-"`
+	Sorted    []string             `json:"sorted_feeds"`
+	sourceMap map[string]string    `json:"-"`
 }
 
 // Source represents a feed authority,
@@ -51,14 +50,23 @@ type Source struct {
 	Entries        []int  `json:"entries"`
 }
 
+type Image struct {
+	Url    string `json:"url"`
+	Width  int    `json:"width"`
+	Height int    `json:"height"`
+}
+
 type FeedItem struct {
 	Title       string                 `json:"title"`
 	Link        string                 `json:"link"`
 	Image       string                 `json:"image"`
+	Images      []Image                `json:"images"`
+	Date        string                 `json:"publishedDate"`
 	Meta        map[string]interface{} `json:"meta,omitempty"`
 	Content     string                 `json:"contentSnippetText"`
 	Source      string                 `json:"source"`
 	Description string                 `json:"-"`
+	UseWideView bool                   `json:"-"`
 }
 
 type FeedItems []*FeedItem
@@ -70,7 +78,7 @@ type FeedProvider interface {
 
 type FeedRetriever interface {
 	// AddFeed: used to add a new entry to a given feed
-	AddFeed(string, string, string, string)
+	AddFeed(string, string, string, string, string, string, bool)
 }
 
 // FeedByName checks the previously created feed for an
@@ -79,8 +87,8 @@ func FeedByName(name string, retriever FeedRetriever) {
 	if feed != nil && feed.Items != nil {
 		if items, exists := feed.Items[name]; exists {
 			for _, i := range items {
-				retriever.AddFeed(i.Title, i.Description,
-					i.Image, i.Link)
+				retriever.AddFeed(feed.sourceMap[i.Source], i.Title, i.Date,
+					i.Description, i.Image, i.Link, i.UseWideView)
 			}
 		}
 	}
@@ -157,20 +165,15 @@ func doGetFeed(feedEndpoint string, locale string, shouldProxy bool, allStr stri
 
 	var res *http.Response
 
-	var httpClient *http.Client
-	var err error
-	if !shouldProxy {
-		// Connect directly
-		httpClient = &http.Client{}
-	} else {
-		// Connect through proxy
-		httpClient, err = getHTTPClient()
-		if err != nil {
-			handleError(err)
-			return
-		}
+	httpClient, err := proxied.GetHTTPClient(shouldProxy)
+	if err != nil {
+		handleError(err)
+		return
 	}
-	feed = &Feed{}
+
+	feed = &Feed{
+		sourceMap: make(map[string]string),
+	}
 
 	feedURL := getFeedURL(feedEndpoint, locale)
 	log.Debugf("Downloading latest feed from %s", feedURL)
@@ -224,6 +227,15 @@ func processFeed(allStr string, provider FeedProvider) {
 
 	// Add a (shortened) description to every article
 	for i, entry := range feed.Entries {
+		entry.UseWideView = false
+
+		for _, k := range entry.Images {
+			if k.Width > 350 {
+				entry.Image = k.Url
+				entry.UseWideView = true
+			}
+		}
+
 		desc := ""
 		if aDesc := entry.Meta["description"]; aDesc != nil {
 			desc = strings.TrimSpace(aDesc.(string))
@@ -238,9 +250,19 @@ func processFeed(allStr string, provider FeedProvider) {
 	// the 'all' tab contains every article that's not associated with an
 	// excluded feed.
 	all := make(FeedItems, 0, len(feed.Entries))
-	for _, entry := range feed.Entries {
+	for i, entry := range feed.Entries {
 		if !feed.Feeds[entry.Source].ExcludeFromAll {
-			all = append(all, entry)
+
+			for _, k := range entry.Images {
+				if k.Width > 350 {
+					// if we have a larger width image
+					// available, we set that as the default
+					// display image
+					feed.Entries[i].Image = k.Url
+				}
+			}
+
+			all = append(all, feed.Entries[i])
 		}
 	}
 	feed.Items[allStr] = all
@@ -248,8 +270,10 @@ func processFeed(allStr string, provider FeedProvider) {
 	// Get a list of feed sources and send those back to the UI
 	for _, source := range feed.Sorted {
 		if entry, exists := feed.Feeds[source]; exists {
+
 			if entry.Title != "" {
 				log.Debugf("Adding feed source: %s", entry.Title)
+				feed.sourceMap[source] = entry.Title
 				provider.AddSource(entry.Title)
 			} else {
 				log.Errorf("Skipping feed source: %s; missing title", source)
@@ -284,9 +308,10 @@ func getFeedURL(feedEndpoint, defaultLocale string) string {
 }
 
 func determineLocale(defaultLocale string) string {
-	if defaultLocale == "" {
+	if defaultLocale == "" || defaultLocale == gb {
 		defaultLocale = en
 	}
+
 	// As of this writing the only countries we know of where we want a unique
 	// feed for the country that's different from the dominantly installed
 	// language are Iran and Malaysia. In both countries english is the most
@@ -306,18 +331,4 @@ func determineLocale(defaultLocale string) string {
 		return "ms_MY"
 	}
 	return defaultLocale
-}
-
-func getHTTPClient() (*http.Client, error) {
-	var err error
-	httpClientMutex.Lock()
-	if _httpClient == nil {
-		var rt http.RoundTripper
-		rt, err = proxied.ChainedNonPersistent("")
-		if err == nil {
-			_httpClient = &http.Client{Transport: rt}
-		}
-	}
-	httpClientMutex.Unlock()
-	return _httpClient, err
 }

@@ -6,13 +6,30 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
+
+	"github.com/getlantern/golog"
 )
+
+var (
+	homeDir  string
+	dirMutex sync.RWMutex
+	log      = golog.LoggerFor("appdir")
+)
+
+func SetHomeDir(dir string) {
+	dirMutex.Lock()
+	homeDir = dir
+	dirMutex.Unlock()
+}
 
 func general(app string) string {
 	if runtime.GOOS == "android" {
-		// TODO: Go for Android currently doesn't support Home Directory.
-		// Remove as soon as this is available in the future
-		return fmt.Sprintf(".%s", strings.ToLower(app))
+		dirMutex.RLock()
+		dir := homeDir
+		dirMutex.RUnlock()
+
+		return dir
 	} else {
 		// It is more common on Linux to expect application related directories
 		// in all lowercase. The lantern wrapper also expects a lowercased

@@ -21,18 +21,13 @@ import (
 )
 
 var (
-	log      = golog.LoggerFor("flashlight")
+	log      = golog.LoggerFor("flashlight.app")
 	settings *Settings
 )
 
 func init() {
-	// Passing public key and version to the autoupdate service.
-	autoupdate.PublicKey = []byte(packagePublicKey)
 	autoupdate.Version = flashlight.PackageVersion
-
 	rand.Seed(time.Now().UnixNano())
-
-	settings = loadSettings(flashlight.Version, flashlight.RevisionDate, flashlight.BuildDate)
 }
 
 // App is the core of the Lantern desktop application, in the form of a library.
@@ -45,15 +40,17 @@ type App struct {
 
 // Init initializes the App's state
 func (app *App) Init() {
+	settings = loadSettings(flashlight.Version, flashlight.RevisionDate, flashlight.BuildDate)
 	app.exitCh = make(chan error, 1)
 	// use buffered channel to avoid blocking the caller of 'AddExitFunc'
 	// the number 10 is arbitrary
 	app.chExitFuncs = make(chan func(), 10)
+	setupUserSignal()
 }
 
 // LogPanicAndExit logs a panic and then exits the application.
 func (app *App) LogPanicAndExit(msg string) {
-	if err := logging.EnableFileLogging(); err != nil {
+	if err := logging.EnableFileLogging(""); err != nil {
 		panic("Error initializing logging")
 	}
 
@@ -155,7 +152,7 @@ func (app *App) beforeStart(cfg *config.Config) bool {
 	}
 	client.UIAddr = actualUIAddr
 
-	err = serveBandwidth()
+	err = serveBandwidth(app.uiaddr())
 	if err != nil {
 		log.Errorf("Unable to serve bandwidth to UI: %v", err)
 	}
@@ -170,12 +167,45 @@ func (app *App) beforeStart(cfg *config.Config) bool {
 	return true
 }
 
+// GetSetting gets the in memory setting with the name specified by attr
+func (app *App) GetSetting(name SettingName) interface{} {
+	if val, ok := settingMeta[name]; ok {
+		switch val.sType {
+		case stBool:
+			return settings.getBool(name)
+		case stNumber:
+			return settings.getInt64(name)
+		case stString:
+			return settings.getString(name)
+		}
+	} else {
+		log.Errorf("Looking for non-existent setting? %v", name)
+	}
+
+	// should never reach here.
+	return nil
+}
+
+// OnSettingChange sets a callback cb to get called when attr is changed from UI.
+// When calling multiple times for same attr, only the last one takes effect.
+func (app *App) OnSettingChange(attr SettingName, cb func(interface{})) {
+	settings.OnChange(attr, cb)
+}
+
 func (app *App) afterStart(cfg *config.Config) {
 	app.onConfigUpdate(cfg)
 	servePACFile()
 	if settings.GetSystemProxy() {
 		pacOn()
 	}
+	app.OnSettingChange(SNSystemProxy, func(val interface{}) {
+		enable := val.(bool)
+		if enable {
+			pacOn()
+		} else {
+			pacOff()
+		}
+	})
 
 	app.AddExitFunc(pacOff)
 	if app.ShowUI && !app.Flags["startup"].(bool) {

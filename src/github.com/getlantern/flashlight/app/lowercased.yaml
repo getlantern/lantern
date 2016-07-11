@@ -1,0 +1,7 @@
+autolaunch: true
+autoreport: true
+language: en
+proxyall: false
+systemproxy: true
+userid: 1234
+usertoken: "abcd"

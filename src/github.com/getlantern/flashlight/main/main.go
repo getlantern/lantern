@@ -7,18 +7,18 @@ import (
 	_ "net/http/pprof"
 	"os"
 	"os/signal"
+	"runtime"
 	"strings"
 	"syscall"
 
 	"github.com/getlantern/golog"
 	"github.com/getlantern/i18n"
+	"github.com/mitchellh/panicwrap"
 
 	"github.com/getlantern/flashlight/app"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/logging"
 	"github.com/getlantern/flashlight/ui"
-
-	"github.com/mitchellh/panicwrap"
 )
 
 var (
@@ -26,6 +26,9 @@ var (
 )
 
 func main() {
+	// systray requires the goroutine locked with main thread, or the whole
+	// application will crash.
+	runtime.LockOSThread()
 	parseFlags()
 
 	a := &app.App{
@@ -91,7 +94,7 @@ func _main(a *app.App) func() {
 }
 
 func doMain(a *app.App) error {
-	if err := logging.EnableFileLogging(); err != nil {
+	if err := logging.EnableFileLogging(""); err != nil {
 		return err
 	}
 
@@ -99,27 +102,35 @@ func doMain(a *app.App) error {
 	handleSignals(a)
 	a.AddExitFunc(func() {
 		if err := logging.Close(); err != nil {
-			log.Debugf("Error closing log: %v", err)
+			log.Errorf("Error closing log: %v", err)
 		}
 	})
 	a.AddExitFunc(quitSystray)
 
-	i18nInit()
 	if a.ShowUI {
+		lang := a.GetSetting(app.SNLanguage).(string)
+		i18nInit(lang)
 		if err := configureSystemTray(a); err != nil {
 			return err
 		}
+		a.OnSettingChange(app.SNLanguage, func(lang interface{}) {
+			refreshSystray(lang.(string))
+		})
+
 	}
 
 	return a.Run()
 }
 
-func i18nInit() {
+func i18nInit(locale string) {
 	i18n.SetMessagesFunc(func(filename string) ([]byte, error) {
 		return ui.Translations.Get(filename)
 	})
-	if err := i18n.UseOSLocale(); err != nil {
-		log.Debugf("i18n.UseOSLocale: %q", err)
+	if err := i18n.SetLocale(locale); err != nil {
+		log.Debugf("i18n.SetLocale(%s) failed, fallback to OS default: %q", locale, err)
+		if err := i18n.UseOSLocale(); err != nil {
+			log.Debugf("i18n.UseOSLocale: %q", err)
+		}
 	}
 }
 

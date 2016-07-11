@@ -1,0 +1,113 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" 
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" 
+    android:orientation="vertical"
+    android:baselineAligned="false"
+    android:background="@color/accent_white"
+    android:id="@+id/desktopView"
+    tools:context=".SignInActivity">
+
+    <fragment
+        xmlns:lantern="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/titlebar_fragment"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        class="org.lantern.fragment.TitleBar"
+        lantern:backgroundColor="@drawable/nav_background_white"
+        lantern:titleText="@string/sign_in_pro"/>
+
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:orientation="vertical"
+        android:elevation="5dp"
+        android:background="@color/accent_white"
+        android:gravity="center_vertical|bottom">
+
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="5dp"
+            android:layout_weight="1"
+            android:paddingRight="5dp"
+            android:paddingLeft="5dp"
+            android:paddingBottom="5dp"
+            android:background="@color/accent_white"
+            android:orientation="vertical"
+            android:gravity="center_vertical"
+            android:layout_gravity="center_vertical"> 
+
+            <EditText
+                android:id="@+id/email"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif" 
+                android:background="@null"
+                android:drawableLeft="@drawable/email_inactive"
+                android:drawablePadding="10dip"
+                android:hint="@string/email_hint"
+                android:ems="10"
+                android:textColor="#BDBDBD"
+                android:paddingRight="25dp"
+                android:autoText="false"
+                android:paddingTop="20dp"
+                android:paddingBottom="5dp"
+                android:gravity="fill_horizontal"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:inputType="textEmailAddress" />
+
+            <View
+                android:id="@+id/emailSeparator"
+                android:background="@color/edittext_color"
+                android:layout_below="@+id/email"
+                android:layout_width = "fill_parent"
+                android:layout_height="1.5dip"
+                android:layout_marginLeft="27dp"
+                android:layout_centerVertical ="true"
+                android:layout_alignParentTop="true"
+                />
+
+            <TextView
+                android:id="@+id/sign_in_list"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:padding="10dp"
+                android:lineSpacingExtra="10dp"
+                android:fontFamily="sans-serif" 
+                android:text=""
+                android:alpha=".87"
+                android:textSize="14sp"
+                android:layout_centerHorizontal="true"
+                android:gravity="left"
+                android:textColor="@color/black"
+                android:textAppearance="?android:attr/textAppearanceSmall"/>
+
+        </LinearLayout>
+    </RelativeLayout>
+
+    <Button
+        android:id="@+id/sendLinkBtn"
+        android:layout_height="36dp"
+        android:layout_width="216dp"
+        android:layout_marginTop="20dp"
+        android:text="@string/send_link"
+        android:fontFamily="sans-serif-medium" 
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:elevation="2dp"
+        android:minHeight="48dp"
+        android:textColor="@color/accent_white"
+        android:clickable = "true"
+        android:gravity="center"
+        android:layout_gravity="center" 
+        android:background="@drawable/send_btn"
+        android:onClick="sendLink" />
+
+</LinearLayout>

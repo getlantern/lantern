@@ -1,6 +1,7 @@
-version: test
-builddate: test
-revisiondate: test
-autoreport: false
-autolaunch: false
-proxyall: true
+autoLaunch: true
+autoReport: true
+language: en
+proxyAll: false
+systemProxy: true
+userID: 1
+userToken: ""

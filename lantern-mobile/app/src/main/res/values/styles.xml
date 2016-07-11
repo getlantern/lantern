@@ -1,0 +1,160 @@
+<resources>
+
+    <!-- Base application theme. -->
+<style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <!-- Customize your theme here. -->
+    <item name="colorPrimary">@android:color/black</item>
+    <item name="elevation">0dp</item>
+    <item name="android:elevation">0dp</item>
+    <item name="android:windowContentOverlay">@null</item>
+    <item name="drawerArrowStyle">@style/DrawerArrowStyle</item>
+</style>
+
+    <style name="DrawerArrowStyle" parent="@style/Widget.AppCompat.DrawerArrowToggle">
+        <item name="spinBars">true</item>
+        <item name="color">#39C2D6</item>
+    </style>
+
+    <style name="BackgroundImageView">
+        <item name="android:scaleType">fitCenter</item>
+        <item name="android:background">@drawable/desktop_graphic</item>
+    </style>
+
+    <style name="SwitchButtonMD">
+        <item name="kswThumbDrawable">@drawable/ksw_md_thumb</item>
+        <item name="kswBackColor">@color/ksw_md_back_color</item>
+        <item name="kswBackMeasureRatio">1.45</item>
+        <item name="kswThumbMarginLeft">-16dp</item>
+        <item name="kswThumbMarginTop">-14dp</item>
+        <item name="kswThumbMarginRight">-16dp</item>
+        <item name="kswThumbMarginBottom">-14dp</item>
+        <item name="kswThumbWidth">@dimen/ksw_md_thumb_ripple_size</item>
+        <item name="kswThumbHeight">@dimen/ksw_md_thumb_ripple_size</item>
+    </style>
+
+    <style name="SwitchButtonStyle">
+        <item name="android:paddingRight">16dp</item>
+        <item name="android:paddingTop">16dp</item>
+        <item name="kswThumbColor">@color/accent_white</item>
+        <item name="kswBackColor">@color/pro_blue_color</item>
+    </style>
+
+    <style name="SwitchButtonMainStyle">
+        <item name="kswThumbWidth">40dp</item>
+        <item name="kswThumbHeight">40dp</item>
+        <item name="kswThumbColor">@color/accent_white</item>
+        <item name="kswBackColor">@color/pro_blue_color</item>
+    </style>
+
+    <style name="TextField" parent="@android:style/Widget.EditText">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/editText</item>
+        <item name="android:background">@color/pro_blue_color</item>
+    </style>
+
+    <style name="CardNumber" parent="@style/TextField">
+        <item name="android:layout_width">fill_parent</item>
+        <item name="android:inputType">numberDecimal</item>
+        <item name="android:hint">@string/card_number</item>
+    </style>
+
+    <style name="CVC" parent="@style/TextField">
+        <item name="android:inputType">numberDecimal</item>
+        <item name="android:hint">@string/cvc</item>
+        <item name="android:layout_weight">0.7</item>
+        <item name="android:layout_width">0dp</item>
+    </style>
+
+    <style name="Button" parent="@android:style/Widget.Button">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">12dp</item>
+        <item name="android:textColor">@color/buttonText</item>
+        <item name="android:background">@color/pink</item>
+    </style>
+
+    <style name="Save" parent="@style/Button">
+        <item name="android:layout_width">160dp</item>
+        <item name="android:layout_marginTop">4dp</item>
+        <item name="android:text">@string/checkout</item>
+    </style>
+
+    <style name="Spinner" parent="@android:style/Widget.Spinner">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@null</item>
+        <item name="android:spinnerItemStyle">@style/SpinnerItem</item>
+    </style>
+
+    <style name="SpinnerItem" parent="@android:style/Widget.TextView.SpinnerItem">
+
+        <item name="android:textAppearance">@style/TextAppearance.SpinnerItem</item>
+        <item name="android:textColor">@color/edittext_color</item>
+    </style>
+
+    <style name="TextAppearance.SpinnerItem" parent="@android:style/TextAppearance.Widget.TextView.SpinnerItem">
+        <item name="android:textColor">@color/edittext_color</item>
+    </style>
+
+    <style name="ExpMonth" parent="@style/Spinner">
+        <item name="android:entries">@array/month_array</item>
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_weight">1.0</item>
+    </style>
+
+    <style name="ExpYear" parent="@style/Spinner">
+        <item name="android:entries">@array/year_array</item>
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_weight">0.8</item>
+    </style>
+
+  
+
+    <style name="FinestWebViewTheme.Light" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/webview_header</item>
+        <item name="colorPrimaryDark">@color/black</item>
+        <item name="colorAccent">@color/accent_white</item>
+        <item name="android:textColorPrimary">@color/accent_white</item>
+        <item name="android:textColorSecondary">@color/silver</item>
+        <item name="windowActionModeOverlay">true</item>
+    </style>
+
+    <style name="MyCustomTabLayout" parent="Widget.Design.TabLayout">
+        <item name="tabTextAppearance">@style/MyCustomTabText</item>
+        <item name="tabSelectedTextColor">@color/blue_color</item>
+    </style>
+
+    <style name="MyCustomTabText" parent="TextAppearance.AppCompat.Button">
+        <item name="android:background">@color/accent_white</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/blue_color</item>
+    </style>
+
+     <style name="FinestWebViewTheme" parent="Theme.AppCompat.NoActionBar">
+        <item name="colorPrimary">@color/finestWhite</item>
+        <item name="colorPrimaryDark">@color/finestGray</item>
+        <item name="colorAccent">@color/finestBlack</item>
+        <item name="android:textColorPrimary">@color/finestBlack</item>
+        <item name="android:textColorSecondary">@color/finestSilver</item>
+        <item name="windowActionModeOverlay">true</item>
+    </style>
+
+    <style name="FinestWebViewTheme.Fullscreen" parent="FinestWebViewTheme">
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowFullscreen">true</item>
+    </style>
+
+    <style name="FinestWebViewTheme.Light.Fullscreen" parent="FinestWebViewTheme.Light">
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowFullscreen">true</item>
+    </style>
+
+    <declare-styleable name="ShadowLayout">
+        <attr name="slCornerRadius" format="dimension"/>
+        <attr name="slShadowSize" format="dimension"/>
+        <attr name="slShadowColor" format="color"/>
+        <attr name="slDx" format="dimension"/>
+        <attr name="slDy" format="dimension"/>
+    </declare-styleable>
+ 
+
+</resources>

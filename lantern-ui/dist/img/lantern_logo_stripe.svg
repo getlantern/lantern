@@ -1,0 +1,28 @@
+<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 121 121">
+  <style>
+    .st0{fill:#28bcd3}
+    .st3{fill:#f4e02e}
+    .st4{fill:#131920}
+    .st6{fill:url(#lanternLight)}
+    .st7{fill:#1f1f1f}
+  </style>
+  <rect width="100%" height="100%" class="st0" />
+  <symbol id="lanternLogo" viewBox="-94.1 -94.1 188.2 188.2">
+    <path class="st3" d="M11.1 32.6l23.6-4.5S27.6-48.1 9.8-59.1c-.5-.3-.9-.6-1.4-.8l-.6-.3 3.3 92.8zM-11.1 32.7l-22.6-4.4s7.2-78.4 25.5-87.9c.8-.4.9-.5 1.3-.6.2.1-4.2 92.9-4.2 92.9z"/>
+    <radialGradient id="lanternLight" cx=".384" cy="-2.418" r="28.688" gradientUnits="userSpaceOnUse">
+      <stop offset=".031" stop-color="#FFF"/>
+      <stop offset=".234" stop-color="#fffffc"/>
+      <stop offset=".374" stop-color="#fefdf3"/>
+      <stop offset=".494" stop-color="#fefbe4"/>
+      <stop offset=".604" stop-color="#fcf8ce"/>
+      <stop offset=".706" stop-color="#fbf4b2"/>
+      <stop offset=".803" stop-color="#f9ee90"/>
+      <stop offset=".895" stop-color="#f7e867"/>
+      <stop offset=".982" stop-color="#f5e239"/>
+      <stop offset="1" stop-color="#f4e02e"/>
+    </radialGradient>
+    <path class="st6" d="M29.1-2.4c0-15.8-12.8-28.7-28.7-28.7-15.8 0-28.7 12.8-28.7 28.7 0 15.8 12.8 28.7 28.7 28.7 15.8 0 28.7-12.9 28.7-28.7z"/>
+    <path class="st7" d="M18.3 49.2l.5 9.5-9 5c.8 1.5 1.2 3.2 1.2 5 0 6.1-4.9 11-11 11s-11-4.9-11-11c0-2 .5-3.9 1.5-5.5l-9.1-5.2s1.1-9.1.8-9.2c-.8-.4-17.4-6.2-17.4-6.2l1.5-14.5c5.8 1.2 22.2 4.5 22.3 4.4.1-.1.2-.4.2-.6.2-3.3 4.3-91.8 4.3-91.8v-.2l3.7-1.8 3.3-1.7L8-60.2l3.3 92.8 23.6-4.5.7 13.6-17.3 7.5zM-8.8 68.6c0 4.8 3.9 8.7 8.7 8.7 4.8 0 8.7-3.9 8.7-8.7 0-1.4-.3-2.7-.9-3.9L.3 68.8l-8-4.6c-.7 1.4-1.1 2.9-1.1 4.4z"/>
+  </symbol>
+  <use xlink:href="#lanternLogo" width="188.2" height="188.2" x="-94.1" y="-94.1" transform="matrix(.643 0 0 -.643 60.453 60.5)" overflow="visible"/>
+</svg>

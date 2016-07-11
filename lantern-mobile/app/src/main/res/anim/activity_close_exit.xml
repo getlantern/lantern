@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:zAdjustment="top">
+    <translate
+        android:duration="250"
+        android:fromXDelta="0.0%p"
+        android:interpolator="@anim/accelerate_cubic"
+        android:toXDelta="100.0%p" />
+</set>

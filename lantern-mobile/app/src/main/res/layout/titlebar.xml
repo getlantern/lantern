@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:lantern="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/navHeader"
+    android:layout_width="match_parent"
+    android:background="@color/accent_white"
+    android:layout_height="wrap_content">
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="52dp">
+
+        <LinearLayout
+            android:id="@+id/container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_centerVertical="true"
+            android:elevation="2dp"
+            android:paddingLeft="10dp"
+            android:orientation="horizontal" >
+
+            <ImageView
+                android:id="@+id/avatar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:layout_marginTop="2dp"
+                android:adjustViewBounds="true"
+                android:src="@drawable/abc_ic_ab_back_mtrl_am_alpha"/>
+
+            <TextView
+                android:id="@+id/header"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:layout_centerVertical="true"
+                android:fontFamily="sans-serif-medium"
+                android:paddingLeft="30dp"
+                android:text=""
+                android:textSize="20sp"
+                android:textColor="@color/black"/>
+        </LinearLayout>
+    </RelativeLayout>
+</LinearLayout>

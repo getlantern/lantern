@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="">
+        <title>Lantern Pro Checkout</title>
+        <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.js"></script>
+        <script type="text/javascript" src="https://checkout.stripe.com/checkout.js">
+        <script type="text/javascript" src="js/lantern-pro-js-client.min.js"></script>
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+        <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+<style>
+html, body {
+    font-size: 16px;
+    background: #fff;
+    width: 100%;
+    height: 100%;
+}
+h1 {
+    background: url('img/lantern_logo.svg') no-repeat center;
+    background-size: contain;
+    display: block;
+    margin: 2.5rem 4.5rem 2.0rem 4.5rem;
+    height: 11rem;
+}
+h2 {
+    font: normal 1.275rem/1.5rem 'prxnv_sb', sans-serif;
+    color: #2A2A2A;
+    text-align: center;
+}
+
+#purchase-pro-section {
+    display: none;
+}
+
+#complete-purchase {
+    margin-top: 1rem;
+    display: block;
+}
+
+.stripe_checkout_app { height: 580px !important; }
+
+a.button-purchase {
+    height: 60px;
+    display: block;
+    margin: 0 auto 1rem;
+    margin-top:50px;
+    background-color: #FF4081;
+    color: #fff;
+    border-radius: 5px;
+    width: 90%;
+    font: normal 1.275rem/1.5rem 'prxnv_sb', sans-serif;
+    text-decoration: none;
+    text-align: center;
+    padding: 10px;
+}
+
+@media (max-width: 649px) and (min-width: 320px) a.button-purchase {
+    min-width: 80%;
+}
+
+@media (max-width: 649px) and (min-width: 320px) h2 {
+    padding: 0 2rem;
+}
+</style>
+    </head>
+    <body>
+        <div id="purchase-pro-section">
+            <header>
+                <h1></h1>
+                <h2>Thanks for your purchase of Lantern Pro!</h2>
+            </header>
+            <section id="complete">
+                <div id="complete-purchase">
+                    <a id="continue-to-pro" href="#" class="button-purchase" data-localize="DOWNLOAD_DESKTOP">Continue to Lantern Pro</a>
+                </div>
+            </section>
+        </div>
+    </body>
+    <script type="text/javascript">
+$(document).ready(function() {
+
+    var launchIframeApproach = function(alt) {
+        var iframe = document.createElement("iframe");
+        iframe.style.border = "none";
+        iframe.style.width = "1px";
+        iframe.style.height = "1px";
+        iframe.onload = function() {
+            window.location = alt;
+        }
+        iframe.src = alt;
+        document.body.appendChild(iframe);
+    };
+
+    function getParameterByName(name, url) {
+        if (!url) url = window.location.href;
+        name = name.replace(/[\[\]]/g, "\\$&");
+        var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+        results = regex.exec(url);
+        if (!results) return null;
+        if (!results[2]) return '';
+        return decodeURIComponent(results[2].replace(/\+/g, " "));
+    }
+
+    document.title = getParameterByName('title');
+
+
+    var price = getParameterByName('price');
+    if (!price) price = 4800;
+    var currency = getParameterByName('currency');
+
+    var desc = getParameterByName('description');
+
+    StripeCheckout.open({
+        key: getParameterByName('key'),
+        image: 'https://s3.amazonaws.com/lantern-android/img/lantern_logo.svg',
+        amount: price,
+        currency: currency,
+        description: desc,
+        locale: 'auto',
+        alipay: true,
+        token: function(token) {
+            var args = {
+                stripeToken: token.id,
+                stripeEmail: token.email
+            };
+            // on successful payment, redirect user
+            // back to Lantern Pro app
+            var url = 'lantern://pro?' + $.param(args);
+            var g_intent = "scheme=lantern;package=org.getlantern.lantern;end";
+
+            window.location = url;
+
+        }
+    });
+});
+    </script>
+</html>

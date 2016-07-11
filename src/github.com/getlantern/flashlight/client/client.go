@@ -50,21 +50,27 @@ type Client struct {
 	priorCfg  *ClientConfig
 	cfgMutex  sync.RWMutex
 
+	// Balanced CONNECT dialers.
+	bal eventual.Value
+
 	// Reverse proxy
 	rp eventual.Value
 
 	l net.Listener
 
-	proxyAll func() bool
+	proxyAll       func() bool
+	proTokenGetter func() string
 }
 
 // NewClient creates a new client that does things like starts the HTTP and
 // SOCKS proxies. It take a function for determing whether or not to proxy
-// all traffic.
-func NewClient(proxyAll func() bool) *Client {
+// all traffic, and another function to get Lantern Pro token when required.
+func NewClient(proxyAll func() bool, proTokenGetter func() string) *Client {
 	return &Client{
-		rp:       eventual.NewValue(),
-		proxyAll: proxyAll,
+		bal:            eventual.NewValue(),
+		rp:             eventual.NewValue(),
+		proxyAll:       proxyAll,
+		proTokenGetter: proTokenGetter,
 	}
 }
 
@@ -139,6 +145,7 @@ func (client *Client) ListenAndServeSOCKS5(requestedAddr string) error {
 		Dial: func(network, addr string) (net.Conn, error) {
 			port, err := client.portForAddress(addr)
 			if err != nil {
+				log.Errorf("Error determing port for address: %v", err)
 				return nil, err
 			}
 			return client.dialCONNECT(addr, port)
@@ -223,7 +230,7 @@ func (client *Client) proxiedDialer(orig func(network, addr string) (net.Conn, e
 func (client *Client) dialCONNECT(addr string, port int) (net.Conn, error) {
 	// Establish outbound connection
 	if client.shouldSendToProxy(addr, port) {
-		log.Tracef("Proxying CONNECT request for %v", addr)
+		log.Debugf("Proxying CONNECT request for %v", addr)
 		d := client.proxiedDialer(func(network, addr string) (net.Conn, error) {
 			// UGLY HACK ALERT! In this case, we know we need to send a CONNECT request
 			// to the chained server. We need to send that request from chained/dialer.go
@@ -265,9 +272,15 @@ func (client *Client) portForAddress(addr string) (int, error) {
 }
 
 func isLanternSpecialDomain(addr string) bool {
-	return strings.Index(addr, lanternSpecialDomainWithColon) == 0
+	return strings.HasPrefix(addr, lanternSpecialDomainWithColon)
 }
 
 func rewriteLanternSpecialDomain(addr string) string {
-	return UIAddr
+	if addr == lanternSpecialDomainWithColon+"80" {
+		// This is a special replacement for the ui.lantern.io:80 case.
+		return "127.0.0.1:16823"
+	}
+	// Let any other port pass as is.
+	addr = strings.Replace(addr, lanternSpecialDomainWithColon, "127.0.0.1:", 1)
+	return addr
 }

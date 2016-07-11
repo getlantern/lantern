@@ -5,11 +5,15 @@ import (
 	"encoding/base64"
 	"fmt"
 	"os"
+	"strconv"
 	"sync"
 	"time"
 
 	"code.google.com/p/go-uuid/uuid"
 
+	"github.com/getlantern/appdir"
+	"github.com/getlantern/autoupdate"
+	"github.com/getlantern/bandwidth"
 	"github.com/getlantern/flashlight"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
@@ -22,6 +26,12 @@ import (
 
 var (
 	log = golog.LoggerFor("lantern")
+
+	// compileTimePackageVersion is set at compile-time for production builds
+	compileTimePackageVersion string
+
+	// if true, run Lantern against our staging infrastructure
+	stagingMode = "false"
 
 	startOnce sync.Once
 )
@@ -54,13 +64,14 @@ type StartResult struct {
 	SOCKS5Addr string
 }
 
-type FeedProvider interface {
-	AddSource(string)
+type UserConfig interface {
+	AfterStart()
+	BandwidthUpdate(int, int)
 }
 
-type FeedRetriever interface {
-	AddFeed(string, string, string, string)
-}
+type FeedProvider feed.FeedProvider
+type FeedRetriever feed.FeedRetriever
+type Updater autoupdate.Updater
 
 // Start starts a HTTP and SOCKS proxies at random addresses. It blocks up till
 // the given timeout waiting for the proxy to listen, and returns the addresses
@@ -75,9 +86,12 @@ type FeedRetriever interface {
 // start to use it, even as it finishes its initialization sequence. However,
 // initial activity may be slow, so clients with low read timeouts may
 // time out.
-func Start(configDir string, timeoutMillis int) (*StartResult, error) {
+func Start(configDir string, timeoutMillis int, user UserConfig) (*StartResult, error) {
+
+	appdir.SetHomeDir(configDir)
+
 	startOnce.Do(func() {
-		go run(configDir)
+		go run(configDir, user)
 	})
 
 	start := time.Now()
@@ -111,31 +125,95 @@ func (uc *userConfig) GetUserID() int64 {
 	return 0
 }
 
-func run(configDir string) {
+func run(configDir string, user UserConfig) {
+	flags := make(map[string]interface{})
+	flags["staging"] = false
+
 	err := os.MkdirAll(configDir, 0755)
 	if os.IsExist(err) {
 		log.Errorf("Unable to create configDir at %v: %v", configDir, err)
 		return
 	}
 
+	if err := logging.EnableFileLogging(configDir); err != nil {
+		log.Errorf("Unable to enable file logging: %v", err)
+		return
+	}
+	log.Debugf("Writing log messages to %s/lantern.log", configDir)
+
+	staging, err := strconv.ParseBool(stagingMode)
+	if err == nil {
+		flags["staging"] = staging
+	} else {
+		log.Errorf("Error parsing boolean flag: %v", err)
+	}
+
 	flashlight.Run("127.0.0.1:0", // listen for HTTP on random address
 		"127.0.0.1:0", // listen for SOCKS on random address
 		configDir,     // place to store lantern configuration
 		false,         // don't make config sticky
-		func() bool { return true },                   // proxy all requests
-		make(map[string]interface{}),                  // no special configuration flags
-		func(cfg *config.Config) bool { return true }, // beforeStart()
-		func(cfg *config.Config) {},                   // afterStart()
-		func(cfg *config.Config) {},                   // onConfigUpdate
+		func() bool { return true }, // proxy all requests
+		flags,
+		func(cfg *config.Config) bool {
+			beforeStart(cfg, user)
+			return true
+		},
+		func(cfg *config.Config) {
+			afterStart(cfg, user)
+		},
+		func(cfg *config.Config) {}, // onConfigUpdate
 		&userConfig{},
 		func(err error) {}, // onError
 		base64.StdEncoding.EncodeToString(uuid.NodeID()),
 	)
 }
 
-// GetFeed fetches the public feed thats displayed on Lantern's main screen
-func GetFeed(locale string, allStr string, proxyAddr string, provider FeedProvider) {
-	feed.GetFeed(locale, allStr, proxyAddr != "", provider)
+func beforeStart(cfg *config.Config, user UserConfig) {
+	go func() {
+		for quota := range bandwidth.Updates {
+
+			remaining := 0
+			percent := 100
+			if quota == nil {
+				continue
+			}
+
+			allowed := quota.MiBAllowed
+			if allowed < 0 || allowed > 50000000 {
+				continue
+			}
+
+			if quota.MiBUsed >= quota.MiBAllowed {
+				percent = 100
+				remaining = 0
+			} else {
+				percent = int(100 * (float64(quota.MiBUsed) / float64(quota.MiBAllowed)))
+				remaining = int(quota.MiBAllowed - quota.MiBUsed)
+			}
+
+			user.BandwidthUpdate(percent, remaining)
+		}
+	}()
+}
+
+func afterStart(cfg *config.Config, user UserConfig) {
+	user.AfterStart()
+}
+
+// CheckForUpdates checks to see if a new version of Lantern is available
+func CheckForUpdates(shouldProxy bool) (string, error) {
+	return autoupdate.CheckMobileUpdate(shouldProxy, config.UpdateServerURL,
+		compileTimePackageVersion)
+}
+
+// DownloadUpdate downloads the latest APK from the given url to the apkPath
+// file destination.
+func DownloadUpdate(url, apkPath string, shouldProxy bool, updater Updater) {
+	autoupdate.UpdateMobile(shouldProxy, url, apkPath, updater)
+}
+
+func GetFeed(locale string, allStr string, shouldProxy bool, provider FeedProvider) {
+	feed.GetFeed(locale, allStr, shouldProxy, provider)
 }
 
 // FeedByName grabs the feed results for a given feed source name

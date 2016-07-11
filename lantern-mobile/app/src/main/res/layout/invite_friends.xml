@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" 
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" 
+    android:orientation="vertical"
+    android:background="@color/accent_white"
+    android:baselineAligned="false"
+    android:id="@+id/inviteView"
+    tools:context=".InviteActivity">
+
+    <fragment
+        xmlns:lantern="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/titlebar_fragment"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        class="org.lantern.fragment.TitleBar"
+        lantern:backgroundColor="@drawable/nav_background_white"
+        lantern:titleText="@string/invite_friends_btn"/>
+
+    <RelativeLayout
+        android:id="@+id/credits_left"
+        android:layout_width="fill_parent"
+        android:layout_height="260dp"
+        android:layout_weight="1"
+        android:elevation="2dp">
+
+        <ImageView
+            android:id="@+id/invite_friends"
+            android:paddingTop="40dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:src="@drawable/coins"/>
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/invite_bottom_sheet"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/accent_white"
+        android:paddingBottom="15dp"
+        android:layout_weight="1"
+        android:padding="8dp">
+
+        <LinearLayout 
+            android:id="@+id/referral_code_view"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/share_with_friends"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:lineSpacingExtra="5dp"
+                android:text="@string/share_friends_text"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_centerHorizontal="true"
+                android:gravity="center"
+                android:textColor="@color/black"/>
+
+
+         <TextView
+            android:id="@+id/invite_friends_text"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif"
+            android:layout_marginTop="15dp"
+            android:padding="10dp"
+            android:lineSpacingExtra="5dp"
+            android:text="@string/invite_friends_welcome"
+            android:textSize="14sp"
+            android:layout_centerHorizontal="true"
+            android:gravity="center"
+            android:textColor="#000000"/>
+
+        <TextView
+            android:id="@+id/your_referral_code"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:fontFamily="sans-serif"
+            android:text="@string/share_your_referral_code"
+            android:textAllCaps="true"       
+            android:textSize="12sp"
+            android:gravity="center"
+            android:textColor="@color/black"/>          
+
+        <TextView
+            android:id="@+id/referralCode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:fontFamily="sans-serif"
+            android:text="LRC5TWCX5"
+            android:textAllCaps="true"       
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:alpha=".87"
+            android:gravity="center"   
+            android:textColor="@color/pro_blue_color"
+            />
+
+            <Button
+                android:id="@+id/textInviteBtn"
+                android:layout_height="36dp"
+                android:layout_width="216dp"
+                android:text="@string/text_invite"
+                android:fontFamily="sans-serif-medium" 
+                android:textSize="14sp"
+                android:minHeight="48dp"
+                android:textAllCaps="true"
+                android:textColor="@color/pink"
+                android:textStyle="bold"     
+                android:clickable = "true"
+                android:background="@drawable/text_invite"
+                android:layout_centerInParent="true"
+                android:onClick="textInvite" />
+
+            <Button
+                android:id="@+id/emailInviteBtn"
+                android:layout_height="36dp"
+                android:layout_width="216dp"
+                android:text="@string/email_invite"
+                android:fontFamily="sans-serif-medium" 
+                android:textSize="14sp"
+                android:elevation="2dp"
+                android:minHeight="48dp"
+                android:textAllCaps="true"
+                android:textColor="@color/accent_white"
+                android:textStyle="bold"
+                android:clickable = "true"
+                android:layout_marginTop="10dp"
+                android:background="@color/pink"
+                android:layout_centerInParent="true"
+                android:onClick="emailInvite" />
+
+        </LinearLayout>
+
+    </RelativeLayout>
+
+</LinearLayout>

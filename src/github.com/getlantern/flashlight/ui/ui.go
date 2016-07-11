@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/getlantern/edgedetect"
+	"github.com/getlantern/flashlight/pro"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/tarfs"
 	"github.com/skratchdot/open-golang/open"
@@ -77,8 +78,6 @@ func Start(requestedAddr string, allowRemote bool, extUrl string) (string, error
 		return "", fmt.Errorf("Unable to resolve UI address: %v", err)
 	}
 
-	// initProServer("127.0.0.1:1233") // Experimental server.
-
 	externalUrl = extUrl
 	if allowRemote {
 		// If we want to allow remote connections, we have to bind all interfaces
@@ -122,7 +121,13 @@ func Start(requestedAddr string, allowRemote bool, extUrl string) (string, error
 			log.Errorf("Error serving: %v", err)
 		}
 	}()
-	uiaddr = fmt.Sprintf("http://%v", l.Addr().String())
+	listenAddr := l.Addr().String()
+	uiaddr = fmt.Sprintf("http://%v", listenAddr)
+
+	proAddr := proProxyAddr(listenAddr)
+	go func() {
+		log.Fatal(pro.InitProxy(proAddr))
+	}()
 
 	// Note - we display the UI using the LanternSpecialDomain. This is necessary
 	// for Microsoft Edge on Windows 10 because, being a Windows Modern App, its
@@ -136,7 +141,15 @@ func Start(requestedAddr string, allowRemote bool, extUrl string) (string, error
 	proxiedUIAddr = fmt.Sprintf("http://%v", client.LanternSpecialDomain)
 	log.Debugf("UI available at %v", uiaddr)
 
-	return l.Addr().String(), nil
+	return listenAddr, nil
+}
+
+func proProxyAddr(addr string) string {
+	host, _, _ := net.SplitHostPort(addr)
+	if host == "" {
+		host = "127.0.0.1"
+	}
+	return fmt.Sprintf("%s:1233", host)
 }
 
 func PreferProxiedUI(val bool) (newAddr string, addrChanged bool) {

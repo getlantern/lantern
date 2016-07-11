@@ -1,0 +1,150 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+  <string name="app_name">Lantern</string>
+  <string name="action_settings">Paràmetres</string>
+  <string name="button_text">Inici</string>
+  <string name="drawer_open">Calaix obert</string>
+  <string name="drawer_close">Calaix tancat</string>
+  <string name="default_fragment">Fragment per defecte</string>
+  <string name="receive_lantern">Rebre Lantern Escriptori per correu electrònic</string>
+  <string name="lantern_desktop">Lantern Escriptori</string>
+  <string name="email_hint">Correu electrònic</string>
+  <string name="send_button">Envia</string>
+  <string name="send_desktop">Envia</string>
+  <string name="send_sms">Envia SMS</string>
+  <string name="on_text">Activació</string>
+  <string name="off_text">Desactivació</string>
+  <string name="on_desc">Ja podeu accedir als\r\nserveis i llocs bloquejats</string>
+  <string name="off_desc">Feu clic sobre el botó per accedir als serveis i llocs bloquejats</string>
+  <string name="service_connected">Lantern connectat</string>
+  <string name="desktop_option">Versió Escriptori</string>
+  <string name="contact_option">Contacta</string>
+  <string name="check_for_update">Comprova l\'actualització</string>
+  <string name="no_update_available">Esteu al dia.</string>
+  <string name="error_checking_for_update">S\'ha produït un error comprovant la nova versió del Lantern</string>
+  <string name="have_latest_version">El Lantern %1$s és la versió més nova disponible.</string>
+  <string name="updating_lantern">Actualitzant el Lantern</string>
+  <string name="cancel">Cancel·lar</string>
+  <string name="newsfeed_option">Proveu l\'agregador del Lantern</string>
+  <string name="newsfeed_off_option">Apaga l\'agregador</string>
+  <string name="privacy_policy">Política de privacitat</string>
+  <string name="share_option">Comparteix</string>
+  <string name="quit_option">Abandona</string>
+  <string name="share_email_native"></string>
+  <string name="share_email_subject">Lantern Android</string>
+  <string name="fatal_error">El Lantern ha trobat un error greu i ja no s\'està executant</string>
+  <string name="share_twitter">Verifiqueu el Lantern Android: https://bit.ly/lanternapk</string>
+  <string name="share_facebook">Estic usant Lantern per Android. Està disponible aquí: https://bit.ly/lanternapk</string>
+  <string name="share_email_gmail">Estic usant Lantern per Android, i he adjuntat el fitxer APK.</string>
+  <string name="share_sms">Estic usant Lantern per Android. Descarregueu-lo aquí: https://bit.ly/lanternapk</string>
+  <string name="share_chooser_text">Comparteix Lantern Android</string>
+  <string name="success_email">S\'ha enviat Lantern Escriptori per correu electrònic.</string>
+  <string name="error_email">S\'ha produït un problema enviant Lantern Escriptori. Torneu a provar-ho més tard.</string>
+  <string name="success_log_email">Els logs s\'han enviat reeixidament al Lantern.</string>
+  <string name="error_log_email">S\'ha produït un error enviant els logs al Lantern. Proveu-ho més tard.</string>
+  <string name="invalid_email">Adreça de correu electrònic invàlida</string>
+  <string name="no_internet_connection">Sense connexió a Internet</string>
+  <string name="contact_email">team@getlantern.org</string>
+  <string name="contact_message">Ajuda\'m</string>
+  <string name="contact_subject">Lantern Android</string>
+  <string name="update_available">Hi ha disponible una nova versió del Lantern. Voleu actualitzar-la ara?</string>
+  <string name="not_now">Ara no</string>
+  <string name="install_update">Actualitza</string>
+  <string name="error_update">S\'ha produït un error descarregant l\'actualització</string>
+  <string name="pro_welcome_text">Benvinguts al Lantern PRO</string>
+  <string name="renew_pro_account">Renoveu el compte Pro</string>
+  <string name="change_phone_number">Canvieu el número de telèfon</string>
+  <string name="verified_phone_number">Número de telèfon verificat:</string>
+  <string name="devices_authorized">Dispositius permesos a utilitzar el vostre compte Pro</string>
+  <string name="send_us_your_logs">Envieu-nos els logs</string>
+  <string name="thanks_purchase">Gràcies per adquirir el Lantern Pro!</string>
+  <string name="start_inviting">\r\nComenceu a convidar!</string>
+  <string name="invite_friends">Introduïu l\'adreça de correu electrònic per rebre un codi per compartir amb els amics. Obteniu un mes gratuït del PRO quan s\'inscriguin. </string>
+  <string name="invite_friends_btn">Convideu amics</string>
+  <string name="continue_to_pro">Continua a PRO</string>
+  <string name="free_pro_credits">Crèdits Pro gratuïts</string>
+  <string name="get_pro_credits">Obtenir crèdits Pro gratuïts</string>
+  <string name="get_free_months">Obtenir mesos gratuïts</string>
+  <string name="text_invite">Escriviu la invitació</string>
+  <string name="email_invite">Envieu la invitació per correu</string>
+  <string name="get_code">Obtén Codi</string>
+  <string name="get_code_text">Introduïu l\'adreça de correu electrònic per rebre un codi per compartir amb els amics. Obteniu un mes gratuït del PRO quan s\'inscriguin. </string>
+  <string name="enter_your_email">Introduïu l\'adreça de correu electrònic per rebre un codi de referència</string>
+  <string name="previous_code">Si ja heu rebut un codi de referència\r\n assegureu-vos d\'utilitzar la mateixa adreça de correu electrònic.</string>
+  <string name="payment_plans">Plans de pagament del Lantern PRO</string>
+  <string name="features_text">Característiques del Lantern PRO</string>
+  <string name="checkout">Revisió</string>
+  <string name="cvc">CVC</string>
+  <string name="card_number">Número de targeta</string>
+  <string name="validation_errors">Errors de validació</string>
+  <string name="ok">Ok</string>
+  <string name="progressMessage">Processant la petició...</string>
+  <string name="progressMessage2">Recuperant el codi de referència</string>
+  <string name="language">Idioma</string>
+  <string name="all_feeds">tot</string>
+  <string name="feed.error.oops">Ui!</string>
+  <string name="feed.error.error_fetching_feed">S\'ha produït un error en la cerca de l\'agregador</string>
+  <string name="feed.error.try_again">Si us plau torneu a provar-ho</string>
+  <string name="authorize_device_pro">Autoritza dispositiu per a PRO</string>
+  <string name="sign_in_pro">Inicia la sessió a Pro</string>
+  <string-array name="sign_in_list">
+    <item>Introduïu l\'adreça de correu i us enviarem un enllaç</item>
+    <item>Feu clic sobre l\'enllaç per autoritzar aquest dispositiu al compte del Lantern Pro</item>
+  </string-array>
+  <string-array name="pro_features">
+    <item>Més velocitat</item>
+    <item>Dades sense límit</item>
+    <item>Resistència al bloqueig</item>
+    <item>Tres dispositius</item>
+  </string-array>
+  <string-array name="verify_account_list">
+    <item>Molt bé! Primer, verifiquem el vostre compte.</item>
+    <item>Introduïu el número del telèfon mòbil per rebre el codi de verificació via SMS.</item>
+    <item>El Lantern no compartirà mai el número amb terceres parts.</item>
+  </string-array>
+  <string name="send_link">Envia enllaç</string>
+  <string name="click_button">Feu clic sobre el botó per accedir a serveis i llocs bloquejats</string>
+  <string name="lantern_pro">Lantern Pro</string>
+  <string name="invite_friends_header">Convideu els amics</string>
+  <string name="pro_desc">Més ràpid, més àgil, més resistent</string>
+  <string name="free_month">Obteniu un mes gratuït de Pro per cada registre</string>
+  <string name="get_pro_now">Obtén Pro ara</string>
+  <string name="inviting_friends">Obteniu crèdits Pro tot convidant els amics</string>
+  <string name="select">Selecciona</string>
+  <string name="one_year">per 1 any</string>
+  <string name="two_years">per 2 anys</string>
+  <string name="best_value">El millor valor!</string>
+  <string name="referral_code_opt">Codi de referència (opcional)</string>
+  <string name="total">Total:</string>
+  <string name="pro_account_header">Gestió del compte Pro</string>
+  <string name="pro_account_month_text">Actualment disposeu d\'un compte mensual del Lantern PRO. Al final del cicle de facturació, carregarem automàticament un altre mes al vostre compte.</string>
+  <string name="pro_account_year_text">Actualment disposeu d\'un compte anual del Lantern PRO. Al final del cicle de facturació, carregarem automàticament un altre any al vostre compte.</string>
+  <string name="cancel_pro_account">Cancel·la el compte PRO</string>
+  <string name="account_verification">Verificació del compte</string>
+  <string name="enter_verification_code">Introduïu el codi de verificació</string>
+  <string name="get_lantern_pro">Obtenir Lantern Pro</string>
+  <string name="upgrade_to_lantern_pro">Actualitza a Lantern Pro</string>
+  <string name="pro_available_for">Per a Windows, Android, Mac i Ubuntu. Aviat per a iOS</string>
+  <string name="upgrade">Actualitza</string>
+  <string name="no_wall_at_all">Sense murs.</string>
+  <string name="buy_pro_now">Compreu el Pro ara</string>
+  <string name="update_billing_info">Actualitza la informació de facturació</string>
+  <string name="pro_credits_text">Convideu els amics, obteniu més Pro</string>
+  <string name="could_not_complete_purchase">No s\'ha pogut completar la compra de Pro. Proveu-ho més tard.</string>
+  <string name="invalid_verification_code">Codi de verificació invàlid</string>
+  <string name="invalid_payment_method">Mètode de pagament invàlid</string>
+  <string name="unable_to_cancel_account">No puc cancel·lar el compte Pro! Si us plau contacteu amb team@getlantern.org </string>
+  <string name="earn_free_month">Guanyeu un mes gratuït per cada amic que s\'inscrigui</string>
+  <string name="credits_applied">Els crèdits s\'aplicaran al vostre compte en el proper cicle de facturació.</string>
+  <string name="pro_invitation_subject">Invitació per unir-se al Lantern Pro</string>
+  <string name="receive_free_month">Per obtenir un mes gratuït del Lantern Pro, useu aquest codi de referència: %1$s ; El podeu descarregar des d\'aquí: https://bit.ly/1M8x04u</string>
+  <string name="share_feed_item">Estic llegint sobre \"%1$s\" a %2$s via Lantern. Utilitzeu el Lantern per accedir als llocs i serveis bloquejats. El podeu descarregar per Android aquí: https://bit.ly/lanternapk</string>
+  <string name="cancel_pro_confirmation">N\'esteu segur? Aquesta acció no es pot desfer! Us podeu inscriure a Pro en qualsevol altre moment.</string>
+  <string name="unauthorize_confirmation">Es desvincularà aquest dispositiu del compte Pro. N\'esteu segur?</string>
+  <string name="yes">Sí</string>
+  <string name="no">No</string>
+  <string name="item_image_contentDescription">Bandera del país</string>
+  <string name="item_preview_country">Estats Units</string>
+  <string name="item_preview_dialCode">+1</string>
+  <string name="refresh">Actualitza</string>
+</resources>

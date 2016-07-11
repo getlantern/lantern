@@ -1,0 +1,120 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" 
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" 
+    android:orientation="vertical"
+    android:baselineAligned="false"
+    android:id="@+id/proWelcomeView"
+    tools:context=".WelcomeActivity">
+
+    <fragment
+        xmlns:lantern="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/titlebar_fragment"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        class="org.lantern.fragment.TitleBar"
+        lantern:disableBackButton="true"
+        lantern:backgroundColor="@color/accent_white"
+        lantern:titleText="@string/pro_welcome_text"/>
+
+
+    <LinearLayout
+        android:id="@+id/welcome"
+        android:layout_centerVertical="true"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:background="@color/accent_white">
+
+        <ImageView
+            android:id="@+id/pro_welcome"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/welcome_text"
+            android:adjustViewBounds="true"
+            android:layout_marginTop="38dp"
+            android:paddingBottom="10dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/pro_welcome"/>
+    </LinearLayout>
+
+    <RelativeLayout
+        android:id="@+id/welcome"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:background="#FFFFFF"
+        android:paddingBottom="15dp"
+        android:layout_weight="1"
+        android:padding="8dp">
+
+        <LinearLayout android:orientation="vertical"
+            android:gravity="center"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/thanks_purchase"
+                android:layout_width="fill_parent"
+                android:layout_height="21dp"
+                android:fontFamily="sans-serif-medium"
+                android:text="@string/thanks_purchase"
+                android:textSize="16sp"
+                android:layout_centerHorizontal="true"
+                android:gravity="center"
+                android:textColor="@color/black"/>
+
+            <TextView
+                android:id="@+id/invite_friends"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp"
+                android:fontFamily="sans-serif"
+                android:layout_marginTop="20dp"
+                android:text="@string/invite_friends_welcome"
+                android:textSize="14sp"
+                android:alpha=".87"
+                android:layout_centerHorizontal="true"
+                android:gravity="center"
+                android:textColor="@color/black"/>          
+
+            <Button
+                android:id="@+id/inviteFriendsBtn"
+                android:layout_height="36dp"
+                android:layout_width="216dp"
+                android:text="@string/invite_friends_btn"
+                android:fontFamily="sans-serif-medium" 
+                android:textSize="14sp"
+                android:elevation="2dp"
+                android:minHeight="48dp"
+                android:textColor="@color/accent_white"
+                android:textAllCaps="true"
+                android:textStyle="bold"     
+                android:clickable = "true"
+                android:background="@color/pink"
+                android:layout_marginTop="30dp"  
+                android:layout_centerInParent="true"
+                android:onClick="inviteFriends" />
+
+            <Button
+                android:id="@+id/continueToProBtn"
+                android:layout_height="36dp"
+                android:layout_width="216dp"
+                android:text="@string/continue_to_pro"
+                android:fontFamily="sans-serif-medium" 
+                android:textSize="14sp"
+                android:elevation="2dp"
+                android:minHeight="48dp"
+                android:textAllCaps="true"
+                android:textColor="@color/pink"
+                android:textStyle="bold"
+                android:clickable = "true"
+                android:layout_marginTop="15dp"
+                android:background="@drawable/text_invite"
+                android:layout_centerInParent="true"
+                android:onClick="continueToPro" />
+        </LinearLayout>
+    </RelativeLayout>
+</LinearLayout>

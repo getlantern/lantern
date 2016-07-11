@@ -24,9 +24,17 @@ import (
 const (
 	cloudfront = "cloudfront"
 
-	// DefaultUpdateServerURL is the URL to fetch updates from.
-	DefaultUpdateServerURL = "https://update.getlantern.org"
+	// defaultUpdateServerURL is the default URL to fetch updates from.
+	defaultUpdateServerURL = "https://update.getlantern.org"
 )
+
+var UpdateServerURL string
+
+func init() {
+	if UpdateServerURL == "" {
+		UpdateServerURL = defaultUpdateServerURL
+	}
+}
 
 var (
 	log = golog.LoggerFor("flashlight.config")
@@ -235,7 +243,7 @@ func (cfg *Config) applyFlags(flags map[string]interface{}) error {
 // those settings.
 func (cfg *Config) ApplyDefaults() {
 	if cfg.UpdateServerURL == "" {
-		cfg.UpdateServerURL = "https://update.getlantern.org"
+		cfg.UpdateServerURL = UpdateServerURL
 	}
 
 	if cfg.Client == nil {

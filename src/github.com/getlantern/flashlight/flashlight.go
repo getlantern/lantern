@@ -92,7 +92,7 @@ func Run(httpProxyAddr string,
 		return fmt.Errorf("Unable to initialize configuration: %v", err)
 	}
 
-	client := client.NewClient(proxyAll)
+	client := client.NewClient(proxyAll, userConfig.GetToken)
 	proxied.SetProxyAddr(client.Addr)
 
 	if beforeStart(cfg) {
