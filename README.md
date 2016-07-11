@@ -24,7 +24,6 @@
 * An OSX or Linux host. Building on Windows is only partially supported with
   the help of [Cygwin](https://www.cygwin.com/).
 * [Git](https://git-scm.com/downloads) - `brew install git`, `apt-get install git`, etc
-* [Go 1.6 or higher](https://golang.org/dl/).
 * [GNU Make](https://www.gnu.org/software/make/)
 * [Nodejs & NPM](https://nodejs.org/en/download/package-manager/)
 * GNU C Library (linux only) - `apt-get install libc6-dev-i386`, etc
