@@ -105,12 +105,27 @@ func (app *App) Run() error {
 	return app.waitForExit()
 }
 
-func (app *App) beforeStart(cfg *config.Config) bool {
+func (app *App) beforeStart() bool {
 	log.Debug("Got first config")
 
-	if cfg.CPUProfile != "" || cfg.MemProfile != "" {
-		log.Debugf("Start profiling with cpu file %s and mem file %s", cfg.CPUProfile, cfg.MemProfile)
-		finishProfiling := profiling.Start(cfg.CPUProfile, cfg.MemProfile)
+	cpu, cok := app.Flags["cpuprofile"]
+	mem, mok := app.Flags["memprofile"]
+	var cpuProf string
+	var memProf string
+	if cok {
+		cpuProf = cpu.(string)
+	} else {
+		cpuProf = ""
+	}
+
+	if mok {
+		memProf = mem.(string)
+	} else {
+		memProf = ""
+	}
+	if cpuProf != "" || memProf != "" {
+		log.Debugf("Start profiling with cpu file %s and mem file %s", cpuProf, memProf)
+		finishProfiling := profiling.Start(cpuProf, memProf)
 		app.AddExitFunc(finishProfiling)
 	}
 
@@ -170,8 +185,7 @@ func (app *App) beforeStart(cfg *config.Config) bool {
 	return true
 }
 
-func (app *App) afterStart(cfg *config.Config) {
-	app.onConfigUpdate(cfg)
+func (app *App) afterStart() {
 	servePACFile()
 	if settings.GetSystemProxy() {
 		pacOn()

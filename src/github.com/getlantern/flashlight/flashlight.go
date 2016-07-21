@@ -1,7 +1,6 @@
 package flashlight
 
 import (
-	"fmt"
 	"path/filepath"
 	"sync"
 
@@ -78,75 +77,48 @@ func Run(httpProxyAddr string,
 	stickyConfig bool,
 	proxyAll func() bool,
 	flagsAsMap map[string]interface{},
-	beforeStart func(cfg *config.Config) bool,
-	afterStart func(cfg *config.Config),
+	beforeStart func() bool,
+	afterStart func(),
 	onConfigUpdate func(cfg *config.Config),
 	userConfig config.UserConfig,
 	onError func(err error),
 	deviceID string) error {
 	displayVersion()
 
-	log.Debug("Initializing configuration")
-	cfg, err := config.Init(userConfig, PackageVersion, configDir, stickyConfig, flagsAsMap)
-	if err != nil {
-		return fmt.Errorf("Unable to initialize configuration: %v", err)
-	}
-
 	cl := client.NewClient(proxyAll)
 
-	proxiesPath, err := client.InConfigDir(configDir, "proxies.yaml")
-	if err != nil {
-		log.Errorf("Could not get config path? %v", err)
+	dispatch := func(cfg interface{}) {
+		switch t := cfg.(type) {
+		default:
+			log.Errorf("Unexpected type: %T", t)
+		case map[string]*client.ChainedServerInfo:
+			cl.Configure(cfg.(map[string]*client.ChainedServerInfo), deviceID)
+		case *config.Config:
+			applyClientConfig(cl, cfg.(*config.Config), deviceID)
+			onConfigUpdate(cfg.(*config.Config))
+		}
 	}
 
-	proxyChan := make(chan map[string]*client.ChainedServerInfo)
-	go func() {
-		for {
-			cl.Configure(<-proxyChan, deviceID)
-		}
-	}()
-
-	proxyConfig := config.NewProxyConfig(proxiesPath, obfuscate(flagsAsMap))
-
-	if proxies, proxyErr := proxyConfig.SavedProxies(); proxyErr != nil {
-		log.Debugf("Could not load stored proxies %v", proxyErr)
-		if embedded, errr := proxyConfig.EmbeddedProxies(); errr != nil {
-			log.Errorf("Could not load embedded proxies %v", errr)
-		} else {
-			proxyChan <- embedded
-		}
-	} else {
-		proxyChan <- proxies
+	proxyFactory := func() interface{} {
+		return make(map[string]*client.ChainedServerInfo)
 	}
+	pipeConfig(configDir, flagsAsMap, "proxies.yaml", userConfig, proxyFactory, dispatch)
+
+	globalFactory := func() interface{} {
+		return &config.Config{}
+	}
+	pipeConfig(configDir, flagsAsMap, "global.yaml", userConfig, globalFactory, dispatch)
+
 	proxied.SetProxyAddr(cl.Addr)
 
-	if beforeStart(cfg) {
+	if beforeStart() {
 		log.Debug("Preparing to start client proxy")
 		geolookup.Refresh()
-		cfgMutex.Lock()
-		applyClientConfig(cl, cfg, deviceID)
-		cfgMutex.Unlock()
-
-		go func() {
-			configErr := config.Run(func(updated *config.Config) {
-				log.Debug("Applying updated configuration")
-				cfgMutex.Lock()
-				applyClientConfig(cl, updated, deviceID)
-				onConfigUpdate(updated)
-				cfgMutex.Unlock()
-				log.Debug("Applied updated configuration")
-			})
-			if configErr != nil {
-				onError(configErr)
-			}
-		}()
-
-		go proxyConfig.Poll(userConfig, flagsAsMap, proxyChan)
 
 		if socksProxyAddr != "" {
 			go func() {
 				log.Debug("Starting client SOCKS5 proxy")
-				err = cl.ListenAndServeSOCKS5(socksProxyAddr)
+				err := cl.ListenAndServeSOCKS5(socksProxyAddr)
 				if err != nil {
 					log.Errorf("Unable to start SOCKS5 proxy: %v", err)
 				}
@@ -154,15 +126,9 @@ func Run(httpProxyAddr string,
 		}
 
 		log.Debug("Starting client HTTP proxy")
-		err = cl.ListenAndServeHTTP(httpProxyAddr, func() {
+		err := cl.ListenAndServeHTTP(httpProxyAddr, func() {
 			log.Debug("Started client HTTP proxy")
-			// We finally tell the config package to start polling for new configurations.
-			// This is the final step because the config polling itself uses the full
-			// proxying capabilities of Lantern, so it needs everything to be properly
-			// set up with at least an initial bootstrap config (on first run) to
-			// complete successfully.
-			config.StartPolling()
-			afterStart(cfg)
+			afterStart()
 		})
 		if err != nil {
 			log.Errorf("Error starting client proxy: %v", err)
@@ -173,11 +139,43 @@ func Run(httpProxyAddr string,
 	return nil
 }
 
-func obfuscate(flags map[string]interface{}) bool {
-	if obfs, ok := flags["readableconfig"].(bool); ok {
-		return obfs
+func pipeConfig(configDir string, flags map[string]interface{},
+	name string, userConfig config.UserConfig,
+	factory func() interface{}, dispatch func(cfg interface{})) {
+
+	configChan := make(chan interface{})
+
+	go func() {
+		for {
+			cfg := <-configChan
+			dispatch(cfg)
+		}
+	}()
+	configPath, err := client.InConfigDir(configDir, name)
+	if err != nil {
+		log.Errorf("Could not get config path? %v", err)
 	}
-	return true
+
+	obfs := obfuscate(flags)
+
+	log.Debugf("Obfuscating %v", obfs)
+	conf := config.NewConfig(configPath, obfs, name+".gz", name, factory)
+
+	if cfg, proxyErr := conf.Saved(); proxyErr != nil {
+		log.Debugf("Could not load stored config %v", proxyErr)
+		if embedded, errr := conf.Embedded(); errr != nil {
+			log.Errorf("Could not load embedded config %v", errr)
+		} else {
+			configChan <- embedded
+		}
+	} else {
+		configChan <- cfg
+	}
+	go conf.Poll(userConfig, flags, configChan)
+}
+
+func obfuscate(flags map[string]interface{}) bool {
+	return flags["readableconfig"] == nil || !flags["readableconfig"].(bool)
 }
 
 func applyClientConfig(client *client.Client, cfg *config.Config, deviceID string) {
