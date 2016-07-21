@@ -18,7 +18,7 @@ go install github.com/getlantern/tarfs/tarfs || die "Could not install tarfs"
 mkdir proxies-yaml-temp || die "Could not make proxies temp dir"
 cp $HOME/lantern_aws/etc/proxies.yaml proxies-yaml-temp || die "Could not copy proxies.yaml"
 
-tarfs -pkg config -var embeddedProxies proxies-yaml-temp > ../config/embeddedProxies.go
+tarfs -pkg config -var EmbeddedProxies proxies-yaml-temp > ../config/embeddedProxies.go
 git add ../config/embeddedProxies.go || die "Could not add proxies?"
 
 rm -rf proxies-yaml-temp
