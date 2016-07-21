@@ -92,34 +92,61 @@ func Run(httpProxyAddr string,
 		return fmt.Errorf("Unable to initialize configuration: %v", err)
 	}
 
-	client := client.NewClient(proxyAll)
-	proxied.SetProxyAddr(client.Addr)
+	cl := client.NewClient(proxyAll)
+
+	proxiesPath, err := client.InConfigDir(configDir, "proxies.yaml")
+	if err != nil {
+		log.Errorf("Could not get config path? %v", err)
+	}
+
+	proxyChan := make(chan map[string]*client.ChainedServerInfo)
+	go func() {
+		for {
+			cl.Configure(<-proxyChan, deviceID)
+		}
+	}()
+
+	proxyConfig := config.NewProxyConfig(proxiesPath, obfuscate(flagsAsMap))
+
+	if proxies, proxyErr := proxyConfig.SavedProxies(); proxyErr != nil {
+		log.Debugf("Could not load stored proxies %v", proxyErr)
+		if embedded, errr := proxyConfig.EmbeddedProxies(); errr != nil {
+			log.Errorf("Could not load embedded proxies %v", errr)
+		} else {
+			proxyChan <- embedded
+		}
+	} else {
+		proxyChan <- proxies
+	}
+	proxied.SetProxyAddr(cl.Addr)
 
 	if beforeStart(cfg) {
 		log.Debug("Preparing to start client proxy")
 		geolookup.Refresh()
 		cfgMutex.Lock()
-		applyClientConfig(client, cfg, deviceID)
+		applyClientConfig(cl, cfg, deviceID)
 		cfgMutex.Unlock()
 
 		go func() {
-			err := config.Run(func(updated *config.Config) {
+			configErr := config.Run(func(updated *config.Config) {
 				log.Debug("Applying updated configuration")
 				cfgMutex.Lock()
-				applyClientConfig(client, updated, deviceID)
+				applyClientConfig(cl, updated, deviceID)
 				onConfigUpdate(updated)
 				cfgMutex.Unlock()
 				log.Debug("Applied updated configuration")
 			})
-			if err != nil {
-				onError(err)
+			if configErr != nil {
+				onError(configErr)
 			}
 		}()
+
+		go proxyConfig.Poll(userConfig, flagsAsMap, proxyChan)
 
 		if socksProxyAddr != "" {
 			go func() {
 				log.Debug("Starting client SOCKS5 proxy")
-				err = client.ListenAndServeSOCKS5(socksProxyAddr)
+				err = cl.ListenAndServeSOCKS5(socksProxyAddr)
 				if err != nil {
 					log.Errorf("Unable to start SOCKS5 proxy: %v", err)
 				}
@@ -127,7 +154,7 @@ func Run(httpProxyAddr string,
 		}
 
 		log.Debug("Starting client HTTP proxy")
-		err = client.ListenAndServeHTTP(httpProxyAddr, func() {
+		err = cl.ListenAndServeHTTP(httpProxyAddr, func() {
 			log.Debug("Started client HTTP proxy")
 			// We finally tell the config package to start polling for new configurations.
 			// This is the final step because the config polling itself uses the full
@@ -146,6 +173,13 @@ func Run(httpProxyAddr string,
 	return nil
 }
 
+func obfuscate(flags map[string]interface{}) bool {
+	if obfs, ok := flags["readableconfig"].(bool); ok {
+		return obfs
+	}
+	return true
+}
+
 func applyClientConfig(client *client.Client, cfg *config.Config, deviceID string) {
 	certs, err := cfg.GetTrustedCACerts()
 	if err != nil {
@@ -154,8 +188,6 @@ func applyClientConfig(client *client.Client, cfg *config.Config, deviceID strin
 		fronted.Configure(certs, cfg.Client.MasqueradeSets, filepath.Join(appdir.General("Lantern"), "masquerade_cache"))
 	}
 	logging.Configure(cfg.CloudConfigCA, deviceID, Version, RevisionDate, cfg.BordaReportInterval, cfg.BordaSamplePercentage)
-	// Update client configuration
-	client.Configure(cfg.Client, deviceID)
 }
 
 func displayVersion() {
