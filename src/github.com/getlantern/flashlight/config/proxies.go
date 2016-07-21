@@ -28,12 +28,13 @@ type config struct {
 	remoteFileName   string
 	embeddedFileName string
 	factory          func() interface{}
+	data             []byte
 }
 
 // NewConfig create a new ProxyConfig instance that saves and looks for
 // saved data at the specified path.
 func NewConfig(filePath string, obfuscate bool, remoteFileName, embeddedFileName string,
-	factory func() interface{}) DynamicConfig {
+	factory func() interface{}, data []byte) DynamicConfig {
 	pc := &config{
 		filePath:         filePath,
 		obfuscate:        obfuscate,
@@ -41,6 +42,7 @@ func NewConfig(filePath string, obfuscate bool, remoteFileName, embeddedFileName
 		remoteFileName:   remoteFileName,
 		embeddedFileName: embeddedFileName,
 		factory:          factory,
+		data:             data,
 	}
 
 	// Start separate go routine that saves newly fetched proxies to disk.
@@ -69,7 +71,7 @@ func (conf *config) Saved() (interface{}, error) {
 }
 
 func (conf *config) Embedded() (interface{}, error) {
-	fs, err := tarfs.New(embeddedProxies, "")
+	fs, err := tarfs.New(conf.data, "")
 	if err != nil {
 		log.Errorf("Could not read resources? %v", err)
 		return nil, err

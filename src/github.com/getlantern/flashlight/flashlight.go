@@ -102,12 +102,12 @@ func Run(httpProxyAddr string,
 	proxyFactory := func() interface{} {
 		return make(map[string]*client.ChainedServerInfo)
 	}
-	pipeConfig(configDir, flagsAsMap, "proxies.yaml", userConfig, proxyFactory, dispatch)
+	pipeConfig(configDir, flagsAsMap, "proxies.yaml", userConfig, proxyFactory, dispatch, config.EmbeddedProxies)
 
 	globalFactory := func() interface{} {
 		return &config.Config{}
 	}
-	pipeConfig(configDir, flagsAsMap, "global.yaml", userConfig, globalFactory, dispatch)
+	pipeConfig(configDir, flagsAsMap, "global.yaml", userConfig, globalFactory, dispatch, config.Resources)
 
 	proxied.SetProxyAddr(cl.Addr)
 
@@ -141,7 +141,8 @@ func Run(httpProxyAddr string,
 
 func pipeConfig(configDir string, flags map[string]interface{},
 	name string, userConfig config.UserConfig,
-	factory func() interface{}, dispatch func(cfg interface{})) {
+	factory func() interface{}, dispatch func(cfg interface{}),
+	data []byte) {
 
 	configChan := make(chan interface{})
 

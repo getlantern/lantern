@@ -15,7 +15,7 @@ import (
 func TestObfuscated(t *testing.T) {
 	config := NewConfig("./obfuscated-global.yaml", true, "global.yaml.gz", "global.yaml", func() interface{} {
 		return &Config{}
-	})
+	}, Resources)
 
 	conf, err := config.Saved()
 	assert.Nil(t, err)
@@ -30,7 +30,7 @@ func TestObfuscated(t *testing.T) {
 func TestSaved(t *testing.T) {
 	cfg := NewConfig("./proxies.yaml", false, "proxies.yaml.gz", "proxies.yaml", func() interface{} {
 		return make(map[string]*client.ChainedServerInfo)
-	})
+	}, EmbeddedProxies)
 
 	pr, err := cfg.Saved()
 	assert.Nil(t, err)
@@ -45,7 +45,7 @@ func TestSaved(t *testing.T) {
 func TestEmbedded(t *testing.T) {
 	cfg := NewConfig("./proxies.yaml", false, "proxies.yaml.gz", "proxies.yaml", func() interface{} {
 		return make(map[string]*client.ChainedServerInfo)
-	})
+	}, EmbeddedProxies)
 
 	pr, err := cfg.Embedded()
 	assert.Nil(t, err)
@@ -64,7 +64,7 @@ func TestPoll(t *testing.T) {
 	file := "./fetched-proxies.yaml"
 	cfg := NewConfig(file, false, "proxies.yaml.gz", "proxies.yaml", func() interface{} {
 		return make(map[string]*client.ChainedServerInfo)
-	})
+	}, EmbeddedProxies)
 
 	fi, err := os.Stat(file)
 	assert.Nil(t, err)
