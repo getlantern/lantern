@@ -3,13 +3,11 @@ package config
 import (
 	"crypto/x509"
 	"fmt"
-	"os"
-	"path/filepath"
+	"math/rand"
 	"regexp"
 	"sort"
 	"time"
 
-	"github.com/getlantern/appdir"
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/keyman"
@@ -32,6 +30,10 @@ var (
 	log = golog.LoggerFor("flashlight.config")
 	m   *yamlconf.Manager
 	r   = regexp.MustCompile("\\d+\\.\\d+")
+
+	// CloudConfigPollInterval is the period to wait befween checks for new
+	// global configuration settings.
+	CloudConfigPollInterval = 24 * time.Hour
 )
 
 // Config contains general configuration for Lantern either set globally via
@@ -91,12 +93,7 @@ func majorVersion(version string) string {
 // flags - map of flags (generally from command-line) that always get applied
 //         to the config.
 func Init(userConfig UserConfig, version string, configDir string, stickyConfig bool, flags map[string]interface{}) (*Config, error) {
-	// Request the config via either chained servers or direct fronted servers.
-	cf := proxied.ParallelPreferChained()
-	fetcher := NewFetcher(userConfig, cf, flags)
-
-	file := "lantern-" + version + ".yaml"
-	_, configPath, err := inConfigDir(configDir, file)
+	configPath, err := client.InConfigDir(configDir, "global.yaml")
 	if err != nil {
 		log.Errorf("Could not get config path? %v", err)
 		return nil, err
@@ -122,7 +119,8 @@ func Init(userConfig UserConfig, version string, configDir string, stickyConfig 
 		m.ValidateConfig = validateConfig
 		m.DefaultConfig = MakeInitialConfig
 		m.CustomPoll = func(ycfg yamlconf.Config) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
-			return fetcher.pollForConfig(ycfg)
+			// Request the config via either chained servers or direct fronted servers.
+			return pollForConfig(ycfg, newFetcher(userConfig, proxied.ParallelPreferChained(), flags, "global.yaml.gz"))
 		}
 	}
 	initial, err := m.Init()
@@ -153,24 +151,43 @@ func Update(mutate func(cfg *Config) error) error {
 	})
 }
 
-func inConfigDir(configDir string, filename string) (string, string, error) {
-	cdir := configDir
-
-	if cdir == "" {
-		cdir = appdir.General("Lantern")
+func pollForConfig(currentCfg yamlconf.Config, fetcher Fetcher) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
+	log.Debugf("Polling for config")
+	// By default, do nothing
+	mutate = func(ycfg yamlconf.Config) error {
+		// do nothing
+		return nil
 	}
+	waitTime = cloudPollSleepTime()
 
-	log.Debugf("Using config dir %v", cdir)
-	if _, err := os.Stat(cdir); err != nil {
-		if os.IsNotExist(err) {
-			// Create config dir
-			if err := os.MkdirAll(cdir, 0750); err != nil {
-				return "", "", fmt.Errorf("Unable to create configdir at %s: %s", cdir, err)
+	if bytes, err := fetcher.fetch(); err != nil {
+		log.Errorf("Could not fetch cloud config %v", err)
+		return mutate, waitTime, err
+	} else if bytes != nil {
+		// bytes will be nil if the config is unchanged (not modified)
+		mutate = func(ycfg yamlconf.Config) error {
+			log.Debugf("Merging cloud configuration")
+			cfg := ycfg.(*Config)
+
+			err := cfg.updateFrom(bytes)
+			if cfg.Client.ChainedServers != nil {
+				log.Debugf("Adding %d chained servers", len(cfg.Client.ChainedServers))
+				for _, s := range cfg.Client.ChainedServers {
+					log.Debugf("Got chained server: %v", s.Addr)
+				}
 			}
+			return err
 		}
+	} else {
+		log.Debugf("Bytes are nil - config not modified.")
 	}
+	return mutate, waitTime, nil
+}
 
-	return cdir, filepath.Join(cdir, filename), nil
+// cloudPollSleepTime adds some randomization to our requests to make them
+// less distinguishing on the network.
+func cloudPollSleepTime() time.Duration {
+	return time.Duration((CloudConfigPollInterval.Nanoseconds() / 2) + rand.Int63n(CloudConfigPollInterval.Nanoseconds()))
 }
 
 func (cfg *Config) GetTrustedCACerts() (pool *x509.CertPool, err error) {
