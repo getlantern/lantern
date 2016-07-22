@@ -8,15 +8,12 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"path/filepath"
 	"testing"
 	"time"
 
 	"code.google.com/p/go-uuid/uuid"
 
 	"github.com/getlantern/fronted"
-
-	"github.com/getlantern/flashlight/config"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -46,15 +43,7 @@ func testRequest(testCase string, t *testing.T, requests chan *http.Request, htt
 		return
 	}
 	defer os.RemoveAll(dir)
-	cacheFile := filepath.Join(dir, "cachefile")
-
-	cfg := &config.Config{}
-	cfg.ApplyDefaults()
-	trustedCAs, err := cfg.GetTrustedCACerts()
-	if err != nil {
-		t.Fatal(err)
-	}
-	fronted.Configure(trustedCAs, cfg.Client.MasqueradeSets, cacheFile)
+	fronted.ConfigureForTest(t)
 
 	log.Debug("Making request")
 	httpClient := &http.Client{Transport: &http.Transport{

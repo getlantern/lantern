@@ -7,13 +7,12 @@ import (
 	"time"
 
 	"github.com/getlantern/autoupdate"
-	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/proxied"
 	"github.com/getlantern/golog"
 )
 
 var (
-	updateServerURL = config.DefaultUpdateServerURL
+	updateServerURL = "https://update.getlantern.org"
 	PublicKey       []byte
 	Version         string
 )
@@ -30,22 +29,22 @@ var (
 	applyNextAttemptTime = time.Hour * 2
 )
 
-func Configure(cfg *config.Config) {
+func Configure(updateURL, cloudConfigCA string) {
 	cfgMutex.Lock()
 
-	if cfg.UpdateServerURL != "" {
-		updateServerURL = cfg.UpdateServerURL
+	if updateServerURL != "" {
+		updateServerURL = updateURL
 	}
 
 	go func() {
-		enableAutoupdate(cfg)
+		enableAutoupdate(cloudConfigCA)
 		cfgMutex.Unlock()
 	}()
 
 }
 
-func enableAutoupdate(cfg *config.Config) {
-	rt, err := proxied.ChainedNonPersistent(cfg.CloudConfigCA)
+func enableAutoupdate(cloudConfigCA string) {
+	rt, err := proxied.ChainedNonPersistent(cloudConfigCA)
 	if err != nil {
 		log.Errorf("Could not create proxied HTTP client, disabling auto-updates: %v", err)
 		return

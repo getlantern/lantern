@@ -8,9 +8,14 @@ import (
 	"time"
 
 	"github.com/getlantern/flashlight/proxied"
+	"github.com/getlantern/golog"
 	"github.com/getlantern/rot13"
 	"github.com/getlantern/tarfs"
 	"github.com/getlantern/yaml"
+)
+
+var (
+	log = golog.LoggerFor("flashlight.config")
 )
 
 // DynamicConfig is an interface for getting proxy data saved locally, embedded
@@ -97,6 +102,9 @@ func (conf *config) Poll(uc UserConfig, flags map[string]interface{},
 	for {
 		if bytes, err := fetcher.fetch(); err != nil {
 			log.Errorf("Could not read fetched config %v", err)
+		} else if bytes == nil {
+			// This is what fetcher returns for not-modified.
+			log.Debug("Ignoring not modified response")
 		} else if servers, err := conf.unmarshall(bytes); err != nil {
 			log.Errorf("Error fetching config: %v", err)
 		} else {
