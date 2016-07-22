@@ -72,7 +72,7 @@ func TestPoll(t *testing.T) {
 	flags := make(map[string]interface{})
 	flags["staging"] = false
 
-	go cfg.Poll(&userConfig{}, flags, proxyChan, "proxies.yaml.gz")
+	go cfg.Poll(&userConfig{}, flags, proxyChan, "proxies.yaml.gz", 1*time.Hour)
 	proxies := (<-proxyChan).(map[string]*client.ChainedServerInfo)
 
 	assert.True(t, len(proxies) > 0)
@@ -109,7 +109,7 @@ func TestPollGlobal(t *testing.T) {
 	flags := make(map[string]interface{})
 	flags["staging"] = false
 
-	go cfg.Poll(&userConfig{}, flags, configChan, "global.yaml.gz")
+	go cfg.Poll(&userConfig{}, flags, configChan, "global.yaml.gz", 1*time.Hour)
 
 	var fetched *Global
 	select {

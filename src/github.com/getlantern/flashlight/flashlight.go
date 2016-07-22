@@ -105,13 +105,13 @@ func Run(httpProxyAddr string,
 		return make(map[string]*client.ChainedServerInfo)
 	}
 	pipeConfig(configDir, flagsAsMap, "proxies.yaml", userConfig, proxyFactory,
-		dispatch, config.EmbeddedProxies)
+		dispatch, config.EmbeddedProxies, 1*time.Minute)
 
 	globalFactory := func() interface{} {
 		return &config.Global{}
 	}
 	pipeConfig(configDir, flagsAsMap, "global.yaml", userConfig, globalFactory,
-		dispatch, config.GlobalConfig)
+		dispatch, config.GlobalConfig, 24*time.Hour)
 
 	proxied.SetProxyAddr(cl.Addr)
 
@@ -146,7 +146,7 @@ func Run(httpProxyAddr string,
 func pipeConfig(configDir string, flags map[string]interface{},
 	name string, userConfig config.UserConfig,
 	factory func() interface{}, dispatch func(cfg interface{}),
-	data []byte) {
+	data []byte, sleep time.Duration) {
 
 	configChan := make(chan interface{})
 
@@ -176,7 +176,7 @@ func pipeConfig(configDir string, flags map[string]interface{},
 	} else {
 		configChan <- cfg
 	}
-	go conf.Poll(userConfig, flags, configChan, name+".gz")
+	go conf.Poll(userConfig, flags, configChan, name+".gz", sleep)
 }
 
 func obfuscate(flags map[string]interface{}) bool {

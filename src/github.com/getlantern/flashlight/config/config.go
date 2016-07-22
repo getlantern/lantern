@@ -30,7 +30,7 @@ type Config interface {
 
 	// Poll polls for new configs from a remote server and saves them to disk for
 	// future runs.
-	Poll(UserConfig, map[string]interface{}, chan interface{}, string)
+	Poll(UserConfig, map[string]interface{}, chan interface{}, string, time.Duration)
 }
 
 type config struct {
@@ -96,7 +96,7 @@ func (conf *config) Embedded(data []byte, fileName string) (interface{}, error) 
 }
 
 func (conf *config) Poll(uc UserConfig, flags map[string]interface{},
-	proxyChan chan interface{}, remoteFileName string) {
+	proxyChan chan interface{}, remoteFileName string, sleep time.Duration) {
 	fetcher := newFetcher(uc, proxied.ParallelPreferChained(), flags, remoteFileName)
 
 	for {
@@ -115,7 +115,7 @@ func (conf *config) Poll(uc UserConfig, flags map[string]interface{},
 			proxyChan <- servers
 			conf.saveChan <- servers
 		}
-		time.Sleep(1 * time.Minute)
+		time.Sleep(sleep)
 	}
 }
 
