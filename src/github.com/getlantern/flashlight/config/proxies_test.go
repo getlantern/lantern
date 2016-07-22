@@ -2,7 +2,6 @@ package config
 
 import (
 	"os"
-	"runtime"
 	"testing"
 	"time"
 
@@ -13,9 +12,9 @@ import (
 
 // TestObfuscated tests reading obfuscated global config from disk
 func TestObfuscated(t *testing.T) {
-	config := NewConfig("./obfuscated-global.yaml", true, "global.yaml.gz", "global.yaml", func() interface{} {
+	config := NewConfig("./obfuscated-global.yaml", true, func() interface{} {
 		return &Config{}
-	}, Resources)
+	})
 
 	conf, err := config.Saved()
 	assert.Nil(t, err)
@@ -28,9 +27,9 @@ func TestObfuscated(t *testing.T) {
 
 // TestSaved tests reading stored proxies from disk
 func TestSaved(t *testing.T) {
-	cfg := NewConfig("./proxies.yaml", false, "proxies.yaml.gz", "proxies.yaml", func() interface{} {
+	cfg := NewConfig("./proxies.yaml", false, func() interface{} {
 		return make(map[string]*client.ChainedServerInfo)
-	}, EmbeddedProxies)
+	})
 
 	pr, err := cfg.Saved()
 	assert.Nil(t, err)
@@ -43,11 +42,11 @@ func TestSaved(t *testing.T) {
 
 // TestEmbedded tests reading stored proxies from disk
 func TestEmbedded(t *testing.T) {
-	cfg := NewConfig("./proxies.yaml", false, "proxies.yaml.gz", "proxies.yaml", func() interface{} {
+	cfg := NewConfig("./proxies.yaml", false, func() interface{} {
 		return make(map[string]*client.ChainedServerInfo)
-	}, EmbeddedProxies)
+	})
 
-	pr, err := cfg.Embedded()
+	pr, err := cfg.Embedded(EmbeddedProxies, "proxies.yaml")
 	assert.Nil(t, err)
 
 	proxies := pr.(map[string]*client.ChainedServerInfo)
@@ -62,9 +61,9 @@ func TestPoll(t *testing.T) {
 	fronted.ConfigureForTest(t)
 	proxyChan := make(chan interface{})
 	file := "./fetched-proxies.yaml"
-	cfg := NewConfig(file, false, "proxies.yaml.gz", "proxies.yaml", func() interface{} {
+	cfg := NewConfig(file, false, func() interface{} {
 		return make(map[string]*client.ChainedServerInfo)
-	}, EmbeddedProxies)
+	})
 
 	fi, err := os.Stat(file)
 	assert.Nil(t, err)
@@ -73,11 +72,8 @@ func TestPoll(t *testing.T) {
 	flags := make(map[string]interface{})
 	flags["staging"] = false
 
-	go cfg.Poll(&userConfig{}, flags, proxyChan)
+	go cfg.Poll(&userConfig{}, flags, proxyChan, "proxies.yaml.gz")
 	proxies := (<-proxyChan).(map[string]*client.ChainedServerInfo)
-	runtime.Gosched()
-	runtime.Gosched()
-	runtime.Gosched()
 
 	assert.True(t, len(proxies) > 0)
 	for _, val := range proxies {
@@ -96,5 +92,46 @@ func TestPoll(t *testing.T) {
 	fi, err = os.Stat(file)
 	assert.Nil(t, err)
 	assert.True(t, fi.ModTime().After(mtime))
+}
 
+func TestPollGlobal(t *testing.T) {
+	fronted.ConfigureForTest(t)
+	configChan := make(chan interface{})
+	file := "./fetched-global.yaml"
+	cfg := NewConfig(file, false, func() interface{} {
+		return &Config{}
+	})
+
+	fi, err := os.Stat(file)
+	assert.Nil(t, err)
+	mtime := fi.ModTime()
+
+	flags := make(map[string]interface{})
+	flags["staging"] = false
+
+	go cfg.Poll(&userConfig{}, flags, configChan, "global.yaml.gz")
+
+	var fetched *Config
+	select {
+	case fetchedConfig := <-configChan:
+		fetched = fetchedConfig.(*Config)
+	case <-time.After(6 * time.Second):
+		break
+	}
+
+	assert.False(t, &fetched == nil)
+
+	assert.True(t, len(fetched.Client.MasqueradeSets) > 1)
+
+	for i := 1; i <= 20; i++ {
+		fi, err = os.Stat(file)
+		if fi.ModTime().After(mtime) {
+			break
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
+
+	fi, err = os.Stat(file)
+	assert.Nil(t, err)
+	assert.True(t, fi.ModTime().After(mtime))
 }

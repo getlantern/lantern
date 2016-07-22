@@ -91,7 +91,7 @@ func MakeInitialConfig() (yamlconf.Config, error) {
 	// We need to use tarfs here because the lantern.yaml needs to embedded
 	// in the binary for auto-updates to work. We also want the flexibility,
 	// however, to embed it in installers to change various settings.
-	fs, err := tarfs.New(Resources, dir)
+	fs, err := tarfs.New(GlobalConfig, dir)
 	if err != nil {
 		log.Errorf("Could not read resources? %v", err)
 		return nil, err
@@ -100,7 +100,7 @@ func MakeInitialConfig() (yamlconf.Config, error) {
 	// Get the yaml file from either the local file system or from an
 	// embedded resource, but ignore local file system files if they're
 	// empty.
-	bytes, err := fs.GetIgnoreLocalEmpty("lantern.yaml")
+	bytes, err := fs.GetIgnoreLocalEmpty("global.yaml")
 	if err != nil {
 		log.Errorf("Could not read bootstrap file %v", err)
 		return nil, err

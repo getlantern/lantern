@@ -16,33 +16,34 @@ import (
 // DynamicConfig is an interface for getting proxy data saved locally, embedded
 // in the binary, or fetched over the network.
 type DynamicConfig interface {
+
+	// Saved returns a yaml config from disk.
 	Saved() (interface{}, error)
-	Embedded() (interface{}, error)
-	Poll(UserConfig, map[string]interface{}, chan interface{})
+
+	// Embedded retrieves a yaml config embedded in the binary.
+	Embedded([]byte, string) (interface{}, error)
+
+	// Poll polls for new configs from a remote server and saves them to disk for
+	// future runs.
+	Poll(UserConfig, map[string]interface{}, chan interface{}, string)
 }
 
 type config struct {
-	filePath         string
-	obfuscate        bool
-	saveChan         chan interface{}
-	remoteFileName   string
-	embeddedFileName string
-	factory          func() interface{}
-	data             []byte
+	filePath  string
+	obfuscate bool
+	saveChan  chan interface{}
+	factory   func() interface{}
 }
 
 // NewConfig create a new ProxyConfig instance that saves and looks for
 // saved data at the specified path.
-func NewConfig(filePath string, obfuscate bool, remoteFileName, embeddedFileName string,
-	factory func() interface{}, data []byte) DynamicConfig {
+func NewConfig(filePath string, obfuscate bool,
+	factory func() interface{}) DynamicConfig {
 	pc := &config{
-		filePath:         filePath,
-		obfuscate:        obfuscate,
-		saveChan:         make(chan interface{}),
-		remoteFileName:   remoteFileName,
-		embeddedFileName: embeddedFileName,
-		factory:          factory,
-		data:             data,
+		filePath:  filePath,
+		obfuscate: obfuscate,
+		saveChan:  make(chan interface{}),
+		factory:   factory,
 	}
 
 	// Start separate go routine that saves newly fetched proxies to disk.
@@ -70,8 +71,8 @@ func (conf *config) Saved() (interface{}, error) {
 	return conf.unmarshall(bytes)
 }
 
-func (conf *config) Embedded() (interface{}, error) {
-	fs, err := tarfs.New(conf.data, "")
+func (conf *config) Embedded(data []byte, fileName string) (interface{}, error) {
+	fs, err := tarfs.New(data, "")
 	if err != nil {
 		log.Errorf("Could not read resources? %v", err)
 		return nil, err
@@ -80,7 +81,7 @@ func (conf *config) Embedded() (interface{}, error) {
 	// Get the yaml file from either the local file system or from an
 	// embedded resource, but ignore local file system files if they're
 	// empty.
-	bytes, err := fs.GetIgnoreLocalEmpty(conf.embeddedFileName)
+	bytes, err := fs.GetIgnoreLocalEmpty(fileName)
 	if err != nil {
 		log.Errorf("Could not read embedded proxies %v", err)
 		return nil, err
@@ -89,8 +90,9 @@ func (conf *config) Embedded() (interface{}, error) {
 	return conf.unmarshall(bytes)
 }
 
-func (conf *config) Poll(uc UserConfig, flags map[string]interface{}, proxyChan chan interface{}) {
-	fetcher := newFetcher(uc, proxied.ParallelPreferChained(), flags, conf.remoteFileName)
+func (conf *config) Poll(uc UserConfig, flags map[string]interface{},
+	proxyChan chan interface{}, remoteFileName string) {
+	fetcher := newFetcher(uc, proxied.ParallelPreferChained(), flags, remoteFileName)
 
 	for {
 		if bytes, err := fetcher.fetch(); err != nil {
