@@ -4,6 +4,7 @@ import (
 	"crypto/x509"
 	"path/filepath"
 	"sync"
+	"time"
 
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/fronted"
