@@ -18,9 +18,9 @@ var (
 	log = golog.LoggerFor("flashlight.config")
 )
 
-// DynamicConfig is an interface for getting proxy data saved locally, embedded
+// Config is an interface for getting proxy data saved locally, embedded
 // in the binary, or fetched over the network.
-type DynamicConfig interface {
+type Config interface {
 
 	// Saved returns a yaml config from disk.
 	Saved() (interface{}, error)
@@ -43,7 +43,7 @@ type config struct {
 // NewConfig create a new ProxyConfig instance that saves and looks for
 // saved data at the specified path.
 func NewConfig(filePath string, obfuscate bool,
-	factory func() interface{}) DynamicConfig {
+	factory func() interface{}) Config {
 	pc := &config{
 		filePath:  filePath,
 		obfuscate: obfuscate,

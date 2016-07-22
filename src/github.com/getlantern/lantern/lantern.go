@@ -122,11 +122,11 @@ func run(configDir string) {
 		"127.0.0.1:0", // listen for SOCKS on random address
 		configDir,     // place to store lantern configuration
 		false,         // don't make config sticky
-		func() bool { return true },                   // proxy all requests
-		make(map[string]interface{}),                  // no special configuration flags
-		func(cfg *config.Config) bool { return true }, // beforeStart()
-		func(cfg *config.Config) {},                   // afterStart()
-		func(cfg *config.Config) {},                   // onConfigUpdate
+		func() bool { return true },  // proxy all requests
+		make(map[string]interface{}), // no special configuration flags
+		func() bool { return true },  // beforeStart()
+		func() {},                    // afterStart()
+		func(cfg *config.Global) {},  // onConfigUpdate
 		&userConfig{},
 		func(err error) {}, // onError
 		base64.StdEncoding.EncodeToString(uuid.NodeID()),
