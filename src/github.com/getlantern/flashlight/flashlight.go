@@ -102,12 +102,14 @@ func Run(httpProxyAddr string,
 	proxyFactory := func() interface{} {
 		return make(map[string]*client.ChainedServerInfo)
 	}
-	pipeConfig(configDir, flagsAsMap, "proxies.yaml", userConfig, proxyFactory, dispatch, config.EmbeddedProxies)
+	pipeConfig(configDir, flagsAsMap, "proxies.yaml", userConfig, proxyFactory,
+		dispatch, config.EmbeddedProxies)
 
 	globalFactory := func() interface{} {
 		return &config.Config{}
 	}
-	pipeConfig(configDir, flagsAsMap, "global.yaml", userConfig, globalFactory, dispatch, config.Resources)
+	pipeConfig(configDir, flagsAsMap, "global.yaml", userConfig, globalFactory,
+		dispatch, config.GlobalConfig)
 
 	proxied.SetProxyAddr(cl.Addr)
 
@@ -160,11 +162,11 @@ func pipeConfig(configDir string, flags map[string]interface{},
 	obfs := obfuscate(flags)
 
 	log.Debugf("Obfuscating %v", obfs)
-	conf := config.NewConfig(configPath, obfs, name+".gz", name, factory)
+	conf := config.NewConfig(configPath, obfs, factory)
 
 	if cfg, proxyErr := conf.Saved(); proxyErr != nil {
 		log.Debugf("Could not load stored config %v", proxyErr)
-		if embedded, errr := conf.Embedded(); errr != nil {
+		if embedded, errr := conf.Embedded(data, name); errr != nil {
 			log.Errorf("Could not load embedded config %v", errr)
 		} else {
 			configChan <- embedded
@@ -172,7 +174,7 @@ func pipeConfig(configDir string, flags map[string]interface{},
 	} else {
 		configChan <- cfg
 	}
-	go conf.Poll(userConfig, flags, configChan)
+	go conf.Poll(userConfig, flags, configChan, name+".gz")
 }
 
 func obfuscate(flags map[string]interface{}) bool {
