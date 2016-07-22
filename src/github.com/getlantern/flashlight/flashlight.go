@@ -95,7 +95,9 @@ func Run(httpProxyAddr string,
 		default:
 			log.Errorf("Unexpected type: %T", t)
 		case map[string]*client.ChainedServerInfo:
-			cl.Configure(cfg.(map[string]*client.ChainedServerInfo), deviceID)
+			proxyMap := cfg.(map[string]*client.ChainedServerInfo)
+			log.Debugf("Configuring with proxies: %v", proxyMap)
+			cl.Configure(proxyMap, deviceID)
 		case *config.Global:
 			applyClientConfig(cl, cfg.(*config.Global), deviceID)
 			onConfigUpdate(cfg.(*config.Global))

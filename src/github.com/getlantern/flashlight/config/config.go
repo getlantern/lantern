@@ -73,6 +73,7 @@ func (conf *config) Saved() (interface{}, error) {
 		return nil, fmt.Errorf("Error reading config from %v: %v", conf.filePath, err)
 	}
 
+	log.Debugf("Returning saved config at %v", conf.filePath)
 	return conf.unmarshall(bytes)
 }
 

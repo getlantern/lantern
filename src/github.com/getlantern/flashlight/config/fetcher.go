@@ -66,13 +66,13 @@ func newFetcher(conf UserConfig, rt http.RoundTripper, flags map[string]interfac
 		if s, ok := flags["cloudconfig"].(string); ok {
 			if len(s) > 0 {
 				log.Debugf("Overridding chained URL from the command line '%v'", s)
-				chained = s
+				chained = s + fileName
 			}
 		}
 		if s, ok := flags["frontedconfig"].(string); ok {
 			if len(s) > 0 {
 				log.Debugf("Overridding fronted URL from the command line '%v'", s)
-				fronted = s
+				fronted = s + fileName
 			}
 		}
 	}
