@@ -1,12 +1,14 @@
 package flashlight
 
 import (
+	"crypto/x509"
 	"path/filepath"
 	"sync"
 
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
+	"github.com/getlantern/keyman"
 
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
@@ -79,7 +81,7 @@ func Run(httpProxyAddr string,
 	flagsAsMap map[string]interface{},
 	beforeStart func() bool,
 	afterStart func(),
-	onConfigUpdate func(cfg *config.Config),
+	onConfigUpdate func(cfg *config.Global),
 	userConfig config.UserConfig,
 	onError func(err error),
 	deviceID string) error {
@@ -93,9 +95,9 @@ func Run(httpProxyAddr string,
 			log.Errorf("Unexpected type: %T", t)
 		case map[string]*client.ChainedServerInfo:
 			cl.Configure(cfg.(map[string]*client.ChainedServerInfo), deviceID)
-		case *config.Config:
-			applyClientConfig(cl, cfg.(*config.Config), deviceID)
-			onConfigUpdate(cfg.(*config.Config))
+		case *config.Global:
+			applyClientConfig(cl, cfg.(*config.Global), deviceID)
+			onConfigUpdate(cfg.(*config.Global))
 		}
 	}
 
@@ -106,7 +108,7 @@ func Run(httpProxyAddr string,
 		dispatch, config.EmbeddedProxies)
 
 	globalFactory := func() interface{} {
-		return &config.Config{}
+		return &config.Global{}
 	}
 	pipeConfig(configDir, flagsAsMap, "global.yaml", userConfig, globalFactory,
 		dispatch, config.GlobalConfig)
@@ -181,14 +183,26 @@ func obfuscate(flags map[string]interface{}) bool {
 	return flags["readableconfig"] == nil || !flags["readableconfig"].(bool)
 }
 
-func applyClientConfig(client *client.Client, cfg *config.Config, deviceID string) {
-	certs, err := cfg.GetTrustedCACerts()
+func applyClientConfig(client *client.Client, cfg *config.Global, deviceID string) {
+	certs, err := getTrustedCACerts(cfg)
 	if err != nil {
 		log.Errorf("Unable to get trusted ca certs, not configuring fronted: %s", err)
-	} else {
+	} else if cfg.Client != nil {
 		fronted.Configure(certs, cfg.Client.MasqueradeSets, filepath.Join(appdir.General("Lantern"), "masquerade_cache"))
 	}
 	logging.Configure(cfg.CloudConfigCA, deviceID, Version, RevisionDate, cfg.BordaReportInterval, cfg.BordaSamplePercentage)
+}
+
+func getTrustedCACerts(cfg *config.Global) (pool *x509.CertPool, err error) {
+	certs := make([]string, 0, len(cfg.TrustedCAs))
+	for _, ca := range cfg.TrustedCAs {
+		certs = append(certs, ca.Cert)
+	}
+	pool, err = keyman.PoolContainingCerts(certs...)
+	if err != nil {
+		log.Errorf("Could not create pool %v", err)
+	}
+	return
 }
 
 func displayVersion() {

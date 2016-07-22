@@ -43,7 +43,7 @@ var (
 )
 
 func TestProxying(t *testing.T) {
-	config.CloudConfigPollInterval = 100 * time.Millisecond
+	//config.CloudConfigPollInterval = 100 * time.Millisecond
 
 	// Web server serves known content for testing
 	httpAddr, httpsAddr, err := startWebServer(t)
@@ -208,7 +208,7 @@ func buildConfig(obfs4 bool) ([]byte, error) {
 		return nil, fmt.Errorf("Could not read config %v", err)
 	}
 
-	cfg := &config.Config{}
+	cfg := &config.Global{}
 	err = yaml.Unmarshal(bytes, cfg)
 	if err != nil {
 		return nil, fmt.Errorf("Could not unmarshal config %v", err)

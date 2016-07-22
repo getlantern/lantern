@@ -13,13 +13,13 @@ import (
 // TestObfuscated tests reading obfuscated global config from disk
 func TestObfuscated(t *testing.T) {
 	config := NewConfig("./obfuscated-global.yaml", true, func() interface{} {
-		return &Config{}
+		return &Global{}
 	})
 
 	conf, err := config.Saved()
 	assert.Nil(t, err)
 
-	cfg := conf.(*Config)
+	cfg := conf.(*Global)
 
 	// Just make sure it's legitimately reading the config.
 	assert.True(t, len(cfg.Client.MasqueradeSets) > 1)
@@ -99,7 +99,7 @@ func TestPollGlobal(t *testing.T) {
 	configChan := make(chan interface{})
 	file := "./fetched-global.yaml"
 	cfg := NewConfig(file, false, func() interface{} {
-		return &Config{}
+		return &Global{}
 	})
 
 	fi, err := os.Stat(file)
@@ -111,10 +111,10 @@ func TestPollGlobal(t *testing.T) {
 
 	go cfg.Poll(&userConfig{}, flags, configChan, "global.yaml.gz")
 
-	var fetched *Config
+	var fetched *Global
 	select {
 	case fetchedConfig := <-configChan:
-		fetched = fetchedConfig.(*Config)
+		fetched = fetchedConfig.(*Global)
 	case <-time.After(6 * time.Second):
 		break
 	}
