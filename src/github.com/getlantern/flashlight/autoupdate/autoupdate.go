@@ -24,12 +24,13 @@ var (
 	updateMutex sync.Mutex
 
 	httpClient *http.Client
-	watching   int32 = 0
+	watching   int32
 
 	applyNextAttemptTime = time.Hour * 2
 )
 
-func Configure(updateURL, cloudConfigCA string) {
+// Configure sets the CA certificate to pin for the TLS auto-update connection.
+func Configure(updateURL, updateCA string) {
 	cfgMutex.Lock()
 
 	if updateServerURL != "" {
@@ -37,14 +38,14 @@ func Configure(updateURL, cloudConfigCA string) {
 	}
 
 	go func() {
-		enableAutoupdate(cloudConfigCA)
+		enableAutoupdate(updateCA)
 		cfgMutex.Unlock()
 	}()
 
 }
 
-func enableAutoupdate(cloudConfigCA string) {
-	rt, err := proxied.ChainedNonPersistent(cloudConfigCA)
+func enableAutoupdate(updateCA string) {
+	rt, err := proxied.ChainedNonPersistent(updateCA)
 	if err != nil {
 		log.Errorf("Could not create proxied HTTP client, disabling auto-updates: %v", err)
 		return

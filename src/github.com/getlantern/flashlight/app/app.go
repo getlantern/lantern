@@ -205,7 +205,7 @@ func (app *App) afterStart() {
 
 func (app *App) onConfigUpdate(cfg *config.Global) {
 	proxiedsites.Configure(cfg.ProxiedSites)
-	autoupdate.Configure(cfg.UpdateServerURL, cfg.CloudConfigCA)
+	autoupdate.Configure(cfg.UpdateServerURL, cfg.AutoUpdateCA)
 }
 
 // showExistingUi triggers an existing Lantern running on the same system to

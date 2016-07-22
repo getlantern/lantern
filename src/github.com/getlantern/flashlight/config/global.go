@@ -12,9 +12,11 @@ import (
 // the cloud, in command line flags, or in local customizations during
 // development.
 type Global struct {
-	configDir             string
-	Version               int
-	CloudConfigCA         string
+	Version       int
+	CloudConfigCA string
+
+	// AutoUpdateCA is the CA key to pin for auto-updates.
+	AutoUpdateCA          string
 	CPUProfile            string
 	MemProfile            string
 	UpdateServerURL       string
