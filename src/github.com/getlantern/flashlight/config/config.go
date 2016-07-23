@@ -58,7 +58,7 @@ func NewConfig(filePath string, obfuscate bool,
 }
 
 // PipeConfig creates a new config pipeline for reading a specified type of
-// config onto a channel for processing by a dispatch type switch function.
+// config onto a channel for processing by a dispatch function.
 func PipeConfig(configDir string, flags map[string]interface{},
 	name string, userConfig UserConfig,
 	factory func() interface{}, dispatch func(cfg interface{}),

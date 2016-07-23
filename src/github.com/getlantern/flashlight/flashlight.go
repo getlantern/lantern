@@ -90,32 +90,35 @@ func Run(httpProxyAddr string,
 
 	cl := client.NewClient(proxyAll)
 
-	dispatch := func(cfg interface{}) {
-		switch t := cfg.(type) {
-		default:
-			log.Errorf("Unexpected type: %T", t)
-		case map[string]*client.ChainedServerInfo:
-			proxyMap := cfg.(map[string]*client.ChainedServerInfo)
-			log.Debugf("Configuring with proxies: %v", proxyMap)
-			cl.Configure(proxyMap, deviceID)
-		case *config.Global:
-			applyClientConfig(cl, cfg.(*config.Global), deviceID)
-			onConfigUpdate(cfg.(*config.Global))
-		}
-	}
-
 	proxyFactory := func() interface{} {
 		return make(map[string]*client.ChainedServerInfo)
 	}
+
+	proxyDispatch := func(conf interface{}) {
+		// Don't love the straight cast here, but we're also the ones defining
+		// the type in the factory method above.
+		proxyMap := conf.(map[string]*client.ChainedServerInfo)
+		log.Debugf("Configuring with proxies: %v", proxyMap)
+		cl.Configure(proxyMap, deviceID)
+	}
+
 	config.PipeConfig(configDir, flagsAsMap, "proxies.yaml", userConfig, proxyFactory,
-		dispatch, config.EmbeddedProxies, 1*time.Minute)
+		proxyDispatch, config.EmbeddedProxies, 1*time.Minute)
 
 	globalFactory := func() interface{} {
 		return &config.Global{}
 	}
 
+	globalDispatch := func(conf interface{}) {
+		// Don't love the straight cast here, but we're also the ones defining
+		// the type in the factory method above.
+		cfg := conf.(*config.Global)
+		applyClientConfig(cl, cfg, deviceID)
+		onConfigUpdate(cfg)
+	}
+
 	config.PipeConfig(configDir, flagsAsMap, "global.yaml", userConfig, globalFactory,
-		dispatch, config.GlobalConfig, 24*time.Hour)
+		globalDispatch, config.GlobalConfig, 24*time.Hour)
 
 	proxied.SetProxyAddr(cl.Addr)
 
