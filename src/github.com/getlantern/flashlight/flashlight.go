@@ -107,13 +107,14 @@ func Run(httpProxyAddr string,
 	proxyFactory := func() interface{} {
 		return make(map[string]*client.ChainedServerInfo)
 	}
-	pipeConfig(configDir, flagsAsMap, "proxies.yaml", userConfig, proxyFactory,
+	config.PipeConfig(configDir, flagsAsMap, "proxies.yaml", userConfig, proxyFactory,
 		dispatch, config.EmbeddedProxies, 1*time.Minute)
 
 	globalFactory := func() interface{} {
 		return &config.Global{}
 	}
-	pipeConfig(configDir, flagsAsMap, "global.yaml", userConfig, globalFactory,
+
+	config.PipeConfig(configDir, flagsAsMap, "global.yaml", userConfig, globalFactory,
 		dispatch, config.GlobalConfig, 24*time.Hour)
 
 	proxied.SetProxyAddr(cl.Addr)
@@ -144,46 +145,6 @@ func Run(httpProxyAddr string,
 	}
 
 	return nil
-}
-
-func pipeConfig(configDir string, flags map[string]interface{},
-	name string, userConfig config.UserConfig,
-	factory func() interface{}, dispatch func(cfg interface{}),
-	data []byte, sleep time.Duration) {
-
-	configChan := make(chan interface{})
-
-	go func() {
-		for {
-			cfg := <-configChan
-			dispatch(cfg)
-		}
-	}()
-	configPath, err := client.InConfigDir(configDir, name)
-	if err != nil {
-		log.Errorf("Could not get config path? %v", err)
-	}
-
-	obfs := obfuscate(flags)
-
-	log.Debugf("Obfuscating %v", obfs)
-	conf := config.NewConfig(configPath, obfs, factory)
-
-	if cfg, proxyErr := conf.Saved(); proxyErr != nil {
-		log.Debugf("Could not load stored config %v", proxyErr)
-		if embedded, errr := conf.Embedded(data, name); errr != nil {
-			log.Errorf("Could not load embedded config %v", errr)
-		} else {
-			configChan <- embedded
-		}
-	} else {
-		configChan <- cfg
-	}
-	go conf.Poll(userConfig, flags, configChan, name+".gz", sleep)
-}
-
-func obfuscate(flags map[string]interface{}) bool {
-	return flags["readableconfig"] == nil || !flags["readableconfig"].(bool)
 }
 
 func applyClientConfig(client *client.Client, cfg *config.Global, deviceID string) {
