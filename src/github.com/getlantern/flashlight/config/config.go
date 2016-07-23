@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/proxied"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/rot13"
@@ -54,6 +55,48 @@ func NewConfig(filePath string, obfuscate bool,
 	// Start separate go routine that saves newly fetched proxies to disk.
 	go pc.save()
 	return pc
+}
+
+// PipeConfig creates a new config pipeline for reading a specified type of
+// config onto a channel for processing by a dispatch type switch function.
+func PipeConfig(configDir string, flags map[string]interface{},
+	name string, userConfig UserConfig,
+	factory func() interface{}, dispatch func(cfg interface{}),
+	data []byte, sleep time.Duration) {
+
+	configChan := make(chan interface{})
+
+	go func() {
+		for {
+			cfg := <-configChan
+			dispatch(cfg)
+		}
+	}()
+	configPath, err := client.InConfigDir(configDir, name)
+	if err != nil {
+		log.Errorf("Could not get config path? %v", err)
+	}
+
+	obfs := obfuscate(flags)
+
+	log.Debugf("Obfuscating %v", obfs)
+	conf := NewConfig(configPath, obfs, factory)
+
+	if saved, proxyErr := conf.Saved(); proxyErr != nil {
+		log.Debugf("Could not load stored config %v", proxyErr)
+		if embedded, errr := conf.Embedded(data, name); errr != nil {
+			log.Errorf("Could not load embedded config %v", errr)
+		} else {
+			configChan <- embedded
+		}
+	} else {
+		configChan <- saved
+	}
+	go conf.Poll(userConfig, flags, configChan, name+".gz", sleep)
+}
+
+func obfuscate(flags map[string]interface{}) bool {
+	return flags["readableconfig"] == nil || !flags["readableconfig"].(bool)
 }
 
 func (conf *config) Saved() (interface{}, error) {
