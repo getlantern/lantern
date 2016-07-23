@@ -1,7 +1,6 @@
 version: 11
 cloudconfigca: ""
-cpuprofile: ""
-memprofile: ""
+autoupdateca: ""
 updateserverurl: https://update.getlantern.org
 bordareportinterval: "0"
 bordasamplepercentage: 0

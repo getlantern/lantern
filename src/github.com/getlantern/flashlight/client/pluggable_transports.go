@@ -65,7 +65,8 @@ func defaultDialFactory(s *ChainedServerInfo, deviceID string) (dialFN, error) {
 				if closeErr := conn.Close(); closeErr != nil {
 					log.Debugf("Error closing chained server connection: %s", closeErr)
 				}
-				return nil, op.FailIf(log.Errorf("Server's certificate didn't match expected!"))
+				return nil, op.FailIf(log.Errorf("Server's certificate didn't match expected! Server had\n%v\nbut expected:\n%v",
+					conn.ConnectionState().PeerCertificates[0], x509cert))
 			}
 			return conn, op.FailIf(err)
 		}
