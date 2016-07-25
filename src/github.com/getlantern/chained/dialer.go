@@ -49,7 +49,7 @@ func (d *dialer) Dial(network, addr string) (net.Conn, error) {
 	// that we should send a CONNECT request and tunnel all traffic through
 	// that.
 	if network == "connect" {
-		log.Debugf("Sending CONNECT REQUEST")
+		log.Tracef("Sending CONNECT REQUEST")
 		if err := d.sendCONNECT("tcp", addr, conn); err != nil {
 			// We discard this error, since we are only interested in sendCONNECT
 			_ = conn.Close()

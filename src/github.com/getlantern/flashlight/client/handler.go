@@ -138,16 +138,15 @@ func pipeData(clientConn net.Conn, connOut net.Conn, op *ops.Op, closeFunc func(
 }
 
 func respondOK(writer io.Writer, req *http.Request) error {
-	log.Debugf("Responding OK to %v", req.URL)
 	return respondHijacked(writer, req, http.StatusOK)
 }
 
 func respondBadGatewayHijacked(writer io.Writer, req *http.Request) error {
+	log.Debugf("Responding %v", http.StatusBadGateway)
 	return respondHijacked(writer, req, http.StatusBadGateway)
 }
 
 func respondHijacked(writer io.Writer, req *http.Request, statusCode int) error {
-	log.Debugf("Responding %v to %v", statusCode, req.URL)
 	defer func() {
 		if err := req.Body.Close(); err != nil {
 			log.Debugf("Error closing body of OK response: %s", err)
