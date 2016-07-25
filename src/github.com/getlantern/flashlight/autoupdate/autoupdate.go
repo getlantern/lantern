@@ -33,7 +33,7 @@ var (
 func Configure(updateURL, updateCA string) {
 	cfgMutex.Lock()
 
-	if updateServerURL != "" {
+	if updateServerURL != "" && updateURL != "" {
 		updateServerURL = updateURL
 	}
 

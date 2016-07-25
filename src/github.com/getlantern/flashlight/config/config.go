@@ -17,6 +17,37 @@ import (
 
 var (
 	log = golog.LoggerFor("flashlight.config")
+
+	// GlobalURLs are the chained and fronted URLs for fetching the global config.
+	GlobalURLs = &ChainedFrontedURLs{
+		Chained: "https://globalconfig.flashlightproxy.com/global.yaml.gz",
+		Fronted: "https://d24ykmup0867cj.cloudfront.net/global.yaml.gz",
+	}
+
+	// GlobalStagingURLs are the chained and fronted URLs for fetching the global
+	// config in a staging environment.
+	GlobalStagingURLs = &ChainedFrontedURLs{
+		Chained: "https://globalconfig.flashlightproxy.com/global.yaml.gz",
+		Fronted: "https://d24ykmup0867cj.cloudfront.net/global.yaml.gz",
+	}
+
+	// The following are over HTTP because proxies do not forward X-Forwarded-For
+	// with HTTPS and because we only support falling back to direct domain
+	// fronting through the local proxy for HTTP.
+
+	// ProxiesURLs are the chained and fronted URLs for fetching the per user
+	// proxy config.
+	ProxiesURLs = &ChainedFrontedURLs{
+		Chained: "http://config.getiantem.org/proxies.yaml.gz",
+		Fronted: "http://d2wi0vwulmtn99.cloudfront.net/proxies.yaml.gz",
+	}
+
+	// ProxiesStagingURLs are the chained and fronted URLs for fetching the per user
+	// proxy config in a staging environment.
+	ProxiesStagingURLs = &ChainedFrontedURLs{
+		Chained: "http://config-staging.getiantem.org/proxies.yaml.gz",
+		Fronted: "http://d33pfmbpauhmvd.cloudfront.net/proxies.yaml.gz",
+	}
 )
 
 // Config is an interface for getting proxy data saved locally, embedded
@@ -31,7 +62,7 @@ type Config interface {
 
 	// Poll polls for new configs from a remote server and saves them to disk for
 	// future runs.
-	Poll(UserConfig, map[string]interface{}, chan interface{}, string, time.Duration)
+	Poll(UserConfig, chan interface{}, *ChainedFrontedURLs, time.Duration)
 }
 
 type config struct {
@@ -39,6 +70,12 @@ type config struct {
 	obfuscate bool
 	saveChan  chan interface{}
 	factory   func() interface{}
+}
+
+// ChainedFrontedURLs contains a chained and a fronted URL for fetching a config.
+type ChainedFrontedURLs struct {
+	Chained string
+	Fronted string
 }
 
 // NewConfig create a new ProxyConfig instance that saves and looks for
@@ -60,7 +97,7 @@ func NewConfig(filePath string, obfuscate bool,
 // PipeConfig creates a new config pipeline for reading a specified type of
 // config onto a channel for processing by a dispatch function.
 func PipeConfig(configDir string, flags map[string]interface{},
-	name string, userConfig UserConfig,
+	name string, urls *ChainedFrontedURLs, userConfig UserConfig,
 	factory func() interface{}, dispatch func(cfg interface{}),
 	data []byte, sleep time.Duration) {
 
@@ -92,7 +129,7 @@ func PipeConfig(configDir string, flags map[string]interface{},
 	} else {
 		configChan <- saved
 	}
-	go conf.Poll(userConfig, flags, configChan, name+".gz", sleep)
+	go conf.Poll(userConfig, configChan, urls, sleep)
 }
 
 func obfuscate(flags map[string]interface{}) bool {
@@ -139,9 +176,9 @@ func (conf *config) Embedded(data []byte, fileName string) (interface{}, error) 
 	return conf.unmarshall(bytes)
 }
 
-func (conf *config) Poll(uc UserConfig, flags map[string]interface{},
-	proxyChan chan interface{}, remoteFileName string, sleep time.Duration) {
-	fetcher := newFetcher(uc, proxied.ParallelPreferChained(), flags, remoteFileName)
+func (conf *config) Poll(uc UserConfig,
+	proxyChan chan interface{}, urls *ChainedFrontedURLs, sleep time.Duration) {
+	fetcher := newFetcher(uc, proxied.ParallelPreferChained(), urls)
 
 	for {
 		if bytes, err := fetcher.fetch(); err != nil {
@@ -202,4 +239,26 @@ func (conf *config) saveOne(in interface{}) error {
 	}
 	log.Debugf("Wrote file at %v", conf.filePath)
 	return nil
+}
+
+// GetProxyURLs returns the proxy URLs to use depending on whether or not we're in
+// staging.
+func GetProxyURLs(staging bool) *ChainedFrontedURLs {
+	if staging {
+		log.Debug("Configuring for staging")
+		return ProxiesStagingURLs
+	}
+	log.Debugf("Not configuring for staging.")
+	return ProxiesURLs
+}
+
+// GetGlobalURLs returns the global URLs to use depending on whether or not we're in
+// staging.
+func GetGlobalURLs(staging bool) *ChainedFrontedURLs {
+	if staging {
+		log.Debug("Configuring for staging")
+		return GlobalStagingURLs
+	}
+	log.Debugf("Not configuring for staging.")
+	return GlobalURLs
 }

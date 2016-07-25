@@ -23,8 +23,7 @@ func (uc *userConfig) GetUserID() int64 {
 func TestFetcher(t *testing.T) {
 	// This will actually fetch the cloud config over the network.
 	rt := &http.Transport{}
-	flags := make(map[string]interface{})
-	configFetcher := newFetcher(&userConfig{}, rt, flags, "cloud.yaml.gz")
+	configFetcher := newFetcher(&userConfig{}, rt, GlobalURLs)
 
 	bytes, err := configFetcher.fetch()
 	assert.Nil(t, err)
@@ -40,29 +39,24 @@ func TestStagingSetup(t *testing.T) {
 	rt := &http.Transport{}
 
 	var fetch *fetcher
-	fetch = newFetcher(&userConfig{}, rt, flags, "cloud.yaml.gz").(*fetcher)
+	fetch = newFetcher(&userConfig{}, rt, ProxiesURLs).(*fetcher)
 
-	assert.Equal(t, "http://config.getiantem.org/cloud.yaml.gz", fetch.chainedURL)
-	assert.Equal(t, "http://d2wi0vwulmtn99.cloudfront.net/cloud.yaml.gz", fetch.frontedURL)
+	assert.Equal(t, "http://config.getiantem.org/proxies.yaml.gz", fetch.chainedURL)
+	assert.Equal(t, "http://d2wi0vwulmtn99.cloudfront.net/proxies.yaml.gz", fetch.frontedURL)
 
-	// Test that setting the URLs to use from the command line still works.
-	flags["cloudconfig"] = "testconfig"
-	flags["frontedconfig"] = "testconfig"
-	fetch = newFetcher(&userConfig{}, rt, flags, "cloud.yaml.gz").(*fetcher)
-
-	assert.Equal(t, "testconfig", fetch.chainedURL)
-	assert.Equal(t, "testconfig", fetch.frontedURL)
+	urls := ProxiesURLs
 
 	// Blank flags should mean we use the default
 	flags["cloudconfig"] = ""
 	flags["frontedconfig"] = ""
-	fetch = newFetcher(&userConfig{}, rt, flags, "cloud.yaml.gz").(*fetcher)
+	fetch = newFetcher(&userConfig{}, rt, urls).(*fetcher)
 
-	assert.Equal(t, "http://config.getiantem.org/cloud.yaml.gz", fetch.chainedURL)
-	assert.Equal(t, "http://d2wi0vwulmtn99.cloudfront.net/cloud.yaml.gz", fetch.frontedURL)
+	assert.Equal(t, "http://config.getiantem.org/proxies.yaml.gz", fetch.chainedURL)
+	assert.Equal(t, "http://d2wi0vwulmtn99.cloudfront.net/proxies.yaml.gz", fetch.frontedURL)
 
+	stagingURLs := ProxiesStagingURLs
 	flags["staging"] = true
-	fetch = newFetcher(&userConfig{}, rt, flags, "cloud.yaml.gz").(*fetcher)
-	assert.Equal(t, "http://config-staging.getiantem.org/cloud.yaml.gz", fetch.chainedURL)
-	assert.Equal(t, "http://d33pfmbpauhmvd.cloudfront.net/cloud.yaml.gz", fetch.frontedURL)
+	fetch = newFetcher(&userConfig{}, rt, stagingURLs).(*fetcher)
+	assert.Equal(t, "http://config-staging.getiantem.org/proxies.yaml.gz", fetch.chainedURL)
+	assert.Equal(t, "http://d33pfmbpauhmvd.cloudfront.net/proxies.yaml.gz", fetch.frontedURL)
 }

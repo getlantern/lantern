@@ -90,6 +90,8 @@ func Run(httpProxyAddr string,
 
 	cl := client.NewClient(proxyAll)
 
+	staging := isStaging(flagsAsMap)
+
 	proxyFactory := func() interface{} {
 		return make(map[string]*client.ChainedServerInfo)
 	}
@@ -102,7 +104,8 @@ func Run(httpProxyAddr string,
 		cl.Configure(proxyMap, deviceID)
 	}
 
-	config.PipeConfig(configDir, flagsAsMap, "proxies.yaml", userConfig, proxyFactory,
+	proxyURLs := config.GetProxyURLs(staging)
+	config.PipeConfig(configDir, flagsAsMap, "proxies.yaml", checkOverrides(flagsAsMap, proxyURLs), userConfig, proxyFactory,
 		proxyDispatch, config.EmbeddedProxies, 1*time.Minute)
 
 	globalFactory := func() interface{} {
@@ -117,7 +120,7 @@ func Run(httpProxyAddr string,
 		onConfigUpdate(cfg)
 	}
 
-	config.PipeConfig(configDir, flagsAsMap, "global.yaml", userConfig, globalFactory,
+	config.PipeConfig(configDir, flagsAsMap, "global.yaml", config.GetGlobalURLs(staging), userConfig, globalFactory,
 		globalDispatch, config.GlobalConfig, 24*time.Hour)
 
 	proxied.SetProxyAddr(cl.Addr)
@@ -148,6 +151,29 @@ func Run(httpProxyAddr string,
 	}
 
 	return nil
+}
+
+func isStaging(flags map[string]interface{}) bool {
+	if s, ok := flags["staging"].(bool); ok {
+		return s
+	}
+	return false
+}
+
+func checkOverrides(flags map[string]interface{}, urls *config.ChainedFrontedURLs) *config.ChainedFrontedURLs {
+	if s, ok := flags["cloudconfig"].(string); ok {
+		if len(s) > 0 {
+			log.Debugf("Overridding chained URL from the command line '%v'", s)
+			urls.Chained = s
+		}
+	}
+	if s, ok := flags["frontedconfig"].(string); ok {
+		if len(s) > 0 {
+			log.Debugf("Overridding fronted URL from the command line '%v'", s)
+			urls.Fronted = s
+		}
+	}
+	return urls
 }
 
 func applyClientConfig(client *client.Client, cfg *config.Global, deviceID string) {

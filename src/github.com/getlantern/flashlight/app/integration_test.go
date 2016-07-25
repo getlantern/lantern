@@ -287,7 +287,7 @@ func buildGlobal() ([]byte, error) {
 }
 
 func startApp(t *testing.T, configAddr string) error {
-	configURL := "http://" + configAddr + "/"
+	configURL := "http://" + configAddr + "/proxies.yaml.gz"
 	flags := map[string]interface{}{
 		"cloudconfig":          configURL,
 		"frontedconfig":        configURL,
