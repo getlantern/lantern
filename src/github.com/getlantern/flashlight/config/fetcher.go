@@ -44,43 +44,12 @@ type UserConfig interface {
 
 // newFetcher creates a new configuration fetcher with the specified
 // interface for obtaining the user ID and token if those are populated.
-func newFetcher(conf UserConfig, rt http.RoundTripper, flags map[string]interface{}, fileName string) Fetcher {
-	var stage bool
-	if s, ok := flags["staging"].(bool); ok {
-		stage = s
-	}
-	// This is over HTTP because proxies do not forward X-Forwarded-For with HTTPS
-	// and because we only support falling back to direct domain fronting through
-	// the local proxy for HTTP.
-	var chained string
-	var fronted string
-	if stage {
-		log.Debug("Configuring for staging")
-		chained = "http://config-staging.getiantem.org/" + fileName
-		fronted = "http://d33pfmbpauhmvd.cloudfront.net/" + fileName
-	} else {
-		log.Debugf("Not configuring for staging. Using flags: %v", flags)
-		chained = "http://config.getiantem.org/" + fileName
-		fronted = "http://d2wi0vwulmtn99.cloudfront.net/" + fileName
-
-		if s, ok := flags["cloudconfig"].(string); ok {
-			if len(s) > 0 {
-				log.Debugf("Overridding chained URL from the command line '%v'", s)
-				chained = s + fileName
-			}
-		}
-		if s, ok := flags["frontedconfig"].(string); ok {
-			if len(s) > 0 {
-				log.Debugf("Overridding fronted URL from the command line '%v'", s)
-				fronted = s + fileName
-			}
-		}
-	}
-
-	log.Debugf("Will poll for config at %v (%v)", chained, fronted)
+func newFetcher(conf UserConfig, rt http.RoundTripper,
+	urls *ChainedFrontedURLs) Fetcher {
+	log.Debugf("Will poll for config at %v (%v)", urls.Chained, urls.Fronted)
 
 	// Force detour to whitelist chained domain
-	u, err := url.Parse(chained)
+	u, err := url.Parse(urls.Chained)
 	if err != nil {
 		log.Fatalf("Unable to parse chained cloud config URL: %v", err)
 	}
@@ -90,8 +59,8 @@ func newFetcher(conf UserConfig, rt http.RoundTripper, flags map[string]interfac
 		lastCloudConfigETag: map[string]string{},
 		user:                conf,
 		rt:                  rt,
-		chainedURL:          chained,
-		frontedURL:          fronted,
+		chainedURL:          urls.Chained,
+		frontedURL:          urls.Fronted,
 	}
 }
 
@@ -138,7 +107,7 @@ func (cf *fetcher) fetch() ([]byte, error) {
 	if dumperr != nil {
 		log.Errorf("Could not dump response: %v", dumperr)
 	} else {
-		log.Debugf("Response headers: \n%v", string(dump))
+		log.Debugf("Response headers from %v (%v):\n%v", cf.chainedURL, cf.frontedURL, string(dump))
 	}
 	defer func() {
 		if closeerr := resp.Body.Close(); closeerr != nil {
