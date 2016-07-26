@@ -47,6 +47,8 @@ type direct struct {
 	toCache             chan *Masquerade
 }
 
+// Configure sets the masquerades to use, the trusted root CAs, and the
+// cache file for caching masquerades to set up direct domain fronting.
 func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade, cacheFile string) {
 	log.Trace("Configuring fronted")
 	if masquerades == nil || len(masquerades) == 0 {
@@ -218,7 +220,7 @@ func (d *direct) dialWith(in chan *Masquerade, network string) (net.Conn, bool, 
 				retryLater = append(retryLater, m)
 			}
 		} else {
-			log.Tracef("Got successful connection to: %v", m)
+			log.Debugf("Got successful connection to: %v", m)
 			if err := d.headCheck(m); err != nil {
 				log.Tracef("Could not perform successful head request: %v", err)
 			} else {
@@ -246,9 +248,10 @@ func (d *direct) dialWith(in chan *Masquerade, network string) (net.Conn, bool, 
 
 func (d *direct) dialServerWith(masquerade *Masquerade) (net.Conn, error) {
 	tlsConfig := d.tlsConfig(masquerade)
-	dialTimeout := 10 * time.Second
+	dialTimeout := 20 * time.Second
 	sendServerNameExtension := false
 
+	log.Debugf("Dialing server with masquerade: %v", masquerade.IpAddress)
 	conn, err := tlsdialer.DialTimeout(
 		netx.DialTimeout,
 		dialTimeout,
@@ -308,7 +311,7 @@ func (d *direct) headCheck(m *Masquerade) error {
 	if 200 != resp.StatusCode {
 		return fmt.Errorf("Unexpected response status: %v, %v", resp.StatusCode, resp.Status)
 	}
-	log.Tracef("Successfully passed HEAD request through: %v", m)
+	log.Debugf("Successfully passed HEAD request through: %v", m)
 	return nil
 }
 
