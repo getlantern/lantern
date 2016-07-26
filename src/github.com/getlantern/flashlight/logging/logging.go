@@ -102,7 +102,8 @@ func EnableFileLogging() error {
 // Returns a bool channel for optional blocking.
 func Configure(cloudConfigCA string, deviceID string,
 	version string, revisionDate string,
-	bordaReportInterval time.Duration, bordaSamplePercentage float64) (success chan bool) {
+	bordaReportInterval time.Duration, bordaSamplePercentage float64,
+	logglySamplePercentage float64) (success chan bool) {
 	success = make(chan bool, 1)
 
 	// Note: Returning from this function must always add a result to the
@@ -130,7 +131,7 @@ func Configure(cloudConfigCA string, deviceID string,
 	// Using a goroutine because we'll be using waitforserver and at this time
 	// the proxy is not yet ready.
 	go func() {
-		enableLoggly(cloudConfigCA)
+		enableLoggly(cloudConfigCA, logglySamplePercentage, deviceID)
 		// Won't block, but will allow optional blocking on receiver
 		success <- true
 	}()
@@ -214,7 +215,12 @@ func timestamped(orig io.Writer) io.Writer {
 	})
 }
 
-func enableLoggly(cloudConfigCA string) {
+func enableLoggly(cloudConfigCA string, logglySamplePercentage float64, deviceID string) {
+	if !includeInSample(deviceID, logglySamplePercentage) {
+		log.Debugf("DeviceID %v not being sampled for Loggly", deviceID)
+		return
+	}
+
 	rt, err := proxied.ChainedPersistent(cloudConfigCA)
 	if err != nil {
 		log.Errorf("Could not create HTTP client, not logging to Loggly: %v", err)
@@ -352,6 +358,11 @@ func (t *nonStopWriter) flush() {
 }
 
 func enableBorda(bordaReportInterval time.Duration, bordaSamplePercentage float64, deviceID string) {
+	if !includeInSample(deviceID, bordaSamplePercentage) {
+		log.Debugf("DeviceID %v not being sampled for Borda", deviceID)
+		return
+	}
+
 	rt := proxied.ChainedThenFronted()
 
 	bordaClient = borda.NewClient(&borda.Options{
@@ -374,27 +385,6 @@ func enableBorda(bordaReportInterval time.Duration, bordaSamplePercentage float6
 		}
 	})
 
-	// Sample a subset of device IDs.
-	// DeviceID is expected to be a Base64 encoded 48-bit (6 byte) MAC address
-	deviceIDBytes, base64Err := base64.StdEncoding.DecodeString(deviceID)
-	if base64Err != nil {
-		log.Debugf("Error decoding base64 deviceID %v: %v", deviceID, base64Err)
-		return
-	}
-	var deviceIDInt uint64
-	if len(deviceIDBytes) != 6 {
-		log.Debugf("Unexpected DeviceID length %v: %d", deviceID, len(deviceIDBytes))
-		return
-	}
-	// Pad and decode to int
-	paddedDeviceIDBytes := append(deviceIDBytes, 0, 0)
-	// Use BigEndian because Mac address has most significant bytes on left
-	deviceIDInt = binary.BigEndian.Uint64(paddedDeviceIDBytes)
-	if deviceIDInt%uint64(1/bordaSamplePercentage) != 0 {
-		log.Debugf("DeviceID %v not being sampled", deviceID)
-		return
-	}
-
 	reporter := func(failure error, ctx map[string]interface{}) {
 		values := map[string]float64{}
 		if failure != nil {
@@ -409,4 +399,24 @@ func enableBorda(bordaReportInterval time.Duration, bordaSamplePercentage float6
 	}
 
 	ops.RegisterReporter(reporter)
+}
+
+func includeInSample(deviceID string, samplePercentage float64) bool {
+	// Sample a subset of device IDs.
+	// DeviceID is expected to be a Base64 encoded 48-bit (6 byte) MAC address
+	deviceIDBytes, base64Err := base64.StdEncoding.DecodeString(deviceID)
+	if base64Err != nil {
+		log.Debugf("Error decoding base64 deviceID %v: %v", deviceID, base64Err)
+		return false
+	}
+	var deviceIDInt uint64
+	if len(deviceIDBytes) != 6 {
+		log.Debugf("Unexpected DeviceID length %v: %d", deviceID, len(deviceIDBytes))
+		return false
+	}
+	// Pad and decode to int
+	paddedDeviceIDBytes := append(deviceIDBytes, 0, 0)
+	// Use BigEndian because Mac address has most significant bytes on left
+	deviceIDInt = binary.BigEndian.Uint64(paddedDeviceIDBytes)
+	return deviceIDInt%uint64(1/samplePercentage) == 0
 }
