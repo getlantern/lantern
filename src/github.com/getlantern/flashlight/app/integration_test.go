@@ -66,6 +66,14 @@ func TestProxying(t *testing.T) {
 		return
 	}
 
+	// We have to write out a config file so that Lantern doesn't try to use the
+	// default config, which would go to some remote proxies that can't talk to
+	// our fake config server.
+	err = writeConfig()
+	if !assert.NoError(t, err) {
+		return
+	}
+
 	// Starts the Lantern App
 	err = startApp(t, configAddr)
 	if !assert.NoError(t, err) {
@@ -222,6 +230,21 @@ func writeProxyConfig(t *testing.T, resp http.ResponseWriter, req *http.Request)
 	w.Close()
 }
 
+func writeConfig() error {
+	filename := "proxies.yaml"
+	err := os.Remove(filename)
+	if err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("Unable to delete existing yaml config: %v", err)
+	}
+
+	cfg, err := buildProxies(false)
+	if err != nil {
+		return err
+	}
+
+	return ioutil.WriteFile(filename, cfg, 0644)
+}
+
 func buildProxies(obfs4 bool) ([]byte, error) {
 	bytes, err := ioutil.ReadFile("./proxies-template.yaml")
 	if err != nil {
@@ -287,7 +310,7 @@ func buildGlobal() ([]byte, error) {
 }
 
 func startApp(t *testing.T, configAddr string) error {
-	configURL := "http://" + configAddr + "/proxies.yaml.gz"
+	configURL := "http://" + configAddr
 	flags := map[string]interface{}{
 		"cloudconfig":          configURL,
 		"frontedconfig":        configURL,
