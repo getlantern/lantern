@@ -55,14 +55,14 @@ var (
 type Config interface {
 
 	// Saved returns a yaml config from disk.
-	Saved() (interface{}, error)
+	saved() (interface{}, error)
 
 	// Embedded retrieves a yaml config embedded in the binary.
-	Embedded([]byte, string) (interface{}, error)
+	embedded([]byte, string) (interface{}, error)
 
 	// Poll polls for new configs from a remote server and saves them to disk for
 	// future runs.
-	Poll(UserConfig, chan interface{}, *ChainedFrontedURLs, time.Duration)
+	poll(UserConfig, chan interface{}, *ChainedFrontedURLs, time.Duration)
 }
 
 type config struct {
@@ -78,25 +78,9 @@ type ChainedFrontedURLs struct {
 	Fronted string
 }
 
-// NewConfig create a new ProxyConfig instance that saves and looks for
-// saved data at the specified path.
-func NewConfig(filePath string, obfuscate bool,
-	factory func() interface{}) Config {
-	pc := &config{
-		filePath:  filePath,
-		obfuscate: obfuscate,
-		saveChan:  make(chan interface{}),
-		factory:   factory,
-	}
-
-	// Start separate go routine that saves newly fetched proxies to disk.
-	go pc.save()
-	return pc
-}
-
 // PipeConfig creates a new config pipeline for reading a specified type of
 // config onto a channel for processing by a dispatch function.
-func PipeConfig(configDir string, flags map[string]interface{},
+func PipeConfig(configDir string, obfuscate bool,
 	name string, urls *ChainedFrontedURLs, userConfig UserConfig,
 	factory func() interface{}, dispatch func(cfg interface{}),
 	data []byte, sleep time.Duration) {
@@ -114,29 +98,44 @@ func PipeConfig(configDir string, flags map[string]interface{},
 		log.Errorf("Could not get config path? %v", err)
 	}
 
-	obfs := obfuscate(flags)
+	log.Debugf("Obfuscating %v", obfuscate)
+	conf := newConfig(configPath, obfuscate, factory)
 
-	log.Debugf("Obfuscating %v", obfs)
-	conf := NewConfig(configPath, obfs, factory)
-
-	if saved, proxyErr := conf.Saved(); proxyErr != nil {
+	if saved, proxyErr := conf.saved(); proxyErr != nil {
 		log.Debugf("Could not load stored config %v", proxyErr)
-		if embedded, errr := conf.Embedded(data, name); errr != nil {
+		if embedded, errr := conf.embedded(data, name); errr != nil {
 			log.Errorf("Could not load embedded config %v", errr)
 		} else {
+			log.Debugf("Sending embedded config for %v", name)
 			configChan <- embedded
 		}
 	} else {
+		log.Debugf("Sending saved config for %v", name)
 		configChan <- saved
 	}
-	go conf.Poll(userConfig, configChan, urls, sleep)
+
+	// Now continually poll for new configs and pipe them back to the dispatch
+	// function.
+	go conf.poll(userConfig, configChan, urls, sleep)
 }
 
-func obfuscate(flags map[string]interface{}) bool {
-	return flags["readableconfig"] == nil || !flags["readableconfig"].(bool)
+// newConfig create a new ProxyConfig instance that saves and looks for
+// saved data at the specified path.
+func newConfig(filePath string, obfuscate bool,
+	factory func() interface{}) Config {
+	pc := &config{
+		filePath:  filePath,
+		obfuscate: obfuscate,
+		saveChan:  make(chan interface{}),
+		factory:   factory,
+	}
+
+	// Start separate go routine that saves newly fetched proxies to disk.
+	go pc.save()
+	return pc
 }
 
-func (conf *config) Saved() (interface{}, error) {
+func (conf *config) saved() (interface{}, error) {
 	infile, err := os.Open(conf.filePath)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to open config file %v for reading: %v", conf.filePath, err)
@@ -157,7 +156,7 @@ func (conf *config) Saved() (interface{}, error) {
 	return conf.unmarshall(bytes)
 }
 
-func (conf *config) Embedded(data []byte, fileName string) (interface{}, error) {
+func (conf *config) embedded(data []byte, fileName string) (interface{}, error) {
 	fs, err := tarfs.New(data, "")
 	if err != nil {
 		log.Errorf("Could not read resources? %v", err)
@@ -176,7 +175,7 @@ func (conf *config) Embedded(data []byte, fileName string) (interface{}, error) 
 	return conf.unmarshall(bytes)
 }
 
-func (conf *config) Poll(uc UserConfig,
+func (conf *config) poll(uc UserConfig,
 	proxyChan chan interface{}, urls *ChainedFrontedURLs, sleep time.Duration) {
 	fetcher := newFetcher(uc, proxied.ParallelPreferChained(), urls)
 
