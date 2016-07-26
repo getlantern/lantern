@@ -27,7 +27,7 @@ func TestObfuscated(t *testing.T) {
 
 // TestSaved tests reading stored proxies from disk
 func TestSaved(t *testing.T) {
-	cfg := newConfig("./proxies.yaml", false, func() interface{} {
+	cfg := newConfig("./test-proxies.yaml", false, func() interface{} {
 		return make(map[string]*client.ChainedServerInfo)
 	})
 
@@ -42,7 +42,7 @@ func TestSaved(t *testing.T) {
 
 // TestEmbedded tests reading stored proxies from disk
 func TestEmbedded(t *testing.T) {
-	cfg := newConfig("./proxies.yaml", false, func() interface{} {
+	cfg := newConfig("./test-proxies.yaml", false, func() interface{} {
 		return make(map[string]*client.ChainedServerInfo)
 	})
 
@@ -107,17 +107,13 @@ func TestPollGlobal(t *testing.T) {
 	assert.Nil(t, err)
 	mtime := fi.ModTime()
 
-	flags := make(map[string]interface{})
-	flags["staging"] = false
-
-	urls := GlobalURLs
-	go cfg.poll(&userConfig{}, configChan, urls, 1*time.Hour)
+	go cfg.poll(&userConfig{}, configChan, GlobalURLs, 1*time.Hour)
 
 	var fetched *Global
 	select {
 	case fetchedConfig := <-configChan:
 		fetched = fetchedConfig.(*Global)
-	case <-time.After(6 * time.Second):
+	case <-time.After(20 * time.Second):
 		break
 	}
 
