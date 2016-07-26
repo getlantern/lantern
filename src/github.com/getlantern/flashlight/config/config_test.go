@@ -12,11 +12,11 @@ import (
 
 // TestObfuscated tests reading obfuscated global config from disk
 func TestObfuscated(t *testing.T) {
-	config := NewConfig("./obfuscated-global.yaml", true, func() interface{} {
+	config := newConfig("./obfuscated-global.yaml", true, func() interface{} {
 		return &Global{}
 	})
 
-	conf, err := config.Saved()
+	conf, err := config.saved()
 	assert.Nil(t, err)
 
 	cfg := conf.(*Global)
@@ -27,11 +27,11 @@ func TestObfuscated(t *testing.T) {
 
 // TestSaved tests reading stored proxies from disk
 func TestSaved(t *testing.T) {
-	cfg := NewConfig("./proxies.yaml", false, func() interface{} {
+	cfg := newConfig("./proxies.yaml", false, func() interface{} {
 		return make(map[string]*client.ChainedServerInfo)
 	})
 
-	pr, err := cfg.Saved()
+	pr, err := cfg.saved()
 	assert.Nil(t, err)
 
 	proxies := pr.(map[string]*client.ChainedServerInfo)
@@ -42,11 +42,11 @@ func TestSaved(t *testing.T) {
 
 // TestEmbedded tests reading stored proxies from disk
 func TestEmbedded(t *testing.T) {
-	cfg := NewConfig("./proxies.yaml", false, func() interface{} {
+	cfg := newConfig("./proxies.yaml", false, func() interface{} {
 		return make(map[string]*client.ChainedServerInfo)
 	})
 
-	pr, err := cfg.Embedded(EmbeddedProxies, "proxies.yaml")
+	pr, err := cfg.embedded(EmbeddedProxies, "proxies.yaml")
 	assert.Nil(t, err)
 
 	proxies := pr.(map[string]*client.ChainedServerInfo)
@@ -61,7 +61,7 @@ func TestPoll(t *testing.T) {
 	fronted.ConfigureForTest(t)
 	proxyChan := make(chan interface{})
 	file := "./fetched-proxies.yaml"
-	cfg := NewConfig(file, false, func() interface{} {
+	cfg := newConfig(file, false, func() interface{} {
 		return make(map[string]*client.ChainedServerInfo)
 	})
 
@@ -73,7 +73,7 @@ func TestPoll(t *testing.T) {
 	flags["staging"] = false
 
 	urls := ProxiesURLs
-	go cfg.Poll(&userConfig{}, proxyChan, urls, 1*time.Hour)
+	go cfg.poll(&userConfig{}, proxyChan, urls, 1*time.Hour)
 	proxies := (<-proxyChan).(map[string]*client.ChainedServerInfo)
 
 	assert.True(t, len(proxies) > 0)
@@ -99,7 +99,7 @@ func TestPollGlobal(t *testing.T) {
 	fronted.ConfigureForTest(t)
 	configChan := make(chan interface{})
 	file := "./fetched-global.yaml"
-	cfg := NewConfig(file, false, func() interface{} {
+	cfg := newConfig(file, false, func() interface{} {
 		return &Global{}
 	})
 
@@ -111,7 +111,7 @@ func TestPollGlobal(t *testing.T) {
 	flags["staging"] = false
 
 	urls := GlobalURLs
-	go cfg.Poll(&userConfig{}, configChan, urls, 1*time.Hour)
+	go cfg.poll(&userConfig{}, configChan, urls, 1*time.Hour)
 
 	var fetched *Global
 	select {

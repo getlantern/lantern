@@ -100,12 +100,13 @@ func Run(httpProxyAddr string,
 		// Don't love the straight cast here, but we're also the ones defining
 		// the type in the factory method above.
 		proxyMap := conf.(map[string]*client.ChainedServerInfo)
-		log.Debugf("Configuring with proxies: %v", proxyMap)
+		log.Debugf("Applying proxy config with proxies: %v", proxyMap)
 		cl.Configure(proxyMap, deviceID)
 	}
 
 	proxyURLs := config.GetProxyURLs(staging)
-	config.PipeConfig(configDir, flagsAsMap, "proxies.yaml", checkOverrides(flagsAsMap, proxyURLs), userConfig, proxyFactory,
+	config.PipeConfig(configDir, obfuscate(flagsAsMap), "proxies.yaml",
+		checkOverrides(flagsAsMap, proxyURLs, "proxies.yaml.gz"), userConfig, proxyFactory,
 		proxyDispatch, config.EmbeddedProxies, 1*time.Minute)
 
 	globalFactory := func() interface{} {
@@ -116,11 +117,14 @@ func Run(httpProxyAddr string,
 		// Don't love the straight cast here, but we're also the ones defining
 		// the type in the factory method above.
 		cfg := conf.(*config.Global)
+		log.Debugf("Applying global config")
 		applyClientConfig(cl, cfg, deviceID)
 		onConfigUpdate(cfg)
 	}
 
-	config.PipeConfig(configDir, flagsAsMap, "global.yaml", config.GetGlobalURLs(staging), userConfig, globalFactory,
+	config.PipeConfig(configDir, obfuscate(flagsAsMap), "global.yaml",
+		checkOverrides(flagsAsMap, config.GetGlobalURLs(staging), "global.yaml.gz"),
+		userConfig, globalFactory,
 		globalDispatch, config.GlobalConfig, 24*time.Hour)
 
 	proxied.SetProxyAddr(cl.Addr)
@@ -153,6 +157,10 @@ func Run(httpProxyAddr string,
 	return nil
 }
 
+func obfuscate(flags map[string]interface{}) bool {
+	return flags["readableconfig"] == nil || !flags["readableconfig"].(bool)
+}
+
 func isStaging(flags map[string]interface{}) bool {
 	if s, ok := flags["staging"].(bool); ok {
 		return s
@@ -160,17 +168,18 @@ func isStaging(flags map[string]interface{}) bool {
 	return false
 }
 
-func checkOverrides(flags map[string]interface{}, urls *config.ChainedFrontedURLs) *config.ChainedFrontedURLs {
+func checkOverrides(flags map[string]interface{},
+	urls *config.ChainedFrontedURLs, name string) *config.ChainedFrontedURLs {
 	if s, ok := flags["cloudconfig"].(string); ok {
 		if len(s) > 0 {
 			log.Debugf("Overridding chained URL from the command line '%v'", s)
-			urls.Chained = s
+			urls.Chained = s + "/" + name
 		}
 	}
 	if s, ok := flags["frontedconfig"].(string); ok {
 		if len(s) > 0 {
 			log.Debugf("Overridding fronted URL from the command line '%v'", s)
-			urls.Fronted = s
+			urls.Fronted = s + "/" + name
 		}
 	}
 	return urls
