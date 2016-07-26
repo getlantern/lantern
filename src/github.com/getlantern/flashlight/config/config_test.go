@@ -121,15 +121,15 @@ func TestPollGlobal(t *testing.T) {
 
 	assert.True(t, len(fetched.Client.MasqueradeSets) > 1)
 
-	for i := 1; i <= 20; i++ {
+	for i := 1; i <= 200; i++ {
 		fi, err = os.Stat(file)
 		if fi.ModTime().After(mtime) {
 			break
 		}
-		time.Sleep(50 * time.Millisecond)
+		time.Sleep(100 * time.Millisecond)
 	}
 
 	fi, err = os.Stat(file)
 	assert.Nil(t, err)
-	assert.True(t, fi.ModTime().After(mtime))
+	assert.True(t, fi.ModTime().After(mtime), "Incorrect modification times")
 }
