@@ -63,7 +63,7 @@ func getProxyAddr() (string, bool) {
 	addr, ok := proxyAddr(1 * time.Minute)
 	proxyAddrMutex.RUnlock()
 	if !ok {
-		return "", !ok
+		return "", false
 	}
 	return addr.(string), true
 }
