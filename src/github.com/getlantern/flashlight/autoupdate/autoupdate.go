@@ -20,7 +20,7 @@ var (
 var (
 	log = golog.LoggerFor("flashlight.autoupdate")
 
-	cfgMutex    sync.Mutex
+	cfgMutex    sync.RWMutex
 	updateMutex sync.Mutex
 
 	httpClient *http.Client
@@ -31,17 +31,26 @@ var (
 
 // Configure sets the CA certificate to pin for the TLS auto-update connection.
 func Configure(updateURL, updateCA string) {
-	cfgMutex.Lock()
-
-	if updateURL != "" {
-		updateServerURL = updateURL
-	}
+	setUpdateURL(updateURL)
 
 	go func() {
 		enableAutoupdate(updateCA)
-		cfgMutex.Unlock()
 	}()
+}
 
+func setUpdateURL(url string) {
+	if url == "" {
+		return
+	}
+	cfgMutex.Lock()
+	defer cfgMutex.Unlock()
+	updateServerURL = url
+}
+
+func getUpdateURL() string {
+	cfgMutex.RLock()
+	defer cfgMutex.RUnlock()
+	return updateServerURL + "/update"
 }
 
 func enableAutoupdate(updateCA string) {
@@ -80,7 +89,7 @@ func applyNext() {
 	if httpClient != nil {
 		err := autoupdate.ApplyNext(&autoupdate.Config{
 			CurrentVersion: Version,
-			URL:            updateServerURL + "/update",
+			URL:            getUpdateURL(),
 			PublicKey:      PublicKey,
 			HTTPClient:     httpClient,
 		})
