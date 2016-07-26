@@ -107,21 +107,12 @@ func (app *App) Run() error {
 
 func (app *App) beforeStart() bool {
 	log.Debug("Got first config")
-
-	cpu, cok := app.Flags["cpuprofile"]
-	mem, mok := app.Flags["memprofile"]
-	var cpuProf string
-	var memProf string
-	if cok {
+	var cpuProf, memProf string
+	if cpu, cok := app.Flags["cpuprofile"]; cok {
 		cpuProf = cpu.(string)
-	} else {
-		cpuProf = ""
 	}
-
-	if mok {
+	if mem, cok := app.Flags["memprofile"]; cok {
 		memProf = mem.(string)
-	} else {
-		memProf = ""
 	}
 	if cpuProf != "" || memProf != "" {
 		log.Debugf("Start profiling with cpu file %s and mem file %s", cpuProf, memProf)
