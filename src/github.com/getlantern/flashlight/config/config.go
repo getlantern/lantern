@@ -78,32 +78,73 @@ type ChainedFrontedURLs struct {
 	Fronted string
 }
 
+// Options specifies the options to use for piping config data back to the
+// dispatch processor function.
+type Options struct {
+
+	// SaveDir is the directory where we should save new configs and also look
+	// for existing saved configs.
+	SaveDir string
+
+	// Obfuscate specifies whether or not to obfuscate the config on disk.
+	Obfuscate bool
+
+	// Name specifies the name of the config file both on disk and in the
+	// embedded config that uses tarfs (the same in the interest of using
+	// configuration by convention).
+	Name string
+
+	// URLs are the chaines and fronted URLs to use for fetching this config.
+	URLs *ChainedFrontedURLs
+
+	// UserConfig contains data for communicating the user details to upstream
+	// servers in HTTP headers, such as the pro token.
+	UserConfig UserConfig
+
+	// YAMLTemplater is a factory method for generating structs that will be used
+	// when unmarshalling yaml data.
+	YAMLTemplater func() interface{}
+
+	// Dispatch is essentially a callback function for processing retrieved
+	// yaml configs.
+	Dispatch func(cfg interface{})
+
+	// EmbeddedData is the data for embedded configs, using tarfs.
+	EmbeddedData []byte
+
+	// Sleep the time to sleep between config fetches.
+	Sleep time.Duration
+}
+
 // PipeConfig creates a new config pipeline for reading a specified type of
-// config onto a channel for processing by a dispatch function.
-func PipeConfig(configDir string, obfuscate bool,
-	name string, urls *ChainedFrontedURLs, userConfig UserConfig,
-	factory func() interface{}, dispatch func(cfg interface{}),
-	data []byte, sleep time.Duration) {
+// config onto a channel for processing by a dispatch function. This will read
+// configs in the following order:
+//
+// 1. Configs saved on disk, if any
+// 2. Configs embedded in the binary according to the specified name, if any.
+// 3. Configs fetched remotely, and those will be piped back over and over
+//   again as the remote configs change (but only if they change).
+func PipeConfig(opts *Options) {
 
 	configChan := make(chan interface{})
 
 	go func() {
 		for {
 			cfg := <-configChan
-			dispatch(cfg)
+			opts.Dispatch(cfg)
 		}
 	}()
-	configPath, err := client.InConfigDir(configDir, name)
+	configPath, err := client.InConfigDir(opts.SaveDir, opts.Name)
 	if err != nil {
 		log.Errorf("Could not get config path? %v", err)
 	}
 
-	log.Debugf("Obfuscating %v", obfuscate)
-	conf := newConfig(configPath, obfuscate, factory)
+	log.Tracef("Obfuscating %v", opts.Obfuscate)
+	conf := newConfig(configPath, opts.Obfuscate, opts.YAMLTemplater)
 
 	if saved, proxyErr := conf.saved(); proxyErr != nil {
 		log.Debugf("Could not load stored config %v", proxyErr)
-		if embedded, errr := conf.embedded(data, name); errr != nil {
+		if embedded, errr := conf.embedded(opts.EmbeddedData, opts.Name); errr != nil {
 			log.Errorf("Could not load embedded config %v", errr)
 		} else {
 			log.Debugf("Sending embedded config for %v", name)
@@ -116,7 +157,7 @@ func PipeConfig(configDir string, obfuscate bool,
 
 	// Now continually poll for new configs and pipe them back to the dispatch
 	// function.
-	go conf.poll(userConfig, configChan, urls, sleep)
+	go conf.poll(opts.UserConfig, configChan, opts.URLs, opts.Sleep)
 }
 
 // newConfig create a new ProxyConfig instance that saves and looks for
@@ -152,7 +193,7 @@ func (conf *config) saved() (interface{}, error) {
 		return nil, fmt.Errorf("Error reading config from %v: %v", conf.filePath, err)
 	}
 
-	log.Debugf("Returning saved config at %v", conf.filePath)
+	log.Tracef("Returning saved config at %v", conf.filePath)
 	return conf.unmarshall(bytes)
 }
 

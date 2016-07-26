@@ -92,40 +92,50 @@ func Run(httpProxyAddr string,
 
 	staging := isStaging(flagsAsMap)
 
-	proxyFactory := func() interface{} {
-		return make(map[string]*client.ChainedServerInfo)
+	// These are the options for fetching the per-user proxy config.
+	proxyOptions := &config.Options{
+		SaveDir:    configDir,
+		Obfuscate:  obfuscate(flagsAsMap),
+		Name:       "proxies.yaml",
+		URLs:       checkOverrides(flagsAsMap, config.GetProxyURLs(staging), "proxies.yaml.gz"),
+		UserConfig: userConfig,
+		YAMLTemplater: func() interface{} {
+			return make(map[string]*client.ChainedServerInfo)
+		},
+		Dispatch: func(conf interface{}) {
+			proxyMap := conf.(map[string]*client.ChainedServerInfo)
+			log.Debugf("Applying proxy config with proxies: %v", proxyMap)
+			cl.Configure(proxyMap, deviceID)
+		},
+		EmbeddedData: config.EmbeddedProxies,
+		Sleep:        1 * time.Minute,
 	}
 
-	proxyDispatch := func(conf interface{}) {
-		// Don't love the straight cast here, but we're also the ones defining
-		// the type in the factory method above.
-		proxyMap := conf.(map[string]*client.ChainedServerInfo)
-		log.Debugf("Applying proxy config with proxies: %v", proxyMap)
-		cl.Configure(proxyMap, deviceID)
+	config.PipeConfig(proxyOptions)
+
+	// These are the options for fetching the global config.
+	globalOptions := &config.Options{
+		SaveDir:    configDir,
+		Obfuscate:  obfuscate(flagsAsMap),
+		Name:       "global.yaml",
+		URLs:       checkOverrides(flagsAsMap, config.GetGlobalURLs(staging), "global.yaml.gz"),
+		UserConfig: userConfig,
+		YAMLTemplater: func() interface{} {
+			return &config.Global{}
+		},
+		Dispatch: func(conf interface{}) {
+			// Don't love the straight cast here, but we're also the ones defining
+			// the type in the factory method above.
+			cfg := conf.(*config.Global)
+			log.Debugf("Applying global config")
+			applyClientConfig(cl, cfg, deviceID)
+			onConfigUpdate(cfg)
+		},
+		EmbeddedData: config.GlobalConfig,
+		Sleep:        24 * time.Hour,
 	}
 
-	proxyURLs := config.GetProxyURLs(staging)
-	config.PipeConfig(configDir, obfuscate(flagsAsMap), "proxies.yaml",
-		checkOverrides(flagsAsMap, proxyURLs, "proxies.yaml.gz"), userConfig, proxyFactory,
-		proxyDispatch, config.EmbeddedProxies, 1*time.Minute)
-
-	globalFactory := func() interface{} {
-		return &config.Global{}
-	}
-
-	globalDispatch := func(conf interface{}) {
-		// Don't love the straight cast here, but we're also the ones defining
-		// the type in the factory method above.
-		cfg := conf.(*config.Global)
-		log.Debugf("Applying global config")
-		applyClientConfig(cl, cfg, deviceID)
-		onConfigUpdate(cfg)
-	}
-
-	config.PipeConfig(configDir, obfuscate(flagsAsMap), "global.yaml",
-		checkOverrides(flagsAsMap, config.GetGlobalURLs(staging), "global.yaml.gz"),
-		userConfig, globalFactory,
-		globalDispatch, config.GlobalConfig, 24*time.Hour)
+	config.PipeConfig(globalOptions)
 
 	proxied.SetProxyAddr(cl.Addr)
 
