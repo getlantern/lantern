@@ -220,6 +220,7 @@ func enableLoggly(cloudConfigCA string, logglySamplePercentage float64, deviceID
 		log.Debugf("DeviceID %v not being sampled for Loggly", deviceID)
 		return
 	}
+	log.Debugf("DeviceID %v will report errors to Loggly", deviceID)
 
 	rt, err := proxied.ChainedPersistent(cloudConfigCA)
 	if err != nil {
@@ -402,6 +403,10 @@ func enableBorda(bordaReportInterval time.Duration, bordaSamplePercentage float6
 }
 
 func includeInSample(deviceID string, samplePercentage float64) bool {
+	if samplePercentage == 0 {
+		return false
+	}
+
 	// Sample a subset of device IDs.
 	// DeviceID is expected to be a Base64 encoded 48-bit (6 byte) MAC address
 	deviceIDBytes, base64Err := base64.StdEncoding.DecodeString(deviceID)
