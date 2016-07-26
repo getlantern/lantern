@@ -176,7 +176,7 @@ func (conf *config) embedded(data []byte, fileName string) (interface{}, error) 
 }
 
 func (conf *config) poll(uc UserConfig,
-	proxyChan chan interface{}, urls *ChainedFrontedURLs, sleep time.Duration) {
+	configChan chan interface{}, urls *ChainedFrontedURLs, sleep time.Duration) {
 	fetcher := newFetcher(uc, proxied.ParallelPreferChained(), urls)
 
 	for {
@@ -185,15 +185,15 @@ func (conf *config) poll(uc UserConfig,
 		} else if bytes == nil {
 			// This is what fetcher returns for not-modified.
 			log.Debug("Ignoring not modified response")
-		} else if servers, err := conf.unmarshall(bytes); err != nil {
+		} else if cfg, err := conf.unmarshall(bytes); err != nil {
 			log.Errorf("Error fetching config: %v", err)
 		} else {
-			log.Debugf("Fetched config! %v", servers)
+			log.Debugf("Fetched config! %v", cfg)
 
 			// Push these to channels to avoid race conditions that might occur if
 			// we did these on go routines, for example.
-			proxyChan <- servers
-			conf.saveChan <- servers
+			configChan <- cfg
+			conf.saveChan <- cfg
 		}
 		time.Sleep(sleep)
 	}
