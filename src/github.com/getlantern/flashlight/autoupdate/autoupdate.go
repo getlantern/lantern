@@ -33,9 +33,7 @@ var (
 func Configure(updateURL, updateCA string) {
 	setUpdateURL(updateURL)
 
-	go func() {
-		enableAutoupdate(updateCA)
-	}()
+	enableAutoupdate(updateCA)
 }
 
 func setUpdateURL(url string) {
