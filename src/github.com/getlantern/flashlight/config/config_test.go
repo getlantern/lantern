@@ -57,7 +57,7 @@ func TestEmbedded(t *testing.T) {
 	}
 }
 
-func TestPoll(t *testing.T) {
+func TestPollProxies(t *testing.T) {
 	fronted.ConfigureForTest(t)
 	proxyChan := make(chan interface{})
 	file := "./fetched-proxies.yaml"
@@ -68,11 +68,10 @@ func TestPoll(t *testing.T) {
 	fi, err := os.Stat(file)
 	assert.Nil(t, err)
 	mtime := fi.ModTime()
+	tempName := fi.Name() + ".stored"
+	os.Rename(fi.Name(), tempName)
 
-	flags := make(map[string]interface{})
-	flags["staging"] = false
-
-	urls := ProxiesURLs
+	urls := proxiesURLs
 	go cfg.poll(&userConfig{}, proxyChan, urls, 1*time.Hour)
 	proxies := (<-proxyChan).(map[string]*client.ChainedServerInfo)
 
@@ -82,17 +81,27 @@ func TestPoll(t *testing.T) {
 		assert.True(t, len(val.Addr) > 6)
 	}
 
-	for i := 1; i <= 20; i++ {
+	for i := 1; i <= 400; i++ {
 		fi, err = os.Stat(file)
-		if fi.ModTime().After(mtime) {
+		if err == nil && fi != nil && fi.ModTime().After(mtime) {
+			log.Debugf("Got newer mod time?")
 			break
 		}
 		time.Sleep(50 * time.Millisecond)
 	}
 
 	fi, err = os.Stat(file)
+	if err != nil {
+		log.Debugf("Got error: %v", err)
+	}
+
+	assert.NotNil(t, fi)
 	assert.Nil(t, err)
+
 	assert.True(t, fi.ModTime().After(mtime))
+
+	// Just restore the original file.
+	os.Rename(tempName, fi.Name())
 }
 
 func TestPollGlobal(t *testing.T) {
@@ -106,13 +115,16 @@ func TestPollGlobal(t *testing.T) {
 	fi, err := os.Stat(file)
 	assert.Nil(t, err)
 	mtime := fi.ModTime()
+	tempName := fi.Name() + ".stored"
+	os.Rename(fi.Name(), tempName)
 
-	go cfg.poll(&userConfig{}, configChan, GlobalURLs, 1*time.Hour)
+	go cfg.poll(&userConfig{}, configChan, globalURLs, 1*time.Hour)
 
 	var fetched *Global
 	select {
 	case fetchedConfig := <-configChan:
 		fetched = fetchedConfig.(*Global)
+		log.Debug("Got config from chan")
 	case <-time.After(20 * time.Second):
 		break
 	}
@@ -121,15 +133,24 @@ func TestPollGlobal(t *testing.T) {
 
 	assert.True(t, len(fetched.Client.MasqueradeSets) > 1)
 
-	for i := 1; i <= 200; i++ {
+	for i := 1; i <= 400; i++ {
+		log.Debugf("Stating file at " + file)
 		fi, err = os.Stat(file)
-		if fi.ModTime().After(mtime) {
+		if err == nil && fi != nil && fi.ModTime().After(mtime) {
+			log.Debugf("Got newer mod time?")
 			break
 		}
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(50 * time.Millisecond)
 	}
 
 	fi, err = os.Stat(file)
+	if err != nil {
+		log.Debugf("Got error: %v", err)
+	}
 	assert.Nil(t, err)
+	assert.NotNil(t, fi)
 	assert.True(t, fi.ModTime().After(mtime), "Incorrect modification times")
+
+	// Just restore the original file.
+	os.Rename(tempName, fi.Name())
 }

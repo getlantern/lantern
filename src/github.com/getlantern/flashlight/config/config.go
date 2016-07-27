@@ -9,45 +9,9 @@ import (
 
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/proxied"
-	"github.com/getlantern/golog"
 	"github.com/getlantern/rot13"
 	"github.com/getlantern/tarfs"
 	"github.com/getlantern/yaml"
-)
-
-var (
-	log = golog.LoggerFor("flashlight.config")
-
-	// GlobalURLs are the chained and fronted URLs for fetching the global config.
-	GlobalURLs = &ChainedFrontedURLs{
-		Chained: "https://globalconfig.flashlightproxy.com/global.yaml.gz",
-		Fronted: "https://d24ykmup0867cj.cloudfront.net/global.yaml.gz",
-	}
-
-	// GlobalStagingURLs are the chained and fronted URLs for fetching the global
-	// config in a staging environment.
-	GlobalStagingURLs = &ChainedFrontedURLs{
-		Chained: "https://globalconfig.flashlightproxy.com/global.yaml.gz",
-		Fronted: "https://d24ykmup0867cj.cloudfront.net/global.yaml.gz",
-	}
-
-	// The following are over HTTP because proxies do not forward X-Forwarded-For
-	// with HTTPS and because we only support falling back to direct domain
-	// fronting through the local proxy for HTTP.
-
-	// ProxiesURLs are the chained and fronted URLs for fetching the per user
-	// proxy config.
-	ProxiesURLs = &ChainedFrontedURLs{
-		Chained: "http://config.getiantem.org/proxies.yaml.gz",
-		Fronted: "http://d2wi0vwulmtn99.cloudfront.net/proxies.yaml.gz",
-	}
-
-	// ProxiesStagingURLs are the chained and fronted URLs for fetching the per user
-	// proxy config in a staging environment.
-	ProxiesStagingURLs = &ChainedFrontedURLs{
-		Chained: "http://config-staging.getiantem.org/proxies.yaml.gz",
-		Fronted: "http://d33pfmbpauhmvd.cloudfront.net/proxies.yaml.gz",
-	}
 )
 
 // Config is an interface for getting proxy data saved locally, embedded
@@ -62,7 +26,7 @@ type Config interface {
 
 	// Poll polls for new configs from a remote server and saves them to disk for
 	// future runs.
-	poll(UserConfig, chan interface{}, *ChainedFrontedURLs, time.Duration)
+	poll(UserConfig, chan interface{}, *chainedFrontedURLs, time.Duration)
 }
 
 type config struct {
@@ -72,51 +36,51 @@ type config struct {
 	factory   func() interface{}
 }
 
-// ChainedFrontedURLs contains a chained and a fronted URL for fetching a config.
-type ChainedFrontedURLs struct {
-	Chained string
-	Fronted string
+// chainedFrontedURLs contains a chained and a fronted URL for fetching a config.
+type chainedFrontedURLs struct {
+	chained string
+	fronted string
 }
 
-// Options specifies the options to use for piping config data back to the
+// options specifies the options to use for piping config data back to the
 // dispatch processor function.
-type Options struct {
+type options struct {
 
-	// SaveDir is the directory where we should save new configs and also look
+	// saveDir is the directory where we should save new configs and also look
 	// for existing saved configs.
-	SaveDir string
+	saveDir string
 
-	// Obfuscate specifies whether or not to obfuscate the config on disk.
-	Obfuscate bool
+	// obfuscate specifies whether or not to obfuscate the config on disk.
+	obfuscate bool
 
-	// Name specifies the name of the config file both on disk and in the
+	// name specifies the name of the config file both on disk and in the
 	// embedded config that uses tarfs (the same in the interest of using
 	// configuration by convention).
-	Name string
+	name string
 
-	// URLs are the chaines and fronted URLs to use for fetching this config.
-	URLs *ChainedFrontedURLs
+	// urls are the chaines and fronted URLs to use for fetching this config.
+	urls *chainedFrontedURLs
 
-	// UserConfig contains data for communicating the user details to upstream
+	// userConfig contains data for communicating the user details to upstream
 	// servers in HTTP headers, such as the pro token.
-	UserConfig UserConfig
+	userConfig UserConfig
 
-	// YAMLTemplater is a factory method for generating structs that will be used
+	// yamlTemplater is a factory method for generating structs that will be used
 	// when unmarshalling yaml data.
-	YAMLTemplater func() interface{}
+	yamlTemplater func() interface{}
 
-	// Dispatch is essentially a callback function for processing retrieved
+	// dispatch is essentially a callback function for processing retrieved
 	// yaml configs.
-	Dispatch func(cfg interface{})
+	dispatch func(cfg interface{})
 
-	// EmbeddedData is the data for embedded configs, using tarfs.
-	EmbeddedData []byte
+	// embeddedData is the data for embedded configs, using tarfs.
+	embeddedData []byte
 
-	// Sleep the time to sleep between config fetches.
-	Sleep time.Duration
+	// sleep the time to sleep between config fetches.
+	sleep time.Duration
 }
 
-// PipeConfig creates a new config pipeline for reading a specified type of
+// pipeConfig creates a new config pipeline for reading a specified type of
 // config onto a channel for processing by a dispatch function. This will read
 // configs in the following order:
 //
@@ -124,27 +88,27 @@ type Options struct {
 // 2. Configs embedded in the binary according to the specified name, if any.
 // 3. Configs fetched remotely, and those will be piped back over and over
 //   again as the remote configs change (but only if they change).
-func PipeConfig(opts *Options) {
+func pipeConfig(opts *options) {
 
 	configChan := make(chan interface{})
 
 	go func() {
 		for {
 			cfg := <-configChan
-			opts.Dispatch(cfg)
+			opts.dispatch(cfg)
 		}
 	}()
-	configPath, err := client.InConfigDir(opts.SaveDir, opts.Name)
+	configPath, err := client.InConfigDir(opts.saveDir, opts.name)
 	if err != nil {
 		log.Errorf("Could not get config path? %v", err)
 	}
 
-	log.Tracef("Obfuscating %v", opts.Obfuscate)
-	conf := newConfig(configPath, opts.Obfuscate, opts.YAMLTemplater)
+	log.Tracef("Obfuscating %v", opts.obfuscate)
+	conf := newConfig(configPath, opts.obfuscate, opts.yamlTemplater)
 
 	if saved, proxyErr := conf.saved(); proxyErr != nil {
 		log.Debugf("Could not load stored config %v", proxyErr)
-		if embedded, errr := conf.embedded(opts.EmbeddedData, opts.Name); errr != nil {
+		if embedded, errr := conf.embedded(opts.embeddedData, opts.name); errr != nil {
 			log.Errorf("Could not load embedded config %v", errr)
 		} else {
 			log.Debugf("Sending embedded config for %v", name)
@@ -157,14 +121,14 @@ func PipeConfig(opts *Options) {
 
 	// Now continually poll for new configs and pipe them back to the dispatch
 	// function.
-	go conf.poll(opts.UserConfig, configChan, opts.URLs, opts.Sleep)
+	go conf.poll(opts.userConfig, configChan, opts.urls, opts.sleep)
 }
 
 // newConfig create a new ProxyConfig instance that saves and looks for
 // saved data at the specified path.
 func newConfig(filePath string, obfuscate bool,
 	factory func() interface{}) Config {
-	pc := &config{
+	cfg := &config{
 		filePath:  filePath,
 		obfuscate: obfuscate,
 		saveChan:  make(chan interface{}),
@@ -172,8 +136,8 @@ func newConfig(filePath string, obfuscate bool,
 	}
 
 	// Start separate go routine that saves newly fetched proxies to disk.
-	go pc.save()
-	return pc
+	go cfg.save()
+	return cfg
 }
 
 func (conf *config) saved() (interface{}, error) {
@@ -217,7 +181,7 @@ func (conf *config) embedded(data []byte, fileName string) (interface{}, error) 
 }
 
 func (conf *config) poll(uc UserConfig,
-	configChan chan interface{}, urls *ChainedFrontedURLs, sleep time.Duration) {
+	configChan chan interface{}, urls *chainedFrontedURLs, sleep time.Duration) {
 	fetcher := newFetcher(uc, proxied.ParallelPreferChained(), urls)
 
 	for {
@@ -233,8 +197,9 @@ func (conf *config) poll(uc UserConfig,
 
 			// Push these to channels to avoid race conditions that might occur if
 			// we did these on go routines, for example.
-			configChan <- cfg
 			conf.saveChan <- cfg
+			log.Debugf("Sent to save chan")
+			configChan <- cfg
 		}
 		time.Sleep(sleep)
 	}
@@ -279,26 +244,4 @@ func (conf *config) saveOne(in interface{}) error {
 	}
 	log.Debugf("Wrote file at %v", conf.filePath)
 	return nil
-}
-
-// GetProxyURLs returns the proxy URLs to use depending on whether or not we're in
-// staging.
-func GetProxyURLs(staging bool) *ChainedFrontedURLs {
-	if staging {
-		log.Debug("Configuring for staging")
-		return ProxiesStagingURLs
-	}
-	log.Debugf("Not configuring for staging.")
-	return ProxiesURLs
-}
-
-// GetGlobalURLs returns the global URLs to use depending on whether or not we're in
-// staging.
-func GetGlobalURLs(staging bool) *ChainedFrontedURLs {
-	if staging {
-		log.Debug("Configuring for staging")
-		return GlobalStagingURLs
-	}
-	log.Debugf("Not configuring for staging.")
-	return GlobalURLs
 }
