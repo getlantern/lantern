@@ -45,11 +45,11 @@ type UserConfig interface {
 // newFetcher creates a new configuration fetcher with the specified
 // interface for obtaining the user ID and token if those are populated.
 func newFetcher(conf UserConfig, rt http.RoundTripper,
-	urls *ChainedFrontedURLs) Fetcher {
-	log.Debugf("Will poll for config at %v (%v)", urls.Chained, urls.Fronted)
+	urls *chainedFrontedURLs) Fetcher {
+	log.Debugf("Will poll for config at %v (%v)", urls.chained, urls.fronted)
 
 	// Force detour to whitelist chained domain
-	u, err := url.Parse(urls.Chained)
+	u, err := url.Parse(urls.chained)
 	if err != nil {
 		log.Fatalf("Unable to parse chained cloud config URL: %v", err)
 	}
@@ -59,8 +59,8 @@ func newFetcher(conf UserConfig, rt http.RoundTripper,
 		lastCloudConfigETag: map[string]string{},
 		user:                conf,
 		rt:                  rt,
-		chainedURL:          urls.Chained,
-		frontedURL:          urls.Fronted,
+		chainedURL:          urls.chained,
+		frontedURL:          urls.fronted,
 	}
 }
 
