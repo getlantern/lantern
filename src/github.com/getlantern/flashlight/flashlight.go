@@ -4,7 +4,6 @@ import (
 	"crypto/x509"
 	"path/filepath"
 	"sync"
-	"time"
 
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/fronted"
@@ -90,52 +89,20 @@ func Run(httpProxyAddr string,
 
 	cl := client.NewClient(proxyAll)
 
-	staging := isStaging(flagsAsMap)
-
-	// These are the options for fetching the per-user proxy config.
-	proxyOptions := &config.Options{
-		SaveDir:    configDir,
-		Obfuscate:  obfuscate(flagsAsMap),
-		Name:       "proxies.yaml",
-		URLs:       checkOverrides(flagsAsMap, config.GetProxyURLs(staging), "proxies.yaml.gz"),
-		UserConfig: userConfig,
-		YAMLTemplater: func() interface{} {
-			return make(map[string]*client.ChainedServerInfo)
-		},
-		Dispatch: func(conf interface{}) {
-			proxyMap := conf.(map[string]*client.ChainedServerInfo)
-			log.Debugf("Applying proxy config with proxies: %v", proxyMap)
-			cl.Configure(proxyMap, deviceID)
-		},
-		EmbeddedData: config.EmbeddedProxies,
-		Sleep:        1 * time.Minute,
+	proxiesDispatch := func(conf interface{}) {
+		proxyMap := conf.(map[string]*client.ChainedServerInfo)
+		log.Debugf("Applying proxy config with proxies: %v", proxyMap)
+		cl.Configure(proxyMap, deviceID)
 	}
-
-	config.PipeConfig(proxyOptions)
-
-	// These are the options for fetching the global config.
-	globalOptions := &config.Options{
-		SaveDir:    configDir,
-		Obfuscate:  obfuscate(flagsAsMap),
-		Name:       "global.yaml",
-		URLs:       checkOverrides(flagsAsMap, config.GetGlobalURLs(staging), "global.yaml.gz"),
-		UserConfig: userConfig,
-		YAMLTemplater: func() interface{} {
-			return &config.Global{}
-		},
-		Dispatch: func(conf interface{}) {
-			// Don't love the straight cast here, but we're also the ones defining
-			// the type in the factory method above.
-			cfg := conf.(*config.Global)
-			log.Debugf("Applying global config")
-			applyClientConfig(cl, cfg, deviceID)
-			onConfigUpdate(cfg)
-		},
-		EmbeddedData: config.GlobalConfig,
-		Sleep:        24 * time.Hour,
+	globalDispatch := func(conf interface{}) {
+		// Don't love the straight cast here, but we're also the ones defining
+		// the type in the factory method above.
+		cfg := conf.(*config.Global)
+		log.Debugf("Applying global config")
+		applyClientConfig(cl, cfg, deviceID)
+		onConfigUpdate(cfg)
 	}
-
-	config.PipeConfig(globalOptions)
+	config.Init(configDir, flagsAsMap, userConfig, proxiesDispatch, globalDispatch)
 
 	proxied.SetProxyAddr(cl.Addr)
 
@@ -165,34 +132,6 @@ func Run(httpProxyAddr string,
 	}
 
 	return nil
-}
-
-func obfuscate(flags map[string]interface{}) bool {
-	return flags["readableconfig"] == nil || !flags["readableconfig"].(bool)
-}
-
-func isStaging(flags map[string]interface{}) bool {
-	if s, ok := flags["staging"].(bool); ok {
-		return s
-	}
-	return false
-}
-
-func checkOverrides(flags map[string]interface{},
-	urls *config.ChainedFrontedURLs, name string) *config.ChainedFrontedURLs {
-	if s, ok := flags["cloudconfig"].(string); ok {
-		if len(s) > 0 {
-			log.Debugf("Overridding chained URL from the command line '%v'", s)
-			urls.Chained = s + "/" + name
-		}
-	}
-	if s, ok := flags["frontedconfig"].(string); ok {
-		if len(s) > 0 {
-			log.Debugf("Overridding fronted URL from the command line '%v'", s)
-			urls.Fronted = s + "/" + name
-		}
-	}
-	return urls
 }
 
 func applyClientConfig(client *client.Client, cfg *config.Global, deviceID string) {
