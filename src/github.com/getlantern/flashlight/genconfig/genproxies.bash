@@ -21,6 +21,7 @@ echo "Generating proxies..."
 cd $etc
 git checkout master || die "Could not checkout master?"
 git pull || die "Could not pull latest code?"
+git submodule update  || die "Could not update submodules?"
 ./fetchcfg.py sea > proxies.yaml || die "Could not fetch proxy in sea region?"
 ./fetchcfg.py etc >> proxies.yaml || die "Could not fetch proxy in etc region?"
 cd -
