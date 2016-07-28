@@ -28,7 +28,7 @@ var (
 	staging                = flag.Bool("staging", false, "if true, run Lantern against our staging infrastructure")
 	bordaReportInterval    = flag.Duration("borda-report-interval", 5*time.Minute, "How frequently to report errors to borda. Set to 0 to disable reporting.")
 	bordaSamplePercentage  = flag.Float64("borda-sample-percentage", 0.01, "The percentage of devices to report to Borda (0.01 = 1%)")
-	logglySamplePercentage = flag.Float64("loggly-sample-percentage", 0.005, "The percentage of devices to report to Loggly (0.005 = 0.5%)")
+	logglySamplePercentage = flag.Float64("loggly-sample-percentage", 0.02, "The percentage of devices to report to Loggly (0.02 = 2%)")
 	help                   = flag.Bool("help", false, "Get usage help")
 )
 
