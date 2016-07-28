@@ -61,30 +61,30 @@ func TestLoggly(t *testing.T) {
 	log := golog.LoggerFor("test")
 
 	log.Error("")
-	log.Debug(buf.String())
+	log.Debugf("**************** %v", buf.String())
 	if assert.NoError(t, json.Unmarshal(buf.Bytes(), &result), "Unmarshal error") {
-		assert.Equal(t, "ERROR test", result["locationInfo"])
-		assert.Regexp(t, regexp.MustCompile("logging_test.go:([0-9]+)"), result["message"])
+		assert.Regexp(t, "test: logging_test.go:([0-9]+)", result["locationInfo"])
+		assert.Equal(t, "", result["message"])
 	}
 
 	buf.Reset()
 	log.Error("short message")
 	if assert.NoError(t, json.Unmarshal(buf.Bytes(), &result), "Unmarshal error") {
-		assert.Equal(t, "ERROR test", result["locationInfo"])
-		assert.Regexp(t, regexp.MustCompile("logging_test.go:([0-9]+) short message"), result["message"])
+		assert.Regexp(t, "test: logging_test.go:([0-9]+)", result["locationInfo"])
+		assert.Equal(t, "short message", result["message"])
 	}
 
 	buf.Reset()
 	log.Error("message with: reason")
 	if assert.NoError(t, json.Unmarshal(buf.Bytes(), &result), "Unmarshal error") {
-		assert.Equal(t, "ERROR test", result["locationInfo"])
-		assert.Regexp(t, "logging_test.go:([0-9]+) message with: reason", result["message"])
+		assert.Regexp(t, "test: logging_test.go:([0-9]+)", result["locationInfo"])
+		assert.Equal(t, "message with: reason", result["message"], "message should be last 2 chunks")
 	}
 
 	buf.Reset()
 	log.Error("deep reason: message with: reason")
 	if assert.NoError(t, json.Unmarshal(buf.Bytes(), &result), "Unmarshal error") {
-		assert.Equal(t, "ERROR test", result["locationInfo"])
+		assert.Regexp(t, "test: logging_test.go:([0-9]+)", result["locationInfo"])
 		assert.Equal(t, "message with: reason", result["message"], "message should be last 2 chunks")
 	}
 
@@ -97,7 +97,7 @@ func TestLoggly(t *testing.T) {
 	buf.Reset()
 	log.Error("deep reason: an url 127.0.0.1:8787 in message: reason")
 	if assert.NoError(t, json.Unmarshal(buf.Bytes(), &result), "Unmarshal error") {
-		assert.Equal(t, "ERROR test", result["locationInfo"])
+		assert.Regexp(t, "test: logging_test.go:([0-9]+)", result["locationInfo"])
 		assert.Equal(t, "an url 127.0.0.1:8787 in message: reason", result["message"], "should not truncate url")
 	}
 
@@ -106,9 +106,8 @@ func TestLoggly(t *testing.T) {
 	longMsg := longPrefix + strings.Repeat("o", 100) + "ng reason"
 	log.Error(longMsg)
 	if assert.NoError(t, json.Unmarshal(buf.Bytes(), &result), "Unmarshal error") {
-		assert.Equal(t, "ERROR test", result["locationInfo"])
-
-		assert.Regexp(t, regexp.MustCompile("logging_test.go:([0-9]+) "+longPrefix+"(o+)"), result["message"])
+		assert.Regexp(t, "test: logging_test.go:([0-9]+)", result["locationInfo"])
+		assert.Regexp(t, regexp.MustCompile(longPrefix+"(o+)"), result["message"])
 		assert.Equal(t, 100, len(result["message"].(string)))
 	}
 }
