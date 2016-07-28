@@ -134,7 +134,6 @@ func TestPollGlobal(t *testing.T) {
 	assert.True(t, len(fetched.Client.MasqueradeSets) > 1)
 
 	for i := 1; i <= 400; i++ {
-		log.Debugf("Stating file at " + file)
 		fi, err = os.Stat(file)
 		if err == nil && fi != nil && fi.ModTime().After(mtime) {
 			log.Debugf("Got newer mod time?")

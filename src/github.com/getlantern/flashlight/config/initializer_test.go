@@ -14,17 +14,22 @@ func TestInit(t *testing.T) {
 	flags["staging"] = true
 
 	var proxies map[string]*client.ChainedServerInfo
+	var gotProxies bool
+	var gotGlobal bool
+
 	var global *Global
 	proxiesDispatch := func(cfg interface{}) {
 		proxies = cfg.(map[string]*client.ChainedServerInfo)
+		gotProxies = true
 	}
 	globalDispatch := func(cfg interface{}) {
 		global = cfg.(*Global)
+		gotGlobal = true
 	}
 	Init(".", flags, &userConfig{}, proxiesDispatch, globalDispatch)
 
 	for i := 1; i <= 400; i++ {
-		if global == nil || proxies == nil {
+		if !gotGlobal || !gotProxies {
 			time.Sleep(50 * time.Millisecond)
 		}
 	}
