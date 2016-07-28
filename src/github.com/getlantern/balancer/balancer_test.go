@@ -57,6 +57,27 @@ func TestSingleDialer(t *testing.T) {
 	}
 }
 
+func TestRetryOnBadDialer(t *testing.T) {
+	addr, l := echoServer()
+	defer func() { _ = l.Close() }()
+
+	d1Attempts := int32(0)
+	dialer1 := newCondDialer(1, func() bool { atomic.AddInt32(&d1Attempts, 1); return true })
+	d2Attempts := int32(0)
+	dialer2 := newCondDialer(2, func() bool { atomic.AddInt32(&d2Attempts, 1); return true })
+
+	b := New(Sticky, dialer1)
+	_, err := b.Dial("tcp", addr)
+	if assert.Error(t, err, "Dialing bad dialer should fail") {
+		assert.EqualValues(t, 1, atomic.LoadInt32(&d1Attempts), "should try same dialer only once")
+	}
+	b.Reset(dialer1, dialer2)
+	_, err = b.Dial("tcp", addr)
+	if assert.Error(t, err, "Dialing bad dialer should fail") {
+		assert.EqualValues(t, dialAttempts, atomic.LoadInt32(&d1Attempts)+atomic.LoadInt32(&d2Attempts), "should try enough times when there are more then 1 dialer")
+	}
+}
+
 func TestRandomDialer(t *testing.T) {
 	addr, l := echoServer()
 	defer func() { _ = l.Close() }()
