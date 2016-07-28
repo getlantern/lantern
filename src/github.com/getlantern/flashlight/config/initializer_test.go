@@ -13,17 +13,17 @@ func TestInit(t *testing.T) {
 	flags := make(map[string]interface{})
 	flags["staging"] = true
 
-	var proxies map[string]*client.ChainedServerInfo
 	var gotProxies bool
 	var gotGlobal bool
 
-	var global *Global
 	proxiesDispatch := func(cfg interface{}) {
-		proxies = cfg.(map[string]*client.ChainedServerInfo)
+		proxies := cfg.(map[string]*client.ChainedServerInfo)
+		assert.True(t, len(proxies) > 0)
 		gotProxies = true
 	}
 	globalDispatch := func(cfg interface{}) {
-		global = cfg.(*Global)
+		global := cfg.(*Global)
+		assert.True(t, len(global.Client.MasqueradeSets) > 1)
 		gotGlobal = true
 	}
 	Init(".", flags, &userConfig{}, proxiesDispatch, globalDispatch)
@@ -33,10 +33,6 @@ func TestInit(t *testing.T) {
 			time.Sleep(50 * time.Millisecond)
 		}
 	}
-
-	// Just make sure it's legitimately reading the config.
-	assert.True(t, len(global.Client.MasqueradeSets) > 1)
-	assert.True(t, len(proxies) > 0)
 }
 
 func TestStaging(t *testing.T) {
