@@ -102,11 +102,17 @@ func (b *Balancer) Dial(network, addr string) (net.Conn, error) {
 		trustedOnly = true
 	}
 
+	var lastDialer *dialer
 	for i := 0; i < dialAttempts; i++ {
 		d, pickErr := b.pickDialer(trustedOnly)
 		if pickErr != nil {
 			return nil, pickErr
 		}
+		if d == lastDialer {
+			log.Debugf("Skip dialing %s://%s with same dailer %s", network, addr, d.Label)
+			continue
+		}
+		lastDialer = d
 		log.Tracef("Dialing %s://%s with %s", network, addr, d.Label)
 		conn, err := d.dial(network, addr)
 		if err != nil {
