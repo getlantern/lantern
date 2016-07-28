@@ -111,7 +111,7 @@ func main() {
 		}
 	}
 	if *proxiedSitesOutFile != "" {
-		proxiedSitesTmpl := loadTemplate(*proxiedSitesOutFile)
+		proxiedSitesTmpl := loadTemplate("proxiedsites.go.tmpl")
 		generateTemplate(model, proxiedSitesTmpl, *proxiedSitesOutFile)
 		_, err = run("gofmt", "-w", *proxiedSitesOutFile)
 		if err != nil {
@@ -119,7 +119,7 @@ func main() {
 		}
 	}
 	if *fallbacksOutFile != "" {
-		fallbacksTmpl := loadTemplate(*fallbacksOutFile)
+		fallbacksTmpl := loadTemplate("fallbacks.go.tmpl")
 		generateTemplate(model, fallbacksTmpl, *fallbacksOutFile)
 		_, err = run("gofmt", "-w", *fallbacksOutFile)
 		if err != nil {

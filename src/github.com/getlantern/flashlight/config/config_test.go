@@ -5,9 +5,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/fronted"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/getlantern/flashlight/client"
+	"github.com/getlantern/flashlight/config/generated"
 )
 
 // TestObfuscated tests reading obfuscated global config from disk
@@ -46,7 +48,7 @@ func TestEmbedded(t *testing.T) {
 		return make(map[string]*client.ChainedServerInfo)
 	})
 
-	pr, err := cfg.embedded(EmbeddedProxies, "proxies.yaml")
+	pr, err := cfg.embedded(generated.EmbeddedProxies, "proxies.yaml")
 	assert.Nil(t, err)
 
 	proxies := pr.(map[string]*client.ChainedServerInfo)
