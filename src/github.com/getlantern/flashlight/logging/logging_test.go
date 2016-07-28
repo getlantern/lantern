@@ -60,18 +60,31 @@ func TestLoggly(t *testing.T) {
 	golog.RegisterReporter(r.Report)
 	log := golog.LoggerFor("test")
 
+	origLogglyRateLimit := logglyRateLimit
+	defer func() {
+		logglyRateLimit = origLogglyRateLimit
+	}()
+	logglyRateLimit = 100 * time.Millisecond
+	for i := 0; i < 2; i++ {
+		buf.Reset()
+		log.Error("short message")
+		if i == 1 {
+			assert.Equal(t, 0, buf.Len(), "duplicate shouldn't have been reported")
+			time.Sleep(logglyRateLimit)
+		} else {
+			if assert.NoError(t, json.Unmarshal(buf.Bytes(), &result), "Unmarshal error") {
+				assert.Regexp(t, "test: logging_test.go:([0-9]+)", result["locationInfo"])
+				assert.Equal(t, "short message", result["message"])
+			}
+		}
+	}
+
+	buf.Reset()
 	log.Error("")
 	log.Debugf("**************** %v", buf.String())
 	if assert.NoError(t, json.Unmarshal(buf.Bytes(), &result), "Unmarshal error") {
 		assert.Regexp(t, "test: logging_test.go:([0-9]+)", result["locationInfo"])
 		assert.Equal(t, "", result["message"])
-	}
-
-	buf.Reset()
-	log.Error("short message")
-	if assert.NoError(t, json.Unmarshal(buf.Bytes(), &result), "Unmarshal error") {
-		assert.Regexp(t, "test: logging_test.go:([0-9]+)", result["locationInfo"])
-		assert.Equal(t, "short message", result["message"])
 	}
 
 	buf.Reset()

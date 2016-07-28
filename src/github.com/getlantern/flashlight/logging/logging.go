@@ -319,7 +319,9 @@ func shouldReport(location string) bool {
 	lastReportedLock.Lock()
 	defer lastReportedLock.Unlock()
 	shouldReport := now.Sub(lastReported[location]) > logglyRateLimit
-	lastReported[location] = now
+	if shouldReport {
+		lastReported[location] = now
+	}
 	return shouldReport
 }
 
