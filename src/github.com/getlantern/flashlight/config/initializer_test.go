@@ -13,26 +13,32 @@ func TestInit(t *testing.T) {
 	flags := make(map[string]interface{})
 	flags["staging"] = true
 
-	var gotProxies bool
-	var gotGlobal bool
+	configChan := make(chan bool)
 
+	// Note these dispatch functions will receive multiple configs -- local ones,
+	// embedded ones, and remote ones.
 	proxiesDispatch := func(cfg interface{}) {
 		proxies := cfg.(map[string]*client.ChainedServerInfo)
 		assert.True(t, len(proxies) > 0)
-		gotProxies = true
+		configChan <- true
 	}
 	globalDispatch := func(cfg interface{}) {
 		global := cfg.(*Global)
 		assert.True(t, len(global.Client.MasqueradeSets) > 1)
-		gotGlobal = true
+		configChan <- true
 	}
 	Init(".", flags, &userConfig{}, proxiesDispatch, globalDispatch)
 
-	for i := 1; i <= 400; i++ {
-		if !gotGlobal || !gotProxies {
-			time.Sleep(50 * time.Millisecond)
+	count := 0
+	for i := 0; i < 2; i++ {
+		select {
+		case <-configChan:
+			count++
+		case <-time.After(time.Second * 12):
+			assert.Fail(t, "Took too long to get configs")
 		}
 	}
+	assert.Equal(t, 2, count)
 }
 
 func TestStaging(t *testing.T) {
