@@ -2,6 +2,8 @@ package logging
 
 import (
 	"bytes"
+	"encoding/base64"
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"regexp"
@@ -123,4 +125,16 @@ func TestLoggly(t *testing.T) {
 		assert.Regexp(t, regexp.MustCompile(longPrefix+"(o+)"), result["message"])
 		assert.Equal(t, 100, len(result["message"].(string)))
 	}
+}
+
+func TestIncludeInSample(t *testing.T) {
+	included := 0
+	b := make([]byte, 8)
+	for i := uint64(0); i < 100; i++ {
+		binary.LittleEndian.PutUint64(b, i)
+		if includeInSample(base64.StdEncoding.EncodeToString(b[:6]), 0.01) {
+			included++
+		}
+	}
+	assert.Equal(t, 1, included, "Only 1% should have been included")
 }
