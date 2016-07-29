@@ -425,7 +425,6 @@ func includeInSample(deviceID string, samplePercentage float64) bool {
 	}
 	// Pad and decode to int
 	paddedDeviceIDBytes := append(deviceIDBytes, 0, 0)
-	// Use LittleEndian because Mac address has most significant bytes on left
-	deviceIDInt := binary.LittleEndian.Uint64(paddedDeviceIDBytes)
+	deviceIDInt := binary.BigEndian.Uint64(paddedDeviceIDBytes)
 	return deviceIDInt%uint64(1/samplePercentage) == 0
 }
