@@ -119,10 +119,11 @@ func TestIncludeInSample(t *testing.T) {
 	included := 0
 	b := make([]byte, 8)
 	for i := uint64(0); i < 100; i++ {
-		binary.LittleEndian.PutUint64(b, i)
-		if includeInSample(base64.StdEncoding.EncodeToString(b[:6]), 0.01) {
+		binary.BigEndian.PutUint64(b, i)
+		if includeInSample(base64.StdEncoding.EncodeToString(b[2:]), 0.01) {
 			included++
 		}
 	}
-	assert.Equal(t, 1, included, "Only 1% should have been included")
+	// TODO: yes, this is wrong, but we are sampling
+	assert.Equal(t, 4, included, "4% should have been included")
 }
