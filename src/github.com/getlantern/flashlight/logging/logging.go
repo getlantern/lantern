@@ -414,14 +414,13 @@ func includeInSample(deviceID string, samplePercentage float64) bool {
 		log.Debugf("Error decoding base64 deviceID %v: %v", deviceID, base64Err)
 		return false
 	}
-	var deviceIDInt uint64
 	if len(deviceIDBytes) != 6 {
 		log.Debugf("Unexpected DeviceID length %v: %d", deviceID, len(deviceIDBytes))
 		return false
 	}
 	// Pad and decode to int
 	paddedDeviceIDBytes := append(deviceIDBytes, 0, 0)
-	// Use BigEndian because Mac address has most significant bytes on left
-	deviceIDInt = binary.BigEndian.Uint64(paddedDeviceIDBytes)
+	// Use LittleEndian because Mac address has most significant bytes on left
+	deviceIDInt := binary.LittleEndian.Uint64(paddedDeviceIDBytes)
 	return deviceIDInt%uint64(1/samplePercentage) == 0
 }
