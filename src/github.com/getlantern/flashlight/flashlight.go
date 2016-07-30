@@ -44,7 +44,8 @@ var (
 	// BuildDate is the date the code was actually built.
 	BuildDate string // The actual date and time the binary was built.
 
-	cfgMutex sync.Mutex
+	cfgMutex             sync.Mutex
+	configureLoggingOnce sync.Once
 )
 
 func bestPackageVersion() string {
@@ -153,7 +154,9 @@ func applyClientConfig(client *client.Client, cfg *config.Config, deviceID strin
 	} else {
 		fronted.Configure(certs, cfg.Client.MasqueradeSets, filepath.Join(appdir.General("Lantern"), "masquerade_cache"))
 	}
-	logging.Configure(cfg.CloudConfigCA, deviceID, Version, RevisionDate, cfg.BordaReportInterval, cfg.BordaSamplePercentage)
+	configureLoggingOnce.Do(func() {
+		logging.Configure(cfg.CloudConfigCA, deviceID, Version, RevisionDate, cfg.BordaReportInterval, cfg.BordaSamplePercentage, cfg.LogglySamplePercentage)
+	})
 	// Update client configuration
 	client.Configure(cfg.Client, deviceID)
 }
