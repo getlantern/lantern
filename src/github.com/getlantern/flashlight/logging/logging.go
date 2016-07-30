@@ -16,8 +16,10 @@ import (
 
 	"github.com/getlantern/appdir"
 	borda "github.com/getlantern/borda/client"
+	"github.com/getlantern/errors"
 	"github.com/getlantern/go-loggly"
 	"github.com/getlantern/golog"
+	"github.com/getlantern/hidden"
 	"github.com/getlantern/jibber_jabber"
 	"github.com/getlantern/osversion"
 	"github.com/getlantern/rotator"
@@ -49,10 +51,11 @@ var (
 	errorOut io.Writer
 	debugOut io.Writer
 
-	duplicates = make(map[string]bool)
-	dupLock    sync.Mutex
-
 	bordaClient *borda.Client
+
+	logglyRateLimit  = 5 * time.Minute
+	lastReported     = make(map[string]time.Time)
+	lastReportedLock sync.Mutex
 
 	logglyKeyTranslations = map[string]string{
 		"device_id":       "instanceid",
@@ -234,22 +237,6 @@ func enableLoggly(cloudConfigCA string, logglySamplePercentage float64, deviceID
 	golog.RegisterReporter(le.Report)
 }
 
-func isDuplicate(msg string) bool {
-	dupLock.Lock()
-	defer dupLock.Unlock()
-
-	if duplicates[msg] {
-		return true
-	}
-
-	// Implement a crude cap on the size of the map
-	if len(duplicates) < 1000 {
-		duplicates[msg] = true
-	}
-
-	return false
-}
-
 // flushable interface describes writers that can be flushed
 type flushable interface {
 	flush()
@@ -260,41 +247,48 @@ type logglyErrorReporter struct {
 	client *loggly.Client
 }
 
-func (r logglyErrorReporter) Report(err error, fullMessage string, ctx map[string]interface{}) {
-	fmt.Fprintln(os.Stderr, "Message: "+fullMessage)
-	if isDuplicate(fullMessage) {
-		log.Debugf("Not logging duplicate: %v", fullMessage)
+func (r logglyErrorReporter) Report(err error, location string, ctx map[string]interface{}) {
+	// Remove hidden errors info
+	fullMessage := hidden.Clean(err.Error())
+	if !shouldReport(location) {
+		log.Debugf("Not reporting duplicate at %v to Loggly: %v", location, fullMessage)
+		return
 	}
+	log.Debugf("Reporting error at %v to Loggly: %v", location, fullMessage)
 
-	// extract last 2 (at most) chunks of fullMessage to message, without prefix,
-	// so we can group logs with same reason in Loggly
-	lastColonPos := -1
-	colonsSeen := 0
-	for p := len(fullMessage) - 2; p >= 0; p-- {
-		if fullMessage[p] == ':' {
-			lastChar := fullMessage[p+1]
-			// to prevent colon in "http://" and "x.x.x.x:80" be treated as seperator
-			if !(lastChar == '/' || lastChar >= '0' && lastChar <= '9') {
-				lastColonPos = p
-				colonsSeen++
-				if colonsSeen == 2 {
-					break
+	// extract last 2 (at most) chunks of fullMessage to message, so we can group
+	// logs with same reason in Loggly
+	var message string
+	switch e := err.(type) {
+	case errors.Error:
+		message = e.ErrorClean()
+	default:
+		lastColonPos := -1
+		colonsSeen := 0
+		for p := len(fullMessage) - 2; p >= 0; p-- {
+			if fullMessage[p] == ':' {
+				lastChar := fullMessage[p+1]
+				// to prevent colon in "http://" and "x.x.x.x:80" be treated as seperator
+				if !(lastChar == '/' || lastChar >= '0' && lastChar <= '9') {
+					lastColonPos = p
+					colonsSeen++
+					if colonsSeen == 2 {
+						break
+					}
 				}
 			}
 		}
+		if colonsSeen >= 2 {
+			message = strings.TrimSpace(fullMessage[lastColonPos+1:])
+		} else {
+			message = fullMessage
+		}
 	}
-	message := strings.TrimSpace(fullMessage[lastColonPos+1:])
 
 	// Loggly doesn't group fields with more than 100 characters
 	if len(message) > 100 {
 		message = message[0:100]
 	}
-
-	firstColonPos := strings.IndexRune(fullMessage, ':')
-	if firstColonPos == -1 {
-		firstColonPos = 0
-	}
-	prefix := fullMessage[0:firstColonPos]
 
 	translatedCtx := make(map[string]interface{}, len(ctx))
 	for key, value := range ctx {
@@ -309,7 +303,7 @@ func (r logglyErrorReporter) Report(err error, fullMessage string, ctx map[strin
 
 	m := loggly.Message{
 		"extra":        translatedCtx,
-		"locationInfo": prefix,
+		"locationInfo": location,
 		"message":      message,
 		"fullMessage":  fullMessage,
 	}
@@ -318,6 +312,17 @@ func (r logglyErrorReporter) Report(err error, fullMessage string, ctx map[strin
 	if err2 != nil {
 		fmt.Fprintf(os.Stderr, "Unable to report to loggly: %v. Original error: %v\n", err2, err)
 	}
+}
+
+func shouldReport(location string) bool {
+	now := time.Now()
+	lastReportedLock.Lock()
+	defer lastReportedLock.Unlock()
+	shouldReport := now.Sub(lastReported[location]) > logglyRateLimit
+	if shouldReport {
+		lastReported[location] = now
+	}
+	return shouldReport
 }
 
 // flush forces output, since it normally flushes based on an interval
