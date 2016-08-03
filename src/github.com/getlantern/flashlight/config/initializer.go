@@ -46,16 +46,16 @@ var (
 
 // Init initializes the config setup for both fetching per-user proxies as well
 // as the global config.
-func Init(configDir string, flagsAsMap map[string]interface{},
+func Init(configDir string, flags map[string]interface{},
 	userConfig UserConfig, proxiesDispatch func(interface{}),
 	globalDispatch func(interface{})) {
-	staging := isStaging(flagsAsMap)
+	staging := isStaging(flags)
 	// These are the options for fetching the per-user proxy config.
 	proxyOptions := &options{
 		saveDir:    configDir,
-		obfuscate:  obfuscate(flagsAsMap),
+		obfuscate:  obfuscate(flags),
 		name:       "proxies.yaml",
-		urls:       checkOverrides(flagsAsMap, getProxyURLs(staging), "proxies.yaml.gz"),
+		urls:       checkOverrides(flags, getProxyURLs(staging), "proxies.yaml.gz"),
 		userConfig: userConfig,
 		yamlTemplater: func() interface{} {
 			return make(map[string]*client.ChainedServerInfo)
@@ -70,12 +70,14 @@ func Init(configDir string, flagsAsMap map[string]interface{},
 	// These are the options for fetching the global config.
 	globalOptions := &options{
 		saveDir:    configDir,
-		obfuscate:  obfuscate(flagsAsMap),
+		obfuscate:  obfuscate(flags),
 		name:       "global.yaml",
-		urls:       checkOverrides(flagsAsMap, getGlobalURLs(staging), "global.yaml.gz"),
+		urls:       checkOverrides(flags, getGlobalURLs(staging), "global.yaml.gz"),
 		userConfig: userConfig,
 		yamlTemplater: func() interface{} {
-			return &Global{}
+			gl := &Global{}
+			gl.applyFlags(flags)
+			return gl
 		},
 		dispatch:     globalDispatch,
 		embeddedData: generated.GlobalConfig,
