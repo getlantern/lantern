@@ -57,7 +57,7 @@ func (app *App) LogPanicAndExit(msg string) {
 		panic("Error initializing logging")
 	}
 
-	<-logging.Configure("", "dummy-device-id-for-panic", flashlight.Version, flashlight.RevisionDate, 0, 0)
+	<-logging.Configure("", "dummy-device-id-for-panic", flashlight.Version, flashlight.RevisionDate, 0, 0, 0)
 
 	log.Error(msg)
 

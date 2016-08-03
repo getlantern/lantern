@@ -19,7 +19,7 @@ import (
 
 var (
 	expectedLog      = "SEVERITY myprefix: golog_test.go:999 Hello world\nSEVERITY myprefix: golog_test.go:999 Hello true [cvarA=a cvarB=b op=name root_op=name]\n"
-	expectedErrorLog = `ERROR myprefix: golog_test.go:999 Hello world [cvarC=c cvarD=d error=Hello world error_type=errors.Error op=name root_op=name]
+	expectedErrorLog = `ERROR myprefix: golog_test.go:999 Hello world [cvarC=c cvarD=d error=Hello %v error_location=github.com/getlantern/golog.TestError (golog_test.go:999) error_text=Hello world error_type=errors.Error op=name root_op=name]
 ERROR myprefix: golog_test.go:999   at github.com/getlantern/golog.TestError (golog_test.go:999)
 ERROR myprefix: golog_test.go:999   at testing.tRunner (testing.go:999)
 ERROR myprefix: golog_test.go:999   at runtime.goexit (asm_amd999.s:999)
@@ -28,7 +28,7 @@ ERROR myprefix: golog_test.go:999   at github.com/getlantern/golog.errorReturner
 ERROR myprefix: golog_test.go:999   at github.com/getlantern/golog.TestError (golog_test.go:999)
 ERROR myprefix: golog_test.go:999   at testing.tRunner (testing.go:999)
 ERROR myprefix: golog_test.go:999   at runtime.goexit (asm_amd999.s:999)
-ERROR myprefix: golog_test.go:999 Hello true [cvarA=a cvarB=b cvarC=c error=Hello true error_type=errors.Error op=name999 root_op=name999]
+ERROR myprefix: golog_test.go:999 Hello true [cvarA=a cvarB=b cvarC=c error=%v %v error_location=github.com/getlantern/golog.TestError (golog_test.go:999) error_text=Hello true error_type=errors.Error op=name999 root_op=name999]
 ERROR myprefix: golog_test.go:999   at github.com/getlantern/golog.TestError (golog_test.go:999)
 ERROR myprefix: golog_test.go:999   at testing.tRunner (testing.go:999)
 ERROR myprefix: golog_test.go:999   at runtime.goexit (asm_amd999.s:999)

@@ -16,11 +16,12 @@ type Global struct {
 	CloudConfigCA string
 
 	// AutoUpdateCA is the CA key to pin for auto-updates.
-	AutoUpdateCA          string
-	UpdateServerURL       string
-	BordaReportInterval   time.Duration
-	BordaSamplePercentage float64
-	Client                *client.ClientConfig
+	AutoUpdateCA           string
+	UpdateServerURL        string
+	BordaReportInterval    time.Duration
+	BordaSamplePercentage  float64
+	LogglySamplePercentage float64
+	Client                 *client.ClientConfig
 
 	// ProxiedSites are domains that get routed through Lantern rather than accessed directly.
 	ProxiedSites *proxiedsites.Config
