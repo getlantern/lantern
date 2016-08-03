@@ -3,8 +3,10 @@ package config
 import (
 	"time"
 
-	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/golog"
+
+	"github.com/getlantern/flashlight/client"
+	"github.com/getlantern/flashlight/config/generated"
 )
 
 var (
@@ -59,7 +61,7 @@ func Init(configDir string, flagsAsMap map[string]interface{},
 			return make(map[string]*client.ChainedServerInfo)
 		},
 		dispatch:     proxiesDispatch,
-		embeddedData: EmbeddedProxies,
+		embeddedData: generated.EmbeddedProxies,
 		sleep:        1 * time.Minute,
 	}
 
@@ -76,7 +78,7 @@ func Init(configDir string, flagsAsMap map[string]interface{},
 			return &Global{}
 		},
 		dispatch:     globalDispatch,
-		embeddedData: GlobalConfig,
+		embeddedData: generated.GlobalConfig,
 		sleep:        24 * time.Hour,
 	}
 
