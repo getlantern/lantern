@@ -1,10 +1,10 @@
-package config
+package generated
 
 import (
     "github.com/getlantern/flashlight/client"
 )
 
-var fallbacks = map[string]*client.ChainedServerInfo{ {{range .fallbacks}}
+var Fallbacks = map[string]*client.ChainedServerInfo{ {{range .fallbacks}}
   "fallback-{{.ip}}": &client.ChainedServerInfo{
     Addr:      "{{.ip}}",
     Cert:      "{{.cert}}",
