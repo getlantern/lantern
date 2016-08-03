@@ -29,3 +29,33 @@ type Global struct {
 	// TrustedCAs are trusted CAs for domain fronting domains only.
 	TrustedCAs []*fronted.CA
 }
+
+// applyFlags updates this config from any command-line flags that were passed
+// in.
+func (cfg *Global) applyFlags(flags map[string]interface{}) error {
+	if cfg.Client == nil {
+		cfg.Client = &client.ClientConfig{}
+	}
+
+	var visitErr error
+
+	// Visit all flags that have been set and copy to config
+	for key, value := range flags {
+		switch key {
+		// General
+		case "cloudconfigca":
+			cfg.CloudConfigCA = value.(string)
+		case "borda-report-interval":
+			cfg.BordaReportInterval = value.(time.Duration)
+		case "borda-sample-percentage":
+			cfg.BordaSamplePercentage = value.(float64)
+		case "loggly-sample-percentage":
+			cfg.LogglySamplePercentage = value.(float64)
+		}
+	}
+	if visitErr != nil {
+		return visitErr
+	}
+
+	return nil
+}
