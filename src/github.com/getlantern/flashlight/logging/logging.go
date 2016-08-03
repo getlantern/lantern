@@ -16,8 +16,10 @@ import (
 
 	"github.com/getlantern/appdir"
 	borda "github.com/getlantern/borda/client"
+	"github.com/getlantern/errors"
 	"github.com/getlantern/go-loggly"
 	"github.com/getlantern/golog"
+	"github.com/getlantern/hidden"
 	"github.com/getlantern/jibber_jabber"
 	"github.com/getlantern/osversion"
 	"github.com/getlantern/rotator"
@@ -49,10 +51,11 @@ var (
 	errorOut io.Writer
 	debugOut io.Writer
 
-	duplicates = make(map[string]bool)
-	dupLock    sync.Mutex
-
 	bordaClient *borda.Client
+
+	logglyRateLimit  = 5 * time.Minute
+	lastReported     = make(map[string]time.Time)
+	lastReportedLock sync.Mutex
 
 	logglyKeyTranslations = map[string]string{
 		"device_id":       "instanceid",
@@ -102,7 +105,8 @@ func EnableFileLogging() error {
 // Returns a bool channel for optional blocking.
 func Configure(cloudConfigCA string, deviceID string,
 	version string, revisionDate string,
-	bordaReportInterval time.Duration, bordaSamplePercentage float64) (success chan bool) {
+	bordaReportInterval time.Duration, bordaSamplePercentage float64,
+	logglySamplePercentage float64) (success chan bool) {
 	success = make(chan bool, 1)
 
 	// Note: Returning from this function must always add a result to the
@@ -130,7 +134,7 @@ func Configure(cloudConfigCA string, deviceID string,
 	// Using a goroutine because we'll be using waitforserver and at this time
 	// the proxy is not yet ready.
 	go func() {
-		enableLoggly(cloudConfigCA)
+		enableLoggly(cloudConfigCA, logglySamplePercentage, deviceID)
 		// Won't block, but will allow optional blocking on receiver
 		success <- true
 	}()
@@ -214,7 +218,13 @@ func timestamped(orig io.Writer) io.Writer {
 	})
 }
 
-func enableLoggly(cloudConfigCA string) {
+func enableLoggly(cloudConfigCA string, logglySamplePercentage float64, deviceID string) {
+	if !includeInSample(deviceID, logglySamplePercentage) {
+		log.Debugf("DeviceID %v not being sampled for Loggly", deviceID)
+		return
+	}
+	log.Debugf("DeviceID %v will report errors to Loggly", deviceID)
+
 	rt, err := proxied.ChainedPersistent(cloudConfigCA)
 	if err != nil {
 		log.Errorf("Could not create HTTP client, not logging to Loggly: %v", err)
@@ -227,22 +237,6 @@ func enableLoggly(cloudConfigCA string) {
 	golog.RegisterReporter(le.Report)
 }
 
-func isDuplicate(msg string) bool {
-	dupLock.Lock()
-	defer dupLock.Unlock()
-
-	if duplicates[msg] {
-		return true
-	}
-
-	// Implement a crude cap on the size of the map
-	if len(duplicates) < 1000 {
-		duplicates[msg] = true
-	}
-
-	return false
-}
-
 // flushable interface describes writers that can be flushed
 type flushable interface {
 	flush()
@@ -253,41 +247,48 @@ type logglyErrorReporter struct {
 	client *loggly.Client
 }
 
-func (r logglyErrorReporter) Report(err error, fullMessage string, ctx map[string]interface{}) {
-	fmt.Fprintln(os.Stderr, "Message: "+fullMessage)
-	if isDuplicate(fullMessage) {
-		log.Debugf("Not logging duplicate: %v", fullMessage)
+func (r logglyErrorReporter) Report(err error, location string, ctx map[string]interface{}) {
+	// Remove hidden errors info
+	fullMessage := hidden.Clean(err.Error())
+	if !shouldReport(location) {
+		log.Debugf("Not reporting duplicate at %v to Loggly: %v", location, fullMessage)
+		return
 	}
+	log.Debugf("Reporting error at %v to Loggly: %v", location, fullMessage)
 
-	// extract last 2 (at most) chunks of fullMessage to message, without prefix,
-	// so we can group logs with same reason in Loggly
-	lastColonPos := -1
-	colonsSeen := 0
-	for p := len(fullMessage) - 2; p >= 0; p-- {
-		if fullMessage[p] == ':' {
-			lastChar := fullMessage[p+1]
-			// to prevent colon in "http://" and "x.x.x.x:80" be treated as seperator
-			if !(lastChar == '/' || lastChar >= '0' && lastChar <= '9') {
-				lastColonPos = p
-				colonsSeen++
-				if colonsSeen == 2 {
-					break
+	// extract last 2 (at most) chunks of fullMessage to message, so we can group
+	// logs with same reason in Loggly
+	var message string
+	switch e := err.(type) {
+	case errors.Error:
+		message = e.ErrorClean()
+	default:
+		lastColonPos := -1
+		colonsSeen := 0
+		for p := len(fullMessage) - 2; p >= 0; p-- {
+			if fullMessage[p] == ':' {
+				lastChar := fullMessage[p+1]
+				// to prevent colon in "http://" and "x.x.x.x:80" be treated as seperator
+				if !(lastChar == '/' || lastChar >= '0' && lastChar <= '9') {
+					lastColonPos = p
+					colonsSeen++
+					if colonsSeen == 2 {
+						break
+					}
 				}
 			}
 		}
+		if colonsSeen >= 2 {
+			message = strings.TrimSpace(fullMessage[lastColonPos+1:])
+		} else {
+			message = fullMessage
+		}
 	}
-	message := strings.TrimSpace(fullMessage[lastColonPos+1:])
 
 	// Loggly doesn't group fields with more than 100 characters
 	if len(message) > 100 {
 		message = message[0:100]
 	}
-
-	firstColonPos := strings.IndexRune(fullMessage, ':')
-	if firstColonPos == -1 {
-		firstColonPos = 0
-	}
-	prefix := fullMessage[0:firstColonPos]
 
 	translatedCtx := make(map[string]interface{}, len(ctx))
 	for key, value := range ctx {
@@ -302,7 +303,7 @@ func (r logglyErrorReporter) Report(err error, fullMessage string, ctx map[strin
 
 	m := loggly.Message{
 		"extra":        translatedCtx,
-		"locationInfo": prefix,
+		"locationInfo": location,
 		"message":      message,
 		"fullMessage":  fullMessage,
 	}
@@ -311,6 +312,17 @@ func (r logglyErrorReporter) Report(err error, fullMessage string, ctx map[strin
 	if err2 != nil {
 		fmt.Fprintf(os.Stderr, "Unable to report to loggly: %v. Original error: %v\n", err2, err)
 	}
+}
+
+func shouldReport(location string) bool {
+	now := time.Now()
+	lastReportedLock.Lock()
+	defer lastReportedLock.Unlock()
+	shouldReport := now.Sub(lastReported[location]) > logglyRateLimit
+	if shouldReport {
+		lastReported[location] = now
+	}
+	return shouldReport
 }
 
 // flush forces output, since it normally flushes based on an interval
@@ -352,6 +364,11 @@ func (t *nonStopWriter) flush() {
 }
 
 func enableBorda(bordaReportInterval time.Duration, bordaSamplePercentage float64, deviceID string) {
+	if !includeInSample(deviceID, bordaSamplePercentage) {
+		log.Debugf("DeviceID %v not being sampled for Borda", deviceID)
+		return
+	}
+
 	rt := proxied.ChainedThenFronted()
 
 	bordaClient = borda.NewClient(&borda.Options{
@@ -374,27 +391,6 @@ func enableBorda(bordaReportInterval time.Duration, bordaSamplePercentage float6
 		}
 	})
 
-	// Sample a subset of device IDs.
-	// DeviceID is expected to be a Base64 encoded 48-bit (6 byte) MAC address
-	deviceIDBytes, base64Err := base64.StdEncoding.DecodeString(deviceID)
-	if base64Err != nil {
-		log.Debugf("Error decoding base64 deviceID %v: %v", deviceID, base64Err)
-		return
-	}
-	var deviceIDInt uint64
-	if len(deviceIDBytes) != 6 {
-		log.Debugf("Unexpected DeviceID length %v: %d", deviceID, len(deviceIDBytes))
-		return
-	}
-	// Pad and decode to int
-	paddedDeviceIDBytes := append(deviceIDBytes, 0, 0)
-	// Use BigEndian because Mac address has most significant bytes on left
-	deviceIDInt = binary.BigEndian.Uint64(paddedDeviceIDBytes)
-	if deviceIDInt%uint64(1/bordaSamplePercentage) != 0 {
-		log.Debugf("DeviceID %v not being sampled", deviceID)
-		return
-	}
-
 	reporter := func(failure error, ctx map[string]interface{}) {
 		values := map[string]float64{}
 		if failure != nil {
@@ -409,4 +405,26 @@ func enableBorda(bordaReportInterval time.Duration, bordaSamplePercentage float6
 	}
 
 	ops.RegisterReporter(reporter)
+}
+
+func includeInSample(deviceID string, samplePercentage float64) bool {
+	if samplePercentage == 0 {
+		return false
+	}
+
+	// Sample a subset of device IDs.
+	// DeviceID is expected to be a Base64 encoded 48-bit (6 byte) MAC address
+	deviceIDBytes, base64Err := base64.StdEncoding.DecodeString(deviceID)
+	if base64Err != nil {
+		log.Debugf("Error decoding base64 deviceID %v: %v", deviceID, base64Err)
+		return false
+	}
+	if len(deviceIDBytes) != 6 {
+		log.Debugf("Unexpected DeviceID length %v: %d", deviceID, len(deviceIDBytes))
+		return false
+	}
+	// Pad and decode to int
+	paddedDeviceIDBytes := append(deviceIDBytes, 0, 0)
+	deviceIDInt := binary.BigEndian.Uint64(paddedDeviceIDBytes)
+	return deviceIDInt%uint64(1/samplePercentage) == 0
 }

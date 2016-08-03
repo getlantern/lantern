@@ -30,11 +30,12 @@ var (
 
 // Balancer balances connections among multiple Dialers.
 type Balancer struct {
+	// make sure to align on 64bit boundary
+	lastDialTime int64 // Time.UnixNano()
 	st           Strategy
 	mu           sync.RWMutex
 	dialers      dialerHeap
 	trusted      dialerHeap
-	lastDialTime int64 // Time.UnixNano()
 }
 
 // New creates a new Balancer using the supplied Strategy and Dialers.
@@ -101,11 +102,17 @@ func (b *Balancer) Dial(network, addr string) (net.Conn, error) {
 		trustedOnly = true
 	}
 
+	var lastDialer *dialer
 	for i := 0; i < dialAttempts; i++ {
 		d, pickErr := b.pickDialer(trustedOnly)
 		if pickErr != nil {
 			return nil, pickErr
 		}
+		if d == lastDialer {
+			log.Debugf("Skip dialing %s://%s with same dailer %s", network, addr, d.Label)
+			continue
+		}
+		lastDialer = d
 		log.Tracef("Dialing %s://%s with %s", network, addr, d.Label)
 		conn, err := d.dial(network, addr)
 		if err != nil {

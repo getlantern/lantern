@@ -202,7 +202,9 @@ func (client *Client) proxiedDialer(orig func(network, addr string) (net.Conn, e
 			log.Tracef("Rewriting %v to %v", addr, rewritten)
 			return net.Dial(network, rewritten)
 		}
+		start := time.Now()
 		conn, err := proxied(network, addr)
+		log.Debugf("Dialing proxy takes %v for %s", time.Since(start), addr)
 		return conn, op.FailIf(err)
 	}
 }
