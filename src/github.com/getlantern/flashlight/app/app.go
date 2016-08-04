@@ -105,12 +105,18 @@ func (app *App) Run() error {
 	return app.waitForExit()
 }
 
-func (app *App) beforeStart(cfg *config.Config) bool {
+func (app *App) beforeStart() bool {
 	log.Debug("Got first config")
-
-	if cfg.CPUProfile != "" || cfg.MemProfile != "" {
-		log.Debugf("Start profiling with cpu file %s and mem file %s", cfg.CPUProfile, cfg.MemProfile)
-		finishProfiling := profiling.Start(cfg.CPUProfile, cfg.MemProfile)
+	var cpuProf, memProf string
+	if cpu, cok := app.Flags["cpuprofile"]; cok {
+		cpuProf = cpu.(string)
+	}
+	if mem, cok := app.Flags["memprofile"]; cok {
+		memProf = mem.(string)
+	}
+	if cpuProf != "" || memProf != "" {
+		log.Debugf("Start profiling with cpu file %s and mem file %s", cpuProf, memProf)
+		finishProfiling := profiling.Start(cpuProf, memProf)
 		app.AddExitFunc(finishProfiling)
 	}
 
@@ -170,8 +176,7 @@ func (app *App) beforeStart(cfg *config.Config) bool {
 	return true
 }
 
-func (app *App) afterStart(cfg *config.Config) {
-	app.onConfigUpdate(cfg)
+func (app *App) afterStart() {
 	servePACFile()
 	if settings.GetSystemProxy() {
 		pacOn()
@@ -189,9 +194,9 @@ func (app *App) afterStart(cfg *config.Config) {
 	}
 }
 
-func (app *App) onConfigUpdate(cfg *config.Config) {
+func (app *App) onConfigUpdate(cfg *config.Global) {
 	proxiedsites.Configure(cfg.ProxiedSites)
-	autoupdate.Configure(cfg)
+	autoupdate.Configure(cfg.UpdateServerURL, cfg.AutoUpdateCA)
 }
 
 // showExistingUi triggers an existing Lantern running on the same system to

@@ -63,7 +63,7 @@ func getProxyAddr() (string, bool) {
 	addr, ok := proxyAddr(1 * time.Minute)
 	proxyAddrMutex.RUnlock()
 	if !ok {
-		return "", !ok
+		return "", false
 	}
 	return addr.(string), true
 }
@@ -92,7 +92,7 @@ func ChainedThenFronted() http.RoundTripper {
 	return cf
 }
 
-// ChainedAndFronted fetches HTTP data in parallel using both chained and fronted
+// chainedAndFronted fetches HTTP data in parallel using both chained and fronted
 // servers.
 type chainedAndFronted struct {
 	parallel bool
@@ -113,7 +113,7 @@ func (cf *chainedAndFronted) setFetcher(fetcher http.RoundTripper) {
 	cf.mu.Unlock()
 }
 
-// Do will attempt to execute the specified HTTP request using only a chained fetcher
+// RoundTrip will attempt to execute the specified HTTP request using only a chained fetcher
 func (cf *chainedAndFronted) RoundTrip(req *http.Request) (*http.Response, error) {
 	op := ops.Begin("chainedandfronted").Request(req)
 	defer op.End()
@@ -134,7 +134,7 @@ func (cf *chainedAndFronted) RoundTrip(req *http.Request) (*http.Response, error
 type chainedFetcher struct {
 }
 
-// Do will attempt to execute the specified HTTP request using only a chained fetcher
+// RoundTrip will attempt to execute the specified HTTP request using only a chained fetcher
 func (cf *chainedFetcher) RoundTrip(req *http.Request) (*http.Response, error) {
 	log.Debugf("Using chained fronter")
 	rt, err := ChainedNonPersistent("")
@@ -148,7 +148,7 @@ type dualFetcher struct {
 	cf *chainedAndFronted
 }
 
-// Do will attempt to execute the specified HTTP request using both
+// RoundTrip will attempt to execute the specified HTTP request using both
 // chained and fronted servers, simply returning the first response to
 // arrive. Callers MUST use the Lantern-Fronted-URL HTTP header to
 // specify the fronted URL to use.
@@ -161,7 +161,7 @@ func (df *dualFetcher) RoundTrip(req *http.Request) (*http.Response, error) {
 	return df.do(req, directRT.RoundTrip, frontedRT.RoundTrip)
 }
 
-// Do will attempt to execute the specified HTTP request using both
+// do will attempt to execute the specified HTTP request using both
 // chained and fronted servers. Callers MUST use the Lantern-Fronted-URL HTTP
 // header to specify the fronted URL to use.
 func (df *dualFetcher) do(req *http.Request, chainedFunc func(*http.Request) (*http.Response, error), ddfFunc func(*http.Request) (*http.Response, error)) (*http.Response, error) {

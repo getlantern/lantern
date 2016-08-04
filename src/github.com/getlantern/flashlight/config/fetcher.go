@@ -4,16 +4,12 @@ import (
 	"compress/gzip"
 	"fmt"
 	"io/ioutil"
-	"math/rand"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"strconv"
-	"time"
 
-	"code.google.com/p/go-uuid/uuid"
 	"github.com/getlantern/detour"
-	"github.com/getlantern/yamlconf"
 
 	"github.com/getlantern/flashlight/ops"
 	"github.com/getlantern/flashlight/proxied"
@@ -24,24 +20,11 @@ const (
 	ifNoneMatch  = "X-Lantern-If-None-Match"
 	userIDHeader = "X-Lantern-User-Id"
 	tokenHeader  = "X-Lantern-Pro-Token"
-
-	defaultChainedCloudConfigURL = "http://config.getiantem.org/cloud.yaml.gz"
-
-	// This is over HTTP because proxies do not forward X-Forwarded-For with HTTPS
-	// and because we only support falling back to direct domain fronting through
-	// the local proxy for HTTP.
-	defaultFrontedCloudConfigURL = "http://d2wi0vwulmtn99.cloudfront.net/cloud.yaml.gz"
-)
-
-var (
-	// CloudConfigPollInterval is the period to wait befween checks for new
-	// global configuration settings.
-	CloudConfigPollInterval = 1 * time.Minute
 )
 
 // Fetcher is an interface for fetching config updates.
 type Fetcher interface {
-	pollForConfig(ycfg yamlconf.Config) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error)
+	fetch() ([]byte, error)
 }
 
 // fetcher periodically fetches the latest cloud configuration.
@@ -59,40 +42,14 @@ type UserConfig interface {
 	GetToken() string
 }
 
-// NewFetcher creates a new configuration fetcher with the specified
+// newFetcher creates a new configuration fetcher with the specified
 // interface for obtaining the user ID and token if those are populated.
-func NewFetcher(conf UserConfig, rt http.RoundTripper, flags map[string]interface{}) Fetcher {
-	var stage bool
-	if s, ok := flags["staging"].(bool); ok {
-		stage = s
-	}
-	var chained string = defaultChainedCloudConfigURL
-	var fronted string = defaultFrontedCloudConfigURL
-	if stage {
-		log.Debug("Configuring for staging")
-		chained = "http://config-staging.getiantem.org/cloud.yaml.gz"
-		fronted = "http://d33pfmbpauhmvd.cloudfront.net/cloud.yaml.gz"
-	} else {
-		log.Debugf("Not configuring for staging. Using flags: %v", flags)
-
-		if s, ok := flags["cloudconfig"].(string); ok {
-			if len(s) > 0 {
-				log.Debugf("Overridding chained URL from the command line '%v'", s)
-				chained = s
-			}
-		}
-		if s, ok := flags["frontedconfig"].(string); ok {
-			if len(s) > 0 {
-				log.Debugf("Overridding fronted URL from the command line '%v'", s)
-				fronted = s
-			}
-		}
-	}
-
-	log.Debugf("Will poll for config at %v (%v)", chained, fronted)
+func newFetcher(conf UserConfig, rt http.RoundTripper,
+	urls *chainedFrontedURLs) Fetcher {
+	log.Debugf("Will poll for config at %v (%v)", urls.chained, urls.fronted)
 
 	// Force detour to whitelist chained domain
-	u, err := url.Parse(chained)
+	u, err := url.Parse(urls.chained)
 	if err != nil {
 		log.Fatalf("Unable to parse chained cloud config URL: %v", err)
 	}
@@ -102,55 +59,19 @@ func NewFetcher(conf UserConfig, rt http.RoundTripper, flags map[string]interfac
 		lastCloudConfigETag: map[string]string{},
 		user:                conf,
 		rt:                  rt,
-		chainedURL:          chained,
-		frontedURL:          fronted,
+		chainedURL:          urls.chained,
+		frontedURL:          urls.fronted,
 	}
 }
 
-func (cf *fetcher) pollForConfig(currentCfg yamlconf.Config) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
-	log.Debugf("Polling for config")
-	// By default, do nothing
-	mutate = func(ycfg yamlconf.Config) error {
-		// do nothing
-		return nil
-	}
-	cfg := currentCfg.(*Config)
-	waitTime = cf.cloudPollSleepTime()
-
-	if bytes, err := cf.fetchCloudConfig(cfg); err != nil {
-		log.Errorf("Could not fetch cloud config %v", err)
-		return mutate, waitTime, err
-	} else if bytes != nil {
-		// bytes will be nil if the config is unchanged (not modified)
-		mutate = func(ycfg yamlconf.Config) error {
-			log.Debugf("Merging cloud configuration")
-			cfg := ycfg.(*Config)
-
-			err := cfg.updateFrom(bytes)
-			if cfg.Client.ChainedServers != nil {
-				log.Debugf("Adding %d chained servers", len(cfg.Client.ChainedServers))
-				for _, s := range cfg.Client.ChainedServers {
-					log.Debugf("Got chained server: %v", s.Addr)
-				}
-			}
-			return err
-		}
-	} else {
-		log.Debugf("Bytes are nil - config not modified.")
-	}
-	return mutate, waitTime, nil
-}
-
-func (cf *fetcher) fetchCloudConfig(cfg *Config) ([]byte, error) {
+func (cf *fetcher) fetch() ([]byte, error) {
 	defer ops.Begin("fetch_config").End()
 	log.Debugf("Fetching cloud config from %v (%v)", cf.chainedURL, cf.frontedURL)
 
 	url := cf.chainedURL
-	cb := "?" + uuid.New()
-	nocache := url + cb
-	req, err := http.NewRequest("GET", nocache, nil)
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to construct request for cloud config at %s: %s", nocache, err)
+		return nil, fmt.Errorf("Unable to construct request for cloud config at %s: %s", url, err)
 	}
 	if cf.lastCloudConfigETag[url] != "" {
 		// Don't bother fetching if unchanged
@@ -161,7 +82,7 @@ func (cf *fetcher) fetchCloudConfig(cfg *Config) ([]byte, error) {
 	// Prevents intermediate nodes (domain-fronters) from caching the content
 	req.Header.Set("Cache-Control", "no-cache")
 	// Set the fronted URL to lookup the config in parallel using chained and domain fronted servers.
-	proxied.PrepareForFronting(req, cf.frontedURL+cb)
+	proxied.PrepareForFronting(req, cf.frontedURL)
 
 	id := cf.user.GetUserID()
 	if id != 0 {
@@ -186,7 +107,7 @@ func (cf *fetcher) fetchCloudConfig(cfg *Config) ([]byte, error) {
 	if dumperr != nil {
 		log.Errorf("Could not dump response: %v", dumperr)
 	} else {
-		log.Debugf("Response headers: \n%v", string(dump))
+		log.Debugf("Response headers from %v (%v):\n%v", cf.chainedURL, cf.frontedURL, string(dump))
 	}
 	defer func() {
 		if closeerr := resp.Body.Close(); closeerr != nil {
@@ -195,7 +116,7 @@ func (cf *fetcher) fetchCloudConfig(cfg *Config) ([]byte, error) {
 	}()
 
 	if resp.StatusCode == 304 {
-		log.Debugf("Config unchanged in cloud")
+		log.Debug("Config unchanged in cloud")
 		return nil, nil
 	} else if resp.StatusCode != 200 {
 		if dumperr != nil {
@@ -218,10 +139,4 @@ func (cf *fetcher) fetchCloudConfig(cfg *Config) ([]byte, error) {
 
 	log.Debugf("Fetched cloud config")
 	return ioutil.ReadAll(gzReader)
-}
-
-// cloudPollSleepTime adds some randomization to our requests to make them
-// less distinguishing on the network.
-func (cf *fetcher) cloudPollSleepTime() time.Duration {
-	return time.Duration((CloudConfigPollInterval.Nanoseconds() / 2) + rand.Int63n(CloudConfigPollInterval.Nanoseconds()))
 }

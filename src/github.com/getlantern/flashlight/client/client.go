@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"reflect"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
-	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/armon/go-socks5"
+	"github.com/getlantern/appdir"
 	"github.com/getlantern/detour"
 	"github.com/getlantern/eventual"
 	"github.com/getlantern/golog"
@@ -33,8 +33,22 @@ var (
 	// UIAddr is the address at which UI is to be found
 	UIAddr string
 
-	addr      = eventual.NewValue()
-	socksAddr = eventual.NewValue()
+	addr                = eventual.NewValue()
+	socksAddr           = eventual.NewValue()
+	proxiedCONNECTPorts = []int{
+		// Standard HTTP(S) ports
+		80, 443,
+		// Common unprivileged HTTP(S) ports
+		8080, 8443,
+		// XMPP
+		5222, 5223, 5224,
+		// Android
+		5228, 5229,
+		// udpgw
+		7300,
+		// Google Hangouts TCP Ports (see https://support.google.com/a/answer/1279090?hl=en)
+		19305, 19306, 19307, 19308, 19309,
+	}
 )
 
 // Client is an HTTP proxy that accepts connections from local programs and
@@ -45,10 +59,6 @@ type Client struct {
 
 	// WriteTimeout: (optional) timeout for write ops
 	WriteTimeout time.Duration
-
-	cfgHolder atomic.Value
-	priorCfg  *ClientConfig
-	cfgMutex  sync.RWMutex
 
 	// Reverse proxy
 	rp eventual.Value
@@ -137,9 +147,9 @@ func (client *Client) ListenAndServeSOCKS5(requestedAddr string) error {
 
 	conf := &socks5.Config{
 		Dial: func(network, addr string) (net.Conn, error) {
-			port, err := client.portForAddress(addr)
-			if err != nil {
-				return nil, err
+			port, portErr := client.portForAddress(addr)
+			if portErr != nil {
+				return nil, portErr
 			}
 			return client.dialCONNECT(addr, port)
 		},
@@ -155,43 +165,20 @@ func (client *Client) ListenAndServeSOCKS5(requestedAddr string) error {
 
 // Configure updates the client's configuration. Configure can be called
 // before or after ListenAndServe, and can be called multiple times.
-func (client *Client) Configure(cfg *ClientConfig, deviceID string) {
-	client.cfgMutex.Lock()
-	defer client.cfgMutex.Unlock()
-
+func (client *Client) Configure(proxies map[string]*ChainedServerInfo, deviceID string) {
 	log.Debug("Configure() called")
-
-	if client.priorCfg != nil {
-		if reflect.DeepEqual(client.priorCfg, cfg) {
-			log.Debugf("Client configuration unchanged")
-			return
-		}
-		log.Debugf("Client configuration changed")
-	} else {
-		log.Debugf("Client configuration initialized")
-	}
-
-	log.Debugf("Requiring minimum QOS of %d", cfg.MinQOS)
-	client.cfgHolder.Store(cfg)
-
-	err := client.initBalancer(cfg, deviceID)
+	err := client.initBalancer(proxies, deviceID)
 	if err != nil {
 		log.Error(err)
 	} else {
 		client.rp.Set(client.newReverseProxy())
 	}
-
-	client.priorCfg = cfg
 }
 
 // Stop is called when the client is no longer needed. It closes the
 // client listener and underlying dialer connection pool
 func (client *Client) Stop() error {
 	return client.l.Close()
-}
-
-func (client *Client) cfg() *ClientConfig {
-	return client.cfgHolder.Load().(*ClientConfig)
 }
 
 func (client *Client) proxiedDialer(orig func(network, addr string) (net.Conn, error)) func(network, addr string) (net.Conn, error) {
@@ -246,7 +233,7 @@ func (client *Client) shouldSendToProxy(addr string, port int) bool {
 	if isLanternSpecialDomain(addr) {
 		return true
 	}
-	for _, proxiedPort := range client.cfg().ProxiedCONNECTPorts {
+	for _, proxiedPort := range proxiedCONNECTPorts {
 		if port == proxiedPort {
 			return true
 		}
@@ -272,4 +259,27 @@ func isLanternSpecialDomain(addr string) bool {
 
 func rewriteLanternSpecialDomain(addr string) string {
 	return UIAddr
+}
+
+// InConfigDir returns the path of the specified file name in the Lantern
+// configuration directory, using an alternate base configuration directory
+// if necessary for things like testing.
+func InConfigDir(configDir string, filename string) (string, error) {
+	cdir := configDir
+
+	if cdir == "" {
+		cdir = appdir.General("Lantern")
+	}
+
+	log.Debugf("Using config dir %v", cdir)
+	if _, err := os.Stat(cdir); err != nil {
+		if os.IsNotExist(err) {
+			// Create config dir
+			if err := os.MkdirAll(cdir, 0750); err != nil {
+				return "", fmt.Errorf("Unable to create configdir at %s: %s", cdir, err)
+			}
+		}
+	}
+
+	return filepath.Join(cdir, filename), nil
 }
