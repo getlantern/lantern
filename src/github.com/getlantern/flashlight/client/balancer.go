@@ -10,17 +10,17 @@ var bal = balancer.New(balancer.QualityFirst)
 
 // initBalancer takes hosts from cfg.ChainedServers and it uses them to create a
 // balancer.
-func (client *Client) initBalancer(cfg *ClientConfig, deviceID string) error {
-	if len(cfg.ChainedServers) == 0 {
+func (client *Client) initBalancer(proxies map[string]*ChainedServerInfo, deviceID string) error {
+	if len(proxies) == 0 {
 		return fmt.Errorf("No chained servers configured, not initializing balancer")
 	}
 	// The dialers slice must be large enough to handle all chained and obfs4
 	// servers.
-	dialers := make([]*balancer.Dialer, 0, len(cfg.ChainedServers))
+	dialers := make([]*balancer.Dialer, 0, len(proxies))
 
 	// Add chained (CONNECT proxy) servers.
-	log.Debugf("Adding %d chained servers", len(cfg.ChainedServers))
-	for _, s := range cfg.ChainedServers {
+	log.Debugf("Adding %d chained servers", len(proxies))
+	for _, s := range proxies {
 		dialer, err := ChainedDialer(s, deviceID)
 		if err != nil {
 			log.Errorf("Unable to configure chained server. Received error: %v", err)

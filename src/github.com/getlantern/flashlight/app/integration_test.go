@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -19,6 +20,7 @@ import (
 	"github.com/getlantern/waitforserver"
 	"github.com/getlantern/yaml"
 
+	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
 
 	"github.com/stretchr/testify/assert"
@@ -43,7 +45,7 @@ var (
 )
 
 func TestProxying(t *testing.T) {
-	config.CloudConfigPollInterval = 100 * time.Millisecond
+	//config.CloudConfigPollInterval = 100 * time.Millisecond
 
 	// Web server serves known content for testing
 	httpAddr, httpsAddr, err := startWebServer(t)
@@ -160,41 +162,82 @@ func startConfigServer(t *testing.T) (string, error) {
 
 func serveConfig(t *testing.T) func(http.ResponseWriter, *http.Request) {
 	return func(resp http.ResponseWriter, req *http.Request) {
-		obfs4 := atomic.LoadUint32(&useOBFS4) == 1
-		version := "1"
-		if obfs4 {
-			version = "2"
+		log.Debugf("Reading request path: %v", req.URL.String())
+		if strings.Contains(req.URL.String(), "global") {
+			writeGlobalConfig(t, resp, req)
+		} else if strings.Contains(req.URL.String(), "prox") {
+			writeProxyConfig(t, resp, req)
+		} else {
+			log.Errorf("Not requesting global or proxies in %v", req.URL.String())
+			resp.WriteHeader(http.StatusBadRequest)
 		}
-
-		if req.Header.Get(IfNoneMatch) == version {
-			resp.WriteHeader(http.StatusNotModified)
-			return
-		}
-
-		cfg, err := buildConfig(obfs4)
-		if err != nil {
-			t.Error(err)
-			resp.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		resp.Header().Set(Etag, version)
-		resp.WriteHeader(http.StatusOK)
-
-		w := gzip.NewWriter(resp)
-		w.Write(cfg)
-		w.Close()
 	}
 }
 
+func writeGlobalConfig(t *testing.T, resp http.ResponseWriter, req *http.Request) {
+	log.Debug("Writing global config")
+	obfs4 := atomic.LoadUint32(&useOBFS4) == 1
+	version := "1"
+	if obfs4 {
+		version = "2"
+	}
+
+	if req.Header.Get(IfNoneMatch) == version {
+		resp.WriteHeader(http.StatusNotModified)
+		return
+	}
+
+	cfg, err := buildGlobal()
+	if err != nil {
+		t.Error(err)
+		resp.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	resp.Header().Set(Etag, version)
+	resp.WriteHeader(http.StatusOK)
+
+	w := gzip.NewWriter(resp)
+	w.Write(cfg)
+	w.Close()
+}
+
+func writeProxyConfig(t *testing.T, resp http.ResponseWriter, req *http.Request) {
+	log.Debug("Writing proxy config")
+	obfs4 := atomic.LoadUint32(&useOBFS4) == 1
+	version := "1"
+	if obfs4 {
+		version = "2"
+	}
+
+	if req.Header.Get(IfNoneMatch) == version {
+		resp.WriteHeader(http.StatusNotModified)
+		return
+	}
+
+	cfg, err := buildProxies(obfs4)
+	if err != nil {
+		t.Error(err)
+		resp.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	resp.Header().Set(Etag, version)
+	resp.WriteHeader(http.StatusOK)
+
+	w := gzip.NewWriter(resp)
+	w.Write(cfg)
+	w.Close()
+}
+
 func writeConfig() error {
-	filename := "lantern-9999.99.99.yaml"
+	filename := "proxies.yaml"
 	err := os.Remove(filename)
 	if err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("Unable to delete existing yaml config: %v", err)
 	}
 
-	cfg, err := buildConfig(false)
+	cfg, err := buildProxies(false)
 	if err != nil {
 		return err
 	}
@@ -202,19 +245,19 @@ func writeConfig() error {
 	return ioutil.WriteFile(filename, cfg, 0644)
 }
 
-func buildConfig(obfs4 bool) ([]byte, error) {
-	bytes, err := ioutil.ReadFile("./config-template.yaml")
+func buildProxies(obfs4 bool) ([]byte, error) {
+	bytes, err := ioutil.ReadFile("./proxies-template.yaml")
 	if err != nil {
 		return nil, fmt.Errorf("Could not read config %v", err)
 	}
 
-	cfg := &config.Config{}
+	cfg := make(map[string]*client.ChainedServerInfo)
 	err = yaml.Unmarshal(bytes, cfg)
 	if err != nil {
 		return nil, fmt.Errorf("Could not unmarshal config %v", err)
 	}
 
-	srv := cfg.Client.ChainedServers["fallback-template"]
+	srv := cfg["fallback-template"]
 	srv.AuthToken = Token
 	if obfs4 {
 		srv.Addr = OBFS4ServerAddr
@@ -238,6 +281,26 @@ func buildConfig(obfs4 bool) ([]byte, error) {
 		}
 		srv.Cert = string(cert)
 	}
+	out, err := yaml.Marshal(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("Could not marshal config %v", err)
+	}
+
+	return out, nil
+}
+
+func buildGlobal() ([]byte, error) {
+	bytes, err := ioutil.ReadFile("./global-template.yaml")
+	if err != nil {
+		return nil, fmt.Errorf("Could not read config %v", err)
+	}
+
+	cfg := &config.Global{}
+	err = yaml.Unmarshal(bytes, cfg)
+	if err != nil {
+		return nil, fmt.Errorf("Could not unmarshal config %v", err)
+	}
+
 	out, err := yaml.Marshal(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("Could not marshal config %v", err)

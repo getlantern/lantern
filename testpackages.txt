@@ -43,4 +43,3 @@ github.com/getlantern/tlsdialer
 github.com/getlantern/waitforserver
 github.com/getlantern/wfilter
 github.com/getlantern/withtimeout
-github.com/getlantern/yamlconf

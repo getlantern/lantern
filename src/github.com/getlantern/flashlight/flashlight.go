@@ -1,13 +1,14 @@
 package flashlight
 
 import (
-	"fmt"
+	"crypto/x509"
 	"path/filepath"
 	"sync"
 
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
+	"github.com/getlantern/keyman"
 
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
@@ -79,48 +80,41 @@ func Run(httpProxyAddr string,
 	stickyConfig bool,
 	proxyAll func() bool,
 	flagsAsMap map[string]interface{},
-	beforeStart func(cfg *config.Config) bool,
-	afterStart func(cfg *config.Config),
-	onConfigUpdate func(cfg *config.Config),
+	beforeStart func() bool,
+	afterStart func(),
+	onConfigUpdate func(cfg *config.Global),
 	userConfig config.UserConfig,
 	onError func(err error),
 	deviceID string) error {
 	displayVersion()
 
-	log.Debug("Initializing configuration")
-	cfg, err := config.Init(userConfig, PackageVersion, configDir, stickyConfig, flagsAsMap)
-	if err != nil {
-		return fmt.Errorf("Unable to initialize configuration: %v", err)
+	cl := client.NewClient(proxyAll)
+
+	proxiesDispatch := func(conf interface{}) {
+		proxyMap := conf.(map[string]*client.ChainedServerInfo)
+		log.Debugf("Applying proxy config with proxies: %v", proxyMap)
+		cl.Configure(proxyMap, deviceID)
 	}
+	globalDispatch := func(conf interface{}) {
+		// Don't love the straight cast here, but we're also the ones defining
+		// the type in the factory method above.
+		cfg := conf.(*config.Global)
+		log.Debugf("Applying global config")
+		applyClientConfig(cl, cfg, deviceID)
+		onConfigUpdate(cfg)
+	}
+	config.Init(configDir, flagsAsMap, userConfig, proxiesDispatch, globalDispatch)
 
-	client := client.NewClient(proxyAll)
-	proxied.SetProxyAddr(client.Addr)
+	proxied.SetProxyAddr(cl.Addr)
 
-	if beforeStart(cfg) {
+	if beforeStart() {
 		log.Debug("Preparing to start client proxy")
 		geolookup.Refresh()
-		cfgMutex.Lock()
-		applyClientConfig(client, cfg, deviceID)
-		cfgMutex.Unlock()
-
-		go func() {
-			err := config.Run(func(updated *config.Config) {
-				log.Debug("Applying updated configuration")
-				cfgMutex.Lock()
-				applyClientConfig(client, updated, deviceID)
-				onConfigUpdate(updated)
-				cfgMutex.Unlock()
-				log.Debug("Applied updated configuration")
-			})
-			if err != nil {
-				onError(err)
-			}
-		}()
 
 		if socksProxyAddr != "" {
 			go func() {
 				log.Debug("Starting client SOCKS5 proxy")
-				err = client.ListenAndServeSOCKS5(socksProxyAddr)
+				err := cl.ListenAndServeSOCKS5(socksProxyAddr)
 				if err != nil {
 					log.Errorf("Unable to start SOCKS5 proxy: %v", err)
 				}
@@ -128,15 +122,9 @@ func Run(httpProxyAddr string,
 		}
 
 		log.Debug("Starting client HTTP proxy")
-		err = client.ListenAndServeHTTP(httpProxyAddr, func() {
+		err := cl.ListenAndServeHTTP(httpProxyAddr, func() {
 			log.Debug("Started client HTTP proxy")
-			// We finally tell the config package to start polling for new configurations.
-			// This is the final step because the config polling itself uses the full
-			// proxying capabilities of Lantern, so it needs everything to be properly
-			// set up with at least an initial bootstrap config (on first run) to
-			// complete successfully.
-			config.StartPolling()
-			afterStart(cfg)
+			afterStart()
 		})
 		if err != nil {
 			log.Errorf("Error starting client proxy: %v", err)
@@ -147,18 +135,28 @@ func Run(httpProxyAddr string,
 	return nil
 }
 
-func applyClientConfig(client *client.Client, cfg *config.Config, deviceID string) {
-	certs, err := cfg.GetTrustedCACerts()
+func applyClientConfig(client *client.Client, cfg *config.Global, deviceID string) {
+	certs, err := getTrustedCACerts(cfg)
 	if err != nil {
 		log.Errorf("Unable to get trusted ca certs, not configuring fronted: %s", err)
-	} else {
+	} else if cfg.Client != nil {
 		fronted.Configure(certs, cfg.Client.MasqueradeSets, filepath.Join(appdir.General("Lantern"), "masquerade_cache"))
 	}
 	configureLoggingOnce.Do(func() {
 		logging.Configure(cfg.CloudConfigCA, deviceID, Version, RevisionDate, cfg.BordaReportInterval, cfg.BordaSamplePercentage, cfg.LogglySamplePercentage)
 	})
-	// Update client configuration
-	client.Configure(cfg.Client, deviceID)
+}
+
+func getTrustedCACerts(cfg *config.Global) (pool *x509.CertPool, err error) {
+	certs := make([]string, 0, len(cfg.TrustedCAs))
+	for _, ca := range cfg.TrustedCAs {
+		certs = append(certs, ca.Cert)
+	}
+	pool, err = keyman.PoolContainingCerts(certs...)
+	if err != nil {
+		log.Errorf("Could not create pool %v", err)
+	}
+	return
 }
 
 func displayVersion() {

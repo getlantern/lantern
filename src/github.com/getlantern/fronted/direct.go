@@ -47,6 +47,8 @@ type direct struct {
 	toCache             chan *Masquerade
 }
 
+// Configure sets the masquerades to use, the trusted root CAs, and the
+// cache file for caching masquerades to set up direct domain fronting.
 func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade, cacheFile string) {
 	log.Trace("Configuring fronted")
 	if masquerades == nil || len(masquerades) == 0 {

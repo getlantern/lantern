@@ -1,342 +1,247 @@
 package config
 
 import (
-	"crypto/x509"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"os"
-	"path/filepath"
-	"regexp"
-	"sort"
 	"time"
-
-	"github.com/getlantern/appdir"
-	"github.com/getlantern/fronted"
-	"github.com/getlantern/golog"
-	"github.com/getlantern/keyman"
-	"github.com/getlantern/proxiedsites"
-	"github.com/getlantern/yaml"
-	"github.com/getlantern/yamlconf"
 
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/proxied"
+	"github.com/getlantern/rot13"
+	"github.com/getlantern/tarfs"
+	"github.com/getlantern/yaml"
 )
 
-const (
-	cloudfront = "cloudfront"
+// Config is an interface for getting proxy data saved locally, embedded
+// in the binary, or fetched over the network.
+type Config interface {
 
-	// DefaultUpdateServerURL is the URL to fetch updates from.
-	DefaultUpdateServerURL = "https://update.getlantern.org"
-)
+	// Saved returns a yaml config from disk.
+	saved() (interface{}, error)
 
-var (
-	log = golog.LoggerFor("flashlight.config")
-	m   *yamlconf.Manager
-	r   = regexp.MustCompile("\\d+\\.\\d+")
-)
+	// Embedded retrieves a yaml config embedded in the binary.
+	embedded([]byte, string) (interface{}, error)
 
-// Config contains general configuration for Lantern either set globally via
-// the cloud, in command line flags, or in local customizations during
-// development.
-type Config struct {
-	configDir              string
-	Version                int
-	CloudConfigCA          string
-	CPUProfile             string
-	MemProfile             string
-	UpdateServerURL        string
-	BordaReportInterval    time.Duration
-	BordaSamplePercentage  float64
-	LogglySamplePercentage float64
-	Client                 *client.ClientConfig
-	ProxiedSites           *proxiedsites.Config // List of proxied site domains that get routed through Lantern rather than accessed directly
-	TrustedCAs             []*fronted.CA
+	// Poll polls for new configs from a remote server and saves them to disk for
+	// future runs.
+	poll(UserConfig, chan interface{}, *chainedFrontedURLs, time.Duration)
 }
 
-// StartPolling starts the process of polling for new configuration files.
-func StartPolling() {
-	// No-op if already started.
-	m.StartPolling()
+type config struct {
+	filePath  string
+	obfuscate bool
+	saveChan  chan interface{}
+	factory   func() interface{}
 }
 
-// validateConfig checks whether the given config is valid and returns an error
-// if it isn't.
-func validateConfig(_cfg yamlconf.Config) error {
-	cfg, ok := _cfg.(*Config)
-	if !ok {
-		return fmt.Errorf("Config is not a flashlight config!")
-	}
-
-	nc := len(cfg.Client.ChainedServers)
-
-	log.Debugf("Found %v chained servers in config on disk", nc)
-	for _, v := range cfg.Client.ChainedServers {
-		log.Debugf("chained server: %v", v)
-	}
-	// The config will have more than one but fewer than 10 chained servers
-	// if it has been given a custom config with a custom chained server
-	// list
-	if nc <= 0 || nc > 10 {
-		return fmt.Errorf("Inappropriate number of custom chained servers found: %d", nc)
-	}
-	return nil
+// chainedFrontedURLs contains a chained and a fronted URL for fetching a config.
+type chainedFrontedURLs struct {
+	chained string
+	fronted string
 }
 
-func majorVersion(version string) string {
-	return r.FindString(version)
+// options specifies the options to use for piping config data back to the
+// dispatch processor function.
+type options struct {
+
+	// saveDir is the directory where we should save new configs and also look
+	// for existing saved configs.
+	saveDir string
+
+	// obfuscate specifies whether or not to obfuscate the config on disk.
+	obfuscate bool
+
+	// name specifies the name of the config file both on disk and in the
+	// embedded config that uses tarfs (the same in the interest of using
+	// configuration by convention).
+	name string
+
+	// urls are the chaines and fronted URLs to use for fetching this config.
+	urls *chainedFrontedURLs
+
+	// userConfig contains data for communicating the user details to upstream
+	// servers in HTTP headers, such as the pro token.
+	userConfig UserConfig
+
+	// yamlTemplater is a factory method for generating structs that will be used
+	// when unmarshalling yaml data.
+	yamlTemplater func() interface{}
+
+	// dispatch is essentially a callback function for processing retrieved
+	// yaml configs.
+	dispatch func(cfg interface{})
+
+	// embeddedData is the data for embedded configs, using tarfs.
+	embeddedData []byte
+
+	// sleep the time to sleep between config fetches.
+	sleep time.Duration
 }
 
-// Init initializes the configuration system.
+// pipeConfig creates a new config pipeline for reading a specified type of
+// config onto a channel for processing by a dispatch function. This will read
+// configs in the following order:
 //
-// version - the version of lantern
-// stickyConfig - if true, we ignore cloud updates
-// flags - map of flags (generally from command-line) that always get applied
-//         to the config.
-func Init(userConfig UserConfig, version string, configDir string, stickyConfig bool, flags map[string]interface{}) (*Config, error) {
-	// Request the config via either chained servers or direct fronted servers.
-	cf := proxied.ParallelPreferChained()
-	fetcher := NewFetcher(userConfig, cf, flags)
+// 1. Configs saved on disk, if any
+// 2. Configs embedded in the binary according to the specified name, if any.
+// 3. Configs fetched remotely, and those will be piped back over and over
+//   again as the remote configs change (but only if they change).
+func pipeConfig(opts *options) {
 
-	file := "lantern-" + version + ".yaml"
-	_, configPath, err := inConfigDir(configDir, file)
+	configChan := make(chan interface{})
+
+	go func() {
+		for {
+			cfg := <-configChan
+			opts.dispatch(cfg)
+		}
+	}()
+	configPath, err := client.InConfigDir(opts.saveDir, opts.name)
 	if err != nil {
 		log.Errorf("Could not get config path? %v", err)
+	}
+
+	log.Tracef("Obfuscating %v", opts.obfuscate)
+	conf := newConfig(configPath, opts.obfuscate, opts.yamlTemplater)
+
+	if saved, proxyErr := conf.saved(); proxyErr != nil {
+		log.Debugf("Could not load stored config %v", proxyErr)
+		if embedded, errr := conf.embedded(opts.embeddedData, opts.name); errr != nil {
+			log.Errorf("Could not load embedded config %v", errr)
+		} else {
+			log.Debugf("Sending embedded config for %v", name)
+			configChan <- embedded
+		}
+	} else {
+		log.Debugf("Sending saved config for %v", name)
+		configChan <- saved
+	}
+
+	// Now continually poll for new configs and pipe them back to the dispatch
+	// function.
+	go conf.poll(opts.userConfig, configChan, opts.urls, opts.sleep)
+}
+
+// newConfig create a new ProxyConfig instance that saves and looks for
+// saved data at the specified path.
+func newConfig(filePath string, obfuscate bool,
+	factory func() interface{}) Config {
+	cfg := &config{
+		filePath:  filePath,
+		obfuscate: obfuscate,
+		saveChan:  make(chan interface{}),
+		factory:   factory,
+	}
+
+	// Start separate go routine that saves newly fetched proxies to disk.
+	go cfg.save()
+	return cfg
+}
+
+func (conf *config) saved() (interface{}, error) {
+	infile, err := os.Open(conf.filePath)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to open config file %v for reading: %v", conf.filePath, err)
+	}
+	defer infile.Close()
+
+	var in io.Reader = infile
+	if conf.obfuscate {
+		in = rot13.NewReader(infile)
+	}
+
+	bytes, err := ioutil.ReadAll(in)
+	if err != nil {
+		return nil, fmt.Errorf("Error reading config from %v: %v", conf.filePath, err)
+	}
+
+	log.Tracef("Returning saved config at %v", conf.filePath)
+	return conf.unmarshall(bytes)
+}
+
+func (conf *config) embedded(data []byte, fileName string) (interface{}, error) {
+	fs, err := tarfs.New(data, "")
+	if err != nil {
+		log.Errorf("Could not read resources? %v", err)
 		return nil, err
 	}
 
-	m = &yamlconf.Manager{
-		FilePath: configPath,
-
-		EmptyConfig: func() yamlconf.Config {
-			return &Config{configDir: configDir}
-		},
-		PerSessionSetup: func(ycfg yamlconf.Config) error {
-			cfg := ycfg.(*Config)
-			return cfg.applyFlags(flags)
-		},
-		// Obfuscate on-disk contents of YAML file
-		Obfuscate: flags["readableconfig"] == nil || !flags["readableconfig"].(bool),
-	}
-
-	if stickyConfig {
-		log.Debug("stickyconfig set, using config from disk as-is")
-	} else {
-		m.ValidateConfig = validateConfig
-		m.DefaultConfig = MakeInitialConfig
-		m.CustomPoll = func(ycfg yamlconf.Config) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
-			return fetcher.pollForConfig(ycfg)
-		}
-	}
-	initial, err := m.Init()
-
-	var cfg *Config
+	// Get the yaml file from either the local file system or from an
+	// embedded resource, but ignore local file system files if they're
+	// empty.
+	bytes, err := fs.GetIgnoreLocalEmpty(fileName)
 	if err != nil {
-		log.Errorf("Error initializing config: %v", err)
-	} else {
-		cfg = initial.(*Config)
+		log.Errorf("Could not read embedded proxies %v", err)
+		return nil, err
 	}
-	log.Debug("Returning config")
-	return cfg, err
+
+	return conf.unmarshall(bytes)
 }
 
-// Run runs the configuration system.
-func Run(updateHandler func(updated *Config)) error {
+func (conf *config) poll(uc UserConfig,
+	configChan chan interface{}, urls *chainedFrontedURLs, sleep time.Duration) {
+	fetcher := newFetcher(uc, proxied.ParallelPreferChained(), urls)
+
 	for {
-		next := m.Next()
-		nextCfg := next.(*Config)
-		updateHandler(nextCfg)
+		if bytes, err := fetcher.fetch(); err != nil {
+			log.Errorf("Could not read fetched config %v", err)
+		} else if bytes == nil {
+			// This is what fetcher returns for not-modified.
+			log.Debug("Ignoring not modified response")
+		} else if cfg, err := conf.unmarshall(bytes); err != nil {
+			log.Errorf("Error fetching config: %v", err)
+		} else {
+			log.Debugf("Fetched config! %v", cfg)
+
+			// Push these to channels to avoid race conditions that might occur if
+			// we did these on go routines, for example.
+			conf.saveChan <- cfg
+			log.Debugf("Sent to save chan")
+			configChan <- cfg
+		}
+		time.Sleep(sleep)
 	}
 }
 
-// Update updates the configuration using the given mutator function.
-func Update(mutate func(cfg *Config) error) error {
-	return m.Update(func(ycfg yamlconf.Config) error {
-		return mutate(ycfg.(*Config))
-	})
+func (conf *config) unmarshall(bytes []byte) (interface{}, error) {
+	cfg := conf.factory()
+	if err := yaml.Unmarshal(bytes, cfg); err != nil {
+		return nil, fmt.Errorf("Error unmarshaling config yaml from %v: %v", string(bytes), err)
+	}
+	return cfg, nil
 }
 
-func inConfigDir(configDir string, filename string) (string, string, error) {
-	cdir := configDir
-
-	if cdir == "" {
-		cdir = appdir.General("Lantern")
-	}
-
-	log.Debugf("Using config dir %v", cdir)
-	if _, err := os.Stat(cdir); err != nil {
-		if os.IsNotExist(err) {
-			// Create config dir
-			if err := os.MkdirAll(cdir, 0750); err != nil {
-				return "", "", fmt.Errorf("Unable to create configdir at %s: %s", cdir, err)
-			}
+func (conf *config) save() {
+	for {
+		in := <-conf.saveChan
+		if err := conf.saveOne(in); err != nil {
+			log.Errorf("Could not save %v, %v", in, err)
 		}
 	}
-
-	return cdir, filepath.Join(cdir, filename), nil
 }
 
-func (cfg *Config) GetTrustedCACerts() (pool *x509.CertPool, err error) {
-	certs := make([]string, 0, len(cfg.TrustedCAs))
-	for _, ca := range cfg.TrustedCAs {
-		certs = append(certs, ca.Cert)
-	}
-	pool, err = keyman.PoolContainingCerts(certs...)
+func (conf *config) saveOne(in interface{}) error {
+	bytes, err := yaml.Marshal(in)
 	if err != nil {
-		log.Errorf("Could not create pool %v", err)
-	}
-	return
-}
-
-// GetVersion implements the method from interface yamlconf.Config
-func (cfg *Config) GetVersion() int {
-	return cfg.Version
-}
-
-// SetVersion implements the method from interface yamlconf.Config
-func (cfg *Config) SetVersion(version int) {
-	cfg.Version = version
-}
-
-// applyFlags updates this Config from any command-line flags that were passed
-// in.
-func (cfg *Config) applyFlags(flags map[string]interface{}) error {
-	if cfg.Client == nil {
-		cfg.Client = &client.ClientConfig{}
+		return fmt.Errorf("Unable to marshal config yaml: %v", err)
 	}
 
-	var visitErr error
-
-	// Visit all flags that have been set and copy to config
-	for key, value := range flags {
-		switch key {
-		// General
-		case "cloudconfigca":
-			cfg.CloudConfigCA = value.(string)
-		case "cpuprofile":
-			cfg.CPUProfile = value.(string)
-		case "memprofile":
-			cfg.MemProfile = value.(string)
-		case "borda-report-interval":
-			cfg.BordaReportInterval = value.(time.Duration)
-		case "borda-sample-percentage":
-			cfg.BordaSamplePercentage = value.(float64)
-		case "loggly-sample-percentage":
-			cfg.LogglySamplePercentage = value.(float64)
-		}
-	}
-	if visitErr != nil {
-		return visitErr
-	}
-
-	return nil
-}
-
-// ApplyDefaults implements the method from interface yamlconf.Config
-//
-// ApplyDefaults populates default values on a Config to make sure that we have
-// a minimum viable config for running.  As new settings are added to
-// flashlight, this function should be updated to provide sensible defaults for
-// those settings.
-func (cfg *Config) ApplyDefaults() {
-	if cfg.UpdateServerURL == "" {
-		cfg.UpdateServerURL = "https://update.getlantern.org"
-	}
-
-	if cfg.Client == nil {
-		cfg.Client = &client.ClientConfig{}
-	}
-
-	cfg.applyClientDefaults()
-
-	if cfg.ProxiedSites == nil {
-		log.Debugf("Adding empty proxiedsites")
-		cfg.ProxiedSites = &proxiedsites.Config{
-			Delta: &proxiedsites.Delta{
-				Additions: []string{},
-				Deletions: []string{},
-			},
-			Cloud: []string{},
-		}
-	}
-
-	if cfg.ProxiedSites.Cloud == nil || len(cfg.ProxiedSites.Cloud) == 0 {
-		log.Debugf("Loading default cloud proxiedsites")
-		cfg.ProxiedSites.Cloud = defaultProxiedSites
-	}
-
-	if cfg.TrustedCAs == nil || len(cfg.TrustedCAs) == 0 {
-		cfg.TrustedCAs = fronted.DefaultTrustedCAs
-	}
-}
-
-func (cfg *Config) applyClientDefaults() {
-	// Make sure we always have at least one masquerade set
-	if cfg.Client.MasqueradeSets == nil {
-		cfg.Client.MasqueradeSets = make(map[string][]*fronted.Masquerade)
-	}
-	if len(cfg.Client.MasqueradeSets) == 0 {
-		cfg.Client.MasqueradeSets[cloudfront] = fronted.DefaultCloudfrontMasquerades
-	}
-
-	// Always make sure we have a map of ChainedServers
-	if cfg.Client.ChainedServers == nil {
-		cfg.Client.ChainedServers = make(map[string]*client.ChainedServerInfo)
-	}
-
-	// Make sure we always have at least one server
-	if len(cfg.Client.ChainedServers) == 0 {
-		cfg.Client.ChainedServers = make(map[string]*client.ChainedServerInfo, len(fallbacks))
-		for key, fb := range fallbacks {
-			cfg.Client.ChainedServers[key] = fb
-		}
-	}
-
-	if cfg.Client.ProxiedCONNECTPorts == nil {
-		cfg.Client.ProxiedCONNECTPorts = []int{
-			// Standard HTTP(S) ports
-			80, 443,
-			// Common unprivileged HTTP(S) ports
-			8080, 8443,
-			// XMPP
-			5222, 5223, 5224,
-			// Android
-			5228, 5229,
-			// udpgw
-			7300,
-			// Google Hangouts TCP Ports (see https://support.google.com/a/answer/1279090?hl=en)
-			19305, 19306, 19307, 19308, 19309,
-		}
-	}
-}
-
-// updateFrom creates a new Config by 'merging' the given yaml into this Config.
-// The masquerade sets, the collections of servers, and the trusted CAs in the
-// update yaml  completely replace the ones in the original Config.
-func (cfg *Config) updateFrom(updateBytes []byte) error {
-	// XXX: does this need a mutex, along with everyone that uses the config?
-	oldChainedServers := cfg.Client.ChainedServers
-	oldMasqueradeSets := cfg.Client.MasqueradeSets
-	oldTrustedCAs := cfg.TrustedCAs
-	cfg.Client.ChainedServers = map[string]*client.ChainedServerInfo{}
-	cfg.Client.MasqueradeSets = map[string][]*fronted.Masquerade{}
-	cfg.TrustedCAs = []*fronted.CA{}
-	err := yaml.Unmarshal(updateBytes, cfg)
+	outfile, err := os.OpenFile(conf.filePath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
-		cfg.Client.ChainedServers = oldChainedServers
-		cfg.Client.MasqueradeSets = oldMasqueradeSets
-		cfg.TrustedCAs = oldTrustedCAs
-		return fmt.Errorf("Unable to unmarshal YAML for update: %s", err)
+		return fmt.Errorf("Unable to open file %v for writing: %v", conf.filePath, err)
 	}
-	// Deduplicate global proxiedsites
-	if len(cfg.ProxiedSites.Cloud) > 0 {
-		wlDomains := make(map[string]bool)
-		for _, domain := range cfg.ProxiedSites.Cloud {
-			wlDomains[domain] = true
-		}
-		cfg.ProxiedSites.Cloud = make([]string, 0, len(wlDomains))
-		for domain := range wlDomains {
-			cfg.ProxiedSites.Cloud = append(cfg.ProxiedSites.Cloud, domain)
-		}
-		sort.Strings(cfg.ProxiedSites.Cloud)
+	defer outfile.Close()
+
+	var out io.Writer = outfile
+	if conf.obfuscate {
+		out = rot13.NewWriter(outfile)
 	}
+	_, err = out.Write(bytes)
+	if err != nil {
+		return fmt.Errorf("Unable to write yaml to file %v: %v", conf.filePath, err)
+	}
+	log.Debugf("Wrote file at %v", conf.filePath)
 	return nil
 }
