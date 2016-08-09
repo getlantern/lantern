@@ -13,6 +13,12 @@ In a project that already has its associate Transifex setup configured, such as 
 tx pull -a
 ```
 
+or to only pull translations with a minimum number of translations complete, for example:
+
+```
+tx pull --minimum 100 -f
+```
+
 ##Pushing new / updated source files to Transifex
 
 ```
