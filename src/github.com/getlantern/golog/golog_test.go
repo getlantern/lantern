@@ -20,22 +20,22 @@ import (
 var (
 	expectedLog      = "SEVERITY myprefix: golog_test.go:999 Hello world\nSEVERITY myprefix: golog_test.go:999 Hello true [cvarA=a cvarB=b op=name root_op=name]\n"
 	expectedErrorLog = `ERROR myprefix: golog_test.go:999 Hello world [cvarC=c cvarD=d error=Hello %v error_location=github.com/getlantern/golog.TestError (golog_test.go:999) error_text=Hello world error_type=errors.Error op=name root_op=name]
-  at github.com/getlantern/golog.TestError (golog_test.go:999)
-  at testing.tRunner (testing.go:999)
-  at runtime.goexit (asm_amd999.s:999)
-Caused by: world
-  at github.com/getlantern/golog.errorReturner (golog_test.go:999)
-  at github.com/getlantern/golog.TestError (golog_test.go:999)
-  at testing.tRunner (testing.go:999)
-  at runtime.goexit (asm_amd999.s:999)
+ERROR myprefix: golog_test.go:999   at github.com/getlantern/golog.TestError (golog_test.go:999)
+ERROR myprefix: golog_test.go:999   at testing.tRunner (testing.go:999)
+ERROR myprefix: golog_test.go:999   at runtime.goexit (asm_amd999.s:999)
+ERROR myprefix: golog_test.go:999 Caused by: world
+ERROR myprefix: golog_test.go:999   at github.com/getlantern/golog.errorReturner (golog_test.go:999)
+ERROR myprefix: golog_test.go:999   at github.com/getlantern/golog.TestError (golog_test.go:999)
+ERROR myprefix: golog_test.go:999   at testing.tRunner (testing.go:999)
+ERROR myprefix: golog_test.go:999   at runtime.goexit (asm_amd999.s:999)
 ERROR myprefix: golog_test.go:999 Hello true [cvarA=a cvarB=b cvarC=c error=%v %v error_location=github.com/getlantern/golog.TestError (golog_test.go:999) error_text=Hello true error_type=errors.Error op=name999 root_op=name999]
-  at github.com/getlantern/golog.TestError (golog_test.go:999)
-  at testing.tRunner (testing.go:999)
-  at runtime.goexit (asm_amd999.s:999)
-Caused by: Hello
-  at github.com/getlantern/golog.TestError (golog_test.go:999)
-  at testing.tRunner (testing.go:999)
-  at runtime.goexit (asm_amd999.s:999)
+ERROR myprefix: golog_test.go:999   at github.com/getlantern/golog.TestError (golog_test.go:999)
+ERROR myprefix: golog_test.go:999   at testing.tRunner (testing.go:999)
+ERROR myprefix: golog_test.go:999   at runtime.goexit (asm_amd999.s:999)
+ERROR myprefix: golog_test.go:999 Caused by: Hello
+ERROR myprefix: golog_test.go:999   at github.com/getlantern/golog.TestError (golog_test.go:999)
+ERROR myprefix: golog_test.go:999   at testing.tRunner (testing.go:999)
+ERROR myprefix: golog_test.go:999   at runtime.goexit (asm_amd999.s:999)
 `
 	expectedTraceLog = "TRACE myprefix: golog_test.go:999 Hello world\nTRACE myprefix: golog_test.go:999 Hello true\nTRACE myprefix: golog_test.go:999 Gravy\nTRACE myprefix: golog_test.go:999 TraceWriter closed due to unexpected error: EOF\n"
 	expectedStdLog   = expectedLog
