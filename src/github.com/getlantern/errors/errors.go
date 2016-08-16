@@ -59,7 +59,6 @@ package errors
 
 import (
 	"bufio"
-	"bytes"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/hex"
@@ -105,8 +104,11 @@ type Error interface {
 	// This can be useful when performing analytics on the error.
 	ErrorClean() string
 
-	// MultiLinePrinter implements the interface golog.MultiLine
-	MultiLinePrinter() func(buf *bytes.Buffer) bool
+	// PrintStack prints the stacktrace when this Error is created, together
+	// with the cause of this Error (if any), then the stacktrace when the
+	// cause is created, and so on.
+	// The output is an analogy of Java's stacktrace.
+	PrintStack(w io.Writer, linePrefix string)
 
 	// Op attaches a hint of the operation triggers this Error. Many error types
 	// returned by net and os package have Op pre-filled.
@@ -223,53 +225,19 @@ func (e *structured) Error() string {
 	return e.data["error_text"].(string) + e.hiddenID
 }
 
-func (e *structured) MultiLinePrinter() func(buf *bytes.Buffer) bool {
-	first := true
-	indent := false
+func (e *structured) PrintStack(w io.Writer, linePrefix string) {
 	err := e
-	stackPosition := 0
-	switchedCause := false
-	return func(buf *bytes.Buffer) bool {
-		if indent {
-			buf.WriteString("  ")
-		}
-		if first {
-			buf.WriteString(e.Error())
-			first = false
-			indent = true
-			return true
-		}
-		if switchedCause {
-			fmt.Fprintf(buf, "Caused by: %v", err)
-			if err.callStack != nil && len(err.callStack) > 0 {
-				switchedCause = false
-				indent = true
-				return true
-			}
-			if err.cause == nil {
-				return false
-			}
-			err = err.cause.(*structured)
-			return true
-		}
-		if stackPosition < len(err.callStack) {
-			buf.WriteString("at ")
+	for {
+		for stackPosition := 0; stackPosition < len(err.callStack); stackPosition++ {
 			call := err.callStack[stackPosition]
-			fmt.Fprintf(buf, "%+n (%s:%d)", call, call, call)
-			stackPosition++
+			fmt.Fprintf(w, "%s  at %+n (%s:%d)\n", linePrefix, call, call, call)
 		}
-		if stackPosition >= len(err.callStack) {
-			switch cause := err.cause.(type) {
-			case *structured:
-				err = cause
-				indent = false
-				stackPosition = 0
-				switchedCause = true
-			default:
-				return false
-			}
+		cause, ok := err.cause.(*structured)
+		if !ok || cause == nil {
+			return
 		}
-		return err != nil
+		err = cause
+		fmt.Fprintf(w, "%sCaused by: %v\n", linePrefix, err)
 	}
 }
 

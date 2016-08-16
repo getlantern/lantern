@@ -2,7 +2,6 @@
 // debug messages to stdout. Trace logging is also supported.
 // Trace logs go to stdout as well, but they are only written if the program
 // is run with environment variable "TRACE=true".
-// A stack dump will be printed after the message if "PRINT_STACK=true".
 package golog
 
 import (
@@ -65,16 +64,6 @@ func RegisterReporter(reporter ErrorReporter) {
 type outputs struct {
 	ErrorOut io.Writer
 	DebugOut io.Writer
-}
-
-// MultiLine is an interface for arguments that support multi-line output.
-type MultiLine interface {
-	// MultiLinePrinter returns a function that can be used to print the
-	// multi-line output. The returned function writes one line to the buffer and
-	// returns true if there are more lines to write. This function does not need
-	// to take care of trailing carriage returns, golog handles that
-	// automatically.
-	MultiLinePrinter() func(buf *bytes.Buffer) bool
 }
 
 // ErrorReporter is a function to which the logger will report errors.
@@ -145,20 +134,15 @@ func LoggerFor(prefix string) Logger {
 		l.traceOut = ioutil.Discard
 	}
 
-	printStack := os.Getenv("PRINT_STACK")
-	l.printStack, _ = strconv.ParseBool(printStack)
-
 	return l
 }
 
 type logger struct {
-	prefix     string
-	traceOn    bool
-	traceOut   io.Writer
-	printStack bool
-	outs       atomic.Value
-	pc         []uintptr
-	funcForPc  *runtime.Func
+	prefix   string
+	traceOn  bool
+	traceOut io.Writer
+	outs     atomic.Value
+	pc       []uintptr
 }
 
 // attaches the file and line number corresponding to
@@ -175,33 +159,20 @@ func (l *logger) print(out io.Writer, skipFrames int, severity string, arg inter
 	defer bufferPool.Put(buf)
 
 	linePrefix := l.linePrefix(skipFrames)
-	writeHeader := func() {
-		buf.WriteString(severity)
-		buf.WriteString(" ")
-		buf.WriteString(linePrefix)
-	}
+	sp := severity + " " + linePrefix
+	buf.WriteString(sp)
 	if arg != nil {
-		ml, isMultiline := arg.(MultiLine)
-		if !isMultiline {
-			writeHeader()
+		if err, isError := arg.(errors.Error); isError && err != nil {
+			buf.WriteString(err.Error())
+			printContext(buf, arg)
+			buf.WriteByte('\n')
+			if severity == "FATAL" || severity == "ERROR" {
+				err.PrintStack(buf, sp)
+			}
+		} else {
 			fmt.Fprintf(buf, "%v", arg)
 			printContext(buf, arg)
 			buf.WriteByte('\n')
-		} else {
-			mlp := ml.MultiLinePrinter()
-			first := true
-			for {
-				writeHeader()
-				more := mlp(buf)
-				if first {
-					printContext(buf, arg)
-					first = false
-				}
-				buf.WriteByte('\n')
-				if !more {
-					break
-				}
-			}
 		}
 	}
 	b := []byte(hidden.Clean(buf.String()))
@@ -209,10 +180,6 @@ func (l *logger) print(out io.Writer, skipFrames int, severity string, arg inter
 	if err != nil {
 		errorOnLogging(err)
 	}
-	if l.printStack {
-		l.doPrintStack()
-	}
-
 	return linePrefix
 }
 
@@ -231,9 +198,6 @@ func (l *logger) printf(out io.Writer, skipFrames int, severity string, err erro
 	_, err2 := out.Write(b)
 	if err2 != nil {
 		errorOnLogging(err)
-	}
-	if l.printStack {
-		l.doPrintStack()
 	}
 	return linePrefix
 }
@@ -347,26 +311,6 @@ func (w *errorWriter) Write(p []byte) (n int, err error) {
 
 func (l *logger) AsStdLogger() *log.Logger {
 	return log.New(&errorWriter{l}, "", 0)
-}
-
-func (l *logger) doPrintStack() {
-	var b []byte
-	buf := bytes.NewBuffer(b)
-	for _, pc := range l.pc {
-		funcForPc := runtime.FuncForPC(pc)
-		if funcForPc == nil {
-			break
-		}
-		name := funcForPc.Name()
-		if strings.HasPrefix(name, "runtime.") {
-			break
-		}
-		file, line := funcForPc.FileLine(pc)
-		fmt.Fprintf(buf, "\t%s\t%s: %d\n", name, file, line)
-	}
-	if _, err := buf.WriteTo(os.Stderr); err != nil {
-		errorOnLogging(err)
-	}
 }
 
 func errorOnLogging(err error) {
