@@ -108,7 +108,7 @@ type Error interface {
 	// with the cause of this Error (if any), then the stacktrace when the
 	// cause is created, and so on.
 	// The output is an analogy of Java's stacktrace.
-	PrintStack(io.Writer)
+	PrintStack(io.Writer, string)
 
 	// Op attaches a hint of the operation triggers this Error. Many error types
 	// returned by net and os package have Op pre-filled.
@@ -225,19 +225,19 @@ func (e *structured) Error() string {
 	return e.data["error_text"].(string) + e.hiddenID
 }
 
-func (e *structured) PrintStack(w io.Writer) {
+func (e *structured) PrintStack(w io.Writer, linePrefix string) {
 	err := e
 	for {
 		for stackPosition := 0; stackPosition < len(err.callStack); stackPosition++ {
 			call := err.callStack[stackPosition]
-			fmt.Fprintf(w, "  at %+n (%s:%d)\n", call, call, call)
+			fmt.Fprintf(w, "%s  at %+n (%s:%d)\n", linePrefix, call, call, call)
 		}
 		cause, ok := err.cause.(*structured)
 		if !ok || cause == nil {
 			return
 		}
 		err = cause
-		fmt.Fprintf(w, "Caused by: %v\n", err)
+		fmt.Fprintf(w, "%sCaused by: %v\n", linePrefix, err)
 	}
 }
 

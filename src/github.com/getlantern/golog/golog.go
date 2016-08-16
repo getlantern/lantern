@@ -159,16 +159,15 @@ func (l *logger) print(out io.Writer, skipFrames int, severity string, arg inter
 	defer bufferPool.Put(buf)
 
 	linePrefix := l.linePrefix(skipFrames)
-	buf.WriteString(severity)
-	buf.WriteString(" ")
-	buf.WriteString(linePrefix)
+	sp := severity + " " + linePrefix
+	buf.WriteString(sp)
 	if arg != nil {
 		if err, isError := arg.(errors.Error); isError && err != nil {
 			buf.WriteString(err.Error())
 			printContext(buf, arg)
 			buf.WriteByte('\n')
 			if severity == "FATAL" || severity == "ERROR" {
-				err.PrintStack(buf)
+				err.PrintStack(buf, sp)
 			}
 		} else {
 			fmt.Fprintf(buf, "%v", arg)

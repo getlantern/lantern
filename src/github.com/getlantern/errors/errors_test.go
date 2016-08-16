@@ -64,7 +64,7 @@ func TestNewWithCause(t *testing.T) {
 	buf := &bytes.Buffer{}
 	buf.WriteString(outer.Error())
 	buf.WriteByte('\n')
-	outer.PrintStack(buf)
+	outer.PrintStack(buf, "")
 	expected := `Hello World
   at github.com/getlantern/errors.TestNewWithCause (errors_test.go:999)
   at testing.tRunner (testing.go:999)
