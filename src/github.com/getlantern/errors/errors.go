@@ -108,7 +108,7 @@ type Error interface {
 	// with the cause of this Error (if any), then the stacktrace when the
 	// cause is created, and so on.
 	// The output is an analogy of Java's stacktrace.
-	PrintStack(io.Writer, string)
+	PrintStack(w io.Writer, linePrefix string)
 
 	// Op attaches a hint of the operation triggers this Error. Many error types
 	// returned by net and os package have Op pre-filled.
