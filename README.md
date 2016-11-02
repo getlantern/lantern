@@ -1,4 +1,4 @@
-# lantern [![Travis CI Status](https://travis-ci.org/getlantern/lantern.svg?branch=devel)](https://travis-ci.org/getlantern/lantern)&nbsp;[![Coverage Status](https://coveralls.io/repos/getlantern/lantern/badge.png?branch=devel)](https://coveralls.io/r/getlantern/lantern)&nbsp;[![ProjectTalk](http://www.projecttalk.io/images/gh_badge-3e578a9f437f841de7446bab9a49d103.svg?vsn=d)] (http://www.projecttalk.io/boards/getlantern%2Flantern?utm_campaign=gh-badge&utm_medium=badge&utm_source=github)
+# lantern [![Travis CI Status](https://travis-ci.org/getlantern/lantern.svg?branch=devel)](https://travis-ci.org/getlantern/lantern)&nbsp;[![Coverage Status](https://coveralls.io/repos/getlantern/lantern/badge.png?branch=devel)](https://coveralls.io/r/getlantern/lantern)
 
 ## [🔴蓝灯(Lantern)最新版下载点这里🔴](https://github.com/getlantern/forum#蓝灯lantern最新版本下载)
 
