@@ -1,3 +1,0 @@
-[submodule "src/github.com/getlantern/http-proxy-lantern"]
-	path = src/github.com/getlantern/http-proxy-lantern
-	url = git@github.com:getlantern/http-proxy-lantern.git

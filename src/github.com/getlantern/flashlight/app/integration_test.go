@@ -15,7 +15,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/getlantern/http-proxy-lantern"
 	"github.com/getlantern/tlsdefaults"
 	"github.com/getlantern/waitforserver"
 	"github.com/getlantern/yaml"
