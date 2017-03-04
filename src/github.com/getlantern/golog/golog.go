@@ -1,8 +1,7 @@
-// package golog implements logging functions that log errors to stderr and
+// Package golog implements logging functions that log errors to stderr and
 // debug messages to stdout. Trace logging is also supported.
 // Trace logs go to stdout as well, but they are only written if the program
 // is run with environment variable "TRACE=true".
-// A stack dump will be printed after the message if "PRINT_STACK=true".
 package golog
 
 import (
@@ -15,13 +14,24 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"sync/atomic"
+
+	"github.com/getlantern/errors"
+	"github.com/getlantern/hidden"
+	"github.com/getlantern/ops"
+	"github.com/oxtoacart/bpool"
 )
 
 var (
-	outs atomic.Value
+	outs           atomic.Value
+	reporters      []ErrorReporter
+	reportersMutex sync.RWMutex
+
+	bufferPool = bpool.NewBufferPool(200)
 )
 
 func init() {
@@ -43,10 +53,25 @@ func GetOutputs() *outputs {
 	return outs.Load().(*outputs)
 }
 
+// RegisterReporter registers the given ErrorReporter. All logged Errors are
+// sent to this reporter.
+func RegisterReporter(reporter ErrorReporter) {
+	reportersMutex.Lock()
+	reporters = append(reporters, reporter)
+	reportersMutex.Unlock()
+}
+
 type outputs struct {
 	ErrorOut io.Writer
 	DebugOut io.Writer
 }
+
+// ErrorReporter is a function to which the logger will report errors.
+// It the given error and corresponding message along with associated ops
+// context. This should return quickly as it executes on the critical code
+// path. The recommended approach is to buffer as much as possible and discard
+// new reports if the buffer becomes saturated.
+type ErrorReporter func(err error, linePrefix string, ctx map[string]interface{})
 
 type Logger interface {
 	// Debug logs to stdout
@@ -55,9 +80,10 @@ type Logger interface {
 	Debugf(message string, args ...interface{})
 
 	// Error logs to stderr
-	Error(arg interface{})
-	// Errorf logs to stderr
-	Errorf(message string, args ...interface{})
+	Error(arg interface{}) error
+	// Errorf logs to stderr. It returns the first argument that's an error, or
+	// a new error built using fmt.Errorf if none of the arguments are errors.
+	Errorf(message string, args ...interface{}) error
 
 	// Fatal logs to stderr and then exits with status 1
 	Fatal(arg interface{})
@@ -108,20 +134,15 @@ func LoggerFor(prefix string) Logger {
 		l.traceOut = ioutil.Discard
 	}
 
-	printStack := os.Getenv("PRINT_STACK")
-	l.printStack, _ = strconv.ParseBool(printStack)
-
 	return l
 }
 
 type logger struct {
-	prefix     string
-	traceOn    bool
-	traceOut   io.Writer
-	printStack bool
-	outs       atomic.Value
-	pc         []uintptr
-	funcForPc  *runtime.Func
+	prefix   string
+	traceOn  bool
+	traceOut io.Writer
+	outs     atomic.Value
+	pc       []uintptr
 }
 
 // attaches the file and line number corresponding to
@@ -129,28 +150,56 @@ type logger struct {
 func (l *logger) linePrefix(skipFrames int) string {
 	runtime.Callers(skipFrames, l.pc)
 	funcForPc := runtime.FuncForPC(l.pc[0])
-	file, line := funcForPc.FileLine(l.pc[0])
+	file, line := funcForPc.FileLine(l.pc[0] - 1)
 	return fmt.Sprintf("%s%s:%d ", l.prefix, filepath.Base(file), line)
 }
 
-func (l *logger) print(out io.Writer, skipFrames int, severity string, arg interface{}) {
-	_, err := fmt.Fprintf(out, severity+" "+l.linePrefix(skipFrames)+"%s\n", arg)
+func (l *logger) print(out io.Writer, skipFrames int, severity string, arg interface{}) string {
+	buf := bufferPool.Get()
+	defer bufferPool.Put(buf)
+
+	linePrefix := l.linePrefix(skipFrames)
+	sp := severity + " " + linePrefix
+	buf.WriteString(sp)
+	if arg != nil {
+		if err, isError := arg.(errors.Error); isError && err != nil {
+			buf.WriteString(err.Error())
+			printContext(buf, arg)
+			buf.WriteByte('\n')
+			if severity == "FATAL" || severity == "ERROR" {
+				err.PrintStack(buf, sp)
+			}
+		} else {
+			fmt.Fprintf(buf, "%v", arg)
+			printContext(buf, arg)
+			buf.WriteByte('\n')
+		}
+	}
+	b := []byte(hidden.Clean(buf.String()))
+	_, err := out.Write(b)
 	if err != nil {
 		errorOnLogging(err)
 	}
-	if l.printStack {
-		l.doPrintStack()
-	}
+	return linePrefix
 }
 
-func (l *logger) printf(out io.Writer, skipFrames int, severity string, message string, args ...interface{}) {
-	_, err := fmt.Fprintf(out, severity+" "+l.linePrefix(skipFrames)+message+"\n", args...)
-	if err != nil {
+func (l *logger) printf(out io.Writer, skipFrames int, severity string, err error, message string, args ...interface{}) string {
+	buf := bufferPool.Get()
+	defer bufferPool.Put(buf)
+
+	linePrefix := l.linePrefix(skipFrames)
+	buf.WriteString(severity)
+	buf.WriteString(" ")
+	buf.WriteString(linePrefix)
+	fmt.Fprintf(buf, message, args...)
+	printContext(buf, err)
+	buf.WriteByte('\n')
+	b := []byte(hidden.Clean(buf.String()))
+	_, err2 := out.Write(b)
+	if err2 != nil {
 		errorOnLogging(err)
 	}
-	if l.printStack {
-		l.doPrintStack()
-	}
+	return linePrefix
 }
 
 func (l *logger) Debug(arg interface{}) {
@@ -158,15 +207,27 @@ func (l *logger) Debug(arg interface{}) {
 }
 
 func (l *logger) Debugf(message string, args ...interface{}) {
-	l.printf(GetOutputs().DebugOut, 4, "DEBUG", message, args...)
+	l.printf(GetOutputs().DebugOut, 4, "DEBUG", nil, message, args...)
 }
 
-func (l *logger) Error(arg interface{}) {
-	l.print(GetOutputs().ErrorOut, 4, "ERROR", arg)
+func (l *logger) Error(arg interface{}) error {
+	return l.errorSkipFrames(arg, 1)
 }
 
-func (l *logger) Errorf(message string, args ...interface{}) {
-	l.printf(GetOutputs().ErrorOut, 4, "ERROR", message, args...)
+func (l *logger) errorSkipFrames(arg interface{}, skipFrames int) error {
+	var err error
+	switch e := arg.(type) {
+	case error:
+		err = e
+	default:
+		err = fmt.Errorf("%v", e)
+	}
+	linePrefix := l.print(GetOutputs().ErrorOut, skipFrames+4, "ERROR", err)
+	return report(err, linePrefix)
+}
+
+func (l *logger) Errorf(message string, args ...interface{}) error {
+	return l.errorSkipFrames(errors.NewOffset(1, message, args...), 1)
 }
 
 func (l *logger) Fatal(arg interface{}) {
@@ -175,7 +236,7 @@ func (l *logger) Fatal(arg interface{}) {
 }
 
 func (l *logger) Fatalf(message string, args ...interface{}) {
-	l.printf(GetOutputs().ErrorOut, 4, "FATAL", message, args...)
+	l.printf(GetOutputs().ErrorOut, 4, "FATAL", nil, message, args...)
 	os.Exit(1)
 }
 
@@ -185,9 +246,9 @@ func (l *logger) Trace(arg interface{}) {
 	}
 }
 
-func (l *logger) Tracef(fmt string, args ...interface{}) {
+func (l *logger) Tracef(message string, args ...interface{}) {
 	if l.traceOn {
-		l.printf(GetOutputs().DebugOut, 4, "TRACE", fmt, args...)
+		l.printf(GetOutputs().DebugOut, 4, "TRACE", nil, message, args...)
 	}
 }
 
@@ -224,7 +285,7 @@ func (l *logger) newTraceWriter() io.Writer {
 				// Log the line (minus the trailing newline)
 				l.print(GetOutputs().DebugOut, 6, "TRACE", line[:len(line)-1])
 			} else {
-				l.printf(GetOutputs().DebugOut, 6, "TRACE", "TraceWriter closed due to unexpected error: %v", err)
+				l.printf(GetOutputs().DebugOut, 6, "TRACE", nil, "TraceWriter closed due to unexpected error: %v", err)
 				return
 			}
 		}
@@ -252,26 +313,49 @@ func (l *logger) AsStdLogger() *log.Logger {
 	return log.New(&errorWriter{l}, "", 0)
 }
 
-func (l *logger) doPrintStack() {
-	var b []byte
-	buf := bytes.NewBuffer(b)
-	for _, pc := range l.pc {
-		funcForPc := runtime.FuncForPC(pc)
-		if funcForPc == nil {
-			break
-		}
-		name := funcForPc.Name()
-		if strings.HasPrefix(name, "runtime.") {
-			break
-		}
-		file, line := funcForPc.FileLine(pc)
-		fmt.Fprintf(buf, "\t%s\t%s: %d\n", name, file, line)
-	}
-	if _, err := buf.WriteTo(os.Stderr); err != nil {
-		errorOnLogging(err)
-	}
-}
-
 func errorOnLogging(err error) {
 	fmt.Fprintf(os.Stderr, "Unable to log: %v\n", err)
+}
+
+func printContext(buf *bytes.Buffer, err interface{}) {
+	// Note - we don't include globals when printing in order to avoid polluting the text log
+	values := ops.AsMap(err, false)
+	if len(values) == 0 {
+		return
+	}
+	buf.WriteString(" [")
+	var keys []string
+	for key := range values {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	for i, key := range keys {
+		value := values[key]
+		if i > 0 {
+			buf.WriteString(" ")
+		}
+		buf.WriteString(key)
+		buf.WriteString("=")
+		fmt.Fprintf(buf, "%v", value)
+	}
+	buf.WriteByte(']')
+}
+
+func report(err error, linePrefix string) error {
+	var reportersCopy []ErrorReporter
+	reportersMutex.RLock()
+	if len(reporters) > 0 {
+		reportersCopy = make([]ErrorReporter, len(reporters))
+		copy(reportersCopy, reporters)
+	}
+	reportersMutex.RUnlock()
+
+	if len(reportersCopy) > 0 {
+		ctx := ops.AsMap(err, true)
+		for _, reporter := range reportersCopy {
+			// We include globals when reporting
+			reporter(err, linePrefix, ctx)
+		}
+	}
+	return err
 }

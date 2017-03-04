@@ -33,6 +33,18 @@ extern jmethodID proxy_class_interfaces_I3_cons;
 
 int32_t cproxyinterfaces_I3_F(int32_t refnum);
 
+extern jclass proxy_class_interfaces_LargerI;
+extern jmethodID proxy_class_interfaces_LargerI_cons;
+
+void cproxyinterfaces_LargerI_AnotherFunc(int32_t refnum);
+
+int32_t cproxyinterfaces_LargerI_Rand(int32_t refnum);
+
+extern jclass proxy_class_interfaces_SameI;
+extern jmethodID proxy_class_interfaces_SameI_cons;
+
+int32_t cproxyinterfaces_SameI_Rand(int32_t refnum);
+
 extern jclass proxy_class_interfaces_WithParam;
 extern jmethodID proxy_class_interfaces_WithParam_cons;
 

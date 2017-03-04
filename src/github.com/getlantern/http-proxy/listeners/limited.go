@@ -103,8 +103,8 @@ func (c *limitedConn) Close() (err error) {
 	}
 
 	// Substract 1 by adding the two-complement of -1
-	atomic.AddUint64(&c.listener.numConns, ^uint64(0))
-	log.Tracef("Closed a connection and left %v remaining", c.listener.numConns)
+	numConns := atomic.AddUint64(&c.listener.numConns, ^uint64(0))
+	log.Tracef("Closed a connection and left %v remaining", numConns)
 	return c.Conn.Close()
 }
 

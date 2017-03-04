@@ -16,8 +16,8 @@ import (
 	"github.com/getlantern/flashlight/feed"
 	"github.com/getlantern/flashlight/logging"
 	"github.com/getlantern/golog"
+	"github.com/getlantern/netx"
 	"github.com/getlantern/protected"
-	"github.com/getlantern/tlsdialer"
 )
 
 var (
@@ -37,16 +37,15 @@ type SocketProtector interface {
 // because it keeps Lantern's own connections from being captured by the VPN and
 // resulting in an infinite loop.
 func ProtectConnections(dnsServer string, protector SocketProtector) {
-	protected.Configure(protector.Protect, dnsServer)
-	tlsdialer.OverrideResolve(protected.Resolve)
-	tlsdialer.OverrideDial(protected.Dial)
+	p := protected.New(protector.Protect, dnsServer)
+	netx.OverrideDial(p.Dial)
+	netx.OverrideResolve(p.Resolve)
 }
 
 // RemoveOverrides removes the protected tlsdialer overrides
 // that allowed connections to bypass the VPN.
 func RemoveOverrides() {
-	tlsdialer.OverrideResolve(nil)
-	tlsdialer.OverrideDial(nil)
+	netx.Reset()
 }
 
 // StartResult provides information about the started Lantern
@@ -123,11 +122,11 @@ func run(configDir string) {
 		"127.0.0.1:0", // listen for SOCKS on random address
 		configDir,     // place to store lantern configuration
 		false,         // don't make config sticky
-		func() bool { return true },                   // proxy all requests
-		make(map[string]interface{}),                  // no special configuration flags
-		func(cfg *config.Config) bool { return true }, // beforeStart()
-		func(cfg *config.Config) {},                   // afterStart()
-		func(cfg *config.Config) {},                   // onConfigUpdate
+		func() bool { return true },  // proxy all requests
+		make(map[string]interface{}), // no special configuration flags
+		func() bool { return true },  // beforeStart()
+		func() {},                    // afterStart()
+		func(cfg *config.Global) {},  // onConfigUpdate
 		&userConfig{},
 		func(err error) {}, // onError
 		base64.StdEncoding.EncodeToString(uuid.NodeID()),

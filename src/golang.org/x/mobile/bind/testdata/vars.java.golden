@@ -19,12 +19,8 @@ public abstract class Vars {
     
     private static native void init();
     
-    public static final class S implements go.Seq.Object, I {
-        private final go.Seq.Ref ref;
-        
-        private S(go.Seq.Ref ref) { this.ref = ref; }
-        
-        public final go.Seq.Ref ref() { return ref; }
+    public static final class S extends Seq.Proxy implements I {
+        private S(go.Seq.Ref ref) { super(ref); }
         
         @Override public boolean equals(Object o) {
             if (o == null || !(o instanceof S)) {
@@ -45,25 +41,12 @@ public abstract class Vars {
         }
     }
     
-    public interface I extends go.Seq.Object {
-        public static abstract class Stub implements I {
-            private final go.Seq.Ref ref;
-            public Stub() {
-                ref = go.Seq.createRef(this);
-            }
-            
-            public final go.Seq.Ref ref() { return ref; }
-            
-        }
-        
-        static final class Proxy implements I {
-            private go.Seq.Ref ref;
-        
-            Proxy(go.Seq.Ref ref) { this.ref = ref; }
-        
-            public final go.Seq.Ref ref() { return ref; }
-        
-        }
+    public interface I {
+    }
+    
+    private static final class proxyI extends Seq.Proxy implements I {
+        proxyI(Seq.Ref ref) { super(ref); }
+    
     }
     
     

@@ -1,19 +1,17 @@
 package balancer
 
-import (
-	"math/rand"
-	"net/http"
-)
+import "math/rand"
+
+// Strategy determines the next dialer balancer will use given various
+// metrics of each dialer.
+type Strategy func(dialers []*dialer) dialerHeap
 
 // Random strategy gives even chance to each dialer, act as a baseline to other
 // strategies.
 func Random(dialers []*dialer) dialerHeap {
 	return dialerHeap{dialers: dialers, lessFunc: func(i, j int) bool {
 		// we don't need good randomness, skip seeding
-		if rand.Intn(2) == 0 {
-			return false
-		}
-		return true
+		return rand.Intn(2) != 0
 	}}
 }
 
@@ -67,44 +65,4 @@ func Weighted(ptQuality int, ptSpeed int) Strategy {
 			return w1 < w2
 		}}
 	}
-}
-
-// Strategy determines the next dialer balancer will use given various
-// metrics of each dialer.
-type Strategy func(dialers []*dialer) dialerHeap
-
-type dialerHeap struct {
-	dialers  []*dialer
-	lessFunc func(i, j int) bool
-}
-
-func (s *dialerHeap) Len() int { return len(s.dialers) }
-
-func (s *dialerHeap) Swap(i, j int) {
-	s.dialers[i], s.dialers[j] = s.dialers[j], s.dialers[i]
-}
-
-func (s *dialerHeap) Less(i, j int) bool {
-	return s.lessFunc(i, j)
-}
-
-func (s *dialerHeap) Push(x interface{}) {
-	s.dialers = append(s.dialers, x.(*dialer))
-}
-
-func (s *dialerHeap) Pop() interface{} {
-	old := s.dialers
-	n := len(old)
-	x := old[n-1]
-	s.dialers = old[0 : n-1]
-	return x
-}
-
-func (s *dialerHeap) onRequest(req *http.Request) {
-	for _, d := range s.dialers {
-		if d.OnRequest != nil {
-			d.OnRequest(req)
-		}
-	}
-	return
 }

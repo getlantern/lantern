@@ -11,21 +11,12 @@ import (
 	"time"
 
 	"github.com/getlantern/golog"
+	"github.com/getlantern/netx"
+	"github.com/getlantern/ops"
 )
 
 var (
 	log = golog.LoggerFor("tlsdialer")
-
-	defaultResolve = func(addr string) (*net.TCPAddr, error) {
-		resolved, err := net.ResolveTCPAddr("tcp", addr)
-		if err != nil {
-			return nil, err
-		}
-		return resolved, nil
-	}
-	resolve = defaultResolve
-
-	dialOverride func(network, addr string, timeout time.Duration) (net.Conn, error)
 )
 
 type timeoutError struct{}
@@ -51,21 +42,6 @@ type ConnWithTimings struct {
 	VerifiedChains [][]*x509.Certificate
 }
 
-// OverrideResolve allows overriding the DNS resolution function
-func OverrideResolve(override func(addr string) (*net.TCPAddr, error)) {
-	if override == nil {
-		resolve = defaultResolve
-	} else {
-		resolve = override
-	}
-}
-
-// OverrideDial allows specifying a function that will be used to dial in lieu
-// of a net.Dialer.
-func OverrideDial(override func(network, addr string, timeout time.Duration) (net.Conn, error)) {
-	dialOverride = override
-}
-
 // Like crypto/tls.Dial, but with the ability to control whether or not to
 // send the ServerName extension in client handshakes through the sendServerName
 // flag.
@@ -74,41 +50,26 @@ func OverrideDial(override func(network, addr string, timeout time.Duration) (ne
 // connection's ConnectionState will never get populated. Use DialForTimings to
 // get back a data structure that includes the verified chains.
 func Dial(network, addr string, sendServerName bool, config *tls.Config) (*tls.Conn, error) {
-	return DialWithDialer(new(net.Dialer), network, addr, sendServerName, config)
+	return DialTimeout(netx.DialTimeout, 1*time.Minute, network, addr, sendServerName, config)
 }
 
-// Like crypto/tls.DialWithDialer, but with the ability to control whether or
-// not to send the ServerName extension in client handshakes through the
-// sendServerName flag.
-//
-// Note - if sendServerName is false, the VerifiedChains field on the
-// connection's ConnectionState will never get populated. Use DialForTimings to
-// get back a data structure that includes the verified chains.
-func DialWithDialer(dialer *net.Dialer, network, addr string, sendServerName bool, config *tls.Config) (*tls.Conn, error) {
-	result, err := DialForTimings(dialer, network, addr, sendServerName, config)
+// Like Dial, but timing out after the given timeout.
+func DialTimeout(dial func(net string, addr string, timeout time.Duration) (net.Conn, error), timeout time.Duration, network, addr string, sendServerName bool, config *tls.Config) (*tls.Conn, error) {
+	result, err := DialForTimings(dial, timeout, network, addr, sendServerName, config)
 	return result.Conn, err
 }
 
 // Like DialWithDialer but returns a data structure including timings and the
 // verified chains.
-func DialForTimings(dialer *net.Dialer, network, addr string, sendServerName bool, config *tls.Config) (*ConnWithTimings, error) {
+func DialForTimings(dial func(net string, addr string, timeout time.Duration) (net.Conn, error), timeout time.Duration, network, addr string, sendServerName bool, config *tls.Config) (*ConnWithTimings, error) {
 	result := &ConnWithTimings{}
-
-	// We want the Timeout and Deadline values from dialer to cover the
-	// whole process: TCP connection and TLS handshake. This means that we
-	// also need to start our own timers now.
-	timeout := dialer.Timeout
-
-	if !dialer.Deadline.IsZero() {
-		deadlineTimeout := dialer.Deadline.Sub(time.Now())
-		if timeout == 0 || deadlineTimeout < timeout {
-			timeout = deadlineTimeout
-		}
-	}
 
 	var errCh chan error
 
 	if timeout != 0 {
+		// We want the Timeout and Deadline values to cover the whole process: TCP
+		// connection and TLS handshake. This means that we also need to start our own
+		// timers now.
 		errCh = make(chan error, 10)
 		time.AfterFunc(timeout, func() {
 			errCh <- timeoutError{}
@@ -120,16 +81,16 @@ func DialForTimings(dialer *net.Dialer, network, addr string, sendServerName boo
 	var err error
 	if timeout == 0 {
 		log.Tracef("Resolving immediately")
-		result.ResolvedAddr, err = resolve(addr)
+		result.ResolvedAddr, err = netx.Resolve("tcp", addr)
 	} else {
 		log.Tracef("Resolving on goroutine")
 		resolvedCh := make(chan *net.TCPAddr, 10)
-		go func() {
-			resolved, err := resolve(addr)
-			log.Tracef("Resolution resulted in %s : %s", resolved, err)
+		ops.Go(func() {
+			resolved, resolveErr := netx.Resolve("tcp", addr)
+			log.Tracef("Resolution resulted in %s : %s", resolved, resolveErr)
 			resolvedCh <- resolved
-			errCh <- err
-		}()
+			errCh <- resolveErr
+		})
 		err = <-errCh
 		if err == nil {
 			log.Tracef("No error, looking for resolved")
@@ -151,13 +112,7 @@ func DialForTimings(dialer *net.Dialer, network, addr string, sendServerName boo
 	log.Tracef("Dialing %s %s (%s)", network, addr, result.ResolvedAddr)
 	start = time.Now()
 	resolvedAddr := result.ResolvedAddr.String()
-	var rawConn net.Conn
-	if dialOverride != nil {
-		log.Trace("Dialing with dialOverride")
-		rawConn, err = dialOverride(network, resolvedAddr, timeout)
-	} else {
-		rawConn, err = dialer.Dial(network, resolvedAddr)
-	}
+	rawConn, err := dial(network, resolvedAddr, timeout)
 	if err != nil {
 		return result, err
 	}
@@ -197,9 +152,9 @@ func DialForTimings(dialer *net.Dialer, network, addr string, sendServerName boo
 		err = conn.Handshake()
 	} else {
 		log.Trace("Handshaking on goroutine")
-		go func() {
+		ops.Go(func() {
 			errCh <- conn.Handshake()
-		}()
+		})
 		err = <-errCh
 	}
 	if err == nil {

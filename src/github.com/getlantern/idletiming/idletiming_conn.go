@@ -3,7 +3,10 @@
 package idletiming
 
 import (
+	"errors"
+	"io"
 	"net"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -13,23 +16,22 @@ import (
 var (
 	epoch = time.Unix(0, 0)
 	log   = golog.LoggerFor("idletiming")
+
+	// ErrIdled is return when attempting to use a network connection that was
+	// closed because of idling.
+	ErrIdled = errors.New("Use of idled network connection")
 )
 
 // Conn creates a new net.Conn wrapping the given net.Conn that times out after
-// the specified period. Read and Write calls will timeout if they take longer
-// than the indicated idleTimeout.
+// the specified period. Once a connection has timed out, any pending reads or
+// writes will return io.EOF and the underlying connection will be closed.
 //
 // idleTimeout specifies how long to wait for inactivity before considering
 // connection idle.
 //
-// onIdle is a required function that's called if a connection idles.
-// idletiming.Conn does not close the underlying connection on idle, you have to
-// do that in your onIdle callback.
+// If onIdle is specified, it will be called to indicate when the connection has
+// idled and been closed.
 func Conn(conn net.Conn, idleTimeout time.Duration, onIdle func()) *IdleTimingConn {
-	if onIdle == nil {
-		panic("onIdle is required")
-	}
-
 	c := &IdleTimingConn{
 		conn:             conn,
 		idleTimeout:      idleTimeout,
@@ -50,7 +52,10 @@ func Conn(conn net.Conn, idleTimeout time.Duration, onIdle func()) *IdleTimingCo
 				atomic.StoreInt64(&c.lastActivityTime, time.Now().UnixNano())
 				continue
 			case <-timer.C:
-				onIdle()
+				c.Close()
+				if onIdle != nil {
+					onIdle()
+				}
 				return
 			case <-c.closedCh:
 				return
@@ -70,11 +75,14 @@ type IdleTimingConn struct {
 	writeDeadline    int64
 	lastActivityTime int64
 
-	conn            net.Conn
-	idleTimeout     time.Duration
-	halfIdleTimeout time.Duration
-	activeCh        chan bool
-	closedCh        chan bool
+	conn             net.Conn
+	idleTimeout      time.Duration
+	halfIdleTimeout  time.Duration
+	activeCh         chan bool
+	closedCh         chan bool
+	closeMutex       sync.RWMutex // prevents Close() from interfering with io operations
+	closed           bool
+	hasReadAfterIdle int32
 }
 
 // TimesOutIn returns how much time is left before this connection will time
@@ -91,6 +99,13 @@ func (c *IdleTimingConn) TimesOutAt() time.Time {
 
 // Read implements the method from io.Reader
 func (c *IdleTimingConn) Read(b []byte) (int, error) {
+	c.closeMutex.RLock()
+	defer c.closeMutex.RUnlock()
+
+	if err := c.checkClosedFirstTime(&c.hasReadAfterIdle, io.EOF); err != nil {
+		return 0, err
+	}
+
 	totalN := 0
 	readDeadline := time.Unix(0, atomic.LoadInt64(&c.readDeadline))
 
@@ -132,6 +147,13 @@ func (c *IdleTimingConn) Read(b []byte) (int, error) {
 
 // Write implements the method from io.Reader
 func (c *IdleTimingConn) Write(b []byte) (int, error) {
+	c.closeMutex.RLock()
+	defer c.closeMutex.RUnlock()
+
+	if err := c.checkClosed(); err != nil {
+		return 0, err
+	}
+
 	totalN := 0
 	writeDeadline := time.Unix(0, atomic.LoadInt64(&c.writeDeadline))
 
@@ -174,6 +196,15 @@ func (c *IdleTimingConn) Write(b []byte) (int, error) {
 // Close this IdleTimingConn. This will close the underlying net.Conn as well,
 // returning the error from calling its Close method.
 func (c *IdleTimingConn) Close() error {
+	c.closeMutex.Lock()
+	defer c.closeMutex.Unlock()
+
+	if err := c.checkClosed(); err != nil {
+		return err
+	}
+
+	c.closed = true
+
 	select {
 	case c.closedCh <- true:
 		// close accepted
@@ -184,14 +215,27 @@ func (c *IdleTimingConn) Close() error {
 }
 
 func (c *IdleTimingConn) LocalAddr() net.Addr {
+	c.closeMutex.RLock()
+	defer c.closeMutex.RUnlock()
+
 	return c.conn.LocalAddr()
 }
 
 func (c *IdleTimingConn) RemoteAddr() net.Addr {
+	c.closeMutex.RLock()
+	defer c.closeMutex.RUnlock()
+
 	return c.conn.RemoteAddr()
 }
 
 func (c *IdleTimingConn) SetDeadline(t time.Time) error {
+	c.closeMutex.RLock()
+	defer c.closeMutex.RUnlock()
+
+	if err := c.checkClosed(); err != nil {
+		return err
+	}
+
 	if err := c.SetReadDeadline(t); err != nil {
 		log.Tracef("Unable to set read deadline: %v", err)
 	}
@@ -202,30 +246,54 @@ func (c *IdleTimingConn) SetDeadline(t time.Time) error {
 }
 
 func (c *IdleTimingConn) SetReadDeadline(t time.Time) error {
-	// zero value means no time out
-	if t.IsZero() {
-		t = epoch
+	c.closeMutex.RLock()
+	defer c.closeMutex.RUnlock()
+
+	if err := c.checkClosed(); err != nil {
+		return err
 	}
+
 	atomic.StoreInt64(&c.readDeadline, t.UnixNano())
 	return nil
 }
 
 func (c *IdleTimingConn) SetWriteDeadline(t time.Time) error {
-	// zero value means no time out
-	if t.IsZero() {
-		t = epoch
+	c.closeMutex.RLock()
+	defer c.closeMutex.RUnlock()
+
+	if err := c.checkClosed(); err != nil {
+		return err
 	}
+
 	atomic.StoreInt64(&c.writeDeadline, t.UnixNano())
 	return nil
 }
 
 func (c *IdleTimingConn) markActive(n int) bool {
 	if n > 0 {
-		c.activeCh <- true
+		select {
+		case c.activeCh <- true:
+			// ok
+		default:
+			// still waiting to process previous markActive
+		}
 		return true
-	} else {
-		return false
 	}
+	return false
+}
+
+func (c *IdleTimingConn) checkClosed() error {
+	return c.checkClosedFirstTime(nil, nil)
+}
+
+func (c *IdleTimingConn) checkClosedFirstTime(hasDone *int32, firstTimeError error) error {
+	if c.closed {
+		if hasDone != nil && atomic.CompareAndSwapInt32(hasDone, 0, 1) {
+			return firstTimeError
+		}
+		return ErrIdled
+	}
+	return nil
 }
 
 func isTimeout(err error) bool {

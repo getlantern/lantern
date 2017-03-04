@@ -92,7 +92,6 @@ func (d *direct) fillCache(cache []*Masquerade, cacheFile string) {
 // CloseCache closes any existing file cache.
 func CloseCache() {
 	_existing, ok := _instance.Get(0)
-	log.Debug("Got existing instance")
 	if ok && _existing != nil {
 		existing := _existing.(*direct)
 		log.Debug("Closing cache from existing instance")

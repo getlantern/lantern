@@ -7,6 +7,14 @@
 package secondpkg
 
 type (
+	Ser interface {
+		S(_ *S)
+	}
+
+	IF interface {
+		F()
+	}
+
 	I interface {
 		F(i int) int
 	}

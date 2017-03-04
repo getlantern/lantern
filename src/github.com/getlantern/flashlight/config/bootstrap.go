@@ -9,9 +9,7 @@ import (
 	"strings"
 
 	"github.com/getlantern/appdir"
-	"github.com/getlantern/tarfs"
 	"github.com/getlantern/yaml"
-	"github.com/getlantern/yamlconf"
 )
 
 var (
@@ -78,40 +76,6 @@ func readSettingsFromFile(yamlPath string) (*BootstrapSettings, error) {
 		return &BootstrapSettings{}, err
 	}
 	return &s, nil
-}
-
-// MakeInitialConfig returns a default configuration
-func MakeInitialConfig() (yamlconf.Config, error) {
-	dir, _, err := bootstrapPath(lanternYamlName)
-	if err != nil {
-		log.Errorf("Could not get bootstrap path %v", err)
-		return nil, err
-	}
-
-	// We need to use tarfs here because the lantern.yaml needs to embedded
-	// in the binary for auto-updates to work. We also want the flexibility,
-	// however, to embed it in installers to change various settings.
-	fs, err := tarfs.New(Resources, dir)
-	if err != nil {
-		log.Errorf("Could not read resources? %v", err)
-		return nil, err
-	}
-
-	// Get the yaml file from either the local file system or from an
-	// embedded resource, but ignore local file system files if they're
-	// empty.
-	bytes, err := fs.GetIgnoreLocalEmpty("lantern.yaml")
-	if err != nil {
-		log.Errorf("Could not read bootstrap file %v", err)
-		return nil, err
-	}
-	cfg := &Config{}
-	err = yaml.Unmarshal(bytes, cfg)
-	if err != nil {
-		log.Errorf("Could not parse YAML: %v", err)
-		return nil, err
-	}
-	return cfg, nil
 }
 
 func bootstrapPath(fileName string) (string, string, error) {

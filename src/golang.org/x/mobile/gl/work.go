@@ -12,6 +12,7 @@ package gl
 #cgo darwin,arm64  LDFLAGS: -framework OpenGLES
 #cgo linux         LDFLAGS: -lGLESv2
 
+#cgo android       CFLAGS: -Dos_android
 #cgo darwin,amd64  CFLAGS: -Dos_osx
 #cgo darwin,arm    CFLAGS: -Dos_ios
 #cgo darwin,arm64  CFLAGS: -Dos_ios
@@ -66,6 +67,10 @@ type context struct {
 
 func (ctx *context) WorkAvailable() <-chan struct{} { return ctx.workAvailable }
 
+type context3 struct {
+	*context
+}
+
 // NewContext creates a cgo OpenGL context.
 //
 // See the Worker interface for more details on how it is used.
@@ -75,7 +80,16 @@ func NewContext() (Context, Worker) {
 		work:          make(chan call, workbufLen),
 		retvalue:      make(chan C.uintptr_t),
 	}
-	return glctx, glctx
+	if C.GLES_VERSION == "GL_ES_2_0" {
+		return glctx, glctx
+	}
+	return context3{glctx}, glctx
+}
+
+// Version returns a GL ES version string, either "GL_ES_2_0" or "GL_ES_3_0".
+// Future versions of the gl package may return "GL_ES_3_1".
+func Version() string {
+	return C.GLES_VERSION
 }
 
 func (ctx *context) enqueue(c call) uintptr {

@@ -90,6 +90,9 @@ angular.module('app.services', [])
           window.location = settings.redirectTo;
         }
       },
+      'bandwidth': function(bandwidth) {
+        console.log('Got bandwidth data: ', bandwidth);
+      },
       'localDiscovery': function(data) {
         model.localLanterns = data;
       },

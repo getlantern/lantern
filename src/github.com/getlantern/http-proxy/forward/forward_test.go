@@ -5,7 +5,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/getlantern/testify/assert"
+	"github.com/getlantern/http-proxy/filters"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type mockRT struct {
@@ -40,7 +42,7 @@ func TestCloneRequest(t *testing.T) {
 		assert.Equal(t, "zh.moegirl.org", r.Header.Get("Host"), "should have host header")
 		return nil, errors.New("intentionally fail")
 	}}
-	fwd, _ := New(nil, RoundTripper(rt))
+	fwd := filters.Join(New(&Options{RoundTripper: rt}))
 	req, _ := http.NewRequest("GET", url, nil)
 	fwd.ServeHTTP(emptyRW{}, req)
 }

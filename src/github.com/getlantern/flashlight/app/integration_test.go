@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -19,6 +20,7 @@ import (
 	"github.com/getlantern/waitforserver"
 	"github.com/getlantern/yaml"
 
+	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
 
 	"github.com/stretchr/testify/assert"
@@ -43,7 +45,7 @@ var (
 )
 
 func TestProxying(t *testing.T) {
-	config.CloudConfigPollInterval = 100 * time.Millisecond
+	//config.CloudConfigPollInterval = 100 * time.Millisecond
 
 	// Web server serves known content for testing
 	httpAddr, httpsAddr, err := startWebServer(t)
@@ -67,13 +69,13 @@ func TestProxying(t *testing.T) {
 	// We have to write out a config file so that Lantern doesn't try to use the
 	// default config, which would go to some remote proxies that can't talk to
 	// our fake config server.
-	err = writeConfig(configAddr)
+	err = writeConfig()
 	if !assert.NoError(t, err) {
 		return
 	}
 
 	// Starts the Lantern App
-	err = startApp(t)
+	err = startApp(t, configAddr)
 	if !assert.NoError(t, err) {
 		return
 	}
@@ -113,13 +115,13 @@ func serveContent(resp http.ResponseWriter, req *http.Request) {
 }
 
 func startProxyServer(t *testing.T) error {
-	s := &httpproxylantern.Server{
+	s := &proxy.Proxy{
 		TestingLocal: true,
 		Addr:         ProxyServerAddr,
 		Obfs4Addr:    OBFS4ServerAddr,
 		Obfs4Dir:     ".",
 		Token:        Token,
-		Keyfile:      KeyFile,
+		KeyFile:      KeyFile,
 		CertFile:     CertFile,
 		IdleClose:    30,
 		HTTPS:        true,
@@ -130,7 +132,20 @@ func startProxyServer(t *testing.T) error {
 		assert.NoError(t, err, "Proxy server should have been able to listen")
 	}()
 
-	return waitforserver.WaitForServer("tcp", ProxyServerAddr, 10*time.Second)
+	err := waitforserver.WaitForServer("tcp", ProxyServerAddr, 10*time.Second)
+	if err != nil {
+		return err
+	}
+
+	// Wait for cert file to show up
+	var statErr error
+	for i := 0; i < 400; i++ {
+		_, statErr = os.Stat(CertFile)
+		if statErr != nil {
+			time.Sleep(25 * time.Millisecond)
+		}
+	}
+	return statErr
 }
 
 func startConfigServer(t *testing.T) (string, error) {
@@ -138,51 +153,91 @@ func startConfigServer(t *testing.T) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("Unable to listen for config server connection: %v", err)
 	}
-	configAddr := l.Addr().String()
 	go func() {
-		err := http.Serve(l, http.HandlerFunc(serveConfig(t, configAddr)))
+		err := http.Serve(l, http.HandlerFunc(serveConfig(t)))
 		assert.NoError(t, err, "Unable to serve config")
 	}()
-	return configAddr, nil
+	return l.Addr().String(), nil
 }
 
-func serveConfig(t *testing.T, configAddr string) func(http.ResponseWriter, *http.Request) {
+func serveConfig(t *testing.T) func(http.ResponseWriter, *http.Request) {
 	return func(resp http.ResponseWriter, req *http.Request) {
-		obfs4 := atomic.LoadUint32(&useOBFS4) == 1
-		version := "1"
-		if obfs4 {
-			version = "2"
+		log.Debugf("Reading request path: %v", req.URL.String())
+		if strings.Contains(req.URL.String(), "global") {
+			writeGlobalConfig(t, resp, req)
+		} else if strings.Contains(req.URL.String(), "prox") {
+			writeProxyConfig(t, resp, req)
+		} else {
+			log.Errorf("Not requesting global or proxies in %v", req.URL.String())
+			resp.WriteHeader(http.StatusBadRequest)
 		}
-
-		if req.Header.Get(IfNoneMatch) == version {
-			resp.WriteHeader(http.StatusNotModified)
-			return
-		}
-
-		cfg, err := buildConfig(configAddr, obfs4)
-		if err != nil {
-			t.Error(err)
-			resp.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		resp.Header().Set(Etag, version)
-		resp.WriteHeader(http.StatusOK)
-
-		w := gzip.NewWriter(resp)
-		w.Write(cfg)
-		w.Close()
 	}
 }
 
-func writeConfig(configAddr string) error {
-	filename := "lantern-9999.99.99.yaml"
+func writeGlobalConfig(t *testing.T, resp http.ResponseWriter, req *http.Request) {
+	log.Debug("Writing global config")
+	obfs4 := atomic.LoadUint32(&useOBFS4) == 1
+	version := "1"
+	if obfs4 {
+		version = "2"
+	}
+
+	if req.Header.Get(IfNoneMatch) == version {
+		resp.WriteHeader(http.StatusNotModified)
+		return
+	}
+
+	cfg, err := buildGlobal()
+	if err != nil {
+		t.Error(err)
+		resp.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	resp.Header().Set(Etag, version)
+	resp.WriteHeader(http.StatusOK)
+
+	w := gzip.NewWriter(resp)
+	w.Write(cfg)
+	w.Close()
+}
+
+func writeProxyConfig(t *testing.T, resp http.ResponseWriter, req *http.Request) {
+	log.Debug("Writing proxy config")
+	obfs4 := atomic.LoadUint32(&useOBFS4) == 1
+	version := "1"
+	if obfs4 {
+		version = "2"
+	}
+
+	if req.Header.Get(IfNoneMatch) == version {
+		resp.WriteHeader(http.StatusNotModified)
+		return
+	}
+
+	cfg, err := buildProxies(obfs4)
+	if err != nil {
+		t.Error(err)
+		resp.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	resp.Header().Set(Etag, version)
+	resp.WriteHeader(http.StatusOK)
+
+	w := gzip.NewWriter(resp)
+	w.Write(cfg)
+	w.Close()
+}
+
+func writeConfig() error {
+	filename := "proxies.yaml"
 	err := os.Remove(filename)
 	if err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("Unable to delete existing yaml config: %v", err)
 	}
 
-	cfg, err := buildConfig(configAddr, false)
+	cfg, err := buildProxies(false)
 	if err != nil {
 		return err
 	}
@@ -190,21 +245,19 @@ func writeConfig(configAddr string) error {
 	return ioutil.WriteFile(filename, cfg, 0644)
 }
 
-func buildConfig(configAddr string, obfs4 bool) ([]byte, error) {
-	bytes, err := ioutil.ReadFile("./config-template.yaml")
+func buildProxies(obfs4 bool) ([]byte, error) {
+	bytes, err := ioutil.ReadFile("./proxies-template.yaml")
 	if err != nil {
 		return nil, fmt.Errorf("Could not read config %v", err)
 	}
 
-	cfg := &config.Config{}
+	cfg := make(map[string]*client.ChainedServerInfo)
 	err = yaml.Unmarshal(bytes, cfg)
 	if err != nil {
 		return nil, fmt.Errorf("Could not unmarshal config %v", err)
 	}
-	cfg.CloudConfig = "http://" + configAddr
-	cfg.FrontedCloudConfig = cfg.CloudConfig
 
-	srv := cfg.Client.ChainedServers["fallback-template"]
+	srv := cfg["fallback-template"]
 	srv.AuthToken = Token
 	if obfs4 {
 		srv.Addr = OBFS4ServerAddr
@@ -236,8 +289,31 @@ func buildConfig(configAddr string, obfs4 bool) ([]byte, error) {
 	return out, nil
 }
 
-func startApp(t *testing.T) error {
+func buildGlobal() ([]byte, error) {
+	bytes, err := ioutil.ReadFile("./global-template.yaml")
+	if err != nil {
+		return nil, fmt.Errorf("Could not read config %v", err)
+	}
+
+	cfg := &config.Global{}
+	err = yaml.Unmarshal(bytes, cfg)
+	if err != nil {
+		return nil, fmt.Errorf("Could not unmarshal config %v", err)
+	}
+
+	out, err := yaml.Marshal(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("Could not marshal config %v", err)
+	}
+
+	return out, nil
+}
+
+func startApp(t *testing.T, configAddr string) error {
+	configURL := "http://" + configAddr
 	flags := map[string]interface{}{
+		"cloudconfig":          configURL,
+		"frontedconfig":        configURL,
 		"addr":                 LocalProxyAddr,
 		"headless":             true,
 		"proxyall":             true,

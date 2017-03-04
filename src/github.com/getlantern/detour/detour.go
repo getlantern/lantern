@@ -41,6 +41,7 @@ import (
 	"time"
 
 	"github.com/getlantern/golog"
+	"github.com/getlantern/netx"
 )
 
 // if dial or read exceeded this timeout, we consider switch to detour
@@ -58,6 +59,8 @@ var (
 
 	// instance of Detector
 	blockDetector atomic.Value
+
+	zeroTime time.Time
 )
 
 func init() {
@@ -88,9 +91,9 @@ type Conn struct {
 	// in initial state so we can resend them when detour
 	localBuffer bytes.Buffer
 
-	network, addr string
-	readDeadline  time.Time
-	writeDeadline time.Time
+	network, addr  string
+	_readDeadline  atomic.Value
+	_writeDeadline atomic.Value
 }
 
 const (
@@ -120,7 +123,7 @@ func Dialer(d dialFunc) dialFunc {
 			detector := blockDetector.Load().(*Detector)
 			dc.setState(stateInitial)
 			// always try direct connection first
-			dc.conn, err = net.DialTimeout(network, addr, TimeoutToDetour)
+			dc.conn, err = netx.DialTimeout(network, addr, TimeoutToDetour)
 			if err == nil {
 				if !detector.DNSPoisoned(dc.conn) {
 					log.Tracef("Dial %s to %s succeeded", dc.stateDesc(), addr)
@@ -162,7 +165,8 @@ func (dc *Conn) Read(b []byte) (n int, err error) {
 	// state will always be settled after first read, safe to clear buffer at end of it
 	defer dc.resetLocalBuffer()
 	start := time.Now()
-	if !dc.readDeadline.IsZero() && dc.readDeadline.Sub(start) < 2*TimeoutToDetour {
+	readDeadline := dc.readDeadline()
+	if !readDeadline.IsZero() && readDeadline.Sub(start) < 2*TimeoutToDetour {
 		log.Tracef("no time left to test %s, read %s", dc.addr, statesDesc[stateDirect])
 		dc.setState(stateDirect)
 		return dc.countedRead(b)
@@ -172,7 +176,7 @@ func (dc *Conn) Read(b []byte) (n int, err error) {
 		log.Debugf("Unable to set read deadline: %v", err)
 	}
 	n, err = dc.countedRead(b)
-	if err := dc.getConn().SetReadDeadline(dc.readDeadline); err != nil {
+	if err := dc.getConn().SetReadDeadline(readDeadline); err != nil {
 		log.Debugf("Unable to set read deadline: %v", err)
 	}
 
@@ -343,20 +347,36 @@ func (dc *Conn) SetDeadline(t time.Time) error {
 
 // SetReadDeadline() implements the function from net.Conn
 func (dc *Conn) SetReadDeadline(t time.Time) error {
-	dc.readDeadline = t
+	dc._readDeadline.Store(t)
 	if err := dc.getConn().SetReadDeadline(t); err != nil {
 		log.Debugf("Unable to set read deadline: %v", err)
 	}
 	return nil
 }
 
+func (dc *Conn) readDeadline() time.Time {
+	d := dc._readDeadline.Load()
+	if d == nil {
+		return zeroTime
+	}
+	return d.(time.Time)
+}
+
 // SetWriteDeadline() implements the function from net.Conn
 func (dc *Conn) SetWriteDeadline(t time.Time) error {
-	dc.writeDeadline = t
+	dc._writeDeadline.Store(t)
 	if err := dc.getConn().SetWriteDeadline(t); err != nil {
 		log.Debugf("Unable to set write deadline", err)
 	}
 	return nil
+}
+
+func (dc *Conn) writeDeadline() time.Time {
+	d := dc._writeDeadline.Load()
+	if d == nil {
+		return zeroTime
+	}
+	return d.(time.Time)
 }
 
 func (dc *Conn) writeLocalBuffer(b []byte) (n int, err error) {
@@ -411,10 +431,10 @@ func (dc *Conn) setConn(c net.Conn) {
 	oldConn := dc.conn
 	dc.conn = c
 	dc.muConn.Unlock()
-	if err := dc.conn.SetReadDeadline(dc.readDeadline); err != nil {
+	if err := dc.conn.SetReadDeadline(dc.readDeadline()); err != nil {
 		log.Debugf("Unable to set read deadline: %v", err)
 	}
-	if err := dc.conn.SetWriteDeadline(dc.writeDeadline); err != nil {
+	if err := dc.conn.SetWriteDeadline(dc.writeDeadline()); err != nil {
 		log.Debugf("Unable to set write deadline: %v", err)
 	}
 	log.Tracef("Replaced connection to %s from direct to detour and closing old one", dc.addr)

@@ -57,7 +57,7 @@ func (app *App) LogPanicAndExit(msg string) {
 		panic("Error initializing logging")
 	}
 
-	<-logging.Configure("", "dummy-device-id-for-panic", flashlight.Version, flashlight.RevisionDate)
+	<-logging.Configure("", "dummy-device-id-for-panic", flashlight.Version, flashlight.RevisionDate, 0, 0, 0)
 
 	log.Error(msg)
 
@@ -105,12 +105,18 @@ func (app *App) Run() error {
 	return app.waitForExit()
 }
 
-func (app *App) beforeStart(cfg *config.Config) bool {
+func (app *App) beforeStart() bool {
 	log.Debug("Got first config")
-
-	if cfg.CPUProfile != "" || cfg.MemProfile != "" {
-		log.Debugf("Start profiling with cpu file %s and mem file %s", cfg.CPUProfile, cfg.MemProfile)
-		finishProfiling := profiling.Start(cfg.CPUProfile, cfg.MemProfile)
+	var cpuProf, memProf string
+	if cpu, cok := app.Flags["cpuprofile"]; cok {
+		cpuProf = cpu.(string)
+	}
+	if mem, cok := app.Flags["memprofile"]; cok {
+		memProf = mem.(string)
+	}
+	if cpuProf != "" || memProf != "" {
+		log.Debugf("Start profiling with cpu file %s and mem file %s", cpuProf, memProf)
+		finishProfiling := profiling.Start(cpuProf, memProf)
 		app.AddExitFunc(finishProfiling)
 	}
 
@@ -155,6 +161,11 @@ func (app *App) beforeStart(cfg *config.Config) bool {
 	}
 	client.UIAddr = actualUIAddr
 
+	err = serveBandwidth()
+	if err != nil {
+		log.Errorf("Unable to serve bandwidth to UI: %v", err)
+	}
+
 	// Only run analytics once on startup.
 	if settings.IsAutoReport() {
 		stopAnalytics := analytics.Start(settings.GetDeviceID(), flashlight.Version)
@@ -165,8 +176,7 @@ func (app *App) beforeStart(cfg *config.Config) bool {
 	return true
 }
 
-func (app *App) afterStart(cfg *config.Config) {
-	app.onConfigUpdate(cfg)
+func (app *App) afterStart() {
 	servePACFile()
 	if settings.GetSystemProxy() {
 		pacOn()
@@ -184,9 +194,9 @@ func (app *App) afterStart(cfg *config.Config) {
 	}
 }
 
-func (app *App) onConfigUpdate(cfg *config.Config) {
+func (app *App) onConfigUpdate(cfg *config.Global) {
 	proxiedsites.Configure(cfg.ProxiedSites)
-	autoupdate.Configure(cfg)
+	autoupdate.Configure(cfg.UpdateServerURL, cfg.AutoUpdateCA)
 }
 
 // showExistingUi triggers an existing Lantern running on the same system to
@@ -196,18 +206,18 @@ func (app *App) showExistingUI(addr string) error {
 	log.Debugf("Hitting local URL: %v", url)
 	resp, err := http.Get(url)
 	if err != nil {
-		log.Debugf("Could not hit local lantern")
-		if resp.Body != nil {
-			if err = resp.Body.Close(); err != nil {
-				log.Debugf("Error closing body! %s", err)
-			}
-		}
+		log.Debugf("Could not hit local lantern: %s", err)
 		return err
-	} else if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Unexpected response from existing Lantern: %d", resp.StatusCode)
-	} else {
-		return nil
 	}
+	if resp.Body != nil {
+		if err = resp.Body.Close(); err != nil {
+			log.Debugf("Error closing body! %s", err)
+		}
+	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Unexpected response from existing Lantern: %d", resp.StatusCode)
+	}
+	return nil
 }
 
 // AddExitFunc adds a function to be called before the application exits.

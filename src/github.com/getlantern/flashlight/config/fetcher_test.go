@@ -23,16 +23,40 @@ func (uc *userConfig) GetUserID() int64 {
 func TestFetcher(t *testing.T) {
 	// This will actually fetch the cloud config over the network.
 	rt := &http.Transport{}
-	configFetcher := NewFetcher(&userConfig{}, rt)
+	configFetcher := newFetcher(&userConfig{}, rt, globalURLs)
 
-	cfg := &Config{}
-	cfg.ApplyDefaults()
-	mutate, waitTime, err := configFetcher.pollForConfig(cfg, false)
+	bytes, err := configFetcher.fetch()
 	assert.Nil(t, err)
-	assert.NotNil(t, mutate)
-	assert.NotNil(t, waitTime)
+	assert.True(t, len(bytes) > 200)
+}
 
-	err = mutate(cfg)
+// TestStagingSetup tests to make sure our staging config flag sets the
+// appropriate URLs for staging servers.
+func TestStagingSetup(t *testing.T) {
+	flags := make(map[string]interface{})
+	flags["staging"] = false
 
-	assert.Nil(t, err)
+	rt := &http.Transport{}
+
+	var fetch *fetcher
+	fetch = newFetcher(&userConfig{}, rt, proxiesURLs).(*fetcher)
+
+	assert.Equal(t, "http://config.getiantem.org/proxies.yaml.gz", fetch.chainedURL)
+	assert.Equal(t, "http://d2wi0vwulmtn99.cloudfront.net/proxies.yaml.gz", fetch.frontedURL)
+
+	urls := proxiesURLs
+
+	// Blank flags should mean we use the default
+	flags["cloudconfig"] = ""
+	flags["frontedconfig"] = ""
+	fetch = newFetcher(&userConfig{}, rt, urls).(*fetcher)
+
+	assert.Equal(t, "http://config.getiantem.org/proxies.yaml.gz", fetch.chainedURL)
+	assert.Equal(t, "http://d2wi0vwulmtn99.cloudfront.net/proxies.yaml.gz", fetch.frontedURL)
+
+	stagingURLs := proxiesStagingURLs
+	flags["staging"] = true
+	fetch = newFetcher(&userConfig{}, rt, stagingURLs).(*fetcher)
+	assert.Equal(t, "http://config-staging.getiantem.org/proxies.yaml.gz", fetch.chainedURL)
+	assert.Equal(t, "http://d33pfmbpauhmvd.cloudfront.net/proxies.yaml.gz", fetch.frontedURL)
 }

@@ -16,6 +16,7 @@ import (
 	"github.com/getlantern/eventual"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/idletiming"
+	"github.com/getlantern/netx"
 	"github.com/getlantern/tlsdialer"
 )
 
@@ -29,6 +30,9 @@ const (
 var (
 	log       = golog.LoggerFor("fronted")
 	_instance = eventual.NewValue()
+
+	// Shared client session cache for all connections
+	clientSessionCache = tls.NewLRUClientSessionCache(1000)
 )
 
 type direct struct {
@@ -43,8 +47,10 @@ type direct struct {
 	toCache             chan *Masquerade
 }
 
+// Configure sets the masquerades to use, the trusted root CAs, and the
+// cache file for caching masquerades to set up direct domain fronting.
 func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade, cacheFile string) {
-	log.Debug("Configuring fronted")
+	log.Trace("Configuring fronted")
 	if masquerades == nil || len(masquerades) == 0 {
 		log.Errorf("No masquerades!!")
 		return
@@ -103,7 +109,7 @@ func (d *direct) loadCandidates(initial map[string][]*Masquerade) {
 }
 
 func (d *direct) vetInitial(numberToVet int) {
-	log.Debugf("Vetting %d initial candidates in parallel", numberToVet)
+	log.Tracef("Vetting %d initial candidates in parallel", numberToVet)
 	for i := 0; i < numberToVet; i++ {
 		go d.vetOne()
 	}
@@ -143,6 +149,9 @@ func (d *direct) NewDirect() http.RoundTripper {
 			Dial:                d.Dial,
 			TLSHandshakeTimeout: 40 * time.Second,
 			DisableKeepAlives:   true,
+			TLSClientConfig: &tls.Config{
+				ClientSessionCache: clientSessionCache,
+			},
 		},
 	}
 }
@@ -194,26 +203,26 @@ func (d *direct) dialWith(in chan *Masquerade, network string) (net.Conn, bool, 
 			}
 		}
 
-		log.Debugf("Dialing to %v", m)
+		log.Tracef("Dialing to %v", m)
 
 		// We do the full TLS connection here because in practice the domains at a given IP
 		// address can change frequently on CDNs, so the certificate may not match what
 		// we expect.
 		if conn, err := d.dialServerWith(m); err != nil {
-			log.Debugf("Could not dial to %v, %v", m.IpAddress, err)
+			log.Tracef("Could not dial to %v, %v", m.IpAddress, err)
 			// Don't re-add this candidate if it's any certificate error, as that
 			// will just keep failing and will waste connections. We can't access the underlying
 			// error at this point so just look for "certificate" and "handshake".
 			if strings.Contains(err.Error(), "certificate") || strings.Contains(err.Error(), "handshake") {
-				log.Debugf("Not re-adding candidate that failed on error '%v'", err.Error())
+				log.Tracef("Not re-adding candidate that failed on error '%v'", err.Error())
 			} else {
-				log.Debugf("Unexpected error dialing, keeping masquerade: %v", err)
+				log.Tracef("Unexpected error dialing, keeping masquerade: %v", err)
 				retryLater = append(retryLater, m)
 			}
 		} else {
-			log.Debugf("Got successful connection to: %v", m)
+			log.Tracef("Got successful connection to: %v", m)
 			if err := d.headCheck(m); err != nil {
-				log.Debugf("Could not perform successful head request: %v", err)
+				log.Tracef("Could not perform successful head request: %v", err)
 			} else {
 				// Requeue the working connection to masquerades
 				d.masquerades <- m
@@ -226,14 +235,11 @@ func (d *direct) dialWith(in chan *Masquerade, network string) (net.Conn, bool, 
 				}
 				idleTimeout := 70 * time.Second
 
-				log.Debug("Wrapping connecting in idletiming connection")
+				log.Trace("Wrapping connecting in idletiming connection")
 				conn = idletiming.Conn(conn, idleTimeout, func() {
-					log.Debugf("Connection to %v idle for %v, closing", conn.RemoteAddr(), idleTimeout)
-					if err := conn.Close(); err != nil {
-						log.Debugf("Unable to close connection: %v", err)
-					}
+					log.Tracef("Connection to %v idle for %v, closed", conn.RemoteAddr(), idleTimeout)
 				})
-				log.Debug("Returning connection")
+				log.Trace("Returning connection")
 				return conn, true, nil
 			}
 		}
@@ -245,10 +251,9 @@ func (d *direct) dialServerWith(masquerade *Masquerade) (net.Conn, error) {
 	dialTimeout := 10 * time.Second
 	sendServerNameExtension := false
 
-	cwt, err := tlsdialer.DialForTimings(
-		&net.Dialer{
-			Timeout: dialTimeout,
-		},
+	conn, err := tlsdialer.DialTimeout(
+		netx.DialTimeout,
+		dialTimeout,
 		"tcp",
 		masquerade.IpAddress+":443",
 		sendServerNameExtension, // SNI or no
@@ -257,7 +262,7 @@ func (d *direct) dialServerWith(masquerade *Masquerade) (net.Conn, error) {
 	if err != nil && masquerade != nil {
 		err = fmt.Errorf("Unable to dial masquerade %s: %s", masquerade.Domain, err)
 	}
-	return cwt.Conn, err
+	return conn, err
 }
 
 // tlsConfig builds a tls.Config for dialing the upstream host. Constructed
@@ -305,7 +310,7 @@ func (d *direct) headCheck(m *Masquerade) error {
 	if 200 != resp.StatusCode {
 		return fmt.Errorf("Unexpected response status: %v, %v", resp.StatusCode, resp.Status)
 	}
-	log.Debugf("Successfully passed HEAD request through: %v", m)
+	log.Tracef("Successfully passed HEAD request through: %v", m)
 	return nil
 }
 
