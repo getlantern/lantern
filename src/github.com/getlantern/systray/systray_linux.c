@@ -34,7 +34,7 @@ int nativeLoop(void) {
 	global_temp_icon_file_names = g_array_new(TRUE, FALSE, sizeof(char*));
 	systray_ready();
 	gtk_main();
-	return;
+	return 0;
 }
 
 // runs in main thread, should always return FALSE to prevent gtk to execute it again
