@@ -105,6 +105,7 @@ func (s *ChainedServerInfo) Dialer(deviceID string) (*balancer.Dialer, error) {
 	ccfg := chained.Config{
 		DialServer: dial,
 		Label:      label,
+		Token:      s.AuthToken,
 	}
 
 	authToken := s.AuthToken

@@ -22,6 +22,9 @@ type Config struct {
 
 	// Label: a optional label for debugging.
 	Label string
+
+	// AuthToken: the authtoken to present to the upstream server
+	Token string
 }
 
 // dialer is an implementation of proxy.Dialer that proxies traffic via an
@@ -71,6 +74,8 @@ func (d *dialer) sendCONNECT(network, addr string, conn net.Conn) error {
 	if err != nil {
 		return fmt.Errorf("Unable to construct CONNECT request: %s", err)
 	}
+
+	req.Header.Set("X-LANTERN-AUTH-TOKEN", d.Token)
 	err = req.Write(conn)
 	if err != nil {
 		return fmt.Errorf("Unable to write CONNECT request: %s", err)
