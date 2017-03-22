@@ -44,7 +44,18 @@ var (
 	// tests may time out.
 	testSites = []string{"www.google.com", "www.youtube.com", "www.facebook.com"}
 
-	fallbackNamePattern = regexp.MustCompile(`^fl-([a-z]{2})-.+$`)
+	// Old style (country centric): fl-nl-20150302-025
+	// New style (datacenter centric): fl-donyc3-20150302-025
+	fallbackNamePattern = regexp.MustCompile(`^fl-([a-z]{2,5}[0-9]?)-.+$`)
+	fallbackCountries   = map[string]string{
+		// Backwards compatibility
+		"nl": "nl",
+		"jp": "jp",
+		// New-style
+		"doams3": "nl",
+		"donyc3": "us",
+		"vltok1": "jp",
+	}
 )
 
 type status struct {
@@ -584,7 +595,9 @@ func (h *host) reallyDoIsAbleToProxy(port string) (bool, bool, error) {
 func fallbackCountry(name string) string {
 	sub := fallbackNamePattern.FindSubmatch([]byte(name))
 	if len(sub) == 2 {
-		return string(sub[1]) + ".fallbacks"
+		if ret, found := fallbackCountries[string(sub[1])]; found {
+			return ret + ".fallbacks"
+		}
 	}
 	return ""
 }
