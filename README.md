@@ -1,5 +1,7 @@
 # lantern [![Travis CI Status](https://travis-ci.org/getlantern/lantern.svg?branch=devel)](https://travis-ci.org/getlantern/lantern)&nbsp;[![Coverage Status](https://coveralls.io/repos/getlantern/lantern/badge.png?branch=devel)](https://coveralls.io/r/getlantern/lantern)
 
+Lantern is an HTTP/HTTPS proxy, comprised of a desktop/mobile application and a server ecosystem or cloud. Details can be found [here](README-dev.md). 
+
 ## [🔴蓝灯(Lantern)最新版下载点这里🔴](https://github.com/getlantern/forum/issues/833)
 
 **If you're looking for Lantern installers, you can find all of them at the following links:**
