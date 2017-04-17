@@ -66,6 +66,7 @@ func Start(provider Provider) error {
 			"androidModel":      provider.Model(),
 			"androidSdkVersion": provider.Version(),
 		}
+
 		logging.ConfigureAndroid(androidProps)
 
 		cfgFn := func(cfg *config.Config) {
