@@ -3,11 +3,18 @@
 ## [🔴蓝灯(Lantern)最新版下载点这里🔴](https://github.com/getlantern/forum/issues/833)
 
 **If you're looking for Lantern installers, you can find all of them at the following links:**
+- [Android](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer.apk)
+- [Windows XP SP 3 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer.exe)
+- [OSX 10.8 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer.dmg)
+- [Ubuntu 14.04 32 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-32-bit.deb)
+- [Ubuntu 14.04 64 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-64-bit.deb)
+
+**If you would like to give the latest but more unstable beta versions a try, you can find all of them at the following links:**
 - [Android](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-beta.apk)
 - [Windows XP SP 3 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-beta.exe)
 - [OSX 10.8 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-beta.dmg)
-- [Ubuntu 14.04 32 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-beta-32-bit.deb)
-- [Ubuntu 14.04 64 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-beta-64-bit.deb)
+- [Ubuntu 14.04 32 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-beta.deb)
+- [Ubuntu 14.04 64 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-beta.deb)
 
 **If you're looking for help, please visit below user forums:**
 
