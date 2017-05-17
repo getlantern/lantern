@@ -9,7 +9,7 @@
 - [Ubuntu 14.04 32 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-32-bit.deb)
 - [Ubuntu 14.04 64 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-64-bit.deb)
 
-**If you would like to give the latest but more unstable beta versions a try, you can find all of them at the following links:**
+**If you would like to give the latest but more UNSTABLE BETA versions a try, you can find all of them at the following links:**
 - [Android](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-beta.apk)
 - [Windows XP SP 3 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-beta.exe)
 - [OSX 10.8 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-beta.dmg)
