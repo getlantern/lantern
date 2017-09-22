@@ -1,6 +1,6 @@
 language: go
 go:
-- 1.6
+- 1.x
 node_js:
 - 5.1
 git:
