@@ -252,6 +252,12 @@ linux-arm: $(RESOURCES_DOT_GO) $(SOURCES)
 	$(call build-tags) && \
 	CGO_ENABLED=1 CC=arm-linux-gnueabi-gcc CXX=arm-linux-gnueabi-g++ CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7 go build -a -o lantern_linux_arm -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight/main
 
+linux-mipsel: $(RESOURCES_DOT_GO) $(SOURCES)
+	@source setenv.bash && \
+	HEADLESS=1 && \
+	$(call build-tags) && \
+	CGO_ENABLED=1 CC=mipsel-linux-gnu-gcc CXX=mipsel-linux-gnu-g++ CGO_ENABLED=1 GOOS=linux GOARCH=mipsle go build -a -o lantern_linux_mipsle -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -linkmode external -extldflags \"-static\"" github.com/getlantern/flashlight/main
+
 windows: $(RESOURCES_DOT_GO) $(SOURCES)
 	@source setenv.bash && \
 	$(call build-tags) && \
