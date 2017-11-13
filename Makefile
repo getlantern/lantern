@@ -22,8 +22,8 @@ DOCKERMACHINE 	:= $(call get-command,docker-machine)
 BOOT2DOCKER 	:= $(call get-command,boot2docker)
 
 GIT_REVISION_SHORTCODE := $(shell git rev-parse --short HEAD)
-GIT_REVISION := $(shell git describe --abbrev=0 --tags --exact-match 2> /dev/null || git rev-parse --short HEAD)
-GIT_REVISION_DATE := $(shell git show -s --format=%ci $(GIT_REVISION_SHORTCODE))
+GIT_REVISION := 9.9.9
+GIT_REVISION_DATE := 2018-11-15 00:54:06 -0800
 
 REVISION_DATE := $(shell date -u -j -f "%F %T %z" "$(GIT_REVISION_DATE)" +"%Y%m%d.%H%M%S" 2>/dev/null || date -u -d "$(GIT_REVISION_DATE)" +"%Y%m%d.%H%M%S")
 BUILD_DATE := $(shell date -u +%Y%m%d.%H%M%S)
@@ -252,7 +252,7 @@ linux-arm: $(RESOURCES_DOT_GO) $(SOURCES)
 	$(call build-tags) && \
 	CGO_ENABLED=1 CC=arm-linux-gnueabi-gcc CXX=arm-linux-gnueabi-g++ CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7 go build -a -o lantern_linux_arm -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight/main
 
-linux-mipsel: $(RESOURCES_DOT_GO) $(SOURCES)
+linux-mipsle: $(RESOURCES_DOT_GO) $(SOURCES)
 	@source setenv.bash && \
 	HEADLESS=1 && \
 	$(call build-tags) && \
