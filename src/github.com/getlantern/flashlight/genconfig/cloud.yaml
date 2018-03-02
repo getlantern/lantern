@@ -10,8 +10,8 @@ reportissueemail: report-issue@getlantern.org
 adsettings:
   provider: admob
   showads: true # global flag whether to show ads at all
-  mindaysshowads: 1
-  maxdaysshowads: 5
+  mindaysshowads: 0
+  maxdaysshowads: 1
   percentage: 0.1 # show ads % of the time
   regionsenabled:
       fa_IR: true
