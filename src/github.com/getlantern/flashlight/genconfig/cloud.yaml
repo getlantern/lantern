@@ -15,8 +15,6 @@ adsettings:
   percentage: 0.1 # show ads % of the time
   regionsenabled:
       fa_IR: true
-      en_US: true
-      en_GB: true
   whitelist:
     com.intuit.turbotax.mobile: true
     com.ad20.power.cleaner.boost.app: true
