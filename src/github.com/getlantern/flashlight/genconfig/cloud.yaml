@@ -10,11 +10,11 @@ reportissueemail: report-issue@getlantern.org
 adsettings:
   provider: admob
   showads: true # global flag whether to show ads at all
-  mindaysshowads: 0
-  maxdaysshowads: 0
+  mindaysshowads: 1
+  maxdaysshowads: 5
   percentage: 0.1 # show ads % of the time
   regionsenabled:
-      fa_IR: true
+      fa_IR: false
   whitelist:
     com.intuit.turbotax.mobile: true
     com.ad20.power.cleaner.boost.app: true
