@@ -15,6 +15,7 @@ import org.lantern.event.Events;
 import org.lantern.event.SystemProxyChangedEvent;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
+import org.littleshoot.proxy.TransportProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,9 +34,11 @@ public class Settings {
 
     private boolean autoReport = true;
 
-    private Mode mode = Mode.unknown;
-
     private int proxyPort = LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
+    
+    private TransportProtocol proxyProtocol = TransportProtocol.TCP;
+    
+    private String proxyAuthToken;
 
     private boolean systemProxy = true;
 
@@ -94,6 +97,12 @@ public class Settings {
 
     private boolean showFriendPrompts = true;
 
+    private String configUrl;
+    
+    public Settings() {
+        whitelist.applyDefaultEntries();
+    }
+
     @JsonView(Run.class)
     public String getLang() {
         return lang;
@@ -113,21 +122,30 @@ public class Settings {
     }
 
     @JsonView({Run.class, Persistent.class})
-    public Mode getMode() {
-        return mode;
-    }
-
-    public void setMode(final Mode mode) {
-        this.mode = mode;
-    }
-
-    @JsonView({Run.class, Persistent.class})
     public int getProxyPort() {
         return proxyPort;
     }
-
+    
     public void setProxyPort(final int proxyPort) {
         this.proxyPort = proxyPort;
+    }
+    
+    @JsonView({Run.class, Persistent.class})
+    public TransportProtocol getProxyProtocol() {
+        return proxyProtocol;
+    }
+    
+    public void setProxyProtocol(TransportProtocol proxyProtocol) {
+        this.proxyProtocol = proxyProtocol;
+    }
+    
+    @JsonView({Run.class, Persistent.class})
+    public String getProxyAuthToken() {
+        return proxyAuthToken;
+    }
+    
+    public void setProxyAuthToken(String proxyAuthToken) {
+        this.proxyAuthToken = proxyAuthToken;
     }
 
     @JsonView({Run.class, Persistent.class})
@@ -166,6 +184,8 @@ public class Settings {
 
     public void setWhitelist(Whitelist whitelist) {
         this.whitelist = whitelist;
+        // After the whitelist has been set, apply the default entries
+        this.whitelist.applyDefaultEntries();
     }
 
 
@@ -385,5 +405,14 @@ public class Settings {
     @JsonView({Run.class, Persistent.class})
     public void setShowFriendPrompts(boolean showFriendPrompts) {
         this.showFriendPrompts = showFriendPrompts;
+    }
+
+    @JsonView({Run.class, Persistent.class})
+    public String getConfigUrl() {
+        return configUrl;
+    }
+
+    public void setConfigUrl(String configUrl) {
+        this.configUrl = configUrl;
     }
 }

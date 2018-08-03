@@ -11,4 +11,12 @@ chmod 4711 /opt/lantern/copyPolicy.exe
 
 test -e /opt/lantern/jre/jre1.* && mv /opt/lantern/jre/jre1.*/* /opt/lantern/jre
 
+# Backwards compatibility.  Either this or the following attempt will fail,
+# but none of these failures should be a showstopper.
+
+test -e /opt/lantern-net-installer/configurl.txt && mv /opt/lantern-net-installer/configurl.txt ~/.lantern-configurl.txt || echo "Could not move (old) configurl.txt (this is normal in transition)." >> $logf
+
+# DRY: wrapper.install4j and S3ConfigFetcher.
+test -e /root/.lantern-configurl.txt && mv /root/.lantern-configurl.txt ~/.lantern-configurl.txt || echo "Could not move (new) .lantern-configurl.txt (this is normal in transition" >> $lofg
+
 echo "Finished running post install script..." >> $logf

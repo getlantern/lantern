@@ -13,7 +13,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.lantern.event.Events;
 import org.lantern.state.Model;
 import org.lantern.state.SyncPath;
@@ -66,13 +65,7 @@ public class StatsUpdater extends Thread {
     private void updateStats() {
         log.debug("Updating stats...");
         
-        final HttpClient client;
-        try {
-            client = this.httpClientFactory.newClient();
-        } catch (final IOException e) {
-            log.warn("Could not access proxy?", e);
-            return;
-        }
+        final HttpClient client = this.httpClientFactory.newClient();
         final HttpGet get = new HttpGet();
         String json = "";
         try {
@@ -82,8 +75,7 @@ public class StatsUpdater extends Thread {
             final HttpEntity entity = response.getEntity();
             json = IOUtils.toString(entity.getContent());
             EntityUtils.consume(entity);
-            final ObjectMapper om = new ObjectMapper();
-            Map<String, Object> stats = om.readValue(json, Map.class);
+            Map<String, Object> stats = JsonUtils.OBJECT_MAPPER.readValue(json, Map.class);
             Map<String, Object> global = (Map<String, Object>) stats.get("global");
             if (global == null) {
                 log.info("Empty global stats");
@@ -101,7 +93,7 @@ public class StatsUpdater extends Thread {
             Events.sync(SyncPath.GLOBAL, model.getGlobal());
             Events.sync(SyncPath.COUNTRIES, model.getCountries());
         } catch (final IOException e) {
-            log.info("Error getting stats. RESPONSE:\n"+json, e);
+            log.info("Error getting stats from URL "+LanternClientConstants.STATS_URL+" RESPONSE:\n"+json, e);
         } catch (final URISyntaxException e) {
             log.error("URI error", e);
         } catch (IllegalAccessException e) {
@@ -116,7 +108,6 @@ public class StatsUpdater extends Thread {
     @SuppressWarnings("unchecked")
     private void updateModel(Object dest, Map<String, Object> src)
             throws IllegalAccessException, InvocationTargetException {
-        @SuppressWarnings("unchecked")
         Map<String, Object> map = src;
         try {
             for (Map.Entry<String, Object> entry : map.entrySet()) {

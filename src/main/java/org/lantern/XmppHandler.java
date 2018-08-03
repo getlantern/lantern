@@ -4,9 +4,7 @@ import java.io.IOException;
 
 import javax.security.auth.login.CredentialException;
 
-import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
-import org.lantern.state.Friend;
 import org.lastbamboo.common.ice.MappedServerSocket;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.util.FiveTuple;
@@ -54,32 +52,7 @@ public interface XmppHandler extends LanternService {
      */
     void addOrRemovePeer(Presence p, String from);
 
-    /**
-     * Sends an invite to the specified friend
-     *
-     * @param friend The friend to send the invite to.
-     * @param redo Whether we are retrying
-     * @return success or failure.
-     */
-    boolean sendInvite(Friend friend, boolean redo, final boolean addToRoster);
-
-    /**
-     * Stop subscribing to the presence of another user.
-     *
-     * @param jid The JID of the user to stop subscribing to.
-     */
-    void unsubscribe(String jid);
-
-    /**
-     * Reject the subscription request of the specified user.
-     *
-     * @param jid The JID of the subscription request to reject.
-     */
-    void unsubscribed(String jid);
-
     void addToRoster(String jid);
-
-    void removeFromRoster(String jid);
 
     void subscribe(String jid);
 
@@ -95,7 +68,7 @@ public interface XmppHandler extends LanternService {
 
     MappedServerSocket getMappedServer();
 
-    void sendPacket(Packet packet);
+    //void sendPacket(Packet packet);
     
     ProxyTracker getProxyTracker();
 }

@@ -50,7 +50,7 @@ import org.lantern.state.SyncStrategy;
 import org.lantern.state.Transfers;
 import org.lantern.state.TransfersIo;
 import org.lantern.ui.NotificationManager;
-import org.lantern.ui.SwtMessageService;
+import org.lantern.ui.SwingMessageService;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.UpnpService;
 import org.littleshoot.proxy.ChainedProxyManager;
@@ -66,6 +66,8 @@ public class LanternModule extends AbstractModule {
 
     private static final Logger log =
         LoggerFactory.getLogger(LanternModule.class);
+    
+    private static LanternModule s_instance;
 
     private NatPmpService natPmpService;
 
@@ -76,13 +78,15 @@ public class LanternModule extends AbstractModule {
     public LanternModule(final String[] args) {
         final Cli cli = new Cli(args);
         this.commandLine = cli.getParsedCommandLine();
+        s_instance = this;
+    }
+    
+    public static LanternModule getInstance() {
+        return s_instance;
     }
     
     @Override
     protected void configure() {
-        //install policy files before anything gets loaded
-        LanternUtils.installPolicyFiles();
-
         SASLAuthentication.registerSASLMechanism("X-OAUTH2",
             LanternSaslGoogleOAuth2Mechanism.class);
 
@@ -92,7 +96,7 @@ public class LanternModule extends AbstractModule {
         bind(StatsReporter.class);
         bind(LanternSocketsUtil.class);
         bind(LanternXmppUtil.class);
-        bind(MessageService.class).to(SwtMessageService.class);
+        bind(MessageService.class).to(SwingMessageService.class);
         bind(KscopeAdHandler.class).to(DefaultKscopeAdHandler.class);
 
         bind(FriendsHandler.class).to(DefaultFriendsHandler.class);
@@ -115,7 +119,7 @@ public class LanternModule extends AbstractModule {
         bind(InteractionServlet.class);
         bind(LanternTrustStore.class);
         bind(PhotoServlet.class);
-        bind(LanternFeedback.class);
+        bind(LogglyHelper.class);
 
         bind(Censored.class).to(DefaultCensored.class);
         bind(ProxyTracker.class).to(DefaultProxyTracker.class);
@@ -129,7 +133,6 @@ public class LanternModule extends AbstractModule {
         bind(ConnectivityChecker.class);
         bind(GeoIp.class);
         bind(CountryService.class);
-        //bind(SplashScreen.class);
         bind(NotificationManager.class);
         bind(ChainedProxyManager.class).to(DispatchingChainedProxyManager.class);
         bind(SslEngineSource.class).to(CertTrackingSslEngineSource.class);

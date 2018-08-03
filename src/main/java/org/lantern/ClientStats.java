@@ -36,12 +36,12 @@ public interface ClientStats extends Stats {
     /**
      * request bytes sent by peers to this lantern
      */
-    void addDownBytesFromPeers(long bytes);
+    void addDownBytesFromPeers(long bytes, InetAddress peerAddress);
 
     /**
      * bytes sent upstream on behalf of another lantern by this lantern
      */
-    void addUpBytesToPeers(long bytes);
+    void addUpBytesToPeers(long bytes, InetAddress peerAddress);
 
     /**
      * bytes that were sent/received from the {@link GetModeProxy} but not
@@ -70,6 +70,26 @@ public interface ClientStats extends Stats {
      * @param address
      */
     void addProxiedClientAddress(InetAddress address);
+    
+    /**
+     * Return the bytes proxied for Iran since the last time
+     * getBytesProxiedForIran() was called.
+     * 
+     * @return
+     */
+    long getBytesProxiedForIran();
+    
+    long getGlobalBytesProxiedForIran();
+    
+    /**
+     * Return the bytes proxied for China since the last time
+     * getBytesProxiedForChina() was called.
+     * 
+     * @return
+     */
+    long getBytesProxiedForChina();
+    
+    long getGlobalBytesProxiedForChina();
 
     /**
      * Gives a count of the # of distinct {@link InetAddress}es for which we've

@@ -38,7 +38,7 @@ public class FallbackProxyClientTest {
         is.read(bytes);
         
         final String response = new String(bytes);
-        assertTrue(response.startsWith("HTTP/1.1 200 OK"));
+        assertTrue(response.startsWith("HTTP/1.1 302 Found"));
         System.out.println(new String(bytes));
         os.close();
         is.close();

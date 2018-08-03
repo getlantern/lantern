@@ -22,6 +22,8 @@ public class Cli {
     public static final String OPTION_LAUNCHD = "launchd";
     public static final String OPTION_PUBLIC_API = "public-api";
     public static final String OPTION_SERVER_PORT = "server-port";
+    public static final String OPTION_SERVER_PROTOCOL = "server-protocol";
+    public static final String OPTION_SERVER_AUTHTOKEN_FILE = "auth-token-file";
     public static final String OPTION_DISABLE_KEYCHAIN = "disable-keychain";
     public static final String OPTION_PASSWORD_FILE = "password-file";
     public static final String OPTION_TRUSTED_PEERS = "disable-trusted-peers";
@@ -33,8 +35,6 @@ public class Cli {
     public static final String OPTION_TCP = "disable-tcp";
     public static final String OPTION_USER = "user";
     public static final String OPTION_PASS = "pass";
-    public static final String OPTION_GET = "force-get";
-    public static final String OPTION_GIVE = "force-give";
     public static final String OPTION_VERSION = "version";
     public static final String OPTION_NEW_UI = "new-ui";
     public static final String OPTION_REFRESH_TOK = "refresh-tok";
@@ -94,6 +94,10 @@ public class Cli {
             "run without a graphical user interface.");
         options.addOption(null, OPTION_SERVER_PORT, true,
             "the port to run the give mode proxy server on.");
+        options.addOption(null, OPTION_SERVER_PROTOCOL, true,
+                "the protocol with which to run the proxy ('tcp' or 'udp').");
+        options.addOption(null, OPTION_SERVER_AUTHTOKEN_FILE, true,
+                "a file containing the auth-token to require from clients.");
         options.addOption(null, OPTION_PUBLIC_API, false,
             "make the API server publicly accessible on non-localhost.");
         options.addOption(null, OPTION_HELP, false,
@@ -122,8 +126,6 @@ public class Cli {
             "Google user name -- WARNING INSECURE - ONLY USE THIS FOR TESTING!");
         options.addOption(null, OPTION_PASS, true,
             "Google password -- WARNING INSECURE - ONLY USE THIS FOR TESTING!");
-        options.addOption(null, OPTION_GET, false, "Force running in get mode");
-        options.addOption(null, OPTION_GIVE, false, "Force running in give mode");
         options.addOption(null, OPTION_VERSION, false,
             "Print the Lantern version");
         options.addOption(null, OPTION_NEW_UI, false,

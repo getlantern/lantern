@@ -19,6 +19,7 @@ import org.lantern.LanternUtils;
 import org.lantern.Roster;
 import org.lantern.RosterDeserializer;
 import org.lantern.RosterSerializer;
+import org.lantern.S3Config;
 import org.lantern.annotation.Keep;
 import org.lantern.event.Events;
 import org.lantern.event.SetupCompleteEvent;
@@ -75,13 +76,13 @@ public class Model {
 
     private Transfers transfers;
 
-    private boolean isEverGetMode;
-
     private boolean welcomeMessageShown;
 
     private String xsrfToken;
 
     private CountryService countryService;
+    
+    private boolean restrictProxyingToDefaultWhitelist;
 
     public Model() {
         //used for JSON loading
@@ -97,6 +98,10 @@ public class Model {
 
     private Collection<ClientFriend> friends;
 
+    private int remainingFriendingQuota = 0;
+
+    private S3Config s3Config = new S3Config();
+    
     @JsonView({Run.class})
     private Transfers getTransfers() {
         return transfers;
@@ -304,14 +309,6 @@ public class Model {
 
     }
 
-    public boolean isEverGetMode() {
-        return isEverGetMode;
-    }
-
-    public void setEverGetMode(boolean b) {
-        this.isEverGetMode = b;
-    }
-
     public String getXsrfToken() {
         if (xsrfToken == null) {
             byte[] bytes = new byte[16];
@@ -332,6 +329,16 @@ public class Model {
 
     public void setCountryService(CountryService countryService) {
         this.countryService = countryService;
+    }
+    
+    @JsonView({Persistent.class})
+    public boolean isRestrictProxyingToDefaultWhitelist() {
+        return restrictProxyingToDefaultWhitelist;
+    }
+    
+    public void setRestrictProxyingToDefaultWhitelist(
+            boolean restrictProxyingToDefaultWhitelist) {
+        this.restrictProxyingToDefaultWhitelist = restrictProxyingToDefaultWhitelist;
     }
 
     @JsonView({Persistent.class})
@@ -378,5 +385,21 @@ public class Model {
     @JsonView({Run.class})
     public Collection<ClientFriend> getFriends() {
         return this.friends;
+    }
+    
+    public int getRemainingFriendingQuota() {
+        return Math.max(remainingFriendingQuota, 0);
+    }
+    
+    public void setRemainingFriendingQuota(int remainingFriendingQuota) {
+        this.remainingFriendingQuota = remainingFriendingQuota;
+    }
+
+    public S3Config getS3Config() {
+        return this.s3Config;
+    }
+
+    public void setS3Config(final S3Config s3Config) {
+        this.s3Config = s3Config;
     }
 }

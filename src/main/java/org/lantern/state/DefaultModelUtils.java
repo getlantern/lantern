@@ -66,8 +66,7 @@ public class DefaultModelUtils implements ModelUtils {
 
     @Override
     public boolean shouldProxy() {
-        return this.model.getSettings().getMode() == Mode.get && 
-            this.model.getSettings().isSystemProxy();
+        return this.model.getSettings().isSystemProxy();
     }
 
     @Override

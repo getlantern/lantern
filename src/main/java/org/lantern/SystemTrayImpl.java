@@ -1,33 +1,28 @@
 package org.lantern;
 
-import static org.lantern.Tr.tr;
+import static org.lantern.Tr.*;
+
+import java.awt.AWTException;
+import java.awt.Image;
+import java.awt.MenuItem;
+import java.awt.PopupMenu;
+import java.awt.SystemTray;
+import java.awt.TrayIcon;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.util.Map;
 
-import org.apache.commons.io.IOUtils;
+import javax.swing.ImageIcon;
+import javax.swing.SwingUtilities;
+
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Tray;
-import org.eclipse.swt.widgets.TrayItem;
 import org.lantern.event.Events;
 import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.QuitEvent;
 import org.lantern.event.UpdateEvent;
-import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,34 +35,34 @@ import com.google.inject.Singleton;
  * Class for handling all system tray interactions.
  */
 @Singleton
-public class SystemTrayImpl implements SystemTray {
+public class SystemTrayImpl implements org.lantern.SystemTray {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
-    private Shell shell;
-    private TrayItem trayItem;
+    private static final Logger log = LoggerFactory
+            .getLogger(SystemTrayImpl.class);
+    private SystemTray tray;
+    private TrayIcon trayIcon;
+    private PopupMenu menu;
     private MenuItem connectionStatusItem;
     private MenuItem updateItem;
-    private Menu menu;
     private Map<String, Object> updateData;
     private boolean active = false;
 
     private final static String LABEL_DISCONNECTED = tr("TRAY_NOT_CONNECTED");
     private final static String LABEL_CONNECTING = tr("TRAY_CONNECTING");
     private final static String LABEL_CONNECTED = tr("TRAY_CONNECTED");
-    
-    private final static String ICON_DISCONNECTED  = "16off.png";
-    private final static String ICON_CONNECTING    = "16off.png"; 
-    private final static String ICON_CONNECTED     = "16on.png";
+
+    private final static String ICON_DISCONNECTED = "16off.png";
+    private final static String ICON_CONNECTING = "16off.png";
+    private final static String ICON_CONNECTED = "16on.png";
 
     private final BrowserService browserService;
     private final Model model;
     private String connectionStatusText;
-    private Image trayItemImage;
-    
+    private Image trayImage;
+
     /**
      * Creates a new system tray handler class.
      * 
-     * @param display The SWT display. 
      */
     @Inject
     public SystemTrayImpl(final BrowserService browserService,
@@ -79,183 +74,150 @@ public class SystemTrayImpl implements SystemTray {
 
     @Override
     public void start() {
+        log.debug("Starting system tray");
         createTray();
     }
 
     @Override
     public void stop() {
-        try {
-            final Display display = DisplayWrapper.getDisplay();
-            if (!display.isDisposed()) {
-                display.asyncExec(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (display.isDisposed()) {
-                            return;
-                        }
-                        try {
-                            display.dispose();
-                        } catch (final Throwable t) {
-                            log.info("Exception disposing display?", t);
-                        }
-                    }
-                });
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                tray.remove(trayIcon);
             }
-        } catch (final Throwable t) {
-            log.info("Exception disposing display?", t);
-        }
+        });
     }
 
     @Override
     public boolean isSupported() {
-        return DisplayWrapper.getDisplay().getSystemTray() != null;
+        return SystemTray.isSupported();
     }
 
     @Override
     public void createTray() {
-        log.debug("Creating shell");
-        this.shell = new Shell(DisplayWrapper.getDisplay());
-        log.debug("Created shell");
-        
-        createTrayInternal();
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                doCreateTray();
+            }
+        });
     }
-    
-    private void createTrayInternal() {
-        final Tray tray = DisplayWrapper.getDisplay().getSystemTray ();
+
+    private void doCreateTray() {
+        tray = SystemTray.getSystemTray();
         if (tray == null) {
             log.warn("The system tray is not available");
         } else {
             log.info("Creating system tray...");
-            this.trayItem = new TrayItem (tray, SWT.NONE);
-            this.trayItem.setToolTipText(
-                tr("LANTERN")+" "+LanternClientConstants.VERSION);
-            
             // Another thread could have set the tray item image before the
             // tray item was created.
-            if (this.trayItemImage != null) {
-                this.trayItem.setImage(trayItemImage);
+            if (trayImage == null) {
+                // Image was not yet set
+                final String imageName;
+                if (SystemUtils.IS_OS_MAC_OSX) {
+                    imageName = ICON_DISCONNECTED;
+                } else {
+                    imageName = ICON_CONNECTED;
+                }
+                trayImage = newImage(imageName);
             }
-            this.trayItem.addListener (SWT.Show, new Listener () {
-                @Override
-                public void handleEvent (final Event event) {
-                    System.out.println("show");
-                }
-            });
-            this.trayItem.addListener (SWT.Hide, new Listener () {
-                @Override
-                public void handleEvent (final Event event) {
-                    System.out.println("hide");
-                }
-            });
+            this.trayIcon = new TrayIcon(trayImage);
+            trayIcon.setToolTip(
+                    tr("LANTERN") + " " + LanternClientConstants.VERSION);
 
-            this.menu = new Menu (shell, SWT.POP_UP);
-            
-            this.connectionStatusItem = new MenuItem(menu, SWT.PUSH);
-            
-            // Other threads can set the label before we've constructed the 
+            this.menu = new PopupMenu();
+
+            this.connectionStatusItem = new MenuItem();
+            // Other threads can set the label before we've constructed the
             // menu item, so check for it.
             if (StringUtils.isNotBlank(connectionStatusText)) {
-                connectionStatusItem.setText(connectionStatusText);
+                connectionStatusItem.setLabel(connectionStatusText);
             } else {
-                connectionStatusItem.setText(LABEL_DISCONNECTED);
+                connectionStatusItem.setLabel(LABEL_DISCONNECTED);
             }
             connectionStatusItem.setEnabled(false);
-            
-            final MenuItem dashboardItem = new MenuItem(menu, SWT.PUSH);
-            dashboardItem.setText(tr("TRAY_SHOW_LANTERN")); 
-            dashboardItem.addListener (SWT.Selection, new Listener () {
+            menu.add(connectionStatusItem);
+
+            final MenuItem dashboardItem = new MenuItem(tr("TRAY_SHOW_LANTERN"));
+            dashboardItem.addActionListener(new ActionListener() {
                 @Override
-                public void handleEvent (final Event event) {
+                public void actionPerformed(ActionEvent e) {
                     log.debug("Reopening browser?");
                     browserService.reopenBrowser();
                 }
             });
-            
-            new MenuItem(menu, SWT.SEPARATOR);
-            
-            final MenuItem quitItem = new MenuItem(menu, SWT.PUSH);
-            quitItem.setText(tr("TRAY_QUIT")); 
-            
-            quitItem.addListener (SWT.Selection, new Listener () {
+            menu.add(dashboardItem);
+
+            menu.addSeparator();
+
+            final MenuItem quitItem = new MenuItem(tr("TRAY_QUIT"));
+            quitItem.addActionListener(new ActionListener() {
                 @Override
-                public void handleEvent (final Event event) {
+                public void actionPerformed(ActionEvent e) {
                     log.debug("Got exit call");
-                    
+
                     // This tells things like the Proxifier to stop proxying.
                     Events.eventBus().post(new QuitEvent());
-                    DisplayWrapper.getDisplay().dispose();
-
                     System.exit(0);
                 }
             });
+            menu.add(quitItem);
 
-            trayItem.addListener (SWT.MenuDetect, new Listener () {
-                @Override
-                public void handleEvent (final Event event) {
-                    log.debug("Setting menu visible");
-                    menu.setVisible (true);
-                }
-            });
-            
-            final String imageName;
-            if (SystemUtils.IS_OS_MAC_OSX) {
-                imageName = ICON_DISCONNECTED;
-            } else {
-                imageName = ICON_CONNECTED;
-            }
-            final Image image = newImage(imageName, 16, 16);
-            setImage(image);
-            
+            trayIcon.setPopupMenu(menu);
+
             if (SystemUtils.IS_OS_WINDOWS || SystemUtils.IS_OS_LINUX) {
-                this.trayItem.addSelectionListener(new SelectionListener() {
+                trayIcon.addActionListener(new ActionListener() {
                     @Override
-                    public void widgetSelected(SelectionEvent se) {
+                    public void actionPerformed(ActionEvent e) {
                         log.debug("opening dashboard");
                         browserService.reopenBrowser();
-                    }
-                    
-                    @Override
-                    public void widgetDefaultSelected(SelectionEvent se) {
-                        log.debug("default selection event unhandled");
                     }
                 });
                 log.debug("Added selection");
             }
+
+            try {
+                tray.add(trayIcon);
+            } catch (AWTException e) {
+                System.out.println("TrayIcon could not be added.");
+            }
+
             this.active = true;
         }
         log.debug("Finished creating tray...");
     }
 
     private void setImage(final Image image) {
-        DisplayWrapper.getDisplay().asyncExec (new Runnable () {
+        SwingUtilities.invokeLater(new Runnable() {
             @Override
-            public void run () {
-                if (trayItem == null) {
-                    trayItemImage = image;
+            public void run() {
+                if (trayIcon == null) {
+                    log.warn("Tray icon not created yet?");
+                    trayImage = image;
                 } else {
-                    trayItem.setImage (image);
-                }
-            }
-        });
-    }
-    
-    private void setStatusLabel(final String status) {
-        DisplayWrapper.getDisplay().asyncExec (new Runnable () {
-            @Override
-            public void run () {
-                // XXX i18n 
-                if (connectionStatusItem == null) {
-                    connectionStatusText = status;
-                } else {
-                    connectionStatusItem.setText(status);
+                    trayIcon.setImage(image);
                 }
             }
         });
     }
 
-    private Image newImage(final String name, int width, int height) {
+    private void setStatusLabel(final String status) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                // XXX i18n
+                if (connectionStatusItem == null) {
+                    connectionStatusText = status;
+                } else {
+                    connectionStatusItem.setLabel(status);
+                }
+            }
+        });
+    }
+
+    protected static Image newImage(String name) {
         final File iconFile;
-        final File iconCandidate1 = new File("install/common/"+name);
+        final File iconCandidate1 = new File("install/common/" + name);
         if (iconCandidate1.isFile()) {
             log.debug("Using install dir icon");
             iconFile = iconCandidate1;
@@ -266,18 +228,9 @@ public class SystemTrayImpl implements SystemTray {
             log.error("Still no icon file at: {}", iconFile.getAbsolutePath());
             return null;
         }
-        InputStream is = null;
-        try {
-            is = new FileInputStream(iconFile);
-            log.debug("Returning file at: {}", iconFile.getAbsolutePath());
-            return new Image (DisplayWrapper.getDisplay(), is);
-        } catch (final FileNotFoundException e) {
-            log.error("Could not find icon file: "+iconFile, e);
-        } finally {
-            IOUtils.closeQuietly(is);
-        }
-        log.debug("Returning blank image");
-        return new Image (DisplayWrapper.getDisplay(), width, height);
+
+        return (new ImageIcon(iconFile.getAbsolutePath())).getImage()
+                .getScaledInstance(16, 16, Image.SCALE_SMOOTH);
     }
 
     @Override
@@ -288,26 +241,26 @@ public class SystemTrayImpl implements SystemTray {
             return;
         }
         this.updateData = data;
-        DisplayWrapper.getDisplay().asyncExec (new Runnable () {
+        SwingUtilities.invokeLater(new Runnable() {
             @Override
-            public void run () {
+            public void run() {
                 if (updateItem == null) {
-                    updateItem = new MenuItem(menu, SWT.PUSH, 0);
-                    updateItem.addListener (SWT.Selection, new Listener () {
+                    String label = tr("TRAY_UPDATE") + " " +
+                            data.get(LanternConstants.UPDATE_KEY);
+                    updateItem = new MenuItem(label);
+                    updateItem.addActionListener(new ActionListener() {
                         @Override
-                        public void handleEvent (final Event event) {
+                        public void actionPerformed(ActionEvent e) {
                             log.info("Got update call");
                             NativeUtils.openUri((String) updateData.get(
-                                "installerUrl"));
+                                    "installerUrl"));
                         }
                     });
                 }
-                updateItem.setText(tr("TRAY_UPDATE")+" "+
-                    data.get(LanternConstants.UPDATE_KEY));
             }
         });
     }
-    
+
     @Subscribe
     public void onUpdate(final UpdateEvent update) {
         addUpdate(update.getData());
@@ -326,30 +279,25 @@ public class SystemTrayImpl implements SystemTray {
 
     @Subscribe
     public void onGoogleTalkState(final GoogleTalkStateEvent event) {
-        if (model.getSettings().getMode() == Mode.get) {
-            log.debug("Not linking Google Talk state to connectivity " +
-                "state in get mode");
-            return;
-        }
         final GoogleTalkState state = event.getState();
         final ConnectivityStatus cs;
         switch (state) {
-            case connected:
-                cs = ConnectivityStatus.CONNECTED;
-                break;
-            case notConnected:
-                cs = ConnectivityStatus.DISCONNECTED;
-                break;
-            case LOGIN_FAILED:
-                cs = ConnectivityStatus.DISCONNECTED;
-                break;
-            case connecting:
-                cs = ConnectivityStatus.CONNECTING;
-                break;
-            default:
-                log.error("Should never get here...");
-                cs = ConnectivityStatus.DISCONNECTED;
-                break;
+        case connected:
+            cs = ConnectivityStatus.CONNECTED;
+            break;
+        case notConnected:
+            cs = ConnectivityStatus.DISCONNECTED;
+            break;
+        case LOGIN_FAILED:
+            cs = ConnectivityStatus.DISCONNECTED;
+            break;
+        case connecting:
+            cs = ConnectivityStatus.CONNECTING;
+            break;
+        default:
+            log.error("Should never get here...");
+            cs = ConnectivityStatus.DISCONNECTED;
+            break;
         }
         onConnectivityStatus(cs);
     }
@@ -379,28 +327,19 @@ public class SystemTrayImpl implements SystemTray {
     }
 
     private void changeIcon(final String fileName) {
-        if (DisplayWrapper.getDisplay().isDisposed()) {
-            log.info("Ingoring call since display is disposed");
-            return;
-        }
-        DisplayWrapper.getDisplay().asyncExec (new Runnable () {
+        SwingUtilities.invokeLater(new Runnable() {
             @Override
-            public void run () {
+            public void run() {
                 if (SystemUtils.IS_OS_MAC_OSX) {
                     log.info("Customizing image on OSX...");
-                    final Image image = newImage(fileName, 16, 16);
+                    final Image image = newImage(fileName);
                     setImage(image);
                 }
             }
         });
     }
-    
+
     private void changeStatusLabel(final String status) {
-        if (DisplayWrapper.getDisplay().isDisposed()) {
-            log.info("Ingoring call since display is disposed");
-            return;
-        }
         setStatusLabel(status);
     }
-
 }

@@ -21,4 +21,4 @@ install4jc -v --win-keystore-password=$INSTALL4J_WIN_PASS -m windows -r $VERSION
 git=`git rev-parse --verify lantern-$VERSION^{commit} | cut -c1-7`
 name=lantern-$VERSION-$git.exe
 mv install/Lantern.exe $name || die "Could not move new installer -- failed to create somehow?"
-./installMetaRefresh.bash win $name latest.exe $RELEASE || die "ERROR: Could not build meta-refresh redirect file"
+./installMetaRefresh.bash win $name newest.exe $RELEASE || die "ERROR: Could not build meta-refresh redirect file"

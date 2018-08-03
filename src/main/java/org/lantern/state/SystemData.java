@@ -79,6 +79,16 @@ public class SystemData {
     }
 
     @JsonView({Run.class})
+    public String getCountry() {
+        return SystemUtils.USER_COUNTRY;
+    }
+
+    @JsonView({Run.class})
+    public String getTimezone() {
+        return SystemUtils.USER_TIMEZONE;
+    }
+
+    @JsonView({Run.class})
     public double[] getScreenSize() {
         if (this.screenSize != null) {
             return this.screenSize;

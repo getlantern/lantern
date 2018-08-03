@@ -1,8 +1,9 @@
 package org.lantern;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
-import io.netty.util.Timer;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -41,11 +42,9 @@ public class DefaultProxyTrackerTest {
         model.getConnectivity().setInternet(true);
 
         PeerFactory peerFactory = new PeerFactoryStub();
-        Timer timer = mock(Timer.class);
-        DefaultXmppHandler xmppHandler = mock(DefaultXmppHandler.class);
         LanternTrustStore lanternTrustStore = mock(LanternTrustStore.class);
         DefaultProxyTracker tracker = new DefaultProxyTracker(model,
-                peerFactory, xmppHandler, lanternTrustStore);
+                peerFactory, lanternTrustStore);
 
         //proxy queue initially empty
         ProxyHolder proxy = tracker.firstConnectedTcpProxy();
@@ -64,7 +63,6 @@ public class DefaultProxyTrackerTest {
         proxy = waitForProxy(tracker);
         
         assertEquals(55021, getProxyPort(proxy));
-        assertEquals(0, proxy.getFailures());
 
         //now let's force the proxy to fail.
         //miniproxy1.pause();
@@ -123,7 +121,7 @@ public class DefaultProxyTrackerTest {
             if (proxy != null) {
                 return proxy;
             }
-            this.wait(6000);
+            Thread.sleep(6000);
             return tracker.firstConnectedTcpProxy();
         }
     }

@@ -1,6 +1,7 @@
 package org.lantern.state;
 
-import static org.lantern.Tr.tr;
+import static org.lantern.Tr.*;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -24,11 +25,7 @@ public class InternalState {
 
     private Modal lastModal;
 
-    private final Modal[] modalSeqGive = {
-        Modal.authorize, Modal.lanternFriends, Modal.finished, Modal.none,
-    };
-
-    private final Modal[] modalSeqGet = {
+    private final Modal[] modalSeq = {
         Modal.authorize, Modal.lanternFriends, Modal.proxiedSites,
         Modal.finished, Modal.none,
     };
@@ -57,17 +54,8 @@ public class InternalState {
     }
 
     public void advanceModal(final Modal backToIfNone) {
-        final Modal[] seq;
-        if (this.model.getSettings().getMode() == Mode.get) {
-            seq = modalSeqGet;
-        } else if(this.model.getSettings().getMode() == Mode.give) {
-            seq = modalSeqGive;
-        } else {
-            Events.syncModal(this.model, Modal.welcome);
-            return;
-        }
         Modal next = null;
-        for (final Modal modal : seq) {
+        for (final Modal modal : modalSeq) {
             if (!this.modalsCompleted.contains(modal)) {
                 log.info("Got modal!! ({})", modal);
                 next = modal;
@@ -99,14 +87,8 @@ public class InternalState {
     }
 
     public void setCompletedTo(final Modal stopAt) {
-        final Modal[] seq;
-        if (this.model.getSettings().getMode() == Mode.get) {
-            seq = modalSeqGet;
-        } else {
-            seq = modalSeqGive;
-        }
-        if(!Arrays.asList(seq).contains(stopAt)) return;
-        for (final Modal modal : seq) {
+        if(!Arrays.asList(modalSeq).contains(stopAt)) return;
+        for (final Modal modal : modalSeq) {
             if(modal == stopAt) break;
             if (!this.modalsCompleted.contains(modal)) {
                 setModalCompleted(modal);

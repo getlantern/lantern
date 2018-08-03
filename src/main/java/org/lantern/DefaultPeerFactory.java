@@ -20,7 +20,6 @@ import org.lantern.event.PeerCertEvent;
 import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.kscope.LanternKscopeAdvertisement;
-import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.Peer;
 import org.lantern.state.Peer.Type;
@@ -91,21 +90,21 @@ public class DefaultPeerFactory implements PeerFactory {
         final LanternRosterEntry entry = this.roster.getRosterEntry(jid);
         if (existing == null) {
             // The following can be null.
-            final Peer peer = new Peer(uri, "",
+            final Peer peer = new Peer(uri, null,
                     ad.hasMappedEndpoint(), 0, 0, Type.pc, ad.getAddress(),
-                    ad.getPort(), Mode.give, false, entry);
+                    ad.getPort(), false, entry, ad.getProxiedSites());
             this.model.getPeerCollector().addPeer(uri, peer);
             updateGeoData(peer, ad.getAddress());
         } else {
             existing.setIp(ad.getAddress());
             existing.setPort(ad.getPort());
-            existing.setMode(Mode.give);
             existing.setMapped(ad.hasMappedEndpoint());
             if (existing.getRosterEntry() == null) {
                 // Ours could be null too, but can't hurt to set.
                 existing.setRosterEntry(entry);
             }
             existing.setVersion(ad.getLanternVersion());
+            existing.setProxiedSites(ad.getProxiedSites());
             updateGeoData(existing, ad.getAddress());
         }
     }
@@ -150,7 +149,7 @@ public class DefaultPeerFactory implements PeerFactory {
             final URI uri = LanternUtils.newURI(peer.getPeerid());
             peer.setRosterEntry(rosterEntry(uri));
         }
-        peer.setType(type.toString());
+        peer.setType(type);
         updateGeoData(peer, isa.getAddress());
         // Note we don't sync peers with the frontend here because the timer
         // will do it for us
@@ -184,7 +183,7 @@ public class DefaultPeerFactory implements PeerFactory {
         } else {
             log.debug("Adding peer {}", fullJid);
             final Peer peer = new Peer(fullJid, "", false, 0L, 0L, type,
-                    "", 0, Mode.unknown, false, entry);
+                    "", 0, false, entry, new String[] {});
             this.model.getPeerCollector().addPeer(fullJid, peer);
             return peer;
         }
@@ -245,7 +244,6 @@ public class DefaultPeerFactory implements PeerFactory {
         Peer peer = peerForSession(sslSession);
         if (peer != null) {
             log.debug("Found peer by certificate!!!");
-            peer.setMode(Mode.get);
             updatePeer(peer, peerAddress, Type.pc);
         } else {
             log.error("No peer found for ssl session: {}", sslSession);

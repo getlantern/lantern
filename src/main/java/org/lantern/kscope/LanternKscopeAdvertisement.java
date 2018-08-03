@@ -31,13 +31,15 @@ public class LanternKscopeAdvertisement {
     private int localPort;
 
     private String lanternVersion = LanternClientConstants.VERSION;
+    
+    private String[] proxiedSites;
 
     public static LanternKscopeAdvertisement makeRelayAd(
             final LanternKscopeAdvertisement ad) {
         LanternKscopeAdvertisement relayAd = new LanternKscopeAdvertisement(
             ad.getJid(), ad.getAddress(),
             ad.getPort(), ad.getLocalAddress(),
-            ad.getLocalPort(), true
+            ad.getLocalPort(), true, ad.getProxiedSites()
         );
         relayAd.setTtl(ad.getTtl()-1);
         return relayAd;
@@ -47,25 +49,28 @@ public class LanternKscopeAdvertisement {
      * No arg constructor only used to build ads from JSON over the wire.
      */
     public LanternKscopeAdvertisement() {
-        this("", "", 0, "", 0, false);
+        this("", "", 0, "", 0, false, null);
     }
     
     public LanternKscopeAdvertisement(final String jid, 
-        final InetAddress publicAddress, final InetSocketAddress local) {
+        final InetAddress publicAddress, final InetSocketAddress local,
+        String[] proxiedSites) {
         this(jid, publicAddress.getHostAddress(), 0, 
-                local.getAddress().getHostAddress(), local.getPort(), true);
+                local.getAddress().getHostAddress(), local.getPort(), true,
+                proxiedSites);
     }
 
     public LanternKscopeAdvertisement(final String jid, final InetAddress addr, 
-        final int port, final InetSocketAddress localAddress) {
+        final int port, final InetSocketAddress localAddress,
+        String[] proxiedSites) {
         this(jid, addr.getHostAddress(), port, 
             localAddress.getAddress().getHostAddress(), localAddress.getPort(),
-            true);
+            true, proxiedSites);
     }
 
     private LanternKscopeAdvertisement(final String jid, final String addr,
             final int port, final String localAddress, final int localPort,
-            final boolean requireLocal) {
+            final boolean requireLocal, String[] proxiedSites) {
         this.jid = jid;
         this.address = addr;
         if (StringUtils.isBlank(localAddress) && requireLocal) {
@@ -81,6 +86,7 @@ public class LanternKscopeAdvertisement {
         this.localPort = localPort;
         this.version = CURRENT_VERSION;
         this.ttl = DEFAULT_TTL;
+        this.proxiedSites = proxiedSites;
     }
 
     public String getJid() {
@@ -150,6 +156,14 @@ public class LanternKscopeAdvertisement {
 
     public void setLocalPort(int localPort) {
         this.localPort = localPort;
+    }
+    
+    public String[] getProxiedSites() {
+        return proxiedSites;
+    }
+    
+    public void setProxiedSites(String[] proxiedSites) {
+        this.proxiedSites = proxiedSites;
     }
 
     @Override

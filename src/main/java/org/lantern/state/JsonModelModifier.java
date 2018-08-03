@@ -8,6 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.lantern.JsonUtils;
 import org.lantern.LanternUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,9 +34,8 @@ public class JsonModelModifier {
         }
         // The JSON object will only have two fields -- path and value, as in:
         // {"path":"settings.systemProxy","value":true}
-        final ObjectMapper om = new ObjectMapper();
         try {
-            final Map<String, Object> map = om.readValue(json, Map.class);
+            final Map<String, Object> map = JsonUtils.OBJECT_MAPPER.readValue(json, Map.class);
             final String path = (String) map.get("path");
 
             final Object val = map.get("value");

@@ -1,11 +1,13 @@
 package org.lantern;
 
+import java.awt.Desktop;
 import java.awt.Point;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -43,6 +45,9 @@ public class ChromeRunner {
 
     private String determineExecutable() throws IOException {
         final String path = determineExecutablePath();
+        if (path == null) {
+            return null;
+        }
         final File file = new File(path);
         if (!file.isFile()) {
             throw new IOException("Could not find chrome at:" + path);
@@ -58,7 +63,8 @@ public class ChromeRunner {
             if (path1.isFile() && path1.canExecute()) return path1.getAbsolutePath();
             final File path2 = new File("Lantern.app/Contents/MacOS/Lantern");
             if (path2.isFile() && path2.canExecute()) return path2.getAbsolutePath();
-            throw new RuntimeException("Could not find LanternBrowser");
+            log.warn("Could not find LanternBrowser");
+            return null;
             //chrome is broken on os x -- see #622
             //return "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
         } else if (SystemUtils.IS_OS_LINUX) {
@@ -73,12 +79,22 @@ public class ChromeRunner {
                 final File opt = new File(path);
                 if (opt.isFile() && opt.canExecute()) return path;
             }
-            throw new UnsupportedOperationException("Could not find chrome");
+            log.warn("Could not find chrome");
+            return null;
         } else if (SystemUtils.IS_OS_WINDOWS) {
             return findWindowsExe();
         } else {
             throw new UnsupportedOperationException(
                     "Unsupported OS: "+SystemUtils.OS_NAME);
+        }
+    }
+    
+    private void openSystemDefaultBrowser(String uri) {
+        log.debug("Opening system default browser to: {}", uri);
+        try {
+            Desktop.getDesktop().browse(new URI(uri));
+        } catch (Exception e) {
+            log.error("Unable to browse to uri: {}", uri, e);
         }
     }
     
@@ -112,8 +128,8 @@ public class ChromeRunner {
         }
         final String msg = 
                 "Could not find Chrome on Windows!! Searched paths:\n"+paths;
-        log.error(msg);
-        throw new UnsupportedOperationException(msg);
+        log.warn(msg);
+        return null;
     }
 
     public void open() throws IOException {
@@ -136,35 +152,43 @@ public class ChromeRunner {
         log.info("Opening browser to: {}", endpoint);
         final List<String> commands = new ArrayList<String>();
         final String executable = determineExecutable();
-        commands.add(executable);
-        if (SystemUtils.IS_OS_MAC_OSX) {
-            commands.add(endpoint + "/index.html");
+        if (executable == null) {
+            String uri = StaticSettings.getLocalEndpoint(port, prefix)
+                    + "/index.html";
+            openSystemDefaultBrowser(uri);
         } else {
-            commands.add("--user-data-dir="
-                    + LanternClientConstants.CONFIG_DIR.getAbsolutePath());
-            commands.add("--window-size=" + screenWidth + "," + screenHeight);
-            commands.add("--window-position=" + location.x + "," + location.y);
-            commands.add("--disable-translate");
-            commands.add("--disable-sync");
-            commands.add("--no-default-browser-check");
-            commands.add("--disable-metrics");
-            commands.add("--disable-metrics-reporting");
-            commands.add("--temp-profile");
-            commands.add("--disable-plugins");
-            commands.add("--disable-java");
-            commands.add("--disable-extensions");
-            commands.add("--app=" + endpoint + "/index.html");
+            commands.add(executable);
+            if (SystemUtils.IS_OS_MAC_OSX) {
+                commands.add(endpoint + "/index.html");
+            } else {
+                // http://peter.sh/experiments/chromium-command-line-switches/
+                commands.add("--user-data-dir="
+                        + LanternClientConstants.CONFIG_DIR.getAbsolutePath());
+                commands.add("--window-size=" + screenWidth + "," + screenHeight);
+                commands.add("--window-position=" + location.x + "," + location.y);
+                commands.add("--disable-translate");
+                commands.add("--disable-sync");
+                commands.add("--no-default-browser-check");
+                commands.add("--disable-metrics");
+                commands.add("--disable-metrics-reporting");
+                commands.add("--temp-profile");
+                commands.add("--disable-plugins");
+                commands.add("--disable-java");
+                commands.add("--disable-extensions");
+                commands.add("--no-default-browser-check");
+                commands.add("--app=" + endpoint + "/index.html");
+            }
+    
+            final ProcessBuilder processBuilder = new ProcessBuilder(commands);
+    
+            // Note we don't call waitFor on the process to avoid blocking the
+            // calling thread and because we don't care too much about the return
+            // value.
+            this.process = processBuilder.start();
+            
+            new Analyzer(process.getInputStream());
+            new Analyzer(process.getErrorStream());
         }
-
-        final ProcessBuilder processBuilder = new ProcessBuilder(commands);
-
-        // Note we don't call waitFor on the process to avoid blocking the
-        // calling thread and because we don't care too much about the return
-        // value.
-        this.process = processBuilder.start();
-        
-        new Analyzer(process.getInputStream());
-        new Analyzer(process.getErrorStream());
     }
     
     public void close() {

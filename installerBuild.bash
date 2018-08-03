@@ -42,9 +42,9 @@ git pull || die "Could not git pull?"
 if [[ $VERSION == "HEAD" ]]; 
 then 
     CHECKOUT=HEAD; 
-elif [[ $VERSION == "latest" ]];
+elif [[ $VERSION == "newest" ]];
 then
-    CHECKOUT=latest;
+    CHECKOUT=newest;
 else 
     CHECKOUT=lantern-$VERSION; 
 fi
@@ -53,25 +53,11 @@ oldbranch=`git rev-parse --abbrev-ref HEAD`
 
 git checkout $CHECKOUT || die "Could not checkout branch at $CHECKOUT"
 
-if [[ $VERSION == "latest" ]];
+if [[ $VERSION == "newest" ]];
 then
     # Exporting it so platform-specific scripts will get the right name.
     export VERSION=$(./parseversionfrompom.py);
 fi
-
-# The build script in Lantern EC2 instances sets this in the environment.
-if test -z $FALLBACK_SERVER_HOST; then
-    FALLBACK_SERVER_HOST=54.254.96.14
-fi
-echo "Setting FALLBACK_SERVER_HOST to $FALLBACK_SERVER_HOST"
-perl -pi -e "s/fallback_server_host_tok/$FALLBACK_SERVER_HOST/g" $CONSTANTS_FILE || die "Could not set fallback server host"
-
-# The build script in Lantern EC2 instances sets this in the environment.
-if test -z $FALLBACK_SERVER_PORT; then
-    FALLBACK_SERVER_PORT=16589
-fi
-echo "Setting FALLBACK_SERVER_PORT to $FALLBACK_SERVER_PORT"
-perl -pi -e "s/fallback_server_port_tok/$FALLBACK_SERVER_PORT/g" $CONSTANTS_FILE || die "Could not set fallback server port";
 
 perl -pi -e "s/ExceptionalUtils.NO_OP_KEY/\"$GE_API_KEY\"/g" $CONSTANTS_FILE || die "Could not set exceptional key"
 
@@ -83,11 +69,12 @@ git checkout -- $CONSTANTS_FILE || die "Could not revert version file?"
 
 if [[ $VERSION == "HEAD" ]];
 then
-    cp target/lantern-*.jar install/common/lantern.jar || die "Could not copy jar?"
+    cp -f target/lantern-*-small.jar install/common/lantern.jar || die "Could not copy jar?"
 else
-    cp target/lantern-$VERSION.jar install/common/lantern.jar || die "Could not copy jar?"
+    cp -f target/lantern-$VERSION-small.jar install/common/lantern.jar || die "Could not copy jar?"
 fi
 
+cp -f GeoIP.dat install/common/ || die "Could not copy GeoIP.dat?"
 
 ./bin/searchForJava7ClassFiles.bash install/common/lantern.jar || die "Found java 7 class files in build!!"
 

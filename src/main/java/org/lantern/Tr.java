@@ -6,7 +6,6 @@ import java.util.Locale;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.littleshoot.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,12 +72,11 @@ public class Tr {
         final File localeFile = 
                 translated.isFile() ? translated : usLocaleFile;
         
-        final ObjectMapper om = new ObjectMapper();
         try {
             final String json = Files.toString(localeFile, Charsets.UTF_8);
             final String usJson = Files.toString(usLocaleFile, Charsets.UTF_8);
-            trans = om.readValue(json, Map.class);
-            en_us = om.readValue(usJson, Map.class);
+            trans = JsonUtils.OBJECT_MAPPER.readValue(json, Map.class);
+            en_us = JsonUtils.OBJECT_MAPPER.readValue(usJson, Map.class);
         } catch (final IOException e) {
             LOG.error("Could not map translations?", e);
             throw new Error("Could not map translations?", e);

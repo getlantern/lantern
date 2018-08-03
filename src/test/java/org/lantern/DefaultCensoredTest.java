@@ -36,15 +36,15 @@ public class DefaultCensoredTest {
 
         assertTrue(isCensored("190.6.64.1")); // Cuba"
         assertTrue(isCensored("58.186.0.1")); // Vietnam
-        assertTrue(isCensored("82.114.160.1")); // Yemen
+        //assertTrue(isCensored("82.114.160.1")); // Yemen // removed from censored list
         //assertTrue(CensoredUtils.isCensored("196.200.96.1")); // Eritrea
         assertTrue(isCensored("213.55.64.1")); // Ethiopia
-        assertTrue(isCensored("203.81.64.1")); // Myanmar
+        //assertTrue(isCensored("203.81.64.1")); // Myanmar // removed from censored list
         assertTrue(isCensored("77.69.128.1")); // Bahrain
         assertTrue(isCensored("62.3.0.1")); // Saudi Arabia
         assertTrue(isCensored("62.209.128.0")); // Uzbekistan
         assertTrue(isCensored("94.102.176.1")); // Turkmenistan
-        assertTrue(isCensored("175.45.176.1")); // North Korea
+        //assertTrue(isCensored("175.45.176.1")); // North Korea // removed from censored list
     }
 
     private boolean isCensored(String ip) {

@@ -1,13 +1,10 @@
 package org.lantern;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.net.Socket;
-import java.security.Security;
+import java.util.concurrent.Callable;
 
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.jivesoftware.smack.proxy.ProxyInfo;
-import org.jivesoftware.smack.proxy.ProxyInfo.ProxyType;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,24 +19,17 @@ public class ProxySocketFactoryTest {
         Launcher.configureCipherSuites();
         System.setProperty("javax.net.debug", "ssl");
         
-        // Change the server to use because the default LittleProxy server
-        // doesn't support higher bit length encryption. That will cause this
-        // test to fail if another test configures high bit rated encryption.
-        final ProxyInfo info = new ProxyInfo(ProxyType.HTTP, 
-                "54.254.96.14", 16589, "", "");
-            //LanternClientConstants.FALLBACK_SERVER_HOST,T 
-            //Integer.parseInt(LanternClientConstants.FALLBACK_SERVER_PORT), "", "");
-        // Test creating a socket through our fallback proxy.
-        final LanternKeyStoreManager ksm = TestingUtils.newKeyStoreManager();
-        final LanternTrustStore trustStore = new LanternTrustStore(ksm);
-        //assertTrue(trustStore.TRUSTSTORE_FILE.isFile());
+        Socket sock = TestingUtils.doWithGetModeProxy(new Callable<Socket>() {
+            @Override
+            public Socket call() throws Exception {
+             // Test creating a socket through our fallback proxy.
+                final ProxySocketFactory factory = new ProxySocketFactory();
+                
+                // Just make sure we're able to establish the socket.
+                return factory.createSocket("talk.google.com", 5222);
+            }
+        });
         
-        final LanternSocketsUtil util = new LanternSocketsUtil(null, trustStore);
-        final ProxyTracker tracker = TestingUtils.newProxyTracker();
-        final ProxySocketFactory factory = new ProxySocketFactory(util, tracker);
-        
-        // Just make sure we're able to establish the socket.
-        final Socket sock = factory.createSocket("talk.google.com", 5222);
         assertTrue(sock.isConnected());
         sock.close();
     }

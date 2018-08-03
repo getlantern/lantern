@@ -32,12 +32,13 @@ public class StatsTracker implements ClientStats {
         LoggerFactory.getLogger(StatsTracker.class);
 
     private final AtomicLong totalBytesProxied = new AtomicLong(0L);
-    
     private final AtomicLong directBytes = new AtomicLong(0L);
-    
     private final AtomicInteger proxiedRequests = new AtomicInteger(0);
-    
     private final AtomicInteger directRequests = new AtomicInteger(0);
+    private final AtomicLong bytesProxiedForIran = new AtomicLong(0);
+    private final AtomicLong globalBytesProxiedForIran = new AtomicLong(0);
+    private final AtomicLong bytesProxiedForChina = new AtomicLong(0);
+    private final AtomicLong globalBytesProxiedForChina = new AtomicLong(0);
 
     private static final ConcurrentHashMap<String, CountryData> countries = 
         new ConcurrentHashMap<String, CountryData>();
@@ -226,14 +227,16 @@ public class StatsTracker implements ClientStats {
     }
     
     @Override
-    public void addDownBytesFromPeers(final long bp) {
+    public void addDownBytesFromPeers(final long bp, InetAddress peerAddress) {
         downBytesPerSecondFromPeers.add(bp);
+        addBytesProxiedForCountry(bp, peerAddress);
         log.debug("downBytesPerSecondFromPeers += {} down-rate {}", bp, getDownBytesPerSecond());
     }
     
     @Override
-    public void addUpBytesToPeers(final long bp) {
+    public void addUpBytesToPeers(final long bp, InetAddress peerAddress) {
         upBytesPerSecondToPeers.add(bp);
+        addBytesProxiedForCountry(bp, peerAddress);
         log.debug("upBytesPerSecondToPeers += {} up-rate {}", bp, getUpBytesPerSecond());
     }
 
@@ -282,6 +285,39 @@ public class StatsTracker implements ClientStats {
         cd.bytes += bp;
     }
     
+    private void addBytesProxiedForCountry(long bytes, InetAddress peerAddress) {
+        GeoData geoData = lookupService.getGeoData(peerAddress);
+        if (geoData != null) {
+            String countryCode = geoData.getCountrycode();
+            if ("IR".equals(countryCode)) {
+                bytesProxiedForIran.addAndGet(bytes);
+                globalBytesProxiedForIran.addAndGet(bytes);
+            } else if ("CN".equals(countryCode)) {
+                bytesProxiedForChina.addAndGet(bytes);
+                globalBytesProxiedForChina.addAndGet(bytes);
+            }
+        }
+    }
+    
+    @Override
+    public long getBytesProxiedForIran() {
+        return bytesProxiedForIran.getAndSet(0);
+    }
+    
+    @Override
+    public long getGlobalBytesProxiedForIran() {
+        return globalBytesProxiedForIran.getAndSet(0);
+    }
+    
+    @Override
+    public long getBytesProxiedForChina() {
+        return bytesProxiedForChina.getAndSet(0);
+    }
+    
+    @Override
+    public long getGlobalBytesProxiedForChina() {
+        return globalBytesProxiedForChina.getAndSet(0);
+    }
     @Override
     public void addProxiedClientAddress(InetAddress address) {
         distinctProxiedClientAddresses.add(address);

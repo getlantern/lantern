@@ -2,26 +2,28 @@ package org.lantern;
 
 import static org.littleshoot.util.FiveTuple.Protocol.*;
 
+import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.Date;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.net.ssl.SSLEngine;
 
+import org.lantern.proxy.BaseChainedProxy;
 import org.lantern.state.Peer;
 import org.lantern.state.Peer.Type;
-import org.littleshoot.proxy.ChainedProxy;
 import org.littleshoot.proxy.TransportProtocol;
 import org.littleshoot.util.FiveTuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class ProxyHolder implements Comparable<ProxyHolder>,
-        ChainedProxy {
+public final class ProxyHolder extends BaseChainedProxy
+        implements Comparable<ProxyHolder> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ProxyHolder.class);
+    private static final Logger LOG = LoggerFactory
+            .getLogger(ProxyHolder.class);
+
     private final ProxyTracker proxyTracker;
 
     private final PeerFactory peerFactory;
@@ -32,10 +34,27 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
 
     private final FiveTuple fiveTuple;
 
-    // Note - we initialize this to 1 to indicate that the proxy starts out
-    // not connected (until we verify it)
-    private final AtomicLong timeOfDeath = new AtomicLong(1);
-    private final AtomicInteger failures = new AtomicInteger(0);
+    private final boolean natTraversed;
+
+    /**
+     * <p>
+     * Once connecting to this proxy fails, this tracks the first time that
+     * connecting started failing. Once a connection is successful, this is set
+     * to 0.
+     * </p>
+     * 
+     * <p>
+     * We start this at 1 on the assumption that the proxy is disconnected until
+     * proven otherwise.
+     * </p>
+     */
+    private final AtomicLong timeOfOldestConsecFailure = new AtomicLong(1);
+
+    /**
+     * Tracks the time of the most recent failure since connecting to this proxy
+     * started failing.
+     */
+    private final AtomicLong timeOfNewestConsecFailure = new AtomicLong(0);
 
     private final Type type;
 
@@ -45,19 +64,22 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
             final PeerFactory peerFactory,
             final LanternTrustStore lanternTrustStore,
             final URI jid, final FiveTuple tuple,
-            final Type type) {
+            final Type type, final boolean natTraversed,
+            final String lanternAuthToken) {
+        super(lanternAuthToken);
         this.proxyTracker = proxyTracker;
         this.peerFactory = peerFactory;
         this.lanternTrustStore = lanternTrustStore;
         this.jid = jid;
         this.fiveTuple = tuple;
         this.type = type;
+        this.natTraversed = natTraversed;
     }
 
     public FiveTuple getFiveTuple() {
         return fiveTuple;
     }
-    
+
     /**
      * Get the {@link Peer} for this ProxyHolder, lazily looking it up from our
      * {@link PeerFactory}.
@@ -72,9 +94,19 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
     }
 
     @Override
-    public String toString() {
+    synchronized public String toString() {
+        Date oldestConsecFailure = null;
+        Date newestConsecFailure = null;
+        Date retryTime = null;
+        if (timeOfNewestConsecFailure.get() > 0) {
+            oldestConsecFailure = new Date(timeOfOldestConsecFailure.get());
+            newestConsecFailure = new Date(timeOfNewestConsecFailure.get());
+            retryTime = new Date(getRetryTime());
+        }
         return "ProxyHolder [jid=" + jid + ", fiveTuple=" + fiveTuple
-                + ", timeOfDeath=" + timeOfDeath + ", failures=" + failures
+                + ", timeOfOldestConsecFailure=" + oldestConsecFailure
+                + ", timeOfNewestConsecFailure=" + newestConsecFailure
+                + ", retryTime=" + retryTime
                 + ", type=" + type + "] connected? " + isConnected();
     }
 
@@ -110,35 +142,25 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
         return true;
     }
 
-    /**
-     * Time that the proxy became unreachable, in millis since epoch, or -1 for
-     * never
-     * */
-    public long getTimeOfDeath() {
-        return timeOfDeath.get();
+    synchronized private void failuresStarted() {
+        long now = System.currentTimeMillis();
+        timeOfOldestConsecFailure.set(now);
+        timeOfNewestConsecFailure.set(now);
     }
 
-    public void setTimeOfDeath(long timeOfDeath) {
-        this.timeOfDeath.set(timeOfDeath);
-    }
-    
-    public int getFailures() {
-        return failures.get();
+    private void failuresContinued() {
+        timeOfNewestConsecFailure.set(System.currentTimeMillis());
     }
 
-    public void markConnected() {
-        setTimeOfDeath(-1);
-        resetFailures();
-    }
-    
-    public void resetFailures() {
-        this.failures.set(0);
+    synchronized public void markConnected() {
+        timeOfOldestConsecFailure.set(0l);
+        timeOfNewestConsecFailure.set(0l);
     }
 
-    private void incrementFailures() {
-        failures.incrementAndGet();
+    synchronized public void resetRetryInterval() {
+        timeOfNewestConsecFailure.set(timeOfOldestConsecFailure.get());
     }
-    
+
     /**
      * If this is a new proxy and our first attempt to connect fails, it is
      * permitted to try falling back to connecting to the same peer via a NAT
@@ -147,16 +169,18 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
      * @return
      */
     public boolean attemptNatTraversalIfConnectionFailed() {
-        return !isNatTraversed() && getTimeOfDeath() == 1l && getFailures() == 1;
+        return !isNatTraversed() &&
+                timeOfOldestConsecFailure.get() == 1l &&
+                timeOfNewestConsecFailure.get() == 1l;
     }
 
-    public void addFailure() {
+    synchronized public void failedToConnect() {
         if (isConnected()) {
             LOG.debug("Setting proxy as disconnected: {}", fiveTuple);
-            long now = new Date().getTime();
-            setTimeOfDeath(now);
+            failuresStarted();
+        } else {
+            failuresContinued();
         }
-        incrementFailures();
     }
 
     @Override
@@ -164,10 +188,19 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
         return (int) (getRetryTime() - o.getRetryTime());
     }
 
-    public long getRetryTime() {
-        // exponential backoff - 5,10,20,40, etc seconds
-        return timeOfDeath.get() + 1000 * 5
-                * (long) (Math.pow(2, failures.get()));
+    synchronized public long getRetryTime() {
+        long timeDead = timeOfNewestConsecFailure.get()
+                - timeOfOldestConsecFailure.get();
+        if (timeDead <= 0) {
+            // First time retrying, 100 milliseconds
+            return timeOfNewestConsecFailure.get() + 5000;
+        } else {
+            // Back off exponentially up to a maximum of 5 seconds and at least
+            // 100 milliseconds
+            long waitTime = Math.max(timeDead, 100);
+            waitTime = Math.min(waitTime, 5000);
+            return timeOfNewestConsecFailure.get() + waitTime;
+        }
     }
 
     public URI getJid() {
@@ -179,21 +212,12 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
     }
 
     public boolean isConnected() {
-        return timeOfDeath.get() <= 0;
+        return timeOfOldestConsecFailure.get() <= 0;
     }
 
     public boolean needsConnectionTest() {
-        return getFailures() > 0;
-    }
-    
-    public String getProxyUsername() {
-        // TODO: Implement!
-        return "";
-    }
-
-    public String getProxyPassword() {
-        // TODO: Implement!
-        return "";
+        return timeOfOldestConsecFailure.get() > 0 &&
+                timeOfNewestConsecFailure.get() > 0;
     }
 
     /**
@@ -201,7 +225,7 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
      * @return
      */
     public boolean isNatTraversed() {
-        return fiveTuple.getProtocol() == UDP;
+        return natTraversed;
     }
 
     /***************************************************************************
@@ -218,14 +242,14 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
     }
 
     /**
-     * If the protocol is UDP, we use the local address of the {@link FiveTuple}
-     * as our local address from which to connect to the chained proxy,
-     * otherwise we leave this null to let the connection proceed from whatever
-     * available port.
+     * If the we are nat traversed, we use the local address of the
+     * {@link FiveTuple} as our local address from which to connect to the
+     * chained proxy, otherwise we leave this null to let the connection proceed
+     * from whatever available port.
      */
     @Override
     public InetSocketAddress getLocalAddress() {
-        return UDP == fiveTuple.getProtocol() ? fiveTuple.getLocal() : null;
+        return natTraversed ? fiveTuple.getLocal() : null;
     }
 
     /**
@@ -263,11 +287,15 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
 
     @Override
     public void connectionFailed(Throwable cause) {
-        // TODO: For some reason the stack trace we get here just includes
-        // the message -- we really need the full stack along with causes.
-        LOG.info("Could not connect to proxy at ip: "+
-                this.fiveTuple.getRemote(), cause);
-        proxyTracker.onCouldNotConnect(this);
+        String message = cause != null ? cause.getMessage() : null;
+        LOG.debug("Got connectionFailed from LittleProxy: {}", message);
+        if (cause instanceof ConnectException) {
+            LOG.info("Could not connect to proxy at ip: " +
+                    this.fiveTuple.getRemote(), cause);
+            proxyTracker.onCouldNotConnect(this);
+        } else {
+            LOG.debug("Ignoring non-ConnectException");
+        }
     }
 
     @Override

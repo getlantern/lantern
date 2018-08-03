@@ -1,5 +1,7 @@
 -ignorewarnings
 
+-include ../Lantern.pro
+
 -keep public class org.lantern.Launcher {
      public static void main(java.lang.String[]);
 }
@@ -12,9 +14,6 @@
     public protected *;
 }
 
--keep class org.eclipse.swt.** {
-    *;
-}
 -keep class dbusjava_localized,
             dbusjava_localized_en_GB
 

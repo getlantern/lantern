@@ -12,4 +12,4 @@ then
 fi
 
 rm -f target/lantern*-small.jar
-mvn -U package -Dmaven.artifact.threads=1 -Dmaven.test.skip=true -Prelease || die "Could not package"
+mvn -U package -Dmaven.artifact.threads=1 -Dmaven.test.skip=true || die "Could not package"

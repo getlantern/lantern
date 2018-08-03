@@ -186,13 +186,13 @@ public class StatsStub implements ClientStats {
     }
 
     @Override
-    public void addUpBytesToPeers(long bytes) {
+    public void addUpBytesToPeers(long bytes, InetAddress peerAddress) {
         // TODO Auto-generated method stub
 
     }
 
     @Override
-    public void addDownBytesFromPeers(long bytes) {
+    public void addDownBytesFromPeers(long bytes, InetAddress peerAddress) {
         // TODO Auto-generated method stub
 
     }
@@ -249,6 +249,26 @@ public class StatsStub implements ClientStats {
     public String getCountryCode() {
         // TODO Auto-generated method stub
         return null;
+    }
+    
+    @Override
+    public long getBytesProxiedForChina() {
+        return 0;
+    }
+    
+    @Override
+    public long getGlobalBytesProxiedForChina() {
+        return 0;
+    }
+    
+    @Override
+    public long getBytesProxiedForIran() {
+        return 0;
+    }
+    
+    @Override
+    public long getGlobalBytesProxiedForIran() {
+        return 0;
     }
 
 }

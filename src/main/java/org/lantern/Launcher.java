@@ -16,29 +16,16 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.ProtocolVersion;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.DefaultHttpResponseFactory;
+import org.apache.log4j.AsyncAppender;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.PropertyConfigurator;
-import org.apache.log4j.spi.LoggingEvent;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.eclipse.swt.SWTError;
-import org.eclipse.swt.widgets.Display;
-import org.json.simple.JSONObject;
 import org.lantern.event.Events;
 import org.lantern.event.MessageEvent;
-import org.lantern.exceptional4j.ExceptionalAppender;
-import org.lantern.exceptional4j.ExceptionalAppenderCallback;
-import org.lantern.exceptional4j.HttpStrategy;
-import org.lantern.exceptional4j.contrib.IPv4Sanitizer;
 import org.lantern.http.GeoIp;
 import org.lantern.http.JettyLauncher;
+import org.lantern.loggly.LogglyAppender;
 import org.lantern.monitoring.StatsReporter;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.proxy.GetModeProxy;
@@ -86,6 +73,8 @@ public class Launcher {
     public static final long START_TIME = System.currentTimeMillis();
     
     private static Logger LOG;
+    private static Launcher s_instance;
+    
     private boolean lanternStarted = false;
     private GetModeProxy getModeProxy;
     private GiveModeProxy giveModeProxy;
@@ -113,9 +102,8 @@ public class Launcher {
         }
 
         @Override
-        public int askQuestion(String title, String message, int typeFlag) {
-            showMessage(title, message);
-            return 0;
+        public boolean askQuestion(String title, String message) {
+            return false;
         }
     };
 
@@ -135,6 +123,8 @@ public class Launcher {
 
     private LanternKeyStoreManager keyStoreManager;
 
+    private S3ConfigFetcher s3ConfigManager;
+
     /**
      * Separate constructor that allows tests to do things like use mocks for
      * certain classes but still test Lantern end-to-end from startup.
@@ -151,6 +141,11 @@ public class Launcher {
                 handleError(e, false);
             }
         });
+        s_instance = this;
+    }
+    
+    public static Launcher getInstance() {
+        return s_instance;
     }
 
     /**
@@ -217,30 +212,10 @@ public class Launcher {
         final boolean launchD = cmd.hasOption(Cli.OPTION_LAUNCHD);
 
         configureCipherSuites();
-        final Display display;
-        if (uiDisabled) {
-            display = null;
-            preInstanceWatch.stop();
-        } else {
-            Display.setAppName("Lantern Beta");
-            display = DisplayWrapper.getDisplay();
-            preInstanceWatch.stop();
-            // Never show the splash screen on startup, even if setup is
-            // not complete.
-            if (!launchD) {
-                /*
-                splashScreen = instance(SplashScreen.class);
-                final Stopwatch splashWatch = 
-                        StopwatchManager.getStopwatch("Splash-Screen-Init", 
-                            STOPWATCH_LOG, STOPWATCH_GROUP);
-                splashWatch.start();
-                splashScreen.init(display);
-                splashWatch.stop();
-                */
-            }
-        }
-
+        preInstanceWatch.stop();
+        
         model = instance(Model.class);
+        configureLoggly();
         set = model.getSettings();
         set.setUiEnabled(!uiDisabled);
         instance(Censored.class);
@@ -254,7 +229,6 @@ public class Launcher {
                 messageService.showMessage("Operating System Error",
                         "We're sorry but Lantern requires a 64 bit operating " +
                         "system on OSX! Exiting");
-                
                 System.exit(0);
             }
         }
@@ -289,6 +263,10 @@ public class Launcher {
                 LOG.error("Error starting tray?", e);
             }
         }
+        
+        proxyTracker = instance(ProxyTracker.class);
+        this.s3ConfigManager = new S3ConfigFetcher(model);
+        this.s3ConfigManager.start();
 
         xmpp = instance(DefaultXmppHandler.class);
 
@@ -298,14 +276,11 @@ public class Launcher {
         httpClientFactory = instance(HttpClientFactory.class);
         syncService = instance(SyncService.class);
 
-        proxyTracker = instance(ProxyTracker.class);
 
         instance(GeoIp.class);
         statsUpdater = instance(StatsUpdater.class);
         statsReporter = instance(StatsReporter.class);
 
-        model.getConnectivity().setInternet(false);
-        
         // Use our stored STUN servers if available.
         final Collection<String> stunServers = set.getStunServers();
         if (stunServers != null && !stunServers.isEmpty()) {
@@ -322,28 +297,14 @@ public class Launcher {
         friendsHandler = instance(FriendsHandler.class);
         
         startServices();
-
-        // This is necessary to keep the tray/menu item up in the case
-        // where we're not launching a browser.
-        // OX: YourKit was reporting deadlocks here.  This seems like a
-        // potentially expensive busy loop
-        if (display != null) {
-            LOG.debug("Looping on display");
-            while (!display.isDisposed ()) {
-                if (!display.readAndDispatch ()) display.sleep ();
-            }
-        } else if (!SystemUtils.IS_OS_MAC_OSX) {
-            LOG.debug("No display?");
-            
-            // We just wait here because depending on the OS and what threads
-            // happen to have started, it's possible there are no more 
-            // non-daemon threads at this point, in which case the JVM will
-            // just exit.
-            synchronized (this) {
+        
+        if (uiDisabled) {
+            // Run a little main loop to keep the program running
+            while (true) {
                 try {
-                    wait();
-                } catch (final InterruptedException e) {
-                    LOG.debug("Interrupted");
+                    Thread.sleep(1000);
+                } catch (InterruptedException ie) {
+                    // do nothing
                 }
             }
         }
@@ -366,16 +327,15 @@ public class Launcher {
 
                 shutdownable(ModelIo.class);
                 
-                
                 try {
                     proxyTracker.start();
                 } catch (final Exception e) {
                     LOG.error("Could not start proxy tracker?", e);
                 }
-                xmpp.start();
                 getModeProxy.start();
+                xmpp.start();
                 giveModeProxy.start();
-
+                
                 syncService.start();
                 statsUpdater.start();
                 
@@ -623,9 +583,10 @@ public class Launcher {
                     } catch (final IOException e) {
                         LOG.debug("Could not login", e);
                     } catch (final CredentialException e) {
-                        LOG.debug("Bad credentials");
+                        LOG.debug("Bad credentials", e);
+                        Events.syncModal(model, Modal.authorize);
                     } catch (final NotInClosedBetaException e) {
-                        LOG.warn("Not in closed beta!!");
+                        LOG.warn("Not in closed beta!!", e);
                         internalState.setNotInvited(true);
                     }
                 }
@@ -641,11 +602,9 @@ public class Launcher {
     }
 
     void configureDefaultLogger() {
-        final String propsPath = "src/main/resources/log4j.properties";
-        final File props = new File(propsPath);
-        if (props.isFile()) {
-            System.out.println("Running from main line");
-            PropertyConfigurator.configure(propsPath);
+        if (LanternUtils.isDevMode()) {
+            System.out.println("Running from source");
+            PropertyConfigurator.configure(LanternClientConstants.LOG4J_PROPS_PATH);
         } else {
             System.out.println("Not on main line...");
             configureProductionLogger();
@@ -671,80 +630,31 @@ public class Launcher {
                     "log4j.appender.RollingTextFile.layout.ConversionPattern",
                     "%-6r %d{ISO8601} %-5p [%t] %c{2}.%M (%F:%L) - %m%n");
 
-            // This throws and swallows a FileNotFoundException, but it
-            // doesn't matter. Just weird.
             PropertyConfigurator.configure(props);
             System.out.println("Set logger file to: " + logPath);
-            final ExceptionalAppenderCallback callback =
-                new ExceptionalAppenderCallback() {
-
-                    @Override
-                    public boolean addData(final JSONObject json,
-                        final LoggingEvent le) {
-                        if (!set.isAutoReport()) {
-                            // Don't report anything if the user doesn't have
-                            // it turned on.
-                            return false;
-                        }
-                        json.put("fallback", LanternUtils.isFallbackProxy());
-                        json.put("version", LanternClientConstants.VERSION);
-                        return true;
-                    }
-            };
-
-            // We need to do the following because httpClientFactory is still
-            // null here. We basically do something reasonable while it's still
-            // null.
-            final HttpStrategy strategy = new HttpStrategy() {
-                private final ProtocolVersion ver =
-                    new ProtocolVersion("HTTP", 1, 1);
-                private HttpClient client = null;
-                @Override
-                public HttpResponse execute(final HttpPost request)
-                        throws ClientProtocolException, IOException {
-                    if (httpClientFactory == null) {
-                        return new DefaultHttpResponseFactory().newHttpResponse(
-                                ver, 200, null);
-                    }
-                    if (client == null) {
-                        client = httpClientFactory.newClient();
-                    }
-                    return client.execute(request);
-                }
-
-                @Override
-                public HttpResponse execute(final HttpGet request)
-                        throws ClientProtocolException, IOException {
-                    if (httpClientFactory == null) {
-                        return new DefaultHttpResponseFactory().newHttpResponse(
-                                ver, 200, null);
-                    }
-                    if (client == null) {
-                        client = httpClientFactory.newClient();
-                    }
-                    return client.execute(request);
-                }
-            };
-            final ExceptionalAppender bugAppender = new ExceptionalAppender(
-                LanternClientConstants.GET_EXCEPTIONAL_API_KEY, callback, true,
-                Level.WARN, strategy);
-            bugAppender.addSanitizer(new IPv4Sanitizer());
-
-            BasicConfigurator.configure(bugAppender);
-            // When shutting down, we may see exceptions because someone is
-            // still using the system while we're shutting down.  Let's now
-            // send these to Exceptional.
-            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    org.apache.log4j.Logger.getRootLogger().removeAppender(bugAppender);
-                }
-            }, "Disable-Exceptional4J-Logging-on-Shutdown"));
         } catch (final IOException e) {
             System.out.println("Exception setting log4j props with file: "
                     + logFile);
             e.printStackTrace();
         }
+    }
+    
+    private void configureLoggly() {
+        LOG.info("Configuring LogglyAppender");
+        LogglyAppender logglyAppender = new LogglyAppender(model, LanternUtils.isDevMode());
+        final AsyncAppender asyncAppender = new AsyncAppender();
+        asyncAppender.addAppender(logglyAppender);
+        asyncAppender.setThreshold(Level.WARN);
+        BasicConfigurator.configure(asyncAppender);
+        // When shutting down, we may see exceptions because someone is
+        // still using the system while we're shutting down.  Let's not
+        // send these to Loggly.
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+            @Override
+            public void run() {
+                org.apache.log4j.Logger.getRootLogger().removeAppender(asyncAppender);
+            }
+        }, "Disable-Loggly-Logging-on-Shutdown"));
     }
     
     private void handleError(final Throwable t, final boolean exit) {
@@ -756,13 +666,7 @@ public class Launcher {
                 "\nUSER_COUNTRY: "+SystemUtils.USER_COUNTRY +
                 "\nUSER_LANGUAGE: "+SystemUtils.USER_LANGUAGE +
                 "\n\n"+msg, t);
-        if (t instanceof SWTError || msg.contains("SWTError")) {
-            System.out.println(
-                "To run without a UI, run lantern with the --" +
-                Cli.OPTION_DISABLE_UI +
-                " command line argument");
-        }
-        else if (t instanceof UnsatisfiedLinkError &&
+        if (t instanceof UnsatisfiedLinkError &&
             msg.contains("Cannot load 32-bit SWT libraries on 64-bit JVM")) {
             messageService.showMessage("Architecture Error",
                 "We're sorry, but it appears you're running 32-bit Lantern on a 64-bit JVM.");

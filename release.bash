@@ -16,12 +16,12 @@ VERSION=$(./parseversionfrompom.py | sed s/-SNAPSHOT//)
 mvn release:clean || die "Could not clean release?"
 mvn release:prepare || die "Could not prepare release?"
 
-echo "Tagging latest release"
+echo "Tagging newest release"
 git=`git rev-parse --verify lantern-$VERSION^{commit} | cut -c1-7` || die "Could not get git version?"
-git tag -f -a latest -m "latest tagged release" $git || die "Could not tag latest?" 
+git tag -f -a newest -m "newest tagged release" $git || die "Could not tag newest?" 
 
 echo "Pushing tags..."
-git push -f --tags || die "Could not push latest tag?"
+git push -f --tags || die "Could not push newest tag?"
 
 #echo "Creating branch $1"
 #git branch $1 lantern-$1 || die "Could not create a branch"
@@ -31,7 +31,7 @@ git push -f --tags || die "Could not push latest tag?"
 # incrementing the version -- so cleanup
 mvn release:clean
 
-# Update to the latest commited code
+# Update to the newest commited code
 git pull || die "Could not pull?"
 
 echo "Finished. You can release from the tag $VERSION"

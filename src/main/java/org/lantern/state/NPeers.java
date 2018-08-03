@@ -4,22 +4,22 @@ import org.lantern.annotation.Keep;
 
 @Keep
 public class NPeers {
-    private PeerCount online = new PeerCount();
-    private PeerCount ever = new PeerCount();
+    private int online = 0;
+    private int ever = 0;
 
-    public PeerCount getOnline() {
+    public int getOnline() {
         return online;
     }
 
-    public void setOnline(PeerCount online) {
+    public void setOnline(int online) {
         this.online = online;
     }
 
-    public PeerCount getEver() {
+    public int getEver() {
         return ever;
     }
 
-    public void setEver(PeerCount ever) {
+    public void setEver(int ever) {
         this.ever = ever;
     }
 }

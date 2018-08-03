@@ -48,7 +48,7 @@ public class RosterTest {
         final HttpClientFactory httpClientFactory = TestingUtils.newHttClientFactory();
         final OauthUtils oauth = 
                 new OauthUtils(httpClientFactory, model, new RefreshToken(model));
-        final FriendApi api = new FriendApi(oauth);
+        final FriendApi api = new FriendApi(oauth, model);
         final XmppHandler xmppHandler = TestingUtils.newXmppHandler();
         final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker = new NetworkTracker<String, URI, ReceivedKScopeAd>();
         final FriendsHandler friendHandler = 

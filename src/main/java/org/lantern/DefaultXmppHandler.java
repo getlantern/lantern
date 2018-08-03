@@ -20,7 +20,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.PacketListener;
@@ -53,7 +52,6 @@ import org.lantern.network.NetworkTrackerListener;
 import org.lantern.proxy.UdtServerFiveTupleListener;
 import org.lantern.state.ClientFriend;
 import org.lantern.state.Connectivity;
-import org.lantern.state.Friend;
 import org.lantern.state.FriendsHandler;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
@@ -182,7 +180,7 @@ public class DefaultXmppHandler implements XmppHandler,
     
     private final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker;
 
-    private final Messages msgs;
+    private final Censored censored;
 
     /**
      * Creates a new XMPP handler.
@@ -202,7 +200,7 @@ public class DefaultXmppHandler implements XmppHandler,
         final UdtServerFiveTupleListener udtFiveTupleListener,
         final FriendsHandler friendsHandler,
         final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker,
-        final Messages msgs) {
+        final Censored censored) {
         this.model = model;
         this.timer = updateTimer;
         this.stats = stats;
@@ -218,8 +216,8 @@ public class DefaultXmppHandler implements XmppHandler,
         this.udtFiveTupleListener = udtFiveTupleListener;
         this.friendsHandler = friendsHandler;
         this.networkTracker = networkTracker;
-        this.msgs = msgs;
         this.networkTracker.addListener(this);
+        this.censored = censored;
         Events.register(this);
         //setupJmx();
     }
@@ -233,8 +231,9 @@ public class DefaultXmppHandler implements XmppHandler,
     public void start() {
         this.modelUtils.loadClientSecrets();
 
-        XmppUtils.setGlobalConfig(this.xmppUtil.xmppConfig());
-        XmppUtils.setGlobalProxyConfig(this.xmppUtil.xmppProxyConfig());
+        boolean alwaysUseProxy = this.censored.isCensored();
+        XmppUtils.setGlobalConfig(this.xmppUtil.xmppConfig(alwaysUseProxy));
+        XmppUtils.setGlobalProxyConfig(this.xmppUtil.xmppConfig(true));
 
         this.mappedServer = new LanternMappedTcpAnswererServer(natPmpService,
             upnpService, new InetSocketAddress(this.model.getSettings().getServerPort()));
@@ -290,19 +289,11 @@ public class DefaultXmppHandler implements XmppHandler,
             return;
         }
         LOG.info("Connected to internet: {}", e);
-        LOG.info("Logged in? {}", this.isLoggedIn());
-        XmppP2PClient<FiveTuple> xmpp = this.client.get();
-        if (xmpp == null) {
-            LOG.debug("No client?");
-            return; //this is probably at startup
-        }
-
-        final XMPPConnection conn = xmpp.getXmppConnection();
         if (e.isIpChanged()) {
             //definitely need to reconnect here
             reconnect();
         } else {
-            if (conn == null || !conn.isConnected()) {
+            if (!isLoggedIn()) {
                 //definitely need to reconnect here
                 reconnect();
             } else {
@@ -318,38 +309,19 @@ public class DefaultXmppHandler implements XmppHandler,
             reconnectIfNoPong.cancel();
         }
 
-        XmppP2PClient<FiveTuple> client = this.client.get();
-        if (client == null) {
-            //no connection yet, so we'll just return; the connection
-            //will be established when we can
-            return;
-        }
-        XMPPConnection connection = client.getXmppConnection();
-        IQ ping = new IQ() {
+        final IQ ping = new IQ() {
             @Override
             public String getChildElementXML() {
                 return "<ping xmlns='urn:xmpp:ping'/>";
             }
-
         };
+        
         waitingForPong = ping.getPacketID();
         //set up timer to reconnect if we don't hear a pong
         reconnectIfNoPong = new Reconnector();
-        timer.schedule(reconnectIfNoPong, getPingTimeout());
+        timer.schedule(reconnectIfNoPong, pingTimeout);
         //and send the ping
-        connection.sendPacket(ping);
-    }
-
-    /**
-     * How long we wait,
-     * @return
-     */
-    public long getPingTimeout() {
-        return pingTimeout;
-    }
-
-    public void setPingTimeout(long pingTimeout) {
-        this.pingTimeout = pingTimeout;
+        sendPacket(ping);
     }
 
     /**
@@ -905,15 +877,15 @@ public class DefaultXmppHandler implements XmppHandler,
         forHub.setProperty(LanternConstants.ARCH_KEY, model.getSystem().getArch());
 
         forHub.setProperty("instanceId", model.getInstanceId());
-        forHub.setProperty("mode", model.getSettings().getMode().toString());
         // Counterintuitive as it might seem at first glance, this is correct.
         //
         // If I'm a fallback proxy I need to send the host and port at which
         // *I'm* listening.
         //
         // If I'm a non-fallback proxy client I need to send the host and port
-        // that *my fallback proxy* is listening to (that is, the host and port
-        // in my ~/.lantern/fallback.json).
+        // that *my fallback proxy* is listening to.
+        //
+        // XXX: Legacy; we should be able to get rid of this soon.
         if (LanternUtils.isFallbackProxy()) {
             sendHostAndPort(forHub);
         } else {
@@ -1013,10 +985,9 @@ public class DefaultXmppHandler implements XmppHandler,
 
     private void processKscopePayload(final String from, final String payload) {
         LOG.debug("Processing payload: {}", payload);
-        final ObjectMapper mapper = new ObjectMapper();
         try {
             final LanternKscopeAdvertisement ad =
-                mapper.readValue(payload, LanternKscopeAdvertisement.class);
+                JsonUtils.OBJECT_MAPPER.readValue(payload, LanternKscopeAdvertisement.class);
 
             final String jid = ad.getJid();
             if (this.kscopeAdHandler.handleAd(jid, ad)) {
@@ -1122,75 +1093,6 @@ public class DefaultXmppHandler implements XmppHandler,
         return conn.isAuthenticated();
     }
 
-    @Override
-    public boolean sendInvite(final Friend friend, boolean redo, 
-            final boolean addToRoster) {
-        LOG.debug("Sending invite");
-
-        final String email = friend.getEmail();
-
-        if (!isLoggedIn()) {
-            LOG.info("Not logged in!");
-            this.msgs.error(MessageKey.INVITE_FAILED);
-            return false;
-        }
-        final XMPPConnection conn = this.client.get().getXmppConnection();
-
-        final Roster rost = conn.getRoster();
-
-        final Presence pres = new Presence(Presence.Type.available);
-        pres.setTo(LanternClientConstants.LANTERN_JID);
-
-        // "emails" of the form xxx@public.talk.google.com aren't really
-        // e-mail addresses at all, so don't send 'em.
-        // In theory we might be able to use the Google Plus API to get
-        // actual e-mail addresses -- see:
-        // https://github.com/getlantern/lantern/issues/432
-        if (LanternUtils.isAnonymizedGoogleTalkAddress(email)) {
-            pres.setProperty(LanternConstants.INVITED_EMAIL, email);
-        } else {
-            pres.setProperty(LanternConstants.INVITED_EMAIL, "");
-        }
-
-        final String refresh = this.model.getSettings().getRefreshToken();
-        LOG.debug("Sending refresh token: {}", refresh);
-        
-        if (StringUtils.isBlank(refresh)) {
-            LOG.warn("Refresh token is blank");
-        }
-        pres.setProperty(LanternConstants.REFRESH_TOKEN, refresh);
-
-        final RosterEntry entry = rost.getEntry(email);
-        if (entry != null) {
-            final String name = entry.getName();
-            if (StringUtils.isNotBlank(name)) {
-                pres.setProperty(LanternConstants.INVITEE_NAME, name);
-            }
-        }
-        pres.setProperty(LanternConstants.INVITER_NAME, 
-                this.model.getProfile().getName());
-
-        sendPresence(pres, "Invite-Thread");
-
-        if (addToRoster) {
-            addToRoster(email);
-        }
-        return true;
-    }
-
-    private void sendPresence(final Presence pres, final String threadName) {
-        final XMPPConnection conn = this.client.get().getXmppConnection();
-        final Runnable runner = new Runnable() {
-            @Override
-            public void run() {
-                conn.sendPacket(pres);
-            }
-        };
-        final Thread t = new Thread(runner, threadName);
-        t.setDaemon(true);
-        t.start();
-    }
-
     /** Try to reconnect to the xmpp server */
     private void reconnect() {
         //this will trigger XmppP2PClient's internal reconnection logic
@@ -1207,12 +1109,7 @@ public class DefaultXmppHandler implements XmppHandler,
     @Override
     public void subscribe(final String jid) {
         LOG.debug("Sending subscribe message to: {}", jid);
-        final Presence packet = new Presence(Presence.Type.subscribe);
-        packet.setTo(jid);
-        //final String json = JsonUtils.jsonify(this.model.getProfile());
-        //packet.setProperty(XmppMessageConstants.PROFILE, json);
-        final XMPPConnection conn = this.client.get().getXmppConnection();
-        conn.sendPacket(packet);
+        sendTypedPacket(jid, Presence.Type.subscribe);
     }
 
     @Override
@@ -1221,30 +1118,10 @@ public class DefaultXmppHandler implements XmppHandler,
         sendTypedPacket(jid, Presence.Type.subscribed);
     }
 
-    @Override
-    public void unsubscribe(final String jid) {
-        LOG.debug("Sending unsubscribe message to: {}", jid);
-        sendTypedPacket(jid, Presence.Type.unsubscribe);
-    }
-
-    @Override
-    public void unsubscribed(final String jid) {
-        LOG.debug("Sending unsubscribed message to: {}", jid);
-        sendTypedPacket(jid, Presence.Type.unsubscribed);
-    }
-
     private void sendTypedPacket(final String jid, final Type type) {
         final Presence packet = new Presence(type);
         packet.setTo(jid);
-        XmppP2PClient<FiveTuple> xmppP2PClient = this.client.get();
-        if (xmppP2PClient == null) {
-            throw new IllegalStateException("Can't send packets without a client");
-        }
-        final XMPPConnection conn = xmppP2PClient.getXmppConnection();
-        if (conn == null) {
-            throw new IllegalStateException("Can't send packets while offline");
-        }
-        conn.sendPacket(packet);
+        sendPacket(packet);
     }
 
     @Override
@@ -1262,6 +1139,7 @@ public class DefaultXmppHandler implements XmppHandler,
                 // Note this also sends a subscription request!!
                 rost.createEntry(email,
                     StringUtils.substringBefore(email, "@"), new String[]{});
+                return;
             } catch (final XMPPException e) {
                 LOG.error("Could not create entry?", e);
             }
@@ -1270,29 +1148,22 @@ public class DefaultXmppHandler implements XmppHandler,
         }
     }
 
-    @Override
-    public void removeFromRoster(final String email) {
-        final XMPPConnection conn = this.client.get().getXmppConnection();
-        final Roster rost = conn.getRoster();
-        final RosterEntry entry = rost.getEntry(email);
-        if (entry != null) {
-            LOG.debug("Removing user from roster: {}", email);
-            try {
-                rost.removeEntry(entry);
-            } catch (final XMPPException e) {
-                LOG.error("Could not create entry?", e);
-            }
-        }
-    }
-
     @Subscribe
     public void onReset(final ResetEvent event) {
         disconnect();
     }
 
-    @Override
+    @Subscribe
     public void sendPacket(final Packet packet) {
-        this.client.get().getXmppConnection().sendPacket(packet);
+        XmppP2PClient<FiveTuple> xmppP2PClient = this.client.get();
+        if (xmppP2PClient == null) {
+            throw new IllegalStateException("Can't send packets without a client");
+        }
+        final XMPPConnection conn = xmppP2PClient.getXmppConnection();
+        if (conn == null) {
+            throw new IllegalStateException("Can't send packets while offline");
+        }
+        conn.sendPacket(packet);
     }
 
     private void peerUnavailable(final String from, final Presence pres) {
@@ -1337,7 +1208,7 @@ public class DefaultXmppHandler implements XmppHandler,
         if (presence.getPropertyNames().size() > 0) {
             LOG.debug("Sending on-demand properties to controller");
             presence.setTo(LanternClientConstants.LANTERN_JID);
-            sendPresence(presence, "SendOnDemandProperties-Thread");
+            sendPacket(presence);
         } else {
             LOG.debug("Not sending on-demand properties to controller");
         }
@@ -1360,15 +1231,26 @@ public class DefaultXmppHandler implements XmppHandler,
         String hostAndPort = ip.trim() + ":" + port;
         presence.setProperty(LanternConstants.HOST_AND_PORT, hostAndPort);
     }
+    
 
     private void sendFallbackHostAndPort(Presence presence) {
         LOG.info("Sending fallback address to controller.");
-        InetSocketAddress address = proxyTracker
-                .addressForConfiguredFallbackProxy();
+        InetSocketAddress address = addressForConfiguredFallbackProxy();
         String hostAndPort = addressToHostAndPort(address);
         if (hostAndPort != null) {
             presence.setProperty(LanternConstants.FALLBACK_HOST_AND_PORT,
                     hostAndPort);
+        }
+    }
+    
+    private InetSocketAddress addressForConfiguredFallbackProxy() {
+        Collection<FallbackProxy> fallbacks
+            = this.model.getS3Config().getFallbacks();
+        if (fallbacks.isEmpty()) {
+            return null;
+        } else {
+            FallbackProxy fp = fallbacks.iterator().next();
+            return new InetSocketAddress(fp.getIp(), fp.getPort());
         }
     }
     
@@ -1400,4 +1282,5 @@ public class DefaultXmppHandler implements XmppHandler,
         LOG.debug("Removing proxy for {}", jid);
         this.proxyTracker.removeNattedProxy(jid);
     }
+    
 }

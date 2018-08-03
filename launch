@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+function die() {
+  echo $*
+  exit 1
+}
+
+path=`dirname $0`
+# Launching lantern only works from within its directory.
+cd $path
+
+# make sure required submodules have been initialized
+submodules=$(grep -o '^\[submodule "[^"]\+"\]$' .gitmodules | cut -d'"' -f2)
+for i in "${submodules}"
+do
+  ls $i/.git > /dev/null || die "Were git submodules initialized? (hint: git submodule update --init)"
+done
+
+ls *.hprof &> /dev/null && echo "don't run now, there's an hprof file:" && ls *.hprof && die
+
+jar=`ls target/lantern-*SNAPSHOT.jar | sort | tail -n 1`
+
+echo "Running jar $jar" 
+
+# We need to copy the bouncycastle jar in separately because it's signed.
+# The shaded jar includes it in the classpath in its manifest.
+test -f target/bcprov-jdk16-1.46.jar || cp install/common/bcprov-jdk16-1.46.jar target/
+javaArgs="-XX:+HeapDumpOnOutOfMemoryError -Djna.nosys=true -classpath $jar $*"
+
+if [ "$RUN_LANTERN_DEBUG_PORT" ]
+then
+  javaArgs="-Xdebug -Xrunjdwp:transport=dt_socket,address=$RUN_LANTERN_DEBUG_PORT,server=y,suspend=y $javaArgs"
+fi
+
+if [ $(uname) == "Linux" ]
+then
+  proc=`uname -m`
+  javaArgs="-Djava.library.path=lib/linux/$proc $javaArgs"
+fi
+
+
+echo "Running: `which java` $extras $javaArgs"
+java $extras $javaArgs || die "Java process exited abnormally"
+#java $javaArgs org.lantern.Launcher || die "Java process exited abnormally"

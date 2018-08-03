@@ -1,6 +1,7 @@
 package org.lantern.state;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
 
 import java.io.File;
 
@@ -13,7 +14,6 @@ import org.lantern.TestingUtils;
 import org.lantern.privacy.LocalCipherProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static org.mockito.Mockito.*;
 
 public class ModelIoTest {
 

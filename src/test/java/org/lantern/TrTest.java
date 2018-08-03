@@ -36,7 +36,7 @@ public class TrTest {
         
         // Set it to something we're unlikely to ever translate to test 
         // pass-through to english;
-        Locale.setDefault(Locale.CANADA_FRENCH);
+        Locale.setDefault(new Locale("en", "ZW"));
         Tr.reload();
         cn = Tr.tr("CN");
         assertEquals("China", cn);

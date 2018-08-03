@@ -34,10 +34,6 @@ public interface ModelService {
 
     void setProxyAllSites(boolean proxyAll);
 
-    void setMode(Mode mode);
-
-    Mode getMode();
-
     void resetProxiedSites();
 
     void setProxiedSites(List<String> proxiedSites);

@@ -4,8 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
-import org.lantern.exceptional4j.ExceptionalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +26,10 @@ public class LanternClientConstants {
     public static final String VERSION;
     
     public static final String GIT_VERSION;
+    
+    public static final String BUILD_TIME;
+    
+    public static final String LOG4J_PROPS_PATH = "src/main/resources/log4j.properties";
 
     static {
         final Properties prop = new Properties();
@@ -40,9 +44,12 @@ public class LanternClientConstants {
             if (version.equals("${project.version}")) {
                 VERSION = "0.0.1-SNAPSHOT";
                 isDevMode = true;
+                BUILD_TIME = "1969-01-01";
             } else {
-                isDevMode = version.contains("SNAPSHOT");
+                final File props = new File(LOG4J_PROPS_PATH);
+                isDevMode = props.isFile();
                 VERSION = version + "-" + GIT_VERSION;
+                BUILD_TIME = prop.getProperty("git.build.time");
             }
         } catch (final IOException e) {
             LOG.warn("Could not load version properties file : ", e);
@@ -58,7 +65,7 @@ public class LanternClientConstants {
         new File(System.getProperty("user.home"), ".lantern");
 
     public static final File DEFAULT_MODEL_FILE =
-            new File(CONFIG_DIR, "model-0.0.4");
+            new File(CONFIG_DIR, "model-0.0.5");
 
     public static final File DEFAULT_TRANSFERS_FILE =
             new File(CONFIG_DIR, "transfers");
@@ -87,9 +94,6 @@ public class LanternClientConstants {
         new File(System.getProperty("user.home"),
             ".config/autostart/lantern-autostart.desktop");
 
-
-    public static final String GET_EXCEPTIONAL_API_KEY =
-        ExceptionalUtils.NO_OP_KEY;
 
     static {
         // Only load these if we're not on app engine.
@@ -131,6 +135,7 @@ public class LanternClientConstants {
     public static final String LOCALHOST = "127.0.0.1";
     public static final long CONNECTIVITY_UPDATE_INTERVAL = 120 * 1000;
 
+
     // Not final because it may be set from the command line for debugging.
     public static String LANTERN_JID;
 
@@ -140,14 +145,17 @@ public class LanternClientConstants {
     public static String CONTROLLER_URL;
 
     public static void setControllerId(final String id) {
+        if (StringUtils.isBlank(id)) {
+            LOG.warn("Blank controller id?");
+            return;
+        }
         LANTERN_JID = id + "@appspot.com";
         CONTROLLER_URL = "https://" + id + ".appspot.com";
         STATS_URL = CONTROLLER_URL +"/stats";
     }
 
     static {
-        //setControllerId("lantern-controller-afisk");
-        setControllerId("lanternctrl");
+        setControllerId(S3Config.DEFAULT_CONTROLLER_ID);
     }
 
     public static boolean isDevMode() {

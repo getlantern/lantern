@@ -1,3 +1,9 @@
+/**
+ * This is obsolete.
+ *
+ * It needs to be ported to use new fallbacks (auth token, certs), and
+ * probably the S3 config scheme.
+ */
 package org.lantern;
 
 import java.awt.BorderLayout;
@@ -36,7 +42,6 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.util.EntityUtils;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.lantern.event.Events;
 import org.lantern.event.ProxyConnectionEvent;
 import org.littleshoot.util.ThreadUtils;
@@ -99,6 +104,7 @@ public class Diagnostics {
                     "Are you sure you want to close Lantern Diagnostic tests?", "Quit?", 
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION){
+                    log.info("Quitting Lantern from diagnostics pane");
                     System.exit(0);
                 }
             }
@@ -196,7 +202,7 @@ public class Diagnostics {
         LanternUtils.waitForServer(LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
 
         output("Connected to server....");
-        final Collection<String> censored = Arrays.asList(//"exceptional.io");
+        final Collection<String> censored = Arrays.asList(
             //"www.getlantern.org",
             //"github.com",
             "facebook.com",
@@ -227,6 +233,7 @@ public class Diagnostics {
         }
         if (!pt.hasProxy()) {
             output("Still no proxy!! Exiting");
+            log.info("Still no proxy, exiting from Diagnostics dialog");
             System.exit(0);
         }
         
@@ -318,12 +325,12 @@ public class Diagnostics {
             return;
         }
 
-        final ObjectMapper om = new ObjectMapper();
         InputStream is = null;
         try {
             is = new FileInputStream(file);
             final String proxy = IOUtils.toString(is);
-            final FallbackProxy fp = om.readValue(proxy, FallbackProxy.class);
+            final FallbackProxy fp = 
+                    JsonUtils.OBJECT_MAPPER.readValue(proxy, FallbackProxy.class);
             
             fallbackServerHost = fp.getIp();
             fallbackServerPort = fp.getPort();

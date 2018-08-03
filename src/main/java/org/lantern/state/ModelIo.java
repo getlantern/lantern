@@ -10,19 +10,21 @@ import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.lantern.Cli;
-import org.lantern.Country;
 import org.lantern.CountryService;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternUtils;
+import org.lantern.S3Config;
 import org.lantern.event.Events;
 import org.lantern.event.RefreshTokenEvent;
 import org.lantern.privacy.EncryptedFileService;
 import org.lantern.privacy.InvalidKeyException;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lastbamboo.common.offer.answer.IceConfig;
+import org.littleshoot.proxy.TransportProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -39,9 +41,10 @@ public class ModelIo extends Storage<Model> {
      */
     @Inject
     public ModelIo(final EncryptedFileService encryptedFileService,
-            final Transfers transfers, final CountryService countryService,
-            final CommandLine commandLine,
-            final LocalCipherProvider lcp) {
+                   final Transfers transfers,
+                   final CountryService countryService,
+                   final CommandLine commandLine,
+                   final LocalCipherProvider lcp) {
         this(LanternClientConstants.DEFAULT_MODEL_FILE, encryptedFileService,
                 transfers, countryService, commandLine, lcp);
     }
@@ -51,20 +54,27 @@ public class ModelIo extends Storage<Model> {
      * testing.
      *
      * @param modelFile The file where settings are stored.
-     * @param commandLine The command line arguments. 
-     * @param localCipherProvider The local cipher provider for accessing 
+     * @param commandLine The command line arguments.
+     * @param localCipherProvider The local cipher provider for accessing
      * encrypted data on disk.
+     * @param s3ConfigManager The S3 config manager for maintaining the
+     * controller-dependent data.
      */
     public ModelIo(final File modelFile,
-            final EncryptedFileService encryptedFileService, Transfers transfers,
-            final CountryService countryService, final CommandLine commandLine, 
-            final LocalCipherProvider localCipherProvider) {
+                   final EncryptedFileService encryptedFileService,
+                   Transfers transfers,
+                   final CountryService countryService,
+                   final CommandLine commandLine,
+                   final LocalCipherProvider localCipherProvider) {
         super(encryptedFileService, modelFile, Model.class);
         this.countryService = countryService;
         this.commandLine = commandLine;
         this.localCipherProvider = localCipherProvider;
+        
         obj = read();
         obj.setTransfers(transfers);
+        Events.register(this);
+        onS3ConfigChange(obj.getS3Config());
         log.info("Loaded module");
     }
 
@@ -88,17 +98,6 @@ public class ModelIo extends Storage<Model> {
             final Peers peers = read.getPeerCollector();
             peers.reset();
             if (read.getModal() == Modal.settingsLoadFailure) {
-                read.setModal(Modal.none);
-            }
-            boolean isCensored = false;
-            String countryCode = read.getLocation().getCountry();
-            if (countryCode != null) {
-                Country country = countryService.getCountryByCode(countryCode);
-                if (country != null) {
-                    isCensored = country.isCensors();
-                }
-            }
-            if (!isCensored && read.getModal() == Modal.giveModeForbidden) {
                 read.setModal(Modal.none);
             }
             LanternUtils.setModel(read);
@@ -147,6 +146,21 @@ public class ModelIo extends Storage<Model> {
         }
         log.info("Running give mode proxy on port: {}", set.getServerPort());
         
+        TransportProtocol proxyProtocol = TransportProtocol.TCP;
+        if (cmd.hasOption(Cli.OPTION_SERVER_PROTOCOL)) {
+            String serverProtocol = cmd
+                    .getOptionValue(Cli.OPTION_SERVER_PROTOCOL);
+            if ("udp".equalsIgnoreCase(serverProtocol)) {
+                proxyProtocol = TransportProtocol.UDT;
+            }
+        }
+        set.setProxyProtocol(proxyProtocol);
+        log.info("Running give mode proxy with protocol: {}", proxyProtocol);
+        
+        final String authTokenOpt = Cli.OPTION_SERVER_AUTHTOKEN_FILE;
+        if (cmd.hasOption(authTokenOpt)) {
+            loadServerAuthTokenFile(cmd.getOptionValue(authTokenOpt), set);
+        }
 
         if (cmd.hasOption(Cli.OPTION_KEYSTORE)) {
             LanternUtils.setFallbackKeystorePath(cmd.getOptionValue(Cli.OPTION_KEYSTORE));
@@ -240,11 +254,27 @@ public class ModelIo extends Storage<Model> {
         } else {
             model.setLaunchd(false);
         }
-
-        if (cmd.hasOption(Cli.OPTION_GIVE)) {
-            model.getSettings().setMode(Mode.give);
-        } else if (cmd.hasOption(Cli.OPTION_GET)) {
-            model.getSettings().setMode(Mode.get);
+    }
+    
+    private void loadServerAuthTokenFile(final String filename, final Settings set) {
+        if (StringUtils.isBlank(filename)) {
+            log.error("No server auth token filename specified");
+            throw new NullPointerException("No filename specified!");
+        }
+        final File file = new File(filename);
+        if (!(file.exists() && file.canRead())) {
+            log.error("Unable to read server auth token  from {}", filename);
+            throw new IllegalArgumentException("File does not exist! "+filename);
+        }
+        log.info("Reading server auth token from file \"{}\"", filename);
+        try {
+            String authToken = FileUtils.readFileToString(file, "UTF-8");
+            // Strip all whitespace
+            authToken = authToken.replaceAll("\\s", "");
+            set.setProxyAuthToken(authToken);
+        } catch (final IOException e) {
+            log.error("Failed to read file \"{}\"", filename);
+            throw new Error("Could not load server auth token", e);
         }
     }
 
@@ -261,11 +291,11 @@ public class ModelIo extends Storage<Model> {
         log.debug("Reading client secrets from file \"{}\"", filename);
         try {
             final String json = FileUtils.readFileToString(file, "US-ASCII");
-            JSONObject obj = (JSONObject)JSONValue.parse(json);
+            JSONObject installed = (JSONObject)JSONValue.parse(json);
             final JSONObject ins;
-            final JSONObject temp = (JSONObject)obj.get("installed");
+            final JSONObject temp = (JSONObject)installed.get("installed");
             if (temp == null) {
-                ins = (JSONObject)obj.get("web");
+                ins = (JSONObject)installed.get("web");
             } else {
                 ins = temp;
             }
@@ -300,10 +330,10 @@ public class ModelIo extends Storage<Model> {
         log.info("Reading user credentials from file \"{}\"", filename);
         try {
             final String json = FileUtils.readFileToString(file, "US-ASCII");
-            final JSONObject obj = (JSONObject)JSONValue.parse(json);
-            final String username = (String)obj.get("username");
-            final String accessToken = (String)obj.get("access_token");
-            final String refreshToken = (String)obj.get("refresh_token");
+            final JSONObject creds = (JSONObject)JSONValue.parse(json);
+            final String username = (String)creds.get("username");
+            final String accessToken = (String)creds.get("access_token");
+            final String refreshToken = (String)creds.get("refresh_token");
             // Access token is not strictly necessary, so we allow it to be
             // null.
             if (StringUtils.isBlank(username) || 
@@ -424,5 +454,24 @@ public class ModelIo extends Storage<Model> {
         }
         obj.loadFrom(newModel);
         return true;
+    }
+    
+    @Subscribe
+    public void onS3ConfigChange(final S3Config config) {
+        if (hasCommandLineOption(Cli.OPTION_CONTROLLER_ID)) {
+            log.info("Not overriding command-line settings.");
+        } else if (config != null) {
+            final String controller = config.getController();
+            if (StringUtils.isNotBlank(controller) && !controller.equalsIgnoreCase("null")) {
+                LanternClientConstants.setControllerId(controller);
+            }
+        }
+    }
+
+    private boolean hasCommandLineOption(final String opt) {
+        if (commandLine != null) {
+            return commandLine.hasOption(opt);
+        }
+        return false;
     }
 }

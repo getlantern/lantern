@@ -5,12 +5,14 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.OperatingSystemMXBean;
 import java.lang.reflect.Method;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.lantern.ClientStats;
 import org.lantern.LanternService;
-import org.lantern.Stats;
+import org.lantern.LanternUtils;
 import org.lantern.state.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +46,7 @@ public class StatsReporter implements LanternService {
     // admin stuff
     private static final String LIBRATO_API_TOKEN = "7c10ebf9e817e301cc578141658284bfa9f4a15bf938143b386142f854be0afe";
 
-    private static final int LIBRATO_REPORTING_INTERVAL = 60;
+    private static final int LIBRATO_REPORTING_INTERVAL = 600;
 
     private final Model model;
     private final ClientStats stats;
@@ -54,7 +56,8 @@ public class StatsReporter implements LanternService {
     private final OperatingSystemMXBean osStats = ManagementFactory
             .getOperatingSystemMXBean();
 
-    private final MetricRegistry metrics = new MetricRegistry();
+    private final MetricRegistry perInstanceMetrics = new MetricRegistry();
+    private final MetricRegistry globalMetrics = new MetricRegistry();
 
     @Inject
     public StatsReporter(Model model, ClientStats stats) {
@@ -81,10 +84,21 @@ public class StatsReporter implements LanternService {
                 .enable(
                         LibratoReporter
                                 .builder(
-                                        metrics,
+                                        perInstanceMetrics,
                                         LIBRATO_USER_NAME,
                                         LIBRATO_API_TOKEN,
                                         "Proxy-" + model.getInstanceId()),
+                        LIBRATO_REPORTING_INTERVAL,
+                        TimeUnit.SECONDS);
+        LibratoReporter
+                .enable(
+                        LibratoReporter
+                                .builder(
+                                        globalMetrics,
+                                        LIBRATO_USER_NAME,
+                                        LIBRATO_API_TOKEN,
+                                        LanternUtils.isFallbackProxy() ? "Fallbacks"
+                                                : "Peers"),
                         LIBRATO_REPORTING_INTERVAL,
                         TimeUnit.SECONDS);
     }
@@ -93,25 +107,28 @@ public class StatsReporter implements LanternService {
      * Add metrics for system monitoring.
      */
     private void initializeSystemMetrics() {
-        metrics.register("SystemStat_Process_CPU_Usage", new Gauge<Double>() {
-            @Override
-            public Double getValue() {
-                return (Double) getSystemStat("getProcessCpuLoad");
-            }
-        });
-        metrics.register("SystemStat_System_CPU_Usage", new Gauge<Double>() {
-            @Override
-            public Double getValue() {
-                return (Double) getSystemStat("getSystemCpuLoad");
-            }
-        });
-        metrics.register("SystemStat_System_Load_Average", new Gauge<Double>() {
-            @Override
-            public Double getValue() {
-                return (Double) osStats.getSystemLoadAverage();
-            }
-        });
-        metrics.register("SystemStat_Process_Memory_Usage",
+        perInstanceMetrics.register("SystemStat_Process_CPU_Usage",
+                new Gauge<Double>() {
+                    @Override
+                    public Double getValue() {
+                        return (Double) getSystemStat("getProcessCpuLoad");
+                    }
+                });
+        perInstanceMetrics.register("SystemStat_System_CPU_Usage",
+                new Gauge<Double>() {
+                    @Override
+                    public Double getValue() {
+                        return (Double) getSystemStat("getSystemCpuLoad");
+                    }
+                });
+        perInstanceMetrics.register("SystemStat_System_Load_Average",
+                new Gauge<Double>() {
+                    @Override
+                    public Double getValue() {
+                        return (Double) osStats.getSystemLoadAverage();
+                    }
+                });
+        perInstanceMetrics.register("SystemStat_Process_Memory_Usage",
                 new Gauge<Double>() {
                     @Override
                     public Double getValue() {
@@ -121,7 +138,8 @@ public class StatsReporter implements LanternService {
                                         .getCommitted();
                     }
                 });
-        metrics.register("SystemStat_Process_Number_of_Open_File_Descriptors",
+        perInstanceMetrics.register(
+                "SystemStat_Process_Number_of_Open_File_Descriptors",
                 new Gauge<Long>() {
                     @Override
                     public Long getValue() {
@@ -155,36 +173,43 @@ public class StatsReporter implements LanternService {
      * Add gauges for Lantern-specific statistics
      */
     private void initializeLanternMetrics() {
-        metrics.register("LanternStat_countOfDistinctProxiedClientAddresses", new Gauge<Long>() {
-            @Override
-            public Long getValue() {
-                return stats.getCountOfDistinctProxiedClientAddresses(); 
-            }
-        });
-        // TODO: if we want to report Lantern metrics through Librato, change the
-        // below to true
-        if (false) {
-            initializeAllLanternMetrics();
-        }
+        perInstanceMetrics.register(
+                "LanternStat_countOfDistinctProxiedClientAddresses",
+                new Gauge<Long>() {
+                    @Override
+                    public Long getValue() {
+                        return stats.getCountOfDistinctProxiedClientAddresses();
+                    }
+                });
+        initializeMetrics(perInstanceMetrics,
+                "bytesProxiedForIran",
+                "bytesProxiedForChina");
+        initializeMetrics(globalMetrics,
+                "globalBytesProxiedForIran",
+                "globalBytesProxiedForChina");
     }
 
-    /**
-     * Add gauges for all numeric properties on Stats.class
-     */
-    private void initializeAllLanternMetrics() {
+    private void initializeMetrics(MetricRegistry registry,
+            String... includeMetrics) {
+        Set<String> include = new HashSet<String>();
+        for (String metric : includeMetrics) {
+            include.add(metric);
+        }
         for (PropertyDescriptor property : PropertyUtils
-                .getPropertyDescriptors(Stats.class)) {
+                .getPropertyDescriptors(ClientStats.class)) {
             Class<?> type = property.getPropertyType();
             boolean isNumeric = Number.class.isAssignableFrom(type)
                     || Long.TYPE.equals(type)
                     || Integer.TYPE.equals(type)
                     || Double.TYPE.equals(type)
                     || Float.TYPE.equals(type);
-            if (isNumeric) {
+            final String name = property.getName();
+            boolean shouldInclude = isNumeric && include.isEmpty()
+                    || include.contains(name);
+            if (shouldInclude) {
                 final Method getter = property.getReadMethod();
-                final String name = property.getName();
                 LOG.debug("Adding metric for statistic {}", name);
-                metrics.register("LanternStat_" + name,
+                registry.register("LanternStat_" + name,
                         new Gauge<Number>() {
                             @Override
                             public Number getValue() {
@@ -198,6 +223,5 @@ public class StatsReporter implements LanternService {
                         });
             }
         }
-
     }
 }

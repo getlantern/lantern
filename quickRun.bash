@@ -38,8 +38,6 @@ then
 fi
 
 
-[ $(uname) == "Darwin" ] && extras="-XstartOnFirstThread"
-
 echo "Running: `which java` $extras $javaArgs"
 java $extras $javaArgs || die "Java process exited abnormally"
 #java $javaArgs org.lantern.Launcher || die "Java process exited abnormally"

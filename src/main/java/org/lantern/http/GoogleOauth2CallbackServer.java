@@ -9,7 +9,6 @@ import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.thread.ExecutorThreadPool;
-import org.lantern.LanternUtils;
 import org.lantern.Messages;
 import org.lantern.ProxyService;
 import org.lantern.XmppHandler;
@@ -96,8 +95,7 @@ public class GoogleOauth2CallbackServer {
         final ServletHolder oauth2callback = new ServletHolder(
             new GoogleOauth2CallbackServlet(this, this.xmppHandler, 
                 this.model, this.internalState, this.modelIo, this.proxifier,
-                this.httpClientFactory, modelUtils, this.msgs,
-                this));
+                this.httpClientFactory, modelUtils));
         oauth2callback.setInitOrder(1);
         contextHandler.addServlet(oauth2callback, "/oauth2callback");
         

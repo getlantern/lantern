@@ -1,16 +1,16 @@
 package org.lantern.state;
 
+import java.text.ParseException;
 import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.math.NumberUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.DateSerializer;
 import org.lantern.LanternClientConstants;
-import org.lantern.LanternConstants;
 import org.lantern.LanternVersion;
 import org.lantern.annotation.Keep;
 import org.lantern.event.Events;
@@ -18,6 +18,8 @@ import org.lantern.event.SyncEvent;
 import org.lantern.event.UpdateEvent;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
 
@@ -27,6 +29,8 @@ import com.google.common.eventbus.Subscribe;
 @Keep
 public class Version {
 
+    private static final Logger LOG = LoggerFactory.getLogger(Version.class);
+    
     private final Installed installed = new Installed();
 
     private Map<String, Object> latest = new TreeMap<String, Object>();
@@ -71,11 +75,14 @@ public class Version {
         private final String git;
 
         public Installed() {
-            if (NumberUtils.isNumber(LanternConstants.BUILD_TIME)) {
-                releaseDate = new Date(Long.parseLong(LanternConstants.BUILD_TIME));
-            } else {
+            try {
+                releaseDate = 
+                    DateUtils.parseDate(LanternClientConstants.BUILD_TIME, "yyyy-MM-dd");
+            } catch (final ParseException e) {
+                LOG.error("Could not parse date from git plugin?", e);
                 releaseDate = new Date(0); // epoch signals no releaseDate available
             }
+            LOG.debug("RELEASE DATE: "+releaseDate);
             final String version = LanternClientConstants.VERSION;
             final String number = StringUtils.substringBefore(version, "-");
             final String[] parts = number.split("\\.");
@@ -102,6 +109,7 @@ public class Version {
             return git;
         }
 
+        @Override
         @JsonSerialize(using=DateSerializer.class)
         public Date getReleaseDate() {
             return releaseDate;

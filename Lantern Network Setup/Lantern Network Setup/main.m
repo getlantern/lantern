@@ -92,6 +92,9 @@ void configureNetworkServices(NSString *onOff, NSString *url) {
 int main() {
     NSArray *args = [[NSProcessInfo processInfo] arguments];
 
+    // Become root in order to support reconfiguring network services
+    setuid(0);
+    
     configureNetworkServices([args objectAtIndex:1],
                              [args objectAtIndex:2]);
 

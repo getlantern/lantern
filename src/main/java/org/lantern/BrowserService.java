@@ -1,5 +1,6 @@
 package org.lantern;
 
+
 public interface BrowserService extends LanternService {
 
     void openBrowser();
@@ -9,7 +10,7 @@ public interface BrowserService extends LanternService {
     void openBrowserWhenPortReady(int port, final String prefix);
 
     void openBrowserWhenPortReady();
-    
+
     void reopenBrowser();
 
 }

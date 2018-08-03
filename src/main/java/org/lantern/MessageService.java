@@ -8,8 +8,8 @@ public interface MessageService {
 
     void showMessage(String title, String message);
 
-    int askQuestion(String title, String message, int typeFlag);
-    
+    boolean askQuestion(String title, String message);
+
     @Subscribe
     void onMessageEvent(MessageEvent me);
 

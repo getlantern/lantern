@@ -25,14 +25,13 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
-import org.codehaus.jackson.map.ObjectMapper;
+import org.lantern.JsonUtils;
 import org.lantern.LanternConstants;
 import org.lantern.MessageKey;
-import org.lantern.Messages;
 import org.lantern.NotInClosedBetaException;
-import org.lantern.Tr;
 import org.lantern.Proxifier.ProxyConfigurationError;
 import org.lantern.ProxyService;
+import org.lantern.Tr;
 import org.lantern.XmppHandler;
 import org.lantern.event.Events;
 import org.lantern.event.RefreshTokenEvent;
@@ -42,7 +41,6 @@ import org.lantern.state.Modal;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelUtils;
-import org.lantern.state.Notification.MessageType;
 import org.lantern.state.Profile;
 import org.lantern.state.StaticSettings;
 import org.lantern.state.SyncPath;
@@ -77,15 +75,12 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
 
     private final ModelUtils modelUtils;
 
-    private final Messages msgs;
-    
     public GoogleOauth2CallbackServlet(
         final GoogleOauth2CallbackServer googleOauth2CallbackServer,
         final XmppHandler xmppHandler, final Model model,
         final InternalState internalState, final ModelIo modelIo,
         final ProxyService proxifier, final HttpClientFactory httpClientFactory,
-        final ModelUtils modelUtils, final Messages msgs,
-        final GoogleOauth2CallbackServer server) {
+        final ModelUtils modelUtils) {
         this.googleOauth2CallbackServer = googleOauth2CallbackServer;
         this.xmppHandler = xmppHandler;
         this.model = model;
@@ -94,7 +89,6 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         this.proxifier = proxifier;
         this.httpClientFactory = httpClientFactory;
         this.modelUtils = modelUtils;
-        this.msgs = msgs;
     }
 
     @Override
@@ -155,15 +149,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         // Kill our temporary oauth callback server.
         this.googleOauth2CallbackServer.stop();
 
-        final HttpClient client;
-        try {
-            client = this.httpClientFactory.newClient();
-        } catch (final IOException e) {
-            log.error("Could not get a proxy?", e);
-            this.msgs.error(MessageKey.NO_PROXIES);
-            redirectToDashboard(resp);
-            return;
-        }
+        final HttpClient client = this.httpClientFactory.newClient();
 
         final Map<String, String> allToks;
         try {
@@ -198,7 +184,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
             final StatusLine line = response.getStatusLine();
             log.debug("Got response status: {}", line);
             final HttpEntity entity = response.getEntity();
-            final String body = IOUtils.toString(entity.getContent());
+            final String body = IOUtils.toString(entity.getContent(), "UTF-8");
             EntityUtils.consume(entity);
             log.debug("GOT RESPONSE BODY FOR EMAIL:\n"+body);
 
@@ -208,8 +194,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
                 return code;
             }
 
-            final ObjectMapper om = new ObjectMapper();
-            final Profile profile = om.readValue(body, Profile.class);
+            final Profile profile = JsonUtils.OBJECT_MAPPER.readValue(body, Profile.class);
             this.model.setProfile(profile);
             Events.sync(SyncPath.PROFILE, profile);
             //final String email = profile.getEmail();
@@ -300,9 +285,8 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
             final String body = IOUtils.toString(responseEntity.getContent());
             EntityUtils.consume(responseEntity);
 
-            final ObjectMapper om = new ObjectMapper();
             final Map<String, String> oauthToks =
-                om.readValue(body, Map.class);
+                    JsonUtils.OBJECT_MAPPER.readValue(body, Map.class);
             log.debug("Got oath data: {}", oauthToks);
             return oauthToks;
         } finally {

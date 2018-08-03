@@ -24,7 +24,6 @@ import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.security.NoSuchAlgorithmException;
-import java.security.Policy;
 import java.security.SecureRandom;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
@@ -57,7 +56,6 @@ import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Packet;
-import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.StaticSettings;
 import org.lantern.util.PublicIpAddress;
@@ -436,8 +434,15 @@ public class LanternUtils {
     }
 
     public static boolean isLanternHub(final String jabberid) {
-        final String userid = LanternXmppUtils.jidToEmail(jabberid);
-        return LanternClientConstants.LANTERN_JID.equals(userid);
+        try {
+            final String userid = LanternXmppUtils.jidToEmail(jabberid);
+            return LanternClientConstants.LANTERN_JID.equals(userid);
+        } catch (EmailAddressUtils.NormalizationException e) {
+            LOG.warn("Unnormalizable jabberid: " + jabberid);
+            // Since the controller's id is normalizable, this must be
+            // something else.
+            return false;
+        }
     }
 
     public static Packet activateOtr(final XMPPConnection conn) {
@@ -1010,43 +1015,6 @@ public class LanternUtils {
         return oauth;
     }
 
-    public static void installPolicyFiles() {
-        String home = System.getProperty("java.home");
-        String filename = "./copyPolicy.exe";
-        File file = new File(filename);
-        if (!file.exists()) {
-            //development mode
-            String os;
-            if (SystemUtils.IS_OS_LINUX) {
-                os = "linux";
-            } else if (SystemUtils.IS_OS_WINDOWS) {
-                os = "win";
-            } else if (SystemUtils.IS_OS_MAC_OSX) {
-                os = "osx";
-            } else {
-                LOG.error("Unexpected OS");
-                return;
-            }
-            filename = "install/" + os + "/copyPolicy.exe";
-            file = new File(filename);
-            if (!file.exists()) {
-                LOG.error("Could not find file " + filename);
-                return;
-            }
-        }
-        final ProcessBuilder pb = new ProcessBuilder(filename, home);
-        try {
-            Process process = pb.start();
-            if (process.waitFor() != 0) {
-                LOG.error("Error running copyPolicy.exe");
-                return;
-            }
-            Policy.getPolicy().refresh();
-        } catch (final Exception e) {
-            LOG.error("Could not run copyPolicy.exe", e);
-        }
-    }
-    
     public static byte[] compress(final String str) {
         if (StringUtils.isBlank(str)) {
             throw new IllegalArgumentException("can compress empty string!");
@@ -1076,14 +1044,6 @@ public class LanternUtils {
         LanternUtils.model = model;
     }
 
-    public static boolean isGet() {
-        if (model == null) {
-            LOG.error("Calling isGet before model populated! Testing?");
-            return true;
-        }
-        return model.getSettings().getMode() == Mode.get;
-    }
-    
     public static Certificate certFromBase64(String base64Cert)
             throws CertificateException {
         return certFromBytes(Base64.decodeBase64(base64Cert));

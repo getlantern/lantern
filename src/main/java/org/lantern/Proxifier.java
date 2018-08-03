@@ -6,9 +6,7 @@ import java.util.Arrays;
 
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.math.RandomUtils;
-import org.eclipse.swt.SWT;
 import org.lantern.event.Events;
-import org.lantern.event.ModeChangedEvent;
 import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.QuitEvent;
 import org.lantern.event.ResetEvent;
@@ -191,8 +189,7 @@ public class Proxifier implements ProxyService, LanternService {
             }
         } else {
             LOG.debug("Ignoring proxy call! System proxy? "+
-                    model.getSettings().isSystemProxy()+" get mode? "+
-                    this.model.getSettings().getMode());
+                    model.getSettings().isSystemProxy());
         }
     }
 
@@ -341,10 +338,9 @@ public class Proxifier implements ProxyService, LanternService {
                     "in order to access the web.\n\nTry again?";
                     
                     // TODO: Don't think this will work on Linux.
-                    final int response = 
-                        messageService.askQuestion("Proxy Settings", question,
-                        SWT.APPLICATION_MODAL | SWT.ICON_WARNING | SWT.RETRY | SWT.CANCEL);
-                    if (response == SWT.CANCEL) {
+                    boolean retry = 
+                        messageService.askQuestion("Proxy Settings", question);
+                    if (!retry) {
                         finished = true;
                     }
                     else {
@@ -524,25 +520,4 @@ public class Proxifier implements ProxyService, LanternService {
         }
     }
     
-    @Subscribe
-    public void onModeChangedEvent(final ModeChangedEvent event) {
-        switch (event.getNewMode()) {
-        case get:
-            LOG.debug("Nothing to do on proxifier when switched to get mode");
-            return;
-        case give:
-            LOG.debug("Switched to give mode");
-            try {
-                stopProxying();
-            } catch (final ProxyConfigurationError e) {
-                LOG.debug("Error stopping proxying!", e);
-            }
-            break;
-        case unknown:
-            break;
-        default:
-            break;
-        
-        };
-    }
 }

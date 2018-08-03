@@ -1,8 +1,7 @@
 package org.lantern;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import io.netty.handler.codec.http.HttpHeaders;
 
 import java.io.ByteArrayInputStream;
@@ -11,12 +10,12 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.concurrent.Callable;
 import java.util.zip.GZIPOutputStream;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
@@ -28,8 +27,6 @@ import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.util.EntityUtils;
 import org.junit.Test;
 import org.lantern.util.HttpClientFactory;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,33 +40,33 @@ public class HttpClientFactoryTest {
         //System.setProperty("javax.net.debug", "ssl");
         
         Launcher.configureCipherSuites();
-        final LanternKeyStoreManager ksm = TestingUtils.newKeyStoreManager();
-        final LanternTrustStore trustStore = new LanternTrustStore(ksm);
-        final LanternSocketsUtil socketsUtil =
-            new LanternSocketsUtil(null, trustStore);
-        
-        final Censored censored = new DefaultCensored();
-        final HttpClientFactory factory = 
-                new HttpClientFactory(socketsUtil, censored, null);
-        
-        final HttpHost proxy = new HttpHost("54.254.96.14", 16589, "https");
-        
-        final HttpClient httpClient = factory.newClient(proxy, true);
-        
-        httpClient.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 10000);
-        httpClient.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 8000);
+        TestingUtils.doWithGetModeProxy(new Callable<Void>() {
+           @Override
+            public Void call() throws Exception {
+               final HttpClientFactory factory = 
+                       new HttpClientFactory(new AllCensored());
+               
+               // Because we are censored, this should use the local proxy
+               final HttpClient httpClient = factory.newClient();
+               TestingUtils.assertIsUsingGetModeProxy(httpClient);
+               
+               httpClient.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 10000);
+               httpClient.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 8000);
 
-        final HttpHead head = new HttpHead("https://www.google.com");
-        
-        log.debug("About to execute get!");
-        final HttpResponse response = httpClient.execute(head);
-        final StatusLine line = response.getStatusLine();
-        final int code = line.getStatusCode();
-        if (code < 200 || code > 299) {
-            //log.error("Head request failed?\n"+line);
-            fail("Could not proxy");
-        }
-        head.reset();
+               final HttpHead head = new HttpHead("https://www.google.com");
+               
+               log.debug("About to execute get!");
+               final HttpResponse response = httpClient.execute(head);
+               final StatusLine line = response.getStatusLine();
+               final int code = line.getStatusCode();
+               if (code < 200 || code > 299) {
+                   //log.error("Head request failed?\n"+line);
+                   fail("Could not proxy");
+               }
+               head.reset();
+                return null;
+            } 
+        });
     }
     
     /**
@@ -88,19 +85,18 @@ public class HttpClientFactoryTest {
      */
     @Test
     public void testAllInternallyProxiedSites() throws Exception {
-        final LanternKeyStoreManager ksm = TestingUtils.newKeyStoreManager();
-        final LanternTrustStore trustStore = new LanternTrustStore(ksm);
-        final LanternSocketsUtil socketsUtil =
-            new LanternSocketsUtil(null, trustStore);
-        
-        final Censored censored = new DefaultCensored();
-        final HttpClientFactory factory = 
-                new HttpClientFactory(socketsUtil, censored, TestingUtils.newProxyTracker());
+        final HttpClientFactory factory = new HttpClientFactory(new AllCensored());
         final HttpClient client = factory.newClient();
+        TestingUtils.assertIsUsingGetModeProxy(client);
 
-        testExceptional(client);
-        testGoogleDocs(factory);
-        testStats(client);
+        TestingUtils.doWithGetModeProxy(new Callable<Void>() {
+           @Override
+            public Void call() throws Exception {
+                testExceptional(client);
+                testStats(client);
+                return null;
+            } 
+        });
     }
 
     private void testStats(final HttpClient client) throws Exception {
@@ -112,22 +108,6 @@ public class HttpClientFactoryTest {
         final int code = line.getStatusCode();
         get.reset();
         assertEquals(200, code);
-    }
-
-    private void testGoogleDocs(final HttpClientFactory clientFactory) 
-        throws Exception {
-        final LanternFeedback feedback = spy(new LanternFeedback(clientFactory));
-        when(feedback.getHttpPost(anyString())).thenAnswer(new Answer<HttpPost>() {
-            @Override
-            public HttpPost answer(InvocationOnMock invocation) {
-                HttpPost mockPost = spy(new HttpPost(LanternFeedback.HOST));
-                doNothing().when(mockPost).setEntity((HttpEntity)any());
-                return mockPost;
-            }
-        });
-        final int responseCode =
-            feedback.submit("Testing", "lanternftw@gmail.com");
-        assertEquals(200, responseCode);
     }
 
     private void testExceptional(final HttpClient client)

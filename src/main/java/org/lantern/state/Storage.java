@@ -8,9 +8,11 @@ import java.security.GeneralSecurityException;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.lantern.JsonUtils;
 import org.lantern.LanternConstants;
+import org.lantern.LanternUtils;
 import org.lantern.Shutdownable;
 import org.lantern.privacy.EncryptedFileService;
 import org.slf4j.Logger;
@@ -84,7 +86,6 @@ public abstract class Storage<T> implements Provider<T>, Shutdownable {
         if (!file.isFile()) {
             return blank();
         }
-        final ObjectMapper mapper = new ObjectMapper();
         InputStream is = null;
         try {
             is = encryptedFileService.localDecryptInputStream(file);
@@ -93,7 +94,7 @@ public abstract class Storage<T> implements Provider<T>, Shutdownable {
                 log.info("Can't build object from empty string");
                 return blank();
             }
-            final T read = mapper.readValue(json, cls);
+            final T read = JsonUtils.OBJECT_MAPPER.readValue(json, cls);
             return read;
         } catch (final IOException e) {
             log.error("Could not read object", e);

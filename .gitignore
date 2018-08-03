@@ -1,5 +1,6 @@
 .DS_Store
 *.swp
+*.swo
 *.un~
 *.*~
 *.settings
@@ -10,6 +11,7 @@ lantern_getexceptional.txt
 nbactions.xml
 dependency-reduced-pom.xml
 .sass-cache
+*.log
 log.txt*
 target/
 dashboard/assets/*.pac
@@ -28,4 +30,3 @@ src//tags
 */*/project.xcworkspace/
 */*/xcuserdata/
 */Build/
-Lantern.pro
