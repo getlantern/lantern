@@ -55,7 +55,6 @@ contributors to follow to facilitate the process:
 
 * [Lantern Wiki](https://github.com/getlantern/lantern/wiki)
 * [General contributing](https://github.com/getlantern/lantern/wiki/Contributing)
-* [Issue tracker](https://github.com/getlantern/lantern/issues)
 * [GitHub pull request documentation](http://help.github.com/send-pull-requests/)
 * [General GitHub documentation](http://help.github.com/)
 * [#lantern IRC channel](http://webchat.freenode.net/?channels=lantern)
