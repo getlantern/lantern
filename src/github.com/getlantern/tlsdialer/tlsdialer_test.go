@@ -9,7 +9,7 @@ import (
 
 	"github.com/getlantern/fdcount"
 	"github.com/getlantern/keyman"
-	"github.com/getlantern/testify/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -74,7 +74,7 @@ func TestOKWithServerName(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	cwt, err := DialForTimings(new(net.Dialer), "tcp", ADDR, true, &tls.Config{
+	cwt, err := DialForTimings(net.DialTimeout, 30*time.Second, "tcp", ADDR, true, &tls.Config{
 		RootCAs: cert.PoolContainingCert(),
 	})
 	conn := cwt.Conn
@@ -92,9 +92,7 @@ func TestOKWithServerNameAndLongTimeout(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	conn, err := DialWithDialer(&net.Dialer{
-		Timeout: 25 * time.Second,
-	}, "tcp", ADDR, true, &tls.Config{
+	conn, err := DialTimeout(net.DialTimeout, 25*time.Second, "tcp", ADDR, true, &tls.Config{
 		RootCAs: cert.PoolContainingCert(),
 	})
 	assert.NoError(t, err, "Unable to dial")
@@ -205,13 +203,12 @@ func TestVariableTimeouts(t *testing.T) {
 	}
 
 	doTestTimeout := func(timeout time.Duration) (didTimeout bool) {
-		_, err := DialWithDialer(&net.Dialer{
-			Timeout: timeout,
-		}, "tcp", ADDR, false, &tls.Config{
+		conn, err := DialTimeout(net.DialTimeout, timeout, "tcp", ADDR, false, &tls.Config{
 			RootCAs: cert.PoolContainingCert(),
 		})
 
 		if err == nil {
+			conn.Close()
 			return false
 		} else {
 			if neterr, isNetError := err.(net.Error); isNetError {
@@ -223,50 +220,25 @@ func TestVariableTimeouts(t *testing.T) {
 		}
 	}
 
-	// The 1000-5000 microseconds limits are arbitrary. In some systems this may be too low/high.
+	// The 5000 microsecond limits is arbitrary. In some systems this may be too low/high.
 	// The algorithm will try to adapt if connections succeed and will lower the current limit,
 	// but it won't be allowed to timeout below the established lower boundary.
-	timeoutMin := 1000
 	timeoutMax := 5000
+	numberOfTimeouts := 0
 	for i := 0; i < 500; i++ {
 		timeout := rand.Intn(timeoutMax) + 1
 		didTimeout := doTestTimeout(time.Duration(timeout) * time.Microsecond)
-		if !didTimeout {
-			if timeout < timeoutMin {
-				t.Fatalf("The connection succeeded in an unexpected short time: %d", timeout)
-			}
+		if didTimeout {
+			numberOfTimeouts += 1
+		} else {
 			timeoutMax = int(float64(timeoutMax) * 0.75)
-			i-- // repeat the test
 		}
 	}
+	assert.NotEqual(t, 0, numberOfTimeouts, "Should have timed out at least once")
 
 	// Wait to give the sockets time to close
 	time.Sleep(1 * time.Second)
 	assert.NoError(t, fdc.AssertDelta(0), "Number of open files should be the same after test as before")
-}
-
-func TestDeadlineBeforeTimeout(t *testing.T) {
-	_, fdc, err := fdcount.Matching("TCP")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	conn, err := DialWithDialer(&net.Dialer{
-		Timeout:  500 * time.Second,
-		Deadline: time.Now().Add(5 * time.Microsecond),
-	}, "tcp", ADDR, false, nil)
-
-	assert.Error(t, err, "There should have been a problem dialing")
-
-	if err != nil {
-		if neterr, isNetError := err.(net.Error); isNetError {
-			assert.True(t, neterr.Timeout(), "Dial error should be timeout")
-		} else {
-			t.Fatal(err)
-		}
-	}
-
-	closeAndCountFDs(t, conn, err, fdc)
 }
 
 func closeAndCountFDs(t *testing.T, conn *tls.Conn, err error, fdc *fdcount.Counter) {

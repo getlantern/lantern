@@ -11,16 +11,17 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/getlantern/edgedetect"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/tarfs"
-	"github.com/getlantern/edgedetect"
 	"github.com/skratchdot/open-golang/open"
 
 	"github.com/getlantern/flashlight/client"
+	"github.com/getlantern/flashlight/feed"
 )
 
 const (
-	LocalUIDir = "../../../lantern-ui/app"
+	LocalUIDir = "../../../../../../lantern-ui/app"
 )
 
 var (
@@ -76,6 +77,8 @@ func Start(requestedAddr string, allowRemote bool, extUrl string) (string, error
 		return "", fmt.Errorf("Unable to resolve UI address: %v", err)
 	}
 
+	// initProServer("127.0.0.1:1233") // Experimental server.
+
 	externalUrl = extUrl
 	if allowRemote {
 		// If we want to allow remote connections, we have to bind all interfaces
@@ -95,7 +98,18 @@ func Start(requestedAddr string, allowRemote bool, extUrl string) (string, error
 		}
 		resp.WriteHeader(http.StatusOK)
 	}
+
+	// We use the backend to detect the user's country and redirect the browser
+	// to the correct URL that will itself be proxied over Lantern.
+	feedHandler := func(resp http.ResponseWriter, req *http.Request) {
+		vals := req.URL.Query()
+		defaultLang := vals.Get("lang")
+		url := feed.GetFeedURL(defaultLang)
+		http.Redirect(resp, req, url, http.StatusFound)
+	}
+
 	r.Handle("/startup", http.HandlerFunc(handler))
+	r.Handle("/feed", http.HandlerFunc(feedHandler))
 	r.Handle("/", http.FileServer(fs))
 
 	server = &http.Server{

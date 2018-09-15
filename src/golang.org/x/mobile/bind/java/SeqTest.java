@@ -4,16 +4,16 @@
 
 package go;
 
-import android.util.Log;
-import android.test.suitebuilder.annotation.Suppress;
-import android.test.AndroidTestCase;
+import android.test.InstrumentationTestCase;
 import android.test.MoreAsserts;
+
 import java.util.Arrays;
 import java.util.Random;
 
 import go.testpkg.Testpkg;
+import go.secondpkg.Secondpkg;
 
-public class SeqTest extends AndroidTestCase {
+public class SeqTest extends InstrumentationTestCase {
   public SeqTest() {
   }
 
@@ -32,6 +32,22 @@ public class SeqTest extends AndroidTestCase {
     assertEquals("const SmallestNonzeroFloat32", 1.401298464324817070923729583289916131280e-45, Testpkg.SmallestNonzeroFloat32, 1e-44);
     assertEquals("const MaxFloat32", 3.40282346638528859811704183484516925440e+38, Testpkg.MaxFloat32, 0.0001);
     assertEquals("const Log2E", 1/0.693147180559945309417232121458176568075500134360255254120680009, Testpkg.Log2E, 0.0001);
+  }
+
+  public void testRefMap() {
+    // Ensure that the RefMap.live count is kept in sync
+    // even a particular reference number is removed and
+    // added again
+    Seq.RefMap m = new Seq.RefMap();
+    Seq.Ref r = new Seq.Ref(1, null);
+    m.put(r.refnum, r);
+    m.remove(r.refnum);
+    m.put(r.refnum, r);
+    // Force the RefMap to grow, to activate the sanity
+    // checking of the live count in RefMap.grow.
+    for (int i = 2; i < 24; i++) {
+      m.put(i, new Seq.Ref(i, null));
+    }
   }
 
   public void testVar() {
@@ -53,8 +69,6 @@ public class SeqTest extends AndroidTestCase {
     Testpkg.setStructVar(s1);
     assertEquals("var StructVar", s1.String(), Testpkg.getStructVar().String());
 
-    // TODO(hyangah): handle nil return value (translate to null)
-
     AnI obj = new AnI();
     obj.name = "this is an I";
     Testpkg.setInterfaceVar(obj);
@@ -62,6 +76,8 @@ public class SeqTest extends AndroidTestCase {
   }
 
   public void testAssets() {
+    // Make sure that a valid context is set before reading assets
+    Seq.setContext(getInstrumentation().getContext());
     String want = "Hello, Assets.\n";
     String got = Testpkg.ReadAsset();
     assertEquals("Asset read", want, got);
@@ -101,9 +117,30 @@ public class SeqTest extends AndroidTestCase {
   }
 
   public void testUnicode() {
-    String want = "Hello, 世界";
-    String got = Testpkg.StrDup(want);
-    assertEquals("Strings should match", want, got);
+    String[] tests = new String[]{
+      "abcxyz09{}",
+      "Hello, 世界",
+      "\uffff\uD800\uDC00\uD800\uDC01\uD808\uDF45\uDBFF\uDFFF",
+      // From Go std lib tests in unicode/utf16/utf16_test.go
+      "\u0001\u0002\u0003\u0004",
+      "\uffff\ud800\udc00\ud800\udc01\ud808\udf45\udbff\udfff",
+      "\ud800a",
+      "\udfff"
+    };
+    String[] wants = new String[]{
+      "abcxyz09{}",
+      "Hello, 世界",
+      "\uffff\uD800\uDC00\uD800\uDC01\uD808\uDF45\uDBFF\uDFFF",
+      "\u0001\u0002\u0003\u0004",
+      "\uffff\ud800\udc00\ud800\udc01\ud808\udf45\udbff\udfff",
+      "\ufffda",
+      "\ufffd"
+    };
+    for (int i = 0; i < tests.length; i++) {
+      String got = Testpkg.StrDup(tests[i]);
+      String want = wants[i];
+      assertEquals("Strings should match", want, got);
+    }
   }
 
   public void testNilErr() throws Exception {
@@ -179,7 +216,7 @@ public class SeqTest extends AndroidTestCase {
     assertEquals("S should be collected", 1, collected);
   }
 
-  private class AnI extends Testpkg.I.Stub {
+  private class AnI implements Testpkg.I {
     public void E() throws Exception {
       throw new Exception("my exception from E");
     }
@@ -318,7 +355,7 @@ public class SeqTest extends AndroidTestCase {
 
   private int countI = 0;
 
-  private class CountI extends Testpkg.I.Stub {
+  private class CountI implements Testpkg.I {
     public void F() { countI++; }
 
     public void E() throws Exception {}
@@ -374,11 +411,111 @@ public class SeqTest extends AndroidTestCase {
     assertEquals("want Node A points to Node B", "A:B:<end>", got);
   }
 
+  public void testImplementsInterface() {
+    Testpkg.Interface intf = Testpkg.NewConcrete();
+  }
+
   public void testErrorField() {
     final String want = "an error message";
     Testpkg.Node n = Testpkg.NewNode("ErrTest");
     n.setErr(want);
     String got = n.getErr();
     assertEquals("want back the error message we set", want, got);
+  }
+
+  //test if we have JNI local reference table overflow error
+  public void testLocalReferenceOverflow() {
+    Testpkg.CallWithCallback(new Testpkg.GoCallback() {
+
+      @Override
+      public void VarUpdate() {
+        //do nothing
+      }
+    });
+  }
+
+  public void testNullReferences() {
+    assertTrue(Testpkg.CallWithNull(null, new Testpkg.NullTest() {
+      public Testpkg.NullTest Null() {
+        return null;
+      }
+    }));
+	assertEquals("Go nil interface is null", null, Testpkg.NewNullInterface());
+	assertEquals("Go nil struct pointer is null", null, Testpkg.NewNullStruct());
+  }
+
+  public void testPassByteArray() {
+    Testpkg.PassByteArray(new Testpkg.B() {
+      @Override public void B(byte[] b) {
+        byte[] want = new byte[]{1, 2, 3, 4};
+        MoreAsserts.assertEquals("bytes should match", want, b);
+      }
+    });
+  }
+
+  public void testReader() {
+    byte[] b = new byte[8];
+    try {
+      long n = Testpkg.ReadIntoByteArray(b);
+      assertEquals("wrote to the entire byte array", b.length, n);
+      byte[] want = new byte[b.length];
+      for (int i = 0; i < want.length; i++)
+        want[i] = (byte)i;
+      MoreAsserts.assertEquals("bytes should match", want, b);
+     } catch (Exception e) {
+       fail("Failed to write: " + e.toString());
+     }
+  }
+
+  public void testGoroutineCallback() {
+    Testpkg.GoroutineCallback(new Testpkg.Receiver() {
+      @Override public void Hello(String msg) {
+      }
+    });
+  }
+
+  public void testImportedPkg() {
+    Testpkg.CallImportedI(new Secondpkg.I() {
+      @Override public long F(long i) {
+        return i;
+      }
+    });
+    assertEquals("imported string should match", Secondpkg.HelloString, Secondpkg.Hello());
+    Secondpkg.I i = Testpkg.NewImportedI();
+    Secondpkg.S s = Testpkg.NewImportedS();
+    i = Testpkg.getImportedVarI();
+    s = Testpkg.getImportedVarS();
+    assertEquals("numbers should match", 8, i.F(8));
+    assertEquals("numbers should match", 8, s.F(8));
+    Testpkg.setImportedVarI(i);
+    Testpkg.setImportedVarS(s);
+    Testpkg.ImportedFields fields = Testpkg.NewImportedFields();
+    i = fields.getI();
+    s = fields.getS();
+    fields.setI(i);
+    fields.setS(s);
+    Testpkg.WithImportedI(i);
+    Testpkg.WithImportedS(s);
+
+    Secondpkg.IF f = new AnI();
+    f = Testpkg.New();
+    Secondpkg.Ser ser = Testpkg.NewSer();
+  }
+
+  public void testRoundtripEquality() {
+    Testpkg.I want = new AnI();
+    assertTrue("java object passed through Go should not be wrapped", want == Testpkg.IDup(want));
+    Testpkg.InterfaceDupper idup = new Testpkg.InterfaceDupper(){
+      @Override public Testpkg.Interface IDup(Testpkg.Interface i) {
+        return i;
+      }
+    };
+    assertTrue("Go interface passed through Java should not be wrapped", Testpkg.CallIDupper(idup));
+    Testpkg.ConcreteDupper cdup = new Testpkg.ConcreteDupper(){
+      @Override public Testpkg.Concrete CDup(Testpkg.Concrete c) {
+        return c;
+      }
+    };
+    assertTrue("Go struct passed through Java should not be wrapped", Testpkg.CallCDupper(cdup));
   }
 }

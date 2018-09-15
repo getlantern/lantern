@@ -1,0 +1,149 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" 
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" 
+    android:id="@+id/desktopView"
+    android:background="#F1F1F1"
+    tools:context=".DesktopActivity">
+
+    <!--
+        android:background="#39C2D6" -->
+
+        <RelativeLayout
+            android:id="@+id/navDesktop"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/nav_background"
+            android:paddingTop="15dp"
+            android:paddingBottom="15dp"
+            android:padding="8dp">
+
+            <ImageView
+                android:id="@+id/backBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:src="@drawable/abc_ic_ab_back_mtrl_am_alpha"/>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="52dp"
+                android:layout_centerVertical="true"
+                android:layout_marginLeft="15dp"
+                android:layout_toRightOf="@+id/backBtn"
+                android:orientation="vertical" >
+
+                <TextView
+                    android:id="@+id/desktopText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif"
+                    android:layout_marginTop="14dp"
+                    android:paddingLeft="10dp"
+                    android:text="@string/desktop_option"
+                    android:textSize="15sp"
+                    android:textColor="#fff"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+        </RelativeLayout>
+
+        <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:paddingLeft="@dimen/activity_horizontal_margin"
+            android:paddingRight="@dimen/activity_horizontal_margin"
+            android:paddingTop="@dimen/activity_vertical_margin"
+            android:layout_width="340dp"
+            android:layout_height="327dp"
+            android:layout_marginTop="80dp"
+            android:layout_marginLeft="10dp"
+            android:orientation="vertical"
+            android:elevation="5dp"
+            android:background="@android:drawable/dialog_holo_light_frame"
+            android:gravity="center_vertical|bottom">
+
+            <ImageView
+                android:id="@+id/desktop_graphic"
+                android:layout_width="fill_parent"
+                android:layout_height="215dp"
+                android:layout_gravity="top"
+                android:scaleType="centerCrop"
+                android:layout_marginTop="5dp"
+                android:adjustViewBounds="true"
+                android:layout_alignParentTop="true"
+                android:layout_centerHorizontal="true"
+                android:src="@drawable/desktop_graphic"
+                />
+
+            <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="300dp"
+                android:layout_marginTop="75dp"
+                android:layout_height="300dp"
+                android:layout_weight="1"
+                android:layout_marginLeft="10dp"
+                android:padding="15dp"
+                android:background="@android:color/transparent"
+                android:orientation="vertical"
+                android:gravity="center_vertical"
+                android:layout_gravity="center_vertical"> 
+
+                <TextView
+                    android:id="@+id/receive_lantern"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="50dp"
+                    android:fontFamily="sans-serif" 
+                    android:textSize="16sp"
+                    android:gravity="center"
+                    android:singleLine="true"
+                    android:textStyle="bold"
+                    android:textColor="#000000"
+                    android:text="@string/receive_lantern"
+                    android:textAppearance="?android:attr/textAppearanceSmall"/>
+
+                <EditText
+                    android:id="@+id/emailInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif" 
+                    android:background="@null"
+                    android:hint="@string/email_hint"
+                    android:ems="10"
+                    android:textColor="#BDBDBD"
+                    android:paddingRight="20dp"
+                    android:autoText="false"
+                    android:paddingTop="20dp"
+                    android:paddingBottom="5dp"
+                    android:gravity="fill_horizontal"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:inputType="textEmailAddress" />
+
+                <View
+                    android:id="@+id/separator"
+                    android:background="@color/edittext_color"
+                    android:layout_below="@+id/emailInput"
+                    android:layout_width = "fill_parent"
+                    android:layout_height="1dip"
+                    android:layout_centerVertical ="true"
+                    android:layout_alignParentTop="true"
+                    />
+
+                <Button
+                    android:id="@+id/sendBtn"
+                    android:layout_height="41.5dp"
+                    android:layout_width="fill_parent"
+                    android:layout_marginTop="20dp"
+                    android:text="@string/send_button"
+                    android:fontFamily="sans-serif" 
+                    android:textSize="20sp"
+                    android:elevation="2dp"
+                    android:minHeight="48dp"
+                    android:textColor="#fff"
+                    android:clickable = "false"
+                    android:background="@drawable/send_btn"
+                    android:onClick="sendDesktopVersion" />
+            </LinearLayout>
+        </RelativeLayout>
+    </RelativeLayout>
+

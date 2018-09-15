@@ -11,46 +11,11 @@
 // use this directly.
 package seq // import "golang.org/x/mobile/bind/seq"
 
-// TODO(crawshaw):
-// 	There is opportunity for optimizing these language
-//	bindings which requires deconstructing seq into something
-//	gnarly. So don't get too attached to the design.
-
-import (
-	"fmt"
-
-	_ "golang.org/x/mobile/internal/mobileinit"
-)
-
-// Transact calls a method on a foreign object instance.
-// It blocks until the call is complete.
-var Transact func(ref *Ref, desc string, code int, in *Buffer) (out *Buffer)
+import _ "golang.org/x/mobile/internal/mobileinit"
 
 // FinalizeRef is the finalizer used on foreign objects.
 var FinalizeRef func(ref *Ref)
 
-// A Func can be registered and called by a foreign language.
-type Func func(out, in *Buffer)
-
-// Registry holds functions callable from gobind generated bindings.
-// Functions are keyed by descriptor and function code.
-var Registry = make(map[string]map[int]Func)
-
-// Register registers a function in the Registry.
-func Register(descriptor string, code int, fn Func) {
-	m := Registry[descriptor]
-	if m == nil {
-		m = make(map[int]Func)
-		Registry[descriptor] = m
-	}
-	if m[code] != nil {
-		panic(fmt.Sprintf("registry.Register: %q/%d already registered", descriptor, code))
-	}
-	m[code] = fn
-}
-
-// DecString decodes a string encoded in the Buffer.
-var DecString func(in *Buffer) string
-
-// EncString encodes a Go string into the Buffer.
-var EncString func(out *Buffer, v string)
+// IncRef increments the foreign reference count for ref while it is in transit.
+// The count is decremented after the ref is received and translated on the foreign side.
+var IncForeignRef func(refnum int32)

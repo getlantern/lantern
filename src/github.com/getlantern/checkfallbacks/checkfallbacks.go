@@ -137,16 +137,14 @@ func testAllFallbacks(fallbacks []client.ChainedServerInfo) (output *chan fullOu
 
 // Perform the test of an individual server
 func testFallbackServer(fb *client.ChainedServerInfo, workerID int) (output fullOutput) {
-	// Test connectivity
-	fb.Pipelined = true
-	dialer, err := fb.Dialer(DeviceID)
+	dialer, err := client.ChainedDialer(fb, DeviceID)
 	if err != nil {
 		output.err = fmt.Errorf("%v: error building dialer: %v", fb.Addr, err)
 		return
 	}
 	c := &http.Client{
 		Transport: &http.Transport{
-			Dial: dialer.Dial,
+			Dial: dialer.DialFN,
 		},
 	}
 	req, err := http.NewRequest("GET", "http://www.google.com/humans.txt", nil)

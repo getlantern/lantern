@@ -5,6 +5,7 @@
 package bind
 
 import (
+	"fmt"
 	"go/types"
 	"log"
 )
@@ -113,5 +114,24 @@ func isExported(t types.Type) bool {
 		return isExported(t.Elem())
 	default:
 		return true
+	}
+}
+
+func isRefType(t types.Type) bool {
+	if isErrorType(t) {
+		return false
+	}
+	switch t := t.(type) {
+	case *types.Named:
+		switch u := t.Underlying().(type) {
+		case *types.Interface:
+			return true
+		default:
+			panic(fmt.Sprintf("unsupported named type: %s / %T", u, u))
+		}
+	case *types.Pointer:
+		return isRefType(t.Elem())
+	default:
+		return false
 	}
 }

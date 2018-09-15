@@ -15,22 +15,22 @@ import (
 
 	"github.com/getlantern/fronted"
 
-	"github.com/getlantern/flashlight/config"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
-	HOST        = "127.0.0.1"
-	CF_PORT     = 19871
-	CF_ADDR     = HOST + ":19871"
-	CLIENT_PORT = 19872
-	CLIENT_ADDR = HOST + ":19872"
-	SERVER_PORT = 19873
-	SERVER_ADDR = HOST + ":19873"
-	HTTP_ADDR   = HOST + ":19874"
-	HTTPS_ADDR  = HOST + ":19875"
+	HOST       = "127.0.0.1"
+	cfPort     = 19871
+	cfAddr     = HOST + ":19871"
+	clientPort = 19872
+	clientAddr = HOST + ":19872"
+	serverPort = 19873
+	serverAddr = HOST + ":19873"
+	httpAddr   = HOST + ":19874"
+	httpsAddr  = HOST + ":19875"
 
-	EXPECTED_BODY    = "This is some stuff that goes in the body\n"
-	FORWARDED_FOR_IP = "192.168.1.1"
+	expectedBody   = "This is some stuff that goes in the body\n"
+	forwardedForIP = "192.168.1.1"
 )
 
 // testRequest tests an individual request, either HTTP or HTTPS, making sure
@@ -38,18 +38,17 @@ const (
 // was successful, it also tests to make sure that the outbound request didn't
 // leak any Lantern or CloudFlare headers.
 func testRequest(testCase string, t *testing.T, requests chan *http.Request, https bool, certPool *x509.CertPool, expectedStatus int, expectedErr error) {
-	cfg := &config.Config{}
-	cfg.ApplyDefaults()
-	trustedCAs, err := cfg.GetTrustedCACerts()
-	if err != nil {
-		t.Fatal(err)
+	dir, err := ioutil.TempDir("", "direct_test")
+	if !assert.NoError(t, err, "Unable to create temp dir") {
+		return
 	}
-	fronted.Configure(trustedCAs, cfg.Client.MasqueradeSets)
+	defer os.RemoveAll(dir)
+	fronted.ConfigureForTest(t)
 
 	log.Debug("Making request")
 	httpClient := &http.Client{Transport: &http.Transport{
 		Proxy: func(req *http.Request) (*url.URL, error) {
-			return url.Parse("http://" + CLIENT_ADDR)
+			return url.Parse("http://" + clientAddr)
 		},
 
 		TLSClientConfig: &tls.Config{
@@ -59,9 +58,9 @@ func testRequest(testCase string, t *testing.T, requests chan *http.Request, htt
 
 	var destURL string
 	if https {
-		destURL = "https://" + HTTPS_ADDR
+		destURL = "https://" + httpsAddr
 	} else {
-		destURL = "http://" + HTTP_ADDR
+		destURL = "http://" + httpAddr
 	}
 	req, err := http.NewRequest("GET", destURL, nil)
 	if err != nil {
@@ -87,8 +86,8 @@ func testRequest(testCase string, t *testing.T, requests chan *http.Request, htt
 			body, err := ioutil.ReadAll(resp.Body)
 			if err != nil {
 				t.Errorf("%s: Unable to read response body: %s", testCase, err)
-			} else if string(body) != EXPECTED_BODY {
-				t.Errorf("%s: Body didn't contain expected text.\nExpected: %s\nGot     : '%s'", testCase, EXPECTED_BODY, string(body))
+			} else if string(body) != expectedBody {
+				t.Errorf("%s: Body didn't contain expected text.\nExpected: %s\nGot     : '%s'", testCase, expectedBody, string(body))
 			}
 		}
 	}

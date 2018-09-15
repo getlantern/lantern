@@ -7,15 +7,21 @@
 
 #include <Foundation/Foundation.h>
 
-// GoSeq is a sequence of machine-dependent encoded values, which
-// is a simple C equivalent of seq.Buffer.
-// Used by automatically generated language bindings to talk to Go.
-typedef struct GoSeq {
-  uint8_t *buf;
-  size_t off;
-  size_t len;
-  size_t cap;
-} GoSeq;
+#ifdef DEBUG
+#define LOG_DEBUG(...) NSLog(__VA_ARGS__);
+#else
+#define LOG_DEBUG(...) ;
+#endif
+
+#define LOG_INFO(...) NSLog(__VA_ARGS__);
+#define LOG_FATAL(...)                                                         \
+  {                                                                            \
+    NSLog(__VA_ARGS__);                                                        \
+    @throw                                                                     \
+        [NSException exceptionWithName:NSInternalInconsistencyException        \
+                                reason:[NSString stringWithFormat:__VA_ARGS__] \
+                              userInfo:NULL];                                  \
+  }
 
 // GoSeqRef is an object tagged with an integer for passing back and
 // forth across the language boundary. A GoSeqRef may represent either
@@ -28,56 +34,54 @@ typedef struct GoSeq {
 // TODO(hyangah): update the doc as golang.org/issue/10933 is fixed.
 @interface GoSeqRef : NSObject {
 }
-@property int32_t refnum;
+@property(readonly) int32_t refnum;
 @property(strong) id obj; // NULL when representing a Go object.
 
 // new GoSeqRef object to proxy a Go object. The refnum must be
 // provided from Go side.
 - (instancetype)initWithRefnum:(int32_t)refnum obj:(id)obj;
 
+- (int32_t)incNum;
+
 @end
 
-// go_seq_free releases resources of the GoSeq.
-extern void go_seq_free(GoSeq *seq);
+@protocol goSeqRefInterface
+-(GoSeqRef*) _ref;
+@end
 
-extern BOOL go_seq_readBool(GoSeq *seq);
-extern int go_seq_readInt(GoSeq *seq);
-extern int8_t go_seq_readInt8(GoSeq *seq);
-extern int16_t go_seq_readInt16(GoSeq *seq);
-extern int32_t go_seq_readInt32(GoSeq *seq);
-extern int64_t go_seq_readInt64(GoSeq *seq);
-extern float go_seq_readFloat32(GoSeq *seq);
-extern double go_seq_readFloat64(GoSeq *seq);
-extern GoSeqRef *go_seq_readRef(GoSeq *seq);
-extern NSString *go_seq_readUTF8(GoSeq *seq);
-extern NSData *go_seq_readByteArray(GoSeq *seq);
+// Platform specific types
+typedef struct nstring {
+	void *ptr;
+	int len;
+} nstring;
+typedef struct nbyteslice {
+	void *ptr;
+	int len;
+} nbyteslice;
+typedef int nint;
 
-extern void go_seq_writeBool(GoSeq *seq, BOOL v);
-extern void go_seq_writeInt(GoSeq *seq, int v);
-extern void go_seq_writeInt8(GoSeq *seq, int8_t v);
-extern void go_seq_writeInt16(GoSeq *seq, int16_t v);
-extern void go_seq_writeInt32(GoSeq *seq, int32_t v);
-extern void go_seq_writeInt64(GoSeq *seq, int64_t v);
-extern void go_seq_writeFloat32(GoSeq *seq, float v);
-extern void go_seq_writeFloat64(GoSeq *seq, double v);
-extern void go_seq_writeRef(GoSeq *seq, GoSeqRef *ref);
-extern void go_seq_writeUTF8(GoSeq *seq, NSString *v);
+extern void init_seq();
+// go_seq_dec_ref decrements the reference count for the
+// specified refnum. It is called from Go from a finalizer.
+extern void go_seq_dec_ref(int32_t refnum);
+// go_seq_inc_ref increments the reference count for the
+// specified refnum. It is called from Go just before converting
+// a proxy to its refnum.
+extern void go_seq_inc_ref(int32_t refnum);
 
-// go_seq_writeByteArray writes the data bytes to the seq. Note that the
-// data should be valid until the the subsequent go_seq_send call completes.
-extern void go_seq_writeByteArray(GoSeq *seq, NSData *data);
+extern int32_t go_seq_to_refnum(id obj);
+// go_seq_go_to_refnum is a special case of go_seq_to_refnum
+extern int32_t go_seq_go_to_refnum(GoSeqRef *ref);
 
-// go_seq_writeObjcRef is a special case of go_seq_writeRef for
-// Objective-C objects that implement Go interface.
-extern void go_seq_writeObjcRef(GoSeq *seq, id obj);
+extern GoSeqRef *go_seq_from_refnum(int32_t refnum);
+// go_seq_objc_from_refnum is a special case of go_seq_from_refnum for
+// Objective-C objects that implement a Go interface.
+extern id go_seq_objc_from_refnum(int32_t refnum);
 
-// go_seq_send sends a function invocation request to Go.
-// It blocks until the function completes.
-// If the request is for a method, the first element in req is
-// a Ref to the receiver.
-extern void go_seq_send(char *descriptor, int code, GoSeq *req, GoSeq *res);
+extern nbyteslice go_seq_from_objc_bytearray(NSData *data, int copy);
+extern nstring go_seq_from_objc_string(NSString *s);
 
-extern void go_seq_register_proxy(const char *descriptor,
-                           void(*fn)(id, int, GoSeq *, GoSeq *));
+extern NSData *go_seq_to_objc_bytearray(nbyteslice, int copy);
+extern NSString *go_seq_to_objc_string(nstring str);
 
 #endif // __GO_SEQ_HDR__

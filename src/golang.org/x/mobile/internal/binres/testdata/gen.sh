@@ -4,7 +4,7 @@
 AAPT=${ANDROID_HOME}/build-tools/23.0.1/aapt
 
 # minimum version of android api for resource identifiers supported
-APIJAR=${ANDROID_HOME}/platforms/android-10/android.jar
+APIJAR=${ANDROID_HOME}/platforms/android-15/android.jar
 
 for f in *.xml; do
 	cp "$f" AndroidManifest.xml

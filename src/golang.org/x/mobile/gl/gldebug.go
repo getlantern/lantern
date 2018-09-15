@@ -847,9 +847,9 @@ func (ctx *context) BufferInit(target Enum, size int, usage Enum) {
 			fn: glfnBufferData,
 			a0: target.c(),
 			a1: uintptr(size),
-			a2: 0,
-			a3: usage.c(),
+			a2: usage.c(),
 		},
+		parg:     unsafe.Pointer(nil),
 		blocking: true})
 }
 
@@ -2855,6 +2855,28 @@ func (ctx *context) Viewport(x, y, width, height int) {
 			a1: uintptr(y),
 			a2: uintptr(width),
 			a3: uintptr(height),
+		},
+		blocking: true})
+}
+
+func (ctx context3) BlitFramebuffer(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1 int, mask uint, filter Enum) {
+	defer func() {
+		errstr := ctx.errDrain()
+		log.Printf("gl.BlitFramebuffer(%v, %v, %v, %v, %v, %v, %v, %v, %v, %v) %v", srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter, errstr)
+	}()
+	ctx.enqueueDebug(call{
+		args: fnargs{
+			fn: glfnBlitFramebuffer,
+			a0: uintptr(srcX0),
+			a1: uintptr(srcY0),
+			a2: uintptr(srcX1),
+			a3: uintptr(srcY1),
+			a4: uintptr(dstX0),
+			a5: uintptr(dstY0),
+			a6: uintptr(dstX1),
+			a7: uintptr(dstY1),
+			a8: uintptr(mask),
+			a9: filter.c(),
 		},
 		blocking: true})
 }

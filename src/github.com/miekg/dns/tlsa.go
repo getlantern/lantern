@@ -82,5 +82,5 @@ func TLSAName(name, service, network string) (string, error) {
 	if e != nil {
 		return "", e
 	}
-	return "_" + strconv.Itoa(p) + "_" + network + "." + name, nil
+	return "_" + strconv.Itoa(p) + "._" + network + "." + name, nil
 }

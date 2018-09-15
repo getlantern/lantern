@@ -1,0 +1,43 @@
+{
+  "name": "re-tree",
+  "version": "0.0.2",
+  "devDependencies": {
+    "angular": "*",
+    "angular-mocks": "*",
+    "gulp": "*",
+    "gulp-concat": "*",
+    "gulp-jasmine": "^2.0.1",
+    "gulp-karma": "*",
+    "gulp-uglify": "*",
+    "karma": "*",
+    "karma-jasmine": "*",
+    "karma-nested-reporter": "*",
+    "karma-phantomjs-launcher": "*",
+    "uglify-js": "*"
+  },
+  "scripts": {
+    "test": "gulp test"
+  },
+  "description": "JavaScript Extended regular expression engine - client side, server side and 'angular side' ready.",
+  "main": "re-tree.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/srfrnk/re-tree.git"
+  },
+  "keywords": [
+    "regular expressions",
+    "regexp",
+    "JavaScript",
+    "regex",
+    "nodejs",
+    "iojs",
+    "client",
+    "angularjs"
+  ],
+  "author": "srfrnk",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/srfrnk/re-tree/issues"
+  },
+  "homepage": "https://github.com/srfrnk/re-tree"
+}

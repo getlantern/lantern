@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
 )
+
+var wrapRe = regexp.MustCompile(`wrapped: \d{3,4}`)
 
 func helperProcess(s ...string) *exec.Cmd {
 	cs := []string{"-test.run=TestHelperProcess", "--"}
@@ -231,7 +234,7 @@ func TestPanicWrap_panicHide(t *testing.T) {
 		t.Fatalf("err: %s", err)
 	}
 
-	if !strings.Contains(stdout.String(), "wrapped: 1006") {
+	if wrapRe.FindString(stdout.String()) == "" {
 		t.Fatalf("didn't wrap: %#v", stdout.String())
 	}
 
@@ -251,7 +254,7 @@ func TestPanicWrap_panicShow(t *testing.T) {
 		t.Fatalf("err: %s", err)
 	}
 
-	if !strings.Contains(stdout.String(), "wrapped: 1006") {
+	if wrapRe.FindString(stdout.String()) == "" {
 		t.Fatalf("didn't wrap: %#v", stdout.String())
 	}
 
@@ -270,7 +273,7 @@ func TestPanicWrap_panicLong(t *testing.T) {
 		t.Fatalf("err: %s", err)
 	}
 
-	if !strings.Contains(stdout.String(), "wrapped: 1017") {
+	if wrapRe.FindString(stdout.String()) == "" {
 		t.Fatalf("didn't wrap: %#v", stdout.String())
 	}
 }
@@ -288,7 +291,7 @@ func TestPanicWrap_panicBoundary(t *testing.T) {
 		t.Fatalf("err: %s", err)
 	}
 
-	if !strings.Contains(stdout.String(), "wrapped: 1015") {
+	if wrapRe.FindString(stdout.String()) == "" {
 		t.Fatalf("didn't wrap: %#v", stdout.String())
 	}
 }

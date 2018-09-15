@@ -7,37 +7,23 @@ package go.issue12328;
 import go.Seq;
 
 public abstract class Issue12328 {
+    static {
+        Seq.touch(); // for loading the native library
+        init();
+    }
+    
     private Issue12328() {} // uninstantiable
     
-    public static final class T implements go.Seq.Object {
-        private static final String DESCRIPTOR = "go.issue12328.T";
-        private static final int FIELD_Err_GET = 0x00f;
-        private static final int FIELD_Err_SET = 0x01f;
+    // touch is called from other bound packages to initialize this package
+    public static void touch() {}
+    
+    private static native void init();
+    
+    public static final class T extends Seq.Proxy {
+        private T(go.Seq.Ref ref) { super(ref); }
         
-        private go.Seq.Ref ref;
-        
-        private T(go.Seq.Ref ref) { this.ref = ref; }
-        
-        public go.Seq.Ref ref() { return ref; }
-        
-        public void call(int code, go.Seq in, go.Seq out) {
-            throw new RuntimeException("internal error: cycle: cannot call concrete proxy");
-        }
-        
-        public String getErr() {
-            Seq in = new Seq();
-            Seq out = new Seq();
-            in.writeRef(ref);
-            Seq.send(DESCRIPTOR, FIELD_Err_GET, in, out);
-            return out.readString();
-        }
-        
-        public void setErr(String v) {
-            Seq in = new Seq();
-            in.writeRef(ref);
-            in.writeString(v);
-            Seq.send(DESCRIPTOR, FIELD_Err_SET, in, null);
-        }
+        public final native String getErr();
+        public final native void setErr(String v);
         
         @Override public boolean equals(Object o) {
             if (o == null || !(o instanceof T)) {
@@ -66,8 +52,7 @@ public abstract class Issue12328 {
             b.append("Err:").append(getErr()).append(",");
             return b.append("}").toString();
         }
-        
     }
     
-    private static final String DESCRIPTOR = "issue12328";
+    
 }

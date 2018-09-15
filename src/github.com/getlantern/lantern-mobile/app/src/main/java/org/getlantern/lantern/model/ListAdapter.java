@@ -12,7 +12,7 @@ import java.util.ArrayList;
 
 import org.getlantern.lantern.R;
 
-class ListAdapter extends BaseAdapter {
+public class ListAdapter extends BaseAdapter {
 
     private Context mContext;
     private ArrayList<NavItem> mNavItems;

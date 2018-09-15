@@ -16,13 +16,12 @@ import (
 
 var _ net.PacketConn = &PacketConn{}
 
-type ipc interface{}
-
 // A PacketConn represents a packet network endpoint that uses either
 // ICMPv4 or ICMPv6.
 type PacketConn struct {
-	c   net.PacketConn
-	ipc // either ipv4.PacketConn or ipv6.PacketConn
+	c  net.PacketConn
+	p4 *ipv4.PacketConn
+	p6 *ipv6.PacketConn
 }
 
 func (c *PacketConn) ok() bool { return c != nil && c.c != nil }
@@ -33,8 +32,7 @@ func (c *PacketConn) IPv4PacketConn() *ipv4.PacketConn {
 	if !c.ok() {
 		return nil
 	}
-	p, _ := c.ipc.(*ipv4.PacketConn)
-	return p
+	return c.p4
 }
 
 // IPv6PacketConn returns the ipv6.PacketConn of c.
@@ -43,8 +41,7 @@ func (c *PacketConn) IPv6PacketConn() *ipv6.PacketConn {
 	if !c.ok() {
 		return nil
 	}
-	p, _ := c.ipc.(*ipv6.PacketConn)
-	return p
+	return c.p6
 }
 
 // ReadFrom reads an ICMP message from the connection.
@@ -55,11 +52,9 @@ func (c *PacketConn) ReadFrom(b []byte) (int, net.Addr, error) {
 	// Please be informed that ipv4.NewPacketConn enables
 	// IP_STRIPHDR option by default on Darwin.
 	// See golang.org/issue/9395 for futher information.
-	if runtime.GOOS == "darwin" {
-		if p, _ := c.ipc.(*ipv4.PacketConn); p != nil {
-			n, _, peer, err := p.ReadFrom(b)
-			return n, peer, err
-		}
+	if runtime.GOOS == "darwin" && c.p4 != nil {
+		n, _, peer, err := c.p4.ReadFrom(b)
+		return n, peer, err
 	}
 	return c.c.ReadFrom(b)
 }

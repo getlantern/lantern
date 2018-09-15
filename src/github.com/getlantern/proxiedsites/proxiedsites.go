@@ -22,8 +22,8 @@ var (
 
 // Delta represents modifications to the proxied sites list.
 type Delta struct {
-	Additions []string `json:"Additions, omitempty"`
-	Deletions []string `json:"Deletions, omitempty"`
+	Additions []string `json:"additions"`
+	Deletions []string `json:"deletions"`
 }
 
 // Merge merges the given delta into the existing one.
@@ -68,13 +68,13 @@ func (cfg *Config) toCS() *configsets {
 // toSet converts a slice of strings into a set
 func toSet(s []string) set.Interface {
 	if s == nil {
-		return set.New(set.NonThreadSafe)
+		return set.NewNonTS()
 	}
 	is := make([]interface{}, len(s))
 	for i, s := range s {
 		is[i] = s
 	}
-	set := set.New(set.NonThreadSafe)
+	set := set.NewNonTS()
 	set.Add(is...)
 	return set
 }
@@ -133,6 +133,7 @@ func Configure(cfg *Config) *Delta {
 	}
 	cs = newCS
 	log.Debug("Applied updated configuration")
+	log.Debugf("%d additions, %d deletions", len(delta.Additions), len(delta.Deletions))
 	return delta
 }
 

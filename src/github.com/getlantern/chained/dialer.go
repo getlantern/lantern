@@ -7,7 +7,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/getlantern/proxy"
+	"github.com/getlantern/bandwidth"
+	"github.com/getlantern/errors"
 )
 
 // Config is a configuration for a Dialer.
@@ -24,30 +25,31 @@ type Config struct {
 	Label string
 }
 
-// dialer is an implementation of proxy.Dialer that proxies traffic via an
-// upstream server proxy.  Its Dial function uses DialServer to dial the server
+// dialer provides an implementation of net.Dial that proxies traffic via an
+// upstream server proxy. Its Dial function uses DialServer to dial the server
 // proxy and then issues a CONNECT request to instruct the server to connect to
 // the destination at the specified network and addr.
 type dialer struct {
 	Config
 }
 
-// NewDialer creates a dialer{} based on the given Config.
-func NewDialer(cfg Config) proxy.Dialer {
-	return &dialer{Config: cfg}
+// NewDialer returns an implementation of net.Dial() based on the given Config.
+func NewDialer(cfg Config) func(network, addr string) (net.Conn, error) {
+	d := &dialer{Config: cfg}
+	return d.Dial
 }
 
-// Dial implements the method from proxy.Dialer
+// Dial is a net.Dial-compatible function.
 func (d *dialer) Dial(network, addr string) (net.Conn, error) {
 	conn, err := d.DialServer()
 	if err != nil {
-		return nil, fmt.Errorf("Unable to dial server %v: %s", d.Label, err)
+		return nil, errors.New("Unable to dial server %v: %s", d.Label, err)
 	}
 	// Look for our special hacked "connect" transport used to signal
 	// that we should send a CONNECT request and tunnel all traffic through
 	// that.
 	if network == "connect" {
-		log.Debugf("Sending CONNECT REQUEST")
+		log.Tracef("Sending CONNECT REQUEST")
 		if err := d.sendCONNECT("tcp", addr, conn); err != nil {
 			// We discard this error, since we are only interested in sendCONNECT
 			_ = conn.Close()
@@ -55,11 +57,6 @@ func (d *dialer) Dial(network, addr string) (net.Conn, error) {
 		}
 	}
 	return conn, nil
-}
-
-// Close implements the method from proxy.Dialer
-func (d *dialer) Close() error {
-	return nil
 }
 
 func (d *dialer) sendCONNECT(network, addr string, conn net.Conn) error {
@@ -101,12 +98,13 @@ func checkCONNECTResponse(r *bufio.Reader, req *http.Request) error {
 	if !sameStatusCodeClass(http.StatusOK, resp.StatusCode) {
 		return fmt.Errorf("Bad status code on CONNECT response: %d", resp.StatusCode)
 	}
+	bandwidth.Track(resp)
 	return nil
 }
 
 func sameStatusCodeClass(statusCode1 int, statusCode2 int) bool {
 	// HTTP response status code "classes" come in ranges of 100.
-	var classRange int = 100
+	const classRange = 100
 	// These are all integers, so division truncates.
 	return statusCode1/classRange == statusCode2/classRange
 }

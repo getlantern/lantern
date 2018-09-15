@@ -4,6 +4,8 @@
 
 package icmp
 
+import "encoding/binary"
+
 // A PacketTooBig represents an ICMP packet too big message body.
 type PacketTooBig struct {
 	MTU  int    // maximum transmission unit of the nexthop link
@@ -21,7 +23,7 @@ func (p *PacketTooBig) Len(proto int) int {
 // Marshal implements the Marshal method of MessageBody interface.
 func (p *PacketTooBig) Marshal(proto int) ([]byte, error) {
 	b := make([]byte, 4+len(p.Data))
-	b[0], b[1], b[2], b[3] = byte(p.MTU>>24), byte(p.MTU>>16), byte(p.MTU>>8), byte(p.MTU)
+	binary.BigEndian.PutUint32(b[:4], uint32(p.MTU))
 	copy(b[4:], p.Data)
 	return b, nil
 }
@@ -32,7 +34,7 @@ func parsePacketTooBig(proto int, b []byte) (MessageBody, error) {
 	if bodyLen < 4 {
 		return nil, errMessageTooShort
 	}
-	p := &PacketTooBig{MTU: int(b[0])<<24 | int(b[1])<<16 | int(b[2])<<8 | int(b[3])}
+	p := &PacketTooBig{MTU: int(binary.BigEndian.Uint32(b[:4]))}
 	if bodyLen > 4 {
 		p.Data = make([]byte, bodyLen-4)
 		copy(p.Data, b[4:])

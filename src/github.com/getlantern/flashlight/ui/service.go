@@ -3,20 +3,20 @@ package ui
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 )
 
 type helloFnType func(func(interface{}) error) error
 
 type Service struct {
-	Type       string
-	In         <-chan interface{}
-	Out        chan<- interface{}
-	in         chan interface{}
-	out        chan interface{}
-	stopCh     chan bool
-	newMessage func() interface{}
-	helloFn    helloFnType
+	Type    string
+	In      <-chan interface{}
+	Out     chan<- interface{}
+	in      chan interface{}
+	out     chan interface{}
+	stopCh  chan bool
+	helloFn helloFnType
 }
 
 var (
@@ -45,7 +45,7 @@ func (s *Service) write() {
 	}
 }
 
-func Register(t string, newMessage func() interface{}, helloFn helloFnType) (*Service, error) {
+func Register(t string, helloFn helloFnType) (*Service, error) {
 	log.Tracef("Registering UI service %s", t)
 	mu.Lock()
 
@@ -61,12 +61,11 @@ func Register(t string, newMessage func() interface{}, helloFn helloFnType) (*Se
 	}
 
 	s := &Service{
-		Type:       t,
-		in:         make(chan interface{}, 100),
-		out:        make(chan interface{}, 100),
-		stopCh:     make(chan bool),
-		newMessage: newMessage,
-		helloFn:    helloFn,
+		Type:    t,
+		in:      make(chan interface{}, 100),
+		out:     make(chan interface{}, 100),
+		stopCh:  make(chan bool),
+		helloFn: helloFn,
 	}
 	s.In, s.Out = s.in, s.out
 
@@ -153,7 +152,9 @@ func read() {
 		}
 
 		env := &Envelope{}
-		err = json.Unmarshal(b, env)
+		d := json.NewDecoder(strings.NewReader(string(b)))
+		d.UseNumber()
+		err = d.Decode(env)
 		if err != nil {
 			log.Errorf("Unable to unmarshal message of type %v: %v", envType.Type, err)
 			continue

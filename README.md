@@ -1,23 +1,39 @@
-# lantern [![Travis CI Status](https://travis-ci.org/getlantern/lantern.svg?branch=valencia)](https://travis-ci.org/getlantern/lantern)&nbsp;[![Coverage Status](https://coveralls.io/repos/getlantern/lantern/badge.png?branch=valencia)](https://coveralls.io/r/getlantern/lantern)&nbsp;[![ProjectTalk](http://www.projecttalk.io/images/gh_badge-3e578a9f437f841de7446bab9a49d103.svg?vsn=d)] (http://www.projecttalk.io/boards/getlantern%2Flantern?utm_campaign=gh-badge&utm_medium=badge&utm_source=github)
+# lantern [![Travis CI Status](https://travis-ci.org/getlantern/lantern.svg?branch=devel)](https://travis-ci.org/getlantern/lantern)&nbsp;[![Coverage Status](https://coveralls.io/repos/getlantern/lantern/badge.png?branch=devel)](https://coveralls.io/r/getlantern/lantern)&nbsp;[![Sourcegraph](https://sourcegraph.com/github.com/getlantern/lantern/-/badge.svg)](https://sourcegraph.com/github.com/getlantern/lantern?badge)
+
+## [🔴蓝灯(Lantern)最新版下载点这里🔴](https://github.com/getlantern/download)
 
 **If you're looking for Lantern installers, you can find all of them at the following links:**
-- [Windows XP SP 3 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-beta.exe)
-- [OSX 10.8 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-beta.dmg)
-- [Ubuntu 14.04 32 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-beta-32-bit.deb)
-- [Ubuntu 14.04 64 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-beta-64-bit.deb)
-- [Arch Linux](https://aur.archlinux.org/packages/lantern)
+- [Android](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer.apk)
+- [Windows XP SP 3 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer.exe)
+- [OSX 10.8 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer.dmg)
+- [Ubuntu 14.04 32 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-32-bit.deb)
+- [Ubuntu 14.04 64 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-64-bit.deb)
+
+**If you would like to give the latest but more UNSTABLE BETA versions a try, you can find all of them at the following links:**
+- [Android](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview.apk)
+- [Windows XP SP 3 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview.exe)
+- [OSX 10.8 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview.dmg)
+- [Ubuntu 14.04 32 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview-32-bit.deb)
+- [Ubuntu 14.04 64 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview-64-bit.deb)
 
 **If you're looking for help, please visit below user forums:**
 
-| [English](https://groups.google.com/forum/#!forum/lantern-users-en) | [中文](https://groups.google.com/forum/#!forum/lantern-users-zh) | [فارسی](https://groups.google.com/forum/#!forum/lantern-users-fa) | [français](https://groups.google.com/forum/#!forum/lantern-users-fr)
+| [English](https://groups.google.com/forum/#!forum/lantern-users-en) | [中文](https://github.com/getlantern/forum) | [فارسی](https://groups.google.com/forum/#!forum/lantern-users-fa) | [français](https://groups.google.com/forum/#!forum/lantern-users-fr)
 
 ## Building Lantern
 
 ### Prerequisites
 
+* [Custom fork of Go](https://github.com/getlantern/go/tree/lantern) is
+  currently required. We'll eventually switch to Go 1.7 which supports what we
+  need due to [this](https://github.com/golang/go/issues/13998).
+* An OSX or Linux host. Building on Windows is only partially supported with
+  the help of [Cygwin](https://www.cygwin.com/).
 * [Git](https://git-scm.com/downloads) - `brew install git`, `apt-get install git`, etc
-* [Go 1.6 or higher](https://golang.org/dl/).
 * [GNU Make](https://www.gnu.org/software/make/)
+* [Nodejs & NPM](https://nodejs.org/en/download/package-manager/)
+* GNU C Library (linux only) - `apt-get install libc6-dev-i386`, etc
+* [Gulp](http://gulpjs.com/) - `npm i gulp-cli -g`
 
 To build and run Lantern desktop, just do:
 
@@ -43,7 +59,8 @@ Building the mobile library and app requires the following:
 1. Install Java JDK 7 or 8
 2. Install Go 1.6 or higher
 3. Install [Android SDK Tools](http://developer.android.com/sdk/index.html#Other)
-4. Install NDK(http://developer.android.com/ndk/downloads/index.html)
+4. Install [NDK](http://developer.android.com/ndk/downloads/index.html)
+5. Install [Gradle](http://gradle.org/)
 
 Make sure to set these environment variables before trying to build any Android
 components (replace the paths based on wherever you've installed the Android
@@ -122,6 +139,15 @@ VERSION=2.0.0-beta1 make android-release
 ```
 
 ### Android Tips
+#### Android Studio
+To get the build working for Android Studio, you'll want to add the following
+dummy values to your ``~/.gradle/gradle.properties`` file:
+
+```
+lanternRevisionDate="April 26, 2016"
+lanternVersion=2.2.1
+```
+
 #### Uninstall for All Users
 If you use `adb` to install and debug an app to your Android device during
 development and then subsequently build a signed APK and try to install it on
@@ -178,6 +204,12 @@ HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
 // Need to force closing so that old connections (with old proxy settings) don't get reused.
 urlConnection.setRequestProperty("Connection", "close");
 ```
+
+## Building Lantern for running on a server
+To run Lantern on a server, you simply need to set a flag to build it in headless mode and then tell it to run on any local address as opposed to binding to localhost (so that it's accessible from other machines). You can do this as follows:
+
+1. ```HEADLESS=true make docker-linux``` or, if you're already running on Linux just ```HEADLESS=true make linux```
+1. ```./lantern_linux_amd64 --addr 0.0.0.0:8787``` or ```./lantern_linux_386 --addr 0.0.0.0:8787```
 
 ## Other
 ### Generating assets
@@ -236,6 +268,10 @@ Please, go to [README-dev](README-dev.md) for an in-depth explanation of the Lan
 
 Please visit [README-release](README-release.md) for details on building release versions of Lantern.
 
+### Translations README
+
+More info for dealing with translations is available in [README-translations](README-translations.md).
+
 ### Contributing changes
 Lantern is a [gost](https://github.com/getlantern/gost) project that
 provides repeatable builds and consolidated pull requests for lantern.
@@ -247,7 +283,7 @@ Go code in Lantern must pass several tests:
 * Go vet
 * Go test -race
 
-You can find a generic [git-hook](https://github.com/getlantern/lantern/blob/valencia/pre-push)
+You can find a generic [git-hook](https://github.com/getlantern/lantern/blob/devel/pre-push)
 file, which can be used as a pre-push (or pre-commit) hook to automatically
 ensure these tests are passed before committing any code. Only Go packages in
 `src/github.com/getlantern` will be tested, and only those that have changes in
@@ -255,7 +291,7 @@ them.
 
 Install by copying it into the local `.git/hooks/` directory, with the `pre-push`
 file name if you want to run it before pushing. Alternatively, you can copy
-[pre-commit.hook](https://github.com/getlantern/lantern/blob/valencia/pre-commit)
+[pre-commit.hook](https://github.com/getlantern/lantern/blob/devel/pre-commit)
 to `pre-commit` to run it before each commit.
 
 ```bash

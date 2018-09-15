@@ -7,211 +7,20 @@ package go.vars;
 import go.Seq;
 
 public abstract class Vars {
+    static {
+        Seq.touch(); // for loading the native library
+        init();
+    }
+    
     private Vars() {} // uninstantiable
     
-    public static void setABool(boolean v) {
-        Seq in = new Seq();
-        in.writeBool(v);
-        Seq.send("vars.ABool", 1, in, null);
-    }
+    // touch is called from other bound packages to initialize this package
+    public static void touch() {}
     
-    public static boolean getABool() {
-        Seq out = new Seq();
-        Seq.send("vars.ABool", 2, null, out);
-        boolean v = out.readBool();
-        return v;
-    }
+    private static native void init();
     
-    public static void setAFloat(double v) {
-        Seq in = new Seq();
-        in.writeFloat64(v);
-        Seq.send("vars.AFloat", 1, in, null);
-    }
-    
-    public static double getAFloat() {
-        Seq out = new Seq();
-        Seq.send("vars.AFloat", 2, null, out);
-        double v = out.readFloat64();
-        return v;
-    }
-    
-    public static void setAFloat32(float v) {
-        Seq in = new Seq();
-        in.writeFloat32(v);
-        Seq.send("vars.AFloat32", 1, in, null);
-    }
-    
-    public static float getAFloat32() {
-        Seq out = new Seq();
-        Seq.send("vars.AFloat32", 2, null, out);
-        float v = out.readFloat32();
-        return v;
-    }
-    
-    public static void setAFloat64(double v) {
-        Seq in = new Seq();
-        in.writeFloat64(v);
-        Seq.send("vars.AFloat64", 1, in, null);
-    }
-    
-    public static double getAFloat64() {
-        Seq out = new Seq();
-        Seq.send("vars.AFloat64", 2, null, out);
-        double v = out.readFloat64();
-        return v;
-    }
-    
-    public static void setAString(String v) {
-        Seq in = new Seq();
-        in.writeString(v);
-        Seq.send("vars.AString", 1, in, null);
-    }
-    
-    public static String getAString() {
-        Seq out = new Seq();
-        Seq.send("vars.AString", 2, null, out);
-        String v = out.readString();
-        return v;
-    }
-    
-    public static void setAStructPtr(S v) {
-        Seq in = new Seq();
-        in.writeRef(v.ref());
-        Seq.send("vars.AStructPtr", 1, in, null);
-    }
-    
-    public static S getAStructPtr() {
-        Seq out = new Seq();
-        Seq.send("vars.AStructPtr", 2, null, out);
-        S v = new S(out.readRef());
-        return v;
-    }
-    
-    public static void setAnInt(long v) {
-        Seq in = new Seq();
-        in.writeInt(v);
-        Seq.send("vars.AnInt", 1, in, null);
-    }
-    
-    public static long getAnInt() {
-        Seq out = new Seq();
-        Seq.send("vars.AnInt", 2, null, out);
-        long v = out.readInt();
-        return v;
-    }
-    
-    public static void setAnInt16(short v) {
-        Seq in = new Seq();
-        in.writeInt16(v);
-        Seq.send("vars.AnInt16", 1, in, null);
-    }
-    
-    public static short getAnInt16() {
-        Seq out = new Seq();
-        Seq.send("vars.AnInt16", 2, null, out);
-        short v = out.readInt16();
-        return v;
-    }
-    
-    public static void setAnInt32(int v) {
-        Seq in = new Seq();
-        in.writeInt32(v);
-        Seq.send("vars.AnInt32", 1, in, null);
-    }
-    
-    public static int getAnInt32() {
-        Seq out = new Seq();
-        Seq.send("vars.AnInt32", 2, null, out);
-        int v = out.readInt32();
-        return v;
-    }
-    
-    public static void setAnInt64(long v) {
-        Seq in = new Seq();
-        in.writeInt64(v);
-        Seq.send("vars.AnInt64", 1, in, null);
-    }
-    
-    public static long getAnInt64() {
-        Seq out = new Seq();
-        Seq.send("vars.AnInt64", 2, null, out);
-        long v = out.readInt64();
-        return v;
-    }
-    
-    public static void setAnInt8(byte v) {
-        Seq in = new Seq();
-        in.writeInt8(v);
-        Seq.send("vars.AnInt8", 1, in, null);
-    }
-    
-    public static byte getAnInt8() {
-        Seq out = new Seq();
-        Seq.send("vars.AnInt8", 2, null, out);
-        byte v = out.readInt8();
-        return v;
-    }
-    
-    public static void setAnInterface(I v) {
-        Seq in = new Seq();
-        in.writeRef(v.ref());
-        Seq.send("vars.AnInterface", 1, in, null);
-    }
-    
-    public static I getAnInterface() {
-        Seq out = new Seq();
-        Seq.send("vars.AnInterface", 2, null, out);
-        I v = new I.Proxy(out.readRef());
-        return v;
-    }
-    
-    public interface I extends go.Seq.Object {
-        public static abstract class Stub implements I {
-            static final String DESCRIPTOR = "go.vars.I";
-            
-            private final go.Seq.Ref ref;
-            public Stub() {
-                ref = go.Seq.createRef(this);
-            }
-            
-            public go.Seq.Ref ref() { return ref; }
-            
-            public void call(int code, go.Seq in, go.Seq out) {
-                switch (code) {
-                default:
-                    throw new RuntimeException("unknown code: "+ code);
-                }
-            }
-        }
-        
-        static final class Proxy implements I {
-            static final String DESCRIPTOR = Stub.DESCRIPTOR;
-        
-            private go.Seq.Ref ref;
-        
-            Proxy(go.Seq.Ref ref) { this.ref = ref; }
-        
-            public go.Seq.Ref ref() { return ref; }
-        
-            public void call(int code, go.Seq in, go.Seq out) {
-                throw new RuntimeException("cycle: cannot call proxy");
-            }
-        
-        }
-    }
-    
-    public static final class S implements go.Seq.Object {
-        private static final String DESCRIPTOR = "go.vars.S";
-        
-        private go.Seq.Ref ref;
-        
-        private S(go.Seq.Ref ref) { this.ref = ref; }
-        
-        public go.Seq.Ref ref() { return ref; }
-        
-        public void call(int code, go.Seq in, go.Seq out) {
-            throw new RuntimeException("internal error: cycle: cannot call concrete proxy");
-        }
+    public static final class S extends Seq.Proxy implements I {
+        private S(go.Seq.Ref ref) { super(ref); }
         
         @Override public boolean equals(Object o) {
             if (o == null || !(o instanceof S)) {
@@ -230,8 +39,51 @@ public abstract class Vars {
             b.append("S").append("{");
             return b.append("}").toString();
         }
-        
     }
     
-    private static final String DESCRIPTOR = "vars";
+    public interface I {
+    }
+    
+    private static final class proxyI extends Seq.Proxy implements I {
+        proxyI(Seq.Ref ref) { super(ref); }
+    
+    }
+    
+    
+    public static native void setABool(boolean v);
+    public static native boolean getABool();
+    
+    public static native void setAFloat(double v);
+    public static native double getAFloat();
+    
+    public static native void setAFloat32(float v);
+    public static native float getAFloat32();
+    
+    public static native void setAFloat64(double v);
+    public static native double getAFloat64();
+    
+    public static native void setAString(String v);
+    public static native String getAString();
+    
+    public static native void setAStructPtr(S v);
+    public static native S getAStructPtr();
+    
+    public static native void setAnInt(long v);
+    public static native long getAnInt();
+    
+    public static native void setAnInt16(short v);
+    public static native short getAnInt16();
+    
+    public static native void setAnInt32(int v);
+    public static native int getAnInt32();
+    
+    public static native void setAnInt64(long v);
+    public static native long getAnInt64();
+    
+    public static native void setAnInt8(byte v);
+    public static native byte getAnInt8();
+    
+    public static native void setAnInterface(I v);
+    public static native I getAnInterface();
+    
 }

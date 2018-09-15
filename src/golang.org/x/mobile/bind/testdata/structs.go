@@ -24,3 +24,17 @@ func Identity(s *S) *S {
 func IdentityWithError(s *S) (*S, error) {
 	return s, nil
 }
+
+type (
+	S2 struct{}
+	I  interface {
+		M()
+	}
+)
+
+func (s *S2) M() {
+}
+
+func (_ *S2) String() string {
+	return ""
+}

@@ -7,114 +7,23 @@ package go.issue10788;
 import go.Seq;
 
 public abstract class Issue10788 {
-    private Issue10788() {} // uninstantiable
-    
-    public interface TestInterface extends go.Seq.Object {
-        public void DoSomeWork(TestStruct s);
-        
-        public void MultipleUnnamedParams(long p0, String p1, long p2);
-        
-        public static abstract class Stub implements TestInterface {
-            static final String DESCRIPTOR = "go.issue10788.TestInterface";
-            
-            private final go.Seq.Ref ref;
-            public Stub() {
-                ref = go.Seq.createRef(this);
-            }
-            
-            public go.Seq.Ref ref() { return ref; }
-            
-            public void call(int code, go.Seq in, go.Seq out) {
-                switch (code) {
-                case Proxy.CALL_DoSomeWork: {
-                    TestStruct param_s;
-                    param_s = new TestStruct(in.readRef());
-                    this.DoSomeWork(param_s);
-                    return;
-                }
-                case Proxy.CALL_MultipleUnnamedParams: {
-                    long param_p0;
-                    param_p0 = in.readInt();
-                    String param_p1;
-                    param_p1 = in.readString();
-                    long param_p2;
-                    param_p2 = in.readInt64();
-                    this.MultipleUnnamedParams(param_p0, param_p1, param_p2);
-                    return;
-                }
-                default:
-                    throw new RuntimeException("unknown code: "+ code);
-                }
-            }
-        }
-        
-        static final class Proxy implements TestInterface {
-            static final String DESCRIPTOR = Stub.DESCRIPTOR;
-        
-            private go.Seq.Ref ref;
-        
-            Proxy(go.Seq.Ref ref) { this.ref = ref; }
-        
-            public go.Seq.Ref ref() { return ref; }
-        
-            public void call(int code, go.Seq in, go.Seq out) {
-                throw new RuntimeException("cycle: cannot call proxy");
-            }
-        
-            public void DoSomeWork(TestStruct s) {
-                go.Seq _in = null;
-                go.Seq _out = null;
-                _in = new go.Seq();
-                _in.writeRef(ref);
-                _in.writeRef(s.ref());
-                Seq.send(DESCRIPTOR, CALL_DoSomeWork, _in, _out);
-            }
-            
-            public void MultipleUnnamedParams(long p0, String p1, long p2) {
-                go.Seq _in = null;
-                go.Seq _out = null;
-                _in = new go.Seq();
-                _in.writeRef(ref);
-                _in.writeInt(p0);
-                _in.writeString(p1);
-                _in.writeInt64(p2);
-                Seq.send(DESCRIPTOR, CALL_MultipleUnnamedParams, _in, _out);
-            }
-            
-            static final int CALL_DoSomeWork = 0x10a;
-            static final int CALL_MultipleUnnamedParams = 0x20a;
-        }
+    static {
+        Seq.touch(); // for loading the native library
+        init();
     }
     
-    public static final class TestStruct implements go.Seq.Object {
-        private static final String DESCRIPTOR = "go.issue10788.TestStruct";
-        private static final int FIELD_Value_GET = 0x00f;
-        private static final int FIELD_Value_SET = 0x01f;
+    private Issue10788() {} // uninstantiable
+    
+    // touch is called from other bound packages to initialize this package
+    public static void touch() {}
+    
+    private static native void init();
+    
+    public static final class TestStruct extends Seq.Proxy {
+        private TestStruct(go.Seq.Ref ref) { super(ref); }
         
-        private go.Seq.Ref ref;
-        
-        private TestStruct(go.Seq.Ref ref) { this.ref = ref; }
-        
-        public go.Seq.Ref ref() { return ref; }
-        
-        public void call(int code, go.Seq in, go.Seq out) {
-            throw new RuntimeException("internal error: cycle: cannot call concrete proxy");
-        }
-        
-        public String getValue() {
-            Seq in = new Seq();
-            Seq out = new Seq();
-            in.writeRef(ref);
-            Seq.send(DESCRIPTOR, FIELD_Value_GET, in, out);
-            return out.readString();
-        }
-        
-        public void setValue(String v) {
-            Seq in = new Seq();
-            in.writeRef(ref);
-            in.writeString(v);
-            Seq.send(DESCRIPTOR, FIELD_Value_SET, in, null);
-        }
+        public final native String getValue();
+        public final native void setValue(String v);
         
         @Override public boolean equals(Object o) {
             if (o == null || !(o instanceof TestStruct)) {
@@ -143,8 +52,19 @@ public abstract class Issue10788 {
             b.append("Value:").append(getValue()).append(",");
             return b.append("}").toString();
         }
-        
     }
     
-    private static final String DESCRIPTOR = "issue10788";
+    public interface TestInterface {
+        public void DoSomeWork(TestStruct s);
+        public void MultipleUnnamedParams(long p0, String p1, long p2);
+    }
+    
+    private static final class proxyTestInterface extends Seq.Proxy implements TestInterface {
+        proxyTestInterface(Seq.Ref ref) { super(ref); }
+    
+        public native void DoSomeWork(TestStruct s);
+        public native void MultipleUnnamedParams(long p0, String p1, long p2);
+    }
+    
+    
 }

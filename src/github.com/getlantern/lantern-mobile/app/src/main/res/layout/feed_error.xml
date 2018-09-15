@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/feedError"
+    android:layout_width="match_parent"
+    android:layout_height="437dip"
+    android:onClick="refreshFeed"
+    android:visibility="invisible"
+    android:orientation="vertical"
+    android:background="#FAFAFA"
+    android:paddingRight="10dp"
+    android:paddingLeft="10dp"
+    android:gravity="center"
+    android:paddingTop="5dp"
+    android:paddingBottom="5dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif"
+        android:alpha=".25"
+        android:text="@string/feed.error.oops"
+        android:textAllCaps="true"
+        android:textSize="30sp"
+        android:textColor="@color/black"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif"
+        android:paddingTop="10dp"
+        android:alpha=".25"
+        android:text="@string/feed.error.error_fetching_feed"
+        android:textSize="16sp"
+        android:textColor="@color/black"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/errorFetchingFeed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif"
+        android:paddingTop="3dp"
+        android:alpha=".25"
+        android:text="@string/feed.error.try_again"
+        android:textSize="16sp"
+        android:textColor="@color/black"
+        android:textStyle="bold" />
+
+    <ImageView
+        android:id="@+id/errorRefreshFeed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/errorFetchingFeed"
+        android:paddingTop="3dp"
+        android:alpha=".25"
+        android:src="@drawable/ic_refresh"/>
+</LinearLayout>

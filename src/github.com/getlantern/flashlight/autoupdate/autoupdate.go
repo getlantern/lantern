@@ -7,14 +7,12 @@ import (
 	"time"
 
 	"github.com/getlantern/autoupdate"
-	"github.com/getlantern/flashlight/client"
-	"github.com/getlantern/flashlight/config"
-	"github.com/getlantern/flashlight/util"
+	"github.com/getlantern/flashlight/proxied"
 	"github.com/getlantern/golog"
 )
 
 var (
-	updateServerURL = config.DefaultUpdateServerURL
+	updateServerURL = "https://update.getlantern.org"
 	PublicKey       []byte
 	Version         string
 )
@@ -22,36 +20,45 @@ var (
 var (
 	log = golog.LoggerFor("flashlight.autoupdate")
 
-	cfgMutex    sync.Mutex
+	cfgMutex    sync.RWMutex
 	updateMutex sync.Mutex
 
 	httpClient *http.Client
-	watching   int32 = 0
+	watching   int32
 
 	applyNextAttemptTime = time.Hour * 2
 )
 
-func Configure(cfg *config.Config) {
-	cfgMutex.Lock()
+// Configure sets the CA certificate to pin for the TLS auto-update connection.
+func Configure(updateURL, updateCA string) {
+	setUpdateURL(updateURL)
 
-	if cfg.UpdateServerURL != "" {
-		updateServerURL = cfg.UpdateServerURL
-	}
-
-	go func() {
-		enableAutoupdate(cfg)
-		cfgMutex.Unlock()
-	}()
-
+	enableAutoupdate(updateCA)
 }
 
-func enableAutoupdate(cfg *config.Config) {
-	var err error
+func setUpdateURL(url string) {
+	if url == "" {
+		return
+	}
+	cfgMutex.Lock()
+	defer cfgMutex.Unlock()
+	updateServerURL = url
+}
 
-	httpClient, err = util.HTTPClient(cfg.CloudConfigCA, client.Addr)
+func getUpdateURL() string {
+	cfgMutex.RLock()
+	defer cfgMutex.RUnlock()
+	return updateServerURL + "/update"
+}
+
+func enableAutoupdate(updateCA string) {
+	rt, err := proxied.ChainedNonPersistent(updateCA)
 	if err != nil {
 		log.Errorf("Could not create proxied HTTP client, disabling auto-updates: %v", err)
 		return
+	}
+	httpClient = &http.Client{
+		Transport: rt,
 	}
 
 	go watchForUpdate()
@@ -80,7 +87,7 @@ func applyNext() {
 	if httpClient != nil {
 		err := autoupdate.ApplyNext(&autoupdate.Config{
 			CurrentVersion: Version,
-			URL:            updateServerURL + "/update",
+			URL:            getUpdateURL(),
 			PublicKey:      PublicKey,
 			HTTPClient:     httpClient,
 		})

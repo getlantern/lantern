@@ -4,34 +4,51 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"reflect"
+	"os"
+	"path/filepath"
+	"strconv"
 	"strings"
-	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/armon/go-socks5"
-	"github.com/getlantern/balancer"
+	"github.com/getlantern/appdir"
 	"github.com/getlantern/detour"
 	"github.com/getlantern/eventual"
 	"github.com/getlantern/golog"
+	"github.com/getlantern/netx"
+
+	"github.com/getlantern/flashlight/ops"
 )
 
 const (
 	// LanternSpecialDomain is a special domain for use by lantern that gets
 	// resolved to localhost by the proxy
 	LanternSpecialDomain          = "ui.lantern.io"
-	LanternSpecialDomainWithColon = "ui.lantern.io:"
+	lanternSpecialDomainWithColon = "ui.lantern.io:"
 )
 
 var (
 	log = golog.LoggerFor("flashlight.client")
 
-	// Address at which UI is to be found
+	// UIAddr is the address at which UI is to be found
 	UIAddr string
 
-	addr      = eventual.NewValue()
-	socksAddr = eventual.NewValue()
+	addr                = eventual.NewValue()
+	socksAddr           = eventual.NewValue()
+	proxiedCONNECTPorts = []int{
+		// Standard HTTP(S) ports
+		80, 443,
+		// Common unprivileged HTTP(S) ports
+		8080, 8443,
+		// XMPP
+		5222, 5223, 5224,
+		// Android
+		5228, 5229,
+		// udpgw
+		7300,
+		// Google Hangouts TCP Ports (see https://support.google.com/a/answer/1279090?hl=en)
+		19305, 19306, 19307, 19308, 19309,
+	}
 )
 
 // Client is an HTTP proxy that accepts connections from local programs and
@@ -43,34 +60,21 @@ type Client struct {
 	// WriteTimeout: (optional) timeout for write ops
 	WriteTimeout time.Duration
 
-	// MinQOS: (optional) the minimum QOS to require from proxies.
-	MinQOS int
-
-	// Unique identifier for this device
-	DeviceID string
-
-	// List of CONNECT ports that are proxied via the remote proxy. Other ports
-	// will be handled with direct connections.
-	ProxiedCONNECTPorts []int
-
-	proxyAll atomic.Value
-
-	priorCfg *ClientConfig
-	cfgMutex sync.RWMutex
-
-	// Balanced CONNECT dialers.
-	bal eventual.Value
-
 	// Reverse proxy
 	rp eventual.Value
 
 	l net.Listener
+
+	proxyAll func() bool
 }
 
-func NewClient() *Client {
+// NewClient creates a new client that does things like starts the HTTP and
+// SOCKS proxies. It take a function for determing whether or not to proxy
+// all traffic.
+func NewClient(proxyAll func() bool) *Client {
 	return &Client{
-		bal: eventual.NewValue(),
-		rp:  eventual.NewValue(),
+		rp:       eventual.NewValue(),
+		proxyAll: proxyAll,
 	}
 }
 
@@ -80,28 +84,32 @@ func Addr(timeout time.Duration) (interface{}, bool) {
 	return addr.Get(timeout)
 }
 
-func (c *Client) Addr(timeout time.Duration) (interface{}, bool) {
+// Addr returns the address at which the client is listening with HTTP, blocking
+// until the given timeout for an address to become available.
+func (client *Client) Addr(timeout time.Duration) (interface{}, bool) {
 	return Addr(timeout)
 }
 
-// Addr returns the address at which the client is listening with SOCKS5,
+// Socks5Addr returns the address at which the client is listening with SOCKS5,
 // blocking until the given timeout for an address to become available.
 func Socks5Addr(timeout time.Duration) (interface{}, bool) {
 	return socksAddr.Get(timeout)
 }
 
-func (c *Client) Socks5Addr(timeout time.Duration) (interface{}, bool) {
+// Socks5Addr returns the address at which the client is listening with SOCKS5,
+// blocking until the given timeout for an address to become available.
+func (client *Client) Socks5Addr(timeout time.Duration) (interface{}, bool) {
 	return Socks5Addr(timeout)
 }
 
-// ListenAndServe makes the client listen for HTTP connections at a the given
+// ListenAndServeHTTP makes the client listen for HTTP connections at a the given
 // address or, if a blank address is given, at a random port on localhost.
 // onListeningFn is a callback that gets invoked as soon as the server is
 // accepting TCP connections.
 func (client *Client) ListenAndServeHTTP(requestedAddr string, onListeningFn func()) error {
 	log.Debug("About to listen")
 	if requestedAddr == "" {
-		requestedAddr = "localhost:0"
+		requestedAddr = "127.0.0.1:0"
 	}
 
 	var err error
@@ -126,6 +134,8 @@ func (client *Client) ListenAndServeHTTP(requestedAddr string, onListeningFn fun
 	return httpServer.Serve(l)
 }
 
+// ListenAndServeSOCKS5 starts the SOCKS server listening at the specified
+// address.
 func (client *Client) ListenAndServeSOCKS5(requestedAddr string) error {
 	var err error
 	var l net.Listener
@@ -137,14 +147,11 @@ func (client *Client) ListenAndServeSOCKS5(requestedAddr string) error {
 
 	conf := &socks5.Config{
 		Dial: func(network, addr string) (net.Conn, error) {
-			bal, ok := client.bal.Get(1 * time.Minute)
-			if !ok {
-				return nil, fmt.Errorf("Unable to get balancer")
+			port, portErr := client.portForAddress(addr)
+			if portErr != nil {
+				return nil, portErr
 			}
-			// Using protocol "connect" will cause the balancer to issue an HTTP
-			// CONNECT request to the upstream proxy and return the resulting channel
-			// as a connection.
-			return bal.(*balancer.Balancer).Dial("connect", addr)
+			return client.dialCONNECT(addr, port)
 		},
 	}
 	server, err := socks5.New(conf)
@@ -158,37 +165,14 @@ func (client *Client) ListenAndServeSOCKS5(requestedAddr string) error {
 
 // Configure updates the client's configuration. Configure can be called
 // before or after ListenAndServe, and can be called multiple times.
-func (client *Client) Configure(cfg *ClientConfig, proxyAll func() bool) {
-	client.cfgMutex.Lock()
-	defer client.cfgMutex.Unlock()
-
+func (client *Client) Configure(proxies map[string]*ChainedServerInfo, deviceID string) {
 	log.Debug("Configure() called")
-
-	if client.priorCfg != nil {
-		if reflect.DeepEqual(client.priorCfg, cfg) {
-			log.Debugf("Client configuration unchanged")
-			return
-		}
-		log.Debugf("Client configuration changed")
-	} else {
-		log.Debugf("Client configuration initialized")
-	}
-
-	log.Debugf("Requiring minimum QOS of %d", cfg.MinQOS)
-	client.MinQOS = cfg.MinQOS
-	log.Debugf("Proxy all traffic or not: %v", proxyAll())
-	client.proxyAll.Store(proxyAll)
-	client.DeviceID = cfg.DeviceID
-	client.ProxiedCONNECTPorts = cfg.ProxiedCONNECTPorts
-
-	bal, err := client.initBalancer(cfg)
+	err := client.initBalancer(proxies, deviceID)
 	if err != nil {
 		log.Error(err)
-	} else if bal != nil {
-		client.rp.Set(client.newReverseProxy(bal))
+	} else {
+		client.rp.Set(client.newReverseProxy())
 	}
-
-	client.priorCfg = cfg
 }
 
 // Stop is called when the client is no longer needed. It closes the
@@ -197,18 +181,19 @@ func (client *Client) Stop() error {
 	return client.l.Close()
 }
 
-func (client *Client) ProxyAll() bool {
-	return client.proxyAll.Load().(func() bool)()
-}
-
 func (client *Client) proxiedDialer(orig func(network, addr string) (net.Conn, error)) func(network, addr string) (net.Conn, error) {
 	detourDialer := detour.Dialer(orig)
 
 	return func(network, addr string) (net.Conn, error) {
+		op := ops.Begin("proxied_dialer")
+		defer op.End()
+
 		var proxied func(network, addr string) (net.Conn, error)
-		if client.ProxyAll() {
+		if client.proxyAll() {
+			op.Set("detour", false)
 			proxied = orig
 		} else {
+			op.Set("detour", true)
 			proxied = detourDialer
 		}
 
@@ -217,14 +202,84 @@ func (client *Client) proxiedDialer(orig func(network, addr string) (net.Conn, e
 			log.Tracef("Rewriting %v to %v", addr, rewritten)
 			return net.Dial(network, rewritten)
 		}
-		return proxied(network, addr)
+		start := time.Now()
+		conn, err := proxied(network, addr)
+		log.Debugf("Dialing proxy takes %v for %s", time.Since(start), addr)
+		return conn, op.FailIf(err)
 	}
 }
 
+func (client *Client) dialCONNECT(addr string, port int) (net.Conn, error) {
+	// Establish outbound connection
+	if client.shouldSendToProxy(addr, port) {
+		log.Tracef("Proxying CONNECT request for %v", addr)
+		d := client.proxiedDialer(func(network, addr string) (net.Conn, error) {
+			// UGLY HACK ALERT! In this case, we know we need to send a CONNECT request
+			// to the chained server. We need to send that request from chained/dialer.go
+			// though because only it knows about the authentication token to use.
+			// We signal it to send the CONNECT here using the network transport argument
+			// that is effectively always "tcp" in the end, but we look for this
+			// special "transport" in the dialer and send a CONNECT request in that
+			// case.
+			return bal.Dial("connect", addr)
+		})
+		return d("tcp", addr)
+	}
+	log.Tracef("Port not allowed, bypassing proxy and sending CONNECT request directly to %v", addr)
+	return netx.DialTimeout("tcp", addr, 1*time.Minute)
+}
+
+func (client *Client) shouldSendToProxy(addr string, port int) bool {
+	if isLanternSpecialDomain(addr) {
+		return true
+	}
+	for _, proxiedPort := range proxiedCONNECTPorts {
+		if port == proxiedPort {
+			return true
+		}
+	}
+	return false
+}
+
+func (client *Client) portForAddress(addr string) (int, error) {
+	_, portString, err := net.SplitHostPort(addr)
+	if err != nil {
+		return 0, fmt.Errorf("Unable to determine port for address %v: %v", addr, err)
+	}
+	port, err := strconv.Atoi(portString)
+	if err != nil {
+		return 0, fmt.Errorf("Unable to parse port %v for address %v: %v", addr, port, err)
+	}
+	return port, nil
+}
+
 func isLanternSpecialDomain(addr string) bool {
-	return strings.Index(addr, LanternSpecialDomainWithColon) == 0
+	return strings.Index(addr, lanternSpecialDomainWithColon) == 0
 }
 
 func rewriteLanternSpecialDomain(addr string) string {
 	return UIAddr
+}
+
+// InConfigDir returns the path of the specified file name in the Lantern
+// configuration directory, using an alternate base configuration directory
+// if necessary for things like testing.
+func InConfigDir(configDir string, filename string) (string, error) {
+	cdir := configDir
+
+	if cdir == "" {
+		cdir = appdir.General("Lantern")
+	}
+
+	log.Debugf("Using config dir %v", cdir)
+	if _, err := os.Stat(cdir); err != nil {
+		if os.IsNotExist(err) {
+			// Create config dir
+			if err := os.MkdirAll(cdir, 0750); err != nil {
+				return "", fmt.Errorf("Unable to create configdir at %s: %s", cdir, err)
+			}
+		}
+	}
+
+	return filepath.Join(cdir, filename), nil
 }

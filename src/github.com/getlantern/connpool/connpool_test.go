@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/getlantern/fdcount"
-	"github.com/getlantern/testify/assert"
 	"github.com/getlantern/waitforserver"
+	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -110,7 +110,7 @@ func TestDialFailure(t *testing.T) {
 		Size: poolSize,
 		Dial: func() (net.Conn, error) {
 			atomic.AddInt32(&dialAttempts, 1)
-			if fail == int32(1) {
+			if atomic.LoadInt32(&fail) == int32(1) {
 				return nil, fmt.Errorf("I'm failing intentionally!")
 			}
 			return net.DialTimeout("tcp", addr, 15*time.Millisecond)
@@ -127,7 +127,7 @@ func TestDialFailure(t *testing.T) {
 
 	// Wait for fill to run for a while with a failing connection
 	time.Sleep(1 * time.Second)
-	assert.Equal(t, 1, atomic.LoadInt32(&dialAttempts), fmt.Sprintf("There should have been only 1 dial attempt"))
+	assert.EqualValues(t, 1, atomic.LoadInt32(&dialAttempts), fmt.Sprintf("There should have been only 1 dial attempt"))
 	assert.NoError(t, fdc.AssertDelta(0), "There should be no additional file descriptors open")
 
 	// Now make connection succeed and verify that it works

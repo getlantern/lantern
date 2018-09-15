@@ -2,19 +2,24 @@ SHELL := /bin/bash
 
 OSX_MIN_VERSION := 10.9
 
-DOCKER := $(shell which docker 2> /dev/null)
-GO := $(shell which go 2> /dev/null)
-NODE := $(shell which node 2> /dev/null)
-NPM := $(shell which npm 2> /dev/null)
-S3CMD := $(shell which s3cmd 2> /dev/null)
-WGET := $(shell which wget 2> /dev/null)
-RUBY := $(shell which ruby 2> /dev/null)
+SOURCES := $(shell find src -name '*[^_test].go')
 
-APPDMG := $(shell which appdmg 2> /dev/null)
-SVGEXPORT := $(shell which svgexport 2> /dev/null)
+get-command = $(shell which="$$(which $(1) 2> /dev/null)" && if [[ ! -z "$$which" ]]; then printf %q "$$which"; fi)
 
-DOCKERMACHINE := $(shell which docker-machine 2> /dev/null)
-BOOT2DOCKER := $(shell which boot2docker 2> /dev/null)
+DOCKER 		:= $(call get-command,docker)
+GO 		:= $(call get-command,go)
+NODE 		:= $(call get-command,node)
+NPM 		:= $(call get-command,npm)
+GULP 		:= $(call get-command,gulp)
+S3CMD 		:= $(call get-command,s3cmd)
+WGET 		:= $(call get-command,wget)
+RUBY 		:= $(call get-command,ruby)
+
+APPDMG 		:= $(call get-command,appdmg)
+SVGEXPORT 	:= $(call get-command,svgexport)
+
+DOCKERMACHINE 	:= $(call get-command,docker-machine)
+BOOT2DOCKER 	:= $(call get-command,boot2docker)
 
 GIT_REVISION_SHORTCODE := $(shell git rev-parse --short HEAD)
 GIT_REVISION := $(shell git describe --abbrev=0 --tags --exact-match 2> /dev/null || git rev-parse --short HEAD)
@@ -69,10 +74,19 @@ ANDROID_SDK_LIBS := $(ANDROID_SDK_DIR)/sdk/libs/
 ANDROID_SDK_ANDROID_LIB := $(ANDROID_SDK_LIBS)/$(ANDROID_LIB)
 ANDROID_SDK := $(ANDROID_SDK_DIR)/sdk/build/outputs/aar/sdk-debug.aar
 
+PUBSUB_JAVA_DIR := pubsub-java
+PUBSUB_JAVA := $(PUBSUB_JAVA_DIR)/build/libs/pubsub-java-fat.jar
+
+PUBSUB_DIR := PubSub
+PUBSUB_LIBS := $(PUBSUB_DIR)/sdk/libs
+PUBSUB_PUBSUB_JAVA_LIB := $(PUBSUB_LIBS)/pubsub-java-fat.jar
+PUBSUB := $(PUBSUB_DIR)/sdk/build/outputs/aar/sdk-debug.aar
+
 ANDROID_TESTBED_DIR := LanternMobileTestbed
 ANDROID_TESTBED_LIBS := $(ANDROID_TESTBED_DIR)/app/libs/
 ANDROID_TESTBED_ANDROID_LIB := $(ANDROID_TESTBED_LIBS)/$(ANDROID_LIB)
-ANDROID_TESTBED_ANDROID_SDK := $(ANDROID_TESTBED_LIBS)/sdk-debug.aar
+ANDROID_TESTBED_ANDROID_SDK := $(ANDROID_TESTBED_LIBS)/android-sdk-debug.aar
+ANDROID_TESTBED_PUBSUB := $(ANDROID_TESTBED_LIBS)/pubsub-sdk-debug.aar
 ANDROID_TESTBED := $(ANDROID_TESTBED_DIR)/app/build/outputs/apk/app-debug.apk
 
 LANTERN_MOBILE_DIR := src/github.com/getlantern/lantern-mobile
@@ -81,17 +95,32 @@ TUN2SOCKS := $(LANTERN_MOBILE_DIR)/libs/armeabi-v7a/libtun2socks.so
 LANTERN_MOBILE_ARM_LIBS := $(LANTERN_MOBILE_LIBS)/armeabi-v7a
 LANTERN_MOBILE_TUN2SOCKS := $(LANTERN_MOBILE_ARM_LIBS)/libtun2socks.so
 LANTERN_MOBILE_ANDROID_LIB := $(LANTERN_MOBILE_LIBS)/$(ANDROID_LIB)
-LANTERN_MOBILE_ANDROID_SDK := $(LANTERN_MOBILE_LIBS)/sdk-debug.aar
+LANTERN_MOBILE_ANDROID_SDK := $(LANTERN_MOBILE_LIBS)/android-sdk-debug.aar
+LANTERN_MOBILE_PUBSUB  := $(LANTERN_MOBILE_LIBS)/pubsub-sdk-debug.aar
 LANTERN_MOBILE_ANDROID_DEBUG := $(LANTERN_MOBILE_DIR)/app/build/outputs/apk/lantern-debug.apk
 LANTERN_MOBILE_ANDROID_RELEASE := $(LANTERN_MOBILE_DIR)/app/build/outputs/apk/app-release.apk
 
 LANTERN_YAML := lantern.yaml
 LANTERN_YAML_PATH := installer-resources/lantern.yaml
 
-.PHONY: packages clean tun2socks android-lib android-sdk android-testbed android-debug android-release android-install
+BUILD_TAGS ?=
+
+.PHONY: packages clean tun2socks android-lib android-sdk android-testbed android-debug android-release android-install docker-run
+
+define require-node
+	if [[ -z "$(NODE)" ]]; then echo 'Missing "node" command.'; exit 1; fi
+endef
+
+define require-gulp
+	$(call require-node) && if [[ -z "$(GULP)" ]]; then echo 'Missing "gulp" command. Try "npm install -g gulp-cli"'; exit 1; fi
+endef
+
+define require-npm
+	$(call require-node) && if [[ -z "$(NPM)" ]]; then echo 'Missing "npm" command.'; exit 1; fi
+endef
 
 define build-tags
-	BUILD_TAGS="" && \
+	BUILD_TAGS="$(BUILD_TAGS)" && \
 	EXTRA_LDFLAGS="" && \
 	if [[ ! -z "$$VERSION" ]]; then \
 		EXTRA_LDFLAGS="-X github.com/getlantern/flashlight.compileTimePackageVersion=$$VERSION"; \
@@ -172,52 +201,58 @@ docker-%: system-checks
 	mkdir -p $$DOCKER_CONTEXT && \
 	cp Dockerfile $$DOCKER_CONTEXT && \
 	docker build -t $(DOCKER_IMAGE_TAG) $$DOCKER_CONTEXT && \
-	echo docker run `echo $(DOCKER_VOLS) | xargs` -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" BNS_CERT_PASS="'$$BNS_CERT_PASS'" make $*' && \
-	docker run `echo $(DOCKER_VOLS) | xargs` -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" BNS_CERT_PASS="'$$BNS_CERT_PASS'" make $*';
+	docker run -e CMD -e VERSION -e HEADLESS -e BNS_CERT_PASS `echo $(DOCKER_VOLS) | xargs` -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && make $*';
 
 all: binaries
 android-dist: genconfig android
 
-$(RESOURCES_DOT_GO): $(NPM)
-	@source setenv.bash && \
-	LANTERN_UI="src/github.com/getlantern/lantern-ui" && \
+$(RESOURCES_DOT_GO):
+	@$(call require-npm) && \
+	$(call require-gulp) && \
+	source setenv.bash && \
+	LANTERN_UI="lantern-ui" && \
 	APP="$$LANTERN_UI/app" && \
 	DIST="$$LANTERN_UI/dist" && \
 	echo 'var LANTERN_BUILD_REVISION = "$(GIT_REVISION_SHORTCODE)";' > $$APP/js/revision.js && \
 	git update-index --assume-unchanged $$APP/js/revision.js && \
 	DEST="$@" && \
 	cd $$LANTERN_UI && \
-	npm install && \
+	$(NPM) install && \
 	rm -Rf dist && \
-	gulp build && \
+	$(GULP) build && \
 	cd - && \
-	rm -f bin/tarfs bin/rsrc && \
-	go install github.com/getlantern/tarfs/tarfs && \
+	rm -f bin/tarfs && \
+	go build -o bin/tarfs github.com/getlantern/tarfs/tarfs && \
 	echo "// +build !stub" > $$DEST && \
 	echo " " >> $$DEST && \
-	tarfs -pkg ui $$DIST >> $$DEST && \
+	bin/tarfs -pkg ui $$DIST >> $$DEST
+
+# Generates a syso file that embeds an icon for the Windows executable
+generate-windows-icon:
+	@source setenv.bash && \
+	rm -f bin/rsrc && \
 	go install github.com/akavel/rsrc && \
-	rsrc -ico installer-resources/windows/lantern.ico -o src/github.com/getlantern/flashlight/lantern_windows_386.syso
+  rsrc -ico installer-resources/windows/lantern.ico -o src/github.com/getlantern/flashlight/lantern_windows_386.syso
 
 assets: $(RESOURCES_DOT_GO)
 
-linux-386: $(RESOURCES_DOT_GO)
+linux-386: $(RESOURCES_DOT_GO) $(SOURCES)
 	@source setenv.bash && \
 	$(call build-tags) && \
 	CGO_ENABLED=1 GOOS=linux GOARCH=386 go build -a -o lantern_linux_386 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight/main
 
-linux-amd64: $(RESOURCES_DOT_GO)
+linux-amd64: $(RESOURCES_DOT_GO) $(SOURCES)
 	@source setenv.bash && \
 	$(call build-tags) && \
 	CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -a -o lantern_linux_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight/main
 
-linux-arm: $(RESOURCES_DOT_GO)
+linux-arm: $(RESOURCES_DOT_GO) $(SOURCES)
 	@source setenv.bash && \
 	HEADLESS=1 && \
 	$(call build-tags) && \
 	CGO_ENABLED=1 CC=arm-linux-gnueabi-gcc CXX=arm-linux-gnueabi-g++ CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7 go build -a -o lantern_linux_arm -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight/main
 
-windows: $(RESOURCES_DOT_GO)
+windows: $(RESOURCES_DOT_GO) $(SOURCES)
 	@source setenv.bash && \
 	$(call build-tags) && \
 	CGO_ENABLED=1 GOOS=windows GOARCH=386 go build -a -o lantern_windows_386.exe -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -H=windowsgui" github.com/getlantern/flashlight/main;
@@ -291,12 +326,6 @@ require-wget:
 require-mercurial:
 	@if [[ -z "$$(which hg 2> /dev/null)" ]]; then echo 'Missing "hg" command.'; exit 1; fi
 
-require-node:
-	@if [[ -z "$(NODE)" ]]; then echo 'Missing "node" command.'; exit 1; fi
-
-require-npm: require-node
-	@if [[ -z "$(NPM)" ]]; then echo 'Missing "npm" command.'; exit 1; fi
-
 require-appdmg:
 	@if [[ -z "$(APPDMG)" ]]; then echo 'Missing "appdmg" command. Try sudo npm install -g appdmg.'; exit 1; fi
 
@@ -308,7 +337,7 @@ require-ruby:
 	(gem which octokit >/dev/null) || (echo 'Missing gem "octokit". Try sudo gem install octokit.' && exit 1) && \
 	(gem which mime-types >/dev/null) || (echo 'Missing gem "mime-types". Try sudo gem install mime-types.' && exit 1)
 
-darwin: $(RESOURCES_DOT_GO)
+darwin: $(RESOURCES_DOT_GO) $(SOURCES)
 	@echo "Building darwin/amd64..." && \
 	export OSX_DEV_SDK=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX$(OSX_MIN_VERSION).sdk && \
 	if [[ "$$(uname -s)" == "Darwin" ]]; then \
@@ -324,11 +353,19 @@ darwin: $(RESOURCES_DOT_GO)
 		echo "-> Skipped: Can not compile Lantern for OSX on a non-OSX host."; \
 	fi
 
-lantern: $(RESOURCES_DOT_GO)
+BUILD_RACE := '-race'
+
+ifeq ($(OS),Windows_NT)
+	  # Race detection is not supported by Go Windows 386, so disable it. The -x
+		# is just a hack to allow us to pass something in place of -race below.
+		BUILD_RACE = '-x'
+endif
+
+lantern: $(RESOURCES_DOT_GO) $(SOURCES)
 	@echo "Building development lantern" && \
-	source setenv.bash && \
 	$(call build-tags) && \
-	CGO_ENABLED=1 go build -race -o lantern -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS_NOSTRIP) $$EXTRA_LDFLAGS" github.com/getlantern/flashlight/main; \
+	source setenv.bash && \
+	CGO_ENABLED=1 go build $(BUILD_RACE) -o lantern -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS_NOSTRIP) $$EXTRA_LDFLAGS" github.com/getlantern/flashlight/main; \
 
 package-linux: require-version package-linux-386 package-linux-amd64
 
@@ -375,15 +412,15 @@ package-darwin: package-darwin-manoto
 
 binaries: docker-assets docker-linux docker-windows darwin
 
-packages: require-version require-secrets clean-desktop clean-mobile docker-assets docker-package-windows docker-package-linux package-darwin android-release
+packages: require-version require-secrets clean-desktop clean-mobile docker-assets docker-package-windows docker-package-linux package-darwin package-android
 
 # Override implicit docker-packages to avoid building whole packages target in
 # docker, since it builds the pieces it needs in docker itself.
 docker-packages: packages
 
 release-qa: require-version require-s3cmd
-	@BASE_NAME="lantern-installer-qa" && \
-	BASE_NAME_MANOTO="lantern-installer-qa-manoto" && \
+	@BASE_NAME="lantern-installer-internal" && \
+	BASE_NAME_MANOTO="lantern-installer-internal-manoto" && \
 	rm -f $$BASE_NAME* && \
 	cp lantern-installer.exe $$BASE_NAME.exe && \
 	cp lantern-installer-manoto.exe $$BASE_NAME_MANOTO.exe && \
@@ -406,7 +443,7 @@ release-qa: require-version require-s3cmd
 		$(S3CMD) cp s3://$(S3_BUCKET)/$$NAME s3://$(S3_BUCKET)/$$VERSIONED && \
 		$(S3CMD) setacl s3://$(S3_BUCKET)/$$VERSIONED --acl-public; \
 	done && \
-	for NAME in update_darwin_amd64 update_linux_386 update_linux_amd64 update_windows_386 ; do \
+	for NAME in update_darwin_amd64 update_linux_386 update_linux_amd64 update_windows_386 update_android_arm ; do \
 	    mv $$NAME.bz2 $$NAME-$$VERSION.bz2 && \
 		echo "Copying versioned name $$NAME-$$VERSION.bz2..." && \
 		$(S3CMD) put -P $$NAME-$$VERSION.bz2 s3://$(S3_BUCKET); \
@@ -415,7 +452,7 @@ release-qa: require-version require-s3cmd
 	git push --tags -f
 
 release-beta: require-s3cmd
-	@BASE_NAME="lantern-installer-qa" && \
+	@BASE_NAME="lantern-installer-internal" && \
 	BETA_BASE_NAME="lantern-installer-beta" && \
 	for URL in $$($(S3CMD) ls s3://$(S3_BUCKET)/ | grep $$BASE_NAME | awk '{print $$4}'); do \
 		NAME=$$(basename $$URL) && \
@@ -468,16 +505,32 @@ create-tag: require-version
 	@git tag -a "$$VERSION" -f --annotate -m"Tagged $$VERSION" && \
 	git push --tags -f
 
+# This target requires a file called testpackages.txt that lists all packages to
+# test, one package per line, with no trailing newline on the last package.
+# The -coverprofile flag is required to produce a profile for goveralls coverage
+# reporting, and it only allows one package at a time, so we have to test each
+# package individually. This dramatically slows down the tests, but is needed
+# for coverage reporting. When simply testing locally, use make test instead.
 test-and-cover: $(RESOURCES_DOT_GO)
 	@echo "mode: count" > profile.cov && \
 	source setenv.bash && \
 	if [ -f envvars.bash ]; then \
 		source envvars.bash; \
 	fi && \
-	for pkg in $$(cat testpackages.txt); do \
-		go test -v -tags="headless" -covermode=count -coverprofile=profile_tmp.cov $$pkg || exit 1; \
+	TP=$$(cat testpackages.txt) && \
+	CP=$$(echo -n $$TP | tr ' ', ',') && \
+	for pkg in $$TP; do \
+		go test -race -v -tags="headless" -covermode=atomic -coverpkg "$$CP" -coverprofile=profile_tmp.cov $$pkg || exit 1; \
 		tail -n +2 profile_tmp.cov >> profile.cov; \
 	done
+
+test: $(RESOURCES_DOT_GO)
+	@source setenv.bash && \
+	if [ -f envvars.bash ]; then \
+		source envvars.bash; \
+	fi && \
+	TP=$$(cat testpackages.txt) && \
+	go test -race -v -tags="headless" $$TP || exit 1; \
 
 genconfig:
 	@echo "Running genconfig..." && \
@@ -485,17 +538,17 @@ genconfig:
 	(cd src/github.com/getlantern/flashlight/genconfig && ./genconfig.bash)
 
 bin/gomobile:
-	source setenv.bash && \
+	@source setenv.bash && \
 	go install golang.org/x/mobile/cmd/gomobile
 
 pkg/gomobile: bin/gomobile
-	source setenv.bash && \
+	@source setenv.bash && \
 	gomobile init
 
 $(ANDROID_LIB): bin/gomobile pkg/gomobile
-	source setenv.bash && \
+	@source setenv.bash && \
 	$(call build-tags) && \
-	gomobile bind -target=android -tags='headless' -o=$(ANDROID_LIB) -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -s" $(ANDROID_LIB_PKG)
+	gomobile bind -target=android/arm -tags='headless' -o=$(ANDROID_LIB) -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -s" $(ANDROID_LIB_PKG)
 
 android-lib: $(ANDROID_LIB)
 
@@ -508,16 +561,30 @@ $(ANDROID_SDK): $(ANDROID_SDK_ANDROID_LIB)
 
 android-sdk: $(ANDROID_SDK)
 
+$(PUBSUB_JAVA):
+	@(cd $(PUBSUB_JAVA_DIR) && gradle shadowJar)
+
+$(PUBSUB_PUBSUB_JAVA_LIB): $(PUBSUB_JAVA)
+	@mkdir -p $(PUBSUB_LIBS) && \
+	cp $(PUBSUB_JAVA) $(PUBSUB_PUBSUB_JAVA_LIB)
+
+$(PUBSUB): $(PUBSUB_PUBSUB_JAVA_LIB)
+	@(cd $(PUBSUB_DIR) && gradle assembleDebug)
+
 $(ANDROID_TESTBED_ANDROID_LIB): $(ANDROID_LIB)
-	mkdir -p $(ANDROID_TESTBED_LIBS) && \
+	@mkdir -p $(ANDROID_TESTBED_LIBS) && \
 	cp $(ANDROID_LIB) $(ANDROID_TESTBED_ANDROID_LIB)
 
 $(ANDROID_TESTBED_ANDROID_SDK): $(ANDROID_SDK)
-	mkdir -p $(ANDROID_TESTBED_LIBS) && \
+	@mkdir -p $(ANDROID_TESTBED_LIBS) && \
 	cp $(ANDROID_SDK) $(ANDROID_TESTBED_ANDROID_SDK)
 
-$(ANDROID_TESTBED): $(ANDROID_TESTBED_ANDROID_LIB) $(ANDROID_TESTBED_ANDROID_SDK)
-	cd $(ANDROID_TESTBED_DIR)/app
+$(ANDROID_TESTBED_PUBSUB): $(PUBSUB)
+	@mkdir -p $(ANDROID_TESTBED_LIBS) && \
+	cp $(PUBSUB) $(ANDROID_TESTBED_PUBSUB)
+
+$(ANDROID_TESTBED): $(ANDROID_TESTBED_ANDROID_LIB) $(ANDROID_TESTBED_ANDROID_SDK) $(ANDROID_TESTBED_PUBSUB)
+	@cd $(ANDROID_TESTBED_DIR)/app
 	gradle -b $(ANDROID_TESTBED_DIR)/app/build.gradle \
 		clean \
 		assembleDebug
@@ -528,29 +595,33 @@ android-testbed-install: $(ANDROID_TESTBED)
 	adb install -r $(ANDROID_TESTBED)
 
 $(TUN2SOCKS):
-	cd $(LANTERN_MOBILE_DIR) && ndk-build
+	@cd $(LANTERN_MOBILE_DIR) && ndk-build
 
 $(LANTERN_MOBILE_TUN2SOCKS): $(TUN2SOCKS)
-	mkdir -p $(LANTERN_MOBILE_ARM_LIBS) && \
+	@mkdir -p $(LANTERN_MOBILE_ARM_LIBS) && \
 	cp $(TUN2SOCKS) $(LANTERN_MOBILE_TUN2SOCKS)
 
 $(LANTERN_MOBILE_ANDROID_LIB): $(ANDROID_LIB)
-	mkdir -p $(LANTERN_MOBILE_LIBS) && \
+	@mkdir -p $(LANTERN_MOBILE_LIBS) && \
 	cp $(ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_LIB)
 
 $(LANTERN_MOBILE_ANDROID_SDK): $(ANDROID_SDK)
-	mkdir -p $(LANTERN_MOBILE_LIBS) && \
+	@mkdir -p $(LANTERN_MOBILE_LIBS) && \
 	cp $(ANDROID_SDK) $(LANTERN_MOBILE_ANDROID_SDK)
 
-$(LANTERN_MOBILE_ANDROID_DEBUG): $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_SDK)
-	gradle -PlanternVersion=$(GIT_REVISION) -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
+$(LANTERN_MOBILE_PUBSUB): $(PUBSUB)
+	@mkdir -p $(LANTERN_MOBILE_LIBS) && \
+	cp $(PUBSUB) $(LANTERN_MOBILE_PUBSUB)
+
+$(LANTERN_MOBILE_ANDROID_DEBUG): $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_SDK) $(LANTERN_MOBILE_PUBSUB)
+	@gradle -PlanternVersion=$(GIT_REVISION) -PlanternRevisionDate=$(REVISION_DATE) -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
 		clean \
 		assembleDebug
 
-$(LANTERN_MOBILE_ANDROID_RELEASE): $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_SDK)
+$(LANTERN_MOBILE_ANDROID_RELEASE): $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_SDK) $(LANTERN_MOBILE_PUBSUB)
 	@echo "Generating distribution package for android..."
 	ln -f -s $$SECRETS_DIR/android/keystore.release.jks $(LANTERN_MOBILE_DIR)/app && \
-	gradle -PlanternVersion=$$VERSION -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
+	gradle -PlanternVersion=$$VERSION -PlanternRevisionDate=$(REVISION_DATE) -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
 		clean \
 		assembleRelease && \
 	cp $(LANTERN_MOBILE_ANDROID_RELEASE) lantern-installer.apk;
@@ -565,8 +636,19 @@ android-install: $(LANTERN_MOBILE_ANDROID_DEBUG)
 clean-assets:
 	rm -f $(RESOURCES_DOT_GO)
 
+package-android: require-version require-secrets-dir $(LANTERN_MOBILE_ANDROID_RELEASE)
+	cat lantern-installer.apk | bzip2 > update_android_arm.bz2 && \
+	echo "-> lantern-installer.apk"
+
 # Provided for backward compatibility with how people used to use the makefile
 update-dist: clean-assets assets
+
+# Executes whatever command is in the CMD environment variable. This is useful
+# when you want to test something in docker, e.g.
+#   CMD="go test github.com/getlantern/byteexec" make docker-exec
+exec:
+	@source setenv.bash && \
+	eval $$CMD
 
 clean-desktop: clean-assets
 	rm -f lantern && \
@@ -587,8 +669,11 @@ clean-mobile:
 	rm -f $(ANDROID_LIB) && \
 	rm -f $(ANDROID_SDK_ANDROID_LIB) && \
 	rm -f $(ANDROID_SDK) && \
+	rm -f $(PUBSUB_JAVA) && \
+	rm -f $(PUBSUB) && \
 	rm -f $(ANDROID_TESTBED_ANDROID_LIB) && \
 	rm -f $(ANDROID_TESTBED_ANDROID_SDK) && \
+	rm -f $(ANDROID_TESTBED_PUBSUB) && \
 	rm -f $(ANDROID_TESTBED) && \
 	rm -f $(LANTERN_MOBILE_ANDROID_LIB) && \
 	rm -f $(LANTERN_MOBILE_ANDROID_SDK) && \

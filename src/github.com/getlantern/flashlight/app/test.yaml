@@ -1,0 +1,6 @@
+version: test
+builddate: test
+revisiondate: test
+autoreport: false
+autolaunch: false
+proxyall: true

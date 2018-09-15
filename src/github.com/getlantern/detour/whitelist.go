@@ -10,19 +10,29 @@ type wlEntry struct {
 }
 
 var (
-	muWhitelist sync.RWMutex
-	whitelist   = make(map[string]wlEntry)
+	muWhitelist    sync.RWMutex
+	whitelist      = make(map[string]wlEntry)
+	forceWhitelist = make(map[string]wlEntry)
 )
+
+func ForceWhitelist(addr string) {
+	log.Tracef("Force whitelisting %v", addr)
+	muWhitelist.Lock()
+	defer muWhitelist.Unlock()
+	forceWhitelist[addr] = wlEntry{true}
+}
 
 // AddToWl adds a domain to whitelist, all subdomains of this domain
 // are also considered to be in the whitelist.
 func AddToWl(addr string, permanent bool) {
+	log.Tracef("Adding %v to whitelist. Permanent? %v", addr, permanent)
 	muWhitelist.Lock()
 	defer muWhitelist.Unlock()
 	whitelist[addr] = wlEntry{permanent}
 }
 
 func RemoveFromWl(addr string) {
+	log.Tracef("Removing %v from whitelist.", addr)
 	muWhitelist.Lock()
 	defer muWhitelist.Unlock()
 	delete(whitelist, addr)
@@ -40,15 +50,23 @@ func DumpWhitelist() (wl []string) {
 	return
 }
 
-func whitelisted(addr string) (in bool) {
+func whitelisted(_addr string) (in bool) {
 	muWhitelist.RLock()
 	defer muWhitelist.RUnlock()
-	for ; addr != ""; addr = getParentDomain(addr) {
-		_, in = whitelist[addr]
-		if in {
-			return
+	log.Tracef("Checking if %v is whitelisted", _addr)
+	for addr := _addr; addr != ""; addr = getParentDomain(addr) {
+		_, forced := forceWhitelist[addr]
+		if forced {
+			log.Tracef("%v is force whitelisted as %v", _addr, addr)
+			return true
+		}
+		_, whitelisted := whitelist[addr]
+		if whitelisted {
+			log.Tracef("%v is whitelisted as %v", _addr, addr)
+			return true
 		}
 	}
+	log.Tracef("%v is not whitelisted", _addr)
 	return
 }
 

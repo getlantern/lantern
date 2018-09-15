@@ -4,9 +4,12 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/getlantern/i18n"
 	"github.com/getlantern/systray"
 
+	"github.com/getlantern/flashlight/app"
+	"github.com/getlantern/flashlight/icons"
 	"github.com/getlantern/flashlight/ui"
 )
 
@@ -17,8 +20,9 @@ func runOnSystrayReady(f func()) {
 func quitSystray() {
 	systray.Quit()
 }
-func configureSystemTray() error {
-	icon, err := Asset("icons/16on.ico")
+
+func configureSystemTray(a *app.App) error {
+	icon, err := icons.Asset("icons/16on.ico")
 	if err != nil {
 		return fmt.Errorf("Unable to load icon for system tray: %v", err)
 	}
@@ -32,7 +36,7 @@ func configureSystemTray() error {
 			case <-show.ClickedCh:
 				ui.Show()
 			case <-quit.ClickedCh:
-				exit(nil)
+				a.Exit(nil)
 				return
 			}
 		}

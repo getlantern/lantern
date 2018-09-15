@@ -1,9 +1,12 @@
 package logging
 
 import (
+	"encoding/base64"
+	"encoding/binary"
 	"fmt"
 	"io"
 	"math"
+	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -12,15 +15,19 @@ import (
 	"time"
 
 	"github.com/getlantern/appdir"
-	"github.com/getlantern/eventual"
-	"github.com/getlantern/flashlight/geolookup"
-	"github.com/getlantern/flashlight/util"
+	borda "github.com/getlantern/borda/client"
+	"github.com/getlantern/errors"
 	"github.com/getlantern/go-loggly"
 	"github.com/getlantern/golog"
+	"github.com/getlantern/hidden"
 	"github.com/getlantern/jibber_jabber"
 	"github.com/getlantern/osversion"
 	"github.com/getlantern/rotator"
 	"github.com/getlantern/wfilter"
+
+	"github.com/getlantern/flashlight/geolookup"
+	"github.com/getlantern/flashlight/ops"
+	"github.com/getlantern/flashlight/proxied"
 )
 
 const (
@@ -44,10 +51,22 @@ var (
 	errorOut io.Writer
 	debugOut io.Writer
 
-	duplicates = make(map[string]bool)
-	dupLock    sync.Mutex
+	bordaClient *borda.Client
 
-	extraLogglyInfo = make(map[string]string)
+	logglyRateLimit  = 5 * time.Minute
+	lastReported     = make(map[string]time.Time)
+	lastReportedLock sync.Mutex
+
+	logglyKeyTranslations = map[string]string{
+		"device_id":       "instanceid",
+		"os_name":         "osName",
+		"os_arch":         "osArch",
+		"os_version":      "osVersion",
+		"locale_language": "language",
+		"geo_country":     "country",
+		"timezone":        "timeZone",
+		"app_version":     "version",
+	}
 )
 
 func init() {
@@ -57,6 +76,7 @@ func init() {
 	initLogging()
 }
 
+// EnableFileLogging enables sending Lantern logs to a file.
 func EnableFileLogging() error {
 	logdir := appdir.Logs("Lantern")
 	log.Debugf("Placing logs in %v", logdir)
@@ -83,44 +103,82 @@ func EnableFileLogging() error {
 
 // Configure will set up logging. An empty "addr" will configure logging without a proxy
 // Returns a bool channel for optional blocking.
-func Configure(addrFN eventual.Getter, cloudConfigCA string, instanceId string,
-	version string, revisionDate string) (success chan bool) {
+func Configure(cloudConfigCA string, deviceID string,
+	version string, revisionDate string,
+	bordaReportInterval time.Duration, bordaSamplePercentage float64,
+	logglySamplePercentage float64) (success chan bool) {
 	success = make(chan bool, 1)
 
 	// Note: Returning from this function must always add a result to the
 	// success channel.
 	if logglyToken == "" {
-		log.Debugf("No logglyToken, not sending error logs to Loggly")
+		log.Debugf("No logglyToken, not reporting errors")
 		success <- false
 		return
 	}
 
 	if version == "" {
-		log.Error("No version configured, not sending error logs to Loggly")
+		log.Error("No version configured, not reporting errors")
 		success <- false
 		return
 	}
 
 	if revisionDate == "" {
-		log.Error("No build date configured, not sending error logs to Loggly")
+		log.Error("No build date configured, not reporting errors")
 		success <- false
 		return
 	}
 
+	initContext(deviceID, version, revisionDate)
+
 	// Using a goroutine because we'll be using waitforserver and at this time
 	// the proxy is not yet ready.
 	go func() {
-		enableLoggly(addrFN, cloudConfigCA, instanceId, version, revisionDate)
+		enableLoggly(cloudConfigCA, logglySamplePercentage, deviceID)
 		// Won't block, but will allow optional blocking on receiver
 		success <- true
 	}()
+
+	if bordaReportInterval > 0 {
+		log.Debug("Will report to borda")
+		enableBorda(bordaReportInterval, bordaSamplePercentage, deviceID)
+	} else {
+		log.Debug("Will not report to borda")
+	}
+
 	return
+}
+
+func initContext(deviceID string, version string, revisionDate string) {
+	// Using "application" allows us to distinguish between errors from the
+	// lantern client vs other sources like the http-proxy, etop.
+	ops.SetGlobal("app", "lantern-client")
+	ops.SetGlobal("app_version", fmt.Sprintf("%v (%v)", version, revisionDate))
+	ops.SetGlobal("go_version", runtime.Version())
+	ops.SetGlobal("os_name", runtime.GOOS)
+	ops.SetGlobal("os_arch", runtime.GOARCH)
+	ops.SetGlobal("device_id", deviceID)
+	ops.SetGlobalDynamic("geo_country", func() interface{} { return geolookup.GetCountry(0) })
+	ops.SetGlobalDynamic("client_ip", func() interface{} { return geolookup.GetIP(0) })
+	ops.SetGlobalDynamic("timezone", func() interface{} { return time.Now().Format("MST") })
+	ops.SetGlobalDynamic("locale_language", func() interface{} {
+		lang, _ := jibber_jabber.DetectLanguage()
+		return lang
+	})
+	ops.SetGlobalDynamic("locale_country", func() interface{} {
+		country, _ := jibber_jabber.DetectTerritory()
+		return country
+	})
+
+	if osStr, err := osversion.GetHumanReadable(); err == nil {
+		ops.SetGlobal("os_version", osStr)
+	}
 }
 
 // SetExtraLogglyInfo supports setting an extra info value to include in Loggly
 // reports (for example Android application details)
 func SetExtraLogglyInfo(key, value string) {
-	extraLogglyInfo[key] = value
+	ops.SetGlobal(key, value)
 }
 
 // Flush forces output flushing if the output is flushable
@@ -131,7 +189,11 @@ func Flush() {
 	}
 }
 
+// Close stops logging.
 func Close() error {
+	if bordaClient != nil {
+		bordaClient.Flush()
+	}
 	initLogging()
 	if logFile != nil {
 		return logFile.Close()
@@ -156,60 +218,23 @@ func timestamped(orig io.Writer) io.Writer {
 	})
 }
 
-func enableLoggly(addrFN eventual.Getter, cloudConfigCA string, instanceId string,
-	version string, revisionDate string) {
+func enableLoggly(cloudConfigCA string, logglySamplePercentage float64, deviceID string) {
+	if !includeInSample(deviceID, logglySamplePercentage) {
+		log.Debugf("DeviceID %v not being sampled for Loggly", deviceID)
+		return
+	}
+	log.Debugf("DeviceID %v will report errors to Loggly", deviceID)
 
-	client, err := util.PersistentHTTPClient(cloudConfigCA, addrFN)
+	rt, err := proxied.ChainedPersistent(cloudConfigCA)
 	if err != nil {
 		log.Errorf("Could not create HTTP client, not logging to Loggly: %v", err)
-		removeLoggly()
 		return
 	}
 
-	if addrFN == nil {
-		log.Debug("Sending error logs to Loggly directly")
-	} else {
-		log.Debug("Sending error logs to Loggly via proxy")
-	}
-
-	lang, _ := jibber_jabber.DetectLanguage()
-	logglyWriter := &logglyErrorWriter{
-		lang:            lang,
-		tz:              time.Now().Format("MST"),
-		versionToLoggly: fmt.Sprintf("%v (%v)", version, revisionDate),
-		client:          loggly.New(logglyToken, logglyTag),
-	}
-	logglyWriter.client.Defaults["hostname"] = "hidden"
-	logglyWriter.client.Defaults["instanceid"] = instanceId
-	if osStr, err := osversion.GetHumanReadable(); err == nil {
-		osVersion = osStr
-	}
-	logglyWriter.client.SetHTTPClient(client)
-	addLoggly(logglyWriter)
-}
-
-func addLoggly(logglyWriter io.Writer) {
-	golog.SetOutputs(NonStopWriter(errorOut, logglyWriter), debugOut)
-}
-
-func removeLoggly() {
-	golog.SetOutputs(errorOut, debugOut)
-}
-
-func isDuplicate(msg string) bool {
-	dupLock.Lock()
-	defer dupLock.Unlock()
-
-	if duplicates[msg] {
-		return true
-	}
-
-	// Implement a crude cap on the size of the map
-	if len(duplicates) < 1000 {
-		duplicates[msg] = true
-	}
-
-	return false
+	client := loggly.New(logglyToken, logglyTag)
+	client.SetHTTPClient(&http.Client{Transport: rt})
+	le := &logglyErrorReporter{client}
+	golog.RegisterReporter(le.Report)
 }
 
 // flushable interface describes writers that can be flushed
@@ -218,84 +243,91 @@ type flushable interface {
 	Write(p []byte) (n int, err error)
 }
 
-type logglyErrorWriter struct {
-	lang            string
-	tz              string
-	versionToLoggly string
-	client          *loggly.Client
+type logglyErrorReporter struct {
+	client *loggly.Client
 }
 
-func (w logglyErrorWriter) Write(b []byte) (int, error) {
-	fullMessage := string(b)
-	if isDuplicate(fullMessage) {
-		log.Debugf("Not logging duplicate: %v", fullMessage)
-		return 0, nil
+func (r logglyErrorReporter) Report(err error, location string, ctx map[string]interface{}) {
+	// Remove hidden errors info
+	fullMessage := hidden.Clean(err.Error())
+	if !shouldReport(location) {
+		log.Debugf("Not reporting duplicate at %v to Loggly: %v", location, fullMessage)
+		return
 	}
+	log.Debugf("Reporting error at %v to Loggly: %v", location, fullMessage)
 
-	extra := map[string]string{
-		"logLevel":          "ERROR",
-		"osName":            runtime.GOOS,
-		"osArch":            runtime.GOARCH,
-		"osVersion":         osVersion,
-		"language":          w.lang,
-		"country":           geolookup.GetCountry(0),
-		"timeZone":          w.tz,
-		"version":           w.versionToLoggly,
-		"sessionUserAgents": getSessionUserAgents(),
-	}
-
-	// Add extra logging info
-	for key, val := range extraLogglyInfo {
-		extra[key] = val
-	}
-
-	// extract last 2 (at most) chunks of fullMessage to message, without prefix,
-	// so we can group logs with same reason in Loggly
-	lastColonPos := -1
-	colonsSeen := 0
-	for p := len(fullMessage) - 2; p >= 0; p-- {
-		if fullMessage[p] == ':' {
-			lastChar := fullMessage[p+1]
-			// to prevent colon in "http://" and "x.x.x.x:80" be treated as seperator
-			if !(lastChar == '/' || lastChar >= '0' && lastChar <= '9') {
-				lastColonPos = p
-				colonsSeen++
-				if colonsSeen == 2 {
-					break
+	// extract last 2 (at most) chunks of fullMessage to message, so we can group
+	// logs with same reason in Loggly
+	var message string
+	switch e := err.(type) {
+	case errors.Error:
+		message = e.ErrorClean()
+	default:
+		lastColonPos := -1
+		colonsSeen := 0
+		for p := len(fullMessage) - 2; p >= 0; p-- {
+			if fullMessage[p] == ':' {
+				lastChar := fullMessage[p+1]
+				// to prevent colon in "http://" and "x.x.x.x:80" be treated as seperator
+				if !(lastChar == '/' || lastChar >= '0' && lastChar <= '9') {
+					lastColonPos = p
+					colonsSeen++
+					if colonsSeen == 2 {
+						break
+					}
 				}
 			}
 		}
+		if colonsSeen >= 2 {
+			message = strings.TrimSpace(fullMessage[lastColonPos+1:])
+		} else {
+			message = fullMessage
+		}
 	}
-	message := strings.TrimSpace(fullMessage[lastColonPos+1:])
 
 	// Loggly doesn't group fields with more than 100 characters
 	if len(message) > 100 {
 		message = message[0:100]
 	}
 
-	firstColonPos := strings.IndexRune(fullMessage, ':')
-	if firstColonPos == -1 {
-		firstColonPos = 0
+	translatedCtx := make(map[string]interface{}, len(ctx))
+	for key, value := range ctx {
+		tkey, found := logglyKeyTranslations[key]
+		if !found {
+			tkey = key
+		}
+		translatedCtx[tkey] = value
 	}
-	prefix := fullMessage[0:firstColonPos]
+	translatedCtx["sessionUserAgents"] = getSessionUserAgents()
+	translatedCtx["hostname"] = "hidden"
 
 	m := loggly.Message{
-		"extra":        extra,
-		"locationInfo": prefix,
+		"extra":        translatedCtx,
+		"locationInfo": location,
 		"message":      message,
 		"fullMessage":  fullMessage,
 	}
 
-	err := w.client.Send(m)
-	if err != nil {
-		return 0, err
+	err2 := r.client.Send(m)
+	if err2 != nil {
+		fmt.Fprintf(os.Stderr, "Unable to report to loggly: %v. Original error: %v\n", err2, err)
 	}
-	return len(b), nil
+}
+
+func shouldReport(location string) bool {
+	now := time.Now()
+	lastReportedLock.Lock()
+	defer lastReportedLock.Unlock()
+	shouldReport := now.Sub(lastReported[location]) > logglyRateLimit
+	if shouldReport {
+		lastReported[location] = now
+	}
+	return shouldReport
 }
 
 // flush forces output, since it normally flushes based on an interval
-func (w *logglyErrorWriter) flush() {
-	if err := w.client.Flush(); err != nil {
+func (r *logglyErrorReporter) flush() {
+	if err := r.client.Flush(); err != nil {
 		log.Debugf("Error flushing loggly error writer: %v", err)
 	}
 }
@@ -329,4 +361,70 @@ func (t *nonStopWriter) flush() {
 			w.flush()
 		}
 	}
+}
+
+func enableBorda(bordaReportInterval time.Duration, bordaSamplePercentage float64, deviceID string) {
+	if !includeInSample(deviceID, bordaSamplePercentage) {
+		log.Debugf("DeviceID %v not being sampled for Borda", deviceID)
+		return
+	}
+
+	rt := proxied.ChainedThenFronted()
+
+	bordaClient = borda.NewClient(&borda.Options{
+		BatchInterval: bordaReportInterval,
+		Client: &http.Client{
+			Transport: proxied.AsRoundTripper(func(req *http.Request) (*http.Response, error) {
+				frontedURL := *req.URL
+				frontedURL.Host = "d157vud77ygy87.cloudfront.net"
+				op := ops.Begin("report_to_borda").Request(req)
+				defer op.End()
+				proxied.PrepareForFronting(req, frontedURL.String())
+				return rt.RoundTrip(req)
+			}),
+		},
+	})
+
+	reportToBorda := bordaClient.ReducingSubmitter("client_results", 1000, func(existingValues map[string]float64, newValues map[string]float64) {
+		for key, value := range newValues {
+			existingValues[key] += value
+		}
+	})
+
+	reporter := func(failure error, ctx map[string]interface{}) {
+		values := map[string]float64{}
+		if failure != nil {
+			values["error_count"] = 1
+		} else {
+			values["success_count"] = 1
+		}
+		reportErr := reportToBorda(values, ctx)
+		if reportErr != nil {
+			log.Errorf("Error reporting error to borda: %v", reportErr)
+		}
+	}
+
+	ops.RegisterReporter(reporter)
+}
+
+func includeInSample(deviceID string, samplePercentage float64) bool {
+	if samplePercentage == 0 {
+		return false
+	}
+
+	// Sample a subset of device IDs.
+	// DeviceID is expected to be a Base64 encoded 48-bit (6 byte) MAC address
+	deviceIDBytes, base64Err := base64.StdEncoding.DecodeString(deviceID)
+	if base64Err != nil {
+		log.Debugf("Error decoding base64 deviceID %v: %v", deviceID, base64Err)
+		return false
+	}
+	if len(deviceIDBytes) != 6 {
+		log.Debugf("Unexpected DeviceID length %v: %d", deviceID, len(deviceIDBytes))
+		return false
+	}
+	// Pad and decode to int
+	paddedDeviceIDBytes := append(deviceIDBytes, 0, 0)
+	deviceIDInt := binary.BigEndian.Uint64(paddedDeviceIDBytes)
+	return deviceIDInt%uint64(1/samplePercentage) == 0
 }

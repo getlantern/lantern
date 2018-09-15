@@ -5,12 +5,13 @@
 package basictypes
 
 const (
-	AString = "a string"
-	AnInt   = 7
-	AnInt2  = 1<<63 - 1
-	AFloat  = 0.2015
-	ARune   = rune(32)
-	ABool   = true
+	AString     = "a string"
+	AnInt       = 7
+	AnInt2      = 1<<63 - 1
+	AFloat      = 0.2015
+	ARune       = rune(32)
+	ABool       = true
+	ALongString = "LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString"
 )
 
 func Ints(x int8, y int16, z int32, t int64, u int) {}

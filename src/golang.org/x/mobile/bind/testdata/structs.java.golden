@@ -7,113 +7,29 @@ package go.structs;
 import go.Seq;
 
 public abstract class Structs {
+    static {
+        Seq.touch(); // for loading the native library
+        init();
+    }
+    
     private Structs() {} // uninstantiable
     
-    public static S Identity(S s) {
-        go.Seq _in = null;
-        go.Seq _out = null;
-        _out = new go.Seq();
-        S _result;
-        _in = new go.Seq();
-        _in.writeRef(s.ref());
-        Seq.send(DESCRIPTOR, CALL_Identity, _in, _out);
-        _result = new S(_out.readRef());
-        return _result;
-    }
+    // touch is called from other bound packages to initialize this package
+    public static void touch() {}
     
-    public static S IdentityWithError(S s) throws Exception {
-        go.Seq _in = null;
-        go.Seq _out = null;
-        _out = new go.Seq();
-        S _result;
-        _in = new go.Seq();
-        _in.writeRef(s.ref());
-        Seq.send(DESCRIPTOR, CALL_IdentityWithError, _in, _out);
-        _result = new S(_out.readRef());
-        String _err = _out.readString();
-        if (_err != null && !_err.isEmpty()) {
-            throw new Exception(_err);
-        }
-        return _result;
-    }
+    private static native void init();
     
-    public static final class S implements go.Seq.Object {
-        private static final String DESCRIPTOR = "go.structs.S";
-        private static final int FIELD_X_GET = 0x00f;
-        private static final int FIELD_X_SET = 0x01f;
-        private static final int FIELD_Y_GET = 0x10f;
-        private static final int FIELD_Y_SET = 0x11f;
-        private static final int CALL_Identity = 0x00c;
-        private static final int CALL_Sum = 0x10c;
+    public static final class S extends Seq.Proxy {
+        private S(go.Seq.Ref ref) { super(ref); }
         
-        private go.Seq.Ref ref;
+        public final native double getX();
+        public final native void setX(double v);
         
-        private S(go.Seq.Ref ref) { this.ref = ref; }
+        public final native double getY();
+        public final native void setY(double v);
         
-        public go.Seq.Ref ref() { return ref; }
-        
-        public void call(int code, go.Seq in, go.Seq out) {
-            throw new RuntimeException("internal error: cycle: cannot call concrete proxy");
-        }
-        
-        public double getX() {
-            Seq in = new Seq();
-            Seq out = new Seq();
-            in.writeRef(ref);
-            Seq.send(DESCRIPTOR, FIELD_X_GET, in, out);
-            return out.readFloat64();
-        }
-        
-        public void setX(double v) {
-            Seq in = new Seq();
-            in.writeRef(ref);
-            in.writeFloat64(v);
-            Seq.send(DESCRIPTOR, FIELD_X_SET, in, null);
-        }
-        
-        public double getY() {
-            Seq in = new Seq();
-            Seq out = new Seq();
-            in.writeRef(ref);
-            Seq.send(DESCRIPTOR, FIELD_Y_GET, in, out);
-            return out.readFloat64();
-        }
-        
-        public void setY(double v) {
-            Seq in = new Seq();
-            in.writeRef(ref);
-            in.writeFloat64(v);
-            Seq.send(DESCRIPTOR, FIELD_Y_SET, in, null);
-        }
-        
-        public S Identity() throws Exception {
-            go.Seq _in = null;
-            go.Seq _out = null;
-            _out = new go.Seq();
-            S _result;
-            _in = new go.Seq();
-            _in.writeRef(ref);
-            Seq.send(DESCRIPTOR, CALL_Identity, _in, _out);
-            _result = new S(_out.readRef());
-            String _err = _out.readString();
-            if (_err != null && !_err.isEmpty()) {
-                throw new Exception(_err);
-            }
-            return _result;
-        }
-        
-        public double Sum() {
-            go.Seq _in = null;
-            go.Seq _out = null;
-            _out = new go.Seq();
-            double _result;
-            _in = new go.Seq();
-            _in.writeRef(ref);
-            Seq.send(DESCRIPTOR, CALL_Sum, _in, _out);
-            _result = _out.readFloat64();
-            return _result;
-        }
-        
+        public native S Identity() throws Exception;
+        public native double Sum();
         @Override public boolean equals(Object o) {
             if (o == null || !(o instanceof S)) {
                 return false;
@@ -143,10 +59,41 @@ public abstract class Structs {
             b.append("Y:").append(getY()).append(",");
             return b.append("}").toString();
         }
-        
     }
     
-    private static final int CALL_Identity = 1;
-    private static final int CALL_IdentityWithError = 2;
-    private static final String DESCRIPTOR = "structs";
+    public static final class S2 extends Seq.Proxy implements I {
+        private S2(go.Seq.Ref ref) { super(ref); }
+        
+        public native void M();
+        public native String String();
+        @Override public boolean equals(Object o) {
+            if (o == null || !(o instanceof S2)) {
+                return false;
+            }
+            S2 that = (S2)o;
+            return true;
+        }
+        
+        @Override public int hashCode() {
+            return java.util.Arrays.hashCode(new Object[] {});
+        }
+        
+        @Override public String toString() {
+            return String();
+        }
+    }
+    
+    public interface I {
+        public void M();
+    }
+    
+    private static final class proxyI extends Seq.Proxy implements I {
+        proxyI(Seq.Ref ref) { super(ref); }
+    
+        public native void M();
+    }
+    
+    
+    public static native S Identity(S s);
+    public static native S IdentityWithError(S s) throws Exception;
 }

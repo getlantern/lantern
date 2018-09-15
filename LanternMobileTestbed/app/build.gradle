@@ -14,7 +14,7 @@ android {
     buildTypes {
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro', '../PubSub/sdk/proguard-rules.pro'
         }
     }
 }
@@ -26,5 +26,6 @@ dependencies {
     compile 'com.android.support:design:23.1.1'
     compile 'com.google.android.gms:play-services-analytics:7.0.0'
     compile(name:'liblantern', ext:'aar')
-    compile(name:'sdk-debug', ext:'aar')
+    compile(name:'android-sdk-debug', ext:'aar')
+    compile(name:'pubsub-sdk-debug', ext:'aar')
 }

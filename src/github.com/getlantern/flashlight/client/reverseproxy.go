@@ -7,17 +7,19 @@ import (
 	"net/http/httputil"
 	"time"
 
-	"github.com/getlantern/balancer"
+	"github.com/getlantern/bandwidth"
 	"github.com/getlantern/flashlight/proxy"
 	"github.com/getlantern/flashlight/status"
 )
 
 // newReverseProxy creates a reverse proxy that uses the client's balancer to
 // dial out.
-func (client *Client) newReverseProxy(bal *balancer.Balancer) *httputil.ReverseProxy {
+func (client *Client) newReverseProxy() *httputil.ReverseProxy {
 	transport := &http.Transport{
 		TLSHandshakeTimeout: 40 * time.Second,
+		MaxIdleTime:         30 * time.Second,
 	}
+	transport.EnforceMaxIdleTime()
 
 	// TODO: would be good to make this sensitive to QOS, which
 	// right now is only respected for HTTPS connections. The
@@ -26,7 +28,7 @@ func (client *Client) newReverseProxy(bal *balancer.Balancer) *httputil.ReverseP
 	// ReverseProxies for different QOS's or something like that.
 	transport.Dial = client.proxiedDialer(bal.Dial)
 
-	allAuthTokens := bal.AllAuthTokens()
+	onRequest := bal.OnRequest
 	return &httputil.ReverseProxy{
 		// We need to set the authentication tokens for all servers that we might
 		// connect to because we don't know which one the dialer will actually
@@ -35,13 +37,15 @@ func (client *Client) newReverseProxy(bal *balancer.Balancer) *httputil.ReverseP
 		// field when upstream servers are trying to determine the client IP.
 		// We need to add also the X-Lantern-Device-Id field.
 		Director: func(req *http.Request) {
-			req.Header.Set("X-LANTERN-DEVICE-ID", client.DeviceID)
-			for _, authToken := range allAuthTokens {
-				req.Header.Add("X-LANTERN-AUTH-TOKEN", authToken)
-			}
+			// Add back the Host header which was stripped by the ReverseProxy. This
+			// is needed for sites that do virtual hosting.
+			req.Header.Set("Host", req.Host)
+			onRequest(req)
 		},
-		Transport: &errorRewritingRoundTripper{
-			&noForwardedForRoundTripper{withDumpHeaders(false, transport)},
+		Transport: &bandwidthTrackingRoundTripper{
+			&errorRewritingRoundTripper{
+				&noForwardedForRoundTripper{withDumpHeaders(false, transport)},
+			},
 		},
 		// Set a FlushInterval to prevent overly aggressive buffering of
 		// responses, which helps keep memory usage down
@@ -130,4 +134,16 @@ type noForwardedForRoundTripper struct {
 func (rt *noForwardedForRoundTripper) RoundTrip(req *http.Request) (resp *http.Response, err error) {
 	req.Header.Del("X-Forwarded-For")
 	return rt.wrapped.RoundTrip(req)
+}
+
+type bandwidthTrackingRoundTripper struct {
+	wrapped http.RoundTripper
+}
+
+func (rt *bandwidthTrackingRoundTripper) RoundTrip(req *http.Request) (resp *http.Response, err error) {
+	resp, err = rt.wrapped.RoundTrip(req)
+	if err == nil {
+		bandwidth.Track(resp)
+	}
+	return resp, err
 }

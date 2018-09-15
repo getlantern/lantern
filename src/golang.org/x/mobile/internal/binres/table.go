@@ -5,8 +5,8 @@
 package binres
 
 import (
-	"archive/zip"
 	"bytes"
+	"compress/gzip"
 	"errors"
 	"fmt"
 	"io"
@@ -56,33 +56,31 @@ type Table struct {
 	pkgs []*Package
 }
 
-// OpenTable decodes resources.arsc from an sdk platform jar.
-func OpenTable(path string) (*Table, error) {
-	zr, err := zip.OpenReader(path)
+// OpenSDKTable decodes resources.arsc from sdk platform jar.
+func OpenSDKTable() (*Table, error) {
+	bin, err := apiResources()
 	if err != nil {
 		return nil, err
 	}
+	tbl := new(Table)
+	if err := tbl.UnmarshalBinary(bin); err != nil {
+		return nil, err
+	}
+	return tbl, nil
+}
+
+// OpenTable decodes the prepacked resources.arsc for the supported sdk platform.
+func OpenTable() (*Table, error) {
+	zr, err := gzip.NewReader(bytes.NewReader(arsc))
+	if err != nil {
+		return nil, fmt.Errorf("gzip: %v", err)
+	}
 	defer zr.Close()
 
-	buf := new(bytes.Buffer)
-	for _, f := range zr.File {
-		if f.Name == "resources.arsc" {
-			rc, err := f.Open()
-			if err != nil {
-				return nil, err
-			}
-			_, err = io.Copy(buf, rc)
-			if err != nil {
-				return nil, err
-			}
-			rc.Close()
-			break
-		}
+	var buf bytes.Buffer
+	if _, err := io.Copy(&buf, zr); err != nil {
+		return nil, fmt.Errorf("io: %v", err)
 	}
-	if buf.Len() == 0 {
-		return nil, fmt.Errorf("failed to read resources.arsc")
-	}
-
 	tbl := new(Table)
 	if err := tbl.UnmarshalBinary(buf.Bytes()); err != nil {
 		return nil, err
@@ -165,6 +163,38 @@ func (tbl *Table) UnmarshalBinary(bin []byte) error {
 	}
 
 	return nil
+}
+
+func (tbl *Table) MarshalBinary() ([]byte, error) {
+	bin := make([]byte, 12)
+	putu16(bin, uint16(ResTable))
+	putu16(bin[2:], 12)
+	putu32(bin[8:], uint32(len(tbl.pkgs)))
+
+	if tbl.pool.IsUTF8() {
+		tbl.pool.flags ^= UTF8Flag
+		defer func() {
+			tbl.pool.flags |= UTF8Flag
+		}()
+	}
+
+	b, err := tbl.pool.MarshalBinary()
+	if err != nil {
+		return nil, err
+	}
+	bin = append(bin, b...)
+
+	for _, pkg := range tbl.pkgs {
+		b, err = pkg.MarshalBinary()
+		if err != nil {
+			return nil, err
+		}
+		bin = append(bin, b...)
+	}
+
+	putu32(bin[4:], uint32(len(bin)))
+
+	return bin, nil
 }
 
 // Package contains a collection of resource data types.
@@ -257,6 +287,62 @@ func (pkg *Package) UnmarshalBinary(bin []byte) error {
 	return nil
 }
 
+func (pkg *Package) MarshalBinary() ([]byte, error) {
+	bin := make([]byte, 284)
+	putu16(bin, uint16(ResTablePackage))
+	putu16(bin[2:], 284)
+
+	putu32(bin[8:], pkg.id)
+	p := utf16.Encode([]rune(pkg.name))
+	for i, x := range p {
+		putu16(bin[12+i*2:], x)
+	}
+
+	if pkg.typePool != nil {
+		if pkg.typePool.IsUTF8() {
+			pkg.typePool.flags ^= UTF8Flag
+			defer func() {
+				pkg.typePool.flags |= UTF8Flag
+			}()
+		}
+
+		b, err := pkg.typePool.MarshalBinary()
+		if err != nil {
+			return nil, err
+		}
+		putu32(bin[268:], uint32(len(bin)))
+		putu32(bin[272:], pkg.lastPublicType)
+		bin = append(bin, b...)
+	}
+
+	if pkg.keyPool != nil {
+		if pkg.keyPool.IsUTF8() {
+			pkg.keyPool.flags ^= UTF8Flag
+			defer func() {
+				pkg.keyPool.flags |= UTF8Flag
+			}()
+		}
+		b, err := pkg.keyPool.MarshalBinary()
+		if err != nil {
+			return nil, err
+		}
+		putu32(bin[276:], uint32(len(bin)))
+		putu32(bin[280:], pkg.lastPublicKey)
+		bin = append(bin, b...)
+	}
+
+	for _, spec := range pkg.specs {
+		b, err := spec.MarshalBinary()
+		if err != nil {
+			return nil, err
+		}
+		bin = append(bin, b...)
+	}
+
+	putu32(bin[4:], uint32(len(bin)))
+	return bin, nil
+}
+
 // TypeSpec provides a specification for the resources defined by a particular type.
 type TypeSpec struct {
 	chunkHeader
@@ -289,6 +375,31 @@ func (spec *TypeSpec) UnmarshalBinary(bin []byte) error {
 	return nil
 }
 
+func (spec *TypeSpec) MarshalBinary() ([]byte, error) {
+	bin := make([]byte, 16+len(spec.entries)*4)
+	putu16(bin, uint16(ResTableTypeSpec))
+	putu16(bin[2:], 16)
+	putu32(bin[4:], uint32(len(bin)))
+
+	bin[8] = byte(spec.id)
+	// [9] = 0
+	// [10:12] = 0
+	putu32(bin[12:], uint32(len(spec.entries)))
+	for i, x := range spec.entries {
+		putu32(bin[16+i*4:], x)
+	}
+
+	for _, typ := range spec.types {
+		b, err := typ.MarshalBinary()
+		if err != nil {
+			return nil, err
+		}
+		bin = append(bin, b...)
+	}
+
+	return bin, nil
+}
+
 // Type provides a collection of entries for a specific device configuration.
 type Type struct {
 	chunkHeader
@@ -298,8 +409,46 @@ type Type struct {
 	entryCount   uint32 // number of uint32 entry configuration masks that follow
 	entriesStart uint32 // offset from header where Entry data starts
 
-	// TODO implement and decode Config if strictly necessary
-	// config Config // configuration this collection of entries is designed for (portrait, sw600dp, etc)
+	// configuration this collection of entries is designed for
+	config struct {
+		size uint32
+		imsi struct {
+			mcc uint16 // mobile country code
+			mnc uint16 // mobile network code
+		}
+		locale struct {
+			language uint16
+			country  uint16
+		}
+		screenType struct {
+			orientation uint8
+			touchscreen uint8
+			density     uint16
+		}
+		input struct {
+			keyboard   uint8
+			navigation uint8
+			inputFlags uint8
+			inputPad0  uint8
+		}
+		screenSize struct {
+			width  uint16
+			height uint16
+		}
+		version struct {
+			sdk   uint16
+			minor uint16 // always 0
+		}
+		screenConfig struct {
+			layout          uint8
+			uiMode          uint8
+			smallestWidthDP uint16
+		}
+		screenSizeDP struct {
+			width  uint16
+			height uint16
+		}
+	}
 
 	indices []uint32 // values that map to typePool
 	entries []*Entry
@@ -322,6 +471,30 @@ func (typ *Type) UnmarshalBinary(bin []byte) error {
 	if typ.res0 != 0 || typ.res1 != 0 {
 		return fmt.Errorf("res0 res1 not zero")
 	}
+
+	typ.config.size = btou32(bin[20:])
+	typ.config.imsi.mcc = btou16(bin[24:])
+	typ.config.imsi.mnc = btou16(bin[26:])
+	typ.config.locale.language = btou16(bin[28:])
+	typ.config.locale.country = btou16(bin[30:])
+	typ.config.screenType.orientation = uint8(bin[32])
+	typ.config.screenType.touchscreen = uint8(bin[33])
+	typ.config.screenType.density = btou16(bin[34:])
+	typ.config.input.keyboard = uint8(bin[36])
+	typ.config.input.navigation = uint8(bin[37])
+	typ.config.input.inputFlags = uint8(bin[38])
+	typ.config.input.inputPad0 = uint8(bin[39])
+	typ.config.screenSize.width = btou16(bin[40:])
+	typ.config.screenSize.height = btou16(bin[42:])
+	typ.config.version.sdk = btou16(bin[44:])
+	typ.config.version.minor = btou16(bin[46:])
+	typ.config.screenConfig.layout = uint8(bin[48])
+	typ.config.screenConfig.uiMode = uint8(bin[49])
+	typ.config.screenConfig.smallestWidthDP = btou16(bin[50:])
+	typ.config.screenSizeDP.width = btou16(bin[52:])
+	typ.config.screenSizeDP.height = btou16(bin[54:])
+
+	// fmt.Println("language/country:", u16tos(typ.config.locale.language), u16tos(typ.config.locale.country))
 
 	buf := bin[typ.headerByteSize:typ.entriesStart]
 	for len(buf) > 0 {
@@ -346,6 +519,36 @@ func (typ *Type) UnmarshalBinary(bin []byte) error {
 	}
 
 	return nil
+}
+
+func (typ *Type) MarshalBinary() ([]byte, error) {
+	bin := make([]byte, 56+len(typ.entries)*4)
+	putu16(bin, uint16(ResTableType))
+	putu16(bin[2:], 56)
+
+	bin[8] = byte(typ.id)
+	// [9] = 0
+	// [10:12] = 0
+	putu32(bin[12:], uint32(len(typ.entries)))
+	putu32(bin[16:], uint32(56+len(typ.entries)*4))
+
+	var ntbin []byte
+	for i, nt := range typ.entries {
+		if nt == nil { // NoEntry
+			putu32(bin[56+i*4:], NoEntry)
+			continue
+		}
+		putu32(bin[56+i*4:], uint32(len(ntbin)))
+		b, err := nt.MarshalBinary()
+		if err != nil {
+			return nil, err
+		}
+		ntbin = append(ntbin, b...)
+	}
+	bin = append(bin, ntbin...)
+
+	putu32(bin[4:], uint32(len(bin)))
+	return bin, nil
 }
 
 // Entry is a resource key typically followed by a value or resource map.
@@ -389,6 +592,34 @@ func (nt *Entry) UnmarshalBinary(bin []byte) error {
 	return nil
 }
 
+func (nt *Entry) MarshalBinary() ([]byte, error) {
+	bin := make([]byte, 8)
+	putu16(bin, nt.size)
+	putu16(bin[2:], nt.flags)
+	putu32(bin[4:], uint32(nt.key))
+
+	if nt.size == 16 {
+		bin = append(bin, make([]byte, 8+len(nt.values)*12)...)
+		putu32(bin[8:], uint32(nt.parent))
+		putu32(bin[12:], uint32(len(nt.values)))
+		for i, val := range nt.values {
+			b, err := val.MarshalBinary()
+			if err != nil {
+				return nil, err
+			}
+			copy(bin[16+i*12:], b)
+		}
+	} else {
+		b, err := nt.values[0].data.MarshalBinary()
+		if err != nil {
+			return nil, err
+		}
+		bin = append(bin, b...)
+	}
+
+	return bin, nil
+}
+
 type Value struct {
 	name TableRef
 	data *Data
@@ -398,6 +629,17 @@ func (val *Value) UnmarshalBinary(bin []byte) error {
 	val.name = TableRef(btou32(bin))
 	val.data = &Data{}
 	return val.data.UnmarshalBinary(bin[4:])
+}
+
+func (val *Value) MarshalBinary() ([]byte, error) {
+	bin := make([]byte, 12)
+	putu32(bin, uint32(val.name))
+	b, err := val.data.MarshalBinary()
+	if err != nil {
+		return nil, err
+	}
+	copy(bin[4:], b)
+	return bin, nil
 }
 
 type DataType uint8
@@ -438,7 +680,7 @@ func (d *Data) UnmarshalBinary(bin []byte) error {
 
 func (d *Data) MarshalBinary() ([]byte, error) {
 	bin := make([]byte, 8)
-	putu16(bin, d.ByteSize)
+	putu16(bin, 8)
 	bin[2] = byte(d.Res0)
 	bin[3] = byte(d.Type)
 	putu32(bin[4:], d.Value)

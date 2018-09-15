@@ -1,44 +1,37 @@
 apply plugin: 'com.android.application'
 apply plugin: 'io.fabric'
-
-def incVersionNum() {
-    def versionPropsFile = file('version.properties')
-    def Properties versionProps = new Properties()
-
-    // only try to load properties if version.properties
-    // file exists
-    if (versionPropsFile.exists()) {
-       versionProps.load(new FileInputStream(versionPropsFile))
-    }
-
-    def value = 0
-    def runTasks = gradle.startParameter.taskNames
-    if ('assembleRelease' in runTasks) {
-        value = 1
-    }
-
-    def code = (versionProps['VERSION_CODE'] ?: "0").toInteger() + value
-    versionProps['VERSION_CODE'] = code.toString()
-    versionProps.store(versionPropsFile.newWriter(), null)
-
-    return code
-}
+apply plugin: 'com.google.gms.google-services'
+apply plugin: 'android-apt'
 
 android {
 
     useLibrary 'org.apache.http.legacy'
 
+    packagingOptions { 
+        exclude 'META-INF/LICENSE.txt' 
+        exclude 'META-INF/NOTICE.txt' 
+        exclude 'META-INF/maven/commons-io/commons-io/pom.xml'
+        exclude 'META-INF/maven/commons-io/commons-io/pom.properties'
+    }
+
     compileSdkVersion rootProject.compileSdkVersion
     buildToolsVersion rootProject.buildToolsVersion
 
-    def code = incVersionNum()
+    // Use now as the user-visible version
+    def now = new java.util.Date()
+    def nowFormatted = new java.text.SimpleDateFormat("yyyyMMddHHmmss").format(now)
+
+    // Calculate the versionCode as the number of seconds from a fixed start
+    // point so that it's always increasing.
+    def start = new java.util.Date(2015, 1, 1).getTime()
+    def code = (int) ((now.getTime() - start) / 1000)
 
     defaultConfig {
-	minSdkVersion rootProject.minSdkVersion
-	targetSdkVersion rootProject.targetSdkVersion
-	applicationId "org.getlantern.lantern"
-	versionCode code
-        versionName "1.0." + code
+	    minSdkVersion rootProject.minSdkVersion
+        targetSdkVersion rootProject.targetSdkVersion
+        applicationId "org.getlantern.lantern"
+        versionCode code
+        versionName "$project.lanternVersion ($project.lanternRevisionDate)"
     }
 
     lintOptions {
@@ -71,8 +64,6 @@ android {
 
         applicationVariants.all { variant ->
 
-            variant.buildConfigField "String", "LANTERN_VERSION", "\"$project.lanternVersion\""
-
             variant.outputs.each { output ->
                 output.outputFile = new File(
                     output.outputFile.parent,
@@ -95,19 +86,47 @@ repositories {
     jcenter()
     mavenCentral()
     mavenLocal()
+    maven { url "https://jitpack.io" }
     maven { url 'https://maven.fabric.io/public' }
 }
 
 dependencies {
     compile(name:'liblantern', ext:'aar')
-    compile(name:'sdk-debug', ext:'aar')
+    compile(name:'android-sdk-debug', ext:'aar')
+    compile(name:'finestwebview', ext:'aar')
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile gplay
-    compile appCompat
+    compile "com.android.support:support-v4:${supportLibVersion}"
+    compile "com.android.support:appcompat-v7:${supportLibVersion}"
+    compile "com.android.support:design:${supportLibVersion}"
+
+    // Mandrill dependencies
+    compile 'commons-io:commons-io:2.4'
+    // FinestWebView dependencies
+    compile 'com.nineoldandroids:library:2.4.0'
+    compile 'com.thefinestartist:utils:0.9.0'
     compile 'com.google.guava:guava:19.0'
-    compile 'com.mandrillapp.wrapper.lutung:lutung:0.0.6'
-    compile 'com.github.tony19:timber-loggly:1.0.1'
+
+    // SmartTabLayout dependencies
+    compile 'com.ogaclejapan.smarttablayout:library:1.6.0@aar'
+    compile 'com.ogaclejapan.smarttablayout:utils-v4:1.6.0@aar'
+
+    compile 'com.github.bumptech.glide:glide:3.7.0'
+
+    compile ('com.mandrillapp.wrapper.lutung:lutung:0.0.7') {
+        exclude group: 'org.apache.commons', module: 'commons-io'
+    }
     compile('com.crashlytics.sdk.android:crashlytics:2.5.3@aar') {
         transitive = true
+    }
+
+    apt "org.androidannotations:androidannotations:" + androidAnnotationsVersion
+    compile("org.androidannotations:androidannotations-api:" + androidAnnotationsAPIVersion )
+}
+
+apt {
+    arguments {
+        resourcePackageName android.defaultConfig.applicationId
+        androidManifestFile variant.outputs[0]?.processResources?.manifestFile
     }
 }

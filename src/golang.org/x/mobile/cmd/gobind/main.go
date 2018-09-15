@@ -8,6 +8,7 @@ import (
 	"flag"
 	"fmt"
 	"go/importer"
+	"go/types"
 	"log"
 	"os"
 	"os/exec"
@@ -46,13 +47,18 @@ func main() {
 		os.Exit(1)
 	}
 
+	var allPkg []*types.Package
+	imp := importer.Default()
 	for _, arg := range flag.Args() {
-		pkg, err := importer.Default().Import(arg)
+		pkg, err := imp.Import(arg)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "could not import package %s: %v", arg, err)
 			os.Exit(1)
 		}
-		genPkg(pkg)
+		allPkg = append(allPkg, pkg)
+	}
+	for _, pkg := range allPkg {
+		genPkg(pkg, allPkg)
 	}
 	os.Exit(exitStatus)
 }

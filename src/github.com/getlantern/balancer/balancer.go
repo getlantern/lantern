@@ -1,228 +1,202 @@
-// package balancer provides weighted round-robin load balancing of network
-// connections with the ability to specify quality of service (QOS) levels.
+// Package balancer provides load balancing of network connections per different
+// strategies.
 package balancer
 
 import (
+	"container/heap"
 	"fmt"
-	"math/rand"
 	"net"
-	"sort"
+	"net/http"
+	"sync"
+	"sync/atomic"
+	"time"
 
+	"github.com/getlantern/errors"
 	"github.com/getlantern/golog"
 )
 
+const (
+	dialAttempts = 3
+)
+
 var (
+	// When Dial() is called after an idle period larger than
+	// recheckAfterIdleFor, Balancer will recheck all dialers to make sure they
+	// are alive and have up-to-date metrics.
+	recheckAfterIdleFor = 1 * time.Minute
+
 	log = golog.LoggerFor("balancer")
 )
 
-var (
-	emptyDialers = []*dialer{}
-)
-
-// Balancer balances connections established by one or more Dialers.
+// Balancer balances connections among multiple Dialers.
 type Balancer struct {
-	dialers []*dialer
-	trusted []*dialer
+	// make sure to align on 64bit boundary
+	lastDialTime int64 // Time.UnixNano()
+	st           Strategy
+	mu           sync.RWMutex
+	dialers      dialerHeap
+	trusted      dialerHeap
 }
 
-// New creates a new Balancer using the supplied Dialers.
-func New(dialers ...*Dialer) *Balancer {
-	trustedDialersCount := 0
+// New creates a new Balancer using the supplied Strategy and Dialers.
+func New(st Strategy, dialers ...*Dialer) *Balancer {
+	b := &Balancer{st: st}
+	b.Reset(dialers...)
+	return b
+}
 
-	bal := new(Balancer)
-
-	bal.dialers = make([]*dialer, 0, len(dialers))
+// Reset closes existing dialers and replaces them with new ones.
+func (b *Balancer) Reset(dialers ...*Dialer) {
+	var dls []*dialer
+	var tdls []*dialer
 
 	for _, d := range dialers {
 		dl := &dialer{Dialer: d}
-		dl.start()
-		bal.dialers = append(bal.dialers, dl)
+		dl.Start()
+		dls = append(dls, dl)
 
 		if dl.Trusted {
-			trustedDialersCount++
+			tdls = append(tdls, dl)
 		}
 	}
-
-	// Sort dialers by QOS (ascending) for later selection
-	sort.Sort(byQOSAscending(bal.dialers))
-
-	bal.trusted = make([]*dialer, 0, trustedDialersCount)
-
-	for _, d := range bal.dialers {
-		if d.Trusted {
-			bal.trusted = append(bal.trusted, d)
-		}
+	b.mu.Lock()
+	oldDialers := b.dialers
+	b.dialers = b.st(dls)
+	b.trusted = b.st(tdls)
+	heap.Init(&b.dialers)
+	heap.Init(&b.trusted)
+	b.mu.Unlock()
+	for _, d := range oldDialers.dialers {
+		d.Stop()
 	}
-
-	return bal
 }
 
-// AllAuthTokens() returns a list of all auth tokens for all dialers on this
-// balancer.
-func (b *Balancer) AllAuthTokens() []string {
-	result := make([]string, 0, len(b.dialers))
-	for i := 0; i < len(b.dialers); i++ {
-		result = append(result, b.dialers[i].AuthToken)
-	}
-	return result
+// OnRequest calls Dialer.OnRequest for every dialer in this balancer.
+func (b *Balancer) OnRequest(req *http.Request) {
+	b.mu.RLock()
+	b.dialers.onRequest(req)
+	b.mu.RUnlock()
 }
 
-func (b *Balancer) dialerAndConn(network, addr string, targetQOS int) (*Dialer, net.Conn, error) {
-	var dialers []*dialer
+// Dial dials (network, addr) using one of the currently active configured
+// Dialers. The Dialer to choose depends on the Strategy when creating the
+// balancer. Only Trusted Dialers are used to dial HTTP hosts.
+//
+// If a Dialer fails to connect, Dial will keep trying at most 3 times until it
+// either manages to connect, or runs out of dialers in which case it returns an
+// error.
+func (b *Balancer) Dial(network, addr string) (net.Conn, error) {
+	now := time.Now()
+	lastDialTime := time.Unix(0, atomic.SwapInt64(&b.lastDialTime, now.UnixNano()))
+	idlePeriod := now.Sub(lastDialTime)
+	if idlePeriod > recheckAfterIdleFor {
+		log.Debugf("Balancer idle for %s, start checking all dialers", idlePeriod)
+		b.checkDialers()
+	}
 
+	trustedOnly := false
 	_, port, _ := net.SplitHostPort(addr)
-
 	// We try to identify HTTP traffic (as opposed to HTTPS) by port and only
 	// send HTTP traffic to dialers marked as trusted.
 	if port == "" || port == "80" || port == "8080" {
-		dialers = b.trusted
-		if len(b.trusted) == 0 {
-			log.Error("No trusted dialers!")
-		}
-	} else {
-		dialers = b.dialers
+		trustedOnly = true
 	}
 
-	// To prevent dialing infinitely
-	attempts := 3
-	for i := 0; i < attempts; i++ {
-		if len(dialers) == 0 {
-			return nil, nil, fmt.Errorf("No dialers left to try on pass %v", i)
+	var lastDialer *dialer
+	for i := 0; i < dialAttempts; i++ {
+		d, pickErr := b.pickDialer(trustedOnly)
+		if pickErr != nil {
+			return nil, pickErr
 		}
-		var d *dialer
-		d, dialers = randomDialer(dialers, targetQOS)
-		if d == nil {
-			return nil, nil, fmt.Errorf("No dialers left on pass %v", i)
-		}
-		log.Debugf("Dialing %s://%s with %s", network, addr, d.Label)
-		conn, err := d.Dial(network, addr)
-
-		if err != nil {
-			log.Errorf("Unable to dial via %v to %s://%s: %v on pass %v...continuing", d.Label, network, addr, err, i)
-			d.onError(err)
+		if d == lastDialer {
+			log.Debugf("Skip dialing %s://%s with same dailer %s", network, addr, d.Label)
 			continue
 		}
-		log.Debugf("Successfully dialed via %v to %v://%v on pass %v", d.Label, network, addr, i)
-		return d.Dialer, conn, nil
+		lastDialer = d
+		log.Tracef("Dialing %s://%s with %s", network, addr, d.Label)
+		conn, err := d.dial(network, addr)
+		if err != nil {
+			log.Error(errors.New("Unable to dial via %v to %s://%s: %v on pass %v...continuing", d.Label, network, addr, err, i))
+			continue
+		}
+		log.Tracef("Successfully dialed via %v to %v://%v on pass %v", d.Label, network, addr, i)
+		return conn, nil
 	}
-	return nil, nil, fmt.Errorf("Still unable to dial %s://%s after %d attempts", network, addr, attempts)
-}
-
-// DialQOS dials network, addr using one of the currently active configured
-// Dialers. It attempts to use a Dialer whose QOS is higher than targetQOS, but
-// will use the highest QOS Dialer(s) if none meet targetQOS. When multiple
-// Dialers meet the targetQOS, load is distributed amongst them randomly based
-// on their relative Weights.
-//
-// If a Dialer fails to connect, Dial will keep falling back through the
-// remaining Dialers until it either manages to connect, or runs out of dialers
-// in which case it returns an error.
-func (b *Balancer) DialQOS(network, addr string, targetQOS int) (net.Conn, error) {
-	_, conn, err := b.dialerAndConn(network, addr, targetQOS)
-	return conn, err
-}
-
-// Dial is like DialQOS with a targetQOS of 0.
-func (b *Balancer) Dial(network, addr string) (net.Conn, error) {
-	return b.DialQOS(network, addr, 0)
+	return nil, fmt.Errorf("Still unable to dial %s://%s after %d attempts", network, addr, dialAttempts)
 }
 
 // Close closes this Balancer, stopping all background processing. You must call
 // Close to avoid leaking goroutines.
 func (b *Balancer) Close() {
+	b.mu.Lock()
 	oldDialers := b.dialers
-	b.dialers = nil
-	for _, d := range oldDialers {
-		d.stop()
+	b.dialers.dialers = nil
+	b.mu.Unlock()
+	for _, d := range oldDialers.dialers {
+		d.Stop()
 	}
 }
 
-func randomDialer(dialers []*dialer, targetQOS int) (chosen *dialer, others []*dialer) {
-	// Weed out inactive dialers and those with too low QOS
-	filtered, highestQOS := dialersMeetingQOS(dialers, targetQOS)
-
-	if len(filtered) == 0 {
-		log.Tracef("No dialers meet targetQOS %d, using those with highestQOS %d", targetQOS, highestQOS)
-		filtered, _ = dialersMeetingQOS(dialers, highestQOS)
+// Parallel check all dialers
+func (b *Balancer) checkDialers() {
+	b.mu.RLock()
+	for _, d := range b.dialers.dialers {
+		go d.check()
 	}
+	b.mu.RUnlock()
+}
 
-	if len(filtered) == 0 {
-		log.Debugf("No dialers meet targetQOS %d or highestQOS %d!", targetQOS, highestQOS)
-		return nil, nil
+func (b *Balancer) pickDialer(trustedOnly bool) (*dialer, error) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	dialers := &b.dialers
+	if trustedOnly {
+		dialers = &b.trusted
 	}
-
-	totalWeights := 0
-	for _, d := range filtered {
-		totalWeights += d.Weight
+	if dialers.Len() == 0 {
+		if trustedOnly {
+			return nil, fmt.Errorf("No trusted dialers")
+		}
+		return nil, fmt.Errorf("No dialers")
 	}
+	// heap will re-adjust based on new metrics
+	d := heap.Pop(dialers).(*dialer)
+	heap.Push(dialers, d)
+	return d, nil
+}
 
-	// Pick a random server using a target value between 0 and the total weights
-	t := rand.Intn(totalWeights)
-	aw := 0
-	for _, d := range filtered {
-		aw += d.Weight
-		if aw > t {
-			log.Tracef("Randomly selected dialer %s with weight %d, QOS %d", d.Label, d.Weight, d.QOS)
-			// Leave at lest one dialer to try in next round
-			if len(dialers) < 2 {
-				return d, dialers
-			} else {
-				return d, withoutDialer(dialers, d)
-			}
+type dialerHeap struct {
+	dialers  []*dialer
+	lessFunc func(i, j int) bool
+}
+
+func (s *dialerHeap) Len() int { return len(s.dialers) }
+
+func (s *dialerHeap) Swap(i, j int) {
+	s.dialers[i], s.dialers[j] = s.dialers[j], s.dialers[i]
+}
+
+func (s *dialerHeap) Less(i, j int) bool {
+	return s.lessFunc(i, j)
+}
+
+func (s *dialerHeap) Push(x interface{}) {
+	s.dialers = append(s.dialers, x.(*dialer))
+}
+
+func (s *dialerHeap) Pop() interface{} {
+	old := s.dialers
+	n := len(old)
+	x := old[n-1]
+	s.dialers = old[0 : n-1]
+	return x
+}
+
+func (s *dialerHeap) onRequest(req *http.Request) {
+	for _, d := range s.dialers {
+		if d.OnRequest != nil {
+			d.OnRequest(req)
 		}
 	}
-
-	// We should never reach this
-	panic("No dialer found!")
+	return
 }
-
-func dialersMeetingQOS(dialers []*dialer, targetQOS int) ([]*dialer, int) {
-	filtered := make([]*dialer, 0)
-	highestQOS := 0
-	for _, d := range dialers {
-		/* Don't exclude inactive dialer as it's the only one we have
-		if !d.isActive() {
-			log.Trace("Excluding inactive dialer")
-			continue
-		}
-		*/
-
-		highestQOS = d.QOS // don't need to compare since dialers are already sorted by QOS (ascending)
-		if d.QOS >= targetQOS {
-			filtered = append(filtered, d)
-		}
-	}
-
-	return filtered, highestQOS
-}
-
-func withoutDialer(dialers []*dialer, d *dialer) []*dialer {
-	for i, existing := range dialers {
-		if existing == d {
-			return without(dialers, i)
-		}
-	}
-	log.Tracef("Dialer not found for removal: %s", d)
-	return dialers
-}
-
-func without(dialers []*dialer, i int) []*dialer {
-	if len(dialers) == 1 {
-		return emptyDialers
-	} else if i == len(dialers)-1 {
-		return dialers[:i]
-	} else {
-		c := make([]*dialer, len(dialers)-1)
-		copy(c[:i], dialers[:i])
-		copy(c[i:], dialers[i+1:])
-		return c
-	}
-}
-
-// byQOSAscending implements sort.Interface for []*dialer based on the QOS
-// (ascending)
-type byQOSAscending []*dialer
-
-func (a byQOSAscending) Len() int           { return len(a) }
-func (a byQOSAscending) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a byQOSAscending) Less(i, j int) bool { return a[i].QOS < a[j].QOS }

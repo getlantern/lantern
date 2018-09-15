@@ -7,324 +7,102 @@ package go.interfaces;
 import go.Seq;
 
 public abstract class Interfaces {
+    static {
+        Seq.touch(); // for loading the native library
+        init();
+    }
+    
     private Interfaces() {} // uninstantiable
     
-    public static int Add3(I r) {
-        go.Seq _in = null;
-        go.Seq _out = null;
-        _out = new go.Seq();
-        int _result;
-        _in = new go.Seq();
-        _in.writeRef(r.ref());
-        Seq.send(DESCRIPTOR, CALL_Add3, _in, _out);
-        _result = _out.readInt32();
-        return _result;
-    }
+    // touch is called from other bound packages to initialize this package
+    public static void touch() {}
     
-    public static void CallErr(Error e) throws Exception {
-        go.Seq _in = null;
-        go.Seq _out = null;
-        _out = new go.Seq();
-        _in = new go.Seq();
-        _in.writeRef(e.ref());
-        Seq.send(DESCRIPTOR, CALL_CallErr, _in, _out);
-        String _err = _out.readString();
-        if (_err != null && !_err.isEmpty()) {
-            throw new Exception(_err);
-        }
-    }
+    private static native void init();
     
-    public interface Error extends go.Seq.Object {
+    public interface Error {
         public void Err() throws Exception;
-        
-        public static abstract class Stub implements Error {
-            static final String DESCRIPTOR = "go.interfaces.Error";
-            
-            private final go.Seq.Ref ref;
-            public Stub() {
-                ref = go.Seq.createRef(this);
-            }
-            
-            public go.Seq.Ref ref() { return ref; }
-            
-            public void call(int code, go.Seq in, go.Seq out) {
-                switch (code) {
-                case Proxy.CALL_Err: {
-                    try {
-                        this.Err();
-                        out.writeString(null);
-                    } catch (Exception e) {
-                        out.writeString(e.getMessage());
-                    }
-                    return;
-                }
-                default:
-                    throw new RuntimeException("unknown code: "+ code);
-                }
-            }
-        }
-        
-        static final class Proxy implements Error {
-            static final String DESCRIPTOR = Stub.DESCRIPTOR;
-        
-            private go.Seq.Ref ref;
-        
-            Proxy(go.Seq.Ref ref) { this.ref = ref; }
-        
-            public go.Seq.Ref ref() { return ref; }
-        
-            public void call(int code, go.Seq in, go.Seq out) {
-                throw new RuntimeException("cycle: cannot call proxy");
-            }
-        
-            public void Err() throws Exception {
-                go.Seq _in = null;
-                go.Seq _out = null;
-                _out = new go.Seq();
-                _in = new go.Seq();
-                _in.writeRef(ref);
-                Seq.send(DESCRIPTOR, CALL_Err, _in, _out);
-                String _err = _out.readString();
-                if (_err != null && !_err.isEmpty()) {
-                    throw new Exception(_err);
-                }
-            }
-            
-            static final int CALL_Err = 0x10a;
-        }
     }
     
-    public interface I extends go.Seq.Object {
+    private static final class proxyError extends Seq.Proxy implements Error {
+        proxyError(Seq.Ref ref) { super(ref); }
+    
+        public native void Err() throws Exception;
+    }
+    
+    public interface I {
         public int Rand();
-        
-        public static abstract class Stub implements I {
-            static final String DESCRIPTOR = "go.interfaces.I";
-            
-            private final go.Seq.Ref ref;
-            public Stub() {
-                ref = go.Seq.createRef(this);
-            }
-            
-            public go.Seq.Ref ref() { return ref; }
-            
-            public void call(int code, go.Seq in, go.Seq out) {
-                switch (code) {
-                case Proxy.CALL_Rand: {
-                    int result = this.Rand();
-                    out.writeInt32(result);
-                    return;
-                }
-                default:
-                    throw new RuntimeException("unknown code: "+ code);
-                }
-            }
-        }
-        
-        static final class Proxy implements I {
-            static final String DESCRIPTOR = Stub.DESCRIPTOR;
-        
-            private go.Seq.Ref ref;
-        
-            Proxy(go.Seq.Ref ref) { this.ref = ref; }
-        
-            public go.Seq.Ref ref() { return ref; }
-        
-            public void call(int code, go.Seq in, go.Seq out) {
-                throw new RuntimeException("cycle: cannot call proxy");
-            }
-        
-            public int Rand() {
-                go.Seq _in = null;
-                go.Seq _out = null;
-                _out = new go.Seq();
-                int _result;
-                _in = new go.Seq();
-                _in.writeRef(ref);
-                Seq.send(DESCRIPTOR, CALL_Rand, _in, _out);
-                _result = _out.readInt32();
-                return _result;
-            }
-            
-            static final int CALL_Rand = 0x10a;
-        }
     }
     
-    public interface I1 extends go.Seq.Object {
+    private static final class proxyI extends Seq.Proxy implements I {
+        proxyI(Seq.Ref ref) { super(ref); }
+    
+        public native int Rand();
+    }
+    
+    public interface I1 {
         public void J();
-        
-        static final class Proxy implements I1 {
-            static final String DESCRIPTOR = Stub.DESCRIPTOR;
-        
-            private go.Seq.Ref ref;
-        
-            Proxy(go.Seq.Ref ref) { this.ref = ref; }
-        
-            public go.Seq.Ref ref() { return ref; }
-        
-            public void call(int code, go.Seq in, go.Seq out) {
-                throw new RuntimeException("cycle: cannot call proxy");
-            }
-        
-            public void J() {
-                go.Seq _in = null;
-                go.Seq _out = null;
-                _in = new go.Seq();
-                _in.writeRef(ref);
-                Seq.send(DESCRIPTOR, CALL_J, _in, _out);
-            }
-            
-            static final int CALL_J = 0x10a;
-        }
     }
     
-    public interface I2 extends go.Seq.Object {
+    private static final class proxyI1 extends Seq.Proxy implements I1 {
+        proxyI1(Seq.Ref ref) { super(ref); }
+    
+        public native void J();
+    }
+    
+    public interface I2 {
         public void G();
-        
-        static final class Proxy implements I2 {
-            static final String DESCRIPTOR = Stub.DESCRIPTOR;
-        
-            private go.Seq.Ref ref;
-        
-            Proxy(go.Seq.Ref ref) { this.ref = ref; }
-        
-            public go.Seq.Ref ref() { return ref; }
-        
-            public void call(int code, go.Seq in, go.Seq out) {
-                throw new RuntimeException("cycle: cannot call proxy");
-            }
-        
-            public void G() {
-                go.Seq _in = null;
-                go.Seq _out = null;
-                _in = new go.Seq();
-                _in.writeRef(ref);
-                Seq.send(DESCRIPTOR, CALL_G, _in, _out);
-            }
-            
-            static final int CALL_G = 0x10a;
-        }
     }
     
-    public interface I3 extends go.Seq.Object {
+    private static final class proxyI2 extends Seq.Proxy implements I2 {
+        proxyI2(Seq.Ref ref) { super(ref); }
+    
+        public native void G();
+    }
+    
+    public interface I3 {
         public I1 F();
-        
-        public static abstract class Stub implements I3 {
-            static final String DESCRIPTOR = "go.interfaces.I3";
-            
-            private final go.Seq.Ref ref;
-            public Stub() {
-                ref = go.Seq.createRef(this);
-            }
-            
-            public go.Seq.Ref ref() { return ref; }
-            
-            public void call(int code, go.Seq in, go.Seq out) {
-                switch (code) {
-                case Proxy.CALL_F: {
-                    I1 result = this.F();
-                    out.writeRef(result.ref());
-                    return;
-                }
-                default:
-                    throw new RuntimeException("unknown code: "+ code);
-                }
-            }
-        }
-        
-        static final class Proxy implements I3 {
-            static final String DESCRIPTOR = Stub.DESCRIPTOR;
-        
-            private go.Seq.Ref ref;
-        
-            Proxy(go.Seq.Ref ref) { this.ref = ref; }
-        
-            public go.Seq.Ref ref() { return ref; }
-        
-            public void call(int code, go.Seq in, go.Seq out) {
-                throw new RuntimeException("cycle: cannot call proxy");
-            }
-        
-            public I1 F() {
-                go.Seq _in = null;
-                go.Seq _out = null;
-                _out = new go.Seq();
-                I1 _result;
-                _in = new go.Seq();
-                _in.writeRef(ref);
-                Seq.send(DESCRIPTOR, CALL_F, _in, _out);
-                _result = new I1.Proxy(_out.readRef());
-                return _result;
-            }
-            
-            static final int CALL_F = 0x10a;
-        }
     }
     
-    public static I Seven() {
-        go.Seq _in = null;
-        go.Seq _out = null;
-        _out = new go.Seq();
-        I _result;
-        Seq.send(DESCRIPTOR, CALL_Seven, _in, _out);
-        _result = new I.Proxy(_out.readRef());
-        return _result;
+    private static final class proxyI3 extends Seq.Proxy implements I3 {
+        proxyI3(Seq.Ref ref) { super(ref); }
+    
+        public native I1 F();
     }
     
-    public interface WithParam extends go.Seq.Object {
+    public interface LargerI extends I, SameI {
+        public void AnotherFunc();
+        public int Rand();
+    }
+    
+    private static final class proxyLargerI extends Seq.Proxy implements LargerI {
+        proxyLargerI(Seq.Ref ref) { super(ref); }
+    
+        public native void AnotherFunc();
+        public native int Rand();
+    }
+    
+    public interface SameI {
+        public int Rand();
+    }
+    
+    private static final class proxySameI extends Seq.Proxy implements SameI {
+        proxySameI(Seq.Ref ref) { super(ref); }
+    
+        public native int Rand();
+    }
+    
+    public interface WithParam {
         public void HasParam(boolean p0);
-        
-        public static abstract class Stub implements WithParam {
-            static final String DESCRIPTOR = "go.interfaces.WithParam";
-            
-            private final go.Seq.Ref ref;
-            public Stub() {
-                ref = go.Seq.createRef(this);
-            }
-            
-            public go.Seq.Ref ref() { return ref; }
-            
-            public void call(int code, go.Seq in, go.Seq out) {
-                switch (code) {
-                case Proxy.CALL_HasParam: {
-                    boolean param_p0;
-                    param_p0 = in.readBool();
-                    this.HasParam(param_p0);
-                    return;
-                }
-                default:
-                    throw new RuntimeException("unknown code: "+ code);
-                }
-            }
-        }
-        
-        static final class Proxy implements WithParam {
-            static final String DESCRIPTOR = Stub.DESCRIPTOR;
-        
-            private go.Seq.Ref ref;
-        
-            Proxy(go.Seq.Ref ref) { this.ref = ref; }
-        
-            public go.Seq.Ref ref() { return ref; }
-        
-            public void call(int code, go.Seq in, go.Seq out) {
-                throw new RuntimeException("cycle: cannot call proxy");
-            }
-        
-            public void HasParam(boolean p0) {
-                go.Seq _in = null;
-                go.Seq _out = null;
-                _in = new go.Seq();
-                _in.writeRef(ref);
-                _in.writeBool(p0);
-                Seq.send(DESCRIPTOR, CALL_HasParam, _in, _out);
-            }
-            
-            static final int CALL_HasParam = 0x10a;
-        }
     }
     
-    private static final int CALL_Add3 = 1;
-    private static final int CALL_CallErr = 2;
-    private static final int CALL_Seven = 3;
-    private static final String DESCRIPTOR = "interfaces";
+    private static final class proxyWithParam extends Seq.Proxy implements WithParam {
+        proxyWithParam(Seq.Ref ref) { super(ref); }
+    
+        public native void HasParam(boolean p0);
+    }
+    
+    
+    public static native int Add3(I r);
+    public static native void CallErr(Error e) throws Exception;
+    public static native I Seven();
 }

@@ -16,4 +16,15 @@
 - (BOOL)toJSON:(NSString**)ret0_ error:(NSError**)error;
 @end
 
+@class GoIssue12403Parsable;
+
+@interface GoIssue12403Parsable : NSObject <GoIssue12403Parsable> {
+}
+@property(strong, readonly) id _ref;
+
+- (id)initWithRef:(id)ref;
+- (NSString*)fromJSON:(NSString*)jstr;
+- (BOOL)toJSON:(NSString**)ret0_ error:(NSError**)error;
+@end
+
 #endif

@@ -21,9 +21,12 @@ func transformString(t transform.Transformer, s string) (string, error) {
 	return string(b), err
 }
 
-var testCases = []struct {
+type testCase struct {
 	utf8, other, otherEncoding string
-}{
+}
+
+// testCases for encoding and decoding.
+var testCases = []testCase{
 	{"Résumé", "Résumé", "utf8"},
 	{"Résumé", "R\xe9sum\xe9", "latin1"},
 	{"これは漢字です。", "S0\x8c0o0\"oW[g0Y0\x020", "UTF-16LE"},
@@ -64,10 +67,15 @@ var testCases = []struct {
 	{"ｲｳｴｵｶ", "\xb2\xb3\xb4\xb5\xb6", "SJIS"},
 	{"これは漢字です。", "\xa4\xb3\xa4\xec\xa4\u03f4\xc1\xbb\xfa\xa4\u01e4\xb9\xa1\xa3", "EUC-JP"},
 	{"Hello, 世界!", "Hello, \x1b$B@$3&\x1b(B!", "ISO-2022-JP"},
-	{"네이트 | 즐거움의 시작, 슈파스(Spaβ) NATE", "\xb3\xd7\xc0\xcc\xc6\xae | \xc1\xf1\xb0\xc5\xbf\xf2\xc0\xc7 \xbd\xc3\xc0\xdb, \xbd\xb4\xc6\xc4\xbd\xba(Spa\xa5\xe2) NATE", "EUC-KR"},
+	{"다음과 같은 조건을 따라야 합니다: 저작자표시", "\xb4\xd9\xc0\xbd\xb0\xfa \xb0\xb0\xc0\xba \xc1\xb6\xb0\xc7\xc0\xbb \xb5\xfb\xb6\xf3\xbe\xdf \xc7մϴ\xd9: \xc0\xfa\xc0\xdb\xc0\xdaǥ\xbd\xc3", "EUC-KR"},
 }
 
 func TestDecode(t *testing.T) {
+	testCases := append(testCases, []testCase{
+		// Replace multi-byte maximum subpart of ill-formed subsequence with
+		// single replacement character (WhatWG requirement).
+		{"Rés\ufffdumé", "Rés\xe1\x80umé", "utf8"},
+	}...)
 	for _, tc := range testCases {
 		e, _ := Lookup(tc.otherEncoding)
 		if e == nil {
@@ -86,6 +94,14 @@ func TestDecode(t *testing.T) {
 }
 
 func TestEncode(t *testing.T) {
+	testCases := append(testCases, []testCase{
+		// Use Go-style replacement.
+		{"Rés\xe1\x80umé", "Rés\ufffd\ufffdumé", "utf8"},
+		// U+0144 LATIN SMALL LETTER N WITH ACUTE not supported by encoding.
+		{"Gdańsk", "Gda&#324;sk", "ISO-8859-11"},
+		{"\ufffd", "&#65533;", "ISO-8859-11"},
+		{"a\xe1\x80b", "a&#65533;&#65533;b", "ISO-8859-11"},
+	}...)
 	for _, tc := range testCases {
 		e, _ := Lookup(tc.otherEncoding)
 		if e == nil {
@@ -99,21 +115,6 @@ func TestEncode(t *testing.T) {
 		}
 		if s != tc.other {
 			t.Errorf("%s: got %q, want %q", tc.otherEncoding, s, tc.other)
-		}
-	}
-}
-
-// TestNames verifies that you can pass an encoding's name to Lookup and get
-// the same encoding back (except for "replacement").
-func TestNames(t *testing.T) {
-	for _, e := range encodings {
-		if e.name == "replacement" {
-			continue
-		}
-		_, got := Lookup(e.name)
-		if got != e.name {
-			t.Errorf("got %q, want %q", got, e.name)
-			continue
 		}
 	}
 }

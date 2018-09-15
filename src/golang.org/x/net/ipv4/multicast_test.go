@@ -98,12 +98,10 @@ func TestPacketConnReadWriteMulticastUDP(t *testing.T) {
 				t.Fatalf("got %v; want %v", n, len(wb))
 			}
 			rb := make([]byte, 128)
-			if n, cm, _, err := p.ReadFrom(rb); err != nil {
+			if n, _, _, err := p.ReadFrom(rb); err != nil {
 				t.Fatal(err)
 			} else if !bytes.Equal(rb[:n], wb) {
 				t.Fatalf("got %v; want %v", rb[:n], wb)
-			} else {
-				t.Logf("rcvd cmsg: %v", cm)
 			}
 		}
 	}
@@ -198,10 +196,9 @@ func TestPacketConnReadWriteMulticastICMP(t *testing.T) {
 				t.Fatalf("got %v; want %v", n, len(wb))
 			}
 			rb := make([]byte, 128)
-			if n, cm, _, err := p.ReadFrom(rb); err != nil {
+			if n, _, _, err := p.ReadFrom(rb); err != nil {
 				t.Fatal(err)
 			} else {
-				t.Logf("rcvd cmsg: %v", cm)
 				m, err := icmp.ParseMessage(iana.ProtocolICMP, rb[:n])
 				if err != nil {
 					t.Fatal(err)
@@ -314,10 +311,9 @@ func TestRawConnReadWriteMulticastICMP(t *testing.T) {
 				t.Fatal(err)
 			}
 			rb := make([]byte, ipv4.HeaderLen+128)
-			if rh, b, cm, err := r.ReadFrom(rb); err != nil {
+			if rh, b, _, err := r.ReadFrom(rb); err != nil {
 				t.Fatal(err)
 			} else {
-				t.Logf("rcvd cmsg: %v", cm)
 				m, err := icmp.ParseMessage(iana.ProtocolICMP, b)
 				if err != nil {
 					t.Fatal(err)
