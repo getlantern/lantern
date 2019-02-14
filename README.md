@@ -1,3 +1,12 @@
+# 碰到问题了
+问题：
+```
+上蓝灯连不上服务器，偶尔连上了，
+海过一会又显示连接中，而且服务器地区经常改变。
+电而且即使连上后，什么网都上不了，不管国内还是国外的网站。
+信麻烦尽快解决一下，我专业版还有12个月。
+```
+
 # lantern [![Travis CI Status](https://travis-ci.org/getlantern/lantern.svg?branch=devel)](https://travis-ci.org/getlantern/lantern)&nbsp;[![Coverage Status](https://coveralls.io/repos/getlantern/lantern/badge.png?branch=devel)](https://coveralls.io/r/getlantern/lantern)&nbsp;[![Sourcegraph](https://sourcegraph.com/github.com/getlantern/lantern/-/badge.svg)](https://sourcegraph.com/github.com/getlantern/lantern?badge)
 
 ## [🔴蓝灯(Lantern)最新版下载点这里🔴](https://github.com/getlantern/download)
