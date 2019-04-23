@@ -4,15 +4,15 @@
 
 **If you're looking for Lantern installers, you can find all of them at the following links:**
 - [Android](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer.apk)
-- [Windows XP SP 3 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer.exe)
-- [OSX 10.8 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer.dmg)
+- [Windows 7 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer.exe)
+- [OSX 10.10 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer.dmg)
 - [Ubuntu 14.04 32 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-32-bit.deb)
 - [Ubuntu 14.04 64 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-64-bit.deb)
 
 **If you would like to give the latest but more UNSTABLE BETA versions a try, you can find all of them at the following links:**
 - [Android](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview.apk)
-- [Windows XP SP 3 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview.exe)
-- [OSX 10.8 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview.dmg)
+- [Windows 7 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview.exe)
+- [OSX 10.10 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview.dmg)
 - [Ubuntu 14.04 32 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview-32-bit.deb)
 - [Ubuntu 14.04 64 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview-64-bit.deb)
 
