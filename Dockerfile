@@ -12,6 +12,8 @@ RUN mkdir -p $SECRETS
 
 # Updating system.
 RUN yum install -y deltarpm && yum update -y && yum clean packages
+# Install yum overlay for rpm database bug
+RUN yum -y install yum-plugin-ovl
 
 # Requisites for building Go.
 RUN yum install -y git tar gzip curl hostname && yum clean packages
