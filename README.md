@@ -14,3 +14,10 @@ Ubuntu 14.04及以上[(32位系统)](https://raw.githubusercontent.com/getlanter
 Bookmark this page to download the latest versions in the future.
 
 **使用遇到问题，请阅读[蓝灯常见问题解决办法](https://github.com/getlantern/lantern/wiki) When you have a problem when using Lantern, please refer to [FAQ](https://github.com/getlantern/lantern/wiki)** 
+
+**If you would like to give the latest but more UNSTABLE BETA versions a try, you can find all of them at the following links:**
+- [Android](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview.apk)
+- [Windows 7 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview.exe)
+- [OSX 10.10 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview.dmg)
+- [Ubuntu 14.04 32 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview-32-bit.deb)
+- [Ubuntu 14.04 64 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview-64-bit.deb)
