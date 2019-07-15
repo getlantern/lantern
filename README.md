@@ -15,7 +15,7 @@ Bookmark this page to download the latest versions in the future.
 
 **使用遇到问题，请阅读[蓝灯常见问题解决办法](https://github.com/getlantern/lantern/wiki) When you have a problem when using Lantern, please refer to [FAQ](https://github.com/getlantern/lantern/wiki)** 
 
-**If you would like to give the latest but more UNSTABLE BETA versions a try, you can find all of them at the following links:** **如果希望试用最新测试版，请点击如下下载链接**
+**If you would like to give the latest but more UNSTABLE BETA versions a try, you can find all of them at the following links:** **如果希望试用最新测试版，请点击如下下载链接：**
 - [Android](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview.apk)
 - [Windows 7 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview.exe)
 - [OSX 10.10 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview.dmg)
