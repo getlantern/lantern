@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+  <string name="app_name">Lantern</string>
+  <string name="action_settings">Settings</string>
+  <string name="button_text">Mulai</string>
+  <string name="drawer_open">Buka Laci</string>
+  <string name="drawer_close">Tutup Laci</string>
+  <string name="default_fragment">Fragmen Bawaan</string>
+  <string name="receive_lantern">Dapatkan Lantern desktop lewat surel</string>
+  <string name="email_hint">Surel</string>
+  <string name="send_button">Send</string>
+  <string name="on_text">Hidup</string>
+  <string name="off_text">Mati</string>
+  <string name="desktop_option">Versi Desktop</string>
+  <string name="contact_option">Contact</string>
+  <string name="privacy_policy">Kebijakan Privasi</string>
+  <string name="share_option">Bagikan</string>
+  <string name="quit_option">Quit</string>
+  <string name="share_email_native"></string>
+  <string name="share_email_subject">Lantern Android</string>
+  <string name="share_email_gmail">Saya menggunakan Lantern untuk Android, dan saya telah melampirkan berkas APKnya!</string>
+  <string name="share_chooser_text">Bagikan Lantern Android</string>
+  <string name="success_email">Lantern Desktop telah dikirim ke kamu lewat surel!</string>
+  <string name="error_email">Terdapat masalah ketika mengirimkan Lantern Desktop kepada kamu. Harap coba lagi nanti.</string>
+  <string name="contact_email">team@getlantern.org</string>
+  <string name="contact_message">Bantu Saya</string>
+  <string name="contact_subject">Lantern Android</string>
+  <string name="install_update">Update</string>
+  <string name="language">Language</string>
+  <string name="item_preview_country">United States</string>
+</resources>

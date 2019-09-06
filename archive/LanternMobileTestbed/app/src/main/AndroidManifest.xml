@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="org.lantern.lanternmobiletestbed">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+
+        <activity
+            android:name=".Browse"
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <service
+            android:name="org.lantern.mobilesdk.service.LanternService"
+            android:exported="false"
+            android:process=":LanternService"
+            />
+
+        <!-- ************************** Begin PubSub Handling ********************************** -->
+        <!-- This receiver receives notifications from pubsub -->
+        <receiver android:name=".Subscribe">
+            <intent-filter>
+                <action android:name="org.lantern.pubsub.intent.SERVICE_STARTED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- This receiver receives notifications from pubsub -->
+        <receiver android:name=".Notify">
+            <intent-filter>
+                <action android:name="org.lantern.pubsub.intent.MESSAGE_RECEIVED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- This receiver allows us to subscribe to notifications upon boot so that we get them
+             even if the app hasn't been opened by the user. -->
+        <receiver android:name="org.lantern.pubsub.AutoStart">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- This service enables PubSub handling -->
+        <service
+            android:name="org.lantern.pubsub.PubSubService"
+            android:exported="true"
+            android:process=":PubSubService"
+            />
+        <!-- ************************** End PubSub Handling ************************************ -->
+    </application>
+
+</manifest>

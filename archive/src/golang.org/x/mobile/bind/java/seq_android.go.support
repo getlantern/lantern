@@ -1,0 +1,97 @@
+// Copyright 2016 The Go Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package gomobile_bind
+
+// Go support functions for bindings. This file is copied into the
+// generated gomobile_bind package and compiled along with the
+// generated binding files.
+
+//#cgo LDFLAGS: -llog
+//#include <jni.h>
+//#include <stdint.h>
+//#include <stdlib.h>
+//#include "seq.h"
+import "C"
+import (
+	"unsafe"
+
+	"golang.org/x/mobile/bind/seq"
+)
+
+// DestroyRef is called by Java to inform Go it is done with a reference.
+//export DestroyRef
+func DestroyRef(refnum C.int32_t) {
+	seq.Delete(int32(refnum))
+}
+
+// encodeString returns a copy of a Go string as a UTF16 encoded nstring.
+// The returned data is freed in go_seq_to_java_string.
+//
+// encodeString uses UTF16 as the intermediate format. Note that UTF8 is an obvious
+// alternative, but JNI only supports a C-safe variant of UTF8 (modified UTF8).
+func encodeString(s string) C.nstring {
+	n := C.int(len(s))
+	if n == 0 {
+		return C.nstring{}
+	}
+	// Allocate enough for the worst case estimate, every character is a surrogate pair
+	worstCaseLen := 4 * len(s)
+	utf16buf := C.malloc(C.size_t(worstCaseLen))
+	if utf16buf == nil {
+		panic("encodeString: malloc failed")
+	}
+	chars := (*[1<<30 - 1]uint16)(unsafe.Pointer(utf16buf))[:worstCaseLen/2 : worstCaseLen/2]
+	nchars := seq.UTF16Encode(s, chars)
+	return C.nstring{chars: unsafe.Pointer(utf16buf), len: C.jsize(nchars*2)}
+}
+
+// decodeString decodes a UTF8 encoded nstring to a Go string. The data
+// in str is freed after use.
+func decodeString(str C.nstring) string {
+	if str.chars == nil {
+		return ""
+	}
+	chars := (*[1<<31 - 1]byte)(str.chars)[:str.len]
+	s := string(chars)
+	C.free(str.chars)
+	return s
+}
+
+// fromSlice converts a slice to a jbyteArray cast as a nbyteslice. If cpy
+// is set, the returned slice is a copy to be free by go_seq_to_java_bytearray.
+func fromSlice(s []byte, cpy bool) C.nbyteslice {
+	if s == nil || len(s) == 0 {
+		return C.nbyteslice{}
+	}
+	var ptr *C.jbyte
+	n := C.jsize(len(s))
+	if cpy {
+		ptr = (*C.jbyte)(C.malloc(C.size_t(n)))
+		if ptr == nil {
+			panic("fromSlice: malloc failed")
+		}
+		copy((*[1<<31 - 1]byte)(unsafe.Pointer(ptr))[:n], s)
+	} else {
+		ptr = (*C.jbyte)(unsafe.Pointer(&s[0]))
+	}
+	return C.nbyteslice{ptr: unsafe.Pointer(ptr), len: n}
+}
+
+// toSlice takes a nbyteslice (jbyteArray) and returns a byte slice
+// with the data. If cpy is set, the slice contains a copy of the data and is
+// freed.
+func toSlice(s C.nbyteslice, cpy bool) []byte {
+	if s.ptr == nil || s.len == 0 {
+		return nil
+	}
+	var b []byte
+	if cpy {
+		b = C.GoBytes(s.ptr, C.int(s.len))
+		C.free(s.ptr)
+	} else {
+		b = (*[1<<31 - 1]byte)(unsafe.Pointer(s.ptr))[:s.len:s.len]
+	}
+	return b
+}

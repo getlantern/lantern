@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+  <string name="app_name">Lantern</string>
+  <string name="action_settings">Beállítások</string>
+  <string name="button_text">Indítás</string>
+  <string name="drawer_open">Fiók Nyitva</string>
+  <string name="drawer_close">Fiók Zárva</string>
+  <string name="default_fragment">Alapértelmezett Töredék</string>
+  <string name="receive_lantern">Lantern desktop átvétele emaillel</string>
+  <string name="email_hint">Email</string>
+  <string name="send_button">Küldés</string>
+  <string name="on_text">Be</string>
+  <string name="off_text">Ki</string>
+  <string name="desktop_option">Asztali Verzió</string>
+  <string name="contact_option">Kapcsolat</string>
+  <string name="privacy_policy">Adatvédelmi Irányelvek</string>
+  <string name="share_option">Megosztás</string>
+  <string name="quit_option">Kilépés</string>
+  <string name="share_email_native"></string>
+  <string name="share_email_subject">Lantern Android</string>
+  <string name="share_email_gmail">Használom a Lantern-t Androidra, és mellékeltem az APK fájlt!</string>
+  <string name="share_chooser_text">Lantern Android Megosztása</string>
+  <string name="success_email">A Lantern Desktop el lett emailezve neked!</string>
+  <string name="error_email">Probléma volt neked elküldeni a Lantern Desktop-ot. Kérlek próbáld újra később.</string>
+  <string name="contact_email">team@getlantern.org</string>
+  <string name="contact_message">Segíts Nekem</string>
+  <string name="contact_subject">Lantern Android</string>
+  <string name="not_now">Nem most</string>
+  <string name="install_update">Frissítés</string>
+  <string name="error_update">Hiba a Frissítés Letöltésekor</string>
+  <string name="language">Nyelv</string>
+  <string name="yes">Igen</string>
+  <string name="no">Nem</string>
+  <string name="item_preview_country">Amerikai Egyesült Államok</string>
+</resources>

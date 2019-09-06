@@ -1,0 +1,43 @@
+Changes in version 0.0.7 - UNRELEASED:
+ - Support configuring the obfs4 IAT parameter as the sole
+   ServerTransportOption on bridges, and correctly checkpoint the argument
+   to the state file.
+
+Changes in version 0.0.6 - 2016-01-25:
+ - Delay transport factory initialization till after logging has been
+   initialized.
+ - Add a meek client implementation (WARNING: Does not support using a
+   helper to normalize TLS signatures).  The brave people that want to use
+   it can do so as the "meek_lite" transport, with identical bridge lines
+   to the real meek-client.
+
+Changes in version 0.0.5 - 2015-04-15:
+ - Go vet/fmt fixes, and misc. code cleanups.  Patches by mvdan.
+ - Changed the go.net import path to the new location (golang.org/x/net).
+ - Added limited support for detecting if the parent process crashes.
+ - Support for tor feature #15335 (stdin based termination notification).
+ - Moved the leveled logging wrappers into common/log so they are usable
+   in transport implementations.
+ - Added a DEBUG log level.
+ - Use a bundled SOCKS 5 server instead of goptlib's SocksListener.
+
+Changes in version 0.0.4 - 2015-02-17
+ - Improve the runtime performance of the obfs4 handshake tests.
+ - Changed the go.crypto import path to the new location (golang.org/x/crypto).
+ - Added client only support for ScrambleSuit.
+
+Changes in version 0.0.3 - 2014-10-01
+ - Change the obfs4 bridge line format to use a "cert" argument instead of the
+   previous "node-id" and "public-key" arguments.  The "cert" consists of the
+   Base64 encoded concatenation of the node ID and public key, with the
+   trailing padding removed.  Old style separated bridge lines are still valid,
+   but the newer representation is slightly more compact.
+
+Changes in version 0.0.2 - 2014-09-26
+ - Write an example client bridge line suitable for use with the running obfs4
+   server instance to "obfs4_bridgeline.txt" for the convenience of bridge
+   operators.
+ - Add a man page for obfs4proxy.
+
+Changes in version 0.0.1 - 2014-09-03
+ - Initial release.

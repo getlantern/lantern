@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="pubsub-java-fat">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/sdk/libs/pubsub-java-fat.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

@@ -1,0 +1,8 @@
+[main]
+host = https://www.transifex.com
+
+[lantern.lantern-android]
+file_filter = app/src/main/res/values-<lang>/strings.xml
+source_lang = en_US
+type = ANDROID
+

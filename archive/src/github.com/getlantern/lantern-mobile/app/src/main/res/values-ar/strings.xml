@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+  <string name="app_name">لانتيرن</string>
+  <string name="action_settings">الاعدادات</string>
+  <string name="send_button">إرسال</string>
+  <string name="contact_option">إتصال</string>
+  <string name="share_option">مشاركة</string>
+  <string name="quit_option">خروج</string>
+  <string name="share_email_native"></string>
+  <string name="install_update">تحديث</string>
+  <string name="language">لغة</string>
+  <string name="yes">نعم</string>
+  <string name="no">لا</string>
+  <string name="item_preview_country">الولايات المتحدة</string>
+</resources>

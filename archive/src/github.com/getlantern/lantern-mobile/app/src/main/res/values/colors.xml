@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="edittext_color">#BDBDBD</color>
+    <color name="blue_color">#39C2D6</color>
+    <color name="accent_white">#ffffff</color>
+    <color name="black">#000000</color>
+    <color name="webview_header">#616262</color>
+    <color name="silver">#A5A5A5</color>
+</resources>

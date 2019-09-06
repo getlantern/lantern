@@ -1,0 +1,44 @@
+apply plugin: 'groovy'
+
+// Many android users still use JDK7.
+sourceCompatibility = '1.7'
+targetCompatibility = '1.7'
+
+buildscript {
+  repositories {
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
+  }
+  dependencies {
+    classpath "com.gradle.publish:plugin-publish-plugin:0.9.4"
+  }
+}
+
+apply plugin: "com.gradle.plugin-publish"
+repositories {
+  jcenter()
+}
+
+dependencies {
+  compile gradleApi()
+  compile localGroovy()
+
+  testCompile 'junit:junit:4.11'
+}
+
+version = '0.2.6'
+
+pluginBundle {
+  website = 'https://golang.org/x/mobile'
+  vcsUrl = 'https://golang.org/x/mobile'
+  description = 'Plugin for gomobile projects'
+
+  plugins {
+    gobindPlugin {
+      id = 'org.golang.mobile.bind'
+      displayName = 'gomobile bind plugin'
+      tags = ['golang', 'gomobile', 'gobind']
+    }
+  }
+}

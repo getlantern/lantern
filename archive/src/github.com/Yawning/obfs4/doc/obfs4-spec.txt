@@ -1,0 +1,339 @@
+   obfs4 (The obfourscator)
+
+0. Introduction
+
+   This is a protocol obfuscation layer for TCP protocols.  Its purpose is to
+   keep a third party from telling what protocol is in use based on message
+   contents.
+
+   Unlike obfs3, obfs4 attempts to provide authentication and data integrity,
+   though it is still designed primarily around providing a layer of
+   obfuscation for an existing authenticated protocol like SSH or TLS.
+
+   Like obfs3 and ScrambleSuit, the protocol has 2 phases: in the first phase
+   both parties establish keys.  In the second, the parties exchange
+   super-enciphered traffic.
+
+1. Motivation
+
+   ScrambleSuit [0] has been developed with the aim of improving the obfs3 [1]
+   protocol to provide resilience against active attackers and to disguise
+   flow signatures.
+ 
+   ScrambleSuit like the existing obfs3 protocol uses UniformDH for the
+   cryptographic handshake, which has severe performance implications due to
+   modular exponentiation being a expensive operation.  Additionally, the key
+   exchange is not authenticated so it is possible for active attackers to
+   mount a man in the middle attack assuming they know the client/bridge
+   shared secret (k_B).
+
+   obfs4 attempts to address these shortcomings by using an authenticated key
+   exchange mechanism based around the Tor Project's ntor handshake [2].
+   Obfuscation of the Curve25519 public keys transmitted over the wire is
+   accomplished via the Elligator 2 mapping [3].
+
+2. Threat Model
+
+   The threat model of obfs4 is the threat model of obfs2 [4] with added
+   goals/modifications:
+
+   obfs4 offers protection against passive Deep Packet Inspection machines
+   that expect the obfs4 protocol.  Such machines should not be able to verify
+   the existence of the obfs4 protocol without obtaining the server's Node ID
+   and identity public key.
+
+   obfs4 offers protection against active attackers attempting to probe for
+   obfs4 servers.  Such machines should not be able to verify the existence
+   of an obfs4 server without obtaining the server's Node ID and identity
+   public key.
+
+   obfs4 offers protection against active attackers that have obtained the
+   server's Node ID and identity public key.  Such machines should not be
+   able to impersonate the server without obtaining the server's identity
+   private key.
+
+   obfs4 offers protection against some non-content protocol fingerprints,
+   specifically the packet size, and optionally packet timing.
+
+   obfs4 provides integrity and confidentiality of the underlying traffic,
+   and authentication of the server.
+
+3. Notation and Terminology
+
+   All Curve25519 keys and Elligator 2 representatives are transmitted in the
+   Little Endian representation, for ease of integration with current
+   Curve25519 and Elligator 2 implementations.  All other numeric fields are
+   transmitted as Big Endian (Network byte order) values.
+
+   HMAC-SHA256-128(k, s) is the HMAC-SHA256 digest of s with k as the key,
+   truncated to 128 bits.
+
+   x | y is the concatenation of x and y.
+
+   A "byte" is an 8-bit octet.
+
+4. Key Establishment Phase
+
+   As part of the configuration, all obfs4 servers have a 20 byte Node ID
+   (NODEID) and Curve25519 keypair (B,b) that is used to establish that the
+   client knows about a given server and to authenticate the server.
+
+   The server distributes the public component of the identity key (B) and
+   NODEID to the client via an out-of-band mechanism.
+
+   Data sent as part of the handshake are padded to random lengths to attempt to
+   obfuscate the initial flow signature.  The constants used are as follows:
+
+     MaximumHandshakeLength = 8192
+
+       Maximum size of a handshake request or response, including padding.
+
+     MarkLength = 16
+
+       Length of M_C/M_S (A HMAC-SHA256-128 digest).
+
+     MACLength = 16
+
+       Length of MAC_C/MAC_S (A HMAC-SHA256-128 digest).
+
+     RepresentativeLength = 32
+
+       Length of a Elligator 2 representative of a Curve25519 public key.
+
+     AuthLength = 32
+
+       Length of the ntor AUTH tag (A HMAC-SHA256 digest).
+
+     InlineSeedFrameLength = 45
+
+       Length of a unpadded TYPE_PRNG_SEED frame.
+
+     ServerHandshakeLength = 96
+
+       The length of the non-padding data in a handshake response.
+
+       RepresentativeLength + AuthLength + MarkLength + MACLength
+
+     ServerMaxPadLength = 8096
+
+       The maximum amount of padding in a handshake response.
+
+       MaximumHandshakeLength - ServerHandshakeLength
+
+     ServerMinPadLength = InlineSeedFrameLength
+
+       The minimum amount of padding in a handshake response.
+
+     ClientHandshakeLength = 64
+
+       The length of the non-padding data in a handshake request.
+
+       RepresentativeLength + MarkLength + MACLength
+
+     ClientMinPadLength = 85
+
+       The minimum amount of padding in a handshake request.
+
+       (ServerHandshakeLength + ServerMinPadLength) - ClientHandshakeLength
+
+     ClientMaxPadLength = 8128
+
+       The maximum amount of padding in a handshake request.
+
+       MaximumHandshakeLength - ClientHandshakeLength
+
+   The amount of padding is chosen such that the smallest possible request and
+   response (requests and responses with the minimum amount of padding) are
+   equal in size.  For details on the InlineSeedFrameLength, see section 6.
+
+   The client handshake process is as follows.
+
+    1. The client generates an ephemeral Curve25519 keypair X,x and an
+       Elligator 2 representative of the public component X'.
+
+    2. The client sends a handshake request to the server where:
+
+           X' = Elligator 2 representative of X (32 bytes)
+           P_C = Random padding [ClientMinPadLength, ClientMaxPadLength] bytes
+           M_C = HMAC-SHA256-128(B | NODEID, X')
+           E = String representation of the number of hours since the UNIX
+               epoch
+           MAC_C = HMAC-SHA256-128(B | NODEID, X' | P_C | M_C | E)
+
+           clientRequest = X' | P_C | M_C | MAC_C
+
+    3. The client receives the serverResponse from the server.
+
+    4. The client derives M_S from the serverResponse and uses it to locate
+       MAC_S in the serverResponse.  It then calculates MAC_S and compares it
+       with the value received from the server.  If M_S cannot be found or the
+       MAC_S values do not match, the client MUST drop the connection.
+
+    5. The client derives Y from Y' via the Elligator 2 map in the reverse
+       direction.
+
+    6. The client completes the client side of the ntor handshake, deriving
+       the 256 bit shared secret (KEY_SEED), and the authentication tag
+       (AUTH).  The client then compares the derived value of AUTH with that
+       contained in the serverResponse.  If the AUTH values do not match, the
+       client MUST drop the connection.
+
+   The server handshake process is as follows.
+
+    1. The server receives the clientRequest from the client.
+
+    2. The server derives M_C from the clientRequest and uses it to locate
+       MAC_C in the clientRequest.  It then calculates MAC_C and compares it
+       with the value received from the client.  If M_C cannot be found or the
+       MAC_C values do not match, the server MUST stop processing data from
+       the client.
+
+       Implementations MUST derive and compare multiple values of MAC_C with
+       "E = {E - 1, E, E + 1}" to account for clock skew between the client
+       and server.
+
+       On the event of a failure at this point implementations SHOULD delay
+       dropping the TCP connection from the client by a random interval to
+       make active probing more difficult.
+
+    3. The server derives X from X' via the Elligator 2 map in the reverse
+       direction.
+
+    4. The server generates an ephemeral Curve25519 keypair Y, y and an
+       Elligator 2 representative of the public component Y'.
+
+    5. The server completes the server side of the ntor handshake, deriving
+       the 256 bit shared secret (KEY_SEED), and the authentication tag
+       (AUTH).
+
+    6. The server sends a handshake response to the client where:
+
+           Y' = Elligator 2 Representative of Y (32 bytes)
+           AUTH = The ntor authentication tag (32 bytes)
+           P_S = Random padding [ServerMinPadLength, ServerMaxPadLength] bytes
+           M_S = HMAC-SHA256-128(B | NODEID, Y')
+           E' = E from the client request
+           MAC_S = HMAC-SHA256-128(B | NODEID, Y' | AUTH | P_S | M_S | E')
+
+           serverResponse = Y' | AUTH | P_S | M_S | MAC_S
+
+   At the point that each side finishes the handshake, they have a 256 bit
+   shared secret KEY_SEED that is then extracted/expanded via the ntor KDF to
+   produce the 144 bytes of keying material used to encrypt/authenticate the
+   data.
+
+   The keying material is used as follows:
+
+     Bytes 000:031 - Server to Client 256 bit NaCl secretbox key.
+     Bytes 032:047 - Server to Client 128 bit NaCl secretbox nonce prefix.
+     Bytes 048:063 - Server to Client 128 bit SipHash-2-4 key.
+     Bytes 064:071 - Server to Client 64 bit SipHash-2-4 OFB IV.
+
+     Bytes 072:103 - Client to Server 256 bit NaCl secretbox key.
+     Bytes 104:119 - Client to Server NaCl secretbox nonce prefix.
+     Bytes 120:135 - Client to Server 128 bit SipHash-2-4 key.
+     Bytes 136:143 - Client to Server 64 bit SipHash-2-4 OFB IV.
+
+5. Data Transfer Phase
+
+   Once both sides have completed the handshake, they transfer application
+   data broken up into "packets", that are then encrypted and authenticated in
+   NaCl crypto_secretbox_xsalsa20poly1305 [5] "frames".
+
+   +------------+----------+--------+--------------+------------+------------+
+   |  2 bytes   | 16 bytes | 1 byte |   2 bytes    | (optional) | (optional) |
+   | Frame len. |   Tag    |  Type  | Payload len. |  Payload   |  Padding   |
+   +------------+----------+--------+--------------+------------+------------+
+    \_ Obfs.  _/ \___________ NaCl secretbox (Poly1305/XSalsa20) ___________/
+
+   The frame length refers to the length of the succeeding secretbox.  To
+   avoid transmitting identifiable length fields in stream, the frame length
+   is obfuscated by XORing a mask derived from SipHash-2-4 in OFB mode.
+
+      K = The SipHash-2-4 key from the KDF.
+      IV[0] = The SipHash-2-4 OFB from the KDF.
+      For each packet:
+        IV[n] = SipHash-2-4(K, IV[n-1])
+        Mask[n] = First 2 bytes of IV[n]
+        obfuscatedLength = length ^ Mask[n]
+
+   As the receiver has the SipHash-2-4 key and IV, decoding the length is done
+   via deriving the mask used to obfsucate the length and XORing the truncated
+   digest to obtain the length of the secretbox.
+
+   The payload length refers to the length of the payload portion of the frame
+   and does not include the padding.  It is possible for the payload length to
+   be 0 in which case all the remaining data is authenticated and decrypted,
+   but ignored.
+
+   The maximum allowed frame length is 1448 bytes, which allows up to 1427
+   bytes of useful payload to be transmitted per "frame".
+
+   The NaCl secretbox (Poly1305/XSalsa20) nonce format is:
+
+      uint8_t[24] prefix (Fixed)
+      uint64_t    counter (Big endian)
+
+   The counter is initialized to 1, and is incremented on each frame.  Since
+   the protocol is designed to be used over a reliable medium, the nonce is not
+   transmitted over the wire as both sides of the conversation know the prefix
+   and the initial counter value.  It is imperative that the counter does not
+   wrap, and sessions MUST terminate before 2^64 frames are sent.
+
+   If unsealing a secretbox ever fails (due to a Tag mismatch), implementations
+   MUST drop the connection.
+
+   The type field is used to denote the type of payload (if any) contained in
+   each packet.
+
+     TYPE_PAYLOAD (0x00):
+
+         The entire payload is to be treated as application data.
+
+     TYPE_PRNG_SEED (0x01):
+
+         The entire payload is to be treated as seeding material for the
+         protocol polymorphism PRNG.  The format is 24 bytes of seeding
+         material.
+
+   Implementations SHOULD ignore unknown packet types for the purposes of
+   forward compatibility, though each frame MUST still be authenticated and
+   decrypted.
+
+6. Protocol Polymorphism
+
+   Implementations MUST implement protocol polymorphism to obfuscate the obfs4
+   flow signature.  The implementation should follow that of ScrambleSuit (See
+   "ScrambleSuit Protocol Specification", section 4).  Like with ScrambleSuit,
+   implementations MAY omit inter-arrival time obfuscation as a performance
+   trade-off.
+
+   As an optimization, implementations MAY treat the TYPE_PRNG_SEED frame as
+   part of the serverResponse if it always sends the frame immediately
+   following the serverResponse body.  If implementations chose to do this,
+   the TYPE_PRNG_SEED frame MUST have 0 bytes of padding, and P_S MUST
+   be generated with a ServerMinPadLength of 0 (P_S consists of [0,8096]
+   bytes of random data).  The calculation of ClientMinPadLength however is
+   unchanged (P_C still consists of [85,8128] bytes of random data).
+ 
+7. References
+
+   [0]: https://gitweb.torproject.org/user/phw/scramblesuit.git/blob/HEAD:/doc/scramblesuit-spec.txt
+
+   [1]: https://gitweb.torproject.org/pluggable-transports/obfsproxy.git/blob/HEAD:/doc/obfs3/obfs3-protocol-spec.txt
+
+   [2]: https://gitweb.torproject.org/torspec.git/blob/HEAD:/proposals/216-ntor-handshake.txt
+
+   [3]: http://elligator.cr.yp.to/elligator-20130828.pdf
+
+   [4]: https://gitweb.torproject.org/pluggable-transports/obfsproxy.git/blob/HEAD:/doc/obfs2/obfs2-threat-model.txt
+
+   [5]: http://nacl.cr.yp.to/secretbox.html
+
+   [6]: https://131002.net/siphash/
+
+8. Acknowledgments
+
+   Much of the protocol and this specification document is derived from the
+   ScrambleSuit protocol and specification by Philipp Winter.
+

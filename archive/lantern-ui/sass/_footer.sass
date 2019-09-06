@@ -1,0 +1,86 @@
+#footer
+  +size(100%, false)
+  +position(false, 0, 0, 0)
+  +aboveModal
+  +centered
+  +small
+  +text-shadow($black 1px 1px 1px)
+  +box-sizing(border-box)
+  +opaqueOnMouseover
+  background: linear-gradient(rgba(0, 0, 0, .2), rgba(0, 0, 0, .75))
+  line-height: $baseFontSize * 1.5
+  padding: 12px 0
+  outline: 1px solid rgba(0, 0, 0, .5)
+  border-top: 1px solid rgba(255, 255, 255, .1)
+  color: $grayLight
+  z-index: auto
+
+#offline, #noproxies
+  +yellow-colored
+
+#still-connecting
+  +smaller
+  line-height: $baseFontSize
+
+#noproxies
+  +smaller
+  line-height: $baseFontSize
+
+$zindexGlobalNav: 1
+$globalNavBtnWidth: 49px
+$globalNavPosRight: 15px
+$globalNavPosBottom: 15px
+#global-nav
+  +position(false, $globalNavPosRight, $globalNavPosBottom)
+  z-index: $zindexGlobalNav
+  white-space: nowrap
+  button
+    width: $globalNavBtnWidth
+    padding: 10px
+    i.lsf-icon
+      color: $grayLight
+      line-height: 17px
+      font-size: 22px
+      vertical-align: middle
+  button.active, button.active:hover
+    z-index: $zindexModal + 1 !important
+    background-color: #fff
+    //outline: 5px auto -webkit-focus-ring-color
+    //outline-offset: -2px
+    i.lsf-icon
+      color: #000
+  button.ng-disabled
+    color: $grayDark
+  .lsf-icon:before
+    font-size: 130%
+
+$npendingIndexGiveMode: 1
+$npendingIndexGetMode: 2
+$npendingPosBottom: $globalNavPosBottom / 2
+$npendingOffsetRight: 36px
+#npending
+  z-index: $zindexGlobalNav + 1
+  body.getMode &
+    +position(false, 148px, 13px)
+    +position(false, $globalNavPosRight + ($npendingIndexGetMode * $globalNavBtnWidth) + $npendingOffsetRight, $npendingPosBottom)
+  body.giveMode &
+    +position(false, $globalNavPosRight + ($npendingIndexGiveMode * $globalNavBtnWidth) + $npendingOffsetRight, $npendingPosBottom)
+
+#appInfo
+  +smaller
+  +aboveModal
+  color: $white
+  a
+    color: $white
+  .update-available *
+    color: #f00
+
+$tryMobileBtnWidth: 49px
+$tryMobilePosRight: 15px
+$tryMobilePosBottom: 15px
+#try-mobile
+  +position(false, $tryMobilePosRight, $tryMobilePosBottom)
+  +smaller
+  +aboveModal
+  color: $pink
+

@@ -1,0 +1,223 @@
+# cloud.yaml contains the default configuration that's made available on the
+# internet.
+uiaddr: 127.0.0.1:16823
+bordareportinterval: 5m0s
+bordasamplepercentage: 0.1
+globalconfigpollinterval: 24h0m0s
+proxyconfigpollinterval: 1m0s
+logglysamplepercentage: 0.0001
+reportissueemail: report-issue@getlantern.org
+adsettings:
+  provider: admob
+  showads: true # global flag whether to show ads at all
+  mindaysshowads: 1
+  maxdaysshowads: 5
+  percentage: 0.1 # show ads % of the time
+  regionsenabled:
+      fa_IR: false
+  whitelist:
+    com.intuit.turbotax.mobile: true
+    com.ad20.power.cleaner.boost.app: true
+    com.fungames.sniper3d: true
+    com.ubercab: true
+    com.miniclip.eightballpool: true
+    com.smart.color.phone.emoji: true
+    com.squareup.cash: true
+    io.voodoo.dune: true
+    com.soundcloud.android: true
+    com.creditkarma.mobile: true
+    com.alien.shooter.galaxy.attack: true
+    com.igg.castleclash: true
+    com.offerup: true
+    com.king.candycrushsaga: true
+    in.sweatco.app: true
+    com.creative.sandbox.number.drawning.coloring: true
+    com.twitter.android: true
+    man.fit.workout.routine.muscle.training: true
+    com.europosit.pixelcoloring: true
+    com.zodiacastrology.dailyhoro: true
+    com.intermedia.hq: true
+    com.yahoo.mobile.client.android.mail: true
+    com.zynga.words3: true
+    com.google.android.apps.photos: true
+    best.apparel.compare.coupons.discounts.tracker.assistant.alert: true
+    com.ss.android.article.master: true
+    com.ebay.mobile: true
+    com.contextlogic.wish: true
+    com.fillword.cross.wordmind.en: true
+    com.paypal.android.p2pmobile: true
+    com.discord: true
+    com.spacegame.cashshow: true
+    co.happybits.marcopolo: true
+    com.playrix.homescapes: true
+    best.deals.compare.coupons.discounts.tracker.assistant.alert: true
+    com.google.android.ims: true
+    com.amazon.avod.thirdpartyclient: true
+    com.microsoft.office.word: true
+    com.google.android.apps.messaging: true
+    com.ketchapp.knifehit: true
+    com.zhiliaoapp.musically: true
+    com.google.android.play.games: true
+    abs.workout.fitness.tabata.hiit.stomach: true
+    com.pinterest: true
+    messenger.social.chat.apps: true
+    com.adobe.reader: true
+    com.epicactiononline.ffxv.ane: true
+    com.surpax.ledflashlight.panel: true
+    com.facebook.katana: true
+    com.supertapx.tappyshots: true
+    com.enflick.android.TextNow: true
+    com.imangi.templerun2: true
+    com.keyboard.font.theme.emoji: true
+    com.waze: true
+    com.groupon: true
+    com.turbochilli.rollingsky: true
+    air.com.hypah.io.slither: true
+    com.microsoft.launcher: true
+    com.pandora.android: true
+    com.sprint.care: true
+    air.com.nbcuni.com.nbcsports.liveextra: true
+    net.zedge.android: true
+    com.google.android.apps.translate: true
+    fm.castbox.audiobook.radio.podcast: true
+    com.hulu.plus: true
+    com.google.android.apps.youtube.music: true
+    com.youmusic.magictiles: true
+    com.turborilla.bmx2: true
+    com.robtopx.geometrydashsubzero: true
+    com.instagram.android: true
+    com.linkedin.android: true
+    kjv.bible.kingjamesbible: true
+    com.roblox.client: true
+    com.PupInteractive.TwistyRoad: true
+    com.immobilegames.skidstorm: true
+    com.venmo: true
+    com.microsoft.office.outlook: true
+    com.google.android.apps.docs.editors.docs: true
+    com.kiloo.subwaysurf: true
+    com.snapchat.android: true
+    org.hola: true
+    com.fortafygames.colorswitch: true
+    com.ketchapp.hop: true
+    com.loopnet.android: true
+    com.tumblr: true
+    tv.periscope.android: true
+    com.mcdonalds.app: true
+    com.ss.android.ugc.boom: true
+    com.clearchannel.iheartradio.controller: true
+    com.poshmark.app: true
+    messenger.messenger.messenger.messenger: true
+    com.ubercab.eats: true
+    com.bitstrips.imoji: true
+    com.crazylabs.sausage.run: true
+    com.smail.smile.security.clean.boost: true
+    com.netflix.mediaclient: true
+    com.ksmobile.launcher: true
+    com.ss.android.article.topbuzzvideo.en: true
+    com.apusapps.tools.booster: true
+    com.pixelberrystudios.choices: true
+    com.nintendo.zara: true
+    com.spotify.music: true
+    com.walmart.android: true
+    com.cootek.smartinputv5: true
+    com.netease.chiji: true
+    com.google.android.projection.gearhead: true
+    me.lyft.android: true
+    com.pof.android: true
+    com.psafe.msuite: true
+    com.tinder: true
+    com.facebook.orca: true
+    com.whatsapp: true
+    com.wordgame.words.connect: true
+    com.powerful.cleaner: true
+    net.peakgames.toonblast: true
+    com.abtnprojects.ambatana: true
+    com.amazon.mShop.android.shopping: true
+    com.audible.application: true
+    com.google.android.apps.wallpaper: true
+    com.tubitv: true
+    io.faceapp: true
+    com.ehawk.antivirus.applock.wifi: true
+    com.skype.android: true
+    com.google.android.youtube: true
+    messenger.social.chat.apps: true
+    com.bentostudio.ballsvsblocks: true
+    com.groupon: true
+    io.voodoo.stackjump: true
+    com.wordgame.words.connect: true
+    com.puzzlegame.puzzledom: true
+    com.icecraft.survival.winter.ice: true
+    com.zillow.android.zillowmap: true
+    com.ss.android.ugc.boom: true
+    com.halfbrick.fruitninjafree: true
+    sandbox.art.sandbox: true
+    com.playrix.fishdomdd.gplay: true
+    com.tocaboca.tocakitchen2: true
+    net.zedge.android: true
+    com.fgol.HungrySharkEvolution: true
+    com.pixonic.wwr: true
+    com.dd.doordash: true
+    com.imangi.templerun: true
+    com.imangi.templerun2: true
+    com.playdemic.golf.android: true
+    com.digitalattic.cpsalbertsons2018: true
+    com.familydollar: true
+    air.com.playtika.slotomania: true
+    com.crowdstar.covetHome: true
+    com.raftsurvival.raft: true
+    fm.castbox.audiobook.radio.podcast: true
+    com.smart.color.phone.emoji: true
+    com.ketchapp.dunkline: true
+    com.nintendo.zara: true
+    com.alibaba.aliexpresshd: true
+    com.game.mine.metalslug: true
+    com.skype.raider: true
+    com.tencent.mm: true
+    com.duolingo: true
+    com.gameloft.android.ANMP.GloftUOHM: true
+    com.gameinsight.gobandroid: true
+    com.mercariapp.mercari: true
+    tv.twitch.android.app: true
+    com.easybrain.sudoku.android: true
+    com.dts.freefireth: true
+    com.king.candycrushsodasaga: true
+    com.fitbit.FitbitMobile: true
+    com.crowdstar.covetfashion: true
+    com.vlm.knifedash: true
+    kik.android: true
+    com.booking: true
+  admob: # admob account settings
+     appid: ca-app-pub-2685698271254859~9283700921
+     adunitid: ca-app-pub-2685698271254859/3402151727
+     interstitialadid: ca-app-pub-2685698271254859/9922829329
+     videoadunitid: ca-app-pub-2685698271254859/1329046703
+  inmobi:
+      appid: 753e4b4bc037428589b4a467e3e456c2
+      interstitialadid: "1513684660857"
+      nativeadid: "1514449648554"
+client:
+  firetweetversion: "{{.ftVersion}}"
+  frontedservers: []
+  chainedservers: {{range .fallbacks}}
+    fallback-{{.ip}}:
+      addr: {{.ip}}
+      cert: "{{.cert}}"
+      authtoken: "{{.auth_token}}"
+      pipelined: true
+      weight: 1000000
+      qos: 10
+      trusted: true{{end}}
+  masqueradesets:
+    cloudflare: []
+    cloudfront: {{range .masquerades}}
+    - domain: {{.Domain}}
+      ipaddress: {{.IpAddress}}{{end}}
+proxiedsites:
+  delta:
+    additions: []
+    deletions: []
+  cloud:{{range $domain := .proxiedsites }}
+  - {{$domain}}{{end}}
+trustedcas: {{range .cas}}
+- commonname: "{{.CommonName}}"
+  cert: "{{.Cert}}"{{end}}

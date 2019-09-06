@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+  <string name="app_name">Lantern</string>
+  <string name="action_settings">Nastavenia</string>
+  <string name="send_button">Poslať</string>
+  <string name="contact_option">Kontakt</string>
+  <string name="quit_option">Ukončiť</string>
+  <string name="share_email_native"></string>
+  <string name="install_update">Aktualizácia</string>
+  <string name="language">Jazyk</string>
+  <string name="yes">Áno</string>
+  <string name="no">Nie</string>
+  <string name="item_preview_country">Spojené štáty</string>
+</resources>

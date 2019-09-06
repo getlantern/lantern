@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+  <string name="app_name">Lantern</string>
+  <string name="action_settings">Ayarlar</string>
+  <string name="send_button">Gönder</string>
+  <string name="contact_option">Bağlantı</string>
+  <string name="share_option">Paylaş</string>
+  <string name="quit_option">Çık</string>
+  <string name="share_email_native"></string>
+  <string name="not_now">Şimdi Değil</string>
+  <string name="install_update">Güncelle</string>
+  <string name="error_update">Güncelleme İndirilirken Hata Oluştu</string>
+  <string name="language">Dil</string>
+  <string name="yes">Evet</string>
+  <string name="no">Hayır</string>
+  <string name="item_preview_country">Birleşik Devletler</string>
+</resources>

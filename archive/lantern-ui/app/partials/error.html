@@ -1,0 +1,47 @@
+<div ng-controller="ErrorCtrl">
+  <div id="error" ng-show="showError && !showMobileAd && !showBookmarks">
+    <div id="oops">
+      {{ 'ERROR_OOPS' | translate }}
+    </div>
+    <div id="error-description">
+      {{ 'ERROR_DESCRIPTION' | translate }}
+    </div>
+    <div id="error-reasons">
+      <ol>
+        <li ng-show="!model.settings.systemProxy">
+          <div>{{ 'PROXY_OFF_ISSUE' | translate }}</div>
+          <div><a ng-click="toggleShowExtensionHelp()">{{ 'WHAT_DO' | translate }}</a></div>
+          <div class="error-action ng-hide" ng-show="showExtensionHelp">
+            {{ 'PROXY_OFF_HELP' | translate }}
+          </div>
+        </li>
+        <li>
+          <div>{{ 'BROWSER_EXTENSION_ISSUE' | translate }}</div>
+          <div><a ng-click="toggleShowExtensionHelp()">{{ 'WHAT_DO' | translate }}</a></div>
+          <div class="error-action ng-hide" ng-show="showExtensionHelp">
+            {{ 'EXTENSION_HELP' | translate }}
+          </div>
+        </li>
+        <li>
+          <div>{{ 'XUNLEI_ISSUE' | translate }}</div>
+          <div><a ng-click="toggleShowXunleiHelp()">{{ 'WHAT_DO' | translate }}</a></div>
+          <div class="error-action ng-hide" ng-show="showXunleiHelp">
+            {{ 'XUNLEI_HELP' | translate }}
+          </div>
+        </li>
+        <li>
+          <div>{{ 'ANOTHER_ISSUE' | translate }}</div>
+          <div><a ng-click="toggleShowConnectionHelp()">{{ 'WHAT_DO' | translate }}</a></div>
+
+          <div class="error-action ng-hide" ng-show="showConnectionHelp">
+            <div ng-bind-html="connectionHelpText"></div>
+            <div ng-show="isWindows()">C:\Users\USERNAME\AppData\Roaming\Lantern\logs</div>
+            <div ng-show="isWindowsXp()">C:\Documents and Settings\USERNAME\Application Data\Lantern\Logs</div>
+            <div ng-show="isMac()">/Users/YOUR_USER_NAME/Library/Logs/Lantern</div>
+            <div ng-show="isLinux()">~/.lantern/logs</div>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </div>
+</div>

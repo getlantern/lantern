@@ -1,0 +1,8 @@
+    fallback-template:
+      addr:
+      pipelined: false
+      cert: ""
+      authtoken:
+      weight: 1000000
+      qos: 10
+      trusted: true

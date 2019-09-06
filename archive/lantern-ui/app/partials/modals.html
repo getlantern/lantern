@@ -1,0 +1,128 @@
+<div ng-show="model.modal == MODAL.connecting" modal="show" class="modal">
+  <div class="modal-header">
+    <h3>{{ 'CONNECTING_TITLE' | translate }}</h3>
+  </div>
+  <div class="modal-body" id="connecting">
+    <!-- XXX progress bar would be nice here -->
+    <span ng-bind-html="model.connectivity.connectingStatus"></span>
+  </div>
+  <div class="modal-footer">
+  </div>
+</div>
+
+<div ng-show="currentModal == 'about'" class="modal">
+  <div class="modal-header about">
+    <div>{{ 'LANTERN' | translate }} {{ 'VERSION' | translate }} {{ model.version.installed | version:true:true }}</div>
+    <div ng-show="model.dev" class="smaller">Development version. lantern-ui v{{ lanternUiVersion }}.</div>
+    <div class="smaller">
+      <a ng-click="openExternal(EXTERNAL_URL.homepage)">{{ 'HOMEPAGE' | translate }}<sup><i class="icon-external-link"></i></sup></a> ·
+      <a ng-click="openExternal(valByLang(EXTERNAL_URL.userForums))">{{ 'FORUMS' | translate }}<sup><i class="icon-external-link"></i></sup></a> ·
+      <a ng-click="openExternal(EXTERNAL_URL.docs)">{{ 'DOCS' | translate }}<sup><i class="icon-external-link"></i></sup></a> ·
+      <a ng-click="openExternal(EXTERNAL_URL.developers)">{{ 'DEVELOPERS' | translate }}<sup><i class="icon-external-link"></i></sup></a>
+    </div>
+  </div>
+  <div class="modal-body" id="about" dir="ltr"><!-- XXX -->
+    <div>
+      <strong>{{ 'BETA' | translate }}</strong>
+      <textarea readonly rows="4">{{ 'BETA_STATEMENT' | translate }}</textarea><!-- XXX remove this when we graduate from beta -->
+      <p class="contributing-prompt">
+        {{ 'VIEW_THE' | translate }}
+        <a ng-click="openExternal(EXTERNAL_URL.getInvolved)">{{ 'GET_INVOLVED' | translate }}<sup><i class="icon-external-link"></i></sup></a>
+        {{ 'GET_INVOLVED_CONTINUED' | translate }}
+      </p>
+    </div>
+    <div>
+      <strong>{{ 'PRIVACY' | translate }}</strong>
+      <textarea readonly rows="3">{{ 'PRIVACY_STATEMENT' | translate }}</textarea>
+    </div>
+    <div>
+      <strong>{{ 'LICENSE' | translate }}</strong>
+      <textarea readonly rows="3">{{ 'LICENSE_STATEMENT' | translate }}</textarea>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-primary" focus-on="show" ng-click="closeModal()">{{ 'CLOSE' | translate }}</button>
+  </div>
+</div>
+
+<div ng-controller="SettingsCtrl" ng-show="wsConnected && currentModal == 'settings'" class="modal">
+  <div class="modal-header">
+    <h3>
+      <i class="lsf-icon lsf-gear"></i>
+      {{ 'SETTINGS' | translate }}
+    </h3>
+  </div>
+  <div class="modal-body" id="settings">
+    <dl class="dl-horizontal">
+      <dt>{{ 'APP' | translate }}</dt>
+      <dd id="app-settings">
+        <label class="checkbox">
+          <input type="checkbox" ng-model="model.settings.autoLaunch" focus-on="show" ng-change="changeAutoLaunch(model.settings.autoLaunch)">
+          {{ 'AUTO_START' | translate }}
+      </label>
+
+        <label class="checkbox">
+          <input type="checkbox" ng-model="model.settings.proxyAll" focus-on="show" ng-click="changeProxyAll(model.settings.proxyAll)">
+          {{ 'PROXY_ALL_TRAFFIC' | translate }}
+        </label>
+
+        <div>
+          <label class="checkbox">
+            <input type="checkbox" ng-model="model.settings.autoReport" ng-change="changeReporting(model.settings.autoReport)">
+            {{ 'AUTOREPORT_PROMPT' | translate }}
+            <a ng-click="openExternal(EXTERNAL_URL.autoReportPrivacy)" class="more-info">
+              {{ 'MORE_INFO' | translate }}<sup><i class="icon-external-link"></i></sup>
+            </a>
+          </label>
+        </div>
+
+        <div>
+          <label class="checkbox">
+            <input type="checkbox" ng-model="model.settings.systemProxy" ng-click="changeSystemProxy(model.settings.systemProxy)">
+            {{ 'MANAGE_SYSTEMPROXY' | translate }}
+          </label>
+        </div>
+
+		    <div id="autoreport-warning" ng-show="!model.settings.autoReport">
+          <i class="icon-exclamation-sign"></i>
+          {{ 'NO_AUTOREPORT_WARNING' | translate }}
+        </div>
+
+        <dt ng-if="model.localLanterns.length > 0">{{ 'LOCAL_LANTERNS' | translate }}</dt>
+        <dd ng-if="model.localLanterns.length > 0" id="local-lanterns-list">
+        <a ng-repeat="n in model.localLanterns" ng-click="openExternal(n)" class="local-lantern-link">
+            {{n}}<sup><i class="icon-external-link"></i></sup>
+        </a>
+        </dd>
+      </dd>
+    </dl>
+  </div>
+  <div class="modal-footer">
+    <button type="button" id="settings-close" class="btn btn-primary" ng-click="closeModal()">{{ 'CLOSE' | translate }}</button>
+  </div>
+</div>
+
+<div ng-controller="MobileAdCtrl" ng-show="currentModal == 'lantern-mobile-ad'" modal="show" class="modal">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close" ng-click="closeModal()"><span aria-hidden="true">&times;</span></button>
+    <h3>
+      {{ 'TELL_YOUR_FRIENDS' | translate }}
+    </h3>
+  </div>
+  <div class="modal-body" id="settings">
+    <div id="tell-your-friends">
+      <ul class="social-icons">
+        <li class="weibo"><a target="_blank" ng-click="trackSocialLink('weibo')" href="http://service.weibo.com/share/share.php?title={{ mobileShareContent() | urlencode }}">Weibo</a>Weibo</li>
+        <li class="twitter"><a target="_blank" ng-click="trackSocialLink('twitter')" href="https://twitter.com/intent/tweet?text={{ mobileShareContent() | urlencode }}">Twitter</a>Twitter</li>
+        <li class="facebook"><a target="_blank" ng-click="trackSocialLink('facebook')" href="http://www.facebook.com/sharer.php?u={{ mobileAppLink() | urlencode }}">Facebook</a>Facebook</li>
+      </ul>
+      <p class="download-link">
+        <b>{{ 'LANTERN_MOBILE_ANDROID_TEXT' | translate }}:</b> <a ng-click="trackLink('lantern-mobile-modal')" target="_blank" href="{{ mobileAppLink() }}">{{ mobileAppLink() }}</a>
+      </p>
+      <button ngclipboard data-clipboard-text="{{ mobileAppLink() }}" type="button" ng-attr-style="background: url({{mobileAdImgPath('copy-link.svg')}})" ng-click="copyAndroidMobileLink()">
+        Copy link
+      </button>
+      <p ng-show="linkCopied" id="link-copied">Link copied</p>
+    </div>
+  </div>
+</div>

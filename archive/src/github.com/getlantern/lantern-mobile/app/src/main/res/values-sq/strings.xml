@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+  <string name="app_name">Lantern</string>
+  <string name="action_settings">Settings</string>
+  <string name="send_button">Send</string>
+  <string name="contact_option">Contact</string>
+  <string name="quit_option">Quit</string>
+  <string name="share_email_native"></string>
+  <string name="install_update">Update</string>
+  <string name="language">Language</string>
+  <string name="item_preview_country">United States</string>
+</resources>

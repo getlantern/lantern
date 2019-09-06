@@ -1,0 +1,132 @@
+apply plugin: 'com.android.application'
+apply plugin: 'io.fabric'
+apply plugin: 'com.google.gms.google-services'
+apply plugin: 'android-apt'
+
+android {
+
+    useLibrary 'org.apache.http.legacy'
+
+    packagingOptions { 
+        exclude 'META-INF/LICENSE.txt' 
+        exclude 'META-INF/NOTICE.txt' 
+        exclude 'META-INF/maven/commons-io/commons-io/pom.xml'
+        exclude 'META-INF/maven/commons-io/commons-io/pom.properties'
+    }
+
+    compileSdkVersion rootProject.compileSdkVersion
+    buildToolsVersion rootProject.buildToolsVersion
+
+    // Use now as the user-visible version
+    def now = new java.util.Date()
+    def nowFormatted = new java.text.SimpleDateFormat("yyyyMMddHHmmss").format(now)
+
+    // Calculate the versionCode as the number of seconds from a fixed start
+    // point so that it's always increasing.
+    def start = new java.util.Date(2015, 1, 1).getTime()
+    def code = (int) ((now.getTime() - start) / 1000)
+
+    defaultConfig {
+	    minSdkVersion rootProject.minSdkVersion
+        targetSdkVersion rootProject.targetSdkVersion
+        applicationId "org.getlantern.lantern"
+        versionCode code
+        versionName "$project.lanternVersion ($project.lanternRevisionDate)"
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+
+    signingConfigs {
+        release {
+            if (project.hasProperty("KEYSTORE_FILE")) {
+                storeFile file(KEYSTORE_FILE)
+                keyAlias "Lantern Release Key"
+                storePassword KEYSTORE_PWD
+                keyPassword KEY_PWD
+            }
+        }
+    }
+
+    buildTypes {
+
+        debug {
+            minifyEnabled false
+        }
+
+        release {
+            minifyEnabled true
+            shrinkResources true
+            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro', '../../../../../MobileSDK/sdk/proguard-rules.pro'
+        }
+
+        applicationVariants.all { variant ->
+
+            variant.outputs.each { output ->
+                output.outputFile = new File(
+                    output.outputFile.parent,
+                    output.outputFile.name.replace("app-debug", "lantern-debug")
+                )
+            }
+        }
+    }
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+}
+
+repositories {
+    flatDir {
+        dirs 'libs'
+    }
+    jcenter()
+    mavenCentral()
+    mavenLocal()
+    maven { url "https://jitpack.io" }
+    maven { url 'https://maven.fabric.io/public' }
+}
+
+dependencies {
+    compile(name:'liblantern', ext:'aar')
+    compile(name:'android-sdk-debug', ext:'aar')
+    compile(name:'finestwebview', ext:'aar')
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile gplay
+    compile "com.android.support:support-v4:${supportLibVersion}"
+    compile "com.android.support:appcompat-v7:${supportLibVersion}"
+    compile "com.android.support:design:${supportLibVersion}"
+
+    // Mandrill dependencies
+    compile 'commons-io:commons-io:2.4'
+    // FinestWebView dependencies
+    compile 'com.nineoldandroids:library:2.4.0'
+    compile 'com.thefinestartist:utils:0.9.0'
+    compile 'com.google.guava:guava:19.0'
+
+    // SmartTabLayout dependencies
+    compile 'com.ogaclejapan.smarttablayout:library:1.6.0@aar'
+    compile 'com.ogaclejapan.smarttablayout:utils-v4:1.6.0@aar'
+
+    compile 'com.github.bumptech.glide:glide:3.7.0'
+
+    compile ('com.mandrillapp.wrapper.lutung:lutung:0.0.7') {
+        exclude group: 'org.apache.commons', module: 'commons-io'
+    }
+    compile('com.crashlytics.sdk.android:crashlytics:2.5.3@aar') {
+        transitive = true
+    }
+
+    apt "org.androidannotations:androidannotations:" + androidAnnotationsVersion
+    compile("org.androidannotations:androidannotations-api:" + androidAnnotationsAPIVersion )
+}
+
+apt {
+    arguments {
+        resourcePackageName android.defaultConfig.applicationId
+        androidManifestFile variant.outputs[0]?.processResources?.manifestFile
+    }
+}

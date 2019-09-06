@@ -1,0 +1,27 @@
+language: go
+go:
+- 1.6
+node_js:
+- 5.1
+git:
+    # Handle git submodules ourselves
+    submodules: false
+install:
+- sudo apt-get install make -y
+- go get golang.org/x/tools/cmd/cover
+- go get -v github.com/mattn/goveralls
+- curl https://s3-eu-west-1.amazonaws.com/uaalto/go1.6.2_lantern_20160503_linux_amd64.tar.gz | tar -xz -C /tmp && rm -Rf /usr/local/go && sudo mv /tmp/go /usr/local
+before_script:
+- npm install -g gulp-cli
+script:
+- openssl aes-256-cbc -K $encrypted_f217260732a9_key -iv $encrypted_f217260732a9_iv
+  -in envvars.bash.enc -out envvars.bash -d
+- GOROOT=/usr/local/go make test-and-cover
+after_success:
+- GOPATH=`pwd`:$GOPATH $HOME/gopath/bin/goveralls -coverprofile=profile.cov -service=travis-ci
+before_install:
+- echo -e "machine github.com\n  login $CI_USER_TOKEN" >> ~/.netrc
+- openssl aes-256-cbc -K $encrypted_f217260732a9_key -iv $encrypted_f217260732a9_iv
+  -in envvars.bash.enc -out envvars.bash -d
+- sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
+- git submodule update --init --recursive

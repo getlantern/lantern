@@ -1,0 +1,47 @@
+{
+  "name": "lantern-ui",
+  "version": "0.0.10-0",
+  "author": "_pants <_pants@getlantern.org>",
+  "description": "Web-based frontend, specifications, and mock backend for the Lantern user interface",
+  "contributors": [
+    {
+      "name": "_pants",
+      "email": "_pants@getlantern.org"
+    }
+  ],
+  "bin": {
+    "web-server": "./scripts/web-server.js"
+  },
+  "scripts": {
+    "predeploy": "rm -f ./package.json && cp ./app/data/package.json .",
+    "postdeploy": "rm -f ./package.json && ln -s ./app/data/package.json .",
+    "start": "scripts/web-server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/getlantern/lantern-ui"
+  },
+  "keywords": [
+    "lantern"
+  ],
+  "dependencies": {
+    "faye": "1.0.1"
+  },
+  "devDependencies": {
+    "del": "^1.1.1",
+    "gulp": "^3.9.0",
+    "gulp-jsmin": "^0.1.5",
+    "gulp-minify-css": "^1.1.6",
+    "gulp-minify-html": "^1.0.3",
+    "gulp-rev": "^5.0.1",
+    "gulp-uglify": "^1.2.0",
+    "gulp-usemin": "^0.3.11",
+    "es6-promise": "~3.1.2"
+  },
+  "analyze": false,
+  "license": "GPLv3",
+  "engines": {
+    "node": "0.10.x"
+  },
+  "subdomain": "lantern-ui"
+}

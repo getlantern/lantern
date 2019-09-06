@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+  <string name="app_name">Lantern</string>
+  <string name="action_settings">அமைப்புக்கள்</string>
+  <string name="send_button">அனுப்பு</string>
+  <string name="contact_option">தொடர்பு</string>
+  <string name="quit_option">மூடு</string>
+  <string name="share_email_native"></string>
+  <string name="install_update">மேம்படுத்து</string>
+  <string name="language">மொழி</string>
+  <string name="item_preview_country">ஐக்கிய அமெரிக்கா</string>
+</resources>

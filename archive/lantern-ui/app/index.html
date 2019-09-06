@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html ng-app="app">
+  <head>
+    <meta charset="utf-8">
+    <title>{{ 'LANTERN' | translate }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Lantern">
+    <meta name="author" content="Team Lantern">
+
+    <!-- uncomment this to use firebug lite
+    <script src="http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js"></script>
+    -->
+    <!-- build:css style/app.css -->
+    <link rel="stylesheet" href="_css/bookmark.css">
+    <link rel="stylesheet" href="_css/news.css">
+    <link rel="stylesheet" href="_css/error.css">
+    <link rel="stylesheet" href="bower_components/select2/select2.css">
+    <link rel="stylesheet" href="_css/app.css">
+    <link rel="stylesheet" href="angular-feed/styles/spinner.css">
+    <link rel="stylesheet" href="bower_components/normalize.css/normalize.css">
+    <!-- endbuild -->
+
+    <!-- build:js js/lib.js -->
+    <script src="bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="bower_components/jsonpatch/lib/jsonpatch.js"></script>
+    <script src="bower_components/lodash/lodash.min.js"></script>
+    <script src="bower_components/select2/select2.js"></script>
+    <script src="bower_components/cssesc/cssesc.js"></script>
+
+    <script src="bower_components/angular/angular.js"></script>
+    <script src="bower_components/angular-translate/angular-translate.min.js"></script>
+    <script src="bower_components/angular-translate-loader-static-files/angular-translate-loader-static-files.min.js"></script>
+    <script src="bower_components/angular-sanitize/angular-sanitize.js"></script>
+    <script src="bower_components/angular-resource/angular-resource.min.js"></script>
+    <script src="bower_components/angular-ui-utils/ui-utils.min.js"></script>
+    <script src="bower_components/angular-websocket/angular-websocket.min.js"></script>
+    <script src="bower_components/angular-local-storage/dist/angular-local-storage.min.js"></script>
+    <script src="lib/angular-ui-bootstrap-tpls.js"></script>
+
+    <script src="lib/mailer.js"></script>
+    <script src="lib/lz-string.min.js"></script>
+
+    <script src="bower_components/clipboard/dist/clipboard.min.js"></script>
+    <script src="bower_components/ngclipboard/src/ngclipboard.js"></script>
+    <script src='bower_components/ngInfiniteScroll/build/ng-infinite-scroll.min.js'></script>
+    <script src="bower_components/re-tree/re-tree.js"></script>
+    <script src="bower_components/ng-device-detector/ng-device-detector.js"></script>
+
+    <!-- we host a copy of google's analytics.js locally -->
+    <script src="lib/analytics.js"></script>
+    <!-- endbuild -->
+
+    <!-- build:js2 js/app.js -->
+    <script src="angular-feed/scripts/services.js"></script>
+    <script src="angular-feed/scripts/directives.js"></script>
+    <script src="angular-feed/scripts/feeds.js"></script>
+    <script src="angular-feed/scripts/templates.js"></script>
+    <script src="js/revision.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/constants.js"></script>
+    <script src="js/helpers.js"></script>
+    <script src="js/filters.js"></script>
+    <script src="js/services.js"></script>
+    <script src="js/controllers.js"></script>
+    <script src="js/directives.js"></script>
+    <!-- endbuild -->
+
+    <link rel="shortcut icon" href="img/favicon.ico">
+    <link rel="icon" type="image/png" href="img/favicon.png">
+  </head>
+<!--[if lt IE 10]>
+  <body>
+          <p class="chromeframe">You are using an outdated browser. Please <a href="https://www.google.com/chrome/">upgrade your browser</a> and try again.</p>
+  </body>
+<![endif]-->
+<!--[if (!IE)|(gte IE 10)]><!-->
+  <body ng-controller="RootCtrl" ng-cloak lang="{{ lang }}" dir="{{ langDirection }}">
+    <div id="fb-root"></div>
+    <div id="waiting" ng-show="!wsConnected">
+    <div ng-show="!backendIsGone">
+        <div>{{ 'WAITING_FOR_LANTERN' | translate }}</div>
+        <img src="img/spinner.gif">
+        </div>
+        <div ng-show="backendIsGone">
+        <div class="backend-gone">{{ 'LANTERN_GONE' | translate }}</div>
+    </div>
+    </div>
+    <div class="message">
+      <a href="https://getlantern.org" target="_blank">
+      <img id="logo" src="/img/ui-header-logo.svg"></a><br/><span ng-hide="(backendIsGone && !wsConnected) || showError">{{ 'WELCOME_TO_LANTERN_BLOCKED_SITES' | translate }}</span>
+    </div>
+    <div id="feedLink" ng-class="{subtle: showNews}">
+      <div>
+        <a ng-click="showNewsfeed()" ng-show="!showNews && !showError">
+          {{ 'SHOW_NEWSFEED' | translate }}
+        </a>
+        <a ng-click="hideNewsfeed()" ng-show="showNews || showError">
+          {{ 'HIDE_NEWSFEED' | translate }}
+        </a>
+      </div>
+    </div>
+
+    <div ng-include src="'partials/modals.html'"></div>
+    <div ng-include src="'partials/get-mobile.html'"></div>
+    <div ng-include src="'partials/bookmarks.html'"></div>
+    <div ng-include src="'partials/news.html'"></div>
+    <div ng-include src="'partials/footer.html'"></div>
+    <div ng-include src="'partials/developer.html'"></div>
+    <div ng-include src="'partials/error.html'"></div>
+  </body>
+<!--<![endif]-->
+</html>

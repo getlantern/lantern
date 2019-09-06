@@ -1,0 +1,26 @@
+<div ng-controller="FeedTabCtrl">
+  <tabset justified="true" type="pills">
+    <tab heading="{{ 'ALL_FEEDS' | translate }}" select="selectTab('all')" deselect="deselectTab('all')">
+      <div ng-init="feedsTitle = 'all';feedEntries = allEntries">
+        <div id="feeds-container-all" class="feeds-container" ng-controller="FeedCtrl">
+          <div ng-if="tabVisible()" class="infinite-scroll" infinite-scroll="addMoreItems()" infinite-scroll-container="'#feeds-container-all'">
+            <div ng-repeat="feed in entries" ng-if="!feed.excludeFromAll">
+              <div ng-include src="'partials/feed.html'"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </tab>
+    <tab ng-repeat="feeds in allFeeds" heading="{{feeds.title}}" select="selectTab(feeds.title)" deselect="deselectTab(feeds.title)">
+      <div ng-init="feedsTitle = feeds.title;feedEntries = feeds.entries">
+        <div ng-attr-id="feeds-container-{{$index}}" class="feeds-container" ng-controller="FeedCtrl">
+          <div ng-if="tabVisible()" class="infinite-scroll" infinite-scroll="addMoreItems()" infinite-scroll-container="containerId($index)">
+            <div ng-repeat="feed in entries">
+              <div ng-include src="'partials/feed.html'"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </tab>
+  </tabset>
+</div>

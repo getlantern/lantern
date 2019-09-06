@@ -1,0 +1,44 @@
+<resources>
+
+    <!-- Base application theme. -->
+<style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <!-- Customize your theme here. -->
+     <item name="colorPrimary">@android:color/black</item>
+    <item name="elevation">0dp</item>
+    <item name="android:elevation">0dp</item>
+    <item name="android:windowContentOverlay">@null</item>
+    <item name="drawerArrowStyle">@style/DrawerArrowStyle</item>
+</style>
+
+    <style name="DrawerArrowStyle" parent="@style/Widget.AppCompat.DrawerArrowToggle">
+        <item name="spinBars">true</item>
+        <item name="color">#39C2D6</item>
+    </style>
+
+    <style name="BackgroundImageView">
+        <item name="android:scaleType">fitCenter</item>
+        <item name="android:background">@drawable/desktop_graphic</item>
+    </style>
+
+
+    <style name="FinestWebViewTheme.Light" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/webview_header</item>
+        <item name="colorPrimaryDark">@color/black</item>
+        <item name="colorAccent">@color/accent_white</item>
+        <item name="android:textColorPrimary">@color/accent_white</item>
+        <item name="android:textColorSecondary">@color/silver</item>
+        <item name="windowActionModeOverlay">true</item>
+    </style>
+
+    <style name="MyCustomTabLayout" parent="Widget.Design.TabLayout">
+        <item name="tabTextAppearance">@style/MyCustomTabText</item>
+        <item name="tabSelectedTextColor">@color/blue_color</item>
+    </style>
+
+    <style name="MyCustomTabText" parent="TextAppearance.AppCompat.Button">
+        <item name="android:background">@color/accent_white</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/blue_color</item>
+    </style>
+
+</resources>

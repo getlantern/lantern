@@ -1,0 +1,128 @@
+<android.support.v4.widget.DrawerLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/drawerLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+    <ImageView
+        android:id="@+id/menuIcon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|left"
+        android:clickable="true"
+        android:adjustViewBounds="true"
+        android:paddingTop="15dp"
+        android:paddingLeft="15dp"
+        android:src="@drawable/menu" />
+    </RelativeLayout>
+
+    <!-- The main content view -->
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools" 
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent" 
+        android:paddingTop="18dp"
+        android:id="@+id/mainView"
+        android:gravity="center"
+        tools:context=".LanternMainActivity">
+
+        <ToggleButton
+            android:id="@+id/powerLantern"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"   
+            android:background="@drawable/toggle_switch"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="20dp"
+            android:checked="false"
+            android:text="ToggleButton"
+            android:textOff=""
+            android:textOn="" />
+
+		<include
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:layout_below="@+id/powerLantern"
+			layout="@layout/feed_view"/>
+    </RelativeLayout>
+
+    <!-- The navigation drawer -->
+    <RelativeLayout
+        android:layout_width="250dp"
+        android:layout_height="match_parent"
+        android:elevation="7.5dp"
+        android:background="@android:drawable/dialog_holo_light_frame"
+        android:id="@+id/drawerPane"
+        android:layout_gravity="start">
+
+        <!-- Profile Box -->
+        <RelativeLayout
+            android:id="@+id/profileBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/nav_background"
+            android:paddingTop="15dp"
+            android:paddingBottom="15dp"
+            android:padding="8dp" >
+            <ImageView
+                android:id="@+id/backBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:src="@drawable/abc_ic_ab_back_mtrl_am_alpha"/>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="52dp"
+                android:layout_centerVertical="true"
+                android:layout_marginLeft="15dp"
+                android:layout_toRightOf="@+id/backBtn"
+                android:orientation="vertical" >
+
+                <TextView
+                    android:id="@+id/userName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif"
+                    android:layout_marginTop="14dp"
+                    android:gravity="center_horizontal"
+                    android:paddingLeft="16dp"
+                    android:text="@string/app_name"
+                    android:textSize="15sp"
+                    android:textColor="#fff"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </RelativeLayout>
+        <!-- List of Actions (pages) -->
+        <ListView
+            android:id="@+id/drawerList"
+            android:layout_width="280dp"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/profileBox"
+            android:choiceMode="singleChoice"
+            android:background="#ffffffff" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true" >
+           <TextView
+                    android:id="@+id/versionNum"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="Roboto Regular"
+                    android:gravity="bottom|center_horizontal"
+                    android:paddingBottom="5dp"
+                    android:text=""
+                    android:textSize="10sp"
+                    android:textColor="#767676"
+                    android:textStyle="bold" />
+        </RelativeLayout>
+    </RelativeLayout>
+</android.support.v4.widget.DrawerLayout>

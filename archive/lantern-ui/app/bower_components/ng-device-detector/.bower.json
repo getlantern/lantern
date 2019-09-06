@@ -1,0 +1,39 @@
+{
+  "name": "ng-device-detector",
+  "version": "3.0.1",
+  "homepage": "https://github.com/srfrnk/ng-device-detector",
+  "authors": [
+    "srfrnk <srfrnk@gmail.com>"
+  ],
+  "description": "Angular module to detect OS / Browser / Device",
+  "main": "ng-device-detector.js",
+  "keywords": [
+    "angularjs",
+    "user-agent",
+    "browser",
+    "os",
+    "device",
+    "detection"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "re-tree": "^0.0.2"
+  },
+  "_release": "3.0.1",
+  "_resolution": {
+    "type": "version",
+    "tag": "v3.0.1",
+    "commit": "6f4338affd88678c2ae5e8bc35c87be688dbdea8"
+  },
+  "_source": "https://github.com/srfrnk/ng-device-detector.git",
+  "_target": "^3.0.1",
+  "_originalSource": "ng-device-detector",
+  "_direct": true
+}

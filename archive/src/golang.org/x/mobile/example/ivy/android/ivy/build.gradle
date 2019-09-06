@@ -1,0 +1,23 @@
+// 2015 The Go Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+plugins {
+    id "org.golang.mobile.bind" version "0.2.6"
+}
+
+gobind {
+    pkg = "robpike.io/ivy/mobile"
+
+    // -javapkg flag puts the generated java class into the specified package.
+    GOMOBILEFLAGS="-javapkg=org.golang.ivy"
+
+    /* Set the following variable(s):
+
+       GOPATH: where the Go package is; check `go env`. This is required.
+		ex) GOPATH="/my/go/path".
+
+       GO:     if the Go binary is not in the usual place, specify
+               the absolute path to the go binary.
+     */
+}

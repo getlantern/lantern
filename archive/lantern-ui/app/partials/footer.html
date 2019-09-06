@@ -1,0 +1,59 @@
+<div id="footer" class="noselect">
+  <div id="offline" ng-show="model.connectivity.internet == false">
+    {{ 'CONNECTION_OFFLINE' | translate }}
+  </div>
+  <div ng-show="model.connectivity.internet != false">
+    <div id="still-connecting" ng-show="inGetMode && model.connectivity.nproxies == -1">
+      {{ 'CONNECTING' | translate }}<br>
+    </div>
+    <div id="noproxies" ng-show="inGetMode && model.connectivity.nproxies == 0">
+      {{ 'NO_PROXIES' | translate }}<br>
+    </div>
+    <div id="stats" ng-show="!inGetMode || model.connectivity.nproxies > 0">
+      <div ng-show="statsLoaded">
+          {{ model.globalStats.gauges.userOnline == 1 ? "NUSERS_ONLINE_1" : "NUSERS_ONLINE_OTHER" | translate:'{value: model.globalStats.gauges.userOnline}'  }} ·
+          {{ "NUSERS_EVER_OTHER" | translate: '{value: model.glboalStats.gauges.userOnlineEver + model.globalStats.counters.userOnlineEverOld}' }} ·
+        {{ model.globalStats.counters.bytesGotten | prettyBytes }} {{ 'TRANSFERRED_GLOBALLY' | translate }}
+      </div>
+      <div ng-hide="statsLoaded">
+        <!-- just show an empty line instead of "Loading stats..." -->
+        &nbsp;
+        <!--
+        {{ 'LOADING_STATS' | translate }}
+        -->
+      </div>
+    </div>
+  </div>
+
+  <div id="share">
+      <div id="twitter"><a class="fa fa-twitter share-base share-twitter" onclick="window.open('https://twitter.com/intent/tweet?text=I\'m using Lantern -- an app for defeating Internet censorship https://getlantern.org via @getlantern')"><img src="/img/twitter_icon.png"></a></div>
+      <div id="fb"><a class="fa fa-facebook share-base share-facebook" onclick="window.open('https://www.facebook.com/dialog/share?app_id=1562164690714282&display=popup&href=https://getlantern.org&redirect_uri=https://getlantern.org')"><img src="/img/fb_icon.png"></a></div>
+      <span>{{ 'SHARE' | translate }}</span>
+  </div>
+
+  <div id="appInfo">
+      <span>{{ 'LANTERN' | translate }}</span>
+    <span class="version">{{ model.settings.version }}</span>
+    <span>
+      · <a ng-click="showModal('about')">{{ 'ABOUT' | translate }}</a>
+    </span>
+  </div>
+
+  <div id="try-mobile">
+    <a ng-click="setShowMobileAd()" ng-show="!showMobileAd">
+      {{ 'TRY_LANTERN_FOR_ANDROID' | translate }}
+    </a>
+    <a ng-click="hideMobileAd()" ng-show="showMobileAd">
+      {{ 'FEED_LINK' | translate }}
+    </a>
+  </div>
+  <div id="global-nav" class="btn-group" dir="ltr">
+    <button type="button" class="btn btn-large btn-inverse"
+      ng-click="showModal('settings')"
+      ng-class="{active: model.modal == MODAL.settings}"
+      tooltip="{{ 'SETTINGS' | translate }}">
+      <i class="lsf-icon lsf-gear"></i>
+    </button>
+  </div>
+  <div id="npending" ng-show="nfriendSuggestions" class="badge badge-important">{{ nfriendSuggestions | badgeCount }}</div>
+</div>

@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+  <string name="app_name">Lantern</string>
+  <string name="action_settings">Settings</string>
+  <string name="button_text">Mula</string>
+  <string name="email_hint">Email</string>
+  <string name="send_button">Send</string>
+  <string name="on_text">Buka</string>
+  <string name="off_text">Tutup</string>
+  <string name="desktop_option">Versi Desktop</string>
+  <string name="contact_option">Contact</string>
+  <string name="share_option">Kongsi</string>
+  <string name="quit_option">Quit</string>
+  <string name="share_email_native"></string>
+  <string name="contact_message">Tolong Saya</string>
+  <string name="install_update">Update</string>
+  <string name="language">Language</string>
+  <string name="item_preview_country">United States</string>
+</resources>

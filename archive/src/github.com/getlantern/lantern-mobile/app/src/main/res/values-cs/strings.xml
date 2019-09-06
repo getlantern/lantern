@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+  <string name="app_name">Lantern</string>
+  <string name="action_settings">Nastavení</string>
+  <string name="button_text">Start</string>
+  <string name="receive_lantern">Obdržet Lantern pro stolní počítač e-mailem</string>
+  <string name="email_hint">E-mail</string>
+  <string name="send_button">Poslat</string>
+  <string name="on_text">Zapnuto</string>
+  <string name="off_text">Vypnuto</string>
+  <string name="desktop_option">Verze pro stolní počítač</string>
+  <string name="contact_option">Kontakt</string>
+  <string name="privacy_policy">Politika soukromí</string>
+  <string name="share_option">Sdílet</string>
+  <string name="quit_option">Ukončit</string>
+  <string name="share_email_native"></string>
+  <string name="share_email_subject">Lantern pro Android</string>
+  <string name="share_chooser_text">Sdílet Lantern pro Android</string>
+  <string name="success_email">Lantern pro stolní počítač vám byl zaslán e-mailem!</string>
+  <string name="contact_email">team@getlantern.org</string>
+  <string name="contact_message">Nápověda</string>
+  <string name="contact_subject">Lantern pro Android</string>
+  <string name="install_update">Aktualizace</string>
+  <string name="language">Jazyk</string>
+  <string name="yes">Ano</string>
+  <string name="no">Ne</string>
+  <string name="item_preview_country">Spojené státy americké</string>
+</resources>

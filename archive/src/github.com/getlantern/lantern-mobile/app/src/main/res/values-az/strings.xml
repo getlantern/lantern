@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+  <string name="app_name">Lantern</string>
+  <string name="action_settings">Settings</string>
+  <string name="button_text">Başla</string>
+  <string name="drawer_open">Yeşik Açıldı</string>
+  <string name="drawer_close">Yeşik Bağlandı</string>
+  <string name="default_fragment">Başlanğıc Fraqment</string>
+  <string name="receive_lantern">Lantern desktopu emaillə əldə et</string>
+  <string name="email_hint">Email</string>
+  <string name="send_button">Göndər</string>
+  <string name="on_text">Açıq</string>
+  <string name="off_text">Qapalı</string>
+  <string name="desktop_option">Desktop Versiyası</string>
+  <string name="contact_option">Contact</string>
+  <string name="privacy_policy">Gizlilik Siyasəti</string>
+  <string name="share_option">Paylaş</string>
+  <string name="quit_option">Quit</string>
+  <string name="share_email_native"></string>
+  <string name="share_email_subject">Lantern Android</string>
+  <string name="share_email_gmail">Mən Android üçün Lantern istifadə edirəm və APK faylı yükləmişəm!</string>
+  <string name="share_chooser_text">Lantern Androidi Paylaş</string>
+  <string name="success_email">Lantern Desktop sənə emaillə göndərilib!</string>
+  <string name="error_email">Lantern Desktopu sənə göndərən zaman problem yarandı. Lütfən, birazdan yenidən sına.</string>
+  <string name="contact_email">team@getlantern.org</string>
+  <string name="contact_message">Mənə Kömək Et</string>
+  <string name="contact_subject">Lantern Android</string>
+  <string name="not_now">İndi Yox</string>
+  <string name="install_update">Yenilə</string>
+  <string name="error_update">Yenilənmənin Yüklənməsində Xəta</string>
+  <string name="language">Language</string>
+  <string name="yes">Bəli</string>
+  <string name="no">Xeyr</string>
+  <string name="item_preview_country">United States</string>
+</resources>

@@ -1,0 +1,46 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+  <string name="app_name">Lantern</string>
+  <string name="action_settings">Impostazioni</string>
+  <string name="button_text">Start</string>
+  <string name="email_hint">Emai</string>
+  <string name="send_button">Invia</string>
+  <string name="on_text">O</string>
+  <string name="off_text">Off</string>
+  <string name="desktop_option">Versione desktop</string>
+  <string name="contact_option">Contatti</string>
+  <string name="privacy_policy">Politica sulla privacy</string>
+  <string name="share_option">Condividi</string>
+  <string name="quit_option">Esci</string>
+  <string name="share_email_native"></string>
+  <string name="share_email_subject">Lantern Android</string>
+  <string name="share_chooser_text">Condividi Lantern Android</string>
+  <string name="contact_email">team@getlantern.org</string>
+  <string name="contact_message">Aiutam</string>
+  <string name="contact_subject">Lantern Android</string>
+  <string name="update_available">Nuova versione disponibile! Vuoi aggiornare?</string>
+  <string name="not_now">Non ora</string>
+  <string name="install_update">Aggiorna</string>
+  <string name="invite_friends_btn">Invita amici</string>
+  <string name="text_invite">Testo dell\'invito</string>
+  <string name="email_invite">Email dell\'invito</string>
+  <string name="your_referral_code">Codice referenziale</string>
+  <string name="get_code">Ottieni codice</string>
+  <string name="checkout">Paga</string>
+  <string name="cvc">CVC</string>
+  <string name="card_number">Numero della carta</string>
+  <string name="ok">Ok</string>
+  <string name="language">Lingua</string>
+  <string name="send_link">Invia link</string>
+  <string name="lantern_pro">Lantern Pro</string>
+  <string name="invite_friends_header">Invita amic</string>
+  <string name="get_pro_now">Ottieni il pro ora</string>
+  <string name="select">Seleziona</string>
+  <string name="twelve_months">per 12 mesi</string>
+  <string name="one_month">per 1 mese</string>
+  <string name="total">Totale:</string>
+  <string name="cancel_pro_account">Annulla account pro</string>
+  <string name="yes">Si</string>
+  <string name="no">No</string>
+  <string name="item_preview_country">Stati Uniti</string>
+</resources>

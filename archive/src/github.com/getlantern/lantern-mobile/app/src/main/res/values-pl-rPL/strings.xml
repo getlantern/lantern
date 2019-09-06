@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+  <string name="app_name">Lantern</string>
+  <string name="action_settings">Ustawienia</string>
+  <string name="send_button">Wyślij</string>
+  <string name="contact_option">Kontakt</string>
+  <string name="share_option">Podziel się</string>
+  <string name="quit_option">Wyjście</string>
+  <string name="share_email_native"></string>
+  <string name="not_now">Nie teraz</string>
+  <string name="install_update">Aktualizacja</string>
+  <string name="error_update">Błąd Pobierania Aktualizacji</string>
+  <string name="language">Język</string>
+  <string name="yes">Tak</string>
+  <string name="item_preview_country">Stany Zjednoczone</string>
+</resources>

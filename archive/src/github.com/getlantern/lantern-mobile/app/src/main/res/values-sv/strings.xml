@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+  <string name="app_name">Lantern</string>
+  <string name="action_settings">Inställningar</string>
+  <string name="send_button">Skicka</string>
+  <string name="contact_option">Kontakta</string>
+  <string name="share_option">Dela</string>
+  <string name="quit_option">Avsluta</string>
+  <string name="share_email_native"></string>
+  <string name="install_update">Uppdatera</string>
+  <string name="language">Språk</string>
+  <string name="no">Nej</string>
+  <string name="item_preview_country">Förenta Staterna</string>
+</resources>

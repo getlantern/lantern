@@ -1,0 +1,29 @@
+# cloud.yaml contains the default configuration that's made available on the
+# internet.
+client:
+  firetweetversion: "{{.ftVersion}}"
+  proxiedconnectports: [80, 443, 8080, 8443, 5222, 5223, 5224, 5228, 5229, 7300, 19305, 19306, 19307, 19308, 19309]
+  frontedservers: []
+  chainedservers: {{range .fallbacks}}
+    fallback-{{.ip}}:
+      addr: {{.ip}}
+      cert: "{{.cert}}"
+      authtoken: "{{.auth_token}}"
+      pipelined: true
+      weight: 1000000
+      qos: 10
+      trusted: true{{end}}
+  masqueradesets:
+    cloudflare: []
+    cloudfront: {{range .masquerades}}
+    - domain: {{.Domain}}
+      ipaddress: {{.IpAddress}}{{end}}
+proxiedsites:
+  delta:
+    additions: []
+    deletions: []
+  cloud:{{range $domain := .proxiedsites }}
+  - {{$domain}}{{end}}
+trustedcas: {{range .cas}}
+- commonname: "{{.CommonName}}"
+  cert: "{{.Cert}}"{{end}}

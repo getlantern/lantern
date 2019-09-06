@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+  <string name="app_name">Lantern</string>
+  <string name="quit_option">Afslut</string>
+  <string name="share_email_native"></string>
+  <string name="install_update">Opdater</string>
+  <string name="language">Sprog</string>
+</resources>

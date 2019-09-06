@@ -1,0 +1,17 @@
+package generated
+
+import (
+    "github.com/getlantern/flashlight/client"
+)
+
+var Fallbacks = map[string]*client.ChainedServerInfo{ {{range .fallbacks}}
+  "fallback-{{.ip}}": &client.ChainedServerInfo{
+    Addr:      "{{.ip}}",
+    Cert:      "{{.cert}}",
+    AuthToken: "{{.auth_token}}",
+    Pipelined: true,
+    Weight:    1000000,
+    QOS:       10,
+    Trusted:   true,
+  }, {{end}}
+}

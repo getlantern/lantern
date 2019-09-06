@@ -1,0 +1,14 @@
+<div id="mobile-ad" ng-show="showMobileAd">
+  <img ng-src="{{mobileAdImgPath('main.png')}}" id="mobile-ad-image" />
+  <img ng-src="{{mobileAdImgPath('get-the-app-text.svg')}}" id="get-the-app-via-email" />
+  <form ng-submit="sendMobileAppLink()">
+    <div class="mail-input-wrapper">
+      <span class="mail-input-icon">icon</span>
+      <input ng-model="model.email" name="email" type="text" class="{{ inputClass }}" placeholder="{{ inputPlaceholder }}" autocomplete="off" />
+    </div>
+    <button type="submit" ng-attr-style="background: url({{mobileAdImgPath('get-the-app.svg')}})">{{ 'LANTERN_MOBILE_GET_APP_VIA_EMAIL' | translate }}</button>
+  </form>
+  <p class="download-link">
+    <b>{{ 'LANTERN_MOBILE_ANDROID_TEXT' | translate }}:</b> <a target="_blank" ng-click="trackLink('lantern-mobile-ad')" href="{{ mobileAppLink() }}">{{ mobileAppLink() }}</a>
+  </p>
+</div>

@@ -1,0 +1,140 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+  <string name="app_name">Lantern</string>
+  <string name="action_settings">设置</string>
+  <string name="button_text">启动</string>
+  <string name="drawer_open">打开抽屉</string>
+  <string name="drawer_close">关上抽屉</string>
+  <string name="default_fragment">默认片段</string>
+  <string name="receive_lantern">通过电子邮件接收 Lantern 桌面版</string>
+  <string name="lantern_desktop">Lantern 桌面版</string>
+  <string name="email_hint">电子邮件</string>
+  <string name="send_button">发送</string>
+  <string name="send_sms">发送短信</string>
+  <string name="apply_promotion">应用优惠</string>
+  <string name="submit_code">提交代码</string>
+  <string name="on_text">开</string>
+  <string name="off_text">关</string>
+  <string name="on_desc">您现在可以访问
+已被屏蔽的网站和服务</string>
+  <string name="off_desc">点击按钮以访问
+已被屏蔽的网站和服务</string>
+  <string name="service_connected">Lantern 已连接</string>
+  <string name="desktop_option">桌面版</string>
+  <string name="contact_option">联系</string>
+  <string name="privacy_policy">隐私政策</string>
+  <string name="newsfeed_option">开启新闻流</string>
+  <string name="newsfeed_off_option">关闭新闻流</string>
+  <string name="share_option">分享</string>
+  <string name="quit_option">退出</string>
+  <string name="share_email_native"></string>
+  <string name="share_email_subject">Lantern 安卓版</string>
+  <string name="fatal_error">Lantern 遇到致命错误，已停止运行</string>
+  <string name="share_twitter">尝试 Lantern Android: https://bit.ly/lanternapk</string>
+  <string name="share_facebook">我在使用 Lantern 安卓版，下载地址: https://bit.ly/lanternapk</string>
+  <string name="share_email_gmail">我在使用 Lantern 安卓版；附件中有 APK 文件！</string>
+  <string name="share_sms">我在使用 Lantern 安卓版，下载地址: https://bit.ly/lanternapk</string>
+  <string name="share_chooser_text">分享 Lantern 安卓版</string>
+  <string name="success_email">Lantern 桌面版已通过电子邮件发给你！</string>
+  <string name="error_email">向你发送 Lantern 桌面版时遇到问题，请稍后再试。</string>
+  <string name="invalid_email">无效的邮箱地址</string>
+  <string name="no_internet_connection">没有可用的互联网连接！</string>
+  <string name="contact_email">team@getlantern.org</string>
+  <string name="contact_message">帮助我</string>
+  <string name="contact_subject">Lantern 安卓版</string>
+  <string name="update_available">Lantern 有新版本可用！您想升级它吗？</string>
+  <string name="not_now">暂不</string>
+  <string name="install_update">更新</string>
+  <string name="error_update">下载更新时出错</string>
+  <string name="manual_update">尝试从 &lt;a href=\"https://lantern-android.io\"&gt;here1&lt;/a&gt; 手动安装最新版本</string>
+  <string name="pro_welcome_text">欢迎使用 Lantern PRO！</string>
+  <string name="thanks_purchase">感谢您购买 Lantern PRO！</string>
+  <string name="start_inviting">\r\n开始邀请！</string>
+  <string name="invite_friends">请输入您的电子邮件地址以接收与您的好友分享时要用的代码，以便在好友注册时获得免费一个月的 PRO 版试用。</string>
+  <string name="invite_friends_welcome">邀请你的好友，你们双方将在他们登录时获得免费一个月的 Lantern PRO。</string>
+  <string name="invite_friends_btn">邀请好友</string>
+  <string name="continue_to_pro">继续使用 PRO</string>
+  <string name="continue_to_checkout">继续支付</string>
+  <string name="free_pro_credits">免费 Pro 积分</string>
+  <string name="get_pro_credits">免费获取 Pro 积分</string>
+  <string name="text_invite">文本邀请</string>
+  <string name="email_invite">邮件邀请</string>
+  <string name="your_referral_code">您的引荐代码</string>
+  <string name="get_code">获取代码</string>
+  <string name="get_code_text">请输入您的电子邮件地址以接收与您的好友分享时要用的代码，以便在好友注册时获得免费一个月的 PRO 版试用。</string>
+  <string name="enter_your_email">请输入您的电子邮件地址以接收引荐代码</string>
+  <string name="previous_code">如果您以前获取过引荐代码\r\n请务必使用相同的电子邮件地址。</string>
+  <string name="payment_plans">Lantern PRO 付费计划</string>
+  <string name="features_text">Lantern PRO 功能</string>
+  <string name="features_list"><![CDATA[ &#8226; 更快的连接速度<br/>&#8226; 更智能的服务器<br/>&#8226; 更强的抗封锁能力 ]]></string>
+  <string name="checkout">支付</string>
+  <string name="cvc">CVC</string>
+  <string name="card_number">卡号</string>
+  <string name="validation_errors">验证错误</string>
+  <string name="ok">OK</string>
+  <string name="progressMessage">正在处理请求…</string>
+  <string name="progressMessage2">正在检索引荐代码</string>
+  <string name="language">语言</string>
+  <string name="all_feeds">所有</string>
+  <string name="feed.error.oops">啊呀！</string>
+  <string name="feed.error.error_fetching_feed">获取订阅出错</string>
+  <string name="feed.error.try_again">请重试</string>
+  <string name="sign_in_pro">登录 PRO</string>
+  <string-array name="sign_in_list">
+    <item>请输入您的电子邮件地址，我们会给您发送一个链接</item>
+    <item>点击链接以授权此设备使用您的 Lantern Pro 账号</item>
+  </string-array>
+  <string-array name="enter_code_steps">
+    <item>请输入您通过短信（SMS）收到的验证码</item>
+    <item>没有收到验证码？请返回并重试</item>
+  </string-array>
+  <string-array name="authorize_device_list">
+    <item>如果您已有一个用在另一个设备的 Lantern PRO 账号，请输入您的手机号码以接收一个授权此设备的代码。</item>
+  </string-array>
+  <string-array name="verify_account_list">
+    <item>太好了！让我们首先验证您的账号吧。</item>
+    <item>请输入您的手机号码以通过短信（SMS）接收一个验证码。</item>
+    <item>Lantern 永远不会与第三方共享您的手机号码。</item>
+  </string-array>
+  <string-array name="referral_promotion_list">
+    <item>一个朋友向您介绍并给了一个引荐代码？输入该代码，您将在结算周期后获得免费一个月的 Lantern PRO 版试用</item>
+  </string-array>
+  <string name="send_link">发送链接</string>
+  <string name="click_button">点击按钮以访问
+已被屏蔽的网站和服务</string>
+  <string name="lantern_pro">Lantern Pro</string>
+  <string name="invite_friends_header">邀请好友</string>
+  <string name="pro_desc">更快，更智能，更稳定</string>
+  <string name="free_month">每次注册获得免费一个月的 Pro 版</string>
+  <string name="get_pro_now">立即获取 Pro</string>
+  <string name="inviting_friends">邀请朋友获取 Pro 积分</string>
+  <string name="select">选择</string>
+  <string name="twelve_months">12 个月</string>
+  <string name="one_month">1 个月</string>
+  <string name="best_value">超值！</string>
+  <string name="referral_code">引荐代码（可选）</string>
+  <string name="total">总计：</string>
+  <string name="pro_account_header">Pro 账户管理</string>
+  <string name="cancel_pro_account">取消 Pro 账户</string>
+  <string name="authorize_device_pro">授权设备使用 PRO</string>
+  <string name="account_verification">账号验证</string>
+  <string name="enter_verification_code">请输入验证码</string>
+  <string name="referral_promotion">引荐代码</string>
+  <string name="get_lantern_pro">获取 Lantern PRO</string>
+  <string name="upgrade_to_lantern_pro">升级到 Lantern Pro</string>
+  <string name="buy_pro_now">立即购买 Pro</string>
+  <string name="update_billing_info">更新账单信息</string>
+  <string name="pro_credits_text">邀请好友，获得 Pro</string>
+  <string name="invalid_verification_code">无效的验证码</string>
+  <string name="invalid_payment_method">无效的支付方法</string>
+  <string name="unable_to_cancel_account">无法取消 Pro 账号！请联系 team@getlantern.org</string>
+  <string name="earn_free_month">每名好友注册时，赚取一个月免费 Pro</string>
+  <string name="credits_applied">您的积分将在下一个结算周期被应用到您的账号。</string>
+  <string name="pro_invitation_subject">邀请其他人使用 Lantern Pro</string>
+  <string name="cancel_pro_confirmation">您确定？这个操作不能撤销。您可以在任何时间重新注册 Pro。</string>
+  <string name="yes">是的</string>
+  <string name="no">否</string>
+  <string name="item_image_contentDescription">国家旗帜</string>
+  <string name="item_preview_country">美国</string>
+  <string name="item_preview_dialCode">+1</string>
+</resources>

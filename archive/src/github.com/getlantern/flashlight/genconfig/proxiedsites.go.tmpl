@@ -1,0 +1,20 @@
+package generated
+
+import (
+	"encoding/base64"
+	"encoding/json"
+)
+
+var base64ProxiedSites = "{{ .proxiedsites | encode }}"
+var DefaultProxiedSites []string
+
+func init() {
+	raw, err := base64.StdEncoding.DecodeString(base64ProxiedSites)
+	if err != nil {
+		panic("Failed to decode proxied sites")
+	}
+	err = json.Unmarshal(raw, &DefaultProxiedSites)
+	if err != nil {
+		panic("Failed to unmarshal proxied sites")
+	}
+}

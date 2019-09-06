@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="org.getlantern.lantern" >
+
+    <uses-sdk android:minSdkVersion="15" android:targetSdkVersion="23"/>
+
+    <application
+        android:name="org.getlantern.lantern.LanternApp"
+        android:allowBackup="true"
+        android:persistent="true"
+        android:icon="@drawable/lantern_icon"
+        android:theme="@style/AppTheme"
+        android:label="@string/app_name">
+
+        <provider android:name="org.getlantern.lantern.model.ApkProvider" android:authorities="org.getlantern.lantern.gmailattach.provider" android:exported="false">
+        </provider>
+
+        <service android:name="com.google.android.gms.analytics.AnalyticsService"
+            android:enabled="true"
+            android:exported="false"/>
+
+
+        <activity
+            android:name="com.thefinestartist.finestwebview.FinestWebViewActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:screenOrientation="sensor"
+            android:theme="@style/FinestWebViewTheme.Light" />
+
+        <activity
+            android:name=".activity.LanternMainActivity_"
+            android:launchMode="singleTask"
+            android:configChanges="layoutDirection|locale"
+            android:screenOrientation="portrait"
+            android:label="@string/app_name">
+
+            <receiver android:name=".LanternReceiver">
+                <intent-filter>
+                    <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
+                    <action android:name="android.net.wifi.STATE_CHANGE"/>
+                    <action android:name="android.intent.action.ACTION_SHUTDOWN" />
+                    <action android:name="android.intent.action.SCREEN_ON" />
+                    <action android:name="android.intent.action.SCREEN_OFF" />
+                    <action android:name="android.intent.action.USER_PRESENT" />
+                </intent-filter>
+            </receiver>
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".activity.DesktopActivity_"
+            android:screenOrientation="portrait"
+            android:launchMode="singleTask"
+            android:configChanges="layoutDirection|locale"/>
+        <activity
+            android:name=".activity.UpdaterActivity"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/Theme.Blank.Dialog">
+            <intent-filter>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+
+        <service android:name=".vpn.Service"
+            android:permission="android.permission.BIND_VPN_SERVICE">
+            <intent-filter>
+                <action android:name="android.net.VpnService"/>
+            </intent-filter>
+        </service>
+
+        <meta-data
+            android:name="io.fabric.ApiKey"
+            android:value="284fdb6578c78a774887f65e1a34b9024732a29c" />
+    </application>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+</manifest>

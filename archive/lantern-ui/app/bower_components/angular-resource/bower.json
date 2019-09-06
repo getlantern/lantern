@@ -1,0 +1,9 @@
+{
+  "name": "angular-resource",
+  "version": "1.4.9",
+  "main": "./angular-resource.js",
+  "ignore": [],
+  "dependencies": {
+    "angular": "1.4.9"
+  }
+}
