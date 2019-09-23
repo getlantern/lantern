@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+  <string name="app_name">Lantern</string>
+  <string name="action_settings">设置</string>
+  <string name="button_text">启动</string>
+  <string name="drawer_open">开启抽屉</string>
+  <string name="drawer_close">关闭抽屉</string>
+  <string name="default_fragment">默认片段</string>
+  <string name="receive_lantern">通过电子邮件接收 Lantern 桌面版</string>
+  <string name="email_hint">电子邮件地址</string>
+  <string name="send_button">发送</string>
+  <string name="on_text">开启</string>
+  <string name="off_text">关闭</string>
+  <string name="desktop_option">桌面版</string>
+  <string name="contact_option">联系</string>
+  <string name="privacy_policy">隐私政策</string>
+  <string name="share_option">分享</string>
+  <string name="quit_option">退出</string>
+  <string name="share_email_native"></string>
+  <string name="share_email_subject">Lantern 安卓版</string>
+  <string name="share_twitter">下载 Lantern 安卓版: https://github.com/getlantern/lantern/blob/lantern-mobile/src/github.com/getlantern/lantern-mobile/latest-builds/lantern.apk</string>
+  <string name="share_facebook">我在使用 Lantern 安卓版；在这里下载: https://github.com/getlantern/lantern/blob/lantern-mobile/src/github.com/getlantern/lantern-mobile/latest-builds/lantern.apk</string>
+  <string name="share_email_gmail">我在使用 Lantern 安卓版；我已附加它的 APK 文件！</string>
+  <string name="share_sms">我在使用 Lantern 安卓版；在这里下载: https://github.com/getlantern/lantern/blob/lantern-mobile/src/github.com/getlantern/lantern-mobile/latest-builds/lantern.apk</string>
+  <string name="share_chooser_text">分享 Lantern 安卓版</string>
+  <string name="success_email">Lantern 桌面版已通过电子邮件发给你！</string>
+  <string name="error_email">给你分享 Lantern 桌面版时遇到问题。请稍后再试。</string>
+  <string name="contact_email">team@getlantern.org</string>
+  <string name="contact_message">帮助我</string>
+  <string name="contact_subject">Lantern 安卓版</string>
+</resources>

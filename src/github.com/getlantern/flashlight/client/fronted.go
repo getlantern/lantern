@@ -1,12 +1,5 @@
 package client
 
-import (
-	"fmt"
-
-	"github.com/getlantern/balancer"
-	"github.com/getlantern/fronted"
-)
-
 // FrontedServerInfo captures configuration information for an upstream domain-
 // fronted server.
 type FrontedServerInfo struct {
@@ -53,45 +46,4 @@ type FrontedServerInfo struct {
 	// Trusted: Determines if a host can be trusted with unencrypted HTTP
 	// traffic.
 	Trusted bool
-}
-
-// dialer creates a dialer for domain fronting and and balanced dialer that can
-// be used to dial to arbitrary addresses.
-func (s *FrontedServerInfo) dialer(masqueradeSets map[string][]*fronted.Masquerade) (fronted.Dialer, *balancer.Dialer) {
-	fd := fronted.NewDialer(fronted.Config{
-		Host:               s.Host,
-		Port:               s.Port,
-		PoolSize:           s.PoolSize,
-		InsecureSkipVerify: s.InsecureSkipVerify,
-		BufferRequests:     s.BufferRequests,
-		DialTimeoutMillis:  s.DialTimeoutMillis,
-		RedialAttempts:     s.RedialAttempts,
-		Masquerades:        masqueradeSets[s.MasqueradeSet],
-		MaxMasquerades:     s.MaxMasquerades,
-	})
-
-	var masqueradeQualifier string
-	if s.MasqueradeSet != "" {
-		masqueradeQualifier = fmt.Sprintf(" using masquerade set %s", s.MasqueradeSet)
-	}
-
-	var trusted string
-	if s.Trusted {
-		trusted = "(trusted) "
-	}
-
-	bal := &balancer.Dialer{
-		Label:   fmt.Sprintf("%sfronted proxy at %s:%d%s", trusted, s.Host, s.Port, masqueradeQualifier),
-		Weight:  s.Weight,
-		QOS:     s.QOS,
-		Dial:    fd.Dial,
-		Trusted: s.Trusted,
-		OnClose: func() {
-			if err := fd.Close(); err != nil {
-				log.Debugf("Unable to close fronted dialer: %q", err)
-			}
-		},
-	}
-
-	return fd, bal
 }

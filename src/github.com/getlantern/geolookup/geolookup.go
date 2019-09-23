@@ -3,7 +3,6 @@ package geolookup
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 
 	"github.com/getlantern/golog"
@@ -141,12 +140,7 @@ func LookupIPWithEndpoint(endpoint string, ipAddr string, fetcher HTTPFetcher) (
 	}()
 
 	if resp.StatusCode != http.StatusOK {
-		body := "body unreadable"
-		b, err := ioutil.ReadAll(resp.Body)
-		if err == nil {
-			body = string(b)
-		}
-		return nil, "", fmt.Errorf("Unexpected response status %d: %v", resp.StatusCode, body)
+		return nil, "", fmt.Errorf("Unexpected response status %d", resp.StatusCode)
 	}
 
 	ip := resp.Header.Get("X-Reflected-Ip")

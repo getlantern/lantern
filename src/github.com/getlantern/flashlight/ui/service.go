@@ -46,7 +46,6 @@ func (s *Service) write() {
 }
 
 func Register(t string, newMessage func() interface{}, helloFn helloFnType) (*Service, error) {
-
 	log.Tracef("Registering UI service %s", t)
 	mu.Lock()
 

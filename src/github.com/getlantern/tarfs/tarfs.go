@@ -78,6 +78,7 @@ func New(tarData []byte, local string) (*FileSystem, error) {
 		// we can avoid copying.
 		end := br.pos + hdr.Size
 		fs.files[hdr.Name] = tarData[br.pos:end]
+		log.Tracef("Loaded tarfs file %v", hdr.Name)
 
 		// Advance to the next tar header. Note that we round up to the next
 		// multiple of 512 because tar files contain 512 byte blocks that are 0
@@ -152,8 +153,7 @@ func (fs *FileSystem) get(p string, ignoreempty bool) ([]byte, error) {
 	}
 	b, found := fs.files[p]
 	if !found {
-		err := fmt.Errorf("%v not found", p)
-		return nil, err
+		return nil, os.ErrNotExist
 	}
 	log.Tracef("Using embedded resource %v", p)
 	return b, nil

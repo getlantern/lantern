@@ -21,6 +21,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name="org.lantern.mobilesdk.service.LanternService"
+            android:exported="false"
+            android:process=":LanternService"
+            />
     </application>
 
 </manifest>

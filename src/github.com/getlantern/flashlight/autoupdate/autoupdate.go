@@ -13,13 +13,10 @@ import (
 	"github.com/getlantern/golog"
 )
 
-const (
-	serviceURL = "https://update.getlantern.org/update"
-)
-
 var (
-	PublicKey []byte
-	Version   string
+	updateServerURL = config.DefaultUpdateServerURL
+	PublicKey       []byte
+	Version         string
 )
 
 var (
@@ -36,6 +33,10 @@ var (
 
 func Configure(cfg *config.Config) {
 	cfgMutex.Lock()
+
+	if cfg.UpdateServerURL != "" {
+		updateServerURL = cfg.UpdateServerURL
+	}
 
 	go func() {
 		enableAutoupdate(cfg)
@@ -79,7 +80,7 @@ func applyNext() {
 	if httpClient != nil {
 		err := autoupdate.ApplyNext(&autoupdate.Config{
 			CurrentVersion: Version,
-			URL:            serviceURL,
+			URL:            updateServerURL + "/update",
 			PublicKey:      PublicKey,
 			HTTPClient:     httpClient,
 		})

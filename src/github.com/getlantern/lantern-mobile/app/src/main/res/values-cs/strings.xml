@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+  <string name="app_name">Lantern</string>
+  <string name="action_settings">Nastavení</string>
+  <string name="send_button">Poslat</string>
+  <string name="contact_option">Kontakt</string>
+  <string name="share_option">Sdílet</string>
+  <string name="quit_option">Ukončit</string>
+  <string name="share_email_native"></string>
+</resources>

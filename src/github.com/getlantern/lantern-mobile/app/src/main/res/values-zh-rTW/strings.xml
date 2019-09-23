@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+  <string name="app_name">Lantern</string>
+  <string name="action_settings">設定</string>
+  <string name="send_button">傳送</string>
+  <string name="contact_option">聯絡</string>
+  <string name="quit_option">退出</string>
+  <string name="share_email_native"></string>
+</resources>

@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+  <string name="app_name">Φανάρι</string>
+  <string name="action_settings">Ρυθμίσεις</string>
+  <string name="send_button">Αποστολή</string>
+  <string name="contact_option">Επικοινωνία</string>
+  <string name="quit_option">Έξοδος</string>
+  <string name="share_email_native"></string>
+</resources>

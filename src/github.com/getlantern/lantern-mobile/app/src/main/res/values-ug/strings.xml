@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+  <string name="app_name">Lantern</string>
+  <string name="action_settings">تەڭشەكلەر</string>
+  <string name="send_button">يوللاش</string>
+  <string name="contact_option">ئالاقەداش</string>
+  <string name="quit_option">ئاخىرلاشتۇر</string>
+  <string name="share_email_native"></string>
+</resources>

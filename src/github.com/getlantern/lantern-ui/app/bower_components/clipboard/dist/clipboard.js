@@ -1,5 +1,5 @@
 /*!
- * clipboard.js v1.5.5
+ * clipboard.js v1.5.8
  * https://zenorocha.github.io/clipboard.js
  *
  * Licensed MIT © Zeno Rocha
@@ -16,48 +16,7 @@ module.exports = function (element, selector, checkYoSelf) {
   }
 }
 
-},{"matches-selector":2}],2:[function(require,module,exports){
-
-/**
- * Element prototype.
- */
-
-var proto = Element.prototype;
-
-/**
- * Vendor function.
- */
-
-var vendor = proto.matchesSelector
-  || proto.webkitMatchesSelector
-  || proto.mozMatchesSelector
-  || proto.msMatchesSelector
-  || proto.oMatchesSelector;
-
-/**
- * Expose `match()`.
- */
-
-module.exports = match;
-
-/**
- * Match `el` to `selector`.
- *
- * @param {Element} el
- * @param {String} selector
- * @return {Boolean}
- * @api public
- */
-
-function match(el, selector) {
-  if (vendor) return vendor.call(el, selector);
-  var nodes = el.parentNode.querySelectorAll(selector);
-  for (var i = 0; i < nodes.length; ++i) {
-    if (nodes[i] == el) return true;
-  }
-  return false;
-}
-},{}],3:[function(require,module,exports){
+},{"matches-selector":5}],2:[function(require,module,exports){
 var closest = require('closest');
 
 /**
@@ -67,16 +26,17 @@ var closest = require('closest');
  * @param {String} selector
  * @param {String} type
  * @param {Function} callback
+ * @param {Boolean} useCapture
  * @return {Object}
  */
-function delegate(element, selector, type, callback) {
+function delegate(element, selector, type, callback, useCapture) {
     var listenerFn = listener.apply(this, arguments);
 
-    element.addEventListener(type, listenerFn);
+    element.addEventListener(type, listenerFn, useCapture);
 
     return {
         destroy: function() {
-            element.removeEventListener(type, listenerFn);
+            element.removeEventListener(type, listenerFn, useCapture);
         }
     }
 }
@@ -102,7 +62,7 @@ function listener(element, selector, type, callback) {
 
 module.exports = delegate;
 
-},{"closest":1}],4:[function(require,module,exports){
+},{"closest":1}],3:[function(require,module,exports){
 /**
  * Check if argument is a HTML element.
  *
@@ -147,13 +107,13 @@ exports.string = function(value) {
  * @param {Object} value
  * @return {Boolean}
  */
-exports.function = function(value) {
+exports.fn = function(value) {
     var type = Object.prototype.toString.call(value);
 
     return type === '[object Function]';
 };
 
-},{}],5:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 var is = require('./is');
 var delegate = require('delegate');
 
@@ -175,7 +135,7 @@ function listen(target, type, callback) {
         throw new TypeError('Second argument must be a String');
     }
 
-    if (!is.function(callback)) {
+    if (!is.fn(callback)) {
         throw new TypeError('Third argument must be a Function');
     }
 
@@ -250,7 +210,48 @@ function listenSelector(selector, type, callback) {
 
 module.exports = listen;
 
-},{"./is":4,"delegate":3}],6:[function(require,module,exports){
+},{"./is":3,"delegate":2}],5:[function(require,module,exports){
+
+/**
+ * Element prototype.
+ */
+
+var proto = Element.prototype;
+
+/**
+ * Vendor function.
+ */
+
+var vendor = proto.matchesSelector
+  || proto.webkitMatchesSelector
+  || proto.mozMatchesSelector
+  || proto.msMatchesSelector
+  || proto.oMatchesSelector;
+
+/**
+ * Expose `match()`.
+ */
+
+module.exports = match;
+
+/**
+ * Match `el` to `selector`.
+ *
+ * @param {Element} el
+ * @param {String} selector
+ * @return {Boolean}
+ * @api public
+ */
+
+function match(el, selector) {
+  if (vendor) return vendor.call(el, selector);
+  var nodes = el.parentNode.querySelectorAll(selector);
+  for (var i = 0; i < nodes.length; ++i) {
+    if (nodes[i] == el) return true;
+  }
+  return false;
+}
+},{}],6:[function(require,module,exports){
 function select(element) {
     var selectedText;
 
@@ -422,6 +423,8 @@ var ClipboardAction = (function () {
     ClipboardAction.prototype.selectFake = function selectFake() {
         var _this = this;
 
+        var isRTL = document.documentElement.getAttribute('dir') == 'rtl';
+
         this.removeFake();
 
         this.fakeHandler = document.body.addEventListener('click', function () {
@@ -429,8 +432,16 @@ var ClipboardAction = (function () {
         });
 
         this.fakeElem = document.createElement('textarea');
+        // Prevent zooming on iOS
+        this.fakeElem.style.fontSize = '12pt';
+        // Reset box model
+        this.fakeElem.style.border = '0';
+        this.fakeElem.style.padding = '0';
+        this.fakeElem.style.margin = '0';
+        // Move element out of screen horizontally
         this.fakeElem.style.position = 'absolute';
-        this.fakeElem.style.left = '-9999px';
+        this.fakeElem.style[isRTL ? 'right' : 'left'] = '-9999px';
+        // Move element to the same position vertically
         this.fakeElem.style.top = (window.pageYOffset || document.documentElement.scrollTop) + 'px';
         this.fakeElem.setAttribute('readonly', '');
         this.fakeElem.value = this.text;
@@ -728,6 +739,7 @@ var Clipboard = (function (_Emitter) {
     return Clipboard;
 })(_tinyEmitter2['default']);
 
+exports['default'] = Clipboard;
 function getAttributeValue(suffix, element) {
     var attribute = 'data-clipboard-' + suffix;
 
@@ -737,9 +749,7 @@ function getAttributeValue(suffix, element) {
 
     return element.getAttribute(attribute);
 }
-
-exports['default'] = Clipboard;
 module.exports = exports['default'];
 
-},{"./clipboard-action":8,"good-listener":5,"tiny-emitter":7}]},{},[9])(9)
+},{"./clipboard-action":8,"good-listener":4,"tiny-emitter":7}]},{},[9])(9)
 });

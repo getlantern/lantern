@@ -58,7 +58,7 @@ RUN yum -y install nodejs && yum clean packages
 RUN npm install -g gulp
 
 # Getting Go.
-ENV GO_VERSION go1.6rc1
+ENV GO_VERSION go1.6
 ENV GOROOT /usr/local/go
 ENV GOPATH /
 

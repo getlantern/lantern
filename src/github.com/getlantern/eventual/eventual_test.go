@@ -28,6 +28,18 @@ func TestSingle(t *testing.T) {
 	assert.Equal(t, "hi", r, "Wrong result")
 }
 
+func BenchmarkGet(b *testing.B) {
+	v := NewValue()
+	go func() {
+		time.Sleep(20 * time.Millisecond)
+		v.Set("hi")
+	}()
+
+	for i := 0; i < b.N; i++ {
+		v.Get(20 * time.Millisecond)
+	}
+}
+
 func TestConcurrent(t *testing.T) {
 	v := NewValue()
 

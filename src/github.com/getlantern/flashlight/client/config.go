@@ -13,12 +13,13 @@ var (
 
 // ClientConfig captures configuration information for a Client
 type ClientConfig struct {
-	MinQOS         int
-	DumpHeaders    bool // whether or not to dump headers of requests and responses
-	DeviceID       string
-	FrontedServers []*FrontedServerInfo
-	ChainedServers map[string]*ChainedServerInfo
-	MasqueradeSets map[string][]*fronted.Masquerade
+	MinQOS              int
+	DumpHeaders         bool // whether or not to dump headers of requests and responses
+	DeviceID            string
+	FrontedServers      []*FrontedServerInfo
+	ChainedServers      map[string]*ChainedServerInfo
+	MasqueradeSets      map[string][]*fronted.Masquerade
+	ProxiedCONNECTPorts []int
 }
 
 // SortServers sorts the Servers array in place, ordered by host

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+    <style name="Theme.Compat.Base.Dialog" parent="Theme.AppCompat.Dialog"/>
+    <style name="Theme"/>
+
+    <style name="Theme.Blank.Dialog" parent="Theme.Compat.Base.Dialog"/>
+</resources>

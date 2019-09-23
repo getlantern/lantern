@@ -79,13 +79,16 @@ html {
   -ms-text-size-adjust: 100%;
 }
 
+/*
 a:focus {
   outline: thin dotted #333;
   outline: 5px auto -webkit-focus-ring-color;
   outline-offset: -2px;
 }
+*/
 
 a:hover,
+a:focus,
 a:active {
   outline: 0;
 }
@@ -1014,7 +1017,7 @@ input[type="color"],
   margin-bottom: 9px;
   font-size: 14px;
   line-height: 18px;
-  color: #555;
+  color: #333;
   -webkit-border-radius: 4px;
   -moz-border-radius: 4px;
   border-radius: 4px;
@@ -7979,12 +7982,12 @@ body.giveMode #npending {
 
 #mobile-ad {
   width: 627px;
-  height: 473px;
+  height: 440px;
   border: 1px solid #000;
   text-align: center;
 
   position: relative;
-  top: 140px;
+  top: 125px;
   margin: 0 auto;
 }
 
@@ -7993,21 +7996,15 @@ body.giveMode #npending {
   margin: 0px;
 }
 
-#mobile-ad-image {
-  width: 625px;
-  height: 312px;
-}
-
 #mobile-ad #get-the-app-via-email {
   width: 109px;
   height: 16.8px;
   padding: 0px;
   margin: 0px;
-  margin-top: 20px;
+  margin-top: 5px;
 }
 
 #mobile-ad input {
-  color: #333;
   border: none;
   border-bottom: 1px solid #888;
   border-radius: 0px;
@@ -8105,30 +8102,60 @@ body.giveMode #npending {
   margin: 0 auto;
 }
 
-
 .download-link {
   font-size: 9pt;
   display: block;
-  margin-top: 20px;
+  margin-top: 5px;
 }
 #link-copied {
   font-family: Roboto 10pt;
   color: #000000;
 }
 
-/* do not group these rules */
 input.fail::-webkit-input-placeholder {
-    color: red;
+  color: red;
 }
 input.fail:-moz-placeholder {
-    /* FF 4-18 */
-    color: red;
+  color: red;
 }
 input.fail::-moz-placeholder {
-    /* FF 19+ */
-    color: red;
+  color: red;
 }
 input.fail:-ms-input-placeholder {
-    /* IE 10+ */
-    color: red;
+  color: red;
+}
+
+::-ms-clear
+{
+  display: none;
+}
+
+@media (max-width: 750px), (max-height: 620px) {
+  #mobile-ad {
+    width: 500px;
+    height: 390px;
+  }
+  p.download-link b {
+    display: block;
+  }
+}
+
+@media (max-width: 600px), (max-height: 565px) {
+  #mobile-ad {
+    width: 375px;
+    height: 325px;
+  }
+}
+
+@media (max-width: 400px), (max-height: 500px) {
+  .message {
+    font-size: 14px;
+  }
+  #mobile-ad {
+    width: 300px;
+    height: 175px;
+  }
+  #mobile-ad-image {
+    display: none;
+  }
 }

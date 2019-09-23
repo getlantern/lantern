@@ -8,6 +8,7 @@
     var pendingCloses = [];
     var sendQueue = [];
     var pendingSends = [];
+    var mock = false;
 
 
     function $MockWebSocket(url, protocols) {
@@ -18,6 +19,24 @@
 
     $MockWebSocket.prototype.send = function (msg) {
       pendingSends.push(msg);
+    };
+
+    this.mockSend = function() {
+      if (mock) {
+        return sendQueue.shift();
+      }
+    };
+
+    this.mock = function() {
+      mock = true;
+    };
+
+    this.isMocked = function () {
+        return mock;
+    };
+
+    this.isConnected = function(url) {
+        return connectQueue.indexOf(url) > -1;
     };
 
     $MockWebSocket.prototype.close = function () {
@@ -101,4 +120,7 @@
 
   angular.module('angular-websocket-mock', ['ngWebSocketMock']);
 
+  if (typeof module === 'object' && typeof define !== 'function') {
+    module.exports = angular.module('ngWebSocketMock');
+  }
 }());

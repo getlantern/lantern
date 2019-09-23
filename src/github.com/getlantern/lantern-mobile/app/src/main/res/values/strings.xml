@@ -1,0 +1,37 @@
+<resources>
+    <string name="app_name">Lantern</string>
+    <string name="action_settings">Settings</string>
+    <string name="button_text">Start</string>
+    <string name="drawer_open">Drawer Open</string>
+    <string name="drawer_close">Drawer Close</string>
+    <string name="default_fragment">Default Fragment</string>
+    <string name="receive_lantern">Receive Lantern desktop by email</string>
+    <string name="email_hint">Email</string>
+    <string name="send_button">Send</string>
+    <string name="on_text">On</string>
+    <string name="off_text">Off</string>
+    <string name="desktop_option">Desktop Version</string>
+    <string name="contact_option">Contact</string>
+    <string name="privacy_policy">Privacy Policy</string>
+    <string name="share_option">Share</string>
+    <string name="quit_option">Quit</string>
+    <string name="share_email_native"></string>
+    <string name="share_email_subject">Lantern Android</string>
+    <string name="fatal_error">Lantern encountered a fatal error and is no longer running</string>
+    <string name="share_twitter">Check out Lantern Android: https://github.com/getlantern/lantern/blob/lantern-mobile/src/github.com/getlantern/lantern-mobile/latest-builds/lantern.apk</string>
+    <string name="share_facebook">I\'m using Lantern for Android, it\'s available here https://github.com/getlantern/lantern/blob/lantern-mobile/src/github.com/getlantern/lantern-mobile/latest-builds/lantern.apk</string>
+    <string name="share_email_gmail">I\'m using Lantern for Android, and I\'ve attached the APK file!</string>
+    <string name="share_sms">i\'m using Lantern for Android, download here https://github.com/getlantern/lantern/blob/lantern-mobile/src/github.com/getlantern/lantern-mobile/latest-builds/lantern.apk</string>
+
+    <string name="share_chooser_text">Share Lantern Android</string>
+    <string name="success_email">Lantern Desktop has been e-mailed to you!</string>
+    <string name="error_email">There was a problem sending you Lantern Desktop. Please try again later.</string>
+    <string name="contact_email">team@getlantern.org</string>
+    <string name="contact_message">Help Me</string>      
+    <string name="contact_subject">Lantern Android</string>
+    <string name="update_available">A new version of Lantern is available! Would you like to upgrade now?</string>
+    <string name="not_now">Not Now</string>
+    <string name="install_update">Update</string>
+    <string name="error_update">Error Downloading Update</string>
+    <string name="manual_update">Try manually installing the latest version from &lt;a href="https://lantern-android.io">here1&lt;/a></string>
+</resources>

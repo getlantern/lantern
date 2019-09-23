@@ -1,0 +1,4 @@
+appname: "Lantern"
+httpaddr: "127.0.0.1:9232"
+socksaddr: "127.0.0.1:9131"
+udpgwaddr: "127.0.0.1:7300"

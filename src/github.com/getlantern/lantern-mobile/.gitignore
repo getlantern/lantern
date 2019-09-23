@@ -1,0 +1,9 @@
+libflashlight.aar
+local.properties
+.gradle
+.idea
+build/
+libs/
+obj/
+lantern-mobile.iml
+app.iml

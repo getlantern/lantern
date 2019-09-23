@@ -5,7 +5,16 @@ function die() {
   exit 1
 }
 
-go run genconfig.go -blacklist="blacklist.txt" -masquerades="masquerades.txt" -proxiedsites="proxiedsites" -fallbacks="fallbacks.yaml" || die "Could not generate config?"
+go run genconfig.go \
+   -blacklist="blacklist.txt" \
+   -masquerades="masquerades.txt" \
+   -masquerades-out="../config/masquerades.go" \
+   -proxiedsites="proxiedsites" \
+   -proxiedsites-out="../config/proxiedsites.go" \
+   -fallbacks="fallbacks.yaml" \
+   -fallbacks-out= "../config/fallbacks.go" \
+   \
+    || die "Could not generate config?"
 
 mkdir lantern-yaml-temp || die "Could not make directory"
 cp lantern.yaml lantern-yaml-temp || die "Could not copy yaml"

@@ -19,19 +19,15 @@ var (
 func AddToWl(addr string, permanent bool) {
 	muWhitelist.Lock()
 	defer muWhitelist.Unlock()
-	if addr != "" {
-		whitelist[addr] = wlEntry{permanent}
-	}
+	whitelist[addr] = wlEntry{permanent}
 }
 
-//RemoveFromWl removes an addr from whitelist
 func RemoveFromWl(addr string) {
 	muWhitelist.Lock()
 	defer muWhitelist.Unlock()
 	delete(whitelist, addr)
 }
 
-//DumpWhitelist dumps the whitelist for other usage
 func DumpWhitelist() (wl []string) {
 	wl = make([]string, 1)
 	muWhitelist.Lock()

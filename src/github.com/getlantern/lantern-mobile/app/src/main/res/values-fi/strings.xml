@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+  <string name="app_name">Lantern</string>
+  <string name="action_settings">Asetukset</string>
+  <string name="send_button">Lähetä</string>
+  <string name="share_option">Jaa</string>
+  <string name="quit_option">Poistu</string>
+  <string name="share_email_native"></string>
+</resources>

@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+  <string name="app_name">Lantern</string>
+  <string name="action_settings">Beállítások</string>
+  <string name="send_button">Küldés</string>
+  <string name="contact_option">Kapcsolat</string>
+  <string name="share_option">Megosztás</string>
+  <string name="quit_option">Kilépés</string>
+  <string name="share_email_native"></string>
+</resources>

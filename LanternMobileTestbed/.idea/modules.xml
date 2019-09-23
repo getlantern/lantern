@@ -4,7 +4,6 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/LanternMobileTestbed.iml" filepath="$PROJECT_DIR$/LanternMobileTestbed.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/libflashlight/libflashlight.iml" filepath="$PROJECT_DIR$/libflashlight/libflashlight.iml" />
     </modules>
   </component>
 </project>

@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"math/rand"
-	"net"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
@@ -26,7 +25,6 @@ import (
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/logging"
 	"github.com/getlantern/flashlight/proxiedsites"
-	"github.com/getlantern/flashlight/settings"
 	"github.com/getlantern/flashlight/ui"
 
 	"github.com/mitchellh/panicwrap"
@@ -34,15 +32,6 @@ import (
 
 var (
 	log = golog.LoggerFor("flashlight")
-
-	// Command-line Flags
-	help               = flag.Bool("help", false, "Get usage help")
-	headless           = flag.Bool("headless", false, "if true, lantern will run with no ui")
-	startup            = flag.Bool("startup", false, "if true, Lantern was automatically run on system startup")
-	clearProxySettings = flag.Bool("clear-proxy-settings", false, "if true, Lantern removes proxy settings from the system.")
-	pprofAddr          = flag.String("pprofaddr", "", "pprof address to listen on, not activate pprof if empty")
-	forceProxyAddr     = flag.String("force-proxy-addr", "", "if specified, force chained proxying to use this address instead of the configured one")
-	forceAuthToken     = flag.String("force-auth-token", "", "if specified, force chained proxying to use this auth token instead of the configured one")
 
 	showui = true
 
@@ -60,7 +49,7 @@ func init() {
 
 	rand.Seed(time.Now().UnixNano())
 
-	settings.Load(flashlight.Version, flashlight.RevisionDate, flashlight.BuildDate)
+	settings = LoadSettings(flashlight.Version, flashlight.RevisionDate, flashlight.BuildDate)
 }
 
 func logPanic(msg string) {
@@ -151,7 +140,6 @@ func doMain() error {
 		}
 	})
 	addExitFunc(quitSystray)
-	addExitFunc(settings.Save)
 
 	i18nInit()
 	if showui {
@@ -168,8 +156,13 @@ func doMain() error {
 			settings.SetProxyAll(true)
 		}
 
+		listenAddr := *addr
+		if listenAddr == "" {
+			listenAddr = "localhost:8787"
+		}
 		err := flashlight.Run(
-			"localhost:8787",
+			listenAddr,
+			"localhost:8788",
 			*configdir,
 			*stickyConfig,
 			settings.GetProxyAll,
@@ -201,16 +194,6 @@ func beforeStart(cfg *config.Config) bool {
 		addExitFunc(finishProfiling)
 	}
 
-	// Set Lantern as system proxy by creating and using a PAC file.
-	go func() {
-		addr, ok := client.Addr(5 * time.Minute)
-		if !ok {
-			log.Error("Unable to obtain client address to set as system proxy")
-		} else {
-			setProxyAddr(addr.(string))
-		}
-	}()
-
 	if err := setUpPacTool(); err != nil {
 		exit(err)
 	}
@@ -222,14 +205,8 @@ func beforeStart(cfg *config.Config) bool {
 		//
 		// See: https://github.com/getlantern/lantern/issues/2776
 		log.Debug("Clearing proxy settings")
-		doPACOff(fmt.Sprintf("http://%s/proxy_on.pac", cfg.UIAddr))
+		doPACOff(fmt.Sprintf("http://%s/proxy_on.pac", *uiaddr))
 		exit(nil)
-	}
-
-	log.Debug("Starting client UI")
-	tcpAddr, err := net.ResolveTCPAddr("tcp4", cfg.UIAddr)
-	if err != nil {
-		exit(fmt.Errorf("Unable to resolve UI address: %v", err))
 	}
 
 	bootstrap, err := config.ReadBootstrapSettings()
@@ -241,14 +218,22 @@ func beforeStart(cfg *config.Config) bool {
 		startupUrl = bootstrap.StartupUrl
 	}
 
-	if err = ui.Start(tcpAddr, !showui, startupUrl); err != nil {
+	log.Debugf("Starting client UI at %v", *uiaddr)
+	actualUIAddr, err := ui.Start(*uiaddr, !showui, startupUrl)
+	if err != nil {
 		// This very likely means Lantern is already running on our port. Tell
 		// it to open a browser. This is useful, for example, when the user
 		// clicks the Lantern desktop shortcut when Lantern is already running.
-		showExistingUi(cfg.UIAddr)
-		exit(fmt.Errorf("Unable to start UI: %s", err))
+		err2 := showExistingUi(*uiaddr)
+		if err2 != nil {
+			exit(fmt.Errorf("Unable to start UI: %s", err))
+		} else {
+			log.Debug("Lantern already running, showing existing UI")
+			exit(nil)
+		}
 		return false
 	}
+	client.UIAddr = actualUIAddr
 
 	// Only run analytics once on startup.
 	if settings.IsAutoReport() {
@@ -262,9 +247,12 @@ func beforeStart(cfg *config.Config) bool {
 
 func afterStart(cfg *config.Config) {
 	onConfigUpdate(cfg)
-	pacOn()
-	addExitFunc(pacOff)
+	ServePACFile()
+	if settings.GetSystemProxy() {
+		pacOn()
+	}
 
+	addExitFunc(pacOff)
 	if showui && !*startup {
 		// Launch a browser window with Lantern but only after the pac
 		// URL and the proxy server are all up and running to avoid
@@ -279,8 +267,6 @@ func afterStart(cfg *config.Config) {
 func onConfigUpdate(cfg *config.Config) {
 	autoupdate.Configure(cfg)
 	proxiedsites.Configure(cfg.ProxiedSites)
-	log.Debugf("Proxy all traffic or not: %v", settings.GetProxyAll())
-	ServeProxyAllPacFile(settings.GetProxyAll())
 }
 
 func i18nInit() {
@@ -310,17 +296,22 @@ func parseFlags() {
 
 // showExistingUi triggers an existing Lantern running on the same system to
 // open a browser to the Lantern start page.
-func showExistingUi(tcpAddr string) {
-	url := "http://" + tcpAddr + "/startup"
+func showExistingUi(addr string) error {
+	url := "http://" + addr + "/startup"
 	log.Debugf("Hitting local URL: %v", url)
 	resp, err := http.Get(url)
 	if err != nil {
 		log.Debugf("Could not hit local lantern")
-		if err = resp.Body.Close(); err != nil {
-			log.Debugf("Error closing body! %s", err)
+		if resp.Body != nil {
+			if err = resp.Body.Close(); err != nil {
+				log.Debugf("Error closing body! %s", err)
+			}
 		}
+		return err
+	} else if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Unexpected response from existing Lantern: %d", resp.StatusCode)
 	} else {
-		log.Debugf("Got response from local Lantern: %v", resp.Status)
+		return nil
 	}
 }
 

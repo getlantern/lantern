@@ -6,7 +6,7 @@
 		<key>CFBundleExecutable</key>
 		<string>lantern</string>
 		<key>CFBundleGetInfoString</key>
-		<string>2.0.0.20150206 Copyright 2015 Brave New Software Project, Inc.</string>
+		<string>VERSION_STRING Copyright 2015 Brave New Software Project, Inc.</string>
 		<key>CFBundleIconFile</key>
 		<string>app.icns</string>
 		<key>CFBundleIdentifier</key>

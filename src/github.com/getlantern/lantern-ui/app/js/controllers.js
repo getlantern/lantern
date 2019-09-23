@@ -1,9 +1,12 @@
 'use strict';
 
 app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$http', 'gaMgr',
-               'localStorageService',
-               function($rootScope, $scope, $compile, $window, $http, gaMgr, localStorageService) {
+               'localStorageService', 'BUILD_REVISION',
+               function($rootScope, $scope, $compile, $window, $http, gaMgr, localStorageService, BUILD_REVISION) {
     $scope.currentModal = 'none';
+
+    $rootScope.lanternFirstTimeBuildVar = 'lanternFirstTimeBuild-'+BUILD_REVISION;
+    $rootScope.lanternHideMobileAdVar = 'lanternHideMobileAd';
 
     $scope.loadScript = function(src) {
         (function() {
@@ -45,14 +48,20 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$htt
       $scope.inputPlaceholder = "you@example.com";
     }
 
+    $rootScope.hideMobileAd = function() {
+      $rootScope.showMobileAd = false;
+      localStorageService.set($rootScope.lanternHideMobileAdVar, true);
+    };
+
     $rootScope.sendMobileAppLink = function() {
       var email = $scope.email;
 
       $scope.resetPlaceholder();
 
-      if (!email) {
+      if (!email || !(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) {
         $scope.inputClass = "fail";
         $scope.inputPlaceholder = "Please enter a valid e-mail";
+        alert("Please check your e-mail address.");
         return;
       }
 
@@ -61,29 +70,41 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$htt
         'template': 'lantern-mobile-message'
       });
 
-      $rootScope.showMobileAd = false;
+      $rootScope.hideMobileAd();
+
       $scope.showModal("lantern-mobile-ad");
 
       gaMgr.trackSendLinkToMobile();
     };
 
-    $rootScope.lanternWelcomeKey = localStorageService.get('lanternWelcomeKey');
-    // $rootScope.lanternWelcomeKey = false;
+
+    $scope.trackBookmark = function(name) {
+      return gaMgr.trackBookmark(name);
+    };
+
+    $scope.trackLink = function(name) {
+      return gaMgr.trackLink(name);
+    };
 
     $scope.closeModal = function() {
-      if (!$rootScope.lanternWelcomeKey) {
-        $rootScope.lanternWelcomeKey = true;
-        localStorageService.set('lanternWelcomeKey', true);
-      }
+      $rootScope.hideMobileAd();
+
       $scope.currentModal = 'none';
       $(".modal-backdrop").remove();
     };
 
-    if (!$rootScope.lanternWelcomeKey) {
-      //$scope.showModal('welcome');
-      $rootScope.showMobileAd = true;
-      $scope.resetPlaceholder();
+    if (!localStorageService.get($rootScope.lanternFirstTimeBuildVar)) {
+      // Force showing Ad.
+      localStorageService.set($rootScope.lanternHideMobileAdVar, "");
+      // Saving first time run.
+      localStorageService.set($rootScope.lanternFirstTimeBuildVar, true);
     };
+
+    if (!localStorageService.get($rootScope.lanternHideMobileAdVar)) {
+      $scope.resetPlaceholder();
+      $rootScope.showMobileAd = true;
+    };
+
 
 }]);
 
@@ -138,6 +159,13 @@ app.controller('SettingsCtrl', ['$scope', 'MODAL', 'DataStream', 'gaMgr', functi
       DataStream.send('Settings', obj);
   }
 
+  $scope.changeSystemProxy = function(systemProxy) {
+      var obj = {
+        systemProxy: systemProxy
+      };
+      DataStream.send('Settings', obj);
+  }
+
   $scope.$watch('model.settings.systemProxy', function (systemProxy) {
     $scope.systemProxy = systemProxy;
   });
@@ -158,7 +186,16 @@ app.controller('MobileAdCtrl', ['$scope', 'MODAL', 'gaMgr', function($scope, MOD
     $scope.linkCopied = true;
     //$scope.closeModal();
     gaMgr.trackCopyLink();
-  }
+  };
+
+  $scope.trackSocialLink = function(name) {
+    gaMgr.trackSocialLink(name);
+  };
+
+  $scope.trackLink = function(name) {
+    gaMgr.trackLink(name);
+  };
+
 }]);
 
 app.controller('ProxiedSitesCtrl', ['$rootScope', '$scope', '$filter', 'SETTING', 'INTERACTION', 'INPUT_PAT', 'MODAL', 'ProxiedSites', function($rootScope, $scope, $filter, SETTING, INTERACTION, INPUT_PAT, MODAL, ProxiedSites) {

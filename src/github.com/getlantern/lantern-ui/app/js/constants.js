@@ -199,6 +199,7 @@ if (typeof angular == 'object' && angular && typeof angular.module == 'function'
     .constant('GOOGLE_ANALYTICS_DISABLE_KEY', GOOGLE_ANALYTICS_DISABLE_KEY)
     .constant('LANTERNUI_VER', window.LANTERNUI_VER) // set in version.js
     .constant('REQUIRED_API_VER', REQUIRED_API_VER)
+    .constant('BUILD_REVISION', LANTERN_BUILD_REVISION)
     .constant('API_URL_PREFIX', API_URL_PREFIX);
 } else if (typeof exports == 'object' && exports && typeof module == 'object' && module && module.exports == exports) {
   module.exports = {
