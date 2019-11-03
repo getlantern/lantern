@@ -8,7 +8,7 @@
 
 [苹果电脑版(OS X 10.11 El Capitan及以上)](https://s3.amazonaws.com/lantern/lantern-installer.dmg)               [备用地址 Alternative address](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer.dmg) 
 
-Ubuntu 14.04及以上[(32位系统)](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-64-bit.deb) [(64位系统)](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-32-bit.deb)
+Ubuntu 14.04及以上[(32位系统)](https://s3.amazonaws.com/lantern/lantern-installer-32-bit.deb) [(64位系统)](https://s3.amazonaws.com/lantern/lantern-installer-64-bit.deb)
 
 请大家收藏本页面，方便日后下载新版。
 Bookmark this page to download the latest versions in the future.
