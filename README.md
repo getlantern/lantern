@@ -20,3 +20,4 @@ Bookmark this page to download the latest versions in the future.
 - [OSX 10.10 and above](https://s3.amazonaws.com/lantern/lantern-installer-preview.dmg)
 - [Ubuntu 14.04 32 bit](https://s3.amazonaws.com/lantern/lantern-installer-preview-32-bit.deb)
 - [Ubuntu 14.04 64 bit](https://s3.amazonaws.com/lantern/lantern-installer-preview-64-bit.deb)
+--
