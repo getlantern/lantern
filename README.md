@@ -1,6 +1,6 @@
 ## 蓝灯(Lantern)最新版本下载 版本5.6.4  Download Lantern Version 5.6.4
 
-[Windows 7及以上系统 Windows 7+](https://bitbucket.org/getlantern/lantern-binaries/raw/master/lantern-installer.exe)      [备用地址1 Alternative address1](https://s3.amazonaws.com/lantern/lantern-installer.exe)  [备用地址2 Alternative address2](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer.exe)  
+[Windows7及以上 Windows 7+](https://bitbucket.org/getlantern/lantern-binaries/raw/master/lantern-installer.exe)      [备用地址1 Alternative address1](https://s3.amazonaws.com/lantern/lantern-installer.exe)  [备用地址2 Alternative address2](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer.exe)  
 
 
 [安卓版(4.1+) Android(4.1+)](https://bitbucket.org/getlantern/lantern-binaries/raw/master/lantern-installer.apk)      [备用地址1 Alternative address1](https://s3.amazonaws.com/lantern/lantern-installer.exe)  [备用地址2 Alternative address2](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer.apk)  [Google Play](https://play.google.com/store/apps/details?id=org.getlantern.lantern) 
