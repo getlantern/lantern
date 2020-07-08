@@ -20,12 +20,12 @@ Bookmark this page to download the latest versions in the future.
 
 **We also have new test versions of a major new version of Lantern that offers brand new content sharing capabilities:** **如果希望试用最新测试版，请点击如下下载链接：**
 - [Windows 7 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-replica.exe)
-- [OSX 10.10 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-replica.dmg)
+- [OSX 10.11 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-replica.dmg)
 
 **If you would like to give the latest but more UNSTABLE BETA versions a try, you can find all of them at the following links:** **如果希望试用最新测试版，请点击如下下载链接：**
 - [Android](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview.apk)
 - [Windows 7 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview.exe)
-- [OSX 10.10 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview.dmg)
+- [OSX 10.11 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview.dmg)
 - [Ubuntu 14.04 32 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview-32-bit.deb)
 - [Ubuntu 14.04 64 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview-64-bit.deb)
 
