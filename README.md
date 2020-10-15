@@ -1,3 +1,10 @@
+## 小手电(Beam)最新版本下载 版本 Download Beam Version 
+
+[Windows7及以上 Windows 7+](https://github.com/xiaoshoudian/xiazai/raw/main/beam-installer.exe)  
+
+[苹果电脑版(OS X 10.11 El Capitan及以上](https://github.com/xiaoshoudian/xiazai/raw/main/beam-installer.dmg) 
+
+
 ## 蓝灯(Lantern)最新版本下载 版本![](https://bitbucket.org/getlantern/lantern-binaries/raw/master/version.png)  Download Lantern Version ![](https://bitbucket.org/getlantern/lantern-binaries/raw/master/version.png)
 
 [Windows7及以上 Windows 7+](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.exe)      [备用地址1 Alternative address1](https://s3.amazonaws.com/lantern/lantern-installer.exe)  [备用地址2 Alternative address2](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer.exe)  
