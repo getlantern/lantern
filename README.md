@@ -6,7 +6,7 @@
 
 [苹果电脑版(OS X 10.11 El Capitan及以上](https://github.com/xiaoshoudian/xiazai/raw/main/beam-installer.dmg) 
 
-[安卓版(4.1+) Android(4.1+)] (https://github.com/xiaoshoudian/xiazai/raw/main/beam-installer.apk) 
+[安卓版(4.1+) Android(4.1+)](https://github.com/xiaoshoudian/xiazai/raw/main/beam-installer.apk) 
 
 
 
