@@ -6,6 +6,8 @@
 
 [苹果电脑版(OS X 10.11 El Capitan及以上](https://github.com/xiaoshoudian/xiazai/raw/main/beam-installer.dmg) 
 
+[安卓版(4.1+) Android(4.1+)] (https://github.com/xiaoshoudian/xiazai/raw/main/beam-installer.apk) 
+
 
 
 ## 蓝灯(Lantern)最新版本下载 版本![](https://bitbucket.org/getlantern/lantern-binaries/raw/master/version.png)  Download Lantern Version ![](https://bitbucket.org/getlantern/lantern-binaries/raw/master/version.png)
