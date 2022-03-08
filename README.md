@@ -67,7 +67,7 @@ Please allow some time for Lantern to complete configurations if installing it f
 
 # RU
 ## Скачать стабильную версию Lantern
-📌 Документация пользователя 👉  [fill in URL]
+📌  [Документация пользователя](https://github.com/getlantern/lantern/blob/kr/cleanup_plus_docs/docs/desktop_ru.pdf)
 
 ### Android
 - [Android 4.1+](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.apk)      
