@@ -1,3 +1,5 @@
+![cover page](cover_page.png)
+
 - [ZH / EN](#zh--en)
   - [蓝灯(Lantern)最新版本下载 版本 - Download Lantern Stable Version](#蓝灯lantern最新版本下载-版本---download-lantern-stable-version)
     - [Windows](#windows)
