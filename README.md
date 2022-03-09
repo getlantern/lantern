@@ -1,4 +1,10 @@
+<br>
+<br>
+
 [中文](#蓝灯lantern最新版本下载-版本) | [English](#download-lantern-stable-version) | [русский](#скачать-стабильную-версию-lantern)
+
+<br>
+<br>
   
 ![cover page](cover_page.png)
 
