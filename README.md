@@ -72,7 +72,7 @@ Please allow some time for Lantern to complete configurations if installing it f
 - [Альтернативный адрес 1](https://s3.amazonaws.com/lantern/lantern-installer.exe)
 - [Альтернативный адрес 2](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer.exe)
 ### iOS
-- [iOS 12.1+](https://apps.apple.com/app/id1457872372?l=zh_cn) 
+- [iOS 12.1+](https://apps.apple.com/ru/app/%E8%93%9D%E7%81%AF-lantern-%E7%A7%92%E6%9D%80vpn/id1457872372) 
 ### OS X
 - [OS X](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.dmg)      
 - [Альтернативный адрес 1](https://s3.amazonaws.com/lantern/lantern-installer.dmg)  
@@ -85,7 +85,7 @@ Please allow some time for Lantern to complete configurations if installing it f
 
 | Android |  iOS  | OS x | Linux | Windows |
 |:------|:------|:------|:------| :------|
-| [Android 4.1+](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.apk)   | [iOS 12.1+](https://apps.apple.com/app/id1457872372?l=zh_cn) | [OS X](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.dmg) | [32bit Ubuntu 14.04+](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer-32-bit.deb) | [Windows 7+](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.exe)  |
+| [Android 4.1+](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.apk)   | [iOS 12.1+](https://apps.apple.com/ru/app/%E8%93%9D%E7%81%AF-lantern-%E7%A7%92%E6%9D%80vpn/id1457872372) | [OS X](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.dmg) | [32bit Ubuntu 14.04+](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer-32-bit.deb) | [Windows 7+](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.exe)  |
 | [Альтернативный адрес 1](https://s3.amazonaws.com/lantern/lantern-installer.apk)   |  |[Альтернативный адрес 1](https://s3.amazonaws.com/lantern/lantern-installer.dmg)  | [32bit Альтернативный адрес](https://s3.amazonaws.com/lantern/lantern-installer-32-bit.deb) | [Альтернативный адрес 1](https://s3.amazonaws.com/lantern/lantern-installer.exe) |
 | [Альтернативный адрес 2](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer.apk) |  |[Альтернативный адрес 2](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer.dmg)  | [64bit](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer-64-bit.deb) | [Альтернативный адрес 2](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer.exe) |
 | [Google Play](https://play.google.com/store/apps/details?id=org.getlantern.lantern)  |  |  | [64bit Альтернативный адрес](https://s3.amazonaws.com/lantern/lantern-installer-64-bit.deb) |   |
