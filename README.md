@@ -2,9 +2,10 @@
   
 ![cover page](cover_page.png)
 
+
 ```
 
-中文
+🇨🇳 中文
 
 ```
 ## 蓝灯(Lantern)最新版本下载 版本
@@ -29,9 +30,11 @@
 
 第一次下载安装蓝灯时，请等待几分钟以便完成配置，笔芯
 
+
+
 ```
 
-English
+🇬🇧 English
 
 ```
 ## Download Lantern Stable Version
@@ -57,9 +60,11 @@ If you would like to give the latest but more UNSTABLE BETA versions a try, you 
 
 Please allow some time for Lantern to complete configurations if installing it for the first-time, love ❤️
 
+
+
 ```
 
-русский
+🇷🇺 русский
 
 ```
 
