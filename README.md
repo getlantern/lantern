@@ -2,12 +2,12 @@
 <br>
 
 [中文](#蓝灯lantern最新版本下载-版本) | [English](#download-lantern-stable-version) | [русский](#скачать-стабильную-версию-lantern)
-
 <br>
 <br>
   
 ![cover page](cover_page.png)
-
+<br>
+<br>
 
 ```
 
@@ -35,7 +35,10 @@
 - [Ubuntu 14.04 64 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview-64-bit.deb)
 
 第一次下载安装蓝灯时，请等待几分钟以便完成配置，笔芯
-
+<br>
+<br>
+<br>
+<br>
 
 
 ```
@@ -65,7 +68,10 @@ If you would like to give the latest but more UNSTABLE BETA versions a try, you 
 - [Ubuntu 14.04 64 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview-64-bit.deb)
 
 Please allow some time for Lantern to complete configurations if installing it for the first-time, love ❤️
-
+<br>
+<br>
+<br>
+<br>
 
 
 ```
