@@ -1,21 +1,4 @@
 ![cover page](cover_page.png)
-
-- [ZH / EN](#zh--en)
-  - [蓝灯(Lantern)最新版本下载 版本 - Download Lantern Stable Version](#蓝灯lantern最新版本下载-版本---download-lantern-stable-version)
-    - [Windows](#windows)
-    - [Android](#android)
-    - [iOS](#ios)
-    - [OS X](#os-x)
-    - [Linux](#linux)
-  - [BETA version](#beta-version)
-- [RU](#ru)
-  - [Скачать стабильную версию Lantern](#скачать-стабильную-версию-lantern)
-    - [Android](#android-1)
-    - [Windows](#windows-1)
-    - [iOS](#ios-1)
-    - [OS X](#os-x-1)
-    - [Linux](#linux-1)
-  - [BETA версия](#beta-версия)
 # ZH / EN
 ## 蓝灯(Lantern)最新版本下载 版本 - Download Lantern Stable Version
 
@@ -27,13 +10,11 @@
 
 **For troubleshooting while using Lantern, please refer to our [FAQ](https://github.com/getlantern/lantern/wiki)** 
 
-
+<!-- 
 ### Windows
 - [Windows7及以上 Windows 7+](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.exe)      
 - [备用地址1 Alternative address 1](https://s3.amazonaws.com/lantern/lantern-installer.exe)  
 - [备用地址2 Alternative address 2](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer.exe)  
-
-
 ### Android
 - [安卓版(4.1+) Android(4.1+)](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.apk)      
 - [备用地址1 Alternative address 1](https://s3.amazonaws.com/lantern/lantern-installer.apk)  
@@ -53,7 +34,17 @@
 - Ubuntu 14.04及以上 [32位系统](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer-32-bit.deb)      
 - [备用地址 Alternative address](https://s3.amazonaws.com/lantern/lantern-installer-32-bit.deb)  
 - [64位系统](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer-64-bit.deb)      
-- [备用地址 Alternative address](https://s3.amazonaws.com/lantern/lantern-installer-64-bit.deb) 
+- [备用地址 Alternative address](https://s3.amazonaws.com/lantern/lantern-installer-64-bit.deb) -->
+
+
+| Android |  iOS  | OS x | Linux | Windows |
+|:------|:------|:------|:------| :------|
+| [安卓版(4.1+) Android(4.1+)](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.apk)   | [iOS版本(12.1+) iOS(12.1+)ver5.9.6](https://apps.apple.com/app/id1457872372?l=zh_cn) | [苹果电脑版(OS X 10.11 El Capitan及以上](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.dmg) | Ubuntu 14.04及以上 [32位系统](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer-32-bit.deb) | [Windows7及以上 Windows 7+](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.exe) |
+| [备用地址1 Alternative address 1](https://s3.amazonaws.com/lantern/lantern-installer.apk)    |  [iOS版安装使用教程](https://github.com/getlantern/lantern/wiki/%E8%93%9D%E7%81%AFiOS%E5%AE%89%E8%A3%85%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B) | [备用地址1 Alternative address 1](https://s3.amazonaws.com/lantern/lantern-installer.dmg)  |   [备用地址 Alternative address](https://s3.amazonaws.com/lantern/lantern-installer-32-bit.deb) | [备用地址1 Alternative address 1](https://s3.amazonaws.com/lantern/lantern-installer.exe)  |
+| [备用地址2 Alternative address 2](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer.apk)   |  |    [备用地址2 Alternative address 2](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer.dmg) |    [64位系统](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer-64-bit.deb) | [备用地址2 Alternative address 2](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer.exe) |
+| [Google Play](https://play.google.com/store/apps/details?id=org.getlantern.lantern)   |  |     |    [备用地址 Alternative address](https://s3.amazonaws.com/lantern/lantern-installer-64-bit.deb) | 
+
+
 
 ## BETA version
 If you would like to give the latest but more UNSTABLE BETA versions a try, you can find all of them at the following links: 如果希望试用最新测试版，请点击如下下载链接
@@ -71,7 +62,7 @@ Please allow some time for Lantern to complete configurations if installing it f
 ## Скачать стабильную версию Lantern
 📌  [Документация пользователя](https://github.com/getlantern/lantern/blob/kr/cleanup_plus_docs/docs/desktop_ru.pdf)
 
-### Android
+<!-- ### Android
 - [Android 4.1+](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.apk)      
 - [Альтернативный адрес 1](https://s3.amazonaws.com/lantern/lantern-installer.apk)  
 - [Альтернативный адрес 2](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer.apk)  
@@ -90,7 +81,15 @@ Please allow some time for Lantern to complete configurations if installing it f
 - [32bit Ubuntu 14.04+](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer-32-bit.deb)      
 - [32bit Альтернативный адрес](https://s3.amazonaws.com/lantern/lantern-installer-32-bit.deb)  
 - [64bit](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer-64-bit.deb)      
-- [64bit Альтернативный адрес](https://s3.amazonaws.com/lantern/lantern-installer-64-bit.deb) 
+- [64bit Альтернативный адрес](https://s3.amazonaws.com/lantern/lantern-installer-64-bit.deb)  -->
+
+| Android |  iOS  | OS x | Linux | Windows |
+|:------|:------|:------|:------| :------|
+| [Android 4.1+](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.apk)   | [iOS 12.1+](https://apps.apple.com/app/id1457872372?l=zh_cn) | [OS X](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.dmg) | [32bit Ubuntu 14.04+](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer-32-bit.deb) | [Windows 7+](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.exe)  |
+| [Альтернативный адрес 1](https://s3.amazonaws.com/lantern/lantern-installer.apk)   |  |[Альтернативный адрес 1](https://s3.amazonaws.com/lantern/lantern-installer.dmg)  | [32bit Альтернативный адрес](https://s3.amazonaws.com/lantern/lantern-installer-32-bit.deb) | [Альтернативный адрес 1](https://s3.amazonaws.com/lantern/lantern-installer.exe) |
+| [Альтернативный адрес 2](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer.apk) |  |[Альтернативный адрес 2](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer.dmg)  | [64bit](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer-64-bit.deb) | [Альтернативный адрес 2](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer.exe) |
+| [Google Play](https://play.google.com/store/apps/details?id=org.getlantern.lantern)  |  |  | [64bit Альтернативный адрес](https://s3.amazonaws.com/lantern/lantern-installer-64-bit.deb) |   |
+
 ## BETA версия
 Если вы хотите попробовать последние, но более НЕСТАБИЛЬНЫЕ БЕТА-версии, вы можете найти их по следующим ссылкам:
 - [Android](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview.apk)
