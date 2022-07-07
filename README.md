@@ -28,11 +28,11 @@
 **BETA**
 
 如果希望试用最新测试版，请点击如下下载链接
-- [Android](https://raw.githubusercontent.com/getlantern/lantern-binaries/main/lantern-installer-preview.apk)
-- [Windows 7 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/main/lantern-installer-preview.exe)
-- [OSX 10.10 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/main/lantern-installer-preview.dmg)
-- [Ubuntu 14.04 32 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/main/lantern-installer-preview-32-bit.deb)
-- [Ubuntu 14.04 64 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/main/lantern-installer-preview-64-bit.deb)
+- [Android](https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.apk)
+- [Windows 7 and above](https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.exe)
+- [OSX 10.10 and above](https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.dmg)
+- [Ubuntu 14.04 32 bit](https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview-32-bit.deb)
+- [Ubuntu 14.04 64 bit](https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview-64-bit.deb)
 
 第一次下载安装蓝灯时，请等待几分钟以便完成配置，笔芯
 <br>
