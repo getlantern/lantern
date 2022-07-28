@@ -100,3 +100,79 @@ Please allow some time for Lantern to complete configurations if installing it f
 - [Ubuntu 14.04 64 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview-64-bit.deb)
 
 Пожалуйста, дайте некоторое время для завершения конфигурации Lantern, если устанавливаете его впервые, с любовью ❤️
+<br>
+<br>
+<br>
+<br>
+
+
+<div dir="rtl", style="text-align: right">
+
+```
+
+🇮🇷 فارسی
+
+```
+
+## دانلود نسخه ثابت لانترن
+
+**برای عیب یابی هنگام استفاده از لنترن، لطفاً به سؤالات متداول ما مراجعه کنید  [FAQ](https://getlantern.org/faq/index.html)** 
+
+
+| Android |  iOS  | OS x | Linux | Windows |
+|------:|------:|------:|------:| ------:|
+| [Android(4.1+)](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.apk)   | [iOS (12.1+) نسخه 5.9.6](https://apps.apple.com/app/id1457872372?l=zh_cn) | [آدرس جایگزین 1](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.dmg) | [اوبونتو 14.04 32 بیتی](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer-32-bit.deb) | [Windows7+](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.exe) |
+| [آدرس جایگزین 1](https://s3.amazonaws.com/lantern/lantern-installer.apk)    |  | [آدرس جایگزین 2](https://s3.amazonaws.com/lantern/lantern-installer.dmg)  |   [آدرس جایگزین 32 بیتی](https://s3.amazonaws.com/lantern/lantern-installer-32-bit.deb) | [آدرس جایگزین 1](https://s3.amazonaws.com/lantern/lantern-installer.exe)  |
+| [آدرس جایگزین 2](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer.apk)   |  |    [آدرس جایگزین 2](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer.dmg) |    [64بیت](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer-64-bit.deb) | [آدرس جایگزین 2](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer.exe) |
+| [گوگل پلی](https://play.google.com/store/apps/details?id=org.getlantern.lantern)   |  |     |    [آدرس جایگزین 64 بیتی](https://s3.amazonaws.com/lantern/lantern-installer-64-bit.deb) | 
+
+**بتا**
+
+اگر می‌خواهید آخرین نسخه‌های بتا، اما ناپایدارتر را امتحان کنید، می‌توانید همه آنها را در لینک‌های زیر بیابید:
+- [اندروید](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview.apk)
+- [ویندوز 7 و بالاتر](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview.exe)
+- [ وبالاترOSX 10.10   ](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview.dmg)
+- [اوبونتو 14.04 32 بیتی](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview-32-bit.deb)
+- [اوبونتو 14.04 64 بیتی](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview-64-bit.deb)
+
+لطفاً اگر  برای اولین بار لنترن را نصب می‌کنید، کمی اجازه دهید تا تنظیمات را تکمیل کند.
+<br>
+<br>
+<br>
+<br>
+
+
+```
+
+🇦🇪 عربى
+
+```
+## تنزيل الإصدار المستقر من Lantern
+
+**لاستكشاف الأخطاء وإصلاحها أثناء استخدام Lantern ، يرجى الرجوع إلى الأسئلة الشائعة [FAQ](https://getlantern.org/faq/index.html)** 
+
+
+| Android |  iOS  | OS x | Linux | Windows |
+|------:|------:|------:|------:| ------:|
+| [Android(4.1+)](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.apk)   | [iOS (12.1+) الإصدار 5.9.6](https://apps.apple.com/app/id1457872372?l=zh_cn) | [OS X 10.11 El Capitan](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.dmg) | [أوبونتو 14.04 32 بت](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer-32-bit.deb) | [نظام التشغيل Windows7 +](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.exe) |
+| [العنوان البديل 1](https://s3.amazonaws.com/lantern/lantern-installer.apk)    |  | [العنوان البديل 1](https://s3.amazonaws.com/lantern/lantern-installer.dmg)  |   [32 بت عنوان بديل](https://s3.amazonaws.com/lantern/lantern-installer-32-bit.deb) | [العنوان البديل 1](https://s3.amazonaws.com/lantern/lantern-installer.exe)  |
+| [العنوان البديل 2](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer.apk)   |  |    [العنوان البديل 2](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer.dmg) |    [64 بت](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer-64-bit.deb) | [العنوان البديل 2](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer.exe) |
+| [تطبيقات جوجل](https://play.google.com/store/apps/details?id=org.getlantern.lantern)   |  |     |    [64 بت عنوان بديل](https://s3.amazonaws.com/lantern/lantern-installer-64-bit.deb) | 
+
+**بيتا**
+
+إذا كنت ترغب في تجربة أحدث إصدارات BETA ولكن أكثر غيرمستقرة، فيمكنك العثور عليها جميعًا على الروابط التالية:
+- [Android](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview.apk)
+- [ Windows 7ومافوق](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview.exe)
+- [OSX 10.10 وما فوق](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview.dmg)
+- [أوبونتو 14.04 32 بت](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview-32-bit.deb)
+- [أوبونتو 14.04 64 بت](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview-64-bit.deb)
+
+ُرجى إتاحة بعض الوقت لـ Lantern لإكمال التكوينات في حالة تثبيته لأول مرة.
+
+</div>
+
+<br>
+<br>
+<br>
+<br>
