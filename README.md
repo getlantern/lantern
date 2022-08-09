@@ -18,7 +18,7 @@
 
 **使用遇到问题，请阅读[蓝灯常见问题解决办法](https://github.com/getlantern/lantern/wiki)** 
 
-| Android |  iOS  | OS x | Linux | Windows |
+| Android |  iOS  | Mac | Linux | Windows |
 |:------|:------|:------|:------| :------|
 | [安卓版(4.1+) Android(4.1+)](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.apk)   | [iOS版本(12.1+) iOS(12.1+)ver5.9.6](https://apps.apple.com/app/id1457872372?l=zh_cn) | [苹果电脑版(OS X 10.11 El Capitan及以上](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.dmg) | Ubuntu 14.04及以上 [32位系统](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer-32-bit.deb) | [Windows7及以上 Windows 7+](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.exe) |
 | [备用地址1](https://s3.amazonaws.com/lantern/lantern-installer.apk)    |  [iOS版安装使用教程](https://github.com/getlantern/lantern/wiki/%E8%93%9D%E7%81%AFiOS%E5%AE%89%E8%A3%85%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B) | [备用地址1](https://s3.amazonaws.com/lantern/lantern-installer.dmg)  |   [备用地址](https://s3.amazonaws.com/lantern/lantern-installer-32-bit.deb) | [备用地址1](https://s3.amazonaws.com/lantern/lantern-installer.exe)  |
