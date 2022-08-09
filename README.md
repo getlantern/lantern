@@ -1,8 +1,7 @@
 <br>
 <br>
 
-[中文](#蓝灯lantern最新版本下载-版本) | [English](#download-lantern-stable-version) | [русский](#скачать-стабильную-версию-lantern) | [فارسی](# دانلود نسخه ثابت لانترن)  | [عربى](# تنزيل الإصدار المستقر من Lantern)
-) 
+[中文](#蓝灯lantern最新版本下载-版本) | [English](#download-lantern-stable-version) | [русский](#скачать-стабильную-версию-lantern) | [فارسی](https://github.com/getlantern/lantern/edit/devel/README.md#%D8%AF%D8%A7%D9%86%D9%84%D9%88%D8%AF-%D9%86%D8%B3%D8%AE%D9%87-%D8%AB%D8%A7%D8%A8%D8%AA-%D9%84%D8%A7%D9%86%D8%AA%D8%B1%D9%86) | [عربى](https://github.com/getlantern/lantern/edit/devel/README.md#%D8%AA%D9%86%D8%B2%D9%8A%D9%84-%D8%A7%D9%84%D8%A5%D8%B5%D8%AF%D8%A7%D8%B1-%D8%A7%D9%84%D9%85%D8%B3%D8%AA%D9%82%D8%B1-%D9%85%D9%86-lantern) 
 <br>
 <br>
   
