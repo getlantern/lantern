@@ -25,7 +25,7 @@
 | [备用地址2](https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer.apk)   |  |    [备用地址2](https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer.dmg) |    [64位系统](https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-64-bit.deb) | [备用地址2](https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer.exe) |
 | [Google Play](https://play.google.com/store/apps/details?id=org.getlantern.lantern)   |  |     |    [备用地址](https://s3.amazonaws.com/lantern/lantern-installer-64-bit.deb) | 
 
-**BETA**
+### **BETA**
 
 如果希望试用最新测试版，请点击如下下载链接
 - [Android](https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.apk)
@@ -58,7 +58,7 @@
 | [Alternative address 2](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer.apk)   |  |    [Alternative address 2](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer.dmg) |    [64bit](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer-64-bit.deb) | [Alternative address 2](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer.exe) |
 | [Google Play](https://play.google.com/store/apps/details?id=org.getlantern.lantern)   |  |     |    [64bit Alternative address](https://s3.amazonaws.com/lantern/lantern-installer-64-bit.deb) | 
 
-**BETA**
+### **BETA**
 
 If you would like to give the latest but more UNSTABLE BETA versions a try, you can find all of them at the following links:
 - [Android](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview.apk)
@@ -90,7 +90,7 @@ Please allow some time for Lantern to complete configurations if installing it f
 | [Альтернативный адрес 2](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer.apk) |  |[Альтернативный адрес 2](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer.dmg)  | [64bit](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer-64-bit.deb) | [Альтернативный адрес 2](https://github.com/getlantern/lantern-binaries/raw/master/lantern-installer.exe) |
 | [Google Play](https://play.google.com/store/apps/details?id=org.getlantern.lantern)  |  |  | [64bit Альтернативный адрес](https://s3.amazonaws.com/lantern/lantern-installer-64-bit.deb) |   |
 
-**BETA**
+### **BETA**
 
 Если вы хотите попробовать последние, но более НЕСТАБИЛЬНЫЕ БЕТА-версии, вы можете найти их по следующим ссылкам:
 - [Android](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview.apk)
