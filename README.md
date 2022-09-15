@@ -1,7 +1,7 @@
 <br>
 <br>
 
-[中文](#蓝灯lantern最新版本下载-版本) | [English](#download-lantern-stable-version) | [русский](#скачать-стабильную-версию-lantern)  
+[中文](#蓝灯lantern最新版本下载-版本) | [English](#download-lantern-stable-version) | [русский](#скачать-стабильную-версию-lantern) | [عربى](#تنزيل-الإصدار-المستقر-من-lantern) | [فارسی](#دانلود-نسخه-ثابت-لانترن)
 <br>
 <br>
   
@@ -11,7 +11,7 @@
 
 ```
 
-🇨🇳 中文
+中文
 
 ```
 ## 蓝灯(Lantern)最新版本下载 版本
@@ -43,7 +43,7 @@
 
 ```
 
-🇬🇧 English
+English
 
 ```
 ## Download Lantern Stable Version
@@ -76,7 +76,7 @@ Please allow some time for Lantern to complete configurations if installing it f
 
 ```
 
-🇷🇺 русский
+русский
 
 ```
 
@@ -110,7 +110,7 @@ Please allow some time for Lantern to complete configurations if installing it f
 
 ```
 
-🇮🇷 فارسی
+فارسی
 
 ```
 
@@ -144,7 +144,7 @@ Please allow some time for Lantern to complete configurations if installing it f
 
 ```
 
-🇦🇪 عربى
+عربى
 
 ```
 ## تنزيل الإصدار المستقر من Lantern
