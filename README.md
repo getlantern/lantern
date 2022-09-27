@@ -114,9 +114,9 @@ Please allow some time for Lantern to complete configurations if installing it f
 
 ```
 
-## دانلود مستقیم نسخه‌های ثابت لانترن
+## دانلود نسخه ثابت لانترن
 
-**لینک دسترسی به صفحه سوال‌های متداول و جواب‌های تیم لنترن به کاربران.  [FAQ](https://getlantern.org/faq/index.html)** 
+**برای عیب یابی هنگام استفاده از لنترن، لطفاً به سؤالات متداول ما مراجعه کنید  [FAQ](https://getlantern.org/faq/index.html)** 
 
 
 | Android |  iOS  | OS x | Linux | Windows |
@@ -127,15 +127,15 @@ Please allow some time for Lantern to complete configurations if installing it f
 | [گوگل پلی](https://play.google.com/store/apps/details?id=org.getlantern.lantern)   |  |     |    [آدرس جایگزین 64 بیتی](https://s3.amazonaws.com/lantern/lantern-installer-64-bit.deb) | 
 
 **بتا**
-لینک‌‌‌های دسترسی به نسخه‌های بتای اپلیکیشن لنترن:
 
+اگر می‌خواهید آخرین نسخه‌های بتا، اما ناپایدارتر را امتحان کنید، می‌توانید همه آنها را در لینک‌های زیر بیابید:
 - [اندروید](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview.apk)
 - [ویندوز 7 و بالاتر](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview.exe)
 - [ وبالاترOSX 10.10   ](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview.dmg)
 - [اوبونتو 14.04 32 بیتی](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview-32-bit.deb)
 - [اوبونتو 14.04 64 بیتی](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-preview-64-bit.deb)
 
-لطفاً اگر  برای اولین بار اپلیکیشن لنترن را نصب می‌کنید، صبور باشید تا تنظیمات تکمیل شوند.
+لطفاً اگر  برای اولین بار لنترن را نصب می‌کنید، کمی اجازه دهید تا تنظیمات را تکمیل کند.
 <br>
 <br>
 <br>
