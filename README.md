@@ -61,11 +61,11 @@ English
 ### **BETA**
 
 If you would like to give the latest but more UNSTABLE BETA versions a try, you can find all of them at the following links:
-- [Android](https://raw.githubusercontent.com/getlantern/lantern-binaries/main/lantern-installer-preview.apk)
-- [Windows 7 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/main/lantern-installer-preview.exe)
-- [OSX 10.10 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/main/lantern-installer-preview.dmg)
-- [Ubuntu 14.04 32 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/main/lantern-installer-preview-32-bit.deb)
-- [Ubuntu 14.04 64 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/main/lantern-installer-preview-64-bit.deb)
+- [Android](https://raw.githubusercontent.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.apk)
+- [Windows 7 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.exe)
+- [OSX 10.10 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.dmg)
+- [Ubuntu 14.04 32 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview-32-bit.deb)
+- [Ubuntu 14.04 64 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview-64-bit.deb)
 
 Please allow some time for Lantern to complete configurations if installing it for the first-time, love ❤️
 <br>
@@ -93,11 +93,11 @@ Please allow some time for Lantern to complete configurations if installing it f
 ### **BETA**
 
 Если вы хотите попробовать последние, но более НЕСТАБИЛЬНЫЕ БЕТА-версии, вы можете найти их по следующим ссылкам:
-- [Android](https://raw.githubusercontent.com/getlantern/lantern-binaries/main/lantern-installer-preview.apk)
-- [Windows 7+](https://raw.githubusercontent.com/getlantern/lantern-binaries/main/lantern-installer-preview.exe)
-- [OSX 10.10+](https://raw.githubusercontent.com/getlantern/lantern-binaries/main/lantern-installer-preview.dmg)
-- [Ubuntu 14.04 32 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/main/lantern-installer-preview-32-bit.deb)
-- [Ubuntu 14.04 64 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/main/lantern-installer-preview-64-bit.deb)
+- [Android](https://raw.githubusercontent.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.apk)
+- [Windows 7+](https://raw.githubusercontent.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.exe)
+- [OSX 10.10+](https://raw.githubusercontent.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.dmg)
+- [Ubuntu 14.04 32 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview-32-bit.deb)
+- [Ubuntu 14.04 64 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview-64-bit.deb)
 
 Пожалуйста, дайте некоторое время для завершения конфигурации Lantern, если устанавливаете его впервые, с любовью ❤️
 <br>
@@ -129,11 +129,11 @@ Please allow some time for Lantern to complete configurations if installing it f
 **بتا**
 
 اگر می‌خواهید آخرین نسخه‌های بتا، اما ناپایدارتر را امتحان کنید، می‌توانید همه آنها را در لینک‌های زیر بیابید:
-- [اندروید](https://raw.githubusercontent.com/getlantern/lantern-binaries/main/lantern-installer-preview.apk)
-- [ویندوز 7 و بالاتر](https://raw.githubusercontent.com/getlantern/lantern-binaries/main/lantern-installer-preview.exe)
-- [ وبالاترOSX 10.10   ](https://raw.githubusercontent.com/getlantern/lantern-binaries/main/lantern-installer-preview.dmg)
-- [اوبونتو 14.04 32 بیتی](https://raw.githubusercontent.com/getlantern/lantern-binaries/main/lantern-installer-preview-32-bit.deb)
-- [اوبونتو 14.04 64 بیتی](https://raw.githubusercontent.com/getlantern/lantern-binaries/main/lantern-installer-preview-64-bit.deb)
+- [اندروید](https://raw.githubusercontent.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.apk)
+- [ویندوز 7 و بالاتر](https://raw.githubusercontent.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.exe)
+- [ وبالاترOSX 10.10   ](https://raw.githubusercontent.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.dmg)
+- [اوبونتو 14.04 32 بیتی](https://raw.githubusercontent.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview-32-bit.deb)
+- [اوبونتو 14.04 64 بیتی](https://raw.githubusercontent.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview-64-bit.deb)
 
 لطفاً اگر  برای اولین بار لنترن را نصب می‌کنید، کمی اجازه دهید تا تنظیمات را تکمیل کند.
 <br>
@@ -162,11 +162,11 @@ Please allow some time for Lantern to complete configurations if installing it f
 **بيتا**
 
 إذا كنت ترغب في تجربة أحدث إصدارات BETA ولكن أكثر غيرمستقرة، فيمكنك العثور عليها جميعًا على الروابط التالية:
-- [Android](https://raw.githubusercontent.com/getlantern/lantern-binaries/main/lantern-installer-preview.apk)
-- [ Windows 7ومافوق](https://raw.githubusercontent.com/getlantern/lantern-binaries/main/lantern-installer-preview.exe)
-- [OSX 10.10 وما فوق](https://raw.githubusercontent.com/getlantern/lantern-binaries/main/lantern-installer-preview.dmg)
-- [أوبونتو 14.04 32 بت](https://raw.githubusercontent.com/getlantern/lantern-binaries/main/lantern-installer-preview-32-bit.deb)
-- [أوبونتو 14.04 64 بت](https://raw.githubusercontent.com/getlantern/lantern-binaries/main/lantern-installer-preview-64-bit.deb)
+- [Android](https://raw.githubusercontent.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.apk)
+- [ Windows 7ومافوق](https://raw.githubusercontent.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.exe)
+- [OSX 10.10 وما فوق](https://raw.githubusercontent.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.dmg)
+- [أوبونتو 14.04 32 بت](https://raw.githubusercontent.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview-32-bit.deb)
+- [أوبونتو 14.04 64 بت](https://raw.githubusercontent.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview-64-bit.deb)
 
 ُرجى إتاحة بعض الوقت لـ Lantern لإكمال التكوينات في حالة تثبيته لأول مرة.
 
