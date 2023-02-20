@@ -51,7 +51,7 @@ English
 **For troubleshooting while using Lantern, please refer to our [FAQ](https://github.com/getlantern/lantern/wiki)** 
 
 
-| Android |  iOS  | OS x | Linux | Windows |
+| Android |  iOS  | MacOS | Linux | Windows |
 |:------|:------|:------|:------| :------|
 | [Android(4.1+)](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.apk)   | [iOS(12.1+) iOS(12.1+)ver5.9.6](https://apps.apple.com/app/id1457872372?l=zh_cn) | [OS X 10.11 El Capitan](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.dmg) | Ubuntu 14.04 [32bit](https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-32-bit.deb) | [Windows7+](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.exe) |
 | [Alternative address 1](https://s3.amazonaws.com/lantern/lantern-installer.apk)    |  | [Alternative address 1](https://s3.amazonaws.com/lantern/lantern-installer.dmg)  |   [32bit Alternative address](https://s3.amazonaws.com/lantern/lantern-installer-32-bit.deb) | [Alternative address 1](https://s3.amazonaws.com/lantern/lantern-installer.exe)  |
@@ -83,7 +83,7 @@ Please allow some time for Lantern to complete configurations if installing it f
 ## Скачать стабильную версию Lantern
 📌  [Документация пользователя](https://github.com/getlantern/lantern/blob/kr/cleanup_plus_docs/docs/desktop_ru.pdf)
 
-| Android |  iOS  | OS x | Linux | Windows |
+| Android |  iOS  | MacOS | Linux | Windows |
 |:------|:------|:------|:------| :------|
 | [Android 4.1+](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.apk)   | [iOS 12.1+](https://apps.apple.com/ru/app/%E8%93%9D%E7%81%AF-lantern-%E7%A7%92%E6%9D%80vpn/id1457872372) | [OS X](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.dmg) | [32bit Ubuntu 14.04+](https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-32-bit.deb) | [Windows 7+](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.exe)  |
 | [Альтернативный адрес 1](https://s3.amazonaws.com/lantern/lantern-installer.apk)   |  |[Альтернативный адрес 1](https://s3.amazonaws.com/lantern/lantern-installer.dmg)  | [32bit Альтернативный адрес](https://s3.amazonaws.com/lantern/lantern-installer-32-bit.deb) | [Альтернативный адрес 1](https://s3.amazonaws.com/lantern/lantern-installer.exe) |
@@ -119,7 +119,7 @@ Please allow some time for Lantern to complete configurations if installing it f
 **برای عیب یابی هنگام استفاده از لنترن، لطفاً به سؤالات متداول ما مراجعه کنید  [FAQ](https://getlantern.org/faq/index.html)** 
 
 
-| Android |  iOS  | OS x | Linux | Windows |
+| Android |  iOS  | MacOS | Linux | Windows |
 |------:|------:|------:|------:| ------:|
 | [Android(4.1+)](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.apk)   | [iOS (12.1+) نسخه 5.9.6](https://apps.apple.com/app/id1457872372?l=zh_cn) | [آدرس جایگزین 1](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.dmg) | [اوبونتو 14.04 32 بیتی](https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-32-bit.deb) | [Windows7+](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.exe) |
 | [آدرس جایگزین 1](https://s3.amazonaws.com/lantern/lantern-installer.apk)    |  | [آدرس جایگزین 2](https://s3.amazonaws.com/lantern/lantern-installer.dmg)  |   [آدرس جایگزین 32 بیتی](https://s3.amazonaws.com/lantern/lantern-installer-32-bit.deb) | [آدرس جایگزین 1](https://s3.amazonaws.com/lantern/lantern-installer.exe)  |
@@ -152,7 +152,7 @@ Please allow some time for Lantern to complete configurations if installing it f
 **لاستكشاف الأخطاء وإصلاحها أثناء استخدام Lantern ، يرجى الرجوع إلى الأسئلة الشائعة [FAQ](https://getlantern.org/faq/index.html)** 
 
 
-| Android |  iOS  | OS x | Linux | Windows |
+| Android |  iOS  | MacOS | Linux | Windows |
 |------:|------:|------:|------:| ------:|
 | [Android(4.1+)](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.apk)   | [iOS (12.1+) الإصدار 5.9.6](https://apps.apple.com/app/id1457872372?l=zh_cn) | [OS X 10.11 El Capitan](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.dmg) | [أوبونتو 14.04 32 بت](https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-32-bit.deb) | [نظام التشغيل Windows7 +](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.exe) |
 | [العنوان البديل 1](https://s3.amazonaws.com/lantern/lantern-installer.apk)    |  | [العنوان البديل 1](https://s3.amazonaws.com/lantern/lantern-installer.dmg)  |   [32 بت عنوان بديل](https://s3.amazonaws.com/lantern/lantern-installer-32-bit.deb) | [العنوان البديل 1](https://s3.amazonaws.com/lantern/lantern-installer.exe)  |
