@@ -1,7 +1,6 @@
+# A:When I use Blue Light Pro in China, it always automatically switches to Korea (code: KR), which causing me to be unable to use chatGPT, what should I do? 
+  * Would Blue Light consider adding the ability to manually select countries while retaining the automatic selection of proxy countries?  For example, add a button to turn off automatic selection and then manually select a proxy country from the countries listed; 
+  * If not, would Blue Light consider adding a button to switch to other countries?  It is up to the user to decide whether to switch countries, but the blue light determines which country to switch to. For example, when the automatic agent country is KR, I can manually switch the blue light to another country that Blue light thinks is the best agent by clicking this button, but this country cannot be the country KR that has just been agent. 
+  * Please give a professional answer to this question, thank you!
 
-# A:我在中国使用蓝灯专业版时，它总是自动切换到韩国（代号：KR），导致我无法使用chatGPT，请问我该怎么办？
-    * 蓝灯是否考虑在保留自动选择代理国家的情况下，增加手动选择国家的功能呢？例如增加一个按钮，可关闭自动选择，然后从列出的国家中手动选择代理国家；
-    * 如果不行，那蓝灯是否考虑增加更换其它国家的按钮呢？是否切换国家由用户决定，但切换到哪个国家由蓝灯来决定。例如，当自动代理国家为KR时，我可以通过点击该按钮，
-      将蓝灯自动切换到另外一个蓝灯认为最佳代理的国家，但这个国家不能是刚刚代理的国家KR；
-    * 请针对此问题给出专业的回答，谢谢！
 Q: 
