@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
 Name=lantern
-Comment=Bypass firewalls with lantern VPN
+Comment=Bypass internet censorship
 Exec=lantern
 Icon=lantern
 Terminal=false
