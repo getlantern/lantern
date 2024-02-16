@@ -13,6 +13,4 @@ Censorship circumvention tool
 | app store    |  \-     | [Google Play](https://play.google.com/store/apps/details?id=org.getlantern.lantern) | \- | [iOS (12.1+)](https://apps.apple.com/app/id1457872372?l=zh_cn) | \- | \- |
 | beta [^beta] | [Windows 10+](https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.exe) | [Android](https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.apk) | [OS X 10.11+](https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.dmg) | \- | [Ubuntu 14.04 (32 bit)](https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview-32-bit.deb) | [Ubuntu 14.04 (64 bit)](https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview-64-bit.deb)
 
-[^beta]: Help make Lantern better!
-
-
+[^beta]: Help make Lantern better by trying out the latest UNSTABLE version.
