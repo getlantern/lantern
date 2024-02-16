@@ -9,6 +9,12 @@ Censorship circumvention tool
 
 ![cover page](cover_page.png)
 
+## Resources
+- [Website](https://lantern.io)
+- [Frequenly Asked Questions](https://lantern.io/faq)
+- [Forum (TODO)](#)
+- [Telegram (TODO)](#)
+
 ## Releases
 |              | Windows | Android | MacOS | iOS   | Linux (32 bit) | Linux (64 bit)
 | :---         | :---:   | :---:   | :---: | :---: | :---:          | :---:
@@ -18,8 +24,13 @@ Censorship circumvention tool
 
 [^beta]: Help make Lantern better by trying out the latest UNSTABLE version.
 
-## Resources
-- [Website](https://lantern.io)
-- [Frequenly Asked Questions](https://lantern.io/faq)
-- [Forum (TODO)](#)
-- [Telegram (TODO)](#)
+### 7.8.1
+  - bug fixes
+
+### 7.8.0
+  - implemented advanced automatic proxy selection
+  - added new protocols
+
+### 7.7.2
+  - added new protocols
+  - bug fixes
