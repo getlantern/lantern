@@ -6,6 +6,7 @@
 [![ru](https://img.shields.io/badge/lang-ru-blue.svg)](README.ru.md)
 
 Censorship circumvention tool
+
 ![cover page](cover_page.png)
 
 ## Releases
@@ -16,3 +17,9 @@ Censorship circumvention tool
 | beta [^beta] | [Windows 10+](https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.exe) | [Android](https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.apk) | [OS X 10.11+](https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.dmg) | \- | [Ubuntu 14.04 (32 bit)](https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview-32-bit.deb) | [Ubuntu 14.04 (64 bit)](https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview-64-bit.deb)
 
 [^beta]: Help make Lantern better by trying out the latest UNSTABLE version.
+
+## Resources
+- [Website](https://lantern.io)
+- [Frequenly Asked Questions](https://lantern.io/faq)
+- [Forum (TODO)](#)
+- [Telegram (TODO)](#)
