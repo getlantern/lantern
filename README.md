@@ -1,9 +1,9 @@
 # Lantern
-[![en](https://img.shields.io/badge/lang-en-red.svg)](README.md)
-[![ar](https://img.shields.io/badge/lang-ar-orange.svg)](README.ar.md)
-[![zh](https://img.shields.io/badge/lang-zh-yellow.svg)](README.zh.md)
-[![fa](https://img.shields.io/badge/lang-fa-green.svg)](README.fa.md)
-[![ru](https://img.shields.io/badge/lang-ru-blue.svg)](README.ru.md)
+[![en](https://github.com/getlantern/lantern/blob/jay/readme-refresh/resources/English.svg)](README.md)
+[![ar](https://github.com/getlantern/lantern/blob/jay/readme-refresh/resources/Arabic.svg)](README.ar.md)
+[![fa](https://github.com/getlantern/lantern/blob/jay/readme-refresh/resources/Farsi.svg)](README.fa.md)
+[![ru](https://github.com/getlantern/lantern/blob/jay/readme-refresh/resources/Russian.svg)](README.ru.md)
+[![zh](https://github.com/getlantern/lantern/blob/jay/readme-refresh/resources/Chinese.svg)](README.zh.md)
 
 Censorship circumvention tool
 
