@@ -15,7 +15,7 @@ Censorship circumvention tool
 - [Forum (TODO)](#)
 - [Telegram (TODO)](#)
 
-## Releases
+## Downloads
 |              | Windows | Android | MacOS | iOS   | Linux (32 bit) | Linux (64 bit)
 | :---         | :---:   | :---:   | :---: | :---: | :---:          | :---:
 | stable [^choices]      | [Windows 10+](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.exe) <br> [Windows 10+](https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer.exe) <br> [Windows 10+](https://s3.amazonaws.com/lantern/lantern-installer.exe) | [Android (4.1+)](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.apk) <br> [Android (4.1+)](https://s3.amazonaws.com/lantern/lantern-installer.apk) <br> [Android (4.1+)](https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer.apk) | [OS X 10.11 El Capitan](https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.dmg) <br> [OS X 10.11 El Capitan](https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer.dmg) <br> [OS X 10.11 El Capitan](https://s3.amazonaws.com/lantern/lantern-installer.dmg) | \- | [Ubuntu 14.04 (32 bit)](https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-32-bit.deb) <br> [Ubuntu 14.04 (32 bit)](https://s3.amazonaws.com/lantern/lantern-installer-32-bit.deb) | [Ubuntu 14.04 (64 bit)](https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-64-bit.deb) <br> [Ubuntu 14.04 (64 bit)](https://s3.amazonaws.com/lantern/lantern-installer-64-bit.deb) |
