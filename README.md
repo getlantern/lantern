@@ -25,7 +25,7 @@ Censorship circumvention tool
 [^beta]: Help make Lantern better by trying out the latest UNSTABLE version.
 
 ### 7.8.1
-  - bug fixes
+  - improved proxy selection
 
 ### 7.8.0
   - implemented advanced automatic proxy selection
