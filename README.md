@@ -4,7 +4,7 @@
 [![fa](https://github.com/getlantern/lantern/blob/jay/readme-refresh/resources/Farsi.svg)](README.fa.md)
 [![ru](https://github.com/getlantern/lantern/blob/jay/readme-refresh/resources/Russian.svg)](README.ru.md)
 [![zh](https://github.com/getlantern/lantern/blob/jay/readme-refresh/resources/Chinese.svg)](README.zh.md)
-
+---
 Censorship circumvention tool
 
 ![cover page](cover_page.png)
