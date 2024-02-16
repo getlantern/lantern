@@ -1,7 +1,7 @@
 # Lantern
 [![en](https://img.shields.io/badge/lang-en-red.svg)](#)
-[![pt-br](https://img.shields.io/badge/lang-pt--br-green.svg)](https://github.com/jonatasemidio/multilanguage-readme-pattern/blob/master/README.pt-br.md)
-[![es](https://img.shields.io/badge/lang-es-yellow.svg)](https://github.com/jonatasemidio/multilanguage-readme-pattern/blob/master/README.es.md)
+[![fa](https://img.shields.io/badge/lang-fa-green.svg)](https://github.com/jonatasemidio/multilanguage-readme-pattern/blob/master/README.pt-br.md)
+[![cn](https://img.shields.io/badge/lang-cn-yellow.svg)](https://github.com/jonatasemidio/multilanguage-readme-pattern/blob/master/README.es.md)
 
 Censorship circumvention tool
 ![cover page](cover_page.png)
