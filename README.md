@@ -5,15 +5,15 @@
 [![ru](https://github.com/getlantern/lantern/blob/jay/readme-refresh/resources/Russian.svg)](README.ru.md)
 [![zh](https://github.com/getlantern/lantern/blob/jay/readme-refresh/resources/Chinese.svg)](README.zh.md)
 ---
-Censorship circumvention tool
+Censorship circumvention tool available for free download on any operating system
 
 ![cover page](cover_page.png)
 
 ## Resources
 - [Website](https://lantern.io)
 - [Frequenly Asked Questions](https://lantern.io/faq)
-- [Forum (TODO)](#)
-- [Telegram (TODO)](#)
+- Forums: [English](https://github.com/getlantern/lantern-forum-en/discussions), [Farsi](https://github.com/getlantern/lantern-forum-fa/discussions), [Chinese](https://github.com/getlantern/lantern-forum-cn/discussions), [Russian](https://github.com/getlantern/lantern-forum-ru/discussions)
+- Telegram: [@lantern_official_bot](https://t.me/lantern_official_bot)
 
 ## Downloads
 |              | Windows | Android | MacOS | iOS   | Linux (32 bit) | Linux (64 bit)
@@ -23,7 +23,7 @@ Censorship circumvention tool
 | beta [^beta] | [Windows 10+](https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.exe) | [Android](https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.apk) | [OS X 10.11+](https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.dmg) | \- | [Ubuntu 14.04 (32 bit)](https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview-32-bit.deb) | [Ubuntu 14.04 (64 bit)](https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview-64-bit.deb)
 
 [^choices]: For stable versions, multiple links exist for hosting redundancy and choice.
-[^beta]: Try the early release "beta" version. While this may be unstable, we value feedback on current builds.
+[^beta]: Try the early release "beta" version. While this may be unstable, feedback helps improve. Join our [forums](#resources) to contribute.
 [^ios]: If the App Store is unavailable in your region, you may be able to follow [these steps](https://lantern.io/faq#use-2) to download Lantern.
 
 ### 7.8.1
