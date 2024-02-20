@@ -12,7 +12,7 @@ Censorship circumvention tool available for free download on any operating syste
 ## Resources
 - [Website](https://lantern.io)
 - [Frequenly Asked Questions](https://lantern.io/faq)
-- Forums: [English](https://github.com/getlantern/lantern-forum-en/discussions), [Farsi](https://github.com/getlantern/lantern-forum-fa/discussions), [Chinese](https://github.com/getlantern/lantern-forum-cn/discussions), [Russian](https://github.com/getlantern/lantern-forum-ru/discussions)
+- Forums: [English](https://github.com/getlantern/lantern-forum-en/discussions), [فارسی](https://github.com/getlantern/lantern-forum-fa/discussions), [中文](https://github.com/getlantern/lantern-forum-cn/discussions), [русский](https://github.com/getlantern/lantern-forum-ru/discussions)
 - Telegram: [@lantern_official_bot](https://t.me/lantern_official_bot)
 
 ## Downloads
