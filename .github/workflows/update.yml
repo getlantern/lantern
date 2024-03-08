@@ -19,9 +19,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: 'go.mod'
-      - run: go version
-        working-directory: pagemaker
+          go-version-file: 'pagemaker/go.mod'
 
       - name: Build Go
         run: go build
