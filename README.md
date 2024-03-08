@@ -103,7 +103,6 @@ Censorship circumvention tool available for free download on any operating syste
 - foo
 - bar
 - bat
-- baz
 ### 7.8.1
 - improved proxy selection
 ### 7.8.0
