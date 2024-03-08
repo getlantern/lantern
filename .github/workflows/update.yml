@@ -1,6 +1,7 @@
 name: Update READMEs
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'pagemaker/**'
