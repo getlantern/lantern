@@ -16,11 +16,14 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for all branches and tags.
 
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version-file: 'pagemaker/go.mod'
+          cache-dependency-path: 'pagemaker/go.sum'
 
       - name: Build Go
         run: go build
