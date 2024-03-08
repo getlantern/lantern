@@ -68,7 +68,7 @@ Censorship circumvention tool available for free download on any operating syste
         </td>
         <td></td>
         <td>
-            <a href="https://apps.apple.com/app/id1457872372?l">iOS</a>
+            <a href="https://apps.apple.com/app/id1457872372?l">iOS 11&#43;</a>
         </td>
         <td></td>
         <td></td>
