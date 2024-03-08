@@ -1,4 +1,4 @@
-name: Go Build and Run
+name: Update READMEs
 
 on:
   push:
@@ -19,7 +19,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: 'pagemaker/go.mod'
+          go-version-file: 'go.mod'
       - run: go version
         working-directory: pagemaker
 
