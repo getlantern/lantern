@@ -1,0 +1,15 @@
+telegram:
+  bot: "https://t.me/lantern_official_bot"
+  fa: "http://telegram.com/fa"
+  zh: "http://telegram.com/zh"
+  en: "http://telegram.com/en"
+telegram_beta:
+  fa: http://fake.xyz
+instagram:
+  fa: "http://instagram.com/fa"
+  zh: "http://instagram.com/zh"
+  en: "http://instagram.com/en"
+github:
+  zh: https://github.com/getlantern/lantern-forum-cn/discussions
+  fa: https://github.com/getlantern/lantern-forum-fa/discussions
+  en: https://github.com/getlantern/lantern-forum-en/discussions

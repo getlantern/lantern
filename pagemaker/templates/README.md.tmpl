@@ -1,0 +1,116 @@
+{{/* abbreviations to help with line length */}}
+{{- $cm := .Common -}}
+{{- $tx := .Translations }}
+{{- $si := .Sites }}
+{{- $rl := .Releases -}}
+
+# {{ $tx.lantern }}
+[![en](resources/English.svg)](README.md)
+[![ar](resources/Arabic.svg)](README.ar.md)
+[![fa](resources/Farsi.svg)](README.fa.md)
+[![ru](resources/Russian.svg)](README.ru.md)
+[![zh](resources/Chinese.svg)](README.zh.md)
+---
+{{ $tx.summary }}
+
+![cover page](resources/cover_page.png)
+
+## {{ $tx.links }}
+- [{{ $tx.website }}]({{ $cm.website_link }})
+- [{{ $tx.faq }}]({{ $cm.faq_link }})
+{{- range $siteName, $site := $si }}
+- {{ index $tx $siteName }}
+    {{ range $lang, $url := $site }} | [{{- if eq $lang "bot" -}}
+        @lantern_official_bot
+    {{- else }}
+    {{- index $cm $lang }}{{ end }}]({{ $url }})
+    {{- end }}
+ {{- end }}
+
+## {{ $tx.downloads }}
+<table>
+    <tr>
+        <th></th>
+        <th>{{ $tx.win }}</th>
+        <th>{{ $tx.android }}</th>
+        <th>{{ $tx.macos }}</th>
+        <th>{{ $tx.ios }}</th>
+        <th>{{ $tx.linux32 }}</th>
+        <th>{{ $tx.linux64 }}</th>
+    </tr>
+    <tr>
+        <th>{{ $tx.stable }}</th>
+        <td>
+            <a href="{{ $cm.win10_link_gl }}">{{ $tx.win10 }}</a> <br> 
+            <a href="{{ $cm.win10_link_gh }}">{{ $tx.win10 }}</a> <br>
+            <a href="{{ $cm.win10_link_s3 }}">{{ $tx.win10 }}</a> <br>
+            <a href="{{ $cm.win7_link_gh }}">{{ $tx.win7 }}</a>    
+        </td>
+        <td>
+            <a href="{{ $cm.android_link_gl }}">{{ $tx.android6 }}</a> <br>
+            <a href="{{ $cm.android_link_s3 }}">{{ $tx.android6 }}</a> <br>
+            <a href="{{ $cm.android_link_gh }}">{{ $tx.android6 }}</a>
+        </td>
+        <td>
+            <a href="{{ $cm.osx_link_gl }}">{{ $tx.osx }}</a> <br>
+            <a href="{{ $cm.osx_link_gh }}">{{ $tx.osx }}</a> <br>
+            <a href="{{ $cm.osx_link_s3 }}">{{ $tx.osx }}</a>
+        </td>
+        <td></td>
+        <td>
+            <a href="{{ $cm.ubuntu32_link_gh }}">{{ $tx.ubuntu32 }}</a> <br>
+            <a href="{{ $cm.ubuntu32_link_s3 }}">{{ $tx.ubuntu32 }}</a>
+        </td>
+        <td>
+            <a href="{{ $cm.ubuntu64_link_gh }}">{{ $tx.ubuntu64 }}</a> <br>
+            <a href="{{ $cm.ubuntu64_link_s3 }}">{{ $tx.ubuntu64 }}</a>
+        </td>
+    </tr>
+    <tr>
+        <th>{{ $tx.app_store }}</th>
+        <td></td>
+        <td>
+            <a href="{{ $cm.android_link_play }}">{{ $tx.android6 }}</a>
+        </td>
+        <td></td>
+        <td>
+            <a href="{{ $cm.ios_link }}">{{ $tx.ios11 }}</a>
+        </td>
+        <td></td>
+        <td></td>
+    </tr>
+    <tr>
+        <th>{{ $tx.beta }}</th>
+        <td>
+            <a href="{{ $cm.win10_link_beta }}">{{ $tx.win10 }}</a>
+        </td>
+        <td>
+            <a href="{{ $cm.android_link_beta }}">{{ $tx.android6 }}</a>
+        </td>
+        <td>
+            <a href="{{ $cm.osx_link_beta }}">{{ $tx.osx }}</a>
+        </td>
+        <td></td>
+        <td>
+            <a href="{{ $cm.ubuntu32_link_beta }}">{{ $tx.ubuntu32 }}</a>
+        </td>
+        <td>
+            <a href="{{ $cm.ubuntu64_link_beta }}">{{ $tx.ubuntu64 }}</a>
+        </td>
+    </tr>
+</table>
+
+- 📱 {{ $tx.note_ios }}
+- 🔗 {{ $tx.note_choices }}
+- 🚀 {{ $tx.note_beta }}
+
+## Release Notes
+{{- range $release := $rl }}
+{{- range $version, $notes := $release }}
+### {{ $version }}
+{{- range $note := $notes }}
+- {{ $note }}
+{{- end }}
+{{- end }}
+{{- end }}
+

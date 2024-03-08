@@ -1,0 +1,18 @@
+# This list is ordered by version, newest at the top.
+# Remove any old versions from the bottom of the list,
+# or comment them out by adding a `#` prefix to each line.
+- 7.8.2:
+  - foo
+  - bar
+  - bat
+
+- 7.8.1:
+  - improved proxy selection
+
+- 7.8.0:
+  - implemented advanced automatic proxy selection
+  - added new protocols
+
+- 7.7.2:
+  - added new protocols
+  - bug fixes
