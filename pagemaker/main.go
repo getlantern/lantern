@@ -13,12 +13,11 @@ import (
 )
 
 const (
-	linksFile      = "links.yml"    // social media
-	releaseFile    = "releases.yml" // release notes
-	commonFile     = "common.json"  // endonyms & shared links
-	templateSuffix = ".tmpl"
-	templateDir    = "templates"
-	// outputDir       = "output"
+	linksFile       = "links.yml"    // social media
+	releaseFile     = "releases.yml" // release notes
+	commonFile      = "common.json"  // endonyms & shared links
+	templateSuffix  = ".tmpl"
+	templateDir     = "templates"
 	translationsDir = "translations"
 )
 
