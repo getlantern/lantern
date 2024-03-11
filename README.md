@@ -12,16 +12,11 @@ Censorship circumvention tool available for free download on any operating syste
 ## Links
 - [Website](https://lantern.io)
 - [Frequently Asked Questions](https://lantern.io/faq)
-- GitHub Discussions
-     | [اَلْعَرَبِيَّةُ](https://github.com/getlantern/lantern-forum-uae/discussions) | [беларуская](https://github.com/getlantern/lantern-forum-belarus) | [English](https://github.com/getlantern/lantern-forum-en/discussions) | [فارسی](https://github.com/getlantern/lantern-forum-fa/discussions) | [русский](https://github.com/getlantern/lantern-forum-ru/discussions) | [українська](https://github.com/getlantern/lantern-forum-ukraine/discussions) | [中文](https://github.com/getlantern/lantern-forum-cn/discussions)
-- Instagram
-     | [اَلْعَرَبِيَّةُ](https://www.instagram.com/lanternio_uae/) | [беларуская](https://www.instagram.com/getlantern_belarus/) | [English](https://www.instagram.com/getlantern/) | [فارسی](https://www.instagram.com/getlantern_fa/) | [](https://www.instagram.com/lanternio_guinea/) | [русский](https://www.instagram.com/lantern.io_ru) | [українська](https://www.instagram.com/getlantern_ua/) | [中文](https://www.instagram.com/lanternio_ch/)
-- Telegram
-     | [اَلْعَرَبِيَّةُ](https://t.me/lantern_uae) | [беларуская](https://t.me/lantern_belarus) | [@lantern_official_bot](https://t.me/lantern_official_bot) | [فارسی](https://t.me/LanternFarsi) | [](https://t.me/LanternGuinea) | [русский](https://t.me/lantern_russia) | [українська](https://t.me/lanternukraine) | [中文](https://t.me/lantern_china)
-- Telegram (beta testers)
-     | [اَلْعَرَبِيَّةُ](https://t.me/&#43;cUgbK1eqrrE0MDQx) | [беларуская](https://t.me/&#43;bRTww4oDsrsxY2Mx) | [فارسی](https://t.me/lanternbetaIR) | [](https://t.me/&#43;_G9WGtSTXvs3ZDQx) | [русский](https://t.me/&#43;pLVA7H6MU_Y2N2Vi) | [українська](https://t.me/&#43;c_K4oFhv7NMzZjlh) | [中文](https://t.me/&#43;n3SfwL0Ho7w1ODgz)
-- 
-     | [اَلْعَرَبِيَّةُ](https://twitter.com/getlantern_UAE) | [беларуская](https://twitter.com/LanternBelarus) | [English](https://twitter.com/getlantern) | [فارسی](https://twitter.com/getlantern_fa) | [](https://twitter.com/getlantern_gu) | [русский](https://twitter.com/Lantern_Russia) | [українська](https://twitter.com/LanternUA) | [中文](https://twitter.com/getlantern_CN)
+- GitHub Discussions | [اَلْعَرَبِيَّةُ](https://github.com/getlantern/lantern-forum-uae/discussions) | [беларуская](https://github.com/getlantern/lantern-forum-belarus) | [English](https://github.com/getlantern/lantern-forum-en/discussions) | [فارسی](https://github.com/getlantern/lantern-forum-fa/discussions) | [русский](https://github.com/getlantern/lantern-forum-ru/discussions) | [українська](https://github.com/getlantern/lantern-forum-ukraine/discussions) | [中文](https://github.com/getlantern/lantern-forum-cn/discussions)
+- Instagram | [اَلْعَرَبِيَّةُ](https://www.instagram.com/lanternio_uae/) | [беларуская](https://www.instagram.com/getlantern_belarus/) | [English](https://www.instagram.com/getlantern/) | [فارسی](https://www.instagram.com/getlantern_fa/) | [](https://www.instagram.com/lanternio_guinea/) | [русский](https://www.instagram.com/lantern.io_ru) | [українська](https://www.instagram.com/getlantern_ua/) | [中文](https://www.instagram.com/lanternio_ch/)
+- Telegram | [اَلْعَرَبِيَّةُ](https://t.me/lantern_uae) | [беларуская](https://t.me/lantern_belarus) | [@lantern_official_bot](https://t.me/lantern_official_bot) | [فارسی](https://t.me/LanternFarsi) | [](https://t.me/LanternGuinea) | [русский](https://t.me/lantern_russia) | [українська](https://t.me/lanternukraine) | [中文](https://t.me/lantern_china)
+- Telegram (beta testers) | [اَلْعَرَبِيَّةُ](https://t.me/&#43;cUgbK1eqrrE0MDQx) | [беларуская](https://t.me/&#43;bRTww4oDsrsxY2Mx) | [فارسی](https://t.me/lanternbetaIR) | [](https://t.me/&#43;_G9WGtSTXvs3ZDQx) | [русский](https://t.me/&#43;pLVA7H6MU_Y2N2Vi) | [українська](https://t.me/&#43;c_K4oFhv7NMzZjlh) | [中文](https://t.me/&#43;n3SfwL0Ho7w1ODgz)
+-  | [اَلْعَرَبِيَّةُ](https://twitter.com/getlantern_UAE) | [беларуская](https://twitter.com/LanternBelarus) | [English](https://twitter.com/getlantern) | [فارسی](https://twitter.com/getlantern_fa) | [](https://twitter.com/getlantern_gu) | [русский](https://twitter.com/Lantern_Russia) | [українська](https://twitter.com/LanternUA) | [中文](https://twitter.com/getlantern_CN)
 
 ## Downloads
 <table>

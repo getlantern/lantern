@@ -20,7 +20,7 @@
 - [{{ $tx.faq }}]({{ $cm.faq_link }})
 {{- range $siteName, $site := $si }}
 - {{ index $tx $siteName }}
-    {{ range $lang, $url := $site }} | [{{- if eq $lang "bot" -}}
+    {{- range $lang, $url := $site }} | [{{- if eq $lang "bot" -}}
         @lantern_official_bot
     {{- else }}
     {{- index $cm $lang }}{{ end }}]({{ $url }})
