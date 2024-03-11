@@ -4,7 +4,7 @@ telegram:
   zh: "https://t.me/lantern_china"
   ru: "https://t.me/lantern_russia"
   ua: "https://t.me/lanternukraine"
-  bl: "https://t.me/lantern_belarus"
+  be: "https://t.me/lantern_belarus"
   ar: "https://t.me/lantern_uae"
   fr: "https://t.me/LanternGuinea"
 telegram_beta:
@@ -12,7 +12,7 @@ telegram_beta:
   ru: "https://t.me/+pLVA7H6MU_Y2N2Vi"
   ua: "https://t.me/+c_K4oFhv7NMzZjlh"
   zh: "https://t.me/+n3SfwL0Ho7w1ODgz"
-  bl: "https://t.me/+bRTww4oDsrsxY2Mx"
+  be: "https://t.me/+bRTww4oDsrsxY2Mx"
   ar: "https://t.me/+cUgbK1eqrrE0MDQx"
   fr: "https://t.me/+_G9WGtSTXvs3ZDQx"
 instagram:
@@ -20,7 +20,7 @@ instagram:
   zh: "https://www.instagram.com/lanternio_ch/"
   en: "https://www.instagram.com/getlantern/"
   ua: "https://www.instagram.com/getlantern_ua/"
-  bl: "https://www.instagram.com/getlantern_belarus/"
+  be: "https://www.instagram.com/getlantern_belarus/"
   ru: "https://www.instagram.com/lantern.io_ru"
   ar: "https://www.instagram.com/lanternio_uae/"
   fr: "https://www.instagram.com/lanternio_guinea/"
@@ -32,13 +32,13 @@ twitter:
   en: "https://twitter.com/getlantern"
   ru: "https://twitter.com/Lantern_Russia"
   ua: "https://twitter.com/LanternUA"
-  bl: "https://twitter.com/LanternBelarus"
+  be: "https://twitter.com/LanternBelarus"
 github:
   zh: https://github.com/getlantern/lantern-forum-cn/discussions
   fa: https://github.com/getlantern/lantern-forum-fa/discussions
   en: https://github.com/getlantern/lantern-forum-en/discussions
   ru: https://github.com/getlantern/lantern-forum-ru/discussions
-  bl: https://github.com/getlantern/lantern-forum-belarus
+  be: https://github.com/getlantern/lantern-forum-belarus
   ar: https://github.com/getlantern/lantern-forum-uae/discussions
   ua: https://github.com/getlantern/lantern-forum-ukraine/discussions
   
