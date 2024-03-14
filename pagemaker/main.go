@@ -23,7 +23,7 @@ const (
 
 var (
 	outputDir  string
-	commonPath = path.Join(translationsDir, "common.json")
+	commonPath = path.Join(translationsDir, commonFile)
 	debug      = false
 )
 
@@ -128,10 +128,8 @@ func updatePages(target string) error {
 
 		templateName := fmt.Sprintf("%s%s", target, templateSuffix)
 		template := filepath.Join(templateDir, templateName)
-		var outFilename string
-		if lang == "en" {
-			outFilename = target
-		} else {
+		outFilename := target
+		if lang != "en" {
 			splitTarget := strings.Split(target, ".")
 			if len(splitTarget) != 2 {
 				return fmt.Errorf("invalid target; could not be formatted: %s", target)
