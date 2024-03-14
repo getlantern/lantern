@@ -1,0 +1,48 @@
+# every listed site will be its own row for our public links
+# and every row may have a list of links for each site below
+# linked by that language's two digit code (ISO 639-1).
+# bot is treated specially because it is multilingual
+telegram:
+  bot: "https://t.me/lantern_official_bot"
+  fa: "https://t.me/LanternFarsi"
+  zh: "https://t.me/lantern_china"
+  ru: "https://t.me/lantern_russia"
+  uk: "https://t.me/lanternukraine"
+  be: "https://t.me/lantern_belarus"
+  ar: "https://t.me/lantern_uae"
+  fr: "https://t.me/LanternGuinea"
+telegram_beta:
+  fa: "https://t.me/lanternbetaIR"
+  ru: "https://t.me/+pLVA7H6MU_Y2N2Vi"
+  uk: "https://t.me/+c_K4oFhv7NMzZjlh"
+  zh: "https://t.me/+n3SfwL0Ho7w1ODgz"
+  be: "https://t.me/+bRTww4oDsrsxY2Mx"
+  ar: "https://t.me/+cUgbK1eqrrE0MDQx"
+  fr: "https://t.me/+_G9WGtSTXvs3ZDQx"
+instagram:
+  fa: "https://www.instagram.com/getlantern_fa/"
+  zh: "https://www.instagram.com/lanternio_ch/"
+  en: "https://www.instagram.com/getlantern/"
+  uk: "https://www.instagram.com/getlantern_ua/"
+  be: "https://www.instagram.com/getlantern_belarus/"
+  ru: "https://www.instagram.com/lantern.io_ru"
+  ar: "https://www.instagram.com/lanternio_uae/"
+  fr: "https://www.instagram.com/lanternio_guinea/"
+twitter:
+  zh: "https://twitter.com/getlantern_CN"
+  fr: "https://twitter.com/getlantern_gu"
+  ar: "https://twitter.com/getlantern_UAE"
+  fa: "https://twitter.com/getlantern_fa"
+  en: "https://twitter.com/getlantern"
+  ru: "https://twitter.com/Lantern_Russia"
+  uk: "https://twitter.com/LanternUA"
+  be: "https://twitter.com/LanternBelarus"
+github:
+  zh: https://github.com/getlantern/lantern-forum-cn/discussions
+  fa: https://github.com/getlantern/lantern-forum-fa/discussions
+  en: https://github.com/getlantern/lantern-forum-en/discussions
+  ru: https://github.com/getlantern/lantern-forum-ru/discussions
+  be: https://github.com/getlantern/lantern-forum-belarus
+  ar: https://github.com/getlantern/lantern-forum-uae/discussions
+  uk: https://github.com/getlantern/lantern-forum-ukraine/discussions
+  

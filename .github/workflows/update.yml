@@ -1,0 +1,39 @@
+name: Update READMEs
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'pagemaker/**'
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'pagemaker/go.mod'
+          cache-dependency-path: 'pagemaker/go.sum'
+
+      - name: Build Go
+        run: go build
+        working-directory: pagemaker
+
+      - name: Update files
+        run: ./pagemaker
+        working-directory: pagemaker
+
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Automated update"
