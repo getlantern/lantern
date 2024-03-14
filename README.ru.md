@@ -1,9 +1,9 @@
 # Lantern
 [![en](resources/English.svg)](README.md)
-
 [![fa](resources/Farsi.svg)](README.fa.md)
 [![ru](resources/Russian.svg)](README.ru.md)
 [![zh](resources/Chinese.svg)](README.zh.md)
+
 ---
 Инструмент для обхода цензуры доступен для бесплатного скачивания на любой операционной системе
 

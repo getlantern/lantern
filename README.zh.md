@@ -1,9 +1,9 @@
 # 蓝灯
 [![en](resources/English.svg)](README.md)
-
 [![fa](resources/Farsi.svg)](README.fa.md)
 [![ru](resources/Russian.svg)](README.ru.md)
 [![zh](resources/Chinese.svg)](README.zh.md)
+
 ---
 可以在任何操作系统上获得免费下载审查规避工具
 
