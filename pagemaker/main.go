@@ -64,8 +64,14 @@ func main() {
 		fmt.Printf("unable to update page: %v", err)
 		os.Exit(1)
 	}
+
+	err = updatePages("footer.html")
+	if err != nil {
+		fmt.Printf("unable to update footer: %v", err)
+	}
+
 	fmt.Println("🎉 Updates complete!")
-	os.Exit(0)
+	return
 }
 
 // updatePages takes a target output EXAMPLE.md from template EXAMPLE.tmpl.md
