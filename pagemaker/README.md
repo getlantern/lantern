@@ -1,12 +1,19 @@
 # pagemaker
 Tool for automatically updating downloads page through source files.
 
-## process
-1. Source data at `links.yml` or `releases.yml` can be updated
-1. GitHub action `update.yml` will be automatically triggered to update pages
-1. `update.yml` runs go program `./pagemaker` which
-    - reads source data at `links.yml` and `releases.yml`
-    - reads `translations` directory for every localized language
-    - parses `templates` directory for `common.json` and each `<language>.json`
-    - writes new README files with updated names, links and localizations
-1. Changes are automatically committed
+## source files
+Update source files with newest information.
+- [`links.yml`](./links.yml)
+- [`releases.yml`](./releases.yml)
+
+## templates
+Templates in the [templates](./templates) directory can be altered, and will affect all languages.
+- [`README.md.tmpl`](./templates/README.md.tmpl)
+
+## translations
+For every translation file in the [translations](./translations) directory, a new file will be made.
+- [`common.json`](./translations/common.json) has permanent links and endonyms common to all translations
+
+## automatic actions
+Any file changed in this directory will trigger an update of all translations using the _source files_, _templates_, and _translations_ cited above.
+- [update.yml](../.github/workflows/update.yml)
