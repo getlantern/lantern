@@ -1,0 +1,24 @@
+{{/* abbreviations to help with line length */}}
+{{- $cm := .Common -}}
+{{- $tx := .Translations }}
+{{- $si := .Sites }}
+
+<ul>
+    <li>
+        <a href="{{ $cm.website_link }}">{{ $tx.website }}</a>
+    </li>
+    <li>
+        <a href="{{ $cm.faq_link }}">{{ $tx.faq }}</a>
+    </li>
+    {{- range $siteName, $site := $si }}
+    <li>
+        {{ index $tx $siteName }}
+        {{- range $lang, $url := $site }} | <a href="{{ $url }}">{{- if eq $lang "bot" -}}
+            @lantern_official_bot
+        {{- else }}
+        {{- index $cm $lang }}{{ end }}</a>
+        {{- end }}
+    </li>
+    {{- end }}
+</ul>
+
