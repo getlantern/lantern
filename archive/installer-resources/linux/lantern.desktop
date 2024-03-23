@@ -1,6 +1,9 @@
 [Desktop Entry]
 Type=Application
 Name=lantern
+Comment=Bypass internet censorship
 Exec=lantern
 Icon=lantern
-
+Terminal=false
+Categories=Network;Internet;
+Keywords=Proxy;VPN;filter;censorship;gfw;
