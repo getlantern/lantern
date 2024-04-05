@@ -1,6 +1,13 @@
 # This list is ordered by version, newest at the top.
 # Remove any old versions from the bottom of the list,
 # or comment them out by adding a `#` prefix to each line.
+#
+# Add new version notes as they're available, following
+# the release notes process in the CS repo.
+#
+# The README files on this repo's home page are updated
+# automatically after changes to this file are committed
+# to the "devel" branch.
 
 - 7.8.3:
   - fixed bug with configuration that caused some clients to crash
