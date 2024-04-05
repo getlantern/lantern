@@ -5,7 +5,7 @@ on:
   push:
     paths:
       - 'pagemaker/**'
-    branches: [ main ]
+    branches: [ devel ]
 
 jobs:
   build:
