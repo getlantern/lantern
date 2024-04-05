@@ -96,9 +96,8 @@
 - 🚀 请尝试早期发布的“测试版”。虽然这可能不太不稳定，但您的反馈有助于改进。欢迎加入我们的 [论坛] (#links) 做出尊贵用户贡献。
 
 ## Release Notes
-### 7.8.4
-- fixed bug with configuration that caused some clients to crash
 ### 7.8.3
+- fixed bug with configuration that caused some clients to crash
 - fixed bug with language selection
 ### 7.8.2
 - optimized startup
