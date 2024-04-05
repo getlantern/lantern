@@ -3,7 +3,7 @@
 # or comment them out by adding a `#` prefix to each line.
 
 - 7.8.4:
-  - fixed bug with configuration causing some clients to crash
+  - fixed bug with configuration that caused some clients to crash
 
 - 7.8.3:
   - fixed bug with language selection
