@@ -1,11 +1,17 @@
 # This list is ordered by version, newest at the top.
 # Remove any old versions from the bottom of the list,
 # or comment them out by adding a `#` prefix to each line.
-# - 7.8.2:
-#   - foo
-#   - bar
-#   - bat
 
+- 7.8.4:
+  - fixed bug with configuration causing some clients to crash
+
+- 7.8.3:
+  - fixed bug with language selection
+
+- 7.8.2:
+  - optimized startup
+  - fixed database bug
+  
 - 7.8.1:
   - improved proxy selection
 
@@ -13,6 +19,6 @@
   - implemented advanced automatic proxy selection
   - added new protocols
 
-- 7.7.2:
-  - added new protocols
-  - bug fixes
+# - 7.7.2:
+#   - added new protocols
+#   - bug fixes
