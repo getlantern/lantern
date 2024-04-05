@@ -96,12 +96,16 @@ Censorship circumvention tool available for free download on any operating syste
 - 🚀 Try the early release &#34;beta&#34; version. While this may be unstable, feedback helps improve. Join our [forums](#links) to contribute.
 
 ## Release Notes
+### 7.8.4
+- fixed bug with configuration that caused some clients to crash
+### 7.8.3
+- fixed bug with language selection
+### 7.8.2
+- optimized startup
+- fixed database bug
 ### 7.8.1
 - improved proxy selection
 ### 7.8.0
 - implemented advanced automatic proxy selection
 - added new protocols
-### 7.7.2
-- added new protocols
-- bug fixes
 

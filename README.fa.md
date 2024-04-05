@@ -96,12 +96,16 @@
 - 🚀 نسخه آزمایشی &#34;بتا&#34; را امتحان کنید. اگرچه این نسخه ممکن است ناپایدار باشد، بازخوردها به بهبود آن کمک می‌کنند. برای مشارکت، به [forums](#links) ما بپیوندید.
 
 ## Release Notes
+### 7.8.4
+- fixed bug with configuration that caused some clients to crash
+### 7.8.3
+- fixed bug with language selection
+### 7.8.2
+- optimized startup
+- fixed database bug
 ### 7.8.1
 - improved proxy selection
 ### 7.8.0
 - implemented advanced automatic proxy selection
 - added new protocols
-### 7.7.2
-- added new protocols
-- bug fixes
 

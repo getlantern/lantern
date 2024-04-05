@@ -96,12 +96,16 @@
 - 🚀 جرب الإصدار الأولي &#34;التجريبي&#34;. في حين أن هذا الإصدار قد يكون غير مستقر، فإن التعليقات تساعد على التحسن. انضم إلى [منتدياتنا](#links) للمساهمة.
 
 ## Release Notes
+### 7.8.4
+- fixed bug with configuration that caused some clients to crash
+### 7.8.3
+- fixed bug with language selection
+### 7.8.2
+- optimized startup
+- fixed database bug
 ### 7.8.1
 - improved proxy selection
 ### 7.8.0
 - implemented advanced automatic proxy selection
 - added new protocols
-### 7.7.2
-- added new protocols
-- bug fixes
 
