@@ -96,6 +96,8 @@
 - 🚀 نسخه آزمایشی &#34;بتا&#34; را امتحان کنید. اگرچه این نسخه ممکن است ناپایدار باشد، بازخوردها به بهبود آن کمک می‌کنند. برای مشارکت، به [forums](#links) ما بپیوندید.
 
 ## Release Notes
+### 7.8.4
+- minor optimizations and bug fixes
 ### 7.8.3
 - fixed bug with configuration that caused some clients to crash
 - fixed bug with language selection

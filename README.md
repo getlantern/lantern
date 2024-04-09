@@ -96,6 +96,8 @@ Censorship circumvention tool available for free download on any operating syste
 - 🚀 Try the early release &#34;beta&#34; version. While this may be unstable, feedback helps improve. Join our [forums](#links) to contribute.
 
 ## Release Notes
+### 7.8.4
+- minor optimizations and bug fixes
 ### 7.8.3
 - fixed bug with configuration that caused some clients to crash
 - fixed bug with language selection
