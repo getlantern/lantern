@@ -9,6 +9,9 @@
 # automatically after changes to this file are committed
 # to the "devel" branch.
 
+- 7.8.4:
+  - minor optimizations and bug fixes
+
 - 7.8.3:
   - fixed bug with configuration that caused some clients to crash
   - fixed bug with language selection
