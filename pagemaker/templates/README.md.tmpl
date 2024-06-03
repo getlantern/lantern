@@ -15,18 +15,6 @@
 
 ![cover page](resources/cover_page.png)
 
-## {{ $tx.links }}
-- [{{ $tx.website }}]({{ $cm.website_link }})
-- [{{ $tx.faq }}]({{ $cm.faq_link }})
-{{- range $siteName, $site := $si }}
-- {{ index $tx $siteName }}
-    {{- range $lang, $url := $site }} | [{{- if eq $lang "bot" -}}
-        @lantern_official_bot
-    {{- else }}
-    {{- index $cm $lang }}{{ end }}]({{ $url }})
-    {{- end }}
- {{- end }}
-
 ## {{ $tx.downloads }}
 <table>
     <tr>
@@ -103,6 +91,18 @@
 - 📱 {{ $tx.note_ios }}
 - 🔗 {{ $tx.note_choices }}
 - 🚀 {{ $tx.note_beta }}
+
+## {{ $tx.links }}
+- [{{ $tx.website }}]({{ $cm.website_link }})
+- [{{ $tx.faq }}]({{ $cm.faq_link }})
+{{- range $siteName, $site := $si }}
+- {{ index $tx $siteName }}
+    {{- range $lang, $url := $site }} | [{{- if eq $lang "bot" -}}
+        @lantern_official_bot
+    {{- else }}
+    {{- index $cm $lang }}{{ end }}]({{ $url }})
+    {{- end }}
+ {{- end }}
 
 ## Release Notes
 {{- range $release := $rl }}
