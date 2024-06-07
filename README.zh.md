@@ -13,26 +13,39 @@
 <table>
     <tr>
         <th></th>
-        <th>视窗/Windows</th>
-        <th>安卓</th>
-        <th>苹果Mac系统</th>
-        <th>苹果IOS系统</th>
-        <th>Linux（32 位）</th>
-        <th>Linux（64 位）</th>
+        <th>稳定</th>
+        <th>应用商店</th>
+        <th>测试版本</th>
     </tr>
     <tr>
-        <th>稳定</th>
+        <th>视窗/Windows</th>
         <td>
             <a href="https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.exe">Windows 10&#43;</a> <br> 
             <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer.exe">Windows 10&#43;</a> <br>
             <a href="https://s3.amazonaws.com/lantern/lantern-installer.exe">Windows 10&#43;</a> <br>
             <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-win7.exe">Windows 7</a>    
         </td>
+        <td></td>
+        <td>
+            <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.exe">Windows 10&#43;</a>
+        </td>
+    </tr>
+    <tr>
+        <th>安卓</th>
         <td>
             <a href="https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.apk">安卓 6&#43;</a> <br>
             <a href="https://s3.amazonaws.com/lantern/lantern-installer.apk">安卓 6&#43;</a> <br>
             <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer.apk">安卓 6&#43;</a>
         </td>
+        <td>
+            <a href="https://play.google.com/store/apps/details?id=org.getlantern.lantern">安卓 6&#43;</a>
+        </td>
+        <td>
+            <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.apk">安卓 6&#43;</a>
+        </td>
+    </tr>
+    <tr>
+        <th>苹果Mac系统</th>
         <td>
             <a href="https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.dmg">苹果Mac系统 10.13&#43;</a> <br>
             <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer.dmg">苹果Mac系统 10.13&#43;</a> <br>
@@ -40,42 +53,35 @@
         </td>
         <td></td>
         <td>
-            <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-32-bit.deb">Ubuntu 优麒麟 14.04&#43; (32 位)</a> <br>
-            <a href="https://s3.amazonaws.com/lantern/lantern-installer-32-bit.deb">Ubuntu 优麒麟 14.04&#43; (32 位)</a>
-        </td>
-        <td>
-            <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-64-bit.deb">Ubuntu 优麒麟 14.04&#43; (64 位)</a> <br>
-            <a href="https://s3.amazonaws.com/lantern/lantern-installer-64-bit.deb">Ubuntu 优麒麟 14.04&#43; (64 位)</a>
+            <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.dmg">苹果Mac系统 10.13&#43;</a>
         </td>
     </tr>
     <tr>
-        <th>应用商店</th>
-        <td></td>
-        <td>
-            <a href="https://play.google.com/store/apps/details?id=org.getlantern.lantern">安卓 6&#43;</a>
-        </td>
+        <th>苹果IOS系统</th>
         <td></td>
         <td>
             <a href="https://apps.apple.com/app/id1457872372?l">苹果IOS系统 11&#43;</a>
         </td>
         <td></td>
-        <td></td>
     </tr>
     <tr>
-        <th>测试版本</th>
+        <th>Linux（32 位）</th>
         <td>
-            <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.exe">Windows 10&#43;</a>
-        </td>
-        <td>
-            <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.apk">安卓 6&#43;</a>
-        </td>
-        <td>
-            <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.dmg">苹果Mac系统 10.13&#43;</a>
+            <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-32-bit.deb">Ubuntu 优麒麟 14.04&#43; (32 位)</a> <br>
+            <a href="https://s3.amazonaws.com/lantern/lantern-installer-32-bit.deb">Ubuntu 优麒麟 14.04&#43; (32 位)</a>
         </td>
         <td></td>
         <td>
             <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview-32-bit.deb">Ubuntu 优麒麟 14.04&#43; (32 位)</a>
         </td>
+    </tr>
+    <tr>
+        <th>Linux（64 位）</th>
+        <td>
+            <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-64-bit.deb">Ubuntu 优麒麟 14.04&#43; (64 位)</a> <br>
+            <a href="https://s3.amazonaws.com/lantern/lantern-installer-64-bit.deb">Ubuntu 优麒麟 14.04&#43; (64 位)</a>
+        </td>
+        <td></td>
         <td>
             <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview-64-bit.deb">Ubuntu 优麒麟 14.04&#43; (64 位)</a>
         </td>
