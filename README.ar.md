@@ -13,26 +13,39 @@
 <table>
     <tr>
         <th></th>
-        <th>نظام التشغيل Windows </th>
-        <th>نظام Android</th>
-        <th>نظام التشغيل macOS</th>
-        <th>نظام iOS</th>
-        <th>Linux (32-بت)</th>
-        <th>Linux (64-بت)</th>
+        <th>مستقر</th>
+        <th>متجر التطبيقات</th>
+        <th>إصدار تجريبي &#34;بيتا&#34;</th>
     </tr>
     <tr>
-        <th>مستقر</th>
+        <th>نظام التشغيل Windows </th>
         <td>
             <a href="https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.exe">Windows 10&#43;</a> <br> 
             <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer.exe">Windows 10&#43;</a> <br>
             <a href="https://s3.amazonaws.com/lantern/lantern-installer.exe">Windows 10&#43;</a> <br>
             <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-win7.exe">Windows 7</a>    
         </td>
+        <td></td>
+        <td>
+            <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.exe">Windows 10&#43;</a>
+        </td>
+    </tr>
+    <tr>
+        <th>نظام Android</th>
         <td>
             <a href="https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.apk">Android 6&#43;</a> <br>
             <a href="https://s3.amazonaws.com/lantern/lantern-installer.apk">Android 6&#43;</a> <br>
             <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer.apk">Android 6&#43;</a>
         </td>
+        <td>
+            <a href="https://play.google.com/store/apps/details?id=org.getlantern.lantern">Android 6&#43;</a>
+        </td>
+        <td>
+            <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.apk">Android 6&#43;</a>
+        </td>
+    </tr>
+    <tr>
+        <th>نظام التشغيل macOS</th>
         <td>
             <a href="https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.dmg">macOS 10.13&#43;</a> <br>
             <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer.dmg">macOS 10.13&#43;</a> <br>
@@ -40,42 +53,35 @@
         </td>
         <td></td>
         <td>
-            <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-32-bit.deb">Ubuntu 14.04&#43; (32-بت)</a> <br>
-            <a href="https://s3.amazonaws.com/lantern/lantern-installer-32-bit.deb">Ubuntu 14.04&#43; (32-بت)</a>
-        </td>
-        <td>
-            <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-64-bit.deb">Ubuntu 14.04&#43; (64-بت)</a> <br>
-            <a href="https://s3.amazonaws.com/lantern/lantern-installer-64-bit.deb">Ubuntu 14.04&#43; (64-بت)</a>
+            <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.dmg">macOS 10.13&#43;</a>
         </td>
     </tr>
     <tr>
-        <th>متجر التطبيقات</th>
-        <td></td>
-        <td>
-            <a href="https://play.google.com/store/apps/details?id=org.getlantern.lantern">Android 6&#43;</a>
-        </td>
+        <th>نظام iOS</th>
         <td></td>
         <td>
             <a href="https://apps.apple.com/app/id1457872372?l">iOS 11&#43;</a>
         </td>
         <td></td>
-        <td></td>
     </tr>
     <tr>
-        <th>إصدار تجريبي &#34;بيتا&#34;</th>
+        <th>Linux (32-بت)</th>
         <td>
-            <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.exe">Windows 10&#43;</a>
-        </td>
-        <td>
-            <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.apk">Android 6&#43;</a>
-        </td>
-        <td>
-            <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview.dmg">macOS 10.13&#43;</a>
+            <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-32-bit.deb">Ubuntu 14.04&#43; (32-بت)</a> <br>
+            <a href="https://s3.amazonaws.com/lantern/lantern-installer-32-bit.deb">Ubuntu 14.04&#43; (32-بت)</a>
         </td>
         <td></td>
         <td>
             <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview-32-bit.deb">Ubuntu 14.04&#43; (32-بت)</a>
         </td>
+    </tr>
+    <tr>
+        <th>Linux (64-بت)</th>
+        <td>
+            <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-64-bit.deb">Ubuntu 14.04&#43; (64-بت)</a> <br>
+            <a href="https://s3.amazonaws.com/lantern/lantern-installer-64-bit.deb">Ubuntu 14.04&#43; (64-بت)</a>
+        </td>
+        <td></td>
         <td>
             <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-preview-64-bit.deb">Ubuntu 14.04&#43; (64-بت)</a>
         </td>
