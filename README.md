@@ -102,17 +102,15 @@ Censorship circumvention tool available for free download on any operating syste
 - Twitter | [اَلْعَرَبِيَّةُ](https://twitter.com/getlantern_UAE) | [беларуская](https://twitter.com/LanternBelarus) | [English](https://twitter.com/getlantern) | [فارسی](https://twitter.com/getlantern_fa) | [française](https://twitter.com/getlantern_gu) | [русский](https://twitter.com/Lantern_Russia) | [українська](https://twitter.com/LanternUA) | [中文](https://twitter.com/getlantern_CN)
 
 ## Release Notes
+### 7.8.7
+- update UI elements
+- fixed bug with translations in UI
+- update circumvention library
+### 7.8.6
+- updated circumvention library
+- update translations support
+### 7.8.5
+- fixed bug for pro plans selection
 ### 7.8.4
 - minor optimizations and bug fixes
-### 7.8.3
-- fixed bug with configuration that caused some clients to crash
-- fixed bug with language selection
-### 7.8.2
-- optimized startup
-- fixed database bug
-### 7.8.1
-- improved proxy selection
-### 7.8.0
-- implemented advanced automatic proxy selection
-- added new protocols
 
