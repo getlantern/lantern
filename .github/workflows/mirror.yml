@@ -14,9 +14,12 @@ jobs:
       run: |
         git config --global user.email "github-actions@github.com"
         git config --global user.name "GitHub Action"
- 
+
+        # pull generated files from github profile page and commit them
         git remote add readmes https://github.com/getlantern/.github.git
         git fetch readmes
         git checkout --no-overlay readmes/main -- profile
-        git add README*  # add every file that starts with README
+        mv profile/* .
+        rm -rf profile
+        git add README*
         git diff --quiet && git diff --staged --quiet || git commit -m 'fetched from getlantern/.github/profile'; git push
