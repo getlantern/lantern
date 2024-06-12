@@ -1,13 +1,13 @@
 # أداةلانترن
-[![en](resources/English.svg)](README.md)
-[![zh](resources/Chinese.svg)](README.zh.md)
-[![ru](resources/Russian.svg)](README.ru.md)
-[![ar](resources/Arabic.svg)](README.ar.md)
-[![fa](resources/Farsi.svg)](README.fa.md)
+[![en](https://github.com/getlantern/.github/blob/main/resources/English.svg)](https://github.com/getlantern/.github/blob/main/profile/README.md)
+[![zh](https://github.com/getlantern/.github/blob/main/resources/Chinese.svg)](https://github.com/getlantern/.github/blob/main/profile/README.zh.md)
+[![ru](https://github.com/getlantern/.github/blob/main/resources/Russian.svg)](https://github.com/getlantern/.github/blob/main/profile/README.ru.md)
+[![ar](https://github.com/getlantern/.github/blob/main/resources/Arabic.svg)](https://github.com/getlantern/.github/blob/main/profile/README.ar.md)
+[![fa](https://github.com/getlantern/.github/blob/main/resources/Farsi.svg)](https://github.com/getlantern/.github/blob/main/profile/README.fa.md)
 ---
 أداة التحايل على الرقابة متاحة للتنزيل على أي نظام تشغيل
 
-![cover page](resources/cover_page.png)
+![cover page](https://github.com/getlantern/.github/blob/main/resources/cover_page.png)
 
 ## تنزيلات
 <table>
@@ -102,6 +102,8 @@
 - تويتر | [اَلْعَرَبِيَّةُ](https://twitter.com/getlantern_UAE) | [беларуская](https://twitter.com/LanternBelarus) | [English](https://twitter.com/getlantern) | [فارسی](https://twitter.com/getlantern_fa) | [française](https://twitter.com/getlantern_gu) | [русский](https://twitter.com/Lantern_Russia) | [українська](https://twitter.com/LanternUA) | [中文](https://twitter.com/getlantern_CN)
 
 ## Release Notes
+### 7.8.8
+- fixed bug with Spanish translations not displaying
 ### 7.8.7
 - update UI elements
 - fixed bug with translations in UI
