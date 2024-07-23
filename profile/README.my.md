@@ -6,17 +6,17 @@
 [![fa](https://github.com/getlantern/.github/blob/main/resources/Farsi.svg)](https://github.com/getlantern/.github/blob/main/profile/README.fa.md)
 [![my](https://github.com/getlantern/.github/blob/main/resources/Burmese.svg)](https://github.com/getlantern/.github/blob/main/profile/README.my.md)
 ---
-Censorship circumvention tool available for free download on any operating system
+အင်တာနက်တွင် ပိတ်ထားသည်များကို ကျော်ကြည့်သည့် တူးလ်ကို မည်သည့် လည်ပတ်စနစ်ပေါ်တွင်မဆို အခမဲ့ ဒေါင်းလုဒ်ယူ၍ ရနိုင်ပါပြီ
 
 ![cover page](https://github.com/getlantern/.github/blob/main/resources/cover_page.png)
 
-## Downloads
+## ဒေါင်းလုဒ်များ
 <table>
     <tr>
         <th></th>
-        <th>stable</th>
-        <th>app store</th>
-        <th>beta</th>
+        <th>တည်ငြိမ်</th>
+        <th>အက်ပ်စတိုး</th>
+        <th>စမ်းသပ်ဗားရှင်း</th>
     </tr>
     <tr>
         <th>Windows</th>
@@ -89,17 +89,17 @@ Censorship circumvention tool available for free download on any operating syste
     </tr>
 </table>
 
-- 📱 If the App Store is unavailable in your region, you may be able to follow [these steps](https://lantern.io/faq#use-2) to download Lantern.
-- 🔗 For stable versions, multiple links exist for hosting redundancy and choice.
-- 🚀 Try the early release &#34;beta&#34; version. While this may be unstable, feedback helps improve. Join our [forums](#links) to contribute.
+- 📱 App Store ကို သင့်ဒေသတွင် သုံး၍မရနိုင်ပါက Lantern ကို ဒေါင်းလုဒ်လုပ်ရန်အောက်ဖော်ပြပါ [ယင်းအဆင့်များ] (https://lantern.io/faq#use-2) ကို လိုက်လုပ်ကြည့်နိုင်ပါသည်။
+- 🔗 တည်ငြိမ်သော ဗားရှင်းများအတွက် အပိုဆောင်း လက်ခံဆောင်ရွက်ပေးခြင်းနှင့် ရွေးချယ်မှုတို့ပါသည့် လင့်ခ်များစွာ ရှိသည်။
+- 🚀 အစောပိုင်းတွင် ထုတ်သည့် &#34;အစမ်းသုံး&#34; ဗားရှင်းကို စမ်းသုံးကြည့်ပါ။ ဤဗားရှင်းသည် တည်ငြိမ်မှုမရှိသေးသည်မှာ ဖြစ်ကောင်းဖြစ်နိုင်ပြီး တုံ့ပြန်ချက်ပေးခြင်းက ပိုကောင်းအောင် အထောက်အကူဖြစ်စေပါသည်။ ပါဝင်ဆောင်ရွက်ရန် ကျွန်ုပ်တို့၏ [ဖိုရမ်များ](#လင့်ခ်များ) တွင် ဝင်ပါလိုက်ပါ။
 
-## Links
-- [Website](https://lantern.io)
-- [Frequently Asked Questions](https://lantern.io/faq)
-- GitHub Discussions | [اَلْعَرَبِيَّةُ](https://github.com/getlantern/lantern-forum-uae/discussions) | [беларуская](https://github.com/getlantern/lantern-forum-belarus) | [English](https://github.com/getlantern/lantern-forum-en/discussions) | [فارسی](https://github.com/getlantern/lantern-forum-fa/discussions) | [русский](https://github.com/getlantern/lantern-forum-ru/discussions) | [українська](https://github.com/getlantern/lantern-forum-ukraine/discussions) | [中文](https://github.com/getlantern/lantern-forum-cn/discussions)
+## လင့်ခ်များ
+- [ဝဘ်ဆိုက်](https://lantern.io)
+- [မကြာခဏ မေးလေ့ရှိသော မေးခွန်းများ](https://lantern.io/faq)
+- GitHub ဆွေးနွေးမှုများ | [اَلْعَرَبِيَّةُ](https://github.com/getlantern/lantern-forum-uae/discussions) | [беларуская](https://github.com/getlantern/lantern-forum-belarus) | [English](https://github.com/getlantern/lantern-forum-en/discussions) | [فارسی](https://github.com/getlantern/lantern-forum-fa/discussions) | [русский](https://github.com/getlantern/lantern-forum-ru/discussions) | [українська](https://github.com/getlantern/lantern-forum-ukraine/discussions) | [中文](https://github.com/getlantern/lantern-forum-cn/discussions)
 - Instagram | [اَلْعَرَبِيَّةُ](https://www.instagram.com/lanternio_uae/) | [беларуская](https://www.instagram.com/getlantern_belarus/) | [English](https://www.instagram.com/getlantern/) | [فارسی](https://www.instagram.com/getlantern_fa/) | [française](https://www.instagram.com/lanternio_guinea/) | [русский](https://www.instagram.com/lantern.io_ru) | [українська](https://www.instagram.com/getlantern_ua/) | [中文](https://www.instagram.com/lanternio_ch/)
 - Telegram | [اَلْعَرَبِيَّةُ](https://t.me/lantern_uae) | [беларуская](https://t.me/lantern_belarus) | [@lantern_official_bot](https://t.me/lantern_official_bot) | [فارسی](https://t.me/LanternFarsi) | [française](https://t.me/LanternGuinea) | [русский](https://t.me/lantern_russia) | [українська](https://t.me/lanternukraine) | [中文](https://t.me/lantern_china)
-- Telegram (beta testers) | [اَلْعَرَبِيَّةُ](https://t.me/&#43;cUgbK1eqrrE0MDQx) | [беларуская](https://t.me/&#43;bRTww4oDsrsxY2Mx) | [فارسی](https://t.me/lanternbetaIR) | [française](https://t.me/&#43;_G9WGtSTXvs3ZDQx) | [русский](https://t.me/&#43;pLVA7H6MU_Y2N2Vi) | [українська](https://t.me/&#43;c_K4oFhv7NMzZjlh) | [中文](https://t.me/&#43;n3SfwL0Ho7w1ODgz)
+- Telegram (အစမ်းသုံးကို စမ်းသပ်သူများ) | [اَلْعَرَبِيَّةُ](https://t.me/&#43;cUgbK1eqrrE0MDQx) | [беларуская](https://t.me/&#43;bRTww4oDsrsxY2Mx) | [فارسی](https://t.me/lanternbetaIR) | [française](https://t.me/&#43;_G9WGtSTXvs3ZDQx) | [русский](https://t.me/&#43;pLVA7H6MU_Y2N2Vi) | [українська](https://t.me/&#43;c_K4oFhv7NMzZjlh) | [中文](https://t.me/&#43;n3SfwL0Ho7w1ODgz)
 - Twitter | [اَلْعَرَبِيَّةُ](https://twitter.com/getlantern_UAE) | [беларуская](https://twitter.com/LanternBelarus) | [English](https://twitter.com/getlantern) | [فارسی](https://twitter.com/getlantern_fa) | [française](https://twitter.com/getlantern_gu) | [русский](https://twitter.com/Lantern_Russia) | [українська](https://twitter.com/LanternUA) | [中文](https://twitter.com/getlantern_CN)
 
 ## Release Notes
