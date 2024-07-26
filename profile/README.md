@@ -91,7 +91,7 @@ Censorship circumvention tool available for free download on any operating syste
 
 - 📱 If the App Store is unavailable in your region, you may be able to follow [these steps](https://lantern.io/faq#use-2) to download Lantern.
 - 🔗 For stable versions, multiple links exist for hosting redundancy and choice.
-- 🚀 Try the early release &#34;beta&#34; version. While this may be unstable, feedback helps improve. Join our [forums](#links) to contribute.
+- 🚀 Try the early release &#34;beta&#34; version. While this may be unstable, feedback helps us improve. Join our [forums](#links) to contribute.
 
 ## Links
 - [Website](https://lantern.io)
