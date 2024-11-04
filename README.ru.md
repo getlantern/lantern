@@ -118,7 +118,4 @@
 - update circumvention protocols
 - improvements to websockets
 - reduce client size
-### 7.8.8
-- fixed bug with Spanish translations not displaying
-- updated circumvention library
 
