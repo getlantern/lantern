@@ -96,6 +96,7 @@
 ## လင့်ခ်များ
 - [ဝဘ်ဆိုက်](https://lantern.io)
 - [မကြာခဏ မေးလေ့ရှိသော မေးခွန်းများ](https://lantern.io/faq)
+- [wiki](https://github.com/getlantern/guide/wiki)
 - GitHub ဆွေးနွေးမှုများ | [اَلْعَرَبِيَّةُ](https://github.com/getlantern/lantern-forum-uae/discussions) | [беларуская](https://github.com/getlantern/lantern-forum-belarus) | [English](https://github.com/getlantern/lantern-forum-en/discussions) | [فارسی](https://github.com/getlantern/lantern-forum-fa/discussions) | [русский](https://github.com/getlantern/lantern-forum-ru/discussions) | [українська](https://github.com/getlantern/lantern-forum-ukraine/discussions) | [中文](https://github.com/getlantern/lantern-forum-cn/discussions)
 - Instagram | [اَلْعَرَبِيَّةُ](https://www.instagram.com/lanternio_uae/) | [беларуская](https://www.instagram.com/getlantern_belarus/) | [English](https://www.instagram.com/getlantern/) | [فارسی](https://www.instagram.com/getlantern_fa/) | [française](https://www.instagram.com/lanternio_guinea/) | [русский](https://www.instagram.com/lantern.io_ru) | [українська](https://www.instagram.com/getlantern_ua/) | [中文](https://www.instagram.com/lanternio_ch/)
 - Telegram | [اَلْعَرَبِيَّةُ](https://t.me/lantern_uae) | [беларуская](https://t.me/lantern_belarus) | [@lantern_official_bot](https://t.me/lantern_official_bot) | [فارسی](https://t.me/LanternFarsi) | [française](https://t.me/LanternGuinea) | [русский](https://t.me/lantern_russia) | [українська](https://t.me/lanternukraine) | [中文](https://t.me/lantern_china)
