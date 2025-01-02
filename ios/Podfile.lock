@@ -1,0 +1,29 @@
+PODS:
+  - Flutter (1.0.0)
+  - Liblantern (0.0.1):
+    - Flutter
+  - shared_preferences_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
+
+DEPENDENCIES:
+  - Flutter (from `Flutter`)
+  - Liblantern (from `.`)
+  - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Flutter
+  Liblantern:
+    :path: "."
+  shared_preferences_foundation:
+    :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
+
+SPEC CHECKSUMS:
+  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  Liblantern: 0e7ec8975652424163b72769baa37aba7fb02deb
+  shared_preferences_foundation: fcdcbc04712aee1108ac7fda236f363274528f78
+
+PODFILE CHECKSUM: ca8f73e305478fa2610321b61ab9a52586176b32
+
+COCOAPODS: 1.16.2
