@@ -5,6 +5,9 @@ import (
 	"net/netip"
 )
 
+// FiveTuple represents a network connection uniquely identified by its
+// protocol, source IP and port, and destination IP and port.
+// Based on https://github.com/xjasonlyu/tun2socks/v2/metadata
 type FiveTuple struct {
 	Network string
 	DstIP   netip.Addr
