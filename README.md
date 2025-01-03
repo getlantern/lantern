@@ -23,7 +23,7 @@ The Go backend makes use of StreamDialer & PacketListener from the Outline SDK t
 
 # Build and run the app on macOS
 ```
-make build-macos
+make macos
 flutter run -d macOS
 ```
 
