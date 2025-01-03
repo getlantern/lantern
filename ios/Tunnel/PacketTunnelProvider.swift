@@ -6,13 +6,7 @@
 import NetworkExtension
 import os
 
-// Declare the Go functions
-@_silgen_name("StartTunnel")
-func StartTunnel() -> Int32
-
-@_silgen_name("StopTunnel")
-func StopTunnel()
-
+// Declare Go functions
 @_silgen_name("StartTun2Socks")
 func StartTun2Socks() -> Int32
 
@@ -42,7 +36,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
         ipv4Settings.excludedRoutes = loadExcludedRoutes()
         
-        // Assign the IPv4 settings to the network settings
+        // Assign IPv4 settings to the network settings
         settings.ipv4Settings = ipv4Settings
 
         // Apply the network settings
@@ -60,24 +54,22 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
             let ret = StartTun2Socks()
             if ret != 0 {
-                // handle error
                 os_log("Tunnel failed to start")
                 let err = NSError(domain: "tun2socksError", code: Int(ret), userInfo: nil)
                 completionHandler(err)
                 return
             }
             os_log("Tunnel started successfully")
-            
-            // completionHandler(nil)
 
             SetSwiftProviderRef(Unmanaged.passUnretained(self).toOpaque())
             completionHandler(nil)
 
-            // Start writing processed packets
+            // Start reading packets from the OS
             self.readPacketsLoop()
         }
     }
 
+    // continuously read inbound IP packets from iOS
     func readPacketsLoop() {
         packetFlow.readPackets{ [weak self] packets, protocols in
             guard let self = self else { return }
@@ -100,13 +92,13 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         return packetFlow.value(forKey: "socket.fileDescriptor") as? Int32
     }
 
+    // Called by Go (via bridging) to inject IP packets back to iOS
     @objc func handleOutboundPacket(_ packetData: NSData) -> Bool {
         // Convert to Swift Data, inject into iOS
         let data = packetData as Data
         return writePacketsToOS([data])
     }
     
-    // Called by Go (via bridging) to inject IP packets back to iOS
     func writePacketsToOS(_ packets: [Data]) -> Bool {
         let protoArray = packets.map { _ in NSNumber(value: AF_INET) }
         return packetFlow.writePackets(packets, withProtocols: protoArray)
@@ -114,13 +106,12 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
     private func loadExcludedRoutes() -> [NEIPv4Route] {
         // Loads excluded routes from disk, written by app side
-        var routes = [
+        return [
             NEIPv4Route(destinationAddress: "192.168.0.253", subnetMask: "255.255.255.255"),
             NEIPv4Route(destinationAddress: "8.8.8.8", subnetMask: "255.255.255.255"),
             NEIPv4Route(destinationAddress: "8.8.4.4", subnetMask: "255.255.255.255"),
             NEIPv4Route(destinationAddress: "127.0.0.1", subnetMask: "255.255.255.255")
         ]
-        return routes
     }
     
     override func stopTunnel(with reason: NEProviderStopReason, completionHandler: @escaping () -> Void) {
