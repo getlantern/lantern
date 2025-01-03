@@ -13,22 +13,22 @@ import (
 )
 
 const (
+	// Duration to wait before timing out a UDP session
 	_udpSessionTimeout = 60 * time.Second
 )
 
 type vpnServer struct {
-	listener net.Listener
-
-	mtu     int
-	offset  int
-	clients map[net.Conn]bool
-
-	vpnConnected bool
-	tunnel       *tunnel
+	listener     net.Listener      // Network listener for accepting client connections
+	mtu          int               // Maximum Transmission Unit size for the VPN tunnel
+	offset       int               // Offset for packet processing
+	clients      map[net.Conn]bool // Map to track active client connections
+	vpnConnected bool              // whether the VPN is currently connected
+	tunnel       *tunnel           // tunnel that manages packet forwarding
 	tunnelStop   chan struct{}
 	mu           sync.RWMutex
 }
 
+// VPNServer defines the methods required to manage the VPN server
 type VPNServer interface {
 	ProcessInboundPacket(rawPacket []byte, n int) error
 	Start(ctx context.Context, deviceName string) error
@@ -37,6 +37,7 @@ type VPNServer interface {
 	RunTun2Socks(sendPacketToOS OutputFn, ssDialer dialer.Dialer) error
 }
 
+// NewVPNServer initializes and returns a new instance of vpnServer
 func NewVPNServer(address string, mtu, offset int) VPNServer {
 	server := &vpnServer{
 		mtu:        mtu,
@@ -61,16 +62,18 @@ func (s *vpnServer) Stop() error {
 		return errors.New("VPN isn't running")
 	}
 	defer s.broadcastStatus()
-	s.vpnConnected = true
+	s.vpnConnected = false
 	return nil
 }
 
+// IsVPNConnected returns the current connection status of the VPN.
 func (s *vpnServer) IsVPNConnected() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.vpnConnected
 }
 
+// RunTun2Socks initializes the Tun2Socks tunnel using the provided parameters.
 func (srv *vpnServer) RunTun2Socks(sendPacketToOS OutputFn, ssDialer dialer.Dialer) error {
 	tw := &osWriter{sendPacketToOS}
 	tunnel, err := newTunnel(ssDialer.StreamDialer(), false, _udpSessionTimeout, tw)
@@ -81,6 +84,7 @@ func (srv *vpnServer) RunTun2Socks(sendPacketToOS OutputFn, ssDialer dialer.Dial
 	return nil
 }
 
+// ProcessInboundPacket handles a packet received from the TUN device.
 func (s *vpnServer) ProcessInboundPacket(rawPacket []byte, n int) error {
 	if s.tunnel == nil {
 		return nil
@@ -103,6 +107,9 @@ func (s *vpnServer) acceptConnections() {
 	}
 }
 
+// broadcastStatus sends the current VPN status ("connected" or "disconnected")
+// to all connected clients. If sending to a client fails, it logs the error,
+// closes the connection, and removes the client from the clients map.
 func (s *vpnServer) broadcastStatus() {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
