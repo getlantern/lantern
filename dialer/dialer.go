@@ -9,7 +9,7 @@ import (
 )
 
 type Dialer interface {
-	transport.StreamDialer
+	StreamDialer() transport.StreamDialer
 	Dial(context.Context, *common.FiveTuple) (net.Conn, error)
 	DialUDP(*common.FiveTuple) (net.PacketConn, error)
 }

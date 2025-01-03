@@ -11,7 +11,7 @@ import (
 
 // ssDialer is used to dial shadowsocks proxies
 type ssDialer struct {
-	transport.StreamDialer
+	ssDialer     transport.StreamDialer
 	packetDialer transport.PacketListener
 	addr         string
 }
@@ -26,11 +26,15 @@ func NewShadowsocks(addr, method, password string) (Dialer, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &ssDialer{addr: addr, StreamDialer: dialer}, nil
+	return &ssDialer{addr: addr, ssDialer: dialer}, nil
+}
+
+func (d *ssDialer) StreamDialer() transport.StreamDialer {
+	return d.ssDialer
 }
 
 func (d *ssDialer) Dial(ctx context.Context, m *common.FiveTuple) (net.Conn, error) {
-	return d.DialStream(ctx, m.RemoteAddress())
+	return d.ssDialer.DialStream(ctx, m.RemoteAddress())
 }
 
 func (d *ssDialer) DialUDP(m *common.FiveTuple) (net.PacketConn, error) {
