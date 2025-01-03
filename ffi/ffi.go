@@ -24,17 +24,11 @@ func init() {
 //export startVPN
 func startVPN() {
 	log.Print("startVPN called")
-	// tunnelMu.Lock()
-	// defer tunnelMu.Unlock()
-	// tunnel.Start()
 }
 
 //export stopVPN
 func stopVPN() {
 	log.Print("stopVPN called")
-	// tunnelMu.Lock()
-	// defer tunnelMu.Unlock()
-	// tunnel.Stop()
 }
 
 //export isVPNConnected

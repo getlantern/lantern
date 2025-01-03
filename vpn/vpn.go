@@ -53,7 +53,7 @@ func (s *vpnServer) Start(ctx context.Context, deviceName string) error {
 		return errors.New("VPN already running")
 	}
 	defer s.broadcastStatus()
-	s.vpnConnected = true
+	s.setConnected(true)
 	return nil
 }
 
@@ -62,7 +62,7 @@ func (s *vpnServer) Stop() error {
 		return errors.New("VPN isn't running")
 	}
 	defer s.broadcastStatus()
-	s.vpnConnected = false
+	s.setConnected(false)
 	return nil
 }
 
@@ -73,9 +73,15 @@ func (s *vpnServer) IsVPNConnected() bool {
 	return s.vpnConnected
 }
 
+func (s *vpnServer) setConnected(isConnected bool) {
+	s.mu.Lock()
+	s.vpnConnected = isConnected
+	s.mu.Unlock()
+}
+
 // RunTun2Socks initializes the Tun2Socks tunnel using the provided parameters.
-func (srv *vpnServer) RunTun2Socks(sendPacketToOS OutputFn, ssDialer dialer.Dialer) error {
-	tw := &osWriter{sendPacketToOS}
+func (srv *vpnServer) RunTun2Socks(processOutboundPacket OutputFn, ssDialer dialer.Dialer) error {
+	tw := &osWriter{processOutboundPacket}
 	tunnel, err := newTunnel(ssDialer.StreamDialer(), false, _udpSessionTimeout, tw)
 	if err != nil {
 		return err
@@ -115,7 +121,7 @@ func (s *vpnServer) broadcastStatus() {
 	defer s.mu.RUnlock()
 
 	status := "disconnected"
-	if s.vpnConnected {
+	if s.IsVPNConnected() {
 		status = "connected"
 	}
 

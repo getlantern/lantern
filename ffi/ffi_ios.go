@@ -23,7 +23,7 @@ func logToSwift(message string) {
 	C.SwiftLog(cMessage)
 }
 
-func sendPacketToOS(pkt []byte) bool {
+func processOutboundPacket(pkt []byte) bool {
 	if len(pkt) == 0 {
 		return false
 	}
@@ -60,5 +60,5 @@ func startTun2SocksImpl() error {
 	if err != nil {
 		return err
 	}
-	return server.RunTun2Socks(sendPacketToOS, ssDialer)
+	return server.RunTun2Socks(processOutboundPacket, ssDialer)
 }
