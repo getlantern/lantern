@@ -10,7 +10,7 @@ gen:
 # Build for macOS
 macos:
 	go build -o bin/liblantern.dylib -buildmode=c-shared ./ffi
-	cp bin/liblantern.dylib build/macos/Build/Products/Debug/lantern.app/Contents/MacOS
+	cp bin/liblantern.dylib build/macos/Build/Products/Debug/Lantern.app/Contents/MacOS
 
 # Build for iOS
 build-ios-device:
