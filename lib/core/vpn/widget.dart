@@ -27,7 +27,7 @@ class TunWidget extends ConsumerWidget {
   TunWidget({required this.isVPNRunning, required this.ffiClient});
 
   Future<void> toggleSwitch(bool newValue, String vpnStatus) async {
-    if (isVPNRunning) {
+    if (!newValue) {
       if (Platform.isIOS) {
         await _nativeBridge.stopVPN();
       } else {

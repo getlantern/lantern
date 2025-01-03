@@ -51,6 +51,9 @@ enum VPNManagerError: Swift.Error {
           print("Starting tunnel..")
           try self.vpnManager.connection.startVPNTunnel(options: options)
 
+          self.vpnManager.isOnDemandEnabled = true
+          self.saveThenLoadProvider({ _ in })
+
           print("Tunnel started successfully")
           result("VPN Started")
         } catch {
@@ -65,15 +68,27 @@ enum VPNManagerError: Swift.Error {
   private func stopVPN(result: @escaping FlutterResult) {
     print("Stopping tunnel..")
     vpnManager.connection.stopVPNTunnel()
-    let success =  true
-    if success {
-      result("VPN Stopped Successfully")
-    } else {
-      result(FlutterError(code: "VPN_STOP_FAILED",
-                          message: "Failed to stop VPN",
-                          details: nil))
-    }
+    self.vpnManager.isOnDemandEnabled = false
+    self.saveThenLoadProvider({ _ in })
   }
+
+    private func saveThenLoadProvider(
+      _ completion: @escaping (Result<Void, VPNManagerError>) -> Void
+    ) {
+      self.vpnManager.saveToPreferences { saveError in
+        if saveError != nil {
+          completion(.failure(.savingProviderFailed))
+        } else {
+          self.vpnManager.loadFromPreferences { loadError in
+            if loadError != nil {
+              completion(.failure(.loadingProviderFailed))
+            } else {
+              completion(.success(()))
+            }
+          }
+        }
+      }
+    }
 
    private func loadVPNPreferences(completion: @escaping (Bool) -> Void) {
       NETunnelProviderManager.loadAllFromPreferences { (managers, error) in
@@ -104,8 +119,8 @@ enum VPNManagerError: Swift.Error {
       
     let alwaysConnectRule = NEOnDemandRuleConnect()
     vpnManager.onDemandRules = [alwaysConnectRule]
-    vpnManager.isOnDemandEnabled = true
 
+    vpnManager.isOnDemandEnabled = false
     vpnManager.saveToPreferences { [weak self] error in
         if let error = error {
             print("Error saving VPN preferences: \(error)")
