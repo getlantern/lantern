@@ -4,6 +4,8 @@ import (
 	"errors"
 )
 
+type OutputFn func(pkt []byte) bool
+
 // osWriter implements the io.WriteCloser interface.
 // It is used to send packets to the OS using an OutputFn.
 type osWriter struct {
