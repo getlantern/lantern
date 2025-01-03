@@ -50,6 +50,6 @@ Start the Shadowsocks server:
 ssserver -s 0.0.0.0:8388 -m aes-256-gcm -k "mytestpassword" -vvvv
 ```
 
-Finally, update the primary proxy address in [ffi.go](ffi/ffi.go).
+Finally, update the primary proxy address in [ffi.go](ffi/ffi.go#L103).
 
 
