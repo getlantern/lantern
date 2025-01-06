@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -17,6 +17,9 @@
 		5F05186F2D224C3300E704BE /* Tunnel.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5F0515CE2D20DB5100E704BE /* Tunnel.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		5F7A35462D23504000AF1761 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F0515CF2D20DB5100E704BE /* NetworkExtension.framework */; };
 		5F7A35472D23518700AF1761 /* liblantern.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F0515BC2D20B58600E704BE /* liblantern.xcframework */; };
+		5F9537412D2B67DF009BB822 /* VPNBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F95373E2D2B67DF009BB822 /* VPNBase.swift */; };
+		5F9537422D2B67DF009BB822 /* VPNManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F95373F2D2B67DF009BB822 /* VPNManager.swift */; };
+		5F9537662D2B6F07009BB822 /* MethodHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F9537652D2B6F07009BB822 /* MethodHandler.swift */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
@@ -102,6 +105,9 @@
 		5F05189C2D225B8500E704BE /* Liblantern.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Liblantern.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		5F7A32EC2D2265F700AF1761 /* Liblantern.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Liblantern.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		5F7A35442D234C4B00AF1761 /* Liblantern.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Liblantern.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		5F95373E2D2B67DF009BB822 /* VPNBase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VPNBase.swift; sourceTree = "<group>"; };
+		5F95373F2D2B67DF009BB822 /* VPNManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VPNManager.swift; sourceTree = "<group>"; };
+		5F9537652D2B6F07009BB822 /* MethodHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MethodHandler.swift; sourceTree = "<group>"; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
@@ -185,6 +191,16 @@
 			path = RunnerTests;
 			sourceTree = "<group>";
 		};
+		5F9537402D2B67DF009BB822 /* Lantern */ = {
+			isa = PBXGroup;
+			children = (
+				5F95373E2D2B67DF009BB822 /* VPNBase.swift */,
+				5F95373F2D2B67DF009BB822 /* VPNManager.swift */,
+				5F9537652D2B6F07009BB822 /* MethodHandler.swift */,
+			);
+			path = Lantern;
+			sourceTree = "<group>";
+		};
 		8B8AB31C4F200C9B812FE72B /* Pods */ = {
 			isa = PBXGroup;
 			children = (
@@ -245,6 +261,7 @@
 				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 				5F0517192D2233D200E704BE /* Runner.entitlements */,
+				5F9537402D2B67DF009BB822 /* Lantern */,
 			);
 			path = Runner;
 			sourceTree = "<group>";
@@ -554,6 +571,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5F9537412D2B67DF009BB822 /* VPNBase.swift in Sources */,
+				5F9537662D2B6F07009BB822 /* MethodHandler.swift in Sources */,
+				5F9537422D2B67DF009BB822 /* VPNManager.swift in Sources */,
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 			);

@@ -11,6 +11,9 @@ import os
 func StartTun2Socks() -> Int32
 
 class PacketTunnelProvider: NEPacketTunnelProvider {
+
+    //static let shared: PacketTunnelProvider = PacketTunnelProvider()
+
     let logger = OSLog(subsystem: "org.getlantern.lantern", category: "VPN")
     var connection: NWConnection?
     private var goEngine = GoEngine()
@@ -69,6 +72,18 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         }
     }
 
+    // Method to handle outbound packets
+    @objc func handleOutboundPacket(_ packetData: Data) -> Bool {
+        // Convert to Swift Data, inject into iOS
+        let data = packetData as Data
+        return writePacketsToOS([data])
+    }
+
+    func writePacketsToOS(_ packets: [Data]) -> Bool {
+        let protoArray = packets.map { _ in NSNumber(value: AF_INET) }
+        return packetFlow.writePackets(packets, withProtocols: protoArray)
+    }
+
     // continuously read inbound IP packets from iOS
     func readPacketsLoop() {
         packetFlow.readPackets{ [weak self] packets, protocols in
@@ -90,18 +105,6 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             }
         }
         return packetFlow.value(forKey: "socket.fileDescriptor") as? Int32
-    }
-
-    // Called by Go (via bridging) to inject IP packets back to iOS
-    @objc func handleOutboundPacket(_ packetData: NSData) -> Bool {
-        // Convert to Swift Data, inject into iOS
-        let data = packetData as Data
-        return writePacketsToOS([data])
-    }
-    
-    func writePacketsToOS(_ packets: [Data]) -> Bool {
-        let protoArray = packets.map { _ in NSNumber(value: AF_INET) }
-        return packetFlow.writePackets(packets, withProtocols: protoArray)
     }
 
     private func loadExcludedRoutes() -> [NEIPv4Route] {
