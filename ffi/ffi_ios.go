@@ -8,10 +8,11 @@ package main
 //
 import "C"
 import (
+	"context"
 	"log"
 	"unsafe"
 
-	"github.com/getlantern/lantern-outline/dialer"
+	"github.com/getlantern/lantern-outline/vpn"
 )
 
 // IOS-related
@@ -39,26 +40,18 @@ func processOutboundPacket(pkt []byte) bool {
 	return result == 1
 }
 
-//export StartTun2Socks
-func StartTun2Socks() C.int {
-	err := startTun2SocksImpl()
-	if err != nil {
-		return 1 // or some other nonzero code
+func start(ctx context.Context, server vpn.VPNServer) error {
+	if err := server.StartTun2Socks(ctx, processOutboundPacket); err != nil {
+		return err
 	}
-	return 0
+	return nil
 }
 
 //export ProcessInboundPacket
 func ProcessInboundPacket(packetPtr unsafe.Pointer, packetLen C.int) {
 	//logToSwift("Received inbound packet")
-	raw := C.GoBytes(packetPtr, packetLen)
-	server.ProcessInboundPacket(raw, int(packetLen))
-}
-
-func startTun2SocksImpl() error {
-	ssDialer, err := dialer.NewShadowsocks("192.168.0.253:8388", "aes-256-gcm", "mytestpassword")
-	if err != nil {
-		return err
+	if isVPNConnected() == 1 {
+		raw := C.GoBytes(packetPtr, packetLen)
+		server.ProcessInboundPacket(raw, int(packetLen))
 	}
-	return server.RunTun2Socks(processOutboundPacket, ssDialer)
 }

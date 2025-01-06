@@ -7,7 +7,7 @@ import Combine
 import Network
 import NetworkExtension
 
-class VPNManager: ObservableObject {
+class VPNManager: VPNBase {
     private var vpnManager = NETunnelProviderManager()
     
     static let shared: VPNManager = VPNManager()

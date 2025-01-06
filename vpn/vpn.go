@@ -25,41 +25,69 @@ type vpnServer struct {
 	vpnConnected bool              // whether the VPN is currently connected
 	tunnel       *tunnel           // tunnel that manages packet forwarding
 	tunnelStop   chan struct{}
+	dialer       dialer.Dialer
 	mu           sync.RWMutex
 }
 
 // VPNServer defines the methods required to manage the VPN server
 type VPNServer interface {
 	ProcessInboundPacket(rawPacket []byte, n int) error
-	Start(ctx context.Context, deviceName string) error
+	Start(ctx context.Context) error
+	StartTun2Socks(ctx context.Context, processOutboundPacket OutputFn) error
 	Stop() error
 	IsVPNConnected() bool
-	RunTun2Socks(sendPacketToOS OutputFn, ssDialer dialer.Dialer) error
 }
 
 // NewVPNServer initializes and returns a new instance of vpnServer
-func NewVPNServer(address string, mtu, offset int) VPNServer {
+func NewVPNServer(dialer dialer.Dialer, address string, mtu, offset int) VPNServer {
 	server := &vpnServer{
 		mtu:        mtu,
 		offset:     offset,
+		dialer:     dialer,
 		clients:    make(map[net.Conn]bool),
 		tunnelStop: make(chan struct{}),
 	}
 	return server
 }
 
-func (s *vpnServer) Start(ctx context.Context, deviceName string) error {
+// Start initializes the tunnel using the provided parameters and starts the VPN server.
+func (s *vpnServer) Start(ctx context.Context) error {
 	if s.IsVPNConnected() {
 		return errors.New("VPN already running")
 	}
-	defer s.broadcastStatus()
-	s.setConnected(true)
+	//go s.acceptConnections(ctx)
 	return nil
 }
 
+// StartTun2Socks initializes the Tun2Socks tunnel using the provided parameters.
+func (s *vpnServer) StartTun2Socks(ctx context.Context, processOutboundPacket OutputFn) error {
+	if s.IsVPNConnected() {
+		return errors.New("VPN already running")
+	}
+	go s.startTun2Socks(processOutboundPacket)
+	return nil
+}
+
+func (srv *vpnServer) startTun2Socks(processOutboundPacket OutputFn) error {
+	tw := &osWriter{processOutboundPacket}
+	tunnel, err := newTunnel(srv.dialer.StreamDialer(), false, _udpSessionTimeout, tw)
+	if err != nil {
+		return err
+	}
+	defer srv.broadcastStatus()
+	srv.tunnel = tunnel
+	srv.setConnected(true)
+	return nil
+}
+
+// Stop stops the VPN server and closes the tunnel.
 func (s *vpnServer) Stop() error {
 	if !s.IsVPNConnected() {
 		return errors.New("VPN isn't running")
+	}
+	if s.tunnel != nil {
+		s.tunnel.Close()
+		s.tunnel = nil
 	}
 	defer s.broadcastStatus()
 	s.setConnected(false)
@@ -79,17 +107,6 @@ func (s *vpnServer) setConnected(isConnected bool) {
 	s.mu.Unlock()
 }
 
-// RunTun2Socks initializes the Tun2Socks tunnel using the provided parameters.
-func (srv *vpnServer) RunTun2Socks(processOutboundPacket OutputFn, ssDialer dialer.Dialer) error {
-	tw := &osWriter{processOutboundPacket}
-	tunnel, err := newTunnel(ssDialer.StreamDialer(), false, _udpSessionTimeout, tw)
-	if err != nil {
-		return err
-	}
-	srv.tunnel = tunnel
-	return nil
-}
-
 // ProcessInboundPacket handles a packet received from the TUN device.
 func (s *vpnServer) ProcessInboundPacket(rawPacket []byte, n int) error {
 	if s.tunnel == nil {
@@ -99,7 +116,9 @@ func (s *vpnServer) ProcessInboundPacket(rawPacket []byte, n int) error {
 	return err
 }
 
-func (s *vpnServer) acceptConnections() {
+func (s *vpnServer) acceptConnections(ctx context.Context) {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 	for {
 		conn, err := s.listener.Accept()
 		if err != nil {

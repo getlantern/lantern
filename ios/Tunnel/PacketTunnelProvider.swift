@@ -7,8 +7,11 @@ import NetworkExtension
 import os
 
 // Declare Go functions
-@_silgen_name("StartTun2Socks")
-func StartTun2Socks() -> Int32
+@_silgen_name("startVPN")
+func startVPN() -> Int32
+
+@_silgen_name("stopVPN")
+func stopVPN() -> Int32
 
 class PacketTunnelProvider: NEPacketTunnelProvider {
 
@@ -54,8 +57,9 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             }
 
             os_log("Network settings applied successfully")
+            SetSwiftProviderRef(Unmanaged.passUnretained(self).toOpaque())
 
-            let ret = StartTun2Socks()
+            let ret = startVPN()
             if ret != 0 {
                 os_log("Tunnel failed to start")
                 let err = NSError(domain: "tun2socksError", code: Int(ret), userInfo: nil)
@@ -64,7 +68,6 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             }
             os_log("Tunnel started successfully")
 
-            SetSwiftProviderRef(Unmanaged.passUnretained(self).toOpaque())
             completionHandler(nil)
 
             // Start reading packets from the OS
@@ -118,6 +121,10 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     }
     
     override func stopTunnel(with reason: NEProviderStopReason, completionHandler: @escaping () -> Void) {
+        let ret = stopVPN()
+        if ret != 0 {
+            os_log("Tunnel failed to stop")
+        }
         completionHandler()
     }
     

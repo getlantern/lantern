@@ -49,6 +49,7 @@ dependencies:
   flutter_riverpod: ^2.6.1
   animated_toggle_switch: ^0.8.4
   flutter_advanced_switch: ^3.1.0
+  hooks_riverpod: ^2.6.1
 
 dev_dependencies:
   flutter_test:

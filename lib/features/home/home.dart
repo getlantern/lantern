@@ -31,7 +31,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     _socketClient = ref.read(socketClientProvider);
     _socketClient.connect();
 
-    // Initialize the ffi client with the socket client
+    // Initialize ffi client
     _ffiClient = ref.read(ffiClientProvider);
 
     // Listen to VPN status updates from the socket

@@ -9,6 +9,8 @@ import 'package:lantern/core/ffi/ffi_client.dart';
 import 'package:lantern/core/providers/ffi_provider.dart';
 import 'package:flutter_advanced_switch/flutter_advanced_switch.dart';
 import 'package:lantern/core/services/native_bridge.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 Color blue3 = HexColor('#00BCD4');
 Color grey2 = HexColor('#F5F5F5');
@@ -18,7 +20,7 @@ Color grey5 = HexColor('#707070');
 Color onSwitchColor = blue3;
 Color offSwitchColor = grey5;
 
-class TunWidget extends ConsumerWidget {
+class TunWidget extends HookConsumerWidget {
   final bool isVPNRunning;
 
   final FFIClient ffiClient;
@@ -44,7 +46,10 @@ class TunWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    String vpnStatus = isVPNRunning ? 'connected' : 'disconnected';
+    // Initialize ffi client
+    final _ffiClient = ref.read(ffiClientProvider);
+    String vpnStatus =
+        _ffiClient.isVPNConnected() == 1 ? 'connected' : 'disconnected';
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,

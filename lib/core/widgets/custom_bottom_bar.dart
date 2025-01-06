@@ -1,17 +1,20 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_keys.dart';
 import 'package:lantern/core/common/colors.dart';
 import 'package:lantern/core/common/dimens.dart';
 import 'package:lantern/core/common/image_paths.dart';
 import 'package:lantern/core/localization/i18n.dart';
+import 'package:lantern/core/providers/ffi_provider.dart';
 import 'package:lantern/core/widgets/custom_bottom_item.dart';
 
 const TAB_VPN = 'vpn';
 const TAB_ACCOUNT = 'account';
 const TAB_DEVELOPER = 'developer';
 
-class CustomBottomBar extends StatelessWidget {
+class CustomBottomBar extends HookConsumerWidget {
   final String selectedTab;
   final bool isDevelop;
 
@@ -24,7 +27,7 @@ class CustomBottomBar extends StatelessWidget {
   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final indexToTab = <int, String>{};
     final tabToIndex = <String, int>{};
 
@@ -42,6 +45,9 @@ class CustomBottomBar extends StatelessWidget {
       }
     }
     final currentIndex = tabToIndex[selectedTab] ?? tabToIndex[TAB_VPN]!;
+    final ffiClient = ref.read(ffiClientProvider);
+    String vpnStatus =
+        ffiClient.isVPNConnected() == 1 ? 'connected' : 'disconnected';
     return BottomNavigationBar(
       currentIndex: currentIndex,
       elevation: 0.0,
@@ -59,6 +65,7 @@ class CustomBottomBar extends StatelessWidget {
         true,
         isDevelop,
         '',
+        vpnStatus,
       ),
     );
   }
@@ -73,9 +80,9 @@ class CustomBottomBar extends StatelessWidget {
     bool hasBeenOnboarded,
     bool isDevelop,
     String replicaAddr,
+    String vpnStatus,
   ) {
     final items = <BottomNavigationBarItem>[];
-    String vpnStatus = 'Disconnected';
     items.add(
       BottomNavigationBarItem(
         icon: CustomBottomBarItem(

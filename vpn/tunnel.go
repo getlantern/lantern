@@ -60,8 +60,15 @@ func newTunnel(streamDialer transport.StreamDialer, isUDPEnabled bool, udpTimeou
 }
 
 func (t *tunnel) Write(data []byte) (int, error) {
-	if !t.isConnected {
+	if t.lwipStack == nil {
 		return 0, errors.New("Failed to write, network stack closed")
 	}
 	return t.lwipStack.Write(data)
+}
+
+func (t *tunnel) Close() error {
+	if t.lwipStack != nil {
+		return t.lwipStack.Close()
+	}
+	return nil
 }
