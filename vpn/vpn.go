@@ -44,6 +44,7 @@ func NewVPNServer(dialer dialer.Dialer, address string, mtu, offset int) VPNServ
 		mtu:        mtu,
 		offset:     offset,
 		dialer:     dialer,
+		tunnel:     newTunnel(dialer.StreamDialer(), false, _udpSessionTimeout),
 		clients:    make(map[net.Conn]bool),
 		tunnelStop: make(chan struct{}),
 	}
@@ -69,13 +70,12 @@ func (s *vpnServer) StartTun2Socks(ctx context.Context, processOutboundPacket Ou
 }
 
 func (srv *vpnServer) startTun2Socks(processOutboundPacket OutputFn) error {
-	tw := &osWriter{processOutboundPacket}
-	tunnel, err := newTunnel(srv.dialer.StreamDialer(), false, _udpSessionTimeout, tw)
-	if err != nil {
+	tunWriter := &osWriter{processOutboundPacket}
+	if err := srv.tunnel.Start(tunWriter); err != nil {
+		log.Printf("Error starting tunnel: %v", err)
 		return err
 	}
 	defer srv.broadcastStatus()
-	srv.tunnel = tunnel
 	srv.setConnected(true)
 	return nil
 }
@@ -85,12 +85,15 @@ func (s *vpnServer) Stop() error {
 	if !s.IsVPNConnected() {
 		return errors.New("VPN isn't running")
 	}
-	if s.tunnel != nil {
-		s.tunnel.Close()
-		s.tunnel = nil
-	}
 	defer s.broadcastStatus()
 	s.setConnected(false)
+
+	if s.tunnel != nil {
+		if err := s.tunnel.Close(); err != nil {
+			return err
+		}
+		s.tunnel = nil
+	}
 	return nil
 }
 
