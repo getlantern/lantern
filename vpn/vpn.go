@@ -44,7 +44,7 @@ func NewVPNServer(dialer dialer.Dialer, address string, mtu, offset int) VPNServ
 		mtu:        mtu,
 		offset:     offset,
 		dialer:     dialer,
-		tunnel:     newTunnel(dialer.StreamDialer(), false, _udpSessionTimeout),
+		tunnel:     newTunnel(dialer, false, _udpSessionTimeout),
 		clients:    make(map[net.Conn]bool),
 		tunnelStop: make(chan struct{}),
 	}

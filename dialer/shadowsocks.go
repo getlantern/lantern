@@ -16,6 +16,7 @@ type ssDialer struct {
 	addr         string
 }
 
+// NewShadowsocks creates a new Shadowsocks based dialer
 func NewShadowsocks(addr, method, password string) (Dialer, error) {
 	key, err := shadowsocks.NewEncryptionKey(method, password)
 	if err != nil {
@@ -33,7 +34,7 @@ func (d *ssDialer) StreamDialer() transport.StreamDialer {
 	return d.ssDialer
 }
 
-func (d *ssDialer) Dial(ctx context.Context, m *common.FiveTuple) (net.Conn, error) {
+func (d *ssDialer) Dial(ctx context.Context, m *common.FiveTuple) (transport.StreamConn, error) {
 	return d.ssDialer.DialStream(ctx, m.RemoteAddress())
 }
 

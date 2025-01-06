@@ -9,6 +9,7 @@ import (
 	"github.com/Jigsaw-Code/outline-sdk/transport"
 	"github.com/eycorsican/go-tun2socks/core"
 	"github.com/eycorsican/go-tun2socks/proxy/dnsfallback"
+	"github.com/getlantern/lantern-outline/dialer"
 )
 
 // tunnel represents the configuration and state of an established tunnel to a device.
@@ -17,7 +18,7 @@ import (
 type tunnel struct {
 	isConnected     bool
 	lwipStack       core.LWIPStack // The LWIP stack used for managing the virtual network
-	streamDialer    transport.StreamDialer
+	dialer          dialer.Dialer
 	packetDialer    transport.PacketListener
 	tcpHandler      core.TCPConnHandler
 	udpHandler      core.UDPConnHandler
@@ -28,10 +29,10 @@ type tunnel struct {
 }
 
 // newTunnel creates and initializes a new instance of tunnel with the given parameters
-func newTunnel(streamDialer transport.StreamDialer, isUDPEnabled bool, udpTimeout time.Duration) *tunnel {
+func newTunnel(dialer dialer.Dialer, isUDPEnabled bool, udpTimeout time.Duration) *tunnel {
 	t := &tunnel{
 		lwipStack:    core.NewLWIPStack(),
-		streamDialer: streamDialer,
+		dialer:       dialer,
 		packetDialer: nil,
 		isUDPEnabled: isUDPEnabled,
 		udpTimeout:   udpTimeout,
@@ -42,7 +43,7 @@ func newTunnel(streamDialer transport.StreamDialer, isUDPEnabled bool, udpTimeou
 // Start actually starts running the tunnel by registering connection handlers and the output function
 // to write packets from LWIP to the TUN interface
 func (t *tunnel) Start(tunWriter io.WriteCloser) error {
-	tcpHandler := &tcpHandler{t.streamDialer}
+	tcpHandler := &tcpHandler{t.dialer}
 	var udpHandler core.UDPConnHandler
 	if t.isUDPEnabled {
 		var packetDialer transport.PacketListener = nil

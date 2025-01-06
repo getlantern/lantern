@@ -1,14 +1,16 @@
 package vpn
 
 import (
-	"context"
 	"fmt"
 	"net"
+	"net/netip"
 	"sync"
 	"time"
 
 	"github.com/Jigsaw-Code/outline-sdk/transport"
 	"github.com/eycorsican/go-tun2socks/core"
+	"github.com/getlantern/lantern-outline/common"
+	"github.com/getlantern/lantern-outline/dialer"
 )
 
 // udpHandler is a UDP connection handler based on https://github.com/Jigsaw-Code/outline-apps/blob/master/client/go/outline/tun2socks/udp.go
@@ -19,6 +21,7 @@ type udpHandler struct {
 	conns   map[core.UDPConn]net.PacketConn
 	mu      sync.Mutex
 	timeout time.Duration
+	dialer  dialer.Dialer
 }
 
 func newUDPHandler(listener transport.PacketListener, timeout time.Duration) *udpHandler {
@@ -31,8 +34,16 @@ func newUDPHandler(listener transport.PacketListener, timeout time.Duration) *ud
 
 // Connect establishes a UDP "connection" from the TUN device to the proxy
 func (h *udpHandler) Connect(tunConn core.UDPConn, target *net.UDPAddr) error {
-	ctx := context.Background()
-	proxyConn, err := h.listener.ListenPacket(ctx)
+	srcIP := tunConn.LocalAddr().AddrPort()
+	tuple := &common.FiveTuple{
+		Network: "udp",
+		SrcIP:   srcIP.Addr(),
+		SrcPort: srcIP.Port(),
+		DstIP:   netip.MustParseAddr(target.IP.String()),
+		DstPort: uint16(target.Port),
+	}
+
+	proxyConn, err := h.dialer.DialUDP(tuple)
 	if err != nil {
 		return err
 	}
