@@ -12,6 +12,10 @@ Censorship circumvention tool available for free download on any operating syste
 
 # Overview of iOS VPN implementation
 
+The iOS app utilizes NEPacketTunnelProvider in Swift to manage the VPN tunnel and handle network packet capture.
+
+It integrates with a Go-based lwIP stack through FFI, allowing seamless communication between the two languages.
+
 The VPN application is divided into four components:
 
 - [Go backend](vpn): Handles the core networking logic using go-tun2socks’s LWIPStack, a lightweight IP stack for handling network packets and managing TCP/UDP connections
@@ -19,7 +23,7 @@ The VPN application is divided into four components:
 - [Packet Tunnel Provider](ios/Tunnel) (iOS): Manages the VPN session and interfaces with the iOS networking stack.
 - [Dart/Flutter Frontend](lib): Provides the user interface, allowing users to control the VPN via a simple UI.
 
-The Go backend makes use of StreamDialer & PacketListener from the Outline SDK to manage TCP streams and UDP packets, facilitating communication between the client and a proxy server.
+The Go backend makes use of StreamDialer & PacketListener from the Outline SDK to manage TCP streams and UDP packets, which facilitates communication between the client and a proxy server.
 
 # Build and run the app on macOS
 ```
