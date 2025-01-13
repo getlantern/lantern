@@ -5,6 +5,7 @@ package main
 // #include <stdlib.h>
 // extern void SwiftLog(const char* message);
 // extern int WriteToOS(const void *packetPtr, int length);
+// extern int ExcludeRouteFromOS(const char *route);
 //
 import "C"
 import (
@@ -17,14 +18,9 @@ import (
 
 // IOS-related
 
-// Helper function to send logs to Swift
-func logToSwift(message string) {
-	cMessage := C.CString(message)
-	defer C.free(unsafe.Pointer(cMessage))
-	C.SwiftLog(cMessage)
-}
+type bridge struct{}
 
-func processOutboundPacket(pkt []byte) bool {
+func (*bridge) ProcessOutboundPacket(pkt []byte) bool {
 	if len(pkt) == 0 {
 		return false
 	}
@@ -40,8 +36,29 @@ func processOutboundPacket(pkt []byte) bool {
 	return result == 1
 }
 
+func (*bridge) ExcludeRoute(route string) bool {
+	cRoute := C.CString(route)
+	defer C.free(unsafe.Pointer(cRoute))
+
+	result := C.ExcludeRouteFromOS(cRoute)
+	if result == 1 {
+		log.Printf("excludeRoute: Successfully excluded route %s", route)
+		return true
+	} else {
+		log.Printf("excludeRoute: Failed to exclude route %s", route)
+		return false
+	}
+}
+
+// Helper function to send logs to Swift
+func logToSwift(message string) {
+	cMessage := C.CString(message)
+	defer C.free(unsafe.Pointer(cMessage))
+	C.SwiftLog(cMessage)
+}
+
 func start(ctx context.Context, server vpn.VPNServer) error {
-	if err := server.StartTun2Socks(ctx, processOutboundPacket); err != nil {
+	if err := server.StartTun2Socks(ctx, &bridge{}); err != nil {
 		return err
 	}
 	return nil
