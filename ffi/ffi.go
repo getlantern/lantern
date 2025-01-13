@@ -6,7 +6,6 @@ import (
 	"log"
 	"sync"
 
-	"github.com/getlantern/lantern-outline/dialer"
 	"github.com/getlantern/lantern-outline/vpn"
 )
 
@@ -29,11 +28,7 @@ func startVPN() C.int {
 	if server != nil && server.IsVPNConnected() {
 		return 1
 	}
-	dialer, err := dialer.NewShadowsocks("", "", "")
-	if err != nil {
-		return 1
-	}
-	server = vpn.NewVPNServer(dialer, "", mtu, offset)
+	server = vpn.NewVPNServer("", mtu, offset)
 	if err := start(ctx, server); err != nil {
 		log.Printf("Unable to start VPN server: %v", err)
 		return 1

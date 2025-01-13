@@ -30,6 +30,10 @@ func NewShadowsocks(addr, method, password string) (Dialer, error) {
 	return &ssDialer{addr: addr, ssDialer: dialer}, nil
 }
 
+func NewStreamDialer(addr string, dialer transport.StreamDialer) Dialer {
+	return &ssDialer{addr: addr, ssDialer: dialer}
+}
+
 func (d *ssDialer) StreamDialer() transport.StreamDialer {
 	return d.ssDialer
 }

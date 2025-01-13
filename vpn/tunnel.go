@@ -18,7 +18,6 @@ import (
 type tunnel struct {
 	isConnected     bool
 	lwipStack       core.LWIPStack // The LWIP stack used for managing the virtual network
-	dialer          dialer.Dialer
 	packetDialer    transport.PacketListener
 	tcpHandler      core.TCPConnHandler
 	udpHandler      core.UDPConnHandler
@@ -29,10 +28,9 @@ type tunnel struct {
 }
 
 // newTunnel creates and initializes a new instance of tunnel with the given parameters
-func newTunnel(dialer dialer.Dialer, isUDPEnabled bool, udpTimeout time.Duration) *tunnel {
+func newTunnel(isUDPEnabled bool, udpTimeout time.Duration) *tunnel {
 	t := &tunnel{
 		lwipStack:    core.NewLWIPStack(),
-		dialer:       dialer,
 		packetDialer: nil,
 		isUDPEnabled: isUDPEnabled,
 		udpTimeout:   udpTimeout,
@@ -42,8 +40,8 @@ func newTunnel(dialer dialer.Dialer, isUDPEnabled bool, udpTimeout time.Duration
 
 // Start actually starts running the tunnel by registering connection handlers and the output function
 // to write packets from LWIP to the TUN interface
-func (t *tunnel) Start(tunWriter io.WriteCloser) error {
-	tcpHandler := &tcpHandler{t.dialer}
+func (t *tunnel) Start(dialer dialer.Dialer, tunWriter io.WriteCloser) error {
+	tcpHandler := &tcpHandler{dialer}
 	var udpHandler core.UDPConnHandler
 	if t.isUDPEnabled {
 		var packetDialer transport.PacketListener = nil

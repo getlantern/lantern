@@ -61,8 +61,6 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         let settings = NEPacketTunnelNetworkSettings(tunnelRemoteAddress: "127.0.0.1")
         settings.mtu = NSNumber(value: 1500)
 
-        let excludedRoutes = 
-
         // Configure IPv4 settings
         let ipv4Settings = NEIPv4Settings(addresses: ["10.0.0.2"], subnetMasks: ["255.255.255.0"])
         // Define the routes that should go through the VPN (Allowed IPs)
@@ -159,16 +157,6 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             UInt8(mask & 0xFF)
         ]
         return bytes.map { String($0) }.joined(separator: ".")
-    }
-
-    private func loadExcludedRoutes() -> [NEIPv4Route] {
-        // Loads excluded routes from disk, written by app side
-        return [
-            NEIPv4Route(destinationAddress: "192.168.0.253", subnetMask: "255.255.255.255"),
-            NEIPv4Route(destinationAddress: "8.8.8.8", subnetMask: "255.255.255.255"),
-            NEIPv4Route(destinationAddress: "8.8.4.4", subnetMask: "255.255.255.255"),
-            NEIPv4Route(destinationAddress: "127.0.0.1", subnetMask: "255.255.255.255")
-        ]
     }
     
     override func stopTunnel(with reason: NEProviderStopReason, completionHandler: @escaping () -> Void) {

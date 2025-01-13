@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"github.com/getlantern/lantern-outline/dialer"
+	"github.com/getlantern/radiance/config"
+	"github.com/getlantern/radiance/transport"
 )
 
 const (
@@ -18,15 +20,16 @@ const (
 )
 
 type vpnServer struct {
-	listener     net.Listener      // Network listener for accepting client connections
-	mtu          int               // Maximum Transmission Unit size for the VPN tunnel
-	offset       int               // Offset for packet processing
-	clients      map[net.Conn]bool // Map to track active client connections
-	vpnConnected bool              // whether the VPN is currently connected
-	tunnel       *tunnel           // tunnel that manages packet forwarding
-	tunnelStop   chan struct{}
-	dialer       dialer.Dialer
-	mu           sync.RWMutex
+	listener      net.Listener      // Network listener for accepting client connections
+	mtu           int               // Maximum Transmission Unit size for the VPN tunnel
+	offset        int               // Offset for packet processing
+	clients       map[net.Conn]bool // Map to track active client connections
+	vpnConnected  bool              // whether the VPN is currently connected
+	tunnel        *tunnel           // tunnel that manages packet forwarding
+	tunnelStop    chan struct{}
+	configHandler *config.ConfigHandler
+	dialer        dialer.Dialer
+	mu            sync.RWMutex
 }
 
 // VPNServer defines the methods required to manage the VPN server
@@ -44,14 +47,14 @@ type SwiftBridge interface {
 }
 
 // NewVPNServer initializes and returns a new instance of vpnServer
-func NewVPNServer(dialer dialer.Dialer, address string, mtu, offset int) VPNServer {
+func NewVPNServer(address string, mtu, offset int) VPNServer {
 	server := &vpnServer{
-		mtu:        mtu,
-		offset:     offset,
-		dialer:     dialer,
-		tunnel:     newTunnel(dialer, false, _udpSessionTimeout),
-		clients:    make(map[net.Conn]bool),
-		tunnelStop: make(chan struct{}),
+		mtu:           mtu,
+		offset:        offset,
+		configHandler: config.NewConfigHandler(10 * time.Second),
+		tunnel:        newTunnel(false, _udpSessionTimeout),
+		clients:       make(map[net.Conn]bool),
+		tunnelStop:    make(chan struct{}),
 	}
 	return server
 }
@@ -70,16 +73,25 @@ func (s *vpnServer) StartTun2Socks(ctx context.Context, bridge SwiftBridge) erro
 	if s.IsVPNConnected() {
 		return errors.New("VPN already running")
 	}
-	go s.startTun2Socks(bridge)
+	go s.startTun2Socks(ctx, bridge)
 	return nil
 }
 
-func (srv *vpnServer) startTun2Socks(bridge SwiftBridge) error {
+func (srv *vpnServer) startTun2Socks(ctx context.Context, bridge SwiftBridge) error {
 	tunWriter := &osWriter{bridge.ProcessOutboundPacket}
-	//    if ok := bridge.ExcludeRoute(cfg.Addr); !ok {
-	//                return fmt.Errorf("unable to exclude route: %s", cfg.Addr)
-	//        }
-	if err := srv.tunnel.Start(tunWriter); err != nil {
+	cfg, err := srv.configHandler.GetConfig(ctx)
+	if err != nil {
+		return err
+	}
+	rDialer, err := transport.DialerFrom(cfg)
+	if err != nil {
+		return err
+	}
+	if ok := bridge.ExcludeRoute(cfg.Addr); !ok {
+		return fmt.Errorf("unable to exclude route: %s", cfg.Addr)
+	}
+	dialer := dialer.NewStreamDialer(cfg.Addr, rDialer)
+	if err := srv.tunnel.Start(dialer, tunWriter); err != nil {
 		log.Printf("Error starting tunnel: %v", err)
 		return err
 	}
