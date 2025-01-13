@@ -29,12 +29,11 @@ func startVPN() C.int {
 	if server != nil && server.IsVPNConnected() {
 		return 1
 	}
-	ssDialer, err := dialer.NewShadowsocks("192.168.0.253:8388", "aes-256-gcm", "mytestpassword")
+	dialer, err := dialer.NewShadowsocks("", "", "")
 	if err != nil {
-		log.Printf("Unable to create ss dialer: %v", err)
 		return 1
 	}
-	server = vpn.NewVPNServer(ssDialer, "", mtu, offset)
+	server = vpn.NewVPNServer(dialer, "", mtu, offset)
 	if err := start(ctx, server); err != nil {
 		log.Printf("Unable to start VPN server: %v", err)
 		return 1

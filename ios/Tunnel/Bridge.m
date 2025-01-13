@@ -33,3 +33,24 @@ int WriteToOS(const void *packetPtr, int length) {
     }
     return success ? 1 : 0;
 }
+
+
+// Called by Go to dynamically exclude a route
+int ExcludeRouteFromOS(const char *route) {
+    if (!swiftProviderRef) {
+        NSLog(@"Swift provider reference is NULL");
+        return 0;
+    }
+    NSString *routeString = [NSString stringWithUTF8String:route];
+    SEL sel = NSSelectorFromString(@"excludeRoute:");
+    BOOL success = NO;
+    if ([(__bridge id)swiftProviderRef respondsToSelector:sel]) {
+        // Use function pointer here to call the selector to avoid warnings
+        typedef BOOL (*Func)(id, SEL, NSString *);
+        Func func = (Func)[(__bridge id)swiftProviderRef methodForSelector:sel];
+        if (func) {
+            success = func((__bridge id)swiftProviderRef, sel, routeString);
+        }
+    }
+    return success ? 1 : 0;
+}

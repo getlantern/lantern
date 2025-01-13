@@ -33,9 +33,14 @@ type vpnServer struct {
 type VPNServer interface {
 	ProcessInboundPacket(rawPacket []byte, n int) error
 	Start(ctx context.Context) error
-	StartTun2Socks(ctx context.Context, processOutboundPacket OutputFn) error
+	StartTun2Socks(ctx context.Context, bridge SwiftBridge) error
 	Stop() error
 	IsVPNConnected() bool
+}
+
+type SwiftBridge interface {
+	ProcessOutboundPacket(pkt []byte) bool
+	ExcludeRoute(route string) bool
 }
 
 // NewVPNServer initializes and returns a new instance of vpnServer
@@ -61,16 +66,19 @@ func (s *vpnServer) Start(ctx context.Context) error {
 }
 
 // StartTun2Socks initializes the Tun2Socks tunnel using the provided parameters.
-func (s *vpnServer) StartTun2Socks(ctx context.Context, processOutboundPacket OutputFn) error {
+func (s *vpnServer) StartTun2Socks(ctx context.Context, bridge SwiftBridge) error {
 	if s.IsVPNConnected() {
 		return errors.New("VPN already running")
 	}
-	go s.startTun2Socks(processOutboundPacket)
+	go s.startTun2Socks(bridge)
 	return nil
 }
 
-func (srv *vpnServer) startTun2Socks(processOutboundPacket OutputFn) error {
-	tunWriter := &osWriter{processOutboundPacket}
+func (srv *vpnServer) startTun2Socks(bridge SwiftBridge) error {
+	tunWriter := &osWriter{bridge.ProcessOutboundPacket}
+	//    if ok := bridge.ExcludeRoute(cfg.Addr); !ok {
+	//                return fmt.Errorf("unable to exclude route: %s", cfg.Addr)
+	//        }
 	if err := srv.tunnel.Start(tunWriter); err != nil {
 		log.Printf("Error starting tunnel: %v", err)
 		return err
@@ -92,7 +100,6 @@ func (s *vpnServer) Stop() error {
 		if err := s.tunnel.Close(); err != nil {
 			return err
 		}
-		s.tunnel = nil
 	}
 	return nil
 }
