@@ -35,8 +35,10 @@ type streamDialer struct {
 // NewShadowsocks creates a new Shadowsocks based dialer
 func NewShadowsocks(cfg *config.Config) (Dialer, error) {
 	addr := fmt.Sprintf("%s:%d", cfg.Addr, cfg.Port)
+	// Retrieve Shadowsocks-specific configuration.
 	ssconf := cfg.GetConnectCfgShadowsocks()
 
+	// Generate the encryption key
 	key, err := shadowsocks.NewEncryptionKey(ssconf.Cipher, ssconf.Secret)
 	if err != nil {
 		return nil, err
@@ -47,6 +49,7 @@ func NewShadowsocks(cfg *config.Config) (Dialer, error) {
 		if ok := certPool.AppendCertsFromPEM(cfg.CertPem); !ok {
 			return nil, errors.New("couldn't add certificate to pool")
 		}
+		// Extract the host from the address for ServerName configuration.
 		ip, _, err := net.SplitHostPort(addr)
 		if err != nil {
 			return nil, fmt.Errorf("couldn't split host and port: %v", err)
@@ -60,6 +63,8 @@ func NewShadowsocks(cfg *config.Config) (Dialer, error) {
 	}
 
 	endpoint := &transport.TCPEndpoint{Address: addr}
+
+	// Create a new Shadowsocks stream dialer with the endpoint and encryption key
 	ssDialer, err := shadowsocks.NewStreamDialer(endpoint, key)
 	if err != nil {
 		return nil, err
@@ -75,6 +80,7 @@ func NewShadowsocks(cfg *config.Config) (Dialer, error) {
 	}, nil
 }
 
+// DialStream establishes a connection to the remote address using the Shadowsocks dialer.
 func (d *streamDialer) DialStream(ctx context.Context, remoteAddr string) (transport.StreamConn, error) {
 	innerConn, err := d.StreamDialer.DialStream(ctx, d.addr)
 	if err != nil {
@@ -83,18 +89,22 @@ func (d *streamDialer) DialStream(ctx context.Context, remoteAddr string) (trans
 	if d.tlsConfig == nil {
 		return innerConn, nil
 	}
+	// Wrap the connection with TLS.
 	tlsConn := tls.Client(innerConn, d.tlsConfig)
-	err = shakeHand(ctx, tlsConn, remoteAddr, d.config.AuthToken)
+	// Perform a custom handshake to send authentication and connect details.
+	err = shakeHand(tlsConn, remoteAddr, d.config.AuthToken)
 	if err != nil {
 		return nil, err
 	}
 	if err := tlsConn.HandshakeContext(ctx); err != nil {
 		return nil, err
 	}
+	// Return the wrapped connection as a StreamConn
 	return streamConn{tlsConn, innerConn}, err
 }
 
-func shakeHand(ctx context.Context, tlsConn *tls.Conn, remoteAddr, authToken string) error {
+// shakeHand performs an HTTP CONNECT request over the TLS connection.
+func shakeHand(tlsConn *tls.Conn, remoteAddr, authToken string) error {
 	// Create a new CONNECT request to send to the proxy server.
 	connectReq := &http.Request{
 		Method: http.MethodConnect,
@@ -114,7 +124,7 @@ func shakeHand(ctx context.Context, tlsConn *tls.Conn, remoteAddr, authToken str
 		return err
 	}
 
-	// Read the response to ensure the CONNECT request succeeded
+	// Read the server's response to the CONNECT request
 	resp, err := http.ReadResponse(bufio.NewReader(tlsConn), connectReq)
 	if err != nil {
 		return fmt.Errorf("failed to read CONNECT response: %v", err)
