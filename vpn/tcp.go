@@ -33,7 +33,7 @@ func (h *tcpHandler) Handle(conn net.Conn, target *net.TCPAddr) error {
 		DstIP:   netip.MustParseAddr(target.IP.String()),
 		DstPort: uint16(target.Port),
 	}
-	proxyConn, err := h.dialer.Dial(context.Background(), tuple)
+	proxyConn, err := h.dialer.DialTCP(context.Background(), tuple)
 	if err != nil {
 		conn.Close()
 		return err

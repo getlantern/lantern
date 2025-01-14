@@ -11,7 +11,6 @@ import (
 
 	"github.com/getlantern/lantern-outline/dialer"
 	"github.com/getlantern/radiance/config"
-	"github.com/getlantern/radiance/transport"
 )
 
 const (
@@ -36,12 +35,13 @@ type vpnServer struct {
 type VPNServer interface {
 	ProcessInboundPacket(rawPacket []byte, n int) error
 	Start(ctx context.Context) error
-	StartTun2Socks(ctx context.Context, bridge SwiftBridge) error
+	StartTun2Socks(ctx context.Context, bridge IOSBridge) error
 	Stop() error
 	IsVPNConnected() bool
 }
 
-type SwiftBridge interface {
+// IOSBridge defines the interface for interaction with Swift.
+type IOSBridge interface {
 	ProcessOutboundPacket(pkt []byte) bool
 	ExcludeRoute(route string) bool
 }
@@ -68,8 +68,8 @@ func (s *vpnServer) Start(ctx context.Context) error {
 	return nil
 }
 
-// StartTun2Socks initializes the Tun2Socks tunnel using the provided parameters.
-func (s *vpnServer) StartTun2Socks(ctx context.Context, bridge SwiftBridge) error {
+// StartTun2Socks initializes the Tun2Socks tunnel with the provided IOSBridge adapter.
+func (s *vpnServer) StartTun2Socks(ctx context.Context, bridge IOSBridge) error {
 	if s.IsVPNConnected() {
 		return errors.New("VPN already running")
 	}
@@ -77,20 +77,21 @@ func (s *vpnServer) StartTun2Socks(ctx context.Context, bridge SwiftBridge) erro
 	return nil
 }
 
-func (srv *vpnServer) startTun2Socks(ctx context.Context, bridge SwiftBridge) error {
+// startTun2Socks configures and starts the Tun2Socks tunnel using the provided parameters.
+func (srv *vpnServer) startTun2Socks(ctx context.Context, bridge IOSBridge) error {
 	tunWriter := &osWriter{bridge.ProcessOutboundPacket}
 	cfg, err := srv.configHandler.GetConfig(ctx)
 	if err != nil {
 		return err
 	}
-	rDialer, err := transport.DialerFrom(cfg)
+	dialer, err := dialer.NewDialer(cfg)
 	if err != nil {
 		return err
 	}
+	// Exclude proxy server address from the VPN routing table
 	if ok := bridge.ExcludeRoute(cfg.Addr); !ok {
 		return fmt.Errorf("unable to exclude route: %s", cfg.Addr)
 	}
-	dialer := dialer.NewStreamDialer(cfg.Addr, rDialer)
 	if err := srv.tunnel.Start(dialer, tunWriter); err != nil {
 		log.Printf("Error starting tunnel: %v", err)
 		return err

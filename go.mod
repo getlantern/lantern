@@ -42,7 +42,7 @@ require (
 )
 
 require (
-	github.com/getlantern/radiance v0.0.0-20250108210423-80c3b8963bd2
+	github.com/getlantern/radiance v0.0.0-20250113225003-83f3db5886b5
 	github.com/shadowsocks/go-shadowsocks2 v0.1.5 // indirect
 	golang.org/x/crypto v0.31.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect

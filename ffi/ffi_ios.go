@@ -18,9 +18,10 @@ import (
 
 // IOS-related
 
-type bridge struct{}
+type iosBridge struct{}
 
-func (*bridge) ProcessOutboundPacket(pkt []byte) bool {
+// ProcessOutboundPacket sends an outbound packet from Go to Swift for processing by the OS.
+func (*iosBridge) ProcessOutboundPacket(pkt []byte) bool {
 	if len(pkt) == 0 {
 		return false
 	}
@@ -36,7 +37,8 @@ func (*bridge) ProcessOutboundPacket(pkt []byte) bool {
 	return result == 1
 }
 
-func (*bridge) ExcludeRoute(route string) bool {
+// ExcludeRoute dynamically excludes a route in Swift networking layer.
+func (*iosBridge) ExcludeRoute(route string) bool {
 	cRoute := C.CString(route)
 	defer C.free(unsafe.Pointer(cRoute))
 
@@ -57,13 +59,16 @@ func logToSwift(message string) {
 	C.SwiftLog(cMessage)
 }
 
+// start initializes the VPN server and starts the Tun2Socks process.
 func start(ctx context.Context, server vpn.VPNServer) error {
-	if err := server.StartTun2Socks(ctx, &bridge{}); err != nil {
+	if err := server.StartTun2Socks(ctx, &iosBridge{}); err != nil {
 		return err
 	}
 	return nil
 }
 
+// ProcessInboundPacket is called by Swift when a packet arrives from the OS.
+//
 //export ProcessInboundPacket
 func ProcessInboundPacket(packetPtr unsafe.Pointer, packetLen C.int) {
 	//logToSwift("Received inbound packet")

@@ -58,6 +58,8 @@ github.com/getlantern/ops v0.0.0-20231025133620-f368ab734534 h1:3BwvWj0JZzFEvNNi
 github.com/getlantern/ops v0.0.0-20231025133620-f368ab734534/go.mod h1:ZsLfOY6gKQOTyEcPYNA9ws5/XHZQFroxqCOhHjGcs9Y=
 github.com/getlantern/radiance v0.0.0-20250108210423-80c3b8963bd2 h1:tze9VpbZs7ljIyGhrOFuKbx6ddfYK5E9TUj/H3CH3g4=
 github.com/getlantern/radiance v0.0.0-20250108210423-80c3b8963bd2/go.mod h1:gZQvFM6H6/uYj838CyHpOg7jHD0vOlszJ0zGhmlg9O8=
+github.com/getlantern/radiance v0.0.0-20250113225003-83f3db5886b5 h1:B2ZAdn7V6Gn6otx8rqz0YSwhkHedRNS0zRheAZivtfI=
+github.com/getlantern/radiance v0.0.0-20250113225003-83f3db5886b5/go.mod h1:gZQvFM6H6/uYj838CyHpOg7jHD0vOlszJ0zGhmlg9O8=
 github.com/go-logr/logr v1.2.2/go.mod h1:jdQByPbusPIv2/zmleS9BjJVeZ6kBagPoEUsqbVz/1A=
 github.com/go-logr/logr v1.2.3/go.mod h1:jdQByPbusPIv2/zmleS9BjJVeZ6kBagPoEUsqbVz/1A=
 github.com/go-logr/logr v1.4.2 h1:6pFjapn8bFcIbiKo3XT4j/BhANplGihG6tvd+8rYgrY=

@@ -30,18 +30,12 @@ func NewShadowsocks(addr, method, password string) (Dialer, error) {
 	return &ssDialer{addr: addr, ssDialer: dialer}, nil
 }
 
-func NewStreamDialer(addr string, dialer transport.StreamDialer) Dialer {
-	return &ssDialer{addr: addr, ssDialer: dialer}
-}
-
-func (d *ssDialer) StreamDialer() transport.StreamDialer {
-	return d.ssDialer
-}
-
-func (d *ssDialer) Dial(ctx context.Context, m *common.FiveTuple) (transport.StreamConn, error) {
+// DialTCP establishes a TCP connection to the target specified by the FiveTuple.
+func (d *ssDialer) DialTCP(ctx context.Context, m *common.FiveTuple) (transport.StreamConn, error) {
 	return d.ssDialer.DialStream(ctx, m.RemoteAddress())
 }
 
+// DialUDP establishes a UDP connection using the packetDialer.
 func (d *ssDialer) DialUDP(m *common.FiveTuple) (net.PacketConn, error) {
 	pc, err := d.packetDialer.ListenPacket(context.Background())
 	if err != nil {

@@ -1,4 +1,4 @@
-// WriteToOSBridge.m
+// Bridge.m
 #import <Foundation/Foundation.h>
 #import "Tunnel-Bridging-Header.h"
 
@@ -9,11 +9,12 @@ void SetSwiftProviderRef(void *providerRef) {
     swiftProviderRef = providerRef;
 }
 
+// Logs messages from Go to the iOS log
 void SwiftLog(const char *message) {
     NSLog(@"message=%s", message);
 }
 
-// Called by Go when it wants to send an IP packet back to iOS
+// Writes an outbound packet to the iOS PacketTunnelProvider for forwarding to the OS
 int WriteToOS(const void *packetPtr, int length) {
     if (!swiftProviderRef) {
         NSLog(@"Swift provider reference is NULL");
