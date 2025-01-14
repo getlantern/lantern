@@ -58,6 +58,7 @@ func main() {
 	}
 }
 
+// createDialer creates a transport.StreamDialer based on the provided configuration.
 func createDialer(cfg *config.Config, useRadiance bool) (transport.StreamDialer, error) {
 	if useRadiance {
 		return rtransport.DialerFrom(cfg)
@@ -65,11 +66,13 @@ func createDialer(cfg *config.Config, useRadiance bool) (transport.StreamDialer,
 	return dialer.NewShadowsocks(cfg)
 }
 
+// testConnect tests connectivity by making an HTTP GET request to the specified URL.
 func testConnect(ctx context.Context, cfg *config.Config, streamDialer transport.StreamDialer, url string) error {
 
 	caCertPool := x509.NewCertPool()
 	caCertPool.AppendCertsFromPEM(cfg.CertPem)
 
+	// Set up an HTTP client with custom transport that uses the StreamDialer for connections.
 	httpClient := http.Client{
 		Timeout: 30 * time.Second,
 		Transport: &http.Transport{
@@ -84,6 +87,7 @@ func testConnect(ctx context.Context, cfg *config.Config, streamDialer transport
 		},
 	}
 
+	// Create the HTTP GET request to the target URL.
 	targetReq, err := backend.NewRequestWithHeaders(
 		ctx,
 		http.MethodGet,
@@ -93,8 +97,9 @@ func testConnect(ctx context.Context, cfg *config.Config, streamDialer transport
 	if err != nil {
 		return err
 	}
-
+	// Add the authentication token to the request headers.
 	targetReq.Header.Set(authTokenHeader, cfg.AuthToken)
+
 	resp, err := httpClient.Do(targetReq)
 	if err != nil {
 		return err
@@ -105,7 +110,6 @@ func testConnect(ctx context.Context, cfg *config.Config, streamDialer transport
 	// Print the HTTP status
 	fmt.Printf("Received HTTP Status: %s\n", resp.Status)
 
-	// Optionally, read and print the response body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("failed to read response body: %v", err)
