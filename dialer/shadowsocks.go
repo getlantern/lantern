@@ -1,12 +1,15 @@
 package dialer
 
 import (
+	"bufio"
 	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
 	"fmt"
 	"net"
+	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/Jigsaw-Code/outline-sdk/transport"
@@ -21,19 +24,16 @@ const (
 	authTokenHeader = "X-Lantern-Auth-Token"
 )
 
-// ssDialer is used to dial shadowsocks proxies
-type ssDialer struct {
-	*streamDialer
+// streamDialer is used to dial shadowsocks proxies
+type streamDialer struct {
+	*baseDialer
 
+	config    *config.Config
 	tlsConfig *tls.Config
 }
 
 // NewShadowsocks creates a new Shadowsocks based dialer
 func NewShadowsocks(cfg *config.Config) (Dialer, error) {
-	return newShadowsocks(cfg)
-}
-
-func newShadowsocks(cfg *config.Config) (*ssDialer, error) {
 	addr := fmt.Sprintf("%s:%d", cfg.Addr, cfg.Port)
 	ssconf := cfg.GetConnectCfgShadowsocks()
 
@@ -42,7 +42,6 @@ func newShadowsocks(cfg *config.Config) (*ssDialer, error) {
 		return nil, err
 	}
 	var tlsConfig *tls.Config
-	ssconf.WithTls = false
 	if ssconf.WithTls {
 		certPool := x509.NewCertPool()
 		if ok := certPool.AppendCertsFromPEM(cfg.CertPem); !ok {
@@ -66,15 +65,18 @@ func newShadowsocks(cfg *config.Config) (*ssDialer, error) {
 		return nil, err
 	}
 
-	return &ssDialer{
-		tlsConfig:    tlsConfig,
-		streamDialer: newStreamDialer(addr, cfg, dialer),
+	return &streamDialer{
+		baseDialer: &baseDialer{
+			StreamDialer: dialer,
+			addr:         addr,
+		},
+		config:    cfg,
+		tlsConfig: tlsConfig,
 	}, nil
 }
 
-func (d *ssDialer) DialStream(ctx context.Context, remoteAddr string) (transport.StreamConn, error) {
-	log.Debug("Here..")
-	innerConn, err := d.streamDialer.DialStream(ctx, d.addr)
+func (d *streamDialer) DialStream(ctx context.Context, remoteAddr string) (transport.StreamConn, error) {
+	innerConn, err := d.StreamDialer.DialStream(ctx, d.addr)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +84,7 @@ func (d *ssDialer) DialStream(ctx context.Context, remoteAddr string) (transport
 		return innerConn, nil
 	}
 	tlsConn := tls.Client(innerConn, d.tlsConfig)
-	err = shakeHand(tlsConn, remoteAddr, d.config.AuthToken)
+	err = shakeHand(ctx, tlsConn, remoteAddr, d.config.AuthToken)
 	if err != nil {
 		return nil, err
 	}
@@ -90,4 +92,38 @@ func (d *ssDialer) DialStream(ctx context.Context, remoteAddr string) (transport
 		return nil, err
 	}
 	return streamConn{tlsConn, innerConn}, err
+}
+
+func shakeHand(ctx context.Context, tlsConn *tls.Conn, remoteAddr, authToken string) error {
+	// Create a new CONNECT request to send to the proxy server.
+	connectReq := &http.Request{
+		Method: http.MethodConnect,
+		URL: &url.URL{
+			Scheme: "https",
+			Host:   remoteAddr,
+		},
+		// CONNECT request should always include port in req.Host.
+		// Ref https://tools.ietf.org/html/rfc2817#section-5.2.
+		Host: remoteAddr,
+		Header: http.Header{
+			authTokenHeader:    []string{authToken},
+			"Proxy-Connection": []string{"Keep-Alive"},
+		},
+	}
+	if err := connectReq.Write(tlsConn); err != nil {
+		return err
+	}
+
+	// Read the response to ensure the CONNECT request succeeded
+	resp, err := http.ReadResponse(bufio.NewReader(tlsConn), connectReq)
+	if err != nil {
+		return fmt.Errorf("failed to read CONNECT response: %v", err)
+	}
+	defer resp.Body.Close()
+
+	// Check if the response status is OK (200)
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("CONNECT request failed: %s", resp.Status)
+	}
+	return nil
 }

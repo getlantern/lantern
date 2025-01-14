@@ -1,6 +1,12 @@
 package dialer
 
-import "net"
+import (
+	"crypto/tls"
+	"errors"
+	"net"
+
+	"github.com/Jigsaw-Code/outline-sdk/transport"
+)
 
 // packetConn is a wrapper around net.PacketConn that provides provides additional
 // functionality for handling UDP address resolution
@@ -19,4 +25,21 @@ func (pc *packetConn) WriteTo(b []byte, addr net.Addr) (int, error) {
 		return 0, err
 	}
 	return pc.PacketConn.WriteTo(b, udpAddr)
+}
+
+// streamConn wraps a [tls.Conn] to provide a [transport.StreamConn] interface.
+type streamConn struct {
+	*tls.Conn
+	innerConn transport.StreamConn
+}
+
+var _ transport.StreamConn = (*streamConn)(nil)
+
+func (c streamConn) CloseWrite() error {
+	tlsErr := c.Conn.CloseWrite()
+	return errors.Join(tlsErr, c.innerConn.CloseWrite())
+}
+
+func (c streamConn) CloseRead() error {
+	return c.innerConn.CloseRead()
 }
