@@ -21,8 +21,8 @@ type Dialer interface {
 	DialUDP(*common.FiveTuple) (net.PacketConn, error)
 }
 
-// baseDialer is the base implementation of stream dialer used to dial proxies
-type baseDialer struct {
+// dialer is the base implementation of stream dialer used to dial proxies
+type dialer struct {
 	transport.StreamDialer
 	packetDialer transport.PacketListener
 	addr         string

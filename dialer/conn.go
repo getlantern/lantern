@@ -28,6 +28,7 @@ func (pc *packetConn) WriteTo(b []byte, addr net.Addr) (int, error) {
 }
 
 // streamConn wraps a [tls.Conn] to provide a [transport.StreamConn] interface.
+// ref: outline-sdk/transport/tls/stream_dialer.go
 type streamConn struct {
 	*tls.Conn
 	innerConn transport.StreamConn

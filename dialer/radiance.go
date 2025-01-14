@@ -18,19 +18,19 @@ func NewDialer(cfg *config.Config) (Dialer, error) {
 		return nil, err
 	}
 	addr := fmt.Sprintf("%s:%d", cfg.Addr, cfg.Port)
-	return &baseDialer{
+	return &dialer{
 		addr:         addr,
 		StreamDialer: streamDialer,
 	}, nil
 }
 
 // DialTCP establishes a TCP connection to the target specified by the FiveTuple.
-func (d *baseDialer) DialTCP(ctx context.Context, m *common.FiveTuple) (transport.StreamConn, error) {
+func (d *dialer) DialTCP(ctx context.Context, m *common.FiveTuple) (transport.StreamConn, error) {
 	return d.StreamDialer.DialStream(ctx, m.RemoteAddress())
 }
 
 // DialUDP establishes a UDP connection using the packetDialer.
-func (d *baseDialer) DialUDP(m *common.FiveTuple) (net.PacketConn, error) {
+func (d *dialer) DialUDP(m *common.FiveTuple) (net.PacketConn, error) {
 	pc, err := d.packetDialer.ListenPacket(context.Background())
 	if err != nil {
 		return nil, err

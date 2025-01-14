@@ -26,7 +26,7 @@ const (
 
 // streamDialer is used to dial shadowsocks proxies
 type streamDialer struct {
-	*baseDialer
+	*dialer
 
 	config    *config.Config
 	tlsConfig *tls.Config
@@ -60,14 +60,14 @@ func NewShadowsocks(cfg *config.Config) (Dialer, error) {
 	}
 
 	endpoint := &transport.TCPEndpoint{Address: addr}
-	dialer, err := shadowsocks.NewStreamDialer(endpoint, key)
+	ssDialer, err := shadowsocks.NewStreamDialer(endpoint, key)
 	if err != nil {
 		return nil, err
 	}
 
 	return &streamDialer{
-		baseDialer: &baseDialer{
-			StreamDialer: dialer,
+		dialer: &dialer{
+			StreamDialer: ssDialer,
 			addr:         addr,
 		},
 		config:    cfg,
