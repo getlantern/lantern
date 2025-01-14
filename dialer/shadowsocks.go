@@ -24,14 +24,6 @@ const (
 	authTokenHeader = "X-Lantern-Auth-Token"
 )
 
-// streamDialer is used to dial shadowsocks proxies
-type streamDialer struct {
-	*dialer
-
-	config    *config.Config
-	tlsConfig *tls.Config
-}
-
 // NewShadowsocks creates a new Shadowsocks based dialer
 func NewShadowsocks(cfg *config.Config) (Dialer, error) {
 	addr := fmt.Sprintf("%s:%d", cfg.Addr, cfg.Port)

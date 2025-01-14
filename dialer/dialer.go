@@ -2,11 +2,13 @@ package dialer
 
 import (
 	"context"
+	"crypto/tls"
 	"net"
 
 	"github.com/Jigsaw-Code/outline-sdk/transport"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/lantern-outline/common"
+	"github.com/getlantern/radiance/config"
 )
 
 var (
@@ -19,6 +21,13 @@ type Dialer interface {
 	transport.StreamDialer
 	DialTCP(context.Context, *common.FiveTuple) (transport.StreamConn, error)
 	DialUDP(*common.FiveTuple) (net.PacketConn, error)
+}
+
+// streamDialer is responsible for dialing Shadowsocks proxies and wrapping connections with TLS.
+type streamDialer struct {
+	*dialer
+	config    *config.Config
+	tlsConfig *tls.Config
 }
 
 // dialer is the base implementation of stream dialer used to dial proxies
