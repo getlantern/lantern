@@ -114,16 +114,17 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         return packetFlow.value(forKey: "socket.fileDescriptor") as? Int32
     }
 
-   // Method to dynamically exclude a route
+   // Dynamically excludes a route by updating the VPN's network settings.
    @objc func excludeRoute(_ route: NSString) -> Bool {
        guard let excludedRoute = parseRoute(route as String) else {
             NSLog("Failed to parse route: \(route)")
             return false
         }
 
+        // Add the parsed route to the list of excluded routes.
         excludedRoutes.append(NEIPv4Route(destinationAddress: route as String, subnetMask: "255.255.255.255"))
 
-        // Apply the updated network settings
+        // Apply the updated network settings with the new excluded route.
         setTunnelNetworkSettings(createTunnelNetworkSettings()) { error in
             if let error = error {
                 NSLog("Failed to update tunnel settings: \(error)")
@@ -134,6 +135,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         return true
     }
 
+    // Parses a route string like "192.168.1.0/24" into an NEIPv4Route object.
     private func parseRoute(_ route: String) -> NEIPv4Route? {
         // Split the route into address and subnet mask (e.g., "192.168.1.0/24")
         let components = route.split(separator: "/")
@@ -142,7 +144,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
               prefixLength >= 0, prefixLength <= 32 else {
             return nil
         }
-
+        // Convert the prefix length into a subnet mask string
         let address = String(components[0])
         let subnetMask = prefixLengthToSubnetMask(prefixLength)
         return NEIPv4Route(destinationAddress: address, subnetMask: subnetMask)
@@ -150,12 +152,14 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
     private func prefixLengthToSubnetMask(_ prefixLength: Int) -> String {
         var mask = UInt32.max << (32 - prefixLength)
+        // Extract the four 8-bit segments of the mask
         let bytes = [
             UInt8((mask >> 24) & 0xFF),
             UInt8((mask >> 16) & 0xFF),
             UInt8((mask >> 8) & 0xFF),
             UInt8(mask & 0xFF)
         ]
+        // Join segments
         return bytes.map { String($0) }.joined(separator: ".")
     }
     
