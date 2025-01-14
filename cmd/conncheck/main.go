@@ -34,6 +34,7 @@ var (
 type Args struct {
 	URL        string `arg:"--url,required" help:"The URL to test connectivity against"`
 	ConfigPath string `arg:"--config" help:"Path to the local configuration file"`
+	Radiance   bool   `arg:"--radiance" help:"Whether or not to test with radiance"`
 }
 
 func main() {
@@ -47,8 +48,7 @@ func main() {
 
 	cfg := loadConfig(ctx, args.ConfigPath)
 	fmt.Printf("Loaded config from %s\n", args.ConfigPath)
-	useRadiance := false
-	dialer, err := createDialer(cfg, useRadiance)
+	dialer, err := createDialer(cfg, args.Radiance)
 	if err != nil {
 		log.Fatal(err)
 	}
