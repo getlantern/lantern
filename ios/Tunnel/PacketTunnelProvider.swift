@@ -14,45 +14,26 @@ func startVPN() -> Int32
 func stopVPN() -> Int32
 
 class PacketTunnelProvider: NEPacketTunnelProvider {
-
-    //static let shared: PacketTunnelProvider = PacketTunnelProvider()
-
     let logger = OSLog(subsystem: "org.getlantern.lantern", category: "VPN")
+
     var connection: NWConnection?
+
     private var goEngine = GoEngine()
+
+    private var excludedRoutes  = [
+            NEIPv4Route(destinationAddress: "143.47.98.32", subnetMask: "255.255.255.255"),
+            NEIPv4Route(destinationAddress: "8.8.8.8", subnetMask: "255.255.255.255"),
+            NEIPv4Route(destinationAddress: "8.8.4.4", subnetMask: "255.255.255.255"),
+            NEIPv4Route(destinationAddress: "127.0.0.1", subnetMask: "255.255.255.255")
+    ]
 
     override func startTunnel(options: [String : NSObject]?, completionHandler: @escaping (Error?) -> Void) {
         os_log("Starting tunnel", log: logger, type: .info)
 
-         // Create network settings
-        let settings = NEPacketTunnelNetworkSettings(tunnelRemoteAddress: "127.0.0.1")
-
-        settings.mtu = NSNumber(value: 1500)
-
-        // Configure IPv4 settings
-        let ipv4Settings = NEIPv4Settings(addresses: ["10.0.0.2"], subnetMasks: ["255.255.255.0"])
-
-        // Define the routes that should go through the VPN (Allowed IPs)
-        ipv4Settings.includedRoutes = [
-            NEIPv4Route(destinationAddress: "0.0.0.0", subnetMask: "0.0.0.0")
-        ]
-        // Set DNS settings to prevent leaks
-        let dnsSettings = NEDNSSettings(servers: ["8.8.8.8", "8.8.4.4"])
-        settings.dnsSettings = dnsSettings
-
-        ipv4Settings.excludedRoutes = loadExcludedRoutes()
-        
-        // Assign IPv4 settings to the network settings
-        settings.ipv4Settings = ipv4Settings
-
         // Apply the network settings
-        setTunnelNetworkSettings(settings) { [weak self] error in
-            if let error = error {
-                completionHandler(error)
-                return
-            }
-            guard let self = self else { 
-                completionHandler(nil) 
+        setTunnelNetworkSettings(createTunnelNetworkSettings()) { [weak self] error in
+            guard let self = self else {
+                completionHandler(nil)
                 return
             }
 
@@ -74,6 +55,29 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             self.readPacketsLoop()
         }
     }
+
+     // Create network settings
+    private func createTunnelNetworkSettings() -> NEPacketTunnelNetworkSettings {
+        let settings = NEPacketTunnelNetworkSettings(tunnelRemoteAddress: "127.0.0.1")
+        settings.mtu = NSNumber(value: 1500)
+
+        // Configure IPv4 settings
+        let ipv4Settings = NEIPv4Settings(addresses: ["10.0.0.2"], subnetMasks: ["255.255.255.0"])
+        // Define the routes that should go through the VPN (Allowed IPs)
+        ipv4Settings.includedRoutes = [
+            NEIPv4Route(destinationAddress: "0.0.0.0", subnetMask: "0.0.0.0")
+        ]
+        ipv4Settings.excludedRoutes = excludedRoutes
+        // Assign IPv4 settings to the network settings
+        settings.ipv4Settings = ipv4Settings
+
+        // Set DNS settings
+        let dnsSettings = NEDNSSettings(servers: ["8.8.8.8", "8.8.4.4"])
+        settings.dnsSettings = dnsSettings
+
+        return settings
+    }
+
 
     // Method to handle outbound packets
     @objc func handleOutboundPacket(_ packetData: Data) -> Bool {
@@ -110,14 +114,53 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         return packetFlow.value(forKey: "socket.fileDescriptor") as? Int32
     }
 
-    private func loadExcludedRoutes() -> [NEIPv4Route] {
-        // Loads excluded routes from disk, written by app side
-        return [
-            NEIPv4Route(destinationAddress: "192.168.0.253", subnetMask: "255.255.255.255"),
-            NEIPv4Route(destinationAddress: "8.8.8.8", subnetMask: "255.255.255.255"),
-            NEIPv4Route(destinationAddress: "8.8.4.4", subnetMask: "255.255.255.255"),
-            NEIPv4Route(destinationAddress: "127.0.0.1", subnetMask: "255.255.255.255")
+   // Dynamically excludes a route by updating the VPN's network settings.
+   @objc func excludeRoute(_ route: NSString) -> Bool {
+       guard let excludedRoute = parseRoute(route as String) else {
+            NSLog("Failed to parse route: \(route)")
+            return false
+        }
+
+        // Add the parsed route to the list of excluded routes.
+        excludedRoutes.append(NEIPv4Route(destinationAddress: route as String, subnetMask: "255.255.255.255"))
+
+        // Apply the updated network settings with the new excluded route.
+        setTunnelNetworkSettings(createTunnelNetworkSettings()) { error in
+            if let error = error {
+                NSLog("Failed to update tunnel settings: \(error)")
+            } else {
+                NSLog("Tunnel settings updated successfully with new excluded route: \(route)")
+            }
+        }
+        return true
+    }
+
+    // Parses a route string like "192.168.1.0/24" into an NEIPv4Route object.
+    private func parseRoute(_ route: String) -> NEIPv4Route? {
+        // Split the route into address and subnet mask (e.g., "192.168.1.0/24")
+        let components = route.split(separator: "/")
+        guard components.count == 2,
+              let prefixLength = Int(components[1]),
+              prefixLength >= 0, prefixLength <= 32 else {
+            return nil
+        }
+        // Convert the prefix length into a subnet mask string
+        let address = String(components[0])
+        let subnetMask = prefixLengthToSubnetMask(prefixLength)
+        return NEIPv4Route(destinationAddress: address, subnetMask: subnetMask)
+    }
+
+    private func prefixLengthToSubnetMask(_ prefixLength: Int) -> String {
+        var mask = UInt32.max << (32 - prefixLength)
+        // Extract the four 8-bit segments of the mask
+        let bytes = [
+            UInt8((mask >> 24) & 0xFF),
+            UInt8((mask >> 16) & 0xFF),
+            UInt8((mask >> 8) & 0xFF),
+            UInt8(mask & 0xFF)
         ]
+        // Join segments
+        return bytes.map { String($0) }.joined(separator: ".")
     }
     
     override func stopTunnel(with reason: NEProviderStopReason, completionHandler: @escaping () -> Void) {

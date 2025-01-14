@@ -10,43 +10,53 @@ import (
 	"time"
 
 	"github.com/getlantern/lantern-outline/dialer"
+	"github.com/getlantern/radiance/config"
 )
 
 const (
 	// Duration to wait before timing out a UDP session
 	_udpSessionTimeout = 60 * time.Second
+
+	configPollInterval = 1 * time.Minute
 )
 
 type vpnServer struct {
-	listener     net.Listener      // Network listener for accepting client connections
-	mtu          int               // Maximum Transmission Unit size for the VPN tunnel
-	offset       int               // Offset for packet processing
-	clients      map[net.Conn]bool // Map to track active client connections
-	vpnConnected bool              // whether the VPN is currently connected
-	tunnel       *tunnel           // tunnel that manages packet forwarding
-	tunnelStop   chan struct{}
-	dialer       dialer.Dialer
-	mu           sync.RWMutex
+	listener      net.Listener      // Network listener for accepting client connections
+	mtu           int               // Maximum Transmission Unit size for the VPN tunnel
+	offset        int               // Offset for packet processing
+	clients       map[net.Conn]bool // Map to track active client connections
+	vpnConnected  bool              // whether the VPN is currently connected
+	tunnel        *tunnel           // tunnel that manages packet forwarding
+	tunnelStop    chan struct{}
+	configHandler *config.ConfigHandler
+	dialer        dialer.Dialer
+	mu            sync.RWMutex
 }
 
 // VPNServer defines the methods required to manage the VPN server
 type VPNServer interface {
 	ProcessInboundPacket(rawPacket []byte, n int) error
 	Start(ctx context.Context) error
-	StartTun2Socks(ctx context.Context, processOutboundPacket OutputFn) error
+	StartTun2Socks(ctx context.Context, bridge IOSBridge) error
 	Stop() error
 	IsVPNConnected() bool
 }
 
+// IOSBridge defines the interface for interaction with Swift.
+type IOSBridge interface {
+	ProcessOutboundPacket(pkt []byte) bool
+	ExcludeRoute(route string) bool
+}
+
 // NewVPNServer initializes and returns a new instance of vpnServer
-func NewVPNServer(dialer dialer.Dialer, address string, mtu, offset int) VPNServer {
+func NewVPNServer(address string, mtu, offset int) VPNServer {
 	server := &vpnServer{
-		mtu:        mtu,
-		offset:     offset,
-		dialer:     dialer,
-		tunnel:     newTunnel(dialer, false, _udpSessionTimeout),
-		clients:    make(map[net.Conn]bool),
-		tunnelStop: make(chan struct{}),
+		mtu:           mtu,
+		offset:        offset,
+		configHandler: config.NewConfigHandler(configPollInterval),
+		tunnel:        newTunnel(false, _udpSessionTimeout),
+		clients:       make(map[net.Conn]bool),
+		tunnelStop:    make(chan struct{}),
 	}
 	return server
 }
@@ -60,18 +70,32 @@ func (s *vpnServer) Start(ctx context.Context) error {
 	return nil
 }
 
-// StartTun2Socks initializes the Tun2Socks tunnel using the provided parameters.
-func (s *vpnServer) StartTun2Socks(ctx context.Context, processOutboundPacket OutputFn) error {
+// StartTun2Socks initializes the Tun2Socks tunnel with the provided IOSBridge adapter.
+func (s *vpnServer) StartTun2Socks(ctx context.Context, bridge IOSBridge) error {
 	if s.IsVPNConnected() {
 		return errors.New("VPN already running")
 	}
-	go s.startTun2Socks(processOutboundPacket)
+	go s.startTun2Socks(ctx, bridge)
 	return nil
 }
 
-func (srv *vpnServer) startTun2Socks(processOutboundPacket OutputFn) error {
-	tunWriter := &osWriter{processOutboundPacket}
-	if err := srv.tunnel.Start(tunWriter); err != nil {
+// startTun2Socks configures and starts the Tun2Socks tunnel using the provided parameters.
+func (srv *vpnServer) startTun2Socks(ctx context.Context, bridge IOSBridge) error {
+	cfg, err := srv.configHandler.GetConfig(ctx)
+	if err != nil {
+		return err
+	}
+
+	dialer, err := dialer.NewDialer(cfg)
+	if err != nil {
+		return err
+	}
+	// Exclude proxy server address from the VPN routing table
+	if ok := bridge.ExcludeRoute(cfg.Addr); !ok {
+		return fmt.Errorf("unable to exclude route: %s", cfg.Addr)
+	}
+	tunWriter := &osWriter{bridge.ProcessOutboundPacket}
+	if err := srv.tunnel.Start(dialer, tunWriter); err != nil {
 		log.Printf("Error starting tunnel: %v", err)
 		return err
 	}
@@ -92,7 +116,6 @@ func (s *vpnServer) Stop() error {
 		if err := s.tunnel.Close(); err != nil {
 			return err
 		}
-		s.tunnel = nil
 	}
 	return nil
 }

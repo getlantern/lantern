@@ -1,4 +1,4 @@
-// WriteToOSBridge.m
+// Bridge.m
 #import <Foundation/Foundation.h>
 #import "Tunnel-Bridging-Header.h"
 
@@ -9,11 +9,12 @@ void SetSwiftProviderRef(void *providerRef) {
     swiftProviderRef = providerRef;
 }
 
+// Logs messages from Go to the iOS log
 void SwiftLog(const char *message) {
     NSLog(@"message=%s", message);
 }
 
-// Called by Go when it wants to send an IP packet back to iOS
+// Writes an outbound packet to the iOS PacketTunnelProvider for forwarding to the OS
 int WriteToOS(const void *packetPtr, int length) {
     if (!swiftProviderRef) {
         NSLog(@"Swift provider reference is NULL");
@@ -29,6 +30,27 @@ int WriteToOS(const void *packetPtr, int length) {
         Func func = (Func)[(__bridge id)swiftProviderRef methodForSelector:sel];
         if (func) {
             success = func((__bridge id)swiftProviderRef, sel, packetData);
+        }
+    }
+    return success ? 1 : 0;
+}
+
+
+// Called by Go to dynamically exclude a route
+int ExcludeRouteFromOS(const char *route) {
+    if (!swiftProviderRef) {
+        NSLog(@"Swift provider reference is NULL");
+        return 0;
+    }
+    NSString *routeString = [NSString stringWithUTF8String:route];
+    SEL sel = NSSelectorFromString(@"excludeRoute:");
+    BOOL success = NO;
+    if ([(__bridge id)swiftProviderRef respondsToSelector:sel]) {
+        // Use function pointer here to call the selector to avoid warnings
+        typedef BOOL (*Func)(id, SEL, NSString *);
+        Func func = (Func)[(__bridge id)swiftProviderRef methodForSelector:sel];
+        if (func) {
+            success = func((__bridge id)swiftProviderRef, sel, routeString);
         }
     }
     return success ? 1 : 0;

@@ -21,6 +21,6 @@ export CC
 
 go build -trimpath -buildmode=c-archive -tags ios -o bin/${SDK}/${LIB_NAME}_${GOARCH}.a ./ffi
 
-clang -c ios/Tunnel/WriteToOSBridge.m -o bin/${SDK}/Bridge.o -arch ${CARCH} -isysroot $(xcrun --sdk ${SDK} --show-sdk-path)
+clang -c ios/Tunnel/Bridge.m -o bin/${SDK}/Bridge.o -arch ${CARCH} -isysroot $(xcrun --sdk ${SDK} --show-sdk-path)
 
 libtool -static -o bin/${SDK}/${LIB_NAME}_${GOARCH}.a bin/${SDK}/${LIB_NAME}_${GOARCH}.a bin/${SDK}/Bridge.o
