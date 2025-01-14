@@ -16,6 +16,8 @@ import (
 const (
 	// Duration to wait before timing out a UDP session
 	_udpSessionTimeout = 60 * time.Second
+
+	configPollInterval = 1 * time.Minute
 )
 
 type vpnServer struct {
@@ -51,7 +53,7 @@ func NewVPNServer(address string, mtu, offset int) VPNServer {
 	server := &vpnServer{
 		mtu:           mtu,
 		offset:        offset,
-		configHandler: config.NewConfigHandler(10 * time.Second),
+		configHandler: config.NewConfigHandler(configPollInterval),
 		tunnel:        newTunnel(false, _udpSessionTimeout),
 		clients:       make(map[net.Conn]bool),
 		tunnelStop:    make(chan struct{}),
@@ -79,11 +81,11 @@ func (s *vpnServer) StartTun2Socks(ctx context.Context, bridge IOSBridge) error 
 
 // startTun2Socks configures and starts the Tun2Socks tunnel using the provided parameters.
 func (srv *vpnServer) startTun2Socks(ctx context.Context, bridge IOSBridge) error {
-	tunWriter := &osWriter{bridge.ProcessOutboundPacket}
 	cfg, err := srv.configHandler.GetConfig(ctx)
 	if err != nil {
 		return err
 	}
+
 	dialer, err := dialer.NewDialer(cfg)
 	if err != nil {
 		return err
@@ -92,6 +94,7 @@ func (srv *vpnServer) startTun2Socks(ctx context.Context, bridge IOSBridge) erro
 	if ok := bridge.ExcludeRoute(cfg.Addr); !ok {
 		return fmt.Errorf("unable to exclude route: %s", cfg.Addr)
 	}
+	tunWriter := &osWriter{bridge.ProcessOutboundPacket}
 	if err := srv.tunnel.Start(dialer, tunWriter); err != nil {
 		log.Printf("Error starting tunnel: %v", err)
 		return err
