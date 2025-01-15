@@ -99,9 +99,9 @@ func (srv *vpnServer) startTun2Socks(ctx context.Context, bridge IOSBridge) erro
 		return err
 	}
 	// Exclude proxy server address from the VPN routing table
-	if ok := bridge.ExcludeRoute(cfg.Addr); !ok {
-		return fmt.Errorf("unable to exclude route: %s", cfg.Addr)
-	}
+	// if ok := bridge.ExcludeRoute(cfg.Addr); !ok {
+	// 	return fmt.Errorf("unable to exclude route: %s", cfg.Addr)
+	// }
 	tunWriter := &osWriter{bridge.ProcessOutboundPacket}
 	if err := srv.tunnel.Start(dialer, tunWriter); err != nil {
 		log.Printf("Error starting tunnel: %v", err)
