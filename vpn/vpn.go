@@ -94,7 +94,7 @@ func (srv *vpnServer) startTun2Socks(ctx context.Context, bridge IOSBridge) erro
 	if err != nil {
 		return err
 	}
-	dialer, err := dialer.NewShadowsocks(cfg)
+	dialer, err := dialer.NewStreamDialer(cfg)
 	if err != nil {
 		return err
 	}

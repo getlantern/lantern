@@ -48,8 +48,8 @@ func NewDialer(cfg *config.Config) (Dialer, error) {
 	}, nil
 }
 
-// NewShadowsocks creates a new Shadowsocks based dialer from the Radiance config
-func NewShadowsocks(cfg *config.Config) (Dialer, error) {
+// NewShadowsocks creates a new stream dialer from the Radiance config
+func NewStreamDialer(cfg *config.Config) (Dialer, error) {
 	addr := fmt.Sprintf("%s:%d", cfg.Addr, cfg.Port)
 	// Retrieve Shadowsocks-specific configuration.
 	ssconf := cfg.GetConnectCfgShadowsocks()
