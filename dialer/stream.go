@@ -14,7 +14,9 @@ import (
 
 	"github.com/Jigsaw-Code/outline-sdk/transport"
 	"github.com/Jigsaw-Code/outline-sdk/transport/shadowsocks"
+	"github.com/getlantern/lantern-outline/common"
 	"github.com/getlantern/radiance/config"
+	rtransport "github.com/getlantern/radiance/transport"
 )
 
 const (
@@ -24,16 +26,30 @@ const (
 	authTokenHeader = "X-Lantern-Auth-Token"
 )
 
-// streamDialer is used to dial shadowsocks proxies
+// streamDialer is used to dial Shadowsocks proxies and wrap connections with TLS.
 type streamDialer struct {
-	*dialer
-
-	config    *config.Config
-	tlsConfig *tls.Config
+	addr         string
+	dialer       transport.StreamDialer
+	packetDialer transport.PacketListener
+	config       *config.Config
+	tlsConfig    *tls.Config
 }
 
-// NewShadowsocks creates a new Shadowsocks based dialer
-func NewShadowsocks(cfg *config.Config) (Dialer, error) {
+// NewDialer creates a new dialer from the Radiance config
+func NewDialer(cfg *config.Config) (Dialer, error) {
+	dialer, err := rtransport.DialerFrom(cfg)
+	if err != nil {
+		return nil, err
+	}
+	addr := fmt.Sprintf("%s:%d", cfg.Addr, cfg.Port)
+	return &streamDialer{
+		addr:   addr,
+		dialer: dialer,
+	}, nil
+}
+
+// NewShadowsocks creates a new stream dialer from the Radiance config
+func NewStreamDialer(cfg *config.Config) (Dialer, error) {
 	addr := fmt.Sprintf("%s:%d", cfg.Addr, cfg.Port)
 	// Retrieve Shadowsocks-specific configuration.
 	ssconf := cfg.GetConnectCfgShadowsocks()
@@ -71,10 +87,8 @@ func NewShadowsocks(cfg *config.Config) (Dialer, error) {
 	}
 
 	return &streamDialer{
-		dialer: &dialer{
-			StreamDialer: ssDialer,
-			addr:         addr,
-		},
+		dialer:    ssDialer,
+		addr:      addr,
 		config:    cfg,
 		tlsConfig: tlsConfig,
 	}, nil
@@ -82,7 +96,7 @@ func NewShadowsocks(cfg *config.Config) (Dialer, error) {
 
 // DialStream establishes a connection to the remote address using the Shadowsocks dialer.
 func (d *streamDialer) DialStream(ctx context.Context, remoteAddr string) (transport.StreamConn, error) {
-	innerConn, err := d.StreamDialer.DialStream(ctx, d.addr)
+	innerConn, err := d.dialer.DialStream(ctx, d.addr)
 	if err != nil {
 		return nil, err
 	}
@@ -101,6 +115,20 @@ func (d *streamDialer) DialStream(ctx context.Context, remoteAddr string) (trans
 	}
 	// Return the wrapped connection as a StreamConn
 	return streamConn{tlsConn, innerConn}, err
+}
+
+// DialTCP establishes a TCP connection to the target specified by the FiveTuple.
+func (d *streamDialer) DialTCP(ctx context.Context, m *common.FiveTuple) (transport.StreamConn, error) {
+	return d.DialStream(ctx, m.RemoteAddress())
+}
+
+// DialUDP establishes a UDP connection using the packetDialer.
+func (d *streamDialer) DialUDP(m *common.FiveTuple) (net.PacketConn, error) {
+	pc, err := d.packetDialer.ListenPacket(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	return &packetConn{PacketConn: pc}, nil
 }
 
 // shakeHand performs an HTTP CONNECT request over the TLS connection.

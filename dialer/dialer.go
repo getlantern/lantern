@@ -16,14 +16,10 @@ var (
 // Dialer is an interface that abstracts functionality for dialing proxies.
 // It provides flexibility for implementing different dialing strategies
 type Dialer interface {
-	transport.StreamDialer
+	// DialStream establishes a connection to the remote address using the Shadowsocks dialer.
+	DialStream(ctx context.Context, remoteAddr string) (transport.StreamConn, error)
+	// DialTCP establishes a TCP connection to the target specified by the FiveTuple.
 	DialTCP(context.Context, *common.FiveTuple) (transport.StreamConn, error)
+	// DialUDP establishes a UDP connection to the target specified by the FiveTuple.
 	DialUDP(*common.FiveTuple) (net.PacketConn, error)
-}
-
-// dialer is the base implementation of stream dialer used to dial proxies
-type dialer struct {
-	transport.StreamDialer
-	packetDialer transport.PacketListener
-	addr         string
 }
