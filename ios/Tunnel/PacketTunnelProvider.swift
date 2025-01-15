@@ -21,7 +21,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     private var goEngine = GoEngine()
 
     private var excludedRoutes  = [
-            NEIPv4Route(destinationAddress: "143.47.98.32", subnetMask: "255.255.255.255"),
+            //NEIPv4Route(destinationAddress: "192.168.0.253", subnetMask: "255.255.255.255"),
             NEIPv4Route(destinationAddress: "8.8.8.8", subnetMask: "255.255.255.255"),
             NEIPv4Route(destinationAddress: "8.8.4.4", subnetMask: "255.255.255.255"),
             NEIPv4Route(destinationAddress: "127.0.0.1", subnetMask: "255.255.255.255")
@@ -122,7 +122,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         }
 
         // Add the parsed route to the list of excluded routes.
-        excludedRoutes.append(NEIPv4Route(destinationAddress: route as String, subnetMask: "255.255.255.255"))
+        excludedRoutes.append(excludedRoute)
 
         // Apply the updated network settings with the new excluded route.
         setTunnelNetworkSettings(createTunnelNetworkSettings()) { error in

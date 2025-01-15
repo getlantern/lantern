@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	localconfig "github.com/getlantern/lantern-outline/config"
 	"github.com/getlantern/lantern-outline/dialer"
 	"github.com/getlantern/radiance/config"
 )
@@ -79,14 +80,21 @@ func (s *vpnServer) StartTun2Socks(ctx context.Context, bridge IOSBridge) error 
 	return nil
 }
 
+// loadConfig is used to load the configuration file. If useLocalConfig is true then we use the embedded config
+func (srv *vpnServer) loadConfig(ctx context.Context, useLocalConfig bool) (*config.Config, error) {
+	if useLocalConfig {
+		return localconfig.LoadConfig()
+	}
+	return srv.configHandler.GetConfig(ctx)
+}
+
 // startTun2Socks configures and starts the Tun2Socks tunnel using the provided parameters.
 func (srv *vpnServer) startTun2Socks(ctx context.Context, bridge IOSBridge) error {
-	cfg, err := srv.configHandler.GetConfig(ctx)
+	cfg, err := srv.loadConfig(ctx, true)
 	if err != nil {
 		return err
 	}
-
-	dialer, err := dialer.NewDialer(cfg)
+	dialer, err := dialer.NewShadowsocks(cfg)
 	if err != nil {
 		return err
 	}
