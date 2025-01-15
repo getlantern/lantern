@@ -8,6 +8,7 @@ require (
 )
 
 require (
+	github.com/alexflint/go-scalar v1.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/getlantern/byteexec v0.0.0-20220903142956-e6ed20032cfd // indirect
 	github.com/getlantern/cmux/v2 v2.0.0-20230301223233-dac79088a4c0 // indirect
@@ -42,6 +43,7 @@ require (
 )
 
 require (
+	github.com/alexflint/go-arg v1.5.1
 	github.com/getlantern/radiance v0.0.0-20250113225003-83f3db5886b5
 	github.com/shadowsocks/go-shadowsocks2 v0.1.5 // indirect
 	golang.org/x/crypto v0.31.0 // indirect
