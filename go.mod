@@ -5,6 +5,8 @@ go 1.23.4
 require (
 	github.com/Jigsaw-Code/outline-sdk v0.0.18-0.20241106233708-faffebb12629
 	github.com/eycorsican/go-tun2socks v1.16.11
+	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
+	google.golang.org/protobuf v1.35.1
 )
 
 require (
@@ -24,7 +26,6 @@ require (
 	github.com/getlantern/fdcount v0.0.0-20210503151800-5decd65b3731 // indirect
 	github.com/getlantern/filepersist v0.0.0-20210901195658-ed29a1cb0b7c // indirect
 	github.com/getlantern/fronted v0.0.0-20250122202701-759a25a3e2d0 // indirect
-	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65 // indirect
 	github.com/getlantern/hex v0.0.0-20220104173244-ad7e4b9194dc // indirect
 	github.com/getlantern/hidden v0.0.0-20220104173330-f221c5a24770 // indirect
 	github.com/getlantern/iptool v0.0.0-20230112135223-c00e863b2696 // indirect
@@ -58,7 +59,6 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/net v0.28.0 // indirect
-	google.golang.org/protobuf v1.35.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
