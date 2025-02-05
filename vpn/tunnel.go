@@ -16,19 +16,25 @@ import (
 // It manages the interaction between the TUN interface and the proxy, enabling the
 // forwarding of TCP and UDP traffic
 type tunnel struct {
-	isConnected     bool
-	lwipStack       core.LWIPStack // The LWIP stack used for managing the virtual network
-	packetDialer    transport.PacketListener
-	tcpHandler      core.TCPConnHandler
-	udpHandler      core.UDPConnHandler
-	isGVisorEnabled bool
-	isUDPEnabled    bool // isUDPEnabled returns whether or not the tunnel supports UDP proxying
-	udpTimeout      time.Duration
-	mu              sync.Mutex
+	lwipStack    core.LWIPStack      // The LWIP stack used for managing the virtual network
+	tcpHandler   core.TCPConnHandler // tcpHandler handles TCP connections comming from TUN.
+	udpHandler   core.UDPConnHandler // udpHandler handles UDP connections comming from TUN.
+	isUDPEnabled bool                // isUDPEnabled returns whether or not the tunnel supports UDP proxying
+	isConnected  bool                // isConnected  returns whether or not the tunnel is currently active
+	packetDialer transport.PacketListener
+	udpTimeout   time.Duration
+	mu           sync.Mutex
+}
+
+// Tunnel is used to configure and interact with an established tunnel on a device.
+type Tunnel interface {
+	Start(dialer dialer.Dialer, tunWriter io.WriteCloser) error
+	Close() error
+	Write(p []byte) (n int, err error)
 }
 
 // newTunnel creates and initializes a new instance of tunnel with the given parameters
-func newTunnel(isUDPEnabled bool, udpTimeout time.Duration) *tunnel {
+func newTunnel(isUDPEnabled bool, udpTimeout time.Duration) Tunnel {
 	t := &tunnel{
 		lwipStack:    core.NewLWIPStack(),
 		packetDialer: nil,

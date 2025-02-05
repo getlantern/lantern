@@ -27,7 +27,7 @@ type vpnServer struct {
 	offset        int               // Offset for packet processing
 	clients       map[net.Conn]bool // Map to track active client connections
 	vpnConnected  bool              // whether the VPN is currently connected
-	tunnel        *tunnel           // tunnel that manages packet forwarding
+	tunnel        Tunnel            // tunnel that manages packet forwarding
 	tunnelStop    chan struct{}
 	configHandler *config.ConfigHandler
 	dialer        dialer.Dialer
@@ -43,6 +43,13 @@ type VPNServer interface {
 	IsVPNConnected() bool
 }
 
+// Opts are the options the VPN server can be configured with
+type Opts struct {
+	Address string
+	Mtu     int
+	Offset  int
+}
+
 // IOSBridge defines the interface for interaction with Swift.
 type IOSBridge interface {
 	ProcessOutboundPacket(pkt []byte) bool
@@ -50,16 +57,25 @@ type IOSBridge interface {
 }
 
 // NewVPNServer initializes and returns a new instance of vpnServer
-func NewVPNServer(address string, mtu, offset int) VPNServer {
+func NewVPNServer(opts *Opts) (VPNServer, error) {
+	if opts.Address == "" {
+		return nil, errors.New("missing address")
+	}
+	if opts.Mtu == 0 {
+		opts.Mtu = DefaultTunMTU
+	}
+	if opts.Offset == 0 {
+		opts.Offset = DefaultTunOffset
+	}
 	server := &vpnServer{
-		mtu:           mtu,
-		offset:        offset,
+		mtu:           opts.Mtu,
+		offset:        opts.Offset,
 		configHandler: config.NewConfigHandler(configPollInterval),
 		tunnel:        newTunnel(false, _udpSessionTimeout),
 		clients:       make(map[net.Conn]bool),
 		tunnelStop:    make(chan struct{}),
 	}
-	return server
+	return server, nil
 }
 
 // Start initializes the tunnel using the provided parameters and starts the VPN server.
