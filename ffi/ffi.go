@@ -9,11 +9,6 @@ import (
 	"github.com/getlantern/lantern-outline/vpn"
 )
 
-const (
-	mtu    = 1500
-	offset = 0
-)
-
 var (
 	vpnMutex sync.RWMutex
 	server   vpn.VPNServer
@@ -28,7 +23,11 @@ func startVPN() C.int {
 	if server != nil && server.IsVPNConnected() {
 		return 1
 	}
-	server = vpn.NewVPNServer("", mtu, offset)
+	server, err := vpn.NewVPNServer(&vpn.Opts{})
+	if err != nil {
+		log.Printf("Unable to create VPN server: %v", err)
+		return 1
+	}
 	if err := start(ctx, server); err != nil {
 		log.Printf("Unable to start VPN server: %v", err)
 		return 1

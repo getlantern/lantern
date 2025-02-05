@@ -27,8 +27,13 @@ type tunnel struct {
 	mu              sync.Mutex
 }
 
+type Tunnel interface {
+	Start(dialer dialer.Dialer, tunWriter io.WriteCloser) error
+	TunWriter
+}
+
 // newTunnel creates and initializes a new instance of tunnel with the given parameters
-func newTunnel(isUDPEnabled bool, udpTimeout time.Duration) *tunnel {
+func newTunnel(isUDPEnabled bool, udpTimeout time.Duration) Tunnel {
 	t := &tunnel{
 		lwipStack:    core.NewLWIPStack(),
 		packetDialer: nil,

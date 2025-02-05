@@ -12,6 +12,11 @@ type osWriter struct {
 	processOutboundPacket OutputFn
 }
 
+type TunWriter interface {
+	Close() error
+	Write(p []byte) (n int, err error)
+}
+
 func (w *osWriter) Write(p []byte) (n int, err error) {
 	success := w.processOutboundPacket(p)
 	if success {
