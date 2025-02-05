@@ -48,6 +48,8 @@ github.com/getlantern/filepersist v0.0.0-20210901195658-ed29a1cb0b7c h1:mcz27xtA
 github.com/getlantern/filepersist v0.0.0-20210901195658-ed29a1cb0b7c/go.mod h1:8DGAx0LNUfXNnEH+fXI0s3OCBA/351kZCiz/8YSK3i8=
 github.com/getlantern/fronted v0.0.0-20250122202701-759a25a3e2d0 h1:nLdu8ou3E4rhnEE2TnawVxyTOdbbIaZrGV1RqXkjpwE=
 github.com/getlantern/fronted v0.0.0-20250122202701-759a25a3e2d0/go.mod h1:66ePVEpsOGseZtSIMNnTD8uC9kuVcSxEmc7UH4zpnqY=
+github.com/getlantern/fronted v0.0.0-20250129184840-abcec12f754e h1:8PIYFbAAudnyn6LhMU+hqGEU6qUJ8Tt84LSs6QYD/tg=
+github.com/getlantern/fronted v0.0.0-20250129184840-abcec12f754e/go.mod h1:/4g6lEMXHzkF/6WBr3vod4wh3tos632qSZGh7L/fIdg=
 github.com/getlantern/golog v0.0.0-20190809085441-26e09e6dd330/go.mod h1:zx/1xUUeYPy3Pcmet8OSXLbF47l+3y6hIPpyLWoR9oc=
 github.com/getlantern/golog v0.0.0-20210606115803-bce9f9fe5a5f/go.mod h1:ZyIjgH/1wTCl+B+7yH1DqrWp6MPJqESmwmEQ89ZfhvA=
 github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65 h1:NlQedYmPI3pRAXJb+hLVVDGqfvvXGRPV8vp7XOjKAZ0=
