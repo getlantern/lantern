@@ -40,9 +40,14 @@ flutter devices
 flutter run -d deviceID
 ```
 
-# Running a Local Shadowsocks Server on macOS
 
-Install Shadowsocks:
+# Running the Full Setup on macOS with an iOS Device
+
+If you’re running on macOS and have an iOS device connected to the same local network, you can test the full setup end-to-end by updating the primary proxy address in [config/local.json](config/local.json#L2) to your Mac’s local network IP.
+
+1. Build and Run the iOS App
+
+2. Run a Local Shadowsocks Server on macOS
 
 ```
 brew install shadowsocks-libev
@@ -54,6 +59,14 @@ Start the Shadowsocks server:
 ssserver -s 0.0.0.0:8388 -m aes-256-gcm -k "mytestpassword" -vvvv
 ```
 
-Finally, update the primary proxy address in [config/local.json](config/local.json#L2).
+3. Update the Proxy Address in the Config
 
+Locate your Mac’s local IP address:
 
+```
+ipconfig getifaddr en0
+```
+
+Edit [config/local.json](config/local.json#L2) and update the primary proxy address ("addr") with your local IP (e.g., "192.168.1.100").
+
+Now, when you run the iOS app, it should be able to connect to the local Shadowsocks proxy and test the full setup.
