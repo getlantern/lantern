@@ -137,15 +137,25 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
     // Parses a route string like "192.168.1.0/24" into an NEIPv4Route object.
     private func parseRoute(_ route: String) -> NEIPv4Route? {
-        // Split the route into address and subnet mask (e.g., "192.168.1.0/24")
         let components = route.split(separator: "/")
-        guard components.count == 2,
-              let prefixLength = Int(components[1]),
-              prefixLength >= 0, prefixLength <= 32 else {
+        var address: String
+        var prefixLength: Int
+
+        if components.count == 1 {
+            // No prefix provided; assume /32.
+            address = String(components[0])
+            prefixLength = 32
+        } else if components.count == 2 {
+            address = String(components[0])
+            guard let p = Int(components[1]), p >= 0, p <= 32 else {
+                return nil
+            }
+            prefixLength = p
+        } else {
             return nil
         }
-        // Convert the prefix length into a subnet mask string
-        let address = String(components[0])
+
+        // Convert the prefix length into a subnet mask string (e.g., "255.255.255.255" for /32).
         let subnetMask = prefixLengthToSubnetMask(prefixLength)
         return NEIPv4Route(destinationAddress: address, subnetMask: subnetMask)
     }
