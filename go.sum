@@ -46,10 +46,8 @@ github.com/getlantern/fdcount v0.0.0-20210503151800-5decd65b3731/go.mod h1:XZwE+
 github.com/getlantern/filepersist v0.0.0-20160317154340-c5f0cd24e799/go.mod h1:8DGAx0LNUfXNnEH+fXI0s3OCBA/351kZCiz/8YSK3i8=
 github.com/getlantern/filepersist v0.0.0-20210901195658-ed29a1cb0b7c h1:mcz27xtAkb1OuOLBct/uFfL1p3XxAIcFct82GbT+UZM=
 github.com/getlantern/filepersist v0.0.0-20210901195658-ed29a1cb0b7c/go.mod h1:8DGAx0LNUfXNnEH+fXI0s3OCBA/351kZCiz/8YSK3i8=
-github.com/getlantern/fronted v0.0.0-20250122202701-759a25a3e2d0 h1:nLdu8ou3E4rhnEE2TnawVxyTOdbbIaZrGV1RqXkjpwE=
-github.com/getlantern/fronted v0.0.0-20250122202701-759a25a3e2d0/go.mod h1:66ePVEpsOGseZtSIMNnTD8uC9kuVcSxEmc7UH4zpnqY=
-github.com/getlantern/fronted v0.0.0-20250129184840-abcec12f754e h1:SEzVoETaRu0g/Tq6fbvQpnRwhVM8xb62fGCTl8VPOKw=
-github.com/getlantern/fronted v0.0.0-20250129184840-abcec12f754e/go.mod h1:/4g6lEMXHzkF/6WBr3vod4wh3tos632qSZGh7L/fIdg=
+github.com/getlantern/fronted v0.0.0-20250205182429-f8aa4896e1e5 h1:Epy63dEBOiy1y+4B0TpIlDA9s/IaVth+Iy4/QlVj8Iw=
+github.com/getlantern/fronted v0.0.0-20250205182429-f8aa4896e1e5/go.mod h1:/4g6lEMXHzkF/6WBr3vod4wh3tos632qSZGh7L/fIdg=
 github.com/getlantern/golog v0.0.0-20190809085441-26e09e6dd330/go.mod h1:zx/1xUUeYPy3Pcmet8OSXLbF47l+3y6hIPpyLWoR9oc=
 github.com/getlantern/golog v0.0.0-20210606115803-bce9f9fe5a5f/go.mod h1:ZyIjgH/1wTCl+B+7yH1DqrWp6MPJqESmwmEQ89ZfhvA=
 github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65 h1:NlQedYmPI3pRAXJb+hLVVDGqfvvXGRPV8vp7XOjKAZ0=
@@ -69,8 +67,8 @@ github.com/getlantern/keyman v0.0.0-20180207174507-f55e7280e93a/go.mod h1:FMf0g7
 github.com/getlantern/keyman v0.0.0-20200819205636-76fef27c39f1/go.mod h1:FMf0g72BHs14jVcD8i8ubEk4sMB6JdidBn67d44i3ws=
 github.com/getlantern/keyman v0.0.0-20230503155501-4e864ca2175b h1:iyEuk8ARQC9HfraqC4r3leBhU55R1TV7bAiyPYE54kA=
 github.com/getlantern/keyman v0.0.0-20230503155501-4e864ca2175b/go.mod h1:ZJ+yDaZkJ/JU9j7EQa3UUh6ouedrNDDLA5OiowS1Iuk=
-github.com/getlantern/kindling v0.0.0-20250124205353-40a8d1cbcfdb h1:pr6Fem/IxI9wJb//t55yhtIcLwZmURiD/6eTWqEHgf4=
-github.com/getlantern/kindling v0.0.0-20250124205353-40a8d1cbcfdb/go.mod h1:Tx/zwtn9FeEeUiHHmJ1ZLdZqfQZEF5p+jnjvd+ULbNc=
+github.com/getlantern/kindling v0.0.0-20250206162439-a9bc03fb5d84 h1:vbRYtUtjs6W/LMzbfkkMhu8rq2uX3of2kJIkpao4nRo=
+github.com/getlantern/kindling v0.0.0-20250206162439-a9bc03fb5d84/go.mod h1:pVt8o9H0pJDu6AVl5J/VK8zIPPugkBc6g+I9f6jvJOI=
 github.com/getlantern/mockconn v0.0.0-20191023022503-481dbcceeb58/go.mod h1:+F5GJ7qGpQ03DBtcOEyQpM30ix4BLswdaojecFtsdy8=
 github.com/getlantern/mockconn v0.0.0-20200818071412-cb30d065a848 h1:2MhMMVBTnaHrst6HyWFDhwQCaJ05PZuOv1bE2gN8WFY=
 github.com/getlantern/mockconn v0.0.0-20200818071412-cb30d065a848/go.mod h1:+F5GJ7qGpQ03DBtcOEyQpM30ix4BLswdaojecFtsdy8=
@@ -85,8 +83,8 @@ github.com/getlantern/ops v0.0.0-20200403153110-8476b16edcd6/go.mod h1:D5ao98qkA
 github.com/getlantern/ops v0.0.0-20220713155959-1315d978fff7/go.mod h1:D5ao98qkA6pxftxoqzibIBBrLSUli+kYnJqrgBf9cIA=
 github.com/getlantern/ops v0.0.0-20231025133620-f368ab734534 h1:3BwvWj0JZzFEvNNiMhCu4bf60nqcIuQpTYb00Ezm1ag=
 github.com/getlantern/ops v0.0.0-20231025133620-f368ab734534/go.mod h1:ZsLfOY6gKQOTyEcPYNA9ws5/XHZQFroxqCOhHjGcs9Y=
-github.com/getlantern/radiance v0.0.0-20250129213752-d4969159e284 h1:eGaY4zJmPRggBxny0UNGpzTm+sW/I2Q/zLIT6EWcpZk=
-github.com/getlantern/radiance v0.0.0-20250129213752-d4969159e284/go.mod h1:jeBlk1ScLKjNYeqAPpGnxt9Ke/c5jsRQLPpX2skmH4s=
+github.com/getlantern/radiance v0.0.0-20250206183717-b26faa0a54d0 h1:fngL0Gli4mrFjRtYPaH9BQ6FdI6/1TlyjApqfyU/ktw=
+github.com/getlantern/radiance v0.0.0-20250206183717-b26faa0a54d0/go.mod h1:CMs7C4burJ4p/YkqKLtgzxuFf2mrSL9d1ES56ICZN4c=
 github.com/getlantern/tlsdialer/v3 v3.0.3 h1:OXzzAqO8YojBOu2Kk8wquX2zbFmgJjji41RpaT6knLg=
 github.com/getlantern/tlsdialer/v3 v3.0.3/go.mod h1:hwA0X81pnrgx7GEwddaGWSxqr6eLBm7A0rrUMK2J7KY=
 github.com/getlantern/waitforserver v1.0.1 h1:xBjqJ3GgEk9JMWnDgRSiNHXINi6Lv2tGNjJR0hCkHFY=
