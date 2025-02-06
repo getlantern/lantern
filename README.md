@@ -43,7 +43,7 @@ flutter run -d deviceID
 
 # Running the Full Setup on macOS with an iOS Device
 
-If you’re running on macOS and have an iOS device connected to the same local network, you can test the full setup end-to-end by updating the primary proxy address in [config/local.json](config/local.json#L2) to your Mac’s local network IP.
+If you’re using macOS and have your iOS device connected to the same local network, you can test the full setup end-to-end by updating the primary proxy address in [config/local.json](config/local.json#L2) to your Mac’s local network IP.
 
 1. Run a Local Shadowsocks Server on macOS
 
