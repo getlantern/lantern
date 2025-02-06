@@ -110,12 +110,14 @@ func (srv *vpnServer) startTun2Socks(ctx context.Context, bridge IOSBridge) erro
 	if err != nil {
 		return err
 	}
-	dialer, err := dialer.NewStreamDialer(cfg)
+	addr := fmt.Sprintf("%s:%d", cfg.Addr, cfg.Port)
+	ssconf := cfg.GetConnectCfgShadowsocks()
+	dialer, err := dialer.NewStreamDialer(addr, ssconf.Cipher, ssconf.Secret)
 	if err != nil {
 		return err
 	}
 	// Exclude proxy server address from the VPN routing table
-	if ok := bridge.ExcludeRoute(cfg.Addr); !ok {
+	if ok := bridge.ExcludeRoute(addr); !ok {
 		return fmt.Errorf("unable to exclude route: %s", cfg.Addr)
 	}
 	tunWriter := &osWriter{bridge.ProcessOutboundPacket}

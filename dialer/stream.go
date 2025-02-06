@@ -35,21 +35,29 @@ type streamDialer struct {
 	tlsConfig    *tls.Config
 }
 
-// NewDialer creates a new dialer from the Radiance config
-func NewDialer(cfg *config.Config) (Dialer, error) {
-	dialer, err := rtransport.DialerFrom(cfg)
+// NewStreamDialer creates a new stream dialer from the given parameters
+func NewStreamDialer(addr, cipher, secret string) (Dialer, error) {
+	// Generate the encryption key
+	key, err := shadowsocks.NewEncryptionKey(cipher, secret)
 	if err != nil {
 		return nil, err
 	}
-	addr := fmt.Sprintf("%s:%d", cfg.Addr, cfg.Port)
+	endpoint := &transport.TCPEndpoint{Address: addr}
+
+	// Create a new Shadowsocks stream dialer with the endpoint and encryption key
+	ssDialer, err := shadowsocks.NewStreamDialer(endpoint, key)
+	if err != nil {
+		return nil, err
+	}
+
 	return &streamDialer{
+		dialer: ssDialer,
 		addr:   addr,
-		dialer: dialer,
 	}, nil
 }
 
-// NewShadowsocks creates a new stream dialer from the Radiance config
-func NewStreamDialer(cfg *config.Config) (Dialer, error) {
+// NewDialer creates a new stream dialer from the Radiance config
+func NewDialer(cfg *config.Config) (Dialer, error) {
 	addr := fmt.Sprintf("%s:%d", cfg.Addr, cfg.Port)
 	// Retrieve Shadowsocks-specific configuration.
 	ssconf := cfg.GetConnectCfgShadowsocks()
@@ -94,9 +102,22 @@ func NewStreamDialer(cfg *config.Config) (Dialer, error) {
 	}, nil
 }
 
+// NewRadianceDialer creates a new radiance dialer from the config
+func NewRadianceDialer(cfg *config.Config) (Dialer, error) {
+	dialer, err := rtransport.DialerFrom(cfg)
+	if err != nil {
+		return nil, err
+	}
+	addr := fmt.Sprintf("%s:%d", cfg.Addr, cfg.Port)
+	return &streamDialer{
+		addr:   addr,
+		dialer: dialer,
+	}, nil
+}
+
 // DialStream establishes a connection to the remote address using the Shadowsocks dialer.
 func (d *streamDialer) DialStream(ctx context.Context, remoteAddr string) (transport.StreamConn, error) {
-	innerConn, err := d.dialer.DialStream(ctx, d.addr)
+	innerConn, err := d.dialer.DialStream(ctx, remoteAddr)
 	if err != nil {
 		return nil, err
 	}

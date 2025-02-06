@@ -15,9 +15,9 @@
     "authToken":  "e909afa00863ac331dd233ce69f62243023731a77e07f7e0cef530d3b0e07a79",
     "trusted":  true,
     "connectCfgShadowsocks": {
-      "secret":  "tb5GHr+/W5jaZIZ5GITsQneZe64F0b732rNkKjHNNOM=",
-      "cipher":  "chacha20-ietf-poly1305",
-      "with_tls": true,
+      "secret":  "mytestpassword",
+      "cipher":  "aes-256-gcm",
+      "with_tls": false,
       "prefixGenerator": "v1.0 $hex(16030100)$random_bytes(1, 2, 060708090A0B0C0D0E0F)$hex(0100)$random_bytes(1, 2, 0001)$random_bytes(1, 2, c0c1c2c3c4c5c6c7c8c9cacbcccdcfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff)$hex(0303)"
     }
   }

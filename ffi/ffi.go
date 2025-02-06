@@ -23,7 +23,8 @@ func startVPN() C.int {
 	if server != nil && server.IsVPNConnected() {
 		return 1
 	}
-	server, err := vpn.NewVPNServer(&vpn.Opts{})
+	var err error
+	server, err = vpn.NewVPNServer(&vpn.Opts{Address: ":0"})
 	if err != nil {
 		log.Printf("Unable to create VPN server: %v", err)
 		return 1
