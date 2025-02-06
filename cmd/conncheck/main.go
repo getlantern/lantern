@@ -63,7 +63,7 @@ func createDialer(cfg *config.Config, useRadiance bool) (transport.StreamDialer,
 	if useRadiance {
 		return rtransport.DialerFrom(cfg)
 	}
-	return dialer.NewStreamDialer(cfg)
+	return dialer.NewDialer(cfg)
 }
 
 // testConnect tests connectivity by making an HTTP GET request to the specified URL.
