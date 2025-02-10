@@ -32,7 +32,7 @@ require (
 	github.com/getlantern/iptool v0.0.0-20230112135223-c00e863b2696 // indirect
 	github.com/getlantern/keepcurrent v0.0.0-20240126172110-2e0264ca385d // indirect
 	github.com/getlantern/keyman v0.0.0-20230503155501-4e864ca2175b // indirect
-	github.com/getlantern/kindling v0.0.0-20250206162439-a9bc03fb5d84 // indirect
+	github.com/getlantern/kindling v0.0.0-20250210192046-4bd5a19da3f1 // indirect
 	github.com/getlantern/mtime v0.0.0-20200417132445-23682092d1f7 // indirect
 	github.com/getlantern/netx v0.0.0-20240830183145-c257516187f0 // indirect
 	github.com/getlantern/ops v0.0.0-20231025133620-f368ab734534 // indirect
@@ -64,7 +64,7 @@ require (
 
 require (
 	github.com/alexflint/go-arg v1.5.1
-	github.com/getlantern/radiance v0.0.0-20250206183717-b26faa0a54d0
+	github.com/getlantern/radiance v0.0.0-20250210192143-7e573db3d398
 	github.com/shadowsocks/go-shadowsocks2 v0.1.5 // indirect
 	golang.org/x/crypto v0.31.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
