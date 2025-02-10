@@ -57,6 +57,13 @@ Start the Shadowsocks server:
 ssserver -s 0.0.0.0:8388 -m aes-256-gcm -k "mytestpassword" -vvvv
 ```
 
+If install via homebrew, you can run the following command:
+
+```
+ss-server -s 0.0.0.0 -p 8388 -m aes-256-gcm -k "mytestpassword" -vvvv
+```
+
+
 2. Update the Proxy Address in the Config
 
 Locate your Mac’s local IP address:
