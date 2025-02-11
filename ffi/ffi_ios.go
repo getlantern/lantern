@@ -10,7 +10,6 @@ package main
 import "C"
 import (
 	"context"
-	"log"
 	"unsafe"
 
 	"github.com/getlantern/lantern-outline/vpn"
@@ -29,11 +28,6 @@ func (*iosBridge) ProcessOutboundPacket(pkt []byte) bool {
 	cPacketPtr := unsafe.Pointer(&pkt[0])
 	cLength := C.int(len(pkt))
 	result := C.WriteToOS(cPacketPtr, cLength)
-	if result == 1 {
-		log.Printf("sendPacketToOS: Packet sent successfully")
-	} else {
-		log.Printf("sendPacketToOS: Failed to send packet")
-	}
 	return result == 1
 }
 
@@ -44,12 +38,11 @@ func (*iosBridge) ExcludeRoute(route string) bool {
 
 	result := C.ExcludeRouteFromOS(cRoute)
 	if result == 1 {
-		log.Printf("excludeRoute: Successfully excluded route %s", route)
+		log.Debugf("excludeRoute: Successfully excluded route %s", route)
 		return true
-	} else {
-		log.Printf("excludeRoute: Failed to exclude route %s", route)
-		return false
 	}
+	log.Debugf("excludeRoute: Failed to exclude route %s", route)
+	return false
 }
 
 // Helper function to send logs to Swift
