@@ -4,7 +4,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hexcolor/hexcolor.dart';
 import 'package:lantern/core/ffi/ffi_client.dart';
 import 'package:lantern/core/providers/ffi_provider.dart';
 import 'package:flutter_advanced_switch/flutter_advanced_switch.dart';
@@ -12,13 +11,7 @@ import 'package:lantern/core/services/native_bridge.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-Color blue3 = HexColor('#00BCD4');
-Color grey2 = HexColor('#F5F5F5');
-Color grey3 = HexColor('#EBEBEB');
-Color grey5 = HexColor('#707070');
 
-Color onSwitchColor = blue3;
-Color offSwitchColor = grey5;
 
 class TunWidget extends HookConsumerWidget {
   final bool isVPNRunning;
@@ -67,8 +60,8 @@ class TunWidget extends HookConsumerWidget {
                 disabledOpacity: 1,
                 enabled: true,
                 initialValue: isVPNRunning,
-                activeColor: onSwitchColor,
-                inactiveColor: grey3,
+                activeColor: Colors.teal,
+                inactiveColor: Colors.black,
                 onChanged: (value) => toggleSwitch(value, vpnStatus),
               ),
               const SizedBox(height: 40),

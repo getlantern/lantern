@@ -50,10 +50,10 @@ packages:
     dependency: "direct main"
     description:
       name: auto_route
-      sha256: b83e8ce46da7228cdd019b5a11205454847f0a971bca59a7529b98df9876889b
+      sha256: "1d1bd908a1fec327719326d5d0791edd37f16caff6493c01003689fb03315ad7"
       url: "https://pub.dev"
     source: hosted
-    version: "9.2.2"
+    version: "9.3.0+1"
   auto_route_generator:
     dependency: "direct dev"
     description:
@@ -183,7 +183,7 @@ packages:
     source: hosted
     version: "3.1.2"
   crypto:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: crypto
       sha256: "1e445881f28f22d6140f181e07737b22f1e099a5e1ff94b0af2f9e4a463f4855"
@@ -287,10 +287,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_svg
-      sha256: "54900a1a1243f3c4a5506d853a2b5c2dbc38d5f27e52a52618a8054401431123"
+      sha256: c200fd79c918a40c5cd50ea0877fa13f81bdaf6f0a5d3dbcc2a13e3285d6aa1b
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.16"
+    version: "2.0.17"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -333,14 +333,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.2"
-  hexcolor:
-    dependency: "direct main"
-    description:
-      name: hexcolor
-      sha256: c07f4bbb9095df87eeca87e7c69e8c3d60f70c66102d7b8d61c4af0453add3f6
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.0.1"
   hooks_riverpod:
     dependency: "direct main"
     description:
@@ -377,10 +369,10 @@ packages:
     dependency: "direct main"
     description:
       name: i18n_extension
-      sha256: a9c61357a52d8e7e02db0317eb56114b59b626b279ed5f1e2293b3c4112bbdf4
+      sha256: "3ed32c4681e50597408c3180f7c2ba7e343a62b35a4a024bc6d2a764d375b008"
       url: "https://pub.dev"
     source: hosted
-    version: "15.0.2"
+    version: "15.0.4"
   i18n_extension_core:
     dependency: transitive
     description:

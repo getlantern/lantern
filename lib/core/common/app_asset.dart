@@ -3,14 +3,14 @@ import 'package:flutter_svg/svg.dart';
 import 'package:lantern/core/common/dimens.dart';
 export 'package:flutter_svg/flutter_svg.dart';
 
-class CAssetImage extends StatelessWidget {
+class AppAsset extends StatelessWidget {
   final String path;
   final double size;
   final double? width;
   final double? height;
   final Color? color;
 
-  const CAssetImage({
+  const AppAsset({
     required this.path,
     this.size = iconSize,
     this.width,

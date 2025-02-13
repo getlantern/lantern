@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:lantern/core/common/colors.dart';
+// import 'package:lantern/core/common/colors.dart';
 import 'package:lantern/core/utils/add_nonbreaking_spaces.dart';
 
 class CText extends StatelessWidget {
@@ -134,7 +134,7 @@ class CTextStyle extends TextStyle {
     String? package,
   }) : super(
           inherit: inherit,
-          color: color ?? black,
+          color: color,
           backgroundColor: backgroundColor,
           fontSize: fontSize,
           fontWeight: fontWeight,

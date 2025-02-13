@@ -1,4 +1,4 @@
-class ImagePaths {
+class AppImagePaths {
   // Base screen, Account, Settings etc
   static const messages = 'assets/images/messages.svg';
   static const account = 'assets/images/account.svg';

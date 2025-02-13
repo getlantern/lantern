@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:lantern/core/common/colors.dart';
 import 'package:lantern/core/common/text.dart';
-import 'package:lantern/core/utils/common.dart';
+
 
 /*
 ******************
@@ -16,7 +15,7 @@ CTextStyle tsDisplay(color) => CTextStyle(
       color: color,
     );
 
-CTextStyle tsDisplayBlack = tsDisplay(black);
+CTextStyle tsDisplayBlack = tsDisplay(Colors.black);
 
 CTextStyle tsHeading1 =
     CTextStyle(fontSize: 24, minFontSize: 18, lineHeight: 39);
@@ -99,21 +98,15 @@ BUTTON VARIATIONS
 ******************
 */
 
-CTextStyle tsButtonGrey = tsButton.copiedWith(color: grey5);
+// CTextStyle tsButtonGrey = tsButton.copiedWith(color: grey5);
+//
+// CTextStyle tsButtonPink = tsButton.copiedWith(color: pink4);
+//
+// CTextStyle tsButtonWhite = tsButton.copiedWith(color: white);
+//
+// CTextStyle tsButtonBlue = tsButton.copiedWith(color: blue4);
 
-CTextStyle tsButtonPink = tsButton.copiedWith(color: pink4);
 
-CTextStyle tsButtonWhite = tsButton.copiedWith(color: white);
-
-CTextStyle tsButtonBlue = tsButton.copiedWith(color: blue4);
-
-CTextStyle getTextStyle(bool secondary, bool disabled) {
-  if (secondary) {
-    if (disabled) return tsButtonGrey;
-    return tsButtonPink;
-  }
-  return tsButtonWhite;
-}
 
 /*
 *********
@@ -121,5 +114,3 @@ EMOTICONS
 *********
 */
 
-CTextStyle tsEmoji =
-    CTextStyle(fontSize: 14, lineHeight: 14, fontWeight: FontWeight.w500);
