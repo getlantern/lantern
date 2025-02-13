@@ -19,7 +19,10 @@ class LanternApp extends StatelessWidget {
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       locale: locale,
-      theme: AppTheme.appTheme(),
+
+      theme: AppTheme.appTheme(
+
+      ),
       darkTheme: AppTheme.darkTheme(),
       supportedLocales: languages
           .map((lang) => Locale(lang.split('_').first, lang.split('_').last))

@@ -11,6 +11,8 @@ import 'package:lantern/core/widgets/vpn_widgets.dart';
 
 @RoutePage(name: 'Home')
 class HomePage extends ConsumerStatefulWidget {
+  const HomePage({super.key});
+
   @override
   ConsumerState<HomePage> createState() => _HomePageState();
 }

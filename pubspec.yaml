@@ -63,6 +63,9 @@ dependencies:
   # dependency injection
   get_it: ^8.0.3
 
+  #fonts
+  google_fonts: ^6.2.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
