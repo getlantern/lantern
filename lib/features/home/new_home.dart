@@ -1,9 +1,8 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:lantern/core/common/app_asset.dart';
-import 'package:lantern/core/common/app_image_paths.dart';
+import 'package:lantern/core/router/router.gr.dart';
 
-import '../../core/widgets/lantern_logo.dart';
+import '../../core/common/common.dart';
 
 @RoutePage(name: 'NewHome')
 class NewHome extends StatefulWidget {
@@ -21,10 +20,9 @@ class _NewHomeState extends State<NewHome> {
           title: const LanternLogo(),
           leading: IconButton(
               onPressed: () {
-                app
+                appRouter.push(const Setting());
               },
               icon: const AppAsset(path: AppImagePaths.menu))),
     );
-    // drawer: const AppAsset(path: AppImagePaths.menu),
   }
 }

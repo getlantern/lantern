@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lantern/app.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/services/injection_container.dart';
 import 'package:window_manager/window_manager.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   desktopInit();
+  injectServices();
   runApp(
     const ProviderScope(
       child: LanternApp(),

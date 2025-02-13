@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
 import 'package:lantern/core/router/router.dart';
-
 import 'core/common/common.dart';
+import 'core/services/injection_container.dart';
 
-final globalRouter = AppRouter();
+final globalRouter = sl<AppRouter>();
 
 class LanternApp extends StatelessWidget {
   const LanternApp({super.key});
