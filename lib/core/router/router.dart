@@ -12,7 +12,12 @@ class AppRouter extends RootStackRouter {
   final List<AutoRoute> routes = [
     AutoRoute(
       path: '/',
-      page: Home.page,
+      page: NewHome.page,
+    ),
+
+    AutoRoute(
+      path: '/setting',
+      page: Setting.page,
     ),
   ];
 }

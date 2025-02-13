@@ -16,8 +16,8 @@ class AppAsset extends StatelessWidget {
     this.width,
     this.height,
     this.color,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +25,7 @@ class AppAsset extends StatelessWidget {
       path,
       height: height ?? size,
       width: width ?? size,
-      color: color,
+      colorFilter: color != null ? ColorFilter.mode(color!, BlendMode.srcIn) : null,
     );
   }
 }

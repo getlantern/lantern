@@ -1,6 +1,11 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:lantern/core/localization/localization_constants.dart';
 import 'package:lantern/core/router/router.dart';
+
+import 'core/common/common.dart';
 
 final globalRouter = AppRouter();
 
@@ -9,28 +14,19 @@ class LanternApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Locale locale =  PlatformDispatcher.instance.locale;
+
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
-      builder: (context, child) {
-        // Get the current device locale here
-        Locale locale = Localizations.localeOf(context);
-        return Theme(
-          data: ThemeData(
-            useMaterial3: false,
-            fontFamily: _getLocaleBasedFont(locale),
-            brightness: Brightness.light,
-            primarySwatch: Colors.grey,
-            appBarTheme: const AppBarTheme(
-              systemOverlayStyle: SystemUiOverlayStyle.dark,
-            ),
-            colorScheme: ColorScheme.fromSwatch().copyWith(
-              secondary: Colors.black,
-            ),
-          ),
-          child: child!,
-        );
-      },
+      locale: locale,
+      theme: AppTheme.appTheme(),
+      darkTheme: AppTheme.darkTheme(),
+      supportedLocales: languages
+          .map((lang) => Locale(lang.split('_').first, lang.split('_').last))
+          .toList(), // List of supported languages
       routerConfig: globalRouter.config(),
+
+
     );
   }
 

@@ -40,5 +40,11 @@ build-framework: build-ios
 ios:
 	GOOS=ios CGO_ENABLED=1 go build -trimpath -buildmode=c-archive -o $(OUT_DIR)/$(LIB_NAME)_$(GOARCH)_$(SDK).a
 
+
+
+#Routes generation
+routes:
+	dart run build_runner build --delete-conflicting-outputs
+
 clean:
 	rm -rf $(OUT_DIR)/*
