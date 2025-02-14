@@ -35,8 +35,10 @@ class AppTheme {
         ),
       ),
       primaryColor: AppColors.blue10,
+      scaffoldBackgroundColor: AppColors.gray1,
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
+          elevation: 0,
           backgroundColor: AppColors.blue10,
           enableFeedback: true,
           foregroundColor: Colors.white,

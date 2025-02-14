@@ -13,7 +13,7 @@ class Setting extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Setting'),
       ),
-      body:  Padding(
+      body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         child: Column(
           children: <Widget>[
@@ -21,10 +21,7 @@ class Setting extends StatelessWidget {
               label: 'Upgrade to Pro',
               icon: AppImagePaths.crown,
               expanded: true,
-              onPressed: () {
-
-              },
-
+              onPressed: () {},
             ),
           ],
         ),
