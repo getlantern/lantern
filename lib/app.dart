@@ -21,8 +21,8 @@ class LanternApp extends StatelessWidget {
       locale: locale,
 
       theme: AppTheme.appTheme(
-
       ),
+      themeMode: ThemeMode.light,
       darkTheme: AppTheme.darkTheme(),
       supportedLocales: languages
           .map((lang) => Locale(lang.split('_').first, lang.split('_').last))

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 
 import 'app_colors.dart';
@@ -27,10 +28,15 @@ class AppTheme {
 
       appBarTheme: AppBarTheme(
         centerTitle: true,
-        surfaceTintColor: AppColors.blue10,
+        surfaceTintColor: AppColors.blue7,
         titleTextStyle: AppTestStyles.headingSmall.copyWith(
           color: AppColors.blue10,
         ),
+        titleSpacing: 0,
+        elevation: 0,
+        backgroundColor: AppColors.gray1,
+        systemOverlayStyle: SystemUiOverlayStyle.dark,
+
         iconTheme: IconThemeData(
           color: AppColors.blue10,
         ),

@@ -23,18 +23,18 @@ class PrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final button = Theme.of(context).elevatedButtonTheme.style!;
+    final button = Theme.of(context).elevatedButtonTheme.style;
     return icon == null
         ? ElevatedButton(
             onPressed: enabled ? onPressed : null,
-            style: _buildButtonStyle(button),
+            style: _buildButtonStyle(button!),
             child: Text(label),
           )
         : ElevatedButton.icon(
             onPressed: enabled ? onPressed : null,
             icon: AppAsset(path: icon!),
             label: Text(label),
-            style: _buildButtonStyle(button),
+            style: _buildButtonStyle(button!),
           );
   }
 
