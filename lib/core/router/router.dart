@@ -8,11 +8,15 @@ import 'package:lantern/core/router/router.gr.dart';
 class AppRouter extends RootStackRouter {
   @override
   RouteType get defaultRouteType => const RouteType.adaptive();
+
+
   @override
   final List<AutoRoute> routes = [
     AutoRoute(
       path: '/',
       page: NewHome.page,
+
+
     ),
     AutoRoute(
       path: '/setting',

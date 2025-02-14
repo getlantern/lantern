@@ -1,10 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:lantern/core/common/app_buttons.dart';
-import 'package:lantern/core/common/app_image_paths.dart';
-import 'package:lantern/core/widgets/app_tile.dart';
-
-import '../../core/widgets/divider_space.dart';
+import 'package:lantern/core/common/common.dart';
 
 @RoutePage(name: 'Setting')
 class Setting extends StatelessWidget {
@@ -13,17 +9,12 @@ class Setting extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Setting'),
-      ),
+      appBar: CustomAppBar(title: 'Setting'),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         child: ListView(
           children: <Widget>[
-            PrimaryButton(
-              label: 'Upgrade to Pro',
-              icon: AppImagePaths.crown,
-              expanded: true,
+            ProButton(
               onPressed: () {},
             ),
             const SizedBox(height: 16),
@@ -64,7 +55,7 @@ class Setting extends StatelessWidget {
                 children: [
                   AppTile(
                     label: 'Language',
-                    icon: AppImagePaths.callSpilt,
+                    icon: AppImagePaths.translate,
                     onPressed: () {},
                   ),
                   const Padding(
@@ -79,7 +70,6 @@ class Setting extends StatelessWidget {
                 ],
               ),
             ),
-
             const SizedBox(height: 16),
             Card(
               margin: EdgeInsets.zero,
@@ -120,7 +110,6 @@ class Setting extends StatelessWidget {
                     label: 'Follow us',
                     icon: AppImagePaths.thumb,
                     onPressed: () {},
-
                   ),
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16),
@@ -131,7 +120,6 @@ class Setting extends StatelessWidget {
                     icon: AppImagePaths.star,
                     onPressed: () {},
                   ),
-
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16),
                     child: DividerSpace(),
