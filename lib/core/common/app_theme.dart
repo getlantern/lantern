@@ -24,6 +24,7 @@ class AppTheme {
         titleMedium: AppTestStyles.titleMedium,
         titleSmall: AppTestStyles.titleSmall,
       ),
+
       appBarTheme: AppBarTheme(
         centerTitle: true,
         surfaceTintColor: AppColors.blue10,
@@ -36,6 +37,18 @@ class AppTheme {
       ),
       primaryColor: AppColors.blue10,
       scaffoldBackgroundColor: AppColors.gray1,
+      cardTheme: CardTheme(
+        elevation: 0,
+        color: AppColors.white,
+        clipBehavior: Clip.hardEdge,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.0),
+          side: BorderSide(
+            color: AppColors.gray2,
+            width: 1,
+          ),
+        ),
+      ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           elevation: 0,

@@ -23,8 +23,8 @@ class AppAsset extends StatelessWidget {
   Widget build(BuildContext context) {
     return SvgPicture.asset(
       path,
-      height: height ?? size,
-      width: width ?? size,
+      // height: height ?? size,
+      // width: width ?? size,
       colorFilter: color != null ? ColorFilter.mode(color!, BlendMode.srcIn) : null,
     );
   }
