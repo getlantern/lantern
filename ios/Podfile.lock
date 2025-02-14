@@ -2,6 +2,9 @@ PODS:
   - Flutter (1.0.0)
   - Liblantern (0.0.1):
     - Flutter
+  - path_provider_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
   - shared_preferences_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -9,6 +12,7 @@ PODS:
 DEPENDENCIES:
   - Flutter (from `Flutter`)
   - Liblantern (from `.`)
+  - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
 
 EXTERNAL SOURCES:
@@ -16,12 +20,15 @@ EXTERNAL SOURCES:
     :path: Flutter
   Liblantern:
     :path: "."
+  path_provider_foundation:
+    :path: ".symlinks/plugins/path_provider_foundation/darwin"
   shared_preferences_foundation:
     :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
 
 SPEC CHECKSUMS:
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   Liblantern: 0e7ec8975652424163b72769baa37aba7fb02deb
+  path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
   shared_preferences_foundation: fcdcbc04712aee1108ac7fda236f363274528f78
 
 PODFILE CHECKSUM: ca8f73e305478fa2610321b61ab9a52586176b32
