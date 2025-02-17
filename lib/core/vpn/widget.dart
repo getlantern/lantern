@@ -10,6 +10,7 @@ import 'package:lantern/core/providers/ffi_provider.dart';
 import 'package:flutter_advanced_switch/flutter_advanced_switch.dart';
 import 'package:lantern/core/services/native_bridge.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 Color blue3 = HexColor('#00BCD4');
@@ -28,28 +29,20 @@ class TunWidget extends HookConsumerWidget {
 
   TunWidget({required this.isVPNRunning, required this.ffiClient});
 
-  Future<void> toggleSwitch(bool newValue, String vpnStatus) async {
-    if (!newValue) {
-      if (Platform.isIOS) {
-        await _nativeBridge.stopVPN();
-      } else {
-        ffiClient.stopVPN();
-      }
-    } else {
-      if (Platform.isIOS) {
-        await _nativeBridge.startVPN();
-      } else {
-        ffiClient.startVPN();
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Initialize ffi client
-    final _ffiClient = ref.read(ffiClientProvider);
-    String vpnStatus =
-        _ffiClient.isVPNConnected() == 1 ? 'connected' : 'disconnected';
+    final switchController = useState(isVPNRunning);
+
+    Future<void> handleToggle(bool newValue) async {
+      final error = await _toggleSwitch(context, newValue);
+      // If we got an error message, revert the switch to OFF.
+      // if (error != null) {
+      //   switchController.value = false;
+      // } else {
+      //   switchController.value = newValue;
+      // }
+    }
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -61,15 +54,15 @@ class TunWidget extends HookConsumerWidget {
             children: [
               const SizedBox(height: 10),
               AdvancedSwitch(
+                controller: switchController,
                 width: 150,
                 height: 70,
                 borderRadius: BorderRadius.circular(40),
                 disabledOpacity: 1,
                 enabled: true,
-                initialValue: isVPNRunning,
                 activeColor: onSwitchColor,
                 inactiveColor: grey3,
-                onChanged: (value) => toggleSwitch(value, vpnStatus),
+                onChanged: (value) => handleToggle(value),
               ),
               const SizedBox(height: 40),
             ],
@@ -77,5 +70,34 @@ class TunWidget extends HookConsumerWidget {
         ],
       ),
     );
+  }
+
+  /// Attempts to start/stop the VPN.
+  Future<String?> _toggleSwitch(BuildContext context, bool newValue) async {
+    String? error;
+    if (!newValue) {
+      // Turning VPN OFF
+      if (Platform.isIOS) {
+        error = await _nativeBridge.stopVPN();
+      } else {
+        error = ffiClient.stopVPN();
+      }
+    } else {
+      // Turning VPN ON
+      if (Platform.isIOS) {
+        error = await _nativeBridge.startVPN();
+      } else {
+        error = ffiClient.startVPN();
+      }
+    }
+
+    if (error != null) {
+      // Show the error via a snack bar
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("VPN Error: $error")),
+      );
+      return error; // Return the error so we know to revert the switch
+    }
+    return null;
   }
 }

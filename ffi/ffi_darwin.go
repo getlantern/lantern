@@ -10,5 +10,5 @@ import (
 )
 
 func start(ctx context.Context, server vpn.VPNServer) error {
-	return nil
+	return server.Start(ctx)
 }

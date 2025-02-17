@@ -1,16 +1,22 @@
 package main
 
+/*
+#include <stdlib.h>
+*/
 import "C"
+
 import (
 	"context"
+	"fmt"
 	"sync"
+	"unsafe"
 
 	"github.com/getlantern/golog"
 	"github.com/getlantern/lantern-outline/vpn"
 )
 
 var (
-	vpnMutex sync.RWMutex
+	vpnMutex sync.Mutex
 	server   vpn.VPNServer
 
 	log = golog.LoggerFor("lantern-outline.ffi")
@@ -19,32 +25,34 @@ var (
 // startVPN initializes and starts the VPN server if it is not already running.
 //
 //export startVPN
-func startVPN() C.int {
+func startVPN() *C.char {
 	log.Debug("startVPN called")
 
 	vpnMutex.Lock()
 	defer vpnMutex.Unlock()
 
 	if server == nil {
-		var err error
-		server, err = vpn.NewVPNServer(&vpn.Opts{Address: ":0"})
+		s, err := vpn.NewVPNServer(&vpn.Opts{Address: ":0"})
 		if err != nil {
-			log.Debugf("Unable to create VPN server: %v", err)
-			return 1
+			err = fmt.Errorf("unable to create VPN server: %v", err)
+			log.Error(err)
+			return C.CString(err.Error())
 		}
+		server = s
 	}
 	if err := start(context.Background(), server); err != nil {
-		log.Debugf("Unable to start VPN server: %v", err)
-		return 1
+		err = fmt.Errorf("unable to start VPN server: %v", err)
+		log.Error(err)
+		return C.CString(err.Error())
 	}
 	log.Debug("VPN server started successfully")
-	return 0
+	return nil
 }
 
 // stopVPN stops the VPN server if it is running.
 //
 //export stopVPN
-func stopVPN() C.int {
+func stopVPN() *C.char {
 	log.Debug("stopVPN called")
 
 	vpnMutex.Lock()
@@ -52,29 +60,36 @@ func stopVPN() C.int {
 
 	if server == nil {
 		log.Debug("VPN server is not running")
-		return 0
+		return nil
 	}
 
 	if err := server.Stop(); err != nil {
-		log.Debugf("Unable to stop VPN server: %v", err)
-		return 1
+		err = fmt.Errorf("unable to stop VPN server: %v", err)
+		log.Error(err)
+		return C.CString(err.Error())
 	}
-
-	return 0
+	server = nil
+	log.Debug("VPN server stopped successfully")
+	return nil
 }
 
 // isVPNConnected checks if the VPN server is running and connected.
 //
 //export isVPNConnected
 func isVPNConnected() int {
-	vpnMutex.RLock()
-	defer vpnMutex.RUnlock()
+	vpnMutex.Lock()
+	defer vpnMutex.Unlock()
 
-	if server != nil && server.IsVPNConnected() {
-		return 1
+	if server == nil || !server.IsVPNConnected() {
+		return 0
 	}
 
-	return 0
+	return 1
+}
+
+//export freeCString
+func freeCString(cstr *C.char) {
+	C.free(unsafe.Pointer(cstr))
 }
 
 //export enforce_binding
