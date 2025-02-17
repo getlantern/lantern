@@ -68,7 +68,10 @@ func stopVPN() *C.char {
 		log.Error(err)
 		return C.CString(err.Error())
 	}
+
+	// Make sure to clear out the server after a successful stop
 	server = nil
+
 	log.Debug("VPN server stopped successfully")
 	return nil
 }
