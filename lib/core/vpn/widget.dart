@@ -36,11 +36,9 @@ class TunWidget extends HookConsumerWidget {
     Future<void> handleToggle(bool newValue) async {
       final error = await _toggleSwitch(context, newValue);
       // If we got an error message, revert the switch to OFF.
-      // if (error != null) {
-      //   switchController.value = false;
-      // } else {
-      //   switchController.value = newValue;
-      // }
+      if (error != null) {
+        switchController.value = false;
+      }
     }
 
     return Center(
