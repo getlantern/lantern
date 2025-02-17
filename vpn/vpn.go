@@ -83,6 +83,7 @@ func (s *vpnServer) Start(ctx context.Context) error {
 	if s.IsVPNConnected() {
 		return errors.New("VPN already running")
 	}
+	s.setConnected(true)
 	//go s.acceptConnections(ctx)
 	return nil
 }
