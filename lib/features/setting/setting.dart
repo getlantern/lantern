@@ -1,6 +1,20 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:lantern/core/common/app_colors.dart';
 import 'package:lantern/core/common/common.dart';
+
+enum _SettingType {
+  signIn,
+  splitTunneling,
+  serverLocations,
+  language,
+  appearance,
+  support,
+  followUs,
+  getPro,
+  downloadLinks,
+  checkForUpdates,
+}
 
 @RoutePage(name: 'Setting')
 class Setting extends StatelessWidget {
@@ -8,6 +22,7 @@ class Setting extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme!;
     return Scaffold(
       appBar: CustomAppBar(title: 'Setting'),
       body: Padding(
@@ -16,6 +31,15 @@ class Setting extends StatelessWidget {
           children: <Widget>[
             ProButton(
               onPressed: () {},
+            ),
+            const SizedBox(height: 16),
+            Card(
+              margin: EdgeInsets.zero,
+              child: AppTile(
+                label: 'Account',
+                icon: AppImagePaths.signIn,
+                onPressed: () {},
+              ),
             ),
             const SizedBox(height: 16),
             Card(
@@ -32,30 +56,23 @@ class Setting extends StatelessWidget {
               child: Column(
                 children: [
                   AppTile(
-                    label: 'Split Tunneling',
-                    icon: AppImagePaths.callSpilt,
+                    label: 'VPN Setting',
+                    icon: AppImagePaths.glob,
                     onPressed: () {},
                   ),
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16),
                     child: DividerSpace(),
                   ),
-                  AppTile(
-                    label: 'Server locations',
-                    icon: AppImagePaths.location,
-                    onPressed: () {},
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              margin: EdgeInsets.zero,
-              child: Column(
-                children: [
                   AppTile(
                     label: 'Language',
                     icon: AppImagePaths.translate,
+                    trailing: Text(
+                      'English',
+                      style: textTheme.titleMedium!.copyWith(
+                        color: AppColors.blue7,
+                      ),
+                    ),
                     onPressed: () {},
                   ),
                   const Padding(
@@ -63,30 +80,8 @@ class Setting extends StatelessWidget {
                     child: DividerSpace(),
                   ),
                   AppTile(
-                    label: 'Server locations',
-                    icon: AppImagePaths.location,
-                    onPressed: () {},
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              margin: EdgeInsets.zero,
-              child: Column(
-                children: [
-                  AppTile(
-                    label: 'Language',
-                    icon: AppImagePaths.translate,
-                    onPressed: () {},
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: DividerSpace(),
-                  ),
-                  AppTile(
-                    label: 'Appearance',
-                    icon: AppImagePaths.theme,
+                    label: 'Check for updates',
+                    icon: AppImagePaths.update,
                     onPressed: () {},
                   ),
                 ],
@@ -107,6 +102,15 @@ class Setting extends StatelessWidget {
                     child: DividerSpace(),
                   ),
                   AppTile(
+                    label: 'Download Links',
+                    icon: AppImagePaths.desktop,
+                    onPressed: () {},
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: DividerSpace(),
+                  ),
+                  AppTile(
                     label: 'Follow us',
                     icon: AppImagePaths.thumb,
                     onPressed: () {},
@@ -120,30 +124,61 @@ class Setting extends StatelessWidget {
                     icon: AppImagePaths.star,
                     onPressed: () {},
                   ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: DividerSpace(),
-                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Card(
+              margin: EdgeInsets.zero,
+              child: Column(
+                children: [
                   AppTile(
-                    label: 'Download Links',
-                    icon: AppImagePaths.desktop,
-                    onPressed: () {},
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: DividerSpace(),
-                  ),
-                  AppTile(
-                    label: 'Check for updates',
-                    icon: AppImagePaths.update,
+                    label: 'Logout',
+                    icon: AppImagePaths.signIn,
                     onPressed: () {},
                   ),
                 ],
               ),
             ),
+            const SizedBox(height: 16),
           ],
         ),
       ),
     );
+  }
+
+  void settingMenuTap(_SettingType menu) {
+    switch (menu) {
+      case _SettingType.signIn:
+        // TODO: Handle this case.
+        throw UnimplementedError();
+      case _SettingType.splitTunneling:
+        // TODO: Handle this case.
+        throw UnimplementedError();
+      case _SettingType.serverLocations:
+        // TODO: Handle this case.
+        throw UnimplementedError();
+      case _SettingType.language:
+        // TODO: Handle this case.
+        throw UnimplementedError();
+      case _SettingType.appearance:
+        // TODO: Handle this case.
+        throw UnimplementedError();
+      case _SettingType.support:
+        // TODO: Handle this case.
+        throw UnimplementedError();
+      case _SettingType.followUs:
+        // TODO: Handle this case.
+        throw UnimplementedError();
+      case _SettingType.getPro:
+        // TODO: Handle this case.
+        throw UnimplementedError();
+      case _SettingType.downloadLinks:
+        // TODO: Handle this case.
+        throw UnimplementedError();
+      case _SettingType.checkForUpdates:
+        // TODO: Handle this case.
+        throw UnimplementedError();
+    }
   }
 }

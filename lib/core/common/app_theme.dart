@@ -8,6 +8,11 @@ class AppTheme {
   static ThemeData appTheme() {
     return ThemeData(
       useMaterial3: true,
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: FadeForwardsPageTransitionsBuilder(),
+        },
+      ),
       textTheme: TextTheme(
         bodyLarge: AppTestStyles.bodyLarge,
         bodyMedium: AppTestStyles.bodyMedium,
@@ -75,6 +80,10 @@ class AppTheme {
   }
 
   static ThemeData darkTheme() {
-    return ThemeData();
+    return ThemeData(
+
+    );
   }
+
+
 }

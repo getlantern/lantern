@@ -6,6 +6,7 @@ class AppTile extends StatelessWidget {
   final String label;
 
   final String icon;
+  final Widget? trailing;
 
   final VoidCallback onPressed;
 
@@ -14,6 +15,7 @@ class AppTile extends StatelessWidget {
     required this.label,
     required this.icon,
     required this.onPressed,
+    this.trailing,
   });
 
   @override
@@ -22,12 +24,10 @@ class AppTile extends StatelessWidget {
     return ListTile(
       title: Text(
         label,
-        style: theme.copyWith(
-          color: AppColors.blue10,
-          fontSize: 18.0
-        ),
+        style: theme.copyWith(color: AppColors.gray9, fontSize: 18.0),
       ),
       leading: AppAsset(path: icon),
+      trailing: trailing,
       onTap: onPressed,
     );
   }
