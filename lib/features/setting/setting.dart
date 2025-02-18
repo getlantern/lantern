@@ -4,7 +4,9 @@ import 'package:lantern/core/common/app_colors.dart';
 import 'package:lantern/core/common/common.dart';
 
 enum _SettingType {
+  account,
   signIn,
+  vpnSetting,
   splitTunneling,
   serverLocations,
   language,
@@ -14,6 +16,7 @@ enum _SettingType {
   getPro,
   downloadLinks,
   checkForUpdates,
+  logout,
 }
 
 @RoutePage(name: 'Setting')
@@ -22,7 +25,7 @@ class Setting extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme!;
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       appBar: CustomAppBar(title: 'Setting'),
       body: Padding(
@@ -38,7 +41,7 @@ class Setting extends StatelessWidget {
               child: AppTile(
                 label: 'Account',
                 icon: AppImagePaths.signIn,
-                onPressed: () {},
+                onPressed: () => settingMenuTap(_SettingType.account),
               ),
             ),
             const SizedBox(height: 16),
@@ -47,7 +50,7 @@ class Setting extends StatelessWidget {
               child: AppTile(
                 label: 'Sign In',
                 icon: AppImagePaths.signIn,
-                onPressed: () {},
+                onPressed: () => settingMenuTap(_SettingType.signIn),
               ),
             ),
             const SizedBox(height: 16),
@@ -58,7 +61,7 @@ class Setting extends StatelessWidget {
                   AppTile(
                     label: 'VPN Setting',
                     icon: AppImagePaths.glob,
-                    onPressed: () {},
+                    onPressed: () => settingMenuTap(_SettingType.vpnSetting),
                   ),
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16),
@@ -73,7 +76,7 @@ class Setting extends StatelessWidget {
                         color: AppColors.blue7,
                       ),
                     ),
-                    onPressed: () {},
+                    onPressed: () => settingMenuTap(_SettingType.language),
                   ),
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16),
@@ -82,7 +85,8 @@ class Setting extends StatelessWidget {
                   AppTile(
                     label: 'Check for updates',
                     icon: AppImagePaths.update,
-                    onPressed: () {},
+                    onPressed: () =>
+                        settingMenuTap(_SettingType.checkForUpdates),
                   ),
                 ],
               ),
@@ -95,7 +99,7 @@ class Setting extends StatelessWidget {
                   AppTile(
                     label: 'Support',
                     icon: AppImagePaths.support,
-                    onPressed: () {},
+                    onPressed: () => settingMenuTap(_SettingType.support),
                   ),
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16),
@@ -104,7 +108,7 @@ class Setting extends StatelessWidget {
                   AppTile(
                     label: 'Download Links',
                     icon: AppImagePaths.desktop,
-                    onPressed: () {},
+                    onPressed: () => settingMenuTap(_SettingType.downloadLinks),
                   ),
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16),
@@ -113,7 +117,7 @@ class Setting extends StatelessWidget {
                   AppTile(
                     label: 'Follow us',
                     icon: AppImagePaths.thumb,
-                    onPressed: () {},
+                    onPressed: () => settingMenuTap(_SettingType.followUs),
                   ),
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16),
@@ -122,7 +126,7 @@ class Setting extends StatelessWidget {
                   AppTile(
                     label: 'Get 30 days of Pro free',
                     icon: AppImagePaths.star,
-                    onPressed: () {},
+                    onPressed: () => settingMenuTap(_SettingType.getPro),
                   ),
                 ],
               ),
@@ -135,7 +139,7 @@ class Setting extends StatelessWidget {
                   AppTile(
                     label: 'Logout',
                     icon: AppImagePaths.signIn,
-                    onPressed: () {},
+                    onPressed: () => settingMenuTap(_SettingType.logout),
                   ),
                 ],
               ),
@@ -177,6 +181,15 @@ class Setting extends StatelessWidget {
         // TODO: Handle this case.
         throw UnimplementedError();
       case _SettingType.checkForUpdates:
+        // TODO: Handle this case.
+        throw UnimplementedError();
+      case _SettingType.account:
+        // TODO: Handle this case.
+        throw UnimplementedError();
+      case _SettingType.vpnSetting:
+        // TODO: Handle this case.
+        throw UnimplementedError();
+      case _SettingType.logout:
         // TODO: Handle this case.
         throw UnimplementedError();
     }
