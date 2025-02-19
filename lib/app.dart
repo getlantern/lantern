@@ -8,6 +8,7 @@ import 'package:lantern/core/router/router.dart';
 import 'core/common/common.dart';
 import 'core/services/injection_container.dart';
 
+
 final globalRouter = sl<AppRouter>();
 
 class LanternApp extends StatelessWidget {
@@ -15,7 +16,9 @@ class LanternApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print("Build called");
     Locale locale = PlatformDispatcher.instance.locale;
+    AppDB.set<String>('locale', locale.languageCode);
     return I18n(
       localizationsDelegates: [
         GlobalMaterialLocalizations.delegate,

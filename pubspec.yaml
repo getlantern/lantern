@@ -59,6 +59,7 @@ dependencies:
 
   # Logs
   flutter_loggy: ^2.0.3+1
+  loggy: ^2.0.3
 
   # Local DB
   objectbox: ^4.1.0

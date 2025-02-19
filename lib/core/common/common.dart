@@ -15,6 +15,9 @@ export '../../core/widgets/divider_space.dart';
 export 'package:lantern/core/widgets/pro_button.dart';
 export 'package:lantern/core/widgets/custom_app_bar.dart';
 
+// DB
+export 'package:lantern/core/services/local_storage.dart';
+
 AppRouter get appRouter => sl<AppRouter>();
 
 

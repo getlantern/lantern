@@ -10,7 +10,6 @@ void initLogger() {
   Loggy.initLoggy(
     logPrinter: logPrinter,
     logOptions: const LogOptions(LogLevel.all),
-    hierarchicalLogging: true
   );
   appLogger.debug("Logger initialized ✅");
 }
