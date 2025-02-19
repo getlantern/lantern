@@ -27,7 +27,7 @@ class Home extends _i4.PageRouteInfo<void> {
   static _i4.PageInfo page = _i4.PageInfo(
     name,
     builder: (data) {
-      return _i1.HomePage();
+      return const _i1.HomePage();
     },
   );
 }

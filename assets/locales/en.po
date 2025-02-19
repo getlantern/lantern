@@ -1,0 +1,11 @@
+msgid "app_name"
+msgstr "Lantern"
+
+msgid "upgrade_to_pro"
+msgstr "Upgrade to Pro"
+
+msgid "language"
+msgstr "Language"
+
+msgid "setting"
+msgstr "Setting"

@@ -7,10 +7,13 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:window_manager/window_manager.dart';
 
+import 'core/localization/i18n.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   desktopInit();
   injectServices();
+  await Future.microtask(Localization.loadTranslations);
   runApp(
     const ProviderScope(
       child: LanternApp(),
