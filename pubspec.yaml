@@ -57,6 +57,9 @@ dependencies:
   #Images
   flutter_svg: ^2.0.17
 
+  # Logs
+  flutter_loggy: ^2.0.3+1
+
   # Local DB
   objectbox: ^4.1.0
   objectbox_flutter_libs: ^4.1.0
