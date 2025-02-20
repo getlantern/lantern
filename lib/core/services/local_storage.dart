@@ -1,8 +1,10 @@
 import 'dart:convert';
+
 import 'package:lantern/core/services/db/objectbox.g.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+
 import 'injection_container.dart';
 
 class AppDB {
@@ -13,7 +15,8 @@ class AppDB {
     assert(T != dynamic, "You must explicitly specify a type for set<T>()");
     final start = DateTime.now();
     _localStorageService.set(key, value);
-    dbLogger.info("Key: $key saved successfully in ${DateTime.now().difference(start).inMilliseconds}ms");
+    dbLogger.info(
+        "Key: $key saved successfully in ${DateTime.now().difference(start).inMilliseconds}ms");
   }
 
   static T? get<T>(String key) {
@@ -27,15 +30,20 @@ class LocalStorageService {
   late Box<AppDatabase> _box;
 
   late AppDatabase _appDb;
-  // In-memory cache
+
+  /// In-memory cache
   static late Map<String, dynamic> _cache;
 
+  ///Due to limitations in macOS the value must be at most 19 characters
+  final macosApplicationGroup = "";
 
   Future<void> init() async {
     final start = DateTime.now();
     dbLogger.debug("Initializing LocalStorageService");
     final docsDir = await getApplicationDocumentsDirectory();
-    _store = await openStore(directory: p.join(docsDir.path, "objectbox-db"));
+    _store = await openStore(
+        directory: p.join(docsDir.path, "objectbox-db"),
+        macosApplicationGroup: macosApplicationGroup);
     _box = _store.box<AppDatabase>();
     AppDatabase? db = _box.get(1);
     if (db == null) {
@@ -54,7 +62,7 @@ class LocalStorageService {
 
   T? get<T>(String key) {
     dbLogger.debug("Getting key: $key");
-   return _cache[key] as T?;
+    return _cache[key] as T?;
     // final Map<String, dynamic> dbMap = _appDb.map;
     // return dbMap[key] as T?;
   }
