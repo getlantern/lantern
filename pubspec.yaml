@@ -50,6 +50,7 @@ dependencies:
   animated_toggle_switch: ^0.8.4
   flutter_advanced_switch: ^3.1.0
   flutter_screenutil: ^5.9.3
+  auto_size_text: ^3.0.0
 
   #Localization
   i18n_extension: ^15.0.4

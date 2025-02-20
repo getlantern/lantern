@@ -14,5 +14,6 @@ class AppImagePaths {
   static const thumb = 'assets/images/thumb.svg';
   static const desktop = 'assets/images/desktop.svg';
   static const glob = 'assets/images/glob.svg';
+  static const email = 'assets/images/email.svg';
 
 }

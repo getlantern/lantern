@@ -12,3 +12,6 @@ msgstr "Setting"
 
 msgid "language"
 msgstr "Language"
+
+msgid "report_issue"
+msgstr "Report Issue"

@@ -161,7 +161,7 @@ class _SettingState extends State<Setting> {
     switch (menu) {
       case _SettingType.signIn:
         // TODO: Handle this case.
-        throw UnimplementedError();
+        appRouter.push(ReportIssue());
       case _SettingType.splitTunneling:
         // TODO: Handle this case.
         throw UnimplementedError();
