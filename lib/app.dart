@@ -9,7 +9,6 @@ import 'package:lantern/core/router/router.dart';
 import 'core/common/common.dart';
 import 'core/services/injection_container.dart';
 
-
 final globalRouter = sl<AppRouter>();
 
 class LanternApp extends StatelessWidget {
@@ -17,7 +16,6 @@ class LanternApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print("Build called");
     Locale locale = PlatformDispatcher.instance.locale;
     AppDB.set<String>('locale', locale.languageCode);
     return ScreenUtilInit(
@@ -36,7 +34,8 @@ class LanternApp extends StatelessWidget {
           themeMode: ThemeMode.light,
           darkTheme: AppTheme.darkTheme(),
           supportedLocales: languages
-              .map((lang) => Locale(lang.split('_').first, lang.split('_').last))
+              .map(
+                  (lang) => Locale(lang.split('_').first, lang.split('_').last))
               .toList(),
           // List of supported languages
           routerConfig: globalRouter.config(),
@@ -49,26 +48,4 @@ class LanternApp extends StatelessWidget {
       ),
     );
   }
-
-  String _getLocaleBasedFont(Locale locale) {
-    if (locale.languageCode == 'fa' ||
-        locale.languageCode == 'ur' ||
-        locale.languageCode == 'eg') {
-      return AppFontFamily.semim.fontFamily; // Farsi font
-    } else {
-      return AppFontFamily
-          .roboto.fontFamily; // Default font for other languages
-    }
-  }
-}
-
-// This enum is used to manage the font families used in the application
-enum AppFontFamily {
-  semim('Samim'),
-  roboto('Roboto');
-
-  // the actual string value (the font family name) to each enum value
-  const AppFontFamily(this.fontFamily);
-
-  final String fontFamily;
 }

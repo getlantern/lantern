@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/services/db/objectbox.g.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:path/path.dart' as p;
@@ -35,7 +36,7 @@ class LocalStorageService {
   static late Map<String, dynamic> _cache;
 
   ///Due to limitations in macOS the value must be at most 19 characters
-  final macosApplicationGroup = "";
+  final macosApplicationGroup = AppSecrets.macosAppGroupId;
 
   Future<void> init() async {
     final start = DateTime.now();

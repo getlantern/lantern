@@ -1,6 +1,7 @@
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lantern/app.dart';
 import 'package:lantern/core/common/common.dart';
@@ -13,6 +14,7 @@ import 'core/localization/i18n.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   initLogger();
+  await _loadAppSecrets();
   desktopInit();
   await injectServices();
   await Future.microtask(Localization.loadTranslations);
@@ -29,4 +31,13 @@ Future<void> desktopInit() async {
   }
   await windowManager.ensureInitialized();
   await windowManager.setSize(const ui.Size(360, 712));
+}
+
+Future<void> _loadAppSecrets() async {
+  try {
+    await dotenv.load(fileName: "app.env");
+    appLogger.debug('App secrets loaded');
+  } catch (e) {
+    appLogger.error("Error loading app secrets: $e");
+  }
 }

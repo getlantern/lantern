@@ -107,10 +107,9 @@ flutter:
   assets:
     - assets/
     - assets/images/
-    #    - assets/images/countdown_stopwatch/
     - assets/locales/
-  #    - assets/fonts/
-  #    - assets/sounds/
+    - app.env
+
 
   # To add assets to your application, add an assets section, like this:
   # assets:
