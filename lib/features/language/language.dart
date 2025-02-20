@@ -87,9 +87,9 @@ class LanguageListView extends StatelessWidget {
       shrinkWrap: true,
       controller: scrollController,
       padding: EdgeInsets.zero,
-      children: languages
-          .map((langCode) => _buildLanguageItem(langCode))
-          .toList()..add(SizedBox(height: 40)),
+      children:
+          languages.map((langCode) => _buildLanguageItem(langCode)).toList()
+            ..add(SizedBox(height: 40)),
     );
   }
 
@@ -100,6 +100,12 @@ class LanguageListView extends StatelessWidget {
         AppTile(
           label: displayLanguage(langCode),
           onPressed: () => onLanguageTap(langCode),
+          trailing: Radio<String>(
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            value: langCode,
+            groupValue: "",
+            onChanged: (value) {},
+          ),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
