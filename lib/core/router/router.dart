@@ -1,6 +1,6 @@
 import 'package:auto_route/auto_route.dart';
-
 import 'package:lantern/core/router/router.gr.dart';
+
 
 @AutoRouterConfig(
   replaceInRouteName: 'Page,Route,Screen',
@@ -15,12 +15,15 @@ class AppRouter extends RootStackRouter {
     AutoRoute(
       path: '/',
       page: NewHome.page,
-
-
     ),
     AutoRoute(
       path: '/setting',
       page: Setting.page,
     ),
+    AutoRoute(
+      path: '/language',
+      page: Language.page,
+    ),
+
   ];
 }

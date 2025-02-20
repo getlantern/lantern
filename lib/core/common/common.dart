@@ -17,7 +17,10 @@ export 'package:lantern/core/widgets/app_tile.dart';
 export '../../core/widgets/divider_space.dart';
 export 'package:lantern/core/widgets/pro_button.dart';
 export 'package:lantern/core/widgets/custom_app_bar.dart';
+export 'package:lantern/core/localization/i18n.dart';
 
+// Routes
+export 'package:lantern/core/router/router.gr.dart';
 
 // DB
 export 'package:lantern/core/services/local_storage.dart';

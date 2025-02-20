@@ -9,3 +9,6 @@ msgstr "Language"
 
 msgid "setting"
 msgstr "Setting"
+
+msgid "language"
+msgstr "Language"

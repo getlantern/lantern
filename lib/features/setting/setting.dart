@@ -1,9 +1,8 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-
-import 'package:lantern/core/common/app_colors.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/localization/i18n.dart';
+
+import '../language/language.dart' show showLanguageBottomSheet;
 
 enum _SettingType {
   account,
@@ -22,9 +21,14 @@ enum _SettingType {
 }
 
 @RoutePage(name: 'Setting')
-class Setting extends StatelessWidget {
+class Setting extends StatefulWidget {
   const Setting({super.key});
 
+  @override
+  State<Setting> createState() => _SettingState();
+}
+
+class _SettingState extends State<Setting> {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
@@ -165,8 +169,12 @@ class Setting extends StatelessWidget {
         // TODO: Handle this case.
         throw UnimplementedError();
       case _SettingType.language:
-        // TODO: Handle this case.
-        throw UnimplementedError();
+        if (PlatformUtils.isDesktop()) {
+          appRouter.push(Language());
+          return;
+        }
+        showLanguageBottomSheet(context);
+        break;
       case _SettingType.appearance:
         // TODO: Handle this case.
         throw UnimplementedError();
