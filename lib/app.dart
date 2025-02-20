@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:i18n_extension/i18n_extension.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
 import 'package:lantern/core/router/router.dart';
@@ -19,28 +20,32 @@ class LanternApp extends StatelessWidget {
     print("Build called");
     Locale locale = PlatformDispatcher.instance.locale;
     AppDB.set<String>('locale', locale.languageCode);
-    return I18n(
-      localizationsDelegates: [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      child: MaterialApp.router(
-        debugShowCheckedModeBanner: false,
-        locale: locale,
-        theme: AppTheme.appTheme(),
-        themeMode: ThemeMode.light,
-        darkTheme: AppTheme.darkTheme(),
-        supportedLocales: languages
-            .map((lang) => Locale(lang.split('_').first, lang.split('_').last))
-            .toList(),
-        // List of supported languages
-        routerConfig: globalRouter.config(),
-        localizationsDelegates: const [
+    return ScreenUtilInit(
+      designSize: const Size(360, 712),
+      minTextAdapt: true,
+      child: I18n(
+        localizationsDelegates: [
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
+        child: MaterialApp.router(
+          debugShowCheckedModeBanner: false,
+          locale: locale,
+          theme: AppTheme.appTheme(),
+          themeMode: ThemeMode.light,
+          darkTheme: AppTheme.darkTheme(),
+          supportedLocales: languages
+              .map((lang) => Locale(lang.split('_').first, lang.split('_').last))
+              .toList(),
+          // List of supported languages
+          routerConfig: globalRouter.config(),
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+        ),
       ),
     );
   }

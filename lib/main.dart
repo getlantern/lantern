@@ -12,9 +12,9 @@ import 'core/localization/i18n.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  desktopInit();
-  injectServices();
   initLogger();
+  desktopInit();
+  await injectServices();
   await Future.microtask(Localization.loadTranslations);
   runApp(
     const ProviderScope(

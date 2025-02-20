@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:lantern/core/common/app_asset.dart';
-import 'package:lantern/core/common/app_colors.dart';
+
+import '../common/common.dart';
+
 
 class AppTile extends StatelessWidget {
   final String label;
@@ -24,7 +25,7 @@ class AppTile extends StatelessWidget {
     return ListTile(
       title: Text(
         label,
-        style: theme.copyWith(color: AppColors.gray9, fontSize: 18.0),
+        style: theme.copyWith(color: AppColors.gray9, fontSize: font18),
       ),
       leading: AppAsset(path: icon),
       trailing: trailing,

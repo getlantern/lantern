@@ -5,8 +5,8 @@ import '../router/router.dart';
 
 final GetIt sl = GetIt.instance;
 
-void injectServices() {
+Future<void> injectServices() async {
   sl.registerLazySingleton(() => AppRouter());
   sl.registerLazySingleton(() => LocalStorageService());
-  sl<LocalStorageService>().init();
+  await sl<LocalStorageService>().init();
 }

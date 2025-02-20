@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:lantern/core/common/dimens.dart';
+import 'package:lantern/core/common/app_dimens.dart';
 export 'package:flutter_svg/flutter_svg.dart';
 
 class AppAsset extends StatelessWidget {
