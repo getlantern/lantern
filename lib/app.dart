@@ -17,10 +17,7 @@ class LanternApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Locale locale = PlatformDispatcher.instance.locale;
-    AppDB.set<String>('locale', locale.languageCode);
     return ScreenUtilInit(
-      designSize: const Size(360, 712),
-      minTextAdapt: true,
       child: I18n(
         localizationsDelegates: [
           GlobalMaterialLocalizations.delegate,

@@ -25,7 +25,7 @@ class AppTile extends StatelessWidget {
     return ListTile(
       title: Text(
         label,
-        style: theme.copyWith(color: AppColors.gray9, fontSize: font18),
+        style: theme.copyWith(color: AppColors.gray9, fontSize: font16),
       ),
       leading: AppAsset(path: icon),
       trailing: trailing,
