@@ -7,6 +7,7 @@ import 'package:lantern/core/common/app_dimens.dart';
 
 class AppTextFiled extends StatelessWidget {
   final FormFieldValidator<String>? validator;
+  final ValueChanged<String>? onChanged;
   final TextEditingController? controller;
 
   final bool enable;
@@ -19,6 +20,7 @@ class AppTextFiled extends StatelessWidget {
   final AutovalidateMode autovalidateMode;
 
   final TextInputType? keyboardType;
+  final TextInputAction? textInputAction;
   final bool? enableSuggestions;
   final bool obscureText;
 
@@ -28,6 +30,7 @@ class AppTextFiled extends StatelessWidget {
     super.key,
     required this.hintText,
     this.validator,
+    this.onChanged,
     this.maxLines = 1,
     this.prefixIcon,
     this.suffixIcon,
@@ -38,6 +41,7 @@ class AppTextFiled extends StatelessWidget {
     this.obscureText = false,
     this.inputFormatters = const [],
     this.keyboardType,
+    this.textInputAction,
     this.initialValue,
   });
 
@@ -54,6 +58,7 @@ class AppTextFiled extends StatelessWidget {
       initialValue: initialValue,
       inputFormatters: inputFormatters,
       obscureText: obscureText,
+      onChanged: onChanged,
       cursorColor: AppColors.blue8,
       autovalidateMode: autovalidateMode,
       validator: validator,
@@ -63,26 +68,29 @@ class AppTextFiled extends StatelessWidget {
         color: AppColors.gray9,
         fontSize: 14.sp,
       ),
+      textInputAction: textInputAction,
       cursorOpacityAnimates: true,
       maxLines: maxLines,
       decoration: InputDecoration(
           filled: true,
           fillColor: AppColors.white,
-          contentPadding: EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 16,
-          ),
           hintText: hintText,
           hintStyle: textTheme.bodyMedium!.copyWith(
             color: AppColors.gray4,
           ),
           prefixIcon: prefixIcon != null ? _buildFix(prefixIcon!) : null,
           suffixIcon: suffixIcon != null ? _buildFix(suffixIcon!) : null,
-
           border: OutlineInputBorder(
             borderRadius: defaultBorderRadius,
             borderSide: BorderSide(
-              color: Colors.grey,
+              color: AppColors.gray3,
+              width: 1,
+            ),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: defaultBorderRadius,
+            borderSide: BorderSide(
+              color: AppColors.gray3,
               width: 1,
             ),
           ),
@@ -105,7 +113,7 @@ class AppTextFiled extends StatelessWidget {
 
   Widget _buildFix(String iconPath) {
     return Padding(
-      padding: EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 16),
+      padding: EdgeInsets.only(left: 16, right: 16, top: 14.h, bottom: 14.h),
       child: Align(
         alignment: Alignment.topCenter,
         widthFactor: 1.0,
