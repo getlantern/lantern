@@ -15,3 +15,6 @@ msgstr "Language"
 
 msgid "report_issue"
 msgstr "Report Issue"
+
+msgid "lantern_projects"
+msgstr "Lantern Projects:"

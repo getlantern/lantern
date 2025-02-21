@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/widgets/base_screen.dart';
 
 import '../language/language.dart' show showLanguageBottomSheet;
 
@@ -18,6 +19,7 @@ enum _SettingType {
   downloadLinks,
   checkForUpdates,
   logout,
+  browserUnbounded,
 }
 
 @RoutePage(name: 'Setting')
@@ -32,127 +34,146 @@ class _SettingState extends State<Setting> {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    return Scaffold(
-      appBar: CustomAppBar(title: 'setting'.i18n),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        child: ListView(
-          children: <Widget>[
-            ProButton(
-              onPressed: () {},
+    return BaseScreen(
+      title: 'setting'.i18n,
+      body: ListView(
+        children: <Widget>[
+          ProButton(
+            onPressed: () {},
+          ),
+          const SizedBox(height: 16),
+          // Card(
+          //   margin: EdgeInsets.zero,
+          //   child: AppTile(
+          //     label: 'Account',
+          //     icon: AppImagePaths.signIn,
+          //     onPressed: () => settingMenuTap(_SettingType.account),
+          //   ),
+          // ),
+          // const SizedBox(height: 16),
+          Card(
+            margin: EdgeInsets.zero,
+            child: AppTile(
+              label: 'Sign In',
+              icon: AppImagePaths.signIn,
+              onPressed: () => settingMenuTap(_SettingType.signIn),
             ),
-            const SizedBox(height: 16),
-            Card(
-              margin: EdgeInsets.zero,
-              child: AppTile(
-                label: 'Account',
-                icon: AppImagePaths.signIn,
-                onPressed: () => settingMenuTap(_SettingType.account),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              margin: EdgeInsets.zero,
-              child: AppTile(
-                label: 'Sign In',
-                icon: AppImagePaths.signIn,
-                onPressed: () => settingMenuTap(_SettingType.signIn),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              margin: EdgeInsets.zero,
-              child: Column(
-                children: [
-                  AppTile(
-                    label: 'VPN Setting',
-                    icon: AppImagePaths.glob,
-                    onPressed: () => settingMenuTap(_SettingType.vpnSetting),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: DividerSpace(),
-                  ),
-                  AppTile(
-                    label: 'Language',
-                    icon: AppImagePaths.translate,
-                    trailing: Text(
-                      'English',
-                      style: textTheme.titleMedium!.copyWith(
-                        color: AppColors.blue7,
-                      ),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            margin: EdgeInsets.zero,
+            child: Column(
+              children: [
+                AppTile(
+                  label: 'VPN Setting',
+                  icon: AppImagePaths.glob,
+                  onPressed: () => settingMenuTap(_SettingType.vpnSetting),
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: DividerSpace(),
+                ),
+                AppTile(
+                  label: 'Language',
+                  icon: AppImagePaths.translate,
+                  trailing: Text(
+                    'English',
+                    style: textTheme.titleMedium!.copyWith(
+                      color: AppColors.blue7,
                     ),
-                    onPressed: () => settingMenuTap(_SettingType.language),
                   ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: DividerSpace(),
-                  ),
-                  AppTile(
-                    label: 'Check for updates',
-                    icon: AppImagePaths.update,
-                    onPressed: () =>
-                        settingMenuTap(_SettingType.checkForUpdates),
-                  ),
-                ],
+                  onPressed: () => settingMenuTap(_SettingType.language),
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: DividerSpace(),
+                ),
+                AppTile(
+                  label: 'Check for updates',
+                  icon: AppImagePaths.update,
+                  onPressed: () => settingMenuTap(_SettingType.checkForUpdates),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            margin: EdgeInsets.zero,
+            child: Column(
+              children: [
+                AppTile(
+                  label: 'Support',
+                  icon: AppImagePaths.support,
+                  onPressed: () => settingMenuTap(_SettingType.support),
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: DividerSpace(),
+                ),
+                AppTile(
+                  label: 'Download Links',
+                  icon: AppImagePaths.desktop,
+                  onPressed: () => settingMenuTap(_SettingType.downloadLinks),
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: DividerSpace(),
+                ),
+                AppTile(
+                  label: 'Follow us',
+                  icon: AppImagePaths.thumb,
+                  onPressed: () => settingMenuTap(_SettingType.followUs),
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: DividerSpace(),
+                ),
+                AppTile(
+                  label: 'Get 30 days of Pro free',
+                  icon: AppImagePaths.star,
+                  onPressed: () => settingMenuTap(_SettingType.getPro),
+                ),
+              ],
+            ),
+          ),
+          // const SizedBox(height: 16),
+          // Card(
+          //   margin: EdgeInsets.zero,
+          //   child: Column(
+          //     children: [
+          //       AppTile(
+          //         label: 'Logout',
+          //         icon: AppImagePaths.signIn,
+          //         onPressed: () => settingMenuTap(_SettingType.logout),
+          //       ),
+          //     ],
+          //   ),
+          // ),
+          const SizedBox(height: 16),
+
+          Padding(
+            padding: const EdgeInsets.only(
+              left: 16,
+            ),
+            child: Text(
+              'lantern_projects'.i18n,
+              style: textTheme.labelLarge!.copyWith(
+                color: AppColors.gray8,
               ),
             ),
-            const SizedBox(height: 16),
-            Card(
-              margin: EdgeInsets.zero,
-              child: Column(
-                children: [
-                  AppTile(
-                    label: 'Support',
-                    icon: AppImagePaths.support,
-                    onPressed: () => settingMenuTap(_SettingType.support),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: DividerSpace(),
-                  ),
-                  AppTile(
-                    label: 'Download Links',
-                    icon: AppImagePaths.desktop,
-                    onPressed: () => settingMenuTap(_SettingType.downloadLinks),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: DividerSpace(),
-                  ),
-                  AppTile(
-                    label: 'Follow us',
-                    icon: AppImagePaths.thumb,
-                    onPressed: () => settingMenuTap(_SettingType.followUs),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: DividerSpace(),
-                  ),
-                  AppTile(
-                    label: 'Get 30 days of Pro free',
-                    icon: AppImagePaths.star,
-                    onPressed: () => settingMenuTap(_SettingType.getPro),
-                  ),
-                ],
-              ),
+          ),
+          Card(
+            child: AppTile(
+              icon: AppImagePaths.lanternLogoRounded,
+              trailing: AppAsset(path: AppImagePaths.outsideBrowser),
+              subtitle: Text('Help Fight Global Internet Censorship'),
+              label: 'Unbounded',
+              onPressed: () {
+
+              },
             ),
-            const SizedBox(height: 16),
-            Card(
-              margin: EdgeInsets.zero,
-              child: Column(
-                children: [
-                  AppTile(
-                    label: 'Logout',
-                    icon: AppImagePaths.signIn,
-                    onPressed: () => settingMenuTap(_SettingType.logout),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-          ],
-        ),
+          )
+        ],
       ),
     );
   }
@@ -160,8 +181,7 @@ class _SettingState extends State<Setting> {
   void settingMenuTap(_SettingType menu) {
     switch (menu) {
       case _SettingType.signIn:
-        // TODO: Handle this case.
-        appRouter.push(ReportIssue());
+        break;
       case _SettingType.splitTunneling:
         // TODO: Handle this case.
         throw UnimplementedError();
@@ -200,6 +220,9 @@ class _SettingState extends State<Setting> {
         // TODO: Handle this case.
         throw UnimplementedError();
       case _SettingType.logout:
+        // TODO: Handle this case.
+        throw UnimplementedError();
+      case _SettingType.browserUnbounded:
         // TODO: Handle this case.
         throw UnimplementedError();
     }

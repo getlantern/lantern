@@ -15,5 +15,8 @@ class AppImagePaths {
   static const desktop = 'assets/images/desktop.svg';
   static const glob = 'assets/images/glob.svg';
   static const email = 'assets/images/email.svg';
+  static const lanternLogoRounded = 'assets/images/lantern_logo_round.svg';
+  static const outsideBrowser = 'assets/images/outside_brower.svg';
+
 
 }
