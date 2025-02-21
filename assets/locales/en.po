@@ -33,3 +33,21 @@ msgstr "Share your referral code with a friend. When they use it to purchase Lan
 
 msgid "share_referral_code"
 msgstr "Share Referral Code"
+
+msgid "unbounded"
+msgstr "Unbounded"
+
+msgid "help_fight_global_internet_censorship"
+msgstr "Help Fight Global Internet Censorship"
+
+msgid "vpn_setting"
+msgstr "VPN Settings"
+
+msgid "split_tunneling"
+msgstr "Split Tunneling"
+
+msgid "server_locations"
+msgstr "Server Locations"
+
+
+

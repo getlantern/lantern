@@ -35,6 +35,11 @@ class AppRouter extends RootStackRouter {
       path: '/invite-friends',
       page: InviteFriends.page,
     ),
+    AutoRoute(
+      path: '/vpn-setting',
+      page: VPNSetting.page,
+    ),
+
 
   ];
 }

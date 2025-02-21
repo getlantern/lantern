@@ -166,11 +166,14 @@ class _SettingState extends State<Setting> {
             child: AppTile(
               icon: AppImagePaths.lanternLogoRounded,
               trailing: AppAsset(path: AppImagePaths.outsideBrowser),
-              subtitle: Text('Help Fight Global Internet Censorship'),
+              subtitle: Text(
+                'help_fight_global_internet_censorship'.i18n,
+                style: textTheme.labelMedium!.copyWith(
+                  color: AppColors.gray7,
+                ),
+              ),
               label: 'Unbounded',
-              onPressed: () {
-
-              },
+              onPressed: () {},
             ),
           )
         ],
@@ -217,8 +220,8 @@ class _SettingState extends State<Setting> {
         // TODO: Handle this case.
         throw UnimplementedError();
       case _SettingType.vpnSetting:
-        // TODO: Handle this case.
-        throw UnimplementedError();
+        appRouter.push(VPNSetting());
+        break;
       case _SettingType.logout:
         // TODO: Handle this case.
         throw UnimplementedError();

@@ -7,4 +7,4 @@ const double iconSize = 24;
 
 BorderRadius defaultBorderRadius = BorderRadius.circular(16.0.r);
 EdgeInsets defaultPadding = EdgeInsets.symmetric(horizontal: 16, vertical: 16);
-double defaultSize = 16.0;
+const double defaultSize = 16.0;
