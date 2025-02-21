@@ -30,6 +30,7 @@ class AppTile extends StatelessWidget {
     return ListTile(
       enableFeedback: true,
       minVerticalPadding: 0,
+      contentPadding: EdgeInsets.symmetric(horizontal: 16),
       title: Text(
         label,
         style: theme.copyWith(color: AppColors.gray9, fontSize: font16),

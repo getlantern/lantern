@@ -28,6 +28,7 @@ class AppImagePaths {
   static const startIllustration = 'assets/images/start_illustration.svg';
   static const copy = 'assets/images/copy.svg';
   static const share = 'assets/images/share.svg';
+  static const delete = 'assets/images/delete.svg';
 
 
 }

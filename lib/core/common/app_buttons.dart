@@ -4,6 +4,8 @@ import 'package:lantern/core/common/app_asset.dart';
 import 'package:lantern/core/common/app_colors.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 
+typedef OnPressed = VoidCallback;
+
 class PrimaryButton extends StatelessWidget {
   final String label;
 
@@ -48,13 +50,45 @@ class PrimaryButton extends StatelessWidget {
       iconSize: WidgetStatePropertyAll<double>(24.0),
       padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(
           EdgeInsets.symmetric(vertical: 12.0.h, horizontal: 40.0)),
-      textStyle: WidgetStatePropertyAll<TextStyle>(
-          AppTestStyles.bodySmall.copyWith(
+      textStyle: WidgetStatePropertyAll<TextStyle>(AppTestStyles.bodySmall
+          .copyWith(
               fontSize: expanded ? 16.0.sp : 16.0,
               color: AppColors.gray1,
               fontWeight: FontWeight.w600)),
       minimumSize: WidgetStatePropertyAll<Size>(
           expanded ? const Size(double.infinity, 52.0) : const Size(0, 52.0)),
+    );
+  }
+}
+
+class AppTextButton extends StatelessWidget {
+  final String label;
+
+  final OnPressed onPressed;
+
+  final Color? textColor;
+
+  const AppTextButton({
+    super.key,
+    required this.label,
+    required this.onPressed,
+    this.textColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton(
+      onPressed: onPressed,
+      style: TextButton.styleFrom(
+        padding: EdgeInsets.zero,
+        visualDensity: VisualDensity.compact,
+        textStyle: AppTestStyles.titleMedium.copyWith(
+          overflow: TextOverflow.ellipsis,
+          decoration: TextDecoration.underline,
+        ),
+        foregroundColor: textColor ?? AppColors.blue7,
+      ),
+      child: Text(label),
     );
   }
 }

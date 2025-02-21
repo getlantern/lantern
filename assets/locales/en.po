@@ -49,5 +49,51 @@ msgstr "Split Tunneling"
 msgid "server_locations"
 msgstr "Server Locations"
 
+msgid "lantern_pro_email"
+msgstr "Lantern Pro Email:"
+
+msgid "pro_account_expiration"
+msgstr "Pro Account Expiration"
+
+msgid "manage_subscription"
+msgstr "Manage Subscription"
+
+msgid "lantern_pro_devices"
+msgstr "Lantern Pro Devices (Up to 3)"
+
+msgid "remove"
+msgstr "Remove"
+
+msgid "add_device"
+msgstr "Add Device"
+
+msgid "danger_zone"
+msgstr "Danger Zone:"
+
+msgid "delete_account"
+msgstr "Delete Account"
+
+msgid "delete"
+msgstr "Delete"
+
+msgid "account"
+msgstr "Account"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

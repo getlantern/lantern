@@ -39,6 +39,10 @@ class AppRouter extends RootStackRouter {
       path: '/vpn-setting',
       page: VPNSetting.page,
     ),
+    AutoRoute(
+      path: '/account',
+      page: Account.page,
+    ),
 
 
   ];

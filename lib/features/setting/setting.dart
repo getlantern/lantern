@@ -42,15 +42,15 @@ class _SettingState extends State<Setting> {
             onPressed: () {},
           ),
           const SizedBox(height: 16),
-          // Card(
-          //   margin: EdgeInsets.zero,
-          //   child: AppTile(
-          //     label: 'Account',
-          //     icon: AppImagePaths.signIn,
-          //     onPressed: () => settingMenuTap(_SettingType.account),
-          //   ),
-          // ),
-          // const SizedBox(height: 16),
+          Card(
+            margin: EdgeInsets.zero,
+            child: AppTile(
+              label: 'Account',
+              icon: AppImagePaths.signIn,
+              onPressed: () => settingMenuTap(_SettingType.account),
+            ),
+          ),
+          const SizedBox(height: 16),
           Card(
             margin: EdgeInsets.zero,
             child: AppTile(
@@ -217,8 +217,8 @@ class _SettingState extends State<Setting> {
         // TODO: Handle this case.
         throw UnimplementedError();
       case _SettingType.account:
-        // TODO: Handle this case.
-        throw UnimplementedError();
+        appRouter.push(Account());
+        break;
       case _SettingType.vpnSetting:
         appRouter.push(VPNSetting());
         break;
