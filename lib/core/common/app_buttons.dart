@@ -15,10 +15,13 @@ class PrimaryButton extends StatelessWidget {
   final VoidCallback onPressed;
   final String? icon;
 
+  final Color? bgColor;
+
   // Default constructor for button without an icon
   const PrimaryButton({
     required this.label,
     required this.onPressed,
+    this.bgColor,
     this.enabled = true,
     this.expanded = true,
     this.icon,
@@ -47,10 +50,27 @@ class PrimaryButton extends StatelessWidget {
 
   ButtonStyle _buildButtonStyle(ButtonStyle style) {
     return style.copyWith(
+      backgroundColor: WidgetStateProperty.resolveWith<Color>(
+        (Set<WidgetState> states) {
+          if (states.contains(WidgetState.disabled)) {
+            return AppColors.gray2; // Disabled background color
+          }
+          return bgColor ?? AppColors.blue7; // Default background color
+        },
+      ),
+      side: WidgetStateProperty.resolveWith<BorderSide>(
+        (Set<WidgetState> states) {
+          if (states.contains(WidgetState.disabled)) {
+            return BorderSide(color: AppColors.gray4, width: 1);
+          }
+          return BorderSide.none;
+        },
+      ),
+      // backgroundColor: WidgetStatePropertyAll<Color>(bgColor ?? AppColors.blue7),
       iconSize: WidgetStatePropertyAll<double>(24.0),
       padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(
           EdgeInsets.symmetric(vertical: 12.0.h, horizontal: 40.0)),
-      textStyle: WidgetStatePropertyAll<TextStyle>(AppTestStyles.bodySmall
+      textStyle: WidgetStatePropertyAll<TextStyle>(AppTestStyles.primaryButtonTextStyle
           .copyWith(
               fontSize: expanded ? 16.0.sp : 16.0,
               color: AppColors.gray1,
