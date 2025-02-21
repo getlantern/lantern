@@ -68,6 +68,7 @@ class AppTheme {
           foregroundColor: AppColors.gray1,
           textStyle: AppTestStyles.primaryButtonTextStyle.copyWith(fontSize: 18.0, color: AppColors.gray1),
           overlayColor: AppColors.blue6,
+
           minimumSize: const Size(double.infinity, 52),
           tapTargetSize: MaterialTapTargetSize.padded,
           shape: RoundedRectangleBorder(

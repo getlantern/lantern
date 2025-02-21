@@ -10,12 +10,12 @@ class AppTile extends StatelessWidget {
   final Widget? trailing;
   final Widget? subtitle;
 
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   const AppTile({
     super.key,
     required this.label,
-    required this.onPressed,
+     this.onPressed,
     this.icon,
     this.subtitle,
     this.trailing,

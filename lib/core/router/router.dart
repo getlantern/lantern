@@ -43,6 +43,10 @@ class AppRouter extends RootStackRouter {
       path: '/account',
       page: Account.page,
     ),
+    AutoRoute(
+      path: '/delete-account',
+      page: DeleteAccount.page,
+    ),
 
 
   ];

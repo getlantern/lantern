@@ -79,6 +79,27 @@ msgstr "Delete"
 msgid "account"
 msgstr "Account"
 
+msgid "delete_account_?"
+msgstr "Delete your Account?"
+
+msgid "delete_account_message"
+msgstr "Account deletion is permanent. You will lose access on all devices, and any remaining Pro subscription time will be forfeited without a refund.
+
+msgid "delete_account_message_two"
+msgstr "To confirm deletion please enter your password below"
+
+msgid "enter_password_to_confirm"
+msgstr "Enter Password to Confirm"
+
+msgid "confirm_deletion"
+msgstr "Confirm Deletion"
+
+msgid "cancel"
+msgstr "Cancel"
+
+
+
+
 
 
 

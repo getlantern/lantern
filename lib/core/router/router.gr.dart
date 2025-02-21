@@ -8,21 +8,22 @@
 // coverage:ignore-file
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:auto_route/auto_route.dart' as _i10;
+import 'package:auto_route/auto_route.dart' as _i11;
 import 'package:lantern/features/account/account.dart' as _i1;
-import 'package:lantern/features/home/home.dart' as _i3;
-import 'package:lantern/features/home/new_home.dart' as _i6;
-import 'package:lantern/features/language/language.dart' as _i5;
-import 'package:lantern/features/reportIssue/report_issue.dart' as _i7;
-import 'package:lantern/features/setting/download_links.dart' as _i2;
-import 'package:lantern/features/setting/invite_friends.dart' as _i4;
-import 'package:lantern/features/setting/setting.dart' as _i8;
-import 'package:lantern/features/setting/vpn_setting.dart' as _i9;
+import 'package:lantern/features/account/delete_account.dart' as _i2;
+import 'package:lantern/features/home/home.dart' as _i4;
+import 'package:lantern/features/home/new_home.dart' as _i7;
+import 'package:lantern/features/language/language.dart' as _i6;
+import 'package:lantern/features/reportIssue/report_issue.dart' as _i8;
+import 'package:lantern/features/setting/download_links.dart' as _i3;
+import 'package:lantern/features/setting/invite_friends.dart' as _i5;
+import 'package:lantern/features/setting/setting.dart' as _i9;
+import 'package:lantern/features/setting/vpn_setting.dart' as _i10;
 
 /// generated route for
 /// [_i1.Account]
-class Account extends _i10.PageRouteInfo<void> {
-  const Account({List<_i10.PageRouteInfo>? children})
+class Account extends _i11.PageRouteInfo<void> {
+  const Account({List<_i11.PageRouteInfo>? children})
       : super(
           Account.name,
           initialChildren: children,
@@ -30,7 +31,7 @@ class Account extends _i10.PageRouteInfo<void> {
 
   static const String name = 'Account';
 
-  static _i10.PageInfo page = _i10.PageInfo(
+  static _i11.PageInfo page = _i11.PageInfo(
     name,
     builder: (data) {
       return const _i1.Account();
@@ -39,9 +40,28 @@ class Account extends _i10.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i2.DownloadLinks]
-class DownloadLinks extends _i10.PageRouteInfo<void> {
-  const DownloadLinks({List<_i10.PageRouteInfo>? children})
+/// [_i2.DeleteAccount]
+class DeleteAccount extends _i11.PageRouteInfo<void> {
+  const DeleteAccount({List<_i11.PageRouteInfo>? children})
+      : super(
+          DeleteAccount.name,
+          initialChildren: children,
+        );
+
+  static const String name = 'DeleteAccount';
+
+  static _i11.PageInfo page = _i11.PageInfo(
+    name,
+    builder: (data) {
+      return const _i2.DeleteAccount();
+    },
+  );
+}
+
+/// generated route for
+/// [_i3.DownloadLinks]
+class DownloadLinks extends _i11.PageRouteInfo<void> {
+  const DownloadLinks({List<_i11.PageRouteInfo>? children})
       : super(
           DownloadLinks.name,
           initialChildren: children,
@@ -49,18 +69,18 @@ class DownloadLinks extends _i10.PageRouteInfo<void> {
 
   static const String name = 'DownloadLinks';
 
-  static _i10.PageInfo page = _i10.PageInfo(
+  static _i11.PageInfo page = _i11.PageInfo(
     name,
     builder: (data) {
-      return const _i2.DownloadLinks();
+      return const _i3.DownloadLinks();
     },
   );
 }
 
 /// generated route for
-/// [_i3.HomePage]
-class Home extends _i10.PageRouteInfo<void> {
-  const Home({List<_i10.PageRouteInfo>? children})
+/// [_i4.HomePage]
+class Home extends _i11.PageRouteInfo<void> {
+  const Home({List<_i11.PageRouteInfo>? children})
       : super(
           Home.name,
           initialChildren: children,
@@ -68,18 +88,18 @@ class Home extends _i10.PageRouteInfo<void> {
 
   static const String name = 'Home';
 
-  static _i10.PageInfo page = _i10.PageInfo(
+  static _i11.PageInfo page = _i11.PageInfo(
     name,
     builder: (data) {
-      return const _i3.HomePage();
+      return const _i4.HomePage();
     },
   );
 }
 
 /// generated route for
-/// [_i4.InviteFriends]
-class InviteFriends extends _i10.PageRouteInfo<void> {
-  const InviteFriends({List<_i10.PageRouteInfo>? children})
+/// [_i5.InviteFriends]
+class InviteFriends extends _i11.PageRouteInfo<void> {
+  const InviteFriends({List<_i11.PageRouteInfo>? children})
       : super(
           InviteFriends.name,
           initialChildren: children,
@@ -87,18 +107,18 @@ class InviteFriends extends _i10.PageRouteInfo<void> {
 
   static const String name = 'InviteFriends';
 
-  static _i10.PageInfo page = _i10.PageInfo(
+  static _i11.PageInfo page = _i11.PageInfo(
     name,
     builder: (data) {
-      return const _i4.InviteFriends();
+      return const _i5.InviteFriends();
     },
   );
 }
 
 /// generated route for
-/// [_i5.Language]
-class Language extends _i10.PageRouteInfo<void> {
-  const Language({List<_i10.PageRouteInfo>? children})
+/// [_i6.Language]
+class Language extends _i11.PageRouteInfo<void> {
+  const Language({List<_i11.PageRouteInfo>? children})
       : super(
           Language.name,
           initialChildren: children,
@@ -106,18 +126,18 @@ class Language extends _i10.PageRouteInfo<void> {
 
   static const String name = 'Language';
 
-  static _i10.PageInfo page = _i10.PageInfo(
+  static _i11.PageInfo page = _i11.PageInfo(
     name,
     builder: (data) {
-      return const _i5.Language();
+      return const _i6.Language();
     },
   );
 }
 
 /// generated route for
-/// [_i6.NewHome]
-class NewHome extends _i10.PageRouteInfo<void> {
-  const NewHome({List<_i10.PageRouteInfo>? children})
+/// [_i7.NewHome]
+class NewHome extends _i11.PageRouteInfo<void> {
+  const NewHome({List<_i11.PageRouteInfo>? children})
       : super(
           NewHome.name,
           initialChildren: children,
@@ -125,18 +145,18 @@ class NewHome extends _i10.PageRouteInfo<void> {
 
   static const String name = 'NewHome';
 
-  static _i10.PageInfo page = _i10.PageInfo(
+  static _i11.PageInfo page = _i11.PageInfo(
     name,
     builder: (data) {
-      return const _i6.NewHome();
+      return const _i7.NewHome();
     },
   );
 }
 
 /// generated route for
-/// [_i7.ReportIssue]
-class ReportIssue extends _i10.PageRouteInfo<void> {
-  const ReportIssue({List<_i10.PageRouteInfo>? children})
+/// [_i8.ReportIssue]
+class ReportIssue extends _i11.PageRouteInfo<void> {
+  const ReportIssue({List<_i11.PageRouteInfo>? children})
       : super(
           ReportIssue.name,
           initialChildren: children,
@@ -144,18 +164,18 @@ class ReportIssue extends _i10.PageRouteInfo<void> {
 
   static const String name = 'ReportIssue';
 
-  static _i10.PageInfo page = _i10.PageInfo(
+  static _i11.PageInfo page = _i11.PageInfo(
     name,
     builder: (data) {
-      return const _i7.ReportIssue();
+      return const _i8.ReportIssue();
     },
   );
 }
 
 /// generated route for
-/// [_i8.Setting]
-class Setting extends _i10.PageRouteInfo<void> {
-  const Setting({List<_i10.PageRouteInfo>? children})
+/// [_i9.Setting]
+class Setting extends _i11.PageRouteInfo<void> {
+  const Setting({List<_i11.PageRouteInfo>? children})
       : super(
           Setting.name,
           initialChildren: children,
@@ -163,18 +183,18 @@ class Setting extends _i10.PageRouteInfo<void> {
 
   static const String name = 'Setting';
 
-  static _i10.PageInfo page = _i10.PageInfo(
+  static _i11.PageInfo page = _i11.PageInfo(
     name,
     builder: (data) {
-      return const _i8.Setting();
+      return const _i9.Setting();
     },
   );
 }
 
 /// generated route for
-/// [_i9.VPNSetting]
-class VPNSetting extends _i10.PageRouteInfo<void> {
-  const VPNSetting({List<_i10.PageRouteInfo>? children})
+/// [_i10.VPNSetting]
+class VPNSetting extends _i11.PageRouteInfo<void> {
+  const VPNSetting({List<_i11.PageRouteInfo>? children})
       : super(
           VPNSetting.name,
           initialChildren: children,
@@ -182,10 +202,10 @@ class VPNSetting extends _i10.PageRouteInfo<void> {
 
   static const String name = 'VPNSetting';
 
-  static _i10.PageInfo page = _i10.PageInfo(
+  static _i11.PageInfo page = _i11.PageInfo(
     name,
     builder: (data) {
-      return const _i9.VPNSetting();
+      return const _i10.VPNSetting();
     },
   );
 }

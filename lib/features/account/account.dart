@@ -123,13 +123,17 @@ class Account extends StatelessWidget {
             trailing: AppTextButton(
               label: 'delete'.i18n,
               textColor: AppColors.red7,
-              onPressed: () {},
+              onPressed: _onDeleteTap,
             ),
-            onPressed: () {},
           ),
         ),
         SizedBox(height: 48.0),
       ],
     );
+  }
+
+
+  void _onDeleteTap(){
+    appRouter.push(const DeleteAccount());
   }
 }
