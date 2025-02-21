@@ -30,7 +30,7 @@ Future<void> desktopInit() async {
     return;
   }
   await windowManager.ensureInitialized();
-  await windowManager.setSize(const ui.Size(360, 712));
+  await windowManager.setSize(const ui.Size(380, 712));
 }
 
 Future<void> _loadAppSecrets() async {

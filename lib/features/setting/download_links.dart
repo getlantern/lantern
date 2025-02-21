@@ -99,40 +99,50 @@ class DownloadLinks extends StatelessWidget {
   }
 
   Widget _availableRow() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: AppAsset(path: AppImagePaths.android),
+    return SizedBox(
+      width: double.infinity,
+      child: Wrap(
+        runSpacing: 5,
+        alignment: WrapAlignment.spaceEvenly,
+        spacing: 5,
+        children: [
+          Card(
+            margin: EdgeInsets.zero,
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: AppAsset(path: AppImagePaths.android),
+            ),
           ),
-        ),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: AppAsset(path: AppImagePaths.windows),
+          Card(
+            margin: EdgeInsets.zero,
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: AppAsset(path: AppImagePaths.windows),
+            ),
           ),
-        ),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: AppAsset(path: AppImagePaths.ios),
+          Card(
+            margin: EdgeInsets.zero,
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: AppAsset(path: AppImagePaths.ios),
+            ),
           ),
-        ),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: AppAsset(path: AppImagePaths.macos),
+          Card(
+            margin: EdgeInsets.zero,
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: AppAsset(path: AppImagePaths.macos),
+            ),
           ),
-        ),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: AppAsset(path: AppImagePaths.linux),
+          Card(
+            margin: EdgeInsets.zero,
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: AppAsset(path: AppImagePaths.linux),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
