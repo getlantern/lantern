@@ -21,3 +21,15 @@ msgstr "Lantern Projects:"
 
 msgid "download_links"
 msgstr "Download Links"
+
+msgid "invite_friends"
+msgstr "Invite Friends"
+
+msgid "your_referral_code"
+msgstr "Your Referral Code"
+
+msgid "invite_friends_message"
+msgstr "Share your referral code with a friend. When they use it to purchase Lantern Pro, both of you will receive 30 days of Lantern Pro for free!"
+
+msgid "share_referral_code"
+msgstr "Share Referral Code"

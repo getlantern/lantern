@@ -205,8 +205,8 @@ class _SettingState extends State<Setting> {
         // TODO: Handle this case.
         throw UnimplementedError();
       case _SettingType.getPro:
-        // TODO: Handle this case.
-        throw UnimplementedError();
+        appRouter.push(InviteFriends());
+        break;
       case _SettingType.downloadLinks:
         appRouter.push(DownloadLinks());
         break;

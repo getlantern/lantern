@@ -23,7 +23,6 @@ class AppRouter extends RootStackRouter {
       path: '/language',
       page: Language.page,
     ),
-
     AutoRoute(
       path: '/report-issue',
       page: ReportIssue.page,
@@ -31,6 +30,10 @@ class AppRouter extends RootStackRouter {
     AutoRoute(
       path: '/report-issue',
       page: DownloadLinks.page,
+    ),
+    AutoRoute(
+      path: '/invite-friends',
+      page: InviteFriends.page,
     ),
 
   ];

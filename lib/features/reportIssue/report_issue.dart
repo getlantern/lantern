@@ -15,9 +15,16 @@ class ReportIssue extends StatelessWidget {
       body: Column(
         children: <Widget>[
           AppTextFiled(
+
             hintText: 'email',
             prefixIcon: AppImagePaths.email,
             keyboardType: TextInputType.emailAddress,
+            validator: (value) {
+              if (value!.isEmpty) {
+                return 'email_empty'.i18n;
+              }
+              return null;
+            },
 
           ),
         ],

@@ -25,6 +25,9 @@ class AppImagePaths {
   static const macos = 'assets/images/macos.svg';
   static const windows = 'assets/images/windows.svg';
   static const linux = 'assets/images/linux.svg';
+  static const startIllustration = 'assets/images/start_illustration.svg';
+  static const copy = 'assets/images/copy.svg';
+  static const share = 'assets/images/share.svg';
 
 
 }

@@ -34,8 +34,8 @@ class AppAsset extends StatelessWidget {
       case AssetType.svg:
         return SvgPicture.asset(
           path,
-          // height: height ?? size,
-          // width: width ?? size,
+          height: height,
+          width: width ,
           colorFilter:
               color != null ? ColorFilter.mode(color!, BlendMode.srcIn) : null,
         );
