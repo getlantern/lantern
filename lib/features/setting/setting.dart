@@ -208,8 +208,8 @@ class _SettingState extends State<Setting> {
         // TODO: Handle this case.
         throw UnimplementedError();
       case _SettingType.downloadLinks:
-        // TODO: Handle this case.
-        throw UnimplementedError();
+        appRouter.push(DownloadLinks());
+        break;
       case _SettingType.checkForUpdates:
         // TODO: Handle this case.
         throw UnimplementedError();

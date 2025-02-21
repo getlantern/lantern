@@ -28,6 +28,10 @@ class AppRouter extends RootStackRouter {
       path: '/report-issue',
       page: ReportIssue.page,
     ),
+    AutoRoute(
+      path: '/report-issue',
+      page: DownloadLinks.page,
+    ),
 
   ];
 }

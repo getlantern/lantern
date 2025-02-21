@@ -17,6 +17,14 @@ class AppImagePaths {
   static const email = 'assets/images/email.svg';
   static const lanternLogoRounded = 'assets/images/lantern_logo_round.svg';
   static const outsideBrowser = 'assets/images/outside_brower.svg';
+  static const globIllustration = 'assets/images/glob_illustration.png';
+  static const github = 'assets/images/github.svg';
+  static const telegram = 'assets/images/telegram.svg';
+  static const android = 'assets/images/android.svg';
+  static const ios = 'assets/images/ios.svg';
+  static const macos = 'assets/images/macos.svg';
+  static const windows = 'assets/images/windows.svg';
+  static const linux = 'assets/images/linux.svg';
 
 
 }
