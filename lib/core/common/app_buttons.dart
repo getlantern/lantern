@@ -55,7 +55,7 @@ class PrimaryButton extends StatelessWidget {
           if (states.contains(WidgetState.disabled)) {
             return AppColors.gray2; // Disabled background color
           }
-          return bgColor ?? AppColors.blue7; // Default background color
+          return bgColor ?? AppColors.blue10; // Default background color
         },
       ),
       side: WidgetStateProperty.resolveWith<BorderSide>(

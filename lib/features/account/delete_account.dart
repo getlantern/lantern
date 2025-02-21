@@ -16,7 +16,7 @@ class DeleteAccount extends StatefulWidget {
 class _DeleteAccountState extends State<DeleteAccount> {
   @override
   Widget build(BuildContext context) {
-    return BaseScreen(title: 'delete_account', body: _buildBody());
+    return BaseScreen(title: 'delete_account'.i18n, body: _buildBody());
   }
 
   Widget _buildBody() {
