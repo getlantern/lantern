@@ -73,8 +73,13 @@ class _DeleteAccountState extends State<DeleteAccount> {
         Spacer(),
         PrimaryButton(
           label: 'confirm_deletion'.i18n,
-          enabled: true,
+          enabled: false,
           bgColor: AppColors.red7,
+          onPressed: () {},
+        ),
+        SizedBox(height: defaultSize),
+        SecondaryButton(
+          label: 'Cancel',
           onPressed: () {},
         ),
         SizedBox(height: 48.0),
