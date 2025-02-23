@@ -14,7 +14,7 @@ class AppVersion extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            'Version',
+            'Lantern Version',
             style: AppTestStyles.bodyMedium.copyWith(
               height: 23 / 14,
               letterSpacing: 0,

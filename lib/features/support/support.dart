@@ -65,7 +65,7 @@ class Support extends HookConsumerWidget {
         ],
       ),
       // TODO: update to use dynamic version
-      bottomNavigationBar: AppVersion(version: '8.1.4'),
+      bottomNavigationBar: AppVersion(version: '8.1.4 (20250213.213443)'),
     );
   }
 }
