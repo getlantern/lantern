@@ -1,6 +1,6 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/widgets/base_screen.dart';
 
 import '../language/language.dart' show showLanguageBottomSheet;
@@ -22,7 +22,6 @@ enum _SettingType {
   browserUnbounded,
 }
 
-@RoutePage(name: 'Setting')
 class Setting extends StatefulWidget {
   const Setting({super.key});
 
@@ -193,7 +192,7 @@ class _SettingState extends State<Setting> {
         throw UnimplementedError();
       case _SettingType.language:
         if (PlatformUtils.isDesktop()) {
-          appRouter.push(Language());
+          LanguageRoute().go(context);
           return;
         }
         showLanguageBottomSheet(context);
@@ -208,19 +207,19 @@ class _SettingState extends State<Setting> {
         // TODO: Handle this case.
         throw UnimplementedError();
       case _SettingType.getPro:
-        appRouter.push(InviteFriends());
+        InviteFriendsRoute().go(context);
         break;
       case _SettingType.downloadLinks:
-        appRouter.push(DownloadLinks());
+        DownloadLinksRoute().go(context);
         break;
       case _SettingType.checkForUpdates:
         // TODO: Handle this case.
         throw UnimplementedError();
       case _SettingType.account:
-        appRouter.push(Account());
+        AccountRoute().go(context);
         break;
       case _SettingType.vpnSetting:
-        appRouter.push(VPNSetting());
+        VPNSettingRoute().go(context);
         break;
       case _SettingType.logout:
         // TODO: Handle this case.

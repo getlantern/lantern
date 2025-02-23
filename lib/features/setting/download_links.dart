@@ -1,10 +1,8 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/base_screen.dart';
 
-@RoutePage(name: 'DownloadLinks')
 class DownloadLinks extends StatelessWidget {
   const DownloadLinks({super.key});
 

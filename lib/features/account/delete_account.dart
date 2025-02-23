@@ -1,11 +1,9 @@
-import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:lantern/core/common/app_text_filed.dart';
 import 'package:lantern/core/widgets/base_screen.dart';
 
 import '../../core/common/common.dart';
 
-@RoutePage(name: 'DeleteAccount')
 class DeleteAccount extends StatefulWidget {
   const DeleteAccount({super.key});
 

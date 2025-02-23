@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:lantern/core/ffi/ffi_client.dart';
@@ -8,8 +7,6 @@ import 'package:lantern/core/providers/ffi_provider.dart';
 import 'package:lantern/core/providers/socket_provider.dart';
 import 'package:lantern/core/widgets/vpn_widgets.dart';
 
-
-@RoutePage(name: 'Home')
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
@@ -53,7 +50,8 @@ class _HomePageState extends ConsumerState<HomePage> {
     final tab = 'vpn';
     bool isOnboarded = true;
     return Scaffold(
-      body: buildBody(tab, isOnboarded),);
+      body: buildBody(tab, isOnboarded),
+    );
   }
 
   Widget buildBody(String selectedTab, bool? isOnboarded) {

@@ -1,9 +1,8 @@
-import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/widgets/base_screen.dart';
 
-@RoutePage(name: 'Account')
 class Account extends StatelessWidget {
   const Account({super.key});
 
@@ -15,8 +14,13 @@ class Account extends StatelessWidget {
     );
   }
 
-  Widget _buildBody(BuildContext buildContext) {
-    final theme = Theme.of(buildContext).textTheme;
+  Widget _buildBody(BuildContext context) {
+    final theme = Theme.of(context).textTheme;
+
+    void _onDeleteTap() {
+      DeleteAccountRoute().go(context);
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -130,10 +134,5 @@ class Account extends StatelessWidget {
         SizedBox(height: 48.0),
       ],
     );
-  }
-
-
-  void _onDeleteTap(){
-    appRouter.push(const DeleteAccount());
   }
 }

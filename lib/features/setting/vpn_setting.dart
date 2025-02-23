@@ -1,9 +1,7 @@
-import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/base_screen.dart';
 
-@RoutePage(name: 'VPNSetting')
 class VPNSetting extends StatelessWidget {
   const VPNSetting({super.key});
 
