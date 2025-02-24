@@ -6,6 +6,9 @@ export 'package:lantern/core/common/app_image_paths.dart';
 export 'package:lantern/core/common/app_asset.dart';
 export 'package:lantern/core/common/app_colors.dart';
 export 'package:lantern/core/common/app_dimens.dart';
+export 'package:lantern/core/common/app_eum.dart';
+export 'package:lantern/core/common/app_extension.dart';
+
 
 export  'package:lantern/core/common/platfrom_utils.dart';
 export  'package:lantern/core/common/app_theme.dart';
@@ -18,6 +21,7 @@ export '../../core/widgets/divider_space.dart';
 export 'package:lantern/core/widgets/pro_button.dart';
 export 'package:lantern/core/widgets/custom_app_bar.dart';
 export 'package:lantern/core/localization/i18n.dart';
+export 'package:lantern/core/widgets/data_usage.dart';
 
 // Routes
 export 'package:lantern/core/router/router.gr.dart';

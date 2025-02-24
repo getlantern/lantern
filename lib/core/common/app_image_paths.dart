@@ -30,6 +30,13 @@ class AppImagePaths {
   static const share = 'assets/images/share.svg';
   static const delete = 'assets/images/delete.svg';
   static const lock = 'assets/images/lock.svg';
+  static const lanternPro = 'assets/images/lantern_pro.svg';
+  static const dataUsage = 'assets/images/data_usage.svg';
+  static const vpnConnected = 'assets/images/vpn_connected.svg';
+  static const vpnDisconnected = 'assets/images/vpn_disconnected.svg';
+  static const vpnConnecting = 'assets/images/vpn_connecting.svg';
+  static const blot = 'assets/images/bolt.svg';
+  static const verticalDots = 'assets/images/vertical_dots.svg';
 
 
 }

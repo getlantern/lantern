@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lantern/core/ffi/ffi_client.dart';
 import 'package:lantern/core/providers/ffi_provider.dart';
-import 'package:flutter_advanced_switch/flutter_advanced_switch.dart';
+// import 'package:flutter_advanced_switch/flutter_advanced_switch.dart';
 import 'package:lantern/core/services/native_bridge.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -53,17 +53,17 @@ class TunWidget extends HookConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const SizedBox(height: 10),
-              AdvancedSwitch(
-                width: 150,
-                height: 70,
-                borderRadius: BorderRadius.circular(40),
-                disabledOpacity: 1,
-                enabled: true,
-                initialValue: isVPNRunning,
-                activeColor: Colors.teal,
-                inactiveColor: Colors.black,
-                onChanged: (value) => toggleSwitch(value, vpnStatus),
-              ),
+              // AdvancedSwitch(
+              //   width: 150,
+              //   height: 70,
+              //   borderRadius: BorderRadius.circular(40),
+              //   disabledOpacity: 1,
+              //   enabled: true,
+              //   initialValue: isVPNRunning,
+              //   activeColor: Colors.teal,
+              //   inactiveColor: Colors.black,
+              //   onChanged: (value) => toggleSwitch(value, vpnStatus),
+              // ),
               const SizedBox(height: 40),
             ],
           ),
