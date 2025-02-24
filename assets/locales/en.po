@@ -97,6 +97,24 @@ msgstr "Confirm Deletion"
 msgid "cancel"
 msgstr "Cancel"
 
+msgid "daily_data_usage"
+msgstr "Daily Data Usage"
+
+msgid "mb"
+msgstr "MB"
+
+msgid "vpn_status"
+msgstr "VPN Status"
+
+msgid "smart_location"
+msgstr "Smart Location"
+
+msgid "smart_location"
+msgstr "Smart Location"
+
+
+
+
 
 
 

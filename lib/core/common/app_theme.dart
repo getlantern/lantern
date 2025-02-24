@@ -50,6 +50,7 @@ class AppTheme {
       scaffoldBackgroundColor: AppColors.gray1,
       cardTheme: CardTheme(
         elevation: 0,
+        margin: EdgeInsets.zero,
         color: AppColors.white,
         clipBehavior: Clip.hardEdge,
         shape: RoundedRectangleBorder(

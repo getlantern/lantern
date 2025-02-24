@@ -8,12 +8,9 @@ class DividerSpace extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: defaultSize),
-      child: Divider(
-        color: AppColors.gray2,
-        height: 1,
-      ),
+    return Divider(
+      color: AppColors.gray2,
+      height: 1,
     );
   }
 }
