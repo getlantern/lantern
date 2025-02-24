@@ -43,9 +43,6 @@ dependencies:
   #Dekstop
   window_manager: ^0.4.3
 
-  #Routing
-  go_router: ^14.8.0
-
   #UI Utils
   animated_toggle_switch: ^0.8.4
   flutter_advanced_switch: ^3.1.0
@@ -91,7 +88,6 @@ dev_dependencies:
   integration_test:
     sdk: flutter
   flutter_lints: ^5.0.0
-  go_router_builder: ^2.8.0
   build_runner: ^2.4.15
   objectbox_generator: 4.1.0
 

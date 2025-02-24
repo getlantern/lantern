@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:lantern/core/router/router.dart';
 
 import '../../core/common/common.dart';
 
@@ -17,7 +16,7 @@ class _NewHomeState extends State<NewHome> {
       appBar: AppBar(
           title: const LanternLogo(),
           leading: IconButton(
-              onPressed: () => SettingRoute().go(context),
+              onPressed: () => Navigator.pushNamed(context, '/setting'),
               icon: const AppAsset(path: AppImagePaths.menu))),
     );
   }

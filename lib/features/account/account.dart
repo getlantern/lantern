@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/widgets/base_screen.dart';
 
 class Account extends StatelessWidget {
@@ -18,7 +17,7 @@ class Account extends StatelessWidget {
     final theme = Theme.of(context).textTheme;
 
     void _onDeleteTap() {
-      DeleteAccountRoute().go(context);
+      Navigator.pushNamed(context, '/delete-account');
     }
 
     return Column(

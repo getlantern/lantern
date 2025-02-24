@@ -192,7 +192,7 @@ class _SettingState extends State<Setting> {
         throw UnimplementedError();
       case _SettingType.language:
         if (PlatformUtils.isDesktop()) {
-          LanguageRoute().go(context);
+          Navigator.pushNamed(context, AppRoutes.language);
           return;
         }
         showLanguageBottomSheet(context);
@@ -207,19 +207,19 @@ class _SettingState extends State<Setting> {
         // TODO: Handle this case.
         throw UnimplementedError();
       case _SettingType.getPro:
-        InviteFriendsRoute().go(context);
+        Navigator.pushNamed(context, AppRoutes.inviteFriends);
         break;
       case _SettingType.downloadLinks:
-        DownloadLinksRoute().go(context);
+        Navigator.pushNamed(context, AppRoutes.downloadLinks);
         break;
       case _SettingType.checkForUpdates:
         // TODO: Handle this case.
         throw UnimplementedError();
       case _SettingType.account:
-        AccountRoute().go(context);
+        Navigator.pushNamed(context, AppRoutes.account);
         break;
       case _SettingType.vpnSetting:
-        VPNSettingRoute().go(context);
+        Navigator.pushNamed(context, AppRoutes.vpnSetting);
         break;
       case _SettingType.logout:
         // TODO: Handle this case.

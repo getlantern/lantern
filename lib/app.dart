@@ -3,12 +3,10 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import 'package:i18n_extension/i18n_extension.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
 import 'package:lantern/core/router/router.dart';
 import 'core/common/common.dart';
-import 'core/services/injection_container.dart';
 
 class LanternApp extends StatelessWidget {
   const LanternApp({super.key});
@@ -17,10 +15,6 @@ class LanternApp extends StatelessWidget {
   Widget build(BuildContext context) {
     Locale locale = PlatformDispatcher.instance.locale;
 
-    final _router = GoRouter(
-      routes: $appRoutes,
-    );
-
     return ScreenUtilInit(
       child: I18n(
         localizationsDelegates: [
@@ -28,7 +22,7 @@ class LanternApp extends StatelessWidget {
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
-        child: MaterialApp.router(
+        child: MaterialApp(
           debugShowCheckedModeBanner: false,
           locale: locale,
           theme: AppTheme.appTheme(),
@@ -39,7 +33,7 @@ class LanternApp extends StatelessWidget {
                   (lang) => Locale(lang.split('_').first, lang.split('_').last))
               .toList(),
           // List of supported languages
-          routerConfig: _router,
+          routes: routes,
           localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
