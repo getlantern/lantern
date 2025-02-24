@@ -47,55 +47,8 @@ class _NewHomeState extends State<NewHome> {
             children: <Widget>[
               DataUsage(),
               SizedBox(height: 8),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Row(
-                            children: <Widget>[
-                              SizedBox(
-                                width: 24,
-                                child: AppAsset(path: AppImagePaths.glob),
-                              ),
-                              SizedBox(width: 8),
-                              Text('vpn_status'.i18n,
-                                  style: textTheme!.labelLarge!
-                                      .copyWith(color: AppColors.gray7)),
-                            ],
-                          ),
-                          Row(
-                            children: [
-                              SizedBox(width: 32.0),
-                              Text(VPNStatus.disconnected.name.capitalize,
-                                  style: textTheme!.titleMedium!
-                                      .copyWith(color: AppColors.gray9)),
-                              Spacer(),
-                              VPNStatusIndicator(
-                                  status: VPNStatus.disconnected),
-                            ],
-                          ),
-                        ],
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10.0),
-                        child: DividerSpace(),
-                      ),
-                      _buildSmartLocation(),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10.0),
-                        child: DividerSpace(),
-                      ),
-                      _buildSpiltTunneling(),
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(height: 28.0),
+              _buildSetting(),
+              SizedBox(height: 20),
             ],
           ),
         ],
@@ -169,8 +122,31 @@ class _NewHomeState extends State<NewHome> {
     );
   }
 
+  Widget _buildSetting() {
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(defaultSize),
+        child: Column(
+          children: [
+            _buildVPNStatusRow(),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10.0),
+              child: DividerSpace(),
+            ),
+            _buildSmartLocation(),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10.0),
+              child: DividerSpace(),
+            ),
+            _buildSpiltTunneling(),
+          ],
+        ),
+      ),
+    );
+  }
 
-  Widget _buildSpiltTunneling(){
+  Widget _buildSpiltTunneling() {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -191,7 +167,7 @@ class _NewHomeState extends State<NewHome> {
             SizedBox(width: 32.0),
             Text("Enabled",
                 style:
-                textTheme!.titleMedium!.copyWith(color: AppColors.gray9)),
+                    textTheme!.titleMedium!.copyWith(color: AppColors.gray9)),
             Spacer(),
             IconButton(
               onPressed: () {},
@@ -204,6 +180,36 @@ class _NewHomeState extends State<NewHome> {
               constraints: BoxConstraints(),
               visualDensity: VisualDensity.compact,
             )
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVPNStatusRow() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Row(
+          children: <Widget>[
+            SizedBox(
+              width: 24,
+              child: AppAsset(path: AppImagePaths.glob),
+            ),
+            SizedBox(width: 8),
+            Text('vpn_status'.i18n,
+                style: textTheme!.labelLarge!.copyWith(color: AppColors.gray7)),
+          ],
+        ),
+        Row(
+          children: [
+            SizedBox(width: 32.0),
+            Text(VPNStatus.disconnected.name.capitalize,
+                style:
+                    textTheme!.titleMedium!.copyWith(color: AppColors.gray9)),
+            Spacer(),
+            VPNStatusIndicator(status: VPNStatus.disconnected),
           ],
         ),
       ],

@@ -14,6 +14,7 @@ class DataUsage extends StatelessWidget {
     final usageString = '$remainingData/$totalData';
 
     return Card(
+      margin: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
