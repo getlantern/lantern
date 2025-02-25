@@ -22,6 +22,8 @@ export 'package:lantern/core/widgets/pro_button.dart';
 export 'package:lantern/core/widgets/custom_app_bar.dart';
 export 'package:lantern/core/localization/i18n.dart';
 export 'package:lantern/core/widgets/data_usage.dart';
+export 'package:lantern/core/widgets/bottomsheet.dart';
+
 
 // Routes
 export 'package:lantern/core/router/router.gr.dart';

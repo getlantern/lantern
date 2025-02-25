@@ -37,4 +37,6 @@ class AppImagePaths {
   static const vpnConnecting = 'assets/images/vpn_connecting.svg';
   static const blot = 'assets/images/bolt.svg';
   static const verticalDots = 'assets/images/vertical_dots.svg';
+  static const instagram = 'assets/images/instagram.svg';
+  static const x = 'assets/images/x.svg';
 }

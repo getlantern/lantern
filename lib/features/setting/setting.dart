@@ -2,6 +2,8 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/base_screen.dart';
+import 'package:lantern/features/setting/follow_us.dart'
+    show showFollowUsBottomSheet;
 
 import '../language/language.dart' show showLanguageBottomSheet;
 
@@ -120,7 +122,7 @@ class _SettingState extends State<Setting> {
                   child: DividerSpace(),
                 ),
                 AppTile(
-                  label: 'Follow us',
+                  label: 'follow_us'.i18n,
                   icon: AppImagePaths.thumb,
                   onPressed: () => settingMenuTap(_SettingType.followUs),
                 ),
@@ -204,8 +206,12 @@ class _SettingState extends State<Setting> {
       case _SettingType.support:
         appRouter.push(Support());
       case _SettingType.followUs:
-        // TODO: Handle this case.
-        throw UnimplementedError();
+        if (PlatformUtils.isDesktop()) {
+          appRouter.push(FollowUs());
+          return;
+        }
+        showFollowUsBottomSheet(context: context);
+        break;
       case _SettingType.getPro:
         appRouter.push(InviteFriends());
         break;

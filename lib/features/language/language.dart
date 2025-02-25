@@ -29,51 +29,15 @@ class Language extends StatelessWidget {
 }
 
 void showLanguageBottomSheet(BuildContext context) {
-  final textTheme = Theme.of(context).textTheme.headlineSmall;
-  showModalBottomSheet(
-    context: context,
-    isDismissible: true,
-    enableDrag: true,
-    showDragHandle: true,
-    backgroundColor: AppColors.white,
-    scrollControlDisabledMaxHeightRatio: 0.75,
-    builder: (context) {
-      return DraggableScrollableSheet(
-        expand: true,
-        initialChildSize: 1,
-        minChildSize: 0.85,
-        snap: true,
-        builder: (BuildContext context, ScrollController scrollController) {
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  'language'.i18n,
-                  style: textTheme!.copyWith(
-                    color: AppColors.blue10,
-                  ),
-                ),
-              ),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                child: DividerSpace(),
-              ),
-              Expanded(
-                child: LanguageListView(
-                  scrollController: scrollController,
-                ),
-              ),
-            ],
-          );
-        },
-      );
-    },
-  );
+  showAppBottomSheet(
+      context: context,
+      title: 'language'.i18n,
+      builder: (context, scrollController) {
+        return Expanded(
+            child: LanguageListView(
+          scrollController: scrollController,
+        ));
+      });
 }
 
 class LanguageListView extends StatelessWidget {

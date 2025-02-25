@@ -112,6 +112,17 @@ msgstr "Smart Location"
 msgid "smart_location"
 msgstr "Smart Location"
 
+msgid "telegram"
+msgstr "Telegram"
+
+msgid "instagram"
+msgstr "Instagram"
+
+msgid "x"
+msgstr "X"
+
+msgid "follow_us"
+msgstr "Follow Us"
 
 
 
