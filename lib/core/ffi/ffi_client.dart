@@ -6,23 +6,27 @@ import 'dart:io' show Platform;
 import 'package:ffi/ffi.dart';
 //import 'package:lantern/core/ffi/socket_client.dart';
 
-typedef StartVPNNative = Void Function();
-typedef StartVPN = void Function();
+typedef StartVPNNative = Pointer<Utf8> Function();
+typedef StartVPN = Pointer<Utf8> Function();
 
-typedef StopVPNNative = Void Function();
-typedef StopVPN = void Function();
+typedef StopVPNNative = Pointer<Utf8> Function();
+typedef StopVPN = Pointer<Utf8> Function();
 
 typedef IsVPNConnectedNative = Int32 Function();
 typedef IsVPNConnectedDart = int Function();
+
+typedef FreeCStringNative = Void Function(Pointer<Utf8>);
+typedef FreeCString = void Function(Pointer<Utf8>);
 
 const String _libName = 'liblantern';
 
 class FFIClient {
   late DynamicLibrary _lib;
 
-  late StartVPN startVPN;
-  late StopVPN stopVPN;
+  late StartVPN _startVPN;
+  late StopVPN _stopVPN;
   late IsVPNConnectedDart isVPNConnected;
+  late FreeCString _freeCString;
 
   FFIClient._internal() {
     if (Platform.isIOS) {
@@ -35,29 +39,42 @@ class FFIClient {
       throw UnsupportedError('Unsupported platform');
     }
 
-    startVPN =
+    _startVPN =
         _lib.lookup<NativeFunction<StartVPNNative>>('startVPN').asFunction();
 
-    stopVPN =
+    _stopVPN =
         _lib.lookup<NativeFunction<StopVPNNative>>('stopVPN').asFunction();
 
     isVPNConnected = _lib
         .lookup<NativeFunction<IsVPNConnectedNative>>('isVPNConnected')
         .asFunction();
+
+    _freeCString =
+        _lib.lookupFunction<FreeCStringNative, FreeCString>('freeCString');
   }
 
   factory FFIClient() {
     return FFIClient._internal();
   }
 
-  /// Calls the StartVPN function
-  void start() {
-    startVPN();
+  /// Calls startVPN and returns an error message if one exists.
+  /// Returns null if no error occurred.
+  String? startVPN() {
+    final Pointer<Utf8> result = _startVPN();
+    if (result.address == 0) return null;
+    final String errorMessage = result.toDartString();
+    _freeCString(result);
+    return errorMessage;
   }
 
-  /// Calls the StopVPN function
-  void stop() {
-    stopVPN();
+  /// Calls stopVPN and returns an error message if one exists.
+  /// Returns null if no error occurred.
+  String? stopVPN() {
+    final Pointer<Utf8> result = _stopVPN();
+    if (result.address == 0) return null;
+    final String errorMessage = result.toDartString();
+    _freeCString(result);
+    return errorMessage;
   }
 
   bool get isConnected {

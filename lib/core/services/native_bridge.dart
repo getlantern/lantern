@@ -7,22 +7,20 @@ class NativeBridge {
   // Method to start VPN
   Future<String?> startVPN() async {
     try {
-      final String? result = await _channel.invokeMethod('startVPN');
-      return result;
-    } on PlatformException catch (e) {
-      print("Failed to start VPN: '${e.message}'.");
+      await _channel.invokeMethod('startVPN');
       return null;
+    } on PlatformException catch (e) {
+      return e.message ?? 'Unknown error occurred (startVPN)';
     }
   }
 
   // Method to stop VPN
   Future<String?> stopVPN() async {
     try {
-      final String? result = await _channel.invokeMethod('stopVPN');
-      return result;
-    } on PlatformException catch (e) {
-      print("Failed to stop VPN: '${e.message}'.");
+      await _channel.invokeMethod('stopVPN');
       return null;
+    } on PlatformException catch (e) {
+      return e.message ?? 'Unknown error occurred (stopVPN)';
     }
   }
 
