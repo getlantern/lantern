@@ -14,43 +14,50 @@ class Support extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final defaultPadding =
+        const EdgeInsets.symmetric(horizontal: 16, vertical: 8);
     final List<AppTile> tiles = [
       AppTile(
         icon: Icons.error_outline,
         label: 'Report an Issue',
+        contentPadding: defaultPadding,
       ),
       AppTile(
         icon: Icons.code_outlined,
         label: 'Diagnostic Logs',
-        dividerPadding: EdgeInsets.symmetric(vertical: 4),
+        contentPadding: defaultPadding,
       ),
       AppTile.link(
         icon: Icons.forum_outlined,
         label: 'Lantern User Forum',
         url: AppUrls.support,
+        contentPadding: defaultPadding,
       ),
       AppTile.link(
         icon: Icons.info_outlined,
         label: 'Frequently Asked Questions',
         url: AppUrls.faq,
+        contentPadding: defaultPadding,
       ),
       AppTile.link(
         icon: Icons.privacy_tip_outlined,
         label: 'Privacy Policy',
         url: AppUrls.privacyPolicy,
+        contentPadding: defaultPadding,
       ),
       AppTile.link(
         icon: Icons.description_outlined,
         label: 'Terms of Service',
         url: AppUrls.termsOfService,
-        dividerPadding: EdgeInsets.symmetric(vertical: 8),
+        contentPadding: defaultPadding,
       ),
     ];
 
     return BaseScreen(
       title: toBeginningOfSentenceCase('support'.i18n),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      // TODO: update to use dynamic version
+      bottomNavigationBar: AppVersion(version: '8.1.4 (20250213.213443)'),
+      body: ListView(
         children: <Widget>[
           Center(
             child: AppAsset(
@@ -60,12 +67,9 @@ class Support extends HookConsumerWidget {
               width: 180.w,
             ),
           ),
-          SizedBox(height: defaultSize),
           ...tiles,
         ],
       ),
-      // TODO: update to use dynamic version
-      bottomNavigationBar: AppVersion(version: '8.1.4 (20250213.213443)'),
     );
   }
 }

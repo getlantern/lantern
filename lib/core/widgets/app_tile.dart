@@ -9,9 +9,7 @@ class AppTile extends StatelessWidget {
   final Widget? trailing;
   final Widget? subtitle;
   final VoidCallback? onPressed;
-  final EdgeInsets? dividerPadding;
-  final double? tileWidth;
-  final double? tileHeight;
+  final EdgeInsets? contentPadding;
 
   const AppTile({
     super.key,
@@ -20,25 +18,21 @@ class AppTile extends StatelessWidget {
     this.icon,
     this.subtitle,
     this.trailing,
-    this.dividerPadding,
-    this.tileWidth,
-    this.tileHeight,
+    this.contentPadding,
   });
 
   factory AppTile.link({
     required Object icon,
     required String label,
     required String url,
-    double? tileHeight,
-    EdgeInsets? dividerPadding,
+    EdgeInsets? contentPadding,
   }) =>
       AppTile(
         icon: icon,
         label: label,
         onPressed: () => openUrl(url),
         trailing: AppAsset(path: AppImagePaths.outsideBrowser),
-        dividerPadding: dividerPadding,
-        tileHeight: tileHeight ?? 56,
+        contentPadding: contentPadding,
       );
 
   @override
@@ -64,37 +58,16 @@ class AppTile extends StatelessWidget {
       }
     }
 
-    final tileWidget = Container(
-      height: tileHeight,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: ListTile(
-        enableFeedback: true,
-        horizontalTitleGap: 16,
-        minVerticalPadding: 0,
-        contentPadding: EdgeInsets.zero,
-        title: Text(
-          label,
-          style: tileTextStyle,
-        ),
-        subtitle: subtitle,
-        leading: leading,
-        trailing: trailing,
-        onTap: onPressed,
-      ),
+    return ListTile(
+      enableFeedback: true,
+      minVerticalPadding: 0,
+      contentPadding:
+          contentPadding ?? const EdgeInsets.symmetric(horizontal: 16),
+      title: Text(label, style: tileTextStyle),
+      subtitle: subtitle,
+      leading: leading,
+      trailing: trailing,
+      onTap: onPressed,
     );
-
-    if (dividerPadding != null) {
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          tileWidget,
-          Padding(
-            padding: dividerPadding!,
-            child: DividerSpace(),
-          ),
-        ],
-      );
-    }
-    return tileWidget;
   }
 }
