@@ -2,6 +2,7 @@ import 'package:animated_toggle_switch/animated_toggle_switch.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:lantern/core/widgets/vpn_status_indicator.dart';
+import 'package:lantern/features/vpn/vpn_switch.dart';
 
 import '../../core/common/common.dart';
 
@@ -38,10 +39,7 @@ class _NewHomeState extends State<NewHome> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
           _buildProBanner(),
-          AnimatedToggleSwitch<String>.rolling(
-            values: ['All', 'Favorites'],
-            current: 'All',
-          ),
+          VPNSwitch(),
           Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[

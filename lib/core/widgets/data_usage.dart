@@ -39,9 +39,8 @@ class DataUsage extends StatelessWidget {
             SizedBox(height: 8),
             LinearProgressIndicator(
               value: (50.0 / 100).toDouble(),
-              minHeight: 12,
-              borderRadius:
-                  const BorderRadius.all(Radius.circular(defaultSize)),
+              minHeight: 8,
+              borderRadius: const BorderRadius.all(Radius.circular(defaultSize)),
               trackGap: 10,
               backgroundColor: AppColors.gray1,
               valueColor: AlwaysStoppedAnimation(AppColors.yellow3),

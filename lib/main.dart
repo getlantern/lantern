@@ -1,5 +1,3 @@
-import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,8 +6,6 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:window_manager/window_manager.dart';
-
-import 'core/localization/i18n.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,7 +26,9 @@ Future<void> desktopInit() async {
     return;
   }
   await windowManager.ensureInitialized();
-  await windowManager.setSize(const ui.Size(370, 712));
+  // Keep same size as mobile
+  await windowManager.setSize(desktopWindowSize);
+  windowManager.setResizable(false);
 }
 
 Future<void> _loadAppSecrets() async {

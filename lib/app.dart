@@ -18,6 +18,8 @@ class LanternApp extends StatelessWidget {
   Widget build(BuildContext context) {
     Locale locale = PlatformDispatcher.instance.locale;
     return ScreenUtilInit(
+      designSize: PlatformUtils.isDesktop() ? desktopWindowSize : mobileSize,
+      minTextAdapt: true,
       child: I18n(
         localizationsDelegates: [
           GlobalMaterialLocalizations.delegate,
@@ -32,7 +34,12 @@ class LanternApp extends StatelessWidget {
           darkTheme: AppTheme.darkTheme(),
           supportedLocales: languages
               .map(
-                  (lang) => Locale(lang.split('_').first, lang.split('_').last))
+                  (lang) =>
+                  Locale(lang
+                      .split('_')
+                      .first, lang
+                      .split('_')
+                      .last))
               .toList(),
           // List of supported languages
           routerConfig: globalRouter.config(),
