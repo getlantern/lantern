@@ -8,22 +8,24 @@
 // coverage:ignore-file
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:auto_route/auto_route.dart' as _i11;
+import 'package:auto_route/auto_route.dart' as _i12;
+import 'package:flutter/material.dart' as _i13;
 import 'package:lantern/features/account/account.dart' as _i1;
 import 'package:lantern/features/account/delete_account.dart' as _i2;
-import 'package:lantern/features/home/home.dart' as _i4;
-import 'package:lantern/features/home/new_home.dart' as _i7;
-import 'package:lantern/features/language/language.dart' as _i6;
-import 'package:lantern/features/reportIssue/report_issue.dart' as _i8;
+import 'package:lantern/features/home/home.dart' as _i5;
+import 'package:lantern/features/home/new_home.dart' as _i8;
+import 'package:lantern/features/language/language.dart' as _i7;
+import 'package:lantern/features/reportIssue/report_issue.dart' as _i9;
 import 'package:lantern/features/setting/download_links.dart' as _i3;
-import 'package:lantern/features/setting/invite_friends.dart' as _i5;
-import 'package:lantern/features/setting/setting.dart' as _i9;
-import 'package:lantern/features/setting/vpn_setting.dart' as _i10;
+import 'package:lantern/features/setting/follow_us.dart' as _i4;
+import 'package:lantern/features/setting/invite_friends.dart' as _i6;
+import 'package:lantern/features/setting/setting.dart' as _i10;
+import 'package:lantern/features/setting/vpn_setting.dart' as _i11;
 
 /// generated route for
 /// [_i1.Account]
-class Account extends _i11.PageRouteInfo<void> {
-  const Account({List<_i11.PageRouteInfo>? children})
+class Account extends _i12.PageRouteInfo<void> {
+  const Account({List<_i12.PageRouteInfo>? children})
       : super(
           Account.name,
           initialChildren: children,
@@ -31,7 +33,7 @@ class Account extends _i11.PageRouteInfo<void> {
 
   static const String name = 'Account';
 
-  static _i11.PageInfo page = _i11.PageInfo(
+  static _i12.PageInfo page = _i12.PageInfo(
     name,
     builder: (data) {
       return const _i1.Account();
@@ -41,8 +43,8 @@ class Account extends _i11.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i2.DeleteAccount]
-class DeleteAccount extends _i11.PageRouteInfo<void> {
-  const DeleteAccount({List<_i11.PageRouteInfo>? children})
+class DeleteAccount extends _i12.PageRouteInfo<void> {
+  const DeleteAccount({List<_i12.PageRouteInfo>? children})
       : super(
           DeleteAccount.name,
           initialChildren: children,
@@ -50,7 +52,7 @@ class DeleteAccount extends _i11.PageRouteInfo<void> {
 
   static const String name = 'DeleteAccount';
 
-  static _i11.PageInfo page = _i11.PageInfo(
+  static _i12.PageInfo page = _i12.PageInfo(
     name,
     builder: (data) {
       return const _i2.DeleteAccount();
@@ -60,8 +62,8 @@ class DeleteAccount extends _i11.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i3.DownloadLinks]
-class DownloadLinks extends _i11.PageRouteInfo<void> {
-  const DownloadLinks({List<_i11.PageRouteInfo>? children})
+class DownloadLinks extends _i12.PageRouteInfo<void> {
+  const DownloadLinks({List<_i12.PageRouteInfo>? children})
       : super(
           DownloadLinks.name,
           initialChildren: children,
@@ -69,7 +71,7 @@ class DownloadLinks extends _i11.PageRouteInfo<void> {
 
   static const String name = 'DownloadLinks';
 
-  static _i11.PageInfo page = _i11.PageInfo(
+  static _i12.PageInfo page = _i12.PageInfo(
     name,
     builder: (data) {
       return const _i3.DownloadLinks();
@@ -78,9 +80,44 @@ class DownloadLinks extends _i11.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i4.HomePage]
-class Home extends _i11.PageRouteInfo<void> {
-  const Home({List<_i11.PageRouteInfo>? children})
+/// [_i4.FollowUs]
+class FollowUs extends _i12.PageRouteInfo<FollowUsArgs> {
+  FollowUs({
+    _i13.Key? key,
+    List<_i12.PageRouteInfo>? children,
+  }) : super(
+          FollowUs.name,
+          args: FollowUsArgs(key: key),
+          initialChildren: children,
+        );
+
+  static const String name = 'FollowUs';
+
+  static _i12.PageInfo page = _i12.PageInfo(
+    name,
+    builder: (data) {
+      final args =
+          data.argsAs<FollowUsArgs>(orElse: () => const FollowUsArgs());
+      return _i4.FollowUs(key: args.key);
+    },
+  );
+}
+
+class FollowUsArgs {
+  const FollowUsArgs({this.key});
+
+  final _i13.Key? key;
+
+  @override
+  String toString() {
+    return 'FollowUsArgs{key: $key}';
+  }
+}
+
+/// generated route for
+/// [_i5.HomePage]
+class Home extends _i12.PageRouteInfo<void> {
+  const Home({List<_i12.PageRouteInfo>? children})
       : super(
           Home.name,
           initialChildren: children,
@@ -88,18 +125,18 @@ class Home extends _i11.PageRouteInfo<void> {
 
   static const String name = 'Home';
 
-  static _i11.PageInfo page = _i11.PageInfo(
+  static _i12.PageInfo page = _i12.PageInfo(
     name,
     builder: (data) {
-      return const _i4.HomePage();
+      return const _i5.HomePage();
     },
   );
 }
 
 /// generated route for
-/// [_i5.InviteFriends]
-class InviteFriends extends _i11.PageRouteInfo<void> {
-  const InviteFriends({List<_i11.PageRouteInfo>? children})
+/// [_i6.InviteFriends]
+class InviteFriends extends _i12.PageRouteInfo<void> {
+  const InviteFriends({List<_i12.PageRouteInfo>? children})
       : super(
           InviteFriends.name,
           initialChildren: children,
@@ -107,18 +144,18 @@ class InviteFriends extends _i11.PageRouteInfo<void> {
 
   static const String name = 'InviteFriends';
 
-  static _i11.PageInfo page = _i11.PageInfo(
+  static _i12.PageInfo page = _i12.PageInfo(
     name,
     builder: (data) {
-      return const _i5.InviteFriends();
+      return const _i6.InviteFriends();
     },
   );
 }
 
 /// generated route for
-/// [_i6.Language]
-class Language extends _i11.PageRouteInfo<void> {
-  const Language({List<_i11.PageRouteInfo>? children})
+/// [_i7.Language]
+class Language extends _i12.PageRouteInfo<void> {
+  const Language({List<_i12.PageRouteInfo>? children})
       : super(
           Language.name,
           initialChildren: children,
@@ -126,18 +163,18 @@ class Language extends _i11.PageRouteInfo<void> {
 
   static const String name = 'Language';
 
-  static _i11.PageInfo page = _i11.PageInfo(
+  static _i12.PageInfo page = _i12.PageInfo(
     name,
     builder: (data) {
-      return const _i6.Language();
+      return const _i7.Language();
     },
   );
 }
 
 /// generated route for
-/// [_i7.NewHome]
-class NewHome extends _i11.PageRouteInfo<void> {
-  const NewHome({List<_i11.PageRouteInfo>? children})
+/// [_i8.NewHome]
+class NewHome extends _i12.PageRouteInfo<void> {
+  const NewHome({List<_i12.PageRouteInfo>? children})
       : super(
           NewHome.name,
           initialChildren: children,
@@ -145,18 +182,18 @@ class NewHome extends _i11.PageRouteInfo<void> {
 
   static const String name = 'NewHome';
 
-  static _i11.PageInfo page = _i11.PageInfo(
+  static _i12.PageInfo page = _i12.PageInfo(
     name,
     builder: (data) {
-      return const _i7.NewHome();
+      return const _i8.NewHome();
     },
   );
 }
 
 /// generated route for
-/// [_i8.ReportIssue]
-class ReportIssue extends _i11.PageRouteInfo<void> {
-  const ReportIssue({List<_i11.PageRouteInfo>? children})
+/// [_i9.ReportIssue]
+class ReportIssue extends _i12.PageRouteInfo<void> {
+  const ReportIssue({List<_i12.PageRouteInfo>? children})
       : super(
           ReportIssue.name,
           initialChildren: children,
@@ -164,18 +201,18 @@ class ReportIssue extends _i11.PageRouteInfo<void> {
 
   static const String name = 'ReportIssue';
 
-  static _i11.PageInfo page = _i11.PageInfo(
+  static _i12.PageInfo page = _i12.PageInfo(
     name,
     builder: (data) {
-      return const _i8.ReportIssue();
+      return const _i9.ReportIssue();
     },
   );
 }
 
 /// generated route for
-/// [_i9.Setting]
-class Setting extends _i11.PageRouteInfo<void> {
-  const Setting({List<_i11.PageRouteInfo>? children})
+/// [_i10.Setting]
+class Setting extends _i12.PageRouteInfo<void> {
+  const Setting({List<_i12.PageRouteInfo>? children})
       : super(
           Setting.name,
           initialChildren: children,
@@ -183,18 +220,18 @@ class Setting extends _i11.PageRouteInfo<void> {
 
   static const String name = 'Setting';
 
-  static _i11.PageInfo page = _i11.PageInfo(
+  static _i12.PageInfo page = _i12.PageInfo(
     name,
     builder: (data) {
-      return const _i9.Setting();
+      return const _i10.Setting();
     },
   );
 }
 
 /// generated route for
-/// [_i10.VPNSetting]
-class VPNSetting extends _i11.PageRouteInfo<void> {
-  const VPNSetting({List<_i11.PageRouteInfo>? children})
+/// [_i11.VPNSetting]
+class VPNSetting extends _i12.PageRouteInfo<void> {
+  const VPNSetting({List<_i12.PageRouteInfo>? children})
       : super(
           VPNSetting.name,
           initialChildren: children,
@@ -202,10 +239,10 @@ class VPNSetting extends _i11.PageRouteInfo<void> {
 
   static const String name = 'VPNSetting';
 
-  static _i11.PageInfo page = _i11.PageInfo(
+  static _i12.PageInfo page = _i12.PageInfo(
     name,
     builder: (data) {
-      return const _i10.VPNSetting();
+      return const _i11.VPNSetting();
     },
   );
 }

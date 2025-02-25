@@ -1,7 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:lantern/core/router/router.gr.dart';
 
-
 @AutoRouterConfig(
   replaceInRouteName: 'Page,Route,Screen',
 )
@@ -47,7 +46,9 @@ class AppRouter extends RootStackRouter {
       path: '/delete-account',
       page: DeleteAccount.page,
     ),
-
-
+    AutoRoute(
+      path: '/follow-us',
+      page: FollowUs.page,
+    ),
   ];
 }
