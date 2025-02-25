@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lantern/core/common/app_colors.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 
 class AppVersion extends StatelessWidget {
@@ -15,17 +16,12 @@ class AppVersion extends StatelessWidget {
         children: [
           Text(
             'Lantern Version',
-            style: AppTestStyles.bodyMedium.copyWith(
-              height: 23 / 14,
-              letterSpacing: 0,
-            ),
+            style: AppTestStyles.bodyMedium.copyWith(),
           ),
           Text(
             version,
             style: AppTestStyles.titleSmall.copyWith(
-              height: 20 / 14,
-              letterSpacing: 0,
-              color: Color(0xFF005F61),
+              color: AppColors.green11,
             ),
           ),
         ],
