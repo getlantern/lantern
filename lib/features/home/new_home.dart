@@ -104,7 +104,9 @@ class _NewHomeState extends State<NewHome> {
             AppImage(path: AppImagePaths.blot),
             SizedBox(width: 8),
             IconButton(
-              onPressed: () {},
+              onPressed: () {
+                appRouter.push(const ServerSelection());
+              },
               style: ElevatedButton.styleFrom(
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),

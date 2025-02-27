@@ -54,5 +54,9 @@ class AppRouter extends RootStackRouter {
       path: '/follow-us',
       page: FollowUs.page,
     ),
+    AutoRoute(
+      path: '/server-selection',
+      page: ServerSelection.page,
+    ),
   ];
 }
