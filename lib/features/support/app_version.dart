@@ -9,19 +9,35 @@ class AppVersion extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    final theme = Theme.of(context).textTheme;
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.gray1,
+        borderRadius: BorderRadius.circular(8),
+        border: Border(
+          top: BorderSide(
+            color: AppColors.gray2,
+            width: 1,
+          ),
+          bottom: BorderSide(
+            color: AppColors.gray2,
+            width: 1,
+          ),
+        ),
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             'Lantern Version',
-            style: AppTestStyles.bodyMedium.copyWith(),
+            style: theme!.bodyMedium,
           ),
           Text(
             version,
-            style: AppTestStyles.titleSmall.copyWith(
-              color: AppColors.green11,
+            style: theme.titleSmall!.copyWith(
+              color: AppColors.blue7,
             ),
           ),
         ],
