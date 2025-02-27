@@ -8,8 +8,8 @@
 // coverage:ignore-file
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:auto_route/auto_route.dart' as _i12;
-import 'package:flutter/material.dart' as _i13;
+import 'package:auto_route/auto_route.dart' as _i13;
+import 'package:flutter/material.dart' as _i14;
 import 'package:lantern/features/account/account.dart' as _i1;
 import 'package:lantern/features/account/delete_account.dart' as _i2;
 import 'package:lantern/features/home/home.dart' as _i5;
@@ -20,12 +20,13 @@ import 'package:lantern/features/setting/download_links.dart' as _i3;
 import 'package:lantern/features/setting/follow_us.dart' as _i4;
 import 'package:lantern/features/setting/invite_friends.dart' as _i6;
 import 'package:lantern/features/setting/setting.dart' as _i10;
-import 'package:lantern/features/setting/vpn_setting.dart' as _i11;
+import 'package:lantern/features/setting/vpn_setting.dart' as _i12;
+import 'package:lantern/features/support/support.dart' as _i11;
 
 /// generated route for
 /// [_i1.Account]
-class Account extends _i12.PageRouteInfo<void> {
-  const Account({List<_i12.PageRouteInfo>? children})
+class Account extends _i13.PageRouteInfo<void> {
+  const Account({List<_i13.PageRouteInfo>? children})
       : super(
           Account.name,
           initialChildren: children,
@@ -33,7 +34,7 @@ class Account extends _i12.PageRouteInfo<void> {
 
   static const String name = 'Account';
 
-  static _i12.PageInfo page = _i12.PageInfo(
+  static _i13.PageInfo page = _i13.PageInfo(
     name,
     builder: (data) {
       return const _i1.Account();
@@ -43,8 +44,8 @@ class Account extends _i12.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i2.DeleteAccount]
-class DeleteAccount extends _i12.PageRouteInfo<void> {
-  const DeleteAccount({List<_i12.PageRouteInfo>? children})
+class DeleteAccount extends _i13.PageRouteInfo<void> {
+  const DeleteAccount({List<_i13.PageRouteInfo>? children})
       : super(
           DeleteAccount.name,
           initialChildren: children,
@@ -52,7 +53,7 @@ class DeleteAccount extends _i12.PageRouteInfo<void> {
 
   static const String name = 'DeleteAccount';
 
-  static _i12.PageInfo page = _i12.PageInfo(
+  static _i13.PageInfo page = _i13.PageInfo(
     name,
     builder: (data) {
       return const _i2.DeleteAccount();
@@ -62,8 +63,8 @@ class DeleteAccount extends _i12.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i3.DownloadLinks]
-class DownloadLinks extends _i12.PageRouteInfo<void> {
-  const DownloadLinks({List<_i12.PageRouteInfo>? children})
+class DownloadLinks extends _i13.PageRouteInfo<void> {
+  const DownloadLinks({List<_i13.PageRouteInfo>? children})
       : super(
           DownloadLinks.name,
           initialChildren: children,
@@ -71,7 +72,7 @@ class DownloadLinks extends _i12.PageRouteInfo<void> {
 
   static const String name = 'DownloadLinks';
 
-  static _i12.PageInfo page = _i12.PageInfo(
+  static _i13.PageInfo page = _i13.PageInfo(
     name,
     builder: (data) {
       return const _i3.DownloadLinks();
@@ -81,10 +82,10 @@ class DownloadLinks extends _i12.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i4.FollowUs]
-class FollowUs extends _i12.PageRouteInfo<FollowUsArgs> {
+class FollowUs extends _i13.PageRouteInfo<FollowUsArgs> {
   FollowUs({
-    _i13.Key? key,
-    List<_i12.PageRouteInfo>? children,
+    _i14.Key? key,
+    List<_i13.PageRouteInfo>? children,
   }) : super(
           FollowUs.name,
           args: FollowUsArgs(key: key),
@@ -93,7 +94,7 @@ class FollowUs extends _i12.PageRouteInfo<FollowUsArgs> {
 
   static const String name = 'FollowUs';
 
-  static _i12.PageInfo page = _i12.PageInfo(
+  static _i13.PageInfo page = _i13.PageInfo(
     name,
     builder: (data) {
       final args =
@@ -106,7 +107,7 @@ class FollowUs extends _i12.PageRouteInfo<FollowUsArgs> {
 class FollowUsArgs {
   const FollowUsArgs({this.key});
 
-  final _i13.Key? key;
+  final _i14.Key? key;
 
   @override
   String toString() {
@@ -116,8 +117,8 @@ class FollowUsArgs {
 
 /// generated route for
 /// [_i5.HomePage]
-class Home extends _i12.PageRouteInfo<void> {
-  const Home({List<_i12.PageRouteInfo>? children})
+class Home extends _i13.PageRouteInfo<void> {
+  const Home({List<_i13.PageRouteInfo>? children})
       : super(
           Home.name,
           initialChildren: children,
@@ -125,7 +126,7 @@ class Home extends _i12.PageRouteInfo<void> {
 
   static const String name = 'Home';
 
-  static _i12.PageInfo page = _i12.PageInfo(
+  static _i13.PageInfo page = _i13.PageInfo(
     name,
     builder: (data) {
       return const _i5.HomePage();
@@ -135,8 +136,8 @@ class Home extends _i12.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i6.InviteFriends]
-class InviteFriends extends _i12.PageRouteInfo<void> {
-  const InviteFriends({List<_i12.PageRouteInfo>? children})
+class InviteFriends extends _i13.PageRouteInfo<void> {
+  const InviteFriends({List<_i13.PageRouteInfo>? children})
       : super(
           InviteFriends.name,
           initialChildren: children,
@@ -144,7 +145,7 @@ class InviteFriends extends _i12.PageRouteInfo<void> {
 
   static const String name = 'InviteFriends';
 
-  static _i12.PageInfo page = _i12.PageInfo(
+  static _i13.PageInfo page = _i13.PageInfo(
     name,
     builder: (data) {
       return const _i6.InviteFriends();
@@ -154,8 +155,8 @@ class InviteFriends extends _i12.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i7.Language]
-class Language extends _i12.PageRouteInfo<void> {
-  const Language({List<_i12.PageRouteInfo>? children})
+class Language extends _i13.PageRouteInfo<void> {
+  const Language({List<_i13.PageRouteInfo>? children})
       : super(
           Language.name,
           initialChildren: children,
@@ -163,7 +164,7 @@ class Language extends _i12.PageRouteInfo<void> {
 
   static const String name = 'Language';
 
-  static _i12.PageInfo page = _i12.PageInfo(
+  static _i13.PageInfo page = _i13.PageInfo(
     name,
     builder: (data) {
       return const _i7.Language();
@@ -173,8 +174,8 @@ class Language extends _i12.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i8.NewHome]
-class NewHome extends _i12.PageRouteInfo<void> {
-  const NewHome({List<_i12.PageRouteInfo>? children})
+class NewHome extends _i13.PageRouteInfo<void> {
+  const NewHome({List<_i13.PageRouteInfo>? children})
       : super(
           NewHome.name,
           initialChildren: children,
@@ -182,7 +183,7 @@ class NewHome extends _i12.PageRouteInfo<void> {
 
   static const String name = 'NewHome';
 
-  static _i12.PageInfo page = _i12.PageInfo(
+  static _i13.PageInfo page = _i13.PageInfo(
     name,
     builder: (data) {
       return const _i8.NewHome();
@@ -192,8 +193,8 @@ class NewHome extends _i12.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i9.ReportIssue]
-class ReportIssue extends _i12.PageRouteInfo<void> {
-  const ReportIssue({List<_i12.PageRouteInfo>? children})
+class ReportIssue extends _i13.PageRouteInfo<void> {
+  const ReportIssue({List<_i13.PageRouteInfo>? children})
       : super(
           ReportIssue.name,
           initialChildren: children,
@@ -201,7 +202,7 @@ class ReportIssue extends _i12.PageRouteInfo<void> {
 
   static const String name = 'ReportIssue';
 
-  static _i12.PageInfo page = _i12.PageInfo(
+  static _i13.PageInfo page = _i13.PageInfo(
     name,
     builder: (data) {
       return const _i9.ReportIssue();
@@ -211,8 +212,8 @@ class ReportIssue extends _i12.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i10.Setting]
-class Setting extends _i12.PageRouteInfo<void> {
-  const Setting({List<_i12.PageRouteInfo>? children})
+class Setting extends _i13.PageRouteInfo<void> {
+  const Setting({List<_i13.PageRouteInfo>? children})
       : super(
           Setting.name,
           initialChildren: children,
@@ -220,7 +221,7 @@ class Setting extends _i12.PageRouteInfo<void> {
 
   static const String name = 'Setting';
 
-  static _i12.PageInfo page = _i12.PageInfo(
+  static _i13.PageInfo page = _i13.PageInfo(
     name,
     builder: (data) {
       return const _i10.Setting();
@@ -229,9 +230,28 @@ class Setting extends _i12.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i11.VPNSetting]
-class VPNSetting extends _i12.PageRouteInfo<void> {
-  const VPNSetting({List<_i12.PageRouteInfo>? children})
+/// [_i11.Support]
+class Support extends _i13.PageRouteInfo<void> {
+  const Support({List<_i13.PageRouteInfo>? children})
+      : super(
+          Support.name,
+          initialChildren: children,
+        );
+
+  static const String name = 'Support';
+
+  static _i13.PageInfo page = _i13.PageInfo(
+    name,
+    builder: (data) {
+      return const _i11.Support();
+    },
+  );
+}
+
+/// generated route for
+/// [_i12.VPNSetting]
+class VPNSetting extends _i13.PageRouteInfo<void> {
+  const VPNSetting({List<_i13.PageRouteInfo>? children})
       : super(
           VPNSetting.name,
           initialChildren: children,
@@ -239,10 +259,10 @@ class VPNSetting extends _i12.PageRouteInfo<void> {
 
   static const String name = 'VPNSetting';
 
-  static _i12.PageInfo page = _i12.PageInfo(
+  static _i13.PageInfo page = _i13.PageInfo(
     name,
     builder: (data) {
-      return const _i11.VPNSetting();
+      return const _i12.VPNSetting();
     },
   );
 }

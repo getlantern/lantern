@@ -204,8 +204,7 @@ class _SettingState extends State<Setting> {
         // TODO: Handle this case.
         throw UnimplementedError();
       case _SettingType.support:
-        // TODO: Handle this case.
-        throw UnimplementedError();
+        appRouter.push(Support());
       case _SettingType.followUs:
         if (PlatformUtils.isDesktop()) {
           appRouter.push(FollowUs());

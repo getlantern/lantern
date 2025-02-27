@@ -5,6 +5,7 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   objectbox_flutter_libs
   screen_retriever_linux
+  url_launcher_linux
   window_manager
 )
 

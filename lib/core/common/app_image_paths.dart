@@ -1,5 +1,4 @@
 class AppImagePaths {
-
   static const lanternLogo = 'assets/images/lantern_logo.svg';
   static const menu = 'assets/images/menu.svg';
   static const crown = 'assets/images/crown.svg';
@@ -9,6 +8,7 @@ class AppImagePaths {
   static const translate = 'assets/images/translate.svg';
   static const theme = 'assets/images/theme.svg';
   static const support = 'assets/images/support.svg';
+  static const supportIllustration = 'assets/images/support_illustration.svg';
   static const star = 'assets/images/star.svg';
   static const update = 'assets/images/update.svg';
   static const thumb = 'assets/images/thumb.svg';
@@ -39,6 +39,4 @@ class AppImagePaths {
   static const verticalDots = 'assets/images/vertical_dots.svg';
   static const instagram = 'assets/images/instagram.svg';
   static const x = 'assets/images/x.svg';
-
-
 }

@@ -47,6 +47,10 @@ class AppRouter extends RootStackRouter {
       page: DeleteAccount.page,
     ),
     AutoRoute(
+      path: '/support',
+      page: Support.page,
+    ),
+    AutoRoute(
       path: '/follow-us',
       page: FollowUs.page,
     ),
