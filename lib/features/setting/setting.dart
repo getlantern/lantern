@@ -167,7 +167,7 @@ class _SettingState extends State<Setting> {
           Card(
             child: AppTile(
               icon: AppImagePaths.lanternLogoRounded,
-              trailing: AppAsset(path: AppImagePaths.outsideBrowser),
+              trailing: AppImage(path: AppImagePaths.outsideBrowser),
               subtitle: Text(
                 'help_fight_global_internet_censorship'.i18n,
                 style: textTheme.labelMedium!.copyWith(

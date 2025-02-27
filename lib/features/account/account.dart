@@ -34,7 +34,7 @@ class Account extends StatelessWidget {
           child: AppTile(
             label: '122300984@qq.com',
             icon: AppImagePaths.email,
-            trailing: AppAsset(path: AppImagePaths.copy),
+            trailing: AppImage(path: AppImagePaths.copy),
             onPressed: () {},
           ),
         ),

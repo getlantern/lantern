@@ -94,7 +94,7 @@ class FollowUsListView extends StatelessWidget {
         AppTile(
           label: 'telegram'.i18n,
           icon: AppImagePaths.telegram,
-          trailing: AppAsset(path: AppImagePaths.outsideBrowser),
+          trailing: AppImage(path: AppImagePaths.outsideBrowser),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -103,7 +103,7 @@ class FollowUsListView extends StatelessWidget {
         AppTile(
           label: 'instagram'.i18n,
           icon: AppImagePaths.instagram,
-          trailing: AppAsset(path: AppImagePaths.outsideBrowser),
+          trailing: AppImage(path: AppImagePaths.outsideBrowser),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -112,7 +112,7 @@ class FollowUsListView extends StatelessWidget {
         AppTile(
           label: 'x'.i18n,
           icon: AppImagePaths.x,
-          trailing: AppAsset(path: AppImagePaths.outsideBrowser),
+          trailing: AppImage(path: AppImagePaths.outsideBrowser),
         ),
       ],
     );

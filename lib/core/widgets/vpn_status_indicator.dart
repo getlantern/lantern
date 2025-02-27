@@ -8,23 +8,23 @@ class VPNStatusIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    late String inidicator;
+    late String indicator;
     switch (status) {
       case VPNStatus.connected:
-        inidicator = AppImagePaths.vpnConnected;
+        indicator = AppImagePaths.vpnConnected;
         break;
       case VPNStatus.disconnected:
-        inidicator = AppImagePaths.vpnDisconnected;
+        indicator = AppImagePaths.vpnDisconnected;
         break;
       case VPNStatus.connecting:
-        inidicator = AppImagePaths.vpnConnecting;
+        indicator = AppImagePaths.vpnConnecting;
         break;
 
       case VPNStatus.disconnecting:
-        inidicator = AppImagePaths.vpnConnecting;
+        indicator = AppImagePaths.vpnConnecting;
         break;
     }
 
-    return AppAsset(path: inidicator);
+    return AppImage(path: indicator);
   }
 }

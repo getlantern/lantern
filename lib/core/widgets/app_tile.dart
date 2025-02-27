@@ -30,8 +30,8 @@ class AppTile extends StatelessWidget {
       AppTile(
         icon: icon,
         label: label,
-        onPressed: () => openUrl(url),
-        trailing: AppAsset(path: AppImagePaths.outsideBrowser),
+        onPressed: () => UrlUtils.openUrl(url),
+        trailing: AppImage(path: AppImagePaths.outsideBrowser),
         contentPadding: contentPadding,
       );
 
@@ -47,7 +47,7 @@ class AppTile extends StatelessWidget {
         leading = SizedBox(
           width: 24,
           height: 24,
-          child: AppAsset(path: icon as String),
+          child: AppImage(path: icon as String),
         );
       } else if (icon is IconData) {
         leading = Icon(
@@ -61,7 +61,8 @@ class AppTile extends StatelessWidget {
     return ListTile(
       enableFeedback: true,
       minVerticalPadding: 0,
-      contentPadding: contentPadding ?? const EdgeInsets.symmetric(horizontal: 16),
+      contentPadding:
+          contentPadding ?? const EdgeInsets.symmetric(horizontal: 16),
       title: Text(label, style: tileTextStyle),
       subtitle: subtitle,
       leading: leading,

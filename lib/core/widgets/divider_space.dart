@@ -7,7 +7,7 @@ class DividerSpace extends StatelessWidget {
 
   const DividerSpace({
     super.key,
-    this.padding = const EdgeInsets.all(0),
+    this.padding = const EdgeInsets.symmetric(horizontal: 16.0),
   });
 
   @override

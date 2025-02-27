@@ -24,7 +24,7 @@ class _InviteFriendsState extends State<InviteFriends> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Center(child: AppAsset(path: AppImagePaths.startIllustration)),
+          Center(child: AppImage(path: AppImagePaths.startIllustration)),
           SizedBox(height: defaultSize),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -39,7 +39,7 @@ class _InviteFriendsState extends State<InviteFriends> {
           Card(
             child: AppTile(
               icon: AppImagePaths.star,
-              trailing: AppAsset(path: AppImagePaths.copy),
+              trailing: AppImage(path: AppImagePaths.copy),
               label: 'BSDKALE',
               onPressed: () {},
             ),

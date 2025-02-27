@@ -10,7 +10,9 @@ export 'package:lantern/core/common/app_eum.dart';
 export 'package:lantern/core/common/app_extension.dart';
 
 
+// Utils
 export  'package:lantern/core/common/platfrom_utils.dart';
+export 'package:lantern/core/common/app_urls.dart';
 export  'package:lantern/core/common/app_theme.dart';
 
 // UI
@@ -23,6 +25,12 @@ export 'package:lantern/core/widgets/custom_app_bar.dart';
 export 'package:lantern/core/localization/i18n.dart';
 export 'package:lantern/core/widgets/data_usage.dart';
 export 'package:lantern/core/widgets/bottomsheet.dart';
+export 'package:lantern/core/widgets/app_card.dart';
+export 'package:lantern/core/utils/url_utils.dart';
+export 'package:lantern/core/widgets/base_screen.dart';
+export 'package:lantern/core/widgets/platform_card.dart';
+
+
 
 
 // Routes

@@ -25,7 +25,7 @@ class _DeleteAccountState extends State<DeleteAccount> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Center(
-          child: AppAsset(
+          child: AppImage(
             path: AppImagePaths.delete,
             width: 120,
             height: 120,

@@ -9,7 +9,7 @@ enum AssetType {
   png,
 }
 
-class AppAsset extends StatelessWidget {
+class AppImage extends StatelessWidget {
   final String path;
   final double size;
   final double? width;
@@ -18,7 +18,7 @@ class AppAsset extends StatelessWidget {
 
   final AssetType type;
 
-  const AppAsset({
+  const AppImage({
     required this.path,
     this.size = iconSize,
     this.width,

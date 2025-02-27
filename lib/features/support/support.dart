@@ -23,7 +23,7 @@ class Support extends StatelessWidget {
           padding: EdgeInsets.zero,
           children: <Widget>[
             Center(
-              child: AppAsset(
+              child: AppImage(
                 path: AppImagePaths.supportIllustration,
                 type: AssetType.svg,
                 height: 180.h,

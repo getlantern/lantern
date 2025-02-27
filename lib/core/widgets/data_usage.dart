@@ -21,7 +21,7 @@ class DataUsage extends StatelessWidget {
           children: [
             Row(
               children: [
-                AppAsset(path: AppImagePaths.dataUsage),
+                AppImage(path: AppImagePaths.dataUsage),
                 SizedBox(width: 8),
                 Text(
                   'daily_data_usage'.i18n,

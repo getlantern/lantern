@@ -70,14 +70,19 @@ class LocalStorageService {
 
   /// Save a key-value pair
   void set<T>(String key, T value) {
-    dbLogger.debug("Setting key: $key, value: $value");
-    final Map<String, dynamic> dbMap = _appDb.map;
-    dbMap[key] = value;
-    _appDb.map = dbMap;
-    _box.putAsync(_appDb);
-    //update cache
-    _cache[key] = value;
-    dbLogger.debug("Key: $key saved successfully");
+    try {
+      dbLogger.debug("Setting key: $key, value: $value");
+      final Map<String, dynamic> dbMap = _appDb.map;
+      dbMap[key] = value;
+      _appDb.map = dbMap;
+      _box.putAsync(_appDb);
+      //update cache
+      _cache[key] = value;
+      dbLogger.debug("Key: $key saved successfully");
+    }catch(e){
+      dbLogger.error("Error saving key: $key, value: $value");
+    }
+
   }
 
   /// Remove a key

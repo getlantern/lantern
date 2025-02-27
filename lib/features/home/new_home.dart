@@ -27,7 +27,7 @@ class _NewHomeState extends State<NewHome> {
               onPressed: () {
                 appRouter.push(const Setting());
               },
-              icon: const AppAsset(path: AppImagePaths.menu))),
+              icon: const AppImage(path: AppImagePaths.menu))),
       body: _buildBody(),
     );
   }
@@ -87,7 +87,7 @@ class _NewHomeState extends State<NewHome> {
           children: <Widget>[
             SizedBox(
               width: 24,
-              child: AppAsset(path: AppImagePaths.location),
+              child: AppImage(path: AppImagePaths.location),
             ),
             SizedBox(width: 8),
             Text('smart_location'.i18n,
@@ -101,14 +101,14 @@ class _NewHomeState extends State<NewHome> {
                 style:
                     textTheme!.titleMedium!.copyWith(color: AppColors.gray9)),
             Spacer(),
-            AppAsset(path: AppImagePaths.blot),
+            AppImage(path: AppImagePaths.blot),
             SizedBox(width: 8),
             IconButton(
               onPressed: () {},
               style: ElevatedButton.styleFrom(
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
-              icon: AppAsset(path: AppImagePaths.verticalDots),
+              icon: AppImage(path: AppImagePaths.verticalDots),
               padding: EdgeInsets.zero,
               // iconSize: 10,
               constraints: BoxConstraints(),
@@ -153,7 +153,7 @@ class _NewHomeState extends State<NewHome> {
           children: <Widget>[
             SizedBox(
               width: 24,
-              child: AppAsset(path: AppImagePaths.callSpilt),
+              child: AppImage(path: AppImagePaths.callSpilt),
             ),
             SizedBox(width: 8),
             Text('split_tunneling'.i18n,
@@ -172,7 +172,7 @@ class _NewHomeState extends State<NewHome> {
               style: ElevatedButton.styleFrom(
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
-              icon: AppAsset(path: AppImagePaths.verticalDots),
+              icon: AppImage(path: AppImagePaths.verticalDots),
               padding: EdgeInsets.zero,
               // iconSize: 10,
               constraints: BoxConstraints(),
@@ -193,7 +193,7 @@ class _NewHomeState extends State<NewHome> {
           children: <Widget>[
             SizedBox(
               width: 24,
-              child: AppAsset(path: AppImagePaths.glob),
+              child: AppImage(path: AppImagePaths.glob),
             ),
             SizedBox(width: 8),
             Text('vpn_status'.i18n,

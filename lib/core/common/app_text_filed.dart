@@ -118,7 +118,7 @@ class AppTextFiled extends StatelessWidget {
         alignment: Alignment.topCenter,
         widthFactor: 1.0,
         heightFactor: maxLines.toDouble(),
-        child: AppAsset(
+        child: AppImage(
           path: iconPath,
           color: AppColors.yellow9,
         ),

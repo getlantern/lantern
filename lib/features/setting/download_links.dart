@@ -2,7 +2,14 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/widgets/base_screen.dart';
+
+enum _PlatformType {
+  android,
+  ios,
+  windows,
+  macos,
+  linux,
+}
 
 @RoutePage(name: 'DownloadLinks')
 class DownloadLinks extends StatelessWidget {
@@ -20,7 +27,7 @@ class DownloadLinks extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Center(
-            child: AppAsset(
+            child: AppImage(
               path: AppImagePaths.globIllustration,
               type: AssetType.png,
               height: 180.h,
@@ -31,7 +38,7 @@ class DownloadLinks extends StatelessWidget {
           Card(
             child: AppTile(
               icon: AppImagePaths.lanternLogoRounded,
-              trailing: AppAsset(path: AppImagePaths.outsideBrowser),
+              trailing: AppImage(path: AppImagePaths.outsideBrowser),
               label: 'Lantern.io',
               onPressed: () {},
             ),
@@ -50,21 +57,16 @@ class DownloadLinks extends StatelessWidget {
           Card(
             child: Column(
               children: [
-                AppTile(
+                AppTile.link(
+                  url: AppUrls.lanternGithub,
                   icon: AppImagePaths.github,
-                  trailing: AppAsset(path: AppImagePaths.outsideBrowser),
                   label: 'Github Download Page',
-                  onPressed: () {},
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: DividerSpace(),
-                ),
-                AppTile(
+                DividerSpace(),
+                AppTile.link(
+                  url: AppUrls.telegramBot,
                   icon: AppImagePaths.telegram,
-                  trailing: AppAsset(path: AppImagePaths.outsideBrowser),
-                  label: 'Telegram Bote',
-                  onPressed: () {},
+                  label: 'Telegram Bot',
                 ),
               ],
             ),
@@ -106,43 +108,48 @@ class DownloadLinks extends StatelessWidget {
         alignment: WrapAlignment.spaceEvenly,
         spacing: 5,
         children: [
-          Card(
-            margin: EdgeInsets.zero,
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: AppAsset(path: AppImagePaths.android),
-            ),
+          PlatformCard(
+            imagePath: AppImagePaths.android,
+            onPressed: () => onPlatformTap(_PlatformType.android),
           ),
-          Card(
-            margin: EdgeInsets.zero,
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: AppAsset(path: AppImagePaths.windows),
-            ),
+          PlatformCard(
+            imagePath: AppImagePaths.windows,
+            onPressed: () => onPlatformTap(_PlatformType.windows),
           ),
-          Card(
-            margin: EdgeInsets.zero,
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: AppAsset(path: AppImagePaths.ios),
-            ),
+          PlatformCard(
+            imagePath: AppImagePaths.ios,
+            onPressed: () => onPlatformTap(_PlatformType.ios),
           ),
-          Card(
-            margin: EdgeInsets.zero,
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: AppAsset(path: AppImagePaths.macos),
-            ),
+          PlatformCard(
+            imagePath: AppImagePaths.macos,
+            onPressed: () => onPlatformTap(_PlatformType.macos),
           ),
-          Card(
-            margin: EdgeInsets.zero,
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: AppAsset(path: AppImagePaths.linux),
-            ),
+          PlatformCard(
+            imagePath: AppImagePaths.linux,
+            onPressed: () => onPlatformTap(_PlatformType.linux),
           ),
         ],
       ),
     );
+  }
+
+  void onPlatformTap(_PlatformType platformType) {
+    switch (platformType) {
+      case _PlatformType.android:
+        UrlUtils.openUrl(AppUrls.downloadAndroid);
+        break;
+      case _PlatformType.ios:
+        UrlUtils.openUrl(AppUrls.downloadIos);
+        break;
+      case _PlatformType.windows:
+        UrlUtils.openUrl(AppUrls.downloadWindows);
+        break;
+      case _PlatformType.macos:
+        UrlUtils.openUrl(AppUrls.downloadMac);
+        break;
+      case _PlatformType.linux:
+        UrlUtils.openUrl(AppUrls.downloadLinux);
+        break;
+    }
   }
 }

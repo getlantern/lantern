@@ -39,7 +39,7 @@ class PrimaryButton extends StatelessWidget {
           )
         : ElevatedButton.icon(
             onPressed: enabled ? onPressed : null,
-            icon: AppAsset(
+            icon: AppImage(
               path: icon!,
               height: 22,
             ),
@@ -112,7 +112,7 @@ class SecondaryButton extends StatelessWidget {
           )
         : ElevatedButton.icon(
             onPressed: enabled ? onPressed : null,
-            icon: AppAsset(
+            icon: AppImage(
               path: icon!,
               height: 22,
             ),

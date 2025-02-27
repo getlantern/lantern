@@ -7,6 +7,6 @@ class LanternLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const AppAsset(path: AppImagePaths.lanternLogo);
+    return const AppImage(path: AppImagePaths.lanternLogo);
   }
 }
