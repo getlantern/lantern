@@ -14,6 +14,8 @@ class AppUrls {
   static String lanternGithub = 'https://github.com/getlantern/lantern';
   static String telegramBot = 'https://twitter.com/getlantern';
 
+  static String unbounded = 'https://unbounded.lantern.io';
+
 
 
 }

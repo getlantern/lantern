@@ -26,7 +26,6 @@ Future<void> desktopInit() async {
     return;
   }
   await windowManager.ensureInitialized();
-  // Keep same size as mobile
   await windowManager.setSize(desktopWindowSize);
   windowManager.setResizable(false);
 }

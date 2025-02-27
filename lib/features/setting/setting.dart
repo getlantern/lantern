@@ -1,7 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/widgets/base_screen.dart';
 import 'package:lantern/features/setting/follow_us.dart'
     show showFollowUsBottomSheet;
 
@@ -160,7 +159,9 @@ class _SettingState extends State<Setting> {
                 ),
               ),
               label: 'Unbounded',
-              onPressed: () {},
+              onPressed: () {
+                UrlUtils.openUrl(AppUrls.unbounded);
+              },
             ),
           )
         ],

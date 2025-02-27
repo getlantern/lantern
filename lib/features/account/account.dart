@@ -1,7 +1,6 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/widgets/base_screen.dart';
 
 @RoutePage(name: 'Account')
 class Account extends StatelessWidget {
@@ -52,12 +51,7 @@ class Account extends StatelessWidget {
           child: AppTile(
             label: '12/23/26',
             icon: AppImagePaths.email,
-            trailing: Text(
-              'manage_subscription'.i18n,
-              style: theme.titleMedium!.copyWith(
-                color: AppColors.blue7,
-              ),
-            ),
+            trailing: AppTextButton(label: 'manage_subscription'.i18n, onPressed: () {}),
             onPressed: () {},
           ),
         ),
@@ -132,8 +126,7 @@ class Account extends StatelessWidget {
     );
   }
 
-
-  void _onDeleteTap(){
+  void _onDeleteTap() {
     appRouter.push(const DeleteAccount());
   }
 }
