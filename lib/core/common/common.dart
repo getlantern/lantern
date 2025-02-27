@@ -29,6 +29,7 @@ export 'package:lantern/core/widgets/app_card.dart';
 export 'package:lantern/core/utils/url_utils.dart';
 export 'package:lantern/core/widgets/base_screen.dart';
 export 'package:lantern/core/widgets/platform_card.dart';
+export 'package:lantern/core/widgets/pro_banner.dart';
 
 
 
