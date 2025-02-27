@@ -42,10 +42,7 @@ class _ServerSelectionState extends State<ServerSelection> {
           padding: const EdgeInsets.only(bottom: 16.0),
           child: ProBanner(),
         ),
-        Expanded(
-            child: ServerLocationListView(
-          userPro: true,
-        )),
+        Expanded(child: ServerLocationListView(userPro: false,)),
       ],
     );
   }
@@ -165,7 +162,7 @@ class _ServerLocationListViewState extends State<ServerLocationListView> {
             ),
           ),
         ),
-        if (widget.userPro)
+        if (!widget.userPro)
           Container(
             color: AppColors.white.withValues(alpha: 0.5),
           )
