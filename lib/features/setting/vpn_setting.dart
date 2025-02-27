@@ -16,6 +16,7 @@ class VPNSetting extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     return Card(
       child: ListView(
+        padding: const EdgeInsets.all(0),
         shrinkWrap: true,
         children: <Widget>[
           AppTile(

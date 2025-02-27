@@ -71,10 +71,7 @@ class _SettingState extends State<Setting> {
                   icon: AppImagePaths.glob,
                   onPressed: () => settingMenuTap(_SettingType.vpnSetting),
                 ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: DividerSpace(),
-                ),
+                DividerSpace(),
                 AppTile(
                   label: 'Language',
                   icon: AppImagePaths.translate,
@@ -86,10 +83,7 @@ class _SettingState extends State<Setting> {
                   ),
                   onPressed: () => settingMenuTap(_SettingType.language),
                 ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: DividerSpace(),
-                ),
+                DividerSpace(),
                 AppTile(
                   label: 'Check for updates',
                   icon: AppImagePaths.update,
@@ -108,28 +102,19 @@ class _SettingState extends State<Setting> {
                   icon: AppImagePaths.support,
                   onPressed: () => settingMenuTap(_SettingType.support),
                 ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: DividerSpace(),
-                ),
+                DividerSpace(),
                 AppTile(
                   label: 'Download Links',
                   icon: AppImagePaths.desktop,
                   onPressed: () => settingMenuTap(_SettingType.downloadLinks),
                 ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: DividerSpace(),
-                ),
+                DividerSpace(),
                 AppTile(
                   label: 'follow_us'.i18n,
                   icon: AppImagePaths.thumb,
                   onPressed: () => settingMenuTap(_SettingType.followUs),
                 ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: DividerSpace(),
-                ),
+                DividerSpace(),
                 AppTile(
                   label: 'Get 30 days of Pro free',
                   icon: AppImagePaths.star,

@@ -5,12 +5,11 @@ import 'package:lantern/core/widgets/divider_space.dart';
 typedef BottomSheetBuilder = Function(
     BuildContext context, ScrollController scrollController);
 
-void showAppBottomSheet({
-  required BuildContext context,
-  required BottomSheetBuilder builder,
-  required String title,
-  double scrollControlDisabledMaxHeightRatio =.75
-}) {
+void showAppBottomSheet(
+    {required BuildContext context,
+    required BottomSheetBuilder builder,
+    required String title,
+    double scrollControlDisabledMaxHeightRatio = .75}) {
   final textTheme = Theme.of(context).textTheme.headlineSmall;
   showModalBottomSheet(
     context: context,
@@ -18,7 +17,7 @@ void showAppBottomSheet({
     enableDrag: true,
     showDragHandle: true,
     backgroundColor: AppColors.white,
-    scrollControlDisabledMaxHeightRatio:scrollControlDisabledMaxHeightRatio,
+    scrollControlDisabledMaxHeightRatio: scrollControlDisabledMaxHeightRatio,
     builder: (context) {
       return DraggableScrollableSheet(
         expand: true,
@@ -38,10 +37,8 @@ void showAppBottomSheet({
                   ),
                 ),
               ),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                child: DividerSpace(),
+              DividerSpace(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               ),
               builder(context, scrollController),
             ],
