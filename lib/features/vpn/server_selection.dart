@@ -42,7 +42,7 @@ class _ServerSelectionState extends State<ServerSelection> {
           padding: const EdgeInsets.only(bottom: 16.0),
           child: ProBanner(),
         ),
-        Expanded(child: ServerLocationListView(userPro: false,)),
+        Expanded(child: ServerLocationListView(userPro: true,)),
       ],
     );
   }
@@ -150,16 +150,22 @@ class _ServerLocationListViewState extends State<ServerLocationListView> {
           bottom: 0,
           right: 0,
           left: 0,
-          child: AppCard(
-            padding: EdgeInsets.zero,
-            child: ListView.builder(
-              padding: EdgeInsets.zero,
-              itemCount: 5,
-              shrinkWrap: true,
-              itemBuilder: (context, index) {
-                return _buildItem();
-              },
-            ),
+          child: Column(
+            children: [
+              Flexible(
+                child: AppCard(
+                  padding: EdgeInsets.zero,
+                  child: ListView.builder(
+                    padding: EdgeInsets.zero,
+                    shrinkWrap: true,
+                    itemCount:5,
+                    itemBuilder: (context, index) {
+                      return _buildItem();
+                    },
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
         if (!widget.userPro)
