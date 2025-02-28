@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:lantern/core/utils/url_utils.dart';
 
 import '../common/common.dart';
 
@@ -11,6 +10,8 @@ class AppTile extends StatelessWidget {
   final VoidCallback? onPressed;
   final EdgeInsets? contentPadding;
 
+  final TextStyle? tileTextStyle;
+
   const AppTile({
     super.key,
     required this.label,
@@ -19,6 +20,7 @@ class AppTile extends StatelessWidget {
     this.subtitle,
     this.trailing,
     this.contentPadding,
+    this.tileTextStyle,
   });
 
   factory AppTile.link({
@@ -37,9 +39,10 @@ class AppTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tileTextStyle = Theme.of(context).textTheme.labelLarge!.copyWith(
-          color: AppColors.gray9,
-        );
+    final _tileTextStyle = tileTextStyle ??
+        Theme.of(context).textTheme.labelLarge!.copyWith(
+              color: AppColors.gray9,
+            );
 
     Widget? leading;
     if (icon != null) {
@@ -63,7 +66,7 @@ class AppTile extends StatelessWidget {
       minVerticalPadding: 0,
       contentPadding:
           contentPadding ?? const EdgeInsets.symmetric(horizontal: 16),
-      title: Text(label, style: tileTextStyle),
+      title: Text(label, style: _tileTextStyle),
       subtitle: subtitle,
       leading: leading,
       trailing: trailing,

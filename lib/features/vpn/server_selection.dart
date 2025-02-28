@@ -2,6 +2,10 @@ import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/vpn_status_indicator.dart';
+import 'package:lantern/features/vpn/server_desktop_view.dart';
+import 'package:lantern/features/vpn/server_mobile_view.dart';
+
+typedef OnSeverSelected = Function(String selectedServer);
 
 @RoutePage(name: 'ServerSelection')
 class ServerSelection extends StatefulWidget {
@@ -13,6 +17,8 @@ class ServerSelection extends StatefulWidget {
 
 class _ServerSelectionState extends State<ServerSelection> {
   TextTheme? _textTheme;
+
+  bool isUserPro = false;
 
   @override
   Widget build(BuildContext context) {
@@ -38,11 +44,15 @@ class _ServerSelectionState extends State<ServerSelection> {
         ),
         DividerSpace(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16)),
-        Padding(
-          padding: const EdgeInsets.only(bottom: 16.0),
-          child: ProBanner(),
-        ),
-        Expanded(child: ServerLocationListView(userPro: true,)),
+        if (!isUserPro)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16.0),
+            child: ProBanner(),
+          ),
+        Expanded(
+            child: ServerLocationListView(
+          userPro: isUserPro,
+        )),
       ],
     );
   }
@@ -116,7 +126,7 @@ class _ServerSelectionState extends State<ServerSelection> {
   }
 }
 
-class ServerLocationListView extends StatefulWidget {
+class ServerLocationListView extends StatelessWidget {
   final bool userPro;
 
   const ServerLocationListView({
@@ -124,11 +134,6 @@ class ServerLocationListView extends StatefulWidget {
     required this.userPro,
   });
 
-  @override
-  State<ServerLocationListView> createState() => _ServerLocationListViewState();
-}
-
-class _ServerLocationListViewState extends State<ServerLocationListView> {
   @override
   Widget build(BuildContext context) {
     final _textTheme = Theme.of(context).textTheme;
@@ -140,7 +145,7 @@ class _ServerLocationListViewState extends State<ServerLocationListView> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Text('pro_locations'.i18n,
-                style: _textTheme.labelLarge!.copyWith(
+                style: _textTheme!.labelLarge!.copyWith(
                   color: AppColors.gray8,
                 )),
           ),
@@ -158,9 +163,16 @@ class _ServerLocationListViewState extends State<ServerLocationListView> {
                   child: ListView.builder(
                     padding: EdgeInsets.zero,
                     shrinkWrap: true,
-                    itemCount:5,
+                    itemCount: 5,
                     itemBuilder: (context, index) {
-                      return _buildItem();
+                      if (PlatformUtils.isDesktop()) {
+                        return ServerDesktopView(
+                          onServerSelected: onServerSelected,
+                        );
+                      }
+                      return ServerMobileView(
+                        onServerSelected: onServerSelected,
+                      );
                     },
                   ),
                 ),
@@ -168,7 +180,7 @@ class _ServerLocationListViewState extends State<ServerLocationListView> {
             ],
           ),
         ),
-        if (!widget.userPro)
+        if (!userPro)
           Container(
             color: AppColors.white.withValues(alpha: 0.5),
           )
@@ -176,47 +188,5 @@ class _ServerLocationListViewState extends State<ServerLocationListView> {
     );
   }
 
-  Widget _buildItem() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        AppTile(
-          label: 'Korea',
-          icon: AppImagePaths.location,
-          trailing: Icon(
-            Icons.arrow_forward_ios,
-            color: AppColors.gray9,
-            size: 20,
-          ),
-          onPressed: onItemTap,
-        ),
-        DividerSpace(),
-      ],
-    );
-  }
-
-  void onItemTap() {
-    showAppBottomSheet(
-      context: context,
-      title: 'Korea',
-      scrollControlDisabledMaxHeightRatio: .4,
-      builder: (context, scrollController) {
-        return ListView(
-          padding: EdgeInsets.zero,
-          shrinkWrap: true,
-          children: [
-            AppTile(
-              label: 'USA - New Jersey',
-              trailing: Radio<bool>(
-                activeColor: AppColors.gray9,
-                value: true,
-                groupValue: true,
-                onChanged: (value) {},
-              ),
-            )
-          ],
-        );
-      },
-    );
-  }
+  void onServerSelected(String selectedServer) {}
 }
