@@ -19,10 +19,10 @@ var (
 	vpnMutex sync.Mutex
 	server   *radiance.Radiance
 
-	log = golog.LoggerFor("lantern-outline.ffi")
+	log = golog.LoggerFor("lantern.ffi")
 )
 
-// startVPN initializes and starts the VPN server if it is not already running.
+// startVPN initializes and starts radiance if it is not already running.
 //
 //export startVPN
 func startVPN() *C.char {
@@ -34,22 +34,22 @@ func startVPN() *C.char {
 	if server == nil {
 		s, err := radiance.NewRadiance()
 		if err != nil {
-			err = fmt.Errorf("unable to create VPN server: %v", err)
+			err = fmt.Errorf("unable to create radiance: %v", err)
 			log.Error(err)
 			return C.CString(err.Error())
 		}
 		server = s
 	}
 	if err := start(context.Background(), server); err != nil {
-		err = fmt.Errorf("unable to start VPN server: %v", err)
+		err = fmt.Errorf("unable to start radiance: %v", err)
 		log.Error(err)
 		return C.CString(err.Error())
 	}
-	log.Debug("VPN server started successfully")
+	log.Debug("radiance started successfully")
 	return nil
 }
 
-// stopVPN stops the VPN server if it is running.
+// stopVPN stops radiance if it is running.
 //
 //export stopVPN
 func stopVPN() *C.char {
@@ -59,12 +59,12 @@ func stopVPN() *C.char {
 	defer vpnMutex.Unlock()
 
 	if server == nil {
-		log.Debug("VPN server is not running")
+		log.Debug("radiance is not running")
 		return nil
 	}
 
 	if err := server.StopVPN(); err != nil {
-		err = fmt.Errorf("unable to stop VPN server: %v", err)
+		err = fmt.Errorf("unable to stop radiance: %v", err)
 		log.Error(err)
 		return C.CString(err.Error())
 	}
@@ -72,11 +72,11 @@ func stopVPN() *C.char {
 	// Make sure to clear out the server after a successful stop
 	server = nil
 
-	log.Debug("VPN server stopped successfully")
+	log.Debug("radiance stopped successfully")
 	return nil
 }
 
-// isVPNConnected checks if the VPN server is running and connected.
+// isVPNConnected checks if radiance is running and connected.
 //
 //export isVPNConnected
 func isVPNConnected() int {
