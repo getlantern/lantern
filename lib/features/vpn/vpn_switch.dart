@@ -12,10 +12,11 @@ import 'package:lantern/core/providers/ffi_provider.dart';
 import 'package:lantern/core/services/native_bridge.dart';
 
 class VPNSwitch extends HookConsumerWidget {
+  final NativeBridge _nativeBridge = NativeBridge();
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ffiClient = ref.read(ffiClientProvider);
-    final NativeBridge _nativeBridge = NativeBridge();
     final _vpnStatus = useState<VPNStatus>(VPNStatus.disconnected);
     final _loading = useState<bool>(false);
 
