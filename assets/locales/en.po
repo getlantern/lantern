@@ -7,8 +7,8 @@ msgstr "Upgrade to Pro"
 msgid "language"
 msgstr "Language"
 
-msgid "setting"
-msgstr "Setting"
+msgid "settings"
+msgstr "Settings"
 
 msgid "language"
 msgstr "Language"
@@ -40,7 +40,7 @@ msgstr "Unbounded"
 msgid "help_fight_global_internet_censorship"
 msgstr "Help Fight Global Internet Censorship"
 
-msgid "vpn_setting"
+msgid "vpn_settings"
 msgstr "VPN Settings"
 
 msgid "split_tunneling"
@@ -138,6 +138,35 @@ msgstr "Pro locations:"
 
 msgid "choose_your_location_with_lantern_pro"
 msgstr "Choose your location with Lantern Pro:"
+
+msgid "language"
+msgstr "Language"
+
+msgid "sign_in"
+msgstr "Sign In"
+
+msgid "account"
+msgstr "Account"
+
+msgid "sign_out"
+msgstr "Sign Out"
+
+msgid "check_for_updates"
+msgstr "Check for Updates"
+
+msgid "support"
+msgstr "Support"
+
+msgid "download_links"
+msgstr "Download Links"
+
+
+msgid "get_30_days_of_pro_free"
+msgstr "Get 30 days of Pro free"
+
+
+
+
 
 
 

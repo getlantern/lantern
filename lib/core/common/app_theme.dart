@@ -30,18 +30,23 @@ class AppTheme {
         titleMedium: AppTestStyles.titleMedium,
         titleSmall: AppTestStyles.titleSmall,
       ),
-
       appBarTheme: AppBarTheme(
         centerTitle: true,
-        surfaceTintColor: AppColors.blue7,
+        surfaceTintColor: AppColors.white,
         titleTextStyle: AppTestStyles.headingSmall.copyWith(
           color: AppColors.blue10,
         ),
         titleSpacing: 0,
         elevation: 0,
-        backgroundColor: AppColors.gray1,
-        systemOverlayStyle: SystemUiOverlayStyle.dark,
 
+        backgroundColor: AppColors.gray1,
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: AppColors.white,
+          statusBarBrightness: Brightness.light,
+          statusBarIconBrightness: Brightness.dark,
+          systemNavigationBarColor: AppColors.gray1,
+
+        ),
         iconTheme: IconThemeData(
           color: AppColors.blue10,
         ),
@@ -67,9 +72,9 @@ class AppTheme {
           backgroundColor: AppColors.blue10,
           enableFeedback: true,
           foregroundColor: AppColors.gray1,
-          textStyle: AppTestStyles.primaryButtonTextStyle.copyWith(fontSize: 18.0, color: AppColors.gray1),
+          textStyle: AppTestStyles.primaryButtonTextStyle
+              .copyWith(fontSize: 18.0, color: AppColors.gray1),
           overlayColor: AppColors.blue6,
-
           minimumSize: const Size(double.infinity, 52),
           tapTargetSize: MaterialTapTargetSize.padded,
           shape: RoundedRectangleBorder(
@@ -82,10 +87,6 @@ class AppTheme {
   }
 
   static ThemeData darkTheme() {
-    return ThemeData(
-
-    );
+    return ThemeData();
   }
-
-
 }

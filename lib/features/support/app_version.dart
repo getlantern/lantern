@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:lantern/core/common/app_colors.dart';
-import 'package:lantern/core/common/app_text_styles.dart';
 
 class AppVersion extends StatelessWidget {
   final String version;
@@ -11,7 +10,6 @@ class AppVersion extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context).textTheme;
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 20, horizontal: 16),
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
         color: AppColors.gray1,

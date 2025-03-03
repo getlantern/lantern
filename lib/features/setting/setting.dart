@@ -4,8 +4,6 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/features/setting/follow_us.dart'
     show showFollowUsBottomSheet;
 
-import '../language/language.dart' show showLanguageBottomSheet;
-
 enum _SettingType {
   account,
   signIn,
@@ -36,11 +34,16 @@ class _SettingState extends State<Setting> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return BaseScreen(
-      title: 'setting'.i18n,
+      title: 'settings'.i18n,
+      padded: false,
       body: ListView(
+        padding: EdgeInsets.symmetric(horizontal: defaultSize),
         children: <Widget>[
-          ProButton(
-            onPressed: () {},
+          Padding(
+            padding: const EdgeInsets.only(top: 16),
+            child: ProButton(
+              onPressed: () {},
+            ),
           ),
           const SizedBox(height: 16),
           Card(
@@ -66,13 +69,13 @@ class _SettingState extends State<Setting> {
             child: Column(
               children: [
                 AppTile(
-                  label: 'VPN Setting',
+                  label: 'vpn_settings'.i18n,
                   icon: AppImagePaths.glob,
                   onPressed: () => settingMenuTap(_SettingType.vpnSetting),
                 ),
                 DividerSpace(),
                 AppTile(
-                  label: 'Language',
+                  label: 'language'.i18n,
                   icon: AppImagePaths.translate,
                   trailing: Text(
                     'English',
@@ -84,7 +87,7 @@ class _SettingState extends State<Setting> {
                 ),
                 DividerSpace(),
                 AppTile(
-                  label: 'Check for updates',
+                  label: 'check_for_updates'.i18n,
                   icon: AppImagePaths.update,
                   onPressed: () => settingMenuTap(_SettingType.checkForUpdates),
                 ),
@@ -97,13 +100,13 @@ class _SettingState extends State<Setting> {
             child: Column(
               children: [
                 AppTile(
-                  label: 'Support',
+                  label: 'support'.i18n,
                   icon: AppImagePaths.support,
                   onPressed: () => settingMenuTap(_SettingType.support),
                 ),
                 DividerSpace(),
                 AppTile(
-                  label: 'Download Links',
+                  label: 'download_links'.i18n,
                   icon: AppImagePaths.desktop,
                   onPressed: () => settingMenuTap(_SettingType.downloadLinks),
                 ),
@@ -115,7 +118,7 @@ class _SettingState extends State<Setting> {
                 ),
                 DividerSpace(),
                 AppTile(
-                  label: 'Get 30 days of Pro free',
+                  label: 'get_30_days_of_pro_free'.i18n,
                   icon: AppImagePaths.star,
                   onPressed: () => settingMenuTap(_SettingType.getPro),
                 ),
@@ -180,11 +183,9 @@ class _SettingState extends State<Setting> {
         // TODO: Handle this case.
         throw UnimplementedError();
       case _SettingType.language:
-        if (PlatformUtils.isDesktop()) {
-          appRouter.push(Language());
-          return;
-        }
-        showLanguageBottomSheet(context);
+        appRouter.push(Language());
+        return;
+
         break;
       case _SettingType.appearance:
         // TODO: Handle this case.

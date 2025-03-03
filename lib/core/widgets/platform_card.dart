@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../common/common.dart';
 
@@ -13,7 +14,7 @@ class PlatformCard extends StatelessWidget {
     return GestureDetector(
       onTap: onPressed,
       child: AppCard(
-        padding: const EdgeInsets.all(20.0),
+        padding: EdgeInsets.all(18.r),
         child: AppImage(path: imagePath),
       ),
     );

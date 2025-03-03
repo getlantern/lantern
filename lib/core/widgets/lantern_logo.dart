@@ -3,10 +3,16 @@ import 'package:flutter/material.dart';
 import '../common/common.dart';
 
 class LanternLogo extends StatelessWidget {
-  const LanternLogo({super.key});
+  final bool isPro;
+
+  const LanternLogo({
+    super.key,
+    this.isPro = false,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return const AppImage(path: AppImagePaths.lanternLogo);
+    return AppImage(
+        path: isPro ? AppImagePaths.lanternPro : AppImagePaths.lanternLogo);
   }
 }

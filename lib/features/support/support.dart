@@ -2,10 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
-import 'package:lantern/core/common/app_urls.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/widgets/app_card.dart';
-import 'package:lantern/core/widgets/base_screen.dart';
 import 'package:lantern/features/support/app_version.dart';
 
 @RoutePage(name: 'Support')
@@ -16,10 +13,9 @@ class Support extends StatelessWidget {
   Widget build(BuildContext context) {
     return BaseScreen(
       title: toBeginningOfSentenceCase('support'.i18n),
-      // TODO: update to use dynamic version
-      bottomNavigationBar: AppVersion(version: '8.1.4 (20250213.213443)'),
       body: SafeArea(
         child: ListView(
+
           padding: EdgeInsets.zero,
           children: <Widget>[
             Center(
@@ -80,6 +76,9 @@ class Support extends StatelessWidget {
                 ],
               ),
             ),
+            // Spacer(),
+            SizedBox(height: 16),
+            AppVersion(version: '8.1.4 (20250213.213443)'),
           ],
         ),
       ),

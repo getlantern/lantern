@@ -18,7 +18,7 @@ class ServerSelection extends StatefulWidget {
 class _ServerSelectionState extends State<ServerSelection> {
   TextTheme? _textTheme;
 
-  bool isUserPro = false;
+  bool isUserPro = true;
 
   @override
   Widget build(BuildContext context) {

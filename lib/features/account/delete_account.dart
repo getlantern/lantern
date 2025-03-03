@@ -21,69 +21,71 @@ class _DeleteAccountState extends State<DeleteAccount> {
 
   Widget _buildBody() {
     final textTheme = Theme.of(context).textTheme;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Center(
-          child: AppImage(
-            path: AppImagePaths.delete,
-            width: 120,
-            height: 120,
-          ),
-        ),
-        SizedBox(height: defaultSize),
-        Center(
-            child:
-                Text('delete_account_?'.i18n, style: textTheme.headlineSmall)),
-        SizedBox(height: defaultSize),
-        Padding(
-          padding: const EdgeInsets.only(left: 16),
-          child: Text(
-            'delete_account_message'.i18n,
-            style: textTheme.bodyLarge!.copyWith(
-              color: AppColors.gray8,
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Center(
+            child: AppImage(
+              path: AppImagePaths.delete,
+              width: 120,
+              height: 120,
             ),
           ),
-        ),
-        SizedBox(height: defaultSize),
-        Padding(
-          padding: const EdgeInsets.only(left: 16),
-          child: Text(
-            'delete_account_message_two'.i18n,
-            style: textTheme.bodyLarge!.copyWith(
-              color: AppColors.gray8,
+          SizedBox(height: defaultSize),
+          Center(
+              child:
+                  Text('delete_account_?'.i18n, style: textTheme.headlineSmall)),
+          SizedBox(height: defaultSize),
+          Padding(
+            padding: const EdgeInsets.only(left: 16),
+            child: Text(
+              'delete_account_message'.i18n,
+              style: textTheme.bodyLarge!.copyWith(
+                color: AppColors.gray8,
+              ),
             ),
           ),
-        ),
-        SizedBox(height: 20),
-        Padding(
-          padding: const EdgeInsets.only(left: 16),
-          child: Text(
-            'enter_password_to_confirm'.i18n,
-            style: textTheme.labelLarge,
+          SizedBox(height: defaultSize),
+          Padding(
+            padding: const EdgeInsets.only(left: 16),
+            child: Text(
+              'delete_account_message_two'.i18n,
+              style: textTheme.bodyLarge!.copyWith(
+                color: AppColors.gray8,
+              ),
+            ),
           ),
-        ),
-        SizedBox(height: 4),
-        AppTextFiled(
-          hintText: '',
-          obscureText: true,
-          prefixIcon: AppImagePaths.lock,
-          onChanged: (value) {},
-        ),
-        Spacer(),
-        PrimaryButton(
-          label: 'confirm_deletion'.i18n,
-          enabled: false,
-          bgColor: AppColors.red7,
-          onPressed: () {},
-        ),
-        SizedBox(height: defaultSize),
-        SecondaryButton(
-          label: 'Cancel',
-          onPressed: () {},
-        ),
-        SizedBox(height: 48.0),
-      ],
+          SizedBox(height: 20),
+          Padding(
+            padding: const EdgeInsets.only(left: 16),
+            child: Text(
+              'enter_password_to_confirm'.i18n,
+              style: textTheme.labelLarge,
+            ),
+          ),
+          SizedBox(height: 4),
+          AppTextFiled(
+            hintText: '',
+            obscureText: true,
+            prefixIcon: AppImagePaths.lock,
+            onChanged: (value) {},
+          ),
+          SizedBox(height: 130.0),
+          PrimaryButton(
+            label: 'confirm_deletion'.i18n,
+            enabled: false,
+            bgColor: AppColors.red7,
+            onPressed: () {},
+          ),
+          SizedBox(height: defaultSize),
+          SecondaryButton(
+            label: 'Cancel',
+            onPressed: () {},
+          ),
+
+        ],
+      ),
     );
   }
 }

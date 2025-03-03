@@ -1,4 +1,3 @@
-import 'package:animated_toggle_switch/animated_toggle_switch.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:lantern/core/widgets/vpn_status_indicator.dart';
@@ -17,12 +16,16 @@ class NewHome extends StatefulWidget {
 class _NewHomeState extends State<NewHome> {
   TextTheme? textTheme;
 
+  final isUserPro = false;
+
   @override
   Widget build(BuildContext context) {
     textTheme = Theme.of(context).textTheme;
     return Scaffold(
       appBar: AppBar(
-          title: const LanternLogo(),
+        backgroundColor: AppColors.white,
+          title:  LanternLogo(isPro: isUserPro,),
+          elevation: 5,
           leading: IconButton(
               onPressed: () {
                 appRouter.push(const Setting());
@@ -38,7 +41,11 @@ class _NewHomeState extends State<NewHome> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
+          if (isUserPro)
+            SizedBox(height: 0)
+          else
           _buildProBanner(),
+
           VPNSwitch(),
           Column(
             mainAxisSize: MainAxisSize.min,
@@ -56,6 +63,7 @@ class _NewHomeState extends State<NewHome> {
 
   Widget _buildProBanner() {
     return Container(
+      margin: EdgeInsets.only(top: defaultSize),
       padding: EdgeInsets.all(defaultSize),
       decoration: BoxDecoration(
           color: AppColors.yellow1,
@@ -124,6 +132,8 @@ class _NewHomeState extends State<NewHome> {
 
   Widget _buildSetting() {
     return Card(
+      elevation: .5,
+      shadowColor: AppColors.blue2,
       margin: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.all(defaultSize),

@@ -33,7 +33,6 @@ class Account extends StatelessWidget {
           child: AppTile(
             label: '122300984@qq.com',
             icon: AppImagePaths.email,
-            trailing: AppImage(path: AppImagePaths.copy),
             onPressed: () {},
           ),
         ),
@@ -51,7 +50,8 @@ class Account extends StatelessWidget {
           child: AppTile(
             label: '12/23/26',
             icon: AppImagePaths.email,
-            trailing: AppTextButton(label: 'manage_subscription'.i18n, onPressed: () {}),
+            trailing: AppTextButton(
+                label: 'manage_subscription'.i18n, onPressed: () {}),
             onPressed: () {},
           ),
         ),
@@ -86,7 +86,8 @@ class Account extends StatelessWidget {
               ),
               DividerSpace(),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: defaultSize),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: defaultSize, vertical: 5),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -121,7 +122,6 @@ class Account extends StatelessWidget {
             ),
           ),
         ),
-        SizedBox(height: 48.0),
       ],
     );
   }
