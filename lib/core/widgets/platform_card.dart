@@ -14,7 +14,7 @@ class PlatformCard extends StatelessWidget {
     return GestureDetector(
       onTap: onPressed,
       child: AppCard(
-        padding: EdgeInsets.all(18.r),
+        padding: EdgeInsets.all(15.r),
         child: AppImage(path: imagePath),
       ),
     );

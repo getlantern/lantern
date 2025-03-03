@@ -26,6 +26,7 @@ void showAppBottomSheet(
         snap: true,
         builder: (BuildContext context, ScrollController scrollController) {
           return Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Padding(
