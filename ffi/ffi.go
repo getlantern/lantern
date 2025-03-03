@@ -28,8 +28,8 @@ var (
 func startVPN() *C.char {
 	log.Debug("startVPN called")
 
-	mu.Lock()
-	defer mu.Unlock()
+	vpnMutex.Lock()
+	defer vpnMutex.Unlock()
 
 	if server == nil {
 		s, err := radiance.NewRadiance()
