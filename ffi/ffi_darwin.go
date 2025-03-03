@@ -6,9 +6,9 @@ package main
 import (
 	"context"
 
-	"github.com/getlantern/lantern-outline/vpn"
+	"github.com/getlantern/radiance"
 )
 
-func start(ctx context.Context, server vpn.VPNServer) error {
-	return server.Start(ctx)
+func start(ctx context.Context, server *radiance.Radiance) error {
+	return server.StartVPN()
 }

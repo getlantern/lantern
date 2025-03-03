@@ -12,12 +12,12 @@ import (
 	"unsafe"
 
 	"github.com/getlantern/golog"
-	"github.com/getlantern/lantern-outline/vpn"
+	"github.com/getlantern/radiance"
 )
 
 var (
 	vpnMutex sync.Mutex
-	server   vpn.VPNServer
+	server   *radiance.Radiance
 
 	log = golog.LoggerFor("lantern-outline.ffi")
 )
@@ -28,11 +28,11 @@ var (
 func startVPN() *C.char {
 	log.Debug("startVPN called")
 
-	vpnMutex.Lock()
-	defer vpnMutex.Unlock()
+	mu.Lock()
+	defer mu.Unlock()
 
 	if server == nil {
-		s, err := vpn.NewVPNServer(&vpn.Opts{Address: ":0"})
+		s, err := radiance.NewRadiance()
 		if err != nil {
 			err = fmt.Errorf("unable to create VPN server: %v", err)
 			log.Error(err)
@@ -63,7 +63,7 @@ func stopVPN() *C.char {
 		return nil
 	}
 
-	if err := server.Stop(); err != nil {
+	if err := server.StopVPN(); err != nil {
 		err = fmt.Errorf("unable to stop VPN server: %v", err)
 		log.Error(err)
 		return C.CString(err.Error())
@@ -83,7 +83,10 @@ func isVPNConnected() int {
 	vpnMutex.Lock()
 	defer vpnMutex.Unlock()
 
-	if server == nil || !server.IsVPNConnected() {
+	// if server == nil || !server.IsVPNConnected() {
+	// 	return 0
+	// }
+	if server == nil {
 		return 0
 	}
 
