@@ -9,6 +9,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/providers/ffi_provider.dart';
+import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/services/native_bridge.dart';
 
 class VPNSwitch extends HookConsumerWidget {
@@ -22,24 +23,35 @@ class VPNSwitch extends HookConsumerWidget {
 
     Future<void> _connectVPN() async {
       _loading.value = true;
-      if (Platform.isIOS) {
-        await _nativeBridge.startVPN();
-      } else {
-        ffiClient.startVPN();
+      try {
+        if (Platform.isIOS) {
+          await _nativeBridge.startVPN();
+        } else {
+          ffiClient.startVPN();
+        }
+        await Future.delayed(const Duration(seconds: 1));
+        _vpnStatus.value = VPNStatus.connected;
+      } catch (e) {
+        appLogger.error("Error connecting to vpn: $e");
+      } finally {
+        _loading.value = false;
       }
-      await Future.delayed(const Duration(seconds: 1));
-      _vpnStatus.value = VPNStatus.connected;
-      _loading.value = false;
     }
 
     Future<void> _disconnectVPN() async {
-      if (Platform.isIOS) {
-        await _nativeBridge.stopVPN();
-      } else {
-        ffiClient.stopVPN();
+      _loading.value = true;
+      try {
+        if (Platform.isIOS) {
+          await _nativeBridge.stopVPN();
+        } else {
+          ffiClient.stopVPN();
+        }
+        _vpnStatus.value = VPNStatus.disconnected;
+      } catch (e) {
+        appLogger.error("Error disconnecting from vpn: $e");
+      } finally {
+        _loading.value = false;
       }
-      _vpnStatus.value = VPNStatus.disconnected;
-      _loading.value = false;
     }
 
     Future<void> onVPNStateChange(VPNStatus value) async {
@@ -61,7 +73,7 @@ class VPNSwitch extends HookConsumerWidget {
       borderWidth: 5,
       style: ToggleStyle(
         indicatorColor: AppColors.gray2,
-        backgroundColor: _vpnStatus == VPNStatus.connected
+        backgroundColor: _vpnStatus.value == VPNStatus.connected
             ? AppColors.blue3
             : AppColors.gray4,
         borderColor: Colors.transparent,
