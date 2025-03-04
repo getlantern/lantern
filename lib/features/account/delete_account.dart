@@ -1,7 +1,6 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
-import 'package:lantern/core/common/app_text_filed.dart';
-
+import 'package:lantern/core/common/app_text_field.dart';
 import '../../core/common/common.dart';
 
 @RoutePage(name: 'DeleteAccount')
@@ -55,17 +54,10 @@ class _DeleteAccountState extends State<DeleteAccount> {
               ),
             ),
           ),
-          SizedBox(height: 20),
-          Padding(
-            padding: const EdgeInsets.only(left: 16),
-            child: Text(
-              'enter_password_to_confirm'.i18n,
-              style: textTheme.labelLarge!.copyWith(),
-            ),
-          ),
-          SizedBox(height: 4),
-          AppTextFiled(
+          SizedBox(height: defaultSize),
+          AppTextField(
             hintText: '',
+            label: 'enter_password_to_confirm'.i18n,
             obscureText: true,
             prefixIcon: AppImagePaths.lock,
             onChanged: (value) {},

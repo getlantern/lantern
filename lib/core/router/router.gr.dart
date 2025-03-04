@@ -194,10 +194,13 @@ class NewHome extends _i14.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i9.ReportIssue]
-class ReportIssue extends _i14.PageRouteInfo<void> {
-  const ReportIssue({List<_i14.PageRouteInfo>? children})
-      : super(
+class ReportIssue extends _i14.PageRouteInfo<ReportIssueArgs> {
+  ReportIssue({
+    _i15.Key? key,
+    List<_i14.PageRouteInfo>? children,
+  }) : super(
           ReportIssue.name,
+          args: ReportIssueArgs(key: key),
           initialChildren: children,
         );
 
@@ -206,9 +209,22 @@ class ReportIssue extends _i14.PageRouteInfo<void> {
   static _i14.PageInfo page = _i14.PageInfo(
     name,
     builder: (data) {
-      return const _i9.ReportIssue();
+      final args =
+          data.argsAs<ReportIssueArgs>(orElse: () => const ReportIssueArgs());
+      return _i9.ReportIssue(key: args.key);
     },
   );
+}
+
+class ReportIssueArgs {
+  const ReportIssueArgs({this.key});
+
+  final _i15.Key? key;
+
+  @override
+  String toString() {
+    return 'ReportIssueArgs{key: $key}';
+  }
 }
 
 /// generated route for

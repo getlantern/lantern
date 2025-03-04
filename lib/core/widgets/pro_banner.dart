@@ -32,7 +32,7 @@ class ProBanner extends StatelessWidget {
             minFontSize: 14,
             maxFontSize: 16,
             overflow: TextOverflow.ellipsis,
-            style: textTheme.labelLarge!.copyWith(
+            style: textTheme.bodyMedium!.copyWith(
               color: AppColors.gray9,
             ),
           ),

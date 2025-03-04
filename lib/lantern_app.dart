@@ -1,6 +1,5 @@
 import 'dart:ui';
 
-import 'package:device_preview_plus/device_preview_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';

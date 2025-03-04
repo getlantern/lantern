@@ -34,6 +34,7 @@ class Support extends StatelessWidget {
                   AppTile(
                     icon: Icons.error_outline,
                     label: 'Report an Issue',
+                    onPressed: () => appRouter.push( ReportIssue()),
                   ),
                   DividerSpace(
                     padding: EdgeInsets.symmetric(horizontal: 16),

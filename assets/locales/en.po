@@ -88,7 +88,7 @@ msgstr "Account deletion is permanent. You will lose access on all devices, and 
 msgid "delete_account_message_two"
 msgstr "To confirm deletion please enter your password below"
 
-msgid "enter_password_to_confirm"
+msgid "Submit Issue Report"
 msgstr "Enter Password to Confirm"
 
 msgid "confirm_deletion"
@@ -165,6 +165,60 @@ msgstr "Get 30 days of Pro free"
 
 msgid "share_message_referral_code"
 msgstr "For a free month of Lantern Pro, use this referral code: %s ; You can download it from here: https://lantern.io/download"
+
+msgid "submit_issue_report"
+msgstr "Submit Issue Report"
+
+msgid "select_an_issue"
+msgstr "Select an Issue"
+
+
+msgid "cannot_access_blocked_sites"
+msgstr "Cannot access blocked sites"
+
+msgid "cannot_complete_purchase"
+msgstr "Cannot complete purchase"
+
+
+msgid "discover_not_working"
+msgstr "Discover not working"
+
+msgid "cannot_sign_in"
+msgstr "Cannot sign in"
+
+msgid "spinner_loads_endlessly"
+msgstr "Spinner loads endlessly"
+
+msgid "slow"
+msgstr "Slow"
+
+msgid "cannot_link_devices"
+msgstr "Cannot link devices"
+
+msgid "wrong_device_linking_code"
+msgstr "Wrong or invalid device linking code"
+
+msgid "cannot_remove_device"
+msgstr "Cannot remove device"
+
+msgid "application_crashes"
+msgstr "Application crashes"
+
+msgid "other"
+msgstr "Other"
+
+msgid "issue_description"
+msgstr "Describe your issue"
+
+
+
+msgid "enter_password_to_confirm"
+msgstr "Enter password to confirm"
+
+
+
+
+
 
 
 

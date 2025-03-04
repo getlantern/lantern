@@ -5,32 +5,31 @@ import 'package:lantern/core/common/app_asset.dart';
 import 'package:lantern/core/common/app_colors.dart';
 import 'package:lantern/core/common/app_dimens.dart';
 
-class AppTextFiled extends StatelessWidget {
+class AppTextField extends StatelessWidget {
   final FormFieldValidator<String>? validator;
   final ValueChanged<String>? onChanged;
   final TextEditingController? controller;
-
   final bool enable;
   final String hintText;
+  final String? label;
   final String? initialValue;
-  final String? prefixIcon;
-  final String? suffixIcon;
+  final Object? prefixIcon;
+  final Object? suffixIcon;
   final int maxLines;
-
   final AutovalidateMode autovalidateMode;
-
   final TextInputType? keyboardType;
   final TextInputAction? textInputAction;
   final bool? enableSuggestions;
   final bool obscureText;
-
   final List<TextInputFormatter> inputFormatters;
+  final VoidCallback? onTap;
 
-  const AppTextFiled({
+  const AppTextField({
     super.key,
     required this.hintText,
     this.validator,
     this.onChanged,
+    this.label,
     this.maxLines = 1,
     this.prefixIcon,
     this.suffixIcon,
@@ -43,12 +42,13 @@ class AppTextFiled extends StatelessWidget {
     this.keyboardType,
     this.textInputAction,
     this.initialValue,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme!;
-    return TextFormField(
+    Widget inputField = TextFormField(
       textAlign: TextAlign.start,
       textAlignVertical: TextAlignVertical.top,
       keyboardType: keyboardType,
@@ -59,6 +59,8 @@ class AppTextFiled extends StatelessWidget {
       inputFormatters: inputFormatters,
       obscureText: obscureText,
       onChanged: onChanged,
+      readOnly: onTap != null,
+      onTap: onTap,
       cursorColor: AppColors.blue8,
       autovalidateMode: autovalidateMode,
       validator: validator,
@@ -109,19 +111,49 @@ class AppTextFiled extends StatelessWidget {
             ),
           )),
     );
+
+    // If a label is provided, wrap the input field in a Column with a Text widget above.
+    if (label != null) {
+      final double labelLeftPadding = prefixIcon != null ? 16.0 : 8.0;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.only(left: labelLeftPadding),
+            child: Text(
+              label!,
+              style: textTheme.labelLarge?.copyWith(
+                color: AppColors.gray8,
+                fontSize: 14.sp,
+              ),
+            ),
+          ),
+          const SizedBox(height: 4.0),
+          inputField,
+        ],
+      );
+    }
+
+    return inputField;
   }
 
-  Widget _buildFix(String iconPath) {
+  Widget _buildFix(Object iconPath) {
+    Widget? appAsset;
+    if (iconPath is IconData) {
+      appAsset = Icon(iconPath, color: AppColors.yellow9);
+    } else if (iconPath is String) {
+      appAsset = AppImage(
+        path: iconPath,
+        color: AppColors.yellow9,
+      );
+    }
     return Padding(
       padding: EdgeInsets.only(left: 16, right: 16, top: 14.h, bottom: 14.h),
       child: Align(
         alignment: Alignment.topCenter,
         widthFactor: 1.0,
         heightFactor: maxLines.toDouble(),
-        child: AppImage(
-          path: iconPath,
-          color: AppColors.yellow9,
-        ),
+        child: appAsset,
       ),
     );
   }

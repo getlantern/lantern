@@ -1,22 +1,51 @@
-import 'package:auto_route/annotations.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:lantern/core/common/app_text_filed.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/common/app_text_field.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/widgets/base_screen.dart';
+import 'package:lantern/core/widgets/radio_listview.dart';
 
 @RoutePage(name: 'ReportIssue')
-class ReportIssue extends StatelessWidget {
-  const ReportIssue({super.key});
+class ReportIssue extends HookConsumerWidget {
+  ReportIssue({super.key});
+
+  final issueOptions = <String>[
+    'cannot_access_blocked_sites'.i18n,
+    'cannot_complete_purchase'.i18n,
+    'cannot_sign_in'.i18n,
+    'discover_not_working'.i18n,
+    'spinner_loads_endlessly'.i18n,
+    'slow'.i18n,
+    'cannot_link_devices'.i18n,
+    'application_crashes'.i18n,
+    'other'.i18n
+  ];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final emailController = useTextEditingController();
+    final descriptionController = useTextEditingController();
+    final selectedIssueController = useTextEditingController();
+    final List<String> issueOptions = [
+      'Cannot sign in',
+      'Slow',
+      'Cannot complete purchase'
+    ];
+
+    void submitReport() {
+      print('Email: ${emailController.text}');
+      print('Issue: ${selectedIssueController.value}');
+      print('Description: ${descriptionController.text}');
+    }
+
     return BaseScreen(
       title: 'report_issue'.i18n,
       body: Column(
         children: <Widget>[
-          AppTextFiled(
-
-            hintText: 'email',
+          AppTextField(
+            hintText: 'Email (optional)',
+            label: 'Email',
             prefixIcon: AppImagePaths.email,
             keyboardType: TextInputType.emailAddress,
             validator: (value) {
@@ -25,10 +54,50 @@ class ReportIssue extends StatelessWidget {
               }
               return null;
             },
-
+          ),
+          const SizedBox(height: 16),
+          AppTextField(
+            label: 'select_an_issue'.i18n,
+            hintText: '',
+            onTap: () => openIssueSelection(context),
+            prefixIcon: Icons.error_outline,
+            suffixIcon: Icons.arrow_drop_down,
+            controller: selectedIssueController,
+          ),
+          const SizedBox(height: 16),
+          // Issue description (text area) with an icon on the left side
+          AppTextField(
+            controller: descriptionController,
+            hintText: '',
+            label: 'Issue Description',
+            prefixIcon: Icons.description_outlined,
+            maxLines: 10,
+          ),
+          const SizedBox(height: size24),
+          PrimaryButton(
+            label: 'submit_issue_report'.i18n,
+            onPressed: submitReport,
           ),
         ],
       ),
     );
   }
+
+  Future<void> openIssueSelection(BuildContext context) async {
+    // Navigate to a full-screen issue selection screen and wait for the selected option.
+    showAppBottomSheet(
+      context: context,
+      title: 'select_an_issue'.i18n,
+      builder: (context, scrollController) {
+        return Expanded(
+            child: RadioListView(
+          scrollController: scrollController,
+          items: issueOptions,
+          onTap: _onIssueTap,
+        ));
+      },
+    );
+  }
+
+  void _onIssueTap(String issueType) {}
 }

@@ -47,6 +47,9 @@ class AppColors {
   static Color get gray9 => const Color(0xFF1B1C1D);
 
   static Color get gray10 => Colors.black;
+
+  static Color get gray11 => const Color(0xFF040404);
+
   static Color get yellow0 => const Color(0xFFFEFDF6);
 
   static Color get yellow1 => const Color(0xFFFCF8E8);
