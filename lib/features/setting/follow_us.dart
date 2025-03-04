@@ -84,11 +84,17 @@ class FollowUs extends StatelessWidget {
 }
 
 class FollowUsListView extends StatelessWidget {
-  const FollowUsListView({super.key});
+  final ScrollController? scrollController;
+
+  const FollowUsListView({
+    super.key,
+    this.scrollController,
+  });
 
   @override
   Widget build(BuildContext context) {
     return ListView(
+      controller: scrollController,
       padding: EdgeInsets.zero,
       shrinkWrap: true,
       children: [
@@ -124,10 +130,11 @@ void showFollowUsBottomSheet({required BuildContext context}) {
   showAppBottomSheet(
     context: context,
     title: 'follow_us'.i18n,
-    scrollControlDisabledMaxHeightRatio:
-        ScreenUtil().isSmallScreen() ? 0.38.h : 0.37,
+    scrollControlDisabledMaxHeightRatio: context.isSmallDevice ? 0.37.h : 0.3.h,
     builder: (context, scrollController) {
-      return FollowUsListView();
+      return FollowUsListView(
+        scrollController: scrollController,
+      );
     },
   );
 }

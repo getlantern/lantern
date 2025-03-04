@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
 import '../common/common.dart';
@@ -25,9 +26,13 @@ class ProBanner extends StatelessWidget {
           border: Border.all(color: AppColors.yellow4, width: 1)),
       child: Column(
         children: [
-          Text(
+          AutoSizeText(
             title ?? "Get unlimited data, no ads, and faster speeds!",
-            style: textTheme.bodyMedium!.copyWith(
+            maxLines: 1,
+            minFontSize: 14,
+            maxFontSize: 16,
+            overflow: TextOverflow.ellipsis,
+            style: textTheme.labelLarge!.copyWith(
               color: AppColors.gray9,
             ),
           ),

@@ -1,7 +1,8 @@
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter/material.dart';
 
-extension ScreenUtilsSize on ScreenUtil {
-  bool isSmallScreen() {
-    return screenWidth < 600;
+extension DevicePreviewExtensions on BuildContext {
+  bool get isSmallDevice {
+    final devicePreview = MediaQuery.of(this).size;
+    return devicePreview.width <= 360 && devicePreview.height <= 640;
   }
 }
