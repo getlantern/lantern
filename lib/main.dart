@@ -16,13 +16,13 @@ Future<void> main() async {
   desktopInit();
   await injectServices();
   await Future.microtask(Localization.loadTranslations);
-  runApp(
-    DevicePreview(
-        enabled: false,
-        builder: (context) => const ProviderScope(
-              child: LanternApp(),
-            )),
-  );
+  runApp(const ProviderScope(child: LanternApp()));
+  // DevicePreview(
+  //     enabled: false,
+  //     builder: (context) => const ProviderScope(
+  //           child: LanternApp(),
+  //         )),
+  //);
 }
 
 Future<void> desktopInit() async {

@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:ffi';
 import 'dart:io' show Platform;
+import 'dart:isolate';
 import 'package:ffi/ffi.dart';
 //import 'package:lantern/core/ffi/socket_client.dart';
 
@@ -12,8 +13,14 @@ typedef StartVPN = Pointer<Utf8> Function();
 typedef StopVPNNative = Pointer<Utf8> Function();
 typedef StopVPN = Pointer<Utf8> Function();
 
+typedef SetupNative = Void Function(Pointer<Void>);
+typedef Setup = void Function(Pointer<Void>);
+
 typedef IsVPNConnectedNative = Int32 Function();
 typedef IsVPNConnectedDart = int Function();
+
+typedef SetLogPortC = Void Function(Int64 port);
+typedef SetLogPortDart = void Function(int port);
 
 typedef FreeCStringNative = Void Function(Pointer<Utf8>);
 typedef FreeCString = void Function(Pointer<Utf8>);
@@ -26,7 +33,13 @@ class FFIClient {
   late StartVPN _startVPN;
   late StopVPN _stopVPN;
   late IsVPNConnectedDart isVPNConnected;
+  late SetLogPortDart _setLogPort;
+  late Setup _setup;
   late FreeCString _freeCString;
+
+  factory FFIClient() {
+    return FFIClient._internal();
+  }
 
   FFIClient._internal() {
     if (Platform.isIOS) {
@@ -49,12 +62,28 @@ class FFIClient {
         .lookup<NativeFunction<IsVPNConnectedNative>>('isVPNConnected')
         .asFunction();
 
+    _setLogPort =
+        _lib.lookupFunction<SetLogPortC, SetLogPortDart>("setLogPort");
+
     _freeCString =
         _lib.lookupFunction<FreeCStringNative, FreeCString>('freeCString');
+
+    _setup = _lib.lookupFunction<SetupNative, Setup>('setup');
+    _setup(NativeApi.initializeApiDLData);
   }
 
-  factory FFIClient() {
-    return FFIClient._internal();
+  Stream<String> logStream() async* {
+    final receivePort = ReceivePort();
+
+    // Pass the native port to the Go side.
+    _setLogPort(receivePort.sendPort.nativePort);
+
+    // Listen to messages sent by Go via Dart_PostCObject.
+    await for (final message in receivePort) {
+      if (message is String) {
+        yield message;
+      }
+    }
   }
 
   /// Calls startVPN and returns an error message if one exists.
@@ -80,6 +109,5 @@ class FFIClient {
   bool get isConnected {
     return isVPNConnected() == 1;
   }
-
   //Stream<bool> get vpnStatusStream => _socketClient.vpnStatusStream;
 }

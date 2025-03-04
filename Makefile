@@ -8,6 +8,7 @@ gen:
 	dart run build_runner build
 
 # Build for macOS
+macos: export CGO_CFLAGS="-I./dart_api_dl/include"
 macos:
 	go build -o bin/liblantern.dylib -buildmode=c-shared ./ffi
 	mkdir -p build/macos/Build/Products/Debug/Lantern.app/Contents/MacOS
