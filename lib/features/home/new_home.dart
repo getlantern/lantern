@@ -121,14 +121,12 @@ class _NewHomeState extends State<NewHome> {
           child: Column(
             children: [
               _buildVPNStatusRow(),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10.0),
-                child: DividerSpace(),
+              DividerSpace(
+                padding: EdgeInsets.symmetric(vertical: 10),
               ),
               _buildSmartLocation(),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10.0),
-                child: DividerSpace(),
+              DividerSpace(
+                padding: EdgeInsets.symmetric(vertical: 10),
               ),
               _buildSpiltTunneling(),
             ],
@@ -168,7 +166,7 @@ class _NewHomeState extends State<NewHome> {
               ),
               icon: AppImage(path: AppImagePaths.verticalDots),
               padding: EdgeInsets.zero,
-              // iconSize: 10,
+
               constraints: BoxConstraints(),
               visualDensity: VisualDensity.compact,
             )
