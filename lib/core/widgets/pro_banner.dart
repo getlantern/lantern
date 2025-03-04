@@ -5,15 +5,19 @@ import '../common/common.dart';
 class ProBanner extends StatelessWidget {
   final String? title;
 
+  final double topMargin;
+
   const ProBanner({
     super.key,
-     this.title,
+    this.title,
+    this.topMargin = 16,
   });
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-     return Container(
+    return Container(
+      margin: EdgeInsets.only(top: topMargin),
       padding: EdgeInsets.all(defaultSize),
       decoration: BoxDecoration(
           color: AppColors.yellow1,
@@ -22,8 +26,8 @@ class ProBanner extends StatelessWidget {
       child: Column(
         children: [
           Text(
-            title??"Get unlimited data, no ads, and faster speeds!",
-            style: textTheme.labelLarge!.copyWith(
+            title ?? "Get unlimited data, no ads, and faster speeds!",
+            style: textTheme.bodyMedium!.copyWith(
               color: AppColors.gray9,
             ),
           ),

@@ -1,7 +1,8 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/widgets/base_screen.dart';
+import 'package:lantern/core/utils/screen_utils.dart';
 
 enum _Social {
   facebook,
@@ -123,7 +124,8 @@ void showFollowUsBottomSheet({required BuildContext context}) {
   showAppBottomSheet(
     context: context,
     title: 'follow_us'.i18n,
-    scrollControlDisabledMaxHeightRatio: 0.37,
+    scrollControlDisabledMaxHeightRatio:
+        ScreenUtil().isSmallScreen() ? 0.38.h : 0.37,
     builder: (context, scrollController) {
       return FollowUsListView();
     },

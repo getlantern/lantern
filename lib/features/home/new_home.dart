@@ -23,8 +23,10 @@ class _NewHomeState extends State<NewHome> {
     textTheme = Theme.of(context).textTheme;
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppColors.white,
-          title:  LanternLogo(isPro: isUserPro,),
+          backgroundColor: AppColors.white,
+          title: LanternLogo(
+            isPro: isUserPro,
+          ),
           elevation: 5,
           leading: IconButton(
               onPressed: () {
@@ -41,11 +43,7 @@ class _NewHomeState extends State<NewHome> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          if (isUserPro)
-            SizedBox(height: 0)
-          else
-          _buildProBanner(),
-
+          if (isUserPro) SizedBox(height: 0) else ProBanner(),
           VPNSwitch(),
           Column(
             mainAxisSize: MainAxisSize.min,
@@ -55,31 +53,6 @@ class _NewHomeState extends State<NewHome> {
               _buildSetting(),
               SizedBox(height: 20),
             ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProBanner() {
-    return Container(
-      margin: EdgeInsets.only(top: defaultSize),
-      padding: EdgeInsets.all(defaultSize),
-      decoration: BoxDecoration(
-          color: AppColors.yellow1,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.yellow4, width: 1)),
-      child: Column(
-        children: [
-          Text(
-            "Get unlimited data, no ads, and faster speeds!",
-            style: textTheme!.labelLarge!.copyWith(
-              color: AppColors.gray9,
-            ),
-          ),
-          SizedBox(height: 8),
-          ProButton(
-            onPressed: () {},
           ),
         ],
       ),

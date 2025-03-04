@@ -1,7 +1,6 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:lantern/core/common/app_text_filed.dart';
-import 'package:lantern/core/widgets/base_screen.dart';
 
 import '../../core/common/common.dart';
 
@@ -34,8 +33,8 @@ class _DeleteAccountState extends State<DeleteAccount> {
           ),
           SizedBox(height: defaultSize),
           Center(
-              child:
-                  Text('delete_account_?'.i18n, style: textTheme.headlineSmall)),
+              child: Text('delete_account_?'.i18n,
+                  style: textTheme.headlineSmall)),
           SizedBox(height: defaultSize),
           Padding(
             padding: const EdgeInsets.only(left: 16),
@@ -61,7 +60,7 @@ class _DeleteAccountState extends State<DeleteAccount> {
             padding: const EdgeInsets.only(left: 16),
             child: Text(
               'enter_password_to_confirm'.i18n,
-              style: textTheme.labelLarge,
+              style: textTheme.labelLarge!.copyWith(),
             ),
           ),
           SizedBox(height: 4),
@@ -71,7 +70,7 @@ class _DeleteAccountState extends State<DeleteAccount> {
             prefixIcon: AppImagePaths.lock,
             onChanged: (value) {},
           ),
-          SizedBox(height: 130.0),
+          SizedBox(height: size24),
           PrimaryButton(
             label: 'confirm_deletion'.i18n,
             enabled: false,
@@ -83,7 +82,6 @@ class _DeleteAccountState extends State<DeleteAccount> {
             label: 'Cancel',
             onPressed: () {},
           ),
-
         ],
       ),
     );
