@@ -104,26 +104,35 @@ class _NewHomeState extends State<NewHome> {
   }
 
   Widget _buildSetting() {
-    return Card(
-      elevation: .5,
-      shadowColor: AppColors.blue2,
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(defaultSize),
-        child: Column(
-          children: [
-            _buildVPNStatusRow(),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10.0),
-              child: DividerSpace(),
-            ),
-            _buildSmartLocation(),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10.0),
-              child: DividerSpace(),
-            ),
-            _buildSpiltTunneling(),
-          ],
+    return Container(
+      decoration: BoxDecoration(boxShadow: [
+        BoxShadow(
+          color: AppColors.shadowColor,
+          blurRadius: 32,
+          offset: Offset(0, 4),
+          spreadRadius: 0,
+        )
+      ]),
+      child: Card(
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        child: Padding(
+          padding: const EdgeInsets.all(defaultSize),
+          child: Column(
+            children: [
+              _buildVPNStatusRow(),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10.0),
+                child: DividerSpace(),
+              ),
+              _buildSmartLocation(),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10.0),
+                child: DividerSpace(),
+              ),
+              _buildSpiltTunneling(),
+            ],
+          ),
         ),
       ),
     );

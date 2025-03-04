@@ -84,5 +84,5 @@ class AppColors {
   static Color get red9 => const Color(0xFF690004);
   static Color get red10 => const Color(0xFF410001);
 
-  static Color get shadowColor => const Color(0xFF006163);
+  static Color get shadowColor => const Color(0x19006162);
 }
