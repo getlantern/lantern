@@ -160,9 +160,12 @@ msgstr "Support"
 msgid "download_links"
 msgstr "Download Links"
 
-
 msgid "get_30_days_of_pro_free"
 msgstr "Get 30 days of Pro free"
+
+msgid "share_message_referral_code"
+msgstr "For a free month of Lantern Pro, use this referral code: %s ; You can download it from here: https://lantern.io/download"
+
 
 
 
