@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lantern/core/common/app_colors.dart';
 
@@ -45,7 +46,7 @@ class AppTestStyles {
   static TextStyle get labelLarge => GoogleFonts.urbanist(
         fontSize: 16,
         fontWeight: FontWeight.w400,
-        height: 26 / 16, // line-height of 26px
+        height: 26 / 16,
         letterSpacing: 0,
         color: AppColors.black,
       );

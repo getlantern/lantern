@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lantern/app.dart';
+import 'package:lantern/lantern_app.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/logger_service.dart';
@@ -18,7 +18,7 @@ Future<void> main() async {
   await Future.microtask(Localization.loadTranslations);
   runApp(
     DevicePreview(
-        enabled: !kReleaseMode,
+        enabled: false,
         builder: (context) => const ProviderScope(
               child: LanternApp(),
             )),

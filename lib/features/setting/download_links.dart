@@ -82,7 +82,9 @@ class DownloadLinks extends StatelessWidget {
             ),
           ),
           SizedBox(height: defaultSize),
-          DividerSpace(),
+          DividerSpace(
+            padding: EdgeInsets.zero
+          ),
           SizedBox(height: defaultSize),
           Padding(
             padding: const EdgeInsets.only(left: 16),

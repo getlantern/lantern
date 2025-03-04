@@ -1,7 +1,8 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/widgets/base_screen.dart';
+import 'package:lantern/core/utils/screen_utils.dart';
 
 enum _Social {
   facebook,
@@ -83,11 +84,17 @@ class FollowUs extends StatelessWidget {
 }
 
 class FollowUsListView extends StatelessWidget {
-  const FollowUsListView({super.key});
+  final ScrollController? scrollController;
+
+  const FollowUsListView({
+    super.key,
+    this.scrollController,
+  });
 
   @override
   Widget build(BuildContext context) {
     return ListView(
+      controller: scrollController,
       padding: EdgeInsets.zero,
       shrinkWrap: true,
       children: [
@@ -123,9 +130,11 @@ void showFollowUsBottomSheet({required BuildContext context}) {
   showAppBottomSheet(
     context: context,
     title: 'follow_us'.i18n,
-    scrollControlDisabledMaxHeightRatio: 0.37,
+    scrollControlDisabledMaxHeightRatio: context.isSmallDevice ? 0.37.h : 0.3.h,
     builder: (context, scrollController) {
-      return FollowUsListView();
+      return FollowUsListView(
+        scrollController: scrollController,
+      );
     },
   );
 }
