@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:i18n_extension/i18n_extension.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
 import 'package:lantern/core/router/router.dart';
+import 'package:lantern/core/services/logger_service.dart';
 import 'core/common/common.dart';
 import 'core/services/injection_container.dart';
 
@@ -17,6 +18,8 @@ class LanternApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Locale locale = PlatformDispatcher.instance.locale;
+    final mediaQuery = MediaQuery.of(context).size;
+    appLogger.debug('MediaQuery: ${mediaQuery}');
     return ScreenUtilInit(
       designSize: PlatformUtils.isDesktop() ? desktopWindowSize : mobileSize,
       minTextAdapt: true,
@@ -53,3 +56,5 @@ class LanternApp extends StatelessWidget {
     );
   }
 }
+
+
