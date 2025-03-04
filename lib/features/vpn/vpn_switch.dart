@@ -10,11 +10,8 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/providers/ffi_provider.dart';
 import 'package:lantern/core/services/logger_service.dart';
-import 'package:lantern/core/services/native_bridge.dart';
 
 class VPNSwitch extends HookConsumerWidget {
-  final NativeBridge _nativeBridge = NativeBridge();
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ffiClient = ref.read(ffiClientProvider);
@@ -24,11 +21,7 @@ class VPNSwitch extends HookConsumerWidget {
     Future<void> _connectVPN() async {
       _loading.value = true;
       try {
-        if (Platform.isIOS) {
-          await _nativeBridge.startVPN();
-        } else {
-          ffiClient.startVPN();
-        }
+        ffiClient.startVPN();
         await Future.delayed(const Duration(seconds: 1));
         _vpnStatus.value = VPNStatus.connected;
       } catch (e) {
@@ -41,11 +34,7 @@ class VPNSwitch extends HookConsumerWidget {
     Future<void> _disconnectVPN() async {
       _loading.value = true;
       try {
-        if (Platform.isIOS) {
-          await _nativeBridge.stopVPN();
-        } else {
-          ffiClient.stopVPN();
-        }
+        ffiClient.stopVPN();
         _vpnStatus.value = VPNStatus.disconnected;
       } catch (e) {
         appLogger.error("Error disconnecting from vpn: $e");
