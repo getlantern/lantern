@@ -30,11 +30,11 @@ func startVPN() *C.char {
 	defer vpnMutex.Unlock()
 
 	if err := start(context.Background()); err != nil {
-		err = fmt.Errorf("unable to start radiance: %v", err)
+		err = fmt.Errorf("unable to start VPN server: %v", err)
 		log.Error(err)
 		return C.CString(err.Error())
 	}
-	log.Debug("radiance started successfully")
+	log.Debug("VPN server started successfully")
 	return nil
 }
 
@@ -48,17 +48,17 @@ func stopVPN() *C.char {
 	defer vpnMutex.Unlock()
 
 	if server == nil {
-		log.Debug("radiance is not running")
+		log.Debug("VPN server is not running")
 		return nil
 	}
 
 	if err := server.Stop(); err != nil {
-		err = fmt.Errorf("unable to stop radiance: %v", err)
+		err = fmt.Errorf("unable to stop VPN server: %v", err)
 		log.Error(err)
 		return C.CString(err.Error())
 	}
 
-	log.Debug("radiance stopped successfully")
+	log.Debug("VPN server stopped successfully")
 	return nil
 }
 

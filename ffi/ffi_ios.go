@@ -30,7 +30,7 @@ type iosBridge struct{}
 // start initializes the VPN server and starts the Tun2Socks process.
 func start(ctx context.Context) error {
 	if server == nil {
-		s, err := vpn.NewIOSVPNServer(&vpn.Opts{Address: ":0"})
+		s, err := vpn.NewIOSVPNServer(&vpn.Opts{})
 		if err != nil {
 			return fmt.Errorf("unable to create vpn server: %v", err)
 		}
