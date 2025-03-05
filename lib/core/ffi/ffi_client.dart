@@ -90,20 +90,20 @@ class FFIClient {
   /// Returns null if no error occurred.
   String? startVPN() {
     final Pointer<Utf8> result = _startVPN();
-    if (result.address == 0) return null;
+    if (result == nullptr) return null;
     final String errorMessage = result.toDartString();
     _freeCString(result);
-    return errorMessage;
+    return errorMessage.isEmpty ? null : errorMessage;
   }
 
   /// Calls stopVPN and returns an error message if one exists.
   /// Returns null if no error occurred.
   String? stopVPN() {
     final Pointer<Utf8> result = _stopVPN();
-    if (result.address == 0) return null;
+    if (result == nullptr) return null;
     final String errorMessage = result.toDartString();
     _freeCString(result);
-    return errorMessage;
+    return errorMessage.isEmpty ? null : errorMessage;
   }
 
   bool get isConnected {

@@ -17,14 +17,14 @@ import (
 
 	"github.com/getlantern/golog"
 	"github.com/getlantern/lantern-outline/dart_api_dl"
-	"github.com/getlantern/lantern-outline/vpn"
+	"github.com/getlantern/radiance"
 )
 
 var (
 	vpnMutex sync.Mutex
-	server   vpn.VPNServer
+	server   *radiance.Radiance
 
-	logPort int64 = 0
+	logPort int64
 	logMu   sync.Mutex
 
 	setupOnce sync.Once
@@ -51,24 +51,24 @@ func startVPN() *C.char {
 	defer vpnMutex.Unlock()
 
 	if server == nil {
-		s, err := vpn.NewVPNServer(&vpn.Opts{Address: ":0"})
+		s, err := radiance.NewRadiance()
 		if err != nil {
-			err = fmt.Errorf("unable to create VPN server: %v", err)
+			err = fmt.Errorf("unable to create radiance: %v", err)
 			log.Error(err)
 			return C.CString(err.Error())
 		}
 		server = s
 	}
 	if err := start(context.Background(), server); err != nil {
-		err = fmt.Errorf("unable to start VPN server: %v", err)
+		err = fmt.Errorf("unable to start radiance: %v", err)
 		log.Error(err)
 		return C.CString(err.Error())
 	}
-	log.Debug("VPN server started successfully")
+	log.Debug("radiance started successfully")
 	return nil
 }
 
-// stopVPN stops the VPN server if it is running.
+// stopVPN stops radiance if it is running.
 //
 //export stopVPN
 func stopVPN() *C.char {
@@ -78,31 +78,28 @@ func stopVPN() *C.char {
 	defer vpnMutex.Unlock()
 
 	if server == nil {
-		log.Debug("VPN server is not running")
+		log.Debug("radiance is not running")
 		return nil
 	}
 
-	if err := server.Stop(); err != nil {
-		err = fmt.Errorf("unable to stop VPN server: %v", err)
+	if err := server.StopVPN(); err != nil {
+		err = fmt.Errorf("unable to stop radiance: %v", err)
 		log.Error(err)
 		return C.CString(err.Error())
 	}
 
-	// Make sure to clear out the server after a successful stop
-	server = nil
-
-	log.Debug("VPN server stopped successfully")
+	log.Debug("radiance stopped successfully")
 	return nil
 }
 
-// isVPNConnected checks if the VPN server is running and connected.
+// isVPNConnected checks if radiance is running and connected.
 //
 //export isVPNConnected
 func isVPNConnected() int {
 	vpnMutex.Lock()
 	defer vpnMutex.Unlock()
 
-	if server == nil || !server.IsVPNConnected() {
+	if server == nil {
 		return 0
 	}
 
