@@ -1,9 +1,16 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:lantern/core/widgets/setting_tile.dart';
 import 'package:lantern/core/widgets/vpn_status_indicator.dart';
 import 'package:lantern/features/vpn/vpn_switch.dart';
 
 import '../../core/common/common.dart';
+
+enum _SettingTileType {
+  smartLocation,
+  splitTunneling,
+}
 
 @RoutePage(name: 'NewHome')
 class NewHome extends StatefulWidget {
@@ -26,6 +33,10 @@ class _NewHomeState extends State<NewHome> {
           backgroundColor: AppColors.white,
           title: LanternLogo(
             isPro: isUserPro,
+          ),
+          bottom: PreferredSize(
+            preferredSize: Size.fromHeight(0),
+            child: DividerSpace(padding: EdgeInsets.zero),
           ),
           elevation: 5,
           leading: IconButton(
@@ -51,55 +62,11 @@ class _NewHomeState extends State<NewHome> {
               DataUsage(),
               SizedBox(height: 8),
               _buildSetting(),
-              SizedBox(height: 20),
+              SizedBox(height: 20.h),
             ],
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildSmartLocation() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Row(
-          children: <Widget>[
-            SizedBox(
-              width: 24,
-              child: AppImage(path: AppImagePaths.location),
-            ),
-            SizedBox(width: 8),
-            Text('smart_location'.i18n,
-                style: textTheme!.labelLarge!.copyWith(color: AppColors.gray7)),
-          ],
-        ),
-        Row(
-          children: [
-            SizedBox(width: 32.0),
-            Text("Fastest Country",
-                style:
-                    textTheme!.titleMedium!.copyWith(color: AppColors.gray9)),
-            Spacer(),
-            AppImage(path: AppImagePaths.blot),
-            SizedBox(width: 8),
-            IconButton(
-              onPressed: () {
-                appRouter.push(const ServerSelection());
-              },
-              style: ElevatedButton.styleFrom(
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              icon: AppImage(path: AppImagePaths.verticalDots),
-              padding: EdgeInsets.zero,
-              // iconSize: 10,
-              constraints: BoxConstraints(),
-              visualDensity: VisualDensity.compact,
-            )
-          ],
-        ),
-      ],
     );
   }
 
@@ -116,93 +83,72 @@ class _NewHomeState extends State<NewHome> {
       child: Card(
         elevation: 0,
         margin: EdgeInsets.zero,
-        child: Padding(
-          padding: const EdgeInsets.all(defaultSize),
-          child: Column(
-            children: [
-              _buildVPNStatusRow(),
-              DividerSpace(
-                padding: EdgeInsets.symmetric(vertical: 10),
-              ),
-              _buildSmartLocation(),
-              DividerSpace(
-                padding: EdgeInsets.symmetric(vertical: 10),
-              ),
-              _buildSpiltTunneling(),
-            ],
-          ),
+        child: Column(
+          children: [
+            SettingTile(
+              label: 'vpn_status'.i18n,
+              value: VPNStatus.disconnected.name.capitalize,
+              icon: AppImagePaths.glob,
+              actions: [
+                VPNStatusIndicator(status: VPNStatus.disconnected),
+              ],
+            ),
+            DividerSpace(),
+            SettingTile(
+              label: 'smart_location'.i18n,
+              value: 'Fastest Country',
+              icon: AppImagePaths.location,
+              actions: [
+                AppImage(path: AppImagePaths.blot),
+                SizedBox(width: 8),
+                IconButton(
+                  onPressed: () {
+                    appRouter.push(const ServerSelection());
+                  },
+                  style: ElevatedButton.styleFrom(
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  icon: AppImage(path: AppImagePaths.verticalDots),
+                  padding: EdgeInsets.zero,
+                  // iconSize: 10,
+                  constraints: BoxConstraints(),
+                  visualDensity: VisualDensity.compact,
+                )
+              ],
+              onTap: () => onSettingTileTap(_SettingTileType.smartLocation),
+            ),
+            DividerSpace(),
+            SettingTile(
+              label: 'split_tunneling'.i18n,
+              icon: AppImagePaths.callSpilt,
+              value: 'Enabled',
+              actions: [
+                IconButton(
+                  onPressed: () {},
+                  style: ElevatedButton.styleFrom(
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  icon: AppImage(path: AppImagePaths.verticalDots),
+                  padding: EdgeInsets.zero,
+                  constraints: BoxConstraints(),
+                  visualDensity: VisualDensity.compact,
+                )
+              ],
+              onTap: () => onSettingTileTap(_SettingTileType.splitTunneling),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildSpiltTunneling() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Row(
-          children: <Widget>[
-            SizedBox(
-              width: 24,
-              child: AppImage(path: AppImagePaths.callSpilt),
-            ),
-            SizedBox(width: 8),
-            Text('split_tunneling'.i18n,
-                style: textTheme!.labelLarge!.copyWith(color: AppColors.gray7)),
-          ],
-        ),
-        Row(
-          children: [
-            SizedBox(width: 32.0),
-            Text("Enabled",
-                style:
-                    textTheme!.titleMedium!.copyWith(color: AppColors.gray9)),
-            Spacer(),
-            IconButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              icon: AppImage(path: AppImagePaths.verticalDots),
-              padding: EdgeInsets.zero,
-
-              constraints: BoxConstraints(),
-              visualDensity: VisualDensity.compact,
-            )
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildVPNStatusRow() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Row(
-          children: <Widget>[
-            SizedBox(
-              width: 24,
-              child: AppImage(path: AppImagePaths.glob),
-            ),
-            SizedBox(width: 8),
-            Text('vpn_status'.i18n,
-                style: textTheme!.labelLarge!.copyWith(color: AppColors.gray7)),
-          ],
-        ),
-        Row(
-          children: [
-            SizedBox(width: 32.0),
-            Text(VPNStatus.disconnected.name.capitalize,
-                style:
-                    textTheme!.titleMedium!.copyWith(color: AppColors.gray9)),
-            Spacer(),
-            VPNStatusIndicator(status: VPNStatus.disconnected),
-          ],
-        ),
-      ],
-    );
+  void onSettingTileTap(_SettingTileType tileType) {
+    switch (tileType) {
+      case _SettingTileType.smartLocation:
+        appRouter.push(const ServerSelection());
+        break;
+      case _SettingTileType.splitTunneling:
+        break;
+    }
   }
 }

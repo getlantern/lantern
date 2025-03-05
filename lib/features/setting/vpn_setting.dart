@@ -9,7 +9,7 @@ class VPNSetting extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BaseScreen(title: 'vpn_setting'.i18n, body: _buildBody(context));
+    return BaseScreen(title: 'vpn_settings'.i18n, body: _buildBody(context));
   }
 
   Widget _buildBody(BuildContext context) {

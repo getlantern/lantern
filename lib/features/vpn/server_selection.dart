@@ -157,13 +157,13 @@ class ServerLocationListView extends StatelessWidget {
           left: 0,
           child: Column(
             children: [
-              Flexible(
+              Expanded(
                 child: AppCard(
                   padding: EdgeInsets.zero,
                   child: ListView.builder(
                     padding: EdgeInsets.zero,
                     shrinkWrap: true,
-                    itemCount: 5,
+                    itemCount: 15,
                     itemBuilder: (context, index) {
                       if (PlatformUtils.isDesktop()) {
                         return ServerDesktopView(

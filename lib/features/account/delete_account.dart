@@ -71,8 +71,10 @@ class _DeleteAccountState extends State<DeleteAccount> {
           ),
           SizedBox(height: defaultSize),
           SecondaryButton(
-            label: 'Cancel',
-            onPressed: () {},
+            label: 'cancel'.i18n,
+            onPressed: () {
+              appRouter.maybePop();
+            },
           ),
         ],
       ),

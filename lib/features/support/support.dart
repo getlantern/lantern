@@ -15,7 +15,6 @@ class Support extends StatelessWidget {
       title: toBeginningOfSentenceCase('support'.i18n),
       body: SafeArea(
         child: ListView(
-
           padding: EdgeInsets.zero,
           children: <Widget>[
             Center(
@@ -80,6 +79,7 @@ class Support extends StatelessWidget {
             // Spacer(),
             SizedBox(height: 16),
             AppVersion(version: '8.1.4 (20250213.213443)'),
+            SizedBox(height: size24),
           ],
         ),
       ),

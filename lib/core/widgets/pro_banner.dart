@@ -34,6 +34,7 @@ class ProBanner extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: textTheme.bodyMedium!.copyWith(
               color: AppColors.gray9,
+              fontSize: 16,
             ),
           ),
           SizedBox(height: 8),
