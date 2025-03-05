@@ -2,6 +2,7 @@ module github.com/getlantern/lantern-outline
 
 go 1.23.4
 
+
 require (
 	github.com/Jigsaw-Code/outline-sdk v0.0.18-0.20241106233708-faffebb12629
 	github.com/eycorsican/go-tun2socks v1.16.11

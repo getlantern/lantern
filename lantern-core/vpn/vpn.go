@@ -102,7 +102,14 @@ func (srv *vpnServer) loadConfig(ctx context.Context, useLocalConfig bool) (*con
 	if useLocalConfig {
 		return localconfig.LoadConfig()
 	}
-	return srv.configHandler.GetConfig(ctx)
+	configs, err := srv.configHandler.GetConfig(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if len(configs) == 0 {
+		return nil, errors.New("no configuration found")
+	}
+	return configs[0], nil
 }
 
 // startTun2Socks configures and starts the Tun2Socks tunnel using the provided parameters.

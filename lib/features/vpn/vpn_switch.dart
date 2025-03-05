@@ -9,6 +9,8 @@ import 'package:lantern/core/providers/ffi_provider.dart';
 import 'package:lantern/core/services/logger_service.dart';
 
 class VPNSwitch extends HookConsumerWidget {
+  const VPNSwitch({super.key});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ffiClient = ref.read(ffiClientProvider);
