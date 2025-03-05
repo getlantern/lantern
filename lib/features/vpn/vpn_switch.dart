@@ -21,7 +21,11 @@ class VPNSwitch extends HookConsumerWidget {
     Future<void> _connectVPN() async {
       _loading.value = true;
       try {
-        ffiClient.startVPN();
+        final errorMessage = ffiClient.startVPN();
+        if (errorMessage != null) {
+          context.showSnackBarError(errorMessage);
+          return;
+        }
         await Future.delayed(const Duration(seconds: 1));
         _vpnStatus.value = VPNStatus.connected;
       } catch (e) {
@@ -34,8 +38,11 @@ class VPNSwitch extends HookConsumerWidget {
     Future<void> _disconnectVPN() async {
       _loading.value = true;
       try {
-        ffiClient.stopVPN();
+        final errorMessage = ffiClient.stopVPN();
         _vpnStatus.value = VPNStatus.disconnected;
+        if (errorMessage != null) {
+          context.showSnackBarError(errorMessage);
+        }
       } catch (e) {
         appLogger.error("Error disconnecting from vpn: $e");
       } finally {
@@ -75,6 +82,15 @@ class VPNSwitch extends HookConsumerWidget {
         );
       },
       onChanged: onVPNStateChange,
+    );
+  }
+}
+
+// Extension for showing error SnackBars.
+extension SnackBarExtensions on BuildContext {
+  void showSnackBarError(String message) {
+    ScaffoldMessenger.of(this).showSnackBar(
+      SnackBar(content: Text(message)),
     );
   }
 }

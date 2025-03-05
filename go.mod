@@ -134,7 +134,7 @@ require (
 
 require (
 	github.com/alexflint/go-arg v1.5.1
-	github.com/getlantern/radiance v0.0.0-20250303232200-76e7d7528c2b
+	github.com/getlantern/radiance v0.0.0-20250305002057-ac97ba8ddd11
 	github.com/shadowsocks/go-shadowsocks2 v0.1.5 // indirect
 	golang.org/x/crypto v0.32.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
