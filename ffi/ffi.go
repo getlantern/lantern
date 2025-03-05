@@ -20,7 +20,7 @@ var (
 	log = golog.LoggerFor("lantern.ffi")
 )
 
-// startVPN initializes and starts radiance if it is not already running.
+// startVPN initializes and starts the VPN server if it is not already running.
 //
 //export startVPN
 func startVPN() *C.char {
@@ -38,7 +38,7 @@ func startVPN() *C.char {
 	return nil
 }
 
-// stopVPN stops radiance if it is running.
+// stopVPN stops the VPN server if it is running.
 //
 //export stopVPN
 func stopVPN() *C.char {
@@ -62,7 +62,7 @@ func stopVPN() *C.char {
 	return nil
 }
 
-// isVPNConnected checks if radiance is running and connected.
+// isVPNConnected checks if the VPN server is running and connected.
 //
 //export isVPNConnected
 func isVPNConnected() int {
