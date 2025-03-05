@@ -39,10 +39,11 @@ class VPNSwitch extends HookConsumerWidget {
       _loading.value = true;
       try {
         final errorMessage = ffiClient.stopVPN();
-        _vpnStatus.value = VPNStatus.disconnected;
         if (errorMessage != null) {
           context.showSnackBarError(errorMessage);
+          return;
         }
+        _vpnStatus.value = VPNStatus.disconnected;
       } catch (e) {
         appLogger.error("Error disconnecting from vpn: $e");
       } finally {
