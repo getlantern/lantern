@@ -69,9 +69,6 @@ func stopVPN() *C.char {
 		return C.CString(err.Error())
 	}
 
-	// Make sure to clear out the server after a successful stop
-	server = nil
-
 	log.Debug("radiance stopped successfully")
 	return nil
 }
@@ -83,9 +80,6 @@ func isVPNConnected() int {
 	vpnMutex.Lock()
 	defer vpnMutex.Unlock()
 
-	// if server == nil || !server.IsVPNConnected() {
-	// 	return 0
-	// }
 	if server == nil {
 		return 0
 	}
