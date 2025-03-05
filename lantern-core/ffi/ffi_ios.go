@@ -15,7 +15,7 @@ import (
 	"context"
 	"unsafe"
 
-	"github.com/getlantern/lantern-outline/vpn"
+	"github.com/getlantern/lantern-outline/lantern-core/vpn"
 )
 
 // IOS-related
