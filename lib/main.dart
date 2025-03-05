@@ -9,8 +9,6 @@ import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:window_manager/window_manager.dart';
 
-const showPreviewMode = false;
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   initLogger();
@@ -20,7 +18,7 @@ Future<void> main() async {
   await Future.microtask(Localization.loadTranslations);
   runApp(
     DevicePreview(
-        enabled: showPreviewMode,
+        enabled: true,
         builder: (context) => const ProviderScope(
               child: LanternApp(),
             )),
