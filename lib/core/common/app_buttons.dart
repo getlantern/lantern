@@ -13,7 +13,7 @@ class PrimaryButton extends StatelessWidget {
 
   final bool expanded;
   final VoidCallback onPressed;
-  final String? icon;
+  final Object? icon;
 
   final Color? bgColor;
 
@@ -137,7 +137,6 @@ class SecondaryButton extends StatelessWidget {
             return BorderSide(color: AppColors.gray4, width: 1);
           }
           return BorderSide(color: AppColors.gray4, width: 1);
-
         },
       ),
       overlayColor: WidgetStatePropertyAll<Color>(AppColors.gray2),
@@ -184,6 +183,28 @@ class AppTextButton extends StatelessWidget {
         foregroundColor: textColor ?? AppColors.blue7,
       ),
       child: Text(label),
+    );
+  }
+}
+
+class AppIconButton extends StatelessWidget {
+  final String path;
+  final OnPressed onPressed;
+
+  const AppIconButton({
+    super.key,
+    required this.path,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      onPressed: onPressed,
+      icon: AppImage(
+        path: path,
+        height: 24,
+      ),
     );
   }
 }

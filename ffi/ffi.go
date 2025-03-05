@@ -10,9 +10,7 @@ import "C"
 import (
 	"context"
 	"fmt"
-	"math/rand"
 	"sync"
-	"time"
 	"unsafe"
 
 	"github.com/getlantern/golog"
@@ -21,25 +19,34 @@ import (
 )
 
 var (
-	vpnMutex sync.Mutex
-	server   *radiance.Radiance
-
-	logPort int64
-	logMu   sync.Mutex
+	mu      sync.Mutex
+	server  *radiance.Radiance
+	baseDir string
 
 	setupOnce sync.Once
-
-	timerStarted bool
 
 	log = golog.LoggerFor("lantern-outline.ffi")
 )
 
 //export setup
-func setup(api unsafe.Pointer) {
+func setup(dir *C.char, port C.int64_t, api unsafe.Pointer) {
+	mu.Lock()
+	defer mu.Unlock()
+	baseDir = C.GoString(dir)
+	logPort = int64(port)
+
 	setupOnce.Do(func() {
 		dart_api_dl.Init(api)
+		configureLogging(baseDir, logPort)
 	})
 }
+
+//export InitializeDartApi
+// func InitializeDartApi(api unsafe.Pointer) {
+// 	setupOnce.Do(func() {
+// 		dart_api_dl.Init(api)
+// 	})
+// }
 
 // startVPN initializes and starts the VPN server if it is not already running.
 //
@@ -47,11 +54,11 @@ func setup(api unsafe.Pointer) {
 func startVPN() *C.char {
 	log.Debug("startVPN called")
 
-	vpnMutex.Lock()
-	defer vpnMutex.Unlock()
+	mu.Lock()
+	defer mu.Unlock()
 
 	if server == nil {
-		s, err := radiance.NewRadiance()
+		s, err := radiance.NewRadiance(baseDir)
 		if err != nil {
 			err = fmt.Errorf("unable to create radiance: %v", err)
 			log.Error(err)
@@ -74,8 +81,8 @@ func startVPN() *C.char {
 func stopVPN() *C.char {
 	log.Debug("stopVPN called")
 
-	vpnMutex.Lock()
-	defer vpnMutex.Unlock()
+	mu.Lock()
+	defer mu.Unlock()
 
 	if server == nil {
 		log.Debug("radiance is not running")
@@ -96,63 +103,14 @@ func stopVPN() *C.char {
 //
 //export isVPNConnected
 func isVPNConnected() int {
-	vpnMutex.Lock()
-	defer vpnMutex.Unlock()
+	mu.Lock()
+	defer mu.Unlock()
 
 	if server == nil {
 		return 0
 	}
 
 	return 1
-}
-
-//export setLogPort
-func setLogPort(port C.int64_t) {
-	logMu.Lock()
-	defer logMu.Unlock()
-	// Save the port (cast to Dart_Port).
-	logPort = int64(port)
-	// Start the log timer once.
-	if !timerStarted {
-		timerStarted = true
-		go startLogTimer()
-	}
-}
-
-//export InitializeDartApi
-func InitializeDartApi(api unsafe.Pointer) {
-	dart_api_dl.Init(api)
-}
-
-// TESTING
-// startLogTimer creates a ticker that fires every five seconds.
-func startLogTimer() {
-	ticker := time.NewTicker(5 * time.Second)
-	defer ticker.Stop()
-	for {
-		<-ticker.C
-		sendRandomLog()
-	}
-}
-
-// sendRandomLog creates a random log message and calls the registered callback.
-func sendRandomLog() {
-	logMu.Lock()
-	port := logPort
-	logMu.Unlock()
-
-	if port == 0 {
-		return
-	}
-
-	// Create a random log message.
-	logMsg := fmt.Sprintf("Random log message: %d", rand.Int())
-	fmt.Println("Sending random log message %s", logMsg)
-	cstr := C.CString(logMsg)
-	defer C.free(unsafe.Pointer(cstr))
-
-	// Post the log message to the Dart port.
-	dart_api_dl.SendToPort(port, C.GoString(cstr))
 }
 
 //export freeCString

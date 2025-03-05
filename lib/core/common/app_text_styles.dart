@@ -107,5 +107,12 @@ class AppTestStyles {
         color: AppColors.white,
       );
 
-  //Text style for button
+  // Text style for logs
+  static TextStyle get logTextStyle => TextStyle(
+        color: Color(0xFFDEDFDF),
+        fontSize: 10,
+        fontFamily: 'IBM Plex Mono',
+        fontWeight: FontWeight.w400,
+        height: 1.30,
+      );
 }

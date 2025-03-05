@@ -3,7 +3,7 @@ import 'package:lantern/core/providers/ffi_provider.dart';
 
 final diagnosticLogProvider = StreamProvider<List<String>>((ref) async* {
   final logs = <String>[];
-  final ffiClient = ref.watch(ffiClientProvider);
+  final ffiClient = await ref.watch(ffiClientProvider.future);
   await for (final log in ffiClient.logStream()) {
     logs.add(log);
     yield List.unmodifiable(logs);

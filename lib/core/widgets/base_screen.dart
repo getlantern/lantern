@@ -6,6 +6,7 @@ class BaseScreen extends StatelessWidget {
   final String title;
   final Widget body;
   final bool padded;
+  final PreferredSizeWidget? appBar;
   final Widget? bottomNavigationBar;
 
   const BaseScreen({
@@ -14,13 +15,17 @@ class BaseScreen extends StatelessWidget {
     required this.body,
     this.padded = true,
     this.bottomNavigationBar,
+    this.appBar,
   });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.gray1,
-      appBar: CustomAppBar(title: title),
+      appBar: appBar ??
+          CustomAppBar(
+            title: title,
+          ),
       body: Padding(
         padding: padded ? defaultPadding : EdgeInsets.zero,
         child: body,

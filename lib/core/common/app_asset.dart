@@ -10,7 +10,7 @@ enum AssetType {
 }
 
 class AppImage extends StatelessWidget {
-  final String path;
+  final Object path;
   final double size;
   final double? width;
   final double? height;
@@ -30,18 +30,20 @@ class AppImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (path is IconData) return Icon(path as IconData);
+    String filePath = path as String;
     switch (type) {
       case AssetType.svg:
         return SvgPicture.asset(
-          path,
+          filePath,
           height: height,
-          width: width ,
+          width: width,
           colorFilter:
               color != null ? ColorFilter.mode(color!, BlendMode.srcIn) : null,
         );
       case AssetType.png:
         return Image.asset(
-          path,
+          filePath,
           color: color,
           height: height,
           width: width,

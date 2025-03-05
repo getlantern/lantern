@@ -8,7 +8,6 @@ import 'package:lantern/core/providers/ffi_provider.dart';
 import 'package:lantern/core/providers/socket_provider.dart';
 import 'package:lantern/core/widgets/vpn_widgets.dart';
 
-
 @RoutePage(name: 'Home')
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -24,14 +23,14 @@ class _HomePageState extends ConsumerState<HomePage> {
   bool _isVPNRunning = false;
 
   @override
-  void initState() {
+  void initState() async {
     super.initState();
     // Initialize the socket client and connect
     _socketClient = ref.read(socketClientProvider);
     _socketClient.connect();
 
     // Initialize ffi client
-    _ffiClient = ref.read(ffiClientProvider);
+    _ffiClient = await ref.read(ffiClientProvider.future);
 
     // Listen to VPN status updates from the socket
     _vpnStatusSubscription = _socketClient.vpnStatusStream.listen((status) {
@@ -53,10 +52,12 @@ class _HomePageState extends ConsumerState<HomePage> {
     final tab = 'vpn';
     bool isOnboarded = true;
     return Scaffold(
-      body: buildBody(tab, isOnboarded),);
+      body: buildBody(tab, isOnboarded),
+    );
   }
 
   Widget buildBody(String selectedTab, bool? isOnboarded) {
-    return TunWidget(isVPNRunning: _isVPNRunning, ffiClient: _ffiClient);
+    return SizedBox();
+    //return TunWidget(isVPNRunning: _isVPNRunning, ffiClient: _ffiClient);
   }
 }

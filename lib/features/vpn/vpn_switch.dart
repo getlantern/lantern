@@ -5,15 +5,20 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/ffi/ffi_client.dart';
 import 'package:lantern/core/providers/ffi_provider.dart';
 import 'package:lantern/core/services/logger_service.dart';
 
 class VPNSwitch extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final ffiClient = ref.read(ffiClientProvider);
+    final ffiClient = ref.watch(ffiClientProvider).value;
     final _vpnStatus = useState<VPNStatus>(VPNStatus.disconnected);
     final _loading = useState<bool>(false);
+
+    if (ffiClient == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
     Future<void> _connectVPN() async {
       _loading.value = true;
