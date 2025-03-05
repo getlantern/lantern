@@ -35,15 +35,15 @@ func newDefaultOpts() *Opts {
 	}
 }
 
-func newVPNServer(t *testing.T) *vpnServer {
-	ss, err := NewVPNServer(newDefaultOpts())
+func newTestServer(t *testing.T) *iOSVPN {
+	ss, err := NewIOSVPNServer(newDefaultOpts())
 	require.NoError(t, err)
-	return ss.(*vpnServer)
+	return ss.(*iOSVPN)
 }
 
 // Test that ProcessInboundPacket writes data via the tunnel.
 func TestServer_ProcessInboundPacket(t *testing.T) {
-	server := newVPNServer(t)
+	server := newTestServer(t)
 	// Replace the tunnel with the fake.
 	fake := &fakeTunnel{}
 	server.tunnel = fake
@@ -56,7 +56,7 @@ func TestServer_ProcessInboundPacket(t *testing.T) {
 }
 
 func TestVPNServer_Stop(t *testing.T) {
-	server := newVPNServer(t)
+	server := newTestServer(t)
 	fake := &fakeTunnel{}
 	server.tunnel = fake
 
@@ -74,7 +74,7 @@ func TestVPNServer_Stop(t *testing.T) {
 	}
 }
 func TestVPNServer_StartAlreadyRunning(t *testing.T) {
-	server := newVPNServer(t)
+	server := newTestServer(t)
 	server.setConnected(true)
 	err := server.Start(context.Background())
 	if err == nil {
