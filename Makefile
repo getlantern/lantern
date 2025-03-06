@@ -15,13 +15,13 @@ macos:
 
 # Build for iOS
 build-ios-device:
-	GOARCH=arm64 SDK=iphoneos LIB_NAME=$(LIB_NAME) $(PWD)/build-ios.sh
+	GOOS=ios GOARCH=arm64 SDK=iphoneos LIB_NAME=$(LIB_NAME) $(PWD)/build-ios.sh
 
 build-ios-simulator-arm64:
-	GOARCH=arm64 SDK=iphonesimulator LIB_NAME=$(LIB_NAME) $(PWD)/build-ios.sh
+	GOOS=ios GOARCH=arm64 SDK=iphonesimulator LIB_NAME=$(LIB_NAME) $(PWD)/build-ios.sh
 
 build-ios-simulator-amd64:
-	GOARCH=amd64 SDK=iphonesimulator LIB_NAME=$(LIB_NAME) $(PWD)/build-ios.sh
+	GOOS=ios GOARCH=amd64 SDK=iphonesimulator LIB_NAME=$(LIB_NAME) $(PWD)/build-ios.sh
 
 build-ios: build-ios-device build-ios-simulator-arm64 build-ios-simulator-amd64
 	lipo -create bin/iphonesimulator/$(LIB_NAME)_amd64.a \
