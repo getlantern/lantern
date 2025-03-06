@@ -18,7 +18,7 @@ namespace embedder {
 //
 // Returns true on success and false otherwise, in which case error would
 // contain error message.
-DART_WARN_UNUSED_RESULT bool InitOnce(char** error);
+DART_API_WARN_UNUSED_RESULT bool InitOnce(char** error);
 
 // Cleans up all subsystems of the embedder.
 //
@@ -51,7 +51,7 @@ struct IsolateCreationData {
 // script_uri.
 // The isolate is created from the given snapshot (might be kernel data or
 // app-jit snapshot).
-DART_WARN_UNUSED_RESULT Dart_Isolate
+DART_API_WARN_UNUSED_RESULT Dart_Isolate
 CreateKernelServiceIsolate(const IsolateCreationData& data,
                            const uint8_t* buffer,
                            intptr_t buffer_size,
@@ -59,10 +59,7 @@ CreateKernelServiceIsolate(const IsolateCreationData& data,
 
 // Service isolate configuration.
 struct VmServiceConfiguration {
-  enum {
-    kBindHttpServerToAFreePort = 0,
-    kDoNotAutoStartHttpServer = -1
-  };
+  enum { kBindHttpServerToAFreePort = 0, kDoNotAutoStartHttpServer = -1 };
 
   // Address to which HTTP server will be bound.
   const char* ip;
@@ -84,7 +81,7 @@ struct VmServiceConfiguration {
 // is expected to contain all necessary 'vm-service' libraries.
 // This method should be used when VM invokes isolate creation callback with
 // DART_VM_SERVICE_ISOLATE_NAME as script_uri.
-DART_WARN_UNUSED_RESULT Dart_Isolate
+DART_API_WARN_UNUSED_RESULT Dart_Isolate
 CreateVmServiceIsolate(const IsolateCreationData& data,
                        const VmServiceConfiguration& config,
                        const uint8_t* isolate_data,
@@ -95,7 +92,7 @@ CreateVmServiceIsolate(const IsolateCreationData& data,
 // is expected to contain all necessary 'vm-service' libraries.
 // This method should be used when VM invokes isolate creation callback with
 // DART_VM_SERVICE_ISOLATE_NAME as script_uri.
-DART_WARN_UNUSED_RESULT Dart_Isolate
+DART_API_WARN_UNUSED_RESULT Dart_Isolate
 CreateVmServiceIsolateFromKernel(const IsolateCreationData& data,
                                  const VmServiceConfiguration& config,
                                  const uint8_t* kernel_buffer,

@@ -166,7 +166,8 @@ class _SettingState extends State<Setting> {
                 UrlUtils.openUrl(AppUrls.unbounded);
               },
             ),
-          )
+          ),
+          SizedBox(height: defaultSize),
         ],
       ),
     );

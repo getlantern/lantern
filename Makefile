@@ -16,13 +16,13 @@ macos:
 
 # Build for iOS
 build-ios-device:
-	GOARCH=arm64 SDK=iphoneos LIB_NAME=$(LIB_NAME) $(PWD)/build-ios.sh
+	GOOS=ios GOARCH=arm64 SDK=iphoneos LIB_NAME=$(LIB_NAME) $(PWD)/build-ios.sh
 
 build-ios-simulator-arm64:
-	GOARCH=arm64 SDK=iphonesimulator LIB_NAME=$(LIB_NAME) $(PWD)/build-ios.sh
+	GOOS=ios GOARCH=arm64 SDK=iphonesimulator LIB_NAME=$(LIB_NAME) $(PWD)/build-ios.sh
 
 build-ios-simulator-amd64:
-	GOARCH=amd64 SDK=iphonesimulator LIB_NAME=$(LIB_NAME) $(PWD)/build-ios.sh
+	GOOS=ios GOARCH=amd64 SDK=iphonesimulator LIB_NAME=$(LIB_NAME) $(PWD)/build-ios.sh
 
 build-ios: build-ios-device build-ios-simulator-arm64 build-ios-simulator-amd64
 	lipo -create bin/iphonesimulator/$(LIB_NAME)_amd64.a \
@@ -41,6 +41,21 @@ build-framework: build-ios
 ios:
 	GOOS=ios CGO_ENABLED=1 go build -trimpath -buildmode=c-archive -o $(OUT_DIR)/$(LIB_NAME)_$(GOARCH)_$(SDK).a
 
+# Dart SDK related for Flutter native bridge
+DART_SDK_REPO=https://github.com/dart-lang/sdk
+DART_SDK_INCLUDE_DIR=dart_api_dl/include
+DART_SDK_BRANCH=main
+
+.PHONY: update-dart-api-dl
+update-dart-api-dl:
+	@echo "Updating Dart API DL headers..."
+	rm -rf $(DART_SDK_INCLUDE_DIR)
+	mkdir -p $(DART_SDK_INCLUDE_DIR)
+	git clone --depth 1 --filter=blob:none --sparse $(DART_SDK_REPO) dart_sdk_tmp
+	cd dart_sdk_tmp && git sparse-checkout set runtime/include
+	mv dart_sdk_tmp/runtime/include/* $(DART_SDK_INCLUDE_DIR)/
+	rm -rf dart_sdk_tmp
+	@echo "Dart API DL headers updated successfully!"
 
 
 #Routes generation

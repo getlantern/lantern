@@ -14,14 +14,15 @@ class Language extends StatelessWidget {
       extendBody: true,
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        child: Column(
-          children: [
-            Expanded(
-              child: Card(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              AppCard(
+                padding: EdgeInsets.zero,
                 child: LanguageListView(),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -49,6 +50,7 @@ class LanguageListView extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView(
       shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
       controller: scrollController,
       padding: EdgeInsets.zero,
       children:

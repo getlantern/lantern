@@ -130,10 +130,12 @@ void showFollowUsBottomSheet({required BuildContext context}) {
   showAppBottomSheet(
     context: context,
     title: 'follow_us'.i18n,
-    scrollControlDisabledMaxHeightRatio: context.isSmallDevice ? 0.37.h : 0.3.h,
+    scrollControlDisabledMaxHeightRatio: context.isSmallDevice ? 0.39.h : 0.3.h,
     builder: (context, scrollController) {
-      return FollowUsListView(
-        scrollController: scrollController,
+      return Flexible(
+        child: FollowUsListView(
+          scrollController: scrollController,
+        ),
       );
     },
   );

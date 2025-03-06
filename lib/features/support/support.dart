@@ -80,6 +80,7 @@ class Support extends StatelessWidget {
             // Spacer(),
             SizedBox(height: 16),
             AppVersion(version: '8.1.4 (20250213.213443)'),
+            SizedBox(height: size24),
           ],
         ),
       ),

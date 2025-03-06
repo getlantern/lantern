@@ -11,6 +11,7 @@ import (
 
 	localconfig "github.com/getlantern/lantern-outline/config"
 	"github.com/getlantern/lantern-outline/dialer"
+	"github.com/getlantern/radiance"
 	"github.com/getlantern/radiance/config"
 )
 
@@ -27,18 +28,15 @@ type vpnServer struct {
 	offset        int               // Offset for packet processing
 	clients       map[net.Conn]bool // Map to track active client connections
 	vpnConnected  bool              // whether the VPN is currently connected
-	tunnel        Tunnel            // tunnel that manages packet forwarding
-	tunnelStop    chan struct{}
 	configHandler *config.ConfigHandler
 	dialer        dialer.Dialer
+	radiance      *radiance.Radiance
 	mu            sync.RWMutex
 }
 
 // VPNServer defines the methods required to manage the VPN server
 type VPNServer interface {
-	ProcessInboundPacket(rawPacket []byte, n int) error
 	Start(ctx context.Context) error
-	StartTun2Socks(ctx context.Context, bridge IOSBridge) error
 	Stop() error
 	IsVPNConnected() bool
 }
@@ -46,21 +44,23 @@ type VPNServer interface {
 // Opts are the options the VPN server can be configured with
 type Opts struct {
 	Address string
+	BaseDir string
 	Mtu     int
 	Offset  int
 }
 
-// IOSBridge defines the interface for interaction with Swift.
-type IOSBridge interface {
-	ProcessOutboundPacket(pkt []byte) bool
-	ExcludeRoute(route string) bool
-}
-
 // NewVPNServer initializes and returns a new instance of vpnServer
 func NewVPNServer(opts *Opts) (VPNServer, error) {
-	if opts.Address == "" {
-		return nil, errors.New("missing address")
+	srv := newVPNServer(opts)
+	var err error
+	srv.radiance, err = radiance.NewRadiance(opts.BaseDir)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create radiance: %v", err)
 	}
+	return srv, nil
+}
+
+func newVPNServer(opts *Opts) *vpnServer {
 	if opts.Mtu == 0 {
 		opts.Mtu = DefaultTunMTU
 	}
@@ -71,11 +71,9 @@ func NewVPNServer(opts *Opts) (VPNServer, error) {
 		mtu:           opts.Mtu,
 		offset:        opts.Offset,
 		configHandler: config.NewConfigHandler(configPollInterval),
-		tunnel:        newTunnel(false, _udpSessionTimeout),
 		clients:       make(map[net.Conn]bool),
-		tunnelStop:    make(chan struct{}),
 	}
-	return server, nil
+	return server
 }
 
 // Start initializes the tunnel using the provided parameters and starts the VPN server.
@@ -84,17 +82,7 @@ func (s *vpnServer) Start(ctx context.Context) error {
 		return errors.New("VPN already running")
 	}
 	s.setConnected(true)
-	//go s.acceptConnections(ctx)
-	return nil
-}
-
-// StartTun2Socks initializes the Tun2Socks tunnel with the provided IOSBridge adapter.
-func (s *vpnServer) StartTun2Socks(ctx context.Context, bridge IOSBridge) error {
-	if s.IsVPNConnected() {
-		return errors.New("VPN already running")
-	}
-	go s.startTun2Socks(ctx, bridge)
-	return nil
+	return s.radiance.StartVPN()
 }
 
 // loadConfig is used to load the configuration file. If useLocalConfig is true then we use the embedded config
@@ -102,33 +90,13 @@ func (srv *vpnServer) loadConfig(ctx context.Context, useLocalConfig bool) (*con
 	if useLocalConfig {
 		return localconfig.LoadConfig()
 	}
-	return srv.configHandler.GetConfig(ctx)
-}
-
-// startTun2Socks configures and starts the Tun2Socks tunnel using the provided parameters.
-func (srv *vpnServer) startTun2Socks(ctx context.Context, bridge IOSBridge) error {
-	cfg, err := srv.loadConfig(ctx, true)
+	cfgs, err := srv.configHandler.GetConfig(ctx)
 	if err != nil {
-		return err
+		return nil, err
+	} else if len(cfgs) == 0 {
+		return nil, errors.New("no config available")
 	}
-	addr := fmt.Sprintf("%s:%d", cfg.Addr, cfg.Port)
-	ssconf := cfg.GetConnectCfgShadowsocks()
-	dialer, err := dialer.NewStreamDialer(addr, ssconf.Cipher, ssconf.Secret)
-	if err != nil {
-		return err
-	}
-	// Exclude proxy server address from the VPN routing table
-	if ok := bridge.ExcludeRoute(addr); !ok {
-		return fmt.Errorf("unable to exclude route: %s", cfg.Addr)
-	}
-	tunWriter := &osWriter{bridge.ProcessOutboundPacket}
-	if err := srv.tunnel.Start(dialer, tunWriter); err != nil {
-		log.Printf("Error starting tunnel: %v", err)
-		return err
-	}
-	defer srv.broadcastStatus()
-	srv.setConnected(true)
-	return nil
+	return cfgs[0], nil
 }
 
 // Stop stops the VPN server and closes the tunnel.
@@ -139,12 +107,10 @@ func (s *vpnServer) Stop() error {
 	defer s.broadcastStatus()
 	s.setConnected(false)
 
-	if s.tunnel != nil {
-		if err := s.tunnel.Close(); err != nil {
-			return err
-		}
+	if s.radiance == nil {
+		return nil
 	}
-	return nil
+	return s.radiance.StopVPN()
 }
 
 // IsVPNConnected returns the current connection status of the VPN.
@@ -158,15 +124,6 @@ func (s *vpnServer) setConnected(isConnected bool) {
 	s.mu.Lock()
 	s.vpnConnected = isConnected
 	s.mu.Unlock()
-}
-
-// ProcessInboundPacket handles a packet received from the TUN device.
-func (s *vpnServer) ProcessInboundPacket(rawPacket []byte, n int) error {
-	if s.tunnel == nil {
-		return nil
-	}
-	_, err := s.tunnel.Write(rawPacket)
-	return err
 }
 
 func (s *vpnServer) acceptConnections(ctx context.Context) {

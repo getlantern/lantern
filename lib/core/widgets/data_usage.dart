@@ -50,7 +50,7 @@ class DataUsage extends StatelessWidget {
               Container(
                 decoration: ShapeDecoration(
                   shape: RoundedRectangleBorder(
-                    side: BorderSide(width: 1, color: AppColors.yellow3.withAlpha(100),),
+                    side: BorderSide(width:   1, color: AppColors.gray3),
                     borderRadius: BorderRadius.circular(8),
                   ),
 
