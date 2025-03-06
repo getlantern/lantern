@@ -8,7 +8,6 @@ package main
 import "C"
 
 import (
-	"fmt"
 	"os"
 	"strings"
 	"sync"
@@ -18,27 +17,25 @@ import (
 )
 
 var (
-	logPort int64
-	logMu   sync.Mutex
-
+	logMu          sync.Mutex
+	logPort        int64
 	watcherStarted bool
 )
 
 func configureLogging(logFile string, logPort int64) error {
+	logMu.Lock()
+	defer logMu.Unlock()
 	// Check if the log file exists.
 	if _, err := os.Stat(logFile); err == nil {
 		// Read and send the last 30 lines of the log file.
-		fmt.Println("Sending last 30 log lines...")
 		lines, err := logging.ReadLastLines(logFile, 30)
 		if err != nil {
 			return err
 		}
 		dart_api_dl.SendToPort(logPort, strings.Join(lines, "\n"))
-	} else {
-		fmt.Println("Log file does not exist, starting fresh.")
 	}
 
-	// Start the log timer once.
+	// Start the log watcher only once.
 	if !watcherStarted {
 		watcherStarted = true
 		go logging.WatchLogFile(logFile, func(message string) {
