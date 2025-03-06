@@ -6,8 +6,8 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/providers/ffi_provider.dart';
 import 'package:lantern/core/providers/log_provider.dart';
+import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/utils/log_utils.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -44,7 +44,7 @@ class Logs extends HookConsumerWidget {
           text: "Here are my diagnostic logs from Lantern.",
         );
       } catch (e) {
-        debugPrint("Error sharing log file: $e");
+        appLogger.error("Error sharing log file: $e");
       }
     }
 
@@ -91,7 +91,7 @@ class Logs extends HookConsumerWidget {
               color: Colors.black,
               child: logAsyncValue.when(
                 data: (logs) {
-                  scrollToBottom(); // Ensure we scroll when logs update
+                  scrollToBottom(); // scroll when logs update
                   return ListView.builder(
                     controller: scrollController,
                     padding: const EdgeInsets.all(8.0),

@@ -9,9 +9,3 @@ final diagnosticLogProvider = StreamProvider<List<String>>((ref) async* {
     yield List.unmodifiable(logs);
   }
 });
-
-
-// final diagnosticLogProvider = StreamProvider<List<String>>((ref) async* {
-//   final ffiClient = ref.watch(ffiClientProvider);
-//   yield await ffiClient.logStream().asBroadcastStream().toList();
-// });
