@@ -27,58 +27,50 @@ class ReportIssue extends HookConsumerWidget {
     final emailController = useTextEditingController();
     final descriptionController = useTextEditingController();
     final selectedIssueController = useTextEditingController();
-    final List<String> issueOptions = [
-      'Cannot sign in',
-      'Slow',
-      'Cannot complete purchase'
-    ];
-
-    void submitReport() {
-      print('Email: ${emailController.text}');
-      print('Issue: ${selectedIssueController.value}');
-      print('Description: ${descriptionController.text}');
-    }
 
     return BaseScreen(
       title: 'report_issue'.i18n,
-      body: Column(
-        children: <Widget>[
-          AppTextField(
-            hintText: 'Email (optional)',
-            label: 'Email',
-            prefixIcon: AppImagePaths.email,
-            keyboardType: TextInputType.emailAddress,
-            validator: (value) {
-              if (value!.isEmpty) {
-                return 'email_empty'.i18n;
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 16),
-          AppTextField(
-            label: 'select_an_issue'.i18n,
-            hintText: '',
-            onTap: () => openIssueSelection(context),
-            prefixIcon: Icons.error_outline,
-            suffixIcon: Icons.arrow_drop_down,
-            controller: selectedIssueController,
-          ),
-          const SizedBox(height: 16),
-          // Issue description (text area) with an icon on the left side
-          AppTextField(
-            controller: descriptionController,
-            hintText: '',
-            label: 'Issue Description',
-            prefixIcon: Icons.description_outlined,
-            maxLines: 10,
-          ),
-          const SizedBox(height: size24),
-          PrimaryButton(
-            label: 'submit_issue_report'.i18n,
-            onPressed: submitReport,
-          ),
-        ],
+      body: SingleChildScrollView(
+        child: Column(
+          children: <Widget>[
+            AppTextField(
+              hintText: 'Email (optional)',
+              label: 'Email',
+              prefixIcon: AppImagePaths.email,
+              keyboardType: TextInputType.emailAddress,
+              validator: (value) {
+                if (value!.isEmpty) {
+                  return 'email_empty'.i18n;
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            AppTextField(
+              label: 'select_an_issue'.i18n,
+              hintText: '',
+              onTap: () => openIssueSelection(context),
+              prefixIcon: Icons.error_outline,
+              suffixIcon: Icons.arrow_drop_down,
+              controller: selectedIssueController,
+            ),
+            const SizedBox(height: 16),
+            // Issue description (text area) with an icon on the left side
+            AppTextField(
+              controller: descriptionController,
+              hintText: '',
+              label: 'Issue Description',
+              prefixIcon: Icons.description_outlined,
+              maxLines: 10,
+            ),
+            const SizedBox(height: size24),
+            PrimaryButton(
+              label: 'submit_issue_report'.i18n,
+              onPressed: submitReport,
+            ),
+            const SizedBox(height: size24),
+          ],
+        ),
       ),
     );
   }
@@ -98,6 +90,14 @@ class ReportIssue extends HookConsumerWidget {
       },
     );
   }
+
+  void submitReport() {
+    // print('Email: ${emailController.text}');
+    // print('Issue: ${selectedIssueController.value}');
+    // print('Description: ${descriptionController.text}');
+  }
+
+
 
   void _onIssueTap(String issueType) {}
 }
