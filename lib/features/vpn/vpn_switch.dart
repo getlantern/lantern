@@ -13,12 +13,13 @@ class VPNSwitch extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ffiClient = ref.watch(ffiClientProvider).value;
-    final _vpnStatus = useState<VPNStatus>(VPNStatus.disconnected);
-    final _loading = useState<bool>(false);
 
     if (ffiClient == null) {
       return const Center(child: CircularProgressIndicator());
     }
+
+    final _vpnStatus = useState<VPNStatus>(VPNStatus.disconnected);
+    final _loading = useState<bool>(false);
 
     Future<void> _connectVPN() async {
       _loading.value = true;

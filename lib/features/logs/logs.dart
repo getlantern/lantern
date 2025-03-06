@@ -56,7 +56,7 @@ class Logs extends HookConsumerWidget {
         actions: [
           AppIconButton(
             onPressed: shareLogFile,
-            path: AppImagePaths.headerShare,
+            path: AppImagePaths.upArrow,
           ),
         ],
       ),
