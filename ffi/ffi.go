@@ -10,6 +10,7 @@ import "C"
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 	"sync"
 	"unsafe"
 
@@ -34,8 +35,13 @@ func setup(dir *C.char, port C.int64_t, api unsafe.Pointer) {
 	logPort = int64(port)
 
 	setupOnce.Do(func() {
+		// initialize the Dart API DL bridge.
 		dart_api_dl.Init(api)
-		configureLogging(baseDir, logPort)
+		// configure logging
+		logFile := filepath.Join(baseDir, "lantern.log")
+		if err := configureLogging(logFile, logPort); err != nil {
+			log.Errorf("Error configuring logging: %v", err)
+		}
 	})
 }
 

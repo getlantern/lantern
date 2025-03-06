@@ -12,7 +12,7 @@ import (
 // LogHandler is a function that handles new log messages.
 type LogHandler func(string)
 
-// **Watch the log file for changes and send new lines to Dart**
+// WatchLogFile watches the log file for changes and send new lines to Dart.
 func WatchLogFile(filePath string, logHandler LogHandler) error {
 	// Open the file for reading
 	file, err := os.Open(filePath)
@@ -39,7 +39,6 @@ func WatchLogFile(filePath string, logHandler LogHandler) error {
 		return fmt.Errorf("error watching file: %w", err)
 	}
 
-	// Create a buffered reader.
 	reader := bufio.NewReader(file)
 
 	// Listen for file changes.
@@ -62,7 +61,7 @@ func WatchLogFile(filePath string, logHandler LogHandler) error {
 	}
 }
 
-// readNewLogLines reads new lines from the open file and calls logHandler for each line.
+// readNewLogLines reads new lines from the open file and calls logHandler on each line.
 func readNewLogLines(file *os.File, reader *bufio.Reader, lastOffset int64, logHandler LogHandler) int64 {
 	// Get the current file size.
 	fileInfo, err := file.Stat()
@@ -81,11 +80,10 @@ func readNewLogLines(file *os.File, reader *bufio.Reader, lastOffset int64, logH
 	// Move to the last known offset.
 	file.Seek(lastOffset, os.SEEK_SET)
 
-	// Read new lines.
 	for {
 		line, err := reader.ReadString('\n')
 		if err != nil {
-			break // No more lines to read.
+			break
 		}
 		logHandler(line)
 	}
@@ -103,7 +101,6 @@ func ReadLastLines(filePath string, n int) ([]string, error) {
 	}
 	defer file.Close()
 
-	// Read all lines into memory (not ideal for very large files).
 	lines := []string{}
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
