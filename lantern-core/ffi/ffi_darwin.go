@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/getlantern/lantern-outline/vpn"
+	"github.com/getlantern/lantern-outline/lantern-core/vpn"
 )
 
 var (

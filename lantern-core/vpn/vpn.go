@@ -9,8 +9,7 @@ import (
 	"sync"
 	"time"
 
-	localconfig "github.com/getlantern/lantern-outline/config"
-	"github.com/getlantern/lantern-outline/dialer"
+	"github.com/getlantern/lantern-outline/lantern-core/dialer"
 	"github.com/getlantern/radiance"
 	"github.com/getlantern/radiance/config"
 )
@@ -85,18 +84,18 @@ func (s *vpnServer) Start(ctx context.Context) error {
 }
 
 // loadConfig is used to load the configuration file. If useLocalConfig is true then we use the embedded config
-func (srv *vpnServer) loadConfig(ctx context.Context, useLocalConfig bool) (*config.Config, error) {
-	if useLocalConfig {
-		return localconfig.LoadConfig()
-	}
-	cfgs, err := srv.configHandler.GetConfig(ctx)
-	if err != nil {
-		return nil, err
-	} else if len(cfgs) == 0 {
-		return nil, errors.New("no config available")
-	}
-	return cfgs[0], nil
-}
+// func (srv *vpnServer) loadConfig(ctx context.Context, useLocalConfig bool) (*config.Config, error) {
+// 	if useLocalConfig {
+// 		return localconfig.LoadConfig()
+// 	}
+// 	cfgs, err := srv.configHandler.GetConfig(ctx)
+// 	if err != nil {
+// 		return nil, err
+// 	} else if len(cfgs) == 0 {
+// 		return nil, errors.New("no config available")
+// 	}
+// 	return cfgs[0], nil
+// }
 
 // Stop stops the VPN server and closes the tunnel.
 func (s *vpnServer) Stop() error {

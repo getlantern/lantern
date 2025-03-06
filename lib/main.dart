@@ -18,7 +18,7 @@ Future<void> main() async {
   await Future.microtask(Localization.loadTranslations);
   runApp(
     DevicePreview(
-        enabled: true,
+        enabled: false,
         builder: (context) => const ProviderScope(
               child: LanternApp(),
             )),
