@@ -11,13 +11,13 @@ import 'package:window_manager/window_manager.dart';
 
 Future<void> main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-
+  widgetsBinding.deferFirstFrame();
   initLogger();
   await _loadAppSecrets();
   desktopInit();
   await injectServices();
   await Future.microtask(Localization.loadTranslations);
+  widgetsBinding.allowFirstFrame();
   runApp(
     DevicePreview(
         enabled: false,
@@ -25,7 +25,7 @@ Future<void> main() async {
               child: LanternApp(),
             )),
   );
-  FlutterNativeSplash.remove();
+
 }
 
 Future<void> desktopInit() async {
