@@ -163,11 +163,14 @@ class AppTextButton extends StatelessWidget {
 
   final Color? textColor;
 
+  final EdgeInsets? padding;
+
   const AppTextButton({
     super.key,
     required this.label,
     required this.onPressed,
     this.textColor,
+    this.padding,
   });
 
   @override
@@ -175,7 +178,7 @@ class AppTextButton extends StatelessWidget {
     return TextButton(
       onPressed: onPressed,
       style: TextButton.styleFrom(
-        padding: EdgeInsets.zero,
+        padding: padding??EdgeInsets.symmetric(horizontal: 16.0),
         visualDensity: VisualDensity.compact,
         textStyle: AppTestStyles.titleMedium.copyWith(
           overflow: TextOverflow.ellipsis,
