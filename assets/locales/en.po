@@ -1,0 +1,252 @@
+msgid "app_name"
+msgstr "Lantern"
+
+msgid "upgrade_to_pro"
+msgstr "Upgrade to Pro"
+
+msgid "language"
+msgstr "Language"
+
+msgid "settings"
+msgstr "Settings"
+
+msgid "language"
+msgstr "Language"
+
+msgid "report_issue"
+msgstr "Report Issue"
+
+msgid "lantern_projects"
+msgstr "Lantern Projects:"
+
+msgid "download_links"
+msgstr "Download Links"
+
+msgid "invite_friends"
+msgstr "Invite Friends"
+
+msgid "your_referral_code"
+msgstr "Your Referral Code"
+
+msgid "invite_friends_message"
+msgstr "Share your referral code with a friend. When they use it to purchase Lantern Pro, both of you will receive 30 days of Lantern Pro for free!"
+
+msgid "share_referral_code"
+msgstr "Share Referral Code"
+
+msgid "unbounded"
+msgstr "Unbounded"
+
+msgid "help_fight_global_internet_censorship"
+msgstr "Help Fight Global Internet Censorship"
+
+msgid "vpn_settings"
+msgstr "VPN Settings"
+
+msgid "split_tunneling"
+msgstr "Split Tunneling"
+
+msgid "server_locations"
+msgstr "Server Locations"
+
+msgid "lantern_pro_email"
+msgstr "Lantern Pro Email:"
+
+msgid "pro_account_expiration"
+msgstr "Pro Account Expiration"
+
+msgid "manage_subscription"
+msgstr "Manage Subscription"
+
+msgid "lantern_pro_devices"
+msgstr "Lantern Pro Devices (Up to 3)"
+
+msgid "remove"
+msgstr "Remove"
+
+msgid "add_device"
+msgstr "Add Device"
+
+msgid "danger_zone"
+msgstr "Danger Zone:"
+
+msgid "delete_account"
+msgstr "Delete Account"
+
+msgid "delete"
+msgstr "Delete"
+
+msgid "account"
+msgstr "Account"
+
+msgid "delete_account_?"
+msgstr "Delete your Account?"
+
+msgid "delete_account_message"
+msgstr "Account deletion is permanent. You will lose access on all devices, and any remaining Pro subscription time will be forfeited without a refund.
+
+msgid "delete_account_message_two"
+msgstr "To confirm deletion please enter your password below"
+
+msgid "Submit Issue Report"
+msgstr "Enter Password to Confirm"
+
+msgid "confirm_deletion"
+msgstr "Confirm Deletion"
+
+msgid "cancel"
+msgstr "Cancel"
+
+msgid "daily_data_usage"
+msgstr "Daily Data Usage"
+
+msgid "mb"
+msgstr "MB"
+
+msgid "vpn_status"
+msgstr "VPN Status"
+
+msgid "smart_location"
+msgstr "Smart Location"
+
+msgid "smart_location"
+msgstr "Smart Location"
+
+msgid "telegram"
+msgstr "Telegram"
+
+msgid "instagram"
+msgstr "Instagram"
+
+msgid "x"
+msgstr "X"
+
+msgid "follow_us"
+msgstr "Follow Us"
+
+msgid "server_selection"
+msgstr "Server Selection"
+
+msgid "smart_location"
+msgstr "Smart Location"
+
+msgid "automatically_chooses_fastest_location"
+msgstr "Automatically chooses fastest location"
+
+msgid "pro_locations"
+msgstr "Pro locations:"
+
+msgid "choose_your_location_with_lantern_pro"
+msgstr "Choose your location with Lantern Pro:"
+
+msgid "language"
+msgstr "Language"
+
+msgid "sign_in"
+msgstr "Sign In"
+
+msgid "account"
+msgstr "Account"
+
+msgid "sign_out"
+msgstr "Sign Out"
+
+msgid "check_for_updates"
+msgstr "Check for Updates"
+
+msgid "support"
+msgstr "Support"
+
+msgid "download_links"
+msgstr "Download Links"
+
+msgid "get_30_days_of_pro_free"
+msgstr "Get 30 days of Pro free"
+
+msgid "share_message_referral_code"
+msgstr "For a free month of Lantern Pro, use this referral code: %s ; You can download it from here: https://lantern.io/download"
+
+msgid "submit_issue_report"
+msgstr "Submit Issue Report"
+
+msgid "select_an_issue"
+msgstr "Select an Issue"
+
+
+msgid "cannot_access_blocked_sites"
+msgstr "Cannot access blocked sites"
+
+msgid "cannot_complete_purchase"
+msgstr "Cannot complete purchase"
+
+
+msgid "discover_not_working"
+msgstr "Discover not working"
+
+msgid "cannot_sign_in"
+msgstr "Cannot sign in"
+
+msgid "spinner_loads_endlessly"
+msgstr "Spinner loads endlessly"
+
+msgid "slow"
+msgstr "Slow"
+
+msgid "cannot_link_devices"
+msgstr "Cannot link devices"
+
+msgid "wrong_device_linking_code"
+msgstr "Wrong or invalid device linking code"
+
+msgid "cannot_remove_device"
+msgstr "Cannot remove device"
+
+msgid "application_crashes"
+msgstr "Application crashes"
+
+msgid "other"
+msgstr "Other"
+
+msgid "issue_description"
+msgstr "Describe your issue"
+
+
+
+msgid "enter_password_to_confirm"
+msgstr "Enter password to confirm"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

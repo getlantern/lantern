@@ -1,0 +1,76 @@
+import 'package:flutter/material.dart';
+
+import '../common/common.dart';
+
+class AppTile extends StatelessWidget {
+  final String label;
+  final Object? icon;
+  final Widget? trailing;
+  final Widget? subtitle;
+  final VoidCallback? onPressed;
+  final EdgeInsets? contentPadding;
+
+  final TextStyle? tileTextStyle;
+
+  const AppTile({
+    super.key,
+    required this.label,
+    this.onPressed,
+    this.icon,
+    this.subtitle,
+    this.trailing,
+    this.contentPadding,
+    this.tileTextStyle,
+  });
+
+  factory AppTile.link({
+    required Object icon,
+    required String label,
+    required String url,
+    EdgeInsets? contentPadding,
+  }) =>
+      AppTile(
+        icon: icon,
+        label: label,
+        onPressed: () => UrlUtils.openUrl(url),
+        trailing: AppImage(path: AppImagePaths.outsideBrowser),
+        contentPadding: contentPadding,
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    final _tileTextStyle = tileTextStyle ??
+        Theme.of(context).textTheme.labelLarge!.copyWith(
+              color: AppColors.gray9,
+            );
+
+    Widget? leading;
+    if (icon != null) {
+      if (icon is String) {
+        leading = SizedBox(
+          width: 24,
+          height: 24,
+          child: AppImage(path: icon as String),
+        );
+      } else if (icon is IconData) {
+        leading = Icon(
+          icon as IconData,
+          size: 24,
+          color: AppColors.gray9,
+        );
+      }
+    }
+
+    return ListTile(
+      enableFeedback: true,
+      minVerticalPadding: 0,
+      contentPadding:
+          contentPadding ?? const EdgeInsets.symmetric(horizontal: 16),
+      title: Text(label, style: _tileTextStyle),
+      subtitle: subtitle,
+      leading: leading,
+      trailing: trailing,
+      onTap: onPressed,
+    );
+  }
+}

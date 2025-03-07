@@ -1,40 +1,47 @@
-import 'dart:ui';
-
 import 'package:i18n_extension/i18n_extension.dart';
 import 'package:i18n_extension_importer/i18n_extension_importer.dart';
 import 'package:lantern/core/utils/once.dart';
 
 extension Localization on String {
-  static String defaultLocale = 'en_us';
-  static String locale = defaultLocale;
+  static String defaultLocale = 'en_US';
 
-  static Translations translations =
-      Translations.byLocale(defaultLocale.toBCP47());
+  static Translations translations = Translations.byLocale(defaultLocale.toBCP47());
 
   static Future<Translations> Function(
     Future<Translations> Function(),
   ) loadTranslationsOnce = once<Future<Translations>>();
 
-  static Future<Translations> ensureInitialized() async {
-    return loadTranslationsOnce(() {
-      return GettextImporter()
-          .fromAssetDirectory('assets/locales')
-          .then((value) {
-        translations += value;
-        return translations;
-      });
-    });
+  // static Future<Translations> ensureInitialized() async {
+  //   return loadTranslationsOnce(() {
+  //     return GettextImporter()
+  //         .fromAssetDirectory('assets/locales')
+  //         .then((value) {
+  //       translations += value;
+  //       return translations;
+  //     });
+  //   });
+  // }
+
+  static Future<void> loadTranslations() async {
+    translations +=
+        await GettextImporter().fromAssetDirectory("assets/locales");
   }
 
-  static String get localeShort => locale.split('_')[0];
+  String get i18n => localize(this, translations,languageTag: defaultLocale.toBCP47());
 
-  String get languageTag => locale.replaceFirst('_', '-').toLowerCase();
-
-  String doLocalize() => localize(this, translations, languageTag: languageTag);
-
-  String get i18n => localize(this, translations, languageTag: languageTag);
+  String plural(value) => localizePlural(value, this, translations);
 
   String fill(List<Object> params) => localizeFill(this, params);
+
+// static String get localeShort => locale.split('_')[0];
+//
+// String get languageTag => locale.replaceFirst('_', '-').toLowerCase();
+//
+// String doLocalize() => localize(this, translations, languageTag: languageTag);
+//
+// String get i18n => localize(this, translations, languageTag: languageTag);
+//
+// String fill(List<Object> params) => localizeFill(this, params);
 }
 
 extension StringExtensions on String {

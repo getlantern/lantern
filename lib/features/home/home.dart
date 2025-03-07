@@ -1,19 +1,18 @@
 import 'dart:async';
-
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:lantern/core/ffi/ffi_client.dart';
 import 'package:lantern/core/ffi/socket_client.dart';
 import 'package:lantern/core/providers/ffi_provider.dart';
 import 'package:lantern/core/providers/socket_provider.dart';
-import 'package:lantern/core/vpn/widget.dart';
-import 'package:lantern/core/widgets/custom_bottom_bar.dart';
-import 'package:flutter_advanced_switch/flutter_advanced_switch.dart';
+import 'package:lantern/core/widgets/vpn_widgets.dart';
+
 
 @RoutePage(name: 'Home')
 class HomePage extends ConsumerStatefulWidget {
+  const HomePage({super.key});
+
   @override
   ConsumerState<HomePage> createState() => _HomePageState();
 }
@@ -54,12 +53,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     final tab = 'vpn';
     bool isOnboarded = true;
     return Scaffold(
-      body: buildBody(tab, isOnboarded),
-      bottomNavigationBar: CustomBottomBar(
-        selectedTab: tab,
-        isDevelop: !kReleaseMode,
-      ),
-    );
+      body: buildBody(tab, isOnboarded),);
   }
 
   Widget buildBody(String selectedTab, bool? isOnboarded) {
