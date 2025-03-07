@@ -89,6 +89,9 @@ dependencies:
   # share
   share_plus: ^10.1.4
 
+  #native
+  flutter_native_splash: ^2.4.5
+
 
 dev_dependencies:
   flutter_test:
