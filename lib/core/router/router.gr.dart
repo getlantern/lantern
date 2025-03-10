@@ -197,10 +197,14 @@ class NewHome extends _i14.PageRouteInfo<void> {
 class ReportIssue extends _i14.PageRouteInfo<ReportIssueArgs> {
   ReportIssue({
     _i15.Key? key,
+    String? description,
     List<_i14.PageRouteInfo>? children,
   }) : super(
           ReportIssue.name,
-          args: ReportIssueArgs(key: key),
+          args: ReportIssueArgs(
+            key: key,
+            description: description,
+          ),
           initialChildren: children,
         );
 
@@ -211,19 +215,27 @@ class ReportIssue extends _i14.PageRouteInfo<ReportIssueArgs> {
     builder: (data) {
       final args =
           data.argsAs<ReportIssueArgs>(orElse: () => const ReportIssueArgs());
-      return _i9.ReportIssue(key: args.key);
+      return _i9.ReportIssue(
+        key: args.key,
+        description: args.description,
+      );
     },
   );
 }
 
 class ReportIssueArgs {
-  const ReportIssueArgs({this.key});
+  const ReportIssueArgs({
+    this.key,
+    this.description,
+  });
 
   final _i15.Key? key;
 
+  final String? description;
+
   @override
   String toString() {
-    return 'ReportIssueArgs{key: $key}';
+    return 'ReportIssueArgs{key: $key, description: $description}';
   }
 }
 

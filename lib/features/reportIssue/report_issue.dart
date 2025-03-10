@@ -8,7 +8,12 @@ import 'package:lantern/core/widgets/radio_listview.dart';
 
 @RoutePage(name: 'ReportIssue')
 class ReportIssue extends HookConsumerWidget {
-  ReportIssue({super.key});
+  final String? description;
+
+  ReportIssue({
+    super.key,
+    this.description,
+  });
 
   final issueOptions = <String>[
     'cannot_access_blocked_sites'.i18n,
@@ -96,8 +101,6 @@ class ReportIssue extends HookConsumerWidget {
     // print('Issue: ${selectedIssueController.value}');
     // print('Description: ${descriptionController.text}');
   }
-
-
 
   void _onIssueTap(String issueType) {}
 }

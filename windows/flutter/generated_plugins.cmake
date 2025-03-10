@@ -3,6 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  app_links
   objectbox_flutter_libs
   screen_retriever_windows
   sentry_flutter
