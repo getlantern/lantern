@@ -210,16 +210,53 @@ msgstr "Other"
 msgid "issue_description"
 msgstr "Describe your issue"
 
-
-
 msgid "enter_password_to_confirm"
 msgstr "Enter password to confirm"
 
+msgid "cannot_view_logs"
+msgstr "Lantern cannot view your diagnostic logs unless you send them to us."
 
+msgid "split_tunneling"
+msgstr "Split Tunneling"
 
+msgid "split_tunneling_mode"
+msgstr "Split Tunneling Mode"
 
+msgid "apps_split_tunneling"
+msgstr "Apps Split Tunneling"
 
+msgid "website_split_tunneling"
+msgstr "Website Split Tunneling"
 
+msgid "iran_optimized"
+msgstr "Iran-optimized split tunneling"
+
+msgid "enter_url"
+msgstr "Enter URL"
+
+msgid "add"
+msgstr "Add"
+
+msgid "automatic"
+msgstr "Automatic"
+
+msgid "enter_url_or_ip"
+msgstr "Enter URL or IP Address"
+
+msgid "installed_apps"
+msgstr "Installed Apps"
+
+msgid "search_apps"
+msgstr "Search Apps"
+
+msgid "when_connected"
+msgstr "When connected, the websites you select will bypass the VPN."
+
+msgid "apps_bypassing_vpn"
+msgstr "Apps bypassing the VPN (%d)"
+
+msgid "websites_bypassing_vpn"
+msgstr "Websites bypassing the VPN (%d)"
 
 
 

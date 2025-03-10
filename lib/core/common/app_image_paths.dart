@@ -41,4 +41,13 @@ class AppImagePaths {
   static const verticalDots = 'assets/images/vertical_dots.svg';
   static const instagram = 'assets/images/instagram.svg';
   static const x = 'assets/images/x.svg';
+
+  // split tunneling
+  static const plus = 'assets/images/plus.svg';
+  static const minus = 'assets/images/minus.svg';
+  static const search = 'assets/images/search.svg';
+  // app icons for testing
+  static const appleMusicIcon = 'assets/images/app_icon_apple_music.svg';
+  static const googleChatIcon = 'assets/images/app_icon_google_chat.svg';
+  static const instagramIcon = 'assets/images/app_icon_instagram.svg';
 }
