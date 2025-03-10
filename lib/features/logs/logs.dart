@@ -9,6 +9,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/providers/log_provider.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/utils/log_utils.dart';
+import 'package:lantern/core/widgets/info_row.dart';
 import 'package:share_plus/share_plus.dart';
 
 @RoutePage(name: 'Logs')
@@ -63,28 +64,7 @@ class Logs extends HookConsumerWidget {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 16.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(
-                    right: 8.0,
-                  ), // Add spacing around the button
-                  child: AppImage(
-                    path: AppImagePaths.info,
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    'Lantern cannot view your diagnostic logs unless you send them to us.',
-                    style: AppTestStyles.bodyMedium,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          InfoRow(text: 'cannot_view_logs'.i18n),
           Expanded(
             child: Container(
               width: double.infinity,

@@ -1,6 +1,8 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/preferences/preferences.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
 import 'package:lantern/core/widgets/vpn_status_indicator.dart';
 import 'package:lantern/features/vpn/vpn_switch.dart';
@@ -13,20 +15,15 @@ enum _SettingTileType {
 }
 
 @RoutePage(name: 'Home')
-class Home extends StatefulWidget {
-  const Home({super.key});
+class Home extends HookConsumerWidget {
+  Home({super.key});
 
-  @override
-  State<Home> createState() => _HomeState();
-}
-
-class _HomeState extends State<Home> {
   TextTheme? textTheme;
 
   final isUserPro = false;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     textTheme = Theme.of(context).textTheme;
     return Scaffold(
       appBar: AppBar(
@@ -44,11 +41,11 @@ class _HomeState extends State<Home> {
                 appRouter.push(const Setting());
               },
               icon: const AppImage(path: AppImagePaths.menu))),
-      body: _buildBody(),
+      body: _buildBody(ref),
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(WidgetRef ref) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: defaultSize),
       child: Column(
@@ -61,7 +58,7 @@ class _HomeState extends State<Home> {
             children: <Widget>[
               DataUsage(),
               SizedBox(height: 8),
-              _buildSetting(),
+              _buildSetting(ref),
               SizedBox(height: 20.h),
             ],
           ),
@@ -70,7 +67,10 @@ class _HomeState extends State<Home> {
     );
   }
 
-  Widget _buildSetting() {
+  Widget _buildSetting(WidgetRef ref) {
+    final preferences = ref.watch(appPreferencesProvider);
+    final splitTunnelingEnabled =
+        preferences[AppPreferences.splitTunnelingEnabled] ?? false;
     return Container(
       decoration: BoxDecoration(boxShadow: [
         BoxShadow(
@@ -121,10 +121,10 @@ class _HomeState extends State<Home> {
             SettingTile(
               label: 'split_tunneling'.i18n,
               icon: AppImagePaths.callSpilt,
-              value: 'Enabled',
+              value: splitTunnelingEnabled ? 'Enabled' : 'Disabled',
               actions: [
                 IconButton(
-                  onPressed: () {},
+                  onPressed: () => appRouter.push(SplitTunneling()),
                   style: ElevatedButton.styleFrom(
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
@@ -148,6 +148,7 @@ class _HomeState extends State<Home> {
         appRouter.push(const ServerSelection());
         break;
       case _SettingTileType.splitTunneling:
+        appRouter.push(const SplitTunneling());
         break;
     }
   }

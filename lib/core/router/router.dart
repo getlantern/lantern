@@ -62,5 +62,17 @@ class AppRouter extends RootStackRouter {
       path: '/server-selection',
       page: ServerSelection.page,
     ),
+    AutoRoute(
+      path: '/split-tunneling',
+      page: SplitTunneling.page,
+    ),
+    AutoRoute(
+      path: '/apps-split-tunneling',
+      page: AppsSplitTunneling.page,
+    ),
+    AutoRoute(
+      path: '/website-split-tunneling',
+      page: WebsiteSplitTunneling.page,
+    ),
   ];
 }

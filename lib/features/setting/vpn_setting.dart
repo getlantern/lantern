@@ -28,7 +28,7 @@ class VPNSetting extends StatelessWidget {
                 color: AppColors.blue7,
               ),
             ),
-            onPressed: () {},
+            onPressed: () => appRouter.push(const SplitTunneling()),
           ),
           DividerSpace(),
           AppTile(
