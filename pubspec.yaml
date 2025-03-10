@@ -75,6 +75,7 @@ dependencies:
   flutter_riverpod: ^2.6.1
   hooks_riverpod: ^2.6.1
   flutter_hooks: ^0.21.2
+  riverpod_annotation: ^2.3.3
 
   # dependency injection
   get_it: ^8.0.3
@@ -102,6 +103,9 @@ dev_dependencies:
   auto_route_generator: ^9.0.0
   build_runner: ^2.4.15
   objectbox_generator: 4.1.0
+  riverpod_generator: ^2.3.3
+
+  riverpod_lint: ^2.3.5
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

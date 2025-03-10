@@ -1,7 +1,9 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
+import 'package:lantern/features/language/language_notifier.dart';
 
 @RoutePage(name: 'Language')
 class Language extends StatelessWidget {
@@ -41,25 +43,30 @@ void showLanguageBottomSheet(BuildContext context) {
       });
 }
 
-class LanguageListView extends StatelessWidget {
+class LanguageListView extends HookConsumerWidget {
   final ScrollController? scrollController;
 
-  const LanguageListView({super.key, this.scrollController});
+   LanguageListView({super.key, this.scrollController});
+
+   late WidgetRef ref;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    this.ref = ref;
+    final locale = ref.watch(languageNotifierProvider);
     return ListView(
       shrinkWrap: true,
       physics: NeverScrollableScrollPhysics(),
       controller: scrollController,
       padding: EdgeInsets.zero,
-      children:
-          languages.map((langCode) => _buildLanguageItem(langCode)).toList()
-            ..add(SizedBox(height: 40)),
+      children: languages
+          .map((langCode) => _buildLanguageItem(langCode, locale))
+          .toList()
+        ..add(SizedBox(height: 40)),
     );
   }
 
-  Widget _buildLanguageItem(String langCode) {
+  Widget _buildLanguageItem(String langCode, Locale locale) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -69,8 +76,10 @@ class LanguageListView extends StatelessWidget {
           trailing: Radio<String>(
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             value: langCode,
-            groupValue: "",
-            onChanged: (value) {},
+            groupValue: locale.toString(),
+            onChanged: (value) {
+              onLanguageTap(value!);
+            },
           ),
         ),
         Padding(
@@ -82,6 +91,10 @@ class LanguageListView extends StatelessWidget {
   }
 
   void onLanguageTap(String language) {
+    if (language.isEmpty) return;
+    final newLocale =
+        Locale(language.split('_').first, language.split('_').last);
+    ref.read(languageNotifierProvider.notifier).changeLanguage(newLocale);
     appRouter.maybePop();
   }
 }

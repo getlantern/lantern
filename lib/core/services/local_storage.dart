@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:lantern/core/common/app_secrets.dart';
+import 'package:objectbox/objectbox.dart';
 import 'package:lantern/core/services/db/objectbox.g.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:path/path.dart' as p;

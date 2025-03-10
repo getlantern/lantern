@@ -4,9 +4,6 @@ OUT_DIR := bin
 
 LIB_NAME := liblantern
 
-gen:
-	dart run build_runner build
-
 # Build for macOS
 macos:
 	go build -o bin/liblantern.dylib -buildmode=c-shared ./ffi
@@ -43,7 +40,7 @@ ios:
 
 
 #Routes generation
-routes:
+gen:
 	dart run build_runner build --delete-conflicting-outputs
 
 clean:
