@@ -1,0 +1,23 @@
+name: "Push to transifex"
+
+on:
+  push:
+    branches: [main]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  push-strings-to-transifex:
+    name: push-strings-to-transifex
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: "Push main translations file"
+        env:
+          TX_TOKEN: ${{ secrets.TRANSIFEX_TOKEN }}
+        run: |
+          curl -o- https://raw.githubusercontent.com/transifex/cli/master/install.sh | bash
+          source /home/runner/.bashrc
+          export PATH="/home/runner/work/lantern-client/lantern-client:$PATH"
+          tx push -s

@@ -52,7 +52,7 @@ class Setting extends HookConsumerWidget {
           Card(
             margin: EdgeInsets.zero,
             child: AppTile(
-              label: 'Account',
+              label: 'account'.i18n,
               icon: AppImagePaths.signIn,
               onPressed: () => settingMenuTap(_SettingType.account),
             ),
@@ -61,7 +61,7 @@ class Setting extends HookConsumerWidget {
           Card(
             margin: EdgeInsets.zero,
             child: AppTile(
-              label: 'Sign In',
+              label: 'sign_in'.i18n,
               icon: AppImagePaths.signIn,
               onPressed: () => settingMenuTap(_SettingType.signIn),
             ),
@@ -134,7 +134,7 @@ class Setting extends HookConsumerWidget {
           //   child: Column(
           //     children: [
           //       AppTile(
-          //         label: 'Logout',
+          //         label: 'logout'.i18n,
           //         icon: AppImagePaths.signIn,
           //         onPressed: () => settingMenuTap(_SettingType.logout),
           //       ),
@@ -164,7 +164,7 @@ class Setting extends HookConsumerWidget {
                   color: AppColors.gray7,
                 ),
               ),
-              label: 'Unbounded',
+              label: 'unbounded'.i18n,
               onPressed: () {
                 UrlUtils.openUrl(AppUrls.unbounded);
               },
