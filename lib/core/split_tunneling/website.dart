@@ -7,6 +7,13 @@ class Website {
     required this.isEnabled,
   });
 
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) || (other is Website && other.domain == domain);
+
+  @override
+  int get hashCode => domain.hashCode;
+
   Map<String, dynamic> toJson() => {
         "domain": domain,
         "isEnabled": isEnabled,

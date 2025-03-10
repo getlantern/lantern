@@ -249,6 +249,9 @@ msgstr "Installed Apps"
 msgid "search_apps"
 msgstr "Search Apps"
 
+msgid "mode"
+msgstr "Mode"
+
 msgid "use_commas"
 msgstr "Use commas to separate multiple URLs"
 
