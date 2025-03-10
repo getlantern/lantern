@@ -93,6 +93,8 @@ dependencies:
   #native
   flutter_native_splash: ^2.4.5
 
+  sentry_flutter: ^9.0.0-alpha.1
+
 
 dev_dependencies:
   flutter_test:
