@@ -46,6 +46,7 @@ class AppImagePaths {
   static const plus = 'assets/images/plus.svg';
   static const minus = 'assets/images/minus.svg';
   static const search = 'assets/images/search.svg';
+  static const bypassList = 'assets/images/bypass_list.svg';
   // app icons for testing
   static const appleMusicIcon = 'assets/images/app_icon_apple_music.svg';
   static const googleChatIcon = 'assets/images/app_icon_google_chat.svg';

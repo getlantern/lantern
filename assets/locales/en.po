@@ -249,6 +249,12 @@ msgstr "Installed Apps"
 msgid "search_apps"
 msgstr "Search Apps"
 
+msgid "use_commas"
+msgstr "Use commas to separate multiple URLs"
+
+msgid "default_bypass"
+msgstr "Default Bypass Lists"
+
 msgid "when_connected"
 msgstr "When connected, the websites you select will bypass the VPN."
 
