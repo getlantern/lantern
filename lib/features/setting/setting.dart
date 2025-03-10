@@ -1,6 +1,9 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/localization/localization_constants.dart';
+import 'package:lantern/features/language/language_notifier.dart';
 import 'package:lantern/features/setting/follow_us.dart'
     show showFollowUsBottomSheet;
 
@@ -22,16 +25,16 @@ enum _SettingType {
 }
 
 @RoutePage(name: 'Setting')
-class Setting extends StatefulWidget {
-  const Setting({super.key});
+class Setting extends HookConsumerWidget {
+
+  Setting({super.key});
+
+  late BuildContext context;
 
   @override
-  State<Setting> createState() => _SettingState();
-}
-
-class _SettingState extends State<Setting> {
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    this.context = context;
+    final locale = ref.read(languageNotifierProvider);
     final textTheme = Theme.of(context).textTheme;
     return BaseScreen(
       title: 'settings'.i18n,
@@ -78,7 +81,7 @@ class _SettingState extends State<Setting> {
                   label: 'language'.i18n,
                   icon: AppImagePaths.translate,
                   trailing: Text(
-                    'English',
+                    displayLanguage(locale.toString()),
                     style: textTheme.titleMedium!.copyWith(
                       color: AppColors.blue7,
                     ),

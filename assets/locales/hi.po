@@ -246,7 +246,7 @@ msgstr "मुझे स्वीकार है"
 msgid "desktop_version"
 msgstr "डेस्कटॉप संस्करण"
 
-msgid "setting"
+msgid "settings"
 msgstr "सेटिंग्स"
 
 msgid "general"

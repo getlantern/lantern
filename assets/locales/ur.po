@@ -1,0 +1,1999 @@
+# 
+# Translators:
+# tx_e2f_pk r6 <tx_e2f_pk_r6@ate2f.com>, 2023
+# Derek F <derek@getlantern.org>, 2024
+# e2f <projects@e2f.com>, 2024
+# Diversity83 83, 2024
+# tx_e2f_ur c1 <tx_e2f_ur_c1@ate2f.com>, 2024
+# 
+msgid ""
+msgstr ""
+"Last-Translator: tx_e2f_ur c1 <tx_e2f_ur_c1@ate2f.com>, 2024\n"
+"Language-Team: Urdu (https://app.transifex.com/lantern-1/teams/94371/ur/)\n"
+"Language: ur\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "app_name"
+msgstr "لینٹرن"
+
+msgid "introducing"
+msgstr "چیٹ متعارف کروا رہے ہیں"
+
+msgid "introducing_des"
+msgstr ""
+"Lantern میں براہ راست بنائی گئی ہماری مسدود کرنے کے خلاف مزاحم اور مرموز نئی"
+" چیٹ استعمال کرتے ہوئے دوستوں کے ساتھ محفوظ طریقے سے چیٹ کریں!"
+
+msgid "maybe_later"
+msgstr "شاید بعد میں"
+
+msgid "try"
+msgstr "اسے آزمائیں"
+
+msgid "sign_in"
+msgstr "سائن ان کریں"
+
+msgid "enter_email"
+msgstr "ای میل درج کریں"
+
+msgid "enter_password"
+msgstr "پاس ورڈ درج کریں"
+
+msgid "forgot_password"
+msgstr "پاس ورڈ بھول گئے"
+
+msgid "forgot_your_password"
+msgstr "اپنا پاس ورڈ بھول گئے؟ "
+
+msgid "click_here"
+msgstr "یہاں کلک کریں"
+
+msgid "reset_password"
+msgstr "پاس ورڈ ری سیٹ کریں"
+
+msgid "lantern_pro_email"
+msgstr "Lantern Pro ای میل "
+
+msgid "return_to_sign_in"
+msgstr "سائن ان پر واپس جائیں"
+
+msgid "enter_confirmation_code"
+msgstr "تصدیقی کوڈ درج کریں"
+
+msgid "confirmation_code_msg"
+msgstr ""
+"تصدیقی کوڈ XX پر بھیج دیا گیا ہے۔ اپنا اکاؤنٹ محفوظ کرنے اور پاس ورڈ کی "
+"بحالی فعال کرنے کے لیے اسے یہاں درج کریں۔"
+
+msgid "resend_confirmation_code"
+msgstr "تصدیقی ای میل دوبارہ بھیجیں"
+
+msgid "email_already_exists"
+msgstr "ای میل پہلے سے موجود ہے"
+
+msgid "email_already_exists_msg"
+msgstr ""
+"یہ ای میل لے لی گئی، اگر آپ کے پاس پہلے سے اس ای میل کے ساتھ اکاؤںٹ موجود ہے"
+" تو آپ بحال کر سکتے ہیں۔  اگر نہیں تو براہ کرم واپس جائیں اور مختلف ای میل "
+"ایڈریس منتخب کریں۔"
+
+msgid "recover_account"
+msgstr "اکاؤنٹ بحال کریں"
+
+msgid "back"
+msgstr "واپس جائیں"
+
+msgid "change_email"
+msgstr "ای میل تبدیل کریں"
+
+msgid "new_password"
+msgstr "نیا پاس ورڈ"
+
+msgid "confirm_new_password"
+msgstr "نئے پاس ورڈ کی تصدیق کریں"
+
+msgid "already_have_an_account"
+msgstr "پہلے سے اکاؤنٹ موجود ہے؟ "
+
+msgid "create_account"
+msgstr "اکاؤنٹ تخلیق کریں"
+
+msgid "create_password"
+msgstr "پاس ورڈ تخلیق کریں"
+
+msgid "by_creating_an_account"
+msgstr "اکاؤنٹ تخلیق کر کے، آپ ہماری سے متفق ہوتے ہیں"
+
+msgid "confirm_email"
+msgstr "ای میل کی تصدیق کیجئے"
+
+msgid "update_pro_account"
+msgstr "Pro اکاؤنٹ اپ ڈیٹ کریں"
+
+msgid "update_pro_account_message"
+msgstr ""
+"Lantern Pro میں تبدیلیاں آ رہی ہیں! اب، آپ کو تمام ڈیوائسز میں لاگ ان کرنے، "
+"اور اکاؤنٹ مینیجمنٹ تک رسائی حاصل کرنے کے لیے ای میل اور پاس ورڈ درکار ہو "
+"گا۔  براہ کرم اپنے اکاؤنٹ میں ان اسناد کو شامل کرنے کے لیے چند لمحے دیں۔ "
+
+msgid "not_now"
+msgstr "ابھی نہیں"
+
+msgid "update_account"
+msgstr "اکاؤنٹ اپ ڈیٹ کریں"
+
+msgid "new"
+msgstr "نیا"
+
+msgid "Daily Data Usage"
+msgstr "ڈیٹا کا روزانہ کا استعمال "
+
+msgid "is"
+msgstr "ہے"
+
+msgid "connect"
+msgstr "کنیکٹ"
+
+msgid "disconnect"
+msgstr "منقطع"
+
+msgid "connected"
+msgstr "کنیکٹ ہو چکا ہے"
+
+msgid "Disconnected"
+msgstr "منقطع"
+
+msgid "Disconnecting"
+msgstr "ہو رہا ہے…"
+
+msgid "Connecting"
+msgstr "کنیکٹ ہو رہا ہے۔۔۔"
+
+msgid "no_network_connection"
+msgstr "کوئی نیٹ ورک کنکشن نہیں"
+
+msgid "connection_error"
+msgstr "کنکشن کی خرابی"
+
+msgid "connection_error_des"
+msgstr ""
+"Lantern کو ہمارے سرورز سے مربوط ہونے میں مسائل پیش آ رہے ہیں۔  براہ کرم ایپ "
+"کو ری اسٹارٹ کریں۔ اگر یہ مسئلہ برقرار رہتا ہے، تو براہ کرم معاونت سے رابطہ "
+"کریں۔"
+
+msgid "connection_error_button"
+msgstr "معاونت سے رابطہ کریں"
+
+msgid "Calling"
+msgstr "کال کر رہے ہیں..."
+
+msgid "Go Pro Title"
+msgstr "پرو اپنائیں!"
+
+msgid "Go Pro Description"
+msgstr "تیز رفتار، اشتہار سے پاک تجربہ، اور لا محدود ڈیٹا کو ان لاک کریں! "
+
+msgid "Server Location"
+msgstr "سرور لوکیشن"
+
+msgid "Server Location Info"
+msgstr ""
+"آپ کو خودکارانہ طور پر ہمارے ڈیٹا کے بہترین مراکز سے جوڑنے کے لئے Lantern "
+"اسمارٹ سرور انتخاب کا استعمال کرتا ہے۔"
+
+msgid "OK"
+msgstr "اوکے"
+
+msgid "Done"
+msgstr "ہو گیا"
+
+msgid "backup_recovery_key"
+msgstr "بیک اپ کی بحالی کی کیی"
+
+msgid "delete_chat_data"
+msgstr "چیٹ کا تمام ڈیٹا حذف کریں"
+
+msgid "delete_chat_data_description"
+msgstr ""
+"یہ آپ کے چیٹ نمبر، رابطوں، اور پیغامات کو اس ڈیوائس سے آپ کی بیک اپ کی بحالی"
+" کی کیی کے بغیر ہی حذف کر دے گا، لہٰذا آپ اپنے چیٹ نمبر تک رسائی کو کھو دیں "
+"گے۔"
+
+msgid "delete_chat_data_confirmation"
+msgstr ""
+"میں تصدیق کرتا/کرتی ہوں کہ میں اپنا چیٹ کا ڈیٹا حذف کرنا چاہتا/چاہتی ہوں"
+
+msgid "Pro Account Management"
+msgstr "پرو اکاؤنٹ مینجمنٹ"
+
+msgid "link_device"
+msgstr "ڈیوائس لنک کریں"
+
+msgid "Upgrade to Lantern Pro"
+msgstr "لینٹرن پرو پر اَپ گریڈ کیجئے"
+
+msgid "Invite Friends"
+msgstr "دوستوں کو مدعو کیجئے"
+
+msgid "share_lantern_pro"
+msgstr ""
+"Lantern Pro کو دوست کے ساتھ شیئر کریں! آپ کے دوست کی جانب سے Lantern Pro کی "
+"خریداری کے دوران آپ کا ریفرل کوڈ استعمال کرنے پر، آپ دونوں ایک ماہ کے لیے "
+"Lantern Pro سروس مفت حاصل کریں گے!"
+
+msgid "privacy_disclosure_title"
+msgstr "لینٹرن کی رازداری کا اعلان"
+
+msgid "privacy_disclosure_body"
+msgstr ""
+"لینٹرن آپ کی رازداری کے تحفظ کے لئے پرعزم ہے۔ ہم چاہتے ہیں کہ آپ یہ سمجھیں "
+"کہ ہم کون سی معلومات اکٹھا کرتے ہیں، کیا اکٹھا نہیں کرتے، اور ہم معلومات کو "
+"کس طرح اکٹھا، استعمال اور اسٹور کرتے ہیں۔ ہم آپ کے لینٹرن پرو اکاؤنٹ سے آپ "
+"کی ادائیگی کی معلومات کو الگ کردیں۔ ہم آپ کی سرگرمی کے لاگز، بشمول براؤزنگ "
+"کی سرگزشت، ٹریفک کی منزل، ڈیٹا کے مشمولات، یا DNS استفسارات اکٹھا نہیں کرتے "
+"ہیں۔ ہم کبھی بھی کنیکشن لاگز کو اسٹور نہیں کرتے ہیں، یعنی آپ کے IP ایڈریس کی"
+" کوئی لاگز ، آپ کا باہر جانے والا لینٹرن سرور IP ایڈریس جو کنکشن ٹائم "
+"اسٹیمپ، یا سیشن کے دورانیے کے ساتھ وابستہ ہے۔ جہاں تک مخصوص لینٹرن پرو "
+"اکاؤنٹ کا سوال ہے تو، لینٹرن تکنیکی طور پر لینٹرن اکاؤنٹ کو صارف کی اصل "
+"شناخت کے ساتھ منسلک کرنے سے قاصر ہے۔ صرف لینٹرن کا IP ایڈریس اور ایک مختصر "
+"ٹائم اسٹیمپ دیئے جانے کے سبب، لینٹرن تکنیکی طور پر اس IP پتے کو کسی لینٹرن "
+"صارف یا کسی لینٹرن صارف کے IP پتے سے منسوب کرنے سے قاصر ہے۔"
+
+msgid "privacy_disclosure_accept"
+msgstr "مجھے قبول ہے"
+
+msgid "desktop_version"
+msgstr "ڈیسک ٹاپ ورژن"
+
+msgid "settings"
+msgstr "سینٹنگ"
+
+msgid "general"
+msgstr "جنرل"
+
+msgid "about"
+msgstr "متعلق"
+
+msgid "proxy_all"
+msgstr "پراکسی سب کُجھ"
+
+msgid "proxy_everything_is"
+msgstr "پراکسی ہر شے %s ہے"
+
+msgid "version_number"
+msgstr "%s ورژن"
+
+msgid "build_number"
+msgstr "%s بنائیں"
+
+msgid "sdk_version"
+msgstr "SDK %s"
+
+msgid "language"
+msgstr "زبان"
+
+msgid "select_an_issue"
+msgstr "برائے مہربانی ایک مسئلے کا انتخاب کیجئے"
+
+msgid "enter_description"
+msgstr "براہ کرم اپنی مسئلہ کی وضاحت کریں "
+
+msgid "cannot_access_blocked_sites"
+msgstr "بلاک سائٹس تک رسائی ممکن نہیں "
+
+msgid "cannot_complete_purchase"
+msgstr "خریداری مکمل نہیں کر سکتے"
+
+msgid "discover_not_working"
+msgstr "ڈسکور کام نہیں کر رہا"
+
+msgid "cannot_sign_in"
+msgstr "سائن ان نہیں کر سکتے"
+
+msgid "spinner_loads_endlessly"
+msgstr "اسپنر لا محدود طور پر لوڈ کرتا ہے"
+
+msgid "slow"
+msgstr "آہستہ"
+
+msgid "cannot_link_devices"
+msgstr "ڈیوائس منسلک نہیں ہو سکتی"
+
+msgid "wrong_device_linking_code"
+msgstr "غیر درست ڈیوائس منسلک کوڈ"
+
+msgid "cannot_remove_device"
+msgstr "ڈیوائس کو ہٹایا نہیں جا سکتا "
+
+msgid "application_crashes"
+msgstr "اپیلیکیشن کریش ہوتی ہے"
+
+msgid "other"
+msgstr "دوسرے"
+
+msgid "issue_description"
+msgstr "اپنی مسئلہ کی وضاحت کریں "
+
+msgid "check_for_updates"
+msgstr "اپ ڈیٹس کے لیے پڑتال کریں"
+
+msgid "blocked_users"
+msgstr "مسدود کردہ صارفین"
+
+msgid "description_proxy_all_dialog"
+msgstr ""
+"فعال ہونے پر تمام ٹریفک کو Lantern کے ذریعہ بھیجا جائے گا (مزید محفوظ)۔ غیر "
+"فعال ہونے پر، صرف بلاک شدہ ٹریفک کو Lantern کے ذریعہ بھیجا جائے گا (تیز)۔"
+
+msgid "Account"
+msgstr "اکاؤنٹ"
+
+msgid "VPN Status"
+msgstr "VPN کی حالت"
+
+msgid "VPN"
+msgstr "VPN"
+
+msgid "Authorize Device for Pro"
+msgstr "پرو کے لئے منظور شدہ ڈیوائس"
+
+msgid "Authorize with Device Linking Pin"
+msgstr "ڈیوائس لنکنگ پن کے ذریعہ اجازت دیں"
+
+msgid "Requires physical access to a Lantern Pro Device"
+msgstr "لینٹرن پرو ڈیوائس تک طبعی رسائی درکار ہے"
+
+msgid "Link with PIN"
+msgstr "PIN کے ساتھ لنک کریں"
+
+msgid "OR"
+msgstr "یا"
+
+msgid "device_linking_pin"
+msgstr "ڈیوائس لنکنگ پن"
+
+msgid "link_device_step_one"
+msgstr "اپنے پرو ڈیوائس پر 'ڈیوائس شامل کریں' مینو آئٹم کو کھولیں۔ "
+
+msgid "link_device_step_two"
+msgstr "ڈیوائس لنکنگ PIN درج کریں اور جمع کرائیں "
+
+msgid "ensure_most_recent_version_lantern"
+msgstr ""
+"* اس بات کو یقینی بنائیں کہ دونوں ڈیوائسز پر لینٹرن کا حالیہ ورژن چل رہا ہے"
+
+msgid "Authorize Device via Email"
+msgstr "ای میل کے ذریعہ آلہ کو اجازت دیں"
+
+msgid "auth_email_helper_text"
+msgstr "اپنے پرو اکاؤنٹ سے منسلک کردہ ای میل کا اندراج کریں"
+
+msgid "Requires access to the email you used to buy Lantern Pro"
+msgstr ""
+"اس ای میل تک رسائی کی ضرورت ہے جسے آپ نے لینٹرن پرو خریدنے کے لیے استعمال "
+"کیا تھا"
+
+msgid "Link via Email"
+msgstr "ای میل کے ذریعہ لنک"
+
+msgid "lantern_desktop"
+msgstr "لینٹرن ڈیسک ٹاپ"
+
+msgid "report_description"
+msgstr "مسئلہ کی تفصیل"
+
+msgid "report_issue"
+msgstr "مسئلہ رپورٹ کریں "
+
+msgid "report_an_issue"
+msgstr "مسئلہ رپورٹ کیجئے"
+
+msgid "report_sent"
+msgstr "رپورٹ بھیج دی گئی"
+
+msgid "thank_you_for_reporting_your_issue"
+msgstr ""
+"اپنے مسئلے کو رپورٹ کرنے کا شکریہ۔ کثیر تعداد کے سبب، ہم زیادہ تر مسائل کا "
+"جواب نہیں دے سکتے، لیکن ہم آپ کو یقین دلاتے ہیں کہ ہم آپ کی رپورٹس کی بنیاد "
+"پر Lantern کو بہتر بنانے کے لیے پوری طرح کوشاں ہیں۔"
+
+msgid "send_report"
+msgstr "رپورٹ بھیجیں"
+
+msgid "most_recent_lantern_apps"
+msgstr ""
+"ڈیسک ٹاپ اور دیگر تمام پلیٹ فارمز کے لیے حالیہ ترین لینٹرن ایپس اوپر کے لنک "
+"پر مل سکتی ہیں۔"
+
+msgid "share_link"
+msgstr "لنک شیئر کریں "
+
+msgid "share_title"
+msgstr "لینٹرن ڈاؤن لوڈ کا لنک شیئر کریں"
+
+msgid "email"
+msgstr "ای میل"
+
+msgid "Submit"
+msgstr "جمع کرائیے"
+
+msgid "save"
+msgstr "محفوظ کریں"
+
+msgid "please_enter_a_valid_email_address"
+msgstr "براہ کرم ایک درست ای میل پتہ درج کریں"
+
+msgid "bonus"
+msgstr "بونس"
+
+msgid "referral_bonus"
+msgstr "ریفرل بونس"
+
+msgid "total"
+msgstr "کُل"
+
+msgid "month"
+msgstr "ماہ"
+
+msgid "months"
+msgstr "مہینے"
+
+msgid "enter_email_to_complete_purchase"
+msgstr "خریداری مکمل کرنے کے لیے ای میل درج کریں "
+
+msgid "error_fetching_plans"
+msgstr ""
+"پلانز حاصل کرنے میں نقص واقع ہوا، براہ کرم Lantern کو ری اسٹارٹ کریں اور "
+"دوبارہ کوشش کریں۔"
+
+msgid "apply"
+msgstr "درخواست کریں"
+
+msgid "choose_payment_method"
+msgstr "ادائیگی کا طریقہ منتخب کریں"
+
+msgid "pro_plan"
+msgstr "پرو پلان"
+
+msgid "one_month_plan"
+msgstr ""
+
+msgid "one_year_plan"
+msgstr "1 سال کا پلان"
+
+msgid "two_year_plan"
+msgstr "2 سال کا پلان"
+
+msgid "plan_discount"
+msgstr "%d%% بچائیں"
+
+msgid "enter_email_and_activation_code"
+msgstr "ای میل اور فعالیتی کوڈ درج کریں"
+
+msgid "referral_code"
+msgstr "حوالہ کوڈ"
+
+msgid "share_referral_code"
+msgstr "ریفرل کوڈ شیئر کریں "
+
+msgid "share_message_referral_code"
+msgstr ""
+"ایک مہینے کے مفت Lantern Pro کے لیے، یہ ریفرل کوڈ استعمال کریں: %s ; آپ اسے "
+"یہاں سے ڈاؤن لوڈ کر سکتے ہیں: https://lantern.io/download "
+
+msgid "add_referral_code"
+msgstr "ریفرل کوڈ شامل کریں"
+
+msgid "Activation Code"
+msgstr "ایکٹیویشن کوڈ"
+
+msgid "invalid_or_incomplete_referral_code"
+msgstr "غلط یا نامکمل ریفرل کوڈ"
+
+msgid "register_for_pro"
+msgstr "پرو کے لیے رجسٹر کریں"
+
+msgid "Something went wrong while applying your referral code."
+msgstr "آپ کے ریفرل کوڈ کا اطلاق کرتے ہوئے کچھ غلط ہو گیا۔"
+
+msgid "your_activation_code_is_invalid"
+msgstr "آپ کا فعالیتی کوڈ غلط ہے"
+
+msgid "update_cache_plans_timeout"
+msgstr "دستیاب پلانز حاصل کرنے کے دوران کچھ غلط ہو گیا۔"
+
+msgid "bitcoin_timeout"
+msgstr "BTCPay کی درخواست کا وقت ختم ہو گیا۔"
+
+msgid "BTCPay is unavailable"
+msgstr "BTCPay دستیاب نہیں"
+
+msgid "update_cache_user_timeout"
+msgstr "آپ کا اکاؤنٹ ڈیٹا حاصل کرنے کے دوران کچھ غلط ہو گیا۔"
+
+msgid "reseller_timeout"
+msgstr "آپ کے فعالیتی کوڈ کی توثیق کے دوران کچھ غلط ہو گیا۔"
+
+msgid "wrong_reseller_code"
+msgstr "غلط ایکٹیویشن کوڈ"
+
+msgid "reseller_success"
+msgstr "فعالیتی کوڈ کامیابی سے ریڈیم کر دیا گیا۔"
+
+msgid "stripe_timeout"
+msgstr ""
+"آپ کی اسٹرائپ ادائیگی کا وقت ختم ہو گیا ہے۔ براہ کرم Lantern کو ری اسٹارٹ "
+"کریں اور دوبارہ کوشش کریں۔"
+
+msgid "stripe_success"
+msgstr "کامیاب اسٹرائپ خریداری۔"
+
+msgid "renewal_success"
+msgstr "تجدید میں کامیابی"
+
+msgid "pro_renewal_success_description"
+msgstr ""
+"اپنے Lantern Pro اکاؤنٹ کی تجدید کرنے کے لیے آپ کا شکریہ۔ ہمارے تیز ترین "
+"ڈیٹا سینٹرز استعمال کر کے اب آپ کو لامحدود رسائی حاصل ہے۔  آپ کے اکاؤنٹ سے "
+"تین تک ڈیوائسز مربوط ہو سکتی ہیں۔"
+
+msgid "pro_purchase_success"
+msgstr "Lantern Pro پر خوش آمدید"
+
+msgid "platinum_purchase_success_descripion"
+msgstr ""
+"ہمارے تیز ترین ڈیٹا سینٹرز اور مختص کردہ لائنز استعمال کر کے اب آپ کو "
+"لامحدود رسائی حاصل ہے۔  آپ کے اکاؤنٹ سے تین تک ڈیوائسز مربوط ہو سکتی ہیں۔"
+
+msgid "pro_purchase_success_descripion"
+msgstr ""
+"ہمارے تیز ترین ڈیٹا سینٹرز استعمال کر کے اب آپ کو لامحدود رسائی حاصل ہے۔  آپ"
+" کے اکاؤنٹ سے تین تک ڈیوائسز مربوط ہو سکتی ہیں۔"
+
+msgid "by_clicking_tos"
+msgstr "%s پر کلک کر کے، آپ ہماری سے متفق ہوتے ہیں "
+
+msgid "tos"
+msgstr "سروس کی شرائط"
+
+msgid "step_1"
+msgstr "مرحلہ  1"
+
+msgid "step_2"
+msgstr "مرحلہ 2"
+
+msgid "step_3"
+msgstr "مرحلہ 3"
+
+msgid "invalid_email"
+msgstr "غلط ای میل ایڈریس"
+
+msgid "invalid_card"
+msgstr "غلط کریڈٹ کارڈ نمبر"
+
+msgid "invalid_expiration"
+msgstr "میعاد ختم ہونے کی غلط تاریخ"
+
+msgid "cc_number"
+msgstr "کریڈٹ کارڈ"
+
+msgid "card_number"
+msgstr "کارڈ نمبر"
+
+msgid "card_expiration"
+msgstr "MM / YY"
+
+msgid "invalid_cvc"
+msgstr "غلط غلط CVC"
+
+msgid "complete_purchase"
+msgstr "خرید مکمل کریں"
+
+msgid "Re-send Email"
+msgstr "دوبارہ ای میل بھیجیں"
+
+msgid "Paste from clipboard?"
+msgstr "کلپ بورڈ سے پیسٹ کریں؟"
+
+msgid "Yes"
+msgstr "جی ہاں"
+
+msgid "No"
+msgstr "نہیں"
+
+msgid "exit"
+msgstr "خروج "
+
+msgid "show"
+msgstr "دکھائیں "
+
+msgid "status_on"
+msgstr "حالت: چل رہا ہے "
+
+msgid "status_off"
+msgstr "حالت: بند ہے "
+
+msgid "Enter or paste linking code"
+msgstr "لنکنگ کوڈ درج یا پیسٹ کریں"
+
+msgid "recovery_email_sent"
+msgstr ""
+"اگر یہ اکاؤنٹ موجود ہے تو %s کو ایک لنکنگ PIN بھیج دیا گیا ہے۔ PIN کو اوپر "
+"والے اس ای میل سے ان پٹ کریں۔ ای میل کو پہنچنے میں کئی گھنٹے لگ سکتے ہیں۔"
+
+msgid "Add Device"
+msgstr "ڈیوائس شامل کیجئے"
+
+msgid "approve_device_step_1"
+msgstr ""
+"جس ڈیوائس پر آپ لنک کرنا چاہتے ہیں اس پر اکاؤنٹ مینو سے 'پرو کے لیے ڈیوائس "
+"کی اجازت دیں' کو کھولیں، پھر 'PIN کے ساتھ لنک کریں' کو منتخب کریں۔"
+
+msgid "approve_device_step_2"
+msgstr "مرحلہ 1 سے حاصل ہونے والے لنکنگ کوڈ کو درج کریں"
+
+msgid "Pro Account Expiration"
+msgstr "پرو اکاؤنٹ کی میعاد ختم"
+
+msgid "Renew"
+msgstr "تجدید"
+
+msgid "pro_devices_header"
+msgstr "لینٹرن پرو ڈیوائسز (3 تک)"
+
+msgid "Remove"
+msgstr "ہٹا دیں"
+
+msgid "Log Out"
+msgstr "لاگ آؤٹ کریں"
+
+msgid "confirm_remove_device"
+msgstr "کیا آپ واقعی اس ڈیوائس کو اپنے پرو اکاؤنٹ سے منقطع کرنا چاہتے ہیں ؟"
+
+msgid "confirm_close_window"
+msgstr "کیا آپ یقیناً Lantern کو بند کرنا چاہتے ہیں؟ "
+
+msgid "unlimited_data"
+msgstr "لامحدود ڈیٹا"
+
+msgid "no_logs"
+msgstr "کوئی لاگز نہیں"
+
+msgid "no_ads"
+msgstr "کوئی اشتہار نہیں"
+
+msgid "choose_plan"
+msgstr "پلان چنیں"
+
+msgid "billed_one_time"
+msgstr "ایک بار بل کیا گیا "
+
+msgid "connect_up_to_3_devices"
+msgstr "3 تک آلات کو جوڑیں"
+
+msgid "faster_data_centers"
+msgstr "تیز تر ڈیٹا سینٹرز"
+
+msgid "dedicated_line"
+msgstr "مختص کردہ لائن"
+
+msgid "increased_reliability"
+msgstr "اضافی پائیداری"
+
+msgid "checkout"
+msgstr "چیک آؤٹ"
+
+msgid "credit_card"
+msgstr "کریڈٹ کارڈ"
+
+msgid "lantern_pro_checkout"
+msgstr "لینٹرن پرو چیک آؤٹ"
+
+msgid "1y_pricing"
+msgstr "1 سال کی قیمت"
+
+msgid "2y_pricing"
+msgstr "2 سال کی قیمت"
+
+msgid "plan_type"
+msgstr "پلان کی قسم"
+
+msgid "most_popular"
+msgstr "مقبول ترین"
+
+msgid "free"
+msgstr "مفت"
+
+msgid "n/a"
+msgstr "نا قابلِ اطلاق"
+
+msgid "Developer Settings"
+msgstr "ڈویلپر کی ترتیبات"
+
+msgid "Developer"
+msgstr "ڈویلپر"
+
+msgid "dev_settings"
+msgstr ""
+"یہ ترتیبات صرف ارتقائی استعمال کے لیے ہیں۔ کسی بھی ترتیب کو تبدیل کرنا "
+"ایپلیکیشن کو خود کار طور پر روک دے گا اور وہ ری اسٹارٹ ہو جائے گی۔"
+
+msgid "dev_payment_mode"
+msgstr ""
+"جب ادائیگی کا ٹیسٹ موڈ فعال ہوتا ہے، تو ایپ سنگل ہارڈ کوڈ کردہ صارف کا "
+"استعمال کرتی ہے۔ آپ 4242 4242 4242 4242 نمبر کا استعمال کرتے ہوئے اسٹرائپ "
+"خریداریاں، مستقبل میں زائد المیعاد تاریخ، اور کوئی بھی CVV بنا سکتے ہیں۔"
+
+msgid "Payment Test Mode"
+msgstr "ادائیگی کا ٹیسٹ موڈ"
+
+msgid "Play Version"
+msgstr "پلے ورژن"
+
+msgid "Force Country"
+msgstr "فورس کنٹری"
+
+msgid "Error"
+msgstr "خرابی"
+
+msgid "accept"
+msgstr "قبول کریں"
+
+msgid "cancel"
+msgstr "منسوخ"
+
+msgid "reject"
+msgstr "مسترد کریں"
+
+msgid "copied"
+msgstr "کاپی ہو گیا!"
+
+msgid "saved"
+msgstr "محفوظ ہو گیا!"
+
+msgid "new_chat"
+msgstr "نئی چیٹ"
+
+msgid "your_contact_info"
+msgstr "آپ کے رابطے کی معلومات"
+
+msgid "display_name"
+msgstr "ڈسپلے کا نام"
+
+msgid "edit"
+msgstr "ترمیم کریں"
+
+msgid "save_error"
+msgstr "محفوظ کرنے کے دوران کچھ غلط ہو گیا۔"
+
+msgid "fewer_options"
+msgstr "کم اختیارات"
+
+msgid "more_options"
+msgstr "مزید اختیارات"
+
+msgid "block_user"
+msgstr "صارف کو مسدود کریں"
+
+msgid "unblock_user"
+msgstr "صارف کو غیر مسدود کریں"
+
+msgid "block"
+msgstr "مسدود کریں"
+
+msgid "unblock"
+msgstr "غیر مسدود کریں"
+
+msgid "block_info_title"
+msgstr "%s کو مسدود کریں؟"
+
+msgid "no_blocked_users"
+msgstr "کوئی مسدود کردہ صارفین نہیں ہیں۔"
+
+msgid "unblock_info_title"
+msgstr "%s غیر مسدود کریں؟"
+
+msgid "block_info_description"
+msgstr ""
+"اس صارف کو مسدود کرنا چیٹ ہسٹری کو حذف کر دے گا، اور مستقبل میں انہیں آپ سے "
+"رابطہ کرنے سے باز رکھے گا۔  آپ ترتیبات کے مینو سے صارفین کو غیر مسدود کر "
+"سکتے ہیں۔"
+
+msgid "unblock_info_description"
+msgstr ""
+"%s اب آپ کو پیغام بھیجنے کے قابل ہو گا۔  ان کو اطلاع نہیں دی جائے گی کہ آپ "
+"نے ان کو غیر مسدود کر دیا ہے۔"
+
+msgid "block_info_checkbox"
+msgstr "مجھے معلوم ہے کہ یہ چیٹ کی تمام ہسٹری کو حذف کر دے گا۔"
+
+msgid "unblock_info_checkbox"
+msgstr ""
+"میں تصدیق کرتا/کرتی ہوں کہ میں اس رابطے کو غیر مسدود کرنا چاہتا/چاہتی ہوں۔"
+
+msgid "delete_permanently"
+msgstr "صارف کو مستقل طور پر حذف کریں"
+
+msgid "delete_info_description"
+msgstr ""
+"ایک مرتبہ حذف ہو جانے پر، اگر آپ ان سے دوبارہ چیٹ کرنا چاہتے ہیں تو آپ کو ان"
+" کے رابطے کی معلومات شامل کرنا ہوں گی۔"
+
+msgid "add_new_contact"
+msgstr "نیا رابطہ شامل کریں"
+
+msgid "add_contact"
+msgstr "رابطہ شامل کریں"
+
+msgid "share_your_chat_number"
+msgstr "اپنا چیٹ کا نمبر شیئر کریں"
+
+msgid "scan_qr_code"
+msgstr "QR کوڈ اسکین کریں"
+
+msgid "add_contact_in_person"
+msgstr "ذاتی طور پر رابطے شامل کریں"
+
+msgid "start_chat"
+msgstr "چیٹ شروع کریں"
+
+msgid "your_installed_apps"
+msgstr "آپ کی انسٹال کردہ ایپس"
+
+msgid "apps_routed_through_lantern"
+msgstr "Lantern کے ذریعے ارسال کردہ ایپس"
+
+msgid "apps_to_unblock"
+msgstr ""
+"وہ ایپس منتخب کریں جنہیں آپ ان بلاک کرنا چاہتے ہیں۔ مربوط ہونے پر، صرف ذیل "
+"میں منتخب کردہ ایپس ہی Lantern کے ذریعے ارسال کی جائیں گی۔"
+
+msgid "split_tunneling"
+msgstr "منقسم ٹنلنگ"
+
+msgid "split_tunneling_info"
+msgstr ""
+"منقسم ٹنلنگ فعال ہونے پر، منتخب کردہ ایپس Lantern کے ذریعے راؤٹ کی جائیں گی۔"
+" یہ صرف مخصوص ایپس کو ان بلاک کر کے کارکردگی کو بہتر اور بینڈ وڈتھ کو محفوظ "
+"کر سکتا ہے۔"
+
+msgid "applied_next_time"
+msgstr ""
+"نئی منقسم ٹنلنگ کی ترتیبات کا اطلاق آپ کے اگلی مرتبہ دوبارہ مربوط ہونے پر ہو"
+" گا۔"
+
+msgid "message_disappearing"
+msgstr "آپ اور %s کے لیے تمام پیغامات غائب نہیں ہوں گے۔"
+
+msgid "message_disappearing_description"
+msgstr "%s کے بعد تمام پیغامات آپ اور %s کے لیے غائب ہو جائیں گے۔"
+
+msgid "view_contact_info"
+msgstr "رابطے کی معلومات دیکھیں"
+
+msgid "off"
+msgstr "آف"
+
+msgid "on"
+msgstr "آن"
+
+msgid "continue"
+msgstr "جاری رکھئے"
+
+msgid "continue_to_pro"
+msgstr "پرو کو جار ی رکھیں"
+
+msgid "are_you_sure_you_want_to_open"
+msgstr "کیا آپ واقعی %s کو کھولنا چاہتے ہیں؟"
+
+msgid "set"
+msgstr "سیٹ کریں"
+
+msgid "menu"
+msgstr "مینو"
+
+msgid "send_error"
+msgstr "آپ کا پیغام بھیجنے کے دوران کچھ غلط ہو گیا"
+
+msgid "share_media_error"
+msgstr "میڈیا فائل شیئر کرنے کے دوران کچھ غلط ہو گیا"
+
+msgid "no_recents"
+msgstr "کوئی حالیہ نہیں"
+
+msgid "set_display_name"
+msgstr "ڈسپلے کا نام سیٹ کریں"
+
+msgid "introduce_contact"
+msgstr "رابطہ متعارف کروائیں"
+
+msgid "introduce_contacts"
+msgstr "رابطوں کو متعارف کروائیں"
+
+msgid "introduce_contacts_with_count"
+msgstr "رابطوں (%s) کو متعارف کروائیں"
+
+msgid "need_two_contacts_to_introduce"
+msgstr ""
+"جب آپ کو دو یا اس سے زائد رابطے مل جائیں تو آپ تعارف تخلیق کرنے کے قابل ہو "
+"جائیں گے۔"
+
+msgid "introduce_contacts_select"
+msgstr ""
+"تعارف کے لیے دو یا زائد رابطوں کو منتخب کریں۔ وہ ایک دوسرے کے ساتھ پیغامات "
+"شروع کرنے کے لیے تعارف بھیجیں گے۔"
+
+msgid "introduce_single_contact"
+msgstr ""
+"%s کو متعارف کروانے کے لیے رابطہ منتخب کریں۔  ایک مرتبہ جب وہ تعارف کو منظور"
+" کر لیں گے، تو وہ ایک دوسرے کو پیغامات بھیجنے کے قابل ہو جائیں گے۔"
+
+msgid "send_introductions"
+msgstr "تعارف بھیجیں"
+
+msgid "introductions_sent"
+msgstr "تعارف بھیج دیے گئے!"
+
+msgid "no_contacts_yet"
+msgstr "ابھی تک کوئی رابطے نہیں"
+
+msgid "contact_verification"
+msgstr "رابطے کی توثیق"
+
+msgid "verification"
+msgstr "توثیق"
+
+msgid "contact_verification_description"
+msgstr ""
+"رابطے کی توثیق ہمیشہ بالائی دائیں جانب موجود پیغام کے مینو میں دستیاب ہوتی "
+"ہے۔"
+
+msgid "qr_error_description"
+msgstr "اس QR کوڈ کو اسکین کرنے کے دوران کچھ غلط ہو گیا۔"
+
+msgid "qr_info_verification_title"
+msgstr "بالمشافہ رابطے کی توثیق"
+
+msgid "qr_info_f2f_title"
+msgstr "QR کوڈ اسکین ہو رہا ہے"
+
+msgid "qr_info_verification_des"
+msgstr ""
+"اپنے رابطے کی توثیق کرنے کے لیے، ایک دوسرے کے QR کوڈز اسکین کریں۔\n"
+"\n"
+"یہ عمل آپ کی بات چیت کی رازداری اور دونوں طرف مرموز کاری کو یقینی بناتا ہے۔"
+
+msgid "qr_info_f2f_des"
+msgstr ""
+"اپنے دوست کو بطور رابطہ شامل کرنے کے لیے، ایک دوسرے کے QR کوڈز اسکین کریں۔\n"
+"\n"
+"یہ عمل آپ کی بات چیت کی رازداری اور دونوں طرف مرموز کاری کو یقینی بناتا ہے۔"
+
+msgid "qr_info_verification_scan"
+msgstr "توثیق کے لیے ایک دوسرے کے QR کوڈز اسکین کریں۔"
+
+msgid "qr_info_f2f_scan"
+msgstr "رابطہ شامل کرنے کے لیے ایک دوسرے کے QR کوڈز اسکین کریں۔"
+
+msgid "qr_success_snackbar"
+msgstr "%s رابطہ ہے"
+
+msgid "qr_info_waiting_qr"
+msgstr "آپ کا QR کوڈ اسکین کرنے کے لیے آپ کے دوست کا انتظار کر رہے ہیں..."
+
+msgid "scan_complete"
+msgstr "اسکین مکمل ہوا"
+
+msgid "qr_for_your_contact"
+msgstr "آپ کا QR کوڈ"
+
+msgid "add_via_chat_number"
+msgstr "بذریعہ چیٹ نمبر شامل کریں"
+
+msgid "qr_info_waiting_id"
+msgstr ""
+"آپ کے میسینجر کی ID یا آپ کا QR کوڈ درج کرنے کے لیے آپ کے دوست کا انتظار کر "
+"رہے ہیں..."
+
+msgid "chat_number_not_found"
+msgstr ""
+"چیٹ نمبر نہیں ملا۔\n"
+"براہ کرم اپنا درج کردہ نمبر چیک کریں اور دوبارہ کوشش کریں۔"
+
+msgid "unable_to_add_contact"
+msgstr ""
+"رابطہ نہیں ملا۔\n"
+"براہ کرم اپنا درج کردہ نمبر چیک کریں اور دوبارہ کوشش کریں۔"
+
+msgid "self_adding"
+msgstr "جو چیٹ نمبر آپ نے درج کیا وہ آپ کا ہے"
+
+msgid "chat_number_type"
+msgstr "چیٹ نمبر ٹائپ کریں"
+
+msgid "letter_and_numbers_only"
+msgstr "صرف حروف اور نمبرز"
+
+msgid "name_your_contact"
+msgstr "اپنے رابطے کو نام دیں"
+
+msgid "messenger_id_invalid"
+msgstr "غلط میسینجر ID"
+
+msgid "username_not_found"
+msgstr "صارفی نام نہیں ملا"
+
+msgid "contact_id_your_id"
+msgstr "آپ کی میسینجر ID"
+
+msgid "introductions"
+msgstr "تعارف"
+
+msgid "introduced"
+msgstr "%s کی جانب سے تعارف کروایا گیا"
+
+msgid "introductions_title"
+msgstr "%s کے لیے تعارف قبول کریں"
+
+msgid "introductions_info"
+msgstr ""
+"ایک دوسرے سے چیٹ کرنے کے لیے تعارف کو قبول کرنا دونوں فریقین کے لیے لازمی "
+"ہے۔ کوئی عمل نہ کیے جانے کی صورت میں تعارف 7 دنوں بعد غائب ہو جاتے ہیں۔"
+
+msgid "introduction_reject_title"
+msgstr "تعارف مسترد کریں"
+
+msgid "introduction_reject_content"
+msgstr ""
+"اگر آپ تعارف کو مسترد کرتے ہیں تو آپ اس رابطے کو پیغام بھیجنے کے قابل نہیں "
+"ہوں گے۔"
+
+msgid "introductions_error_description_rejecting"
+msgstr "مربوط کرنے کو مسترد کرنے کی اس درخواست کے دوران کچھ غلط ہو گیا۔"
+
+msgid "introductions_error_description_accepting"
+msgstr "مربوط کرنے کو قبول کرنے کی اس درخواست کے دوران کچھ غلط ہو گیا۔"
+
+msgid "no_introductions"
+msgstr "کوئی بھی تعارف زیر التواء نہیں ہیں۔"
+
+msgid "introduction_approved"
+msgstr "%s سے تعارف منظور ہو گیا!"
+
+msgid "delete_contact_name"
+msgstr "%s کو حذف کریں"
+
+msgid "delete_contact"
+msgstr "رابطے کو حذف کریں"
+
+msgid "error"
+msgstr "خرابی"
+
+msgid "error_delete_contact"
+msgstr "اس رابطے کو حذف کرنے کے دوران کچھ غلط ہو گیا۔"
+
+msgid "unnamed_contact"
+msgstr "رابطے کو بے نام کیا گیا"
+
+msgid "me"
+msgstr "میں"
+
+msgid "disappearing_messages"
+msgstr "غائب ہونے والے پیغامات"
+
+msgid "start_of_your_history"
+msgstr "%s کے ساتھ آپ کی چیٹس اور صوتی کالز دونوں طرف مرموز ہوتی ہیں"
+
+msgid "banner_unaccepted"
+msgstr ""
+"%s آپ کے رابطوں کی فہرست میں شامل نہیں ہے۔ کیا آپ چیٹ کی درخواست قبول کرنا "
+"پسند کریں گے؟"
+
+msgid "banner_messages_persist"
+msgstr "نئے پیغامات غائب نہیں ہوتے۔"
+
+msgid "banner_message_retention"
+msgstr "پیغامات کی برقراری %s پر سیٹ کی گئی ہے"
+
+msgid "longform_seconds"
+msgstr "%s سیکنڈز"
+
+msgid "shortform_seconds"
+msgstr "%s سیکنڈ"
+
+msgid "longform_minute"
+msgstr "%s منٹ"
+
+msgid "shortform_minutes"
+msgstr "%s منٹ"
+
+msgid "longform_minutes"
+msgstr "%s منٹس"
+
+msgid "longform_hour"
+msgstr "%s گھنٹہ"
+
+msgid "shortform_hours"
+msgstr "%s گھنٹہ"
+
+msgid "longform_hours"
+msgstr "%s گھنٹے"
+
+msgid "longform_day"
+msgstr "%s دن"
+
+msgid "shortform_days"
+msgstr "%s دن"
+
+msgid "longform_days"
+msgstr "%s دن"
+
+msgid "longform_week"
+msgstr "%s ہفتہ"
+
+msgid "shortform_weeks"
+msgstr "%s ہفتہ"
+
+msgid "longform_weeks"
+msgstr "%s ہفتے"
+
+msgid "unknown"
+msgstr "نامعلوم"
+
+msgid "banner_source_qr"
+msgstr "QR کوڈ"
+
+msgid "banner_source_id"
+msgstr "میسینجر ID"
+
+msgid "banner_source_intro"
+msgstr "تعارف"
+
+msgid "message_will_disappear_at"
+msgstr "%s کو غائب ہو جاتا ہے"
+
+msgid "change_display_name"
+msgstr "ڈسپلے نام تبدیل کریں"
+
+msgid "yesterday"
+msgstr "گزشتہ دن"
+
+msgid "tomorrow"
+msgstr "آنے والا دن"
+
+msgid "just_now"
+msgstr "بالکل ابھی"
+
+msgid "within_one_minute"
+msgstr "ایک منٹ کے اندر"
+
+msgid "on_date"
+msgstr "%s کو"
+
+msgid "at_date"
+msgstr "%s پر"
+
+msgid "error_fetching_message_preview"
+msgstr "نقص لانے والے پیغام کا پیش نظارہ"
+
+msgid "message_was_deleted"
+msgstr "پیغام حذف ہو گیا تھا"
+
+msgid "contact_was_deleted"
+msgstr "%s آپ کے رابطوں سے حذف ہو گیا ہے۔"
+
+msgid "contact_was_blocked"
+msgstr "%s مسدود ہو گیا ہے۔"
+
+msgid "contact_was_unblocked"
+msgstr "%s غیر مسدود ہو گیا ہے۔"
+
+msgid "dismiss"
+msgstr "برخاست کریں"
+
+msgid "copy_text"
+msgstr "متن کاپی کریں"
+
+msgid "message"
+msgstr "پیغام"
+
+msgid "messages"
+msgstr "پیغامات"
+
+msgid "chats"
+msgstr "چیٹس"
+
+msgid "new_requests"
+msgstr "%s نئی درخواستیں"
+
+msgid "chat"
+msgstr "چیٹ"
+
+msgid "lantern_chat"
+msgstr "Lantern چیٹ"
+
+msgid "welcome_title"
+msgstr "Lantern چیٹ میں خوش آمدید!"
+
+msgid "welcome_text"
+msgstr ""
+"مسدود کرنے کے خلاف مزاحم بہترین درجے کی ٹیکنالوجی کے ہمراہ آپ کی رازداری کی "
+"حفاظت کے لیے مرموز چیٹ۔"
+
+msgid "get_started"
+msgstr "شروع کریں"
+
+msgid "want_to_recover"
+msgstr "چیٹ نمبر موجود ہے؟"
+
+msgid "recover"
+msgstr "بحال کریں"
+
+msgid "chat_number"
+msgstr "چیٹ نمبر"
+
+msgid "your_chat_number"
+msgstr "آپ کا چیٹ نمبر"
+
+msgid "chat_number_recovery"
+msgstr "چیٹ نمبر کی بحالی"
+
+msgid "recovery_helper_text"
+msgstr "براہ کرم بحالی کی درست کیی درج کریں"
+
+msgid "recovery_button"
+msgstr "اپنا چیٹ نمبر بحال کرنے کے لیے اپنی بحالی کی کیی درج کریں۔"
+
+msgid "recovery_label"
+msgstr "اپنی بحالی کی کیی درج کریں"
+
+msgid "recovery_key"
+msgstr "بحالی کی کیی"
+
+msgid "secure_text_explanation"
+msgstr ""
+"آپ کا چیٹ نمبر اس فون نمبر کی طرح کام کرتا ہے جو آپ کے دوست Lantern پر آپ سے"
+" رابطہ کرنے کے لیے استعمال کر سکتے ہیں۔"
+
+msgid "secure_text_explanation_account"
+msgstr ""
+"یہ آپ کے چیٹ نمبر کا مکمل ورژن ہے؛ اس طویل نمبر کو شیئر کرنا مزید محفوظ ہو سکتا ہے، خاص طور پر اگر آپ نے دونوں طرف مرموز کردہ کسی دوسرے چینل پر اس کو شئیر کیا ہے۔\n"
+"\n"
+"رابطے کی معلومات شیئر کرنے کو مزید باسہولت بنانے کے لیے Lantern مختصر چیٹ نمبر فراہم کرتا ہے۔ "
+
+msgid "recovery_key_account_explanation"
+msgstr ""
+"اس کیی کو محفوظ جگہ پر اسٹور کریں، اور اس کو کسی کے ساتھ شیئر نہ کریں۔ اگر "
+"آپ کا فون کھو جائے، ڈیوائسز کو سوئچ کرنا ہو، یا آپریٹنگ سسٹم کو ری سیٹ کرنا "
+"ہو تو آپ کے چیٹ نمبر کو بحال کرنے کا یہی واحد طریقہ ہے۔"
+
+msgid "recovery_error"
+msgstr "آپ کا اکاؤنٹ بحال کرنے سے قاصر ہیں۔"
+
+msgid "recovery_input_error"
+msgstr "اپنی جانب سے درست ریکوری کیی درج کرنے کو یقینی بنائیں"
+
+msgid "recovery_retrieval_error"
+msgstr "آپ کا اکاؤنٹ بحال کرتے ہوئے کچھ غلط ہو گیا"
+
+msgid "recovery_success"
+msgstr "آپ نے اپنا چیٹ نمبر کامیابی سے بحال کر لیا ہے"
+
+msgid "empty_chats_text"
+msgstr "اپنا چیٹ نمبر شیئر کریں یا یہاں رابطہ شامل کریں!"
+
+msgid "next"
+msgstr "اگلا"
+
+msgid "automated_backup"
+msgstr "خود کار مماثل کردہ بیک اپ"
+
+msgid "backup_explanation"
+msgstr ""
+"Lantern آپ کے رابطوں کو ہمارے محفوظ سرورز پر مرموز اور بیک اپ کرنے کے لیے اختیار فراہم کرتا ہے۔ اگر آپ نے بیک اپ چھوڑ دیا، تو آپ اپنی بحالی کی کیی استعمال کرتے ہوئے اپنے رابطوں کو بحال کرنے کے قابل نہیں ہوں گے۔\n"
+"\n"
+" جب آپ اپنے رابطوں کو بیک اپ کرنے کا انتخاب کرتے ہیں تو Lantern آپ کے رابطوں کی فہرست کو نہیں پڑھ سکتا۔"
+
+msgid "backup_contacts"
+msgstr "بیک اپ رابطے"
+
+msgid "copy_recovery_key"
+msgstr "بحالی کی کیی کاپی کریں"
+
+msgid "search"
+msgstr "تلاش کریں"
+
+msgid "account_management"
+msgstr "اکاؤنٹ مینجمنٹ"
+
+msgid "add_via_username"
+msgstr "بذریعہ صارفی نام شامل کریں"
+
+msgid "username"
+msgstr "صارف نام"
+
+msgid "enter_a_username_to_start_a_conversation"
+msgstr "پیغاماتی بات چیت شروع کرنے کے لیے صارفی نام درج کریں"
+
+msgid "start_message"
+msgstr "پیغام شروع کریں"
+
+msgid "please_enter_a_valid_username"
+msgstr "براہ کرم درست صارفی نام درج کریں"
+
+msgid "open_url"
+msgstr "URL کھولیں"
+
+msgid "message_deleted"
+msgstr "%s نے اس پیغام کو حذف کر دیا"
+
+msgid "never"
+msgstr "کبھی نہیں"
+
+msgid "delete_for_me"
+msgstr "میرے لیے حذف کریں"
+
+msgid "delete_for_me_explanation"
+msgstr ""
+"یہ صرف آپ کے لیے پیغام کو حذف کرے گا۔ باقی ہر کوئی پھر بھی اسے دیکھ سکے گا۔"
+
+msgid "delete_for_everyone"
+msgstr "ہر کسی کے لیے حذف کریں"
+
+msgid "delete_for_everyone_explanation"
+msgstr "یہ ہر کسی کے لیے پیغام کو حذف کر دے گا۔"
+
+msgid "reply"
+msgstr "جواب دیں"
+
+msgid "replying_to"
+msgstr "%s کو جواب دے رہے ہیں"
+
+msgid "attachment"
+msgstr "منسلکہ"
+
+msgid "error_rendering_message"
+msgstr "پیغام کی رینڈرنگ کا نقص"
+
+msgid "error_fetching_preview"
+msgstr "نقص لانے والے پیغام کا پیش نظارہ"
+
+msgid "audio"
+msgstr "آڈیو"
+
+msgid "image"
+msgstr "تصویر"
+
+msgid "images"
+msgstr "تصاویر"
+
+msgid "video"
+msgstr "ویڈیو"
+
+msgid "videos"
+msgstr "ویڈیوز"
+
+msgid "app"
+msgstr "ایپس"
+
+msgid "document"
+msgstr "دستاویزات"
+
+msgid "search_chars_min"
+msgstr "کم از کم تین حروف ٹائپ کریں"
+
+msgid "search_no_results"
+msgstr "معذرت خواہ ہیں، اس تلاش سے متعلق ہم کوئی مماثل چیز معلوم نہیں کر سکے۔"
+
+msgid "search_error"
+msgstr "معذرت خواہ ہیں، تلاش کے نتائج بازیافت کرنے میں نقص آ گیا تھا۔"
+
+msgid "search_contacts"
+msgstr "(%s) رابطے"
+
+msgid "search_chats"
+msgstr "(%s) چیٹس"
+
+msgid "search_in_contacts"
+msgstr "رابطوں میں تلاش کریں"
+
+msgid "search_in_chats"
+msgstr "چیٹس اور رابطوں میں تلاش کریں"
+
+msgid "could_not_render_title"
+msgstr "فائل کے عنوان کو رینڈر نہیں کیا جا سکا"
+
+msgid "could_not_render_type"
+msgstr "فائل کی قسم کو رینڈر نہیں کیا جا سکا"
+
+msgid "speaker"
+msgstr "اسپیکر"
+
+msgid "speaker_on"
+msgstr "اسپیکر آن ہے"
+
+msgid "mute"
+msgstr "خاموش کریں"
+
+msgid "muted"
+msgstr "خاموش کردہ"
+
+msgid "end_call"
+msgstr "کال ختم کریں"
+
+msgid "verify_contact"
+msgstr "%s کی توثیق کریں"
+
+msgid "verified"
+msgstr "توثیق شدہ"
+
+msgid "pending_verification"
+msgstr "توثیق زیر التواء ہے"
+
+msgid "verify_description"
+msgstr ""
+"سکیورٹی کی بہترین مشق کے طور پر، ہم یہ پڑتال کرنے کی تجویز کرتے ہیں کہ %s کا توثیقی نمبر آپ کے نمبر سے مماثلت رکھتا ہو۔\n"
+"\n"
+"آپ بالمشافہ یا بذریعہ کال توثیق کرنا پسند کریں گے؟"
+
+msgid "verify_in_person"
+msgstr "بالمشافہ توثیق کریں"
+
+msgid "verify_via_call"
+msgstr "بذریعہ صوتی کال توثیق کریں"
+
+msgid "dismiss_notification"
+msgstr "اطلاع برخاست کریں"
+
+msgid "call_contact"
+msgstr "%s کو کال کریں؟"
+
+msgid "call"
+msgstr "کال کریں"
+
+msgid "incoming_call"
+msgstr "آنے والی کال"
+
+msgid "call_from"
+msgstr "%s کی جانب سے"
+
+msgid "in_call"
+msgstr "جاری کالز"
+
+msgid "in_call_des"
+msgstr "جاری کال کی اطلاع"
+
+msgid "incoming_call_from"
+msgstr "%s کی جانب سے آنے والی کال"
+
+msgid "touch_here_to_open_call"
+msgstr "کال کھولنے کے لیے یہاں چھوئیں"
+
+msgid "in_call_with"
+msgstr "%s کے ساتھ کال میں"
+
+msgid "undo_verification"
+msgstr "توثیق کو کالعدم کریں"
+
+msgid "mark_as_verified"
+msgstr "بطور توثیق شدہ نشان زد کریں"
+
+msgid "verification_panel_success"
+msgstr "توثیق کی کامیابی! %s کے ساتھ آپ کے پیغامات محفوظ ہیں۔"
+
+msgid "verification_panel_pending"
+msgstr ""
+"یہ آپ کا توثیقی نمبر ہے۔ ان کو توثیق شدہ نشان زد کرنے سے قبل پڑتال کر لیں کہ"
+" آپ کا نمبر %s کے نمبر سے مکمل مماثلت رکھتا ہے۔"
+
+msgid "replica_upload_confirmation_title"
+msgstr "اہم!"
+
+msgid "replica_upload_confirmation_body"
+msgstr ""
+"Lantern نیٹ ورک پر اپ لوڈ کردہ فائلز عوامی طور پر رسائی کے قابل ہوتی ہیں۔ "
+"کوئی بھی اسے حذف نہیں کر سکتا۔ براہ کرم اپنی فائل کے مواد یا فائل کے نام میں"
+" ذاتی یا قابل شناخت معلومات شامل نہ کریں۔"
+
+msgid "replica_upload_confirmation_agree"
+msgstr "اپ لوڈ دوبارہ شروع کریں"
+
+msgid "dont_show_me_this_again"
+msgstr "مجھے یہ دوبارہ نہ دکھائیں"
+
+msgid "download"
+msgstr "ڈاؤن لوڈ کریں"
+
+msgid "download_started"
+msgstr "ڈاؤن لوڈ شروع ہو گیا"
+
+msgid "uploader"
+msgstr "اپ لوڈ کنندہ"
+
+msgid "upload_started"
+msgstr "اپ لوڈ شروع ہو گئی"
+
+msgid "upload_in_progress"
+msgstr "اپ لوڈ میں پیش رفت ہو رہی ہے"
+
+msgid "upload_complete"
+msgstr "آپ کی فائل کامیابی سے شائع ہو گئی تھی"
+
+msgid "upload_failed"
+msgstr "اپ لوڈ میں ناکامی ہوئی"
+
+msgid "upload_cancelled"
+msgstr "اپ لوڈ منسوخ ہو گئی"
+
+msgid "upload_unknown_error"
+msgstr "شائع کرنے کی کوشش کے دوران کچھ غلط ہو گیا تھا"
+
+msgid "download_unknown_error"
+msgstr "%s ڈاؤن لوڈ کرنے کی کوشش کے دوران کچھ غلط ہو گیا تھا"
+
+msgid "replica_link_fetcher"
+msgstr "ریپلیکا لنک لینے والا"
+
+msgid "no_preview_for_this_type_of_file"
+msgstr "اس قسم کی فائل کا کوئی پیش نظارہ نہیں ہے"
+
+msgid "app_unknown"
+msgstr "ایپ/نامعلوم"
+
+msgid "audio_unknown"
+msgstr "آڈیو/نامعلوم"
+
+msgid "document_unknown"
+msgstr "دستاویز/نامعلوم"
+
+msgid "no_search_result_found"
+msgstr "معذرت خواہ ہیں، ہم اس تلاش سے متعلق کوئی مماثل چیز معلوم نہیں کر سکے"
+
+msgid "search_result_error"
+msgstr "نتائج دکھانے میں نقص، براہ کرم بعد میں دوبارہ کوشش کریں"
+
+msgid "video_stream_error"
+msgstr "ویڈیو رینڈر کرنے کا نقص، براہ کرم بعد میں دوبارہ کوشش کریں"
+
+msgid "untitled"
+msgstr "بلاعنوان"
+
+msgid "preview_not_available"
+msgstr "پیش منظر دستیاب نہیں"
+
+msgid "download_to_view"
+msgstr "فائل کو دیکھنے کے لیے اسے ڈاؤن لوڈ کریں"
+
+msgid "failed_to_init_replica"
+msgstr "نقص: ریپلیکا کی ابتدا کرنے میں ناکام ہو گئے"
+
+msgid "awaiting_result"
+msgstr "نتائج کا انتظار کر رہے ہیں..."
+
+msgid "discover"
+msgstr "دریافت کریں"
+
+msgid "replica_search_intro"
+msgstr ""
+"Lantern Network پر صارف کا اپ لوڈ کردہ مواد تلاش کریں، یا دیگر کے دریافت "
+"کرنے کے لیے آپ اپنا مواد اپ لوڈ کریں۔"
+
+msgid "replica_new_discover"
+msgstr "نیا دریافت شدہ زمرہ"
+
+msgid "replica_new_discover_news"
+msgstr "ابھی دریافت کریں آپ کو خبروں کے آرٹیکلز تلاش کرنے کی اجازت دیتا ہے!"
+
+msgid "replica_check_it_out"
+msgstr "اسے دیکھیں"
+
+msgid "news"
+msgstr "خبریں"
+
+msgid "share"
+msgstr "شیئر"
+
+msgid "upload_file_screen"
+msgstr "فائل اپ لوڈ کریں"
+
+msgid "edit_title"
+msgstr "موضوع میں ترمیم کریں"
+
+msgid "filenames_cannot_be_edited"
+msgstr "شائع ہو جانے کے بعد فائل کے ناموں میں ترمیم نہیں کی جا سکتی۔"
+
+msgid "add_description"
+msgstr "وضاحت شامل کریں"
+
+msgid "no_description"
+msgstr "کوئی وضاحت فراہم نہیں کی گئی"
+
+msgid "read_details"
+msgstr "PDF کو پڑھیں"
+
+msgid "description_initial_value"
+msgstr "شائع ہو جانے کے بعد وضاحت میں تدوین نہیں کی جا سکتی"
+
+msgid "name_your_file"
+msgstr "اپنی فائل کو نام دیں"
+
+msgid "upload"
+msgstr "اپ لوڈ کریں"
+
+msgid "review"
+msgstr "جائزہ"
+
+msgid "skip"
+msgstr "نظر انداز کریں"
+
+msgid "replica_layout_filetype"
+msgstr "فائل کی قسم: %s"
+
+msgid "replica_layout_creation_date"
+msgstr "%s کو تخلیق کردہ"
+
+msgid "empty_description"
+msgstr "کوئی وضاحت فراہم نہیں کی گئی تھی۔"
+
+msgid "publish"
+msgstr "جی ہاں، شائع کریں"
+
+msgid "important"
+msgstr "اہم!"
+
+msgid "upload_tos_agree"
+msgstr "میں سمجھ گیا"
+
+msgid "test_text"
+msgstr "میں پیزا کھانا چاہتا/چاہتی ہوں 🍕 😊"
+
+msgid "test_hello"
+msgstr "ہائی آپ کیسے ہیں؟"
+
+msgid "test_reply"
+msgstr "لیکن نہیں، مجھے لگتا ہے کہ میرا آج سوشی کھانے کا دل ہے!"
+
+msgid "test_disappearing_messages_1"
+msgstr "ابتدائی طور پر تمام پیغامات 24 گھنٹے بعد غائب ہو جاتے ہیں۔"
+
+msgid "test_disappearing_messages_2"
+msgstr "اب یہ پیغام بھی بہت جلد غائب ہو جائے گا!"
+
+msgid "test_replica_search"
+msgstr "بلی"
+
+msgid "discover_disclaimer"
+msgstr ""
+"Lantern آپ کی تلاشوں کو گمنام بناتی ہے اور انہیں فریقین ثالث سے محفوظ رکھتی "
+"ہے۔"
+
+msgid "support"
+msgstr "سپورٹ"
+
+msgid "lantern_user_forum"
+msgstr "Lantern کا صارفی فورم"
+
+msgid "faq"
+msgstr "اکثر پوچھے جانے والے سوالات"
+
+msgid "add_device"
+msgstr "ڈیوائس شامل کیجئے"
+
+msgid "search_apps"
+msgstr "ایپس تلاش کریں "
+
+msgid "user_not_found"
+msgstr ""
+"صارف کی شناخت نہیں ہوئی۔ براہ کرم اپنی اسناد کی پڑتال کریں اور دوبارہ کوشش "
+"کریں۔ اگر آپ کو مسائل کا سامنا کرنا جاری رہتا ہے، تو براہ کرم معاونت کے لیے "
+"ہماری معاونتی ٹیم سے رابطہ کریں۔"
+
+msgid "email_resend_message"
+msgstr "آپ کا نیا تصدیقی کوڈ بھیج دیا گیا ہے"
+
+msgid "signup_error"
+msgstr ""
+"ایسا لگتا ہے کہ سائن اپ کے ساتھ کچھ غلط ہو گیا تھا۔ براہ کرم دوبارہ کوشش "
+"کریں، اور اگر مسئلہ جاری رہتا ہے، تو ہماری معاونتی ٹیم سے رابطہ کریں"
+
+msgid "signup_error_user_exists"
+msgstr ""
+"ایسا لگتا ہے کہ سائن اپ کے ساتھ کچھ غلط ہو گیا تھا۔ براہ کرم اپنا پاس ورڈ ری"
+" سیٹ کرنے کی کوشش کریں، اور اگر مسئلہ جاری رہتا ہے، تو ہماری معاونتی ٹیم سے "
+"رابطہ کریں"
+
+msgid "confirm_email_error"
+msgstr "براہ کرم اپنی ای میل کی تصدیق کریں"
+
+msgid "password_cannot_be_empty"
+msgstr "پاس ورڈ خالی نہیں ہو سکتا"
+
+msgid "password_must_be_at_least_8_characters"
+msgstr "پاس ورڈ میں کم از کم 8 یا زائد حروف ہونے چاہیئے"
+
+msgid "sign_out"
+msgstr "سائن آؤٹ کریں"
+
+msgid "sign_out_message"
+msgstr ""
+"لاگ آؤٹ کرنے سے Lantern مفت ورژن پر سوئچ ہو جائے گا۔ اپنے اکاؤنٹ تک دوبارہ "
+"رسائی حاصل کرنے کے لیے، آپ کو واپس سائن ان کرنے کی ضرورت ہو گی۔"
+
+msgid "change_password"
+msgstr "پاس ورڈ تبدیل کریں"
+
+msgid "password"
+msgstr "پاس ورڈ"
+
+msgid "new_email"
+msgstr "نیا ای میل ایڈریس"
+
+msgid "new_email_same_as_old_email"
+msgstr "نیا ای میل ایڈریس آپ کے پرانے ای میل ایڈریس سے یکساں نہیں ہو سکتا"
+
+msgid "danger_zone"
+msgstr "خطرے کا علاقہ"
+
+msgid "delete_account"
+msgstr "اکاؤنٹ حذف کریں"
+
+msgid "delete"
+msgstr "حذف کریں"
+
+msgid "delete_account_message"
+msgstr ""
+"آپ کے اکاؤنٹ کو حذف کرنا کالعدم نہیں کیا جا سکتا۔ آپ تمام ڈیوائس تک رسائی سے"
+" محروم ہو جائیں گے اور ریفنڈ کے بغیر کسی بھی Pro اکاؤنٹ کا وقت ضائع کریں گے۔"
+
+msgid "delete_your_account"
+msgstr "آپ کا اکاؤنٹ حذف کریں؟"
+
+msgid "confirm_deletion"
+msgstr "حذف کاری کی تصدیق کریں"
+
+msgid "account_deleted"
+msgstr "اکاؤنٹ حذف ہو گیا"
+
+msgid "account_deleted_message"
+msgstr "آپ کا اکاؤنٹ مستقل طور پر حذف کر دیا گیا ہے۔"
+
+msgid "password_has_been_updated"
+msgstr "پاس ورڈ اپ ڈیٹ کر دیا گیا ہے"
+
+msgid "password_has_been_updated_message"
+msgstr "آپ کا پاس ورڈ کامیابی سے ری سیٹ کر دیا گیا ہے"
+
+msgid "invalid_code"
+msgstr ""
+"کوڈ غلط ہے یا شاید یہ زائد المیعاد ہو گیا ہے۔ براہ کرم دوبارہ بھیجنے کی کوشش"
+" کریں"
+
+msgid "get_lantern_pro"
+msgstr "لینٹرن پرو حاصل کیجئے"
+
+msgid "try_lantern_pro"
+msgstr "Lantern مفت آزمائیں! "
+
+msgid "continue_for_free"
+msgstr "مفت جاری رکھیں "
+
+msgid "recovery_not_found"
+msgstr "ڈیوائس اس یوزر سے منسلک نہیں "
+
+msgid "device_added"
+msgstr ""
+
+msgid "device_added_message"
+msgstr ""
+"آپ کا ڈیوائس کامیابی سے شامل کر دیا گیا ہے۔ اگر آپ ڈیوائس کو منسلک نہیں "
+"دیکھتے ہیں، تو براہ کرم دونوں ڈیوائسز پر ایپ کو دوبارہ شروع کریں "
+
+msgid "wrong_link_code"
+msgstr "آپ کا درج کردہ کوڈ غلط ہے۔ براہ کرم پڑتال کریں اور دوبارہ کوشش کریں۔"
+
+msgid "recovery_code_sent"
+msgstr "بحالی کا کوڈ بھیج دیا گیا ہے"
+
+msgid "device_added_msg"
+msgstr "یہ ڈیوائس %s سے لنک کر دی گئی ہے"
+
+msgid "new_to_lantern"
+msgstr "Lantern پر نئے ہیں؟ "
+
+msgid "email_has_been_updated"
+msgstr "ای میل اپ ڈیٹ کر دی گئی ہے"
+
+msgid "email_has_been_updated_message"
+msgstr "آپ کی ای میل کامیابی سے تبدیل کر دی گئی ہے"
+
+msgid "email_has_been_verified"
+msgstr "ای میل کی تصدیق ہو گئی ہے"
+
+msgid "email_has_been_verified_message"
+msgstr "آپ کی ای میل کی کامیابی سے تصدیق کر دی گئی ہے"
+
+msgid "device_limit_reached"
+msgstr "ڈیوائس کی حد تک پہنچ گئے"
+
+msgid "device_limit_reached_message"
+msgstr ""
+"آپ حالیہ طور پر ڈیوائسز کی زیادہ سے زیادہ تعداد (3) پر سائن ان ہو گئے ہیں۔ "
+"اس ڈیوائس پر سائن ان کرنے کے لیے، براہ کرم ذیل میں موجود اپنی دیگر ڈیوائسز "
+"میں سے ایک منتخب کریں اور ہٹائیں۔"
+
+msgid "enter_activation_code"
+msgstr "فعالیت کا کوڈ درج کریں"
+
+msgid "check_your_email"
+msgstr "اپنے ای میل ایڈریس کی پڑتال کریں"
+
+msgid "please_verify_email"
+msgstr "براہ کرم تصدیق کریں کہ آپ کا درج کردہ ای میل ایڈریس درست ہے۔"
+
+msgid "verify"
+msgstr "تصدیق کریں"
+
+msgid "cannot_login"
+msgstr "لاگ ان نہیں ہو سکتا "
+
+msgid "privacy_policy"
+msgstr "پرائیوسی پالیسی"
+
+msgid "terms_of_service"
+msgstr "سروس کی شرائط"
+
+msgid "invalid_verification_code"
+msgstr "غیر درست تصدیقی کوڈ"
+
+msgid "wrong_seller_code"
+msgstr "غلط ری سیلر کوڈ۔ براہ کرم تصدیق کریں اور دوبارہ کوشش کریں۔ "
+
+msgid "follow_us"
+msgstr "ہمیں فالو کریں "
+
+msgid "follow_us_telegram"
+msgstr ""
+
+msgid "follow_us_instagram"
+msgstr ""
+
+msgid "follow_us_facebook"
+msgstr ""
+
+msgid "follow_us_x"
+msgstr ""
+
+msgid "report_issue_error"
+msgstr "ہمیں تکنیکی مشکلات کا سامنا ہے۔ بعد میں دوبارہ کوشش کریں۔ "
+
+msgid "we_are_experiencing_technical_difficulties"
+msgstr "ہمیں تکنیکی مشکلات کا سامنا ہے۔ بعد میں دوبارہ کوشش کریں۔ "
+
+msgid "a_temporary_error_occurred"
+msgstr "ایک عارضی غلطی واقع ہوئی "
+
+msgid "sorry_we_are_unable_to_load_that_page"
+msgstr ""
+"معذرت، ہم اس وقت اس صفحے کو لوڈ نہیں کر سکتے، براہ کرم دوبارہ کوشش کرنے کے "
+"لیے 'ریفریش' پر کلک کریں۔ "
+
+msgid "refresh"
+msgstr "ریفریش"
+
+msgid "check_your_internet_connection"
+msgstr "اپنے انٹرنیٹ کنکشن کی جانچ کریں "
+
+msgid "please_try"
+msgstr "براہ کرم کوشش کریں "
+
+msgid "turning_off_airplane_mode"
+msgstr "ایئرپلین موڈ بند کریں "
+
+msgid "turning_on_mobile_data_or_wifi"
+msgstr "موبائل ڈیٹا یا وائی فائی کو آن کریں "
+
+msgid "check_the_signal_in_your_area"
+msgstr "اپنے علاقے میں سگنل چیک کریں "
+
+msgid "got_it"
+msgstr "سمجھ گئے"
+
+msgid "fetching_configuration"
+msgstr "تشکیل حاصل کی جا رہی ہے "
+
+msgid "establish_connection_to_server"
+msgstr "سرور سے کنکشن قائم کریں "
+
+msgid "file_size_limit_title"
+msgstr "حد پوری ہو گئی "
+
+msgid "file_size_limit_description"
+msgstr ""
+"منسلکات کا سائز 100 MB سے کم ہونا چاہئے\n"
+"\n"
+" \n"
+" "
+
+msgid "lantern_pro_one_year"
+msgstr ""
+
+msgid "lantern_pro_two_year"
+msgstr ""
+
+msgid "lantern_pro_one_month"
+msgstr ""
+
+msgid "non_renewing_subscription"
+msgstr ""
+
+msgid "restore_purchase"
+msgstr ""
+
+msgid "skip_for_now"
+msgstr ""
+
+msgid "purchase_not_found"
+msgstr ""
+
+msgid "no_previous_purchase"
+msgstr ""
+
+msgid "warning_restore_purchase"
+msgstr ""
+
+msgid "purchase_restored"
+msgstr ""
+
+msgid "purchase_restored_message"
+msgstr ""
+
+msgid "purchase_restored_error"
+msgstr ""
+
+msgid "err_while_sending_code"
+msgstr ""
+
+msgid "email_hint"
+msgstr ""
+
+msgid "email_hint_pro"
+msgstr ""
+
+msgid "continue_without_email"
+msgstr ""
+
+msgid "no_new_update"
+msgstr "آپ اَپ ٹو ڈیٹ ہیں !"
+
+msgid "error_referral"
+msgstr "آپ کے ریفرل کوڈ کا اطلاق کرتے ہوئے کچھ غلط ہو گیا۔"
+
+msgid "proxy_error"
+msgstr ""
+
+msgid "proxy_settings"
+msgstr ""
+
+msgid "http_proxy"
+msgstr ""
+
+msgid "socks_proxy"
+msgstr ""
+
+msgid "http_proxy_copied"
+msgstr ""
+
+msgid "socks_proxy_copied"
+msgstr ""
+
+msgid "proxy_everything"
+msgstr ""
+
+msgid "errorSubmittingToGooglePlay"
+msgstr ""
+
+msgid "no_internet_connection"
+msgstr ""
+
+msgid "domain_fronting_error"
+msgstr ""
