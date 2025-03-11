@@ -5,6 +5,7 @@ go 1.23.4
 require (
 	github.com/Jigsaw-Code/outline-sdk v0.0.18-0.20241106233708-faffebb12629
 	github.com/eycorsican/go-tun2socks v1.16.11
+	github.com/fsnotify/fsnotify v1.7.0
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
 	github.com/stretchr/testify v1.10.0
 	google.golang.org/protobuf v1.35.1
@@ -22,7 +23,6 @@ require (
 	github.com/cretz/bine v0.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dsnet/compress v0.0.2-0.20210315054119-f66993602bf5 // indirect
-	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/getlantern/algeneva v0.0.0-20250227003541-28296c766ad8 // indirect
 	github.com/getlantern/byteexec v0.0.0-20220903142956-e6ed20032cfd // indirect
 	github.com/getlantern/cmux/v2 v2.0.0-20230301223233-dac79088a4c0 // indirect
