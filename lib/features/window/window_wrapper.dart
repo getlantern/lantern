@@ -93,4 +93,9 @@ class _WindowWrapperState extends ConsumerState<WindowWrapper>
       ),
     );
   }
+
+  @override
+  void onWindowFocus() {
+    setState(() {});
+  }
 }

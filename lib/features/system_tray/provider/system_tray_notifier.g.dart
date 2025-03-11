@@ -1,26 +1,27 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'window_notifier.dart';
+part of 'system_tray_notifier.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$windowNotifierHash() => r'bcf86c47433217fb67bec639542de533e542a2b4';
+String _$systemTrayNotifierHash() =>
+    r'ff9fae80896ebc47473144ca6fbb7daa3c7d439f';
 
-/// See also [WindowNotifier].
-@ProviderFor(WindowNotifier)
-final windowNotifierProvider =
-    AsyncNotifierProvider<WindowNotifier, void>.internal(
-  WindowNotifier.new,
-  name: r'windowNotifierProvider',
+/// See also [SystemTrayNotifier].
+@ProviderFor(SystemTrayNotifier)
+final systemTrayNotifierProvider =
+    AsyncNotifierProvider<SystemTrayNotifier, void>.internal(
+  SystemTrayNotifier.new,
+  name: r'systemTrayNotifierProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
       ? null
-      : _$windowNotifierHash,
+      : _$systemTrayNotifierHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
-typedef _$WindowNotifier = AsyncNotifier<void>;
+typedef _$SystemTrayNotifier = AsyncNotifier<void>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

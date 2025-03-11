@@ -17,7 +17,7 @@ class ProtocolRegistrar {
       String appPath = Platform.resolvedExecutable;
 
       String protocolRegKey = 'Software\\Classes\\$scheme';
-      RegistryValue protocolRegValue = const RegistryValue.(
+      RegistryValue protocolRegValue = const RegistryValue(
         'URL Protocol',
         RegistryValueType.string,
         '',

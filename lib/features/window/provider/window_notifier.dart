@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -15,8 +17,18 @@ class WindowNotifier extends _$WindowNotifier {
     windowManager.setResizable(false);
   }
 
-  void open() async {
+  Future<void> open({bool focus = true}) async {
     await windowManager.show();
-    await windowManager.focus();
+    if (focus) await windowManager.focus();
+    if (Platform.isMacOS) {
+      await windowManager.setSkipTaskbar(false);
+    }
+  }
+
+  Future<void> close() async {
+    await windowManager.hide();
+    if (Platform.isMacOS) {
+      await windowManager.setSkipTaskbar(true);
+    }
   }
 }

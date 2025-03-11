@@ -13,6 +13,7 @@ import 'package:lantern/features/window/window_wrapper.dart';
 
 import 'core/common/common.dart';
 import 'core/services/injection_container.dart';
+import 'features/system_tray/system_tray_wrapper.dart';
 
 final globalRouter = sl<AppRouter>();
 
@@ -74,34 +75,36 @@ class _LanternAppState extends ConsumerState<LanternApp> {
     final size = MediaQuery.of(context).size;
     appLogger.debug('MediaQuery: Size ${size}');
     return WindowWrapper(
-      child: ScreenUtilInit(
-        designSize: PlatformUtils.isDesktop() ? desktopWindowSize : mobileSize,
-        minTextAdapt: true,
-        child: I18n(
-          localizationsDelegates: [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          child: MaterialApp.router(
-            debugShowCheckedModeBanner: false,
-            locale: locale,
-            theme: AppTheme.appTheme(),
-            themeMode: ThemeMode.light,
-            darkTheme: AppTheme.darkTheme(),
-            supportedLocales: languages
-                .map(
-                    (lang) => Locale(lang.split('_').first, lang.split('_').last))
-                .toList(),
-            // List of supported languages
-            routerConfig: globalRouter.config(
-              deepLinkBuilder: navigateToDeepLink,
-            ),
-            localizationsDelegates: const [
+      child: SystemTrayWrapper(
+        child: ScreenUtilInit(
+          designSize: PlatformUtils.isDesktop() ? desktopWindowSize : mobileSize,
+          minTextAdapt: true,
+          child: I18n(
+            localizationsDelegates: [
               GlobalMaterialLocalizations.delegate,
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
+            child: MaterialApp.router(
+              debugShowCheckedModeBanner: false,
+              locale: locale,
+              theme: AppTheme.appTheme(),
+              themeMode: ThemeMode.light,
+              darkTheme: AppTheme.darkTheme(),
+              supportedLocales: languages
+                  .map(
+                      (lang) => Locale(lang.split('_').first, lang.split('_').last))
+                  .toList(),
+              // List of supported languages
+              routerConfig: globalRouter.config(
+                deepLinkBuilder: navigateToDeepLink,
+              ),
+              localizationsDelegates: const [
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+            ),
           ),
         ),
       ),
