@@ -5,7 +5,7 @@ import 'package:lantern/core/services/db/objectbox.g.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-import 'package:objectbox/objectbox.dart';
+
 import 'injection_container.dart';
 
 class AppDB {
@@ -72,18 +72,15 @@ class LocalStorageService {
   /// Save a key-value pair
   void set<T>(String key, T value) {
     try {
-      dbLogger.debug("Setting key: $key, value: $value");
       final Map<String, dynamic> dbMap = _appDb.map;
       dbMap[key] = value;
       _appDb.map = dbMap;
       _box.putAsync(_appDb);
       //update cache
       _cache[key] = value;
-      dbLogger.debug("Key: $key saved successfully");
-    }catch(e){
+    } catch (e) {
       dbLogger.error("Error saving key: $key, value: $value");
     }
-
   }
 
   /// Remove a key

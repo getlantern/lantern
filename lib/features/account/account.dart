@@ -1,6 +1,7 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/widgets/user_devices.dart';
 
 @RoutePage(name: 'Account')
 class Account extends StatelessWidget {
@@ -49,10 +50,10 @@ class Account extends StatelessWidget {
         Card(
           child: AppTile(
             label: '12/23/26',
+            contentPadding: EdgeInsets.only(left: 16),
             icon: AppImagePaths.email,
             trailing: AppTextButton(
                 label: 'manage_subscription'.i18n, onPressed: () {}),
-            onPressed: () {},
           ),
         ),
         SizedBox(height: defaultSize),
@@ -65,42 +66,7 @@ class Account extends StatelessWidget {
             ),
           ),
         ),
-        Card(
-          child: ListView(
-            shrinkWrap: true,
-            padding: EdgeInsets.zero,
-            physics: const NeverScrollableScrollPhysics(),
-            children: [
-              AppTile(
-                label: 'Samsung Galaxy',
-                icon: AppImagePaths.email,
-                trailing: AppTextButton(label: 'remove'.i18n, onPressed: () {}),
-                onPressed: () {},
-              ),
-              DividerSpace(),
-              AppTile(
-                label: 'Samsung Galaxy',
-                icon: AppImagePaths.email,
-                trailing: AppTextButton(label: 'remove'.i18n, onPressed: () {}),
-                onPressed: () {},
-              ),
-              DividerSpace(),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: defaultSize, vertical: 5),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    AppTextButton(
-                      label: 'add_device'.i18n,
-                      onPressed: () {},
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+       UserDevices(),
         Spacer(),
         Padding(
           padding: const EdgeInsets.only(left: 16),
@@ -113,6 +79,7 @@ class Account extends StatelessWidget {
         ),
         Card(
           child: AppTile(
+            contentPadding: EdgeInsets.only(left: 16),
             icon: AppImagePaths.delete,
             label: 'delete_account'.i18n,
             trailing: AppTextButton(
@@ -130,3 +97,6 @@ class Account extends StatelessWidget {
     appRouter.push(const DeleteAccount());
   }
 }
+
+
+
