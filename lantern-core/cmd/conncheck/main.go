@@ -15,7 +15,7 @@ import (
 	"github.com/Jigsaw-Code/outline-sdk/transport"
 	"github.com/alexflint/go-arg"
 	"github.com/getlantern/golog"
-	"github.com/getlantern/lantern-outline/dialer"
+	"github.com/getlantern/lantern-outline/lantern-core/dialer"
 	"github.com/getlantern/radiance/backend"
 	"github.com/getlantern/radiance/config"
 	rtransport "github.com/getlantern/radiance/transport"
@@ -126,7 +126,7 @@ func loadConfig(ctx context.Context, configPath string) *config.Config {
 		if err != nil {
 			log.Fatal(err)
 		}
-		return cfg
+		return cfg[0]
 	}
 	var cfg config.Config
 	b, err := os.ReadFile(configPath)

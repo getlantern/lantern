@@ -3,13 +3,14 @@
 OUT_DIR := bin
 
 LIB_NAME := liblantern
+FFI_DIR := ./lantern-core/ffi
 
 gen:
 	dart run build_runner build
 
 # Build for macOS
 macos:
-	go build -o bin/liblantern.dylib -buildmode=c-shared ./ffi
+	go build -o bin/liblantern.dylib -buildmode=c-shared ./lantern-core/ffi
 	mkdir -p build/macos/Build/Products/Debug/Lantern.app/Contents/MacOS
 	cp bin/liblantern.dylib build/macos/Build/Products/Debug/Lantern.app/Contents/MacOS
 
@@ -39,7 +40,6 @@ build-framework: build-ios
 
 ios:
 	GOOS=ios CGO_ENABLED=1 go build -trimpath -buildmode=c-archive -o $(OUT_DIR)/$(LIB_NAME)_$(GOARCH)_$(SDK).a
-
 
 
 #Routes generation

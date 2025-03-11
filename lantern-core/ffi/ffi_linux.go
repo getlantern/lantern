@@ -6,7 +6,7 @@ package main
 import (
 	"context"
 
-	"github.com/getlantern/lantern-outline/vpn"
+	"github.com/getlantern/lantern-outline/lantern-core/vpn"
 )
 
 func start(ctx context.Context, server vpn.VPNServer) error {

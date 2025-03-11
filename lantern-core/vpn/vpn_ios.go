@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/getlantern/lantern-outline/dialer"
+	"github.com/getlantern/lantern-outline/lantern-core/dialer"
 )
 
 // IOSBridge defines the interface for interaction with the iOS network bridge via Swift

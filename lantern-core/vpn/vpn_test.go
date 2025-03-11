@@ -5,7 +5,7 @@ import (
 	"io"
 	"testing"
 
-	"github.com/getlantern/lantern-outline/dialer"
+	"github.com/getlantern/lantern-outline/lantern-core/dialer"
 	"github.com/stretchr/testify/require"
 )
 
