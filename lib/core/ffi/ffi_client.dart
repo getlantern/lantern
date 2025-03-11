@@ -1,11 +1,9 @@
 // lib/core/ffi/ffi_client.dart
 
-import 'dart:async';
 import 'dart:ffi';
 import 'dart:io' show Platform;
 import 'dart:isolate';
 import 'package:ffi/ffi.dart';
-//import 'package:lantern/core/ffi/socket_client.dart';
 
 typedef StartVPNNative = Pointer<Utf8> Function();
 typedef StartVPN = Pointer<Utf8> Function();
@@ -104,5 +102,6 @@ class FFIClient {
   bool get isConnected {
     return isVPNConnected() == 1;
   }
+
   //Stream<bool> get vpnStatusStream => _socketClient.vpnStatusStream;
 }

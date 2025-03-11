@@ -10,7 +10,7 @@ import (
 	"time"
 
 	localconfig "github.com/getlantern/lantern-outline/config"
-	"github.com/getlantern/lantern-outline/dialer"
+	"github.com/getlantern/lantern-outline/lantern-core/dialer"
 	"github.com/getlantern/radiance"
 	"github.com/getlantern/radiance/config"
 )
