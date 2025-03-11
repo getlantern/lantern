@@ -20,40 +20,40 @@ Future<void> main() async {
   desktopInit();
   await injectServices();
   await Future.microtask(Localization.loadTranslations);
+  await _setupSentry(
+    runner: () {
+      runApp(
+        DevicePreview(
+            enabled: false,
+            builder: (context) => const ProviderScope(
+                  child: LanternApp(),
+                )),
+      );
+    },
+  );
   widgetsBinding.allowFirstFrame();
+}
+
+Future<void> _setupSentry({required AppRunner runner}) async {
   await SentryFlutter.init((options) {
-    // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring.
-    // We recommend adjusting this value in production.
-    options.tracesSampleRate = 1.0;
-    // The sampling rate for profiling is relative to tracesSampleRate
-    // Setting to 1.0 will profile 100% of sampled transactions:
-    options.profilesSampleRate = 1.0;
+    options.tracesSampleRate = .8;
+    options.profilesSampleRate = .8;
+    options.attachThreads = true;
+    options.debug = kDebugMode;
     options.environment = kReleaseMode ? "production" : "development";
     options.dsn = kReleaseMode ? AppSecrets.dnsConfig() : "";
     options.enableNativeCrashHandling = true;
     options.attachStacktrace = true;
     options.enableAutoNativeBreadcrumbs = true;
     options.enableNdkScopeSync = true;
-  }, appRunner: () => buildApp());
-}
-
-void buildApp() {
-  runApp(
-    DevicePreview(
-        enabled: false,
-        builder: (context) => const ProviderScope(
-              child: LanternApp(),
-            )),
-  );
+  }, appRunner: runner);
 }
 
 Future<void> desktopInit() async {
   if (!PlatformUtils.isDesktop()) {
     return;
   }
-  await windowManager.ensureInitialized();
-  await windowManager.setSize(desktopWindowSize);
-  windowManager.setResizable(false);
+
 }
 
 Future<void> _loadAppSecrets() async {

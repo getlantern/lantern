@@ -39,8 +39,6 @@ dependencies:
   # paths
   path: ^1.9.1
   path_provider: ^2.1.5
-  #Dekstop
-  window_manager: ^0.4.3
   #Routing
   auto_route: ^9.3.0+1
   #UI Utils
@@ -81,6 +79,10 @@ dependencies:
   sentry_flutter: ^9.0.0-alpha.1
   # Deeplink handling
   app_links: ^6.4.0
+  # Desktop
+  window_manager: ^0.4.3
+  tray_manager: ^0.3.2
+  win32_registry: ^1.1.5
 
 dev_dependencies:
   flutter_test:

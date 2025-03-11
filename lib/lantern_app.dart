@@ -9,6 +9,7 @@ import 'package:lantern/core/localization/localization_constants.dart';
 import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/features/language/language_notifier.dart';
+import 'package:lantern/features/window/window_wrapper.dart';
 
 import 'core/common/common.dart';
 import 'core/services/injection_container.dart';
@@ -72,34 +73,36 @@ class _LanternAppState extends ConsumerState<LanternApp> {
     Localization.defaultLocale = locale.toString();
     final size = MediaQuery.of(context).size;
     appLogger.debug('MediaQuery: Size ${size}');
-    return ScreenUtilInit(
-      designSize: PlatformUtils.isDesktop() ? desktopWindowSize : mobileSize,
-      minTextAdapt: true,
-      child: I18n(
-        localizationsDelegates: [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        child: MaterialApp.router(
-          debugShowCheckedModeBanner: false,
-          locale: locale,
-          theme: AppTheme.appTheme(),
-          themeMode: ThemeMode.light,
-          darkTheme: AppTheme.darkTheme(),
-          supportedLocales: languages
-              .map(
-                  (lang) => Locale(lang.split('_').first, lang.split('_').last))
-              .toList(),
-          // List of supported languages
-          routerConfig: globalRouter.config(
-            deepLinkBuilder: navigateToDeepLink,
-          ),
-          localizationsDelegates: const [
+    return WindowWrapper(
+      child: ScreenUtilInit(
+        designSize: PlatformUtils.isDesktop() ? desktopWindowSize : mobileSize,
+        minTextAdapt: true,
+        child: I18n(
+          localizationsDelegates: [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
+          child: MaterialApp.router(
+            debugShowCheckedModeBanner: false,
+            locale: locale,
+            theme: AppTheme.appTheme(),
+            themeMode: ThemeMode.light,
+            darkTheme: AppTheme.darkTheme(),
+            supportedLocales: languages
+                .map(
+                    (lang) => Locale(lang.split('_').first, lang.split('_').last))
+                .toList(),
+            // List of supported languages
+            routerConfig: globalRouter.config(
+              deepLinkBuilder: navigateToDeepLink,
+            ),
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+          ),
         ),
       ),
     );
