@@ -1,0 +1,144 @@
+name: Update Linked Issue Status
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  update-issue-status:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      repository-projects: write
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract issue number from PR description
+        id: extract-issue
+        run: |
+          PR_DESCRIPTION=$(gh pr view ${{ github.event.pull_request.number }} --json body -q .body)
+          echo "PR DESCR IS $PR_DESCRIPTION"
+          # Look for issue references like "Fixes #123" or "Closes #123"
+          ISSUE_NUMBER=$(echo "$PR_DESCRIPTION" | grep -oE "(fixes|closes|resolves|references|refs|re|see|addresses|related to) https://github.com/getlantern/engineering/issues/([0-9]+)" | grep -oE "[0-9]+" | head -n 1)
+
+          if [ -n "$ISSUE_NUMBER" ]; then
+            echo "issue_number=$ISSUE_NUMBER" >> $GITHUB_OUTPUT
+            echo "Found linked issue: #$ISSUE_NUMBER"
+          else
+            echo "No linked issue found in PR description"
+            exit 0
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GHT_PROJECTS }}
+
+      - name: Update issue status in project
+        if: steps.extract-issue.outputs.issue_number != ''
+        run: |
+          # Use GitHub GraphQL API to update the issue's status field in the project
+          # First, we need to get the project item ID for this issue
+
+          ISSUE_NODE_ID=$(gh api graphql -f query='
+            query($repo_owner: String!, $repo_name: String!, $issue_number: Int!) {
+              repository(owner: $repo_owner, name: $repo_name) {
+                issue(number: $issue_number) {
+                  id
+                  projectItems(first: 1) {
+                    nodes {
+                      id
+                      project {
+                        id
+                        title
+                      }
+                    }
+                  }
+                }
+              }
+            }' -f repo_owner=getlantern -f repo_name=engineering -F issue_number=${{ steps.extract-issue.outputs.issue_number }} -q '.data.repository.issue.projectItems.nodes[0].id')
+
+          if [ -z "$ISSUE_NODE_ID" ]; then
+            echo "Issue is not in any project"
+            exit 0
+          fi
+
+          PROJECT_ID=$(gh api graphql -f query='
+            query($repo_owner: String!, $repo_name: String!, $issue_number: Int!) {
+              repository(owner: $repo_owner, name: $repo_name) {
+                issue(number: $issue_number) {
+                  projectItems(first: 1) {
+                    nodes {
+                      project {
+                        id
+                      }
+                    }
+                  }
+                }
+              }
+            }' -f repo_owner=getlantern -f repo_name=engineering -F issue_number=${{ steps.extract-issue.outputs.issue_number }} -q '.data.repository.issue.projectItems.nodes[0].project.id')
+
+          # Get the status field ID
+          STATUS_FIELD_ID=$(gh api graphql -f query='
+            query($project_id: ID!) {
+              node(id: $project_id) {
+                ... on ProjectV2 {
+                  fields(first: 20) {
+                    nodes {
+                      ... on ProjectV2SingleSelectField {
+                        id
+                        name
+                        options {
+                          id
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }' -F project_id=$PROJECT_ID -q '.data.node.fields.nodes[] | select(.name=="Status") | .id')
+
+          # Get the option ID for "In Review"
+          IN_REVIEW_OPTION_ID=$(gh api graphql -f query='
+            query($project_id: ID!) {
+              node(id: $project_id) {
+                ... on ProjectV2 {
+                  fields(first: 20) {
+                    nodes {
+                      ... on ProjectV2SingleSelectField {
+                        id
+                        name
+                        options {
+                          id
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }' -F project_id=$PROJECT_ID -q '.data.node.fields.nodes[] | select(.name=="Status") | .options[] | select(.name=="In Review") | .id')
+
+          # Update the status field to "In Review"
+          gh api graphql -f query='
+            mutation($project_id: ID!, $item_id: ID!, $field_id: ID!, $option_id: String!) {
+              updateProjectV2ItemFieldValue(
+                input: {
+                  projectId: $project_id
+                  itemId: $item_id
+                  fieldId: $field_id
+                  value: { 
+                    singleSelectOptionId: $option_id
+                  }
+                }
+              ) {
+                projectV2Item {
+                  id
+                }
+              }
+            }' -F project_id=$PROJECT_ID -F item_id=$ISSUE_NODE_ID -F field_id=$STATUS_FIELD_ID -f option_id=$IN_REVIEW_OPTION_ID
+
+          echo "Updated issue #${{ steps.extract-issue.outputs.issue_number }} status to 'In Review'"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GHT_PROJECTS }}
