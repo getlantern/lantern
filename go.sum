@@ -102,6 +102,8 @@ github.com/getlantern/ops v0.0.0-20231025133620-f368ab734534 h1:3BwvWj0JZzFEvNNi
 github.com/getlantern/ops v0.0.0-20231025133620-f368ab734534/go.mod h1:ZsLfOY6gKQOTyEcPYNA9ws5/XHZQFroxqCOhHjGcs9Y=
 github.com/getlantern/radiance v0.0.0-20250312014649-cf2712f1b573 h1:YJLIF7EAy4OM3Cfj96nxWhZqPWMRLy8Nw3HJO7+6JiU=
 github.com/getlantern/radiance v0.0.0-20250312014649-cf2712f1b573/go.mod h1:mSTknjxwfCfwencOgwam80Mx0tDTEtsOvGH1zU+wCqc=
+github.com/getlantern/radiance v0.0.0-20250312020239-fc22bca61ebf h1:mdGQ53l87Ej1o4/HPCtkgGnjuJjesxEIYq5ydQcQ4J4=
+github.com/getlantern/radiance v0.0.0-20250312020239-fc22bca61ebf/go.mod h1:mSTknjxwfCfwencOgwam80Mx0tDTEtsOvGH1zU+wCqc=
 github.com/getlantern/tlsdialer/v3 v3.0.3 h1:OXzzAqO8YojBOu2Kk8wquX2zbFmgJjji41RpaT6knLg=
 github.com/getlantern/tlsdialer/v3 v3.0.3/go.mod h1:hwA0X81pnrgx7GEwddaGWSxqr6eLBm7A0rrUMK2J7KY=
 github.com/getlantern/waitforserver v1.0.1 h1:xBjqJ3GgEk9JMWnDgRSiNHXINi6Lv2tGNjJR0hCkHFY=

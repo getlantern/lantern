@@ -7,7 +7,7 @@ require (
 	github.com/eycorsican/go-tun2socks v1.16.11
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
-	github.com/getlantern/radiance v0.0.0-20250312014649-cf2712f1b573
+	github.com/getlantern/radiance v0.0.0-20250312020239-fc22bca61ebf
 	github.com/stretchr/testify v1.10.0
 	google.golang.org/protobuf v1.36.5
 )
