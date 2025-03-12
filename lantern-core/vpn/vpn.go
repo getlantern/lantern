@@ -37,7 +37,7 @@ type vpnServer struct {
 // VPNServer defines the methods required to manage the VPN server
 type VPNServer interface {
 	Start(ctx context.Context) error
-	Stop() error
+	StopVPN() error
 	IsVPNConnected() bool
 }
 
@@ -98,8 +98,8 @@ func (srv *vpnServer) loadConfig(ctx context.Context, useLocalConfig bool) (*con
 	return cfgs[0], nil
 }
 
-// Stop stops the VPN server and closes the tunnel.
-func (s *vpnServer) Stop() error {
+// StopVPN stops the VPN server and closes the tunnel.
+func (s *vpnServer) StopVPN() error {
 	if !s.IsVPNConnected() {
 		return errors.New("VPN isn't running")
 	}

@@ -86,7 +86,7 @@ func (s *iOSVPN) ProcessInboundPacket(rawPacket []byte, n int) error {
 
 // Stop stops the VPN server and closes the tunnel.
 func (s *iOSVPN) Stop() error {
-	if err := s.vpnServer.Stop(); err != nil {
+	if err := s.vpnServer.StopVPN(); err != nil {
 		return err
 	}
 

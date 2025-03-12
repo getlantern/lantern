@@ -6,18 +6,16 @@ package main
 import "C"
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"unsafe"
 
 	"github.com/getlantern/golog"
-	"github.com/getlantern/radiance"
 )
 
 var (
-	mu         sync.Mutex
-	server     *radiance.Radiance
-	serverOnce sync.Once
+	mu sync.Mutex
 
 	log = golog.LoggerFor("lantern.ffi")
 )
@@ -31,23 +29,10 @@ func startVPN() *C.char {
 	mu.Lock()
 	defer mu.Unlock()
 
-	var err error
-	serverOnce.Do(func() {
-		s, e := radiance.NewRadiance()
-		if e != nil {
-			err = fmt.Errorf("unable to create radiance: %v", e)
-			return
-		}
-		server = s
-	})
-	if err != nil {
+	if err := start(context.Background()); err != nil {
 		return C.CString(err.Error())
 	}
 
-	if err := server.StartVPN(); err != nil {
-		err = fmt.Errorf("unable to create radiance: %v", err)
-		return C.CString(err.Error())
-	}
 	log.Debug("VPN server started successfully")
 	return nil
 }
