@@ -8,26 +8,26 @@ import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/lantern_app.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:window_manager/window_manager.dart';
 
 import 'core/common/app_secrets.dart';
 
 Future<void> main() async {
-  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-  widgetsBinding.deferFirstFrame();
+  // WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  // widgetsBinding.deferFirstFrame();
   initLogger();
   await _loadAppSecrets();
   await injectServices();
   await Future.microtask(Localization.loadTranslations);
-  widgetsBinding.allowFirstFrame();
+  // widgetsBinding.allowFirstFrame();
   await _setupSentry(
     runner: () {
       runApp(
         DevicePreview(
-            enabled: false,
-            builder: (context) => const ProviderScope(
-                  child: LanternApp(),
-                )),
+          enabled: false,
+          builder: (context) => const ProviderScope(
+            child: LanternApp(),
+          ),
+        ),
       );
     },
   );

@@ -75,7 +75,7 @@ dependencies:
   # share
   share_plus: ^10.1.4
   #native
-  flutter_native_splash: ^2.4.5
+#  flutter_native_splash: ^2.4.5
   sentry_flutter: ^9.0.0-alpha.1
   # Deeplink handling
   app_links: ^6.4.0
