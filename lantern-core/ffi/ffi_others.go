@@ -39,7 +39,7 @@ func start(ctx context.Context) error {
 	}
 
 	if err := server.StartVPN(); err != nil {
-		err = fmt.Errorf("unable to create radiance: %v", err)
+		err = fmt.Errorf("unable to start radiance: %v", err)
 		return err
 	}
 	return nil
