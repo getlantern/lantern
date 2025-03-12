@@ -32,16 +32,10 @@ class Logs extends HookConsumerWidget {
 
     Future<void> shareLogFile() async {
       try {
-        final logDir = await getAppLogDirectory();
-        final logFile = File("$logDir/lantern.log");
-
-        if (!logFile.existsSync()) {
-          throw Exception("Log file does not exist.");
-        }
-
+        final logFile = await LogUtils.appLogFile();
         await Share.shareXFiles(
           [XFile(logFile.path)],
-          text: "Here are my diagnostic logs from Lantern.",
+          text: 'logs_share_message'.i18n,
         );
       } catch (e) {
         appLogger.error("Error sharing log file: $e");
@@ -78,7 +72,7 @@ class Logs extends HookConsumerWidget {
                 ),
                 Expanded(
                   child: Text(
-                    'Lantern cannot view your diagnostic logs unless you send them to us.',
+                    'cannot_view_logs'.i18n,
                     style: AppTestStyles.bodyMedium,
                   ),
                 ),
