@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -57,15 +55,16 @@ class Logs extends HookConsumerWidget {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 16.0),
+          Container(
+            padding: const EdgeInsets.only(bottom: 16),
             child: Row(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.center,
+              spacing: 16,
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(
-                    right: 8.0,
-                  ), // Add spacing around the button
+                  padding: const EdgeInsets.only(left: 8.0),
                   child: AppImage(
                     path: AppImagePaths.info,
                   ),
@@ -73,7 +72,10 @@ class Logs extends HookConsumerWidget {
                 Expanded(
                   child: Text(
                     'cannot_view_logs'.i18n,
-                    style: AppTestStyles.bodyMedium,
+                    style: AppTestStyles.bodyMedium.copyWith(
+                      color: AppColors.logTextColor,
+                      fontSize: 14,
+                    ),
                   ),
                 ),
               ],
@@ -81,8 +83,13 @@ class Logs extends HookConsumerWidget {
           ),
           Expanded(
             child: Container(
-              width: double.infinity,
-              color: Colors.black,
+              decoration: ShapeDecoration(
+                color: AppColors.logBackgroundColor,
+                shape: RoundedRectangleBorder(
+                  side: BorderSide(width: 1),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
               child: logAsyncValue.when(
                 data: (logs) {
                   scrollToBottom(); // scroll when logs update
@@ -98,7 +105,9 @@ class Logs extends HookConsumerWidget {
                     },
                   );
                 },
-                loading: () => const Center(child: CircularProgressIndicator()),
+                loading: () => const Center(
+                  child: CircularProgressIndicator(),
+                ),
                 error: (error, stack) => Center(
                   child: Text(
                     "Error: $error",
