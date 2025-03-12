@@ -33,14 +33,12 @@ func startVPN() *C.char {
 
 	var err error
 	serverOnce.Do(func() {
-		if server == nil {
-			s, e := radiance.NewRadiance()
-			if e != nil {
-				err = fmt.Errorf("unable to create radiance: %v", e)
-				return
-			}
-			server = s
+		s, e := radiance.NewRadiance()
+		if e != nil {
+			err = fmt.Errorf("unable to create radiance: %v", e)
+			return
 		}
+		server = s
 	})
 	if err != nil {
 		return C.CString(err.Error())
