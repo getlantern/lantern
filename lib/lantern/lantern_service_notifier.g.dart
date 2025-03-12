@@ -1,26 +1,27 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'window_notifier.dart';
+part of 'lantern_service_notifier.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$windowNotifierHash() => r'b587b0087828cab895590b35341c6e0699b60a93';
+String _$lanternServiceHash() => r'61cf6a71743473e6278e94d1810cb8b6e2bddb4c';
 
-/// See also [WindowNotifier].
-@ProviderFor(WindowNotifier)
-final windowNotifierProvider =
-    AsyncNotifierProvider<WindowNotifier, void>.internal(
-  WindowNotifier.new,
-  name: r'windowNotifierProvider',
+/// See also [lanternService].
+@ProviderFor(lanternService)
+final lanternServiceProvider = Provider<LanternService>.internal(
+  lanternService,
+  name: r'lanternServiceProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
       ? null
-      : _$windowNotifierHash,
+      : _$lanternServiceHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
-typedef _$WindowNotifier = AsyncNotifier<void>;
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef LanternServiceRef = ProviderRef<LanternService>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

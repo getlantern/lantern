@@ -1,4 +1,4 @@
-.PHONY: gen macos
+.PHONY: gen macos ffi
 
 OUT_DIR := bin
 
@@ -9,6 +9,7 @@ macos:
 	go build -o bin/liblantern.dylib -buildmode=c-shared ./ffi
 	mkdir -p build/macos/Build/Products/Debug/Lantern.app/Contents/MacOS
 	cp bin/liblantern.dylib build/macos/Build/Products/Debug/Lantern.app/Contents/MacOS
+	make ffi
 
 # Build for iOS
 build-ios-device:
@@ -37,6 +38,10 @@ build-framework: build-ios
 ios:
 	GOOS=ios CGO_ENABLED=1 go build -trimpath -buildmode=c-archive -o $(OUT_DIR)/$(LIB_NAME)_$(GOARCH)_$(SDK).a
 
+
+#FFI generation
+ffi:
+	dart run ffigen
 
 
 #Routes generation
