@@ -16,8 +16,8 @@ class VPNSwitch extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final ffiClient = ref.read(ffiClientProvider);
-    final nativeBridge = ref.read(nativeBridgeProvider);
+    final ffiClient = ref.watch(ffiClientProvider);
+    final nativeBridge = ref.watch(nativeBridgeProvider);
     final vpnStatus = useState<VPNStatus>(VPNStatus.disconnected);
     final isLoading = useState<bool>(false);
 

@@ -6,16 +6,18 @@ package main
 import "C"
 
 import (
-	"context"
 	"fmt"
 	"sync"
 	"unsafe"
 
 	"github.com/getlantern/golog"
+	"github.com/getlantern/radiance"
 )
 
 var (
-	vpnMutex sync.Mutex
+	mu         sync.Mutex
+	server     *radiance.Radiance
+	serverOnce sync.Once
 
 	log = golog.LoggerFor("lantern.ffi")
 )
@@ -26,12 +28,25 @@ var (
 func startVPN() *C.char {
 	log.Debug("startVPN called")
 
-	vpnMutex.Lock()
-	defer vpnMutex.Unlock()
+	mu.Lock()
+	defer mu.Unlock()
 
-	if err := start(context.Background()); err != nil {
+	var err error
+	serverOnce.Do(func() {
+		if server == nil {
+			s, e := radiance.NewRadiance()
+			if e != nil {
+				err = fmt.Errorf("unable to create radiance: %v", e)
+				return
+			}
+			server = s
+		}
+	})
+	if err != nil {
+		return C.CString(err.Error())
+	}
+	if err := server.StartVPN(); err != nil {
 		err = fmt.Errorf("unable to start VPN server: %v", err)
-		log.Error(err)
 		return C.CString(err.Error())
 	}
 	log.Debug("VPN server started successfully")
@@ -44,15 +59,15 @@ func startVPN() *C.char {
 func stopVPN() *C.char {
 	log.Debug("stopVPN called")
 
-	vpnMutex.Lock()
-	defer vpnMutex.Unlock()
+	mu.Lock()
+	defer mu.Unlock()
 
 	if server == nil {
 		log.Debug("VPN server is not running")
 		return nil
 	}
 
-	if err := server.Stop(); err != nil {
+	if err := server.StopVPN(); err != nil {
 		err = fmt.Errorf("unable to stop VPN server: %v", err)
 		log.Error(err)
 		return C.CString(err.Error())
@@ -66,8 +81,8 @@ func stopVPN() *C.char {
 //
 //export isVPNConnected
 func isVPNConnected() int {
-	vpnMutex.Lock()
-	defer vpnMutex.Unlock()
+	mu.Lock()
+	defer mu.Unlock()
 
 	if server == nil {
 		return 0
