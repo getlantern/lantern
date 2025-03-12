@@ -12,13 +12,13 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'core/common/app_secrets.dart';
 
 Future<void> main() async {
-  // WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-  // widgetsBinding.deferFirstFrame();
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  widgetsBinding.deferFirstFrame();
   initLogger();
   await _loadAppSecrets();
   await injectServices();
   await Future.microtask(Localization.loadTranslations);
-  // widgetsBinding.allowFirstFrame();
+  widgetsBinding.allowFirstFrame();
   await _setupSentry(
     runner: () {
       runApp(
@@ -34,18 +34,21 @@ Future<void> main() async {
 }
 
 Future<void> _setupSentry({required AppRunner runner}) async {
-  await SentryFlutter.init((options) {
-    options.tracesSampleRate = .8;
-    options.profilesSampleRate = .8;
-    options.attachThreads = true;
-    options.debug = false;
-    options.environment = kReleaseMode ? "production" : "development";
-    options.dsn = kReleaseMode ? AppSecrets.dnsConfig() : "";
-    options.enableNativeCrashHandling = true;
-    options.attachStacktrace = true;
-    options.enableAutoNativeBreadcrumbs = true;
-    options.enableNdkScopeSync = true;
-  }, appRunner: runner);
+  await SentryFlutter.init(
+    (options) {
+      options.tracesSampleRate = .8;
+      options.profilesSampleRate = .8;
+      options.attachThreads = true;
+      options.debug = false;
+      options.environment = kReleaseMode ? "production" : "development";
+      options.dsn = kReleaseMode ? AppSecrets.dnsConfig() : "";
+      options.enableNativeCrashHandling = true;
+      options.attachStacktrace = true;
+      options.enableAutoNativeBreadcrumbs = true;
+      options.enableNdkScopeSync = true;
+    },
+    appRunner: runner,
+  );
 }
 
 Future<void> _loadAppSecrets() async {
