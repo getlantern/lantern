@@ -19,29 +19,20 @@ type IOSBridge interface {
 }
 
 // IOSVPNServer extends VPNServer with iOS-specific functionality.
-type IOSVPNServer interface {
-	VPNServer // Embeds the core VPNServer interface
+type VPNServer interface {
+	Start(ctx context.Context, bridge IOSBridge) error
+	Stop() error
+	IsVPNConnected() bool
 	ProcessInboundPacket(rawPacket []byte, n int) error
-	StartTun2Socks(ctx context.Context, bridge IOSBridge) error
 }
 
-type iOSVPN struct {
-	*vpnServer
-	tunnel     Tunnel // tunnel that manages packet forwarding
-	tunnelStop chan struct{}
-}
-
-// NewIOSVPNServer initializes and returns a new IOSVPNServer
-func NewIOSVPNServer(opts *Opts) (IOSVPNServer, error) {
-	return &iOSVPN{
-		vpnServer:  newVPNServer(opts),
-		tunnel:     newTunnel(false, _udpSessionTimeout),
-		tunnelStop: make(chan struct{}),
-	}, nil
+// NewVPNServer initializes and returns a new instance of vpnServer
+func NewVPNServer(opts *Opts) (VPNServer, error) {
+	return newVPNServer(opts), nil
 }
 
 // startTun2Socks configures and starts the Tun2Socks tunnel using the provided parameters.
-func (srv *iOSVPN) startTun2Socks(ctx context.Context, bridge IOSBridge) error {
+func (srv *vpnServer) startTun2Socks(ctx context.Context, bridge IOSBridge) error {
 	cfg, err := srv.loadConfig(ctx, true)
 	if err != nil {
 		return err
@@ -66,8 +57,8 @@ func (srv *iOSVPN) startTun2Socks(ctx context.Context, bridge IOSBridge) error {
 	return nil
 }
 
-// StartTun2Socks initializes the Tun2Socks tunnel with the provided IOSBridge adapter.
-func (s *iOSVPN) StartTun2Socks(ctx context.Context, bridge IOSBridge) error {
+// ctx initializes the Tun2Socks tunnel with the provided IOSBridge adapter.
+func (s *vpnServer) Start(ctx context.Context, bridge IOSBridge) error {
 	if s.IsVPNConnected() {
 		return errors.New("VPN already running")
 	}
@@ -76,7 +67,7 @@ func (s *iOSVPN) StartTun2Socks(ctx context.Context, bridge IOSBridge) error {
 }
 
 // ProcessInboundPacket handles a packet received from the TUN device.
-func (s *iOSVPN) ProcessInboundPacket(rawPacket []byte, n int) error {
+func (s *vpnServer) ProcessInboundPacket(rawPacket []byte, n int) error {
 	if s.tunnel == nil {
 		return nil
 	}
@@ -85,8 +76,8 @@ func (s *iOSVPN) ProcessInboundPacket(rawPacket []byte, n int) error {
 }
 
 // Stop stops the VPN server and closes the tunnel.
-func (s *iOSVPN) Stop() error {
-	if err := s.vpnServer.StopVPN(); err != nil {
+func (s *vpnServer) Stop() error {
+	if err := s.stop(); err != nil {
 		return err
 	}
 

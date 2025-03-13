@@ -12,10 +12,13 @@ import (
 	"unsafe"
 
 	"github.com/getlantern/golog"
+	"github.com/getlantern/lantern-outline/lantern-core/vpn"
 )
 
 var (
-	mu sync.Mutex
+	server     vpn.VPNServer
+	serverOnce sync.Once
+	mu         sync.Mutex
 
 	log = golog.LoggerFor("lantern.ffi")
 )
@@ -29,10 +32,22 @@ func startVPN() *C.char {
 	mu.Lock()
 	defer mu.Unlock()
 
-	if err := start(context.Background()); err != nil {
+	var err error
+	serverOnce.Do(func() {
+		s, e := vpn.NewVPNServer(&vpn.Opts{})
+		if e != nil {
+			err = fmt.Errorf("unable to create radiance: %v", e)
+			return
+		}
+		server = s
+	})
+	if err != nil {
 		return C.CString(err.Error())
 	}
-
+	if err := start(context.Background()); err != nil {
+		err = fmt.Errorf("unable to start vpn server: %v", err)
+		return C.CString(err.Error())
+	}
 	log.Debug("VPN server started successfully")
 	return nil
 }
@@ -51,7 +66,7 @@ func stopVPN() *C.char {
 		return nil
 	}
 
-	if err := server.StopVPN(); err != nil {
+	if err := server.Stop(); err != nil {
 		err = fmt.Errorf("unable to stop VPN server: %v", err)
 		log.Error(err)
 		return C.CString(err.Error())

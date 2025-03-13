@@ -10,7 +10,6 @@ import (
 	"time"
 
 	localconfig "github.com/getlantern/lantern-outline/config"
-	"github.com/getlantern/lantern-outline/lantern-core/dialer"
 	"github.com/getlantern/radiance"
 	"github.com/getlantern/radiance/config"
 )
@@ -29,16 +28,10 @@ type vpnServer struct {
 	clients       map[net.Conn]bool // Map to track active client connections
 	vpnConnected  bool              // whether the VPN is currently connected
 	configHandler *config.ConfigHandler
-	dialer        dialer.Dialer
+	tunnel        Tunnel // tunnel that manages packet forwarding
+	tunnelStop    chan struct{}
 	radiance      *radiance.Radiance
 	mu            sync.RWMutex
-}
-
-// VPNServer defines the methods required to manage the VPN server
-type VPNServer interface {
-	Start(ctx context.Context) error
-	StopVPN() error
-	IsVPNConnected() bool
 }
 
 // Opts are the options the VPN server can be configured with
@@ -48,24 +41,7 @@ type Opts struct {
 	Offset  int
 }
 
-// NewVPNServer initializes and returns a new instance of vpnServer
-func NewVPNServer(opts *Opts) (VPNServer, error) {
-	s, err := radiance.NewRadiance()
-	if err != nil {
-		return nil, fmt.Errorf("unable to create radiance: %v", err)
-	}
-	srv := newVPNServer(opts)
-	srv.radiance = s
-	return srv, nil
-}
-
 func newVPNServer(opts *Opts) *vpnServer {
-	if opts.Mtu == 0 {
-		opts.Mtu = DefaultTunMTU
-	}
-	if opts.Offset == 0 {
-		opts.Offset = DefaultTunOffset
-	}
 	server := &vpnServer{
 		mtu:           opts.Mtu,
 		offset:        opts.Offset,
@@ -73,15 +49,6 @@ func newVPNServer(opts *Opts) *vpnServer {
 		clients:       make(map[net.Conn]bool),
 	}
 	return server
-}
-
-// Start initializes the tunnel using the provided parameters and starts the VPN server.
-func (s *vpnServer) Start(ctx context.Context) error {
-	if s.IsVPNConnected() {
-		return errors.New("VPN already running")
-	}
-	s.setConnected(true)
-	return s.radiance.StartVPN()
 }
 
 // loadConfig is used to load the configuration file. If useLocalConfig is true then we use the embedded config
@@ -98,18 +65,15 @@ func (srv *vpnServer) loadConfig(ctx context.Context, useLocalConfig bool) (*con
 	return cfgs[0], nil
 }
 
-// StopVPN stops the VPN server and closes the tunnel.
-func (s *vpnServer) StopVPN() error {
+// Stop stops the VPN server and closes the tunnel.
+func (s *vpnServer) stop() error {
 	if !s.IsVPNConnected() {
 		return errors.New("VPN isn't running")
 	}
 	defer s.broadcastStatus()
 	s.setConnected(false)
 
-	if s.radiance == nil {
-		return nil
-	}
-	return s.radiance.StopVPN()
+	return nil
 }
 
 // IsVPNConnected returns the current connection status of the VPN.
