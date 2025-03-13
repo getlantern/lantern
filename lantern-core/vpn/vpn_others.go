@@ -19,7 +19,6 @@ type VPNServer interface {
 
 // NewVPNServer initializes and returns a new instance of vpnServer
 func NewVPNServer(opts *Opts) (VPNServer, error) {
-	var err error
 	server := newVPNServer(opts)
 	s, err := radiance.NewRadiance()
 	if err != nil {
