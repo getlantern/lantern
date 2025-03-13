@@ -126,6 +126,9 @@ func loadConfig(ctx context.Context, configPath string) *config.Config {
 		if err != nil {
 			log.Fatal(err)
 		}
+		if len(cfg) == 0 {
+			log.Fatal("Configuration is empty")
+		}
 		return cfg[0]
 	}
 	var cfg config.Config
