@@ -36,7 +36,7 @@ func startVPN() *C.char {
 	serverOnce.Do(func() {
 		s, e := vpn.NewVPNServer(&vpn.Opts{})
 		if e != nil {
-			err = fmt.Errorf("unable to create radiance: %v", e)
+			err = fmt.Errorf("unable to create vpn server: %v", e)
 			return
 		}
 		server = s
@@ -44,6 +44,7 @@ func startVPN() *C.char {
 	if err != nil {
 		return C.CString(err.Error())
 	}
+
 	if err := start(context.Background()); err != nil {
 		err = fmt.Errorf("unable to start vpn server: %v", err)
 		return C.CString(err.Error())
@@ -83,7 +84,7 @@ func isVPNConnected() int {
 	mu.Lock()
 	defer mu.Unlock()
 
-	if server == nil {
+	if server == nil || !server.IsVPNConnected() {
 		return 0
 	}
 
