@@ -34,10 +34,6 @@ func (s *vpnServer) Start(ctx context.Context) error {
 		return errors.New("VPN already running")
 	}
 	s.setConnected(true)
-
-	if s.radiance == nil {
-		return nil
-	}
 	return s.radiance.StartVPN()
 }
 
@@ -45,9 +41,6 @@ func (s *vpnServer) Start(ctx context.Context) error {
 func (s *vpnServer) Stop() error {
 	if err := s.stop(); err != nil {
 		return err
-	}
-	if s.radiance == nil {
-		return nil
 	}
 	if err := s.radiance.StopVPN(); err != nil {
 		err = fmt.Errorf("unable to stop radiance: %v", err)

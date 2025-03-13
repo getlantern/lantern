@@ -49,9 +49,6 @@ func (srv *vpnServer) loadConfig(ctx context.Context, useLocalConfig bool) (*con
 	if useLocalConfig {
 		return localconfig.LoadConfig()
 	}
-	if srv.configHandler == nil {
-		return nil, errors.New("config handler not initialized")
-	}
 	cfgs, err := srv.configHandler.GetConfig(ctx)
 	if err != nil {
 		return nil, err
