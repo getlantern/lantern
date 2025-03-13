@@ -15,10 +15,13 @@ import (
 	"github.com/Jigsaw-Code/outline-sdk/transport"
 	"github.com/alexflint/go-arg"
 	"github.com/getlantern/golog"
+	"github.com/getlantern/kindling"
 	"github.com/getlantern/lantern-outline/lantern-core/dialer"
 	"github.com/getlantern/radiance/backend"
+	"github.com/getlantern/radiance/common/reporting"
 	"github.com/getlantern/radiance/config"
 	rtransport "github.com/getlantern/radiance/transport"
+	"github.com/getlantern/radiance/user"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -46,13 +49,20 @@ func main() {
 		log.Fatal(err)
 	}
 
-	cfg := loadConfig(ctx, args.ConfigPath)
+	k := kindling.NewKindling(
+		kindling.WithPanicListener(reporting.PanicListener),
+		kindling.WithDomainFronting("https://raw.githubusercontent.com/getlantern/lantern-binaries/refs/heads/main/fronted.yaml.gz", ""),
+		kindling.WithProxyless("api.iantem.io"),
+	)
+	user := user.New(k.NewHTTPClient())
+
+	cfg := loadConfig(ctx, k, user, args.ConfigPath)
 	fmt.Printf("Loaded config from %s\n", args.ConfigPath)
 	dialer, err := createDialer(cfg, args.Radiance)
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = testConnect(ctx, cfg, dialer, args.URL)
+	err = testConnect(ctx, cfg, user, dialer, args.URL)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -67,7 +77,7 @@ func createDialer(cfg *config.Config, useRadiance bool) (transport.StreamDialer,
 }
 
 // testConnect tests connectivity by making an HTTP GET request to the specified URL.
-func testConnect(ctx context.Context, cfg *config.Config, streamDialer transport.StreamDialer, url string) error {
+func testConnect(ctx context.Context, cfg *config.Config, user *user.User, streamDialer transport.StreamDialer, url string) error {
 
 	caCertPool := x509.NewCertPool()
 	caCertPool.AppendCertsFromPEM(cfg.CertPem)
@@ -93,6 +103,7 @@ func testConnect(ctx context.Context, cfg *config.Config, streamDialer transport
 		http.MethodGet,
 		url,
 		nil,
+		user,
 	)
 	if err != nil {
 		return err
@@ -119,15 +130,12 @@ func testConnect(ctx context.Context, cfg *config.Config, streamDialer transport
 }
 
 // Load configuration file
-func loadConfig(ctx context.Context, configPath string) *config.Config {
+func loadConfig(ctx context.Context, k kindling.Kindling, user *user.User, configPath string) *config.Config {
 	if configPath == "" {
-		confHandler := config.NewConfigHandler(2 * time.Second)
+		confHandler := config.NewConfigHandler(configPollInterval, k.NewHTTPClient(), user)
 		cfg, err := confHandler.GetConfig(ctx)
 		if err != nil {
 			log.Fatal(err)
-		}
-		if len(cfg) == 0 {
-			log.Fatal("Configuration is empty")
 		}
 		return cfg[0]
 	}
