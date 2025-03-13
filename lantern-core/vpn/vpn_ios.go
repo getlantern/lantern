@@ -57,7 +57,7 @@ func (srv *vpnServer) startTun2Socks(ctx context.Context, bridge IOSBridge) erro
 	return nil
 }
 
-// ctx initializes the Tun2Socks tunnel with the provided IOSBridge adapter.
+// Start initializes the Tun2Socks tunnel with the provided IOSBridge adapter.
 func (s *vpnServer) Start(ctx context.Context, bridge IOSBridge) error {
 	if s.IsVPNConnected() {
 		return errors.New("VPN already running")

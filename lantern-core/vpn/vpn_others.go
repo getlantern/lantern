@@ -18,7 +18,7 @@ type VPNServer interface {
 	IsVPNConnected() bool
 }
 
-// NewVPNServer initializes and returns a new instance of vpnServer
+// NewVPNServer initializes radiances and returns a new instance of vpnServer
 func NewVPNServer(opts *Opts) (VPNServer, error) {
 	server := newVPNServer(opts)
 	s, err := radiance.NewRadiance()
@@ -29,7 +29,7 @@ func NewVPNServer(opts *Opts) (VPNServer, error) {
 	return server, nil
 }
 
-// Start initializes the tunnel using the provided parameters and starts the VPN server.
+// Start starts radiance and the VPN server
 func (s *vpnServer) Start(ctx context.Context) error {
 	if s.IsVPNConnected() {
 		return errors.New("VPN already running")
@@ -42,7 +42,7 @@ func (s *vpnServer) Start(ctx context.Context) error {
 	return s.radiance.StartVPN()
 }
 
-// Stop stops the VPN server and closes the tunnel.
+// Stop stops radiance and the VPN server.
 func (s *vpnServer) Stop() error {
 	if err := s.stop(); err != nil {
 		return err
