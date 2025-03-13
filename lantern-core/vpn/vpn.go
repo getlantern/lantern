@@ -9,7 +9,6 @@ import (
 	"sync"
 	"time"
 
-	localconfig "github.com/getlantern/lantern-outline/config"
 	"github.com/getlantern/radiance"
 	"github.com/getlantern/radiance/config"
 )
@@ -22,13 +21,13 @@ const (
 )
 
 type vpnServer struct {
-	listener      net.Listener      // Network listener for accepting client connections
-	mtu           int               // Maximum Transmission Unit size for the VPN tunnel
-	offset        int               // Offset for packet processing
-	clients       map[net.Conn]bool // Map to track active client connections
-	vpnConnected  bool              // whether the VPN is currently connected
-	configHandler *config.ConfigHandler
-	tunnel        Tunnel // tunnel that manages packet forwarding
+	listener      net.Listener          // Network listener for accepting client connections
+	mtu           int                   // Maximum Transmission Unit size for the VPN tunnel
+	offset        int                   // Offset for packet processing
+	clients       map[net.Conn]bool     // Map to track active client connections
+	vpnConnected  bool                  // whether the VPN is currently connected
+	configHandler *config.ConfigHandler // handles fetching the proxy configuration from the proxy server
+	tunnel        Tunnel                // tunnel that manages packet forwarding
 	tunnelStop    chan struct{}
 	radiance      *radiance.Radiance
 	mu            sync.RWMutex
@@ -39,30 +38,21 @@ type Opts struct {
 	Address string
 	Mtu     int
 	Offset  int
+	// handles fetching the proxy configuration from the proxy server
+	ConfigHandler *config.ConfigHandler
+	// radiance instance the VPN server is configured with
+	Radiance *radiance.Radiance
 }
 
 func newVPNServer(opts *Opts) *vpnServer {
 	server := &vpnServer{
 		mtu:           opts.Mtu,
 		offset:        opts.Offset,
-		configHandler: config.NewConfigHandler(configPollInterval),
+		radiance:      opts.Radiance,
+		configHandler: opts.ConfigHandler,
 		clients:       make(map[net.Conn]bool),
 	}
 	return server
-}
-
-// loadConfig is used to load the configuration file. If useLocalConfig is true then we use the embedded config
-func (srv *vpnServer) loadConfig(ctx context.Context, useLocalConfig bool) (*config.Config, error) {
-	if useLocalConfig {
-		return localconfig.LoadConfig()
-	}
-	cfgs, err := srv.configHandler.GetConfig(ctx)
-	if err != nil {
-		return nil, err
-	} else if len(cfgs) == 0 {
-		return nil, errors.New("no config available")
-	}
-	return cfgs[0], nil
 }
 
 // Stop stops the VPN server and closes the tunnel.

@@ -9,7 +9,12 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/getlantern/kindling"
+	localconfig "github.com/getlantern/lantern-outline/config"
 	"github.com/getlantern/lantern-outline/lantern-core/dialer"
+	"github.com/getlantern/radiance/common/reporting"
+	"github.com/getlantern/radiance/config"
+	"github.com/getlantern/radiance/user"
 )
 
 // IOSBridge defines the interface for interaction with the iOS network bridge via Swift
@@ -28,7 +33,32 @@ type VPNServer interface {
 
 // NewVPNServer initializes and returns a new instance of vpnServer
 func NewVPNServer(opts *Opts) (VPNServer, error) {
+	k := kindling.NewKindling(
+		kindling.WithPanicListener(reporting.PanicListener),
+		kindling.WithDomainFronting("https://raw.githubusercontent.com/getlantern/lantern-binaries/refs/heads/main/fronted.yaml.gz", ""),
+		kindling.WithProxyless("api.iantem.io"),
+	)
+	user := user.New(k.NewHTTPClient())
+	// create a new instance of config handler that uses kindling HTTP client
+	opts.ConfigHandler = config.NewConfigHandler(configPollInterval, k.NewHTTPClient(), user)
 	return newVPNServer(opts), nil
+}
+
+// loadConfig is used to load the configuration file. If useLocalConfig is true then we use the embedded config
+func (srv *vpnServer) loadConfig(ctx context.Context, useLocalConfig bool) (*config.Config, error) {
+	if useLocalConfig {
+		return localconfig.LoadConfig()
+	}
+	if srv.configHandler == nil {
+		return nil, errors.New("config handler not initialized")
+	}
+	cfgs, err := srv.configHandler.GetConfig(ctx)
+	if err != nil {
+		return nil, err
+	} else if len(cfgs) == 0 {
+		return nil, errors.New("no config available")
+	}
+	return cfgs[0], nil
 }
 
 // startTun2Socks configures and starts the Tun2Socks tunnel using the provided parameters.
