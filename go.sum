@@ -1,3 +1,5 @@
+github.com/1Password/srp v0.2.0 h1:PZKAafEyExnwevliL6d2+FDhJXZ0phxqiG2OeIaj9Xk=
+github.com/1Password/srp v0.2.0/go.mod h1:LIGqQ7eEA0UJT98j7sXk60QWVpHJ3g00BX6LOm9kYTc=
 github.com/Jigsaw-Code/outline-sdk v0.0.18 h1:xGzbag/jWGVQl5wGy0szr1jb+P8nVDFMcR2mWmgQnqc=
 github.com/Jigsaw-Code/outline-sdk v0.0.18/go.mod h1:CFDKyGZA4zatKE4vMLe8TyQpZCyINOeRFbMAmYHxodw=
 github.com/Jigsaw-Code/outline-sdk/x v0.0.1 h1:DW8Ja4iWKPqYpnahBXQ/eg1WVDw/F3Pktbz1mBWTZXw=
@@ -114,6 +116,8 @@ github.com/getlantern/radiance v0.0.0-20250311161635-fabb1d53c7e2 h1:rwFMK5WJH4S
 github.com/getlantern/radiance v0.0.0-20250311161635-fabb1d53c7e2/go.mod h1:mSTknjxwfCfwencOgwam80Mx0tDTEtsOvGH1zU+wCqc=
 github.com/getlantern/radiance v0.0.0-20250312201608-4e14f52b850a h1:mfopuVKVBeCxjFUpAAKR+9nogcT/47N6773cNQshgg8=
 github.com/getlantern/radiance v0.0.0-20250312201608-4e14f52b850a/go.mod h1:L7IDKUiHp/ljVfJaUdGKDoCqwhGaE9x6xrIygQ46tTQ=
+github.com/getlantern/radiance v0.0.0-20250313102539-7b8c830248cf h1:KE2+ovUM7nT/HZzmR6Rp4AS+bJoM6b+O2ONJ8jxFE/E=
+github.com/getlantern/radiance v0.0.0-20250313102539-7b8c830248cf/go.mod h1:BJwF4IQAHXmeSJU1pZlMUgX8YuUsQry3Cjy2No6PEJQ=
 github.com/getlantern/tlsdialer/v3 v3.0.3 h1:OXzzAqO8YojBOu2Kk8wquX2zbFmgJjji41RpaT6knLg=
 github.com/getlantern/tlsdialer/v3 v3.0.3/go.mod h1:hwA0X81pnrgx7GEwddaGWSxqr6eLBm7A0rrUMK2J7KY=
 github.com/getlantern/tlsdialer/v3 v3.0.5 h1:xdLBQDgz0PXLK6T27hjtZU25MyucRiUKj58aqyQZvP4=
@@ -461,6 +465,7 @@ golang.org/x/term v0.29.0/go.mod h1:6bl4lRlvVuDgSf3179VpIxBF0o10JUpXWOnI7nErv7s=
 golang.org/x/term v0.30.0 h1:PQ39fJZ+mfadBm0y5WlL4vlM7Sx1Hgf13sMIY2+QS9Y=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.3/go.mod h1:5Zoc/QRtKVWzQhOtBMvqHzDpF6irO9z98xDceosuGiQ=
+golang.org/x/text v0.3.4/go.mod h1:5Zoc/QRtKVWzQhOtBMvqHzDpF6irO9z98xDceosuGiQ=
 golang.org/x/text v0.3.6/go.mod h1:5Zoc/QRtKVWzQhOtBMvqHzDpF6irO9z98xDceosuGiQ=
 golang.org/x/text v0.22.0 h1:bofq7m3/HAFvbF51jz3Q9wLg3jkvSPuiZu/pD1XwgtM=
 golang.org/x/text v0.22.0/go.mod h1:YRoo4H8PVmsu+E3Ou7cqLVH8oXWIHVoX0jqUWALQhfY=
