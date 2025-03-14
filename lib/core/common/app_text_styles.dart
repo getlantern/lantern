@@ -108,10 +108,9 @@ class AppTestStyles {
       );
 
   // Text style for logs
-  static TextStyle get logTextStyle => TextStyle(
+  static TextStyle get logTextStyle => GoogleFonts.ibmPlexMono(
         color: Color(0xFFDEDFDF),
         fontSize: 10,
-        fontFamily: 'IBM Plex Mono',
         fontWeight: FontWeight.w400,
         height: 1.30,
       );
