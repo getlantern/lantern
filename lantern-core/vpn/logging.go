@@ -9,8 +9,7 @@ import (
 	"github.com/getlantern/lantern-outline/lantern-core/logging"
 )
 
-func configureLogging(ctx context.Context, logFile string, logPort uint32) error {
-
+func configureLogging(ctx context.Context, logFile string, logPort int64) error {
 	// Check if the log file exists.
 	if _, err := os.Stat(logFile); err == nil {
 		// Read and send the last 30 lines of the log file.

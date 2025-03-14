@@ -33,7 +33,7 @@ type vpnServer struct {
 	baseDir       string
 	configHandler *config.ConfigHandler // handles fetching the proxy configuration from the proxy server
 	logMu         sync.Mutex
-	logPort       uint32
+	logPort       int64
 	tunnel        Tunnel // tunnel that manages packet forwarding
 	tunnelStop    chan struct{}
 	radiance      *radiance.Radiance // radiance instance the VPN server is configured with
@@ -44,7 +44,7 @@ type vpnServer struct {
 type Opts struct {
 	Address       string
 	BaseDir       string
-	LogPort       uint32
+	LogPort       int64
 	Mtu           int
 	Offset        int
 	ConfigHandler *config.ConfigHandler

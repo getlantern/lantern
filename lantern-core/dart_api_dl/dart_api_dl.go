@@ -24,7 +24,7 @@ func Init(api unsafe.Pointer) {
 }
 
 // SendToPort sends a message to the given Dart port.
-func SendToPort(port uint32, msg string) {
+func SendToPort(port int64, msg string) {
 	var obj C.Dart_CObject
 	obj._type = C.Dart_CObject_kString
 

@@ -20,7 +20,7 @@ import (
 
 var (
 	baseDir  string
-	logPort  uint32
+	logPort  int64
 	server   vpn.VPNServer
 	serverMu sync.Mutex
 
@@ -35,7 +35,7 @@ func setup(dir *C.char, port C.int64_t, api unsafe.Pointer) {
 	defer serverMu.Unlock()
 
 	baseDir = C.GoString(dir)
-	logPort = uint32(port)
+	logPort = int64(port)
 
 	setupOnce.Do(func() {
 		// initialize the Dart API DL bridge.
