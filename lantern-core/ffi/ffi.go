@@ -43,28 +43,6 @@ func setup(dir *C.char, port C.int64_t, api unsafe.Pointer) {
 	})
 }
 
-func initializeServer() error {
-	// server is already initialized
-	if server != nil {
-		return nil
-	}
-
-	// Attempt to initialize the server
-	s, err := vpn.NewVPNServer(&vpn.Opts{
-		BaseDir: baseDir,
-		LogPort: logPort,
-	})
-	if err != nil {
-		err = fmt.Errorf("unable to create VPN server: %v", err)
-		log.Error(err)
-		return err
-	}
-
-	server = s
-
-	return nil
-}
-
 // startVPN initializes and starts the VPN server if it is not already running.
 //
 //export startVPN
@@ -74,8 +52,18 @@ func startVPN() *C.char {
 	serverMu.Lock()
 	defer serverMu.Unlock()
 
-	if err := initializeServer(); err != nil {
-		return C.CString(err.Error())
+	if server == nil {
+		s, err := vpn.NewVPNServer(&vpn.Opts{
+			BaseDir: baseDir,
+			LogPort: logPort,
+		})
+		if err != nil {
+			err = fmt.Errorf("unable to create VPN server: %v", err)
+			log.Error(err)
+			return C.CString(err.Error())
+		}
+
+		server = s
 	}
 
 	if err := start(context.Background()); err != nil {
