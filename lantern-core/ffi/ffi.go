@@ -16,11 +16,13 @@ import (
 
 	"github.com/getlantern/golog"
 	"github.com/getlantern/lantern-outline/dart_api_dl"
+	"github.com/getlantern/lantern-outline/lantern-core/vpn"
 )
 
 var (
-	mu      sync.Mutex
-	baseDir string
+	baseDir  string
+	server   vpn.VPNServer
+	serverMu sync.Mutex
 
 	setupOnce sync.Once
 
@@ -29,8 +31,9 @@ var (
 
 //export setup
 func setup(dir *C.char, port C.int64_t, api unsafe.Pointer) {
-	mu.Lock()
-	defer mu.Unlock()
+	serverMu.Lock()
+	defer serverMu.Unlock()
+
 	baseDir = C.GoString(dir)
 	logPort = int64(port)
 
@@ -51,12 +54,20 @@ func setup(dir *C.char, port C.int64_t, api unsafe.Pointer) {
 func startVPN() *C.char {
 	log.Debug("startVPN called")
 
-	mu.Lock()
-	defer mu.Unlock()
+	serverMu.Lock()
+	defer serverMu.Unlock()
 
-	if err := start(context.Background(), baseDir); err != nil {
-		err = fmt.Errorf("unable to start VPN server: %v", err)
-		log.Error(err)
+	if server == nil {
+		s, err := vpn.NewVPNServer(&vpn.Opts{})
+		if err != nil {
+			err = fmt.Errorf("unable to create vpn server: %v", err)
+			return C.CString(err.Error())
+		}
+		server = s
+	}
+
+	if err := start(context.Background()); err != nil {
+		err = fmt.Errorf("unable to start vpn server: %v", err)
 		return C.CString(err.Error())
 	}
 	log.Debug("VPN server started successfully")
@@ -69,8 +80,8 @@ func startVPN() *C.char {
 func stopVPN() *C.char {
 	log.Debug("stopVPN called")
 
-	mu.Lock()
-	defer mu.Unlock()
+	serverMu.Lock()
+	defer serverMu.Unlock()
 
 	if server == nil {
 		log.Debug("VPN server is not running")
@@ -91,10 +102,10 @@ func stopVPN() *C.char {
 //
 //export isVPNConnected
 func isVPNConnected() int {
-	mu.Lock()
-	defer mu.Unlock()
+	serverMu.Lock()
+	defer serverMu.Unlock()
 
-	if server == nil {
+	if server == nil || !server.IsVPNConnected() {
 		return 0
 	}
 

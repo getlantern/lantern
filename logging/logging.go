@@ -12,9 +12,8 @@ import (
 // LogHandler is a function that handles new log messages.
 type LogHandler func(string)
 
-// WatchLogFile watches the log file for changes and send new lines to Dart.
+// WatchLogFile watches the log file for changes and sends new lines to Dart.
 func WatchLogFile(filePath string, logHandler LogHandler) error {
-	// Open the file for reading
 	file, err := os.Open(filePath)
 	if err != nil {
 		return fmt.Errorf("error opening log file: %w", err)

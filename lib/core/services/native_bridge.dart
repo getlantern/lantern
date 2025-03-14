@@ -1,10 +1,13 @@
 import 'package:flutter/services.dart';
+import 'package:lantern/core/services/logger_service.dart';
 
+// This class provides a bridge between Flutter and the native iOS VPN
+// implementation using a MethodChannel.
 class NativeBridge {
   static const MethodChannel _channel =
       MethodChannel('org.getlantern.lantern/native');
 
-  // Method to start VPN
+  // Calls the native iOS method to start the VPN connection.
   Future<String?> startVPN() async {
     try {
       await _channel.invokeMethod('startVPN');
@@ -14,7 +17,7 @@ class NativeBridge {
     }
   }
 
-  // Method to stop VPN
+  // Calls the native iOS method to stop the VPN connection.
   Future<String?> stopVPN() async {
     try {
       await _channel.invokeMethod('stopVPN');
@@ -24,13 +27,12 @@ class NativeBridge {
     }
   }
 
-  // Method to check VPN status
   Future<int?> isVPNConnected() async {
     try {
       final int? status = await _channel.invokeMethod('isVPNConnected');
       return status;
     } on PlatformException catch (e) {
-      print("Failed to check VPN status: '${e.message}'.");
+      appLogger.error("Failed to check VPN status: '${e.message}'.");
       return null;
     }
   }

@@ -2,16 +2,28 @@ import 'dart:io';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:path_provider/path_provider.dart';
 
-Future<String> getAppLogDirectory() async {
-  final libraryDir = await getLibraryDirectory();
-  final logDir = Directory("${libraryDir.path}/Logs/Lantern");
+class LogUtils {
+  static Future<String> getAppLogDirectory() async {
+    final libraryDir = await getLibraryDirectory();
+    final logDir = Directory("${libraryDir.path}/Logs/Lantern");
 
-  // Make sure the directory exists
-  if (!logDir.existsSync()) {
-    logDir.createSync(recursive: true);
+    // Make sure the directory exists
+    if (!logDir.existsSync()) {
+      logDir.createSync(recursive: true);
+    }
+
+    appLogger.debug("Using log directory $logDir");
+
+    return logDir.path;
   }
 
-  appLogger.debug("Using log directory $logDir");
+  static Future<File> appLogFile() async {
+    final logDir = await getAppLogDirectory();
+    final logFile = File("$logDir/lantern.log");
 
-  return logDir.path;
+    if (!logFile.existsSync()) {
+      throw Exception("Log file does not exist.");
+    }
+    return logFile;
+  }
 }

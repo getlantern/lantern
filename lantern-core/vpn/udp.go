@@ -9,8 +9,8 @@ import (
 
 	"github.com/Jigsaw-Code/outline-sdk/transport"
 	"github.com/eycorsican/go-tun2socks/core"
-	"github.com/getlantern/lantern-outline/common"
-	"github.com/getlantern/lantern-outline/dialer"
+	"github.com/getlantern/lantern-outline/lantern-core/common"
+	"github.com/getlantern/lantern-outline/lantern-core/dialer"
 )
 
 // udpHandler is a UDP connection handler based on https://github.com/Jigsaw-Code/outline-apps/blob/master/client/go/outline/tun2socks/udp.go

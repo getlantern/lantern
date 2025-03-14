@@ -13,36 +13,16 @@ package main
 import "C"
 import (
 	"context"
-	"fmt"
 	"unsafe"
-
-	"github.com/getlantern/lantern-outline/vpn"
 )
 
 // IOS-related
 
-var (
-	server vpn.IOSVPNServer
-)
-
 type iosBridge struct{}
 
 // start initializes the VPN server and starts the Tun2Socks process.
-func start(ctx context.Context, dir string) error {
-	if server == nil {
-		s, err := vpn.NewIOSVPNServer(&vpn.Opts{
-			BaseDir: dir,
-		})
-		if err != nil {
-			return fmt.Errorf("unable to create vpn server: %v", err)
-		}
-		server = s
-	}
-
-	if err := server.StartTun2Socks(ctx, &iosBridge{}); err != nil {
-		return err
-	}
-	return nil
+func start(ctx context.Context) error {
+	return server.Start(ctx, &iosBridge{})
 }
 
 // ProcessOutboundPacket sends an outbound packet from Go to Swift for processing by the OS.

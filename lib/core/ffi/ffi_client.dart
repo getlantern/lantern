@@ -1,11 +1,9 @@
 // lib/core/ffi/ffi_client.dart
 
-import 'dart:async';
 import 'dart:ffi';
 import 'dart:io' show Platform;
 import 'dart:isolate';
 import 'package:ffi/ffi.dart';
-//import 'package:lantern/core/ffi/socket_client.dart';
 
 typedef StartVPNNative = Pointer<Utf8> Function();
 typedef StartVPN = Pointer<Utf8> Function();
@@ -81,8 +79,8 @@ class FFIClient {
     }
   }
 
-  /// Calls startVPN and returns an error message if one exists.
-  /// Returns null if no error occurred.
+  // Calls startVPN and returns an error message if one exists.
+  // Returns null if no error occurred.
   String? startVPN() {
     final Pointer<Utf8> result = _startVPN();
     if (result == nullptr) return null;
@@ -91,8 +89,8 @@ class FFIClient {
     return errorMessage.isEmpty ? null : errorMessage;
   }
 
-  /// Calls stopVPN and returns an error message if one exists.
-  /// Returns null if no error occurred.
+  // Calls stopVPN and returns an error message if one exists.
+  // Returns null if no error occurred.
   String? stopVPN() {
     final Pointer<Utf8> result = _stopVPN();
     if (result == nullptr) return null;
@@ -104,5 +102,4 @@ class FFIClient {
   bool get isConnected {
     return isVPNConnected() == 1;
   }
-  //Stream<bool> get vpnStatusStream => _socketClient.vpnStatusStream;
 }

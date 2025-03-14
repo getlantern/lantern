@@ -3,6 +3,7 @@
 OUT_DIR := bin
 
 LIB_NAME := liblantern
+FFI_DIR := ./lantern-core/ffi
 
 gen:
 	dart run build_runner build
@@ -10,7 +11,7 @@ gen:
 # Build for macOS
 macos: export CGO_CFLAGS="-I./dart_api_dl/include"
 macos:
-	go build -o bin/liblantern.dylib -buildmode=c-shared ./ffi
+	go build -o bin/liblantern.dylib -buildmode=c-shared ./lantern-core/ffi
 	mkdir -p build/macos/Build/Products/Debug/Lantern.app/Contents/MacOS
 	cp bin/liblantern.dylib build/macos/Build/Products/Debug/Lantern.app/Contents/MacOS
 
@@ -56,7 +57,6 @@ update-dart-api-dl:
 	mv dart_sdk_tmp/runtime/include/* $(DART_SDK_INCLUDE_DIR)/
 	rm -rf dart_sdk_tmp
 	@echo "Dart API DL bridge updated successfully!"
-
 
 #Routes generation
 routes:

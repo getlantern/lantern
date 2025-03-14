@@ -267,6 +267,12 @@ msgstr "Apps bypassing the VPN (%d)"
 msgid "websites_bypassing_vpn"
 msgstr "Websites bypassing the VPN (%d)"
 
+msgid "logs_share_message"
+msgstr "Here are my diagnostic logs from Lantern."
+
+
+
+
 
 
 

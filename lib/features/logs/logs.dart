@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -33,16 +31,10 @@ class Logs extends HookConsumerWidget {
 
     Future<void> shareLogFile() async {
       try {
-        final logDir = await getAppLogDirectory();
-        final logFile = File("$logDir/lantern.log");
-
-        if (!logFile.existsSync()) {
-          throw Exception("Log file does not exist.");
-        }
-
+        final logFile = await LogUtils.appLogFile();
         await Share.shareXFiles(
           [XFile(logFile.path)],
-          text: "Here are my diagnostic logs from Lantern.",
+          text: 'logs_share_message'.i18n,
         );
       } catch (e) {
         appLogger.error("Error sharing log file: $e");
@@ -67,8 +59,13 @@ class Logs extends HookConsumerWidget {
           InfoRow(text: 'cannot_view_logs'.i18n),
           Expanded(
             child: Container(
-              width: double.infinity,
-              color: Colors.black,
+              decoration: ShapeDecoration(
+                color: AppColors.logBackgroundColor,
+                shape: RoundedRectangleBorder(
+                  side: BorderSide(width: 1),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
               child: logAsyncValue.when(
                 data: (logs) {
                   scrollToBottom(); // scroll when logs update
@@ -84,7 +81,9 @@ class Logs extends HookConsumerWidget {
                     },
                   );
                 },
-                loading: () => const Center(child: CircularProgressIndicator()),
+                loading: () => const Center(
+                  child: CircularProgressIndicator(),
+                ),
                 error: (error, stack) => Center(
                   child: Text(
                     "Error: $error",
