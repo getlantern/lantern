@@ -7,8 +7,8 @@ import (
 	"net/netip"
 
 	"github.com/eycorsican/go-tun2socks/core"
-	"github.com/getlantern/lantern-outline/common"
-	"github.com/getlantern/lantern-outline/dialer"
+	"github.com/getlantern/lantern-outline/lantern-core/common"
+	"github.com/getlantern/lantern-outline/lantern-core/dialer"
 )
 
 // tcpHandler handles incoming TCP connections and establishes proxy connections.

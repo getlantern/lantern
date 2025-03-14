@@ -97,7 +97,5 @@ class ReportIssue extends HookConsumerWidget {
     // print('Description: ${descriptionController.text}');
   }
 
-
-
   void _onIssueTap(String issueType) {}
 }

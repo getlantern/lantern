@@ -12,14 +12,14 @@ import (
 	"unsafe"
 
 	"github.com/getlantern/golog"
-	"github.com/getlantern/lantern-outline/vpn"
+	"github.com/getlantern/lantern-outline/lantern-core/vpn"
 )
 
 var (
-	vpnMutex sync.Mutex
 	server   vpn.VPNServer
+	serverMu sync.Mutex
 
-	log = golog.LoggerFor("lantern-outline.ffi")
+	log = golog.LoggerFor("lantern.ffi")
 )
 
 // startVPN initializes and starts the VPN server if it is not already running.
@@ -28,21 +28,20 @@ var (
 func startVPN() *C.char {
 	log.Debug("startVPN called")
 
-	vpnMutex.Lock()
-	defer vpnMutex.Unlock()
+	serverMu.Lock()
+	defer serverMu.Unlock()
 
 	if server == nil {
-		s, err := vpn.NewVPNServer(&vpn.Opts{Address: ":0"})
+		s, err := vpn.NewVPNServer(&vpn.Opts{})
 		if err != nil {
-			err = fmt.Errorf("unable to create VPN server: %v", err)
-			log.Error(err)
+			err = fmt.Errorf("unable to create vpn server: %v", err)
 			return C.CString(err.Error())
 		}
 		server = s
 	}
-	if err := start(context.Background(), server); err != nil {
-		err = fmt.Errorf("unable to start VPN server: %v", err)
-		log.Error(err)
+
+	if err := start(context.Background()); err != nil {
+		err = fmt.Errorf("unable to start vpn server: %v", err)
 		return C.CString(err.Error())
 	}
 	log.Debug("VPN server started successfully")
@@ -55,8 +54,8 @@ func startVPN() *C.char {
 func stopVPN() *C.char {
 	log.Debug("stopVPN called")
 
-	vpnMutex.Lock()
-	defer vpnMutex.Unlock()
+	serverMu.Lock()
+	defer serverMu.Unlock()
 
 	if server == nil {
 		log.Debug("VPN server is not running")
@@ -69,9 +68,6 @@ func stopVPN() *C.char {
 		return C.CString(err.Error())
 	}
 
-	// Make sure to clear out the server after a successful stop
-	server = nil
-
 	log.Debug("VPN server stopped successfully")
 	return nil
 }
@@ -80,8 +76,8 @@ func stopVPN() *C.char {
 //
 //export isVPNConnected
 func isVPNConnected() int {
-	vpnMutex.Lock()
-	defer vpnMutex.Unlock()
+	serverMu.Lock()
+	defer serverMu.Unlock()
 
 	if server == nil || !server.IsVPNConnected() {
 		return 0
