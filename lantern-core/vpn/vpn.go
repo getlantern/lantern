@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"net"
 	"sync"
 	"time"
 
+	"github.com/getlantern/golog"
 	"github.com/getlantern/radiance"
 	"github.com/getlantern/radiance/config"
 )
@@ -20,7 +20,12 @@ const (
 	configPollInterval = 1 * time.Minute
 )
 
+var (
+	log = golog.LoggerFor("lantern.vpn")
+)
+
 type vpnServer struct {
+	baseDir       string                // base directory is the sing-box/radiance configuration directory to use
 	listener      net.Listener          // Network listener for accepting client connections
 	mtu           int                   // Maximum Transmission Unit size for the VPN tunnel
 	offset        int                   // Offset for packet processing
@@ -37,6 +42,7 @@ type vpnServer struct {
 type Opts struct {
 	Address       string
 	BaseDir       string
+	LogPort       int64
 	Mtu           int
 	Offset        int
 	ConfigHandler *config.ConfigHandler
@@ -45,6 +51,7 @@ type Opts struct {
 
 func newVPNServer(opts *Opts) *vpnServer {
 	server := &vpnServer{
+		baseDir:       opts.BaseDir,
 		mtu:           opts.Mtu,
 		offset:        opts.Offset,
 		radiance:      opts.Radiance,
@@ -84,13 +91,13 @@ func (s *vpnServer) acceptConnections(ctx context.Context) {
 	for {
 		conn, err := s.listener.Accept()
 		if err != nil {
-			log.Printf("Failed to accept connection: %v", err)
+			log.Errorf("Failed to accept connection: %v", err)
 			continue
 		}
 		s.mu.Lock()
 		s.clients[conn] = true
 		s.mu.Unlock()
-		log.Printf("Client connected: %v", conn.RemoteAddr())
+		log.Debugf("Client connected: %v", conn.RemoteAddr())
 	}
 }
 
@@ -111,7 +118,7 @@ func (s *vpnServer) broadcastStatus() {
 	for conn := range s.clients {
 		_, err := conn.Write([]byte(message))
 		if err != nil {
-			log.Printf("Failed to send to %v: %v", conn.RemoteAddr(), err)
+			log.Errorf("Failed to send to %v: %v", conn.RemoteAddr(), err)
 			conn.Close()
 			delete(s.clients, conn)
 		}

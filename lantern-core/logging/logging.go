@@ -2,6 +2,7 @@ package logging
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -13,7 +14,7 @@ import (
 type LogHandler func(string)
 
 // WatchLogFile watches the log file for changes and sends new lines to Dart.
-func WatchLogFile(filePath string, logHandler LogHandler) error {
+func WatchLogFile(ctx context.Context, filePath string, logHandler LogHandler) error {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return fmt.Errorf("error opening log file: %w", err)
@@ -43,6 +44,9 @@ func WatchLogFile(filePath string, logHandler LogHandler) error {
 	// Listen for file changes.
 	for {
 		select {
+		// Handle context cancellation
+		case <-ctx.Done():
+			return ctx.Err()
 		case event, ok := <-watcher.Events:
 			if !ok {
 				return nil

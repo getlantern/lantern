@@ -10,17 +10,17 @@ import "C"
 import (
 	"context"
 	"fmt"
-	"path/filepath"
 	"sync"
 	"unsafe"
 
 	"github.com/getlantern/golog"
-	"github.com/getlantern/lantern-outline/dart_api_dl"
+	"github.com/getlantern/lantern-outline/lantern-core/dart_api_dl"
 	"github.com/getlantern/lantern-outline/lantern-core/vpn"
 )
 
 var (
 	baseDir  string
+	logPort  int64
 	server   vpn.VPNServer
 	serverMu sync.Mutex
 
@@ -40,11 +40,6 @@ func setup(dir *C.char, port C.int64_t, api unsafe.Pointer) {
 	setupOnce.Do(func() {
 		// initialize the Dart API DL bridge.
 		dart_api_dl.Init(api)
-		// configure logging
-		logFile := filepath.Join(baseDir, "lantern.log")
-		if err := configureLogging(logFile, logPort); err != nil {
-			log.Errorf("Error configuring logging: %v", err)
-		}
 	})
 }
 
@@ -58,11 +53,16 @@ func startVPN() *C.char {
 	defer serverMu.Unlock()
 
 	if server == nil {
-		s, err := vpn.NewVPNServer(&vpn.Opts{})
+		s, err := vpn.NewVPNServer(&vpn.Opts{
+			BaseDir: baseDir,
+			LogPort: logPort,
+		})
 		if err != nil {
-			err = fmt.Errorf("unable to create vpn server: %v", err)
+			err = fmt.Errorf("unable to create VPN server: %v", err)
+			log.Error(err)
 			return C.CString(err.Error())
 		}
+
 		server = s
 	}
 
