@@ -22,7 +22,7 @@ The VPN application is divided into four components:
 - [Swift Bridge](ios/Runner): Intermediary between the Go backend and iOS.
 - [Packet Tunnel Provider](ios/Tunnel) (iOS): Manages the VPN session and interfaces with the iOS networking stack.
 - [Dart/Flutter Frontend](lib): Provides the user interface, allowing users to control the VPN via a simple UI.
-- [Dart API DL bridge](lantern-core/dart_api_dl) The Dart API DL bridge is used to send messages from Go to Dart. It uses Dart’s native message passing (SendPort) and allows Go to push log messages (or other events) directly into Dart without blocking the main isolate. It is currently used for streaming diagnostic logs.
+- [Dart API DL bridge](lantern-core/dart_api_dl) The Dart API DL bridge is used to send messages from Go to Dart. It uses Dart’s native message passing (SendPort) and allows Go to push log messages (or other events) directly into Dart without blocking the main isolate. It currently facilitates streaming diagnostic logs.
 
 The Go backend makes use of StreamDialer & PacketListener from the Outline SDK to manage TCP streams and UDP packets, which facilitates communication between the client and a proxy server.
 
