@@ -25,16 +25,14 @@ var (
 )
 
 type vpnServer struct {
-	listener      net.Listener      // Network listener for accepting client connections
-	mtu           int               // Maximum Transmission Unit size for the VPN tunnel
-	offset        int               // Offset for packet processing
-	clients       map[net.Conn]bool // Map to track active client connections
-	vpnConnected  bool              // whether the VPN is currently connected
-	baseDir       string
+	baseDir       string                // base directory is the sing-box/radiance configuration directory to use
+	listener      net.Listener          // Network listener for accepting client connections
+	mtu           int                   // Maximum Transmission Unit size for the VPN tunnel
+	offset        int                   // Offset for packet processing
+	clients       map[net.Conn]bool     // Map to track active client connections
+	vpnConnected  bool                  // whether the VPN is currently connected
 	configHandler *config.ConfigHandler // handles fetching the proxy configuration from the proxy server
-	logMu         sync.Mutex
-	logPort       int64
-	tunnel        Tunnel // tunnel that manages packet forwarding
+	tunnel        Tunnel                // tunnel that manages packet forwarding
 	tunnelStop    chan struct{}
 	radiance      *radiance.Radiance // radiance instance the VPN server is configured with
 	mu            sync.RWMutex
@@ -54,7 +52,6 @@ type Opts struct {
 func newVPNServer(opts *Opts) *vpnServer {
 	server := &vpnServer{
 		baseDir:       opts.BaseDir,
-		logPort:       opts.LogPort,
 		mtu:           opts.Mtu,
 		offset:        opts.Offset,
 		radiance:      opts.Radiance,

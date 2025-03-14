@@ -2,6 +2,7 @@ package vpn
 
 import (
 	"context"
+	"errors"
 	"os"
 	"strings"
 
@@ -10,6 +11,9 @@ import (
 )
 
 func configureLogging(ctx context.Context, logFile string, logPort int64) error {
+	if logPort == 0 {
+		return errors.New("missing log port")
+	}
 	// Check if the log file exists.
 	if _, err := os.Stat(logFile); err == nil {
 		// Read and send the last 30 lines of the log file.
