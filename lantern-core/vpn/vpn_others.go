@@ -21,7 +21,7 @@ type VPNServer interface {
 
 // NewVPNServer initializes radiances and returns a new instance of vpnServer
 func NewVPNServer(opts *Opts) (VPNServer, error) {
-	r, err := radiance.NewRadiance()
+	r, err := radiance.NewRadiance(opts.BaseDir)
 	if err != nil {
 		return nil, err
 	}
@@ -38,9 +38,10 @@ func (s *vpnServer) Start(ctx context.Context) error {
 	if err := s.radiance.StartVPN(); err != nil {
 		return err
 	}
+
 	// configure logging
 	logFile := filepath.Join(s.baseDir, "lantern.log")
-	if err := s.configureLogging(ctx, logFile, s.logPort); err != nil {
+	if err := configureLogging(ctx, logFile, s.logPort); err != nil {
 		log.Errorf("Error configuring logging: %v", err)
 	}
 

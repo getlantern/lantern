@@ -39,6 +39,8 @@ github.com/fsnotify/fsnotify v1.8.0 h1:dAwr6QBTBZIkG8roQaJjGof0pp0EeF+tNV7YBP3F/
 github.com/fsnotify/fsnotify v1.8.0/go.mod h1:8jBTzvmWwFyi3Pb8djgCCO5IBqzKJ/Jwo8TRcHyHii0=
 github.com/getlantern/algeneva v0.0.0-20250307163401-1824e7b54f52 h1:w2/RqYPw7PbTYfUMS2aToD5DMKLBnQed+fkTEYTKAqQ=
 github.com/getlantern/algeneva v0.0.0-20250307163401-1824e7b54f52/go.mod h1:PrNR8tMXO26YNs8K9653XCUH7u2Kv4OdfFC3Ke1GsX0=
+github.com/getlantern/appdir v0.0.0-20250313193928-1704611498b5 h1:CH0zDr8FUoDSErSGg6aE8ocQHJU0WLc67gu+i/Ql4jU=
+github.com/getlantern/appdir v0.0.0-20250313193928-1704611498b5/go.mod h1:3vR6+jQdWfWojZ77w+htCqEF5MO/Y2twJOpAvFuM9po=
 github.com/getlantern/byteexec v0.0.0-20170405023437-4cfb26ec74f4/go.mod h1:4WCQkaCIwta0KlF9bQZA1jYqp8bzIS2PeCqjnef8nZ8=
 github.com/getlantern/byteexec v0.0.0-20220903142956-e6ed20032cfd h1:0xt9OTbV50a/+ZarMcr86ybWiN1v+bbwzdnVuXHzR/o=
 github.com/getlantern/byteexec v0.0.0-20220903142956-e6ed20032cfd/go.mod h1:oD9q9NB1LNBLHk3WAwza4tivxV7tm7jKFlCNCAv3+M8=
@@ -99,6 +101,8 @@ github.com/getlantern/ops v0.0.0-20231025133620-f368ab734534 h1:3BwvWj0JZzFEvNNi
 github.com/getlantern/ops v0.0.0-20231025133620-f368ab734534/go.mod h1:ZsLfOY6gKQOTyEcPYNA9ws5/XHZQFroxqCOhHjGcs9Y=
 github.com/getlantern/radiance v0.0.0-20250313102539-7b8c830248cf h1:KE2+ovUM7nT/HZzmR6Rp4AS+bJoM6b+O2ONJ8jxFE/E=
 github.com/getlantern/radiance v0.0.0-20250313102539-7b8c830248cf/go.mod h1:BJwF4IQAHXmeSJU1pZlMUgX8YuUsQry3Cjy2No6PEJQ=
+github.com/getlantern/radiance v0.0.0-20250314213455-dbf23f9604c2 h1:OfwwWy1MDro2dH5F5T+oMYkXhtu7f+eC4RhuqQzW7ww=
+github.com/getlantern/radiance v0.0.0-20250314213455-dbf23f9604c2/go.mod h1:eDYDDuMgcyg45AtQnCK4ZslNWyJpMVgwSBct3U6syXQ=
 github.com/getlantern/tlsdialer/v3 v3.0.5 h1:xdLBQDgz0PXLK6T27hjtZU25MyucRiUKj58aqyQZvP4=
 github.com/getlantern/tlsdialer/v3 v3.0.5/go.mod h1:aXHS9CXIzgsdHwlTcFmmPzFbw0l6QBLxkCdSCmclqDI=
 github.com/getlantern/tlsresumption v0.0.0-20241210052744-a1c6aacc1d4d h1:CM+1DbLVMvsrf5cvQnPF2txKKRI1H2sDj0+WvDrZ6zU=

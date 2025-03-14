@@ -8,7 +8,7 @@ require (
 	github.com/fsnotify/fsnotify v1.8.0
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
 	github.com/getlantern/kindling v0.0.0-20250224181615-944349e3e260
-	github.com/getlantern/radiance v0.0.0-20250313102539-7b8c830248cf
+	github.com/getlantern/radiance v0.0.0-20250314213455-dbf23f9604c2
 	google.golang.org/protobuf v1.36.5
 )
 
@@ -27,6 +27,7 @@ require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dsnet/compress v0.0.2-0.20210315054119-f66993602bf5 // indirect
 	github.com/getlantern/algeneva v0.0.0-20250307163401-1824e7b54f52 // indirect
+	github.com/getlantern/appdir v0.0.0-20250313193928-1704611498b5 // indirect
 	github.com/getlantern/byteexec v0.0.0-20220903142956-e6ed20032cfd // indirect
 	github.com/getlantern/cmux/v2 v2.0.0-20230301223233-dac79088a4c0 // indirect
 	github.com/getlantern/context v0.0.0-20220418194847-3d5e7a086201 // indirect

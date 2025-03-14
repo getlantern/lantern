@@ -9,9 +9,7 @@ import (
 	"github.com/getlantern/lantern-outline/lantern-core/logging"
 )
 
-func (v *vpnServer) configureLogging(ctx context.Context, logFile string, logPort uint32) error {
-	v.logMu.Lock()
-	defer v.logMu.Unlock()
+func configureLogging(ctx context.Context, logFile string, logPort uint32) error {
 
 	// Check if the log file exists.
 	if _, err := os.Stat(logFile); err == nil {
@@ -20,7 +18,7 @@ func (v *vpnServer) configureLogging(ctx context.Context, logFile string, logPor
 		if err != nil {
 			return err
 		}
-		dart_api_dl.SendToPort(v.logPort, strings.Join(lines, "\n"))
+		dart_api_dl.SendToPort(logPort, strings.Join(lines, "\n"))
 	}
 
 	go logging.WatchLogFile(ctx, logFile, func(message string) {

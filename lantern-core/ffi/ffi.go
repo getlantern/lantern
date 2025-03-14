@@ -34,19 +34,16 @@ func setup(dir *C.char, port C.int64_t, api unsafe.Pointer) {
 	serverMu.Lock()
 	defer serverMu.Unlock()
 
-	setupOnce.Do(func() {
-		baseDir = C.GoString(dir)
-		logPort = uint32(port)
+	baseDir = C.GoString(dir)
+	logPort = uint32(port)
 
+	setupOnce.Do(func() {
 		// initialize the Dart API DL bridge.
 		dart_api_dl.Init(api)
 	})
 }
 
 func initializeServer() error {
-	serverMu.Lock()
-	defer serverMu.Unlock()
-
 	// server is already initialized
 	if server != nil {
 		return nil
@@ -77,13 +74,11 @@ func startVPN() *C.char {
 	serverMu.Lock()
 	defer serverMu.Unlock()
 
-	ctx := context.Background()
-
 	if err := initializeServer(); err != nil {
 		return C.CString(err.Error())
 	}
 
-	if err := start(ctx); err != nil {
+	if err := start(context.Background()); err != nil {
 		err = fmt.Errorf("unable to start vpn server: %v", err)
 		return C.CString(err.Error())
 	}
