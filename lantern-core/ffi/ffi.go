@@ -16,9 +16,8 @@ import (
 )
 
 var (
-	server     vpn.VPNServer
-	serverOnce sync.Once
-	mu         sync.Mutex
+	server   vpn.VPNServer
+	serverMu sync.Mutex
 
 	log = golog.LoggerFor("lantern.ffi")
 )
@@ -29,20 +28,16 @@ var (
 func startVPN() *C.char {
 	log.Debug("startVPN called")
 
-	mu.Lock()
-	defer mu.Unlock()
+	serverMu.Lock()
+	defer serverMu.Unlock()
 
-	var err error
-	serverOnce.Do(func() {
-		s, e := vpn.NewVPNServer(&vpn.Opts{})
-		if e != nil {
-			err = fmt.Errorf("unable to create vpn server: %v", e)
-			return
+	if server == nil {
+		s, err := vpn.NewVPNServer(&vpn.Opts{})
+		if err != nil {
+			err = fmt.Errorf("unable to create vpn server: %v", err)
+			return C.CString(err.Error())
 		}
 		server = s
-	})
-	if err != nil {
-		return C.CString(err.Error())
 	}
 
 	if err := start(context.Background()); err != nil {
@@ -59,8 +54,8 @@ func startVPN() *C.char {
 func stopVPN() *C.char {
 	log.Debug("stopVPN called")
 
-	mu.Lock()
-	defer mu.Unlock()
+	serverMu.Lock()
+	defer serverMu.Unlock()
 
 	if server == nil {
 		log.Debug("VPN server is not running")
@@ -81,8 +76,8 @@ func stopVPN() *C.char {
 //
 //export isVPNConnected
 func isVPNConnected() int {
-	mu.Lock()
-	defer mu.Unlock()
+	serverMu.Lock()
+	defer serverMu.Unlock()
 
 	if server == nil || !server.IsVPNConnected() {
 		return 0
