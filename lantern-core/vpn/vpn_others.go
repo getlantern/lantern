@@ -26,6 +26,13 @@ func NewVPNServer(opts *Opts) (VPNServer, error) {
 		return nil, err
 	}
 	opts.Radiance = r
+
+	// configure logging
+	logFile := filepath.Join(opts.BaseDir, "lantern.log")
+	if err := configureLogging(context.Background(), logFile, opts.LogPort); err != nil {
+		log.Errorf("Error configuring logging: %v", err)
+	}
+
 	return newVPNServer(opts), nil
 }
 
@@ -37,12 +44,6 @@ func (s *vpnServer) Start(ctx context.Context) error {
 
 	if err := s.radiance.StartVPN(); err != nil {
 		return err
-	}
-
-	// configure logging
-	logFile := filepath.Join(s.baseDir, "lantern.log")
-	if err := configureLogging(ctx, logFile, s.logPort); err != nil {
-		log.Errorf("Error configuring logging: %v", err)
 	}
 
 	s.setConnected(true)
