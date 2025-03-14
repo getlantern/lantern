@@ -1,3 +1,6 @@
+//go:build ios
+// +build ios
+
 package vpn
 
 import (
@@ -6,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/getlantern/lantern-outline/lantern-core/dialer"
-	"github.com/stretchr/testify/require"
 )
 
 // fakeTunnel is a simple fake that implements the tunnel interface.
@@ -29,16 +31,26 @@ func (ft *fakeTunnel) Close() error {
 	return nil
 }
 
+type fakeBridge struct {
+}
+
+func (b *fakeBridge) ExcludeRoute(route string) bool {
+	return true
+}
+
+func (b *fakeBridge) ProcessOutboundPacket(pkt []byte) bool {
+	return true
+}
+
 func newDefaultOpts() *Opts {
 	return &Opts{
 		Address: "127.0.0.1:0",
 	}
 }
 
-func newTestServer(t *testing.T) *iOSVPN {
-	ss, err := NewIOSVPNServer(newDefaultOpts())
-	require.NoError(t, err)
-	return ss.(*iOSVPN)
+func newTestServer(t *testing.T) *vpnServer {
+	ss := newVPNServer(newDefaultOpts())
+	return ss
 }
 
 // Test that ProcessInboundPacket writes data via the tunnel.
@@ -76,7 +88,7 @@ func TestVPNServer_Stop(t *testing.T) {
 func TestVPNServer_StartAlreadyRunning(t *testing.T) {
 	server := newTestServer(t)
 	server.setConnected(true)
-	err := server.Start(context.Background())
+	err := server.Start(context.Background(), &fakeBridge{})
 	if err == nil {
 		t.Error("expected error when starting VPN that is already running")
 	}

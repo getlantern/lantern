@@ -34,6 +34,10 @@ class VPNSwitch extends HookConsumerWidget {
         }
         if (errorMessage != null) {
           context.showSnackBarError(errorMessage);
+          // on error, set status to disconnected if we were previously connected
+          if (vpnStatus.value == VPNStatus.connected) {
+            vpnStatus.value = VPNStatus.disconnected;
+          }
         } else {
           await Future.delayed(const Duration(seconds: 1));
           vpnStatus.value =
