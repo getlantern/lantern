@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"path/filepath"
 
 	"github.com/getlantern/radiance"
 )
@@ -33,8 +34,18 @@ func (s *vpnServer) Start(ctx context.Context) error {
 	if s.IsVPNConnected() {
 		return errors.New("VPN already running")
 	}
+
+	if err := s.radiance.StartVPN(); err != nil {
+		return err
+	}
+	// configure logging
+	logFile := filepath.Join(s.baseDir, "lantern.log")
+	if err := s.configureLogging(ctx, logFile, s.logPort); err != nil {
+		log.Errorf("Error configuring logging: %v", err)
+	}
+
 	s.setConnected(true)
-	return s.radiance.StartVPN()
+	return nil
 }
 
 // Stop stops radiance and the VPN server.

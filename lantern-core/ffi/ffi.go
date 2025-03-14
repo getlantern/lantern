@@ -10,17 +10,17 @@ import "C"
 import (
 	"context"
 	"fmt"
-	"path/filepath"
 	"sync"
 	"unsafe"
 
 	"github.com/getlantern/golog"
-	"github.com/getlantern/lantern-outline/dart_api_dl"
+	"github.com/getlantern/lantern-outline/lantern-core/dart_api_dl"
 	"github.com/getlantern/lantern-outline/lantern-core/vpn"
 )
 
 var (
 	baseDir  string
+	logPort  uint32
 	server   vpn.VPNServer
 	serverMu sync.Mutex
 
@@ -34,18 +34,38 @@ func setup(dir *C.char, port C.int64_t, api unsafe.Pointer) {
 	serverMu.Lock()
 	defer serverMu.Unlock()
 
-	baseDir = C.GoString(dir)
-	logPort = int64(port)
-
 	setupOnce.Do(func() {
+		baseDir = C.GoString(dir)
+		logPort = uint32(port)
+
 		// initialize the Dart API DL bridge.
 		dart_api_dl.Init(api)
-		// configure logging
-		logFile := filepath.Join(baseDir, "lantern.log")
-		if err := configureLogging(logFile, logPort); err != nil {
-			log.Errorf("Error configuring logging: %v", err)
-		}
 	})
+}
+
+func initializeServer() error {
+	serverMu.Lock()
+	defer serverMu.Unlock()
+
+	// server is already initialized
+	if server != nil {
+		return nil
+	}
+
+	// Attempt to initialize the server
+	s, err := vpn.NewVPNServer(&vpn.Opts{
+		BaseDir: baseDir,
+		LogPort: logPort,
+	})
+	if err != nil {
+		err = fmt.Errorf("unable to create VPN server: %v", err)
+		log.Error(err)
+		return err
+	}
+
+	server = s
+
+	return nil
 }
 
 // startVPN initializes and starts the VPN server if it is not already running.
@@ -57,16 +77,13 @@ func startVPN() *C.char {
 	serverMu.Lock()
 	defer serverMu.Unlock()
 
-	if server == nil {
-		s, err := vpn.NewVPNServer(&vpn.Opts{})
-		if err != nil {
-			err = fmt.Errorf("unable to create vpn server: %v", err)
-			return C.CString(err.Error())
-		}
-		server = s
+	ctx := context.Background()
+
+	if err := initializeServer(); err != nil {
+		return C.CString(err.Error())
 	}
 
-	if err := start(context.Background()); err != nil {
+	if err := start(ctx); err != nil {
 		err = fmt.Errorf("unable to start vpn server: %v", err)
 		return C.CString(err.Error())
 	}

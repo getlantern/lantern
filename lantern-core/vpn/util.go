@@ -2,7 +2,6 @@ package vpn
 
 import (
 	"io"
-	"log"
 	"net"
 	"time"
 
@@ -51,18 +50,18 @@ func relay(leftConn, rightConn transport.StreamConn) (int64, int64, error) {
 func enableTCPKeepAlive(conn net.Conn) {
 	tcpConn, ok := conn.(*net.TCPConn)
 	if !ok {
-		log.Println("Connection is not a TCP connection; cannot set keep-alives.")
+		log.Debug("Connection is not a TCP connection; cannot set keep-alives.")
 		return
 	}
 
 	err := tcpConn.SetKeepAlive(true)
 	if err != nil {
-		log.Printf("Failed to enable TCP keep-alives: %v", err)
+		log.Errorf("Failed to enable TCP keep-alives: %v", err)
 		return
 	}
 
 	err = tcpConn.SetKeepAlivePeriod(tcpKeepAlivePeriod)
 	if err != nil {
-		log.Printf("Failed to set TCP keep-alive period: %v", err)
+		log.Errorf("Failed to set TCP keep-alive period: %v", err)
 	}
 }
