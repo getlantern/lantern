@@ -9,6 +9,7 @@ gen:
 	dart run build_runner build
 
 # Build for macOS
+macos: export CGO_CFLAGS="-I./dart_api_dl/include"
 macos:
 	go build -o bin/liblantern.dylib -buildmode=c-shared ./lantern-core/ffi
 	mkdir -p build/macos/Build/Products/Debug/Lantern.app/Contents/MacOS
@@ -41,6 +42,21 @@ build-framework: build-ios
 ios:
 	GOOS=ios CGO_ENABLED=1 go build -trimpath -buildmode=c-archive -o $(OUT_DIR)/$(LIB_NAME)_$(GOARCH)_$(SDK).a
 
+# Dart API DL bridge
+DART_SDK_REPO=https://github.com/dart-lang/sdk
+DART_SDK_INCLUDE_DIR=dart_api_dl/include
+DART_SDK_BRANCH=main
+
+.PHONY: update-dart-api-dl
+update-dart-api-dl:
+	@echo "Updating Dart API DL bridge..."
+	rm -rf $(DART_SDK_INCLUDE_DIR)
+	mkdir -p $(DART_SDK_INCLUDE_DIR)
+	git clone --depth 1 --filter=blob:none --sparse $(DART_SDK_REPO) dart_sdk_tmp
+	cd dart_sdk_tmp && git sparse-checkout set runtime/include
+	mv dart_sdk_tmp/runtime/include/* $(DART_SDK_INCLUDE_DIR)/
+	rm -rf dart_sdk_tmp
+	@echo "Dart API DL bridge updated successfully!"
 
 #Routes generation
 routes:

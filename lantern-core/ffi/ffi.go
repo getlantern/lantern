@@ -2,25 +2,51 @@ package main
 
 /*
 #include <stdlib.h>
+#include "stdint.h"
+
 */
 import "C"
 
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 	"sync"
 	"unsafe"
 
 	"github.com/getlantern/golog"
+	"github.com/getlantern/lantern-outline/dart_api_dl"
 	"github.com/getlantern/lantern-outline/lantern-core/vpn"
 )
 
 var (
+	baseDir  string
 	server   vpn.VPNServer
 	serverMu sync.Mutex
 
-	log = golog.LoggerFor("lantern.ffi")
+	setupOnce sync.Once
+
+	log = golog.LoggerFor("lantern-outline.ffi")
 )
+
+//export setup
+func setup(dir *C.char, port C.int64_t, api unsafe.Pointer) {
+	serverMu.Lock()
+	defer serverMu.Unlock()
+
+	baseDir = C.GoString(dir)
+	logPort = int64(port)
+
+	setupOnce.Do(func() {
+		// initialize the Dart API DL bridge.
+		dart_api_dl.Init(api)
+		// configure logging
+		logFile := filepath.Join(baseDir, "lantern.log")
+		if err := configureLogging(logFile, logPort); err != nil {
+			log.Errorf("Error configuring logging: %v", err)
+		}
+	})
+}
 
 // startVPN initializes and starts the VPN server if it is not already running.
 //

@@ -29,19 +29,18 @@ type vpnServer struct {
 	configHandler *config.ConfigHandler // handles fetching the proxy configuration from the proxy server
 	tunnel        Tunnel                // tunnel that manages packet forwarding
 	tunnelStop    chan struct{}
-	radiance      *radiance.Radiance
+	radiance      *radiance.Radiance // radiance instance the VPN server is configured with
 	mu            sync.RWMutex
 }
 
 // Opts are the options the VPN server can be configured with
 type Opts struct {
-	Address string
-	Mtu     int
-	Offset  int
-	// handles fetching the proxy configuration from the proxy server
+	Address       string
+	BaseDir       string
+	Mtu           int
+	Offset        int
 	ConfigHandler *config.ConfigHandler
-	// radiance instance the VPN server is configured with
-	Radiance *radiance.Radiance
+	Radiance      *radiance.Radiance
 }
 
 func newVPNServer(opts *Opts) *vpnServer {

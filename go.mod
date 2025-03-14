@@ -5,8 +5,10 @@ go 1.23.4
 require (
 	github.com/Jigsaw-Code/outline-sdk v0.0.18
 	github.com/eycorsican/go-tun2socks v1.16.11
+	github.com/fsnotify/fsnotify v1.8.0
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
-	github.com/stretchr/testify v1.10.0
+	github.com/getlantern/kindling v0.0.0-20250224181615-944349e3e260
+	github.com/getlantern/radiance v0.0.0-20250313102539-7b8c830248cf
 	google.golang.org/protobuf v1.36.5
 )
 
@@ -24,7 +26,6 @@ require (
 	github.com/cretz/bine v0.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dsnet/compress v0.0.2-0.20210315054119-f66993602bf5 // indirect
-	github.com/fsnotify/fsnotify v1.8.0 // indirect
 	github.com/getlantern/algeneva v0.0.0-20250307163401-1824e7b54f52 // indirect
 	github.com/getlantern/byteexec v0.0.0-20220903142956-e6ed20032cfd // indirect
 	github.com/getlantern/cmux/v2 v2.0.0-20230301223233-dac79088a4c0 // indirect
@@ -40,7 +41,6 @@ require (
 	github.com/getlantern/iptool v0.0.0-20230112135223-c00e863b2696 // indirect
 	github.com/getlantern/keepcurrent v0.0.0-20240126172110-2e0264ca385d // indirect
 	github.com/getlantern/keyman v0.0.0-20230503155501-4e864ca2175b // indirect
-	github.com/getlantern/kindling v0.0.0-20250224181615-944349e3e260 // indirect
 	github.com/getlantern/lantern-algeneva v0.0.0-20240930181006-6d3c00db1d5d // indirect
 	github.com/getlantern/mtime v0.0.0-20200417132445-23682092d1f7 // indirect
 	github.com/getlantern/netx v0.0.0-20240830183145-c257516187f0 // indirect
@@ -111,6 +111,7 @@ require (
 	github.com/sagernet/utls v1.6.7 // indirect
 	github.com/sagernet/wireguard-go v0.0.1-beta.5 // indirect
 	github.com/sagernet/ws v0.0.0-20231204124109-acfe8907c854 // indirect
+	github.com/stretchr/testify v1.10.0 // indirect
 	github.com/u-root/uio v0.0.0-20240224005618-d2acac8f3701 // indirect
 	github.com/ulikunitz/xz v0.5.12 // indirect
 	github.com/vishvananda/netns v0.0.5 // indirect
@@ -141,7 +142,6 @@ require (
 
 require (
 	github.com/alexflint/go-arg v1.5.1
-	github.com/getlantern/radiance v0.0.0-20250313102539-7b8c830248cf
 	github.com/shadowsocks/go-shadowsocks2 v0.1.5 // indirect
 	golang.org/x/crypto v0.36.0 // indirect
 	golang.org/x/sys v0.31.0 // indirect

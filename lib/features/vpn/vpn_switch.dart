@@ -16,7 +16,7 @@ class VPNSwitch extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final ffiClient = ref.read(ffiClientProvider);
+    final ffiClient = ref.watch(ffiClientProvider).value;
     final nativeBridge = ref.read(nativeBridgeProvider);
     final vpnStatus = useState<VPNStatus>(VPNStatus.disconnected);
     final isLoading = useState<bool>(false);
@@ -30,7 +30,7 @@ class VPNSwitch extends HookConsumerWidget {
               ? await nativeBridge.startVPN()
               : await nativeBridge.stopVPN();
         } else {
-          errorMessage = connect ? ffiClient.startVPN() : ffiClient.stopVPN();
+          errorMessage = connect ? ffiClient?.startVPN() : ffiClient?.stopVPN();
         }
         if (errorMessage != null) {
           context.showSnackBarError(errorMessage);

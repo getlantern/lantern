@@ -188,3 +188,25 @@ class AppTextButton extends StatelessWidget {
     );
   }
 }
+
+class AppIconButton extends StatelessWidget {
+  final String path;
+  final OnPressed onPressed;
+
+  const AppIconButton({
+    super.key,
+    required this.path,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      onPressed: onPressed,
+      icon: AppImage(
+        path: path,
+        height: 24,
+      ),
+    );
+  }
+}

@@ -33,7 +33,7 @@ class Support extends StatelessWidget {
                   AppTile(
                     icon: Icons.error_outline,
                     label: 'Report an Issue',
-                    onPressed: () => appRouter.push( ReportIssue()),
+                    onPressed: () => appRouter.push(ReportIssue()),
                   ),
                   DividerSpace(
                     padding: EdgeInsets.symmetric(horizontal: 16),
@@ -41,6 +41,7 @@ class Support extends StatelessWidget {
                   AppTile(
                     icon: Icons.code_outlined,
                     label: 'Diagnostic Logs',
+                    onPressed: () => appRouter.push(Logs()),
                   ),
                 ],
               ),
