@@ -2,18 +2,75 @@
 
 OUT_DIR := bin
 
-LIB_NAME := liblantern
-FFI_DIR := ./lantern-core/ffi
+APP ?= lantern
+CAPITALIZED_APP := Lantern
+LANTERN_LIB_NAME := liblantern
+LANTERN_CORE := lantern-core
+FFI_DIR := $(LANTERN_CORE)/ffi
+LDFLAGS ?= -w -s
+EXTRA_LDFLAGS ?=
+TAGS ?=
+
+DARWIN_APP_NAME ?= $(CAPITALIZED_APP).app
+DARWIN_FRAMEWORK_DIR ?= macos/Frameworks
+DARWIN_LIB_NAME ?= $(LANTERN_LIB_NAME).dylib
+DARWIN_LIB_AMD64 ?= $(OUT_DIR)/$(LANTERN_LIB_NAME)_amd64.dylib
+DARWIN_LIB_ARM64 ?= $(OUT_DIR)/$(LANTERN_LIB_NAME)_arm64.dylib
+
+LINUX_LIB_NAME ?= $(OUT_DIR)/$(LANTERN_LIB_NAME).so
+LINUX_LIB_AMD64 ?= $(OUT_DIR)/amd64/$(LANTERN_LIB_NAME).so
+LINUX_LIB_ARM64 ?= $(OUT_DIR)/arm64/$(LANTERN_LIB_NAME).so
 
 gen:
 	dart run build_runner build
 
+lantern-lib:
+	CGO_ENABLED=1 go build -trimpath -buildmode=c-shared -ldflags="$(LDFLAGS) $(EXTRA_LDFLAGS)" -o $(LIB_NAME) ./$(FFI_DIR)
+
 # Build for macOS
-macos: export CGO_CFLAGS="-I./dart_api_dl/include"
-macos:
-	go build -o bin/liblantern.dylib -buildmode=c-shared ./lantern-core/ffi
-	mkdir -p build/macos/Build/Products/Debug/Lantern.app/Contents/MacOS
-	cp bin/liblantern.dylib build/macos/Build/Products/Debug/Lantern.app/Contents/MacOS
+macos-arm64: $(DARWIN_LIB_ARM64)
+$(DARWIN_LIB_ARM64): export LIB_NAME = $(DARWIN_LIB_ARM64)
+$(DARWIN_LIB_ARM64): export GOOS = darwin
+$(DARWIN_LIB_ARM64): export GOARCH = arm64
+$(DARWIN_LIB_ARM64): lantern-lib
+
+macos-amd64: $(DARWIN_LIB_AMD64)
+$(DARWIN_LIB_AMD64): export LIB_NAME = $(DARWIN_LIB_AMD64)
+$(DARWIN_LIB_AMD64): export GOOS = darwin
+$(DARWIN_LIB_AMD64): export GOARCH = amd64
+$(DARWIN_LIB_AMD64): lantern-lib
+
+.PHONY: macos
+macos: macos-arm64
+	make macos-amd64
+	echo "Nuking $(DARWIN_FRAMEWORK_DIR)"
+	rm -Rf $(DARWIN_FRAMEWORK_DIR)/*
+	mkdir -p $(DARWIN_FRAMEWORK_DIR)
+	lipo -create $(DARWIN_LIB_ARM64) $(DARWIN_LIB_AMD64) \
+		-output "${DARWIN_FRAMEWORK_DIR}/${DARWIN_LIB_NAME}"
+	install_name_tool -id "@rpath/${DARWIN_LIB_NAME}" "${DARWIN_FRAMEWORK_DIR}/${DARWIN_LIB_NAME}"
+	cp $(OUT_DIR)/$(DESKTOP_LIB_NAME)*.h $(DARWIN_FRAMEWORK_DIR)/
+
+
+# Build for Linux
+linux-arm64: $(LINUX_LIB_ARM64)
+$(LINUX_LIB_ARM64): export LIB_NAME = $(LINUX_LIB_ARM64)
+$(LINUX_LIB_ARM64): export GOOS = linux
+$(LINUX_LIB_ARM64): export GOARCH = arm64
+$(LINUX_LIB_ARM64): export EXTRA_LDFLAGS += -linkmode external
+$(LINUX_LIB_ARM64): lantern-lib
+
+
+linux-amd64: $(LINUX_LIB_AMD64)
+$(LINUX_LIB_AMD64): export LIB_NAME = $(LINUX_LIB_AMD64)
+$(LINUX_LIB_AMD64): export GOOS = linux
+$(LINUX_LIB_AMD64): export GOARCH = amd64
+$(LINUX_LIB_AMD64): export EXTRA_LDFLAGS += -linkmode external
+$(LINUX_LIB_AMD64): lantern-lib
+
+.PHONY: linux
+linux: linux-arm64
+	cp $(LINUX_LIB_ARM64) $(LINUX_LIB_NAME)
 
 # Build for iOS
 build-ios-device:
