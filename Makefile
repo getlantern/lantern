@@ -7,7 +7,6 @@ CAPITALIZED_APP := Lantern
 LANTERN_LIB_NAME := liblantern
 LANTERN_CORE := lantern-core
 FFI_DIR := $(LANTERN_CORE)/ffi
-LDFLAGS ?= -w -s
 EXTRA_LDFLAGS ?=
 TAGS ?=
 
@@ -25,16 +24,18 @@ gen:
 	dart run build_runner build
 
 lantern-lib:
-	CGO_ENABLED=1 go build -trimpath -buildmode=c-shared -ldflags="$(LDFLAGS) $(EXTRA_LDFLAGS)" -o $(LIB_NAME) ./$(FFI_DIR)
+	CGO_ENABLED=1 go build -trimpath -buildmode=c-shared -ldflags="-w -s $(EXTRA_LDFLAGS)" -o $(LIB_NAME) ./$(FFI_DIR)
 
 # Build for macOS
 macos-arm64: $(DARWIN_LIB_ARM64)
+$(DARWIN_LIB_ARM64): export CGO_CFLAGS="-I./dart_api_dl/include"
 $(DARWIN_LIB_ARM64): export LIB_NAME = $(DARWIN_LIB_ARM64)
 $(DARWIN_LIB_ARM64): export GOOS = darwin
 $(DARWIN_LIB_ARM64): export GOARCH = arm64
 $(DARWIN_LIB_ARM64): lantern-lib
 
 macos-amd64: $(DARWIN_LIB_AMD64)
+$(DARWIN_LIB_AMD64): export CGO_CFLAGS="-I./dart_api_dl/include"
 $(DARWIN_LIB_AMD64): export LIB_NAME = $(DARWIN_LIB_AMD64)
 $(DARWIN_LIB_AMD64): export GOOS = darwin
 $(DARWIN_LIB_AMD64): export GOARCH = amd64
