@@ -25,7 +25,7 @@ WINDOWS_LIB_AMD64 := $(OUT_DIR)/windows-amd64/$(LANTERN_LIB_NAME).dll
 WINDOWS_LIB_ARM64 := $(OUT_DIR)/windows-arm64/$(LANTERN_LIB_NAME).dll
 
 gen:
-	dart run build_runner build
+	dart run build_runner build --delete-conflicting-outputs
 
 pubget:
 	flutter pub get
