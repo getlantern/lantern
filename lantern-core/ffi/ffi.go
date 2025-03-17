@@ -2,6 +2,8 @@ package main
 
 /*
 #include <stdlib.h>
+#include "stdint.h"
+
 */
 import "C"
 
@@ -12,15 +14,34 @@ import (
 	"unsafe"
 
 	"github.com/getlantern/golog"
-	"github.com/getlantern/lantern-outline/vpn"
+	"github.com/getlantern/lantern-outline/lantern-core/dart_api_dl"
+	"github.com/getlantern/lantern-outline/lantern-core/vpn"
 )
 
 var (
-	vpnMutex sync.Mutex
+	baseDir  string
+	logPort  int64
 	server   vpn.VPNServer
+	serverMu sync.Mutex
+
+	setupOnce sync.Once
 
 	log = golog.LoggerFor("lantern-outline.ffi")
 )
+
+//export setup
+func setup(dir *C.char, port C.int64_t, api unsafe.Pointer) {
+	serverMu.Lock()
+	defer serverMu.Unlock()
+
+	baseDir = C.GoString(dir)
+	logPort = int64(port)
+
+	setupOnce.Do(func() {
+		// initialize the Dart API DL bridge.
+		dart_api_dl.Init(api)
+	})
+}
 
 // startVPN initializes and starts the VPN server if it is not already running.
 //
@@ -28,21 +49,25 @@ var (
 func startVPN() *C.char {
 	log.Debug("startVPN called")
 
-	vpnMutex.Lock()
-	defer vpnMutex.Unlock()
+	serverMu.Lock()
+	defer serverMu.Unlock()
 
 	if server == nil {
-		s, err := vpn.NewVPNServer(&vpn.Opts{Address: ":0"})
+		s, err := vpn.NewVPNServer(&vpn.Opts{
+			BaseDir: baseDir,
+			LogPort: logPort,
+		})
 		if err != nil {
 			err = fmt.Errorf("unable to create VPN server: %v", err)
 			log.Error(err)
 			return C.CString(err.Error())
 		}
+
 		server = s
 	}
-	if err := start(context.Background(), server); err != nil {
-		err = fmt.Errorf("unable to start VPN server: %v", err)
-		log.Error(err)
+
+	if err := start(context.Background()); err != nil {
+		err = fmt.Errorf("unable to start vpn server: %v", err)
 		return C.CString(err.Error())
 	}
 	log.Debug("VPN server started successfully")
@@ -55,8 +80,8 @@ func startVPN() *C.char {
 func stopVPN() *C.char {
 	log.Debug("stopVPN called")
 
-	vpnMutex.Lock()
-	defer vpnMutex.Unlock()
+	serverMu.Lock()
+	defer serverMu.Unlock()
 
 	if server == nil {
 		log.Debug("VPN server is not running")
@@ -69,9 +94,6 @@ func stopVPN() *C.char {
 		return C.CString(err.Error())
 	}
 
-	// Make sure to clear out the server after a successful stop
-	server = nil
-
 	log.Debug("VPN server stopped successfully")
 	return nil
 }
@@ -80,8 +102,8 @@ func stopVPN() *C.char {
 //
 //export isVPNConnected
 func isVPNConnected() int {
-	vpnMutex.Lock()
-	defer vpnMutex.Unlock()
+	serverMu.Lock()
+	defer serverMu.Unlock()
 
 	if server == nil || !server.IsVPNConnected() {
 		return 0

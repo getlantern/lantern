@@ -31,7 +31,6 @@ class AppColors {
 
   static Color get gray2 => const Color(0xFFEDEFEF);
 
-
   static Color get gray3 => const Color(0xFFDEDFDF);
 
   static Color get gray4 => const Color(0xFFBFBFBF);
@@ -88,4 +87,6 @@ class AppColors {
   static Color get red10 => const Color(0xFF410001);
 
   static Color get shadowColor => const Color(0x19006162);
+  static Color get logBackgroundColor => const Color(0xFF1A1B1C);
+  static Color get logTextColor => const Color(0xFF3D454D);
 }

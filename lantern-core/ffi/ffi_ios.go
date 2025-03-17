@@ -1,3 +1,6 @@
+//go:build ios
+// +build ios
+
 package main
 
 //
@@ -11,13 +14,16 @@ import "C"
 import (
 	"context"
 	"unsafe"
-
-	"github.com/getlantern/lantern-outline/vpn"
 )
 
 // IOS-related
 
 type iosBridge struct{}
+
+// start initializes the VPN server and starts the Tun2Socks process.
+func start(ctx context.Context) error {
+	return server.Start(ctx, &iosBridge{})
+}
 
 // ProcessOutboundPacket sends an outbound packet from Go to Swift for processing by the OS.
 func (*iosBridge) ProcessOutboundPacket(pkt []byte) bool {
@@ -50,14 +56,6 @@ func logToSwift(message string) {
 	cMessage := C.CString(message)
 	defer C.free(unsafe.Pointer(cMessage))
 	C.SwiftLog(cMessage)
-}
-
-// start initializes the VPN server and starts the Tun2Socks process.
-func start(ctx context.Context, server vpn.VPNServer) error {
-	if err := server.StartTun2Socks(ctx, &iosBridge{}); err != nil {
-		return err
-	}
-	return nil
 }
 
 // ProcessInboundPacket is called by Swift when a packet arrives from the OS.

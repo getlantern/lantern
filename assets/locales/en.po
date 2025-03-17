@@ -210,14 +210,14 @@ msgstr "Other"
 msgid "issue_description"
 msgstr "Describe your issue"
 
-
-
 msgid "enter_password_to_confirm"
 msgstr "Enter password to confirm"
 
+msgid "cannot_view_logs"
+msgstr "Lantern cannot view your diagnostic logs unless you send them to us."
 
-
-
+msgid "logs_share_message"
+msgstr "Here are my diagnostic logs from Lantern."
 
 
 

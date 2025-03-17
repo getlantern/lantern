@@ -12,7 +12,7 @@ class AppRouter extends RootStackRouter {
   final List<AutoRoute> routes = [
     AutoRoute(
       path: '/',
-      page: NewHome.page,
+      page: Home.page,
     ),
     AutoRoute(
       path: '/setting',
@@ -45,6 +45,10 @@ class AppRouter extends RootStackRouter {
     AutoRoute(
       path: '/delete-account',
       page: DeleteAccount.page,
+    ),
+    AutoRoute(
+      path: '/logs',
+      page: Logs.page,
     ),
     AutoRoute(
       path: '/support',
