@@ -8,7 +8,7 @@ import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import '../../../core/common/common.dart';
 
 class VpnStatus extends HookConsumerWidget {
-  const VpnStatus({Key? key}) : super(key: key);
+  const VpnStatus({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -33,11 +33,9 @@ class VpnStatus extends HookConsumerWidget {
                 TyperAnimatedText('.  ',
                     textStyle: textTheme.titleMedium!
                         .copyWith(color: AppColors.gray9, fontSize: 20)),
-                // 1 dot
                 TyperAnimatedText('.. ',
                     textStyle: textTheme.titleMedium!
                         .copyWith(color: AppColors.gray9, fontSize: 20)),
-                // 2 dots
                 TyperAnimatedText('...',
                     textStyle: textTheme.titleMedium!
                         .copyWith(color: AppColors.gray9, fontSize: 20)),
