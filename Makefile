@@ -12,7 +12,7 @@ BUILD_TAGS ?=
 
 DARWIN_APP_NAME ?= $(CAPITALIZED_APP).app
 DARWIN_FRAMEWORK_DIR ?= macos/Frameworks
-DARWIN_LIB_NAME ?= $(LANTERN_LIB_NAME).dylib
+DARWIN_LIB_NAME ?= $(DARWIN_FRAMEWORK_DIR)/$(LANTERN_LIB_NAME).dylib
 DARWIN_LIB_AMD64 ?= $(OUT_DIR)/macos-amd64/$(LANTERN_LIB_NAME).dylib
 DARWIN_LIB_ARM64 ?= $(OUT_DIR)/macos-arm64/$(LANTERN_LIB_NAME).dylib
 
@@ -48,23 +48,22 @@ $(DARWIN_LIB_AMD64):
 	GOARCH=amd64 LIB_NAME=$@ make lantern-lib
 
 .PHONY: macos
-macos: macos-arm64 macos-amd64
-	echo "Nuking $(DARWIN_FRAMEWORK_DIR)"
-	rm -Rf $(DARWIN_FRAMEWORK_DIR)/*
-	mkdir -p $(DARWIN_FRAMEWORK_DIR)
-	lipo -create $(DARWIN_LIB_ARM64) $(DARWIN_LIB_AMD64) \
-		-output "${DARWIN_FRAMEWORK_DIR}/${DARWIN_LIB_NAME}"
-	install_name_tool -id "@rpath/${DARWIN_LIB_NAME}" "${DARWIN_FRAMEWORK_DIR}/${DARWIN_LIB_NAME}"
-	cp $(OUT_DIR)/$(DESKTOP_LIB_NAME)*.h $(DARWIN_FRAMEWORK_DIR)/
+macos: $(DARWIN_LIB_NAME)
+
+$(DARWIN_LIB_NAME):
+	make macos-arm64 macos-amd64
+	lipo -create $(DARWIN_LIB_ARM64) $(DARWIN_LIB_AMD64) -output $(DARWIN_LIB_NAME)
+	install_name_tool -id "@rpath/${DARWIN_LIB_NAME}" $(DARWIN_LIB_NAME)
+	cp $(OUT_DIR)/macos-amd64/$(LANTERN_LIB_NAME)*.h $(DARWIN_FRAMEWORK_DIR)/
 
 .PHONY: macos-debug
-macos-debug: clean pubget gen
-	@echo "Building Flutter app (debug) for Linux..."
+macos-debug: clean macos pubget gen
+	@echo "Building Flutter app (debug) for macOS..."
 	flutter build macos --debug
 
 .PHONY: macos-release
-macos-release: clean pubget gen
-	@echo "Building Flutter app (release) for Linux..."
+macos-release: clean macos pubget gen
+	@echo "Building Flutter app (release) for macOS..."
 	flutter build macos --release
 
 # Linux Build
@@ -167,3 +166,4 @@ routes:
 clean:
 	flutter clean
 	rm -rf $(OUT_DIR)/*
+	rm -rf $(DARWIN_FRAMEWORK_DIR)/*
