@@ -13,12 +13,12 @@ BUILD_TAGS ?=
 DARWIN_APP_NAME ?= $(CAPITALIZED_APP).app
 DARWIN_FRAMEWORK_DIR ?= macos/Frameworks
 DARWIN_LIB_NAME ?= $(LANTERN_LIB_NAME).dylib
-DARWIN_LIB_AMD64 ?= $(OUT_DIR)/$(LANTERN_LIB_NAME)_amd64.dylib
-DARWIN_LIB_ARM64 ?= $(OUT_DIR)/$(LANTERN_LIB_NAME)_arm64.dylib
+DARWIN_LIB_AMD64 ?= $(OUT_DIR)/macos-amd64/$(LANTERN_LIB_NAME).dylib
+DARWIN_LIB_ARM64 ?= $(OUT_DIR)/macos-arm64/$(LANTERN_LIB_NAME).dylib
 
 LINUX_LIB_NAME ?= $(OUT_DIR)/$(LANTERN_LIB_NAME).so
-LINUX_LIB_AMD64 ?= $(OUT_DIR)/amd64/$(LANTERN_LIB_NAME).so
-LINUX_LIB_ARM64 ?= $(OUT_DIR)/arm64/$(LANTERN_LIB_NAME).so
+LINUX_LIB_AMD64 ?= $(OUT_DIR)/linux-amd64/$(LANTERN_LIB_NAME).so
+LINUX_LIB_ARM64 ?= $(OUT_DIR)/linux-arm64/$(LANTERN_LIB_NAME).so
 
 WINDOWS_LIB_NAME := $(OUT_DIR)/$(LANTERN_LIB_NAME).dll
 WINDOWS_LIB_AMD64 := $(OUT_DIR)/windows-amd64/$(LANTERN_LIB_NAME).dll
@@ -26,6 +26,9 @@ WINDOWS_LIB_ARM64 := $(OUT_DIR)/windows-arm64/$(LANTERN_LIB_NAME).dll
 
 gen:
 	dart run build_runner build
+
+pubget:
+	flutter pub get
 
 lantern-lib: export CGO_CFLAGS="-I./dart_api_dl/include"
 lantern-lib:
@@ -54,6 +57,16 @@ macos: macos-arm64 macos-amd64
 	install_name_tool -id "@rpath/${DARWIN_LIB_NAME}" "${DARWIN_FRAMEWORK_DIR}/${DARWIN_LIB_NAME}"
 	cp $(OUT_DIR)/$(DESKTOP_LIB_NAME)*.h $(DARWIN_FRAMEWORK_DIR)/
 
+.PHONY: macos-debug
+macos-debug: clean pubget gen
+	@echo "Building Flutter app (debug) for Linux..."
+	flutter build macos --debug
+
+.PHONY: macos-release
+macos-release: clean pubget gen
+	@echo "Building Flutter app (release) for Linux..."
+	flutter build macos --release
+
 # Linux Build
 .PHONY: linux-arm64
 linux-arm64: $(LINUX_LIB_ARM64)
@@ -70,6 +83,16 @@ $(LINUX_LIB_AMD64):
 .PHONY: linux
 linux: linux-amd64
 	cp $(LINUX_LIB_AMD64) $(LINUX_LIB_NAME)
+
+.PHONY: linux-debug
+linux-debug: clean linux pubget gen
+	@echo "Building Flutter app (debug) for Linux..."
+	flutter build linux --debug
+
+.PHONY: linux-release
+linux-release: clean linux pubget gen
+	@echo "Building Flutter app (release) for Linux..."
+	flutter build linux --release
 
 # Windows Build
 .PHONY: windows-amd64
@@ -142,4 +165,5 @@ routes:
 	dart run build_runner build --delete-conflicting-outputs
 
 clean:
+	flutter clean
 	rm -rf $(OUT_DIR)/*
