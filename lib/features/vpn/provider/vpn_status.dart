@@ -1,3 +1,4 @@
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
@@ -12,6 +13,7 @@ class VpnStatus extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final _vpnStatus = ref.watch(vpnNotifierProvider);
+    final textTheme = Theme.of(context).textTheme;
     return SettingTile(
       label: 'vpn_status'.i18n,
       value: _vpnStatus.name.capitalize,
@@ -19,6 +21,38 @@ class VpnStatus extends HookConsumerWidget {
       actions: [
         VPNStatusIndicator(status: _vpnStatus),
       ],
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Text(_vpnStatus.name.capitalize,
+              style: textTheme.titleMedium!
+                  .copyWith(color: getStatusColor(_vpnStatus))),
+          if (_vpnStatus == VPNStatus.connecting)
+            AnimatedTextKit(
+              animatedTexts: [
+                TyperAnimatedText('.  ',
+                    textStyle: textTheme.titleMedium!
+                        .copyWith(color: AppColors.gray9, fontSize: 20)),
+                // 1 dot
+                TyperAnimatedText('.. ',
+                    textStyle: textTheme.titleMedium!
+                        .copyWith(color: AppColors.gray9, fontSize: 20)),
+                // 2 dots
+                TyperAnimatedText('...',
+                    textStyle: textTheme.titleMedium!
+                        .copyWith(color: AppColors.gray9, fontSize: 20)),
+              ],
+              repeatForever: true,
+            )
+        ],
+      ),
     );
+  }
+
+  Color getStatusColor(VPNStatus vpnStatus) {
+    if (vpnStatus == VPNStatus.connected) {
+      AppColors.green6;
+    }
+    return AppColors.gray9;
   }
 }
