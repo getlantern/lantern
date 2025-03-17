@@ -6,7 +6,7 @@ import (
 
 	"github.com/Jigsaw-Code/outline-sdk/transport"
 	"github.com/getlantern/golog"
-	"github.com/getlantern/lantern-outline/common"
+	"github.com/getlantern/lantern-outline/lantern-core/common"
 )
 
 var (

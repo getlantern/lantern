@@ -13,8 +13,8 @@ import 'package:flutter/material.dart' as _i15;
 import 'package:lantern/features/account/account.dart' as _i1;
 import 'package:lantern/features/account/delete_account.dart' as _i2;
 import 'package:lantern/features/home/home.dart' as _i5;
-import 'package:lantern/features/home/new_home.dart' as _i8;
 import 'package:lantern/features/language/language.dart' as _i7;
+import 'package:lantern/features/logs/logs.dart' as _i8;
 import 'package:lantern/features/reportIssue/report_issue.dart' as _i9;
 import 'package:lantern/features/setting/download_links.dart' as _i3;
 import 'package:lantern/features/setting/follow_us.dart' as _i4;
@@ -117,7 +117,7 @@ class FollowUsArgs {
 }
 
 /// generated route for
-/// [_i5.HomePage]
+/// [_i5.Home]
 class Home extends _i14.PageRouteInfo<void> {
   const Home({List<_i14.PageRouteInfo>? children})
       : super(
@@ -130,7 +130,7 @@ class Home extends _i14.PageRouteInfo<void> {
   static _i14.PageInfo page = _i14.PageInfo(
     name,
     builder: (data) {
-      return const _i5.HomePage();
+      return const _i5.Home();
     },
   );
 }
@@ -174,20 +174,20 @@ class Language extends _i14.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i8.NewHome]
-class NewHome extends _i14.PageRouteInfo<void> {
-  const NewHome({List<_i14.PageRouteInfo>? children})
+/// [_i8.Logs]
+class Logs extends _i14.PageRouteInfo<void> {
+  const Logs({List<_i14.PageRouteInfo>? children})
       : super(
-          NewHome.name,
+          Logs.name,
           initialChildren: children,
         );
 
-  static const String name = 'NewHome';
+  static const String name = 'Logs';
 
   static _i14.PageInfo page = _i14.PageInfo(
     name,
     builder: (data) {
-      return const _i8.NewHome();
+      return const _i8.Logs();
     },
   );
 }

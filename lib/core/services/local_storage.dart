@@ -37,6 +37,7 @@ class LocalStorageService {
   static late Map<String, dynamic> _cache;
 
   ///Due to limitations in macOS the value must be at most 19 characters
+  /// Do not change this value
   final macosApplicationGroup = AppSecrets.macosAppGroupId;
 
   Future<void> init() async {

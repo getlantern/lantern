@@ -137,7 +137,6 @@ class SecondaryButton extends StatelessWidget {
             return BorderSide(color: AppColors.gray4, width: 1);
           }
           return BorderSide(color: AppColors.gray4, width: 1);
-
         },
       ),
       overlayColor: WidgetStatePropertyAll<Color>(AppColors.gray2),
@@ -162,7 +161,6 @@ class AppTextButton extends StatelessWidget {
   final OnPressed onPressed;
 
   final Color? textColor;
-
   final EdgeInsets? padding;
 
   const AppTextButton({
@@ -178,7 +176,7 @@ class AppTextButton extends StatelessWidget {
     return TextButton(
       onPressed: onPressed,
       style: TextButton.styleFrom(
-        padding: padding??EdgeInsets.symmetric(horizontal: 16.0),
+        padding: padding ?? EdgeInsets.symmetric(horizontal: 16.0),
         visualDensity: VisualDensity.compact,
         textStyle: AppTestStyles.titleMedium.copyWith(
           overflow: TextOverflow.ellipsis,
@@ -187,6 +185,28 @@ class AppTextButton extends StatelessWidget {
         foregroundColor: textColor ?? AppColors.blue7,
       ),
       child: Text(label),
+    );
+  }
+}
+
+class AppIconButton extends StatelessWidget {
+  final String path;
+  final OnPressed onPressed;
+
+  const AppIconButton({
+    super.key,
+    required this.path,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      onPressed: onPressed,
+      icon: AppImage(
+        path: path,
+        height: 24,
+      ),
     );
   }
 }

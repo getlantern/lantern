@@ -14,7 +14,7 @@ import (
 
 	"github.com/Jigsaw-Code/outline-sdk/transport"
 	"github.com/Jigsaw-Code/outline-sdk/transport/shadowsocks"
-	"github.com/getlantern/lantern-outline/common"
+	"github.com/getlantern/lantern-outline/lantern-core/common"
 	"github.com/getlantern/radiance/config"
 	rtransport "github.com/getlantern/radiance/transport"
 )

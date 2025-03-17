@@ -1,62 +1,154 @@
-import 'dart:async';
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
-import 'package:lantern/core/ffi/ffi_client.dart';
-import 'package:lantern/core/ffi/socket_client.dart';
-import 'package:lantern/core/providers/ffi_provider.dart';
-import 'package:lantern/core/providers/socket_provider.dart';
-import 'package:lantern/core/widgets/vpn_widgets.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:lantern/core/widgets/setting_tile.dart';
+import 'package:lantern/core/widgets/vpn_status_indicator.dart';
+import 'package:lantern/features/vpn/vpn_switch.dart';
 
+import '../../core/common/common.dart';
 
-@RoutePage(name: 'Home')
-class HomePage extends ConsumerStatefulWidget {
-  const HomePage({super.key});
-
-  @override
-  ConsumerState<HomePage> createState() => _HomePageState();
+enum _SettingTileType {
+  smartLocation,
+  splitTunneling,
 }
 
-class _HomePageState extends ConsumerState<HomePage> {
-  late final FFIClient _ffiClient;
-  late final SocketClient _socketClient;
-  late final StreamSubscription<bool> _vpnStatusSubscription;
-  bool _isVPNRunning = false;
+@RoutePage(name: 'Home')
+class Home extends StatefulWidget {
+  const Home({super.key});
 
   @override
-  void initState() {
-    super.initState();
-    // Initialize the socket client and connect
-    _socketClient = ref.read(socketClientProvider);
-    _socketClient.connect();
+  State<Home> createState() => _HomeState();
+}
 
-    // Initialize ffi client
-    _ffiClient = ref.read(ffiClientProvider);
+class _HomeState extends State<Home> {
+  TextTheme? textTheme;
 
-    // Listen to VPN status updates from the socket
-    _vpnStatusSubscription = _socketClient.vpnStatusStream.listen((status) {
-      setState(() {
-        _isVPNRunning = status;
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    _vpnStatusSubscription.cancel();
-    _socketClient.disconnect();
-    super.dispose();
-  }
+  final isUserPro = false;
 
   @override
   Widget build(BuildContext context) {
-    final tab = 'vpn';
-    bool isOnboarded = true;
+    textTheme = Theme.of(context).textTheme;
     return Scaffold(
-      body: buildBody(tab, isOnboarded),);
+      appBar: AppBar(
+          backgroundColor: AppColors.white,
+          title: LanternLogo(
+            isPro: isUserPro,
+          ),
+          bottom: PreferredSize(
+            preferredSize: Size.fromHeight(0),
+            child: DividerSpace(padding: EdgeInsets.zero),
+          ),
+          elevation: 5,
+          leading: IconButton(
+              onPressed: () {
+                appRouter.push(const Setting());
+              },
+              icon: const AppImage(path: AppImagePaths.menu))),
+      body: _buildBody(),
+    );
   }
 
-  Widget buildBody(String selectedTab, bool? isOnboarded) {
-    return TunWidget(isVPNRunning: _isVPNRunning, ffiClient: _ffiClient);
+  Widget _buildBody() {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: defaultSize),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          if (isUserPro) SizedBox(height: 0) else ProBanner(),
+          VPNSwitch(),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              DataUsage(),
+              SizedBox(height: 8),
+              _buildSetting(),
+              SizedBox(height: 20.h),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSetting() {
+    return Container(
+      decoration: BoxDecoration(boxShadow: [
+        BoxShadow(
+          color: AppColors.shadowColor,
+          blurRadius: 32,
+          offset: Offset(0, 4),
+          spreadRadius: 0,
+        )
+      ]),
+      child: Card(
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        child: Column(
+          children: [
+            SettingTile(
+              label: 'vpn_status'.i18n,
+              value: VPNStatus.disconnected.name.capitalize,
+              icon: AppImagePaths.glob,
+              actions: [
+                VPNStatusIndicator(status: VPNStatus.disconnected),
+              ],
+            ),
+            DividerSpace(),
+            SettingTile(
+              label: 'smart_location'.i18n,
+              value: 'Fastest Country',
+              icon: AppImagePaths.location,
+              actions: [
+                AppImage(path: AppImagePaths.blot),
+                SizedBox(width: 8),
+                IconButton(
+                  onPressed: () {
+                    appRouter.push(const ServerSelection());
+                  },
+                  style: ElevatedButton.styleFrom(
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  icon: AppImage(path: AppImagePaths.verticalDots),
+                  padding: EdgeInsets.zero,
+                  // iconSize: 10,
+                  constraints: BoxConstraints(),
+                  visualDensity: VisualDensity.compact,
+                )
+              ],
+              onTap: () => onSettingTileTap(_SettingTileType.smartLocation),
+            ),
+            DividerSpace(),
+            SettingTile(
+              label: 'split_tunneling'.i18n,
+              icon: AppImagePaths.callSpilt,
+              value: 'Enabled',
+              actions: [
+                IconButton(
+                  onPressed: () {},
+                  style: ElevatedButton.styleFrom(
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  icon: AppImage(path: AppImagePaths.verticalDots),
+                  padding: EdgeInsets.zero,
+                  constraints: BoxConstraints(),
+                  visualDensity: VisualDensity.compact,
+                )
+              ],
+              onTap: () => onSettingTileTap(_SettingTileType.splitTunneling),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void onSettingTileTap(_SettingTileType tileType) {
+    switch (tileType) {
+      case _SettingTileType.smartLocation:
+        appRouter.push(const ServerSelection());
+        break;
+      case _SettingTileType.splitTunneling:
+        break;
+    }
   }
 }

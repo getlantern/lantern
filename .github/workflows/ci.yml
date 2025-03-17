@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     steps:
       - name: Checkout repository
@@ -26,7 +26,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            ~/.cache/go-build
+            ~/Library/Caches/go-build
             ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
 
@@ -34,4 +34,4 @@ jobs:
         run: go mod download
 
       - name: Run tests
-        run: go test -v ./...
+        run: CGO_ENABLED=1 GOOS=ios go test -v ./...

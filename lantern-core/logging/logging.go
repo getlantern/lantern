@@ -1,0 +1,125 @@
+package logging
+
+import (
+	"bufio"
+	"context"
+	"fmt"
+	"io"
+	"os"
+
+	"github.com/fsnotify/fsnotify"
+)
+
+// LogHandler is a function that handles new log messages.
+type LogHandler func(string)
+
+// WatchLogFile watches the log file for changes and sends new lines to Dart.
+func WatchLogFile(ctx context.Context, filePath string, logHandler LogHandler) error {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return fmt.Errorf("error opening log file: %w", err)
+	}
+	defer file.Close()
+
+	// Move to the end of the file
+	offset, err := file.Seek(0, io.SeekEnd)
+	if err != nil {
+		return fmt.Errorf("error seeking log file: %w", err)
+	}
+
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		return fmt.Errorf("error creating file watcher: %w", err)
+	}
+	defer watcher.Close()
+
+	// Add file to watcher
+	err = watcher.Add(filePath)
+	if err != nil {
+		return fmt.Errorf("error watching file: %w", err)
+	}
+
+	reader := bufio.NewReader(file)
+
+	// Listen for file changes.
+	for {
+		select {
+		// Handle context cancellation
+		case <-ctx.Done():
+			return ctx.Err()
+		case event, ok := <-watcher.Events:
+			if !ok {
+				return nil
+			}
+			// If the file is modified, read new lines.
+			if event.Op&fsnotify.Write == fsnotify.Write {
+				offset = readNewLogLines(file, reader, offset, logHandler)
+			}
+		case err, ok := <-watcher.Errors:
+			if !ok {
+				return nil
+			}
+			fmt.Println("Error watching file:", err)
+		}
+	}
+}
+
+// readNewLogLines reads new lines from the open file and calls logHandler on each line.
+func readNewLogLines(file *os.File, reader *bufio.Reader, lastOffset int64, logHandler LogHandler) int64 {
+	// Get the current file size.
+	fileInfo, err := file.Stat()
+	if err != nil {
+		fmt.Println("Error getting file info:", err)
+		return lastOffset
+	}
+
+	// If the file was truncated, reset the offset.
+	if fileInfo.Size() < lastOffset {
+		fmt.Println("Log file was truncated, resetting offset to 0")
+		file.Seek(0, os.SEEK_SET)
+		lastOffset = 0
+	}
+
+	// Move to the last known offset.
+	file.Seek(lastOffset, os.SEEK_SET)
+
+	for {
+		line, err := reader.ReadString('\n')
+		if err != nil {
+			break
+		}
+		logHandler(line)
+	}
+
+	// Update the offset for the next read.
+	newOffset, _ := file.Seek(0, os.SEEK_CUR)
+	return newOffset
+}
+
+// ReadLastLines reads the last `n` lines of a file and sends them to the logHandler.
+func ReadLastLines(filePath string, n int) ([]string, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("error opening log file: %w", err)
+	}
+	defer file.Close()
+
+	lines := []string{}
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+
+	// Handle scanning errors.
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("error reading log file: %w", err)
+	}
+
+	// Determine how many lines to return.
+	start := 0
+	if len(lines) > n {
+		start = len(lines) - n
+	}
+
+	return lines[start:], nil
+}
