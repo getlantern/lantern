@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"path/filepath"
 
 	"github.com/getlantern/radiance"
 )
@@ -20,11 +21,18 @@ type VPNServer interface {
 
 // NewVPNServer initializes radiances and returns a new instance of vpnServer
 func NewVPNServer(opts *Opts) (VPNServer, error) {
-	r, err := radiance.NewRadiance()
+	r, err := radiance.NewRadiance(opts.BaseDir)
 	if err != nil {
 		return nil, err
 	}
 	opts.Radiance = r
+
+	// configure logging
+	logFile := filepath.Join(opts.BaseDir, "lantern.log")
+	if err := configureLogging(context.Background(), logFile, opts.LogPort); err != nil {
+		log.Errorf("Error configuring logging: %v", err)
+	}
+
 	return newVPNServer(opts), nil
 }
 
@@ -33,8 +41,13 @@ func (s *vpnServer) Start(ctx context.Context) error {
 	if s.IsVPNConnected() {
 		return errors.New("VPN already running")
 	}
+
+	if err := s.radiance.StartVPN(); err != nil {
+		return err
+	}
+
 	s.setConnected(true)
-	return s.radiance.StartVPN()
+	return nil
 }
 
 // Stop stops radiance and the VPN server.

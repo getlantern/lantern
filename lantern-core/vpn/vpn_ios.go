@@ -7,7 +7,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 
 	"github.com/getlantern/kindling"
 	localconfig "github.com/getlantern/lantern-outline/config"
@@ -76,7 +75,7 @@ func (srv *vpnServer) startTun2Socks(ctx context.Context, bridge IOSBridge) erro
 	}
 	tunWriter := &osWriter{bridge.ProcessOutboundPacket}
 	if err := srv.tunnel.Start(dialer, tunWriter); err != nil {
-		log.Printf("Error starting tunnel: %v", err)
+		log.Errorf("Error starting tunnel: %v", err)
 		return err
 	}
 	defer srv.broadcastStatus()
