@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/providers/ffi_provider.dart';
 import 'package:lantern/core/providers/native_bridge_provider.dart';
@@ -24,7 +25,9 @@ class VpnNotifier extends _$VpnNotifier {
         break;
       case VPNStatus.disconnected:
         state = VPNStatus.connecting;
-        await _connectVPN();
+        HapticFeedback.lightImpact();
+       await Future.delayed(const Duration(seconds: 2));
+        // await _connectVPN();
         state = VPNStatus.connected;
         break;
       case VPNStatus.connecting:

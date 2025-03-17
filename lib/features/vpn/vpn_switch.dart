@@ -1,11 +1,8 @@
 import 'package:animated_toggle_switch/animated_toggle_switch.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/providers/ffi_provider.dart';
-import 'package:lantern/core/providers/native_bridge_provider.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 
 class VPNSwitch extends HookConsumerWidget {
@@ -26,8 +23,7 @@ class VPNSwitch extends HookConsumerWidget {
       iconBuilder: (context, local, global) {
         return SizedBox();
       },
-      onTap: (props) =>
-          ref.read(vpnNotifierProvider.notifier).onVPNStateChange(),
+      onTap: (props) => onVPNStateChange(ref),
       foregroundIndicatorBuilder: (context, global) {
         if (_vpnStatus == VPNStatus.connecting) {
           return Container(
@@ -64,6 +60,9 @@ class VPNSwitch extends HookConsumerWidget {
     );
   }
 
+  void onVPNStateChange(WidgetRef ref) {
+    ref.read(vpnNotifierProvider.notifier).onVPNStateChange();
+  }
 
   Color _wrapperColor(VPNStatus vpnStatus) {
     appLogger.debug("VPN Status: $vpnStatus");
@@ -75,8 +74,6 @@ class VPNSwitch extends HookConsumerWidget {
         return AppColors.gray7;
       case VPNStatus.disconnecting:
         return AppColors.gray1;
-
     }
-
   }
 }
