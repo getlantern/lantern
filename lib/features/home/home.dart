@@ -41,7 +41,7 @@ class _HomeState extends State<Home> {
           elevation: 5,
           leading: IconButton(
               onPressed: () {
-                appRouter.push(const Setting());
+                appRouter.push( Setting());
               },
               icon: const AppImage(path: AppImagePaths.menu))),
       body: _buildBody(),

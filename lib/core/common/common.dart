@@ -7,7 +7,7 @@ export 'package:lantern/core/common/app_asset.dart';
 export 'package:lantern/core/common/app_colors.dart';
 export 'package:lantern/core/common/app_dimens.dart';
 export 'package:lantern/core/common/app_eum.dart';
-export 'package:lantern/core/common/app_extension.dart';
+
 
 // Utils
 export 'package:lantern/core/common/platfrom_utils.dart';
@@ -35,5 +35,12 @@ export 'package:lantern/core/router/router.gr.dart';
 
 // DB
 export 'package:lantern/core/services/local_storage.dart';
+
+// Extensions
+export 'package:lantern/core/extensions/string.dart';
+export 'package:lantern/core/extensions/context.dart';
+
+//Logger
+export 'package:lantern/core/services/logger_service.dart';
 
 AppRouter get appRouter => sl<AppRouter>();
