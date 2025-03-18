@@ -19,7 +19,7 @@ RUN apt-get update && apt-get install -y \
     liblzma-dev \
     xz-utils \
     && rm -rf /var/lib/apt/lists/*
-    
+
 # Install Flutter Linux dependencies
 RUN apt-get update && apt-get install -y \
     ninja-build \
