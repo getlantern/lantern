@@ -25,4 +25,9 @@ class LanternService implements LanternCoreService {
     // TODO: implement stopVPN
     throw UnimplementedError();
   }
+
+  @override
+  void setupRadiance() {
+    // TODO: implement setupRadiance
+  }
 }

@@ -133,7 +133,7 @@ func testConnect(ctx context.Context, cfg *config.Config, user *user.User, strea
 func loadConfig(ctx context.Context, k kindling.Kindling, user *user.User, configPath string) *config.Config {
 	if configPath == "" {
 		confHandler := config.NewConfigHandler(configPollInterval, k.NewHTTPClient(), user)
-		cfg, err := confHandler.GetConfig(ctx)
+		cfg, _, err := confHandler.GetConfig(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}

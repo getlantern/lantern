@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/getlantern/lantern-outline/lantern-core/empty"
 	"github.com/getlantern/radiance"
 )
 
@@ -21,7 +22,9 @@ type VPNServer interface {
 
 // NewVPNServer initializes radiances and returns a new instance of vpnServer
 func NewVPNServer(opts *Opts) (VPNServer, error) {
-	r, err := radiance.NewRadiance(opts.BaseDir)
+	platform := empty.EmptyPlatform{}
+
+	r, err := radiance.NewRadiance(platform)
 	if err != nil {
 		return nil, err
 	}
@@ -60,4 +63,7 @@ func (s *vpnServer) Stop() error {
 		return err
 	}
 	return nil
+}
+
+func main() {
 }

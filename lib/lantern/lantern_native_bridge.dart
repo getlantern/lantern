@@ -13,4 +13,9 @@ class LanternNativeBridge implements LanternCoreService{
     // TODO: implement stopVPN
   }
 
+  @override
+  void setupRadiance() {
+    // TODO: implement setupRadiance
+  }
+
 }

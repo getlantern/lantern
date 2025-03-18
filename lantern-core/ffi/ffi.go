@@ -15,22 +15,47 @@ import (
 
 	"github.com/getlantern/golog"
 	"github.com/getlantern/lantern-outline/lantern-core/dart_api_dl"
+	"github.com/getlantern/lantern-outline/lantern-core/empty"
 	"github.com/getlantern/lantern-outline/lantern-core/vpn"
+	"github.com/getlantern/radiance"
 )
 
 var (
-	baseDir  string
-	logPort  int64
-	server   vpn.VPNServer
-	serverMu sync.Mutex
-
-	setupOnce sync.Once
+	baseDir        string
+	logPort        int64
+	server         vpn.VPNServer
+	serverMu       sync.Mutex
+	setupOnce      sync.Once
+	radianceMu     sync.Mutex
+	radianceServer *radiance.Radiance
 
 	log = golog.LoggerFor("lantern-outline.ffi")
 )
 
-//export setup
-func setup(dir *C.char, port C.int64_t, api unsafe.Pointer) {
+// setupRadiance initializes the Radiance
+//
+//export setupRadiance
+func setupRadiance() *C.char {
+	radianceMu.Lock()
+	defer radianceMu.Unlock()
+	log.Debug("setupRadiance called")
+	platform := empty.EmptyPlatform{}
+	r, err := radiance.NewRadiance(platform)
+	if err != nil {
+		log.Errorf("Unable to create Radiance: %v", err)
+		return SendError(err)
+	}
+	radianceServer = r
+	log.Debug("Radiance setup successfully")
+	return C.CString("true")
+}
+
+
+
+// this used for settting things for logs such as logs directory and port
+//
+//export setupLogging
+func setupLogging(dir *C.char, port C.int64_t, api unsafe.Pointer) {
 	serverMu.Lock()
 	defer serverMu.Unlock()
 

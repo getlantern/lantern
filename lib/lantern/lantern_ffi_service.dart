@@ -1,11 +1,15 @@
 import 'dart:ffi';
 import 'dart:io';
-
+export 'package:ffi/src/utf8.dart';
+import 'package:ffi/ffi.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_generated_bindings.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:path/path.dart' as p;
+export 'dart:convert';
+export 'dart:ffi'; // For FFI
+export 'package:ffi/src/utf8.dart';
 
 const String _libName = 'liblantern';
 
@@ -36,5 +40,17 @@ class LanternFFIService implements LanternCoreService {
   @override
   void stopVPN() {
     // TODO: implement stopVPN
+  }
+
+  @override
+  void setupRadiance() {
+    try{
+      appLogger.debug('Setting up radiance');
+     final result =  _ffiService.setupRadiance(). cast<Utf8>().toDartString();
+      appLogger.debug('Radiance setup result: $result');
+    }catch(e){
+      appLogger.error('Error while setting up radiance: $e');
+    }
+
   }
 }
