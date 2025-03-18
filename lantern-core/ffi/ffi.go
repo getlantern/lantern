@@ -8,22 +8,17 @@ package main
 import "C"
 
 import (
-	"context"
-	"fmt"
 	"sync"
 	"unsafe"
 
 	"github.com/getlantern/golog"
-	"github.com/getlantern/lantern-outline/lantern-core/dart_api_dl"
 	"github.com/getlantern/lantern-outline/lantern-core/empty"
-	"github.com/getlantern/lantern-outline/lantern-core/vpn"
 	"github.com/getlantern/radiance"
 )
 
 var (
 	baseDir        string
 	logPort        int64
-	server         vpn.VPNServer
 	serverMu       sync.Mutex
 	setupOnce      sync.Once
 	radianceMu     sync.Mutex
@@ -38,7 +33,7 @@ var (
 func setupRadiance() *C.char {
 	radianceMu.Lock()
 	defer radianceMu.Unlock()
-	
+
 	log.Debug("setupRadiance called")
 	platform := empty.EmptyPlatform{}
 	log.Debug("empty platform created")
@@ -61,11 +56,6 @@ func setupLogging(dir *C.char, port C.int64_t, api unsafe.Pointer) {
 
 	baseDir = C.GoString(dir)
 	logPort = int64(port)
-
-	setupOnce.Do(func() {
-		// initialize the Dart API DL bridge.
-		dart_api_dl.Init(api)
-	})
 }
 
 // startVPN initializes and starts the VPN server if it is not already running.
@@ -77,24 +67,6 @@ func startVPN() *C.char {
 	serverMu.Lock()
 	defer serverMu.Unlock()
 
-	if server == nil {
-		s, err := vpn.NewVPNServer(&vpn.Opts{
-			BaseDir: baseDir,
-			LogPort: logPort,
-		})
-		if err != nil {
-			err = fmt.Errorf("unable to create VPN server: %v", err)
-			log.Error(err)
-			return C.CString(err.Error())
-		}
-
-		server = s
-	}
-
-	if err := start(context.Background()); err != nil {
-		err = fmt.Errorf("unable to start vpn server: %v", err)
-		return C.CString(err.Error())
-	}
 	log.Debug("VPN server started successfully")
 	return nil
 }
@@ -108,17 +80,6 @@ func stopVPN() *C.char {
 	serverMu.Lock()
 	defer serverMu.Unlock()
 
-	if server == nil {
-		log.Debug("VPN server is not running")
-		return nil
-	}
-
-	if err := server.Stop(); err != nil {
-		err = fmt.Errorf("unable to stop VPN server: %v", err)
-		log.Error(err)
-		return C.CString(err.Error())
-	}
-
 	log.Debug("VPN server stopped successfully")
 	return nil
 }
@@ -129,10 +90,6 @@ func stopVPN() *C.char {
 func isVPNConnected() int {
 	serverMu.Lock()
 	defer serverMu.Unlock()
-
-	if server == nil || !server.IsVPNConnected() {
-		return 0
-	}
 
 	return 1
 }
