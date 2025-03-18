@@ -38,8 +38,10 @@ var (
 func setupRadiance() *C.char {
 	radianceMu.Lock()
 	defer radianceMu.Unlock()
+	
 	log.Debug("setupRadiance called")
 	platform := empty.EmptyPlatform{}
+	log.Debug("empty platform created")
 	r, err := radiance.NewRadiance(platform)
 	if err != nil {
 		log.Errorf("Unable to create Radiance: %v", err)
@@ -49,8 +51,6 @@ func setupRadiance() *C.char {
 	log.Debug("Radiance setup successfully")
 	return C.CString("true")
 }
-
-
 
 // this used for settting things for logs such as logs directory and port
 //

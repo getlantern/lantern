@@ -131,3 +131,6 @@ ffigen:
   headers:
     entry-points:
       - "bin/liblantern.h"
+  exclude:
+    enums:
+      - 'idtype_t'
