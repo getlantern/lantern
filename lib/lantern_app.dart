@@ -60,9 +60,9 @@ class _LanternAppState extends ConsumerState<LanternApp> {
       if (segment.length >= 2) {
         final description = segment[1];
         return DeepLink(
-            [const Home(), ReportIssue(description: '#$description')]);
+            [ Home(), ReportIssue(description: '#$description')]);
       }
-      return DeepLink([const Home(), ReportIssue()]);
+      return DeepLink([ Home(), ReportIssue()]);
     } else {
       return DeepLink.defaultPath;
     }

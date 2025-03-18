@@ -1,8 +1,10 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
 import 'package:lantern/core/widgets/vpn_status_indicator.dart';
+import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/vpn/vpn_switch.dart';
 
 import '../../core/common/common.dart';
@@ -13,20 +15,16 @@ enum _SettingTileType {
 }
 
 @RoutePage(name: 'Home')
-class Home extends StatefulWidget {
-  const Home({super.key});
+class Home extends HookConsumerWidget {
+  Home({super.key});
 
-  @override
-  State<Home> createState() => _HomeState();
-}
-
-class _HomeState extends State<Home> {
   TextTheme? textTheme;
 
   final isUserPro = false;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final result = ref.read(homeNotifierProvider);
     textTheme = Theme.of(context).textTheme;
     return Scaffold(
       appBar: AppBar(
@@ -41,7 +39,7 @@ class _HomeState extends State<Home> {
           elevation: 5,
           leading: IconButton(
               onPressed: () {
-                appRouter.push( Setting());
+                appRouter.push(Setting());
               },
               icon: const AppImage(path: AppImagePaths.menu))),
       body: _buildBody(),

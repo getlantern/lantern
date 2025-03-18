@@ -1,3 +1,5 @@
+import 'package:fpdart/src/either.dart';
+import 'package:fpdart/src/unit.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_ffi_service.dart';
 import 'package:lantern/lantern/lantern_native_bridge.dart';
@@ -27,7 +29,9 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  void setupRadiance() {
-    // TODO: implement setupRadiance
+  Future<Either<String, Unit>> setupRadiance() {
+    return ffiService.setupRadiance();
   }
+
+
 }

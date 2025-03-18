@@ -118,10 +118,13 @@ class FollowUsArgs {
 
 /// generated route for
 /// [_i5.Home]
-class Home extends _i14.PageRouteInfo<void> {
-  const Home({List<_i14.PageRouteInfo>? children})
-      : super(
+class Home extends _i14.PageRouteInfo<HomeArgs> {
+  Home({
+    _i15.Key? key,
+    List<_i14.PageRouteInfo>? children,
+  }) : super(
           Home.name,
+          args: HomeArgs(key: key),
           initialChildren: children,
         );
 
@@ -130,9 +133,21 @@ class Home extends _i14.PageRouteInfo<void> {
   static _i14.PageInfo page = _i14.PageInfo(
     name,
     builder: (data) {
-      return const _i5.Home();
+      final args = data.argsAs<HomeArgs>(orElse: () => const HomeArgs());
+      return _i5.Home(key: args.key);
     },
   );
+}
+
+class HomeArgs {
+  const HomeArgs({this.key});
+
+  final _i15.Key? key;
+
+  @override
+  String toString() {
+    return 'HomeArgs{key: $key}';
+  }
 }
 
 /// generated route for

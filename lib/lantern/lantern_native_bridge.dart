@@ -1,4 +1,6 @@
 import 'package:flutter/services.dart';
+import 'package:fpdart/src/either.dart';
+import 'package:fpdart/src/unit.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 
 class LanternNativeBridge implements LanternCoreService{
@@ -14,8 +16,11 @@ class LanternNativeBridge implements LanternCoreService{
   }
 
   @override
-  void setupRadiance() {
+  Future<Either<String, Unit>> setupRadiance() {
     // TODO: implement setupRadiance
+    throw UnimplementedError();
   }
+
+
 
 }

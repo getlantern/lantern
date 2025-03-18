@@ -1,14 +1,18 @@
 import 'dart:ffi';
 import 'dart:io';
-export 'package:ffi/src/utf8.dart';
+import 'dart:isolate';
+
 import 'package:ffi/ffi.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_generated_bindings.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:path/path.dart' as p;
+
 export 'dart:convert';
 export 'dart:ffi'; // For FFI
+
 export 'package:ffi/src/utf8.dart';
 
 const String _libName = 'liblantern';
@@ -43,14 +47,19 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  void setupRadiance() {
-    try{
+  Future<Either<String,Unit>> setupRadiance() async {
+    try {
       appLogger.debug('Setting up radiance');
-     final result =  _ffiService.setupRadiance(). cast<Utf8>().toDartString();
+      final result = await Isolate.run(
+        () {
+          return _ffiService.setupRadiance().cast<Utf8>().toDartString();
+        },
+      );
       appLogger.debug('Radiance setup result: $result');
-    }catch(e){
+      return right(unit);
+    } catch (e) {
       appLogger.error('Error while setting up radiance: $e');
+      return left('Error while setting up radiance');
     }
-
   }
 }
