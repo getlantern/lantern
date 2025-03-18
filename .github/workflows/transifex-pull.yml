@@ -16,16 +16,18 @@ jobs:
     - name: Granting private modules access
       run: |
           git config --global url."https://${{ secrets.CI_PRIVATE_REPOS_GH_TOKEN }}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
-    - uses: actions/checkout@v4
 
-    - name: "Pull new translations"
-      env:
-          TX_TOKEN: ${{ secrets.TRANSIFEX_TOKEN }}
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: "Pull translations file"
+      uses: transifex/cli-action@v2
+      with:
+        token: ${{ secrets.TRANSIFEX_TOKEN }}
+        args: pull
+
+    - name: "Update translations"
       run: |
-        curl -o- https://raw.githubusercontent.com/transifex/cli/master/install.sh | bash
-        source /home/runner/.bashrc
-        export PATH="/home/runner/work/lantern-client/lantern-client:$PATH"
-        tx pull -af -minimum-perc 80
         git config user.name git
         git config user.email github-actions@github.com
         git ls-files --modified assets/locales | xargs git add

@@ -98,7 +98,6 @@ msgstr "MB"
 msgid "vpn_status"
 msgstr "VPN Status"
 
-
 msgid "telegram"
 msgstr "Telegram"
 
