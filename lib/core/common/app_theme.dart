@@ -38,14 +38,12 @@ class AppTheme {
         ),
         titleSpacing: 0,
         elevation: 0,
-
         backgroundColor: AppColors.gray1,
         systemOverlayStyle: SystemUiOverlayStyle(
           statusBarColor: AppColors.white,
           statusBarBrightness: Brightness.light,
           statusBarIconBrightness: Brightness.dark,
           systemNavigationBarColor: AppColors.gray1,
-
         ),
         iconTheme: IconThemeData(
           color: AppColors.blue10,
@@ -53,7 +51,7 @@ class AppTheme {
       ),
       primaryColor: AppColors.blue10,
       scaffoldBackgroundColor: AppColors.gray1,
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 0,
         margin: EdgeInsets.zero,
         color: AppColors.white,
