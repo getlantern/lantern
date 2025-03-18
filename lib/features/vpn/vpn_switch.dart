@@ -23,7 +23,7 @@ class VPNSwitch extends HookConsumerWidget {
       iconBuilder: (context, local, global) {
         return SizedBox();
       },
-      onTap: (props) => onVPNStateChange(ref),
+      onTap: (newValue) => onVPNStateChange(ref, context),
       foregroundIndicatorBuilder: (context, global) {
         if (_vpnStatus == VPNStatus.connecting) {
           return Container(
@@ -60,8 +60,14 @@ class VPNSwitch extends HookConsumerWidget {
     );
   }
 
-  void onVPNStateChange(WidgetRef ref) {
-    ref.read(vpnNotifierProvider.notifier).onVPNStateChange();
+  Future<void> onVPNStateChange(
+      WidgetRef ref, BuildContext context) async {
+    final result = await ref.read(vpnNotifierProvider.notifier).onVPNStateChange();
+
+    result.fold(
+      (failure) => context.showSnackBarError(failure.localizedErrorMessage),
+      (_) => null,
+    );
   }
 
   Color _wrapperColor(VPNStatus vpnStatus) {

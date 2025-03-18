@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/providers/ffi_provider.dart';
 import 'package:lantern/core/providers/native_bridge_provider.dart';
@@ -15,70 +16,68 @@ class VpnNotifier extends _$VpnNotifier {
     return state;
   }
 
-  Future<void> onVPNStateChange() async {
-    switch (state) {
-      case VPNStatus.connected:
-        state = VPNStatus.disconnecting;
-        stopVPN();
-        state = VPNStatus.disconnected;
-        break;
-      case VPNStatus.disconnected:
-        state = VPNStatus.connecting;
-        await _connectVPN();
-        state = VPNStatus.connected;
-        break;
-      case VPNStatus.connecting:
-        state = VPNStatus.disconnected;
-        break;
-      case VPNStatus.disconnecting:
-        state = VPNStatus.disconnected;
-        break;
+  Future<Either<Failure, Unit>> onVPNStateChange() async {
+    if (state == VPNStatus.connecting || state == VPNStatus.disconnecting) {
+      return Right(unit);
     }
+    return state == VPNStatus.disconnected ? _connectVPN() : stopVPN();
   }
 
-  Future<void> _connectVPN() async {
-    if (PlatformUtils.isDesktop()) {
-      try {
-        final ffiClient = ref.read(ffiClientProvider).value;
-        final error = ffiClient!.startVPN();
-        if (error != null) {
-          throw Exception();
-        } else {
-          await Future.delayed(const Duration(seconds: 1));
-          state = VPNStatus.connected;
-        }
-      } catch (e) {
-        appLogger.error("Error connecting to vpn: $e");
-      }
-      return;
-    }
-
-    if (Platform.isIOS && ref.read(nativeBridgeProvider) != null) {
-      final error = await ref.read(nativeBridgeProvider)?.startVPN();
+  Future<Either<Failure, Unit>> _connectVPN() async {
+    state = VPNStatus.connecting;
+    try {
+      final error = await _startVPN();
       if (error != null) {
         state = VPNStatus.disconnected;
-      } else {
-        await Future.delayed(const Duration(seconds: 1));
-        state = VPNStatus.connected;
+        return Left(Failure(error: error, localizedErrorMessage: error));
       }
+      await Future.delayed(const Duration(seconds: 1));
+      state = VPNStatus.connected;
+      return Right(unit);
+    } catch (e) {
+      appLogger.error("Error connecting to VPN: $e");
+      state = VPNStatus.disconnected;
+      return Left(
+          Failure(error: e.toString(), localizedErrorMessage: e.toString()));
     }
   }
 
-  void stopVPN() async {
+  Future<String?> _startVPN() async {
     if (PlatformUtils.isDesktop()) {
       final ffiClient = ref.read(ffiClientProvider).value;
-      final error = ffiClient!.stopVPN();
-      if (error != null) {
-        appLogger.error("Error stopping vpn: $error");
-      }
-      return;
+      return ffiClient!.startVPN();
+    } else if (Platform.isIOS) {
+      final nativeBridge = ref.read(nativeBridgeProvider);
+      return await nativeBridge?.startVPN();
     }
+    throw UnsupportedError('VPN is not supported on this platform.');
+  }
 
-    if (Platform.isIOS && ref.read(nativeBridgeProvider) != null) {
-      final error = await ref.read(nativeBridgeProvider)?.stopVPN();
+  Future<Either<Failure, Unit>> stopVPN() async {
+    try {
+      final error = await _stopVPN();
       if (error != null) {
-        appLogger.error("Error stopping vpn: $error");
+        state = VPNStatus.connected;
+        appLogger.error("Error stopping VPN: $error");
+        return Left(Failure(error: error, localizedErrorMessage: error));
       }
+      state = VPNStatus.disconnected;
+      return Right(unit);
+    } catch (e) {
+      appLogger.error("Error stopping VPN: $e");
+      return Left(
+          Failure(error: e.toString(), localizedErrorMessage: e.toString()));
     }
+  }
+
+  Future<String?> _stopVPN() async {
+    if (PlatformUtils.isDesktop()) {
+      final ffiClient = ref.read(ffiClientProvider).value;
+      return ffiClient?.stopVPN();
+    } else if (Platform.isIOS) {
+      final nativeBridge = ref.read(nativeBridgeProvider);
+      return await nativeBridge?.stopVPN();
+    }
+    throw UnsupportedError('VPN is not supported on this platform.');
   }
 }

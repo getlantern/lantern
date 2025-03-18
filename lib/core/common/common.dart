@@ -13,6 +13,7 @@ export 'package:lantern/core/common/app_eum.dart';
 export 'package:lantern/core/common/platfrom_utils.dart';
 export 'package:lantern/core/common/app_urls.dart';
 export 'package:lantern/core/common/app_theme.dart';
+export 'package:lantern/core/utils/failure.dart';
 
 // UI
 export 'package:lantern/core/widgets/lantern_logo.dart';
