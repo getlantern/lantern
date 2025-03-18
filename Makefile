@@ -67,29 +67,6 @@ macos-release: clean macos pubget gen
 	flutter build macos --release
 
 # Linux Build
-.PHONY: install-deps-linux
-install-deps-linux:
-	@echo "Installing dependencies on Linux..."
-	sudo apt update && sudo apt install -y \
-		curl \
-		git \
-		unzip \
-		xz-utils \
-		libglu1-mesa \
-		libgtk-3-dev \
-		libpulse-dev
-
-	if ! command -v flutter >/dev/null; then \
-	  echo "Flutter not found. Installing latest version of Flutter..."; \
-	  curl -fsSL https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.29.2-stable.tar.xz | tar -xJ; \
-	  sudo mv flutter /opt/flutter; \
-	  git config --global --add safe.directory /opt/flutter; \
-	  echo 'export PATH="/opt/flutter/bin:$${PATH}"' >> ~/.bashrc; \
-	  echo "Flutter installed successfully."; \
-	else \
-	  echo "Flutter is already installed."; \
-	fi
-
 .PHONY: linux-arm64
 linux-arm64: $(LINUX_LIB_ARM64)
 
