@@ -41,4 +41,15 @@ class AppImagePaths {
   static const verticalDots = 'assets/images/vertical_dots.svg';
   static const instagram = 'assets/images/instagram.svg';
   static const x = 'assets/images/x.svg';
+
+  // static const lanternDarkDisconnected =
+  //     'assets/images/tray_dark_disconnected.png';
+  // static const lanternDarkConnected = 'assets/images/tray_dark_connected.png';
+  static const lanternConnectedIco = 'assets/images/lantern_connected.ico';
+  static const lanternConnected = 'assets/images/lantern_connected.png';
+  static const lanternDisconnectedIco = 'assets/images/lantern_disconnected.ico';
+  static const lanternDisconnected = 'assets/images/lantern_disconnected.png';
+  static const lanternDarkDisconnected = 'assets/images/tray_dark_disconnected.png';
+  static const lanternDarkConnected = 'assets/images/tray_dark_connected.png';
+
 }
