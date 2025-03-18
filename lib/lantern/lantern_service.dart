@@ -1,0 +1,28 @@
+import 'package:lantern/lantern/lantern_core_service.dart';
+import 'package:lantern/lantern/lantern_ffi_service.dart';
+import 'package:lantern/lantern/lantern_native_bridge.dart';
+
+///LanternService is wrapper around native and ffi services
+/// all communication happens here
+class LanternService implements LanternCoreService {
+  final LanternFFIService ffiService;
+
+  final LanternNativeBridge nativeBridge;
+
+  LanternService({
+    required this.ffiService,
+    required this.nativeBridge,
+  });
+
+  @override
+  Future<void> startVPN() {
+    // TODO: implement startVPN
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> stopVPN() {
+    // TODO: implement stopVPN
+    throw UnimplementedError();
+  }
+}

@@ -1,4 +1,4 @@
-.PHONY: gen macos
+.PHONY: gen macos ffi
 
 OUT_DIR := bin
 
@@ -58,6 +58,10 @@ update-dart-api-dl:
 #Routes generation
 gen:
 	dart run build_runner build --delete-conflicting-outputs
+
+#FFI generation
+ffi:
+	dart run ffigen
 
 
 find-duplicate-translations:
