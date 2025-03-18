@@ -56,6 +56,7 @@ dependencies:
   i18n_extension: ^15.0.4
   i18n_extension_importer: ^0.0.6
   intl: ^0.19.0
+  meta: ^1.16.0
 
   #Images
   flutter_svg: ^2.0.17
