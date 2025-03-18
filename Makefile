@@ -59,5 +59,9 @@ update-dart-api-dl:
 gen:
 	dart run build_runner build --delete-conflicting-outputs
 
+
+find-duplicate-translations:
+	grep -oE 'msgid\s+"[^"]+"' assets/locales/en.po | sort | uniq -d
+
 clean:
 	rm -rf $(OUT_DIR)/*
