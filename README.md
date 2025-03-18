@@ -10,22 +10,6 @@ Censorship circumvention tool available for free download on any operating syste
 
 ![cover page](https://github.com/getlantern/.github/blob/main/resources/cover_page.png)
 
-# Overview of iOS VPN implementation
-
-The iOS app utilizes NEPacketTunnelProvider in Swift to manage the VPN tunnel and handle network packet capture.
-
-It integrates with a Go-based lwIP stack through FFI, allowing seamless communication between the two languages.
-
-The VPN application is divided into four components:
-
-- [Go backend](vpn): Handles the core networking logic using go-tun2socks’s LWIPStack, a lightweight IP stack for handling network packets and managing TCP/UDP connections
-- [Swift Bridge](ios/Runner): Intermediary between the Go backend and iOS.
-- [Packet Tunnel Provider](ios/Tunnel) (iOS): Manages the VPN session and interfaces with the iOS networking stack.
-- [Dart/Flutter Frontend](lib): Provides the user interface, allowing users to control the VPN via a simple UI.
-- [Dart API DL bridge](lantern-core/dart_api_dl) The Dart API DL bridge is used to send messages from Go to Dart. It uses Dart’s native message passing (SendPort) and allows Go to push log messages (or other events) directly into Dart without blocking the main isolate. It currently facilitates streaming diagnostic logs.
-
-The Go backend makes use of StreamDialer & PacketListener from the Outline SDK to manage TCP streams and UDP packets, which facilitates communication between the client and a proxy server.
-
 # Build and run the app on macOS
 ```
 make macos

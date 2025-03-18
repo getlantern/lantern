@@ -8,7 +8,7 @@ require (
 	github.com/fsnotify/fsnotify v1.8.0
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
 	github.com/getlantern/kindling v0.0.0-20250224181615-944349e3e260
-	github.com/getlantern/radiance v0.0.0-20250314213455-dbf23f9604c2
+	github.com/getlantern/radiance v0.0.0-20250317232030-815ad0588140
 	google.golang.org/protobuf v1.36.5
 )
 
@@ -19,6 +19,7 @@ require (
 	github.com/alexflint/go-scalar v1.2.0 // indirect
 	github.com/alitto/pond/v2 v2.2.0 // indirect
 	github.com/andybalholm/brotli v1.1.1 // indirect
+	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/caddyserver/certmagic v0.22.0 // indirect
 	github.com/caddyserver/zerossl v0.1.3 // indirect
 	github.com/cloudflare/circl v1.6.0 // indirect
@@ -40,12 +41,15 @@ require (
 	github.com/getlantern/hex v0.0.0-20220104173244-ad7e4b9194dc // indirect
 	github.com/getlantern/hidden v0.0.0-20220104173330-f221c5a24770 // indirect
 	github.com/getlantern/iptool v0.0.0-20230112135223-c00e863b2696 // indirect
+	github.com/getlantern/jibber_jabber v0.0.0-20210901195950-68955124cc42 // indirect
 	github.com/getlantern/keepcurrent v0.0.0-20240126172110-2e0264ca385d // indirect
 	github.com/getlantern/keyman v0.0.0-20230503155501-4e864ca2175b // indirect
 	github.com/getlantern/lantern-algeneva v0.0.0-20240930181006-6d3c00db1d5d // indirect
 	github.com/getlantern/mtime v0.0.0-20200417132445-23682092d1f7 // indirect
 	github.com/getlantern/netx v0.0.0-20240830183145-c257516187f0 // indirect
 	github.com/getlantern/ops v0.0.0-20231025133620-f368ab734534 // indirect
+	github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 // indirect
+	github.com/getlantern/timezone v0.0.0-20210901200113-3f9de9d360c9 // indirect
 	github.com/getlantern/tlsdialer/v3 v3.0.5 // indirect
 	github.com/getsentry/sentry-go v0.31.1 // indirect
 	github.com/go-chi/chi/v5 v5.2.1 // indirect
@@ -113,6 +117,7 @@ require (
 	github.com/sagernet/wireguard-go v0.0.1-beta.5 // indirect
 	github.com/sagernet/ws v0.0.0-20231204124109-acfe8907c854 // indirect
 	github.com/stretchr/testify v1.10.0 // indirect
+	github.com/tkuchiki/go-timezone v0.2.0 // indirect
 	github.com/u-root/uio v0.0.0-20240224005618-d2acac8f3701 // indirect
 	github.com/ulikunitz/xz v0.5.12 // indirect
 	github.com/vishvananda/netns v0.0.5 // indirect
