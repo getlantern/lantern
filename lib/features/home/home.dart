@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
 import 'package:lantern/core/widgets/vpn_status_indicator.dart';
+import 'package:lantern/features/vpn/provider/vpn_status.dart';
 import 'package:lantern/features/vpn/vpn_switch.dart';
 
 import '../../core/common/common.dart';
@@ -85,14 +86,7 @@ class _HomeState extends State<Home> {
         margin: EdgeInsets.zero,
         child: Column(
           children: [
-            SettingTile(
-              label: 'vpn_status'.i18n,
-              value: VPNStatus.disconnected.name.capitalize,
-              icon: AppImagePaths.glob,
-              actions: [
-                VPNStatusIndicator(status: VPNStatus.disconnected),
-              ],
-            ),
+            VpnStatus(),
             DividerSpace(),
             SettingTile(
               label: 'smart_location'.i18n,
