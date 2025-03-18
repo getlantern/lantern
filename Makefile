@@ -84,7 +84,7 @@ linux: linux-amd64
 	cp $(LINUX_LIB_AMD64) $(LINUX_LIB_NAME)
 
 .PHONY: linux-debug
-linux-debug: clean linux pubget gen
+linux-debug:
 	@echo "Building Flutter app (debug) for Linux..."
 	flutter build linux --debug
 
