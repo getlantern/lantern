@@ -25,8 +25,8 @@ WINDOWS_LIB_NAME := $(BUILD_DIR)/$(LANTERN_LIB_NAME).dll
 WINDOWS_LIB_AMD64 := $(BUILD_DIR)/windows-amd64/$(LANTERN_LIB_NAME).dll
 WINDOWS_LIB_ARM64 := $(BUILD_DIR)/windows-arm64/$(LANTERN_LIB_NAME).dll
 
-ANDROID_LIB_NAME := $(BUILD_DIR)/$(LANTERN_LIB_NAME).aar
-IOS_FRAMEWORK := $(BUILD_DIR)/$(CAPITALIZED_APP).xcframework
+ANDROID_LIB_NAME := $(BUILD_DIR)/android/$(LANTERN_LIB_NAME).aar
+IOS_FRAMEWORK := $(BUILD_DIR)/ios/$(CAPITALIZED_APP).xcframework
 
 TAGS=with_gvisor
 
@@ -138,14 +138,19 @@ android: $(ANDROID_LIB_NAME)
 $(ANDROID_LIB_NAME): $(GO_SOURCES)
 	make install-android-deps
 	@echo "Building Android library..."
+	mkdir -p $(BUILD_DIR)/android
 	GOOS=android gomobile bind -v -androidapi=21 -tags=$(TAGS) -trimpath -target=android -o $@ $(RADIANCE_REPO)
+	@echo "Built Android library: $@"
 
 # iOS Build
 .PHONY: ios
 ios: $(IOS_FRAMEWORK)
 
 $(IOS_FRAMEWORK): $(GO_SOURCES)
+	@echo "Building iOS Framework..."
+	mkdir -p $(BUILD_DIR)/ios
 	GOOS=ios gomobile bind -v -tags=$(TAGS),with_low_memory -trimpath -target=ios -ldflags="-w -s" -o $@ $(RADIANCE_REPO)
+	@echo "Built iOS Framework: $@"
 
 # Dart API DL bridge
 DART_SDK_REPO=https://github.com/dart-lang/sdk

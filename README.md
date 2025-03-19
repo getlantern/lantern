@@ -25,6 +25,32 @@ flutter devices
 flutter run -d deviceID
 ```
 
+# Build and run the Android app
+
+1. Install Go and gomobile
+
+```
+go install golang.org/x/mobile/cmd/gomobile@latest
+gomobile init
+```
+
+2. Install Android SDK and NDK
+
+```
+sdkmanager "ndk;23.1.7779620" "cmake;3.18.1" "platform-tools"
+```
+
+3. Build the Android Library
+
+```
+make android
+```
+
+After running make android, you’ll find the compiled library here:
+
+```
+bin/android/liblantern.aar
+```
 
 # Running the Full Setup on macOS with an iOS Device
 
