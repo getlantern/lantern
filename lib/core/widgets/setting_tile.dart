@@ -6,6 +6,8 @@ class SettingTile extends StatelessWidget {
   final String label;
   final String value;
 
+  final Widget? child;
+
   final String icon;
 
   final List<Widget> actions;
@@ -18,7 +20,8 @@ class SettingTile extends StatelessWidget {
     required this.value,
     required this.icon,
     required this.actions,
-     this.onTap,
+    this.onTap,
+    this.child,
   });
 
   @override
@@ -49,9 +52,12 @@ class SettingTile extends StatelessWidget {
             Row(
               children: [
                 SizedBox(width: 32.0),
-                Text(value,
-                    style: textTheme.titleMedium!
-                        .copyWith(color: AppColors.gray9)),
+                if (child != null)
+                  child!
+                else
+                  Text(value,
+                      style: textTheme.titleMedium!
+                          .copyWith(color: AppColors.gray9)),
                 Spacer(),
                 ...actions
               ],

@@ -43,6 +43,7 @@ dependencies:
   auto_route: ^9.3.0+1
   #UI Utils
   animated_toggle_switch: ^0.8.4
+  animated_text_kit: ^4.2.3
   flutter_screenutil: ^5.9.3
   auto_size_text: ^3.0.0
   device_preview_plus: ^2.3.0
@@ -83,7 +84,9 @@ dependencies:
   window_manager: ^0.4.3
   tray_manager: ^0.3.2
   win32_registry: ^1.1.5
-
+  # Utils
+  fpdart: ^1.1.1
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter
