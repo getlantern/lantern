@@ -48,14 +48,9 @@ func startVPN() *C.char {
 	if server == nil {
 		r, err := radiance.NewRadiance(nil)
 		if err != nil {
-			return C.CString(err.Error())
-		}
-		if err != nil {
 			err = fmt.Errorf("unable to create VPN server: %v", err)
-			log.Error(err)
 			return C.CString(err.Error())
 		}
-
 		server = r
 	}
 
