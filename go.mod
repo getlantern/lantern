@@ -2,21 +2,13 @@ module github.com/getlantern/lantern-outline
 
 go 1.23.4
 
-require (
-	github.com/Jigsaw-Code/outline-sdk v0.0.18
-	github.com/eycorsican/go-tun2socks v1.16.11
-	github.com/fsnotify/fsnotify v1.8.0
-	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
-	github.com/getlantern/kindling v0.0.0-20250224181615-944349e3e260
-	github.com/getlantern/radiance v0.0.0-20250319183302-73c468addba3
-	google.golang.org/protobuf v1.36.5
-)
+require github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
 
 require (
 	github.com/1Password/srp v0.2.0 // indirect
+	github.com/Jigsaw-Code/outline-sdk v0.0.18 // indirect
 	github.com/Jigsaw-Code/outline-sdk/x v0.0.1 // indirect
 	github.com/ajg/form v1.5.1 // indirect
-	github.com/alexflint/go-scalar v1.2.0 // indirect
 	github.com/alitto/pond/v2 v2.2.0 // indirect
 	github.com/andybalholm/brotli v1.1.1 // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
@@ -27,6 +19,7 @@ require (
 	github.com/cretz/bine v0.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dsnet/compress v0.0.2-0.20210315054119-f66993602bf5 // indirect
+	github.com/fsnotify/fsnotify v1.8.0 // indirect
 	github.com/getlantern/algeneva v0.0.0-20250307163401-1824e7b54f52 // indirect
 	github.com/getlantern/appdir v0.0.0-20250313193928-1704611498b5 // indirect
 	github.com/getlantern/byteexec v0.0.0-20220903142956-e6ed20032cfd // indirect
@@ -44,6 +37,7 @@ require (
 	github.com/getlantern/jibber_jabber v0.0.0-20210901195950-68955124cc42 // indirect
 	github.com/getlantern/keepcurrent v0.0.0-20240126172110-2e0264ca385d // indirect
 	github.com/getlantern/keyman v0.0.0-20230503155501-4e864ca2175b // indirect
+	github.com/getlantern/kindling v0.0.0-20250224181615-944349e3e260 // indirect
 	github.com/getlantern/lantern-algeneva v0.0.0-20240930181006-6d3c00db1d5d // indirect
 	github.com/getlantern/mtime v0.0.0-20200417132445-23682092d1f7 // indirect
 	github.com/getlantern/netx v0.0.0-20240830183145-c257516187f0 // indirect
@@ -86,6 +80,7 @@ require (
 	github.com/mholt/archiver/v3 v3.5.1 // indirect
 	github.com/miekg/dns v1.1.63 // indirect
 	github.com/nwaples/rardecode v1.1.3 // indirect
+	github.com/nxadm/tail v1.4.11 // indirect
 	github.com/oschwald/maxminddb-golang v1.13.1 // indirect
 	github.com/oxtoacart/bpool v0.0.0-20190530202638-03653db5a59c // indirect
 	github.com/pierrec/lz4/v4 v4.1.22 // indirect
@@ -143,12 +138,13 @@ require (
 	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250311190419-81fb87f6b8bf // indirect
 	google.golang.org/grpc v1.71.0 // indirect
+	google.golang.org/protobuf v1.36.5 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	lukechampine.com/blake3 v1.4.0 // indirect
 )
 
 require (
-	github.com/alexflint/go-arg v1.5.1
+	github.com/getlantern/radiance v0.0.0-20250319183302-73c468addba3 // indirect
 	github.com/shadowsocks/go-shadowsocks2 v0.1.5 // indirect
 	golang.org/x/crypto v0.36.0 // indirect
 	golang.org/x/sys v0.31.0 // indirect
