@@ -159,9 +159,9 @@ update-dart-api-dl:
 	rm -rf dart_sdk_tmp
 	@echo "Dart API DL bridge updated successfully!"
 
-#Routes generation
-routes:
-	dart run build_runner build --delete-conflicting-outputs
+
+find-duplicate-translations:
+	grep -oE 'msgid\s+"[^"]+"' assets/locales/en.po | sort | uniq -d
 
 clean:
 	flutter clean

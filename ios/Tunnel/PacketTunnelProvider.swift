@@ -6,13 +6,6 @@
 import NetworkExtension
 import os
 
-// Declare Go functions
-@_silgen_name("startVPN")
-func startVPN() -> Int32
-
-@_silgen_name("stopVPN")
-func stopVPN() -> Int32
-
 class PacketTunnelProvider: NEPacketTunnelProvider {
     let logger = OSLog(subsystem: "org.getlantern.lantern", category: "VPN")
 
@@ -38,21 +31,9 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             }
 
             os_log("Network settings applied successfully")
-            SetSwiftProviderRef(Unmanaged.passUnretained(self).toOpaque())
-
-            let ret = startVPN()
-            if ret != 0 {
-                os_log("Tunnel failed to start")
-                let err = NSError(domain: "tun2socksError", code: Int(ret), userInfo: nil)
-                completionHandler(err)
-                return
-            }
-            os_log("Tunnel started successfully")
+            // call start VPN
 
             completionHandler(nil)
-
-            // Start reading packets from the OS
-            self.readPacketsLoop()
         }
     }
 
@@ -78,106 +59,9 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         return settings
     }
 
-
-    // Method to handle outbound packets
-    @objc func handleOutboundPacket(_ packetData: Data) -> Bool {
-        // Convert to Swift Data, inject into iOS
-        let data = packetData as Data
-        return writePacketsToOS([data])
-    }
-
-    func writePacketsToOS(_ packets: [Data]) -> Bool {
-        let protoArray = packets.map { _ in NSNumber(value: AF_INET) }
-        return packetFlow.writePackets(packets, withProtocols: protoArray)
-    }
-
-    // continuously read inbound IP packets from iOS
-    func readPacketsLoop() {
-        packetFlow.readPackets{ [weak self] packets, protocols in
-            guard let self = self else { return }
-            for packet in packets {
-                self.goEngine.processInboundPacket(packet)
-            }
-            self.readPacketsLoop()
-        }
-    }
-
-    private func getTunnelFileDescriptor() -> Int32? {
-        var buf = [CChar](repeating: 0, count: Int(IFNAMSIZ))
-        for fd: Int32 in 0 ... 1024 {
-            var len = socklen_t(buf.count)
-
-            if getsockopt(fd, 2 /* IGMP */, 2, &buf, &len) == 0 && String(cString: buf).hasPrefix("utun") {
-                return fd
-            }
-        }
-        return packetFlow.value(forKey: "socket.fileDescriptor") as? Int32
-    }
-
-   // Dynamically excludes a route by updating the VPN's network settings.
-   @objc func excludeRoute(_ route: NSString) -> Bool {
-       guard let excludedRoute = parseRoute(route as String) else {
-            NSLog("Failed to parse route: \(route)")
-            return false
-        }
-
-        // Add the parsed route to the list of excluded routes.
-        excludedRoutes.append(excludedRoute)
-
-        // Apply the updated network settings with the new excluded route.
-        setTunnelNetworkSettings(createTunnelNetworkSettings()) { error in
-            if let error = error {
-                NSLog("Failed to update tunnel settings: \(error)")
-            } else {
-                NSLog("Tunnel settings updated successfully with new excluded route: \(route)")
-            }
-        }
-        return true
-    }
-
-    // Parses a route string like "192.168.1.0/24" into an NEIPv4Route object.
-    private func parseRoute(_ route: String) -> NEIPv4Route? {
-        let components = route.split(separator: "/")
-        var address: String
-        var prefixLength: Int
-
-        if components.count == 1 {
-            // No prefix provided; assume /32.
-            address = String(components[0])
-            prefixLength = 32
-        } else if components.count == 2 {
-            address = String(components[0])
-            guard let p = Int(components[1]), p >= 0, p <= 32 else {
-                return nil
-            }
-            prefixLength = p
-        } else {
-            return nil
-        }
-
-        // Convert the prefix length into a subnet mask string (e.g., "255.255.255.255" for /32).
-        let subnetMask = prefixLengthToSubnetMask(prefixLength)
-        return NEIPv4Route(destinationAddress: address, subnetMask: subnetMask)
-    }
-
-    private func prefixLengthToSubnetMask(_ prefixLength: Int) -> String {
-        var mask = UInt32.max << (32 - prefixLength)
-        // Extract the four 8-bit segments of the mask
-        let bytes = [
-            UInt8((mask >> 24) & 0xFF),
-            UInt8((mask >> 16) & 0xFF),
-            UInt8((mask >> 8) & 0xFF),
-            UInt8(mask & 0xFF)
-        ]
-        // Join segments
-        return bytes.map { String($0) }.joined(separator: ".")
-    }
     
     override func stopTunnel(with reason: NEProviderStopReason, completionHandler: @escaping () -> Void) {
-        let ret = stopVPN()
-        if ret != 0 {
-            os_log("Tunnel failed to stop")
-        }
+        // call radiance stopVPN
         completionHandler()
     }
     

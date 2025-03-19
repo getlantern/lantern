@@ -7,5 +7,4 @@ source_file   = assets/locales/en.po
 type          = PO
 minimum_perc  = 80
 resource_name = Lantern Flutter
-lang_map      = en_US:en, hi_IN: hi
-
+lang_map     = hi_IN: hi, zh_CN: zh-cn, zh_HK: zh-hk, ru_RU: ru, fa_IR: fa, es_CU: es-cu, es: es, fr_FR: fr, fr_CA: fr-ca, ar: ar, ur: ur-in, vi: vi, tr: tr, th: th, bn: bn, my: my, ms: ms, ur-in:ur

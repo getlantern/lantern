@@ -11,17 +11,6 @@ extension Localization on String {
     Future<Translations> Function(),
   ) loadTranslationsOnce = once<Future<Translations>>();
 
-  // static Future<Translations> ensureInitialized() async {
-  //   return loadTranslationsOnce(() {
-  //     return GettextImporter()
-  //         .fromAssetDirectory('assets/locales')
-  //         .then((value) {
-  //       translations += value;
-  //       return translations;
-  //     });
-  //   });
-  // }
-
   static Future<void> loadTranslations() async {
     translations +=
         await GettextImporter().fromAssetDirectory("assets/locales");
@@ -32,16 +21,6 @@ extension Localization on String {
   String plural(value) => localizePlural(value, this, translations);
 
   String fill(List<Object> params) => localizeFill(this, params);
-
-// static String get localeShort => locale.split('_')[0];
-//
-// String get languageTag => locale.replaceFirst('_', '-').toLowerCase();
-//
-// String doLocalize() => localize(this, translations, languageTag: languageTag);
-//
-// String get i18n => localize(this, translations, languageTag: languageTag);
-//
-// String fill(List<Object> params) => localizeFill(this, params);
 }
 
 extension StringExtensions on String {
