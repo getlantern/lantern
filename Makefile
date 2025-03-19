@@ -30,6 +30,8 @@ IOS_FRAMEWORK := $(BUILD_DIR)/$(CAPITALIZED_APP).xcframework
 
 TAGS=with_gvisor
 
+GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go')
+
 gen:
 	dart run build_runner build --delete-conflicting-outputs
 
@@ -44,19 +46,19 @@ lantern-lib:
 .PHONY: macos-arm64
 macos-arm64: $(DARWIN_LIB_ARM64)
 
-$(DARWIN_LIB_ARM64):
+$(DARWIN_LIB_ARM64): $(GO_SOURCES)
 	GOARCH=arm64 LIB_NAME=$@ make lantern-lib
 
 .PHONY: macos-amd64
 macos-amd64: $(DARWIN_LIB_AMD64)
 
-$(DARWIN_LIB_AMD64):
+$(DARWIN_LIB_AMD64): $(GO_SOURCES)
 	GOARCH=amd64 LIB_NAME=$@ make lantern-lib
 
 .PHONY: macos
 macos: $(DARWIN_LIB_NAME)
 
-$(DARWIN_LIB_NAME):
+$(DARWIN_LIB_NAME): $(GO_SOURCES)
 	make macos-arm64 macos-amd64
 	lipo -create $(DARWIN_LIB_ARM64) $(DARWIN_LIB_AMD64) -output $(DARWIN_LIB_NAME)
 	install_name_tool -id "@rpath/${DARWIN_LIB_NAME}" $(DARWIN_LIB_NAME)
@@ -76,13 +78,13 @@ macos-release: clean macos pubget gen
 .PHONY: linux-arm64
 linux-arm64: $(LINUX_LIB_ARM64)
 
-$(LINUX_LIB_ARM64):
+$(LINUX_LIB_ARM64): $(GO_SOURCES)
 	CC=aarch64-linux-gnu-gcc GOARCH=arm64 LIB_NAME=$@ make lantern-lib
 
 .PHONY: linux-amd64
 linux-amd64: $(LINUX_LIB_AMD64)
 
-$(LINUX_LIB_AMD64):
+$(LINUX_LIB_AMD64): $(GO_SOURCES)
 	CC=x86_64-linux-gnu-gcc GOARCH=amd64 LIB_NAME=$@ make lantern-lib
 
 .PHONY: linux
@@ -105,7 +107,7 @@ windows-amd64: export BUILD_TAGS += walk_use_cgo
 windows-amd64: export CGO_LDFLAGS = -static
 windows-amd64: $(WINDOWS_LIB_AMD64)
 
-$(WINDOWS_LIB_AMD64):
+$(WINDOWS_LIB_AMD64): $(GO_SOURCES)
 	GOOS=windows GOARCH=amd64 LIB_NAME=$@ make lantern-lib
 
 .PHONY: windows-arm64
@@ -113,13 +115,13 @@ windows-arm64: export BUILD_TAGS += walk_use_cgo
 windows-arm64: export CGO_LDFLAGS = -static
 windows-arm64: $(WINDOWS_LIB_ARM64)
 
-$(WINDOWS_LIB_ARM64):
+$(WINDOWS_LIB_ARM64): $(GO_SOURCES)
 	GOOS=windows GOARCH=arm64 LIB_NAME=$@ make lantern-lib
 
 .PHONY: windows
 windows: windows-amd64
 
-$(WINDOWS_LIB_NAME):
+$(WINDOWS_LIB_NAME): $(GO_SOURCES)
 	GOARCH=amd64 LIB_NAME=$@ make lantern-lib
 
 # Android Build
@@ -133,7 +135,7 @@ install-android-deps:
 .PHONY: android
 android: $(ANDROID_LIB_NAME)
 
-$(ANDROID_LIB_NAME):
+$(ANDROID_LIB_NAME): $(GO_SOURCES)
 	make install-android-deps
 	@echo "Building Android library..."
 	GOOS=android gomobile bind -v -androidapi=21 -tags=$(TAGS) -trimpath -target=android -o $@ $(RADIANCE_REPO)
@@ -142,7 +144,7 @@ $(ANDROID_LIB_NAME):
 .PHONY: ios
 ios: $(IOS_FRAMEWORK)
 
-$(IOS_FRAMEWORK):
+$(IOS_FRAMEWORK): $(GO_SOURCES)
 	GOOS=ios gomobile bind -v -tags=$(TAGS),with_low_memory -trimpath -target=ios -ldflags="-w -s" -o $@ $(RADIANCE_REPO)
 
 # Dart API DL bridge
