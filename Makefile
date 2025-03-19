@@ -136,15 +136,14 @@ android: $(ANDROID_LIB_NAME)
 $(ANDROID_LIB_NAME):
 	make install-android-deps
 	@echo "Building Android library..."
-	GOOS=android gomobile bind -v -androidapi=21 -tags=$(TAGS) -trimpath -target=android -o $(ANDROID_LIB_NAME) $(RADIANCE_REPO)
+	GOOS=android gomobile bind -v -androidapi=21 -tags=$(TAGS) -trimpath -target=android -o $@ $(RADIANCE_REPO)
 
 # iOS Build
 .PHONY: ios
-ios: export CGO_CFLAGS="-I./dart_api_dl/include"
 ios: $(IOS_FRAMEWORK)
 
 $(IOS_FRAMEWORK):
-	GOOS=ios gomobile bind -v -tags=$(TAGS),with_low_memory -trimpath -target=ios -ldflags="-w -s" -o $(IOS_FRAMEWORK) $(RADIANCE_REPO)
+	GOOS=ios gomobile bind -v -tags=$(TAGS),with_low_memory -trimpath -target=ios -ldflags="-w -s" -o $@ $(RADIANCE_REPO)
 
 # Dart API DL bridge
 DART_SDK_REPO=https://github.com/dart-lang/sdk
