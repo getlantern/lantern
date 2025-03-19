@@ -113,6 +113,8 @@ github.com/getlantern/radiance v0.0.0-20250315011257-7417f74472e5 h1:C+MoWnCEpar
 github.com/getlantern/radiance v0.0.0-20250315011257-7417f74472e5/go.mod h1:BJwF4IQAHXmeSJU1pZlMUgX8YuUsQry3Cjy2No6PEJQ=
 github.com/getlantern/radiance v0.0.0-20250317232030-815ad0588140 h1:EhUrPN7GEX0co23dVuuf2p08iMeCtHXj/m98O3sP9jo=
 github.com/getlantern/radiance v0.0.0-20250317232030-815ad0588140/go.mod h1:sDiuXW2aDwwbek89LrD2uJiPI2u9omGeYr+9KmYhviI=
+github.com/getlantern/radiance v0.0.0-20250319183302-73c468addba3 h1:PMduzWIDEmQFfn9gnNQ0Apft7rydsh6XtTSZwrYIKeI=
+github.com/getlantern/radiance v0.0.0-20250319183302-73c468addba3/go.mod h1:sDiuXW2aDwwbek89LrD2uJiPI2u9omGeYr+9KmYhviI=
 github.com/getlantern/timezone v0.0.0-20210901200113-3f9de9d360c9 h1:VTNjZxSuAHUzu13lYpEVB8gc3xz5hZePGNHG5enHYLY=
 github.com/getlantern/timezone v0.0.0-20210901200113-3f9de9d360c9/go.mod h1:7uvbzuoOr3uYGHZx5QWlI8/C52XEf/aTb/tJFEe41Ak=
 github.com/getlantern/tlsdialer/v3 v3.0.5 h1:xdLBQDgz0PXLK6T27hjtZU25MyucRiUKj58aqyQZvP4=

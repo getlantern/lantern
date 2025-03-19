@@ -8,7 +8,7 @@ require (
 	github.com/fsnotify/fsnotify v1.8.0
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
 	github.com/getlantern/kindling v0.0.0-20250224181615-944349e3e260
-	github.com/getlantern/radiance v0.0.0-20250315011257-7417f74472e5
+	github.com/getlantern/radiance v0.0.0-20250319183302-73c468addba3
 	google.golang.org/protobuf v1.36.5
 )
 
