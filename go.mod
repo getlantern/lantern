@@ -8,7 +8,7 @@ require (
 	github.com/fsnotify/fsnotify v1.8.0
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
 	github.com/getlantern/kindling v0.0.0-20250224181615-944349e3e260
-	github.com/getlantern/radiance v0.0.0-20250317232030-815ad0588140
+	github.com/getlantern/radiance v0.0.0-20250319183302-73c468addba3
 	google.golang.org/protobuf v1.36.5
 )
 
@@ -133,6 +133,7 @@ require (
 	go.uber.org/zap/exp v0.3.0 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
 	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394 // indirect
+	golang.org/x/mobile v0.0.0-20250305212854-3a7bc9f8a4de // indirect
 	golang.org/x/mod v0.24.0 // indirect
 	golang.org/x/net v0.37.0 // indirect
 	golang.org/x/sync v0.12.0 // indirect

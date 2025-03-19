@@ -1,11 +1,12 @@
 .PHONY: gen macos
 
-OUT_DIR := bin
+BUILD_DIR := bin
 
 APP ?= lantern
 CAPITALIZED_APP := Lantern
 LANTERN_LIB_NAME := liblantern
 LANTERN_CORE := lantern-core
+RADIANCE_REPO := github.com/getlantern/radiance
 FFI_DIR := $(LANTERN_CORE)/ffi
 EXTRA_LDFLAGS ?=
 BUILD_TAGS ?=
@@ -13,16 +14,16 @@ BUILD_TAGS ?=
 DARWIN_APP_NAME ?= $(CAPITALIZED_APP).app
 DARWIN_FRAMEWORK_DIR ?= macos/Frameworks
 DARWIN_LIB_NAME ?= $(DARWIN_FRAMEWORK_DIR)/$(LANTERN_LIB_NAME).dylib
-DARWIN_LIB_AMD64 ?= $(OUT_DIR)/macos-amd64/$(LANTERN_LIB_NAME).dylib
-DARWIN_LIB_ARM64 ?= $(OUT_DIR)/macos-arm64/$(LANTERN_LIB_NAME).dylib
+DARWIN_LIB_AMD64 ?= $(BUILD_DIR)/macos-amd64/$(LANTERN_LIB_NAME).dylib
+DARWIN_LIB_ARM64 ?= $(BUILD_DIR)/macos-arm64/$(LANTERN_LIB_NAME).dylib
 
-LINUX_LIB_NAME ?= $(OUT_DIR)/$(LANTERN_LIB_NAME).so
-LINUX_LIB_AMD64 ?= $(OUT_DIR)/linux-amd64/$(LANTERN_LIB_NAME).so
-LINUX_LIB_ARM64 ?= $(OUT_DIR)/linux-arm64/$(LANTERN_LIB_NAME).so
+LINUX_LIB_NAME ?= $(BUILD_DIR)/$(LANTERN_LIB_NAME).so
+LINUX_LIB_AMD64 ?= $(BUILD_DIR)/linux-amd64/$(LANTERN_LIB_NAME).so
+LINUX_LIB_ARM64 ?= $(BUILD_DIR)/linux-arm64/$(LANTERN_LIB_NAME).so
 
-WINDOWS_LIB_NAME := $(OUT_DIR)/$(LANTERN_LIB_NAME).dll
-WINDOWS_LIB_AMD64 := $(OUT_DIR)/windows-amd64/$(LANTERN_LIB_NAME).dll
-WINDOWS_LIB_ARM64 := $(OUT_DIR)/windows-arm64/$(LANTERN_LIB_NAME).dll
+WINDOWS_LIB_NAME := $(BUILD_DIR)/$(LANTERN_LIB_NAME).dll
+WINDOWS_LIB_AMD64 := $(BUILD_DIR)/windows-amd64/$(LANTERN_LIB_NAME).dll
+WINDOWS_LIB_ARM64 := $(BUILD_DIR)/windows-arm64/$(LANTERN_LIB_NAME).dll
 
 gen:
 	dart run build_runner build --delete-conflicting-outputs
@@ -54,7 +55,7 @@ $(DARWIN_LIB_NAME):
 	make macos-arm64 macos-amd64
 	lipo -create $(DARWIN_LIB_ARM64) $(DARWIN_LIB_AMD64) -output $(DARWIN_LIB_NAME)
 	install_name_tool -id "@rpath/${DARWIN_LIB_NAME}" $(DARWIN_LIB_NAME)
-	cp $(OUT_DIR)/macos-amd64/$(LANTERN_LIB_NAME)*.h $(DARWIN_FRAMEWORK_DIR)/
+	cp $(BUILD_DIR)/macos-amd64/$(LANTERN_LIB_NAME)*.h $(DARWIN_FRAMEWORK_DIR)/
 
 .PHONY: macos-debug
 macos-debug: clean macos pubget gen
@@ -116,6 +117,18 @@ windows: windows-amd64
 $(WINDOWS_LIB_NAME):
 	GOARCH=amd64 LIB_NAME=$@ make lantern-lib
 
+# Android Build
+.PHONY: install-android-deps
+install-android-deps:
+	@echo "Installing Android dependencies..."
+
+	go install golang.org/x/mobile/cmd/gomobile@latest
+	gomobile init
+
+.PHONY: android
+android: install-android-deps
+	gomobile bind -v -androidapi=21 -tags=$(TAGS) -trimpath -target=android -o $(BUILD_DIR)/$(LANTERN_LIB_NAME).aar $(RADIANCE_REPO)
+
 # iOS Build
 build-ios-device:
 	GOOS=ios GOARCH=arm64 SDK=iphoneos LIB_NAME=$(LIB_NAME) $(PWD)/build-ios.sh
@@ -141,7 +154,7 @@ build-framework: build-ios
 	cp ios/Liblantern.podspec ios/liblantern.xcframework
 
 ios:
-	GOOS=ios CGO_ENABLED=1 go build -trimpath -buildmode=c-archive -o $(OUT_DIR)/$(LIB_NAME)_$(GOARCH)_$(SDK).a
+	GOOS=ios CGO_ENABLED=1 go build -trimpath -buildmode=c-archive -o $(BUILD_DIR)/$(LIB_NAME)_$(GOARCH)_$(SDK).a
 
 # Dart API DL bridge
 DART_SDK_REPO=https://github.com/dart-lang/sdk
@@ -165,5 +178,5 @@ find-duplicate-translations:
 
 clean:
 	flutter clean
-	rm -rf $(OUT_DIR)/*
+	rm -rf $(BUILD_DIR)/*
 	rm -rf $(DARWIN_FRAMEWORK_DIR)/*
