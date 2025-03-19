@@ -3,8 +3,10 @@ import 'package:fpdart/src/either.dart';
 import 'package:fpdart/src/unit.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 
-class LanternNativeBridge implements LanternCoreService{
-  static const MethodChannel _channel = MethodChannel('org.getlantern.lantern/native');
+class LanternPlatformService implements LanternCoreService {
+  static const MethodChannel _methodChannel =
+      MethodChannel('org.getlantern.lantern/method');
+
   @override
   void startVPN() {
     // TODO: implement startVPN
@@ -20,7 +22,4 @@ class LanternNativeBridge implements LanternCoreService{
     // TODO: implement setupRadiance
     throw UnimplementedError();
   }
-
-
-
 }

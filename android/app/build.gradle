@@ -8,7 +8,9 @@ plugins {
 android {
     namespace = "org.getlantern.lantern"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    ndkVersion "27.0.12077973"
+
+//    ndkVersion = flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -21,10 +23,18 @@ android {
 
     defaultConfig {
         applicationId = "org.getlantern.lantern"
-        minSdk = flutter.minSdkVersion
+        minSdk = 23
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        ndk {
+            // Specifies the ABI configurations of native libraries Gradle should build and package with the app.
+            abiFilters = ["x86_64", "arm64-v8a"]
+            debugSymbolLevel 'FULL'
+        }
+
+
     }
 
     buildTypes {

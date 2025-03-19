@@ -12,7 +12,6 @@ import (
 	"unsafe"
 
 	"github.com/getlantern/golog"
-	"github.com/getlantern/lantern-outline/lantern-core/empty"
 	"github.com/getlantern/radiance"
 )
 
@@ -33,11 +32,8 @@ var (
 func setupRadiance() *C.char {
 	radianceMu.Lock()
 	defer radianceMu.Unlock()
-
-	log.Debug("setupRadiance called")
-	platform := empty.EmptyPlatform{}
 	log.Debug("empty platform created")
-	r, err := radiance.NewRadiance(platform)
+	r, err := radiance.NewRadiance(nil)
 	if err != nil {
 		log.Errorf("Unable to create Radiance: %v", err)
 		return SendError(err)

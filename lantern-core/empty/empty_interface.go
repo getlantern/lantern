@@ -6,12 +6,11 @@ import (
 
 	"github.com/cretz/bine/process"
 	"github.com/sagernet/sing-box/adapter"
+	sp "github.com/sagernet/sing-box/common/process"
 	"github.com/sagernet/sing-box/experimental/libbox/platform"
 	"github.com/sagernet/sing-box/option"
 	tun "github.com/sagernet/sing-tun"
 	"github.com/sagernet/sing/common/logger"
-	sp "github.com/sagernet/sing-box/common/process"
-
 )
 
 // Jigar
@@ -23,7 +22,7 @@ type EmptyPlatform struct{}
 
 func (e EmptyPlatform) Initialize(networkManager adapter.NetworkManager) error { return nil }
 func (e EmptyPlatform) UsePlatformAutoDetectInterfaceControl() bool            { return false }
-func (e EmptyPlatform) AutoDetectInterfaceControl(fd int) error                { return nil }
+func (e EmptyPlatform) AutoDetectInterfaceControl(fd int32) error              { return nil }
 func (e EmptyPlatform) OpenTun(options *tun.Options, platformOptions option.TunPlatformOptions) (tun.Tun, error) {
 	return nil, nil
 }

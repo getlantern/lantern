@@ -1,13 +1,13 @@
 package org.getlantern.lantern
 
 import androidx.lifecycle.lifecycleScope
+import go.Seq
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import org.getlantern.lantern.handler.MethodHandler
 
 
 class MainActivity : FlutterActivity() {
-
     companion object {
         const val TAG = "A/MainActivity"
         lateinit var instance: MainActivity
@@ -16,10 +16,16 @@ class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         instance = this
+        Seq.setContext(this)
 
         ///Setup handler
         flutterEngine.plugins.add(MethodHandler(lifecycleScope))
+    }
 
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Seq.setContext(null)
     }
 
 
