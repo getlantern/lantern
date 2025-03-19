@@ -11,19 +11,22 @@ FFI_DIR := $(LANTERN_CORE)/ffi
 EXTRA_LDFLAGS ?=
 BUILD_TAGS ?=
 
-DARWIN_APP_NAME ?= $(CAPITALIZED_APP).app
-DARWIN_FRAMEWORK_DIR ?= macos/Frameworks
-DARWIN_LIB_NAME ?= $(DARWIN_FRAMEWORK_DIR)/$(LANTERN_LIB_NAME).dylib
-DARWIN_LIB_AMD64 ?= $(BUILD_DIR)/macos-amd64/$(LANTERN_LIB_NAME).dylib
-DARWIN_LIB_ARM64 ?= $(BUILD_DIR)/macos-arm64/$(LANTERN_LIB_NAME).dylib
+DARWIN_APP_NAME := $(CAPITALIZED_APP).app
+DARWIN_FRAMEWORK_DIR := macos/Frameworks
+DARWIN_LIB_NAME := $(DARWIN_FRAMEWORK_DIR)/$(LANTERN_LIB_NAME).dylib
+DARWIN_LIB_AMD64 := $(BUILD_DIR)/macos-amd64/$(LANTERN_LIB_NAME).dylib
+DARWIN_LIB_ARM64 := $(BUILD_DIR)/macos-arm64/$(LANTERN_LIB_NAME).dylib
 
-LINUX_LIB_NAME ?= $(BUILD_DIR)/$(LANTERN_LIB_NAME).so
-LINUX_LIB_AMD64 ?= $(BUILD_DIR)/linux-amd64/$(LANTERN_LIB_NAME).so
-LINUX_LIB_ARM64 ?= $(BUILD_DIR)/linux-arm64/$(LANTERN_LIB_NAME).so
+LINUX_LIB_NAME := $(BUILD_DIR)/$(LANTERN_LIB_NAME).so
+LINUX_LIB_AMD64 := $(BUILD_DIR)/linux-amd64/$(LANTERN_LIB_NAME).so
+LINUX_LIB_ARM64 := $(BUILD_DIR)/linux-arm64/$(LANTERN_LIB_NAME).so
 
 WINDOWS_LIB_NAME := $(BUILD_DIR)/$(LANTERN_LIB_NAME).dll
 WINDOWS_LIB_AMD64 := $(BUILD_DIR)/windows-amd64/$(LANTERN_LIB_NAME).dll
 WINDOWS_LIB_ARM64 := $(BUILD_DIR)/windows-arm64/$(LANTERN_LIB_NAME).dll
+
+ANDROID_LIB_NAME := $(BUILD_DIR)/$(LANTERN_LIB_NAME).aar
+IOS_FRAMEWORK := $(BUILD_DIR)/$(CAPITALIZED_APP).xcframework
 
 TAGS=with_gvisor
 
@@ -128,14 +131,20 @@ install-android-deps:
 	gomobile init
 
 .PHONY: android
-android: install-android-deps
-	GOOS=android gomobile bind -v -androidapi=21 -tags=$(TAGS) -trimpath -target=android -o $(BUILD_DIR)/$(LANTERN_LIB_NAME).aar $(RADIANCE_REPO)
+android: $(ANDROID_LIB_NAME)
+
+$(ANDROID_LIB_NAME):
+	make install-android-deps
+	@echo "Building Android library..."
+	GOOS=android gomobile bind -v -androidapi=21 -tags=$(TAGS) -trimpath -target=android -o $(ANDROID_LIB_NAME) $(RADIANCE_REPO)
 
 # iOS Build
 .PHONY: ios
 ios: export CGO_CFLAGS="-I./dart_api_dl/include"
-ios:
-	GOOS=ios gomobile bind -v -tags=$(TAGS),with_low_memory -trimpath -target=ios -ldflags="-w -s" -o $(BUILD_DIR)/$(CAPITALIZED_APP).xcframework $(RADIANCE_REPO)
+ios: $(IOS_FRAMEWORK)
+
+$(IOS_FRAMEWORK):
+	GOOS=ios gomobile bind -v -tags=$(TAGS),with_low_memory -trimpath -target=ios -ldflags="-w -s" -o $(IOS_FRAMEWORK) $(RADIANCE_REPO)
 
 # Dart API DL bridge
 DART_SDK_REPO=https://github.com/dart-lang/sdk
