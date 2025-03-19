@@ -25,6 +25,8 @@ WINDOWS_LIB_NAME := $(BUILD_DIR)/$(LANTERN_LIB_NAME).dll
 WINDOWS_LIB_AMD64 := $(BUILD_DIR)/windows-amd64/$(LANTERN_LIB_NAME).dll
 WINDOWS_LIB_ARM64 := $(BUILD_DIR)/windows-arm64/$(LANTERN_LIB_NAME).dll
 
+TAGS=with_gvisor
+
 gen:
 	dart run build_runner build --delete-conflicting-outputs
 
@@ -127,34 +129,13 @@ install-android-deps:
 
 .PHONY: android
 android: install-android-deps
-	gomobile bind -v -androidapi=21 -tags=$(TAGS) -trimpath -target=android -o $(BUILD_DIR)/$(LANTERN_LIB_NAME).aar $(RADIANCE_REPO)
+	GOOS=android gomobile bind -v -androidapi=21 -tags=$(TAGS) -trimpath -target=android -o $(BUILD_DIR)/$(LANTERN_LIB_NAME).aar $(RADIANCE_REPO)
 
 # iOS Build
-build-ios-device:
-	GOOS=ios GOARCH=arm64 SDK=iphoneos LIB_NAME=$(LIB_NAME) $(PWD)/build-ios.sh
-
-build-ios-simulator-arm64:
-	GOOS=ios GOARCH=arm64 SDK=iphonesimulator LIB_NAME=$(LIB_NAME) $(PWD)/build-ios.sh
-
-build-ios-simulator-amd64:
-	GOOS=ios GOARCH=amd64 SDK=iphonesimulator LIB_NAME=$(LIB_NAME) $(PWD)/build-ios.sh
-
-build-ios: build-ios-device build-ios-simulator-arm64 build-ios-simulator-amd64
-	lipo -create bin/iphonesimulator/$(LIB_NAME)_amd64.a \
-		bin/iphonesimulator/$(LIB_NAME)_arm64.a \
-		-output bin/iphonesimulator/$(LIB_NAME).a
-	mv bin/iphoneos/liblantern_arm64.a bin/iphoneos/liblantern.a
-	mv bin/iphoneos/liblantern_arm64.h bin/iphoneos/liblantern.h
-
-build-framework: build-ios
-	rm -rf ios/$(LIB_NAME).xcframework
-	xcodebuild -create-xcframework -output ios/$(LIB_NAME).xcframework -library bin/iphoneos/$(LIB_NAME).a \
-	-headers bin/iphoneos/$(LIB_NAME).h -library bin/iphonesimulator/$(LIB_NAME).a \
-	-headers bin/iphonesimulator/$(LIB_NAME)_arm64.h
-	cp ios/Liblantern.podspec ios/liblantern.xcframework
-
+.PHONY: ios
+ios: export CGO_CFLAGS="-I./dart_api_dl/include"
 ios:
-	GOOS=ios CGO_ENABLED=1 go build -trimpath -buildmode=c-archive -o $(BUILD_DIR)/$(LIB_NAME)_$(GOARCH)_$(SDK).a
+	GOOS=ios gomobile bind -v -tags=$(TAGS),with_low_memory -trimpath -target=ios -ldflags="-w -s" -o $(BUILD_DIR)/$(CAPITALIZED_APP).xcframework $(RADIANCE_REPO)
 
 # Dart API DL bridge
 DART_SDK_REPO=https://github.com/dart-lang/sdk
