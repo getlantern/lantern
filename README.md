@@ -11,6 +11,7 @@ Censorship circumvention tool available for free download on any operating syste
 ![cover page](https://github.com/getlantern/.github/blob/main/resources/cover_page.png)
 
 # Build and run the app on macOS
+
 ```
 make macos
 flutter run -d macOS
@@ -19,8 +20,7 @@ flutter run -d macOS
 # Build and run the app on iOS
 
 ```
-make build-framework
-cd ios && pod install
+make ios
 flutter devices
 flutter run -d deviceID
 ```
@@ -46,7 +46,7 @@ sdkmanager "ndk;23.1.7779620" "cmake;3.18.1" "platform-tools"
 make android
 ```
 
-After running make android, you’ll find the compiled library here:
+After running `make android`, you’ll find the compiled library here:
 
 ```
 bin/android/liblantern.aar
