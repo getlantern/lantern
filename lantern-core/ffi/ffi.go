@@ -19,10 +19,17 @@ import (
 	"github.com/getlantern/radiance"
 )
 
+type service string
+
+const (
+	appsService service = "apps"
+	logsService service = "logs"
+)
+
 var (
 	baseDir string
 
-	servicesMap = map[string]int64{}
+	servicesMap = map[service]int64{}
 	server      *radiance.Radiance
 	serverMu    sync.Mutex
 
@@ -41,29 +48,19 @@ func setup(dir *C.char, logPort, appsPort C.int64_t, api unsafe.Pointer) {
 		dart_api_dl.Init(api)
 
 		baseDir = C.GoString(dir)
-		servicesMap["logs"] = int64(logPort)
-		servicesMap["apps"] = int64(appsPort)
+		servicesMap[logsService] = int64(logPort)
+		servicesMap[appsService] = int64(appsPort)
+
+		go apps.LoadInstalledApps(func(appData *apps.AppData) error {
+			data, err := json.Marshal(appData)
+			if err != nil {
+				return err
+			}
+			dart_api_dl.SendToPort(int64(appsPort), string(data))
+			return nil
+		})
+
 	})
-
-	go apps.LoadInstalledApps(func(appData *apps.AppData) error {
-		data, err := json.Marshal(appData)
-		if err != nil {
-			return err
-		}
-		dart_api_dl.SendToPort(int64(appsPort), string(data))
-		return nil
-	})
-}
-
-func servicePort(name string) (int64, error) {
-	serverMu.Lock()
-	defer serverMu.Unlock()
-
-	if port, ok := servicesMap[name]; ok {
-		return port, nil
-	}
-
-	return 0, fmt.Errorf("service %s not found", name)
 }
 
 // startVPN initializes and starts the VPN server if it is not already running.

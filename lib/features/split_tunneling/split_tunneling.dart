@@ -21,7 +21,25 @@ class SplitTunneling extends HookConsumerWidget {
         preferences[AppPreferences.splitTunnelingEnabled] ?? false;
     final splitTunnelingMode = preferences[AppPreferences.splitTunnelingMode] ??
         SplitTunnelingMode.automatic;
+    final enabledApps = ref.watch(splitTunnelingAppsProvider).toList();
     final enabledWebsites = ref.watch(splitTunnelingWebsitesProvider).toList();
+
+    void _showBottomSheet() {
+      showModalBottomSheet(
+        context: context,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        builder: (context) {
+          return SplitTunnelingBottomSheet(
+            selectedMode: splitTunnelingMode,
+            onModeSelected: (mode) => ref
+                .read(appPreferencesProvider.notifier)
+                .setPreference(AppPreferences.splitTunnelingMode, mode),
+          );
+        },
+      );
+    }
 
     return BaseScreen(
       title: 'split_tunneling'.i18n,
@@ -49,14 +67,14 @@ class SplitTunneling extends HookConsumerWidget {
           if (splitTunnelingEnabled)
             SplitTunnelingTile(
               label: 'mode'.i18n,
-              // subtitle: Text(
-              //   'iran_optimized'.i18n,
-              //   style: AppTestStyles.labelSmall,
-              // ),
+              subtitle: Text(
+                'iran_optimized'.i18n,
+                style: AppTestStyles.labelSmall,
+              ),
               actionText: splitTunnelingMode == SplitTunnelingMode.automatic
                   ? 'automatic'.i18n
                   : 'manual'.i18n,
-              onPressed: () => appRouter.push(AppsSplitTunneling()),
+              onPressed: _showBottomSheet,
             ),
           SizedBox(height: defaultSize),
           InfoRow(
@@ -68,6 +86,12 @@ class SplitTunneling extends HookConsumerWidget {
             label: 'Websites',
             actionText: '${enabledWebsites.length} Added',
             onPressed: () => appRouter.push(WebsiteSplitTunneling()),
+          ),
+          SizedBox(height: defaultSize),
+          SplitTunnelingTile(
+            label: 'Apps',
+            actionText: '${enabledApps.length} Added',
+            onPressed: () => appRouter.push(AppsSplitTunneling()),
           ),
           SizedBox(height: defaultSize),
         ],
