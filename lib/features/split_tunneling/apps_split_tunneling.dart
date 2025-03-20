@@ -46,12 +46,19 @@ class AppsSplitTunneling extends HookConsumerWidget {
     final installedApps =
         ref.watch(appsDataProvider).where((a) => a.iconPath.isNotEmpty);
     final enabledApps = ref.watch(splitTunnelingAppsProvider);
+    final enabledList = enabledApps.toList();
+    enabledList
+        .sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
     // Separate enabled and disabled apps
     final disabledApps = installedApps
         .where(
             (app) => app.name.toLowerCase().contains(searchQuery.toLowerCase()))
         .where((app) => !enabledApps.any((e) => e.name == app.name))
         .toSet();
+
+    final disabledList = disabledApps.toList();
+    disabledList
+        .sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 
     print("enabledApps: $enabledApps");
 
@@ -77,7 +84,7 @@ class AppsSplitTunneling extends HookConsumerWidget {
               child: SectionLabel(
                   'apps_bypassing_vpn'.i18n.fill([enabledApps.length]))),
           SliverList.list(
-            children: enabledApps
+            children: enabledList
                 .map((app) => _AppRow(
                       app: app.copyWith(isEnabled: true),
                       onToggle: () => ref
@@ -87,10 +94,10 @@ class AppsSplitTunneling extends HookConsumerWidget {
                 .toList(),
           ),
         ],
-        if (disabledApps.isNotEmpty) ...[
+        if (disabledList.isNotEmpty) ...[
           SliverToBoxAdapter(child: SectionLabel('installed_apps'.i18n)),
           SliverList.list(
-            children: disabledApps
+            children: disabledList
                 .map((app) => _AppRow(
                       app: app,
                       onToggle: () => ref
@@ -118,7 +125,7 @@ class _AppRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppTile(
-      label: app.name,
+      label: app.name.replaceAll(".app", ""),
       icon: app.iconPath.isNotEmpty
           ? Image.file(File(app.iconPath), width: 24, height: 24)
           : Icon(Icons.apps),

@@ -34,7 +34,7 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
             ? AppSearchBar(
                 hintText: 'search_websites'.i18n,
               )
-            : 'apps_split_tunneling'.i18n,
+            : 'website_split_tunneling'.i18n,
         actionsPadding: EdgeInsets.only(right: 24.0),
         actions: [
           AppIconButton(
