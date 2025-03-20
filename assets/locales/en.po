@@ -4,23 +4,15 @@ msgstr "Lantern"
 msgid "upgrade_to_pro"
 msgstr "Upgrade to Pro"
 
-msgid "language"
-msgstr "Language"
 
 msgid "settings"
 msgstr "Settings"
-
-msgid "language"
-msgstr "Language"
 
 msgid "report_issue"
 msgstr "Report Issue"
 
 msgid "lantern_projects"
 msgstr "Lantern Projects:"
-
-msgid "download_links"
-msgstr "Download Links"
 
 msgid "invite_friends"
 msgstr "Invite Friends"
@@ -106,12 +98,6 @@ msgstr "MB"
 msgid "vpn_status"
 msgstr "VPN Status"
 
-msgid "smart_location"
-msgstr "Smart Location"
-
-msgid "smart_location"
-msgstr "Smart Location"
-
 msgid "telegram"
 msgstr "Telegram"
 
@@ -144,9 +130,6 @@ msgstr "Language"
 
 msgid "sign_in"
 msgstr "Sign In"
-
-msgid "account"
-msgstr "Account"
 
 msgid "sign_out"
 msgstr "Sign Out"

@@ -5,9 +5,6 @@ OUT_DIR := bin
 LIB_NAME := liblantern
 FFI_DIR := ./lantern-core/ffi
 
-gen:
-	dart run build_runner build
-
 # Build for macOS
 macos: export CGO_CFLAGS="-I./dart_api_dl/include"
 macos:
@@ -59,8 +56,12 @@ update-dart-api-dl:
 	@echo "Dart API DL bridge updated successfully!"
 
 #Routes generation
-routes:
+gen:
 	dart run build_runner build --delete-conflicting-outputs
+
+
+find-duplicate-translations:
+	grep -oE 'msgid\s+"[^"]+"' assets/locales/en.po | sort | uniq -d
 
 clean:
 	rm -rf $(OUT_DIR)/*

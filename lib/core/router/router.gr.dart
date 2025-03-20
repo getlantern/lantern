@@ -236,10 +236,14 @@ class Logs extends _i17.PageRouteInfo<void> {
 class ReportIssue extends _i17.PageRouteInfo<ReportIssueArgs> {
   ReportIssue({
     _i18.Key? key,
+    String? description,
     List<_i17.PageRouteInfo>? children,
   }) : super(
           ReportIssue.name,
-          args: ReportIssueArgs(key: key),
+          args: ReportIssueArgs(
+            key: key,
+            description: description,
+          ),
           initialChildren: children,
         );
 
@@ -250,19 +254,27 @@ class ReportIssue extends _i17.PageRouteInfo<ReportIssueArgs> {
     builder: (data) {
       final args =
           data.argsAs<ReportIssueArgs>(orElse: () => const ReportIssueArgs());
-      return _i10.ReportIssue(key: args.key);
+      return _i10.ReportIssue(
+        key: args.key,
+        description: args.description,
+      );
     },
   );
 }
 
 class ReportIssueArgs {
-  const ReportIssueArgs({this.key});
+  const ReportIssueArgs({
+    this.key,
+    this.description,
+  });
 
   final _i18.Key? key;
 
+  final String? description;
+
   @override
   String toString() {
-    return 'ReportIssueArgs{key: $key}';
+    return 'ReportIssueArgs{key: $key, description: $description}';
   }
 }
 
@@ -287,10 +299,13 @@ class ServerSelection extends _i17.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i12.Setting]
-class Setting extends _i17.PageRouteInfo<void> {
-  const Setting({List<_i17.PageRouteInfo>? children})
-      : super(
+class Setting extends _i17.PageRouteInfo<SettingArgs> {
+  Setting({
+    _i18.Key? key,
+    List<_i17.PageRouteInfo>? children,
+  }) : super(
           Setting.name,
+          args: SettingArgs(key: key),
           initialChildren: children,
         );
 
@@ -299,9 +314,21 @@ class Setting extends _i17.PageRouteInfo<void> {
   static _i17.PageInfo page = _i17.PageInfo(
     name,
     builder: (data) {
-      return const _i12.Setting();
+      final args = data.argsAs<SettingArgs>(orElse: () => const SettingArgs());
+      return _i12.Setting(key: args.key);
     },
   );
+}
+
+class SettingArgs {
+  const SettingArgs({this.key});
+
+  final _i18.Key? key;
+
+  @override
+  String toString() {
+    return 'SettingArgs{key: $key}';
+  }
 }
 
 /// generated route for

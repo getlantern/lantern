@@ -1,0 +1,2005 @@
+# 
+# Translators:
+# abuyop <abuyop@gmail.com>, 2022
+# Ahmed Noor Kader Mustajir Md Eusoff (kader) <sir.ade@gmail.com>, 2023
+# tx_e2f_my t1 <divinahramaroson@gmail.com>, 2023
+# Lantern, 2024
+# e2f_my c2 <tx_e2f_my_c2@ate2f.com>, 2024
+# Derek F <derek@getlantern.org>, 2024
+# tx_e2f_ms t9 <tx_e2f_ms_t9@ate2f.com>, 2024
+# Alyssa Chung <lisiachung7@gmail.com>, 2024
+# e2f <projects@e2f.com>, 2024
+# 
+msgid ""
+msgstr ""
+"Last-Translator: e2f <projects@e2f.com>, 2024\n"
+"Language-Team: Malay (https://app.transifex.com/lantern-1/teams/94371/ms/)\n"
+"Language: ms\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "app_name"
+msgstr "Lantern"
+
+msgid "introducing"
+msgstr "Memperkenalkan Sembang"
+
+msgid "introducing_des"
+msgstr ""
+"Sembang secara selamat bersama kawan dengan menggunakan sembang disulitkan &"
+" penyekatan rintangan kami yang baharu yang dibina secara langsung ke dalam "
+"Lantern!"
+
+msgid "maybe_later"
+msgstr "Mungkin Kemudian"
+
+msgid "try"
+msgstr "Cubalah"
+
+msgid "sign_in"
+msgstr "Sign In"
+
+msgid "enter_email"
+msgstr "Masukkan E-mel"
+
+msgid "enter_password"
+msgstr ""
+
+msgid "forgot_password"
+msgstr "Terlupa Kata Laluan "
+
+msgid "forgot_your_password"
+msgstr "Terlupa kata laluan anda? "
+
+msgid "click_here"
+msgstr "Klik di sini "
+
+msgid "reset_password"
+msgstr "Tetapkan Semula Kata Laluan"
+
+msgid "lantern_pro_email"
+msgstr "Email Lantern Pro "
+
+msgid "return_to_sign_in"
+msgstr "Kembali ke Log Masuk "
+
+msgid "enter_confirmation_code"
+msgstr "Masukkan Kod Pengesahan "
+
+msgid "confirmation_code_msg"
+msgstr ""
+"Kod pengesahan telah dihantar ke XX. Masukkan di sini untuk mengamankan "
+"akaun anda dan mengaktifkan pemulihan kata laluan. "
+
+msgid "resend_confirmation_code"
+msgstr "Hantar Semula Email Pengesahan "
+
+msgid "email_already_exists"
+msgstr "Email Sudah Wujud "
+
+msgid "email_already_exists_msg"
+msgstr ""
+"Email ini telah diambil, jika anda sudah mempunyai akaun dengan email ini, "
+"anda boleh memulihkannya. Jika tidak, sila kembali dan pilih alamat email "
+"yang berbeza. "
+
+msgid "recover_account"
+msgstr "Pulihkan Akaun "
+
+msgid "back"
+msgstr "kembali "
+
+msgid "change_email"
+msgstr "Tukar Email "
+
+msgid "new_password"
+msgstr "Kata Laluan Baharu"
+
+msgid "confirm_new_password"
+msgstr "Sahkan Kata Laluan Baharu"
+
+msgid "already_have_an_account"
+msgstr "Sudah mempunyai akaun? "
+
+msgid "create_account"
+msgstr "Cipta Akaun"
+
+msgid "create_password"
+msgstr "Buat Kata Laluan "
+
+msgid "by_creating_an_account"
+msgstr "Dengan Membuat Akaun, anda bersetuju dengan "
+
+msgid "confirm_email"
+msgstr "Sahkan Emel"
+
+msgid "update_pro_account"
+msgstr "Kemas Kini Akaun Pro "
+
+msgid "update_pro_account_message"
+msgstr ""
+"Perubahan akan datang ke Lantern Pro! Sekarang, anda memerlukan email dan "
+"kata laluan untuk log masuk pada semua peranti, dan untuk mengakses "
+"Pengurusan Akaun. Sila luangkan beberapa saat untuk menambah maklumat ini ke"
+" akaun anda. "
+
+msgid "not_now"
+msgstr "Tidak sekarang "
+
+msgid "update_account"
+msgstr "Kemas Kini Akaun "
+
+msgid "new"
+msgstr "Baharu"
+
+msgid "Daily Data Usage"
+msgstr "Penggunaan Data Harian"
+
+msgid "is"
+msgstr "is"
+
+msgid "connect"
+msgstr "Sambuungan"
+
+msgid "disconnect"
+msgstr "Putuskan sambungan"
+
+msgid "connected"
+msgstr "Telah disambungkan"
+
+msgid "Disconnected"
+msgstr "Terputus"
+
+msgid "Disconnecting"
+msgstr "Memutuskan sambungan..."
+
+msgid "Connecting"
+msgstr "Sambungan..."
+
+msgid "no_network_connection"
+msgstr "Tiada sambungan rangkaian"
+
+msgid "connection_error"
+msgstr "Ralat Sambungan"
+
+msgid "connection_error_des"
+msgstr ""
+"Lantern sedang menghadapi isu untuk menyambung kepada server kami. Sila "
+"mulakan semula aplikasi. Jika isu berterusan, sila hubungi sokongan."
+
+msgid "connection_error_button"
+msgstr "Hubungi sokongan"
+
+msgid "Calling"
+msgstr "Menghubungi..."
+
+msgid "Go Pro Title"
+msgstr "Go Pro!"
+
+msgid "Go Pro Description"
+msgstr ""
+"Buka kelajuan yang lebih pantas, pengalaman tanpa iklan, dan data tanpa had!"
+" "
+
+msgid "Server Location"
+msgstr "Lokasi Server"
+
+msgid "Server Location Info"
+msgstr ""
+"Lantern menggunakan pilihan server pintar untuk menghubungkan anda secara "
+"automatik kepada pusat-pusat data kami yang terbaik."
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Done"
+msgstr "Selesai"
+
+msgid "backup_recovery_key"
+msgstr "Kunci Pemulihan Sandaran"
+
+msgid "delete_chat_data"
+msgstr "Padamkan semua Data Sembang"
+
+msgid "delete_chat_data_description"
+msgstr ""
+"Tindakan ini akan memadamkan Nombor Sembang, kenalan dan mesej anda daripada"
+" peranti ini. Tanpa Kunci Pemulihan Sandaran anda, anda akan kehilangan "
+"akses kepada Nombor Sembang anda."
+
+msgid "delete_chat_data_confirmation"
+msgstr "Saya mengesahkan bahawa saya ingin memadamkan data sembang saya"
+
+msgid "Pro Account Management"
+msgstr "Akaun Pengurusan Pro"
+
+msgid "link_device"
+msgstr "Pautkan Peranti"
+
+msgid "Upgrade to Lantern Pro"
+msgstr "Upgrade ke Lantern Pro"
+
+msgid "Invite Friends"
+msgstr "Menjemput Rakan-Rakan"
+
+msgid "share_lantern_pro"
+msgstr ""
+"Kongsikan Lantern Pro dengan rakan! Apabila rakan anda menggunakan kod "
+"rujukan semasa pembelian Lantern Pro mereka, anda berdua akan menerima "
+"perkhidmatan percuma Lantern Pro selama sebulan!"
+
+msgid "privacy_disclosure_title"
+msgstr "Pendedahan Privasi Lantern"
+
+msgid "privacy_disclosure_body"
+msgstr ""
+"Lantern komited untuk melindungi privasi anda. Kami ingin anda memahami "
+"maklumat yang kami kumpulkan, maklumat yang tidak kami kumpulkan dan cara "
+"kami mengumpulkan, menggunakan dan menyimpan maklumat. Kami memisahkan "
+"maklumat pembayaran anda dengan akaun Lantern Pro anda. Kami tidak "
+"mengumpulkan log aktiviti anda, termasuk tidak mencatat sejarah penyemakan "
+"imbas, destinasi trafik, kandungan data atau pertanyaan DNS. Kami juga tidak"
+" pernah menyimpan log sambungan, yang bermaksud tidak ada log alamat IP "
+"anda, alamat IP pelayan Lantern keluar anda yang dikaitkan dengan cap waktu "
+"sambungan, atau tempoh sesi. Disebabkan akaun Lantern Pro yang tertentu, "
+"secara teknikal, Lantern tidak dapat mengaitkan akaun Lantern dengan "
+"identiti sebenar pengguna. Disebabkan alamat IP Lantern dan cap waktu yang "
+"tepat, Lantern secara teknikal tidak dapat menghubungkan alamat IP ini "
+"kepada pengguna Lantern atau alamat IP pengguna Lantern."
+
+msgid "privacy_disclosure_accept"
+msgstr "Saya terima"
+
+msgid "desktop_version"
+msgstr "Versi Desktop"
+
+msgid "settings"
+msgstr "Tetapan"
+
+msgid "general"
+msgstr "Am"
+
+msgid "about"
+msgstr "Mengenai"
+
+msgid "proxy_all"
+msgstr "Proksi semua"
+
+msgid "proxy_everything_is"
+msgstr "Proksi semua ialah %s"
+
+msgid "version_number"
+msgstr "Versi %s"
+
+msgid "build_number"
+msgstr "Bina %s"
+
+msgid "sdk_version"
+msgstr "SDK %s"
+
+msgid "language"
+msgstr "Bahasa"
+
+msgid "select_an_issue"
+msgstr "Sila Pilih satu Isu"
+
+msgid "enter_description"
+msgstr "Sila jelaskan masalah anda "
+
+msgid "cannot_access_blocked_sites"
+msgstr "Tidak boleh akses laman-laman disekat"
+
+msgid "cannot_complete_purchase"
+msgstr "Tidak dapat melengkapkan pembelian"
+
+msgid "discover_not_working"
+msgstr "Terokai tidak berfungsi"
+
+msgid "cannot_sign_in"
+msgstr "Tidak boleh mendaftar masuk"
+
+msgid "spinner_loads_endlessly"
+msgstr "Pemutar dimuatkan tanpa henti"
+
+msgid "slow"
+msgstr "Lambat"
+
+msgid "cannot_link_devices"
+msgstr "Tidak boleh pautkan peranti"
+
+msgid "wrong_device_linking_code"
+msgstr "Kod pautan alatan salah atau tidak sah "
+
+msgid "cannot_remove_device"
+msgstr "Tidak boleh mengeluarkan peranti "
+
+msgid "application_crashes"
+msgstr "Aplikasi ranap"
+
+msgid "other"
+msgstr "Lain-lain"
+
+msgid "issue_description"
+msgstr "Jelaskan masalah anda "
+
+msgid "check_for_updates"
+msgstr "Semak kemas kini"
+
+msgid "blocked_users"
+msgstr "Pengguna Disekat"
+
+msgid "description_proxy_all_dialog"
+msgstr ""
+"Sekiranya didayakan, semua trafik akan dihantar melalui Lantern (lebih "
+"selamat). Sekiranya dinyahdayakan, hanya trafik yang disekat akan dihantar "
+"melalui Lantern (lebih pantas)."
+
+msgid "Account"
+msgstr "Akaun"
+
+msgid "VPN Status"
+msgstr "Status VPN"
+
+msgid "VPN"
+msgstr "VPN"
+
+msgid "Authorize Device for Pro"
+msgstr "Peranti dibenarkan untuk Pro"
+
+msgid "Authorize with Device Linking Pin"
+msgstr "Memberikan Kebenaran dengan Pin Pautan Peranti"
+
+msgid "Requires physical access to a Lantern Pro Device"
+msgstr "Memerlukan akses fizikal kepada Peranti Lantern Pro"
+
+msgid "Link with PIN"
+msgstr "Pautkan dengan PIN"
+
+msgid "OR"
+msgstr "ATAU"
+
+msgid "device_linking_pin"
+msgstr "Pin pemautan peranti"
+
+msgid "link_device_step_one"
+msgstr "Buka item menu 'Tambah Peranti' pada peranti Pro anda. "
+
+msgid "link_device_step_two"
+msgstr "Masukkan PIN pautan peranti dan klik hantar "
+
+msgid "ensure_most_recent_version_lantern"
+msgstr "* Pastikan kedua-dua peranti menjalankan versi terbaru Lantern"
+
+msgid "Authorize Device via Email"
+msgstr "Berikan Kebenaran kepada Peranti melalui E-mel"
+
+msgid "auth_email_helper_text"
+msgstr "Masukkan e-mel yang dikaitkan dengan akaun Pro anda"
+
+msgid "Requires access to the email you used to buy Lantern Pro"
+msgstr ""
+"Memerlukan akses kepada e-mel yang anda gunakan untuk membeli Lantern Pro"
+
+msgid "Link via Email"
+msgstr "Pautkan melalui E-mel"
+
+msgid "lantern_desktop"
+msgstr "Desktop Lantern"
+
+msgid "report_description"
+msgstr "Penerangan Isu"
+
+msgid "report_issue"
+msgstr "Lapor Masalah "
+
+msgid "report_an_issue"
+msgstr "Melapor suatu Isu"
+
+msgid "report_sent"
+msgstr "Laporan Dihantar"
+
+msgid "thank_you_for_reporting_your_issue"
+msgstr ""
+"Terima kasih kerana melaporkan isu anda, kami akan menghubungi anda melalui "
+"E-mel secepat mungkin"
+
+msgid "send_report"
+msgstr "Hantar Laporan"
+
+msgid "most_recent_lantern_apps"
+msgstr ""
+"Aplikasi Lantern terbaru untuk desktop dan semua platform lain boleh "
+"didapati di pautan di atas."
+
+msgid "share_link"
+msgstr "Kongsi Pautan "
+
+msgid "share_title"
+msgstr "Kongsikan pautan muat turun Lantern"
+
+msgid "email"
+msgstr "Emel"
+
+msgid "Submit"
+msgstr "Hantar"
+
+msgid "save"
+msgstr "Simpan"
+
+msgid "please_enter_a_valid_email_address"
+msgstr "Sila masukkan alamat e-mel yang sah"
+
+msgid "bonus"
+msgstr "Bonus"
+
+msgid "referral_bonus"
+msgstr "bonus rujukan"
+
+msgid "total"
+msgstr "Jumlah"
+
+msgid "month"
+msgstr "bulan"
+
+msgid "months"
+msgstr "bulan"
+
+msgid "enter_email_to_complete_purchase"
+msgstr "Masukkan e-mel untuk melengkapkan pembelian "
+
+msgid "error_fetching_plans"
+msgstr "Ralat mendapatkan pelan, sila mulakan semula Lantern dan cuba lagi."
+
+msgid "apply"
+msgstr "Guna"
+
+msgid "choose_payment_method"
+msgstr "Pilih Kaedah Pembayaran"
+
+msgid "pro_plan"
+msgstr "Pelan Pro"
+
+msgid "one_month_plan"
+msgstr ""
+
+msgid "one_year_plan"
+msgstr "Pelan 1 Tahun"
+
+msgid "two_year_plan"
+msgstr "Pelan 2 Tahun"
+
+msgid "plan_discount"
+msgstr "Jimat %d%%"
+
+msgid "enter_email_and_activation_code"
+msgstr "Masukkan E-mel dan kod Pengaktifan"
+
+msgid "referral_code"
+msgstr "Kod rujukan"
+
+msgid "share_referral_code"
+msgstr "Kongsi Kod Rujukan "
+
+msgid "share_message_referral_code"
+msgstr ""
+"Untuk sebulan percuma Lantern Pro, gunakan kod rujukan ini: %s ; Anda boleh "
+"memuat turunnya di sini: https://lantern.io/download "
+
+msgid "add_referral_code"
+msgstr "Tambah kod Rujukan"
+
+msgid "Activation Code"
+msgstr "Kod Pengaktifan"
+
+msgid "invalid_or_incomplete_referral_code"
+msgstr "Kod rujukan tidak sah atau tidak lengkap"
+
+msgid "register_for_pro"
+msgstr "Daftar untuk Pro"
+
+msgid "Something went wrong while applying your referral code."
+msgstr "Ada kesilapan berlaku semasa menggunakan kod rujukan anda."
+
+msgid "your_activation_code_is_invalid"
+msgstr "Kod pengaktifan anda tidak sah"
+
+msgid "update_cache_plans_timeout"
+msgstr "Ada kesilapan berlaku semasa memdapatkan pelan yang tersedia."
+
+msgid "bitcoin_timeout"
+msgstr "Permintaan BTCPay telah tamat masa."
+
+msgid "BTCPay is unavailable"
+msgstr "BTCPay tidak tersedia"
+
+msgid "update_cache_user_timeout"
+msgstr "Ada kesilapan berlaku semasa mendapatkan data akaun anda."
+
+msgid "reseller_timeout"
+msgstr "Ada kesilapan berlaku semasa mengesahkan kod pengaktifan anda."
+
+msgid "wrong_reseller_code"
+msgstr "Kod pengaktifan tidak sah"
+
+msgid "reseller_success"
+msgstr "Berjaya menebus kod pengaktifan."
+
+msgid "stripe_timeout"
+msgstr ""
+"Pembayaran Stripe anda telah tamat masa. Sila mulakan semula Lantern dan "
+"cuba lagi."
+
+msgid "stripe_success"
+msgstr "Pembelian Stripe yang berjaya."
+
+msgid "renewal_success"
+msgstr "Pembaharuan Berjaya Dilakukan"
+
+msgid "pro_renewal_success_description"
+msgstr ""
+"Terima kasih kerana membaharui akaun Lantern Pro anda. Kini anda mempunyai "
+"akses tanpa had menggunakan pusat data terpantas kami. Maksimum tiga peranti"
+" boleh dihubungkan dengan akaun anda."
+
+msgid "pro_purchase_success"
+msgstr "Selamat datang ke Lantern Pro"
+
+msgid "platinum_purchase_success_descripion"
+msgstr ""
+"Anda kini mempunyai akses tanpa had menggunakan pusat data terpantas kami "
+"dan talian khusus. Maksimum tiga peranti boleh disambungkan dengan akaun "
+"anda."
+
+msgid "pro_purchase_success_descripion"
+msgstr ""
+"Kini anda mempunyai akses tanpa had menggunakan pusat data terpantas kami. "
+"Maksimum tiga peranti boleh disambungkan dengan akaun anda."
+
+msgid "by_clicking_tos"
+msgstr "Dengan mengklik %s, anda bersetuju dengan "
+
+msgid "tos"
+msgstr "Terma Perkhidmatan"
+
+msgid "step_1"
+msgstr "Langkah 1"
+
+msgid "step_2"
+msgstr "Langkah 2"
+
+msgid "step_3"
+msgstr "Langkah 3"
+
+msgid "invalid_email"
+msgstr "Alamat e-mel tidak sah"
+
+msgid "invalid_card"
+msgstr "Nombor kad kredit tidak sah"
+
+msgid "invalid_expiration"
+msgstr "Tarikh tamat tempoh tidak sah"
+
+msgid "cc_number"
+msgstr "Kad Kredit"
+
+msgid "card_number"
+msgstr "Nombor Kad"
+
+msgid "card_expiration"
+msgstr "BB/TT"
+
+msgid "invalid_cvc"
+msgstr "CVC tidak sah"
+
+msgid "complete_purchase"
+msgstr "Pembelian Lengkap"
+
+msgid "Re-send Email"
+msgstr "Emel Dihantar semula"
+
+msgid "Paste from clipboard?"
+msgstr "Tampal daripada papan klip?"
+
+msgid "Yes"
+msgstr "Ya"
+
+msgid "No"
+msgstr "Tidak"
+
+msgid "exit"
+msgstr "Keluar "
+
+msgid "show"
+msgstr "Keluar "
+
+msgid "status_on"
+msgstr "Status: Hidup "
+
+msgid "status_off"
+msgstr "Status: Mati "
+
+msgid "Enter or paste linking code"
+msgstr "Masukkan atau tampal kod pemautan"
+
+msgid "recovery_email_sent"
+msgstr ""
+"PIN Pemautan telah dihantar ke %s sekiranya akaun ini wujud. Masukkan PIN "
+"daripada e-mel di atas. E-mel mungkin mengambil masa beberapa jam untuk "
+"sampai."
+
+msgid "Add Device"
+msgstr "Tambah Peranti"
+
+msgid "approve_device_step_1"
+msgstr ""
+"Buka 'Berikan Kebenaran kepada Peranti untuk Pro' daripada menu akaun pada "
+"peranti yang ingin anda pautkan, kemudian pilih 'Pautkan dengan PIN'."
+
+msgid "approve_device_step_2"
+msgstr "Masukkan kod pemautan yang diperoleh daripada langkah 1"
+
+msgid "Pro Account Expiration"
+msgstr "Tamat Tempoh Akaun Pro"
+
+msgid "Renew"
+msgstr "Memperbaharui"
+
+msgid "pro_devices_header"
+msgstr "Peranti Lantern Pro (Sehingga 3)"
+
+msgid "Remove"
+msgstr "Keluarkan"
+
+msgid "Log Out"
+msgstr "Log Keluar"
+
+msgid "confirm_remove_device"
+msgstr ""
+"Adakah anda pasti ingin mengeluarkan pautan peranti dari account Pro anda?"
+
+msgid "confirm_close_window"
+msgstr "Adakah anda pasti mahu menutup Lantern? "
+
+msgid "unlimited_data"
+msgstr "Data Tidak Terbatas"
+
+msgid "no_logs"
+msgstr "Tiada log"
+
+msgid "no_ads"
+msgstr "Tiada Iklan"
+
+msgid "choose_plan"
+msgstr "Pilih Pelan"
+
+msgid "billed_one_time"
+msgstr "dibilkan sekali sahaja "
+
+msgid "connect_up_to_3_devices"
+msgstr "Sambungkan sehingga 3 peranti"
+
+msgid "faster_data_centers"
+msgstr "Pusat Data Lebih Cepat"
+
+msgid "dedicated_line"
+msgstr "Talian Khusus"
+
+msgid "increased_reliability"
+msgstr "Keutuhan Dipertingkatkan"
+
+msgid "checkout"
+msgstr "Daftar keluar"
+
+msgid "credit_card"
+msgstr "Kad Kredit"
+
+msgid "lantern_pro_checkout"
+msgstr "Daftar keluar Lantern Pro"
+
+msgid "1y_pricing"
+msgstr "Harga 1 tahun"
+
+msgid "2y_pricing"
+msgstr "Harga 2 tahun"
+
+msgid "plan_type"
+msgstr "Jenis pelan"
+
+msgid "most_popular"
+msgstr "Paling Digemari"
+
+msgid "free"
+msgstr "Percuma"
+
+msgid "n/a"
+msgstr "t/b"
+
+msgid "Developer Settings"
+msgstr "Tetapan Pembangun"
+
+msgid "Developer"
+msgstr "Pembangun"
+
+msgid "dev_settings"
+msgstr ""
+"Tetapan ini adalah untuk kegunaan pembangunan sahaja. Perubahan apa-apa "
+"tetapan akan menghentikan dan memulakan semula aplikasi secara automatik."
+
+msgid "dev_payment_mode"
+msgstr ""
+"Apabila Mod Ujian Bayaran didayakan, aplikasi menggunakan pengguna berkod "
+"keras yang tunggal. Anda boleh membuat pembelian Stripe dengan menggunakan "
+"nombor 4242 4242 4242 4242, tarikh tamat tempoh pada masa depan dan apa-apa "
+"CVV."
+
+msgid "Payment Test Mode"
+msgstr "Mod Ujian Bayaran"
+
+msgid "Play Version"
+msgstr "Mainkan Versi"
+
+msgid "Force Country"
+msgstr "Paksa Negara"
+
+msgid "Error"
+msgstr "Ralat"
+
+msgid "accept"
+msgstr "Terima"
+
+msgid "cancel"
+msgstr "Batal"
+
+msgid "reject"
+msgstr "Tolak"
+
+msgid "copied"
+msgstr "Disalin!"
+
+msgid "saved"
+msgstr "Disimpan!"
+
+msgid "new_chat"
+msgstr "Sembang Baharu"
+
+msgid "your_contact_info"
+msgstr "Maklumat Kenalan Anda"
+
+msgid "display_name"
+msgstr "Nama Paparan"
+
+msgid "edit"
+msgstr "Edit"
+
+msgid "save_error"
+msgstr "Sesuatu tidak kena semasa menyimpan."
+
+msgid "fewer_options"
+msgstr "Sedikit Pilihan"
+
+msgid "more_options"
+msgstr "Lagi Pilihan"
+
+msgid "block_user"
+msgstr "Sekat pengguna"
+
+msgid "unblock_user"
+msgstr "Nyahsekat pengguna"
+
+msgid "block"
+msgstr "Sekat"
+
+msgid "unblock"
+msgstr "Nyahsekat"
+
+msgid "block_info_title"
+msgstr "Sekat %s ?"
+
+msgid "no_blocked_users"
+msgstr "Tiada pengguna yang disekat."
+
+msgid "unblock_info_title"
+msgstr "Nyahsekat %s ?"
+
+msgid "block_info_description"
+msgstr ""
+"Penyekatan pengguna ini akan memadamkan sejarah sembang dan mengelakkan "
+"mereka daripada menghubungi anda pada masa depan. Anda boleh menyahsekat "
+"pengguna daripada menu tetapan."
+
+msgid "unblock_info_description"
+msgstr ""
+"%s akan dapat menghantar mesej kepada anda sekarang. Mereka tidak akan "
+"diberitahu bahawa anda menyahsekat mereka."
+
+msgid "block_info_checkbox"
+msgstr ""
+"Saya memahami bahawa tindakan ini akan memadamkan semua sejarah sembang."
+
+msgid "unblock_info_checkbox"
+msgstr "Saya mengesahkan bahawa saya ingin menyahsekat kenalan ini."
+
+msgid "delete_permanently"
+msgstr "Padamkan pengguna secara kekal"
+
+msgid "delete_info_description"
+msgstr ""
+"Setelah dipadamkan, anda akan perlu menambah maklumat kenalan mereka jika "
+"anda ingin bersembang dengan mereka lagi."
+
+msgid "add_new_contact"
+msgstr "Tambah kenalan baharu"
+
+msgid "add_contact"
+msgstr "Tambah Kenalan"
+
+msgid "share_your_chat_number"
+msgstr "Kongsi Nombor Sembang anda"
+
+msgid "scan_qr_code"
+msgstr "Imbas Kod QR"
+
+msgid "add_contact_in_person"
+msgstr "Tambah kenalan secara peribadi"
+
+msgid "start_chat"
+msgstr "Mulakan sembang"
+
+msgid "your_installed_apps"
+msgstr "Apl yang telah Anda Pasang"
+
+msgid "apps_routed_through_lantern"
+msgstr "Apl yang Dihalakan Melalui Lantern"
+
+msgid "apps_to_unblock"
+msgstr ""
+"Pilih apl yang mahu anda nyahsekat. Apabila disambungkan, hanya apl yang "
+"dipilih di bawah akan dihalakan melalui Lantern."
+
+msgid "split_tunneling"
+msgstr "Penerowongan Pisah"
+
+msgid "split_tunneling_info"
+msgstr ""
+"Apabila penerowongan pisah didayakan, apl terpilih akan dihalakan melalui "
+"Lantern. Proses ini boleh meningkatkan prestasi dan menjimatkan lebar jalur "
+"dengan menyahsekat apl tertentu sahaja."
+
+msgid "applied_next_time"
+msgstr ""
+"Tetapan penerowongan pisah baharu akan digunakan apabila anda membuat "
+"sambungan semula sekali lagi."
+
+msgid "message_disappearing"
+msgstr "Semua mesej tidak akan hilang untuk anda dan %s."
+
+msgid "message_disappearing_description"
+msgstr "Semua mesej akan hilang selepas %s untuk anda dan %s."
+
+msgid "view_contact_info"
+msgstr "Lihat Maklumat Kenalan"
+
+msgid "off"
+msgstr "Dimatikan"
+
+msgid "on"
+msgstr "Dihidupkan"
+
+msgid "continue"
+msgstr "Teruskan"
+
+msgid "continue_to_pro"
+msgstr "Terus ke Pro"
+
+msgid "are_you_sure_you_want_to_open"
+msgstr "Adakah anda pasti bahawa anda ingin membuka %s?"
+
+msgid "set"
+msgstr "Tetapkan"
+
+msgid "menu"
+msgstr "Menu"
+
+msgid "send_error"
+msgstr "Sesuatu tidak kena semasa menghantar mesej anda"
+
+msgid "share_media_error"
+msgstr "Sesuatu tidak kena semasa berkongsi fail media"
+
+msgid "no_recents"
+msgstr "Tiada Mesej Terbaru"
+
+msgid "set_display_name"
+msgstr "Tetapkan Nama Paparan"
+
+msgid "introduce_contact"
+msgstr "Perkenalkan Kenalan"
+
+msgid "introduce_contacts"
+msgstr "Perkenalkan Kenalan"
+
+msgid "introduce_contacts_with_count"
+msgstr "Perkenalkan Kenalan (%s)"
+
+msgid "need_two_contacts_to_introduce"
+msgstr ""
+"Setelah anda mempunyai dua atau lebih kenalan, anda akan dapat mencipta "
+"pengenalan."
+
+msgid "introduce_contacts_select"
+msgstr ""
+"Pilih dua atau lebih kenalan untuk diperkenalkan. Pengenalan akan dihantar "
+"kepada mereka untuk mula menghantar mesej antara satu sama lain."
+
+msgid "introduce_single_contact"
+msgstr ""
+"Pilih kenalan untuk diperkenalkan kepada %s.  Setelah mereka meluluskan "
+"pengenalan, mereka akan dapat menghantar mesej antara satu sama lain."
+
+msgid "send_introductions"
+msgstr "Hantar Pengenalan"
+
+msgid "introductions_sent"
+msgstr "Pengenalan Dihantar!"
+
+msgid "no_contacts_yet"
+msgstr "Tiada kenalan lagi"
+
+msgid "contact_verification"
+msgstr "Pengesahan Kenalan"
+
+msgid "verification"
+msgstr "Pengesahan"
+
+msgid "contact_verification_description"
+msgstr ""
+"Pengesahan kenalan sentiasa tersedia daripada menu mesej di bahagian atas "
+"sebelah kanan."
+
+msgid "qr_error_description"
+msgstr "Sesuatu tidak kena semasa mengimbas kod QR ini."
+
+msgid "qr_info_verification_title"
+msgstr "Pengesahan Kenalan Secara Peribadi"
+
+msgid "qr_info_f2f_title"
+msgstr "Pengimbasan Kod QR"
+
+msgid "qr_info_verification_des"
+msgstr ""
+"Untuk mengesahkan kenalan anda, imbas kod QR antara satu sama lain.\n"
+"\n"
+"Proses ini memastikan privasi dan penyulitan hujung ke hujung perbualan anda."
+
+msgid "qr_info_f2f_des"
+msgstr ""
+"Untuk menambah kawan anda sebagai kenalan, imbas kod QR antara satu sama lain.\n"
+"\n"
+"Proses ini memastikan privasi dan penyulitan hujung ke hujung perbualan anda."
+
+msgid "qr_info_verification_scan"
+msgstr "Imbas kod QR antara satu sama lain untuk membuat pengesahan."
+
+msgid "qr_info_f2f_scan"
+msgstr "Imbas kod QR antara satu sama lain untuk menambah kenalan."
+
+msgid "qr_success_snackbar"
+msgstr "%s ialah Kenalan"
+
+msgid "qr_info_waiting_qr"
+msgstr "Menunggu kawan anda untuk mengimbas kod QR anda..."
+
+msgid "scan_complete"
+msgstr "Pengimbasan selesai"
+
+msgid "qr_for_your_contact"
+msgstr "Kod QR Anda"
+
+msgid "add_via_chat_number"
+msgstr "Tambah melalui Nombor Sembang"
+
+msgid "qr_info_waiting_id"
+msgstr ""
+"Menunggu kawan anda untuk memasukkan ID Messenger anda atau mengimbas kod QR"
+" anda..."
+
+msgid "chat_number_not_found"
+msgstr ""
+"Nombor Sembang tidak ditemukan.\n"
+"Sila semak nombor yang anda masukkan dan cuba lagi."
+
+msgid "unable_to_add_contact"
+msgstr ""
+"Kenalan tidak ditemukan.\n"
+"Semak nombor yang anda masukkan dan cuba lagi."
+
+msgid "self_adding"
+msgstr "Nombor Sembang yang anda masukkan milik anda"
+
+msgid "chat_number_type"
+msgstr "Taipkan Nombor Sembang"
+
+msgid "letter_and_numbers_only"
+msgstr "Aksara dan nombor sahaja"
+
+msgid "name_your_contact"
+msgstr "Namakan kenalan anda"
+
+msgid "messenger_id_invalid"
+msgstr "ID Messenger Tidak Sah"
+
+msgid "username_not_found"
+msgstr "Nama pengguna tidak ditemukan"
+
+msgid "contact_id_your_id"
+msgstr "ID Messenger Anda"
+
+msgid "introductions"
+msgstr "Pengenalan"
+
+msgid "introduced"
+msgstr "Diperkenalkan oleh %s"
+
+msgid "introductions_title"
+msgstr "Terima Pengenalan untuk %s"
+
+msgid "introductions_info"
+msgstr ""
+"Kedua-dua pihak mesti menerima pengenalan untuk bersembang antara satu sama "
+"lain. Pengenalan hilang selepas 7 hari jika tiada tindakan diambil."
+
+msgid "introduction_reject_title"
+msgstr "Tolak Pengenalan"
+
+msgid "introduction_reject_content"
+msgstr ""
+"Anda tidak akan dapat menghantar mesej kepada kenalan ini jika anda menolak "
+"pengenalan."
+
+msgid "introductions_error_description_rejecting"
+msgstr "Sesuatu tidak kena semasa menolak permintaan penyambungan ini."
+
+msgid "introductions_error_description_accepting"
+msgstr "Sesuatu tidak kena semasa menerima permintaan penyambungan ini."
+
+msgid "no_introductions"
+msgstr "Tiada pengenalan belum selesai."
+
+msgid "introduction_approved"
+msgstr "Pengenalan kepada %s diluluskan!"
+
+msgid "delete_contact_name"
+msgstr "Padamkan %s"
+
+msgid "delete_contact"
+msgstr "Padamkan Kenalan"
+
+msgid "error"
+msgstr "Ralat"
+
+msgid "error_delete_contact"
+msgstr "Sesuatu tidak kena semasa memadamkan kenalan ini."
+
+msgid "unnamed_contact"
+msgstr "Kenalan Tidak Dinamakan"
+
+msgid "me"
+msgstr "Saya"
+
+msgid "disappearing_messages"
+msgstr "Mesej Hilang"
+
+msgid "start_of_your_history"
+msgstr ""
+"Sembang dan panggilan suara anda dengan %s disulitkan dari hujung ke hujung"
+
+msgid "banner_unaccepted"
+msgstr ""
+"%s tidak berada dalam senarai kenalan anda. Inginkah anda menerima "
+"permintaan sembang?"
+
+msgid "banner_messages_persist"
+msgstr "Mesej baharu tidak hilang."
+
+msgid "banner_message_retention"
+msgstr "Pengekalan mesej ditetapkan kepada %s"
+
+msgid "longform_seconds"
+msgstr "%s saat"
+
+msgid "shortform_seconds"
+msgstr "%ss"
+
+msgid "longform_minute"
+msgstr "%s minit"
+
+msgid "shortform_minutes"
+msgstr "%sm"
+
+msgid "longform_minutes"
+msgstr "%s minit"
+
+msgid "longform_hour"
+msgstr "%s jam"
+
+msgid "shortform_hours"
+msgstr "%sj"
+
+msgid "longform_hours"
+msgstr "%s jam"
+
+msgid "longform_day"
+msgstr "%s hari"
+
+msgid "shortform_days"
+msgstr "%sh"
+
+msgid "longform_days"
+msgstr "%s hari"
+
+msgid "longform_week"
+msgstr "%s minggu"
+
+msgid "shortform_weeks"
+msgstr "%sm"
+
+msgid "longform_weeks"
+msgstr "%s minggu"
+
+msgid "unknown"
+msgstr "Tidak diketahui"
+
+msgid "banner_source_qr"
+msgstr "Kod QR"
+
+msgid "banner_source_id"
+msgstr "ID Messenger"
+
+msgid "banner_source_intro"
+msgstr "Pengenalan"
+
+msgid "message_will_disappear_at"
+msgstr "%s Hilang"
+
+msgid "change_display_name"
+msgstr "Ubah Nama Paparan"
+
+msgid "yesterday"
+msgstr "semalam"
+
+msgid "tomorrow"
+msgstr "esok"
+
+msgid "just_now"
+msgstr "sebentar tadi"
+
+msgid "within_one_minute"
+msgstr "dalam satu minit"
+
+msgid "on_date"
+msgstr "pada %s"
+
+msgid "at_date"
+msgstr "di %s"
+
+msgid "error_fetching_message_preview"
+msgstr "Ralat pengambilan Pratonton Mesej"
+
+msgid "message_was_deleted"
+msgstr "Mesej dipadamkan"
+
+msgid "contact_was_deleted"
+msgstr "%s telah dipadamkan daripada kenalan anda."
+
+msgid "contact_was_blocked"
+msgstr "%s telah disekat."
+
+msgid "contact_was_unblocked"
+msgstr "%s telah dinyahsekat."
+
+msgid "dismiss"
+msgstr "Dismiss"
+
+msgid "copy_text"
+msgstr "Salin Teks"
+
+msgid "message"
+msgstr "Mesej"
+
+msgid "messages"
+msgstr "Mesej"
+
+msgid "chats"
+msgstr "Sembang"
+
+msgid "new_requests"
+msgstr "Permintaan Baharu %s"
+
+msgid "chat"
+msgstr "Sembang"
+
+msgid "lantern_chat"
+msgstr "Sembang Lantern"
+
+msgid "welcome_title"
+msgstr "Selamat datang ke Sembang Lantern!"
+
+msgid "welcome_text"
+msgstr ""
+"Sembang yang disulitkan untuk melindungi privasi anda dan disertakan dengan "
+"teknologi penyekatan rintangan terbaik."
+
+msgid "get_started"
+msgstr "Mari bermula"
+
+msgid "want_to_recover"
+msgstr "Mempunyai Nombor Sembang?"
+
+msgid "recover"
+msgstr "Pulihkan"
+
+msgid "chat_number"
+msgstr "Nombor Sembang"
+
+msgid "your_chat_number"
+msgstr "Nombor Sembang Anda"
+
+msgid "chat_number_recovery"
+msgstr "Pemulihan Nombor Sembang"
+
+msgid "recovery_helper_text"
+msgstr "Sila masukkan Kunci Pemulihan yang sah"
+
+msgid "recovery_button"
+msgstr "Masukkan Kunci Pemulihan anda untuk memulihkan Nombor Sembang anda."
+
+msgid "recovery_label"
+msgstr "Masukkan Kunci Pemulihan anda"
+
+msgid "recovery_key"
+msgstr "Kunci Pemulihan"
+
+msgid "secure_text_explanation"
+msgstr ""
+"Nombor Sembang anda berfungsi seperti nombor telefon yang boleh digunakan "
+"oleh kawan anda untuk menghubungi anda melalui Lantern."
+
+msgid "secure_text_explanation_account"
+msgstr ""
+"Ini versi penuh Nombor Sembang anda; perkongsian nombor yang lebih panjang mungkin lagi selamat, terutama jika anda mempunyai saluran disulitkan hujung ke hujung lain untuk dikongsi.\n"
+"\n"
+"Lantern menyediakan Nombor Sembang yang dipendekkan untuk menjadikan perkongsian maklumat kenalan lebih mudah."
+
+msgid "recovery_key_account_explanation"
+msgstr ""
+"Simpan kunci ini di tempat yang selamat dan jangan kongsinya dengan sesiapa "
+"yang lain. Ini satu-satu cara untuk memulihkan Nombor Sembang anda jika anda"
+" kehilangan telefon anda, menukar peranti atau menetapkan semula sistem "
+"pengendalian."
+
+msgid "recovery_error"
+msgstr "Tidak dapat memulihkan akaun anda."
+
+msgid "recovery_input_error"
+msgstr "Pastikan anda memasukkan kunci pemulihan yang sah"
+
+msgid "recovery_retrieval_error"
+msgstr "Ada kesilapan berlaku semasa memulihkan akaun anda"
+
+msgid "recovery_success"
+msgstr "Anda telah berjaya memulihkan Nombor Sembang anda "
+
+msgid "empty_chats_text"
+msgstr "Kongsi Nombor Sembang anda atau tambah kenalan di sini!"
+
+msgid "next"
+msgstr "Seterusnya"
+
+msgid "automated_backup"
+msgstr "Sandaran Automatik"
+
+msgid "backup_explanation"
+msgstr ""
+"Lantern menyediakan pilihan untuk menyulitkan dan menyandarkan kenalan anda untuk memastikan server kami selamat. Jika anda melepaskan sandaran, anda tidak akan dapat memulihkan kenalan anda dengan menggunakan kunci pemulihan anda.\n"
+"\n"
+" Lantern tidak boleh membaca senarai kenalan anda apabila anda memilih untuk menyandarkannya."
+
+msgid "backup_contacts"
+msgstr "Sandarkan kenalan"
+
+msgid "copy_recovery_key"
+msgstr "Salin Kunci Pemulihan"
+
+msgid "search"
+msgstr "Search"
+
+msgid "account_management"
+msgstr "Pengurusan Akaun"
+
+msgid "add_via_username"
+msgstr "Tambah melalui nama pengguna"
+
+msgid "username"
+msgstr "Nama Pengguna"
+
+msgid "enter_a_username_to_start_a_conversation"
+msgstr "Masukkan nama pengguna untuk memulakan perbualan mesej"
+
+msgid "start_message"
+msgstr "Mulakan Mesej"
+
+msgid "please_enter_a_valid_username"
+msgstr "Sila masukkan nama pengguna yang sah"
+
+msgid "open_url"
+msgstr "Buka URL"
+
+msgid "message_deleted"
+msgstr "%s memadamkan mesej ini"
+
+msgid "never"
+msgstr "Tidak pernah"
+
+msgid "delete_for_me"
+msgstr "Padam untuk saya"
+
+msgid "delete_for_me_explanation"
+msgstr ""
+"Tindakan ini akan memadamkan mesej untuk anda sahaja. Semua orang yang lain "
+"masih dapat melihatnya."
+
+msgid "delete_for_everyone"
+msgstr "Padam untuk semua orang"
+
+msgid "delete_for_everyone_explanation"
+msgstr "Tindakan ini akan memadamkan mesej untuk semua orang."
+
+msgid "reply"
+msgstr "Balas"
+
+msgid "replying_to"
+msgstr "Membalas mesej kepada %s"
+
+msgid "attachment"
+msgstr "Lampiran"
+
+msgid "error_rendering_message"
+msgstr "Ralat pemaparan mesej"
+
+msgid "error_fetching_preview"
+msgstr "Ralat pengambilan pratonton mesej"
+
+msgid "audio"
+msgstr "Audio"
+
+msgid "image"
+msgstr "Imej"
+
+msgid "images"
+msgstr "Imej"
+
+msgid "video"
+msgstr "Video"
+
+msgid "videos"
+msgstr "Video"
+
+msgid "app"
+msgstr "Aplikasi"
+
+msgid "document"
+msgstr "Dokumen"
+
+msgid "search_chars_min"
+msgstr "Taipkan sekurang-kurangnya tiga aksara"
+
+msgid "search_no_results"
+msgstr ""
+"Maaf, kami tidak dapat menemukan apa-apa yang sepadan dengan carian ini."
+
+msgid "search_error"
+msgstr "Maaf, terdapat ralat pengambilan semula hasil carian."
+
+msgid "search_contacts"
+msgstr "Kenalan (%s)"
+
+msgid "search_chats"
+msgstr "Sembang (%s)"
+
+msgid "search_in_contacts"
+msgstr "Cari dalam Kenalan"
+
+msgid "search_in_chats"
+msgstr "Cari dalam Sembang dan Kenalan"
+
+msgid "could_not_render_title"
+msgstr "Tidak dapat memaparkan tajuk fail"
+
+msgid "could_not_render_type"
+msgstr "Tidak dapat memaparkan jenis fail"
+
+msgid "speaker"
+msgstr "Pembesar Suara"
+
+msgid "speaker_on"
+msgstr "Pembesar Suara Dihidupkan"
+
+msgid "mute"
+msgstr "Bisukan"
+
+msgid "muted"
+msgstr "Dibisukan"
+
+msgid "end_call"
+msgstr "Tamatkan Panggilan"
+
+msgid "verify_contact"
+msgstr "Sahkan %s"
+
+msgid "verified"
+msgstr "Disahkan"
+
+msgid "pending_verification"
+msgstr "Pengesahan belum selesai"
+
+msgid "verify_description"
+msgstr ""
+"Sebagai amalan keselamatan, kami mengesyorkan anda untuk menyemak bahawa nombor pengesahan %s sepadan dengan nombor pengesahan anda.\n"
+"\n"
+"Adakah anda ingin membuat pengesahan secara peribadi atau melalui panggilan telefon?"
+
+msgid "verify_in_person"
+msgstr "Sahkah secara peribadi"
+
+msgid "verify_via_call"
+msgstr "Sahkan melalui panggilan suara"
+
+msgid "dismiss_notification"
+msgstr "Ketepikan Pemberitahuan"
+
+msgid "call_contact"
+msgstr "Hubungi %s ?"
+
+msgid "call"
+msgstr "Hubungi"
+
+msgid "incoming_call"
+msgstr "Panggilan Masuk"
+
+msgid "call_from"
+msgstr "Daripada %s"
+
+msgid "in_call"
+msgstr "Panggilan Keluar"
+
+msgid "in_call_des"
+msgstr "Pemberitahuan panggilan keluar"
+
+msgid "incoming_call_from"
+msgstr "Panggilan masuk daripada %s"
+
+msgid "touch_here_to_open_call"
+msgstr "Sentuh sini untuk membuka panggilan"
+
+msgid "in_call_with"
+msgstr "Sedang berhubung dengan %s"
+
+msgid "undo_verification"
+msgstr "Buat asal pengesahan"
+
+msgid "mark_as_verified"
+msgstr "Ditandakan sebagai disahkan"
+
+msgid "verification_panel_success"
+msgstr "Pengesahan berjaya! Mesej anda dengan %s selamat."
+
+msgid "verification_panel_pending"
+msgstr ""
+"Ini nombor pengesahan anda. Semak bahawa nombor anda sepadan dengan nombor "
+"%s secara tepat sebelum menandakannya sebagai disahkan."
+
+msgid "replica_upload_confirmation_title"
+msgstr "Penting!"
+
+msgid "replica_upload_confirmation_body"
+msgstr ""
+"Fail yang dimuat naik ke Lantern Network boleh diakses secara umum. Tiada "
+"siapa-siapa boleh memadamnya. Jangan masukkan maklumat peribadi atau "
+"pengenalan diri dalam kandungan fail atau nama fail anda."
+
+msgid "replica_upload_confirmation_agree"
+msgstr "Sambung Semula Muat Naik"
+
+msgid "dont_show_me_this_again"
+msgstr "Jangan tunjukkan ini kepada saya lagi"
+
+msgid "download"
+msgstr "Download"
+
+msgid "download_started"
+msgstr "Muat Turun Bermula"
+
+msgid "uploader"
+msgstr "Pemuat naik"
+
+msgid "upload_started"
+msgstr "Muat Naik Bermula"
+
+msgid "upload_in_progress"
+msgstr "Muat Naik Sedang Berlangsung"
+
+msgid "upload_complete"
+msgstr "Fail anda berjaya diterbitkan"
+
+msgid "upload_failed"
+msgstr "Muat Naik Gagal"
+
+msgid "upload_cancelled"
+msgstr "Muat Naik Dibatalkan"
+
+msgid "upload_unknown_error"
+msgstr "Terdapat masalah semasa cuba untuk menerbitkan"
+
+msgid "download_unknown_error"
+msgstr "Terdapat masalah semasa cuba untuk memuat turun %s"
+
+msgid "replica_link_fetcher"
+msgstr "Pengambil Pautan Replika"
+
+msgid "no_preview_for_this_type_of_file"
+msgstr "Tiada pratonton untuk jenis fail ini"
+
+msgid "app_unknown"
+msgstr "aplikasi/tidak diketahui"
+
+msgid "audio_unknown"
+msgstr "audio/tidak diketahui"
+
+msgid "document_unknown"
+msgstr "dokumen/tidak diketahui"
+
+msgid "no_search_result_found"
+msgstr ""
+"Maaf, kami tidak dapat menemukan apa-apa yang sepadan dengan carian tersebut"
+
+msgid "search_result_error"
+msgstr "Ralat mengambil keputusan, sila cuba lagi nanti"
+
+msgid "video_stream_error"
+msgstr "Ralat memaparkan video, sila cuba lagi nanti"
+
+msgid "untitled"
+msgstr "Tidak bertajuk"
+
+msgid "preview_not_available"
+msgstr "Pratonton tidak tersedia"
+
+msgid "download_to_view"
+msgstr "Muat turun fail untuk melihatnya"
+
+msgid "failed_to_init_replica"
+msgstr "Ralat: Gagal untuk mengasalkan Replika"
+
+msgid "awaiting_result"
+msgstr "Menantikan hasil..."
+
+msgid "discover"
+msgstr "Temui"
+
+msgid "replica_search_intro"
+msgstr ""
+"Cari kandungan dimuat naik pengguna melalui Rangkaian Lantern atau muat naik"
+" kandungan anda sendiri untuk ditemukan orang lain."
+
+msgid "replica_new_discover"
+msgstr "Kategori Penemuan Baharu"
+
+msgid "replica_new_discover_news"
+msgstr "Temukan sekarang membolehkan anda mencari artikel baharu!"
+
+msgid "replica_check_it_out"
+msgstr "Cuba gunakan"
+
+msgid "news"
+msgstr "Berita"
+
+msgid "share"
+msgstr "Kongsi"
+
+msgid "upload_file_screen"
+msgstr "Muat Naik Fail"
+
+msgid "edit_title"
+msgstr "Edit Tajuk"
+
+msgid "filenames_cannot_be_edited"
+msgstr "Nama fail tidak boleh diedit setelah diterbitkan."
+
+msgid "add_description"
+msgstr "Tambahkan Penerangan"
+
+msgid "no_description"
+msgstr "Tiada penerangan diberikan"
+
+msgid "read_details"
+msgstr "Baca PDF"
+
+msgid "description_initial_value"
+msgstr "Penerangan tidak boleh diubah suai setelah diterbitkan"
+
+msgid "name_your_file"
+msgstr "Namakan Fail Anda"
+
+msgid "upload"
+msgstr "Muat naik"
+
+msgid "review"
+msgstr "Semak semula"
+
+msgid "skip"
+msgstr "Langkau"
+
+msgid "replica_layout_filetype"
+msgstr "filetype: %s"
+
+msgid "replica_layout_creation_date"
+msgstr "Dicipta pada %s"
+
+msgid "empty_description"
+msgstr "Tiada penerangan diberikan."
+
+msgid "publish"
+msgstr "Ya, Terbitkan"
+
+msgid "important"
+msgstr "Penting!"
+
+msgid "upload_tos_agree"
+msgstr "Saya faham"
+
+msgid "test_text"
+msgstr "Saya ingin makan piza 🍕 😊"
+
+msgid "test_hello"
+msgstr "Hai, apa khabar?"
+
+msgid "test_reply"
+msgstr "Sebenarnya, saya rasa saya ingin makan sushi pada hari ini!"
+
+msgid "test_disappearing_messages_1"
+msgstr "Pada mulanya, semua mesej hilang selepas 24 jam."
+
+msgid "test_disappearing_messages_2"
+msgstr "Sekarang, mesej ini sepatutnya hilang tidak lama lagi!"
+
+msgid "test_replica_search"
+msgstr "kucing"
+
+msgid "discover_disclaimer"
+msgstr ""
+"Lantern menjadikan carian anda berciri awanama dan melindungi carian anda "
+"daripada pihak ketiga."
+
+msgid "support"
+msgstr "Sokongan"
+
+msgid "lantern_user_forum"
+msgstr "Forum Pengguna Lantern"
+
+msgid "faq"
+msgstr "FAQ"
+
+msgid "add_device"
+msgstr "Tambah Peranti"
+
+msgid "search_apps"
+msgstr "Cari Apl "
+
+msgid "user_not_found"
+msgstr ""
+"Pengguna tidak dikenali. Sila semak maklumat anda dan cuba lagi. Jika anda "
+"terus mengalami masalah, sila hubungi pasukan sokongan kami untuk bantuan. "
+
+msgid "email_resend_message"
+msgstr "Kod pengesahan baru anda telah dihantar "
+
+msgid "signup_error"
+msgstr ""
+"Nampaknya ada sesuatu yang tidak kena dengan pendaftaran. Sila cuba lagi, "
+"dan jika masalah berterusan, hubungi pasukan sokongan kami. "
+
+msgid "signup_error_user_exists"
+msgstr ""
+"Nampaknya ada sesuatu yang tidak kena dengan pendaftaran. Sila cuba "
+"menetapkan semula kata laluan anda, dan jika masalah berterusan, hubungi "
+"pasukan sokongan kami. "
+
+msgid "confirm_email_error"
+msgstr "Sila sahkan email anda "
+
+msgid "password_cannot_be_empty"
+msgstr "Kata laluan tidak boleh kosong "
+
+msgid "password_must_be_at_least_8_characters"
+msgstr "Kata laluan mesti sekurang-kurangnya 8 atau lebih aksara "
+
+msgid "sign_out"
+msgstr "Log keluar "
+
+msgid "sign_out_message"
+msgstr ""
+"Log keluar akan menukar Lantern ke versi percuma. Untuk mengakses akaun anda"
+" lagi, anda perlu log masuk semula. "
+
+msgid "change_password"
+msgstr "Ubah Kata Laluan"
+
+msgid "password"
+msgstr "Kata Laluan"
+
+msgid "new_email"
+msgstr "Alamat Email Baru "
+
+msgid "new_email_same_as_old_email"
+msgstr "Alamat email baru tidak boleh sama dengan alamat email lama anda "
+
+msgid "danger_zone"
+msgstr "Zon bahaya "
+
+msgid "delete_account"
+msgstr "Padam Akaun "
+
+msgid "delete"
+msgstr "Padam"
+
+msgid "delete_account_message"
+msgstr ""
+"Memadam akaun anda tidak boleh dibatalkan. Anda akan kehilangan semua akses "
+"peranti dan melepaskan sebarang masa akaun Pro tanpa bayaran balik. "
+
+msgid "delete_your_account"
+msgstr "Padam akaun anda? "
+
+msgid "confirm_deletion"
+msgstr "Sahkan Pemadaman "
+
+msgid "account_deleted"
+msgstr "Akaun Dipadamkan "
+
+msgid "account_deleted_message"
+msgstr "Akaun anda telah dipadamkan secara kekal. "
+
+msgid "password_has_been_updated"
+msgstr "Kata laluan telah dikemas kini "
+
+msgid "password_has_been_updated_message"
+msgstr "Kata laluan anda telah berjaya ditetapkan semula "
+
+msgid "invalid_code"
+msgstr ""
+"Kod salah atau mungkin telah tamat tempoh. Sila cuba hantar semula lagi "
+
+msgid "get_lantern_pro"
+msgstr "Dapatkan Lantern Pro"
+
+msgid "try_lantern_pro"
+msgstr "Cuba Lantern secara percuma! "
+
+msgid "continue_for_free"
+msgstr "Teruskan secara Percuma "
+
+msgid "recovery_not_found"
+msgstr "Peranti tidak dikaitkan dengan pengguna ini"
+
+msgid "device_added"
+msgstr ""
+
+msgid "device_added_message"
+msgstr ""
+"Peranti anda telah berjaya ditambah. Jika anda tidak melihat peranti yang "
+"disambungkan, sila mulakan semula aplikasi pada kedua-dua peranti "
+
+msgid "wrong_link_code"
+msgstr ""
+
+msgid "recovery_code_sent"
+msgstr "Kod pemulihan telah dihantar "
+
+msgid "device_added_msg"
+msgstr "Peranti ini telah Dipautkan ke %s "
+
+msgid "new_to_lantern"
+msgstr "Baru dengan Lantern? "
+
+msgid "email_has_been_updated"
+msgstr "Email telah dikemas kini "
+
+msgid "email_has_been_updated_message"
+msgstr "Email anda telah berjaya diubah "
+
+msgid "email_has_been_verified"
+msgstr "Email telah disahkan "
+
+msgid "email_has_been_verified_message"
+msgstr "Email anda telah disahkan berjaya "
+
+msgid "device_limit_reached"
+msgstr "Had Peranti Dicapai "
+
+msgid "device_limit_reached_message"
+msgstr ""
+"Anda kini log masuk pada bilangan maksimum peranti (3). Untuk log masuk pada"
+" peranti ini, sila pilih dan keluarkan salah satu peranti lain anda di "
+"bawah. "
+
+msgid "enter_activation_code"
+msgstr "Masukkan Kod Pengaktifan "
+
+msgid "check_your_email"
+msgstr "Semak Alamat Email Anda "
+
+msgid "please_verify_email"
+msgstr "Sila sahkan bahawa alamat email yang anda masukkan adalah betul. "
+
+msgid "verify"
+msgstr "Sahkan"
+
+msgid "cannot_login"
+msgstr "Tidak boleh log masuk "
+
+msgid "privacy_policy"
+msgstr "Polisi Privasi"
+
+msgid "terms_of_service"
+msgstr "Terma Perkhidmatan"
+
+msgid "invalid_verification_code"
+msgstr "Kod pengessahan yang tidah sah"
+
+msgid "wrong_seller_code"
+msgstr "Kod penjual semula tidak betul. Sila sahkan dan cuba lagi. "
+
+msgid "follow_us"
+msgstr "Ikuti Kami "
+
+msgid "follow_us_telegram"
+msgstr ""
+
+msgid "follow_us_instagram"
+msgstr ""
+
+msgid "follow_us_facebook"
+msgstr ""
+
+msgid "follow_us_x"
+msgstr ""
+
+msgid "report_issue_error"
+msgstr "Kami mengalami kesukaran teknikal. Cuba lagi nanti. "
+
+msgid "we_are_experiencing_technical_difficulties"
+msgstr "Kami mengalami kesukaran teknikal. Cuba lagi nanti. "
+
+msgid "a_temporary_error_occurred"
+msgstr "Ralat sementara berlaku "
+
+msgid "sorry_we_are_unable_to_load_that_page"
+msgstr ""
+"Maaf, kami tidak dapat memuatkan halaman itu pada masa ini, sila tekan "
+"'Refresh' untuk mencuba lagi. "
+
+msgid "refresh"
+msgstr "Muat semula"
+
+msgid "check_your_internet_connection"
+msgstr "Semak sambungan internet anda "
+
+msgid "please_try"
+msgstr "Sila cuba "
+
+msgid "turning_off_airplane_mode"
+msgstr "Matikan mod kapal terbang "
+
+msgid "turning_on_mobile_data_or_wifi"
+msgstr "Hidupkan data mudah alih atau wifi "
+
+msgid "check_the_signal_in_your_area"
+msgstr "Semak isyarat di kawasan anda "
+
+msgid "got_it"
+msgstr "Faham"
+
+msgid "fetching_configuration"
+msgstr "Mengambil Konfigurasi "
+
+msgid "establish_connection_to_server"
+msgstr "Menjalin sambungan ke pelayan "
+
+msgid "file_size_limit_title"
+msgstr "Had Tercapai "
+
+msgid "file_size_limit_description"
+msgstr "Saiz lampiran hendaklah di bawah 100 MB"
+
+msgid "lantern_pro_one_year"
+msgstr ""
+
+msgid "lantern_pro_two_year"
+msgstr ""
+
+msgid "lantern_pro_one_month"
+msgstr ""
+
+msgid "non_renewing_subscription"
+msgstr ""
+
+msgid "restore_purchase"
+msgstr ""
+
+msgid "skip_for_now"
+msgstr ""
+
+msgid "purchase_not_found"
+msgstr ""
+
+msgid "no_previous_purchase"
+msgstr ""
+
+msgid "warning_restore_purchase"
+msgstr ""
+
+msgid "purchase_restored"
+msgstr ""
+
+msgid "purchase_restored_message"
+msgstr ""
+
+msgid "purchase_restored_error"
+msgstr ""
+
+msgid "err_while_sending_code"
+msgstr ""
+
+msgid "email_hint"
+msgstr ""
+
+msgid "email_hint_pro"
+msgstr ""
+
+msgid "continue_without_email"
+msgstr ""
+
+msgid "no_new_update"
+msgstr "Anda mengikut masa terkini!"
+
+msgid "error_referral"
+msgstr "Ada kesilapan berlaku semasa menggunakan kod rujukan anda."
+
+msgid "proxy_error"
+msgstr ""
+
+msgid "proxy_settings"
+msgstr ""
+
+msgid "http_proxy"
+msgstr ""
+
+msgid "socks_proxy"
+msgstr ""
+
+msgid "http_proxy_copied"
+msgstr ""
+
+msgid "socks_proxy_copied"
+msgstr ""
+
+msgid "proxy_everything"
+msgstr ""
+
+msgid "errorSubmittingToGooglePlay"
+msgstr ""
+
+msgid "no_internet_connection"
+msgstr ""
+
+msgid "domain_fronting_error"
+msgstr ""

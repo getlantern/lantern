@@ -36,61 +36,59 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
-
   # paths
   path: ^1.9.1
   path_provider: ^2.1.5
-  #Dekstop
-  window_manager: ^0.4.3
-
   #Routing
   auto_route: ^9.3.0+1
-
   #UI Utils
   animated_toggle_switch: ^0.8.4
+  animated_text_kit: ^4.2.3
   flutter_screenutil: ^5.9.3
   auto_size_text: ^3.0.0
   device_preview_plus: ^2.3.0
-
   #Localization
   i18n_extension: ^15.0.4
   i18n_extension_importer: ^0.0.6
   intl: ^0.19.0
-
   #Images
   flutter_svg: ^2.0.17
-
   # Logs
   flutter_loggy: ^2.0.3+1
   loggy: ^2.0.3
-
   # Local DB
   objectbox: ^4.1.0
   objectbox_flutter_libs: ^4.1.0
-
   #FFI gen
   ffi: ^2.1.4
-
   #State management
   flutter_riverpod: ^2.6.1
   hooks_riverpod: ^2.6.1
   flutter_hooks: ^0.21.2
-
+  riverpod_annotation: ^2.3.3
   # dependency injection
   get_it: ^8.0.3
-
   #fonts
   google_fonts: ^6.2.1
-
   #env
   flutter_dotenv: ^5.2.1
   url_launcher: ^6.3.1
-
   # share
   share_plus: ^10.1.4
+  # preferences 
   shared_preferences: ^2.5.2
-
-
+  #native
+#  flutter_native_splash: ^2.4.5
+  sentry_flutter: ^9.0.0-alpha.1
+  # Deeplink handling
+  app_links: ^6.4.0
+  # Desktop
+  window_manager: ^0.4.3
+  tray_manager: ^0.3.2
+  win32_registry: ^1.1.5
+  # Utils
+  fpdart: ^1.1.1
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -100,6 +98,9 @@ dev_dependencies:
   auto_route_generator: ^9.0.0
   build_runner: ^2.4.15
   objectbox_generator: 4.1.0
+  riverpod_generator: ^2.3.3
+
+  riverpod_lint: ^2.3.5
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

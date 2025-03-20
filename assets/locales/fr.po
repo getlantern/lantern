@@ -1,0 +1,2052 @@
+# 
+# Translators:
+# Lantern, 2023
+# Nyderalith <nyderalith@yggdrassil.org>, 2023
+# todd <todd@getlantern.org>, 2023
+# fffw <fffw@getlantern.org>, 2023
+# e2f_fr r16 <tx_e2f_fr_r16@ate2f.com>, 2024
+# e2f_fr r4 <tx_e2f_fr_r4@ate2f.com>, 2024
+# axel <axel+transifex@axelsimon.net>, 2024
+# lamine Kacimi <k_lamine27@yahoo.fr>, 2024
+# Derek F <derek@getlantern.org>, 2024
+# e2f_fr r15 <tx_e2f_fr_r15@ate2f.com>, 2024
+# AO <ao@localizationlab.org>, 2024
+# 
+msgid ""
+msgstr ""
+"Last-Translator: AO <ao@localizationlab.org>, 2024\n"
+"Language-Team: French (France) (https://app.transifex.com/lantern-1/teams/94371/fr_FR/)\n"
+"Language: fr_FR\n"
+"Plural-Forms: nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;\n"
+
+msgid "app_name"
+msgstr "Lanterne"
+
+msgid "introducing"
+msgstr "Nous présentons le Dialogue en ligne"
+
+msgid "introducing_des"
+msgstr ""
+"Discutez avec vos amis en toute sécurité grâce à notre tout nouvel outil de "
+"conversation instantanée chiffrée et résistante aux blocages intégré à "
+"Lantern !"
+
+msgid "maybe_later"
+msgstr "Peut-être plus tard"
+
+msgid "try"
+msgstr "Essayez-la"
+
+msgid "sign_in"
+msgstr "S'identifier"
+
+msgid "enter_email"
+msgstr "Saisissez votre adresse courriel"
+
+msgid "enter_password"
+msgstr "Entrez le mot de passe "
+
+msgid "forgot_password"
+msgstr "Mot de passe oublié "
+
+msgid "forgot_your_password"
+msgstr "Vous avez oublié votre mot de passe ? "
+
+msgid "click_here"
+msgstr "Cliquez ici "
+
+msgid "reset_password"
+msgstr "Réinitialiser le mot de passe"
+
+msgid "lantern_pro_email"
+msgstr "Email Lantern Pro "
+
+msgid "return_to_sign_in"
+msgstr "Retour à la connexion "
+
+msgid "enter_confirmation_code"
+msgstr "Entrez le code de confirmation "
+
+msgid "confirmation_code_msg"
+msgstr ""
+"Un code de confirmation a été envoyé à XX. Entrez-le ici pour sécuriser "
+"votre compte et activer la récupération de mot de passe. "
+
+msgid "resend_confirmation_code"
+msgstr "Renvoyer l'email de confirmation "
+
+msgid "email_already_exists"
+msgstr "L'email existe déjà "
+
+msgid "email_already_exists_msg"
+msgstr ""
+"Cet email est déjà pris, si vous avez déjà un compte avec cet email, vous "
+"pouvez le récupérer. Sinon, veuillez revenir en arrière et sélectionner une "
+"autre adresse email. "
+
+msgid "recover_account"
+msgstr "Récupérer le compte "
+
+msgid "back"
+msgstr "retour"
+
+msgid "change_email"
+msgstr "Changer l'email "
+
+msgid "new_password"
+msgstr "Nouveau mot de passe"
+
+msgid "confirm_new_password"
+msgstr "Confirmer le nouveau mot de passe"
+
+msgid "already_have_an_account"
+msgstr "Vous avez déjà un compte ? "
+
+msgid "create_account"
+msgstr "Créer un compte"
+
+msgid "create_password"
+msgstr "Créez un mot de passe"
+
+msgid "by_creating_an_account"
+msgstr "Vous avez déjà un compte ? "
+
+msgid "confirm_email"
+msgstr "Confirmer l’adresse courriel"
+
+msgid "update_pro_account"
+msgstr "Mettre à jour le compte Pro "
+
+msgid "update_pro_account_message"
+msgstr ""
+"Des changements arrivent à Lantern Pro ! Désormais, vous aurez besoin d'un "
+"email et d'un mot de passe pour vous connecter sur tous les appareils et "
+"accéder à la gestion de compte. Veuillez prendre quelques instants pour "
+"ajouter ces identifiants à votre compte. "
+
+msgid "not_now"
+msgstr "Pas maintenant"
+
+msgid "update_account"
+msgstr "Mettre à jour le compte "
+
+msgid "new"
+msgstr "Nouveau"
+
+msgid "Daily Data Usage"
+msgstr "Données quotidiennes utilisées "
+
+msgid "is"
+msgstr "est"
+
+msgid "connect"
+msgstr "Se connecter"
+
+msgid "disconnect"
+msgstr "Se déconnecter"
+
+msgid "connected"
+msgstr "Connecté"
+
+msgid "Disconnected"
+msgstr "Déconnecté"
+
+msgid "Disconnecting"
+msgstr "Déconnexion en cours…"
+
+msgid "Connecting"
+msgstr "Connexion en cours…"
+
+msgid "no_network_connection"
+msgstr "Aucune connexion réseau"
+
+msgid "connection_error"
+msgstr "Erreur de connexion"
+
+msgid "connection_error_des"
+msgstr ""
+"Lantern rencontre des problèmes pour se connecter à nos serveurs. Veuillez "
+"redémarrer l'application. Si ce problème persiste, veuillez contacter "
+"l'assistance."
+
+msgid "connection_error_button"
+msgstr "Contacter l'assistance"
+
+msgid "Calling"
+msgstr "Appel en cours…"
+
+msgid "Go Pro Title"
+msgstr "Passez au compte Pro !"
+
+msgid "Go Pro Description"
+msgstr ""
+"Débloquez des vitesses plus rapides, une expérience sans publicité et des "
+"données illimitées! "
+
+msgid "Server Location"
+msgstr "Emplacement du serveur"
+
+msgid "Server Location Info"
+msgstr ""
+"Lantern utilise un outil de sélection de serveurs intelligent pour vous "
+"connecter à nos meilleurs centres de données."
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Done"
+msgstr "Terminé"
+
+msgid "backup_recovery_key"
+msgstr "Clé de récupération de sauvegarde"
+
+msgid "delete_chat_data"
+msgstr "Supprimer toutes les données du dialogue"
+
+msgid "delete_chat_data_description"
+msgstr ""
+"Cela supprimera votre numéro de conversation, vos contacts et messages de "
+"cet appareil. Sans votre clé de récupération de sauvegarde, vous perdrez "
+"l’accès votre numéro de conversation instantanée."
+
+msgid "delete_chat_data_confirmation"
+msgstr "Je confirme que je veux supprimer les données de ma conversation"
+
+msgid "Pro Account Management"
+msgstr "Gestion du compte Pro"
+
+msgid "link_device"
+msgstr "Relier un appareil"
+
+msgid "Upgrade to Lantern Pro"
+msgstr "Passer à Lantern Pro"
+
+msgid "Invite Friends"
+msgstr "Inviter des amis"
+
+msgid "share_lantern_pro"
+msgstr ""
+"Partagez Lantern Pro avec un ami ! Lorsque votre ami utilise votre code de "
+"parrainage pendant son achat de Lantern Pro, vous bénéficiez tous les deux "
+"d’un mois de service Lantern Pro gratuit !"
+
+msgid "privacy_disclosure_title"
+msgstr "Avis de protection des données de Lantern"
+
+msgid "privacy_disclosure_body"
+msgstr ""
+"Lantern s’engage à protéger vos données personnelles. Nous souhaitons que "
+"vous compreniez quels renseignements nous recueillons, ce que nous ne "
+"recueillons pas, et comment nous recueillons, utilisons et stockons ces "
+"renseignements. Nous dissocions vos renseignements de paiement de votre "
+"compte Lantern Pro. Nous ne journalisons ni votre activité, ni l’historique "
+"de navigation, ni la destination du trafic, ni le contenu des données, ni "
+"les requêtes DNS. De plus, nous n’enregistrons jamais aucun journal de "
+"connexion, c’est-à-dire aucun journal de votre adresse IP, de l’adresse IP "
+"de votre serveur Lantern sortant associée à l’estampille temporelle de "
+"connexion ni la durée de la session. Pour un compte Lantern Pro donné, "
+"Lantern ne peut techniquement pas associer le compte Lantern à l’identité "
+"réelle de l’utilisateur. Pour une adresse IP Lantern et une estampille "
+"temporelle précise données, Lantern ne peut techniquement pas attribuer "
+"cette adresse IP à un utilisateur de Lantern ni à l’adresse IP d’un "
+"utilisateur de Lantern."
+
+msgid "privacy_disclosure_accept"
+msgstr "J’accepte"
+
+msgid "desktop_version"
+msgstr "Version pour ordinateur"
+
+msgid "settings"
+msgstr "Paramètres"
+
+msgid "general"
+msgstr "Général"
+
+msgid "about"
+msgstr "À propos"
+
+msgid "proxy_all"
+msgstr "Relayer tout le trafic"
+
+msgid "proxy_everything_is"
+msgstr "Tout relayer est %s"
+
+msgid "version_number"
+msgstr "Version %s"
+
+msgid "build_number"
+msgstr "Build %s"
+
+msgid "sdk_version"
+msgstr "SDK %s"
+
+msgid "language"
+msgstr "Langue"
+
+msgid "select_an_issue"
+msgstr "Veuillez choisir un problème"
+
+msgid "enter_description"
+msgstr "Veuillez décrire votre problème "
+
+msgid "cannot_access_blocked_sites"
+msgstr "Impossible d’accéder à des sites bloqués"
+
+msgid "cannot_complete_purchase"
+msgstr "Impossible de terminer l’achat"
+
+msgid "discover_not_working"
+msgstr "La fonctionnalité de découverte ne fonctionne pas"
+
+msgid "cannot_sign_in"
+msgstr "Impossible de se connecter"
+
+msgid "spinner_loads_endlessly"
+msgstr "L’indicateur de chargement tourne sans fin"
+
+msgid "slow"
+msgstr "Lent"
+
+msgid "cannot_link_devices"
+msgstr "Impossible de relier des appareils"
+
+msgid "wrong_device_linking_code"
+msgstr "Code de liaison d’appareil erroné ou invalide"
+
+msgid "cannot_remove_device"
+msgstr "Impossible de supprimer l'appareil "
+
+msgid "application_crashes"
+msgstr "L’application plante"
+
+msgid "other"
+msgstr "Autre"
+
+msgid "issue_description"
+msgstr "Décrivez votre problème "
+
+msgid "check_for_updates"
+msgstr "Rechercher des mises à jour"
+
+msgid "blocked_users"
+msgstr "Utilisateurs bloqués"
+
+msgid "description_proxy_all_dialog"
+msgstr ""
+"Si cette option est activée, tout le trafic sera envoyé par l'intermédiaire "
+"de Lantern (plus sûr). Si elle est désactivée, seul le trafic bloqué sera "
+"envoyé par l'intermédiaire de Lanter (plus rapide)."
+
+msgid "Account"
+msgstr "Compte"
+
+msgid "VPN Status"
+msgstr "État VPN"
+
+msgid "VPN"
+msgstr "VPN"
+
+msgid "Authorize Device for Pro"
+msgstr "Autoriser l'appareil pour Pro"
+
+msgid "Authorize with Device Linking Pin"
+msgstr "Autoriser avec un code de liaison d’appareil"
+
+msgid "Requires physical access to a Lantern Pro Device"
+msgstr "Nécessite un accès physique à un appareil Lantern Pro"
+
+msgid "Link with PIN"
+msgstr "Relier avec un code"
+
+msgid "OR"
+msgstr "OU"
+
+msgid "device_linking_pin"
+msgstr "Code de liaison d’appareil"
+
+msgid "link_device_step_one"
+msgstr ""
+"Ouvrez l'élément de menu 'Ajouter un appareil' sur votre appareil Pro. "
+
+msgid "link_device_step_two"
+msgstr "Entrez le code PIN de liaison de l'appareil et cliquez sur soumettre "
+
+msgid "ensure_most_recent_version_lantern"
+msgstr ""
+"* Assurez-vous que la version la plus récente de Lantern est utilisée sur "
+"les deux appareils"
+
+msgid "Authorize Device via Email"
+msgstr "Autoriser l’appareil par courriel"
+
+msgid "auth_email_helper_text"
+msgstr "Saisissez l'adresse courriel associée à votre compte Pro"
+
+msgid "Requires access to the email you used to buy Lantern Pro"
+msgstr ""
+"Nécessite un accès à l’adresse courriel utilisée pour acheter Lantern Pro"
+
+msgid "Link via Email"
+msgstr "Relier par courriel"
+
+msgid "lantern_desktop"
+msgstr "Lantern pour ordinateur"
+
+msgid "report_description"
+msgstr "Description du problème"
+
+msgid "report_issue"
+msgstr "Signaler un problème "
+
+msgid "report_an_issue"
+msgstr "Signaler un problème"
+
+msgid "report_sent"
+msgstr "Le relevé a été envoyé"
+
+msgid "thank_you_for_reporting_your_issue"
+msgstr ""
+"Nous vous remercions d’avoir signalé ce problème. En raison du volume, nous "
+"ne pouvons pas répondre à la plupart des problèmes, mais nous nous efforçons"
+" d’améliorer Lantern d’après vos signalements."
+
+msgid "send_report"
+msgstr "Envoyer le relevé"
+
+msgid "most_recent_lantern_apps"
+msgstr ""
+"Les applis Lantern les plus récentes pour ordinateurs et autres plates-"
+"formes sont accessibles à partir du lien ci-dessus."
+
+msgid "share_link"
+msgstr "Partager le lien "
+
+msgid "share_title"
+msgstr "Partager le lien de téléchargement de Lantern"
+
+msgid "email"
+msgstr "Adresse courriel"
+
+msgid "Submit"
+msgstr "Envoyer"
+
+msgid "save"
+msgstr "Enregistrer"
+
+msgid "please_enter_a_valid_email_address"
+msgstr "Veuillez saisir une adresse courriel valide"
+
+msgid "bonus"
+msgstr "Bonus"
+
+msgid "referral_bonus"
+msgstr "bonus de parrainage"
+
+msgid "total"
+msgstr "Total"
+
+msgid "month"
+msgstr "mois"
+
+msgid "months"
+msgstr "mois"
+
+msgid "enter_email_to_complete_purchase"
+msgstr "Entrez l'email pour compléter l'achat "
+
+msgid "error_fetching_plans"
+msgstr ""
+"Erreur lors de la récupération des abonnements. Veuillez redémarrer Lantern "
+"et réessayer."
+
+msgid "apply"
+msgstr "Appliquer"
+
+msgid "choose_payment_method"
+msgstr "Choisissez un mode de paiement"
+
+msgid "pro_plan"
+msgstr "Abonnement Pro"
+
+msgid "one_month_plan"
+msgstr "Abonnement d’un mois"
+
+msgid "one_year_plan"
+msgstr "Abonnement d’un an"
+
+msgid "two_year_plan"
+msgstr "Abonnement de deux ans"
+
+msgid "plan_discount"
+msgstr "Économisez %d %%"
+
+msgid "enter_email_and_activation_code"
+msgstr "Saisissez l'adresse courriel et le code d’activation"
+
+msgid "referral_code"
+msgstr "Code de parrainage"
+
+msgid "share_referral_code"
+msgstr "Partager le code de parrainage "
+
+msgid "share_message_referral_code"
+msgstr ""
+"Pour un mois gratuit de Lantern Pro, utilisez ce code de parrainage :%s; "
+"Vous pouvez le télécharger ici : https://lantern.io/download "
+
+msgid "add_referral_code"
+msgstr "Ajouter un code de parrainage"
+
+msgid "Activation Code"
+msgstr "Code d’activation"
+
+msgid "invalid_or_incomplete_referral_code"
+msgstr "Le code de parrainage est invalide ou incomplet"
+
+msgid "register_for_pro"
+msgstr "Passer à un compte Pro"
+
+msgid "Something went wrong while applying your referral code."
+msgstr ""
+"Une erreur est survenue lors de l’application de votre code de parrainage."
+
+msgid "your_activation_code_is_invalid"
+msgstr "Votre code d’activation est invalide"
+
+msgid "update_cache_plans_timeout"
+msgstr ""
+"Une erreur est survenue lors de la récupération des abonnements disponibles."
+
+msgid "bitcoin_timeout"
+msgstr "La demande BTCPay a expiré."
+
+msgid "BTCPay is unavailable"
+msgstr "BTCPay est indisponible"
+
+msgid "update_cache_user_timeout"
+msgstr ""
+"Une erreur est survenue lors de la récupération des données de votre compte."
+
+msgid "reseller_timeout"
+msgstr ""
+"Une erreur est survenue lors de la validation de votre code d’activation."
+
+msgid "wrong_reseller_code"
+msgstr "Le code d’activation est invalide"
+
+msgid "reseller_success"
+msgstr "Le code d’activation a bien été utilisé."
+
+msgid "stripe_timeout"
+msgstr ""
+"Votre paiement Stripe a expiré. Veuillez redémarrer Lantern et réessayer."
+
+msgid "stripe_success"
+msgstr "L’achat Stripe a réussi."
+
+msgid "renewal_success"
+msgstr "Réussite du renouvellement"
+
+msgid "pro_renewal_success_description"
+msgstr ""
+"Nous vous remercions d’avoir renouvelé votre compte Lantern Pro. Vous "
+"disposez désormais d’un accès illimité à l’aide de nos centres de données "
+"les plus rapides. Vous pouvez connecter jusqu’à trois appareils à votre "
+"compte."
+
+msgid "pro_purchase_success"
+msgstr "Bienvenue à Lantern Pro "
+
+msgid "platinum_purchase_success_descripion"
+msgstr ""
+"Vous disposez désormais d’un accès illimité à l’aide de nos centres de "
+"données les plus rapides et d’une ligne dédiée. Vous pouvez connecter "
+"jusqu’à trois appareils à votre compte."
+
+msgid "pro_purchase_success_descripion"
+msgstr ""
+"Vous disposez désormais d’un accès illimité à l’aide de nos centres de "
+"données les plus rapides. Vous pouvez connecter jusqu’à trois appareils à "
+"votre compte."
+
+msgid "by_clicking_tos"
+msgstr "En cliquant sur %s, vous acceptez notre "
+
+msgid "tos"
+msgstr "Conditions générales d’utilisation"
+
+msgid "step_1"
+msgstr "Étape 1"
+
+msgid "step_2"
+msgstr "Étape 2"
+
+msgid "step_3"
+msgstr "Étape 3"
+
+msgid "invalid_email"
+msgstr "Adresse courriel invalide"
+
+msgid "invalid_card"
+msgstr "Numéro de carte de paiement invalide"
+
+msgid "invalid_expiration"
+msgstr "La date d’expiration est invalide"
+
+msgid "cc_number"
+msgstr "Carte de crédit"
+
+msgid "card_number"
+msgstr "Numéro de carte"
+
+msgid "card_expiration"
+msgstr "MM/AA"
+
+msgid "invalid_cvc"
+msgstr "Le CVC est invalide"
+
+msgid "complete_purchase"
+msgstr "Terminer l’achat"
+
+msgid "Re-send Email"
+msgstr "Renvoyer le courriel"
+
+msgid "Paste from clipboard?"
+msgstr "Coller du presse-papiers ?"
+
+msgid "Yes"
+msgstr "Oui"
+
+msgid "No"
+msgstr "Non"
+
+msgid "exit"
+msgstr "Quitter"
+
+msgid "show"
+msgstr "Afficher "
+
+msgid "status_on"
+msgstr "Statut : Activé "
+
+msgid "status_off"
+msgstr "Statut : Désactivé "
+
+msgid "Enter or paste linking code"
+msgstr "Saisissez ou collez un code de liaison d’appareil"
+
+msgid "recovery_email_sent"
+msgstr ""
+"Un code de liaison a été envoyé à %s si ce compte existe. Saisissez le code "
+"qui se trouve dans ce courriel. Ce courriel pourrait prendre plusieurs "
+"heures pour vous parvenir."
+
+msgid "Add Device"
+msgstr "Ajouter un appareil"
+
+msgid "approve_device_step_1"
+msgstr ""
+"Ouvrez « Autoriser l’appareil à la version Pro » dans le menu du compte sur "
+"l’appareil que vous souhaitez relier, puis sélectionnez « Relier avec un "
+"code »."
+
+msgid "approve_device_step_2"
+msgstr "Saisissez le code de liaison obtenu à l’étape 1"
+
+msgid "Pro Account Expiration"
+msgstr "Expiration du compte Pro"
+
+msgid "Renew"
+msgstr "Renouveller"
+
+msgid "pro_devices_header"
+msgstr "Appareils Lantern Pro (jusqu’à trois)"
+
+msgid "Remove"
+msgstr "Retirer"
+
+msgid "Log Out"
+msgstr "Déconnexion"
+
+msgid "confirm_remove_device"
+msgstr "Voulez-vous vraiment dissocier cet appareil de votre compte Pro ?"
+
+msgid "confirm_close_window"
+msgstr "Êtes-vous sûr de vouloir fermer Lantern ? "
+
+msgid "unlimited_data"
+msgstr "Données illimitées"
+
+msgid "no_logs"
+msgstr "Aucun journaux"
+
+msgid "no_ads"
+msgstr "Sans publicité"
+
+msgid "choose_plan"
+msgstr "Choisissez un abonnement"
+
+msgid "billed_one_time"
+msgstr "facturé une fois "
+
+msgid "connect_up_to_3_devices"
+msgstr "Connectez jusqu’à trois appareils"
+
+msgid "faster_data_centers"
+msgstr "Des centres de traitement de données plus rapides"
+
+msgid "dedicated_line"
+msgstr "Ligne dédiée"
+
+msgid "increased_reliability"
+msgstr "Fiabilité accrue"
+
+msgid "checkout"
+msgstr "Caisse"
+
+msgid "credit_card"
+msgstr "Carte de crédit"
+
+msgid "lantern_pro_checkout"
+msgstr "Paiement de Lantern Pro"
+
+msgid "1y_pricing"
+msgstr "Tarif pour un an"
+
+msgid "2y_pricing"
+msgstr "Tarif pour deux ans"
+
+msgid "plan_type"
+msgstr "Type d’abonnement"
+
+msgid "most_popular"
+msgstr "Le plus populaire"
+
+msgid "free"
+msgstr "Gratuit"
+
+msgid "n/a"
+msgstr "s/o"
+
+msgid "Developer Settings"
+msgstr "Paramètres pour les développeurs"
+
+msgid "Developer"
+msgstr "Développeur"
+
+msgid "dev_settings"
+msgstr ""
+"Ces paramètres sont destinés uniquement au développement. La modification "
+"d'un paramètre entraînera l'arrêt et le redémarrage automatiques de "
+"l'application."
+
+msgid "dev_payment_mode"
+msgstr ""
+"Lorsque « Mode de test de paiement » est activé, l'application utilise un "
+"seul utilisateur codé en dur. Vous pouvez effectuer des achats avec Stripe "
+"en utilisant le numéro 4242 4242 4242 4242, une date d'expiration dans le "
+"futur et n'importe quel code CVV."
+
+msgid "Payment Test Mode"
+msgstr "Mode de test de paiement"
+
+msgid "Play Version"
+msgstr "Version de Google Play"
+
+msgid "Force Country"
+msgstr "Simuler dans un pays"
+
+msgid "Error"
+msgstr "Erreur"
+
+msgid "accept"
+msgstr "Accepter"
+
+msgid "cancel"
+msgstr "Annuler"
+
+msgid "reject"
+msgstr "Refuser"
+
+msgid "copied"
+msgstr "Copié !"
+
+msgid "saved"
+msgstr "Enregistré !"
+
+msgid "new_chat"
+msgstr "Nouvelle conversation"
+
+msgid "your_contact_info"
+msgstr "Vos coordonnées"
+
+msgid "display_name"
+msgstr "Nom d'affichage"
+
+msgid "edit"
+msgstr "Modifier"
+
+msgid "save_error"
+msgstr "Une erreur est survenue pendant l'enregistrement."
+
+msgid "fewer_options"
+msgstr "Moins d’options"
+
+msgid "more_options"
+msgstr "Plus d’options"
+
+msgid "block_user"
+msgstr "Bloquer l'utilisateur"
+
+msgid "unblock_user"
+msgstr "Débloquer l'utilisateur"
+
+msgid "block"
+msgstr "Bloquer"
+
+msgid "unblock"
+msgstr "Débloquer"
+
+msgid "block_info_title"
+msgstr "Bloquer %s ?"
+
+msgid "no_blocked_users"
+msgstr "Aucun utilisateur n'est bloqué."
+
+msgid "unblock_info_title"
+msgstr "Débloquer %s ?"
+
+msgid "block_info_description"
+msgstr ""
+"Bloquer cet utilisateur supprimera l’historique des conversations et "
+"l’empêchera de vous contacter à l’avenir. Vous pouvez débloquer des "
+"utilisateurs dans le menu des paramètres."
+
+msgid "unblock_info_description"
+msgstr ""
+"%s peut désormais vous envoyer des messages et ne saura pas que vous l'avez "
+"débloqué."
+
+msgid "block_info_checkbox"
+msgstr "Je comprends que cela supprimera tout l’historique des conversations"
+
+msgid "unblock_info_checkbox"
+msgstr "Je confirme que je souhaite débloquer ce contact."
+
+msgid "delete_permanently"
+msgstr "Supprimer définitivement l'utilisateur"
+
+msgid "delete_info_description"
+msgstr ""
+"Après suppression, vous devrez ajouter ses coordonnées si vous voulez "
+"dialoguer avec cette personne de nouveau."
+
+msgid "add_new_contact"
+msgstr "Ajouter un nouveau contact"
+
+msgid "add_contact"
+msgstr "Ajouter un contact"
+
+msgid "share_your_chat_number"
+msgstr "Partager votre no de dialogue"
+
+msgid "scan_qr_code"
+msgstr "Scanner le code QR"
+
+msgid "add_contact_in_person"
+msgstr "Ajouter des contacts en face à face"
+
+msgid "start_chat"
+msgstr "Lancer une conversation"
+
+msgid "your_installed_apps"
+msgstr "Vos applis installées"
+
+msgid "apps_routed_through_lantern"
+msgstr "Applis acheminées par Lantern"
+
+msgid "apps_to_unblock"
+msgstr ""
+"Choisissez les applis que vous souhaitez débloquer. Après la connexion, "
+"seules les applis sélectionnées ci-dessous seront acheminées par Lantern."
+
+msgid "split_tunneling"
+msgstr "Tunnellisation partagée"
+
+msgid "split_tunneling_info"
+msgstr ""
+"Lorsque la tunnellisation partagée est activée, les applis sélectionnées "
+"sont acheminées par Lantern. Cela peut améliorer les performances et "
+"économiser la bande passante en ne débloquant que les applis indiquées."
+
+msgid "applied_next_time"
+msgstr ""
+"Les nouveaux paramètres de tunnellisation partagées seront appliqués la "
+"prochaine fois que vous vous reconnecterez."
+
+msgid "message_disappearing"
+msgstr "Certains messages resteront visibles pour vous et %s."
+
+msgid "message_disappearing_description"
+msgstr "Tous les messages disparaîtront après %s pour vous et %s."
+
+msgid "view_contact_info"
+msgstr "Afficher les coordonnées"
+
+msgid "off"
+msgstr "désactivé"
+
+msgid "on"
+msgstr "Activée"
+
+msgid "continue"
+msgstr "Continuer"
+
+msgid "continue_to_pro"
+msgstr "Poursuivre vers la version Pro"
+
+msgid "are_you_sure_you_want_to_open"
+msgstr "Voulez-vous vraiment ouvrir %s ?"
+
+msgid "set"
+msgstr "Définir"
+
+msgid "menu"
+msgstr "Menu"
+
+msgid "send_error"
+msgstr "Une erreur est survenue pendant l'envoi de votre message"
+
+msgid "share_media_error"
+msgstr "Une erreur est survenue pendant le partage d'un fichier multimédia"
+
+msgid "no_recents"
+msgstr "Aucun récent"
+
+msgid "set_display_name"
+msgstr "Définir le nom d'affichage"
+
+msgid "introduce_contact"
+msgstr "Présenter un contact"
+
+msgid "introduce_contacts"
+msgstr "Présenter des contacts"
+
+msgid "introduce_contacts_with_count"
+msgstr "Présenter des contacts (%s)"
+
+msgid "need_two_contacts_to_introduce"
+msgstr ""
+"Une fois que vous aurez au moins deux contacts, vous pourrez créer des "
+"présentations."
+
+msgid "introduce_contacts_select"
+msgstr ""
+"Sélectionnez au moins deux contacts à présenter mutuellement. Ils recevront "
+"des présentations afin qu'ils puissent commencer à s'envoyer des messages."
+
+msgid "introduce_single_contact"
+msgstr ""
+"Sélectionnez un contact à présenter à %s. Une fois qu'ils approuvent la "
+"présentation, ils pourront s'envoyer des messages."
+
+msgid "send_introductions"
+msgstr "Envoyer des présentations"
+
+msgid "introductions_sent"
+msgstr "Présentations envoyées !"
+
+msgid "no_contacts_yet"
+msgstr "Aucun contact pour le moment"
+
+msgid "contact_verification"
+msgstr "Vérification du contact"
+
+msgid "verification"
+msgstr "Vérification"
+
+msgid "contact_verification_description"
+msgstr ""
+"La vérification de contact est accessible depuis le menu des messages dans "
+"le coin supérieur droit."
+
+msgid "qr_error_description"
+msgstr "Une erreur est survenue pendant le scan de ce code QR."
+
+msgid "qr_info_verification_title"
+msgstr "Vérification de contact en face à face"
+
+msgid "qr_info_f2f_title"
+msgstr "Scan du code QR"
+
+msgid "qr_info_verification_des"
+msgstr ""
+"Pour vérifier votre contact, scannez chacun le code QR de l'autre.\n"
+"\n"
+"Ce processus vise à garantir la confidentialité et le chiffrement de bout en bout de vos conversations."
+
+msgid "qr_info_f2f_des"
+msgstr ""
+"Pour ajouter votre ami en tant que contact, scannez chacun le code QR de l'autre.\n"
+"\n"
+"Ce processus vise à garantir la confidentialité et le chiffrement de bout en bout de vos conversations."
+
+msgid "qr_info_verification_scan"
+msgstr "Scannez chacun le code QR de l'autre pour procéder à la vérification."
+
+msgid "qr_info_f2f_scan"
+msgstr "Scannez chacun le code QR de l'autre pour ajouter un contact."
+
+msgid "qr_success_snackbar"
+msgstr "%s est un contact"
+
+msgid "qr_info_waiting_qr"
+msgstr "En attente du scan de votre code QR par votre ami…"
+
+msgid "scan_complete"
+msgstr "Scan terminé"
+
+msgid "qr_for_your_contact"
+msgstr "Votre code QR"
+
+msgid "add_via_chat_number"
+msgstr "Ajouter par no de conversation"
+
+msgid "qr_info_waiting_id"
+msgstr ""
+"En attente de la saisie de votre identifiant Messenger ou du scan de votre "
+"code QR par votre ami…"
+
+msgid "chat_number_not_found"
+msgstr ""
+"Le numéro de conversation est introuvable.\n"
+"Veuillez vérifier le numéro que vous avez saisi et réessayer."
+
+msgid "unable_to_add_contact"
+msgstr ""
+"Le contact est introuvable.\n"
+"Veuillez vérifier le numéro que vous avez saisi et réessayer."
+
+msgid "self_adding"
+msgstr "Le numéro de conversation que vous avez saisi est le vôtre"
+
+msgid "chat_number_type"
+msgstr "Saisir un numéro de conversation"
+
+msgid "letter_and_numbers_only"
+msgstr "Lettres et chiffres uniquement"
+
+msgid "name_your_contact"
+msgstr "Attribuez un nom à votre contact"
+
+msgid "messenger_id_invalid"
+msgstr "Identifiant Messenger non valide"
+
+msgid "username_not_found"
+msgstr "Nom d'utilisateur introuvable"
+
+msgid "contact_id_your_id"
+msgstr "Votre identifiant Messenger"
+
+msgid "introductions"
+msgstr "Présentations"
+
+msgid "introduced"
+msgstr "Présenté par %s"
+
+msgid "introductions_title"
+msgstr "Accepter la présentation à %s"
+
+msgid "introductions_info"
+msgstr ""
+"Les deux parties doivent accepter la présentation pour dialoguer. Les "
+"présentations disparaissent après sept jours si aucune action n’a été prise."
+
+msgid "introduction_reject_title"
+msgstr "Refuser la présentation"
+
+msgid "introduction_reject_content"
+msgstr ""
+"Vous ne pourrez pas envoyer de messages à ce contact si vous refusez la "
+"présentation."
+
+msgid "introductions_error_description_rejecting"
+msgstr ""
+"Une erreur est survenue pendant le refus de cette demande de mise en "
+"relation."
+
+msgid "introductions_error_description_accepting"
+msgstr ""
+"Une erreur est survenue pendant l'acceptation de cette demande de mise en "
+"relation."
+
+msgid "no_introductions"
+msgstr "Il n'y a aucune présentation en attente."
+
+msgid "introduction_approved"
+msgstr "La présentation à %s a été approuvée."
+
+msgid "delete_contact_name"
+msgstr "Supprimer %s"
+
+msgid "delete_contact"
+msgstr "Supprimer le contact"
+
+msgid "error"
+msgstr "Erreur"
+
+msgid "error_delete_contact"
+msgstr "Une erreur est survenue pendant la suppression de ce contact."
+
+msgid "unnamed_contact"
+msgstr "Contact sans nom"
+
+msgid "me"
+msgstr "Moi"
+
+msgid "disappearing_messages"
+msgstr "Messages qui disparaissent"
+
+msgid "start_of_your_history"
+msgstr ""
+"Vos conversations et appels vocaux avec %s sont chiffrés de bout en bout"
+
+msgid "banner_unaccepted"
+msgstr ""
+"%s n’est pas dans votre liste de contacts. Souhaitez-vous accepter la "
+"demande de dialogue ?"
+
+msgid "banner_messages_persist"
+msgstr "Les nouveaux messages ne disparaissent pas."
+
+msgid "banner_message_retention"
+msgstr "La rétention des messages est définie sur %s"
+
+msgid "longform_seconds"
+msgstr "%s secondes"
+
+msgid "shortform_seconds"
+msgstr "%s s"
+
+msgid "longform_minute"
+msgstr "%s minute"
+
+msgid "shortform_minutes"
+msgstr "%s min"
+
+msgid "longform_minutes"
+msgstr "%s minutes"
+
+msgid "longform_hour"
+msgstr "%s heure"
+
+msgid "shortform_hours"
+msgstr "%s h"
+
+msgid "longform_hours"
+msgstr "%s heures"
+
+msgid "longform_day"
+msgstr "%s jour"
+
+msgid "shortform_days"
+msgstr "%s j"
+
+msgid "longform_days"
+msgstr "%s jours"
+
+msgid "longform_week"
+msgstr "%s semaine"
+
+msgid "shortform_weeks"
+msgstr "%s sem."
+
+msgid "longform_weeks"
+msgstr "%s semaines"
+
+msgid "unknown"
+msgstr "Inconnu"
+
+msgid "banner_source_qr"
+msgstr "Code QR"
+
+msgid "banner_source_id"
+msgstr "Identifiant Messenger"
+
+msgid "banner_source_intro"
+msgstr "Introduction"
+
+msgid "message_will_disappear_at"
+msgstr "Disparaît dans %s"
+
+msgid "change_display_name"
+msgstr "Modifier le nom d'affichage"
+
+msgid "yesterday"
+msgstr "hier"
+
+msgid "tomorrow"
+msgstr "demain"
+
+msgid "just_now"
+msgstr "à l'instant"
+
+msgid "within_one_minute"
+msgstr "dans une minute"
+
+msgid "on_date"
+msgstr "le %s"
+
+msgid "at_date"
+msgstr "à %s"
+
+msgid "error_fetching_message_preview"
+msgstr "Erreur lors de la récupération de l'aperçu du message"
+
+msgid "message_was_deleted"
+msgstr "Le message a été supprimé"
+
+msgid "contact_was_deleted"
+msgstr "%s a été supprimé de vos contacts."
+
+msgid "contact_was_blocked"
+msgstr "%s a été bloqué."
+
+msgid "contact_was_unblocked"
+msgstr "%s a été débloqué."
+
+msgid "dismiss"
+msgstr "Rejeter"
+
+msgid "copy_text"
+msgstr "Copier le texte"
+
+msgid "message"
+msgstr "Message"
+
+msgid "messages"
+msgstr "Messages"
+
+msgid "chats"
+msgstr "Conversations"
+
+msgid "new_requests"
+msgstr "Nouvelles demandes (%s)"
+
+msgid "chat"
+msgstr "Conversation"
+
+msgid "lantern_chat"
+msgstr "Dialogue en ligne Lantern"
+
+msgid "welcome_title"
+msgstr "Bienvenue dans le dialogue en ligne Lantern."
+
+msgid "welcome_text"
+msgstr ""
+"Un dialogue en ligne chiffré pour protéger votre vie privée et vos données "
+"avec la meilleure technologie de résistance aux blocages."
+
+msgid "get_started"
+msgstr "Démarrer"
+
+msgid "want_to_recover"
+msgstr "Avez-vous un numéro de conversation ?"
+
+msgid "recover"
+msgstr "Récupérer"
+
+msgid "chat_number"
+msgstr "Numéro de conversation"
+
+msgid "your_chat_number"
+msgstr "Votre numéro de conversation"
+
+msgid "chat_number_recovery"
+msgstr "Récupération du numéro de conversation"
+
+msgid "recovery_helper_text"
+msgstr "Veuillez saisir une clé de récupération valide"
+
+msgid "recovery_button"
+msgstr ""
+"Saisissez votre clé de récupération pour récupérer votre numéro de "
+"conversation."
+
+msgid "recovery_label"
+msgstr "Saisissez votre clé de récupération"
+
+msgid "recovery_key"
+msgstr "Clé de récupération"
+
+msgid "secure_text_explanation"
+msgstr ""
+"Votre numéro de conversation fonctionne comme un numéro de téléphone que vos"
+" amis peuvent utiliser pour vous contacter sur Lantern."
+
+msgid "secure_text_explanation_account"
+msgstr ""
+"Il s’agit de la version complète de votre numéro de conversation ; partager ce numéro plus long apporte une sécurité accrue, en particulier si vous disposez d’un autre canal chiffré de bout en bout sur lequel le partager.\n"
+"\n"
+"Lantern fournit une version plus courte du numéro de conversation pour faciliter le partage de coordonnées."
+
+msgid "recovery_key_account_explanation"
+msgstr ""
+"Conservez cette clé en lieu sûr et ne la partagez avec personne. Elle "
+"constitue la seule façon de récupérer votre numéro de conversation si vous "
+"perdez votre téléphone, changez d’appareil ou réinitialisez le système "
+"d’exploitation."
+
+msgid "recovery_error"
+msgstr "Impossible de récupérer votre compte."
+
+msgid "recovery_input_error"
+msgstr "Assurez-vous d’avoir saisi une clé de récupération valide"
+
+msgid "recovery_retrieval_error"
+msgstr "Une erreur est survenue lors de la récupération de votre compte"
+
+msgid "recovery_success"
+msgstr "Vous avez récupéré votre numéro de conversation avec succès"
+
+msgid "empty_chats_text"
+msgstr "Partagez votre numéro de conversation ou ajoutez un contact ici."
+
+msgid "next"
+msgstr "Suivante"
+
+msgid "automated_backup"
+msgstr "Sauvegarde automatisée"
+
+msgid "backup_explanation"
+msgstr ""
+"Lantern offre la possibilité de chiffrer et de sauvegarder vos contacts sur ses serveurs sécurisés. Si vous renoncez à l'option de sauvegarde, vous ne serez pas en mesure de récupérer vos contacts à l'aide de votre clé de récupération.\n"
+"\n"
+"Lantern n'est pas en mesure de lire vos listes de contacts lorsque vous choisissez de les sauvegarder."
+
+msgid "backup_contacts"
+msgstr "Sauvegarder les contacts"
+
+msgid "copy_recovery_key"
+msgstr "Copier la clé de récupération"
+
+msgid "search"
+msgstr "Chercher"
+
+msgid "account_management"
+msgstr "Gestion du compte"
+
+msgid "add_via_username"
+msgstr "Ajouter via le nom d'utilisateur"
+
+msgid "username"
+msgstr "Nom d’utilisateur"
+
+msgid "enter_a_username_to_start_a_conversation"
+msgstr ""
+"Saisissez un nom d'utilisateur pour entamer une conversation par message"
+
+msgid "start_message"
+msgstr "Commencer un message"
+
+msgid "please_enter_a_valid_username"
+msgstr "Veuillez saisir un nom d'utilisateur valide"
+
+msgid "open_url"
+msgstr "Ouvrir l'URL"
+
+msgid "message_deleted"
+msgstr "%s a supprimé ce message"
+
+msgid "never"
+msgstr "Jamais"
+
+msgid "delete_for_me"
+msgstr "Supprimer pour moi"
+
+msgid "delete_for_me_explanation"
+msgstr ""
+"Cette action supprimera le message uniquement pour vous. Les autres "
+"utilisateurs pourront toujours le voir."
+
+msgid "delete_for_everyone"
+msgstr "Supprimer pour tout le monde"
+
+msgid "delete_for_everyone_explanation"
+msgstr "Cette action supprimera le message pour tout le monde."
+
+msgid "reply"
+msgstr "Répondre"
+
+msgid "replying_to"
+msgstr "Réponse à %s"
+
+msgid "attachment"
+msgstr "Pièce jointe"
+
+msgid "error_rendering_message"
+msgstr "Erreur d'affichage du message"
+
+msgid "error_fetching_preview"
+msgstr "Erreur lors de la récupération de l'aperçu du message"
+
+msgid "audio"
+msgstr "Son"
+
+msgid "image"
+msgstr "Image"
+
+msgid "images"
+msgstr "Images"
+
+msgid "video"
+msgstr "Vidéo"
+
+msgid "videos"
+msgstr "Vidéos"
+
+msgid "app"
+msgstr "Applis"
+
+msgid "document"
+msgstr "Documents"
+
+msgid "search_chars_min"
+msgstr "Saisissez au moins trois caractères"
+
+msgid "search_no_results"
+msgstr ""
+"Désolés, nous n'avons trouvé aucun résultat correspondant à cette recherche."
+
+msgid "search_error"
+msgstr ""
+"Désolés, une erreur est survenue lors de la récupération des résultats de la"
+" recherche."
+
+msgid "search_contacts"
+msgstr "Contacts (%s)"
+
+msgid "search_chats"
+msgstr "Dialogues (%s)"
+
+msgid "search_in_contacts"
+msgstr "Rechercher dans Contacts"
+
+msgid "search_in_chats"
+msgstr "Rechercher dans Conversations et Contacts"
+
+msgid "could_not_render_title"
+msgstr "Impossible d'afficher le titre du fichier"
+
+msgid "could_not_render_type"
+msgstr "Impossible d'afficher le type de fichier"
+
+msgid "speaker"
+msgstr "Haut-parleur"
+
+msgid "speaker_on"
+msgstr "Le haut-parleur est activé"
+
+msgid "mute"
+msgstr "Désactiver le micro"
+
+msgid "muted"
+msgstr "Le micro est désactivé"
+
+msgid "end_call"
+msgstr "Terminer l'appel"
+
+msgid "verify_contact"
+msgstr "Vérifier %s"
+
+msgid "verified"
+msgstr "Confirmé"
+
+msgid "pending_verification"
+msgstr "Vérification en attente"
+
+msgid "verify_description"
+msgstr ""
+"À des fins de sécurité, nous vous conseillons de vérifier que le numéro de vérification de %s correspond au vôtre.\n"
+"\n"
+"Souhaitez-vous effectuer la vérification en personne ou par téléphone ?"
+
+msgid "verify_in_person"
+msgstr "Vérifier en personne"
+
+msgid "verify_via_call"
+msgstr "Vérifier via un appel vocal"
+
+msgid "dismiss_notification"
+msgstr "Ignorer la notification"
+
+msgid "call_contact"
+msgstr "Appeler %s ?"
+
+msgid "call"
+msgstr "Appeler"
+
+msgid "incoming_call"
+msgstr "Appel entrant"
+
+msgid "call_from"
+msgstr "De %s"
+
+msgid "in_call"
+msgstr "Appels en cours"
+
+msgid "in_call_des"
+msgstr "Notification d'appel en cours"
+
+msgid "incoming_call_from"
+msgstr "Appel entrant de %s"
+
+msgid "touch_here_to_open_call"
+msgstr "Toucher ici pour ouvrir l’appel"
+
+msgid "in_call_with"
+msgstr "En ligne avec %s"
+
+msgid "undo_verification"
+msgstr "Annuler la vérification"
+
+msgid "mark_as_verified"
+msgstr "Marquer comme vérifié"
+
+msgid "verification_panel_success"
+msgstr "Vérification terminée ! Vos messages avec %s sont sécurisés."
+
+msgid "verification_panel_pending"
+msgstr ""
+"Voici votre numéro de vérification. Vérifiez qu'il correspond à celui de %s "
+"avant de marquer votre contact comme vérifié."
+
+msgid "replica_upload_confirmation_title"
+msgstr "Important !"
+
+msgid "replica_upload_confirmation_body"
+msgstr ""
+"Les fichiers chargés sur le réseau Lantern sont accessibles publiquement. "
+"Personne ne peut les supprimer. N'incluez pas d'informations personnelles ou"
+" permettant de vous identifier dans le contenu ou le nom de vos fichiers."
+
+msgid "replica_upload_confirmation_agree"
+msgstr "Reprendre le téléversement"
+
+msgid "dont_show_me_this_again"
+msgstr "Ne plus afficher ce message"
+
+msgid "download"
+msgstr "Télécharger"
+
+msgid "download_started"
+msgstr "Téléchargement démarré"
+
+msgid "uploader"
+msgstr "Téléchargeur"
+
+msgid "upload_started"
+msgstr "Chargement démarré"
+
+msgid "upload_in_progress"
+msgstr "Chargement en cours"
+
+msgid "upload_complete"
+msgstr "Votre fichier a bien été publié"
+
+msgid "upload_failed"
+msgstr "Échec du chargement"
+
+msgid "upload_cancelled"
+msgstr "Chargement annulé"
+
+msgid "upload_unknown_error"
+msgstr "Une erreur s'est produite lors de la tentative de publication"
+
+msgid "download_unknown_error"
+msgstr ""
+"Une erreur s'est produite lors de la tentative de téléchargement de %s"
+
+msgid "replica_link_fetcher"
+msgstr "Outil de récupération du lien de réplique"
+
+msgid "no_preview_for_this_type_of_file"
+msgstr "Aucun aperçu pour ce type de fichier"
+
+msgid "app_unknown"
+msgstr "appli/inconnue"
+
+msgid "audio_unknown"
+msgstr "son/inconnu"
+
+msgid "document_unknown"
+msgstr "document/inconnu"
+
+msgid "no_search_result_found"
+msgstr ""
+"Désolés, nous n'avons trouvé aucun résultat correspondant à cette recherche"
+
+msgid "search_result_error"
+msgstr ""
+"Erreur lors de la récupération des résultats, veuillez réessayer "
+"ultérieurement"
+
+msgid "video_stream_error"
+msgstr ""
+"Erreur lors de l'affichage de la vidéo, veuillez réessayer ultérieurement"
+
+msgid "untitled"
+msgstr "Sans titre"
+
+msgid "preview_not_available"
+msgstr "Aperçu indisponible"
+
+msgid "download_to_view"
+msgstr "Téléchargez le fichier pour le consulter"
+
+msgid "failed_to_init_replica"
+msgstr "Erreur : échec de l'initialisation de la réplique"
+
+msgid "awaiting_result"
+msgstr "En attente du résultat…"
+
+msgid "discover"
+msgstr "Découvrir"
+
+msgid "replica_search_intro"
+msgstr ""
+"Recherchez le contenu chargé par un utilisateur sur le réseau Lantern ou "
+"chargez votre propre contenu de manière à ce que d'autres utilisateurs "
+"puissent le découvrir."
+
+msgid "replica_new_discover"
+msgstr "Nouvelle catégorie de découverte"
+
+msgid "replica_new_discover_news"
+msgstr "L'option découverte vous permet de chercher de nouveaux articles !"
+
+msgid "replica_check_it_out"
+msgstr "Jeter un œil"
+
+msgid "news"
+msgstr "Actualités"
+
+msgid "share"
+msgstr "Partager"
+
+msgid "upload_file_screen"
+msgstr "Téléverser un fichier"
+
+msgid "edit_title"
+msgstr "Modifier le titre"
+
+msgid "filenames_cannot_be_edited"
+msgstr ""
+"Les noms des fichiers ne peuvent pas être modifiés après leur publication."
+
+msgid "add_description"
+msgstr "Ajouter une description"
+
+msgid "no_description"
+msgstr "Aucune description fournie"
+
+msgid "read_details"
+msgstr "Lire le PDF"
+
+msgid "description_initial_value"
+msgstr "La description ne peut pas être modifiée après sa publication."
+
+msgid "name_your_file"
+msgstr "Nommez votre fichier"
+
+msgid "upload"
+msgstr "Téléverser"
+
+msgid "review"
+msgstr "Vérifier"
+
+msgid "skip"
+msgstr "Ignorer"
+
+msgid "replica_layout_filetype"
+msgstr "type de fichier : %s"
+
+msgid "replica_layout_creation_date"
+msgstr "Créé le %s"
+
+msgid "empty_description"
+msgstr "Aucune description n'a été fournie."
+
+msgid "publish"
+msgstr "Oui, publier"
+
+msgid "important"
+msgstr "Important !"
+
+msgid "upload_tos_agree"
+msgstr "Je comprends"
+
+msgid "test_text"
+msgstr "Je veux manger de la pizza 🍕 😊"
+
+msgid "test_hello"
+msgstr "Bonjour, comment vas-tu ?"
+
+msgid "test_reply"
+msgstr ""
+"En fait non, je pense que j’ai envie de manger des sushis aujourd’hui."
+
+msgid "test_disappearing_messages_1"
+msgstr "Initialement, tous les messages disparaissent après 24 heures."
+
+msgid "test_disappearing_messages_2"
+msgstr "Maintenant, ce message devrait disparaître très bientôt."
+
+msgid "test_replica_search"
+msgstr "chat"
+
+msgid "discover_disclaimer"
+msgstr "Lantern anonymise vos recherches et les protège contre les tiers."
+
+msgid "support"
+msgstr "Soutien"
+
+msgid "lantern_user_forum"
+msgstr "Forum des utilisateurs de Lantern"
+
+msgid "faq"
+msgstr "FAQ"
+
+msgid "add_device"
+msgstr "Ajouter un appareil"
+
+msgid "search_apps"
+msgstr "Rechercher des applications "
+
+msgid "user_not_found"
+msgstr ""
+"Utilisateur non reconnu. Veuillez vérifier vos identifiants et réessayer. Si"
+" vous continuez à rencontrer des problèmes, veuillez contacter notre équipe "
+"de support pour obtenir de l'aide. "
+
+msgid "email_resend_message"
+msgstr "Votre nouveau code de confirmation a été envoyé "
+
+msgid "signup_error"
+msgstr ""
+"Il semble qu'il y ait eu un problème avec l'inscription. Veuillez réessayer,"
+" et si le problème persiste, contactez notre équipe de support. "
+
+msgid "signup_error_user_exists"
+msgstr ""
+"Il semble qu'il y ait eu un problème avec l'inscription. Veuillez essayer de"
+" réinitialiser votre mot de passe, et si le problème persiste, contactez "
+"notre équipe de support. "
+
+msgid "confirm_email_error"
+msgstr "Veuillez confirmer votre email "
+
+msgid "password_cannot_be_empty"
+msgstr "Le mot de passe ne peut pas être vide "
+
+msgid "password_must_be_at_least_8_characters"
+msgstr "Le mot de passe doit contenir au moins 8 caractères ou plus "
+
+msgid "sign_out"
+msgstr "Déconnexion"
+
+msgid "sign_out_message"
+msgstr ""
+"La déconnexion passera Lantern à la version gratuite. Pour accéder à nouveau"
+" à votre compte, vous devrez vous reconnecter. "
+
+msgid "change_password"
+msgstr "Changer le mot de passe"
+
+msgid "password"
+msgstr "Mot de passe"
+
+msgid "new_email"
+msgstr "Nouvelle adresse email "
+
+msgid "new_email_same_as_old_email"
+msgstr ""
+"La nouvelle adresse email ne peut pas être la même que votre ancienne "
+"adresse email "
+
+msgid "danger_zone"
+msgstr "Zone dangereuse "
+
+msgid "delete_account"
+msgstr "Supprimer le compte "
+
+msgid "delete"
+msgstr "Supprimer"
+
+msgid "delete_account_message"
+msgstr ""
+"La suppression de votre compte ne peut pas être annulée. Vous perdrez "
+"l'accès à tous les appareils et renoncerez à tout temps de compte Pro sans "
+"remboursement. "
+
+msgid "delete_your_account"
+msgstr "Supprimer votre compte ? "
+
+msgid "confirm_deletion"
+msgstr "Confirmer la suppression "
+
+msgid "account_deleted"
+msgstr "Compte supprimé "
+
+msgid "account_deleted_message"
+msgstr "Votre compte a été supprimé de façon permanente. "
+
+msgid "password_has_been_updated"
+msgstr "Le mot de passe a été mis à jour "
+
+msgid "password_has_been_updated_message"
+msgstr "Votre mot de passe a été réinitialisé avec succès "
+
+msgid "invalid_code"
+msgstr ""
+"Code incorrect ou il a peut-être expiré. Veuillez essayer de renvoyer à "
+"nouveau "
+
+msgid "get_lantern_pro"
+msgstr "Obtenir Lantern Pro"
+
+msgid "try_lantern_pro"
+msgstr "Essayez Lantern gratuitement ! "
+
+msgid "continue_for_free"
+msgstr "Continuer gratuitement "
+
+msgid "recovery_not_found"
+msgstr "L’appareil n’est pas associé à cet utilisateur"
+
+msgid "device_added"
+msgstr "L’appareil a été ajouté"
+
+msgid "device_added_message"
+msgstr ""
+"Votre appareil a été ajouté avec succès. Si vous ne voyez pas l'appareil "
+"connecté, veuillez redémarrer l'application sur les deux appareils "
+
+msgid "wrong_link_code"
+msgstr ""
+"Le code que vous avez entré est incorrect. Veuillez vérifier et réessayer. "
+
+msgid "recovery_code_sent"
+msgstr "Le code de récupération a été envoyé "
+
+msgid "device_added_msg"
+msgstr "Cet appareil a été lié à %s "
+
+msgid "new_to_lantern"
+msgstr "Nouveau sur Lantern ? "
+
+msgid "email_has_been_updated"
+msgstr "L'email a été mis à jour "
+
+msgid "email_has_been_updated_message"
+msgstr "Votre email a été changé avec succès "
+
+msgid "email_has_been_verified"
+msgstr "L'email a été vérifié "
+
+msgid "email_has_been_verified_message"
+msgstr "Votre email a été vérifié avec succès "
+
+msgid "device_limit_reached"
+msgstr "Limite d'appareils atteinte "
+
+msgid "device_limit_reached_message"
+msgstr ""
+"Vous êtes actuellement connecté au nombre maximum d'appareils (3). Pour vous"
+" connecter sur cet appareil, veuillez sélectionner et supprimer un de vos "
+"autres appareils ci-dessous. "
+
+msgid "enter_activation_code"
+msgstr "Entrez le code d'activation "
+
+msgid "check_your_email"
+msgstr "Vérifiez votre adresse email "
+
+msgid "please_verify_email"
+msgstr ""
+"Veuillez vérifier que l'adresse email que vous avez entrée est correcte. "
+
+msgid "verify"
+msgstr "Vérifier"
+
+msgid "cannot_login"
+msgstr "Impossible de se connecter "
+
+msgid "privacy_policy"
+msgstr "Politique de confidentialité "
+
+msgid "terms_of_service"
+msgstr "Conditions générales d’utilisation"
+
+msgid "invalid_verification_code"
+msgstr "Code de vérification invalide"
+
+msgid "wrong_seller_code"
+msgstr "Code de revendeur incorrect. Veuillez vérifier et réessayer. "
+
+msgid "follow_us"
+msgstr "Suivez-nous "
+
+msgid "follow_us_telegram"
+msgstr "Suivez-nous sur Telegram"
+
+msgid "follow_us_instagram"
+msgstr "Suivez-nous sur Instagram"
+
+msgid "follow_us_facebook"
+msgstr "Suivez-nous sur Facebook"
+
+msgid "follow_us_x"
+msgstr "Suivez-nous sur X"
+
+msgid "report_issue_error"
+msgstr "Nous rencontrons des difficultés techniques. Réessayez plus tard. "
+
+msgid "we_are_experiencing_technical_difficulties"
+msgstr "Nous rencontrons des difficultés techniques. Réessayez plus tard. "
+
+msgid "a_temporary_error_occurred"
+msgstr "Une erreur temporaire est survenue "
+
+msgid "sorry_we_are_unable_to_load_that_page"
+msgstr ""
+"Désolé, nous ne pouvons pas charger cette page pour le moment, veuillez "
+"appuyer sur « Actualiser » pour réessayer. "
+
+msgid "refresh"
+msgstr "Rafraîchir"
+
+msgid "check_your_internet_connection"
+msgstr "Vérifiez votre connexion Internet "
+
+msgid "please_try"
+msgstr "Veuillez essayer "
+
+msgid "turning_off_airplane_mode"
+msgstr "Veuillez essayer "
+
+msgid "turning_on_mobile_data_or_wifi"
+msgstr "Activer les données mobiles ou le wifi "
+
+msgid "check_the_signal_in_your_area"
+msgstr "Vérifiez le signal dans votre région "
+
+msgid "got_it"
+msgstr "D’accord"
+
+msgid "fetching_configuration"
+msgstr "Chargement de la configuration "
+
+msgid "establish_connection_to_server"
+msgstr "Établir la connexion au serveur "
+
+msgid "file_size_limit_title"
+msgstr "Limite atteinte "
+
+msgid "file_size_limit_description"
+msgstr "Les tailles des pièces jointes doivent être inférieures à 100 Mo"
+
+msgid "lantern_pro_one_year"
+msgstr "Lantern Pro : abonnement d’un an"
+
+msgid "lantern_pro_two_year"
+msgstr "Lantern Pro : abonnement de 2 ans"
+
+msgid "lantern_pro_one_month"
+msgstr "Lantern Pro : abonnement d’un mois"
+
+msgid "non_renewing_subscription"
+msgstr "Abonnement non renouvelable"
+
+msgid "restore_purchase"
+msgstr "Rétablir l’achat"
+
+msgid "skip_for_now"
+msgstr "Ignorer pour l’instant"
+
+msgid "purchase_not_found"
+msgstr "Aucun achat n’a été trouvé avec l’adresse courriel indiquée"
+
+msgid "no_previous_purchase"
+msgstr "Aucun achat antérieur n’a été trouvé"
+
+msgid "warning_restore_purchase"
+msgstr ""
+"Afin de rétablir votre achat, saisissez l’adresse courriel que vous avez "
+"saisie lors de la commande."
+
+msgid "purchase_restored"
+msgstr "L’achat a été rétabli"
+
+msgid "purchase_restored_message"
+msgstr "Votre achat a été rétabli"
+
+msgid "purchase_restored_error"
+msgstr ""
+"Le rétablissement de l’achat n’a pas fonctionné. Vérifiez avoir saisi la "
+"bonne adresse courriel et le bon code."
+
+msgid "err_while_sending_code"
+msgstr "Une erreur est survenue lors de l’envoi du code. Réessayez"
+
+msgid "email_hint"
+msgstr "*L’adresse courriel est facultative, mais souhaitable"
+
+msgid "email_hint_pro"
+msgstr ""
+"Ajoutez une adresse courriel pour accéder à vos achats sur tous vos "
+"appareils. Sans adresse courriel, les achats sont liés à cet appareil et "
+"pourraient être perdus."
+
+msgid "continue_without_email"
+msgstr "Poursuivre sans adresse courriel"
+
+msgid "no_new_update"
+msgstr "Lantern est à jour."
+
+msgid "error_referral"
+msgstr ""
+"Une erreur est survenue lors de l’application de votre code de parrainage."
+
+msgid "proxy_error"
+msgstr "Le démarrage de Lantern présente un problème. Réessayez plus tard."
+
+msgid "proxy_settings"
+msgstr "Paramètres du mandataire"
+
+msgid "http_proxy"
+msgstr "Mandataire HTTPS"
+
+msgid "socks_proxy"
+msgstr "Mandataire SOCKS"
+
+msgid "http_proxy_copied"
+msgstr "Le mandataire HTTP a été copié"
+
+msgid "socks_proxy_copied"
+msgstr "Le mandataire SOCK a été copié"
+
+msgid "proxy_everything"
+msgstr "Tout relayer par le mandataire"
+
+msgid "errorSubmittingToGooglePlay"
+msgstr ""
+"Il nous est actuellement impossible de traiter votre demande pour Google "
+"Play. Réessayez plus tard."
+
+msgid "no_internet_connection"
+msgstr ""
+
+msgid "domain_fronting_error"
+msgstr ""
