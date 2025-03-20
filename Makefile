@@ -60,6 +60,7 @@ macos: $(DARWIN_LIB_NAME)
 
 $(DARWIN_LIB_NAME): $(GO_SOURCES)
 	make macos-arm64 macos-amd64
+	mkdir -p $(DARWIN_FRAMEWORK_DIR)
 	lipo -create $(DARWIN_LIB_ARM64) $(DARWIN_LIB_AMD64) -output $(DARWIN_LIB_NAME)
 	install_name_tool -id "@rpath/${DARWIN_LIB_NAME}" $(DARWIN_LIB_NAME)
 	cp $(BUILD_DIR)/macos-amd64/$(LANTERN_LIB_NAME)*.h $(DARWIN_FRAMEWORK_DIR)/
