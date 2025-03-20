@@ -223,6 +223,9 @@ msgstr "Add"
 msgid "automatic"
 msgstr "Automatic"
 
+msgid "manual"
+msgstr "Manual"
+
 msgid "enter_url_or_ip"
 msgstr "Enter URL or IP Address"
 
@@ -231,6 +234,9 @@ msgstr "Installed Apps"
 
 msgid "search_apps"
 msgstr "Search Apps"
+
+msgid "search_websites"
+msgstr "Search Websites"
 
 msgid "mode"
 msgstr "Mode"

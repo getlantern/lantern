@@ -8,6 +8,10 @@ import 'package:lantern/core/common/common.dart';
 final searchQueryProvider = StateProvider<String>((ref) => "");
 
 class AppSearchBar extends HookConsumerWidget {
+  final String hintText;
+
+  const AppSearchBar({super.key, required this.hintText});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final searchController = useTextEditingController();
@@ -17,7 +21,7 @@ class AppSearchBar extends HookConsumerWidget {
       onChanged: (value) => ref.read(searchQueryProvider.notifier).state =
           value, // Update search state
       decoration: InputDecoration(
-        hintText: 'search_apps'.i18n,
+        hintText: hintText,
         border: InputBorder.none,
         contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),

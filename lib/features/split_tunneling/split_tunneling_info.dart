@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/split_tunneling/split_tunneling_mode.dart';
 import 'package:lantern/core/widgets/divider_space.dart';
 
@@ -14,8 +15,7 @@ class SplitTunnelingInfo extends HookConsumerWidget {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: Text(SplitTunnelingMode.automatic.toString(),
-            style: TextStyle(color: Colors.black)),
+        title: Text('automatic'.i18n, style: TextStyle(color: Colors.black)),
         centerTitle: true,
         leading: IconButton(
           icon: Icon(Icons.close, color: Colors.black),
@@ -78,14 +78,6 @@ class SplitTunnelingInfo extends HookConsumerWidget {
                       "These include HTTPS-encrypted sites with public or non-sensitive content like shopping, weather, and software updates.",
                 ),
                 SizedBox(height: 16),
-
-                // Routing Rules
-                InfoText(
-                  text:
-                      "These rules vary by country and are updated regularly. View the full list of routing rules.",
-                ),
-                SizedBox(height: 20),
-
                 // Routing Rules
                 InfoText(
                   text:

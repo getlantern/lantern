@@ -19,9 +19,6 @@ class SplitTunnelingBottomSheet extends HookConsumerWidget {
     final preferences = ref.watch(appPreferencesProvider);
     final splitTunnelingMode = preferences[AppPreferences.splitTunnelingMode] ??
         SplitTunnelingMode.automatic;
-    void _selectMode(SplitTunnelingMode mode) {
-      Navigator.pop(context); // Close bottom sheet on selection
-    }
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
@@ -56,6 +53,7 @@ class SplitTunnelingBottomSheet extends HookConsumerWidget {
                   ),
                 ),
                 value: mode,
+                activeColor: AppColors.gray9,
                 selected: splitTunnelingMode == mode,
                 groupValue: selectedMode,
                 onChanged: (SplitTunnelingMode? newValue) {

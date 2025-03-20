@@ -31,8 +31,10 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
       title: 'website_split_tunneling'.i18n,
       appBar: CustomAppBar(
         title: searchEnabled.value
-            ? AppSearchBar()
-            : 'website_split_tunneling'.i18n,
+            ? AppSearchBar(
+                hintText: 'search_websites'.i18n,
+              )
+            : 'apps_split_tunneling'.i18n,
         actionsPadding: EdgeInsets.only(right: 24.0),
         actions: [
           AppIconButton(
@@ -99,6 +101,8 @@ class _WebsiteRow extends StatelessWidget {
 }
 
 class SearchSection extends HookConsumerWidget {
+  const SearchSection({super.key});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final textController = useTextEditingController();
@@ -153,14 +157,14 @@ class SearchSection extends HookConsumerWidget {
           inputText = "https://$inputText";
         }
 
-        Uri uri = Uri.parse(inputText);
+        final uri = Uri.parse(inputText);
 
         // Check if it's a valid URL
         if (uri.host.isEmpty) {
           throw FormatException("Invalid URL format");
         }
 
-        String domain = extractDomain(uri);
+        final domain = extractDomain(uri);
 
         if (!isValidDomainOrIP(domain)) {
           throw FormatException("Invalid domain");
@@ -177,7 +181,6 @@ class SearchSection extends HookConsumerWidget {
         ref
             .read(splitTunnelingWebsitesProvider.notifier)
             .toggleWebsite(website);
-        print("Extracted domain: $domain");
       } catch (e) {
         showSnackbar(
             context, "Invalid URL: Please enter a valid domain or URL.");

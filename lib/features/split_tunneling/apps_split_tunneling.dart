@@ -58,8 +58,11 @@ class AppsSplitTunneling extends HookConsumerWidget {
     return BaseScreen(
       title: 'apps_split_tunneling'.i18n,
       appBar: CustomAppBar(
-        title:
-            searchEnabled.value ? AppSearchBar() : 'apps_split_tunneling'.i18n,
+        title: searchEnabled.value
+            ? AppSearchBar(
+                hintText: 'search_apps'.i18n,
+              )
+            : 'apps_split_tunneling'.i18n,
         actionsPadding: EdgeInsets.only(right: 24.0),
         actions: [
           AppIconButton(
@@ -76,7 +79,7 @@ class AppsSplitTunneling extends HookConsumerWidget {
           SliverList.list(
             children: enabledApps
                 .map((app) => _AppRow(
-                      app: app,
+                      app: app.copyWith(isEnabled: true),
                       onToggle: () => ref
                           .read(splitTunnelingAppsProvider.notifier)
                           .toggleApp(app),
