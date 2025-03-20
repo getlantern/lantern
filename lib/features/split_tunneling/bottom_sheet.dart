@@ -9,10 +9,10 @@ class SplitTunnelingBottomSheet extends HookConsumerWidget {
   final Function(SplitTunnelingMode) onModeSelected;
 
   const SplitTunnelingBottomSheet({
-    Key? key,
+    super.key,
     required this.selectedMode,
     required this.onModeSelected,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

@@ -23,23 +23,6 @@ class SplitTunneling extends HookConsumerWidget {
         SplitTunnelingMode.automatic;
     final enabledWebsites = ref.watch(splitTunnelingWebsitesProvider).toList();
 
-    void _showBottomSheet() {
-      showModalBottomSheet(
-        context: context,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-        ),
-        builder: (context) {
-          return SplitTunnelingBottomSheet(
-            selectedMode: splitTunnelingMode,
-            onModeSelected: (mode) => ref
-                .read(appPreferencesProvider.notifier)
-                .setPreference(AppPreferences.splitTunnelingMode, mode),
-          );
-        },
-      );
-    }
-
     return BaseScreen(
       title: 'split_tunneling'.i18n,
       body: Column(
@@ -77,7 +60,6 @@ class SplitTunneling extends HookConsumerWidget {
             ),
           SizedBox(height: defaultSize),
           InfoRow(
-            //onPressed: () => _showBottomSheet(),
             onPressed: () => appRouter.push(SplitTunnelingInfo()),
             text: 'when_connected'.i18n,
           ),

@@ -8,11 +8,13 @@ package main
 import "C"
 
 import (
+	"encoding/json"
 	"fmt"
 	"sync"
 	"unsafe"
 
 	"github.com/getlantern/golog"
+	"github.com/getlantern/lantern-outline/lantern-core/apps"
 	"github.com/getlantern/lantern-outline/lantern-core/dart_api_dl"
 	"github.com/getlantern/radiance"
 )
@@ -43,7 +45,14 @@ func setup(dir *C.char, logPort, appsPort C.int64_t, api unsafe.Pointer) {
 		servicesMap["apps"] = int64(appsPort)
 	})
 
-	go sendAppData()
+	go apps.LoadInstalledApps(func(appData *apps.AppData) error {
+		data, err := json.Marshal(appData)
+		if err != nil {
+			return err
+		}
+		dart_api_dl.SendToPort(int64(appsPort), string(data))
+		return nil
+	})
 }
 
 func servicePort(name string) (int64, error) {

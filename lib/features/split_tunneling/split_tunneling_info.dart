@@ -1,20 +1,21 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:lantern/core/common/app_text_styles.dart';
-import 'package:lantern/core/widgets/custom_app_bar.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/split_tunneling/split_tunneling_mode.dart';
 import 'package:lantern/core/widgets/divider_space.dart';
 
 @RoutePage(name: 'SplitTunnelingInfo')
-class SplitTunnelingInfo extends StatelessWidget {
+class SplitTunnelingInfo extends HookConsumerWidget {
   const SplitTunnelingInfo({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white, // Match the card background
-        elevation: 0, // Remove shadow
-        title: Text("Automatic Mode", style: TextStyle(color: Colors.black)),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: Text(SplitTunnelingMode.automatic.toString(),
+            style: TextStyle(color: Colors.black)),
         centerTitle: true,
         leading: IconButton(
           icon: Icon(Icons.close, color: Colors.black),
@@ -23,10 +24,9 @@ class SplitTunnelingInfo extends StatelessWidget {
       ),
       body: Card(
         borderOnForeground: false,
-        color: Colors.white, // Semi-transparent background
+        color: Colors.white,
         child: Container(
-          width:
-              MediaQuery.of(context).size.width * 0.96, // 90% of screen width
+          width: MediaQuery.of(context).size.width,
           padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           decoration: BoxDecoration(
             color: Colors.white,
@@ -48,32 +48,49 @@ class SplitTunnelingInfo extends StatelessWidget {
                 DividerSpace(),
 
                 // Region-Specific Rules Section
-                _sectionTitle("🌍 Region-Specific Rules"),
-                Text(
-                  "Lantern uses different routing rules depending on your location:",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
+                SectionTitle(text: "🌍 Region-Specific Rules"),
+                InfoText(
+                  text:
+                      "Lantern uses different routing rules depending on your location:",
                 ),
                 DividerSpace(),
 
                 // Censored Regions
-                _subsectionTitle("🔒 In censored regions:"),
-                _infoText(
-                    "Blocked websites and apps (news, messaging, restricted services) are proxied."),
-                _infoText(
-                    "Most unblocked websites bypass the VPN for faster browsing."),
+                SubsectionTitle(text: "🔒 In censored regions:"),
+                InfoText(
+                  text:
+                      "Blocked websites and apps (news, messaging, restricted services) are proxied.",
+                ),
+                InfoText(
+                  text:
+                      "Most unblocked websites bypass the VPN for faster browsing.",
+                ),
                 DividerSpace(),
 
                 // Uncensored Regions
-                _subsectionTitle("✅ In uncensored regions:"),
-                _infoText(
-                    "Only trusted websites and services bypass the VPN by default."),
-                _infoText(
-                    "These include HTTPS-encrypted sites with public or non-sensitive content like shopping, weather, and software updates."),
+                SubsectionTitle(text: "✅ In uncensored regions:"),
+                InfoText(
+                  text:
+                      "Only trusted websites and services bypass the VPN by default.",
+                ),
+                InfoText(
+                  text:
+                      "These include HTTPS-encrypted sites with public or non-sensitive content like shopping, weather, and software updates.",
+                ),
                 SizedBox(height: 16),
 
                 // Routing Rules
-                _infoText(
-                    "These rules vary by country and are updated regularly. View the full list of routing rules."),
+                InfoText(
+                  text:
+                      "These rules vary by country and are updated regularly. View the full list of routing rules.",
+                ),
+                SizedBox(height: 20),
+
+                // Routing Rules
+                InfoText(
+                  text:
+                      "These rules vary by country and are updated regularly. View the full list of routing rules.",
+                ),
                 SizedBox(height: 20),
               ],
             ),
@@ -82,9 +99,14 @@ class SplitTunnelingInfo extends StatelessWidget {
       ),
     );
   }
+}
 
-  // Section Title
-  Widget _sectionTitle(String text) {
+class SectionTitle extends StatelessWidget {
+  final String text;
+  const SectionTitle({Key? key, required this.text}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
       child: Text(
@@ -93,9 +115,14 @@ class SplitTunnelingInfo extends StatelessWidget {
       ),
     );
   }
+}
 
-  // Subsection Title
-  Widget _subsectionTitle(String text) {
+class SubsectionTitle extends StatelessWidget {
+  final String text;
+  const SubsectionTitle({Key? key, required this.text}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(top: 8.0, bottom: 4.0),
       child: Text(
@@ -104,9 +131,14 @@ class SplitTunnelingInfo extends StatelessWidget {
       ),
     );
   }
+}
 
-  // Regular Info Text
-  Widget _infoText(String text) {
+class InfoText extends StatelessWidget {
+  final String text;
+  const InfoText({Key? key, required this.text}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4.0),
       child: Row(
@@ -120,33 +152,6 @@ class SplitTunnelingInfo extends StatelessWidget {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  // Settings Item
-  Widget _settingsItem(IconData icon, String text,
-      {String? trailingText, bool isBold = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          Icon(icon, size: 20),
-          SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              text,
-              style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: isBold ? FontWeight.w600 : FontWeight.w400),
-            ),
-          ),
-          if (trailingText != null)
-            Text(
-              trailingText,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
         ],
       ),
     );
