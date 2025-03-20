@@ -74,7 +74,7 @@ SPEC CHECKSUMS:
   app_links: f3e17e4ee5e357b39d8b95290a9b2c299fca71c6
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   integration_test: 252f60fa39af5e17c3aa9899d35d908a0721b573
-  Liblantern: 0e7ec8975652424163b72769baa37aba7fb02deb
+  Liblantern: 1869e6e1aefb9417cd0596b3c33b210e05ab2e80
   ObjectBox: bf3d4b51075d52868422d5d1f2f2141b1d630d30
   objectbox_flutter_libs: 2f30755c12b0fe104d75445c3ba879e3072eda54
   package_info_plus: c0502532a26c7662a62a356cebe2692ec5fe4ec4
