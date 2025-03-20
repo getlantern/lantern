@@ -67,6 +67,10 @@ class AppRouter extends RootStackRouter {
       page: SplitTunneling.page,
     ),
     AutoRoute(
+      path: '/split-tunneling-info',
+      page: SplitTunnelingInfo.page,
+    ),
+    AutoRoute(
       path: '/apps-split-tunneling',
       page: AppsSplitTunneling.page,
     ),

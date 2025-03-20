@@ -1,8 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lantern/core/split_tunneling/split_tunneling_mode.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppPreferences {
   static const String splitTunnelingEnabled = "split_tunneling_enabled";
+  static const String splitTunnelingMode = "split_tunneling_mode";
   static const String enabledApps = "enabled_apps";
 }
 
@@ -31,6 +33,8 @@ class AppPreferencesNotifier extends StateNotifier<Map<String, dynamic>> {
       await prefs.setDouble(key, value);
     } else if (value is String) {
       await prefs.setString(key, value);
+    } else if (value is SplitTunnelingMode) {
+      await prefs.setString(key, value.displayName);
     }
   }
 }

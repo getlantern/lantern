@@ -13,14 +13,16 @@ import (
 	"unsafe"
 
 	"github.com/getlantern/golog"
+	"github.com/getlantern/lantern-outline/lantern-core/dart_api_dl"
 	"github.com/getlantern/radiance"
 )
 
 var (
-	baseDir  string
-	logPort  int64
-	server   *radiance.Radiance
-	serverMu sync.Mutex
+	baseDir string
+
+	servicesMap = map[string]int64{}
+	server      *radiance.Radiance
+	serverMu    sync.Mutex
 
 	setupOnce sync.Once
 
@@ -28,12 +30,31 @@ var (
 )
 
 //export setup
-func setup(dir *C.char, port C.int64_t, api unsafe.Pointer) {
+func setup(dir *C.char, logPort, appsPort C.int64_t, api unsafe.Pointer) {
 	serverMu.Lock()
 	defer serverMu.Unlock()
 
-	baseDir = C.GoString(dir)
-	logPort = int64(port)
+	setupOnce.Do(func() {
+		// initialize the Dart API DL bridge.
+		dart_api_dl.Init(api)
+
+		baseDir = C.GoString(dir)
+		servicesMap["logs"] = int64(logPort)
+		servicesMap["apps"] = int64(appsPort)
+	})
+
+	go sendAppData()
+}
+
+func servicePort(name string) (int64, error) {
+	serverMu.Lock()
+	defer serverMu.Unlock()
+
+	if port, ok := servicesMap[name]; ok {
+		return port, nil
+	}
+
+	return 0, fmt.Errorf("service %s not found", name)
 }
 
 // startVPN initializes and starts the VPN server if it is not already running.

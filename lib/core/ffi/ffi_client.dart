@@ -1,9 +1,11 @@
 // lib/core/ffi/ffi_client.dart
 
+import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io' show Platform;
 import 'dart:isolate';
 import 'package:ffi/ffi.dart';
+import 'package:lantern/core/split_tunneling/app_data.dart';
 
 typedef StartVPNNative = Pointer<Utf8> Function();
 typedef StartVPN = Pointer<Utf8> Function();
@@ -11,8 +13,8 @@ typedef StartVPN = Pointer<Utf8> Function();
 typedef StopVPNNative = Pointer<Utf8> Function();
 typedef StopVPN = Pointer<Utf8> Function();
 
-typedef SetupNative = Void Function(Pointer<Utf8>, Int64, Pointer<Void>);
-typedef Setup = void Function(Pointer<Utf8>, int, Pointer<Void>);
+typedef SetupNative = Void Function(Pointer<Utf8>, Int64, Int64, Pointer<Void>);
+typedef Setup = void Function(Pointer<Utf8>, int, int, Pointer<Void>);
 
 typedef IsVPNConnectedNative = Int32 Function();
 typedef IsVPNConnectedDart = int Function();
@@ -31,7 +33,8 @@ class FFIClient {
   late Setup _setup;
   late FreeCString _freeCString;
 
-  final receivePort = ReceivePort();
+  final loggingReceivePort = ReceivePort();
+  final appsReceivePort = ReceivePort();
 
   factory FFIClient(String dir) {
     return FFIClient._internal(dir);
@@ -65,16 +68,25 @@ class FFIClient {
 
     // configure logging
     final baseDirPtr = dir.toNativeUtf8();
-    _setup(baseDirPtr, receivePort.sendPort.nativePort,
-        NativeApi.initializeApiDLData);
+    _setup(baseDirPtr, loggingReceivePort.sendPort.nativePort,
+        appsReceivePort.sendPort.nativePort, NativeApi.initializeApiDLData);
     malloc.free(baseDirPtr);
   }
 
   Stream<String> logStream() async* {
     // Listen to messages sent by Go via Dart_PostCObject.
-    await for (final message in receivePort) {
+    await for (final message in loggingReceivePort) {
       if (message is String) {
         yield message;
+      }
+    }
+  }
+
+  Stream<AppData> appsDataStream() async* {
+    await for (final message in appsReceivePort) {
+      if (message is String) {
+        AppData app = AppData.fromJson(jsonDecode(message));
+        yield app;
       }
     }
   }

@@ -2,17 +2,122 @@
 
 OUT_DIR := bin
 
-LIB_NAME := liblantern
-FFI_DIR := ./lantern-core/ffi
+APP ?= lantern
+CAPITALIZED_APP := Lantern
+LANTERN_LIB_NAME := liblantern
+LANTERN_CORE := lantern-core
+FFI_DIR := $(LANTERN_CORE)/ffi
+EXTRA_LDFLAGS ?=
+BUILD_TAGS ?=
 
-# Build for macOS
-macos: export CGO_CFLAGS="-I./dart_api_dl/include"
-macos:
-	go build -o bin/liblantern.dylib -buildmode=c-shared ./lantern-core/ffi
-	mkdir -p build/macos/Build/Products/Debug/Lantern.app/Contents/MacOS
-	cp bin/liblantern.dylib build/macos/Build/Products/Debug/Lantern.app/Contents/MacOS
+DARWIN_APP_NAME ?= $(CAPITALIZED_APP).app
+DARWIN_FRAMEWORK_DIR ?= macos/Frameworks
+DARWIN_LIB_NAME ?= $(DARWIN_FRAMEWORK_DIR)/$(LANTERN_LIB_NAME).dylib
+DARWIN_LIB_AMD64 ?= $(OUT_DIR)/macos-amd64/$(LANTERN_LIB_NAME).dylib
+DARWIN_LIB_ARM64 ?= $(OUT_DIR)/macos-arm64/$(LANTERN_LIB_NAME).dylib
 
-# Build for iOS
+LINUX_LIB_NAME ?= $(OUT_DIR)/$(LANTERN_LIB_NAME).so
+LINUX_LIB_AMD64 ?= $(OUT_DIR)/linux-amd64/$(LANTERN_LIB_NAME).so
+LINUX_LIB_ARM64 ?= $(OUT_DIR)/linux-arm64/$(LANTERN_LIB_NAME).so
+
+WINDOWS_LIB_NAME := $(OUT_DIR)/$(LANTERN_LIB_NAME).dll
+WINDOWS_LIB_AMD64 := $(OUT_DIR)/windows-amd64/$(LANTERN_LIB_NAME).dll
+WINDOWS_LIB_ARM64 := $(OUT_DIR)/windows-arm64/$(LANTERN_LIB_NAME).dll
+
+gen:
+	dart run build_runner build --delete-conflicting-outputs
+
+pubget:
+	flutter pub get
+
+lantern-lib: export CGO_CFLAGS="-I./dart_api_dl/include"
+lantern-lib:
+	CGO_ENABLED=1 go build -v -trimpath -buildmode=c-shared -tags="$(BUILD_TAGS)" -ldflags="-w -s $(EXTRA_LDFLAGS)" -o $(LIB_NAME) ./$(FFI_DIR)
+
+# macOS Build
+.PHONY: macos-arm64
+macos-arm64: $(DARWIN_LIB_ARM64)
+
+$(DARWIN_LIB_ARM64):
+	GOARCH=arm64 LIB_NAME=$@ make lantern-lib
+
+.PHONY: macos-amd64
+macos-amd64: $(DARWIN_LIB_AMD64)
+
+$(DARWIN_LIB_AMD64):
+	GOARCH=amd64 LIB_NAME=$@ make lantern-lib
+
+.PHONY: macos
+macos: $(DARWIN_LIB_NAME)
+
+$(DARWIN_LIB_NAME):
+	mkdir -p $(DARWIN_FRAMEWORK_DIR)
+	make macos-arm64 macos-amd64
+	lipo -create $(DARWIN_LIB_ARM64) $(DARWIN_LIB_AMD64) -output $@
+	install_name_tool -id "@rpath/${DARWIN_LIB_NAME}" $@
+	cp $(OUT_DIR)/macos-amd64/$(LANTERN_LIB_NAME)*.h $(DARWIN_FRAMEWORK_DIR)/
+
+.PHONY: macos-debug
+macos-debug:
+	@echo "Building Flutter app (debug) for macOS..."
+	flutter build macos --debug
+
+.PHONY: macos-release
+macos-release: clean macos pubget gen
+	@echo "Building Flutter app (release) for macOS..."
+	flutter build macos --release
+
+# Linux Build
+.PHONY: linux-arm64
+linux-arm64: $(LINUX_LIB_ARM64)
+
+$(LINUX_LIB_ARM64):
+	CC=aarch64-linux-gnu-gcc GOARCH=arm64 LIB_NAME=$@ make lantern-lib
+
+.PHONY: linux-amd64
+linux-amd64: $(LINUX_LIB_AMD64)
+
+$(LINUX_LIB_AMD64):
+	CC=x86_64-linux-gnu-gcc GOARCH=amd64 LIB_NAME=$@ make lantern-lib
+
+.PHONY: linux
+linux: linux-amd64
+	cp $(LINUX_LIB_AMD64) $(LINUX_LIB_NAME)
+
+.PHONY: linux-debug
+linux-debug: clean linux pubget gen
+	@echo "Building Flutter app (debug) for Linux..."
+	flutter build linux --debug
+
+.PHONY: linux-release
+linux-release: clean linux pubget gen
+	@echo "Building Flutter app (release) for Linux..."
+	flutter build linux --release
+
+# Windows Build
+.PHONY: windows-amd64
+windows-amd64: export BUILD_TAGS += walk_use_cgo
+windows-amd64: export CGO_LDFLAGS = -static
+windows-amd64: $(WINDOWS_LIB_AMD64)
+
+$(WINDOWS_LIB_AMD64):
+	GOOS=windows GOARCH=amd64 LIB_NAME=$@ make lantern-lib
+
+.PHONY: windows-arm64
+windows-arm64: export BUILD_TAGS += walk_use_cgo
+windows-arm64: export CGO_LDFLAGS = -static
+windows-arm64: $(WINDOWS_LIB_ARM64)
+
+$(WINDOWS_LIB_ARM64):
+	GOOS=windows GOARCH=arm64 LIB_NAME=$@ make lantern-lib
+
+.PHONY: windows
+windows: windows-amd64
+
+$(WINDOWS_LIB_NAME):
+	GOARCH=amd64 LIB_NAME=$@ make lantern-lib
+
+# iOS Build
 build-ios-device:
 	GOOS=ios GOARCH=arm64 SDK=iphoneos LIB_NAME=$(LIB_NAME) $(PWD)/build-ios.sh
 
@@ -55,13 +160,10 @@ update-dart-api-dl:
 	rm -rf dart_sdk_tmp
 	@echo "Dart API DL bridge updated successfully!"
 
-#Routes generation
-gen:
-	dart run build_runner build --delete-conflicting-outputs
-
-
 find-duplicate-translations:
 	grep -oE 'msgid\s+"[^"]+"' assets/locales/en.po | sort | uniq -d
 
 clean:
+	#flutter clean
 	rm -rf $(OUT_DIR)/*
+	rm -rf $(DARWIN_FRAMEWORK_DIR)/*

@@ -74,30 +74,26 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
 
 class _WebsiteRow extends StatelessWidget {
   final Website website;
-  final VoidCallback? onToggle;
+  final VoidCallback onToggle;
 
   const _WebsiteRow({
     required this.website,
-    this.onToggle,
+    required this.onToggle,
   });
 
   @override
   Widget build(BuildContext context) {
     return AppTile(
       label: website.domain,
-      trailing: onToggle != null
-          ? Padding(
-              padding: const EdgeInsets.only(right: 16),
-              child: IconButton(
-                icon: AppImage(
-                  path: website.isEnabled
-                      ? AppImagePaths.minus
-                      : AppImagePaths.plus,
-                ),
-                onPressed: () => onToggle!(),
-              ),
-            )
-          : null,
+      trailing: Padding(
+        padding: const EdgeInsets.only(right: 16),
+        child: IconButton(
+          icon: AppImage(
+            path: website.isEnabled ? AppImagePaths.minus : AppImagePaths.plus,
+          ),
+          onPressed: onToggle,
+        ),
+      ),
     );
   }
 }
@@ -114,7 +110,24 @@ class SearchSection extends HookConsumerWidget {
           .showSnackBar(SnackBar(content: Text(message)));
     }
 
-    // extracts the domain from a given URL
+    bool isValidDomain(String input) {
+      final domainPattern =
+          r'^(?!-)[A-Za-z0-9-]{1,63}(?<!-)\.[A-Za-z]{2,6}$'; // Matches google.com
+      final regExp = RegExp(domainPattern);
+      return regExp.hasMatch(input);
+    }
+
+    bool isValidIPv4(String input) {
+      final ipv4Pattern = r'^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$';
+      final regExp = RegExp(ipv4Pattern);
+      return regExp.hasMatch(input) &&
+          input.split('.').every((segment) => int.parse(segment) <= 255);
+    }
+
+    bool isValidDomainOrIP(String input) {
+      return isValidIPv4(input) || isValidDomain(input);
+    }
+
     String extractDomain(Uri uri) {
       final hostParts = uri.host.split('.');
       if (hostParts.length > 2) {
@@ -148,6 +161,11 @@ class SearchSection extends HookConsumerWidget {
         }
 
         String domain = extractDomain(uri);
+
+        if (!isValidDomainOrIP(domain)) {
+          throw FormatException("Invalid domain");
+        }
+
         final website = Website(domain: domain, isEnabled: true);
         print("Extracted domain: $domain");
 

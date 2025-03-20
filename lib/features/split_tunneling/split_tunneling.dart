@@ -5,8 +5,10 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/preferences/preferences.dart';
+import 'package:lantern/core/split_tunneling/split_tunneling_mode.dart';
 import 'package:lantern/core/split_tunneling/split_tunneling_notifier.dart';
 import 'package:lantern/core/widgets/info_row.dart';
+import 'package:lantern/features/split_tunneling/bottom_sheet.dart';
 
 @RoutePage(name: 'SplitTunneling')
 class SplitTunneling extends HookConsumerWidget {
@@ -17,8 +19,27 @@ class SplitTunneling extends HookConsumerWidget {
     final preferences = ref.watch(appPreferencesProvider);
     final splitTunnelingEnabled =
         preferences[AppPreferences.splitTunnelingEnabled] ?? false;
-
+    final splitTunnelingMode = preferences[AppPreferences.splitTunnelingMode] ??
+        SplitTunnelingMode.automatic;
     final enabledWebsites = ref.watch(splitTunnelingWebsitesProvider).toList();
+
+    void _showBottomSheet() {
+      showModalBottomSheet(
+        context: context,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        builder: (context) {
+          return SplitTunnelingBottomSheet(
+            selectedMode: splitTunnelingMode,
+            onModeSelected: (mode) => ref
+                .read(appPreferencesProvider.notifier)
+                .setPreference(AppPreferences.splitTunnelingMode, mode),
+          );
+        },
+      );
+    }
+
     return BaseScreen(
       title: 'split_tunneling'.i18n,
       body: Column(
@@ -45,15 +66,21 @@ class SplitTunneling extends HookConsumerWidget {
           if (splitTunnelingEnabled)
             SplitTunnelingTile(
               label: 'mode'.i18n,
-              subtitle: Text(
-                'iran_optimized'.i18n,
-                style: AppTestStyles.labelSmall,
-              ),
-              actionText: 'automatic'.i18n,
+              // subtitle: Text(
+              //   'iran_optimized'.i18n,
+              //   style: AppTestStyles.labelSmall,
+              // ),
+              actionText: splitTunnelingMode == SplitTunnelingMode.automatic
+                  ? 'automatic'.i18n
+                  : 'manual'.i18n,
               onPressed: () => appRouter.push(AppsSplitTunneling()),
             ),
           SizedBox(height: defaultSize),
-          InfoRow(text: 'when_connected'.i18n),
+          InfoRow(
+            //onPressed: () => _showBottomSheet(),
+            onPressed: () => appRouter.push(SplitTunnelingInfo()),
+            text: 'when_connected'.i18n,
+          ),
           SizedBox(height: defaultSize),
           SplitTunnelingTile(
             label: 'Websites',

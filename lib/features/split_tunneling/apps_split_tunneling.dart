@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/providers/apps_data_provider.dart';
 import 'package:lantern/core/split_tunneling/app_data.dart';
 import 'package:lantern/core/split_tunneling/split_tunneling_notifier.dart';
 import 'package:lantern/core/widgets/search_bar.dart';
@@ -12,17 +15,20 @@ import 'package:lantern/features/split_tunneling/section_label.dart';
 final List<AppData> _mockApps = [
   AppData(
       name: "Apple Music",
-      package: "com.apple.music",
+      bundleId: "com.apple.music",
+      appPath: "",
       iconPath: AppImagePaths.appleMusicIcon,
       isEnabled: false),
   AppData(
       name: "Google Chat",
-      package: "com.google.chat",
+      bundleId: "com.google.chat",
+      appPath: "",
       iconPath: AppImagePaths.googleChatIcon,
       isEnabled: true),
   AppData(
       name: "Instagram",
-      package: "com.example.instagram",
+      bundleId: "com.example.instagram",
+      appPath: "",
       iconPath: AppImagePaths.instagramIcon,
       isEnabled: true),
 ];
@@ -37,18 +43,18 @@ class AppsSplitTunneling extends HookConsumerWidget {
     final searchEnabled = useState(false);
     final searchQuery = ref.watch(searchQueryProvider);
 
-    // Separate enabled and disabled apps
+    final installedApps =
+        ref.watch(appsDataProvider).where((a) => a.iconPath.isNotEmpty);
     final enabledApps = ref.watch(splitTunnelingAppsProvider);
-    final disabledApps = _mockApps
+    // Separate enabled and disabled apps
+    final disabledApps = installedApps
         .where(
             (app) => app.name.toLowerCase().contains(searchQuery.toLowerCase()))
-        .where((app) => !enabledApps.any((e) => e.package == app.package))
-        .toList();
-    final installedApps = disabledApps.map((app) {
-      final isEnabled =
-          enabledApps.any((enabledApp) => enabledApp.package == app.package);
-      return app.copyWith(isEnabled: isEnabled);
-    }).toList();
+        .where((app) => !enabledApps.any((e) => e.name == app.name))
+        .toSet();
+
+    print("enabledApps: $enabledApps");
+
     return BaseScreen(
       title: 'apps_split_tunneling'.i18n,
       appBar: CustomAppBar(
@@ -62,34 +68,36 @@ class AppsSplitTunneling extends HookConsumerWidget {
           ),
         ],
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          SizedBox(height: defaultSize),
-          // Enabled Apps Section
-          if (enabledApps.isNotEmpty) ...[
-            SectionLabel(
-              'apps_bypassing_vpn'.i18n.fill([enabledApps.length]),
-            ),
-            ...enabledApps.map((app) => _AppRow(
-                  app: app,
-                  onToggle: () => ref
-                      .read(splitTunnelingAppsProvider.notifier)
-                      .toggleApp(app),
-                )),
-            SizedBox(height: defaultSize),
-          ],
-          SectionLabel('installed_apps'.i18n),
-          ...installedApps.map(
-            (app) => _AppRow(
-              app: app,
-              onToggle: () =>
-                  ref.read(splitTunnelingAppsProvider.notifier).toggleApp(app),
-            ),
+      body: CustomScrollView(slivers: [
+        if (enabledApps.isNotEmpty) ...[
+          SliverToBoxAdapter(
+              child: SectionLabel(
+                  'apps_bypassing_vpn'.i18n.fill([enabledApps.length]))),
+          SliverList.list(
+            children: enabledApps
+                .map((app) => _AppRow(
+                      app: app,
+                      onToggle: () => ref
+                          .read(splitTunnelingAppsProvider.notifier)
+                          .toggleApp(app),
+                    ))
+                .toList(),
           ),
-          SizedBox(height: defaultSize),
         ],
-      ),
+        if (disabledApps.isNotEmpty) ...[
+          SliverToBoxAdapter(child: SectionLabel('installed_apps'.i18n)),
+          SliverList.list(
+            children: disabledApps
+                .map((app) => _AppRow(
+                      app: app,
+                      onToggle: () => ref
+                          .read(splitTunnelingAppsProvider.notifier)
+                          .toggleApp(app),
+                    ))
+                .toList(),
+          ),
+        ],
+      ]),
     );
   }
 }
@@ -108,7 +116,9 @@ class _AppRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppTile(
       label: app.name,
-      icon: app.iconPath,
+      icon: app.iconPath.isNotEmpty
+          ? Image.file(File(app.iconPath), width: 24, height: 24)
+          : Icon(Icons.apps),
       trailing: onToggle != null
           ? Padding(
               padding: const EdgeInsets.only(right: 16),

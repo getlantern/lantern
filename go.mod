@@ -146,6 +146,7 @@ require (
 )
 
 require (
+	github.com/progrium/darwinkit v0.5.0 // indirect
 	github.com/shadowsocks/go-shadowsocks2 v0.1.5 // indirect
 	golang.org/x/crypto v0.36.0 // indirect
 	golang.org/x/sys v0.31.0 // indirect

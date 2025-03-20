@@ -56,7 +56,10 @@ class Logs extends HookConsumerWidget {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          InfoRow(text: 'cannot_view_logs'.i18n),
+          InfoRow(
+            text: 'cannot_view_logs'.i18n,
+            onPressed: () => {},
+          ),
           Expanded(
             child: Container(
               decoration: ShapeDecoration(
