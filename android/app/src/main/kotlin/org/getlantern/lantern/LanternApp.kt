@@ -8,6 +8,7 @@ import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
 import android.os.PowerManager
 import androidx.core.content.getSystemService
+import go.Seq
 
 class LanternApp : Application() {
 

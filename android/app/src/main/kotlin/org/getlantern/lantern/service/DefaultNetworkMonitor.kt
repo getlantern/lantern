@@ -2,14 +2,13 @@ package org.getlantern.lantern.service
 
 import android.net.Network
 import android.os.Build
-import io.nekohasekai.libbox.InterfaceUpdateListener
-import io.nekohasekai.sfa.Application
-import io.nekohasekai.sfa.bg.DefaultNetworkListener
-import io.nekohasekai.sfa.constant.Bugs
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import lantern.io.libbox.InterfaceUpdateListener
+import org.getlantern.lantern.LanternApp
+import org.getlantern.lantern.utils.Bugs
 import java.net.NetworkInterface
 
 object DefaultNetworkMonitor {
@@ -23,7 +22,7 @@ object DefaultNetworkMonitor {
             checkDefaultInterfaceUpdate(it)
         }
         defaultNetwork = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            Application.connectivity.activeNetwork
+            LanternApp.connectivity.activeNetwork
         } else {
             DefaultNetworkListener.get()
         }
@@ -52,7 +51,7 @@ object DefaultNetworkMonitor {
         val listener = listener ?: return
         if (newNetwork != null) {
             val interfaceName =
-                (Application.connectivity.getLinkProperties(newNetwork) ?: return).interfaceName
+                (LanternApp.connectivity.getLinkProperties(newNetwork) ?: return).interfaceName
             for (times in 0 until 10) {
                 var interfaceIndex: Int
                 try {

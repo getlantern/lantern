@@ -7,7 +7,7 @@ ANDROID_LIB_PATH := android/app/libs/$(LIB_NAME).aar
 ANDROID_LIB := $(LIB_NAME).aar
 TAGS=with_gvisor,with_quic,with_wireguard,with_ech,with_utls,with_clash_api,with_grpc
 FFI_DIR := ./lantern-core/ffi
-RADIANCE_DIR := ../radiance/client/service
+RADIANCE_REPO := github.com/getlantern/radiance
 
 
 # Missing and Guards
@@ -75,7 +75,7 @@ build-android:check-gomobile
 		-tags=$(TAGS) -trimpath \
 		-o=$(OUT_DIR)/$(ANDROID_LIB) \
 		-ldflags="-checklinkname=0" \
-		 github.com/sagernet/sing-box/experimental/libbox $(RADIANCE_DIR) ./lantern-core/mobile
+		 $(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox ./lantern-core/mobile
 	cp $(OUT_DIR)/$(ANDROID_LIB) $(ANDROID_LIB_PATH)
 	@echo "Android libraries built successfully"
 
