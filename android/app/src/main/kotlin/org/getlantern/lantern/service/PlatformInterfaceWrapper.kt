@@ -27,13 +27,6 @@ interface PlatformInterfaceWrapper : PlatformInterface {
         return true
     }
 
-    override fun autoDetectInterfaceControl(fd: Int) {
-    }
-
-    override fun openTun(options: TunOptions): Int {
-        error("invalid argument")
-    }
-
     override fun useProcFS(): Boolean {
         return Build.VERSION.SDK_INT < Build.VERSION_CODES.Q
     }

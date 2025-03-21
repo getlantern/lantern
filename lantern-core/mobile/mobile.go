@@ -28,6 +28,14 @@ func SetupRadiance(platform libbox.PlatformInterface) {
 	log.Debug("Radiance setup successfully")
 }
 
+func StartVPN() {
+	radianceServer.StartVPN()
+}
+
+func StopVPN() {
+	radianceServer.StopVPN()
+}
+
 func GetAvailableServers() {
 	radianceServer.GetAvailableServers(context.Background())
 }

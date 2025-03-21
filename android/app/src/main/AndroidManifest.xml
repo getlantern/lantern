@@ -42,6 +42,15 @@
             android:name=".service.LanternService"
             android:exported="false" />
 
+        <service
+            android:name=".service.LanternVpnService"
+            android:exported="false"
+            android:permission="android.permission.BIND_VPN_SERVICE">
+            <intent-filter>
+                <action android:name="android.net.VpnService" />
+            </intent-filter>
+        </service>
+
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

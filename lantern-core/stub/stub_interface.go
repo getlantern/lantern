@@ -1,4 +1,4 @@
-package empty
+package stub
 
 import "github.com/sagernet/sing-box/experimental/libbox"
 

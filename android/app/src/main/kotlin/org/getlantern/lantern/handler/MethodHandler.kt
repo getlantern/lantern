@@ -4,6 +4,14 @@ import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import org.getlantern.lantern.MainActivity
+
+
+enum class Methods(val method: String) {
+    Start("start"),
+    Stop("stop"),
+}
 
 class MethodHandler(private val scope: CoroutineScope) : FlutterPlugin,
     MethodChannel.MethodCallHandler {
@@ -29,6 +37,26 @@ class MethodHandler(private val scope: CoroutineScope) : FlutterPlugin,
     }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
+        when (call.method) {
+            Methods.Start.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val mainActivity = MainActivity.instance
+                        mainActivity.startVPN()
+                        success("start")
+                    }
+                    result.success("start")
+                }
+            }
+            Methods.Stop.method -> {
+                scope.launch {
+                    result.success("stop")
+                }
+            }
+            else -> {
+                result.notImplemented()
+            }
+        }
 
     }
 }
