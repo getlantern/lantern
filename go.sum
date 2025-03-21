@@ -105,6 +105,8 @@ github.com/getlantern/ops v0.0.0-20231025133620-f368ab734534 h1:3BwvWj0JZzFEvNNi
 github.com/getlantern/ops v0.0.0-20231025133620-f368ab734534/go.mod h1:ZsLfOY6gKQOTyEcPYNA9ws5/XHZQFroxqCOhHjGcs9Y=
 github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 h1:JWH5BB2o0eAeGs0tZnFPpQGx+nMIo/WmxKnj2hnGjgE=
 github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175/go.mod h1:h3S9LBmmzN/xM+lwYZHE4abzTtCTtidKtG+nxZcCZX0=
+github.com/getlantern/sing-box-minimal v1.11.6-0.20250319162213-b56a0b17a972 h1:n1d3qX4G8IqDiOUnZMy404ZJP0cJqYPBYAtgBnZiDvU=
+github.com/getlantern/sing-box-minimal v1.11.6-0.20250319162213-b56a0b17a972/go.mod h1:9n60qJQH2gmrtjKUbnjdNt+Tvg5bq2ZBYNvNOdUz65w=
 github.com/getlantern/timezone v0.0.0-20210901200113-3f9de9d360c9 h1:VTNjZxSuAHUzu13lYpEVB8gc3xz5hZePGNHG5enHYLY=
 github.com/getlantern/timezone v0.0.0-20210901200113-3f9de9d360c9/go.mod h1:7uvbzuoOr3uYGHZx5QWlI8/C52XEf/aTb/tJFEe41Ak=
 github.com/getlantern/tlsdialer/v3 v3.0.3 h1:OXzzAqO8YojBOu2Kk8wquX2zbFmgJjji41RpaT6knLg=
@@ -259,8 +261,6 @@ github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691/go.mod h1:B8lp4Wk
 github.com/sagernet/sing v0.2.18/go.mod h1:OL6k2F0vHmEzXz2KW19qQzu172FDgSbUSODylighuVo=
 github.com/sagernet/sing v0.6.3 h1:J1spMc6LMlqUvRjWjvNMAcbvACDneqxB9zxfLuS0UTE=
 github.com/sagernet/sing v0.6.3/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
-github.com/sagernet/sing-box v1.11.5 h1:xnwwyiwHj/raktHzdP3SFT0VqqDRKQShY9Rp6NZFpIA=
-github.com/sagernet/sing-box v1.11.5/go.mod h1:9n60qJQH2gmrtjKUbnjdNt+Tvg5bq2ZBYNvNOdUz65w=
 github.com/sagernet/sing-dns v0.4.0 h1:+mNoOuR3nljjouCH+qMg4zHI1+R9T2ReblGFkZPEndc=
 github.com/sagernet/sing-dns v0.4.0/go.mod h1:dweQs54ng2YGzoJfz+F9dGuDNdP5pJ3PLeggnK5VWc8=
 github.com/sagernet/sing-mux v0.3.1 h1:kvCc8HyGAskDHDQ0yQvoTi/7J4cZPB/VJMsAM3MmdQI=

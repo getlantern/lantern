@@ -2,6 +2,8 @@ package mobile
 
 import (
 	"context"
+	"fmt"
+	"runtime/debug"
 	"sync"
 
 	"github.com/getlantern/golog"
@@ -29,6 +31,12 @@ func SetupRadiance(platform libbox.PlatformInterface) {
 }
 
 func StartVPN() {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("Recovered from panic in StartVPN: %v\nStack trace:\n%s\n", r, debug.Stack())
+		}
+	}()
+
 	radianceServer.StartVPN()
 }
 
