@@ -76,6 +76,7 @@ build-android:check-gomobile
 		-o=$(OUT_DIR)/$(ANDROID_LIB) \
 		-ldflags="-checklinkname=0" \
 		 $(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox ./lantern-core/mobile
+	mkdir -p $(ANDROID_LIB_PATH)
 	cp $(OUT_DIR)/$(ANDROID_LIB) $(ANDROID_LIB_PATH)
 	@echo "Android libraries built successfully"
 
