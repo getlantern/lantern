@@ -20,6 +20,7 @@ const String _libName = 'liblantern';
 ///this service should communicate with library using ffi
 ///also this should be called from only [LanternService]
 class LanternFFIService implements LanternCoreService {
+
   static final LanternBindings _ffiService = _gen();
 
   static LanternBindings _gen() {
@@ -47,7 +48,7 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<String,Unit>> setupRadiance() async {
+  Future<Either<String, Unit>> setupRadiance() async {
     try {
       appLogger.debug('Setting up radiance');
       final result = await Isolate.run(

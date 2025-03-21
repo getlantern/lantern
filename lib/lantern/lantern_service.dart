@@ -4,6 +4,8 @@ import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_ffi_service.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
 
+import '../core/common/common.dart';
+
 ///LanternService is wrapper around native and ffi services
 /// all communication happens here
 class LanternService implements LanternCoreService {
@@ -17,9 +19,11 @@ class LanternService implements LanternCoreService {
   });
 
   @override
-  Future<void> startVPN() {
-    // TODO: implement startVPN
-    throw UnimplementedError();
+  Future<void> startVPN() async {
+    if (PlatformUtils.isDesktop()) {
+      throw UnimplementedError();
+    }
+    nativeBridge.startVPN();
   }
 
   @override
@@ -32,6 +36,4 @@ class LanternService implements LanternCoreService {
   Future<Either<String, Unit>> setupRadiance() {
     return ffiService.setupRadiance();
   }
-
-
 }

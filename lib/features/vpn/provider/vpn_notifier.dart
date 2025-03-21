@@ -4,6 +4,7 @@ import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/providers/ffi_provider.dart';
 import 'package:lantern/core/providers/native_bridge_provider.dart';
+import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'vpn_notifier.g.dart';
@@ -26,11 +27,11 @@ class VpnNotifier extends _$VpnNotifier {
   Future<Either<Failure, Unit>> _connectVPN() async {
     state = VPNStatus.connecting;
     try {
-      final error = await _startVPN();
-      if (error != null) {
-        state = VPNStatus.disconnected;
-        return Left(Failure(error: error, localizedErrorMessage: error));
-      }
+      final error = await ref.read(lanternServiceProvider).startVPN();
+      // if (error != null) {
+      //   state = VPNStatus.disconnected;
+      //   return Left(Failure(error: error, localizedErrorMessage: error));
+      // }
       await Future.delayed(const Duration(seconds: 1));
       state = VPNStatus.connected;
       return Right(unit);

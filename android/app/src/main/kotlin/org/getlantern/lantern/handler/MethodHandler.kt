@@ -9,8 +9,8 @@ import org.getlantern.lantern.MainActivity
 
 
 enum class Methods(val method: String) {
-    Start("start"),
-    Stop("stop"),
+    Start("startVPN"),
+    Stop("stopVPN"),
 }
 
 class MethodHandler(private val scope: CoroutineScope) : FlutterPlugin,
@@ -45,14 +45,15 @@ class MethodHandler(private val scope: CoroutineScope) : FlutterPlugin,
                         mainActivity.startVPN()
                         success("start")
                     }
-                    result.success("start")
                 }
             }
+
             Methods.Stop.method -> {
                 scope.launch {
                     result.success("stop")
                 }
             }
+
             else -> {
                 result.notImplemented()
             }

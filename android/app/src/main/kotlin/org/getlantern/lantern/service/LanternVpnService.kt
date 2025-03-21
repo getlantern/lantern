@@ -95,7 +95,7 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
             withContext(Dispatchers.IO) {
                 Mobile.setupRadiance(this@LanternVpnService)
             }
-            Log.d(TAG, "Radiance setup completed within MyVpnService")
+            Log.d(TAG, "Radiance setup completed")
         } catch (e: Exception) {
             Log.e(TAG, "Error in Radiance setup", e)
         }
