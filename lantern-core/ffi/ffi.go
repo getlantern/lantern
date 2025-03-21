@@ -32,7 +32,6 @@ var (
 func setupRadiance() *C.char {
 	radianceMu.Lock()
 	defer radianceMu.Unlock()
-	log.Debug("empty platform created")
 	r, err := radiance.NewRadiance(nil)
 	if err != nil {
 		log.Errorf("Unable to create Radiance: %v", err)

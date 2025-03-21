@@ -12,13 +12,13 @@ import (
 
 var (
 	log            = golog.LoggerFor("lantern-outline.native")
-	radiancMutex   = sync.Mutex{}
+	radianceMutex  = sync.Mutex{}
 	radianceServer *radiance.Radiance
 )
 
 func SetupRadiance(platform libbox.PlatformInterface) {
-	radiancMutex.Lock()
-	defer radiancMutex.Unlock()
+	radianceMutex.Lock()
+	defer radianceMutex.Unlock()
 	r, err := radiance.NewRadiance(platform)
 	if err != nil {
 		log.Errorf("Unable to create Radiance: %v", err)

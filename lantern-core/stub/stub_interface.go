@@ -2,11 +2,6 @@ package stub
 
 import "github.com/sagernet/sing-box/experimental/libbox"
 
-// Jigar
-// Start of EmptyPlatform implementation
-// This should be moved to the client side.
-// This is just a simple workaround for now. I can start adding APIs later.
-
 func NewPlatformInterfaceStub() libbox.PlatformInterface {
 	return &platformInterfaceStub{}
 }
