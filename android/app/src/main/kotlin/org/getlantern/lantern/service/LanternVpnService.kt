@@ -1,5 +1,6 @@
 package org.getlantern.lantern.service
 
+import android.content.Context
 import android.content.Intent
 import android.net.VpnService
 import android.os.Build
@@ -14,6 +15,7 @@ import lantern.io.libbox.Notification
 import lantern.io.libbox.TunOptions
 import lantern.io.mobile.Mobile
 import org.getlantern.lantern.utils.toIpPrefix
+import java.io.File
 
 class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
 
@@ -22,7 +24,7 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
         private const val sessionName = "LanternVpn"
         private const val privateAddress = "10.0.0.2"
         private const val VPN_MTU = 1500
-        const val ACTION_START_RADIANCE = "com.example.START_RADIANCE"
+        const val ACTION_START_RADIANCE = "com.getlantern.START_RADIANCE"
         const val ACTION_START_VPN = "org.getlantern.START_VPN"
         const val ACTION_STOP_VPN = "org.getlantern.START_STOP"
     }
@@ -91,9 +93,10 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
 
     private suspend fun startRadiance() {
         try {
+            val configDir = this.filesDir.absolutePath
             // If Mobile.setupRadiance is a blocking call, consider switching to withContext(Dispatchers.IO) if needed.
             withContext(Dispatchers.IO) {
-                Mobile.setupRadiance(this@LanternVpnService)
+                Mobile.setupRadiance(configDir, this@LanternVpnService)
             }
             Log.d(TAG, "Radiance setup completed")
         } catch (e: Exception) {

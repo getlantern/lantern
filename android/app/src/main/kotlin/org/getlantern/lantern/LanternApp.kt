@@ -14,7 +14,6 @@ class LanternApp : Application() {
 
     companion object {
         lateinit var application: LanternApp
-        val notification by lazy { application.getSystemService<NotificationManager>()!! }
         val connectivity by lazy { application.getSystemService<ConnectivityManager>()!! }
         val packageManager by lazy { application.packageManager }
         val powerManager by lazy { application.getSystemService<PowerManager>()!! }

@@ -18,10 +18,10 @@ var (
 	radianceServer *radiance.Radiance
 )
 
-func SetupRadiance(platform libbox.PlatformInterface) {
+func SetupRadiance(configDir string, platform libbox.PlatformInterface) {
 	radianceMutex.Lock()
 	defer radianceMutex.Unlock()
-	r, err := radiance.NewRadiance(platform)
+	r, err := radiance.NewRadiance(configDir, platform)
 	if err != nil {
 		log.Errorf("Unable to create Radiance: %v", err)
 		return
@@ -37,6 +37,7 @@ func StartVPN() {
 		}
 	}()
 
+	log.Debug("Starting VPN")
 	radianceServer.StartVPN()
 }
 
