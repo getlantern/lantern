@@ -26,7 +26,7 @@ WINDOWS_LIB_AMD64 := $(BUILD_DIR)/windows-amd64/$(LANTERN_LIB_NAME).dll
 WINDOWS_LIB_ARM64 := $(BUILD_DIR)/windows-arm64/$(LANTERN_LIB_NAME).dll
 
 ANDROID_LIB_NAME := $(BUILD_DIR)/android/$(LANTERN_LIB_NAME).aar
-IOS_FRAMEWORK := $(BUILD_DIR)/ios/$(CAPITALIZED_APP).xcframework
+IOS_FRAMEWORK := $(BUILD_DIR)/ios/Liblantern.xcframework
 
 TAGS=with_gvisor
 
@@ -149,6 +149,7 @@ ios: $(IOS_FRAMEWORK)
 
 $(IOS_FRAMEWORK): $(GO_SOURCES)
 	@echo "Building iOS Framework..."
+	rm -rf ios/$(IOS_FRAMEWORK)
 	mkdir -p $(BUILD_DIR)/ios
 	GOOS=ios gomobile bind -v -tags=$(TAGS),with_low_memory -trimpath -target=ios -ldflags="-w -s" -o $@ $(RADIANCE_REPO)
 	@echo "Built iOS Framework: $@"
