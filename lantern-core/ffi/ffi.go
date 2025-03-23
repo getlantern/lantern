@@ -11,7 +11,8 @@ import (
 	"sync"
 	"unsafe"
 
-	"github.com/getlantern/golog"
+	"log/slog"
+
 	"github.com/getlantern/radiance"
 )
 
@@ -22,23 +23,21 @@ var (
 	setupOnce      sync.Once
 	radianceMu     sync.Mutex
 	radianceServer *radiance.Radiance
-
-	log = golog.LoggerFor("lantern-outline.ffi")
 )
 
 // setupRadiance initializes the Radiance
 //
 //export setupRadiance
-func setupRadiance() *C.char {
+func setupRadiance(dir *C.char) *C.char {
 	radianceMu.Lock()
 	defer radianceMu.Unlock()
-	r, err := radiance.NewRadiance(nil)
+	r, err := radiance.NewRadiance(C.GoString(dir), nil)
 	if err != nil {
-		log.Errorf("Unable to create Radiance: %v", err)
+		slog.Error("Unable to create Radiance: %v", "error", err)
 		return SendError(err)
 	}
 	radianceServer = r
-	log.Debug("Radiance setup successfully")
+	slog.Debug("Radiance setup successfully")
 	return C.CString("true")
 }
 
@@ -57,12 +56,12 @@ func setupLogging(dir *C.char, port C.int64_t, api unsafe.Pointer) {
 //
 //export startVPN
 func startVPN() *C.char {
-	log.Debug("startVPN called")
+	slog.Debug("startVPN called")
 
 	serverMu.Lock()
 	defer serverMu.Unlock()
 
-	log.Debug("VPN server started successfully")
+	slog.Debug("VPN server started successfully")
 	return nil
 }
 
@@ -70,12 +69,12 @@ func startVPN() *C.char {
 //
 //export stopVPN
 func stopVPN() *C.char {
-	log.Debug("stopVPN called")
+	slog.Debug("stopVPN called")
 
 	serverMu.Lock()
 	defer serverMu.Unlock()
 
-	log.Debug("VPN server stopped successfully")
+	slog.Debug("VPN server stopped successfully")
 	return nil
 }
 

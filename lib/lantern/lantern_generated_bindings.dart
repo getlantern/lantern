@@ -2349,15 +2349,20 @@ class LanternBindings {
 
   set suboptarg(ffi.Pointer<ffi.Char> value) => _suboptarg.value = value;
 
-  ffi.Pointer<ffi.Char> setupRadiance() {
-    return _setupRadiance();
+  ffi.Pointer<ffi.Char> setupRadiance(
+    ffi.Pointer<ffi.Char> dir,
+  ) {
+    return _setupRadiance(
+      dir,
+    );
   }
 
-  late final _setupRadiancePtr =
-      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
-          'setupRadiance');
-  late final _setupRadiance =
-      _setupRadiancePtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
+  late final _setupRadiancePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>)>>('setupRadiance');
+  late final _setupRadiance = _setupRadiancePtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
 
   void setupLogging(
     ffi.Pointer<ffi.Char> dir,
