@@ -7,6 +7,7 @@ import (
 	"github.com/getlantern/radiance"
 	_ "github.com/sagernet/gomobile/bind"
 	"github.com/sagernet/sing-box/experimental/libbox"
+	_ "github.com/sagernet/sing-box/experimental/libbox"
 )
 
 var (

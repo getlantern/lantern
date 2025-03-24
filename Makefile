@@ -13,20 +13,20 @@ BUILD_TAGS ?=
 
 DARWIN_APP_NAME := $(CAPITALIZED_APP).app
 DARWIN_FRAMEWORK_DIR := macos/Frameworks
-DARWIN_LIB_NAME := $(DARWIN_FRAMEWORK_DIR)/$(LANTERN_LIB_NAME).dylib
+DARWIN_LIB_NAME := $(LANTERN_LIB_NAME).dylib
 DARWIN_LIB_AMD64 := $(BUILD_DIR)/macos-amd64/$(LANTERN_LIB_NAME).dylib
 DARWIN_LIB_ARM64 := $(BUILD_DIR)/macos-arm64/$(LANTERN_LIB_NAME).dylib
 
-LINUX_LIB_NAME := $(BUILD_DIR)/$(LANTERN_LIB_NAME).so
+LINUX_LIB_NAME := $(LANTERN_LIB_NAME).so
 LINUX_LIB_AMD64 := $(BUILD_DIR)/linux-amd64/$(LANTERN_LIB_NAME).so
 LINUX_LIB_ARM64 := $(BUILD_DIR)/linux-arm64/$(LANTERN_LIB_NAME).so
 
-WINDOWS_LIB_NAME := $(BUILD_DIR)/$(LANTERN_LIB_NAME).dll
+WINDOWS_LIB_NAME := $(LANTERN_LIB_NAME).dll
 WINDOWS_LIB_AMD64 := $(BUILD_DIR)/windows-amd64/$(LANTERN_LIB_NAME).dll
 WINDOWS_LIB_ARM64 := $(BUILD_DIR)/windows-arm64/$(LANTERN_LIB_NAME).dll
 
-ANDROID_LIB_NAME := $(BUILD_DIR)/android/$(LANTERN_LIB_NAME).aar
-IOS_FRAMEWORK := $(BUILD_DIR)/ios/Liblantern.xcframework
+ANDROID_LIB_NAME := $(LANTERN_LIB_NAME).aar
+IOS_FRAMEWORK := Liblantern.xcframework
 
 TAGS=with_gvisor
 
@@ -130,8 +130,8 @@ $(WINDOWS_LIB_NAME): $(GO_SOURCES)
 install-android-deps:
 	@echo "Installing Android dependencies..."
 
-	go install -v github.com/sagernet/gomobile/cmd/gomobile@latest
-	go install -v github.com/sagernet/gomobile/cmd/gobind@latest
+	go install -v golang.org/x/mobile/cmd/gomobile@latest
+	go install -v golang.org/x/mobile/cmd/gobind@latest
 	gomobile init
 
 .PHONY: android
@@ -150,10 +150,11 @@ ios: $(IOS_FRAMEWORK)
 
 $(IOS_FRAMEWORK): $(GO_SOURCES)
 	@echo "Building iOS Framework..."
-	rm -rf ios/$(IOS_FRAMEWORK)
+	rm -rf ios/Frameworks/Liblantern.Xcframework
 	mkdir -p $(BUILD_DIR)/ios
-	GOOS=ios gomobile bind -v -libname=lantern -tags=$(TAGS),with_low_memory -trimpath -target=ios -ldflags="-w -s" -o $@ $(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox ./lantern-core/mobile
+	GOOS=ios gomobile bind -v -tags=$(TAGS),with_low_memory -trimpath -target=ios -ldflags="-w -s" -o $@ $(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox ./lantern-core/mobile
 	@echo "Built iOS Framework: $@"
+	mv $@ ios/Frameworks
 
 # Dart API DL bridge
 DART_SDK_REPO=https://github.com/dart-lang/sdk
