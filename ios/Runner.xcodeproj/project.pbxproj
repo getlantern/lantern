@@ -13,7 +13,9 @@
 		530385FFD1EF91BE50B06694 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A430D395EEE508A6C60559A5 /* Pods_RunnerTests.framework */; };
 		5F0515D02D20DB5100E704BE /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F0515CF2D20DB5100E704BE /* NetworkExtension.framework */; };
 		5F05186F2D224C3300E704BE /* Tunnel.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5F0515CE2D20DB5100E704BE /* Tunnel.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		5F1CE20B2D9139FB00BD053C /* Package.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F1CE2092D9139FA00BD053C /* Package.swift */; };
+		5F4C38122D91535D0053105F /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F4C38112D91535D0053105F /* Constants.swift */; };
+		5F4C38512D9155BC0053105F /* FilePath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F4C384F2D9155BC0053105F /* FilePath.swift */; };
+		5F4C38522D9155CF0053105F /* FilePath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F4C384F2D9155BC0053105F /* FilePath.swift */; };
 		5F7A35462D23504000AF1761 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F0515CF2D20DB5100E704BE /* NetworkExtension.framework */; };
 		5F7A35472D23518700AF1761 /* Liblantern.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F0515BC2D20B58600E704BE /* Liblantern.xcframework */; };
 		5F9537412D2B67DF009BB822 /* VPNBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F95373E2D2B67DF009BB822 /* VPNBase.swift */; };
@@ -83,7 +85,8 @@
 		5F0515CE2D20DB5100E704BE /* Tunnel.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = Tunnel.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		5F0515CF2D20DB5100E704BE /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
 		5F0517192D2233D200E704BE /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
-		5F1CE2092D9139FA00BD053C /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
+		5F4C38112D91535D0053105F /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		5F4C384F2D9155BC0053105F /* FilePath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilePath.swift; sourceTree = "<group>"; };
 		5F95373E2D2B67DF009BB822 /* VPNBase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VPNBase.swift; sourceTree = "<group>"; };
 		5F95373F2D2B67DF009BB822 /* VPNManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VPNManager.swift; sourceTree = "<group>"; };
 		5F9537652D2B6F07009BB822 /* MethodHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MethodHandler.swift; sourceTree = "<group>"; };
@@ -171,17 +174,18 @@
 			path = RunnerTests;
 			sourceTree = "<group>";
 		};
-		5F1CE20A2D9139FA00BD053C /* Local Packages */ = {
+		5F4C38502D9155BC0053105F /* Shared */ = {
 			isa = PBXGroup;
 			children = (
-				5F1CE2092D9139FA00BD053C /* Package.swift */,
+				5F4C384F2D9155BC0053105F /* FilePath.swift */,
 			);
-			path = "Local Packages";
+			path = Shared;
 			sourceTree = "<group>";
 		};
 		5F9537402D2B67DF009BB822 /* Lantern */ = {
 			isa = PBXGroup;
 			children = (
+				5F4C38112D91535D0053105F /* Constants.swift */,
 				5F95373E2D2B67DF009BB822 /* VPNBase.swift */,
 				5F95373F2D2B67DF009BB822 /* VPNManager.swift */,
 				5F9537652D2B6F07009BB822 /* MethodHandler.swift */,
@@ -224,7 +228,7 @@
 				331C8082294A63A400263BE5 /* RunnerTests */,
 				8B8AB31C4F200C9B812FE72B /* Pods */,
 				B088A132265A1E5C0B68570E /* Frameworks */,
-				5F1CE20A2D9139FA00BD053C /* Local Packages */,
+				5F4C38502D9155BC0053105F /* Shared */,
 			);
 			sourceTree = "<group>";
 		};
@@ -513,6 +517,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5F4C38522D9155CF0053105F /* FilePath.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -523,9 +528,10 @@
 				5F9537412D2B67DF009BB822 /* VPNBase.swift in Sources */,
 				5F9537662D2B6F07009BB822 /* MethodHandler.swift in Sources */,
 				5F9537422D2B67DF009BB822 /* VPNManager.swift in Sources */,
-				5F1CE20B2D9139FB00BD053C /* Package.swift in Sources */,
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
+				5F4C38122D91535D0053105F /* Constants.swift in Sources */,
+				5F4C38512D9155BC0053105F /* FilePath.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

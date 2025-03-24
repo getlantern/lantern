@@ -1,6 +1,5 @@
 import Flutter
 import Liblantern
-import Mobile
 import UIKit
 import NetworkExtension
 
@@ -30,6 +29,6 @@ import NetworkExtension
 
     private func setupRadiance() {
         let baseDir = FilePath.sharedDirectory.relativePath
-        MobileSetup(baseDir)
+        //MobileSetupRadiance(baseDir)
     }
 }

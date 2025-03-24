@@ -1,5 +1,5 @@
 //
-//  NetworkUtils.swift
+//  ExtensionProvider.swift
 //
 //  This file is sourced from Sing-Box (https://github.com/SagerNet/sing-box).
 //  Original source: sing-box/platform/NetworkUtils.swift
@@ -54,13 +54,14 @@ open class ExtensionProvider: NEPacketTunnelProvider {
             writeFatalError("(packet-tunnel) redirect stderr error: \(error.localizedDescription)")
             return
         }
-
-        await LibboxSetMemoryLimit(!SharedPreferences.ignoreMemoryLimit.get())
+        let ignoreMemoryLimit = false // !SharedPreferences.ignoreMemoryLimit.get()
+        LibboxSetMemoryLimit(!ignoreMemoryLimit)
 
         if platformInterface == nil {
             platformInterface = ExtensionPlatformInterface(self)
         }
-        commandServer = await LibboxNewCommandServer(platformInterface, Int32(SharedPreferences.maxLogLines.get()))
+        let maxLogLines = 50 // SharedPreferences.maxLogLines.get()
+        commandServer = LibboxNewCommandServer(platformInterface, Int32(maxLogLines))
         do {
             try commandServer.start()
         } catch {
@@ -70,9 +71,9 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         writeMessage("(packet-tunnel): Here I stand")
         await startService()
         #if os(iOS)
-            if #available(iOS 18.0, *) {
-                ControlCenter.shared.reloadControls(ofKind: ExtensionProfile.controlKind)
-            }
+//            if #available(iOS 18.0, *) {
+//                ControlCenter.shared.reloadControls(ofKind: ExtensionProfile.controlKind)
+//            }
         #endif
     }
 
@@ -93,25 +94,8 @@ open class ExtensionProvider: NEPacketTunnelProvider {
     }
 
     private func startService() async {
-        let profile: Profile?
-        do {
-            profile = try await ProfileManager.get(Int64(SharedPreferences.selectedProfileID.get()))
-        } catch {
-            writeFatalError("(packet-tunnel) error: read selected profile: \(error.localizedDescription)")
-            return
-        }
-        guard let profile else {
-            writeFatalError("(packet-tunnel) error: missing selected profile")
-            return
-        }
-        let configContent: String
-        do {
-            configContent = try profile.read()
-        } catch {
-            writeFatalError("(packet-tunnel) error: read config file \(profile.path): \(error.localizedDescription)")
-            return
-        }
         var error: NSError?
+        let configContent = ""
         let service = LibboxNewService(configContent, platformInterface, &error)
         if let error {
             writeFatalError("(packet-tunnel) error: create service: \(error.localizedDescription)")
@@ -129,7 +113,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         commandServer.setService(service)
         boxService = service
         #if os(macOS)
-            await SharedPreferences.startedByUser.set(true)
+            //await SharedPreferences.startedByUser.set(true)
             if service.needWIFIState() {
                 if !Variant.useSystemExtension {
                     locationManager = CLLocationManager()
@@ -205,13 +189,13 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         }
         #if os(macOS)
             if reason == .userInitiated {
-                await SharedPreferences.startedByUser.set(reason == .userInitiated)
+//                await SharedPreferences.startedByUser.set(reason == .userInitiated)
             }
         #endif
         #if os(iOS)
-            if #available(iOS 18.0, *) {
-                ControlCenter.shared.reloadControls(ofKind: ExtensionProfile.controlKind)
-            }
+//            if #available(iOS 18.0, *) {
+//                ControlCenter.shared.reloadControls(ofKind: ExtensionProfile.controlKind)
+//            }
         #endif
     }
 

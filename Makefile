@@ -13,20 +13,31 @@ BUILD_TAGS ?=
 
 DARWIN_APP_NAME := $(CAPITALIZED_APP).app
 DARWIN_FRAMEWORK_DIR := macos/Frameworks
-DARWIN_LIB_NAME := $(LANTERN_LIB_NAME).dylib
+DARWIN_LIB := $(LANTERN_LIB_NAME).dylib
 DARWIN_LIB_AMD64 := $(BUILD_DIR)/macos-amd64/$(LANTERN_LIB_NAME).dylib
 DARWIN_LIB_ARM64 := $(BUILD_DIR)/macos-arm64/$(LANTERN_LIB_NAME).dylib
+DARWIN_LIB_BUILD := $(BUILD_DIR)/macos/$(DARWIN_LIB)
 
-LINUX_LIB_NAME := $(LANTERN_LIB_NAME).so
+
+LINUX_LIB := $(LANTERN_LIB_NAME).so
 LINUX_LIB_AMD64 := $(BUILD_DIR)/linux-amd64/$(LANTERN_LIB_NAME).so
 LINUX_LIB_ARM64 := $(BUILD_DIR)/linux-arm64/$(LANTERN_LIB_NAME).so
+LINUX_LIB_BUILD := $(BUILD_DIR)/linux/$(LINUX_LIB)
 
-WINDOWS_LIB_NAME := $(LANTERN_LIB_NAME).dll
+
+WINDOWS_LIB := $(LANTERN_LIB_NAME).dll
 WINDOWS_LIB_AMD64 := $(BUILD_DIR)/windows-amd64/$(LANTERN_LIB_NAME).dll
 WINDOWS_LIB_ARM64 := $(BUILD_DIR)/windows-arm64/$(LANTERN_LIB_NAME).dll
+WINDOWS_LIB_BUILD := $(BUILD_DIR)/windows/$(WINDOWS_LIB)
 
-ANDROID_LIB_NAME := $(LANTERN_LIB_NAME).aar
+
+ANDROID_LIB := $(LANTERN_LIB_NAME).aar
+ANDROID_LIBS_DIR := android/app/libs
+ANDROID_LIB_BUILD := $(BUILD_DIR)/android/$(ANDROID_LIB)
+
 IOS_FRAMEWORK := Liblantern.xcframework
+IOS_FRAMEWORK_DIR := ios/Frameworks
+IOS_FRAMEWORK_BUILD := $(BUILD_DIR)/ios/$(IOS_FRAMEWORK)
 
 TAGS=with_gvisor
 
@@ -38,8 +49,8 @@ gen:
 pubget:
 	flutter pub get
 
-lantern-lib: export CGO_CFLAGS="-I./dart_api_dl/include"
-lantern-lib:
+desktop-lib: export CGO_CFLAGS="-I./dart_api_dl/include"
+desktop-lib:
 	CGO_ENABLED=1 go build -v -trimpath -buildmode=c-shared -tags="$(BUILD_TAGS)" -ldflags="-w -s $(EXTRA_LDFLAGS)" -o $(LIB_NAME) ./$(FFI_DIR)
 
 # macOS Build
@@ -47,23 +58,25 @@ lantern-lib:
 macos-arm64: $(DARWIN_LIB_ARM64)
 
 $(DARWIN_LIB_ARM64): $(GO_SOURCES)
-	GOARCH=arm64 LIB_NAME=$@ make lantern-lib
+	GOARCH=arm64 LIB_NAME=$@ make desktop-lib
 
 .PHONY: macos-amd64
 macos-amd64: $(DARWIN_LIB_AMD64)
 
 $(DARWIN_LIB_AMD64): $(GO_SOURCES)
-	GOARCH=amd64 LIB_NAME=$@ make lantern-lib
+	GOARCH=amd64 LIB_NAME=$@ make desktop-lib
 
 .PHONY: macos
-macos: $(DARWIN_LIB_NAME)
+macos: $(DARWIN_LIB_BUILD)
 
-$(DARWIN_LIB_NAME): $(GO_SOURCES)
+$(DARWIN_LIB_BUILD): $(GO_SOURCES)
 	make macos-arm64 macos-amd64
-	mkdir -p $(DARWIN_FRAMEWORK_DIR)
-	lipo -create $(DARWIN_LIB_ARM64) $(DARWIN_LIB_AMD64) -output $(DARWIN_LIB_NAME)
-	install_name_tool -id "@rpath/${DARWIN_LIB_NAME}" $(DARWIN_LIB_NAME)
+	rm -f $@ && mkdir -p $(dir $@)
+	lipo -create $(DARWIN_LIB_ARM64) $(DARWIN_LIB_AMD64) -output $@
+	install_name_tool -id "@rpath/${DARWIN_LIB}" $@
+	mkdir -p $(DARWIN_FRAMEWORK_DIR) && mv $@ $(DARWIN_FRAMEWORK_DIR)
 	cp $(BUILD_DIR)/macos-amd64/$(LANTERN_LIB_NAME)*.h $(DARWIN_FRAMEWORK_DIR)/
+	@echo "Built macOS library: $(DARWIN_FRAMEWORK_DIR)/$(DARWIN_LIB)"
 
 .PHONY: macos-debug
 macos-debug: clean macos pubget gen
@@ -80,13 +93,13 @@ macos-release: clean macos pubget gen
 linux-arm64: $(LINUX_LIB_ARM64)
 
 $(LINUX_LIB_ARM64): $(GO_SOURCES)
-	CC=aarch64-linux-gnu-gcc GOARCH=arm64 LIB_NAME=$@ make lantern-lib
+	CC=aarch64-linux-gnu-gcc GOARCH=arm64 LIB_NAME=$@ make desktop-lib
 
 .PHONY: linux-amd64
 linux-amd64: $(LINUX_LIB_AMD64)
 
 $(LINUX_LIB_AMD64): $(GO_SOURCES)
-	CC=x86_64-linux-gnu-gcc GOARCH=amd64 LIB_NAME=$@ make lantern-lib
+	CC=x86_64-linux-gnu-gcc GOARCH=amd64 LIB_NAME=$@ make desktop-lib
 
 .PHONY: linux
 linux: linux-amd64
@@ -109,7 +122,7 @@ windows-amd64: export CGO_LDFLAGS = -static
 windows-amd64: $(WINDOWS_LIB_AMD64)
 
 $(WINDOWS_LIB_AMD64): $(GO_SOURCES)
-	GOOS=windows GOARCH=amd64 LIB_NAME=$@ make lantern-lib
+	GOOS=windows GOARCH=amd64 LIB_NAME=$@ make desktop-lib
 
 .PHONY: windows-arm64
 windows-arm64: export BUILD_TAGS += walk_use_cgo
@@ -117,13 +130,10 @@ windows-arm64: export CGO_LDFLAGS = -static
 windows-arm64: $(WINDOWS_LIB_ARM64)
 
 $(WINDOWS_LIB_ARM64): $(GO_SOURCES)
-	GOOS=windows GOARCH=arm64 LIB_NAME=$@ make lantern-lib
+	GOOS=windows GOARCH=arm64 LIB_NAME=$@ make desktop-lib
 
 .PHONY: windows
 windows: windows-amd64
-
-$(WINDOWS_LIB_NAME): $(GO_SOURCES)
-	GOARCH=amd64 LIB_NAME=$@ make lantern-lib
 
 # Android Build
 .PHONY: install-android-deps
@@ -135,26 +145,26 @@ install-android-deps:
 	gomobile init
 
 .PHONY: android
-android: $(ANDROID_LIB_NAME)
+android: $(ANDROID_LIB_BUILD)
 
-$(ANDROID_LIB_NAME): $(GO_SOURCES)
+$(ANDROID_LIB_BUILD): $(GO_SOURCES)
 	make install-android-deps
 	@echo "Building Android library..."
-	mkdir -p $(BUILD_DIR)/android
-	GOOS=android gomobile bind -v -androidapi=21 -tags=$(TAGS) -trimpath -target=android -o $@ $(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox ./lantern-core/mobile
-	@echo "Built Android library: $@"
+	rm -f $@ && mkdir -p $(dir $@)
+	GOOS=android gomobile bind -v -androidapi=21 -tags=$(TAGS) -trimpath -target=android -o $@ $(RADIANCE_REPO)
+	mkdir -p $(ANDROID_LIBS_DIR) && mv $@ $(ANDROID_LIBS_DIR)
+	@echo "Built Android library: $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)"
 
 # iOS Build
 .PHONY: ios
-ios: $(IOS_FRAMEWORK)
+ios: $(IOS_FRAMEWORK_BUILD)
 
-$(IOS_FRAMEWORK): $(GO_SOURCES)
+$(IOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 	@echo "Building iOS Framework..."
-	rm -rf ios/Frameworks/Liblantern.Xcframework
-	mkdir -p $(BUILD_DIR)/ios
+	rm -f $@ && mkdir -p $(dir $@)
 	GOOS=ios gomobile bind -v -tags=$(TAGS),with_low_memory -trimpath -target=ios -ldflags="-w -s" -o $@ $(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox ./lantern-core/mobile
-	@echo "Built iOS Framework: $@"
-	mv $@ ios/Frameworks
+	mkdir -p $(IOS_FRAMEWORK_DIR) && rm -rf $(IOS_FRAMEWORK_DIR)/$(IOS_FRAMEWORK) && mv $@ $(IOS_FRAMEWORK_DIR)
+	@echo "Built iOS Framework: $(IOS_FRAMEWORK_DIR)/$(IOS_FRAMEWORK)"
 
 # Dart API DL bridge
 DART_SDK_REPO=https://github.com/dart-lang/sdk

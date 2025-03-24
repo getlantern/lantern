@@ -1,5 +1,5 @@
 //
-//  NetworkUtils.swift
+//  ExtensionPlatformInterface.swift
 //
 //  This file is sourced from Sing-Box (https://github.com/SagerNet/sing-box).
 //  Original source: sing-box/platform/NetworkUtils.swift
@@ -8,7 +8,7 @@
 //  Any modifications should be contributed upstream if possible.
 //  Local changes may be overwritten when syncing updates.
 //
-//  Copyright (c) SagerNet. Licensed under GPLv3.
+//  Copyright (c) SagerNet. Licensed under GPLv3.   
 //
 
 import Foundation
@@ -27,7 +27,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         self.tunnel = tunnel
     }
 
-    public func openTun(_ options: LiblanternTunOptionsProtocol?, ret0_: UnsafeMutablePointer<Int32>?) throws {
+    public func openTun(_ options: LibboxTunOptionsProtocol?, ret0_: UnsafeMutablePointer<Int32>?) throws {
         try runBlocking { [self] in
             try await openTun0(options, ret0_)
         }
@@ -41,8 +41,10 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
             throw NSError(domain: "nil return pointer", code: 0)
         }
 
-        let autoRouteUseSubRangesByDefault = await SharedPreferences.autoRouteUseSubRangesByDefault.get()
-        let excludeAPNs = await SharedPreferences.excludeAPNsRoute.get()
+        //let autoRouteUseSubRangesByDefault = await SharedPreferences.autoRouteUseSubRangesByDefault.get()
+        //let excludeAPNs = await SharedPreferences.excludeAPNsRoute.get()
+        let autoRouteUseSubRangesByDefault = false
+        let excludeAPNs = false
 
         let settings = NEPacketTunnelNetworkSettings(tunnelRemoteAddress: "127.0.0.1")
         if options.getAutoRoute() {
@@ -91,7 +93,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
                 let ipv4RoutePrefix = inet4RouteExcludeAddressIterator.next()!
                 ipv4ExcludeRoutes.append(NEIPv4Route(destinationAddress: ipv4RoutePrefix.address(), subnetMask: ipv4RoutePrefix.mask()))
             }
-            if await SharedPreferences.excludeDefaultRoute.get(), !ipv4Routes.isEmpty {
+            if /*await SharedPreferences.excludeDefaultRoute.get(),*/ !ipv4Routes.isEmpty {
                 if !ipv4ExcludeRoutes.contains(where: { it in
                     it.destinationAddress == "0.0.0.0" && it.destinationSubnetMask == "255.255.255.254"
                 }) {
@@ -157,10 +159,10 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
             let proxyServer = NEProxyServer(address: options.getHTTPProxyServer(), port: Int(options.getHTTPProxyServerPort()))
             proxySettings.httpServer = proxyServer
             proxySettings.httpsServer = proxyServer
-            if await SharedPreferences.systemProxyEnabled.get() {
-                proxySettings.httpEnabled = true
-                proxySettings.httpsEnabled = true
-            }
+            // if await SharedPreferences.systemProxyEnabled.get() {
+            //     proxySettings.httpEnabled = true
+            //     proxySettings.httpsEnabled = true
+            // }
             var bypassDomains: [String] = []
             let bypassDomainIterator = options.getHTTPProxyBypassDomain()!
             while bypassDomainIterator.hasNext() {
@@ -317,11 +319,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
     }
 
     public func includeAllNetworks() -> Bool {
-        #if !os(tvOS)
-            return SharedPreferences.includeAllNetworks.getBlocking()
-        #else
-            return false
-        #endif
+        return false
     }
 
     public func clearDNSCache() {
