@@ -1,4 +1,6 @@
 import Flutter
+import Liblantern
+import Mobile
 import UIKit
 import NetworkExtension
 
@@ -9,10 +11,7 @@ import NetworkExtension
     
     private var methodHandler: MethodHandler?
 
-    override func application(
-        _ application: UIApplication,
-        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
-    ) -> Bool {
+    override func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         guard let controller = window?.rootViewController as? FlutterViewController else {
             fatalError("rootViewController is not type FlutterViewController")
         }
@@ -26,6 +25,11 @@ import NetworkExtension
 
         GeneratedPluginRegistrant.register(with: self)
 
-        return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+        return true
+    }
+
+    private func setupRadiance() {
+        let baseDir = FilePath.sharedDirectory.relativePath
+        MobileSetup(baseDir)
     }
 }

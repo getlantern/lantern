@@ -4,9 +4,10 @@
 //
 
 import NetworkExtension
+import System
 import os
 
-class PacketTunnelProvider: NEPacketTunnelProvider {
+class PacketTunnelProvider: ExtensionProvider {
     let logger = OSLog(subsystem: "org.getlantern.lantern", category: "VPN")
 
     var connection: NWConnection?
@@ -18,21 +19,8 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             NEIPv4Route(destinationAddress: "127.0.0.1", subnetMask: "255.255.255.255")
     ]
 
-    override func startTunnel(options: [String : NSObject]?, completionHandler: @escaping (Error?) -> Void) {
-        os_log("Starting tunnel", log: logger, type: .info)
-
-        // Apply the network settings
-        setTunnelNetworkSettings(createTunnelNetworkSettings()) { [weak self] error in
-            guard let self = self else {
-                completionHandler(nil)
-                return
-            }
-
-            os_log("Network settings applied successfully")
-            // call start VPN
-
-            completionHandler(nil)
-        }
+    override func startTunnel(options: [String: NSObject]?) async throws {
+        try await super.startTunnel(options: options)
     }
 
      // Create network settings

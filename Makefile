@@ -130,7 +130,8 @@ $(WINDOWS_LIB_NAME): $(GO_SOURCES)
 install-android-deps:
 	@echo "Installing Android dependencies..."
 
-	go install golang.org/x/mobile/cmd/gomobile@latest
+	go install -v github.com/sagernet/gomobile/cmd/gomobile@latest
+	go install -v github.com/sagernet/gomobile/cmd/gobind@latest
 	gomobile init
 
 .PHONY: android
@@ -151,7 +152,7 @@ $(IOS_FRAMEWORK): $(GO_SOURCES)
 	@echo "Building iOS Framework..."
 	rm -rf ios/$(IOS_FRAMEWORK)
 	mkdir -p $(BUILD_DIR)/ios
-	GOOS=ios gomobile bind -v -tags=$(TAGS),with_low_memory -trimpath -target=ios -ldflags="-w -s" -o $@ $(RADIANCE_REPO)
+	GOOS=ios gomobile bind -v -libname=lantern -tags=$(TAGS),with_low_memory -trimpath -target=ios -ldflags="-w -s" -o $@ $(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox ./lantern-core/mobile
 	@echo "Built iOS Framework: $@"
 
 # Dart API DL bridge

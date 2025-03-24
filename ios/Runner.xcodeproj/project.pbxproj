@@ -19,6 +19,8 @@
 		5F9537422D2B67DF009BB822 /* VPNManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F95373F2D2B67DF009BB822 /* VPNManager.swift */; };
 		5F9537662D2B6F07009BB822 /* MethodHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F9537652D2B6F07009BB822 /* MethodHandler.swift */; };
 		5FEBBBC82D90F55400F0AC54 /* Liblantern.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5FEBBBBB2D90F45F00F0AC54 /* Liblantern.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		5FEBBC1E2D9115B300F0AC54 /* ExtensionPlatformInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FEBBC1B2D91159600F0AC54 /* ExtensionPlatformInterface.swift */; };
+		5FEBBC1F2D9115B300F0AC54 /* ExtensionProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FEBBC1C2D91159600F0AC54 /* ExtensionProvider.swift */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
@@ -110,6 +112,8 @@
 		5F95373F2D2B67DF009BB822 /* VPNManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VPNManager.swift; sourceTree = "<group>"; };
 		5F9537652D2B6F07009BB822 /* MethodHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MethodHandler.swift; sourceTree = "<group>"; };
 		5FEBBBBB2D90F45F00F0AC54 /* Liblantern.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = Liblantern.xcframework; sourceTree = "<group>"; };
+		5FEBBC1B2D91159600F0AC54 /* ExtensionPlatformInterface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionPlatformInterface.swift; sourceTree = "<group>"; };
+		5FEBBC1C2D91159600F0AC54 /* ExtensionProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionProvider.swift; sourceTree = "<group>"; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
@@ -210,6 +214,15 @@
 			path = Lantern;
 			sourceTree = "<group>";
 		};
+		5FEBBC1D2D91159600F0AC54 /* Network */ = {
+			isa = PBXGroup;
+			children = (
+				5FEBBC1B2D91159600F0AC54 /* ExtensionPlatformInterface.swift */,
+				5FEBBC1C2D91159600F0AC54 /* ExtensionProvider.swift */,
+			);
+			path = Network;
+			sourceTree = "<group>";
+		};
 		8B8AB31C4F200C9B812FE72B /* Pods */ = {
 			isa = PBXGroup;
 			children = (
@@ -237,6 +250,7 @@
 		97C146E51CF9000F007C117D = {
 			isa = PBXGroup;
 			children = (
+				5FEBBC1D2D91159600F0AC54 /* Network */,
 				5FEBBBBB2D90F45F00F0AC54 /* Liblantern.xcframework */,
 				9740EEB11CF90186004384FC /* Flutter */,
 				97C146F01CF9000F007C117D /* Runner */,
@@ -570,6 +584,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5FEBBC1E2D9115B300F0AC54 /* ExtensionPlatformInterface.swift in Sources */,
+				5FEBBC1F2D9115B300F0AC54 /* ExtensionProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
