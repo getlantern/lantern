@@ -8,6 +8,7 @@ import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import org.getlantern.lantern.handler.MethodHandler
 import org.getlantern.lantern.service.LanternVpnService
+import org.getlantern.lantern.utils.VpnStatusManager
 import org.getlantern.lantern.utils.isServiceRunning
 
 
@@ -15,7 +16,7 @@ class MainActivity : FlutterActivity() {
     companion object {
         const val TAG = "A/MainActivity"
         lateinit var instance: MainActivity
-        const val VPN_PERMISSION_REQUEST_CODE = 1001
+        const val VPN_PERMISSION_REQUEST_CODE = 7777
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -57,6 +58,7 @@ class MainActivity : FlutterActivity() {
         } catch (e: Exception) {
             e.printStackTrace()
             Log.e(TAG, "Error starting VPN service", e)
+            VpnStatusManager.postStatus(error = e)
         }
     }
 
@@ -84,6 +86,7 @@ class MainActivity : FlutterActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+
         if (requestCode == VPN_PERMISSION_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
                 startVPN()

@@ -1,16 +1,18 @@
 package org.getlantern.lantern.handler
 
+import androidx.lifecycle.Observer
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.getlantern.lantern.MainActivity
+import org.getlantern.lantern.utils.VpnStatusManager
+import kotlin.Result.Companion.success
 
 
 enum class Methods(val method: String) {
-    Start("startVPN"),
-    Stop("stopVPN"),
+    Start("startVPN"), Stop("stopVPN"),
 }
 
 class MethodHandler(private val scope: CoroutineScope) : FlutterPlugin,
@@ -40,11 +42,26 @@ class MethodHandler(private val scope: CoroutineScope) : FlutterPlugin,
         when (call.method) {
             Methods.Start.method -> {
                 scope.launch {
+                    val observer = object : Observer<Result<String>> {
+                        override fun onChanged(status: Result<String>) {
+                            status.onSuccess {
+                                success(it)
+                                VpnStatusManager.statusLiveData.removeObserver(this)
+                            }.onFailure { e ->
+                                result.error(
+                                    "start_vpn",
+                                    e.localizedMessage ?: "Please try again",
+                                    e
+                                )
+                                VpnStatusManager.statusLiveData.removeObserver(this)
+                            }
+                        }
+                    }
                     result.runCatching {
                         MainActivity.instance.startVPN()
-                        success(null)
+                        VpnStatusManager.statusLiveData.observe(MainActivity.instance, observer)
                     }.onFailure { e ->
-                        result.error("start_vpn", e.localizedMessage ?: "Please try again ", e)
+                        result.error("start_vpn", e.localizedMessage ?: "Please try again", e)
                     }
                 }
             }

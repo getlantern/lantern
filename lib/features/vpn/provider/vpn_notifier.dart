@@ -26,7 +26,17 @@ class VpnNotifier extends _$VpnNotifier {
 
   Future<Either<Failure, Unit>> _connectVPN() async {
     state = VPNStatus.connecting;
-    return ref.read(lanternServiceProvider).startVPN();
+    final result = await ref.read(lanternServiceProvider).startVPN();
+    result.fold(
+      (failure) {
+        state = VPNStatus.disconnected;
+      },
+      (_) {
+        state = VPNStatus.connected;
+      },
+    );
+    return result;
+
     // try {
     //   final result = await ref.read(lanternServiceProvider).startVPN();
     //

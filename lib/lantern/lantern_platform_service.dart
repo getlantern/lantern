@@ -14,9 +14,16 @@ class LanternPlatformService implements LanternCoreService {
     try {
       await _methodChannel.invokeMethod('startVPN');
       return Right(unit);
-    } on PlatformException catch (e) {
-      appLogger.error('Error starting VPN: ${e.message}',e);
-      return Left(Failure(error: e.toString(), localizedErrorMessage: e.localizedDescription));
+    } on PlatformException catch (ple) {
+      final errorMessage = ple.localizedDescription;
+      return Left(Failure(
+          error: ple.toString(),
+          localizedErrorMessage: ple.localizedDescription));
+    } catch (e, stackTrace) {
+      appLogger.error('Error starting VPN Flutter', e, stackTrace);
+      return Left(Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription));
     }
   }
 

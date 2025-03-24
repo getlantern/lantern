@@ -13,6 +13,7 @@ import kotlinx.coroutines.withContext
 import lantern.io.libbox.Notification
 import lantern.io.libbox.TunOptions
 import lantern.io.mobile.Mobile
+import org.getlantern.lantern.utils.VpnStatusManager
 import org.getlantern.lantern.utils.initConfigDir
 import org.getlantern.lantern.utils.toIpPrefix
 
@@ -99,17 +100,18 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
         }
     }
 
-    private suspend fun startVPN() {
-        if (prepare(this) != null) {
-            error("android: missing vpn permission")
+    private suspend fun startVPN() = withContext(Dispatchers.IO) {
+        if (prepare(this@LanternVpnService) != null) {
+            VpnStatusManager.postStatus(error = Exception("Missing VPN permission"))
+            return@withContext
         }
-        try {
-            withContext(Dispatchers.IO) {
-                Mobile.startVPN()
-                Log.d(TAG, "VPN service started")
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error starting VPN service", e)
+        runCatching {
+            Mobile.startVPN()
+            Log.d(TAG, "VPN service started")
+            VpnStatusManager.postStatus(successMessage = "VPN service started")
+        }.onFailure { e ->
+//            Log.e(TAG, "Error starting VPN service", e)
+            VpnStatusManager.postStatus(error = e)
         }
     }
 
