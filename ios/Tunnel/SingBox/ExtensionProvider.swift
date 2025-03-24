@@ -25,6 +25,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
     public var username: String? = nil
     private var commandServer: LibboxCommandServer!
     private var boxService: LibboxBoxService!
+    private var radiance: RadianceRadiance!
     private var systemProxyAvailable = false
     private var systemProxyEnabled = false
     private var platformInterface: ExtensionPlatformInterface!
@@ -95,8 +96,8 @@ open class ExtensionProvider: NEPacketTunnelProvider {
 
     private func startService() async {
         var error: NSError?
-        let configContent = ""
-        let service = LibboxNewService(configContent, platformInterface, &error)
+        let baseDir = "" // TODO fix this
+        let service = RadianceNewRadiance(baseDir, platformInterface, &error)
         if let error {
             writeFatalError("(packet-tunnel) error: create service: \(error.localizedDescription)")
             return
@@ -105,19 +106,20 @@ open class ExtensionProvider: NEPacketTunnelProvider {
             return
         }
         do {
-            try service.start()
+            try service.startVPN()
         } catch {
             writeFatalError("(packet-tunnel) error: start service: \(error.localizedDescription)")
             return
         }
-        commandServer.setService(service)
-        boxService = service
+        //commandServer.setService(service)
+        //boxService = service
+        radiance = service
         #if os(macOS)
             //await SharedPreferences.startedByUser.set(true)
             if service.needWIFIState() {
                 if !Variant.useSystemExtension {
                     locationManager = CLLocationManager()
-                    locationDelegate = stubLocationDelegate(boxService)
+                    locationDelegate = stubLocationDelegate(radiance)
                     locationManager?.delegate = locationDelegate
                     locationManager?.requestLocation()
                 } else {
@@ -133,13 +135,13 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         private var locationDelegate: stubLocationDelegate?
 
         class stubLocationDelegate: NSObject, CLLocationManagerDelegate {
-            private unowned let boxService: LibboxBoxService
-            init(_ boxService: LibboxBoxService) {
-                self.boxService = boxService
+            private unowned let radiance: Radiance
+            init(_ radiance: Radiance) {
+                self.radiance = radiance
             }
 
             func locationManagerDidChangeAuthorization(_: CLLocationManager) {
-                boxService.updateWIFIState()
+                //boxService.updateWIFIState()
             }
 
             func locationManager(_: CLLocationManager, didUpdateLocations _: [CLLocation]) {}
@@ -150,13 +152,14 @@ open class ExtensionProvider: NEPacketTunnelProvider {
     #endif
 
     private func stopService() {
-        if let service = boxService {
+        if let service = radiance {
             do {
-                try service.close()
+                try radiance.stopVPN()
             } catch {
                 writeMessage("(packet-tunnel) error: stop service: \(error.localizedDescription)")
             }
             boxService = nil
+            radiance = nil
             commandServer.setService(nil)
         }
         if let platformInterface {
@@ -177,6 +180,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
 
     func postServiceClose() {
         boxService = nil
+        radiance = nil
     }
 
     override open func stopTunnel(with reason: NEProviderStopReason) async {
