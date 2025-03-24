@@ -153,7 +153,7 @@ $(ANDROID_LIB_BUILD): $(GO_SOURCES)
 
 # iOS Build
 .PHONY: ios
-ios: $(IOS_BUILD)
+ios: $(IOS_FRAMEWORK_BUILD)
 
 $(IOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 	@echo "Building iOS Framework..."
