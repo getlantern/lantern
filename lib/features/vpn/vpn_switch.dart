@@ -60,9 +60,9 @@ class VPNSwitch extends HookConsumerWidget {
     );
   }
 
-  Future<void> onVPNStateChange(
-      WidgetRef ref, BuildContext context) async {
-    final result = await ref.read(vpnNotifierProvider.notifier).onVPNStateChange();
+  Future<void> onVPNStateChange(WidgetRef ref, BuildContext context) async {
+    final result =
+        await ref.read(vpnNotifierProvider.notifier).onVPNStateChange();
 
     result.fold(
       (failure) => context.showSnackBarError(failure.localizedErrorMessage),

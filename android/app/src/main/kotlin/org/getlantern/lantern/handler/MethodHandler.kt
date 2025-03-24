@@ -41,9 +41,10 @@ class MethodHandler(private val scope: CoroutineScope) : FlutterPlugin,
             Methods.Start.method -> {
                 scope.launch {
                     result.runCatching {
-                        val mainActivity = MainActivity.instance
-                        mainActivity.startVPN()
-                        success("start")
+                        MainActivity.instance.startVPN()
+                        success(null)
+                    }.onFailure { e ->
+                        result.error("start_vpn", e.localizedMessage ?: "Please try again ", e)
                     }
                 }
             }

@@ -26,21 +26,19 @@ class VpnNotifier extends _$VpnNotifier {
 
   Future<Either<Failure, Unit>> _connectVPN() async {
     state = VPNStatus.connecting;
-    try {
-      final error = await ref.read(lanternServiceProvider).startVPN();
-      // if (error != null) {
-      //   state = VPNStatus.disconnected;
-      //   return Left(Failure(error: error, localizedErrorMessage: error));
-      // }
-      await Future.delayed(const Duration(seconds: 1));
-      state = VPNStatus.connected;
-      return Right(unit);
-    } catch (e) {
-      appLogger.error("Error connecting to VPN: $e");
-      state = VPNStatus.disconnected;
-      return Left(
-          Failure(error: e.toString(), localizedErrorMessage: e.toString()));
-    }
+    return ref.read(lanternServiceProvider).startVPN();
+    // try {
+    //   final result = await ref.read(lanternServiceProvider).startVPN();
+    //
+    //   await Future.delayed(const Duration(seconds: 1));
+    //   state = VPNStatus.connected;
+    //   return Right(unit);
+    // } catch (e) {
+    //   appLogger.error("Error connecting to VPN: $e");
+    //   state = VPNStatus.disconnected;
+    //   return Left(
+    //       Failure(error: e.toString(), localizedErrorMessage: e.toString()));
+    // }
   }
 
   Future<String?> _startVPN() async {

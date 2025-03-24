@@ -18,10 +18,10 @@ var (
 	radianceServer *radiance.Radiance
 )
 
-func SetupRadiance(configDir string, platform libbox.PlatformInterface) {
+func SetupRadiance(logDir string, platform libbox.PlatformInterface) {
 	radianceMutex.Lock()
 	defer radianceMutex.Unlock()
-	r, err := radiance.NewRadiance(configDir, platform)
+	r, err := radiance.NewRadiance(logDir, platform)
 	if err != nil {
 		log.Errorf("Unable to create Radiance: %v", err)
 		return
@@ -30,7 +30,7 @@ func SetupRadiance(configDir string, platform libbox.PlatformInterface) {
 	log.Debug("Radiance setup successfully")
 }
 
-func StartVPN() {
+func StartVPN() error {
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Printf("Recovered from panic in StartVPN: %v\nStack trace:\n%s\n", r, debug.Stack())
@@ -38,11 +38,19 @@ func StartVPN() {
 	}()
 
 	log.Debug("Starting VPN")
-	radianceServer.StartVPN()
+	err := radianceServer.StartVPN()
+	if err != nil {
+		return log.Errorf("Error starting VPN: %v", err)
+	}
+	return nil
 }
 
-func StopVPN() {
-	radianceServer.StopVPN()
+func StopVPN() error {
+	er := radianceServer.StopVPN()
+	if er != nil {
+		log.Errorf("Error stopping VPN: %v", er)
+	}
+	return nil
 }
 
 func GetAvailableServers() {

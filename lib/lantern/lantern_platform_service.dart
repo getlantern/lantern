@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:fpdart/src/either.dart';
 import 'package:fpdart/src/unit.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/extensions/error.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 
 class LanternPlatformService implements LanternCoreService {
@@ -9,11 +10,13 @@ class LanternPlatformService implements LanternCoreService {
       MethodChannel('org.getlantern.lantern/method');
 
   @override
-  void startVPN() {
+  Future<Either<Failure, Unit>> startVPN() async {
     try {
-      _methodChannel.invokeMethod('startVPN');
+      await _methodChannel.invokeMethod('startVPN');
+      return Right(unit);
     } on PlatformException catch (e) {
-      appLogger.error('Error starting VPN: ${e.message}');
+      appLogger.error('Error starting VPN: ${e.message}',e);
+      return Left(Failure(error: e.toString(), localizedErrorMessage: e.localizedDescription));
     }
   }
 

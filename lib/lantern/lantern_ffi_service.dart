@@ -5,6 +5,7 @@ import 'dart:isolate';
 import 'package:ffi/ffi.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/services/logger_service.dart';
+import 'package:lantern/core/utils/failure.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_generated_bindings.dart';
 import 'package:lantern/lantern/lantern_service.dart';
@@ -38,9 +39,7 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  void startVPN() {
-    // TODO: implement startVPN
-  }
+
 
   @override
   void stopVPN() {
@@ -53,7 +52,7 @@ class LanternFFIService implements LanternCoreService {
       appLogger.debug('Setting up radiance');
       final result = await Isolate.run(
         () {
-          return _ffiService.setupRadiance().cast<Utf8>().toDartString();
+          // return _ffiService.setupRadiance().cast<Utf8>().toDartString();
         },
       );
       appLogger.debug('Radiance setup result: $result');
@@ -62,5 +61,11 @@ class LanternFFIService implements LanternCoreService {
       appLogger.error('Error while setting up radiance: $e');
       return left('Error while setting up radiance');
     }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> startVPN() {
+    // TODO: implement startVPN
+    throw UnimplementedError();
   }
 }

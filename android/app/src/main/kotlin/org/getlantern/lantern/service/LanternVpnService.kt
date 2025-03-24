@@ -1,6 +1,5 @@
 package org.getlantern.lantern.service
 
-import android.content.Context
 import android.content.Intent
 import android.net.VpnService
 import android.os.Build
@@ -14,8 +13,8 @@ import kotlinx.coroutines.withContext
 import lantern.io.libbox.Notification
 import lantern.io.libbox.TunOptions
 import lantern.io.mobile.Mobile
+import org.getlantern.lantern.utils.initConfigDir
 import org.getlantern.lantern.utils.toIpPrefix
-import java.io.File
 
 class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
 
@@ -33,9 +32,7 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
     // SupervisorJob ensures that failure in one child doesn't cancel the whole scope.
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-
     private var mInterface: ParcelFileDescriptor? = null
-
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val i = intent?.action ?: return START_STICKY
@@ -93,10 +90,8 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
 
     private suspend fun startRadiance() {
         try {
-            val configDir = this.filesDir.absolutePath
-            // If Mobile.setupRadiance is a blocking call, consider switching to withContext(Dispatchers.IO) if needed.
             withContext(Dispatchers.IO) {
-                Mobile.setupRadiance(configDir, this@LanternVpnService)
+                Mobile.setupRadiance(initConfigDir(), this@LanternVpnService)
             }
             Log.d(TAG, "Radiance setup completed")
         } catch (e: Exception) {
