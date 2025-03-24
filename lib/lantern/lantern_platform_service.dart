@@ -10,12 +10,11 @@ class LanternPlatformService implements LanternCoreService {
       MethodChannel('org.getlantern.lantern/method');
 
   @override
-  Future<Either<Failure, Unit>> startVPN() async {
+  Future<Either<Failure, String>> startVPN() async {
     try {
-      await _methodChannel.invokeMethod('startVPN');
-      return Right(unit);
+      final message =  await _methodChannel.invokeMethod<String>('startVPN');
+      return Right(message!);
     } on PlatformException catch (ple) {
-      final errorMessage = ple.localizedDescription;
       return Left(Failure(
           error: ple.toString(),
           localizedErrorMessage: ple.localizedDescription));

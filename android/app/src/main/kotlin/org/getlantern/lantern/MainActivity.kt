@@ -86,12 +86,11 @@ class MainActivity : FlutterActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-
         if (requestCode == VPN_PERMISSION_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
                 startVPN()
             } else {
-                Log.d(TAG, "VPN permission denied")
+                VpnStatusManager.postStatus(successMessage = "VPN permission denied")
             }
         }
     }

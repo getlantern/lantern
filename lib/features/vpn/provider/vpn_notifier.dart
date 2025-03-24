@@ -17,21 +17,25 @@ class VpnNotifier extends _$VpnNotifier {
     return state;
   }
 
-  Future<Either<Failure, Unit>> onVPNStateChange() async {
+  Future<Either<Failure, String>> onVPNStateChange() async {
     if (state == VPNStatus.connecting || state == VPNStatus.disconnecting) {
-      return Right(unit);
+      return Right("");
     }
     return state == VPNStatus.disconnected ? _connectVPN() : stopVPN();
   }
 
-  Future<Either<Failure, Unit>> _connectVPN() async {
+  Future<Either<Failure, String>> _connectVPN() async {
     state = VPNStatus.connecting;
     final result = await ref.read(lanternServiceProvider).startVPN();
     result.fold(
       (failure) {
         state = VPNStatus.disconnected;
       },
-      (_) {
+      (success) {
+        if (success.contains('VPN permission denied')) {
+          state = VPNStatus.disconnected;
+          return;
+        }
         state = VPNStatus.connected;
       },
     );
@@ -62,7 +66,7 @@ class VpnNotifier extends _$VpnNotifier {
     throw UnsupportedError('VPN is not supported on this platform.');
   }
 
-  Future<Either<Failure, Unit>> stopVPN() async {
+  Future<Either<Failure, String>> stopVPN() async {
     try {
       final error = await _stopVPN();
       if (error != null) {
@@ -71,7 +75,7 @@ class VpnNotifier extends _$VpnNotifier {
         return Left(Failure(error: error, localizedErrorMessage: error));
       }
       state = VPNStatus.disconnected;
-      return Right(unit);
+      return Right("unit");
     } catch (e) {
       appLogger.error("Error stopping VPN: $e");
       return Left(

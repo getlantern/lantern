@@ -19,7 +19,7 @@ class LanternService implements LanternCoreService {
   });
 
   @override
-  Future<Either<Failure, Unit>> startVPN() async {
+  Future<Either<Failure, String>> startVPN() async {
     if (PlatformUtils.isDesktop()) {
       throw UnimplementedError();
     }

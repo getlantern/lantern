@@ -4,7 +4,7 @@ import 'package:lantern/core/common/common.dart';
 /// LanternCoreService has all method that interact with lantern-core services
 abstract class LanternCoreService{
   Future<Either<String,Unit>> setupRadiance();
-  Future<Either<Failure,Unit>> startVPN();
+  Future<Either<Failure,String>> startVPN();
 
   void stopVPN();
 }

@@ -7,6 +7,7 @@ import io.flutter.plugin.common.MethodChannel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.getlantern.lantern.MainActivity
+import org.getlantern.lantern.utils.Event
 import org.getlantern.lantern.utils.VpnStatusManager
 import kotlin.Result.Companion.success
 
@@ -42,21 +43,25 @@ class MethodHandler(private val scope: CoroutineScope) : FlutterPlugin,
         when (call.method) {
             Methods.Start.method -> {
                 scope.launch {
-                    val observer = object : Observer<Result<String>> {
-                        override fun onChanged(status: Result<String>) {
-                            status.onSuccess {
-                                success(it)
-                                VpnStatusManager.statusLiveData.removeObserver(this)
-                            }.onFailure { e ->
-                                result.error(
-                                    "start_vpn",
-                                    e.localizedMessage ?: "Please try again",
-                                    e
-                                )
-                                VpnStatusManager.statusLiveData.removeObserver(this)
+                    val observer = object : Observer<Event<Result<String>>> {
+                        override fun onChanged(event: Event<Result<String>>) {
+                            event.contentIfNotHandled?.let { status ->
+                                status.onSuccess {
+                                    success(it)
+                                    VpnStatusManager.statusLiveData.removeObserver(this)
+                                    result.success(it)
+                                }.onFailure { e ->
+                                    result.error(
+                                        "start_vpn",
+                                        e.localizedMessage ?: "Please try again",
+                                        e
+                                    )
+                                    VpnStatusManager.statusLiveData.removeObserver(this)
+                                }
                             }
                         }
                     }
+
                     result.runCatching {
                         MainActivity.instance.startVPN()
                         VpnStatusManager.statusLiveData.observe(MainActivity.instance, observer)

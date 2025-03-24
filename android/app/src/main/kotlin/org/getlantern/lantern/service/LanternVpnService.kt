@@ -44,7 +44,6 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
                         startRadiance()
                     }
                 }
-
                 ACTION_START_VPN -> {
                     serviceScope.launch {
                         startVPN()
@@ -56,7 +55,6 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
                         stopVPN()
                     }
                 }
-
                 else -> {}
             }
         }
@@ -108,9 +106,9 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
         runCatching {
             Mobile.startVPN()
             Log.d(TAG, "VPN service started")
-            VpnStatusManager.postStatus(successMessage = "VPN service started")
+            VpnStatusManager.postStatus(successMessage = "VPN Started")
         }.onFailure { e ->
-//            Log.e(TAG, "Error starting VPN service", e)
+            Log.e(TAG, "Error starting VPN service", e)
             VpnStatusManager.postStatus(error = e)
         }
     }

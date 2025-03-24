@@ -64,7 +64,7 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> startVPN() {
+  Future<Either<Failure, String>> startVPN() {
     // TODO: implement startVPN
     throw UnimplementedError();
   }
