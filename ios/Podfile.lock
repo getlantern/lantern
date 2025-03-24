@@ -4,8 +4,6 @@ PODS:
   - Flutter (1.0.0)
   - integration_test (0.0.1):
     - Flutter
-  - Liblantern (0.0.1):
-    - Flutter
   - ObjectBox (4.1.0)
   - objectbox_flutter_libs (0.0.1):
     - Flutter
@@ -32,7 +30,6 @@ DEPENDENCIES:
   - app_links (from `.symlinks/plugins/app_links/ios`)
   - Flutter (from `Flutter`)
   - integration_test (from `.symlinks/plugins/integration_test/ios`)
-  - Liblantern (from `.`)
   - objectbox_flutter_libs (from `.symlinks/plugins/objectbox_flutter_libs/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
@@ -53,8 +50,6 @@ EXTERNAL SOURCES:
     :path: Flutter
   integration_test:
     :path: ".symlinks/plugins/integration_test/ios"
-  Liblantern:
-    :path: "."
   objectbox_flutter_libs:
     :path: ".symlinks/plugins/objectbox_flutter_libs/ios"
   package_info_plus:
@@ -74,7 +69,6 @@ SPEC CHECKSUMS:
   app_links: f3e17e4ee5e357b39d8b95290a9b2c299fca71c6
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   integration_test: 252f60fa39af5e17c3aa9899d35d908a0721b573
-  Liblantern: fbb6544374b85ca04d1eaf4de311f63d7d0ce01a
   ObjectBox: bf3d4b51075d52868422d5d1f2f2141b1d630d30
   objectbox_flutter_libs: 2f30755c12b0fe104d75445c3ba879e3072eda54
   package_info_plus: c0502532a26c7662a62a356cebe2692ec5fe4ec4
@@ -85,6 +79,6 @@ SPEC CHECKSUMS:
   shared_preferences_foundation: fcdcbc04712aee1108ac7fda236f363274528f78
   url_launcher_ios: 5334b05cef931de560670eeae103fd3e431ac3fe
 
-PODFILE CHECKSUM: ca8f73e305478fa2610321b61ab9a52586176b32
+PODFILE CHECKSUM: 929483664d428e609c45cb944d2993cb58b0e629
 
 COCOAPODS: 1.16.2
