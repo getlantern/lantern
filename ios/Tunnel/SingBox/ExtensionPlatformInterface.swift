@@ -19,7 +19,7 @@ import UserNotifications
     import CoreWLAN
 #endif
 
-public class ExtensionPlatformInterface: NSObject, LiblanternPlatformInterfaceProtocol, LibboxCommandServerHandlerProtocol {
+public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtocol, LibboxCommandServerHandlerProtocol {
     private let tunnel: ExtensionProvider
     private var networkSettings: NEPacketTunnelNetworkSettings?
 

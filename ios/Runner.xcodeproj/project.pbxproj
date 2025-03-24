@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -13,14 +13,13 @@
 		530385FFD1EF91BE50B06694 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A430D395EEE508A6C60559A5 /* Pods_RunnerTests.framework */; };
 		5F0515D02D20DB5100E704BE /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F0515CF2D20DB5100E704BE /* NetworkExtension.framework */; };
 		5F05186F2D224C3300E704BE /* Tunnel.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5F0515CE2D20DB5100E704BE /* Tunnel.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		5F1CE20B2D9139FB00BD053C /* Package.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F1CE2092D9139FA00BD053C /* Package.swift */; };
 		5F7A35462D23504000AF1761 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F0515CF2D20DB5100E704BE /* NetworkExtension.framework */; };
 		5F7A35472D23518700AF1761 /* Liblantern.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F0515BC2D20B58600E704BE /* Liblantern.xcframework */; };
 		5F9537412D2B67DF009BB822 /* VPNBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F95373E2D2B67DF009BB822 /* VPNBase.swift */; };
 		5F9537422D2B67DF009BB822 /* VPNManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F95373F2D2B67DF009BB822 /* VPNManager.swift */; };
 		5F9537662D2B6F07009BB822 /* MethodHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F9537652D2B6F07009BB822 /* MethodHandler.swift */; };
 		5FEBBBC82D90F55400F0AC54 /* Liblantern.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5FEBBBBB2D90F45F00F0AC54 /* Liblantern.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		5FEBBC1E2D9115B300F0AC54 /* ExtensionPlatformInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FEBBC1B2D91159600F0AC54 /* ExtensionPlatformInterface.swift */; };
-		5FEBBC1F2D9115B300F0AC54 /* ExtensionProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FEBBC1C2D91159600F0AC54 /* ExtensionProvider.swift */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
@@ -43,25 +42,9 @@
 			remoteGlobalIDString = 5F0515CD2D20DB5100E704BE;
 			remoteInfo = LanternTunnel;
 		};
-		5F7A38902D23AD4F00AF1761 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 97C146E61CF9000F007C117D /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 5F0515C12D20BDBE00E704BE;
-			remoteInfo = Liblantern;
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		5F0515C02D20BDBE00E704BE /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "include/$(PRODUCT_NAME)";
-			dstSubfolderSpec = 16;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		5F0515D82D20DB5200E704BE /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -97,7 +80,6 @@
 		3D9EF863C47997DF7C607FDC /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
 		51959B83065D976563F16CA2 /* Pods-RunnerTests.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.profile.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.profile.xcconfig"; sourceTree = "<group>"; };
 		5F0515BC2D20B58600E704BE /* Liblantern.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = Liblantern.xcframework; sourceTree = "<group>"; };
-		5F0515C22D20BDBE00E704BE /* libLiblantern.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libLiblantern.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		5F0515CE2D20DB5100E704BE /* Tunnel.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = Tunnel.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		5F0515CF2D20DB5100E704BE /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
 		5F0516162D21ED2D00E704BE /* Liblantern.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Liblantern.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -106,14 +88,13 @@
 		5F0516512D21F30400E704BE /* Liblantern.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Liblantern.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		5F0517192D2233D200E704BE /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
 		5F05189C2D225B8500E704BE /* Liblantern.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Liblantern.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		5F1CE2092D9139FA00BD053C /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
 		5F7A32EC2D2265F700AF1761 /* Liblantern.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Liblantern.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		5F7A35442D234C4B00AF1761 /* Liblantern.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Liblantern.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		5F95373E2D2B67DF009BB822 /* VPNBase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VPNBase.swift; sourceTree = "<group>"; };
 		5F95373F2D2B67DF009BB822 /* VPNManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VPNManager.swift; sourceTree = "<group>"; };
 		5F9537652D2B6F07009BB822 /* MethodHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MethodHandler.swift; sourceTree = "<group>"; };
 		5FEBBBBB2D90F45F00F0AC54 /* Liblantern.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = Liblantern.xcframework; sourceTree = "<group>"; };
-		5FEBBC1B2D91159600F0AC54 /* ExtensionPlatformInterface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionPlatformInterface.swift; sourceTree = "<group>"; };
-		5FEBBC1C2D91159600F0AC54 /* ExtensionProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionProvider.swift; sourceTree = "<group>"; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
@@ -168,13 +149,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		5F0515BF2D20BDBE00E704BE /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		5F0515CB2D20DB5100E704BE /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -204,6 +178,14 @@
 			path = RunnerTests;
 			sourceTree = "<group>";
 		};
+		5F1CE20A2D9139FA00BD053C /* Local Packages */ = {
+			isa = PBXGroup;
+			children = (
+				5F1CE2092D9139FA00BD053C /* Package.swift */,
+			);
+			path = "Local Packages";
+			sourceTree = "<group>";
+		};
 		5F9537402D2B67DF009BB822 /* Lantern */ = {
 			isa = PBXGroup;
 			children = (
@@ -212,15 +194,6 @@
 				5F9537652D2B6F07009BB822 /* MethodHandler.swift */,
 			);
 			path = Lantern;
-			sourceTree = "<group>";
-		};
-		5FEBBC1D2D91159600F0AC54 /* Network */ = {
-			isa = PBXGroup;
-			children = (
-				5FEBBC1B2D91159600F0AC54 /* ExtensionPlatformInterface.swift */,
-				5FEBBC1C2D91159600F0AC54 /* ExtensionProvider.swift */,
-			);
-			path = Network;
 			sourceTree = "<group>";
 		};
 		8B8AB31C4F200C9B812FE72B /* Pods */ = {
@@ -250,7 +223,6 @@
 		97C146E51CF9000F007C117D = {
 			isa = PBXGroup;
 			children = (
-				5FEBBC1D2D91159600F0AC54 /* Network */,
 				5FEBBBBB2D90F45F00F0AC54 /* Liblantern.xcframework */,
 				9740EEB11CF90186004384FC /* Flutter */,
 				97C146F01CF9000F007C117D /* Runner */,
@@ -259,6 +231,7 @@
 				331C8082294A63A400263BE5 /* RunnerTests */,
 				8B8AB31C4F200C9B812FE72B /* Pods */,
 				B088A132265A1E5C0B68570E /* Frameworks */,
+				5F1CE20A2D9139FA00BD053C /* Local Packages */,
 			);
 			sourceTree = "<group>";
 		};
@@ -267,7 +240,6 @@
 			children = (
 				97C146EE1CF9000F007C117D /* Runner.app */,
 				331C8081294A63A400263BE5 /* RunnerTests.xctest */,
-				5F0515C22D20BDBE00E704BE /* libLiblantern.a */,
 				5F0515CE2D20DB5100E704BE /* Tunnel.appex */,
 			);
 			name = Products;
@@ -330,23 +302,6 @@
 			productReference = 331C8081294A63A400263BE5 /* RunnerTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		5F0515C12D20BDBE00E704BE /* Liblantern */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 5F0515C92D20BDBE00E704BE /* Build configuration list for PBXNativeTarget "Liblantern" */;
-			buildPhases = (
-				5F0515BE2D20BDBE00E704BE /* Sources */,
-				5F0515BF2D20BDBE00E704BE /* Frameworks */,
-				5F0515C02D20BDBE00E704BE /* CopyFiles */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = Liblantern;
-			productName = Liblantern;
-			productReference = 5F0515C22D20BDBE00E704BE /* libLiblantern.a */;
-			productType = "com.apple.product-type.library.static";
-		};
 		5F0515CD2D20DB5100E704BE /* Tunnel */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 5F0515DE2D20DB5200E704BE /* Build configuration list for PBXNativeTarget "Tunnel" */;
@@ -358,7 +313,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				5F7A38912D23AD4F00AF1761 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				5F0515D12D20DB5200E704BE /* Tunnel */,
@@ -407,9 +361,6 @@
 						CreatedOnToolsVersion = 14.0;
 						TestTargetID = 97C146ED1CF9000F007C117D;
 					};
-					5F0515C12D20BDBE00E704BE = {
-						CreatedOnToolsVersion = 16.2;
-					};
 					5F0515CD2D20DB5100E704BE = {
 						CreatedOnToolsVersion = 16.2;
 						LastSwiftMigration = 1620;
@@ -435,7 +386,6 @@
 			targets = (
 				97C146ED1CF9000F007C117D /* Runner */,
 				331C8080294A63A400263BE5 /* RunnerTests */,
-				5F0515C12D20BDBE00E704BE /* Liblantern */,
 				5F0515CD2D20DB5100E704BE /* Tunnel */,
 			);
 		};
@@ -573,19 +523,10 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		5F0515BE2D20BDBE00E704BE /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		5F0515CA2D20DB5100E704BE /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5FEBBC1E2D9115B300F0AC54 /* ExtensionPlatformInterface.swift in Sources */,
-				5FEBBC1F2D9115B300F0AC54 /* ExtensionProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -596,6 +537,7 @@
 				5F9537412D2B67DF009BB822 /* VPNBase.swift in Sources */,
 				5F9537662D2B6F07009BB822 /* MethodHandler.swift in Sources */,
 				5F9537422D2B67DF009BB822 /* VPNManager.swift in Sources */,
+				5F1CE20B2D9139FB00BD053C /* Package.swift in Sources */,
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 			);
@@ -613,11 +555,6 @@
 			isa = PBXTargetDependency;
 			target = 5F0515CD2D20DB5100E704BE /* Tunnel */;
 			targetProxy = 5F0515D62D20DB5200E704BE /* PBXContainerItemProxy */;
-		};
-		5F7A38912D23AD4F00AF1761 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 5F0515C12D20BDBE00E704BE /* Liblantern */;
-			targetProxy = 5F7A38902D23AD4F00AF1761 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -795,78 +732,6 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Runner.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Runner";
-			};
-			name = Profile;
-		};
-		5F0515C62D20BDBE00E704BE /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = ACZRKC3LQ9;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu17;
-				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
-				MTL_FAST_MATH = YES;
-				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
-				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		5F0515C72D20BDBE00E704BE /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = ACZRKC3LQ9;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu17;
-				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MTL_FAST_MATH = YES;
-				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Release;
-		};
-		5F0515C82D20BDBE00E704BE /* Profile */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = ACZRKC3LQ9;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu17;
-				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MTL_FAST_MATH = YES;
-				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Profile;
 		};
@@ -1243,16 +1108,6 @@
 				331C8088294A63A400263BE5 /* Debug */,
 				331C8089294A63A400263BE5 /* Release */,
 				331C808A294A63A400263BE5 /* Profile */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		5F0515C92D20BDBE00E704BE /* Build configuration list for PBXNativeTarget "Liblantern" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				5F0515C62D20BDBE00E704BE /* Debug */,
-				5F0515C72D20BDBE00E704BE /* Release */,
-				5F0515C82D20BDBE00E704BE /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

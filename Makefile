@@ -141,7 +141,7 @@ $(ANDROID_LIB_NAME): $(GO_SOURCES)
 	make install-android-deps
 	@echo "Building Android library..."
 	mkdir -p $(BUILD_DIR)/android
-	GOOS=android gomobile bind -v -androidapi=21 -tags=$(TAGS) -trimpath -target=android -o $@ $(RADIANCE_REPO)
+	GOOS=android gomobile bind -v -androidapi=21 -tags=$(TAGS) -trimpath -target=android -o $@ $(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox ./lantern-core/mobile
 	@echo "Built Android library: $@"
 
 # iOS Build
