@@ -12,7 +12,7 @@ class LanternPlatformService implements LanternCoreService {
   @override
   Future<Either<Failure, String>> startVPN() async {
     try {
-      final message =  await _methodChannel.invokeMethod<String>('startVPN');
+      final message = await _methodChannel.invokeMethod<String>('startVPN');
       return Right(message!);
     } on PlatformException catch (ple) {
       return Left(Failure(
@@ -27,11 +27,18 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  void stopVPN() {
+  Future<Either<Failure, String>> stopVPN() async {
     try {
-      _methodChannel.invokeMethod('startVPN');
-    } on PlatformException catch (e) {
-      appLogger.error('Error starting VPN: ${e.message}');
+      final message = await _methodChannel.invokeMethod<String>('stopVPN');
+      return Right('VPN stopped');
+    } on PlatformException catch (ple) {
+      return Left(Failure(
+          error: ple.toString(),
+          localizedErrorMessage: ple.localizedDescription));
+    } catch (e, stackTrace) {
+      return Left(Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription));
     }
   }
 

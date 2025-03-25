@@ -10,14 +10,17 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import lantern.io.libbox.CommandServer
+import lantern.io.libbox.CommandServerHandler
 import lantern.io.libbox.Notification
+import lantern.io.libbox.SystemProxyStatus
 import lantern.io.libbox.TunOptions
 import lantern.io.mobile.Mobile
 import org.getlantern.lantern.utils.VpnStatusManager
 import org.getlantern.lantern.utils.initConfigDir
 import org.getlantern.lantern.utils.toIpPrefix
 
-class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
+class LanternVpnService : VpnService(), PlatformInterfaceWrapper, CommandServerHandler {
 
     companion object {
         private const val TAG = "VpnService"
@@ -34,6 +37,7 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     private var mInterface: ParcelFileDescriptor? = null
+    private var commandServer: CommandServer? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val i = intent?.action ?: return START_STICKY
@@ -44,6 +48,7 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
                         startRadiance()
                     }
                 }
+
                 ACTION_START_VPN -> {
                     serviceScope.launch {
                         startVPN()
@@ -55,6 +60,7 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
                         stopVPN()
                     }
                 }
+
                 else -> {}
             }
         }
@@ -84,7 +90,8 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
     }
 
     override fun writeLog(p0: String?) {
-        TODO("Not yet implemented")
+
+        Log.d(TAG, "writeLog: $p0")
     }
 
     private suspend fun startRadiance() {
@@ -191,5 +198,29 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
             }
         }
         return builder
+    }
+
+
+    private fun startCommandServer() {
+        val commandServer = CommandServer(this, 300)
+        commandServer.start()
+        this.commandServer = commandServer
+    }
+
+    ///CommandServerHandler Methods
+    override fun getSystemProxyStatus(): SystemProxyStatus {
+        TODO("Not yet implemented")
+    }
+
+    override fun postServiceClose() {
+        TODO("Not yet implemented")
+    }
+
+    override fun serviceReload() {
+        TODO("Not yet implemented")
+    }
+
+    override fun setSystemProxyEnabled(p0: Boolean) {
+        TODO("Not yet implemented")
     }
 }

@@ -31,18 +31,16 @@ func SetupRadiance(logDir string, platform libbox.PlatformInterface) {
 }
 
 func StartVPN() error {
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Printf("Recovered from panic in StartVPN: %v\nStack trace:\n%s\n", r, debug.Stack())
-		}
-	}()
-
 	log.Debug("Starting VPN")
 	err := radianceServer.StartVPN()
 	if err != nil {
-		return log.Errorf("Error starting VPN: %v", err)
+		log.Errorf("Error starting VPN: %v", err)
+		return err
 	}
 	return nil
+}
+func VPNStatus() string {
+	radianceServer.SetPreferredServer()
 }
 
 func StopVPN() error {

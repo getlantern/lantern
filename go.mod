@@ -8,7 +8,7 @@ replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v
 
 require (
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
-	github.com/getlantern/radiance v0.0.0-20250321193210-66119b07ce0f
+	github.com/getlantern/radiance v0.0.0-20250324183230-fb72b940c44a
 	github.com/sagernet/sing-box v1.11.5
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/mobile v0.0.0-20240520174638-fa72addaaa1b

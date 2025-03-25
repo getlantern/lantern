@@ -11,7 +11,6 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
     var connection: NWConnection?
 
-    private var goEngine = GoEngine()
 
     private var excludedRoutes  = [
             //NEIPv4Route(destinationAddress: "192.168.0.253", subnetMask: "255.255.255.255"),

@@ -12,6 +12,6 @@ part 'lantern_service_notifier.g.dart';
 LanternService lanternService(Ref ref) {
   return LanternService(
     ffiService: sl<LanternFFIService>(),
-    nativeBridge: sl<LanternPlatformService>(),
+    platformService: sl<LanternPlatformService>(),
   );
 }

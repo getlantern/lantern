@@ -11,11 +11,11 @@ import '../core/common/common.dart';
 class LanternService implements LanternCoreService {
   final LanternFFIService ffiService;
 
-  final LanternPlatformService nativeBridge;
+  final LanternPlatformService platformService;
 
   LanternService({
     required this.ffiService,
-    required this.nativeBridge,
+    required this.platformService,
   });
 
   @override
@@ -23,13 +23,15 @@ class LanternService implements LanternCoreService {
     if (PlatformUtils.isDesktop()) {
       throw UnimplementedError();
     }
-    return nativeBridge.startVPN();
+    return platformService.startVPN();
   }
 
   @override
-  Future<void> stopVPN() {
-    // TODO: implement stopVPN
-    throw UnimplementedError();
+  Future<Either<Failure, String>> stopVPN() {
+    if (PlatformUtils.isDesktop()) {
+      throw UnimplementedError();
+    }
+    return platformService.stopVPN();
   }
 
   @override

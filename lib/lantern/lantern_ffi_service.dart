@@ -2,7 +2,6 @@ import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:ffi/ffi.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/utils/failure.dart';
@@ -21,7 +20,6 @@ const String _libName = 'liblantern';
 ///this service should communicate with library using ffi
 ///also this should be called from only [LanternService]
 class LanternFFIService implements LanternCoreService {
-
   static final LanternBindings _ffiService = _gen();
 
   static LanternBindings _gen() {
@@ -38,13 +36,7 @@ class LanternFFIService implements LanternCoreService {
     return LanternBindings(lib);
   }
 
-  @override
 
-
-  @override
-  void stopVPN() {
-    // TODO: implement stopVPN
-  }
 
   @override
   Future<Either<String, Unit>> setupRadiance() async {
@@ -66,6 +58,12 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, String>> startVPN() {
     // TODO: implement startVPN
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, String>> stopVPN() {
+    // TODO: implement stopVPN
     throw UnimplementedError();
   }
 }

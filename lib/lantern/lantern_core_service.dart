@@ -5,6 +5,5 @@ import 'package:lantern/core/common/common.dart';
 abstract class LanternCoreService{
   Future<Either<String,Unit>> setupRadiance();
   Future<Either<Failure,String>> startVPN();
-
-  void stopVPN();
+  Future<Either<Failure,String>> stopVPN();
 }
