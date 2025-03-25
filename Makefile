@@ -31,12 +31,13 @@ WINDOWS_LIB_BUILD := $(BUILD_DIR)/windows/$(WINDOWS_LIB)
 ANDROID_LIB := $(LANTERN_LIB_NAME).aar
 ANDROID_LIBS_DIR := android/app/libs
 ANDROID_LIB_BUILD := $(BUILD_DIR)/android/$(ANDROID_LIB)
+ANDROID_DEBUG_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-debug.apk
 
 IOS_FRAMEWORK := Liblantern.xcframework
 IOS_FRAMEWORK_DIR := ios/Frameworks
 IOS_FRAMEWORK_BUILD := $(BUILD_DIR)/ios/$(IOS_FRAMEWORK)
 
-TAGS=with_gvisor
+TAGS=with_gvisor,with_quic,with_wireguard,with_ech,with_utls,with_clash_api,with_grpc
 
 GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go')
 
@@ -147,9 +148,20 @@ $(ANDROID_LIB_BUILD): $(GO_SOURCES)
 	make install-android-deps
 	@echo "Building Android library..."
 	rm -f $@ && mkdir -p $(dir $@)
-	GOOS=android gomobile bind -v -androidapi=21 -tags=$(TAGS) -trimpath -target=android -o $@ $(RADIANCE_REPO)
-	mkdir -p $(ANDROID_LIBS_DIR) && mv $@ $(ANDROID_LIBS_DIR)
+	GOOS=android gomobile bind -v \
+               -javapkg=lantern.io \
+               -tags=$(TAGS) -trimpath \
+               -o=$@ \
+               -ldflags="-checklinkname=0" \
+                $(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox
+	mkdir -p $(ANDROID_LIBS_DIR) && cp $@ $(ANDROID_LIBS_DIR)
 	@echo "Built Android library: $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)"
+
+.PHONY: android-debug
+android-debug: $(ANDROID_DEBUG_BUILD)
+
+$(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD)
+	flutter build apk --target-platform android-arm,android-arm64,android-x64 --verbose --debug
 
 # iOS Build
 .PHONY: ios
@@ -183,6 +195,5 @@ find-duplicate-translations:
 	grep -oE 'msgid\s+"[^"]+"' assets/locales/en.po | sort | uniq -d
 
 clean:
-	flutter clean
 	rm -rf $(BUILD_DIR)/*
 	rm -rf $(DARWIN_FRAMEWORK_DIR)/*

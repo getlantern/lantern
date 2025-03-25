@@ -40,16 +40,16 @@ gomobile init
 sdkmanager "ndk;23.1.7779620" "cmake;3.18.1" "platform-tools"
 ```
 
-3. Build the Android Library
+3. Build the Android app
 
 ```
-make android
+make android-debug
 ```
 
-After running `make android`, you’ll find the compiled library here:
+After running `make android-debug`, you’ll find the APK here:
 
 ```
-bin/android/liblantern.aar
+build/app/outputs/flutter-apk/app-debug.apk
 ```
 
 # Running the Full Setup on macOS with an iOS Device
