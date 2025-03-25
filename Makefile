@@ -17,6 +17,7 @@ DARWIN_LIB := $(LANTERN_LIB_NAME).dylib
 DARWIN_LIB_AMD64 := $(BUILD_DIR)/macos-amd64/$(LANTERN_LIB_NAME).dylib
 DARWIN_LIB_ARM64 := $(BUILD_DIR)/macos-arm64/$(LANTERN_LIB_NAME).dylib
 DARWIN_LIB_BUILD := $(BUILD_DIR)/macos/$(DARWIN_LIB)
+DARWIN_DEBUG_BUILD := $(BUILD_DIR)/macos/Build/Products/Debug/$(DARWIN_APP_NAME)
 
 LINUX_LIB := $(LANTERN_LIB_NAME).so
 LINUX_LIB_AMD64 := $(BUILD_DIR)/linux-amd64/$(LANTERN_LIB_NAME).so
@@ -72,12 +73,14 @@ $(DARWIN_LIB_BUILD): $(GO_SOURCES)
 	rm -f $@ && mkdir -p $(dir $@)
 	lipo -create $(DARWIN_LIB_ARM64) $(DARWIN_LIB_AMD64) -output $@
 	install_name_tool -id "@rpath/${DARWIN_LIB}" $@
-	mkdir -p $(DARWIN_FRAMEWORK_DIR) && mv $@ $(DARWIN_FRAMEWORK_DIR)
+	mkdir -p $(DARWIN_FRAMEWORK_DIR) && cp $@ $(DARWIN_FRAMEWORK_DIR)
 	cp $(BUILD_DIR)/macos-amd64/$(LANTERN_LIB_NAME)*.h $(DARWIN_FRAMEWORK_DIR)/
 	@echo "Built macOS library: $(DARWIN_FRAMEWORK_DIR)/$(DARWIN_LIB)"
 
 .PHONY: macos-debug
-macos-debug: clean macos pubget gen
+macos-debug: $(DARWIN_DEBUG_BUILD)
+
+$(DARWIN_DEBUG_BUILD): $(DARWIN_LIB_BUILD)
 	@echo "Building Flutter app (debug) for macOS..."
 	flutter build macos --debug
 
