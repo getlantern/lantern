@@ -1,1 +1,0 @@
-void enforce_binding();

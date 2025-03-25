@@ -20,12 +20,37 @@ sudo build/macos/Build/Products/Debug/Lantern.app/Contents/MacOS/Lantern
 # Build and run the app on iOS
 
 ```
-make build-framework
-cd ios && pod install
+make ios
 flutter devices
 flutter run -d deviceID
 ```
 
+# Build and run the Android app
+
+1. Install Go and gomobile
+
+```
+go install golang.org/x/mobile/cmd/gomobile@latest
+gomobile init
+```
+
+2. Install Android SDK and NDK
+
+```
+sdkmanager "ndk;23.1.7779620" "cmake;3.18.1" "platform-tools"
+```
+
+3. Build the Android app
+
+```
+make android-debug
+```
+
+After running `make android-debug`, you’ll find the APK here:
+
+```
+build/app/outputs/flutter-apk/app-debug.apk
+```
 
 # Running the Full Setup on macOS with an iOS Device
 
