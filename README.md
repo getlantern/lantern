@@ -10,10 +10,11 @@ Censorship circumvention tool available for free download on any operating syste
 
 ![cover page](https://github.com/getlantern/.github/blob/main/resources/cover_page.png)
 
-# Build and run the app on macOS
+# Build and run the app on macOS (debug mode)
 ```
 make macos
-flutter run -d macOS
+flutter build macos --debug
+sudo build/macos/Build/Products/Debug/Lantern.app/Contents/MacOS/Lantern
 ```
 
 # Build and run the app on iOS
