@@ -2,9 +2,11 @@ module github.com/getlantern/lantern-outline
 
 go 1.23.4
 
+replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v1.11.6-0.20250319162213-b56a0b17a972
+
 require (
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
-	github.com/getlantern/radiance v0.0.0-20250319183302-73c468addba3
+	github.com/getlantern/radiance v0.0.0-20250325131026-af3da742e4a2
 )
 
 require (

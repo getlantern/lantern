@@ -9,12 +9,16 @@ import "C"
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"sync"
 	"unsafe"
 
 	"github.com/getlantern/golog"
 	"github.com/getlantern/radiance"
 )
+
+const appName = "Lantern"
 
 var (
 	baseDir  string
@@ -46,7 +50,11 @@ func startVPN() *C.char {
 	defer serverMu.Unlock()
 
 	if server == nil {
-		r, err := radiance.NewRadiance(nil)
+		configDir, err := initConfigDir()
+		if err != nil {
+			return C.CString(err.Error())
+		}
+		r, err := radiance.NewRadiance(configDir, nil)
 		if err != nil {
 			err = fmt.Errorf("unable to create VPN server: %v", err)
 			return C.CString(err.Error())
@@ -60,6 +68,22 @@ func startVPN() *C.char {
 	}
 	log.Debug("VPN server started successfully")
 	return nil
+}
+
+func initConfigDir() (string, error) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("failed to get home directory: %w", err)
+	}
+
+	configDir := filepath.Join(homeDir, ".config", appName)
+
+	// Create directory if it doesn't exist
+	if err := os.MkdirAll(configDir, 0755); err != nil {
+		return "", fmt.Errorf("failed to create config directory: %w", err)
+	}
+
+	return configDir, nil
 }
 
 // stopVPN stops the VPN server if it is running.
