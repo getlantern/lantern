@@ -39,11 +39,14 @@ func StartVPN() error {
 	}
 	return nil
 }
-func VPNStatus() string {
-	radianceServer.SetPreferredServer()
-}
 
 func StopVPN() error {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("Recovered from panic in StartVPN: %v\nStack trace:\n%s\n", r, debug.Stack())
+		}
+	}()
+	log.Debug("Stopping VPN")
 	er := radianceServer.StopVPN()
 	if er != nil {
 		log.Errorf("Error stopping VPN: %v", er)

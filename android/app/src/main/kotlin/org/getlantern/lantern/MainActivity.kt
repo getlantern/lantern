@@ -62,6 +62,11 @@ class MainActivity : FlutterActivity() {
         }
     }
 
+    suspend fun stopVPN() {
+
+        LanternVpnService.stopVPN()
+    }
+
     private fun isVPNServiceReady(): Boolean {
         try {
             val intent = VpnService.prepare(this)

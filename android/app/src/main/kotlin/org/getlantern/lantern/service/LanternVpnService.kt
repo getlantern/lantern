@@ -30,13 +30,21 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper, CommandServerH
         const val ACTION_START_RADIANCE = "com.getlantern.START_RADIANCE"
         const val ACTION_START_VPN = "org.getlantern.START_VPN"
         const val ACTION_STOP_VPN = "org.getlantern.START_STOP"
+
+        private var mInterface: ParcelFileDescriptor? = null
+
+        suspend fun stopVPN() = withContext(Dispatchers.IO) {
+            Mobile.stopVPN()
+            mInterface?.close()
+        }
+
     }
 
     // Create a CoroutineScope tied to the service's lifecycle.
     // SupervisorJob ensures that failure in one child doesn't cancel the whole scope.
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-    private var mInterface: ParcelFileDescriptor? = null
+
     private var commandServer: CommandServer? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -122,7 +130,8 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper, CommandServerH
 
 
     private fun stopVPN() {
-        Mobile.stopVPN()
+
+
     }
 
     //todo this is just for testing
