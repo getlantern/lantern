@@ -16,11 +16,6 @@ import (
 	"github.com/getlantern/radiance"
 )
 
-const (
-	appName              = "Lantern"
-	defaultConfigDirPerm = 0750
-)
-
 var (
 	dataDir    string
 	logPort    int64
