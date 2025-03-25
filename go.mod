@@ -8,13 +8,13 @@ replace github.com/getlantern/radiance => ../radiance
 
 require (
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
-	github.com/getlantern/radiance v0.0.0-20250325153658-b5158bfcdfb9
+	github.com/getlantern/radiance v0.0.0-20250325212038-858d882e5a28
 )
 
 require (
 	github.com/1Password/srp v0.2.0 // indirect
-	github.com/Jigsaw-Code/outline-sdk v0.0.18 // indirect
-	github.com/Jigsaw-Code/outline-sdk/x v0.0.1 // indirect
+	github.com/Jigsaw-Code/outline-sdk v0.0.19 // indirect
+	github.com/Jigsaw-Code/outline-sdk/x v0.0.2 // indirect
 	github.com/ajg/form v1.5.1 // indirect
 	github.com/alitto/pond/v2 v2.2.0 // indirect
 	github.com/andybalholm/brotli v1.1.1 // indirect
@@ -26,21 +26,21 @@ require (
 	github.com/dsnet/compress v0.0.2-0.20210315054119-f66993602bf5 // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
 	github.com/getlantern/algeneva v0.0.0-20250307163401-1824e7b54f52 // indirect
-	github.com/getlantern/appdir v0.0.0-20250313193928-1704611498b5 // indirect
+	github.com/getlantern/appdir v0.0.0-20250324200952-507a0625eb01 // indirect
 	github.com/getlantern/byteexec v0.0.0-20220903142956-e6ed20032cfd // indirect
 	github.com/getlantern/context v0.0.0-20220418194847-3d5e7a086201 // indirect
 	github.com/getlantern/elevate v0.0.0-20220903142053-479ab992b264 // indirect
 	github.com/getlantern/errors v1.0.4 // indirect
 	github.com/getlantern/eventual/v2 v2.0.2 // indirect
 	github.com/getlantern/filepersist v0.0.0-20210901195658-ed29a1cb0b7c // indirect
-	github.com/getlantern/fronted v0.0.0-20250312200548-70d83a8451b5 // indirect
+	github.com/getlantern/fronted v0.0.0-20250324204348-a0f02f9a2843 // indirect
 	github.com/getlantern/hex v0.0.0-20220104173244-ad7e4b9194dc // indirect
 	github.com/getlantern/hidden v0.0.0-20220104173330-f221c5a24770 // indirect
 	github.com/getlantern/iptool v0.0.0-20230112135223-c00e863b2696 // indirect
 	github.com/getlantern/jibber_jabber v0.0.0-20210901195950-68955124cc42 // indirect
 	github.com/getlantern/keepcurrent v0.0.0-20240126172110-2e0264ca385d // indirect
 	github.com/getlantern/keyman v0.0.0-20230503155501-4e864ca2175b // indirect
-	github.com/getlantern/kindling v0.0.0-20250224181615-944349e3e260 // indirect
+	github.com/getlantern/kindling v0.0.0-20250324213140-12dec99b91eb // indirect
 	github.com/getlantern/mtime v0.0.0-20200417132445-23682092d1f7 // indirect
 	github.com/getlantern/netx v0.0.0-20240830183145-c257516187f0 // indirect
 	github.com/getlantern/ops v0.0.0-20231025133620-f368ab734534 // indirect

@@ -9,8 +9,6 @@ import "C"
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"sync"
 	"unsafe"
 
@@ -18,13 +16,17 @@ import (
 	"github.com/getlantern/radiance"
 )
 
-const appName = "Lantern"
+const (
+	appName              = "Lantern"
+	defaultConfigDirPerm = 0750
+)
 
 var (
-	baseDir  string
-	logPort  int64
-	server   *radiance.Radiance
-	serverMu sync.Mutex
+	dataDir    string
+	logPort    int64
+	server     *radiance.Radiance
+	serverMu   sync.Mutex
+	serverOnce sync.Once
 
 	setupOnce sync.Once
 
@@ -33,11 +35,17 @@ var (
 
 //export setup
 func setup(dir *C.char, port C.int64_t, api unsafe.Pointer) {
-	serverMu.Lock()
-	defer serverMu.Unlock()
-
-	baseDir = C.GoString(dir)
+	dataDir = C.GoString(dir)
 	logPort = int64(port)
+
+	serverOnce.Do(func() {
+		r, err := radiance.NewRadiance(dataDir, nil)
+		if err != nil {
+			log.Fatalf("unable to create VPN server: %v", err)
+		}
+		log.Debugf("created new instance of radiance with data directory %s", dataDir)
+		server = r
+	})
 }
 
 // startVPN initializes and starts the VPN server if it is not already running.
@@ -49,41 +57,12 @@ func startVPN() *C.char {
 	serverMu.Lock()
 	defer serverMu.Unlock()
 
-	if server == nil {
-		configDir, err := initConfigDir()
-		if err != nil {
-			return C.CString(err.Error())
-		}
-		r, err := radiance.NewRadiance(configDir, nil)
-		if err != nil {
-			err = fmt.Errorf("unable to create VPN server: %v", err)
-			return C.CString(err.Error())
-		}
-		server = r
-	}
-
 	if err := server.StartVPN(); err != nil {
 		err = fmt.Errorf("unable to start vpn server: %v", err)
 		return C.CString(err.Error())
 	}
 	log.Debug("VPN server started successfully")
 	return nil
-}
-
-func initConfigDir() (string, error) {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return "", fmt.Errorf("failed to get home directory: %w", err)
-	}
-
-	configDir := filepath.Join(homeDir, ".config", appName)
-
-	// Create directory if it doesn't exist
-	if err := os.MkdirAll(configDir, 0755); err != nil {
-		return "", fmt.Errorf("failed to create config directory: %w", err)
-	}
-
-	return configDir, nil
 }
 
 // stopVPN stops the VPN server if it is running.
