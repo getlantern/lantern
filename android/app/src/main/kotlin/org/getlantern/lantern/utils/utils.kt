@@ -8,6 +8,7 @@ import lantern.io.libbox.RoutePrefix
 import org.getlantern.lantern.LanternApp
 import java.io.File
 import java.net.InetAddress
+import kotlin.coroutines.Continuation
 
 fun isServiceRunning(context: Context, serviceClass: Class<*>): Boolean {
     val manager = context.getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
@@ -36,4 +37,19 @@ fun initConfigDir(): String {
         throw Exception("Failed to create config directory")
     }
     return dir.absolutePath
+}
+
+
+fun <T> Continuation<T>.tryResume(value: T) {
+    try {
+        resumeWith(Result.success(value))
+    } catch (ignored: IllegalStateException) {
+    }
+}
+
+fun <T> Continuation<T>.tryResumeWithException(exception: Throwable) {
+    try {
+        resumeWith(Result.failure(exception))
+    } catch (ignored: IllegalStateException) {
+    }
 }

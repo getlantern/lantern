@@ -1,9 +1,6 @@
 package mobile
 
 import (
-	"context"
-	"fmt"
-	"runtime/debug"
 	"sync"
 
 	"github.com/getlantern/golog"
@@ -41,11 +38,6 @@ func StartVPN() error {
 }
 
 func StopVPN() error {
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Printf("Recovered from panic in StartVPN: %v\nStack trace:\n%s\n", r, debug.Stack())
-		}
-	}()
 	log.Debug("Stopping VPN")
 	er := radianceServer.StopVPN()
 	if er != nil {
@@ -54,6 +46,6 @@ func StopVPN() error {
 	return nil
 }
 
-func GetAvailableServers() {
-	radianceServer.GetAvailableServers(context.Background())
+func IsVPNConncted() bool {
+	return radianceServer.ConnectionStatus()
 }

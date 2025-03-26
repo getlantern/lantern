@@ -7,9 +7,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:i18n_extension/i18n_extension.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
 import 'package:lantern/core/router/router.dart';
-import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/features/language/language_notifier.dart';
 import 'package:lantern/features/window/window_wrapper.dart';
+import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 import 'core/common/common.dart';
 import 'core/services/injection_container.dart';
@@ -28,6 +28,7 @@ class _LanternAppState extends ConsumerState<LanternApp> {
   @override
   void initState() {
     super.initState();
+    ref.read(lanternServiceProvider).init();
     initDeepLinks();
   }
 
@@ -59,10 +60,9 @@ class _LanternAppState extends ConsumerState<LanternApp> {
       //If deeplink doesn't have data it should send to report issue with empty description'
       if (segment.length >= 2) {
         final description = segment[1];
-        return DeepLink(
-            [ Home(), ReportIssue(description: '#$description')]);
+        return DeepLink([Home(), ReportIssue(description: '#$description')]);
       }
-      return DeepLink([ Home(), ReportIssue()]);
+      return DeepLink([Home(), ReportIssue()]);
     } else {
       return DeepLink.defaultPath;
     }
@@ -77,7 +77,8 @@ class _LanternAppState extends ConsumerState<LanternApp> {
     return WindowWrapper(
       child: SystemTrayWrapper(
         child: ScreenUtilInit(
-          designSize: PlatformUtils.isDesktop() ? desktopWindowSize : mobileSize,
+          designSize:
+              PlatformUtils.isDesktop() ? desktopWindowSize : mobileSize,
           minTextAdapt: true,
           child: I18n(
             localizationsDelegates: [
@@ -92,8 +93,8 @@ class _LanternAppState extends ConsumerState<LanternApp> {
               themeMode: ThemeMode.light,
               darkTheme: AppTheme.darkTheme(),
               supportedLocales: languages
-                  .map(
-                      (lang) => Locale(lang.split('_').first, lang.split('_').last))
+                  .map((lang) =>
+                      Locale(lang.split('_').first, lang.split('_').last))
                   .toList(),
               // List of supported languages
               routerConfig: globalRouter.config(

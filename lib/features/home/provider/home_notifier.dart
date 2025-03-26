@@ -7,6 +7,6 @@ part 'home_notifier.g.dart';
 class HomeNotifier extends _$HomeNotifier {
   @override
   void build() {
-    ref.read(lanternServiceProvider).setupRadiance();
+    // ref.read(lanternServiceProvider).setupRadiance();
   }
 }

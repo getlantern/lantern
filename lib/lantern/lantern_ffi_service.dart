@@ -3,6 +3,8 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:fpdart/fpdart.dart';
+import 'package:lantern/core/common/app_eum.dart';
+import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/utils/failure.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
@@ -64,6 +66,18 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, String>> stopVPN() {
     // TODO: implement stopVPN
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> init() {
+    // TODO: implement init
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<LanternStatus> watchVPNStatus() {
+    // TODO: implement watchVPNStatus
     throw UnimplementedError();
   }
 }

@@ -5,7 +5,7 @@ import 'package:lantern/core/widgets/setting_tile.dart';
 import 'package:lantern/core/widgets/vpn_status_indicator.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 
-import '../../../core/common/common.dart';
+import '../../core/common/common.dart';
 
 class VpnStatus extends HookConsumerWidget {
   const VpnStatus({super.key});

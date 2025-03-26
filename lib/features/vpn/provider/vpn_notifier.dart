@@ -1,9 +1,11 @@
 import 'dart:io';
 
+import 'package:flutter/src/widgets/framework.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/providers/ffi_provider.dart';
 import 'package:lantern/core/providers/native_bridge_provider.dart';
+import 'package:lantern/features/vpn/provider/vpn_status_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -13,11 +15,16 @@ part 'vpn_notifier.g.dart';
 class VpnNotifier extends _$VpnNotifier {
   @override
   VPNStatus build() {
-    state = VPNStatus.disconnected;
+    ref.listen(
+      vPNStatusNotifierProvider,
+      (previous, next) {
+        state = next.value!.status;
+      },
+    );
     return state;
   }
 
-  Future<Either<Failure, String>> onVPNStateChange() async {
+  Future<Either<Failure, String>> onVPNStateChange(BuildContext context) async {
     if (state == VPNStatus.connecting || state == VPNStatus.disconnecting) {
       return Right("");
     }
@@ -25,21 +32,20 @@ class VpnNotifier extends _$VpnNotifier {
   }
 
   Future<Either<Failure, String>> _connectVPN() async {
-    state = VPNStatus.connecting;
     final result = await ref.read(lanternServiceProvider).startVPN();
-    result.fold(
-      (failure) {
-        state = VPNStatus.disconnected;
-      },
-      (success) {
-        if (success.contains('VPN permission denied')) {
-          //soft error for permission denied
-          state = VPNStatus.disconnected;
-          return;
-        }
-        state = VPNStatus.connected;
-      },
-    );
+    // result.fold(
+    //   (failure) {
+    //     state = VPNStatus.disconnected;
+    //   },
+    //   (success) {
+    //     if (success.contains('VPN permission denied')) {
+    //       //soft error for permission denied
+    //       state = VPNStatus.disconnected;
+    //       return;
+    //     }
+    //     state = VPNStatus.connected;
+    //   },
+    // );
     return result;
   }
 

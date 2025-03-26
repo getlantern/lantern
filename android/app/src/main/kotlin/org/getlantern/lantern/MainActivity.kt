@@ -6,8 +6,11 @@ import android.util.Log
 import androidx.lifecycle.lifecycleScope
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
+import org.getlantern.lantern.constant.VPNStatus
+import org.getlantern.lantern.handler.EventHandler
 import org.getlantern.lantern.handler.MethodHandler
 import org.getlantern.lantern.service.LanternVpnService
+import org.getlantern.lantern.service.LanternVpnService.Companion.ACTION_STOP_VPN
 import org.getlantern.lantern.utils.VpnStatusManager
 import org.getlantern.lantern.utils.isServiceRunning
 
@@ -17,15 +20,25 @@ class MainActivity : FlutterActivity() {
         const val TAG = "A/MainActivity"
         lateinit var instance: MainActivity
         const val VPN_PERMISSION_REQUEST_CODE = 7777
+         var receiverRegistered: Boolean = false
+
+    }
+
+    override fun onStart() {
+        super.onStart()
+        Log.d(TAG, "onStart")
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         instance = this
+        Log.d(TAG, "Configuring FlutterEngine")
         ///Setup handler
         flutterEngine.plugins.add(MethodHandler(lifecycleScope))
+        flutterEngine.plugins.add(EventHandler())
         startService()
     }
+
 
     private fun startService() {
         Log.d(TAG, "Starting LanternService")
@@ -58,13 +71,16 @@ class MainActivity : FlutterActivity() {
         } catch (e: Exception) {
             e.printStackTrace()
             Log.e(TAG, "Error starting VPN service", e)
-            VpnStatusManager.postStatus(error = e)
+            throw e
         }
     }
 
-    suspend fun stopVPN() {
-
-        LanternVpnService.stopVPN()
+    fun stopVPN() {
+        LanternApp.application.sendBroadcast(
+            Intent(ACTION_STOP_VPN).setPackage(
+                LanternApp.application.packageName
+            )
+        )
     }
 
     private fun isVPNServiceReady(): Boolean {
@@ -95,7 +111,7 @@ class MainActivity : FlutterActivity() {
             if (resultCode == RESULT_OK) {
                 startVPN()
             } else {
-                VpnStatusManager.postStatus(successMessage = "VPN permission denied")
+                VpnStatusManager.postVPNStatus(VPNStatus.MissingPermission)
             }
         }
     }

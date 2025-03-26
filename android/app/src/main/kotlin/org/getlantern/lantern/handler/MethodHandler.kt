@@ -1,15 +1,13 @@
 package org.getlantern.lantern.handler
 
-import androidx.lifecycle.Observer
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.getlantern.lantern.MainActivity
-import org.getlantern.lantern.utils.Event
+import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.utils.VpnStatusManager
-import kotlin.Result.Companion.success
 
 
 enum class Methods(val method: String) {
@@ -43,28 +41,29 @@ class MethodHandler(private val scope: CoroutineScope) : FlutterPlugin,
         when (call.method) {
             Methods.Start.method -> {
                 scope.launch {
-                    val observer = object : Observer<Event<Result<String>>> {
-                        override fun onChanged(event: Event<Result<String>>) {
-                            event.contentIfNotHandled?.let { status ->
-                                status.onSuccess {
-                                    success(it)
-                                    VpnStatusManager.statusLiveData.removeObserver(this)
-                                    result.success(it)
-                                }.onFailure { e ->
-                                    result.error(
-                                        "start_vpn",
-                                        e.localizedMessage ?: "Please try again",
-                                        e
-                                    )
-                                    VpnStatusManager.statusLiveData.removeObserver(this)
-                                }
-                            }
-                        }
-                    }
-
+//                    val observer = object : Observer<Event<Result<String>>> {
+//                        override fun onChanged(event: Event<Result<String>>) {
+//                            event.contentIfNotHandled?.let { status ->
+//                                status.onSuccess {
+//                                    success(it)
+//                                    VpnStatusManager.statusLiveData.removeObserver(this)
+//                                    result.success(it)
+//                                }.onFailure { e ->
+//                                    result.error(
+//                                        "start_vpn",
+//                                        e.localizedMessage ?: "Please try again",
+//                                        e
+//                                    )
+//                                    VpnStatusManager.statusLiveData.removeObserver(this)
+//                                }
+//                            }
+//                        }
+//                    }
                     result.runCatching {
+                        VpnStatusManager.postVPNStatus(VPNStatus.Connecting)
                         MainActivity.instance.startVPN()
-                        VpnStatusManager.statusLiveData.observe(MainActivity.instance, observer)
+                        success("VPN started")
+//                        VpnStatusManager.statusLiveData.observe(MainActivity.instance, observer)
                     }.onFailure { e ->
                         result.error("start_vpn", e.localizedMessage ?: "Please try again", e)
                     }
@@ -79,7 +78,6 @@ class MethodHandler(private val scope: CoroutineScope) : FlutterPlugin,
                     }.onFailure { e ->
                         result.error("stop_vpn", e.localizedMessage ?: "Please try again", e)
                     }
-
                 }
             }
 

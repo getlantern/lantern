@@ -1,13 +1,26 @@
 import 'package:flutter/services.dart';
 import 'package:fpdart/src/either.dart';
-import 'package:fpdart/src/unit.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/extensions/error.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 
+import '../core/models/lantern_status.dart';
+
 class LanternPlatformService implements LanternCoreService {
   static const MethodChannel _methodChannel =
       MethodChannel('org.getlantern.lantern/method');
+
+  static const statusChannel =
+      EventChannel("org.getlantern.lantern/status", JSONMethodCodec());
+  late final Stream<LanternStatus> _status;
+
+  @override
+  Future<void> init() async {
+    appLogger.info('Initializing LanternPlatformService');
+    _status = statusChannel
+        .receiveBroadcastStream()
+        .map((event) => LanternStatus.fromJson(event));
+  }
 
   @override
   Future<Either<Failure, String>> startVPN() async {
@@ -43,8 +56,7 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<String, Unit>> setupRadiance() {
-    // TODO: implement setupRadiance
-    throw UnimplementedError();
+  Stream<LanternStatus> watchVPNStatus() {
+    return _status;
   }
 }

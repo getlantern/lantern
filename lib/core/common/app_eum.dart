@@ -3,4 +3,6 @@ enum VPNStatus{
   disconnected,
   connecting,
   disconnecting,
+  missingPermission,
+  error,
 }
