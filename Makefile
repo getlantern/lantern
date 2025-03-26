@@ -70,7 +70,7 @@ macos: $(DARWIN_LIB_BUILD)
 
 $(DARWIN_LIB_BUILD): $(GO_SOURCES)
 	make macos-arm64 macos-amd64
-	rm -f $@ && mkdir -p $(dir $@)
+	rm -rf $@ && mkdir -p $(dir $@)
 	lipo -create $(DARWIN_LIB_ARM64) $(DARWIN_LIB_AMD64) -output $@
 	install_name_tool -id "@rpath/${DARWIN_LIB}" $@
 	mkdir -p $(DARWIN_FRAMEWORK_DIR) && cp $@ $(DARWIN_FRAMEWORK_DIR)
@@ -150,7 +150,7 @@ android: $(ANDROID_LIB_BUILD)
 $(ANDROID_LIB_BUILD): $(GO_SOURCES)
 	make install-android-deps
 	@echo "Building Android library..."
-	rm -f $@ && mkdir -p $(dir $@)
+	rm -rf $@ && mkdir -p $(dir $@)
 	GOOS=android gomobile bind -v \
                -javapkg=lantern.io \
                -tags=$(TAGS) -trimpath \
@@ -172,7 +172,7 @@ ios: $(IOS_FRAMEWORK_BUILD)
 
 $(IOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 	@echo "Building iOS Framework..."
-	rm -f $@ && mkdir -p $(dir $@)
+	rm -rf $@ && mkdir -p $(dir $@)
 	GOOS=ios gomobile bind -v -tags=$(TAGS),with_low_memory -trimpath -target=ios -ldflags="-w -s" -o $@ $(RADIANCE_REPO)
 	mkdir -p $(IOS_FRAMEWORK_DIR) && rm -rf $(IOS_FRAMEWORK_DIR)/$(IOS_FRAMEWORK) && mv $@ $(IOS_FRAMEWORK_DIR)
 	@echo "Built iOS Framework: $(IOS_FRAMEWORK_DIR)/$(IOS_FRAMEWORK)"
