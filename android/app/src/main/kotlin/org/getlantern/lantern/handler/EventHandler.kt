@@ -9,6 +9,7 @@ import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.utils.Event
 import org.getlantern.lantern.utils.VpnStatusManager
 
+
 class EventHandler : FlutterPlugin {
 
     companion object {
@@ -17,11 +18,11 @@ class EventHandler : FlutterPlugin {
     }
 
     private var statusChannel: EventChannel? = null
-    private var alertsChannel: EventChannel? = null
 
     private var statusObserver: Observer<Event<VPNStatus>>? = null
 
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+        Log.d(TAG, "Event handler Attaching to engine")
         statusChannel = EventChannel(
             flutterPluginBinding.binaryMessenger,
             SERVICE_STATUS,
@@ -37,12 +38,9 @@ class EventHandler : FlutterPlugin {
                             VPNStatus.Connected,
                             VPNStatus.Connecting,
                             VPNStatus.Disconnecting,
-                            VPNStatus.Disconnected -> {
-                                val map = mapOf("status" to status.name)
-                                events?.success(map)
-                            }
-
+                            VPNStatus.Disconnected,
                             VPNStatus.MissingPermission -> {
+                                Log.d(TAG, "Sending VPN Status: $status")
                                 val map = mapOf("status" to status.name)
                                 events?.success(map)
                             }
@@ -54,11 +52,6 @@ class EventHandler : FlutterPlugin {
                                     "errorCode" to status.errorCode
                                 )
                                 events?.success(map)
-//                                events?.error(
-//                                    status.errorCode ?: "UNKNOWN_ERROR",
-//                                    status.errorMessage ?: "An unknown error occurred",
-//                                    null
-//                                )
                             }
                         }
                     }
@@ -67,8 +60,10 @@ class EventHandler : FlutterPlugin {
             }
 
             override fun onCancel(arguments: Any?) {
-                if (statusObserver != null)
+                if (statusObserver != null){
                     VpnStatusManager.vpnStatus.removeObserver(statusObserver!!)
+                }
+
             }
         })
 
@@ -77,6 +72,10 @@ class EventHandler : FlutterPlugin {
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         if (statusChannel != null) {
             statusChannel!!.setStreamHandler(null)
+        }
+        if (statusObserver != null) {
+            VpnStatusManager.vpnStatus.removeObserver(statusObserver!!)
+            statusObserver = null
         }
     }
 }

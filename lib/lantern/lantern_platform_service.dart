@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:fpdart/src/either.dart';
+import 'package:fpdart/src/unit.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/extensions/error.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
@@ -16,11 +17,19 @@ class LanternPlatformService implements LanternCoreService {
 
   @override
   Future<void> init() async {
-    appLogger.info('Initializing LanternPlatformService');
+    appLogger.info(' LanternPlatformService');
     _status = statusChannel
         .receiveBroadcastStream()
         .map((event) => LanternStatus.fromJson(event));
+    // _status = tetsingChannel.receiveBroadcastStream().map((event) {
+    //   appLogger.info('Testing Channel: $event');
+    // });
+
   }
+
+  // This method is purely for the purpose of waking up the status channel.
+  // Since native platforms initialize methods before Flutter stuff,
+  // we need to ask for status as soon as Flutter is ready.
 
   @override
   Future<Either<Failure, String>> startVPN() async {
@@ -58,5 +67,19 @@ class LanternPlatformService implements LanternCoreService {
   @override
   Stream<LanternStatus> watchVPNStatus() {
     return _status;
+  }
+
+  @override
+  Future<Either<Failure, Unit>> isVPNConnected() async {
+    try {
+      appLogger.info('Waking up LanternPlatformService');
+      await _methodChannel.invokeMethod('isVPNConnected');
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription));
+    }
   }
 }

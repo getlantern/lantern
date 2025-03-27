@@ -6,6 +6,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import lantern.io.libbox.RoutePrefix
 import org.getlantern.lantern.LanternApp
+import org.getlantern.lantern.service.LanternVpnService
 import java.io.File
 import java.net.InetAddress
 import kotlin.coroutines.Continuation
@@ -14,6 +15,10 @@ fun isServiceRunning(context: Context, serviceClass: Class<*>): Boolean {
     val manager = context.getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
     return manager.getRunningServices(Int.MAX_VALUE)
         .any { it.service.className == serviceClass.name }
+}
+
+fun isVPNRunning(context: Context): Boolean {
+    return  isServiceRunning(context, LanternVpnService::class.java)
 }
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)

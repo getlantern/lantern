@@ -55,4 +55,9 @@ class LanternService implements LanternCoreService {
     }
     return platformService.watchVPNStatus();
   }
+
+  @override
+  Future<Either<Failure, Unit>> isVPNConnected() {
+    return platformService.isVPNConnected();
+  }
 }

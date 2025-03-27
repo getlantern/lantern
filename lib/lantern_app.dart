@@ -9,7 +9,6 @@ import 'package:lantern/core/localization/localization_constants.dart';
 import 'package:lantern/core/router/router.dart';
 import 'package:lantern/features/language/language_notifier.dart';
 import 'package:lantern/features/window/window_wrapper.dart';
-import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 import 'core/common/common.dart';
 import 'core/services/injection_container.dart';
@@ -28,7 +27,6 @@ class _LanternAppState extends ConsumerState<LanternApp> {
   @override
   void initState() {
     super.initState();
-    ref.read(lanternServiceProvider).init();
     initDeepLinks();
   }
 

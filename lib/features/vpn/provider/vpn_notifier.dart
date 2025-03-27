@@ -15,6 +15,8 @@ part 'vpn_notifier.g.dart';
 class VpnNotifier extends _$VpnNotifier {
   @override
   VPNStatus build() {
+    state = VPNStatus.disconnected;
+    ref.read(lanternServiceProvider).isVPNConnected();
     ref.listen(
       vPNStatusNotifierProvider,
       (previous, next) {

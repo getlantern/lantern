@@ -36,7 +36,7 @@ class VPNSwitch extends HookConsumerWidget {
       },
       onTap: (newValue) => onVPNStateChange(ref, context),
       foregroundIndicatorBuilder: (context, global) {
-        if (_vpnStatus == VPNStatus.connecting) {
+        if (_vpnStatus == VPNStatus.connecting||_vpnStatus == VPNStatus.disconnecting) {
           return Container(
             decoration: BoxDecoration(
               color: Colors.transparent,

@@ -5,20 +5,25 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.VpnService
 import android.os.Build
+import android.os.Bundle
 import android.util.Log
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
+import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.EventChannel
+import lantern.io.mobile.Mobile
 import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.handler.EventHandler
 import org.getlantern.lantern.handler.MethodHandler
 import org.getlantern.lantern.notification.NotificationHelper
 import org.getlantern.lantern.service.LanternVpnService
 import org.getlantern.lantern.service.LanternVpnService.Companion.ACTION_STOP_VPN
+import org.getlantern.lantern.utils.Event
 import org.getlantern.lantern.utils.VpnStatusManager
 import org.getlantern.lantern.utils.isServiceRunning
+import java.util.concurrent.atomic.AtomicReference
 
 
 class MainActivity : FlutterActivity() {
@@ -27,21 +32,47 @@ class MainActivity : FlutterActivity() {
         lateinit var instance: MainActivity
         const val VPN_PERMISSION_REQUEST_CODE = 7777
         const val NOTIFICATION_PERMISSION_REQUEST_CODE = 1010
-
         var receiverRegistered: Boolean = false
-
-        val notificationHelper by lazy { NotificationHelper() }
+        const val SERVICE_STATUS = "org.getlantern.lantern/status"
+//        val notificationHelper by lazy { NotificationHelper() }
 
     }
 
+    private var statusChannel: EventChannel? = null
+
+    private var statusObserver: Observer<Event<VPNStatus>>? = null
+
+    lateinit var notificationHelper: NotificationHelper
+
+    lateinit var testingEventChannel: EventChannel
+
+
+    private val eventSinkRef = AtomicReference<EventChannel.EventSink?>()
+
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+
         instance = this
         Log.d(TAG, "Configuring FlutterEngine")
         ///Setup handler
-        flutterEngine.plugins.add(MethodHandler(lifecycleScope))
         flutterEngine.plugins.add(EventHandler())
+        flutterEngine.plugins.add(MethodHandler(lifecycleScope))
         startService()
+    }
+
+
+    override fun detachFromFlutterEngine() {
+        statusChannel?.setStreamHandler(null)
+        VpnStatusManager.vpnStatus.removeObserver(statusObserver!!)
+        super.detachFromFlutterEngine()
+    }
+
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        Log.d(TAG, "onCreate")
+        notificationHelper = NotificationHelper(this)
     }
 
     private fun startService() {
@@ -75,7 +106,9 @@ class MainActivity : FlutterActivity() {
             val vpnIntent = Intent(this, LanternVpnService::class.java).apply {
                 action = LanternVpnService.ACTION_START_VPN
             }
-            ContextCompat.startForegroundService(this, vpnIntent)
+//            ContextCompat.startForegroundService(this, vpnIntent)
+            startService(vpnIntent)
+
             Log.d(TAG, "VPN service started")
         } catch (e: Exception) {
             e.printStackTrace()
@@ -104,6 +137,26 @@ class MainActivity : FlutterActivity() {
         } catch (e: Exception) {
             Log.e(TAG, "Error preparing VPN service", e)
             return false
+        }
+    }
+
+
+    fun checkVPNStatus() {
+        try {
+            if (isServiceRunning(this, LanternVpnService::class.java)) {
+                Log.d(TAG, "LanternService is already running")
+                VpnStatusManager.postVPNStatus(VPNStatus.Connected)
+                return
+            }
+            if (Mobile.isVPNConnected()) {
+                Log.d(TAG, "VPN already connected")
+                VpnStatusManager.postVPNStatus(VPNStatus.Connected)
+            } else {
+                Log.d(TAG, "VPN not connected")
+                VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error checking VPN status", e)
         }
     }
 

@@ -1,17 +1,21 @@
 package org.getlantern.lantern.handler
 
+import android.util.Log
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import lantern.io.mobile.Mobile
 import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.utils.VpnStatusManager
 
 
 enum class Methods(val method: String) {
-    Start("startVPN"), Stop("stopVPN"),
+    Start("startVPN"),
+    Stop("stopVPN"),
+    IsVpnConnected("isVPNConnected")
 }
 
 class MethodHandler(private val scope: CoroutineScope) : FlutterPlugin,
@@ -58,6 +62,24 @@ class MethodHandler(private val scope: CoroutineScope) : FlutterPlugin,
                         success("VPN stopped")
                     }.onFailure { e ->
                         result.error("stop_vpn", e.localizedMessage ?: "Please try again", e)
+                    }
+                }
+            }
+
+            Methods.IsVpnConnected.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val conncted = Mobile.isVPNConnected()
+                        Log.d(TAG, "IsVpnConnected connected: $conncted")
+                        if (conncted) {
+                            VpnStatusManager.postVPNStatus(VPNStatus.Connected)
+                        } else {
+                            VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
+                        }
+                        success("")
+
+                    }.onFailure { e ->
+                        result.error("vpn_status", e.localizedMessage ?: "Please try again", e)
                     }
                 }
             }

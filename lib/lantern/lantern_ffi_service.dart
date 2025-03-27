@@ -80,4 +80,10 @@ class LanternFFIService implements LanternCoreService {
     // TODO: implement watchVPNStatus
     throw UnimplementedError();
   }
+
+  @override
+  Future<Either<Failure, Unit>> isVPNConnected() {
+    // TODO: implement isVPNConnected
+    throw UnimplementedError();
+  }
 }

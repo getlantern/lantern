@@ -1,4 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    android:installLocation="auto">
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -8,18 +9,16 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
-
         android:name=".LanternApp"
         android:icon="@mipmap/ic_launcher"
         android:label="Lantern"
         android:roundIcon="@mipmap/ic_launcher_round">
         <activity
-
             android:name=".MainActivity"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:exported="true"
+            android:launchMode="singleTask"
             android:hardwareAccelerated="true"
-            android:launchMode="singleTop"
             android:taskAffinity=""
             android:theme="@style/LaunchTheme"
             android:windowSoftInputMode="adjustResize">
@@ -41,10 +40,6 @@
             android:name="flutterEmbedding"
             android:value="2" />
 
-
-        <service
-            android:name=".service.LanternService"
-            android:exported="false" />
 
         <service
             android:name=".service.LanternVpnService"

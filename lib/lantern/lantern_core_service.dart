@@ -6,6 +6,8 @@ import 'package:lantern/core/models/lantern_status.dart';
 abstract class LanternCoreService {
   Future<void> init();
 
+  Future<Either<Failure,Unit>> isVPNConnected();
+
   Future<Either<Failure, String>> startVPN();
 
   Future<Either<Failure, String>> stopVPN();

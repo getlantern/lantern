@@ -58,5 +58,10 @@ func StopVPN() error {
 }
 
 func IsVPNConnected() bool {
+	radianceMutex.Lock()
+	defer radianceMutex.Unlock()
+	if radianceServer == nil {
+		return false
+	}
 	return radianceServer.ConnectionStatus()
 }

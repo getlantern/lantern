@@ -1,5 +1,6 @@
 package org.getlantern.lantern.notification
 
+import android.app.Activity
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -17,10 +18,10 @@ import org.getlantern.lantern.service.LanternVpnService
 import org.getlantern.lantern.service.LanternVpnService.Companion.ACTION_STOP_VPN
 
 
-class NotificationHelper {
+class NotificationHelper(val activity: Activity) {
 
-    private val notificationManager by lazy { app.getSystemService<NotificationManager>()!! }
-    private val app by lazy { LanternApp.application }
+//    private val notificationManager by lazy { app.getSystemService<NotificationManager>()!! }
+//    private val app by lazy { LanternApp.application }
 
     companion object {
         private const val DATA_USAGE = 36
@@ -30,15 +31,15 @@ class NotificationHelper {
         private const val VPN_DESC = "VPN"
         private const val DATA_USAGE_DESC = "Data Usage"
 
-
     }
 
     private lateinit var dataUsageNotificationChannel: NotificationChannel
     private lateinit var vpnNotificationChannel: NotificationChannel
+     var notificationManager: NotificationManager
 
     init {
+        notificationManager = activity.getSystemService<NotificationManager>()!!
         createNotificationChannel()
-
     }
 
     fun hasPermission(): Boolean {
@@ -86,23 +87,27 @@ class NotificationHelper {
 
     private fun buildVpnNotification(): Notification {
         val contentIntent = PendingIntent.getActivity(
-            app,
+            activity,
             0,
-            Intent(app, MainActivity::class.java),
+            Intent(activity, MainActivity::class.java),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
-        return NotificationCompat.Builder(app, CHANNEL_VPN)
-            .setContentTitle(app.getString(R.string.disconnect))
+        return NotificationCompat.Builder(activity, CHANNEL_VPN)
+            .setShowWhen(false)
+            .setOngoing(true)
+            .setContentTitle("Lantern")
+            .setContentText("Lantern VPN is running")
+            .setOnlyAlertOnce(true)
+            .setSmallIcon(R.drawable.lantern_notification_icon)
             .addAction(
-                android.R.drawable.ic_delete,
-                app.getString(R.string.disconnect),
-                disconnectBroadcast()
+                NotificationCompat.Action.Builder(
+                    android.R.drawable.ic_menu_close_clear_cancel,
+                    "Disconnect",
+                    disconnectBroadcast()
+                ).build()
             )
             .setContentIntent(contentIntent)
-            .setOngoing(true)
-            .setShowWhen(true)
-            .setSmallIcon(R.drawable.lantern_notification_icon)
             .build()
 
     }
@@ -113,7 +118,7 @@ class NotificationHelper {
             LanternApp.application.packageName
         )
         return PendingIntent.getBroadcast(
-            app,
+            activity,
             0,
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,

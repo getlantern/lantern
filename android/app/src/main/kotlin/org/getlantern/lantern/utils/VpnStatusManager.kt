@@ -2,6 +2,7 @@ package org.getlantern.lantern.utils
 
 import android.content.IntentFilter
 import android.os.PowerManager
+import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.MutableLiveData
 import org.getlantern.lantern.LanternApp
@@ -17,6 +18,7 @@ object VpnStatusManager {
     val vpnStatus = MutableLiveData<Event<VPNStatus>>()
 
     fun postVPNStatus(status: VPNStatus) {
+        Log.d("VPNStatus", "Posting VPN status: $status")
         vpnStatus.postValue(Event(status))
     }
 
