@@ -20,13 +20,7 @@ class MainActivity : FlutterActivity() {
         const val TAG = "A/MainActivity"
         lateinit var instance: MainActivity
         const val VPN_PERMISSION_REQUEST_CODE = 7777
-         var receiverRegistered: Boolean = false
-
-    }
-
-    override fun onStart() {
-        super.onStart()
-        Log.d(TAG, "onStart")
+        var receiverRegistered: Boolean = false
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -38,7 +32,6 @@ class MainActivity : FlutterActivity() {
         flutterEngine.plugins.add(EventHandler())
         startService()
     }
-
 
     private fun startService() {
         Log.d(TAG, "Starting LanternService")

@@ -1,47 +1,37 @@
 package org.getlantern.lantern.service
 
 import android.content.Intent
-import android.content.IntentFilter
 import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
-import android.os.PowerManager
 import android.util.Log
-import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import lantern.io.libbox.CommandServer
-import lantern.io.libbox.CommandServerHandler
 import lantern.io.libbox.Libbox
 import lantern.io.libbox.Notification
-import lantern.io.libbox.SystemProxyStatus
 import lantern.io.libbox.TunOptions
 import lantern.io.mobile.Mobile
 import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.utils.LocalResolver
-import org.getlantern.lantern.utils.VPNStatusReceiver
 import org.getlantern.lantern.utils.VpnStatusManager
 import org.getlantern.lantern.utils.initConfigDir
 import org.getlantern.lantern.utils.toIpPrefix
 
-class LanternVpnService : VpnService(), PlatformInterfaceWrapper, CommandServerHandler {
+class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
 
     companion object {
         private const val TAG = "VpnService"
         private const val sessionName = "LanternVpn"
-        private const val privateAddress = "10.0.0.2"
-        private const val VPN_MTU = 1500
         const val ACTION_START_RADIANCE = "com.getlantern.START_RADIANCE"
         const val ACTION_START_VPN = "org.getlantern.START_VPN"
         const val ACTION_STOP_VPN = "org.getlantern.START_STOP"
-
-        private var mInterface: ParcelFileDescriptor? = null
-
     }
+
+    private var mInterface: ParcelFileDescriptor? = null
 
 
     // Create a CoroutineScope tied to the service's lifecycle.
@@ -49,18 +39,12 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper, CommandServerH
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
 
-    private var commandServer: CommandServer? = null
-
-
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val i = intent?.action ?: return START_STICKY
         if (!MainActivity.receiverRegistered) {
-            ContextCompat.registerReceiver(this, VPNStatusReceiver(this), IntentFilter().apply {
-                addAction(ACTION_START_VPN)
-                addAction(ACTION_STOP_VPN)
-                addAction(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED)
-            }, ContextCompat.RECEIVER_NOT_EXPORTED)
+            VpnStatusManager.registerVPNStatusReceiver(this)
             MainActivity.receiverRegistered = true
+
         }
 
         i.let { action ->
@@ -92,12 +76,12 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper, CommandServerH
 
     override fun onRevoke() {
         super.onRevoke()
-
-
+        destroy()
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        destroy()
     }
 
     override fun autoDetectInterfaceControl(p0: Int) {
@@ -126,7 +110,6 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper, CommandServerH
                 Mobile.setupRadiance(initConfigDir(), this@LanternVpnService)
                 checkVPNStatus()
             }
-
             Log.d(TAG, "Radiance setup completed")
         } catch (e: Exception) {
             Log.e(TAG, "Error in Radiance setup", e)
@@ -152,15 +135,6 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper, CommandServerH
             VpnStatusManager.postVPNStatus(VPNStatus.MissingPermission)
             return@withContext
         }
-
-        try {
-            startCommandServer()
-        } catch (e: Exception) {
-            Log.e(TAG, "Error starting command server", e)
-            VpnStatusManager.postVPNError("command_server", "Error starting command server", e)
-            return@withContext
-        }
-
         runCatching {
             DefaultNetworkMonitor.start()
             Libbox.registerLocalDNSTransport(LocalResolver)
@@ -183,12 +157,11 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper, CommandServerH
         Log.d("LanternVpnService", "doStopVPN")
         try {
             // todo close notification
+
             serviceScope.launch {
                 Mobile.stopVPN()
-                mInterface?.let {
-                    mInterface?.close();
-                }
-                commandServer?.setService(null)
+                mInterface?.close();
+                mInterface = null
                 Libbox.registerLocalDNSTransport(null)
                 DefaultNetworkMonitor.stop()
             }
@@ -198,12 +171,14 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper, CommandServerH
                 error = e, errorCode = "stop_vpn", errorMessage = "Error stopping VPN service"
             )
         }
-
-
     }
 
-    //todo this is just for testing
-    // need to update it according to the actual implementation
+    fun destroy() {
+        doStopVPN()
+        VpnStatusManager.unregisterVPNStatusReceiver(this)
+        stopSelf()
+    }
+
     private fun createVPNBuilder(options: TunOptions): VpnService.Builder {
         val builder = Builder().setSession(sessionName).setMtu(options.mtu)
 
@@ -275,27 +250,4 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper, CommandServerH
         return builder
     }
 
-
-    private fun startCommandServer() {
-        val commandServer = CommandServer(this, 300)
-        commandServer.start()
-        this.commandServer = commandServer
-    }
-
-    ///CommandServerHandler Methods
-    override fun getSystemProxyStatus(): SystemProxyStatus {
-        TODO("Not yet implemented")
-    }
-
-    override fun postServiceClose() {
-        TODO("Not yet implemented")
-    }
-
-    override fun serviceReload() {
-        TODO("Not yet implemented")
-    }
-
-    override fun setSystemProxyEnabled(p0: Boolean) {
-        TODO("Not yet implemented")
-    }
 }

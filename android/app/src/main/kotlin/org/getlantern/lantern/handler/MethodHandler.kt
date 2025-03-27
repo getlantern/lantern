@@ -41,29 +41,10 @@ class MethodHandler(private val scope: CoroutineScope) : FlutterPlugin,
         when (call.method) {
             Methods.Start.method -> {
                 scope.launch {
-//                    val observer = object : Observer<Event<Result<String>>> {
-//                        override fun onChanged(event: Event<Result<String>>) {
-//                            event.contentIfNotHandled?.let { status ->
-//                                status.onSuccess {
-//                                    success(it)
-//                                    VpnStatusManager.statusLiveData.removeObserver(this)
-//                                    result.success(it)
-//                                }.onFailure { e ->
-//                                    result.error(
-//                                        "start_vpn",
-//                                        e.localizedMessage ?: "Please try again",
-//                                        e
-//                                    )
-//                                    VpnStatusManager.statusLiveData.removeObserver(this)
-//                                }
-//                            }
-//                        }
-//                    }
                     result.runCatching {
                         VpnStatusManager.postVPNStatus(VPNStatus.Connecting)
                         MainActivity.instance.startVPN()
                         success("VPN started")
-//                        VpnStatusManager.statusLiveData.observe(MainActivity.instance, observer)
                     }.onFailure { e ->
                         result.error("start_vpn", e.localizedMessage ?: "Please try again", e)
                     }

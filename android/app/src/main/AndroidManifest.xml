@@ -4,7 +4,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 
     <application
 
@@ -53,6 +53,11 @@
                 <action android:name="android.net.VpnService" />
             </intent-filter>
         </service>
+
+
+        <receiver
+            android:name=".utils.VPNStatusReceiver"
+            android:enabled="true" />
 
     </application>
     <!-- Required to query activities that can process text, see:

@@ -1,24 +1,20 @@
 package org.getlantern.lantern.utils
 
+import android.content.IntentFilter
+import android.os.PowerManager
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.MutableLiveData
+import org.getlantern.lantern.LanternApp
 import org.getlantern.lantern.constant.VPNStatus
+import org.getlantern.lantern.service.LanternVpnService
+import org.getlantern.lantern.service.LanternVpnService.Companion.ACTION_START_VPN
+import org.getlantern.lantern.service.LanternVpnService.Companion.ACTION_STOP_VPN
 
 /**
  * Singleton to manage VPN status using LiveData.
  */
 object VpnStatusManager {
-    val statusLiveData = MutableLiveData<Event<Result<String>>>()
     val vpnStatus = MutableLiveData<Event<VPNStatus>>()
-
-//    fun postStatus(successMessage: String? = null, error: Throwable? = null) {
-//        val result = if (error != null) {
-//            Result.failure<String>(error)
-//        } else {
-//            Result.success(successMessage ?: "Success")
-//        }
-//        statusLiveData.postValue(Event(result))
-//    }
-
 
     fun postVPNStatus(status: VPNStatus) {
         vpnStatus.postValue(Event(status))
@@ -27,5 +23,23 @@ object VpnStatusManager {
     fun postVPNError(errorCode: String, errorMessage: String, error: Throwable?) {
         val errorStatus = VPNStatus.error(errorCode, errorMessage, error)
         vpnStatus.postValue(Event(errorStatus))
+
+    }
+
+    fun registerVPNStatusReceiver(service: LanternVpnService) {
+        ContextCompat.registerReceiver(
+            LanternApp.application,
+            VPNStatusReceiver(service),
+            IntentFilter().apply {
+                addAction(ACTION_START_VPN)
+                addAction(ACTION_STOP_VPN)
+                addAction(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED)
+            },
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
+    }
+
+    fun unregisterVPNStatusReceiver(service: LanternVpnService) {
+        LanternApp.application.unregisterReceiver(VPNStatusReceiver(service))
     }
 }

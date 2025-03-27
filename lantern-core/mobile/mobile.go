@@ -29,6 +29,12 @@ func SetupRadiance(logDir string, platform libbox.PlatformInterface) {
 
 func StartVPN() error {
 	log.Debug("Starting VPN")
+	radianceMutex.Lock()
+	defer radianceMutex.Unlock()
+	if radianceServer == nil {
+		return log.Error("Radiance not setup")
+	}
+
 	err := radianceServer.StartVPN()
 	if err != nil {
 		log.Errorf("Error starting VPN: %v", err)
@@ -39,6 +45,11 @@ func StartVPN() error {
 
 func StopVPN() error {
 	log.Debug("Stopping VPN")
+	radianceMutex.Lock()
+	defer radianceMutex.Unlock()
+	if radianceServer == nil {
+		return log.Error("Radiance not setup")
+	}
 	er := radianceServer.StopVPN()
 	if er != nil {
 		log.Errorf("Error stopping VPN: %v", er)
@@ -46,6 +57,6 @@ func StopVPN() error {
 	return nil
 }
 
-func IsVPNConncted() bool {
+func IsVPNConnected() bool {
 	return radianceServer.ConnectionStatus()
 }
