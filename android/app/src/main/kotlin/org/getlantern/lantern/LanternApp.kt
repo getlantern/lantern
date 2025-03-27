@@ -8,8 +8,10 @@ import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
 import android.os.PowerManager
 import androidx.core.content.getSystemService
+import dagger.hilt.android.HiltAndroidApp
 import go.Seq
 
+@HiltAndroidApp
 class LanternApp : Application() {
 
     companion object {
@@ -17,7 +19,6 @@ class LanternApp : Application() {
         val connectivity by lazy { application.getSystemService<ConnectivityManager>()!! }
         val packageManager by lazy { application.packageManager }
         val powerManager by lazy { application.getSystemService<PowerManager>()!! }
-        val notificationManager by lazy { application.getSystemService<NotificationManager>()!! }
         val wifiManager by lazy { application.getSystemService<WifiManager>()!! }
         val clipboard by lazy { application.getSystemService<ClipboardManager>()!! }
     }

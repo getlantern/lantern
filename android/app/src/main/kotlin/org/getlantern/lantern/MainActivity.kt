@@ -1,14 +1,20 @@
 package org.getlantern.lantern
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.VpnService
+import android.os.Build
 import android.util.Log
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.handler.EventHandler
 import org.getlantern.lantern.handler.MethodHandler
+import org.getlantern.lantern.notification.NotificationHelper
 import org.getlantern.lantern.service.LanternVpnService
 import org.getlantern.lantern.service.LanternVpnService.Companion.ACTION_STOP_VPN
 import org.getlantern.lantern.utils.VpnStatusManager
@@ -20,7 +26,12 @@ class MainActivity : FlutterActivity() {
         const val TAG = "A/MainActivity"
         lateinit var instance: MainActivity
         const val VPN_PERMISSION_REQUEST_CODE = 7777
+        const val NOTIFICATION_PERMISSION_REQUEST_CODE = 1010
+
         var receiverRegistered: Boolean = false
+
+        val notificationHelper by lazy { NotificationHelper() }
+
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -51,15 +62,20 @@ class MainActivity : FlutterActivity() {
     }
 
     fun startVPN() {
+        if (!notificationHelper.hasPermission()) {
+            askNotificationPermission()
+            return
+        }
         if (!isVPNServiceReady()) {
             Log.d(TAG, "VPN service not ready")
             return
         }
+
         try {
             val vpnIntent = Intent(this, LanternVpnService::class.java).apply {
                 action = LanternVpnService.ACTION_START_VPN
             }
-            startService(vpnIntent)
+            ContextCompat.startForegroundService(this, vpnIntent)
             Log.d(TAG, "VPN service started")
         } catch (e: Exception) {
             e.printStackTrace()
@@ -107,6 +123,31 @@ class MainActivity : FlutterActivity() {
                 VpnStatusManager.postVPNStatus(VPNStatus.MissingPermission)
             }
         }
+    }
+
+    private fun askNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                NOTIFICATION_PERMISSION_REQUEST_CODE
+            )
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        if (requestCode == NOTIFICATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                startVPN()
+            } else {
+                VpnStatusManager.postVPNStatus(VPNStatus.MissingPermission)
+            }
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 
 

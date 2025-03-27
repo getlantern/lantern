@@ -21,7 +21,9 @@ import org.getlantern.lantern.utils.VpnStatusManager
 import org.getlantern.lantern.utils.initConfigDir
 import org.getlantern.lantern.utils.toIpPrefix
 
+
 class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
+
 
     companion object {
         private const val TAG = "VpnService"
@@ -58,6 +60,7 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
                 ACTION_START_VPN -> {
                     serviceScope.launch {
                         startVPN()
+                        MainActivity.notificationHelper.showVPNConnectedNotification(this@LanternVpnService)
                     }
                 }
 
@@ -156,14 +159,13 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
     fun doStopVPN() {
         Log.d("LanternVpnService", "doStopVPN")
         try {
-            // todo close notification
-
             serviceScope.launch {
                 Mobile.stopVPN()
                 mInterface?.close();
                 mInterface = null
                 Libbox.registerLocalDNSTransport(null)
                 DefaultNetworkMonitor.stop()
+                MainActivity.notificationHelper.stopVPNConnectedNotification(this@LanternVpnService)
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error stopping VPN service", e)
