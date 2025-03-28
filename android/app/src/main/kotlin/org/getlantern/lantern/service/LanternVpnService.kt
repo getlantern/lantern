@@ -1,11 +1,8 @@
 package org.getlantern.lantern.service
 
-import android.content.ComponentName
 import android.content.Intent
-import android.content.ServiceConnection
 import android.net.VpnService
 import android.os.Build
-import android.os.IBinder
 import android.os.ParcelFileDescriptor
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
@@ -147,8 +144,6 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 QuickTileService.triggerUpdateTileState(this@LanternVpnService, true)
             }
-
-
         }.onFailure { e ->
             Log.e(TAG, "Error starting VPN service", e)
             VpnStatusManager.postVPNError(
