@@ -27,11 +27,11 @@ const (
 )
 
 var (
-	baseDir string
-
 	servicesMap = map[service]int64{}
+	dataDir     string
 	server      *radiance.Radiance
 	serverMu    sync.Mutex
+	serverOnce  sync.Once
 
 	setupOnce sync.Once
 
@@ -40,14 +40,13 @@ var (
 
 //export setup
 func setup(dir *C.char, logPort, appsPort C.int64_t, api unsafe.Pointer) {
-	serverMu.Lock()
-	defer serverMu.Unlock()
+	dataDir = C.GoString(dir)
 
-	setupOnce.Do(func() {
+	serverOnce.Do(func() {
+
 		// initialize the Dart API DL bridge.
 		dart_api_dl.Init(api)
 
-		baseDir = C.GoString(dir)
 		servicesMap[logsService] = int64(logPort)
 		servicesMap[appsService] = int64(appsPort)
 
@@ -60,6 +59,12 @@ func setup(dir *C.char, logPort, appsPort C.int64_t, api unsafe.Pointer) {
 			return nil
 		})
 
+		r, err := radiance.NewRadiance(dataDir, nil)
+		if err != nil {
+			log.Fatalf("unable to create VPN server: %v", err)
+		}
+		log.Debugf("created new instance of radiance with data directory %s", dataDir)
+		server = r
 	})
 }
 
@@ -71,15 +76,6 @@ func startVPN() *C.char {
 
 	serverMu.Lock()
 	defer serverMu.Unlock()
-
-	if server == nil {
-		r, err := radiance.NewRadiance(nil)
-		if err != nil {
-			err = fmt.Errorf("unable to create VPN server: %v", err)
-			return C.CString(err.Error())
-		}
-		server = r
-	}
 
 	if err := server.StartVPN(); err != nil {
 		err = fmt.Errorf("unable to start vpn server: %v", err)
