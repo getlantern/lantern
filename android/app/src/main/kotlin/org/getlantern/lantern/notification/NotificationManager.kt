@@ -1,6 +1,5 @@
 package org.getlantern.lantern.notification
 
-import android.app.Activity
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -18,10 +17,7 @@ import org.getlantern.lantern.service.LanternVpnService
 import org.getlantern.lantern.service.LanternVpnService.Companion.ACTION_STOP_VPN
 
 
-class NotificationHelper(val activity: Activity) {
-
-//    private val notificationManager by lazy { app.getSystemService<NotificationManager>()!! }
-//    private val app by lazy { LanternApp.application }
+class NotificationHelper {
 
     companion object {
         private const val DATA_USAGE = 36
@@ -30,23 +26,23 @@ class NotificationHelper(val activity: Activity) {
         private const val CHANNEL_DATA_USAGE = "data_usage"
         private const val VPN_DESC = "VPN"
         private const val DATA_USAGE_DESC = "Data Usage"
+        var notificationManager = LanternApp.application.getSystemService<NotificationManager>()!!
+
+        fun hasPermission(): Boolean {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                return true
+            }
+            return notificationManager.areNotificationsEnabled()
+        }
 
     }
 
     private lateinit var dataUsageNotificationChannel: NotificationChannel
     private lateinit var vpnNotificationChannel: NotificationChannel
-     var notificationManager: NotificationManager
+
 
     init {
-        notificationManager = activity.getSystemService<NotificationManager>()!!
         createNotificationChannel()
-    }
-
-    fun hasPermission(): Boolean {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            return true
-        }
-        return notificationManager.areNotificationsEnabled()
     }
 
 
@@ -87,13 +83,13 @@ class NotificationHelper(val activity: Activity) {
 
     private fun buildVpnNotification(): Notification {
         val contentIntent = PendingIntent.getActivity(
-            activity,
+            LanternApp.application,
             0,
-            Intent(activity, MainActivity::class.java),
+            Intent(LanternApp.application, MainActivity::class.java),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
-        return NotificationCompat.Builder(activity, CHANNEL_VPN)
+        return NotificationCompat.Builder(LanternApp.application, CHANNEL_VPN)
             .setShowWhen(false)
             .setOngoing(true)
             .setContentTitle("Lantern")
@@ -118,7 +114,7 @@ class NotificationHelper(val activity: Activity) {
             LanternApp.application.packageName
         )
         return PendingIntent.getBroadcast(
-            activity,
+            LanternApp.application,
             0,
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,

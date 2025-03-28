@@ -42,6 +42,12 @@ object VpnStatusManager {
     }
 
     fun unregisterVPNStatusReceiver(service: LanternVpnService) {
-        LanternApp.application.unregisterReceiver(VPNStatusReceiver(service))
+        try{
+            // todo check if receiver is registered or not
+            LanternApp.application.unregisterReceiver(VPNStatusReceiver(service))
+        }catch (e: IllegalArgumentException){
+            Log.e("VpnStatusManager", "unregisterVPNStatusReceiver: ", e)
+        }
+
     }
 }

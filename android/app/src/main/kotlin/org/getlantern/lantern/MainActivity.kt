@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import io.flutter.embedding.android.FlutterActivity
@@ -23,7 +24,6 @@ import org.getlantern.lantern.service.LanternVpnService.Companion.ACTION_STOP_VP
 import org.getlantern.lantern.utils.Event
 import org.getlantern.lantern.utils.VpnStatusManager
 import org.getlantern.lantern.utils.isServiceRunning
-import java.util.concurrent.atomic.AtomicReference
 
 
 class MainActivity : FlutterActivity() {
@@ -33,21 +33,11 @@ class MainActivity : FlutterActivity() {
         const val VPN_PERMISSION_REQUEST_CODE = 7777
         const val NOTIFICATION_PERMISSION_REQUEST_CODE = 1010
         var receiverRegistered: Boolean = false
-        const val SERVICE_STATUS = "org.getlantern.lantern/status"
-//        val notificationHelper by lazy { NotificationHelper() }
-
     }
 
     private var statusChannel: EventChannel? = null
 
     private var statusObserver: Observer<Event<VPNStatus>>? = null
-
-    lateinit var notificationHelper: NotificationHelper
-
-    lateinit var testingEventChannel: EventChannel
-
-
-    private val eventSinkRef = AtomicReference<EventChannel.EventSink?>()
 
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -72,7 +62,8 @@ class MainActivity : FlutterActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "onCreate")
-        notificationHelper = NotificationHelper(this)
+
+
     }
 
     private fun startService() {
@@ -93,7 +84,7 @@ class MainActivity : FlutterActivity() {
     }
 
     fun startVPN() {
-        if (!notificationHelper.hasPermission()) {
+        if (!NotificationHelper.hasPermission()) {
             askNotificationPermission()
             return
         }
@@ -106,9 +97,7 @@ class MainActivity : FlutterActivity() {
             val vpnIntent = Intent(this, LanternVpnService::class.java).apply {
                 action = LanternVpnService.ACTION_START_VPN
             }
-//            ContextCompat.startForegroundService(this, vpnIntent)
-            startService(vpnIntent)
-
+            ContextCompat.startForegroundService(this, vpnIntent)
             Log.d(TAG, "VPN service started")
         } catch (e: Exception) {
             e.printStackTrace()

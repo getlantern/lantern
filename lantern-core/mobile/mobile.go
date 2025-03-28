@@ -27,6 +27,12 @@ func SetupRadiance(logDir string, platform libbox.PlatformInterface) {
 	log.Debug("Radiance setup successfully")
 }
 
+func IsRadianceConnected() bool {
+	radianceMutex.Lock()
+	defer radianceMutex.Unlock()
+	return radianceServer != nil
+}
+
 func StartVPN() error {
 	log.Debug("Starting VPN")
 	radianceMutex.Lock()

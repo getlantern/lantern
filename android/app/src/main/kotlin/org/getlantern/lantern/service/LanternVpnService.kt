@@ -19,6 +19,7 @@ import lantern.io.libbox.TunOptions
 import lantern.io.mobile.Mobile
 import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.constant.VPNStatus
+import org.getlantern.lantern.notification.NotificationHelper
 import org.getlantern.lantern.utils.LocalResolver
 import org.getlantern.lantern.utils.VpnStatusManager
 import org.getlantern.lantern.utils.initConfigDir
@@ -32,24 +33,16 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
         const val ACTION_START_RADIANCE = "com.getlantern.START_RADIANCE"
         const val ACTION_START_VPN = "org.getlantern.START_VPN"
         const val ACTION_STOP_VPN = "org.getlantern.START_STOP"
+        const val ACTION_TILE_START = "org.getlantern.TILE_START"
     }
 
-    private var mInterface: ParcelFileDescriptor? = null
+    private val notificationHelper = NotificationHelper()
 
+    private var mInterface: ParcelFileDescriptor? = null
 
     // Create a CoroutineScope tied to the service's lifecycle.
     // SupervisorJob ensures that failure in one child doesn't cancel the whole scope.
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-
-    private val lanternServiceConnection: ServiceConnection = object : ServiceConnection {
-        override fun onServiceDisconnected(name: ComponentName) {
-            Log.e(TAG, "LanternService disconnected, disconnecting VPN")
-//            stop()
-        }
-
-        override fun onServiceConnected(name: ComponentName, service: IBinder) {}
-    }
-
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val i = intent?.action ?: return START_STICKY
@@ -64,14 +57,24 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
                     serviceScope.launch {
                         startRadiance()
                     }
+                    return START_NOT_STICKY
                 }
 
                 ACTION_START_VPN -> {
                     serviceScope.launch {
                         startVPN()
-                        MainActivity.instance.notificationHelper.showVPNConnectedNotification(this@LanternVpnService)
+                        notificationHelper.showVPNConnectedNotification(this@LanternVpnService)
                     }
+                }
 
+                ACTION_TILE_START -> {
+                    serviceScope.launch {
+                        if (!Mobile.isRadianceConnected()) {
+                            startRadiance()
+                        }
+                        startVPN()
+                        notificationHelper.showVPNConnectedNotification(this@LanternVpnService)
+                    }
                 }
 
                 ACTION_STOP_VPN -> {
@@ -141,6 +144,11 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
             Mobile.startVPN()
             Log.d(TAG, "VPN service started")
             VpnStatusManager.postVPNStatus(VPNStatus.Connected)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                QuickTileService.triggerUpdateTileState(this@LanternVpnService, true)
+            }
+
+
         }.onFailure { e ->
             Log.e(TAG, "Error starting VPN service", e)
             VpnStatusManager.postVPNError(
@@ -165,7 +173,11 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
                 Libbox.registerLocalDNSTransport(null)
                 DefaultNetworkMonitor.stop()
                 VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
-                MainActivity.instance.notificationHelper.stopVPNConnectedNotification(this@LanternVpnService)
+                notificationHelper.stopVPNConnectedNotification(this@LanternVpnService)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    QuickTileService.triggerUpdateTileState(this@LanternVpnService, false)
+                }
+
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error stopping VPN service", e)

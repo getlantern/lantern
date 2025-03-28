@@ -1,4 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:installLocation="auto">
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -17,8 +18,8 @@
             android:name=".MainActivity"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:exported="true"
-            android:launchMode="singleTask"
             android:hardwareAccelerated="true"
+            android:launchMode="singleTask"
             android:taskAffinity=""
             android:theme="@style/LaunchTheme"
             android:windowSoftInputMode="adjustResize">
@@ -50,10 +51,28 @@
             </intent-filter>
         </service>
 
+        <service
+            android:name=".service.QuickTileService"
+            android:directBootAware="true"
+            android:exported="true"
+            android:icon="@drawable/lantern_notification_icon"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
+            tools:ignore="NewApi">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.service.quicksettings.TOGGLEABLE_TILE"
+                android:value="true" />
+
+        </service>
+
 
         <receiver
             android:name=".utils.VPNStatusReceiver"
             android:enabled="true" />
+
+
 
     </application>
     <!-- Required to query activities that can process text, see:
