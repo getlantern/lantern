@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.app.Service
 import android.app.Service.STOP_FOREGROUND_REMOVE
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.content.getSystemService
@@ -24,9 +25,13 @@ class NotificationHelper {
         const val VPN_CONNECTED = 37
         private const val CHANNEL_VPN = "lantern_vpn"
         private const val CHANNEL_DATA_USAGE = "data_usage"
+        const val OPEN_URL = "SERVICE_OPEN_URL"
+
         private const val VPN_DESC = "VPN"
         private const val DATA_USAGE_DESC = "Data Usage"
         var notificationManager = LanternApp.application.getSystemService<NotificationManager>()!!
+        val flags =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0
 
         fun hasPermission(): Boolean {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
@@ -42,14 +47,14 @@ class NotificationHelper {
 
 
     init {
-        createNotificationChannel()
+        createDefaultNotificationChannel()
     }
 
 
     /**
      * Creates the notification channel if running on Android O or above.
      */
-    private fun createNotificationChannel() {
+    private fun createDefaultNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             vpnNotificationChannel = NotificationChannel(
                 CHANNEL_VPN,
@@ -68,17 +73,16 @@ class NotificationHelper {
         }
     }
 
-    /**
-     * Builds a notification using the provided title, content and icon.
-     */
-//    fun buildNotification(title: String, content: String, smallIcon: Int): Notification {
-//        return NotificationCompat.Builder(context, CHANNEL_ID)
-//            .setContentTitle(title)
-//            .setContentText(content)
-//            .setSmallIcon(smallIcon)
-//            .setOngoing(true) // Prevents the notification from being swiped away.
-//            .build()
-//    }
+    private fun createNotificationChannel(identifier: String, typeName: String) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                identifier,
+                typeName,
+                NotificationManager.IMPORTANCE_HIGH,
+            )
+            notificationManager.createNotificationChannel(channel)
+        }
+    }
 
 
     private fun buildVpnNotification(): Notification {
@@ -100,7 +104,7 @@ class NotificationHelper {
                 NotificationCompat.Action.Builder(
                     android.R.drawable.ic_menu_close_clear_cancel,
                     "Disconnect",
-                    disconnectBroadcast()
+                    disconnectVPN()
                 ).build()
             )
             .setContentIntent(contentIntent)
@@ -108,8 +112,7 @@ class NotificationHelper {
 
     }
 
-    private fun disconnectBroadcast(): PendingIntent {
-
+    private fun disconnectVPN(): PendingIntent {
         val intent = Intent(ACTION_STOP_VPN).setPackage(
             LanternApp.application.packageName
         )
@@ -138,25 +141,13 @@ class NotificationHelper {
      * @param notificationId The unique notification ID.
      * @param notification The notification object built via [buildNotification].
      */
-    fun showForegroundNotification(
+    private fun showForegroundNotification(
         service: Service,
         notificationId: Int,
         notification: Notification
     ) {
         service.startForeground(notificationId, notification)
     }
-
-    /**
-     * Updates the notification.
-     *
-     * @param notificationId The unique notification ID.
-     * @param notification The updated notification object.
-     */
-//    fun updateNotification(notificationId: Int, notification: Notification) {
-//        val notificationManager =
-//            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-//        notificationManager.notify(notificationId, notification)
-//    }
 
     /**
      * Stops the foreground notification.
@@ -171,6 +162,37 @@ class NotificationHelper {
             // For API < 24, stopForeground without flags
             service.stopForeground(true)
         }
+    }
+
+    fun sendNotification(notification: lantern.io.libbox.Notification?) {
+        createNotificationChannel(notification!!.identifier, notification!!.typeName)
+        val builder = NotificationCompat.Builder(LanternApp.application, notification?.identifier!!)
+            .setContentTitle(notification.title)
+            .setContentText(notification.body)
+            .setOnlyAlertOnce(true)
+            .setSmallIcon(R.drawable.lantern_notification_icon)
+            .setCategory(NotificationCompat.CATEGORY_EVENT)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+        if (!notification.subtitle.isNullOrBlank()) {
+            builder.setContentInfo(notification.subtitle)
+        }
+        if (!notification.openURL.isNullOrBlank()) {
+            builder.setContentIntent(
+                PendingIntent.getActivity(
+                    LanternApp.application,
+                    0,
+                    Intent(
+                        LanternApp.application, MainActivity::class.java
+                    ).apply {
+                        setAction(OPEN_URL).setData(Uri.parse(notification.openURL))
+                        setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                    },
+                    flags,
+                )
+            )
+        }
+        notificationManager.notify(notification.typeID, builder.build())
     }
 
 }

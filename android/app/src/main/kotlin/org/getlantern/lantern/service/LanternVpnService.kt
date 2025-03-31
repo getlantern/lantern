@@ -112,8 +112,8 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
         return pfd.fd
     }
 
-    override fun sendNotification(p0: Notification?) {
-        TODO("Not yet implemented")
+    override fun sendNotification(notification: Notification?) {
+        notificationHelper.sendNotification(notification)
     }
 
     override fun writeLog(p0: String?) {
