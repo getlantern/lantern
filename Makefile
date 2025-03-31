@@ -37,6 +37,7 @@ ANDROID_DEBUG_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-debug.apk
 IOS_FRAMEWORK := Liblantern.xcframework
 IOS_FRAMEWORK_DIR := ios/Frameworks
 IOS_FRAMEWORK_BUILD := $(BUILD_DIR)/ios/$(IOS_FRAMEWORK)
+IOS_DEBUG_BUILD := $(BUILD_DIR)/ios/iphoneos/Runner.app
 
 TAGS=with_gvisor,with_quic,with_wireguard,with_ech,with_utls,with_clash_api,with_grpc
 
@@ -173,10 +174,16 @@ ios: $(IOS_FRAMEWORK_BUILD)
 
 $(IOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 	@echo "Building iOS Framework..."
-	rm -rf $@ && mkdir -p $(dir $@)
-	GOOS=ios gomobile bind -v -tags=$(TAGS),with_low_memory -trimpath -target=ios -ldflags="-w -s" -o $@ $(RADIANCE_REPO)
+	mkdir -p bin/ios
+	GOOS=ios gomobile bind -v -tags=$(TAGS),with_low_memory -trimpath -target=ios -ldflags="-w -s" -o $@ $(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox
 	mkdir -p $(IOS_FRAMEWORK_DIR) && rm -rf $(IOS_FRAMEWORK_DIR)/$(IOS_FRAMEWORK) && mv $@ $(IOS_FRAMEWORK_DIR)
 	@echo "Built iOS Framework: $(IOS_FRAMEWORK_DIR)/$(IOS_FRAMEWORK)"
+
+.PHONY: ios-debug
+ios-debug: $(IOS_DEBUG_BUILD)
+
+$(IOS_DEBUG_BUILD): $(IOS_FRAMEWORK_BUILD)
+	flutter build ios --debug
 
 # Dart API DL bridge
 DART_SDK_REPO=https://github.com/dart-lang/sdk

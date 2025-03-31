@@ -17,11 +17,14 @@
 		5F4C38512D9155BC0053105F /* FilePath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F4C384F2D9155BC0053105F /* FilePath.swift */; };
 		5F4C38522D9155CF0053105F /* FilePath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F4C384F2D9155BC0053105F /* FilePath.swift */; };
 		5F7A35462D23504000AF1761 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F0515CF2D20DB5100E704BE /* NetworkExtension.framework */; };
-		5F7A35472D23518700AF1761 /* Liblantern.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F0515BC2D20B58600E704BE /* Liblantern.xcframework */; };
 		5F9537412D2B67DF009BB822 /* VPNBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F95373E2D2B67DF009BB822 /* VPNBase.swift */; };
 		5F9537422D2B67DF009BB822 /* VPNManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F95373F2D2B67DF009BB822 /* VPNManager.swift */; };
 		5F9537662D2B6F07009BB822 /* MethodHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F9537652D2B6F07009BB822 /* MethodHandler.swift */; };
 		5FEBBBC82D90F55400F0AC54 /* Liblantern.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5FEBBBBB2D90F45F00F0AC54 /* Liblantern.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		5FECA3422D9A227E003E8327 /* Liblantern.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F0515BC2D20B58600E704BE /* Liblantern.xcframework */; };
+		5FECA3432D9A227E003E8327 /* Liblantern.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5F0515BC2D20B58600E704BE /* Liblantern.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		5FECA36E2D9A23FD003E8327 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 5FECA36D2D9A23FD003E8327 /* libresolv.tbd */; };
+		5FECA3982D9A2487003E8327 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 5FECA36D2D9A23FD003E8327 /* libresolv.tbd */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
@@ -58,6 +61,17 @@
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		5FECA3442D9A227E003E8327 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				5FECA3432D9A227E003E8327 /* Liblantern.xcframework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		9705A1C41CF9048500538489 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 8;
@@ -91,6 +105,7 @@
 		5F95373F2D2B67DF009BB822 /* VPNManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VPNManager.swift; sourceTree = "<group>"; };
 		5F9537652D2B6F07009BB822 /* MethodHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MethodHandler.swift; sourceTree = "<group>"; };
 		5FEBBBBB2D90F45F00F0AC54 /* Liblantern.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Liblantern.xcframework; path = Frameworks/Liblantern.xcframework; sourceTree = "<group>"; };
+		5FECA36D2D9A23FD003E8327 /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = usr/lib/libresolv.tbd; sourceTree = SDKROOT; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
@@ -149,7 +164,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5F7A35472D23518700AF1761 /* Liblantern.xcframework in Frameworks */,
+				5FECA36E2D9A23FD003E8327 /* libresolv.tbd in Frameworks */,
+				5FECA3422D9A227E003E8327 /* Liblantern.xcframework in Frameworks */,
 				5F0515D02D20DB5100E704BE /* NetworkExtension.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -158,6 +174,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5FECA3982D9A2487003E8327 /* libresolv.tbd in Frameworks */,
 				5F7A35462D23504000AF1761 /* NetworkExtension.framework in Frameworks */,
 				CC6E89873E482CDBE334F131 /* Pods_Runner.framework in Frameworks */,
 			);
@@ -262,6 +279,7 @@
 		B088A132265A1E5C0B68570E /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				5FECA36D2D9A23FD003E8327 /* libresolv.tbd */,
 				D9119B71D3AA107AED9A513D /* Pods_Runner.framework */,
 				A430D395EEE508A6C60559A5 /* Pods_RunnerTests.framework */,
 				5F0515BC2D20B58600E704BE /* Liblantern.xcframework */,
@@ -299,6 +317,7 @@
 				5F0515CA2D20DB5100E704BE /* Sources */,
 				5F0515CB2D20DB5100E704BE /* Frameworks */,
 				5F0515CC2D20DB5100E704BE /* Resources */,
+				5FECA3442D9A227E003E8327 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
