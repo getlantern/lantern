@@ -174,8 +174,8 @@ ios: $(IOS_FRAMEWORK_BUILD)
 
 $(IOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 	@echo "Building iOS Framework..."
-	mkdir -p bin/ios
-	GOOS=ios gomobile bind -v -tags=$(TAGS),with_low_memory -trimpath -target=ios -ldflags="-w -s" -o $@ $(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox
+	mkdir -p bin/ios && rm -rf $(IOS_FRAMEWORK_BUILD)
+	GOOS=ios gomobile bind -v -tags=$(TAGS),with_low_memory -trimpath -target=ios -ldflags="-w -s" -o $@ $(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox ./lantern-core/mobile
 	mkdir -p $(IOS_FRAMEWORK_DIR) && rm -rf $(IOS_FRAMEWORK_DIR)/$(IOS_FRAMEWORK) && mv $@ $(IOS_FRAMEWORK_DIR)
 	@echo "Built iOS Framework: $(IOS_FRAMEWORK_DIR)/$(IOS_FRAMEWORK)"
 

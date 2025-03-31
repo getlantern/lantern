@@ -44,7 +44,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         if let username {
             options.username = username
         }
-        LibboxSetup(options, &error)
+        LiblanternRadianceSetup(options, &error)
         if let error {
             writeFatalError("(packet-tunnel) error: setup service: \(error.localizedDescription)")
             return

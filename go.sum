@@ -73,6 +73,8 @@ github.com/getlantern/keyman v0.0.0-20230503155501-4e864ca2175b h1:iyEuk8ARQC9Hf
 github.com/getlantern/keyman v0.0.0-20230503155501-4e864ca2175b/go.mod h1:ZJ+yDaZkJ/JU9j7EQa3UUh6ouedrNDDLA5OiowS1Iuk=
 github.com/getlantern/kindling v0.0.0-20250324213140-12dec99b91eb h1:IbQdIj16D/RXPgKNXDkUe91hBfd32D3F2fNFNjv3Qeg=
 github.com/getlantern/kindling v0.0.0-20250324213140-12dec99b91eb/go.mod h1:+18SvvV6dP5iBut/cdI1ywG1nPFq4ASp5iEjPJXHVAU=
+github.com/getlantern/kindling v0.0.0-20250327204452-cc0a77c57e75 h1:53+fJ0m3OxHKSarQC1jeixpl9xjX9s5KJES/moCkZEs=
+github.com/getlantern/kindling v0.0.0-20250327204452-cc0a77c57e75/go.mod h1:+18SvvV6dP5iBut/cdI1ywG1nPFq4ASp5iEjPJXHVAU=
 github.com/getlantern/mockconn v0.0.0-20200818071412-cb30d065a848 h1:2MhMMVBTnaHrst6HyWFDhwQCaJ05PZuOv1bE2gN8WFY=
 github.com/getlantern/mockconn v0.0.0-20200818071412-cb30d065a848/go.mod h1:+F5GJ7qGpQ03DBtcOEyQpM30ix4BLswdaojecFtsdy8=
 github.com/getlantern/mtime v0.0.0-20200417132445-23682092d1f7 h1:03J6Cb42EG06lHgpOFGm5BOax4qFqlSbSeKO2RGrj2g=
@@ -87,6 +89,8 @@ github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 h1:JWH5BB2o0e
 github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175/go.mod h1:h3S9LBmmzN/xM+lwYZHE4abzTtCTtidKtG+nxZcCZX0=
 github.com/getlantern/radiance v0.0.0-20250325212038-858d882e5a28 h1:yyR9NuZ+k74vT7hdCr5iq/MPeEi2CK5LeGdRhLZIWuQ=
 github.com/getlantern/radiance v0.0.0-20250325212038-858d882e5a28/go.mod h1:jAG4IwdC8YpCJSRxbIk7l+cH1LnyqW/ZjcKkvrN64XQ=
+github.com/getlantern/radiance v0.0.0-20250327204839-8a910fc61094 h1:Nn6sphNCyB8ghv0zNCYmAqtfb5G+1H7UD76iYNRsFfQ=
+github.com/getlantern/radiance v0.0.0-20250327204839-8a910fc61094/go.mod h1:V/qPzAVLzK+rjJLXZQFgcrT2bpIWPeyj2UNTdL4utOE=
 github.com/getlantern/sing-box-minimal v1.11.6-0.20250319162213-b56a0b17a972 h1:n1d3qX4G8IqDiOUnZMy404ZJP0cJqYPBYAtgBnZiDvU=
 github.com/getlantern/sing-box-minimal v1.11.6-0.20250319162213-b56a0b17a972/go.mod h1:9n60qJQH2gmrtjKUbnjdNt+Tvg5bq2ZBYNvNOdUz65w=
 github.com/getlantern/timezone v0.0.0-20210901200113-3f9de9d360c9 h1:VTNjZxSuAHUzu13lYpEVB8gc3xz5hZePGNHG5enHYLY=
@@ -233,8 +237,6 @@ github.com/sagernet/cors v1.2.1 h1:Cv5Z8y9YSD6Gm+qSpNrL3LO4lD3eQVvbFYJSG7JCMHQ=
 github.com/sagernet/cors v1.2.1/go.mod h1:O64VyOjjhrkLmQIjF4KGRrJO/5dVXFdpEmCW/eISRAI=
 github.com/sagernet/fswatch v0.1.1 h1:YqID+93B7VRfqIH3PArW/XpJv5H4OLEVWDfProGoRQs=
 github.com/sagernet/fswatch v0.1.1/go.mod h1:nz85laH0mkQqJfaOrqPpkwtU1znMFNVTpT/5oRsVz/o=
-github.com/sagernet/gomobile v0.1.4 h1:WzX9ka+iHdupMgy2Vdich+OAt7TM8C2cZbIbzNjBrJY=
-github.com/sagernet/gomobile v0.1.4/go.mod h1:Pqq2+ZVvs10U7xK+UwJgwYWUykewi8H6vlslAO73n9E=
 github.com/sagernet/gvisor v0.0.0-20250217052116-ed66b6946f72 h1:Jgv6N59yiVMEwimTcFV1EVcu2Aa7R2Wh1ZAYNzWP2qA=
 github.com/sagernet/gvisor v0.0.0-20250217052116-ed66b6946f72/go.mod h1:ehZwnT2UpmOWAHFL48XdBhnd4Qu4hN2O3Ji0us3ZHMw=
 github.com/sagernet/netlink v0.0.0-20240916134442-83396419aa8b h1:ppoda3bl004POPsp3ut7V+4Mn6+DUbTxyxpB0BjpaIk=

@@ -1,15 +1,17 @@
 module github.com/getlantern/lantern-outline
 
-go 1.23.4
+go 1.23.6
+
+toolchain go1.24.0
 
 replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v1.11.6-0.20250319162213-b56a0b17a972
 
-// replace github.com/getlantern/radiance => ../radiance
+//replace github.com/getlantern/radiance => ../radiance
 
 require (
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
+	github.com/getlantern/radiance v0.0.0-20250327204839-8a910fc61094
 	golang.org/x/mobile v0.0.0-20250305212854-3a7bc9f8a4de
-	github.com/getlantern/radiance v0.0.0-20250325212038-858d882e5a28
 
 )
 
@@ -42,7 +44,7 @@ require (
 	github.com/getlantern/jibber_jabber v0.0.0-20210901195950-68955124cc42 // indirect
 	github.com/getlantern/keepcurrent v0.0.0-20240126172110-2e0264ca385d // indirect
 	github.com/getlantern/keyman v0.0.0-20230503155501-4e864ca2175b // indirect
-	github.com/getlantern/kindling v0.0.0-20250324213140-12dec99b91eb // indirect
+	github.com/getlantern/kindling v0.0.0-20250327204452-cc0a77c57e75 // indirect
 	github.com/getlantern/mtime v0.0.0-20200417132445-23682092d1f7 // indirect
 	github.com/getlantern/netx v0.0.0-20240830183145-c257516187f0 // indirect
 	github.com/getlantern/ops v0.0.0-20231025133620-f368ab734534 // indirect
@@ -146,6 +148,5 @@ require (
 require (
 	github.com/shadowsocks/go-shadowsocks2 v0.1.5 // indirect
 	golang.org/x/crypto v0.36.0 // indirect
-	golang.org/x/mobile v0.0.0-20250305212854-3a7bc9f8a4de // indirect
 	golang.org/x/sys v0.31.0 // indirect
 )
