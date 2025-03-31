@@ -17,10 +17,11 @@ import (
 )
 
 var (
-	baseDir  string
-	logPort  int64
-	server   *radiance.Radiance
-	serverMu sync.Mutex
+	dataDir    string
+	logPort    int64
+	server     *radiance.Radiance
+	serverMu   sync.Mutex
+	serverOnce sync.Once
 
 	setupOnce sync.Once
 
@@ -29,11 +30,17 @@ var (
 
 //export setup
 func setup(dir *C.char, port C.int64_t, api unsafe.Pointer) {
-	serverMu.Lock()
-	defer serverMu.Unlock()
-
-	baseDir = C.GoString(dir)
+	dataDir = C.GoString(dir)
 	logPort = int64(port)
+
+	serverOnce.Do(func() {
+		r, err := radiance.NewRadiance(dataDir, nil)
+		if err != nil {
+			log.Fatalf("unable to create VPN server: %v", err)
+		}
+		log.Debugf("created new instance of radiance with data directory %s", dataDir)
+		server = r
+	})
 }
 
 // startVPN initializes and starts the VPN server if it is not already running.
@@ -44,15 +51,6 @@ func startVPN() *C.char {
 
 	serverMu.Lock()
 	defer serverMu.Unlock()
-
-	if server == nil {
-		r, err := radiance.NewRadiance(nil)
-		if err != nil {
-			err = fmt.Errorf("unable to create VPN server: %v", err)
-			return C.CString(err.Error())
-		}
-		server = r
-	}
 
 	if err := server.StartVPN(); err != nil {
 		err = fmt.Errorf("unable to start vpn server: %v", err)
