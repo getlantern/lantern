@@ -1,13 +1,11 @@
 package org.getlantern.lantern.handler
 
-import android.os.Build
 import android.util.Log
 import androidx.lifecycle.Observer
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.JSONMethodCodec
 import org.getlantern.lantern.constant.VPNStatus
-import org.getlantern.lantern.service.QuickTileService
 import org.getlantern.lantern.utils.Event
 import org.getlantern.lantern.utils.VpnStatusManager
 
@@ -62,7 +60,7 @@ class EventHandler : FlutterPlugin {
             }
 
             override fun onCancel(arguments: Any?) {
-                if (statusObserver != null){
+                if (statusObserver != null) {
                     VpnStatusManager.vpnStatus.removeObserver(statusObserver!!)
                 }
 

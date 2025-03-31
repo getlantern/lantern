@@ -39,6 +39,7 @@ class MethodHandler(private val scope: CoroutineScope) : FlutterPlugin,
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         channel?.setMethodCallHandler(null)
+        channel = null
     }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
@@ -50,6 +51,7 @@ class MethodHandler(private val scope: CoroutineScope) : FlutterPlugin,
                         MainActivity.instance.startVPN()
                         success("VPN started")
                     }.onFailure { e ->
+                        VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
                         result.error("start_vpn", e.localizedMessage ?: "Please try again", e)
                     }
                 }

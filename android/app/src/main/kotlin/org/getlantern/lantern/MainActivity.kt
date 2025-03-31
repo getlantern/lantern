@@ -5,7 +5,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.VpnService
 import android.os.Build
-import android.os.Bundle
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -14,7 +13,6 @@ import androidx.lifecycle.lifecycleScope
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
-import lantern.io.mobile.Mobile
 import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.handler.EventHandler
 import org.getlantern.lantern.handler.MethodHandler
@@ -39,7 +37,6 @@ class MainActivity : FlutterActivity() {
 
     private var statusObserver: Observer<Event<VPNStatus>>? = null
 
-
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
@@ -56,14 +53,6 @@ class MainActivity : FlutterActivity() {
         statusChannel?.setStreamHandler(null)
         VpnStatusManager.vpnStatus.removeObserver(statusObserver!!)
         super.detachFromFlutterEngine()
-    }
-
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        Log.d(TAG, "onCreate")
-
-
     }
 
     private fun startService() {
@@ -92,6 +81,7 @@ class MainActivity : FlutterActivity() {
             Log.d(TAG, "VPN service not ready")
             return
         }
+
 
         try {
             val vpnIntent = Intent(this, LanternVpnService::class.java).apply {
@@ -126,26 +116,6 @@ class MainActivity : FlutterActivity() {
         } catch (e: Exception) {
             Log.e(TAG, "Error preparing VPN service", e)
             return false
-        }
-    }
-
-
-    fun checkVPNStatus() {
-        try {
-            if (isServiceRunning(this, LanternVpnService::class.java)) {
-                Log.d(TAG, "LanternService is already running")
-                VpnStatusManager.postVPNStatus(VPNStatus.Connected)
-                return
-            }
-            if (Mobile.isVPNConnected()) {
-                Log.d(TAG, "VPN already connected")
-                VpnStatusManager.postVPNStatus(VPNStatus.Connected)
-            } else {
-                Log.d(TAG, "VPN not connected")
-                VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error checking VPN status", e)
         }
     }
 
