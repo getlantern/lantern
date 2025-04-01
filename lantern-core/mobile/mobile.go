@@ -5,8 +5,8 @@ import (
 	"sync"
 
 	"github.com/getlantern/golog"
-	"github.com/getlantern/lantern-outline/lantern-core/mobile/libbox"
 	"github.com/getlantern/radiance"
+	"github.com/sagernet/sing-box/experimental/libbox"
 	_ "golang.org/x/mobile/bind"
 )
 
@@ -16,18 +16,19 @@ var (
 	radianceServer *radiance.Radiance
 )
 
-func SetupRadiance(configDir string, platform libbox.PlatformInterface) {
+func SetupRadiance(configDir string, platform libbox.PlatformInterface) error {
 	radianceMutex.Lock()
 	defer radianceMutex.Unlock()
 
-	r, err := radiance.NewRadiance(configDir, &singBoxPlatformWrapper{platform: platform})
+	r, err := radiance.NewRadiance(configDir, platform)
 	if err != nil {
 		log.Errorf("Unable to create Radiance: %v", err)
-		return
+		return err
 	}
 	radianceServer = r
 
 	log.Debug("Radiance setup successfully")
+	return nil
 }
 
 func StartVPN() error {

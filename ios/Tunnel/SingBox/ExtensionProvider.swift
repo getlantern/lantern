@@ -34,7 +34,8 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         LibboxClearServiceError()
 
         let options = LibboxSetupOptions()
-        options.basePath = FilePath.sharedDirectory.relativePath
+        let baseDir = FilePath.sharedDirectory.relativePath
+        options.basePath = baseDir
         options.workingPath = FilePath.workingDirectory.relativePath
         options.tempPath = FilePath.cacheDirectory.relativePath
         var error: NSError?
@@ -44,11 +45,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         if let username {
             options.username = username
         }
-        LiblanternRadianceSetup(options, &error)
-        if let error {
-            writeFatalError("(packet-tunnel) error: setup service: \(error.localizedDescription)")
-            return
-        }
+
 
         LibboxRedirectStderr(FilePath.cacheDirectory.appendingPathComponent("stderr.log").relativePath, &error)
         if let error {
@@ -61,15 +58,13 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         if platformInterface == nil {
             platformInterface = ExtensionPlatformInterface(self)
         }
-        let maxLogLines = 50 // SharedPreferences.maxLogLines.get()
-        commandServer = LibboxNewCommandServer(platformInterface, Int32(maxLogLines))
-        do {
-            try commandServer.start()
-        } catch {
-            writeFatalError("(packet-tunnel): log server start error: \(error.localizedDescription)")
+
+        MobileSetupRadiance(baseDir, platformInterface, &error)
+        if let error {
+            writeFatalError("(packet-tunnel) error: setup service: \(error.localizedDescription)")
             return
         }
-        writeMessage("(packet-tunnel): Here I stand")
+
         await startService()
         #if os(iOS)
 //            if #available(iOS 18.0, *) {
@@ -96,36 +91,24 @@ open class ExtensionProvider: NEPacketTunnelProvider {
 
     private func startService() async {
         var error: NSError?
-        let baseDir = "" // TODO fix this
-        let service = RadianceNewRadiance(baseDir, platformInterface, &error)
-        if let error {
-            writeFatalError("(packet-tunnel) error: create service: \(error.localizedDescription)")
-            return
-        }
-        guard let service else {
-            return
-        }
         do {
-            try service.startVPN()
+            try MobileStartVPN(&error)
         } catch {
             writeFatalError("(packet-tunnel) error: start service: \(error.localizedDescription)")
             return
         }
-        //commandServer.setService(service)
-        //boxService = service
-        radiance = service
         #if os(macOS)
             //await SharedPreferences.startedByUser.set(true)
-            if service.needWIFIState() {
-                if !Variant.useSystemExtension {
-                    locationManager = CLLocationManager()
-                    locationDelegate = stubLocationDelegate(radiance)
-                    locationManager?.delegate = locationDelegate
-                    locationManager?.requestLocation()
-                } else {
-                    commandServer.writeMessage("(packet-tunnel) WIFI SSID and BSSID information is not currently available in the standalone version of SFM. We are working on resolving this issue.")
-                }
-            }
+            // if service.needWIFIState() {
+            //     if !Variant.useSystemExtension {
+            //         locationManager = CLLocationManager()
+            //         locationDelegate = stubLocationDelegate(radiance)
+            //         locationManager?.delegate = locationDelegate
+            //         locationManager?.requestLocation()
+            //     } else {
+            //         commandServer.writeMessage("(packet-tunnel) WIFI SSID and BSSID information is not currently available in the standalone version of SFM. We are working on resolving this issue.")
+            //     }
+            // }
         #endif
     }
 
@@ -152,15 +135,12 @@ open class ExtensionProvider: NEPacketTunnelProvider {
     #endif
 
     private func stopService() {
-        if let service = radiance {
-            do {
-                try radiance.stopVPN()
-            } catch {
-                writeMessage("(packet-tunnel) error: stop service: \(error.localizedDescription)")
-            }
-            boxService = nil
-            radiance = nil
-            commandServer.setService(nil)
+        var error: NSError?
+        do {
+            try MobileStopVPN(&error)
+        } catch {
+            writeFatalError("(packet-tunnel) error: stop service: \(error.localizedDescription)")
+            return
         }
         if let platformInterface {
             platformInterface.reset()
