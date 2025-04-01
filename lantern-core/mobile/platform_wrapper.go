@@ -3,11 +3,14 @@ package mobile
 import (
 	"github.com/getlantern/lantern-outline/lantern-core/mobile/libbox"
 	singbox "github.com/sagernet/sing-box/experimental/libbox"
+	"github.com/sagernet/sing-box/option"
+	tun "github.com/sagernet/sing-tun"
 )
 
 // singBoxPlatformWrapper adapts our existing PlatformInterface for Sing-box
 type singBoxPlatformWrapper struct {
 	platform libbox.PlatformInterface
+	device   tun.Tun
 }
 
 func (w *singBoxPlatformWrapper) LocalDNSTransport() singbox.LocalDNSTransport {
@@ -23,9 +26,14 @@ func (w *singBoxPlatformWrapper) AutoDetectInterfaceControl(fd int32) error {
 	return w.platform.AutoDetectInterfaceControl(fd)
 }
 
-func (w *singBoxPlatformWrapper) OpenTun(options singbox.TunOptions) (int32, error) {
+func (w *singBoxPlatformWrapper) OpenTun(platformOptions singbox.TunOptions) (int32, error) {
+	options := &libbox.TunOptions{}
+	device, err := libbox.OpenTun(options, w.platform, option.TunPlatformOptions{})
+	if err != nil {
+		return 0, err
+	}
+	w.device = device
 	return 0, nil
-	//return w.platform.OpenTun(options)
 }
 
 func (w *singBoxPlatformWrapper) WriteLog(message string) {

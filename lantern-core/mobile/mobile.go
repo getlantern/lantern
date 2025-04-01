@@ -19,13 +19,14 @@ var (
 func SetupRadiance(configDir string, platform libbox.PlatformInterface) {
 	radianceMutex.Lock()
 	defer radianceMutex.Unlock()
-	s := &singBoxPlatformWrapper{platform}
-	r, err := radiance.NewRadiance(configDir, s)
+
+	r, err := radiance.NewRadiance(configDir, &singBoxPlatformWrapper{platform: platform})
 	if err != nil {
 		log.Errorf("Unable to create Radiance: %v", err)
 		return
 	}
 	radianceServer = r
+
 	log.Debug("Radiance setup successfully")
 }
 

@@ -5,12 +5,12 @@ import (
 	"net/netip"
 
 	"github.com/sagernet/sing-box/option"
-	"github.com/sagernet/sing-tun"
+	tun "github.com/sagernet/sing-tun"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 )
 
-type TunOptions interface {
+type Options interface {
 	GetInet4Address() RoutePrefixIterator
 	GetInet6Address() RoutePrefixIterator
 	GetDNSServerAddress() (*StringBox, error)
@@ -73,96 +73,96 @@ func mapRoutePrefix(prefixes []netip.Prefix) RoutePrefixIterator {
 	}))
 }
 
-var _ TunOptions = (*tunOptions)(nil)
+var _ Options = (*TunOptions)(nil)
 
-type tunOptions struct {
+type TunOptions struct {
 	*tun.Options
 	routeRanges []netip.Prefix
 	option.TunPlatformOptions
 }
 
-func (o *tunOptions) GetInet4Address() RoutePrefixIterator {
+func (o *TunOptions) GetInet4Address() RoutePrefixIterator {
 	return mapRoutePrefix(o.Inet4Address)
 }
 
-func (o *tunOptions) GetInet6Address() RoutePrefixIterator {
+func (o *TunOptions) GetInet6Address() RoutePrefixIterator {
 	return mapRoutePrefix(o.Inet6Address)
 }
 
-func (o *tunOptions) GetDNSServerAddress() (*StringBox, error) {
+func (o *TunOptions) GetDNSServerAddress() (*StringBox, error) {
 	if len(o.Inet4Address) == 0 || o.Inet4Address[0].Bits() == 32 {
 		return nil, E.New("need one more IPv4 address for DNS hijacking")
 	}
 	return wrapString(o.Inet4Address[0].Addr().Next().String()), nil
 }
 
-func (o *tunOptions) GetMTU() int32 {
+func (o *TunOptions) GetMTU() int32 {
 	return int32(o.MTU)
 }
 
-func (o *tunOptions) GetAutoRoute() bool {
+func (o *TunOptions) GetAutoRoute() bool {
 	return o.AutoRoute
 }
 
-func (o *tunOptions) GetStrictRoute() bool {
+func (o *TunOptions) GetStrictRoute() bool {
 	return o.StrictRoute
 }
 
-func (o *tunOptions) GetInet4RouteAddress() RoutePrefixIterator {
+func (o *TunOptions) GetInet4RouteAddress() RoutePrefixIterator {
 	return mapRoutePrefix(o.Inet4RouteAddress)
 }
 
-func (o *tunOptions) GetInet6RouteAddress() RoutePrefixIterator {
+func (o *TunOptions) GetInet6RouteAddress() RoutePrefixIterator {
 	return mapRoutePrefix(o.Inet6RouteAddress)
 }
 
-func (o *tunOptions) GetInet4RouteExcludeAddress() RoutePrefixIterator {
+func (o *TunOptions) GetInet4RouteExcludeAddress() RoutePrefixIterator {
 	return mapRoutePrefix(o.Inet4RouteExcludeAddress)
 }
 
-func (o *tunOptions) GetInet6RouteExcludeAddress() RoutePrefixIterator {
+func (o *TunOptions) GetInet6RouteExcludeAddress() RoutePrefixIterator {
 	return mapRoutePrefix(o.Inet6RouteExcludeAddress)
 }
 
-func (o *tunOptions) GetInet4RouteRange() RoutePrefixIterator {
+func (o *TunOptions) GetInet4RouteRange() RoutePrefixIterator {
 	return mapRoutePrefix(common.Filter(o.routeRanges, func(it netip.Prefix) bool {
 		return it.Addr().Is4()
 	}))
 }
 
-func (o *tunOptions) GetInet6RouteRange() RoutePrefixIterator {
+func (o *TunOptions) GetInet6RouteRange() RoutePrefixIterator {
 	return mapRoutePrefix(common.Filter(o.routeRanges, func(it netip.Prefix) bool {
 		return it.Addr().Is6()
 	}))
 }
 
-func (o *tunOptions) GetIncludePackage() StringIterator {
+func (o *TunOptions) GetIncludePackage() StringIterator {
 	return newIterator(o.IncludePackage)
 }
 
-func (o *tunOptions) GetExcludePackage() StringIterator {
+func (o *TunOptions) GetExcludePackage() StringIterator {
 	return newIterator(o.ExcludePackage)
 }
 
-func (o *tunOptions) IsHTTPProxyEnabled() bool {
+func (o *TunOptions) IsHTTPProxyEnabled() bool {
 	if o.TunPlatformOptions.HTTPProxy == nil {
 		return false
 	}
 	return o.TunPlatformOptions.HTTPProxy.Enabled
 }
 
-func (o *tunOptions) GetHTTPProxyServer() string {
+func (o *TunOptions) GetHTTPProxyServer() string {
 	return o.TunPlatformOptions.HTTPProxy.Server
 }
 
-func (o *tunOptions) GetHTTPProxyServerPort() int32 {
+func (o *TunOptions) GetHTTPProxyServerPort() int32 {
 	return int32(o.TunPlatformOptions.HTTPProxy.ServerPort)
 }
 
-func (o *tunOptions) GetHTTPProxyBypassDomain() StringIterator {
+func (o *TunOptions) GetHTTPProxyBypassDomain() StringIterator {
 	return newIterator(o.TunPlatformOptions.HTTPProxy.BypassDomain)
 }
 
-func (o *tunOptions) GetHTTPProxyMatchDomain() StringIterator {
+func (o *TunOptions) GetHTTPProxyMatchDomain() StringIterator {
 	return newIterator(o.TunPlatformOptions.HTTPProxy.MatchDomain)
 }
