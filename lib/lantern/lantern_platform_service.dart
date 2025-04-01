@@ -21,15 +21,7 @@ class LanternPlatformService implements LanternCoreService {
     _status = statusChannel
         .receiveBroadcastStream()
         .map((event) => LanternStatus.fromJson(event));
-    // _status = tetsingChannel.receiveBroadcastStream().map((event) {
-    //   appLogger.info('Testing Channel: $event');
-    // });
-
   }
-
-  // This method is purely for the purpose of waking up the status channel.
-  // Since native platforms initialize methods before Flutter stuff,
-  // we need to ask for status as soon as Flutter is ready.
 
   @override
   Future<Either<Failure, String>> startVPN() async {
@@ -72,7 +64,6 @@ class LanternPlatformService implements LanternCoreService {
   @override
   Future<Either<Failure, Unit>> isVPNConnected() async {
     try {
-      appLogger.info('Waking up LanternPlatformService');
       await _methodChannel.invokeMethod('isVPNConnected');
       return Right(unit);
     } catch (e, stackTrace) {

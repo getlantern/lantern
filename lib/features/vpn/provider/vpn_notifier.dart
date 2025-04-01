@@ -35,32 +35,11 @@ class VpnNotifier extends _$VpnNotifier {
 
   Future<Either<Failure, String>> _connectVPN() async {
     final result = await ref.read(lanternServiceProvider).startVPN();
-    // result.fold(
-    //   (failure) {
-    //     state = VPNStatus.disconnected;
-    //   },
-    //   (success) {
-    //     if (success.contains('VPN permission denied')) {
-    //       //soft error for permission denied
-    //       state = VPNStatus.disconnected;
-    //       return;
-    //     }
-    //     state = VPNStatus.connected;
-    //   },
-    // );
     return result;
   }
 
   Future<Either<Failure, String>> stopVPN() async {
     final result = await ref.read(lanternServiceProvider).stopVPN();
-    result.fold(
-      (failure) {
-        state = VPNStatus.connected;
-      },
-      (success) {
-        state = VPNStatus.disconnected;
-      },
-    );
     return result;
   }
 

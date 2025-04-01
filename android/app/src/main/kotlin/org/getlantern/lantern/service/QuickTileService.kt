@@ -39,9 +39,13 @@ class QuickTileService : TileService() {
 
     private val tileScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-    /// We need receiver to only when user interacts with the tile
-    /// Start/Stop VPN service from the tile so we can read state from the service
-    /// Unless read state will read data from the service
+
+    /*
+    * We need receiver to only when user interacts with the tile
+    * Start/Stop VPN service from the tile so we can read state from the service
+    * Unless read state will read data from the service
+    */
+
     private val tileBroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             intent?.takeIf { it.action == ACTION_TILE_UPDATE }?.apply {

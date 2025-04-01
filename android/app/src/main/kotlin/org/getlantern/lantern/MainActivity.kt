@@ -33,9 +33,6 @@ class MainActivity : FlutterActivity() {
         var receiverRegistered: Boolean = false
     }
 
-    private var statusChannel: EventChannel? = null
-
-    private var statusObserver: Observer<Event<VPNStatus>>? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -48,12 +45,6 @@ class MainActivity : FlutterActivity() {
         startService()
     }
 
-
-    override fun detachFromFlutterEngine() {
-        statusChannel?.setStreamHandler(null)
-        VpnStatusManager.vpnStatus.removeObserver(statusObserver!!)
-        super.detachFromFlutterEngine()
-    }
 
     private fun startService() {
         Log.d(TAG, "Starting LanternService")

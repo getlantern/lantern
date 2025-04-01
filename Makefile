@@ -77,11 +77,6 @@ TAGS=with_gvisor,with_quic,with_wireguard,with_ech,with_utls,with_clash_api,with
 
 GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go')
 
-gen:
-	dart run build_runner build --delete-conflicting-outputs
-
-pubget:
-	flutter pub get
 
 desktop-lib: export CGO_CFLAGS="-I./dart_api_dl/include"
 desktop-lib:
@@ -212,20 +207,21 @@ $(IOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 	mkdir -p $(IOS_FRAMEWORK_DIR) && rm -rf $(IOS_FRAMEWORK_DIR)/$(IOS_FRAMEWORK) && mv $@ $(IOS_FRAMEWORK_DIR)
 	@echo "Built iOS Framework: $(IOS_FRAMEWORK_DIR)/$(IOS_FRAMEWORK)"
 
-build-android:check-gomobile
+
+build-android:check-gomobile install-android-deps
 	@echo "Building Android libraries"
-	rm -rf $(OUT_DIR)/$(ANDROID_LIB)
+	rm -rf $(BUILD_DIR)/$(ANDROID_LIB)
 	rm -rf $(ANDROID_LIB_PATH)
-	mkdir -p $(LIB_FOLDER)
+	#mkdir -p $(LIB_FOLDER)
 	gomobile bind -v \
 		-target=android \
 		-androidapi=23 \
 		-javapkg=lantern.io \
 		-tags=$(TAGS) -trimpath \
-		-o=$(OUT_DIR)/$(ANDROID_LIB) \
+		-o=$(BUILD_DIR)/$(ANDROID_LIB) \
 		-ldflags="-checklinkname=0" \
 		 $(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox ./lantern-core/mobile
-	cp $(OUT_DIR)/$(ANDROID_LIB) $(ANDROID_LIB_PATH)
+	cp $(BUILD_DIR)/$(ANDROID_LIB) $(ANDROID_LIB_PATH)
 	@echo "Android libraries built successfully"
 
 
@@ -255,6 +251,9 @@ gen:
 #FFI generation
 ffi:
 	dart run ffigen
+
+pubget:
+	flutter pub get
 
 
 find-duplicate-translations:

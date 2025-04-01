@@ -1,6 +1,8 @@
 module github.com/getlantern/lantern-outline
 
-go 1.23.4
+go 1.23.6
+
+toolchain go1.24.0
 
 //replace github.com/getlantern/radiance => ../radiance
 
@@ -8,10 +10,10 @@ replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v
 
 require (
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
-	github.com/getlantern/radiance v0.0.0-20250325212038-858d882e5a28
+	github.com/getlantern/radiance v0.0.0-20250327204839-8a910fc61094
 	github.com/sagernet/sing-box v1.11.5
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/mobile v0.0.0-20240520174638-fa72addaaa1b
+	golang.org/x/mobile v0.0.0-20250305212854-3a7bc9f8a4de
 	google.golang.org/protobuf v1.36.5
 )
 
@@ -127,7 +129,7 @@ require (
 	github.com/getlantern/jibber_jabber v0.0.0-20210901195950-68955124cc42 // indirect
 	github.com/getlantern/keepcurrent v0.0.0-20240126172110-2e0264ca385d // indirect
 	github.com/getlantern/keyman v0.0.0-20230503155501-4e864ca2175b // indirect
-	github.com/getlantern/kindling v0.0.0-20250324213140-12dec99b91eb // indirect
+	github.com/getlantern/kindling v0.0.0-20250327204452-cc0a77c57e75 // indirect
 	github.com/getlantern/mtime v0.0.0-20200417132445-23682092d1f7 // indirect
 	github.com/getlantern/netx v0.0.0-20240830183145-c257516187f0 // indirect
 	github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 // indirect

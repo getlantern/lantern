@@ -59,13 +59,12 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
                     serviceScope.launch {
                         startRadiance()
                     }
-                    return START_NOT_STICKY
                 }
 
                 ACTION_START_VPN -> {
                     serviceScope.launch {
                         startVPN()
-                        notificationHelper.showVPNConnectedNotification(this@LanternVpnService)
+
                     }
                 }
 
@@ -146,6 +145,7 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
             Mobile.startVPN()
             Log.d(TAG, "VPN service started")
             VpnStatusManager.postVPNStatus(VPNStatus.Connected)
+            notificationHelper.showVPNConnectedNotification(this@LanternVpnService)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 QuickTileService.triggerUpdateTileState(this@LanternVpnService, true)
             }

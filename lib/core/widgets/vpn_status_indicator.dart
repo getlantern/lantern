@@ -19,16 +19,11 @@ class VPNStatusIndicator extends StatelessWidget {
       case VPNStatus.connecting:
         indicator = AppImagePaths.vpnConnecting;
         break;
-
+      case VPNStatus.missingPermission:
+      case VPNStatus.error:
       case VPNStatus.disconnecting:
         indicator = AppImagePaths.vpnConnecting;
         break;
-      case VPNStatus.missingPermission:
-        // TODO: Handle this case.
-        throw UnimplementedError();
-      case VPNStatus.error:
-        // TODO: Handle this case.
-        throw UnimplementedError();
     }
 
     return AppImage(path: indicator);

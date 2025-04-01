@@ -8,11 +8,13 @@ package main
 import "C"
 
 import (
+	"fmt"
 	"sync"
 	"unsafe"
 
 	"log/slog"
 
+	"github.com/getlantern/golog"
 	"github.com/getlantern/radiance"
 )
 
