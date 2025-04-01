@@ -59,11 +59,16 @@ open class ExtensionProvider: NEPacketTunnelProvider {
             platformInterface = ExtensionPlatformInterface(self)
         }
 
-        MobileSetupRadiance(baseDir, platformInterface, &error)
+        let service = MobileSetupRadiance(baseDir, platformInterface, &error)
         if let error {
             writeFatalError("(packet-tunnel) error: setup service: \(error.localizedDescription)")
             return
         }
+        guard let service else {
+            return
+        }
+
+        radiance = service
 
         await startService()
         #if os(iOS)
@@ -97,19 +102,6 @@ open class ExtensionProvider: NEPacketTunnelProvider {
             writeFatalError("(packet-tunnel) error: start service: \(error.localizedDescription)")
             return
         }
-        #if os(macOS)
-            //await SharedPreferences.startedByUser.set(true)
-            // if service.needWIFIState() {
-            //     if !Variant.useSystemExtension {
-            //         locationManager = CLLocationManager()
-            //         locationDelegate = stubLocationDelegate(radiance)
-            //         locationManager?.delegate = locationDelegate
-            //         locationManager?.requestLocation()
-            //     } else {
-            //         commandServer.writeMessage("(packet-tunnel) WIFI SSID and BSSID information is not currently available in the standalone version of SFM. We are working on resolving this issue.")
-            //     }
-            // }
-        #endif
     }
 
     #if os(macOS)
@@ -159,7 +151,6 @@ open class ExtensionProvider: NEPacketTunnelProvider {
     }
 
     func postServiceClose() {
-        boxService = nil
         radiance = nil
     }
 
@@ -188,14 +179,14 @@ open class ExtensionProvider: NEPacketTunnelProvider {
     }
 
     override open func sleep() async {
-        if let boxService {
-            boxService.pause()
+        if let radiance {
+            //radiance.pause()
         }
     }
 
     override open func wake() {
-        if let boxService {
-            boxService.wake()
+        if let radiance {
+            //radiance.wake()
         }
     }
 }
