@@ -3,6 +3,7 @@
 OUT_DIR := bin
 
 LIB_NAME := liblantern
+LIB_FOLDER := android/app/libs
 ANDROID_LIB_PATH := android/app/libs/$(LIB_NAME).aar
 ANDROID_LIB := $(LIB_NAME).aar
 TAGS=with_gvisor,with_quic,with_wireguard,with_ech,with_utls,with_clash_api,with_grpc
@@ -68,6 +69,7 @@ build-android:check-gomobile
 	@echo "Building Android libraries"
 	rm -rf $(OUT_DIR)/$(ANDROID_LIB)
 	rm -rf $(ANDROID_LIB_PATH)
+	mkdir -p $(LIB_FOLDER)
 	gomobile bind -v \
 		-target=android \
 		-androidapi=23 \
