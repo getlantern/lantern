@@ -17,39 +17,30 @@ import (
 )
 
 var (
-	baseDir        string
-	logPort        int64
-	serverMu       sync.Mutex
-	setupOnce      sync.Once
-	radianceMu     sync.Mutex
-	radianceServer *radiance.Radiance
+	dataDir    string
+	logPort    int64
+	server     *radiance.Radiance
+	serverMu   sync.Mutex
+	serverOnce sync.Once
+
+	setupOnce sync.Once
+
+	log = golog.LoggerFor("lantern-outline.ffi")
 )
 
-// setupRadiance initializes the Radiance
-//
-//export setupRadiance
-func setupRadiance(dir *C.char) *C.char {
-	radianceMu.Lock()
-	defer radianceMu.Unlock()
-	r, err := radiance.NewRadiance(C.GoString(dir), nil)
-	if err != nil {
-		slog.Error("Unable to create Radiance: %v", "error", err)
-		return SendError(err)
-	}
-	radianceServer = r
-	slog.Debug("Radiance setup successfully")
-	return C.CString("true")
-}
-
-// this used for settting things for logs such as logs directory and port
-//
-//export setupLogging
-func setupLogging(dir *C.char, port C.int64_t, api unsafe.Pointer) {
-	serverMu.Lock()
-	defer serverMu.Unlock()
-
-	baseDir = C.GoString(dir)
+//export setup
+func setup(dir *C.char, port C.int64_t, api unsafe.Pointer) {
+	dataDir = C.GoString(dir)
 	logPort = int64(port)
+
+	serverOnce.Do(func() {
+		r, err := radiance.NewRadiance(dataDir, nil)
+		if err != nil {
+			log.Fatalf("unable to create VPN server: %v", err)
+		}
+		log.Debugf("created new instance of radiance with data directory %s", dataDir)
+		server = r
+	})
 }
 
 // startVPN initializes and starts the VPN server if it is not already running.
@@ -61,7 +52,11 @@ func startVPN() *C.char {
 	serverMu.Lock()
 	defer serverMu.Unlock()
 
-	slog.Debug("VPN server started successfully")
+	if err := server.StartVPN(); err != nil {
+		err = fmt.Errorf("unable to start vpn server: %v", err)
+		return C.CString(err.Error())
+	}
+	log.Debug("VPN server started successfully")
 	return nil
 }
 

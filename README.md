@@ -11,54 +11,43 @@ Censorship circumvention tool available for free download on any operating syste
 ![cover page](https://github.com/getlantern/.github/blob/main/resources/cover_page.png)
 
 # Build and run the app on macOS
+
 ```
-make macos
-flutter run -d macOS
+make macos-debug
+sudo build/macos/Build/Products/Debug/Lantern.app/Contents/MacOS/Lantern
 ```
 
 # Build and run the app on iOS
 
 ```
-make build-framework
-cd ios && pod install
+make ios
 flutter devices
 flutter run -d deviceID
 ```
 
+# Build and run the Android app
 
-# Running the Full Setup on macOS with an iOS Device
-
-If you’re using macOS and have your iOS device connected to the same local network, you can test the full setup end-to-end by updating the primary proxy address in [config/local.json](config/local.json#L2) to your Mac’s local network IP.
-
-1. Run a Local Shadowsocks Server on macOS
+1. Install Go and gomobile
 
 ```
-brew install shadowsocks-libev
+go install golang.org/x/mobile/cmd/gomobile@latest
+gomobile init
 ```
 
-Start the Shadowsocks server:
+2. Install Android SDK and NDK
 
 ```
-ssserver -s 0.0.0.0:8388 -m aes-256-gcm -k "mytestpassword" -vvvv
+sdkmanager "ndk;23.1.7779620" "cmake;3.18.1" "platform-tools"
 ```
 
-If install via homebrew, you can run the following command:
+3. Build the Android app
 
 ```
-ss-server -s 0.0.0.0 -p 8388 -m aes-256-gcm -k "mytestpassword" -vvvv
+make android-debug
 ```
 
-
-2. Update the Proxy Address in the Config
-
-Locate your Mac’s local IP address:
+After running `make android-debug`, you’ll find the APK here:
 
 ```
-ipconfig getifaddr en0
+build/app/outputs/flutter-apk/app-debug.apk
 ```
-
-Edit [config/local.json](config/local.json#L2) and update the primary proxy address ("addr") with your local IP (e.g., "192.168.1.100").
-
-3. Build and Run the iOS App
-
-Now, when you run the iOS app, it should be able to connect to the local Shadowsocks proxy and test the full setup.
