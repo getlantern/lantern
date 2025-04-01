@@ -22,10 +22,12 @@ import org.getlantern.lantern.utils.VpnStatusManager
 import org.getlantern.lantern.utils.initConfigDir
 import org.getlantern.lantern.utils.toIpPrefix
 
-/// Service to manage VPN connection and Radiance setup, and other VPN-related tasks.
-/// Since this service is used for the quick tile,
-// it should not include any logic that needs to be connected with any activity.
-/// everything should be done in independent
+/**
+ * Service to manage VPN connection and Radiance setup, and other VPN-related tasks.
+ * Since this service is used for the quick tile,
+ * it should not include any logic that needs to be connected with any activity.
+ * everything should be done in independent
+ */
 class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
     companion object {
         private const val TAG = "VpnService"

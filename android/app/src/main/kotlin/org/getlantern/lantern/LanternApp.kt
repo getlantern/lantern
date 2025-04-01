@@ -1,17 +1,13 @@
 package org.getlantern.lantern
 
 import android.app.Application
-import android.app.NotificationManager
 import android.content.ClipboardManager
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
 import android.os.PowerManager
 import androidx.core.content.getSystemService
-import dagger.hilt.android.HiltAndroidApp
-import go.Seq
 
-@HiltAndroidApp
 class LanternApp : Application() {
 
     companion object {
