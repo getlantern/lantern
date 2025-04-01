@@ -6,7 +6,7 @@ part of 'lantern_service_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$lanternServiceHash() => r'61cf6a71743473e6278e94d1810cb8b6e2bddb4c';
+String _$lanternServiceHash() => r'391a06f049739c203f0d6b3b16e45ea606ef55d4';
 
 /// See also [lanternService].
 @ProviderFor(lanternService)

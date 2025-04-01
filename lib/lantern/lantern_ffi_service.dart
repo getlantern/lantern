@@ -2,9 +2,11 @@ import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:ffi/ffi.dart';
 import 'package:fpdart/fpdart.dart';
+import 'package:lantern/core/common/app_eum.dart';
+import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/services/logger_service.dart';
+import 'package:lantern/core/utils/failure.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_generated_bindings.dart';
 import 'package:lantern/lantern/lantern_service.dart';
@@ -36,23 +38,15 @@ class LanternFFIService implements LanternCoreService {
     return LanternBindings(lib);
   }
 
-  @override
-  void startVPN() {
-    // TODO: implement startVPN
-  }
+
 
   @override
-  void stopVPN() {
-    // TODO: implement stopVPN
-  }
-
-  @override
-  Future<Either<String,Unit>> setupRadiance() async {
+  Future<Either<String, Unit>> setupRadiance() async {
     try {
       appLogger.debug('Setting up radiance');
       final result = await Isolate.run(
         () {
-          return _ffiService.setupRadiance().cast<Utf8>().toDartString();
+          // return _ffiService.setupRadiance().cast<Utf8>().toDartString();
         },
       );
       appLogger.debug('Radiance setup result: $result');
@@ -61,5 +55,35 @@ class LanternFFIService implements LanternCoreService {
       appLogger.error('Error while setting up radiance: $e');
       return left('Error while setting up radiance');
     }
+  }
+
+  @override
+  Future<Either<Failure, String>> startVPN() {
+    // TODO: implement startVPN
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, String>> stopVPN() {
+    // TODO: implement stopVPN
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> init() {
+    // TODO: implement init
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<LanternStatus> watchVPNStatus() {
+    // TODO: implement watchVPNStatus
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> isVPNConnected() {
+    // TODO: implement isVPNConnected
+    throw UnimplementedError();
   }
 }

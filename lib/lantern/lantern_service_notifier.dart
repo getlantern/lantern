@@ -4,7 +4,7 @@ import 'package:lantern/lantern/lantern_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../core/services/injection_container.dart';
-import 'lantern_native_bridge.dart';
+import 'lantern_platform_service.dart';
 
 part 'lantern_service_notifier.g.dart';
 
@@ -12,6 +12,6 @@ part 'lantern_service_notifier.g.dart';
 LanternService lanternService(Ref ref) {
   return LanternService(
     ffiService: sl<LanternFFIService>(),
-    nativeBridge: sl<LanternNativeBridge>(),
+    platformService: sl<LanternPlatformService>(),
   );
 }

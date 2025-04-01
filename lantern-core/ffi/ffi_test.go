@@ -1,23 +1,19 @@
 package main
 
 import (
+	"log/slog"
 	"testing"
 
-	"github.com/getlantern/golog"
-	"github.com/getlantern/lantern-outline/lantern-core/empty"
 	"github.com/getlantern/radiance"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateNewServer(t *testing.T) {
-	log := golog.LoggerFor("lantern.vpn")
-	platform := empty.EmptyPlatform{}
-	log.Debug("empty platform created")
-	r, err := radiance.NewRadiance(platform)
+	r, err := radiance.NewRadiance("", nil)
 	if err != nil {
-		log.Errorf("Unable to create Radiance: %v", err)
+		slog.Error("Unable to create Radiance", "error", err)
 
 	}
 	assert.NotNil(t, r)
-	log.Debug("Radiance setup successfully")
+	slog.Debug("Radiance setup successfully")
 }
