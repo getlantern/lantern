@@ -77,7 +77,7 @@ dependencies:
   # share
   share_plus: ^10.1.4
   #native
-  sentry_flutter: ^9.0.0-alpha.1
+  sentry_flutter: 9.0.0-alpha.2
   # Deeplink handling
   app_links: ^6.4.0
   # Desktop

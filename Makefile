@@ -70,7 +70,7 @@ ANDROID_LIB_BUILD := $(BUILD_DIR)/android/$(ANDROID_LIB)
 ANDROID_DEBUG_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-debug.apk
 
 IOS_FRAMEWORK := Liblantern.xcframework
-IOS_FRAMEWORK_DIR := ios/Frameworks
+IOS_FRAMEWORK_DIR := ios
 IOS_FRAMEWORK_BUILD := $(BUILD_DIR)/ios/$(IOS_FRAMEWORK)
 
 TAGS=with_gvisor,with_quic,with_wireguard,with_ech,with_utls,with_clash_api,with_grpc
@@ -200,13 +200,22 @@ $(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD)
 .PHONY: ios
 ios: $(IOS_FRAMEWORK_BUILD)
 
+
 $(IOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 	@echo "Building iOS Framework..."
 	rm -rf $@ && mkdir -p $(dir $@)
-	GOOS=ios gomobile bind -v -tags=$(TAGS),with_low_memory -trimpath -target=ios -ldflags="-w -s" -o $@ $(RADIANCE_REPO)
-	mkdir -p $(IOS_FRAMEWORK_DIR) && rm -rf $(IOS_FRAMEWORK_DIR)/$(IOS_FRAMEWORK) && mv $@ $(IOS_FRAMEWORK_DIR)
-	@echo "Built iOS Framework: $(IOS_FRAMEWORK_DIR)/$(IOS_FRAMEWORK)"
+	rm -rf $(IOS_FRAMEWORK_DIR)/$(IOS_FRAMEWORK)
+	gomobile bind -v \
+		-tags=$(TAGS),with_low_memory,netgo -trimpath \
+		-target=ios \
+		-o $@ \
+		-ldflags="-w -s -checklinkname=0" \
+		$(RADIANCE_REPO)
+	mv $@ $(IOS_FRAMEWORK_DIR)
+	@echo "Built iOS Framework: $(IOS_FRAMEWORK)"
 
+#gomobile bind -target=ios,iossimulator \
+#	-tags='headless lantern ios netgo' \
 
 build-android:check-gomobile install-android-deps
 	@echo "Building Android libraries"
