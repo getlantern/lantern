@@ -1,0 +1,27 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'website_notifier.dart';
+
+// **************************************************************************
+// RiverpodGenerator
+// **************************************************************************
+
+String _$splitTunnelingWebsitesHash() =>
+    r'af5e012f03cc2924f4edc9c23a989b49bcfd182c';
+
+/// See also [SplitTunnelingWebsites].
+@ProviderFor(SplitTunnelingWebsites)
+final splitTunnelingWebsitesProvider =
+    NotifierProvider<SplitTunnelingWebsites, List<Website>>.internal(
+  SplitTunnelingWebsites.new,
+  name: r'splitTunnelingWebsitesProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$splitTunnelingWebsitesHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$SplitTunnelingWebsites = Notifier<List<Website>>;
+// ignore_for_file: type=lint
+// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
