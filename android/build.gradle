@@ -1,3 +1,19 @@
+buildscript {
+    ext{
+        hilt_version = '2.56.1'
+    }
+
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.google.dagger:hilt-android-gradle-plugin:2.56.1'
+    }
+
+}
+
 allprojects {
     repositories {
         google()
