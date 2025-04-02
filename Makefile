@@ -212,7 +212,7 @@ build-android:check-gomobile install-android-deps
 	@echo "Building Android libraries"
 	rm -rf $(BUILD_DIR)/$(ANDROID_LIB)
 	rm -rf $(ANDROID_LIB_PATH)
-	#mkdir -p $(LIB_FOLDER)
+	mkdir -p $(LIB_FOLDER)
 	gomobile bind -v \
 		-target=android \
 		-androidapi=23 \
