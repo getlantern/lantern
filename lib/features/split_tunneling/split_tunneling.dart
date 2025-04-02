@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/preferences/preferences.dart';
+import 'package:lantern/core/preferences/app_preferences.dart';
 import 'package:lantern/core/split_tunneling/split_tunneling_mode.dart';
-import 'package:lantern/core/split_tunneling/split_tunneling_notifier.dart';
+import 'package:lantern/core/split_tunneling/apps_notifier.dart';
+import 'package:lantern/core/split_tunneling/website_notifier.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/features/split_tunneling/bottom_sheet.dart';
 
@@ -16,10 +17,10 @@ class SplitTunneling extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final preferences = ref.watch(appPreferencesProvider);
+    final preferences = ref.watch(appPreferencesProvider).value;
     final splitTunnelingEnabled =
-        preferences[AppPreferences.splitTunnelingEnabled] ?? false;
-    final splitTunnelingMode = preferences[AppPreferences.splitTunnelingMode] ??
+        preferences?[Preferences.splitTunnelingEnabled] ?? false;
+    final splitTunnelingMode = preferences?[Preferences.splitTunnelingMode] ??
         SplitTunnelingMode.automatic;
     final enabledApps = ref.watch(splitTunnelingAppsProvider).toList();
     final enabledWebsites = ref.watch(splitTunnelingWebsitesProvider).toList();
@@ -35,7 +36,7 @@ class SplitTunneling extends HookConsumerWidget {
             selectedMode: splitTunnelingMode,
             onModeSelected: (mode) => ref
                 .read(appPreferencesProvider.notifier)
-                .setPreference(AppPreferences.splitTunnelingMode, mode),
+                .setPreference(Preferences.splitTunnelingMode, mode),
           );
         },
       );
@@ -58,7 +59,7 @@ class SplitTunneling extends HookConsumerWidget {
                 onChanged: (bool? value) {
                   var newValue = value ?? false;
                   ref.read(appPreferencesProvider.notifier).setPreference(
-                      AppPreferences.splitTunnelingEnabled, newValue);
+                      Preferences.splitTunnelingEnabled, newValue);
                 },
               ),
             ),

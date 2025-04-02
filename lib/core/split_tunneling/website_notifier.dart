@@ -1,10 +1,8 @@
 import 'dart:convert';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lantern/core/preferences/preferences.dart';
+import 'package:lantern/core/preferences/app_preferences.dart';
 import 'package:lantern/core/split_tunneling/website.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'app_data.dart';
 
 part 'website_notifier.g.dart';
 

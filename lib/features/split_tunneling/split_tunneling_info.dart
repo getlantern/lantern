@@ -1,9 +1,8 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/split_tunneling/split_tunneling_mode.dart';
-import 'package:lantern/core/widgets/divider_space.dart';
 
 @RoutePage(name: 'SplitTunnelingInfo')
 class SplitTunnelingInfo extends HookConsumerWidget {
@@ -44,52 +43,14 @@ class SplitTunnelingInfo extends HookConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Description
-                Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16.0),
-                  child: Text(
-                    "Lantern intelligently routes internet traffic based on your location, ensuring secure access while keeping your connection fast by only using a VPN when necessary.",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
-                  ),
-                ),
-                DividerSpace(),
-
-                // Region-Specific Rules Section
-                SectionTitle(text: "🌍 Region-Specific Rules"),
-                InfoText(
-                  text:
-                      "Lantern uses different routing rules depending on your location:",
-                ),
-                DividerSpace(),
-
-                // Censored Regions
-                SubsectionTitle(text: "🔒 In censored regions:"),
-                InfoText(
-                  text:
-                      "Blocked websites and apps (news, messaging, restricted services) are proxied.",
-                ),
-                InfoText(
-                  text:
-                      "Most unblocked websites bypass the VPN for faster browsing.",
-                ),
-                DividerSpace(),
-
-                // Uncensored Regions
-                SubsectionTitle(text: "✅ In uncensored regions:"),
-                InfoText(
-                  text:
-                      "Only trusted websites and services bypass the VPN by default.",
-                ),
-                InfoText(
-                  text:
-                      "These include HTTPS-encrypted sites with public or non-sensitive content like shopping, weather, and software updates.",
-                ),
-                SizedBox(height: 16),
-                // Routing Rules
-                InfoText(
-                  text:
-                      "These rules vary by country and are updated regularly. View the full list of routing rules.",
-                ),
-                SizedBox(height: 20),
+                InfoText(text: 'location_based_rules'.i18n),
+                SubsectionTitle(text: 'censored_regions'.i18n),
+                InfoText(text: 'blocked_sites_proxied'.i18n),
+                InfoText(text: 'unblocked_sites_bypass'.i18n),
+                SubsectionTitle(text: 'uncensored_regions'.i18n),
+                InfoText(text: 'trusted_sites_bypass'.i18n),
+                InfoText(text: 'examples_of_bypassed_sites'.i18n),
+                InfoText(text: 'routing_rules_country'.i18n),
               ],
             ),
           ),
@@ -107,14 +68,12 @@ class SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
-      child: Text(
-        text,
-        style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
-      ),
+      child: Text(text, style: AppTestStyles.headingSmall),
     );
   }
 }
 
+// Smaller subsection heading
 class SubsectionTitle extends StatelessWidget {
   final String text;
   const SubsectionTitle({Key? key, required this.text}) : super(key: key);
@@ -123,14 +82,12 @@ class SubsectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(top: 8.0, bottom: 4.0),
-      child: Text(
-        text,
-        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-      ),
+      child: Text(text, style: AppTestStyles.titleSmall),
     );
   }
 }
 
+// Bullet point info rows
 class InfoText extends StatelessWidget {
   final String text;
   const InfoText({Key? key, required this.text}) : super(key: key);
@@ -142,13 +99,9 @@ class InfoText extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("• ",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400)),
+          Text("• ", style: AppTestStyles.bodyLarge),
           Expanded(
-            child: Text(
-              text,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
-            ),
+            child: Text(text, style: AppTestStyles.bodyLarge),
           ),
         ],
       ),

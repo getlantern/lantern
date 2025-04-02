@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/preferences/preferences.dart';
+import 'package:lantern/core/preferences/app_preferences.dart';
 import 'package:lantern/core/split_tunneling/split_tunneling_mode.dart';
 
 class SplitTunnelingBottomSheet extends HookConsumerWidget {
@@ -16,8 +17,8 @@ class SplitTunnelingBottomSheet extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final preferences = ref.watch(appPreferencesProvider);
-    final splitTunnelingMode = preferences[AppPreferences.splitTunnelingMode] ??
+    final preferences = ref.watch(appPreferencesProvider).value;
+    final splitTunnelingMode = preferences?[Preferences.splitTunnelingMode] ??
         SplitTunnelingMode.automatic;
 
     return Padding(
@@ -29,11 +30,8 @@ class SplitTunnelingBottomSheet extends HookConsumerWidget {
           Text(
             'split_tunneling_mode'.i18n,
             textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Color(0xFF012D2D),
-              fontSize: 24,
-              fontFamily: 'Urbanist',
-              fontWeight: FontWeight.w600,
+            style: AppTestStyles.headingSmall.copyWith(
+              color: const Color(0xFF012D2D),
               height: 1,
             ),
           ),
@@ -45,11 +43,8 @@ class SplitTunnelingBottomSheet extends HookConsumerWidget {
               return RadioListTile<SplitTunnelingMode>(
                 title: Text(
                   mode.displayName,
-                  style: TextStyle(
-                    color: Color(0xFF1A1B1C),
-                    fontSize: 16,
-                    fontFamily: 'Urbanist',
-                    fontWeight: FontWeight.w400,
+                  style: AppTestStyles.bodyLarge.copyWith(
+                    color: const Color(0xFF1A1B1C),
                   ),
                 ),
                 value: mode,

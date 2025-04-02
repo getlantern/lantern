@@ -1,7 +1,5 @@
 import 'dart:convert';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lantern/core/preferences/preferences.dart';
-import 'package:lantern/core/split_tunneling/website.dart';
+import 'package:lantern/core/preferences/app_preferences.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'app_data.dart';
@@ -10,7 +8,7 @@ part 'apps_notifier.g.dart';
 
 @Riverpod(keepAlive: true)
 class SplitTunnelingApps extends _$SplitTunnelingApps {
-  static const String enabledAppsKey = "enabled_apps";
+  static const String enabledAppsKey = Preferences.enabledApps;
 
   @override
   Set<AppData> build() {
@@ -20,12 +18,10 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
 
   // Load enabled apps from SharedPreferences
   Future<void> _loadEnabledApps() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonString = prefs.getString(enabledAppsKey);
+    final prefs = await ref.read(appPreferencesProvider.future);
+    final jsonString = prefs[enabledAppsKey];
 
-    if (jsonString == null) {
-      return;
-    }
+    if (jsonString == null) return;
 
     final List decodedList = jsonDecode(jsonString);
     state = decodedList.map((json) => AppData.fromJson(json)).toSet();

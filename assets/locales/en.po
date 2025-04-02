@@ -259,7 +259,35 @@ msgstr "Websites bypassing the VPN (%d)"
 msgid "logs_share_message"
 msgstr "Here are my diagnostic logs from Lantern."
 
+msgid "split_tunneling_description"
+msgstr "Lantern intelligently routes internet traffic based on your location, ensuring secure access while keeping your connection fast by only using a VPN when necessary."
 
+msgid "region_specific_rules"
+msgstr "🌍 Region-Specific Rules"
+
+msgid "location_based_rules"
+msgstr "Lantern uses different routing rules depending on your location:"
+
+msgid "censored_regions"
+msgstr "🔒 In censored regions:"
+
+msgid "blocked_sites_proxied"
+msgstr "Blocked websites and apps (news, messaging, restricted services) are proxied."
+
+msgid "unblocked_sites_bypass"
+msgstr "Most unblocked websites bypass the VPN for faster browsing."
+
+msgid "uncensored_regions"
+msgstr "✅ In uncensored regions:"
+
+msgid "trusted_sites_bypass"
+msgstr "Only trusted websites and services bypass the VPN by default."
+
+msgid "examples_of_bypassed_sites"
+msgstr "These include HTTPS-encrypted sites with public or non-sensitive content like shopping, weather, and software updates."
+
+msgid "routing_rules_country"
+msgstr "These rules vary by country and are updated regularly. View the full list of routing rules."
 
 
 

@@ -5,33 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/providers/apps_data_provider.dart';
+
 import 'package:lantern/core/split_tunneling/app_data.dart';
-import 'package:lantern/core/split_tunneling/split_tunneling_notifier.dart';
+import 'package:lantern/core/split_tunneling/apps_data_provider.dart';
+import 'package:lantern/core/split_tunneling/apps_notifier.dart';
 import 'package:lantern/core/widgets/search_bar.dart';
 import 'package:lantern/features/split_tunneling/section_label.dart';
-
-// Mock data representing installed apps
-final List<AppData> _mockApps = [
-  AppData(
-      name: "Apple Music",
-      bundleId: "com.apple.music",
-      appPath: "",
-      iconPath: AppImagePaths.appleMusicIcon,
-      isEnabled: false),
-  AppData(
-      name: "Google Chat",
-      bundleId: "com.google.chat",
-      appPath: "",
-      iconPath: AppImagePaths.googleChatIcon,
-      isEnabled: true),
-  AppData(
-      name: "Instagram",
-      bundleId: "com.example.instagram",
-      appPath: "",
-      iconPath: AppImagePaths.instagramIcon,
-      isEnabled: true),
-];
 
 // Widget to display and manage split tunneling apps
 @RoutePage(name: 'AppsSplitTunneling')
@@ -43,18 +22,24 @@ class AppsSplitTunneling extends HookConsumerWidget {
     final searchEnabled = useState(false);
     final searchQuery = ref.watch(searchQueryProvider);
 
-    final installedApps =
-        ref.watch(appsDataProvider).where((a) => a.iconPath.isNotEmpty);
+    final allApps = ref.watch(appsDataProvider).maybeWhen(
+          data: (apps) => apps,
+          orElse: () => [],
+        );
+    final installedApps = allApps.where((a) => a.iconPath.isNotEmpty).toSet();
     final enabledApps = ref.watch(splitTunnelingAppsProvider);
+    final enabledAppNames =
+        enabledApps.map((a) => a.name.toLowerCase()).toSet();
     final enabledList = enabledApps.toList();
     enabledList
         .sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-    // Separate enabled and disabled apps
-    final disabledApps = installedApps
-        .where(
-            (app) => app.name.toLowerCase().contains(searchQuery.toLowerCase()))
-        .where((app) => !enabledApps.any((e) => e.name == app.name))
-        .toSet();
+
+    final disabledApps = installedApps.where((app) {
+      final matchesSearch = searchQuery.isEmpty ||
+          app.name.toLowerCase().contains(searchQuery.toLowerCase());
+      final isDisabled = !enabledAppNames.contains(app.name.toLowerCase());
+      return matchesSearch && isDisabled;
+    }).toSet();
 
     final disabledList = disabledApps.toList();
     disabledList
