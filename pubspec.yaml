@@ -80,7 +80,7 @@ dependencies:
   shared_preferences: ^2.5.2
   #native
 #  flutter_native_splash: ^2.4.5
-  sentry_flutter: ^9.0.0-alpha.1
+  sentry_flutter: ^9.0.0-alpha.2
   # Deeplink handling
   app_links: ^6.4.0
   # Desktop

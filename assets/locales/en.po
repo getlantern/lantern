@@ -289,6 +289,9 @@ msgstr "These include HTTPS-encrypted sites with public or non-sensitive content
 msgid "routing_rules_country"
 msgstr "These rules vary by country and are updated regularly. View the full list of routing rules."
 
+msgid "turn_on_split_tunneling"
+msgstr "Turn on split tunneling to customize which websites use the VPN."
+
 
 
 

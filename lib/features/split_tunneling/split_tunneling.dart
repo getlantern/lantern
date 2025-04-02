@@ -1,12 +1,11 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/preferences/app_preferences.dart';
-import 'package:lantern/core/split_tunneling/split_tunneling_mode.dart';
 import 'package:lantern/core/split_tunneling/apps_notifier.dart';
+import 'package:lantern/core/split_tunneling/split_tunneling_mode.dart';
 import 'package:lantern/core/split_tunneling/website_notifier.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/features/split_tunneling/bottom_sheet.dart';
@@ -48,53 +47,74 @@ class SplitTunneling extends HookConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           SizedBox(height: defaultSize),
-          AppTile(
-            icon: AppImagePaths.callSpilt,
-            label: 'split_tunneling'.i18n,
-            trailing: SizedBox(
-              width: 44.0,
-              child: CupertinoSwitch(
-                value: splitTunnelingEnabled,
-                activeTrackColor: CupertinoColors.activeGreen,
-                onChanged: (bool? value) {
-                  var newValue = value ?? false;
-                  ref.read(appPreferencesProvider.notifier).setPreference(
-                      Preferences.splitTunnelingEnabled, newValue);
-                },
-              ),
+          AppCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
+                AppTile(
+                  icon: AppImagePaths.callSpilt,
+                  label: 'split_tunneling'.i18n,
+                  trailing: Switch.adaptive(
+                    value: splitTunnelingEnabled,
+                    activeTrackColor: AppColors.green5,
+                    activeColor: AppColors.yellow4,
+                    inactiveTrackColor: AppColors.gray3,
+                    inactiveThumbColor: AppColors.gray1,
+                    onChanged: (bool? value) {
+                      var newValue = value ?? false;
+                      ref.read(appPreferencesProvider.notifier).setPreference(
+                          Preferences.splitTunnelingEnabled, newValue);
+                    },
+                  ),
+                ),
+                DividerSpace(),
+                if (splitTunnelingEnabled)
+                  AppTile(
+                    label: 'mode'.i18n,
+                    subtitle: Text(
+                      'iran_optimized'.i18n,
+                      style: AppTestStyles.labelSmall.copyWith(
+                        color: AppColors.gray7,
+                      ),
+                    ),
+                    trailing: AppTextButton(
+                      label: splitTunnelingMode == SplitTunnelingMode.automatic
+                          ? 'automatic'.i18n
+                          : 'manual'.i18n,
+                      onPressed: _showBottomSheet,
+                    ),
+                  )
+              ],
             ),
           ),
-          const SizedBox(height: defaultSize),
-          if (splitTunnelingEnabled)
-            SplitTunnelingTile(
-              label: 'mode'.i18n,
-              subtitle: Text(
-                'iran_optimized'.i18n,
-                style: AppTestStyles.labelSmall,
-              ),
-              actionText: splitTunnelingMode == SplitTunnelingMode.automatic
-                  ? 'automatic'.i18n
-                  : 'manual'.i18n,
-              onPressed: _showBottomSheet,
-            ),
           SizedBox(height: defaultSize),
           InfoRow(
             onPressed: () => appRouter.push(SplitTunnelingInfo()),
-            text: 'when_connected'.i18n,
+            text: splitTunnelingEnabled
+                ? 'when_connected'.i18n
+                : 'turn_on_split_tunneling'.i18n,
           ),
-          SizedBox(height: defaultSize),
-          SplitTunnelingTile(
-            label: 'Websites',
-            actionText: '${enabledWebsites.length} Added',
-            onPressed: () => appRouter.push(WebsiteSplitTunneling()),
-          ),
-          SizedBox(height: defaultSize),
-          SplitTunnelingTile(
-            label: 'Apps',
-            actionText: '${enabledApps.length} Added',
-            onPressed: () => appRouter.push(AppsSplitTunneling()),
-          ),
-          SizedBox(height: defaultSize),
+          if (splitTunnelingEnabled) ...{
+            SizedBox(height: defaultSize),
+            AppCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  SplitTunnelingTile(
+                    label: 'Websites',
+                    actionText: '${enabledWebsites.length} Added',
+                    onPressed: () => appRouter.push(WebsiteSplitTunneling()),
+                  ),
+                  DividerSpace(),
+                  SplitTunnelingTile(
+                    label: 'Apps',
+                    actionText: '${enabledApps.length} Added',
+                    onPressed: () => appRouter.push(AppsSplitTunneling()),
+                  ),
+                ],
+              ),
+            ),
+          }
         ],
       ),
     );
@@ -105,7 +125,7 @@ class SplitTunnelingTile extends StatelessWidget {
   final String label;
   final String actionText;
   final VoidCallback onPressed;
-  final Widget? subtitle;
+  final String? subtitle;
 
   const SplitTunnelingTile({
     super.key,
@@ -115,27 +135,32 @@ class SplitTunnelingTile extends StatelessWidget {
     this.subtitle,
   });
 
+  @override
   Widget build(BuildContext context) {
     return AppTile(
       label: label,
-      subtitle: subtitle,
+      subtitle: subtitle != null
+          ? Text(
+              subtitle!,
+              style: AppTestStyles.labelSmall.copyWith(
+                color: AppColors.gray7,
+              ),
+            )
+          : null,
       onPressed: () => appRouter.push(WebsiteSplitTunneling()),
-      trailing: Card(
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            AppTextButton(
-              //label: '${enabledWebsites.length} Added',
-              label: actionText,
-              onPressed: onPressed,
-            ),
-            Padding(
-              padding: EdgeInsets.only(left: 8.0),
-              child: AppImage(path: AppImagePaths.arrowForward),
-            ),
-          ],
-        ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          AppTextButton(
+            label: actionText,
+            onPressed: onPressed,
+          ),
+          AppImage(
+            path: AppImagePaths.arrowForward,
+            height: 20,
+          ),
+        ],
       ),
     );
   }
