@@ -47,47 +47,47 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val i = intent?.action ?: return START_STICKY
+        val action = intent?.action ?: return START_NOT_STICKY
         if (!MainActivity.receiverRegistered) {
             VpnStatusManager.registerVPNStatusReceiver(this)
             MainActivity.receiverRegistered = true
         }
 
-        i.let { action ->
-            when (action) {
-                ACTION_START_RADIANCE -> {
-                    serviceScope.launch {
+        return when (action) {
+            ACTION_START_RADIANCE -> {
+                serviceScope.launch {
+                    startRadiance()
+                }
+                START_NOT_STICKY
+            }
+
+            ACTION_START_VPN -> {
+                serviceScope.launch {
+                    startVPN()
+                }
+                START_STICKY
+            }
+
+            ACTION_TILE_START -> {
+                serviceScope.launch {
+                    if (!Mobile.isRadianceConnected()) {
                         startRadiance()
                     }
+                    startVPN()
+                    notificationHelper.showVPNConnectedNotification(this@LanternVpnService)
                 }
-
-                ACTION_START_VPN -> {
-                    serviceScope.launch {
-                        startVPN()
-
-                    }
-                }
-
-                ACTION_TILE_START -> {
-                    serviceScope.launch {
-                        if (!Mobile.isRadianceConnected()) {
-                            startRadiance()
-                        }
-                        startVPN()
-                        notificationHelper.showVPNConnectedNotification(this@LanternVpnService)
-                    }
-                }
-
-                ACTION_STOP_VPN -> {
-                    serviceScope.launch {
-                        doStopVPN()
-                    }
-                }
-
-                else -> {}
+                START_STICKY // Return START_STICKY for ACTION_TILE_START
             }
+
+            ACTION_STOP_VPN -> {
+                serviceScope.launch {
+                    doStopVPN()
+                }
+                START_NOT_STICKY
+            }
+
+            else -> START_STICKY
         }
-        return START_STICKY
     }
 
 
