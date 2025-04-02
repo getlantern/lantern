@@ -62,5 +62,9 @@ class AppRouter extends RootStackRouter {
       path: '/server-selection',
       page: ServerSelection.page,
     ),
+    AutoRoute(
+      path: '/plans',
+      page: Plans.page,
+    ),
   ];
 }

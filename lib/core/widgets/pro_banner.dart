@@ -39,7 +39,9 @@ class ProBanner extends StatelessWidget {
           ),
           SizedBox(height: 8),
           ProButton(
-            onPressed: () {},
+            onPressed: () {
+              appRouter.push(Plans());
+            },
           ),
         ],
       ),

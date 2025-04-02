@@ -6,6 +6,7 @@ class CustomAppBar extends AppBar {
     required String title,
     super.actions,
     super.actionsPadding,
+    super.leading,
   }) : super(
           title: Text(title),
         );

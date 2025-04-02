@@ -59,9 +59,14 @@ class AppTile extends StatelessWidget {
           color: AppColors.gray9,
         );
       }
+      else if (icon is Widget) {
+        leading = icon as Widget;
+
+      }
     }
 
     return ListTile(
+
       enableFeedback: true,
       minVerticalPadding: 0,
       contentPadding:
