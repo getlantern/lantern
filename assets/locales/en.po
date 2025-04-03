@@ -202,6 +202,9 @@ msgstr "Lantern cannot view your diagnostic logs unless you send them to us."
 msgid "logs_share_message"
 msgstr "Here are my diagnostic logs from Lantern."
 
+msgid "payment_options"
+msgstr "Payment Options"
+
 
 
 

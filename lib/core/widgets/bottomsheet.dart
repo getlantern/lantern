@@ -23,7 +23,6 @@ void showAppBottomSheet(
         expand: true,
         initialChildSize: 1,
         minChildSize: 0.85,
-        snap: true,
         builder: (BuildContext context, ScrollController scrollController) {
           return Column(
             mainAxisSize: MainAxisSize.min,

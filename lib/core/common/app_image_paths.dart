@@ -53,5 +53,7 @@ class AppImagePaths {
   static const eyeHide = 'assets/images/eye_hide.svg';
   static const premium = 'assets/images/premium.svg';
   static const roundCorrect = 'assets/images/round_correct.svg';
+  static const keypad = 'assets/images/keypad.svg';
+  static const restorePurchase = 'assets/images/restore_purchase.svg';
 
 }

@@ -15,7 +15,7 @@ import 'package:lantern/features/account/delete_account.dart' as _i2;
 import 'package:lantern/features/home/home.dart' as _i5;
 import 'package:lantern/features/language/language.dart' as _i7;
 import 'package:lantern/features/logs/logs.dart' as _i8;
-import 'package:lantern/features/reportIssue/plans.dart' as _i9;
+import 'package:lantern/features/plans/plans.dart' as _i9;
 import 'package:lantern/features/reportIssue/report_issue.dart' as _i10;
 import 'package:lantern/features/setting/download_links.dart' as _i3;
 import 'package:lantern/features/setting/follow_us.dart' as _i4;
