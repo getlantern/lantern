@@ -21,9 +21,48 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "2:7670868698114973577",
+      "lastPropertyId": "6:5603929520388800572",
+      "name": "AppData",
+      "properties": [
+        {
+          "id": "1:7709598816908993183",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:5184842411144758724",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "3:6847653516684994068",
+          "name": "bundleId",
+          "type": 9
+        },
+        {
+          "id": "4:677074590541685344",
+          "name": "iconPath",
+          "type": 9
+        },
+        {
+          "id": "5:1312807177461040004",
+          "name": "appPath",
+          "type": 9
+        },
+        {
+          "id": "6:5603929520388800572",
+          "name": "isEnabled",
+          "type": 1
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "1:1027975073737683578",
+  "lastEntityId": "2:7670868698114973577",
   "lastIndexId": "0:0",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",

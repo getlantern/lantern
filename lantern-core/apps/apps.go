@@ -5,12 +5,17 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/getlantern/golog"
 )
 
 var (
 	log = golog.LoggerFor("lantern.apps")
+
+	appCache []*AppData
+	cacheMux sync.RWMutex
+	loaded   bool
 )
 
 type AppData struct {
@@ -20,32 +25,59 @@ type AppData struct {
 	IconPath string `json:"iconPath"`
 }
 
-type Callback func(*AppData) error
+type Callback func(...*AppData) error
 
+// LoadInstalledApps fetches the app list or rescans if needed
 func LoadInstalledApps(cb Callback) error {
-	// Directories to scan for installed apps
-	appDirs := []string{"/Applications", "/System/Applications"}
 
-	for _, dir := range appDirs {
-		err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
-			if err != nil {
-				return err
-			}
-
-			// Only process .app bundles
-			if info.IsDir() && strings.HasSuffix(info.Name(), ".app") {
-				iconPath, _ := getIconPath(path)
-				appData := AppData{Name: info.Name(), IconPath: iconPath}
-				return cb(&appData)
-			}
-			return nil
-		})
-		if err != nil {
-			return fmt.Errorf("error scanning directory: %v", err)
-		}
+	cacheMux.RLock()
+	if loaded {
+		defer cacheMux.RUnlock()
+		// Return cached results immediately
+		return cb(appCache...)
 	}
+	cacheMux.RUnlock()
 
-	return nil
+	return fmt.Errorf("app cache not ready yet")
+}
+
+func InitAppCache() {
+	go func() {
+		// Directories to scan for installed apps
+		appDirs := []string{"/Applications", "/System/Applications"}
+		var apps []*AppData
+
+		for _, dir := range appDirs {
+			err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+				if err != nil {
+					return err
+				}
+
+				// Only process .app bundles
+				if info.IsDir() && strings.HasSuffix(info.Name(), ".app") {
+					iconPath, _ := getIconPath(path)
+					appData := &AppData{
+						Name:     strings.TrimSuffix(info.Name(), ".app"),
+						AppPath:  path,
+						IconPath: iconPath,
+					}
+
+					apps = append(apps, appData)
+				}
+				return nil
+			})
+			if err != nil {
+				log.Errorf("Error scanning directory: %v", err)
+			}
+		}
+
+		cacheMux.Lock()
+		appCache = apps
+		loaded = true
+		cacheMux.Unlock()
+
+		log.Debugf("App scan completed. %d apps found.", len(apps))
+	}()
 }
 
 // getIconPath finds the .icns file inside the app bundle

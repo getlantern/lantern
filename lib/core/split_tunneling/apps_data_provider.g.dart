@@ -6,13 +6,12 @@ part of 'apps_data_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$appsDataHash() => r'7149209c45b8c0d839d60ea51a15b0b822811187';
+String _$appsDataHash() => r'd74566ebd14c1d407832dd50140e52ca7c419042';
 
-/// See also [AppsData].
-@ProviderFor(AppsData)
-final appsDataProvider =
-    AsyncNotifierProvider<AppsData, List<AppData>>.internal(
-  AppsData.new,
+/// See also [appsData].
+@ProviderFor(appsData)
+final appsDataProvider = StreamProvider<List<AppData>>.internal(
+  appsData,
   name: r'appsDataProvider',
   debugGetCreateSourceHash:
       const bool.fromEnvironment('dart.vm.product') ? null : _$appsDataHash,
@@ -20,6 +19,8 @@ final appsDataProvider =
   allTransitiveDependencies: null,
 );
 
-typedef _$AppsData = AsyncNotifier<List<AppData>>;
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef AppsDataRef = StreamProviderRef<List<AppData>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

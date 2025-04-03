@@ -50,8 +50,10 @@ func setup(dir *C.char, logPort, appsPort C.int64_t, api unsafe.Pointer) {
 		servicesMap[logsService] = int64(logPort)
 		servicesMap[appsService] = int64(appsPort)
 
-		go apps.LoadInstalledApps(func(appData *apps.AppData) error {
-			data, err := json.Marshal(appData)
+		go apps.InitAppCache()
+
+		go apps.LoadInstalledApps(func(apps ...*apps.AppData) error {
+			data, err := json.Marshal(apps)
 			if err != nil {
 				return err
 			}

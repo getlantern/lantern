@@ -22,40 +22,16 @@ class AppsSplitTunneling extends HookConsumerWidget {
     final searchEnabled = useState(false);
     final searchQuery = ref.watch(searchQueryProvider);
 
-    final allApps = ref.watch(appsDataProvider).maybeWhen(
-          data: (apps) => apps,
-          orElse: () => [],
-        );
-    final installedApps = allApps.where((a) => a.iconPath.isNotEmpty).toSet();
+    final allAppsAsync = ref.watch(appsDataProvider);
     final enabledApps = ref.watch(splitTunnelingAppsProvider);
-    final enabledAppNames =
-        enabledApps.map((a) => a.name.toLowerCase()).toSet();
-    final enabledList = enabledApps.toList();
-    enabledList
-        .sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-
-    final disabledApps = installedApps.where((app) {
-      final matchesSearch = searchQuery.isEmpty ||
-          app.name.toLowerCase().contains(searchQuery.toLowerCase());
-      final isDisabled = !enabledAppNames.contains(app.name.toLowerCase());
-      return matchesSearch && isDisabled;
-    }).toSet();
-
-    final disabledList = disabledApps.toList();
-    disabledList
-        .sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-
-    print("enabledApps: $enabledApps");
 
     return BaseScreen(
       title: 'apps_split_tunneling'.i18n,
       appBar: CustomAppBar(
         title: searchEnabled.value
-            ? AppSearchBar(
-                hintText: 'search_apps'.i18n,
-              )
+            ? AppSearchBar(hintText: 'search_apps'.i18n)
             : 'apps_split_tunneling'.i18n,
-        actionsPadding: EdgeInsets.only(right: 24.0),
+        actionsPadding: const EdgeInsets.only(right: 24.0),
         actions: [
           AppIconButton(
             onPressed: () => searchEnabled.value = !searchEnabled.value,
@@ -63,36 +39,63 @@ class AppsSplitTunneling extends HookConsumerWidget {
           ),
         ],
       ),
-      body: CustomScrollView(slivers: [
-        if (enabledApps.isNotEmpty) ...[
-          SliverToBoxAdapter(
-              child: SectionLabel(
-                  'apps_bypassing_vpn'.i18n.fill([enabledApps.length]))),
-          SliverList.list(
-            children: enabledList
-                .map((app) => _AppRow(
-                      app: app.copyWith(isEnabled: true),
-                      onToggle: () => ref
-                          .read(splitTunnelingAppsProvider.notifier)
-                          .toggleApp(app),
-                    ))
-                .toList(),
-          ),
-        ],
-        if (disabledList.isNotEmpty) ...[
-          SliverToBoxAdapter(child: SectionLabel('installed_apps'.i18n)),
-          SliverList.list(
-            children: disabledList
-                .map((app) => _AppRow(
-                      app: app,
-                      onToggle: () => ref
-                          .read(splitTunnelingAppsProvider.notifier)
-                          .toggleApp(app),
-                    ))
-                .toList(),
-          ),
-        ],
-      ]),
+      body: allAppsAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text('Error: $err')),
+        data: (allApps) {
+          final installedApps =
+              allApps.where((a) => a.iconPath.isNotEmpty).toSet();
+          final enabledAppNames =
+              enabledApps.map((a) => a.name.toLowerCase()).toSet();
+          final enabledList = [...enabledApps]..sort(
+              (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+
+          final disabledApps = installedApps.where((app) {
+            final matchesSearch = searchQuery.isEmpty ||
+                app.name.toLowerCase().contains(searchQuery.toLowerCase());
+            final isDisabled =
+                !enabledAppNames.contains(app.name.toLowerCase());
+            return matchesSearch && isDisabled;
+          }).toList()
+            ..sort(
+                (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+
+          return CustomScrollView(
+            slivers: [
+              if (enabledApps.isNotEmpty) ...[
+                SliverToBoxAdapter(
+                  child: SectionLabel(
+                    'apps_bypassing_vpn'.i18n.fill([enabledApps.length]),
+                  ),
+                ),
+                SliverList.list(
+                  children: enabledList
+                      .map((app) => _AppRow(
+                            app: app.copyWith(isEnabled: true),
+                            onToggle: () => ref
+                                .read(splitTunnelingAppsProvider.notifier)
+                                .toggleApp(app),
+                          ))
+                      .toList(),
+                ),
+              ],
+              if (disabledApps.isNotEmpty) ...[
+                const SliverToBoxAdapter(child: SectionLabel('installed_apps')),
+                SliverList.list(
+                  children: disabledApps
+                      .map((app) => _AppRow(
+                            app: app,
+                            onToggle: () => ref
+                                .read(splitTunnelingAppsProvider.notifier)
+                                .toggleApp(app),
+                          ))
+                      .toList(),
+                ),
+              ],
+            ],
+          );
+        },
+      ),
     );
   }
 }

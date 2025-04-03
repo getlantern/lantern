@@ -6,18 +6,14 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'apps_data_provider.g.dart';
 
 @Riverpod(keepAlive: true)
-class AppsData extends _$AppsData {
-  @override
-  FutureOr<List<AppData>> build() async {
-    final ffiClient = await ref.watch(ffiClientProvider.future);
-    final apps = <AppData>[];
+Stream<List<AppData>> appsData(Ref ref) async* {
+  final ffiClient = await ref.watch(ffiClientProvider.future);
+  final apps = <AppData>[];
 
-    // Listen to the stream and add to state
-    ffiClient.appsDataStream().listen((appData) {
-      apps.add(appData);
-      state = AsyncData([...apps]);
-    });
+  yield [];
 
-    return apps;
+  await for (final appData in ffiClient.appsDataStream()) {
+    apps.add(appData);
+    yield [...apps];
   }
 }

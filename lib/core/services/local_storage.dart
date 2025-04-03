@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:lantern/core/common/app_secrets.dart';
+import 'package:lantern/core/split_tunneling/app_data.dart';
+import 'package:lantern/core/split_tunneling/apps_data_provider.dart';
 import 'package:objectbox/objectbox.dart';
 import 'package:lantern/core/services/db/objectbox.g.dart';
 import 'package:lantern/core/services/logger_service.dart';
@@ -30,6 +32,7 @@ class LocalStorageService {
   late Store _store;
 
   late Box<AppDatabase> _box;
+  late Box<AppData> _appsBox;
 
   late AppDatabase _appDb;
 
@@ -47,7 +50,10 @@ class LocalStorageService {
     _store = await openStore(
         directory: p.join(docsDir.path, "objectbox-db"),
         macosApplicationGroup: macosApplicationGroup);
+
     _box = _store.box<AppDatabase>();
+    _appsBox = _store.box<AppData>();
+
     AppDatabase? db = _box.get(1);
     if (db == null) {
       db = AppDatabase(data: "{}")..id = 1;
@@ -91,6 +97,27 @@ class LocalStorageService {
     _appDb.map = dbMap;
     _box.put(_appDb);
     dbLogger.debug("Key: $key removed successfully");
+  }
+
+  // Apps methods
+  void saveApps(Set<AppData> apps) {
+    _appsBox.removeAll();
+    _appsBox.putMany(apps.toList());
+  }
+
+  Set<AppData> getEnabledApps() {
+    return _appsBox.getAll().where((a) => a.isEnabled).toSet();
+  }
+
+  void toggleApp(AppData app) {
+    final existing =
+        _appsBox.query(AppData_.name.equals(app.name)).build().findFirst();
+
+    if (existing != null) {
+      _appsBox.remove(existing.id);
+    } else {
+      _appsBox.put(app.copyWith(isEnabled: true));
+    }
   }
 }
 

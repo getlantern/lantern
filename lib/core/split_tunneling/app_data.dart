@@ -1,11 +1,16 @@
+import 'package:objectbox/objectbox.dart';
+
+@Entity()
 class AppData {
-  final String name;
-  final String bundleId;
-  final String iconPath;
-  final String appPath;
-  final bool isEnabled;
+  int id;
+  String name;
+  String bundleId;
+  String iconPath;
+  String appPath;
+  bool isEnabled;
 
   AppData({
+    this.id = 0,
     required this.name,
     required this.bundleId,
     required this.iconPath,
@@ -13,15 +18,8 @@ class AppData {
     required this.isEnabled,
   });
 
-  Map<String, dynamic> toJson() => {
-        "name": name,
-        "bundleId": bundleId,
-        "iconPath": iconPath,
-        "appPath": appPath,
-        "isEnabled": isEnabled,
-      };
-
   AppData copyWith({
+    int? id,
     String? name,
     String? bundleId,
     String? iconPath,
@@ -29,21 +27,22 @@ class AppData {
     bool? isEnabled,
   }) {
     return AppData(
+      id: id ?? this.id,
       name: name ?? this.name,
-      isEnabled: isEnabled ?? false,
       bundleId: bundleId ?? this.bundleId,
       iconPath: iconPath ?? this.iconPath,
       appPath: appPath ?? this.appPath,
+      isEnabled: isEnabled ?? this.isEnabled,
     );
   }
 
   factory AppData.fromJson(Map<String, dynamic> json) {
     return AppData(
-      name: json["name"],
-      bundleId: json["bundleId"],
-      iconPath: json["iconPath"],
-      appPath: json["appPath"],
-      isEnabled: json["isEnabled"] ?? false,
+      name: json['name'] ?? '',
+      bundleId: json['bundleId'] ?? '',
+      iconPath: json['iconPath'] ?? '',
+      appPath: json['appPath'] ?? '',
+      isEnabled: json['isEnabled'] ?? false,
     );
   }
 }

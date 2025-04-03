@@ -1,54 +1,33 @@
 import 'dart:convert';
 import 'package:lantern/core/preferences/app_preferences.dart';
+import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/services/local_storage.dart';
+import 'package:lantern/core/split_tunneling/app_data.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'app_data.dart';
 
 part 'apps_notifier.g.dart';
 
 @Riverpod(keepAlive: true)
 class SplitTunnelingApps extends _$SplitTunnelingApps {
-  static const String enabledAppsKey = Preferences.enabledApps;
+  late final LocalStorageService _db;
 
   @override
   Set<AppData> build() {
-    _loadEnabledApps();
-    return {};
-  }
-
-  // Load enabled apps from SharedPreferences
-  Future<void> _loadEnabledApps() async {
-    final prefs = await ref.read(appPreferencesProvider.future);
-    final jsonString = prefs[enabledAppsKey];
-
-    if (jsonString == null) return;
-
-    final List decodedList = jsonDecode(jsonString);
-    state = decodedList.map((json) => AppData.fromJson(json)).toSet();
+    _db = sl<LocalStorageService>();
+    return _db.getEnabledApps();
   }
 
   // Toggle app selection for split tunneling
   Future<void> toggleApp(AppData app) async {
-    final prefs = await SharedPreferences.getInstance();
-    final isEnabled = app.isEnabled;
-    final isCurrentlyEnabled = state.any((a) => (a.name == app.name));
+    final isCurrentlyEnabled = state.any((a) => a.name == app.name);
 
-    Set<AppData> updatedState;
     if (isCurrentlyEnabled) {
-      // Remove app if it's currently enabled
-      updatedState = state.where((a) => (a.name != app.name)).toSet();
+      state = state.where((a) => a.name != app.name).toSet();
     } else {
-      // Preserve existing state and toggle app isEnabled
-      updatedState = {...state, app.copyWith(isEnabled: isEnabled)};
+      state = {...state, app.copyWith(isEnabled: true)};
     }
 
-    state = updatedState;
-
-    // Save updated list
-    final jsonString = jsonEncode(state.map((app) => app.toJson()).toList());
-    await prefs.setString(enabledAppsKey, jsonString);
-    ref
-        .read(appPreferencesProvider.notifier)
-        .setPreference(enabledAppsKey, jsonString);
+    _db.saveApps(state);
   }
 }

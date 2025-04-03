@@ -15,6 +15,7 @@ import 'package:objectbox/objectbox.dart' as obx;
 import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
 import '../../../core/services/local_storage.dart';
+import '../../../core/split_tunneling/app_data.dart';
 
 export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
 
@@ -34,6 +35,45 @@ final _entities = <obx_int.ModelEntity>[
             id: const obx_int.IdUid(3, 7465496422607335786),
             name: 'data',
             type: 9,
+            flags: 0)
+      ],
+      relations: <obx_int.ModelRelation>[],
+      backlinks: <obx_int.ModelBacklink>[]),
+  obx_int.ModelEntity(
+      id: const obx_int.IdUid(2, 7670868698114973577),
+      name: 'AppData',
+      lastPropertyId: const obx_int.IdUid(6, 5603929520388800572),
+      flags: 0,
+      properties: <obx_int.ModelProperty>[
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(1, 7709598816908993183),
+            name: 'id',
+            type: 6,
+            flags: 1),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(2, 5184842411144758724),
+            name: 'name',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(3, 6847653516684994068),
+            name: 'bundleId',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(4, 677074590541685344),
+            name: 'iconPath',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(5, 1312807177461040004),
+            name: 'appPath',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(6, 5603929520388800572),
+            name: 'isEnabled',
+            type: 1,
             flags: 0)
       ],
       relations: <obx_int.ModelRelation>[],
@@ -75,7 +115,7 @@ Future<obx.Store> openStore(
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
       entities: _entities,
-      lastEntityId: const obx_int.IdUid(1, 1027975073737683578),
+      lastEntityId: const obx_int.IdUid(2, 7670868698114973577),
       lastIndexId: const obx_int.IdUid(0, 0),
       lastRelationId: const obx_int.IdUid(0, 0),
       lastSequenceId: const obx_int.IdUid(0, 0),
@@ -113,6 +153,54 @@ obx_int.ModelDefinition getObjectBoxModel() {
             ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
 
           return object;
+        }),
+    AppData: obx_int.EntityDefinition<AppData>(
+        model: _entities[1],
+        toOneRelations: (AppData object) => [],
+        toManyRelations: (AppData object) => {},
+        getId: (AppData object) => object.id,
+        setId: (AppData object, int id) {
+          object.id = id;
+        },
+        objectToFB: (AppData object, fb.Builder fbb) {
+          final nameOffset = fbb.writeString(object.name);
+          final bundleIdOffset = fbb.writeString(object.bundleId);
+          final iconPathOffset = fbb.writeString(object.iconPath);
+          final appPathOffset = fbb.writeString(object.appPath);
+          fbb.startTable(7);
+          fbb.addInt64(0, object.id);
+          fbb.addOffset(1, nameOffset);
+          fbb.addOffset(2, bundleIdOffset);
+          fbb.addOffset(3, iconPathOffset);
+          fbb.addOffset(4, appPathOffset);
+          fbb.addBool(5, object.isEnabled);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (obx.Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+          final idParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+          final nameParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 6, '');
+          final bundleIdParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 8, '');
+          final iconPathParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 10, '');
+          final appPathParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 12, '');
+          final isEnabledParam =
+              const fb.BoolReader().vTableGet(buffer, rootOffset, 14, false);
+          final object = AppData(
+              id: idParam,
+              name: nameParam,
+              bundleId: bundleIdParam,
+              iconPath: iconPathParam,
+              appPath: appPathParam,
+              isEnabled: isEnabledParam);
+
+          return object;
         })
   };
 
@@ -128,4 +216,31 @@ class AppDatabase_ {
   /// See [AppDatabase.data].
   static final data =
       obx.QueryStringProperty<AppDatabase>(_entities[0].properties[1]);
+}
+
+/// [AppData] entity fields to define ObjectBox queries.
+class AppData_ {
+  /// See [AppData.id].
+  static final id =
+      obx.QueryIntegerProperty<AppData>(_entities[1].properties[0]);
+
+  /// See [AppData.name].
+  static final name =
+      obx.QueryStringProperty<AppData>(_entities[1].properties[1]);
+
+  /// See [AppData.bundleId].
+  static final bundleId =
+      obx.QueryStringProperty<AppData>(_entities[1].properties[2]);
+
+  /// See [AppData.iconPath].
+  static final iconPath =
+      obx.QueryStringProperty<AppData>(_entities[1].properties[3]);
+
+  /// See [AppData.appPath].
+  static final appPath =
+      obx.QueryStringProperty<AppData>(_entities[1].properties[4]);
+
+  /// See [AppData.isEnabled].
+  static final isEnabled =
+      obx.QueryBooleanProperty<AppData>(_entities[1].properties[5]);
 }
