@@ -7,6 +7,8 @@ class CustomAppBar extends AppBar {
     super.actions,
     super.actionsPadding,
     super.leading,
+    super.backgroundColor,
+
   }) : super(
           title: Text(title),
         );

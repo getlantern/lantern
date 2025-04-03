@@ -47,6 +47,7 @@ dependencies:
   flutter_screenutil: ^5.9.3
   auto_size_text: ^3.0.0
   device_preview_plus: ^2.3.0
+  badges: ^3.1.2
   #Localization
   i18n_extension: ^15.0.4
   i18n_extension_importer: ^0.0.6
