@@ -13,6 +13,8 @@ class LanternLogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppImage(
-        path: isPro ? AppImagePaths.lanternPro : AppImagePaths.lanternLogo);
+      path: isPro ? AppImagePaths.lanternPro : AppImagePaths.lanternLogo,
+      color: AppColors.blue10,
+    );
   }
 }
