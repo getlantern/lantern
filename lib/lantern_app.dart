@@ -7,7 +7,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:i18n_extension/i18n_extension.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
 import 'package:lantern/core/router/router.dart';
-import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/features/language/language_notifier.dart';
 import 'package:lantern/features/window/window_wrapper.dart';
 

@@ -1,7 +1,42 @@
-.PHONY: gen macos
+.PHONY: gen macos ffi
 
 BUILD_DIR := bin
 
+LIB_NAME := liblantern
+LIB_FOLDER := android/app/libs
+ANDROID_LIB_PATH := android/app/libs/$(LIB_NAME).aar
+ANDROID_LIB := $(LIB_NAME).aar
+TAGS=with_gvisor,with_quic,with_wireguard,with_ech,with_utls,with_clash_api,with_grpc
+FFI_DIR := ./lantern-core/ffi
+RADIANCE_REPO := github.com/getlantern/radiance
+
+
+# Missing and Guards
+
+check-gomobile:
+	@if ! command -v gomobile &> /dev/null; then \
+		echo "gomobile not found. Installing..."; \
+		go install golang.org/x/mobile/cmd/gomobile@latest; \
+		gomobile init; \
+	else \
+		echo "gomobile is already installed."; \
+	fi
+
+
+require-gomobile:
+	@if [[ -z "$(SENTRY)" ]]; then echo 'Missing "sentry-cli" command. See sentry.io for installation instructions.'; exit 1; fi
+
+
+##### Build Libraries #####
+
+# Build for macOS
+macos: export CGO_CFLAGS="-I./dart_api_dl/include"
+
+
+macos:
+	go build -o bin/liblantern.dylib -buildmode=c-shared ./lantern-core/ffi
+	mkdir -p build/macos/Build/Products/Debug/Lantern.app/Contents/MacOS
+	cp bin/liblantern.dylib build/macos/Build/Products/Debug/Lantern.app/Contents/MacOS
 APP ?= lantern
 CAPITALIZED_APP := Lantern
 LANTERN_LIB_NAME := liblantern
@@ -35,18 +70,13 @@ ANDROID_LIB_BUILD := $(BUILD_DIR)/android/$(ANDROID_LIB)
 ANDROID_DEBUG_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-debug.apk
 
 IOS_FRAMEWORK := Liblantern.xcframework
-IOS_FRAMEWORK_DIR := ios/Frameworks
+IOS_FRAMEWORK_DIR := ios
 IOS_FRAMEWORK_BUILD := $(BUILD_DIR)/ios/$(IOS_FRAMEWORK)
 
 TAGS=with_gvisor,with_quic,with_wireguard,with_ech,with_utls,with_clash_api,with_grpc
 
 GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go')
 
-gen:
-	dart run build_runner build --delete-conflicting-outputs
-
-pubget:
-	flutter pub get
 
 desktop-lib: export CGO_CFLAGS="-I./dart_api_dl/include"
 desktop-lib:
@@ -170,12 +200,42 @@ $(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD)
 .PHONY: ios
 ios: $(IOS_FRAMEWORK_BUILD)
 
+
 $(IOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 	@echo "Building iOS Framework..."
 	rm -rf $@ && mkdir -p $(dir $@)
-	GOOS=ios gomobile bind -v -tags=$(TAGS),with_low_memory -trimpath -target=ios -ldflags="-w -s" -o $@ $(RADIANCE_REPO)
-	mkdir -p $(IOS_FRAMEWORK_DIR) && rm -rf $(IOS_FRAMEWORK_DIR)/$(IOS_FRAMEWORK) && mv $@ $(IOS_FRAMEWORK_DIR)
-	@echo "Built iOS Framework: $(IOS_FRAMEWORK_DIR)/$(IOS_FRAMEWORK)"
+	rm -rf $(IOS_FRAMEWORK_DIR)/$(IOS_FRAMEWORK)
+	gomobile bind -v \
+		-tags=$(TAGS),with_low_memory,netgo -trimpath \
+		-target=ios \
+		-o $@ \
+		-ldflags="-w -s -checklinkname=0" \
+		$(RADIANCE_REPO)
+	mv $@ $(IOS_FRAMEWORK_DIR)
+	@echo "Built iOS Framework: $(IOS_FRAMEWORK)"
+
+#gomobile bind -target=ios,iossimulator \
+#	-tags='headless lantern ios netgo' \
+
+build-android:check-gomobile install-android-deps
+	@echo "Building Android libraries"
+	rm -rf $(BUILD_DIR)/$(ANDROID_LIB)
+	rm -rf $(ANDROID_LIB_PATH)
+	mkdir -p $(LIB_FOLDER)
+	gomobile bind -v \
+		-target=android \
+		-androidapi=23 \
+		-javapkg=lantern.io \
+		-tags=$(TAGS) -trimpath \
+		-o=$(BUILD_DIR)/$(ANDROID_LIB) \
+		-ldflags="-checklinkname=0" \
+		 $(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox ./lantern-core/mobile
+	cp $(BUILD_DIR)/$(ANDROID_LIB) $(ANDROID_LIB_PATH)
+	@echo "Android libraries built successfully"
+
+
+### End Build Libraries ###
+
 
 # Dart API DL bridge
 DART_SDK_REPO=https://github.com/dart-lang/sdk
@@ -192,6 +252,17 @@ update-dart-api-dl:
 	mv dart_sdk_tmp/runtime/include/* $(DART_SDK_INCLUDE_DIR)/
 	rm -rf dart_sdk_tmp
 	@echo "Dart API DL bridge updated successfully!"
+
+#Routes generation
+gen:
+	dart run build_runner build --delete-conflicting-outputs
+
+#FFI generation
+ffi:
+	dart run ffigen
+
+pubget:
+	flutter pub get
 
 
 find-duplicate-translations:

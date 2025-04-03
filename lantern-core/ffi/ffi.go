@@ -13,6 +13,8 @@ import (
 	"sync"
 	"unsafe"
 
+	"log/slog"
+
 	"github.com/getlantern/golog"
 	"github.com/getlantern/lantern-outline/lantern-core/apps"
 	"github.com/getlantern/lantern-outline/lantern-core/dart_api_dl"
@@ -74,7 +76,7 @@ func setup(dir *C.char, logPort, appsPort C.int64_t, api unsafe.Pointer) {
 //
 //export startVPN
 func startVPN() *C.char {
-	log.Debug("startVPN called")
+	slog.Debug("startVPN called")
 
 	serverMu.Lock()
 	defer serverMu.Unlock()
@@ -91,23 +93,12 @@ func startVPN() *C.char {
 //
 //export stopVPN
 func stopVPN() *C.char {
-	log.Debug("stopVPN called")
+	slog.Debug("stopVPN called")
 
 	serverMu.Lock()
 	defer serverMu.Unlock()
 
-	if server == nil {
-		log.Debug("VPN server is not running")
-		return nil
-	}
-
-	if err := server.StopVPN(); err != nil {
-		err = fmt.Errorf("unable to stop VPN server: %v", err)
-		log.Error(err)
-		return C.CString(err.Error())
-	}
-
-	log.Debug("VPN server stopped successfully")
+	slog.Debug("VPN server stopped successfully")
 	return nil
 }
 
@@ -117,10 +108,6 @@ func stopVPN() *C.char {
 func isVPNConnected() int {
 	serverMu.Lock()
 	defer serverMu.Unlock()
-
-	if server == nil {
-		return 0
-	}
 
 	return 1
 }

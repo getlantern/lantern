@@ -4,7 +4,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/preferences/app_preferences.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
-import 'package:lantern/features/vpn/provider/vpn_status.dart';
+import 'package:lantern/core/widgets/vpn_status_indicator.dart';
+import 'package:lantern/features/home/provider/home_notifier.dart';
+import 'package:lantern/features/vpn/vpn_status.dart';
 import 'package:lantern/features/vpn/vpn_switch.dart';
 
 import '../../core/common/common.dart';
@@ -24,6 +26,7 @@ class Home extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final result = ref.read(homeNotifierProvider);
     textTheme = Theme.of(context).textTheme;
     return Scaffold(
       appBar: AppBar(

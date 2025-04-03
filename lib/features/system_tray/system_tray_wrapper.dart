@@ -23,6 +23,9 @@ class _SystemTrayWrapperState extends ConsumerState<SystemTrayWrapper>
   @override
   void initState() {
     super.initState();
+    if (!PlatformUtils.isDesktop()) {
+      return;
+    }
     _initializeTray();
   }
 

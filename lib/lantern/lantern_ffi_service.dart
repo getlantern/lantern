@@ -1,0 +1,89 @@
+import 'dart:ffi';
+import 'dart:io';
+import 'dart:isolate';
+
+import 'package:fpdart/fpdart.dart';
+import 'package:lantern/core/common/app_eum.dart';
+import 'package:lantern/core/models/lantern_status.dart';
+import 'package:lantern/core/services/logger_service.dart';
+import 'package:lantern/core/utils/failure.dart';
+import 'package:lantern/lantern/lantern_core_service.dart';
+import 'package:lantern/lantern/lantern_generated_bindings.dart';
+import 'package:lantern/lantern/lantern_service.dart';
+import 'package:path/path.dart' as p;
+
+export 'dart:convert';
+export 'dart:ffi'; // For FFI
+
+export 'package:ffi/src/utf8.dart';
+
+const String _libName = 'liblantern';
+
+///this service should communicate with library using ffi
+///also this should be called from only [LanternService]
+class LanternFFIService implements LanternCoreService {
+  static final LanternBindings _ffiService = _gen();
+
+  static LanternBindings _gen() {
+    String fullPath = "";
+    if (Platform.isWindows) {
+      fullPath = p.join(fullPath, "$_libName.dll");
+    } else if (Platform.isMacOS) {
+      fullPath = p.join(fullPath, "$_libName.dylib");
+    } else {
+      fullPath = p.join(fullPath, "$_libName.so");
+    }
+    appLogger.debug('singbox native libs path: "$fullPath"');
+    final lib = DynamicLibrary.open(fullPath);
+    return LanternBindings(lib);
+  }
+
+
+
+  @override
+  Future<Either<String, Unit>> setupRadiance() async {
+    try {
+      appLogger.debug('Setting up radiance');
+      final result = await Isolate.run(
+        () {
+          // return _ffiService.setupRadiance().cast<Utf8>().toDartString();
+        },
+      );
+      appLogger.debug('Radiance setup result: $result');
+      return right(unit);
+    } catch (e) {
+      appLogger.error('Error while setting up radiance: $e');
+      return left('Error while setting up radiance');
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> startVPN() {
+    // TODO: implement startVPN
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, String>> stopVPN() {
+    // TODO: implement stopVPN
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> init() {
+    // TODO: implement init
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<LanternStatus> watchVPNStatus() {
+    // TODO: implement watchVPNStatus
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> isVPNConnected() {
+    // TODO: implement isVPNConnected
+    throw UnimplementedError();
+  }
+}
