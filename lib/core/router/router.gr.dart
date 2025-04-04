@@ -134,10 +134,17 @@ class ConfirmEmailArgs {
 
 /// generated route for
 /// [_i5.CreatePassword]
-class CreatePassword extends _i19.PageRouteInfo<void> {
-  const CreatePassword({List<_i19.PageRouteInfo>? children})
-      : super(
+class CreatePassword extends _i19.PageRouteInfo<CreatePasswordArgs> {
+  CreatePassword({
+    _i20.Key? key,
+    required String email,
+    List<_i19.PageRouteInfo>? children,
+  }) : super(
           CreatePassword.name,
+          args: CreatePasswordArgs(
+            key: key,
+            email: email,
+          ),
           initialChildren: children,
         );
 
@@ -146,9 +153,29 @@ class CreatePassword extends _i19.PageRouteInfo<void> {
   static _i19.PageInfo page = _i19.PageInfo(
     name,
     builder: (data) {
-      return const _i5.CreatePassword();
+      final args = data.argsAs<CreatePasswordArgs>();
+      return _i5.CreatePassword(
+        key: args.key,
+        email: args.email,
+      );
     },
   );
+}
+
+class CreatePasswordArgs {
+  const CreatePasswordArgs({
+    this.key,
+    required this.email,
+  });
+
+  final _i20.Key? key;
+
+  final String email;
+
+  @override
+  String toString() {
+    return 'CreatePasswordArgs{key: $key, email: $email}';
+  }
 }
 
 /// generated route for

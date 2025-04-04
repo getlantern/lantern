@@ -47,7 +47,9 @@ class ConfirmEmail extends StatelessWidget {
           SizedBox(height: 32),
           PrimaryButton(
             label: 'continue'.i18n,
-            onPressed: () {},
+            onPressed: () {
+              appRouter.push(CreatePassword(email: email));
+            },
           ),
           SizedBox(height: 24),
           Center(

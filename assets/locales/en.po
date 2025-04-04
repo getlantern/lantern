@@ -235,6 +235,8 @@ msgstr "Confirm that this email address belongs to you, enter the code sent to: 
 msgid "resend_email"
 msgstr "Resend Email"
 
+msgid "create_password"
+msgstr "Create Password"
 
 
 
