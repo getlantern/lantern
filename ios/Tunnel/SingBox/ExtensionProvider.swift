@@ -32,7 +32,23 @@ open class ExtensionProvider: NEPacketTunnelProvider {
 
     override open func startTunnel(options _: [String: NSObject]?) async throws {
         LibboxClearServiceError()
+
+        let options = LibboxSetupOptions()
+        options.basePath = FilePath.sharedDirectory.relativePath
+        options.workingPath = FilePath.workingDirectory.relativePath
+        options.tempPath = FilePath.cacheDirectory.relativePath
         var error: NSError?
+        #if os(tvOS)
+            options.isTVOS = true
+        #endif
+        if let username {
+            options.username = username
+        }
+        LibboxSetup(options, &error)
+        if let error {
+            writeFatalError("(packet-tunnel) error: setup service: \(error.localizedDescription)")
+        }
+
         let baseDir = FilePath.sharedDirectory.relativePath
 
         do {
