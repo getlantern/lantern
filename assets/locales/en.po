@@ -238,6 +238,34 @@ msgstr "Resend Email"
 msgid "create_password"
 msgstr "Create Password"
 
+msgid "sign_in_to_lantern_pro"
+msgstr "Sign In to Lantern Pro"
+
+
+msgid "sign_in_with_email"
+msgstr "Sign in with Email"
+
+msgid "enter_your_lantern_pro_account_details"
+msgstr "Enter your Lantern Pro Account details."
+
+msgid "email"
+msgstr "Email"
+
+msgid "welcome_to_lantern_pro"
+msgstr "Welcome to Lantern Pro"
+
+msgid "enter_password"
+msgstr "Enter Password"
+
+msgid "forgot_password"
+msgstr "Forgot your password?"
+
+
+
+
+
+
+
 
 
 

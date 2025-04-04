@@ -179,6 +179,7 @@ class Setting extends HookConsumerWidget {
   void settingMenuTap(_SettingType menu) {
     switch (menu) {
       case _SettingType.signIn:
+        appRouter.push(const SignInEmail());
         break;
       case _SettingType.splitTunneling:
         // TODO: Handle this case.

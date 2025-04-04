@@ -8,13 +8,16 @@ class AppRichText extends StatelessWidget {
   final String texts;
   final String boldTexts;
 
+  final bool boldUnderline;
   final OnPressed? boldOnPressed;
 
-  const AppRichText(
-      {super.key,
-      required this.texts,
-      required this.boldTexts,
-      this.boldOnPressed});
+  const AppRichText({
+    super.key,
+    required this.texts,
+    required this.boldTexts,
+    this.boldOnPressed,
+    this.boldUnderline=false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +32,7 @@ class AppRichText extends StatelessWidget {
             style: textTheme.bodyMedium!.copyWith(
               fontWeight: FontWeight.bold,
               color: AppColors.gray9,
+              decoration: boldUnderline?TextDecoration.underline:TextDecoration.none,
             ),
             recognizer: TapGestureRecognizer()..onTap = boldOnPressed,
           )

@@ -84,5 +84,14 @@ class AppRouter extends RootStackRouter {
       page: ChoosePaymentMethod.page,
     ),
 
+    AutoRoute(
+      path: '/sign-in-email',
+      page: SignInEmail.page,
+    ),
+    AutoRoute(
+      path: '/sign-in-password',
+      page: SignInPassword.page,
+    ),
+
   ];
 }
