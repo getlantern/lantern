@@ -55,7 +55,7 @@ class AddEmail extends HookWidget {
               label: 'continue_with_email'.i18n,
               textColor: AppColors.gray9,
               onPressed: () {
-                appRouter.push(ConfirmEmail());
+                appRouter.push(ConfirmEmail(email: 'example@gmail.com'));
               },
             ),
           ),

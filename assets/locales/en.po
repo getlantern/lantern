@@ -223,9 +223,22 @@ msgstr "Continue without Email"
 msgid "confirm_email"
 msgstr "Confirm Email"
 
-
 msgid "add_your_email_message"
 msgstr "Add your email to access your subscription on any device."
+
+msgid "confirm_email_code"
+msgstr "Confirmation Code"
+
+msgid "confirm_email_code_message"
+msgstr "Confirm that this email address belongs to you, enter the code sent to: "
+
+msgid "resend_email"
+msgstr "Resend Email"
+
+
+
+
+
 
 
 

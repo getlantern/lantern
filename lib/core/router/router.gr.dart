@@ -88,10 +88,17 @@ class ChoosePaymentMethod extends _i19.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i4.ConfirmEmail]
-class ConfirmEmail extends _i19.PageRouteInfo<void> {
-  const ConfirmEmail({List<_i19.PageRouteInfo>? children})
-      : super(
+class ConfirmEmail extends _i19.PageRouteInfo<ConfirmEmailArgs> {
+  ConfirmEmail({
+    _i20.Key? key,
+    required String email,
+    List<_i19.PageRouteInfo>? children,
+  }) : super(
           ConfirmEmail.name,
+          args: ConfirmEmailArgs(
+            key: key,
+            email: email,
+          ),
           initialChildren: children,
         );
 
@@ -100,9 +107,29 @@ class ConfirmEmail extends _i19.PageRouteInfo<void> {
   static _i19.PageInfo page = _i19.PageInfo(
     name,
     builder: (data) {
-      return const _i4.ConfirmEmail();
+      final args = data.argsAs<ConfirmEmailArgs>();
+      return _i4.ConfirmEmail(
+        key: args.key,
+        email: args.email,
+      );
     },
   );
+}
+
+class ConfirmEmailArgs {
+  const ConfirmEmailArgs({
+    this.key,
+    required this.email,
+  });
+
+  final _i20.Key? key;
+
+  final String email;
+
+  @override
+  String toString() {
+    return 'ConfirmEmailArgs{key: $key, email: $email}';
+  }
 }
 
 /// generated route for

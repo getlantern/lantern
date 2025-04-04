@@ -57,5 +57,6 @@ class AppImagePaths {
   static const restorePurchase = 'assets/images/restore_purchase.svg';
   static const google = 'assets/images/google.svg';
   static const apple = 'assets/images/apple.svg';
+  static const number = 'assets/images/number.svg';
 
 }
