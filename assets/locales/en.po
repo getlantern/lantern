@@ -205,6 +205,33 @@ msgstr "Here are my diagnostic logs from Lantern."
 msgid "payment_options"
 msgstr "Payment Options"
 
+msgid "add_your_email"
+msgstr "Add Your Email"
+
+msgid "continue"
+msgstr "Continue"
+
+msgid "continue_with_google"
+msgstr "Continue with Google"
+
+msgid "continue_with_apple"
+msgstr "Continue with Apple"
+
+msgid "continue_with_email"
+msgstr "Continue without Email"
+
+msgid "confirm_email"
+msgstr "Confirm Email"
+
+
+msgid "add_your_email_message"
+msgstr "Add your email to access your subscription on any device."
+
+
+
+
+
+
 
 
 

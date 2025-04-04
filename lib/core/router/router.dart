@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:lantern/core/router/router.gr.dart';
 
+
 @AutoRouterConfig(
   replaceInRouteName: 'Page,Route,Screen',
 )
@@ -66,5 +67,22 @@ class AppRouter extends RootStackRouter {
       path: '/plans',
       page: Plans.page,
     ),
+    AutoRoute(
+      path: '/add-email',
+      page: AddEmail.page,
+    ),
+    AutoRoute(
+      path: '/confirm-email',
+      page: ConfirmEmail.page,
+    ),
+    AutoRoute(
+      path: '/create-password',
+      page: CreatePassword.page,
+    ),
+    AutoRoute(
+      path: '/choose-payment-method',
+      page: ChoosePaymentMethod.page,
+    ),
+
   ];
 }

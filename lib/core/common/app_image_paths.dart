@@ -55,5 +55,7 @@ class AppImagePaths {
   static const roundCorrect = 'assets/images/round_correct.svg';
   static const keypad = 'assets/images/keypad.svg';
   static const restorePurchase = 'assets/images/restore_purchase.svg';
+  static const google = 'assets/images/google.svg';
+  static const apple = 'assets/images/apple.svg';
 
 }

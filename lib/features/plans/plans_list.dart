@@ -1,9 +1,9 @@
 import 'package:badges/badges.dart' as badges;
 import 'package:flutter/material.dart';
+import 'package:lantern/core/common/common.dart';
 
 import '../../core/common/app_colors.dart';
 import '../../core/common/app_dimens.dart';
-
 
 class PlansListView extends StatelessWidget {
   const PlansListView({super.key});
@@ -13,12 +13,10 @@ class PlansListView extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final width = MediaQuery.of(context).size.width;
     final finalSize = (width * 0.5) - (defaultSize * 3);
-    print('width: $width');
-    print('finalSize: $finalSize');
-
     return ListView(
       shrinkWrap: true,
       padding: EdgeInsets.zero,
+      physics: const NeverScrollableScrollPhysics(),
       children: [
         badges.Badge(
           badgeAnimation: badges.BadgeAnimation.scale(
@@ -43,42 +41,47 @@ class PlansListView extends StatelessWidget {
             'Best Value!',
             style: textTheme.labelMedium,
           ),
-          child: AnimatedContainer(
-            margin: EdgeInsets.only(bottom: defaultSize),
-            padding:
-            EdgeInsets.symmetric(horizontal: defaultSize, vertical: 10),
-            duration: Duration(milliseconds: 300),
-            decoration: selectedDecoration,
-            child: Row(
-              children: <Widget>[
-                Text(
-                  'Two Year Plan',
-                  style: textTheme.titleMedium,
-                ),
-                Spacer(),
-                Column(
-                  children: <Widget>[
-                    Text(
-                      '\$87.00',
-                      style: textTheme.titleMedium!.copyWith(
-                        color: AppColors.blue7,
+          child: GestureDetector(
+            onTap: () {
+              appRouter.push(AddEmail());
+            },
+            child: AnimatedContainer(
+              margin: EdgeInsets.only(bottom: defaultSize),
+              padding:
+                  EdgeInsets.symmetric(horizontal: defaultSize, vertical: 10),
+              duration: Duration(milliseconds: 300),
+              decoration: selectedDecoration,
+              child: Row(
+                children: <Widget>[
+                  Text(
+                    'Two Year Plan',
+                    style: textTheme.titleMedium,
+                  ),
+                  Spacer(),
+                  Column(
+                    children: <Widget>[
+                      Text(
+                        '\$87.00',
+                        style: textTheme.titleMedium!.copyWith(
+                          color: AppColors.blue7,
+                        ),
                       ),
-                    ),
-                    Text(
-                      '\$3.64/month',
-                      style: textTheme.labelMedium!.copyWith(
-                        color: AppColors.gray7,
+                      Text(
+                        '\$3.64/month',
+                        style: textTheme.labelMedium!.copyWith(
+                          color: AppColors.gray7,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                Radio(
-                  value: true,
-                  groupValue: false,
-                  fillColor: WidgetStatePropertyAll(AppColors.gray9),
-                  onChanged: (value) {},
-                ),
-              ],
+                    ],
+                  ),
+                  Radio(
+                    value: true,
+                    groupValue: false,
+                    fillColor: WidgetStatePropertyAll(AppColors.gray9),
+                    onChanged: (value) {},
+                  ),
+                ],
+              ),
             ),
           ),
         ),
