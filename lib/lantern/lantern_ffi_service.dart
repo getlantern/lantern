@@ -38,8 +38,6 @@ class LanternFFIService implements LanternCoreService {
     return LanternBindings(lib);
   }
 
-
-
   @override
   Future<Either<String, Unit>> setupRadiance() async {
     try {
@@ -60,6 +58,11 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, String>> startVPN() {
     // TODO: implement startVPN
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<String>> watchLogs(String path) {
     throw UnimplementedError();
   }
 

@@ -57,6 +57,14 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  Stream<List<String>> watchLogs(String path) {
+    if (PlatformUtils.isDesktop()) {
+      throw UnimplementedError();
+    }
+    return platformService.watchLogs(path);
+  }
+
+  @override
   Future<Either<Failure, Unit>> isVPNConnected() {
     return platformService.isVPNConnected();
   }

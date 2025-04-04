@@ -20,8 +20,12 @@ import NetworkExtension
 
         GeneratedPluginRegistrant.register(with: self)
 
-         if let registrar = self.registrar(forPlugin: "StatusEventHandler") {
+        if let registrar = self.registrar(forPlugin: "StatusEventHandler") {
             StatusEventHandler.register(with: registrar)
+        }
+
+        if let registrar = self.registrar(forPlugin: "LogsEventHandler") {
+            LogsEventHandler.register(with: registrar)
         }
 
         setupMethodHandler(controller: controller)

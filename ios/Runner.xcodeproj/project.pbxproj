@@ -13,6 +13,9 @@
 		530385FFD1EF91BE50B06694 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A430D395EEE508A6C60559A5 /* Pods_RunnerTests.framework */; };
 		5F0515D02D20DB5100E704BE /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F0515CF2D20DB5100E704BE /* NetworkExtension.framework */; };
 		5F05186F2D224C3300E704BE /* Tunnel.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5F0515CE2D20DB5100E704BE /* Tunnel.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		5F3FD9A32D9F6A33009480A7 /* LogsHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F3FD9A22D9F6A32009480A7 /* LogsHandler.swift */; };
+		5F3FD9A52D9F6ADD009480A7 /* CommandClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F3FD9A42D9F6ADD009480A7 /* CommandClient.swift */; };
+		5F3FD9A62D9F6ADD009480A7 /* CommandClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F3FD9A42D9F6ADD009480A7 /* CommandClient.swift */; };
 		5F4C38122D91535D0053105F /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F4C38112D91535D0053105F /* Constants.swift */; };
 		5F4C38512D9155BC0053105F /* FilePath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F4C384F2D9155BC0053105F /* FilePath.swift */; };
 		5F4C38522D9155CF0053105F /* FilePath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F4C384F2D9155BC0053105F /* FilePath.swift */; };
@@ -100,6 +103,8 @@
 		5F0515CE2D20DB5100E704BE /* Tunnel.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = Tunnel.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		5F0515CF2D20DB5100E704BE /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
 		5F0517192D2233D200E704BE /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
+		5F3FD9A22D9F6A32009480A7 /* LogsHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogsHandler.swift; sourceTree = "<group>"; };
+		5F3FD9A42D9F6ADD009480A7 /* CommandClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandClient.swift; sourceTree = "<group>"; };
 		5F4C38112D91535D0053105F /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		5F4C384F2D9155BC0053105F /* FilePath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilePath.swift; sourceTree = "<group>"; };
 		5F95373E2D2B67DF009BB822 /* VPNBase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VPNBase.swift; sourceTree = "<group>"; };
@@ -196,6 +201,7 @@
 		5F4C38502D9155BC0053105F /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				5F3FD9A42D9F6ADD009480A7 /* CommandClient.swift */,
 				5F4C384F2D9155BC0053105F /* FilePath.swift */,
 			);
 			path = Shared;
@@ -214,6 +220,7 @@
 		5FEB872F2D9F45EB000AE0DB /* Handlers */ = {
 			isa = PBXGroup;
 			children = (
+				5F3FD9A22D9F6A32009480A7 /* LogsHandler.swift */,
 				5FEB872D2D9F45EB000AE0DB /* MethodHandler.swift */,
 				5FEB872E2D9F45EB000AE0DB /* StatusEventHandler.swift */,
 			);
@@ -548,6 +555,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5F4C38522D9155CF0053105F /* FilePath.swift in Sources */,
+				5F3FD9A52D9F6ADD009480A7 /* CommandClient.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -556,11 +564,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				5F9537412D2B67DF009BB822 /* VPNBase.swift in Sources */,
+				5F3FD9A32D9F6A33009480A7 /* LogsHandler.swift in Sources */,
 				5F9537422D2B67DF009BB822 /* VPNManager.swift in Sources */,
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				5F4C38122D91535D0053105F /* Constants.swift in Sources */,
 				5F4C38512D9155BC0053105F /* FilePath.swift in Sources */,
+				5F3FD9A62D9F6ADD009480A7 /* CommandClient.swift in Sources */,
 				5FEB87302D9F45EB000AE0DB /* MethodHandler.swift in Sources */,
 				5FEB87312D9F45EB000AE0DB /* StatusEventHandler.swift in Sources */,
 			);

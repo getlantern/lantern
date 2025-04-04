@@ -71,6 +71,14 @@ open class ExtensionProvider: NEPacketTunnelProvider {
             platformInterface = ExtensionPlatformInterface(self)
         }
 
+        let maxLogLines = 50
+        commandServer = await LibboxNewCommandServer(platformInterface, Int32(maxLogLines))
+        do {
+            try commandServer.start()
+        } catch {
+            writeFatalError("(packet-tunnel): log server start error: \(error.localizedDescription)")
+            return
+        }
         let service = MobileSetupRadiance(baseDir, platformInterface, &error)
         if let error {
             writeFatalError("(packet-tunnel) error: setup service: \(error.localizedDescription)")
