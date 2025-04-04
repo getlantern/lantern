@@ -6,6 +6,7 @@ final diagnosticLogProvider = StreamProvider<List<String>>((ref) async* {
   final ffiClient = await ref.watch(ffiClientProvider.future);
   await for (final log in ffiClient.logStream()) {
     logs.add(log);
+    print('[TUNNEL LOGS] $log');
     yield List.unmodifiable(logs);
   }
 });

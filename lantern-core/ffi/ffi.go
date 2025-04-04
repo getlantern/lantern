@@ -8,12 +8,21 @@ package main
 import "C"
 
 import (
+	"context"
 	"fmt"
+	"path/filepath"
 	"sync"
 	"unsafe"
 
+	"log/slog"
+
 	"github.com/getlantern/golog"
+	"github.com/getlantern/lantern-outline/lantern-core/logging"
 	"github.com/getlantern/radiance"
+)
+
+const (
+	enableLogging = false
 )
 
 var (
@@ -30,8 +39,11 @@ var (
 
 //export setup
 func setup(dir *C.char, port C.int64_t, api unsafe.Pointer) {
+
 	dataDir = C.GoString(dir)
 	logPort = int64(port)
+
+	log.Debugf("Setup called with base dir %s", dataDir)
 
 	serverOnce.Do(func() {
 		r, err := radiance.NewRadiance(dataDir, nil)
@@ -40,6 +52,14 @@ func setup(dir *C.char, port C.int64_t, api unsafe.Pointer) {
 		}
 		log.Debugf("created new instance of radiance with data directory %s", dataDir)
 		server = r
+
+		// setup logging
+		if enableLogging {
+			logFile := filepath.Join(dataDir, "lantern.log")
+			if err = logging.Configure(context.Background(), logFile, logPort); err != nil {
+				log.Fatalf("unable to setup logging: %v", err)
+			}
+		}
 	})
 }
 
@@ -47,7 +67,7 @@ func setup(dir *C.char, port C.int64_t, api unsafe.Pointer) {
 //
 //export startVPN
 func startVPN() *C.char {
-	log.Debug("startVPN called")
+	slog.Debug("startVPN called")
 
 	serverMu.Lock()
 	defer serverMu.Unlock()
@@ -64,23 +84,12 @@ func startVPN() *C.char {
 //
 //export stopVPN
 func stopVPN() *C.char {
-	log.Debug("stopVPN called")
+	slog.Debug("stopVPN called")
 
 	serverMu.Lock()
 	defer serverMu.Unlock()
 
-	if server == nil {
-		log.Debug("VPN server is not running")
-		return nil
-	}
-
-	if err := server.StopVPN(); err != nil {
-		err = fmt.Errorf("unable to stop VPN server: %v", err)
-		log.Error(err)
-		return C.CString(err.Error())
-	}
-
-	log.Debug("VPN server stopped successfully")
+	slog.Debug("VPN server stopped successfully")
 	return nil
 }
 
@@ -90,10 +99,6 @@ func stopVPN() *C.char {
 func isVPNConnected() int {
 	serverMu.Lock()
 	defer serverMu.Unlock()
-
-	if server == nil {
-		return 0
-	}
 
 	return 1
 }

@@ -77,8 +77,7 @@ dependencies:
   # share
   share_plus: ^10.1.4
   #native
-#  flutter_native_splash: ^2.4.5
-  sentry_flutter: ^9.0.0-alpha.1
+  sentry_flutter: 9.0.0-alpha.2
   # Deeplink handling
   app_links: ^6.4.0
   # Desktop
@@ -100,6 +99,7 @@ dev_dependencies:
   riverpod_generator: ^2.3.3
 
   riverpod_lint: ^2.3.5
+  ffigen: ^16.1.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -119,14 +119,20 @@ flutter:
     - app.env
 
 
-  # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
 objectbox:
-  # Writes objectbox-model.json and objectbox.g.dart to lib/custom (and test/custom).
   output_dir: core/services/db
   # Or optionally specify the lib and test output folder separately.
   # output_dir:
   #   lib: custom
   #   test: other
+
+
+ffigen:
+  name: 'LanternBindings'
+  output: "lib/lantern/lantern_generated_bindings.dart"
+  headers:
+    entry-points:
+      - "bin/liblantern.h"
+  exclude:
+    enums:
+      - 'idtype_t'

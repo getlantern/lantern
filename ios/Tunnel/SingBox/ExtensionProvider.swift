@@ -32,26 +32,22 @@ open class ExtensionProvider: NEPacketTunnelProvider {
 
     override open func startTunnel(options _: [String: NSObject]?) async throws {
         LibboxClearServiceError()
-
-        let options = LibboxSetupOptions()
-        let baseDir = FilePath.sharedDirectory.relativePath
-        options.basePath = baseDir
-        options.workingPath = FilePath.workingDirectory.relativePath
-        options.tempPath = FilePath.cacheDirectory.relativePath
         var error: NSError?
-        #if os(tvOS)
-            options.isTVOS = true
-        #endif
-        if let username {
-            options.username = username
-        }
+        let baseDir = FilePath.sharedDirectory.relativePath
 
+        do {
+            try FileManager.default.createDirectory(at: FilePath.workingDirectory, withIntermediateDirectories: true)
+        } catch {
+            writeFatalError("(packet-tunnel) error: create working directory: \(error.localizedDescription)")
+            return
+        }
 
         LibboxRedirectStderr(FilePath.cacheDirectory.appendingPathComponent("stderr.log").relativePath, &error)
         if let error {
             writeFatalError("(packet-tunnel) redirect stderr error: \(error.localizedDescription)")
             return
         }
+        
         let ignoreMemoryLimit = false // !SharedPreferences.ignoreMemoryLimit.get()
         LibboxSetMemoryLimit(!ignoreMemoryLimit)
 
@@ -70,12 +66,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
 
         radiance = service
 
-        await startService()
-        #if os(iOS)
-//            if #available(iOS 18.0, *) {
-//                ControlCenter.shared.reloadControls(ofKind: ExtensionProfile.controlKind)
-//            }
-        #endif
+        startService()
     }
 
     func writeMessage(_ message: String) {
@@ -92,16 +83,6 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         var error: NSError?
         LibboxWriteServiceError(message, &error)
         cancelTunnelWithError(nil)
-    }
-
-    private func startService() async {
-        var error: NSError?
-        do {
-            try MobileStartVPN(&error)
-        } catch {
-            writeFatalError("(packet-tunnel) error: start service: \(error.localizedDescription)")
-            return
-        }
     }
 
     #if os(macOS)
@@ -128,14 +109,20 @@ open class ExtensionProvider: NEPacketTunnelProvider {
 
     private func stopService() {
         var error: NSError?
-        do {
-            try MobileStopVPN(&error)
-        } catch {
-            writeFatalError("(packet-tunnel) error: stop service: \(error.localizedDescription)")
-            return
+        MobileStopVPN(&error)
+        if let error {
+            writeFatalError("(packet-tunnel) unable to start VPN")
         }
         if let platformInterface {
             platformInterface.reset()
+        }
+    }
+    
+    private func startService() {
+        var error: NSError?
+        MobileStartVPN(&error)
+        if let error {
+            writeFatalError("(packet-tunnel) unable to stop VPN")
         }
     }
 
@@ -147,7 +134,11 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         }
         stopService()
         commandServer.resetLog()
-        await startService()
+        var error: NSError?
+        MobileStartVPN(&error)
+        if let error {
+            writeFatalError("(packet-tunnel) unable to startVPN")
+        }
     }
 
     func postServiceClose() {

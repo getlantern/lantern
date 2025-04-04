@@ -1,7 +1,6 @@
 package mobile
 
 import (
-	"errors"
 	"sync"
 
 	"github.com/getlantern/golog"
@@ -14,30 +13,35 @@ var (
 	log            = golog.LoggerFor("lantern-outline.native")
 	radianceMutex  = sync.Mutex{}
 	radianceServer *radiance.Radiance
+	setupOnce      sync.Once
 )
 
-func SetupRadiance(configDir string, platform libbox.PlatformInterface) (*radiance.Radiance, error) {
+func SetupRadiance(logDir string, platform libbox.PlatformInterface) {
+	setupOnce.Do(func() {
+		log.Debugf("Creating new instance of radiance with log dir and platform")
+		r, err := radiance.NewRadiance(logDir, platform)
+		if err != nil {
+			log.Errorf("Unable to create Radiance: %v", err)
+			return
+		}
+		radianceServer = r
+		log.Debug("Radiance setup successfully")
+	})
+}
+
+func IsRadianceConnected() bool {
 	radianceMutex.Lock()
 	defer radianceMutex.Unlock()
-
-	r, err := radiance.NewRadiance(configDir, platform)
-	if err != nil {
-		log.Errorf("Unable to create Radiance: %v", err)
-		return nil, err
-	}
-	radianceServer = r
-
-	log.Debug("Radiance setup successfully")
-	return r, nil
+	return radianceServer != nil
 }
 
 func StartVPN() error {
+	log.Debug("Starting VPN")
 	radianceMutex.Lock()
 	defer radianceMutex.Unlock()
 	if radianceServer == nil {
-		return errors.New("radiance server not initialized")
+		return log.Error("Radiance not setup")
 	}
-	log.Debug("Starting VPN")
 	err := radianceServer.StartVPN()
 	if err != nil {
 		log.Errorf("Error starting VPN: %v", err)
@@ -47,11 +51,11 @@ func StartVPN() error {
 }
 
 func StopVPN() error {
+	log.Debug("Stopping VPN")
 	radianceMutex.Lock()
 	defer radianceMutex.Unlock()
-	log.Debug("Stopping VPN")
 	if radianceServer == nil {
-		return errors.New("radiance server not initialized")
+		return log.Error("Radiance not setup")
 	}
 	er := radianceServer.StopVPN()
 	if er != nil {
@@ -60,6 +64,11 @@ func StopVPN() error {
 	return nil
 }
 
-func IsVPNConncted() bool {
+func IsVPNConnected() bool {
+	radianceMutex.Lock()
+	defer radianceMutex.Unlock()
+	if radianceServer == nil {
+		return false
+	}
 	return radianceServer.ConnectionStatus()
 }

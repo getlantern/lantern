@@ -9,10 +9,11 @@ import NetworkExtension
 
 class VPNManager: VPNBase {
     private var vpnManager = NETunnelProviderManager()
-    
+    private var observer: NSObjectProtocol?
+    private var manager: NEVPNManager = NEVPNManager.shared()
     static let shared: VPNManager = VPNManager()
     
-    var connectionStatus: NEVPNStatus = .disconnected {
+    @Published private(set) var connectionStatus: NEVPNStatus = .disconnected {
       didSet {
         guard oldValue != connectionStatus else { return }
         didUpdateConnectionStatusCallback?(connectionStatus)
@@ -36,22 +37,46 @@ class VPNManager: VPNBase {
         }
     }
     
+    init() {
+        observer = NotificationCenter.default.addObserver(forName: .NEVPNStatusDidChange, object: nil, queue: nil) { [weak self] notification in
+            guard let connection = notification.object as? NEVPNConnection else { return }
+            self?.connectionStatus = connection.status
+        }
+    }
+
+    deinit {
+        if let observer {
+            NotificationCenter.default.removeObserver(observer)
+        }
+    }
+
     // Sets up a new VPN configuration.
     private func setupVPN() async throws {
-        let tunnelProtocol = NETunnelProviderProtocol()
-        tunnelProtocol.providerBundleIdentifier = "org.getlantern.lantern.Tunnel"
-        tunnelProtocol.serverAddress = "0.0.0.0"
-        
-        vpnManager.protocolConfiguration = tunnelProtocol
-        vpnManager.localizedDescription = "Lantern"
-        vpnManager.isEnabled = true
-        
-        let alwaysConnectRule = NEOnDemandRuleConnect()
-        vpnManager.onDemandRules = [alwaysConnectRule]
+        do {
+            let managers = try await NETunnelProviderManager.loadAllFromPreferences()
+            if let manager = managers.first {
+                self.manager = manager
+                return
+            }
+            let manager = NETunnelProviderManager()
+            let tunnelProtocol = NETunnelProviderProtocol()
+            tunnelProtocol.providerBundleIdentifier = "org.getlantern.lantern.Tunnel"
+            tunnelProtocol.serverAddress = "0.0.0.0"
+            
+            manager.protocolConfiguration = tunnelProtocol
+            manager.localizedDescription = "Lantern"
+            manager.isEnabled = true
+            
+            let alwaysConnectRule = NEOnDemandRuleConnect()
+            manager.onDemandRules = [alwaysConnectRule]
 
-        vpnManager.isOnDemandEnabled = false
-        try await vpnManager.saveToPreferences()
-        try await vpnManager.loadFromPreferences()
+            manager.isOnDemandEnabled = false
+            try await manager.saveToPreferences()
+            try await manager.loadFromPreferences()
+            self.manager = manager
+        } catch {
+            print(error.localizedDescription)
+        }
     }
     
     // MARK: - VPN Control Methods
@@ -59,10 +84,10 @@ class VPNManager: VPNBase {
     /// Starts the VPN tunnel.
     /// Loads VPN preferences and initiates the VPN connection.
     func startTunnel() async throws {
+        guard connectionStatus == .disconnected else { return }
+        print("Starting tunnel..")
         await self.loadVPNPreferences()
         let options = ["netEx.StartReason": NSString("User Initiated")]
-            
-        print("Starting tunnel..")
         try self.vpnManager.connection.startVPNTunnel(options: options)
 
         self.vpnManager.isOnDemandEnabled = true
@@ -73,6 +98,7 @@ class VPNManager: VPNBase {
     /// Terminates the VPN connection and updates the configuration.
     func stopTunnel() async throws {
         print("Stopping tunnel..")
+        guard connectionStatus == .connected else { return }
         vpnManager.connection.stopVPNTunnel()
         self.vpnManager.isOnDemandEnabled = false
         try await self.saveThenLoadProvider()

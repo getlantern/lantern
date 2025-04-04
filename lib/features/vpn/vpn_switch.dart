@@ -3,13 +3,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
+import 'package:lantern/features/vpn/provider/vpn_status_notifier.dart';
 
 class VPNSwitch extends HookConsumerWidget {
   const VPNSwitch({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen(
+      vPNStatusNotifierProvider,
+      (previous, next) {
+        if (next is AsyncData<LanternStatus> &&
+            next.value.status == VPNStatus.error) {
+          context.showSnackBarError('vpn_error'.i18n);
+        }
+      },
+    );
     final _vpnStatus = ref.watch(vpnNotifierProvider);
     final isVPNOn = (_vpnStatus == VPNStatus.connected);
     return CustomAnimatedToggleSwitch<bool>(
@@ -25,7 +36,8 @@ class VPNSwitch extends HookConsumerWidget {
       },
       onTap: (newValue) => onVPNStateChange(ref, context),
       foregroundIndicatorBuilder: (context, global) {
-        if (_vpnStatus == VPNStatus.connecting) {
+        if (_vpnStatus == VPNStatus.connecting ||
+            _vpnStatus == VPNStatus.disconnecting) {
           return Container(
             decoration: BoxDecoration(
               color: Colors.transparent,
@@ -60,9 +72,9 @@ class VPNSwitch extends HookConsumerWidget {
     );
   }
 
-  Future<void> onVPNStateChange(
-      WidgetRef ref, BuildContext context) async {
-    final result = await ref.read(vpnNotifierProvider.notifier).onVPNStateChange();
+  Future<void> onVPNStateChange(WidgetRef ref, BuildContext context) async {
+    final result =
+        await ref.read(vpnNotifierProvider.notifier).onVPNStateChange(context);
 
     result.fold(
       (failure) => context.showSnackBarError(failure.localizedErrorMessage),
@@ -80,6 +92,10 @@ class VPNSwitch extends HookConsumerWidget {
         return AppColors.gray7;
       case VPNStatus.disconnecting:
         return AppColors.gray1;
+      case VPNStatus.missingPermission:
+        return AppColors.gray7;
+      case VPNStatus.error:
+        return AppColors.gray7;
     }
   }
 }

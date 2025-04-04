@@ -10,21 +10,37 @@ import NetworkExtension
     
     private var methodHandler: MethodHandler?
 
-    override func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+    override func application(
+        _ application: UIApplication,
+        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
+    ) -> Bool {
         guard let controller = window?.rootViewController as? FlutterViewController else {
             fatalError("rootViewController is not type FlutterViewController")
         }
 
-        // Initialize the Flutter method channel
-        let nativeChannel = FlutterMethodChannel(name: "org.getlantern.lantern/native",
-                                                 binaryMessenger: controller.binaryMessenger)
-
-        // Initialize and assign the MethodHandler to handle method calls
-        methodHandler = MethodHandler(channel: nativeChannel, vpnManager: vpnManager)
-
         GeneratedPluginRegistrant.register(with: self)
 
-        return true
+         if let registrar = self.registrar(forPlugin: "StatusEventHandler") {
+            StatusEventHandler.register(with: registrar)
+        }
+
+        setupMethodHandler(controller: controller)
+        setupFileManager()
+
+        return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+    }
+
+    private func setupMethodHandler(controller: FlutterViewController) {
+        let nativeChannel = FlutterMethodChannel(name: "org.getlantern.lantern/method",
+                                                 binaryMessenger: controller.binaryMessenger)
+        methodHandler = MethodHandler(channel: nativeChannel, vpnManager: vpnManager)
+
+
+    }
+ 
+    private func setupFileManager() {
+        try? FileManager.default.createDirectory(at: FilePath.workingDirectory, withIntermediateDirectories: true)
+        FileManager.default.changeCurrentDirectoryPath(FilePath.sharedDirectory.path)
     }
 
     private func setupRadiance() {

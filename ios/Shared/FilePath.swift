@@ -14,7 +14,8 @@ public enum FilePath {
 }
 
 public extension FilePath {
-    static let groupName = "group.\(packageName)"
+    //static let groupName = "group.\(packageName)"
+    static let groupName = "group.getlantern.lantern"
 
     private static let defaultSharedDirectory: URL! = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: FilePath.groupName)
 

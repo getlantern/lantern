@@ -52,3 +52,4 @@ app.*.map.json
 /android/app/.cxx
 
 app.env
+/android/app/libs
