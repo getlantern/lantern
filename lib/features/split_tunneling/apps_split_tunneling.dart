@@ -22,7 +22,7 @@ class AppsSplitTunneling extends HookConsumerWidget {
     final searchEnabled = useState(false);
     final searchQuery = ref.watch(searchQueryProvider);
 
-    final allApps = ref.watch(appsDataProvider);
+    final allApps = ref.watch(appsDataProvider).value ?? [];
     final enabledApps = ref.watch(splitTunnelingAppsProvider);
     final installedApps = allApps.where((a) => a.iconPath.isNotEmpty).toSet();
     final enabledAppNames =
@@ -38,7 +38,6 @@ class AppsSplitTunneling extends HookConsumerWidget {
     }).toList()
       ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 
-    print("All apps: $allApps");
     return BaseScreen(
       title: 'apps_split_tunneling'.i18n,
       appBar: CustomAppBar(

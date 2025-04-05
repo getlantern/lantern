@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
@@ -49,15 +50,7 @@ class LanternFFIService implements LanternCoreService {
       appLogger.debug('Setting up radiance');
       final baseDir = await LogUtils.getAppLogDirectory();
       final baseDirPtr = baseDir.toNativeUtf8();
-      final result = _ffiService
-          .setupRadiance(
-            baseDirPtr.cast(),
-            loggingReceivePort.sendPort.nativePort,
-            appsReceivePort.sendPort.nativePort,
-            NativeApi.initializeApiDLData,
-          )
-          .cast<Utf8>()
-          .toDartString();
+
       // final result = await Isolate.run(
       //   () {
       //     return _ffiService
@@ -71,6 +64,17 @@ class LanternFFIService implements LanternCoreService {
       //         .toDartString();
       //   },
       // );
+
+      final result = _ffiService
+          .setupRadiance(
+            baseDirPtr.cast(),
+            loggingReceivePort.sendPort.nativePort,
+            appsReceivePort.sendPort.nativePort,
+            NativeApi.initializeApiDLData,
+          )
+          .cast<Utf8>()
+          .toDartString();
+
       malloc.free(baseDirPtr);
       appLogger.debug('Radiance setup result: $result');
       return right(unit);
@@ -82,8 +86,21 @@ class LanternFFIService implements LanternCoreService {
 
   @override
   Stream<List<AppData>> appsDataStream() async* {
+    final apps = <AppData>[];
+
     await for (final message in appsReceivePort) {
-      yield message;
+      try {
+        if (message is String) {
+          final List<dynamic> decoded = jsonDecode(message);
+          final apps = decoded
+              .map((json) => AppData.fromJson(json as Map<String, dynamic>))
+              .toList();
+
+          yield apps;
+        }
+      } catch (e) {
+        appLogger.error("Failed to decode AppData: $e");
+      }
     }
   }
 
