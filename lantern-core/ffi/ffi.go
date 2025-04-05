@@ -54,6 +54,18 @@ func enableSplitTunneling() bool {
 	return runtime.GOOS == "darwin"
 }
 
+func sendApps(port int64) func(apps ...*apps.AppData) error {
+	return func(apps ...*apps.AppData) error {
+		data, err := json.Marshal(apps)
+		if err != nil {
+			log.Error(err)
+			return err
+		}
+		dart_api_dl.SendToPort(port, string(data))
+		return nil
+	}
+}
+
 //export setupRadiance
 func setupRadiance(dir *C.char, logPort, appsPort C.int64_t, api unsafe.Pointer) {
 	log.Debug("Setup radiance called")
@@ -63,40 +75,28 @@ func setupRadiance(dir *C.char, logPort, appsPort C.int64_t, api unsafe.Pointer)
 		// initialize the Dart API DL bridge.
 		dart_api_dl.Init(api)
 
-		initService(dataDir, int64(logPort), int64(appsPort))
-	})
-}
-
-func initService(dataDir string, logPort, appsPort int64) {
-	r, err := radiance.NewRadiance(client.Options{
-		DataDir:              dataDir,
-		EnableSplitTunneling: enableSplitTunneling(),
-	})
-	if err != nil {
-		log.Fatalf("unable to create VPN server: %v", err)
-	}
-	r.SplitTunnelHandler()
-
-	go apps.InitAppCache(func(apps ...*apps.AppData) error {
-		data, err := json.Marshal(apps)
+		r, err := radiance.NewRadiance(client.Options{
+			DataDir:              dataDir,
+			EnableSplitTunneling: enableSplitTunneling(),
+		})
 		if err != nil {
-			log.Error(err)
-			return err
+			log.Fatalf("unable to create VPN server: %v", err)
 		}
-		dart_api_dl.SendToPort(appsPort, string(data))
-		return nil
-	})
+		log.Debugf("created new instance of radiance with data directory %s", dataDir)
 
-	log.Debugf("created new instance of radiance with data directory %s", dataDir)
-	server = &lanternService{
-		Radiance: r,
-		dataDir:  dataDir,
-		servicesMap: map[service]int64{
-			logsService: logPort,
-			appsService: appsPort,
-		},
-		splitTunnelHandler: r.SplitTunnelHandler(),
-	}
+		// init app cache in background
+		go apps.InitAppCache(sendApps(int64(appsPort)))
+
+		server = &lanternService{
+			Radiance: r,
+			dataDir:  dataDir,
+			servicesMap: map[service]int64{
+				logsService: int64(logPort),
+				appsService: int64(appsPort),
+			},
+			splitTunnelHandler: r.SplitTunnelHandler(),
+		}
+	})
 }
 
 func getService() (*lanternService, error) {
