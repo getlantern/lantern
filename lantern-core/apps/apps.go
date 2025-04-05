@@ -1,6 +1,7 @@
 package apps
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -8,6 +9,7 @@ import (
 	"sync"
 
 	"github.com/getlantern/golog"
+	"github.com/getlantern/lantern-outline/lantern-core/dart_api_dl"
 )
 
 var (
@@ -41,43 +43,52 @@ func LoadInstalledApps(cb Callback) error {
 	return fmt.Errorf("app cache not ready yet")
 }
 
-func InitAppCache() {
-	go func() {
-		// Directories to scan for installed apps
-		appDirs := []string{"/Applications", "/System/Applications"}
-		var apps []*AppData
+func InitAppCache(appsPort int64) {
 
-		for _, dir := range appDirs {
-			err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
-				if err != nil {
-					return err
-				}
+	// Directories to scan for installed apps
+	appDirs := []string{"/Applications", "/System/Applications"}
+	var apps []*AppData
 
-				// Only process .app bundles
-				if info.IsDir() && strings.HasSuffix(info.Name(), ".app") {
-					iconPath, _ := getIconPath(path)
-					appData := &AppData{
-						Name:     strings.TrimSuffix(info.Name(), ".app"),
-						AppPath:  path,
-						IconPath: iconPath,
-					}
-
-					apps = append(apps, appData)
-				}
-				return nil
-			})
+	for _, dir := range appDirs {
+		err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 			if err != nil {
-				log.Errorf("Error scanning directory: %v", err)
+				return err
 			}
+
+			// Only process .app bundles
+			if info.IsDir() && strings.HasSuffix(info.Name(), ".app") {
+				iconPath, _ := getIconPath(path)
+				appData := &AppData{
+					Name:     strings.TrimSuffix(info.Name(), ".app"),
+					AppPath:  path,
+					IconPath: iconPath,
+				}
+
+				apps = append(apps, appData)
+			}
+			return nil
+		})
+		if err != nil {
+			log.Errorf("Error scanning directory: %v", err)
 		}
+	}
 
-		cacheMux.Lock()
-		appCache = apps
-		loaded = true
-		cacheMux.Unlock()
+	cacheMux.Lock()
+	appCache = apps
+	loaded = true
+	cacheMux.Unlock()
 
-		log.Debugf("App scan completed. %d apps found.", len(apps))
-	}()
+	if appsPort != 0 {
+		data, err := json.Marshal(apps)
+		if err != nil {
+			log.Error(err)
+			return
+		}
+		dart_api_dl.SendToPort(appsPort, string(data))
+	}
+
+	log.Debugf("App scan completed. %d apps found.", len(apps))
+
 }
 
 // getIconPath finds the .icns file inside the app bundle

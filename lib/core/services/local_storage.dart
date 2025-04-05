@@ -1,8 +1,7 @@
 import 'dart:convert';
 
 import 'package:lantern/core/common/app_secrets.dart';
-import 'package:lantern/core/split_tunneling/app_data.dart';
-import 'package:lantern/core/split_tunneling/apps_data_provider.dart';
+import 'package:lantern/core/models/app_data.dart';
 import 'package:objectbox/objectbox.dart';
 import 'package:lantern/core/services/db/objectbox.g.dart';
 import 'package:lantern/core/services/logger_service.dart';

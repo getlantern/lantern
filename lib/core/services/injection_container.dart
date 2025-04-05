@@ -11,6 +11,7 @@ Future<void> injectServices() async {
   sl.registerLazySingleton(() => LanternPlatformService());
   await sl<LanternPlatformService>().init();
   sl.registerLazySingleton(() => LanternFFIService());
+  await sl<LanternFFIService>().init();
   sl.registerLazySingleton(() => LocalStorageService());
   await sl<LocalStorageService>().init();
   sl.registerLazySingleton(() => AppRouter());

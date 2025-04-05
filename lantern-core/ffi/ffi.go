@@ -8,8 +8,9 @@ package main
 import "C"
 
 import (
-	"encoding/json"
+	"errors"
 	"fmt"
+	"runtime"
 	"sync"
 	"unsafe"
 
@@ -19,6 +20,8 @@ import (
 	"github.com/getlantern/lantern-outline/lantern-core/apps"
 	"github.com/getlantern/lantern-outline/lantern-core/dart_api_dl"
 	"github.com/getlantern/radiance"
+	"github.com/getlantern/radiance/client"
+	"github.com/getlantern/sing-box-extensions/ruleset"
 )
 
 type service string
@@ -29,47 +32,98 @@ const (
 )
 
 var (
-	servicesMap = map[service]int64{}
-	dataDir     string
-	server      *radiance.Radiance
-	serverMu    sync.Mutex
-	serverOnce  sync.Once
+	server *lanternService
+	mu     sync.Mutex
 
 	setupOnce sync.Once
 
 	log = golog.LoggerFor("lantern-outline.ffi")
 )
 
-//export setup
-func setup(dir *C.char, logPort, appsPort C.int64_t, api unsafe.Pointer) {
-	dataDir = C.GoString(dir)
+type lanternService struct {
+	*radiance.Radiance
+	servicesMap        map[service]int64
+	dataDir            string
+	splitTunnelHandler *client.SplitTunnel
 
-	serverOnce.Do(func() {
+	mu sync.Mutex
+}
+
+func enableSplitTunneling() bool {
+	return runtime.GOOS == "darwin"
+}
+
+//export setupRadiance
+func setupRadiance(dir *C.char, logPort, appsPort C.int64_t, api unsafe.Pointer) {
+	log.Debug("Setup radiance called")
+	setupOnce.Do(func() {
+		dataDir := C.GoString(dir)
 
 		// initialize the Dart API DL bridge.
 		dart_api_dl.Init(api)
 
-		servicesMap[logsService] = int64(logPort)
-		servicesMap[appsService] = int64(appsPort)
-
-		go apps.InitAppCache()
-
-		go apps.LoadInstalledApps(func(apps ...*apps.AppData) error {
-			data, err := json.Marshal(apps)
-			if err != nil {
-				return err
-			}
-			dart_api_dl.SendToPort(int64(appsPort), string(data))
-			return nil
-		})
-
-		r, err := radiance.NewRadiance(dataDir, nil)
-		if err != nil {
-			log.Fatalf("unable to create VPN server: %v", err)
-		}
-		log.Debugf("created new instance of radiance with data directory %s", dataDir)
-		server = r
+		initService(dataDir, int64(logPort), int64(appsPort))
 	})
+}
+
+func initService(dataDir string, logPort, appsPort int64) {
+	r, err := radiance.NewRadiance(client.Options{
+		DataDir:              dataDir,
+		EnableSplitTunneling: enableSplitTunneling(),
+	})
+	if err != nil {
+		log.Fatalf("unable to create VPN server: %v", err)
+	}
+	r.SplitTunnelHandler()
+
+	go apps.InitAppCache(appsPort)
+
+	log.Debugf("created new instance of radiance with data directory %s", dataDir)
+	server = &lanternService{
+		Radiance: r,
+		dataDir:  dataDir,
+		servicesMap: map[service]int64{
+			logsService: logPort,
+			appsService: appsPort,
+		},
+		splitTunnelHandler: r.SplitTunnelHandler(),
+	}
+}
+
+func getService() (*lanternService, error) {
+	mu.Lock()
+	defer mu.Unlock()
+
+	if server == nil {
+		return nil, errors.New("radiance not initialized")
+	}
+	return server, nil
+}
+
+//export addSplitTunnelPackage
+func addSplitTunnelPackage(pkg *C.char) *C.char {
+	rs, err := getService()
+	if err != nil {
+		return C.CString(err.Error())
+	}
+
+	if err = rs.splitTunnelHandler.AddItem(ruleset.TypePackageName, C.GoString(pkg)); err != nil {
+		return C.CString(fmt.Sprintf("error adding package: %v", err))
+	}
+	return nil
+}
+
+//export removeSplitTunnelPackage
+func removeSplitTunnelPackage(pkg *C.char) *C.char {
+	rs, err := getService()
+	if err != nil {
+		return C.CString(err.Error())
+	}
+
+	if err = rs.SplitTunnelHandler().RemoveItem(ruleset.TypePackageName, C.GoString(pkg)); err != nil {
+		return C.CString(fmt.Sprintf("error removing package: %v", err))
+	}
+	return nil
 }
 
 // startVPN initializes and starts the VPN server if it is not already running.
@@ -78,10 +132,12 @@ func setup(dir *C.char, logPort, appsPort C.int64_t, api unsafe.Pointer) {
 func startVPN() *C.char {
 	slog.Debug("startVPN called")
 
-	serverMu.Lock()
-	defer serverMu.Unlock()
+	rs, err := getService()
+	if err != nil {
+		return C.CString(err.Error())
+	}
 
-	if err := server.StartVPN(); err != nil {
+	if err := rs.StartVPN(); err != nil {
 		err = fmt.Errorf("unable to start vpn server: %v", err)
 		return C.CString(err.Error())
 	}
@@ -95,8 +151,15 @@ func startVPN() *C.char {
 func stopVPN() *C.char {
 	slog.Debug("stopVPN called")
 
-	serverMu.Lock()
-	defer serverMu.Unlock()
+	rs, err := getService()
+	if err != nil {
+		return C.CString(err.Error())
+	}
+
+	if err := rs.StopVPN(); err != nil {
+		err = fmt.Errorf("unable to stop vpn server: %v", err)
+		return C.CString(err.Error())
+	}
 
 	slog.Debug("VPN server stopped successfully")
 	return nil
@@ -106,10 +169,17 @@ func stopVPN() *C.char {
 //
 //export isVPNConnected
 func isVPNConnected() int {
-	serverMu.Lock()
-	defer serverMu.Unlock()
+	rs, err := getService()
+	if err != nil {
+		log.Error(err)
+		return 0
+	}
 
-	return 1
+	connected := rs.Radiance.ConnectionStatus()
+	if connected {
+		return 1
+	}
+	return 0
 }
 
 //export freeCString

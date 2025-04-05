@@ -14,31 +14,12 @@ import 'package:objectbox/internal.dart'
 import 'package:objectbox/objectbox.dart' as obx;
 import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
+import '../../../core/models/app_data.dart';
 import '../../../core/services/local_storage.dart';
-import '../../../core/split_tunneling/app_data.dart';
 
 export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
 
 final _entities = <obx_int.ModelEntity>[
-  obx_int.ModelEntity(
-      id: const obx_int.IdUid(1, 1027975073737683578),
-      name: 'AppDatabase',
-      lastPropertyId: const obx_int.IdUid(3, 7465496422607335786),
-      flags: 0,
-      properties: <obx_int.ModelProperty>[
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(1, 5682544289677202283),
-            name: 'id',
-            type: 6,
-            flags: 129),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(3, 7465496422607335786),
-            name: 'data',
-            type: 9,
-            flags: 0)
-      ],
-      relations: <obx_int.ModelRelation>[],
-      backlinks: <obx_int.ModelBacklink>[]),
   obx_int.ModelEntity(
       id: const obx_int.IdUid(2, 7670868698114973577),
       name: 'AppData',
@@ -74,6 +55,25 @@ final _entities = <obx_int.ModelEntity>[
             id: const obx_int.IdUid(6, 5603929520388800572),
             name: 'isEnabled',
             type: 1,
+            flags: 0)
+      ],
+      relations: <obx_int.ModelRelation>[],
+      backlinks: <obx_int.ModelBacklink>[]),
+  obx_int.ModelEntity(
+      id: const obx_int.IdUid(3, 4380524372643795068),
+      name: 'AppDatabase',
+      lastPropertyId: const obx_int.IdUid(2, 4102612372732725500),
+      flags: 0,
+      properties: <obx_int.ModelProperty>[
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(1, 689361163376130950),
+            name: 'id',
+            type: 6,
+            flags: 129),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(2, 4102612372732725500),
+            name: 'data',
+            type: 9,
             flags: 0)
       ],
       relations: <obx_int.ModelRelation>[],
@@ -115,47 +115,25 @@ Future<obx.Store> openStore(
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
       entities: _entities,
-      lastEntityId: const obx_int.IdUid(2, 7670868698114973577),
+      lastEntityId: const obx_int.IdUid(3, 4380524372643795068),
       lastIndexId: const obx_int.IdUid(0, 0),
       lastRelationId: const obx_int.IdUid(0, 0),
       lastSequenceId: const obx_int.IdUid(0, 0),
-      retiredEntityUids: const [],
+      retiredEntityUids: const [1027975073737683578],
       retiredIndexUids: const [],
-      retiredPropertyUids: const [366476197617928400],
+      retiredPropertyUids: const [
+        366476197617928400,
+        5682544289677202283,
+        7465496422607335786
+      ],
       retiredRelationUids: const [],
       modelVersion: 5,
       modelVersionParserMinimum: 5,
       version: 1);
 
   final bindings = <Type, obx_int.EntityDefinition>{
-    AppDatabase: obx_int.EntityDefinition<AppDatabase>(
-        model: _entities[0],
-        toOneRelations: (AppDatabase object) => [],
-        toManyRelations: (AppDatabase object) => {},
-        getId: (AppDatabase object) => object.id,
-        setId: (AppDatabase object, int id) {
-          object.id = id;
-        },
-        objectToFB: (AppDatabase object, fb.Builder fbb) {
-          final dataOffset = fbb.writeString(object.data);
-          fbb.startTable(4);
-          fbb.addInt64(0, object.id);
-          fbb.addOffset(2, dataOffset);
-          fbb.finish(fbb.endTable());
-          return object.id;
-        },
-        objectFromFB: (obx.Store store, ByteData fbData) {
-          final buffer = fb.BufferContext(fbData);
-          final rootOffset = buffer.derefObject(0);
-          final dataParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 8, '');
-          final object = AppDatabase(data: dataParam)
-            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
-
-          return object;
-        }),
     AppData: obx_int.EntityDefinition<AppData>(
-        model: _entities[1],
+        model: _entities[0],
         toOneRelations: (AppData object) => [],
         toManyRelations: (AppData object) => {},
         getId: (AppData object) => object.id,
@@ -201,46 +179,72 @@ obx_int.ModelDefinition getObjectBoxModel() {
               isEnabled: isEnabledParam);
 
           return object;
+        }),
+    AppDatabase: obx_int.EntityDefinition<AppDatabase>(
+        model: _entities[1],
+        toOneRelations: (AppDatabase object) => [],
+        toManyRelations: (AppDatabase object) => {},
+        getId: (AppDatabase object) => object.id,
+        setId: (AppDatabase object, int id) {
+          object.id = id;
+        },
+        objectToFB: (AppDatabase object, fb.Builder fbb) {
+          final dataOffset = fbb.writeString(object.data);
+          fbb.startTable(3);
+          fbb.addInt64(0, object.id);
+          fbb.addOffset(1, dataOffset);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (obx.Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+          final dataParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 6, '');
+          final object = AppDatabase(data: dataParam)
+            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+
+          return object;
         })
   };
 
   return obx_int.ModelDefinition(model, bindings);
 }
 
-/// [AppDatabase] entity fields to define ObjectBox queries.
-class AppDatabase_ {
-  /// See [AppDatabase.id].
-  static final id =
-      obx.QueryIntegerProperty<AppDatabase>(_entities[0].properties[0]);
-
-  /// See [AppDatabase.data].
-  static final data =
-      obx.QueryStringProperty<AppDatabase>(_entities[0].properties[1]);
-}
-
 /// [AppData] entity fields to define ObjectBox queries.
 class AppData_ {
   /// See [AppData.id].
   static final id =
-      obx.QueryIntegerProperty<AppData>(_entities[1].properties[0]);
+      obx.QueryIntegerProperty<AppData>(_entities[0].properties[0]);
 
   /// See [AppData.name].
   static final name =
-      obx.QueryStringProperty<AppData>(_entities[1].properties[1]);
+      obx.QueryStringProperty<AppData>(_entities[0].properties[1]);
 
   /// See [AppData.bundleId].
   static final bundleId =
-      obx.QueryStringProperty<AppData>(_entities[1].properties[2]);
+      obx.QueryStringProperty<AppData>(_entities[0].properties[2]);
 
   /// See [AppData.iconPath].
   static final iconPath =
-      obx.QueryStringProperty<AppData>(_entities[1].properties[3]);
+      obx.QueryStringProperty<AppData>(_entities[0].properties[3]);
 
   /// See [AppData.appPath].
   static final appPath =
-      obx.QueryStringProperty<AppData>(_entities[1].properties[4]);
+      obx.QueryStringProperty<AppData>(_entities[0].properties[4]);
 
   /// See [AppData.isEnabled].
   static final isEnabled =
-      obx.QueryBooleanProperty<AppData>(_entities[1].properties[5]);
+      obx.QueryBooleanProperty<AppData>(_entities[0].properties[5]);
+}
+
+/// [AppDatabase] entity fields to define ObjectBox queries.
+class AppDatabase_ {
+  /// See [AppDatabase.id].
+  static final id =
+      obx.QueryIntegerProperty<AppDatabase>(_entities[1].properties[0]);
+
+  /// See [AppDatabase.data].
+  static final data =
+      obx.QueryStringProperty<AppDatabase>(_entities[1].properties[1]);
 }

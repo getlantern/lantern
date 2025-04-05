@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/providers/ffi_provider.dart';
 import 'package:lantern/core/providers/native_bridge_provider.dart';
 import 'package:lantern/features/vpn/provider/vpn_status_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
@@ -45,8 +44,9 @@ class VpnNotifier extends _$VpnNotifier {
 
   Future<String?> _stopVPN() async {
     if (PlatformUtils.isDesktop()) {
-      final ffiClient = ref.read(ffiClientProvider).value;
-      return ffiClient?.stopVPN();
+      final ffiClient = ref.read(lanternServiceProvider);
+      final result = await ffiClient?.stopVPN();
+      return result?.getRight().getOrElse(() => '');
     } else if (Platform.isIOS) {
       final nativeBridge = ref.read(nativeBridgeProvider);
       return await nativeBridge?.stopVPN();
