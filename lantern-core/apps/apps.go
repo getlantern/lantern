@@ -1,7 +1,6 @@
 package apps
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -9,7 +8,6 @@ import (
 	"sync"
 
 	"github.com/getlantern/golog"
-	"github.com/getlantern/lantern-outline/lantern-core/dart_api_dl"
 )
 
 var (
@@ -43,8 +41,7 @@ func LoadInstalledApps(cb Callback) error {
 	return fmt.Errorf("app cache not ready yet")
 }
 
-func InitAppCache(appsPort int64) {
-
+func InitAppCache(cb Callback) {
 	// Directories to scan for installed apps
 	appDirs := []string{"/Applications", "/System/Applications"}
 	var apps []*AppData
@@ -78,13 +75,8 @@ func InitAppCache(appsPort int64) {
 	loaded = true
 	cacheMux.Unlock()
 
-	if appsPort != 0 {
-		data, err := json.Marshal(apps)
-		if err != nil {
-			log.Error(err)
-			return
-		}
-		dart_api_dl.SendToPort(appsPort, string(data))
+	if cb != nil {
+		cb(apps...)
 	}
 
 	log.Debugf("App scan completed. %d apps found.", len(apps))

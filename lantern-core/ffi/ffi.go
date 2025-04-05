@@ -8,6 +8,7 @@ package main
 import "C"
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"runtime"
@@ -76,7 +77,15 @@ func initService(dataDir string, logPort, appsPort int64) {
 	}
 	r.SplitTunnelHandler()
 
-	go apps.InitAppCache(appsPort)
+	go apps.InitAppCache(func(apps ...*apps.AppData) error {
+		data, err := json.Marshal(apps)
+		if err != nil {
+			log.Error(err)
+			return err
+		}
+		dart_api_dl.SendToPort(appsPort, string(data))
+		return nil
+	})
 
 	log.Debugf("created new instance of radiance with data directory %s", dataDir)
 	server = &lanternService{
