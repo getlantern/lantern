@@ -44,6 +44,7 @@ class LocalStorageService {
     final start = DateTime.now();
     dbLogger.debug("Initializing LocalStorageService");
     final docsDir = await getApplicationDocumentsDirectory();
+    print('docsDir: ${docsDir.path}');
     _store = await openStore(
         directory: p.join(docsDir.path, "objectbox-db"),
         macosApplicationGroup: macosApplicationGroup);

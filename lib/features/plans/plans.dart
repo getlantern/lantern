@@ -68,17 +68,26 @@ class _PlansState extends State<Plans> {
         Expanded(
           child: Container(
             color: AppColors.gray2,
-            padding: EdgeInsets.symmetric(horizontal: defaultSize),
+            padding: EdgeInsets.symmetric(
+                horizontal: context.isSmallDevice ? 0 : defaultSize),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.end,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
                 SizedBox(height: defaultSize),
-                PlansListView(),
+                Padding(
+                  padding:
+                      EdgeInsets.only(left: context.isSmallDevice ? 16 : 0),
+                  child: PlansListView(),
+                ),
                 SizedBox(height: 24),
-                PrimaryButton(
-                  label: 'Get Lantern Pro',
-                  onPressed: () {},
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                      horizontal: context.isSmallDevice ? defaultSize : 0),
+                  child: PrimaryButton(
+                    label: 'Get Lantern Pro',
+                    onPressed: () {},
+                  ),
                 ),
                 SizedBox(height: defaultSize),
                 Center(
@@ -102,7 +111,7 @@ class _PlansState extends State<Plans> {
     showAppBottomSheet(
       context: context,
       title: 'payment_options'.i18n,
-      scrollControlDisabledMaxHeightRatio: context.isSmallDevice?0.4: 0.3,
+      scrollControlDisabledMaxHeightRatio: context.isSmallDevice ? 0.4 : 0.3,
       builder: (context, scrollController) {
         return ListView(
           shrinkWrap: true,
