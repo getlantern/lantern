@@ -23,6 +23,7 @@ class SplitTunneling extends HookConsumerWidget {
         preferences?[Preferences.splitTunnelingEnabled] ?? false;
     final splitTunnelingMode = preferences?[Preferences.splitTunnelingMode] ??
         SplitTunnelingMode.automatic;
+    final isAutomaticMode = splitTunnelingMode == SplitTunnelingMode.automatic;
     final enabledApps = ref.watch(splitTunnelingAppsProvider).toList();
     final enabledWebsites = ref.watch(splitTunnelingWebsitesProvider).toList();
 
@@ -84,17 +85,15 @@ class SplitTunneling extends HookConsumerWidget {
                 if (splitTunnelingEnabled)
                   SplitTunnelingTile(
                     label: 'mode'.i18n,
-                    subtitle: 'iran_optimized'.i18n,
+                    subtitle: isAutomaticMode ? 'iran_optimized'.i18n : '',
                     actionText:
-                        splitTunnelingMode == SplitTunnelingMode.automatic
-                            ? 'automatic'.i18n
-                            : 'manual'.i18n,
+                        isAutomaticMode ? 'automatic'.i18n : 'manual'.i18n,
                     onPressed: _showBottomSheet,
                   ),
                 SizedBox(height: defaultSize),
                 InfoRow(
                   onPressed: () {
-                    if (splitTunnelingMode == SplitTunnelingMode.automatic) {
+                    if (isAutomaticMode) {
                       appRouter.push(
                         SplitTunnelingInfo(),
                       );
