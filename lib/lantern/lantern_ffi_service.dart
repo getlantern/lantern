@@ -117,15 +117,13 @@ class LanternFFIService implements LanternCoreService {
   Future<void> init() async {
     try {
       final nativePort = statusReceivePort.sendPort.nativePort;
-
+      // setup receive port to receive connection status updates
       statusReceivePort.listen((dynamic message) {
         final json = jsonDecode(jsonDecode(message));
-        print("new message: $json");
-
         final status = LanternStatus.fromJson(json);
-        print("status: $status");
         _vpnStatusStreamController.add(status);
       });
+
       await _setupRadiance(nativePort);
     } catch (e) {
       appLogger.error('Error while setting up radiance: $e');
