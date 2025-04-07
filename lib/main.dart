@@ -19,6 +19,7 @@ Future<void> main() async {
   initLogger();
   await _loadAppSecrets();
   await injectServices();
+
   await Future.microtask(Localization.loadTranslations);
   widgetsBinding.allowFirstFrame();
   await _setupSentry(
