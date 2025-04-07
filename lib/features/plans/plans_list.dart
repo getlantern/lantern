@@ -114,6 +114,7 @@ class _PlansListViewState extends State<PlansListView> {
       ),
       position: badges.BadgePosition.custom(
         start: (finalSize - 10),
+        top: 6
       ),
       // Adjust values as needed
       badgeStyle: badges.BadgeStyle(
@@ -149,6 +150,7 @@ class _PlansListViewState extends State<PlansListView> {
               ),
               Spacer(),
               Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: <Widget>[
                   Text(
                     '\$87.00',

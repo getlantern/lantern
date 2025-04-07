@@ -36,6 +36,7 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
         const val ACTION_START_VPN = "org.getlantern.START_VPN"
         const val ACTION_STOP_VPN = "org.getlantern.START_STOP"
         const val ACTION_TILE_START = "org.getlantern.TILE_START"
+        lateinit var instance: LanternVpnService
     }
 
     private val notificationHelper = NotificationHelper()
@@ -47,6 +48,7 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        instance=this
         val action = intent?.action ?: return START_NOT_STICKY
         if (!MainActivity.receiverRegistered) {
             VpnStatusManager.registerVPNStatusReceiver(this)

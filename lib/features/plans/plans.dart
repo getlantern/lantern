@@ -60,7 +60,7 @@ class _PlansState extends State<Plans> {
           padding: EdgeInsets.symmetric(horizontal: defaultSize),
           child: SizedBox(
             height:
-                context.isSmallDevice ? size.height * 0.4 : size.height * 0.33,
+                context.isSmallDevice ? size.height * 0.4 : size.height * 0.31,
             child: SingleChildScrollView(child: FeatureList()),
           ),
         ),
@@ -89,7 +89,7 @@ class _PlansState extends State<Plans> {
                     onPressed: () {},
                   ),
                 ),
-                SizedBox(height: defaultSize),
+                SizedBox(height: 24),
                 Center(
                   child: Text(
                     'Plan automatically renews until canceled',
@@ -98,7 +98,7 @@ class _PlansState extends State<Plans> {
                     ),
                   ),
                 ),
-                SizedBox(height: defaultSize),
+                SizedBox(height: 20),
               ],
             ),
           ),
