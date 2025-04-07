@@ -65,18 +65,13 @@ class LanternFFIService implements LanternCoreService {
       //   },
       // );
 
-      final result = _ffiService
-          .setupRadiance(
-            baseDirPtr.cast(),
-            loggingReceivePort.sendPort.nativePort,
-            appsReceivePort.sendPort.nativePort,
-            NativeApi.initializeApiDLData,
-          )
-          .cast<Utf8>()
-          .toDartString();
+      _ffiService.setup(
+        baseDirPtr.cast(),
+        loggingReceivePort.sendPort.nativePort,
+        NativeApi.initializeApiDLData,
+      );
 
       malloc.free(baseDirPtr);
-      appLogger.debug('Radiance setup result: $result');
       return right(unit);
     } catch (e) {
       appLogger.error('Error while setting up radiance: $e');
