@@ -55,6 +55,7 @@ jobs:
     
         - name: Enable Flutter Desktop Support
           run: |
+            touch app.env
             flutter config --enable-linux-desktop
 
         - name: Build Linux release
