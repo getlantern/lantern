@@ -131,7 +131,8 @@ $(LINUX_LIB_AMD64): $(GO_SOURCES)
 
 .PHONY: linux
 linux: linux-amd64
-	cp $(LINUX_LIB_AMD64) $(LINUX_LIB_NAME)
+	mkdir -p $(BUILD_DIR)/linux
+	cp $(LINUX_LIB_AMD64) $(LINUX_LIB_BUILD)
 
 .PHONY: linux-debug
 linux-debug:
@@ -142,7 +143,7 @@ linux-debug:
 linux-release: clean linux pubget gen
 	@echo "Building Flutter app (release) for Linux..."
 	flutter build linux --release
-	cp $(LINUX_LIB) build/linux/x64/release/bundle
+	cp $(LINUX_LIB_BUILD) build/linux/x64/release/bundle
 	flutter_distributor package --platform linux --targets "deb,rpm" --skip-clean
 	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-linux.rpm lantern-installer-x64.rpm
 	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-linux.deb lantern-installer-x64.deb
@@ -211,6 +212,22 @@ android-debug: $(ANDROID_DEBUG_BUILD)
 $(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD)
 	flutter build apk --target-platform android-arm,android-arm64,android-x64 --verbose --debug
 
+build-android:check-gomobile install-android-deps
+	@echo "Building Android libraries"
+	rm -rf $(BUILD_DIR)/$(ANDROID_LIB)
+	rm -rf $(ANDROID_LIB_PATH)
+	mkdir -p $(ANDROID_LIBS_DIR)
+	gomobile bind -v \
+		-target=android \
+		-androidapi=23 \
+		-javapkg=lantern.io \
+		-tags=$(TAGS) -trimpath \
+		-o=$(BUILD_DIR)/$(ANDROID_LIB) \
+		-ldflags="-checklinkname=0" \
+		 $(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox ./lantern-core/mobile
+	cp $(BUILD_DIR)/$(ANDROID_LIB) $(ANDROID_LIB_PATH)
+	@echo "Android libraries built successfully"
+
 # iOS Build
 .PHONY: ios
 ios: $(IOS_FRAMEWORK_BUILD)
@@ -227,22 +244,6 @@ $(IOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 		$(RADIANCE_REPO)
 	mv $@ $(IOS_FRAMEWORK_DIR)
 	@echo "Built iOS Framework: $(IOS_FRAMEWORK)"
-
-build-android:check-gomobile install-android-deps
-	@echo "Building Android libraries"
-	rm -rf $(BUILD_DIR)/$(ANDROID_LIB)
-	rm -rf $(ANDROID_LIB_PATH)
-	mkdir -p $(ANDROID_LIBS_DIR)
-	gomobile bind -v \
-		-target=android \
-		-androidapi=23 \
-		-javapkg=lantern.io \
-		-tags=$(TAGS) -trimpath \
-		-o=$(BUILD_DIR)/$(ANDROID_LIB) \
-		-ldflags="-checklinkname=0" \
-		 $(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox ./lantern-core/mobile
-	cp $(BUILD_DIR)/$(ANDROID_LIB) $(ANDROID_LIB_PATH)
-	@echo "Android libraries built successfully"
 
 
 # Dart API DL bridge
