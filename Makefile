@@ -1,6 +1,7 @@
 .PHONY: gen macos ffi
 
 BUILD_DIR := bin
+DIST_OUT := dist
 
 APP ?= lantern
 CAPITALIZED_APP := Lantern
@@ -42,6 +43,9 @@ IOS_FRAMEWORK_BUILD := $(BUILD_DIR)/ios/$(IOS_FRAMEWORK)
 TAGS=with_gvisor,with_quic,with_wireguard,with_ech,with_utls,with_clash_api,with_grpc
 
 GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go')
+
+## APP_VERSION is the version defined in pubspec.yaml
+APP_VERSION := $(shell grep '^version:' pubspec.yaml | sed 's/version: //;s/ //g')
 
 # Missing and Guards
 
@@ -95,11 +99,24 @@ $(DARWIN_DEBUG_BUILD): $(DARWIN_LIB_BUILD)
 	flutter build macos --debug
 
 .PHONY: macos-release
-macos-release: clean macos pubget gen
+macos-release: clean macos
 	@echo "Building Flutter app (release) for macOS..."
 	flutter build macos --release
 
 # Linux Build
+.PHONY: install-flutter install-linux-deps
+
+.PHONY: install-flutter
+install-flutter:
+	git clone https://github.com/flutter/flutter.git /opt/flutter || true
+	/opt/flutter/bin/flutter --version
+	/opt/flutter/bin/flutter channel master
+	/opt/flutter/bin/flutter upgrade
+	/opt/flutter/bin/flutter update-packages --cherry-pick-package intl --cherry-pick-version 0.19.0
+
+install-linux-deps:
+	dart pub global activate flutter_distributor
+
 .PHONY: linux-arm64
 linux-arm64: $(LINUX_LIB_ARM64)
 
@@ -125,8 +142,16 @@ linux-debug:
 linux-release: clean linux pubget gen
 	@echo "Building Flutter app (release) for Linux..."
 	flutter build linux --release
+	cp $(LINUX_LIB) build/linux/x64/release/bundle
+	flutter_distributor package --platform linux --targets "deb,rpm" --skip-clean
+	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-linux.rpm lantern-installer-x64.rpm
+	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-linux.deb lantern-installer-x64.deb
 
 # Windows Build
+.PHONY: install-windows-deps
+install-windows-deps:
+	dart pub global activate flutter_distributor
+
 .PHONY: windows-amd64
 windows-amd64: export BUILD_TAGS += walk_use_cgo
 windows-amd64: export CGO_LDFLAGS = -static
@@ -145,6 +170,16 @@ $(WINDOWS_LIB_ARM64): $(GO_SOURCES)
 
 .PHONY: windows
 windows: windows-amd64
+
+.PHONY: windows-debug
+windows-debug: windows
+	@echo "Building Flutter app (debug) for Windows..."
+	flutter build windows --debug
+
+.PHONY: windows-release
+windows-release: clean windows
+	@echo "Building Flutter app (debug) for Windows..."
+	flutter_distributor package --flutter-build-args=verbose --platform windows --targets "msix,exe"
 
 # Android Build
 .PHONY: install-android-deps
