@@ -35,7 +35,9 @@ class SignInPassword extends StatelessWidget {
           AppTextButton(
             label: 'forgot_password'.i18n,
             textColor: AppColors.gray9,
-            onPressed: () {},
+            onPressed: () {
+              appRouter.push(const ResetPasswordEmail());
+            },
           )
         ],
       ),

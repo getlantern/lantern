@@ -8,8 +8,13 @@ import 'package:lantern/core/widgets/app_rich_text.dart';
 @RoutePage(name: 'ConfirmEmail')
 class ConfirmEmail extends StatelessWidget {
   final String email;
+  final AuthFlow authFlow;
 
-  const ConfirmEmail({super.key, required this.email});
+  const ConfirmEmail({
+    super.key,
+    required this.email,
+    this.authFlow = AuthFlow.signUp,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -47,9 +52,7 @@ class ConfirmEmail extends StatelessWidget {
           SizedBox(height: 32),
           PrimaryButton(
             label: 'continue'.i18n,
-            onPressed: () {
-              appRouter.push(CreatePassword(email: email));
-            },
+            onPressed: onContinueTap,
           ),
           SizedBox(height: 24),
           Center(
@@ -62,5 +65,28 @@ class ConfirmEmail extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void onContinueTap() {
+    switch (authFlow) {
+      case AuthFlow.signUp:
+        appRouter.push(CreatePassword(email: email));
+        break;
+      case AuthFlow.resetPassword:
+        appRouter.push(ResetPassword(email:email));
+        break;
+    }
+  }
+
+
+  void onResendEmail() {
+    switch (authFlow) {
+      case AuthFlow.signUp:
+        appLogger.info('Resend email for sign up to $email');
+        break;
+      case AuthFlow.resetPassword:
+        appLogger.info('Resend email for reset password to $email');
+        break;
+    }
   }
 }

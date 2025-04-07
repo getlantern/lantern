@@ -2,9 +2,6 @@ import 'package:badges/badges.dart' as badges;
 import 'package:flutter/material.dart';
 import 'package:lantern/core/common/common.dart';
 
-import '../../core/common/app_colors.dart';
-import '../../core/common/app_dimens.dart';
-
 class PlansListView extends StatelessWidget {
   const PlansListView({super.key});
 

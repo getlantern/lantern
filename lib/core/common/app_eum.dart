@@ -6,3 +6,10 @@ enum VPNStatus{
   missingPermission,
   error,
 }
+
+
+
+enum AuthFlow{
+  resetPassword,
+  signUp
+}

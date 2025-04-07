@@ -92,6 +92,14 @@ class AppRouter extends RootStackRouter {
       path: '/sign-in-password',
       page: SignInPassword.page,
     ),
+    AutoRoute(
+      path: '/reset-password-email',
+      page: ResetPasswordEmail.page,
+    ),
+    AutoRoute(
+      path: '/reset-password',
+      page: ResetPassword.page,
+    ),
 
   ];
 }

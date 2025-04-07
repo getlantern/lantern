@@ -45,7 +45,9 @@ class Setting extends HookConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(top: 16),
             child: ProButton(
-              onPressed: () {},
+              onPressed: () {
+                appRouter.push(const Plans());
+              },
             ),
           ),
           const SizedBox(height: 16),

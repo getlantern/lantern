@@ -24,6 +24,12 @@ class _PlansState extends State<Plans> {
       padded: false,
       appBar: CustomAppBar(
         title: "",
+        titleWidget: SizedBox(
+          height: 24,
+          child: LanternLogo(
+            isPro: true,
+          ),
+        ),
         backgroundColor: AppColors.white,
         leading: IconButton(
           icon: Icon(Icons.close),
@@ -47,20 +53,12 @@ class _PlansState extends State<Plans> {
     final size = MediaQuery.of(context).size;
     return Column(
       children: [
-        Center(
-          child: SizedBox(
-            height: 24,
-            child: LanternLogo(
-              isPro: true,
-            ),
-          ),
-        ),
         SizedBox(height: defaultSize),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: defaultSize),
           child: SizedBox(
             height:
-                context.isSmallDevice ? size.height * 0.2 : size.height * 0.325,
+                context.isSmallDevice ? size.height * 0.2 : size.height * 0.33,
             child: SingleChildScrollView(child: FeatureList()),
           ),
         ),

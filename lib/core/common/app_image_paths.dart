@@ -51,6 +51,7 @@ class AppImagePaths {
   static const adBlock = 'assets/images/ad_block.svg';
   static const connectDevice = 'assets/images/connect_device.svg';
   static const eyeHide = 'assets/images/eye_hide.svg';
+  static const eye = 'assets/images/eye.svg';
   static const premium = 'assets/images/premium.svg';
   static const roundCorrect = 'assets/images/round_correct.svg';
   static const keypad = 'assets/images/keypad.svg';

@@ -260,6 +260,40 @@ msgstr "Enter Password"
 msgid "forgot_password"
 msgstr "Forgot your password?"
 
+msgid "reset_your_password"
+msgstr "Reset Your Password"
+
+msgid "enter_your_lantern_pro_account_email"
+msgstr "Enter your Lantern Pro Account Email."
+
+msgid "next"
+msgstr "Next"
+
+
+msgid "reset_password"
+msgstr "Reset Password"
+
+msgid "confirm_new_password"
+msgstr "Confirm New Password"
+
+msgid "create_new_password"
+msgstr "Create New Password"
+
+
+msgid "confirm_password"
+msgstr "Confirm Password"
+
+
+msgid "confirm_password_required"
+msgstr "Confirm Password is required"
+
+msgid "passwords_do_not_match"
+msgstr "Passwords do not match"
+
+
+
+
+
 
 
 
