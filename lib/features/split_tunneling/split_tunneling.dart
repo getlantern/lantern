@@ -103,7 +103,7 @@ class SplitTunneling extends HookConsumerWidget {
                       ? 'when_connected'.i18n
                       : 'turn_on_split_tunneling'.i18n,
                 ),
-                if (splitTunnelingEnabled) ...{
+                if (splitTunnelingEnabled && !isAutomaticMode) ...{
                   SizedBox(height: defaultSize),
                   SplitTunnelingTile(
                     label: 'Websites',
