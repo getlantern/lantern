@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lantern/core/common/app_asset.dart';
 import 'package:lantern/core/common/app_buttons.dart';
 import 'package:lantern/core/common/app_colors.dart';
 import 'package:lantern/core/common/app_image_paths.dart';
@@ -15,6 +16,7 @@ class InfoRow extends StatelessWidget {
     return GestureDetector(
       onTap: onPressed,
       child: Container(
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
@@ -22,31 +24,28 @@ class InfoRow extends StatelessWidget {
             width: 1,
           ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              AppIconButton(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: AppImage(
                 path: AppImagePaths.info,
-                onPressed: onPressed,
+                width: 20,
+                height: 20,
               ),
-              SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  text,
-                  style: AppTestStyles.bodyMedium.copyWith(
-                    color: AppColors.logTextColor,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    height: 1.43,
-                  ),
+            ),
+            Expanded(
+              child: Text(
+                text,
+                style: AppTestStyles.bodyMedium.copyWith(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  height: 1.43,
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

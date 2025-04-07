@@ -10,6 +10,7 @@ import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/split_tunneling/apps_data_provider.dart';
 import 'package:lantern/core/split_tunneling/apps_notifier.dart';
 import 'package:lantern/core/widgets/search_bar.dart';
+import 'package:lantern/features/split_tunneling/app_row.dart';
 import 'package:lantern/features/split_tunneling/section_label.dart';
 
 // Widget to display and manage split tunneling apps
@@ -62,7 +63,7 @@ class AppsSplitTunneling extends HookConsumerWidget {
             ),
             SliverList.list(
               children: enabledList
-                  .map((app) => _AppRow(
+                  .map((app) => AppRow(
                         app: app.copyWith(isEnabled: true),
                         onToggle: () => ref
                             .read(splitTunnelingAppsProvider.notifier)
@@ -75,7 +76,7 @@ class AppsSplitTunneling extends HookConsumerWidget {
             const SliverToBoxAdapter(child: SectionLabel('installed_apps')),
             SliverList.list(
               children: disabledApps
-                  .map((app) => _AppRow(
+                  .map((app) => AppRow(
                         app: app,
                         onToggle: () => ref
                             .read(splitTunnelingAppsProvider.notifier)
@@ -86,40 +87,6 @@ class AppsSplitTunneling extends HookConsumerWidget {
           ],
         ],
       ),
-    );
-  }
-}
-
-// Individual app row component
-class _AppRow extends StatelessWidget {
-  final AppData app;
-  final VoidCallback? onToggle;
-
-  const _AppRow({
-    required this.app,
-    this.onToggle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return AppTile(
-      label: app.name.replaceAll(".app", ""),
-      icon: app.iconPath.isNotEmpty
-          ? Image.file(File(app.iconPath), width: 24, height: 24)
-          : Icon(Icons.apps),
-      trailing: onToggle != null
-          ? Padding(
-              padding: const EdgeInsets.only(right: 16),
-              child: IconButton(
-                icon: AppImage(
-                  color: Colors.black,
-                  path:
-                      app.isEnabled ? AppImagePaths.minus : AppImagePaths.plus,
-                ),
-                onPressed: () => onToggle!(),
-              ),
-            )
-          : null,
     );
   }
 }

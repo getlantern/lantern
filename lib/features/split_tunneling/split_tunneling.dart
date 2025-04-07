@@ -54,52 +54,53 @@ class SplitTunneling extends HookConsumerWidget {
                 AppTile(
                   icon: AppImagePaths.callSpilt,
                   label: 'split_tunneling'.i18n,
-                  trailing: Switch.adaptive(
-                    value: splitTunnelingEnabled,
-                    activeTrackColor: AppColors.green5,
-                    activeColor: AppColors.yellow4,
-                    inactiveTrackColor: AppColors.gray3,
-                    inactiveThumbColor: AppColors.gray1,
-                    onChanged: (bool? value) {
-                      var newValue = value ?? false;
-                      ref.read(appPreferencesProvider.notifier).setPreference(
-                          Preferences.splitTunnelingEnabled, newValue);
-                    },
+                  tileTextStyle: AppTestStyles.bodyMedium.copyWith(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                  ),
+                  trailing: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Switch.adaptive(
+                      value: splitTunnelingEnabled,
+                      activeTrackColor: AppColors.green5,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      activeColor: AppColors.white,
+                      inactiveTrackColor: AppColors.gray7,
+                      inactiveThumbColor: AppColors.gray1,
+                      onChanged: (bool? value) {
+                        var newValue = value ?? false;
+                        ref.read(appPreferencesProvider.notifier).setPreference(
+                            Preferences.splitTunnelingEnabled, newValue);
+                      },
+                    ),
                   ),
                 ),
                 DividerSpace(),
                 if (splitTunnelingEnabled)
-                  AppTile(
+                  SplitTunnelingTile(
                     label: 'mode'.i18n,
-                    subtitle: Text(
-                      'iran_optimized'.i18n,
-                      style: AppTestStyles.labelSmall.copyWith(
-                        color: AppColors.gray7,
-                      ),
-                    ),
-                    trailing: AppTextButton(
-                      label: splitTunnelingMode == SplitTunnelingMode.automatic
-                          ? 'automatic'.i18n
-                          : 'manual'.i18n,
-                      onPressed: _showBottomSheet,
-                    ),
-                  )
-              ],
-            ),
-          ),
-          SizedBox(height: defaultSize),
-          InfoRow(
-            onPressed: () => appRouter.push(SplitTunnelingInfo()),
-            text: splitTunnelingEnabled
-                ? 'when_connected'.i18n
-                : 'turn_on_split_tunneling'.i18n,
-          ),
-          if (splitTunnelingEnabled) ...{
-            SizedBox(height: defaultSize),
-            AppCard(
-              padding: EdgeInsets.zero,
-              child: Column(
-                children: [
+                    subtitle: 'iran_optimized'.i18n,
+                    actionText:
+                        splitTunnelingMode == SplitTunnelingMode.automatic
+                            ? 'automatic'.i18n
+                            : 'manual'.i18n,
+                    onPressed: _showBottomSheet,
+                  ),
+                SizedBox(height: defaultSize),
+                InfoRow(
+                  onPressed: () {
+                    if (splitTunnelingMode == SplitTunnelingMode.automatic) {
+                      appRouter.push(
+                        SplitTunnelingInfo(),
+                      );
+                    }
+                  },
+                  text: splitTunnelingEnabled
+                      ? 'when_connected'.i18n
+                      : 'turn_on_split_tunneling'.i18n,
+                ),
+                if (splitTunnelingEnabled) ...{
+                  SizedBox(height: defaultSize),
                   SplitTunnelingTile(
                     label: 'Websites',
                     actionText: '${enabledWebsites.length} Added',
@@ -111,10 +112,10 @@ class SplitTunneling extends HookConsumerWidget {
                     actionText: '${enabledApps.length} Added',
                     onPressed: () => appRouter.push(AppsSplitTunneling()),
                   ),
-                ],
-              ),
+                }
+              ],
             ),
-          }
+          ),
         ],
       ),
     );

@@ -14,6 +14,8 @@ class SectionLabel extends StatelessWidget {
         title,
         style: AppTestStyles.labelLarge.copyWith(
           color: AppColors.gray8,
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
         ),
       ),
     );

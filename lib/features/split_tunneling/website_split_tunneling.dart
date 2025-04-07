@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/split_tunneling/website.dart';
 import 'package:lantern/core/split_tunneling/website_notifier.dart';
@@ -51,7 +52,10 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
           AppTile(
             icon: AppImagePaths.bypassList,
             label: 'default_bypass'.i18n,
-            trailing: AppImage(path: AppImagePaths.arrowForward),
+            trailing: AppIconButton(
+              path: AppImagePaths.arrowForward,
+              onPressed: () => {},
+            ),
           ),
           SizedBox(height: defaultSize),
           // Websites bypassing the VPN
@@ -86,14 +90,14 @@ class _WebsiteRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppTile(
       label: website.domain,
-      trailing: Padding(
-        padding: const EdgeInsets.only(right: 16),
-        child: IconButton(
-          icon: AppImage(
-            path: website.isEnabled ? AppImagePaths.minus : AppImagePaths.plus,
-          ),
-          onPressed: onToggle,
-        ),
+      tileTextStyle: AppTestStyles.labelLarge.copyWith(
+        color: AppColors.gray8,
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+      ),
+      trailing: AppIconButton(
+        path: AppImagePaths.close,
+        onPressed: onToggle,
       ),
     );
   }

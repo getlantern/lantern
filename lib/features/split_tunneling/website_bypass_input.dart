@@ -20,32 +20,6 @@ class WebsiteBypassInput extends HookConsumerWidget {
           .showSnackBar(SnackBar(content: Text(message)));
     }
 
-    bool isValidDomain(String input) {
-      final domainPattern =
-          r'^(?!-)[A-Za-z0-9-]{1,63}(?<!-)\.[A-Za-z]{2,6}$'; // Matches google.com
-      final regExp = RegExp(domainPattern);
-      return regExp.hasMatch(input);
-    }
-
-    bool isValidIPv4(String input) {
-      final ipv4Pattern = r'^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$';
-      final regExp = RegExp(ipv4Pattern);
-      return regExp.hasMatch(input) &&
-          input.split('.').every((segment) => int.parse(segment) <= 255);
-    }
-
-    bool isValidDomainOrIP(String input) {
-      return isValidIPv4(input) || isValidDomain(input);
-    }
-
-    String extractDomain(Uri uri) {
-      final hostParts = uri.host.split('.');
-      if (hostParts.length > 2) {
-        return "${hostParts[hostParts.length - 2]}.${hostParts.last}";
-      }
-      return uri.host;
-    }
-
     // validate URL and extract the domain before adding it to the
     // split tunneling list
     void validateAndExtractDomain() {
@@ -70,9 +44,9 @@ class WebsiteBypassInput extends HookConsumerWidget {
           throw FormatException("Invalid URL format");
         }
 
-        final domain = extractDomain(uri);
+        final domain = UrlUtils.extractDomain(uri);
 
-        if (!isValidDomainOrIP(domain)) {
+        if (!UrlUtils.isValidDomainOrIP(domain)) {
           throw FormatException("Invalid domain");
         }
 
@@ -84,6 +58,7 @@ class WebsiteBypassInput extends HookConsumerWidget {
           return;
         }
 
+        textController.text = '';
         ref
             .read(splitTunnelingWebsitesProvider.notifier)
             .toggleWebsite(website);
@@ -98,39 +73,54 @@ class WebsiteBypassInput extends HookConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'enter_url_or_ip'.i18n,
-            style: AppTestStyles.bodySmall,
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.0),
+            child: Text(
+              'enter_url_or_ip'.i18n,
+              style: AppTestStyles.bodySmall.copyWith(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
           const SizedBox(height: 8),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
               color: Colors.white,
               border: Border.all(color: const Color(0xFFDEDFDF)),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const SizedBox(width: 8),
-                const Icon(Icons.link, color: Color(0xFFBFBFBF), size: 24),
+                const Icon(Icons.link, color: Color(0xFFBFBFBF), size: 20),
                 const SizedBox(width: 8),
                 Expanded(
                   child: TextField(
                     controller: textController,
+                    style: AppTestStyles.bodyMedium,
                     decoration: InputDecoration(
                       hintText: 'enter_url'.i18n,
                       hintStyle: AppTestStyles.bodySmall.copyWith(
                         color: const Color(0xFFBFBFBF),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
                       ),
                       border: InputBorder.none,
                     ),
-                    style: AppTestStyles.bodyMedium,
                   ),
                 ),
-                const SizedBox(width: 8),
                 TextButton(
                   onPressed: validateAndExtractDomain,
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.black,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    minimumSize: Size.zero,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  ),
                   child: Text(
                     'add'.i18n,
                     style: AppTestStyles.titleSmall.copyWith(
@@ -142,9 +132,17 @@ class WebsiteBypassInput extends HookConsumerWidget {
             ),
           ),
           const SizedBox(height: 4),
-          Text(
-            'use_commas'.i18n,
-            style: AppTestStyles.labelSmall,
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.0),
+            child: Text(
+              'use_commas'.i18n,
+              style: AppTestStyles.bodyMedium.copyWith(
+                color: AppColors.gray7,
+                height: 1.6,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
         ],
       ),
