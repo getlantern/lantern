@@ -5,7 +5,7 @@ import 'dart:isolate';
 
 import 'package:ffi/ffi.dart';
 import 'package:fpdart/fpdart.dart';
-import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/extensions/error.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/utils/failure.dart';
@@ -85,42 +85,49 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Stream<List<AppData>> appsDataStream() async* {
-    final apps = <AppData>[];
+  Future<Either<Failure, String>> startVPN() async {
+    try {
+      appLogger.debug('Starting VPN');
 
-    await for (final message in appsReceivePort) {
-      try {
-        if (message is String) {
-          final List<dynamic> decoded = jsonDecode(message);
-          final apps = decoded
-              .map((json) => AppData.fromJson(json as Map<String, dynamic>))
-              .toList();
-
-          yield apps;
-        }
-      } catch (e) {
-        appLogger.error("Failed to decode AppData: $e");
+      final result = await Future(
+          () => _ffiService.startVPN().cast<Utf8>().toDartString());
+      if (result.isNotEmpty) {
+        return left(Failure(error: result, localizedErrorMessage: ''));
       }
+      appLogger.debug('startVPN result: $result');
+      return right(result);
+    } catch (e) {
+      appLogger.error('Error while setting up radiance: $e');
+      return left(
+        Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription,
+        ),
+      );
     }
   }
 
   @override
-  Stream<List<String>> logsStream() async* {
-    await for (final message in loggingReceivePort) {
-      yield message;
+  Future<Either<Failure, String>> stopVPN() async {
+    try {
+      appLogger.debug('Starting VPN');
+
+      final result =
+          await Future(() => _ffiService.stopVPN().cast<Utf8>().toDartString());
+      if (result.isNotEmpty) {
+        return left(Failure(error: result, localizedErrorMessage: ''));
+      }
+      appLogger.debug('startVPN result: $result');
+      return right(result);
+    } catch (e) {
+      appLogger.error('Error while setting up radiance: $e');
+      return left(
+        Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription,
+        ),
+      );
     }
-  }
-
-  @override
-  Future<Either<Failure, String>> startVPN() {
-    // TODO: implement startVPN
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Either<Failure, String>> stopVPN() {
-    // TODO: implement stopVPN
-    throw UnimplementedError();
   }
 
   @override

@@ -180,7 +180,6 @@ $(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD)
 .PHONY: ios
 ios: $(IOS_FRAMEWORK_BUILD)
 
-
 $(IOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 	@echo "Building iOS Framework..."
 	rm -rf $@ && mkdir -p $(dir $@)
@@ -193,9 +192,6 @@ $(IOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 		$(RADIANCE_REPO)
 	mv $@ $(IOS_FRAMEWORK_DIR)
 	@echo "Built iOS Framework: $(IOS_FRAMEWORK)"
-
-#gomobile bind -target=ios,iossimulator \
-#	-tags='headless lantern ios netgo' \
 
 build-android:check-gomobile install-android-deps
 	@echo "Building Android libraries"
@@ -212,9 +208,6 @@ build-android:check-gomobile install-android-deps
 		 $(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox ./lantern-core/mobile
 	cp $(BUILD_DIR)/$(ANDROID_LIB) $(ANDROID_LIB_PATH)
 	@echo "Android libraries built successfully"
-
-
-### End Build Libraries ###
 
 
 # Dart API DL bridge

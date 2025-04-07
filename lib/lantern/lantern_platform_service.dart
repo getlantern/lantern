@@ -3,7 +3,6 @@ import 'package:fpdart/src/either.dart';
 import 'package:fpdart/src/unit.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/extensions/error.dart';
-import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 
 import '../core/models/lantern_status.dart';
@@ -60,16 +59,6 @@ class LanternPlatformService implements LanternCoreService {
   @override
   Stream<LanternStatus> watchVPNStatus() {
     return _status;
-  }
-
-  @override
-  Stream<List<AppData>> appsDataStream() async* {
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<List<String>> logsStream() async* {
-    throw UnimplementedError();
   }
 
   @override

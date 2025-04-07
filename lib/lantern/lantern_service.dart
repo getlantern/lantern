@@ -1,6 +1,5 @@
 import 'package:fpdart/src/either.dart';
 import 'package:fpdart/src/unit.dart';
-import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_ffi_service.dart';
@@ -23,7 +22,7 @@ class LanternService implements LanternCoreService {
   @override
   Future<Either<Failure, String>> startVPN() async {
     if (PlatformUtils.isDesktop()) {
-      throw UnimplementedError();
+      return ffiService.startVPN();
     }
     return platformService.startVPN();
   }
@@ -31,30 +30,9 @@ class LanternService implements LanternCoreService {
   @override
   Future<Either<Failure, String>> stopVPN() {
     if (PlatformUtils.isDesktop()) {
-      throw UnimplementedError();
+      return ffiService.stopVPN();
     }
     return platformService.stopVPN();
-  }
-
-  @override
-  Stream<List<AppData>> appsDataStream() async* {
-    if (!PlatformUtils.isDesktop()) {
-      throw UnimplementedError();
-    }
-    yield* ffiService.appsDataStream();
-  }
-
-  @override
-  Stream<List<String>> logsStream() async* {
-    if (!PlatformUtils.isDesktop()) {
-      throw UnimplementedError();
-    }
-    yield* ffiService.logsStream();
-  }
-
-  @override
-  Future<Either<String, Unit>> setupRadiance() {
-    return ffiService.setupRadiance();
   }
 
   @override
