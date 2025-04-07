@@ -75,14 +75,18 @@ func startVPN() *C.char {
 	serverMu.Lock()
 	defer serverMu.Unlock()
 
-	go server.sendStatusToPort(Connecting)
+	if server == nil {
+		return C.CString("radiance not initialized")
+	}
+
+	server.sendStatusToPort(Connecting)
 
 	if err := server.StartVPN(); err != nil {
 		err = fmt.Errorf("unable to start vpn server: %v", err)
 		return C.CString(err.Error())
 	}
 
-	go server.sendStatusToPort(Connected)
+	server.sendStatusToPort(Connected)
 	log.Debug("VPN server started successfully")
 
 	return nil
@@ -97,23 +101,29 @@ func stopVPN() *C.char {
 	serverMu.Lock()
 	defer serverMu.Unlock()
 
-	go server.sendStatusToPort(Disconnecting)
+	if server == nil {
+		return C.CString("radiance not initialized")
+	}
+
+	server.sendStatusToPort(Disconnecting)
 
 	if err := server.StopVPN(); err != nil {
 		err = fmt.Errorf("unable to stop vpn server: %v", err)
 		return C.CString(err.Error())
 	}
 
-	go server.sendStatusToPort(Disconnected)
+	server.sendStatusToPort(Disconnected)
 	log.Debug("VPN server stopped successfully")
 
 	return nil
 }
 
 func (s *lanternService) sendStatusToPort(status string) {
-	msg := fmt.Sprintf(`{"status":"%s"}`, status)
-	data, _ := json.Marshal(msg)
-	dart_api_dl.SendToPort(s.servicePort, string(data))
+	go func() {
+		msg := fmt.Sprintf(`{"status":"%s"}`, status)
+		data, _ := json.Marshal(msg)
+		dart_api_dl.SendToPort(s.servicePort, string(data))
+	}()
 }
 
 // isVPNConnected checks if the VPN server is running and connected.
