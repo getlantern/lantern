@@ -20,11 +20,14 @@ import (
 	"github.com/getlantern/radiance"
 )
 
+type VPNStatus string
+
 const (
-	Connecting    = "Connecting"
-	Connected     = "Connected"
-	Disconnecting = "Disconnecting"
-	Disconnected  = "Disconnected"
+	Connecting    VPNStatus = "Connecting"
+	Connected     VPNStatus = "Connected"
+	Disconnecting VPNStatus = "Disconnecting"
+	Disconnected  VPNStatus = "Disconnected"
+	Error         VPNStatus = "Error"
 )
 
 var (
@@ -83,6 +86,7 @@ func startVPN() *C.char {
 
 	if err := server.StartVPN(); err != nil {
 		err = fmt.Errorf("unable to start vpn server: %v", err)
+		server.sendStatusToPort(Error)
 		return C.CString(err.Error())
 	}
 
@@ -109,6 +113,7 @@ func stopVPN() *C.char {
 
 	if err := server.StopVPN(); err != nil {
 		err = fmt.Errorf("unable to stop vpn server: %v", err)
+		server.sendStatusToPort(Error)
 		return C.CString(err.Error())
 	}
 
@@ -118,7 +123,7 @@ func stopVPN() *C.char {
 	return nil
 }
 
-func (s *lanternService) sendStatusToPort(status string) {
+func (s *lanternService) sendStatusToPort(status VPNStatus) {
 	go func() {
 		msg := fmt.Sprintf(`{"status":"%s"}`, status)
 		data, _ := json.Marshal(msg)
