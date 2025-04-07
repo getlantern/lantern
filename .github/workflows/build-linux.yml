@@ -36,7 +36,8 @@ jobs:
                 lld \
                 libstdc++-12-dev \
                 libgl1-mesa-dev \
-                libegl1-mesa-dev
+                libegl1-mesa-dev \
+                libcurl4-openssl-dev
 
         - name: Install the ninja build tool
           uses: seanmiddleditch/gha-setup-ninja@master
@@ -51,7 +52,7 @@ jobs:
             dart pub global activate protoc_plugin
             dart pub global activate flutter_distributor
     
-        - name: Enable Flutter Linux Desktop Support
+        - name: Enable Flutter Desktop Support
           run: |
             flutter config --enable-linux-desktop
 
