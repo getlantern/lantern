@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
@@ -7,6 +8,7 @@ import 'package:lantern/core/preferences/app_preferences.dart';
 import 'package:lantern/core/split_tunneling/apps_notifier.dart';
 import 'package:lantern/core/split_tunneling/split_tunneling_mode.dart';
 import 'package:lantern/core/split_tunneling/website_notifier.dart';
+import 'package:lantern/core/utils/screen_utils.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/features/split_tunneling/bottom_sheet.dart';
 
@@ -25,17 +27,20 @@ class SplitTunneling extends HookConsumerWidget {
     final enabledWebsites = ref.watch(splitTunnelingWebsitesProvider).toList();
 
     void _showBottomSheet() {
-      showModalBottomSheet(
+      showAppBottomSheet(
         context: context,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-        ),
-        builder: (context) {
-          return SplitTunnelingBottomSheet(
-            selectedMode: splitTunnelingMode,
-            onModeSelected: (mode) => ref
-                .read(appPreferencesProvider.notifier)
-                .setPreference(Preferences.splitTunnelingMode, mode),
+        title: 'split_tunneling_mode'.i18n,
+        scrollControlDisabledMaxHeightRatio:
+            context.isSmallDevice ? 0.39.h : 0.3.h,
+        builder: (context, scrollController) {
+          return Expanded(
+            child: SplitTunnelingBottomSheet(
+              scrollController: scrollController,
+              selectedMode: splitTunnelingMode,
+              onModeSelected: (mode) => ref
+                  .read(appPreferencesProvider.notifier)
+                  .setPreference(Preferences.splitTunnelingMode, mode),
+            ),
           );
         },
       );
