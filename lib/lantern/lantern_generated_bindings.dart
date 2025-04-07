@@ -2351,37 +2351,25 @@ class LanternBindings {
 
   ffi.Pointer<ffi.Char> setupRadiance(
     ffi.Pointer<ffi.Char> dir,
+    int logPort,
+    int appsPort,
+    ffi.Pointer<ffi.Void> api,
   ) {
     return _setupRadiance(
       dir,
+      logPort,
+      appsPort,
+      api,
     );
   }
 
   late final _setupRadiancePtr = _lookup<
       ffi.NativeFunction<
-          ffi.Pointer<ffi.Char> Function(
-              ffi.Pointer<ffi.Char>)>>('setupRadiance');
-  late final _setupRadiance = _setupRadiancePtr
-      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
-
-  void setupLogging(
-    ffi.Pointer<ffi.Char> dir,
-    int port,
-    ffi.Pointer<ffi.Void> api,
-  ) {
-    return _setupLogging(
-      dir,
-      port,
-      api,
-    );
-  }
-
-  late final _setupLoggingPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Void Function(ffi.Pointer<ffi.Char>, ffi.Int64,
-              ffi.Pointer<ffi.Void>)>>('setupLogging');
-  late final _setupLogging = _setupLoggingPtr.asFunction<
-      void Function(ffi.Pointer<ffi.Char>, int, ffi.Pointer<ffi.Void>)>();
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>, ffi.Int64,
+              ffi.Int64, ffi.Pointer<ffi.Void>)>>('setupRadiance');
+  late final _setupRadiance = _setupRadiancePtr.asFunction<
+      ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>, int, int, ffi.Pointer<ffi.Void>)>();
 
   ffi.Pointer<ffi.Char> startVPN() {
     return _startVPN();

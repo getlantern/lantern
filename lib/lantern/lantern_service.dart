@@ -1,5 +1,6 @@
 import 'package:fpdart/src/either.dart';
 import 'package:fpdart/src/unit.dart';
+import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_ffi_service.dart';
@@ -33,6 +34,22 @@ class LanternService implements LanternCoreService {
       throw UnimplementedError();
     }
     return platformService.stopVPN();
+  }
+
+  @override
+  Stream<List<AppData>> appsDataStream() async* {
+    if (!PlatformUtils.isDesktop()) {
+      throw UnimplementedError();
+    }
+    yield* ffiService.appsDataStream();
+  }
+
+  @override
+  Stream<List<String>> logsStream() async* {
+    if (!PlatformUtils.isDesktop()) {
+      throw UnimplementedError();
+    }
+    yield* ffiService.logsStream();
   }
 
   @override
