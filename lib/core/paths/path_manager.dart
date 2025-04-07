@@ -21,10 +21,6 @@ class PathManager {
   // Returns the temp directory
   Directory get tempDirectory => Directory(tempPath);
 
-  // Access specific files
-  // File coreFile() {
-  //   return File(p.join(logsPath, 'box.log'));
-  // }
 
   File appLogFile() {
     return File(p.join(logsPath, 'lantern.log'));
