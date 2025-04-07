@@ -100,6 +100,10 @@ class AppRouter extends RootStackRouter {
       path: '/reset-password',
       page: ResetPassword.page,
     ),
+    AutoRoute(
+      path: '/activation-code',
+      page: ActivationCode.page,
+    ),
 
   ];
 }

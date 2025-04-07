@@ -108,6 +108,10 @@ class _PlansState extends State<Plans> {
             AppTile(
               icon: AppImagePaths.keypad,
               label: 'Enter an Activation Code',
+              onPressed: () {
+                appRouter
+                    .popAndPush(AddEmail(authFlow: AuthFlow.activationCode));
+              },
             ),
             DividerSpace(),
             AppTile(

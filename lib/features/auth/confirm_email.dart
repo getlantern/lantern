@@ -75,6 +75,9 @@ class ConfirmEmail extends StatelessWidget {
       case AuthFlow.resetPassword:
         appRouter.push(ResetPassword(email:email));
         break;
+      case AuthFlow.activationCode:
+        appRouter.push(ActivationCode());
+        break;
     }
   }
 
@@ -87,6 +90,9 @@ class ConfirmEmail extends StatelessWidget {
       case AuthFlow.resetPassword:
         appLogger.info('Resend email for reset password to $email');
         break;
+      case AuthFlow.activationCode:
+        // TODO: Handle this case.
+        throw UnimplementedError();
     }
   }
 }

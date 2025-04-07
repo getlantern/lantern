@@ -1,12 +1,16 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:lantern/core/common/app_text_field.dart';
 import 'package:lantern/core/common/common.dart';
 
 @RoutePage(name: 'AddEmail')
 class AddEmail extends HookWidget {
-  const AddEmail({super.key});
+  final AuthFlow authFlow;
+
+  const AddEmail({
+    super.key,
+    this.authFlow = AuthFlow.signUp,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +35,9 @@ class AddEmail extends HookWidget {
           SizedBox(height: defaultSize),
           PrimaryButton(
             label: 'continue'.i18n,
-            onPressed: () {},
+            onPressed: () {
+              appRouter.push(ConfirmEmail(email: 'example@gmail.com',authFlow: authFlow));
+            },
           ),
           SizedBox(height: defaultSize),
           DividerSpace(),
@@ -55,7 +61,7 @@ class AddEmail extends HookWidget {
               label: 'continue_with_email'.i18n,
               textColor: AppColors.gray9,
               onPressed: () {
-                appRouter.push(ConfirmEmail(email: 'example@gmail.com'));
+                appRouter.popUntilRoot();
               },
             ),
           ),

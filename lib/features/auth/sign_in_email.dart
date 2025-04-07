@@ -55,7 +55,7 @@ class SignInEmail extends StatelessWidget {
             boldTexts: 'Create an account',
             boldUnderline: true,
             boldOnPressed: () {
-              appRouter.push(const AddEmail());
+              appRouter.push( AddEmail());
             },
           )
         ],

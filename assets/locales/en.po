@@ -291,6 +291,14 @@ msgid "passwords_do_not_match"
 msgstr "Passwords do not match"
 
 
+msgid "activation_code"
+msgstr "Activation Code"
+
+msgid "activate_lantern_pro"
+msgstr "Activate Lantern Pro"
+
+
+
 
 
 

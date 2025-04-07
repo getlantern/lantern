@@ -11,5 +11,6 @@ enum VPNStatus{
 
 enum AuthFlow{
   resetPassword,
-  signUp
+  signUp,
+  activationCode
 }
