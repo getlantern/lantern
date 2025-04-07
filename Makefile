@@ -2,41 +2,6 @@
 
 BUILD_DIR := bin
 
-LIB_NAME := liblantern
-LIB_FOLDER := android/app/libs
-ANDROID_LIB_PATH := android/app/libs/$(LIB_NAME).aar
-ANDROID_LIB := $(LIB_NAME).aar
-TAGS=with_gvisor,with_quic,with_wireguard,with_ech,with_utls,with_clash_api,with_grpc
-FFI_DIR := ./lantern-core/ffi
-RADIANCE_REPO := github.com/getlantern/radiance
-
-
-# Missing and Guards
-
-check-gomobile:
-	@if ! command -v gomobile &> /dev/null; then \
-		echo "gomobile not found. Installing..."; \
-		go install golang.org/x/mobile/cmd/gomobile@latest; \
-		gomobile init; \
-	else \
-		echo "gomobile is already installed."; \
-	fi
-
-
-require-gomobile:
-	@if [[ -z "$(SENTRY)" ]]; then echo 'Missing "sentry-cli" command. See sentry.io for installation instructions.'; exit 1; fi
-
-
-##### Build Libraries #####
-
-# Build for macOS
-macos: export CGO_CFLAGS="-I./dart_api_dl/include"
-
-
-macos:
-	go build -o bin/liblantern.dylib -buildmode=c-shared ./lantern-core/ffi
-	mkdir -p build/macos/Build/Products/Debug/Lantern.app/Contents/MacOS
-	cp bin/liblantern.dylib build/macos/Build/Products/Debug/Lantern.app/Contents/MacOS
 APP ?= lantern
 CAPITALIZED_APP := Lantern
 LANTERN_LIB_NAME := liblantern
@@ -67,6 +32,7 @@ WINDOWS_LIB_BUILD := $(BUILD_DIR)/windows/$(WINDOWS_LIB)
 ANDROID_LIB := $(LANTERN_LIB_NAME).aar
 ANDROID_LIBS_DIR := android/app/libs
 ANDROID_LIB_BUILD := $(BUILD_DIR)/android/$(ANDROID_LIB)
+ANDROID_LIB_PATH := android/app/libs/$(LANTERN_LIB_NAME).aar
 ANDROID_DEBUG_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-debug.apk
 
 IOS_FRAMEWORK := Liblantern.xcframework
@@ -76,6 +42,20 @@ IOS_FRAMEWORK_BUILD := $(BUILD_DIR)/ios/$(IOS_FRAMEWORK)
 TAGS=with_gvisor,with_quic,with_wireguard,with_ech,with_utls,with_clash_api,with_grpc
 
 GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go')
+
+# Missing and Guards
+
+check-gomobile:
+	@if ! command -v gomobile &> /dev/null; then \
+		echo "gomobile not found. Installing..."; \
+		go install golang.org/x/mobile/cmd/gomobile@latest; \
+		gomobile init; \
+	else \
+		echo "gomobile is already installed."; \
+	fi
+
+require-gomobile:
+	@if [[ -z "$(SENTRY)" ]]; then echo 'Missing "sentry-cli" command. See sentry.io for installation instructions.'; exit 1; fi
 
 
 desktop-lib: export CGO_CFLAGS="-I./dart_api_dl/include"
@@ -221,7 +201,7 @@ build-android:check-gomobile install-android-deps
 	@echo "Building Android libraries"
 	rm -rf $(BUILD_DIR)/$(ANDROID_LIB)
 	rm -rf $(ANDROID_LIB_PATH)
-	mkdir -p $(LIB_FOLDER)
+	mkdir -p $(ANDROID_LIBS_DIR)
 	gomobile bind -v \
 		-target=android \
 		-androidapi=23 \
