@@ -1,9 +1,6 @@
-import 'dart:io';
-
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/material.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/providers/native_bridge_provider.dart';
 import 'package:lantern/features/vpn/provider/vpn_status_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -23,12 +20,6 @@ class VpnNotifier extends _$VpnNotifier {
       },
     );
     return state;
-  }
-
-  void setStatus(VPNStatus newStatus) {
-    if (newStatus != state) {
-      state = newStatus;
-    }
   }
 
   Future<Either<Failure, String>> onVPNStateChange(BuildContext context) async {
