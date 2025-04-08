@@ -74,7 +74,10 @@ class LanternFFIService implements LanternCoreService {
 
       final result = _ffiService.startVPN().cast<Utf8>().toDartString();
       if (result.isNotEmpty) {
-        return left(Failure(error: result, localizedErrorMessage: ''));
+        return left(Failure(
+          error: result,
+          localizedErrorMessage: result,
+        ));
       }
       appLogger.debug('startVPN result: $result');
       return right(result);
