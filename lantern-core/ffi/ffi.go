@@ -86,7 +86,7 @@ func startVPN() *C.char {
 
 	if err := server.StartVPN(); err != nil {
 		err = fmt.Errorf("unable to start vpn server: %v", err)
-		server.sendStatusToPort(Error)
+		server.sendStatusToPort(Disconnected)
 		return C.CString(err.Error())
 	}
 
@@ -113,7 +113,7 @@ func stopVPN() *C.char {
 
 	if err := server.StopVPN(); err != nil {
 		err = fmt.Errorf("unable to stop vpn server: %v", err)
-		server.sendStatusToPort(Error)
+		server.sendStatusToPort(Connected)
 		return C.CString(err.Error())
 	}
 
