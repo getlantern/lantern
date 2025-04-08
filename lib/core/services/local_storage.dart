@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:objectbox/objectbox.dart';
 
 import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/services/db/objectbox.g.dart';
