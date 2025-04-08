@@ -29,10 +29,7 @@ const String _libName = 'liblantern';
 ///also this should be called from only [LanternService]
 class LanternFFIService implements LanternCoreService {
   static final LanternBindings _ffiService = _gen();
-  static final _vpnStatusStreamController =
-      StreamController<LanternStatus>.broadcast();
-  static final Stream<LanternStatus> _status =
-      _vpnStatusStreamController.stream;
+  late final Stream<LanternStatus> _status;
   static final statusReceivePort = ReceivePort();
 
   static LanternBindings _gen() {
@@ -118,11 +115,12 @@ class LanternFFIService implements LanternCoreService {
     try {
       final nativePort = statusReceivePort.sendPort.nativePort;
       // setup receive port to receive connection status updates
-      statusReceivePort.listen((dynamic message) {
-        final json = jsonDecode(jsonDecode(message));
-        final status = LanternStatus.fromJson(json);
-        _vpnStatusStreamController.add(status);
-      });
+      _status = statusReceivePort.map(
+        (event) {
+          Map<String, dynamic> result = jsonDecode(event);
+          return LanternStatus.fromJson(result);
+        },
+      );
 
       await _setupRadiance(nativePort);
     } catch (e) {
