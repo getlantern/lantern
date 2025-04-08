@@ -46,13 +46,16 @@ class LanternService implements LanternCoreService {
   @override
   Stream<LanternStatus> watchVPNStatus() {
     if (PlatformUtils.isDesktop()) {
-      throw UnimplementedError();
+      return ffiService.watchVPNStatus();
     }
     return platformService.watchVPNStatus();
   }
 
   @override
   Future<Either<Failure, Unit>> isVPNConnected() {
+    if (PlatformUtils.isDesktop()) {
+      return ffiService.isVPNConnected();
+    }
     return platformService.isVPNConnected();
   }
 }

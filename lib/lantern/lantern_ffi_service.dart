@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
@@ -5,11 +6,13 @@ import 'dart:isolate';
 
 import 'package:ffi/ffi.dart';
 import 'package:fpdart/fpdart.dart';
+import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/extensions/error.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/utils/failure.dart';
 import 'package:lantern/core/utils/log_utils.dart';
+import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_generated_bindings.dart';
 import 'package:lantern/lantern/lantern_service.dart';
@@ -26,9 +29,8 @@ const String _libName = 'liblantern';
 ///also this should be called from only [LanternService]
 class LanternFFIService implements LanternCoreService {
   static final LanternBindings _ffiService = _gen();
-
-  static final appsReceivePort = ReceivePort();
-  static final loggingReceivePort = ReceivePort();
+  late final Stream<LanternStatus> _status;
+  static final statusReceivePort = ReceivePort();
 
   static LanternBindings _gen() {
     String fullPath = "";
@@ -45,29 +47,15 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<String, Unit>> setupRadiance() async {
+  Future<Either<String, Unit>> _setupRadiance(nativePort) async {
     try {
       appLogger.debug('Setting up radiance');
       final baseDir = await LogUtils.getAppLogDirectory();
       final baseDirPtr = baseDir.toNativeUtf8();
 
-      // final result = await Isolate.run(
-      //   () {
-      //     return _ffiService
-      //         .setupRadiance(
-      //           baseDirPtr.cast(),
-      //           loggingReceivePort.sendPort.nativePort,
-      //           appsReceivePort.sendPort.nativePort,
-      //           NativeApi.initializeApiDLData,
-      //         )
-      //         .cast<Utf8>()
-      //         .toDartString();
-      //   },
-      // );
-
       _ffiService.setup(
         baseDirPtr.cast(),
-        loggingReceivePort.sendPort.nativePort,
+        nativePort,
         NativeApi.initializeApiDLData,
       );
 
@@ -84,15 +72,17 @@ class LanternFFIService implements LanternCoreService {
     try {
       appLogger.debug('Starting VPN');
 
-      final result = await Future(
-          () => _ffiService.startVPN().cast<Utf8>().toDartString());
+      final result = _ffiService.startVPN().cast<Utf8>().toDartString();
       if (result.isNotEmpty) {
-        return left(Failure(error: result, localizedErrorMessage: ''));
+        return left(Failure(
+          error: result,
+          localizedErrorMessage: result,
+        ));
       }
       appLogger.debug('startVPN result: $result');
       return right(result);
     } catch (e) {
-      appLogger.error('Error while setting up radiance: $e');
+      appLogger.error('Error starting VPN: $e');
       return left(
         Failure(
           error: e.toString(),
@@ -105,17 +95,15 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, String>> stopVPN() async {
     try {
-      appLogger.debug('Starting VPN');
-
-      final result =
-          await Future(() => _ffiService.stopVPN().cast<Utf8>().toDartString());
+      appLogger.debug('Stopping VPN');
+      final result = _ffiService.stopVPN().cast<Utf8>().toDartString();
       if (result.isNotEmpty) {
         return left(Failure(error: result, localizedErrorMessage: ''));
       }
-      appLogger.debug('startVPN result: $result');
+      appLogger.debug('stopVPN result: $result');
       return right(result);
     } catch (e) {
-      appLogger.error('Error while setting up radiance: $e');
+      appLogger.error('Error stopping VPN: $e');
       return left(
         Failure(
           error: e.toString(),
@@ -127,18 +115,37 @@ class LanternFFIService implements LanternCoreService {
 
   @override
   Future<void> init() async {
-    await setupRadiance();
+    try {
+      final nativePort = statusReceivePort.sendPort.nativePort;
+      // setup receive port to receive connection status updates
+      _status = statusReceivePort.map(
+        (event) {
+          Map<String, dynamic> result = jsonDecode(jsonDecode(event));
+          return LanternStatus.fromJson(result);
+        },
+      );
+
+      await _setupRadiance(nativePort);
+    } catch (e) {
+      appLogger.error('Error while setting up radiance: $e');
+    }
   }
 
   @override
-  Stream<LanternStatus> watchVPNStatus() {
-    // TODO: implement watchVPNStatus
-    throw UnimplementedError();
-  }
+  Stream<LanternStatus> watchVPNStatus() => _status.asBroadcastStream();
 
   @override
-  Future<Either<Failure, Unit>> isVPNConnected() {
-    // TODO: implement isVPNConnected
-    throw UnimplementedError();
+  Future<Either<Failure, Unit>> isVPNConnected() async {
+    try {
+      final result = _ffiService.isVPNConnected();
+      return right(unit);
+    } catch (e) {
+      return left(
+        Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription,
+        ),
+      );
+    }
   }
 }
