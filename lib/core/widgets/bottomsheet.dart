@@ -37,9 +37,7 @@ void showAppBottomSheet(
                   ),
                 ),
               ),
-              DividerSpace(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              ),
+              DividerSpace(padding: EdgeInsets.only(top: 16),),
               builder(context, scrollController),
             ],
           );

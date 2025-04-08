@@ -115,6 +115,7 @@ class _PlansState extends State<Plans> {
       builder: (context, scrollController) {
         return ListView(
           shrinkWrap: true,
+          padding: EdgeInsets.zero,
           controller: scrollController,
           children: [
             AppTile(

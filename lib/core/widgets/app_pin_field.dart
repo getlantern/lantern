@@ -5,13 +5,14 @@ import '../common/common.dart';
 
 class AppPinField extends StatelessWidget {
   final Function(String)? onCompleted;
+  final Function(String)? onChanged;
 
-  const AppPinField({super.key, this.onCompleted});
+  const AppPinField({super.key, this.onCompleted, this.onChanged,});
 
   @override
   Widget build(BuildContext context) {
-    return    Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16,vertical: 5),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
       decoration: BoxDecoration(
         color: AppColors.white,
         border: Border.all(color: AppColors.gray3),
@@ -26,6 +27,7 @@ class AppPinField extends StatelessWidget {
               length: 6,
               showCursor: true,
               onCompleted: onCompleted,
+              onChanged:onChanged,
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.start,
               cursor: Column(
@@ -46,13 +48,19 @@ class AppPinField extends StatelessWidget {
               defaultPinTheme: PinTheme(
                 width: 20,
                 height: 45,
-                textStyle: Theme.of(context).textTheme.titleMedium,
+                textStyle: Theme
+                    .of(context)
+                    .textTheme
+                    .titleMedium,
                 decoration: BoxDecoration(),
               ),
               focusedPinTheme: PinTheme(
                 width: 20,
                 height: 45,
-                textStyle: Theme.of(context).textTheme.titleMedium,
+                textStyle: Theme
+                    .of(context)
+                    .textTheme
+                    .titleMedium,
                 decoration: BoxDecoration(),
               ),
             ),

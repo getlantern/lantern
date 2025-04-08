@@ -56,48 +56,53 @@ class _PlansListViewState extends State<PlansListView> {
         'Best Value!',
         style: textTheme.labelMedium,
       ),
-      child: AnimatedContainer(
-        margin: EdgeInsets.only(top: 20, right: defaultSize),
-        padding: EdgeInsets.symmetric(horizontal: defaultSize, vertical: 12),
-        duration: Duration(milliseconds: 300),
-        decoration: isBestValue ? selectedDecoration : unselectedDecoration,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Text(
-                    '2 Year ',
-                    style: textTheme.titleMedium,
+      child: GestureDetector(
+        onTap: () {
+          appRouter.push(AddEmail());
+        },
+        child: AnimatedContainer(
+          margin: EdgeInsets.only(top: 20, right: defaultSize),
+          padding: EdgeInsets.only(left: defaultSize, right: 8,top: 10,bottom: 10),
+          duration: Duration(milliseconds: 300),
+          decoration: isBestValue ? selectedDecoration : unselectedDecoration,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      '2 Year ',
+                      style: textTheme.titleMedium,
+                    ),
                   ),
+                  SizedBox(width: defaultSize),
+                  Radio(
+                    value: true,
+                    groupValue: isBestValue,
+                    visualDensity: VisualDensity.compact,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    fillColor: WidgetStatePropertyAll(AppColors.gray9),
+                    onChanged: (value) {},
+                  )
+                ],
+              ),
+              Text(
+                '\$99.99',
+                style: textTheme.titleMedium!.copyWith(
+                  color: AppColors.blue7,
                 ),
-                SizedBox(width: defaultSize),
-                Radio(
-                  value: true,
-                  groupValue: false,
-                  visualDensity: VisualDensity.compact,
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  fillColor: WidgetStatePropertyAll(AppColors.gray9),
-                  onChanged: (value) {},
-                )
-              ],
-            ),
-            Text(
-              '\$99.99',
-              style: textTheme.titleMedium!.copyWith(
-                color: AppColors.blue7,
               ),
-            ),
-            Text(
-              '\$4.17/month',
-              style: textTheme.labelMedium!.copyWith(
-                color: AppColors.gray7,
+              Text(
+                '\$4.17/month',
+                style: textTheme.labelMedium!.copyWith(
+                  color: AppColors.gray7,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

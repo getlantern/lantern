@@ -29,10 +29,10 @@ class AddEmail extends HookWidget {
           ),
           SizedBox(height: defaultSize),
           Padding(
-            padding: defaultPadding,
+            padding: EdgeInsets.symmetric(horizontal: defaultSize),
             child: Text('add_your_email_message'.i18n),
           ),
-          SizedBox(height: defaultSize),
+          SizedBox(height: 32),
           PrimaryButton(
             label: 'continue'.i18n,
             onPressed: () {

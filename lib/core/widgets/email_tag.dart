@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../common/app_colors.dart';
 import '../common/common.dart';
 
 class EmailTag extends StatelessWidget {
@@ -13,28 +13,25 @@ class EmailTag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
+    return Chip(
+      color: WidgetStatePropertyAll(AppColors.blue1),
+      elevation: 0,
+      avatar: AppImage(
+        path: AppImagePaths.email,
+        height: 20.h,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: defaultSize, vertical: 8),
+      labelStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
+            fontSize: 14,
+          ),
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(100),
-        color: AppColors.blue1,
-        border: Border.all(
-          width: 1,
+        side: BorderSide(
           color: AppColors.gray3,
+          width: 1,
         ),
       ),
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: <Widget>[
-          AppImage(
-            path: AppImagePaths.email,
-          ),
-          const SizedBox(width: 8),
-          Text(email)
-        ],
-      ),
+      label: Text(email),
     );
   }
 }

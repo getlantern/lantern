@@ -1,12 +1,13 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/app_pin_field.dart';
 import 'package:lantern/core/widgets/app_rich_text.dart';
 
 @RoutePage(name: 'ConfirmEmail')
-class ConfirmEmail extends StatelessWidget {
+class ConfirmEmail extends HookWidget {
   final String email;
   final AuthFlow authFlow;
 
@@ -19,6 +20,9 @@ class ConfirmEmail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+
+    final isPinCodeValid = useState(false);
+
     return BaseScreen(
       title: 'confirm_email'.i18n,
       body: Column(
@@ -36,8 +40,8 @@ class ConfirmEmail extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           AppPinField(
-            onCompleted: (String value) {
-              // Handle the completed PIN code here
+            onChanged: (String value) {
+              isPinCodeValid.value = value.length == 6;
               appLogger.info('PIN code entered: $value');
             },
           ),
@@ -52,6 +56,7 @@ class ConfirmEmail extends StatelessWidget {
           SizedBox(height: 32),
           PrimaryButton(
             label: 'continue'.i18n,
+            enabled: isPinCodeValid.value,
             onPressed: onContinueTap,
           ),
           SizedBox(height: 24),
