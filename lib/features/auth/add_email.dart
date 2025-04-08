@@ -2,6 +2,9 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/services/app_purchase.dart';
+
+import '../../core/services/injection_container.dart';
 
 @RoutePage(name: 'AddEmail')
 class AddEmail extends HookWidget {
@@ -36,7 +39,8 @@ class AddEmail extends HookWidget {
           PrimaryButton(
             label: 'continue'.i18n,
             onPressed: () {
-              appRouter.push(ConfirmEmail(email: 'example@gmail.com',authFlow: authFlow));
+              appRouter.push(
+                  ConfirmEmail(email: 'example@gmail.com', authFlow: authFlow));
             },
           ),
           SizedBox(height: defaultSize),
@@ -61,12 +65,21 @@ class AddEmail extends HookWidget {
               label: 'continue_with_email'.i18n,
               textColor: AppColors.gray9,
               onPressed: () {
-                appRouter.popUntilRoot();
+                startSub();
+                // appRouter.popUntilRoot();
               },
             ),
           ),
         ],
       ),
+    );
+  }
+
+  void startSub() {
+    sl<AppPurchase>().startSubscription(
+      plan: 'plan',
+      onSuccess: (purchase) {},
+      onError: (error) {},
     );
   }
 }
