@@ -1,0 +1,20 @@
+display_name: Lantern
+
+packager: teamlantern
+packagerEmail: admin@getlantern.org
+license: Other
+
+priority: optional
+section: x11
+installed_size: 6604
+essential: false
+icon: ./assets/images/launch_icon.png
+
+keywords:
+  - Lantern
+
+generic_name: Lantern
+
+group: Applications/Internet
+
+startup_notify: true

@@ -1,42 +1,8 @@
 .PHONY: gen macos ffi
 
 BUILD_DIR := bin
+DIST_OUT := dist
 
-LIB_NAME := liblantern
-LIB_FOLDER := android/app/libs
-ANDROID_LIB_PATH := android/app/libs/$(LIB_NAME).aar
-ANDROID_LIB := $(LIB_NAME).aar
-TAGS=with_gvisor,with_quic,with_wireguard,with_ech,with_utls,with_clash_api,with_grpc
-FFI_DIR := ./lantern-core/ffi
-RADIANCE_REPO := github.com/getlantern/radiance
-
-
-# Missing and Guards
-
-check-gomobile:
-	@if ! command -v gomobile &> /dev/null; then \
-		echo "gomobile not found. Installing..."; \
-		go install golang.org/x/mobile/cmd/gomobile@latest; \
-		gomobile init; \
-	else \
-		echo "gomobile is already installed."; \
-	fi
-
-
-require-gomobile:
-	@if [[ -z "$(SENTRY)" ]]; then echo 'Missing "sentry-cli" command. See sentry.io for installation instructions.'; exit 1; fi
-
-
-##### Build Libraries #####
-
-# Build for macOS
-macos: export CGO_CFLAGS="-I./dart_api_dl/include"
-
-
-macos:
-	go build -o bin/liblantern.dylib -buildmode=c-shared ./lantern-core/ffi
-	mkdir -p build/macos/Build/Products/Debug/Lantern.app/Contents/MacOS
-	cp bin/liblantern.dylib build/macos/Build/Products/Debug/Lantern.app/Contents/MacOS
 APP ?= lantern
 CAPITALIZED_APP := Lantern
 LANTERN_LIB_NAME := liblantern
@@ -67,6 +33,7 @@ WINDOWS_LIB_BUILD := $(BUILD_DIR)/windows/$(WINDOWS_LIB)
 ANDROID_LIB := $(LANTERN_LIB_NAME).aar
 ANDROID_LIBS_DIR := android/app/libs
 ANDROID_LIB_BUILD := $(BUILD_DIR)/android/$(ANDROID_LIB)
+ANDROID_LIB_PATH := android/app/libs/$(LANTERN_LIB_NAME).aar
 ANDROID_DEBUG_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-debug.apk
 
 IOS_FRAMEWORK := Liblantern.xcframework
@@ -76,6 +43,23 @@ IOS_FRAMEWORK_BUILD := $(BUILD_DIR)/ios/$(IOS_FRAMEWORK)
 TAGS=with_gvisor,with_quic,with_wireguard,with_ech,with_utls,with_clash_api,with_grpc
 
 GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go')
+
+## APP_VERSION is the version defined in pubspec.yaml
+APP_VERSION := $(shell grep '^version:' pubspec.yaml | sed 's/version: //;s/ //g')
+
+# Missing and Guards
+
+check-gomobile:
+	@if ! command -v gomobile &> /dev/null; then \
+		echo "gomobile not found. Installing..."; \
+		go install golang.org/x/mobile/cmd/gomobile@latest; \
+		gomobile init; \
+	else \
+		echo "gomobile is already installed."; \
+	fi
+
+require-gomobile:
+	@if [[ -z "$(SENTRY)" ]]; then echo 'Missing "sentry-cli" command. See sentry.io for installation instructions.'; exit 1; fi
 
 
 desktop-lib: export CGO_CFLAGS="-I./dart_api_dl/include"
@@ -115,11 +99,16 @@ $(DARWIN_DEBUG_BUILD): $(DARWIN_LIB_BUILD)
 	flutter build macos --debug
 
 .PHONY: macos-release
-macos-release: clean macos pubget gen
+macos-release: clean macos
 	@echo "Building Flutter app (release) for macOS..."
 	flutter build macos --release
 
 # Linux Build
+.PHONY: install-linux-deps
+
+install-linux-deps:
+	dart pub global activate flutter_distributor
+
 .PHONY: linux-arm64
 linux-arm64: $(LINUX_LIB_ARM64)
 
@@ -134,7 +123,8 @@ $(LINUX_LIB_AMD64): $(GO_SOURCES)
 
 .PHONY: linux
 linux: linux-amd64
-	cp $(LINUX_LIB_AMD64) $(LINUX_LIB_NAME)
+	mkdir -p $(BUILD_DIR)/linux
+	cp $(LINUX_LIB_AMD64) $(LINUX_LIB_BUILD)
 
 .PHONY: linux-debug
 linux-debug:
@@ -145,8 +135,16 @@ linux-debug:
 linux-release: clean linux pubget gen
 	@echo "Building Flutter app (release) for Linux..."
 	flutter build linux --release
+	cp $(LINUX_LIB_BUILD) build/linux/x64/release/bundle
+	flutter_distributor package --platform linux --targets "deb,rpm" --skip-clean
+	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-linux.rpm lantern-installer-x64.rpm
+	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-linux.deb lantern-installer-x64.deb
 
 # Windows Build
+.PHONY: install-windows-deps
+install-windows-deps:
+	dart pub global activate flutter_distributor
+
 .PHONY: windows-amd64
 windows-amd64: export BUILD_TAGS += walk_use_cgo
 windows-amd64: export CGO_LDFLAGS = -static
@@ -165,6 +163,16 @@ $(WINDOWS_LIB_ARM64): $(GO_SOURCES)
 
 .PHONY: windows
 windows: windows-amd64
+
+.PHONY: windows-debug
+windows-debug: windows
+	@echo "Building Flutter app (debug) for Windows..."
+	flutter build windows --debug
+
+.PHONY: windows-release
+windows-release: clean windows
+	@echo "Building Flutter app (debug) for Windows..."
+	flutter_distributor package --flutter-build-args=verbose --platform windows --targets "msix,exe"
 
 # Android Build
 .PHONY: install-android-deps
@@ -196,10 +204,25 @@ android-debug: $(ANDROID_DEBUG_BUILD)
 $(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD)
 	flutter build apk --target-platform android-arm,android-arm64,android-x64 --verbose --debug
 
+build-android:check-gomobile install-android-deps
+	@echo "Building Android libraries"
+	rm -rf $(BUILD_DIR)/$(ANDROID_LIB)
+	rm -rf $(ANDROID_LIB_PATH)
+	mkdir -p $(ANDROID_LIBS_DIR)
+	gomobile bind -v \
+		-target=android \
+		-androidapi=23 \
+		-javapkg=lantern.io \
+		-tags=$(TAGS) -trimpath \
+		-o=$(BUILD_DIR)/$(ANDROID_LIB) \
+		-ldflags="-checklinkname=0" \
+		 $(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox ./lantern-core/mobile
+	cp $(BUILD_DIR)/$(ANDROID_LIB) $(ANDROID_LIB_PATH)
+	@echo "Android libraries built successfully"
+
 # iOS Build
 .PHONY: ios
 ios: $(IOS_FRAMEWORK_BUILD)
-
 
 $(IOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 	@echo "Building iOS Framework..."
@@ -213,28 +236,6 @@ $(IOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 		$(RADIANCE_REPO)
 	mv $@ $(IOS_FRAMEWORK_DIR)
 	@echo "Built iOS Framework: $(IOS_FRAMEWORK)"
-
-#gomobile bind -target=ios,iossimulator \
-#	-tags='headless lantern ios netgo' \
-
-build-android:check-gomobile install-android-deps
-	@echo "Building Android libraries"
-	rm -rf $(BUILD_DIR)/$(ANDROID_LIB)
-	rm -rf $(ANDROID_LIB_PATH)
-	mkdir -p $(LIB_FOLDER)
-	gomobile bind -v \
-		-target=android \
-		-androidapi=23 \
-		-javapkg=lantern.io \
-		-tags=$(TAGS) -trimpath \
-		-o=$(BUILD_DIR)/$(ANDROID_LIB) \
-		-ldflags="-checklinkname=0" \
-		 $(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox ./lantern-core/mobile
-	cp $(BUILD_DIR)/$(ANDROID_LIB) $(ANDROID_LIB_PATH)
-	@echo "Android libraries built successfully"
-
-
-### End Build Libraries ###
 
 
 # Dart API DL bridge
