@@ -30,6 +30,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.11.3"
+  animated_loading_border:
+    dependency: "direct main"
+    description:
+      name: animated_loading_border
+      sha256: e30aaadff7c39b6218e58015788095760d3fa260b17a1e707fd79e43feadcaee
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.2"
   animated_text_kit:
     dependency: "direct main"
     description:
@@ -118,6 +126,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.0"
+  back_button_interceptor:
+    dependency: transitive
+    description:
+      name: back_button_interceptor
+      sha256: b85977faabf4aeb95164b3b8bf81784bed4c54ea1aef90a036ab6927ecf80c5a
+      url: "https://pub.dev"
+    source: hosted
+    version: "8.0.4"
   badges:
     dependency: "direct main"
     description:
@@ -737,6 +753,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.1.1"
+  loader_overlay:
+    dependency: "direct main"
+    description:
+      name: loader_overlay
+      sha256: "285c9ccab9a42a392ba948bd0b14376fd0ee9ddd7b63e3018bcd54460fd3e021"
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.0.0"
   logging:
     dependency: transitive
     description:

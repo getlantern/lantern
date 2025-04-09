@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/extensions/error.dart';
 
-typedef PaymentSuccessCallback =  void Function(PurchaseDetails purchase);
-typedef PaymentErrorCallback =  void Function(String error);
-
+typedef PaymentSuccessCallback = void Function(PurchaseDetails purchase);
+typedef PaymentErrorCallback = void Function(String error);
 
 class AppPurchase {
   final InAppPurchase _inAppPurchase = InAppPurchase.instance;
@@ -67,7 +67,7 @@ class AppPurchase {
 
     final purchaseParam = PurchaseParam(productDetails: _subscriptionSku.first);
     try {
-      final started = await _inAppPurchase.buyConsumable(
+      final started = await _inAppPurchase.buyNonConsumable(
         purchaseParam: purchaseParam,
       );
       if (!started) {
@@ -91,6 +91,13 @@ class AppPurchase {
     try {
       final status = purchaseDetails.status;
 
+      if (status == PurchaseStatus.error) {
+        /// Error occurred during purchase
+        appLogger.error('Purchase error: ${purchaseDetails.error}');
+        _onError?.call(purchaseDetails.error?.message.localizedDescription ??
+            "Unknown error");
+        return;
+      }
       if (status == PurchaseStatus.canceled) {
         /// User has cancelled the purchase
         if (PlatformUtils.isIOS()) {

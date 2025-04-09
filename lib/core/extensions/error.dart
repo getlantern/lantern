@@ -63,4 +63,16 @@ extension ErrorExetension on Exception {
 
     return "error_occurred".i18n;
   }
+
+
+}
+
+
+extension PurchaseErrorExtension on String {
+  String get localizedDescription {
+    if (this=='BillingResponse.itemAlreadyOwned') {
+      return "purchase_already_owned".i18n;
+    }
+    return "error_occurred".i18n;
+  }
 }

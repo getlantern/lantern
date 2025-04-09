@@ -105,6 +105,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
         // email is validated
       }
     }
+    context.showLoadingDialog();
 
     ///Start subscription flow
     final paymentProvider = ref.read(paymentNotifierProvider.notifier);
@@ -113,12 +114,14 @@ class _AddEmailState extends ConsumerState<AddEmail> {
       onSuccess: (purchase) {
         /// Subscription successful
         //todo call api to acknowledge the purchase
-
+        context.hideLoadingDialog();
+        postPaymentNavigate(type);
       },
       onError: (error) {
         ///Error while subscribing
         context.showSnackBarError(error);
         appLogger.error('Error subscribing to plan: $error');
+        context.hideLoadingDialog();
       },
     );
 
@@ -127,6 +130,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
       (error) {
         context.showSnackBarError(error.localizedErrorMessage);
         appLogger.error('Error subscribing to plan: $error');
+        context.hideLoadingDialog();
       },
       (success) {
         // Handle success
@@ -145,6 +149,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
       case _SignUpMethodType.apple:
         break;
       case _SignUpMethodType.withoutEmail:
+        appRouter.popUntilRoot();
         break;
     }
   }
