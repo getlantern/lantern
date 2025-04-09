@@ -3,14 +3,18 @@ import 'dart:async';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:lantern/core/common/common.dart';
 
+typedef PaymentSuccessCallback =  void Function(PurchaseDetails purchase);
+typedef PaymentErrorCallback =  void Function(String error);
+
+
 class AppPurchase {
   final InAppPurchase _inAppPurchase = InAppPurchase.instance;
   StreamSubscription<List<PurchaseDetails>>? _subscription;
   final List<ProductDetails> _subscriptionSku = [];
   final List<String> _subscriptionIds = <String>['1m_sub', '1y_sub'];
 
-  void Function(PurchaseDetails purchase)? _onSuccess;
-  void Function(String error)? _onError;
+  PaymentSuccessCallback? _onSuccess;
+  PaymentErrorCallback? _onError;
 
   void init() {
     final purchaseUpdated = _inAppPurchase.purchaseStream;

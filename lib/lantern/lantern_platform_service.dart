@@ -3,11 +3,16 @@ import 'package:fpdart/src/either.dart';
 import 'package:fpdart/src/unit.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/extensions/error.dart';
+import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 
 import '../core/models/lantern_status.dart';
 
 class LanternPlatformService implements LanternCoreService {
+  final AppPurchase appPurchase;
+
+  LanternPlatformService(this.appPurchase);
+
   static const MethodChannel _methodChannel =
       MethodChannel('org.getlantern.lantern/method');
 
@@ -71,6 +76,38 @@ class LanternPlatformService implements LanternCoreService {
       return Left(Failure(
           error: e.toString(),
           localizedErrorMessage: (e as Exception).localizedDescription));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> cancelSubscription() {
+    // TODO: implement cancelSubscription
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> makeOneTimePayment({required String planID}) {
+    // TODO: implement makeOneTimePayment
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> subscribeToPlan(
+      {required String planId,
+      required PaymentSuccessCallback onSuccess,
+      required PaymentErrorCallback onError}) async {
+    try {
+      await appPurchase.startSubscription(
+        plan: planId,
+        onSuccess: onSuccess,
+        onError: onError,
+      );
+      return Right(unit);
+    } catch (e) {
+      return Left(Failure(
+        error: e.toString(),
+        localizedErrorMessage: (e as Exception).localizedDescription,
+      ));
     }
   }
 }

@@ -5,6 +5,7 @@ import 'dart:isolate';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/models/lantern_status.dart';
+import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/utils/failure.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
@@ -84,6 +85,24 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, Unit>> isVPNConnected() {
     // TODO: implement isVPNConnected
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> cancelSubscription() {
+    // TODO: implement cancelSubscription
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> makeOneTimePayment({required String planID}) {
+    // TODO: implement makeOneTimePayment
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> subscribeToPlan({required String planId, required PaymentSuccessCallback onSuccess, required PaymentErrorCallback onError}) {
+    // TODO: implement subscribeToPlan
     throw UnimplementedError();
   }
 }

@@ -60,7 +60,7 @@ class _PlansState extends State<Plans> {
           padding: EdgeInsets.symmetric(horizontal: defaultSize),
           child: SizedBox(
             height:
-                context.isSmallDevice ? size.height * 0.4 : size.height * 0.31,
+                context.isSmallDevice ? size.height * 0.4 : size.height * 0.33,
             child: SingleChildScrollView(child: FeatureList()),
           ),
         ),

@@ -1,6 +1,7 @@
 import 'package:fpdart/src/either.dart';
 import 'package:fpdart/src/unit.dart';
 import 'package:lantern/core/models/lantern_status.dart';
+import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_ffi_service.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
@@ -10,21 +11,25 @@ import '../core/common/common.dart';
 ///LanternService is wrapper around native and ffi services
 /// all communication happens here
 class LanternService implements LanternCoreService {
-  final LanternFFIService ffiService;
+  final LanternFFIService _ffiService;
 
-  final LanternPlatformService platformService;
+  final LanternPlatformService _platformService;
+  final AppPurchase _appPurchase;
 
   LanternService({
-    required this.ffiService,
-    required this.platformService,
-  });
+    required LanternFFIService ffiService,
+    required LanternPlatformService platformService,
+    required AppPurchase appPurchase,
+  })  : _appPurchase = appPurchase,
+        _platformService = platformService,
+        _ffiService = ffiService;
 
   @override
   Future<Either<Failure, String>> startVPN() async {
     if (PlatformUtils.isDesktop()) {
       throw UnimplementedError();
     }
-    return platformService.startVPN();
+    return _platformService.startVPN();
   }
 
   @override
@@ -32,20 +37,15 @@ class LanternService implements LanternCoreService {
     if (PlatformUtils.isDesktop()) {
       throw UnimplementedError();
     }
-    return platformService.stopVPN();
-  }
-
-  @override
-  Future<Either<String, Unit>> setupRadiance() {
-    return ffiService.setupRadiance();
+    return _platformService.stopVPN();
   }
 
   @override
   Future<void> init() {
     if (PlatformUtils.isDesktop()) {
-      return ffiService.init();
+      return _ffiService.init();
     }
-    return platformService.init();
+    return _platformService.init();
   }
 
   @override
@@ -53,11 +53,39 @@ class LanternService implements LanternCoreService {
     if (PlatformUtils.isDesktop()) {
       throw UnimplementedError();
     }
-    return platformService.watchVPNStatus();
+    return _platformService.watchVPNStatus();
   }
 
   @override
   Future<Either<Failure, Unit>> isVPNConnected() {
-    return platformService.isVPNConnected();
+    return _platformService.isVPNConnected();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> cancelSubscription() {
+    // TODO: implement cancelSubscription
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> makeOneTimePayment({required String planID}) {
+    // TODO: implement makeOneTimePayment
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> subscribeToPlan({
+    required String planId,
+    required PaymentSuccessCallback onSuccess,
+    required PaymentErrorCallback onError,
+  }) {
+    if (PlatformUtils.isDesktop()) {
+      throw UnimplementedError();
+    }
+    return _platformService.subscribeToPlan(
+      planId: planId,
+      onSuccess: onSuccess,
+      onError: onError,
+    );
   }
 }

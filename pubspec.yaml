@@ -49,6 +49,7 @@ dependencies:
   device_preview_plus: ^2.3.0
   badges: ^3.1.2
   pinput: ^5.0.1
+  email_validator: ^3.0.0
   #Localization
   i18n_extension: ^15.0.4
   i18n_extension_importer: ^0.0.6

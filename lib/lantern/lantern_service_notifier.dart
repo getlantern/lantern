@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/lantern/lantern_ffi_service.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -13,5 +14,6 @@ LanternService lanternService(Ref ref) {
   return LanternService(
     ffiService: sl<LanternFFIService>(),
     platformService: sl<LanternPlatformService>(),
+    appPurchase: sl<AppPurchase>(),
   );
 }

@@ -1,6 +1,15 @@
 // Captlize
+import 'package:email_validator/email_validator.dart';
+
 extension CapExtension on String {
   String get capitalize => this[0].toUpperCase() + substring(1);
+}
+
+
+extension EmailValidation on String {
+  bool isValidEmail() {
+  return EmailValidator.validate(this);
+  }
 }
 
 

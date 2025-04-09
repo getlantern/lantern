@@ -6,7 +6,7 @@ import 'package:lantern/core/services/db/objectbox.g.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-
+import 'package:objectbox/objectbox.dart';
 import 'injection_container.dart';
 
 class AppDB {

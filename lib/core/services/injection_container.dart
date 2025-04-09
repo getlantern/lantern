@@ -11,7 +11,7 @@ final GetIt sl = GetIt.instance;
 Future<void> injectServices() async {
   sl.registerLazySingleton(() => AppPurchase());
   sl<AppPurchase>().init();
-  sl.registerLazySingleton(() => LanternPlatformService());
+  sl.registerLazySingleton(() => LanternPlatformService(sl<AppPurchase>()));
   await sl<LanternPlatformService>().init();
   sl.registerLazySingleton(() => LanternFFIService());
   sl.registerLazySingleton(() => LocalStorageService());
