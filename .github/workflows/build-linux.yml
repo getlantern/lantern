@@ -47,7 +47,8 @@ jobs:
           uses: subosito/flutter-action@v2.19.0
           with:
             channel: stable
-            flutter-version-file: pubspec.yaml
+            flutter-version: 3.29.0
+            #flutter-version-file: pubspec.yaml
 
         - name: Activate plugins
           run: |
