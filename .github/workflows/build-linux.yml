@@ -2,7 +2,7 @@ name: Build Linux App
 
 on:
   push:
-    branches: [atavism/update-makefile]
+    branches: [main]
   pull_request:
 
 jobs:
