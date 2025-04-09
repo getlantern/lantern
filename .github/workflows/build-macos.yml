@@ -1,0 +1,73 @@
+name: Build macOS
+
+on:
+  push:
+    branches: [aatavism/add-build-scripts]
+  pull_request:
+
+jobs:
+  build-macos:
+    permissions:
+        contents: "read"
+        id-token: "write"
+    env:
+        AC_USERNAME: ${{ secrets.AC_USERNAME }}
+        AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
+    runs-on: macos-15
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: "go.mod"
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2.19.0
+        with:
+          channel: stable
+          flutter-version: 3.29.0
+
+      - name: Install node on macOS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Import Code Signing Certificates
+        uses: apple-actions/import-codesign-certs@v3
+        with:
+          p12-file-base64: ${{ secrets.MACOS_BNS_CERT }}
+          p12-password: ${{ secrets.MACOS_BNS_CERT_PASS }}
+
+      - name: Install provisioning Profile for macos
+        env:
+          BUILD_MACOS_PROVISION_PROFILE_BASE64: ${{ secrets.MACOS_PROVISION_PROFILE_BASE64 }}
+        run: |
+          PROVISIONING_PROFILES_DIR=~/Library/MobileDevice/Provisioning\ Profiles
+          mkdir -p "$PROVISIONING_PROFILES_DIR"
+
+          PP_PATH=$RUNNER_TEMP/build_pp.provisionprofile
+          # apply main provisioning profile
+          echo -n "$BUILD_MACOS_PROVISION_PROFILE_BASE64" | base64 --decode -o $PP_PATH
+          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
+
+      - name: Enable Flutter Desktop Support
+        run: flutter config --enable-macos-desktop
+
+      - name: Install dependencies
+        run: make install-macos-deps
+
+      - name: Build macOS release
+        run: make macos-release
+
+      - name: Upload macOS installer
+        uses: actions/upload-artifact@v4
+        with:
+            name: lantern-installer-dmg
+            path: lantern-installer.dmg
+            retention-days: 2
