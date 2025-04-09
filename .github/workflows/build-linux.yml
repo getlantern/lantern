@@ -44,7 +44,7 @@ jobs:
           uses: seanmiddleditch/gha-setup-ninja@master
 
         - name: Install Flutter
-          uses: subosito/flutter-action@v2
+          uses: subosito/flutter-action@v2.19.0
           with:
             channel: stable
             flutter-version-file: pubspec.yaml
