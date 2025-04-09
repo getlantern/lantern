@@ -18,7 +18,6 @@ class AppPurchase {
 
   void init() {
     final purchaseUpdated = _inAppPurchase.purchaseStream;
-
     _subscription = purchaseUpdated.listen(
       _onPurchaseUpdates,
       onDone: _updateStreamOnDone,
@@ -94,8 +93,14 @@ class AppPurchase {
       if (status == PurchaseStatus.error) {
         /// Error occurred during purchase
         appLogger.error('Purchase error: ${purchaseDetails.error}');
+        if (PlatformUtils.isIOS()) {
+          /// iOS specific handling
+          await _inAppPurchase.completePurchase(purchaseDetails);
+        }
         _onError?.call(purchaseDetails.error?.message.localizedDescription ??
             "Unknown error");
+        /// User has cancelled the purchase
+
         return;
       }
       if (status == PurchaseStatus.canceled) {

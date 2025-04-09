@@ -49,7 +49,7 @@ class _FeatureTile extends StatelessWidget {
 
     return Padding(
       padding: EdgeInsets.symmetric(
-          horizontal: 16, vertical: context.isSmallDevice ? 7 : 8),
+          horizontal: 16, vertical:7),
       child: Row(
         children: [
           AppImage(

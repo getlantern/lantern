@@ -74,7 +74,7 @@ class _PlansState extends State<Plans> {
               mainAxisAlignment: MainAxisAlignment.end,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                SizedBox(height: defaultSize),
+                SizedBox(height: 10),
                 Padding(
                   padding:
                       EdgeInsets.only(left: context.isSmallDevice ? 16 : 0),
@@ -89,7 +89,7 @@ class _PlansState extends State<Plans> {
                     onPressed: () {},
                   ),
                 ),
-                SizedBox(height: 24),
+                SizedBox(height: defaultSize),
                 Center(
                   child: Text(
                     'Plan automatically renews until canceled',

@@ -73,6 +73,6 @@ extension PurchaseErrorExtension on String {
     if (this=='BillingResponse.itemAlreadyOwned') {
       return "purchase_already_owned".i18n;
     }
-    return "error_occurred".i18n;
+    return this;
   }
 }
