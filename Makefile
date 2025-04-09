@@ -4,6 +4,7 @@ BUILD_DIR := bin
 DIST_OUT := dist
 
 APP ?= lantern
+INSTALLER_NAME ?= lantern-installer
 CAPITALIZED_APP := Lantern
 LANTERN_LIB_NAME := liblantern
 LANTERN_CORE := lantern-core
@@ -19,6 +20,7 @@ DARWIN_LIB_AMD64 := $(BUILD_DIR)/macos-amd64/$(LANTERN_LIB_NAME).dylib
 DARWIN_LIB_ARM64 := $(BUILD_DIR)/macos-arm64/$(LANTERN_LIB_NAME).dylib
 DARWIN_LIB_BUILD := $(BUILD_DIR)/macos/$(DARWIN_LIB)
 DARWIN_DEBUG_BUILD := $(BUILD_DIR)/macos/Build/Products/Debug/$(DARWIN_APP_NAME)
+MACOS_ENTITLEMENTS := macos/Runner/Release.entitlements
 
 LINUX_LIB := $(LANTERN_LIB_NAME).so
 LINUX_LIB_AMD64 := $(BUILD_DIR)/linux-amd64/$(LANTERN_LIB_NAME).so
@@ -47,7 +49,13 @@ GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go')
 ## APP_VERSION is the version defined in pubspec.yaml
 APP_VERSION := $(shell grep '^version:' pubspec.yaml | sed 's/version: //;s/ //g')
 
+INSTALLER_RESOURCES := installer-resources
+
 # Missing and Guards
+
+define osxcodesign
+	codesign --options runtime --strict --timestamp --force --entitlements $(MACOS_ENTITLEMENTS) --deep -s "Developer ID Application: Brave New Software Project, Inc (ACZRKC3LQ9)" -v $(1)
+endef
 
 check-gomobile:
 	@if ! command -v gomobile &> /dev/null; then \
@@ -67,6 +75,15 @@ desktop-lib:
 	CGO_ENABLED=1 go build -v -trimpath -buildmode=c-shared -tags="$(BUILD_TAGS)" -ldflags="-w -s $(EXTRA_LDFLAGS)" -o $(LIB_NAME) ./$(FFI_DIR)
 
 # macOS Build
+.PHONY: install-macos-deps
+
+install-macos-deps:
+	npm install -g appdmg
+	brew tap joshdk/tap
+	brew install joshdk/tap/retry
+	brew install imagemagick || true
+	dart pub global activate flutter_distributor
+
 .PHONY: macos-arm64
 macos-arm64: $(DARWIN_LIB_ARM64)
 
@@ -98,10 +115,19 @@ $(DARWIN_DEBUG_BUILD): $(DARWIN_LIB_BUILD)
 	@echo "Building Flutter app (debug) for macOS..."
 	flutter build macos --debug
 
+.PHONY: notarize-darwin
+notarize-darwin: require-ac-username require-ac-password
+	@echo "Notarizing distribution package..." && \
+		./$(INSTALLER_RESOURCES)/tools/notarize-darwin.py \
+		  -u $$AC_USERNAME \
+		  -p $$AC_PASSWORD \
+		  -a ACZRKC3LQ9 \
+		  $(INSTALLER_NAME).dmg
+
 .PHONY: macos-release
-macos-release: clean macos
+macos-release: clean macos pubget gen
 	@echo "Building Flutter app (release) for macOS..."
-	flutter build macos --release
+	flutter_distributor package --platform macos --targets dmg --skip-clean
 
 # Linux Build
 .PHONY: install-linux-deps
