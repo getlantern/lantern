@@ -128,7 +128,7 @@ notarize-darwin: require-ac-username require-ac-password
 macos-release: clean macos pubget gen
 	@echo "Building Flutter app (release) for macOS..."
 	flutter_distributor package --platform macos --targets dmg --skip-clean
-	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-darwin.dmg lantern-installer.dmg
+	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-macos.dmg lantern-installer.dmg
 
 # Linux Build
 .PHONY: install-linux-deps
