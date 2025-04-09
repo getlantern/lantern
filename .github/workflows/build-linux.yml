@@ -62,3 +62,17 @@ jobs:
 
         - name: Build Linux release
           run: make linux-release
+
+        - name: Upload Linux build
+          uses: actions/upload-artifact@v4
+          with:
+            name: lantern-installer-rpm
+            path: lantern-installer-x64.rpm
+            retention-days: 2
+
+        - name: Upload Linux build
+          uses: actions/upload-artifact@v4
+          with:
+            name: lantern-installer-deb
+            path: lantern-installer-x64.deb
+            retention-days: 2
