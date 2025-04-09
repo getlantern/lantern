@@ -55,8 +55,14 @@ jobs:
     
         - name: Enable Flutter Desktop Support
           run: |
-            touch app.env
             flutter config --enable-linux-desktop
+
+        - name: Decode APP_ENV
+          uses: timheuer/base64-to-file@v1.2
+          with:
+            fileName: 'app.env'
+            fileDir: ${{ github.workspace }}
+            encodedString: ${{ secrets.APP_ENV }}
 
         - name: Build Linux release
           run: make linux-release
