@@ -46,7 +46,8 @@ jobs:
         - name: Install Flutter
           uses: subosito/flutter-action@v2
           with:
-            channel: "stable"
+            channel: stable
+            flutter-version-file: pubspec.yaml
 
         - name: Activate plugins
           run: |

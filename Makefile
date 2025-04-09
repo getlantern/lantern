@@ -104,15 +104,7 @@ macos-release: clean macos
 	flutter build macos --release
 
 # Linux Build
-.PHONY: install-flutter install-linux-deps
-
-.PHONY: install-flutter
-install-flutter:
-	git clone https://github.com/flutter/flutter.git /opt/flutter || true
-	/opt/flutter/bin/flutter --version
-	/opt/flutter/bin/flutter channel master
-	/opt/flutter/bin/flutter upgrade
-	/opt/flutter/bin/flutter update-packages --cherry-pick-package intl --cherry-pick-version 0.19.0
+.PHONY: install-linux-deps
 
 install-linux-deps:
 	dart pub global activate flutter_distributor
