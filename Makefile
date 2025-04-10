@@ -152,7 +152,6 @@ notarize-darwin: require-ac-username require-ac-password
 	xcrun stapler staple $(INSTALLER_NAME).dmg
 	@echo "Notarization complete"
 
-
 sign-app:
 	$(call osxcodesign,$(DARWIN_RELEASE_BUILD))
 
