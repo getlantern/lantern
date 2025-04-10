@@ -5,6 +5,7 @@ import (
 
 	"github.com/getlantern/golog"
 	"github.com/getlantern/radiance"
+	"github.com/getlantern/radiance/client"
 	"github.com/sagernet/sing-box/experimental/libbox"
 	_ "golang.org/x/mobile/bind"
 )
@@ -18,7 +19,10 @@ var (
 func SetupRadiance(logDir string, platform libbox.PlatformInterface) {
 	radianceMutex.Lock()
 	defer radianceMutex.Unlock()
-	r, err := radiance.NewRadiance(logDir, platform)
+	r, err := radiance.NewRadiance(client.Options{
+		LogDir:   logDir,
+		PlatIfce: platform,
+	})
 	if err != nil {
 		log.Errorf("Unable to create Radiance: %v", err)
 		return
