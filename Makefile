@@ -20,6 +20,7 @@ DARWIN_LIB_AMD64 := $(BUILD_DIR)/macos-amd64/$(LANTERN_LIB_NAME).dylib
 DARWIN_LIB_ARM64 := $(BUILD_DIR)/macos-arm64/$(LANTERN_LIB_NAME).dylib
 DARWIN_LIB_BUILD := $(BUILD_DIR)/macos/$(DARWIN_LIB)
 DARWIN_DEBUG_BUILD := $(BUILD_DIR)/macos/Build/Products/Debug/$(DARWIN_APP_NAME)
+MACOS_RELEASE_PATH := build/macos/Build/Products/Release/Lantern.app
 MACOS_ENTITLEMENTS := macos/Runner/Release.entitlements
 
 LINUX_LIB := $(LANTERN_LIB_NAME).so
@@ -46,16 +47,18 @@ TAGS=with_gvisor,with_quic,with_wireguard,with_ech,with_utls,with_clash_api,with
 
 GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go')
 
+SIGN_ID="Developer ID Application: Brave New Software Project, Inc (ACZRKC3LQ9)"
+
+define osxcodesign
+	codesign --deep --options runtime --strict --timestamp --force --entitlements $(MACOS_ENTITLEMENTS) --deep -s "$(SIGN_ID)" -v $(1)
+endef
+
 ## APP_VERSION is the version defined in pubspec.yaml
 APP_VERSION := $(shell grep '^version:' pubspec.yaml | sed 's/version: //;s/ //g')
 
 INSTALLER_RESOURCES := installer-resources
 
 # Missing and Guards
-
-define osxcodesign
-	codesign --options runtime --strict --timestamp --force --entitlements $(MACOS_ENTITLEMENTS) --deep -s "Developer ID Application: Brave New Software Project, Inc (ACZRKC3LQ9)" -v $(1)
-endef
 
 guard-%:
 	 @ if [ -z '${${*}}' ]; then echo 'Environment  $* variable not set' && exit 1; fi
@@ -127,7 +130,7 @@ $(DARWIN_DEBUG_BUILD): $(DARWIN_LIB_BUILD)
 .PHONY: notarize-darwin
 notarize-darwin: require-ac-username require-ac-password
 	@echo "Notarizing distribution package..."
-	xcrun notarytool submit "$(INSTALLER_NAME).dmg" \
+	xcrun notarytool submit $(INSTALLER_NAME).dmg \
 		--apple-id $$AC_USERNAME \
 		--team-id "ACZRKC3LQ9" \
 		--password $$AC_PASSWORD \
@@ -137,12 +140,19 @@ notarize-darwin: require-ac-username require-ac-password
 	xcrun stapler staple $(INSTALLER_NAME).dmg
 	@echo "Notarization complete"
 
-.PHONY: macos-release
-macos-release: clean macos pubget gen
+build-macos-release:
 	@echo "Building Flutter app (release) for macOS..."
-	flutter_distributor release --platform macos --targets dmg --skip-clean
+	flutter build macos --release
+
+sign-app:
+	$(call osxcodesign,$(MACOS_RELEASE_PATH))
+
+package-macos:
+	flutter_distributor package --platform macos --targets dmg --skip-clean
 	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-macos.dmg lantern-installer.dmg
-	$(MAKE) notarize-darwin
+
+.PHONY: macos-release
+macos-release: clean macos pubget gen build-macos-release sign-app package-macos notarize-darwin
 
 # Linux Build
 .PHONY: install-linux-deps
