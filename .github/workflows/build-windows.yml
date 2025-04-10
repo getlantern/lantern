@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  build-linux:
+  build-windows:
     runs-on: windows-latest
 
     steps:
