@@ -1,9 +1,10 @@
 .PHONY: gen macos ffi
 
-BUILD_DIR := bin
+BUILD_DIR := build
 DIST_OUT := dist
 
 APP ?= lantern
+INSTALLER_NAME ?= lantern-installer
 CAPITALIZED_APP := Lantern
 LANTERN_LIB_NAME := liblantern
 LANTERN_CORE := lantern-core
@@ -19,6 +20,8 @@ DARWIN_LIB_AMD64 := $(BUILD_DIR)/macos-amd64/$(LANTERN_LIB_NAME).dylib
 DARWIN_LIB_ARM64 := $(BUILD_DIR)/macos-arm64/$(LANTERN_LIB_NAME).dylib
 DARWIN_LIB_BUILD := $(BUILD_DIR)/macos/$(DARWIN_LIB)
 DARWIN_DEBUG_BUILD := $(BUILD_DIR)/macos/Build/Products/Debug/$(DARWIN_APP_NAME)
+DARWIN_RELEASE_BUILD := $(BUILD_DIR)/macos/Build/Products/Release/$(DARWIN_APP_NAME)
+MACOS_ENTITLEMENTS := macos/Runner/Release.entitlements
 
 LINUX_LIB := $(LANTERN_LIB_NAME).so
 LINUX_LIB_AMD64 := $(BUILD_DIR)/linux-amd64/$(LANTERN_LIB_NAME).so
@@ -44,10 +47,24 @@ TAGS=with_gvisor,with_quic,with_wireguard,with_ech,with_utls,with_clash_api,with
 
 GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go')
 
+SIGN_ID="Developer ID Application: Brave New Software Project, Inc (ACZRKC3LQ9)"
+
+define osxcodesign
+	codesign --deep --options runtime --strict --timestamp --force --entitlements $(MACOS_ENTITLEMENTS) -s $(SIGN_ID) -v $(1)
+endef
+
+get-command = $(shell which="$$(which $(1) 2> /dev/null)" && if [[ ! -z "$$which" ]]; then printf %q "$$which"; fi)
+APPDMG    := $(call get-command,appdmg)
+
 ## APP_VERSION is the version defined in pubspec.yaml
 APP_VERSION := $(shell grep '^version:' pubspec.yaml | sed 's/version: //;s/ //g')
 
+INSTALLER_RESOURCES := installer-resources
+
 # Missing and Guards
+
+guard-%:
+	 @ if [ -z '${${*}}' ]; then echo 'Environment  $* variable not set' && exit 1; fi
 
 check-gomobile:
 	@if ! command -v gomobile &> /dev/null; then \
@@ -61,12 +78,30 @@ check-gomobile:
 require-gomobile:
 	@if [[ -z "$(SENTRY)" ]]; then echo 'Missing "sentry-cli" command. See sentry.io for installation instructions.'; exit 1; fi
 
+.PHONY: require-appdmg
+require-appdmg:
+	@if [[ -z "$(APPDMG)" ]]; then echo 'Missing "appdmg" command. Try sudo npm install -g appdmg.'; exit 1; fi
+
+.PHONY: require-ac-username
+require-ac-username: guard-AC_USERNAME ## App Store Connect username - needed for notarizing macOS apps.
+
+.PHONY: require-ac-password
+require-ac-password: guard-AC_PASSWORD ## App Store Connect password - needed for notarizing macOS apps.
 
 desktop-lib: export CGO_CFLAGS="-I./dart_api_dl/include"
 desktop-lib:
 	CGO_ENABLED=1 go build -v -trimpath -buildmode=c-shared -tags="$(BUILD_TAGS)" -ldflags="-w -s $(EXTRA_LDFLAGS)" -o $(LIB_NAME) ./$(FFI_DIR)
 
 # macOS Build
+.PHONY: install-macos-deps
+
+install-macos-deps:
+	npm install -g appdmg
+	brew tap joshdk/tap
+	brew install joshdk/tap/retry
+	brew install imagemagick || true
+	dart pub global activate flutter_distributor
+
 .PHONY: macos-arm64
 macos-arm64: $(DARWIN_LIB_ARM64)
 
@@ -98,10 +133,33 @@ $(DARWIN_DEBUG_BUILD): $(DARWIN_LIB_BUILD)
 	@echo "Building Flutter app (debug) for macOS..."
 	flutter build macos --debug
 
-.PHONY: macos-release
-macos-release: clean macos
+$(DARWIN_RELEASE_BUILD):
 	@echo "Building Flutter app (release) for macOS..."
 	flutter build macos --release
+
+build-macos-release: $(DARWIN_RELEASE_BUILD)
+
+.PHONY: notarize-darwin
+notarize-darwin: require-ac-username require-ac-password
+	@echo "Notarizing distribution package..."
+	xcrun notarytool submit $(INSTALLER_NAME).dmg \
+		--apple-id $$AC_USERNAME \
+		--team-id "ACZRKC3LQ9" \
+		--password $$AC_PASSWORD \
+		--wait
+
+	@echo "Stapling notarization ticket..."
+	xcrun stapler staple $(INSTALLER_NAME).dmg
+	@echo "Notarization complete"
+
+sign-app:
+	$(call osxcodesign,$(DARWIN_RELEASE_BUILD))
+
+package-macos: require-appdmg
+	appdmg appdmg.json $(INSTALLER_NAME).dmg
+
+.PHONY: macos-release
+macos-release: clean macos pubget gen build-macos-release sign-app package-macos notarize-darwin
 
 # Linux Build
 .PHONY: install-linux-deps

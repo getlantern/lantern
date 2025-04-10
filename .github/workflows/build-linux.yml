@@ -50,15 +50,19 @@ jobs:
             flutter-version: 3.29.0
             #flutter-version-file: pubspec.yaml
 
-        - name: Activate plugins
-          run: |
-            dart pub global activate protoc_plugin
-            dart pub global activate flutter_distributor
+        - name: Install dependencies
+          run: make install-linux-deps
     
         - name: Enable Flutter Desktop Support
           run: |
-            touch app.env
             flutter config --enable-linux-desktop
+
+        - name: Decode APP_ENV
+          uses: timheuer/base64-to-file@v1.2
+          with:
+            fileName: 'app.env'
+            fileDir: ${{ github.workspace }}
+            encodedString: ${{ secrets.APP_ENV }}
 
         - name: Build Linux release
           run: make linux-release

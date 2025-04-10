@@ -103,7 +103,7 @@ install(FILES "${FLUTTER_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
 
 # liblantern.so
 set(LANTERN_DIR "..")
-install(FILES "${LANTERN_DIR}/bin/linux/liblantern.so" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+install(FILES "${LANTERN_DIR}/build/linux/liblantern.so" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
 
 foreach(bundled_library ${PLUGIN_BUNDLED_LIBRARIES})
