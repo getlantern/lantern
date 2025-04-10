@@ -104,6 +104,9 @@ class AppRouter extends RootStackRouter {
       path: '/activation-code',
       page: ActivationCode.page,
     ),
-
+    AutoRoute(
+      path: '/app-webview',
+      page: AppWebview.page,
+    ),
   ];
 }

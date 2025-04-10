@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/features/auth/provider/payment_notifier.dart';
@@ -101,8 +102,8 @@ class _AddEmailState extends ConsumerState<AddEmail> {
       {String email = ''}) async {
     appLogger.debug('Continue tapped with type: $type');
     if (type == _SignUpMethodType.email) {
-      if (_formKey.currentState!.validate()) {
-        // email is validated
+      if (!_formKey.currentState!.validate()) {
+        return;
       }
     }
     context.showLoadingDialog();

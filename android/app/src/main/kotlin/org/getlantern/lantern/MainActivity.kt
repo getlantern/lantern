@@ -8,23 +8,20 @@ import android.os.Build
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
-import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
-import io.flutter.plugin.common.EventChannel
 import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.handler.EventHandler
 import org.getlantern.lantern.handler.MethodHandler
 import org.getlantern.lantern.notification.NotificationHelper
 import org.getlantern.lantern.service.LanternVpnService
 import org.getlantern.lantern.service.LanternVpnService.Companion.ACTION_STOP_VPN
-import org.getlantern.lantern.utils.Event
 import org.getlantern.lantern.utils.VpnStatusManager
 import org.getlantern.lantern.utils.isServiceRunning
 
 
-class MainActivity : FlutterActivity() {
+class MainActivity : FlutterFragmentActivity() {
     companion object {
         const val TAG = "A/MainActivity"
         lateinit var instance: MainActivity
@@ -117,6 +114,7 @@ class MainActivity : FlutterActivity() {
     }
 
 
+    @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == VPN_PERMISSION_REQUEST_CODE) {

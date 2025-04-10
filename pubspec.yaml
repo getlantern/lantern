@@ -93,9 +93,11 @@ dependencies:
   win32_registry: ^1.1.5
   # Utils
   fpdart: ^1.1.1
-
+  flutter_inappwebview: ^6.1.5
+  desktop_webview_window: ^0.2.3
   # payment
   in_app_purchase: ^3.2.1
+  flutter_stripe: ^11.4.0
   
 dev_dependencies:
   flutter_test:

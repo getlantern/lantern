@@ -32,7 +32,7 @@ class AppTile extends StatelessWidget {
       AppTile(
         icon: icon,
         label: label,
-        onPressed: () => UrlUtils.openUrl(url),
+        onPressed: () => UrlUtils.openWithSystemBrowser(url),
         trailing: AppImage(path: AppImagePaths.outsideBrowser),
         contentPadding: contentPadding,
       );
