@@ -33,10 +33,6 @@ jobs:
             channel: stable
             flutter-version: 3.29.0
             #flutter-version-file: pubspec.yaml
-
-        - name: Activate plugins
-          run:
-            dart pub global activate flutter_distributor
     
         - name: Enable Flutter Desktop Support
           run: |

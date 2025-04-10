@@ -10,7 +10,7 @@ replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v
 
 require (
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
-	github.com/getlantern/radiance v0.0.0-20250327204839-8a910fc61094
+	github.com/getlantern/radiance v0.0.0-20250404013922-fcb930ca277f
 	github.com/sagernet/sing-box v1.11.5
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/mobile v0.0.0-20250305212854-3a7bc9f8a4de
@@ -124,15 +124,16 @@ require (
 	github.com/getlantern/byteexec v0.0.0-20220903142956-e6ed20032cfd // indirect
 	github.com/getlantern/elevate v0.0.0-20220903142053-479ab992b264 // indirect
 	github.com/getlantern/filepersist v0.0.0-20210901195658-ed29a1cb0b7c // indirect
-	github.com/getlantern/fronted v0.0.0-20250324204348-a0f02f9a2843 // indirect
+	github.com/getlantern/fronted v0.0.0-20250330001402-75899df1c2cd // indirect
 	github.com/getlantern/iptool v0.0.0-20230112135223-c00e863b2696 // indirect
 	github.com/getlantern/jibber_jabber v0.0.0-20210901195950-68955124cc42 // indirect
 	github.com/getlantern/keepcurrent v0.0.0-20240126172110-2e0264ca385d // indirect
 	github.com/getlantern/keyman v0.0.0-20230503155501-4e864ca2175b // indirect
-	github.com/getlantern/kindling v0.0.0-20250327204452-cc0a77c57e75 // indirect
+	github.com/getlantern/kindling v0.0.0-20250401200447-f536cbd057e6 // indirect
 	github.com/getlantern/mtime v0.0.0-20200417132445-23682092d1f7 // indirect
 	github.com/getlantern/netx v0.0.0-20240830183145-c257516187f0 // indirect
 	github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 // indirect
+	github.com/getlantern/sing-box-extensions v0.0.0-20250402200957-bb61b4768333 // indirect
 	github.com/getlantern/tlsdialer/v3 v3.0.3 // indirect
 	github.com/getsentry/sentry-go v0.31.1 // indirect
 	github.com/gobwas/ws v1.4.0 // indirect
@@ -144,11 +145,18 @@ require (
 	github.com/nwaples/rardecode v1.1.0 // indirect
 	github.com/nxadm/tail v1.4.11 // indirect
 	github.com/refraction-networking/utls v1.6.7 // indirect
-	github.com/sagernet/sing v0.6.3 // indirect
+	github.com/sagernet/sing v0.6.4 // indirect
 	github.com/sagernet/sing-tun v0.6.1 // indirect
 	github.com/shadowsocks/go-shadowsocks2 v0.1.5 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
+	go.opentelemetry.io/otel/exporters/stdout/stdoutlog v0.11.0 // indirect
+	go.opentelemetry.io/otel/exporters/stdout/stdoutmetric v1.35.0 // indirect
+	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.35.0 // indirect
+	go.opentelemetry.io/otel/log v0.11.0 // indirect
+	go.opentelemetry.io/otel/sdk v1.35.0 // indirect
+	go.opentelemetry.io/otel/sdk/log v0.11.0 // indirect
+	go.opentelemetry.io/otel/sdk/metric v1.35.0 // indirect
 	golang.org/x/crypto v0.36.0 // indirect
 	golang.org/x/sys v0.31.0 // indirect
 )

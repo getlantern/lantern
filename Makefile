@@ -228,7 +228,7 @@ windows-debug: windows
 	flutter build windows --debug
 
 .PHONY: windows-release
-windows-release: clean windows
+windows-release: clean windows pubget gen
 	@echo "Building Flutter app (debug) for Windows..."
 	flutter_distributor package --flutter-build-args=verbose --platform windows --targets "msix,exe"
 
