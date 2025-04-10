@@ -148,7 +148,7 @@ notarize-darwin: require-ac-username require-ac-password
 
 
 sign-app:
-	$(call osxcodesign,$(MACOS_RELEASE_PATH))
+	$(call osxcodesign,$(DARWIN_RELEASE_BUILD))
 
 package-macos:
 	flutter_distributor package --platform macos --targets dmg --skip-clean
