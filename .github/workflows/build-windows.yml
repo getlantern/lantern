@@ -1,0 +1,71 @@
+name: Build Windows
+
+on:
+  push:
+    branches: [atavism/windows-build]
+  pull_request:
+
+jobs:
+  build-linux:
+    runs-on: windows-latest
+
+    steps:
+        - name: Checkout repository
+          uses: actions/checkout@v4
+
+        - name: Set up Go
+          uses: actions/setup-go@v5
+          with:
+            go-version-file: "go.mod"
+
+        - name: Install WebView2 Runtime
+          shell: pwsh
+          run: |
+            Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/p/?LinkId=2124703" -OutFile "MicrosoftEdgeWebView2Setup.exe"
+            Start-Process -FilePath ".\MicrosoftEdgeWebView2Setup.exe" -ArgumentList "/silent", "/install" -Wait
+        
+        - name: Set up MinGW
+          run: choco install mingw -y
+
+        - name: Install Flutter
+          uses: subosito/flutter-action@v2.19.0
+          with:
+            channel: stable
+            flutter-version: 3.29.0
+            #flutter-version-file: pubspec.yaml
+
+        - name: Activate plugins
+          run:
+            dart pub global activate flutter_distributor
+    
+        - name: Enable Flutter Desktop Support
+          run: |
+            flutter config --enable-windows-desktop
+
+        # - name: Sign liblantern.dll with Azure Code Signing
+        #   uses: getlantern/trusted-signing-action@main
+        #   with:
+        #     azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        #     azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        #     azure-client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+        #     endpoint: https://wus2.codesigning.azure.net/
+        #     code-signing-account-name: code-signing
+        #     certificate-profile-name: Lantern
+        #     files-folder: ${{ github.workspace }}\build
+        #     files-folder-filter: dll
+        #     file-digest: SHA256
+        #     timestamp-rfc3161: http://timestamp.acs.microsoft.com
+        #     timestamp-digest: SHA256
+
+        - name: Install dependencies
+          run: make install-windows-deps
+  
+        - name: Build Windows release
+          run: make windows-release
+  
+        - name: Upload Windows installer
+          uses: actions/upload-artifact@v4
+          with:
+              name: lantern-installer-exe
+              path: lantern-installer.exe
+              retention-days: 2    
