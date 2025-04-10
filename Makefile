@@ -1,6 +1,6 @@
 .PHONY: gen macos ffi
 
-BUILD_DIR := bin
+BUILD_DIR := build
 DIST_OUT := dist
 
 APP ?= lantern
