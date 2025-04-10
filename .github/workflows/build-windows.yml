@@ -3,6 +3,7 @@ name: Build Windows
 on:
   push:
     branches: [atavism/windows-build]
+  pull_request:
 
 jobs:
   build-windows:
