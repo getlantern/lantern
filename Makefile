@@ -20,7 +20,7 @@ DARWIN_LIB_AMD64 := $(BUILD_DIR)/macos-amd64/$(LANTERN_LIB_NAME).dylib
 DARWIN_LIB_ARM64 := $(BUILD_DIR)/macos-arm64/$(LANTERN_LIB_NAME).dylib
 DARWIN_LIB_BUILD := $(BUILD_DIR)/macos/$(DARWIN_LIB)
 DARWIN_DEBUG_BUILD := $(BUILD_DIR)/macos/Build/Products/Debug/$(DARWIN_APP_NAME)
-MACOS_RELEASE_PATH := build/macos/Build/Products/Release/Lantern.app
+DARWIN_RELEASE_BUILD := build/macos/Build/Products/Release/Lantern.app
 MACOS_ENTITLEMENTS := macos/Runner/Release.entitlements
 
 LINUX_LIB := $(LANTERN_LIB_NAME).so
@@ -50,7 +50,7 @@ GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go')
 SIGN_ID="Developer ID Application: Brave New Software Project, Inc (ACZRKC3LQ9)"
 
 define osxcodesign
-	codesign --deep --options runtime --strict --timestamp --force --entitlements $(MACOS_ENTITLEMENTS) --deep -s "$(SIGN_ID)" -v $(1)
+	codesign --deep --options runtime --strict --timestamp --force --entitlements $(MACOS_ENTITLEMENTS) --deep -s $(SIGN_ID) -v $(1)
 endef
 
 ## APP_VERSION is the version defined in pubspec.yaml
@@ -127,6 +127,12 @@ $(DARWIN_DEBUG_BUILD): $(DARWIN_LIB_BUILD)
 	@echo "Building Flutter app (debug) for macOS..."
 	flutter build macos --debug
 
+$(DARWIN_RELEASE_BUILD):
+	@echo "Building Flutter app (release) for macOS..."
+	flutter build macos --release
+
+build-macos-release: $(DARWIN_RELEASE_BUILD)
+
 .PHONY: notarize-darwin
 notarize-darwin: require-ac-username require-ac-password
 	@echo "Notarizing distribution package..."
@@ -140,9 +146,6 @@ notarize-darwin: require-ac-username require-ac-password
 	xcrun stapler staple $(INSTALLER_NAME).dmg
 	@echo "Notarization complete"
 
-build-macos-release:
-	@echo "Building Flutter app (release) for macOS..."
-	flutter build macos --release
 
 sign-app:
 	$(call osxcodesign,$(MACOS_RELEASE_PATH))
