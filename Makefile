@@ -57,6 +57,9 @@ define osxcodesign
 	codesign --options runtime --strict --timestamp --force --entitlements $(MACOS_ENTITLEMENTS) --deep -s "Developer ID Application: Brave New Software Project, Inc (ACZRKC3LQ9)" -v $(1)
 endef
 
+guard-%:
+	 @ if [ -z '${${*}}' ]; then echo 'Environment  $* variable not set' && exit 1; fi
+
 check-gomobile:
 	@if ! command -v gomobile &> /dev/null; then \
 		echo "gomobile not found. Installing..."; \
@@ -69,6 +72,12 @@ check-gomobile:
 require-gomobile:
 	@if [[ -z "$(SENTRY)" ]]; then echo 'Missing "sentry-cli" command. See sentry.io for installation instructions.'; exit 1; fi
 
+
+.PHONY: require-ac-username
+require-ac-username: guard-AC_USERNAME ## App Store Connect username - needed for notarizing macOS apps.
+
+.PHONY: require-ac-password
+require-ac-password: guard-AC_PASSWORD ## App Store Connect password - needed for notarizing macOS apps.
 
 desktop-lib: export CGO_CFLAGS="-I./dart_api_dl/include"
 desktop-lib:
