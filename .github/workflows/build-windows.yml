@@ -58,9 +58,11 @@ jobs:
         #     timestamp-digest: SHA256
 
         - name: Install dependencies
+          shell: bash
           run: make install-windows-deps
   
         - name: Build Windows release
+          shell: bash
           run: make windows-release
   
         - name: Upload Windows installer
