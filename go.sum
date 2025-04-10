@@ -1,3 +1,5 @@
+dario.cat/mergo v1.0.1 h1:Ra4+bf83h2ztPIQYNP99R6m+Y7KfnARDfID+a+vLl4s=
+dario.cat/mergo v1.0.1/go.mod h1:uNxQE+84aUszobStD9th8a29P2fMDhsBdgRYvZOxGmk=
 github.com/1Password/srp v0.2.0 h1:PZKAafEyExnwevliL6d2+FDhJXZ0phxqiG2OeIaj9Xk=
 github.com/1Password/srp v0.2.0/go.mod h1:LIGqQ7eEA0UJT98j7sXk60QWVpHJ3g00BX6LOm9kYTc=
 github.com/Jigsaw-Code/outline-sdk v0.0.19 h1:/OpMz+3B/9ypjq/UyEvwZSflzJ4jXFginUOZeN0UssM=
@@ -39,6 +41,8 @@ github.com/getlantern/appdir v0.0.0-20250324200952-507a0625eb01/go.mod h1:3vR6+j
 github.com/getlantern/byteexec v0.0.0-20170405023437-4cfb26ec74f4/go.mod h1:4WCQkaCIwta0KlF9bQZA1jYqp8bzIS2PeCqjnef8nZ8=
 github.com/getlantern/byteexec v0.0.0-20220903142956-e6ed20032cfd h1:0xt9OTbV50a/+ZarMcr86ybWiN1v+bbwzdnVuXHzR/o=
 github.com/getlantern/byteexec v0.0.0-20220903142956-e6ed20032cfd/go.mod h1:oD9q9NB1LNBLHk3WAwza4tivxV7tm7jKFlCNCAv3+M8=
+github.com/getlantern/common v1.2.1-0.20250404213255-37d58e3e0fae h1:uRuUGf1TgBRCWelqxKC1aa7gqTsQ6u4dPwMyRGDZ5x4=
+github.com/getlantern/common v1.2.1-0.20250404213255-37d58e3e0fae/go.mod h1:ucQSLeHpC4ns6VvlWBinK7BI8LrUWlhZUHArs6VRvXI=
 github.com/getlantern/context v0.0.0-20190109183933-c447772a6520/go.mod h1:L+mq6/vvYHKjCX2oez0CgEAJmbq1fbb/oNJIWQkBybY=
 github.com/getlantern/context v0.0.0-20220418194847-3d5e7a086201 h1:oEZYEpZo28Wdx+5FZo4aU7JFXu0WG/4wJWese5reQSA=
 github.com/getlantern/context v0.0.0-20220418194847-3d5e7a086201/go.mod h1:Y9WZUHEb+mpra02CbQ/QczLUe6f0Dezxaw5DCJlJQGo=
@@ -99,10 +103,8 @@ github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 h1:JWH5BB2o0e
 github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175/go.mod h1:h3S9LBmmzN/xM+lwYZHE4abzTtCTtidKtG+nxZcCZX0=
 github.com/getlantern/radiance v0.0.0-20250327204839-8a910fc61094 h1:Nn6sphNCyB8ghv0zNCYmAqtfb5G+1H7UD76iYNRsFfQ=
 github.com/getlantern/radiance v0.0.0-20250327204839-8a910fc61094/go.mod h1:V/qPzAVLzK+rjJLXZQFgcrT2bpIWPeyj2UNTdL4utOE=
-github.com/getlantern/radiance v0.0.0-20250404013922-fcb930ca277f h1:M+4NyMeGMuyFh1UCASLFjao93aFeb9D9aN546UpF2NE=
-github.com/getlantern/radiance v0.0.0-20250404013922-fcb930ca277f/go.mod h1:G4p8kbnmUm94fY/IwFFUYGuGzkGoccLX2uZwp8ITX1I=
-github.com/getlantern/radiance v0.0.0-20250410160448-6a1b70a7bb6c h1:08OEbrGKSllmdNBNQUWHuxZVWZOkPzOsN0Tgi91R/X8=
-github.com/getlantern/radiance v0.0.0-20250410160448-6a1b70a7bb6c/go.mod h1:G4p8kbnmUm94fY/IwFFUYGuGzkGoccLX2uZwp8ITX1I=
+github.com/getlantern/radiance v0.0.0-20250410215708-4785717abee6 h1:Igx9fb8B234NFzssHJCyrv5u53B8kGLP0DiU2QNcrAg=
+github.com/getlantern/radiance v0.0.0-20250410215708-4785717abee6/go.mod h1:3VFwmAvQQ5f1STDwIGIYAWH+g+s6hyRrd1nedYa9Mow=
 github.com/getlantern/sing-box-extensions v0.0.0-20250402200957-bb61b4768333 h1:uzHP/we+IZUbeL3WPq00tpdmc8hkh+iiyI7faeslM+U=
 github.com/getlantern/sing-box-extensions v0.0.0-20250402200957-bb61b4768333/go.mod h1:Vig0N8h0x4KtG0QZkPk1ZvEeZ7+Kkd12xiJMGrGNiZE=
 github.com/getlantern/sing-box-minimal v1.11.6-0.20250319162213-b56a0b17a972 h1:n1d3qX4G8IqDiOUnZMy404ZJP0cJqYPBYAtgBnZiDvU=

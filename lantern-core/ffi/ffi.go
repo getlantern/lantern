@@ -18,6 +18,7 @@ import (
 	"github.com/getlantern/golog"
 	"github.com/getlantern/lantern-outline/lantern-core/dart_api_dl"
 	"github.com/getlantern/radiance"
+	"github.com/getlantern/radiance/client"
 )
 
 type VPNStatus string
@@ -47,16 +48,21 @@ type lanternService struct {
 }
 
 //export setup
-func setup(dir *C.char, port C.int64_t, api unsafe.Pointer) {
+func setup(_logDir, _dataDir *C.char, port C.int64_t, api unsafe.Pointer) {
 	serverOnce.Do(func() {
 
 		// initialize the Dart API DL bridge.
 		dart_api_dl.Init(api)
 
-		dataDir := C.GoString(dir)
+		logDir := C.GoString(_logDir)
+		dataDir := C.GoString(_dataDir)
+
 		servicePort := int64(port)
 
-		r, err := radiance.NewRadiance(dataDir, nil)
+		r, err := radiance.NewRadiance(client.Options{
+			DataDir: dataDir,
+			LogDir:  logDir,
+		})
 		if err != nil {
 			log.Fatalf("unable to create VPN server: %v", err)
 		}
