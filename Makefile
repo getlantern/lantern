@@ -20,7 +20,7 @@ DARWIN_LIB_AMD64 := $(BUILD_DIR)/macos-amd64/$(LANTERN_LIB_NAME).dylib
 DARWIN_LIB_ARM64 := $(BUILD_DIR)/macos-arm64/$(LANTERN_LIB_NAME).dylib
 DARWIN_LIB_BUILD := $(BUILD_DIR)/macos/$(DARWIN_LIB)
 DARWIN_DEBUG_BUILD := $(BUILD_DIR)/macos/Build/Products/Debug/$(DARWIN_APP_NAME)
-DARWIN_RELEASE_BUILD := build/macos/Build/Products/Release/Lantern.app
+DARWIN_RELEASE_BUILD := $(BUILD_DIR)/macos/Build/Products/Release/$(DARWIN_APP_NAME)
 MACOS_ENTITLEMENTS := macos/Runner/Release.entitlements
 
 LINUX_LIB := $(LANTERN_LIB_NAME).so
@@ -50,8 +50,11 @@ GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go')
 SIGN_ID="Developer ID Application: Brave New Software Project, Inc (ACZRKC3LQ9)"
 
 define osxcodesign
-	codesign --deep --options runtime --strict --timestamp --force --entitlements $(MACOS_ENTITLEMENTS) --deep -s $(SIGN_ID) -v $(1)
+	codesign --deep --options runtime --strict --timestamp --force --entitlements $(MACOS_ENTITLEMENTS) -s $(SIGN_ID) -v $(1)
 endef
+
+get-command = $(shell which="$$(which $(1) 2> /dev/null)" && if [[ ! -z "$$which" ]]; then printf %q "$$which"; fi)
+APPDMG    := $(call get-command,appdmg)
 
 ## APP_VERSION is the version defined in pubspec.yaml
 APP_VERSION := $(shell grep '^version:' pubspec.yaml | sed 's/version: //;s/ //g')
@@ -75,6 +78,9 @@ check-gomobile:
 require-gomobile:
 	@if [[ -z "$(SENTRY)" ]]; then echo 'Missing "sentry-cli" command. See sentry.io for installation instructions.'; exit 1; fi
 
+.PHONY: require-appdmg
+require-appdmg:
+	@if [[ -z "$(APPDMG)" ]]; then echo 'Missing "appdmg" command. Try sudo npm install -g appdmg.'; exit 1; fi
 
 .PHONY: require-ac-username
 require-ac-username: guard-AC_USERNAME ## App Store Connect username - needed for notarizing macOS apps.
@@ -150,9 +156,8 @@ notarize-darwin: require-ac-username require-ac-password
 sign-app:
 	$(call osxcodesign,$(DARWIN_RELEASE_BUILD))
 
-package-macos:
-	flutter_distributor package --platform macos --targets dmg --skip-clean
-	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-macos.dmg lantern-installer.dmg
+package-macos: require-appdmg
+	appdmg appdmg.json $(INSTALLER_NAME).dmg
 
 .PHONY: macos-release
 macos-release: clean macos pubget gen build-macos-release sign-app package-macos notarize-darwin
