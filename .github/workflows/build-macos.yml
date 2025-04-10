@@ -2,7 +2,7 @@ name: Build macOS
 
 on:
   push:
-    branches: [atavism/quick-test]
+    branches: [main]
   pull_request:
 
 jobs:
