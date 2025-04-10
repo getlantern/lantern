@@ -57,6 +57,9 @@ jobs:
           shell: bash
           run: make install-windows-deps
   
+        - name: Add Dart pub global bin to PATH
+          run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+
         - name: Build Windows release
           shell: bash
           run: make windows-release
