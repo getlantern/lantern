@@ -129,6 +129,7 @@ notarize-darwin: require-ac-username require-ac-password
 	@echo "Notarizing distribution package..."
 	xcrun notarytool submit "$(INSTALLER_NAME).dmg" \
 		--apple-id $$AC_USERNAME \
+		--team-id "ACZRKC3LQ9" \
 		--password $$AC_PASSWORD \
 		--wait
 
