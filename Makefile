@@ -126,19 +126,22 @@ $(DARWIN_DEBUG_BUILD): $(DARWIN_LIB_BUILD)
 
 .PHONY: notarize-darwin
 notarize-darwin: require-ac-username require-ac-password
-	@echo "Notarizing distribution package..." && \
-		./$(INSTALLER_RESOURCES)/tools/notarize-darwin.py \
-		  -u $$AC_USERNAME \
-		  -p $$AC_PASSWORD \
-		  -a ACZRKC3LQ9 \
-		  $(INSTALLER_NAME).dmg
+	@echo "Notarizing distribution package..."
+	xcrun notarytool submit "$(INSTALLER_NAME).dmg" \
+		--apple-id $$AC_USERNAME \
+		--password $$AC_PASSWORD \
+		--wait
+
+	@echo "Stapling notarization ticket..."
+	xcrun stapler staple $(INSTALLER_NAME).dmg
+	@echo "Notarization complete"
 
 .PHONY: macos-release
 macos-release: clean macos pubget gen
 	@echo "Building Flutter app (release) for macOS..."
 	flutter_distributor package --platform macos --targets dmg --skip-clean
 	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-macos.dmg lantern-installer.dmg
-	make notarize-darwin
+	$(MAKE) notarize-darwin
 
 # Linux Build
 .PHONY: install-linux-deps
