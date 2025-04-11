@@ -19,22 +19,25 @@ class AppsSplitTunneling extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final searchEnabled = useState(false);
     final searchQuery = ref.watch(searchQueryProvider);
 
     final allApps = ref.watch(appsDataProvider).value ?? [];
     final enabledApps = ref.watch(splitTunnelingAppsProvider);
     final installedApps = allApps.where((a) => a.iconPath.isNotEmpty).toSet();
+
+    matchesSearch(app) =>
+        searchQuery.isEmpty ||
+        app.name.toLowerCase().contains(searchQuery.toLowerCase());
+
     final enabledAppNames =
         enabledApps.map((a) => a.name.toLowerCase()).toSet();
-    final enabledList = [...enabledApps]
+
+    final enabledList = enabledApps.where(matchesSearch).toList()
       ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 
     final disabledApps = installedApps.where((app) {
-      final matchesSearch = searchQuery.isEmpty ||
-          app.name.toLowerCase().contains(searchQuery.toLowerCase());
       final isDisabled = !enabledAppNames.contains(app.name.toLowerCase());
-      return matchesSearch && isDisabled;
+      return matchesSearch(app) && isDisabled;
     }).toList()
       ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 

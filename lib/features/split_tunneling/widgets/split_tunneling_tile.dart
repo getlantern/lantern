@@ -33,7 +33,7 @@ class SplitTunnelingTile extends StatelessWidget {
               ),
             )
           : null,
-      onPressed: () => appRouter.push(WebsiteSplitTunneling()),
+      onPressed: onPressed,
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
