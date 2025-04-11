@@ -3,7 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/website_data.dart';
+import 'package:lantern/core/models/website.dart';
 import 'package:lantern/core/split_tunneling/website_notifier.dart';
 
 class WebsiteDomainInput extends HookConsumerWidget {
@@ -11,7 +11,6 @@ class WebsiteDomainInput extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final errorText = useState<String?>(null);
     final textController = useTextEditingController();
 
     final enabledWebsites = ref.watch(splitTunnelingWebsitesProvider);
@@ -25,32 +24,28 @@ class WebsiteDomainInput extends HookConsumerWidget {
     // split tunneling list
     Website? validateDomain(String input, Set<Website> existingWebsites,
         void Function(String) onError) {
-      try {
-        var formatted = input;
-        if (!formatted.startsWith("http://") &&
-            !formatted.startsWith("https://")) {
-          formatted = "https://$formatted";
-        }
+      var formatted = input;
+      if (!formatted.startsWith("http://") &&
+          !formatted.startsWith("https://")) {
+        formatted = "https://$formatted";
+      }
 
-        final uri = Uri.parse(formatted);
-        final domain = UrlUtils.extractDomain(uri);
+      final uri = Uri.parse(formatted);
+      final domain = UrlUtils.extractDomain(uri);
 
-        if (!UrlUtils.isValidDomainOrIP(domain)) {
-          throw FormatException("Invalid domain");
-        }
-
-        final website = Website(domain: domain, isEnabled: true);
-
-        if (existingWebsites.contains(website)) {
-          onError("$domain already added");
-          return null;
-        }
-
-        return website;
-      } catch (e) {
-        onError("$input is invalid");
+      if (!UrlUtils.isValidDomainOrIP(domain)) {
+        onError("Invalid domain");
         return null;
       }
+
+      final website = Website(domain: domain);
+
+      if (existingWebsites.contains(website)) {
+        onError("$domain already added");
+        return null;
+      }
+
+      return website;
     }
 
     void validateAndExtractDomain() {
@@ -78,17 +73,16 @@ class WebsiteDomainInput extends HookConsumerWidget {
         }
       }
 
-      for (final website in added) {
-        ref
-            .read(splitTunnelingWebsitesProvider.notifier)
-            .toggleWebsite(website);
+      if (errors.isNotEmpty) {
+        showSnackbar(context, errors.join('\n'));
+      } else {
+        for (final website in added) {
+          ref.read(splitTunnelingWebsitesProvider.notifier).addWebsite(website);
+        }
       }
-
       if (added.isNotEmpty) {
         textController.clear();
       }
-
-      errorText.value = errors.isNotEmpty ? errors.join('\n') : null;
     }
 
     return Padding(

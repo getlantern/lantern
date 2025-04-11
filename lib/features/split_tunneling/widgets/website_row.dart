@@ -5,7 +5,7 @@ import 'package:lantern/core/common/app_buttons.dart';
 import 'package:lantern/core/common/app_colors.dart';
 import 'package:lantern/core/common/app_image_paths.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
-import 'package:lantern/core/models/website_data.dart';
+import 'package:lantern/core/models/website.dart';
 import 'package:lantern/core/widgets/app_tile.dart';
 
 class WebsiteRow extends StatelessWidget {

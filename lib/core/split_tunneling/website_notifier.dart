@@ -1,4 +1,4 @@
-import 'package:lantern/core/models/website_data.dart';
+import 'package:lantern/core/models/website.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -16,16 +16,15 @@ class SplitTunnelingWebsites extends _$SplitTunnelingWebsites {
     return _db.getEnabledWebsites();
   }
 
-  // Toggle app selection for split tunneling
-  Future<void> toggleWebsite(Website website) async {
-    final isCurrentlyEnabled = state.any((a) => website.domain == a.domain);
+  Future<void> addWebsite(Website website) async {
+    if (state.any((a) => website.domain == a.domain)) return;
+    state = {...state, website};
+    _db.saveWebsites(state);
+  }
 
-    if (isCurrentlyEnabled) {
-      state = state.where((a) => a.domain != website.domain).toSet();
-    } else {
-      state = {...state, website.copyWith(isEnabled: true)};
-    }
-
+  Future<void> removeWebsite(Website website) async {
+    if (!state.any((a) => a.domain == website.domain)) return;
+    state = state.where((a) => a.domain != website.domain).toSet();
     _db.saveWebsites(state);
   }
 }

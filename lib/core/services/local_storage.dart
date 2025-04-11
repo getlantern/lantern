@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:objectbox/objectbox.dart';
 import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/models/app_data.dart';
-import 'package:lantern/core/models/website_data.dart';
+import 'package:lantern/core/models/website.dart';
 import 'package:lantern/core/services/db/objectbox.g.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:path/path.dart' as p;
@@ -136,20 +136,7 @@ class LocalStorageService {
   }
 
   Set<Website> getEnabledWebsites() {
-    return _websitesBox.getAll().where((a) => a.isEnabled).toSet();
-  }
-
-  void toggleWebsite(Website website) {
-    final existing = _websitesBox
-        .query(Website_.domain.equals(website.domain) as Condition<Website>?)
-        .build()
-        .findFirst();
-
-    if (existing != null) {
-      _websitesBox.remove(existing.id);
-    } else {
-      _websitesBox.put(website.copyWith(isEnabled: true));
-    }
+    return _websitesBox.getAll().toSet();
   }
 }
 

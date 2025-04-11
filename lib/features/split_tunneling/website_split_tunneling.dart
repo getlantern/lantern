@@ -58,7 +58,7 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
                   website: website,
                   onToggle: () => ref
                       .read(splitTunnelingWebsitesProvider.notifier)
-                      .toggleWebsite(website),
+                      .removeWebsite(website),
                 )),
           ],
           SizedBox(height: defaultSize),

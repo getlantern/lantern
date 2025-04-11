@@ -15,7 +15,7 @@ import 'package:objectbox/objectbox.dart' as obx;
 import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
 import '../../../core/models/app_data.dart';
-import '../../../core/models/website_data.dart';
+import '../../../core/models/website.dart';
 import '../../../core/services/local_storage.dart';
 
 export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
@@ -94,11 +94,6 @@ final _entities = <obx_int.ModelEntity>[
             id: const obx_int.IdUid(2, 7716209131748199990),
             name: 'domain',
             type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(3, 1230399441936964031),
-            name: 'isEnabled',
-            type: 1,
             flags: 0)
       ],
       relations: <obx_int.ModelRelation>[],
@@ -149,7 +144,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
       retiredPropertyUids: const [
         366476197617928400,
         5682544289677202283,
-        7465496422607335786
+        7465496422607335786,
+        1230399441936964031
       ],
       retiredRelationUids: const [],
       modelVersion: 5,
@@ -244,7 +240,6 @@ obx_int.ModelDefinition getObjectBoxModel() {
           fbb.startTable(4);
           fbb.addInt64(0, object.id);
           fbb.addOffset(1, domainOffset);
-          fbb.addBool(2, object.isEnabled);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -255,10 +250,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
               const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
           final domainParam = const fb.StringReader(asciiOptimization: true)
               .vTableGet(buffer, rootOffset, 6, '');
-          final isEnabledParam =
-              const fb.BoolReader().vTableGet(buffer, rootOffset, 8, false);
-          final object = Website(
-              id: idParam, domain: domainParam, isEnabled: isEnabledParam);
+          final object = Website(id: idParam, domain: domainParam);
 
           return object;
         })
@@ -314,8 +306,4 @@ class Website_ {
   /// See [Website.domain].
   static final domain =
       obx.QueryStringProperty<Website>(_entities[2].properties[1]);
-
-  /// See [Website.isEnabled].
-  static final isEnabled =
-      obx.QueryBooleanProperty<Website>(_entities[2].properties[2]);
 }
