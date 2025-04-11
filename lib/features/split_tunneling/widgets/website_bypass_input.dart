@@ -118,6 +118,7 @@ class WebsiteDomainInput extends HookConsumerWidget {
                   child: TextField(
                     controller: textController,
                     style: AppTestStyles.bodyMedium,
+                    onSubmitted: (_) => validateAndExtractDomain(),
                     decoration: InputDecoration(
                       hintText: 'enter_url'.i18n,
                       hintStyle: AppTestStyles.bodySmall.copyWith(
