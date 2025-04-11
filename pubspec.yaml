@@ -88,6 +88,7 @@ dependencies:
   win32_registry: ^1.1.5
   # Utils
   fpdart: ^1.1.1
+  rxdart: ^0.28.0
   
 dev_dependencies:
   flutter_test:
@@ -134,7 +135,7 @@ ffigen:
   output: "lib/lantern/lantern_generated_bindings.dart"
   headers:
     entry-points:
-      - "bin/**/liblantern.h"
+      - "build/**/liblantern.h"
   exclude:
     enums:
       - 'idtype_t'

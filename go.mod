@@ -10,11 +10,12 @@ replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v
 
 require (
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
-	github.com/getlantern/radiance v0.0.0-20250404013922-fcb930ca277f
+	github.com/getlantern/radiance v0.0.0-20250410220332-470094a35a22
 	github.com/sagernet/sing-box v1.11.5
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/mobile v0.0.0-20250305212854-3a7bc9f8a4de
 	google.golang.org/protobuf v1.36.5
+	howett.net/plist v1.0.1
 )
 
 require (
@@ -114,6 +115,7 @@ require (
 )
 
 require (
+	dario.cat/mergo v1.0.1 // indirect
 	github.com/Jigsaw-Code/outline-sdk/x v0.0.2 // indirect
 	github.com/alitto/pond/v2 v2.1.5 // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
@@ -122,6 +124,7 @@ require (
 	github.com/getlantern/algeneva v0.0.0-20250307163401-1824e7b54f52 // indirect
 	github.com/getlantern/appdir v0.0.0-20250324200952-507a0625eb01 // indirect
 	github.com/getlantern/byteexec v0.0.0-20220903142956-e6ed20032cfd // indirect
+	github.com/getlantern/common v1.2.1-0.20250404213255-37d58e3e0fae // indirect
 	github.com/getlantern/elevate v0.0.0-20220903142053-479ab992b264 // indirect
 	github.com/getlantern/filepersist v0.0.0-20210901195658-ed29a1cb0b7c // indirect
 	github.com/getlantern/fronted v0.0.0-20250330001402-75899df1c2cd // indirect

@@ -1,34 +1,114 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:lantern/core/common/app_text_styles.dart';
-import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/common/app_asset.dart';
+import 'package:lantern/core/common/app_image_paths.dart';
 
-// Provider to store search query
 final searchQueryProvider = StateProvider<String>((ref) => "");
 
-class AppSearchBar extends HookConsumerWidget {
-  final String hintText;
+class AppSearchBar extends AppBar {
+  AppSearchBar({
+    super.key,
+    required WidgetRef ref,
+    required String title,
+    required String hintText,
+    VoidCallback? onBack,
+  }) : super(
+          automaticallyImplyLeading: false,
+          backgroundColor: Colors.white,
+          elevation: 0,
+          title: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: _SearchBarContent(
+              ref: ref,
+              title: title,
+              hintText: hintText,
+              onBack: onBack,
+            ),
+          ),
+        );
+}
 
-  const AppSearchBar({super.key, required this.hintText});
+class _SearchBarContent extends HookConsumerWidget {
+  final String title;
+  final String hintText;
+  final VoidCallback? onBack;
+  final WidgetRef ref;
+
+  const _SearchBarContent({
+    required this.title,
+    required this.hintText,
+    this.onBack,
+    required this.ref,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final searchController = useTextEditingController();
+    final isSearching = useState(false);
+    final controller = useTextEditingController();
 
-    return TextField(
-      controller: searchController,
-      onChanged: (value) => ref.read(searchQueryProvider.notifier).state =
-          value, // Update search state
-      decoration: InputDecoration(
-        hintText: hintText,
-        border: InputBorder.none,
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      ),
-      style: AppTestStyles.titleLarge.copyWith(
-        color: Color(0xFF616569),
-        height: 1.62,
-      ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        // Back arrow
+        IconButton(
+          icon: const Icon(Icons.arrow_back_ios, size: 20),
+          onPressed: onBack ?? () => Navigator.pop(context),
+        ),
+        // Search input or title
+        Expanded(
+          child: isSearching.value
+              ? Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: controller,
+                        autofocus: true,
+                        onChanged: (value) => ref
+                            .read(searchQueryProvider.notifier)
+                            .state = value,
+                        decoration: InputDecoration(
+                          hintText: hintText,
+                          border: InputBorder.none,
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 8,
+                            horizontal: 0,
+                          ),
+                        ),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              : Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+        ),
+        // Right icon (search or cancel)
+        IconButton(
+          icon: AppImage(
+            path:
+                isSearching.value ? AppImagePaths.close : AppImagePaths.search,
+          ),
+          onPressed: () {
+            if (isSearching.value) {
+              isSearching.value = false;
+              controller.clear();
+              ref.read(searchQueryProvider.notifier).state = "";
+            } else {
+              isSearching.value = true;
+            }
+          },
+        ),
+      ],
     );
   }
 }

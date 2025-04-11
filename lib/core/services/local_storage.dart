@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:objectbox/objectbox.dart';
 
 import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/models/app_data.dart';
@@ -45,7 +47,7 @@ class LocalStorageService {
   Future<void> init() async {
     final start = DateTime.now();
     dbLogger.debug("Initializing LocalStorageService");
-    final docsDir = await getApplicationDocumentsDirectory();
+    final docsDir = await _getDBDirectory();
     _store = await openStore(
         directory: p.join(docsDir.path, "objectbox-db"),
         macosApplicationGroup: macosApplicationGroup);
@@ -116,6 +118,14 @@ class LocalStorageService {
       _appsBox.remove(existing.id);
     } else {
       _appsBox.put(app.copyWith(isEnabled: true));
+    }
+  }
+
+  Future<Directory> _getDBDirectory() {
+    if (Platform.isIOS || Platform.isAndroid) {
+      return getApplicationDocumentsDirectory();
+    } else {
+      return getApplicationSupportDirectory();
     }
   }
 }

@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
@@ -8,9 +9,12 @@ import 'package:lantern/core/preferences/app_preferences.dart';
 import 'package:lantern/core/split_tunneling/apps_notifier.dart';
 import 'package:lantern/core/split_tunneling/split_tunneling_mode.dart';
 import 'package:lantern/core/split_tunneling/website_notifier.dart';
+import 'package:lantern/core/utils/ip_utils.dart';
 import 'package:lantern/core/utils/screen_utils.dart';
 import 'package:lantern/core/widgets/info_row.dart';
+import 'package:lantern/core/widgets/switch_button.dart';
 import 'package:lantern/features/split_tunneling/bottom_sheet.dart';
+import 'package:lantern/features/split_tunneling/widgets/split_tunneling_tile.dart';
 
 @RoutePage(name: 'SplitTunneling')
 class SplitTunneling extends HookConsumerWidget {
@@ -47,6 +51,27 @@ class SplitTunneling extends HookConsumerWidget {
       );
     }
 
+    final locationSubtitle = useState<String>('global_optimized'.i18n);
+
+    useEffect(() {
+      IPUtils.getUserCountry().then((country) {
+        switch (country) {
+          case 'IR':
+            locationSubtitle.value = 'iran_optimized'.i18n;
+            break;
+          case 'CN':
+            locationSubtitle.value = 'china_optimized'.i18n;
+            break;
+          case 'RU':
+            locationSubtitle.value = 'russia_optimized'.i18n;
+            break;
+          default:
+            locationSubtitle.value = 'global_optimized'.i18n;
+        }
+      });
+      return null;
+    }, []);
+
     return BaseScreen(
       title: 'split_tunneling'.i18n,
       body: Column(
@@ -64,107 +89,54 @@ class SplitTunneling extends HookConsumerWidget {
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
                   ),
-                  trailing: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Switch.adaptive(
-                      value: splitTunnelingEnabled,
-                      activeTrackColor: AppColors.green5,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      activeColor: AppColors.white,
-                      inactiveTrackColor: AppColors.gray7,
-                      inactiveThumbColor: AppColors.gray1,
-                      onChanged: (bool? value) {
-                        var newValue = value ?? false;
-                        ref.read(appPreferencesProvider.notifier).setPreference(
-                            Preferences.splitTunnelingEnabled, newValue);
-                      },
-                    ),
+                  trailing: SwitchButton(
+                    value: splitTunnelingEnabled,
+                    onChanged: (bool? value) {
+                      var newValue = value ?? false;
+                      ref.read(appPreferencesProvider.notifier).setPreference(
+                          Preferences.splitTunnelingEnabled, newValue);
+                    },
                   ),
                 ),
                 DividerSpace(),
                 if (splitTunnelingEnabled)
                   SplitTunnelingTile(
                     label: 'mode'.i18n,
-                    subtitle: isAutomaticMode ? 'iran_optimized'.i18n : '',
+                    subtitle: isAutomaticMode ? locationSubtitle.value : '',
                     actionText:
                         isAutomaticMode ? 'automatic'.i18n : 'manual'.i18n,
                     onPressed: _showBottomSheet,
                   ),
-                SizedBox(height: defaultSize),
-                InfoRow(
-                  onPressed: () {
-                    if (isAutomaticMode) {
-                      appRouter.push(
-                        SplitTunnelingInfo(),
-                      );
-                    }
-                  },
-                  text: splitTunnelingEnabled
-                      ? 'when_connected'.i18n
-                      : 'turn_on_split_tunneling'.i18n,
-                ),
-                if (splitTunnelingEnabled && !isAutomaticMode) ...{
-                  SizedBox(height: defaultSize),
-                  SplitTunnelingTile(
-                    label: 'Websites',
-                    actionText: '${enabledWebsites.length} Added',
-                    onPressed: () => appRouter.push(WebsiteSplitTunneling()),
-                  ),
-                  DividerSpace(),
-                  SplitTunnelingTile(
-                    label: 'Apps',
-                    actionText: '${enabledApps.length} Added',
-                    onPressed: () => appRouter.push(AppsSplitTunneling()),
-                  ),
-                }
               ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class SplitTunnelingTile extends StatelessWidget {
-  final String label;
-  final String actionText;
-  final VoidCallback onPressed;
-  final String? subtitle;
-
-  const SplitTunnelingTile({
-    super.key,
-    required this.label,
-    required this.actionText,
-    required this.onPressed,
-    this.subtitle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return AppTile(
-      label: label,
-      subtitle: subtitle != null
-          ? Text(
-              subtitle!,
-              style: AppTestStyles.labelSmall.copyWith(
-                color: AppColors.gray7,
-              ),
-            )
-          : null,
-      onPressed: () => appRouter.push(WebsiteSplitTunneling()),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          AppTextButton(
-            label: actionText,
-            onPressed: onPressed,
+          SizedBox(height: defaultSize),
+          InfoRow(
+            onPressed: () {
+              if (isAutomaticMode) {
+                appRouter.push(
+                  SplitTunnelingInfo(),
+                );
+              }
+            },
+            text: splitTunnelingEnabled
+                ? 'when_connected'.i18n
+                : 'turn_on_split_tunneling'.i18n,
           ),
-          AppImage(
-            path: AppImagePaths.arrowForward,
-            height: 20,
-          ),
+          if (splitTunnelingEnabled && !isAutomaticMode) ...{
+            SizedBox(height: defaultSize),
+            SplitTunnelingTile(
+              label: 'Websites',
+              actionText: '${enabledWebsites.length} Added',
+              onPressed: () => appRouter.push(WebsiteSplitTunneling()),
+            ),
+            DividerSpace(),
+            SplitTunnelingTile(
+              label: 'Apps',
+              actionText: '${enabledApps.length} Added',
+              onPressed: () => appRouter.push(AppsSplitTunneling()),
+            ),
+          }
         ],
       ),
     );

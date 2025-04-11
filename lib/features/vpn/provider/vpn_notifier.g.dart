@@ -6,7 +6,7 @@ part of 'vpn_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$vpnNotifierHash() => r'361a2edd96b1238dee3dd767962469761fa78fb4';
+String _$vpnNotifierHash() => r'6e183db90b54a70772971083abed88ab9dfc558b';
 
 /// See also [VpnNotifier].
 @ProviderFor(VpnNotifier)

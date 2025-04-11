@@ -1,9 +1,6 @@
-import 'dart:io';
-
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/material.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/providers/native_bridge_provider.dart';
 import 'package:lantern/features/vpn/provider/vpn_status_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -40,17 +37,5 @@ class VpnNotifier extends _$VpnNotifier {
   Future<Either<Failure, String>> stopVPN() async {
     final result = await ref.read(lanternServiceProvider).stopVPN();
     return result;
-  }
-
-  Future<String?> _stopVPN() async {
-    if (PlatformUtils.isDesktop()) {
-      final ffiClient = ref.read(lanternServiceProvider);
-      final result = await ffiClient?.stopVPN();
-      return result?.getRight().getOrElse(() => '');
-    } else if (Platform.isIOS) {
-      final nativeBridge = ref.read(nativeBridgeProvider);
-      return await nativeBridge?.stopVPN();
-    }
-    throw UnsupportedError('VPN is not supported on this platform.');
   }
 }

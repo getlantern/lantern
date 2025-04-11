@@ -214,11 +214,26 @@ msgstr "Website Split Tunneling"
 msgid "iran_optimized"
 msgstr "Iran-optimized split tunneling"
 
+msgid "china_optimized"
+msgstr "China-optimized split tunneling"
+
+msgid "russia_optimized"
+msgstr "Russia-optimized split tunneling"
+
+msgid "global_optimized"
+msgstr "Global-optimized split tunnneling"
+
 msgid "enter_url"
 msgstr "Enter URL"
 
 msgid "add"
 msgstr "Add"
+
+msgid "enabled"
+msgstr "Enabled"
+
+msgid "disabled"
+msgstr "Disabled"
 
 msgid "automatic"
 msgstr "Automatic"

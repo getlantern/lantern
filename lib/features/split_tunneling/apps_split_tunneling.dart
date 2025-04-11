@@ -5,13 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/app_data.dart';
 
 import 'package:lantern/core/split_tunneling/apps_data_provider.dart';
 import 'package:lantern/core/split_tunneling/apps_notifier.dart';
 import 'package:lantern/core/widgets/search_bar.dart';
-import 'package:lantern/features/split_tunneling/app_row.dart';
-import 'package:lantern/features/split_tunneling/section_label.dart';
+import 'package:lantern/features/split_tunneling/widgets/app_row.dart';
+import 'package:lantern/features/split_tunneling/widgets/section_label.dart';
 
 // Widget to display and manage split tunneling apps
 @RoutePage(name: 'AppsSplitTunneling')
@@ -41,17 +40,10 @@ class AppsSplitTunneling extends HookConsumerWidget {
 
     return BaseScreen(
       title: 'apps_split_tunneling'.i18n,
-      appBar: CustomAppBar(
-        title: searchEnabled.value
-            ? AppSearchBar(hintText: 'search_apps'.i18n)
-            : 'apps_split_tunneling'.i18n,
-        actionsPadding: const EdgeInsets.only(right: 24.0),
-        actions: [
-          AppIconButton(
-            onPressed: () => searchEnabled.value = !searchEnabled.value,
-            path: AppImagePaths.search,
-          ),
-        ],
+      appBar: AppSearchBar(
+        ref: ref,
+        title: 'apps_split_tunneling'.i18n,
+        hintText: 'search_apps'.i18n,
       ),
       body: CustomScrollView(
         slivers: [
@@ -73,7 +65,9 @@ class AppsSplitTunneling extends HookConsumerWidget {
             ),
           ],
           if (disabledApps.isNotEmpty) ...[
-            const SliverToBoxAdapter(child: SectionLabel('installed_apps')),
+            SliverToBoxAdapter(
+              child: SectionLabel('installed_apps'.i18n),
+            ),
             SliverList.list(
               children: disabledApps
                   .map((app) => AppRow(
