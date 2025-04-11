@@ -15,6 +15,7 @@ import 'package:objectbox/objectbox.dart' as obx;
 import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
 import '../../../core/models/app_data.dart';
+import '../../../core/models/website_data.dart';
 import '../../../core/services/local_storage.dart';
 
 export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
@@ -77,6 +78,30 @@ final _entities = <obx_int.ModelEntity>[
             flags: 0)
       ],
       relations: <obx_int.ModelRelation>[],
+      backlinks: <obx_int.ModelBacklink>[]),
+  obx_int.ModelEntity(
+      id: const obx_int.IdUid(4, 8204765423358965580),
+      name: 'Website',
+      lastPropertyId: const obx_int.IdUid(3, 1230399441936964031),
+      flags: 0,
+      properties: <obx_int.ModelProperty>[
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(1, 7561664178301439803),
+            name: 'id',
+            type: 6,
+            flags: 1),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(2, 7716209131748199990),
+            name: 'domain',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(3, 1230399441936964031),
+            name: 'isEnabled',
+            type: 1,
+            flags: 0)
+      ],
+      relations: <obx_int.ModelRelation>[],
       backlinks: <obx_int.ModelBacklink>[])
 ];
 
@@ -115,7 +140,7 @@ Future<obx.Store> openStore(
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
       entities: _entities,
-      lastEntityId: const obx_int.IdUid(3, 4380524372643795068),
+      lastEntityId: const obx_int.IdUid(4, 8204765423358965580),
       lastIndexId: const obx_int.IdUid(0, 0),
       lastRelationId: const obx_int.IdUid(0, 0),
       lastSequenceId: const obx_int.IdUid(0, 0),
@@ -205,6 +230,37 @@ obx_int.ModelDefinition getObjectBoxModel() {
             ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
 
           return object;
+        }),
+    Website: obx_int.EntityDefinition<Website>(
+        model: _entities[2],
+        toOneRelations: (Website object) => [],
+        toManyRelations: (Website object) => {},
+        getId: (Website object) => object.id,
+        setId: (Website object, int id) {
+          object.id = id;
+        },
+        objectToFB: (Website object, fb.Builder fbb) {
+          final domainOffset = fbb.writeString(object.domain);
+          fbb.startTable(4);
+          fbb.addInt64(0, object.id);
+          fbb.addOffset(1, domainOffset);
+          fbb.addBool(2, object.isEnabled);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (obx.Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+          final idParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+          final domainParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 6, '');
+          final isEnabledParam =
+              const fb.BoolReader().vTableGet(buffer, rootOffset, 8, false);
+          final object = Website(
+              id: idParam, domain: domainParam, isEnabled: isEnabledParam);
+
+          return object;
         })
   };
 
@@ -247,4 +303,19 @@ class AppDatabase_ {
   /// See [AppDatabase.data].
   static final data =
       obx.QueryStringProperty<AppDatabase>(_entities[1].properties[1]);
+}
+
+/// [Website] entity fields to define ObjectBox queries.
+class Website_ {
+  /// See [Website.id].
+  static final id =
+      obx.QueryIntegerProperty<Website>(_entities[2].properties[0]);
+
+  /// See [Website.domain].
+  static final domain =
+      obx.QueryStringProperty<Website>(_entities[2].properties[1]);
+
+  /// See [Website.isEnabled].
+  static final isEnabled =
+      obx.QueryBooleanProperty<Website>(_entities[2].properties[2]);
 }

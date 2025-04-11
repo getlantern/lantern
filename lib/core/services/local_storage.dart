@@ -1,10 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:objectbox/objectbox.dart';
-
 import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/models/app_data.dart';
-import 'package:objectbox/objectbox.dart';
+import 'package:lantern/core/models/website_data.dart';
 import 'package:lantern/core/services/db/objectbox.g.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:path/path.dart' as p;
@@ -34,6 +33,7 @@ class LocalStorageService {
 
   late Box<AppDatabase> _box;
   late Box<AppData> _appsBox;
+  late Box<Website> _websitesBox;
 
   late AppDatabase _appDb;
 
@@ -43,6 +43,13 @@ class LocalStorageService {
   ///Due to limitations in macOS the value must be at most 19 characters
   /// Do not change this value
   final macosApplicationGroup = AppSecrets.macosAppGroupId;
+
+  Future<Directory> _getDBDirectory() {
+    if (Platform.isIOS || Platform.isAndroid) {
+      return getApplicationDocumentsDirectory();
+    }
+    return getApplicationSupportDirectory();
+  }
 
   Future<void> init() async {
     final start = DateTime.now();
@@ -54,6 +61,7 @@ class LocalStorageService {
 
     _box = _store.box<AppDatabase>();
     _appsBox = _store.box<AppData>();
+    _websitesBox = _store.box<Website>();
 
     AppDatabase? db = _box.get(1);
     if (db == null) {
@@ -121,11 +129,26 @@ class LocalStorageService {
     }
   }
 
-  Future<Directory> _getDBDirectory() {
-    if (Platform.isIOS || Platform.isAndroid) {
-      return getApplicationDocumentsDirectory();
+  // Website methods
+  void saveWebsites(Set<Website> websites) {
+    _websitesBox.removeAll();
+    _websitesBox.putMany(websites.toList());
+  }
+
+  Set<Website> getEnabledWebsites() {
+    return _websitesBox.getAll().where((a) => a.isEnabled).toSet();
+  }
+
+  void toggleWebsite(Website website) {
+    final existing = _websitesBox
+        .query(Website_.domain.equals(website.domain) as Condition<Website>?)
+        .build()
+        .findFirst();
+
+    if (existing != null) {
+      _websitesBox.remove(existing.id);
     } else {
-      return getApplicationSupportDirectory();
+      _websitesBox.put(website.copyWith(isEnabled: true));
     }
   }
 }

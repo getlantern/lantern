@@ -7,12 +7,12 @@ part of 'website_notifier.dart';
 // **************************************************************************
 
 String _$splitTunnelingWebsitesHash() =>
-    r'af5e012f03cc2924f4edc9c23a989b49bcfd182c';
+    r'a7445a19192f1b416f77f66e51315d73c68e324f';
 
 /// See also [SplitTunnelingWebsites].
 @ProviderFor(SplitTunnelingWebsites)
 final splitTunnelingWebsitesProvider =
-    NotifierProvider<SplitTunnelingWebsites, List<Website>>.internal(
+    NotifierProvider<SplitTunnelingWebsites, Set<Website>>.internal(
   SplitTunnelingWebsites.new,
   name: r'splitTunnelingWebsitesProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -22,6 +22,6 @@ final splitTunnelingWebsitesProvider =
   allTransitiveDependencies: null,
 );
 
-typedef _$SplitTunnelingWebsites = Notifier<List<Website>>;
+typedef _$SplitTunnelingWebsites = Notifier<Set<Website>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

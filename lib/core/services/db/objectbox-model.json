@@ -60,9 +60,33 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "4:8204765423358965580",
+      "lastPropertyId": "3:1230399441936964031",
+      "name": "Website",
+      "properties": [
+        {
+          "id": "1:7561664178301439803",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:7716209131748199990",
+          "name": "domain",
+          "type": 9
+        },
+        {
+          "id": "3:1230399441936964031",
+          "name": "isEnabled",
+          "type": 1
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "3:4380524372643795068",
+  "lastEntityId": "4:8204765423358965580",
   "lastIndexId": "0:0",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",

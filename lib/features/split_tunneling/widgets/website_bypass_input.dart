@@ -3,7 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/split_tunneling/website.dart';
+import 'package:lantern/core/models/website_data.dart';
 import 'package:lantern/core/split_tunneling/website_notifier.dart';
 
 class WebsiteDomainInput extends HookConsumerWidget {
@@ -23,26 +23,15 @@ class WebsiteDomainInput extends HookConsumerWidget {
 
     // validate URL and extract the domain before adding it to the
     // split tunneling list
-    void validateAndExtractDomain() {
-      String inputText = textController.text.trim();
-
-      if (inputText.isEmpty) {
-        showSnackbar(context, "Please enter a URL or domain.");
-        return;
-      }
-
-      if (inputText.contains(',')) {
-        errorText.value = "Please enter one domain at a time.";
-        return;
-      }
-
+    Website? validateDomain(String input, Set<Website> existingWebsites,
+        void Function(String) onError) {
       try {
-        var formatted = inputText;
+        var formatted = input;
         if (!formatted.startsWith("http://") &&
             !formatted.startsWith("https://")) {
-          // Assume HTTPS if scheme is missing
           formatted = "https://$formatted";
         }
+
         final uri = Uri.parse(formatted);
         final domain = UrlUtils.extractDomain(uri);
 
@@ -51,21 +40,55 @@ class WebsiteDomainInput extends HookConsumerWidget {
         }
 
         final website = Website(domain: domain, isEnabled: true);
-        print("Extracted domain: $domain");
 
-        if (enabledWebsites.contains(website)) {
-          showSnackbar(context, "Domain already added");
-          return;
+        if (existingWebsites.contains(website)) {
+          onError("$domain already added");
+          return null;
         }
 
-        textController.text = '';
+        return website;
+      } catch (e) {
+        onError("$input is invalid");
+        return null;
+      }
+    }
+
+    void validateAndExtractDomain() {
+      final inputText = textController.text.trim();
+
+      if (inputText.isEmpty) {
+        showSnackbar(context, "Please enter a URL or domain.");
+        return;
+      }
+
+      final parts = inputText
+          .split(',')
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toSet();
+
+      final errors = <String>[];
+      final added = <Website>[];
+
+      for (final part in parts) {
+        final website =
+            validateDomain(part, enabledWebsites, (msg) => errors.add(msg));
+        if (website != null) {
+          added.add(website);
+        }
+      }
+
+      for (final website in added) {
         ref
             .read(splitTunnelingWebsitesProvider.notifier)
             .toggleWebsite(website);
-      } catch (e) {
-        errorText.value = e.toString();
-        return;
       }
+
+      if (added.isNotEmpty) {
+        textController.clear();
+      }
+
+      errorText.value = errors.isNotEmpty ? errors.join('\n') : null;
     }
 
     return Padding(
