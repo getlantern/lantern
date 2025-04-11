@@ -1,5 +1,6 @@
 // Bullet point info rows
 import 'package:flutter/widgets.dart';
+import 'package:lantern/core/common/app_colors.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 
 class BulletList extends StatelessWidget {
@@ -17,14 +18,13 @@ class BulletList extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text("· ",
-                        style: AppTestStyles.bodyMedium.copyWith(
-                          fontWeight: FontWeight.w500,
-                          height: 1.4,
+                        style: AppTestStyles.bodyLarge.copyWith(
+                          fontWeight: FontWeight.w400,
                         )),
                     Expanded(
                       child: Text(
                         item,
-                        style: AppTestStyles.bodyMedium.copyWith(height: 1.5),
+                        style: AppTestStyles.bodyLarge,
                       ),
                     ),
                   ],
