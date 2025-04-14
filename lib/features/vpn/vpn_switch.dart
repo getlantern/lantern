@@ -12,7 +12,7 @@ class VPNSwitch extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.listen(
+    ref.listen<AsyncValue<LanternStatus>>(
       vPNStatusNotifierProvider,
       (previous, next) {
         if (next is AsyncData<LanternStatus> &&

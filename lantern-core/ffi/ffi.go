@@ -8,27 +8,32 @@ package main
 import "C"
 
 import (
-	"context"
+	"encoding/json"
 	"fmt"
-	"path/filepath"
 	"sync"
 	"unsafe"
 
 	"log/slog"
 
 	"github.com/getlantern/golog"
-	"github.com/getlantern/lantern-outline/lantern-core/logging"
+	"github.com/getlantern/lantern-outline/lantern-core/dart_api_dl"
 	"github.com/getlantern/radiance"
 )
 
+type VPNStatus string
+
 const (
 	enableLogging = false
+
+	Connecting    VPNStatus = "Connecting"
+	Connected     VPNStatus = "Connected"
+	Disconnecting VPNStatus = "Disconnecting"
+	Disconnected  VPNStatus = "Disconnected"
+	Error         VPNStatus = "Error"
 )
 
 var (
-	dataDir    string
-	logPort    int64
-	server     *radiance.Radiance
+	server     *lanternService
 	serverMu   sync.Mutex
 	serverOnce sync.Once
 
@@ -37,28 +42,30 @@ var (
 	log = golog.LoggerFor("lantern-outline.ffi")
 )
 
+type lanternService struct {
+	*radiance.Radiance
+
+	servicePort int64
+}
+
 //export setup
 func setup(dir *C.char, port C.int64_t, api unsafe.Pointer) {
-
-	dataDir = C.GoString(dir)
-	logPort = int64(port)
-
-	log.Debugf("Setup called with base dir %s", dataDir)
-
 	serverOnce.Do(func() {
+		// initialize the Dart API DL bridge.
+		dart_api_dl.Init(api)
+
+		dataDir := C.GoString(dir)
+		servicePort := int64(port)
+
 		r, err := radiance.NewRadiance(dataDir, nil)
 		if err != nil {
 			log.Fatalf("unable to create VPN server: %v", err)
 		}
 		log.Debugf("created new instance of radiance with data directory %s", dataDir)
-		server = r
 
-		// setup logging
-		if enableLogging {
-			logFile := filepath.Join(dataDir, "lantern.log")
-			if err = logging.Configure(context.Background(), logFile, logPort); err != nil {
-				log.Fatalf("unable to setup logging: %v", err)
-			}
+		server = &lanternService{
+			Radiance:    r,
+			servicePort: servicePort,
 		}
 	})
 }
@@ -72,11 +79,21 @@ func startVPN() *C.char {
 	serverMu.Lock()
 	defer serverMu.Unlock()
 
+	if server == nil {
+		return C.CString("radiance not initialized")
+	}
+
+	server.sendStatusToPort(Connecting)
+
 	if err := server.StartVPN(); err != nil {
 		err = fmt.Errorf("unable to start vpn server: %v", err)
+		server.sendStatusToPort(Disconnected)
 		return C.CString(err.Error())
 	}
+
+	server.sendStatusToPort(Connected)
 	log.Debug("VPN server started successfully")
+
 	return nil
 }
 
@@ -89,8 +106,30 @@ func stopVPN() *C.char {
 	serverMu.Lock()
 	defer serverMu.Unlock()
 
-	slog.Debug("VPN server stopped successfully")
+	if server == nil {
+		return C.CString("radiance not initialized")
+	}
+
+	server.sendStatusToPort(Disconnecting)
+
+	if err := server.StopVPN(); err != nil {
+		err = fmt.Errorf("unable to stop vpn server: %v", err)
+		server.sendStatusToPort(Connected)
+		return C.CString(err.Error())
+	}
+
+	server.sendStatusToPort(Disconnected)
+	log.Debug("VPN server stopped successfully")
+
 	return nil
+}
+
+func (s *lanternService) sendStatusToPort(status VPNStatus) {
+	go func() {
+		msg := fmt.Sprintf(`{"status":"%s"}`, status)
+		data, _ := json.Marshal(msg)
+		dart_api_dl.SendToPort(s.servicePort, string(data))
+	}()
 }
 
 // isVPNConnected checks if the VPN server is running and connected.

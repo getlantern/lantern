@@ -132,7 +132,7 @@ ffigen:
   output: "lib/lantern/lantern_generated_bindings.dart"
   headers:
     entry-points:
-      - "bin/liblantern.h"
+      - "bin/**/liblantern.h"
   exclude:
     enums:
       - 'idtype_t'
