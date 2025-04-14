@@ -6,7 +6,7 @@ part of 'window_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$windowNotifierHash() => r'b587b0087828cab895590b35341c6e0699b60a93';
+String _$windowNotifierHash() => r'102e4a65b4b26de98b5f6c86ca123cfd1c43c540';
 
 /// See also [WindowNotifier].
 @ProviderFor(WindowNotifier)

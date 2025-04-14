@@ -25,7 +25,7 @@ class InfoRow extends StatelessWidget {
           ),
         ),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Padding(
               padding: const EdgeInsets.only(right: 12),

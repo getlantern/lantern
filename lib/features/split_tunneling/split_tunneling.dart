@@ -164,7 +164,9 @@ class SplitTunneling extends HookConsumerWidget {
               }
             },
             text: splitTunnelingEnabled
-                ? 'when_connected'.i18n
+                ? (isAutomaticMode
+                    ? 'lantern_automatic'.i18n
+                    : 'when_connected'.i18n)
                 : 'turn_on_split_tunneling'.i18n,
           ),
           if (splitTunnelingEnabled && !isAutomaticMode) ...{

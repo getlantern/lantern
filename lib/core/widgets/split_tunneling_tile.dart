@@ -35,6 +35,7 @@ class SplitTunnelingTile extends StatelessWidget {
           : null,
       onPressed: onPressed,
       trailing: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
