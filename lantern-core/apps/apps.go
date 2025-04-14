@@ -28,19 +28,6 @@ type AppData struct {
 
 type Callback func(...*AppData) error
 
-// LoadInstalledApps fetches the app list or rescans if needed
-func LoadInstalledApps(dataDir string, cb Callback) error {
-	cacheMux.RLock()
-	if loaded {
-		// Return cached results immediately
-		if cached, err := loadCacheFromFile(dataDir); err == nil {
-			cb(cached...)
-		}
-	}
-	cacheMux.RUnlock()
-	return fmt.Errorf("app cache not ready yet")
-}
-
 func loadCacheFromFile(dataDir string) ([]*AppData, error) {
 	path := filepath.Join(dataDir, "apps_cache.json")
 	data, err := os.ReadFile(path)
@@ -97,11 +84,7 @@ func scanAppDirs(appDirs []string, seen map[string]bool, cb Callback) []*AppData
 			if err != nil || !info.IsDir() || !strings.HasSuffix(info.Name(), ".app") {
 				return nil
 			}
-			bundleID, err := getBundleID(path)
-			if err == nil {
-				log.Debugf("Bundle id is %s", bundleID)
-			}
-
+			bundleID, _ := getBundleID(path)
 			key := bundleID
 
 			if key == "" {
@@ -134,7 +117,8 @@ func scanAppDirs(appDirs []string, seen map[string]bool, cb Callback) []*AppData
 	return apps
 }
 
-func InitAppCache(dataDir string, cb Callback) {
+// LoadInstalledApps fetches the app list or rescans if needed
+func LoadInstalledApps(dataDir string, cb Callback) {
 	// Directories to scan for installed apps
 	appDirs := []string{"/Applications" /*, "/System/Applications"*/}
 

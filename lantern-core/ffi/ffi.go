@@ -95,7 +95,7 @@ func setup(dir *C.char, logPort, appsPort, statusPort C.int64_t, api unsafe.Poin
 		log.Debugf("created new instance of radiance with data directory %s", dataDir)
 
 		// init app cache in background
-		go apps.InitAppCache(dataDir, sendApps(int64(appsPort)))
+		go apps.LoadInstalledApps(dataDir, sendApps(int64(appsPort)))
 
 		server = &lanternService{
 			Radiance: r,
