@@ -10,7 +10,7 @@ import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/split_tunneling/apps_data_provider.dart';
 import 'package:lantern/core/split_tunneling/apps_notifier.dart';
 import 'package:lantern/core/widgets/search_bar.dart';
-import 'package:lantern/features/split_tunneling/section_label.dart';
+import 'package:lantern/core/widgets/section_label.dart';
 
 // Widget to display and manage split tunneling apps
 @RoutePage(name: 'AppsSplitTunneling')

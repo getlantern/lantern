@@ -12,9 +12,9 @@ import 'package:lantern/core/split_tunneling/website_notifier.dart';
 import 'package:lantern/core/utils/ip_utils.dart';
 import 'package:lantern/core/utils/screen_utils.dart';
 import 'package:lantern/core/widgets/info_row.dart';
+import 'package:lantern/core/widgets/split_tunneling_tile.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
 import 'package:lantern/features/split_tunneling/bottom_sheet.dart';
-import 'package:lantern/features/split_tunneling/widgets/split_tunneling_tile.dart';
 
 @RoutePage(name: 'SplitTunneling')
 class SplitTunneling extends HookConsumerWidget {
