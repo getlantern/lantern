@@ -26,25 +26,16 @@ class UrlUtils {
   static bool isValidDomainOrIP(String input) =>
       isValidDomain(input) || isValidIPv4(input);
 
-  static String extractDomain(Uri uri) {
-    final parts = uri.host.split('.');
-    return parts.length > 2
-        ? "${parts[parts.length - 2]}.${parts.last}"
-        : uri.host;
-  }
-
-  static String? validateDomain(String input) {
+  static String extractDomain(String input) {
     var formatted = input;
     if (!formatted.startsWith("http://") && !formatted.startsWith("https://")) {
       formatted = "https://$formatted";
     }
 
     final uri = Uri.parse(formatted);
-    final domain = extractDomain(uri);
-
-    if (!isValidDomainOrIP(domain)) {
-      return null;
-    }
-    return domain;
+    final parts = uri.host.split('.');
+    return parts.length > 2
+        ? "${parts[parts.length - 2]}.${parts.last}"
+        : uri.host;
   }
 }

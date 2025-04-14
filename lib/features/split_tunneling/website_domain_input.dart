@@ -12,26 +12,17 @@ class WebsiteDomainInput extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final textController = useTextEditingController();
-
     final enabledWebsites = ref.watch(splitTunnelingWebsitesProvider);
 
-    void showSnackbar(BuildContext context, String message) {
+    void showSnackbar(String message) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(message)));
     }
 
     // validate URL and extract the domain before adding it to the
     // split tunneling list
-    Website? validateDomain(String input, Set<Website> existingWebsites,
-        void Function(String) onError) {
-      var formatted = input;
-      if (!formatted.startsWith("http://") &&
-          !formatted.startsWith("https://")) {
-        formatted = "https://$formatted";
-      }
-
-      final uri = Uri.parse(formatted);
-      final domain = UrlUtils.extractDomain(uri);
+    Website? validateDomain(String input, void Function(String) onError) {
+      final domain = UrlUtils.extractDomain(input);
 
       if (!UrlUtils.isValidDomainOrIP(domain)) {
         onError("Invalid domain");
@@ -39,8 +30,7 @@ class WebsiteDomainInput extends HookConsumerWidget {
       }
 
       final website = Website(domain: domain);
-
-      if (existingWebsites.contains(website)) {
+      if (enabledWebsites.contains(website)) {
         onError("$domain already added");
         return null;
       }
@@ -52,7 +42,7 @@ class WebsiteDomainInput extends HookConsumerWidget {
       final inputText = textController.text.trim();
 
       if (inputText.isEmpty) {
-        showSnackbar(context, "Please enter a URL or domain.");
+        showSnackbar("Please enter a URL or domain.");
         return;
       }
 
@@ -66,23 +56,22 @@ class WebsiteDomainInput extends HookConsumerWidget {
       final added = <Website>[];
 
       for (final part in parts) {
-        final website =
-            validateDomain(part, enabledWebsites, (msg) => errors.add(msg));
+        final website = validateDomain(part, (msg) => errors.add(msg));
         if (website != null) {
           added.add(website);
         }
       }
 
-      if (errors.isNotEmpty) {
-        showSnackbar(context, errors.join('\n'));
-      } else {
-        for (final website in added) {
-          ref.read(splitTunnelingWebsitesProvider.notifier).addWebsite(website);
-        }
-      }
       if (added.isNotEmpty) {
         textController.clear();
       }
+
+      if (errors.isNotEmpty) {
+        showSnackbar(errors.join('\n'));
+        return;
+      }
+
+      ref.read(splitTunnelingWebsitesProvider.notifier).addWebsites(added);
     }
 
     return Padding(

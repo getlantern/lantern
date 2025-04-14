@@ -27,4 +27,14 @@ class Website {
       domain: json['domain'] ?? '',
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Website &&
+          runtimeType == other.runtimeType &&
+          domain == other.domain;
+
+  @override
+  int get hashCode => domain.hashCode;
 }

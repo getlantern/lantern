@@ -17,13 +17,13 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final searchQuery = ref.watch(searchQueryProvider);
 
-    final websites = ref.watch(splitTunnelingWebsitesProvider);
-
-    final enabledWebsites = websites.where((website) {
-      final matchesSearch = searchQuery.isEmpty ||
-          website.domain.toLowerCase().contains(searchQuery.toLowerCase());
-      return matchesSearch;
-    }).toSet();
+    final enabledWebsites = ref.watch(splitTunnelingWebsitesProvider);
+    matchesSearch(website) =>
+        searchQuery.isEmpty ||
+        website.domain.toLowerCase().contains(searchQuery.toLowerCase());
+    final enabledList = enabledWebsites.where(matchesSearch).toList()
+      ..sort(
+          (a, b) => a.domain.toLowerCase().compareTo(b.domain.toLowerCase()));
 
     return BaseScreen(
       title: 'website_split_tunneling'.i18n,
@@ -32,37 +32,43 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
         title: 'website_split_tunneling'.i18n,
         hintText: 'search_websites'.i18n,
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          SizedBox(height: defaultSize),
-          Focus(
-            autofocus: true,
-            child: WebsiteDomainInput(),
-          ),
-          SizedBox(height: defaultSize),
-          AppTile(
-            icon: AppImagePaths.bypassList,
-            label: 'default_bypass'.i18n,
-            trailing: AppIconButton(
-              path: AppImagePaths.arrowForward,
-              onPressed: () => {},
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Focus(
+              autofocus: true,
+              child: WebsiteDomainInput(),
             ),
           ),
-          SizedBox(height: defaultSize),
+          SliverToBoxAdapter(
+            child: AppTile(
+              icon: AppImagePaths.bypassList,
+              label: 'default_bypass'.i18n,
+              trailing: AppIconButton(
+                path: AppImagePaths.arrowForward,
+                onPressed: () => {},
+              ),
+            ),
+          ),
           // Websites bypassing the VPN
-          if (enabledWebsites.isNotEmpty) ...[
-            SectionLabel(
-              'websites_bypassing_vpn'.i18n.fill([enabledWebsites.length]),
+          if (enabledWebsites.isNotEmpty)
+            SliverToBoxAdapter(
+              child: SectionLabel(
+                'websites_bypassing_vpn'.i18n.fill([enabledWebsites.length]),
+              ),
             ),
-            ...enabledWebsites.map((website) => WebsiteRow(
-                  website: website,
-                  onToggle: () => ref
-                      .read(splitTunnelingWebsitesProvider.notifier)
-                      .removeWebsite(website),
-                )),
-          ],
-          SizedBox(height: defaultSize),
+
+          // List of enabled websites
+          SliverList.list(
+            children: enabledList
+                .map((website) => WebsiteRow(
+                      website: website,
+                      onToggle: () => ref
+                          .read(splitTunnelingWebsitesProvider.notifier)
+                          .removeWebsite(website),
+                    ))
+                .toList(),
+          ),
         ],
       ),
     );

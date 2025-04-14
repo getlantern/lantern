@@ -16,9 +16,11 @@ class SplitTunnelingWebsites extends _$SplitTunnelingWebsites {
     return _db.getEnabledWebsites();
   }
 
-  Future<void> addWebsite(Website website) async {
-    if (state.any((a) => website.domain == a.domain)) return;
-    state = {...state, website};
+  Future<void> addWebsites(List<Website> websites) async {
+    final newWebsites = websites.where(
+      (w) => !state.any((a) => a.domain == w.domain),
+    );
+    state = {...state, ...newWebsites};
     _db.saveWebsites(state);
   }
 
