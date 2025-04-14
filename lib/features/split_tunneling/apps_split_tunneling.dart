@@ -2,15 +2,15 @@ import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/models/app_data.dart';
 
 import 'package:lantern/core/split_tunneling/apps_data_provider.dart';
 import 'package:lantern/core/split_tunneling/apps_notifier.dart';
 import 'package:lantern/core/widgets/search_bar.dart';
-import 'package:lantern/features/split_tunneling/widgets/app_row.dart';
-import 'package:lantern/features/split_tunneling/widgets/section_label.dart';
+import 'package:lantern/features/split_tunneling/section_label.dart';
 
 // Widget to display and manage split tunneling apps
 @RoutePage(name: 'AppsSplitTunneling')
@@ -82,6 +82,58 @@ class AppsSplitTunneling extends HookConsumerWidget {
                   .toList(),
             ),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+class AppRow extends StatelessWidget {
+  final AppData app;
+  final VoidCallback? onToggle;
+
+  const AppRow({
+    super.key,
+    required this.app,
+    this.onToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Icon + App Name
+          Row(
+            children: [
+              if (app.iconPath.isNotEmpty)
+                Image.file(
+                  File(app.iconPath),
+                  width: 24,
+                  height: 24,
+                  fit: BoxFit.cover,
+                )
+              else
+                Icon(Icons.apps, size: 24, color: AppColors.gray6),
+              const SizedBox(width: 12),
+              Text(
+                app.name.replaceAll(".app", ""),
+                style: AppTestStyles.bodyMedium.copyWith(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w400,
+                  color: AppColors.gray9,
+                ),
+              ),
+            ],
+          ),
+          // Toggle Button
+          if (onToggle != null)
+            AppIconButton(
+              path: app.isEnabled ? AppImagePaths.minus : AppImagePaths.plus,
+              onPressed: onToggle!,
+            ),
         ],
       ),
     );

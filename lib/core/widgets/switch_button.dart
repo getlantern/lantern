@@ -1,5 +1,8 @@
 import 'package:animated_toggle_switch/animated_toggle_switch.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:lantern/core/common/app_colors.dart';
+import 'package:lantern/core/common/platfrom_utils.dart';
 
 class SwitchButton extends StatelessWidget {
   final bool value;
@@ -21,14 +24,14 @@ class SwitchButton extends StatelessWidget {
       onChanged: onChanged,
       iconBuilder: (context, local, global) => const SizedBox(),
       indicatorSize: const Size(30, 30),
-      spacing: 0.0,
-      height: 40,
+      spacing: 10.h,
+      height: PlatformUtils.isDesktop() ? 40.h : 30.h,
       wrapperBuilder: (context, global, child) {
         return Container(
           width: 75,
           padding: const EdgeInsets.symmetric(horizontal: 5),
           decoration: BoxDecoration(
-            color: value ? const Color(0xFF1FBF63) : const Color(0xFF616569),
+            color: value ? AppColors.green12 : AppColors.gray7,
             borderRadius: BorderRadius.circular(100),
           ),
           child: child,

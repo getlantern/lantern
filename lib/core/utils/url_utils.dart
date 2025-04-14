@@ -32,4 +32,19 @@ class UrlUtils {
         ? "${parts[parts.length - 2]}.${parts.last}"
         : uri.host;
   }
+
+  static String? validateDomain(String input) {
+    var formatted = input;
+    if (!formatted.startsWith("http://") && !formatted.startsWith("https://")) {
+      formatted = "https://$formatted";
+    }
+
+    final uri = Uri.parse(formatted);
+    final domain = extractDomain(uri);
+
+    if (!isValidDomainOrIP(domain)) {
+      return null;
+    }
+    return domain;
+  }
 }
