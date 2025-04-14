@@ -10,11 +10,11 @@ import 'package:lantern/core/split_tunneling/apps_notifier.dart';
 import 'package:lantern/core/split_tunneling/split_tunneling_mode.dart';
 import 'package:lantern/core/split_tunneling/website_notifier.dart';
 import 'package:lantern/core/utils/ip_utils.dart';
+import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:lantern/core/utils/screen_utils.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/split_tunneling_tile.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
-import 'package:lantern/features/split_tunneling/bottom_sheet.dart';
 
 @RoutePage(name: 'SplitTunneling')
 class SplitTunneling extends HookConsumerWidget {
@@ -30,8 +30,9 @@ class SplitTunneling extends HookConsumerWidget {
     final isAutomaticMode = splitTunnelingMode == SplitTunnelingMode.automatic;
     final enabledApps = ref.watch(splitTunnelingAppsProvider).toList();
     final enabledWebsites = ref.watch(splitTunnelingWebsitesProvider).toList();
+    final isExpanded = useState<bool>(false);
 
-    void _showBottomSheet() {
+    void showBottomSheet() {
       showAppBottomSheet(
         context: context,
         title: 'split_tunneling_mode'.i18n,
@@ -39,12 +40,25 @@ class SplitTunneling extends HookConsumerWidget {
             context.isSmallDevice ? 0.39.h : 0.3.h,
         builder: (context, scrollController) {
           return Expanded(
-            child: SplitTunnelingBottomSheet(
-              scrollController: scrollController,
-              selectedMode: splitTunnelingMode,
-              onModeSelected: (mode) => ref
-                  .read(appPreferencesProvider.notifier)
-                  .setPreference(Preferences.splitTunnelingMode, mode),
+            child: ListView(
+              controller: scrollController,
+              padding: EdgeInsets.zero,
+              shrinkWrap: true,
+              children: [
+                ...SplitTunnelingMode.values.map((mode) {
+                  return SplitTunnelingModeTile(
+                    mode: mode,
+                    selectedMode: splitTunnelingMode,
+                    onChanged: (newValue) {
+                      if (newValue != null) {
+                        ref.read(appPreferencesProvider.notifier).setPreference(
+                            Preferences.splitTunnelingMode, newValue);
+                        Navigator.pop(context);
+                      }
+                    },
+                  );
+                }),
+              ],
             ),
           );
         },
@@ -99,14 +113,44 @@ class SplitTunneling extends HookConsumerWidget {
                   ),
                 ),
                 DividerSpace(),
-                if (splitTunnelingEnabled)
+                if (splitTunnelingEnabled) ...{
                   SplitTunnelingTile(
                     label: 'mode'.i18n,
                     subtitle: isAutomaticMode ? locationSubtitle.value : '',
                     actionText:
                         isAutomaticMode ? 'automatic'.i18n : 'manual'.i18n,
-                    onPressed: _showBottomSheet,
+                    onPressed: () {
+                      if (PlatformUtils.isDesktop) {
+                        isExpanded.value = !isExpanded.value;
+                      } else {
+                        showBottomSheet();
+                      }
+                    },
                   ),
+                  if (PlatformUtils.isDesktop && isExpanded.value)
+                    Padding(
+                      padding: const EdgeInsets.only(
+                          left: 16.0, right: 16.0, top: 8.0),
+                      child: Column(
+                        children: SplitTunnelingMode.values.map((mode) {
+                          return SplitTunnelingModeTile(
+                            mode: mode,
+                            selectedMode: splitTunnelingMode,
+                            onChanged: (newValue) {
+                              if (newValue != null) {
+                                ref
+                                    .read(appPreferencesProvider.notifier)
+                                    .setPreference(
+                                        Preferences.splitTunnelingMode,
+                                        newValue);
+                                isExpanded.value = false;
+                              }
+                            },
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                }
               ],
             ),
           ),
@@ -138,6 +182,62 @@ class SplitTunneling extends HookConsumerWidget {
             ),
           }
         ],
+      ),
+    );
+  }
+}
+
+class SplitTunnelingModeTile extends StatelessWidget {
+  final SplitTunnelingMode mode;
+  final SplitTunnelingMode selectedMode;
+  final ValueChanged<SplitTunnelingMode?> onChanged;
+
+  const SplitTunnelingModeTile({
+    super.key,
+    required this.mode,
+    required this.selectedMode,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isSelected = selectedMode == mode;
+
+    return InkWell(
+      onTap: () => onChanged(mode),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          border: Border.all(color: AppColors.gray2),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // Left: Label
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                mode.displayName,
+                style: AppTestStyles.bodyMedium.copyWith(
+                  color: AppColors.black1,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: Icon(
+                isSelected
+                    ? Icons.radio_button_checked
+                    : Icons.radio_button_off,
+                size: 24,
+                color: isSelected ? AppColors.black1 : AppColors.gray12,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

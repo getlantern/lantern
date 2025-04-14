@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -11,7 +12,7 @@ part 'window_notifier.g.dart';
 class WindowNotifier extends _$WindowNotifier {
   @override
   Future<void> build() async {
-    if (!PlatformUtils.isDesktop()) return;
+    if (!PlatformUtils.isDesktop) return;
     await windowManager.ensureInitialized();
     await windowManager.setSize(desktopWindowSize);
     windowManager.setResizable(false);

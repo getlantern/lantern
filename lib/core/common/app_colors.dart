@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   static Color get black => const Color(0xFF000000);
+  static Color get black1 => const Color(0xFF1A1B1C);
 
   static Color get white => Colors.white;
 
@@ -48,6 +49,7 @@ class AppColors {
   static Color get gray10 => Colors.black;
 
   static Color get gray11 => const Color(0xFF040404);
+  static Color get gray12 => const Color(0xFFBDBDBD);
 
   static Color get yellow0 => const Color(0xFFFEFDF6);
 
@@ -88,6 +90,5 @@ class AppColors {
   static Color get red10 => const Color(0xFF410001);
 
   static Color get shadowColor => const Color(0x19006162);
-  static Color get logBackgroundColor => const Color(0xFF1A1B1C);
   static Color get logTextColor => const Color(0xFF3D454D);
 }

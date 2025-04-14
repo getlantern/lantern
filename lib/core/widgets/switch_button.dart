@@ -2,7 +2,7 @@ import 'package:animated_toggle_switch/animated_toggle_switch.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lantern/core/common/app_colors.dart';
-import 'package:lantern/core/common/platfrom_utils.dart';
+import 'package:lantern/core/utils/platform_utils.dart';
 
 class SwitchButton extends StatelessWidget {
   final bool value;
@@ -25,7 +25,7 @@ class SwitchButton extends StatelessWidget {
       iconBuilder: (context, local, global) => const SizedBox(),
       indicatorSize: const Size(30, 30),
       spacing: 10.h,
-      height: PlatformUtils.isDesktop() ? 40.h : 30.h,
+      height: PlatformUtils.isDesktop ? 40.h : 30.h,
       wrapperBuilder: (context, global, child) {
         return Container(
           width: 75,
