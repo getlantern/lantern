@@ -63,7 +63,7 @@ class Logs extends HookConsumerWidget {
           Expanded(
             child: Container(
               decoration: ShapeDecoration(
-                color: AppColors.logBackgroundColor,
+                color: AppColors.black1,
                 shape: RoundedRectangleBorder(
                   side: BorderSide(width: 1),
                   borderRadius: BorderRadius.circular(16),
