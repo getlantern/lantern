@@ -318,7 +318,7 @@ gen:
 	dart run build_runner build --delete-conflicting-outputs
 
 #FFI generation
-ffi:
+ffigen:
 	dart run ffigen
 
 pubget:

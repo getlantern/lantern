@@ -6,14 +6,14 @@ import 'dart:isolate';
 
 import 'package:ffi/ffi.dart';
 import 'package:fpdart/fpdart.dart';
-import 'package:lantern/core/models/split_tunnel.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:lantern/core/extensions/error.dart';
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/lantern_status.dart';
+import 'package:lantern/core/models/split_tunnel.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/utils/failure.dart';
-import 'package:lantern/core/utils/log_utils.dart';
+import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_generated_bindings.dart';
 import 'package:lantern/lantern/lantern_service.dart';
@@ -56,22 +56,25 @@ class LanternFFIService implements LanternCoreService {
     return LanternBindings(lib);
   }
 
-  @override
   Future<Either<String, Unit>> _setupRadiance(nativePort) async {
     try {
       appLogger.debug('Setting up radiance');
-      final baseDir = await LogUtils.getAppLogDirectory();
-      final baseDirPtr = baseDir.toNativeUtf8();
+      final dataDir = await AppStorageUtils.getAppDirectory();
+      final logDir = await AppStorageUtils.getAppLogDirectory();
+      final dataDirPtr = dataDir.path.toNativeUtf8();
+      final logDirPtr = logDir.toNativeUtf8();
 
       _ffiService.setup(
-        baseDirPtr.cast(),
+        dataDirPtr.cast(),
+        logDirPtr.cast(),
         loggingReceivePort.sendPort.nativePort,
         appsReceivePort.sendPort.nativePort,
         statusReceivePort.sendPort.nativePort,
         NativeApi.initializeApiDLData,
       );
-      malloc.free(baseDirPtr);
 
+      malloc.free(dataDirPtr);
+      malloc.free(logDirPtr);
       return right(unit);
     } catch (e) {
       appLogger.error('Error while setting up radiance: $e');

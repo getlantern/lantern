@@ -10,7 +10,9 @@ import (
 )
 
 func TestCreateNewServer(t *testing.T) {
-	r, err := radiance.NewRadiance(client.Options{})
+	r, err := radiance.NewRadiance(client.Options{
+		DataDir: "",
+	})
 	if err != nil {
 		slog.Error("Unable to create Radiance", "error", err)
 
