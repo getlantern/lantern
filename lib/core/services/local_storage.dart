@@ -2,8 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:objectbox/objectbox.dart';
-
 import 'package:lantern/core/common/app_secrets.dart';
+import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/website.dart';
 import 'package:lantern/core/services/db/objectbox.g.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:path/path.dart' as p;
@@ -32,6 +33,8 @@ class LocalStorageService {
   late Store _store;
 
   late Box<AppDatabase> _box;
+  late Box<AppData> _appsBox;
+  late Box<Website> _websitesBox;
 
   late AppDatabase _appDb;
 
@@ -42,6 +45,13 @@ class LocalStorageService {
   /// Do not change this value
   final macosApplicationGroup = AppSecrets.macosAppGroupId;
 
+  Future<Directory> _getDBDirectory() {
+    if (Platform.isIOS || Platform.isAndroid) {
+      return getApplicationDocumentsDirectory();
+    }
+    return getApplicationSupportDirectory();
+  }
+
   Future<void> init() async {
     final start = DateTime.now();
     dbLogger.debug("Initializing LocalStorageService");
@@ -49,7 +59,11 @@ class LocalStorageService {
     _store = await openStore(
         directory: p.join(docsDir.path, "objectbox-db"),
         macosApplicationGroup: macosApplicationGroup);
+
     _box = _store.box<AppDatabase>();
+    _appsBox = _store.box<AppData>();
+    _websitesBox = _store.box<Website>();
+
     AppDatabase? db = _box.get(1);
     if (db == null) {
       db = AppDatabase(data: "{}")..id = 1;
@@ -95,7 +109,36 @@ class LocalStorageService {
     dbLogger.debug("Key: $key removed successfully");
   }
 
+  // Apps methods
+  void saveApps(Set<AppData> apps) {
+    _appsBox.removeAll();
+    _appsBox.putMany(apps.toList());
+  }
 
+  Set<AppData> getEnabledApps() {
+    return _appsBox.getAll().where((a) => a.isEnabled).toSet();
+  }
+
+  void toggleApp(AppData app) {
+    final existing =
+        _appsBox.query(AppData_.name.equals(app.name)).build().findFirst();
+
+    if (existing != null) {
+      _appsBox.remove(existing.id);
+    } else {
+      _appsBox.put(app.copyWith(isEnabled: true));
+    }
+  }
+
+  // Website methods
+  void saveWebsites(Set<Website> websites) {
+    _websitesBox.removeAll();
+    _websitesBox.putMany(websites.toList());
+  }
+
+  Set<Website> getEnabledWebsites() {
+    return _websitesBox.getAll().toSet();
+  }
 }
 
 @Entity()

@@ -6,7 +6,7 @@ class BaseScreen extends StatelessWidget {
   final String title;
   final Widget body;
   final bool padded;
-  final PreferredSizeWidget? appBar;
+  final AppBar? appBar;
   final Widget? bottomNavigationBar;
 
   const BaseScreen({

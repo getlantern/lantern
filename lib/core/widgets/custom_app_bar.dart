@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 class CustomAppBar extends AppBar {
   CustomAppBar({
     super.key,
-    required String title,
+    required Object title,
     super.actions,
     super.actionsPadding,
   }) : super(
-          title: Text(title),
+          title: title.runtimeType == String
+              ? Text(title as String)
+              : title as Widget,
         );
 }
