@@ -1,0 +1,8 @@
+{
+    "title": "Lantern",
+    "icon": "assets/images/lantern-app-icon.icns",
+    "contents": [
+      { "x": 467, "y": 192, "type": "link", "path": "/Applications" },
+      { "x": 143, "y": 192, "type": "file", "path": "build/macos/Build/Products/Release/Lantern.app" }
+    ]
+  }

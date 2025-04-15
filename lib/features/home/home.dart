@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
 import 'package:lantern/core/widgets/vpn_status_indicator.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
+import 'package:lantern/features/split_tunneling/provider/app_preferences.dart';
 import 'package:lantern/features/vpn/vpn_status.dart';
 import 'package:lantern/features/vpn/vpn_switch.dart';
 
@@ -43,11 +44,11 @@ class Home extends HookConsumerWidget {
                 appRouter.push(Setting());
               },
               icon: const AppImage(path: AppImagePaths.menu))),
-      body: _buildBody(),
+      body: _buildBody(ref),
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(WidgetRef ref) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: defaultSize),
       child: Column(
@@ -60,7 +61,7 @@ class Home extends HookConsumerWidget {
             children: <Widget>[
               DataUsage(),
               SizedBox(height: 8),
-              _buildSetting(),
+              _buildSetting(ref),
               SizedBox(height: 20.h),
             ],
           ),
@@ -69,7 +70,10 @@ class Home extends HookConsumerWidget {
     );
   }
 
-  Widget _buildSetting() {
+  Widget _buildSetting(WidgetRef ref) {
+    final preferences = ref.watch(appPreferencesProvider).value;
+    final splitTunnelingEnabled =
+        preferences?[Preferences.splitTunnelingEnabled] ?? false;
     return Container(
       decoration: BoxDecoration(boxShadow: [
         BoxShadow(
@@ -113,10 +117,10 @@ class Home extends HookConsumerWidget {
             SettingTile(
               label: 'split_tunneling'.i18n,
               icon: AppImagePaths.callSpilt,
-              value: 'Enabled',
+              value: splitTunnelingEnabled ? 'Enabled' : 'Disabled',
               actions: [
                 IconButton(
-                  onPressed: () {},
+                  onPressed: () => appRouter.push(SplitTunneling()),
                   style: ElevatedButton.styleFrom(
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
@@ -140,6 +144,7 @@ class Home extends HookConsumerWidget {
         appRouter.push(const ServerSelection());
         break;
       case _SettingTileType.splitTunneling:
+        appRouter.push(const SplitTunneling());
         break;
     }
   }

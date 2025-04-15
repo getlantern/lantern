@@ -1,5 +1,6 @@
 import 'package:get_it/get_it.dart';
 import 'package:lantern/core/services/local_storage.dart';
+import 'package:lantern/features/vpn/provider/vpn_status_notifier.dart';
 import 'package:lantern/lantern/lantern_ffi_service.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
 
@@ -11,6 +12,7 @@ Future<void> injectServices() async {
   sl.registerLazySingleton(() => LanternPlatformService());
   await sl<LanternPlatformService>().init();
   sl.registerLazySingleton(() => LanternFFIService());
+  await sl<LanternFFIService>().init();
   sl.registerLazySingleton(() => LocalStorageService());
   await sl<LocalStorageService>().init();
   sl.registerLazySingleton(() => AppRouter());

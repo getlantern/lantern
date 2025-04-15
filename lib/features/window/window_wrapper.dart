@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:lantern/features/window/provider/window_notifier.dart';
 import 'package:lantern/features/window/windows_protocol_registry.dart';
 import 'package:window_manager/window_manager.dart';
@@ -32,7 +33,7 @@ class _WindowWrapperState extends ConsumerState<WindowWrapper>
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback(
       (timeStamp) {
-        if (PlatformUtils.isDesktop()) {
+        if (PlatformUtils.isDesktop) {
           windowManager.addListener(this);
           _setupDesktopWindow();
         }
@@ -50,7 +51,7 @@ class _WindowWrapperState extends ConsumerState<WindowWrapper>
 
   @override
   void dispose() {
-    if (PlatformUtils.isDesktop()) {
+    if (PlatformUtils.isDesktop) {
       windowManager.removeListener(this);
     }
     super.dispose();

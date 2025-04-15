@@ -1,34 +1,37 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/widgets/base_screen.dart';
+import 'package:lantern/core/widgets/split_tunneling_tile.dart';
+import 'package:lantern/features/split_tunneling/provider/app_preferences.dart';
 
 @RoutePage(name: 'VPNSetting')
-class VPNSetting extends StatelessWidget {
+class VPNSetting extends HookConsumerWidget {
   const VPNSetting({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return BaseScreen(title: 'vpn_settings'.i18n, body: _buildBody(context));
+  Widget build(BuildContext context, WidgetRef ref) {
+    return BaseScreen(
+      title: 'vpn_settings'.i18n,
+      body: _buildBody(context, ref),
+    );
   }
 
-  Widget _buildBody(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
+  Widget _buildBody(BuildContext context, WidgetRef ref) {
+    final preferences = ref.watch(appPreferencesProvider).value;
+    final splitTunnelingEnabled =
+        preferences?[Preferences.splitTunnelingEnabled] ?? false;
     return Card(
       child: ListView(
         padding: const EdgeInsets.all(0),
         shrinkWrap: true,
         children: <Widget>[
-          AppTile(
+          SplitTunnelingTile(
             label: 'split_tunneling'.i18n,
             icon: AppImagePaths.callSpilt,
-            trailing: Text(
-              'Enabled',
-              style: textTheme.titleMedium!.copyWith(
-                color: AppColors.blue7,
-              ),
-            ),
-            onPressed: () {},
+            actionText:
+                splitTunnelingEnabled ? 'enabled'.i18n : 'disabled'.i18n,
+            onPressed: () => appRouter.push(const SplitTunneling()),
           ),
           DividerSpace(),
           AppTile(
