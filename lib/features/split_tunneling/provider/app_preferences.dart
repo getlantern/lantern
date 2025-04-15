@@ -1,4 +1,4 @@
-import 'package:lantern/core/models/split_tunnel.dart';
+import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
