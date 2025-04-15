@@ -1,0 +1,14 @@
+# The value of AppId uniquely identifies this application.
+# Do not use the same AppId value in installers for other applications.
+# TODO: Update this to add Lantern to Windows app store
+app_id: 5B599538-42C1-4026-A579-AF079F21A65E
+display_name: Lantern
+#app_name: Lantern
+publisher: getlantern
+publisher_url: https://github.com/getlantern/lantern-outline
+executable_name: lantern.exe
+output_base_file_name: lantern.exe
+create_desktop_icon: true
+install_dir_name: Lantern
+script_template: inno_setup.iss
+#setup_icon_file: ..\windows\runner\resources\app_icon.ico

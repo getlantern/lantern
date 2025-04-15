@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:lantern/core/utils/storage_utils.dart';
+import 'package:objectbox/objectbox.dart';
 
 import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/services/db/objectbox.g.dart';
@@ -18,7 +20,8 @@ class AppDB {
     final start = DateTime.now();
     _localStorageService.set(key, value);
     dbLogger.info(
-        "Key: $key saved successfully in ${DateTime.now().difference(start).inMilliseconds}ms");
+      "Key: $key saved successfully in ${DateTime.now().difference(start).inMilliseconds}ms",
+    );
   }
 
   static T? get<T>(String key) {
@@ -43,11 +46,11 @@ class LocalStorageService {
   Future<void> init() async {
     final start = DateTime.now();
     dbLogger.debug("Initializing LocalStorageService");
-    final docsDir = await _getDBDirectory();
-    appLogger.debug("DB Directory: ${docsDir.path}");
+    final docsDir = await AppStorageUtils.getAppDirectory();
     _store = await openStore(
-        directory: p.join(docsDir.path, "objectbox-db"),
-        macosApplicationGroup: macosApplicationGroup);
+      directory: p.join(docsDir.path, "objectbox-db"),
+      macosApplicationGroup: macosApplicationGroup,
+    );
     _box = _store.box<AppDatabase>();
     AppDatabase? db = _box.get(1);
     if (db == null) {
@@ -57,7 +60,8 @@ class LocalStorageService {
     _appDb = db;
     _cache = _appDb.map;
     dbLogger.info(
-        "LocalStorageService initialized in ${DateTime.now().difference(start).inMilliseconds}ms");
+      "LocalStorageService initialized in ${DateTime.now().difference(start).inMilliseconds}ms",
+    );
   }
 
   void close() {

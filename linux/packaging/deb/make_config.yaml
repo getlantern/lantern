@@ -1,0 +1,22 @@
+display_name: Lantern
+package_name: Lantern
+maintainer:
+  name: teamlantern
+  email: admin@getlantern.org
+
+priority: optional
+section: x11
+installed_size: 6604
+essential: false
+icon: ./assets/images/launch_icon.png
+
+
+keywords:
+  - Lantern
+
+generic_name: Lantern
+
+categories:
+  - Network
+
+startup_notify: true

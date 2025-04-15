@@ -3,6 +3,7 @@ package org.getlantern.lantern.utils
 import android.content.Context
 import android.net.IpPrefix
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import lantern.io.libbox.RoutePrefix
 import org.getlantern.lantern.LanternApp
@@ -18,29 +19,28 @@ fun isServiceRunning(context: Context, serviceClass: Class<*>): Boolean {
 }
 
 fun isVPNRunning(context: Context): Boolean {
-    return  isServiceRunning(context, LanternVpnService::class.java)
+    return isServiceRunning(context, LanternVpnService::class.java)
 }
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 fun RoutePrefix.toIpPrefix() = IpPrefix(InetAddress.getByName(address()), prefix())
 
-fun configDirFor(context: Context, suffix: String): String {
-    return File(
-        context.filesDir,
-        ".lantern$suffix"
-    ).absolutePath
-}
 
 fun initConfigDir(): String {
-    val dir = File(LanternApp.application.filesDir, ".lantern")
+    val dir = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+        File(LanternApp.application.dataDir, ".lantern")
+    } else {
+        File(LanternApp.application.filesDir, ".lantern")
+    }
+
     if (dir.exists()) {
         return dir.absolutePath
     }
     val success = dir.mkdir()
-
     if (!success) {
         throw Exception("Failed to create config directory")
     }
+    Log.d("Paths", "Created config directory ${dir.absolutePath}")
     return dir.absolutePath
 }
 
