@@ -134,7 +134,7 @@ func removeSplitTunnelPackage(pkg *C.char) *C.char {
 		return C.CString("radiance not initialized")
 	}
 
-	if err := server.SplitTunnelHandler().RemoveItem(ruleset.TypePackageName, C.GoString(pkg)); err != nil {
+	if err := server.splitTunnelHandler.RemoveItem(ruleset.TypePackageName, C.GoString(pkg)); err != nil {
 		return C.CString(fmt.Sprintf("error removing package: %v", err))
 	}
 	return nil
