@@ -47,9 +47,9 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<String, Unit>> _setupRadiance(nativePort) async {
     try {
       appLogger.debug('Setting up radiance');
-      final dataDir = await AppStorageUtils.getAppDataDirectory();
+      final dataDir = await AppStorageUtils.getAppDirectory();
       final logDir = await AppStorageUtils.getAppLogDirectory();
-      final dataDirPtr = dataDir.toNativeUtf8();
+      final dataDirPtr = dataDir.path.toNativeUtf8();
       final logDirPtr = logDir.toNativeUtf8();
 
       _ffiService.setup(
