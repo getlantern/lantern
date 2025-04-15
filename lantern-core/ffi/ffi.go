@@ -213,7 +213,7 @@ func (s *lanternService) sendStatusToPort(status VPNStatus) {
 	}
 
 	go func() {
-		msg := fmt.Sprintf(`{"status":"%s"}`, status)
+		msg := map[string]any{"status": status}
 		data, _ := json.Marshal(msg)
 		dart_api_dl.SendToPort(servicePort, string(data))
 	}()

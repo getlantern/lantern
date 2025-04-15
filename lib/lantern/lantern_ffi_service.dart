@@ -269,7 +269,7 @@ class LanternFFIService implements LanternCoreService {
       // setup receive port to receive connection status updates
       _status = statusReceivePort.map(
         (event) {
-          Map<String, dynamic> result = jsonDecode(jsonDecode(event));
+          Map<String, dynamic> result = jsonDecode(event);
           return LanternStatus.fromJson(result);
         },
       ).debounceTime(const Duration(milliseconds: 200));
