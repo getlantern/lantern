@@ -22,7 +22,6 @@ import (
 	"github.com/getlantern/lantern-outline/lantern-core/dart_api_dl"
 	"github.com/getlantern/radiance"
 	"github.com/getlantern/radiance/client"
-	"github.com/getlantern/sing-box-extensions/ruleset"
 )
 
 type service string
@@ -71,7 +70,7 @@ func sendApps(port int64) func(apps ...*apps.AppData) error {
 			log.Error(err)
 			return err
 		}
-		dart_api_dl.SendToPort(port, string(data))
+		go dart_api_dl.SendToPort(port, string(data))
 		return nil
 	}
 }
@@ -110,8 +109,8 @@ func setup(dir *C.char, logPort, appsPort, statusPort C.int64_t, api unsafe.Poin
 	})
 }
 
-//export addSplitTunnelPackage
-func addSplitTunnelPackage(pkg *C.char) *C.char {
+//export addSplitTunnelItem
+func addSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
 	mu.Lock()
 	defer mu.Unlock()
 
@@ -119,14 +118,17 @@ func addSplitTunnelPackage(pkg *C.char) *C.char {
 		return C.CString("radiance not initialized")
 	}
 
-	if err := server.splitTunnelHandler.AddItem(ruleset.TypePackageName, C.GoString(pkg)); err != nil {
-		return C.CString(fmt.Sprintf("error adding package: %v", err))
+	filterType := C.GoString(filterTypeC)
+	item := C.GoString(itemC)
+
+	if err := server.splitTunnelHandler.AddItem(filterType, item); err != nil {
+		return C.CString(fmt.Sprintf("error adding item: %v", err))
 	}
 	return nil
 }
 
-//export removeSplitTunnelPackage
-func removeSplitTunnelPackage(pkg *C.char) *C.char {
+//export removeSplitTunnelItem
+func removeSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
 	mu.Lock()
 	defer mu.Unlock()
 
@@ -134,8 +136,11 @@ func removeSplitTunnelPackage(pkg *C.char) *C.char {
 		return C.CString("radiance not initialized")
 	}
 
-	if err := server.splitTunnelHandler.RemoveItem(ruleset.TypePackageName, C.GoString(pkg)); err != nil {
-		return C.CString(fmt.Sprintf("error removing package: %v", err))
+	filterType := C.GoString(filterTypeC)
+	item := C.GoString(itemC)
+
+	if err := server.splitTunnelHandler.RemoveItem(filterType, item); err != nil {
+		return C.CString(fmt.Sprintf("error removing item: %v", err))
 	}
 	return nil
 }

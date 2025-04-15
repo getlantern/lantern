@@ -6,15 +6,14 @@ import 'dart:isolate';
 
 import 'package:ffi/ffi.dart';
 import 'package:fpdart/fpdart.dart';
+import 'package:lantern/core/split_tunneling/split_tunnel_filer_type.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/extensions/error.dart';
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/utils/failure.dart';
 import 'package:lantern/core/utils/log_utils.dart';
-import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_generated_bindings.dart';
 import 'package:lantern/lantern/lantern_service.dart';
@@ -98,6 +97,71 @@ class LanternFFIService implements LanternCoreService {
     await for (final message in loggingReceivePort) {
       yield message;
     }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> addSplitTunnelItem(
+    SplitTunnelFilterType type,
+    String value,
+  ) {
+    return _handleSplitTunnelItem(
+      type,
+      value,
+      action: SplitTunnelActionType.add,
+    );
+  }
+
+  @override
+  Future<Either<Failure, Unit>> removeSplitTunnelItem(
+    SplitTunnelFilterType type,
+    String value,
+  ) {
+    return _handleSplitTunnelItem(
+      type,
+      value,
+      action: SplitTunnelActionType.remove,
+    );
+  }
+
+  Future<Either<Failure, Unit>> _handleSplitTunnelItem(
+    SplitTunnelFilterType type,
+    String value, {
+    required SplitTunnelActionType action,
+  }) async {
+    return Future.microtask(() {
+      final tPtr = type.value.toNativeUtf8();
+      final vPtr = value.toNativeUtf8();
+
+      try {
+        final fn = action == SplitTunnelActionType.add
+            ? _ffiService.addSplitTunnelItem
+            : _ffiService.removeSplitTunnelItem;
+        final result = fn(tPtr.cast<Char>(), vPtr.cast<Char>());
+        if (result != nullptr) {
+          final error = result.cast<Utf8>().toDartString();
+          malloc.free(result);
+          appLogger.error('$action split tunnel error: $error');
+          return left(
+            Failure(
+              error: error,
+              localizedErrorMessage: error,
+            ),
+          );
+        }
+        return right(unit);
+      } catch (e) {
+        return left(
+          Failure(
+            error: e.toString(),
+            localizedErrorMessage:
+                (e is Exception) ? e.localizedDescription : e.toString(),
+          ),
+        );
+      } finally {
+        malloc.free(tPtr);
+        malloc.free(vPtr);
+      }
+    });
   }
 
   @override

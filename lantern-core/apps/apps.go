@@ -75,16 +75,19 @@ func getBundleID(appPath string) (string, error) {
 }
 
 func scanAppDirs(appDirs []string, seen map[string]bool, cb Callback) []*AppData {
-	var apps []*AppData
+	apps := []*AppData{}
 	for _, dir := range appDirs {
 		if _, err := os.Stat(dir); os.IsNotExist(err) {
 			continue
 		}
-		err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 			if err != nil || !info.IsDir() || !strings.HasSuffix(info.Name(), ".app") {
 				return nil
 			}
-			bundleID, _ := getBundleID(path)
+			bundleID, err := getBundleID(path)
+			if err != nil {
+				return err
+			}
 			key := bundleID
 
 			if key == "" {
@@ -99,6 +102,7 @@ func scanAppDirs(appDirs []string, seen map[string]bool, cb Callback) []*AppData
 
 			iconPath, _ := getIconPath(path)
 			app := &AppData{
+				BundleID: bundleID,
 				Name:     strings.TrimSuffix(info.Name(), ".app"),
 				AppPath:  path,
 				IconPath: iconPath,
@@ -110,9 +114,6 @@ func scanAppDirs(appDirs []string, seen map[string]bool, cb Callback) []*AppData
 			seen[key] = true
 			return nil
 		})
-		if err != nil {
-			log.Errorf("Error walking directory %s: %v", dir, err)
-		}
 	}
 	return apps
 }
@@ -120,10 +121,8 @@ func scanAppDirs(appDirs []string, seen map[string]bool, cb Callback) []*AppData
 // LoadInstalledApps fetches the app list or rescans if needed
 func LoadInstalledApps(dataDir string, cb Callback) {
 	// Directories to scan for installed apps
-	appDirs := []string{"/Applications" /*, "/System/Applications"*/}
-
+	appDirs := []string{"/Applications"}
 	seen := make(map[string]bool)
-
 	if cached, err := loadCacheFromFile(dataDir); err == nil {
 		for _, app := range cached {
 			seen[app.AppPath] = true
@@ -138,7 +137,6 @@ func LoadInstalledApps(dataDir string, cb Callback) {
 	cacheMux.Unlock()
 
 	log.Debugf("App scan completed. %d apps found.", len(apps))
-
 }
 
 // getIconPath finds the .icns file inside the app bundle

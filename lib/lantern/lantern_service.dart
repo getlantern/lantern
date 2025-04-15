@@ -2,6 +2,7 @@ import 'package:fpdart/src/either.dart';
 import 'package:fpdart/src/unit.dart';
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/lantern_status.dart';
+import 'package:lantern/core/split_tunneling/split_tunnel_filer_type.dart';
 import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_ffi_service.dart';
@@ -75,5 +76,23 @@ class LanternService implements LanternCoreService {
       return ffiService.isVPNConnected();
     }
     return platformService.isVPNConnected();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> addSplitTunnelItem(
+      SplitTunnelFilterType type, String value) {
+    if (PlatformUtils.isDesktop) {
+      return ffiService.addSplitTunnelItem(type, value);
+    }
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> removeSplitTunnelItem(
+      SplitTunnelFilterType type, String value) {
+    if (PlatformUtils.isDesktop) {
+      return ffiService.removeSplitTunnelItem(type, value);
+    }
+    throw UnimplementedError();
   }
 }
