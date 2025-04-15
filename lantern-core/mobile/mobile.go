@@ -1,10 +1,12 @@
 package mobile
 
 import (
+	"path/filepath"
 	"sync"
 
 	"github.com/getlantern/golog"
 	"github.com/getlantern/radiance"
+	"github.com/getlantern/radiance/client"
 	"github.com/sagernet/sing-box/experimental/libbox"
 	_ "golang.org/x/mobile/bind"
 )
@@ -15,10 +17,15 @@ var (
 	radianceServer *radiance.Radiance
 )
 
-func SetupRadiance(logDir string, platform libbox.PlatformInterface) {
+func SetupRadiance(dataDir string, platform libbox.PlatformInterface) {
 	radianceMutex.Lock()
 	defer radianceMutex.Unlock()
-	r, err := radiance.NewRadiance(logDir, platform)
+	r, err := radiance.NewRadiance(client.Options{
+		LogDir:   filepath.Join(dataDir, "logs"),
+		DataDir:  dataDir,
+		PlatIfce: platform,
+	})
+	log.Debugf("Paths: %s %s", filepath.Join(dataDir, "logs"), dataDir)
 	if err != nil {
 		log.Errorf("Unable to create Radiance: %v", err)
 		return

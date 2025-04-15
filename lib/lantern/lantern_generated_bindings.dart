@@ -2350,12 +2350,14 @@ class LanternBindings {
   set suboptarg(ffi.Pointer<ffi.Char> value) => _suboptarg.value = value;
 
   void setup(
-    ffi.Pointer<ffi.Char> dir,
+    ffi.Pointer<ffi.Char> _logDir,
+    ffi.Pointer<ffi.Char> _dataDir,
     int port,
     ffi.Pointer<ffi.Void> api,
   ) {
     return _setup(
-      dir,
+      _logDir,
+      _dataDir,
       port,
       api,
     );
@@ -2363,10 +2365,11 @@ class LanternBindings {
 
   late final _setupPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Void Function(ffi.Pointer<ffi.Char>, ffi.Int64,
-              ffi.Pointer<ffi.Void>)>>('setup');
+          ffi.Void Function(ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>,
+              ffi.Int64, ffi.Pointer<ffi.Void>)>>('setup');
   late final _setup = _setupPtr.asFunction<
-      void Function(ffi.Pointer<ffi.Char>, int, ffi.Pointer<ffi.Void>)>();
+      void Function(ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>, int,
+          ffi.Pointer<ffi.Void>)>();
 
   ffi.Pointer<ffi.Char> startVPN() {
     return _startVPN();
