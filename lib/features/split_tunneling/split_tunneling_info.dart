@@ -124,7 +124,7 @@ class SubsectionTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textStyle = isLarge
-        ? AppTestStyles.titleLarge
+        ? Theme.of(context).textTheme.titleLarge!
         : AppTestStyles.labelLarge.copyWith(
             fontSize: 16,
             fontWeight: FontWeight.w600,

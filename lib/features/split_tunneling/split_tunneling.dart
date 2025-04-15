@@ -23,6 +23,8 @@ class SplitTunneling extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final preferences = ref.watch(appPreferencesProvider).value;
+    final _textTheme = Theme.of(context).textTheme;
+
     final splitTunnelingEnabled =
         preferences?[Preferences.splitTunnelingEnabled] ?? false;
     final splitTunnelingMode = preferences?[Preferences.splitTunnelingMode] ??
@@ -30,6 +32,7 @@ class SplitTunneling extends HookConsumerWidget {
     final isAutomaticMode = splitTunnelingMode == SplitTunnelingMode.automatic;
     final enabledApps = ref.watch(splitTunnelingAppsProvider).toList();
     final enabledWebsites = ref.watch(splitTunnelingWebsitesProvider).toList();
+    final expansionTileController = useExpansionTileController();
     final isExpanded = useState<bool>(false);
 
     void showBottomSheet() {
@@ -114,43 +117,68 @@ class SplitTunneling extends HookConsumerWidget {
                 ),
                 DividerSpace(),
                 if (splitTunnelingEnabled) ...{
-                  SplitTunnelingTile(
-                    label: 'mode'.i18n,
-                    subtitle: isAutomaticMode ? locationSubtitle.value : '',
-                    actionText:
-                        isAutomaticMode ? 'automatic'.i18n : 'manual'.i18n,
-                    onPressed: () {
-                      if (PlatformUtils.isDesktop) {
-                        isExpanded.value = !isExpanded.value;
-                      } else {
-                        showBottomSheet();
-                      }
-                    },
-                  ),
-                  if (PlatformUtils.isDesktop && isExpanded.value)
-                    Padding(
-                      padding: const EdgeInsets.only(
-                          left: 16.0, right: 16.0, top: 8.0),
-                      child: Column(
-                        children: SplitTunnelingMode.values.map((mode) {
-                          return SplitTunnelingModeTile(
-                            mode: mode,
-                            selectedMode: splitTunnelingMode,
-                            onChanged: (newValue) {
-                              if (newValue != null) {
-                                ref
-                                    .read(appPreferencesProvider.notifier)
-                                    .setPreference(
-                                        Preferences.splitTunnelingMode,
-                                        newValue);
-                                isExpanded.value = false;
-                              }
-                            },
-                          );
-                        }).toList(),
-                      ),
+                  ExpansionTile(
+                    controller: expansionTileController,
+                    title: Text(
+                      'mode'.i18n,
+                      style: _textTheme.bodyLarge!
+                          .copyWith(color: AppColors.gray9),
                     ),
-                }
+                    initiallyExpanded: false,
+                    trailing: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        AppTextButton(
+                          label: isAutomaticMode
+                              ? 'automatic'.i18n
+                              : 'manual'.i18n,
+                          onPressed: () => expansionTileController.isExpanded
+                              ? expansionTileController.collapse()
+                              : expansionTileController.expand(),
+                        ),
+                        AppImage(
+                          path: AppImagePaths.arrowForward,
+                          height: 20,
+                        ),
+                      ],
+                    ),
+                    // subtitle: isAutomaticMode ? locationSubtitle.value : '',
+                    subtitle: isAutomaticMode
+                        ? Text(
+                            locationSubtitle.value,
+                            style: _textTheme.labelMedium!.copyWith(
+                              color: AppColors.gray7,
+                            ),
+                          )
+                        : null,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            left: 16.0, right: 16.0, top: 8.0),
+                        child: Column(
+                          children: SplitTunnelingMode.values.map((mode) {
+                            return SplitTunnelingModeTile(
+                              mode: mode,
+                              selectedMode: splitTunnelingMode,
+                              onChanged: (newValue) {
+                                if (newValue != null) {
+                                  ref
+                                      .read(appPreferencesProvider.notifier)
+                                      .setPreference(
+                                          Preferences.splitTunnelingMode,
+                                          newValue);
+                                  expansionTileController.collapse();
+                                }
+                              },
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ],
+                  ),
+                },
               ],
             ),
           ),
