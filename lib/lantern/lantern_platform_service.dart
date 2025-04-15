@@ -4,7 +4,7 @@ import 'package:fpdart/src/unit.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/extensions/error.dart';
 import 'package:lantern/core/models/app_data.dart';
-import 'package:lantern/core/split_tunneling/split_tunnel_filer_type.dart';
+import 'package:lantern/core/models/split_tunnel.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 
 import '../core/models/lantern_status.dart';

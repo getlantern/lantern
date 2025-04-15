@@ -6,7 +6,7 @@ import 'dart:isolate';
 
 import 'package:ffi/ffi.dart';
 import 'package:fpdart/fpdart.dart';
-import 'package:lantern/core/split_tunneling/split_tunnel_filer_type.dart';
+import 'package:lantern/core/models/split_tunnel.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:lantern/core/extensions/error.dart';
 import 'package:lantern/core/models/app_data.dart';
@@ -30,7 +30,14 @@ const String _libName = 'liblantern';
 ///also this should be called from only [LanternService]
 class LanternFFIService implements LanternCoreService {
   static final LanternBindings _ffiService = _gen();
+
   late final Stream<LanternStatus> _status;
+
+  static SendPort? _commandSendPort;
+  static final Completer<void> _isolateInitialized = Completer<void>();
+
+  // Receive ports for different app services
+  static final commandReceivePort = ReceivePort();
   static final statusReceivePort = ReceivePort();
   static final appsReceivePort = ReceivePort();
   static final loggingReceivePort = ReceivePort();
@@ -99,15 +106,58 @@ class LanternFFIService implements LanternCoreService {
     }
   }
 
+  // Split tunneling
+  static void _commandIsolateEntry(SendPort sendPort) {
+    final commandPort = ReceivePort();
+    sendPort.send(commandPort.sendPort);
+    commandPort.listen((message) async {
+      final msg = message as SplitTunnelMessage;
+      try {
+        final result =
+            await _runSplitTunnelCall(msg.type, msg.value, msg.action);
+        msg.replyPort.send(result);
+      } catch (e) {
+        msg.replyPort.send(left(Failure(
+          error: e.toString(),
+          localizedErrorMessage: e.toString(),
+        )));
+      }
+    });
+  }
+
+  Future<void> _initializeCommandIsolate() async {
+    await Isolate.spawn(_commandIsolateEntry, commandReceivePort.sendPort);
+    final port = await commandReceivePort.first;
+    _commandSendPort = port as SendPort;
+    _isolateInitialized.complete();
+  }
+
+  Future<Either<Failure, Unit>> _sendSplitTunnel(
+    SplitTunnelFilterType type,
+    String value,
+    SplitTunnelActionType action,
+  ) async {
+    final responsePort = ReceivePort();
+    if (_commandSendPort == null) {
+      throw StateError('Command isolate not initialized');
+    }
+    _commandSendPort!
+        .send(SplitTunnelMessage(type, value, action, responsePort.sendPort));
+
+    final result = await responsePort.first;
+    responsePort.close();
+    return result;
+  }
+
   @override
   Future<Either<Failure, Unit>> addSplitTunnelItem(
     SplitTunnelFilterType type,
     String value,
   ) {
-    return _handleSplitTunnelItem(
+    return _sendSplitTunnel(
       type,
       value,
-      action: SplitTunnelActionType.add,
+      SplitTunnelActionType.add,
     );
   }
 
@@ -116,52 +166,50 @@ class LanternFFIService implements LanternCoreService {
     SplitTunnelFilterType type,
     String value,
   ) {
-    return _handleSplitTunnelItem(
+    return _sendSplitTunnel(
       type,
       value,
-      action: SplitTunnelActionType.remove,
+      SplitTunnelActionType.remove,
     );
   }
 
-  Future<Either<Failure, Unit>> _handleSplitTunnelItem(
+  static Future<Either<Failure, Unit>> _runSplitTunnelCall(
     SplitTunnelFilterType type,
-    String value, {
-    required SplitTunnelActionType action,
-  }) async {
-    return Future.microtask(() {
-      final tPtr = type.value.toNativeUtf8();
-      final vPtr = value.toNativeUtf8();
+    String value,
+    SplitTunnelActionType action,
+  ) async {
+    final tPtr = type.value.toNativeUtf8();
+    final vPtr = value.toNativeUtf8();
 
-      try {
-        final fn = action == SplitTunnelActionType.add
-            ? _ffiService.addSplitTunnelItem
-            : _ffiService.removeSplitTunnelItem;
-        final result = fn(tPtr.cast<Char>(), vPtr.cast<Char>());
-        if (result != nullptr) {
-          final error = result.cast<Utf8>().toDartString();
-          malloc.free(result);
-          appLogger.error('$action split tunnel error: $error');
-          return left(
-            Failure(
-              error: error,
-              localizedErrorMessage: error,
-            ),
-          );
-        }
-        return right(unit);
-      } catch (e) {
+    try {
+      final fn = action == SplitTunnelActionType.add
+          ? _ffiService.addSplitTunnelItem
+          : _ffiService.removeSplitTunnelItem;
+      final result = fn(tPtr.cast<Char>(), vPtr.cast<Char>());
+      if (result != nullptr) {
+        final error = result.cast<Utf8>().toDartString();
+        malloc.free(result);
+        appLogger.error('$action split tunnel error: $error');
         return left(
           Failure(
-            error: e.toString(),
-            localizedErrorMessage:
-                (e is Exception) ? e.localizedDescription : e.toString(),
+            error: error,
+            localizedErrorMessage: error,
           ),
         );
-      } finally {
-        malloc.free(tPtr);
-        malloc.free(vPtr);
       }
-    });
+      return right(unit);
+    } catch (e) {
+      return left(
+        Failure(
+          error: e.toString(),
+          localizedErrorMessage:
+              (e is Exception) ? e.localizedDescription : e.toString(),
+        ),
+      );
+    } finally {
+      malloc.free(tPtr);
+      malloc.free(vPtr);
+    }
   }
 
   @override
@@ -213,6 +261,7 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<void> init() async {
     try {
+      await _initializeCommandIsolate();
       final nativePort = statusReceivePort.sendPort.nativePort;
       // setup receive port to receive connection status updates
       _status = statusReceivePort.map(

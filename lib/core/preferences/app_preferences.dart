@@ -1,6 +1,6 @@
+import 'package:lantern/core/models/split_tunnel.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage.dart';
-import 'package:lantern/core/split_tunneling/split_tunneling_mode.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'app_preferences.g.dart';

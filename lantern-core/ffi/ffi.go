@@ -124,6 +124,7 @@ func addSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
 	if err := server.splitTunnelHandler.AddItem(filterType, item); err != nil {
 		return C.CString(fmt.Sprintf("error adding item: %v", err))
 	}
+	log.Debugf("added %s split tunneling item %s", filterType, item)
 	return nil
 }
 
@@ -142,6 +143,7 @@ func removeSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
 	if err := server.splitTunnelHandler.RemoveItem(filterType, item); err != nil {
 		return C.CString(fmt.Sprintf("error removing item: %v", err))
 	}
+	log.Debugf("removed %s split tunneling item %s", filterType, item)
 	return nil
 }
 
