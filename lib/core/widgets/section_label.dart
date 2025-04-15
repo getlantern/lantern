@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:lantern/core/common/app_colors.dart';
-import 'package:lantern/core/common/app_text_styles.dart';
 
 class SectionLabel extends StatelessWidget {
   final String title;
@@ -12,11 +11,11 @@ class SectionLabel extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       child: Text(
         title,
-        style: AppTestStyles.labelLarge.copyWith(
-          color: AppColors.gray8,
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-        ),
+        style: Theme.of(context).textTheme.labelLarge!.copyWith(
+              color: AppColors.gray8,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
       ),
     );
   }

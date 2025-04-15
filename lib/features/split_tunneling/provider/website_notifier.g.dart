@@ -7,7 +7,7 @@ part of 'website_notifier.dart';
 // **************************************************************************
 
 String _$splitTunnelingWebsitesHash() =>
-    r'faf11b85017a4593c106df64513873e2fb9dae51';
+    r'1057779500827e7bad5251ae27f6af8029f56303';
 
 /// See also [SplitTunnelingWebsites].
 @ProviderFor(SplitTunnelingWebsites)

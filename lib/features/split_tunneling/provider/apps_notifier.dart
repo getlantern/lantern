@@ -11,15 +11,12 @@ part 'apps_notifier.g.dart';
 
 @Riverpod(keepAlive: true)
 class SplitTunnelingApps extends _$SplitTunnelingApps {
-  late final LocalStorageService _db;
-  late final LanternService _lanternService;
+  final LocalStorageService _db = sl<LocalStorageService>();
+  late final LanternService _lanternService = ref.read(lanternServiceProvider);
 
   @override
   Set<AppData> build() {
-    _db = sl<LocalStorageService>();
-    final apps = _db.getEnabledApps();
-    _lanternService = ref.read(lanternServiceProvider);
-    return apps;
+    return _db.getEnabledApps();
   }
 
   // Toggle app selection for split tunneling

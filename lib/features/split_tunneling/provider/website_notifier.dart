@@ -12,13 +12,11 @@ part 'website_notifier.g.dart';
 @Riverpod(keepAlive: true)
 class SplitTunnelingWebsites extends _$SplitTunnelingWebsites {
   static const String enabledWebsitesKey = "enabled_websites";
-  late final LocalStorageService _db;
-  late final LanternService _lanternService;
+  final LocalStorageService _db = sl<LocalStorageService>();
+  late final LanternService _lanternService = ref.read(lanternServiceProvider);
 
   @override
   Set<Website> build() {
-    _db = sl<LocalStorageService>();
-    _lanternService = ref.read(lanternServiceProvider);
     return _db.getEnabledWebsites();
   }
 
