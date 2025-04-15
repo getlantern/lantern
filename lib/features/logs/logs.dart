@@ -6,7 +6,7 @@ import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/providers/log_provider.dart';
 import 'package:lantern/core/services/logger_service.dart';
-import 'package:lantern/core/utils/log_utils.dart';
+import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:share_plus/share_plus.dart';
 
 @RoutePage(name: 'Logs')
@@ -30,7 +30,7 @@ class Logs extends HookConsumerWidget {
 
     Future<void> shareLogFile() async {
       try {
-        final logFile = await LogUtils.appLogFile();
+        final logFile = await AppStorageUtils.appLogFile();
         await Share.shareXFiles(
           [XFile(logFile.path)],
           text: 'logs_share_message'.i18n,

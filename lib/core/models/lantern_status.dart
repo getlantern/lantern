@@ -35,4 +35,7 @@ class LanternStatus {
   }
 
   LanternStatus({required this.status, this.error});
+
+  @override
+  String toString() => 'LanternStatus(status: $status, error: $error)';
 }

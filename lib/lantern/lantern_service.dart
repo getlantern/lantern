@@ -20,14 +20,14 @@ class LanternService implements LanternCoreService {
     required LanternFFIService ffiService,
     required LanternPlatformService platformService,
     required AppPurchase appPurchase,
-  })  : _appPurchase = appPurchase,
-        _platformService = platformService,
-        _ffiService = ffiService;
+  }) : _appPurchase = appPurchase,
+       _platformService = platformService,
+       _ffiService = ffiService;
 
   @override
   Future<Either<Failure, String>> startVPN() async {
     if (PlatformUtils.isDesktop()) {
-      throw UnimplementedError();
+      return ffiService.startVPN();
     }
     return _platformService.startVPN();
   }
@@ -35,7 +35,7 @@ class LanternService implements LanternCoreService {
   @override
   Future<Either<Failure, String>> stopVPN() {
     if (PlatformUtils.isDesktop()) {
-      throw UnimplementedError();
+      return ffiService.stopVPN();
     }
     return _platformService.stopVPN();
   }
@@ -51,7 +51,7 @@ class LanternService implements LanternCoreService {
   @override
   Stream<LanternStatus> watchVPNStatus() {
     if (PlatformUtils.isDesktop()) {
-      throw UnimplementedError();
+      return ffiService.watchVPNStatus();
     }
     return _platformService.watchVPNStatus();
   }
@@ -87,5 +87,9 @@ class LanternService implements LanternCoreService {
       onSuccess: onSuccess,
       onError: onError,
     );
+    if (PlatformUtils.isDesktop()) {
+      return ffiService.isVPNConnected();
+    }
+    return platformService.isVPNConnected();
   }
 }
