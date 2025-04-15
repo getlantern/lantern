@@ -125,7 +125,7 @@ func LoadInstalledApps(dataDir string, cb Callback) {
 	seen := make(map[string]bool)
 	if cached, err := loadCacheFromFile(dataDir); err == nil {
 		for _, app := range cached {
-			seen[app.AppPath] = true
+			seen[app.BundleID] = true
 			cb(app)
 		}
 	}
