@@ -99,7 +99,7 @@ func CreateUser() error {
 	return nil
 }
 
-func SubscripationLink() string {
+func SubscripationPaymentRedirect() string {
 	proServer := radianceServer.Pro()
 	ret := protos.SubscriptionPaymentRedirectRequest{
 		Provider:         "stripe",

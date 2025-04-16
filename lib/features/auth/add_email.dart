@@ -110,20 +110,20 @@ class _AddEmailState extends ConsumerState<AddEmail> {
 
     ///Start subscription flow
     final paymentProvider = ref.read(paymentNotifierProvider.notifier);
-
     //Stripe
     final result = await paymentProvider.subscribeLink();
-
     result.fold(
       (error) {
         context.showSnackBarError(error.localizedErrorMessage);
         appLogger.error('Error subscribing to plan: $error');
         context.hideLoadingDialog();
       },
-      (success) {
+      (stripeUrl)  async {
         // Handle success
         appLogger.info('Successfully started subscription flow');
         context.hideLoadingDialog();
+        await Future.delayed(const Duration(milliseconds: 500));
+        appRouter.push(AppWebview(title: 'Stripe checkout', url: stripeUrl));
       },
     );
 
