@@ -17,6 +17,7 @@ import lantern.io.mobile.Mobile
 import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.notification.NotificationHelper
+import org.getlantern.lantern.utils.DeviceUtil
 import org.getlantern.lantern.utils.LocalResolver
 import org.getlantern.lantern.utils.VpnStatusManager
 import org.getlantern.lantern.utils.initConfigDir
@@ -48,7 +49,7 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        instance=this
+        instance = this
         val action = intent?.action ?: return START_NOT_STICKY
         if (!MainActivity.receiverRegistered) {
             VpnStatusManager.registerVPNStatusReceiver(this)
@@ -126,9 +127,9 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
     private suspend fun startRadiance() {
         try {
             withContext(Dispatchers.IO) {
-                Mobile.setupRadiance(initConfigDir(), this@LanternVpnService)
+                Mobile.setupRadiance(initConfigDir(), DeviceUtil.deviceId(), this@LanternVpnService)
             }
-            Log.d(TAG, "Radiance setup completed")
+            Log.d(TAG, "Radiance setup completed ${DeviceUtil.deviceId()}")
         } catch (e: Exception) {
             Log.e(TAG, "Error in Radiance setup", e)
         }

@@ -169,4 +169,10 @@ class LanternFFIService implements LanternCoreService {
     // TODO: implement subscribeToPlan
     throw UnimplementedError();
   }
+
+  @override
+  Future<Either<Failure, String>> subscriptionLink() {
+    // TODO: implement subscriptionLink
+    throw UnimplementedError();
+  }
 }

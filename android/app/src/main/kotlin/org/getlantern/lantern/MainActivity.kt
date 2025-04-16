@@ -17,6 +17,7 @@ import org.getlantern.lantern.handler.MethodHandler
 import org.getlantern.lantern.notification.NotificationHelper
 import org.getlantern.lantern.service.LanternVpnService
 import org.getlantern.lantern.service.LanternVpnService.Companion.ACTION_STOP_VPN
+import org.getlantern.lantern.utils.DeviceUtil
 import org.getlantern.lantern.utils.VpnStatusManager
 import org.getlantern.lantern.utils.isServiceRunning
 
@@ -35,7 +36,7 @@ class MainActivity : FlutterFragmentActivity() {
         super.configureFlutterEngine(flutterEngine)
 
         instance = this
-        Log.d(TAG, "Configuring FlutterEngine")
+        Log.d(TAG, "Configuring FlutterEngine ${DeviceUtil.deviceId()}")
         ///Setup handler
         flutterEngine.plugins.add(EventHandler())
         flutterEngine.plugins.add(MethodHandler(lifecycleScope))

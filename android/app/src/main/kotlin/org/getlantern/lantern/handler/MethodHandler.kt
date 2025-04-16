@@ -15,7 +15,8 @@ import org.getlantern.lantern.utils.VpnStatusManager
 enum class Methods(val method: String) {
     Start("startVPN"),
     Stop("stopVPN"),
-    IsVpnConnected("isVPNConnected")
+    IsVpnConnected("isVPNConnected"),
+    SubscriptionPaymentRedirect("subscriptionPaymentRedirect")
 }
 
 class MethodHandler(private val scope: CoroutineScope) : FlutterPlugin,
@@ -79,6 +80,19 @@ class MethodHandler(private val scope: CoroutineScope) : FlutterPlugin,
                             VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
                         }
                         success("")
+
+                    }.onFailure { e ->
+                        result.error("vpn_status", e.localizedMessage ?: "Please try again", e)
+                    }
+                }
+            }
+
+            Methods.SubscriptionPaymentRedirect.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val conncted = Mobile.subscripationLink()
+                        Log.d(TAG, "IsVpnConnected connected: $conncted")
+                        success(conncted)
 
                     }.onFailure { e ->
                         result.error("vpn_status", e.localizedMessage ?: "Please try again", e)

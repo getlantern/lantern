@@ -19,4 +19,8 @@ class PaymentNotifier extends _$PaymentNotifier {
     return ref.read(lanternServiceProvider).subscribeToPlan(
         planId: planId, onSuccess: onSuccess, onError: onError);
   }
+
+  Future<Either<Failure, String>> subscribeLink() async {
+    return ref.read(lanternServiceProvider).subscriptionLink();
+  }
 }

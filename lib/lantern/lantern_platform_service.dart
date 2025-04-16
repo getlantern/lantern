@@ -110,4 +110,18 @@ class LanternPlatformService implements LanternCoreService {
       ));
     }
   }
+
+  @override
+  Future<Either<Failure, String>> subscriptionLink() async {
+    try {
+      final link = await _methodChannel
+          .invokeMethod<String>('subscriptionPaymentRedirect');
+      return Right(link!);
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription));
+    }
+  }
 }

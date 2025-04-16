@@ -110,21 +110,39 @@ class _AddEmailState extends ConsumerState<AddEmail> {
 
     ///Start subscription flow
     final paymentProvider = ref.read(paymentNotifierProvider.notifier);
-    final result = await paymentProvider.subscribeToPlan(
-      planId: 'planId',
-      onSuccess: (purchase) {
-        /// Subscription successful
-        //todo call api to acknowledge the purchase
-        context.hideLoadingDialog();
-        postPaymentNavigate(type);
-      },
-      onError: (error) {
-        ///Error while subscribing
-        context.showSnackBarError(error);
+
+    //Stripe
+    final result = await paymentProvider.subscribeLink();
+
+    result.fold(
+      (error) {
+        context.showSnackBarError(error.localizedErrorMessage);
         appLogger.error('Error subscribing to plan: $error');
         context.hideLoadingDialog();
       },
+      (success) {
+        // Handle success
+        appLogger.info('Successfully started subscription flow');
+        context.hideLoadingDialog();
+      },
     );
+
+
+    // final result = await paymentProvider.subscribeToPlan(
+    //   planId: 'planId',
+    //   onSuccess: (purchase) {
+    //     /// Subscription successful
+    //     //todo call api to acknowledge the purchase
+    //     context.hideLoadingDialog();
+    //     postPaymentNavigate(type);
+    //   },
+    //   onError: (error) {
+    //     ///Error while subscribing
+    //     context.showSnackBarError(error);
+    //     appLogger.error('Error subscribing to plan: $error');
+    //     context.hideLoadingDialog();
+    //   },
+    // );
 
     /// Check if got any error while starting subscription flow
     result.fold(

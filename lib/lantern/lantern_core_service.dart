@@ -14,7 +14,11 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, String>> stopVPN();
 
+  Future<Either<Failure, String>> subscriptionLink();
+
   Stream<LanternStatus> watchVPNStatus();
+
+
 
   // Payments
   Future<Either<Failure, Unit>> subscribeToPlan({
