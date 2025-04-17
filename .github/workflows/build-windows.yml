@@ -52,6 +52,14 @@ jobs:
         #     file-digest: SHA256
         #     timestamp-rfc3161: http://timestamp.acs.microsoft.com
         #     timestamp-digest: SHA256
+
+        - name: Cache Dart pub global cache
+          uses: actions/cache@v4
+          with:
+            path: ~/.pub-cache
+            key: ${{ runner.os }}-dart-pub-cache-${{ hashFiles('**/pubspec.lock') }}
+            restore-keys: |
+              ${{ runner.os }}-dart-pub-cache-
   
         - name: Install dependencies and configure PATH
           shell: bash
