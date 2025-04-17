@@ -7,6 +7,12 @@ on:
 
 jobs:
   build-windows:
+    permissions:
+      contents: "read"
+      id-token: "write"
+    env:
+      version: 9999.99.99-dev
+
     runs-on: windows-latest
 
     steps:
@@ -53,6 +59,13 @@ jobs:
         #     timestamp-rfc3161: http://timestamp.acs.microsoft.com
         #     timestamp-digest: SHA256
 
+        - name: Decode APP_ENV
+          uses: timheuer/base64-to-file@v1.2
+          with:
+            fileName: 'app.env'
+            fileDir: ${{ github.workspace }}
+            encodedString: ${{ secrets.APP_ENV }}
+
         - name: Cache Dart pub global cache
           uses: actions/cache@v4
           with:
@@ -61,13 +74,41 @@ jobs:
             restore-keys: |
               ${{ runner.os }}-dart-pub-cache-
 
+        - name: Update app version in pubspec.yaml
+          shell: bash
+          env:
+            RUN_NUMBER: ${{ github.run_number }}
+          run: |
+            NEW_VERSION="${{ env.version }}+${RUN_NUMBER}"
+            echo "Updating pubspec.yaml to version: $NEW_VERSION"
+            sed -i.bak -E "s/^version: .*/version: $NEW_VERSION/" pubspec.yaml
+            cat pubspec.yaml
+            APP_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //')
+            echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
+
         - name: Build Windows release
           shell: pwsh
           run: |
             dart pub global activate flutter_distributor
             make windows-release
             flutter_distributor package --flutter-build-args=verbose --platform windows --targets "msix,exe"
-  
+            mv "dist/${{ env.APP_VERSION }}/lantern-${{ env.APP_VERSION }}-windows-setup.exe" lantern-installer.exe
+
+        - name: Sign EXE with Azure Code Signing
+          uses: getlantern/trusted-signing-action@main
+          with:
+            azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+            azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
+            azure-client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+            endpoint: https://wus2.codesigning.azure.net/
+            code-signing-account-name: code-signing
+            certificate-profile-name: Lantern
+            files-folder: ${{ github.workspace }}/
+            files-folder-filter: exe,dll,msix
+            file-digest: SHA256
+            timestamp-rfc3161: http://timestamp.acs.microsoft.com
+            timestamp-digest: SHA256
+
         - name: Upload Windows installer
           uses: actions/upload-artifact@v4
           with:
