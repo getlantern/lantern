@@ -64,7 +64,7 @@ jobs:
         - name: Build Windows release
           shell: bash
           run: |
-            echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+            export PATH="$HOME/.pub-cache/bin:$PATH"
             make install-windows-deps
             make windows-release
   
