@@ -18,5 +18,5 @@ enum AuthFlow{
 enum StipeSubscriptionType{
   monthly,
   yearly,
-  oneTime
+  one_time
 }

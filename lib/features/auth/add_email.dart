@@ -54,7 +54,6 @@ class _AddEmailState extends ConsumerState<AddEmail> {
                     return 'invalid_email'.i18n;
                   }
                 }
-
                 return null;
               },
             ),
@@ -108,7 +107,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
         return;
       }
     }
-    stripeSubscription();
+    stripeRedirectUrl();
   }
 
   Future<void> stripeSubscription() async {
@@ -147,7 +146,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     final paymentProvider = ref.read(paymentNotifierProvider.notifier);
     //Stripe
     final result = await paymentProvider.stripeSubscriptionLink(
-      StipeSubscriptionType.monthly,
+      StipeSubscriptionType.one_time,
       '1y-usd',
     );
     result.fold(
