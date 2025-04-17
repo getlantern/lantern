@@ -62,9 +62,9 @@ jobs:
               ${{ runner.os }}-dart-pub-cache-
 
         - name: Build Windows release
-          shell: bash
+          shell: pwsh
           run: |
-            export PATH="$HOME/.pub-cache/bin:$PATH"
+            $env:Path += ";$env:USERPROFILE\.pub-cache\bin"
             make install-windows-deps
             make windows-release
   
