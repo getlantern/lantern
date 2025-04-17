@@ -52,13 +52,12 @@ jobs:
         #     file-digest: SHA256
         #     timestamp-rfc3161: http://timestamp.acs.microsoft.com
         #     timestamp-digest: SHA256
-
-        - name: Install dependencies
-          shell: bash
-          run: make install-windows-deps
   
-        - name: Add Dart pub global bin to PATH
-          run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+        - name: Install dependencies and configure PATH
+          shell: bash
+          run: |
+            echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+            make install-windows-deps
 
         - name: Build Windows release
           shell: bash
