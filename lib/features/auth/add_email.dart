@@ -105,6 +105,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
         return;
       }
     }
+
     context.showLoadingDialog();
 
     ///Start subscription flow
@@ -131,7 +132,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
         appLogger.info('Successfully started subscription flow');
         context.hideLoadingDialog();
         await Future.delayed(const Duration(milliseconds: 500));
-        appRouter.push(AppWebview(title: 'Stripe checkout', url: stripeUrl));
+        UrlUtils.openWebview(stripeUrl, 'stripe_payment'.i18n);
       },
     );
 
@@ -152,17 +153,17 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     // );
 
     /// Check if got any error while starting subscription flow
-    result.fold(
-      (error) {
-        context.showSnackBarError(error.localizedErrorMessage);
-        appLogger.error('Error subscribing to plan: $error');
-        context.hideLoadingDialog();
-      },
-      (success) {
-        // Handle success
-        appLogger.info('Successfully started subscription flow');
-      },
-    );
+    // result.fold(
+    //   (error) {
+    //     context.showSnackBarError(error.localizedErrorMessage);
+    //     appLogger.error('Error subscribing to plan: $error');
+    //     context.hideLoadingDialog();
+    //   },
+    //   (success) {
+    //     // Handle success
+    //     appLogger.info('Successfully started subscription flow');
+    //   },
+    // );
   }
 
   void postPaymentNavigate(_SignUpMethodType type) {

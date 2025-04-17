@@ -303,6 +303,9 @@ msgstr "Invalid email address"
 msgid "purchase_already_owned"
 msgstr "You already own this purchase, Try doing restore purchase"
 
+msgid "stripe_payment"
+msgstr "Stripe Payment"
+
 
 
 
