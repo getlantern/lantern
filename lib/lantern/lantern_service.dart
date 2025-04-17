@@ -99,4 +99,14 @@ class LanternService implements LanternCoreService {
     return _platformService.stipeSubscriptionPaymentRedirect(
         type: type, planId: planId);
   }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> stipeSubscription(
+      {required String planId}) {
+    if (PlatformUtils.isDesktop()) {
+      throw UnimplementedError();
+    } else {
+      return _platformService.stipeSubscription(planId: planId);
+    }
+  }
 }

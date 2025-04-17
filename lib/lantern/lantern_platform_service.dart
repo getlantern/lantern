@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/services.dart';
 import 'package:fpdart/src/either.dart';
 import 'package:fpdart/src/unit.dart';
@@ -120,6 +122,21 @@ class LanternPlatformService implements LanternCoreService {
         "planId": planId,
       });
       return Right(link!);
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Map<String,dynamic>>> stipeSubscription({required String planId}) async {
+    try {
+      final subData = await _methodChannel
+          .invokeMethod<String>('stripeSubscription');
+      final map= jsonDecode(subData!);
+      return Right(map);
     } catch (e, stackTrace) {
       appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
       return Left(Failure(

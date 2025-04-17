@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/services/stripe_service.dart';
 import 'package:lantern/features/auth/provider/payment_notifier.dart';
+
+import '../../core/services/injection_container.dart';
 
 enum _SignUpMethodType { email, google, apple, withoutEmail }
 
@@ -105,7 +108,39 @@ class _AddEmailState extends ConsumerState<AddEmail> {
         return;
       }
     }
+    stripeSubscription();
+  }
 
+  Future<void> stripeSubscription() async {
+    context.showLoadingDialog();
+
+    ///Start subscription flow
+    final paymentProvider = ref.read(paymentNotifierProvider.notifier);
+    //Stripe
+    final result = await paymentProvider.stipeSubscription(
+      '1y-usd',
+    );
+
+    result.fold(
+      (error) {
+        context.showSnackBarError(error.localizedErrorMessage);
+        appLogger.error('Error subscribing to plan: $error');
+        context.hideLoadingDialog();
+      },
+      (stripeData) async {
+        // Handle success
+        context.hideLoadingDialog();
+
+        sl<StripeService>().startStripeSubscription(
+          options: StripeOptions.fromJson(stripeData),
+          onSuccess: () {},
+          onError: (error) {},
+        );
+      },
+    );
+  }
+
+  Future<void> stripeRedirectUrl() async {
     context.showLoadingDialog();
 
     ///Start subscription flow
@@ -135,35 +170,38 @@ class _AddEmailState extends ConsumerState<AddEmail> {
         UrlUtils.openWebview(stripeUrl, 'stripe_payment'.i18n);
       },
     );
+  }
 
-    // final result = await paymentProvider.subscribeToPlan(
-    //   planId: 'planId',
-    //   onSuccess: (purchase) {
-    //     /// Subscription successful
-    //     //todo call api to acknowledge the purchase
-    //     context.hideLoadingDialog();
-    //     postPaymentNavigate(type);
-    //   },
-    //   onError: (error) {
-    //     ///Error while subscribing
-    //     context.showSnackBarError(error);
-    //     appLogger.error('Error subscribing to plan: $error');
-    //     context.hideLoadingDialog();
-    //   },
-    // );
+  Future<void> triggerInAppPurchase() async {
+    final paymentProvider = ref.read(paymentNotifierProvider.notifier);
 
-    /// Check if got any error while starting subscription flow
-    // result.fold(
-    //   (error) {
-    //     context.showSnackBarError(error.localizedErrorMessage);
-    //     appLogger.error('Error subscribing to plan: $error');
-    //     context.hideLoadingDialog();
-    //   },
-    //   (success) {
-    //     // Handle success
-    //     appLogger.info('Successfully started subscription flow');
-    //   },
-    // );
+    final result = await paymentProvider.subscribeToPlan(
+      planId: 'planId',
+      onSuccess: (purchase) {
+        /// Subscription successful
+        //todo call api to acknowledge the purchase
+        context.hideLoadingDialog();
+        // postPaymentNavigate(type);
+      },
+      onError: (error) {
+        ///Error while subscribing
+        context.showSnackBarError(error);
+        appLogger.error('Error subscribing to plan: $error');
+        context.hideLoadingDialog();
+      },
+    );
+    // Check if got any error while starting subscription flow
+    result.fold(
+      (error) {
+        context.showSnackBarError(error.localizedErrorMessage);
+        appLogger.error('Error subscribing to plan: $error');
+        context.hideLoadingDialog();
+      },
+      (success) {
+        // Handle success
+        appLogger.info('Successfully started subscription flow');
+      },
+    );
   }
 
   void postPaymentNavigate(_SignUpMethodType type) {

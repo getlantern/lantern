@@ -191,4 +191,12 @@ class LanternFFIService implements LanternCoreService {
       );
     }
   }
+
+
+  //this does not support in desktop
+  @override
+  Future<Either<Failure, Map<String,dynamic>>> stipeSubscription({required String planId}) {
+    // TODO: implement stipeSubscription
+    throw UnimplementedError();
+  }
 }

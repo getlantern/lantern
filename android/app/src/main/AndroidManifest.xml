@@ -79,7 +79,9 @@
             android:name=".utils.VPNStatusReceiver"
             android:enabled="true" />
 
-
+        <meta-data
+            android:name="com.google.android.gms.wallet.api.enabled"
+            android:value="true"/>
 
     </application>
     <!-- Required to query activities that can process text, see:

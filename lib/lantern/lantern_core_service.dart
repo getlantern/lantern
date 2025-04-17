@@ -20,6 +20,8 @@ abstract class LanternCoreService {
   Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
       {required StipeSubscriptionType type,required String planId});
 
+  Future<Either<Failure, Map<String,dynamic>>> stipeSubscription(
+      {required String planId});
 
   Future<Either<Failure, Unit>> subscribeToPlan({
     required String planId,
