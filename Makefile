@@ -48,6 +48,7 @@ TAGS=with_gvisor,with_quic,with_wireguard,with_ech,with_utls,with_clash_api,with
 
 GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go')
 
+
 SIGN_ID="Developer ID Application: Brave New Software Project, Inc (ACZRKC3LQ9)"
 
 define osxcodesign
@@ -254,7 +255,7 @@ $(ANDROID_LIB_BUILD): $(GO_SOURCES)
                -tags=$(TAGS) -trimpath \
                -o=$@ \
                -ldflags="-checklinkname=0" \
-                $(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox
+                $(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox github.com/getlantern/sing-box-extensions/ruleset
 	mkdir -p $(ANDROID_LIBS_DIR) && cp $@ $(ANDROID_LIBS_DIR)
 	@echo "Built Android library: $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)"
 
@@ -295,7 +296,7 @@ $(IOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 		-target=ios \
 		-o $@ \
 		-ldflags="-w -s -checklinkname=0" \
-		$(RADIANCE_REPO)
+		$(RADIANCE_REPO) github.com/getlantern/sing-box-extensions/ruleset
 	mv $@ $(IOS_FRAMEWORK_DIR)
 	@echo "Built iOS Framework: $(IOS_FRAMEWORK)"
 
@@ -320,7 +321,7 @@ gen:
 	dart run build_runner build --delete-conflicting-outputs
 
 #FFI generation
-ffi:
+ffigen:
 	dart run ffigen
 
 pubget:

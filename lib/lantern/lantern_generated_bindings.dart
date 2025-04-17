@@ -2350,23 +2350,71 @@ class LanternBindings {
   set suboptarg(ffi.Pointer<ffi.Char> value) => _suboptarg.value = value;
 
   void setup(
-    ffi.Pointer<ffi.Char> dir,
-    int port,
+    ffi.Pointer<ffi.Char> _logDir,
+    ffi.Pointer<ffi.Char> _dataDir,
+    int logPort,
+    int appsPort,
+    int statusPort,
     ffi.Pointer<ffi.Void> api,
   ) {
     return _setup(
-      dir,
-      port,
+      _logDir,
+      _dataDir,
+      logPort,
+      appsPort,
+      statusPort,
       api,
     );
   }
 
   late final _setupPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Void Function(ffi.Pointer<ffi.Char>, ffi.Int64,
+          ffi.Void Function(
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Int64,
+              ffi.Int64,
+              ffi.Int64,
               ffi.Pointer<ffi.Void>)>>('setup');
   late final _setup = _setupPtr.asFunction<
-      void Function(ffi.Pointer<ffi.Char>, int, ffi.Pointer<ffi.Void>)>();
+      void Function(ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>, int, int, int,
+          ffi.Pointer<ffi.Void>)>();
+
+  ffi.Pointer<ffi.Char> addSplitTunnelItem(
+    ffi.Pointer<ffi.Char> filterTypeC,
+    ffi.Pointer<ffi.Char> itemC,
+  ) {
+    return _addSplitTunnelItem(
+      filterTypeC,
+      itemC,
+    );
+  }
+
+  late final _addSplitTunnelItemPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>)>>('addSplitTunnelItem');
+  late final _addSplitTunnelItem = _addSplitTunnelItemPtr.asFunction<
+      ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> removeSplitTunnelItem(
+    ffi.Pointer<ffi.Char> filterTypeC,
+    ffi.Pointer<ffi.Char> itemC,
+  ) {
+    return _removeSplitTunnelItem(
+      filterTypeC,
+      itemC,
+    );
+  }
+
+  late final _removeSplitTunnelItemPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>)>>('removeSplitTunnelItem');
+  late final _removeSplitTunnelItem = _removeSplitTunnelItemPtr.asFunction<
+      ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
 
   ffi.Pointer<ffi.Char> startVPN() {
     return _startVPN();

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:lantern/features/window/provider/window_notifier.dart';
 import 'package:tray_manager/tray_manager.dart';
 
@@ -23,7 +24,7 @@ class _SystemTrayWrapperState extends ConsumerState<SystemTrayWrapper>
   @override
   void initState() {
     super.initState();
-    if (!PlatformUtils.isDesktop()) {
+    if (!PlatformUtils.isDesktop) {
       return;
     }
     _initializeTray();

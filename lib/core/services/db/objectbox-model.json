@@ -4,35 +4,98 @@
   "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
   "entities": [
     {
-      "id": "1:1027975073737683578",
-      "lastPropertyId": "3:7465496422607335786",
+      "id": "2:7670868698114973577",
+      "lastPropertyId": "6:5603929520388800572",
+      "name": "AppData",
+      "properties": [
+        {
+          "id": "1:7709598816908993183",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:5184842411144758724",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "3:6847653516684994068",
+          "name": "bundleId",
+          "type": 9
+        },
+        {
+          "id": "4:677074590541685344",
+          "name": "iconPath",
+          "type": 9
+        },
+        {
+          "id": "5:1312807177461040004",
+          "name": "appPath",
+          "type": 9
+        },
+        {
+          "id": "6:5603929520388800572",
+          "name": "isEnabled",
+          "type": 1
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "3:4380524372643795068",
+      "lastPropertyId": "2:4102612372732725500",
       "name": "AppDatabase",
       "properties": [
         {
-          "id": "1:5682544289677202283",
+          "id": "1:689361163376130950",
           "name": "id",
           "type": 6,
           "flags": 129
         },
         {
-          "id": "3:7465496422607335786",
+          "id": "2:4102612372732725500",
           "name": "data",
+          "type": 9
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "4:8204765423358965580",
+      "lastPropertyId": "3:1230399441936964031",
+      "name": "Website",
+      "properties": [
+        {
+          "id": "1:7561664178301439803",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:7716209131748199990",
+          "name": "domain",
           "type": 9
         }
       ],
       "relations": []
     }
   ],
-  "lastEntityId": "1:1027975073737683578",
+  "lastEntityId": "4:8204765423358965580",
   "lastIndexId": "0:0",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",
   "modelVersion": 5,
   "modelVersionParserMinimum": 5,
-  "retiredEntityUids": [],
+  "retiredEntityUids": [
+    1027975073737683578
+  ],
   "retiredIndexUids": [],
   "retiredPropertyUids": [
-    366476197617928400
+    366476197617928400,
+    5682544289677202283,
+    7465496422607335786,
+    1230399441936964031
   ],
   "retiredRelationUids": [],
   "version": 1
