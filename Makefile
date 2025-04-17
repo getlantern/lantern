@@ -229,10 +229,12 @@ windows-debug: windows
 	@echo "Building Flutter app (debug) for Windows..."
 	flutter build windows --debug
 
+FLUTTER_DISTRIBUTOR := $(USERPROFILE)/.pub-cache/bin/flutter_distributor
+
 .PHONY: windows-release
 windows-release: clean windows pubget gen
 	@echo "Building Flutter app (release) for Windows..."
-	flutter_distributor package --flutter-build-args=verbose --platform windows --targets "msix,exe"
+	"$(FLUTTER_DISTRIBUTOR)" package --flutter-build-args=verbose --platform windows --targets "msix,exe"
 
 # Android Build
 .PHONY: install-android-deps
