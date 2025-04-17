@@ -1,6 +1,7 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:lantern/core/widgets/vpn_status_indicator.dart';
 import 'package:lantern/features/vpn/server_desktop_view.dart';
 import 'package:lantern/features/vpn/server_mobile_view.dart';
@@ -165,7 +166,7 @@ class ServerLocationListView extends StatelessWidget {
                     shrinkWrap: true,
                     itemCount: 15,
                     itemBuilder: (context, index) {
-                      if (PlatformUtils.isDesktop()) {
+                      if (PlatformUtils.isDesktop) {
                         return ServerDesktopView(
                           onServerSelected: onServerSelected,
                         );

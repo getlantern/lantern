@@ -203,6 +203,7 @@ class AppIconButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return IconButton(
       onPressed: onPressed,
+      padding: EdgeInsets.symmetric(horizontal: 16.0),
       icon: AppImage(
         path: path,
         height: 24,

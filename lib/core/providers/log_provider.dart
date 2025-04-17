@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 final diagnosticLogProvider = StreamProvider<List<String>>((ref) async* {
-  final logs = <String>[];
-  yield logs;
+  final ffiClient = ref.watch(lanternServiceProvider);
+  yield* ffiClient.logsStream();
 });

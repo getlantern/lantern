@@ -39,6 +39,8 @@ ios/liblantern.xcframework
 liblantern.a
 ios/build
 
+macos/Frameworks
+
 # Symbolication related
 app.*.symbols
 
