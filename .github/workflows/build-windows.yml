@@ -64,10 +64,9 @@ jobs:
         - name: Build Windows release
           shell: pwsh
           run: |
-            $env:Path += ";$env:USERPROFILE\.pub-cache\bin"
             dart pub global activate flutter_distributor
-            flutter_distributor --version
             make windows-release
+            flutter_distributor package --flutter-build-args=verbose --platform windows --targets "msix,exe"
   
         - name: Upload Windows installer
           uses: actions/upload-artifact@v4

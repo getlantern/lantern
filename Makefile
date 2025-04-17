@@ -233,8 +233,6 @@ FLUTTER_DISTRIBUTOR := $(USERPROFILE)/.pub-cache/bin/flutter_distributor
 
 .PHONY: windows-release
 windows-release: clean windows pubget gen
-	@echo "Building Flutter app (release) for Windows..."
-	"$(FLUTTER_DISTRIBUTOR)" package --flutter-build-args=verbose --platform windows --targets "msix,exe"
 
 # Android Build
 .PHONY: install-android-deps
