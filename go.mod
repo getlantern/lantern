@@ -1,8 +1,6 @@
 module github.com/getlantern/lantern-outline
 
-go 1.23.6
-
-toolchain go1.24.0
+go 1.24.2
 
 //replace github.com/getlantern/radiance => ../radiance
 
@@ -152,6 +150,7 @@ require (
 	github.com/shadowsocks/go-shadowsocks2 v0.1.5 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
+	github.com/zeebo/assert v1.3.0 // indirect
 	go.opentelemetry.io/otel/exporters/stdout/stdoutlog v0.11.0 // indirect
 	go.opentelemetry.io/otel/exporters/stdout/stdoutmetric v1.35.0 // indirect
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.35.0 // indirect
