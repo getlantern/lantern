@@ -8,6 +8,7 @@ package main
 import "C"
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"sync"
@@ -19,6 +20,9 @@ import (
 	"github.com/getlantern/lantern-outline/lantern-core/dart_api_dl"
 	"github.com/getlantern/radiance"
 	"github.com/getlantern/radiance/client"
+	"github.com/getlantern/radiance/pro"
+	"github.com/getlantern/radiance/user"
+	"github.com/getlantern/radiance/user/protos"
 )
 
 type VPNStatus string
@@ -43,7 +47,8 @@ var (
 
 type lanternService struct {
 	*radiance.Radiance
-
+	proServer   *pro.Pro
+	authClient  *user.User
 	servicePort int64
 }
 
@@ -70,9 +75,13 @@ func setup(_logDir, _dataDir *C.char, port C.int64_t, api unsafe.Pointer) {
 
 		server = &lanternService{
 			Radiance:    r,
+			proServer:   r.Pro(),
+			authClient:  r.User(),
 			servicePort: servicePort,
 		}
+		createUser()
 	})
+
 }
 
 // startVPN initializes and starts the VPN server if it is not already running.
@@ -125,7 +134,6 @@ func stopVPN() *C.char {
 
 	server.sendStatusToPort(Disconnected)
 	log.Debug("VPN server stopped successfully")
-
 	return nil
 }
 
@@ -145,6 +153,57 @@ func isVPNConnected() int {
 	defer serverMu.Unlock()
 
 	return 1
+}
+
+//APIS
+
+func createUser() error {
+	// defer func() {
+	// 	if err := recover(); err != nil {
+	// 		log.Errorf("Error creating user: %v", err)
+	// 	}
+	// }()
+	log.Debug("Creating user")
+	user, err := server.proServer.UserCreate(context.Background())
+	log.Debugf("UserCreate response: %v", user)
+	if err != nil {
+		return log.Errorf("Error creating user: %v", err)
+	}
+	return nil
+}
+
+// Fetch stipe subscription payment redirect link
+//
+//export stripeSubscriptionPaymentRedirect
+func stripeSubscriptionPaymentRedirect(subType *C.char) *C.char {
+	slog.Debug("stripeSubscriptionPaymentRedirect called")
+	subscriptionType := C.GoString(subType)
+
+	log.Debugf("subscription type: %s", subscriptionType)
+
+	redirectBody := &protos.SubscriptionPaymentRedirectRequest{
+		Provider:         "stripe",
+		Plan:             "1y-usd",
+		DeviceName:       "test",
+		Email:            "test@getlantern.org",
+		SubscriptionType: protos.SubscriptionType(subscriptionType),
+	}
+
+	redirect, err := subscripationPaymentRedirect(redirectBody)
+	if err != nil {
+		return SendError(err)
+	}
+	log.Debugf("stripeSubscriptionPaymentRedirect response: %s", *redirect)
+	return C.CString(*redirect)
+}
+
+func subscripationPaymentRedirect(redirectBody *protos.SubscriptionPaymentRedirectRequest) (*string, error) {
+	rediret, err := server.proServer.SubscriptionPaymentRedirect(context.Background(), redirectBody)
+	if err != nil {
+		return nil, log.Errorf("Error getting subscription link: %v", err)
+	}
+	log.Debugf("SubscriptionPaymentRedirect response: %v", rediret)
+	return &rediret.Redirect, nil
 }
 
 //export freeCString

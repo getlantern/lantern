@@ -20,9 +20,9 @@ class LanternService implements LanternCoreService {
     required LanternFFIService ffiService,
     required LanternPlatformService platformService,
     required AppPurchase appPurchase,
-  }) : _appPurchase = appPurchase,
-       _platformService = platformService,
-       _ffiService = ffiService;
+  })  : _appPurchase = appPurchase,
+        _platformService = platformService,
+        _ffiService = ffiService;
 
   @override
   Future<Either<Failure, String>> startVPN() async {
@@ -87,14 +87,16 @@ class LanternService implements LanternCoreService {
       onSuccess: onSuccess,
       onError: onError,
     );
-
   }
 
   @override
-  Future<Either<Failure, String>> subscriptionLink() {
-    if(PlatformUtils.isDesktop()) {
-      return _ffiService.subscriptionLink();
+  Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
+      {required StipeSubscriptionType type, required String planId}) {
+    if (PlatformUtils.isDesktop()) {
+      return _ffiService.stipeSubscriptionPaymentRedirect(
+          type: type, planId: planId);
     }
-  return  _platformService.subscriptionLink();
+    return _platformService.stipeSubscriptionPaymentRedirect(
+        type: type, planId: planId);
   }
 }

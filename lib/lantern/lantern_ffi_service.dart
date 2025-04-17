@@ -6,6 +6,8 @@ import 'dart:isolate';
 
 import 'package:ffi/ffi.dart';
 import 'package:fpdart/fpdart.dart';
+import 'package:lantern/core/common/app_eum.dart';
+import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/extensions/error.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/services/app_purchase.dart';
@@ -122,7 +124,7 @@ class LanternFFIService implements LanternCoreService {
       final nativePort = statusReceivePort.sendPort.nativePort;
       // setup receive port to receive connection status updates
       _status = statusReceivePort.map(
-        (event) {
+            (event) {
           Map<String, dynamic> result = jsonDecode(jsonDecode(event));
           return LanternStatus.fromJson(result);
         },
@@ -165,14 +167,28 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> subscribeToPlan({required String planId, required PaymentSuccessCallback onSuccess, required PaymentErrorCallback onError}) {
+  Future<Either<Failure, Unit>> subscribeToPlan(
+      {required String planId, required PaymentSuccessCallback onSuccess, required PaymentErrorCallback onError}) {
     // TODO: implement subscribeToPlan
     throw UnimplementedError();
   }
 
+
   @override
-  Future<Either<Failure, String>> subscriptionLink() {
-    // TODO: implement subscriptionLink
-    throw UnimplementedError();
+  Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
+      {required StipeSubscriptionType type, required String planId}) async {
+    try {
+      appLogger.debug('Starting Stripe Subscription Payment Redirect');
+      final result = await Future.value( _ffiService.stripeSubscriptionPaymentRedirect(
+          type.name.toCharPtr));
+      return right(result.toDartString());
+    } catch (e) {
+      return left(
+        Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription,
+        ),
+      );
+    }
   }
 }

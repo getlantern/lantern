@@ -41,6 +41,8 @@ export 'package:lantern/core/services/local_storage.dart';
 // Extensions
 export 'package:lantern/core/extensions/string.dart';
 export 'package:lantern/core/extensions/context.dart';
+export 'package:lantern/core/extensions/error.dart';
+export 'package:lantern/core/extensions/pointer.dart';
 
 //Logger
 export 'package:lantern/core/services/logger_service.dart';

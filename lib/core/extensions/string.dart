@@ -1,18 +1,19 @@
 // Captlize
+import 'dart:ffi';
+import 'dart:ffi' as ffi;
+
 import 'package:email_validator/email_validator.dart';
+import 'package:ffi/ffi.dart';
 
 extension CapExtension on String {
   String get capitalize => this[0].toUpperCase() + substring(1);
 }
-
 
 extension EmailValidation on String {
   bool isValidEmail() {
   return EmailValidator.validate(this);
   }
 }
-
-
 
 extension PasswordValidations on String {
   bool isPasswordValid() {
@@ -28,4 +29,11 @@ extension PasswordValidations on String {
         hasNumber &&
         hasSpecialCharacter;
   }
+}
+
+extension FFIExtension on String {
+  Pointer<ffi.Char> get toCharPtr {
+   return toNativeUtf8().cast<Char>();
+  }
+
 }

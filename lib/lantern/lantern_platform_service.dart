@@ -2,7 +2,6 @@ import 'package:flutter/services.dart';
 import 'package:fpdart/src/either.dart';
 import 'package:fpdart/src/unit.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/extensions/error.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 
@@ -112,10 +111,14 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> subscriptionLink() async {
+  Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
+      {required StipeSubscriptionType type, required String planId}) async {
     try {
       final link = await _methodChannel
-          .invokeMethod<String>('subscriptionPaymentRedirect');
+          .invokeMethod<String>('subscriptionPaymentRedirect', {
+        "subType": type.name,
+        "planId": planId,
+      });
       return Right(link!);
     } catch (e, stackTrace) {
       appLogger.error('Error waking up LanternPlatformService', e, stackTrace);

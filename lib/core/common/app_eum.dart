@@ -14,3 +14,9 @@ enum AuthFlow{
   signUp,
   activationCode
 }
+
+enum StipeSubscriptionType{
+  monthly,
+  yearly,
+  oneTime
+}

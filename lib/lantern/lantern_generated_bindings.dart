@@ -2397,6 +2397,22 @@ class LanternBindings {
       _lookup<ffi.NativeFunction<GoInt Function()>>('isVPNConnected');
   late final _isVPNConnected = _isVPNConnectedPtr.asFunction<int Function()>();
 
+  ffi.Pointer<ffi.Char> stripeSubscriptionPaymentRedirect(
+    ffi.Pointer<ffi.Char> subType,
+  ) {
+    return _stripeSubscriptionPaymentRedirect(
+      subType,
+    );
+  }
+
+  late final _stripeSubscriptionPaymentRedirectPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>)>>('stripeSubscriptionPaymentRedirect');
+  late final _stripeSubscriptionPaymentRedirect =
+      _stripeSubscriptionPaymentRedirectPtr
+          .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
+
   void freeCString(
     ffi.Pointer<ffi.Char> cstr,
   ) {

@@ -8,6 +8,8 @@ import (
 	"github.com/getlantern/golog"
 	"github.com/getlantern/radiance"
 	"github.com/getlantern/radiance/client"
+	"github.com/getlantern/radiance/pro"
+	"github.com/getlantern/radiance/user"
 	"github.com/getlantern/radiance/user/protos"
 	"github.com/sagernet/sing-box/experimental/libbox"
 	_ "golang.org/x/mobile/bind"
@@ -17,9 +19,20 @@ var (
 	log            = golog.LoggerFor("lantern-outline.native")
 	radianceMutex  = sync.Mutex{}
 	radianceServer *radiance.Radiance
+	proServer      *pro.Pro
+	authClient     *user.User
 )
 
-func SetupRadiance(dataDir, deviceid string, platform libbox.PlatformInterface) {
+// Create stipe subscription typs
+type SubscriptionFrequancy string
+
+const (
+	SubscriptionTypeMonthly SubscriptionFrequancy = "monthly"
+	SubscriptionTypeYearly  SubscriptionFrequancy = "yearly"
+	SubscriptionTypeOneTime SubscriptionFrequancy = "onetime"
+)
+
+func SetupRadiance(dataDir, deviceid string, platform libbox.PlatformInterface) error {
 	radianceMutex.Lock()
 	defer radianceMutex.Unlock()
 	r, err := radiance.NewRadiance(client.Options{
@@ -28,14 +41,16 @@ func SetupRadiance(dataDir, deviceid string, platform libbox.PlatformInterface) 
 		PlatIfce: platform,
 		DeviceID: deviceid,
 	})
-	log.Debugf("Paths: %s %s", filepath.Join(dataDir, "logs"), dataDir)
 	if err != nil {
-		log.Errorf("Unable to create Radiance: %v", err)
-		return
+		return log.Errorf("Unable to create Radiance: %v", err)
+
 	}
 	radianceServer = r
+	proServer = radianceServer.Pro()
+	authClient = radianceServer.User()
 	CreateUser()
 	log.Debug("Radiance setup successfully")
+	return nil
 }
 
 func IsRadianceConnected() bool {
@@ -83,14 +98,15 @@ func IsVPNConnected() bool {
 	return radianceServer.ConnectionStatus()
 }
 
+// todo make sure to add retry logic
+// we need to make sure that the user is created before we can use the radiance server
 func CreateUser() error {
-	defer func() {
-		if err := recover(); err != nil {
-			log.Errorf("Error creating user: %v", err)
-		}
-	}()
+	// defer func() {
+	// 	if err := recover(); err != nil {
+	// 		log.Errorf("Error creating user: %v", err)
+	// 	}
+	// }()
 	log.Debug("Creating user")
-	proServer := radianceServer.Pro()
 	user, err := proServer.UserCreate(context.Background())
 	log.Debugf("UserCreate response: %v", user)
 	if err != nil {
@@ -99,21 +115,28 @@ func CreateUser() error {
 	return nil
 }
 
-func SubscripationPaymentRedirect() string {
-	proServer := radianceServer.Pro()
+func StripeSubscriptionPaymentRedirect(subType string) (*string, error) {
 	ret := protos.SubscriptionPaymentRedirectRequest{
 		Provider:         "stripe",
 		Plan:             "1y-usd",
 		DeviceName:       "test",
 		Email:            "test@getlantern.org",
-		SubscriptionType: "monthly",
+		SubscriptionType: protos.SubscriptionType(subType),
 	}
-
-	rediret, err := proServer.SubscriptionPaymentRedirect(context.Background(), &ret)
+	stripeUrl, err := subscripationPaymentRedirect(&ret)
 	if err != nil {
-		log.Errorf("Error getting subscription link: %v", err)
-		return ""
+		return nil, log.Errorf("Error getting subscription link: %v", err)
+	}
+	log.Debugf("Stripe response: %v", stripeUrl)
+	return stripeUrl, nil
+
+}
+
+func subscripationPaymentRedirect(redirectBody *protos.SubscriptionPaymentRedirectRequest) (*string, error) {
+	rediret, err := proServer.SubscriptionPaymentRedirect(context.Background(), redirectBody)
+	if err != nil {
+		return nil, log.Errorf("Error getting subscription link: %v", err)
 	}
 	log.Debugf("SubscriptionPaymentRedirect response: %v", rediret)
-	return rediret.Redirect
+	return &rediret.Redirect, nil
 }

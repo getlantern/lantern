@@ -81,7 +81,7 @@ typedef struct { void *data; GoInt len; GoInt cap; } GoSlice;
 extern "C" {
 #endif
 
-extern void setup(char* dir, int64_t logPort, int64_t statusPort, int64_t appsPort, void* api);
+extern void setup(char* _logDir, char* _dataDir, int64_t port, void* api);
 
 // startVPN initializes and starts the VPN server if it is not already running.
 //
@@ -93,7 +93,11 @@ extern char* stopVPN();
 
 // isVPNConnected checks if the VPN server is running and connected.
 //
-extern char* isVPNConnected();
+extern GoInt isVPNConnected();
+
+// Fetch stipe subscription payment redirect link
+//
+extern char* stripeSubscriptionPaymentRedirect(char* subType);
 extern void freeCString(char* cstr);
 extern void enforce_binding();
 

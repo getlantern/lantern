@@ -1,7 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/features/auth/provider/payment_notifier.dart';
@@ -111,22 +110,30 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     ///Start subscription flow
     final paymentProvider = ref.read(paymentNotifierProvider.notifier);
     //Stripe
-    final result = await paymentProvider.subscribeLink();
+    final result = await paymentProvider.stripeSubscriptionLink(
+      StipeSubscriptionType.monthly,
+      '1y-usd',
+    );
     result.fold(
       (error) {
         context.showSnackBarError(error.localizedErrorMessage);
         appLogger.error('Error subscribing to plan: $error');
         context.hideLoadingDialog();
       },
-      (stripeUrl)  async {
+      (stripeUrl) async {
         // Handle success
+        if (stripeUrl.isEmpty) {
+          context.showSnackBarError('empty_url'.i18n);
+          appLogger.error('Error subscribing to plan: empty url');
+          context.hideLoadingDialog();
+          return;
+        }
         appLogger.info('Successfully started subscription flow');
         context.hideLoadingDialog();
         await Future.delayed(const Duration(milliseconds: 500));
         appRouter.push(AppWebview(title: 'Stripe checkout', url: stripeUrl));
       },
     );
-
 
     // final result = await paymentProvider.subscribeToPlan(
     //   planId: 'planId',

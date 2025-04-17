@@ -14,13 +14,13 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, String>> stopVPN();
 
-  Future<Either<Failure, String>> subscriptionLink();
-
   Stream<LanternStatus> watchVPNStatus();
 
+  //Payments methods
+  Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
+      {required StipeSubscriptionType type,required String planId});
 
 
-  // Payments
   Future<Either<Failure, Unit>> subscribeToPlan({
     required String planId,
     required PaymentSuccessCallback onSuccess,
