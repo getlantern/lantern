@@ -65,7 +65,8 @@ jobs:
           shell: pwsh
           run: |
             $env:Path += ";$env:USERPROFILE\.pub-cache\bin"
-            make install-windows-deps
+            dart pub global activate flutter_distributor
+            flutter_distributor --version
             make windows-release
   
         - name: Upload Windows installer
