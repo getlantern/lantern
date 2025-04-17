@@ -60,16 +60,13 @@ jobs:
             key: ${{ runner.os }}-dart-pub-cache-${{ hashFiles('**/pubspec.lock') }}
             restore-keys: |
               ${{ runner.os }}-dart-pub-cache-
-  
-        - name: Install dependencies and configure PATH
+
+        - name: Build Windows release
           shell: bash
           run: |
             echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
             make install-windows-deps
-
-        - name: Build Windows release
-          shell: bash
-          run: make windows-release
+            make windows-release
   
         - name: Upload Windows installer
           uses: actions/upload-artifact@v4
