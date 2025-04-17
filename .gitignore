@@ -35,12 +35,9 @@ bin/
 .pub/
 /build/
 
-<<<<<<< HEAD
 ios/Frameworks/Liblantern.xcframework
-=======
 macos/Frameworks
-ios/liblantern.xcframework
->>>>>>> origin/main
+
 liblantern.a
 ios/build
 
