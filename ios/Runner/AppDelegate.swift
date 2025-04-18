@@ -52,6 +52,7 @@ import UIKit
 
     guard FileManager.default.changeCurrentDirectoryPath(FilePath.sharedDirectory.path) else {
       print("Failed to change current directory to: \(FilePath.sharedDirectory.path)")
+      return
     }
   }
 }

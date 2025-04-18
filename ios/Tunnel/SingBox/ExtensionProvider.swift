@@ -33,20 +33,27 @@ open class ExtensionProvider: NEPacketTunnelProvider {
 
         // NOTE: No need to call LibboxSetup here — Radiance handles global libbox setup internally.
 
-        let baseDir = FilePath.sharedDirectory.relativePath
         do {
-            try FileManager.default.createDirectory(at: baseDir, withIntermediateDirectories: true)
+            try FileManager.default.createDirectory(at: FilePath.sharedDirectory, withIntermediateDirectories: true)
+        } catch {
+            writeFatalError("(packet-tunnel) error: create shared directory: \(error.localizedDescription)")
+            return
+        }
+
+        do {
+            try FileManager.default.createDirectory(at: FilePath.workingDirectory, withIntermediateDirectories: true)
         } catch {
             writeFatalError("(packet-tunnel) error: create working directory: \(error.localizedDescription)")
             return
         }
+
 
         if platformInterface == nil {
             platformInterface = ExtensionPlatformInterface(self)
         }
 
         let maxLogLines = 50
-        commandServer = await LibboxNewCommandServer(platformInterface, Int32(maxLogLines))
+        commandServer = LibboxNewCommandServer(platformInterface, Int32(maxLogLines))
         do {
             try commandServer.start()
         } catch {
@@ -55,6 +62,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         }
 
         var setupError: NSError?
+        let baseDir = FilePath.sharedDirectory.relativePath
         let service = MobileSetupRadiance(baseDir, platformInterface, &setupError)
         if let setupError {
             writeFatalError("(packet-tunnel) error: setup radiance: \(setupError.localizedDescription)")
@@ -67,7 +75,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
 
         radiance = service
 
-        startService()
+        await startService()
     }
 
     func writeMessage(_ message: String) {
@@ -114,12 +122,16 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         if let error {
             writeFatalError("(packet-tunnel) unable to stop VPN")
         }
+
+        radiance = nil
+        commandServer.setService(nil)
+
         if let platformInterface {
             platformInterface.reset()
         }
     }
     
-    private func startService() {
+    private func startService() async {
         var error: NSError?
         MobileStartVPN(&error)
         if let error {

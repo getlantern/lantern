@@ -71,7 +71,7 @@ class LanternService implements LanternCoreService {
 
   @override
   Stream<List<String>> watchLogs(String path) {
-    if (PlatformUtils.isDesktop()) {
+    if (PlatformUtils.isDesktop) {
       throw UnimplementedError();
     }
     return platformService.watchLogs(path);
