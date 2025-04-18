@@ -19,20 +19,21 @@ var (
 )
 
 func SetupRadiance(dataDir string, platform libbox.PlatformInterface) {
-	radianceMutex.Lock()
-	defer radianceMutex.Unlock()
-	r, err := radiance.NewRadiance(client.Options{
-		LogDir:   filepath.Join(dataDir, "logs"),
-		DataDir:  dataDir,
-		PlatIfce: platform,
+	setupOnce.Do(func() {
+		logDir := filepath.Join(dataDir, "logs")
+		r, err := radiance.NewRadiance(client.Options{
+			LogDir:   logDir,
+			DataDir:  dataDir,
+			PlatIfce: platform,
+		})
+		log.Debugf("Paths: %s %s", logDir, dataDir)
+		if err != nil {
+			log.Errorf("Unable to create Radiance: %v", err)
+			return
+		}
+		radianceServer = r
+		log.Debug("Radiance setup successfully")
 	})
-	log.Debugf("Paths: %s %s", filepath.Join(dataDir, "logs"), dataDir)
-	if err != nil {
-		log.Errorf("Unable to create Radiance: %v", err)
-		return
-	}
-	radianceServer = r
-	log.Debug("Radiance setup successfully")
 }
 
 func IsRadianceConnected() bool {
