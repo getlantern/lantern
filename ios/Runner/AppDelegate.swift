@@ -43,12 +43,14 @@ import NetworkExtension
     }
  
     private func setupFileManager() {
-        try? FileManager.default.createDirectory(at: FilePath.workingDirectory, withIntermediateDirectories: true)
-        FileManager.default.changeCurrentDirectoryPath(FilePath.sharedDirectory.path)
-    }
+        do {
+            try FileManager.default.createDirectory(at: FilePath.workingDirectory, withIntermediateDirectories: true)
+        } catch {
+            print("Failed to create working directory: \(error.localizedDescription)")
+        }
 
-    private func setupRadiance() {
-        let baseDir = FilePath.sharedDirectory.relativePath
-        //MobileSetupRadiance(baseDir)
+        guard FileManager.default.changeCurrentDirectoryPath(FilePath.sharedDirectory.path) else {
+            print("Failed to change current directory to: \(FilePath.sharedDirectory.path)")
+        }
     }
 }
