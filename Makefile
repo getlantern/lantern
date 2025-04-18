@@ -295,6 +295,10 @@ $(IOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 		$(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox github.com/getlantern/sing-box-extensions/ruleset  ./lantern-core/mobile
 	@echo "Built iOS Framework: $(IOS_FRAMEWORK_BUILD)"
 
+.PHONY: swift-format
+swift-format:
+	swift-format format --in-place --recursive ios/Runner macos/Runner
+
 # Dart API DL bridge
 DART_SDK_REPO=https://github.com/dart-lang/sdk
 DART_SDK_INCLUDE_DIR=dart_api_dl/include
