@@ -35,13 +35,11 @@ bin/
 .pub/
 /build/
 
-ios/Frameworks/Liblantern.xcframework
+ios/Frameworks
 macos/Frameworks
 
 liblantern.a
 ios/build
-
-macos/Frameworks
 
 # Symbolication related
 app.*.symbols
