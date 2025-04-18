@@ -18,7 +18,7 @@ var (
 	setupOnce      sync.Once
 )
 
-func SetupRadiance(dataDir string, platform libbox.PlatformInterface) {
+func SetupRadiance(dataDir string, platform libbox.PlatformInterface) *radiance.Radiance {
 	setupOnce.Do(func() {
 		logDir := filepath.Join(dataDir, "logs")
 		r, err := radiance.NewRadiance(client.Options{
@@ -34,6 +34,8 @@ func SetupRadiance(dataDir string, platform libbox.PlatformInterface) {
 		radianceServer = r
 		log.Debug("Radiance setup successfully")
 	})
+
+	return radianceServer
 }
 
 func IsRadianceConnected() bool {

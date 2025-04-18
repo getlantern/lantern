@@ -40,7 +40,7 @@ ANDROID_LIB_PATH := android/app/libs/$(LANTERN_LIB_NAME).aar
 ANDROID_DEBUG_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-debug.apk
 
 IOS_FRAMEWORK := Liblantern.xcframework
-IOS_FRAMEWORK_DIR := ios
+IOS_FRAMEWORK_DIR := ios/Frameworks
 IOS_FRAMEWORK_BUILD := $(BUILD_DIR)/ios/$(IOS_FRAMEWORK)
 IOS_DEBUG_BUILD := $(BUILD_DIR)/ios/iphoneos/Runner.app
 
@@ -287,7 +287,8 @@ ios: $(IOS_FRAMEWORK_BUILD)
 
 $(IOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 	rm -rf $(IOS_FRAMEWORK_BUILD)
-	gomobile bind -v \
+	rm -rf $(IOS_FRAMEWORK_DIR) && mkdir -p $(IOS_FRAMEWORK_DIR)
+	GOOS=ios gomobile bind -v \
 		-tags=$(TAGS),with_low_memory,netgo -trimpath \
 		-target=ios \
 		-o $@ \
