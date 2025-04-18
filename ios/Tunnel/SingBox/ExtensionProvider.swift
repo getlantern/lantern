@@ -22,7 +22,6 @@ import NetworkExtension
 #endif
 
 open class ExtensionProvider: NEPacketTunnelProvider {
-    public var username: String? = nil
     private var commandServer: LibboxCommandServer!
     private var boxService: LibboxBoxService!
     private var radiance: RadianceRadiance!
@@ -31,41 +30,16 @@ open class ExtensionProvider: NEPacketTunnelProvider {
     private var platformInterface: ExtensionPlatformInterface!
 
     override open func startTunnel(options _: [String: NSObject]?) async throws {
-        LibboxClearServiceError()
 
-        let options = LibboxSetupOptions()
-        options.basePath = FilePath.sharedDirectory.relativePath
-        options.workingPath = FilePath.workingDirectory.relativePath
-        options.tempPath = FilePath.cacheDirectory.relativePath
-        var error: NSError?
-        #if os(tvOS)
-            options.isTVOS = true
-        #endif
-        if let username {
-            options.username = username
-        }
-        LibboxSetup(options, &error)
-        if let error {
-            writeFatalError("(packet-tunnel) error: setup service: \(error.localizedDescription)")
-        }
+        // NOTE: No need to call LibboxSetup here — Radiance handles global libbox setup internally.
 
         let baseDir = FilePath.sharedDirectory.relativePath
-
         do {
-            try FileManager.default.createDirectory(at: FilePath.workingDirectory, withIntermediateDirectories: true)
+            try FileManager.default.createDirectory(at: baseDir, withIntermediateDirectories: true)
         } catch {
             writeFatalError("(packet-tunnel) error: create working directory: \(error.localizedDescription)")
             return
         }
-
-        LibboxRedirectStderr(FilePath.cacheDirectory.appendingPathComponent("stderr.log").relativePath, &error)
-        if let error {
-            writeFatalError("(packet-tunnel) redirect stderr error: \(error.localizedDescription)")
-            return
-        }
-        
-        let ignoreMemoryLimit = false // !SharedPreferences.ignoreMemoryLimit.get()
-        LibboxSetMemoryLimit(!ignoreMemoryLimit)
 
         if platformInterface == nil {
             platformInterface = ExtensionPlatformInterface(self)
@@ -79,11 +53,14 @@ open class ExtensionProvider: NEPacketTunnelProvider {
             writeFatalError("(packet-tunnel): log server start error: \(error.localizedDescription)")
             return
         }
-        let service = MobileSetupRadiance(baseDir, platformInterface, &error)
-        if let error {
-            writeFatalError("(packet-tunnel) error: setup service: \(error.localizedDescription)")
+
+        var setupError: NSError?
+        let service = MobileSetupRadiance(baseDir, platformInterface, &setupError)
+        if let setupError {
+            writeFatalError("(packet-tunnel) error: setup radiance: \(setupError.localizedDescription)")
             return
         }
+
         guard let service else {
             return
         }
@@ -135,7 +112,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         var error: NSError?
         MobileStopVPN(&error)
         if let error {
-            writeFatalError("(packet-tunnel) unable to start VPN")
+            writeFatalError("(packet-tunnel) unable to stop VPN")
         }
         if let platformInterface {
             platformInterface.reset()
@@ -146,7 +123,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         var error: NSError?
         MobileStartVPN(&error)
         if let error {
-            writeFatalError("(packet-tunnel) unable to stop VPN")
+            writeFatalError("(packet-tunnel) unable to start VPN")
         }
     }
 
@@ -177,16 +154,6 @@ open class ExtensionProvider: NEPacketTunnelProvider {
             try? server.close()
             commandServer = nil
         }
-        #if os(macOS)
-            if reason == .userInitiated {
-//                await SharedPreferences.startedByUser.set(reason == .userInitiated)
-            }
-        #endif
-        #if os(iOS)
-//            if #available(iOS 18.0, *) {
-//                ControlCenter.shared.reloadControls(ofKind: ExtensionProfile.controlKind)
-//            }
-        #endif
     }
 
     override open func handleAppMessage(_ messageData: Data) async -> Data? {
