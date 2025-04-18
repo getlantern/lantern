@@ -286,19 +286,14 @@ build-android:check-gomobile install-android-deps
 ios: $(IOS_FRAMEWORK_BUILD)
 
 $(IOS_FRAMEWORK_BUILD): $(GO_SOURCES)
-	@echo "Building iOS Framework..."
-	GOOS=ios gomobile bind -v -tags=$(TAGS),with_low_memory -trimpath -target=ios -ldflags="-w -s" -o $@ $(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox ./lantern-core/mobile
-	mkdir -p $(IOS_FRAMEWORK_DIR) && rm -rf $(IOS_FRAMEWORK_DIR)/$(IOS_FRAMEWORK) && mv $@ $(IOS_FRAMEWORK_DIR)
-	@echo "Built iOS Framework: $(IOS_FRAMEWORK_DIR)/$(IOS_FRAMEWORK)"
-	rm -rf $(IOS_FRAMEWORK_DIR)/$(IOS_FRAMEWORK)
+	rm -rf $(IOS_FRAMEWORK_BUILD)
 	gomobile bind -v \
 		-tags=$(TAGS),with_low_memory,netgo -trimpath \
 		-target=ios \
 		-o $@ \
 		-ldflags="-w -s -checklinkname=0" \
-		$(RADIANCE_REPO) github.com/getlantern/sing-box-extensions/ruleset
-	mv $@ $(IOS_FRAMEWORK_DIR)
-	@echo "Built iOS Framework: $(IOS_FRAMEWORK)"
+		$(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox github.com/getlantern/sing-box-extensions/ruleset  ./lantern-core/mobile
+	@echo "Built iOS Framework: $(IOS_FRAMEWORK_BUILD)"
 
 # Dart API DL bridge
 DART_SDK_REPO=https://github.com/dart-lang/sdk
