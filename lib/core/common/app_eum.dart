@@ -7,8 +7,6 @@ enum VPNStatus {
   error,
 }
 
-
-
 enum AuthFlow{
   resetPassword,
   signUp,

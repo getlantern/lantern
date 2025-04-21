@@ -6,20 +6,18 @@ import 'dart:isolate';
 
 import 'package:ffi/ffi.dart';
 import 'package:fpdart/fpdart.dart';
-import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:rxdart/rxdart.dart';
-import 'package:lantern/core/extensions/error.dart';
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/services/app_purchase.dart';
-import 'package:lantern/core/services/logger_service.dart';
-import 'package:lantern/core/utils/failure.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_generated_bindings.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:path/path.dart' as p;
+import 'package:rxdart/rxdart.dart';
+
+import '../core/utils/compute_worker.dart';
 
 export 'dart:convert';
 export 'dart:ffi'; // For FFI
@@ -314,20 +312,28 @@ class LanternFFIService implements LanternCoreService {
 
   @override
   Future<Either<Failure, Unit>> subscribeToPlan(
-      {required String planId, required PaymentSuccessCallback onSuccess, required PaymentErrorCallback onError}) {
+      {required String planId,
+      required PaymentSuccessCallback onSuccess,
+      required PaymentErrorCallback onError}) {
     // TODO: implement subscribeToPlan
     throw UnimplementedError();
   }
-
 
   @override
   Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
       {required StipeSubscriptionType type, required String planId}) async {
     try {
       appLogger.debug('Starting Stripe Subscription Payment Redirect');
-      final result = await Future.value( _ffiService.stripeSubscriptionPaymentRedirect(
-          type.name.toCharPtr));
-      return right(result.toDartString());
+      final result = await runInBackground<String>(
+        () async {
+          // The FFI call for Stripe payment redirect
+          return _ffiService
+              .stripeSubscriptionPaymentRedirect(type.name.toCharPtr)
+              .toDartString();
+        },
+      );
+
+      return right(result);
     } catch (e) {
       return left(
         Failure(
@@ -338,10 +344,10 @@ class LanternFFIService implements LanternCoreService {
     }
   }
 
-
   //this does not support in desktop
   @override
-  Future<Either<Failure, Map<String,dynamic>>> stipeSubscription({required String planId}) {
+  Future<Either<Failure, Map<String, dynamic>>> stipeSubscription(
+      {required String planId}) {
     // TODO: implement stipeSubscription
     throw UnimplementedError();
   }

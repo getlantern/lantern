@@ -58,7 +58,6 @@ type lanternService struct {
 	*radiance.Radiance
 	proServer          *pro.Pro
 	authClient         *user.User
-	servicePort        int64
 	servicesMap        map[service]int64
 	dataDir            string
 	splitTunnelHandler *client.SplitTunnel
@@ -106,11 +105,10 @@ func setup(_logDir, _dataDir *C.char, logPort, appsPort, statusPort C.int64_t, a
 		go apps.LoadInstalledApps(dataDir, sendApps(int64(appsPort)))
 
 		server = &lanternService{
-			Radiance:    r,
-			proServer:   r.Pro(),
-			authClient:  r.User(),
-			servicePort: servicePort,
-			dataDir:     dataDir,
+			Radiance:   r,
+			proServer:  r.Pro(),
+			authClient: r.User(),
+			dataDir:    dataDir,
 			servicesMap: map[service]int64{
 				logsService:   int64(logPort),
 				appsService:   int64(appsPort),

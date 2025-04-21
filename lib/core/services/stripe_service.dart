@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
-import 'package:lantern/core/common/app_buttons.dart';
-import 'package:lantern/core/common/app_colors.dart';
-
-import 'logger_service.dart';
+import 'package:lantern/core/common/common.dart';
 
 class StripeService {
   // Add your Stripe service methods here
@@ -11,9 +8,11 @@ class StripeService {
 
   Future<void> initialize() async {
     // Initialize Stripe with your publishable key
-    Stripe.publishableKey = 'pk_test_4MSPZvz9QtXGWEKdODmzV9ql';
-    Stripe.urlScheme = 'lantern.io';
-    await Stripe.instance.applySettings();
+    if (PlatformUtils.isAndroid) {
+      Stripe.publishableKey = 'pk_test_4MSPZvz9QtXGWEKdODmzV9ql';
+      Stripe.urlScheme = 'lantern.io';
+      await Stripe.instance.applySettings();
+    }
   }
 
   // Add more methods as needed
