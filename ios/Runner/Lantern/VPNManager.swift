@@ -8,7 +8,6 @@ import Network
 import NetworkExtension
 
 class VPNManager: VPNBase {
-  private var vpnManager = NETunnelProviderManager()
   private var observer: NSObjectProtocol?
   private var manager: NEVPNManager = NEVPNManager.shared()
   static let shared: VPNManager = VPNManager()
@@ -27,7 +26,7 @@ class VPNManager: VPNBase {
     do {
       let managers = try await NETunnelProviderManager.loadAllFromPreferences()
       if let manager = managers.first {
-        self.vpnManager = manager
+        self.manager = manager
         return
       }
       try await self.setupVPN()
@@ -52,7 +51,7 @@ class VPNManager: VPNBase {
     }
   }
 
-  // Sets up a new VPN configuration.
+  // Sets up a new VPN configuration for Lantern.
   private func setupVPN() async throws {
     do {
       let managers = try await NETunnelProviderManager.loadAllFromPreferences()
@@ -90,9 +89,9 @@ class VPNManager: VPNBase {
     print("Starting tunnel..")
     await self.loadVPNPreferences()
     let options = ["netEx.StartReason": NSString("User Initiated")]
-    try self.vpnManager.connection.startVPNTunnel(options: options)
+    try self.manager.connection.startVPNTunnel(options: options)
 
-    self.vpnManager.isOnDemandEnabled = true
+    self.manager.isOnDemandEnabled = true
     try await self.saveThenLoadProvider()
   }
 
@@ -101,14 +100,14 @@ class VPNManager: VPNBase {
   func stopTunnel() async throws {
     print("Stopping tunnel..")
     guard connectionStatus == .connected else { return }
-    vpnManager.connection.stopVPNTunnel()
-    self.vpnManager.isOnDemandEnabled = false
+    manager.connection.stopVPNTunnel()
+    self.manager.isOnDemandEnabled = false
     try await self.saveThenLoadProvider()
   }
 
   /// Saves the current VPN configuration to preferences and reloads it.
   private func saveThenLoadProvider() async throws {
-    try await self.vpnManager.saveToPreferences()
-    try await self.vpnManager.loadFromPreferences()
+    try await self.manager.saveToPreferences()
+    try await self.manager.loadFromPreferences()
   }
 }

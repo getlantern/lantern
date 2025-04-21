@@ -1,6 +1,8 @@
 package mobile
 
 import (
+	"fmt"
+	"os"
 	"path/filepath"
 	"sync"
 
@@ -18,9 +20,18 @@ var (
 	setupOnce      sync.Once
 )
 
-func SetupRadiance(dataDir string, platform libbox.PlatformInterface) *radiance.Radiance {
+func SetupRadiance(dataDir string, platform libbox.PlatformInterface) (*radiance.Radiance, error) {
+	var innerErr error
 	setupOnce.Do(func() {
 		logDir := filepath.Join(dataDir, "logs")
+
+		if err := os.MkdirAll(dataDir, 0o777); err != nil {
+			log.Errorf("unable to create data directory: %v", err)
+		}
+		if err := os.MkdirAll(logDir, 0o777); err != nil {
+			log.Errorf("unable to create log directory: %v", err)
+		}
+
 		r, err := radiance.NewRadiance(client.Options{
 			LogDir:   logDir,
 			DataDir:  dataDir,
@@ -28,14 +39,17 @@ func SetupRadiance(dataDir string, platform libbox.PlatformInterface) *radiance.
 		})
 		log.Debugf("Paths: %s %s", logDir, dataDir)
 		if err != nil {
-			log.Errorf("Unable to create Radiance: %v", err)
+			innerErr = fmt.Errorf("unable to create Radiance: %v", err)
 			return
 		}
 		radianceServer = r
 		log.Debug("Radiance setup successfully")
 	})
 
-	return radianceServer
+	if innerErr != nil {
+		return nil, innerErr
+	}
+	return radianceServer, nil
 }
 
 func IsRadianceConnected() bool {

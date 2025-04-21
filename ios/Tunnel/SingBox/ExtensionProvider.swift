@@ -22,123 +22,77 @@ import NetworkExtension
 #endif
 
 open class ExtensionProvider: NEPacketTunnelProvider {
-    public var username: String? = nil
-    private var commandServer: LibboxCommandServer!
-    private var boxService: LibboxBoxService!
     private var radiance: RadianceRadiance!
-    private var systemProxyAvailable = false
-    private var systemProxyEnabled = false
     private var platformInterface: ExtensionPlatformInterface!
 
     override open func startTunnel(options _: [String: NSObject]?) async throws {
-        let baseDir = FilePath.sharedDirectory.relativePath
 
-        do {
-            try FileManager.default.createDirectory(at: FilePath.sharedDirectory, withIntermediateDirectories: true)
-        } catch {
-            writeFatalError("(packet-tunnel) error: create shared directory: \(error.localizedDescription)")
-            return
-        }
-
-        do {
-            try FileManager.default.createDirectory(at: FilePath.workingDirectory, withIntermediateDirectories: true)
-        } catch {
-            writeFatalError("(packet-tunnel) error: create working directory: \(error.localizedDescription)")
-            return
-        }
+        let ignoreMemoryLimit = false // !SharedPreferences.ignoreMemoryLimit.get()
+        LibboxSetMemoryLimit(!ignoreMemoryLimit)
 
         if platformInterface == nil {
             platformInterface = ExtensionPlatformInterface(self)
         }
 
-        let maxLogLines = 50
-        commandServer = await LibboxNewCommandServer(platformInterface, Int32(maxLogLines))
-        do {
-            try commandServer.start()
-        } catch {
-            writeFatalError("(packet-tunnel): log server start error: \(error.localizedDescription)")
-            return
-        }
-        let service = MobileSetupRadiance(baseDir, platformInterface)
-        guard let service else {
-            return
-        }
-
-        radiance = service
-
-        startService()
+        writeMessage("(lantern-tunnel): Here I stand")
+        await startService()
     }
 
     func writeMessage(_ message: String) {
-        if let commandServer {
-            commandServer.writeMessage(message)
-        }
-    }
-
-    public func writeFatalError(_ message: String) {
         #if DEBUG
             NSLog(message)
         #endif
+    }
+
+    public func writeFatalError(_ message: String) {
         writeMessage(message)
         var error: NSError?
         LibboxWriteServiceError(message, &error)
         cancelTunnelWithError(nil)
     }
 
-    #if os(macOS)
-
-        private var locationManager: CLLocationManager?
-        private var locationDelegate: stubLocationDelegate?
-
-        class stubLocationDelegate: NSObject, CLLocationManagerDelegate {
-            private unowned let radiance: Radiance
-            init(_ radiance: Radiance) {
-                self.radiance = radiance
-            }
-
-            func locationManagerDidChangeAuthorization(_: CLLocationManager) {
-                //boxService.updateWIFIState()
-            }
-
-            func locationManager(_: CLLocationManager, didUpdateLocations _: [CLLocation]) {}
-
-            func locationManager(_: CLLocationManager, didFailWithError _: Error) {}
+    private func startService() async {
+        var error: NSError?
+        let baseDir = FilePath.workingDirectory.relativePath
+        let service = MobileSetupRadiance(baseDir, platformInterface, &error)
+        if let error {
+            writeFatalError("(lantern-tunnel) error: create service: \(error.localizedDescription)")
+            return
         }
-
-    #endif
+        guard let service else {
+            return
+        }
+        do {
+            try service.startVPN()
+        } catch {
+            writeFatalError("(lantern-tunnel) error: start radiance: \(error.localizedDescription)")
+            return
+        }
+        radiance = service
+    }
 
     private func stopService() {
-        var error: NSError?
-        MobileStopVPN(&error)
-        if let error {
-            writeFatalError("(packet-tunnel) unable to start VPN")
+        if let service = radiance {
+            do {
+                try radiance.stopVPN()
+            } catch {
+                writeMessage("(lantern-tunnel) error: stop service: \(error.localizedDescription)")
+            }
+            radiance = nil
         }
         if let platformInterface {
             platformInterface.reset()
         }
     }
-    
-    private func startService() {
-        var error: NSError?
-        MobileStartVPN(&error)
-        if let error {
-            writeFatalError("(packet-tunnel) unable to stop VPN")
-        }
-    }
 
     func reloadService() async {
-        writeMessage("(packet-tunnel) reloading service")
+        writeMessage("(lantern-tunnel) reloading service")
         reasserting = true
         defer {
             reasserting = false
         }
         stopService()
-        commandServer.resetLog()
-        var error: NSError?
-        MobileStartVPN(&error)
-        if let error {
-            writeFatalError("(packet-tunnel) unable to startVPN")
-        }
+        await startService()
     }
 
     func postServiceClose() {
@@ -146,23 +100,8 @@ open class ExtensionProvider: NEPacketTunnelProvider {
     }
 
     override open func stopTunnel(with reason: NEProviderStopReason) async {
-        writeMessage("(packet-tunnel) stopping, reason: \(reason)")
+        writeMessage("(lantern-tunnel) stopping, reason: \(reason)")
         stopService()
-        if let server = commandServer {
-            try? await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
-            try? server.close()
-            commandServer = nil
-        }
-        #if os(macOS)
-            if reason == .userInitiated {
-//                await SharedPreferences.startedByUser.set(reason == .userInitiated)
-            }
-        #endif
-        #if os(iOS)
-//            if #available(iOS 18.0, *) {
-//                ControlCenter.shared.reloadControls(ofKind: ExtensionProfile.controlKind)
-//            }
-        #endif
     }
 
     override open func handleAppMessage(_ messageData: Data) async -> Data? {
@@ -170,14 +109,14 @@ open class ExtensionProvider: NEPacketTunnelProvider {
     }
 
     override open func sleep() async {
-        if let radiance {
-            //radiance.pause()
-        }
+        // if let boxService {
+        //     boxService.pause()
+        // }
     }
 
     override open func wake() {
-        if let radiance {
-            //radiance.wake()
-        }
+        // if let boxService {
+        //     boxService.wake()
+        // }
     }
 }
