@@ -15,6 +15,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/mobile v0.0.0-20250305212854-3a7bc9f8a4de
 	google.golang.org/protobuf v1.36.5
+	howett.net/plist v1.0.1
 )
 
 require (

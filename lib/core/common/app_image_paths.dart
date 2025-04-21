@@ -41,12 +41,26 @@ class AppImagePaths {
   static const verticalDots = 'assets/images/vertical_dots.svg';
   static const instagram = 'assets/images/instagram.svg';
   static const x = 'assets/images/x.svg';
+  static const close = 'assets/images/close.svg';
+
+  // split tunneling
+  static const plus = 'assets/images/plus.svg';
+  static const minus = 'assets/images/minus.svg';
+  static const search = 'assets/images/search.svg';
+  static const arrowForward = 'assets/images/arrow_forward.svg';
+  static const bypassList = 'assets/images/bypass_list.svg';
+  // app icons for testing
+  static const appleMusicIcon = 'assets/images/app_icon_apple_music.svg';
+  static const googleChatIcon = 'assets/images/app_icon_google_chat.svg';
+  static const instagramIcon = 'assets/images/app_icon_instagram.svg';
 
   static const lanternConnectedIco = 'assets/images/lantern_connected.ico';
   static const lanternConnected = 'assets/images/lantern_connected.png';
-  static const lanternDisconnectedIco = 'assets/images/lantern_disconnected.ico';
+  static const lanternDisconnectedIco =
+      'assets/images/lantern_disconnected.ico';
   static const lanternDisconnected = 'assets/images/lantern_disconnected.png';
-  static const lanternDarkDisconnected = 'assets/images/tray_dark_disconnected.png';
+  static const lanternDarkDisconnected =
+      'assets/images/tray_dark_disconnected.png';
   static const lanternDarkConnected = 'assets/images/tray_dark_connected.png';
   static const adBlock = 'assets/images/ad_block.svg';
   static const connectDevice = 'assets/images/connect_device.svg';
@@ -59,5 +73,4 @@ class AppImagePaths {
   static const google = 'assets/images/google.svg';
   static const apple = 'assets/images/apple.svg';
   static const number = 'assets/images/number.svg';
-
 }

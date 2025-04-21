@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/utils/screen_utils.dart';
+import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_status_notifier.dart';
 
@@ -30,7 +31,7 @@ class VPNSwitch extends HookConsumerWidget {
       values: [false, true],
       spacing: 10.h,
       loading: false,
-      height: PlatformUtils.isDesktop()|| context.isSmallDevice ? 70.h : 60.h,
+      height: PlatformUtils.isDesktop ? 70.h : 60.h,
       indicatorSize: Size(60, 60),
       iconBuilder: (context, local, global) {
         return SizedBox();
