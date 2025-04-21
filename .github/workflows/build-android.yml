@@ -8,13 +8,10 @@ on:
         type: string
 
 jobs:
-  build-macos:
+  build-android:
     permissions:
         contents: "read"
         id-token: "write"
-    env:
-        AC_USERNAME: ${{ secrets.AC_USERNAME }}
-        AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
     runs-on: macos-15
     steps:
       - name: Checkout code
@@ -60,7 +57,6 @@ jobs:
 
       - name: Decode Keystore
         id: write_file
-        if: matrix.platform == 'android'
         uses: timheuer/base64-to-file@v1.2
         with:
           fileName: 'keystore.release.jks'
