@@ -1,9 +1,11 @@
 name: Build Linux App
 
 on:
-  push:
-    branches: [main]
-  pull_request:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
 
 jobs:
   build-linux:
