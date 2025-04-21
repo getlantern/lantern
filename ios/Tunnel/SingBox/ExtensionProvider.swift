@@ -74,7 +74,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
     private func stopService() {
         if let service = radiance {
             do {
-                try radiance.stopVPN()
+                try service.stopVPN()
             } catch {
                 writeMessage("(lantern-tunnel) error: stop service: \(error.localizedDescription)")
             }
