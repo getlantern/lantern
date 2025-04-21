@@ -16,20 +16,36 @@ env:
   DEFAULT_VERSION: "9999.99.99"
 
 jobs:
+  set-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.set.outputs.version }}
+    steps:
+      - id: set
+        run: |
+          if [[ -z "${{ github.event.inputs.version }}" ]]; then
+            echo "version=9999.99.99" >> $GITHUB_OUTPUT
+          else
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          fi
+
   build-macos:
+    needs: set-version
     uses: ./.github/workflows/build-macos.yml
     secrets: inherit
     with:
-      version: ${{ inputs.version != '' && inputs.version || env.DEFAULT_VERSION }}
+      version: ${{ needs.set-version.outputs.version }}
     
   build-android:
+    needs: set-version
     uses: ./.github/workflows/build-android.yml
     secrets: inherit
     with:
-      version: ${{ inputs.version != '' && inputs.version || env.DEFAULT_VERSION }}
+      version: ${{ needs.set-version.outputs.version }}
     
   build-linux:
+    needs: set-version
     uses: ./.github/workflows/build-linux.yml
     secrets: inherit
     with:
-      version: ${{ inputs.version != '' && inputs.version || env.DEFAULT_VERSION }}
+      version: ${{ needs.set-version.outputs.version }}
