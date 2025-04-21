@@ -7,26 +7,29 @@ on:
       version:
         description: "Version tag to build"
         required: true
-        default: "9999.99.99-dev"
+        default: "9999.99.99"
   push:
     branches: [android/ci-updates]
   pull_request:
+
+env:
+  DEFAULT_VERSION: "9999.99.99"
 
 jobs:
   build-macos:
     uses: ./.github/workflows/build-macos.yml
     secrets: inherit
     with:
-      version: ${{ inputs.version }}
-
+      version: ${{ inputs.version != '' && inputs.version || env.DEFAULT_VERSION }}
+    
   build-android:
     uses: ./.github/workflows/build-android.yml
     secrets: inherit
     with:
-      version: ${{ inputs.version }}
-  
+      version: ${{ inputs.version != '' && inputs.version || env.DEFAULT_VERSION }}
+    
   build-linux:
     uses: ./.github/workflows/build-linux.yml
     secrets: inherit
     with:
-      version: ${{ inputs.version }}
+      version: ${{ inputs.version != '' && inputs.version || env.DEFAULT_VERSION }}
