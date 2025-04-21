@@ -34,6 +34,13 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         let baseDir = FilePath.sharedDirectory.relativePath
 
         do {
+            try FileManager.default.createDirectory(at: FilePath.sharedDirectory, withIntermediateDirectories: true)
+        } catch {
+            writeFatalError("(packet-tunnel) error: create shared directory: \(error.localizedDescription)")
+            return
+        }
+
+        do {
             try FileManager.default.createDirectory(at: FilePath.workingDirectory, withIntermediateDirectories: true)
         } catch {
             writeFatalError("(packet-tunnel) error: create working directory: \(error.localizedDescription)")
