@@ -12,9 +12,6 @@ on:
     branches: [android/ci-updates]
   pull_request:
 
-env:
-  DEFAULT_VERSION: "9999.99.99"
-
 jobs:
   set-version:
     runs-on: ubuntu-latest
