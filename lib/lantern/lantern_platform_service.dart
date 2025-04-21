@@ -117,7 +117,7 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> subscribeToPlan(
+  Future<Either<Failure, Unit>> startSubscriptionFlow(
       {required String planId,
       required PaymentSuccessCallback onSuccess,
       required PaymentErrorCallback onError}) async {

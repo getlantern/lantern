@@ -311,7 +311,7 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> subscribeToPlan(
+  Future<Either<Failure, Unit>> startSubscriptionFlow(
       {required String planId,
       required PaymentSuccessCallback onSuccess,
       required PaymentErrorCallback onError}) {
@@ -326,7 +326,6 @@ class LanternFFIService implements LanternCoreService {
       appLogger.debug('Starting Stripe Subscription Payment Redirect');
       final result = await runInBackground<String>(
         () async {
-          // The FFI call for Stripe payment redirect
           return _ffiService
               .stripeSubscriptionPaymentRedirect(type.name.toCharPtr)
               .toDartString();
@@ -344,7 +343,6 @@ class LanternFFIService implements LanternCoreService {
     }
   }
 
-  //this does not support in desktop
   @override
   Future<Either<Failure, Map<String, dynamic>>> stipeSubscription(
       {required String planId}) {

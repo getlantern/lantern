@@ -100,8 +100,6 @@ dependencies:
   # payment
   in_app_purchase: ^3.2.1
   flutter_stripe: ^11.5.0
-#  rxdart: ^0.28.0
-  isolate_handler: ^1.0.2
   
 dev_dependencies:
   flutter_test:

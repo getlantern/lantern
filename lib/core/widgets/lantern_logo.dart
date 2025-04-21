@@ -16,7 +16,26 @@ class LanternLogo extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppImage(
       path: isPro ? AppImagePaths.lanternPro : AppImagePaths.lanternLogo,
-      color:color?? AppColors.blue10,
+      color: color ?? AppColors.blue10,
+    );
+  }
+}
+
+class LanternRoundedLogo extends StatelessWidget {
+  final double? height;
+  final double? width;
+  const LanternRoundedLogo({
+    super.key,
+    this.height,
+    this.width,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AppImage(
+      height: height,
+      width: width,
+      path: AppImagePaths.lanternLogoRounded,
     );
   }
 }

@@ -16,7 +16,7 @@ class PaymentNotifier extends _$PaymentNotifier {
     required PaymentSuccessCallback onSuccess,
     required PaymentErrorCallback onError,
   }) async {
-    return ref.read(lanternServiceProvider).subscribeToPlan(
+    return ref.read(lanternServiceProvider).startSubscriptionFlow(
         planId: planId, onSuccess: onSuccess, onError: onError);
   }
 

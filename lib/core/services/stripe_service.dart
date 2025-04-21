@@ -15,7 +15,9 @@ class StripeService {
     }
   }
 
-  // Add more methods as needed
+  // This method is used to start a Stripe subscription
+  // It takes the StripeOptions object and a callback function for success and error handling
+  //this used only in android
   Future<void> startStripeSubscription({
     required StripeOptions options,
     required OnPressed onSuccess,
@@ -23,7 +25,6 @@ class StripeService {
   }) async {
     // Start Stripe subscription logic
     try {
-      // {cus_S95SrFxPUzuB8d sub_1REoO74XJ6zbDKY5lSMoTk94 pi_3REoO74XJ6zbDKY511w5Gpmv_secret_3MnkwSW15QlNePS9tzHAC03O1}
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
           // customerEphemeralKeySecret: ephemeralKey,
@@ -32,8 +33,8 @@ class StripeService {
           merchantDisplayName: 'Lantern',
           allowsDelayedPaymentMethods: true,
           googlePay: PaymentSheetGooglePay(
-            merchantCountryCode: 'IN',
-            currencyCode: 'INR',
+            merchantCountryCode: 'US',
+            currencyCode: 'USD',
             testEnv: true,
           ),
           appearance: PaymentSheetAppearance(

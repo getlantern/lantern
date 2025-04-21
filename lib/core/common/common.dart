@@ -30,6 +30,7 @@ export 'package:lantern/core/widgets/base_screen.dart';
 export 'package:lantern/core/widgets/platform_card.dart';
 export 'package:lantern/core/widgets/pro_banner.dart';
 export 'package:lantern/core/common/app_text_field.dart';
+export 'package:lantern/core/common/app_dialog.dart';
 
 // Routes
 export 'package:lantern/core/router/router.gr.dart';

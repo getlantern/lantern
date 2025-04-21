@@ -21,10 +21,12 @@ abstract class LanternCoreService {
   Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
       {required StipeSubscriptionType type, required String planId});
 
+  /// this is used for stripe subscription
   Future<Either<Failure, Map<String, dynamic>>> stipeSubscription(
       {required String planId});
 
-  Future<Either<Failure, Unit>> subscribeToPlan({
+  /// this is used for google and apple subscription
+  Future<Either<Failure, Unit>> startSubscriptionFlow({
     required String planId,
     required PaymentSuccessCallback onSuccess,
     required PaymentErrorCallback onError,
@@ -37,6 +39,7 @@ abstract class LanternCoreService {
 
   Stream<List<String>> logsStream();
 
+  // Spilt tunnel methods
   Future<Either<Failure, Unit>> addSplitTunnelItem(
       SplitTunnelFilterType type, String value);
 

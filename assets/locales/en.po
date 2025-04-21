@@ -418,6 +418,12 @@ msgstr "View the full list of routing rules."
 msgid "turn_on_split_tunneling"
 msgstr "Turn on split tunneling to customize which websites use the VPN."
 
+msgid "welcome_to_lantern_pro"
+msgstr "Welcome to Lantern Pro!"
+
+msgid "lantern_pro_description"
+msgstr "Your Pro features are unlocked—enjoy unlimited data, faster speeds, and premium servers."
+
 
 
 

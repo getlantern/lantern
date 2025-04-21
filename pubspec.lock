@@ -520,14 +520,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.6.0"
-  flutter_isolate:
-    dependency: transitive
-    description:
-      name: flutter_isolate
-      sha256: "36a84e1a22371d8092ea2121145b330c24fb272acb951fb30c60ba44926b8fb3"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.1.0"
   flutter_lints:
     dependency: "direct dev"
     description:
@@ -785,14 +777,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.5"
-  isolate_handler:
-    dependency: "direct main"
-    description:
-      name: isolate_handler
-      sha256: "7d90f2694551b4b18cbb3b635ad650a73b522854e9232f4b1227bb64914f1fde"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.2"
   jni:
     dependency: transitive
     description:

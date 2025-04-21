@@ -107,7 +107,11 @@ class _AddEmailState extends ConsumerState<AddEmail> {
         return;
       }
     }
-    stripeRedirectUrl();
+    AppDialog.showLanternProDialog(
+      context: context,
+      onPressed: () {},
+    );
+    // stripeSubscription();
   }
 
   Future<void> stripeSubscription() async {
@@ -132,7 +136,9 @@ class _AddEmailState extends ConsumerState<AddEmail> {
 
         sl<StripeService>().startStripeSubscription(
           options: StripeOptions.fromJson(stripeData),
-          onSuccess: () {},
+          onSuccess: () {
+            /// Subscription successful
+          },
           onError: (error) {},
         );
       },
