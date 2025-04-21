@@ -1,7 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:lantern/core/router/router.gr.dart';
 
-
 @AutoRouterConfig(
   replaceInRouteName: 'Page,Route,Screen',
 )
@@ -83,7 +82,6 @@ class AppRouter extends RootStackRouter {
       path: '/choose-payment-method',
       page: ChoosePaymentMethod.page,
     ),
-
     AutoRoute(
       path: '/sign-in-email',
       page: SignInEmail.page,
@@ -104,9 +102,22 @@ class AppRouter extends RootStackRouter {
       path: '/activation-code',
       page: ActivationCode.page,
     ),
+    AutoRoute(path: '/app-webview', page: AppWebview.page),
     AutoRoute(
-      path: '/app-webview',
-      page: AppWebview.page,
+      path: '/split-tunneling',
+      page: SplitTunneling.page,
+    ),
+    AutoRoute(
+      path: '/split-tunneling-info',
+      page: SplitTunnelingInfo.page,
+    ),
+    AutoRoute(
+      path: '/apps-split-tunneling',
+      page: AppsSplitTunneling.page,
+    ),
+    AutoRoute(
+      path: '/website-split-tunneling',
+      page: WebsiteSplitTunneling.page,
     ),
   ];
 }

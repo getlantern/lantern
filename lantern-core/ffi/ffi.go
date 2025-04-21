@@ -11,18 +11,29 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"runtime"
 	"sync"
 	"unsafe"
 
 	"log/slog"
 
 	"github.com/getlantern/golog"
+	"github.com/getlantern/lantern-outline/lantern-core/apps"
+
 	"github.com/getlantern/lantern-outline/lantern-core/dart_api_dl"
 	"github.com/getlantern/radiance"
 	"github.com/getlantern/radiance/client"
 	"github.com/getlantern/radiance/pro"
 	"github.com/getlantern/radiance/user"
 	"github.com/getlantern/radiance/user/protos"
+)
+
+type service string
+
+const (
+	appsService   service = "apps"
+	logsService   service = "logs"
+	statusService service = "status"
 )
 
 type VPNStatus string
@@ -36,10 +47,8 @@ const (
 )
 
 var (
-	server     *lanternService
-	serverMu   sync.Mutex
-	serverOnce sync.Once
-
+	server    *lanternService
+	mu        sync.Mutex
 	setupOnce sync.Once
 
 	log = golog.LoggerFor("lantern-outline.ffi")
@@ -47,14 +56,35 @@ var (
 
 type lanternService struct {
 	*radiance.Radiance
-	proServer   *pro.Pro
-	authClient  *user.User
-	servicePort int64
+	proServer          *pro.Pro
+	authClient         *user.User
+	servicePort        int64
+	servicesMap        map[service]int64
+	dataDir            string
+	splitTunnelHandler *client.SplitTunnel
+
+	mu sync.Mutex
+}
+
+func enableSplitTunneling() bool {
+	return runtime.GOOS == "darwin"
+}
+
+func sendApps(port int64) func(apps ...*apps.AppData) error {
+	return func(apps ...*apps.AppData) error {
+		data, err := json.Marshal(apps)
+		if err != nil {
+			log.Error(err)
+			return err
+		}
+		go dart_api_dl.SendToPort(port, string(data))
+		return nil
+	}
 }
 
 //export setup
-func setup(_logDir, _dataDir *C.char, port C.int64_t, api unsafe.Pointer) {
-	serverOnce.Do(func() {
+func setup(_logDir, _dataDir *C.char, logPort, appsPort, statusPort C.int64_t, api unsafe.Pointer) {
+	setupOnce.Do(func() {
 
 		// initialize the Dart API DL bridge.
 		dart_api_dl.Init(api)
@@ -62,26 +92,73 @@ func setup(_logDir, _dataDir *C.char, port C.int64_t, api unsafe.Pointer) {
 		logDir := C.GoString(_logDir)
 		dataDir := C.GoString(_dataDir)
 
-		servicePort := int64(port)
-
 		r, err := radiance.NewRadiance(client.Options{
-			DataDir: dataDir,
-			LogDir:  logDir,
+			DataDir:              dataDir,
+			LogDir:               logDir,
+			EnableSplitTunneling: enableSplitTunneling(),
 		})
 		if err != nil {
 			log.Fatalf("unable to create VPN server: %v", err)
 		}
 		log.Debugf("created new instance of radiance with data directory %s", dataDir)
 
+		// init app cache in background
+		go apps.LoadInstalledApps(dataDir, sendApps(int64(appsPort)))
+
 		server = &lanternService{
 			Radiance:    r,
 			proServer:   r.Pro(),
 			authClient:  r.User(),
 			servicePort: servicePort,
+			dataDir:     dataDir,
+			servicesMap: map[service]int64{
+				logsService:   int64(logPort),
+				appsService:   int64(appsPort),
+				statusService: int64(statusPort),
+			},
+			splitTunnelHandler: r.SplitTunnelHandler(),
 		}
 		createUser()
 	})
 
+}
+
+//export addSplitTunnelItem
+func addSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
+	mu.Lock()
+	defer mu.Unlock()
+
+	if server == nil {
+		return C.CString("radiance not initialized")
+	}
+
+	filterType := C.GoString(filterTypeC)
+	item := C.GoString(itemC)
+
+	if err := server.splitTunnelHandler.AddItem(filterType, item); err != nil {
+		return C.CString(fmt.Sprintf("error adding item: %v", err))
+	}
+	log.Debugf("added %s split tunneling item %s", filterType, item)
+	return nil
+}
+
+//export removeSplitTunnelItem
+func removeSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
+	mu.Lock()
+	defer mu.Unlock()
+
+	if server == nil {
+		return C.CString("radiance not initialized")
+	}
+
+	filterType := C.GoString(filterTypeC)
+	item := C.GoString(itemC)
+
+	if err := server.splitTunnelHandler.RemoveItem(filterType, item); err != nil {
+		return C.CString(fmt.Sprintf("error removing item: %v", err))
+	}
+	log.Debugf("removed %s split tunneling item %s", filterType, item)
+	return nil
 }
 
 // startVPN initializes and starts the VPN server if it is not already running.
@@ -90,8 +167,8 @@ func setup(_logDir, _dataDir *C.char, port C.int64_t, api unsafe.Pointer) {
 func startVPN() *C.char {
 	slog.Debug("startVPN called")
 
-	serverMu.Lock()
-	defer serverMu.Unlock()
+	mu.Lock()
+	defer mu.Unlock()
 
 	if server == nil {
 		return C.CString("radiance not initialized")
@@ -117,8 +194,8 @@ func startVPN() *C.char {
 func stopVPN() *C.char {
 	slog.Debug("stopVPN called")
 
-	serverMu.Lock()
-	defer serverMu.Unlock()
+	mu.Lock()
+	defer mu.Unlock()
 
 	if server == nil {
 		return C.CString("radiance not initialized")
@@ -138,10 +215,18 @@ func stopVPN() *C.char {
 }
 
 func (s *lanternService) sendStatusToPort(status VPNStatus) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	servicePort, ok := s.servicesMap[statusService]
+	if !ok {
+		log.Errorf("status service not initialized")
+		return
+	}
+
 	go func() {
-		msg := fmt.Sprintf(`{"status":"%s"}`, status)
+		msg := map[string]any{"status": status}
 		data, _ := json.Marshal(msg)
-		dart_api_dl.SendToPort(s.servicePort, string(data))
+		dart_api_dl.SendToPort(servicePort, string(data))
 	}()
 }
 
@@ -149,10 +234,18 @@ func (s *lanternService) sendStatusToPort(status VPNStatus) {
 //
 //export isVPNConnected
 func isVPNConnected() int {
-	serverMu.Lock()
-	defer serverMu.Unlock()
+	mu.Lock()
+	defer mu.Unlock()
 
-	return 1
+	if server == nil {
+		return 0
+	}
+
+	connected := server.ConnectionStatus()
+	if connected {
+		return 1
+	}
+	return 0
 }
 
 //APIS

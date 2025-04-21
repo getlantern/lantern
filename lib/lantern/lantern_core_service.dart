@@ -1,5 +1,6 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 
 import '../core/services/app_purchase.dart';
@@ -18,9 +19,9 @@ abstract class LanternCoreService {
 
   //Payments methods
   Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
-      {required StipeSubscriptionType type,required String planId});
+      {required StipeSubscriptionType type, required String planId});
 
-  Future<Either<Failure, Map<String,dynamic>>> stipeSubscription(
+  Future<Either<Failure, Map<String, dynamic>>> stipeSubscription(
       {required String planId});
 
   Future<Either<Failure, Unit>> subscribeToPlan({
@@ -32,4 +33,13 @@ abstract class LanternCoreService {
   Future<Either<Failure, Unit>> cancelSubscription();
 
   Future<Either<Failure, Unit>> makeOneTimePayment({required String planID});
+  Stream<List<AppData>> appsDataStream();
+
+  Stream<List<String>> logsStream();
+
+  Future<Either<Failure, Unit>> addSplitTunnelItem(
+      SplitTunnelFilterType type, String value);
+
+  Future<Either<Failure, Unit>> removeSplitTunnelItem(
+      SplitTunnelFilterType type, String value);
 }

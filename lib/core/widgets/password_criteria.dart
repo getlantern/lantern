@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lantern/core/common/app_colors.dart';
+import 'package:lantern/core/common/common.dart';
 
 import '../common/app_text_styles.dart';
 
@@ -36,13 +37,13 @@ class _PasswordCriteriaWidgetState extends State<PasswordCriteriaWidget> {
   }
 
   void _updateCriteria() {
-    final text = widget.textEditingController.text;
+    final results = widget.textEditingController.text.getValidationResults();
     setState(() {
-      has8Characters = text.length >= 8;
-      hasUppercase = text.contains(RegExp(r'[A-Z]'));
-      hasLowercase = text.contains(RegExp(r'[a-z]'));
-      hasNumber = text.contains(RegExp(r'[0-9]'));
-      hasSpecialCharacter = text.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
+      has8Characters = results['At least 8 characters'] ?? false;
+      hasUppercase = results['Contains uppercase letter'] ?? false;
+      hasLowercase = results['Contains lowercase letter'] ?? false;
+      hasNumber = results['Contains number'] ?? false;
+      hasSpecialCharacter = results['Contains special character'] ?? false;
     });
   }
 

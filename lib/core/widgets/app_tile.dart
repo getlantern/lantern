@@ -58,6 +58,8 @@ class AppTile extends StatelessWidget {
           size: 24,
           color: AppColors.gray9,
         );
+      } else if (icon is Image) {
+        leading = icon as Image;
       }
       else if (icon is Widget) {
         leading = icon as Widget;

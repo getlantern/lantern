@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
+import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:lantern/features/language/language_notifier.dart';
 import 'package:lantern/features/setting/follow_us.dart'
     show showFollowUsBottomSheet;
@@ -26,7 +27,6 @@ enum _SettingType {
 
 @RoutePage(name: 'Setting')
 class Setting extends HookConsumerWidget {
-
   Setting({super.key});
 
   late BuildContext context;
@@ -200,7 +200,7 @@ class Setting extends HookConsumerWidget {
       case _SettingType.support:
         appRouter.push(Support());
       case _SettingType.followUs:
-        if (PlatformUtils.isDesktop()) {
+        if (PlatformUtils.isDesktop) {
           appRouter.push(FollowUs());
           return;
         }

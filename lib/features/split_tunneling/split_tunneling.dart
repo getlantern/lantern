@@ -1,0 +1,272 @@
+import 'package:auto_route/auto_route.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/common/app_text_styles.dart';
+import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/utils/ip_utils.dart';
+import 'package:lantern/core/utils/screen_utils.dart';
+import 'package:lantern/core/widgets/info_row.dart';
+import 'package:lantern/core/widgets/split_tunneling_tile.dart';
+import 'package:lantern/core/widgets/switch_button.dart';
+import 'package:lantern/features/split_tunneling/provider/app_preferences.dart';
+import 'package:lantern/features/split_tunneling/provider/apps_notifier.dart';
+import 'package:lantern/features/split_tunneling/provider/website_notifier.dart';
+
+@RoutePage(name: 'SplitTunneling')
+class SplitTunneling extends HookConsumerWidget {
+  const SplitTunneling({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final preferences = ref.watch(appPreferencesProvider).value;
+    final _textTheme = Theme.of(context).textTheme;
+
+    final splitTunnelingEnabled =
+        preferences?[Preferences.splitTunnelingEnabled] ?? false;
+    final splitTunnelingMode = preferences?[Preferences.splitTunnelingMode] ??
+        SplitTunnelingMode.automatic;
+    final isAutomaticMode = splitTunnelingMode == SplitTunnelingMode.automatic;
+    final enabledApps = ref.watch(splitTunnelingAppsProvider).toList();
+    final enabledWebsites = ref.watch(splitTunnelingWebsitesProvider).toList();
+    final expansionTileController = useExpansionTileController();
+    final isExpanded = useState<bool>(false);
+
+    void showBottomSheet() {
+      showAppBottomSheet(
+        context: context,
+        title: 'split_tunneling_mode'.i18n,
+        scrollControlDisabledMaxHeightRatio:
+            context.isSmallDevice ? 0.39.h : 0.3.h,
+        builder: (context, scrollController) {
+          return Expanded(
+            child: ListView(
+              controller: scrollController,
+              padding: EdgeInsets.zero,
+              shrinkWrap: true,
+              children: [
+                ...SplitTunnelingMode.values.map((mode) {
+                  return SplitTunnelingModeTile(
+                    mode: mode,
+                    selectedMode: splitTunnelingMode,
+                    onChanged: (newValue) {
+                      if (newValue != null) {
+                        ref.read(appPreferencesProvider.notifier).setPreference(
+                            Preferences.splitTunnelingMode, newValue);
+                        Navigator.pop(context);
+                      }
+                    },
+                  );
+                }),
+              ],
+            ),
+          );
+        },
+      );
+    }
+
+    final locationSubtitle = useState<String>('global_optimized'.i18n);
+
+    useEffect(() {
+      IPUtils.getUserCountry().then((country) {
+        switch (country) {
+          case 'IR':
+            locationSubtitle.value = 'iran_optimized'.i18n;
+            break;
+          case 'CN':
+            locationSubtitle.value = 'china_optimized'.i18n;
+            break;
+          case 'RU':
+            locationSubtitle.value = 'russia_optimized'.i18n;
+            break;
+          default:
+            locationSubtitle.value = 'global_optimized'.i18n;
+        }
+      });
+      return null;
+    }, []);
+
+    return BaseScreen(
+      title: 'split_tunneling'.i18n,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          SizedBox(height: defaultSize),
+          AppCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
+                AppTile(
+                  icon: AppImagePaths.callSpilt,
+                  label: 'split_tunneling'.i18n,
+                  tileTextStyle: AppTestStyles.bodyMedium.copyWith(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                  ),
+                  trailing: SwitchButton(
+                    value: splitTunnelingEnabled,
+                    onChanged: (bool? value) {
+                      var newValue = value ?? false;
+                      ref.read(appPreferencesProvider.notifier).setPreference(
+                          Preferences.splitTunnelingEnabled, newValue);
+                    },
+                  ),
+                ),
+                DividerSpace(),
+                if (splitTunnelingEnabled) ...{
+                  ExpansionTile(
+                    controller: expansionTileController,
+                    title: Text(
+                      'mode'.i18n,
+                      style: _textTheme.bodyLarge!
+                          .copyWith(color: AppColors.gray9),
+                    ),
+                    initiallyExpanded: false,
+                    trailing: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        AppTextButton(
+                          label: isAutomaticMode
+                              ? 'automatic'.i18n
+                              : 'manual'.i18n,
+                          onPressed: () => expansionTileController.isExpanded
+                              ? expansionTileController.collapse()
+                              : expansionTileController.expand(),
+                        ),
+                        AppImage(
+                          path: AppImagePaths.arrowForward,
+                          height: 20,
+                        ),
+                      ],
+                    ),
+                    // subtitle: isAutomaticMode ? locationSubtitle.value : '',
+                    subtitle: isAutomaticMode
+                        ? Text(
+                            locationSubtitle.value,
+                            style: _textTheme.labelMedium!.copyWith(
+                              color: AppColors.gray7,
+                            ),
+                          )
+                        : null,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            left: 16.0, right: 16.0, top: 8.0),
+                        child: Column(
+                          children: SplitTunnelingMode.values.map((mode) {
+                            return SplitTunnelingModeTile(
+                              mode: mode,
+                              selectedMode: splitTunnelingMode,
+                              onChanged: (newValue) {
+                                if (newValue != null) {
+                                  ref
+                                      .read(appPreferencesProvider.notifier)
+                                      .setPreference(
+                                          Preferences.splitTunnelingMode,
+                                          newValue);
+                                  expansionTileController.collapse();
+                                }
+                              },
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ],
+                  ),
+                },
+              ],
+            ),
+          ),
+          SizedBox(height: defaultSize),
+          InfoRow(
+            onPressed: () {
+              if (isAutomaticMode) {
+                appRouter.push(
+                  SplitTunnelingInfo(),
+                );
+              }
+            },
+            text: splitTunnelingEnabled
+                ? (isAutomaticMode
+                    ? 'lantern_automatic'.i18n
+                    : 'when_connected'.i18n)
+                : 'turn_on_split_tunneling'.i18n,
+          ),
+          if (splitTunnelingEnabled && !isAutomaticMode) ...{
+            SizedBox(height: defaultSize),
+            SplitTunnelingTile(
+              label: 'Websites',
+              actionText: '${enabledWebsites.length} Added',
+              onPressed: () => appRouter.push(WebsiteSplitTunneling()),
+            ),
+            DividerSpace(),
+            SplitTunnelingTile(
+              label: 'Apps',
+              actionText: '${enabledApps.length} Added',
+              onPressed: () => appRouter.push(AppsSplitTunneling()),
+            ),
+          }
+        ],
+      ),
+    );
+  }
+}
+
+class SplitTunnelingModeTile extends StatelessWidget {
+  final SplitTunnelingMode mode;
+  final SplitTunnelingMode selectedMode;
+  final ValueChanged<SplitTunnelingMode?> onChanged;
+
+  const SplitTunnelingModeTile({
+    super.key,
+    required this.mode,
+    required this.selectedMode,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isSelected = selectedMode == mode;
+
+    return InkWell(
+      onTap: () => onChanged(mode),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          border: Border.all(color: AppColors.gray2),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // Left: Label
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                mode.displayName,
+                style: AppTestStyles.bodyMedium.copyWith(
+                  color: AppColors.black1,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: Icon(
+                isSelected
+                    ? Icons.radio_button_checked
+                    : Icons.radio_button_off,
+                size: 24,
+                color: isSelected ? AppColors.black1 : AppColors.gray12,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
