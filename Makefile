@@ -47,7 +47,12 @@ IOS_DEBUG_BUILD := $(BUILD_DIR)/ios/iphoneos/Runner.app
 TAGS=with_gvisor,with_quic,with_wireguard,with_ech,with_utls,with_clash_api,with_grpc
 
 GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go')
-
+GOMOBILE_VERSION ?= latest
+GOMOBILE_REPOS = \
+	$(RADIANCE_REPO) \
+	github.com/sagernet/sing-box/experimental/libbox \
+	github.com/getlantern/sing-box-extensions/ruleset \
+	./lantern-core/mobile
 
 SIGN_ID="Developer ID Application: Brave New Software Project, Inc (ACZRKC3LQ9)"
 
@@ -69,13 +74,7 @@ guard-%:
 	 @ if [ -z '${${*}}' ]; then echo 'Environment  $* variable not set' && exit 1; fi
 
 check-gomobile:
-	@if ! command -v gomobile &> /dev/null; then \
-		echo "gomobile not found. Installing..."; \
-		go install golang.org/x/mobile/cmd/gomobile@latest; \
-		gomobile init; \
-	else \
-		echo "gomobile is already installed."; \
-	fi
+	@command -v gomobile >/dev/null || (echo "gomobile not found. Run 'make install-android-deps'" && exit 1)
 
 require-gomobile:
 	@if [[ -z "$(SENTRY)" ]]; then echo 'Missing "sentry-cli" command. See sentry.io for installation instructions.'; exit 1; fi
@@ -239,25 +238,15 @@ windows-release: clean windows
 install-android-deps:
 	@echo "Installing Android dependencies..."
 
-	go install -v golang.org/x/mobile/cmd/gomobile@latest
-	go install -v golang.org/x/mobile/cmd/gobind@latest
+	go install -v golang.org/x/mobile/cmd/gomobile@$(GOMOBILE_VERSION)
+	go install -v golang.org/x/mobile/cmd/gobind@$(GOMOBILE_VERSION)
 	gomobile init
 
 .PHONY: android
-android: $(ANDROID_LIB_BUILD)
+android: check-gomobile $(ANDROID_LIB_BUILD)
 
 $(ANDROID_LIB_BUILD): $(GO_SOURCES)
-	make install-android-deps
-	@echo "Building Android library..."
-	rm -rf $@ && mkdir -p $(dir $@)
-	GOOS=android gomobile bind -v \
-               -javapkg=lantern.io \
-               -tags=$(TAGS) -trimpath \
-               -o=$@ \
-               -ldflags="-checklinkname=0" \
-                $(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox github.com/getlantern/sing-box-extensions/ruleset
-	mkdir -p $(ANDROID_LIBS_DIR) && cp $@ $(ANDROID_LIBS_DIR)
-	@echo "Built Android library: $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)"
+	$(MAKE) build-android
 
 .PHONY: android-debug
 android-debug: $(ANDROID_DEBUG_BUILD)
@@ -265,21 +254,21 @@ android-debug: $(ANDROID_DEBUG_BUILD)
 $(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD)
 	flutter build apk --target-platform android-arm,android-arm64,android-x64 --verbose --debug
 
-build-android:check-gomobile install-android-deps
-	@echo "Building Android libraries"
-	rm -rf $(BUILD_DIR)/$(ANDROID_LIB)
-	rm -rf $(ANDROID_LIB_PATH)
+build-android: check-gomobile
+	@echo "Building Android libraries..."
+	rm -rf $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)
 	mkdir -p $(ANDROID_LIBS_DIR)
-	gomobile bind -v \
-		-target=android \
+
+	GOOS=android gomobile bind -v \
 		-androidapi=23 \
 		-javapkg=lantern.io \
 		-tags=$(TAGS) -trimpath \
-		-o=$(BUILD_DIR)/$(ANDROID_LIB) \
+		-o=$(ANDROID_LIB_BUILD) \
 		-ldflags="-checklinkname=0" \
-		 $(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox ./lantern-core/mobile
-	cp $(BUILD_DIR)/$(ANDROID_LIB) $(ANDROID_LIB_PATH)
-	@echo "Android libraries built successfully"
+		$(GOMOBILE_REPOS)
+
+	cp $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)
+	@echo "Built Android library: $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)"
 
 # iOS Build
 .PHONY: ios
@@ -335,3 +324,4 @@ find-duplicate-translations:
 clean:
 	rm -rf $(BUILD_DIR)/*
 	rm -rf $(DARWIN_FRAMEWORK_DIR)/*
+	rm -rf $(ANDROID_LIB_PATH)
