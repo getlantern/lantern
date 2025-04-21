@@ -257,7 +257,7 @@ $(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD)
 build-android: check-gomobile
 	@echo "Building Android libraries..."
 	rm -rf $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)
-	mkdir -p $(ANDROID_LIBS_DIR)
+	mkdir -p $(dir $(ANDROID_LIB_BUILD)) $(ANDROID_LIBS_DIR)
 
 	GOOS=android gomobile bind -v \
 		-androidapi=23 \
