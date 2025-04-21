@@ -1,11 +1,12 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/email_tag.dart';
 import 'package:lantern/core/widgets/password_criteria.dart';
 
 @RoutePage(name: 'ResetPassword')
-class ResetPassword extends StatefulWidget {
+class ResetPassword extends HookWidget {
   final String email;
 
   const ResetPassword({
@@ -14,44 +15,35 @@ class ResetPassword extends StatefulWidget {
   });
 
   @override
-  State<ResetPassword> createState() => _ResetPasswordState();
-}
-
-class _ResetPasswordState extends State<ResetPassword> {
-  final passwordController = TextEditingController();
-  final confirmPasswordController = TextEditingController();
-  bool obscureText = false;
-
-  @override
   Widget build(BuildContext context) {
+    final passwordController = useTextEditingController();
+    final confirmPasswordController = useTextEditingController();
+    final obscureText = useState(false);
+    useListenable(confirmPasswordController);
     return BaseScreen(
       title: 'reset_your_password'.i18n,
       body: Column(
         children: [
           SizedBox(height: defaultSize),
-          Center(child: EmailTag(email: widget.email)),
+          Center(child: EmailTag(email: email)),
           SizedBox(height: defaultSize),
           AppTextField(
             hintText: '',
             label: 'create_new_password'.i18n,
-            obscureText: obscureText,
+            obscureText: obscureText.value,
             controller: passwordController,
             prefixIcon: AppImagePaths.lock,
-            onChanged: (value) {
-              setState(() {});
-            },
-            suffixIcon: _buildSuffix(),
+            onChanged: (value) {},
+            suffixIcon: _buildSuffix(obscureText),
           ),
           SizedBox(height: 20),
           AppTextField(
               hintText: '',
               label: 'confirm_new_password'.i18n,
-              obscureText: obscureText,
+              obscureText: obscureText.value,
               controller: confirmPasswordController,
               prefixIcon: AppImagePaths.lock,
-              onChanged: (value) {
-                setState(() {});
-              },
+              onChanged: (value) {},
               validator: (value) {
                 if (value!.isEmpty) {
                   return "confirm_password_required".i18n;
@@ -61,7 +53,7 @@ class _ResetPasswordState extends State<ResetPassword> {
                 }
                 return null;
               },
-              suffixIcon: _buildSuffix()),
+              suffixIcon: _buildSuffix(obscureText)),
           SizedBox(height: 32),
           PrimaryButton(
             label: 'reset_password'.i18n,
@@ -78,14 +70,12 @@ class _ResetPasswordState extends State<ResetPassword> {
     );
   }
 
-  Widget _buildSuffix() {
+  Widget _buildSuffix(ValueNotifier<bool> obscureText) {
     return AppImage(
       color: AppColors.yellow9,
-      path: obscureText ? AppImagePaths.eyeHide : AppImagePaths.eye,
+      path: obscureText.value ? AppImagePaths.eyeHide : AppImagePaths.eye,
       onPressed: () {
-        setState(() {
-          obscureText = !obscureText;
-        });
+        obscureText.value = !obscureText.value;
       },
     );
   }

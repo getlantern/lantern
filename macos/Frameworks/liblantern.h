@@ -81,7 +81,9 @@ typedef struct { void *data; GoInt len; GoInt cap; } GoSlice;
 extern "C" {
 #endif
 
-extern void setup(char* dir, int64_t logPort, int64_t statusPort, int64_t appsPort, void* api);
+extern void setup(char* _logDir, char* _dataDir, int64_t logPort, int64_t appsPort, int64_t statusPort, void* api);
+extern char* addSplitTunnelItem(char* filterTypeC, char* itemC);
+extern char* removeSplitTunnelItem(char* filterTypeC, char* itemC);
 
 // startVPN initializes and starts the VPN server if it is not already running.
 //
@@ -93,7 +95,7 @@ extern char* stopVPN();
 
 // isVPNConnected checks if the VPN server is running and connected.
 //
-extern char* isVPNConnected();
+extern GoInt isVPNConnected();
 extern void freeCString(char* cstr);
 extern void enforce_binding();
 

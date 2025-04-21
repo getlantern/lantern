@@ -1,15 +1,15 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:lantern/core/utils/storage_utils.dart';
-import 'package:objectbox/objectbox.dart';
+
 import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/website.dart';
 import 'package:lantern/core/services/db/objectbox.g.dart';
 import 'package:lantern/core/services/logger_service.dart';
+import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-
+import 'package:objectbox/objectbox.dart';
 import 'injection_container.dart';
 
 class AppDB {
@@ -61,8 +61,6 @@ class LocalStorageService {
       directory: p.join(docsDir.path, "objectbox-db"),
       macosApplicationGroup: macosApplicationGroup,
     );
-        directory: p.join(docsDir.path, "objectbox-db"),
-        macosApplicationGroup: macosApplicationGroup);
 
     _box = _store.box<AppDatabase>();
     _appsBox = _store.box<AppData>();
@@ -70,7 +68,7 @@ class LocalStorageService {
 
     AppDatabase? db = _box.get(1);
     if (db == null) {
-      db = AppDatabase(data: "{}")..id = 1;
+      db = AppDatabase(data: "{}");
       _box.put(db);
     }
     _appDb = db;
@@ -113,7 +111,6 @@ class LocalStorageService {
     _box.put(_appDb);
     dbLogger.debug("Key: $key removed successfully");
   }
-}
 
   // Apps methods
   void saveApps(Set<AppData> apps) {

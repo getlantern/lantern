@@ -1,15 +1,18 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:lantern/core/common/common.dart';
 
 @RoutePage(name: 'SignInPassword')
-class SignInPassword extends StatelessWidget {
+class SignInPassword extends HookWidget {
   final String email;
 
   const SignInPassword({super.key, required this.email});
 
   @override
   Widget build(BuildContext context) {
+    final passwordController = useTextEditingController();
+    useListenable(passwordController);
     return BaseScreen(
       title: 'welcome_to_lantern_pro'.i18n,
       body: Column(
@@ -19,6 +22,7 @@ class SignInPassword extends StatelessWidget {
           SizedBox(height: defaultSize),
           AppTextField(
             hintText: '',
+            controller: passwordController,
             prefixIcon: AppImagePaths.lock,
             label: 'enter_password'.i18n,
             obscureText: true,
@@ -27,6 +31,7 @@ class SignInPassword extends StatelessWidget {
           SizedBox(height: 32),
           PrimaryButton(
             label: 'continue'.i18n,
+            enabled: passwordController.text.isNotEmpty,
             onPressed: () {},
           ),
           SizedBox(height: defaultSize),
