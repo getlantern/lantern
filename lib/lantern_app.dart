@@ -92,7 +92,7 @@ class _LanternAppState extends ConsumerState<LanternApp> {
         child: SystemTrayWrapper(
           child: ScreenUtilInit(
             designSize:
-                PlatformUtils.isDesktop() ? desktopWindowSize : mobileSize,
+                PlatformUtils.isDesktop ? desktopWindowSize : mobileSize,
             minTextAdapt: true,
             child: I18n(
               localizationsDelegates: [

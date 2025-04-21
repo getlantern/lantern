@@ -2,7 +2,8 @@ import 'dart:async';
 
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/extensions/error.dart';
+
+
 
 typedef PaymentSuccessCallback = void Function(PurchaseDetails purchase);
 typedef PaymentErrorCallback = void Function(String error);
@@ -93,7 +94,7 @@ class AppPurchase {
       if (status == PurchaseStatus.error) {
         /// Error occurred during purchase
         appLogger.error('Purchase error: ${purchaseDetails.error}');
-        if (PlatformUtils.isIOS()) {
+        if (PlatformUtils.isIOS) {
           /// iOS specific handling
           await _inAppPurchase.completePurchase(purchaseDetails);
         }
@@ -105,7 +106,7 @@ class AppPurchase {
       }
       if (status == PurchaseStatus.canceled) {
         /// User has cancelled the purchase
-        if (PlatformUtils.isIOS()) {
+        if (PlatformUtils.isIOS) {
           /// iOS specific handling
           await _inAppPurchase.completePurchase(purchaseDetails);
         }

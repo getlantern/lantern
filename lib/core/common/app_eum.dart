@@ -7,15 +7,7 @@ enum VPNStatus {
   error,
 }
 
-enum AuthFlow { resetPassword, signUp, activationCode }
 
-enum SplitTunnelFilterType {
-  domain,
-  domainSuffix,
-  domainKeyword,
-  domainRegex,
-  processName,
-  packageName;
 
 enum AuthFlow{
   resetPassword,
@@ -27,6 +19,14 @@ enum StipeSubscriptionType{
   monthly,
   yearly,
   one_time
+}
+enum SplitTunnelFilterType {
+  domain,
+  domainSuffix,
+  domainKeyword,
+  domainRegex,
+  processName,
+  packageName;
 
   String get value {
     switch (this) {

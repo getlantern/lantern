@@ -102,7 +102,10 @@ class AppRouter extends RootStackRouter {
       path: '/activation-code',
       page: ActivationCode.page,
     ),
-    AutoRoute(path: '/app-webview', page: AppWebview.page),
+    AutoRoute(
+      path: '/app-webview',
+      page: AppWebview.page,
+    ),
     AutoRoute(
       path: '/split-tunneling',
       page: SplitTunneling.page,

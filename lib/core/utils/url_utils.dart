@@ -46,6 +46,8 @@ class UrlUtils {
     } catch (e) {
       appLogger.error("Failed to open webview", e);
     }
+  }
+
   static bool isValidDomain(String input) {
     final domainPattern = r'^(?!-)[A-Za-z0-9-]{1,63}(?<!-)\.[A-Za-z]{2,6}$';
     return RegExp(domainPattern).hasMatch(input);
