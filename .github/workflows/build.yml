@@ -1,0 +1,29 @@
+
+name: Build All Platforms
+
+on:
+  push:
+    branches: [android/ci-updates]
+  pull_request:
+
+env:
+  VERSION: "9999.99.99-dev"
+
+jobs:
+  build-macos:
+    uses: ./.github/workflows/build-macos.yml
+    secrets: inherit
+    with:
+      version: ${{ env.VERSION }}
+
+  build-android:
+    uses: ./.github/workflows/build-android.yml
+    secrets: inherit
+    with:
+      version: ${{ env.VERSION }}
+  
+  build-linux:
+    uses: ./.github/workflows/build-linux.yml
+    secrets: inherit
+    with:
+      version: ${{ env.VERSION }}
