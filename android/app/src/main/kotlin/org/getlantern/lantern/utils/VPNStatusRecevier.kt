@@ -8,6 +8,9 @@ import org.getlantern.lantern.service.LanternVpnService
 
 class VPNStatusReceiver(private val service: LanternVpnService) : BroadcastReceiver() {
 
+    // Required empty public constructor
+    constructor()
+
     override fun onReceive(context: Context?, intent: Intent?) {
         when (intent?.action) {
             LanternVpnService.ACTION_START_RADIANCE -> {

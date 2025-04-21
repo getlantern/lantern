@@ -259,6 +259,7 @@ $(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD)
 
 .PHONY: android-release
 android-release: $(ANDROID_RELEASE_BUILD)
+	cp $(ANDROID_RELEASE_BUILD) $(ANDROID_RELEASE_APK)
 
 $(ANDROID_RELEASE_BUILD): $(ANDROID_LIB_BUILD)
 	flutter build apk --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --release
