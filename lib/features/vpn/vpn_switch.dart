@@ -93,7 +93,7 @@ class VPNSwitch extends HookConsumerWidget {
       case VPNStatus.disconnected:
         return AppColors.gray7;
       case VPNStatus.disconnecting:
-        return AppColors.gray1;
+        return AppColors.gray7;
       case VPNStatus.missingPermission:
         return AppColors.gray7;
       case VPNStatus.error:

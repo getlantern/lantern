@@ -241,6 +241,10 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
+  Stream<List<String>> watchLogs(String path) {
+    throw UnimplementedError();
+  }
+
   Future<Either<Failure, String>> stopVPN() async {
     try {
       appLogger.debug('Stopping VPN');
