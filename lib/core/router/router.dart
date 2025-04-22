@@ -63,6 +63,46 @@ class AppRouter extends RootStackRouter {
       page: ServerSelection.page,
     ),
     AutoRoute(
+      path: '/plans',
+      page: Plans.page,
+    ),
+    AutoRoute(
+      path: '/add-email',
+      page: AddEmail.page,
+    ),
+    AutoRoute(
+      path: '/confirm-email',
+      page: ConfirmEmail.page,
+    ),
+    AutoRoute(
+      path: '/create-password',
+      page: CreatePassword.page,
+    ),
+    AutoRoute(
+      path: '/choose-payment-method',
+      page: ChoosePaymentMethod.page,
+    ),
+    AutoRoute(
+      path: '/sign-in-email',
+      page: SignInEmail.page,
+    ),
+    AutoRoute(
+      path: '/sign-in-password',
+      page: SignInPassword.page,
+    ),
+    AutoRoute(
+      path: '/reset-password-email',
+      page: ResetPasswordEmail.page,
+    ),
+    AutoRoute(
+      path: '/reset-password',
+      page: ResetPassword.page,
+    ),
+    AutoRoute(
+      path: '/activation-code',
+      page: ActivationCode.page,
+    ),
+    AutoRoute(
       path: '/split-tunneling',
       page: SplitTunneling.page,
     ),

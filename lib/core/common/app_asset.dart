@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:lantern/core/common/app_buttons.dart';
 import 'package:lantern/core/common/app_dimens.dart';
 
 export 'package:flutter_svg/flutter_svg.dart';
@@ -18,6 +19,8 @@ class AppImage extends StatelessWidget {
 
   final AssetType type;
 
+  final OnPressed? onPressed;
+
   const AppImage({
     required this.path,
     this.size = iconSize,
@@ -25,6 +28,7 @@ class AppImage extends StatelessWidget {
     this.height,
     this.color,
     this.type = AssetType.svg,
+    this.onPressed ,
     super.key,
   });
 
@@ -32,20 +36,26 @@ class AppImage extends StatelessWidget {
   Widget build(BuildContext context) {
     switch (type) {
       case AssetType.svg:
-        return SvgPicture.asset(
-          path,
-          height: height,
-          width: width ,
-          colorFilter:
-              color != null ? ColorFilter.mode(color!, BlendMode.srcIn) : null,
+        return GestureDetector(
+          onTap: onPressed,
+          child: SvgPicture.asset(
+            path,
+            height: height,
+            width: width ,
+            colorFilter:
+                color != null ? ColorFilter.mode(color!, BlendMode.srcIn) : null,
+          ),
         );
       case AssetType.png:
-        return Image.asset(
-          path,
-          color: color,
-          height: height,
-          width: width,
-          fit: BoxFit.cover,
+        return GestureDetector(
+          onTap: onPressed,
+          child: Image.asset(
+            path,
+            color: color,
+            height: height,
+            width: width,
+            fit: BoxFit.cover,
+          ),
         );
     }
   }

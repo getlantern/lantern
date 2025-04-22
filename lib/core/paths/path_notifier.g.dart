@@ -6,7 +6,7 @@ part of 'path_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$pathNotifierHash() => r'c8381e7107d03ecdf488d86b1f3ecdebbfa5d354';
+String _$pathNotifierHash() => r'9d420644aca408a07326addad0bf856e1eada31c';
 
 /// See also [PathNotifier].
 @ProviderFor(PathNotifier)
