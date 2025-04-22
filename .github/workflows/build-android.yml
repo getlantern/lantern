@@ -71,6 +71,7 @@ jobs:
             NEW_VERSION="${{ inputs.version }}+${RUN_NUMBER}"
             echo "Updating pubspec.yaml to version: $NEW_VERSION"
             sed -i.bak -E "s/^version: .*/version: $NEW_VERSION/" pubspec.yaml
+            rm -f pubspec.yaml.bak
             cat pubspec.yaml
             APP_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //')
             echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
