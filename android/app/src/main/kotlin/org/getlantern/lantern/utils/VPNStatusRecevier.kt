@@ -6,7 +6,7 @@ import android.content.Intent
 import android.util.Log
 import org.getlantern.lantern.service.LanternVpnService
 
-class VPNStatusReceiver(private val service: LanternVpnService) : BroadcastReceiver() {
+class VPNStatusReceiver() : BroadcastReceiver() {
 
     override fun onReceive(context: Context?, intent: Intent?) {
         when (intent?.action) {
@@ -20,7 +20,7 @@ class VPNStatusReceiver(private val service: LanternVpnService) : BroadcastRecei
 
             LanternVpnService.ACTION_STOP_VPN -> {
                 Log.d("VPNStatus", "Stopping VPN")
-                service.doStopVPN()
+                LanternVpnService.instance.doStopVPN()
 
             }
 
