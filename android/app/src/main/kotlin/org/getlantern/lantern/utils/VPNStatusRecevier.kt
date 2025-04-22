@@ -7,7 +7,6 @@ import android.util.Log
 import org.getlantern.lantern.service.LanternVpnService
 
 class VPNStatusReceiver(private val service: LanternVpnService) : BroadcastReceiver() {
-
     override fun onReceive(context: Context?, intent: Intent?) {
         when (intent?.action) {
             LanternVpnService.ACTION_START_RADIANCE -> {
@@ -29,6 +28,5 @@ class VPNStatusReceiver(private val service: LanternVpnService) : BroadcastRecei
             }
 
         }
-
     }
 }
