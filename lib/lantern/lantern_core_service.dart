@@ -2,6 +2,7 @@ import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/lantern_status.dart';
+import 'package:lantern/core/models/plan_data.dart';
 
 import '../core/services/app_purchase.dart';
 
@@ -31,6 +32,8 @@ abstract class LanternCoreService {
     required PaymentSuccessCallback onSuccess,
     required PaymentErrorCallback onError,
   });
+
+  Future<Either<Failure, PlansData>> plans();
 
   Future<Either<Failure, Unit>> cancelSubscription();
 

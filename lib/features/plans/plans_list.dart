@@ -14,6 +14,7 @@ class _PlansListViewState extends State<PlansListView> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+
     return SizedBox(
       height: context.isSmallDevice ? size.height * 0.21 :null,
       child: ListView.builder(

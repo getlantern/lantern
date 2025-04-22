@@ -62,18 +62,119 @@
       "relations": []
     },
     {
-      "id": "5:827583214628067603",
-      "lastPropertyId": "2:4366113317700500115",
+      "id": "6:6064691124967221188",
+      "lastPropertyId": "7:3460771902693314151",
+      "name": "PlanEntity",
+      "properties": [
+        {
+          "id": "1:44689092619598617",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:2948314626219609469",
+          "name": "planId",
+          "type": 9
+        },
+        {
+          "id": "3:4270262637928033215",
+          "name": "description",
+          "type": 9
+        },
+        {
+          "id": "4:3759173737348664300",
+          "name": "usdPrice",
+          "type": 6
+        },
+        {
+          "id": "5:1846621058179882521",
+          "name": "priceJson",
+          "type": 9
+        },
+        {
+          "id": "6:7153429947138206290",
+          "name": "expectedMonthlyPriceJson",
+          "type": 9
+        },
+        {
+          "id": "7:3460771902693314151",
+          "name": "bestValue",
+          "type": 1
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "7:8018631489731923987",
+      "lastPropertyId": "3:8614132688092941646",
+      "name": "PlansDataEntity",
+      "properties": [
+        {
+          "id": "1:1962909098430065866",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:2594708484346389745",
+          "name": "providersId",
+          "type": 11,
+          "flags": 520,
+          "indexId": "1:8385137855534348937",
+          "relationTarget": "ProvidersEntity"
+        },
+        {
+          "id": "3:8614132688092941646",
+          "name": "iconsJson",
+          "type": 9
+        }
+      ],
+      "relations": [
+        {
+          "id": "1:2761527795005361608",
+          "name": "plans",
+          "targetId": "6:6064691124967221188"
+        }
+      ]
+    },
+    {
+      "id": "8:2071111122468858929",
+      "lastPropertyId": "3:5147226167609010098",
+      "name": "ProvidersEntity",
+      "properties": [
+        {
+          "id": "1:4613239940113821409",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:8752503276440387408",
+          "name": "androidJson",
+          "type": 9
+        },
+        {
+          "id": "3:5147226167609010098",
+          "name": "desktopJson",
+          "type": 9
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "9:2225470262079550670",
+      "lastPropertyId": "2:1968318257591729232",
       "name": "AppDatabase",
       "properties": [
         {
-          "id": "1:4314963677250304204",
+          "id": "1:1999102232066002882",
           "name": "id",
           "type": 6,
           "flags": 129
         },
         {
-          "id": "2:4366113317700500115",
+          "id": "2:1968318257591729232",
           "name": "data",
           "type": 9
         }
@@ -81,15 +182,16 @@
       "relations": []
     }
   ],
-  "lastEntityId": "5:827583214628067603",
-  "lastIndexId": "0:0",
-  "lastRelationId": "0:0",
+  "lastEntityId": "9:2225470262079550670",
+  "lastIndexId": "1:8385137855534348937",
+  "lastRelationId": "1:2761527795005361608",
   "lastSequenceId": "0:0",
   "modelVersion": 5,
   "modelVersionParserMinimum": 5,
   "retiredEntityUids": [
     1027975073737683578,
-    4380524372643795068
+    4380524372643795068,
+    827583214628067603
   ],
   "retiredIndexUids": [],
   "retiredPropertyUids": [
@@ -98,7 +200,9 @@
     7465496422607335786,
     1230399441936964031,
     689361163376130950,
-    4102612372732725500
+    4102612372732725500,
+    4314963677250304204,
+    4366113317700500115
   ],
   "retiredRelationUids": [],
   "version": 1

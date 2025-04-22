@@ -1,26 +1,26 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'payment_notifier.dart';
+part of 'plans_notifier.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$paymentNotifierHash() => r'6d186b1d78a9cefec69bed18c58c0c11aa4bad55';
+String _$plansNotifierHash() => r'86fb0c69bd1db5f4dab192ceee6b8d4745dd22c5';
 
-/// See also [PaymentNotifier].
-@ProviderFor(PaymentNotifier)
-final paymentNotifierProvider =
-    AutoDisposeNotifierProvider<PaymentNotifier, void>.internal(
-  PaymentNotifier.new,
-  name: r'paymentNotifierProvider',
+/// See also [PlansNotifier].
+@ProviderFor(PlansNotifier)
+final plansNotifierProvider =
+    AutoDisposeAsyncNotifierProvider<PlansNotifier, PlansData>.internal(
+  PlansNotifier.new,
+  name: r'plansNotifierProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
       ? null
-      : _$paymentNotifierHash,
+      : _$plansNotifierHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
-typedef _$PaymentNotifier = AutoDisposeNotifier<void>;
+typedef _$PlansNotifier = AutoDisposeAsyncNotifier<PlansData>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

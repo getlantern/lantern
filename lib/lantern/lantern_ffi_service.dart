@@ -17,6 +17,7 @@ import 'package:lantern/lantern/lantern_service.dart';
 import 'package:path/path.dart' as p;
 import 'package:rxdart/rxdart.dart';
 
+import '../core/models/plan_data.dart';
 import '../core/utils/compute_worker.dart';
 
 export 'dart:convert';
@@ -349,6 +350,12 @@ class LanternFFIService implements LanternCoreService {
     // TODO: implement stipeSubscription
     throw UnimplementedError();
   }
+
+  @override
+  Future<Either<Failure, PlansData>> plans() {
+    // TODO: implement plans
+    throw UnimplementedError();
+  }
 }
 
 class SplitTunnelMessage {
@@ -358,4 +365,9 @@ class SplitTunnelMessage {
   final SendPort replyPort;
 
   SplitTunnelMessage(this.type, this.value, this.action, this.replyPort);
+}
+
+
+class MockLanternFFIService extends LanternFFIService{
+
 }

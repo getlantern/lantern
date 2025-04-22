@@ -3,13 +3,15 @@ import 'dart:io';
 
 import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/plan_entity.dart';
 import 'package:lantern/core/models/website.dart';
-import 'package:lantern/core/services/db/objectbox.g.dart';
+import 'package:objectbox/objectbox.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-import 'package:objectbox/objectbox.dart';
+
+import 'db/objectbox.g.dart';
 import 'injection_container.dart';
 
 class AppDB {
@@ -36,6 +38,7 @@ class LocalStorageService {
   late Box<AppDatabase> _box;
   late Box<AppData> _appsBox;
   late Box<Website> _websitesBox;
+  late Box<PlansDataEntity> _plansBox;
 
   late AppDatabase _appDb;
 
@@ -65,6 +68,7 @@ class LocalStorageService {
     _box = _store.box<AppDatabase>();
     _appsBox = _store.box<AppData>();
     _websitesBox = _store.box<Website>();
+    _plansBox = _store.box<PlansDataEntity>();
 
     AppDatabase? db = _box.get(1);
     if (db == null) {
@@ -141,6 +145,17 @@ class LocalStorageService {
 
   Set<Website> getEnabledWebsites() {
     return _websitesBox.getAll().toSet();
+  }
+
+  // Plans methods
+  void savePlans(PlansDataEntity plans) {
+    _plansBox.removeAll();
+    _plansBox.put(plans);
+  }
+
+  PlansDataEntity? getPlans() {
+    final plans = _plansBox.getAll();
+    return plans.isEmpty?null: plans.first;
   }
 }
 

@@ -20,7 +20,8 @@ enum class Methods(val method: String) {
     Stop("stopVPN"),
     IsVpnConnected("isVPNConnected"),
     SubscriptionPaymentRedirect("subscriptionPaymentRedirect"),
-    StripeSubscription("stripeSubscription")
+    StripeSubscription("stripeSubscription"),
+    Plans("plans")
 }
 
 class MethodHandler : FlutterPlugin,
@@ -115,7 +116,19 @@ class MethodHandler : FlutterPlugin,
                             success(subscriptionData)
                         }
                     }.onFailure { e ->
-                        result.error("vpn_status", e.localizedMessage ?: "Please try again", e)
+                        result.error("stripe_subscription", e.localizedMessage ?: "Please try again", e)
+                    }
+                }
+            }
+            Methods.Plans.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val plansData = Mobile.plans()
+                        withContext(Dispatchers.Main) {
+                            success(plansData)
+                        }
+                    }.onFailure { e ->
+                        result.error("plans", e.localizedMessage ?: "Please try again", e)
                     }
                 }
             }

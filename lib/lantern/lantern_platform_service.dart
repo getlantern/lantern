@@ -4,12 +4,14 @@ import 'package:flutter/services.dart';
 import 'package:fpdart/src/either.dart';
 import 'package:fpdart/src/unit.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/services/app_purchase.dart';
-import 'package:lantern/core/extensions/error.dart';
 import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/plan_data.dart';
+import 'package:lantern/core/models/plan_mapper.dart';
+import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 
 import '../core/models/lantern_status.dart';
+import '../core/services/injection_container.dart' show sl;
 
 class LanternPlatformService implements LanternCoreService {
   final AppPurchase appPurchase;
@@ -162,6 +164,23 @@ class LanternPlatformService implements LanternCoreService {
           await _methodChannel.invokeMethod<String>('stripeSubscription');
       final map = jsonDecode(subData!);
       return Right(map);
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription));
+    }
+  }
+
+  @override
+  Future<Either<Failure, PlansData>> plans() async {
+    try {
+      final subData = await _methodChannel.invokeMethod<String>('plans');
+      final map = jsonDecode(subData!);
+      final plans = PlansData.fromJson(map);
+      sl<LocalStorageService>().savePlans(plans.toEntity());
+      appLogger.info('Plans: $map');
+      return Right(plans);
     } catch (e, stackTrace) {
       appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
       return Left(Failure(

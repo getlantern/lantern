@@ -1,25 +1,33 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/utils/screen_utils.dart';
 import 'package:lantern/features/plans/feature_list.dart';
 import 'package:lantern/features/plans/plans_list.dart';
+import 'package:shimmer/shimmer.dart';
 
 @RoutePage(name: 'Plans')
-class Plans extends StatefulWidget {
+class Plans extends StatefulHookConsumerWidget {
   const Plans({super.key});
 
   @override
-  State<Plans> createState() => _PlansState();
+  ConsumerState<Plans> createState() => _PlansState();
 }
 
-class _PlansState extends State<Plans> {
+class _PlansState extends ConsumerState<Plans> {
   late TextTheme textTheme;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     textTheme = Theme.of(context).textTheme;
+
     return BaseScreen(
       backgroundColor: AppColors.white,
       padded: false,

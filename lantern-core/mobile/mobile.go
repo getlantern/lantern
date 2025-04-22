@@ -158,6 +158,21 @@ func StripeSubscriptionPaymentRedirect(subType string) (string, error) {
 	return stripeUrl, nil
 }
 
+func Plans() (string, error) {
+	log.Debug("Getting plans")
+	plans, err := radianceServer.proServer.Plans(context.Background())
+	if err != nil {
+		return "", log.Errorf("Error getting plans: %v", err)
+	}
+	log.Debugf("Plans response: %v", plans)
+	jsonData, err := json.Marshal(plans)
+	if err != nil {
+		return "", log.Errorf("Error marshalling plans: %v", err)
+	}
+	// Convert bytes to string and print
+	return string(jsonData), nil
+}
+
 func subscripationPaymentRedirect(redirectBody *protos.SubscriptionPaymentRedirectRequest) (string, error) {
 	rediret, err := radianceServer.proServer.SubscriptionPaymentRedirect(context.Background(), redirectBody)
 	if err != nil {
