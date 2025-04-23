@@ -4,7 +4,6 @@ msgstr "Lantern"
 msgid "upgrade_to_pro"
 msgstr "Upgrade to Pro"
 
-
 msgid "settings"
 msgstr "Settings"
 
@@ -344,7 +343,6 @@ msgstr "Enter your Lantern Pro Account Email."
 msgid "next"
 msgstr "Next"
 
-
 msgid "reset_password"
 msgstr "Reset Password"
 
@@ -354,17 +352,14 @@ msgstr "Confirm New Password"
 msgid "create_new_password"
 msgstr "Create New Password"
 
-
 msgid "confirm_password"
 msgstr "Confirm Password"
-
 
 msgid "confirm_password_required"
 msgstr "Confirm Password is required"
 
 msgid "passwords_do_not_match"
 msgstr "Passwords do not match"
-
 
 msgid "activation_code"
 msgstr "Activation Code"
@@ -380,7 +375,6 @@ msgstr "You already own this purchase, Try doing restore purchase"
 
 msgid "stripe_payment"
 msgstr "Stripe Payment"
-
 
 msgid "split_tunneling_description"
 msgstr "Lantern intelligently routes internet traffic based on your location, ensuring secure access while keeping your connection fast by only using a VPN when necessary."
@@ -423,6 +417,12 @@ msgstr "Welcome to Lantern Pro!"
 
 msgid "lantern_pro_description"
 msgstr "Your Pro features are unlocked—enjoy unlimited data, faster speeds, and premium servers."
+
+msgid "plans_fetch_error"
+msgstr "Error fetching plans. Please try again later."
+
+msgid "best_value"
+msgstr "Best Value!"
 
 
 

@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 class PlansData {
   Providers providers;
   List<Plan> plans;
@@ -19,20 +17,31 @@ class PlansData {
         ),
       );
 
+  PlansData copyWith({
+    Providers? providers,
+    List<Plan>? plans,
+    Map<String, List<String>>? icons,
+  }) {
+    return PlansData(
+      providers: providers ?? this.providers,
+      plans: plans ?? this.plans,
+      icons: icons ?? this.icons,
+    );
+  }
+
   Map<String, dynamic> toJson() => {
         "providers": providers.toJson(),
         "plans": List<dynamic>.from(plans.map((x) => x.toJson())),
       };
 }
 
-
 class Plan {
   String id;
   String description;
   int usdPrice;
-  String price;
-  String expectedMonthlyPrice;
-  bool? bestValue;
+  Map<String, dynamic> price;
+  Map<String, dynamic> expectedMonthlyPrice;
+  bool bestValue;
 
   Plan({
     required this.id,
@@ -40,16 +49,16 @@ class Plan {
     required this.usdPrice,
     required this.price,
     required this.expectedMonthlyPrice,
-    this.bestValue,
+    this.bestValue = false,
   });
 
   factory Plan.fromJson(Map<String, dynamic> json) => Plan(
         id: json["id"],
         description: json["description"],
         usdPrice: json["usdPrice"],
-        price: jsonEncode(json["price"]),
-        expectedMonthlyPrice: jsonEncode(json["expectedMonthlyPrice"]),
-        bestValue: json["bestValue"],
+        price: json["price"],
+        expectedMonthlyPrice: json["expectedMonthlyPrice"],
+        bestValue: json["bestValue"]??false,
       );
 
   Map<String, dynamic> toJson() => {

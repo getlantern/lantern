@@ -11,8 +11,8 @@ part 'plans_notifier.g.dart';
 class PlansNotifier extends _$PlansNotifier {
   @override
   Future<PlansData> build() async {
+    state = AsyncLoading();
     final local = _getPlansFromLocalStorage();
-
     // If local exists, return it immediately and refresh in background
     if (local != null) {
       _refreshInBackground();
@@ -20,38 +20,37 @@ class PlansNotifier extends _$PlansNotifier {
       return local;
     }
     // No local — fetch from API
-    return await _fetchAndStorePlans();
+    final plans = await _fetchPlans();
+    state = AsyncData(plans);
+    return plans;
   }
 
   PlansData? _getPlansFromLocalStorage() {
-    final localPlans = sl<LocalStorageService>().getPlans();
-    if (localPlans != null) {
-      return localPlans.toPlanData();
+    try {
+      final localPlans = sl<LocalStorageService>().getPlans();
+      if (localPlans != null) {
+        return localPlans.toPlanData();
+      }
+      return null;
+    } catch (e) {
+      appLogger.error('Error getting local plans: $e');
+      return null;
     }
-    return null;
   }
 
-  Future<void> _refreshInBackground() async {
+  Future<PlansData> _fetchPlans() async {
     final result = await ref.read(lanternServiceProvider).plans();
-    result.fold(
-      (error) => appLogger.error('Error refreshing plans in bg: $error'),
-      (remote) async {
-        await _storePlansLocally(remote);
-        state = AsyncData(remote);
-      },
-    );
-  }
-
-  Future<PlansData> _fetchAndStorePlans() async {
-    final result = await ref.read(lanternServiceProvider).plans();
-
     return await result.fold(
       (error) {
+        state = AsyncError(error, StackTrace.current);
         appLogger.error('Error fetching plans: $error');
         throw Exception('Plans fetch failed');
       },
       (remote) async {
-        await _storePlansLocally(remote);
+        remote.plans.sort((a, b) {
+          if (a.bestValue == b.bestValue) return 0;
+          return a.bestValue ? -1 : 1;
+        });
         return remote;
       },
     );
@@ -59,5 +58,11 @@ class PlansNotifier extends _$PlansNotifier {
 
   Future<void> _storePlansLocally(PlansData plans) async {
     sl<LocalStorageService>().savePlans(plans.toEntity());
+  }
+
+  Future<void> _refreshInBackground() async {
+    final remotePlans = await _fetchPlans();
+    await _storePlansLocally(remotePlans);
+    state = AsyncData(remotePlans);
   }
 }

@@ -8,11 +8,11 @@ import (
 
 	"github.com/getlantern/golog"
 	"github.com/getlantern/radiance"
+	"github.com/getlantern/radiance/api"
+	"github.com/getlantern/radiance/api/protos"
 	"github.com/getlantern/radiance/client"
 	"github.com/getlantern/radiance/common"
-	"github.com/getlantern/radiance/pro"
-	"github.com/getlantern/radiance/user"
-	"github.com/getlantern/radiance/user/protos"
+
 	"github.com/sagernet/sing-box/experimental/libbox"
 	_ "golang.org/x/mobile/bind"
 )
@@ -25,8 +25,8 @@ var (
 
 type lanternService struct {
 	*radiance.Radiance
-	proServer  *pro.Pro
-	authClient *user.User
+	proServer  *api.Pro
+	authClient *api.User
 	userConfig common.UserConfig
 }
 

@@ -18,8 +18,8 @@ extension PlanEntityMapper on Plan {
       planId: id,
       description: description,
       usdPrice: usdPrice,
-      priceJson: price,
-      expectedMonthlyPriceJson: expectedMonthlyPrice,
+      priceJson: jsonEncode(price) ,
+      expectedMonthlyPriceJson: jsonEncode(expectedMonthlyPrice),
       bestValue: bestValue,
     );
   }
@@ -52,7 +52,7 @@ extension PlanData on PlanEntity {
         usdPrice: usdPrice,
         price: jsonDecode(priceJson),
         expectedMonthlyPrice: jsonDecode(expectedMonthlyPriceJson),
-        bestValue: bestValue,
+        bestValue: bestValue??false,
       );
 }
 

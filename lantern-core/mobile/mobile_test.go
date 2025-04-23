@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/getlantern/radiance"
+	"github.com/getlantern/radiance/api/protos"
 	"github.com/getlantern/radiance/client"
-	"github.com/getlantern/radiance/user/protos"
 	"github.com/zeebo/assert"
 )
 

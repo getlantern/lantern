@@ -43,7 +43,7 @@ require (
 	github.com/go-stack/stack v1.8.1 // indirect
 	github.com/gobwas/httphead v0.1.0 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect
-	github.com/gofrs/uuid/v5 v5.3.1 // indirect
+	github.com/gofrs/uuid/v5 v5.3.2 // indirect
 	github.com/google/btree v1.1.3 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
@@ -77,9 +77,9 @@ require (
 	github.com/sagernet/nftables v0.3.0-beta.4 // indirect
 	github.com/sagernet/quic-go v0.49.0-beta.1 // indirect
 	github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691 // indirect
-	github.com/sagernet/sing-dns v0.4.0 // indirect
+	github.com/sagernet/sing-dns v0.4.1 // indirect
 	github.com/sagernet/sing-mux v0.3.1 // indirect
-	github.com/sagernet/sing-quic v0.4.1-beta.1 // indirect
+	github.com/sagernet/sing-quic v0.4.1 // indirect
 	github.com/sagernet/sing-shadowsocks v0.2.7 // indirect
 	github.com/sagernet/sing-shadowsocks2 v0.2.0 // indirect
 	github.com/sagernet/sing-shadowtls v0.2.0 // indirect
@@ -136,7 +136,7 @@ require (
 	github.com/getlantern/mtime v0.0.0-20200417132445-23682092d1f7 // indirect
 	github.com/getlantern/netx v0.0.0-20240830183145-c257516187f0 // indirect
 	github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 // indirect
-	github.com/getlantern/sing-box-extensions v0.0.0-20250402200957-bb61b4768333 // indirect
+	github.com/getlantern/sing-box-extensions v0.0.0-20250417225118-49a27a638120 // indirect
 	github.com/getlantern/tlsdialer/v3 v3.0.3 // indirect
 	github.com/getsentry/sentry-go v0.31.1 // indirect
 	github.com/go-resty/resty/v2 v2.16.5 // indirect
@@ -152,7 +152,7 @@ require (
 	github.com/nwaples/rardecode v1.1.0 // indirect
 	github.com/nxadm/tail v1.4.11 // indirect
 	github.com/refraction-networking/utls v1.6.7 // indirect
-	github.com/sagernet/sing v0.6.5 // indirect
+	github.com/sagernet/sing v0.6.6-0.20250406121928-926a5a1e8bb7 // indirect
 	github.com/sagernet/sing-tun v0.6.1 // indirect
 	github.com/shadowsocks/go-shadowsocks2 v0.1.5 // indirect
 	github.com/smarty/assertions v1.16.0 // indirect

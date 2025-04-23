@@ -6,7 +6,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/utils/screen_utils.dart';
 import 'package:lantern/features/plans/feature_list.dart';
 import 'package:lantern/features/plans/plans_list.dart';
-import 'package:shimmer/shimmer.dart';
+import 'package:lantern/features/plans/provider/plans_notifier.dart';
 
 @RoutePage(name: 'Plans')
 class Plans extends StatefulHookConsumerWidget {
@@ -60,6 +60,7 @@ class _PlansState extends ConsumerState<Plans> {
   }
 
   Widget _buildBody() {
+    final plansState = ref.watch(plansNotifierProvider);
     final size = MediaQuery.of(context).size;
     return Column(
       children: [
@@ -86,7 +87,35 @@ class _PlansState extends ConsumerState<Plans> {
                 Padding(
                   padding:
                       EdgeInsets.only(left: context.isSmallDevice ? 16 : 0),
-                  child: PlansListView(),
+                  child: plansState.when(
+                    data: (data) {
+                      return PlansListView(
+                        data: data,
+                      );
+                    },
+                    loading: () {
+                      return Center(
+                        child: CircularProgressIndicator(
+                          strokeWidth: 8.r,
+                          color: AppColors.green6,
+                        ),
+                      );
+                    },
+                    error: (error, stackTrace) {
+                      return Column(
+                        children: [
+                          Text(
+                            'plans_fetch_error'.i18n,
+                            style: textTheme.labelLarge,
+                          ),
+                          AppTextButton(
+                            label: 'Try again',
+                            onPressed: () {},
+                          ),
+                        ],
+                      );
+                    },
+                  ),
                 ),
                 SizedBox(height: 24),
                 Padding(

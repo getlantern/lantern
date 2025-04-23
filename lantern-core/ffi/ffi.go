@@ -22,10 +22,9 @@ import (
 
 	"github.com/getlantern/lantern-outline/lantern-core/dart_api_dl"
 	"github.com/getlantern/radiance"
+	"github.com/getlantern/radiance/api"
+	"github.com/getlantern/radiance/api/protos"
 	"github.com/getlantern/radiance/client"
-	"github.com/getlantern/radiance/pro"
-	"github.com/getlantern/radiance/user"
-	"github.com/getlantern/radiance/user/protos"
 )
 
 type service string
@@ -56,8 +55,8 @@ var (
 
 type lanternService struct {
 	*radiance.Radiance
-	proServer          *pro.Pro
-	authClient         *user.User
+	proServer          *api.Pro
+	authClient         *api.User
 	servicesMap        map[service]int64
 	dataDir            string
 	splitTunnelHandler *client.SplitTunnel
