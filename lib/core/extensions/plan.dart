@@ -11,4 +11,18 @@ extension PlanExtension on Plan {
         double.parse(expectedMonthlyPrice.values.first.toString()),
         expectedMonthlyPrice.keys.first);
   }
+
+
+  String getDurationText() {
+    final durationMap = {
+      '1y': 'year',
+      '2y': 'two year',
+      '1m': 'month',
+    };
+
+    final key = id.split('-').first;
+    return durationMap[key] ?? '';
+  }
 }
+
+

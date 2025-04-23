@@ -424,6 +424,14 @@ msgstr "Error fetching plans. Please try again later."
 msgid "best_value"
 msgstr "Best Value!"
 
+msgid "choose_payment_method"
+msgstr "Choose Payment Method"
+
+msgid "payment_information_encrypted"
+msgstr "Your payment information is fully encrypted"
+
+
+
 
 
 

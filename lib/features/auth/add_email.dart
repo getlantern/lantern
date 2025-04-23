@@ -110,12 +110,23 @@ class _AddEmailState extends ConsumerState<AddEmail> {
       if (!_formKey.currentState!.validate()) {
         return;
       }
+
+      appRouter.push(ConfirmEmail(email: email, authFlow: widget.authFlow));
     }
-    AppDialog.showLanternProDialog(
-      context: context,
-      onPressed: () {},
-    );
-    // stripeSubscription();
+  }
+
+  void navigateAuth() {
+    switch (widget.authFlow) {
+      case AuthFlow.resetPassword:
+        // TODO: Handle this case.
+        throw UnimplementedError();
+      case AuthFlow.signUp:
+        // TODO: Handle this case.
+        throw UnimplementedError();
+      case AuthFlow.activationCode:
+        // TODO: Handle this case.
+        throw UnimplementedError();
+    }
   }
 
   Future<void> stripeSubscription() async {
@@ -150,35 +161,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
   }
 
   Future<void> stripeRedirectUrl() async {
-    context.showLoadingDialog();
 
-    ///Start subscription flow
-    final paymentProvider = ref.read(paymentNotifierProvider.notifier);
-    //Stripe
-    final result = await paymentProvider.stripeSubscriptionLink(
-      StipeSubscriptionType.one_time,
-      '1y-usd',
-    );
-    result.fold(
-      (error) {
-        context.showSnackBarError(error.localizedErrorMessage);
-        appLogger.error('Error subscribing to plan: $error');
-        context.hideLoadingDialog();
-      },
-      (stripeUrl) async {
-        // Handle success
-        if (stripeUrl.isEmpty) {
-          context.showSnackBarError('empty_url'.i18n);
-          appLogger.error('Error subscribing to plan: empty url');
-          context.hideLoadingDialog();
-          return;
-        }
-        appLogger.info('Successfully started subscription flow');
-        context.hideLoadingDialog();
-        await Future.delayed(const Duration(milliseconds: 500));
-        UrlUtils.openWebview(stripeUrl, 'stripe_payment'.i18n);
-      },
-    );
   }
 
   Future<void> triggerInAppPurchase() async {}

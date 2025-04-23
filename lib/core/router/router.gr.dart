@@ -10,6 +10,7 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:auto_route/auto_route.dart' as _i29;
 import 'package:flutter/material.dart' as _i30;
+import 'package:lantern/core/common/app_eum.dart' as _i32;
 import 'package:lantern/core/common/common.dart' as _i31;
 import 'package:lantern/core/widgets/app_webview.dart' as _i4;
 import 'package:lantern/features/account/account.dart' as _i1;
@@ -207,10 +208,19 @@ class AppsSplitTunneling extends _i29.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i6.ChoosePaymentMethod]
-class ChoosePaymentMethod extends _i29.PageRouteInfo<void> {
-  const ChoosePaymentMethod({List<_i29.PageRouteInfo>? children})
-      : super(
+class ChoosePaymentMethod extends _i29.PageRouteInfo<ChoosePaymentMethodArgs> {
+  ChoosePaymentMethod({
+    _i30.Key? key,
+    required String email,
+    required _i32.AuthFlow authFlow,
+    List<_i29.PageRouteInfo>? children,
+  }) : super(
           ChoosePaymentMethod.name,
+          args: ChoosePaymentMethodArgs(
+            key: key,
+            email: email,
+            authFlow: authFlow,
+          ),
           initialChildren: children,
         );
 
@@ -219,9 +229,33 @@ class ChoosePaymentMethod extends _i29.PageRouteInfo<void> {
   static _i29.PageInfo page = _i29.PageInfo(
     name,
     builder: (data) {
-      return const _i6.ChoosePaymentMethod();
+      final args = data.argsAs<ChoosePaymentMethodArgs>();
+      return _i6.ChoosePaymentMethod(
+        key: args.key,
+        email: args.email,
+        authFlow: args.authFlow,
+      );
     },
   );
+}
+
+class ChoosePaymentMethodArgs {
+  const ChoosePaymentMethodArgs({
+    this.key,
+    required this.email,
+    required this.authFlow,
+  });
+
+  final _i30.Key? key;
+
+  final String email;
+
+  final _i32.AuthFlow authFlow;
+
+  @override
+  String toString() {
+    return 'ChoosePaymentMethodArgs{key: $key, email: $email, authFlow: $authFlow}';
+  }
 }
 
 /// generated route for
@@ -231,6 +265,7 @@ class ConfirmEmail extends _i29.PageRouteInfo<ConfirmEmailArgs> {
     _i30.Key? key,
     required String email,
     _i31.AuthFlow authFlow = _i31.AuthFlow.signUp,
+    _i31.AppFlow appFlow = _i31.AppFlow.nonStore,
     List<_i29.PageRouteInfo>? children,
   }) : super(
           ConfirmEmail.name,
@@ -238,6 +273,7 @@ class ConfirmEmail extends _i29.PageRouteInfo<ConfirmEmailArgs> {
             key: key,
             email: email,
             authFlow: authFlow,
+            appFlow: appFlow,
           ),
           initialChildren: children,
         );
@@ -252,6 +288,7 @@ class ConfirmEmail extends _i29.PageRouteInfo<ConfirmEmailArgs> {
         key: args.key,
         email: args.email,
         authFlow: args.authFlow,
+        appFlow: args.appFlow,
       );
     },
   );
@@ -262,6 +299,7 @@ class ConfirmEmailArgs {
     this.key,
     required this.email,
     this.authFlow = _i31.AuthFlow.signUp,
+    this.appFlow = _i31.AppFlow.nonStore,
   });
 
   final _i30.Key? key;
@@ -270,9 +308,11 @@ class ConfirmEmailArgs {
 
   final _i31.AuthFlow authFlow;
 
+  final _i31.AppFlow appFlow;
+
   @override
   String toString() {
-    return 'ConfirmEmailArgs{key: $key, email: $email, authFlow: $authFlow}';
+    return 'ConfirmEmailArgs{key: $key, email: $email, authFlow: $authFlow, appFlow: $appFlow}';
   }
 }
 

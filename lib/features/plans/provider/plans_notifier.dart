@@ -9,8 +9,7 @@ part 'plans_notifier.g.dart';
 
 @Riverpod()
 class PlansNotifier extends _$PlansNotifier {
-
-   Plan? userSelectedPlan;
+  Plan? userSelectedPlan;
 
   @override
   Future<PlansData> build() async {
@@ -54,6 +53,7 @@ class PlansNotifier extends _$PlansNotifier {
           if (a.bestValue == b.bestValue) return 0;
           return a.bestValue ? -1 : 1;
         });
+        remote.plans.forEach((plan) {});
         return remote;
       },
     );
@@ -69,13 +69,15 @@ class PlansNotifier extends _$PlansNotifier {
     state = AsyncData(remotePlans);
   }
 
-
   void setSelectedPlan(Plan plan) {
-    userSelectedPlan= plan;
+    userSelectedPlan = plan;
   }
 
   Plan getSelectedPlan() {
     return userSelectedPlan!;
   }
 
+  PlansData getPlanData() {
+    return _getPlansFromLocalStorage()!;
+  }
 }

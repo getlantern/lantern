@@ -73,4 +73,5 @@ class AppImagePaths {
   static const google = 'assets/images/google.svg';
   static const apple = 'assets/images/apple.svg';
   static const number = 'assets/images/number.svg';
+  static const security = 'assets/images/security.svg';
 }
