@@ -9,6 +9,9 @@ part 'plans_notifier.g.dart';
 
 @Riverpod()
 class PlansNotifier extends _$PlansNotifier {
+
+   Plan? userSelectedPlan;
+
   @override
   Future<PlansData> build() async {
     state = AsyncLoading();
@@ -65,4 +68,14 @@ class PlansNotifier extends _$PlansNotifier {
     await _storePlansLocally(remotePlans);
     state = AsyncData(remotePlans);
   }
+
+
+  void setSelectedPlan(Plan plan) {
+    userSelectedPlan= plan;
+  }
+
+  Plan getSelectedPlan() {
+    return userSelectedPlan!;
+  }
+
 }

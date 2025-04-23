@@ -13,6 +13,12 @@ enum AuthFlow{
   activationCode
 }
 
+enum AppFlow{
+  store,
+  nonStore,
+}
+
+
 enum StipeSubscriptionType{
   monthly,
   yearly,

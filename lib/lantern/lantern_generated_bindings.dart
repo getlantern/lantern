@@ -2458,6 +2458,14 @@ class LanternBindings {
       _stripeSubscriptionPaymentRedirectPtr
           .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
 
+  ffi.Pointer<ffi.Char> plans() {
+    return _plans();
+  }
+
+  late final _plansPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>('plans');
+  late final _plans = _plansPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
+
   void freeCString(
     ffi.Pointer<ffi.Char> cstr,
   ) {

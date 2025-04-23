@@ -100,6 +100,10 @@ extern GoInt isVPNConnected();
 // Fetch stipe subscription payment redirect link
 //
 extern char* stripeSubscriptionPaymentRedirect(char* subType);
+
+// Fetch plans from the server
+//
+extern char* plans();
 extern void freeCString(char* cstr);
 extern void enforce_binding();
 

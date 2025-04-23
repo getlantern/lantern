@@ -1,12 +1,17 @@
+import 'dart:io';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/utils/screen_utils.dart';
+import 'package:lantern/features/auth/provider/payment_notifier.dart';
 import 'package:lantern/features/plans/feature_list.dart';
 import 'package:lantern/features/plans/plans_list.dart';
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
+
+import '../../core/models/plan_data.dart';
 
 @RoutePage(name: 'Plans')
 class Plans extends StatefulHookConsumerWidget {
@@ -91,6 +96,7 @@ class _PlansState extends ConsumerState<Plans> {
                     data: (data) {
                       return PlansListView(
                         data: data,
+                        onPlanSelected: (plans) {},
                       );
                     },
                     loading: () {
@@ -123,7 +129,7 @@ class _PlansState extends ConsumerState<Plans> {
                       horizontal: context.isSmallDevice ? defaultSize : 0),
                   child: PrimaryButton(
                     label: 'Get Lantern Pro',
-                    onPressed: () {},
+                    onPressed: onGetLanternProTap,
                   ),
                 ),
                 SizedBox(height: defaultSize),
@@ -172,5 +178,63 @@ class _PlansState extends ConsumerState<Plans> {
         );
       },
     );
+  }
+
+  void onGetLanternProTap() {
+    final userSelectedPlan =
+        ref.read(plansNotifierProvider.notifier).getSelectedPlan();
+    switch (Platform.operatingSystem) {
+      case 'android':
+      case 'ios':
+        startInAppPurchaseFlow(userSelectedPlan);
+        break;
+      default:
+        navigatePurchase();
+    }
+  }
+
+  Future<void> startInAppPurchaseFlow(Plan plan) async {
+    final paymentProvider = ref.read(paymentNotifierProvider.notifier);
+    final result = await paymentProvider.subscribeToPlan(
+      planId: plan.id,
+      onSuccess: (purchase) {
+        /// Subscription successful
+        //todo call api to acknowledge the purchase
+        context.hideLoadingDialog();
+        navigatePurchase();
+      },
+      onError: (error) {
+        ///Error while subscribing
+        context.showSnackBarError(error);
+        appLogger.error('Error subscribing to plan: $error');
+        context.hideLoadingDialog();
+      },
+    );
+    // Check if got any error while starting subscription flow
+    result.fold(
+      (error) {
+        context.showSnackBarError(error.localizedErrorMessage);
+        appLogger.error('Error subscribing to plan: $error');
+        context.hideLoadingDialog();
+      },
+      (success) {
+        // Handle success
+        appLogger.info('Successfully started subscription flow');
+      },
+    );
+  }
+
+  void navigatePurchase() {
+    switch (Platform.operatingSystem) {
+      case 'android':
+      case 'ios':
+        appRouter.push(
+          AddEmail(authFlow: AuthFlow.signUp, appFlow: AppFlow.store),
+        );
+        break;
+      default:
+        appRouter.push(
+            AddEmail(authFlow: AuthFlow.signUp, appFlow: AppFlow.nonStore));
+    }
   }
 }

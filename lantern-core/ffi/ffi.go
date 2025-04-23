@@ -287,6 +287,23 @@ func stripeSubscriptionPaymentRedirect(subType *C.char) *C.char {
 	return C.CString(*redirect)
 }
 
+// Fetch plans from the server
+//
+//export plans
+func plans() *C.char {
+	log.Debug("Getting plans")
+	plans, err := server.proServer.Plans(context.Background())
+	if err != nil {
+		return SendError(err)
+	}
+	log.Debugf("Plans response: %v", plans)
+	jsonData, innerErr := json.Marshal(plans)
+	if innerErr != nil {
+		return SendError(innerErr)
+	}
+	return C.CString(string(jsonData))
+}
+
 func subscripationPaymentRedirect(redirectBody *protos.SubscriptionPaymentRedirectRequest) (*string, error) {
 	rediret, err := server.proServer.SubscriptionPaymentRedirect(context.Background(), redirectBody)
 	if err != nil {

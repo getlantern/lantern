@@ -87,12 +87,14 @@ class AddEmail extends _i29.PageRouteInfo<AddEmailArgs> {
   AddEmail({
     _i30.Key? key,
     _i31.AuthFlow authFlow = _i31.AuthFlow.signUp,
+    _i31.AppFlow appFlow = _i31.AppFlow.nonStore,
     List<_i29.PageRouteInfo>? children,
   }) : super(
           AddEmail.name,
           args: AddEmailArgs(
             key: key,
             authFlow: authFlow,
+            appFlow: appFlow,
           ),
           initialChildren: children,
         );
@@ -107,6 +109,7 @@ class AddEmail extends _i29.PageRouteInfo<AddEmailArgs> {
       return _i3.AddEmail(
         key: args.key,
         authFlow: args.authFlow,
+        appFlow: args.appFlow,
       );
     },
   );
@@ -116,15 +119,18 @@ class AddEmailArgs {
   const AddEmailArgs({
     this.key,
     this.authFlow = _i31.AuthFlow.signUp,
+    this.appFlow = _i31.AppFlow.nonStore,
   });
 
   final _i30.Key? key;
 
   final _i31.AuthFlow authFlow;
 
+  final _i31.AppFlow appFlow;
+
   @override
   String toString() {
-    return 'AddEmailArgs{key: $key, authFlow: $authFlow}';
+    return 'AddEmailArgs{key: $key, authFlow: $authFlow, appFlow: $appFlow}';
   }
 }
 

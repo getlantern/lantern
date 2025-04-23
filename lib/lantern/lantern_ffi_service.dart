@@ -9,6 +9,7 @@ import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/lantern_status.dart';
+import 'package:lantern/core/models/plan_mapper.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
@@ -18,6 +19,7 @@ import 'package:path/path.dart' as p;
 import 'package:rxdart/rxdart.dart';
 
 import '../core/models/plan_data.dart';
+import '../core/services/injection_container.dart' show sl;
 import '../core/utils/compute_worker.dart';
 
 export 'dart:convert';
@@ -352,9 +354,24 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, PlansData>> plans() {
-    // TODO: implement plans
-    throw UnimplementedError();
+  Future<Either<Failure, PlansData>> plans() async {
+    try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService.plans().toDartString();
+        },
+      );
+      final map = jsonDecode(result);
+      final plans = PlansData.fromJson(map);
+      sl<LocalStorageService>().savePlans(plans.toEntity());
+      appLogger.info('Plans: $map');
+      return Right(plans);
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription));
+    }
   }
 }
 
@@ -367,7 +384,4 @@ class SplitTunnelMessage {
   SplitTunnelMessage(this.type, this.value, this.action, this.replyPort);
 }
 
-
-class MockLanternFFIService extends LanternFFIService{
-
-}
+class MockLanternFFIService extends LanternFFIService {}

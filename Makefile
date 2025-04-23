@@ -1,4 +1,4 @@
-.PHONY: gen macos ffi
+.PHONY: gen macos
 
 BUILD_DIR := build
 DIST_OUT := dist

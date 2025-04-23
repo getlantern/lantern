@@ -13,10 +13,12 @@ enum _SignUpMethodType { email, google, apple, withoutEmail }
 @RoutePage(name: 'AddEmail')
 class AddEmail extends StatefulHookConsumerWidget {
   final AuthFlow authFlow;
+  final AppFlow appFlow;
 
   const AddEmail({
     super.key,
     this.authFlow = AuthFlow.signUp,
+    this.appFlow = AppFlow.nonStore,
   });
 
   @override
@@ -86,13 +88,15 @@ class _AddEmailState extends ConsumerState<AddEmail> {
             SizedBox(height: defaultSize),
             DividerSpace(),
             SizedBox(height: defaultSize),
-            Center(
-              child: AppTextButton(
-                label: 'continue_with_email'.i18n,
-                textColor: AppColors.gray9,
-                onPressed: () => onContinueTap(_SignUpMethodType.withoutEmail),
+            if (widget.appFlow == AppFlow.store)
+              Center(
+                child: AppTextButton(
+                  label: 'continue_with_email'.i18n,
+                  textColor: AppColors.gray9,
+                  onPressed: () =>
+                      onContinueTap(_SignUpMethodType.withoutEmail),
+                ),
               ),
-            ),
           ],
         ),
       ),
@@ -177,37 +181,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     );
   }
 
-  Future<void> triggerInAppPurchase() async {
-    final paymentProvider = ref.read(paymentNotifierProvider.notifier);
-
-    final result = await paymentProvider.subscribeToPlan(
-      planId: 'planId',
-      onSuccess: (purchase) {
-        /// Subscription successful
-        //todo call api to acknowledge the purchase
-        context.hideLoadingDialog();
-        // postPaymentNavigate(type);
-      },
-      onError: (error) {
-        ///Error while subscribing
-        context.showSnackBarError(error);
-        appLogger.error('Error subscribing to plan: $error');
-        context.hideLoadingDialog();
-      },
-    );
-    // Check if got any error while starting subscription flow
-    result.fold(
-      (error) {
-        context.showSnackBarError(error.localizedErrorMessage);
-        appLogger.error('Error subscribing to plan: $error');
-        context.hideLoadingDialog();
-      },
-      (success) {
-        // Handle success
-        appLogger.info('Successfully started subscription flow');
-      },
-    );
-  }
+  Future<void> triggerInAppPurchase() async {}
 
   void postPaymentNavigate(_SignUpMethodType type) {
     switch (type) {
