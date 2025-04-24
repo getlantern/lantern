@@ -18,7 +18,9 @@ abstract class LanternCoreService {
 
   Stream<LanternStatus> watchVPNStatus();
 
-  //Payments methods
+  Stream<List<String>> watchLogs(String path);
+
+  ///Payments methods
   Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
       {required StipeSubscriptionType type, required String planId});
 
@@ -38,10 +40,6 @@ abstract class LanternCoreService {
   Future<Either<Failure, Unit>> cancelSubscription();
 
   Future<Either<Failure, Unit>> makeOneTimePayment({required String planID});
-  Stream<List<AppData>> appsDataStream();
-  Stream<List<String>> watchLogs(String path);
-
-  Stream<List<AppData>> appsDataStream();
 
   // Spilt tunnel methods
   Future<Either<Failure, Unit>> addSplitTunnelItem(
@@ -49,4 +47,6 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, Unit>> removeSplitTunnelItem(
       SplitTunnelFilterType type, String value);
+
+  Stream<List<AppData>> appsDataStream();
 }

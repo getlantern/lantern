@@ -18,15 +18,10 @@ class LanternPlatformService implements LanternCoreService {
 
   LanternPlatformService(this.appPurchase);
 
-  static const MethodChannel _methodChannel =
-      MethodChannel('org.getlantern.lantern/method');
   static const channelPrefix = 'org.getlantern.lantern';
-
-  static const MethodChannel _methodChannel =
-      MethodChannel('$channelPrefix/method');
+  static const MethodChannel _methodChannel = MethodChannel('org.getlantern.lantern/method');
   static const logsChannel = EventChannel("$channelPrefix/logs");
-  static const statusChannel =
-      EventChannel("$channelPrefix/status", JSONMethodCodec());
+  static const statusChannel = EventChannel("$channelPrefix/status", JSONMethodCodec());
   late final Stream<LanternStatus> _status;
 
   @override

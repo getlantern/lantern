@@ -79,7 +79,7 @@ class LanternService implements LanternCoreService {
     if (PlatformUtils.isDesktop) {
       throw UnimplementedError();
     }
-    return platformService.watchLogs(path);
+    return _platformService.watchLogs(path);
   }
 
   @override

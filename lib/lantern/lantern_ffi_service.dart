@@ -288,7 +288,7 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Stream<LanternStatus> watchVPNStatus() => _status.asBroadcastStream();
+  Stream<LanternStatus> watchVPNStatus() => _status;
 
   @override
   Future<Either<Failure, Unit>> isVPNConnected() async {
