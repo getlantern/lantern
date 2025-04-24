@@ -280,7 +280,7 @@ func stripeSubscriptionPaymentRedirect(subType *C.char) *C.char {
 		SubscriptionType: protos.SubscriptionType(subscriptionType),
 	}
 
-	redirect, err := subscripationPaymentRedirect(redirectBody)
+	redirect, err := subscriptionPaymentRedirect(redirectBody)
 	if err != nil {
 		return SendError(err)
 	}
@@ -305,7 +305,7 @@ func plans() *C.char {
 	return C.CString(string(jsonData))
 }
 
-func subscripationPaymentRedirect(redirectBody *protos.SubscriptionPaymentRedirectRequest) (*string, error) {
+func subscriptionPaymentRedirect(redirectBody *protos.SubscriptionPaymentRedirectRequest) (*string, error) {
 	rediret, err := server.proServer.SubscriptionPaymentRedirect(context.Background(), redirectBody)
 	if err != nil {
 		return nil, log.Errorf("Error getting subscription link: %v", err)

@@ -35,7 +35,7 @@ func TestCreateUser(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, user)
 }
-func TestSubscripationRedire(t *testing.T) {
+func TestSubscriptionRedirect(t *testing.T) {
 	rr, err := radiance.NewRadiance(client.Options{
 		DeviceID: "c8484d35d019ae02",
 	})
@@ -47,7 +47,7 @@ func TestSubscripationRedire(t *testing.T) {
 	log.Debugf("user: %v", user.Redirect)
 }
 
-func TestSubscripation(t *testing.T) {
+func TestSubscription(t *testing.T) {
 	rr, err := radiance.NewRadiance(client.Options{
 		DeviceID: "c8484d35d019ae02",
 	})

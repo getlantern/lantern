@@ -193,7 +193,7 @@ func StripeSubscriptionPaymentRedirect(subType string) (string, error) {
 		Email:            "test@getlantern.org",
 		SubscriptionType: protos.SubscriptionType(subType),
 	}
-	stripeUrl, err := subscripationPaymentRedirect(&ret)
+	stripeUrl, err := subscriptionPaymentRedirect(&ret)
 	if err != nil {
 		return "", log.Errorf("Error getting subscription link: %v", err)
 	}
@@ -216,7 +216,7 @@ func Plans() (string, error) {
 	return string(jsonData), nil
 }
 
-func subscripationPaymentRedirect(redirectBody *protos.SubscriptionPaymentRedirectRequest) (string, error) {
+func subscriptionPaymentRedirect(redirectBody *protos.SubscriptionPaymentRedirectRequest) (string, error) {
 	rediret, err := radianceServer.proServer.SubscriptionPaymentRedirect(context.Background(), redirectBody)
 	if err != nil {
 		return "", log.Errorf("Error getting subscription link: %v", err)

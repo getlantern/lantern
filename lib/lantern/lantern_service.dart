@@ -16,14 +16,12 @@ class LanternService implements LanternCoreService {
   final LanternFFIService _ffiService;
 
   final LanternPlatformService _platformService;
-  final AppPurchase _appPurchase;
 
   LanternService({
     required LanternFFIService ffiService,
     required LanternPlatformService platformService,
     required AppPurchase appPurchase,
-  })  : _appPurchase = appPurchase,
-        _platformService = platformService,
+  })  : _platformService = platformService,
         _ffiService = ffiService;
 
   @override
@@ -50,13 +48,6 @@ class LanternService implements LanternCoreService {
     yield* _ffiService.appsDataStream();
   }
 
-  @override
-  Stream<List<String>> logsStream() async* {
-    if (!PlatformUtils.isDesktop) {
-      throw UnimplementedError();
-    }
-    yield* _ffiService.logsStream();
-  }
 
   @override
   Future<void> init() {
