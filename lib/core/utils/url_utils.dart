@@ -27,14 +27,21 @@ class UrlUtils {
     }
   }
 
-  static Future<void> openWebview(String url, [String? title]) async {
+  static Future<void> openWebview(String url,
+      {String? title, Function(bool result)? onBackPressed}) async {
     try {
       switch (Platform.operatingSystem) {
         case 'android':
         case 'macos':
         case 'ios':
         case 'windows':
-          appRouter.push(AppWebview(title: title ?? '', url: url));
+          appRouter
+              .push(AppWebview(title: title ?? '', url: url))
+              .then((value) {
+            if (value != null) {
+              onBackPressed?.call(value as bool);
+            }
+          });
           break;
         case 'linux':
           final webview = await WebviewWindow.create();

@@ -10,7 +10,6 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:auto_route/auto_route.dart' as _i29;
 import 'package:flutter/material.dart' as _i30;
-import 'package:lantern/core/common/app_eum.dart' as _i32;
 import 'package:lantern/core/common/common.dart' as _i31;
 import 'package:lantern/core/widgets/app_webview.dart' as _i4;
 import 'package:lantern/features/account/account.dart' as _i1;
@@ -212,7 +211,7 @@ class ChoosePaymentMethod extends _i29.PageRouteInfo<ChoosePaymentMethodArgs> {
   ChoosePaymentMethod({
     _i30.Key? key,
     required String email,
-    required _i32.AuthFlow authFlow,
+    required _i31.AuthFlow authFlow,
     List<_i29.PageRouteInfo>? children,
   }) : super(
           ChoosePaymentMethod.name,
@@ -250,7 +249,7 @@ class ChoosePaymentMethodArgs {
 
   final String email;
 
-  final _i32.AuthFlow authFlow;
+  final _i31.AuthFlow authFlow;
 
   @override
   String toString() {
@@ -322,12 +321,14 @@ class CreatePassword extends _i29.PageRouteInfo<CreatePasswordArgs> {
   CreatePassword({
     _i30.Key? key,
     required String email,
+    required _i31.AuthFlow authFlow,
     List<_i29.PageRouteInfo>? children,
   }) : super(
           CreatePassword.name,
           args: CreatePasswordArgs(
             key: key,
             email: email,
+            authFlow: authFlow,
           ),
           initialChildren: children,
         );
@@ -341,6 +342,7 @@ class CreatePassword extends _i29.PageRouteInfo<CreatePasswordArgs> {
       return _i8.CreatePassword(
         key: args.key,
         email: args.email,
+        authFlow: args.authFlow,
       );
     },
   );
@@ -350,15 +352,18 @@ class CreatePasswordArgs {
   const CreatePasswordArgs({
     this.key,
     required this.email,
+    required this.authFlow,
   });
 
   final _i30.Key? key;
 
   final String email;
 
+  final _i31.AuthFlow authFlow;
+
   @override
   String toString() {
-    return 'CreatePasswordArgs{key: $key, email: $email}';
+    return 'CreatePasswordArgs{key: $key, email: $email, authFlow: $authFlow}';
   }
 }
 

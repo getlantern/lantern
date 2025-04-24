@@ -430,6 +430,9 @@ msgstr "Choose Payment Method"
 msgid "payment_information_encrypted"
 msgstr "Your payment information is fully encrypted"
 
+msgid "purchase_not_completed"
+msgstr "Purchase was not completed. You can try again anytime, or contact support if you need help"
+
 
 
 

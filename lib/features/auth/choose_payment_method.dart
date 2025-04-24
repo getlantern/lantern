@@ -77,8 +77,12 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           }
           appLogger.info('Successfully started subscription flow');
           context.hideLoadingDialog();
-          await Future.delayed(const Duration(milliseconds: 500));
-          UrlUtils.openWebview(stripeUrl, 'stripe_payment'.i18n);
+          await Future.delayed(const Duration(milliseconds: 300));
+          UrlUtils.openWebview(
+            stripeUrl,
+            title: 'stripe_payment'.i18n,
+            onBackPressed: (result) => onPurchaseResult(result, context),
+          );
         },
       );
     } catch (e) {
@@ -86,6 +90,24 @@ class ChoosePaymentMethod extends HookConsumerWidget {
       context.hideLoadingDialog();
       context.showSnackBarError('error_subscribing_plan'.i18n);
     }
+  }
+
+  void onPurchaseResult(bool purchased, BuildContext context) {
+    if (purchased) {
+      AppDialog.showLanternProDialog(
+        context: context,
+        onPressed: () {
+          appRouter.push(
+            CreatePassword(
+              email: email,
+              authFlow: authFlow,
+            ),
+          );
+        },
+      );
+      return;
+    }
+    context.showSnackBarError('purchase_not_completed'.i18n);
   }
 }
 

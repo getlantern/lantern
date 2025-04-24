@@ -2,8 +2,8 @@ import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/widgets/loading_indicator.dart';
 
 @RoutePage(name: 'AppWebview')
 class AppWebView extends HookWidget {
@@ -28,7 +28,7 @@ class AppWebView extends HookWidget {
             IconButton(
               icon: const Icon(Icons.close),
               onPressed: () {
-                appRouter.maybePop();
+                appRouter.maybePop(false);
               },
             ),
           ],
@@ -60,14 +60,10 @@ class AppWebView extends HookWidget {
                 // Handle load stop
                 loading.value = false;
               },
-
             ),
             if (loading.value)
               Center(
-                child: CircularProgressIndicator(
-                  strokeWidth: 8.r,
-                  color: AppColors.green6,
-                ),
+                child: LoadingIndicator(),
               ),
           ],
         ));
@@ -78,6 +74,13 @@ class AppWebView extends HookWidget {
     NavigationAction navigationAction,
   ) async {
     final uri = navigationAction.request.url;
+    if (uri?.fragment.contains('purchaseResult=') ?? false) {
+      final normalized = uri.toString().replaceFirst(RegExp(r'#\/\?'), '?');
+      final uri2 = Uri.parse(normalized);
+      final result = uri2.queryParameters['purchaseResult'];
+      await appRouter.maybePop(bool.parse(result ?? 'false'));
+      return NavigationActionPolicy.CANCEL;
+    }
     appLogger.debug("shouldOverrideUrlLoading: $uri");
     return NavigationActionPolicy.ALLOW;
   }

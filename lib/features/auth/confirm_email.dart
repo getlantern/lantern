@@ -78,7 +78,7 @@ class ConfirmEmail extends HookWidget {
     switch (authFlow) {
       case AuthFlow.signUp:
         if (appFlow == AppFlow.store) {
-          appRouter.push(CreatePassword(email: email));
+          appRouter.push(CreatePassword(email: email,authFlow: authFlow));
           return;
         }
         appRouter.push(ChoosePaymentMethod(email: email, authFlow: authFlow));
