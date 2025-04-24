@@ -28,11 +28,21 @@ LINUX_LIB_AMD64 := $(BUILD_DIR)/linux-amd64/$(LANTERN_LIB_NAME).so
 LINUX_LIB_ARM64 := $(BUILD_DIR)/linux-arm64/$(LANTERN_LIB_NAME).so
 LINUX_LIB_BUILD := $(BUILD_DIR)/linux/$(LINUX_LIB)
 
+ifeq ($(OS),Windows_NT)
+	PATH_SEP := \\
+else
+	PATH_SEP := /
+endif
+
+define join_path
+$(subst /,$(PATH_SEP),$1)
+endef
+
 WINDOWS_LIB := $(LANTERN_LIB_NAME).dll
-WINDOWS_LIB_AMD64 := $(BUILD_DIR)/windows-amd64/$(LANTERN_LIB_NAME).dll
-WINDOWS_LIB_ARM64 := $(BUILD_DIR)/windows-arm64/$(LANTERN_LIB_NAME).dll
-WINDOWS_LIB_BUILD := $(BUILD_DIR)/windows/$(WINDOWS_LIB)
-WINDOWS_RELEASE_DIR := $(BUILD_DIR)/windows/x64/runner/Release
+WINDOWS_LIB_AMD64 := $(call join_path,$(BUILD_DIR)/windows-amd64/$(WINDOWS_LIB))
+WINDOWS_LIB_ARM64 := $(call join_path,$(BUILD_DIR)/windows-arm64/$(WINDOWS_LIB))
+WINDOWS_LIB_BUILD := $(call join_path,$(BUILD_DIR)/windows/$(WINDOWS_LIB))
+WINDOWS_RELEASE_DIR := $(call join_path,$(BUILD_DIR)/windows/x64/runner/Release)
 
 ANDROID_LIB := $(LANTERN_LIB_NAME).aar
 ANDROID_LIBS_DIR := android/app/libs
@@ -234,9 +244,9 @@ FLUTTER_DISTRIBUTOR := $(USERPROFILE)/.pub-cache/bin/flutter_distributor
 
 .PHONY: windows-release
 windows-release: clean windows pubget gen
-	mkdir -p $(WINDOWS_RELEASE_DIR)
-	cp $(WINDOWS_LIB_AMD64) $(WINDOWS_RELEASE_DIR)
-	flutter build windows --release
+	mkdir "$(WINDOWS_RELEASE_DIR)"
+	copy "$(WINDOWS_LIB_AMD64)" "$(WINDOWS_RELEASE_DIR)"
+	flutter_distributor package --flutter-build-args=verbose --platform windows --targets "exe"
 
 # Android Build
 .PHONY: install-android-deps
