@@ -3,6 +3,8 @@ package mobile
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"os"
 	"path/filepath"
 	"sync"
 
@@ -21,6 +23,7 @@ var (
 	log            = golog.LoggerFor("lantern-outline.native")
 	radianceMutex  = sync.Mutex{}
 	radianceServer *lanternService
+	setupOnce      sync.Once
 )
 
 type lanternService struct {
@@ -30,30 +33,71 @@ type lanternService struct {
 	userConfig common.UserConfig
 }
 
-func SetupRadiance(dataDir, deviceid string, platform libbox.PlatformInterface) error {
-	radianceMutex.Lock()
-	defer radianceMutex.Unlock()
-	r, err := radiance.NewRadiance(client.Options{
-		LogDir:   filepath.Join(dataDir, "logs"),
-		DataDir:  dataDir,
-		PlatIfce: platform,
-		DeviceID: deviceid,
-	})
-	if err != nil {
-		return log.Errorf("Unable to create Radiance: %v", err)
+// func SetupRadiance(dataDir, deviceid string, platform libbox.PlatformInterface) error {
+// 	radianceMutex.Lock()
+// 	defer radianceMutex.Unlock()
+// 	r, err := radiance.NewRadiance(client.Options{
+// 		LogDir:   filepath.Join(dataDir, "logs"),
+// 		DataDir:  dataDir,
+// 		PlatIfce: platform,
+// 		DeviceID: deviceid,
+// 	})
+// 	if err != nil {
+// 		return log.Errorf("Unable to create Radiance: %v", err)
 
+// 	}
+// 	radianceServer = &lanternService{
+// 		Radiance:   r,
+// 		proServer:  r.Pro(),
+// 		authClient: r.User(),
+// 		userConfig: r.UserConfig(),
+// 	}
+
+// 	log.Debug("Radiance setup successfully")
+// 	return nil
+// 	radianceServer *radiance.Radiance
+// 	setupOnce      sync.Once
+// )
+
+func SetupRadiance(dataDir, deviceid string, platform libbox.PlatformInterface) (*radiance.Radiance, error) {
+	var innerErr error
+	setupOnce.Do(func() {
+		logDir := filepath.Join(dataDir, "logs")
+
+		if err := os.MkdirAll(dataDir, 0o777); err != nil {
+			log.Errorf("unable to create data directory: %v", err)
+		}
+		if err := os.MkdirAll(logDir, 0o777); err != nil {
+			log.Errorf("unable to create log directory: %v", err)
+		}
+
+		r, err := radiance.NewRadiance(client.Options{
+			LogDir:   filepath.Join(dataDir, "logs"),
+			DataDir:  dataDir,
+			PlatIfce: platform,
+			DeviceID: deviceid,
+		})
+		log.Debugf("Paths: %s %s", logDir, dataDir)
+		if err != nil {
+			innerErr = fmt.Errorf("unable to create Radiance: %v", err)
+			return
+		}
+		radianceServer = &lanternService{
+			Radiance:   r,
+			proServer:  r.Pro(),
+			authClient: r.User(),
+			userConfig: r.UserConfig(),
+		}
+		if radianceServer.userConfig.LegacyID() == 0 {
+			CreateUser()
+		}
+		log.Debug("Radiance setup successfully")
+	})
+
+	if innerErr != nil {
+		return nil, innerErr
 	}
-	radianceServer = &lanternService{
-		Radiance:   r,
-		proServer:  r.Pro(),
-		authClient: r.User(),
-		userConfig: r.UserConfig(),
-	}
-	if radianceServer.userConfig.LegacyID() == 0 {
-		CreateUser()
-	}
-	log.Debug("Radiance setup successfully")
-	return nil
+	return radianceServer.Radiance, nil
 }
 
 func IsRadianceConnected() bool {
@@ -69,7 +113,6 @@ func StartVPN() error {
 	if radianceServer == nil {
 		return log.Error("Radiance not setup")
 	}
-
 	err := radianceServer.StartVPN()
 	if err != nil {
 		log.Errorf("Error starting VPN: %v", err)

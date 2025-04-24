@@ -39,8 +39,9 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, Unit>> makeOneTimePayment({required String planID});
   Stream<List<AppData>> appsDataStream();
+  Stream<List<String>> watchLogs(String path);
 
-  Stream<List<String>> logsStream();
+  Stream<List<AppData>> appsDataStream();
 
   // Spilt tunnel methods
   Future<Either<Failure, Unit>> addSplitTunnelItem(

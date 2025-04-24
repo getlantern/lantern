@@ -38,6 +38,8 @@ const (
 type VPNStatus string
 
 const (
+	enableLogging = false
+
 	Connecting    VPNStatus = "Connecting"
 	Connected     VPNStatus = "Connected"
 	Disconnecting VPNStatus = "Disconnecting"
@@ -83,7 +85,6 @@ func sendApps(port int64) func(apps ...*apps.AppData) error {
 //export setup
 func setup(_logDir, _dataDir *C.char, logPort, appsPort, statusPort C.int64_t, api unsafe.Pointer) {
 	setupOnce.Do(func() {
-
 		// initialize the Dart API DL bridge.
 		dart_api_dl.Init(api)
 

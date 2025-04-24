@@ -20,9 +20,13 @@ class LanternPlatformService implements LanternCoreService {
 
   static const MethodChannel _methodChannel =
       MethodChannel('org.getlantern.lantern/method');
+  static const channelPrefix = 'org.getlantern.lantern';
 
+  static const MethodChannel _methodChannel =
+      MethodChannel('$channelPrefix/method');
+  static const logsChannel = EventChannel("$channelPrefix/logs");
   static const statusChannel =
-      EventChannel("org.getlantern.lantern/status", JSONMethodCodec());
+      EventChannel("$channelPrefix/status", JSONMethodCodec());
   late final Stream<LanternStatus> _status;
 
   @override
@@ -72,6 +76,12 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
+  Stream<List<String>> watchLogs(String path) async* {
+    yield* logsChannel
+        .receiveBroadcastStream()
+        .map((event) => (event as List).map((e) => e as String).toList());
+  }
+
   Stream<List<AppData>> appsDataStream() async* {
     throw UnimplementedError();
   }
