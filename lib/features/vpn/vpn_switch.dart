@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/lantern_status.dart';
+import 'package:lantern/core/utils/screen_utils.dart';
 import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_status_notifier.dart';
@@ -92,7 +93,7 @@ class VPNSwitch extends HookConsumerWidget {
       case VPNStatus.disconnected:
         return AppColors.gray7;
       case VPNStatus.disconnecting:
-        return AppColors.gray1;
+        return AppColors.gray7;
       case VPNStatus.missingPermission:
         return AppColors.gray7;
       case VPNStatus.error:

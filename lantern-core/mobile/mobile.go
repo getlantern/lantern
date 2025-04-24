@@ -1,6 +1,8 @@
 package mobile
 
 import (
+	"fmt"
+	"os"
 	"path/filepath"
 	"sync"
 
@@ -15,23 +17,39 @@ var (
 	log            = golog.LoggerFor("lantern-outline.native")
 	radianceMutex  = sync.Mutex{}
 	radianceServer *radiance.Radiance
+	setupOnce      sync.Once
 )
 
-func SetupRadiance(dataDir string, platform libbox.PlatformInterface) {
-	radianceMutex.Lock()
-	defer radianceMutex.Unlock()
-	r, err := radiance.NewRadiance(client.Options{
-		LogDir:   filepath.Join(dataDir, "logs"),
-		DataDir:  dataDir,
-		PlatIfce: platform,
+func SetupRadiance(dataDir string, platform libbox.PlatformInterface) (*radiance.Radiance, error) {
+	var innerErr error
+	setupOnce.Do(func() {
+		logDir := filepath.Join(dataDir, "logs")
+
+		if err := os.MkdirAll(dataDir, 0o777); err != nil {
+			log.Errorf("unable to create data directory: %v", err)
+		}
+		if err := os.MkdirAll(logDir, 0o777); err != nil {
+			log.Errorf("unable to create log directory: %v", err)
+		}
+
+		r, err := radiance.NewRadiance(client.Options{
+			LogDir:   logDir,
+			DataDir:  dataDir,
+			PlatIfce: platform,
+		})
+		log.Debugf("Paths: %s %s", logDir, dataDir)
+		if err != nil {
+			innerErr = fmt.Errorf("unable to create Radiance: %v", err)
+			return
+		}
+		radianceServer = r
+		log.Debug("Radiance setup successfully")
 	})
-	log.Debugf("Paths: %s %s", filepath.Join(dataDir, "logs"), dataDir)
-	if err != nil {
-		log.Errorf("Unable to create Radiance: %v", err)
-		return
+
+	if innerErr != nil {
+		return nil, innerErr
 	}
-	radianceServer = r
-	log.Debug("Radiance setup successfully")
+	return radianceServer, nil
 }
 
 func IsRadianceConnected() bool {
@@ -47,7 +65,6 @@ func StartVPN() error {
 	if radianceServer == nil {
 		return log.Error("Radiance not setup")
 	}
-
 	err := radianceServer.StartVPN()
 	if err != nil {
 		log.Errorf("Error starting VPN: %v", err)

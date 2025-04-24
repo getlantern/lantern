@@ -19,7 +19,7 @@ class VPNStatusReceiver(private val service: LanternVpnService) : BroadcastRecei
 
             LanternVpnService.ACTION_STOP_VPN -> {
                 Log.d("VPNStatus", "Stopping VPN")
-                service.doStopVPN()
+                LanternVpnService.instance.doStopVPN()
 
             }
 

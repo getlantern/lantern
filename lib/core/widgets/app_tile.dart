@@ -61,9 +61,14 @@ class AppTile extends StatelessWidget {
       } else if (icon is Image) {
         leading = icon as Image;
       }
+      else if (icon is Widget) {
+        leading = icon as Widget;
+
+      }
     }
 
     return ListTile(
+
       enableFeedback: true,
       minVerticalPadding: 0,
       contentPadding:
