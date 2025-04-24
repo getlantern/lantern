@@ -15,14 +15,14 @@ class AppStorageUtils {
       }
       logDir = Directory("${baseDir.path}/logs");
     } else if (Platform.isMacOS) {
-      logDir = await getLibraryDirectory();
-      logDir = Directory("${logDir.path}/Logs/Lantern");
+      final baseDir = await getLibraryDirectory();
+      logDir = Directory("${baseDir.path}/Logs/Lantern");
     } else if (Platform.isLinux) {
-      logDir = await getApplicationSupportDirectory();
-      logDir = Directory("${logDir.path}/.lantern/logs");
+      final baseDir = await getApplicationSupportDirectory();
+      logDir = Directory("${baseDir.path}/logs");
     } else if (Platform.isWindows) {
-      logDir = await getApplicationSupportDirectory();
-      logDir = Directory("${logDir.path}/Lantern/logs");
+      final baseDir = await getApplicationSupportDirectory();
+      logDir = Directory("${baseDir.path}/Lantern/logs");
     } else {
       throw UnsupportedError("Unsupported platform for log directory");
     }
