@@ -4,6 +4,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/extensions/plan.dart';
 import 'package:lantern/core/models/plan_data.dart';
+import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/services/stripe_service.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/logs_path.dart';
 import 'package:lantern/features/auth/provider/payment_notifier.dart';
@@ -49,6 +51,51 @@ class ChoosePaymentMethod extends HookConsumerWidget {
   }
 
   Future<void> onSubscribe(
+      Android provider, WidgetRef ref, BuildContext context) async {
+    if (PlatformUtils.isDesktop) {
+      desktopPurchaseFlow(provider, ref, context);
+      return;
+    }
+
+    /// only android side load version should be here
+    androidStripeSubscription(provider, ref, context);
+  }
+
+  Future<void> androidStripeSubscription(
+      Android provider, WidgetRef ref, BuildContext context) async {
+    final userPlan = ref.read(plansNotifierProvider.notifier).getSelectedPlan();
+    final paymentProvider = ref.read(paymentNotifierProvider.notifier);
+    context.showLoadingDialog();
+
+    ///get stripe details
+    final result = await paymentProvider.stipeSubscription(userPlan.id);
+    result.fold(
+      (error) {
+        context.showSnackBarError(error.localizedErrorMessage);
+        appLogger.error('Error subscribing to plan: $error');
+        context.hideLoadingDialog();
+      },
+      (stripeData) async {
+        // Handle success
+        context.hideLoadingDialog();
+
+        /// Start stripe SDK
+        sl<StripeService>().startStripeSubscription(
+          options: StripeOptions.fromJson(stripeData),
+          onSuccess: () {
+            /// Subscription successful
+            AppDialog.showLanternProDialog(context: context);
+          },
+          onError: (error) {
+            ///error while subscribing
+            context.showSnackBarError('purchase_not_completed'.i18n);
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> desktopPurchaseFlow(
       Android provider, WidgetRef ref, BuildContext context) async {
     try {
       final userPlan =

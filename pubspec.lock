@@ -1366,6 +1366,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0"
+  store_checker:
+    dependency: "direct main"
+    description:
+      name: store_checker
+      sha256: f191b6f1035caff62137c365cba21ad1a3c82c0369b522639052cd29fb48720f
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.8.0"
   stream_channel:
     dependency: transitive
     description:

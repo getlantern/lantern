@@ -3,6 +3,7 @@ import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/local_storage.dart';
 import 'package:lantern/core/services/stripe_service.dart';
 import 'package:lantern/core/utils/platform_utils.dart' show PlatformUtils;
+import 'package:lantern/core/utils/store_utils.dart';
 import 'package:lantern/lantern/lantern_ffi_service.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
 
@@ -11,6 +12,10 @@ import '../router/router.dart';
 final GetIt sl = GetIt.instance;
 
 Future<void> injectServices() async {
+  if (PlatformUtils.isAndroid) {
+    sl.registerLazySingleton(() => StoreUtils());
+    sl<StoreUtils>().init();
+  }
   sl.registerLazySingleton(() => AppPurchase());
   sl<AppPurchase>().init();
   sl.registerLazySingleton(() => LanternPlatformService(sl<AppPurchase>()));

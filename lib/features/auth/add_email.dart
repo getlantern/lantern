@@ -36,68 +36,70 @@ class _AddEmailState extends ConsumerState<AddEmail> {
       title: 'add_your_email'.i18n,
       body: Form(
         key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            AppTextField(
-              controller: emailController,
-              label: 'email'.i18n,
-              prefixIcon: AppImagePaths.email,
-              hintText: 'example@gmail.com',
-              onChanged: (value) {
-                setState(() {});
-              },
-              validator: (value) {
-                if (value!.isEmpty) {
-                  return null;
-                }
-                if (value.isNotEmpty) {
-                  if (!value.isValidEmail()) {
-                    return 'invalid_email'.i18n;
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AppTextField(
+                controller: emailController,
+                label: 'email'.i18n,
+                prefixIcon: AppImagePaths.email,
+                hintText: 'example@gmail.com',
+                onChanged: (value) {
+                  setState(() {});
+                },
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return null;
                   }
-                }
-                return null;
-              },
-            ),
-            SizedBox(height: defaultSize),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: defaultSize),
-              child: Text('add_your_email_message'.i18n),
-            ),
-            SizedBox(height: 32),
-            PrimaryButton(
-              label: 'continue'.i18n,
-              enabled: emailController.text.isValidEmail(),
-              onPressed: () => onContinueTap(_SignUpMethodType.email,
-                  email: emailController.text),
-            ),
-            SizedBox(height: defaultSize),
-            DividerSpace(),
-            SizedBox(height: defaultSize),
-            SecondaryButton(
-              label: 'continue_with_google'.i18n,
-              icon: AppImagePaths.google,
-              onPressed: () => onContinueTap(_SignUpMethodType.google),
-            ),
-            SizedBox(height: defaultSize),
-            SecondaryButton(
-              label: 'continue_with_apple'.i18n,
-              icon: AppImagePaths.apple,
-              onPressed: () => onContinueTap(_SignUpMethodType.apple),
-            ),
-            SizedBox(height: defaultSize),
-            DividerSpace(),
-            SizedBox(height: defaultSize),
-            if (widget.appFlow == AppFlow.store)
-              Center(
-                child: AppTextButton(
-                  label: 'continue_with_email'.i18n,
-                  textColor: AppColors.gray9,
-                  onPressed: () =>
-                      onContinueTap(_SignUpMethodType.withoutEmail),
-                ),
+                  if (value.isNotEmpty) {
+                    if (!value.isValidEmail()) {
+                      return 'invalid_email'.i18n;
+                    }
+                  }
+                  return null;
+                },
               ),
-          ],
+              SizedBox(height: defaultSize),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: defaultSize),
+                child: Text('add_your_email_message'.i18n),
+              ),
+              SizedBox(height: 32),
+              PrimaryButton(
+                label: 'continue'.i18n,
+                enabled: emailController.text.isValidEmail(),
+                onPressed: () => onContinueTap(_SignUpMethodType.email,
+                    email: emailController.text),
+              ),
+              SizedBox(height: defaultSize),
+              DividerSpace(),
+              SizedBox(height: defaultSize),
+              SecondaryButton(
+                label: 'continue_with_google'.i18n,
+                icon: AppImagePaths.google,
+                onPressed: () => onContinueTap(_SignUpMethodType.google),
+              ),
+              SizedBox(height: defaultSize),
+              SecondaryButton(
+                label: 'continue_with_apple'.i18n,
+                icon: AppImagePaths.apple,
+                onPressed: () => onContinueTap(_SignUpMethodType.apple),
+              ),
+              SizedBox(height: defaultSize),
+              DividerSpace(),
+              SizedBox(height: defaultSize),
+              if (widget.appFlow == AppFlow.store)
+                Center(
+                  child: AppTextButton(
+                    label: 'continue_with_email'.i18n,
+                    textColor: AppColors.gray9,
+                    onPressed: () =>
+                        onContinueTap(_SignUpMethodType.withoutEmail),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -129,42 +131,6 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     }
   }
 
-  Future<void> stripeSubscription() async {
-    context.showLoadingDialog();
-
-    ///Start subscription flow
-    final paymentProvider = ref.read(paymentNotifierProvider.notifier);
-    //Stripe
-    final result = await paymentProvider.stipeSubscription(
-      '1y-usd',
-    );
-
-    result.fold(
-      (error) {
-        context.showSnackBarError(error.localizedErrorMessage);
-        appLogger.error('Error subscribing to plan: $error');
-        context.hideLoadingDialog();
-      },
-      (stripeData) async {
-        // Handle success
-        context.hideLoadingDialog();
-
-        sl<StripeService>().startStripeSubscription(
-          options: StripeOptions.fromJson(stripeData),
-          onSuccess: () {
-            /// Subscription successful
-          },
-          onError: (error) {},
-        );
-      },
-    );
-  }
-
-  Future<void> stripeRedirectUrl() async {
-
-  }
-
-  Future<void> triggerInAppPurchase() async {}
 
   void postPaymentNavigate(_SignUpMethodType type) {
     switch (type) {

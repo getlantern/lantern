@@ -5,7 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/utils/screen_utils.dart';
+import 'package:lantern/core/utils/store_utils.dart';
+import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/features/auth/provider/payment_notifier.dart';
 import 'package:lantern/features/plans/feature_list.dart';
 import 'package:lantern/features/plans/plans_list.dart';
@@ -101,10 +104,7 @@ class _PlansState extends ConsumerState<Plans> {
                     },
                     loading: () {
                       return Center(
-                        child: CircularProgressIndicator(
-                          strokeWidth: 8.r,
-                          color: AppColors.green6,
-                        ),
+                        child: LoadingIndicator(),
                       );
                     },
                     error: (error, stackTrace) {
@@ -185,11 +185,18 @@ class _PlansState extends ConsumerState<Plans> {
         ref.read(plansNotifierProvider.notifier).getSelectedPlan();
     switch (Platform.operatingSystem) {
       case 'android':
+        if (sl<StoreUtils>().isPlayStoreVersion) {
+          /// user is using play store version
+          startInAppPurchaseFlow(userSelectedPlan);
+          return;
+        }
+        nonStoreFlow();
+        break;
       case 'ios':
         startInAppPurchaseFlow(userSelectedPlan);
         break;
       default:
-        navigatePurchase();
+        nonStoreFlow();
     }
   }
 
@@ -201,7 +208,7 @@ class _PlansState extends ConsumerState<Plans> {
         /// Subscription successful
         //todo call api to acknowledge the purchase
         context.hideLoadingDialog();
-        navigatePurchase();
+        storeFlow();
       },
       onError: (error) {
         ///Error while subscribing
@@ -224,17 +231,14 @@ class _PlansState extends ConsumerState<Plans> {
     );
   }
 
-  void navigatePurchase() {
-    switch (Platform.operatingSystem) {
-      case 'android':
-      case 'ios':
-        appRouter.push(
-          AddEmail(authFlow: AuthFlow.signUp, appFlow: AppFlow.store),
-        );
-        break;
-      default:
-        appRouter.push(
-            AddEmail(authFlow: AuthFlow.signUp, appFlow: AppFlow.nonStore));
+  void nonStoreFlow() {
+    if (PlatformUtils.isIOS) {
+      throw Exception('Not supported on IOS');
     }
+    appRouter.push(AddEmail(authFlow: AuthFlow.signUp, appFlow: AppFlow.nonStore));
+  }
+
+  void storeFlow() {
+    appRouter.push(AddEmail(authFlow: AuthFlow.signUp, appFlow: AppFlow.store));
   }
 }

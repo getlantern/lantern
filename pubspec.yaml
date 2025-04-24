@@ -98,6 +98,7 @@ dependencies:
   fpdart: ^1.1.1
   flutter_inappwebview: ^6.1.5
   desktop_webview_window: ^0.2.3
+  store_checker: ^1.8.0
   # payment
   in_app_purchase: ^3.2.1
   flutter_stripe: ^11.5.0
