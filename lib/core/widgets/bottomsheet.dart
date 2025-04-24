@@ -23,7 +23,6 @@ void showAppBottomSheet(
         expand: true,
         initialChildSize: 1,
         minChildSize: 0.85,
-        snap: true,
         builder: (BuildContext context, ScrollController scrollController) {
           return Column(
             mainAxisSize: MainAxisSize.min,
@@ -38,9 +37,7 @@ void showAppBottomSheet(
                   ),
                 ),
               ),
-              DividerSpace(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              ),
+              DividerSpace(padding: EdgeInsets.only(top: 16),),
               builder(context, scrollController),
             ],
           );

@@ -7,6 +7,8 @@ enum VPNStatus {
   error,
 }
 
+enum AuthFlow { resetPassword, signUp, activationCode }
+
 enum SplitTunnelFilterType {
   domain,
   domainSuffix,

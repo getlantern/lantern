@@ -4,9 +4,10 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/providers/log_provider.dart';
+import 'package:lantern/core/logging/diagnostic_log_provider.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/core/widgets/info_row.dart';
+import 'package:lantern/features/logs/log_line.dart';
 import 'package:share_plus/share_plus.dart';
 
 @RoutePage(name: 'Logs')
@@ -15,7 +16,7 @@ class Logs extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final logAsyncValue = ref.watch(diagnosticLogProvider);
+    final logAsyncValue = ref.watch(diagnosticLogStreamProvider);
 
     final scrollController = useScrollController();
 
@@ -76,10 +77,7 @@ class Logs extends HookConsumerWidget {
                     padding: const EdgeInsets.all(8.0),
                     itemCount: logs.length,
                     itemBuilder: (context, index) {
-                      return Text(
-                        logs[index],
-                        style: AppTestStyles.logTextStyle,
-                      );
+                      return LogLineWidget(line: logs[index]);
                     },
                   );
                 },
@@ -99,4 +97,14 @@ class Logs extends HookConsumerWidget {
       ),
     );
   }
+}
+
+TextStyle getLogStyle(String logLine) {
+  final base = AppTestStyles.logTextStyle.copyWith(fontFamily: 'monospace');
+  if (logLine.startsWith('DEBUG[')) return base.copyWith(color: Colors.teal);
+  if (logLine.startsWith('INFO[')) return base.copyWith(color: Colors.blue);
+  if (logLine.startsWith('WARN[')) return base.copyWith(color: Colors.orange);
+  if (logLine.startsWith('ERROR['))
+    return base.copyWith(color: Colors.redAccent);
+  return base;
 }

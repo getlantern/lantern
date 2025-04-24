@@ -31,7 +31,7 @@ object VpnStatusManager {
     fun registerVPNStatusReceiver(service: LanternVpnService) {
         ContextCompat.registerReceiver(
             LanternApp.application,
-            VPNStatusReceiver(service),
+            VPNStatusReceiver(),
             IntentFilter().apply {
                 addAction(ACTION_START_VPN)
                 addAction(ACTION_STOP_VPN)
@@ -44,7 +44,7 @@ object VpnStatusManager {
     fun unregisterVPNStatusReceiver(service: LanternVpnService) {
         try{
             // todo check if receiver is registered or not
-            LanternApp.application.unregisterReceiver(VPNStatusReceiver(service))
+            LanternApp.application.unregisterReceiver(VPNStatusReceiver())
         }catch (e: IllegalArgumentException){
             Log.e("VpnStatusManager", "unregisterVPNStatusReceiver: ", e)
         }

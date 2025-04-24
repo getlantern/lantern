@@ -45,18 +45,20 @@ class Setting extends HookConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(top: 16),
             child: ProButton(
-              onPressed: () {},
+              onPressed: () {
+                appRouter.push(const Plans());
+              },
             ),
           ),
-          const SizedBox(height: 16),
-          Card(
-            margin: EdgeInsets.zero,
-            child: AppTile(
-              label: 'account'.i18n,
-              icon: AppImagePaths.signIn,
-              onPressed: () => settingMenuTap(_SettingType.account),
-            ),
-          ),
+          // const SizedBox(height: 16),
+          // Card(
+          //   margin: EdgeInsets.zero,
+          //   child: AppTile(
+          //     label: 'account'.i18n,
+          //     icon: AppImagePaths.signIn,
+          //     onPressed: () => settingMenuTap(_SettingType.account),
+          //   ),
+          // ),
           const SizedBox(height: 16),
           Card(
             margin: EdgeInsets.zero,
@@ -179,6 +181,7 @@ class Setting extends HookConsumerWidget {
   void settingMenuTap(_SettingType menu) {
     switch (menu) {
       case _SettingType.signIn:
+        appRouter.push(const SignInEmail());
         break;
       case _SettingType.splitTunneling:
         // TODO: Handle this case.
