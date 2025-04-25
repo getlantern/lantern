@@ -188,7 +188,7 @@ $(LINUX_LIB_AMD64): $(GO_SOURCES)
 
 .PHONY: linux
 linux: linux-amd64
-	mkdir -p $(BUILD_DIR)/linux
+	mkdir -p $(BIN_DIR)/linux
 	cp $(LINUX_LIB_AMD64) $(LINUX_LIB_BUILD)
 
 .PHONY: linux-debug
