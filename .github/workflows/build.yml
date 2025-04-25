@@ -9,7 +9,7 @@ on:
         required: true
         default: "9999.99.99"
   push:
-    branches: [android/ci-updates]
+    branches: [main]
   pull_request:
 
 jobs:
