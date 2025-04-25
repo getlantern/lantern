@@ -10,7 +10,7 @@ replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v
 
 require (
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
-	github.com/getlantern/radiance v0.0.0-20250414180035-a8dfa267222f
+	github.com/getlantern/radiance v0.0.0-20250423195020-15a2b0ac0901
 	github.com/sagernet/sing-box v1.11.5
 	github.com/stretchr/testify v1.10.0
 	github.com/zeebo/assert v1.1.0
