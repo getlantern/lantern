@@ -4,13 +4,13 @@ go 1.23.6
 
 toolchain go1.24.0
 
-replace github.com/getlantern/radiance => ../radiance
+// replace github.com/getlantern/radiance => ../radiance
 
 replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v1.11.6-0.20250411173055-d82f542dfd3f
 
 require (
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
-	github.com/getlantern/radiance v0.0.0-20250423195020-15a2b0ac0901
+	github.com/getlantern/radiance v0.0.0-20250425054539-485677c7916b
 	github.com/sagernet/sing-box v1.11.5
 	github.com/stretchr/testify v1.10.0
 	github.com/zeebo/assert v1.1.0
@@ -143,19 +143,15 @@ require (
 	github.com/gobwas/ws v1.4.0 // indirect
 	github.com/goccy/go-yaml v1.15.13 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/gopherjs/gopherjs v1.17.2 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
-	github.com/jtolds/gls v4.20.0+incompatible // indirect
 	github.com/klauspost/pgzip v1.2.5 // indirect
 	github.com/mholt/archiver/v3 v3.5.1 // indirect
-	github.com/moul/http2curl v1.0.0 // indirect
 	github.com/nwaples/rardecode v1.1.0 // indirect
 	github.com/nxadm/tail v1.4.11 // indirect
 	github.com/refraction-networking/utls v1.6.7 // indirect
 	github.com/sagernet/sing v0.6.6-0.20250406121928-926a5a1e8bb7 // indirect
 	github.com/sagernet/sing-tun v0.6.1 // indirect
 	github.com/shadowsocks/go-shadowsocks2 v0.1.5 // indirect
-	github.com/smarty/assertions v1.16.0 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	go.opentelemetry.io/otel/exporters/stdout/stdoutlog v0.11.0 // indirect
