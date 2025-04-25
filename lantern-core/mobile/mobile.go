@@ -23,70 +23,50 @@ var (
 	log            = golog.LoggerFor("lantern-outline.native")
 	radianceMutex  = sync.Mutex{}
 	radianceServer *lanternService
+	apiHandler     *apiService
 	setupOnce      sync.Once
 )
 
 type lanternService struct {
 	*radiance.Radiance
-	proServer  *api.Pro
-	authClient *api.User
-	userConfig common.UserConfig
+	userConfig common.UserInfo
+}
+type apiService struct {
+	proServer *api.Pro
+	user      *api.User
+}
+type Opts struct {
+	DataDir  string
+	Deviceid string
+	Locale   string
 }
 
-// func SetupRadiance(dataDir, deviceid string, platform libbox.PlatformInterface) error {
-// 	radianceMutex.Lock()
-// 	defer radianceMutex.Unlock()
-// 	r, err := radiance.NewRadiance(client.Options{
-// 		LogDir:   filepath.Join(dataDir, "logs"),
-// 		DataDir:  dataDir,
-// 		PlatIfce: platform,
-// 		DeviceID: deviceid,
-// 	})
-// 	if err != nil {
-// 		return log.Errorf("Unable to create Radiance: %v", err)
-
-// 	}
-// 	radianceServer = &lanternService{
-// 		Radiance:   r,
-// 		proServer:  r.Pro(),
-// 		authClient: r.User(),
-// 		userConfig: r.UserConfig(),
-// 	}
-
-// 	log.Debug("Radiance setup successfully")
-// 	return nil
-// 	radianceServer *radiance.Radiance
-// 	setupOnce      sync.Once
-// )
-
-func SetupRadiance(dataDir, deviceid string, platform libbox.PlatformInterface) (*radiance.Radiance, error) {
+func SetupRadiance(opts *Opts, platform libbox.PlatformInterface) error {
 	var innerErr error
 	setupOnce.Do(func() {
-		logDir := filepath.Join(dataDir, "logs")
-
-		if err := os.MkdirAll(dataDir, 0o777); err != nil {
+		logDir := filepath.Join(opts.DataDir, "logs")
+		if err := os.MkdirAll(opts.DataDir, 0o777); err != nil {
 			log.Errorf("unable to create data directory: %v", err)
 		}
 		if err := os.MkdirAll(logDir, 0o777); err != nil {
 			log.Errorf("unable to create log directory: %v", err)
 		}
-
-		r, err := radiance.NewRadiance(client.Options{
-			LogDir:   filepath.Join(dataDir, "logs"),
-			DataDir:  dataDir,
+		clientOpts := client.Options{
+			LogDir:   logDir,
+			DataDir:  opts.DataDir,
 			PlatIfce: platform,
-			DeviceID: deviceid,
-		})
-		log.Debugf("Paths: %s %s", logDir, dataDir)
+			DeviceID: opts.Deviceid,
+			Locale:   opts.Locale,
+		}
+		r, err := radiance.NewRadiance(clientOpts)
+		log.Debugf("Paths: %s %s", logDir, opts.DataDir)
 		if err != nil {
 			innerErr = fmt.Errorf("unable to create Radiance: %v", err)
 			return
 		}
 		radianceServer = &lanternService{
 			Radiance:   r,
-			proServer:  r.Pro(),
-			authClient: r.User(),
-			userConfig: r.UserConfig(),
+			userConfig: r.UserInfo(),
 		}
 		if radianceServer.userConfig.LegacyID() == 0 {
 			CreateUser()
@@ -95,9 +75,28 @@ func SetupRadiance(dataDir, deviceid string, platform libbox.PlatformInterface) 
 	})
 
 	if innerErr != nil {
-		return nil, innerErr
+		return innerErr
 	}
-	return radianceServer.Radiance, nil
+	return nil
+}
+
+func NewAPIHandler(opts *Opts) error {
+	logDir := filepath.Join(opts.DataDir, "logs")
+	clientOpts := client.Options{
+		LogDir:   logDir,
+		DataDir:  opts.DataDir,
+		DeviceID: opts.Deviceid,
+		Locale:   opts.Locale,
+	}
+	apis, err := radiance.NewAPIHandler(clientOpts)
+	if err != nil {
+		return fmt.Errorf("unable to create API handler: %v", err)
+	}
+	apiHandler = &apiService{
+		proServer: apis.ProServer,
+		user:      apis.User,
+	}
+	return nil
 }
 
 func IsRadianceConnected() bool {
@@ -144,11 +143,11 @@ func IsVPNConnected() bool {
 	return radianceServer.ConnectionStatus()
 }
 
-// todo make sure to add retry logic
+// Todo make sure to add retry logic
 // we need to make sure that the user is created before we can use the radiance server
 func CreateUser() error {
 	log.Debug("Creating user")
-	user, err := radianceServer.proServer.UserCreate(context.Background())
+	user, err := apiHandler.proServer.UserCreate(context.Background())
 	log.Debugf("UserCreate response: %v", user)
 	if err != nil {
 		return log.Errorf("Error creating user: %v", err)
@@ -168,7 +167,7 @@ func StripeSubscription() (string, error) {
 		Name:    "test",
 		PriceId: "price_1RCg464XJ6zbDKY5T6kqbMC6",
 	}
-	stripeSubscription, err := radianceServer.proServer.StripeSubscription(context.Background(), &body)
+	stripeSubscription, err := apiHandler.proServer.StripeSubscription(context.Background(), &body)
 	if err != nil {
 		return "", log.Errorf("Error creating stripe subscription: %v", err)
 	}
@@ -203,7 +202,7 @@ func StripeSubscriptionPaymentRedirect(subType string) (string, error) {
 
 func Plans() (string, error) {
 	log.Debug("Getting plans")
-	plans, err := radianceServer.proServer.Plans(context.Background())
+	plans, err := apiHandler.proServer.Plans(context.Background())
 	if err != nil {
 		return "", log.Errorf("Error getting plans: %v", err)
 	}
@@ -217,7 +216,7 @@ func Plans() (string, error) {
 }
 
 func subscriptionPaymentRedirect(redirectBody *protos.SubscriptionPaymentRedirectRequest) (string, error) {
-	rediret, err := radianceServer.proServer.SubscriptionPaymentRedirect(context.Background(), redirectBody)
+	rediret, err := apiHandler.proServer.SubscriptionPaymentRedirect(context.Background(), redirectBody)
 	if err != nil {
 		return "", log.Errorf("Error getting subscription link: %v", err)
 	}

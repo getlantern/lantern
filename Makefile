@@ -39,6 +39,7 @@ ANDROID_LIB_BUILD := $(BUILD_DIR)/android/$(ANDROID_LIB)
 ANDROID_LIB_PATH := android/app/libs/$(LANTERN_LIB_NAME).aar
 ANDROID_DEBUG_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-debug.apk
 
+IOS_DIR := ios/
 IOS_FRAMEWORK := Liblantern.xcframework
 IOS_FRAMEWORK_DIR := ios/Frameworks
 IOS_FRAMEWORK_BUILD := $(BUILD_DIR)/ios/$(IOS_FRAMEWORK)
@@ -288,7 +289,7 @@ $(IOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 
 .PHONY: swift-format
 swift-format:
-	swift-format format --in-place --recursive ios/Runner macos/Runner
+	swift-format format --in-place --recursive ios/Runner macos/Runner ios/Tunnel
 
 # Dart API DL bridge
 DART_SDK_REPO=https://github.com/dart-lang/sdk
@@ -325,3 +326,4 @@ clean:
 	rm -rf $(BUILD_DIR)/*
 	rm -rf $(DARWIN_FRAMEWORK_DIR)/*
 	rm -rf $(ANDROID_LIB_PATH)
+	rm -rf $(IOS_DIR)/$(IOS_FRAMEWORK)

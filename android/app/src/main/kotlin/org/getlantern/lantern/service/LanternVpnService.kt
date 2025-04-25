@@ -14,6 +14,7 @@ import lantern.io.libbox.Libbox
 import lantern.io.libbox.Notification
 import lantern.io.libbox.TunOptions
 import lantern.io.mobile.Mobile
+import lantern.io.mobile.Opts
 import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.notification.NotificationHelper
@@ -127,7 +128,12 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
     private suspend fun startRadiance() {
         try {
             withContext(Dispatchers.IO) {
-                Mobile.setupRadiance(initConfigDir(), DeviceUtil.deviceId(), this@LanternVpnService)
+                val opts = Opts()
+                opts.dataDir = initConfigDir()
+                opts.deviceid = DeviceUtil.deviceId()
+                opts.locale = DeviceUtil.getLanguageCode(this@LanternVpnService)
+                Mobile.newAPIHandler(opts)
+                Mobile.setupRadiance(opts, this@LanternVpnService)
             }
             Log.d(TAG, "Radiance setup completed ${DeviceUtil.deviceId()}")
         } catch (e: Exception) {

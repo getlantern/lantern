@@ -83,7 +83,8 @@ func sendApps(port int64) func(apps ...*apps.AppData) error {
 }
 
 //export setup
-func setup(_logDir, _dataDir *C.char, logPort, appsPort, statusPort C.int64_t, api unsafe.Pointer) {
+func setup(_logDir, _dataDir *C.char, logPort, appsPort, statusPort C.int64_t, api unsafe.Pointer) *C.char {
+	var outError error
 	setupOnce.Do(func() {
 		// initialize the Dart API DL bridge.
 		dart_api_dl.Init(api)
@@ -91,23 +92,28 @@ func setup(_logDir, _dataDir *C.char, logPort, appsPort, statusPort C.int64_t, a
 		logDir := C.GoString(_logDir)
 		dataDir := C.GoString(_dataDir)
 
-		r, err := radiance.NewRadiance(client.Options{
+		opts := client.Options{
 			DataDir:              dataDir,
 			LogDir:               logDir,
 			EnableSplitTunneling: enableSplitTunneling(),
-		})
+		}
+		r, err := radiance.NewRadiance(opts)
 		if err != nil {
-			log.Fatalf("unable to create VPN server: %v", err)
+			outError = log.Errorf("unable to create VPN server: %v", err)
 		}
 		log.Debugf("created new instance of radiance with data directory %s and logs dir %s", dataDir, logDir)
 
 		// init app cache in background
 		go apps.LoadInstalledApps(dataDir, sendApps(int64(appsPort)))
 
+		apiHandler, err := radiance.NewAPIHandler(opts)
+		if err != nil {
+			outError = log.Errorf("unable to create API handler: %v", err)
+		}
 		server = &lanternService{
 			Radiance:   r,
-			proServer:  r.Pro(),
-			authClient: r.User(),
+			proServer:  apiHandler.ProServer,
+			authClient: apiHandler.User,
 			dataDir:    dataDir,
 			servicesMap: map[service]int64{
 				logsService:   int64(logPort),
@@ -118,6 +124,11 @@ func setup(_logDir, _dataDir *C.char, logPort, appsPort, statusPort C.int64_t, a
 		}
 		createUser()
 	})
+	if outError != nil {
+		return C.CString(outError.Error())
+	}
+	log.Debugf("Radiance setup successfully")
+	return nil
 
 }
 

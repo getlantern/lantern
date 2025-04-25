@@ -32,15 +32,15 @@ object DeviceUtil {
     }
 
     fun model(): String {
-        return android.os.Build.MODEL ?: ""
+        return Build.MODEL ?: ""
     }
 
     fun hardware(): String {
-        return android.os.Build.HARDWARE ?: ""
+        return Build.HARDWARE ?: ""
     }
 
     fun sdkVersion(): Long {
-        return android.os.Build.VERSION.SDK_INT.toLong()
+        return Build.VERSION.SDK_INT.toLong()
     }
 
 

@@ -3,10 +3,14 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
+		032CB5192DBA86FF002331EB /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032CB5102DBA86FF002331EB /* KeychainService.swift */; };
+		032CB5242DBA8A55002331EB /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032CB5232DBA8A55002331EB /* Logger.swift */; };
+		032CB5292DBA90ED002331EB /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032CB5232DBA8A55002331EB /* Logger.swift */; };
+		032CB52A2DBA9109002331EB /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032CB5102DBA86FF002331EB /* KeychainService.swift */; };
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
 		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
@@ -16,12 +20,9 @@
 		5F3FD9A32D9F6A33009480A7 /* LogsHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F3FD9A22D9F6A32009480A7 /* LogsHandler.swift */; };
 		5F3FD9A52D9F6ADD009480A7 /* CommandClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F3FD9A42D9F6ADD009480A7 /* CommandClient.swift */; };
 		5F3FD9A62D9F6ADD009480A7 /* CommandClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F3FD9A42D9F6ADD009480A7 /* CommandClient.swift */; };
-		5F4C38122D91535D0053105F /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F4C38112D91535D0053105F /* Constants.swift */; };
 		5F4C38512D9155BC0053105F /* FilePath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F4C384F2D9155BC0053105F /* FilePath.swift */; };
 		5F4C38522D9155CF0053105F /* FilePath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F4C384F2D9155BC0053105F /* FilePath.swift */; };
 		5F7A35462D23504000AF1761 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F0515CF2D20DB5100E704BE /* NetworkExtension.framework */; };
-		5F9537412D2B67DF009BB822 /* VPNBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F95373E2D2B67DF009BB822 /* VPNBase.swift */; };
-		5F9537422D2B67DF009BB822 /* VPNManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F95373F2D2B67DF009BB822 /* VPNManager.swift */; };
 		5FEB87302D9F45EB000AE0DB /* MethodHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FEB872D2D9F45EB000AE0DB /* MethodHandler.swift */; };
 		5FEB87312D9F45EB000AE0DB /* StatusEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FEB872E2D9F45EB000AE0DB /* StatusEventHandler.swift */; };
 		5FEBBBC82D90F55400F0AC54 /* Liblantern.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5FEBBBBB2D90F45F00F0AC54 /* Liblantern.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -90,6 +91,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		032CB5102DBA86FF002331EB /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
+		032CB5232DBA8A55002331EB /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
 		15CDFA9CF7BE34C46C496D17 /* Pods-RunnerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release.xcconfig"; sourceTree = "<group>"; };
@@ -105,10 +108,7 @@
 		5F0517192D2233D200E704BE /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
 		5F3FD9A22D9F6A32009480A7 /* LogsHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogsHandler.swift; sourceTree = "<group>"; };
 		5F3FD9A42D9F6ADD009480A7 /* CommandClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandClient.swift; sourceTree = "<group>"; };
-		5F4C38112D91535D0053105F /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		5F4C384F2D9155BC0053105F /* FilePath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilePath.swift; sourceTree = "<group>"; };
-		5F95373E2D2B67DF009BB822 /* VPNBase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VPNBase.swift; sourceTree = "<group>"; };
-		5F95373F2D2B67DF009BB822 /* VPNManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VPNManager.swift; sourceTree = "<group>"; };
 		5FEB872D2D9F45EB000AE0DB /* MethodHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MethodHandler.swift; sourceTree = "<group>"; };
 		5FEB872E2D9F45EB000AE0DB /* StatusEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusEventHandler.swift; sourceTree = "<group>"; };
 		5FEBBBBB2D90F45F00F0AC54 /* Liblantern.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Liblantern.xcframework; path = Frameworks/Liblantern.xcframework; sourceTree = "<group>"; };
@@ -137,20 +137,22 @@
 			);
 			target = 5F0515CD2D20DB5100E704BE /* Tunnel */;
 		};
-		5F0516652D21F94700E704BE /* Exceptions for "Tunnel" folder in "Runner" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				LogHandler.swift,
-			);
-			target = 97C146ED1CF9000F007C117D /* Runner */;
-		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		0366A7752DBBC1CA0016E3F9 /* Constants */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Constants;
+			sourceTree = "<group>";
+		};
+		0366A7762DBBC20D0016E3F9 /* VPN */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = VPN;
+			sourceTree = "<group>";
+		};
 		5F0515D12D20DB5200E704BE /* Tunnel */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				5F0516652D21F94700E704BE /* Exceptions for "Tunnel" folder in "Runner" target */,
 				5F0515DD2D20DB5200E704BE /* Exceptions for "Tunnel" folder in "Tunnel" target */,
 			);
 			path = Tunnel;
@@ -201,20 +203,12 @@
 		5F4C38502D9155BC0053105F /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				032CB5102DBA86FF002331EB /* KeychainService.swift */,
+				032CB5232DBA8A55002331EB /* Logger.swift */,
 				5F3FD9A42D9F6ADD009480A7 /* CommandClient.swift */,
 				5F4C384F2D9155BC0053105F /* FilePath.swift */,
 			);
 			path = Shared;
-			sourceTree = "<group>";
-		};
-		5F9537402D2B67DF009BB822 /* Lantern */ = {
-			isa = PBXGroup;
-			children = (
-				5F4C38112D91535D0053105F /* Constants.swift */,
-				5F95373E2D2B67DF009BB822 /* VPNBase.swift */,
-				5F95373F2D2B67DF009BB822 /* VPNManager.swift */,
-			);
-			path = Lantern;
 			sourceTree = "<group>";
 		};
 		5FEB872F2D9F45EB000AE0DB /* Handlers */ = {
@@ -279,6 +273,8 @@
 		97C146F01CF9000F007C117D /* Runner */ = {
 			isa = PBXGroup;
 			children = (
+				0366A7762DBBC20D0016E3F9 /* VPN */,
+				0366A7752DBBC1CA0016E3F9 /* Constants */,
 				5FEB872F2D9F45EB000AE0DB /* Handlers */,
 				97C146FA1CF9000F007C117D /* Main.storyboard */,
 				97C146FD1CF9000F007C117D /* Assets.xcassets */,
@@ -289,7 +285,6 @@
 				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 				5F0517192D2233D200E704BE /* Runner.entitlements */,
-				5F9537402D2B67DF009BB822 /* Lantern */,
 			);
 			path = Runner;
 			sourceTree = "<group>";
@@ -367,6 +362,10 @@
 			);
 			dependencies = (
 				5F0515D72D20DB5200E704BE /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				0366A7752DBBC1CA0016E3F9 /* Constants */,
+				0366A7762DBBC20D0016E3F9 /* VPN */,
 			);
 			name = Runner;
 			productName = Runner;
@@ -508,9 +507,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -555,6 +558,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				5F4C38522D9155CF0053105F /* FilePath.swift in Sources */,
+				032CB5292DBA90ED002331EB /* Logger.swift in Sources */,
+				032CB5192DBA86FF002331EB /* KeychainService.swift in Sources */,
 				5F3FD9A52D9F6ADD009480A7 /* CommandClient.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -563,14 +568,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5F9537412D2B67DF009BB822 /* VPNBase.swift in Sources */,
 				5F3FD9A32D9F6A33009480A7 /* LogsHandler.swift in Sources */,
-				5F9537422D2B67DF009BB822 /* VPNManager.swift in Sources */,
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
-				5F4C38122D91535D0053105F /* Constants.swift in Sources */,
+				032CB5242DBA8A55002331EB /* Logger.swift in Sources */,
 				5F4C38512D9155BC0053105F /* FilePath.swift in Sources */,
 				5F3FD9A62D9F6ADD009480A7 /* CommandClient.swift in Sources */,
+				032CB52A2DBA9109002331EB /* KeychainService.swift in Sources */,
 				5FEB87302D9F45EB000AE0DB /* MethodHandler.swift in Sources */,
 				5FEB87312D9F45EB000AE0DB /* StatusEventHandler.swift in Sources */,
 			);
