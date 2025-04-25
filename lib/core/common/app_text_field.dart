@@ -147,6 +147,9 @@ class AppTextField extends StatelessWidget {
         color: AppColors.yellow9,
       );
     }
+    else if (iconPath is Widget) {
+      appAsset = iconPath;
+    }
     return Padding(
       padding: EdgeInsets.only(left: 16, right: 16, top: 14.h, bottom: 14.h),
       child: Align(

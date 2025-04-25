@@ -277,6 +277,101 @@ msgstr "Websites bypassing the VPN (%d)"
 msgid "logs_share_message"
 msgstr "Here are my diagnostic logs from Lantern."
 
+msgid "payment_options"
+msgstr "Payment Options"
+
+msgid "add_your_email"
+msgstr "Add Your Email"
+
+msgid "continue"
+msgstr "Continue"
+
+msgid "continue_with_google"
+msgstr "Continue with Google"
+
+msgid "continue_with_apple"
+msgstr "Continue with Apple"
+
+msgid "continue_with_email"
+msgstr "Continue without Email"
+
+msgid "confirm_email"
+msgstr "Confirm Email"
+
+msgid "add_your_email_message"
+msgstr "Add your email to access your subscription on any device."
+
+msgid "confirm_email_code"
+msgstr "Confirmation Code"
+
+msgid "confirm_email_code_message"
+msgstr "Confirm that this email address belongs to you, enter the code sent to: "
+
+msgid "resend_email"
+msgstr "Resend Email"
+
+msgid "create_password"
+msgstr "Create Password"
+
+msgid "sign_in_to_lantern_pro"
+msgstr "Sign In to Lantern Pro"
+
+
+msgid "sign_in_with_email"
+msgstr "Sign in with Email"
+
+msgid "enter_your_lantern_pro_account_details"
+msgstr "Enter your Lantern Pro Account details."
+
+msgid "email"
+msgstr "Email"
+
+msgid "welcome_to_lantern_pro"
+msgstr "Welcome to Lantern Pro"
+
+msgid "enter_password"
+msgstr "Enter Password"
+
+msgid "forgot_password"
+msgstr "Forgot your password?"
+
+msgid "reset_your_password"
+msgstr "Reset Your Password"
+
+msgid "enter_your_lantern_pro_account_email"
+msgstr "Enter your Lantern Pro Account Email."
+
+msgid "next"
+msgstr "Next"
+
+
+msgid "reset_password"
+msgstr "Reset Password"
+
+msgid "confirm_new_password"
+msgstr "Confirm New Password"
+
+msgid "create_new_password"
+msgstr "Create New Password"
+
+
+msgid "confirm_password"
+msgstr "Confirm Password"
+
+
+msgid "confirm_password_required"
+msgstr "Confirm Password is required"
+
+msgid "passwords_do_not_match"
+msgstr "Passwords do not match"
+
+
+msgid "activation_code"
+msgstr "Activation Code"
+
+msgid "activate_lantern_pro"
+msgstr "Activate Lantern Pro"
+
 msgid "split_tunneling_description"
 msgstr "Lantern intelligently routes internet traffic based on your location, ensuring secure access while keeping your connection fast by only using a VPN when necessary."
 

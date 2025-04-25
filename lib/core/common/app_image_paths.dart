@@ -54,9 +54,6 @@ class AppImagePaths {
   static const googleChatIcon = 'assets/images/app_icon_google_chat.svg';
   static const instagramIcon = 'assets/images/app_icon_instagram.svg';
 
-  // static const lanternDarkDisconnected =
-  //     'assets/images/tray_dark_disconnected.png';
-  // static const lanternDarkConnected = 'assets/images/tray_dark_connected.png';
   static const lanternConnectedIco = 'assets/images/lantern_connected.ico';
   static const lanternConnected = 'assets/images/lantern_connected.png';
   static const lanternDisconnectedIco =
@@ -65,4 +62,15 @@ class AppImagePaths {
   static const lanternDarkDisconnected =
       'assets/images/tray_dark_disconnected.png';
   static const lanternDarkConnected = 'assets/images/tray_dark_connected.png';
+  static const adBlock = 'assets/images/ad_block.svg';
+  static const connectDevice = 'assets/images/connect_device.svg';
+  static const eyeHide = 'assets/images/eye_hide.svg';
+  static const eye = 'assets/images/eye.svg';
+  static const premium = 'assets/images/premium.svg';
+  static const roundCorrect = 'assets/images/round_correct.svg';
+  static const keypad = 'assets/images/keypad.svg';
+  static const restorePurchase = 'assets/images/restore_purchase.svg';
+  static const google = 'assets/images/google.svg';
+  static const apple = 'assets/images/apple.svg';
+  static const number = 'assets/images/number.svg';
 }

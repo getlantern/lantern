@@ -35,6 +35,8 @@ const (
 type VPNStatus string
 
 const (
+	enableLogging = false
+
 	Connecting    VPNStatus = "Connecting"
 	Connected     VPNStatus = "Connected"
 	Disconnecting VPNStatus = "Disconnecting"
@@ -78,7 +80,6 @@ func sendApps(port int64) func(apps ...*apps.AppData) error {
 //export setup
 func setup(_logDir, _dataDir *C.char, logPort, appsPort, statusPort C.int64_t, api unsafe.Pointer) {
 	setupOnce.Do(func() {
-
 		// initialize the Dart API DL bridge.
 		dart_api_dl.Init(api)
 
@@ -93,7 +94,7 @@ func setup(_logDir, _dataDir *C.char, logPort, appsPort, statusPort C.int64_t, a
 		if err != nil {
 			log.Fatalf("unable to create VPN server: %v", err)
 		}
-		log.Debugf("created new instance of radiance with data directory %s", dataDir)
+		log.Debugf("created new instance of radiance with data directory %s and logs dir %s", dataDir, logDir)
 
 		// init app cache in background
 		go apps.LoadInstalledApps(dataDir, sendApps(int64(appsPort)))

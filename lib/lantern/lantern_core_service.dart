@@ -15,9 +15,9 @@ abstract class LanternCoreService {
 
   Stream<LanternStatus> watchVPNStatus();
 
-  Stream<List<AppData>> appsDataStream();
+  Stream<List<String>> watchLogs(String path);
 
-  Stream<List<String>> logsStream();
+  Stream<List<AppData>> appsDataStream();
 
   Future<Either<Failure, Unit>> addSplitTunnelItem(
       SplitTunnelFilterType type, String value);
