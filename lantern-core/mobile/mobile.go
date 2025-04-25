@@ -87,6 +87,7 @@ func NewAPIHandler(opts *Opts) error {
 		DataDir:  opts.DataDir,
 		DeviceID: opts.Deviceid,
 		Locale:   opts.Locale,
+		PlatIfce: nil,
 	}
 	apis, err := radiance.NewAPIHandler(clientOpts)
 	if err != nil {

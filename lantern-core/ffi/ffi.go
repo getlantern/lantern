@@ -96,6 +96,7 @@ func setup(_logDir, _dataDir *C.char, logPort, appsPort, statusPort C.int64_t, a
 			DataDir:              dataDir,
 			LogDir:               logDir,
 			EnableSplitTunneling: enableSplitTunneling(),
+			PlatIfce:             nil,
 		}
 		r, err := radiance.NewRadiance(opts)
 		if err != nil {

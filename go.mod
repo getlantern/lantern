@@ -13,7 +13,6 @@ require (
 	github.com/getlantern/radiance v0.0.0-20250425054539-485677c7916b
 	github.com/sagernet/sing-box v1.11.5
 	github.com/stretchr/testify v1.10.0
-	github.com/zeebo/assert v1.1.0
 	golang.org/x/mobile v0.0.0-20250408133729-978277e7eaf7
 	google.golang.org/protobuf v1.36.5
 	howett.net/plist v1.0.1
