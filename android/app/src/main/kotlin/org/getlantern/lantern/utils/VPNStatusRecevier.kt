@@ -27,8 +27,6 @@ class VPNStatusReceiver() : BroadcastReceiver() {
             else -> {
                 //todo unimplemented
             }
-
         }
-
     }
 }

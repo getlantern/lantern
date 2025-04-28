@@ -1,6 +1,9 @@
 .PHONY: gen macos ffi
 
+# Flutter builds directory
 BUILD_DIR := build
+# Go builds directory
+BIN_DIR := bin
 DIST_OUT := dist
 
 APP ?= lantern
@@ -16,17 +19,17 @@ BUILD_TAGS ?=
 DARWIN_APP_NAME := $(CAPITALIZED_APP).app
 DARWIN_FRAMEWORK_DIR := macos/Frameworks
 DARWIN_LIB := $(LANTERN_LIB_NAME).dylib
-DARWIN_LIB_AMD64 := $(BUILD_DIR)/macos-amd64/$(LANTERN_LIB_NAME).dylib
-DARWIN_LIB_ARM64 := $(BUILD_DIR)/macos-arm64/$(LANTERN_LIB_NAME).dylib
-DARWIN_LIB_BUILD := $(BUILD_DIR)/macos/$(DARWIN_LIB)
+DARWIN_LIB_AMD64 := $(BIN_DIR)/macos-amd64/$(LANTERN_LIB_NAME).dylib
+DARWIN_LIB_ARM64 := $(BIN_DIR)/macos-arm64/$(LANTERN_LIB_NAME).dylib
+DARWIN_LIB_BUILD := $(BIN_DIR)/macos/$(DARWIN_LIB)
 DARWIN_DEBUG_BUILD := $(BUILD_DIR)/macos/Build/Products/Debug/$(DARWIN_APP_NAME)
 DARWIN_RELEASE_BUILD := $(BUILD_DIR)/macos/Build/Products/Release/$(DARWIN_APP_NAME)
 MACOS_ENTITLEMENTS := macos/Runner/Release.entitlements
 
 LINUX_LIB := $(LANTERN_LIB_NAME).so
-LINUX_LIB_AMD64 := $(BUILD_DIR)/linux-amd64/$(LANTERN_LIB_NAME).so
-LINUX_LIB_ARM64 := $(BUILD_DIR)/linux-arm64/$(LANTERN_LIB_NAME).so
-LINUX_LIB_BUILD := $(BUILD_DIR)/linux/$(LINUX_LIB)
+LINUX_LIB_AMD64 := $(BIN_DIR)/linux-amd64/$(LANTERN_LIB_NAME).so
+LINUX_LIB_ARM64 := $(BIN_DIR)/linux-arm64/$(LANTERN_LIB_NAME).so
+LINUX_LIB_BUILD := $(BIN_DIR)/linux/$(LINUX_LIB)
 
 ifeq ($(OS),Windows_NT)
 	PATH_SEP := \\
@@ -46,13 +49,16 @@ WINDOWS_RELEASE_DIR := $(call join_path,$(BUILD_DIR)/windows/x64/runner/Release)
 
 ANDROID_LIB := $(LANTERN_LIB_NAME).aar
 ANDROID_LIBS_DIR := android/app/libs
-ANDROID_LIB_BUILD := $(BUILD_DIR)/android/$(ANDROID_LIB)
+ANDROID_LIB_BUILD := $(BIN_DIR)/android/$(ANDROID_LIB)
 ANDROID_LIB_PATH := android/app/libs/$(LANTERN_LIB_NAME).aar
 ANDROID_DEBUG_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-debug.apk
+ANDROID_RELEASE_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-release.apk
+ANDROID_TARGET_PLATFORMS := android-arm,android-arm64,android-x64
+ANDROID_RELEASE_APK := $(INSTALLER_NAME).apk
 
 IOS_FRAMEWORK := Liblantern.xcframework
 IOS_FRAMEWORK_DIR := ios/Frameworks
-IOS_FRAMEWORK_BUILD := $(BUILD_DIR)/ios/$(IOS_FRAMEWORK)
+IOS_FRAMEWORK_BUILD := $(BIN_DIR)/ios/$(IOS_FRAMEWORK)
 IOS_DEBUG_BUILD := $(BUILD_DIR)/ios/iphoneos/Runner.app
 
 TAGS=with_gvisor,with_quic,with_wireguard,with_ech,with_utls,with_clash_api,with_grpc
@@ -131,12 +137,12 @@ $(DARWIN_LIB_AMD64): $(GO_SOURCES)
 macos: $(DARWIN_LIB_BUILD)
 
 $(DARWIN_LIB_BUILD): $(GO_SOURCES)
-	make macos-arm64 macos-amd64
+	$(MAKE) macos-arm64 macos-amd64
 	rm -rf $@ && mkdir -p $(dir $@)
 	lipo -create $(DARWIN_LIB_ARM64) $(DARWIN_LIB_AMD64) -output $@
 	install_name_tool -id "@rpath/${DARWIN_LIB}" $@
 	mkdir -p $(DARWIN_FRAMEWORK_DIR) && cp $@ $(DARWIN_FRAMEWORK_DIR)
-	cp $(BUILD_DIR)/macos-amd64/$(LANTERN_LIB_NAME)*.h $(DARWIN_FRAMEWORK_DIR)/
+	cp $(BIN_DIR)/macos-amd64/$(LANTERN_LIB_NAME)*.h $(DARWIN_FRAMEWORK_DIR)/
 	@echo "Built macOS library: $(DARWIN_FRAMEWORK_DIR)/$(DARWIN_LIB)"
 
 .PHONY: macos-debug
@@ -194,7 +200,7 @@ $(LINUX_LIB_AMD64): $(GO_SOURCES)
 
 .PHONY: linux
 linux: linux-amd64
-	mkdir -p $(BUILD_DIR)/linux
+	mkdir -p $(BIN_DIR)/linux
 	cp $(LINUX_LIB_AMD64) $(LINUX_LIB_BUILD)
 
 .PHONY: linux-debug
@@ -267,7 +273,14 @@ $(ANDROID_LIB_BUILD): $(GO_SOURCES)
 android-debug: $(ANDROID_DEBUG_BUILD)
 
 $(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD)
-	flutter build apk --target-platform android-arm,android-arm64,android-x64 --verbose --debug
+	flutter build apk --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --debug
+
+.PHONY: android-release
+android-release: $(ANDROID_RELEASE_BUILD)
+	cp $(ANDROID_RELEASE_BUILD) $(ANDROID_RELEASE_APK)
+
+$(ANDROID_RELEASE_BUILD): $(ANDROID_LIB_BUILD)
+	flutter build apk --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --release
 
 build-android: check-gomobile
 	@echo "Building Android libraries..."
@@ -338,5 +351,6 @@ find-duplicate-translations:
 
 clean:
 	rm -rf $(BUILD_DIR)/*
+	rm -rf $(BIN_DIR)/*
 	rm -rf $(DARWIN_FRAMEWORK_DIR)/*
 	rm -rf $(ANDROID_LIB_PATH)
