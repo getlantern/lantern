@@ -83,20 +83,21 @@ func sendApps(port int64) func(apps ...*apps.AppData) error {
 }
 
 //export setup
-func setup(_logDir, _dataDir *C.char, logPort, appsPort, statusPort C.int64_t, api unsafe.Pointer) *C.char {
+func setup(_logDir, _dataDir, _locale *C.char, logPort, appsPort, statusPort C.int64_t, api unsafe.Pointer) *C.char {
 	var outError error
 	setupOnce.Do(func() {
 		// initialize the Dart API DL bridge.
 		dart_api_dl.Init(api)
-
 		logDir := C.GoString(_logDir)
 		dataDir := C.GoString(_dataDir)
+		locale := C.GoString(_locale)
 
 		opts := client.Options{
 			DataDir:              dataDir,
 			LogDir:               logDir,
 			EnableSplitTunneling: enableSplitTunneling(),
 			PlatIfce:             nil,
+			Locale:               locale,
 		}
 		r, err := radiance.NewRadiance(opts)
 		if err != nil {

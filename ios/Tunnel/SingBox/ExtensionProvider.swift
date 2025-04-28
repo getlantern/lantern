@@ -53,7 +53,7 @@ class ExtensionProvider: NEPacketTunnelProvider {
     var error: NSError?
     MobileStopVPN(&error)
     if error != nil {
-      writeMessage("error while stopping tunnel \(error?.localizedDescription ?? "")")
+      appLogger.log("error while stopping tunnel \(error?.localizedDescription ?? "")")
       return
     }
     platformInterface.reset()
@@ -61,7 +61,7 @@ class ExtensionProvider: NEPacketTunnelProvider {
   }
 
   func reloadService() {
-    writeMessage("(lantern-tunnel) reloading service")
+    appLogger.log("(lantern-tunnel) reloading service")
     reasserting = true
     defer {
       reasserting = false
@@ -75,7 +75,7 @@ class ExtensionProvider: NEPacketTunnelProvider {
   }
 
   override open func stopTunnel(with reason: NEProviderStopReason) async {
-    writeMessage("(lantern-tunnel) stopping, reason: \(reason)")
+    appLogger.log("(lantern-tunnel) stopping, reason: \(reason)")
     stopService()
   }
 

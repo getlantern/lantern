@@ -72,6 +72,7 @@ class LanternFFIService implements LanternCoreService {
       _ffiService.setup(
         logDirPtr.cast(),
         dataDirPtr.cast(),
+        Localization.defaultLocale.toCharPtr,
         loggingReceivePort.sendPort.nativePort,
         appsReceivePort.sendPort.nativePort,
         statusReceivePort.sendPort.nativePort,

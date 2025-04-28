@@ -81,7 +81,7 @@ typedef struct { void *data; GoInt len; GoInt cap; } GoSlice;
 extern "C" {
 #endif
 
-extern char* setup(char* _logDir, char* _dataDir, int64_t logPort, int64_t appsPort, int64_t statusPort, void* api);
+extern char* setup(char* _logDir, char* _dataDir, char* _locale, int64_t logPort, int64_t appsPort, int64_t statusPort, void* api);
 extern char* addSplitTunnelItem(char* filterTypeC, char* itemC);
 extern char* removeSplitTunnelItem(char* filterTypeC, char* itemC);
 
