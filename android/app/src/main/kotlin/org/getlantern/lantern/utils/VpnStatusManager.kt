@@ -16,6 +16,7 @@ import org.getlantern.lantern.service.LanternVpnService.Companion.ACTION_STOP_VP
  */
 object VpnStatusManager {
     val vpnStatus = MutableLiveData<Event<VPNStatus>>()
+    private var vpnReceiver: VPNStatusReceiver? = null
 
     fun postVPNStatus(status: VPNStatus) {
         Log.d("VPNStatus", "Posting VPN status: $status")
@@ -29,9 +30,11 @@ object VpnStatusManager {
     }
 
     fun registerVPNStatusReceiver(service: LanternVpnService) {
+        if (vpnReceiver != null) return
+        vpnReceiver = VPNStatusReceiver(service)
         ContextCompat.registerReceiver(
             LanternApp.application,
-            VPNStatusReceiver(),
+            vpnReceiver,
             IntentFilter().apply {
                 addAction(ACTION_START_VPN)
                 addAction(ACTION_STOP_VPN)
@@ -42,12 +45,13 @@ object VpnStatusManager {
     }
 
     fun unregisterVPNStatusReceiver(service: LanternVpnService) {
-        try{
-            // todo check if receiver is registered or not
-            LanternApp.application.unregisterReceiver(VPNStatusReceiver())
-        }catch (e: IllegalArgumentException){
-            Log.e("VpnStatusManager", "unregisterVPNStatusReceiver: ", e)
+        vpnReceiver?.let {
+            try {
+                LanternApp.application.unregisterReceiver(it)
+            } catch (e: IllegalArgumentException) {
+                Log.e("VpnStatusManager", "Receiver not registered", e)
+            }
         }
-
+        vpnReceiver = null
     }
 }
