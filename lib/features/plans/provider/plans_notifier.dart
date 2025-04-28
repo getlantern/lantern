@@ -53,7 +53,6 @@ class PlansNotifier extends _$PlansNotifier {
           if (a.bestValue == b.bestValue) return 0;
           return a.bestValue ? -1 : 1;
         });
-        remote.plans.forEach((plan) {});
         return remote;
       },
     );
