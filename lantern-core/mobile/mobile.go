@@ -30,7 +30,7 @@ type lanternService struct {
 	*radiance.Radiance
 	proServer  *api.Pro
 	authClient *api.User
-	userConfig common.UserConfig
+	userInfo   common.UserInfo
 }
 
 // func SetupRadiance(dataDir, deviceid string, platform libbox.PlatformInterface) error {
@@ -86,9 +86,9 @@ func SetupRadiance(dataDir, deviceid string, platform libbox.PlatformInterface) 
 			Radiance:   r,
 			proServer:  r.Pro(),
 			authClient: r.User(),
-			userConfig: r.UserConfig(),
+			userInfo:   r.UserInfo(),
 		}
-		if radianceServer.userConfig.LegacyID() == 0 {
+		if radianceServer.userInfo.LegacyID() == 0 {
 			CreateUser()
 		}
 		log.Debug("Radiance setup successfully")
