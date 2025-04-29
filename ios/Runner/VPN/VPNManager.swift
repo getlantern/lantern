@@ -46,7 +46,7 @@ class VPNManager: VPNBase {
       let managers = try await NETunnelProviderManager.loadAllFromPreferences()
       if let existing = managers.first {
         self.manager = existing
-        appLogger.log("Found the mannage")
+        appLogger.log("Found the manager")
       } else {
         appLogger.log("No VPN config found.")
       }

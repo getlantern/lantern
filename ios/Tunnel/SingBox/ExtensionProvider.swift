@@ -43,9 +43,20 @@ class ExtensionProvider: NEPacketTunnelProvider {
 
   private func startService() {
     var error: NSError?
+    let baseDir = FilePath.workingDirectory.relativePath
+    let opts = MobileOpts()
+    opts.dataDir = baseDir
+    opts.deviceid = DeviceIdentifier.getUDID()
+    opts.locale = Locale.current.identifier
+    MobileSetupRadiance(opts, platformInterface, &error)
+    if let error {
+      writeFatalError("(lantern-tunnel) error: create service: \(error.localizedDescription)")
+      return
+    }
     MobileStartVPN(&error)
     if error != nil {
       appLogger.error("error while starting tunnel \(error?.localizedDescription ?? "")")
+
     }
   }
 

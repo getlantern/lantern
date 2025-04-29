@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sync"
 
 	"github.com/getlantern/golog"
@@ -32,8 +33,9 @@ type lanternService struct {
 	userConfig common.UserInfo
 }
 type apiService struct {
-	proServer *api.Pro
-	user      *api.User
+	proServer  *api.Pro
+	user       *api.User
+	userConfig common.UserInfo
 }
 type Opts struct {
 	DataDir  string
@@ -41,6 +43,9 @@ type Opts struct {
 	Locale   string
 }
 
+func enableSplitTunneling() bool {
+	return runtime.GOOS == "android"
+}
 func SetupRadiance(opts *Opts, platform libbox.PlatformInterface) error {
 	var innerErr error
 	setupOnce.Do(func() {
@@ -52,11 +57,12 @@ func SetupRadiance(opts *Opts, platform libbox.PlatformInterface) error {
 			log.Errorf("unable to create log directory: %v", err)
 		}
 		clientOpts := client.Options{
-			LogDir:   logDir,
-			DataDir:  opts.DataDir,
-			PlatIfce: platform,
-			DeviceID: opts.Deviceid,
-			Locale:   opts.Locale,
+			LogDir:               logDir,
+			DataDir:              opts.DataDir,
+			PlatIfce:             platform,
+			DeviceID:             opts.Deviceid,
+			Locale:               opts.Locale,
+			EnableSplitTunneling: enableSplitTunneling(),
 		}
 		r, err := radiance.NewRadiance(clientOpts)
 		log.Debugf("Paths: %s %s", logDir, opts.DataDir)
@@ -67,9 +73,6 @@ func SetupRadiance(opts *Opts, platform libbox.PlatformInterface) error {
 		radianceServer = &lanternService{
 			Radiance:   r,
 			userConfig: r.UserInfo(),
-		}
-		if radianceServer.userConfig.LegacyID() == 0 {
-			CreateUser()
 		}
 		log.Debug("Radiance setup successfully")
 	})
@@ -83,20 +86,28 @@ func SetupRadiance(opts *Opts, platform libbox.PlatformInterface) error {
 func NewAPIHandler(opts *Opts) error {
 	logDir := filepath.Join(opts.DataDir, "logs")
 	clientOpts := client.Options{
-		LogDir:   logDir,
-		DataDir:  opts.DataDir,
-		DeviceID: opts.Deviceid,
-		Locale:   opts.Locale,
-		PlatIfce: nil,
+		LogDir:               logDir,
+		DataDir:              opts.DataDir,
+		DeviceID:             opts.Deviceid,
+		Locale:               opts.Locale,
+		PlatIfce:             nil,
+		EnableSplitTunneling: false,
 	}
 	apis, err := radiance.NewAPIHandler(clientOpts)
 	if err != nil {
 		return fmt.Errorf("unable to create API handler: %v", err)
 	}
 	apiHandler = &apiService{
-		proServer: apis.ProServer,
-		user:      apis.User,
+		proServer:  apis.ProServer,
+		user:       apis.User,
+		userConfig: apis.UserInfo,
 	}
+	log.Debugf("User config: %v", apiHandler.userConfig)
+	if apiHandler.userConfig.LegacyID() == 0 {
+		log.Debug("Creating user")
+		CreateUser()
+	}
+	log.Debugf("API handler setup successfully")
 	return nil
 }
 

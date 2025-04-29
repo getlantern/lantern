@@ -8,8 +8,8 @@
 import Foundation
 import Security
 
-// Service that store deviced user id to keychanin
-// so when user comes back fetch there IDs from key chain
+// Service that stores device user ID to keychain
+// so when the user comes back, fetch their IDs from the keychain
 class KeychainService {
   static func save(_ data: Data, for key: String) {
     let query =

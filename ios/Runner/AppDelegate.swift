@@ -31,7 +31,7 @@ import UIKit
     // Initialize directories and working paths
     setupFileSystem()
 
-    // Trigger VPN extension method for Radiance setup
+    // set api handler
     setupAPIHandler()
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
@@ -72,14 +72,15 @@ import UIKit
       appLogger.error("Failed to change current directory to: \(FilePath.sharedDirectory.path)")
       return
     }
+
   }
 
-  /// Calls VPN extension method to set up Radiance
+  /// Calls API handler setup
   private func setupAPIHandler() {
     Task {
       // Set up the base directory and options
       let baseDir = FilePath.workingDirectory.relativePath
-      var opts = MobileOpts()
+      let opts = MobileOpts()
       opts.dataDir = baseDir
       opts.deviceid = DeviceIdentifier.getUDID()
       opts.locale = Locale.current.identifier
