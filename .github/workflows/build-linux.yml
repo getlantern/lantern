@@ -1,9 +1,11 @@
 name: Build Linux App
 
 on:
-  push:
-    branches: [main]
-  pull_request:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
 
 jobs:
   build-linux:
@@ -38,7 +40,8 @@ jobs:
                 libgl1-mesa-dev \
                 libegl1-mesa-dev \
                 libayatana-appindicator3-dev \
-                libcurl4-openssl-dev
+                libcurl4-openssl-dev \
+                libwebkit2gtk-4.1-dev
 
         - name: Install the ninja build tool
           uses: seanmiddleditch/gha-setup-ninja@master
