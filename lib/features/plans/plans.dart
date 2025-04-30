@@ -116,7 +116,9 @@ class _PlansState extends ConsumerState<Plans> {
                           ),
                           AppTextButton(
                             label: 'Try again',
-                            onPressed: () {},
+                            onPressed: () {
+                              ref.read(plansNotifierProvider.notifier).fetchPlans();
+                            },
                           ),
                         ],
                       );
@@ -201,6 +203,7 @@ class _PlansState extends ConsumerState<Plans> {
   }
 
   Future<void> startInAppPurchaseFlow(Plan plan) async {
+    context.showLoadingDialog();
     final paymentProvider = ref.read(paymentNotifierProvider.notifier);
     final result = await paymentProvider.subscribeToPlan(
       planId: plan.id,

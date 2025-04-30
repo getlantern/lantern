@@ -5,6 +5,7 @@
 
 import Flutter
 import Foundation
+import Liblantern
 import NetworkExtension
 
 /// Handles Flutter method channel interactions for VPN operations.
@@ -32,6 +33,8 @@ class MethodHandler {
         self.stopVPN(result: result)
       case "isVPNConnected":
         self.isVPNConnected(result: result)
+      case "plans":
+        self.plans(result: result)
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -81,5 +84,32 @@ class MethodHandler {
     let status = vpnManager.connectionStatus
     let isConnected = status == .connected
     result(isConnected)
+  }
+
+  private func plans(result: @escaping FlutterResult) {
+    Task {
+      do {
+        var error: NSError?
+        var data = try await MobilePlans(&error)
+        if error != nil {
+          result(
+            FlutterError(
+              code: "PLANS_ERROR",
+              message: error?.description,
+              details: error?.localizedDescription))
+        }
+        await MainActor.run {
+          result(data)
+        }
+      } catch {
+        await MainActor.run {
+          result(
+            FlutterError(
+              code: "PLANS_ERROR",
+              message: "Unable to fetch plans.",
+              details: error.localizedDescription))
+        }
+      }
+    }
   }
 }

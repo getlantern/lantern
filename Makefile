@@ -45,6 +45,7 @@ ANDROID_RELEASE_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-release.apk
 ANDROID_TARGET_PLATFORMS := android-arm,android-arm64,android-x64
 ANDROID_RELEASE_APK := $(INSTALLER_NAME).apk
 
+IOS_DIR := ios/
 IOS_FRAMEWORK := Liblantern.xcframework
 IOS_FRAMEWORK_DIR := ios/Frameworks
 IOS_FRAMEWORK_BUILD := $(BIN_DIR)/ios/$(IOS_FRAMEWORK)
@@ -301,7 +302,7 @@ $(IOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 
 .PHONY: swift-format
 swift-format:
-	swift-format format --in-place --recursive ios/Runner macos/Runner
+	swift-format format --in-place --recursive ios/Runner macos/Runner ios/Tunnel
 
 # Dart API DL bridge
 DART_SDK_REPO=https://github.com/dart-lang/sdk
@@ -339,3 +340,4 @@ clean:
 	rm -rf $(BIN_DIR)/*
 	rm -rf $(DARWIN_FRAMEWORK_DIR)/*
 	rm -rf $(ANDROID_LIB_PATH)
+	rm -rf $(IOS_DIR)/$(IOS_FRAMEWORK)

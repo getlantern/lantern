@@ -6,20 +6,39 @@ import UIKit
 @main
 @objc class AppDelegate: FlutterAppDelegate {
 
-  private var vpnManager = VPNManager.shared
-
+  private let vpnManager = VPNManager.shared
   private var methodHandler: MethodHandler?
 
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
+
+    // Ensure root controller is a FlutterViewController
     guard let controller = window?.rootViewController as? FlutterViewController else {
-      fatalError("rootViewController is not type FlutterViewController")
+      fatalError("rootViewController is not a FlutterViewController")
     }
 
+    // Register Flutter plugins
     GeneratedPluginRegistrant.register(with: self)
 
+    // Register event handlers
+    registerEventHandlers()
+
+    // Setup native method channel
+    setupMethodHandler(controller: controller)
+
+    // Initialize directories and working paths
+    setupFileSystem()
+
+    // set api handler
+    setupAPIHandler()
+
+    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+
+  /// Registers Flutter event channel handlers
+  private func registerEventHandlers() {
     if let registrar = self.registrar(forPlugin: "StatusEventHandler") {
       StatusEventHandler.register(with: registrar)
     }
@@ -27,32 +46,51 @@ import UIKit
     if let registrar = self.registrar(forPlugin: "LogsEventHandler") {
       LogsEventHandler.register(with: registrar)
     }
-
-    setupMethodHandler(controller: controller)
-    setupFileManager()
-
-    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
+  /// Initializes the native method channel handler
   private func setupMethodHandler(controller: FlutterViewController) {
     let nativeChannel = FlutterMethodChannel(
       name: "org.getlantern.lantern/method",
-      binaryMessenger: controller.binaryMessenger)
+      binaryMessenger: controller.binaryMessenger
+    )
     methodHandler = MethodHandler(channel: nativeChannel, vpnManager: vpnManager)
-
   }
 
-  private func setupFileManager() {
+  /// Prepares the file system directories for use
+  private func setupFileSystem() {
     do {
       try FileManager.default.createDirectory(
-        at: FilePath.workingDirectory, withIntermediateDirectories: true)
+        at: FilePath.workingDirectory,
+        withIntermediateDirectories: true
+      )
     } catch {
-      print("Failed to create working directory: \(error.localizedDescription)")
+      appLogger.error("Failed to create working directory: \(error.localizedDescription)")
     }
 
     guard FileManager.default.changeCurrentDirectoryPath(FilePath.sharedDirectory.path) else {
-      print("Failed to change current directory to: \(FilePath.sharedDirectory.path)")
+      appLogger.error("Failed to change current directory to: \(FilePath.sharedDirectory.path)")
       return
     }
+
   }
+
+  /// Calls API handler setup
+  private func setupAPIHandler() {
+    Task {
+      // Set up the base directory and options
+      let baseDir = FilePath.workingDirectory.relativePath
+      let opts = MobileOpts()
+      opts.dataDir = baseDir
+      opts.deviceid = DeviceIdentifier.getUDID()
+      opts.locale = Locale.current.identifier
+      var error: NSError?
+      await MobileNewAPIHandler(opts, &error)
+      // Handle any error returned by the setup
+      if let error {
+        appLogger.error("Error while setting up radiance: \(error)")
+      }
+    }
+  }
+
 }

@@ -22,7 +22,7 @@ class PlansNotifier extends _$PlansNotifier {
       return local;
     }
     // No local — fetch from API
-    final plans = await _fetchPlans();
+    final plans = await fetchPlans();
     state = AsyncData(plans);
     return plans;
   }
@@ -40,10 +40,16 @@ class PlansNotifier extends _$PlansNotifier {
     }
   }
 
-  Future<PlansData> _fetchPlans() async {
+  Future<PlansData> fetchPlans({bool fromBackground=false}) async {
+    state = AsyncLoading();
     final result = await ref.read(lanternServiceProvider).plans();
     return await result.fold(
       (error) {
+        if(fromBackground) {
+          appLogger.error('Error fetching plans in background: $error');
+          // Since we already have plans in local storage, we can return them
+          return _getPlansFromLocalStorage()!;
+        }
         state = AsyncError(error, StackTrace.current);
         appLogger.error('Error fetching plans: $error');
         throw Exception('Plans fetch failed');
@@ -53,7 +59,6 @@ class PlansNotifier extends _$PlansNotifier {
           if (a.bestValue == b.bestValue) return 0;
           return a.bestValue ? -1 : 1;
         });
-        remote.plans.forEach((plan) {});
         return remote;
       },
     );
@@ -64,7 +69,7 @@ class PlansNotifier extends _$PlansNotifier {
   }
 
   Future<void> _refreshInBackground() async {
-    final remotePlans = await _fetchPlans();
+    final remotePlans = await fetchPlans();
     await _storePlansLocally(remotePlans);
     state = AsyncData(remotePlans);
   }
