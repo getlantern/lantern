@@ -13,7 +13,7 @@ jobs:
       contents: "read"
       id-token: "write"
     env:
-      version: 9999.99.99-dev
+      version: ${{ inputs.version }}
 
     runs-on: windows-latest
 
