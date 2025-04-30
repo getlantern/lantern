@@ -1,9 +1,11 @@
 name: Build Windows
 
 on:
-  push:
-    branches: [atavism/windows-build]
-  pull_request:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
 
 jobs:
   build-windows:

@@ -46,3 +46,10 @@ jobs:
     secrets: inherit
     with:
       version: ${{ needs.set-version.outputs.version }}
+
+  build-windows:
+    needs: set-version
+    uses: ./.github/workflows/build-windows.yml
+    secrets: inherit
+    with:
+      version: ${{ needs.set-version.outputs.version }}

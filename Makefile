@@ -107,9 +107,13 @@ require-ac-username: guard-AC_USERNAME ## App Store Connect username - needed fo
 require-ac-password: guard-AC_PASSWORD ## App Store Connect password - needed for notarizing macOS apps.
 
 .PHONY: desktop-lib
-desktop-lib: export CGO_CFLAGS="-I$(shell pwd)/dart_api_dl/include"
 desktop-lib:
-	CGO_ENABLED=1 go build -v -trimpath -buildmode=c-shared -tags="$(BUILD_TAGS)" -ldflags="-w -s $(EXTRA_LDFLAGS)" -o $(LIB_NAME) ./$(FFI_DIR)
+	CGO_CFLAGS="-I$(CURDIR)/dart_api_dl/include" \
+	CGO_ENABLED=1 \
+	go build -v -trimpath -buildmode=c-shared \
+		-tags="$(BUILD_TAGS)" \
+		-ldflags="-w -s $(EXTRA_LDFLAGS)" \
+		-o $(LIB_NAME) ./$(FFI_DIR)
 
 # macOS Build
 .PHONY: install-macos-deps
