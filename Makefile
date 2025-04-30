@@ -222,31 +222,22 @@ linux-release: clean linux pubget gen
 install-windows-deps:
 	dart pub global activate flutter_distributor
 
-.PHONY: windows-amd64
-windows-amd64: export BUILD_TAGS += walk_use_cgo
-windows-amd64: export CGO_LDFLAGS = -static
-windows-amd64: $(WINDOWS_LIB_AMD64)
-
-$(WINDOWS_LIB_AMD64): $(GO_SOURCES)
-	GOOS=windows GOARCH=amd64 LIB_NAME=$@ make desktop-lib
-
-.PHONY: windows-arm64
-windows-arm64: export BUILD_TAGS += walk_use_cgo
-windows-arm64: export CGO_LDFLAGS = -static
-windows-arm64: $(WINDOWS_LIB_ARM64)
-
-$(WINDOWS_LIB_ARM64): $(GO_SOURCES)
-	GOOS=windows GOARCH=arm64 LIB_NAME=$@ make desktop-lib
-
-.PHONY: windows
 windows: windows-amd64
+
+windows-amd64: WINDOWS_GOOS := windows
+windows-amd64: WINDOWS_GOARCH := amd64
+windows-amd64:
+	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_AMD64)
+
+windows-arm64: WINDOWS_GOOS := windows
+windows-arm64: WINDOWS_GOARCH := arm64
+windows-arm64:
+	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_ARM64)
 
 .PHONY: windows-debug
 windows-debug: windows
 	@echo "Building Flutter app (debug) for Windows..."
 	flutter build windows --debug
-
-FLUTTER_DISTRIBUTOR := $(USERPROFILE)/.pub-cache/bin/flutter_distributor
 
 .PHONY: windows-release
 windows-release: clean windows pubget gen
