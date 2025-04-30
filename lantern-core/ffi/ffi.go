@@ -97,7 +97,7 @@ func setup(_logDir, _dataDir *C.char, logPort, appsPort, statusPort C.int64_t, a
 		r, err := radiance.NewRadiance(client.Options{
 			DataDir:              dataDir,
 			LogDir:               logDir,
-			EnableSplitTunneling: enableSplitTunneling(),
+			EnableSplitTunneling: true,
 		})
 		if err != nil {
 			log.Fatalf("unable to create VPN server: %v", err)
