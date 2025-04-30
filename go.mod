@@ -10,7 +10,7 @@ replace github.com/sagernet/wireguard-go => github.com/getlantern/wireguard-go v
 
 require (
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
-	github.com/getlantern/radiance v0.0.0-20250430104954-4f732ef3767d
+	github.com/getlantern/radiance v0.0.0-20250430113640-c3a870ffc74a
 	github.com/sagernet/sing-box v1.11.5
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/mobile v0.0.0-20250305212854-3a7bc9f8a4de
