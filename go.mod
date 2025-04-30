@@ -4,7 +4,7 @@ go 1.24.2
 
 //replace github.com/getlantern/radiance => ../radiance
 
-replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v1.11.6-0.20250411173055-d82f542dfd3f
+replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v1.11.6-0.20250430110238-197e404f7d8a
 
 replace github.com/sagernet/wireguard-go => github.com/getlantern/wireguard-go v0.0.1-beta.5.0.20250310145906-45220d8aec77
 
@@ -148,8 +148,8 @@ require (
 	github.com/nwaples/rardecode v1.1.0 // indirect
 	github.com/nxadm/tail v1.4.11 // indirect
 	github.com/refraction-networking/utls v1.6.7 // indirect
-	github.com/sagernet/sing v0.6.6-0.20250406121928-926a5a1e8bb7 // indirect
-	github.com/sagernet/sing-tun v0.6.1 // indirect
+	github.com/sagernet/sing v0.6.6 // indirect
+	github.com/sagernet/sing-tun v0.6.4 // indirect
 	github.com/shadowsocks/go-shadowsocks2 v0.1.5 // indirect
 	github.com/tevino/abool/v2 v2.1.0 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
