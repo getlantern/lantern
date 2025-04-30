@@ -6,6 +6,8 @@ github.com/Jigsaw-Code/outline-sdk v0.0.19 h1:/OpMz+3B/9ypjq/UyEvwZSflzJ4jXFginU
 github.com/Jigsaw-Code/outline-sdk v0.0.19/go.mod h1:CFDKyGZA4zatKE4vMLe8TyQpZCyINOeRFbMAmYHxodw=
 github.com/Jigsaw-Code/outline-sdk/x v0.0.2 h1:NUJwSzL2XdvmcVtoY9xwU6LwptI9kZOaVWI9kTMvVng=
 github.com/Jigsaw-Code/outline-sdk/x v0.0.2/go.mod h1:8vMQ+QKz62lVkUcPDc276yvopDreniYZQPvhqOn27b0=
+github.com/Xuanwo/go-locale v1.1.3 h1:EWZZJJt5rqPHHbqPRH1zFCn5D7xHjjebODctA4aUO3A=
+github.com/Xuanwo/go-locale v1.1.3/go.mod h1:REn+F/c+AtGSWYACBSYZgl23AP+0lfQC+SEFPN+hj30=
 github.com/ajg/form v1.5.1 h1:t9c7v8JUKu/XxOGBU0yjNpaMloxGEJhUkqFRq0ibGeU=
 github.com/ajg/form v1.5.1/go.mod h1:uL1WgH+h2mgNtvBq0339dVnzXdBETtL2LeUXaIv25UY=
 github.com/alitto/pond/v2 v2.1.5 h1:2pp/KAPcb02NSpHsjjnxnrTDzogMLsq+vFf/L0DB84A=
@@ -43,6 +45,8 @@ github.com/getlantern/byteexec v0.0.0-20220903142956-e6ed20032cfd h1:0xt9OTbV50a
 github.com/getlantern/byteexec v0.0.0-20220903142956-e6ed20032cfd/go.mod h1:oD9q9NB1LNBLHk3WAwza4tivxV7tm7jKFlCNCAv3+M8=
 github.com/getlantern/common v1.2.1-0.20250404213255-37d58e3e0fae h1:uRuUGf1TgBRCWelqxKC1aa7gqTsQ6u4dPwMyRGDZ5x4=
 github.com/getlantern/common v1.2.1-0.20250404213255-37d58e3e0fae/go.mod h1:ucQSLeHpC4ns6VvlWBinK7BI8LrUWlhZUHArs6VRvXI=
+github.com/getlantern/common v1.2.1-0.20250428204107-678e5e36cbbf h1:80UKl8jRxwJ6Tts6mOqxMIoAM0ioMAe4+Ax0aKdG/iY=
+github.com/getlantern/common v1.2.1-0.20250428204107-678e5e36cbbf/go.mod h1:ucQSLeHpC4ns6VvlWBinK7BI8LrUWlhZUHArs6VRvXI=
 github.com/getlantern/context v0.0.0-20190109183933-c447772a6520/go.mod h1:L+mq6/vvYHKjCX2oez0CgEAJmbq1fbb/oNJIWQkBybY=
 github.com/getlantern/context v0.0.0-20220418194847-3d5e7a086201 h1:oEZYEpZo28Wdx+5FZo4aU7JFXu0WG/4wJWese5reQSA=
 github.com/getlantern/context v0.0.0-20220418194847-3d5e7a086201/go.mod h1:Y9WZUHEb+mpra02CbQ/QczLUe6f0Dezxaw5DCJlJQGo=
@@ -95,8 +99,8 @@ github.com/getlantern/ops v0.0.0-20231025133620-f368ab734534 h1:3BwvWj0JZzFEvNNi
 github.com/getlantern/ops v0.0.0-20231025133620-f368ab734534/go.mod h1:ZsLfOY6gKQOTyEcPYNA9ws5/XHZQFroxqCOhHjGcs9Y=
 github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 h1:JWH5BB2o0eAeGs0tZnFPpQGx+nMIo/WmxKnj2hnGjgE=
 github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175/go.mod h1:h3S9LBmmzN/xM+lwYZHE4abzTtCTtidKtG+nxZcCZX0=
-github.com/getlantern/radiance v0.0.0-20250423195020-15a2b0ac0901 h1:ewKcqALQxozUDGhWjTvb5xqmdqGotD8rI/yGQzdyiz8=
-github.com/getlantern/radiance v0.0.0-20250423195020-15a2b0ac0901/go.mod h1:i+wXPUF3g5CSEVTM9D9IVsSX9iqySKX1cQgX3JCW8Tw=
+github.com/getlantern/radiance v0.0.0-20250428213731-3e3c052d718d h1:RHOBOIFM8uscDtosuDPww5YzpY12xLrwWT/fSIRxnqQ=
+github.com/getlantern/radiance v0.0.0-20250428213731-3e3c052d718d/go.mod h1:tE8R2okLt0DbDDCHkpW3kjdrMxuLvjqFeoScpXZYkWo=
 github.com/getlantern/sing-box-extensions v0.0.0-20250417225118-49a27a638120 h1:OoXUPu0qn85tw9WAJM0wyNFCy4af5Ubs5ddRFHszyJc=
 github.com/getlantern/sing-box-extensions v0.0.0-20250417225118-49a27a638120/go.mod h1:IhvHDCl8O7kKIwg5QOGgSOZm9898OZpjZSvXpS6l61o=
 github.com/getlantern/sing-box-minimal v1.11.6-0.20250411173055-d82f542dfd3f h1:1EM684uAJTApkeubw0W8BbxdrTaXkaXxbM1hJ+KRTZ8=

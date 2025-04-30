@@ -42,9 +42,9 @@ $(subst /,$(PATH_SEP),$1)
 endef
 
 WINDOWS_LIB := $(LANTERN_LIB_NAME).dll
-WINDOWS_LIB_AMD64 := $(call join_path,$(BUILD_DIR)/windows-amd64/$(WINDOWS_LIB))
-WINDOWS_LIB_ARM64 := $(call join_path,$(BUILD_DIR)/windows-arm64/$(WINDOWS_LIB))
-WINDOWS_LIB_BUILD := $(call join_path,$(BUILD_DIR)/windows/$(WINDOWS_LIB))
+WINDOWS_LIB_AMD64 := $(call join_path,$(BIN_DIR)/windows-amd64/$(WINDOWS_LIB))
+WINDOWS_LIB_ARM64 := $(call join_path,$(BIN_DIR)/windows-arm64/$(WINDOWS_LIB))
+WINDOWS_LIB_BUILD := $(call join_path,$(BIN_DIR)/windows/$(WINDOWS_LIB))
 WINDOWS_RELEASE_DIR := $(call join_path,$(BUILD_DIR)/windows/x64/runner/Release)
 
 ANDROID_LIB := $(LANTERN_LIB_NAME).aar
@@ -107,8 +107,8 @@ require-ac-username: guard-AC_USERNAME ## App Store Connect username - needed fo
 require-ac-password: guard-AC_PASSWORD ## App Store Connect password - needed for notarizing macOS apps.
 
 ifeq ($(OS),Windows_NT)
-  NORMALIZED_CURDIR := $(shell echo $(CURDIR) | sed 's|\\|/|g')
-  SETENV = set CGO_ENABLED=1&& set CGO_CFLAGS=-I$(NORMALIZED_CURDIR)/dart_api_dl/include&&
+  CURDIR := $(shell echo $(CURDIR) | powershell -Command "{ $_ -replace '\\', '/' }")
+  SETENV = set CGO_ENABLED=1&& set CGO_CFLAGS=-I$(CURDIR)/dart_api_dl/include&&
 else
   SETENV = CGO_ENABLED=1 CGO_CFLAGS=-I$(CURDIR)/dart_api_dl/include
 endif
