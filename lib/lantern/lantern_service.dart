@@ -154,4 +154,12 @@ class LanternService implements LanternCoreService {
     }
     return _platformService.plans();
   }
+
+  @override
+  Future<Either<Failure, String>> getOAuthLoginUrl(String provider) {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.getOAuthLoginUrl(provider);
+    }
+    return _platformService.getOAuthLoginUrl(provider);
+  }
 }

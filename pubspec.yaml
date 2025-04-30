@@ -148,7 +148,8 @@ ffigen:
   output: "lib/lantern/lantern_generated_bindings.dart"
   headers:
     entry-points:
-      - "build/**/liblantern.h"
+      - "bin/macos-amd64/liblantern.h"
+      - "bin/macos-arm64/liblantern.h"
   exclude:
     enums:
       - 'idtype_t'

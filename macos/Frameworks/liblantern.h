@@ -104,6 +104,10 @@ extern char* stripeSubscriptionPaymentRedirect(char* subType);
 // Fetch plans from the server
 //
 extern char* plans();
+
+// OAuth methods
+//
+extern char* oauthLoginUrl(char* _provider);
 extern void freeCString(char* cstr);
 extern void enforce_binding();
 

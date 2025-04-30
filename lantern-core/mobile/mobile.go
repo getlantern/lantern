@@ -167,6 +167,17 @@ func CreateUser() error {
 	return nil
 }
 
+// OAuth Methods
+func OAuthLoginUrl(provider string) (string, error) {
+	log.Debug("Getting OAuth login URL")
+	oauthLoginUrl, err := apiHandler.user.OAuthLoginUrl(context.Background(), provider)
+	if err != nil {
+		return "", log.Errorf("Error getting OAuth login URL: %v", err)
+	}
+	log.Debugf("OAuthLoginUrl response: %v", oauthLoginUrl.Redirect)
+	return oauthLoginUrl.Redirect, nil
+}
+
 func StripeSubscription() (string, error) {
 	defer func() {
 		if err := recover(); err != nil {

@@ -49,4 +49,7 @@ abstract class LanternCoreService {
       SplitTunnelFilterType type, String value);
 
   Stream<List<AppData>> appsDataStream();
+
+  //OAuth methods
+  Future<Either<Failure, String>> getOAuthLoginUrl(String provider);
 }

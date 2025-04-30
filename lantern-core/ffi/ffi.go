@@ -327,6 +327,19 @@ func subscriptionPaymentRedirect(redirectBody *protos.SubscriptionPaymentRedirec
 	return &rediret.Redirect, nil
 }
 
+// OAuth methods
+//
+//export oauthLoginUrl
+func oauthLoginUrl(_provider *C.char) *C.char {
+	provider := C.GoString(_provider)
+	url, err := server.authClient.OAuthLoginUrl(context.Background(), provider)
+	if err != nil {
+		return SendError(err)
+	}
+	log.Debugf("OAuthLoginURL response: %s", url.Redirect)
+	return C.CString(url.Redirect)
+}
+
 //export freeCString
 func freeCString(cstr *C.char) {
 	C.free(unsafe.Pointer(cstr))

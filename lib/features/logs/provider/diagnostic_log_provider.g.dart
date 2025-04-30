@@ -7,7 +7,7 @@ part of 'diagnostic_log_provider.dart';
 // **************************************************************************
 
 String _$diagnosticLogStreamHash() =>
-    r'd4b3279dab7e5a2bbf5bf73febcbee8341674f7c';
+    r'a633ad4b5899238717f8e58305439aba21764742';
 
 /// See also [diagnosticLogStream].
 @ProviderFor(diagnosticLogStream)

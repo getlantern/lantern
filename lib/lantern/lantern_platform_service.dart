@@ -193,4 +193,17 @@ class LanternPlatformService implements LanternCoreService {
           localizedErrorMessage: (e as Exception).localizedDescription));
     }
   }
+
+  @override
+  Future<Either<Failure, String>> getOAuthLoginUrl(String provider) async {
+    try {
+      final loginUrl = await _methodChannel.invokeMethod<String>('oauthLoginUrl',provider);
+      return Right(loginUrl!);
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription));
+    }
+  }
 }

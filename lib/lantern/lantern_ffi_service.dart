@@ -380,6 +380,23 @@ class LanternFFIService implements LanternCoreService {
           localizedErrorMessage: (e as Exception).localizedDescription));
     }
   }
+
+  @override
+  Future<Either<Failure, String>> getOAuthLoginUrl(String provider) async {
+    try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService.oauthLoginUrl(provider.toCharPtr).toDartString();
+        },
+      );
+      return Right(result);
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription));
+    }
+  }
 }
 
 class SplitTunnelMessage {

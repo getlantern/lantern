@@ -21,7 +21,8 @@ enum class Methods(val method: String) {
     IsVpnConnected("isVPNConnected"),
     SubscriptionPaymentRedirect("subscriptionPaymentRedirect"),
     StripeSubscription("stripeSubscription"),
-    Plans("plans")
+    Plans("plans"),
+    OAuthLoginUrl("oauthLoginUrl")
 }
 
 class MethodHandler : FlutterPlugin,
@@ -126,6 +127,19 @@ class MethodHandler : FlutterPlugin,
                         val plansData = Mobile.plans()
                         withContext(Dispatchers.Main) {
                             success(plansData)
+                        }
+                    }.onFailure { e ->
+                        result.error("plans", e.localizedMessage ?: "Please try again", e)
+                    }
+                }
+            }
+            Methods.OAuthLoginUrl.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val provider = call.arguments<String>()
+                        val loginUrl = Mobile.oAuthLoginUrl(provider)
+                        withContext(Dispatchers.Main) {
+                            success(loginUrl)
                         }
                     }.onFailure { e ->
                         result.error("plans", e.localizedMessage ?: "Please try again", e)
