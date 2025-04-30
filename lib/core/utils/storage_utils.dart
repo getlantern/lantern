@@ -1,67 +1,86 @@
 import 'dart:io';
+import 'package:path/path.dart' as p;
 
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:path_provider/path_provider.dart';
 
 class AppStorageUtils {
   static Future<String> getAppLogDirectory() async {
-    // Get the platform-specific directory to store logs
-    Directory logDir;
+    final Directory baseDir;
+
     if (Platform.isIOS || Platform.isAndroid) {
-      Directory baseDir = await getApplicationDocumentsDirectory();
-      final path = baseDir.path;
-      if (path.endsWith("/app_flutter")) {
-        baseDir = Directory(path.replaceFirst("/app_flutter", ""));
-      }
-      logDir = Directory("${baseDir.path}/logs");
+      baseDir = await getApplicationDocumentsDirectory();
     } else if (Platform.isMacOS) {
-      final baseDir = await getLibraryDirectory();
-      logDir = Directory("${baseDir.path}/Logs/Lantern");
-    } else if (Platform.isLinux) {
-      final baseDir = await getApplicationSupportDirectory();
-      logDir = Directory("${baseDir.path}/logs");
-    } else if (Platform.isWindows) {
-      final baseDir = await getApplicationSupportDirectory();
-      logDir = Directory("${baseDir.path}/Lantern/logs");
+      baseDir = await getLibraryDirectory();
+    } else if (Platform.isLinux || Platform.isWindows) {
+      baseDir = await getApplicationSupportDirectory();
     } else {
       throw UnsupportedError("Unsupported platform for log directory");
     }
-    if (!logDir.existsSync()) {
-      logDir.createSync(recursive: true);
+
+    // Construct platform-appropriate log path
+    final logPath = Platform.isMacOS
+        ? p.join(baseDir.path, 'Logs', 'Lantern')
+        : Platform.isWindows
+            ? p.join(baseDir.path, 'Lantern', 'logs')
+            : p.join(baseDir.path, 'logs');
+
+    final Directory logDir = Directory(logPath);
+
+    if (!await logDir.exists()) {
+      try {
+        await logDir.create(recursive: true);
+        appLogger.debug("Created log directory at: $logPath");
+      } catch (e) {
+        appLogger.error("Failed to create log directory: $e");
+        rethrow;
+      }
+    } else {
+      appLogger.debug("Using existing log directory: $logPath");
     }
-    appLogger.debug("Using log directory $logDir");
+
     return logDir.path;
   }
 
   static Future<Directory> getAppDirectory() async {
-    final Directory appDir;
+    final Directory baseDir;
+
     if (Platform.isIOS || Platform.isAndroid) {
-      Directory baseDir = await getApplicationDocumentsDirectory();
-      final path = baseDir.path;
-      if (path.endsWith("/app_flutter")) {
-        baseDir = Directory(path.replaceFirst("/app_flutter", ""));
-      }
-      appDir = Directory("${baseDir.path}/.lantern");
+      baseDir = await getApplicationDocumentsDirectory();
     } else {
-      // Note this is the application support directory *with*
-      // the fully qualified name of our app.
-      appDir = await getApplicationSupportDirectory();
+      baseDir = await getApplicationSupportDirectory();
     }
 
-    if (!appDir.existsSync()) {
-      appDir.createSync(recursive: true);
+    String path;
+
+    if (Platform.isIOS || Platform.isAndroid) {
+      path = baseDir.path.endsWith("/app_flutter")
+          ? baseDir.path.replaceFirst("/app_flutter", "/.lantern")
+          : p.join(baseDir.path, ".lantern");
+    } else {
+      path = p.join(baseDir.path, "Lantern");
     }
-    appLogger.debug("Using app directory $appDir");
+
+    final appDir = Directory(path);
+
+    if (!await appDir.exists()) {
+      try {
+        await appDir.create(recursive: true);
+        appLogger.debug("Created app directory at: $path");
+      } catch (e) {
+        appLogger.error("Failed to create app directory: $e");
+        rethrow;
+      }
+    } else {
+      appLogger.debug("Using existing app directory: $path");
+    }
+
     return appDir;
   }
 
   static Future<File> appLogFile() async {
-    final logDir = await getAppLogDirectory();
-    final logFile = File("$logDir/lantern.log");
-
-    if (!logFile.existsSync()) {
-      throw Exception("Log file does not exist.");
-    }
+    final logDirPath = await getAppLogDirectory();
+    final logFile = File(p.join(logDirPath, 'lantern.log'));
     return logFile;
   }
 }
