@@ -4,7 +4,7 @@ go 1.24.2
 
 //replace github.com/getlantern/radiance => ../radiance
 
-replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v1.11.6-0.20250430110238-197e404f7d8a
+replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v1.11.6-0.20250411182257-639652d5e1c6
 
 replace github.com/sagernet/wireguard-go => github.com/getlantern/wireguard-go v0.0.1-beta.5.0.20250310145906-45220d8aec77
 
