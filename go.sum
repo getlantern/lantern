@@ -97,6 +97,8 @@ github.com/getlantern/ops v0.0.0-20231025133620-f368ab734534 h1:3BwvWj0JZzFEvNNi
 github.com/getlantern/ops v0.0.0-20231025133620-f368ab734534/go.mod h1:ZsLfOY6gKQOTyEcPYNA9ws5/XHZQFroxqCOhHjGcs9Y=
 github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 h1:JWH5BB2o0eAeGs0tZnFPpQGx+nMIo/WmxKnj2hnGjgE=
 github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175/go.mod h1:h3S9LBmmzN/xM+lwYZHE4abzTtCTtidKtG+nxZcCZX0=
+github.com/getlantern/radiance v0.0.0-20250428213731-3e3c052d718d h1:RHOBOIFM8uscDtosuDPww5YzpY12xLrwWT/fSIRxnqQ=
+github.com/getlantern/radiance v0.0.0-20250428213731-3e3c052d718d/go.mod h1:tE8R2okLt0DbDDCHkpW3kjdrMxuLvjqFeoScpXZYkWo=
 github.com/getlantern/radiance v0.0.0-20250430104954-4f732ef3767d h1:34GLB7dy5JiYYuahzBQTzNrKa346Yqf9ZJWy5yJ4G7s=
 github.com/getlantern/radiance v0.0.0-20250430104954-4f732ef3767d/go.mod h1:tE8R2okLt0DbDDCHkpW3kjdrMxuLvjqFeoScpXZYkWo=
 github.com/getlantern/radiance v0.0.0-20250430113640-c3a870ffc74a h1:u3Y+Jqg1LXMvtKseTJWJOZh5sB0843i8NBVTFSSjdI8=
