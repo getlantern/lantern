@@ -10,6 +10,7 @@ import "C"
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"runtime"
 	"sync"
 	"unsafe"
@@ -85,6 +86,13 @@ func setup(_logDir, _dataDir *C.char, logPort, appsPort, statusPort C.int64_t, a
 
 		logDir := C.GoString(_logDir)
 		dataDir := C.GoString(_dataDir)
+
+		if err := os.MkdirAll(logDir, 0o755); err != nil {
+			log.Fatalf("unable to create log directory %s: %v", logDir, err)
+		}
+		if err := os.MkdirAll(dataDir, 0o755); err != nil {
+			log.Fatalf("unable to create data directory %s: %v", dataDir, err)
+		}
 
 		r, err := radiance.NewRadiance(client.Options{
 			DataDir:              dataDir,
