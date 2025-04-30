@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 
 class AppStorageUtils {
   static Future<String> getAppLogDirectory() async {
@@ -33,6 +34,11 @@ class AppStorageUtils {
     return logDir.path;
   }
 
+  static Directory getWindowsAppSupportDirectory() {
+    final appData = Platform.environment['APPDATA'];
+    return Directory(p.join(appData!, 'Lantern'));
+  }
+
   static Future<Directory> getAppDirectory() async {
     final Directory appDir;
     if (Platform.isIOS || Platform.isAndroid) {
@@ -42,6 +48,8 @@ class AppStorageUtils {
         baseDir = Directory(path.replaceFirst("/app_flutter", ""));
       }
       appDir = Directory("${baseDir.path}/.lantern");
+    } else if (Platform.isWindows) {
+      appDir = getWindowsAppSupportDirectory();
     } else {
       // Note this is the application support directory *with*
       // the fully qualified name of our app.
