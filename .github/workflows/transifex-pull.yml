@@ -12,23 +12,22 @@ jobs:
     name: pull-strings-from-transifex
     runs-on: ubuntu-latest
     steps:
-
-    - name: Granting private modules access
-      run: |
+      - name: Granting private modules access
+        run: |
           git config --global url."https://${{ secrets.CI_PRIVATE_REPOS_GH_TOKEN }}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
 
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: "Pull translations file"
-      uses: transifex/cli-action@v2
-      with:
-        token: ${{ secrets.TRANSIFEX_TOKEN }}
-        args: pull
+      - name: "Pull translations file"
+        uses: transifex/cli-action@v2
+        with:
+          token: ${{ secrets.TRANSIFEX_TOKEN }}
+          args: pull
 
-    - name: "Update translations"
-      run: |
-        git config user.name git
-        git config user.email github-actions@github.com
-        git ls-files --modified assets/locales | xargs git add
-        git diff --cached --exit-code || git commit -m "updated translations..." && git push origin main
+      - name: "Update translations"
+        run: |
+          git config user.name git
+          git config user.email github-actions@github.com
+          git ls-files --modified assets/locales | xargs git add
+          git diff --cached --exit-code || git commit -m "updated translations..." && git push origin main

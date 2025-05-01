@@ -4,7 +4,6 @@ go 1.24
 
 toolchain go1.24.1
 
-
 //replace github.com/getlantern/radiance => ../radiance
 
 replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v1.11.6-0.20250411173055-d82f542dfd3f
