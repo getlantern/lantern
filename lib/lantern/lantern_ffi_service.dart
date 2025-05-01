@@ -321,7 +321,7 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> startSubscriptionFlow(
+  Future<Either<Failure, Unit>> startInAppPurchaseFlow(
       {required String planId,
       required PaymentSuccessCallback onSuccess,
       required PaymentErrorCallback onError}) {

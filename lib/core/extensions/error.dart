@@ -1,7 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:lantern/core/common/common.dart';
 
-extension ErrorExetension on Exception {
+extension ErrorExetension on Object {
   String get localizedDescription {
     // Check if the error is a PlatformException
     if (this is PlatformException) {
@@ -61,16 +61,17 @@ extension ErrorExetension on Exception {
       return description;
     }
 
+    if (this is StateError) {
+      return (this as StateError).message;
+    }
+
     return "error_occurred".i18n;
   }
-
-
 }
-
 
 extension PurchaseErrorExtension on String {
   String get localizedDescription {
-    if (this=='BillingResponse.itemAlreadyOwned') {
+    if (this == 'BillingResponse.itemAlreadyOwned') {
       return "purchase_already_owned".i18n;
     }
     return this;

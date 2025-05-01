@@ -124,7 +124,7 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> startSubscriptionFlow(
+  Future<Either<Failure, Unit>> startInAppPurchaseFlow(
       {required String planId,
       required PaymentSuccessCallback onSuccess,
       required PaymentErrorCallback onError}) async {
@@ -138,7 +138,7 @@ class LanternPlatformService implements LanternCoreService {
     } catch (e) {
       return Left(Failure(
         error: e.toString(),
-        localizedErrorMessage: (e as Exception).localizedDescription,
+        localizedErrorMessage: e.localizedDescription,
       ));
     }
   }

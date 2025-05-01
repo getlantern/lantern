@@ -29,7 +29,7 @@ abstract class LanternCoreService {
       {required String planId});
 
   /// this is used for google and apple subscription
-  Future<Either<Failure, Unit>> startSubscriptionFlow({
+  Future<Either<Failure, Unit>> startInAppPurchaseFlow({
     required String planId,
     required PaymentSuccessCallback onSuccess,
     required PaymentErrorCallback onError,

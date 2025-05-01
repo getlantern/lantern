@@ -94,7 +94,7 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> startSubscriptionFlow({
+  Future<Either<Failure, Unit>> startInAppPurchaseFlow({
     required String planId,
     required PaymentSuccessCallback onSuccess,
     required PaymentErrorCallback onError,
@@ -102,7 +102,7 @@ class LanternService implements LanternCoreService {
     if (PlatformUtils.isDesktop) {
       throw UnimplementedError();
     }
-    return _platformService.startSubscriptionFlow(
+    return _platformService.startInAppPurchaseFlow(
       planId: planId,
       onSuccess: onSuccess,
       onError: onError,

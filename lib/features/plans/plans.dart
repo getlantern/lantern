@@ -205,7 +205,7 @@ class _PlansState extends ConsumerState<Plans> {
   Future<void> startInAppPurchaseFlow(Plan plan) async {
     context.showLoadingDialog();
     final paymentProvider = ref.read(paymentNotifierProvider.notifier);
-    final result = await paymentProvider.subscribeToPlan(
+    final result = await paymentProvider.startInAppPurchaseFlow(
       planId: plan.id,
       onSuccess: (purchase) {
         /// Subscription successful
@@ -223,9 +223,10 @@ class _PlansState extends ConsumerState<Plans> {
     // Check if got any error while starting subscription flow
     result.fold(
       (error) {
+        context.hideLoadingDialog();
         context.showSnackBarError(error.localizedErrorMessage);
         appLogger.error('Error subscribing to plan: $error');
-        context.hideLoadingDialog();
+
       },
       (success) {
         // Handle success
