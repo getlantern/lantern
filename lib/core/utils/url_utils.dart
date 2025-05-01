@@ -38,8 +38,8 @@ class UrlUtils {
           appRouter
               .push(AppWebview(title: title ?? '', url: url))
               .then((value) {
-            if (value != null) {
-              onBackPressed?.call(value as bool);
+            if (value != null && onBackPressed != null) {
+              onBackPressed.call(value as bool);
             }
           });
           break;
