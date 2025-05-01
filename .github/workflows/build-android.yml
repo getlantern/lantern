@@ -22,6 +22,10 @@ jobs:
         with:
           go-version-file: "go.mod"
 
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
       - name: Install Flutter
         uses: subosito/flutter-action@v2.19.0
         with:
