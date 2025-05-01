@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/utils/jwt_utils.dart';
 import 'package:lantern/features/auth/provider/oauth_notifier.dart';
 
 enum SignUpMethodType { email, google, apple, withoutEmail }
@@ -129,7 +130,19 @@ class _AddEmailState extends ConsumerState<AddEmail> {
         context.hideLoadingDialog();
         appLogger.debug('OAuth URL: $url');
 
-        UrlUtils.openWebview(url, title: type.name);
+        UrlUtils.openWebview<Map<String, dynamic>>(
+          url,
+          title: type.name.capitalize,
+          onWebviewResult: (result) {
+            // User has successfully logged in to google or apple
+            final map = result;
+            final token = map['token'];
+            // Decode the token and get the email
+            final data = JwtToken.decodeToken(token);
+
+
+          },
+        );
       },
     );
   }

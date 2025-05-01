@@ -80,6 +80,15 @@ class AppWebView extends HookWidget {
       final result = uri2.queryParameters['purchaseResult'];
       await appRouter.maybePop(bool.parse(result ?? 'false'));
       return NavigationActionPolicy.CANCEL;
+    } else if (uri?.host == 'www.lantern.io' &&
+        uri?.path == '/auth' &&
+        uri!.queryParameters.containsKey('token')) {
+      appRouter.navigatorKey.currentContext
+          ?.showSnackBarError("Successfully logged in");
+      // User has successfully logged in to google or apple
+      await appRouter.maybePop(uri.queryParameters);
+
+      return NavigationActionPolicy.CANCEL;
     }
     appLogger.debug("shouldOverrideUrlLoading: $uri");
     return NavigationActionPolicy.ALLOW;
