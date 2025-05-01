@@ -255,8 +255,6 @@ windows-debug: windows
 
 .PHONY: windows-release
 windows-release: clean windows pubget gen
-	mkdir "$(WINDOWS_RELEASE_DIR)"
-	copy "$(WINDOWS_LIB_AMD64)" "$(WINDOWS_RELEASE_DIR)"
 	flutter_distributor package --flutter-build-args=verbose --platform windows --targets "exe"
 
 # Android Build
