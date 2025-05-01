@@ -62,6 +62,7 @@ jobs:
           files: |
             lantern-installer-dmg/lantern-installer.dmg
             lantern-installer-exe/lantern-installer.exe
+            lantern-installer-apk/lantern-installer.apk
             lantern-installer-deb/lantern-installer-x64.deb
             lantern-installer-rpm/lantern-installer-x64.rpm
         env:

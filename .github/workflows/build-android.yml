@@ -86,7 +86,7 @@ jobs:
       - name: Build Android release
         run: make android-release
 
-      - name: Upload Android installer
+      - name: Upload Android APK
         uses: actions/upload-artifact@v4
         with:
             name: lantern-installer-apk
