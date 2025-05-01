@@ -1,0 +1,42 @@
+name: Prerelease Notification
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        type: string
+        required: true
+      platform:
+        type: string
+        required: true
+
+jobs:
+  create-release:
+    env:
+      version: ${{ inputs.version }}
+      platform: ${{ inputs.platform }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if release already exists
+        id: exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo EXISTING=$(gh api \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ github.repository }}/releases \
+            | jq -r '.[].tag_name' | grep -c "${{ github.ref_name }}") >> "$GITHUB_OUTPUT"
+
+      - name: Strip repository name of owner
+        if: ${{ steps.exists.outputs.EXISTING < 1 }}
+        id: repo
+        run: |
+          echo "REPO_NAME=$(echo ${{ github.repository }} | sed s/'${{ github.repository_owner }}\/'//g)" >> "$GITHUB_OUTPUT"
+
+      - name: Send Slack message to Releases channel
+        if: ${{ steps.exists.outputs.EXISTING < 1 }}
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{\"repo\": \"${{ steps.repo.outputs.REPO_NAME }}\",\"platform\": \"${{ env.platform }}\", \"version\": \"${{ env.version }}\"}" \
+            ${{ secrets.SLACK_RELEASES_WEBHOOK }}
