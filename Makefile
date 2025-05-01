@@ -31,10 +31,21 @@ LINUX_LIB_AMD64 := $(BIN_DIR)/linux-amd64/$(LANTERN_LIB_NAME).so
 LINUX_LIB_ARM64 := $(BIN_DIR)/linux-arm64/$(LANTERN_LIB_NAME).so
 LINUX_LIB_BUILD := $(BIN_DIR)/linux/$(LINUX_LIB)
 
+ifeq ($(OS),Windows_NT)
+	PATH_SEP := \\
+else
+	PATH_SEP := /
+endif
+
+define join_path
+$(subst /,$(PATH_SEP),$1)
+endef
+
 WINDOWS_LIB := $(LANTERN_LIB_NAME).dll
-WINDOWS_LIB_AMD64 := $(BIN_DIR)/windows-amd64/$(LANTERN_LIB_NAME).dll
-WINDOWS_LIB_ARM64 := $(BIN_DIR)/windows-arm64/$(LANTERN_LIB_NAME).dll
-WINDOWS_LIB_BUILD := $(BIN_DIR)/windows/$(WINDOWS_LIB)
+WINDOWS_LIB_AMD64 := $(call join_path,$(BIN_DIR)/windows-amd64/$(WINDOWS_LIB))
+WINDOWS_LIB_ARM64 := $(call join_path,$(BIN_DIR)/windows-arm64/$(WINDOWS_LIB))
+WINDOWS_LIB_BUILD := $(call join_path,$(BIN_DIR)/windows/$(WINDOWS_LIB))
+WINDOWS_RELEASE_DIR := $(call join_path,$(BUILD_DIR)/windows/x64/runner/Release)
 
 ANDROID_LIB := $(LANTERN_LIB_NAME).aar
 ANDROID_LIBS_DIR := android/app/libs
@@ -95,9 +106,19 @@ require-ac-username: guard-AC_USERNAME ## App Store Connect username - needed fo
 .PHONY: require-ac-password
 require-ac-password: guard-AC_PASSWORD ## App Store Connect password - needed for notarizing macOS apps.
 
-desktop-lib: export CGO_CFLAGS="-I./dart_api_dl/include"
+ifeq ($(OS),Windows_NT)
+  NORMALIZED_CURDIR := $(shell echo $(CURDIR) | sed 's|\\|/|g')
+  SETENV = set CGO_ENABLED=1&& set CGO_CFLAGS=-I$(NORMALIZED_CURDIR)/dart_api_dl/include&&
+else
+  SETENV = CGO_ENABLED=1 CGO_CFLAGS=-I$(CURDIR)/dart_api_dl/include
+endif
+
+.PHONY: desktop-lib
 desktop-lib:
-	CGO_ENABLED=1 go build -v -trimpath -buildmode=c-shared -tags="$(BUILD_TAGS)" -ldflags="-w -s $(EXTRA_LDFLAGS)" -o $(LIB_NAME) ./$(FFI_DIR)
+	$(SETENV) go build -v -trimpath -buildmode=c-shared \
+		-tags="$(BUILD_TAGS)" \
+		-ldflags="-w -s $(EXTRA_LDFLAGS)" \
+		-o $(LIB_NAME) ./$(FFI_DIR)
 
 # macOS Build
 .PHONY: install-macos-deps
@@ -210,24 +231,17 @@ linux-release: clean linux pubget gen
 install-windows-deps:
 	dart pub global activate flutter_distributor
 
-.PHONY: windows-amd64
-windows-amd64: export BUILD_TAGS += walk_use_cgo
-windows-amd64: export CGO_LDFLAGS = -static
-windows-amd64: $(WINDOWS_LIB_AMD64)
-
-$(WINDOWS_LIB_AMD64): $(GO_SOURCES)
-	GOOS=windows GOARCH=amd64 LIB_NAME=$@ make desktop-lib
-
-.PHONY: windows-arm64
-windows-arm64: export BUILD_TAGS += walk_use_cgo
-windows-arm64: export CGO_LDFLAGS = -static
-windows-arm64: $(WINDOWS_LIB_ARM64)
-
-$(WINDOWS_LIB_ARM64): $(GO_SOURCES)
-	GOOS=windows GOARCH=arm64 LIB_NAME=$@ make desktop-lib
-
-.PHONY: windows
 windows: windows-amd64
+
+windows-amd64: WINDOWS_GOOS := windows
+windows-amd64: WINDOWS_GOARCH := amd64
+windows-amd64:
+	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_AMD64)
+
+windows-arm64: WINDOWS_GOOS := windows
+windows-arm64: WINDOWS_GOARCH := arm64
+windows-arm64:
+	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_ARM64)
 
 .PHONY: windows-debug
 windows-debug: windows
@@ -235,9 +249,10 @@ windows-debug: windows
 	flutter build windows --debug
 
 .PHONY: windows-release
-windows-release: clean windows
-	@echo "Building Flutter app (debug) for Windows..."
-	flutter_distributor package --flutter-build-args=verbose --platform windows --targets "msix,exe"
+windows-release: clean windows pubget gen
+	mkdir "$(WINDOWS_RELEASE_DIR)"
+	copy "$(WINDOWS_LIB_AMD64)" "$(WINDOWS_RELEASE_DIR)"
+	flutter_distributor package --flutter-build-args=verbose --platform windows --targets "exe"
 
 # Android Build
 .PHONY: install-android-deps
