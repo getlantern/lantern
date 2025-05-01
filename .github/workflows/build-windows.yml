@@ -46,21 +46,6 @@ jobs:
           run: |
             flutter config --enable-windows-desktop
 
-        # - name: Sign liblantern.dll with Azure Code Signing
-        #   uses: getlantern/trusted-signing-action@main
-        #   with:
-        #     azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        #     azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        #     azure-client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
-        #     endpoint: https://wus2.codesigning.azure.net/
-        #     code-signing-account-name: code-signing
-        #     certificate-profile-name: Lantern
-        #     files-folder: ${{ github.workspace }}\build
-        #     files-folder-filter: dll
-        #     file-digest: SHA256
-        #     timestamp-rfc3161: http://timestamp.acs.microsoft.com
-        #     timestamp-digest: SHA256
-
         - name: Decode APP_ENV
           uses: timheuer/base64-to-file@v1.2
           with:

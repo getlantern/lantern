@@ -52,9 +52,11 @@ ANDROID_LIBS_DIR := android/app/libs
 ANDROID_LIB_BUILD := $(BIN_DIR)/android/$(ANDROID_LIB)
 ANDROID_LIB_PATH := android/app/libs/$(LANTERN_LIB_NAME).aar
 ANDROID_DEBUG_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-debug.apk
-ANDROID_RELEASE_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-release.apk
+ANDROID_APK_RELEASE_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-release.apk
+ANDROID_AAB_RELEASE_BUILD := $(BUILD_DIR)/app/outputs/bundle/release/app-release.aab
 ANDROID_TARGET_PLATFORMS := android-arm,android-arm64,android-x64
 ANDROID_RELEASE_APK := $(INSTALLER_NAME).apk
+ANDROID_RELEASE_AAB := $(INSTALLER_NAME).aab
 
 IOS_FRAMEWORK := Liblantern.xcframework
 IOS_FRAMEWORK_DIR := ios/Frameworks
@@ -275,12 +277,18 @@ android-debug: $(ANDROID_DEBUG_BUILD)
 $(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD)
 	flutter build apk --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --debug
 
-.PHONY: android-release
-android-release: $(ANDROID_RELEASE_BUILD)
-	cp $(ANDROID_RELEASE_BUILD) $(ANDROID_RELEASE_APK)
-
-$(ANDROID_RELEASE_BUILD): $(ANDROID_LIB_BUILD)
+.PHONY: android-apk-release
+android-apk-release:
 	flutter build apk --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --release
+	cp $(ANDROID_APK_RELEASE_BUILD) $(ANDROID_RELEASE_APK)
+
+.PHONY: android-aab-release
+android-aab-release:
+	flutter build appbundle --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --release
+	cp $(ANDROID_AAB_RELEASE_BUILD) $(ANDROID_RELEASE_AAB)
+
+.PHONY: android-release
+android-release: android-apk-release android-aab-release
 
 build-android: check-gomobile
 	@echo "Building Android libraries..."
@@ -299,10 +307,23 @@ build-android: check-gomobile
 	@echo "Built Android library: $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)"
 
 # iOS Build
+.PHONY: install-ios-deps
+
+install-ios-deps:
+	npm install -g appdmg
+	dart pub global activate flutter_distributor
+
 .PHONY: ios
 ios: $(IOS_FRAMEWORK_BUILD)
 
+.PHONY: ios
+ios: check-gomobile $(IOS_FRAMEWORK_BUILD)
+
 $(IOS_FRAMEWORK_BUILD): $(GO_SOURCES)
+	$(MAKE) build-ios
+
+build-ios:
+	@echo "Building iOS Framework.."
 	rm -rf $(IOS_FRAMEWORK_BUILD)
 	rm -rf $(IOS_FRAMEWORK_DIR) && mkdir -p $(IOS_FRAMEWORK_DIR)
 	GOOS=ios gomobile bind -v \
@@ -317,6 +338,12 @@ $(IOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 .PHONY: swift-format
 swift-format:
 	swift-format format --in-place --recursive ios/Runner macos/Runner
+
+ios-release: clean pubget
+	flutter build ipa --flavor prod --release --export-options-plist ./ExportOptions.plist
+	@IPA_PATH=$(shell pwd)/build/ios/ipa; \
+	echo "iOS IPA generated under: $$IPA_PATH"; \
+	open "$$IPA_PATH"
 
 # Dart API DL bridge
 DART_SDK_REPO=https://github.com/dart-lang/sdk

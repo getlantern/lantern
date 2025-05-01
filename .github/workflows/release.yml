@@ -1,16 +1,10 @@
 
-name: Build All Platforms
+name: Build and Release All Platforms
 
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: "Version tag to build"
-        required: true
-        default: "9999.99.99"
   push:
-    branches: [main]
-  pull_request:
+    tags:
+      - 'v*.*.*'
 
 jobs:
   set-version:
@@ -19,30 +13,11 @@ jobs:
       version: ${{ steps.set.outputs.version }}
     steps:
       - id: set
-        run: |
-          if [[ -z "${{ github.event.inputs.version }}" ]]; then
-            echo "version=9999.99.99" >> $GITHUB_OUTPUT
-          else
-            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
-          fi
+        run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
 
   build-macos:
     needs: set-version
     uses: ./.github/workflows/build-macos.yml
-    secrets: inherit
-    with:
-      version: ${{ needs.set-version.outputs.version }}
-    
-  build-android:
-    needs: set-version
-    uses: ./.github/workflows/build-android.yml
-    secrets: inherit
-    with:
-      version: ${{ needs.set-version.outputs.version }}
-    
-  build-linux:
-    needs: set-version
-    uses: ./.github/workflows/build-linux.yml
     secrets: inherit
     with:
       version: ${{ needs.set-version.outputs.version }}
@@ -53,3 +28,39 @@ jobs:
     secrets: inherit
     with:
       version: ${{ needs.set-version.outputs.version }}
+
+  build-linux:
+    needs: set-version
+    uses: ./.github/workflows/build-linux.yml
+    secrets: inherit
+    with:
+      version: ${{ needs.set-version.outputs.version }}
+
+  build-android:
+    needs: set-version
+    uses: ./.github/workflows/build-android.yml
+    secrets: inherit
+    with:
+      version: ${{ needs.set-version.outputs.version }}
+
+  release:
+    needs: [build-macos, build-windows, build-linux, build-android]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "Lantern ${{ github.ref_name }}"
+          files: |
+            lantern-installer-dmg/lantern-installer.dmg
+            lantern-installer-exe/lantern-installer.exe
+            lantern-installer-deb/lantern-installer-x64.deb
+            lantern-installer-rpm/lantern-installer-x64.rpm
+            lantern-installer-apk/lantern-installer.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

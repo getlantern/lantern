@@ -33,5 +33,14 @@ jobs:
       - name: Install dependencies
         run: go mod download
 
+      - name: Run gofmt
+        run: |
+          UNFORMATTED=$(gofmt -l .)
+          if [[ -n "$UNFORMATTED" ]]; then
+            echo "Files not formatted:"
+            echo "$UNFORMATTED"
+            exit 1
+          fi
+
       - name: Run tests
         run: CGO_ENABLED=1 go test -v ./...
