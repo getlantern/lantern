@@ -17,6 +17,9 @@ jobs:
       - id: meta
         run: |
           tag=${GITHUB_REF#refs/tags/}
+          base_version=$(echo "$tag" | sed -E 's/^v([0-9]+\.[0-9]+\.[0-9]+).*$/\1/')
+          echo "version=$base_version" >> $GITHUB_OUTPUT
+
           if [[ "$tag" == *"-beta" ]]; then
             echo "build_type=beta" >> $GITHUB_OUTPUT
           elif [[ "$tag" == *"-internal" ]]; then
@@ -24,8 +27,7 @@ jobs:
           else
             echo "build_type=production" >> $GITHUB_OUTPUT
           fi
-          version=$tag
-          echo "version=$version" >> $GITHUB_OUTPUT
+
           if [[ "$tag" == *"-beta" || "$tag" == *"-internal" ]]; then
             echo "installer_name=lantern-installer-${tag##*-}" >> $GITHUB_OUTPUT
           else
