@@ -1,6 +1,8 @@
 module github.com/getlantern/lantern-outline
 
-go 1.24.2
+go 1.24
+
+toolchain go1.24.1
 
 //replace github.com/getlantern/radiance => ../radiance
 
@@ -8,7 +10,7 @@ replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v
 
 require (
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
-	github.com/getlantern/radiance v0.0.0-20250423195020-15a2b0ac0901
+	github.com/getlantern/radiance v0.0.0-20250501190808-2afa0daa2150
 	github.com/sagernet/sing-box v1.11.5
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/mobile v0.0.0-20250305212854-3a7bc9f8a4de
@@ -99,7 +101,7 @@ require (
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
 	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394 // indirect
 	golang.org/x/mod v0.24.0 // indirect
-	golang.org/x/net v0.37.0 // indirect
+	golang.org/x/net v0.38.0 // indirect
 	golang.org/x/sync v0.12.0 // indirect
 	golang.org/x/text v0.23.0 // indirect
 	golang.org/x/time v0.11.0 // indirect
@@ -114,6 +116,7 @@ require (
 require (
 	dario.cat/mergo v1.0.1 // indirect
 	github.com/Jigsaw-Code/outline-sdk/x v0.0.2 // indirect
+	github.com/Xuanwo/go-locale v1.1.3 // indirect
 	github.com/alitto/pond/v2 v2.1.5 // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/cretz/bine v0.2.0 // indirect
@@ -121,15 +124,15 @@ require (
 	github.com/getlantern/algeneva v0.0.0-20250307163401-1824e7b54f52 // indirect
 	github.com/getlantern/appdir v0.0.0-20250324200952-507a0625eb01 // indirect
 	github.com/getlantern/byteexec v0.0.0-20220903142956-e6ed20032cfd // indirect
-	github.com/getlantern/common v1.2.1-0.20250404213255-37d58e3e0fae // indirect
+	github.com/getlantern/common v1.2.1-0.20250428204107-678e5e36cbbf // indirect
 	github.com/getlantern/elevate v0.0.0-20220903142053-479ab992b264 // indirect
 	github.com/getlantern/filepersist v0.0.0-20210901195658-ed29a1cb0b7c // indirect
-	github.com/getlantern/fronted v0.0.0-20250330001402-75899df1c2cd // indirect
+	github.com/getlantern/fronted v0.0.0-20250501185902-0f6c04a1b15d // indirect
 	github.com/getlantern/iptool v0.0.0-20230112135223-c00e863b2696 // indirect
 	github.com/getlantern/jibber_jabber v0.0.0-20210901195950-68955124cc42 // indirect
 	github.com/getlantern/keepcurrent v0.0.0-20240126172110-2e0264ca385d // indirect
 	github.com/getlantern/keyman v0.0.0-20230503155501-4e864ca2175b // indirect
-	github.com/getlantern/kindling v0.0.0-20250401200447-f536cbd057e6 // indirect
+	github.com/getlantern/kindling v0.0.0-20250501190705-a18e51da1a62 // indirect
 	github.com/getlantern/mtime v0.0.0-20200417132445-23682092d1f7 // indirect
 	github.com/getlantern/netx v0.0.0-20240830183145-c257516187f0 // indirect
 	github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 // indirect
@@ -144,7 +147,7 @@ require (
 	github.com/mholt/archiver/v3 v3.5.1 // indirect
 	github.com/nwaples/rardecode v1.1.0 // indirect
 	github.com/nxadm/tail v1.4.11 // indirect
-	github.com/refraction-networking/utls v1.6.7 // indirect
+	github.com/refraction-networking/utls v1.7.1 // indirect
 	github.com/sagernet/sing v0.6.6-0.20250406121928-926a5a1e8bb7 // indirect
 	github.com/sagernet/sing-tun v0.6.1 // indirect
 	github.com/shadowsocks/go-shadowsocks2 v0.1.5 // indirect
@@ -160,4 +163,5 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.35.0 // indirect
 	golang.org/x/crypto v0.36.0 // indirect
 	golang.org/x/sys v0.31.0 // indirect
+	golang.zx2c4.com/wireguard/wgctrl v0.0.0-20241231184526-a9ab2273dd10 // indirect
 )
