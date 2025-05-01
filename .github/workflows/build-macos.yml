@@ -6,6 +6,12 @@ on:
       version:
         required: true
         type: string
+      build_type:
+        required: true
+        type: string
+      installer_name:
+        required: true
+        type: string
 
 jobs:
   build-macos:
@@ -15,6 +21,7 @@ jobs:
     env:
         AC_USERNAME: ${{ secrets.AC_USERNAME }}
         AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
+        BUILD_TYPE: ${{ inputs.build_type || '' }}
     runs-on: macos-15
     steps:
       - name: Checkout code
@@ -77,6 +84,6 @@ jobs:
       - name: Upload macOS installer
         uses: actions/upload-artifact@v4
         with:
-            name: lantern-installer-dmg
-            path: lantern-installer.dmg
-            retention-days: 2
+          name: lantern-installer-dmg
+          path: ${{ inputs.installer_name }}.dmg
+          retention-days: 2

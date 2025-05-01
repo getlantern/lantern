@@ -6,6 +6,12 @@ on:
       version:
         required: true
         type: string
+      build_type:
+        required: true
+        type: string
+      installer_name:
+        required: true
+        type: string
 
 jobs:
   build-linux:
@@ -73,12 +79,12 @@ jobs:
           uses: actions/upload-artifact@v4
           with:
             name: lantern-installer-rpm
-            path: lantern-installer-x64.rpm
+            path: ${{ inputs.installer_name }}-x64.rpm
             retention-days: 2
 
         - name: Upload Linux build
           uses: actions/upload-artifact@v4
           with:
             name: lantern-installer-deb
-            path: lantern-installer-x64.deb
+            path: ${{ inputs.installer_name }}-x64.deb
             retention-days: 2

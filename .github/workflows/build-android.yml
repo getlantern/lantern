@@ -6,6 +6,12 @@ on:
       version:
         required: true
         type: string
+      build_type:
+        required: true
+        type: string
+      installer_name:
+        required: true
+        type: string
 
 jobs:
   build-android:
@@ -85,10 +91,12 @@ jobs:
 
       - name: Build Android release
         run: make android-release
+        env:
+          BUILD_TYPE: ${{ inputs.build_type }}
 
       - name: Upload Android APK
         uses: actions/upload-artifact@v4
         with:
             name: lantern-installer-apk
-            path: lantern-installer.apk
+            path: ${{ inputs.installer_name }}.apk
             retention-days: 2

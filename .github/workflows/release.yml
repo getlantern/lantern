@@ -7,48 +7,73 @@ on:
       - 'v*.*.*'
 
 jobs:
-  set-version:
+  set-release-metadata:
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.set.outputs.version }}
+      build_type: ${{ steps.meta.outputs.build_type }}
+      version: ${{ steps.meta.outputs.version }}
+      installer_name: ${{ steps.meta.outputs.installer_name }}
     steps:
-      - id: set
+      - id: meta
         run: |
-          RAW_TAG=${GITHUB_REF#refs/tags/}
-          VERSION=${RAW_TAG#v}
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          tag=${GITHUB_REF#refs/tags/}
+          if [[ "$tag" == *"-beta" ]]; then
+            echo "build_type=beta" >> $GITHUB_OUTPUT
+          elif [[ "$tag" == *"-internal" ]]; then
+            echo "build_type=internal" >> $GITHUB_OUTPUT
+          else
+            echo "build_type=production" >> $GITHUB_OUTPUT
+          fi
+          version=$tag
+          echo "version=$version" >> $GITHUB_OUTPUT
+          if [[ "$tag" == *"-beta" || "$tag" == *"-internal" ]]; then
+            echo "installer_name=lantern-installer-${tag##*-}" >> $GITHUB_OUTPUT
+          else
+            echo "installer_name=lantern-installer" >> $GITHUB_OUTPUT
+          fi
 
   build-macos:
-    needs: set-version
+    needs: set-release-metadata
     uses: ./.github/workflows/build-macos.yml
     secrets: inherit
     with:
-      version: ${{ needs.set-version.outputs.version }}
+      version: ${{ needs.set-release-metadata.outputs.version }}
+      build_type: ${{ needs.set-release-metadata.outputs.build_type }}
+      installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
 
   build-windows:
-    needs: set-version
+    needs: set-release-metadata
     uses: ./.github/workflows/build-windows.yml
     secrets: inherit
     with:
-      version: ${{ needs.set-version.outputs.version }}
+      version: ${{ needs.set-release-metadata.outputs.version }}
+      build_type: ${{ needs.set-release-metadata.outputs.build_type }}
+      installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
 
   build-linux:
-    needs: set-version
+    needs: set-release-metadata
     uses: ./.github/workflows/build-linux.yml
     secrets: inherit
     with:
-      version: ${{ needs.set-version.outputs.version }}
+      version: ${{ needs.set-release-metadata.outputs.version }}
+      build_type: ${{ needs.set-release-metadata.outputs.build_type }}
+      installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
 
   build-android:
-    needs: set-version
+    needs: set-release-metadata
     uses: ./.github/workflows/build-android.yml
     secrets: inherit
     with:
-      version: ${{ needs.set-version.outputs.version }}
+      version: ${{ needs.set-release-metadata.outputs.version }}
+      build_type: ${{ needs.set-release-metadata.outputs.build_type }}
+      installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
 
   release:
-    needs: [build-macos, build-linux, build-windows, build-android]
+    needs: [build-macos, build-linux, build-windows, build-android, set-release-metadata]
     runs-on: ubuntu-latest
+    env:
+      BUILD_TYPE: ${{ needs.set-release-metadata.outputs.build_type }}
+      INSTALLER_NAME: ${{ needs.set-release-metadata.outputs.build_type != 'production' && format('lantern-installer-{0}', needs.set-release-metadata.outputs.build_type) || 'lantern-installer' }}
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -57,23 +82,23 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          name: "Lantern ${{ github.ref_name }}"
+          name: "Lantern ${{ env.BUILD_TYPE }} ${{ github.ref_name }}"
           generate_release_notes: true
           files: |
-            lantern-installer-dmg/lantern-installer.dmg
-            lantern-installer-exe/lantern-installer.exe
-            lantern-installer-apk/lantern-installer.apk
-            lantern-installer-deb/lantern-installer-x64.deb
-            lantern-installer-rpm/lantern-installer-x64.rpm
+            lantern-installer-dmg/${{ env.INSTALLER_NAME }}.dmg
+            lantern-installer-exe/${{ env.INSTALLER_NAME }}.exe
+            lantern-installer-apk/${{ env.INSTALLER_NAME }}.apk
+            lantern-installer-deb/${{ env.INSTALLER_NAME }}-x64.deb
+            lantern-installer-rpm/${{ env.INSTALLER_NAME }}-x64.rpm
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # - name: Notify Slack
-      #   uses: slackapi/slack-github-action@v2.0.0
-      #   with:
-      #     payload: |
-      #       {
-      #         "text": "Lantern `${{ github.ref_name }}` released on GitHub: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
-      #       }
-      #   env:
-      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      - name: Notify Slack
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          payload: |
+            {
+              "text": "Lantern ${{ needs.set-release-metadata.outputs.version }} released on GitHub: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

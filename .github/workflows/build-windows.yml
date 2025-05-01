@@ -6,6 +6,12 @@ on:
       version:
         required: true
         type: string
+      build_type:
+        required: true
+        type: string
+      installer_name:
+        required: true
+        type: string
 
 jobs:
   build-windows:
@@ -79,7 +85,7 @@ jobs:
             dart pub global activate flutter_distributor
             make windows-release
             flutter_distributor package --flutter-build-args=verbose --platform windows --targets "msix,exe" --skip-clean
-            mv "dist/${{ env.APP_VERSION }}/lantern-${{ env.APP_VERSION }}-windows-setup.exe" lantern-installer.exe
+            mv "dist/${{ env.APP_VERSION }}/lantern-${{ env.APP_VERSION }}-windows-setup.exe" ${{ inputs.installer_name }}.exe
 
         - name: Sign EXE with Azure Code Signing
           uses: getlantern/trusted-signing-action@main
@@ -100,5 +106,5 @@ jobs:
           uses: actions/upload-artifact@v4
           with:
               name: lantern-installer-exe
-              path: lantern-installer.exe
+              path: ${{ inputs.installer_name }}.exe
               retention-days: 2
