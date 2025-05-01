@@ -10,8 +10,8 @@ on:
 jobs:
   build-ios:
     permissions:
-        contents: "read"
-        id-token: "write"
+      contents: "read"
+      id-token: "write"
     runs-on: macos-15
     steps:
       - name: Checkout code
@@ -31,7 +31,7 @@ jobs:
       - name: Decode APP_ENV
         uses: timheuer/base64-to-file@v1.2
         with:
-          fileName: 'app.env'
+          fileName: "app.env"
           fileDir: ${{ github.workspace }}
           encodedString: ${{ secrets.APP_ENV }}
 
