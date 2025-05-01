@@ -271,6 +271,22 @@ android: check-gomobile $(ANDROID_LIB_BUILD)
 $(ANDROID_LIB_BUILD): $(GO_SOURCES)
 	$(MAKE) build-android
 
+build-android: check-gomobile
+	@echo "Building Android libraries..."
+	rm -rf $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)
+	mkdir -p $(dir $(ANDROID_LIB_BUILD)) $(ANDROID_LIBS_DIR)
+
+	GOOS=android gomobile bind -v \
+		-androidapi=23 \
+		-javapkg=lantern.io \
+		-tags=$(TAGS) -trimpath \
+		-o=$(ANDROID_LIB_BUILD) \
+		-ldflags="-checklinkname=0" \
+		$(GOMOBILE_REPOS)
+
+	cp $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)
+	@echo "Built Android library: $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)"
+
 .PHONY: android-debug
 android-debug: $(ANDROID_DEBUG_BUILD)
 
@@ -288,23 +304,7 @@ android-aab-release:
 	cp $(ANDROID_AAB_RELEASE_BUILD) $(ANDROID_RELEASE_AAB)
 
 .PHONY: android-release
-android-release: android-apk-release android-aab-release
-
-build-android: check-gomobile
-	@echo "Building Android libraries..."
-	rm -rf $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)
-	mkdir -p $(dir $(ANDROID_LIB_BUILD)) $(ANDROID_LIBS_DIR)
-
-	GOOS=android gomobile bind -v \
-		-androidapi=23 \
-		-javapkg=lantern.io \
-		-tags=$(TAGS) -trimpath \
-		-o=$(ANDROID_LIB_BUILD) \
-		-ldflags="-checklinkname=0" \
-		$(GOMOBILE_REPOS)
-
-	cp $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)
-	@echo "Built Android library: $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)"
+android-release: clean android pubget gen android-apk-release
 
 # iOS Build
 .PHONY: install-ios-deps

@@ -25,12 +25,12 @@ jobs:
     with:
       version: ${{ needs.set-version.outputs.version }}
 
-  # build-windows:
-  #   needs: set-version
-  #   uses: ./.github/workflows/build-windows.yml
-  #   secrets: inherit
-  #   with:
-  #     version: ${{ needs.set-version.outputs.version }}
+  build-windows:
+    needs: set-version
+    uses: ./.github/workflows/build-windows.yml
+    secrets: inherit
+    with:
+      version: ${{ needs.set-version.outputs.version }}
 
   build-linux:
     needs: set-version
@@ -39,15 +39,15 @@ jobs:
     with:
       version: ${{ needs.set-version.outputs.version }}
 
-  # build-android:
-  #   needs: set-version
-  #   uses: ./.github/workflows/build-android.yml
-  #   secrets: inherit
-  #   with:
-  #     version: ${{ needs.set-version.outputs.version }}
+  build-android:
+    needs: set-version
+    uses: ./.github/workflows/build-android.yml
+    secrets: inherit
+    with:
+      version: ${{ needs.set-version.outputs.version }}
 
   release:
-    needs: [build-macos, build-linux]
+    needs: [build-macos, build-linux, build-windows, build-android]
     runs-on: ubuntu-latest
     steps:
       - name: Download all artifacts
@@ -61,6 +61,7 @@ jobs:
           generate_release_notes: true
           files: |
             lantern-installer-dmg/lantern-installer.dmg
+            lantern-installer-exe/lantern-installer.exe
             lantern-installer-deb/lantern-installer-x64.deb
             lantern-installer-rpm/lantern-installer-x64.rpm
         env:
