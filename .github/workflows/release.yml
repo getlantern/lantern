@@ -13,7 +13,10 @@ jobs:
       version: ${{ steps.set.outputs.version }}
     steps:
       - id: set
-        run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        run: |
+          RAW_TAG=${GITHUB_REF#refs/tags/}
+          VERSION=${RAW_TAG#v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
   build-macos:
     needs: set-version
