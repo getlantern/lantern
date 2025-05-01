@@ -81,7 +81,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       BUILD_TYPE: ${{ needs.set-release-metadata.outputs.build_type }}
-      INSTALLER_NAME: ${{ needs.set-release-metadata.outputs.build_type != 'production' && format('lantern-installer-{0}', needs.set-release-metadata.outputs.build_type) || 'lantern-installer' }}
+      INSTALLER_NAME: ${{ needs.set-release-metadata.outputs.installer_name }}
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
