@@ -16,8 +16,8 @@ on:
 jobs:
   build-android:
     permissions:
-        contents: "read"
-        id-token: "write"
+      contents: "read"
+      id-token: "write"
     runs-on: macos-15
     steps:
       - name: Checkout code
@@ -41,7 +41,7 @@ jobs:
       - name: Decode APP_ENV
         uses: timheuer/base64-to-file@v1.2
         with:
-          fileName: 'app.env'
+          fileName: "app.env"
           fileDir: ${{ github.workspace }}
           encodedString: ${{ secrets.APP_ENV }}
 
@@ -55,7 +55,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-          cache: 'gradle'
+          cache: "gradle"
 
       - name: Set gradle properties
         env:
@@ -69,22 +69,22 @@ jobs:
         id: write_file
         uses: timheuer/base64-to-file@v1.2
         with:
-          fileName: 'keystore.release.jks'
-          fileDir: './android/app'
+          fileName: "keystore.release.jks"
+          fileDir: "./android/app"
           encodedString: ${{ secrets.KEYSTORE }}
 
       - name: Update app version in pubspec.yaml
         shell: bash
         env:
-            RUN_NUMBER: ${{ github.run_number }}
+          RUN_NUMBER: ${{ github.run_number }}
         run: |
-            NEW_VERSION="${{ inputs.version }}+${RUN_NUMBER}"
-            echo "Updating pubspec.yaml to version: $NEW_VERSION"
-            sed -i.bak -E "s/^version: .*/version: $NEW_VERSION/" pubspec.yaml
-            rm -f pubspec.yaml.bak
-            cat pubspec.yaml
-            APP_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //')
-            echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
+          NEW_VERSION="${{ inputs.version }}+${RUN_NUMBER}"
+          echo "Updating pubspec.yaml to version: $NEW_VERSION"
+          sed -i.bak -E "s/^version: .*/version: $NEW_VERSION/" pubspec.yaml
+          rm -f pubspec.yaml.bak
+          cat pubspec.yaml
+          APP_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //')
+          echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
 
       - name: Install dependencies
         run: make install-android-deps
@@ -97,6 +97,6 @@ jobs:
       - name: Upload Android APK
         uses: actions/upload-artifact@v4
         with:
-            name: lantern-installer-apk
-            path: ${{ inputs.installer_name }}.apk
-            retention-days: 2
+          name: lantern-installer-apk
+          path: ${{ inputs.installer_name }}.apk
+          retention-days: 2

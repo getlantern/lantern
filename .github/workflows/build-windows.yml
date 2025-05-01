@@ -15,96 +15,96 @@ on:
 
 jobs:
   build-windows:
+    env:
+      AC_USERNAME: ${{ secrets.AC_USERNAME }}
+      AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
+      BUILD_TYPE: ${{ inputs.build_type || '' }}
     permissions:
       contents: "read"
       id-token: "write"
-    env:
-      version: 9999.99.99-dev
-
     runs-on: windows-latest
-
     steps:
-        - name: Checkout repository
-          uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-        - name: Set up Go
-          uses: actions/setup-go@v5
-          with:
-            go-version-file: "go.mod"
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: "go.mod"
 
-        - name: Install WebView2 Runtime
-          shell: pwsh
-          run: |
-            Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/p/?LinkId=2124703" -OutFile "MicrosoftEdgeWebView2Setup.exe"
-            Start-Process -FilePath ".\MicrosoftEdgeWebView2Setup.exe" -ArgumentList "/silent", "/install" -Wait
+      - name: Install WebView2 Runtime
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/p/?LinkId=2124703" -OutFile "MicrosoftEdgeWebView2Setup.exe"
+          Start-Process -FilePath ".\MicrosoftEdgeWebView2Setup.exe" -ArgumentList "/silent", "/install" -Wait
 
-        - name: Set up MinGW
-          run: choco install mingw -y
+      - name: Set up MinGW
+        run: choco install mingw -y
 
-        - name: Install Flutter
-          uses: subosito/flutter-action@v2.19.0
-          with:
-            channel: stable
-            flutter-version: 3.29.0
-            #flutter-version-file: pubspec.yaml
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2.19.0
+        with:
+          channel: stable
+          flutter-version: 3.29.0
+          #flutter-version-file: pubspec.yaml
 
-        - name: Enable Flutter Desktop Support
-          run: |
-            flutter config --enable-windows-desktop
+      - name: Enable Flutter Desktop Support
+        run: |
+          flutter config --enable-windows-desktop
 
-        - name: Decode APP_ENV
-          uses: timheuer/base64-to-file@v1.2
-          with:
-            fileName: 'app.env'
-            fileDir: ${{ github.workspace }}
-            encodedString: ${{ secrets.APP_ENV }}
+      - name: Decode APP_ENV
+        uses: timheuer/base64-to-file@v1.2
+        with:
+          fileName: "app.env"
+          fileDir: ${{ github.workspace }}
+          encodedString: ${{ secrets.APP_ENV }}
 
-        - name: Cache Dart pub global cache
-          uses: actions/cache@v4
-          with:
-            path: ~/.pub-cache
-            key: ${{ runner.os }}-dart-pub-cache-${{ hashFiles('**/pubspec.lock') }}
-            restore-keys: |
-              ${{ runner.os }}-dart-pub-cache-
+      - name: Cache Dart pub global cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-dart-pub-cache-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-dart-pub-cache-
 
-        - name: Update app version in pubspec.yaml
-          shell: bash
-          env:
-            RUN_NUMBER: ${{ github.run_number }}
-          run: |
-            NEW_VERSION="${{ env.version }}+${RUN_NUMBER}"
-            echo "Updating pubspec.yaml to version: $NEW_VERSION"
-            sed -i.bak -E "s/^version: .*/version: $NEW_VERSION/" pubspec.yaml
-            cat pubspec.yaml
-            APP_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //')
-            echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
+      - name: Update app version in pubspec.yaml
+        shell: bash
+        env:
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          NEW_VERSION="${{ env.version }}+${RUN_NUMBER}"
+          echo "Updating pubspec.yaml to version: $NEW_VERSION"
+          sed -i.bak -E "s/^version: .*/version: $NEW_VERSION/" pubspec.yaml
+          cat pubspec.yaml
+          APP_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //')
+          echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
 
-        - name: Build Windows release
-          shell: pwsh
-          run: |
-            dart pub global activate flutter_distributor
-            make windows-release
-            flutter_distributor package --flutter-build-args=verbose --platform windows --targets "msix,exe" --skip-clean
-            mv "dist/${{ env.APP_VERSION }}/lantern-${{ env.APP_VERSION }}-windows-setup.exe" ${{ inputs.installer_name }}.exe
+      - name: Build Windows release
+        shell: pwsh
+        run: |
+          dart pub global activate flutter_distributor
+          make windows-release
+          flutter_distributor package --flutter-build-args=verbose --platform windows --targets "msix,exe" --skip-clean
+          mv "dist/${{ env.APP_VERSION }}/lantern-${{ env.APP_VERSION }}-windows-setup.exe" ${{ inputs.installer_name }}.exe
 
-        - name: Sign EXE with Azure Code Signing
-          uses: getlantern/trusted-signing-action@main
-          with:
-            azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-            azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
-            azure-client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
-            endpoint: https://wus2.codesigning.azure.net/
-            code-signing-account-name: code-signing
-            certificate-profile-name: Lantern
-            files-folder: ${{ github.workspace }}/
-            files-folder-filter: exe,dll,msix
-            file-digest: SHA256
-            timestamp-rfc3161: http://timestamp.acs.microsoft.com
-            timestamp-digest: SHA256
+      - name: Sign EXE with Azure Code Signing
+        uses: getlantern/trusted-signing-action@main
+        with:
+          azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure-client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+          endpoint: https://wus2.codesigning.azure.net/
+          code-signing-account-name: code-signing
+          certificate-profile-name: Lantern
+          files-folder: ${{ github.workspace }}/
+          files-folder-filter: exe,dll,msix
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
 
-        - name: Upload Windows installer
-          uses: actions/upload-artifact@v4
-          with:
-              name: lantern-installer-exe
-              path: ${{ inputs.installer_name }}.exe
-              retention-days: 2
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: lantern-installer-exe
+          path: ${{ inputs.installer_name }}.exe
+          retention-days: 2

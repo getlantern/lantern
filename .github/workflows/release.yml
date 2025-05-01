@@ -1,10 +1,9 @@
-
 name: Build and Release All Platforms
 
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
 
 jobs:
   set-release-metadata:
@@ -71,7 +70,14 @@ jobs:
       installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
 
   release:
-    needs: [build-macos, build-linux, build-windows, build-android, set-release-metadata]
+    needs:
+      [
+        build-macos,
+        build-linux,
+        build-windows,
+        build-android,
+        set-release-metadata,
+      ]
     runs-on: ubuntu-latest
     env:
       BUILD_TYPE: ${{ needs.set-release-metadata.outputs.build_type }}
@@ -90,17 +96,17 @@ jobs:
             lantern-installer-dmg/${{ env.INSTALLER_NAME }}.dmg
             lantern-installer-exe/${{ env.INSTALLER_NAME }}.exe
             lantern-installer-apk/${{ env.INSTALLER_NAME }}.apk
-            lantern-installer-deb/${{ env.INSTALLER_NAME }}-x64.deb
-            lantern-installer-rpm/${{ env.INSTALLER_NAME }}-x64.rpm
+            lantern-installer-deb/${{ env.INSTALLER_NAME }}.deb
+            lantern-installer-rpm/${{ env.INSTALLER_NAME }}.rpm
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Notify Slack
         uses: slackapi/slack-github-action@v2.0.0
         with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: webhook-trigger
           payload: |
             {
-              "text": "Lantern ${{ needs.set-release-metadata.outputs.version }} released on GitHub: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
+              "text": "Lantern ${{ env.BUILD_TYPE }} ${{ needs.set-release-metadata.outputs.version }} released on GitHub: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
             }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
