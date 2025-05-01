@@ -25,12 +25,12 @@ jobs:
     with:
       version: ${{ needs.set-version.outputs.version }}
 
-  build-windows:
-    needs: set-version
-    uses: ./.github/workflows/build-windows.yml
-    secrets: inherit
-    with:
-      version: ${{ needs.set-version.outputs.version }}
+  # build-windows:
+  #   needs: set-version
+  #   uses: ./.github/workflows/build-windows.yml
+  #   secrets: inherit
+  #   with:
+  #     version: ${{ needs.set-version.outputs.version }}
 
   build-linux:
     needs: set-version
@@ -39,31 +39,39 @@ jobs:
     with:
       version: ${{ needs.set-version.outputs.version }}
 
-  build-android:
-    needs: set-version
-    uses: ./.github/workflows/build-android.yml
-    secrets: inherit
-    with:
-      version: ${{ needs.set-version.outputs.version }}
+  # build-android:
+  #   needs: set-version
+  #   uses: ./.github/workflows/build-android.yml
+  #   secrets: inherit
+  #   with:
+  #     version: ${{ needs.set-version.outputs.version }}
 
   release:
-    needs: [build-macos, build-windows, build-linux, build-android]
+    needs: [build-macos, build-linux]
     runs-on: ubuntu-latest
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: "Lantern ${{ github.ref_name }}"
+          generate_release_notes: true
           files: |
             lantern-installer-dmg/lantern-installer.dmg
-            lantern-installer-exe/lantern-installer.exe
             lantern-installer-deb/lantern-installer-x64.deb
             lantern-installer-rpm/lantern-installer-x64.rpm
-            lantern-installer-apk/lantern-installer.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # - name: Notify Slack
+      #   uses: slackapi/slack-github-action@v2.0.0
+      #   with:
+      #     payload: |
+      #       {
+      #         "text": "Lantern `${{ github.ref_name }}` released on GitHub: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
+      #       }
+      #   env:
+      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
