@@ -76,7 +76,6 @@ APP_VERSION := $(shell grep '^version:' pubspec.yaml | sed 's/version: //;s/ //g
 INSTALLER_RESOURCES := installer-resources
 
 # Missing and Guards
-
 guard-%:
 	 @ if [ -z '${${*}}' ]; then echo 'Environment  $* variable not set' && exit 1; fi
 
@@ -331,7 +330,6 @@ ffigen:
 pubget:
 	flutter pub get
 
-
 find-duplicate-translations:
 	grep -oE 'msgid\s+"[^"]+"' assets/locales/en.po | sort | uniq -d
 
@@ -341,3 +339,8 @@ clean:
 	rm -rf $(DARWIN_FRAMEWORK_DIR)/*
 	rm -rf $(ANDROID_LIB_PATH)
 	rm -rf $(IOS_DIR)/$(IOS_FRAMEWORK)
+
+.PHONY: protos
+# You can install the dart protoc support by running 'dart pub global activate protoc_plugin'
+protos:
+	@protoc --dart_out=lib/lantern/protos protos/auth.proto

@@ -1,6 +1,7 @@
 import 'package:fpdart/src/either.dart';
 import 'package:lantern/core/utils/failure.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
+import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'oauth_notifier.g.dart';
@@ -14,5 +15,9 @@ class OAuthNotifier extends _$OAuthNotifier {
 
   Future<Either<Failure, String>> oAuthLogin(String provider) async {
     return ref.read(lanternServiceProvider).getOAuthLoginUrl(provider);
+  }
+
+  Future<Either<Failure, LoginResponse>> oAuthLoginCallback(String authToken) async {
+    return ref.read(lanternServiceProvider).oAuthLoginCallback(authToken);
   }
 }

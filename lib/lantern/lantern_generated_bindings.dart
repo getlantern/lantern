@@ -2490,6 +2490,21 @@ class LanternBindings {
   late final _oauthLoginUrl = _oauthLoginUrlPtr
       .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
 
+  ffi.Pointer<ffi.Char> oAuthLoginCallback(
+    ffi.Pointer<ffi.Char> _oAuthToken,
+  ) {
+    return _oAuthLoginCallback(
+      _oAuthToken,
+    );
+  }
+
+  late final _oAuthLoginCallbackPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>)>>('oAuthLoginCallback');
+  late final _oAuthLoginCallback = _oAuthLoginCallbackPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
+
   void freeCString(
     ffi.Pointer<ffi.Char> cstr,
   ) {

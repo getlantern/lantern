@@ -48,14 +48,7 @@ class LocalStorageService {
   ///Due to limitations in macOS the value must be at most 19 characters
   /// Do not change this value
   final macosApplicationGroup = AppSecrets.macosAppGroupId;
-
-  Future<Directory> _getDBDirectory() {
-    if (Platform.isIOS || Platform.isAndroid) {
-      return getApplicationDocumentsDirectory();
-    }
-    return getApplicationSupportDirectory();
-  }
-
+  
   Future<void> init() async {
     final start = DateTime.now();
     dbLogger.debug("Initializing LocalStorageService");

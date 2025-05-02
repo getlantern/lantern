@@ -2,6 +2,7 @@ import 'package:get_it/get_it.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/local_storage.dart';
 import 'package:lantern/core/services/stripe_service.dart';
+import 'package:lantern/core/utils/deeplink_utils.dart';
 import 'package:lantern/core/utils/platform_utils.dart' show PlatformUtils;
 import 'package:lantern/core/utils/store_utils.dart';
 import 'package:lantern/lantern/lantern_ffi_service.dart';
@@ -31,4 +32,7 @@ Future<void> injectServices() async {
   sl.registerLazySingleton(() => AppRouter());
   sl.registerLazySingleton(() => StripeService());
   await sl<StripeService>().initialize();
+
+  sl.registerLazySingleton(() => DeepLinkCallbackManager());
+
 }

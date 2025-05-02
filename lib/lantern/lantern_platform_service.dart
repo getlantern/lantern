@@ -9,6 +9,7 @@ import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/models/plan_mapper.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
+import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 
 import '../core/models/lantern_status.dart';
 import '../core/services/injection_container.dart' show sl;
@@ -199,6 +200,19 @@ class LanternPlatformService implements LanternCoreService {
     try {
       final loginUrl = await _methodChannel.invokeMethod<String>('oauthLoginUrl',provider);
       return Right(loginUrl!);
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription));
+    }
+  }
+
+  @override
+  Future<Either<Failure, LoginResponse>> oAuthLoginCallback(String token) async {
+    try {
+      final bytes = await _methodChannel.invokeMethod('oauthLoginCallback',token);
+      return Right(LoginResponse.fromBuffer(bytes));
     } catch (e, stackTrace) {
       appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
       return Left(Failure(

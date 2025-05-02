@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/utils/jwt_utils.dart';
+import 'package:lantern/core/utils/deeplink_utils.dart';
 import 'package:lantern/features/auth/provider/oauth_notifier.dart';
+
+import '../../core/services/injection_container.dart' show sl;
 
 enum SignUpMethodType { email, google, apple, withoutEmail }
 
@@ -129,22 +131,49 @@ class _AddEmailState extends ConsumerState<AddEmail> {
       (url) async {
         context.hideLoadingDialog();
         appLogger.debug('OAuth URL: $url');
+        if (PlatformUtils.isMobile) {
+          // listen to handle the deep link
+          sl<DeepLinkCallbackManager>().registerHandler((result) {
+            appLogger.debug('DeepLink result: $result');
+            if (result != null) {
+              // Handle the deep link result here
+              onWebViewResult(result as Map<String, dynamic>);
+            }
+          });
 
-        UrlUtils.openWebview<Map<String, dynamic>>(
-          url,
-          title: type.name.capitalize,
-          onWebviewResult: (result) {
-            // User has successfully logged in to google or apple
-            final map = result;
-            final token = map['token'];
-            // Decode the token and get the email
-            final data = JwtToken.decodeToken(token);
-
-
-          },
-        );
+          /// For mobile we have to use system default browser
+          UrlUtils.openWithSystemBrowser(url);
+        } else {
+          UrlUtils.openWebview<Map<String, dynamic>>(
+            url,
+            title: type.name.capitalize,
+            onWebviewResult: onWebViewResult,
+          );
+        }
       },
     );
+  }
+
+  Future<void> onWebViewResult(Map<String, dynamic> result) async {
+    final token = result['token'];
+    if (token != null) {
+      context.showLoadingDialog();
+      final result = await ref
+          .read(oAuthNotifierProvider.notifier)
+          .oAuthLoginCallback(token);
+      result.fold(
+        (failure) {
+          context.hideLoadingDialog();
+          context.showSnackBarError(failure.localizedErrorMessage);
+        },
+        (response) {
+          context.hideLoadingDialog();
+          appLogger.debug('Login Response: ${response.toString()}');
+        },
+      );
+    } else {
+      context.showSnackBarError('Failed to retrieve token');
+    }
   }
 
   void navigateAuth() {

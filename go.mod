@@ -11,6 +11,7 @@ replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v
 require (
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
 	github.com/getlantern/radiance v0.0.0-20250425054539-485677c7916b
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/sagernet/sing-box v1.11.5
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/mobile v0.0.0-20250408133729-978277e7eaf7
@@ -151,6 +152,7 @@ require (
 	github.com/sagernet/sing v0.6.6-0.20250406121928-926a5a1e8bb7 // indirect
 	github.com/sagernet/sing-tun v0.6.1 // indirect
 	github.com/shadowsocks/go-shadowsocks2 v0.1.5 // indirect
+	github.com/smartystreets/goconvey v1.8.1 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	go.opentelemetry.io/otel/exporters/stdout/stdoutlog v0.11.0 // indirect
@@ -162,4 +164,5 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.35.0 // indirect
 	golang.org/x/crypto v0.37.0 // indirect
 	golang.org/x/sys v0.32.0 // indirect
+	moul.io/http2curl v1.0.0 // indirect
 )

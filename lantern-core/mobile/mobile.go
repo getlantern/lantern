@@ -10,11 +10,13 @@ import (
 	"sync"
 
 	"github.com/getlantern/golog"
+	"github.com/getlantern/lantern-outline/lantern-core/utils"
 	"github.com/getlantern/radiance"
 	"github.com/getlantern/radiance/api"
 	"github.com/getlantern/radiance/api/protos"
 	"github.com/getlantern/radiance/client"
 	"github.com/getlantern/radiance/common"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/sagernet/sing-box/experimental/libbox"
 	_ "golang.org/x/mobile/bind"
@@ -178,12 +180,33 @@ func OAuthLoginUrl(provider string) (string, error) {
 	return oauthLoginUrl.Redirect, nil
 }
 
+func OAuthLoginCallback(oAuthToken string) ([]byte, error) {
+	log.Debug("Getting OAuth login callback")
+	userInfo, err := utils.DecodeJWT(oAuthToken)
+	if err != nil {
+		return nil, log.Errorf("Error decoding JWT: %v", err)
+	}
+	// Temporary  set user data to so api can read it
+	login := &protos.LoginResponse{
+		LegacyID:    userInfo.LegacyUserId,
+		LegacyToken: userInfo.LegacyToken,
+	}
+	apiHandler.userConfig.Save(login)
+	///Get user data from api this will also save data in user config
+	user, err := apiHandler.proServer.UserData(context.Background())
+	if err != nil {
+		return nil, log.Errorf("Error getting user data: %v", err)
+	}
+	log.Debugf("UserData response: %v", user)
+	bytes, err := proto.Marshal(user.LoginResponse_UserData)
+	if err != nil {
+		return nil, log.Errorf("Error marshalling user data: %v", err)
+	}
+	return bytes, nil
+}
+
 func StripeSubscription() (string, error) {
-	defer func() {
-		if err := recover(); err != nil {
-			log.Errorf("Error creating stripe subscription: %v", err)
-		}
-	}()
+
 	log.Debug("Creating stripe subscription")
 	body := protos.SubscriptionRequest{
 		Email:   "test@getlantern.org",
@@ -224,6 +247,11 @@ func StripeSubscriptionPaymentRedirect(subType string) (string, error) {
 }
 
 func Plans() (string, error) {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Errorf("Error creating stripe subscription: %v", err)
+		}
+	}()
 	log.Debug("Getting plans")
 	plans, err := apiHandler.proServer.Plans(context.Background())
 	if err != nil {

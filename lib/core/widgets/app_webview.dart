@@ -39,12 +39,13 @@ class AppWebView extends HookWidget {
               shouldOverrideUrlLoading: shouldOverrideUrlLoading,
               initialUrlRequest: URLRequest(url: WebUri(url)),
               initialSettings: InAppWebViewSettings(
-                  javaScriptEnabled: true,
-                  mediaPlaybackRequiresUserGesture: false,
-                  useOnDownloadStart: true,
-                  useOnLoadResource: true,
-                  applicationNameForUserAgent: 'Lantern',
-                  useShouldOverrideUrlLoading: true),
+                javaScriptEnabled: true,
+                mediaPlaybackRequiresUserGesture: false,
+                useOnDownloadStart: true,
+                useOnLoadResource: true,
+                applicationNameForUserAgent: 'Lantern',
+                useShouldOverrideUrlLoading: true,
+              ),
               onWebViewCreated: (controller) {},
               onLoadStart: (_, __) {
                 // Handle load start

@@ -7,6 +7,7 @@ import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_ffi_service.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
+import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 
 import '../core/common/common.dart';
 
@@ -161,5 +162,13 @@ class LanternService implements LanternCoreService {
       return _ffiService.getOAuthLoginUrl(provider);
     }
     return _platformService.getOAuthLoginUrl(provider);
+  }
+
+  @override
+  Future<Either<Failure, LoginResponse>> oAuthLoginCallback(String token) {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.oAuthLoginCallback(token);
+    }
+    return _platformService.oAuthLoginCallback(token);
   }
 }

@@ -15,6 +15,7 @@ import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_generated_bindings.dart';
 import 'package:lantern/lantern/lantern_service.dart';
+import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 import 'package:path/path.dart' as p;
 import 'package:rxdart/rxdart.dart';
 
@@ -390,6 +391,26 @@ class LanternFFIService implements LanternCoreService {
         },
       );
       return Right(result);
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription));
+    }
+  }
+
+  @override
+  Future<Either<Failure, LoginResponse>> oAuthLoginCallback(
+      String token) async {
+    try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService.oAuthLoginCallback(token.toCharPtr).toDartString();
+        },
+      );
+      final decodedResult = base64Decode(result);
+      final loginResponse = LoginResponse.fromBuffer(decodedResult);
+      return Right(loginResponse);
     } catch (e, stackTrace) {
       appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
       return Left(Failure(

@@ -60,33 +60,6 @@ class UrlUtils {
     }
   }
 
-  // static Future<void> openWebview(String url,
-  //     {String? title, Function(dynamic)? onBackPressed}) async {
-  //   try {
-  //     switch (Platform.operatingSystem) {
-  //       case 'android':
-  //       case 'macos':
-  //       case 'ios':
-  //       case 'windows':
-  //         appRouter
-  //             .push(AppWebview(title: title ?? '', url: url))
-  //             .then((value) {
-  //           if (value != null && onBackPressed != null) {
-  //             onBackPressed.call(value);
-  //           }
-  //         });
-  //         break;
-  //       case 'linux':
-  //         final webview = await WebviewWindow.create();
-  //         webview.launch(url);
-  //         break;
-  //       default:
-  //         throw UnsupportedError('Platform not supported');
-  //     }
-  //   } catch (e) {
-  //     appLogger.error("Failed to open webview", e);
-  //   }
-  // }
 
   static bool isValidDomain(String input) {
     final domainPattern = r'^(?!-)[A-Za-z0-9-]{1,63}(?<!-)\.[A-Za-z]{2,6}$';

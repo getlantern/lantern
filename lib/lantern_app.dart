@@ -8,13 +8,13 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:i18n_extension/i18n_extension.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
 import 'package:lantern/core/router/router.dart';
-import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:lantern/features/language/language_notifier.dart';
 import 'package:lantern/features/window/window_wrapper.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 
 import 'core/common/common.dart';
 import 'core/services/injection_container.dart';
+import 'core/utils/deeplink_utils.dart' show DeepLinkCallbackManager;
 import 'features/system_tray/system_tray_wrapper.dart';
 
 final globalRouter = sl<AppRouter>();
@@ -45,6 +45,14 @@ class _LanternAppState extends ConsumerState<LanternApp> {
             globalRouter.push(ReportIssue(description: '#${segment[1]}'));
           } else {
             globalRouter.push(ReportIssue());
+          }
+        }
+        if (uri.path.startsWith('/auth')) {
+          final pathUrl = uri;
+          if (pathUrl.query.startsWith('token=')) {
+            // user has completed the sign up process using oAuth and comming back
+            sl<DeepLinkCallbackManager>()
+                .handleDeepLink(pathUrl.queryParameters);
           }
         }
       }

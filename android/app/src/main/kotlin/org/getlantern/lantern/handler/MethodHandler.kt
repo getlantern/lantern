@@ -22,7 +22,8 @@ enum class Methods(val method: String) {
     SubscriptionPaymentRedirect("subscriptionPaymentRedirect"),
     StripeSubscription("stripeSubscription"),
     Plans("plans"),
-    OAuthLoginUrl("oauthLoginUrl")
+    OAuthLoginUrl("oauthLoginUrl"),
+    OAuthLoginCallback("oauthLoginCallback")
 }
 
 class MethodHandler : FlutterPlugin,
@@ -142,11 +143,23 @@ class MethodHandler : FlutterPlugin,
                             success(loginUrl)
                         }
                     }.onFailure { e ->
-                        result.error("plans", e.localizedMessage ?: "Please try again", e)
+                        result.error("OAuthLoginUrl", e.localizedMessage ?: "Please try again", e)
                     }
                 }
             }
-
+            Methods.OAuthLoginCallback.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val token = call.arguments<String>()
+                        val bytes = Mobile.oAuthLoginCallback(token)
+                        withContext(Dispatchers.Main) {
+                            success(bytes)
+                        }
+                    }.onFailure { e ->
+                        result.error("OAuthLoginCallback", e.localizedMessage ?: "Please try again", e)
+                    }
+                }
+            }
             else -> {
                 result.notImplemented()
             }

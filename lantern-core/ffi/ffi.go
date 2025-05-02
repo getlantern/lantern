@@ -9,6 +9,7 @@ import "C"
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"runtime"
@@ -19,6 +20,8 @@ import (
 
 	"github.com/getlantern/golog"
 	"github.com/getlantern/lantern-outline/lantern-core/apps"
+	"github.com/getlantern/lantern-outline/lantern-core/utils"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/getlantern/lantern-outline/lantern-core/dart_api_dl"
 	"github.com/getlantern/radiance"
@@ -338,6 +341,46 @@ func oauthLoginUrl(_provider *C.char) *C.char {
 	}
 	log.Debugf("OAuthLoginURL response: %s", url.Redirect)
 	return C.CString(url.Redirect)
+}
+
+// oauthLoginCallback is called when the user has logged in with OAuth and the callback URL is called.
+//
+//export oAuthLoginCallback
+func oAuthLoginCallback(_oAuthToken *C.char) *C.char {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Errorf("Error login callback : %v", err)
+		}
+	}()
+	log.Debug("Getting OAuth login callback")
+	oAuthToken := C.GoString(_oAuthToken)
+	userInfo, err := utils.DecodeJWT(oAuthToken)
+	if err != nil {
+		return SendError(log.Errorf("Error decoding JWT: %v", err))
+	}
+	log.Debugf("UserInfo: %+v", userInfo)
+	// Temporary  set user data to so api can read it
+	login := &protos.LoginResponse{
+		LegacyID:    userInfo.LegacyUserId,
+		LegacyToken: userInfo.LegacyToken,
+		LegacyUserData: &protos.LoginResponse_UserData{
+			UserId: userInfo.LegacyUserId,
+			Token:  userInfo.LegacyToken,
+		},
+	}
+	server.UserInfo().Save(login)
+	///Get user data from api this will also save data in user config
+	user, err := server.proServer.UserData(context.Background())
+	if err != nil {
+		return SendError(log.Errorf("Error getting user data: %v", err))
+	}
+	log.Debugf("UserData response: %v", user)
+	bytes, err := proto.Marshal(user.LoginResponse_UserData)
+	if err != nil {
+		return SendError(log.Errorf("Error marshalling user data: %v", err))
+	}
+	encoded := base64.StdEncoding.EncodeToString(bytes)
+	return C.CString(encoded)
 }
 
 //export freeCString

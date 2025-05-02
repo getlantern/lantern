@@ -108,6 +108,10 @@ extern char* plans();
 // OAuth methods
 //
 extern char* oauthLoginUrl(char* _provider);
+
+// oauthLoginCallback is called when the user has logged in with OAuth and the callback URL is called.
+//
+extern char* oAuthLoginCallback(char* _oAuthToken);
 extern void freeCString(char* cstr);
 extern void enforce_binding();
 
