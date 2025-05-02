@@ -1,8 +1,6 @@
 name: Build iOS
 
 on:
-  push:
-    branches: [atavism/ios-test]
   workflow_call:
     inputs:
       version:
