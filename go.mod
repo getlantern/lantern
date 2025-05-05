@@ -2,16 +2,15 @@ module github.com/getlantern/lantern-outline
 
 go 1.24
 
-toolchain go1.24.0
+toolchain go1.24.1
 
-replace github.com/getlantern/radiance => ../radiance
+//replace github.com/getlantern/radiance => ../radiance
 
 replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v1.11.6-0.20250411173055-d82f542dfd3f
 
 require (
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
-	github.com/getlantern/radiance v0.0.0-20250425054539-485677c7916b
-	github.com/golang-jwt/jwt v3.2.2+incompatible
+	github.com/getlantern/radiance v0.0.0-20250502223800-1a328d0016b2
 	github.com/sagernet/sing-box v1.11.5
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/mobile v0.0.0-20250408133729-978277e7eaf7
@@ -156,6 +155,7 @@ require (
 	github.com/shadowsocks/go-shadowsocks2 v0.1.5 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
+	github.com/zeebo/assert v1.3.0 // indirect
 	go.opentelemetry.io/otel/exporters/stdout/stdoutlog v0.11.0 // indirect
 	go.opentelemetry.io/otel/exporters/stdout/stdoutmetric v1.35.0 // indirect
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.35.0 // indirect

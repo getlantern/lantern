@@ -35,14 +35,26 @@ android {
             debugSymbolLevel 'FULL'
         }
 
-
+        buildFeatures {
+            buildConfig true
+        }
     }
 
     buildTypes {
+        debug {
+            minifyEnabled false
+            shrinkResources false
+            debuggable true
+            signingConfig = signingConfigs.debug
+            buildConfigField "boolean", "DEVELOPMENT_MODE", "true"
+
+        }
         release {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.debug
+            buildConfigField "boolean", "DEVELOPMENT_MODE", "false"
+
         }
     }
 

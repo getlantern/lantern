@@ -68,7 +68,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     context.showLoadingDialog();
 
     ///get stripe details
-    final result = await paymentProvider.stipeSubscription(userPlan.id);
+    final result = await paymentProvider.stripeSubscription(userPlan.id);
     result.fold(
       (error) {
         context.showSnackBarError(error.localizedErrorMessage);

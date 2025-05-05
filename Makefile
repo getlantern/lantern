@@ -25,25 +25,41 @@ DARWIN_LIB_BUILD := $(BIN_DIR)/macos/$(DARWIN_LIB)
 DARWIN_DEBUG_BUILD := $(BUILD_DIR)/macos/Build/Products/Debug/$(DARWIN_APP_NAME)
 DARWIN_RELEASE_BUILD := $(BUILD_DIR)/macos/Build/Products/Release/$(DARWIN_APP_NAME)
 MACOS_ENTITLEMENTS := macos/Runner/Release.entitlements
+MACOS_INSTALLER := $(INSTALLER_NAME)$(if $(BUILD_TYPE),-$(BUILD_TYPE)).dmg
 
 LINUX_LIB := $(LANTERN_LIB_NAME).so
 LINUX_LIB_AMD64 := $(BIN_DIR)/linux-amd64/$(LANTERN_LIB_NAME).so
 LINUX_LIB_ARM64 := $(BIN_DIR)/linux-arm64/$(LANTERN_LIB_NAME).so
 LINUX_LIB_BUILD := $(BIN_DIR)/linux/$(LINUX_LIB)
+LINUX_INSTALLER_DEB := $(INSTALLER_NAME)$(if $(BUILD_TYPE),-$(BUILD_TYPE)).deb
+LINUX_INSTALLER_RPM := $(INSTALLER_NAME)$(if $(BUILD_TYPE),-$(BUILD_TYPE)).rpm
+
+ifeq ($(OS),Windows_NT)
+	PATH_SEP := \\
+else
+	PATH_SEP := /
+endif
+
+define join_path
+$(subst /,$(PATH_SEP),$1)
+endef
 
 WINDOWS_LIB := $(LANTERN_LIB_NAME).dll
-WINDOWS_LIB_AMD64 := $(BIN_DIR)/windows-amd64/$(LANTERN_LIB_NAME).dll
-WINDOWS_LIB_ARM64 := $(BIN_DIR)/windows-arm64/$(LANTERN_LIB_NAME).dll
-WINDOWS_LIB_BUILD := $(BIN_DIR)/windows/$(WINDOWS_LIB)
+WINDOWS_LIB_AMD64 := $(call join_path,$(BIN_DIR)/windows-amd64/$(WINDOWS_LIB))
+WINDOWS_LIB_ARM64 := $(call join_path,$(BIN_DIR)/windows-arm64/$(WINDOWS_LIB))
+WINDOWS_LIB_BUILD := $(call join_path,$(BIN_DIR)/windows/$(WINDOWS_LIB))
+WINDOWS_RELEASE_DIR := $(call join_path,$(BUILD_DIR)/windows/x64/runner/Release)
 
 ANDROID_LIB := $(LANTERN_LIB_NAME).aar
 ANDROID_LIBS_DIR := android/app/libs
 ANDROID_LIB_BUILD := $(BIN_DIR)/android/$(ANDROID_LIB)
 ANDROID_LIB_PATH := android/app/libs/$(LANTERN_LIB_NAME).aar
 ANDROID_DEBUG_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-debug.apk
-ANDROID_RELEASE_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-release.apk
+ANDROID_APK_RELEASE_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-release.apk
+ANDROID_AAB_RELEASE_BUILD := $(BUILD_DIR)/app/outputs/bundle/release/app-release.aab
 ANDROID_TARGET_PLATFORMS := android-arm,android-arm64,android-x64
-ANDROID_RELEASE_APK := $(INSTALLER_NAME).apk
+ANDROID_RELEASE_APK := $(INSTALLER_NAME)$(if $(BUILD_TYPE),-$(BUILD_TYPE)).apk
+ANDROID_RELEASE_AAB := $(INSTALLER_NAME)$(if $(BUILD_TYPE),-$(BUILD_TYPE)).aab
 
 IOS_DIR := ios/
 IOS_FRAMEWORK := Liblantern.xcframework
@@ -95,9 +111,19 @@ require-ac-username: guard-AC_USERNAME ## App Store Connect username - needed fo
 .PHONY: require-ac-password
 require-ac-password: guard-AC_PASSWORD ## App Store Connect password - needed for notarizing macOS apps.
 
-desktop-lib: export CGO_CFLAGS="-I./dart_api_dl/include"
+ifeq ($(OS),Windows_NT)
+  NORMALIZED_CURDIR := $(shell echo $(CURDIR) | sed 's|\\|/|g')
+  SETENV = set CGO_ENABLED=1&& set CGO_CFLAGS=-I$(NORMALIZED_CURDIR)/dart_api_dl/include&&
+else
+  SETENV = CGO_ENABLED=1 CGO_CFLAGS=-I$(CURDIR)/dart_api_dl/include
+endif
+
+.PHONY: desktop-lib
 desktop-lib:
-	CGO_ENABLED=1 go build -v -trimpath -buildmode=c-shared -tags="$(BUILD_TAGS)" -ldflags="-w -s $(EXTRA_LDFLAGS)" -o $(LIB_NAME) ./$(FFI_DIR)
+	$(SETENV) go build -v -trimpath -buildmode=c-shared \
+		-tags="$(BUILD_TAGS)" \
+		-ldflags="-w -s $(EXTRA_LDFLAGS)" \
+		-o $(LIB_NAME) ./$(FFI_DIR)
 
 # macOS Build
 .PHONY: install-macos-deps
@@ -149,21 +175,21 @@ build-macos-release: $(DARWIN_RELEASE_BUILD)
 .PHONY: notarize-darwin
 notarize-darwin: require-ac-username require-ac-password
 	@echo "Notarizing distribution package..."
-	xcrun notarytool submit $(INSTALLER_NAME).dmg \
+	xcrun notarytool submit $(MACOS_INSTALLER) \
 		--apple-id $$AC_USERNAME \
 		--team-id "ACZRKC3LQ9" \
 		--password $$AC_PASSWORD \
 		--wait
 
 	@echo "Stapling notarization ticket..."
-	xcrun stapler staple $(INSTALLER_NAME).dmg
+	xcrun stapler staple $(MACOS_INSTALLER)
 	@echo "Notarization complete"
 
 sign-app:
 	$(call osxcodesign,$(DARWIN_RELEASE_BUILD))
 
 package-macos: require-appdmg
-	appdmg appdmg.json $(INSTALLER_NAME).dmg
+	appdmg appdmg.json $(MACOS_INSTALLER)
 
 .PHONY: macos-release
 macos-release: clean macos pubget gen build-macos-release sign-app package-macos notarize-darwin
@@ -202,32 +228,25 @@ linux-release: clean linux pubget gen
 	flutter build linux --release
 	cp $(LINUX_LIB_BUILD) build/linux/x64/release/bundle
 	flutter_distributor package --platform linux --targets "deb,rpm" --skip-clean
-	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-linux.rpm lantern-installer-x64.rpm
-	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-linux.deb lantern-installer-x64.deb
+	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-linux.rpm $(LINUX_INSTALLER_RPM)
+	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-linux.deb $(LINUX_INSTALLER_DEB)
 
 # Windows Build
 .PHONY: install-windows-deps
 install-windows-deps:
 	dart pub global activate flutter_distributor
 
-.PHONY: windows-amd64
-windows-amd64: export BUILD_TAGS += walk_use_cgo
-windows-amd64: export CGO_LDFLAGS = -static
-windows-amd64: $(WINDOWS_LIB_AMD64)
-
-$(WINDOWS_LIB_AMD64): $(GO_SOURCES)
-	GOOS=windows GOARCH=amd64 LIB_NAME=$@ make desktop-lib
-
-.PHONY: windows-arm64
-windows-arm64: export BUILD_TAGS += walk_use_cgo
-windows-arm64: export CGO_LDFLAGS = -static
-windows-arm64: $(WINDOWS_LIB_ARM64)
-
-$(WINDOWS_LIB_ARM64): $(GO_SOURCES)
-	GOOS=windows GOARCH=arm64 LIB_NAME=$@ make desktop-lib
-
-.PHONY: windows
 windows: windows-amd64
+
+windows-amd64: WINDOWS_GOOS := windows
+windows-amd64: WINDOWS_GOARCH := amd64
+windows-amd64:
+	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_AMD64)
+
+windows-arm64: WINDOWS_GOOS := windows
+windows-arm64: WINDOWS_GOARCH := arm64
+windows-arm64:
+	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_ARM64)
 
 .PHONY: windows-debug
 windows-debug: windows
@@ -235,9 +254,8 @@ windows-debug: windows
 	flutter build windows --debug
 
 .PHONY: windows-release
-windows-release: clean windows
-	@echo "Building Flutter app (debug) for Windows..."
-	flutter_distributor package --flutter-build-args=verbose --platform windows --targets "msix,exe"
+windows-release: clean windows pubget gen
+	flutter_distributor package --flutter-build-args=verbose --platform windows --targets "exe"
 
 # Android Build
 .PHONY: install-android-deps
@@ -253,19 +271,6 @@ android: check-gomobile $(ANDROID_LIB_BUILD)
 
 $(ANDROID_LIB_BUILD): $(GO_SOURCES)
 	$(MAKE) build-android
-
-.PHONY: android-debug
-android-debug: $(ANDROID_DEBUG_BUILD)
-
-$(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD)
-	flutter build apk --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --debug
-
-.PHONY: android-release
-android-release: $(ANDROID_RELEASE_BUILD)
-	cp $(ANDROID_RELEASE_BUILD) $(ANDROID_RELEASE_APK)
-
-$(ANDROID_RELEASE_BUILD): $(ANDROID_LIB_BUILD)
-	flutter build apk --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --release
 
 build-android: check-gomobile
 	@echo "Building Android libraries..."
@@ -283,11 +288,43 @@ build-android: check-gomobile
 	cp $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)
 	@echo "Built Android library: $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)"
 
+.PHONY: android-debug
+android-debug: $(ANDROID_DEBUG_BUILD)
+
+$(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD)
+	flutter build apk --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --debug
+
+.PHONY: android-apk-release
+android-apk-release:
+	flutter build apk --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --release
+	cp $(ANDROID_APK_RELEASE_BUILD) $(ANDROID_RELEASE_APK)
+
+.PHONY: android-aab-release
+android-aab-release:
+	flutter build appbundle --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --release
+	cp $(ANDROID_AAB_RELEASE_BUILD) $(ANDROID_RELEASE_AAB)
+
+.PHONY: android-release
+android-release: clean android pubget gen android-apk-release
+
 # iOS Build
+.PHONY: install-ios-deps
+
+install-ios-deps:
+	npm install -g appdmg
+	dart pub global activate flutter_distributor
+
 .PHONY: ios
 ios: $(IOS_FRAMEWORK_BUILD)
 
+.PHONY: ios
+ios: check-gomobile $(IOS_FRAMEWORK_BUILD)
+
 $(IOS_FRAMEWORK_BUILD): $(GO_SOURCES)
+	$(MAKE) build-ios
+
+build-ios:
+	@echo "Building iOS Framework.."
 	rm -rf $(IOS_FRAMEWORK_BUILD)
 	rm -rf $(IOS_FRAMEWORK_DIR) && mkdir -p $(IOS_FRAMEWORK_DIR)
 	GOOS=ios gomobile bind -v \
@@ -302,6 +339,12 @@ $(IOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 .PHONY: swift-format
 swift-format:
 	swift-format format --in-place --recursive ios/Runner macos/Runner ios/Tunnel
+
+ios-release: clean pubget
+	flutter build ipa --flavor prod --release --export-options-plist ./ExportOptions.plist
+	@IPA_PATH=$(shell pwd)/build/ios/ipa; \
+	echo "iOS IPA generated under: $$IPA_PATH"; \
+	open "$$IPA_PATH"
 
 # Dart API DL bridge
 DART_SDK_REPO=https://github.com/dart-lang/sdk
