@@ -42,6 +42,8 @@ class AppStorageUtils {
         baseDir = Directory(path.replaceFirst("/app_flutter", ""));
       }
       appDir = Directory("${baseDir.path}/.lantern");
+    } else if (Platform.isWindows) {
+      appDir = await getApplicationSupportDirectory();
     } else {
       // Note this is the application support directory *with*
       // the fully qualified name of our app.
