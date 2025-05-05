@@ -198,7 +198,12 @@ func OAuthLoginCallback(oAuthToken string) ([]byte, error) {
 		return nil, log.Errorf("Error getting user data: %v", err)
 	}
 	log.Debugf("UserData response: %v", user)
-	bytes, err := proto.Marshal(user.LoginResponse_UserData)
+	userResponse := &protos.LoginResponse{
+		LegacyID:       user.UserId,
+		LegacyToken:    user.Token,
+		LegacyUserData: user.LoginResponse_UserData,
+	}
+	bytes, err := proto.Marshal(userResponse)
 	if err != nil {
 		return nil, log.Errorf("Error marshalling user data: %v", err)
 	}
