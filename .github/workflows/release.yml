@@ -2,7 +2,6 @@ name: Build and Release All Platforms
 
 on:
   push:
-    branches: [atavism/ios-test]
     tags:
       - "v*.*.*"
 
