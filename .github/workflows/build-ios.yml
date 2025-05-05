@@ -61,7 +61,7 @@ jobs:
           PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
           TPP_PATH=$RUNNER_TEMP/build_tpp.mobileprovision
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
-          EXPORT_OPTIONS_PATH=$GITHUB_WORKSPACE/ExportOptions.plist
+          EXPORT_OPTIONS_PATH=$GITHUB_WORKSPACE/exportOptions.plist
           # import certificate from secrets
           echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
           # create temporary keychain
@@ -84,7 +84,7 @@ jobs:
           echo -n "$BUILD_TUNNEL_PROVISION_PROFILE_BASE64" | base64 --decode -o $TPP_PATH
           cp $TPP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
 
-          # Create ExportOptions.plist
+          # Create exportOptions.plist
           echo "$EXPORT_OPTIONS" | base64 --decode > "$EXPORT_OPTIONS_PATH"
 
       - name: Update app version in pubspec.yaml
