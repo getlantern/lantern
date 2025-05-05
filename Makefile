@@ -258,13 +258,14 @@ windows-release: clean windows pubget gen
 	flutter_distributor package --flutter-build-args=verbose --platform windows --targets "exe"
 
 # Android Build
-.PHONY: install-android-deps
-install-android-deps:
-	@echo "Installing Android dependencies..."
-
+.PHONY: install-gomobile
+install-gomobile:
 	go install -v golang.org/x/mobile/cmd/gomobile@$(GOMOBILE_VERSION)
 	go install -v golang.org/x/mobile/cmd/gobind@$(GOMOBILE_VERSION)
 	gomobile init
+
+.PHONY: install-android-deps
+install-android-deps: install-gomobile
 
 .PHONY: android
 android: check-gomobile $(ANDROID_LIB_BUILD)
@@ -310,7 +311,7 @@ android-release: clean android pubget gen android-apk-release
 # iOS Build
 .PHONY: install-ios-deps
 
-install-ios-deps:
+install-ios-deps: install-gomobile
 	npm install -g appdmg
 	dart pub global activate flutter_distributor
 
