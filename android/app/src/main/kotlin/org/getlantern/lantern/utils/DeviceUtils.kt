@@ -6,6 +6,8 @@ import android.os.Build
 import android.provider.Settings
 import android.util.Log
 import org.getlantern.lantern.LanternApp
+import org.getlantern.lantern.BuildConfig
+
 
 
 object DeviceUtil {
@@ -24,7 +26,17 @@ object DeviceUtil {
     }
 
     fun deviceId(): String? {
-        return Settings.Secure.getString(LanternApp.application.contentResolver, Settings.Secure.ANDROID_ID)
+        val rawId = Settings.Secure.getString(
+            LanternApp.application.contentResolver,
+            Settings.Secure.ANDROID_ID
+        )
+        return if (BuildConfig.DEBUG) {
+            // In debug mode, return obfuscated ID
+            rawId?.hashCode()?.toUInt()?.toString(16)
+        } else {
+            // In release mode, return actual ID
+            rawId
+        }
     }
 
     fun deviceOs(): String {
