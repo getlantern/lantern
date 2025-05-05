@@ -69,7 +69,7 @@ class PlansNotifier extends _$PlansNotifier {
   }
 
   Future<void> _refreshInBackground() async {
-    final remotePlans = await fetchPlans();
+    final remotePlans = await fetchPlans(fromBackground: true);
     await _storePlansLocally(remotePlans);
     state = AsyncData(remotePlans);
   }

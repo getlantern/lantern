@@ -3,10 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/utils/deeplink_utils.dart';
+import 'package:lantern/core/widgets/oauth_login.dart';
 import 'package:lantern/features/auth/provider/oauth_notifier.dart';
-
-import '../../core/services/injection_container.dart' show sl;
 
 enum SignUpMethodType { email, google, apple, withoutEmail }
 
@@ -75,16 +73,14 @@ class _AddEmailState extends ConsumerState<AddEmail> {
               SizedBox(height: defaultSize),
               DividerSpace(),
               SizedBox(height: defaultSize),
-              SecondaryButton(
-                label: 'continue_with_google'.i18n,
-                icon: AppImagePaths.google,
-                onPressed: () => onContinueTap(SignUpMethodType.google),
+              OAuthLogin(
+                methodType: SignUpMethodType.google,
+                onResult: onWebViewResult,
               ),
               SizedBox(height: defaultSize),
-              SecondaryButton(
-                label: 'continue_with_apple'.i18n,
-                icon: AppImagePaths.apple,
-                onPressed: () => onContinueTap(SignUpMethodType.apple),
+              OAuthLogin(
+                methodType: SignUpMethodType.apple,
+                onResult: onWebViewResult,
               ),
               SizedBox(height: defaultSize),
               DividerSpace(),
@@ -113,45 +109,6 @@ class _AddEmailState extends ConsumerState<AddEmail> {
       }
       appRouter.push(ConfirmEmail(email: email, authFlow: widget.authFlow));
     }
-    if (type == SignUpMethodType.google || type == SignUpMethodType.apple) {
-      oAuthLogin(type);
-    }
-  }
-
-  Future<void> oAuthLogin(SignUpMethodType type) async {
-    context.showLoadingDialog();
-    final result =
-        await ref.read(oAuthNotifierProvider.notifier).oAuthLogin(type.name);
-
-    result.fold(
-      (failure) {
-        context.hideLoadingDialog();
-        context.showSnackBarError(failure.localizedErrorMessage);
-      },
-      (url) async {
-        context.hideLoadingDialog();
-        appLogger.debug('OAuth URL: $url');
-        if (PlatformUtils.isMobile) {
-          // listen to handle the deep link
-          sl<DeepLinkCallbackManager>().registerHandler((result) {
-            appLogger.debug('DeepLink result: $result');
-            if (result != null) {
-              // Handle the deep link result here
-              onWebViewResult(result as Map<String, dynamic>);
-            }
-          });
-
-          /// For mobile we have to use system default browser
-          UrlUtils.openWithSystemBrowser(url);
-        } else {
-          UrlUtils.openWebview<Map<String, dynamic>>(
-            url,
-            title: type.name.capitalize,
-            onWebviewResult: onWebViewResult,
-          );
-        }
-      },
-    );
   }
 
   Future<void> onWebViewResult(Map<String, dynamic> result) async {

@@ -181,6 +181,11 @@ func OAuthLoginUrl(provider string) (string, error) {
 }
 
 func OAuthLoginCallback(oAuthToken string) ([]byte, error) {
+	// defer func() {
+	// 	if err := recover(); err != nil {
+	// 		log.Errorf("Error login callback : %v", err)
+	// 	}
+	// }()
 	log.Debug("Getting OAuth login callback")
 	userInfo, err := utils.DecodeJWT(oAuthToken)
 	if err != nil {

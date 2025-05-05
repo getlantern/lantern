@@ -347,11 +347,11 @@ func oauthLoginUrl(_provider *C.char) *C.char {
 //
 //export oAuthLoginCallback
 func oAuthLoginCallback(_oAuthToken *C.char) *C.char {
-	defer func() {
-		if err := recover(); err != nil {
-			log.Errorf("Error login callback : %v", err)
-		}
-	}()
+	// defer func() {
+	// 	if err := recover(); err != nil {
+	// 		log.Errorf("Error login callback : %v", err)
+	// 	}
+	// }()
 	log.Debug("Getting OAuth login callback")
 	oAuthToken := C.GoString(_oAuthToken)
 	userInfo, err := utils.DecodeJWT(oAuthToken)
