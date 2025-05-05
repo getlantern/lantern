@@ -42,80 +42,81 @@ jobs:
       build_type: ${{ needs.set-release-metadata.outputs.build_type }}
       installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
 
-  # build-macos:
-  #   needs: set-release-metadata
-  #   uses: ./.github/workflows/build-macos.yml
-  #   secrets: inherit
-  #   with:
-  #     version: ${{ needs.set-release-metadata.outputs.version }}
-  #     build_type: ${{ needs.set-release-metadata.outputs.build_type }}
-  #     installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
+  build-macos:
+    needs: set-release-metadata
+    uses: ./.github/workflows/build-macos.yml
+    secrets: inherit
+    with:
+      version: ${{ needs.set-release-metadata.outputs.version }}
+      build_type: ${{ needs.set-release-metadata.outputs.build_type }}
+      installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
 
-  # build-windows:
-  #   needs: set-release-metadata
-  #   uses: ./.github/workflows/build-windows.yml
-  #   secrets: inherit
-  #   with:
-  #     version: ${{ needs.set-release-metadata.outputs.version }}
-  #     build_type: ${{ needs.set-release-metadata.outputs.build_type }}
-  #     installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
+  build-windows:
+    needs: set-release-metadata
+    uses: ./.github/workflows/build-windows.yml
+    secrets: inherit
+    with:
+      version: ${{ needs.set-release-metadata.outputs.version }}
+      build_type: ${{ needs.set-release-metadata.outputs.build_type }}
+      installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
 
-  # build-linux:
-  #   needs: set-release-metadata
-  #   uses: ./.github/workflows/build-linux.yml
-  #   secrets: inherit
-  #   with:
-  #     version: ${{ needs.set-release-metadata.outputs.version }}
-  #     build_type: ${{ needs.set-release-metadata.outputs.build_type }}
-  #     installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
+  build-linux:
+    needs: set-release-metadata
+    uses: ./.github/workflows/build-linux.yml
+    secrets: inherit
+    with:
+      version: ${{ needs.set-release-metadata.outputs.version }}
+      build_type: ${{ needs.set-release-metadata.outputs.build_type }}
+      installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
 
-  # build-android:
-  #   needs: set-release-metadata
-  #   uses: ./.github/workflows/build-android.yml
-  #   secrets: inherit
-  #   with:
-  #     version: ${{ needs.set-release-metadata.outputs.version }}
-  #     build_type: ${{ needs.set-release-metadata.outputs.build_type }}
-  #     installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
+  build-android:
+    needs: set-release-metadata
+    uses: ./.github/workflows/build-android.yml
+    secrets: inherit
+    with:
+      version: ${{ needs.set-release-metadata.outputs.version }}
+      build_type: ${{ needs.set-release-metadata.outputs.build_type }}
+      installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
 
-  # release:
-  #   needs:
-  #     [
-  #       build-macos,
-  #       build-linux,
-  #       build-windows,
-  #       build-android,
-  #       set-release-metadata,
-  #     ]
-  #   runs-on: ubuntu-latest
-  #   env:
-  #     BUILD_TYPE: ${{ needs.set-release-metadata.outputs.build_type }}
-  #     INSTALLER_NAME: ${{ needs.set-release-metadata.outputs.installer_name }}
-  #   steps:
-  #     - name: Download all artifacts
-  #       uses: actions/download-artifact@v4
+  release:
+    needs:
+      [
+        build-macos,
+        build-ios,
+        build-linux,
+        build-windows,
+        build-android,
+        set-release-metadata,
+      ]
+    runs-on: ubuntu-latest
+    env:
+      BUILD_TYPE: ${{ needs.set-release-metadata.outputs.build_type }}
+      INSTALLER_NAME: ${{ needs.set-release-metadata.outputs.installer_name }}
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
 
-  #     - name: Create GitHub Release
-  #       uses: softprops/action-gh-release@v2
-  #       with:
-  #         tag_name: ${{ github.ref_name }}
-  #         name: "Lantern ${{ env.BUILD_TYPE }} ${{ github.ref_name }}"
-  #         generate_release_notes: true
-  #         files: |
-  #           lantern-installer-dmg/${{ env.INSTALLER_NAME }}.dmg
-  #           lantern-installer-exe/${{ env.INSTALLER_NAME }}.exe
-  #           lantern-installer-apk/${{ env.INSTALLER_NAME }}.apk
-  #           lantern-installer-deb/${{ env.INSTALLER_NAME }}.deb
-  #           lantern-installer-rpm/${{ env.INSTALLER_NAME }}.rpm
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "Lantern ${{ env.BUILD_TYPE }} ${{ github.ref_name }}"
+          generate_release_notes: true
+          files: |
+            lantern-installer-dmg/${{ env.INSTALLER_NAME }}.dmg
+            lantern-installer-exe/${{ env.INSTALLER_NAME }}.exe
+            lantern-installer-apk/${{ env.INSTALLER_NAME }}.apk
+            lantern-installer-deb/${{ env.INSTALLER_NAME }}.deb
+            lantern-installer-rpm/${{ env.INSTALLER_NAME }}.rpm
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  #     - name: Notify Slack
-  #       uses: slackapi/slack-github-action@v2.0.0
-  #       with:
-  #         webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
-  #         webhook-type: webhook-trigger
-  #         payload: |
-  #           {
-  #             "text": "Lantern ${{ env.BUILD_TYPE }} ${{ needs.set-release-metadata.outputs.version }} released on GitHub: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
-  #           }
+      - name: Notify Slack
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: webhook-trigger
+          payload: |
+            {
+              "text": "Lantern ${{ env.BUILD_TYPE }} ${{ needs.set-release-metadata.outputs.version }} released on GitHub: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
+            }
