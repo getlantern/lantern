@@ -340,7 +340,7 @@ build-ios:
 swift-format:
 	swift-format format --in-place --recursive ios/Runner macos/Runner
 
-ios-release: clean pubget
+ios-release: clean ios pubget gen
 	flutter build ipa --flavor prod --release --export-options-plist ./ExportOptions.plist
 	@IPA_PATH=$(shell pwd)/build/ios/ipa; \
 	echo "iOS IPA generated under: $$IPA_PATH"; \
