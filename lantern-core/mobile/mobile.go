@@ -216,7 +216,6 @@ func OAuthLoginCallback(oAuthToken string) ([]byte, error) {
 }
 
 func StripeSubscription() (string, error) {
-
 	log.Debug("Creating stripe subscription")
 	body := protos.SubscriptionRequest{
 		Email:   "test@getlantern.org",
