@@ -121,7 +121,7 @@ endif
 .PHONY: desktop-lib
 desktop-lib:
 	$(SETENV) go build -v -trimpath -buildmode=c-shared \
-		-tags="$(BUILD_TAGS)" \
+		-tags="$(TAGS)" \
 		-ldflags="-w -s $(EXTRA_LDFLAGS)" \
 		-o $(LIB_NAME) ./$(FFI_DIR)
 
