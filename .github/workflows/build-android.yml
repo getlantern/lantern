@@ -12,9 +12,6 @@ on:
       installer_name:
         required: true
         type: string
-      platform:
-        required: true
-        type: string
 
 jobs:
   build-android:
