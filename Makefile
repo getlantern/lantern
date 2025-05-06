@@ -65,6 +65,7 @@ IOS_FRAMEWORK := Liblantern.xcframework
 IOS_FRAMEWORK_DIR := ios/Frameworks
 IOS_FRAMEWORK_BUILD := $(BIN_DIR)/ios/$(IOS_FRAMEWORK)
 IOS_DEBUG_BUILD := $(BUILD_DIR)/ios/iphoneos/Runner.app
+IOS_RELEASE_IPA := $(INSTALLER_NAME)$(if $(BUILD_TYPE),-$(BUILD_TYPE)).ipa
 
 TAGS=with_gvisor,with_quic,with_wireguard,with_ech,with_utls,with_clash_api,with_grpc
 
@@ -343,9 +344,9 @@ swift-format:
 
 ios-release: clean ios pubget gen
 	flutter build ipa --flavor prod --release --export-options-plist ./exportOptions.plist
-	@IPA_PATH=$(shell pwd)/build/ios/ipa; \
-	echo "iOS IPA generated under: $$IPA_PATH"; \
-	open "$$IPA_PATH"
+	@IPA_PATH=$(shell pwd)/build/ios/ipa
+	echo "iOS IPA generated under: $$IPA_PATH"
+	mv build/ios/ipa/Lantern.ipa $(IOS_RELEASE_IPA)
 
 # Dart API DL bridge
 DART_SDK_REPO=https://github.com/dart-lang/sdk

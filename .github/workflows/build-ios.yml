@@ -104,6 +104,8 @@ jobs:
 
       - name: Build iOS release
         run: make ios-release
+        env:
+          BUILD_TYPE: ${{ inputs.build_type }}
 
       - name: Upload application
         uses: actions/upload-artifact@v4
