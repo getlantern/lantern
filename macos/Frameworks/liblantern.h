@@ -97,6 +97,10 @@ extern char* stopVPN();
 //
 extern GoInt isVPNConnected();
 
+// Get user data from the local config
+//
+extern char* getUserData();
+
 // Fetch stipe subscription payment redirect link
 //
 extern char* stripeSubscriptionPaymentRedirect(char* subType);

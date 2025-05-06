@@ -28,6 +28,7 @@ import (
 	"github.com/getlantern/radiance/api"
 	"github.com/getlantern/radiance/api/protos"
 	"github.com/getlantern/radiance/client"
+	"github.com/getlantern/radiance/common"
 )
 
 type service string
@@ -65,6 +66,7 @@ type lanternService struct {
 	servicesMap        map[service]int64
 	dataDir            string
 	splitTunnelHandler *client.SplitTunnel
+	userInfo           common.UserInfo
 
 	mu sync.Mutex
 }
@@ -126,8 +128,13 @@ func setup(_logDir, _dataDir, _locale *C.char, logPort, appsPort, statusPort C.i
 				statusService: int64(statusPort),
 			},
 			splitTunnelHandler: r.SplitTunnelHandler(),
+			userInfo:           r.UserInfo(),
 		}
-		createUser()
+
+		if server.userInfo.LegacyID() != 0 {
+			createUser()
+		}
+
 	})
 	if outError != nil {
 		return C.CString(outError.Error())
@@ -265,11 +272,6 @@ func isVPNConnected() int {
 //APIS
 
 func createUser() error {
-	// defer func() {
-	// 	if err := recover(); err != nil {
-	// 		log.Errorf("Error creating user: %v", err)
-	// 	}
-	// }()
 	log.Debug("Creating user")
 	user, err := server.proServer.UserCreate(context.Background())
 	log.Debugf("UserCreate response: %v", user)
@@ -277,6 +279,34 @@ func createUser() error {
 		return log.Errorf("Error creating user: %v", err)
 	}
 	return nil
+}
+
+// Get user data from the local config
+//
+//export getUserData
+func getUserData() *C.char {
+	log.Debug("Getting user data locally")
+	user, err := server.UserInfo().GetUserData()
+	if err != nil {
+		return SendError(err)
+	}
+	bytes, err := proto.Marshal(user)
+	if err != nil {
+		return SendError(log.Errorf("Error marshalling user data: %v", err))
+	}
+	encoded := base64.StdEncoding.EncodeToString(bytes)
+	return C.CString(encoded)
+}
+
+// Get user data from the server
+func fetchUserData() (*protos.UserDataResponse, error) {
+	log.Debug("Getting user data")
+	user, err := server.proServer.UserData(context.Background())
+	if err != nil {
+		return nil, log.Errorf("Error getting user data: %v", err)
+	}
+	log.Debugf("UserData response: %v", user)
+	return user, nil
 }
 
 // Fetch stipe subscription payment redirect link
@@ -368,9 +398,9 @@ func oAuthLoginCallback(_oAuthToken *C.char) *C.char {
 			Token:  userInfo.LegacyToken,
 		},
 	}
-	server.UserInfo().Save(login)
+	server.userInfo.Save(login)
 	///Get user data from api this will also save data in user config
-	user, err := server.proServer.UserData(context.Background())
+	user, err := fetchUserData()
 	if err != nil {
 		return SendError(log.Errorf("Error getting user data: %v", err))
 	}

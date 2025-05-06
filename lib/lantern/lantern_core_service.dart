@@ -56,4 +56,6 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, LoginResponse>> oAuthLoginCallback(String token);
 
+  Future<Either<Failure, LoginResponse>> getUserData();
+
 }

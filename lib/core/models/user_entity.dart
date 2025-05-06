@@ -1,0 +1,91 @@
+import 'package:objectbox/objectbox.dart';
+
+@Entity()
+class LoginResponseEntity {
+  int id;
+  int legacyID;
+  String legacyToken;
+  bool emailConfirmed;
+  bool success;
+  final legacyUserData = ToOne<UserDataEntity>();
+  final devices = ToMany<DeviceEntity>();
+
+  LoginResponseEntity({
+    this.id = 0,
+    required this.legacyID,
+    required this.legacyToken,
+    required this.emailConfirmed,
+    required this.success,
+  });
+}
+
+@Entity()
+class DeviceEntity {
+  int id;
+  String deviceId;
+  String name;
+  int created;
+
+  DeviceEntity({
+    this.id = 0,
+    required this.deviceId,
+    required this.name,
+    required this.created,
+  });
+}
+
+@Entity()
+class UserDataEntity {
+  int id;
+  int userId;
+  String code;
+  String token;
+  String referral;
+  String phone;
+  String email;
+  String userStatus;
+  String userLevel;
+  String locale;
+  int expiration;
+  String subscription;
+  String bonusDays;
+  String bonusMonths;
+  bool yinbiEnabled;
+  String servers;
+  String inviters;
+  String invitees;
+  final devices = ToMany<DeviceEntity>();
+  final purchases = ToMany<PurchaseEntity>();
+
+  UserDataEntity({
+    this.id = 0,
+    required this.userId,
+    required this.code,
+    required this.token,
+    required this.referral,
+    required this.phone,
+    required this.email,
+    required this.userStatus,
+    required this.userLevel,
+    required this.locale,
+    required this.expiration,
+    required this.subscription,
+    required this.bonusDays,
+    required this.bonusMonths,
+    required this.yinbiEnabled,
+    required this.servers,
+    required this.inviters,
+    required this.invitees,
+  });
+}
+
+@Entity()
+class PurchaseEntity {
+  int id;
+  String plan;
+
+  PurchaseEntity({
+    this.id = 0,
+    required this.plan,
+  });
+}

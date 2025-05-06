@@ -2451,6 +2451,16 @@ class LanternBindings {
       _lookup<ffi.NativeFunction<GoInt Function()>>('isVPNConnected');
   late final _isVPNConnected = _isVPNConnectedPtr.asFunction<int Function()>();
 
+  ffi.Pointer<ffi.Char> getUserData() {
+    return _getUserData();
+  }
+
+  late final _getUserDataPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+          'getUserData');
+  late final _getUserData =
+      _getUserDataPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
+
   ffi.Pointer<ffi.Char> stripeSubscriptionPaymentRedirect(
     ffi.Pointer<ffi.Char> subType,
   ) {

@@ -171,4 +171,12 @@ class LanternService implements LanternCoreService {
     }
     return _platformService.oAuthLoginCallback(token);
   }
+
+  @override
+  Future<Either<Failure, LoginResponse>> getUserData() {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.getUserData();
+    }
+    return _platformService.getUserData();
+  }
 }

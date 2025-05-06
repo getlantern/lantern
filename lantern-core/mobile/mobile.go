@@ -108,6 +108,8 @@ func NewAPIHandler(opts *Opts) error {
 	if apiHandler.userConfig.LegacyID() == 0 {
 		log.Debug("Creating user")
 		CreateUser()
+	} else {
+		fetchUserData()
 	}
 	log.Debugf("API handler setup successfully")
 	return nil
@@ -157,6 +159,7 @@ func IsVPNConnected() bool {
 	return radianceServer.ConnectionStatus()
 }
 
+// User Methods
 // Todo make sure to add retry logic
 // we need to make sure that the user is created before we can use the radiance server
 func CreateUser() error {
@@ -167,6 +170,32 @@ func CreateUser() error {
 		return log.Errorf("Error creating user: %v", err)
 	}
 	return nil
+}
+
+// this will return the user data from the user config
+func UserData() ([]byte, error) {
+	user, err := apiHandler.userConfig.GetUserData()
+	if err != nil {
+		return nil, log.Errorf("Error getting user data: %v", err)
+	}
+	bytes, err := proto.Marshal(user)
+	if err != nil {
+		return nil, log.Errorf("Error marshalling user data: %v", err)
+	}
+	return bytes, nil
+}
+
+// GetUserData will get the user data from the server
+func fetchUserData() (*protos.UserDataResponse, error) {
+	log.Debug("Getting user data")
+	//this call will also save the user data in the user config
+	// so we can use it later
+	user, err := apiHandler.proServer.UserData(context.Background())
+	if err != nil {
+		return nil, log.Errorf("Error getting user data: %v", err)
+	}
+	log.Debugf("UserData response: %v", user)
+	return user, nil
 }
 
 // OAuth Methods
@@ -198,7 +227,7 @@ func OAuthLoginCallback(oAuthToken string) ([]byte, error) {
 	}
 	apiHandler.userConfig.Save(login)
 	///Get user data from api this will also save data in user config
-	user, err := apiHandler.proServer.UserData(context.Background())
+	user, err := fetchUserData()
 	if err != nil {
 		return nil, log.Errorf("Error getting user data: %v", err)
 	}

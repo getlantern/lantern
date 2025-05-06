@@ -9,7 +9,7 @@ import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/lantern_status.dart';
-import 'package:lantern/core/models/plan_mapper.dart';
+import 'package:lantern/core/models/mapper/plan_mapper.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
@@ -406,6 +406,25 @@ class LanternFFIService implements LanternCoreService {
       final result = await runInBackground<String>(
         () async {
           return _ffiService.oAuthLoginCallback(token.toCharPtr).toDartString();
+        },
+      );
+      final decodedResult = base64Decode(result);
+      final loginResponse = LoginResponse.fromBuffer(decodedResult);
+      return Right(loginResponse);
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription));
+    }
+  }
+
+  @override
+  Future<Either<Failure, LoginResponse>> getUserData() async {
+    try {
+      final result = await runInBackground<String>(
+            () async {
+          return _ffiService.getUserData().toDartString();
         },
       );
       final decodedResult = base64Decode(result);

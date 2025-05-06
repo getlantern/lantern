@@ -5,8 +5,8 @@ import 'package:fpdart/src/either.dart';
 import 'package:fpdart/src/unit.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/mapper/plan_mapper.dart';
 import 'package:lantern/core/models/plan_data.dart';
-import 'package:lantern/core/models/plan_mapper.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/protos/protos/auth.pb.dart';
@@ -20,9 +20,11 @@ class LanternPlatformService implements LanternCoreService {
   LanternPlatformService(this.appPurchase);
 
   static const channelPrefix = 'org.getlantern.lantern';
-  static const MethodChannel _methodChannel = MethodChannel('org.getlantern.lantern/method');
+  static const MethodChannel _methodChannel =
+      MethodChannel('org.getlantern.lantern/method');
   static const logsChannel = EventChannel("$channelPrefix/logs");
-  static const statusChannel = EventChannel("$channelPrefix/status", JSONMethodCodec());
+  static const statusChannel =
+      EventChannel("$channelPrefix/status", JSONMethodCodec());
   late final Stream<LanternStatus> _status;
 
   @override
@@ -198,7 +200,8 @@ class LanternPlatformService implements LanternCoreService {
   @override
   Future<Either<Failure, String>> getOAuthLoginUrl(String provider) async {
     try {
-      final loginUrl = await _methodChannel.invokeMethod<String>('oauthLoginUrl',provider);
+      final loginUrl =
+          await _methodChannel.invokeMethod<String>('oauthLoginUrl', provider);
       return Right(loginUrl!);
     } catch (e, stackTrace) {
       appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
@@ -209,9 +212,25 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, LoginResponse>> oAuthLoginCallback(String token) async {
+  Future<Either<Failure, LoginResponse>> oAuthLoginCallback(
+      String token) async {
     try {
-      final bytes = await _methodChannel.invokeMethod('oauthLoginCallback',token);
+      final bytes =
+          await _methodChannel.invokeMethod('oauthLoginCallback', token);
+      return Right(LoginResponse.fromBuffer(bytes));
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription));
+    }
+  }
+
+  @override
+  Future<Either<Failure, LoginResponse>> getUserData() async {
+    try {
+      final bytes =
+          await _methodChannel.invokeMethod('getUserData');
       return Right(LoginResponse.fromBuffer(bytes));
     } catch (e, stackTrace) {
       appLogger.error('Error waking up LanternPlatformService', e, stackTrace);

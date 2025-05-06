@@ -3,8 +3,6 @@ import 'dart:async';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:lantern/core/common/common.dart';
 
-
-
 typedef PaymentSuccessCallback = void Function(PurchaseDetails purchase);
 typedef PaymentErrorCallback = void Function(String error);
 
@@ -18,6 +16,9 @@ class AppPurchase {
   PaymentErrorCallback? _onError;
 
   void init() {
+    if (PlatformUtils.isDesktop) {
+      return;
+    }
     final purchaseUpdated = _inAppPurchase.purchaseStream;
     _subscription = purchaseUpdated.listen(
       _onPurchaseUpdates,
@@ -100,6 +101,7 @@ class AppPurchase {
         }
         _onError?.call(purchaseDetails.error?.message.localizedDescription ??
             "Unknown error");
+
         /// User has cancelled the purchase
 
         return;
