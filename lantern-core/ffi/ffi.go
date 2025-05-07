@@ -25,6 +25,7 @@ import (
 	"github.com/getlantern/radiance/api"
 	"github.com/getlantern/radiance/api/protos"
 	"github.com/getlantern/radiance/client"
+	"github.com/getlantern/radiance/common"
 )
 
 type service string
@@ -62,6 +63,7 @@ type lanternService struct {
 	servicesMap        map[service]int64
 	dataDir            string
 	splitTunnelHandler *client.SplitTunnel
+	userInfo           common.UserInfo
 
 	mu sync.Mutex
 }
@@ -123,8 +125,12 @@ func setup(_logDir, _dataDir, _locale *C.char, logPort, appsPort, statusPort C.i
 				statusService: int64(statusPort),
 			},
 			splitTunnelHandler: r.SplitTunnelHandler(),
+			userInfo:           r.UserInfo(),
 		}
-		createUser()
+
+		if server.userInfo.LegacyID() == 0 {
+			createUser()
+		}
 	})
 	if outError != nil {
 		return C.CString(outError.Error())

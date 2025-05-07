@@ -62,6 +62,8 @@ github.com/getlantern/filepersist v0.0.0-20210901195658-ed29a1cb0b7c h1:mcz27xtA
 github.com/getlantern/filepersist v0.0.0-20210901195658-ed29a1cb0b7c/go.mod h1:8DGAx0LNUfXNnEH+fXI0s3OCBA/351kZCiz/8YSK3i8=
 github.com/getlantern/fronted v0.0.0-20250501185902-0f6c04a1b15d h1:hZRyxfAax46kB2/uoxsM8y0cWQfuAeYdKe+zTF81OB0=
 github.com/getlantern/fronted v0.0.0-20250501185902-0f6c04a1b15d/go.mod h1:dJYYGO+AHitD4UXMG9GGd7KbZb8guObTDj+fsKixU8Q=
+github.com/getlantern/fronted v0.0.0-20250506001345-27e1daa0a25e h1:BW+bBCm8lKAdTEM+3JWBeNVqwE9EoJ/ETDnKWFAPdj4=
+github.com/getlantern/fronted v0.0.0-20250506001345-27e1daa0a25e/go.mod h1:dJYYGO+AHitD4UXMG9GGd7KbZb8guObTDj+fsKixU8Q=
 github.com/getlantern/golog v0.0.0-20210606115803-bce9f9fe5a5f/go.mod h1:ZyIjgH/1wTCl+B+7yH1DqrWp6MPJqESmwmEQ89ZfhvA=
 github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65 h1:NlQedYmPI3pRAXJb+hLVVDGqfvvXGRPV8vp7XOjKAZ0=
 github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65/go.mod h1:+ZU1h+iOVqWReBpky6d5Y2WL0sF2Llxu+QcxJFs2+OU=
@@ -83,6 +85,8 @@ github.com/getlantern/keyman v0.0.0-20230503155501-4e864ca2175b h1:iyEuk8ARQC9Hf
 github.com/getlantern/keyman v0.0.0-20230503155501-4e864ca2175b/go.mod h1:ZJ+yDaZkJ/JU9j7EQa3UUh6ouedrNDDLA5OiowS1Iuk=
 github.com/getlantern/kindling v0.0.0-20250501190705-a18e51da1a62 h1:C5mvCuWHw5+aDpQG/JJKW4tQMiTDeWaD+sy1beEqzDM=
 github.com/getlantern/kindling v0.0.0-20250501190705-a18e51da1a62/go.mod h1:VWX9mYXmYULt1kYEZMLbRbO1SvgVFTAcs4ZSZTw6ps8=
+github.com/getlantern/kindling v0.0.0-20250506175908-d622fb5c9990 h1:SLixcWu2uIXLvdHxpU38xGlsM0mTWZCMmYazyVlWZ2E=
+github.com/getlantern/kindling v0.0.0-20250506175908-d622fb5c9990/go.mod h1:EMAh3Lh2pXrZ/IhqNv9p0KmKCupCGoLSWO1Tmyq46mU=
 github.com/getlantern/mockconn v0.0.0-20200818071412-cb30d065a848 h1:2MhMMVBTnaHrst6HyWFDhwQCaJ05PZuOv1bE2gN8WFY=
 github.com/getlantern/mockconn v0.0.0-20200818071412-cb30d065a848/go.mod h1:+F5GJ7qGpQ03DBtcOEyQpM30ix4BLswdaojecFtsdy8=
 github.com/getlantern/mtime v0.0.0-20200417132445-23682092d1f7 h1:03J6Cb42EG06lHgpOFGm5BOax4qFqlSbSeKO2RGrj2g=
@@ -97,6 +101,8 @@ github.com/getlantern/ops v0.0.0-20231025133620-f368ab734534 h1:3BwvWj0JZzFEvNNi
 github.com/getlantern/ops v0.0.0-20231025133620-f368ab734534/go.mod h1:ZsLfOY6gKQOTyEcPYNA9ws5/XHZQFroxqCOhHjGcs9Y=
 github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 h1:JWH5BB2o0eAeGs0tZnFPpQGx+nMIo/WmxKnj2hnGjgE=
 github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175/go.mod h1:h3S9LBmmzN/xM+lwYZHE4abzTtCTtidKtG+nxZcCZX0=
+github.com/getlantern/radiance v0.0.0-20250506202730-ff01837b7456 h1:uU5/8lcs1A4WQxdleYN9ZFFRK83sZPsz/p8K5FoHiZg=
+github.com/getlantern/radiance v0.0.0-20250506202730-ff01837b7456/go.mod h1:kQzT5YSP+0uObElQqxjoboXV+U73K2wRBM3MNxZGXTA=
 github.com/getlantern/sing-box-extensions v0.0.0-20250505165831-60e20ae95309 h1:v6o2SvcH+IDZchUqRx8YPiwwYsTARnHXgz2w/aB3U0E=
 github.com/getlantern/sing-box-extensions v0.0.0-20250505165831-60e20ae95309/go.mod h1:IhvHDCl8O7kKIwg5QOGgSOZm9898OZpjZSvXpS6l61o=
 github.com/getlantern/sing-box-minimal v1.11.6-0.20250411173055-d82f542dfd3f h1:1EM684uAJTApkeubw0W8BbxdrTaXkaXxbM1hJ+KRTZ8=
