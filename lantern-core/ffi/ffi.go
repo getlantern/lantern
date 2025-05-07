@@ -131,7 +131,7 @@ func setup(_logDir, _dataDir, _locale *C.char, logPort, appsPort, statusPort C.i
 			userInfo:           r.UserInfo(),
 		}
 
-		if server.userInfo.LegacyID() != 0 {
+		if server.userInfo.LegacyID() == 0 {
 			createUser()
 		}
 
