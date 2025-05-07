@@ -77,3 +77,13 @@ extension PurchaseErrorExtension on String {
     return this;
   }
 }
+
+extension FailureExtension on Object {
+  Failure toFailure() {
+    return Failure(
+      error: toString(),
+      localizedErrorMessage: localizedDescription,
+
+    );
+  }
+}

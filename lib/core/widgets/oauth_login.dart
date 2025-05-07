@@ -9,7 +9,7 @@ import '../common/common.dart';
 
 class OAuthLogin extends HookConsumerWidget {
   final SignUpMethodType methodType;
-  final Function(Map<String,dynamic> token) onResult;
+  final Function(Map<String, dynamic> token) onResult;
 
   const OAuthLogin({
     super.key,
@@ -19,7 +19,7 @@ class OAuthLogin extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (methodType == SignUpMethodType.google) {
+    if (methodType == SignUpMethodType.apple) {
       return SecondaryButton(
         label: 'continue_with_apple'.i18n,
         icon: AppImagePaths.apple,
@@ -56,7 +56,6 @@ class OAuthLogin extends HookConsumerWidget {
               onResult(result as Map<String, dynamic>);
             }
           });
-
           /// For mobile we have to use system default browser
           UrlUtils.openWithSystemBrowser(url);
         } else {
@@ -66,7 +65,7 @@ class OAuthLogin extends HookConsumerWidget {
             onWebviewResult: (p0) {
               appLogger.debug('WebView result: $p0');
               onResult(p0);
-                        },
+            },
           );
         }
       },

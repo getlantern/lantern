@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 type UserInfo struct {
@@ -16,26 +16,20 @@ type UserInfo struct {
 }
 
 func DecodeJWT(tokenStr string) (*UserInfo, error) {
-	token, _, err := new(jwt.Parser).ParseUnverified(tokenStr, jwt.MapClaims{})
+	claims := jwt.MapClaims{}
+	token, _, err := new(jwt.Parser).ParseUnverified(tokenStr, &claims)
 	if err != nil {
 		return nil, err
 	}
-
-	claimsMap, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		return nil, fmt.Errorf("failed to convert claims to MapClaims")
-	}
-
-	// Convert map to JSON
-	claimsJSON, err := json.Marshal(claimsMap)
+	// Convert MapClaims to JSON
+	claimsJSON, err := json.Marshal(token.Claims)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal claims to JSON: %v", err)
+		return nil, fmt.Errorf("failed to marshal claims: %v", err)
+	}
+	var userInfo UserInfo
+	if err := json.Unmarshal(claimsJSON, &userInfo); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal to UserInfo: %v", err)
 	}
 
-	// Decode JSON into UserClaims
-	var userClaims *UserInfo
-	if err := json.Unmarshal(claimsJSON, &userClaims); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal JSON into UserClaims: %v", err)
-	}
-	return userClaims, nil
+	return &userInfo, nil
 }

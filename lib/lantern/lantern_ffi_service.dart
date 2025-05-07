@@ -238,12 +238,7 @@ class LanternFFIService implements LanternCoreService {
       return right(result);
     } catch (e) {
       appLogger.error('Error starting VPN: $e');
-      return left(
-        Failure(
-          error: e.toString(),
-          localizedErrorMessage: (e as Exception).localizedDescription,
-        ),
-      );
+      return Left(e.toFailure());
     }
   }
 
@@ -263,12 +258,7 @@ class LanternFFIService implements LanternCoreService {
       return right(result);
     } catch (e) {
       appLogger.error('Error stopping VPN: $e');
-      return left(
-        Failure(
-          error: e.toString(),
-          localizedErrorMessage: (e as Exception).localizedDescription,
-        ),
-      );
+      return Left(e.toFailure());
     }
   }
 
@@ -300,12 +290,7 @@ class LanternFFIService implements LanternCoreService {
       final result = _ffiService.isVPNConnected();
       return right(unit);
     } catch (e) {
-      return left(
-        Failure(
-          error: e.toString(),
-          localizedErrorMessage: (e as Exception).localizedDescription,
-        ),
-      );
+      return Left(e.toFailure());
     }
   }
 
@@ -345,12 +330,7 @@ class LanternFFIService implements LanternCoreService {
 
       return right(result);
     } catch (e) {
-      return left(
-        Failure(
-          error: e.toString(),
-          localizedErrorMessage: (e as Exception).localizedDescription,
-        ),
-      );
+      return Left(e.toFailure());
     }
   }
 
@@ -376,9 +356,7 @@ class LanternFFIService implements LanternCoreService {
       return Right(plans);
     } catch (e, stackTrace) {
       appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
-      return Left(Failure(
-          error: e.toString(),
-          localizedErrorMessage: (e as Exception).localizedDescription));
+      return Left(e.toFailure());
     }
   }
 
@@ -393,9 +371,7 @@ class LanternFFIService implements LanternCoreService {
       return Right(result);
     } catch (e, stackTrace) {
       appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
-      return Left(Failure(
-          error: e.toString(),
-          localizedErrorMessage: (e as Exception).localizedDescription));
+      return Left(e.toFailure());;
     }
   }
 
@@ -413,9 +389,7 @@ class LanternFFIService implements LanternCoreService {
       return Right(loginResponse);
     } catch (e, stackTrace) {
       appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
-      return Left(Failure(
-          error: e.toString(),
-          localizedErrorMessage: (e as Exception).localizedDescription));
+      return Left(e.toFailure());
     }
   }
 
@@ -423,7 +397,7 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, LoginResponse>> getUserData() async {
     try {
       final result = await runInBackground<String>(
-            () async {
+        () async {
           return _ffiService.getUserData().toDartString();
         },
       );
@@ -432,9 +406,7 @@ class LanternFFIService implements LanternCoreService {
       return Right(loginResponse);
     } catch (e, stackTrace) {
       appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
-      return Left(Failure(
-          error: e.toString(),
-          localizedErrorMessage: (e as Exception).localizedDescription));
+      return Left(e.toFailure());
     }
   }
 }

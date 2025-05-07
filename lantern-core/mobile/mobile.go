@@ -108,9 +108,8 @@ func NewAPIHandler(opts *Opts) error {
 	if apiHandler.userConfig.LegacyID() == 0 {
 		log.Debug("Creating user")
 		CreateUser()
-	} else {
-		fetchUserData()
 	}
+	fetchUserData()
 	log.Debugf("API handler setup successfully")
 	return nil
 }
@@ -200,6 +199,11 @@ func fetchUserData() (*protos.UserDataResponse, error) {
 
 // OAuth Methods
 func OAuthLoginUrl(provider string) (string, error) {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Errorf("Error login callback : %v", err)
+		}
+	}()
 	log.Debug("Getting OAuth login URL")
 	oauthLoginUrl, err := apiHandler.user.OAuthLoginUrl(context.Background(), provider)
 	if err != nil {
@@ -210,11 +214,6 @@ func OAuthLoginUrl(provider string) (string, error) {
 }
 
 func OAuthLoginCallback(oAuthToken string) ([]byte, error) {
-	// defer func() {
-	// 	if err := recover(); err != nil {
-	// 		log.Errorf("Error login callback : %v", err)
-	// 	}
-	// }()
 	log.Debug("Getting OAuth login callback")
 	userInfo, err := utils.DecodeJWT(oAuthToken)
 	if err != nil {
