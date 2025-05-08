@@ -180,11 +180,217 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "10:9200227513553238272",
+      "lastPropertyId": "4:7148467821700011673",
+      "name": "DeviceEntity",
+      "properties": [
+        {
+          "id": "1:7414488345171372479",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:3487381854970275368",
+          "name": "deviceId",
+          "type": 9
+        },
+        {
+          "id": "3:6387584786851728376",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "4:7148467821700011673",
+          "name": "created",
+          "type": 6
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "11:818119553507489289",
+      "lastPropertyId": "6:2315749090244685953",
+      "name": "LoginResponseEntity",
+      "properties": [
+        {
+          "id": "1:3516428039215602885",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:5969616360452952034",
+          "name": "legacyID",
+          "type": 6
+        },
+        {
+          "id": "3:4656584604966066691",
+          "name": "legacyToken",
+          "type": 9
+        },
+        {
+          "id": "4:283978338247359522",
+          "name": "emailConfirmed",
+          "type": 1
+        },
+        {
+          "id": "5:4022780797157874164",
+          "name": "success",
+          "type": 1
+        },
+        {
+          "id": "6:2315749090244685953",
+          "name": "legacyUserDataId",
+          "type": 11,
+          "flags": 520,
+          "indexId": "2:1151475603584147691",
+          "relationTarget": "UserDataEntity"
+        }
+      ],
+      "relations": [
+        {
+          "id": "2:2585383973479585406",
+          "name": "devices",
+          "targetId": "10:9200227513553238272"
+        }
+      ]
+    },
+    {
+      "id": "12:3582880466074719644",
+      "lastPropertyId": "2:7662617260027498372",
+      "name": "PurchaseEntity",
+      "properties": [
+        {
+          "id": "1:5748619009204113192",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:7662617260027498372",
+          "name": "plan",
+          "type": 9
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "13:3415485097329155517",
+      "lastPropertyId": "18:6903327324847915765",
+      "name": "UserDataEntity",
+      "properties": [
+        {
+          "id": "1:4857861505867141663",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:7531960814848767689",
+          "name": "userId",
+          "type": 6
+        },
+        {
+          "id": "3:9052526574052787603",
+          "name": "code",
+          "type": 9
+        },
+        {
+          "id": "4:500144540785133527",
+          "name": "token",
+          "type": 9
+        },
+        {
+          "id": "5:324168490690013848",
+          "name": "referral",
+          "type": 9
+        },
+        {
+          "id": "6:8273443994807092371",
+          "name": "phone",
+          "type": 9
+        },
+        {
+          "id": "7:3544653410578364976",
+          "name": "email",
+          "type": 9
+        },
+        {
+          "id": "8:3923759284407701898",
+          "name": "userStatus",
+          "type": 9
+        },
+        {
+          "id": "9:4239132974619956517",
+          "name": "userLevel",
+          "type": 9
+        },
+        {
+          "id": "10:743824518090899240",
+          "name": "locale",
+          "type": 9
+        },
+        {
+          "id": "11:1764175302811434944",
+          "name": "expiration",
+          "type": 6
+        },
+        {
+          "id": "12:3288472878287446687",
+          "name": "subscription",
+          "type": 9
+        },
+        {
+          "id": "13:6442178653962959098",
+          "name": "bonusDays",
+          "type": 9
+        },
+        {
+          "id": "14:1780291838969723331",
+          "name": "bonusMonths",
+          "type": 9
+        },
+        {
+          "id": "15:5517640030345605593",
+          "name": "yinbiEnabled",
+          "type": 1
+        },
+        {
+          "id": "16:52897742388961638",
+          "name": "servers",
+          "type": 9
+        },
+        {
+          "id": "17:5448361653727955474",
+          "name": "inviters",
+          "type": 9
+        },
+        {
+          "id": "18:6903327324847915765",
+          "name": "invitees",
+          "type": 9
+        }
+      ],
+      "relations": [
+        {
+          "id": "3:8733406164260627930",
+          "name": "devices",
+          "targetId": "10:9200227513553238272"
+        },
+        {
+          "id": "4:1703547319205099497",
+          "name": "purchases",
+          "targetId": "12:3582880466074719644"
+        }
+      ]
     }
   ],
-  "lastEntityId": "9:2225470262079550670",
-  "lastIndexId": "1:8385137855534348937",
-  "lastRelationId": "1:2761527795005361608",
+  "lastEntityId": "13:3415485097329155517",
+  "lastIndexId": "2:1151475603584147691",
+  "lastRelationId": "4:1703547319205099497",
   "lastSequenceId": "0:0",
   "modelVersion": 5,
   "modelVersionParserMinimum": 5,

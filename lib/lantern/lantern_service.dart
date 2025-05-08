@@ -7,6 +7,7 @@ import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_ffi_service.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
+import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 
 import '../core/common/common.dart';
 
@@ -94,7 +95,7 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> startSubscriptionFlow({
+  Future<Either<Failure, Unit>> startInAppPurchaseFlow({
     required String planId,
     required PaymentSuccessCallback onSuccess,
     required PaymentErrorCallback onError,
@@ -102,7 +103,7 @@ class LanternService implements LanternCoreService {
     if (PlatformUtils.isDesktop) {
       throw UnimplementedError();
     }
-    return _platformService.startSubscriptionFlow(
+    return _platformService.startInAppPurchaseFlow(
       planId: planId,
       onSuccess: onSuccess,
       onError: onError,
@@ -153,5 +154,29 @@ class LanternService implements LanternCoreService {
       return _ffiService.plans();
     }
     return _platformService.plans();
+  }
+
+  @override
+  Future<Either<Failure, String>> getOAuthLoginUrl(String provider) {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.getOAuthLoginUrl(provider);
+    }
+    return _platformService.getOAuthLoginUrl(provider);
+  }
+
+  @override
+  Future<Either<Failure, LoginResponse>> oAuthLoginCallback(String token) {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.oAuthLoginCallback(token);
+    }
+    return _platformService.oAuthLoginCallback(token);
+  }
+
+  @override
+  Future<Either<Failure, LoginResponse>> getUserData() {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.getUserData();
+    }
+    return _platformService.getUserData();
   }
 }

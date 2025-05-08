@@ -21,7 +21,10 @@ enum class Methods(val method: String) {
     IsVpnConnected("isVPNConnected"),
     SubscriptionPaymentRedirect("subscriptionPaymentRedirect"),
     StripeSubscription("stripeSubscription"),
-    Plans("plans")
+    Plans("plans"),
+    OAuthLoginUrl("oauthLoginUrl"),
+    OAuthLoginCallback("oauthLoginCallback"),
+    GetUserData("getUserData")
 }
 
 class MethodHandler : FlutterPlugin,
@@ -132,7 +135,44 @@ class MethodHandler : FlutterPlugin,
                     }
                 }
             }
-
+            Methods.OAuthLoginUrl.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val provider = call.arguments<String>()
+                        val loginUrl = Mobile.oAuthLoginUrl(provider)
+                        withContext(Dispatchers.Main) {
+                            success(loginUrl)
+                        }
+                    }.onFailure { e ->
+                        result.error("OAuthLoginUrl", e.localizedMessage ?: "Please try again", e)
+                    }
+                }
+            }
+            Methods.OAuthLoginCallback.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val token = call.arguments<String>()
+                        val bytes = Mobile.oAuthLoginCallback(token)
+                        withContext(Dispatchers.Main) {
+                            success(bytes)
+                        }
+                    }.onFailure { e ->
+                        result.error("OAuthLoginCallback", e.localizedMessage ?: "Please try again", e)
+                    }
+                }
+            }
+            Methods.GetUserData.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val bytes = Mobile.userData()
+                        withContext(Dispatchers.Main) {
+                            success(bytes)
+                        }
+                    }.onFailure { e ->
+                        result.error("OAuthLoginCallback", e.localizedMessage ?: "Please try again", e)
+                    }
+                }
+            }
             else -> {
                 result.notImplemented()
             }

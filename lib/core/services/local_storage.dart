@@ -11,6 +11,7 @@ import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
+import '../models/user_entity.dart';
 import 'db/objectbox.g.dart';
 import 'injection_container.dart';
 
@@ -39,6 +40,7 @@ class LocalStorageService {
   late Box<AppData> _appsBox;
   late Box<Website> _websitesBox;
   late Box<PlansDataEntity> _plansBox;
+  late Box<LoginResponseEntity> _userBox;
 
   late AppDatabase _appDb;
 
@@ -48,14 +50,7 @@ class LocalStorageService {
   ///Due to limitations in macOS the value must be at most 19 characters
   /// Do not change this value
   final macosApplicationGroup = AppSecrets.macosAppGroupId;
-
-  Future<Directory> _getDBDirectory() {
-    if (Platform.isIOS || Platform.isAndroid) {
-      return getApplicationDocumentsDirectory();
-    }
-    return getApplicationSupportDirectory();
-  }
-
+  
   Future<void> init() async {
     final start = DateTime.now();
     dbLogger.debug("Initializing LocalStorageService");
@@ -69,6 +64,7 @@ class LocalStorageService {
     _appsBox = _store.box<AppData>();
     _websitesBox = _store.box<Website>();
     _plansBox = _store.box<PlansDataEntity>();
+    _userBox = _store.box<LoginResponseEntity>();
 
     AppDatabase? db = _box.get(1);
     if (db == null) {
@@ -156,6 +152,17 @@ class LocalStorageService {
   PlansDataEntity? getPlans() {
     final plans = _plansBox.getAll();
     return plans.isEmpty?null: plans.first;
+  }
+
+  // User methods
+  void saveUser(LoginResponseEntity user) {
+    _userBox.removeAll();
+    _userBox.put(user);
+  }
+
+  LoginResponseEntity? getUser() {
+    final user = _userBox.getAll();
+    return user.isEmpty?null: user.first;
   }
 }
 

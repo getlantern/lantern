@@ -3,6 +3,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/plan_data.dart';
+import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 
 import '../core/services/app_purchase.dart';
 
@@ -29,7 +30,7 @@ abstract class LanternCoreService {
       {required String planId});
 
   /// this is used for google and apple subscription
-  Future<Either<Failure, Unit>> startSubscriptionFlow({
+  Future<Either<Failure, Unit>> startInAppPurchaseFlow({
     required String planId,
     required PaymentSuccessCallback onSuccess,
     required PaymentErrorCallback onError,
@@ -49,4 +50,12 @@ abstract class LanternCoreService {
       SplitTunnelFilterType type, String value);
 
   Stream<List<AppData>> appsDataStream();
+
+  //OAuth methods
+  Future<Either<Failure, String>> getOAuthLoginUrl(String provider);
+
+  Future<Either<Failure, LoginResponse>> oAuthLoginCallback(String token);
+
+  Future<Either<Failure, LoginResponse>> getUserData();
+
 }

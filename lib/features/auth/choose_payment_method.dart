@@ -125,10 +125,10 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           appLogger.info('Successfully started subscription flow');
           context.hideLoadingDialog();
           await Future.delayed(const Duration(milliseconds: 300));
-          UrlUtils.openWebview(
+          UrlUtils.openWebview<bool>(
             stripeUrl,
             title: 'stripe_payment'.i18n,
-            onBackPressed: (result) => onPurchaseResult(result, context),
+            onWebviewResult: (result) => onPurchaseResult(result, context),
           );
         },
       );

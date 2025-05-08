@@ -10,11 +10,13 @@ import (
 	"sync"
 
 	"github.com/getlantern/golog"
+	"github.com/getlantern/lantern-outline/lantern-core/utils"
 	"github.com/getlantern/radiance"
 	"github.com/getlantern/radiance/api"
 	"github.com/getlantern/radiance/api/protos"
 	"github.com/getlantern/radiance/client"
 	"github.com/getlantern/radiance/common"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/sagernet/sing-box/experimental/libbox"
 	_ "golang.org/x/mobile/bind"
@@ -107,6 +109,7 @@ func NewAPIHandler(opts *Opts) error {
 		log.Debug("Creating user")
 		CreateUser()
 	}
+	fetchUserData()
 	log.Debugf("API handler setup successfully")
 	return nil
 }
@@ -155,6 +158,7 @@ func IsVPNConnected() bool {
 	return radianceServer.ConnectionStatus()
 }
 
+// User Methods
 // Todo make sure to add retry logic
 // we need to make sure that the user is created before we can use the radiance server
 func CreateUser() error {
@@ -167,12 +171,79 @@ func CreateUser() error {
 	return nil
 }
 
-func StripeSubscription() (string, error) {
+// this will return the user data from the user config
+func UserData() ([]byte, error) {
+	user, err := apiHandler.userConfig.GetUserData()
+	if err != nil {
+		return nil, log.Errorf("Error getting user data: %v", err)
+	}
+	bytes, err := proto.Marshal(user)
+	if err != nil {
+		return nil, log.Errorf("Error marshalling user data: %v", err)
+	}
+	return bytes, nil
+}
+
+// GetUserData will get the user data from the server
+func fetchUserData() (*protos.UserDataResponse, error) {
+	log.Debug("Getting user data")
+	//this call will also save the user data in the user config
+	// so we can use it later
+	user, err := apiHandler.proServer.UserData(context.Background())
+	if err != nil {
+		return nil, log.Errorf("Error getting user data: %v", err)
+	}
+	log.Debugf("UserData response: %v", user)
+	return user, nil
+}
+
+// OAuth Methods
+func OAuthLoginUrl(provider string) (string, error) {
 	defer func() {
 		if err := recover(); err != nil {
-			log.Errorf("Error creating stripe subscription: %v", err)
+			log.Errorf("Error login callback : %v", err)
 		}
 	}()
+	log.Debug("Getting OAuth login URL")
+	oauthLoginUrl, err := apiHandler.user.OAuthLoginUrl(context.Background(), provider)
+	if err != nil {
+		return "", log.Errorf("Error getting OAuth login URL: %v", err)
+	}
+	log.Debugf("OAuthLoginUrl response: %v", oauthLoginUrl.Redirect)
+	return oauthLoginUrl.Redirect, nil
+}
+
+func OAuthLoginCallback(oAuthToken string) ([]byte, error) {
+	log.Debug("Getting OAuth login callback")
+	userInfo, err := utils.DecodeJWT(oAuthToken)
+	if err != nil {
+		return nil, log.Errorf("Error decoding JWT: %v", err)
+	}
+	// Temporary  set user data to so api can read it
+	login := &protos.LoginResponse{
+		LegacyID:    userInfo.LegacyUserId,
+		LegacyToken: userInfo.LegacyToken,
+	}
+	apiHandler.userConfig.Save(login)
+	///Get user data from api this will also save data in user config
+	user, err := fetchUserData()
+	if err != nil {
+		return nil, log.Errorf("Error getting user data: %v", err)
+	}
+	log.Debugf("UserData response: %v", user)
+	userResponse := &protos.LoginResponse{
+		LegacyID:       user.UserId,
+		LegacyToken:    user.Token,
+		LegacyUserData: user.LoginResponse_UserData,
+	}
+	bytes, err := proto.Marshal(userResponse)
+	if err != nil {
+		return nil, log.Errorf("Error marshalling user data: %v", err)
+	}
+	return bytes, nil
+}
+
+func StripeSubscription() (string, error) {
 	log.Debug("Creating stripe subscription")
 	body := protos.SubscriptionRequest{
 		Email:   "test@getlantern.org",
@@ -213,6 +284,11 @@ func StripeSubscriptionPaymentRedirect(subType string) (string, error) {
 }
 
 func Plans() (string, error) {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Errorf("Error creating stripe subscription: %v", err)
+		}
+	}()
 	log.Debug("Getting plans")
 	plans, err := apiHandler.proServer.Plans(context.Background())
 	if err != nil {

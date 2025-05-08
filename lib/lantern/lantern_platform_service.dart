@@ -5,10 +5,11 @@ import 'package:fpdart/src/either.dart';
 import 'package:fpdart/src/unit.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/mapper/plan_mapper.dart';
 import 'package:lantern/core/models/plan_data.dart';
-import 'package:lantern/core/models/plan_mapper.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
+import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 
 import '../core/models/lantern_status.dart';
 import '../core/services/injection_container.dart' show sl;
@@ -19,9 +20,11 @@ class LanternPlatformService implements LanternCoreService {
   LanternPlatformService(this.appPurchase);
 
   static const channelPrefix = 'org.getlantern.lantern';
-  static const MethodChannel _methodChannel = MethodChannel('org.getlantern.lantern/method');
+  static const MethodChannel _methodChannel =
+      MethodChannel('org.getlantern.lantern/method');
   static const logsChannel = EventChannel("$channelPrefix/logs");
-  static const statusChannel = EventChannel("$channelPrefix/status", JSONMethodCodec());
+  static const statusChannel =
+      EventChannel("$channelPrefix/status", JSONMethodCodec());
   late final Stream<LanternStatus> _status;
 
   @override
@@ -124,7 +127,7 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> startSubscriptionFlow(
+  Future<Either<Failure, Unit>> startInAppPurchaseFlow(
       {required String planId,
       required PaymentSuccessCallback onSuccess,
       required PaymentErrorCallback onError}) async {
@@ -138,7 +141,7 @@ class LanternPlatformService implements LanternCoreService {
     } catch (e) {
       return Left(Failure(
         error: e.toString(),
-        localizedErrorMessage: (e as Exception).localizedDescription,
+        localizedErrorMessage: e.localizedDescription,
       ));
     }
   }
@@ -186,6 +189,49 @@ class LanternPlatformService implements LanternCoreService {
       sl<LocalStorageService>().savePlans(plans.toEntity());
       appLogger.info('Plans: $map');
       return Right(plans);
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription));
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> getOAuthLoginUrl(String provider) async {
+    try {
+      final loginUrl =
+          await _methodChannel.invokeMethod<String>('oauthLoginUrl', provider);
+      return Right(loginUrl!);
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription));
+    }
+  }
+
+  @override
+  Future<Either<Failure, LoginResponse>> oAuthLoginCallback(
+      String token) async {
+    try {
+      final bytes =
+          await _methodChannel.invokeMethod('oauthLoginCallback', token);
+      return Right(LoginResponse.fromBuffer(bytes));
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription));
+    }
+  }
+
+  @override
+  Future<Either<Failure, LoginResponse>> getUserData() async {
+    try {
+      final bytes =
+          await _methodChannel.invokeMethod('getUserData');
+      return Right(LoginResponse.fromBuffer(bytes));
     } catch (e, stackTrace) {
       appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
       return Left(Failure(

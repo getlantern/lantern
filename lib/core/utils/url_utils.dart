@@ -27,33 +27,39 @@ class UrlUtils {
     }
   }
 
-  static Future<void> openWebview(String url,
-      {String? title, Function(bool result)? onBackPressed}) async {
+  static Future<T?> openWebview<T>(
+      String url, {
+        String? title,
+        Function(T)? onWebviewResult,
+      }) async {
     try {
       switch (Platform.operatingSystem) {
         case 'android':
-        case 'macos':
         case 'ios':
+        case 'macos':
         case 'windows':
-          appRouter
-              .push(AppWebview(title: title ?? '', url: url))
-              .then((value) {
-            if (value != null) {
-              onBackPressed?.call(value as bool);
-            }
-          });
-          break;
+          final result = await appRouter.push<T>(
+            AppWebview(title: title ?? '', url: url),
+          );
+          if (result != null) {
+            onWebviewResult?.call(result);
+          }
+          return result;
+
         case 'linux':
           final webview = await WebviewWindow.create();
           webview.launch(url);
-          break;
+          return null;
+
         default:
-          throw UnsupportedError('Platform not supported');
+          throw UnsupportedError('Platform ${Platform.operatingSystem} is not supported');
       }
-    } catch (e) {
-      appLogger.error("Failed to open webview", e);
+    } catch (e, st) {
+      appLogger.error("Failed to open webview", e, st);
+      return null;
     }
   }
+
 
   static bool isValidDomain(String input) {
     final domainPattern = r'^(?!-)[A-Za-z0-9-]{1,63}(?<!-)\.[A-Za-z]{2,6}$';

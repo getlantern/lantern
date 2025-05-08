@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/services/stripe_service.dart';
-import 'package:lantern/features/auth/provider/payment_notifier.dart';
+import 'package:lantern/core/models/mapper/user_mapper.dart';
+import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/widgets/oauth_login.dart';
+import 'package:lantern/features/auth/provider/oauth_notifier.dart';
+import 'package:lantern/features/home/provider/home_notifier.dart';
+import 'package:lantern/lantern/lantern_service_notifier.dart';
 
-import '../../core/services/injection_container.dart';
-
-enum _SignUpMethodType { email, google, apple, withoutEmail }
+enum SignUpMethodType { email, google, apple, withoutEmail }
 
 @RoutePage(name: 'AddEmail')
 class AddEmail extends StatefulHookConsumerWidget {
@@ -69,22 +71,20 @@ class _AddEmailState extends ConsumerState<AddEmail> {
               PrimaryButton(
                 label: 'continue'.i18n,
                 enabled: emailController.text.isValidEmail(),
-                onPressed: () => onContinueTap(_SignUpMethodType.email,
+                onPressed: () => onContinueTap(SignUpMethodType.email,
                     email: emailController.text),
               ),
               SizedBox(height: defaultSize),
               DividerSpace(),
               SizedBox(height: defaultSize),
-              SecondaryButton(
-                label: 'continue_with_google'.i18n,
-                icon: AppImagePaths.google,
-                onPressed: () => onContinueTap(_SignUpMethodType.google),
+              OAuthLogin(
+                methodType: SignUpMethodType.google,
+                onResult: onWebViewResult,
               ),
               SizedBox(height: defaultSize),
-              SecondaryButton(
-                label: 'continue_with_apple'.i18n,
-                icon: AppImagePaths.apple,
-                onPressed: () => onContinueTap(_SignUpMethodType.apple),
+              OAuthLogin(
+                methodType: SignUpMethodType.apple,
+                onResult: onWebViewResult,
               ),
               SizedBox(height: defaultSize),
               DividerSpace(),
@@ -95,7 +95,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
                     label: 'continue_with_email'.i18n,
                     textColor: AppColors.gray9,
                     onPressed: () =>
-                        onContinueTap(_SignUpMethodType.withoutEmail),
+                        onContinueTap(SignUpMethodType.withoutEmail),
                   ),
                 ),
             ],
@@ -105,15 +105,36 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     );
   }
 
-  Future<void> onContinueTap(_SignUpMethodType type,
-      {String email = ''}) async {
+  Future<void> onContinueTap(SignUpMethodType type, {String email = ''}) async {
     appLogger.debug('Continue tapped with type: $type');
-    if (type == _SignUpMethodType.email) {
+    if (type == SignUpMethodType.email) {
       if (!_formKey.currentState!.validate()) {
         return;
       }
-
       appRouter.push(ConfirmEmail(email: email, authFlow: widget.authFlow));
+    }
+  }
+
+  Future<void> onWebViewResult(Map<String, dynamic> result) async {
+    final token = result['token'];
+    if (token != null) {
+      context.showLoadingDialog();
+      final result = await ref
+          .read(oAuthNotifierProvider.notifier)
+          .oAuthLoginCallback(token);
+      result.fold(
+        (failure) {
+          context.hideLoadingDialog();
+          context.showSnackBarError(failure.localizedErrorMessage);
+        },
+        (response) {
+          context.hideLoadingDialog();
+          ref.read(homeNotifierProvider.notifier).updateUserData(response);
+          appLogger.debug('Login Response: ${response.toString()}');
+        },
+      );
+    } else {
+      context.showSnackBarError('Failed to retrieve token');
     }
   }
 
@@ -131,17 +152,16 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     }
   }
 
-
-  void postPaymentNavigate(_SignUpMethodType type) {
+  void postPaymentNavigate(SignUpMethodType type) {
     switch (type) {
-      case _SignUpMethodType.email:
+      case SignUpMethodType.email:
         // appRouter.push(ConfirmEmail(email: emailController.text));
         break;
-      case _SignUpMethodType.google:
+      case SignUpMethodType.google:
         break;
-      case _SignUpMethodType.apple:
+      case SignUpMethodType.apple:
         break;
-      case _SignUpMethodType.withoutEmail:
+      case SignUpMethodType.withoutEmail:
         appRouter.popUntilRoot();
         break;
     }

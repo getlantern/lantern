@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
-import 'package:lantern/core/widgets/vpn_status_indicator.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/split_tunneling/provider/app_preferences.dart';
 import 'package:lantern/features/vpn/vpn_status.dart';
@@ -22,11 +21,14 @@ class Home extends HookConsumerWidget {
 
   TextTheme? textTheme;
 
-  final isUserPro = false;
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final result = ref.read(homeNotifierProvider);
+    final homeState = ref.watch(homeNotifierProvider);
+
+    final isUserPro = homeState.maybeWhen(
+      data: (user) => user.legacyUserData.userStatus == 'pro',
+      orElse: () => false,
+    );
     textTheme = Theme.of(context).textTheme;
     return Scaffold(
       appBar: AppBar(
@@ -44,11 +46,11 @@ class Home extends HookConsumerWidget {
                 appRouter.push(Setting());
               },
               icon: const AppImage(path: AppImagePaths.menu))),
-      body: _buildBody(ref),
+      body: _buildBody(ref, isUserPro),
     );
   }
 
-  Widget _buildBody(WidgetRef ref) {
+  Widget _buildBody(WidgetRef ref, bool isUserPro) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: defaultSize),
       child: Column(

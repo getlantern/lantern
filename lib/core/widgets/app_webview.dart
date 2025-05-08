@@ -39,12 +39,13 @@ class AppWebView extends HookWidget {
               shouldOverrideUrlLoading: shouldOverrideUrlLoading,
               initialUrlRequest: URLRequest(url: WebUri(url)),
               initialSettings: InAppWebViewSettings(
-                  javaScriptEnabled: true,
-                  mediaPlaybackRequiresUserGesture: false,
-                  useOnDownloadStart: true,
-                  useOnLoadResource: true,
-                  applicationNameForUserAgent: 'Lantern',
-                  useShouldOverrideUrlLoading: true),
+                javaScriptEnabled: true,
+                mediaPlaybackRequiresUserGesture: false,
+                useOnDownloadStart: true,
+                useOnLoadResource: true,
+                applicationNameForUserAgent: 'Lantern',
+                useShouldOverrideUrlLoading: true,
+              ),
               onWebViewCreated: (controller) {},
               onLoadStart: (_, __) {
                 // Handle load start
@@ -79,6 +80,15 @@ class AppWebView extends HookWidget {
       final uri2 = Uri.parse(normalized);
       final result = uri2.queryParameters['purchaseResult'];
       await appRouter.maybePop(bool.parse(result ?? 'false'));
+      return NavigationActionPolicy.CANCEL;
+    } else if (uri?.host == 'www.lantern.io' &&
+        uri?.path == '/auth' &&
+        uri!.queryParameters.containsKey('token')) {
+      appRouter.navigatorKey.currentContext
+          ?.showSnackBarError("Successfully logged in");
+      // User has successfully logged in to google or apple
+      await appRouter.maybePop(uri.queryParameters);
+
       return NavigationActionPolicy.CANCEL;
     }
     appLogger.debug("shouldOverrideUrlLoading: $uri");

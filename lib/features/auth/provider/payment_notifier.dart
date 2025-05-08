@@ -11,12 +11,12 @@ class PaymentNotifier extends _$PaymentNotifier {
   @override
   void build() {}
 
-  Future<Either<Failure, Unit>> subscribeToPlan({
+  Future<Either<Failure, Unit>> startInAppPurchaseFlow({
     required String planId,
     required PaymentSuccessCallback onSuccess,
     required PaymentErrorCallback onError,
   }) async {
-    return ref.read(lanternServiceProvider).startSubscriptionFlow(
+    return ref.read(lanternServiceProvider).startInAppPurchaseFlow(
         planId: planId, onSuccess: onSuccess, onError: onError);
   }
 

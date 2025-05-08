@@ -2451,6 +2451,16 @@ class LanternBindings {
       _lookup<ffi.NativeFunction<GoInt Function()>>('isVPNConnected');
   late final _isVPNConnected = _isVPNConnectedPtr.asFunction<int Function()>();
 
+  ffi.Pointer<ffi.Char> getUserData() {
+    return _getUserData();
+  }
+
+  late final _getUserDataPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+          'getUserData');
+  late final _getUserData =
+      _getUserDataPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
+
   ffi.Pointer<ffi.Char> stripeSubscriptionPaymentRedirect(
     ffi.Pointer<ffi.Char> subType,
   ) {
@@ -2474,6 +2484,36 @@ class LanternBindings {
   late final _plansPtr =
       _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>('plans');
   late final _plans = _plansPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
+
+  ffi.Pointer<ffi.Char> oauthLoginUrl(
+    ffi.Pointer<ffi.Char> _provider,
+  ) {
+    return _oauthLoginUrl(
+      _provider,
+    );
+  }
+
+  late final _oauthLoginUrlPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>)>>('oauthLoginUrl');
+  late final _oauthLoginUrl = _oauthLoginUrlPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> oAuthLoginCallback(
+    ffi.Pointer<ffi.Char> _oAuthToken,
+  ) {
+    return _oAuthLoginCallback(
+      _oAuthToken,
+    );
+  }
+
+  late final _oAuthLoginCallbackPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>)>>('oAuthLoginCallback');
+  late final _oAuthLoginCallback = _oAuthLoginCallbackPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
 
   void freeCString(
     ffi.Pointer<ffi.Char> cstr,

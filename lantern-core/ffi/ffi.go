@@ -9,6 +9,7 @@ import "C"
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"runtime"
@@ -19,6 +20,8 @@ import (
 
 	"github.com/getlantern/golog"
 	"github.com/getlantern/lantern-outline/lantern-core/apps"
+	"github.com/getlantern/lantern-outline/lantern-core/utils"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/getlantern/lantern-outline/lantern-core/dart_api_dl"
 	"github.com/getlantern/radiance"
@@ -131,6 +134,7 @@ func setup(_logDir, _dataDir, _locale *C.char, logPort, appsPort, statusPort C.i
 		if server.userInfo.LegacyID() == 0 {
 			createUser()
 		}
+
 	})
 	if outError != nil {
 		return C.CString(outError.Error())
@@ -268,11 +272,6 @@ func isVPNConnected() int {
 //APIS
 
 func createUser() error {
-	// defer func() {
-	// 	if err := recover(); err != nil {
-	// 		log.Errorf("Error creating user: %v", err)
-	// 	}
-	// }()
 	log.Debug("Creating user")
 	user, err := server.proServer.UserCreate(context.Background())
 	log.Debugf("UserCreate response: %v", user)
@@ -280,6 +279,34 @@ func createUser() error {
 		return log.Errorf("Error creating user: %v", err)
 	}
 	return nil
+}
+
+// Get user data from the local config
+//
+//export getUserData
+func getUserData() *C.char {
+	log.Debug("Getting user data locally")
+	user, err := server.UserInfo().GetUserData()
+	if err != nil {
+		return SendError(err)
+	}
+	bytes, err := proto.Marshal(user)
+	if err != nil {
+		return SendError(log.Errorf("Error marshalling user data: %v", err))
+	}
+	encoded := base64.StdEncoding.EncodeToString(bytes)
+	return C.CString(encoded)
+}
+
+// Get user data from the server
+func fetchUserData() (*protos.UserDataResponse, error) {
+	log.Debug("Getting user data")
+	user, err := server.proServer.UserData(context.Background())
+	if err != nil {
+		return nil, log.Errorf("Error getting user data: %v", err)
+	}
+	log.Debugf("UserData response: %v", user)
+	return user, nil
 }
 
 // Fetch stipe subscription payment redirect link
@@ -331,6 +358,65 @@ func subscriptionPaymentRedirect(redirectBody *protos.SubscriptionPaymentRedirec
 	}
 	log.Debugf("SubscriptionPaymentRedirect response: %v", rediret)
 	return &rediret.Redirect, nil
+}
+
+// OAuth methods
+//
+//export oauthLoginUrl
+func oauthLoginUrl(_provider *C.char) *C.char {
+	provider := C.GoString(_provider)
+	url, err := server.authClient.OAuthLoginUrl(context.Background(), provider)
+	if err != nil {
+		return SendError(err)
+	}
+	log.Debugf("OAuthLoginURL response: %s", url.Redirect)
+	return C.CString(url.Redirect)
+}
+
+// oauthLoginCallback is called when the user has logged in with OAuth and the callback URL is called.
+//
+//export oAuthLoginCallback
+func oAuthLoginCallback(_oAuthToken *C.char) *C.char {
+	// defer func() {
+	// 	if err := recover(); err != nil {
+	// 		log.Errorf("Error login callback : %v", err)
+	// 	}
+	// }()
+	log.Debug("Getting OAuth login callback")
+	oAuthToken := C.GoString(_oAuthToken)
+	userInfo, err := utils.DecodeJWT(oAuthToken)
+	if err != nil {
+		return SendError(log.Errorf("Error decoding JWT: %v", err))
+	}
+	log.Debugf("UserInfo: %+v", userInfo)
+	// Temporary  set user data to so api can read it
+	login := &protos.LoginResponse{
+		LegacyID:    userInfo.LegacyUserId,
+		LegacyToken: userInfo.LegacyToken,
+		LegacyUserData: &protos.LoginResponse_UserData{
+			UserId: userInfo.LegacyUserId,
+			Token:  userInfo.LegacyToken,
+		},
+	}
+	server.userInfo.Save(login)
+	///Get user data from api this will also save data in user config
+	user, err := fetchUserData()
+	if err != nil {
+		return SendError(log.Errorf("Error getting user data: %v", err))
+	}
+	//Convert user to LoginResponse
+	userResponse := &protos.LoginResponse{
+		LegacyID:       user.UserId,
+		LegacyToken:    user.Token,
+		LegacyUserData: user.LoginResponse_UserData,
+	}
+	log.Debugf("UserData response: %v", user)
+	bytes, err := proto.Marshal(userResponse)
+	if err != nil {
+		return SendError(log.Errorf("Error marshalling user data: %v", err))
+	}
+	encoded := base64.StdEncoding.EncodeToString(bytes)
+	return C.CString(encoded)
 }
 
 //export freeCString
