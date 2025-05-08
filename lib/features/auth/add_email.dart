@@ -3,12 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/mapper/user_mapper.dart';
-import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/widgets/oauth_login.dart';
 import 'package:lantern/features/auth/provider/oauth_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
-import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 enum SignUpMethodType { email, google, apple, withoutEmail }
 
@@ -79,12 +76,14 @@ class _AddEmailState extends ConsumerState<AddEmail> {
               SizedBox(height: defaultSize),
               OAuthLogin(
                 methodType: SignUpMethodType.google,
-                onResult: onWebViewResult,
+                onResult: (token) =>
+                    onWebViewResult(token, SignUpMethodType.google),
               ),
               SizedBox(height: defaultSize),
               OAuthLogin(
                 methodType: SignUpMethodType.apple,
-                onResult: onWebViewResult,
+                onResult: (token) =>
+                    onWebViewResult(token, SignUpMethodType.apple),
               ),
               SizedBox(height: defaultSize),
               DividerSpace(),
@@ -111,11 +110,12 @@ class _AddEmailState extends ConsumerState<AddEmail> {
       if (!_formKey.currentState!.validate()) {
         return;
       }
-      appRouter.push(ConfirmEmail(email: email, authFlow: widget.authFlow));
+      postPaymentNavigate(type, email);
     }
   }
 
-  Future<void> onWebViewResult(Map<String, dynamic> result) async {
+  Future<void> onWebViewResult(
+      Map<String, dynamic> result, SignUpMethodType type) async {
     final token = result['token'];
     if (token != null) {
       context.showLoadingDialog();
@@ -131,6 +131,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
           context.hideLoadingDialog();
           ref.read(homeNotifierProvider.notifier).updateUserData(response);
           appLogger.debug('Login Response: ${response.toString()}');
+          postPaymentNavigate(type, response.legacyUserData.email);
         },
       );
     } else {
@@ -138,28 +139,29 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     }
   }
 
-  void navigateAuth() {
-    switch (widget.authFlow) {
-      case AuthFlow.resetPassword:
-        // TODO: Handle this case.
-        throw UnimplementedError();
-      case AuthFlow.signUp:
-        // TODO: Handle this case.
-        throw UnimplementedError();
-      case AuthFlow.activationCode:
-        // TODO: Handle this case.
-        throw UnimplementedError();
-    }
-  }
+  // void navigateAuth() {
+  //   switch (widget.authFlow) {
+  //     case AuthFlow.resetPassword:
+  //       // TODO: Handle this case.
+  //       throw UnimplementedError();
+  //     case AuthFlow.signUp:
+  //       // TODO: Handle this case.
+  //       throw UnimplementedError();
+  //     case AuthFlow.activationCode:
+  //       // TODO: Handle this case.
+  //       throw UnimplementedError();
+  //   }
+  // }
 
-  void postPaymentNavigate(SignUpMethodType type) {
+  void postPaymentNavigate(SignUpMethodType type, String email) {
     switch (type) {
-      case SignUpMethodType.email:
-        // appRouter.push(ConfirmEmail(email: emailController.text));
-        break;
-      case SignUpMethodType.google:
-        break;
       case SignUpMethodType.apple:
+      case SignUpMethodType.google:
+        appRouter
+            .push(ChoosePaymentMethod(email: email, authFlow: AuthFlow.signUp));
+        break;
+      case SignUpMethodType.email:
+        appRouter.push(ConfirmEmail(email: email, authFlow: widget.authFlow));
         break;
       case SignUpMethodType.withoutEmail:
         appRouter.popUntilRoot();

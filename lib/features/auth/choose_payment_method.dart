@@ -84,7 +84,12 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           options: StripeOptions.fromJson(stripeData),
           onSuccess: () {
             /// Subscription successful
-            AppDialog.showLanternProDialog(context: context);
+            AppDialog.showLanternProDialog(
+              context: context,
+              onPressed: () {
+                appRouter.popUntilRoot();
+              },
+            );
           },
           onError: (error) {
             ///error while subscribing
