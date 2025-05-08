@@ -1,6 +1,9 @@
 .PHONY: gen macos ffi
 
+# Flutter builds directory
 BUILD_DIR := build
+# Go builds directory
+BIN_DIR := bin
 DIST_OUT := dist
 
 APP ?= lantern
@@ -16,37 +19,62 @@ BUILD_TAGS ?=
 DARWIN_APP_NAME := $(CAPITALIZED_APP).app
 DARWIN_FRAMEWORK_DIR := macos/Frameworks
 DARWIN_LIB := $(LANTERN_LIB_NAME).dylib
-DARWIN_LIB_AMD64 := $(BUILD_DIR)/macos-amd64/$(LANTERN_LIB_NAME).dylib
-DARWIN_LIB_ARM64 := $(BUILD_DIR)/macos-arm64/$(LANTERN_LIB_NAME).dylib
-DARWIN_LIB_BUILD := $(BUILD_DIR)/macos/$(DARWIN_LIB)
+DARWIN_LIB_AMD64 := $(BIN_DIR)/macos-amd64/$(LANTERN_LIB_NAME).dylib
+DARWIN_LIB_ARM64 := $(BIN_DIR)/macos-arm64/$(LANTERN_LIB_NAME).dylib
+DARWIN_LIB_BUILD := $(BIN_DIR)/macos/$(DARWIN_LIB)
 DARWIN_DEBUG_BUILD := $(BUILD_DIR)/macos/Build/Products/Debug/$(DARWIN_APP_NAME)
 DARWIN_RELEASE_BUILD := $(BUILD_DIR)/macos/Build/Products/Release/$(DARWIN_APP_NAME)
 MACOS_ENTITLEMENTS := macos/Runner/Release.entitlements
+MACOS_INSTALLER := $(INSTALLER_NAME)$(if $(BUILD_TYPE),-$(BUILD_TYPE)).dmg
 
 LINUX_LIB := $(LANTERN_LIB_NAME).so
-LINUX_LIB_AMD64 := $(BUILD_DIR)/linux-amd64/$(LANTERN_LIB_NAME).so
-LINUX_LIB_ARM64 := $(BUILD_DIR)/linux-arm64/$(LANTERN_LIB_NAME).so
-LINUX_LIB_BUILD := $(BUILD_DIR)/linux/$(LINUX_LIB)
+LINUX_LIB_AMD64 := $(BIN_DIR)/linux-amd64/$(LANTERN_LIB_NAME).so
+LINUX_LIB_ARM64 := $(BIN_DIR)/linux-arm64/$(LANTERN_LIB_NAME).so
+LINUX_LIB_BUILD := $(BIN_DIR)/linux/$(LINUX_LIB)
+LINUX_INSTALLER_DEB := $(INSTALLER_NAME)$(if $(BUILD_TYPE),-$(BUILD_TYPE)).deb
+LINUX_INSTALLER_RPM := $(INSTALLER_NAME)$(if $(BUILD_TYPE),-$(BUILD_TYPE)).rpm
+
+ifeq ($(OS),Windows_NT)
+	PATH_SEP := \\
+else
+	PATH_SEP := /
+endif
+
+define join_path
+$(subst /,$(PATH_SEP),$1)
+endef
 
 WINDOWS_LIB := $(LANTERN_LIB_NAME).dll
-WINDOWS_LIB_AMD64 := $(BUILD_DIR)/windows-amd64/$(LANTERN_LIB_NAME).dll
-WINDOWS_LIB_ARM64 := $(BUILD_DIR)/windows-arm64/$(LANTERN_LIB_NAME).dll
-WINDOWS_LIB_BUILD := $(BUILD_DIR)/windows/$(WINDOWS_LIB)
+WINDOWS_LIB_AMD64 := $(call join_path,$(BIN_DIR)/windows-amd64/$(WINDOWS_LIB))
+WINDOWS_LIB_ARM64 := $(call join_path,$(BIN_DIR)/windows-arm64/$(WINDOWS_LIB))
+WINDOWS_LIB_BUILD := $(call join_path,$(BIN_DIR)/windows/$(WINDOWS_LIB))
+WINDOWS_RELEASE_DIR := $(call join_path,$(BUILD_DIR)/windows/x64/runner/Release)
 
 ANDROID_LIB := $(LANTERN_LIB_NAME).aar
 ANDROID_LIBS_DIR := android/app/libs
-ANDROID_LIB_BUILD := $(BUILD_DIR)/android/$(ANDROID_LIB)
+ANDROID_LIB_BUILD := $(BIN_DIR)/android/$(ANDROID_LIB)
 ANDROID_LIB_PATH := android/app/libs/$(LANTERN_LIB_NAME).aar
 ANDROID_DEBUG_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-debug.apk
+ANDROID_APK_RELEASE_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-release.apk
+ANDROID_AAB_RELEASE_BUILD := $(BUILD_DIR)/app/outputs/bundle/release/app-release.aab
+ANDROID_TARGET_PLATFORMS := android-arm,android-arm64,android-x64
+ANDROID_RELEASE_APK := $(INSTALLER_NAME)$(if $(BUILD_TYPE),-$(BUILD_TYPE)).apk
+ANDROID_RELEASE_AAB := $(INSTALLER_NAME)$(if $(BUILD_TYPE),-$(BUILD_TYPE)).aab
 
 IOS_FRAMEWORK := Liblantern.xcframework
-IOS_FRAMEWORK_DIR := ios
-IOS_FRAMEWORK_BUILD := $(BUILD_DIR)/ios/$(IOS_FRAMEWORK)
+IOS_FRAMEWORK_DIR := ios/Frameworks
+IOS_FRAMEWORK_BUILD := $(BIN_DIR)/ios/$(IOS_FRAMEWORK)
+IOS_DEBUG_BUILD := $(BUILD_DIR)/ios/iphoneos/Runner.app
 
 TAGS=with_gvisor,with_quic,with_wireguard,with_ech,with_utls,with_clash_api,with_grpc
 
 GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go')
-
+GOMOBILE_VERSION ?= latest
+GOMOBILE_REPOS = \
+	$(RADIANCE_REPO) \
+	github.com/sagernet/sing-box/experimental/libbox \
+	github.com/getlantern/sing-box-extensions/ruleset \
+	./lantern-core/mobile
 
 SIGN_ID="Developer ID Application: Brave New Software Project, Inc (ACZRKC3LQ9)"
 
@@ -68,13 +96,7 @@ guard-%:
 	 @ if [ -z '${${*}}' ]; then echo 'Environment  $* variable not set' && exit 1; fi
 
 check-gomobile:
-	@if ! command -v gomobile &> /dev/null; then \
-		echo "gomobile not found. Installing..."; \
-		go install golang.org/x/mobile/cmd/gomobile@latest; \
-		gomobile init; \
-	else \
-		echo "gomobile is already installed."; \
-	fi
+	@command -v gomobile >/dev/null || (echo "gomobile not found. Run 'make install-android-deps'" && exit 1)
 
 require-gomobile:
 	@if [[ -z "$(SENTRY)" ]]; then echo 'Missing "sentry-cli" command. See sentry.io for installation instructions.'; exit 1; fi
@@ -89,9 +111,19 @@ require-ac-username: guard-AC_USERNAME ## App Store Connect username - needed fo
 .PHONY: require-ac-password
 require-ac-password: guard-AC_PASSWORD ## App Store Connect password - needed for notarizing macOS apps.
 
-desktop-lib: export CGO_CFLAGS="-I./dart_api_dl/include"
+ifeq ($(OS),Windows_NT)
+  NORMALIZED_CURDIR := $(shell echo $(CURDIR) | sed 's|\\|/|g')
+  SETENV = set CGO_ENABLED=1&& set CGO_CFLAGS=-I$(NORMALIZED_CURDIR)/dart_api_dl/include&&
+else
+  SETENV = CGO_ENABLED=1 CGO_CFLAGS=-I$(CURDIR)/dart_api_dl/include
+endif
+
+.PHONY: desktop-lib
 desktop-lib:
-	CGO_ENABLED=1 go build -v -trimpath -buildmode=c-shared -tags="$(BUILD_TAGS)" -ldflags="-w -s $(EXTRA_LDFLAGS)" -o $(LIB_NAME) ./$(FFI_DIR)
+	$(SETENV) go build -v -trimpath -buildmode=c-shared \
+		-tags="$(TAGS)" \
+		-ldflags="-w -s $(EXTRA_LDFLAGS)" \
+		-o $(LIB_NAME) ./$(FFI_DIR)
 
 # macOS Build
 .PHONY: install-macos-deps
@@ -119,12 +151,12 @@ $(DARWIN_LIB_AMD64): $(GO_SOURCES)
 macos: $(DARWIN_LIB_BUILD)
 
 $(DARWIN_LIB_BUILD): $(GO_SOURCES)
-	make macos-arm64 macos-amd64
+	$(MAKE) macos-arm64 macos-amd64
 	rm -rf $@ && mkdir -p $(dir $@)
 	lipo -create $(DARWIN_LIB_ARM64) $(DARWIN_LIB_AMD64) -output $@
 	install_name_tool -id "@rpath/${DARWIN_LIB}" $@
 	mkdir -p $(DARWIN_FRAMEWORK_DIR) && cp $@ $(DARWIN_FRAMEWORK_DIR)
-	cp $(BUILD_DIR)/macos-amd64/$(LANTERN_LIB_NAME)*.h $(DARWIN_FRAMEWORK_DIR)/
+	cp $(BIN_DIR)/macos-amd64/$(LANTERN_LIB_NAME)*.h $(DARWIN_FRAMEWORK_DIR)/
 	@echo "Built macOS library: $(DARWIN_FRAMEWORK_DIR)/$(DARWIN_LIB)"
 
 .PHONY: macos-debug
@@ -143,21 +175,21 @@ build-macos-release: $(DARWIN_RELEASE_BUILD)
 .PHONY: notarize-darwin
 notarize-darwin: require-ac-username require-ac-password
 	@echo "Notarizing distribution package..."
-	xcrun notarytool submit $(INSTALLER_NAME).dmg \
+	xcrun notarytool submit $(MACOS_INSTALLER) \
 		--apple-id $$AC_USERNAME \
 		--team-id "ACZRKC3LQ9" \
 		--password $$AC_PASSWORD \
 		--wait
 
 	@echo "Stapling notarization ticket..."
-	xcrun stapler staple $(INSTALLER_NAME).dmg
+	xcrun stapler staple $(MACOS_INSTALLER)
 	@echo "Notarization complete"
 
 sign-app:
 	$(call osxcodesign,$(DARWIN_RELEASE_BUILD))
 
 package-macos: require-appdmg
-	appdmg appdmg.json $(INSTALLER_NAME).dmg
+	appdmg appdmg.json $(MACOS_INSTALLER)
 
 .PHONY: macos-release
 macos-release: clean macos pubget gen build-macos-release sign-app package-macos notarize-darwin
@@ -182,7 +214,7 @@ $(LINUX_LIB_AMD64): $(GO_SOURCES)
 
 .PHONY: linux
 linux: linux-amd64
-	mkdir -p $(BUILD_DIR)/linux
+	mkdir -p $(BIN_DIR)/linux
 	cp $(LINUX_LIB_AMD64) $(LINUX_LIB_BUILD)
 
 .PHONY: linux-debug
@@ -196,32 +228,25 @@ linux-release: clean linux pubget gen
 	flutter build linux --release
 	cp $(LINUX_LIB_BUILD) build/linux/x64/release/bundle
 	flutter_distributor package --platform linux --targets "deb,rpm" --skip-clean
-	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-linux.rpm lantern-installer-x64.rpm
-	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-linux.deb lantern-installer-x64.deb
+	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-linux.rpm $(LINUX_INSTALLER_RPM)
+	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-linux.deb $(LINUX_INSTALLER_DEB)
 
 # Windows Build
 .PHONY: install-windows-deps
 install-windows-deps:
 	dart pub global activate flutter_distributor
 
-.PHONY: windows-amd64
-windows-amd64: export BUILD_TAGS += walk_use_cgo
-windows-amd64: export CGO_LDFLAGS = -static
-windows-amd64: $(WINDOWS_LIB_AMD64)
-
-$(WINDOWS_LIB_AMD64): $(GO_SOURCES)
-	GOOS=windows GOARCH=amd64 LIB_NAME=$@ make desktop-lib
-
-.PHONY: windows-arm64
-windows-arm64: export BUILD_TAGS += walk_use_cgo
-windows-arm64: export CGO_LDFLAGS = -static
-windows-arm64: $(WINDOWS_LIB_ARM64)
-
-$(WINDOWS_LIB_ARM64): $(GO_SOURCES)
-	GOOS=windows GOARCH=arm64 LIB_NAME=$@ make desktop-lib
-
-.PHONY: windows
 windows: windows-amd64
+
+windows-amd64: WINDOWS_GOOS := windows
+windows-amd64: WINDOWS_GOARCH := amd64
+windows-amd64:
+	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_AMD64)
+
+windows-arm64: WINDOWS_GOOS := windows
+windows-arm64: WINDOWS_GOARCH := arm64
+windows-arm64:
+	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_ARM64)
 
 .PHONY: windows-debug
 windows-debug: windows
@@ -229,73 +254,97 @@ windows-debug: windows
 	flutter build windows --debug
 
 .PHONY: windows-release
-windows-release: clean windows
-	@echo "Building Flutter app (debug) for Windows..."
-	flutter_distributor package --flutter-build-args=verbose --platform windows --targets "msix,exe"
+windows-release: clean windows pubget gen
+	flutter_distributor package --flutter-build-args=verbose --platform windows --targets "exe"
 
 # Android Build
 .PHONY: install-android-deps
 install-android-deps:
 	@echo "Installing Android dependencies..."
 
-	go install golang.org/x/mobile/cmd/gomobile@latest
+	go install -v golang.org/x/mobile/cmd/gomobile@$(GOMOBILE_VERSION)
+	go install -v golang.org/x/mobile/cmd/gobind@$(GOMOBILE_VERSION)
 	gomobile init
 
 .PHONY: android
-android: $(ANDROID_LIB_BUILD)
+android: check-gomobile $(ANDROID_LIB_BUILD)
 
 $(ANDROID_LIB_BUILD): $(GO_SOURCES)
-	make install-android-deps
-	@echo "Building Android library..."
-	rm -rf $@ && mkdir -p $(dir $@)
+	$(MAKE) build-android
+
+build-android: check-gomobile
+	@echo "Building Android libraries..."
+	rm -rf $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)
+	mkdir -p $(dir $(ANDROID_LIB_BUILD)) $(ANDROID_LIBS_DIR)
+
 	GOOS=android gomobile bind -v \
-               -javapkg=lantern.io \
-               -tags=$(TAGS) -trimpath \
-               -o=$@ \
-               -ldflags="-checklinkname=0" \
-                $(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox github.com/getlantern/sing-box-extensions/ruleset
-	mkdir -p $(ANDROID_LIBS_DIR) && cp $@ $(ANDROID_LIBS_DIR)
+		-androidapi=23 \
+		-javapkg=lantern.io \
+		-tags=$(TAGS) -trimpath \
+		-o=$(ANDROID_LIB_BUILD) \
+		-ldflags="-checklinkname=0" \
+		$(GOMOBILE_REPOS)
+
+	cp $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)
 	@echo "Built Android library: $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)"
 
 .PHONY: android-debug
 android-debug: $(ANDROID_DEBUG_BUILD)
 
 $(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD)
-	flutter build apk --target-platform android-arm,android-arm64,android-x64 --verbose --debug
+	flutter build apk --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --debug
 
-build-android:check-gomobile install-android-deps
-	@echo "Building Android libraries"
-	rm -rf $(BUILD_DIR)/$(ANDROID_LIB)
-	rm -rf $(ANDROID_LIB_PATH)
-	mkdir -p $(ANDROID_LIBS_DIR)
-	gomobile bind -v \
-		-target=android \
-		-androidapi=23 \
-		-javapkg=lantern.io \
-		-tags=$(TAGS) -trimpath \
-		-o=$(BUILD_DIR)/$(ANDROID_LIB) \
-		-ldflags="-checklinkname=0" \
-		 $(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox ./lantern-core/mobile
-	cp $(BUILD_DIR)/$(ANDROID_LIB) $(ANDROID_LIB_PATH)
-	@echo "Android libraries built successfully"
+.PHONY: android-apk-release
+android-apk-release:
+	flutter build apk --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --release
+	cp $(ANDROID_APK_RELEASE_BUILD) $(ANDROID_RELEASE_APK)
+
+.PHONY: android-aab-release
+android-aab-release:
+	flutter build appbundle --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --release
+	cp $(ANDROID_AAB_RELEASE_BUILD) $(ANDROID_RELEASE_AAB)
+
+.PHONY: android-release
+android-release: clean android pubget gen android-apk-release
 
 # iOS Build
+.PHONY: install-ios-deps
+
+install-ios-deps:
+	npm install -g appdmg
+	dart pub global activate flutter_distributor
+
 .PHONY: ios
 ios: $(IOS_FRAMEWORK_BUILD)
 
+.PHONY: ios
+ios: check-gomobile $(IOS_FRAMEWORK_BUILD)
+
 $(IOS_FRAMEWORK_BUILD): $(GO_SOURCES)
-	@echo "Building iOS Framework..."
-	rm -rf $@ && mkdir -p $(dir $@)
-	rm -rf $(IOS_FRAMEWORK_DIR)/$(IOS_FRAMEWORK)
-	gomobile bind -v \
+	$(MAKE) build-ios
+
+build-ios:
+	@echo "Building iOS Framework.."
+	rm -rf $(IOS_FRAMEWORK_BUILD)
+	rm -rf $(IOS_FRAMEWORK_DIR) && mkdir -p $(IOS_FRAMEWORK_DIR)
+	GOOS=ios gomobile bind -v \
 		-tags=$(TAGS),with_low_memory,netgo -trimpath \
 		-target=ios \
 		-o $@ \
 		-ldflags="-w -s -checklinkname=0" \
-		$(RADIANCE_REPO) github.com/getlantern/sing-box-extensions/ruleset
+		$(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox github.com/getlantern/sing-box-extensions/ruleset  ./lantern-core/mobile
+	@echo "Built iOS Framework: $(IOS_FRAMEWORK_BUILD)"
 	mv $@ $(IOS_FRAMEWORK_DIR)
-	@echo "Built iOS Framework: $(IOS_FRAMEWORK)"
 
+.PHONY: swift-format
+swift-format:
+	swift-format format --in-place --recursive ios/Runner macos/Runner
+
+ios-release: clean pubget
+	flutter build ipa --flavor prod --release --export-options-plist ./ExportOptions.plist
+	@IPA_PATH=$(shell pwd)/build/ios/ipa; \
+	echo "iOS IPA generated under: $$IPA_PATH"; \
+	open "$$IPA_PATH"
 
 # Dart API DL bridge
 DART_SDK_REPO=https://github.com/dart-lang/sdk
@@ -330,4 +379,6 @@ find-duplicate-translations:
 
 clean:
 	rm -rf $(BUILD_DIR)/*
+	rm -rf $(BIN_DIR)/*
 	rm -rf $(DARWIN_FRAMEWORK_DIR)/*
+	rm -rf $(ANDROID_LIB_PATH)

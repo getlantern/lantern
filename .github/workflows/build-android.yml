@@ -1,0 +1,102 @@
+name: Build Android
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+      build_type:
+        required: true
+        type: string
+      installer_name:
+        required: true
+        type: string
+
+jobs:
+  build-android:
+    permissions:
+      contents: "read"
+      id-token: "write"
+    runs-on: macos-15
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: "go.mod"
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2.19.0
+        with:
+          channel: stable
+          flutter-version: 3.29.0
+
+      - name: Decode APP_ENV
+        uses: timheuer/base64-to-file@v1.2
+        with:
+          fileName: "app.env"
+          fileDir: ${{ github.workspace }}
+          encodedString: ${{ secrets.APP_ENV }}
+
+      - name: Install node on macOS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: "gradle"
+
+      - name: Set gradle properties
+        env:
+          GRADLE_PROPERTIES: ${{ secrets.GRADLE_PROPERTIES }}
+        run: |
+          mkdir -p ~/.gradle/
+          echo "GRADLE_USER_HOME=${HOME}/.gradle" >> $GITHUB_ENV
+          echo "${GRADLE_PROPERTIES}" > ~/.gradle/gradle.properties
+
+      - name: Decode Keystore
+        id: write_file
+        uses: timheuer/base64-to-file@v1.2
+        with:
+          fileName: "keystore.release.jks"
+          fileDir: "./android/app"
+          encodedString: ${{ secrets.KEYSTORE }}
+
+      - name: Update app version in pubspec.yaml
+        shell: bash
+        env:
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          NEW_VERSION="${{ inputs.version }}+${RUN_NUMBER}"
+          echo "Updating pubspec.yaml to version: $NEW_VERSION"
+          sed -i.bak -E "s/^version: .*/version: $NEW_VERSION/" pubspec.yaml
+          rm -f pubspec.yaml.bak
+          cat pubspec.yaml
+          APP_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //')
+          echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
+
+      - name: Install dependencies
+        run: make install-android-deps
+
+      - name: Build Android release
+        run: make android-release
+        env:
+          BUILD_TYPE: ${{ inputs.build_type }}
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: lantern-installer-apk
+          path: ${{ inputs.installer_name }}.apk
+          retention-days: 2

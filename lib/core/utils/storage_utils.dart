@@ -5,31 +5,51 @@ import 'package:path_provider/path_provider.dart';
 
 class AppStorageUtils {
   static Future<String> getAppLogDirectory() async {
-    final baseDir = await getAppDirectory();
-    final logDir = Directory("${baseDir.path}/logs");
-
-    // Make sure the directory exists
-    if (!logDir.existsSync()) {
-      logDir.createSync(recursive: true);
-    }
-    appLogger.debug("Using log directory $logDir");
-
-    return logDir.path;
-  }
-
-  static Future<Directory> getAppDirectory() async {
-    Directory baseDir;
+    // Get the platform-specific directory to store logs
+    Directory logDir;
     if (Platform.isIOS || Platform.isAndroid) {
-      baseDir = await getApplicationDocumentsDirectory();
+      Directory baseDir = await getApplicationDocumentsDirectory();
       final path = baseDir.path;
       if (path.endsWith("/app_flutter")) {
         baseDir = Directory(path.replaceFirst("/app_flutter", ""));
       }
+      logDir = Directory("${baseDir.path}/logs");
+    } else if (Platform.isMacOS) {
+      final baseDir = await getLibraryDirectory();
+      logDir = Directory("${baseDir.path}/Logs/Lantern");
+    } else if (Platform.isLinux) {
+      final baseDir = await getApplicationSupportDirectory();
+      logDir = Directory("${baseDir.path}/logs");
+    } else if (Platform.isWindows) {
+      final baseDir = await getApplicationSupportDirectory();
+      logDir = Directory("${baseDir.path}/Lantern/logs");
     } else {
-      baseDir = await getApplicationSupportDirectory();
+      throw UnsupportedError("Unsupported platform for log directory");
+    }
+    if (!logDir.existsSync()) {
+      logDir.createSync(recursive: true);
+    }
+    appLogger.debug("Using log directory $logDir");
+    return logDir.path;
+  }
+
+  static Future<Directory> getAppDirectory() async {
+    final Directory appDir;
+    if (Platform.isIOS || Platform.isAndroid) {
+      Directory baseDir = await getApplicationDocumentsDirectory();
+      final path = baseDir.path;
+      if (path.endsWith("/app_flutter")) {
+        baseDir = Directory(path.replaceFirst("/app_flutter", ""));
+      }
+      appDir = Directory("${baseDir.path}/.lantern");
+    } else if (Platform.isWindows) {
+      appDir = await getApplicationSupportDirectory();
+    } else {
+      // Note this is the application support directory *with*
+      // the fully qualified name of our app.
+      appDir = await getApplicationSupportDirectory();
     }
 
-    final appDir = Directory("${baseDir.path}/.lantern");
     if (!appDir.existsSync()) {
       appDir.createSync(recursive: true);
     }
@@ -46,17 +66,4 @@ class AppStorageUtils {
     }
     return logFile;
   }
-
-// static Future<String> getAppDataDirectory() async {
-//   final baseDir = await getApplicationSupportDirectory();
-//   final dataDir = Directory("${baseDir.path}/Data");
-//
-//   if (!dataDir.existsSync()) {
-//     dataDir.createSync(recursive: true);
-//   }
-//
-//   appLogger.debug("Using app data directory $dataDir");
-//
-//   return dataDir.path;
-// }
 }

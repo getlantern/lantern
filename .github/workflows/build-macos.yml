@@ -1,18 +1,28 @@
 name: Build macOS
 
 on:
-  push:
-    branches: [main]
-  pull_request:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+      build_type:
+        required: true
+        type: string
+      installer_name:
+        required: true
+        type: string
 
 jobs:
   build-macos:
     permissions:
-        contents: "read"
-        id-token: "write"
+      contents: "read"
+      id-token: "write"
     env:
-        AC_USERNAME: ${{ secrets.AC_USERNAME }}
-        AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
+      AC_USERNAME: ${{ secrets.AC_USERNAME }}
+      AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
+      BUILD_TYPE: ${{ inputs.build_type || '' }}
+      VERSION: ${{ inputs.version }}
     runs-on: macos-15
     steps:
       - name: Checkout code
@@ -32,7 +42,7 @@ jobs:
       - name: Decode APP_ENV
         uses: timheuer/base64-to-file@v1.2
         with:
-          fileName: 'app.env'
+          fileName: "app.env"
           fileDir: ${{ github.workspace }}
           encodedString: ${{ secrets.APP_ENV }}
 
@@ -75,6 +85,6 @@ jobs:
       - name: Upload macOS installer
         uses: actions/upload-artifact@v4
         with:
-            name: lantern-installer-dmg
-            path: lantern-installer.dmg
-            retention-days: 2
+          name: lantern-installer-dmg
+          path: ${{ inputs.installer_name }}.dmg
+          retention-days: 2

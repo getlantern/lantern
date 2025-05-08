@@ -61,12 +61,14 @@ class LanternFFIService implements LanternCoreService {
       appLogger.debug('Setting up radiance');
       final dataDir = await AppStorageUtils.getAppDirectory();
       final logDir = await AppStorageUtils.getAppLogDirectory();
+      appLogger.debug('Data dir: ${dataDir.path}');
+      appLogger.debug('Log dir: $logDir');
       final dataDirPtr = dataDir.path.toNativeUtf8();
       final logDirPtr = logDir.toNativeUtf8();
 
       _ffiService.setup(
-        dataDirPtr.cast(),
         logDirPtr.cast(),
+        dataDirPtr.cast(),
         loggingReceivePort.sendPort.nativePort,
         appsReceivePort.sendPort.nativePort,
         statusReceivePort.sendPort.nativePort,
@@ -241,6 +243,10 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
+  Stream<List<String>> watchLogs(String path) {
+    throw UnimplementedError();
+  }
+
   Future<Either<Failure, String>> stopVPN() async {
     try {
       appLogger.debug('Stopping VPN');
