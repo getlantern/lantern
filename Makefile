@@ -237,6 +237,7 @@ install-windows-deps:
 	dart pub global activate flutter_distributor
 
 windows: windows-amd64
+	mkdir -p $(dir $(WINDOWS_LIB_BUILD))
 	cp $(WINDOWS_LIB_AMD64) $(WINDOWS_LIB_BUILD)
 
 windows-amd64: WINDOWS_GOOS := windows
