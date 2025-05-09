@@ -291,7 +291,7 @@ msgstr "Continue with Google"
 msgid "continue_with_apple"
 msgstr "Continue with Apple"
 
-msgid "continue_with_email"
+msgid "continue_without_email"
 msgstr "Continue without Email"
 
 msgid "confirm_email"
@@ -432,6 +432,15 @@ msgstr "Your payment information is fully encrypted"
 
 msgid "purchase_not_completed"
 msgstr "Purchase was not completed. You can try again anytime, or contact support if you need help"
+
+msgid "are_you_sure"
+msgstr "Are you sure?"
+
+msgid "continue_without_email_message"
+msgstr "A valid email address is required to use your subscription on other devices."
+
+msgid "add_email"
+msgstr "Add Email"
 
 
 

@@ -73,4 +73,32 @@ class AppDialog {
       },
     );
   }
+
+  static customDialog({
+    required BuildContext context,
+    required Widget content,
+    required List<Widget> action,
+  }) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: AppColors.gray3,
+          contentPadding: EdgeInsets.symmetric(horizontal: defaultSize),
+          actionsPadding: EdgeInsets.only(
+              top: defaultSize,
+              bottom: defaultSize,
+              left: defaultSize,
+              right: defaultSize),
+          // contentPadding: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          content: content,
+          actions:action,
+        );
+      },
+    );
+  }
 }

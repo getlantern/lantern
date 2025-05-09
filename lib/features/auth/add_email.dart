@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -26,11 +27,12 @@ class AddEmail extends StatefulHookConsumerWidget {
 
 class _AddEmailState extends ConsumerState<AddEmail> {
   final _formKey = GlobalKey<FormState>();
+  TextTheme? textTheme;
 
   @override
   Widget build(BuildContext context) {
     final emailController = useTextEditingController();
-
+    textTheme = Theme.of(context).textTheme;
     return BaseScreen(
       title: 'add_your_email'.i18n,
       body: Form(
@@ -91,7 +93,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
               if (widget.appFlow == AppFlow.store)
                 Center(
                   child: AppTextButton(
-                    label: 'continue_with_email'.i18n,
+                    label: 'continue_without_email'.i18n,
                     textColor: AppColors.gray9,
                     onPressed: () =>
                         onContinueTap(SignUpMethodType.withoutEmail),
@@ -110,8 +112,8 @@ class _AddEmailState extends ConsumerState<AddEmail> {
       if (!_formKey.currentState!.validate()) {
         return;
       }
-      postPaymentNavigate(type, email);
     }
+    postPaymentNavigate(type, email);
   }
 
   Future<void> onWebViewResult(
@@ -139,20 +141,6 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     }
   }
 
-  // void navigateAuth() {
-  //   switch (widget.authFlow) {
-  //     case AuthFlow.resetPassword:
-  //       // TODO: Handle this case.
-  //       throw UnimplementedError();
-  //     case AuthFlow.signUp:
-  //       // TODO: Handle this case.
-  //       throw UnimplementedError();
-  //     case AuthFlow.activationCode:
-  //       // TODO: Handle this case.
-  //       throw UnimplementedError();
-  //   }
-  // }
-
   void postPaymentNavigate(SignUpMethodType type, String email) {
     switch (type) {
       case SignUpMethodType.apple:
@@ -164,7 +152,57 @@ class _AddEmailState extends ConsumerState<AddEmail> {
         appRouter.push(ConfirmEmail(email: email, authFlow: widget.authFlow));
         break;
       case SignUpMethodType.withoutEmail:
-        appRouter.popUntilRoot();
+        final size = MediaQuery.sizeOf(context);
+        AppDialog.customDialog(
+          context: context,
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(height: 24),
+              Center(
+                child: SizedBox(
+                  width: size.width * 0.7,
+                  height: 40,
+                  child: AutoSizeText(
+                    'are_you_sure'.i18n,
+                    style: textTheme!.headlineMedium,
+                    maxLines: 1,
+                    minFontSize: 20,
+                    maxFontSize: 24,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+              SizedBox(height: defaultSize),
+              Text(
+                'continue_without_email_message'.i18n,
+                style: textTheme!.bodyMedium,
+              ),
+            ],
+          ),
+          action: [
+            AppTextButton(
+              label: 'continue'.i18n,
+              textColor: AppColors.gray6,
+              onPressed: () {
+                appRouter.maybePop();
+                Future.delayed(
+                  const Duration(milliseconds: 500),
+                  () {
+                    appRouter.popUntilRoot();
+                  },
+                );
+              },
+            ),
+            AppTextButton(
+              label: 'add_email'.i18n,
+              textColor: AppColors.blue6,
+              onPressed: () {
+                appRouter.maybePop();
+              },
+            )
+          ],
+        );
         break;
     }
   }
