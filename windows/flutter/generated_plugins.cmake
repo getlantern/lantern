@@ -4,6 +4,8 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   app_links
+  desktop_webview_window
+  flutter_inappwebview_windows
   objectbox_flutter_libs
   screen_retriever_windows
   sentry_flutter

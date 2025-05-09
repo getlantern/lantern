@@ -5,7 +5,10 @@ import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import lantern.io.mobile.Mobile
 import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.constant.VPNStatus
@@ -15,10 +18,16 @@ import org.getlantern.lantern.utils.VpnStatusManager
 enum class Methods(val method: String) {
     Start("startVPN"),
     Stop("stopVPN"),
-    IsVpnConnected("isVPNConnected")
+    IsVpnConnected("isVPNConnected"),
+    SubscriptionPaymentRedirect("subscriptionPaymentRedirect"),
+    StripeSubscription("stripeSubscription"),
+    Plans("plans"),
+    OAuthLoginUrl("oauthLoginUrl"),
+    OAuthLoginCallback("oauthLoginCallback"),
+    GetUserData("getUserData")
 }
 
-class MethodHandler(private val scope: CoroutineScope) : FlutterPlugin,
+class MethodHandler : FlutterPlugin,
     MethodChannel.MethodCallHandler {
 
     private var channel: MethodChannel? = null
@@ -27,6 +36,8 @@ class MethodHandler(private val scope: CoroutineScope) : FlutterPlugin,
         const val TAG = "A/MethodHandler"
         const val channelName = "org.getlantern.lantern/method"
     }
+
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
@@ -61,6 +72,7 @@ class MethodHandler(private val scope: CoroutineScope) : FlutterPlugin,
                 scope.launch {
                     result.runCatching {
                         MainActivity.instance.stopVPN()
+
                         success("VPN stopped")
                     }.onFailure { e ->
                         result.error("stop_vpn", e.localizedMessage ?: "Please try again", e)
@@ -86,6 +98,81 @@ class MethodHandler(private val scope: CoroutineScope) : FlutterPlugin,
                 }
             }
 
+            Methods.SubscriptionPaymentRedirect.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val map = call.arguments as Map<*, *>
+                        val subscriptionLink = Mobile.stripeSubscriptionPaymentRedirect(map["subType"] as String)
+                        withContext(Dispatchers.Main) {
+                            success(subscriptionLink)
+                        }
+                    }.onFailure { e ->
+                        result.error("vpn_status", e.localizedMessage ?: "Please try again", e)
+                    }
+                }
+            }
+            Methods.StripeSubscription.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val subscriptionData = Mobile.stripeSubscription()
+                        withContext(Dispatchers.Main) {
+                            success(subscriptionData)
+                        }
+                    }.onFailure { e ->
+                        result.error("stripe_subscription", e.localizedMessage ?: "Please try again", e)
+                    }
+                }
+            }
+            Methods.Plans.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val plansData = Mobile.plans()
+                        withContext(Dispatchers.Main) {
+                            success(plansData)
+                        }
+                    }.onFailure { e ->
+                        result.error("plans", e.localizedMessage ?: "Please try again", e)
+                    }
+                }
+            }
+            Methods.OAuthLoginUrl.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val provider = call.arguments<String>()
+                        val loginUrl = Mobile.oAuthLoginUrl(provider)
+                        withContext(Dispatchers.Main) {
+                            success(loginUrl)
+                        }
+                    }.onFailure { e ->
+                        result.error("OAuthLoginUrl", e.localizedMessage ?: "Please try again", e)
+                    }
+                }
+            }
+            Methods.OAuthLoginCallback.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val token = call.arguments<String>()
+                        val bytes = Mobile.oAuthLoginCallback(token)
+                        withContext(Dispatchers.Main) {
+                            success(bytes)
+                        }
+                    }.onFailure { e ->
+                        result.error("OAuthLoginCallback", e.localizedMessage ?: "Please try again", e)
+                    }
+                }
+            }
+            Methods.GetUserData.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val bytes = Mobile.userData()
+                        withContext(Dispatchers.Main) {
+                            success(bytes)
+                        }
+                    }.onFailure { e ->
+                        result.error("OAuthLoginCallback", e.localizedMessage ?: "Please try again", e)
+                    }
+                }
+            }
             else -> {
                 result.notImplemented()
             }

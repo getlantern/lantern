@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+message LoginResponse {
+  int64 legacyID = 1;
+  string legacyToken = 2;
+  string id = 3;
+  bool emailConfirmed = 4;
+  message Device {
+    string id = 1;
+    string name = 2;
+    int64 created = 3;
+  }
+  message UserData {
+    int64 userId = 1;
+    string code = 2;
+    string token = 3;
+    string referral = 4;
+    string phone = 5;
+    string email = 6;
+    string userStatus = 7;
+    string userLevel = 8;
+    string locale = 9;
+    int64 expiration = 10;
+    repeated string servers = 11;
+    string subscription = 12;
+    repeated Purchase purchases = 13;
+    string bonusDays = 14;
+    string bonusMonths = 15;
+    repeated string inviters = 16;
+    repeated string invitees = 17;
+    repeated Device devices = 18;
+    bool yinbiEnabled = 19;
+  }
+  bool Success = 5;
+  // this maps to /user-data call in pro-server and is returned only on successful login
+  UserData legacyUserData = 6;
+  // list of current user devices. returned only on successful login that is blocked by 'too many devices'
+  repeated Device devices = 7;
+}
+
+
+message Purchase  {
+  string plan = 1;
+}

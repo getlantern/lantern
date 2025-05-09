@@ -10,8 +10,9 @@ import '../../core/common/app_text_field.dart';
 @RoutePage(name: 'CreatePassword')
 class CreatePassword extends HookWidget {
   final String email;
+  final AuthFlow authFlow;
 
-  const CreatePassword({super.key, required this.email});
+  const CreatePassword({super.key, required this.email,required this.authFlow});
 
   @override
   Widget build(BuildContext context) {

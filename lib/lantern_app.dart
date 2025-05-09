@@ -1,3 +1,4 @@
+import 'package:animated_loading_border/animated_loading_border.dart';
 import 'package:app_links/app_links.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -7,12 +8,13 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:i18n_extension/i18n_extension.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
 import 'package:lantern/core/router/router.dart';
-import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:lantern/features/language/language_notifier.dart';
 import 'package:lantern/features/window/window_wrapper.dart';
+import 'package:loader_overlay/loader_overlay.dart';
 
 import 'core/common/common.dart';
 import 'core/services/injection_container.dart';
+import 'core/utils/deeplink_utils.dart' show DeepLinkCallbackManager;
 import 'features/system_tray/system_tray_wrapper.dart';
 
 final globalRouter = sl<AppRouter>();
@@ -45,6 +47,14 @@ class _LanternAppState extends ConsumerState<LanternApp> {
             globalRouter.push(ReportIssue());
           }
         }
+        if (uri.path.startsWith('/auth')) {
+          final pathUrl = uri;
+          if (pathUrl.query.startsWith('token=')) {
+            // user has completed the sign up process using oAuth and comming back
+            sl<DeepLinkCallbackManager>()
+                .handleDeepLink(pathUrl.queryParameters);
+          }
+        }
       }
     });
   }
@@ -73,36 +83,51 @@ class _LanternAppState extends ConsumerState<LanternApp> {
     Localization.defaultLocale = locale.toString();
     final size = MediaQuery.of(context).size;
     appLogger.debug('MediaQuery: Size ${size}');
-    return WindowWrapper(
-      child: SystemTrayWrapper(
-        child: ScreenUtilInit(
-          designSize: PlatformUtils.isDesktop ? desktopWindowSize : mobileSize,
-          minTextAdapt: true,
-          child: I18n(
-            localizationsDelegates: [
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            child: MaterialApp.router(
-              debugShowCheckedModeBanner: false,
-              locale: locale,
-              theme: AppTheme.appTheme(),
-              themeMode: ThemeMode.light,
-              darkTheme: AppTheme.darkTheme(),
-              supportedLocales: languages
-                  .map((lang) =>
-                      Locale(lang.split('_').first, lang.split('_').last))
-                  .toList(),
-              // List of supported languages
-              routerConfig: globalRouter.config(
-                deepLinkBuilder: navigateToDeepLink,
-              ),
-              localizationsDelegates: const [
+    return GlobalLoaderOverlay(
+      overlayColor: Colors.black.withOpacity(0.5),
+      overlayWidgetBuilder: (_) => Center(
+        child: AnimatedLoadingBorder(
+          borderWidth: 5,
+          borderColor: AppColors.yellow3,
+          cornerRadius: 100,
+          child: AppImage(
+            path: AppImagePaths.lanternLogoRounded,
+            height: 50,
+          ),
+        ),
+      ),
+      child: WindowWrapper(
+        child: SystemTrayWrapper(
+          child: ScreenUtilInit(
+            designSize:
+                PlatformUtils.isDesktop ? desktopWindowSize : mobileSize,
+            minTextAdapt: true,
+            child: I18n(
+              localizationsDelegates: [
                 GlobalMaterialLocalizations.delegate,
                 GlobalWidgetsLocalizations.delegate,
                 GlobalCupertinoLocalizations.delegate,
               ],
+              child: MaterialApp.router(
+                debugShowCheckedModeBanner: false,
+                locale: locale,
+                theme: AppTheme.appTheme(),
+                themeMode: ThemeMode.light,
+                darkTheme: AppTheme.darkTheme(),
+                supportedLocales: languages
+                    .map((lang) =>
+                        Locale(lang.split('_').first, lang.split('_').last))
+                    .toList(),
+                // List of supported languages
+                routerConfig: globalRouter.config(
+                  deepLinkBuilder: navigateToDeepLink,
+                ),
+                localizationsDelegates: const [
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                ],
+              ),
             ),
           ),
         ),

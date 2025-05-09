@@ -35,14 +35,26 @@ android {
             debugSymbolLevel 'FULL'
         }
 
-
+        buildFeatures {
+            buildConfig true
+        }
     }
 
     buildTypes {
+        debug {
+            minifyEnabled false
+            shrinkResources false
+            debuggable true
+            signingConfig = signingConfigs.debug
+            buildConfigField "boolean", "DEVELOPMENT_MODE", "true"
+
+        }
         release {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.debug
+            buildConfigField "boolean", "DEVELOPMENT_MODE", "false"
+
         }
     }
 
@@ -59,4 +71,6 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.8.7'
     implementation 'androidx.work:work-runtime-ktx:2.10.0'
+
+    implementation 'com.google.android.material:material:1.10.0'
 }

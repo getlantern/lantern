@@ -6,18 +6,22 @@ import 'dart:isolate';
 
 import 'package:ffi/ffi.dart';
 import 'package:fpdart/fpdart.dart';
-import 'package:lantern/core/common/app_eum.dart';
-import 'package:rxdart/rxdart.dart';
-import 'package:lantern/core/extensions/error.dart';
+import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/lantern_status.dart';
-import 'package:lantern/core/services/logger_service.dart';
-import 'package:lantern/core/utils/failure.dart';
+import 'package:lantern/core/models/mapper/plan_mapper.dart';
+import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_generated_bindings.dart';
 import 'package:lantern/lantern/lantern_service.dart';
+import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 import 'package:path/path.dart' as p;
+import 'package:rxdart/rxdart.dart';
+
+import '../core/models/plan_data.dart';
+import '../core/services/injection_container.dart' show sl;
+import '../core/utils/compute_worker.dart';
 
 export 'dart:convert';
 export 'dart:ffi'; // For FFI
@@ -69,6 +73,7 @@ class LanternFFIService implements LanternCoreService {
       _ffiService.setup(
         logDirPtr.cast(),
         dataDirPtr.cast(),
+        Localization.defaultLocale.toCharPtr,
         loggingReceivePort.sendPort.nativePort,
         appsReceivePort.sendPort.nativePort,
         statusReceivePort.sendPort.nativePort,
@@ -233,12 +238,7 @@ class LanternFFIService implements LanternCoreService {
       return right(result);
     } catch (e) {
       appLogger.error('Error starting VPN: $e');
-      return left(
-        Failure(
-          error: e.toString(),
-          localizedErrorMessage: (e as Exception).localizedDescription,
-        ),
-      );
+      return Left(e.toFailure());
     }
   }
 
@@ -258,12 +258,7 @@ class LanternFFIService implements LanternCoreService {
       return right(result);
     } catch (e) {
       appLogger.error('Error stopping VPN: $e');
-      return left(
-        Failure(
-          error: e.toString(),
-          localizedErrorMessage: (e as Exception).localizedDescription,
-        ),
-      );
+      return Left(e.toFailure());
     }
   }
 
@@ -287,7 +282,7 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Stream<LanternStatus> watchVPNStatus() => _status.asBroadcastStream();
+  Stream<LanternStatus> watchVPNStatus() => _status;
 
   @override
   Future<Either<Failure, Unit>> isVPNConnected() async {
@@ -295,12 +290,123 @@ class LanternFFIService implements LanternCoreService {
       final result = _ffiService.isVPNConnected();
       return right(unit);
     } catch (e) {
-      return left(
-        Failure(
-          error: e.toString(),
-          localizedErrorMessage: (e as Exception).localizedDescription,
-        ),
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> cancelSubscription() {
+    // TODO: implement cancelSubscription
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> makeOneTimePayment({required String planID}) {
+    // TODO: implement makeOneTimePayment
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> startInAppPurchaseFlow(
+      {required String planId,
+      required PaymentSuccessCallback onSuccess,
+      required PaymentErrorCallback onError}) {
+    // TODO: implement subscribeToPlan
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
+      {required StipeSubscriptionType type, required String planId}) async {
+    try {
+      appLogger.debug('Starting Stripe Subscription Payment Redirect');
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService
+              .stripeSubscriptionPaymentRedirect(type.name.toCharPtr)
+              .toDartString();
+        },
       );
+
+      return right(result);
+    } catch (e) {
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> stipeSubscription(
+      {required String planId}) {
+    // TODO: implement stipeSubscription
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, PlansData>> plans() async {
+    try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService.plans().toDartString();
+        },
+      );
+      final map = jsonDecode(result);
+      final plans = PlansData.fromJson(map);
+      sl<LocalStorageService>().savePlans(plans.toEntity());
+      appLogger.info('Plans: $map');
+      return Right(plans);
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> getOAuthLoginUrl(String provider) async {
+    try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService.oauthLoginUrl(provider.toCharPtr).toDartString();
+        },
+      );
+      return Right(result);
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(e.toFailure());;
+    }
+  }
+
+  @override
+  Future<Either<Failure, LoginResponse>> oAuthLoginCallback(
+      String token) async {
+    try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService.oAuthLoginCallback(token.toCharPtr).toDartString();
+        },
+      );
+      final decodedResult = base64Decode(result);
+      final loginResponse = LoginResponse.fromBuffer(decodedResult);
+      return Right(loginResponse);
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, LoginResponse>> getUserData() async {
+    try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService.getUserData().toDartString();
+        },
+      );
+      final decodedResult = base64Decode(result);
+      final loginResponse = LoginResponse.fromBuffer(decodedResult);
+      return Right(loginResponse);
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(e.toFailure());
     }
   }
 }
@@ -313,3 +419,5 @@ class SplitTunnelMessage {
 
   SplitTunnelMessage(this.type, this.value, this.action, this.replyPort);
 }
+
+class MockLanternFFIService extends LanternFFIService {}

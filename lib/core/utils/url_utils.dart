@@ -1,4 +1,8 @@
-import 'package:lantern/core/services/logger_service.dart';
+import 'dart:io';
+
+import 'package:desktop_webview_window/desktop_webview_window.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:lantern/core/common/common.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class UrlUtils {
@@ -10,6 +14,52 @@ class UrlUtils {
       appLogger.error('Could not launch $url');
     }
   }
+
+  // openWithSystemBrowser opens a URL in the browser
+  static Future<void> openWithSystemBrowser(String url) async {
+    switch (Platform.operatingSystem) {
+      case 'linux':
+        final webview = await WebviewWindow.create();
+        webview.launch(url);
+        break;
+      default:
+        await InAppBrowser.openWithSystemBrowser(url: WebUri(url));
+    }
+  }
+
+  static Future<T?> openWebview<T>(
+      String url, {
+        String? title,
+        Function(T)? onWebviewResult,
+      }) async {
+    try {
+      switch (Platform.operatingSystem) {
+        case 'android':
+        case 'ios':
+        case 'macos':
+        case 'windows':
+          final result = await appRouter.push<T>(
+            AppWebview(title: title ?? '', url: url),
+          );
+          if (result != null) {
+            onWebviewResult?.call(result);
+          }
+          return result;
+
+        case 'linux':
+          final webview = await WebviewWindow.create();
+          webview.launch(url);
+          return null;
+
+        default:
+          throw UnsupportedError('Platform ${Platform.operatingSystem} is not supported');
+      }
+    } catch (e, st) {
+      appLogger.error("Failed to open webview", e, st);
+      return null;
+    }
+  }
+
 
   static bool isValidDomain(String input) {
     final domainPattern = r'^(?!-)[A-Za-z0-9-]{1,63}(?<!-)\.[A-Za-z]{2,6}$';

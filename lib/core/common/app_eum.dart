@@ -7,8 +7,23 @@ enum VPNStatus {
   error,
 }
 
-enum AuthFlow { resetPassword, signUp, activationCode }
+enum AuthFlow{
+  resetPassword,
+  signUp,
+  activationCode
+}
 
+enum AppFlow{
+  store,
+  nonStore,
+}
+
+
+enum StipeSubscriptionType{
+  monthly,
+  yearly,
+  one_time
+}
 enum SplitTunnelFilterType {
   domain,
   domainSuffix,

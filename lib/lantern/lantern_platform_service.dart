@@ -1,18 +1,27 @@
+import 'dart:convert';
+
 import 'package:flutter/services.dart';
 import 'package:fpdart/src/either.dart';
 import 'package:fpdart/src/unit.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/extensions/error.dart';
 import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/mapper/plan_mapper.dart';
+import 'package:lantern/core/models/plan_data.dart';
+import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
+import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 
 import '../core/models/lantern_status.dart';
+import '../core/services/injection_container.dart' show sl;
 
 class LanternPlatformService implements LanternCoreService {
-  static const channelPrefix = 'org.getlantern.lantern';
+  final AppPurchase appPurchase;
 
+  LanternPlatformService(this.appPurchase);
+
+  static const channelPrefix = 'org.getlantern.lantern';
   static const MethodChannel _methodChannel =
-      MethodChannel('$channelPrefix/method');
+      MethodChannel('org.getlantern.lantern/method');
   static const logsChannel = EventChannel("$channelPrefix/logs");
   static const statusChannel =
       EventChannel("$channelPrefix/status", JSONMethodCodec());
@@ -97,6 +106,132 @@ class LanternPlatformService implements LanternCoreService {
     try {
       await _methodChannel.invokeMethod('isVPNConnected');
       return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> cancelSubscription() {
+    // TODO: implement cancelSubscription
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> makeOneTimePayment({required String planID}) {
+    // TODO: implement makeOneTimePayment
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> startInAppPurchaseFlow(
+      {required String planId,
+      required PaymentSuccessCallback onSuccess,
+      required PaymentErrorCallback onError}) async {
+    try {
+      await appPurchase.startSubscription(
+        plan: planId,
+        onSuccess: onSuccess,
+        onError: onError,
+      );
+      return Right(unit);
+    } catch (e) {
+      return Left(Failure(
+        error: e.toString(),
+        localizedErrorMessage: e.localizedDescription,
+      ));
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
+      {required StipeSubscriptionType type, required String planId}) async {
+    try {
+      final link = await _methodChannel
+          .invokeMethod<String>('subscriptionPaymentRedirect', {
+        "subType": type.name,
+        "planId": planId,
+      });
+      return Right(link!);
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> stipeSubscription(
+      {required String planId}) async {
+    try {
+      final subData =
+          await _methodChannel.invokeMethod<String>('stripeSubscription');
+      final map = jsonDecode(subData!);
+      return Right(map);
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription));
+    }
+  }
+
+  @override
+  Future<Either<Failure, PlansData>> plans() async {
+    try {
+      final subData = await _methodChannel.invokeMethod<String>('plans');
+      final map = jsonDecode(subData!);
+      final plans = PlansData.fromJson(map);
+      sl<LocalStorageService>().savePlans(plans.toEntity());
+      appLogger.info('Plans: $map');
+      return Right(plans);
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription));
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> getOAuthLoginUrl(String provider) async {
+    try {
+      final loginUrl =
+          await _methodChannel.invokeMethod<String>('oauthLoginUrl', provider);
+      return Right(loginUrl!);
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription));
+    }
+  }
+
+  @override
+  Future<Either<Failure, LoginResponse>> oAuthLoginCallback(
+      String token) async {
+    try {
+      final bytes =
+          await _methodChannel.invokeMethod('oauthLoginCallback', token);
+      return Right(LoginResponse.fromBuffer(bytes));
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription));
+    }
+  }
+
+  @override
+  Future<Either<Failure, LoginResponse>> getUserData() async {
+    try {
+      final bytes =
+          await _methodChannel.invokeMethod('getUserData');
+      return Right(LoginResponse.fromBuffer(bytes));
     } catch (e, stackTrace) {
       appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
       return Left(Failure(

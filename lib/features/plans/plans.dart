@@ -1,25 +1,41 @@
+import 'dart:io';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/utils/screen_utils.dart';
+import 'package:lantern/core/utils/store_utils.dart';
+import 'package:lantern/core/widgets/loading_indicator.dart';
+import 'package:lantern/features/auth/provider/payment_notifier.dart';
 import 'package:lantern/features/plans/feature_list.dart';
 import 'package:lantern/features/plans/plans_list.dart';
+import 'package:lantern/features/plans/provider/plans_notifier.dart';
+
+import '../../core/models/plan_data.dart';
 
 @RoutePage(name: 'Plans')
-class Plans extends StatefulWidget {
+class Plans extends StatefulHookConsumerWidget {
   const Plans({super.key});
 
   @override
-  State<Plans> createState() => _PlansState();
+  ConsumerState<Plans> createState() => _PlansState();
 }
 
-class _PlansState extends State<Plans> {
+class _PlansState extends ConsumerState<Plans> {
   late TextTheme textTheme;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     textTheme = Theme.of(context).textTheme;
+
     return BaseScreen(
       backgroundColor: AppColors.white,
       padded: false,
@@ -52,6 +68,7 @@ class _PlansState extends State<Plans> {
   }
 
   Widget _buildBody() {
+    final plansState = ref.watch(plansNotifierProvider);
     final size = MediaQuery.of(context).size;
     return Column(
       children: [
@@ -60,7 +77,7 @@ class _PlansState extends State<Plans> {
           padding: EdgeInsets.symmetric(horizontal: defaultSize),
           child: SizedBox(
             height:
-                context.isSmallDevice ? size.height * 0.4 : size.height * 0.31,
+                context.isSmallDevice ? size.height * 0.4 : size.height * 0.33,
             child: SingleChildScrollView(child: FeatureList()),
           ),
         ),
@@ -74,11 +91,39 @@ class _PlansState extends State<Plans> {
               mainAxisAlignment: MainAxisAlignment.end,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                SizedBox(height: defaultSize),
+                SizedBox(height: 10),
                 Padding(
                   padding:
                       EdgeInsets.only(left: context.isSmallDevice ? 16 : 0),
-                  child: PlansListView(),
+                  child: plansState.when(
+                    data: (data) {
+                      return PlansListView(
+                        data: data,
+                        onPlanSelected: (plans) {},
+                      );
+                    },
+                    loading: () {
+                      return Center(
+                        child: LoadingIndicator(),
+                      );
+                    },
+                    error: (error, stackTrace) {
+                      return Column(
+                        children: [
+                          Text(
+                            'plans_fetch_error'.i18n,
+                            style: textTheme.labelLarge,
+                          ),
+                          AppTextButton(
+                            label: 'Try again',
+                            onPressed: () {
+                              ref.read(plansNotifierProvider.notifier).fetchPlans();
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  ),
                 ),
                 SizedBox(height: 24),
                 Padding(
@@ -86,10 +131,10 @@ class _PlansState extends State<Plans> {
                       horizontal: context.isSmallDevice ? defaultSize : 0),
                   child: PrimaryButton(
                     label: 'Get Lantern Pro',
-                    onPressed: () {},
+                    onPressed: onGetLanternProTap,
                   ),
                 ),
-                SizedBox(height: 24),
+                SizedBox(height: defaultSize),
                 Center(
                   child: Text(
                     'Plan automatically renews until canceled',
@@ -135,5 +180,69 @@ class _PlansState extends State<Plans> {
         );
       },
     );
+  }
+
+  void onGetLanternProTap() {
+    final userSelectedPlan =
+        ref.read(plansNotifierProvider.notifier).getSelectedPlan();
+    switch (Platform.operatingSystem) {
+      case 'android':
+        if (sl<StoreUtils>().isPlayStoreVersion) {
+          /// user is using play store version
+          startInAppPurchaseFlow(userSelectedPlan);
+          return;
+        }
+        nonStoreFlow();
+        break;
+      case 'ios':
+        startInAppPurchaseFlow(userSelectedPlan);
+        break;
+      default:
+        nonStoreFlow();
+    }
+  }
+
+  Future<void> startInAppPurchaseFlow(Plan plan) async {
+    context.showLoadingDialog();
+    final paymentProvider = ref.read(paymentNotifierProvider.notifier);
+    final result = await paymentProvider.startInAppPurchaseFlow(
+      planId: plan.id,
+      onSuccess: (purchase) {
+        /// Subscription successful
+        //todo call api to acknowledge the purchase
+        context.hideLoadingDialog();
+        storeFlow();
+      },
+      onError: (error) {
+        ///Error while subscribing
+        context.showSnackBarError(error);
+        appLogger.error('Error subscribing to plan: $error');
+        context.hideLoadingDialog();
+      },
+    );
+    // Check if got any error while starting subscription flow
+    result.fold(
+      (error) {
+        context.hideLoadingDialog();
+        context.showSnackBarError(error.localizedErrorMessage);
+        appLogger.error('Error subscribing to plan: $error');
+
+      },
+      (success) {
+        // Handle success
+        appLogger.info('Successfully started subscription flow');
+      },
+    );
+  }
+
+  void nonStoreFlow() {
+    if (PlatformUtils.isIOS) {
+      throw Exception('Not supported on IOS');
+    }
+    appRouter.push(AddEmail(authFlow: AuthFlow.signUp, appFlow: AppFlow.nonStore));
+  }
+
+  void storeFlow() {
+    appRouter.push(AddEmail(authFlow: AuthFlow.signUp, appFlow: AppFlow.store));
   }
 }

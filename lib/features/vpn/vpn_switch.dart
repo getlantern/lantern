@@ -85,7 +85,6 @@ class VPNSwitch extends HookConsumerWidget {
   }
 
   Color _wrapperColor(VPNStatus vpnStatus) {
-    appLogger.debug("VPN Status: $vpnStatus");
     switch (vpnStatus) {
       case VPNStatus.connected:
         return AppColors.blue4;

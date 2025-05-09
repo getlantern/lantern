@@ -10,11 +10,13 @@ import 'package:lantern/core/widgets/app_rich_text.dart';
 class ConfirmEmail extends HookWidget {
   final String email;
   final AuthFlow authFlow;
+  final AppFlow appFlow;
 
   const ConfirmEmail({
     super.key,
     required this.email,
     this.authFlow = AuthFlow.signUp,
+    this.appFlow = AppFlow.nonStore,
   });
 
   @override
@@ -75,17 +77,20 @@ class ConfirmEmail extends HookWidget {
   void onContinueTap() {
     switch (authFlow) {
       case AuthFlow.signUp:
-        appRouter.push(CreatePassword(email: email));
+        if (appFlow == AppFlow.store) {
+          appRouter.push(CreatePassword(email: email,authFlow: authFlow));
+          return;
+        }
+        appRouter.push(ChoosePaymentMethod(email: email, authFlow: authFlow));
         break;
       case AuthFlow.resetPassword:
-        appRouter.push(ResetPassword(email:email));
+        appRouter.push(ResetPassword(email: email));
         break;
       case AuthFlow.activationCode:
         appRouter.push(ActivationCode());
         break;
     }
   }
-
 
   void onResendEmail() {
     switch (authFlow) {

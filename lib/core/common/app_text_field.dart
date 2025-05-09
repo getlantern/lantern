@@ -54,6 +54,7 @@ class AppTextField extends StatelessWidget {
       keyboardType: keyboardType,
       enableSuggestions: true,
       controller: controller,
+
       enabled: enable,
       initialValue: initialValue,
       inputFormatters: inputFormatters,
@@ -61,17 +62,19 @@ class AppTextField extends StatelessWidget {
       onChanged: onChanged,
       readOnly: onTap != null,
       onTap: onTap,
-      cursorColor: AppColors.blue8,
+      cursorColor: AppColors.blue10,
       autovalidateMode: autovalidateMode,
       validator: validator,
       cursorRadius: Radius.circular(16),
       cursorHeight: defaultSize,
+      cursorOpacityAnimates: true,
+
       style: textTheme.bodyMedium!.copyWith(
         color: AppColors.gray9,
         fontSize: 14.sp,
       ),
       textInputAction: textInputAction,
-      cursorOpacityAnimates: true,
+
       maxLines: maxLines,
       decoration: InputDecoration(
           filled: true,

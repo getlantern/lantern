@@ -15,13 +15,13 @@ import 'core/common/app_secrets.dart';
 
 Future<void> main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-  widgetsBinding.deferFirstFrame();
+  // widgetsBinding.deferFirstFrame();
   initLogger();
   await _loadAppSecrets();
   await injectServices();
 
   await Future.microtask(Localization.loadTranslations);
-  widgetsBinding.allowFirstFrame();
+  // widgetsBinding.allowFirstFrame();
   await _setupSentry(
     runner: () {
       runApp(

@@ -103,6 +103,12 @@ class AppRouter extends RootStackRouter {
       page: ActivationCode.page,
     ),
     AutoRoute(
+      path: '/app-webview',
+      page: AppWebview.page,
+      fullscreenDialog: true,
+
+    ),
+    AutoRoute(
       path: '/split-tunneling',
       page: SplitTunneling.page,
     ),

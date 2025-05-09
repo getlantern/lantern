@@ -2349,9 +2349,10 @@ class LanternBindings {
 
   set suboptarg(ffi.Pointer<ffi.Char> value) => _suboptarg.value = value;
 
-  void setup(
+  ffi.Pointer<ffi.Char> setup(
     ffi.Pointer<ffi.Char> _logDir,
     ffi.Pointer<ffi.Char> _dataDir,
+    ffi.Pointer<ffi.Char> _locale,
     int logPort,
     int appsPort,
     int statusPort,
@@ -2360,6 +2361,7 @@ class LanternBindings {
     return _setup(
       _logDir,
       _dataDir,
+      _locale,
       logPort,
       appsPort,
       statusPort,
@@ -2369,7 +2371,8 @@ class LanternBindings {
 
   late final _setupPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Void Function(
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>,
               ffi.Pointer<ffi.Char>,
               ffi.Pointer<ffi.Char>,
               ffi.Int64,
@@ -2377,7 +2380,13 @@ class LanternBindings {
               ffi.Int64,
               ffi.Pointer<ffi.Void>)>>('setup');
   late final _setup = _setupPtr.asFunction<
-      void Function(ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>, int, int, int,
+      ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>,
+          int,
+          int,
+          int,
           ffi.Pointer<ffi.Void>)>();
 
   ffi.Pointer<ffi.Char> addSplitTunnelItem(
@@ -2441,6 +2450,70 @@ class LanternBindings {
   late final _isVPNConnectedPtr =
       _lookup<ffi.NativeFunction<GoInt Function()>>('isVPNConnected');
   late final _isVPNConnected = _isVPNConnectedPtr.asFunction<int Function()>();
+
+  ffi.Pointer<ffi.Char> getUserData() {
+    return _getUserData();
+  }
+
+  late final _getUserDataPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+          'getUserData');
+  late final _getUserData =
+      _getUserDataPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
+
+  ffi.Pointer<ffi.Char> stripeSubscriptionPaymentRedirect(
+    ffi.Pointer<ffi.Char> subType,
+  ) {
+    return _stripeSubscriptionPaymentRedirect(
+      subType,
+    );
+  }
+
+  late final _stripeSubscriptionPaymentRedirectPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>)>>('stripeSubscriptionPaymentRedirect');
+  late final _stripeSubscriptionPaymentRedirect =
+      _stripeSubscriptionPaymentRedirectPtr
+          .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> plans() {
+    return _plans();
+  }
+
+  late final _plansPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>('plans');
+  late final _plans = _plansPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
+
+  ffi.Pointer<ffi.Char> oauthLoginUrl(
+    ffi.Pointer<ffi.Char> _provider,
+  ) {
+    return _oauthLoginUrl(
+      _provider,
+    );
+  }
+
+  late final _oauthLoginUrlPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>)>>('oauthLoginUrl');
+  late final _oauthLoginUrl = _oauthLoginUrlPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> oAuthLoginCallback(
+    ffi.Pointer<ffi.Char> _oAuthToken,
+  ) {
+    return _oAuthLoginCallback(
+      _oAuthToken,
+    );
+  }
+
+  late final _oAuthLoginCallbackPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>)>>('oAuthLoginCallback');
+  late final _oAuthLoginCallback = _oAuthLoginCallbackPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
 
   void freeCString(
     ffi.Pointer<ffi.Char> cstr,

@@ -1,4 +1,4 @@
-.PHONY: gen macos ffi
+.PHONY: gen macos
 
 # Flutter builds directory
 BUILD_DIR := build
@@ -61,6 +61,7 @@ ANDROID_TARGET_PLATFORMS := android-arm,android-arm64,android-x64
 ANDROID_RELEASE_APK := $(INSTALLER_NAME)$(if $(BUILD_TYPE),-$(BUILD_TYPE)).apk
 ANDROID_RELEASE_AAB := $(INSTALLER_NAME)$(if $(BUILD_TYPE),-$(BUILD_TYPE)).aab
 
+IOS_DIR := ios/
 IOS_FRAMEWORK := Liblantern.xcframework
 IOS_FRAMEWORK_DIR := ios/Frameworks
 IOS_FRAMEWORK_BUILD := $(BIN_DIR)/ios/$(IOS_FRAMEWORK)
@@ -91,7 +92,6 @@ APP_VERSION := $(shell grep '^version:' pubspec.yaml | sed 's/version: //;s/ //g
 INSTALLER_RESOURCES := installer-resources
 
 # Missing and Guards
-
 guard-%:
 	 @ if [ -z '${${*}}' ]; then echo 'Environment  $* variable not set' && exit 1; fi
 
@@ -338,7 +338,7 @@ build-ios:
 
 .PHONY: swift-format
 swift-format:
-	swift-format format --in-place --recursive ios/Runner macos/Runner
+	swift-format format --in-place --recursive ios/Runner macos/Runner ios/Tunnel
 
 ios-release: clean pubget
 	flutter build ipa --flavor prod --release --export-options-plist ./ExportOptions.plist
@@ -373,7 +373,6 @@ ffigen:
 pubget:
 	flutter pub get
 
-
 find-duplicate-translations:
 	grep -oE 'msgid\s+"[^"]+"' assets/locales/en.po | sort | uniq -d
 
@@ -382,3 +381,9 @@ clean:
 	rm -rf $(BIN_DIR)/*
 	rm -rf $(DARWIN_FRAMEWORK_DIR)/*
 	rm -rf $(ANDROID_LIB_PATH)
+	rm -rf $(IOS_DIR)/$(IOS_FRAMEWORK)
+
+.PHONY: protos
+# You can install the dart protoc support by running 'dart pub global activate protoc_plugin'
+protos:
+	@protoc --dart_out=lib/lantern/protos protos/auth.proto

@@ -12,6 +12,7 @@ export 'package:lantern/core/common/app_eum.dart';
 export 'package:lantern/core/common/app_urls.dart';
 export 'package:lantern/core/common/app_theme.dart';
 export 'package:lantern/core/utils/failure.dart';
+export 'package:lantern/core/utils/platform_utils.dart';
 
 // UI
 export 'package:lantern/core/widgets/lantern_logo.dart';
@@ -29,6 +30,7 @@ export 'package:lantern/core/widgets/base_screen.dart';
 export 'package:lantern/core/widgets/platform_card.dart';
 export 'package:lantern/core/widgets/pro_banner.dart';
 export 'package:lantern/core/common/app_text_field.dart';
+export 'package:lantern/core/common/app_dialog.dart';
 
 // Routes
 export 'package:lantern/core/router/router.gr.dart';
@@ -39,6 +41,8 @@ export 'package:lantern/core/services/local_storage.dart';
 // Extensions
 export 'package:lantern/core/extensions/string.dart';
 export 'package:lantern/core/extensions/context.dart';
+export 'package:lantern/core/extensions/error.dart';
+export 'package:lantern/core/extensions/pointer.dart';
 
 //Logger
 export 'package:lantern/core/services/logger_service.dart';
