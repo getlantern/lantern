@@ -10,23 +10,8 @@ jobs:
     permissions:
       contents: "read"
       id-token: "write"
-    env:
-      AC_USERNAME: ${{ secrets.AC_USERNAME }}
-      AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
-      BUILD_TYPE: ${{ inputs.build_type || '' }}
-      VERSION: ${{ inputs.version }}
     runs-on: macos-15
     steps:
-
-    - name: Generate appcast.xml
-      run: |
-        chmod +x scripts/generate_appcast.sh
-        ./scripts/generate_appcast.sh \
-          "1.0.0" \
-          "2" \
-          "https://github.com/getlantern/lantern-outline/releases/download/v1.0.0-beta/lantern-installer-beta.dmg" \
-          "dist/1.0.0+1/lantern-1.0.0+1-macos.zip"
-
       - name: Deploy appcast.xml to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
