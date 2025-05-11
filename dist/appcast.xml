@@ -10,7 +10,8 @@
       <sparkle:shortVersionString>1.0.0</sparkle:shortVersionString>
       <pubDate>Sun, 11 May 2025 09:32:15 -0700</pubDate>
       <enclosure
-        url="https://github.com/getlantern/lantern-outline/releases/download/v1.0.0-beta/lantern-installer-beta.dmg"
+        url="https://lantern-vpn.s3.us-east-1.amazonaws.com/releases/lantern-1.0.0%2B1-macos.zip"
+        sparkle:edSignature="PseqXMLh9GOHWZxDNH4315cx3NUJUhYDWi374zD0FtyK91YYFHMk5z+xBodauZx9DZQSRanNGkB2fX5st4tiAQ=="
         sparkle:os="macos"
         length=" 55568683"
         type="application/octet-stream" />

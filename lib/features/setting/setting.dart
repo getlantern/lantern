@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:auto_updater/auto_updater.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
@@ -94,7 +95,8 @@ class Setting extends HookConsumerWidget {
                 AppTile(
                   label: 'check_for_updates'.i18n,
                   icon: AppImagePaths.update,
-                  onPressed: () => settingMenuTap(_SettingType.checkForUpdates),
+                  onPressed: () async =>
+                      await settingMenuTap(_SettingType.checkForUpdates),
                 ),
               ],
             ),
@@ -178,7 +180,7 @@ class Setting extends HookConsumerWidget {
     );
   }
 
-  void settingMenuTap(_SettingType menu) {
+  Future<void> settingMenuTap(_SettingType menu) async {
     switch (menu) {
       case _SettingType.signIn:
         appRouter.push(const SignInEmail());
@@ -213,8 +215,8 @@ class Setting extends HookConsumerWidget {
         appRouter.push(DownloadLinks());
         break;
       case _SettingType.checkForUpdates:
-        // TODO: Handle this case.
-        throw UnimplementedError();
+        await autoUpdater.checkForUpdates();
+
       case _SettingType.account:
         appRouter.push(Account());
         break;

@@ -39,7 +39,7 @@ Future<void> main() async {
 
 Future<void> _configureAutoUpdate() async {
   if (!Platform.isMacOS) return;
-  String feedURL = 'https://getlantern.github.io/lantern-outline/appcast.xml';
+  String feedURL = 'https://lantern-vpn.s3.amazonaws.com/releases/appcast.xml';
   await autoUpdater.setFeedURL(feedURL);
   await autoUpdater.checkForUpdates();
   await autoUpdater.setScheduledCheckInterval(3600);
