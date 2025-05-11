@@ -104,6 +104,7 @@ dependencies:
   flutter_stripe: ^11.5.0
   # protobuf
   protobuf: ^4.0.0
+  auto_updater: ^1.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

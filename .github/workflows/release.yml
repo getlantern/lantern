@@ -86,6 +86,14 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
 
+      - name: Generate appcast.xml
+        run: |
+          ./scripts/generate_appcast.sh \
+            "${{ needs.set-release-metadata.outputs.version }}" \
+            "2" \
+            "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/lantern-installer.dmg" \
+            "lantern-installer-dmg/${{ env.INSTALLER_NAME }}.dmg"
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -93,6 +101,7 @@ jobs:
           name: "Lantern ${{ env.BUILD_TYPE }} ${{ github.ref_name }}"
           generate_release_notes: true
           files: |
+            dist/appcast.xml
             lantern-installer-dmg/${{ env.INSTALLER_NAME }}.dmg
             lantern-installer-exe/${{ env.INSTALLER_NAME }}.exe
             lantern-installer-apk/${{ env.INSTALLER_NAME }}.apk
