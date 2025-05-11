@@ -3,7 +3,7 @@
 VERSION=$1
 BUILD_VERSION=$2
 DMG_URL=$3
-DMG_SIZE=$(stat -c%s "$4")
+DMG_SIZE=$(wc -c < "$4")
 PUB_DATE=$(date -R)
 
 cat <<EOF > appcast.xml

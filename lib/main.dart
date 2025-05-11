@@ -39,8 +39,7 @@ Future<void> main() async {
 
 Future<void> _configureAutoUpdate() async {
   if (!Platform.isMacOS) return;
-  String feedURL =
-      'https://github.com/getlantern/lantern-outline/atavism/auto-updates/dist/appcast.xml';
+  String feedURL = 'https://getlantern.github.io/lantern-outline/appcast.xml';
   await autoUpdater.setFeedURL(feedURL);
   await autoUpdater.checkForUpdates();
   await autoUpdater.setScheduledCheckInterval(3600);
