@@ -12,6 +12,9 @@ jobs:
       id-token: "write"
     runs-on: macos-15
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Deploy appcast.xml to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
