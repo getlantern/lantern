@@ -259,8 +259,6 @@ windows-debug: windows
 
 .PHONY: windows-release
 windows-release: clean windows pubget gen
-	flutter_distributor package --flutter-build-args=verbose --platform windows --targets "exe,msix" --skip-clean
-	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-windows-setup.exe $(WINDOWS_INSTALLER)
 
 # Android Build
 .PHONY: install-android-deps

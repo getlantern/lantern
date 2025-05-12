@@ -38,6 +38,9 @@ jobs:
           Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/p/?LinkId=2124703" -OutFile "MicrosoftEdgeWebView2Setup.exe"
           Start-Process -FilePath ".\MicrosoftEdgeWebView2Setup.exe" -ArgumentList "/silent", "/install" -Wait
 
+      - name: Set up MinGW
+        run: choco install mingw -y
+
       - name: Install Flutter
         uses: subosito/flutter-action@v2.19.0
         with:
@@ -77,10 +80,12 @@ jobs:
           echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
 
       - name: Build Windows release
+        shell: pwsh
         run: |
           dart pub global activate flutter_distributor
           make windows-release
-        shell: pwsh
+          flutter_distributor package --flutter-build-args=verbose --platform windows --targets "msix,exe" --skip-clean
+          mv "dist/${{ env.APP_VERSION }}/lantern-${{ env.APP_VERSION }}-windows-setup.exe" ${{ inputs.installer_name }}.exe
 
       - name: Sign EXE with Azure Code Signing
         uses: getlantern/trusted-signing-action@main
