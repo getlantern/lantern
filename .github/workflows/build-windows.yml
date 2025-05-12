@@ -79,14 +79,15 @@ jobs:
       - name: Install dependencies
         run: make install-windows-deps
 
-      - name: Add Dart pub global bin to PATH
-        run: echo "/c/Users/runneradmin/AppData/Local/Pub/Cache/bin" >> $GITHUB_PATH
+      - name: Debug path and check flutter_distributor
+        run: |
+          echo "PATH: $PATH"
+          ls -la /c/Users/runneradmin/AppData/Local/Pub/Cache/bin
         shell: bash
 
       - name: Build Windows release
+        run: make windows-release
         shell: bash
-        run: |
-          make windows-release
 
       - name: Sign EXE with Azure Code Signing
         uses: getlantern/trusted-signing-action@main
