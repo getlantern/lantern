@@ -150,3 +150,5 @@ ffigen:
   headers:
     entry-points:
       - "bin/**/liblantern.h"
+      - "bin/windows-amd64/liblantern.h"
+      - "bin/windows-arm64/liblantern.h"
