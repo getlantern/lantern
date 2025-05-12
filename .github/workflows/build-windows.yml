@@ -1,17 +1,22 @@
 name: Build Windows
 
 on:
-  workflow_call:
-    inputs:
-      version:
-        required: true
-        type: string
-      build_type:
-        required: true
-        type: string
-      installer_name:
-        required: true
-        type: string
+  push:
+    branches:
+      - "atavism/windows-updates"
+
+# on:
+#   workflow_call:
+#     inputs:
+#       version:
+#         required: true
+#         type: string
+#       build_type:
+#         required: true
+#         type: string
+#       installer_name:
+#         required: true
+#         type: string
 
 jobs:
   build-windows:
@@ -37,9 +42,6 @@ jobs:
         run: |
           Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/p/?LinkId=2124703" -OutFile "MicrosoftEdgeWebView2Setup.exe"
           Start-Process -FilePath ".\MicrosoftEdgeWebView2Setup.exe" -ArgumentList "/silent", "/install" -Wait
-
-      - name: Set up MinGW
-        run: choco install mingw -y
 
       - name: Install Flutter
         uses: subosito/flutter-action@v2.19.0
