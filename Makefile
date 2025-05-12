@@ -49,6 +49,7 @@ WINDOWS_LIB_AMD64 := $(BIN_DIR)/windows-amd64/$(WINDOWS_LIB)
 WINDOWS_LIB_ARM64 := $(BIN_DIR)/windows-arm64/$(WINDOWS_LIB)
 WINDOWS_LIB_BUILD := $(call join_path,$(BIN_DIR)/windows/$(WINDOWS_LIB))
 WINDOWS_RELEASE_DIR := $(call join_path,$(BUILD_DIR)/windows/x64/runner/Release)
+WINDOWS_INSTALLER := $(INSTALLER_NAME)$(if $(BUILD_TYPE),-$(BUILD_TYPE)).exe
 
 ANDROID_LIB := $(LANTERN_LIB_NAME).aar
 ANDROID_LIBS_DIR := android/app/libs
@@ -258,7 +259,8 @@ windows-debug: windows
 
 .PHONY: windows-release
 windows-release: clean windows pubget gen
-	flutter_distributor package --flutter-build-args=verbose --platform windows --targets "exe"
+	flutter_distributor package --flutter-build-args=verbose --platform windows --targets "exe,msix" --skip-clean
+	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-windows-setup.exe $(WINDOWS_INSTALLER)
 
 # Android Build
 .PHONY: install-android-deps
