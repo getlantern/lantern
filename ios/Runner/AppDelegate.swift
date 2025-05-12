@@ -31,8 +31,8 @@ import UIKit
     // Initialize directories and working paths
     setupFileSystem()
 
-    // set api handler
-    setupAPIHandler()
+    // set radiance
+    setupRadiance()
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
@@ -76,7 +76,7 @@ import UIKit
   }
 
   /// Calls API handler setup
-  private func setupAPIHandler() {
+  private func setupRadiance() {
     Task {
       // Set up the base directory and options
       let baseDir = FilePath.workingDirectory.relativePath
@@ -85,7 +85,7 @@ import UIKit
       opts.deviceid = DeviceIdentifier.getUDID()
       opts.locale = Locale.current.identifier
       var error: NSError?
-      await MobileNewAPIHandler(opts, &error)
+     await MobileSetupRadiance(opts, &error)
       // Handle any error returned by the setup
       if let error {
         appLogger.error("Error while setting up radiance: \(error)")

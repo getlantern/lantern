@@ -95,7 +95,7 @@ extern char* stopVPN();
 
 // isVPNConnected checks if the VPN server is running and connected.
 //
-extern GoInt isVPNConnected();
+extern char* isVPNConnected();
 
 // Get user data from the local config
 //

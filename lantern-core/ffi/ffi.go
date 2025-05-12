@@ -63,6 +63,7 @@ type lanternService struct {
 	*radiance.Radiance
 	proServer          *api.Pro
 	authClient         *api.User
+	vpnClient          client.VPNClient
 	servicesMap        map[service]int64
 	dataDir            string
 	splitTunnelHandler *client.SplitTunnel
@@ -97,12 +98,10 @@ func setup(_logDir, _dataDir, _locale *C.char, logPort, appsPort, statusPort C.i
 		dataDir := C.GoString(_dataDir)
 		locale := C.GoString(_locale)
 
-		opts := client.Options{
-			DataDir:              dataDir,
-			LogDir:               logDir,
-			EnableSplitTunneling: enableSplitTunneling(),
-			PlatIfce:             nil,
-			Locale:               locale,
+		opts := radiance.Options{
+			DataDir: dataDir,
+			LogDir:  logDir,
+			Locale:  locale,
 		}
 		r, err := radiance.NewRadiance(opts)
 		if err != nil {
@@ -113,21 +112,22 @@ func setup(_logDir, _dataDir, _locale *C.char, logPort, appsPort, statusPort C.i
 		// init app cache in background
 		go apps.LoadInstalledApps(dataDir, sendApps(int64(appsPort)))
 
-		apiHandler, err := radiance.NewAPIHandler(opts)
+		vpn, err := client.NewVPNClient(opts.DataDir, opts.LogDir, nil, enableSplitTunneling())
 		if err != nil {
 			outError = log.Errorf("unable to create API handler: %v", err)
 		}
 		server = &lanternService{
 			Radiance:   r,
-			proServer:  apiHandler.ProServer,
-			authClient: apiHandler.User,
+			proServer:  r.APIHandler().ProServer,
+			authClient: r.APIHandler().User,
+			vpnClient:  vpn,
 			dataDir:    dataDir,
 			servicesMap: map[service]int64{
 				logsService:   int64(logPort),
 				appsService:   int64(appsPort),
 				statusService: int64(statusPort),
 			},
-			splitTunnelHandler: r.SplitTunnelHandler(),
+			splitTunnelHandler: vpn.SplitTunnelHandler(),
 			userInfo:           r.UserInfo(),
 		}
 
@@ -197,7 +197,7 @@ func startVPN() *C.char {
 
 	server.sendStatusToPort(Connecting)
 
-	if err := server.StartVPN(); err != nil {
+	if err := server.vpnClient.StartVPN(); err != nil {
 		err = fmt.Errorf("unable to start vpn server: %v", err)
 		server.sendStatusToPort(Disconnected)
 		return C.CString(err.Error())
@@ -224,7 +224,7 @@ func stopVPN() *C.char {
 
 	server.sendStatusToPort(Disconnecting)
 
-	if err := server.StopVPN(); err != nil {
+	if err := server.vpnClient.StopVPN(); err != nil {
 		err = fmt.Errorf("unable to stop vpn server: %v", err)
 		server.sendStatusToPort(Connected)
 		return C.CString(err.Error())
@@ -254,19 +254,19 @@ func (s *lanternService) sendStatusToPort(status VPNStatus) {
 // isVPNConnected checks if the VPN server is running and connected.
 //
 //export isVPNConnected
-func isVPNConnected() int {
+func isVPNConnected() *C.char {
 	mu.Lock()
 	defer mu.Unlock()
-
 	if server == nil {
-		return 0
+		return SendError(fmt.Errorf("radiance not initialized"))
 	}
-
-	connected := server.ConnectionStatus()
+	connected := server.vpnClient.ConnectionStatus()
 	if connected {
-		return 1
+		server.sendStatusToPort(Connected)
+	} else {
+		server.sendStatusToPort(Disconnected)
 	}
-	return 0
+	return C.CString("ok")
 }
 
 //APIS

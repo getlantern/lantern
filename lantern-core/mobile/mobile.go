@@ -115,6 +115,11 @@ func IsRadianceConnected() bool {
 }
 
 func StartVPN() error {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Errorf("Error login callback : %v", err)
+		}
+	}()
 	log.Debug("Starting VPN")
 	radianceMutex.Lock()
 	defer radianceMutex.Unlock()
@@ -193,11 +198,6 @@ func fetchUserData() (*protos.UserDataResponse, error) {
 
 // OAuth Methods
 func OAuthLoginUrl(provider string) (string, error) {
-	defer func() {
-		if err := recover(); err != nil {
-			log.Errorf("Error login callback : %v", err)
-		}
-	}()
 	log.Debug("Getting OAuth login URL")
 	oauthLoginUrl, err := radianceServer.user.OAuthLoginUrl(context.Background(), provider)
 	if err != nil {

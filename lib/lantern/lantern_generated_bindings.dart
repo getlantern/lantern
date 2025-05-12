@@ -2443,13 +2443,15 @@ class LanternBindings {
   late final _stopVPN =
       _stopVPNPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
 
-  int isVPNConnected() {
+  ffi.Pointer<ffi.Char> isVPNConnected() {
     return _isVPNConnected();
   }
 
   late final _isVPNConnectedPtr =
-      _lookup<ffi.NativeFunction<GoInt Function()>>('isVPNConnected');
-  late final _isVPNConnected = _isVPNConnectedPtr.asFunction<int Function()>();
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+          'isVPNConnected');
+  late final _isVPNConnected =
+      _isVPNConnectedPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
 
   ffi.Pointer<ffi.Char> getUserData() {
     return _getUserData();
