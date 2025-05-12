@@ -28,12 +28,9 @@ import (
 
 func TestCreateUser(t *testing.T) {
 	opta := client.Options{
-		DeviceID: "c8484d35d019ae02",
-		Locale:   "en-us",
-		DataDir:  os.TempDir(),
-		LogDir:   os.TempDir(),
+		DataDir: os.TempDir(),
+		LogDir:  os.TempDir(),
 	}
-
 	rr, err := radiance.NewRadiance(opta)
 	api, err := radiance.NewAPIHandler(opta)
 	assert.Nil(t, err)
