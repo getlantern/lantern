@@ -1,22 +1,17 @@
 name: Build Windows
 
 on:
-  push:
-    branches:
-      - "atavism/windows-build-fix"
-
-# on:
-#   workflow_call:
-#     inputs:
-#       version:
-#         required: true
-#         type: string
-#       build_type:
-#         required: true
-#         type: string
-#       installer_name:
-#         required: true
-#         type: string
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+      build_type:
+        required: true
+        type: string
+      installer_name:
+        required: true
+        type: string
 
 jobs:
   build-windows:
