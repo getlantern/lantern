@@ -76,17 +76,10 @@ jobs:
           APP_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //')
           echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
 
-      - name: Install dependencies
-        run: make install-windows-deps
-
-      - name: Debug path and check flutter_distributor
-        run: |
-          echo "PATH: $PATH"
-          ls -la /c/Users/runneradmin/AppData/Local/Pub/Cache/bin
-        shell: bash
-
       - name: Build Windows release
-        run: make windows-release
+        run: |
+          dart pub global activate flutter_distributor
+          make windows-release
         shell: bash
 
       - name: Sign EXE with Azure Code Signing
