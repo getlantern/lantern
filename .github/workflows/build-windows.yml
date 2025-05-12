@@ -80,7 +80,7 @@ jobs:
         run: |
           dart pub global activate flutter_distributor
           make windows-release
-        shell: bash
+        shell: pwsh
 
       - name: Sign EXE with Azure Code Signing
         uses: getlantern/trusted-signing-action@main
