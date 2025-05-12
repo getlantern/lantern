@@ -79,6 +79,10 @@ jobs:
       - name: Install dependencies
         run: make install-windows-deps
 
+      - name: Add Dart pub global bin to PATH
+        run: echo "/c/Users/runneradmin/AppData/Local/Pub/Cache/bin" >> $GITHUB_PATH
+        shell: bash
+
       - name: Build Windows release
         shell: bash
         run: |
