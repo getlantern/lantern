@@ -2,8 +2,8 @@ name: Build and Release All Platforms
 
 on:
   push:
-    branches:
-      - "atavism/windows-build-fix"
+    tags:
+      - "v*.*.*"
 
 jobs:
   set-release-metadata:
