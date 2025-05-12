@@ -3,7 +3,7 @@ name: Build Windows
 on:
   push:
     branches:
-      - "atavism/windows-updates"
+      - "atavism/windows-build-fix"
 
 # on:
 #   workflow_call:
