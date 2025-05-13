@@ -21,10 +21,9 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		291E282E2DD3C1CE000F56B8 /* SystemExtensionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 291E282D2DD3C1CE000F56B8 /* SystemExtensionManager.swift */; };
 		2979F7152DC40FF800C8E0A2 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2979F7142DC40FF800C8E0A2 /* NetworkExtension.framework */; };
 		2979F71F2DC40FF800C8E0A2 /* org.getlantern.lantern.system.systemextension in Embed System Extensions */ = {isa = PBXBuildFile; fileRef = 2979F7132DC40FF800C8E0A2 /* org.getlantern.lantern.system.systemextension */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		29CEF7302DCD313300949A25 /* InstallSystemExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29CEF72F2DCD313300949A25 /* InstallSystemExtension.swift */; };
-		29CEF7322DCD4B9A00949A25 /* SystemExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29CEF7312DCD4B9A00949A25 /* SystemExtension.swift */; };
 		331C80D8294CF71000263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C80D7294CF71000263BE5 /* RunnerTests.swift */; };
 		335BBD1B22A9A15E00E9071D /* GeneratedPluginRegistrant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 335BBD1A22A9A15E00E9071D /* GeneratedPluginRegistrant.swift */; };
 		33CC10F12044A3C60003C045 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CC10F02044A3C60003C045 /* AppDelegate.swift */; };
@@ -88,10 +87,9 @@
 
 /* Begin PBXFileReference section */
 		1E9A6FC86FA886DA6665EC6D /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
+		291E282D2DD3C1CE000F56B8 /* SystemExtensionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemExtensionManager.swift; sourceTree = "<group>"; };
 		2979F7132DC40FF800C8E0A2 /* org.getlantern.lantern.system.systemextension */ = {isa = PBXFileReference; explicitFileType = "wrapper.system-extension"; includeInIndex = 0; path = org.getlantern.lantern.system.systemextension; sourceTree = BUILT_PRODUCTS_DIR; };
 		2979F7142DC40FF800C8E0A2 /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
-		29CEF72F2DCD313300949A25 /* InstallSystemExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstallSystemExtension.swift; sourceTree = "<group>"; };
-		29CEF7312DCD4B9A00949A25 /* SystemExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemExtension.swift; sourceTree = "<group>"; };
 		331C80D5294CF71000263BE5 /* RunnerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RunnerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		331C80D7294CF71000263BE5 /* RunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunnerTests.swift; sourceTree = "<group>"; };
 		333000ED22D3DE5D00554162 /* Warnings.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Warnings.xcconfig; sourceTree = "<group>"; };
@@ -221,8 +219,7 @@
 		33FAB671232836740065AC1E /* Runner */ = {
 			isa = PBXGroup;
 			children = (
-				29CEF7312DCD4B9A00949A25 /* SystemExtension.swift */,
-				29CEF72F2DCD313300949A25 /* InstallSystemExtension.swift */,
+				291E282D2DD3C1CE000F56B8 /* SystemExtensionManager.swift */,
 				33CC10F02044A3C60003C045 /* AppDelegate.swift */,
 				33CC11122044BFA00003C045 /* MainFlutterWindow.swift */,
 				33E51913231747F40026EE4D /* DebugProfile.entitlements */,
@@ -532,10 +529,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				29CEF7302DCD313300949A25 /* InstallSystemExtension.swift in Sources */,
+				291E282E2DD3C1CE000F56B8 /* SystemExtensionManager.swift in Sources */,
 				33CC11132044BFA00003C045 /* MainFlutterWindow.swift in Sources */,
 				33CC10F12044A3C60003C045 /* AppDelegate.swift in Sources */,
-				29CEF7322DCD4B9A00949A25 /* SystemExtension.swift in Sources */,
 				335BBD1B22A9A15E00E9071D /* GeneratedPluginRegistrant.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
