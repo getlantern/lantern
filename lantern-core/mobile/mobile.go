@@ -115,11 +115,6 @@ func IsRadianceConnected() bool {
 }
 
 func StartVPN() error {
-	defer func() {
-		if err := recover(); err != nil {
-			log.Errorf("Error login callback : %v", err)
-		}
-	}()
 	log.Debug("Starting VPN")
 	radianceMutex.Lock()
 	defer radianceMutex.Unlock()

@@ -383,7 +383,7 @@ clean:
 	rm -rf $(BIN_DIR)/*
 	rm -rf $(DARWIN_FRAMEWORK_DIR)/*
 	rm -rf $(ANDROID_LIB_PATH)
-	rm -rf $(IOS_DIR)/$(IOS_FRAMEWORK)
+	rm -rf $(IOS_DIR)$(IOS_FRAMEWORK)
 
 .PHONY: protos
 # You can install the dart protoc support by running 'dart pub global activate protoc_plugin'
