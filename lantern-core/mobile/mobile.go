@@ -96,7 +96,7 @@ func NewVPNClient(opts *Opts, platform libbox.PlatformInterface) error {
 		logDir := filepath.Join(opts.DataDir, "logs")
 		client, err := client.NewVPNClient(opts.DataDir, logDir, platform, enableSplitTunneling())
 		if err != nil {
-			innerErr = fmt.Errorf("unabel to create vpn client: %v", err)
+			innerErr = fmt.Errorf("unable to create vpn client: %v", err)
 			return
 		}
 		vpnClient = client
