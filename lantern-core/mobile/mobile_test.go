@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/getlantern/radiance"
+	"github.com/getlantern/radiance/api/protos"
 	"github.com/getlantern/radiance/client"
 	"github.com/zeebo/assert"
 )
@@ -51,10 +52,16 @@ func TestSubscriptionRedirect(t *testing.T) {
 	api := rr.APIHandler().ProServer
 	assert.Nil(t, err)
 	assert.NotNil(t, rr)
-	user, err := api.SubscriptionPaymentRedirect(context.Background(), nil)
+	data := protos.SubscriptionPaymentRedirectRequest{
+		Provider:         "stripe",
+		Plan:             "monthly",
+		DeviceName:       "test-123",
+		Email:            "test@getlantern.org",
+		SubscriptionType: protos.SubscriptionTypeMonthly,
+	}
+	user, err := api.SubscriptionPaymentRedirect(context.Background(), &data)
 	assert.Nil(t, err)
 	assert.NotNil(t, user)
-	log.Debugf("user: %v", user.Redirect)
 }
 
 func TestUserData(t *testing.T) {
