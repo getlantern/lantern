@@ -12,10 +12,12 @@ class AppDelegate: FlutterAppDelegate {
     }
     
     override func applicationDidFinishLaunching(_ aNotification: Notification) {
+        print("Initing VPNManagerViewModel")
+        VPNManagerViewModel.init()
         // Activate extension on launch (consider user experience implications)
 
         // Observe notifications from SystemExtensionManager
-        SystemExtensionManager.shared.activateExtension(bundleID: "org.getlantern.lantern.system")
+        SystemExtensionManager.shared.activateExtension(bundleID: "org.getlantern.lantern.PacketTunnelSystemExtension")
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(handleNeedsUserApproval),
                                                name: .systemExtensionNeedsUserApproval,

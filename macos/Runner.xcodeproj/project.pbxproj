@@ -22,8 +22,10 @@
 
 /* Begin PBXBuildFile section */
 		291E282E2DD3C1CE000F56B8 /* SystemExtensionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 291E282D2DD3C1CE000F56B8 /* SystemExtensionManager.swift */; };
+		291E28362DD3D356000F56B8 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2979F7142DC40FF800C8E0A2 /* NetworkExtension.framework */; };
+		291E28402DD3D356000F56B8 /* org.getlantern.lantern.PacketTunnelSystemExtension.systemextension in Embed System Extensions */ = {isa = PBXBuildFile; fileRef = 291E28352DD3D356000F56B8 /* org.getlantern.lantern.PacketTunnelSystemExtension.systemextension */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		291E28472DD3DF8E000F56B8 /* VPNManagerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 291E28462DD3DF8E000F56B8 /* VPNManagerViewModel.swift */; };
 		2979F7152DC40FF800C8E0A2 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2979F7142DC40FF800C8E0A2 /* NetworkExtension.framework */; };
-		2979F71F2DC40FF800C8E0A2 /* org.getlantern.lantern.system.systemextension in Embed System Extensions */ = {isa = PBXBuildFile; fileRef = 2979F7132DC40FF800C8E0A2 /* org.getlantern.lantern.system.systemextension */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		331C80D8294CF71000263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C80D7294CF71000263BE5 /* RunnerTests.swift */; };
 		335BBD1B22A9A15E00E9071D /* GeneratedPluginRegistrant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 335BBD1A22A9A15E00E9071D /* GeneratedPluginRegistrant.swift */; };
 		33CC10F12044A3C60003C045 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CC10F02044A3C60003C045 /* AppDelegate.swift */; };
@@ -37,12 +39,12 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		2979F71D2DC40FF800C8E0A2 /* PBXContainerItemProxy */ = {
+		291E283E2DD3D356000F56B8 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 33CC10E52044A3C60003C045 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 2979F7122DC40FF800C8E0A2;
-			remoteInfo = SystemExtension;
+			remoteGlobalIDString = 291E28342DD3D356000F56B8;
+			remoteInfo = PacketTunnelSystemExtension;
 		};
 		331C80D9294CF71000263BE5 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -67,7 +69,7 @@
 			dstPath = "$(SYSTEM_EXTENSIONS_FOLDER_PATH)";
 			dstSubfolderSpec = 16;
 			files = (
-				2979F71F2DC40FF800C8E0A2 /* org.getlantern.lantern.system.systemextension in Embed System Extensions */,
+				291E28402DD3D356000F56B8 /* org.getlantern.lantern.PacketTunnelSystemExtension.systemextension in Embed System Extensions */,
 			);
 			name = "Embed System Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -88,6 +90,8 @@
 /* Begin PBXFileReference section */
 		1E9A6FC86FA886DA6665EC6D /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
 		291E282D2DD3C1CE000F56B8 /* SystemExtensionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemExtensionManager.swift; sourceTree = "<group>"; };
+		291E28352DD3D356000F56B8 /* org.getlantern.lantern.PacketTunnelSystemExtension.systemextension */ = {isa = PBXFileReference; explicitFileType = "wrapper.system-extension"; includeInIndex = 0; path = org.getlantern.lantern.PacketTunnelSystemExtension.systemextension; sourceTree = BUILT_PRODUCTS_DIR; };
+		291E28462DD3DF8E000F56B8 /* VPNManagerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VPNManagerViewModel.swift; sourceTree = "<group>"; };
 		2979F7132DC40FF800C8E0A2 /* org.getlantern.lantern.system.systemextension */ = {isa = PBXFileReference; explicitFileType = "wrapper.system-extension"; includeInIndex = 0; path = org.getlantern.lantern.system.systemextension; sourceTree = BUILT_PRODUCTS_DIR; };
 		2979F7142DC40FF800C8E0A2 /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
 		331C80D5294CF71000263BE5 /* RunnerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RunnerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -118,11 +122,30 @@
 		EDC1670D3723C38E9F4EBE3E /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		291E28412DD3D356000F56B8 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 291E28342DD3D356000F56B8 /* PacketTunnelSystemExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		291E28372DD3D356000F56B8 /* PacketTunnelSystemExtension */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (291E28412DD3D356000F56B8 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = PacketTunnelSystemExtension; sourceTree = "<group>"; };
 		2979F7162DC40FF800C8E0A2 /* SystemExtension */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = SystemExtension; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		291E28322DD3D356000F56B8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				291E28362DD3D356000F56B8 /* NetworkExtension.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2979F7102DC40FF800C8E0A2 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -178,6 +201,7 @@
 				33CEB47122A05771004F2AC0 /* Flutter */,
 				331C80D6294CF71000263BE5 /* RunnerTests */,
 				2979F7162DC40FF800C8E0A2 /* SystemExtension */,
+				291E28372DD3D356000F56B8 /* PacketTunnelSystemExtension */,
 				33CC10EE2044A3C60003C045 /* Products */,
 				D73912EC22F37F3D000D13A0 /* Frameworks */,
 				FED29616DB27141FD4AD9EAF /* Pods */,
@@ -190,6 +214,7 @@
 				33CC10ED2044A3C60003C045 /* Lantern.app */,
 				331C80D5294CF71000263BE5 /* RunnerTests.xctest */,
 				2979F7132DC40FF800C8E0A2 /* org.getlantern.lantern.system.systemextension */,
+				291E28352DD3D356000F56B8 /* org.getlantern.lantern.PacketTunnelSystemExtension.systemextension */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -219,6 +244,7 @@
 		33FAB671232836740065AC1E /* Runner */ = {
 			isa = PBXGroup;
 			children = (
+				291E28462DD3DF8E000F56B8 /* VPNManagerViewModel.swift */,
 				291E282D2DD3C1CE000F56B8 /* SystemExtensionManager.swift */,
 				33CC10F02044A3C60003C045 /* AppDelegate.swift */,
 				33CC11122044BFA00003C045 /* MainFlutterWindow.swift */,
@@ -256,6 +282,28 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		291E28342DD3D356000F56B8 /* PacketTunnelSystemExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 291E28422DD3D356000F56B8 /* Build configuration list for PBXNativeTarget "PacketTunnelSystemExtension" */;
+			buildPhases = (
+				291E28312DD3D356000F56B8 /* Sources */,
+				291E28322DD3D356000F56B8 /* Frameworks */,
+				291E28332DD3D356000F56B8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				291E28372DD3D356000F56B8 /* PacketTunnelSystemExtension */,
+			);
+			name = PacketTunnelSystemExtension;
+			packageProductDependencies = (
+			);
+			productName = PacketTunnelSystemExtension;
+			productReference = 291E28352DD3D356000F56B8 /* org.getlantern.lantern.PacketTunnelSystemExtension.systemextension */;
+			productType = "com.apple.product-type.system-extension";
+		};
 		2979F7122DC40FF800C8E0A2 /* SystemExtension */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 2979F7212DC40FF800C8E0A2 /* Build configuration list for PBXNativeTarget "SystemExtension" */;
@@ -314,7 +362,7 @@
 			);
 			dependencies = (
 				33CC11202044C79F0003C045 /* PBXTargetDependency */,
-				2979F71E2DC40FF800C8E0A2 /* PBXTargetDependency */,
+				291E283F2DD3D356000F56B8 /* PBXTargetDependency */,
 			);
 			name = Runner;
 			packageProductDependencies = (
@@ -335,6 +383,9 @@
 				LastUpgradeCheck = 1510;
 				ORGANIZATIONNAME = "";
 				TargetAttributes = {
+					291E28342DD3D356000F56B8 = {
+						CreatedOnToolsVersion = 16.2;
+					};
 					2979F7122DC40FF800C8E0A2 = {
 						CreatedOnToolsVersion = 16.2;
 					};
@@ -377,11 +428,19 @@
 				331C80D4294CF70F00263BE5 /* RunnerTests */,
 				33CC111A2044C6BA0003C045 /* Flutter Assemble */,
 				2979F7122DC40FF800C8E0A2 /* SystemExtension */,
+				291E28342DD3D356000F56B8 /* PacketTunnelSystemExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		291E28332DD3D356000F56B8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2979F7112DC40FF800C8E0A2 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -510,6 +569,13 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		291E28312DD3D356000F56B8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2979F70F2DC40FF800C8E0A2 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -530,6 +596,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				291E282E2DD3C1CE000F56B8 /* SystemExtensionManager.swift in Sources */,
+				291E28472DD3DF8E000F56B8 /* VPNManagerViewModel.swift in Sources */,
 				33CC11132044BFA00003C045 /* MainFlutterWindow.swift in Sources */,
 				33CC10F12044A3C60003C045 /* AppDelegate.swift in Sources */,
 				335BBD1B22A9A15E00E9071D /* GeneratedPluginRegistrant.swift in Sources */,
@@ -539,10 +606,10 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		2979F71E2DC40FF800C8E0A2 /* PBXTargetDependency */ = {
+		291E283F2DD3D356000F56B8 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 2979F7122DC40FF800C8E0A2 /* SystemExtension */;
-			targetProxy = 2979F71D2DC40FF800C8E0A2 /* PBXContainerItemProxy */;
+			target = 291E28342DD3D356000F56B8 /* PacketTunnelSystemExtension */;
+			targetProxy = 291E283E2DD3D356000F56B8 /* PBXContainerItemProxy */;
 		};
 		331C80DA294CF71000263BE5 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -569,6 +636,137 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		291E28432DD3D356000F56B8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_ENTITLEMENTS = PacketTunnelSystemExtension/PacketTunnelSystemExtension.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ACZRKC3LQ9;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PacketTunnelSystemExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = PacketTunnelSystemExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = org.getlantern.lantern.PacketTunnelSystemExtension;
+				PRODUCT_NAME = "$(inherited)";
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		291E28442DD3D356000F56B8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_ENTITLEMENTS = PacketTunnelSystemExtension/PacketTunnelSystemExtension.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ACZRKC3LQ9;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PacketTunnelSystemExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = PacketTunnelSystemExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MARKETING_VERSION = 1.0;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = org.getlantern.lantern.PacketTunnelSystemExtension;
+				PRODUCT_NAME = "$(inherited)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		291E28452DD3D356000F56B8 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_ENTITLEMENTS = PacketTunnelSystemExtension/PacketTunnelSystemExtension.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ACZRKC3LQ9;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PacketTunnelSystemExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = PacketTunnelSystemExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MARKETING_VERSION = 1.0;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = org.getlantern.lantern.PacketTunnelSystemExtension;
+				PRODUCT_NAME = "$(inherited)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Profile;
+		};
 		2979F7222DC40FF800C8E0A2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -584,7 +782,7 @@
 				CODE_SIGN_ENTITLEMENTS = SystemExtension/SystemExtensionDebug.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = ACZRKC3LQ9;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -602,7 +800,7 @@
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.2;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 0.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = org.getlantern.lantern.system;
@@ -631,7 +829,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = ACZRKC3LQ9;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -649,7 +847,7 @@
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.2;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 0.1;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = org.getlantern.lantern.system;
 				PRODUCT_NAME = "$(inherited)";
@@ -674,7 +872,7 @@
 				CODE_SIGN_ENTITLEMENTS = SystemExtension/SystemExtension.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = ACZRKC3LQ9;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -692,7 +890,7 @@
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.2;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 0.1;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = org.getlantern.lantern.system;
 				PRODUCT_NAME = "$(inherited)";
@@ -1008,6 +1206,16 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		291E28422DD3D356000F56B8 /* Build configuration list for PBXNativeTarget "PacketTunnelSystemExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				291E28432DD3D356000F56B8 /* Debug */,
+				291E28442DD3D356000F56B8 /* Release */,
+				291E28452DD3D356000F56B8 /* Profile */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		2979F7212DC40FF800C8E0A2 /* Build configuration list for PBXNativeTarget "SystemExtension" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
