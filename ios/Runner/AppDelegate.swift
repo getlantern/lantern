@@ -85,7 +85,7 @@ import UIKit
       opts.deviceid = DeviceIdentifier.getUDID()
       opts.locale = Locale.current.identifier
       var error: NSError?
-     await MobileSetupRadiance(opts, &error)
+      await MobileSetupRadiance(opts, &error)
       // Handle any error returned by the setup
       if let error {
         appLogger.error("Error while setting up radiance: \(error)")
