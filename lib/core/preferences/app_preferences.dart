@@ -6,6 +6,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'app_preferences.g.dart';
 
 class Preferences {
+  static const String blockAds = "block_ads";
   static const String splitTunnelingEnabled = "split_tunneling_enabled";
   static const String splitTunnelingMode = "split_tunneling_mode";
   static const String enabledApps = "enabled_apps";

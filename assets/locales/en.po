@@ -442,7 +442,11 @@ msgstr "A valid email address is required to use your subscription on other devi
 msgid "add_email"
 msgstr "Add Email"
 
+msgid "block_ads"
+msgstr "Block Ads"
 
+msgid "only_active"
+msgstr "Only active when VPN is connected"
 
 
 

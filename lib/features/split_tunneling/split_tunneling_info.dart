@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/preferences/app_preferences.dart';
 import 'package:lantern/core/widgets/bullet_list.dart';
-import 'package:lantern/features/split_tunneling/provider/app_preferences.dart';
 
 @RoutePage(name: 'SplitTunnelingInfo')
 class SplitTunnelingInfo extends HookConsumerWidget {
