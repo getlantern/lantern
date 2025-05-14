@@ -1,20 +1,15 @@
 class PlansData {
   Providers providers;
   List<Plan> plans;
-  Map<String, List<String>> icons;
 
   PlansData({
     required this.providers,
     required this.plans,
-    required this.icons,
   });
 
   factory PlansData.fromJson(Map<String, dynamic> json) => PlansData(
         providers: Providers.fromJson(json["providers"]),
         plans: List<Plan>.from(json["plans"].map((x) => Plan.fromJson(x))),
-        icons: (json["icons"] as Map<String, dynamic>).map(
-          (key, value) => MapEntry(key, List<String>.from(value)),
-        ),
       );
 
   PlansData copyWith({
@@ -25,7 +20,6 @@ class PlansData {
     return PlansData(
       providers: providers ?? this.providers,
       plans: plans ?? this.plans,
-      icons: icons ?? this.icons,
     );
   }
 
@@ -83,10 +77,8 @@ class Providers {
   });
 
   factory Providers.fromJson(Map<String, dynamic> json) => Providers(
-        android:
-            List<Android>.from(json["android"].map((x) => Android.fromJson(x))),
-        desktop:
-            List<Android>.from(json["desktop"].map((x) => Android.fromJson(x))),
+        android: List<Android>.from(json["android"].map((x) => Android.fromJson(x))),
+        desktop: List<Android>.from(json["desktop"].map((x) => Android.fromJson(x))),
       );
 
   Map<String, dynamic> toJson() => {
@@ -97,7 +89,7 @@ class Providers {
 
 class Android {
   String method;
-  List<Provider> providers;
+  Provider providers;
 
   Android({
     required this.method,
@@ -106,28 +98,30 @@ class Android {
 
   factory Android.fromJson(Map<String, dynamic> json) => Android(
         method: json["method"],
-        providers: List<Provider>.from(
-            json["providers"].map((x) => Provider.fromJson(x))),
+        providers: Provider.fromJson(json["provider"]),
       );
 
-  Map<String, dynamic> toJson() => {
-        "method": method,
-        "providers": List<dynamic>.from(providers.map((x) => x.toJson())),
-      };
+  Map<String, dynamic> toJson() =>
+      {"method": method, "providers": providers.toJson()};
 }
 
 class Provider {
   String name;
   Map<String, dynamic>? data;
+  List<String> icons;
 
   Provider({
     required this.name,
+    required this.icons,
     this.data,
   });
 
   factory Provider.fromJson(Map<String, dynamic> json) => Provider(
         name: json["name"],
         data: json["data"],
+        // (json["icons"] as Map<String, dynamic>).map(
+        // (key, value) => MapEntry(key, List<String>.from(value)),
+        icons: List<String>.from(json["icons"].map((x) => x)),
       );
 
   Map<String, dynamic> toJson() => {

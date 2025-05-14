@@ -97,8 +97,6 @@ github.com/getlantern/ops v0.0.0-20231025133620-f368ab734534 h1:3BwvWj0JZzFEvNNi
 github.com/getlantern/ops v0.0.0-20231025133620-f368ab734534/go.mod h1:ZsLfOY6gKQOTyEcPYNA9ws5/XHZQFroxqCOhHjGcs9Y=
 github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 h1:JWH5BB2o0eAeGs0tZnFPpQGx+nMIo/WmxKnj2hnGjgE=
 github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175/go.mod h1:h3S9LBmmzN/xM+lwYZHE4abzTtCTtidKtG+nxZcCZX0=
-github.com/getlantern/radiance v0.0.0-20250513190723-15b77c6d5a81 h1:1WEjQDIyjuf/AAkjmzSPTWdzdCp/TEOsdmOaMkkD6Zw=
-github.com/getlantern/radiance v0.0.0-20250513190723-15b77c6d5a81/go.mod h1:GQM74ejD/s6eo9moJ3Nd3pCw6GUw43H/frKUknjwov8=
 github.com/getlantern/sing-box-extensions v0.0.3-0.20250513165743-4f40385f7529 h1:TX640i2IhOd90HW3ruPRD9hdIHSlVN8KzFr74gfYKh0=
 github.com/getlantern/sing-box-extensions v0.0.3-0.20250513165743-4f40385f7529/go.mod h1:S6k95+BS/5vCiHlmUAo6iMeq6GvRd2ro3uB9d+RQ3G8=
 github.com/getlantern/sing-box-minimal v1.11.6-0.20250411173055-d82f542dfd3f h1:1EM684uAJTApkeubw0W8BbxdrTaXkaXxbM1hJ+KRTZ8=

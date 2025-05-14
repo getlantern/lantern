@@ -142,12 +142,7 @@ final _entities = <obx_int.ModelEntity>[
             type: 11,
             flags: 520,
             indexId: const obx_int.IdUid(1, 8385137855534348937),
-            relationTarget: 'ProvidersEntity'),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(3, 8614132688092941646),
-            name: 'iconsJson',
-            type: 9,
-            flags: 0)
+            relationTarget: 'ProvidersEntity')
       ],
       relations: <obx_int.ModelRelation>[
         obx_int.ModelRelation(
@@ -456,7 +451,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
         689361163376130950,
         4102612372732725500,
         4314963677250304204,
-        4366113317700500115
+        4366113317700500115,
+        8614132688092941646
       ],
       retiredRelationUids: const [],
       modelVersion: 5,
@@ -604,20 +600,17 @@ obx_int.ModelDefinition getObjectBoxModel() {
           object.id = id;
         },
         objectToFB: (PlansDataEntity object, fb.Builder fbb) {
-          final iconsJsonOffset = fbb.writeString(object.iconsJson);
           fbb.startTable(4);
           fbb.addInt64(0, object.id);
           fbb.addInt64(1, object.providers.targetId);
-          fbb.addOffset(2, iconsJsonOffset);
           fbb.finish(fbb.endTable());
           return object.id;
         },
         objectFromFB: (obx.Store store, ByteData fbData) {
           final buffer = fb.BufferContext(fbData);
           final rootOffset = buffer.derefObject(0);
-          final iconsJsonParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 8, '');
-          final object = PlansDataEntity(iconsJson: iconsJsonParam)
+
+          final object = PlansDataEntity()
             ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
           object.providers.targetId =
               const fb.Int64Reader().vTableGet(buffer, rootOffset, 6, 0);
@@ -1006,10 +999,6 @@ class PlansDataEntity_ {
   static final providers =
       obx.QueryRelationToOne<PlansDataEntity, ProvidersEntity>(
           _entities[3].properties[1]);
-
-  /// See [PlansDataEntity.iconsJson].
-  static final iconsJson =
-      obx.QueryStringProperty<PlansDataEntity>(_entities[3].properties[2]);
 
   /// see [PlansDataEntity.plans]
   static final plans = obx.QueryRelationToMany<PlansDataEntity, PlanEntity>(

@@ -178,8 +178,6 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context).textTheme;
-    final planData = ref.watch(plansNotifierProvider.notifier).getPlanData();
-    final iconData = planData.icons;
     return ListView.builder(
       shrinkWrap: true,
       itemCount: providers.length,
@@ -212,7 +210,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
               Text(method.method, style: theme.titleMedium),
               SizedBox(width: defaultSize),
               LogsPath(
-                logoPaths: iconData[method.providers.first.name]!,
+                logoPaths: method.providers.icons,
               ),
             ],
           ),
