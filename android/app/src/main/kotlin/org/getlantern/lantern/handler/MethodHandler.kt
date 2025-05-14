@@ -145,10 +145,25 @@ class MethodHandler : FlutterPlugin,
                     }
                 }
             }
+//            Methods.SubscriptionPaymentRedirect.method -> {
+//                scope.launch {
+//                    result.runCatching {
+//                        val map = call.arguments as Map<*, *>
+//                        val subscriptionLink = Mobile.stripeSubscriptionPaymentRedirect(map["subType"] as String)
+//                        withContext(Dispatchers.Main) {
+//                            success(subscriptionLink)
+//                        }
+//                    }.onFailure { e ->
+//                        result.error("vpn_status", e.localizedMessage ?: "Please try again", e)
+//                    }
+//                }
+//            }
             Methods.StripeSubscription.method -> {
                 scope.launch {
                     result.runCatching {
-                        val subscriptionData = Mobile.stripeSubscription()
+                        val map = call.arguments as Map<*, *>
+
+                        val subscriptionData = Mobile.stripeSubscription(map["email"] as String)
                         withContext(Dispatchers.Main) {
                             success(subscriptionData)
                         }

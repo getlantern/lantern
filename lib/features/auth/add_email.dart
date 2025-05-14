@@ -79,13 +79,13 @@ class _AddEmailState extends ConsumerState<AddEmail> {
               OAuthLogin(
                 methodType: SignUpMethodType.google,
                 onResult: (token) =>
-                    onWebViewResult(token, SignUpMethodType.google),
+                    onOAuthResult(token, SignUpMethodType.google),
               ),
               SizedBox(height: defaultSize),
               OAuthLogin(
                 methodType: SignUpMethodType.apple,
                 onResult: (token) =>
-                    onWebViewResult(token, SignUpMethodType.apple),
+                    onOAuthResult(token, SignUpMethodType.apple),
               ),
               SizedBox(height: defaultSize),
               DividerSpace(),
@@ -116,7 +116,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     postPaymentNavigate(type, email);
   }
 
-  Future<void> onWebViewResult(
+  Future<void> onOAuthResult(
       Map<String, dynamic> result, SignUpMethodType type) async {
     final token = result['token'];
     if (token != null) {

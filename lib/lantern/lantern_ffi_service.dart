@@ -335,7 +335,7 @@ class LanternFFIService implements LanternCoreService {
 
   @override
   Future<Either<Failure, Map<String, dynamic>>> stipeSubscription(
-      {required String planId}) {
+      {required String planId,required String email}) {
     // TODO: implement stipeSubscription
     throw UnimplementedError();
   }

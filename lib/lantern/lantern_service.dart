@@ -123,11 +123,11 @@ class LanternService implements LanternCoreService {
 
   @override
   Future<Either<Failure, Map<String, dynamic>>> stipeSubscription(
-      {required String planId}) {
+      {required String planId,required String email}) {
     if (PlatformUtils.isDesktop) {
       throw UnimplementedError();
     }
-    return _platformService.stipeSubscription(planId: planId);
+    return _platformService.stipeSubscription(planId: planId,email: email);
   }
 
   @override

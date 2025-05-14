@@ -260,12 +260,12 @@ func OAuthLoginCallback(oAuthToken string) ([]byte, error) {
 	return bytes, nil
 }
 
-func StripeSubscription() (string, error) {
+func StripeSubscription(email,planId string) (string, error) {
 	log.Debug("Creating stripe subscription")
 	body := protos.SubscriptionRequest{
-		Email:   "test@getlantern.org",
-		Name:    "test",
-		PriceId: "price_1RCg464XJ6zbDKY5T6kqbMC6",
+		Email:   email,
+		Name:    email,
+		PriceId: planId,
 	}
 	stripeSubscription, err := radianceServer.proServer.StripeSubscription(context.Background(), &body)
 	if err != nil {
@@ -282,23 +282,23 @@ func StripeSubscription() (string, error) {
 	return jsonString, nil
 }
 
-// Create subscription link for stripe
-// usege for macos, linux, windows
-func StripeSubscriptionPaymentRedirect(subType string) (string, error) {
-	ret := protos.SubscriptionPaymentRedirectRequest{
-		Provider:         "stripe",
-		Plan:             "1y-usd",
-		DeviceName:       "test",
-		Email:            "test@getlantern.org",
-		SubscriptionType: protos.SubscriptionType(subType),
-	}
-	stripeUrl, err := subscriptionPaymentRedirect(&ret)
-	if err != nil {
-		return "", log.Errorf("Error getting subscription link: %v", err)
-	}
-	log.Debugf("Stripe response: %v", stripeUrl)
-	return stripeUrl, nil
-}
+// // Create subscription link for stripe
+// // usege for macos, linux, windows
+// func StripeSubscriptionPaymentRedirect(planID, provider, email, subType string) (string, error) {
+// 	ret := protos.SubscriptionPaymentRedirectRequest{
+// 		Provider:         "stripe",
+// 		Plan:             "1y-usd",
+// 		DeviceName:       "test",
+// 		Email:            "test@getlantern.org",
+// 		SubscriptionType: protos.SubscriptionType(subType),
+// 	}
+// 	stripeUrl, err := subscriptionPaymentRedirect(&ret)
+// 	if err != nil {
+// 		return "", log.Errorf("Error getting subscription link: %v", err)
+// 	}
+// 	log.Debugf("Stripe response: %v", stripeUrl)
+// 	return stripeUrl, nil
+// }
 
 func Plans() (string, error) {
 	defer func() {

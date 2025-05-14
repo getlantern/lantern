@@ -20,11 +20,17 @@ class PaymentNotifier extends _$PaymentNotifier {
         planId: planId, onSuccess: onSuccess, onError: onError);
   }
 
-  Future<Either<Failure, String>> stripeSubscriptionLink(StipeSubscriptionType type, String planId) async {
-    return ref.read(lanternServiceProvider).stipeSubscriptionPaymentRedirect(type: type, planId: planId);
+  Future<Either<Failure, String>> stripeSubscriptionLink(
+      StipeSubscriptionType type, String planId) async {
+    return ref
+        .read(lanternServiceProvider)
+        .stipeSubscriptionPaymentRedirect(type: type, planId: planId);
   }
 
-  Future<Either<Failure, Map<String,dynamic>>> stripeSubscription( String planId) async {
-    return ref.read(lanternServiceProvider).stipeSubscription( planId: planId);
+  Future<Either<Failure, Map<String, dynamic>>> stripeSubscription(
+      String planId, String email) async {
+    return ref
+        .read(lanternServiceProvider)
+        .stipeSubscription(planId: planId, email: email);
   }
 }

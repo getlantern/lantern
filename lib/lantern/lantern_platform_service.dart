@@ -203,10 +203,13 @@ class LanternPlatformService implements LanternCoreService {
 
   @override
   Future<Either<Failure, Map<String, dynamic>>> stipeSubscription(
-      {required String planId}) async {
+      {required String planId, required String email}) async {
     try {
       final subData =
-          await _methodChannel.invokeMethod<String>('stripeSubscription');
+          await _methodChannel.invokeMethod<String>('stripeSubscription', {
+        "planId": planId,
+        "email": email,
+      });
       final map = jsonDecode(subData!);
       return Right(map);
     } catch (e, stackTrace) {

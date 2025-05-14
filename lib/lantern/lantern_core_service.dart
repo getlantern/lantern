@@ -27,7 +27,7 @@ abstract class LanternCoreService {
 
   /// this is used for stripe subscription
   Future<Either<Failure, Map<String, dynamic>>> stipeSubscription(
-      {required String planId});
+      {required String planId,required String email});
 
   /// this is used for google and apple subscription
   Future<Either<Failure, Unit>> startInAppPurchaseFlow({

@@ -77,8 +77,10 @@ class Providers {
   });
 
   factory Providers.fromJson(Map<String, dynamic> json) => Providers(
-        android: List<Android>.from(json["android"].map((x) => Android.fromJson(x))),
-        desktop: List<Android>.from(json["desktop"].map((x) => Android.fromJson(x))),
+        android:
+            List<Android>.from(json["android"].map((x) => Android.fromJson(x))),
+        desktop:
+            List<Android>.from(json["desktop"].map((x) => Android.fromJson(x))),
       );
 
   Map<String, dynamic> toJson() => {
@@ -102,7 +104,7 @@ class Android {
       );
 
   Map<String, dynamic> toJson() =>
-      {"method": method, "providers": providers.toJson()};
+      {"method": method, "provider": providers.toJson()};
 }
 
 class Provider {
@@ -118,13 +120,14 @@ class Provider {
 
   factory Provider.fromJson(Map<String, dynamic> json) => Provider(
         name: json["name"],
-        data: json["data"],
-        // (json["icons"] as Map<String, dynamic>).map(
-        // (key, value) => MapEntry(key, List<String>.from(value)),
+        data: (json["data"] as Map<String, dynamic>)
+            .map((key, value) => MapEntry(key, value)),
         icons: List<String>.from(json["icons"].map((x) => x)),
       );
 
   Map<String, dynamic> toJson() => {
         "name": name,
+        "data": data,
+        "icons": List<dynamic>.from(icons.map((x) => x)),
       };
 }
