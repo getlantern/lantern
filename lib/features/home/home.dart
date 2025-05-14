@@ -3,11 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
-import 'package:lantern/features/split_tunneling/provider/app_preferences.dart';
 import 'package:lantern/features/vpn/vpn_status.dart';
 import 'package:lantern/features/vpn/vpn_switch.dart';
-
 import '../../core/common/common.dart';
 
 enum _SettingTileType {
@@ -73,9 +72,9 @@ class Home extends HookConsumerWidget {
   }
 
   Widget _buildSetting(WidgetRef ref) {
-    final preferences = ref.watch(appPreferencesProvider).value;
-    final splitTunnelingEnabled =
-        preferences?[Preferences.splitTunnelingEnabled] ?? false;
+    final preferences = ref.watch(appSettingNotifierProvider);
+    final splitTunnelingEnabled = preferences.isSpiltTunnelingOn;
+
     return Container(
       decoration: BoxDecoration(boxShadow: [
         BoxShadow(

@@ -3,12 +3,13 @@ import 'dart:io';
 
 import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/app_setting.dart';
 import 'package:lantern/core/models/mapper/user_mapper.dart';
 import 'package:lantern/core/models/plan_entity.dart';
 import 'package:lantern/core/models/website.dart';
-import 'package:objectbox/objectbox.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
+import 'package:objectbox/objectbox.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
@@ -17,37 +18,32 @@ import '../models/user_entity.dart';
 import 'db/objectbox.g.dart';
 import 'injection_container.dart';
 
-class AppDB {
-  static final LocalStorageService _localStorageService =
-      sl<LocalStorageService>();
-
-  static set<T>(String key, T value) {
-    assert(T != dynamic, "You must explicitly specify a type for set<T>()");
-    final start = DateTime.now();
-    _localStorageService.set(key, value);
-    dbLogger.info(
-      "Key: $key saved successfully in ${DateTime.now().difference(start).inMilliseconds}ms",
-    );
-  }
-
-  static T? get<T>(String key) {
-    return _localStorageService.get<T>(key);
-  }
-}
+// class AppDB {
+//   static final LocalStorageService _localStorageService =
+//       sl<LocalStorageService>();
+//
+//   static set<T>(String key, T value) {
+//     assert(T != dynamic, "You must explicitly specify a type for set<T>()");
+//     final start = DateTime.now();
+//     _localStorageService.set(key, value);
+//     dbLogger.info(
+//       "Key: $key saved successfully in ${DateTime.now().difference(start).inMilliseconds}ms",
+//     );
+//   }
+//
+//   static T? get<T>(String key) {
+//     return _localStorageService.get<T>(key);
+//   }
+// }
 
 class LocalStorageService {
   late Store _store;
 
-  late Box<AppDatabase> _box;
+  late Box<AppSetting> _appSettingBox;
   late Box<AppData> _appsBox;
   late Box<Website> _websitesBox;
   late Box<PlansDataEntity> _plansBox;
   late Box<LoginResponseEntity> _userBox;
-
-  late AppDatabase _appDb;
-
-  /// In-memory cache
-  static late Map<String, dynamic> _cache;
 
   ///Due to limitations in macOS the value must be at most 19 characters
   /// Do not change this value
@@ -62,19 +58,12 @@ class LocalStorageService {
       macosApplicationGroup: macosApplicationGroup,
     );
 
-    _box = _store.box<AppDatabase>();
+    _appSettingBox = _store.box<AppSetting>();
     _appsBox = _store.box<AppData>();
     _websitesBox = _store.box<Website>();
     _plansBox = _store.box<PlansDataEntity>();
     _userBox = _store.box<LoginResponseEntity>();
 
-    AppDatabase? db = _box.get(1);
-    if (db == null) {
-      db = AppDatabase(data: "{}");
-      _box.put(db);
-    }
-    _appDb = db;
-    _cache = _appDb.map;
     dbLogger.info(
       "LocalStorageService initialized in ${DateTime.now().difference(start).inMilliseconds}ms",
     );
@@ -84,35 +73,35 @@ class LocalStorageService {
     _store.close();
   }
 
-  T? get<T>(String key) {
-    dbLogger.debug("Getting key: $key");
-    return _cache[key] as T?;
-    // final Map<String, dynamic> dbMap = _appDb.map;
-    // return dbMap[key] as T?;
-  }
+  // T? get<T>(String key) {
+  //   dbLogger.debug("Getting key: $key");
+  //   return _cache[key] as T?;
+  //   // final Map<String, dynamic> dbMap = _appDb.map;
+  //   // return dbMap[key] as T?;
+  // }
+  //
+  // /// Save a key-value pair
+  // void set<T>(String key, T value) {
+  //   try {
+  //     final Map<String, dynamic> dbMap = _appDb.map;
+  //     dbMap[key] = value;
+  //     _appDb.map = dbMap;
+  //     _box.putAsync(_appDb);
+  //     //update cache
+  //     _cache[key] = value;
+  //   } catch (e) {
+  //     dbLogger.error("Error saving key: $key, value: $value");
+  //   }
+  // }
 
-  /// Save a key-value pair
-  void set<T>(String key, T value) {
-    try {
-      final Map<String, dynamic> dbMap = _appDb.map;
-      dbMap[key] = value;
-      _appDb.map = dbMap;
-      _box.putAsync(_appDb);
-      //update cache
-      _cache[key] = value;
-    } catch (e) {
-      dbLogger.error("Error saving key: $key, value: $value");
-    }
-  }
-
-  /// Remove a key
-  void remove(String key) {
-    final Map<String, dynamic> dbMap = _appDb.map;
-    dbMap.remove(key);
-    _appDb.map = dbMap;
-    _box.put(_appDb);
-    dbLogger.debug("Key: $key removed successfully");
-  }
+  // /// Remove a key
+  // void remove(String key) {
+  //   final Map<String, dynamic> dbMap = _appDb.map;
+  //   dbMap.remove(key);
+  //   _appDb.map = dbMap;
+  //   _box.put(_appDb);
+  //   dbLogger.debug("Key: $key removed successfully");
+  // }
 
   // Apps methods
   Future<void> saveApps(Set<AppData> apps) async {
@@ -170,22 +159,12 @@ class LocalStorageService {
     final user = _userBox.getAll();
     return user.isEmpty ? null : user.first.toLoginResponse();
   }
-}
 
-@Entity()
-class AppDatabase {
-  @Id(assignable: true)
-  int id = 0;
-
-  String data;
-
-  AppDatabase({required this.data});
-
-  /// Convert JSON string to Map<String, dynamic>
-  Map<String, dynamic> get map => jsonDecode(data);
-
-  /// Convert Map<String, dynamic> to JSON string
-  set map(Map<String, dynamic> newData) {
-    data = jsonEncode(newData);
+  void updateAppSetting(AppSetting appSetting) {
+    _appSettingBox.put(appSetting);
+  }
+  AppSetting? getAppSetting() {
+    final appSetting = _appSettingBox.getAll();
+    return appSetting.isEmpty ? null : appSetting.first;
   }
 }

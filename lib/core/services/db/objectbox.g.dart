@@ -15,10 +15,10 @@ import 'package:objectbox/objectbox.dart' as obx;
 import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
 import '../../../core/models/app_data.dart';
+import '../../../core/models/app_setting.dart';
 import '../../../core/models/plan_entity.dart';
 import '../../../core/models/user_entity.dart';
 import '../../../core/models/website.dart';
-import '../../../core/services/local_storage.dart';
 
 export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
 
@@ -170,25 +170,6 @@ final _entities = <obx_int.ModelEntity>[
         obx_int.ModelProperty(
             id: const obx_int.IdUid(3, 5147226167609010098),
             name: 'desktopJson',
-            type: 9,
-            flags: 0)
-      ],
-      relations: <obx_int.ModelRelation>[],
-      backlinks: <obx_int.ModelBacklink>[]),
-  obx_int.ModelEntity(
-      id: const obx_int.IdUid(9, 2225470262079550670),
-      name: 'AppDatabase',
-      lastPropertyId: const obx_int.IdUid(2, 1968318257591729232),
-      flags: 0,
-      properties: <obx_int.ModelProperty>[
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(1, 1999102232066002882),
-            name: 'id',
-            type: 6,
-            flags: 129),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(2, 1968318257591729232),
-            name: 'data',
             type: 9,
             flags: 0)
       ],
@@ -395,6 +376,40 @@ final _entities = <obx_int.ModelEntity>[
             name: 'purchases',
             targetId: const obx_int.IdUid(12, 3582880466074719644))
       ],
+      backlinks: <obx_int.ModelBacklink>[]),
+  obx_int.ModelEntity(
+      id: const obx_int.IdUid(14, 6952300567208748369),
+      name: 'AppSetting',
+      lastPropertyId: const obx_int.IdUid(5, 6540973750872090784),
+      flags: 0,
+      properties: <obx_int.ModelProperty>[
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(1, 4692358880166347094),
+            name: 'id',
+            type: 6,
+            flags: 1),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(2, 5648015957719611024),
+            name: 'isPro',
+            type: 1,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(3, 3560084004440266950),
+            name: 'isSpiltTunnelingOn',
+            type: 1,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(4, 5917273202015163710),
+            name: 'locale',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(5, 6540973750872090784),
+            name: 'splitTunnelingMode',
+            type: 9,
+            flags: 0)
+      ],
+      relations: <obx_int.ModelRelation>[],
       backlinks: <obx_int.ModelBacklink>[])
 ];
 
@@ -433,14 +448,15 @@ Future<obx.Store> openStore(
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
       entities: _entities,
-      lastEntityId: const obx_int.IdUid(13, 3415485097329155517),
+      lastEntityId: const obx_int.IdUid(14, 6952300567208748369),
       lastIndexId: const obx_int.IdUid(2, 1151475603584147691),
       lastRelationId: const obx_int.IdUid(4, 1703547319205099497),
       lastSequenceId: const obx_int.IdUid(0, 0),
       retiredEntityUids: const [
         1027975073737683578,
         4380524372643795068,
-        827583214628067603
+        827583214628067603,
+        2225470262079550670
       ],
       retiredIndexUids: const [],
       retiredPropertyUids: const [
@@ -452,7 +468,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
         4102612372732725500,
         4314963677250304204,
         4366113317700500115,
-        8614132688092941646
+        8614132688092941646,
+        1999102232066002882,
+        1968318257591729232
       ],
       retiredRelationUids: const [],
       modelVersion: 5,
@@ -652,34 +670,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
 
           return object;
         }),
-    AppDatabase: obx_int.EntityDefinition<AppDatabase>(
-        model: _entities[5],
-        toOneRelations: (AppDatabase object) => [],
-        toManyRelations: (AppDatabase object) => {},
-        getId: (AppDatabase object) => object.id,
-        setId: (AppDatabase object, int id) {
-          object.id = id;
-        },
-        objectToFB: (AppDatabase object, fb.Builder fbb) {
-          final dataOffset = fbb.writeString(object.data);
-          fbb.startTable(3);
-          fbb.addInt64(0, object.id);
-          fbb.addOffset(1, dataOffset);
-          fbb.finish(fbb.endTable());
-          return object.id;
-        },
-        objectFromFB: (obx.Store store, ByteData fbData) {
-          final buffer = fb.BufferContext(fbData);
-          final rootOffset = buffer.derefObject(0);
-          final dataParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 6, '');
-          final object = AppDatabase(data: dataParam)
-            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
-
-          return object;
-        }),
     DeviceEntity: obx_int.EntityDefinition<DeviceEntity>(
-        model: _entities[6],
+        model: _entities[5],
         toOneRelations: (DeviceEntity object) => [],
         toManyRelations: (DeviceEntity object) => {},
         getId: (DeviceEntity object) => object.id,
@@ -717,7 +709,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           return object;
         }),
     LoginResponseEntity: obx_int.EntityDefinition<LoginResponseEntity>(
-        model: _entities[7],
+        model: _entities[6],
         toOneRelations: (LoginResponseEntity object) => [object.legacyUserData],
         toManyRelations: (LoginResponseEntity object) => {
               obx_int.RelInfo<LoginResponseEntity>.toMany(2, object.id):
@@ -769,7 +761,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           return object;
         }),
     PurchaseEntity: obx_int.EntityDefinition<PurchaseEntity>(
-        model: _entities[8],
+        model: _entities[7],
         toOneRelations: (PurchaseEntity object) => [],
         toManyRelations: (PurchaseEntity object) => {},
         getId: (PurchaseEntity object) => object.id,
@@ -796,7 +788,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           return object;
         }),
     UserDataEntity: obx_int.EntityDefinition<UserDataEntity>(
-        model: _entities[9],
+        model: _entities[8],
         toOneRelations: (UserDataEntity object) => [],
         toManyRelations: (UserDataEntity object) => {
               obx_int.RelInfo<UserDataEntity>.toMany(3, object.id):
@@ -914,6 +906,50 @@ obx_int.ModelDefinition getObjectBoxModel() {
               store,
               obx_int.RelInfo<UserDataEntity>.toMany(4, object.id));
           return object;
+        }),
+    AppSetting: obx_int.EntityDefinition<AppSetting>(
+        model: _entities[9],
+        toOneRelations: (AppSetting object) => [],
+        toManyRelations: (AppSetting object) => {},
+        getId: (AppSetting object) => object.id,
+        setId: (AppSetting object, int id) {
+          object.id = id;
+        },
+        objectToFB: (AppSetting object, fb.Builder fbb) {
+          final localeOffset = fbb.writeString(object.locale);
+          final splitTunnelingModeOffset =
+              fbb.writeString(object.splitTunnelingMode);
+          fbb.startTable(6);
+          fbb.addInt64(0, object.id);
+          fbb.addBool(1, object.isPro);
+          fbb.addBool(2, object.isSpiltTunnelingOn);
+          fbb.addOffset(3, localeOffset);
+          fbb.addOffset(4, splitTunnelingModeOffset);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (obx.Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+          final idParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+          final isProParam =
+              const fb.BoolReader().vTableGet(buffer, rootOffset, 6, false);
+          final isSpiltTunnelingOnParam =
+              const fb.BoolReader().vTableGet(buffer, rootOffset, 8, false);
+          final splitTunnelingModeParam =
+              const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 12, '');
+          final localeParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 10, '');
+          final object = AppSetting(
+              id: idParam,
+              isPro: isProParam,
+              isSpiltTunnelingOn: isSpiltTunnelingOnParam,
+              splitTunnelingMode: splitTunnelingModeParam,
+              locale: localeParam);
+
+          return object;
         })
   };
 
@@ -1020,160 +1056,172 @@ class ProvidersEntity_ {
       obx.QueryStringProperty<ProvidersEntity>(_entities[4].properties[2]);
 }
 
-/// [AppDatabase] entity fields to define ObjectBox queries.
-class AppDatabase_ {
-  /// See [AppDatabase.id].
-  static final id =
-      obx.QueryIntegerProperty<AppDatabase>(_entities[5].properties[0]);
-
-  /// See [AppDatabase.data].
-  static final data =
-      obx.QueryStringProperty<AppDatabase>(_entities[5].properties[1]);
-}
-
 /// [DeviceEntity] entity fields to define ObjectBox queries.
 class DeviceEntity_ {
   /// See [DeviceEntity.id].
   static final id =
-      obx.QueryIntegerProperty<DeviceEntity>(_entities[6].properties[0]);
+      obx.QueryIntegerProperty<DeviceEntity>(_entities[5].properties[0]);
 
   /// See [DeviceEntity.deviceId].
   static final deviceId =
-      obx.QueryStringProperty<DeviceEntity>(_entities[6].properties[1]);
+      obx.QueryStringProperty<DeviceEntity>(_entities[5].properties[1]);
 
   /// See [DeviceEntity.name].
   static final name =
-      obx.QueryStringProperty<DeviceEntity>(_entities[6].properties[2]);
+      obx.QueryStringProperty<DeviceEntity>(_entities[5].properties[2]);
 
   /// See [DeviceEntity.created].
   static final created =
-      obx.QueryIntegerProperty<DeviceEntity>(_entities[6].properties[3]);
+      obx.QueryIntegerProperty<DeviceEntity>(_entities[5].properties[3]);
 }
 
 /// [LoginResponseEntity] entity fields to define ObjectBox queries.
 class LoginResponseEntity_ {
   /// See [LoginResponseEntity.id].
   static final id =
-      obx.QueryIntegerProperty<LoginResponseEntity>(_entities[7].properties[0]);
+      obx.QueryIntegerProperty<LoginResponseEntity>(_entities[6].properties[0]);
 
   /// See [LoginResponseEntity.legacyID].
   static final legacyID =
-      obx.QueryIntegerProperty<LoginResponseEntity>(_entities[7].properties[1]);
+      obx.QueryIntegerProperty<LoginResponseEntity>(_entities[6].properties[1]);
 
   /// See [LoginResponseEntity.legacyToken].
   static final legacyToken =
-      obx.QueryStringProperty<LoginResponseEntity>(_entities[7].properties[2]);
+      obx.QueryStringProperty<LoginResponseEntity>(_entities[6].properties[2]);
 
   /// See [LoginResponseEntity.emailConfirmed].
   static final emailConfirmed =
-      obx.QueryBooleanProperty<LoginResponseEntity>(_entities[7].properties[3]);
+      obx.QueryBooleanProperty<LoginResponseEntity>(_entities[6].properties[3]);
 
   /// See [LoginResponseEntity.success].
   static final success =
-      obx.QueryBooleanProperty<LoginResponseEntity>(_entities[7].properties[4]);
+      obx.QueryBooleanProperty<LoginResponseEntity>(_entities[6].properties[4]);
 
   /// See [LoginResponseEntity.legacyUserData].
   static final legacyUserData =
       obx.QueryRelationToOne<LoginResponseEntity, UserDataEntity>(
-          _entities[7].properties[5]);
+          _entities[6].properties[5]);
 
   /// see [LoginResponseEntity.devices]
   static final devices =
       obx.QueryRelationToMany<LoginResponseEntity, DeviceEntity>(
-          _entities[7].relations[0]);
+          _entities[6].relations[0]);
 }
 
 /// [PurchaseEntity] entity fields to define ObjectBox queries.
 class PurchaseEntity_ {
   /// See [PurchaseEntity.id].
   static final id =
-      obx.QueryIntegerProperty<PurchaseEntity>(_entities[8].properties[0]);
+      obx.QueryIntegerProperty<PurchaseEntity>(_entities[7].properties[0]);
 
   /// See [PurchaseEntity.plan].
   static final plan =
-      obx.QueryStringProperty<PurchaseEntity>(_entities[8].properties[1]);
+      obx.QueryStringProperty<PurchaseEntity>(_entities[7].properties[1]);
 }
 
 /// [UserDataEntity] entity fields to define ObjectBox queries.
 class UserDataEntity_ {
   /// See [UserDataEntity.id].
   static final id =
-      obx.QueryIntegerProperty<UserDataEntity>(_entities[9].properties[0]);
+      obx.QueryIntegerProperty<UserDataEntity>(_entities[8].properties[0]);
 
   /// See [UserDataEntity.userId].
   static final userId =
-      obx.QueryIntegerProperty<UserDataEntity>(_entities[9].properties[1]);
+      obx.QueryIntegerProperty<UserDataEntity>(_entities[8].properties[1]);
 
   /// See [UserDataEntity.code].
   static final code =
-      obx.QueryStringProperty<UserDataEntity>(_entities[9].properties[2]);
+      obx.QueryStringProperty<UserDataEntity>(_entities[8].properties[2]);
 
   /// See [UserDataEntity.token].
   static final token =
-      obx.QueryStringProperty<UserDataEntity>(_entities[9].properties[3]);
+      obx.QueryStringProperty<UserDataEntity>(_entities[8].properties[3]);
 
   /// See [UserDataEntity.referral].
   static final referral =
-      obx.QueryStringProperty<UserDataEntity>(_entities[9].properties[4]);
+      obx.QueryStringProperty<UserDataEntity>(_entities[8].properties[4]);
 
   /// See [UserDataEntity.phone].
   static final phone =
-      obx.QueryStringProperty<UserDataEntity>(_entities[9].properties[5]);
+      obx.QueryStringProperty<UserDataEntity>(_entities[8].properties[5]);
 
   /// See [UserDataEntity.email].
   static final email =
-      obx.QueryStringProperty<UserDataEntity>(_entities[9].properties[6]);
+      obx.QueryStringProperty<UserDataEntity>(_entities[8].properties[6]);
 
   /// See [UserDataEntity.userStatus].
   static final userStatus =
-      obx.QueryStringProperty<UserDataEntity>(_entities[9].properties[7]);
+      obx.QueryStringProperty<UserDataEntity>(_entities[8].properties[7]);
 
   /// See [UserDataEntity.userLevel].
   static final userLevel =
-      obx.QueryStringProperty<UserDataEntity>(_entities[9].properties[8]);
+      obx.QueryStringProperty<UserDataEntity>(_entities[8].properties[8]);
 
   /// See [UserDataEntity.locale].
   static final locale =
-      obx.QueryStringProperty<UserDataEntity>(_entities[9].properties[9]);
+      obx.QueryStringProperty<UserDataEntity>(_entities[8].properties[9]);
 
   /// See [UserDataEntity.expiration].
   static final expiration =
-      obx.QueryIntegerProperty<UserDataEntity>(_entities[9].properties[10]);
+      obx.QueryIntegerProperty<UserDataEntity>(_entities[8].properties[10]);
 
   /// See [UserDataEntity.subscription].
   static final subscription =
-      obx.QueryStringProperty<UserDataEntity>(_entities[9].properties[11]);
+      obx.QueryStringProperty<UserDataEntity>(_entities[8].properties[11]);
 
   /// See [UserDataEntity.bonusDays].
   static final bonusDays =
-      obx.QueryStringProperty<UserDataEntity>(_entities[9].properties[12]);
+      obx.QueryStringProperty<UserDataEntity>(_entities[8].properties[12]);
 
   /// See [UserDataEntity.bonusMonths].
   static final bonusMonths =
-      obx.QueryStringProperty<UserDataEntity>(_entities[9].properties[13]);
+      obx.QueryStringProperty<UserDataEntity>(_entities[8].properties[13]);
 
   /// See [UserDataEntity.yinbiEnabled].
   static final yinbiEnabled =
-      obx.QueryBooleanProperty<UserDataEntity>(_entities[9].properties[14]);
+      obx.QueryBooleanProperty<UserDataEntity>(_entities[8].properties[14]);
 
   /// See [UserDataEntity.servers].
   static final servers =
-      obx.QueryStringProperty<UserDataEntity>(_entities[9].properties[15]);
+      obx.QueryStringProperty<UserDataEntity>(_entities[8].properties[15]);
 
   /// See [UserDataEntity.inviters].
   static final inviters =
-      obx.QueryStringProperty<UserDataEntity>(_entities[9].properties[16]);
+      obx.QueryStringProperty<UserDataEntity>(_entities[8].properties[16]);
 
   /// See [UserDataEntity.invitees].
   static final invitees =
-      obx.QueryStringProperty<UserDataEntity>(_entities[9].properties[17]);
+      obx.QueryStringProperty<UserDataEntity>(_entities[8].properties[17]);
 
   /// see [UserDataEntity.devices]
   static final devices = obx.QueryRelationToMany<UserDataEntity, DeviceEntity>(
-      _entities[9].relations[0]);
+      _entities[8].relations[0]);
 
   /// see [UserDataEntity.purchases]
   static final purchases =
       obx.QueryRelationToMany<UserDataEntity, PurchaseEntity>(
-          _entities[9].relations[1]);
+          _entities[8].relations[1]);
+}
+
+/// [AppSetting] entity fields to define ObjectBox queries.
+class AppSetting_ {
+  /// See [AppSetting.id].
+  static final id =
+      obx.QueryIntegerProperty<AppSetting>(_entities[9].properties[0]);
+
+  /// See [AppSetting.isPro].
+  static final isPro =
+      obx.QueryBooleanProperty<AppSetting>(_entities[9].properties[1]);
+
+  /// See [AppSetting.isSpiltTunnelingOn].
+  static final isSpiltTunnelingOn =
+      obx.QueryBooleanProperty<AppSetting>(_entities[9].properties[2]);
+
+  /// See [AppSetting.locale].
+  static final locale =
+      obx.QueryStringProperty<AppSetting>(_entities[9].properties[3]);
+
+  /// See [AppSetting.splitTunnelingMode].
+  static final splitTunnelingMode =
+      obx.QueryStringProperty<AppSetting>(_entities[9].properties[4]);
 }

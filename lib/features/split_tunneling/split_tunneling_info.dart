@@ -5,7 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/bullet_list.dart';
-import 'package:lantern/features/split_tunneling/provider/app_preferences.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 
 @RoutePage(name: 'SplitTunnelingInfo')
 class SplitTunnelingInfo extends HookConsumerWidget {
@@ -13,11 +13,6 @@ class SplitTunnelingInfo extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final preferences = ref.watch(appPreferencesProvider).value;
-    final splitTunnelingEnabled =
-        preferences?[Preferences.splitTunnelingEnabled] ?? false;
-    final splitTunnelingMode = preferences?[Preferences.splitTunnelingMode] ??
-        SplitTunnelingMode.automatic;
     return BaseScreen(
       title: '',
       appBar: AppBar(
@@ -80,6 +75,7 @@ class SplitTunnelingInfo extends HookConsumerWidget {
 
 class SectionTitle extends StatelessWidget {
   final String text;
+
   const SectionTitle({Key? key, required this.text}) : super(key: key);
 
   @override
@@ -93,6 +89,7 @@ class SectionTitle extends StatelessWidget {
 
 class DescriptionText extends StatelessWidget {
   final String text;
+
   const DescriptionText({super.key, required this.text});
 
   @override

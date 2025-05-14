@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
-import 'package:lantern/core/utils/platform_utils.dart';
-import 'package:lantern/features/language/language_notifier.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/setting/follow_us.dart'
     show showFollowUsBottomSheet;
 
@@ -34,7 +33,7 @@ class Setting extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     this.context = context;
-    final locale = ref.read(languageNotifierProvider);
+    final locale = ref.read(appSettingNotifierProvider).locale;
     final textTheme = Theme.of(context).textTheme;
     return BaseScreen(
       title: 'settings'.i18n,
@@ -83,7 +82,7 @@ class Setting extends HookConsumerWidget {
                   label: 'language'.i18n,
                   icon: AppImagePaths.translate,
                   trailing: Text(
-                    displayLanguage(locale.toString()),
+                    displayLanguage(locale),
                     style: textTheme.titleMedium!.copyWith(
                       color: AppColors.blue7,
                     ),

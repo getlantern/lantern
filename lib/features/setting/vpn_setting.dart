@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/split_tunneling_tile.dart';
-import 'package:lantern/features/split_tunneling/provider/app_preferences.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 
 @RoutePage(name: 'VPNSetting')
 class VPNSetting extends HookConsumerWidget {
@@ -18,22 +18,23 @@ class VPNSetting extends HookConsumerWidget {
   }
 
   Widget _buildBody(BuildContext context, WidgetRef ref) {
-    final preferences = ref.watch(appPreferencesProvider).value;
-    final splitTunnelingEnabled =
-        preferences?[Preferences.splitTunnelingEnabled] ?? false;
+    final preferences = ref.watch(appSettingNotifierProvider);
+    final splitTunnelingEnabled = preferences.isSpiltTunnelingOn;
     return Card(
       child: ListView(
         padding: const EdgeInsets.all(0),
         shrinkWrap: true,
         children: <Widget>[
-          SplitTunnelingTile(
-            label: 'split_tunneling'.i18n,
-            icon: AppImagePaths.callSpilt,
-            actionText:
-                splitTunnelingEnabled ? 'enabled'.i18n : 'disabled'.i18n,
-            onPressed: () => appRouter.push(const SplitTunneling()),
-          ),
-          DividerSpace(),
+          if (PlatformUtils.isAndroid) ...{
+            SplitTunnelingTile(
+              label: 'split_tunneling'.i18n,
+              icon: AppImagePaths.callSpilt,
+              actionText:
+                  splitTunnelingEnabled ? 'enabled'.i18n : 'disabled'.i18n,
+              onPressed: () => appRouter.push(const SplitTunneling()),
+            ),
+            DividerSpace()
+          },
           AppTile(
             label: 'server_locations'.i18n,
             icon: AppImagePaths.location,
