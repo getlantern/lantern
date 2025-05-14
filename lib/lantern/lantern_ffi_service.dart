@@ -17,7 +17,6 @@ import 'package:lantern/lantern/lantern_generated_bindings.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 import 'package:path/path.dart' as p;
-import 'package:rxdart/rxdart.dart';
 
 import '../core/models/plan_data.dart';
 import '../core/services/injection_container.dart' show sl;
@@ -273,7 +272,7 @@ class LanternFFIService implements LanternCoreService {
           Map<String, dynamic> result = jsonDecode(event);
           return LanternStatus.fromJson(result);
         },
-      ).debounceTime(const Duration(milliseconds: 200));
+      );
 
       await _setupRadiance(nativePort);
     } catch (e) {
@@ -371,7 +370,8 @@ class LanternFFIService implements LanternCoreService {
       return Right(result);
     } catch (e, stackTrace) {
       appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
-      return Left(e.toFailure());;
+      return Left(e.toFailure());
+      ;
     }
   }
 

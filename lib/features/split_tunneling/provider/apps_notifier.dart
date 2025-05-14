@@ -24,16 +24,18 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
     final isEnabled = state.any((a) => a.name == app.name);
     final action =
         isEnabled ? SplitTunnelActionType.remove : SplitTunnelActionType.add;
+
     final result = isEnabled
         ? await _lanternService.removeSplitTunnelItem(
             SplitTunnelFilterType.packageName, app.bundleId)
         : await _lanternService.addSplitTunnelItem(
             SplitTunnelFilterType.packageName, app.bundleId);
+
     result.match(
       (failure) {
         appLogger.error('Failed to $action item: ${failure.error}');
       },
-      (_) {
+      (_) async {
         state = isEnabled
             ? state.where((a) => a.name != app.name).toSet()
             : {
@@ -42,7 +44,7 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
                   isEnabled: true,
                 )
               };
-        _db.saveApps(state);
+        await _db.saveApps(state);
       },
     );
   }

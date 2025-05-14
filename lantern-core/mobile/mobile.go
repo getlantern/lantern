@@ -152,6 +152,34 @@ func IsVPNConnected() bool {
 	return vpnClient.ConnectionStatus()
 }
 
+func AddSplitTunnelItem(filterType, item string) error {
+	radianceMutex.Lock()
+	defer radianceMutex.Unlock()
+	if vpnClient == nil {
+		return log.Error("Radiance not setup")
+	}
+
+	if err := vpnClient.SplitTunnelHandler().AddItem(filterType, item); err != nil {
+		return fmt.Errorf("error adding item: %v", err)
+	}
+	log.Debugf("added %s split tunneling item %s", filterType, item)
+	return nil
+}
+
+func RemoveSplitTunnelItem(filterType, item string) error {
+	radianceMutex.Lock()
+	defer radianceMutex.Unlock()
+	if vpnClient == nil {
+		return log.Error("Radiance not setup")
+	}
+
+	if err := vpnClient.SplitTunnelHandler().RemoveItem(filterType, item); err != nil {
+		return fmt.Errorf("error removing item: %v", err)
+	}
+	log.Debugf("removed %s split tunneling item %s", filterType, item)
+	return nil
+}
+
 // User Methods
 // Todo make sure to add retry logic
 // we need to make sure that the user is created before we can use the radiance server

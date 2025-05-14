@@ -50,7 +50,7 @@ class LocalStorageService {
   ///Due to limitations in macOS the value must be at most 19 characters
   /// Do not change this value
   final macosApplicationGroup = AppSecrets.macosAppGroupId;
-  
+
   Future<void> init() async {
     final start = DateTime.now();
     dbLogger.debug("Initializing LocalStorageService");
@@ -113,13 +113,17 @@ class LocalStorageService {
   }
 
   // Apps methods
-  void saveApps(Set<AppData> apps) {
-    _appsBox.removeAll();
-    _appsBox.putMany(apps.toList());
+  Future<void> saveApps(Set<AppData> apps) async {
+    await _appsBox.removeAllAsync();
+    await _appsBox.putManyAsync(apps.toList());
   }
 
   Set<AppData> getEnabledApps() {
     return _appsBox.getAll().where((a) => a.isEnabled).toSet();
+  }
+
+  Set<AppData> getAllApps() {
+    return _appsBox.getAll().toSet();
   }
 
   void toggleApp(AppData app) {
@@ -134,9 +138,9 @@ class LocalStorageService {
   }
 
   // Website methods
-  void saveWebsites(Set<Website> websites) {
-    _websitesBox.removeAll();
-    _websitesBox.putMany(websites.toList());
+  Future<void> saveWebsites(Set<Website> websites) async {
+    await _websitesBox.removeAllAsync();
+    await _websitesBox.putManyAsync(websites.toList());
   }
 
   Set<Website> getEnabledWebsites() {
@@ -151,7 +155,7 @@ class LocalStorageService {
 
   PlansDataEntity? getPlans() {
     final plans = _plansBox.getAll();
-    return plans.isEmpty?null: plans.first;
+    return plans.isEmpty ? null : plans.first;
   }
 
   // User methods
@@ -162,7 +166,7 @@ class LocalStorageService {
 
   LoginResponseEntity? getUser() {
     final user = _userBox.getAll();
-    return user.isEmpty?null: user.first;
+    return user.isEmpty ? null : user.first;
   }
 }
 

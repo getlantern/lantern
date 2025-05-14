@@ -1,13 +1,20 @@
+import 'dart:io';
+
 import 'dart:convert';
 
 import 'package:flutter/services.dart';
 import 'package:fpdart/src/either.dart';
 import 'package:fpdart/src/unit.dart';
+import 'package:installed_apps/installed_apps.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
+
+import 'package:lantern/core/services/injection_container.dart';
+
 import 'package:lantern/core/models/mapper/plan_mapper.dart';
 import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/services/app_purchase.dart';
+
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 
@@ -46,9 +53,7 @@ class LanternPlatformService implements LanternCoreService {
           localizedErrorMessage: ple.localizedDescription));
     } catch (e, stackTrace) {
       appLogger.error('Error starting VPN Flutter', e, stackTrace);
-      return Left(Failure(
-          error: e.toString(),
-          localizedErrorMessage: (e as Exception).localizedDescription));
+      return Left(e.toFailure());
     }
   }
 
@@ -58,13 +63,9 @@ class LanternPlatformService implements LanternCoreService {
       final message = await _methodChannel.invokeMethod<String>('stopVPN');
       return Right('VPN stopped');
     } on PlatformException catch (ple) {
-      return Left(Failure(
-          error: ple.toString(),
-          localizedErrorMessage: ple.localizedDescription));
-    } catch (e, stackTrace) {
-      return Left(Failure(
-          error: e.toString(),
-          localizedErrorMessage: (e as Exception).localizedDescription));
+      return Left(ple.toFailure());
+    } catch (e) {
+      return Left(e.toFailure());
     }
   }
 
@@ -80,8 +81,33 @@ class LanternPlatformService implements LanternCoreService {
         .map((event) => (event as List).map((e) => e as String).toList());
   }
 
+  @override
   Stream<List<AppData>> appsDataStream() async* {
-    throw UnimplementedError();
+    if (!Platform.isAndroid) {
+      throw UnimplementedError();
+    }
+    try {
+      final apps = await InstalledApps.getInstalledApps(true, true);
+      final LocalStorageService db = sl<LocalStorageService>();
+      final savedApps = db.getAllApps();
+      final enabledAppNames = savedApps
+          .where((app) => app.isEnabled)
+          .map((app) => app.name)
+          .toSet();
+      yield apps.map((appInfo) {
+        final isEnabled = enabledAppNames.contains(appInfo.name);
+        return AppData(
+          name: appInfo.name,
+          bundleId: appInfo.packageName,
+          iconBytes: appInfo.icon,
+          appPath: '',
+          isEnabled: isEnabled,
+        );
+      }).toList();
+    } catch (e, st) {
+      appLogger.error("Failed to fetch installed apps", e, st);
+      yield [];
+    }
   }
 
   @override
@@ -91,14 +117,30 @@ class LanternPlatformService implements LanternCoreService {
 
   @override
   Future<Either<Failure, Unit>> addSplitTunnelItem(
-      SplitTunnelFilterType type, String value) {
-    throw UnimplementedError();
+      SplitTunnelFilterType type, String value) async {
+    try {
+      await _methodChannel.invokeMethod('addSplitTunnelItem', {
+        'filterType': type.value,
+        'value': value,
+      });
+      return right(unit);
+    } catch (e) {
+      return Left(e.toFailure());
+    }
   }
 
   @override
   Future<Either<Failure, Unit>> removeSplitTunnelItem(
-      SplitTunnelFilterType type, String value) {
-    throw UnimplementedError();
+      SplitTunnelFilterType type, String value) async {
+    try {
+      await _methodChannel.invokeMethod('removeSplitTunnelItem', {
+        'filterType': type.value,
+        'value': value,
+      });
+      return right(unit);
+    } catch (e) {
+      return Left(e.toFailure());
+    }
   }
 
   @override
@@ -108,9 +150,7 @@ class LanternPlatformService implements LanternCoreService {
       return Right(unit);
     } catch (e, stackTrace) {
       appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
-      return Left(Failure(
-          error: e.toString(),
-          localizedErrorMessage: (e as Exception).localizedDescription));
+      return Left(e.toFailure());
     }
   }
 
@@ -139,10 +179,7 @@ class LanternPlatformService implements LanternCoreService {
       );
       return Right(unit);
     } catch (e) {
-      return Left(Failure(
-        error: e.toString(),
-        localizedErrorMessage: e.localizedDescription,
-      ));
+      return Left(e.toFailure());
     }
   }
 
@@ -229,8 +266,7 @@ class LanternPlatformService implements LanternCoreService {
   @override
   Future<Either<Failure, LoginResponse>> getUserData() async {
     try {
-      final bytes =
-          await _methodChannel.invokeMethod('getUserData');
+      final bytes = await _methodChannel.invokeMethod('getUserData');
       return Right(LoginResponse.fromBuffer(bytes));
     } catch (e, stackTrace) {
       appLogger.error('Error waking up LanternPlatformService', e, stackTrace);

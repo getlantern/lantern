@@ -43,12 +43,12 @@ class LanternService implements LanternCoreService {
 
   @override
   Stream<List<AppData>> appsDataStream() async* {
-    if (!PlatformUtils.isDesktop) {
-      throw UnimplementedError();
+    if (PlatformUtils.isDesktop) {
+      yield* _ffiService.appsDataStream();
+    } else {
+      yield* _platformService.appsDataStream();
     }
-    yield* _ffiService.appsDataStream();
   }
-
 
   @override
   Future<void> init() {
@@ -76,7 +76,7 @@ class LanternService implements LanternCoreService {
 
   @override
   Future<Either<Failure, Unit>> isVPNConnected() {
-    if(PlatformUtils.isDesktop){
+    if (PlatformUtils.isDesktop) {
       return _ffiService.isVPNConnected();
     }
     return _platformService.isVPNConnected();
@@ -136,7 +136,7 @@ class LanternService implements LanternCoreService {
     if (PlatformUtils.isDesktop) {
       return _ffiService.addSplitTunnelItem(type, value);
     }
-    throw UnimplementedError();
+    return _platformService.addSplitTunnelItem(type, value);
   }
 
   @override
@@ -145,7 +145,7 @@ class LanternService implements LanternCoreService {
     if (PlatformUtils.isDesktop) {
       return _ffiService.removeSplitTunnelItem(type, value);
     }
-    throw UnimplementedError();
+    return _platformService.removeSplitTunnelItem(type, value);
   }
 
   @override
