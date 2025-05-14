@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/mapper/user_mapper.dart';
 import 'package:lantern/core/models/plan_entity.dart';
 import 'package:lantern/core/models/website.dart';
 import 'package:objectbox/objectbox.dart';
@@ -11,6 +12,7 @@ import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
+import '../../lantern/protos/protos/auth.pb.dart';
 import '../models/user_entity.dart';
 import 'db/objectbox.g.dart';
 import 'injection_container.dart';
@@ -164,9 +166,9 @@ class LocalStorageService {
     _userBox.put(user);
   }
 
-  LoginResponseEntity? getUser() {
+  LoginResponse? getUser() {
     final user = _userBox.getAll();
-    return user.isEmpty ? null : user.first;
+    return user.isEmpty ? null : user.first.toLoginResponse();
   }
 }
 

@@ -81,7 +81,7 @@ func SetupRadiance(opts *Opts) error {
 			log.Debug("Creating user")
 			CreateUser()
 		}
-		fetchUserData()
+		FetchUserData()
 	})
 
 	if innerErr != nil {
@@ -207,7 +207,7 @@ func UserData() ([]byte, error) {
 }
 
 // GetUserData will get the user data from the server
-func fetchUserData() (*protos.UserDataResponse, error) {
+func FetchUserData() (*protos.UserDataResponse, error) {
 	log.Debug("Getting user data")
 	//this call will also save the user data in the user config
 	// so we can use it later
@@ -243,7 +243,7 @@ func OAuthLoginCallback(oAuthToken string) ([]byte, error) {
 	}
 	radianceServer.userConfig.Save(login)
 	///Get user data from api this will also save data in user config
-	user, err := fetchUserData()
+	user, err := FetchUserData()
 	if err != nil {
 		return nil, log.Errorf("Error getting user data: %v", err)
 	}
@@ -260,7 +260,7 @@ func OAuthLoginCallback(oAuthToken string) ([]byte, error) {
 	return bytes, nil
 }
 
-func StripeSubscription(email,planId string) (string, error) {
+func StripeSubscription(email, planId string) (string, error) {
 	log.Debug("Creating stripe subscription")
 	body := protos.SubscriptionRequest{
 		Email:   email,

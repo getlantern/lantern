@@ -162,16 +162,23 @@ class MethodHandler : FlutterPlugin,
                 scope.launch {
                     result.runCatching {
                         val map = call.arguments as Map<*, *>
-
-                        val subscriptionData = Mobile.stripeSubscription(map["email"] as String)
+                        val subscriptionData = Mobile.stripeSubscription(
+                            map["email"] as String,
+                            map["planId"] as String
+                        )
                         withContext(Dispatchers.Main) {
                             success(subscriptionData)
                         }
                     }.onFailure { e ->
-                        result.error("stripe_subscription", e.localizedMessage ?: "Please try again", e)
+                        result.error(
+                            "stripe_subscription",
+                            e.localizedMessage ?: "Please try again",
+                            e
+                        )
                     }
                 }
             }
+
             Methods.Plans.method -> {
                 scope.launch {
                     result.runCatching {
@@ -184,6 +191,7 @@ class MethodHandler : FlutterPlugin,
                     }
                 }
             }
+
             Methods.OAuthLoginUrl.method -> {
                 scope.launch {
                     result.runCatching {
@@ -197,6 +205,7 @@ class MethodHandler : FlutterPlugin,
                     }
                 }
             }
+
             Methods.OAuthLoginCallback.method -> {
                 scope.launch {
                     result.runCatching {
@@ -206,10 +215,15 @@ class MethodHandler : FlutterPlugin,
                             success(bytes)
                         }
                     }.onFailure { e ->
-                        result.error("OAuthLoginCallback", e.localizedMessage ?: "Please try again", e)
+                        result.error(
+                            "OAuthLoginCallback",
+                            e.localizedMessage ?: "Please try again",
+                            e
+                        )
                     }
                 }
             }
+
             Methods.GetUserData.method -> {
                 scope.launch {
                     result.runCatching {
@@ -218,10 +232,15 @@ class MethodHandler : FlutterPlugin,
                             success(bytes)
                         }
                     }.onFailure { e ->
-                        result.error("OAuthLoginCallback", e.localizedMessage ?: "Please try again", e)
+                        result.error(
+                            "OAuthLoginCallback",
+                            e.localizedMessage ?: "Please try again",
+                            e
+                        )
                     }
                 }
             }
+
             else -> {
                 result.notImplemented()
             }

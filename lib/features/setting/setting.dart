@@ -50,15 +50,15 @@ class Setting extends HookConsumerWidget {
               },
             ),
           ),
-          // const SizedBox(height: 16),
-          // Card(
-          //   margin: EdgeInsets.zero,
-          //   child: AppTile(
-          //     label: 'account'.i18n,
-          //     icon: AppImagePaths.signIn,
-          //     onPressed: () => settingMenuTap(_SettingType.account),
-          //   ),
-          // ),
+          const SizedBox(height: 16),
+          Card(
+            margin: EdgeInsets.zero,
+            child: AppTile(
+              label: 'account'.i18n,
+              icon: AppImagePaths.signIn,
+              onPressed: () => settingMenuTap(_SettingType.account),
+            ),
+          ),
           const SizedBox(height: 16),
           Card(
             margin: EdgeInsets.zero,
