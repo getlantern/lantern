@@ -788,6 +788,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.3.21"
+  installed_apps:
+    dependency: "direct main"
+    description:
+      name: installed_apps
+      sha256: dd2b7c531f91114cd6df447c56567593c9799ca83f057137ae719324ae0afd06
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.6.0"
   integration_test:
     dependency: "direct dev"
     description: flutter
@@ -1274,7 +1282,7 @@ packages:
     source: hosted
     version: "5.0.2"
   shared_preferences:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: shared_preferences
       sha256: "846849e3e9b68f3ef4b60c60cf4b3e02e9321bc7f4d8c4692cf87ffa82fc8a3a"

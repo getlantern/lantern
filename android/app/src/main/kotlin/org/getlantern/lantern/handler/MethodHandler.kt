@@ -19,6 +19,8 @@ enum class Methods(val method: String) {
     Start("startVPN"),
     Stop("stopVPN"),
     IsVpnConnected("isVPNConnected"),
+    AddSplitTunnelItem("addSplitTunnelItem"),
+    RemoveSplitTunnelItem("removeSplitTunnelItem"),
     SubscriptionPaymentRedirect("subscriptionPaymentRedirect"),
     StripeSubscription("stripeSubscription"),
     Plans("plans"),
@@ -97,7 +99,39 @@ class MethodHandler : FlutterPlugin,
                     }
                 }
             }
+            Methods.AddSplitTunnelItem.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val filterType = call.argument<String>("filterType") ?: error("Missing filterType")
+                        val value = call.argument<String>("value") ?: error("Missing value")
 
+                        val error = Mobile.addSplitTunnelItem(filterType, value)
+                        if (error is Exception) {
+                            throw error
+                        }
+                        success("Item added")
+                    }.onFailure { e ->
+                        result.error("add_split_tunnel_item", e.localizedMessage ?: "Failed to add split tunnel item", e)
+                    }
+                }
+            }
+
+            Methods.RemoveSplitTunnelItem.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val filterType = call.argument<String>("filterType") ?: error("Missing filterType")
+                        val value = call.argument<String>("value") ?: error("Missing value")
+
+                        val error = Mobile.removeSplitTunnelItem(filterType, value)
+                        if (error is Exception) {
+                            throw error
+                        }
+                        success("Item removed")
+                    }.onFailure { e ->
+                        result.error("remove_split_tunnel_item", e.localizedMessage ?: "Failed to remove split tunnel item", e)
+                    }
+                }
+            }
             Methods.SubscriptionPaymentRedirect.method -> {
                 scope.launch {
                     result.runCatching {
