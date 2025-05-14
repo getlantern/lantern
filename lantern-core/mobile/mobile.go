@@ -26,18 +26,17 @@ var (
 	log            = golog.LoggerFor("lantern-outline.native")
 	radianceMutex  = sync.Mutex{}
 	radianceServer *lanternService
-	apiHandler     *apiService
-	setupOnce      sync.Once
+	vpnClient      client.VPNClient
+
+	setupRadiance   sync.Once
+	setupRVPNClient sync.Once
 )
 
 type lanternService struct {
 	*radiance.Radiance
 	userConfig common.UserInfo
-}
-type apiService struct {
 	proServer  *api.Pro
 	user       *api.User
-	userConfig common.UserInfo
 }
 type Opts struct {
 	DataDir  string
@@ -48,9 +47,9 @@ type Opts struct {
 func enableSplitTunneling() bool {
 	return runtime.GOOS == "android"
 }
-func SetupRadiance(opts *Opts, platform libbox.PlatformInterface) error {
+func SetupRadiance(opts *Opts) error {
 	var innerErr error
-	setupOnce.Do(func() {
+	setupRadiance.Do(func() {
 		logDir := filepath.Join(opts.DataDir, "logs")
 		if err := os.MkdirAll(opts.DataDir, 0o777); err != nil {
 			log.Errorf("unable to create data directory: %v", err)
@@ -58,13 +57,11 @@ func SetupRadiance(opts *Opts, platform libbox.PlatformInterface) error {
 		if err := os.MkdirAll(logDir, 0o777); err != nil {
 			log.Errorf("unable to create log directory: %v", err)
 		}
-		clientOpts := client.Options{
-			LogDir:               logDir,
-			DataDir:              opts.DataDir,
-			PlatIfce:             platform,
-			DeviceID:             opts.Deviceid,
-			Locale:               opts.Locale,
-			EnableSplitTunneling: enableSplitTunneling(),
+		clientOpts := radiance.Options{
+			LogDir:   logDir,
+			DataDir:  opts.DataDir,
+			Locale:   opts.Locale,
+			DeviceID: opts.Deviceid,
 		}
 		r, err := radiance.NewRadiance(clientOpts)
 		log.Debugf("Paths: %s %s", logDir, opts.DataDir)
@@ -72,11 +69,19 @@ func SetupRadiance(opts *Opts, platform libbox.PlatformInterface) error {
 			innerErr = fmt.Errorf("unable to create Radiance: %v", err)
 			return
 		}
+
 		radianceServer = &lanternService{
 			Radiance:   r,
 			userConfig: r.UserInfo(),
+			proServer:  r.APIHandler().ProServer,
+			user:       r.APIHandler().User,
 		}
 		log.Debug("Radiance setup successfully")
+		if radianceServer.userConfig.LegacyID() == 0 {
+			log.Debug("Creating user")
+			CreateUser()
+		}
+		fetchUserData()
 	})
 
 	if innerErr != nil {
@@ -85,32 +90,21 @@ func SetupRadiance(opts *Opts, platform libbox.PlatformInterface) error {
 	return nil
 }
 
-func NewAPIHandler(opts *Opts) error {
-	logDir := filepath.Join(opts.DataDir, "logs")
-	clientOpts := client.Options{
-		LogDir:               logDir,
-		DataDir:              opts.DataDir,
-		DeviceID:             opts.Deviceid,
-		Locale:               opts.Locale,
-		PlatIfce:             nil,
-		EnableSplitTunneling: false,
+func NewVPNClient(opts *Opts, platform libbox.PlatformInterface) error {
+	var innerErr error
+	setupRVPNClient.Do(func() {
+		logDir := filepath.Join(opts.DataDir, "logs")
+		client, err := client.NewVPNClient(opts.DataDir, logDir, platform, enableSplitTunneling())
+		if err != nil {
+			innerErr = fmt.Errorf("unable to create vpn client: %v", err)
+			return
+		}
+		vpnClient = client
+		log.Debugf("VPN client setup successfully")
+	})
+	if innerErr != nil {
+		return innerErr
 	}
-	apis, err := radiance.NewAPIHandler(clientOpts)
-	if err != nil {
-		return fmt.Errorf("unable to create API handler: %v", err)
-	}
-	apiHandler = &apiService{
-		proServer:  apis.ProServer,
-		user:       apis.User,
-		userConfig: apis.UserInfo,
-	}
-	log.Debugf("User config: %v", apiHandler.userConfig)
-	if apiHandler.userConfig.LegacyID() == 0 {
-		log.Debug("Creating user")
-		CreateUser()
-	}
-	fetchUserData()
-	log.Debugf("API handler setup successfully")
 	return nil
 }
 
@@ -124,10 +118,10 @@ func StartVPN() error {
 	log.Debug("Starting VPN")
 	radianceMutex.Lock()
 	defer radianceMutex.Unlock()
-	if radianceServer == nil {
-		return log.Error("Radiance not setup")
+	if vpnClient == nil {
+		return log.Error("VPN client not setup")
 	}
-	err := radianceServer.StartVPN()
+	err := vpnClient.StartVPN()
 	if err != nil {
 		log.Errorf("Error starting VPN: %v", err)
 		return err
@@ -139,10 +133,10 @@ func StopVPN() error {
 	log.Debug("Stopping VPN")
 	radianceMutex.Lock()
 	defer radianceMutex.Unlock()
-	if radianceServer == nil {
-		return log.Error("Radiance not setup")
+	if vpnClient == nil {
+		return log.Error("VPN client not setup")
 	}
-	er := radianceServer.StopVPN()
+	er := vpnClient.StopVPN()
 	if er != nil {
 		log.Errorf("Error stopping VPN: %v", er)
 	}
@@ -152,10 +146,10 @@ func StopVPN() error {
 func IsVPNConnected() bool {
 	radianceMutex.Lock()
 	defer radianceMutex.Unlock()
-	if radianceServer == nil {
+	if vpnClient == nil {
 		return false
 	}
-	return radianceServer.ConnectionStatus()
+	return vpnClient.ConnectionStatus()
 }
 
 // User Methods
@@ -163,7 +157,7 @@ func IsVPNConnected() bool {
 // we need to make sure that the user is created before we can use the radiance server
 func CreateUser() error {
 	log.Debug("Creating user")
-	user, err := apiHandler.proServer.UserCreate(context.Background())
+	user, err := radianceServer.proServer.UserCreate(context.Background())
 	log.Debugf("UserCreate response: %v", user)
 	if err != nil {
 		return log.Errorf("Error creating user: %v", err)
@@ -173,7 +167,7 @@ func CreateUser() error {
 
 // this will return the user data from the user config
 func UserData() ([]byte, error) {
-	user, err := apiHandler.userConfig.GetUserData()
+	user, err := radianceServer.userConfig.GetUserData()
 	if err != nil {
 		return nil, log.Errorf("Error getting user data: %v", err)
 	}
@@ -189,7 +183,7 @@ func fetchUserData() (*protos.UserDataResponse, error) {
 	log.Debug("Getting user data")
 	//this call will also save the user data in the user config
 	// so we can use it later
-	user, err := apiHandler.proServer.UserData(context.Background())
+	user, err := radianceServer.proServer.UserData(context.Background())
 	if err != nil {
 		return nil, log.Errorf("Error getting user data: %v", err)
 	}
@@ -199,13 +193,8 @@ func fetchUserData() (*protos.UserDataResponse, error) {
 
 // OAuth Methods
 func OAuthLoginUrl(provider string) (string, error) {
-	defer func() {
-		if err := recover(); err != nil {
-			log.Errorf("Error login callback : %v", err)
-		}
-	}()
 	log.Debug("Getting OAuth login URL")
-	oauthLoginUrl, err := apiHandler.user.OAuthLoginUrl(context.Background(), provider)
+	oauthLoginUrl, err := radianceServer.user.OAuthLoginUrl(context.Background(), provider)
 	if err != nil {
 		return "", log.Errorf("Error getting OAuth login URL: %v", err)
 	}
@@ -224,7 +213,7 @@ func OAuthLoginCallback(oAuthToken string) ([]byte, error) {
 		LegacyID:    userInfo.LegacyUserId,
 		LegacyToken: userInfo.LegacyToken,
 	}
-	apiHandler.userConfig.Save(login)
+	radianceServer.userConfig.Save(login)
 	///Get user data from api this will also save data in user config
 	user, err := fetchUserData()
 	if err != nil {
@@ -250,7 +239,7 @@ func StripeSubscription() (string, error) {
 		Name:    "test",
 		PriceId: "price_1RCg464XJ6zbDKY5T6kqbMC6",
 	}
-	stripeSubscription, err := apiHandler.proServer.StripeSubscription(context.Background(), &body)
+	stripeSubscription, err := radianceServer.proServer.StripeSubscription(context.Background(), &body)
 	if err != nil {
 		return "", log.Errorf("Error creating stripe subscription: %v", err)
 	}
@@ -290,7 +279,7 @@ func Plans() (string, error) {
 		}
 	}()
 	log.Debug("Getting plans")
-	plans, err := apiHandler.proServer.Plans(context.Background())
+	plans, err := radianceServer.proServer.Plans(context.Background())
 	if err != nil {
 		return "", log.Errorf("Error getting plans: %v", err)
 	}
@@ -304,7 +293,7 @@ func Plans() (string, error) {
 }
 
 func subscriptionPaymentRedirect(redirectBody *protos.SubscriptionPaymentRedirectRequest) (string, error) {
-	rediret, err := apiHandler.proServer.SubscriptionPaymentRedirect(context.Background(), redirectBody)
+	rediret, err := radianceServer.proServer.SubscriptionPaymentRedirect(context.Background(), redirectBody)
 	if err != nil {
 		return "", log.Errorf("Error getting subscription link: %v", err)
 	}

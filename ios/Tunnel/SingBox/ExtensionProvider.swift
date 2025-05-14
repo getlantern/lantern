@@ -48,7 +48,7 @@ class ExtensionProvider: NEPacketTunnelProvider {
     opts.dataDir = baseDir
     opts.deviceid = DeviceIdentifier.getUDID()
     opts.locale = Locale.current.identifier
-    MobileSetupRadiance(opts, platformInterface, &error)
+    MobileNewVPNClient(opts, platformInterface, &error)
     if let error {
       writeFatalError("(lantern-tunnel) error: create service: \(error.localizedDescription)")
       return

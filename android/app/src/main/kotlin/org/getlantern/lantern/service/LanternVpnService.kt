@@ -132,8 +132,8 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
                 opts.dataDir = initConfigDir()
                 opts.deviceid = DeviceUtil.deviceId()
                 opts.locale = DeviceUtil.getLanguageCode(this@LanternVpnService)
-                Mobile.newAPIHandler(opts)
-                Mobile.setupRadiance(opts, this@LanternVpnService)
+                Mobile.setupRadiance(opts)
+                Mobile.newVPNClient(opts, this@LanternVpnService)
             }
             Log.d(TAG, "Radiance setup completed ${DeviceUtil.deviceId()}")
         } catch (e: Exception) {
