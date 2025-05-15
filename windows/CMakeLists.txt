@@ -52,17 +52,12 @@ add_subdirectory(${FLUTTER_MANAGED_DIR})
 # Application build; see runner/CMakeLists.txt.
 add_subdirectory("runner")
 
-# Copy liblantern.dll for local development
+#
+## Copy liblantern.dll for local development
 set(LANTERN_DIR "..")
-add_custom_command(TARGET ${BINARY_NAME} POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${LANTERN_DIR}/bin/windows/liblantern.dll"
-    $<TARGET_FILE_DIR:${BINARY_NAME}>
-)
 
 install(FILES "${LANTERN_DIR}/bin/windows/liblantern.dll"
-  DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
-  COMPONENT Runtime)
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 
 # Generated plugin build rules, which manage building the plugins and adding
 # them to the application.
