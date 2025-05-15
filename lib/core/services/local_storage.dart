@@ -152,7 +152,7 @@ class LocalStorageService {
   // User methods
   void saveUser(LoginResponseEntity user) {
     _userBox.removeAll();
-    _userBox.put(user);
+    _userBox.putAsync(user);
   }
 
   LoginResponse? getUser() {

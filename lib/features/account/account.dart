@@ -1,21 +1,23 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/user_devices.dart';
+import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 @RoutePage(name: 'Account')
-class Account extends StatelessWidget {
+class Account extends HookConsumerWidget {
   const Account({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return BaseScreen(
       title: 'account'.i18n,
-      body: _buildBody(context),
+      body: _buildBody(context, ref),
     );
   }
 
-  Widget _buildBody(BuildContext buildContext) {
+  Widget _buildBody(BuildContext buildContext, WidgetRef ref) {
     final theme = Theme.of(buildContext).textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -53,7 +55,9 @@ class Account extends StatelessWidget {
             contentPadding: EdgeInsets.only(left: 16),
             icon: AppImagePaths.email,
             trailing: AppTextButton(
-                label: 'manage_subscription'.i18n, onPressed: () {}),
+              label: 'manage_subscription'.i18n,
+              onPressed: () => onManageSubscriptionTap(ref, buildContext),
+            ),
           ),
         ),
         SizedBox(height: defaultSize),
@@ -66,7 +70,7 @@ class Account extends StatelessWidget {
             ),
           ),
         ),
-       UserDevices(),
+        UserDevices(),
         Spacer(),
         Padding(
           padding: const EdgeInsets.only(left: 16),
@@ -96,7 +100,26 @@ class Account extends StatelessWidget {
   void _onDeleteTap() {
     appRouter.push(const DeleteAccount());
   }
+
+  Future<void> onManageSubscriptionTap(
+      WidgetRef ref, BuildContext buildContext) async {
+    try {
+      buildContext.showLoadingDialog();
+      final result =
+          await ref.read(lanternServiceProvider).stripeBillingPortal();
+      result.fold(
+        (failure) {
+          buildContext.hideLoadingDialog();
+          appLogger.error('Error on manage subscription tap', failure);
+          buildContext.showSnackBarError(failure.localizedErrorMessage);
+        },
+        (stripeUrl) {
+          buildContext.hideLoadingDialog();
+          UrlUtils.openWebview(stripeUrl);
+        },
+      );
+    } catch (e) {
+      appLogger.error('Error on manage subscription tap', e);
+    }
+  }
 }
-
-
-

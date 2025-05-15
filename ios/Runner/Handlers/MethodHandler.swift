@@ -43,6 +43,7 @@ class MethodHandler {
         self.oauthLoginCallback(result: result, token: token)
       case "getUserData":
         self.getUserData(result: result)
+      case "stripeBillingPortal":
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -202,4 +203,31 @@ class MethodHandler {
     }
   }
 
+    private func stripeBillingPortal(result: @escaping FlutterResult) {
+      Task {
+        do {
+          var error: NSError?
+          var data = try await MobileStripeBilingPortalUrl(&error)
+          if error != nil {
+            result(
+              FlutterError(
+                code: "STRIPE_BILLING_PORTAL",
+                message: error?.description,
+                details: error?.localizedDescription))
+          }
+          await MainActor.run {
+            result(data)
+          }
+        } catch {
+          await MainActor.run {
+            result(
+              FlutterError(
+                code: "STRIPE_BILLING_PORTAL",
+                message: "error while getting stripe billing url.",
+                details: error.localizedDescription))
+          }
+        }
+      }
+    }
+    
 }

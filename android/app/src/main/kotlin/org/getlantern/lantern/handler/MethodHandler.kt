@@ -21,8 +21,8 @@ enum class Methods(val method: String) {
     IsVpnConnected("isVPNConnected"),
     AddSplitTunnelItem("addSplitTunnelItem"),
     RemoveSplitTunnelItem("removeSplitTunnelItem"),
-    SubscriptionPaymentRedirect("subscriptionPaymentRedirect"),
     StripeSubscription("stripeSubscription"),
+    StripeBillingPortal("stripeBillingPortal"),
     Plans("plans"),
     OAuthLoginUrl("oauthLoginUrl"),
     OAuthLoginCallback("oauthLoginCallback"),
@@ -142,19 +142,18 @@ class MethodHandler : FlutterPlugin,
                     }
                 }
             }
-//            Methods.SubscriptionPaymentRedirect.method -> {
-//                scope.launch {
-//                    result.runCatching {
-//                        val map = call.arguments as Map<*, *>
-//                        val subscriptionLink = Mobile.stripeSubscriptionPaymentRedirect(map["subType"] as String)
-//                        withContext(Dispatchers.Main) {
-//                            success(subscriptionLink)
-//                        }
-//                    }.onFailure { e ->
-//                        result.error("vpn_status", e.localizedMessage ?: "Please try again", e)
-//                    }
-//                }
-//            }
+            Methods.StripeBillingPortal.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val url = Mobile.stripeBilingPortalUrl()
+                        withContext(Dispatchers.Main) {
+                            success(url)
+                        }
+                    }.onFailure { e ->
+                        result.error("vpn_status", e.localizedMessage ?: "Please try again", e)
+                    }
+                }
+            }
             Methods.StripeSubscription.method -> {
                 scope.launch {
                     result.runCatching {
