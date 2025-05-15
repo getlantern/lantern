@@ -29,6 +29,8 @@ abstract class LanternCoreService {
   Future<Either<Failure, Map<String, dynamic>>> stipeSubscription(
       {required String planId,required String email});
 
+  Future<Either<Failure,String>> stripeBillingPortal();
+
   /// this is used for google and apple subscription
   Future<Either<Failure, Unit>> startInAppPurchaseFlow({
     required String planId,
@@ -38,9 +40,7 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, PlansData>> plans();
 
-  Future<Either<Failure, Unit>> cancelSubscription();
 
-  Future<Either<Failure, Unit>> makeOneTimePayment({required String planID});
 
   // Spilt tunnel methods
   Future<Either<Failure, Unit>> addSplitTunnelItem(

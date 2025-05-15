@@ -1,6 +1,5 @@
-import 'dart:io';
-
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:fpdart/src/either.dart';
@@ -8,13 +7,10 @@ import 'package:fpdart/src/unit.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
-
-import 'package:lantern/core/services/injection_container.dart';
-
 import 'package:lantern/core/models/mapper/plan_mapper.dart';
 import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/services/app_purchase.dart';
-
+import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 
@@ -155,18 +151,6 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> cancelSubscription() {
-    // TODO: implement cancelSubscription
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Either<Failure, Unit>> makeOneTimePayment({required String planID}) {
-    // TODO: implement makeOneTimePayment
-    throw UnimplementedError();
-  }
-
-  @override
   Future<Either<Failure, Unit>> startInAppPurchaseFlow(
       {required String planId,
       required PaymentSuccessCallback onSuccess,
@@ -217,6 +201,18 @@ class LanternPlatformService implements LanternCoreService {
       return Left(Failure(
           error: e.toString(),
           localizedErrorMessage: (e as Exception).localizedDescription));
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> stripeBillingPortal() async {
+    try {
+      final url =
+          await _methodChannel.invokeMethod<String>('stripeBillingPortal');
+      return Right(url!);
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(e.toFailure());
     }
   }
 

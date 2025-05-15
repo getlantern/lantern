@@ -341,6 +341,23 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, String>> stripeBillingPortal() async {
+    try {
+      final result = await runInBackground<String>(
+            () async {
+          return _ffiService.stripeBilingPortalUrl().toDartString();
+        },
+      );
+      return Right(result);
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(e.toFailure());
+
+    }
+  }
+
+
+  @override
   Future<Either<Failure, PlansData>> plans() async {
     try {
       final result = await runInBackground<String>(
@@ -371,7 +388,7 @@ class LanternFFIService implements LanternCoreService {
     } catch (e, stackTrace) {
       appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
       return Left(e.toFailure());
-      ;
+
     }
   }
 
@@ -409,6 +426,8 @@ class LanternFFIService implements LanternCoreService {
       return Left(e.toFailure());
     }
   }
+
+
 }
 
 class SplitTunnelMessage {

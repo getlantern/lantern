@@ -82,17 +82,7 @@ class LanternService implements LanternCoreService {
     return _platformService.isVPNConnected();
   }
 
-  @override
-  Future<Either<Failure, Unit>> cancelSubscription() {
-    // TODO: implement cancelSubscription
-    throw UnimplementedError();
-  }
 
-  @override
-  Future<Either<Failure, Unit>> makeOneTimePayment({required String planID}) {
-    // TODO: implement makeOneTimePayment
-    throw UnimplementedError();
-  }
 
   @override
   Future<Either<Failure, Unit>> startInAppPurchaseFlow({
@@ -178,5 +168,13 @@ class LanternService implements LanternCoreService {
       return _ffiService.getUserData();
     }
     return _platformService.getUserData();
+  }
+
+  @override
+  Future<Either<Failure, String>> stripeBillingPortal() {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.stripeBillingPortal();
+    }
+    return _platformService.stripeBillingPortal();
   }
 }

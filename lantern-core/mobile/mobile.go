@@ -263,9 +263,9 @@ func OAuthLoginCallback(oAuthToken string) ([]byte, error) {
 func StripeSubscription(email, planId string) (string, error) {
 	log.Debug("Creating stripe subscription")
 	body := protos.SubscriptionRequest{
-		Email:   email,
-		Name:    email,
-		PriceId: planId,
+		Email:  email,
+		Name:   email,
+		PlanId: planId,
 	}
 	stripeSubscription, err := radianceServer.proServer.StripeSubscription(context.Background(), &body)
 	if err != nil {
@@ -318,6 +318,15 @@ func Plans() (string, error) {
 	}
 	// Convert bytes to string and print
 	return string(jsonData), nil
+}
+func StripeBilingPortalUrl() (string, error) {
+	log.Debug("Getting stripe billing portal")
+	billingPortal, err := radianceServer.proServer.StripeBilingPortalUrl()
+	if err != nil {
+		return "", log.Errorf("Error getting stripe billing portal: %v", err)
+	}
+	log.Debugf("StripeBillingPortal response: %v", billingPortal)
+	return billingPortal.Redirect, nil
 }
 
 func subscriptionPaymentRedirect(redirectBody *protos.SubscriptionPaymentRedirectRequest) (string, error) {

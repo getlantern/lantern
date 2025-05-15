@@ -99,10 +99,12 @@ class MethodHandler : FlutterPlugin,
                     }
                 }
             }
+
             Methods.AddSplitTunnelItem.method -> {
                 scope.launch {
                     result.runCatching {
-                        val filterType = call.argument<String>("filterType") ?: error("Missing filterType")
+                        val filterType =
+                            call.argument<String>("filterType") ?: error("Missing filterType")
                         val value = call.argument<String>("value") ?: error("Missing value")
 
                         val error = Mobile.addSplitTunnelItem(filterType, value)
@@ -111,7 +113,11 @@ class MethodHandler : FlutterPlugin,
                         }
                         success("Item added")
                     }.onFailure { e ->
-                        result.error("add_split_tunnel_item", e.localizedMessage ?: "Failed to add split tunnel item", e)
+                        result.error(
+                            "add_split_tunnel_item",
+                            e.localizedMessage ?: "Failed to add split tunnel item",
+                            e
+                        )
                     }
                 }
             }
@@ -119,29 +125,20 @@ class MethodHandler : FlutterPlugin,
             Methods.RemoveSplitTunnelItem.method -> {
                 scope.launch {
                     result.runCatching {
-                        val filterType = call.argument<String>("filterType") ?: error("Missing filterType")
+                        val filterType =
+                            call.argument<String>("filterType") ?: error("Missing filterType")
                         val value = call.argument<String>("value") ?: error("Missing value")
-
                         val error = Mobile.removeSplitTunnelItem(filterType, value)
                         if (error is Exception) {
                             throw error
                         }
                         success("Item removed")
                     }.onFailure { e ->
-                        result.error("remove_split_tunnel_item", e.localizedMessage ?: "Failed to remove split tunnel item", e)
-                    }
-                }
-            }
-            Methods.SubscriptionPaymentRedirect.method -> {
-                scope.launch {
-                    result.runCatching {
-                        val map = call.arguments as Map<*, *>
-                        val subscriptionLink = Mobile.stripeSubscriptionPaymentRedirect(map["subType"] as String)
-                        withContext(Dispatchers.Main) {
-                            success(subscriptionLink)
-                        }
-                    }.onFailure { e ->
-                        result.error("vpn_status", e.localizedMessage ?: "Please try again", e)
+                        result.error(
+                            "remove_split_tunnel_item",
+                            e.localizedMessage ?: "Failed to remove split tunnel item",
+                            e
+                        )
                     }
                 }
             }

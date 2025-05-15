@@ -12,7 +12,6 @@ import 'package:lantern/core/widgets/logs_path.dart';
 import 'package:lantern/features/auth/provider/payment_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
-import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 
 @RoutePage(name: 'ChoosePaymentMethod')
 class ChoosePaymentMethod extends HookConsumerWidget {
@@ -60,9 +59,8 @@ class ChoosePaymentMethod extends HookConsumerWidget {
       return;
     }
 
-    onPurchaseSuccess(ref, context);
-    /// only android side load version should be here
-    // androidStripeSubscription(provider, ref, context);
+    // only android side load version should be here
+    androidStripeSubscription(provider, ref, context);
   }
 
   Future<void> androidStripeSubscription(
@@ -165,7 +163,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           appRouter.popUntilRoot();
         },
       );
-    }catch (e) {
+    } catch (e) {
       appLogger.error('Error subscribing to plan: $e');
       context.showSnackBarError('error_subscribing_plan'.i18n);
     }

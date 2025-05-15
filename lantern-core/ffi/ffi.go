@@ -334,6 +334,18 @@ func stripeSubscriptionPaymentRedirect(subType *C.char) *C.char {
 	return C.CString(*redirect)
 }
 
+// Fetch stripe subscription link
+//
+//export stripeBilingPortalUrl
+func stripeBilingPortalUrl() *C.char {
+	url, err := server.proServer.StripeBilingPortalUrl()
+	if err != nil {
+		return SendError(err)
+	}
+	log.Debugf("StripeBilingPortalUrl response: %s", url.Redirect)
+	return C.CString(url.Redirect)
+}
+
 // Fetch plans from the server
 //
 //export plans
