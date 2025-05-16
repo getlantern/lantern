@@ -1,8 +1,12 @@
 import NetworkExtension
+import OSLog
 
 class PacketTunnelProvider: NEPacketTunnelProvider {
+    
+    let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "org.getlantern.lantern.PacketTunnelProvider", category: "PacketTunnelProvider")
 
     override func startTunnel(options: [String : NSObject]?, completionHandler: @escaping (Error?) -> Void) {
+        self.logger.log(">>>>>>>>startTunnel")
         // Add code here to start the process of connecting the tunnel.
         print(">>>>>>>>startTunnel")
     }
@@ -30,5 +34,6 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     override func wake() {
         // Add code here to wake up.
         print(">>>>>>>>Waking up...")
+        self.logger.log(">>>>>>>>Waking up...")
     }
 }
