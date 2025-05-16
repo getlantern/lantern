@@ -38,6 +38,8 @@ abstract class LanternCoreService {
     required PaymentErrorCallback onError,
   });
 
+  Future<Either<Failure, Unit>> showManageSubscriptions();
+
   Future<Either<Failure, PlansData>> plans();
 
 

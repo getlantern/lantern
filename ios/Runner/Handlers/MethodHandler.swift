@@ -7,6 +7,7 @@ import Flutter
 import Foundation
 import Liblantern
 import NetworkExtension
+import StoreKit
 
 /// Handles Flutter method channel interactions for VPN operations.
 class MethodHandler {
@@ -43,7 +44,8 @@ class MethodHandler {
         self.oauthLoginCallback(result: result, token: token)
       case "getUserData":
         self.getUserData(result: result)
-      case "stripeBillingPortal":
+      case "showManageSubscriptions":
+        self.showManageSubscriptions(result: result)
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -203,31 +205,63 @@ class MethodHandler {
     }
   }
 
-    private func stripeBillingPortal(result: @escaping FlutterResult) {
-      Task {
-        do {
-          var error: NSError?
-          var data = try await MobileStripeBilingPortalUrl(&error)
-          if error != nil {
-            result(
-              FlutterError(
-                code: "STRIPE_BILLING_PORTAL",
-                message: error?.description,
-                details: error?.localizedDescription))
-          }
-          await MainActor.run {
-            result(data)
-          }
-        } catch {
-          await MainActor.run {
-            result(
-              FlutterError(
-                code: "STRIPE_BILLING_PORTAL",
-                message: "error while getting stripe billing url.",
-                details: error.localizedDescription))
-          }
+  private func stripeBillingPortal(result: @escaping FlutterResult) {
+    Task {
+      do {
+        var error: NSError?
+        var data = try await MobileStripeBilingPortalUrl(&error)
+        if error != nil {
+          result(
+            FlutterError(
+              code: "STRIPE_BILLING_PORTAL",
+              message: error?.description,
+              details: error?.localizedDescription))
+        }
+        await MainActor.run {
+          result(data)
+        }
+      } catch {
+        await MainActor.run {
+          result(
+            FlutterError(
+              code: "STRIPE_BILLING_PORTAL",
+              message: "error while getting stripe billing url.",
+              details: error.localizedDescription))
         }
       }
     }
-    
+  }
+
+  private func showManageSubscriptions(result: @escaping FlutterResult) {
+    if #available(iOS 15.0, *) {
+      guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else {
+        result(
+          FlutterError(
+            code: "NO_WINDOW_SCENE",
+            message: "No active window scene found",
+            details: nil))
+        return
+      }
+
+      Task {
+        do {
+          try await AppStore.showManageSubscriptions(in: windowScene)
+          result(nil)
+        } catch {
+          result(
+            FlutterError(
+              code: "FAILED_TO_OPEN",
+              message: "Failed to show subscriptions: \(error.localizedDescription)",
+              details: nil))
+        }
+      }
+    } else {
+      result(
+        FlutterError(
+          code: "UNAVAILABLE",
+          message: "iOS 15 or higher is required to manage subscriptions natively",
+          details: nil))
+    }
+  }
+
 }

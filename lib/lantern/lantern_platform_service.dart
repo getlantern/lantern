@@ -169,7 +169,9 @@ class LanternPlatformService implements LanternCoreService {
 
   @override
   Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
-      {required StipeSubscriptionType type, required String planId,required String email}) async {
+      {required StipeSubscriptionType type,
+      required String planId,
+      required String email}) async {
     throw UnimplementedError("This not supported on mobile");
   }
 
@@ -255,6 +257,20 @@ class LanternPlatformService implements LanternCoreService {
     try {
       final bytes = await _methodChannel.invokeMethod('getUserData');
       return Right(LoginResponse.fromBuffer(bytes));
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription));
+    }
+  }
+
+  // Only supported in IOS
+  @override
+  Future<Either<Failure, Unit>> showManageSubscriptions() async {
+    try {
+      await _methodChannel.invokeMethod('showManageSubscriptions');
+      return Right(unit);
     } catch (e, stackTrace) {
       appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
       return Left(Failure(

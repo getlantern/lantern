@@ -179,4 +179,12 @@ class LanternService implements LanternCoreService {
     }
     return _platformService.stripeBillingPortal();
   }
+
+  @override
+  Future<Either<Failure, Unit>> showManageSubscriptions() {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.showManageSubscriptions();
+    }
+    return _platformService.showManageSubscriptions();
+  }
 }

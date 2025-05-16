@@ -416,6 +416,12 @@ class LanternFFIService implements LanternCoreService {
       return Left(e.toFailure());
     }
   }
+
+  @override
+  Future<Either<Failure, Unit>> showManageSubscriptions() {
+    // TODO: implement showManageSubscriptions
+    throw UnimplementedError();
+  }
 }
 
 class SplitTunnelMessage {

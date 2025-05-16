@@ -1,7 +1,11 @@
+import 'dart:io';
+
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/utils/store_utils.dart';
 import 'package:lantern/core/widgets/user_devices.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 
@@ -102,6 +106,37 @@ class Account extends HookConsumerWidget {
   }
 
   Future<void> onManageSubscriptionTap(
+      WidgetRef ref, BuildContext buildContext) async {
+    switch (Platform.operatingSystem) {
+      case "android":
+        if (sl<StoreUtils>().isPlayStoreVersion) {
+          /// user is using play store version
+          openGooglePlaySubscriptions();
+          return;
+        }
+        stripeBillingPortal(ref, buildContext);
+        break;
+      case "ios":
+        // openAppleSubscriptions(ref);
+        break;
+      case "macos":
+      case "linux":
+      case "windows":
+        /// user is using desktop version
+        stripeBillingPortal(ref, buildContext);
+        break;
+    }
+  }
+
+  Future<void> openGooglePlaySubscriptions() async {
+    UrlUtils.openUrl("https://play.google.com/store/account/subscriptions");
+  }
+
+  void openAppleSubscriptions(WidgetRef ref) async {
+    UrlUtils.openUrl("https://apps.apple.com/account/subscriptions");
+  }
+
+  Future<void> stripeBillingPortal(
       WidgetRef ref, BuildContext buildContext) async {
     try {
       buildContext.showLoadingDialog();
