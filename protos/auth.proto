@@ -1,5 +1,5 @@
 syntax = "proto3";
-import "google/protobuf/timestamp.proto";
+
 
 message UserResponse {
   int64 legacyID = 1;
@@ -43,10 +43,10 @@ message UserResponse {
     string stripe_customer_i_d = 3;
     string status = 4;
     string provider = 5;
-    google.protobuf.Timestamp created_at = 6;
-    google.protobuf.Timestamp start_at = 7;
-    google.protobuf.Timestamp end_at = 8;
-    google.protobuf.Timestamp cancelled_at = 9;
+    string created_at = 6;
+    string  start_at = 7;
+    string  end_at = 8;
+    string  cancelled_at = 9;
     bool auto_renew = 10;
   }
   SubscriptionData subscriptionData = 20;

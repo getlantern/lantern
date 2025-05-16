@@ -14,8 +14,6 @@ import 'dart:core' as $core;
 import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:protobuf/protobuf.dart' as $pb;
 
-import '../google/protobuf/timestamp.pb.dart' as $0;
-
 export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 
 class UserResponse_Device extends $pb.GeneratedMessage {
@@ -375,10 +373,10 @@ class UserResponse_SubscriptionData extends $pb.GeneratedMessage {
     $core.String? stripeCustomerID,
     $core.String? status,
     $core.String? provider,
-    $0.Timestamp? createdAt,
-    $0.Timestamp? startAt,
-    $0.Timestamp? endAt,
-    $0.Timestamp? cancelledAt,
+    $core.String? createdAt,
+    $core.String? startAt,
+    $core.String? endAt,
+    $core.String? cancelledAt,
     $core.bool? autoRenew,
   }) {
     final $result = create();
@@ -424,10 +422,10 @@ class UserResponse_SubscriptionData extends $pb.GeneratedMessage {
     ..aOS(3, _omitFieldNames ? '' : 'stripeCustomerID')
     ..aOS(4, _omitFieldNames ? '' : 'status')
     ..aOS(5, _omitFieldNames ? '' : 'provider')
-    ..aOM<$0.Timestamp>(6, _omitFieldNames ? '' : 'createdAt', subBuilder: $0.Timestamp.create)
-    ..aOM<$0.Timestamp>(7, _omitFieldNames ? '' : 'startAt', subBuilder: $0.Timestamp.create)
-    ..aOM<$0.Timestamp>(8, _omitFieldNames ? '' : 'endAt', subBuilder: $0.Timestamp.create)
-    ..aOM<$0.Timestamp>(9, _omitFieldNames ? '' : 'cancelledAt', subBuilder: $0.Timestamp.create)
+    ..aOS(6, _omitFieldNames ? '' : 'createdAt')
+    ..aOS(7, _omitFieldNames ? '' : 'startAt')
+    ..aOS(8, _omitFieldNames ? '' : 'endAt')
+    ..aOS(9, _omitFieldNames ? '' : 'cancelledAt')
     ..aOB(10, _omitFieldNames ? '' : 'autoRenew')
     ..hasRequiredFields = false
   ;
@@ -499,48 +497,40 @@ class UserResponse_SubscriptionData extends $pb.GeneratedMessage {
   void clearProvider() => $_clearField(5);
 
   @$pb.TagNumber(6)
-  $0.Timestamp get createdAt => $_getN(5);
+  $core.String get createdAt => $_getSZ(5);
   @$pb.TagNumber(6)
-  set createdAt($0.Timestamp v) { $_setField(6, v); }
+  set createdAt($core.String v) { $_setString(5, v); }
   @$pb.TagNumber(6)
   $core.bool hasCreatedAt() => $_has(5);
   @$pb.TagNumber(6)
   void clearCreatedAt() => $_clearField(6);
-  @$pb.TagNumber(6)
-  $0.Timestamp ensureCreatedAt() => $_ensure(5);
 
   @$pb.TagNumber(7)
-  $0.Timestamp get startAt => $_getN(6);
+  $core.String get startAt => $_getSZ(6);
   @$pb.TagNumber(7)
-  set startAt($0.Timestamp v) { $_setField(7, v); }
+  set startAt($core.String v) { $_setString(6, v); }
   @$pb.TagNumber(7)
   $core.bool hasStartAt() => $_has(6);
   @$pb.TagNumber(7)
   void clearStartAt() => $_clearField(7);
-  @$pb.TagNumber(7)
-  $0.Timestamp ensureStartAt() => $_ensure(6);
 
   @$pb.TagNumber(8)
-  $0.Timestamp get endAt => $_getN(7);
+  $core.String get endAt => $_getSZ(7);
   @$pb.TagNumber(8)
-  set endAt($0.Timestamp v) { $_setField(8, v); }
+  set endAt($core.String v) { $_setString(7, v); }
   @$pb.TagNumber(8)
   $core.bool hasEndAt() => $_has(7);
   @$pb.TagNumber(8)
   void clearEndAt() => $_clearField(8);
-  @$pb.TagNumber(8)
-  $0.Timestamp ensureEndAt() => $_ensure(7);
 
   @$pb.TagNumber(9)
-  $0.Timestamp get cancelledAt => $_getN(8);
+  $core.String get cancelledAt => $_getSZ(8);
   @$pb.TagNumber(9)
-  set cancelledAt($0.Timestamp v) { $_setField(9, v); }
+  set cancelledAt($core.String v) { $_setString(8, v); }
   @$pb.TagNumber(9)
   $core.bool hasCancelledAt() => $_has(8);
   @$pb.TagNumber(9)
   void clearCancelledAt() => $_clearField(9);
-  @$pb.TagNumber(9)
-  $0.Timestamp ensureCancelledAt() => $_ensure(8);
 
   @$pb.TagNumber(10)
   $core.bool get autoRenew => $_getBF(9);

@@ -74,10 +74,10 @@ const UserResponse_SubscriptionData$json = {
     {'1': 'stripe_customer_i_d', '3': 3, '4': 1, '5': 9, '10': 'stripeCustomerID'},
     {'1': 'status', '3': 4, '4': 1, '5': 9, '10': 'status'},
     {'1': 'provider', '3': 5, '4': 1, '5': 9, '10': 'provider'},
-    {'1': 'created_at', '3': 6, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'createdAt'},
-    {'1': 'start_at', '3': 7, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'startAt'},
-    {'1': 'end_at', '3': 8, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'endAt'},
-    {'1': 'cancelled_at', '3': 9, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'cancelledAt'},
+    {'1': 'created_at', '3': 6, '4': 1, '5': 9, '10': 'createdAt'},
+    {'1': 'start_at', '3': 7, '4': 1, '5': 9, '10': 'startAt'},
+    {'1': 'end_at', '3': 8, '4': 1, '5': 9, '10': 'endAt'},
+    {'1': 'cancelled_at', '3': 9, '4': 1, '5': 9, '10': 'cancelledAt'},
     {'1': 'auto_renew', '3': 10, '4': 1, '5': 8, '10': 'autoRenew'},
   ],
 };
@@ -101,15 +101,13 @@ final $typed_data.Uint8List userResponseDescriptor = $convert.base64Decode(
     'c2VSCXB1cmNoYXNlcxIcCglib251c0RheXMYDiABKAlSCWJvbnVzRGF5cxIgCgtib251c01vbn'
     'RocxgPIAEoCVILYm9udXNNb250aHMSGgoIaW52aXRlcnMYECADKAlSCGludml0ZXJzEhoKCGlu'
     'dml0ZWVzGBEgAygJUghpbnZpdGVlcxIuCgdkZXZpY2VzGBIgAygLMhQuVXNlclJlc3BvbnNlLk'
-    'RldmljZVIHZGV2aWNlcxIiCgx5aW5iaUVuYWJsZWQYEyABKAhSDHlpbmJpRW5hYmxlZBq8AwoQ'
+    'RldmljZVIHZGV2aWNlcxIiCgx5aW5iaUVuYWJsZWQYEyABKAhSDHlpbmJpRW5hYmxlZBrMAgoQ'
     'U3Vic2NyaXB0aW9uRGF0YRIoChBzdWJzY3JpcHRpb25faV9kGAEgASgJUg5zdWJzY3JpcHRpb2'
     '5JRBIYCghwbGFuX2lfZBgCIAEoCVIGcGxhbklEEi0KE3N0cmlwZV9jdXN0b21lcl9pX2QYAyAB'
     'KAlSEHN0cmlwZUN1c3RvbWVySUQSFgoGc3RhdHVzGAQgASgJUgZzdGF0dXMSGgoIcHJvdmlkZX'
-    'IYBSABKAlSCHByb3ZpZGVyEjkKCmNyZWF0ZWRfYXQYBiABKAsyGi5nb29nbGUucHJvdG9idWYu'
-    'VGltZXN0YW1wUgljcmVhdGVkQXQSNQoIc3RhcnRfYXQYByABKAsyGi5nb29nbGUucHJvdG9idW'
-    'YuVGltZXN0YW1wUgdzdGFydEF0EjEKBmVuZF9hdBgIIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5U'
-    'aW1lc3RhbXBSBWVuZEF0Ej0KDGNhbmNlbGxlZF9hdBgJIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi'
-    '5UaW1lc3RhbXBSC2NhbmNlbGxlZEF0Eh0KCmF1dG9fcmVuZXcYCiABKAhSCWF1dG9SZW5ldw==');
+    'IYBSABKAlSCHByb3ZpZGVyEh0KCmNyZWF0ZWRfYXQYBiABKAlSCWNyZWF0ZWRBdBIZCghzdGFy'
+    'dF9hdBgHIAEoCVIHc3RhcnRBdBIVCgZlbmRfYXQYCCABKAlSBWVuZEF0EiEKDGNhbmNlbGxlZF'
+    '9hdBgJIAEoCVILY2FuY2VsbGVkQXQSHQoKYXV0b19yZW5ldxgKIAEoCFIJYXV0b1JlbmV3');
 
 @$core.Deprecated('Use purchaseDescriptor instead')
 const Purchase$json = {

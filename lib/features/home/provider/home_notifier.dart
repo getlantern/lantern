@@ -32,8 +32,5 @@ class HomeNotifier extends _$HomeNotifier {
     sl<LocalStorageService>().saveUser(userData.toEntity());
   }
 
-  bool get isProUser {
-    final data = state.valueOrNull;
-    return data?.legacyUserData.userStatus == 'pro';
-  }
+
 }

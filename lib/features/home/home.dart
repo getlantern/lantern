@@ -7,6 +7,7 @@ import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/vpn/vpn_status.dart';
 import 'package:lantern/features/vpn/vpn_switch.dart';
+
 import '../../core/common/common.dart';
 
 enum _SettingTileType {
@@ -23,9 +24,8 @@ class Home extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final homeState = ref.watch(homeNotifierProvider);
-
     final isUserPro = homeState.maybeWhen(
-      data: (user) => user.legacyUserData.userStatus == 'pro',
+      data: (user) => user.legacyUserData.userLevel == 'pro',
       orElse: () => false,
     );
     textTheme = Theme.of(context).textTheme;
