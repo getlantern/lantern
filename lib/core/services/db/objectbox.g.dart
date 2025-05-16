@@ -211,7 +211,7 @@ final _entities = <obx_int.ModelEntity>[
       backlinks: <obx_int.ModelBacklink>[]),
   obx_int.ModelEntity(
       id: const obx_int.IdUid(11, 818119553507489289),
-      name: 'LoginResponseEntity',
+      name: 'UserResponseEntity',
       lastPropertyId: const obx_int.IdUid(6, 2315749090244685953),
       flags: 0,
       properties: <obx_int.ModelProperty>[
@@ -720,18 +720,18 @@ obx_int.ModelDefinition getObjectBoxModel() {
 
           return object;
         }),
-    LoginResponseEntity: obx_int.EntityDefinition<LoginResponseEntity>(
+    UserResponseEntity: obx_int.EntityDefinition<UserResponseEntity>(
         model: _entities[6],
-        toOneRelations: (LoginResponseEntity object) => [object.legacyUserData],
-        toManyRelations: (LoginResponseEntity object) => {
-              obx_int.RelInfo<LoginResponseEntity>.toMany(2, object.id):
+        toOneRelations: (UserResponseEntity object) => [object.legacyUserData],
+        toManyRelations: (UserResponseEntity object) => {
+              obx_int.RelInfo<UserResponseEntity>.toMany(2, object.id):
                   object.devices
             },
-        getId: (LoginResponseEntity object) => object.id,
-        setId: (LoginResponseEntity object, int id) {
+        getId: (UserResponseEntity object) => object.id,
+        setId: (UserResponseEntity object, int id) {
           object.id = id;
         },
-        objectToFB: (LoginResponseEntity object, fb.Builder fbb) {
+        objectToFB: (UserResponseEntity object, fb.Builder fbb) {
           final legacyTokenOffset = fbb.writeString(object.legacyToken);
           fbb.startTable(7);
           fbb.addInt64(0, object.id);
@@ -757,7 +757,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
               const fb.BoolReader().vTableGet(buffer, rootOffset, 10, false);
           final successParam =
               const fb.BoolReader().vTableGet(buffer, rootOffset, 12, false);
-          final object = LoginResponseEntity(
+          final object = UserResponseEntity(
               id: idParam,
               legacyID: legacyIDParam,
               legacyToken: legacyTokenParam,
@@ -766,10 +766,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
           object.legacyUserData.targetId =
               const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0);
           object.legacyUserData.attach(store);
-          obx_int.InternalToManyAccess.setRelInfo<LoginResponseEntity>(
+          obx_int.InternalToManyAccess.setRelInfo<UserResponseEntity>(
               object.devices,
               store,
-              obx_int.RelInfo<LoginResponseEntity>.toMany(2, object.id));
+              obx_int.RelInfo<UserResponseEntity>.toMany(2, object.id));
           return object;
         }),
     PurchaseEntity: obx_int.EntityDefinition<PurchaseEntity>(
@@ -1091,36 +1091,36 @@ class DeviceEntity_ {
       obx.QueryIntegerProperty<DeviceEntity>(_entities[5].properties[3]);
 }
 
-/// [LoginResponseEntity] entity fields to define ObjectBox queries.
-class LoginResponseEntity_ {
-  /// See [LoginResponseEntity.id].
+/// [UserResponseEntity] entity fields to define ObjectBox queries.
+class UserResponseEntity_ {
+  /// See [UserResponseEntity.id].
   static final id =
-      obx.QueryIntegerProperty<LoginResponseEntity>(_entities[6].properties[0]);
+      obx.QueryIntegerProperty<UserResponseEntity>(_entities[6].properties[0]);
 
-  /// See [LoginResponseEntity.legacyID].
+  /// See [UserResponseEntity.legacyID].
   static final legacyID =
-      obx.QueryIntegerProperty<LoginResponseEntity>(_entities[6].properties[1]);
+      obx.QueryIntegerProperty<UserResponseEntity>(_entities[6].properties[1]);
 
-  /// See [LoginResponseEntity.legacyToken].
+  /// See [UserResponseEntity.legacyToken].
   static final legacyToken =
-      obx.QueryStringProperty<LoginResponseEntity>(_entities[6].properties[2]);
+      obx.QueryStringProperty<UserResponseEntity>(_entities[6].properties[2]);
 
-  /// See [LoginResponseEntity.emailConfirmed].
+  /// See [UserResponseEntity.emailConfirmed].
   static final emailConfirmed =
-      obx.QueryBooleanProperty<LoginResponseEntity>(_entities[6].properties[3]);
+      obx.QueryBooleanProperty<UserResponseEntity>(_entities[6].properties[3]);
 
-  /// See [LoginResponseEntity.success].
+  /// See [UserResponseEntity.success].
   static final success =
-      obx.QueryBooleanProperty<LoginResponseEntity>(_entities[6].properties[4]);
+      obx.QueryBooleanProperty<UserResponseEntity>(_entities[6].properties[4]);
 
-  /// See [LoginResponseEntity.legacyUserData].
+  /// See [UserResponseEntity.legacyUserData].
   static final legacyUserData =
-      obx.QueryRelationToOne<LoginResponseEntity, UserDataEntity>(
+      obx.QueryRelationToOne<UserResponseEntity, UserDataEntity>(
           _entities[6].properties[5]);
 
-  /// see [LoginResponseEntity.devices]
+  /// see [UserResponseEntity.devices]
   static final devices =
-      obx.QueryRelationToMany<LoginResponseEntity, DeviceEntity>(
+      obx.QueryRelationToMany<UserResponseEntity, DeviceEntity>(
           _entities[6].relations[0]);
 }
 

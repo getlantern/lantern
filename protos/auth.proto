@@ -1,6 +1,7 @@
 syntax = "proto3";
+import "google/protobuf/timestamp.proto";
 
-message LoginResponse {
+message UserResponse {
   int64 legacyID = 1;
   string legacyToken = 2;
   string id = 3;
@@ -36,8 +37,20 @@ message LoginResponse {
   UserData legacyUserData = 6;
   // list of current user devices. returned only on successful login that is blocked by 'too many devices'
   repeated Device devices = 7;
+  message SubscriptionData {
+    string subscription_i_d = 1;
+    string plan_i_d = 2;
+    string stripe_customer_i_d = 3;
+    string status = 4;
+    string provider = 5;
+    google.protobuf.Timestamp created_at = 6;
+    google.protobuf.Timestamp start_at = 7;
+    google.protobuf.Timestamp end_at = 8;
+    google.protobuf.Timestamp cancelled_at = 9;
+    bool auto_renew = 10;
+  }
+  SubscriptionData subscriptionData = 20;
 }
-
 
 message Purchase  {
   string plan = 1;

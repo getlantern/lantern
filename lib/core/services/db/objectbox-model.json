@@ -194,7 +194,7 @@
     {
       "id": "11:818119553507489289",
       "lastPropertyId": "6:2315749090244685953",
-      "name": "LoginResponseEntity",
+      "name": "UserResponseEntity",
       "properties": [
         {
           "id": "1:3516428039215602885",

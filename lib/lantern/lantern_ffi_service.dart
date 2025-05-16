@@ -383,8 +383,7 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, LoginResponse>> oAuthLoginCallback(
-      String token) async {
+  Future<Either<Failure, UserResponse>> oAuthLoginCallback(String token) async {
     try {
       final result = await runInBackground<String>(
         () async {
@@ -392,8 +391,8 @@ class LanternFFIService implements LanternCoreService {
         },
       );
       final decodedResult = base64Decode(result);
-      final loginResponse = LoginResponse.fromBuffer(decodedResult);
-      return Right(loginResponse);
+      final user = UserResponse.fromBuffer(decodedResult);
+      return Right(user);
     } catch (e, stackTrace) {
       appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
       return Left(e.toFailure());
@@ -401,7 +400,7 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, LoginResponse>> getUserData() async {
+  Future<Either<Failure, UserResponse>> getUserData() async {
     try {
       final result = await runInBackground<String>(
         () async {
@@ -409,8 +408,8 @@ class LanternFFIService implements LanternCoreService {
         },
       );
       final decodedResult = base64Decode(result);
-      final loginResponse = LoginResponse.fromBuffer(decodedResult);
-      return Right(loginResponse);
+      final user = UserResponse.fromBuffer(decodedResult);
+      return Right(user);
     } catch (e, stackTrace) {
       appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
       return Left(e.toFailure());

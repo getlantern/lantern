@@ -56,8 +56,8 @@ abstract class LanternCoreService {
   //OAuth methods
   Future<Either<Failure, String>> getOAuthLoginUrl(String provider);
 
-  Future<Either<Failure, LoginResponse>> oAuthLoginCallback(String token);
+  Future<Either<Failure, UserResponse>> oAuthLoginCallback(String token);
 
-  Future<Either<Failure, LoginResponse>> getUserData();
+  Future<Either<Failure, UserResponse>> getUserData();
 
 }

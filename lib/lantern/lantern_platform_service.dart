@@ -238,12 +238,12 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, LoginResponse>> oAuthLoginCallback(
+  Future<Either<Failure, UserResponse>> oAuthLoginCallback(
       String token) async {
     try {
       final bytes =
           await _methodChannel.invokeMethod('oauthLoginCallback', token);
-      return Right(LoginResponse.fromBuffer(bytes));
+      return Right(UserResponse.fromBuffer(bytes));
     } catch (e, stackTrace) {
       appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
       return Left(Failure(
@@ -253,10 +253,10 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, LoginResponse>> getUserData() async {
+  Future<Either<Failure, UserResponse>> getUserData() async {
     try {
       final bytes = await _methodChannel.invokeMethod('getUserData');
-      return Right(LoginResponse.fromBuffer(bytes));
+      return Right(UserResponse.fromBuffer(bytes));
     } catch (e, stackTrace) {
       appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
       return Left(Failure(

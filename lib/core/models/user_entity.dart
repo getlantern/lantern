@@ -1,7 +1,7 @@
 import 'package:objectbox/objectbox.dart';
 
 @Entity()
-class LoginResponseEntity {
+class UserResponseEntity {
   int id;
   int legacyID;
   String legacyToken;
@@ -10,7 +10,7 @@ class LoginResponseEntity {
   final legacyUserData = ToOne<UserDataEntity>();
   final devices = ToMany<DeviceEntity>();
 
-  LoginResponseEntity({
+  UserResponseEntity({
     this.id = 0,
     required this.legacyID,
     required this.legacyToken,

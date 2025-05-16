@@ -2,9 +2,9 @@ import 'package:fixnum/fixnum.dart';
 import 'package:lantern/core/models/user_entity.dart';
 import 'package:lantern/lantern/protos/protos/auth.pbserver.dart';
 
-extension UserMapper on LoginResponse {
-  LoginResponseEntity toEntity() {
-    final login = LoginResponseEntity(
+extension UserMapper on UserResponse {
+  UserResponseEntity toEntity() {
+    final login = UserResponseEntity(
       id: 0,
       legacyID: legacyID.toInt(),
       legacyToken: legacyToken,
@@ -21,7 +21,7 @@ extension UserMapper on LoginResponse {
   }
 }
 
-extension UserDataMapper on LoginResponse_UserData {
+extension UserDataMapper on UserResponse_UserData {
   UserDataEntity toEntity() {
     final user = UserDataEntity(
       id: 0,
@@ -49,7 +49,7 @@ extension UserDataMapper on LoginResponse_UserData {
   }
 }
 
-extension DeviceMapper on LoginResponse_Device {
+extension DeviceMapper on UserResponse_Device {
   DeviceEntity toEntity() {
     return DeviceEntity(
       id: 0,
@@ -69,9 +69,9 @@ extension PurchaseMapper on Purchase {
   }
 }
 
-extension LoginUserData on LoginResponseEntity {
-  LoginResponse toLoginResponse() {
-    return LoginResponse(
+extension LoginUserData on UserResponseEntity {
+  UserResponse toUserResponse() {
+    return UserResponse(
       id: id.toString(),
       legacyID: Int64(legacyID),
       legacyToken: legacyToken,
@@ -86,8 +86,8 @@ extension LoginUserData on LoginResponseEntity {
 }
 
 extension UserData on UserDataEntity {
-  LoginResponse_UserData toUserData() {
-    return LoginResponse_UserData(
+  UserResponse_UserData toUserData() {
+    return UserResponse_UserData(
       userId: Int64(userId),
       code: code,
       token: token,
@@ -112,8 +112,8 @@ extension UserData on UserDataEntity {
 }
 
 extension DeviceExtension on DeviceEntity {
-  LoginResponse_Device toDevice() {
-    return LoginResponse_Device(
+  UserResponse_Device toDevice() {
+    return UserResponse_Device(
       id: deviceId,
       name: name,
       created: Int64(created),

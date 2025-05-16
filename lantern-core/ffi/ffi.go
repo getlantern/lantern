@@ -416,7 +416,7 @@ func oAuthLoginCallback(_oAuthToken *C.char) *C.char {
 	if err != nil {
 		return SendError(log.Errorf("Error getting user data: %v", err))
 	}
-	//Convert user to LoginResponse
+	//Convert user to UserResponse
 	userResponse := &protos.LoginResponse{
 		LegacyID:       user.UserId,
 		LegacyToken:    user.Token,

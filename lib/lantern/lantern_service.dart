@@ -157,7 +157,7 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, LoginResponse>> oAuthLoginCallback(String token) {
+  Future<Either<Failure, UserResponse>> oAuthLoginCallback(String token) {
     if (PlatformUtils.isDesktop) {
       return _ffiService.oAuthLoginCallback(token);
     }
@@ -165,7 +165,7 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, LoginResponse>> getUserData() {
+  Future<Either<Failure, UserResponse>> getUserData() {
     if (PlatformUtils.isDesktop) {
       return _ffiService.getUserData();
     }

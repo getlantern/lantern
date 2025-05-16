@@ -43,7 +43,7 @@ class LocalStorageService {
   late Box<AppData> _appsBox;
   late Box<Website> _websitesBox;
   late Box<PlansDataEntity> _plansBox;
-  late Box<LoginResponseEntity> _userBox;
+  late Box<UserResponseEntity> _userBox;
 
   ///Due to limitations in macOS the value must be at most 19 characters
   /// Do not change this value
@@ -62,7 +62,7 @@ class LocalStorageService {
     _appsBox = _store.box<AppData>();
     _websitesBox = _store.box<Website>();
     _plansBox = _store.box<PlansDataEntity>();
-    _userBox = _store.box<LoginResponseEntity>();
+    _userBox = _store.box<UserResponseEntity>();
 
     dbLogger.info(
       "LocalStorageService initialized in ${DateTime.now().difference(start).inMilliseconds}ms",
@@ -150,14 +150,14 @@ class LocalStorageService {
   }
 
   // User methods
-  void saveUser(LoginResponseEntity user) {
+  void saveUser(UserResponseEntity user) {
     _userBox.removeAll();
     _userBox.putAsync(user);
   }
 
-  LoginResponse? getUser() {
+  UserResponse? getUser() {
     final user = _userBox.getAll();
-    return user.isEmpty ? null : user.first.toLoginResponse();
+    return user.isEmpty ? null : user.first.toUserResponse();
   }
 
   void updateAppSetting(AppSetting appSetting) {

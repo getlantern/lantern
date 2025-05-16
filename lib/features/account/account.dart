@@ -22,7 +22,9 @@ class Account extends HookConsumerWidget {
   }
 
   Widget _buildBody(BuildContext buildContext, WidgetRef ref) {
-    final theme = Theme.of(buildContext).textTheme;
+    final theme = Theme
+        .of(buildContext)
+        .textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -105,8 +107,8 @@ class Account extends HookConsumerWidget {
     appRouter.push(const DeleteAccount());
   }
 
-  Future<void> onManageSubscriptionTap(
-      WidgetRef ref, BuildContext buildContext) async {
+  Future<void> onManageSubscriptionTap(WidgetRef ref,
+      BuildContext buildContext) async {
     switch (Platform.operatingSystem) {
       case "android":
         if (sl<StoreUtils>().isPlayStoreVersion) {
@@ -117,12 +119,13 @@ class Account extends HookConsumerWidget {
         stripeBillingPortal(ref, buildContext);
         break;
       case "ios":
-        // openAppleSubscriptions(ref);
+        openAppleSubscriptions(ref);
         break;
       case "macos":
       case "linux":
       case "windows":
-        /// user is using desktop version
+
+      /// user is using desktop version
         stripeBillingPortal(ref, buildContext);
         break;
     }
@@ -136,19 +139,19 @@ class Account extends HookConsumerWidget {
     UrlUtils.openUrl("https://apps.apple.com/account/subscriptions");
   }
 
-  Future<void> stripeBillingPortal(
-      WidgetRef ref, BuildContext buildContext) async {
+  Future<void> stripeBillingPortal(WidgetRef ref,
+      BuildContext buildContext) async {
     try {
       buildContext.showLoadingDialog();
       final result =
-          await ref.read(lanternServiceProvider).stripeBillingPortal();
+      await ref.read(lanternServiceProvider).stripeBillingPortal();
       result.fold(
-        (failure) {
+            (failure) {
           buildContext.hideLoadingDialog();
           appLogger.error('Error on manage subscription tap', failure);
           buildContext.showSnackBarError(failure.localizedErrorMessage);
         },
-        (stripeUrl) {
+            (stripeUrl) {
           buildContext.hideLoadingDialog();
           UrlUtils.openWebview(stripeUrl);
         },
