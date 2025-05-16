@@ -312,17 +312,17 @@ func fetchUserData() (*protos.UserDataResponse, error) {
 // Fetch stipe subscription payment redirect link
 //
 //export stripeSubscriptionPaymentRedirect
-func stripeSubscriptionPaymentRedirect(subType *C.char) *C.char {
+func stripeSubscriptionPaymentRedirect(subType, _planId, _email *C.char) *C.char {
 	slog.Debug("stripeSubscriptionPaymentRedirect called")
 	subscriptionType := C.GoString(subType)
-
+	planId := C.GoString(_planId)
+	email := C.GoString(_email)
 	log.Debugf("subscription type: %s", subscriptionType)
-
 	redirectBody := &protos.SubscriptionPaymentRedirectRequest{
 		Provider:         "stripe",
-		Plan:             "1y-usd",
-		DeviceName:       "test",
-		Email:            "test@getlantern.org",
+		Plan:             planId,
+		DeviceName:       server.userInfo.DeviceID(),
+		Email:            email,
 		SubscriptionType: protos.SubscriptionType(subscriptionType),
 	}
 

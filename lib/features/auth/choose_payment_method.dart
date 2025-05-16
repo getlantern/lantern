@@ -106,8 +106,9 @@ class ChoosePaymentMethod extends HookConsumerWidget {
       ///Start stipe subscription flow
       final paymentProvider = ref.read(paymentNotifierProvider.notifier);
       final result = await paymentProvider.stripeSubscriptionLink(
-        StipeSubscriptionType.one_time,
+        StipeSubscriptionType.monthly,
         userPlan.id,
+        email,
       );
       result.fold(
         (error) {

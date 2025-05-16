@@ -264,7 +264,6 @@ func StripeSubscription(email, planId string) (string, error) {
 	log.Debug("Creating stripe subscription")
 	body := protos.SubscriptionRequest{
 		Email:  email,
-		Name:   email,
 		PlanId: planId,
 	}
 	stripeSubscription, err := radianceServer.proServer.StripeSubscription(context.Background(), &body)

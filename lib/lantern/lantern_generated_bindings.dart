@@ -2465,19 +2465,26 @@ class LanternBindings {
 
   ffi.Pointer<ffi.Char> stripeSubscriptionPaymentRedirect(
     ffi.Pointer<ffi.Char> subType,
+    ffi.Pointer<ffi.Char> _planId,
+    ffi.Pointer<ffi.Char> _email,
   ) {
     return _stripeSubscriptionPaymentRedirect(
       subType,
+      _planId,
+      _email,
     );
   }
 
   late final _stripeSubscriptionPaymentRedirectPtr = _lookup<
       ffi.NativeFunction<
           ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
               ffi.Pointer<ffi.Char>)>>('stripeSubscriptionPaymentRedirect');
   late final _stripeSubscriptionPaymentRedirect =
-      _stripeSubscriptionPaymentRedirectPtr
-          .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
+      _stripeSubscriptionPaymentRedirectPtr.asFunction<
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
 
   ffi.Pointer<ffi.Char> stripeBilingPortalUrl() {
     return _stripeBilingPortalUrl();

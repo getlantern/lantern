@@ -23,7 +23,7 @@ abstract class LanternCoreService {
 
   ///Payments methods
   Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
-      {required StipeSubscriptionType type, required String planId});
+      {required StipeSubscriptionType type, required String planId,required String email});
 
   /// this is used for stripe subscription
   Future<Either<Failure, Map<String, dynamic>>> stipeSubscription(

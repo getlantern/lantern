@@ -294,35 +294,28 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> cancelSubscription() {
-    // TODO: implement cancelSubscription
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Either<Failure, Unit>> makeOneTimePayment({required String planID}) {
-    // TODO: implement makeOneTimePayment
-    throw UnimplementedError();
-  }
-
-  @override
   Future<Either<Failure, Unit>> startInAppPurchaseFlow(
       {required String planId,
       required PaymentSuccessCallback onSuccess,
       required PaymentErrorCallback onError}) {
-    // TODO: implement subscribeToPlan
-    throw UnimplementedError();
+    throw UnimplementedError("This not supported on desktop");
   }
 
   @override
   Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
-      {required StipeSubscriptionType type, required String planId}) async {
+      {required StipeSubscriptionType type,
+      required String planId,
+      required String email}) async {
     try {
       appLogger.debug('Starting Stripe Subscription Payment Redirect');
       final result = await runInBackground<String>(
         () async {
           return _ffiService
-              .stripeSubscriptionPaymentRedirect(type.name.toCharPtr)
+              .stripeSubscriptionPaymentRedirect(
+                type.name.toCharPtr,
+                planId.toCharPtr,
+                email.toCharPtr,
+              )
               .toDartString();
         },
       );
@@ -335,7 +328,7 @@ class LanternFFIService implements LanternCoreService {
 
   @override
   Future<Either<Failure, Map<String, dynamic>>> stipeSubscription(
-      {required String planId,required String email}) {
+      {required String planId, required String email}) {
     // TODO: implement stipeSubscription
     throw UnimplementedError();
   }
@@ -344,7 +337,7 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, String>> stripeBillingPortal() async {
     try {
       final result = await runInBackground<String>(
-            () async {
+        () async {
           return _ffiService.stripeBilingPortalUrl().toDartString();
         },
       );
@@ -352,10 +345,8 @@ class LanternFFIService implements LanternCoreService {
     } catch (e, stackTrace) {
       appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
       return Left(e.toFailure());
-
     }
   }
-
 
   @override
   Future<Either<Failure, PlansData>> plans() async {
@@ -388,7 +379,6 @@ class LanternFFIService implements LanternCoreService {
     } catch (e, stackTrace) {
       appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
       return Left(e.toFailure());
-
     }
   }
 
@@ -426,8 +416,6 @@ class LanternFFIService implements LanternCoreService {
       return Left(e.toFailure());
     }
   }
-
-
 }
 
 class SplitTunnelMessage {

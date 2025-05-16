@@ -82,8 +82,6 @@ class LanternService implements LanternCoreService {
     return _platformService.isVPNConnected();
   }
 
-
-
   @override
   Future<Either<Failure, Unit>> startInAppPurchaseFlow({
     required String planId,
@@ -102,22 +100,26 @@ class LanternService implements LanternCoreService {
 
   @override
   Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
-      {required StipeSubscriptionType type, required String planId}) {
+      {required StipeSubscriptionType type,
+      required String planId,
+      required String email}) {
     if (PlatformUtils.isDesktop) {
       return _ffiService.stipeSubscriptionPaymentRedirect(
-          type: type, planId: planId);
+        type: type,
+        planId: planId,
+        email: email,
+      );
     }
-    return _platformService.stipeSubscriptionPaymentRedirect(
-        type: type, planId: planId);
+    return throw UnimplementedError();
   }
 
   @override
   Future<Either<Failure, Map<String, dynamic>>> stipeSubscription(
-      {required String planId,required String email}) {
+      {required String planId, required String email}) {
     if (PlatformUtils.isDesktop) {
       throw UnimplementedError();
     }
-    return _platformService.stipeSubscription(planId: planId,email: email);
+    return _platformService.stipeSubscription(planId: planId, email: email);
   }
 
   @override
