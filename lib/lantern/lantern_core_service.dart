@@ -60,4 +60,6 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, UserResponse>> getUserData();
 
+  Future<Either<Failure, UserResponse>> fetchUserData();
+
 }

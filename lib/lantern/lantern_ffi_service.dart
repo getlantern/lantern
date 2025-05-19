@@ -421,6 +421,12 @@ class LanternFFIService implements LanternCoreService {
     // TODO: implement showManageSubscriptions
     throw UnimplementedError();
   }
+
+  @override
+  Future<Either<Failure, UserResponse>> fetchUserData() {
+    // TODO: implement fetchUserData
+    throw UnimplementedError();
+  }
 }
 
 class SplitTunnelMessage {

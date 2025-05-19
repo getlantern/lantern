@@ -70,7 +70,6 @@ class MainActivity : FlutterFragmentActivity() {
             return
         }
 
-
         try {
             val vpnIntent = Intent(this, LanternVpnService::class.java).apply {
                 action = LanternVpnService.ACTION_START_VPN

@@ -207,7 +207,7 @@ func UserData() ([]byte, error) {
 }
 
 // GetUserData will get the user data from the server
-func FetchUserData() (*protos.UserDataResponse, error) {
+func FetchUserData() ([]byte, error) {
 	log.Debug("Getting user data")
 	//this call will also save the user data in the user config
 	// so we can use it later
@@ -216,7 +216,16 @@ func FetchUserData() (*protos.UserDataResponse, error) {
 		return nil, log.Errorf("Error getting user data: %v", err)
 	}
 	log.Debugf("UserData response: %v", user)
-	return user, nil
+	login := &protos.LoginResponse{
+		LegacyID:       user.UserId,
+		LegacyToken:    user.Token,
+		LegacyUserData: user.LoginResponse_UserData,
+	}
+	protoUserData, err := proto.Marshal(login)
+	if err != nil {
+		return nil, log.Errorf("Error marshalling user data: %v", err)
+	}
+	return protoUserData, nil
 }
 
 // OAuth Methods
@@ -243,7 +252,10 @@ func OAuthLoginCallback(oAuthToken string) ([]byte, error) {
 	}
 	radianceServer.userConfig.Save(login)
 	///Get user data from api this will also save data in user config
-	user, err := FetchUserData()
+	user, err := radianceServer.proServer.UserData(context.Background())
+	if err != nil {
+		return nil, log.Errorf("Error getting user data: %v", err)
+	}
 	if err != nil {
 		return nil, log.Errorf("Error getting user data: %v", err)
 	}
@@ -280,24 +292,6 @@ func StripeSubscription(email, planId string) (string, error) {
 	log.Debugf("StripeSubscription response: %v", jsonString)
 	return jsonString, nil
 }
-
-// // Create subscription link for stripe
-// // usege for macos, linux, windows
-// func StripeSubscriptionPaymentRedirect(planID, provider, email, subType string) (string, error) {
-// 	ret := protos.SubscriptionPaymentRedirectRequest{
-// 		Provider:         "stripe",
-// 		Plan:             "1y-usd",
-// 		DeviceName:       "test",
-// 		Email:            "test@getlantern.org",
-// 		SubscriptionType: protos.SubscriptionType(subType),
-// 	}
-// 	stripeUrl, err := subscriptionPaymentRedirect(&ret)
-// 	if err != nil {
-// 		return "", log.Errorf("Error getting subscription link: %v", err)
-// 	}
-// 	log.Debugf("Stripe response: %v", stripeUrl)
-// 	return stripeUrl, nil
-// }
 
 func Plans() (string, error) {
 	defer func() {

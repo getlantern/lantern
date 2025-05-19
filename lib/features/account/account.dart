@@ -7,6 +7,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/utils/store_utils.dart';
 import 'package:lantern/core/widgets/user_devices.dart';
+import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 @RoutePage(name: 'Account')
@@ -22,9 +23,7 @@ class Account extends HookConsumerWidget {
   }
 
   Widget _buildBody(BuildContext buildContext, WidgetRef ref) {
-    final theme = Theme
-        .of(buildContext)
-        .textTheme;
+    final theme = Theme.of(buildContext).textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -107,8 +106,8 @@ class Account extends HookConsumerWidget {
     appRouter.push(const DeleteAccount());
   }
 
-  Future<void> onManageSubscriptionTap(WidgetRef ref,
-      BuildContext buildContext) async {
+  Future<void> onManageSubscriptionTap(
+      WidgetRef ref, BuildContext buildContext) async {
     switch (Platform.operatingSystem) {
       case "android":
         if (sl<StoreUtils>().isPlayStoreVersion) {
@@ -125,7 +124,7 @@ class Account extends HookConsumerWidget {
       case "linux":
       case "windows":
 
-      /// user is using desktop version
+        /// user is using desktop version
         stripeBillingPortal(ref, buildContext);
         break;
     }
@@ -139,25 +138,85 @@ class Account extends HookConsumerWidget {
     UrlUtils.openUrl("https://apps.apple.com/account/subscriptions");
   }
 
-  Future<void> stripeBillingPortal(WidgetRef ref,
-      BuildContext buildContext) async {
+  Future<void> stripeBillingPortal(
+      WidgetRef ref, BuildContext buildContext) async {
     try {
       buildContext.showLoadingDialog();
       final result =
-      await ref.read(lanternServiceProvider).stripeBillingPortal();
+          await ref.read(lanternServiceProvider).stripeBillingPortal();
       result.fold(
-            (failure) {
+        (failure) {
           buildContext.hideLoadingDialog();
           appLogger.error('Error on manage subscription tap', failure);
           buildContext.showSnackBarError(failure.localizedErrorMessage);
         },
-            (stripeUrl) {
+        (stripeUrl) {
           buildContext.hideLoadingDialog();
-          UrlUtils.openWebview(stripeUrl);
+          UrlUtils.openWebview(
+            stripeUrl,
+            onWebviewResult: (p0) {
+              checkSubscriptionAfterStripe(ref, buildContext);
+            },
+          );
         },
       );
     } catch (e) {
       appLogger.error('Error on manage subscription tap', e);
+    }
+  }
+
+  Future<void> checkSubscriptionAfterStripe(
+      WidgetRef ref, BuildContext context) async {
+    context.showLoadingDialog();
+    appLogger.info('Checking subscription after stripe portal');
+    final oldUser = sl<LocalStorageService>().getUser()!;
+    final lanternService = ref.read(lanternServiceProvider);
+    final notifier = ref.read(homeNotifierProvider.notifier);
+    final delays = [Duration.zero, Duration(seconds: 1), Duration(seconds: 2)];
+
+    try {
+      for (final delay in delays) {
+        appLogger.info('Checking subscription with delay: $delay');
+
+        if (delay != Duration.zero) await Future.delayed(delay);
+
+        final result = await lanternService.getUserData();
+
+        final shouldStop = result.fold(
+          (failure) {
+            appLogger.error('Subscription check error', failure);
+            return false;
+          },
+          (newUser) {
+            final oldPlanId = oldUser.subscriptionData.planID;
+            final newPlanId = newUser.subscriptionData.planID;
+            final isPro = newUser.legacyUserData.userLevel == 'pro';
+            final isPlanChanged = isPro && oldPlanId != newPlanId;
+            final isCancelled = !isPro;
+
+            if (isPlanChanged) {
+              appLogger.info('User changed plan: $oldPlanId → $newPlanId');
+              notifier.updateUserData(newUser);
+              return true;
+            }
+
+            if (isCancelled) {
+              appLogger.info(
+                  'User cancelled subscription. Previous plan: $oldPlanId');
+              notifier.updateUserData(newUser);
+              return true;
+            }
+            return false;
+          },
+        );
+
+        if (shouldStop) break;
+        appLogger.info("No changes detected in subscription");
+      }
+    } catch (e) {
+      appLogger.error('Exception during subscription check', e);
+    } finally {
+      context.hideLoadingDialog();
     }
   }
 }

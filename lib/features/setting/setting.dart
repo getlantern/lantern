@@ -35,12 +35,14 @@ class Setting extends HookConsumerWidget {
     this.context = context;
     final locale = ref.read(appSettingNotifierProvider).locale;
     final textTheme = Theme.of(context).textTheme;
+    final isUserPro = ref.isUserPro;
     return BaseScreen(
       title: 'settings'.i18n,
       padded: false,
       body: ListView(
         padding: EdgeInsets.symmetric(horizontal: defaultSize),
         children: <Widget>[
+          if(!isUserPro)
           Padding(
             padding: const EdgeInsets.only(top: 16),
             child: ProButton(

@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/extensions/ref.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
@@ -23,11 +24,7 @@ class Home extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final homeState = ref.watch(homeNotifierProvider);
-    final isUserPro = homeState.maybeWhen(
-      data: (user) => user.legacyUserData.userLevel == 'pro',
-      orElse: () => false,
-    );
+    final isUserPro = ref.isUserPro;
     textTheme = Theme.of(context).textTheme;
     return Scaffold(
       appBar: AppBar(

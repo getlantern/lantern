@@ -26,7 +26,8 @@ enum class Methods(val method: String) {
     Plans("plans"),
     OAuthLoginUrl("oauthLoginUrl"),
     OAuthLoginCallback("oauthLoginCallback"),
-    GetUserData("getUserData")
+    GetUserData("getUserData"),
+    FetchUserData("fetchUserData")
 }
 
 class MethodHandler : FlutterPlugin,
@@ -106,11 +107,7 @@ class MethodHandler : FlutterPlugin,
                         val filterType =
                             call.argument<String>("filterType") ?: error("Missing filterType")
                         val value = call.argument<String>("value") ?: error("Missing value")
-
-                        val error = Mobile.addSplitTunnelItem(filterType, value)
-                        if (error is Exception) {
-                            throw error
-                        }
+                        Mobile.addSplitTunnelItem(filterType, value)
                         success("Item added")
                     }.onFailure { e ->
                         result.error(
@@ -128,10 +125,7 @@ class MethodHandler : FlutterPlugin,
                         val filterType =
                             call.argument<String>("filterType") ?: error("Missing filterType")
                         val value = call.argument<String>("value") ?: error("Missing value")
-                        val error = Mobile.removeSplitTunnelItem(filterType, value)
-                        if (error is Exception) {
-                            throw error
-                        }
+                        Mobile.removeSplitTunnelItem(filterType, value)
                         success("Item removed")
                     }.onFailure { e ->
                         result.error(
@@ -142,6 +136,7 @@ class MethodHandler : FlutterPlugin,
                     }
                 }
             }
+
             Methods.StripeBillingPortal.method -> {
                 scope.launch {
                     result.runCatching {
@@ -154,6 +149,7 @@ class MethodHandler : FlutterPlugin,
                     }
                 }
             }
+
             Methods.StripeSubscription.method -> {
                 scope.launch {
                     result.runCatching {
@@ -224,6 +220,23 @@ class MethodHandler : FlutterPlugin,
                 scope.launch {
                     result.runCatching {
                         val bytes = Mobile.userData()
+                        withContext(Dispatchers.Main) {
+                            success(bytes)
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "OAuthLoginCallback",
+                            e.localizedMessage ?: "Please try again",
+                            e
+                        )
+                    }
+                }
+            }
+
+            Methods.FetchUserData.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val bytes = Mobile.fetchUserData()
                         withContext(Dispatchers.Main) {
                             success(bytes)
                         }

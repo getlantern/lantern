@@ -187,4 +187,12 @@ class LanternService implements LanternCoreService {
     }
     return _platformService.showManageSubscriptions();
   }
+
+  @override
+  Future<Either<Failure, UserResponse>> fetchUserData() {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.fetchUserData();
+    }
+    return _platformService.fetchUserData();
+  }
 }

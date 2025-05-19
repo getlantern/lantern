@@ -278,4 +278,17 @@ class LanternPlatformService implements LanternCoreService {
           localizedErrorMessage: (e as Exception).localizedDescription));
     }
   }
+
+  @override
+  Future<Either<Failure, UserResponse>> fetchUserData() async {
+    try {
+      final userBytes = await _methodChannel.invokeMethod('fetchUserData');
+      return Right(UserResponse.fromBuffer(userBytes));
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription));
+    }
+  }
 }
