@@ -46,6 +46,11 @@ class MethodHandler {
         self.getUserData(result: result)
       case "showManageSubscriptions":
         self.showManageSubscriptions(result: result)
+      case "acknowledgeInAppPurchase":
+        var map = call.arguments as! Map<String, Any>
+        let token = map["token"] as! String
+        let planId = map["planId"] as! String
+        self.acknowledgeInAppPurchase(token: token, planId: planId, result: result)
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -261,6 +266,26 @@ class MethodHandler {
           code: "UNAVAILABLE",
           message: "iOS 15 or higher is required to manage subscriptions natively",
           details: nil))
+    }
+  }
+
+  func acknowledgeInAppPurchase(token: String, planId: String, result: @escaping FlutterResult) {
+    Task {
+      do {
+        var error: NSError?
+        MobileAcknowledgeApplePurchase(token, planId, &error)
+        await MainActor.run {
+          result("success")
+        }
+      } catch {
+        await MainActor.run {
+          result(
+            FlutterError(
+              code: "ACKNOWLEDGE_FAILED",
+              message: "Unable to acknowledge purchase.",
+              details: error.localizedDescription))
+        }
+      }
     }
   }
 

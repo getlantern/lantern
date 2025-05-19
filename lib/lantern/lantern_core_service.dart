@@ -38,6 +38,11 @@ abstract class LanternCoreService {
     required PaymentErrorCallback onError,
   });
 
+  Future<Either<Failure, Unit>> acknowledgeInAppPurchase({
+    required String purchaseToken,
+    required String planId,
+  });
+
   Future<Either<Failure, Unit>> showManageSubscriptions();
 
   Future<Either<Failure, PlansData>> plans();

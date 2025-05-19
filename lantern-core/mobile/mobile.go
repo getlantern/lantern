@@ -256,9 +256,6 @@ func OAuthLoginCallback(oAuthToken string) ([]byte, error) {
 	if err != nil {
 		return nil, log.Errorf("Error getting user data: %v", err)
 	}
-	if err != nil {
-		return nil, log.Errorf("Error getting user data: %v", err)
-	}
 	log.Debugf("UserData response: %v", user)
 	userResponse := &protos.LoginResponse{
 		LegacyID:       user.UserId,
@@ -322,11 +319,22 @@ func StripeBilingPortalUrl() (string, error) {
 	return billingPortal.Redirect, nil
 }
 
-func subscriptionPaymentRedirect(redirectBody *protos.SubscriptionPaymentRedirectRequest) (string, error) {
-	rediret, err := radianceServer.proServer.SubscriptionPaymentRedirect(context.Background(), redirectBody)
+func AcknowledgeGooglePurchase(purchaseToken, planId string) error {
+	log.Debugf("Purchase token: %s planId %s", purchaseToken, planId)
+	acknowledge, err := radianceServer.proServer.GoogleSubscription(context.Background(), purchaseToken, planId)
 	if err != nil {
-		return "", log.Errorf("Error getting subscription link: %v", err)
+		return log.Errorf("Error acknowledging: %v", err)
 	}
-	log.Debugf("SubscriptionPaymentRedirect response: %v", rediret)
-	return rediret.Redirect, nil
+	log.Debugf("acknowledge google purchase: %v", acknowledge)
+	return nil
+}
+
+func AcknowledgeApplePurchase(receipt, planId string) error {
+	log.Debug("Acknowledging")
+	acknowledge, err := radianceServer.proServer.AppleSubscription(context.Background(), receipt, planId)
+	if err != nil {
+		return log.Errorf("Error acknowledging: %v", err)
+	}
+	log.Debugf("acknowledge apple purchase: %v", acknowledge)
+	return nil
 }

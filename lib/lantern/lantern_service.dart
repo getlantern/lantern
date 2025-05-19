@@ -195,4 +195,12 @@ class LanternService implements LanternCoreService {
     }
     return _platformService.fetchUserData();
   }
+
+  @override
+  Future<Either<Failure, Unit>> acknowledgeInAppPurchase({required String purchaseToken, required String planId}) {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.acknowledgeInAppPurchase(purchaseToken: purchaseToken, planId: planId);
+    }
+    return _platformService.acknowledgeInAppPurchase(purchaseToken: purchaseToken, planId: planId);
+  }
 }

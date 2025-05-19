@@ -187,7 +187,6 @@ class LanternPlatformService implements LanternCoreService {
       final map = jsonDecode(subData!);
       return Right(map);
     } catch (e, stackTrace) {
-      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
       return Left(Failure(
           error: e.toString(),
           localizedErrorMessage: (e as Exception).localizedDescription));
@@ -201,7 +200,6 @@ class LanternPlatformService implements LanternCoreService {
           await _methodChannel.invokeMethod<String>('stripeBillingPortal');
       return Right(url!);
     } catch (e, stackTrace) {
-      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
       return Left(e.toFailure());
     }
   }
@@ -216,7 +214,6 @@ class LanternPlatformService implements LanternCoreService {
       appLogger.info('Plans: $map');
       return Right(plans);
     } catch (e, stackTrace) {
-      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
       return Left(Failure(
           error: e.toString(),
           localizedErrorMessage: (e as Exception).localizedDescription));
@@ -230,7 +227,6 @@ class LanternPlatformService implements LanternCoreService {
           await _methodChannel.invokeMethod<String>('oauthLoginUrl', provider);
       return Right(loginUrl!);
     } catch (e, stackTrace) {
-      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
       return Left(Failure(
           error: e.toString(),
           localizedErrorMessage: (e as Exception).localizedDescription));
@@ -238,14 +234,12 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> oAuthLoginCallback(
-      String token) async {
+  Future<Either<Failure, UserResponse>> oAuthLoginCallback(String token) async {
     try {
       final bytes =
           await _methodChannel.invokeMethod('oauthLoginCallback', token);
       return Right(UserResponse.fromBuffer(bytes));
     } catch (e, stackTrace) {
-      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
       return Left(Failure(
           error: e.toString(),
           localizedErrorMessage: (e as Exception).localizedDescription));
@@ -258,7 +252,6 @@ class LanternPlatformService implements LanternCoreService {
       final bytes = await _methodChannel.invokeMethod('getUserData');
       return Right(UserResponse.fromBuffer(bytes));
     } catch (e, stackTrace) {
-      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
       return Left(Failure(
           error: e.toString(),
           localizedErrorMessage: (e as Exception).localizedDescription));
@@ -272,7 +265,6 @@ class LanternPlatformService implements LanternCoreService {
       await _methodChannel.invokeMethod('showManageSubscriptions');
       return Right(unit);
     } catch (e, stackTrace) {
-      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
       return Left(Failure(
           error: e.toString(),
           localizedErrorMessage: (e as Exception).localizedDescription));
@@ -285,10 +277,25 @@ class LanternPlatformService implements LanternCoreService {
       final userBytes = await _methodChannel.invokeMethod('fetchUserData');
       return Right(UserResponse.fromBuffer(userBytes));
     } catch (e, stackTrace) {
-      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      appLogger.error("error fetching user data", e, stackTrace);
       return Left(Failure(
           error: e.toString(),
           localizedErrorMessage: (e as Exception).localizedDescription));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> acknowledgeInAppPurchase(
+      {required String purchaseToken, required String planId}) async {
+    try {
+      await _methodChannel.invokeMethod('acknowledgeInAppPurchase', {
+        'purchaseToken': purchaseToken,
+        'planId': planId,
+      });
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error acknowledging in-app purchase', e, stackTrace);
+      return Left(e.toFailure());
     }
   }
 }

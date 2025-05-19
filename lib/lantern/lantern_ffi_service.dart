@@ -438,6 +438,12 @@ class LanternFFIService implements LanternCoreService {
       return Left(e.toFailure());
     }
   }
+
+  @override
+  Future<Either<Failure, Unit>> acknowledgeInAppPurchase({required String purchaseToken, required String planId}) {
+    // TODO: implement acknowledgeInAppPurchase
+    throw UnimplementedError();
+  }
 }
 
 class SplitTunnelMessage {

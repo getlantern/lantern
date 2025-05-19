@@ -27,7 +27,8 @@ enum class Methods(val method: String) {
     OAuthLoginUrl("oauthLoginUrl"),
     OAuthLoginCallback("oauthLoginCallback"),
     GetUserData("getUserData"),
-    FetchUserData("fetchUserData")
+    FetchUserData("fetchUserData"),
+    AcknowledgeInAppPurchase("acknowledgeInAppPurchase")
 }
 
 class MethodHandler : FlutterPlugin,
@@ -160,6 +161,26 @@ class MethodHandler : FlutterPlugin,
                         )
                         withContext(Dispatchers.Main) {
                             success(subscriptionData)
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "stripe_subscription",
+                            e.localizedMessage ?: "Please try again",
+                            e
+                        )
+                    }
+                }
+            }
+            Methods.AcknowledgeInAppPurchase.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val map = call.arguments as Map<*, *>
+                        val subscriptionData = Mobile.acknowledgeGooglePurchase(
+                            map["purchaseToken"] as String,
+                            map["planId"] as String
+                        )
+                        withContext(Dispatchers.Main) {
+                            success("success")
                         }
                     }.onFailure { e ->
                         result.error(
