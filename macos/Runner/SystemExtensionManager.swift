@@ -15,7 +15,7 @@ extension Notification.Name {
 // This class should conform to OSSystemExtensionRequestDelegate
 class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
 
-    let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "org.getlantern.lantern", category: "SystemExtensionManager")
+    let logger = Logger(subsystem: "org.getlantern.lantern", category: "SystemExtensionManager")
     static let shared = SystemExtensionManager()
     private var currentRequest: OSSystemExtensionRequest?
 

@@ -5,7 +5,7 @@ import FlutterMacOS
 @main
 class AppDelegate: FlutterAppDelegate {
     
-    let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "org.getlantern.lantern", category: "AppDelegate")
+    let logger = Logger(subsystem: "org.getlantern.lantern", category: "AppDelegate")
     
     override func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return true

@@ -3,7 +3,7 @@ import OSLog
 
 class PacketTunnelProvider: NEPacketTunnelProvider {
     
-    let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "org.getlantern.lantern.PacketTunnelProvider", category: "PacketTunnelProvider")
+    let logger = Logger(subsystem: "org.getlantern.lantern", category: "PacketTunnelProvider")
 
     override func startTunnel(options: [String : NSObject]?, completionHandler: @escaping (Error?) -> Void) {
         self.logger.log(">>>>>>>>startTunnel")
