@@ -134,6 +134,7 @@ func setup(_logDir, _dataDir, _locale *C.char, logPort, appsPort, statusPort C.i
 		if server.userInfo.LegacyID() == 0 {
 			createUser()
 		}
+		fetchUserData()
 
 	})
 	if outError != nil {
@@ -299,14 +300,27 @@ func getUserData() *C.char {
 }
 
 // Get user data from the server
-func fetchUserData() (*protos.UserDataResponse, error) {
+//
+//export fetchUserData
+func fetchUserData() *C.char {
 	log.Debug("Getting user data")
 	user, err := server.proServer.UserData(context.Background())
 	if err != nil {
-		return nil, log.Errorf("Error getting user data: %v", err)
+		return SendError(fmt.Errorf("error getting user data: %v", err))
+	}
+	//Convert user to UserResponse
+	userResponse := &protos.LoginResponse{
+		LegacyID:       user.UserId,
+		LegacyToken:    user.Token,
+		LegacyUserData: user.LoginResponse_UserData,
 	}
 	log.Debugf("UserData response: %v", user)
-	return user, nil
+	bytes, err := proto.Marshal(userResponse)
+	if err != nil {
+		return SendError(log.Errorf("Error marshalling user data: %v", err))
+	}
+	encoded := base64.StdEncoding.EncodeToString(bytes)
+	return C.CString(encoded)
 }
 
 // Fetch stipe subscription payment redirect link
@@ -412,7 +426,8 @@ func oAuthLoginCallback(_oAuthToken *C.char) *C.char {
 	}
 	server.userInfo.Save(login)
 	///Get user data from api this will also save data in user config
-	user, err := fetchUserData()
+	user, err := server.proServer.UserData(context.Background())
+
 	if err != nil {
 		return SendError(log.Errorf("Error getting user data: %v", err))
 	}

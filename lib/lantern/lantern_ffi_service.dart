@@ -423,9 +423,20 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> fetchUserData() {
-    // TODO: implement fetchUserData
-    throw UnimplementedError();
+  Future<Either<Failure, UserResponse>> fetchUserData() async {
+    try {
+      final result = await runInBackground<String>(
+            () async {
+          return _ffiService.fetchUserData().toDartString();
+        },
+      );
+      final decodedResult = base64Decode(result);
+      final user = UserResponse.fromBuffer(decodedResult);
+      return Right(user);
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(e.toFailure());
+    }
   }
 }
 

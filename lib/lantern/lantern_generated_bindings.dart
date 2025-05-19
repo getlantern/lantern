@@ -2463,6 +2463,16 @@ class LanternBindings {
   late final _getUserData =
       _getUserDataPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
 
+  ffi.Pointer<ffi.Char> fetchUserData() {
+    return _fetchUserData();
+  }
+
+  late final _fetchUserDataPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+          'fetchUserData');
+  late final _fetchUserData =
+      _fetchUserDataPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
+
   ffi.Pointer<ffi.Char> stripeSubscriptionPaymentRedirect(
     ffi.Pointer<ffi.Char> subType,
     ffi.Pointer<ffi.Char> _planId,
