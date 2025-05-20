@@ -192,7 +192,8 @@ class _PlansState extends ConsumerState<Plans> {
           startInAppPurchaseFlow(userSelectedPlan);
           return;
         }
-        nonStoreFlow();
+        startInAppPurchaseFlow(userSelectedPlan);
+        // nonStoreFlow();
         break;
       case 'ios':
         startInAppPurchaseFlow(userSelectedPlan);
@@ -209,9 +210,8 @@ class _PlansState extends ConsumerState<Plans> {
       planId: plan.id,
       onSuccess: (purchase) {
         /// Subscription successful
-        //todo call api to acknowledge the purchase
         context.hideLoadingDialog();
-        storeFlow();
+        acknowledgeInAppPurchase(purchase.verificationData.serverVerificationData, plan.id);
       },
       onError: (error) {
         ///Error while subscribing
@@ -234,6 +234,27 @@ class _PlansState extends ConsumerState<Plans> {
       },
     );
   }
+
+  Future<void> acknowledgeInAppPurchase(String purchaseToken,String planId) async {
+    context.showLoadingDialog();
+    final result = await ref.read(paymentNotifierProvider.notifier).acknowledgeInAppPurchase(
+      purchaseToken: purchaseToken,
+      planId: planId,
+    );
+    result.fold(
+      (error) {
+        context.hideLoadingDialog();
+        context.showSnackBarError(error.localizedErrorMessage);
+        appLogger.error('Error acknowledging purchase: $error');
+      },
+      (success) {
+        // Handle success
+        appLogger.info('Successfully acknowledged purchase');
+        context.hideLoadingDialog();
+        appRouter.popUntilRoot();
+      },
+    );
+}
 
   void nonStoreFlow() {
     if (PlatformUtils.isIOS) {

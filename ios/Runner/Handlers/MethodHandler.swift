@@ -47,10 +47,13 @@ class MethodHandler {
       case "showManageSubscriptions":
         self.showManageSubscriptions(result: result)
       case "acknowledgeInAppPurchase":
-        var map = call.arguments as! Map<String, Any>
-        let token = map["token"] as! String
-        let planId = map["planId"] as! String
-        self.acknowledgeInAppPurchase(token: token, planId: planId, result: result)
+       if let map = call.arguments as? [String: Any],
+             let token = map["purchaseToken"] as? String,
+             let planId = map["planId"] as? String {
+              self.acknowledgeInAppPurchase(token: token, planId: planId, result: result)
+          } else {
+              result(FlutterError(code: "INVALID_ARGUMENTS", message: "Missing or invalid purchaseToken or planId", details: nil))
+          }
       default:
         result(FlutterMethodNotImplemented)
       }
