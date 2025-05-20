@@ -385,7 +385,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
       id: const obx_int.IdUid(14, 6952300567208748369),
       name: 'AppSetting',
-      lastPropertyId: const obx_int.IdUid(5, 6540973750872090784),
+      lastPropertyId: const obx_int.IdUid(6, 4823200350992342297),
       flags: 0,
       properties: <obx_int.ModelProperty>[
         obx_int.ModelProperty(
@@ -412,6 +412,11 @@ final _entities = <obx_int.ModelEntity>[
             id: const obx_int.IdUid(5, 6540973750872090784),
             name: 'splitTunnelingMode',
             type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(6, 4823200350992342297),
+            name: 'userLoggedIn',
+            type: 1,
             flags: 0)
       ],
       relations: <obx_int.ModelRelation>[],
@@ -931,12 +936,13 @@ obx_int.ModelDefinition getObjectBoxModel() {
           final localeOffset = fbb.writeString(object.locale);
           final splitTunnelingModeOffset =
               fbb.writeString(object.splitTunnelingMode);
-          fbb.startTable(6);
+          fbb.startTable(7);
           fbb.addInt64(0, object.id);
           fbb.addBool(1, object.isPro);
           fbb.addBool(2, object.isSpiltTunnelingOn);
           fbb.addOffset(3, localeOffset);
           fbb.addOffset(4, splitTunnelingModeOffset);
+          fbb.addBool(5, object.userLoggedIn);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -949,6 +955,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
               const fb.BoolReader().vTableGet(buffer, rootOffset, 6, false);
           final isSpiltTunnelingOnParam =
               const fb.BoolReader().vTableGet(buffer, rootOffset, 8, false);
+          final userLoggedInParam =
+              const fb.BoolReader().vTableGet(buffer, rootOffset, 14, false);
           final splitTunnelingModeParam =
               const fb.StringReader(asciiOptimization: true)
                   .vTableGet(buffer, rootOffset, 12, '');
@@ -958,6 +966,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
               id: idParam,
               isPro: isProParam,
               isSpiltTunnelingOn: isSpiltTunnelingOnParam,
+              userLoggedIn: userLoggedInParam,
               splitTunnelingMode: splitTunnelingModeParam,
               locale: localeParam);
 
@@ -1240,4 +1249,8 @@ class AppSetting_ {
   /// See [AppSetting.splitTunnelingMode].
   static final splitTunnelingMode =
       obx.QueryStringProperty<AppSetting>(_entities[9].properties[4]);
+
+  /// See [AppSetting.userLoggedIn].
+  static final userLoggedIn =
+      obx.QueryBooleanProperty<AppSetting>(_entities[9].properties[5]);
 }

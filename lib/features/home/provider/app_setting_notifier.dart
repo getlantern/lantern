@@ -18,6 +18,7 @@ class AppSettingNotifier extends _$AppSettingNotifier {
 
     if (setting != null && setting.locale.isNotEmpty) {
       return setting;
+
     }
     // First-time user → use device locale
     final fallback = _detectDeviceLocale();
@@ -29,7 +30,7 @@ class AppSettingNotifier extends _$AppSettingNotifier {
 
   Future<void> update(AppSetting updated) async {
     state = updated;
-     _db.updateAppSetting(updated);
+    _db.updateAppSetting(updated);
   }
 
   void togglePro(bool value) {
@@ -48,6 +49,9 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     update(state.copyWith(newSplitTunnelingMode: mode));
   }
 
+  void setUserLoggedIn(bool value) {
+    update(state.copyWith(userLoggedIn: value));
+  }
 
   Locale _detectDeviceLocale() {
     final deviceLocale = PlatformDispatcher.instance.locale;

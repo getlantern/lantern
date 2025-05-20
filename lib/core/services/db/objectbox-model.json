@@ -370,7 +370,7 @@
     },
     {
       "id": "14:6952300567208748369",
-      "lastPropertyId": "5:6540973750872090784",
+      "lastPropertyId": "6:4823200350992342297",
       "name": "AppSetting",
       "properties": [
         {
@@ -398,6 +398,11 @@
           "id": "5:6540973750872090784",
           "name": "splitTunnelingMode",
           "type": 9
+        },
+        {
+          "id": "6:4823200350992342297",
+          "name": "userLoggedIn",
+          "type": 1
         }
       ],
       "relations": []

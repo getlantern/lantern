@@ -7,6 +7,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/utils/store_utils.dart';
 import 'package:lantern/core/widgets/user_devices.dart';
+import 'package:lantern/features/account/provider/account_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 
@@ -135,7 +136,13 @@ class Account extends HookConsumerWidget {
   }
 
   void openAppleSubscriptions(WidgetRef ref) async {
-    UrlUtils.openUrl("https://apps.apple.com/account/subscriptions");
+    final result = await ref
+        .read(accountNotifierProvider.notifier)
+        .showManageSubscriptionAppStore();
+
+    result.fold((failure) {
+      UrlUtils.openUrl("https://apps.apple.com/account/subscriptions");
+    }, (_) {});
   }
 
   Future<void> stripeBillingPortal(

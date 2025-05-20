@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/oauth_login.dart';
 import 'package:lantern/features/auth/provider/oauth_notifier.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 
 enum SignUpMethodType { email, google, apple, withoutEmail }
@@ -133,6 +134,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
           context.hideLoadingDialog();
           ref.read(homeNotifierProvider.notifier).updateUserData(response);
           appLogger.debug('Login Response: ${response.toString()}');
+          ref.read(appSettingNotifierProvider.notifier).setUserLoggedIn(true);
           postPaymentNavigate(type, response.legacyUserData.email);
         },
       );
@@ -145,6 +147,15 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     switch (type) {
       case SignUpMethodType.apple:
       case SignUpMethodType.google:
+        if (PlatformUtils.isIOS) {
+          AppDialog.showLanternProDialog(
+            context: context,
+            onPressed: () {
+              appRouter.popUntilRoot();
+            },
+          );
+          return;
+        }
         appRouter
             .push(ChoosePaymentMethod(email: email, authFlow: AuthFlow.signUp));
         break;
@@ -203,7 +214,6 @@ class _AddEmailState extends ConsumerState<AddEmail> {
             )
           ],
         );
-        break;
     }
   }
 }

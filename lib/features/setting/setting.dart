@@ -33,7 +33,8 @@ class Setting extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     this.context = context;
-    final locale = ref.read(appSettingNotifierProvider).locale;
+    final appSetting = ref.watch(appSettingNotifierProvider);
+    final locale = appSetting.locale;
     final textTheme = Theme.of(context).textTheme;
     final isUserPro = ref.isUserPro;
     return BaseScreen(
@@ -42,15 +43,15 @@ class Setting extends HookConsumerWidget {
       body: ListView(
         padding: EdgeInsets.symmetric(horizontal: defaultSize),
         children: <Widget>[
-          if(!isUserPro)
-          Padding(
-            padding: const EdgeInsets.only(top: 16),
-            child: ProButton(
-              onPressed: () {
-                appRouter.push(const Plans());
-              },
+          if (!isUserPro)
+            Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: ProButton(
+                onPressed: () {
+                  appRouter.push(const Plans());
+                },
+              ),
             ),
-          ),
           const SizedBox(height: 16),
           Card(
             margin: EdgeInsets.zero,
@@ -61,14 +62,15 @@ class Setting extends HookConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          Card(
-            margin: EdgeInsets.zero,
-            child: AppTile(
-              label: 'sign_in'.i18n,
-              icon: AppImagePaths.signIn,
-              onPressed: () => settingMenuTap(_SettingType.signIn),
+          if (!appSetting.userLoggedIn)
+            Card(
+              margin: EdgeInsets.zero,
+              child: AppTile(
+                label: 'sign_in'.i18n,
+                icon: AppImagePaths.signIn,
+                onPressed: () => settingMenuTap(_SettingType.signIn),
+              ),
             ),
-          ),
           const SizedBox(height: 16),
           Card(
             margin: EdgeInsets.zero,
@@ -131,21 +133,22 @@ class Setting extends HookConsumerWidget {
               ],
             ),
           ),
-          // const SizedBox(height: 16),
-          // Card(
-          //   margin: EdgeInsets.zero,
-          //   child: Column(
-          //     children: [
-          //       AppTile(
-          //         label: 'logout'.i18n,
-          //         icon: AppImagePaths.signIn,
-          //         onPressed: () => settingMenuTap(_SettingType.logout),
-          //       ),
-          //     ],
-          //   ),
-          // ),
+          if (appSetting.userLoggedIn) ...{
+            const SizedBox(height: 16),
+            Card(
+              margin: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  AppTile(
+                    label: 'logout'.i18n,
+                    icon: AppImagePaths.signIn,
+                    onPressed: () => settingMenuTap(_SettingType.logout),
+                  ),
+                ],
+              ),
+            ),
+          },
           const SizedBox(height: 16),
-
           Padding(
             padding: const EdgeInsets.only(
               left: 16,

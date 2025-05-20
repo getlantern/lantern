@@ -117,7 +117,9 @@ class _PlansState extends ConsumerState<Plans> {
                           AppTextButton(
                             label: 'Try again',
                             onPressed: () {
-                              ref.read(plansNotifierProvider.notifier).fetchPlans();
+                              ref
+                                  .read(plansNotifierProvider.notifier)
+                                  .fetchPlans();
                             },
                           ),
                         ],
@@ -192,8 +194,7 @@ class _PlansState extends ConsumerState<Plans> {
           startInAppPurchaseFlow(userSelectedPlan);
           return;
         }
-        startInAppPurchaseFlow(userSelectedPlan);
-        // nonStoreFlow();
+        nonStoreFlow();
         break;
       case 'ios':
         startInAppPurchaseFlow(userSelectedPlan);
@@ -211,7 +212,8 @@ class _PlansState extends ConsumerState<Plans> {
       onSuccess: (purchase) {
         /// Subscription successful
         context.hideLoadingDialog();
-        acknowledgeInAppPurchase(purchase.verificationData.serverVerificationData, plan.id);
+        acknowledgeInAppPurchase(
+            purchase.verificationData.serverVerificationData, plan.id);
       },
       onError: (error) {
         ///Error while subscribing
@@ -226,7 +228,6 @@ class _PlansState extends ConsumerState<Plans> {
         context.hideLoadingDialog();
         context.showSnackBarError(error.localizedErrorMessage);
         appLogger.error('Error subscribing to plan: $error');
-
       },
       (success) {
         // Handle success
@@ -235,12 +236,15 @@ class _PlansState extends ConsumerState<Plans> {
     );
   }
 
-  Future<void> acknowledgeInAppPurchase(String purchaseToken,String planId) async {
+  Future<void> acknowledgeInAppPurchase(
+      String purchaseToken, String planId) async {
     context.showLoadingDialog();
-    final result = await ref.read(paymentNotifierProvider.notifier).acknowledgeInAppPurchase(
-      purchaseToken: purchaseToken,
-      planId: planId,
-    );
+    final result = await ref
+        .read(paymentNotifierProvider.notifier)
+        .acknowledgeInAppPurchase(
+          purchaseToken: purchaseToken,
+          planId: planId,
+        );
     result.fold(
       (error) {
         context.hideLoadingDialog();
@@ -251,16 +255,17 @@ class _PlansState extends ConsumerState<Plans> {
         // Handle success
         appLogger.info('Successfully acknowledged purchase');
         context.hideLoadingDialog();
-        appRouter.popUntilRoot();
+        storeFlow();
       },
     );
-}
+  }
 
   void nonStoreFlow() {
     if (PlatformUtils.isIOS) {
       throw Exception('Not supported on IOS');
     }
-    appRouter.push(AddEmail(authFlow: AuthFlow.signUp, appFlow: AppFlow.nonStore));
+    appRouter
+        .push(AddEmail(authFlow: AuthFlow.signUp, appFlow: AppFlow.nonStore));
   }
 
   void storeFlow() {
