@@ -157,7 +157,7 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
 
     /// Called when the system extension request fails.
     func request(_ request: OSSystemExtensionRequest, didFailWithError error: Error) {
-        logger.log("System extension request (ID: \(request.identifier) failed with error: \(error.localizedDescription)")
+        logger.log("System extension request (ID: \(request.identifier)) failed with error: \(error.localizedDescription)")
         currentRequest = nil // Clear the stored request
 
         // Provide more specific error information if possible by casting to OSSystemExtensionError

@@ -17,6 +17,7 @@ class VPNManagerViewModel: ObservableObject {
                 print("install started")
                 await setupVPN()
                 print("install finished")
+                try? self.manager?.connection.startVPNTunnel()
                 //startVPNTunnel()
                 //print("started VPN tunnel")
             } catch {
@@ -284,7 +285,6 @@ class VPNManagerViewModel: ObservableObject {
         case .success(let manager):
             logger.log("Successfully loaded VPN manager: \(manager.localizedDescription ?? "N/A")")
             self.manager = manager
-            try? manager.connection.startVPNTunnel()
             // Now you can use the 'manager' object to:
             // 1. Check its connection status: manager.connection.status
             // 2. Start the VPN: try? manager.connection.startVPNTunnel()
@@ -302,6 +302,7 @@ class VPNManagerViewModel: ObservableObject {
                 logger.log("Saving new profile to preferences..")
                 try? await self.manager?.saveToPreferences()
                 logger.log("Saved new profile to preferences.")
+                await setupVPN()
             }
         }
     }
@@ -311,7 +312,7 @@ class VPNManagerViewModel: ObservableObject {
         let manager = NETunnelProviderManager()
         manager.localizedDescription = "Lantern" // User-visible name in Network Preferences
         let tunnelProtocol = NETunnelProviderProtocol()
-        tunnelProtocol.providerBundleIdentifier = self.providerBundleID
+        tunnelProtocol.providerBundleIdentifier = "org.getlantern.lantern.PacketTunnelSystemExtension" //self.providerBundleID
         tunnelProtocol.serverAddress = "sing-box"
         manager.protocolConfiguration = tunnelProtocol
         manager.isEnabled = true
