@@ -12,12 +12,16 @@ jobs:
       build_type: ${{ steps.meta.outputs.build_type }}
       version: ${{ steps.meta.outputs.version }}
       installer_name: ${{ steps.meta.outputs.installer_name }}
+      platform: ${{ steps.meta.outputs.platform }}
     steps:
       - id: meta
         run: |
           tag=${GITHUB_REF#refs/tags/}
           base_version=$(echo "$tag" | sed -E 's/^v([0-9]+\.[0-9]+\.[0-9]+).*$/\1/')
           echo "version=$base_version" >> $GITHUB_OUTPUT
+
+          # Extract platform suffix (if any, after final hyphen)
+          platform_suffix="${tag##*-}"
 
           if [[ "$tag" == *"-beta" ]]; then
             echo "build_type=beta" >> $GITHUB_OUTPUT
@@ -33,10 +37,29 @@ jobs:
             echo "installer_name=lantern-installer" >> $GITHUB_OUTPUT
           fi
 
+          case "$platform_suffix" in
+            windows)
+              echo "platform=windows" >> $GITHUB_OUTPUT
+              ;;
+            macos)
+              echo "platform=macos" >> $GITHUB_OUTPUT
+              ;;
+            linux)
+              echo "platform=linux" >> $GITHUB_OUTPUT
+              ;;
+            android)
+              echo "platform=android" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "platform=all" >> $GITHUB_OUTPUT
+              ;;
+          esac
+
   build-macos:
     needs: set-release-metadata
     uses: ./.github/workflows/build-macos.yml
     secrets: inherit
+    if: ${{ needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'macos' }}
     with:
       version: ${{ needs.set-release-metadata.outputs.version }}
       build_type: ${{ needs.set-release-metadata.outputs.build_type }}
@@ -46,6 +69,7 @@ jobs:
     needs: set-release-metadata
     uses: ./.github/workflows/build-windows.yml
     secrets: inherit
+    if: ${{ needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'windows' }}
     with:
       version: ${{ needs.set-release-metadata.outputs.version }}
       build_type: ${{ needs.set-release-metadata.outputs.build_type }}
@@ -55,6 +79,7 @@ jobs:
     needs: set-release-metadata
     uses: ./.github/workflows/build-linux.yml
     secrets: inherit
+    if: ${{ needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'linux' }}
     with:
       version: ${{ needs.set-release-metadata.outputs.version }}
       build_type: ${{ needs.set-release-metadata.outputs.build_type }}
@@ -64,6 +89,7 @@ jobs:
     needs: set-release-metadata
     uses: ./.github/workflows/build-android.yml
     secrets: inherit
+    if: ${{ needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'android' }}
     with:
       version: ${{ needs.set-release-metadata.outputs.version }}
       build_type: ${{ needs.set-release-metadata.outputs.build_type }}
@@ -78,6 +104,7 @@ jobs:
         build-android,
         set-release-metadata,
       ]
+    if: ${{ needs.set-release-metadata.outputs.platform == 'all' }}
     runs-on: ubuntu-latest
     env:
       BUILD_TYPE: ${{ needs.set-release-metadata.outputs.build_type }}
