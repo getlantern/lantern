@@ -19,7 +19,7 @@ class AppDelegate: FlutterAppDelegate {
         // Activate extension on launch (consider user experience implications)
 
         // Observe notifications from SystemExtensionManager
-        SystemExtensionManager.shared.activateExtension(bundleID: "org.getlantern.lantern.PacketTunnelSystemExtension")
+        SystemExtensionManager.shared.activateExtension(bundleID: "org.getlantern.lantern.PacketTunnel")
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(handleNeedsUserApproval),
                                                name: .systemExtensionNeedsUserApproval,

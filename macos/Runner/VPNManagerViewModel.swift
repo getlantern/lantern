@@ -8,7 +8,7 @@ class VPNManagerViewModel: ObservableObject {
 
     private var manager: NETunnelProviderManager?
     let logger = Logger(subsystem: "org.getlantern.lantern", category: "VPNManager")
-    let providerBundleID = "org.getlantern.lantern.PacketTunnelSystemExtension"
+    let providerBundleID = "org.getlantern.lantern.PacketTunnel"
 
     init() {
         
@@ -312,7 +312,7 @@ class VPNManagerViewModel: ObservableObject {
         let manager = NETunnelProviderManager()
         manager.localizedDescription = "Lantern" // User-visible name in Network Preferences
         let tunnelProtocol = NETunnelProviderProtocol()
-        tunnelProtocol.providerBundleIdentifier = "org.getlantern.lantern.PacketTunnelSystemExtension" //self.providerBundleID
+        tunnelProtocol.providerBundleIdentifier = self.providerBundleID
         tunnelProtocol.serverAddress = "sing-box"
         manager.protocolConfiguration = tunnelProtocol
         manager.isEnabled = true
