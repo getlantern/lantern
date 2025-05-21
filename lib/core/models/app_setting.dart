@@ -6,7 +6,7 @@ class AppSetting {
   int id;
 
   bool isPro;
-  bool isSpiltTunnelingOn;
+  bool isSplitTunnelingOn;
   String splitTunnelingMode;
   String locale;
   String oAuthToken;
@@ -15,7 +15,7 @@ class AppSetting {
   AppSetting({
     this.id = 0,
     this.isPro = false,
-    this.isSpiltTunnelingOn = false,
+    this.isSplitTunnelingOn = false,
     this.userLoggedIn = false,
     this.splitTunnelingMode = 'Automatic',
     this.oAuthToken = '',
@@ -33,7 +33,7 @@ class AppSetting {
     return AppSetting(
       id: id,
       isPro: newPro ?? isPro,
-      isSpiltTunnelingOn: newIsSpiltTunnelingOn ?? isSpiltTunnelingOn,
+      isSplitTunnelingOn: newIsSpiltTunnelingOn ?? isSplitTunnelingOn,
       locale: newLocale ?? locale,
       splitTunnelingMode: newSplitTunnelingMode ?? splitTunnelingMode,
       userLoggedIn: userLoggedIn ?? this.userLoggedIn,

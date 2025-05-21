@@ -338,7 +338,7 @@ class LanternFFIService implements LanternCoreService {
     try {
       final result = await runInBackground<String>(
         () async {
-          return _ffiService.stripeBilingPortalUrl().toDartString();
+          return _ffiService.stripeBillingPortalUrl().toDartString();
         },
       );
       return Right(result);

@@ -945,7 +945,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           fbb.startTable(8);
           fbb.addInt64(0, object.id);
           fbb.addBool(1, object.isPro);
-          fbb.addBool(2, object.isSpiltTunnelingOn);
+          fbb.addBool(2, object.isSplitTunnelingOn);
           fbb.addOffset(3, localeOffset);
           fbb.addOffset(4, splitTunnelingModeOffset);
           fbb.addBool(5, object.userLoggedIn);
@@ -974,7 +974,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           final object = AppSetting(
               id: idParam,
               isPro: isProParam,
-              isSpiltTunnelingOn: isSpiltTunnelingOnParam,
+              isSplitTunnelingOn: isSpiltTunnelingOnParam,
               userLoggedIn: userLoggedInParam,
               splitTunnelingMode: splitTunnelingModeParam,
               oAuthToken: oAuthTokenParam,
@@ -1248,7 +1248,7 @@ class AppSetting_ {
   static final isPro =
       obx.QueryBooleanProperty<AppSetting>(_entities[9].properties[1]);
 
-  /// See [AppSetting.isSpiltTunnelingOn].
+  /// See [AppSetting.isSplitTunnelingOn].
   static final isSpiltTunnelingOn =
       obx.QueryBooleanProperty<AppSetting>(_entities[9].properties[2]);
 

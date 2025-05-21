@@ -2496,15 +2496,15 @@ class LanternBindings {
           ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>,
               ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
 
-  ffi.Pointer<ffi.Char> stripeBilingPortalUrl() {
-    return _stripeBilingPortalUrl();
+  ffi.Pointer<ffi.Char> stripeBillingPortalUrl() {
+    return _stripeBillingPortalUrl();
   }
 
-  late final _stripeBilingPortalUrlPtr =
+  late final _stripeBillingPortalUrlPtr =
       _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
-          'stripeBilingPortalUrl');
-  late final _stripeBilingPortalUrl =
-      _stripeBilingPortalUrlPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
+          'stripeBillingPortalUrl');
+  late final _stripeBillingPortalUrl =
+      _stripeBillingPortalUrlPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
 
   ffi.Pointer<ffi.Char> plans() {
     return _plans();

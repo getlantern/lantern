@@ -350,8 +350,8 @@ func stripeSubscriptionPaymentRedirect(subType, _planId, _email *C.char) *C.char
 
 // Fetch stripe subscription link
 //
-//export stripeBilingPortalUrl
-func stripeBilingPortalUrl() *C.char {
+//export stripeBillingPortalUrl
+func stripeBillingPortalUrl() *C.char {
 	url, err := server.proServer.StripeBillingPortalUrl()
 	if err != nil {
 		return SendError(err)

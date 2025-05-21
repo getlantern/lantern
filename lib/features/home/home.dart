@@ -68,7 +68,7 @@ class Home extends HookConsumerWidget {
 
   Widget _buildSetting(WidgetRef ref) {
     final preferences = ref.watch(appSettingNotifierProvider);
-    final splitTunnelingEnabled = preferences.isSpiltTunnelingOn;
+    final splitTunnelingEnabled = preferences.isSplitTunnelingOn;
 
     return Container(
       decoration: BoxDecoration(boxShadow: [

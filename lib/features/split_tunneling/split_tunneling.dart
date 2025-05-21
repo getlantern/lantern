@@ -22,7 +22,7 @@ class SplitTunneling extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final preferences = ref.watch(appSettingNotifierProvider);
     final _textTheme = Theme.of(context).textTheme;
-    final splitTunnelingEnabled = preferences.isSpiltTunnelingOn;
+    final splitTunnelingEnabled = preferences.isSplitTunnelingOn;
     final splitTunnelingMode =
         preferences.splitTunnelingMode.toSplitTunnelingMode;
     final isAutomaticMode = splitTunnelingMode == SplitTunnelingMode.automatic;

@@ -77,7 +77,7 @@ extension SplitTunnelingModeExtension on SplitTunnelingMode {
   }
 }
 
-extension SpiltTunnelingModeString on String {
+extension SplitTunnelingModeString on String {
   SplitTunnelingMode get toSplitTunnelingMode {
     switch (this) {
       case 'Automatic':

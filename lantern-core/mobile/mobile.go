@@ -309,7 +309,7 @@ func Plans() (string, error) {
 	// Convert bytes to string and print
 	return string(jsonData), nil
 }
-func StripeBilingPortalUrl() (string, error) {
+func StripeBillingPortalUrl() (string, error) {
 	log.Debug("Getting stripe billing portal")
 	billingPortal, err := radianceServer.proServer.StripeBillingPortalUrl()
 	if err != nil {

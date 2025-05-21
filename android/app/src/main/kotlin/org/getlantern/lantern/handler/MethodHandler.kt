@@ -144,7 +144,7 @@ class MethodHandler : FlutterPlugin,
             Methods.StripeBillingPortal.method -> {
                 scope.launch {
                     result.runCatching {
-                        val url = Mobile.stripeBilingPortalUrl()
+                        val url = Mobile.stripeBillingPortalUrl()
                         withContext(Dispatchers.Main) {
                             success(url)
                         }

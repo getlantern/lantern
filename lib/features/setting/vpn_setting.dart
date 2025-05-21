@@ -19,7 +19,7 @@ class VPNSetting extends HookConsumerWidget {
 
   Widget _buildBody(BuildContext context, WidgetRef ref) {
     final preferences = ref.watch(appSettingNotifierProvider);
-    final splitTunnelingEnabled = preferences.isSpiltTunnelingOn;
+    final splitTunnelingEnabled = preferences.isSplitTunnelingOn;
     return Card(
       child: ListView(
         padding: const EdgeInsets.all(0),
