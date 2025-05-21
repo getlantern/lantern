@@ -445,6 +445,14 @@ msgstr "Add Email"
 msgid "logout"
 msgstr "Logout"
 
+msgid "logout_message"
+msgstr "Logging out will switch Lantern to the free version. To access your account again, you will need to sign back in."
+
+msgid "not_now"
+msgstr "Not now"
+
+
+
 
 
 

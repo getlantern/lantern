@@ -2544,6 +2544,15 @@ class LanternBindings {
   late final _oAuthLoginCallback = _oAuthLoginCallbackPtr
       .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
 
+  ffi.Pointer<ffi.Char> logout() {
+    return _logout();
+  }
+
+  late final _logoutPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>('logout');
+  late final _logout =
+      _logoutPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
+
   void freeCString(
     ffi.Pointer<ffi.Char> cstr,
   ) {

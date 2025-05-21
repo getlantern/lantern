@@ -197,10 +197,21 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> acknowledgeInAppPurchase({required String purchaseToken, required String planId}) {
+  Future<Either<Failure, Unit>> acknowledgeInAppPurchase(
+      {required String purchaseToken, required String planId}) {
     if (PlatformUtils.isDesktop) {
-      return _ffiService.acknowledgeInAppPurchase(purchaseToken: purchaseToken, planId: planId);
+      return _ffiService.acknowledgeInAppPurchase(
+          purchaseToken: purchaseToken, planId: planId);
     }
-    return _platformService.acknowledgeInAppPurchase(purchaseToken: purchaseToken, planId: planId);
+    return _platformService.acknowledgeInAppPurchase(
+        purchaseToken: purchaseToken, planId: planId);
+  }
+
+  @override
+  Future<Either<Failure, Unit>> logout() {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.logout();
+    }
+    return _platformService.logout();
   }
 }

@@ -67,4 +67,7 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, UserResponse>> fetchUserData();
 
+  //User management methods
+  Future<Either<Failure, Unit>> logout();
+
 }

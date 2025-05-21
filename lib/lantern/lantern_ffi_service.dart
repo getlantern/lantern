@@ -444,6 +444,23 @@ class LanternFFIService implements LanternCoreService {
     // TODO: implement acknowledgeInAppPurchase
     throw UnimplementedError();
   }
+
+  @override
+  Future<Either<Failure, Unit>> logout() async {
+    try {
+      final result = await runInBackground<String>(
+            () async {
+          return _ffiService.logout().toDartString();
+        },
+      );
+
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(e.toFailure());
+    }
+
+  }
 }
 
 class SplitTunnelMessage {

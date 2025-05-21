@@ -134,7 +134,9 @@ class _AddEmailState extends ConsumerState<AddEmail> {
           context.hideLoadingDialog();
           ref.read(homeNotifierProvider.notifier).updateUserData(response);
           appLogger.debug('Login Response: ${response.toString()}');
-          ref.read(appSettingNotifierProvider.notifier).setUserLoggedIn(true);
+          ref.read(appSettingNotifierProvider.notifier)
+            ..setUserLoggedIn(true)
+            ..setOAuthToken(token);
           postPaymentNavigate(type, response.legacyUserData.email);
         },
       );

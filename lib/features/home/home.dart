@@ -2,10 +2,8 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:lantern/core/extensions/ref.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
-import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/vpn/vpn_status.dart';
 import 'package:lantern/features/vpn/vpn_switch.dart';
 
@@ -111,25 +109,27 @@ class Home extends HookConsumerWidget {
               ],
               onTap: () => onSettingTileTap(_SettingTileType.smartLocation),
             ),
-            DividerSpace(),
-            SettingTile(
-              label: 'split_tunneling'.i18n,
-              icon: AppImagePaths.callSpilt,
-              value: splitTunnelingEnabled ? 'Enabled' : 'Disabled',
-              actions: [
-                IconButton(
-                  onPressed: () => appRouter.push(SplitTunneling()),
-                  style: ElevatedButton.styleFrom(
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  icon: AppImage(path: AppImagePaths.verticalDots),
-                  padding: EdgeInsets.zero,
-                  constraints: BoxConstraints(),
-                  visualDensity: VisualDensity.compact,
-                )
-              ],
-              onTap: () => onSettingTileTap(_SettingTileType.splitTunneling),
-            ),
+            if (PlatformUtils.isAndroid || PlatformUtils.isMacOS) ...{
+              DividerSpace(),
+              SettingTile(
+                label: 'split_tunneling'.i18n,
+                icon: AppImagePaths.callSpilt,
+                value: splitTunnelingEnabled ? 'Enabled' : 'Disabled',
+                actions: [
+                  IconButton(
+                    onPressed: () => appRouter.push(SplitTunneling()),
+                    style: ElevatedButton.styleFrom(
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    icon: AppImage(path: AppImagePaths.verticalDots),
+                    padding: EdgeInsets.zero,
+                    constraints: BoxConstraints(),
+                    visualDensity: VisualDensity.compact,
+                  )
+                ],
+                onTap: () => onSettingTileTap(_SettingTileType.splitTunneling),
+              ),
+            },
           ],
         ),
       ),

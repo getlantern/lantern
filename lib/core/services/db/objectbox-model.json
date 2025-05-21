@@ -370,7 +370,7 @@
     },
     {
       "id": "14:6952300567208748369",
-      "lastPropertyId": "6:4823200350992342297",
+      "lastPropertyId": "7:4827177218236496996",
       "name": "AppSetting",
       "properties": [
         {
@@ -403,6 +403,11 @@
           "id": "6:4823200350992342297",
           "name": "userLoggedIn",
           "type": 1
+        },
+        {
+          "id": "7:4827177218236496996",
+          "name": "oAuthToken",
+          "type": 9
         }
       ],
       "relations": []

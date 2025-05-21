@@ -28,7 +28,10 @@ enum class Methods(val method: String) {
     OAuthLoginCallback("oauthLoginCallback"),
     GetUserData("getUserData"),
     FetchUserData("fetchUserData"),
-    AcknowledgeInAppPurchase("acknowledgeInAppPurchase")
+    AcknowledgeInAppPurchase("acknowledgeInAppPurchase"),
+
+    //User management
+    Logout("logout")
 }
 
 class MethodHandler : FlutterPlugin,
@@ -171,6 +174,7 @@ class MethodHandler : FlutterPlugin,
                     }
                 }
             }
+
             Methods.AcknowledgeInAppPurchase.method -> {
                 scope.launch {
                     result.runCatching {
@@ -260,6 +264,23 @@ class MethodHandler : FlutterPlugin,
                         val bytes = Mobile.fetchUserData()
                         withContext(Dispatchers.Main) {
                             success(bytes)
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "OAuthLoginCallback",
+                            e.localizedMessage ?: "Please try again",
+                            e
+                        )
+                    }
+                }
+            }
+
+            Methods.Logout.method -> {
+                scope.launch {
+                    result.runCatching {
+                        Mobile.logout()
+                        withContext(Dispatchers.Main) {
+                            success("")
                         }
                     }.onFailure { e ->
                         result.error(

@@ -352,7 +352,7 @@ func stripeSubscriptionPaymentRedirect(subType, _planId, _email *C.char) *C.char
 //
 //export stripeBilingPortalUrl
 func stripeBilingPortalUrl() *C.char {
-	url, err := server.proServer.StripeBilingPortalUrl()
+	url, err := server.proServer.StripeBillingPortalUrl()
 	if err != nil {
 		return SendError(err)
 	}
@@ -444,6 +444,18 @@ func oAuthLoginCallback(_oAuthToken *C.char) *C.char {
 	}
 	encoded := base64.StdEncoding.EncodeToString(bytes)
 	return C.CString(encoded)
+}
+
+// User management
+//
+//export logout
+func logout() *C.char {
+	log.Debug("Logging out")
+	err := server.authClient.Logout(context.Background())
+	if err != nil {
+		return SendError(log.Errorf("Error logging out: %v", err))
+	}
+	return C.CString("ok")
 }
 
 //export freeCString

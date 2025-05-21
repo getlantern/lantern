@@ -291,11 +291,11 @@ func StripeSubscription(email, planId string) (string, error) {
 }
 
 func Plans() (string, error) {
-	defer func() {
-		if err := recover(); err != nil {
-			log.Errorf("Error creating stripe subscription: %v", err)
-		}
-	}()
+	// defer func() {
+	// 	if err := recover(); err != nil {
+	// 		log.Errorf("Error creating stripe subscription: %v", err)
+	// 	}
+	// }()
 	log.Debug("Getting plans")
 	plans, err := radianceServer.proServer.Plans(context.Background())
 	if err != nil {
@@ -311,7 +311,7 @@ func Plans() (string, error) {
 }
 func StripeBilingPortalUrl() (string, error) {
 	log.Debug("Getting stripe billing portal")
-	billingPortal, err := radianceServer.proServer.StripeBilingPortalUrl()
+	billingPortal, err := radianceServer.proServer.StripeBillingPortalUrl()
 	if err != nil {
 		return "", log.Errorf("Error getting stripe billing portal: %v", err)
 	}
@@ -336,5 +336,16 @@ func AcknowledgeApplePurchase(receipt, planId string) error {
 		return log.Errorf("Error acknowledging: %v", err)
 	}
 	log.Debugf("acknowledge apple purchase: %v", acknowledge)
+	return nil
+}
+
+/// User management apis
+
+func Logout() error {
+	log.Debug("Logging out")
+	err := radianceServer.user.Logout(context.Background())
+	if err != nil {
+		return log.Errorf("Error logging out: %v", err)
+	}
 	return nil
 }

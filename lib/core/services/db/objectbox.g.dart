@@ -385,7 +385,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
       id: const obx_int.IdUid(14, 6952300567208748369),
       name: 'AppSetting',
-      lastPropertyId: const obx_int.IdUid(6, 4823200350992342297),
+      lastPropertyId: const obx_int.IdUid(7, 4827177218236496996),
       flags: 0,
       properties: <obx_int.ModelProperty>[
         obx_int.ModelProperty(
@@ -417,6 +417,11 @@ final _entities = <obx_int.ModelEntity>[
             id: const obx_int.IdUid(6, 4823200350992342297),
             name: 'userLoggedIn',
             type: 1,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(7, 4827177218236496996),
+            name: 'oAuthToken',
+            type: 9,
             flags: 0)
       ],
       relations: <obx_int.ModelRelation>[],
@@ -936,13 +941,15 @@ obx_int.ModelDefinition getObjectBoxModel() {
           final localeOffset = fbb.writeString(object.locale);
           final splitTunnelingModeOffset =
               fbb.writeString(object.splitTunnelingMode);
-          fbb.startTable(7);
+          final oAuthTokenOffset = fbb.writeString(object.oAuthToken);
+          fbb.startTable(8);
           fbb.addInt64(0, object.id);
           fbb.addBool(1, object.isPro);
           fbb.addBool(2, object.isSpiltTunnelingOn);
           fbb.addOffset(3, localeOffset);
           fbb.addOffset(4, splitTunnelingModeOffset);
           fbb.addBool(5, object.userLoggedIn);
+          fbb.addOffset(6, oAuthTokenOffset);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -960,6 +967,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
           final splitTunnelingModeParam =
               const fb.StringReader(asciiOptimization: true)
                   .vTableGet(buffer, rootOffset, 12, '');
+          final oAuthTokenParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 16, '');
           final localeParam = const fb.StringReader(asciiOptimization: true)
               .vTableGet(buffer, rootOffset, 10, '');
           final object = AppSetting(
@@ -968,6 +977,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
               isSpiltTunnelingOn: isSpiltTunnelingOnParam,
               userLoggedIn: userLoggedInParam,
               splitTunnelingMode: splitTunnelingModeParam,
+              oAuthToken: oAuthTokenParam,
               locale: localeParam);
 
           return object;
@@ -1253,4 +1263,8 @@ class AppSetting_ {
   /// See [AppSetting.userLoggedIn].
   static final userLoggedIn =
       obx.QueryBooleanProperty<AppSetting>(_entities[9].properties[5]);
+
+  /// See [AppSetting.oAuthToken].
+  static final oAuthToken =
+      obx.QueryStringProperty<AppSetting>(_entities[9].properties[6]);
 }

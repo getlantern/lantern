@@ -9,6 +9,7 @@ class AppSetting {
   bool isSpiltTunnelingOn;
   String splitTunnelingMode;
   String locale;
+  String oAuthToken;
   bool userLoggedIn;
 
   AppSetting({
@@ -17,6 +18,7 @@ class AppSetting {
     this.isSpiltTunnelingOn = false,
     this.userLoggedIn = false,
     this.splitTunnelingMode = 'Automatic',
+    this.oAuthToken = '',
     this.locale = 'en_US',
   });
 
@@ -26,6 +28,7 @@ class AppSetting {
     String? newLocale,
     String? newSplitTunnelingMode,
     bool? userLoggedIn,
+    String? oAuthToken,
   }) {
     return AppSetting(
       id: id,
@@ -34,6 +37,7 @@ class AppSetting {
       locale: newLocale ?? locale,
       splitTunnelingMode: newSplitTunnelingMode ?? splitTunnelingMode,
       userLoggedIn: userLoggedIn ?? this.userLoggedIn,
+      oAuthToken: oAuthToken ?? this.oAuthToken,
     );
   }
 }

@@ -107,11 +107,6 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Stream<List<String>> logsStream() async* {
-    throw UnimplementedError();
-  }
-
-  @override
   Future<Either<Failure, Unit>> addSplitTunnelItem(
       SplitTunnelFilterType type, String value) async {
     try {
@@ -295,6 +290,17 @@ class LanternPlatformService implements LanternCoreService {
       return Right(unit);
     } catch (e, stackTrace) {
       appLogger.error('Error acknowledging in-app purchase', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> logout() async {
+    try {
+      await _methodChannel.invokeMethod('logout');
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error logging out', e, stackTrace);
       return Left(e.toFailure());
     }
   }

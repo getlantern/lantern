@@ -53,6 +53,10 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     update(state.copyWith(userLoggedIn: value));
   }
 
+  void setOAuthToken(String token) {
+    update(state.copyWith(oAuthToken: token));
+  }
+
   Locale _detectDeviceLocale() {
     final deviceLocale = PlatformDispatcher.instance.locale;
     return deviceLocale.languageCode == 'en'

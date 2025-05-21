@@ -6,6 +6,7 @@ import 'package:lantern/core/localization/localization_constants.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/setting/follow_us.dart'
     show showFollowUsBottomSheet;
+import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 enum _SettingType {
   account,
@@ -25,14 +26,16 @@ enum _SettingType {
 }
 
 @RoutePage(name: 'Setting')
-class Setting extends HookConsumerWidget {
-  Setting({super.key});
-
-  late BuildContext context;
+class Setting extends StatefulHookConsumerWidget {
+  const Setting({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    this.context = context;
+  ConsumerState<Setting> createState() => _SettingState();
+}
+
+class _SettingState extends ConsumerState<Setting> {
+  @override
+  Widget build(BuildContext context) {
     final appSetting = ref.watch(appSettingNotifierProvider);
     final locale = appSetting.locale;
     final textTheme = Theme.of(context).textTheme;
@@ -226,11 +229,63 @@ class Setting extends HookConsumerWidget {
         appRouter.push(VPNSetting());
         break;
       case _SettingType.logout:
-        // TODO: Handle this case.
-        throw UnimplementedError();
+        logoutDialog();
+        break;
       case _SettingType.browserUnbounded:
         // TODO: Handle this case.
         throw UnimplementedError();
     }
+  }
+
+  void logoutDialog() {
+    final theme = Theme.of(context).textTheme;
+    AppDialog.customDialog(
+      context: context,
+      action: [
+        AppTextButton(
+          label: 'not_now'.i18n,
+          textColor: AppColors.gray8,
+          onPressed: () {
+            context.maybePop();
+          },
+        ),
+        AppTextButton(
+          label: 'logout'.i18n,
+          onPressed: () {
+            onLogout();
+            context.maybePop();
+          },
+        ),
+      ],
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          SizedBox(height: defaultSize),
+          Text(
+            'logout'.i18n,
+            style: theme.headlineSmall,
+          ),
+          SizedBox(height: defaultSize),
+          Text(
+            'logout_message'.i18n,
+            style: theme.bodySmall!.copyWith(
+              color: AppColors.gray8,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> onLogout() async {
+    final result = await ref.read(lanternServiceProvider).logout();
+    result.fold(
+      (l) {
+        appLogger.error('Logout error: ${l.localizedErrorMessage}');
+      },
+      (r) {
+        appLogger.info('Logout success: $r');
+      },
+    );
   }
 }
