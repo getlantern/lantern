@@ -47,13 +47,22 @@ class MethodHandler {
       case "showManageSubscriptions":
         self.showManageSubscriptions(result: result)
       case "acknowledgeInAppPurchase":
-       if let map = call.arguments as? [String: Any],
-             let token = map["purchaseToken"] as? String,
-             let planId = map["planId"] as? String {
-              self.acknowledgeInAppPurchase(token: token, planId: planId, result: result)
-          } else {
-              result(FlutterError(code: "INVALID_ARGUMENTS", message: "Missing or invalid purchaseToken or planId", details: nil))
-          }
+        if let map = call.arguments as? [String: Any],
+          let token = map["purchaseToken"] as? String,
+          let planId = map["planId"] as? String
+        {
+          self.acknowledgeInAppPurchase(token: token, planId: planId, result: result)
+        } else {
+          result(
+            FlutterError(
+              code: "INVALID_ARGUMENTS", message: "Missing or invalid purchaseToken or planId",
+              details: nil))
+        }
+      // user management
+      case "logout":
+        // Handle logout if needed
+        self.logout(result: result)
+
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -213,33 +222,6 @@ class MethodHandler {
     }
   }
 
-  private func stripeBillingPortal(result: @escaping FlutterResult) {
-    Task {
-      do {
-        var error: NSError?
-        var data = try await MobileStripeBilingPortalUrl(&error)
-        if error != nil {
-          result(
-            FlutterError(
-              code: "STRIPE_BILLING_PORTAL",
-              message: error?.description,
-              details: error?.localizedDescription))
-        }
-        await MainActor.run {
-          result(data)
-        }
-      } catch {
-        await MainActor.run {
-          result(
-            FlutterError(
-              code: "STRIPE_BILLING_PORTAL",
-              message: "error while getting stripe billing url.",
-              details: error.localizedDescription))
-        }
-      }
-    }
-  }
-
   private func showManageSubscriptions(result: @escaping FlutterResult) {
     if #available(iOS 15.0, *) {
       guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else {
@@ -286,6 +268,27 @@ class MethodHandler {
             FlutterError(
               code: "ACKNOWLEDGE_FAILED",
               message: "Unable to acknowledge purchase.",
+              details: error.localizedDescription))
+        }
+      }
+    }
+  }
+
+  // User management
+  func logout(result: @escaping FlutterResult) {
+    Task {
+      do {
+        var error: NSError?
+        MobileLogout(&error)
+        await MainActor.run {
+          result("success")
+        }
+      } catch {
+        await MainActor.run {
+          result(
+            FlutterError(
+              code: "LOGOUT_FAILED",
+              message: "Unable to logout.",
               details: error.localizedDescription))
         }
       }

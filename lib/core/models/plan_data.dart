@@ -111,23 +111,29 @@ class Provider {
   String name;
   Map<String, dynamic>? data;
   List<String> icons;
+  bool supportSubscription;
 
   Provider({
     required this.name,
     required this.icons,
+    required this.supportSubscription,
     this.data,
   });
 
   factory Provider.fromJson(Map<String, dynamic> json) => Provider(
         name: json["name"],
-        data: (json["data"] as Map<String, dynamic>)
-            .map((key, value) => MapEntry(key, value)),
+        data: json["data"] == null
+            ? {}
+            : (json["data"] as Map<String, dynamic>)
+                .map((key, value) => MapEntry(key, value)),
         icons: List<String>.from(json["icons"].map((x) => x)),
+        supportSubscription: json["supportsSubscription"] ?? false,
       );
 
   Map<String, dynamic> toJson() => {
         "name": name,
         "data": data,
         "icons": List<dynamic>.from(icons.map((x) => x)),
+        "supportsSubscription": supportSubscription,
       };
 }

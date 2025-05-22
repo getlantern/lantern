@@ -7,7 +7,6 @@ class PlansDataEntity {
   final ToOne<ProvidersEntity> providers = ToOne<ProvidersEntity>();
   final ToMany<PlanEntity> plans = ToMany<PlanEntity>();
 
-
   PlansDataEntity();
 }
 

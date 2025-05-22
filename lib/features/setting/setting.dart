@@ -56,6 +56,7 @@ class _SettingState extends ConsumerState<Setting> {
               ),
             ),
           const SizedBox(height: 16),
+
           Card(
             margin: EdgeInsets.zero,
             child: AppTile(

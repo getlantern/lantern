@@ -210,81 +210,88 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
       padding: EdgeInsets.zero,
       itemBuilder: (context, index) {
         final method = providers[index];
-        return ExpansionTile(
-          initiallyExpanded: index == 0,
-          backgroundColor: AppColors.white,
-          collapsedBackgroundColor: AppColors.white,
-          collapsedShape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: BorderSide(
-              color: AppColors.gray3,
-              width: 1,
-            ),
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: BorderSide(
-              color: AppColors.gray3,
-              width: 1,
-            ),
-          ),
-          tilePadding: EdgeInsets.symmetric(horizontal: defaultSize),
-          childrenPadding: EdgeInsets.symmetric(
-              horizontal: defaultSize, vertical: defaultSize),
-          title: Row(
-            children: [
-              Text(method.method, style: theme.titleMedium),
-              SizedBox(width: defaultSize),
-              LogsPath(
-                logoPaths: method.providers.icons,
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: ExpansionTile(
+            initiallyExpanded: index == 0,
+            backgroundColor: AppColors.white,
+            collapsedBackgroundColor: AppColors.white,
+            collapsedShape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: BorderSide(
+                color: AppColors.gray3,
+                width: 1,
               ),
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: BorderSide(
+                color: AppColors.gray3,
+                width: 1,
+              ),
+            ),
+            tilePadding: EdgeInsets.symmetric(horizontal: defaultSize),
+            childrenPadding: EdgeInsets.symmetric(
+                horizontal: defaultSize, vertical: defaultSize),
+            title: Row(
+              children: [
+                Text(method.method, style: theme.titleMedium),
+                SizedBox(width: defaultSize),
+                LogsPath(
+                  logoPaths: method.providers.icons,
+                ),
+              ],
+            ),
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(userPlan.description, style: theme.bodyMedium),
+                  Text(
+                    '${userPlan.formattedMonthlyPrice}/month',
+                    style: theme.bodyMedium!.copyWith(
+                      color: AppColors.gray6,
+                    ),
+                  ),
+                ],
+              ),
+              DividerSpace(padding: EdgeInsets.symmetric(vertical: 10)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Order Total:',
+                      style: theme.titleSmall!.copyWith(
+                        color: AppColors.gray9,
+                      )),
+                  Text(
+                    userPlan.formattedYearlyPrice,
+                    style: theme.titleSmall!.copyWith(
+                      color: AppColors.blue10,
+                    ),
+                  ),
+                ],
+              ),
+              DividerSpace(padding: EdgeInsets.symmetric(vertical: 10)),
+              SizedBox(height: 10),
+              Text(
+                method.providers.supportSubscription
+                    ? "Billed every ${userPlan.getDurationText()}. Cancel anytime."
+                    : 'billed_once'.i18n,
+                style: theme.bodySmall!.copyWith(
+                  color: AppColors.gray6,
+                ),
+              ),
+              SizedBox(height: defaultSize),
+              PrimaryButton(
+                label: method.providers.supportSubscription
+                    ? 'subscribe'.i18n
+                    : 'checkout'.i18n,
+                onPressed: () {
+                  onSubscribe.call(method);
+                },
+              )
             ],
           ),
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(userPlan.description, style: theme.bodyMedium),
-                Text(
-                  '${userPlan.formattedMonthlyPrice}/month',
-                  style: theme.bodyMedium!.copyWith(
-                    color: AppColors.gray6,
-                  ),
-                ),
-              ],
-            ),
-            DividerSpace(padding: EdgeInsets.symmetric(vertical: 10)),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Order Total:',
-                    style: theme.titleSmall!.copyWith(
-                      color: AppColors.gray9,
-                    )),
-                Text(
-                  userPlan.formattedYearlyPrice,
-                  style: theme.titleSmall!.copyWith(
-                    color: AppColors.blue10,
-                  ),
-                ),
-              ],
-            ),
-            DividerSpace(padding: EdgeInsets.symmetric(vertical: 10)),
-            SizedBox(height: 10),
-            Text(
-              "Billed every ${userPlan.getDurationText()}. Cancel anytime.",
-              style: theme.bodySmall!.copyWith(
-                color: AppColors.gray6,
-              ),
-            ),
-            SizedBox(height: defaultSize),
-            PrimaryButton(
-              label: 'Subscribe',
-              onPressed: () {
-                onSubscribe.call(method);
-              },
-            )
-          ],
         );
       },
     );

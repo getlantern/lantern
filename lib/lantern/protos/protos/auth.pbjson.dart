@@ -24,9 +24,8 @@ const UserResponse$json = {
     {'1': 'Success', '3': 5, '4': 1, '5': 8, '10': 'Success'},
     {'1': 'legacyUserData', '3': 6, '4': 1, '5': 11, '6': '.UserResponse.UserData', '10': 'legacyUserData'},
     {'1': 'devices', '3': 7, '4': 3, '5': 11, '6': '.UserResponse.Device', '10': 'devices'},
-    {'1': 'subscriptionData', '3': 20, '4': 1, '5': 11, '6': '.UserResponse.SubscriptionData', '10': 'subscriptionData'},
   ],
-  '3': [UserResponse_Device$json, UserResponse_UserData$json, UserResponse_SubscriptionData$json],
+  '3': [UserResponse_Device$json, UserResponse_UserData$json],
 };
 
 @$core.Deprecated('Use userResponseDescriptor instead')
@@ -62,23 +61,25 @@ const UserResponse_UserData$json = {
     {'1': 'invitees', '3': 17, '4': 3, '5': 9, '10': 'invitees'},
     {'1': 'devices', '3': 18, '4': 3, '5': 11, '6': '.UserResponse.Device', '10': 'devices'},
     {'1': 'yinbiEnabled', '3': 19, '4': 1, '5': 8, '10': 'yinbiEnabled'},
+    {'1': 'subscriptionData', '3': 20, '4': 1, '5': 11, '6': '.UserResponse.UserData.SubscriptionData', '10': 'subscriptionData'},
   ],
+  '3': [UserResponse_UserData_SubscriptionData$json],
 };
 
 @$core.Deprecated('Use userResponseDescriptor instead')
-const UserResponse_SubscriptionData$json = {
+const UserResponse_UserData_SubscriptionData$json = {
   '1': 'SubscriptionData',
   '2': [
-    {'1': 'subscription_i_d', '3': 1, '4': 1, '5': 9, '10': 'subscriptionID'},
-    {'1': 'plan_i_d', '3': 2, '4': 1, '5': 9, '10': 'planID'},
-    {'1': 'stripe_customer_i_d', '3': 3, '4': 1, '5': 9, '10': 'stripeCustomerID'},
-    {'1': 'status', '3': 4, '4': 1, '5': 9, '10': 'status'},
-    {'1': 'provider', '3': 5, '4': 1, '5': 9, '10': 'provider'},
-    {'1': 'created_at', '3': 6, '4': 1, '5': 9, '10': 'createdAt'},
-    {'1': 'start_at', '3': 7, '4': 1, '5': 9, '10': 'startAt'},
-    {'1': 'end_at', '3': 8, '4': 1, '5': 9, '10': 'endAt'},
-    {'1': 'cancelled_at', '3': 9, '4': 1, '5': 9, '10': 'cancelledAt'},
-    {'1': 'auto_renew', '3': 10, '4': 1, '5': 8, '10': 'autoRenew'},
+    {'1': 'planID', '3': 1, '4': 1, '5': 9, '10': 'planID'},
+    {'1': 'stripeCustomerID', '3': 2, '4': 1, '5': 9, '10': 'stripeCustomerID'},
+    {'1': 'startAt', '3': 3, '4': 1, '5': 9, '10': 'startAt'},
+    {'1': 'cancelledAt', '3': 4, '4': 1, '5': 9, '10': 'cancelledAt'},
+    {'1': 'autoRenew', '3': 5, '4': 1, '5': 8, '10': 'autoRenew'},
+    {'1': 'subscriptionID', '3': 6, '4': 1, '5': 9, '10': 'subscriptionID'},
+    {'1': 'status', '3': 7, '4': 1, '5': 9, '10': 'status'},
+    {'1': 'provider', '3': 8, '4': 1, '5': 9, '10': 'provider'},
+    {'1': 'createdAt', '3': 9, '4': 1, '5': 9, '10': 'createdAt'},
+    {'1': 'endAt', '3': 10, '4': 1, '5': 9, '10': 'endAt'},
   ],
 };
 
@@ -88,26 +89,26 @@ final $typed_data.Uint8List userResponseDescriptor = $convert.base64Decode(
     'VuGAIgASgJUgtsZWdhY3lUb2tlbhIOCgJpZBgDIAEoCVICaWQSJgoOZW1haWxDb25maXJtZWQY'
     'BCABKAhSDmVtYWlsQ29uZmlybWVkEhgKB1N1Y2Nlc3MYBSABKAhSB1N1Y2Nlc3MSPgoObGVnYW'
     'N5VXNlckRhdGEYBiABKAsyFi5Vc2VyUmVzcG9uc2UuVXNlckRhdGFSDmxlZ2FjeVVzZXJEYXRh'
-    'Ei4KB2RldmljZXMYByADKAsyFC5Vc2VyUmVzcG9uc2UuRGV2aWNlUgdkZXZpY2VzEkoKEHN1Yn'
-    'NjcmlwdGlvbkRhdGEYFCABKAsyHi5Vc2VyUmVzcG9uc2UuU3Vic2NyaXB0aW9uRGF0YVIQc3Vi'
-    'c2NyaXB0aW9uRGF0YRpGCgZEZXZpY2USDgoCaWQYASABKAlSAmlkEhIKBG5hbWUYAiABKAlSBG'
-    '5hbWUSGAoHY3JlYXRlZBgDIAEoA1IHY3JlYXRlZBq9BAoIVXNlckRhdGESFgoGdXNlcklkGAEg'
-    'ASgDUgZ1c2VySWQSEgoEY29kZRgCIAEoCVIEY29kZRIUCgV0b2tlbhgDIAEoCVIFdG9rZW4SGg'
-    'oIcmVmZXJyYWwYBCABKAlSCHJlZmVycmFsEhQKBXBob25lGAUgASgJUgVwaG9uZRIUCgVlbWFp'
-    'bBgGIAEoCVIFZW1haWwSHgoKdXNlclN0YXR1cxgHIAEoCVIKdXNlclN0YXR1cxIcCgl1c2VyTG'
-    'V2ZWwYCCABKAlSCXVzZXJMZXZlbBIWCgZsb2NhbGUYCSABKAlSBmxvY2FsZRIeCgpleHBpcmF0'
-    'aW9uGAogASgDUgpleHBpcmF0aW9uEhgKB3NlcnZlcnMYCyADKAlSB3NlcnZlcnMSIgoMc3Vic2'
-    'NyaXB0aW9uGAwgASgJUgxzdWJzY3JpcHRpb24SJwoJcHVyY2hhc2VzGA0gAygLMgkuUHVyY2hh'
-    'c2VSCXB1cmNoYXNlcxIcCglib251c0RheXMYDiABKAlSCWJvbnVzRGF5cxIgCgtib251c01vbn'
-    'RocxgPIAEoCVILYm9udXNNb250aHMSGgoIaW52aXRlcnMYECADKAlSCGludml0ZXJzEhoKCGlu'
-    'dml0ZWVzGBEgAygJUghpbnZpdGVlcxIuCgdkZXZpY2VzGBIgAygLMhQuVXNlclJlc3BvbnNlLk'
-    'RldmljZVIHZGV2aWNlcxIiCgx5aW5iaUVuYWJsZWQYEyABKAhSDHlpbmJpRW5hYmxlZBrMAgoQ'
-    'U3Vic2NyaXB0aW9uRGF0YRIoChBzdWJzY3JpcHRpb25faV9kGAEgASgJUg5zdWJzY3JpcHRpb2'
-    '5JRBIYCghwbGFuX2lfZBgCIAEoCVIGcGxhbklEEi0KE3N0cmlwZV9jdXN0b21lcl9pX2QYAyAB'
-    'KAlSEHN0cmlwZUN1c3RvbWVySUQSFgoGc3RhdHVzGAQgASgJUgZzdGF0dXMSGgoIcHJvdmlkZX'
-    'IYBSABKAlSCHByb3ZpZGVyEh0KCmNyZWF0ZWRfYXQYBiABKAlSCWNyZWF0ZWRBdBIZCghzdGFy'
-    'dF9hdBgHIAEoCVIHc3RhcnRBdBIVCgZlbmRfYXQYCCABKAlSBWVuZEF0EiEKDGNhbmNlbGxlZF'
-    '9hdBgJIAEoCVILY2FuY2VsbGVkQXQSHQoKYXV0b19yZW5ldxgKIAEoCFIJYXV0b1JlbmV3');
+    'Ei4KB2RldmljZXMYByADKAsyFC5Vc2VyUmVzcG9uc2UuRGV2aWNlUgdkZXZpY2VzGkYKBkRldm'
+    'ljZRIOCgJpZBgBIAEoCVICaWQSEgoEbmFtZRgCIAEoCVIEbmFtZRIYCgdjcmVhdGVkGAMgASgD'
+    'UgdjcmVhdGVkGtUHCghVc2VyRGF0YRIWCgZ1c2VySWQYASABKANSBnVzZXJJZBISCgRjb2RlGA'
+    'IgASgJUgRjb2RlEhQKBXRva2VuGAMgASgJUgV0b2tlbhIaCghyZWZlcnJhbBgEIAEoCVIIcmVm'
+    'ZXJyYWwSFAoFcGhvbmUYBSABKAlSBXBob25lEhQKBWVtYWlsGAYgASgJUgVlbWFpbBIeCgp1c2'
+    'VyU3RhdHVzGAcgASgJUgp1c2VyU3RhdHVzEhwKCXVzZXJMZXZlbBgIIAEoCVIJdXNlckxldmVs'
+    'EhYKBmxvY2FsZRgJIAEoCVIGbG9jYWxlEh4KCmV4cGlyYXRpb24YCiABKANSCmV4cGlyYXRpb2'
+    '4SGAoHc2VydmVycxgLIAMoCVIHc2VydmVycxIiCgxzdWJzY3JpcHRpb24YDCABKAlSDHN1YnNj'
+    'cmlwdGlvbhInCglwdXJjaGFzZXMYDSADKAsyCS5QdXJjaGFzZVIJcHVyY2hhc2VzEhwKCWJvbn'
+    'VzRGF5cxgOIAEoCVIJYm9udXNEYXlzEiAKC2JvbnVzTW9udGhzGA8gASgJUgtib251c01vbnRo'
+    'cxIaCghpbnZpdGVycxgQIAMoCVIIaW52aXRlcnMSGgoIaW52aXRlZXMYESADKAlSCGludml0ZW'
+    'VzEi4KB2RldmljZXMYEiADKAsyFC5Vc2VyUmVzcG9uc2UuRGV2aWNlUgdkZXZpY2VzEiIKDHlp'
+    'bmJpRW5hYmxlZBgTIAEoCFIMeWluYmlFbmFibGVkElMKEHN1YnNjcmlwdGlvbkRhdGEYFCABKA'
+    'syJy5Vc2VyUmVzcG9uc2UuVXNlckRhdGEuU3Vic2NyaXB0aW9uRGF0YVIQc3Vic2NyaXB0aW9u'
+    'RGF0YRrAAgoQU3Vic2NyaXB0aW9uRGF0YRIWCgZwbGFuSUQYASABKAlSBnBsYW5JRBIqChBzdH'
+    'JpcGVDdXN0b21lcklEGAIgASgJUhBzdHJpcGVDdXN0b21lcklEEhgKB3N0YXJ0QXQYAyABKAlS'
+    'B3N0YXJ0QXQSIAoLY2FuY2VsbGVkQXQYBCABKAlSC2NhbmNlbGxlZEF0EhwKCWF1dG9SZW5ldx'
+    'gFIAEoCFIJYXV0b1JlbmV3EiYKDnN1YnNjcmlwdGlvbklEGAYgASgJUg5zdWJzY3JpcHRpb25J'
+    'RBIWCgZzdGF0dXMYByABKAlSBnN0YXR1cxIaCghwcm92aWRlchgIIAEoCVIIcHJvdmlkZXISHA'
+    'oJY3JlYXRlZEF0GAkgASgJUgljcmVhdGVkQXQSFAoFZW5kQXQYCiABKAlSBWVuZEF0');
 
 @$core.Deprecated('Use purchaseDescriptor instead')
 const Purchase$json = {

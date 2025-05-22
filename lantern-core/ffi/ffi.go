@@ -365,7 +365,7 @@ func stripeBillingPortalUrl() *C.char {
 //export plans
 func plans() *C.char {
 	log.Debug("Getting plans")
-	plans, err := server.proServer.Plans(context.Background())
+	plans, err := server.proServer.Plans(context.Background(), "non-store")
 	if err != nil {
 		return SendError(err)
 	}

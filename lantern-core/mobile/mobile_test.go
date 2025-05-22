@@ -74,6 +74,16 @@ func TestUserData(t *testing.T) {
 	assert.NotNil(t, user)
 }
 
+func TestPlans(t *testing.T) {
+	rr, err := radiance.NewRadiance(radianceOptions())
+	api := rr.APIHandler().ProServer
+	assert.Nil(t, err)
+	assert.NotNil(t, rr)
+	plans, err := api.Plans(context.Background(), "non-store")
+	assert.Nil(t, err)
+	assert.NotNil(t, plans)
+}
+
 func TestOAuthLoginUrl(t *testing.T) {
 	rr, err := radiance.NewRadiance(radianceOptions())
 	api := rr.APIHandler().User
@@ -83,7 +93,6 @@ func TestOAuthLoginUrl(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, user)
 }
-
 
 func TestGoogle(t *testing.T) {
 	rr, err := radiance.NewRadiance(radianceOptions())

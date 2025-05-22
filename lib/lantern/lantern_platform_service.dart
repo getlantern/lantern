@@ -209,6 +209,7 @@ class LanternPlatformService implements LanternCoreService {
       appLogger.info('Plans: $map');
       return Right(plans);
     } catch (e, stackTrace) {
+      appLogger.error('Error fetching plans', e, stackTrace);
       return Left(Failure(
           error: e.toString(),
           localizedErrorMessage: (e as Exception).localizedDescription));
@@ -247,6 +248,7 @@ class LanternPlatformService implements LanternCoreService {
       final bytes = await _methodChannel.invokeMethod('getUserData');
       return Right(UserResponse.fromBuffer(bytes));
     } catch (e, stackTrace) {
+      appLogger.error('Error fetching user data', e, stackTrace);
       return Left(Failure(
           error: e.toString(),
           localizedErrorMessage: (e as Exception).localizedDescription));

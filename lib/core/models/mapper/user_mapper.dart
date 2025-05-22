@@ -45,6 +45,7 @@ extension UserDataMapper on UserResponse_UserData {
     );
     user.devices.addAll(devices.map((e) => e.toEntity()));
     user.purchases.addAll(purchases.map((e) => e.toEntity()));
+    user.subscriptionData.target = subscriptionData.toEntity();
     return user;
   }
 }
@@ -56,6 +57,24 @@ extension DeviceMapper on UserResponse_Device {
       deviceId: id,
       name: name,
       created: created.toInt(),
+    );
+  }
+}
+
+extension SubscriptionDataMapper on UserResponse_UserData_SubscriptionData {
+  SubscriptionDataEntity toEntity() {
+    return SubscriptionDataEntity(
+      id: 0,
+      autoRenew: autoRenew,
+      provider: provider,
+      endAt: endAt,
+      planID: planID,
+      status: status,
+      startAt: startAt,
+      cancelledAt: cancelledAt,
+      createdAt: createdAt,
+      stripeCustomerID: stripeCustomerID,
+      subscriptionID: subscriptionID,
     );
   }
 }
@@ -81,8 +100,6 @@ extension LoginUserData on UserResponseEntity {
       devices: devices.map((e) => e.toDevice()).toList(),
     );
   }
-
-
 }
 
 extension UserData on UserDataEntity {
@@ -107,6 +124,7 @@ extension UserData on UserDataEntity {
       invitees: invitees.split(',').toList(),
       devices: devices.map((e) => e.toDevice()).toList(),
       purchases: purchases.map((e) => e.toPurchase()).toList(),
+      subscriptionData: subscriptionData.target!.toSubscriptionData(),
     );
   }
 }
@@ -125,6 +143,23 @@ extension PurchaseExtension on PurchaseEntity {
   Purchase toPurchase() {
     return Purchase(
       plan: plan,
+    );
+  }
+}
+
+extension SubscriptionDataExtension on SubscriptionDataEntity {
+  UserResponse_UserData_SubscriptionData toSubscriptionData() {
+    return UserResponse_UserData_SubscriptionData(
+      autoRenew: autoRenew,
+      provider: provider,
+      endAt: endAt,
+      planID: planID,
+      status: status,
+      startAt: startAt,
+      cancelledAt: cancelledAt,
+      createdAt: createdAt,
+      stripeCustomerID: stripeCustomerID,
+      subscriptionID: subscriptionID,
     );
   }
 }

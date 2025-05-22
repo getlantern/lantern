@@ -199,6 +199,7 @@ func UserData() ([]byte, error) {
 	if err != nil {
 		return nil, log.Errorf("Error getting user data: %v", err)
 	}
+	fmt.Printf("UserData: %v\n", user)
 	bytes, err := proto.Marshal(user)
 	if err != nil {
 		return nil, log.Errorf("Error marshalling user data: %v", err)
@@ -297,15 +298,15 @@ func Plans() (string, error) {
 	// 	}
 	// }()
 	log.Debug("Getting plans")
-	plans, err := radianceServer.proServer.Plans(context.Background())
+	plans, err := radianceServer.proServer.Plans(context.Background(), "non-store")
 	if err != nil {
 		return "", log.Errorf("Error getting plans: %v", err)
 	}
-	log.Debugf("Plans response: %v", plans)
 	jsonData, err := json.Marshal(plans)
 	if err != nil {
 		return "", log.Errorf("Error marshalling plans: %v", err)
 	}
+	log.Debugf("Plans response: %v", string(jsonData))
 	// Convert bytes to string and print
 	return string(jsonData), nil
 }

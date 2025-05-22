@@ -451,8 +451,17 @@ msgstr "Logging out will switch Lantern to the free version. To access your acco
 msgid "not_now"
 msgstr "Not now"
 
+msgid "billed_once"
+msgstr "Billed Once"
 
+msgid "subscription"
+msgstr "Subscription"
 
+msgid "checkout"
+msgstr "Checkout"
+
+msgid "next_billing_date"
+msgstr "Next Billing Date"
 
 
 

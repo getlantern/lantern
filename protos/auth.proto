@@ -31,25 +31,26 @@ message UserResponse {
     repeated string invitees = 17;
     repeated Device devices = 18;
     bool yinbiEnabled = 19;
+    message SubscriptionData {
+      string              planID = 1;
+      string              stripeCustomerID = 2;
+      string              startAt = 3;
+      string              cancelledAt = 4;
+      bool                autoRenew = 5;
+      string              subscriptionID = 6;
+      string              status = 7;
+      string              provider = 8;
+      string              createdAt = 9;
+      string              endAt = 10;
+    }
+    SubscriptionData subscriptionData = 20;
   }
   bool Success = 5;
   // this maps to /user-data call in pro-server and is returned only on successful login
   UserData legacyUserData = 6;
   // list of current user devices. returned only on successful login that is blocked by 'too many devices'
   repeated Device devices = 7;
-  message SubscriptionData {
-    string subscription_i_d = 1;
-    string plan_i_d = 2;
-    string stripe_customer_i_d = 3;
-    string status = 4;
-    string provider = 5;
-    string created_at = 6;
-    string  start_at = 7;
-    string  end_at = 8;
-    string  cancelled_at = 9;
-    bool auto_renew = 10;
-  }
-  SubscriptionData subscriptionData = 20;
+
 }
 
 message Purchase  {

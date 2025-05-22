@@ -24,6 +24,7 @@ class Account extends HookConsumerWidget {
   }
 
   Widget _buildBody(BuildContext buildContext, WidgetRef ref) {
+    final user= sl<LocalStorageService>().getUser();
     final theme = Theme.of(buildContext).textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -49,7 +50,7 @@ class Account extends HookConsumerWidget {
         Padding(
           padding: const EdgeInsets.only(left: 16),
           child: Text(
-            'pro_account_expiration'.i18n,
+            user!.legacyUserData.subscriptionData.autoRenew?'next_billing_date'.i18n:  'pro_account_expiration'.i18n,
             style: theme.labelLarge!.copyWith(
               color: AppColors.gray8,
             ),
@@ -57,7 +58,7 @@ class Account extends HookConsumerWidget {
         ),
         Card(
           child: AppTile(
-            label: '12/23/26',
+            label: user.legacyUserData.subscriptionData.endAt.toMMDDYYDate(),
             contentPadding: EdgeInsets.only(left: 16),
             icon: AppImagePaths.email,
             trailing: AppTextButton(
@@ -76,7 +77,7 @@ class Account extends HookConsumerWidget {
             ),
           ),
         ),
-        UserDevices(),
+        UserDevices(userDevices: user.devices.toList()),
         Spacer(),
         Padding(
           padding: const EdgeInsets.only(left: 16),
@@ -195,8 +196,8 @@ class Account extends HookConsumerWidget {
             return false;
           },
           (newUser) {
-            final oldPlanId = oldUser.subscriptionData.planID;
-            final newPlanId = newUser.subscriptionData.planID;
+            final oldPlanId = oldUser.legacyUserData.subscriptionData.planID;
+            final newPlanId = newUser.legacyUserData.subscriptionData.planID;
             final isPro = newUser.legacyUserData.userLevel == 'pro';
             final isPlanChanged = isPro && oldPlanId != newPlanId;
             final isCancelled = !isPro;

@@ -16,6 +16,23 @@ extension EmailValidation on String {
   }
 }
 
+extension IsoDateFormatter on String {
+  /// Converts an ISO8601 string (e.g., "2027-05-22T06:21:15Z")
+  /// to MM/DD/YY format (e.g., "05/22/27").
+  String toMMDDYYDate() {
+    try {
+      final dateTime = DateTime.parse(this).toLocal();
+      final mm = dateTime.month.toString().padLeft(2, '0');
+      final dd = dateTime.day.toString().padLeft(2, '0');
+      final yy = (dateTime.year % 100).toString().padLeft(2, '0');
+      return "$mm/$dd/$yy";
+    } catch (_) {
+      return this; // return original string if parsing fails
+    }
+  }
+}
+
+
 extension PasswordValidations on String {
   Map<String, bool> getValidationResults() => validatePassword(this);
 

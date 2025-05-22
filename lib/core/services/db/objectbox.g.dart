@@ -277,7 +277,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
       id: const obx_int.IdUid(13, 3415485097329155517),
       name: 'UserDataEntity',
-      lastPropertyId: const obx_int.IdUid(18, 6903327324847915765),
+      lastPropertyId: const obx_int.IdUid(19, 3107289936469511691),
       flags: 0,
       properties: <obx_int.ModelProperty>[
         obx_int.ModelProperty(
@@ -369,7 +369,14 @@ final _entities = <obx_int.ModelEntity>[
             id: const obx_int.IdUid(18, 6903327324847915765),
             name: 'invitees',
             type: 9,
-            flags: 0)
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(19, 3107289936469511691),
+            name: 'subscriptionDataId',
+            type: 11,
+            flags: 520,
+            indexId: const obx_int.IdUid(3, 8913300514178255508),
+            relationTarget: 'SubscriptionDataEntity')
       ],
       relations: <obx_int.ModelRelation>[
         obx_int.ModelRelation(
@@ -385,7 +392,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
       id: const obx_int.IdUid(14, 6952300567208748369),
       name: 'AppSetting',
-      lastPropertyId: const obx_int.IdUid(7, 4827177218236496996),
+      lastPropertyId: const obx_int.IdUid(8, 9159252810940633158),
       flags: 0,
       properties: <obx_int.ModelProperty>[
         obx_int.ModelProperty(
@@ -396,11 +403,6 @@ final _entities = <obx_int.ModelEntity>[
         obx_int.ModelProperty(
             id: const obx_int.IdUid(2, 5648015957719611024),
             name: 'isPro',
-            type: 1,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(3, 3560084004440266950),
-            name: 'isSpiltTunnelingOn',
             type: 1,
             flags: 0),
         obx_int.ModelProperty(
@@ -421,6 +423,75 @@ final _entities = <obx_int.ModelEntity>[
         obx_int.ModelProperty(
             id: const obx_int.IdUid(7, 4827177218236496996),
             name: 'oAuthToken',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(8, 9159252810940633158),
+            name: 'isSplitTunnelingOn',
+            type: 1,
+            flags: 0)
+      ],
+      relations: <obx_int.ModelRelation>[],
+      backlinks: <obx_int.ModelBacklink>[]),
+  obx_int.ModelEntity(
+      id: const obx_int.IdUid(15, 5550098800138752285),
+      name: 'SubscriptionDataEntity',
+      lastPropertyId: const obx_int.IdUid(11, 7386615588852617669),
+      flags: 0,
+      properties: <obx_int.ModelProperty>[
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(1, 1728081696346429474),
+            name: 'id',
+            type: 6,
+            flags: 1),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(2, 6314584141225311631),
+            name: 'planID',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(3, 505954997611904979),
+            name: 'stripeCustomerID',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(4, 4396278972968423125),
+            name: 'startAt',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(5, 5611874336475617758),
+            name: 'cancelledAt',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(6, 2615387891682705709),
+            name: 'autoRenew',
+            type: 1,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(7, 7463034771448650652),
+            name: 'subscriptionID',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(8, 6593053826251964439),
+            name: 'status',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(9, 1186871294551833694),
+            name: 'provider',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(10, 5850411608800550550),
+            name: 'createdAt',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(11, 7386615588852617669),
+            name: 'endAt',
             type: 9,
             flags: 0)
       ],
@@ -463,8 +534,8 @@ Future<obx.Store> openStore(
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
       entities: _entities,
-      lastEntityId: const obx_int.IdUid(14, 6952300567208748369),
-      lastIndexId: const obx_int.IdUid(2, 1151475603584147691),
+      lastEntityId: const obx_int.IdUid(15, 5550098800138752285),
+      lastIndexId: const obx_int.IdUid(3, 8913300514178255508),
       lastRelationId: const obx_int.IdUid(4, 1703547319205099497),
       lastSequenceId: const obx_int.IdUid(0, 0),
       retiredEntityUids: const [
@@ -485,7 +556,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
         4366113317700500115,
         8614132688092941646,
         1999102232066002882,
-        1968318257591729232
+        1968318257591729232,
+        3560084004440266950
       ],
       retiredRelationUids: const [],
       modelVersion: 5,
@@ -811,7 +883,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         }),
     UserDataEntity: obx_int.EntityDefinition<UserDataEntity>(
         model: _entities[8],
-        toOneRelations: (UserDataEntity object) => [],
+        toOneRelations: (UserDataEntity object) => [object.subscriptionData],
         toManyRelations: (UserDataEntity object) => {
               obx_int.RelInfo<UserDataEntity>.toMany(3, object.id):
                   object.devices,
@@ -837,7 +909,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           final serversOffset = fbb.writeString(object.servers);
           final invitersOffset = fbb.writeString(object.inviters);
           final inviteesOffset = fbb.writeString(object.invitees);
-          fbb.startTable(19);
+          fbb.startTable(20);
           fbb.addInt64(0, object.id);
           fbb.addInt64(1, object.userId);
           fbb.addOffset(2, codeOffset);
@@ -856,6 +928,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           fbb.addOffset(15, serversOffset);
           fbb.addOffset(16, invitersOffset);
           fbb.addOffset(17, inviteesOffset);
+          fbb.addInt64(18, object.subscriptionData.targetId);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -919,6 +992,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
               servers: serversParam,
               inviters: invitersParam,
               invitees: inviteesParam);
+          object.subscriptionData.targetId =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 40, 0);
+          object.subscriptionData.attach(store);
           obx_int.InternalToManyAccess.setRelInfo<UserDataEntity>(
               object.devices,
               store,
@@ -942,14 +1018,14 @@ obx_int.ModelDefinition getObjectBoxModel() {
           final splitTunnelingModeOffset =
               fbb.writeString(object.splitTunnelingMode);
           final oAuthTokenOffset = fbb.writeString(object.oAuthToken);
-          fbb.startTable(8);
+          fbb.startTable(9);
           fbb.addInt64(0, object.id);
           fbb.addBool(1, object.isPro);
-          fbb.addBool(2, object.isSplitTunnelingOn);
           fbb.addOffset(3, localeOffset);
           fbb.addOffset(4, splitTunnelingModeOffset);
           fbb.addBool(5, object.userLoggedIn);
           fbb.addOffset(6, oAuthTokenOffset);
+          fbb.addBool(7, object.isSplitTunnelingOn);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -960,8 +1036,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
               const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
           final isProParam =
               const fb.BoolReader().vTableGet(buffer, rootOffset, 6, false);
-          final isSpiltTunnelingOnParam =
-              const fb.BoolReader().vTableGet(buffer, rootOffset, 8, false);
+          final isSplitTunnelingOnParam =
+              const fb.BoolReader().vTableGet(buffer, rootOffset, 18, false);
           final userLoggedInParam =
               const fb.BoolReader().vTableGet(buffer, rootOffset, 14, false);
           final splitTunnelingModeParam =
@@ -974,11 +1050,88 @@ obx_int.ModelDefinition getObjectBoxModel() {
           final object = AppSetting(
               id: idParam,
               isPro: isProParam,
-              isSplitTunnelingOn: isSpiltTunnelingOnParam,
+              isSplitTunnelingOn: isSplitTunnelingOnParam,
               userLoggedIn: userLoggedInParam,
               splitTunnelingMode: splitTunnelingModeParam,
               oAuthToken: oAuthTokenParam,
               locale: localeParam);
+
+          return object;
+        }),
+    SubscriptionDataEntity: obx_int.EntityDefinition<SubscriptionDataEntity>(
+        model: _entities[10],
+        toOneRelations: (SubscriptionDataEntity object) => [],
+        toManyRelations: (SubscriptionDataEntity object) => {},
+        getId: (SubscriptionDataEntity object) => object.id,
+        setId: (SubscriptionDataEntity object, int id) {
+          object.id = id;
+        },
+        objectToFB: (SubscriptionDataEntity object, fb.Builder fbb) {
+          final planIDOffset = fbb.writeString(object.planID);
+          final stripeCustomerIDOffset =
+              fbb.writeString(object.stripeCustomerID);
+          final startAtOffset = fbb.writeString(object.startAt);
+          final cancelledAtOffset = fbb.writeString(object.cancelledAt);
+          final subscriptionIDOffset = fbb.writeString(object.subscriptionID);
+          final statusOffset = fbb.writeString(object.status);
+          final providerOffset = fbb.writeString(object.provider);
+          final createdAtOffset = fbb.writeString(object.createdAt);
+          final endAtOffset = fbb.writeString(object.endAt);
+          fbb.startTable(12);
+          fbb.addInt64(0, object.id);
+          fbb.addOffset(1, planIDOffset);
+          fbb.addOffset(2, stripeCustomerIDOffset);
+          fbb.addOffset(3, startAtOffset);
+          fbb.addOffset(4, cancelledAtOffset);
+          fbb.addBool(5, object.autoRenew);
+          fbb.addOffset(6, subscriptionIDOffset);
+          fbb.addOffset(7, statusOffset);
+          fbb.addOffset(8, providerOffset);
+          fbb.addOffset(9, createdAtOffset);
+          fbb.addOffset(10, endAtOffset);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (obx.Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+          final idParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+          final planIDParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 6, '');
+          final stripeCustomerIDParam =
+              const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 8, '');
+          final startAtParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 10, '');
+          final cancelledAtParam =
+              const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 12, '');
+          final autoRenewParam =
+              const fb.BoolReader().vTableGet(buffer, rootOffset, 14, false);
+          final subscriptionIDParam =
+              const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 16, '');
+          final statusParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 18, '');
+          final providerParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 20, '');
+          final createdAtParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 22, '');
+          final endAtParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 24, '');
+          final object = SubscriptionDataEntity(
+              id: idParam,
+              planID: planIDParam,
+              stripeCustomerID: stripeCustomerIDParam,
+              startAt: startAtParam,
+              cancelledAt: cancelledAtParam,
+              autoRenew: autoRenewParam,
+              subscriptionID: subscriptionIDParam,
+              status: statusParam,
+              provider: providerParam,
+              createdAt: createdAtParam,
+              endAt: endAtParam);
 
           return object;
         })
@@ -1228,6 +1381,11 @@ class UserDataEntity_ {
   static final invitees =
       obx.QueryStringProperty<UserDataEntity>(_entities[8].properties[17]);
 
+  /// See [UserDataEntity.subscriptionData].
+  static final subscriptionData =
+      obx.QueryRelationToOne<UserDataEntity, SubscriptionDataEntity>(
+          _entities[8].properties[18]);
+
   /// see [UserDataEntity.devices]
   static final devices = obx.QueryRelationToMany<UserDataEntity, DeviceEntity>(
       _entities[8].relations[0]);
@@ -1248,23 +1406,71 @@ class AppSetting_ {
   static final isPro =
       obx.QueryBooleanProperty<AppSetting>(_entities[9].properties[1]);
 
-  /// See [AppSetting.isSplitTunnelingOn].
-  static final isSpiltTunnelingOn =
-      obx.QueryBooleanProperty<AppSetting>(_entities[9].properties[2]);
-
   /// See [AppSetting.locale].
   static final locale =
-      obx.QueryStringProperty<AppSetting>(_entities[9].properties[3]);
+      obx.QueryStringProperty<AppSetting>(_entities[9].properties[2]);
 
   /// See [AppSetting.splitTunnelingMode].
   static final splitTunnelingMode =
-      obx.QueryStringProperty<AppSetting>(_entities[9].properties[4]);
+      obx.QueryStringProperty<AppSetting>(_entities[9].properties[3]);
 
   /// See [AppSetting.userLoggedIn].
   static final userLoggedIn =
-      obx.QueryBooleanProperty<AppSetting>(_entities[9].properties[5]);
+      obx.QueryBooleanProperty<AppSetting>(_entities[9].properties[4]);
 
   /// See [AppSetting.oAuthToken].
   static final oAuthToken =
-      obx.QueryStringProperty<AppSetting>(_entities[9].properties[6]);
+      obx.QueryStringProperty<AppSetting>(_entities[9].properties[5]);
+
+  /// See [AppSetting.isSplitTunnelingOn].
+  static final isSplitTunnelingOn =
+      obx.QueryBooleanProperty<AppSetting>(_entities[9].properties[6]);
+}
+
+/// [SubscriptionDataEntity] entity fields to define ObjectBox queries.
+class SubscriptionDataEntity_ {
+  /// See [SubscriptionDataEntity.id].
+  static final id = obx.QueryIntegerProperty<SubscriptionDataEntity>(
+      _entities[10].properties[0]);
+
+  /// See [SubscriptionDataEntity.planID].
+  static final planID = obx.QueryStringProperty<SubscriptionDataEntity>(
+      _entities[10].properties[1]);
+
+  /// See [SubscriptionDataEntity.stripeCustomerID].
+  static final stripeCustomerID =
+      obx.QueryStringProperty<SubscriptionDataEntity>(
+          _entities[10].properties[2]);
+
+  /// See [SubscriptionDataEntity.startAt].
+  static final startAt = obx.QueryStringProperty<SubscriptionDataEntity>(
+      _entities[10].properties[3]);
+
+  /// See [SubscriptionDataEntity.cancelledAt].
+  static final cancelledAt = obx.QueryStringProperty<SubscriptionDataEntity>(
+      _entities[10].properties[4]);
+
+  /// See [SubscriptionDataEntity.autoRenew].
+  static final autoRenew = obx.QueryBooleanProperty<SubscriptionDataEntity>(
+      _entities[10].properties[5]);
+
+  /// See [SubscriptionDataEntity.subscriptionID].
+  static final subscriptionID = obx.QueryStringProperty<SubscriptionDataEntity>(
+      _entities[10].properties[6]);
+
+  /// See [SubscriptionDataEntity.status].
+  static final status = obx.QueryStringProperty<SubscriptionDataEntity>(
+      _entities[10].properties[7]);
+
+  /// See [SubscriptionDataEntity.provider].
+  static final provider = obx.QueryStringProperty<SubscriptionDataEntity>(
+      _entities[10].properties[8]);
+
+  /// See [SubscriptionDataEntity.createdAt].
+  static final createdAt = obx.QueryStringProperty<SubscriptionDataEntity>(
+      _entities[10].properties[9]);
+
+  /// See [SubscriptionDataEntity.endAt].
+  static final endAt = obx.QueryStringProperty<SubscriptionDataEntity>(
+      _entities[10].properties[10]);
 }
