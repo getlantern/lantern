@@ -3,6 +3,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/oauth_login.dart';
 import 'package:lantern/features/auth/provider/oauth_notifier.dart';
@@ -134,9 +135,11 @@ class _AddEmailState extends ConsumerState<AddEmail> {
           context.hideLoadingDialog();
           ref.read(homeNotifierProvider.notifier).updateUserData(response);
           appLogger.debug('Login Response: ${response.toString()}');
+          Map<String, dynamic> tokenData = JwtDecoder.decode(token);
           ref.read(appSettingNotifierProvider.notifier)
-            ..setUserLoggedIn(true)
-            ..setOAuthToken(token);
+            ..setOAuthToken(token)
+            ..setEmail(tokenData['email'] ?? '')
+            ..setUserLoggedIn(true);
           postPaymentNavigate(type, response.legacyUserData.email);
         },
       );

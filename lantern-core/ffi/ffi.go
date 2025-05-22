@@ -272,14 +272,15 @@ func isVPNConnected() *C.char {
 
 //APIS
 
-func createUser() error {
+func createUser() (*protos.UserDataResponse, error) {
 	log.Debug("Creating user")
 	user, err := server.proServer.UserCreate(context.Background())
 	log.Debugf("UserCreate response: %v", user)
 	if err != nil {
-		return log.Errorf("Error creating user: %v", err)
+		return nil, log.Errorf("Error creating user: %v", err)
 	}
-	return nil
+
+	return user, nil
 }
 
 // Get user data from the local config
@@ -472,13 +473,32 @@ func oAuthLoginCallback(_oAuthToken *C.char) *C.char {
 // User management
 //
 //export logout
-func logout() *C.char {
+func logout(_email *C.char) *C.char {
+	email := C.GoString(_email)
 	log.Debug("Logging out")
-	err := server.authClient.Logout(context.Background())
+	err := server.authClient.Logout(context.Background(), email)
 	if err != nil {
 		return SendError(log.Errorf("Error logging out: %v", err))
 	}
-	return C.CString("ok")
+	log.Debug("Logged out successfully")
+	// Clear user data
+
+	user, err := createUser()
+	if err != nil {
+		return SendError(log.Errorf("Error creating user: %v", err))
+	}
+	login := &protos.LoginResponse{
+		LegacyID:       user.UserId,
+		LegacyToken:    user.Token,
+		LegacyUserData: user.LoginResponse_UserData,
+	}
+	server.userInfo.Save(login)
+	bytes, err := proto.Marshal(login)
+	if err != nil {
+		return SendError(log.Errorf("Error marshalling user data: %v", err))
+	}
+	encoded := base64.StdEncoding.EncodeToString(bytes)
+	return C.CString(encoded)
 }
 
 //export freeCString
