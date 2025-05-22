@@ -14,4 +14,6 @@ class AccountNotifier extends _$AccountNotifier {
   Future<Either<Failure, Unit>> showManageSubscriptionAppStore() async {
     return await ref.read(lanternServiceProvider).showManageSubscriptions();
   }
+
+
 }

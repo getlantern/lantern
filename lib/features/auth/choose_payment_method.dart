@@ -154,13 +154,14 @@ class ChoosePaymentMethod extends HookConsumerWidget {
       }
       await Future.delayed(const Duration(seconds: 1));
 
+      //update user status to pro
+      user.legacyUserData.userStatus = 'pro';
+      ref.read(homeNotifierProvider.notifier).updateUserData(user);
+
       /// Subscription successful
       AppDialog.showLanternProDialog(
         context: context,
         onPressed: () {
-          user.legacyUserData.userStatus = 'pro';
-          ref.read(homeNotifierProvider.notifier).updateUserData(user);
-
           appRouter.popUntilRoot();
         },
       );

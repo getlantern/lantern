@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/setting/follow_us.dart'
     show showFollowUsBottomSheet;
 import 'package:lantern/lantern/lantern_service_notifier.dart';
@@ -56,7 +57,6 @@ class _SettingState extends ConsumerState<Setting> {
               ),
             ),
           const SizedBox(height: 16),
-
           Card(
             margin: EdgeInsets.zero,
             child: AppTile(
@@ -279,13 +279,20 @@ class _SettingState extends ConsumerState<Setting> {
   }
 
   Future<void> onLogout() async {
-    final result = await ref.read(lanternServiceProvider).logout();
+    context.showLoadingDialog();
+    final appSetting = ref.read(appSettingNotifierProvider);
+    final result =
+        await ref.read(lanternServiceProvider).logout(appSetting.email);
     result.fold(
       (l) {
+        context.hideLoadingDialog();
         appLogger.error('Logout error: ${l.localizedErrorMessage}');
       },
-      (r) {
-        appLogger.info('Logout success: $r');
+      (user) {
+        context.hideLoadingDialog();
+        appRouter.popUntilRoot();
+        ref.read(homeNotifierProvider.notifier).updateUserData(user);
+        appLogger.info('Logout success: $user');
       },
     );
   }

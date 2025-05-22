@@ -392,7 +392,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
       id: const obx_int.IdUid(14, 6952300567208748369),
       name: 'AppSetting',
-      lastPropertyId: const obx_int.IdUid(8, 9159252810940633158),
+      lastPropertyId: const obx_int.IdUid(9, 6885182521224180692),
       flags: 0,
       properties: <obx_int.ModelProperty>[
         obx_int.ModelProperty(
@@ -429,6 +429,11 @@ final _entities = <obx_int.ModelEntity>[
             id: const obx_int.IdUid(8, 9159252810940633158),
             name: 'isSplitTunnelingOn',
             type: 1,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(9, 6885182521224180692),
+            name: 'email',
+            type: 9,
             flags: 0)
       ],
       relations: <obx_int.ModelRelation>[],
@@ -1018,7 +1023,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
           final splitTunnelingModeOffset =
               fbb.writeString(object.splitTunnelingMode);
           final oAuthTokenOffset = fbb.writeString(object.oAuthToken);
-          fbb.startTable(9);
+          final emailOffset = fbb.writeString(object.email);
+          fbb.startTable(10);
           fbb.addInt64(0, object.id);
           fbb.addBool(1, object.isPro);
           fbb.addOffset(3, localeOffset);
@@ -1026,6 +1032,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           fbb.addBool(5, object.userLoggedIn);
           fbb.addOffset(6, oAuthTokenOffset);
           fbb.addBool(7, object.isSplitTunnelingOn);
+          fbb.addOffset(8, emailOffset);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -1045,6 +1052,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
                   .vTableGet(buffer, rootOffset, 12, '');
           final oAuthTokenParam = const fb.StringReader(asciiOptimization: true)
               .vTableGet(buffer, rootOffset, 16, '');
+          final emailParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 20, '');
           final localeParam = const fb.StringReader(asciiOptimization: true)
               .vTableGet(buffer, rootOffset, 10, '');
           final object = AppSetting(
@@ -1054,6 +1063,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
               userLoggedIn: userLoggedInParam,
               splitTunnelingMode: splitTunnelingModeParam,
               oAuthToken: oAuthTokenParam,
+              email: emailParam,
               locale: localeParam);
 
           return object;
@@ -1425,6 +1435,10 @@ class AppSetting_ {
   /// See [AppSetting.isSplitTunnelingOn].
   static final isSplitTunnelingOn =
       obx.QueryBooleanProperty<AppSetting>(_entities[9].properties[6]);
+
+  /// See [AppSetting.email].
+  static final email =
+      obx.QueryStringProperty<AppSetting>(_entities[9].properties[7]);
 }
 
 /// [SubscriptionDataEntity] entity fields to define ObjectBox queries.

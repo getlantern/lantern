@@ -278,9 +278,9 @@ class MethodHandler : FlutterPlugin,
             Methods.Logout.method -> {
                 scope.launch {
                     result.runCatching {
-                        Mobile.logout()
+                        val bytes = Mobile.logout(call.arguments<String>() as String)
                         withContext(Dispatchers.Main) {
-                            success("")
+                            success(bytes)
                         }
                     }.onFailure { e ->
                         result.error(

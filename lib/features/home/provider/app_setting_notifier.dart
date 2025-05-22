@@ -18,7 +18,6 @@ class AppSettingNotifier extends _$AppSettingNotifier {
 
     if (setting != null && setting.locale.isNotEmpty) {
       return setting;
-
     }
     // First-time user → use device locale
     final fallback = _detectDeviceLocale();
@@ -55,6 +54,10 @@ class AppSettingNotifier extends _$AppSettingNotifier {
 
   void setOAuthToken(String token) {
     update(state.copyWith(oAuthToken: token));
+  }
+
+  void setEmail(String email) {
+    update(state.copyWith(email: email));
   }
 
   Locale _detectDeviceLocale() {

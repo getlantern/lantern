@@ -208,11 +208,11 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> logout() {
+  Future<Either<Failure, UserResponse>> logout(String email) {
     if (PlatformUtils.isDesktop) {
-      return _ffiService.logout();
+      return _ffiService.logout(email);
     }
-    return _platformService.logout();
+    return _platformService.logout(email);
   }
 
   @override

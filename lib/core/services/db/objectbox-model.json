@@ -378,7 +378,7 @@
     },
     {
       "id": "14:6952300567208748369",
-      "lastPropertyId": "8:9159252810940633158",
+      "lastPropertyId": "9:6885182521224180692",
       "name": "AppSetting",
       "properties": [
         {
@@ -416,6 +416,11 @@
           "id": "8:9159252810940633158",
           "name": "isSplitTunnelingOn",
           "type": 1
+        },
+        {
+          "id": "9:6885182521224180692",
+          "name": "email",
+          "type": 9
         }
       ],
       "relations": []

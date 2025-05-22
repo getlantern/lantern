@@ -11,6 +11,7 @@ class AppSetting {
   String locale;
   String oAuthToken;
   bool userLoggedIn;
+  String email;
 
   AppSetting({
     this.id = 0,
@@ -19,6 +20,7 @@ class AppSetting {
     this.userLoggedIn = false,
     this.splitTunnelingMode = 'Automatic',
     this.oAuthToken = '',
+    this.email = '',
     this.locale = 'en_US',
   });
 
@@ -29,6 +31,7 @@ class AppSetting {
     String? newSplitTunnelingMode,
     bool? userLoggedIn,
     String? oAuthToken,
+    String? email,
   }) {
     return AppSetting(
       id: id,
@@ -38,6 +41,7 @@ class AppSetting {
       splitTunnelingMode: newSplitTunnelingMode ?? splitTunnelingMode,
       userLoggedIn: userLoggedIn ?? this.userLoggedIn,
       oAuthToken: oAuthToken ?? this.oAuthToken,
+      email: email ?? this.email,
     );
   }
 }

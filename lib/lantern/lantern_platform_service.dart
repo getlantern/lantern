@@ -297,10 +297,10 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> logout() async {
+  Future<Either<Failure, UserResponse>> logout(String email) async {
     try {
-      await _methodChannel.invokeMethod('logout');
-      return Right(unit);
+      final bytes = await _methodChannel.invokeMethod('logout', email);
+      return Right(UserResponse.fromBuffer(bytes));
     } catch (e, stackTrace) {
       appLogger.error('Error logging out', e, stackTrace);
       return Left(e.toFailure());

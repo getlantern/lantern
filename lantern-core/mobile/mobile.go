@@ -183,14 +183,14 @@ func RemoveSplitTunnelItem(filterType, item string) error {
 // User Methods
 // Todo make sure to add retry logic
 // we need to make sure that the user is created before we can use the radiance server
-func CreateUser() error {
+func CreateUser() (*protos.UserDataResponse, error) {
 	log.Debug("Creating user")
 	user, err := radianceServer.proServer.UserCreate(context.Background())
 	log.Debugf("UserCreate response: %v", user)
 	if err != nil {
-		return log.Errorf("Error creating user: %v", err)
+		return nil, log.Errorf("Error creating user: %v", err)
 	}
-	return nil
+	return user, nil
 }
 
 // this will return the user data from the user config
@@ -259,10 +259,15 @@ func OAuthLoginCallback(oAuthToken string) ([]byte, error) {
 	}
 	log.Debugf("UserData response: %v", user)
 	userResponse := &protos.LoginResponse{
+		Id:             userInfo.Email,
+		EmailConfirmed: true,
 		LegacyID:       user.UserId,
 		LegacyToken:    user.Token,
 		LegacyUserData: user.LoginResponse_UserData,
 	}
+
+	radianceServer.userConfig.Save(userResponse)
+
 	bytes, err := proto.Marshal(userResponse)
 	if err != nil {
 		return nil, log.Errorf("Error marshalling user data: %v", err)
@@ -358,11 +363,27 @@ func PaymentRedirect(provider, planId, deviceName, email string) (string, error)
 
 /// User management apis
 
-func Logout() error {
+func Logout(email string) ([]byte, error) {
 	log.Debug("Logging out")
-	err := radianceServer.user.Logout(context.Background())
+	err := radianceServer.user.Logout(context.Background(), email)
 	if err != nil {
-		return log.Errorf("Error logging out: %v", err)
+		return nil, log.Errorf("Error logging out: %v", err)
 	}
-	return nil
+	user, err := CreateUser()
+	if err != nil {
+		return nil, log.Errorf("Error creating user: %v", err)
+	}
+	login := &protos.LoginResponse{
+		LegacyID:       user.UserId,
+		LegacyToken:    user.Token,
+		LegacyUserData: user.LoginResponse_UserData,
+	}
+
+	// update the user config with the new user data
+	radianceServer.userConfig.Save(login)
+	protoUserData, err := proto.Marshal(login)
+	if err != nil {
+		return nil, log.Errorf("Error marshalling user data: %v", err)
+	}
+	return protoUserData, nil
 }
