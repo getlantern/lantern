@@ -306,4 +306,30 @@ class LanternPlatformService implements LanternCoreService {
       return Left(e.toFailure());
     }
   }
+
+  @override
+  Future<Either<Failure, String>> paymentRedirect(
+      {required String provider,
+      required String planId,
+      required String deviceName,
+      required String email}) async {
+    if (PlatformUtils.isIOS) {
+      throw UnimplementedError("This not supported on IOS");
+    }
+    try {
+      final redirectUrl =
+          await _methodChannel.invokeMethod<String>('paymentRedirect', {
+        'provider': provider,
+        'planId': planId,
+        'deviceName': deviceName,
+        'email': email,
+      });
+      return Right(redirectUrl!);
+    } catch (e, stackTrace) {
+      appLogger.error('Error getting payment redirect URL', e, stackTrace);
+      return Left(Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription));
+    }
+  }
 }

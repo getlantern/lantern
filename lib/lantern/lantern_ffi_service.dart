@@ -426,7 +426,7 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, UserResponse>> fetchUserData() async {
     try {
       final result = await runInBackground<String>(
-            () async {
+        () async {
           return _ffiService.fetchUserData().toDartString();
         },
       );
@@ -440,7 +440,8 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> acknowledgeInAppPurchase({required String purchaseToken, required String planId}) {
+  Future<Either<Failure, Unit>> acknowledgeInAppPurchase(
+      {required String purchaseToken, required String planId}) {
     // TODO: implement acknowledgeInAppPurchase
     throw UnimplementedError();
   }
@@ -449,7 +450,7 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, Unit>> logout() async {
     try {
       final result = await runInBackground<String>(
-            () async {
+        () async {
           return _ffiService.logout().toDartString();
         },
       );
@@ -459,7 +460,32 @@ class LanternFFIService implements LanternCoreService {
       appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
       return Left(e.toFailure());
     }
+  }
 
+  @override
+  Future<Either<Failure, String>> paymentRedirect(
+      {required String provider,
+      required String planId,
+      required String deviceName,
+      required String email}) async {
+    try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService
+              .paymentRedirect(
+                planId.toCharPtr,
+                provider.toCharPtr,
+                email.toCharPtr,
+                deviceName.toCharPtr,
+              )
+              .toDartString();
+        },
+      );
+      return Right(result);
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(e.toFailure());
+    }
   }
 }
 

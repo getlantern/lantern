@@ -23,15 +23,24 @@ abstract class LanternCoreService {
 
   ///Payments methods
   Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
-      {required StipeSubscriptionType type, required String planId,required String email});
+      {required StipeSubscriptionType type,
+      required String planId,
+      required String email});
 
-  /// this is used for stripe subscription
+  Future<Either<Failure, String>> paymentRedirect({
+    required String provider,
+    required String planId,
+    required String deviceName,
+    required String email,
+  });
+
+  // this is used for stripe subscription
   Future<Either<Failure, Map<String, dynamic>>> stipeSubscription(
-      {required String planId,required String email});
+      {required String planId, required String email});
 
-  Future<Either<Failure,String>> stripeBillingPortal();
+  Future<Either<Failure, String>> stripeBillingPortal();
 
-  /// this is used for google and apple subscription
+  // this is used for google and apple subscription
   Future<Either<Failure, Unit>> startInAppPurchaseFlow({
     required String planId,
     required PaymentSuccessCallback onSuccess,
@@ -47,9 +56,7 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, PlansData>> plans();
 
-
-
-  // Spilt tunnel methods
+  /// Spilt tunnel methods
   Future<Either<Failure, Unit>> addSplitTunnelItem(
       SplitTunnelFilterType type, String value);
 
@@ -58,7 +65,7 @@ abstract class LanternCoreService {
 
   Stream<List<AppData>> appsDataStream();
 
-  //OAuth methods
+  ///OAuth methods
   Future<Either<Failure, String>> getOAuthLoginUrl(String provider);
 
   Future<Either<Failure, UserResponse>> oAuthLoginCallback(String token);
@@ -69,5 +76,4 @@ abstract class LanternCoreService {
 
   //User management methods
   Future<Either<Failure, Unit>> logout();
-
 }

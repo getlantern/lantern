@@ -2496,6 +2496,34 @@ class LanternBindings {
           ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>,
               ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
 
+  ffi.Pointer<ffi.Char> paymentRedirect(
+    ffi.Pointer<ffi.Char> _plan,
+    ffi.Pointer<ffi.Char> _provider,
+    ffi.Pointer<ffi.Char> _email,
+    ffi.Pointer<ffi.Char> _deviceName,
+  ) {
+    return _paymentRedirect(
+      _plan,
+      _provider,
+      _email,
+      _deviceName,
+    );
+  }
+
+  late final _paymentRedirectPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>)>>('paymentRedirect');
+  late final _paymentRedirect = _paymentRedirectPtr.asFunction<
+      ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>)>();
+
   ffi.Pointer<ffi.Char> stripeBillingPortalUrl() {
     return _stripeBillingPortalUrl();
   }

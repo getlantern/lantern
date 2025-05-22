@@ -214,4 +214,24 @@ class LanternService implements LanternCoreService {
     }
     return _platformService.logout();
   }
+
+  @override
+  Future<Either<Failure, String>> paymentRedirect(
+      {required String provider,
+      required String planId,
+      required String deviceName,
+      required String email}) {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.paymentRedirect(
+          provider: provider,
+          planId: planId,
+          deviceName: deviceName,
+          email: email);
+    }
+    return _platformService.paymentRedirect(
+        provider: provider,
+        planId: planId,
+        deviceName: deviceName,
+        email: email);
+  }
 }

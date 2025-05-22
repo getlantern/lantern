@@ -340,6 +340,22 @@ func AcknowledgeApplePurchase(receipt, planId string) error {
 	return nil
 }
 
+func PaymentRedirect(provider, planId, deviceName, email string) (string, error) {
+	log.Debug("Payment redirect")
+	body := protos.PaymentRedirectRequest{
+		Provider:   provider,
+		Plan:       planId,
+		DeviceName: deviceName,
+		Email:      email,
+	}
+	paymentRedirect, err := radianceServer.proServer.PaymentRedirect(context.Background(), &body)
+	if err != nil {
+		return "", log.Errorf("Error getting payment redirect: %v", err)
+	}
+	log.Debugf("Payment redirect response: %v", paymentRedirect)
+	return paymentRedirect.Redirect, nil
+}
+
 /// User management apis
 
 func Logout() error {

@@ -348,6 +348,29 @@ func stripeSubscriptionPaymentRedirect(subType, _planId, _email *C.char) *C.char
 	return C.CString(*redirect)
 }
 
+// Fetch payment redirect link for providers like alipay
+//
+//export paymentRedirect
+func paymentRedirect(_plan, _provider, _email, _deviceName *C.char) *C.char {
+	plan := C.GoString(_plan)
+	provider := C.GoString(_provider)
+	email := C.GoString(_email)
+	deviceName := C.GoString(_deviceName)
+
+	body := &protos.PaymentRedirectRequest{
+		Plan:       plan,
+		Provider:   provider,
+		Email:      email,
+		DeviceName: deviceName,
+	}
+	redirect, err := server.proServer.PaymentRedirect(context.Background(), body)
+	if err != nil {
+		return SendError(err)
+	}
+	log.Debugf("PaymentRedirect response: %s", redirect.Redirect)
+	return C.CString(redirect.Redirect)
+}
+
 // Fetch stripe subscription link
 //
 //export stripeBillingPortalUrl
