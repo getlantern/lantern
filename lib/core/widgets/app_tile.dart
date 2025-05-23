@@ -28,10 +28,12 @@ class AppTile extends StatelessWidget {
     required String label,
     required String url,
     EdgeInsets? contentPadding,
+    Widget? subtitle,
   }) =>
       AppTile(
         icon: icon,
         label: label,
+        subtitle: subtitle,
         onPressed: () => UrlUtils.openWithSystemBrowser(url),
         trailing: AppImage(path: AppImagePaths.outsideBrowser),
         contentPadding: contentPadding,
@@ -60,15 +62,12 @@ class AppTile extends StatelessWidget {
         );
       } else if (icon is Image) {
         leading = icon as Image;
-      }
-      else if (icon is Widget) {
+      } else if (icon is Widget) {
         leading = icon as Widget;
-
       }
     }
 
     return ListTile(
-
       enableFeedback: true,
       minVerticalPadding: 0,
       contentPadding:

@@ -7,23 +7,15 @@ enum VPNStatus {
   error,
 }
 
-enum AuthFlow{
-  resetPassword,
-  signUp,
-  activationCode
-}
+enum AuthFlow { resetPassword, signUp, activationCode }
 
-enum AppFlow{
+enum AppFlow {
   store,
   nonStore,
 }
 
+enum StipeSubscriptionType { monthly, yearly, one_time }
 
-enum StipeSubscriptionType{
-  monthly,
-  yearly,
-  one_time
-}
 enum SplitTunnelFilterType {
   domain,
   domainSuffix,
@@ -63,6 +55,8 @@ enum SplitTunnelActionType {
     }
   }
 }
+
+enum BypassListOption { global, russia, china, iran }
 
 enum SplitTunnelingMode { automatic, manual }
 

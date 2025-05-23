@@ -91,4 +91,5 @@ class AppColors {
 
   static Color get shadowColor => const Color(0x19006162);
   static Color get logTextColor => const Color(0xFF3D454D);
+  static Color get linkColor => const Color(0xFF005F60);
 }
