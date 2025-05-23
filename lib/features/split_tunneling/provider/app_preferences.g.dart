@@ -6,7 +6,7 @@ part of 'app_preferences.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$appPreferencesHash() => r'78fca2e950aa78e54f7041256d6b79741a5657a3';
+String _$appPreferencesHash() => r'dc09b202e87dadcafa7f164c3552dcb72f6c40e2';
 
 /// See also [AppPreferences].
 @ProviderFor(AppPreferences)
