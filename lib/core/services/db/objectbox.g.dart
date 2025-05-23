@@ -26,7 +26,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
       id: const obx_int.IdUid(2, 7670868698114973577),
       name: 'AppData',
-      lastPropertyId: const obx_int.IdUid(6, 5603929520388800572),
+      lastPropertyId: const obx_int.IdUid(7, 8940281990789152202),
       flags: 0,
       properties: <obx_int.ModelProperty>[
         obx_int.ModelProperty(
@@ -58,6 +58,11 @@ final _entities = <obx_int.ModelEntity>[
             id: const obx_int.IdUid(6, 5603929520388800572),
             name: 'isEnabled',
             type: 1,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(7, 8940281990789152202),
+            name: 'iconBytes',
+            type: 23,
             flags: 0)
       ],
       relations: <obx_int.ModelRelation>[],
@@ -477,13 +482,17 @@ obx_int.ModelDefinition getObjectBoxModel() {
           final bundleIdOffset = fbb.writeString(object.bundleId);
           final iconPathOffset = fbb.writeString(object.iconPath);
           final appPathOffset = fbb.writeString(object.appPath);
-          fbb.startTable(7);
+          final iconBytesOffset = object.iconBytes == null
+              ? null
+              : fbb.writeListInt8(object.iconBytes!);
+          fbb.startTable(8);
           fbb.addInt64(0, object.id);
           fbb.addOffset(1, nameOffset);
           fbb.addOffset(2, bundleIdOffset);
           fbb.addOffset(3, iconPathOffset);
           fbb.addOffset(4, appPathOffset);
           fbb.addBool(5, object.isEnabled);
+          fbb.addOffset(6, iconBytesOffset);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -496,6 +505,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
               .vTableGet(buffer, rootOffset, 6, '');
           final bundleIdParam = const fb.StringReader(asciiOptimization: true)
               .vTableGet(buffer, rootOffset, 8, '');
+          final iconBytesParam = const fb.Uint8ListReader(lazy: false)
+              .vTableGetNullable(buffer, rootOffset, 16) as Uint8List?;
           final iconPathParam = const fb.StringReader(asciiOptimization: true)
               .vTableGet(buffer, rootOffset, 10, '');
           final appPathParam = const fb.StringReader(asciiOptimization: true)
@@ -506,6 +517,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
               id: idParam,
               name: nameParam,
               bundleId: bundleIdParam,
+              iconBytes: iconBytesParam,
               iconPath: iconPathParam,
               appPath: appPathParam,
               isEnabled: isEnabledParam);
@@ -952,6 +964,10 @@ class AppData_ {
   /// See [AppData.isEnabled].
   static final isEnabled =
       obx.QueryBooleanProperty<AppData>(_entities[0].properties[5]);
+
+  /// See [AppData.iconBytes].
+  static final iconBytes =
+      obx.QueryByteVectorProperty<AppData>(_entities[0].properties[6]);
 }
 
 /// [Website] entity fields to define ObjectBox queries.

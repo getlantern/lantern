@@ -5,7 +5,7 @@
   "entities": [
     {
       "id": "2:7670868698114973577",
-      "lastPropertyId": "6:5603929520388800572",
+      "lastPropertyId": "7:8940281990789152202",
       "name": "AppData",
       "properties": [
         {
@@ -38,6 +38,11 @@
           "id": "6:5603929520388800572",
           "name": "isEnabled",
           "type": 1
+        },
+        {
+          "id": "7:8940281990789152202",
+          "name": "iconBytes",
+          "type": 23
         }
       ],
       "relations": []

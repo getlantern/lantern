@@ -52,7 +52,7 @@ class DefaultBypassLists extends HookConsumerWidget {
             AppTile(
               label: 'china_bypass_list'.i18n,
               subtitle: Text(
-                'china_bypass_desc',
+                'china_bypass_desc'.i18n,
                 style: AppTestStyles.labelMedium.copyWith(
                   color: AppColors.gray7,
                   height: 1.33,
@@ -84,7 +84,7 @@ class DefaultBypassLists extends HookConsumerWidget {
             AppTile(
               label: 'russia_bypass_list'.i18n,
               subtitle: Text(
-                'russia_bypass_desc',
+                'russia_bypass_desc'.i18n,
                 style: AppTestStyles.labelMedium.copyWith(
                   color: AppColors.gray7,
                   height: 1.33,
@@ -107,14 +107,6 @@ class DefaultBypassLists extends HookConsumerWidget {
                 TextSpan(
                   children: [
                     TextSpan(
-                      text: 'see_sites_included'.i18n,
-                      style: AppTestStyles.titleSmall.copyWith(
-                        color: AppColors.logTextColor,
-                        fontWeight: FontWeight.w500,
-                        height: 1.43,
-                      ),
-                    ),
-                    TextSpan(
                       text: 'default_lists_here'.i18n,
                       style: AppTestStyles.titleSmall.copyWith(
                         color: AppColors.linkColor,
@@ -132,19 +124,4 @@ class DefaultBypassLists extends HookConsumerWidget {
       ),
     );
   }
-
-  // Future<void> openBypassSelection(BuildContext context) async {
-  //   showAppBottomSheet(
-  //     context: context,
-  //     title: 'default_bypass_lists'.i18n,
-  //     builder: (context, scrollController) {
-  //       return Expanded(
-  //           child: RadioListView(
-  //         scrollController: scrollController,
-  //         items: bypassOptions,
-  //         onTap: _onBypassTap,
-  //       ));
-  //     },
-  //   );
-  // }
 }
