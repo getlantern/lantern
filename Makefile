@@ -64,6 +64,8 @@ ANDROID_RELEASE_AAB := $(INSTALLER_NAME)$(if $(BUILD_TYPE),-$(BUILD_TYPE)).aab
 IOS_DIR := ios/
 IOS_FRAMEWORK := Liblantern.xcframework
 IOS_FRAMEWORK_DIR := ios/Frameworks
+MACOS_FRAMEWORK_DIR := macos/Frameworks
+MACOS_FRAMEWORK_BUILD := $(BIN_DIR)/macos/$(IOS_FRAMEWORK)
 IOS_FRAMEWORK_BUILD := $(BIN_DIR)/ios/$(IOS_FRAMEWORK)
 IOS_DEBUG_BUILD := $(BUILD_DIR)/ios/iphoneos/Runner.app
 
@@ -338,6 +340,20 @@ build-ios:
 		$(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox github.com/getlantern/sing-box-extensions/ruleset  ./lantern-core/mobile
 	@echo "Built iOS Framework: $(IOS_FRAMEWORK_BUILD)"
 	mv $(IOS_FRAMEWORK_BUILD) $(IOS_FRAMEWORK_DIR)
+
+.PHONY: build-macos
+build-macos:
+	@echo "Building MACOS Framework.."
+	rm -rf $(MACOS_FRAMEWORK_BUILD)
+	rm -rf $(MACOS_FRAMEWORK_DIR) && mkdir -p $(MACOS_FRAMEWORK_DIR)
+	GOOS=ios gomobile bind -v \
+		-tags=$(TAGS),with_low_memory,netgo -trimpath \
+		-target=macos \
+		-o $(MACOS_FRAMEWORK_BUILD) \
+		-ldflags="-w -s -checklinkname=0" \
+		$(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox github.com/getlantern/sing-box-extensions/ruleset  ./lantern-core/mobile
+	@echo "Built iOS Framework: $(MACOS_FRAMEWORK_BUILD)"
+	mv $(MACOS_FRAMEWORK_BUILD) $(MACOS_FRAMEWORK_DIR)
 
 .PHONY: swift-format
 swift-format:

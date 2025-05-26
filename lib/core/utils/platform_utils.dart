@@ -2,14 +2,15 @@ import 'dart:io';
 
 class PlatformUtils {
   static bool get isDesktop =>
-      Platform.isMacOS || Platform.isWindows || Platform.isLinux;
+      Platform.isWindows || Platform.isLinux;
 
   static bool get isMobile =>
-      Platform.isAndroid || Platform.isIOS;
+      Platform.isAndroid || Platform.isIOS || Platform.isMacOS;
 
-  static bool get isIOS{
+  static bool get isIOS {
     return Platform.isIOS;
   }
+
   static bool get isAndroid {
     return Platform.isAndroid;
   }
