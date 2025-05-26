@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/extensions/plan.dart';
-import 'package:lantern/core/models/mapper/user_mapper.dart';
 import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/stripe_service.dart';
@@ -143,28 +142,23 @@ class ChoosePaymentMethod extends HookConsumerWidget {
 
   Future<void> onPurchaseSuccess(WidgetRef ref, BuildContext context) async {
     try {
-      final localStorage = sl<LocalStorageService>();
-      //at this point user should be stored
-      final user = localStorage.getUser()!;
+      if (authFlow == AuthFlow.signUp) {
+        final localStorage = sl<LocalStorageService>();
+        //at this point user should be stored
+        final user = localStorage.getUser()!;
+        await Future.delayed(const Duration(seconds: 1));
+        //update user status to pro
+        user.legacyUserData.userStatus = 'pro';
+        ref.read(homeNotifierProvider.notifier).updateUserData(user);
 
-      if (user.isPro()) {
-        // user is already pro
-        appLogger.info('User is already pro');
-        return;
-      }
-      await Future.delayed(const Duration(seconds: 1));
-
-      //update user status to pro
-      user.legacyUserData.userStatus = 'pro';
-      ref.read(homeNotifierProvider.notifier).updateUserData(user);
-
-      /// Subscription successful
-      AppDialog.showLanternProDialog(
-        context: context,
-        onPressed: () {
-          appRouter.popUntilRoot();
-        },
-      );
+        /// Subscription successful
+        AppDialog.showLanternProDialog(
+          context: context,
+          onPressed: () {
+            appRouter.popUntilRoot();
+          },
+        );
+      } else {}
     } catch (e) {
       appLogger.error('Error subscribing to plan: $e');
       context.showSnackBarError('error_subscribing_plan'.i18n);

@@ -9,7 +9,9 @@ import 'package:lantern/core/utils/store_utils.dart';
 import 'package:lantern/core/widgets/user_devices.dart';
 import 'package:lantern/features/account/provider/account_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
+import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
+import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 
 @RoutePage(name: 'Account')
 class Account extends HookConsumerWidget {
@@ -24,7 +26,7 @@ class Account extends HookConsumerWidget {
   }
 
   Widget _buildBody(BuildContext buildContext, WidgetRef ref) {
-    final user= sl<LocalStorageService>().getUser();
+    final user = sl<LocalStorageService>().getUser();
     final theme = Theme.of(buildContext).textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -50,7 +52,9 @@ class Account extends HookConsumerWidget {
         Padding(
           padding: const EdgeInsets.only(left: 16),
           child: Text(
-            user!.legacyUserData.subscriptionData.autoRenew?'next_billing_date'.i18n:  'pro_account_expiration'.i18n,
+            user!.legacyUserData.subscriptionData.autoRenew
+                ? 'next_billing_date'.i18n
+                : 'pro_account_expiration'.i18n,
             style: theme.labelLarge!.copyWith(
               color: AppColors.gray8,
             ),
@@ -120,7 +124,7 @@ class Account extends HookConsumerWidget {
         stripeBillingPortal(ref, buildContext);
         break;
       case "ios":
-        openAppleSubscriptions(ref);
+        ref.read(accountNotifierProvider.notifier).openAppleSubscriptions();
         break;
       case "macos":
       case "linux":
@@ -136,15 +140,7 @@ class Account extends HookConsumerWidget {
     UrlUtils.openUrl("https://play.google.com/store/account/subscriptions");
   }
 
-  void openAppleSubscriptions(WidgetRef ref) async {
-    final result = await ref
-        .read(accountNotifierProvider.notifier)
-        .showManageSubscriptionAppStore();
-
-    result.fold((failure) {
-      UrlUtils.openUrl("https://apps.apple.com/account/subscriptions");
-    }, (_) {});
-  }
+  void openAppleSubscriptions(WidgetRef ref) async {}
 
   Future<void> stripeBillingPortal(
       WidgetRef ref, BuildContext buildContext) async {
@@ -175,56 +171,63 @@ class Account extends HookConsumerWidget {
 
   Future<void> checkSubscriptionAfterStripe(
       WidgetRef ref, BuildContext context) async {
-    context.showLoadingDialog();
-    appLogger.info('Checking subscription after stripe portal');
-    final oldUser = sl<LocalStorageService>().getUser()!;
-    final lanternService = ref.read(lanternServiceProvider);
-    final notifier = ref.read(homeNotifierProvider.notifier);
-    final delays = [Duration.zero, Duration(seconds: 1), Duration(seconds: 2)];
-
     try {
-      for (final delay in delays) {
-        appLogger.info('Checking subscription with delay: $delay');
+      context.showLoadingDialog();
+      appLogger.info('Checking subscription after stripe portal');
+      final oldUser = sl<LocalStorageService>().getUser()!;
+      final lanternService = ref.read(lanternServiceProvider);
+      final notifier = ref.read(homeNotifierProvider.notifier);
 
-        if (delay != Duration.zero) await Future.delayed(delay);
-
-        final result = await lanternService.getUserData();
-
-        final shouldStop = result.fold(
-          (failure) {
-            appLogger.error('Subscription check error', failure);
-            return false;
-          },
-          (newUser) {
-            final oldPlanId = oldUser.legacyUserData.subscriptionData.planID;
-            final newPlanId = newUser.legacyUserData.subscriptionData.planID;
-            final isPro = newUser.legacyUserData.userLevel == 'pro';
-            final isPlanChanged = isPro && oldPlanId != newPlanId;
-            final isCancelled = !isPro;
-
-            if (isPlanChanged) {
-              appLogger.info('User changed plan: $oldPlanId → $newPlanId');
-              notifier.updateUserData(newUser);
-              return true;
-            }
-
-            if (isCancelled) {
-              appLogger.info(
-                  'User cancelled subscription. Previous plan: $oldPlanId');
-              notifier.updateUserData(newUser);
-              return true;
-            }
-            return false;
-          },
-        );
-
-        if (shouldStop) break;
-        appLogger.info("No changes detected in subscription");
-      }
+      await _handleSubscriptionChange(
+        oldUser: oldUser,
+        lanternService: lanternService,
+        notifier: notifier,
+      );
     } catch (e) {
       appLogger.error('Exception during subscription check', e);
     } finally {
       context.hideLoadingDialog();
+    }
+  }
+
+  Future<void> _handleSubscriptionChange({
+    required UserResponse oldUser,
+    required LanternService lanternService,
+    required HomeNotifier notifier,
+  }) async {
+    final delays = [Duration(seconds: 1), Duration(seconds: 2)];
+    for (final delay in delays) {
+      appLogger.info('Checking subscription with delay: $delay');
+      if (delay != Duration.zero) await Future.delayed(delay);
+
+      final result = await lanternService.getUserData();
+      final shouldStop = result.fold(
+        (failure) {
+          appLogger.error('Subscription check error', failure);
+          return false;
+        },
+        (newUser) {
+          final oldPlanId = oldUser.legacyUserData.subscriptionData.planID;
+          final newPlanId = newUser.legacyUserData.subscriptionData.planID;
+          final isPro = newUser.legacyUserData.userLevel == 'pro';
+          final isPlanChanged = isPro && oldPlanId != newPlanId;
+          final isCancelled = !isPro;
+
+          if (isPlanChanged) {
+            appLogger.info('User changed plan: $oldPlanId → $newPlanId');
+            notifier.updateUserData(newUser);
+            return true;
+          }
+
+          if (isCancelled) {
+            appLogger
+                .info('User cancelled subscription. Previous plan: $oldPlanId');
+            notifier.updateUserData(newUser);
+            return true;
+          }
+          return false;
+        },
+      );
     }
   }
 }

@@ -1,6 +1,4 @@
-import 'package:fpdart/src/either.dart';
-import 'package:fpdart/src/unit.dart';
-import 'package:lantern/core/utils/failure.dart';
+import 'package:lantern/core/utils/url_utils.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -11,9 +9,12 @@ class AccountNotifier extends _$AccountNotifier {
   @override
   Future<void> build() async {}
 
-  Future<Either<Failure, Unit>> showManageSubscriptionAppStore() async {
-    return await ref.read(lanternServiceProvider).showManageSubscriptions();
+  void openAppleSubscriptions() async {
+    final result =
+        await ref.read(lanternServiceProvider).showManageSubscriptions();
+
+    result.fold((failure) {
+      UrlUtils.openUrl("https://apps.apple.com/account/subscriptions");
+    }, (_) {});
   }
-
-
 }
