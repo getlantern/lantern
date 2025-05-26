@@ -53,13 +53,20 @@ class ChoosePaymentMethod extends HookConsumerWidget {
 
   Future<void> onSubscribe(
       Android provider, WidgetRef ref, BuildContext context) async {
-    if (PlatformUtils.isDesktop) {
-      desktopPurchaseFlow(provider, ref, context);
-      return;
-    }
+    switch (provider.providers.name) {
+      case 'stripe':
+        if (PlatformUtils.isDesktop) {
+          desktopPurchaseFlow(provider, ref, context);
+          return;
+        }
 
-    // only android side load version should be here
-    androidStripeSubscription(provider, ref, context);
+        // only android side load version should be here
+        androidStripeSubscription(provider, ref, context);
+        break;
+      case 'shepherd':
+        paymentRedirectFlow(provider.providers.name, ref, context);
+        break;
+    }
   }
 
   Future<void> androidStripeSubscription(
@@ -138,6 +145,32 @@ class ChoosePaymentMethod extends HookConsumerWidget {
       context.hideLoadingDialog();
       context.showSnackBarError('error_subscribing_plan'.i18n);
     }
+  }
+
+  Future<void> paymentRedirectFlow(
+      String provider, WidgetRef ref, BuildContext context) async {
+    context.showLoadingDialog();
+    final userPlan =
+        ref.watch(plansNotifierProvider.notifier).getSelectedPlan();
+    final result =
+        await ref.read(paymentNotifierProvider.notifier).paymentRedirect(
+              provider: provider,
+              planId: userPlan.id,
+              email: email,
+            );
+
+    result.fold(
+      (failure) {
+        context.hideLoadingDialog();
+        appLogger.error(
+            'Error redirecting to payment: ${failure.localizedErrorMessage}');
+        context.showSnackBarError(failure.localizedErrorMessage);
+      },
+      (url) {
+        context.hideLoadingDialog();
+        UrlUtils.openWebview(url);
+      },
+    );
   }
 
   Future<void> onPurchaseSuccess(WidgetRef ref, BuildContext context) async {

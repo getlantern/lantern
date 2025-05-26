@@ -345,8 +345,9 @@ func AcknowledgeApplePurchase(receipt, planId string) error {
 	return nil
 }
 
-func PaymentRedirect(provider, planId, deviceName, email string) (string, error) {
+func PaymentRedirect(provider, planId, email string) (string, error) {
 	log.Debug("Payment redirect")
+	deviceName := radianceServer.userConfig.DeviceID()
 	body := protos.PaymentRedirectRequest{
 		Provider:   provider,
 		Plan:       planId,

@@ -311,7 +311,6 @@ class LanternPlatformService implements LanternCoreService {
   Future<Either<Failure, String>> paymentRedirect(
       {required String provider,
       required String planId,
-      required String deviceName,
       required String email}) async {
     if (PlatformUtils.isIOS) {
       throw UnimplementedError("This not supported on IOS");
@@ -321,7 +320,6 @@ class LanternPlatformService implements LanternCoreService {
           await _methodChannel.invokeMethod<String>('paymentRedirect', {
         'provider': provider,
         'planId': planId,
-        'deviceName': deviceName,
         'email': email,
       });
       return Right(redirectUrl!);

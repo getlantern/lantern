@@ -23,9 +23,10 @@ class PaymentNotifier extends _$PaymentNotifier {
   Future<Either<Failure, Unit>> acknowledgeInAppPurchase({
     required String purchaseToken,
     required String planId,
-
   }) async {
-    return ref.read(lanternServiceProvider).acknowledgeInAppPurchase(purchaseToken: purchaseToken, planId: planId);
+    return ref
+        .read(lanternServiceProvider)
+        .acknowledgeInAppPurchase(purchaseToken: purchaseToken, planId: planId);
   }
 
   Future<Either<Failure, String>> stripeSubscriptionLink(
@@ -39,5 +40,18 @@ class PaymentNotifier extends _$PaymentNotifier {
     return ref
         .read(lanternServiceProvider)
         .stipeSubscription(planId: planId, email: email);
+  }
+
+  Future<Either<Failure, String>> paymentRedirect({
+    required String provider,
+    required String planId,
+
+    required String email,
+  }) async {
+    return ref.read(lanternServiceProvider).paymentRedirect(
+        provider: provider,
+        planId: planId,
+
+        email: email);
   }
 }

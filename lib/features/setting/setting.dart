@@ -57,7 +57,8 @@ class _SettingState extends ConsumerState<Setting> {
               ),
             ),
           const SizedBox(height: 16),
-          Card(
+          if (isUserPro)
+            Card(
             margin: EdgeInsets.zero,
             child: AppTile(
               label: 'account'.i18n,

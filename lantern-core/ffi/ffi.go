@@ -352,11 +352,11 @@ func stripeSubscriptionPaymentRedirect(subType, _planId, _email *C.char) *C.char
 // Fetch payment redirect link for providers like alipay
 //
 //export paymentRedirect
-func paymentRedirect(_plan, _provider, _email, _deviceName *C.char) *C.char {
+func paymentRedirect(_plan, _provider, _email *C.char) *C.char {
 	plan := C.GoString(_plan)
 	provider := C.GoString(_provider)
 	email := C.GoString(_email)
-	deviceName := C.GoString(_deviceName)
+	deviceName := server.userInfo.DeviceID()
 
 	body := &protos.PaymentRedirectRequest{
 		Plan:       plan,

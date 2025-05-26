@@ -30,7 +30,6 @@ abstract class LanternCoreService {
   Future<Either<Failure, String>> paymentRedirect({
     required String provider,
     required String planId,
-    required String deviceName,
     required String email,
   });
 

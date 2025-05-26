@@ -451,7 +451,7 @@ class LanternFFIService implements LanternCoreService {
     try {
       final result = await runInBackground<String>(
         () async {
-          return _ffiService.logout().toDartString();
+          return _ffiService.logout(email.toCharPtr).toDartString();
         },
       );
 
@@ -468,7 +468,6 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, String>> paymentRedirect(
       {required String provider,
       required String planId,
-      required String deviceName,
       required String email}) async {
     try {
       final result = await runInBackground<String>(
@@ -478,7 +477,6 @@ class LanternFFIService implements LanternCoreService {
                 planId.toCharPtr,
                 provider.toCharPtr,
                 email.toCharPtr,
-                deviceName.toCharPtr,
               )
               .toDartString();
         },
