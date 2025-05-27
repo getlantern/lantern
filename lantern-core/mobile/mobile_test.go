@@ -93,13 +93,3 @@ func TestOAuthLoginUrl(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, user)
 }
-
-func TestGoogle(t *testing.T) {
-	rr, err := radiance.NewRadiance(radianceOptions())
-	api := rr.APIHandler().ProServer
-	assert.Nil(t, err)
-	assert.NotNil(t, rr)
-	user, err := api.GoogleSubscription(context.Background(), "pdnjpobicomglmlfnlgcbbhn.AO-J1Oyk1i1KNjDFEIUk8IIdHzC7MGtwiGdVImCzkxL2e5hJcea5j9nFXi6D97GR5W6Xfk9Foarjo9gR71z03VPumggbFMSuWCQBx9PsPDvuSAbhVtOcdvA]", "1y-usd-10")
-	assert.Nil(t, err)
-	assert.NotNil(t, user)
-}
