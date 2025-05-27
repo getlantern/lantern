@@ -16,8 +16,8 @@ import 'package:protobuf/protobuf.dart' as $pb;
 
 export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 
-class LoginResponse_Device extends $pb.GeneratedMessage {
-  factory LoginResponse_Device({
+class UserResponse_Device extends $pb.GeneratedMessage {
+  factory UserResponse_Device({
     $core.String? id,
     $core.String? name,
     $fixnum.Int64? created,
@@ -34,11 +34,11 @@ class LoginResponse_Device extends $pb.GeneratedMessage {
     }
     return $result;
   }
-  LoginResponse_Device._() : super();
-  factory LoginResponse_Device.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory LoginResponse_Device.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  UserResponse_Device._() : super();
+  factory UserResponse_Device.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory UserResponse_Device.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'LoginResponse.Device', createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'UserResponse.Device', createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'id')
     ..aOS(2, _omitFieldNames ? '' : 'name')
     ..aInt64(3, _omitFieldNames ? '' : 'created')
@@ -49,22 +49,22 @@ class LoginResponse_Device extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
   'Will be removed in next major version')
-  LoginResponse_Device clone() => LoginResponse_Device()..mergeFromMessage(this);
+  UserResponse_Device clone() => UserResponse_Device()..mergeFromMessage(this);
   @$core.Deprecated(
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  LoginResponse_Device copyWith(void Function(LoginResponse_Device) updates) => super.copyWith((message) => updates(message as LoginResponse_Device)) as LoginResponse_Device;
+  UserResponse_Device copyWith(void Function(UserResponse_Device) updates) => super.copyWith((message) => updates(message as UserResponse_Device)) as UserResponse_Device;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static LoginResponse_Device create() => LoginResponse_Device._();
-  LoginResponse_Device createEmptyInstance() => create();
-  static $pb.PbList<LoginResponse_Device> createRepeated() => $pb.PbList<LoginResponse_Device>();
+  static UserResponse_Device create() => UserResponse_Device._();
+  UserResponse_Device createEmptyInstance() => create();
+  static $pb.PbList<UserResponse_Device> createRepeated() => $pb.PbList<UserResponse_Device>();
   @$core.pragma('dart2js:noInline')
-  static LoginResponse_Device getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<LoginResponse_Device>(create);
-  static LoginResponse_Device? _defaultInstance;
+  static UserResponse_Device getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<UserResponse_Device>(create);
+  static UserResponse_Device? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get id => $_getSZ(0);
@@ -94,8 +94,184 @@ class LoginResponse_Device extends $pb.GeneratedMessage {
   void clearCreated() => $_clearField(3);
 }
 
-class LoginResponse_UserData extends $pb.GeneratedMessage {
-  factory LoginResponse_UserData({
+class UserResponse_UserData_SubscriptionData extends $pb.GeneratedMessage {
+  factory UserResponse_UserData_SubscriptionData({
+    $core.String? planID,
+    $core.String? stripeCustomerID,
+    $core.String? startAt,
+    $core.String? cancelledAt,
+    $core.bool? autoRenew,
+    $core.String? subscriptionID,
+    $core.String? status,
+    $core.String? provider,
+    $core.String? createdAt,
+    $core.String? endAt,
+  }) {
+    final $result = create();
+    if (planID != null) {
+      $result.planID = planID;
+    }
+    if (stripeCustomerID != null) {
+      $result.stripeCustomerID = stripeCustomerID;
+    }
+    if (startAt != null) {
+      $result.startAt = startAt;
+    }
+    if (cancelledAt != null) {
+      $result.cancelledAt = cancelledAt;
+    }
+    if (autoRenew != null) {
+      $result.autoRenew = autoRenew;
+    }
+    if (subscriptionID != null) {
+      $result.subscriptionID = subscriptionID;
+    }
+    if (status != null) {
+      $result.status = status;
+    }
+    if (provider != null) {
+      $result.provider = provider;
+    }
+    if (createdAt != null) {
+      $result.createdAt = createdAt;
+    }
+    if (endAt != null) {
+      $result.endAt = endAt;
+    }
+    return $result;
+  }
+  UserResponse_UserData_SubscriptionData._() : super();
+  factory UserResponse_UserData_SubscriptionData.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory UserResponse_UserData_SubscriptionData.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'UserResponse.UserData.SubscriptionData', createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'planID', protoName: 'planID')
+    ..aOS(2, _omitFieldNames ? '' : 'stripeCustomerID', protoName: 'stripeCustomerID')
+    ..aOS(3, _omitFieldNames ? '' : 'startAt', protoName: 'startAt')
+    ..aOS(4, _omitFieldNames ? '' : 'cancelledAt', protoName: 'cancelledAt')
+    ..aOB(5, _omitFieldNames ? '' : 'autoRenew', protoName: 'autoRenew')
+    ..aOS(6, _omitFieldNames ? '' : 'subscriptionID', protoName: 'subscriptionID')
+    ..aOS(7, _omitFieldNames ? '' : 'status')
+    ..aOS(8, _omitFieldNames ? '' : 'provider')
+    ..aOS(9, _omitFieldNames ? '' : 'createdAt', protoName: 'createdAt')
+    ..aOS(10, _omitFieldNames ? '' : 'endAt', protoName: 'endAt')
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  UserResponse_UserData_SubscriptionData clone() => UserResponse_UserData_SubscriptionData()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  UserResponse_UserData_SubscriptionData copyWith(void Function(UserResponse_UserData_SubscriptionData) updates) => super.copyWith((message) => updates(message as UserResponse_UserData_SubscriptionData)) as UserResponse_UserData_SubscriptionData;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static UserResponse_UserData_SubscriptionData create() => UserResponse_UserData_SubscriptionData._();
+  UserResponse_UserData_SubscriptionData createEmptyInstance() => create();
+  static $pb.PbList<UserResponse_UserData_SubscriptionData> createRepeated() => $pb.PbList<UserResponse_UserData_SubscriptionData>();
+  @$core.pragma('dart2js:noInline')
+  static UserResponse_UserData_SubscriptionData getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<UserResponse_UserData_SubscriptionData>(create);
+  static UserResponse_UserData_SubscriptionData? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get planID => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set planID($core.String v) { $_setString(0, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasPlanID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearPlanID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get stripeCustomerID => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set stripeCustomerID($core.String v) { $_setString(1, v); }
+  @$pb.TagNumber(2)
+  $core.bool hasStripeCustomerID() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearStripeCustomerID() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.String get startAt => $_getSZ(2);
+  @$pb.TagNumber(3)
+  set startAt($core.String v) { $_setString(2, v); }
+  @$pb.TagNumber(3)
+  $core.bool hasStartAt() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearStartAt() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.String get cancelledAt => $_getSZ(3);
+  @$pb.TagNumber(4)
+  set cancelledAt($core.String v) { $_setString(3, v); }
+  @$pb.TagNumber(4)
+  $core.bool hasCancelledAt() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearCancelledAt() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.bool get autoRenew => $_getBF(4);
+  @$pb.TagNumber(5)
+  set autoRenew($core.bool v) { $_setBool(4, v); }
+  @$pb.TagNumber(5)
+  $core.bool hasAutoRenew() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearAutoRenew() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.String get subscriptionID => $_getSZ(5);
+  @$pb.TagNumber(6)
+  set subscriptionID($core.String v) { $_setString(5, v); }
+  @$pb.TagNumber(6)
+  $core.bool hasSubscriptionID() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearSubscriptionID() => $_clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.String get status => $_getSZ(6);
+  @$pb.TagNumber(7)
+  set status($core.String v) { $_setString(6, v); }
+  @$pb.TagNumber(7)
+  $core.bool hasStatus() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearStatus() => $_clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.String get provider => $_getSZ(7);
+  @$pb.TagNumber(8)
+  set provider($core.String v) { $_setString(7, v); }
+  @$pb.TagNumber(8)
+  $core.bool hasProvider() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearProvider() => $_clearField(8);
+
+  @$pb.TagNumber(9)
+  $core.String get createdAt => $_getSZ(8);
+  @$pb.TagNumber(9)
+  set createdAt($core.String v) { $_setString(8, v); }
+  @$pb.TagNumber(9)
+  $core.bool hasCreatedAt() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearCreatedAt() => $_clearField(9);
+
+  @$pb.TagNumber(10)
+  $core.String get endAt => $_getSZ(9);
+  @$pb.TagNumber(10)
+  set endAt($core.String v) { $_setString(9, v); }
+  @$pb.TagNumber(10)
+  $core.bool hasEndAt() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearEndAt() => $_clearField(10);
+}
+
+class UserResponse_UserData extends $pb.GeneratedMessage {
+  factory UserResponse_UserData({
     $fixnum.Int64? userId,
     $core.String? code,
     $core.String? token,
@@ -113,8 +289,9 @@ class LoginResponse_UserData extends $pb.GeneratedMessage {
     $core.String? bonusMonths,
     $core.Iterable<$core.String>? inviters,
     $core.Iterable<$core.String>? invitees,
-    $core.Iterable<LoginResponse_Device>? devices,
+    $core.Iterable<UserResponse_Device>? devices,
     $core.bool? yinbiEnabled,
+    UserResponse_UserData_SubscriptionData? subscriptionData,
   }) {
     final $result = create();
     if (userId != null) {
@@ -174,13 +351,16 @@ class LoginResponse_UserData extends $pb.GeneratedMessage {
     if (yinbiEnabled != null) {
       $result.yinbiEnabled = yinbiEnabled;
     }
+    if (subscriptionData != null) {
+      $result.subscriptionData = subscriptionData;
+    }
     return $result;
   }
-  LoginResponse_UserData._() : super();
-  factory LoginResponse_UserData.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory LoginResponse_UserData.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  UserResponse_UserData._() : super();
+  factory UserResponse_UserData.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory UserResponse_UserData.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'LoginResponse.UserData', createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'UserResponse.UserData', createEmptyInstance: create)
     ..aInt64(1, _omitFieldNames ? '' : 'userId', protoName: 'userId')
     ..aOS(2, _omitFieldNames ? '' : 'code')
     ..aOS(3, _omitFieldNames ? '' : 'token')
@@ -198,8 +378,9 @@ class LoginResponse_UserData extends $pb.GeneratedMessage {
     ..aOS(15, _omitFieldNames ? '' : 'bonusMonths', protoName: 'bonusMonths')
     ..pPS(16, _omitFieldNames ? '' : 'inviters')
     ..pPS(17, _omitFieldNames ? '' : 'invitees')
-    ..pc<LoginResponse_Device>(18, _omitFieldNames ? '' : 'devices', $pb.PbFieldType.PM, subBuilder: LoginResponse_Device.create)
+    ..pc<UserResponse_Device>(18, _omitFieldNames ? '' : 'devices', $pb.PbFieldType.PM, subBuilder: UserResponse_Device.create)
     ..aOB(19, _omitFieldNames ? '' : 'yinbiEnabled', protoName: 'yinbiEnabled')
+    ..aOM<UserResponse_UserData_SubscriptionData>(20, _omitFieldNames ? '' : 'subscriptionData', protoName: 'subscriptionData', subBuilder: UserResponse_UserData_SubscriptionData.create)
     ..hasRequiredFields = false
   ;
 
@@ -207,22 +388,22 @@ class LoginResponse_UserData extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
   'Will be removed in next major version')
-  LoginResponse_UserData clone() => LoginResponse_UserData()..mergeFromMessage(this);
+  UserResponse_UserData clone() => UserResponse_UserData()..mergeFromMessage(this);
   @$core.Deprecated(
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  LoginResponse_UserData copyWith(void Function(LoginResponse_UserData) updates) => super.copyWith((message) => updates(message as LoginResponse_UserData)) as LoginResponse_UserData;
+  UserResponse_UserData copyWith(void Function(UserResponse_UserData) updates) => super.copyWith((message) => updates(message as UserResponse_UserData)) as UserResponse_UserData;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static LoginResponse_UserData create() => LoginResponse_UserData._();
-  LoginResponse_UserData createEmptyInstance() => create();
-  static $pb.PbList<LoginResponse_UserData> createRepeated() => $pb.PbList<LoginResponse_UserData>();
+  static UserResponse_UserData create() => UserResponse_UserData._();
+  UserResponse_UserData createEmptyInstance() => create();
+  static $pb.PbList<UserResponse_UserData> createRepeated() => $pb.PbList<UserResponse_UserData>();
   @$core.pragma('dart2js:noInline')
-  static LoginResponse_UserData getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<LoginResponse_UserData>(create);
-  static LoginResponse_UserData? _defaultInstance;
+  static UserResponse_UserData getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<UserResponse_UserData>(create);
+  static UserResponse_UserData? _defaultInstance;
 
   @$pb.TagNumber(1)
   $fixnum.Int64 get userId => $_getI64(0);
@@ -354,7 +535,7 @@ class LoginResponse_UserData extends $pb.GeneratedMessage {
   $pb.PbList<$core.String> get invitees => $_getList(16);
 
   @$pb.TagNumber(18)
-  $pb.PbList<LoginResponse_Device> get devices => $_getList(17);
+  $pb.PbList<UserResponse_Device> get devices => $_getList(17);
 
   @$pb.TagNumber(19)
   $core.bool get yinbiEnabled => $_getBF(18);
@@ -364,17 +545,28 @@ class LoginResponse_UserData extends $pb.GeneratedMessage {
   $core.bool hasYinbiEnabled() => $_has(18);
   @$pb.TagNumber(19)
   void clearYinbiEnabled() => $_clearField(19);
+
+  @$pb.TagNumber(20)
+  UserResponse_UserData_SubscriptionData get subscriptionData => $_getN(19);
+  @$pb.TagNumber(20)
+  set subscriptionData(UserResponse_UserData_SubscriptionData v) { $_setField(20, v); }
+  @$pb.TagNumber(20)
+  $core.bool hasSubscriptionData() => $_has(19);
+  @$pb.TagNumber(20)
+  void clearSubscriptionData() => $_clearField(20);
+  @$pb.TagNumber(20)
+  UserResponse_UserData_SubscriptionData ensureSubscriptionData() => $_ensure(19);
 }
 
-class LoginResponse extends $pb.GeneratedMessage {
-  factory LoginResponse({
+class UserResponse extends $pb.GeneratedMessage {
+  factory UserResponse({
     $fixnum.Int64? legacyID,
     $core.String? legacyToken,
     $core.String? id,
     $core.bool? emailConfirmed,
     $core.bool? success,
-    LoginResponse_UserData? legacyUserData,
-    $core.Iterable<LoginResponse_Device>? devices,
+    UserResponse_UserData? legacyUserData,
+    $core.Iterable<UserResponse_Device>? devices,
   }) {
     final $result = create();
     if (legacyID != null) {
@@ -400,18 +592,18 @@ class LoginResponse extends $pb.GeneratedMessage {
     }
     return $result;
   }
-  LoginResponse._() : super();
-  factory LoginResponse.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory LoginResponse.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  UserResponse._() : super();
+  factory UserResponse.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory UserResponse.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'LoginResponse', createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'UserResponse', createEmptyInstance: create)
     ..aInt64(1, _omitFieldNames ? '' : 'legacyID', protoName: 'legacyID')
     ..aOS(2, _omitFieldNames ? '' : 'legacyToken', protoName: 'legacyToken')
     ..aOS(3, _omitFieldNames ? '' : 'id')
     ..aOB(4, _omitFieldNames ? '' : 'emailConfirmed', protoName: 'emailConfirmed')
     ..aOB(5, _omitFieldNames ? '' : 'Success', protoName: 'Success')
-    ..aOM<LoginResponse_UserData>(6, _omitFieldNames ? '' : 'legacyUserData', protoName: 'legacyUserData', subBuilder: LoginResponse_UserData.create)
-    ..pc<LoginResponse_Device>(7, _omitFieldNames ? '' : 'devices', $pb.PbFieldType.PM, subBuilder: LoginResponse_Device.create)
+    ..aOM<UserResponse_UserData>(6, _omitFieldNames ? '' : 'legacyUserData', protoName: 'legacyUserData', subBuilder: UserResponse_UserData.create)
+    ..pc<UserResponse_Device>(7, _omitFieldNames ? '' : 'devices', $pb.PbFieldType.PM, subBuilder: UserResponse_Device.create)
     ..hasRequiredFields = false
   ;
 
@@ -419,22 +611,22 @@ class LoginResponse extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
   'Will be removed in next major version')
-  LoginResponse clone() => LoginResponse()..mergeFromMessage(this);
+  UserResponse clone() => UserResponse()..mergeFromMessage(this);
   @$core.Deprecated(
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  LoginResponse copyWith(void Function(LoginResponse) updates) => super.copyWith((message) => updates(message as LoginResponse)) as LoginResponse;
+  UserResponse copyWith(void Function(UserResponse) updates) => super.copyWith((message) => updates(message as UserResponse)) as UserResponse;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static LoginResponse create() => LoginResponse._();
-  LoginResponse createEmptyInstance() => create();
-  static $pb.PbList<LoginResponse> createRepeated() => $pb.PbList<LoginResponse>();
+  static UserResponse create() => UserResponse._();
+  UserResponse createEmptyInstance() => create();
+  static $pb.PbList<UserResponse> createRepeated() => $pb.PbList<UserResponse>();
   @$core.pragma('dart2js:noInline')
-  static LoginResponse getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<LoginResponse>(create);
-  static LoginResponse? _defaultInstance;
+  static UserResponse getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<UserResponse>(create);
+  static UserResponse? _defaultInstance;
 
   @$pb.TagNumber(1)
   $fixnum.Int64 get legacyID => $_getI64(0);
@@ -483,19 +675,19 @@ class LoginResponse extends $pb.GeneratedMessage {
 
   /// this maps to /user-data call in pro-server and is returned only on successful login
   @$pb.TagNumber(6)
-  LoginResponse_UserData get legacyUserData => $_getN(5);
+  UserResponse_UserData get legacyUserData => $_getN(5);
   @$pb.TagNumber(6)
-  set legacyUserData(LoginResponse_UserData v) { $_setField(6, v); }
+  set legacyUserData(UserResponse_UserData v) { $_setField(6, v); }
   @$pb.TagNumber(6)
   $core.bool hasLegacyUserData() => $_has(5);
   @$pb.TagNumber(6)
   void clearLegacyUserData() => $_clearField(6);
   @$pb.TagNumber(6)
-  LoginResponse_UserData ensureLegacyUserData() => $_ensure(5);
+  UserResponse_UserData ensureLegacyUserData() => $_ensure(5);
 
   /// list of current user devices. returned only on successful login that is blocked by 'too many devices'
   @$pb.TagNumber(7)
-  $pb.PbList<LoginResponse_Device> get devices => $_getList(6);
+  $pb.PbList<UserResponse_Device> get devices => $_getList(6);
 }
 
 class Purchase extends $pb.GeneratedMessage {

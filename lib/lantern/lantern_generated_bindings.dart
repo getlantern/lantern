@@ -5259,21 +5259,70 @@ class LanternBindings {
   late final _getUserData =
       _getUserDataPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
 
+  ffi.Pointer<ffi.Char> fetchUserData() {
+    return _fetchUserData();
+  }
+
+  late final _fetchUserDataPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+          'fetchUserData');
+  late final _fetchUserData =
+      _fetchUserDataPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
+
   ffi.Pointer<ffi.Char> stripeSubscriptionPaymentRedirect(
     ffi.Pointer<ffi.Char> subType,
+    ffi.Pointer<ffi.Char> _planId,
+    ffi.Pointer<ffi.Char> _email,
   ) {
     return _stripeSubscriptionPaymentRedirect(
       subType,
+      _planId,
+      _email,
     );
   }
 
   late final _stripeSubscriptionPaymentRedirectPtr = _lookup<
       ffi.NativeFunction<
           ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
               ffi.Pointer<ffi.Char>)>>('stripeSubscriptionPaymentRedirect');
   late final _stripeSubscriptionPaymentRedirect =
-      _stripeSubscriptionPaymentRedirectPtr
-          .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
+      _stripeSubscriptionPaymentRedirectPtr.asFunction<
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> paymentRedirect(
+    ffi.Pointer<ffi.Char> _plan,
+    ffi.Pointer<ffi.Char> _provider,
+    ffi.Pointer<ffi.Char> _email,
+  ) {
+    return _paymentRedirect(
+      _plan,
+      _provider,
+      _email,
+    );
+  }
+
+  late final _paymentRedirectPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>)>>('paymentRedirect');
+  late final _paymentRedirect = _paymentRedirectPtr.asFunction<
+      ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> stripeBillingPortalUrl() {
+    return _stripeBillingPortalUrl();
+  }
+
+  late final _stripeBillingPortalUrlPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+          'stripeBillingPortalUrl');
+  late final _stripeBillingPortalUrl =
+      _stripeBillingPortalUrlPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
 
   ffi.Pointer<ffi.Char> plans() {
     return _plans();
@@ -5311,6 +5360,20 @@ class LanternBindings {
           ffi.Pointer<ffi.Char> Function(
               ffi.Pointer<ffi.Char>)>>('oAuthLoginCallback');
   late final _oAuthLoginCallback = _oAuthLoginCallbackPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> logout(
+    ffi.Pointer<ffi.Char> _email,
+  ) {
+    return _logout(
+      _email,
+    );
+  }
+
+  late final _logoutPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>>('logout');
+  late final _logout = _logoutPtr
       .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
 
   void freeCString(

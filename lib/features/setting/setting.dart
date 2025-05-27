@@ -4,10 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
-import 'package:lantern/core/utils/platform_utils.dart';
-import 'package:lantern/features/language/language_notifier.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/setting/follow_us.dart'
     show showFollowUsBottomSheet;
+import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 enum _SettingType {
   account,
@@ -27,48 +28,55 @@ enum _SettingType {
 }
 
 @RoutePage(name: 'Setting')
-class Setting extends HookConsumerWidget {
-  Setting({super.key});
-
-  late BuildContext context;
+class Setting extends StatefulHookConsumerWidget {
+  const Setting({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    this.context = context;
-    final locale = ref.read(languageNotifierProvider);
+  ConsumerState<Setting> createState() => _SettingState();
+}
+
+class _SettingState extends ConsumerState<Setting> {
+  @override
+  Widget build(BuildContext context) {
+    final appSetting = ref.watch(appSettingNotifierProvider);
+    final locale = appSetting.locale;
     final textTheme = Theme.of(context).textTheme;
+    final isUserPro = ref.isUserPro;
     return BaseScreen(
       title: 'settings'.i18n,
       padded: false,
       body: ListView(
         padding: EdgeInsets.symmetric(horizontal: defaultSize),
         children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.only(top: 16),
-            child: ProButton(
-              onPressed: () {
-                appRouter.push(const Plans());
-              },
+          if (!isUserPro)
+            Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: ProButton(
+                onPressed: () {
+                  appRouter.push(const Plans());
+                },
+              ),
             ),
-          ),
-          // const SizedBox(height: 16),
-          // Card(
-          //   margin: EdgeInsets.zero,
-          //   child: AppTile(
-          //     label: 'account'.i18n,
-          //     icon: AppImagePaths.signIn,
-          //     onPressed: () => settingMenuTap(_SettingType.account),
-          //   ),
-          // ),
           const SizedBox(height: 16),
-          Card(
+          if (isUserPro)
+            Card(
             margin: EdgeInsets.zero,
             child: AppTile(
-              label: 'sign_in'.i18n,
+              label: 'account'.i18n,
               icon: AppImagePaths.signIn,
-              onPressed: () => settingMenuTap(_SettingType.signIn),
+              onPressed: () => settingMenuTap(_SettingType.account),
             ),
           ),
+          const SizedBox(height: 16),
+          if (!appSetting.userLoggedIn)
+            Card(
+              margin: EdgeInsets.zero,
+              child: AppTile(
+                label: 'sign_in'.i18n,
+                icon: AppImagePaths.signIn,
+                onPressed: () => settingMenuTap(_SettingType.signIn),
+              ),
+            ),
           const SizedBox(height: 16),
           Card(
             margin: EdgeInsets.zero,
@@ -84,7 +92,7 @@ class Setting extends HookConsumerWidget {
                   label: 'language'.i18n,
                   icon: AppImagePaths.translate,
                   trailing: Text(
-                    displayLanguage(locale.toString()),
+                    displayLanguage(locale),
                     style: textTheme.titleMedium!.copyWith(
                       color: AppColors.blue7,
                     ),
@@ -132,21 +140,22 @@ class Setting extends HookConsumerWidget {
               ],
             ),
           ),
-          // const SizedBox(height: 16),
-          // Card(
-          //   margin: EdgeInsets.zero,
-          //   child: Column(
-          //     children: [
-          //       AppTile(
-          //         label: 'logout'.i18n,
-          //         icon: AppImagePaths.signIn,
-          //         onPressed: () => settingMenuTap(_SettingType.logout),
-          //       ),
-          //     ],
-          //   ),
-          // ),
+          if (appSetting.userLoggedIn) ...{
+            const SizedBox(height: 16),
+            Card(
+              margin: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  AppTile(
+                    label: 'logout'.i18n,
+                    icon: AppImagePaths.signIn,
+                    onPressed: () => settingMenuTap(_SettingType.logout),
+                  ),
+                ],
+              ),
+            ),
+          },
           const SizedBox(height: 16),
-
           Padding(
             padding: const EdgeInsets.only(
               left: 16,
@@ -224,11 +233,71 @@ class Setting extends HookConsumerWidget {
         appRouter.push(VPNSetting());
         break;
       case _SettingType.logout:
-        // TODO: Handle this case.
-        throw UnimplementedError();
+        logoutDialog();
+        break;
       case _SettingType.browserUnbounded:
         // TODO: Handle this case.
         throw UnimplementedError();
     }
+  }
+
+  void logoutDialog() {
+    final theme = Theme.of(context).textTheme;
+    AppDialog.customDialog(
+      context: context,
+      action: [
+        AppTextButton(
+          label: 'not_now'.i18n,
+          textColor: AppColors.gray8,
+          onPressed: () {
+            context.maybePop();
+          },
+        ),
+        AppTextButton(
+          label: 'logout'.i18n,
+          onPressed: () {
+            onLogout();
+            context.maybePop();
+          },
+        ),
+      ],
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          SizedBox(height: defaultSize),
+          Text(
+            'logout'.i18n,
+            style: theme.headlineSmall,
+          ),
+          SizedBox(height: defaultSize),
+          Text(
+            'logout_message'.i18n,
+            style: theme.bodySmall!.copyWith(
+              color: AppColors.gray8,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> onLogout() async {
+    context.showLoadingDialog();
+    final appSetting = ref.read(appSettingNotifierProvider);
+    final result =
+        await ref.read(lanternServiceProvider).logout(appSetting.email);
+    result.fold(
+      (l) {
+        context.hideLoadingDialog();
+        appLogger.error('Logout error: ${l.localizedErrorMessage}');
+      },
+      (user) {
+        context.hideLoadingDialog();
+        appRouter.popUntilRoot();
+        ref.read(appSettingNotifierProvider.notifier).setUserLoggedIn(false);
+        ref.read(homeNotifierProvider.notifier).updateUserData(user);
+        appLogger.info('Logout success: $user');
+      },
+    );
   }
 }

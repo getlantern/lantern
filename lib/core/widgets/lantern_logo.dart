@@ -17,6 +17,7 @@ class LanternLogo extends StatelessWidget {
     return AppImage(
       path: isPro ? AppImagePaths.lanternPro : AppImagePaths.lanternLogo,
       color: color ?? AppColors.blue10,
+      height: 25,
     );
   }
 }

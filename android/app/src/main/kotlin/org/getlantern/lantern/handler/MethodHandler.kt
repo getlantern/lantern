@@ -21,12 +21,18 @@ enum class Methods(val method: String) {
     IsVpnConnected("isVPNConnected"),
     AddSplitTunnelItem("addSplitTunnelItem"),
     RemoveSplitTunnelItem("removeSplitTunnelItem"),
-    SubscriptionPaymentRedirect("subscriptionPaymentRedirect"),
     StripeSubscription("stripeSubscription"),
+    StripeBillingPortal("stripeBillingPortal"),
     Plans("plans"),
     OAuthLoginUrl("oauthLoginUrl"),
     OAuthLoginCallback("oauthLoginCallback"),
-    GetUserData("getUserData")
+    GetUserData("getUserData"),
+    FetchUserData("fetchUserData"),
+    AcknowledgeInAppPurchase("acknowledgeInAppPurchase"),
+    PaymentRedirect("paymentRedirect"),
+
+    //User management
+    Logout("logout")
 }
 
 class MethodHandler : FlutterPlugin,
@@ -99,19 +105,21 @@ class MethodHandler : FlutterPlugin,
                     }
                 }
             }
+
             Methods.AddSplitTunnelItem.method -> {
                 scope.launch {
                     result.runCatching {
-                        val filterType = call.argument<String>("filterType") ?: error("Missing filterType")
+                        val filterType =
+                            call.argument<String>("filterType") ?: error("Missing filterType")
                         val value = call.argument<String>("value") ?: error("Missing value")
-
-                        val error = Mobile.addSplitTunnelItem(filterType, value)
-                        if (error is Exception) {
-                            throw error
-                        }
+                        Mobile.addSplitTunnelItem(filterType, value)
                         success("Item added")
                     }.onFailure { e ->
-                        result.error("add_split_tunnel_item", e.localizedMessage ?: "Failed to add split tunnel item", e)
+                        result.error(
+                            "add_split_tunnel_item",
+                            e.localizedMessage ?: "Failed to add split tunnel item",
+                            e
+                        )
                     }
                 }
             }
@@ -119,44 +127,98 @@ class MethodHandler : FlutterPlugin,
             Methods.RemoveSplitTunnelItem.method -> {
                 scope.launch {
                     result.runCatching {
-                        val filterType = call.argument<String>("filterType") ?: error("Missing filterType")
+                        val filterType =
+                            call.argument<String>("filterType") ?: error("Missing filterType")
                         val value = call.argument<String>("value") ?: error("Missing value")
-
-                        val error = Mobile.removeSplitTunnelItem(filterType, value)
-                        if (error is Exception) {
-                            throw error
-                        }
+                        Mobile.removeSplitTunnelItem(filterType, value)
                         success("Item removed")
                     }.onFailure { e ->
-                        result.error("remove_split_tunnel_item", e.localizedMessage ?: "Failed to remove split tunnel item", e)
+                        result.error(
+                            "remove_split_tunnel_item",
+                            e.localizedMessage ?: "Failed to remove split tunnel item",
+                            e
+                        )
                     }
                 }
             }
-            Methods.SubscriptionPaymentRedirect.method -> {
+
+            Methods.StripeBillingPortal.method -> {
                 scope.launch {
                     result.runCatching {
-                        val map = call.arguments as Map<*, *>
-                        val subscriptionLink = Mobile.stripeSubscriptionPaymentRedirect(map["subType"] as String)
+                        val url = Mobile.stripeBillingPortalUrl()
                         withContext(Dispatchers.Main) {
-                            success(subscriptionLink)
+                            success(url)
                         }
                     }.onFailure { e ->
                         result.error("vpn_status", e.localizedMessage ?: "Please try again", e)
                     }
                 }
             }
+
             Methods.StripeSubscription.method -> {
                 scope.launch {
                     result.runCatching {
-                        val subscriptionData = Mobile.stripeSubscription()
+                        val map = call.arguments as Map<*, *>
+                        val subscriptionData = Mobile.stripeSubscription(
+                            map["email"] as String,
+                            map["planId"] as String
+                        )
                         withContext(Dispatchers.Main) {
                             success(subscriptionData)
                         }
                     }.onFailure { e ->
-                        result.error("stripe_subscription", e.localizedMessage ?: "Please try again", e)
+                        result.error(
+                            "stripe_subscription",
+                            e.localizedMessage ?: "Please try again",
+                            e
+                        )
                     }
                 }
             }
+
+            Methods.AcknowledgeInAppPurchase.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val map = call.arguments as Map<*, *>
+                        val subscriptionData = Mobile.acknowledgeGooglePurchase(
+                            map["purchaseToken"] as String,
+                            map["planId"] as String
+                        )
+                        withContext(Dispatchers.Main) {
+                            success("success")
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "stripe_subscription",
+                            e.localizedMessage ?: "Please try again",
+                            e
+                        )
+                    }
+                }
+            }
+
+            Methods.PaymentRedirect.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val map = call.arguments as Map<*, *>
+                        val url = Mobile.paymentRedirect(
+                            map["provider"] as String,
+                            map["planId"] as String,
+                            map["email"] as String
+                        )
+                        withContext(Dispatchers.Main) {
+                            success(url)
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "payment_redirect",
+                            e.localizedMessage ?: "Please try again",
+                            e
+                        )
+                    }
+                }
+            }
+
             Methods.Plans.method -> {
                 scope.launch {
                     result.runCatching {
@@ -169,6 +231,7 @@ class MethodHandler : FlutterPlugin,
                     }
                 }
             }
+
             Methods.OAuthLoginUrl.method -> {
                 scope.launch {
                     result.runCatching {
@@ -182,6 +245,7 @@ class MethodHandler : FlutterPlugin,
                     }
                 }
             }
+
             Methods.OAuthLoginCallback.method -> {
                 scope.launch {
                     result.runCatching {
@@ -191,10 +255,15 @@ class MethodHandler : FlutterPlugin,
                             success(bytes)
                         }
                     }.onFailure { e ->
-                        result.error("OAuthLoginCallback", e.localizedMessage ?: "Please try again", e)
+                        result.error(
+                            "OAuthLoginCallback",
+                            e.localizedMessage ?: "Please try again",
+                            e
+                        )
                     }
                 }
             }
+
             Methods.GetUserData.method -> {
                 scope.launch {
                     result.runCatching {
@@ -203,10 +272,49 @@ class MethodHandler : FlutterPlugin,
                             success(bytes)
                         }
                     }.onFailure { e ->
-                        result.error("OAuthLoginCallback", e.localizedMessage ?: "Please try again", e)
+                        result.error(
+                            "OAuthLoginCallback",
+                            e.localizedMessage ?: "Please try again",
+                            e
+                        )
                     }
                 }
             }
+
+            Methods.FetchUserData.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val bytes = Mobile.fetchUserData()
+                        withContext(Dispatchers.Main) {
+                            success(bytes)
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "OAuthLoginCallback",
+                            e.localizedMessage ?: "Please try again",
+                            e
+                        )
+                    }
+                }
+            }
+
+            Methods.Logout.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val bytes = Mobile.logout(call.arguments<String>() as String)
+                        withContext(Dispatchers.Main) {
+                            success(bytes)
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "OAuthLoginCallback",
+                            e.localizedMessage ?: "Please try again",
+                            e
+                        )
+                    }
+                }
+            }
+
             else -> {
                 result.notImplemented()
             }

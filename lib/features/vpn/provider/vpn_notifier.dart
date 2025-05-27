@@ -26,10 +26,10 @@ class VpnNotifier extends _$VpnNotifier {
     if (state == VPNStatus.connecting || state == VPNStatus.disconnecting) {
       return Right("");
     }
-    return state == VPNStatus.disconnected ? _connectVPN() : stopVPN();
+    return state == VPNStatus.disconnected ? startVPN() : stopVPN();
   }
 
-  Future<Either<Failure, String>> _connectVPN() async {
+  Future<Either<Failure, String>> startVPN() async {
     final result = await ref.read(lanternServiceProvider).startVPN();
     return result;
   }

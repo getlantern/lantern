@@ -34,8 +34,8 @@ class PlansNotifier extends _$PlansNotifier {
         return localPlans.toPlanData();
       }
       return null;
-    } catch (e) {
-      appLogger.error('Error getting local plans: $e');
+    } catch (e,s) {
+      appLogger.error('Error getting local plans: $e',e,s);
       return null;
     }
   }

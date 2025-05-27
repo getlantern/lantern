@@ -5,7 +5,7 @@
   "entities": [
     {
       "id": "2:7670868698114973577",
-      "lastPropertyId": "6:5603929520388800572",
+      "lastPropertyId": "7:8647035457696274656",
       "name": "AppData",
       "properties": [
         {
@@ -38,6 +38,11 @@
           "id": "6:5603929520388800572",
           "name": "isEnabled",
           "type": 1
+        },
+        {
+          "id": "7:8647035457696274656",
+          "name": "iconBytes",
+          "type": 23
         }
       ],
       "relations": []
@@ -123,11 +128,6 @@
           "flags": 520,
           "indexId": "1:8385137855534348937",
           "relationTarget": "ProvidersEntity"
-        },
-        {
-          "id": "3:8614132688092941646",
-          "name": "iconsJson",
-          "type": 9
         }
       ],
       "relations": [
@@ -157,25 +157,6 @@
         {
           "id": "3:5147226167609010098",
           "name": "desktopJson",
-          "type": 9
-        }
-      ],
-      "relations": []
-    },
-    {
-      "id": "9:2225470262079550670",
-      "lastPropertyId": "2:1968318257591729232",
-      "name": "AppDatabase",
-      "properties": [
-        {
-          "id": "1:1999102232066002882",
-          "name": "id",
-          "type": 6,
-          "flags": 129
-        },
-        {
-          "id": "2:1968318257591729232",
-          "name": "data",
           "type": 9
         }
       ],
@@ -213,7 +194,7 @@
     {
       "id": "11:818119553507489289",
       "lastPropertyId": "6:2315749090244685953",
-      "name": "LoginResponseEntity",
+      "name": "UserResponseEntity",
       "properties": [
         {
           "id": "1:3516428039215602885",
@@ -279,7 +260,7 @@
     },
     {
       "id": "13:3415485097329155517",
-      "lastPropertyId": "18:6903327324847915765",
+      "lastPropertyId": "19:3107289936469511691",
       "name": "UserDataEntity",
       "properties": [
         {
@@ -372,6 +353,14 @@
           "id": "18:6903327324847915765",
           "name": "invitees",
           "type": 9
+        },
+        {
+          "id": "19:3107289936469511691",
+          "name": "subscriptionDataId",
+          "type": 11,
+          "flags": 520,
+          "indexId": "3:8913300514178255508",
+          "relationTarget": "SubscriptionDataEntity"
         }
       ],
       "relations": [
@@ -386,10 +375,123 @@
           "targetId": "12:3582880466074719644"
         }
       ]
+    },
+    {
+      "id": "14:6952300567208748369",
+      "lastPropertyId": "9:6885182521224180692",
+      "name": "AppSetting",
+      "properties": [
+        {
+          "id": "1:4692358880166347094",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:5648015957719611024",
+          "name": "isPro",
+          "type": 1
+        },
+        {
+          "id": "4:5917273202015163710",
+          "name": "locale",
+          "type": 9
+        },
+        {
+          "id": "5:6540973750872090784",
+          "name": "splitTunnelingMode",
+          "type": 9
+        },
+        {
+          "id": "6:4823200350992342297",
+          "name": "userLoggedIn",
+          "type": 1
+        },
+        {
+          "id": "7:4827177218236496996",
+          "name": "oAuthToken",
+          "type": 9
+        },
+        {
+          "id": "8:9159252810940633158",
+          "name": "isSplitTunnelingOn",
+          "type": 1
+        },
+        {
+          "id": "9:6885182521224180692",
+          "name": "email",
+          "type": 9
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "15:5550098800138752285",
+      "lastPropertyId": "11:7386615588852617669",
+      "name": "SubscriptionDataEntity",
+      "properties": [
+        {
+          "id": "1:1728081696346429474",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:6314584141225311631",
+          "name": "planID",
+          "type": 9
+        },
+        {
+          "id": "3:505954997611904979",
+          "name": "stripeCustomerID",
+          "type": 9
+        },
+        {
+          "id": "4:4396278972968423125",
+          "name": "startAt",
+          "type": 9
+        },
+        {
+          "id": "5:5611874336475617758",
+          "name": "cancelledAt",
+          "type": 9
+        },
+        {
+          "id": "6:2615387891682705709",
+          "name": "autoRenew",
+          "type": 1
+        },
+        {
+          "id": "7:7463034771448650652",
+          "name": "subscriptionID",
+          "type": 9
+        },
+        {
+          "id": "8:6593053826251964439",
+          "name": "status",
+          "type": 9
+        },
+        {
+          "id": "9:1186871294551833694",
+          "name": "provider",
+          "type": 9
+        },
+        {
+          "id": "10:5850411608800550550",
+          "name": "createdAt",
+          "type": 9
+        },
+        {
+          "id": "11:7386615588852617669",
+          "name": "endAt",
+          "type": 9
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "13:3415485097329155517",
-  "lastIndexId": "2:1151475603584147691",
+  "lastEntityId": "15:5550098800138752285",
+  "lastIndexId": "3:8913300514178255508",
   "lastRelationId": "4:1703547319205099497",
   "lastSequenceId": "0:0",
   "modelVersion": 5,
@@ -397,7 +499,8 @@
   "retiredEntityUids": [
     1027975073737683578,
     4380524372643795068,
-    827583214628067603
+    827583214628067603,
+    2225470262079550670
   ],
   "retiredIndexUids": [],
   "retiredPropertyUids": [
@@ -408,7 +511,11 @@
     689361163376130950,
     4102612372732725500,
     4314963677250304204,
-    4366113317700500115
+    4366113317700500115,
+    8614132688092941646,
+    1999102232066002882,
+    1968318257591729232,
+    3560084004440266950
   ],
   "retiredRelationUids": [],
   "version": 1

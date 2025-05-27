@@ -76,3 +76,16 @@ extension SplitTunnelingModeExtension on SplitTunnelingMode {
     }
   }
 }
+
+extension SplitTunnelingModeString on String {
+  SplitTunnelingMode get toSplitTunnelingMode {
+    switch (this) {
+      case 'Automatic':
+        return SplitTunnelingMode.automatic;
+      case 'Manual':
+        return SplitTunnelingMode.manual;
+      default:
+        return SplitTunnelingMode.automatic;
+    }
+  }
+}

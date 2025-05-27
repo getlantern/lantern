@@ -11,7 +11,7 @@ part 'home_notifier.g.dart';
 @Riverpod()
 class HomeNotifier extends _$HomeNotifier {
   @override
-  Future<LoginResponse> build() async {
+  Future<UserResponse> build() async {
     final result = await ref.read(lanternServiceProvider).getUserData();
     return result.fold(
       (failure) {
@@ -27,13 +27,10 @@ class HomeNotifier extends _$HomeNotifier {
     );
   }
 
-  void updateUserData(LoginResponse userData) {
+  void updateUserData(UserResponse userData) {
     state = AsyncValue.data(userData);
     sl<LocalStorageService>().saveUser(userData.toEntity());
   }
 
-  bool get isProUser {
-    final data = state.valueOrNull;
-    return data?.legacyUserData.userStatus == 'pro';
-  }
+
 }
