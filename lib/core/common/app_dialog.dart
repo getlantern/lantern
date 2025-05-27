@@ -74,7 +74,7 @@ class AppDialog {
     );
   }
 
-  static customDialog({
+  static void customDialog({
     required BuildContext context,
     required Widget content,
     required List<Widget> action,
