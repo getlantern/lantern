@@ -29,6 +29,7 @@ enum class Methods(val method: String) {
     GetUserData("getUserData"),
     FetchUserData("fetchUserData"),
     AcknowledgeInAppPurchase("acknowledgeInAppPurchase"),
+    PaymentRedirect("paymentRedirect"),
 
     //User management
     Logout("logout")
@@ -189,6 +190,28 @@ class MethodHandler : FlutterPlugin,
                     }.onFailure { e ->
                         result.error(
                             "stripe_subscription",
+                            e.localizedMessage ?: "Please try again",
+                            e
+                        )
+                    }
+                }
+            }
+
+            Methods.PaymentRedirect.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val map = call.arguments as Map<*, *>
+                        val url = Mobile.paymentRedirect(
+                            map["provider"] as String,
+                            map["planId"] as String,
+                            map["email"] as String
+                        )
+                        withContext(Dispatchers.Main) {
+                            success(url)
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "payment_redirect",
                             e.localizedMessage ?: "Please try again",
                             e
                         )

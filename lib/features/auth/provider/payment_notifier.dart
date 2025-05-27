@@ -51,7 +51,6 @@ class PaymentNotifier extends _$PaymentNotifier {
     return ref.read(lanternServiceProvider).paymentRedirect(
         provider: provider,
         planId: planId,
-
         email: email);
   }
 }
