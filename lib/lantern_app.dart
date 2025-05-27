@@ -8,7 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:i18n_extension/i18n_extension.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
 import 'package:lantern/core/router/router.dart';
-import 'package:lantern/features/language/language_notifier.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/window/window_wrapper.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 
@@ -79,8 +79,8 @@ class _LanternAppState extends ConsumerState<LanternApp> {
 
   @override
   Widget build(BuildContext context) {
-    final locale = ref.watch(languageNotifierProvider);
-    Localization.defaultLocale = locale.toString();
+    final locale = ref.watch(appSettingNotifierProvider).locale;
+    Localization.defaultLocale = locale;
     final size = MediaQuery.of(context).size;
     appLogger.debug('MediaQuery: Size ${size}');
     return GlobalLoaderOverlay(
@@ -110,7 +110,7 @@ class _LanternAppState extends ConsumerState<LanternApp> {
               ],
               child: MaterialApp.router(
                 debugShowCheckedModeBanner: false,
-                locale: locale,
+                locale: locale.toLocale,
                 theme: AppTheme.appTheme(),
                 themeMode: ThemeMode.light,
                 darkTheme: AppTheme.darkTheme(),

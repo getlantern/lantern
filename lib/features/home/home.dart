@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
-import 'package:lantern/features/home/provider/home_notifier.dart';
-import 'package:lantern/features/split_tunneling/provider/app_preferences.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/vpn/vpn_status.dart';
 import 'package:lantern/features/vpn/vpn_switch.dart';
 
@@ -23,12 +22,7 @@ class Home extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final homeState = ref.watch(homeNotifierProvider);
-
-    final isUserPro = homeState.maybeWhen(
-      data: (user) => user.legacyUserData.userStatus == 'pro',
-      orElse: () => false,
-    );
+    final isUserPro = ref.isUserPro;
     textTheme = Theme.of(context).textTheme;
     return Scaffold(
       appBar: AppBar(
@@ -73,9 +67,9 @@ class Home extends HookConsumerWidget {
   }
 
   Widget _buildSetting(WidgetRef ref) {
-    final preferences = ref.watch(appPreferencesProvider).value;
-    final splitTunnelingEnabled =
-        preferences?[Preferences.splitTunnelingEnabled] ?? false;
+    final preferences = ref.watch(appSettingNotifierProvider);
+    final splitTunnelingEnabled = preferences.isSplitTunnelingOn;
+
     return Container(
       decoration: BoxDecoration(boxShadow: [
         BoxShadow(
@@ -115,25 +109,27 @@ class Home extends HookConsumerWidget {
               ],
               onTap: () => onSettingTileTap(_SettingTileType.smartLocation),
             ),
-            DividerSpace(),
-            SettingTile(
-              label: 'split_tunneling'.i18n,
-              icon: AppImagePaths.callSpilt,
-              value: splitTunnelingEnabled ? 'Enabled' : 'Disabled',
-              actions: [
-                IconButton(
-                  onPressed: () => appRouter.push(SplitTunneling()),
-                  style: ElevatedButton.styleFrom(
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  icon: AppImage(path: AppImagePaths.verticalDots),
-                  padding: EdgeInsets.zero,
-                  constraints: BoxConstraints(),
-                  visualDensity: VisualDensity.compact,
-                )
-              ],
-              onTap: () => onSettingTileTap(_SettingTileType.splitTunneling),
-            ),
+            if (PlatformUtils.isAndroid || PlatformUtils.isMacOS) ...{
+              DividerSpace(),
+              SettingTile(
+                label: 'split_tunneling'.i18n,
+                icon: AppImagePaths.callSpilt,
+                value: splitTunnelingEnabled ? 'Enabled' : 'Disabled',
+                actions: [
+                  IconButton(
+                    onPressed: () => appRouter.push(SplitTunneling()),
+                    style: ElevatedButton.styleFrom(
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    icon: AppImage(path: AppImagePaths.verticalDots),
+                    padding: EdgeInsets.zero,
+                    constraints: BoxConstraints(),
+                    visualDensity: VisualDensity.compact,
+                  )
+                ],
+                onTap: () => onSettingTileTap(_SettingTileType.splitTunneling),
+              ),
+            },
           ],
         ),
       ),

@@ -1,6 +1,7 @@
 syntax = "proto3";
 
-message LoginResponse {
+
+message UserResponse {
   int64 legacyID = 1;
   string legacyToken = 2;
   string id = 3;
@@ -30,14 +31,27 @@ message LoginResponse {
     repeated string invitees = 17;
     repeated Device devices = 18;
     bool yinbiEnabled = 19;
+    message SubscriptionData {
+      string              planID = 1;
+      string              stripeCustomerID = 2;
+      string              startAt = 3;
+      string              cancelledAt = 4;
+      bool                autoRenew = 5;
+      string              subscriptionID = 6;
+      string              status = 7;
+      string              provider = 8;
+      string              createdAt = 9;
+      string              endAt = 10;
+    }
+    SubscriptionData subscriptionData = 20;
   }
   bool Success = 5;
   // this maps to /user-data call in pro-server and is returned only on successful login
   UserData legacyUserData = 6;
   // list of current user devices. returned only on successful login that is blocked by 'too many devices'
   repeated Device devices = 7;
-}
 
+}
 
 message Purchase  {
   string plan = 1;

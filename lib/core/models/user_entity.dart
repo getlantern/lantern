@@ -1,7 +1,7 @@
 import 'package:objectbox/objectbox.dart';
 
 @Entity()
-class LoginResponseEntity {
+class UserResponseEntity {
   int id;
   int legacyID;
   String legacyToken;
@@ -10,7 +10,7 @@ class LoginResponseEntity {
   final legacyUserData = ToOne<UserDataEntity>();
   final devices = ToMany<DeviceEntity>();
 
-  LoginResponseEntity({
+  UserResponseEntity({
     this.id = 0,
     required this.legacyID,
     required this.legacyToken,
@@ -56,6 +56,8 @@ class UserDataEntity {
   String invitees;
   final devices = ToMany<DeviceEntity>();
   final purchases = ToMany<PurchaseEntity>();
+  final subscriptionData = ToOne<SubscriptionDataEntity>();
+
 
   UserDataEntity({
     this.id = 0,
@@ -76,6 +78,7 @@ class UserDataEntity {
     required this.servers,
     required this.inviters,
     required this.invitees,
+
   });
 }
 
@@ -88,4 +91,34 @@ class PurchaseEntity {
     this.id = 0,
     required this.plan,
   });
+}
+
+@Entity()
+class SubscriptionDataEntity {
+  int id;
+  String planID;
+  String stripeCustomerID;
+  String startAt;
+  String cancelledAt;
+  bool autoRenew;
+  String subscriptionID;
+  String status;
+  String provider;
+  String createdAt;
+  String endAt;
+
+  SubscriptionDataEntity({
+    this.id = 0,
+    required this.planID,
+    required this.stripeCustomerID,
+    required this.startAt,
+    required this.cancelledAt,
+    required this.autoRenew,
+    required this.subscriptionID,
+    required this.status,
+    required this.provider,
+    required this.createdAt,
+    required this.endAt,
+  });
+
 }

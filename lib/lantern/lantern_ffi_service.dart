@@ -294,35 +294,28 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> cancelSubscription() {
-    // TODO: implement cancelSubscription
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Either<Failure, Unit>> makeOneTimePayment({required String planID}) {
-    // TODO: implement makeOneTimePayment
-    throw UnimplementedError();
-  }
-
-  @override
   Future<Either<Failure, Unit>> startInAppPurchaseFlow(
       {required String planId,
       required PaymentSuccessCallback onSuccess,
       required PaymentErrorCallback onError}) {
-    // TODO: implement subscribeToPlan
-    throw UnimplementedError();
+    throw UnimplementedError("This not supported on desktop");
   }
 
   @override
   Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
-      {required StipeSubscriptionType type, required String planId}) async {
+      {required StipeSubscriptionType type,
+      required String planId,
+      required String email}) async {
     try {
       appLogger.debug('Starting Stripe Subscription Payment Redirect');
       final result = await runInBackground<String>(
         () async {
           return _ffiService
-              .stripeSubscriptionPaymentRedirect(type.name.toCharPtr)
+              .stripeSubscriptionPaymentRedirect(
+                type.name.toCharPtr,
+                planId.toCharPtr,
+                email.toCharPtr,
+              )
               .toDartString();
         },
       );
@@ -335,9 +328,24 @@ class LanternFFIService implements LanternCoreService {
 
   @override
   Future<Either<Failure, Map<String, dynamic>>> stipeSubscription(
-      {required String planId}) {
+      {required String planId, required String email}) {
     // TODO: implement stipeSubscription
     throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, String>> stripeBillingPortal() async {
+    try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService.stripeBillingPortalUrl().toDartString();
+        },
+      );
+      return Right(result);
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(e.toFailure());
+    }
   }
 
   @override
@@ -371,13 +379,11 @@ class LanternFFIService implements LanternCoreService {
     } catch (e, stackTrace) {
       appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
       return Left(e.toFailure());
-      ;
     }
   }
 
   @override
-  Future<Either<Failure, LoginResponse>> oAuthLoginCallback(
-      String token) async {
+  Future<Either<Failure, UserResponse>> oAuthLoginCallback(String token) async {
     try {
       final result = await runInBackground<String>(
         () async {
@@ -385,8 +391,8 @@ class LanternFFIService implements LanternCoreService {
         },
       );
       final decodedResult = base64Decode(result);
-      final loginResponse = LoginResponse.fromBuffer(decodedResult);
-      return Right(loginResponse);
+      final user = UserResponse.fromBuffer(decodedResult);
+      return Right(user);
     } catch (e, stackTrace) {
       appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
       return Left(e.toFailure());
@@ -394,7 +400,7 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, LoginResponse>> getUserData() async {
+  Future<Either<Failure, UserResponse>> getUserData() async {
     try {
       final result = await runInBackground<String>(
         () async {
@@ -402,8 +408,80 @@ class LanternFFIService implements LanternCoreService {
         },
       );
       final decodedResult = base64Decode(result);
-      final loginResponse = LoginResponse.fromBuffer(decodedResult);
-      return Right(loginResponse);
+      final user = UserResponse.fromBuffer(decodedResult);
+      return Right(user);
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> showManageSubscriptions() {
+    // TODO: implement showManageSubscriptions
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, UserResponse>> fetchUserData() async {
+    try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService.fetchUserData().toDartString();
+        },
+      );
+      final decodedResult = base64Decode(result);
+      final user = UserResponse.fromBuffer(decodedResult);
+      return Right(user);
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> acknowledgeInAppPurchase(
+      {required String purchaseToken, required String planId}) {
+    // TODO: implement acknowledgeInAppPurchase
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, UserResponse>> logout(String email) async {
+    try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService.logout(email.toCharPtr).toDartString();
+        },
+      );
+
+      final decodedResult = base64Decode(result);
+      final user = UserResponse.fromBuffer(decodedResult);
+      return Right(user);
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> paymentRedirect(
+      {required String provider,
+      required String planId,
+      required String email}) async {
+    try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService
+              .paymentRedirect(
+                planId.toCharPtr,
+                provider.toCharPtr,
+                email.toCharPtr,
+              )
+              .toDartString();
+        },
+      );
+      return Right(result);
     } catch (e, stackTrace) {
       appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
       return Left(e.toFailure());
