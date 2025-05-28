@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+  <channel>
+    <title>Lantern</title>
+    <description>Latest updates for Lantern</description>
+    <language>en</language>
+    <item>
+      <title>Lantern beta v1.0.0-beta</title>
+      <sparkle:version>1.0.0-beta</sparkle:version>
+      <sparkle:shortVersionString>1.0.0</sparkle:shortVersionString>
+      <pubDate>Sun, 11 May 2025 09:32:15 -0700</pubDate>
+      <enclosure
+        url="https://lantern-vpn.s3.us-east-1.amazonaws.com/releases/lantern-installer-beta.dmg"
+        sparkle:edSignature="hmK3Tn8fMsKQlfLxvrvMgGs/9nuEWU+f5NPg2kkxV0spjt3TWH/Kcavk/qltgStyM/5qrdojHs5okBPh7KkWAQ=="
+        sparkle:os="macos"
+        length=" 55568683"
+        type="application/octet-stream" />
+    </item>
+  </channel>
+</rss>
