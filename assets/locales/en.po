@@ -442,6 +442,15 @@ msgstr "A valid email address is required to use your subscription on other devi
 msgid "add_email"
 msgstr "Add Email"
 
+msgid "vpn_connected"
+msgstr "Lantern is now connected."
+
+msgid "vpn_disconnected"
+msgstr "Lantern is now disconnected."
+
+msgid "open_notification"
+msgstr "Open Notification"
+
 msgid "logout"
 msgstr "Logout"
 
@@ -477,38 +486,3 @@ msgstr "Continue without VPN"
 
 msgid "turn_on_vpn"
 msgstr "Turn on VPN"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

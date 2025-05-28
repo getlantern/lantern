@@ -5,7 +5,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class AppSecrets {
   static String get macosAppGroupId => dotenv.env['MACOS_APP_GROUP'] ?? '';
   static String get stripePublishable => dotenv.env['STRIPE_PUBLISHABLE'] ?? '';
-
+  static String get windowsAppUserModelId =>
+      dotenv.env['WINDOWS_APP_USER_MODEL_ID'] ?? '';
+  static String get windowsGuid => dotenv.env['WINDOWS_GUID'] ?? '';
 
   static String dnsConfig() {
     if (Platform.isAndroid) {
@@ -16,5 +18,4 @@ class AppSecrets {
     }
     return "https://7397d9db6836eb599f41f2c496dee648@o75725.ingest.us.sentry.io/4507734480912384";
   }
-
 }
