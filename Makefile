@@ -67,6 +67,12 @@ IOS_FRAMEWORK_DIR := ios/Frameworks
 IOS_FRAMEWORK_BUILD := $(BIN_DIR)/ios/$(IOS_FRAMEWORK)
 IOS_DEBUG_BUILD := $(BUILD_DIR)/ios/iphoneos/Runner.app
 
+MACOS_DIR := macos/
+MACOS_FRAMEWORK := Liblantern.xcframework
+MACOS_FRAMEWORK_DIR := macos/Frameworks
+MACOS_FRAMEWORK_BUILD := $(BIN_DIR)/macos/$(MACOS_FRAMEWORK)
+MACOS_DEBUG_BUILD := $(BUILD_DIR)/macos/Runner.app
+
 TAGS=with_gvisor,with_quic,with_wireguard,with_ech,with_utls,with_clash_api,with_grpc
 
 GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go')
@@ -338,6 +344,22 @@ build-ios:
 		$(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox github.com/getlantern/sing-box-extensions/ruleset  ./lantern-core/mobile
 	@echo "Built iOS Framework: $(IOS_FRAMEWORK_BUILD)"
 	mv $(IOS_FRAMEWORK_BUILD) $(IOS_FRAMEWORK_DIR)
+
+$(MACOS_FRAMEWORK_BUILD): $(GO_SOURCES)
+	$(MAKE) build-macos
+
+build-macos:
+	@echo "Building macOS Framework.."
+	rm -rf $(MACOS_FRAMEWORK_BUILD)
+	rm -rf $(MACOS_FRAMEWORK_DIR) && mkdir -p $(MACOS_FRAMEWORK_DIR)
+	GOOS=darwin gomobile bind -v \
+		-tags=$(TAGS),netgo -trimpath \
+		-target=macos \
+		-o $(MACOS_FRAMEWORK_BUILD) \
+		-ldflags="-w -s -checklinkname=0" \
+		$(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox github.com/getlantern/sing-box-extensions/ruleset  ./lantern-core/mobile
+	@echo "Built macOS Framework: $(MACOS_FRAMEWORK_BUILD)"
+	mv $(MACOS_FRAMEWORK_BUILD) $(MACOS_FRAMEWORK_DIR)
 
 .PHONY: format swift-format
 swift-format:
