@@ -2,20 +2,16 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>com.apple.developer.associated-domains</key>
+	<key>com.apple.developer.networking.networkextension</key>
 	<array>
-		<string>webcredentials:lantern.io</string>
-		<string>applinks:lantern.io</string>
+		<string>packet-tunnel-provider-systemextension</string>
 	</array>
 	<key>com.apple.security.app-sandbox</key>
-	<false/>
+	<true/>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>$(TeamIdentifierPrefix)objectbx</string>
 		<string>group.getlantern.lantern</string>
 	</array>
-	<key>com.apple.security.cs.allow-jit</key>
-	<true/>
 	<key>com.apple.security.network.client</key>
 	<true/>
 	<key>com.apple.security.network.server</key>
