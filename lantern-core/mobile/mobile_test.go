@@ -5,8 +5,10 @@ import (
 	"os"
 	"testing"
 
+	"github.com/getlantern/lantern-outline/lantern-core/stub"
 	"github.com/getlantern/radiance"
 	"github.com/getlantern/radiance/api/protos"
+	"github.com/getlantern/radiance/client"
 	"github.com/zeebo/assert"
 )
 
@@ -21,6 +23,8 @@ func radianceOptions() radiance.Options {
 
 func TestSetupRadiance(t *testing.T) {
 	rr, err := radiance.NewRadiance(radianceOptions())
+	client, err := client.NewVPNClient(os.TempDir(), os.TempDir(), stub.NewPlatformInterfaceStub(), enableSplitTunneling())
+	err = client.StartVPN()
 	assert.Nil(t, err)
 	assert.NotNil(t, rr)
 
