@@ -356,8 +356,15 @@ build-macos:
 	mv $(MACOS_FRAMEWORK_BUILD) $(MACOS_FRAMEWORK_DIR)
 
 .PHONY: swift-format
+.PHONY: format swift-format
 swift-format:
 	swift-format format --in-place --recursive ios/Runner macos/Runner ios/Tunnel
+
+format:
+	@echo "Formatting Dart code..."
+	dart format --set-exit-if-changed .
+	@echo "Formatting Swift code..."
+	$(MAKE) swift-format
 
 ios-release: clean pubget
 	flutter build ipa --flavor prod --release --export-options-plist ./ExportOptions.plist
@@ -380,6 +387,8 @@ update-dart-api-dl:
 	mv dart_sdk_tmp/runtime/include/* $(DART_SDK_INCLUDE_DIR)/
 	rm -rf dart_sdk_tmp
 	@echo "Dart API DL bridge updated successfully!"
+
+
 
 #Routes generation
 gen:

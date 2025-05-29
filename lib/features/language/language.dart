@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
-import 'package:lantern/features/language/language_notifier.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 
 @RoutePage(name: 'Language')
 class Language extends StatelessWidget {
@@ -46,21 +46,21 @@ void showLanguageBottomSheet(BuildContext context) {
 class LanguageListView extends HookConsumerWidget {
   final ScrollController? scrollController;
 
-   LanguageListView({super.key, this.scrollController});
+  LanguageListView({super.key, this.scrollController});
 
-   late WidgetRef ref;
+  late WidgetRef ref;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     this.ref = ref;
-    final locale = ref.watch(languageNotifierProvider);
+    final locale = ref.watch(appSettingNotifierProvider).locale;
     return ListView(
       shrinkWrap: true,
       physics: NeverScrollableScrollPhysics(),
       controller: scrollController,
       padding: EdgeInsets.zero,
       children: languages
-          .map((langCode) => _buildLanguageItem(langCode, locale))
+          .map((langCode) => _buildLanguageItem(langCode, locale.toLocale))
           .toList()
         ..add(SizedBox(height: 40)),
     );
@@ -94,7 +94,10 @@ class LanguageListView extends HookConsumerWidget {
     if (language.isEmpty) return;
     final newLocale =
         Locale(language.split('_').first, language.split('_').last);
-    ref.read(languageNotifierProvider.notifier).changeLanguage(newLocale);
+
+    ref
+        .read(appSettingNotifierProvider.notifier)
+        .setLocale(newLocale.toString());
     appRouter.maybePop();
   }
 }

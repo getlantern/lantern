@@ -1,6 +1,7 @@
 import 'package:get_it/get_it.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/local_storage.dart';
+import 'package:lantern/core/services/notification_service.dart';
 import 'package:lantern/core/services/stripe_service.dart';
 import 'package:lantern/core/utils/deeplink_utils.dart';
 import 'package:lantern/core/utils/platform_utils.dart' show PlatformUtils;
@@ -17,8 +18,13 @@ Future<void> injectServices() async {
     sl.registerLazySingleton(() => StoreUtils());
     sl<StoreUtils>().init();
   }
+
   sl.registerLazySingleton(() => AppPurchase());
   sl<AppPurchase>().init();
+
+  sl.registerLazySingleton(() => NotificationService());
+  await sl<NotificationService>().init();
+
   sl.registerLazySingleton(() => LanternPlatformService(sl<AppPurchase>()));
   await sl<LanternPlatformService>().init();
   if (PlatformUtils.isDesktop) {
@@ -34,5 +40,4 @@ Future<void> injectServices() async {
   await sl<StripeService>().initialize();
 
   sl.registerLazySingleton(() => DeepLinkCallbackManager());
-
 }

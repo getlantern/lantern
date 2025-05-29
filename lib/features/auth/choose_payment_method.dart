@@ -9,6 +9,7 @@ import 'package:lantern/core/services/stripe_service.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/logs_path.dart';
 import 'package:lantern/features/auth/provider/payment_notifier.dart';
+import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
 
 @RoutePage(name: 'ChoosePaymentMethod')
@@ -52,13 +53,20 @@ class ChoosePaymentMethod extends HookConsumerWidget {
 
   Future<void> onSubscribe(
       Android provider, WidgetRef ref, BuildContext context) async {
-    if (PlatformUtils.isDesktop) {
-      desktopPurchaseFlow(provider, ref, context);
-      return;
-    }
+    switch (provider.providers.name) {
+      case 'stripe':
+        if (PlatformUtils.isDesktop) {
+          desktopPurchaseFlow(provider, ref, context);
+          return;
+        }
 
-    /// only android side load version should be here
-    androidStripeSubscription(provider, ref, context);
+        // only android side load version should be here
+        androidStripeSubscription(provider, ref, context);
+        break;
+      case 'shepherd':
+        paymentRedirectFlow(provider.providers.name, ref, context);
+        break;
+    }
   }
 
   Future<void> androidStripeSubscription(
@@ -68,7 +76,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     context.showLoadingDialog();
 
     ///get stripe details
-    final result = await paymentProvider.stripeSubscription(userPlan.id);
+    final result = await paymentProvider.stripeSubscription(userPlan.id, email);
     result.fold(
       (error) {
         context.showSnackBarError(error.localizedErrorMessage);
@@ -80,16 +88,10 @@ class ChoosePaymentMethod extends HookConsumerWidget {
         context.hideLoadingDialog();
 
         /// Start stripe SDK
-        sl<StripeService>().startStripeSubscription(
+        sl<StripeService>().startStripeSDK(
           options: StripeOptions.fromJson(stripeData),
           onSuccess: () {
-            /// Subscription successful
-            AppDialog.showLanternProDialog(
-              context: context,
-              onPressed: () {
-                appRouter.popUntilRoot();
-              },
-            );
+            onPurchaseSuccess(ref, context);
           },
           onError: (error) {
             ///error while subscribing
@@ -110,8 +112,9 @@ class ChoosePaymentMethod extends HookConsumerWidget {
       ///Start stipe subscription flow
       final paymentProvider = ref.read(paymentNotifierProvider.notifier);
       final result = await paymentProvider.stripeSubscriptionLink(
-        StipeSubscriptionType.one_time,
+        StipeSubscriptionType.monthly,
         userPlan.id,
+        email,
       );
       result.fold(
         (error) {
@@ -140,6 +143,57 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     } catch (e) {
       appLogger.error('Error subscribing to plan: $e');
       context.hideLoadingDialog();
+      context.showSnackBarError('error_subscribing_plan'.i18n);
+    }
+  }
+
+  Future<void> paymentRedirectFlow(
+      String provider, WidgetRef ref, BuildContext context) async {
+    context.showLoadingDialog();
+    final userPlan =
+        ref.watch(plansNotifierProvider.notifier).getSelectedPlan();
+    final result =
+        await ref.read(paymentNotifierProvider.notifier).paymentRedirect(
+              provider: provider,
+              planId: userPlan.id,
+              email: email,
+            );
+
+    result.fold(
+      (failure) {
+        context.hideLoadingDialog();
+        appLogger.error(
+            'Error redirecting to payment: ${failure.localizedErrorMessage}');
+        context.showSnackBarError(failure.localizedErrorMessage);
+      },
+      (url) {
+        context.hideLoadingDialog();
+        UrlUtils.openWebview(url);
+      },
+    );
+  }
+
+  Future<void> onPurchaseSuccess(WidgetRef ref, BuildContext context) async {
+    try {
+      if (authFlow == AuthFlow.signUp) {
+        final localStorage = sl<LocalStorageService>();
+        //at this point user should be stored
+        final user = localStorage.getUser()!;
+        await Future.delayed(const Duration(seconds: 1));
+        //update user status to pro
+        user.legacyUserData.userStatus = 'pro';
+        ref.read(homeNotifierProvider.notifier).updateUserData(user);
+
+        /// Subscription successful
+        AppDialog.showLanternProDialog(
+          context: context,
+          onPressed: () {
+            appRouter.popUntilRoot();
+          },
+        );
+      } else {}
+    } catch (e) {
+      appLogger.error('Error subscribing to plan: $e');
       context.showSnackBarError('error_subscribing_plan'.i18n);
     }
   }
@@ -178,89 +232,94 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context).textTheme;
-    final planData = ref.watch(plansNotifierProvider.notifier).getPlanData();
-    final iconData = planData.icons;
     return ListView.builder(
       shrinkWrap: true,
       itemCount: providers.length,
       padding: EdgeInsets.zero,
       itemBuilder: (context, index) {
         final method = providers[index];
-        return ExpansionTile(
-          initiallyExpanded: index == 0,
-          backgroundColor: AppColors.white,
-          collapsedBackgroundColor: AppColors.white,
-          collapsedShape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: BorderSide(
-              color: AppColors.gray3,
-              width: 1,
-            ),
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: BorderSide(
-              color: AppColors.gray3,
-              width: 1,
-            ),
-          ),
-          tilePadding: EdgeInsets.symmetric(horizontal: defaultSize),
-          childrenPadding: EdgeInsets.symmetric(
-              horizontal: defaultSize, vertical: defaultSize),
-          title: Row(
-            children: [
-              Text(method.method, style: theme.titleMedium),
-              SizedBox(width: defaultSize),
-              LogsPath(
-                logoPaths: iconData[method.providers.first.name]!,
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: ExpansionTile(
+            initiallyExpanded: index == 0,
+            backgroundColor: AppColors.white,
+            collapsedBackgroundColor: AppColors.white,
+            collapsedShape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: BorderSide(
+                color: AppColors.gray3,
+                width: 1,
               ),
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: BorderSide(
+                color: AppColors.gray3,
+                width: 1,
+              ),
+            ),
+            tilePadding: EdgeInsets.symmetric(horizontal: defaultSize),
+            childrenPadding: EdgeInsets.symmetric(
+                horizontal: defaultSize, vertical: defaultSize),
+            title: Row(
+              children: [
+                Text(method.method, style: theme.titleMedium),
+                SizedBox(width: defaultSize),
+                LogsPath(
+                  logoPaths: method.providers.icons,
+                ),
+              ],
+            ),
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(userPlan.description, style: theme.bodyMedium),
+                  Text(
+                    '${userPlan.formattedMonthlyPrice}/month',
+                    style: theme.bodyMedium!.copyWith(
+                      color: AppColors.gray6,
+                    ),
+                  ),
+                ],
+              ),
+              DividerSpace(padding: EdgeInsets.symmetric(vertical: 10)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Order Total:',
+                      style: theme.titleSmall!.copyWith(
+                        color: AppColors.gray9,
+                      )),
+                  Text(
+                    userPlan.formattedYearlyPrice,
+                    style: theme.titleSmall!.copyWith(
+                      color: AppColors.blue10,
+                    ),
+                  ),
+                ],
+              ),
+              DividerSpace(padding: EdgeInsets.symmetric(vertical: 10)),
+              SizedBox(height: 10),
+              Text(
+                method.providers.supportSubscription
+                    ? "Billed every ${userPlan.getDurationText()}. Cancel anytime."
+                    : 'billed_once'.i18n,
+                style: theme.bodySmall!.copyWith(
+                  color: AppColors.gray6,
+                ),
+              ),
+              SizedBox(height: defaultSize),
+              PrimaryButton(
+                label: method.providers.supportSubscription
+                    ? 'subscribe'.i18n
+                    : 'checkout'.i18n,
+                onPressed: () {
+                  onSubscribe.call(method);
+                },
+              )
             ],
           ),
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(userPlan.description, style: theme.bodyMedium),
-                Text(
-                  '${userPlan.formattedMonthlyPrice}/month',
-                  style: theme.bodyMedium!.copyWith(
-                    color: AppColors.gray6,
-                  ),
-                ),
-              ],
-            ),
-            DividerSpace(padding: EdgeInsets.symmetric(vertical: 10)),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Order Total:',
-                    style: theme.titleSmall!.copyWith(
-                      color: AppColors.gray9,
-                    )),
-                Text(
-                  userPlan.formattedYearlyPrice,
-                  style: theme.titleSmall!.copyWith(
-                    color: AppColors.blue10,
-                  ),
-                ),
-              ],
-            ),
-            DividerSpace(padding: EdgeInsets.symmetric(vertical: 10)),
-            SizedBox(height: 10),
-            Text(
-              "Billed every ${userPlan.getDurationText()}. Cancel anytime.",
-              style: theme.bodySmall!.copyWith(
-                color: AppColors.gray6,
-              ),
-            ),
-            SizedBox(height: defaultSize),
-            PrimaryButton(
-              label: 'Subscribe',
-              onPressed: () {
-                onSubscribe.call(method);
-              },
-            )
-          ],
         );
       },
     );

@@ -442,35 +442,47 @@ msgstr "A valid email address is required to use your subscription on other devi
 msgid "add_email"
 msgstr "Add Email"
 
+msgid "vpn_connected"
+msgstr "Lantern is now connected."
 
+msgid "vpn_disconnected"
+msgstr "Lantern is now disconnected."
 
+msgid "open_notification"
+msgstr "Open Notification"
 
+msgid "logout"
+msgstr "Logout"
 
+msgid "logout_message"
+msgstr "Logging out will switch Lantern to the free version. To access your account again, you will need to sign back in."
 
+msgid "not_now"
+msgstr "Not now"
 
+msgid "billed_once"
+msgstr "Billed Once"
 
+msgid "subscription"
+msgstr "Subscription"
 
+msgid "checkout"
+msgstr "Checkout"
 
+msgid "next_billing_date"
+msgstr "Next Billing Date"
 
+msgid "vpn_may_be_needed"
+msgstr "VPN may be needed"
 
+msgid "google_and_apple_sign_in_blocked"
+msgstr "Google and Apple sign-in may be blocked in this region. To finish setting up your account, please turn on the VPN first."
 
+msgid "google_and_apple_sign_in_blocked"
+msgstr "Google and Apple sign-in may be blocked in this region. To finish setting up your account, please turn on the VPN first."
 
+msgid "continue_without_vpn"
+msgstr "Continue without VPN"
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+msgid "turn_on_vpn"
+msgstr "Turn on VPN"

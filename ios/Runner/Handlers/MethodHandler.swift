@@ -7,6 +7,7 @@ import Flutter
 import Foundation
 import Liblantern
 import NetworkExtension
+import StoreKit
 
 /// Handles Flutter method channel interactions for VPN operations.
 class MethodHandler {
@@ -43,6 +44,25 @@ class MethodHandler {
         self.oauthLoginCallback(result: result, token: token)
       case "getUserData":
         self.getUserData(result: result)
+      case "showManageSubscriptions":
+        self.showManageSubscriptions(result: result)
+      case "acknowledgeInAppPurchase":
+        if let map = call.arguments as? [String: Any],
+          let token = map["purchaseToken"] as? String,
+          let planId = map["planId"] as? String
+        {
+          self.acknowledgeInAppPurchase(token: token, planId: planId, result: result)
+        } else {
+          result(
+            FlutterError(
+              code: "INVALID_ARGUMENTS", message: "Missing or invalid purchaseToken or planId",
+              details: nil))
+        }
+      // user management
+      case "logout":
+        // Handle logout if needed
+        self.logout(result: result)
+
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -196,6 +216,79 @@ class MethodHandler {
             FlutterError(
               code: "USER_DATA_ERROR",
               message: "error while getting user data.",
+              details: error.localizedDescription))
+        }
+      }
+    }
+  }
+
+  private func showManageSubscriptions(result: @escaping FlutterResult) {
+    if #available(iOS 15.0, *) {
+      guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else {
+        result(
+          FlutterError(
+            code: "NO_WINDOW_SCENE",
+            message: "No active window scene found",
+            details: nil))
+        return
+      }
+
+      Task {
+        do {
+          try await AppStore.showManageSubscriptions(in: windowScene)
+          result(nil)
+        } catch {
+          result(
+            FlutterError(
+              code: "FAILED_TO_OPEN",
+              message: "Failed to show subscriptions: \(error.localizedDescription)",
+              details: nil))
+        }
+      }
+    } else {
+      result(
+        FlutterError(
+          code: "UNAVAILABLE",
+          message: "iOS 15 or higher is required to manage subscriptions natively",
+          details: nil))
+    }
+  }
+
+  func acknowledgeInAppPurchase(token: String, planId: String, result: @escaping FlutterResult) {
+    Task {
+      do {
+        var error: NSError?
+        MobileAcknowledgeApplePurchase(token, planId, &error)
+        await MainActor.run {
+          result("success")
+        }
+      } catch {
+        await MainActor.run {
+          result(
+            FlutterError(
+              code: "ACKNOWLEDGE_FAILED",
+              message: "Unable to acknowledge purchase.",
+              details: error.localizedDescription))
+        }
+      }
+    }
+  }
+
+  // User management
+  func logout(result: @escaping FlutterResult) {
+    Task {
+      do {
+        var error: NSError?
+        MobileLogout(&error)
+        await MainActor.run {
+          result("success")
+        }
+      } catch {
+        await MainActor.run {
+          result(
+            FlutterError(
+              code: "LOGOUT_FAILED",
+              message: "Unable to logout.",
               details: error.localizedDescription))
         }
       }

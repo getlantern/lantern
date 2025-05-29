@@ -13,23 +13,23 @@ import 'dart:convert' as $convert;
 import 'dart:core' as $core;
 import 'dart:typed_data' as $typed_data;
 
-@$core.Deprecated('Use loginResponseDescriptor instead')
-const LoginResponse$json = {
-  '1': 'LoginResponse',
+@$core.Deprecated('Use userResponseDescriptor instead')
+const UserResponse$json = {
+  '1': 'UserResponse',
   '2': [
     {'1': 'legacyID', '3': 1, '4': 1, '5': 3, '10': 'legacyID'},
     {'1': 'legacyToken', '3': 2, '4': 1, '5': 9, '10': 'legacyToken'},
     {'1': 'id', '3': 3, '4': 1, '5': 9, '10': 'id'},
     {'1': 'emailConfirmed', '3': 4, '4': 1, '5': 8, '10': 'emailConfirmed'},
     {'1': 'Success', '3': 5, '4': 1, '5': 8, '10': 'Success'},
-    {'1': 'legacyUserData', '3': 6, '4': 1, '5': 11, '6': '.LoginResponse.UserData', '10': 'legacyUserData'},
-    {'1': 'devices', '3': 7, '4': 3, '5': 11, '6': '.LoginResponse.Device', '10': 'devices'},
+    {'1': 'legacyUserData', '3': 6, '4': 1, '5': 11, '6': '.UserResponse.UserData', '10': 'legacyUserData'},
+    {'1': 'devices', '3': 7, '4': 3, '5': 11, '6': '.UserResponse.Device', '10': 'devices'},
   ],
-  '3': [LoginResponse_Device$json, LoginResponse_UserData$json],
+  '3': [UserResponse_Device$json, UserResponse_UserData$json],
 };
 
-@$core.Deprecated('Use loginResponseDescriptor instead')
-const LoginResponse_Device$json = {
+@$core.Deprecated('Use userResponseDescriptor instead')
+const UserResponse_Device$json = {
   '1': 'Device',
   '2': [
     {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
@@ -38,8 +38,8 @@ const LoginResponse_Device$json = {
   ],
 };
 
-@$core.Deprecated('Use loginResponseDescriptor instead')
-const LoginResponse_UserData$json = {
+@$core.Deprecated('Use userResponseDescriptor instead')
+const UserResponse_UserData$json = {
   '1': 'UserData',
   '2': [
     {'1': 'userId', '3': 1, '4': 1, '5': 3, '10': 'userId'},
@@ -59,30 +59,56 @@ const LoginResponse_UserData$json = {
     {'1': 'bonusMonths', '3': 15, '4': 1, '5': 9, '10': 'bonusMonths'},
     {'1': 'inviters', '3': 16, '4': 3, '5': 9, '10': 'inviters'},
     {'1': 'invitees', '3': 17, '4': 3, '5': 9, '10': 'invitees'},
-    {'1': 'devices', '3': 18, '4': 3, '5': 11, '6': '.LoginResponse.Device', '10': 'devices'},
+    {'1': 'devices', '3': 18, '4': 3, '5': 11, '6': '.UserResponse.Device', '10': 'devices'},
     {'1': 'yinbiEnabled', '3': 19, '4': 1, '5': 8, '10': 'yinbiEnabled'},
+    {'1': 'subscriptionData', '3': 20, '4': 1, '5': 11, '6': '.UserResponse.UserData.SubscriptionData', '10': 'subscriptionData'},
+  ],
+  '3': [UserResponse_UserData_SubscriptionData$json],
+};
+
+@$core.Deprecated('Use userResponseDescriptor instead')
+const UserResponse_UserData_SubscriptionData$json = {
+  '1': 'SubscriptionData',
+  '2': [
+    {'1': 'planID', '3': 1, '4': 1, '5': 9, '10': 'planID'},
+    {'1': 'stripeCustomerID', '3': 2, '4': 1, '5': 9, '10': 'stripeCustomerID'},
+    {'1': 'startAt', '3': 3, '4': 1, '5': 9, '10': 'startAt'},
+    {'1': 'cancelledAt', '3': 4, '4': 1, '5': 9, '10': 'cancelledAt'},
+    {'1': 'autoRenew', '3': 5, '4': 1, '5': 8, '10': 'autoRenew'},
+    {'1': 'subscriptionID', '3': 6, '4': 1, '5': 9, '10': 'subscriptionID'},
+    {'1': 'status', '3': 7, '4': 1, '5': 9, '10': 'status'},
+    {'1': 'provider', '3': 8, '4': 1, '5': 9, '10': 'provider'},
+    {'1': 'createdAt', '3': 9, '4': 1, '5': 9, '10': 'createdAt'},
+    {'1': 'endAt', '3': 10, '4': 1, '5': 9, '10': 'endAt'},
   ],
 };
 
-/// Descriptor for `LoginResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List loginResponseDescriptor = $convert.base64Decode(
-    'Cg1Mb2dpblJlc3BvbnNlEhoKCGxlZ2FjeUlEGAEgASgDUghsZWdhY3lJRBIgCgtsZWdhY3lUb2'
-    'tlbhgCIAEoCVILbGVnYWN5VG9rZW4SDgoCaWQYAyABKAlSAmlkEiYKDmVtYWlsQ29uZmlybWVk'
-    'GAQgASgIUg5lbWFpbENvbmZpcm1lZBIYCgdTdWNjZXNzGAUgASgIUgdTdWNjZXNzEj8KDmxlZ2'
-    'FjeVVzZXJEYXRhGAYgASgLMhcuTG9naW5SZXNwb25zZS5Vc2VyRGF0YVIObGVnYWN5VXNlckRh'
-    'dGESLwoHZGV2aWNlcxgHIAMoCzIVLkxvZ2luUmVzcG9uc2UuRGV2aWNlUgdkZXZpY2VzGkYKBk'
-    'RldmljZRIOCgJpZBgBIAEoCVICaWQSEgoEbmFtZRgCIAEoCVIEbmFtZRIYCgdjcmVhdGVkGAMg'
-    'ASgDUgdjcmVhdGVkGr4ECghVc2VyRGF0YRIWCgZ1c2VySWQYASABKANSBnVzZXJJZBISCgRjb2'
-    'RlGAIgASgJUgRjb2RlEhQKBXRva2VuGAMgASgJUgV0b2tlbhIaCghyZWZlcnJhbBgEIAEoCVII'
-    'cmVmZXJyYWwSFAoFcGhvbmUYBSABKAlSBXBob25lEhQKBWVtYWlsGAYgASgJUgVlbWFpbBIeCg'
-    'p1c2VyU3RhdHVzGAcgASgJUgp1c2VyU3RhdHVzEhwKCXVzZXJMZXZlbBgIIAEoCVIJdXNlckxl'
-    'dmVsEhYKBmxvY2FsZRgJIAEoCVIGbG9jYWxlEh4KCmV4cGlyYXRpb24YCiABKANSCmV4cGlyYX'
-    'Rpb24SGAoHc2VydmVycxgLIAMoCVIHc2VydmVycxIiCgxzdWJzY3JpcHRpb24YDCABKAlSDHN1'
-    'YnNjcmlwdGlvbhInCglwdXJjaGFzZXMYDSADKAsyCS5QdXJjaGFzZVIJcHVyY2hhc2VzEhwKCW'
-    'JvbnVzRGF5cxgOIAEoCVIJYm9udXNEYXlzEiAKC2JvbnVzTW9udGhzGA8gASgJUgtib251c01v'
-    'bnRocxIaCghpbnZpdGVycxgQIAMoCVIIaW52aXRlcnMSGgoIaW52aXRlZXMYESADKAlSCGludm'
-    'l0ZWVzEi8KB2RldmljZXMYEiADKAsyFS5Mb2dpblJlc3BvbnNlLkRldmljZVIHZGV2aWNlcxIi'
-    'Cgx5aW5iaUVuYWJsZWQYEyABKAhSDHlpbmJpRW5hYmxlZA==');
+/// Descriptor for `UserResponse`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List userResponseDescriptor = $convert.base64Decode(
+    'CgxVc2VyUmVzcG9uc2USGgoIbGVnYWN5SUQYASABKANSCGxlZ2FjeUlEEiAKC2xlZ2FjeVRva2'
+    'VuGAIgASgJUgtsZWdhY3lUb2tlbhIOCgJpZBgDIAEoCVICaWQSJgoOZW1haWxDb25maXJtZWQY'
+    'BCABKAhSDmVtYWlsQ29uZmlybWVkEhgKB1N1Y2Nlc3MYBSABKAhSB1N1Y2Nlc3MSPgoObGVnYW'
+    'N5VXNlckRhdGEYBiABKAsyFi5Vc2VyUmVzcG9uc2UuVXNlckRhdGFSDmxlZ2FjeVVzZXJEYXRh'
+    'Ei4KB2RldmljZXMYByADKAsyFC5Vc2VyUmVzcG9uc2UuRGV2aWNlUgdkZXZpY2VzGkYKBkRldm'
+    'ljZRIOCgJpZBgBIAEoCVICaWQSEgoEbmFtZRgCIAEoCVIEbmFtZRIYCgdjcmVhdGVkGAMgASgD'
+    'UgdjcmVhdGVkGtUHCghVc2VyRGF0YRIWCgZ1c2VySWQYASABKANSBnVzZXJJZBISCgRjb2RlGA'
+    'IgASgJUgRjb2RlEhQKBXRva2VuGAMgASgJUgV0b2tlbhIaCghyZWZlcnJhbBgEIAEoCVIIcmVm'
+    'ZXJyYWwSFAoFcGhvbmUYBSABKAlSBXBob25lEhQKBWVtYWlsGAYgASgJUgVlbWFpbBIeCgp1c2'
+    'VyU3RhdHVzGAcgASgJUgp1c2VyU3RhdHVzEhwKCXVzZXJMZXZlbBgIIAEoCVIJdXNlckxldmVs'
+    'EhYKBmxvY2FsZRgJIAEoCVIGbG9jYWxlEh4KCmV4cGlyYXRpb24YCiABKANSCmV4cGlyYXRpb2'
+    '4SGAoHc2VydmVycxgLIAMoCVIHc2VydmVycxIiCgxzdWJzY3JpcHRpb24YDCABKAlSDHN1YnNj'
+    'cmlwdGlvbhInCglwdXJjaGFzZXMYDSADKAsyCS5QdXJjaGFzZVIJcHVyY2hhc2VzEhwKCWJvbn'
+    'VzRGF5cxgOIAEoCVIJYm9udXNEYXlzEiAKC2JvbnVzTW9udGhzGA8gASgJUgtib251c01vbnRo'
+    'cxIaCghpbnZpdGVycxgQIAMoCVIIaW52aXRlcnMSGgoIaW52aXRlZXMYESADKAlSCGludml0ZW'
+    'VzEi4KB2RldmljZXMYEiADKAsyFC5Vc2VyUmVzcG9uc2UuRGV2aWNlUgdkZXZpY2VzEiIKDHlp'
+    'bmJpRW5hYmxlZBgTIAEoCFIMeWluYmlFbmFibGVkElMKEHN1YnNjcmlwdGlvbkRhdGEYFCABKA'
+    'syJy5Vc2VyUmVzcG9uc2UuVXNlckRhdGEuU3Vic2NyaXB0aW9uRGF0YVIQc3Vic2NyaXB0aW9u'
+    'RGF0YRrAAgoQU3Vic2NyaXB0aW9uRGF0YRIWCgZwbGFuSUQYASABKAlSBnBsYW5JRBIqChBzdH'
+    'JpcGVDdXN0b21lcklEGAIgASgJUhBzdHJpcGVDdXN0b21lcklEEhgKB3N0YXJ0QXQYAyABKAlS'
+    'B3N0YXJ0QXQSIAoLY2FuY2VsbGVkQXQYBCABKAlSC2NhbmNlbGxlZEF0EhwKCWF1dG9SZW5ldx'
+    'gFIAEoCFIJYXV0b1JlbmV3EiYKDnN1YnNjcmlwdGlvbklEGAYgASgJUg5zdWJzY3JpcHRpb25J'
+    'RBIWCgZzdGF0dXMYByABKAlSBnN0YXR1cxIaCghwcm92aWRlchgIIAEoCVIIcHJvdmlkZXISHA'
+    'oJY3JlYXRlZEF0GAkgASgJUgljcmVhdGVkQXQSFAoFZW5kQXQYCiABKAlSBWVuZEF0');
 
 @$core.Deprecated('Use purchaseDescriptor instead')
 const Purchase$json = {

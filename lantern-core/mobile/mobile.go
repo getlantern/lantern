@@ -81,7 +81,7 @@ func SetupRadiance(opts *Opts) error {
 			log.Debug("Creating user")
 			CreateUser()
 		}
-		fetchUserData()
+		FetchUserData()
 	})
 
 	if innerErr != nil {
@@ -183,14 +183,14 @@ func RemoveSplitTunnelItem(filterType, item string) error {
 // User Methods
 // Todo make sure to add retry logic
 // we need to make sure that the user is created before we can use the radiance server
-func CreateUser() error {
+func CreateUser() (*protos.UserDataResponse, error) {
 	log.Debug("Creating user")
 	user, err := radianceServer.proServer.UserCreate(context.Background())
 	log.Debugf("UserCreate response: %v", user)
 	if err != nil {
-		return log.Errorf("Error creating user: %v", err)
+		return nil, log.Errorf("Error creating user: %v", err)
 	}
-	return nil
+	return user, nil
 }
 
 // this will return the user data from the user config
@@ -199,6 +199,7 @@ func UserData() ([]byte, error) {
 	if err != nil {
 		return nil, log.Errorf("Error getting user data: %v", err)
 	}
+	fmt.Printf("UserData: %v\n", user)
 	bytes, err := proto.Marshal(user)
 	if err != nil {
 		return nil, log.Errorf("Error marshalling user data: %v", err)
@@ -207,7 +208,7 @@ func UserData() ([]byte, error) {
 }
 
 // GetUserData will get the user data from the server
-func fetchUserData() (*protos.UserDataResponse, error) {
+func FetchUserData() ([]byte, error) {
 	log.Debug("Getting user data")
 	//this call will also save the user data in the user config
 	// so we can use it later
@@ -216,7 +217,16 @@ func fetchUserData() (*protos.UserDataResponse, error) {
 		return nil, log.Errorf("Error getting user data: %v", err)
 	}
 	log.Debugf("UserData response: %v", user)
-	return user, nil
+	login := &protos.LoginResponse{
+		LegacyID:       user.UserId,
+		LegacyToken:    user.Token,
+		LegacyUserData: user.LoginResponse_UserData,
+	}
+	protoUserData, err := proto.Marshal(login)
+	if err != nil {
+		return nil, log.Errorf("Error marshalling user data: %v", err)
+	}
+	return protoUserData, nil
 }
 
 // OAuth Methods
@@ -243,16 +253,21 @@ func OAuthLoginCallback(oAuthToken string) ([]byte, error) {
 	}
 	radianceServer.userConfig.Save(login)
 	///Get user data from api this will also save data in user config
-	user, err := fetchUserData()
+	user, err := radianceServer.proServer.UserData(context.Background())
 	if err != nil {
 		return nil, log.Errorf("Error getting user data: %v", err)
 	}
 	log.Debugf("UserData response: %v", user)
 	userResponse := &protos.LoginResponse{
+		Id:             userInfo.Email,
+		EmailConfirmed: true,
 		LegacyID:       user.UserId,
 		LegacyToken:    user.Token,
 		LegacyUserData: user.LoginResponse_UserData,
 	}
+
+	radianceServer.userConfig.Save(userResponse)
+
 	bytes, err := proto.Marshal(userResponse)
 	if err != nil {
 		return nil, log.Errorf("Error marshalling user data: %v", err)
@@ -260,12 +275,11 @@ func OAuthLoginCallback(oAuthToken string) ([]byte, error) {
 	return bytes, nil
 }
 
-func StripeSubscription() (string, error) {
+func StripeSubscription(email, planId string) (string, error) {
 	log.Debug("Creating stripe subscription")
 	body := protos.SubscriptionRequest{
-		Email:   "test@getlantern.org",
-		Name:    "test",
-		PriceId: "price_1RCg464XJ6zbDKY5T6kqbMC6",
+		Email:  email,
+		PlanId: planId,
 	}
 	stripeSubscription, err := radianceServer.proServer.StripeSubscription(context.Background(), &body)
 	if err != nil {
@@ -282,49 +296,95 @@ func StripeSubscription() (string, error) {
 	return jsonString, nil
 }
 
-// Create subscription link for stripe
-// usege for macos, linux, windows
-func StripeSubscriptionPaymentRedirect(subType string) (string, error) {
-	ret := protos.SubscriptionPaymentRedirectRequest{
-		Provider:         "stripe",
-		Plan:             "1y-usd",
-		DeviceName:       "test",
-		Email:            "test@getlantern.org",
-		SubscriptionType: protos.SubscriptionType(subType),
-	}
-	stripeUrl, err := subscriptionPaymentRedirect(&ret)
-	if err != nil {
-		return "", log.Errorf("Error getting subscription link: %v", err)
-	}
-	log.Debugf("Stripe response: %v", stripeUrl)
-	return stripeUrl, nil
-}
-
 func Plans() (string, error) {
-	defer func() {
-		if err := recover(); err != nil {
-			log.Errorf("Error creating stripe subscription: %v", err)
-		}
-	}()
+	// defer func() {
+	// 	if err := recover(); err != nil {
+	// 		log.Errorf("Error creating stripe subscription: %v", err)
+	// 	}
+	// }()
 	log.Debug("Getting plans")
-	plans, err := radianceServer.proServer.Plans(context.Background())
+	plans, err := radianceServer.proServer.Plans(context.Background(), "non-store")
 	if err != nil {
 		return "", log.Errorf("Error getting plans: %v", err)
 	}
-	log.Debugf("Plans response: %v", plans)
 	jsonData, err := json.Marshal(plans)
 	if err != nil {
 		return "", log.Errorf("Error marshalling plans: %v", err)
 	}
+	log.Debugf("Plans response: %v", string(jsonData))
 	// Convert bytes to string and print
 	return string(jsonData), nil
 }
-
-func subscriptionPaymentRedirect(redirectBody *protos.SubscriptionPaymentRedirectRequest) (string, error) {
-	rediret, err := radianceServer.proServer.SubscriptionPaymentRedirect(context.Background(), redirectBody)
+func StripeBillingPortalUrl() (string, error) {
+	log.Debug("Getting stripe billing portal")
+	billingPortal, err := radianceServer.proServer.StripeBillingPortalUrl()
 	if err != nil {
-		return "", log.Errorf("Error getting subscription link: %v", err)
+		return "", log.Errorf("Error getting stripe billing portal: %v", err)
 	}
-	log.Debugf("SubscriptionPaymentRedirect response: %v", rediret)
-	return rediret.Redirect, nil
+	log.Debugf("StripeBillingPortal response: %v", billingPortal)
+	return billingPortal.Redirect, nil
+}
+
+func AcknowledgeGooglePurchase(purchaseToken, planId string) error {
+	log.Debugf("Purchase token: %s planId %s", purchaseToken, planId)
+	acknowledge, err := radianceServer.proServer.GoogleSubscription(context.Background(), purchaseToken, planId)
+	if err != nil {
+		return log.Errorf("Error acknowledging: %v", err)
+	}
+	log.Debugf("acknowledge google purchase: %v", acknowledge)
+	return nil
+}
+
+func AcknowledgeApplePurchase(receipt, planId string) error {
+	log.Debug("Acknowledging")
+	acknowledge, err := radianceServer.proServer.AppleSubscription(context.Background(), receipt, planId)
+	if err != nil {
+		return log.Errorf("Error acknowledging: %v", err)
+	}
+	log.Debugf("acknowledge apple purchase: %v", acknowledge)
+	return nil
+}
+
+func PaymentRedirect(provider, planId, email string) (string, error) {
+	log.Debug("Payment redirect")
+	deviceName := radianceServer.userConfig.DeviceID()
+	body := protos.PaymentRedirectRequest{
+		Provider:   provider,
+		Plan:       planId,
+		DeviceName: deviceName,
+		Email:      email,
+	}
+	paymentRedirect, err := radianceServer.proServer.PaymentRedirect(context.Background(), &body)
+	if err != nil {
+		return "", log.Errorf("Error getting payment redirect: %v", err)
+	}
+	log.Debugf("Payment redirect response: %v", paymentRedirect)
+	return paymentRedirect.Redirect, nil
+}
+
+/// User management apis
+
+func Logout(email string) ([]byte, error) {
+	log.Debug("Logging out")
+	err := radianceServer.user.Logout(context.Background(), email)
+	if err != nil {
+		return nil, log.Errorf("Error logging out: %v", err)
+	}
+	user, err := CreateUser()
+	if err != nil {
+		return nil, log.Errorf("Error creating user: %v", err)
+	}
+	login := &protos.LoginResponse{
+		LegacyID:       user.UserId,
+		LegacyToken:    user.Token,
+		LegacyUserData: user.LoginResponse_UserData,
+	}
+
+	// update the user config with the new user data
+	radianceServer.userConfig.Save(login)
+	protoUserData, err := proto.Marshal(login)
+	if err != nil {
+		return nil, log.Errorf("Error marshalling user data: %v", err)
+	}
+	return protoUserData, nil
 }

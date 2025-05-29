@@ -1,6 +1,8 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:lantern/core/widgets/app_rich_text.dart';
+import 'package:lantern/core/widgets/oauth_login.dart';
+import 'package:lantern/features/auth/add_email.dart';
 
 import '../../core/common/common.dart';
 
@@ -30,22 +32,20 @@ class SignInEmail extends StatelessWidget {
           PrimaryButton(
             label: 'sign_in_with_email'.i18n,
             onPressed: () {
-              appRouter.push( SignInPassword(email: 'example@gmail.com'));
+              appRouter.push(SignInPassword(email: 'example@gmail.com'));
             },
           ),
           SizedBox(height: defaultSize),
           DividerSpace(),
           SizedBox(height: defaultSize),
-          SecondaryButton(
-            label: 'continue_with_google'.i18n,
-            icon: AppImagePaths.google,
-            onPressed: () {},
+          OAuthLogin(
+            methodType: SignUpMethodType.google,
+            onResult: onOAuthResult,
           ),
           SizedBox(height: defaultSize),
-          SecondaryButton(
-            label: 'continue_with_apple'.i18n,
-            icon: AppImagePaths.apple,
-            onPressed: () {},
+          OAuthLogin(
+            methodType: SignUpMethodType.apple,
+            onResult: onOAuthResult,
           ),
           SizedBox(height: defaultSize),
           DividerSpace(),
@@ -55,11 +55,13 @@ class SignInEmail extends StatelessWidget {
             boldTexts: 'Create an account',
             boldUnderline: true,
             boldOnPressed: () {
-              appRouter.push( AddEmail());
+              appRouter.push(Plans());
             },
           )
         ],
       ),
     );
   }
+
+  void onOAuthResult(Map<String, dynamic> result) {}
 }
