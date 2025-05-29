@@ -10,9 +10,15 @@
 	<true/>
 	<key>com.apple.security.network.client</key>
 	<true/>
-	<key>com.apple.security.files.system.read-only</key>
-    <true/>
+	<key>com.apple.security.files.system.read-write</key>
+    	<true/>
 	<key>com.apple.security.notification</key>
 	<true/>
+        <key>com.apple.developer.networking.networkextension</key>
+        <array>
+                <string>packet-tunnel-provider-systemextension</string>
+        </array>
+        <key>com.apple.developer.system-extension.install</key>
+        <true/>
 </dict>
 </plist>

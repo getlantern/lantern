@@ -7,7 +7,7 @@ class VPNManager: ObservableObject {
 
     private var manager: NETunnelProviderManager?
     let logger = Logger(subsystem: "org.getlantern.lantern", category: "VPNManager")
-    let providerBundleID = "org.getlantern.SystemExtenstionTest.PacketTunnel"
+    let providerBundleID = "org.getlantern.lantern.PacketTunnel"
     
     init() {
         Task {
