@@ -26,7 +26,7 @@ class StripeService {
   // This method is used to start a Stripe subscription
   // It takes the StripeOptions object and a callback function for success and error handling
   //this used only in android
-  Future<void> startStripeSubscription({
+  Future<void> startStripeSDK({
     required StripeOptions options,
     required OnPressed onSuccess,
     required Function(dynamic error) onError,

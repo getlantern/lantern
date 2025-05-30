@@ -704,13 +704,10 @@ class ServerSelection extends _i30.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i22.Setting]
-class Setting extends _i30.PageRouteInfo<SettingArgs> {
-  Setting({
-    _i31.Key? key,
-    List<_i30.PageRouteInfo>? children,
-  }) : super(
+class Setting extends _i30.PageRouteInfo<void> {
+  const Setting({List<_i30.PageRouteInfo>? children})
+      : super(
           Setting.name,
-          args: SettingArgs(key: key),
           initialChildren: children,
         );
 
@@ -719,21 +716,9 @@ class Setting extends _i30.PageRouteInfo<SettingArgs> {
   static _i30.PageInfo page = _i30.PageInfo(
     name,
     builder: (data) {
-      final args = data.argsAs<SettingArgs>(orElse: () => const SettingArgs());
-      return _i22.Setting(key: args.key);
+      return const _i22.Setting();
     },
   );
-}
-
-class SettingArgs {
-  const SettingArgs({this.key});
-
-  final _i31.Key? key;
-
-  @override
-  String toString() {
-    return 'SettingArgs{key: $key}';
-  }
 }
 
 /// generated route for

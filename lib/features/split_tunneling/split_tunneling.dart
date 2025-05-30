@@ -10,7 +10,7 @@ import 'package:lantern/core/utils/screen_utils.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/split_tunneling_tile.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
-import 'package:lantern/features/split_tunneling/provider/app_preferences.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/split_tunneling/provider/apps_notifier.dart';
 import 'package:lantern/features/split_tunneling/provider/website_notifier.dart';
 
@@ -20,13 +20,11 @@ class SplitTunneling extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final preferences = ref.watch(appPreferencesProvider).value;
+    final preferences = ref.watch(appSettingNotifierProvider);
     final _textTheme = Theme.of(context).textTheme;
-
-    final splitTunnelingEnabled =
-        preferences?[Preferences.splitTunnelingEnabled] ?? false;
-    final splitTunnelingMode = preferences?[Preferences.splitTunnelingMode] ??
-        SplitTunnelingMode.automatic;
+    final splitTunnelingEnabled = preferences.isSplitTunnelingOn;
+    final splitTunnelingMode =
+        preferences.splitTunnelingMode.toSplitTunnelingMode;
     final isAutomaticMode = splitTunnelingMode == SplitTunnelingMode.automatic;
     final enabledApps = ref.watch(splitTunnelingAppsProvider).toList();
     final enabledWebsites = ref.watch(splitTunnelingWebsitesProvider).toList();
@@ -52,8 +50,9 @@ class SplitTunneling extends HookConsumerWidget {
                     selectedMode: splitTunnelingMode,
                     onChanged: (newValue) {
                       if (newValue != null) {
-                        ref.read(appPreferencesProvider.notifier).setPreference(
-                            Preferences.splitTunnelingMode, newValue);
+                        ref
+                            .read(appSettingNotifierProvider.notifier)
+                            .setSplitTunnelingMode(newValue.displayName);
                         Navigator.pop(context);
                       }
                     },
@@ -108,8 +107,9 @@ class SplitTunneling extends HookConsumerWidget {
                     value: splitTunnelingEnabled,
                     onChanged: (bool? value) {
                       var newValue = value ?? false;
-                      ref.read(appPreferencesProvider.notifier).setPreference(
-                          Preferences.splitTunnelingEnabled, newValue);
+                      ref
+                          .read(appSettingNotifierProvider.notifier)
+                          .toggleSplitTunneling(newValue);
                     },
                   ),
                 ),
@@ -163,10 +163,10 @@ class SplitTunneling extends HookConsumerWidget {
                               onChanged: (newValue) {
                                 if (newValue != null) {
                                   ref
-                                      .read(appPreferencesProvider.notifier)
-                                      .setPreference(
-                                          Preferences.splitTunnelingMode,
-                                          newValue);
+                                      .read(appSettingNotifierProvider.notifier)
+                                      .setSplitTunnelingMode(
+                                          newValue.displayName);
+
                                   expansionTileController.collapse();
                                 }
                               },

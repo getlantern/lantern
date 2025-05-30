@@ -11,17 +11,22 @@ import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/lantern_app.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
+import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:timezone/data/latest_all.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
+
 import 'core/common/app_secrets.dart';
 
 Future<void> main() async {
-  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-  // widgetsBinding.deferFirstFrame();
+  WidgetsFlutterBinding.ensureInitialized();
+
   initLogger();
+  await _configureLocalTimeZone();
   await _loadAppSecrets();
   await injectServices();
 
   await Future.microtask(Localization.loadTranslations);
-  // widgetsBinding.allowFirstFrame();
+
   await _setupSentry(
     runner: () {
       runApp(
@@ -52,6 +57,18 @@ Future<void> _setupSentry({required AppRunner runner}) async {
     },
     appRunner: runner,
   );
+}
+
+Future<void> _configureLocalTimeZone() async {
+  if (kIsWeb || Platform.isLinux) {
+    return;
+  }
+  tz.initializeTimeZones();
+  if (Platform.isWindows) {
+    return;
+  }
+  final timeZoneName = await FlutterTimezone.getLocalTimezone();
+  tz.setLocalLocation(tz.getLocation(timeZoneName));
 }
 
 Future<void> _loadAppSecrets() async {

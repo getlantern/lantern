@@ -1,26 +1,27 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'app_preferences.dart';
+part of 'app_setting_notifier.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$appPreferencesHash() => r'dc09b202e87dadcafa7f164c3552dcb72f6c40e2';
+String _$appSettingNotifierHash() =>
+    r'498a76b0e36a447cab3fe022f6fe79a89b6a1262';
 
-/// See also [AppPreferences].
-@ProviderFor(AppPreferences)
-final appPreferencesProvider =
-    AsyncNotifierProvider<AppPreferences, Map<String, dynamic>>.internal(
-  AppPreferences.new,
-  name: r'appPreferencesProvider',
+/// See also [AppSettingNotifier].
+@ProviderFor(AppSettingNotifier)
+final appSettingNotifierProvider =
+    NotifierProvider<AppSettingNotifier, AppSetting>.internal(
+  AppSettingNotifier.new,
+  name: r'appSettingNotifierProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
       ? null
-      : _$appPreferencesHash,
+      : _$appSettingNotifierHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
-typedef _$AppPreferences = AsyncNotifier<Map<String, dynamic>>;
+typedef _$AppSettingNotifier = Notifier<AppSetting>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

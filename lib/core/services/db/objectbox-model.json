@@ -4,211 +4,121 @@
   "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
   "entities": [
     {
-      "id": "2:7670868698114973577",
-      "lastPropertyId": "7:8940281990789152202",
+      "id": "1:8243344666351798248",
+      "lastPropertyId": "7:8015457833666950965",
       "name": "AppData",
       "properties": [
         {
-          "id": "1:7709598816908993183",
+          "id": "1:665099095564680426",
           "name": "id",
           "type": 6,
           "flags": 1
         },
         {
-          "id": "2:5184842411144758724",
+          "id": "2:854155876901391416",
           "name": "name",
           "type": 9
         },
         {
-          "id": "3:6847653516684994068",
+          "id": "3:4471453433906627655",
           "name": "bundleId",
           "type": 9
         },
         {
-          "id": "4:677074590541685344",
+          "id": "4:8604678248685990087",
+          "name": "iconBytes",
+          "type": 23
+        },
+        {
+          "id": "5:1987732472851136191",
           "name": "iconPath",
           "type": 9
         },
         {
-          "id": "5:1312807177461040004",
+          "id": "6:2656275276758309648",
           "name": "appPath",
           "type": 9
         },
         {
-          "id": "6:5603929520388800572",
+          "id": "7:8015457833666950965",
           "name": "isEnabled",
           "type": 1
-        },
-        {
-          "id": "7:8940281990789152202",
-          "name": "iconBytes",
-          "type": 23
         }
       ],
       "relations": []
     },
     {
-      "id": "4:8204765423358965580",
-      "lastPropertyId": "3:1230399441936964031",
-      "name": "Website",
+      "id": "2:3911923844933371021",
+      "lastPropertyId": "8:1954518853461077568",
+      "name": "AppSetting",
       "properties": [
         {
-          "id": "1:7561664178301439803",
+          "id": "1:6033658981934850975",
           "name": "id",
           "type": 6,
           "flags": 1
         },
         {
-          "id": "2:7716209131748199990",
-          "name": "domain",
-          "type": 9
-        }
-      ],
-      "relations": []
-    },
-    {
-      "id": "6:6064691124967221188",
-      "lastPropertyId": "7:3460771902693314151",
-      "name": "PlanEntity",
-      "properties": [
-        {
-          "id": "1:44689092619598617",
-          "name": "id",
-          "type": 6,
-          "flags": 1
-        },
-        {
-          "id": "2:2948314626219609469",
-          "name": "planId",
-          "type": 9
-        },
-        {
-          "id": "3:4270262637928033215",
-          "name": "description",
-          "type": 9
-        },
-        {
-          "id": "4:3759173737348664300",
-          "name": "usdPrice",
-          "type": 6
-        },
-        {
-          "id": "5:1846621058179882521",
-          "name": "priceJson",
-          "type": 9
-        },
-        {
-          "id": "6:7153429947138206290",
-          "name": "expectedMonthlyPriceJson",
-          "type": 9
-        },
-        {
-          "id": "7:3460771902693314151",
-          "name": "bestValue",
+          "id": "2:4156162785182351278",
+          "name": "isPro",
           "type": 1
-        }
-      ],
-      "relations": []
-    },
-    {
-      "id": "7:8018631489731923987",
-      "lastPropertyId": "3:8614132688092941646",
-      "name": "PlansDataEntity",
-      "properties": [
-        {
-          "id": "1:1962909098430065866",
-          "name": "id",
-          "type": 6,
-          "flags": 1
         },
         {
-          "id": "2:2594708484346389745",
-          "name": "providersId",
-          "type": 11,
-          "flags": 520,
-          "indexId": "1:8385137855534348937",
-          "relationTarget": "ProvidersEntity"
+          "id": "3:3702530020166173098",
+          "name": "isSplitTunnelingOn",
+          "type": 1
         },
         {
-          "id": "3:8614132688092941646",
-          "name": "iconsJson",
-          "type": 9
-        }
-      ],
-      "relations": [
-        {
-          "id": "1:2761527795005361608",
-          "name": "plans",
-          "targetId": "6:6064691124967221188"
-        }
-      ]
-    },
-    {
-      "id": "8:2071111122468858929",
-      "lastPropertyId": "3:5147226167609010098",
-      "name": "ProvidersEntity",
-      "properties": [
-        {
-          "id": "1:4613239940113821409",
-          "name": "id",
-          "type": 6,
-          "flags": 1
-        },
-        {
-          "id": "2:8752503276440387408",
-          "name": "androidJson",
+          "id": "4:3681080155235220160",
+          "name": "splitTunnelingMode",
           "type": 9
         },
         {
-          "id": "3:5147226167609010098",
-          "name": "desktopJson",
+          "id": "5:8014122070291321671",
+          "name": "locale",
+          "type": 9
+        },
+        {
+          "id": "6:5385502009803520588",
+          "name": "oAuthToken",
+          "type": 9
+        },
+        {
+          "id": "7:1598462612464863688",
+          "name": "userLoggedIn",
+          "type": 1
+        },
+        {
+          "id": "8:1954518853461077568",
+          "name": "email",
           "type": 9
         }
       ],
       "relations": []
     },
     {
-      "id": "9:2225470262079550670",
-      "lastPropertyId": "2:1968318257591729232",
-      "name": "AppDatabase",
-      "properties": [
-        {
-          "id": "1:1999102232066002882",
-          "name": "id",
-          "type": 6,
-          "flags": 129
-        },
-        {
-          "id": "2:1968318257591729232",
-          "name": "data",
-          "type": 9
-        }
-      ],
-      "relations": []
-    },
-    {
-      "id": "10:9200227513553238272",
-      "lastPropertyId": "4:7148467821700011673",
+      "id": "3:6676519393927155163",
+      "lastPropertyId": "4:3128706312642252722",
       "name": "DeviceEntity",
       "properties": [
         {
-          "id": "1:7414488345171372479",
+          "id": "1:5619369389258316902",
           "name": "id",
           "type": 6,
           "flags": 1
         },
         {
-          "id": "2:3487381854970275368",
+          "id": "2:470382667000210291",
           "name": "deviceId",
           "type": 9
         },
         {
-          "id": "3:6387584786851728376",
+          "id": "3:7163991712662508006",
           "name": "name",
           "type": 9
         },
         {
-          "id": "4:7148467821700011673",
+          "id": "4:3128706312642252722",
           "name": "created",
           "type": 6
         }
@@ -216,66 +126,114 @@
       "relations": []
     },
     {
-      "id": "11:818119553507489289",
-      "lastPropertyId": "6:2315749090244685953",
-      "name": "LoginResponseEntity",
+      "id": "4:6770620930094435726",
+      "lastPropertyId": "7:2177792099015835564",
+      "name": "PlanEntity",
       "properties": [
         {
-          "id": "1:3516428039215602885",
+          "id": "1:4820825743211378763",
           "name": "id",
           "type": 6,
           "flags": 1
         },
         {
-          "id": "2:5969616360452952034",
-          "name": "legacyID",
-          "type": 6
-        },
-        {
-          "id": "3:4656584604966066691",
-          "name": "legacyToken",
+          "id": "2:4417893352205470202",
+          "name": "planId",
           "type": 9
         },
         {
-          "id": "4:283978338247359522",
-          "name": "emailConfirmed",
-          "type": 1
+          "id": "3:1503498858596929473",
+          "name": "description",
+          "type": 9
         },
         {
-          "id": "5:4022780797157874164",
-          "name": "success",
-          "type": 1
+          "id": "4:3980487274792428764",
+          "name": "usdPrice",
+          "type": 6
         },
         {
-          "id": "6:2315749090244685953",
-          "name": "legacyUserDataId",
+          "id": "5:1762229157703966781",
+          "name": "priceJson",
+          "type": 9
+        },
+        {
+          "id": "6:9069037152640787847",
+          "name": "expectedMonthlyPriceJson",
+          "type": 9
+        },
+        {
+          "id": "7:2177792099015835564",
+          "name": "bestValue",
+          "type": 1
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "5:6784585804177216363",
+      "lastPropertyId": "2:75801423063234507",
+      "name": "PlansDataEntity",
+      "properties": [
+        {
+          "id": "1:4821523052134186480",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:75801423063234507",
+          "name": "providersId",
           "type": 11,
           "flags": 520,
-          "indexId": "2:1151475603584147691",
-          "relationTarget": "UserDataEntity"
+          "indexId": "1:7243567128533616919",
+          "relationTarget": "ProvidersEntity"
         }
       ],
       "relations": [
         {
-          "id": "2:2585383973479585406",
-          "name": "devices",
-          "targetId": "10:9200227513553238272"
+          "id": "1:6852849448176008465",
+          "name": "plans",
+          "targetId": "4:6770620930094435726"
         }
       ]
     },
     {
-      "id": "12:3582880466074719644",
-      "lastPropertyId": "2:7662617260027498372",
-      "name": "PurchaseEntity",
+      "id": "6:9076076693933800996",
+      "lastPropertyId": "3:1342387900452456432",
+      "name": "ProvidersEntity",
       "properties": [
         {
-          "id": "1:5748619009204113192",
+          "id": "1:8379850553603488369",
           "name": "id",
           "type": 6,
           "flags": 1
         },
         {
-          "id": "2:7662617260027498372",
+          "id": "2:6162870078683621773",
+          "name": "androidJson",
+          "type": 9
+        },
+        {
+          "id": "3:1342387900452456432",
+          "name": "desktopJson",
+          "type": 9
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "7:3955459933679822886",
+      "lastPropertyId": "2:1876483353381723874",
+      "name": "PurchaseEntity",
+      "properties": [
+        {
+          "id": "1:7130559075940684669",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:1876483353381723874",
           "name": "plan",
           "type": 9
         }
@@ -283,138 +241,264 @@
       "relations": []
     },
     {
-      "id": "13:3415485097329155517",
-      "lastPropertyId": "18:6903327324847915765",
-      "name": "UserDataEntity",
+      "id": "8:5039940202725432274",
+      "lastPropertyId": "11:5207507816578005934",
+      "name": "SubscriptionDataEntity",
       "properties": [
         {
-          "id": "1:4857861505867141663",
+          "id": "1:3630319451677830656",
           "name": "id",
           "type": 6,
           "flags": 1
         },
         {
-          "id": "2:7531960814848767689",
+          "id": "2:6315429947987273350",
+          "name": "planID",
+          "type": 9
+        },
+        {
+          "id": "3:2415880954445764702",
+          "name": "stripeCustomerID",
+          "type": 9
+        },
+        {
+          "id": "4:5998316173363079636",
+          "name": "startAt",
+          "type": 9
+        },
+        {
+          "id": "5:7804842620046237844",
+          "name": "cancelledAt",
+          "type": 9
+        },
+        {
+          "id": "6:8228301187232897005",
+          "name": "autoRenew",
+          "type": 1
+        },
+        {
+          "id": "7:3287310055392830414",
+          "name": "subscriptionID",
+          "type": 9
+        },
+        {
+          "id": "8:2115741026959089684",
+          "name": "status",
+          "type": 9
+        },
+        {
+          "id": "9:3462606990208270122",
+          "name": "provider",
+          "type": 9
+        },
+        {
+          "id": "10:3424555665521268722",
+          "name": "createdAt",
+          "type": 9
+        },
+        {
+          "id": "11:5207507816578005934",
+          "name": "endAt",
+          "type": 9
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "9:7391252035758195482",
+      "lastPropertyId": "19:4979777817948890343",
+      "name": "UserDataEntity",
+      "properties": [
+        {
+          "id": "1:721255716399140366",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:4983409919812889687",
           "name": "userId",
           "type": 6
         },
         {
-          "id": "3:9052526574052787603",
+          "id": "3:8971275188243753549",
           "name": "code",
           "type": 9
         },
         {
-          "id": "4:500144540785133527",
+          "id": "4:4086265114549069583",
           "name": "token",
           "type": 9
         },
         {
-          "id": "5:324168490690013848",
+          "id": "5:2606210271109058059",
           "name": "referral",
           "type": 9
         },
         {
-          "id": "6:8273443994807092371",
+          "id": "6:4307933898524798653",
           "name": "phone",
           "type": 9
         },
         {
-          "id": "7:3544653410578364976",
+          "id": "7:1057305501740447841",
           "name": "email",
           "type": 9
         },
         {
-          "id": "8:3923759284407701898",
+          "id": "8:5811255790063908066",
           "name": "userStatus",
           "type": 9
         },
         {
-          "id": "9:4239132974619956517",
+          "id": "9:3325031224555358071",
           "name": "userLevel",
           "type": 9
         },
         {
-          "id": "10:743824518090899240",
+          "id": "10:2477973746227214136",
           "name": "locale",
           "type": 9
         },
         {
-          "id": "11:1764175302811434944",
+          "id": "11:3383640970511523975",
           "name": "expiration",
           "type": 6
         },
         {
-          "id": "12:3288472878287446687",
+          "id": "12:6992535153346562546",
           "name": "subscription",
           "type": 9
         },
         {
-          "id": "13:6442178653962959098",
+          "id": "13:2601819771184266930",
           "name": "bonusDays",
           "type": 9
         },
         {
-          "id": "14:1780291838969723331",
+          "id": "14:7342690821375943351",
           "name": "bonusMonths",
           "type": 9
         },
         {
-          "id": "15:5517640030345605593",
+          "id": "15:2308947363129845489",
           "name": "yinbiEnabled",
           "type": 1
         },
         {
-          "id": "16:52897742388961638",
+          "id": "16:8518721620593674484",
           "name": "servers",
           "type": 9
         },
         {
-          "id": "17:5448361653727955474",
+          "id": "17:147796828210509208",
           "name": "inviters",
           "type": 9
         },
         {
-          "id": "18:6903327324847915765",
+          "id": "18:7104299402265998140",
           "name": "invitees",
           "type": 9
+        },
+        {
+          "id": "19:4979777817948890343",
+          "name": "subscriptionDataId",
+          "type": 11,
+          "flags": 520,
+          "indexId": "2:7249523967244433177",
+          "relationTarget": "SubscriptionDataEntity"
         }
       ],
       "relations": [
         {
-          "id": "3:8733406164260627930",
+          "id": "2:3860865411575970334",
           "name": "devices",
-          "targetId": "10:9200227513553238272"
+          "targetId": "3:6676519393927155163"
         },
         {
-          "id": "4:1703547319205099497",
+          "id": "3:4659365552588003074",
           "name": "purchases",
-          "targetId": "12:3582880466074719644"
+          "targetId": "7:3955459933679822886"
         }
       ]
+    },
+    {
+      "id": "10:8738295351292196018",
+      "lastPropertyId": "6:911564568483025867",
+      "name": "UserResponseEntity",
+      "properties": [
+        {
+          "id": "1:9016330481000647662",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:3779931790291485430",
+          "name": "legacyID",
+          "type": 6
+        },
+        {
+          "id": "3:6872091710878591563",
+          "name": "legacyToken",
+          "type": 9
+        },
+        {
+          "id": "4:8823904559181920579",
+          "name": "emailConfirmed",
+          "type": 1
+        },
+        {
+          "id": "5:4042815506497966768",
+          "name": "success",
+          "type": 1
+        },
+        {
+          "id": "6:911564568483025867",
+          "name": "legacyUserDataId",
+          "type": 11,
+          "flags": 520,
+          "indexId": "3:4411665775053544240",
+          "relationTarget": "UserDataEntity"
+        }
+      ],
+      "relations": [
+        {
+          "id": "4:7033640271152098960",
+          "name": "devices",
+          "targetId": "3:6676519393927155163"
+        }
+      ]
+    },
+    {
+      "id": "11:3664612068497014205",
+      "lastPropertyId": "2:3602532719627124927",
+      "name": "Website",
+      "properties": [
+        {
+          "id": "1:7721916962940657003",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:3602532719627124927",
+          "name": "domain",
+          "type": 9
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "13:3415485097329155517",
-  "lastIndexId": "2:1151475603584147691",
-  "lastRelationId": "4:1703547319205099497",
+  "lastEntityId": "11:3664612068497014205",
+  "lastIndexId": "3:4411665775053544240",
+  "lastRelationId": "4:7033640271152098960",
   "lastSequenceId": "0:0",
   "modelVersion": 5,
   "modelVersionParserMinimum": 5,
-  "retiredEntityUids": [
-    1027975073737683578,
-    4380524372643795068,
-    827583214628067603
-  ],
+  "retiredEntityUids": [],
   "retiredIndexUids": [],
-  "retiredPropertyUids": [
-    366476197617928400,
-    5682544289677202283,
-    7465496422607335786,
-    1230399441936964031,
-    689361163376130950,
-    4102612372732725500,
-    4314963677250304204,
-    4366113317700500115
-  ],
+  "retiredPropertyUids": [],
   "retiredRelationUids": [],
   "version": 1
 }

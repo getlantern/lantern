@@ -5,7 +5,7 @@ import 'package:lantern/core/models/plan_entity.dart';
 
 extension PlansDataMapper on PlansData {
   PlansDataEntity toEntity() {
-    final entity = PlansDataEntity(iconsJson: jsonEncode(icons));
+    final entity = PlansDataEntity();
     entity.plans.addAll(plans.map((e) => e.toEntity()));
     entity.providers.target = providers.toEntity();
     return entity;
@@ -39,9 +39,7 @@ extension ToPlanData on PlansDataEntity {
   PlansData toPlanData() => PlansData(
         providers: providers.target!.toProvider(),
         plans: plans.map((e) => e.toPlan()).toList(),
-        icons: (jsonDecode(iconsJson) as Map<String, dynamic>).map(
-          (k, v) => MapEntry(k, List<String>.from(v)),
-        ),
+
       );
 }
 
@@ -62,5 +60,6 @@ extension ProvidersEntityMapper on ProvidersEntity {
             jsonDecode(androidJson).map((x) => Android.fromJson(x))),
         desktop: List<Android>.from(
             jsonDecode(desktopJson).map((x) => Android.fromJson(x))),
+
       );
 }

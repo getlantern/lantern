@@ -2,6 +2,7 @@ import Flutter
 import Liblantern
 import NetworkExtension
 import UIKit
+import flutter_local_notifications
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -21,6 +22,9 @@ import UIKit
 
     // Register Flutter plugins
     GeneratedPluginRegistrant.register(with: self)
+
+    // Configure Flutter local notifications
+    notificationSetup()
 
     // Register event handlers
     registerEventHandlers()
@@ -73,6 +77,21 @@ import UIKit
       return
     }
 
+  }
+
+  /// Configures the Flutter local notifications plugin with the background isolate
+  ///
+  /// Reference:
+  /// https://github.com/MaikuB/flutter_local_notifications/blob/master/flutter_local_notifications/example/ios/Runner/AppDelegate.swift
+  private func notificationSetup() {
+    FlutterLocalNotificationsPlugin.setPluginRegistrantCallback { (registry) in
+      GeneratedPluginRegistrant.register(with: registry)
+    }
+
+    // Set UNUserNotificationCenter delegate to handle foreground notifications
+    if #available(iOS 10.0, *) {
+      UNUserNotificationCenter.current().delegate = self as UNUserNotificationCenterDelegate
+    }
   }
 
   /// Calls API handler setup

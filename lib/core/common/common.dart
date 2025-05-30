@@ -43,6 +43,7 @@ export 'package:lantern/core/extensions/string.dart';
 export 'package:lantern/core/extensions/context.dart';
 export 'package:lantern/core/extensions/error.dart';
 export 'package:lantern/core/extensions/pointer.dart';
+export 'package:lantern/core/extensions/ref.dart';
 
 //Logger
 export 'package:lantern/core/services/logger_service.dart';
