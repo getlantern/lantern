@@ -49,7 +49,7 @@
     },
     {
       "id": "2:4608024332879865786",
-      "lastPropertyId": "8:3150278383184422005",
+      "lastPropertyId": "9:5183970563786671184",
       "name": "AppSetting",
       "properties": [
         {
@@ -92,6 +92,11 @@
           "id": "8:3150278383184422005",
           "name": "email",
           "type": 9
+        },
+        {
+          "id": "9:5183970563786671184",
+          "name": "blockAds",
+          "type": 1
         }
       ],
       "relations": []

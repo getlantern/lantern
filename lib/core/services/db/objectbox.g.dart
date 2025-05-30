@@ -70,7 +70,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
       id: const obx_int.IdUid(2, 4608024332879865786),
       name: 'AppSetting',
-      lastPropertyId: const obx_int.IdUid(8, 3150278383184422005),
+      lastPropertyId: const obx_int.IdUid(9, 5183970563786671184),
       flags: 0,
       properties: <obx_int.ModelProperty>[
         obx_int.ModelProperty(
@@ -112,6 +112,11 @@ final _entities = <obx_int.ModelEntity>[
             id: const obx_int.IdUid(8, 3150278383184422005),
             name: 'email',
             type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(9, 5183970563786671184),
+            name: 'blockAds',
+            type: 1,
             flags: 0)
       ],
       relations: <obx_int.ModelRelation>[],
@@ -621,7 +626,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           final localeOffset = fbb.writeString(object.locale);
           final oAuthTokenOffset = fbb.writeString(object.oAuthToken);
           final emailOffset = fbb.writeString(object.email);
-          fbb.startTable(9);
+          fbb.startTable(10);
           fbb.addInt64(0, object.id);
           fbb.addBool(1, object.isPro);
           fbb.addBool(2, object.isSplitTunnelingOn);
@@ -630,6 +635,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           fbb.addOffset(5, oAuthTokenOffset);
           fbb.addBool(6, object.userLoggedIn);
           fbb.addOffset(7, emailOffset);
+          fbb.addBool(8, object.blockAds);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -649,6 +655,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
                   .vTableGet(buffer, rootOffset, 10, '');
           final oAuthTokenParam = const fb.StringReader(asciiOptimization: true)
               .vTableGet(buffer, rootOffset, 14, '');
+          final blockAdsParam =
+              const fb.BoolReader().vTableGet(buffer, rootOffset, 20, false);
           final emailParam = const fb.StringReader(asciiOptimization: true)
               .vTableGet(buffer, rootOffset, 18, '');
           final localeParam = const fb.StringReader(asciiOptimization: true)
@@ -660,6 +668,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
               userLoggedIn: userLoggedInParam,
               splitTunnelingMode: splitTunnelingModeParam,
               oAuthToken: oAuthTokenParam,
+              blockAds: blockAdsParam,
               email: emailParam,
               locale: localeParam);
 
@@ -1196,6 +1205,10 @@ class AppSetting_ {
   /// See [AppSetting.email].
   static final email =
       obx.QueryStringProperty<AppSetting>(_entities[1].properties[7]);
+
+  /// See [AppSetting.blockAds].
+  static final blockAds =
+      obx.QueryBooleanProperty<AppSetting>(_entities[1].properties[8]);
 }
 
 /// [DeviceEntity] entity fields to define ObjectBox queries.
