@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/app_setting.dart';
@@ -53,10 +54,38 @@ class LocalStorageService {
     final start = DateTime.now();
     dbLogger.debug("Initializing LocalStorageService");
     final docsDir = await AppStorageUtils.getAppDirectory();
-    _store = await openStore(
-      directory: p.join(docsDir.path, "objectbox-db"),
-      macosApplicationGroup: macosApplicationGroup,
-    );
+
+    final dbPath = p.join(docsDir.path, "objectbox-db");
+
+    try {
+      _store = await openStore(
+        directory: dbPath,
+        macosApplicationGroup: macosApplicationGroup,
+      );
+    } on ObjectBoxException catch (e) {
+      final error = e.message;
+      // only delete if it’s a debug build and the “last index ID" or
+      // "does not match existing" errors
+      if (kDebugMode && error.contains("last index ID") ||
+          error.contains("does not match existing")) {
+        dbLogger.warning(
+            "ObjectBox schema mismatch detected – wiping old DB…", e);
+
+        // delete the entire store directory
+        final dir = Directory(dbPath);
+        if (await dir.exists()) {
+          await dir.delete(recursive: true);
+        }
+
+        // try again with a clean slate
+        _store = await openStore(
+          directory: dbPath,
+          macosApplicationGroup: macosApplicationGroup,
+        );
+      } else {
+        rethrow;
+      }
+    }
 
     _appSettingBox = _store.box<AppSetting>();
     _appsBox = _store.box<AppData>();
@@ -163,6 +192,7 @@ class LocalStorageService {
   void updateAppSetting(AppSetting appSetting) {
     _appSettingBox.put(appSetting);
   }
+
   AppSetting? getAppSetting() {
     final appSetting = _appSettingBox.getAll();
     return appSetting.isEmpty ? null : appSetting.first;
