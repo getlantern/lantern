@@ -1,12 +1,9 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:lantern/core/common/app_text_field.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/widgets/radio_listview.dart';
-import 'package:lantern/features/split_tunneling/provider/app_preferences.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 
 final selectedBypassListProvider =
     StateProvider<BypassListOption>((ref) => BypassListOption.global);
@@ -19,83 +16,42 @@ class DefaultBypassLists extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final preferences = ref.watch(appPreferencesProvider);
-    final notifier = ref.read(appPreferencesProvider.notifier);
-    final selectedList = preferences.value?[Preferences.defaultBypassList] ??
-        BypassListOption.global;
+    final preferences = ref.watch(appSettingNotifierProvider);
+    final notifier = ref.read(appSettingNotifierProvider.notifier);
 
     Future<void> onBypassTap(BypassListOption option) async {
-      notifier.setBypassList(option);
+      notifier.setByassList(option);
     }
+
+    final bypassListOptions = [
+      BypassListOption.global,
+      BypassListOption.china,
+      BypassListOption.iran,
+      BypassListOption.russia,
+    ];
 
     return BaseScreen(
       title: 'default_bypass'.i18n,
       body: SingleChildScrollView(
         child: Column(
-          children: <Widget>[
-            AppTile(
-              label: 'global_bypass_list'.i18n,
-              subtitle: Text(
-                'global_bypass_desc'.i18n,
-                style: AppTestStyles.labelMedium.copyWith(
-                  color: AppColors.gray7,
-                  height: 1.33,
+          children: [
+            ...bypassListOptions.map(
+              (bypassList) => AppTile(
+                label: '${bypassList.toString()}_bypass_list'.i18n,
+                subtitle: Text(
+                  '${bypassList.toString()}_bypass_desc'.i18n,
+                  style: AppTestStyles.labelMedium.copyWith(
+                    color: AppColors.gray7,
+                    height: 1.33,
+                  ),
                 ),
-              ),
-              trailing: Radio<BypassListOption>(
-                value: BypassListOption.global,
-                groupValue: selectedList,
-                onChanged: (value) => onBypassTap(BypassListOption.global),
-              ),
-              onPressed: () => onBypassTap(BypassListOption.global),
-            ),
-            AppTile(
-              label: 'china_bypass_list'.i18n,
-              subtitle: Text(
-                'china_bypass_desc'.i18n,
-                style: AppTestStyles.labelMedium.copyWith(
-                  color: AppColors.gray7,
-                  height: 1.33,
+                trailing: Radio<BypassListOption>(
+                  value: BypassListOption.global,
+                  groupValue: preferences.bypassList,
+                  onChanged: (value) => onBypassTap(bypassList),
                 ),
+                onPressed: () => onBypassTap(bypassList),
               ),
-              trailing: Radio<BypassListOption>(
-                value: BypassListOption.china,
-                groupValue: selectedList,
-                onChanged: (value) => onBypassTap(BypassListOption.china),
-              ),
-              onPressed: () => onBypassTap(BypassListOption.china),
-            ),
-            AppTile(
-              label: 'iran_bypass_list'.i18n,
-              subtitle: Text(
-                'iran_bypass_desc'.i18n,
-                style: AppTestStyles.labelMedium.copyWith(
-                  color: AppColors.gray7,
-                  height: 1.33,
-                ),
-              ),
-              trailing: Radio<BypassListOption>(
-                value: BypassListOption.iran,
-                groupValue: selectedList,
-                onChanged: (value) => onBypassTap(BypassListOption.iran),
-              ),
-              onPressed: () => onBypassTap(BypassListOption.iran),
-            ),
-            AppTile(
-              label: 'russia_bypass_list'.i18n,
-              subtitle: Text(
-                'russia_bypass_desc'.i18n,
-                style: AppTestStyles.labelMedium.copyWith(
-                  color: AppColors.gray7,
-                  height: 1.33,
-                ),
-              ),
-              trailing: Radio<BypassListOption>(
-                value: BypassListOption.russia,
-                groupValue: selectedList,
-                onChanged: (value) => onBypassTap(BypassListOption.russia),
-              ),
-              onPressed: () => onBypassTap(BypassListOption.russia),
             ),
             AppTile.link(
               icon: AppImagePaths.info,

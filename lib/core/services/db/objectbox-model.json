@@ -69,11 +69,6 @@
           "type": 1
         },
         {
-          "id": "4:3681080155235220160",
-          "name": "splitTunnelingMode",
-          "type": 9
-        },
-        {
           "id": "5:8014122070291321671",
           "name": "locale",
           "type": 9
@@ -498,7 +493,9 @@
   "modelVersionParserMinimum": 5,
   "retiredEntityUids": [],
   "retiredIndexUids": [],
-  "retiredPropertyUids": [],
+  "retiredPropertyUids": [
+    3681080155235220160
+  ],
   "retiredRelationUids": [],
   "version": 1
 }

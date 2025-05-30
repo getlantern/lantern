@@ -89,11 +89,6 @@ final _entities = <obx_int.ModelEntity>[
             type: 1,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(4, 3681080155235220160),
-            name: 'splitTunnelingMode',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
             id: const obx_int.IdUid(5, 8014122070291321671),
             name: 'locale',
             type: 9,
@@ -545,7 +540,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
       lastSequenceId: const obx_int.IdUid(0, 0),
       retiredEntityUids: const [],
       retiredIndexUids: const [],
-      retiredPropertyUids: const [],
+      retiredPropertyUids: const [3681080155235220160],
       retiredRelationUids: const [],
       modelVersion: 5,
       modelVersionParserMinimum: 5,
@@ -616,8 +611,6 @@ obx_int.ModelDefinition getObjectBoxModel() {
           object.id = id;
         },
         objectToFB: (AppSetting object, fb.Builder fbb) {
-          final splitTunnelingModeOffset =
-              fbb.writeString(object.splitTunnelingMode);
           final localeOffset = fbb.writeString(object.locale);
           final oAuthTokenOffset = fbb.writeString(object.oAuthToken);
           final emailOffset = fbb.writeString(object.email);
@@ -625,7 +618,6 @@ obx_int.ModelDefinition getObjectBoxModel() {
           fbb.addInt64(0, object.id);
           fbb.addBool(1, object.isPro);
           fbb.addBool(2, object.isSplitTunnelingOn);
-          fbb.addOffset(3, splitTunnelingModeOffset);
           fbb.addOffset(4, localeOffset);
           fbb.addOffset(5, oAuthTokenOffset);
           fbb.addBool(6, object.userLoggedIn);
@@ -644,9 +636,6 @@ obx_int.ModelDefinition getObjectBoxModel() {
               const fb.BoolReader().vTableGet(buffer, rootOffset, 8, false);
           final userLoggedInParam =
               const fb.BoolReader().vTableGet(buffer, rootOffset, 16, false);
-          final splitTunnelingModeParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGet(buffer, rootOffset, 10, '');
           final oAuthTokenParam = const fb.StringReader(asciiOptimization: true)
               .vTableGet(buffer, rootOffset, 14, '');
           final emailParam = const fb.StringReader(asciiOptimization: true)
@@ -658,7 +647,6 @@ obx_int.ModelDefinition getObjectBoxModel() {
               isPro: isProParam,
               isSplitTunnelingOn: isSplitTunnelingOnParam,
               userLoggedIn: userLoggedInParam,
-              splitTunnelingMode: splitTunnelingModeParam,
               oAuthToken: oAuthTokenParam,
               email: emailParam,
               locale: localeParam);
@@ -1177,25 +1165,21 @@ class AppSetting_ {
   static final isSplitTunnelingOn =
       obx.QueryBooleanProperty<AppSetting>(_entities[1].properties[2]);
 
-  /// See [AppSetting.splitTunnelingMode].
-  static final splitTunnelingMode =
-      obx.QueryStringProperty<AppSetting>(_entities[1].properties[3]);
-
   /// See [AppSetting.locale].
   static final locale =
-      obx.QueryStringProperty<AppSetting>(_entities[1].properties[4]);
+      obx.QueryStringProperty<AppSetting>(_entities[1].properties[3]);
 
   /// See [AppSetting.oAuthToken].
   static final oAuthToken =
-      obx.QueryStringProperty<AppSetting>(_entities[1].properties[5]);
+      obx.QueryStringProperty<AppSetting>(_entities[1].properties[4]);
 
   /// See [AppSetting.userLoggedIn].
   static final userLoggedIn =
-      obx.QueryBooleanProperty<AppSetting>(_entities[1].properties[6]);
+      obx.QueryBooleanProperty<AppSetting>(_entities[1].properties[5]);
 
   /// See [AppSetting.email].
   static final email =
-      obx.QueryStringProperty<AppSetting>(_entities[1].properties[7]);
+      obx.QueryStringProperty<AppSetting>(_entities[1].properties[6]);
 }
 
 /// [DeviceEntity] entity fields to define ObjectBox queries.
