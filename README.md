@@ -19,6 +19,15 @@ sudo build/macos/Build/Products/Debug/Lantern.app/Contents/MacOS/Lantern
 
 # Build and run the app on iOS
 
+1. Install Go and gomobile
+
+```
+go install golang.org/x/mobile/cmd/gomobile@latest
+gomobile init
+```
+
+2. Build and run on an emulator or physical device
+
 ```
 make ios
 flutter devices

@@ -6,9 +6,8 @@ class PlansDataEntity {
   int id = 0;
   final ToOne<ProvidersEntity> providers = ToOne<ProvidersEntity>();
   final ToMany<PlanEntity> plans = ToMany<PlanEntity>();
-  String iconsJson;
 
-  PlansDataEntity({required this.iconsJson});
+  PlansDataEntity();
 }
 
 @Entity()

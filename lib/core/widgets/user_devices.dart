@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 
 import '../common/common.dart';
 
 class UserDevices extends StatelessWidget {
-  const UserDevices({super.key});
+  final List<UserResponse_Device> userDevices;
+
+  const UserDevices({
+    super.key,
+    required this.userDevices,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +19,7 @@ class UserDevices extends StatelessWidget {
         padding: EdgeInsets.zero,
         physics: const NeverScrollableScrollPhysics(),
         children: [
-          _buildRow(),
+          ...userDevices.map((e) => _buildRow(e)),
           DividerSpace(),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 5),
@@ -32,9 +38,9 @@ class UserDevices extends StatelessWidget {
     );
   }
 
-  Widget _buildRow() {
+  Widget _buildRow(UserResponse_Device e) {
     return AppTile(
-      label: 'Samsung Galaxy',
+      label: e.name ?? e.id,
       contentPadding: EdgeInsets.only(left: 16),
       icon: AppImagePaths.email,
       trailing: AppTextButton(label: 'remove'.i18n, onPressed: () {}),

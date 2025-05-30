@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -6,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/core/widgets/search_bar.dart';
 import 'package:lantern/core/widgets/section_label.dart';
 import 'package:lantern/features/split_tunneling/provider/apps_data_provider.dart';
@@ -22,7 +24,9 @@ class AppsSplitTunneling extends HookConsumerWidget {
 
     final allApps = ref.watch(appsDataProvider).value ?? [];
     final enabledApps = ref.watch(splitTunnelingAppsProvider);
-    final installedApps = allApps.where((a) => a.iconPath.isNotEmpty).toSet();
+    final installedApps = allApps
+        .where((a) => a.iconPath.isNotEmpty || a.iconBytes != null)
+        .toSet();
 
     matchesSearch(app) =>
         searchQuery.isEmpty ||
@@ -47,41 +51,46 @@ class AppsSplitTunneling extends HookConsumerWidget {
         title: 'apps_split_tunneling'.i18n,
         hintText: 'search_apps'.i18n,
       ),
-      body: CustomScrollView(
-        slivers: [
-          if (enabledApps.isNotEmpty) ...[
-            SliverToBoxAdapter(
-              child: SectionLabel(
-                'apps_bypassing_vpn'.i18n.fill([enabledApps.length]),
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        child: installedApps.isEmpty
+            ? const Center(child: LoadingIndicator())
+            : CustomScrollView(
+                slivers: [
+                  if (enabledApps.isNotEmpty) ...[
+                    SliverToBoxAdapter(
+                      child: SectionLabel(
+                        'apps_bypassing_vpn'.i18n.fill([enabledApps.length]),
+                      ),
+                    ),
+                    SliverList.list(
+                      children: enabledList
+                          .map((app) => AppRow(
+                                app: app.copyWith(isEnabled: true),
+                                onToggle: () => ref
+                                    .read(splitTunnelingAppsProvider.notifier)
+                                    .toggleApp(app),
+                              ))
+                          .toList(),
+                    ),
+                  ],
+                  if (disabledApps.isNotEmpty) ...[
+                    SliverToBoxAdapter(
+                      child: SectionLabel('installed_apps'.i18n),
+                    ),
+                    SliverList.list(
+                      children: disabledApps
+                          .map((app) => AppRow(
+                                app: app,
+                                onToggle: () => ref
+                                    .read(splitTunnelingAppsProvider.notifier)
+                                    .toggleApp(app),
+                              ))
+                          .toList(),
+                    ),
+                  ],
+                ],
               ),
-            ),
-            SliverList.list(
-              children: enabledList
-                  .map((app) => AppRow(
-                        app: app.copyWith(isEnabled: true),
-                        onToggle: () => ref
-                            .read(splitTunnelingAppsProvider.notifier)
-                            .toggleApp(app),
-                      ))
-                  .toList(),
-            ),
-          ],
-          if (disabledApps.isNotEmpty) ...[
-            SliverToBoxAdapter(
-              child: SectionLabel('installed_apps'.i18n),
-            ),
-            SliverList.list(
-              children: disabledApps
-                  .map((app) => AppRow(
-                        app: app,
-                        onToggle: () => ref
-                            .read(splitTunnelingAppsProvider.notifier)
-                            .toggleApp(app),
-                      ))
-                  .toList(),
-            ),
-          ],
-        ],
       ),
     );
   }
@@ -97,6 +106,23 @@ class AppRow extends StatelessWidget {
     this.onToggle,
   });
 
+  Widget buildAppIcon(AppData appData) {
+    Uint8List? iconBytes = appData.iconBytes;
+    if (iconBytes != null) {
+      return Image.memory(iconBytes, width: 24, height: 24);
+    } else if (appData.iconPath.isNotEmpty) {
+      return Image.file(
+        File(app.iconPath),
+        width: 24,
+        height: 24,
+        fit: BoxFit.cover,
+      );
+    }
+
+    // fallback
+    return Icon(Icons.apps, size: 24, color: AppColors.gray6);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -108,15 +134,7 @@ class AppRow extends StatelessWidget {
           // Icon + App Name
           Row(
             children: [
-              if (app.iconPath.isNotEmpty)
-                Image.file(
-                  File(app.iconPath),
-                  width: 24,
-                  height: 24,
-                  fit: BoxFit.cover,
-                )
-              else
-                Icon(Icons.apps, size: 24, color: AppColors.gray6),
+              buildAppIcon(app),
               const SizedBox(width: 12),
               Text(
                 app.name.replaceAll(".app", ""),

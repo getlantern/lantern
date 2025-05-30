@@ -43,12 +43,12 @@ class LanternService implements LanternCoreService {
 
   @override
   Stream<List<AppData>> appsDataStream() async* {
-    if (!PlatformUtils.isDesktop) {
-      throw UnimplementedError();
+    if (PlatformUtils.isDesktop) {
+      yield* _ffiService.appsDataStream();
+    } else {
+      yield* _platformService.appsDataStream();
     }
-    yield* _ffiService.appsDataStream();
   }
-
 
   @override
   Future<void> init() {
@@ -76,22 +76,10 @@ class LanternService implements LanternCoreService {
 
   @override
   Future<Either<Failure, Unit>> isVPNConnected() {
-    if(PlatformUtils.isDesktop){
+    if (PlatformUtils.isDesktop) {
       return _ffiService.isVPNConnected();
     }
     return _platformService.isVPNConnected();
-  }
-
-  @override
-  Future<Either<Failure, Unit>> cancelSubscription() {
-    // TODO: implement cancelSubscription
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Either<Failure, Unit>> makeOneTimePayment({required String planID}) {
-    // TODO: implement makeOneTimePayment
-    throw UnimplementedError();
   }
 
   @override
@@ -112,22 +100,26 @@ class LanternService implements LanternCoreService {
 
   @override
   Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
-      {required StipeSubscriptionType type, required String planId}) {
+      {required StipeSubscriptionType type,
+      required String planId,
+      required String email}) {
     if (PlatformUtils.isDesktop) {
       return _ffiService.stipeSubscriptionPaymentRedirect(
-          type: type, planId: planId);
+        type: type,
+        planId: planId,
+        email: email,
+      );
     }
-    return _platformService.stipeSubscriptionPaymentRedirect(
-        type: type, planId: planId);
+    return throw UnimplementedError();
   }
 
   @override
   Future<Either<Failure, Map<String, dynamic>>> stipeSubscription(
-      {required String planId}) {
+      {required String planId, required String email}) {
     if (PlatformUtils.isDesktop) {
       throw UnimplementedError();
     }
-    return _platformService.stipeSubscription(planId: planId);
+    return _platformService.stipeSubscription(planId: planId, email: email);
   }
 
   @override
@@ -136,7 +128,7 @@ class LanternService implements LanternCoreService {
     if (PlatformUtils.isDesktop) {
       return _ffiService.addSplitTunnelItem(type, value);
     }
-    throw UnimplementedError();
+    return _platformService.addSplitTunnelItem(type, value);
   }
 
   @override
@@ -145,7 +137,7 @@ class LanternService implements LanternCoreService {
     if (PlatformUtils.isDesktop) {
       return _ffiService.removeSplitTunnelItem(type, value);
     }
-    throw UnimplementedError();
+    return _platformService.removeSplitTunnelItem(type, value);
   }
 
   @override
@@ -165,7 +157,7 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, LoginResponse>> oAuthLoginCallback(String token) {
+  Future<Either<Failure, UserResponse>> oAuthLoginCallback(String token) {
     if (PlatformUtils.isDesktop) {
       return _ffiService.oAuthLoginCallback(token);
     }
@@ -173,10 +165,66 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, LoginResponse>> getUserData() {
+  Future<Either<Failure, UserResponse>> getUserData() {
     if (PlatformUtils.isDesktop) {
       return _ffiService.getUserData();
     }
     return _platformService.getUserData();
+  }
+
+  @override
+  Future<Either<Failure, String>> stripeBillingPortal() {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.stripeBillingPortal();
+    }
+    return _platformService.stripeBillingPortal();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> showManageSubscriptions() {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.showManageSubscriptions();
+    }
+    return _platformService.showManageSubscriptions();
+  }
+
+  @override
+  Future<Either<Failure, UserResponse>> fetchUserData() {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.fetchUserData();
+    }
+    return _platformService.fetchUserData();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> acknowledgeInAppPurchase(
+      {required String purchaseToken, required String planId}) {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.acknowledgeInAppPurchase(
+          purchaseToken: purchaseToken, planId: planId);
+    }
+    return _platformService.acknowledgeInAppPurchase(
+        purchaseToken: purchaseToken, planId: planId);
+  }
+
+  @override
+  Future<Either<Failure, UserResponse>> logout(String email) {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.logout(email);
+    }
+    return _platformService.logout(email);
+  }
+
+  @override
+  Future<Either<Failure, String>> paymentRedirect(
+      {required String provider,
+      required String planId,
+      required String email}) {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.paymentRedirect(
+          provider: provider, planId: planId, email: email);
+    }
+    return _platformService.paymentRedirect(
+        provider: provider, planId: planId, email: email);
   }
 }

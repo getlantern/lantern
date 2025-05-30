@@ -1,13 +1,16 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:fpdart/src/either.dart';
 import 'package:fpdart/src/unit.dart';
+import 'package:installed_apps/installed_apps.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/mapper/plan_mapper.dart';
 import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/services/app_purchase.dart';
+import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 
@@ -46,9 +49,7 @@ class LanternPlatformService implements LanternCoreService {
           localizedErrorMessage: ple.localizedDescription));
     } catch (e, stackTrace) {
       appLogger.error('Error starting VPN Flutter', e, stackTrace);
-      return Left(Failure(
-          error: e.toString(),
-          localizedErrorMessage: (e as Exception).localizedDescription));
+      return Left(e.toFailure());
     }
   }
 
@@ -58,13 +59,9 @@ class LanternPlatformService implements LanternCoreService {
       final message = await _methodChannel.invokeMethod<String>('stopVPN');
       return Right('VPN stopped');
     } on PlatformException catch (ple) {
-      return Left(Failure(
-          error: ple.toString(),
-          localizedErrorMessage: ple.localizedDescription));
-    } catch (e, stackTrace) {
-      return Left(Failure(
-          error: e.toString(),
-          localizedErrorMessage: (e as Exception).localizedDescription));
+      return Left(ple.toFailure());
+    } catch (e) {
+      return Left(e.toFailure());
     }
   }
 
@@ -80,25 +77,61 @@ class LanternPlatformService implements LanternCoreService {
         .map((event) => (event as List).map((e) => e as String).toList());
   }
 
-  Stream<List<AppData>> appsDataStream() async* {
-    throw UnimplementedError();
-  }
-
   @override
-  Stream<List<String>> logsStream() async* {
-    throw UnimplementedError();
+  Stream<List<AppData>> appsDataStream() async* {
+    if (!Platform.isAndroid) {
+      throw UnimplementedError();
+    }
+    try {
+      final apps = await InstalledApps.getInstalledApps(true, true);
+      final LocalStorageService db = sl<LocalStorageService>();
+      final savedApps = db.getAllApps();
+      final enabledAppNames = savedApps
+          .where((app) => app.isEnabled)
+          .map((app) => app.name)
+          .toSet();
+      yield apps.map((appInfo) {
+        final isEnabled = enabledAppNames.contains(appInfo.name);
+        return AppData(
+          name: appInfo.name,
+          bundleId: appInfo.packageName,
+          iconBytes: appInfo.icon,
+          appPath: '',
+          isEnabled: isEnabled,
+        );
+      }).toList();
+    } catch (e, st) {
+      appLogger.error("Failed to fetch installed apps", e, st);
+      yield [];
+    }
   }
 
   @override
   Future<Either<Failure, Unit>> addSplitTunnelItem(
-      SplitTunnelFilterType type, String value) {
-    throw UnimplementedError();
+      SplitTunnelFilterType type, String value) async {
+    try {
+      await _methodChannel.invokeMethod('addSplitTunnelItem', {
+        'filterType': type.value,
+        'value': value,
+      });
+      return right(unit);
+    } catch (e) {
+      return Left(e.toFailure());
+    }
   }
 
   @override
   Future<Either<Failure, Unit>> removeSplitTunnelItem(
-      SplitTunnelFilterType type, String value) {
-    throw UnimplementedError();
+      SplitTunnelFilterType type, String value) async {
+    try {
+      await _methodChannel.invokeMethod('removeSplitTunnelItem', {
+        'filterType': type.value,
+        'value': value,
+      });
+      return right(unit);
+    } catch (e) {
+      return Left(e.toFailure());
+    }
   }
 
   @override
@@ -108,22 +141,8 @@ class LanternPlatformService implements LanternCoreService {
       return Right(unit);
     } catch (e, stackTrace) {
       appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
-      return Left(Failure(
-          error: e.toString(),
-          localizedErrorMessage: (e as Exception).localizedDescription));
+      return Left(e.toFailure());
     }
-  }
-
-  @override
-  Future<Either<Failure, Unit>> cancelSubscription() {
-    // TODO: implement cancelSubscription
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Either<Failure, Unit>> makeOneTimePayment({required String planID}) {
-    // TODO: implement makeOneTimePayment
-    throw UnimplementedError();
   }
 
   @override
@@ -139,25 +158,30 @@ class LanternPlatformService implements LanternCoreService {
       );
       return Right(unit);
     } catch (e) {
-      return Left(Failure(
-        error: e.toString(),
-        localizedErrorMessage: e.localizedDescription,
-      ));
+      return Left(e.toFailure());
     }
   }
 
   @override
   Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
-      {required StipeSubscriptionType type, required String planId}) async {
+      {required StipeSubscriptionType type,
+      required String planId,
+      required String email}) async {
+    throw UnimplementedError("This not supported on mobile");
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> stipeSubscription(
+      {required String planId, required String email}) async {
     try {
-      final link = await _methodChannel
-          .invokeMethod<String>('subscriptionPaymentRedirect', {
-        "subType": type.name,
+      final subData =
+          await _methodChannel.invokeMethod<String>('stripeSubscription', {
         "planId": planId,
+        "email": email,
       });
-      return Right(link!);
+      final map = jsonDecode(subData!);
+      return Right(map);
     } catch (e, stackTrace) {
-      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
       return Left(Failure(
           error: e.toString(),
           localizedErrorMessage: (e as Exception).localizedDescription));
@@ -165,18 +189,13 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Map<String, dynamic>>> stipeSubscription(
-      {required String planId}) async {
+  Future<Either<Failure, String>> stripeBillingPortal() async {
     try {
-      final subData =
-          await _methodChannel.invokeMethod<String>('stripeSubscription');
-      final map = jsonDecode(subData!);
-      return Right(map);
+      final url =
+          await _methodChannel.invokeMethod<String>('stripeBillingPortal');
+      return Right(url!);
     } catch (e, stackTrace) {
-      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
-      return Left(Failure(
-          error: e.toString(),
-          localizedErrorMessage: (e as Exception).localizedDescription));
+      return Left(e.toFailure());
     }
   }
 
@@ -190,7 +209,7 @@ class LanternPlatformService implements LanternCoreService {
       appLogger.info('Plans: $map');
       return Right(plans);
     } catch (e, stackTrace) {
-      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      appLogger.error('Error fetching plans', e, stackTrace);
       return Left(Failure(
           error: e.toString(),
           localizedErrorMessage: (e as Exception).localizedDescription));
@@ -204,7 +223,6 @@ class LanternPlatformService implements LanternCoreService {
           await _methodChannel.invokeMethod<String>('oauthLoginUrl', provider);
       return Right(loginUrl!);
     } catch (e, stackTrace) {
-      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
       return Left(Failure(
           error: e.toString(),
           localizedErrorMessage: (e as Exception).localizedDescription));
@@ -212,14 +230,12 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, LoginResponse>> oAuthLoginCallback(
-      String token) async {
+  Future<Either<Failure, UserResponse>> oAuthLoginCallback(String token) async {
     try {
       final bytes =
           await _methodChannel.invokeMethod('oauthLoginCallback', token);
-      return Right(LoginResponse.fromBuffer(bytes));
+      return Right(UserResponse.fromBuffer(bytes));
     } catch (e, stackTrace) {
-      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
       return Left(Failure(
           error: e.toString(),
           localizedErrorMessage: (e as Exception).localizedDescription));
@@ -227,13 +243,88 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, LoginResponse>> getUserData() async {
+  Future<Either<Failure, UserResponse>> getUserData() async {
     try {
-      final bytes =
-          await _methodChannel.invokeMethod('getUserData');
-      return Right(LoginResponse.fromBuffer(bytes));
+      final bytes = await _methodChannel.invokeMethod('getUserData');
+      return Right(UserResponse.fromBuffer(bytes));
     } catch (e, stackTrace) {
-      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      appLogger.error('Error fetching user data', e, stackTrace);
+      return Left(Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription));
+    }
+  }
+
+  // Only supported in IOS
+  @override
+  Future<Either<Failure, Unit>> showManageSubscriptions() async {
+    try {
+      await _methodChannel.invokeMethod('showManageSubscriptions');
+      return Right(unit);
+    } catch (e, stackTrace) {
+      return Left(Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription));
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserResponse>> fetchUserData() async {
+    try {
+      final userBytes = await _methodChannel.invokeMethod('fetchUserData');
+      return Right(UserResponse.fromBuffer(userBytes));
+    } catch (e, stackTrace) {
+      appLogger.error("error fetching user data", e, stackTrace);
+      return Left(Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> acknowledgeInAppPurchase(
+      {required String purchaseToken, required String planId}) async {
+    try {
+      await _methodChannel.invokeMethod('acknowledgeInAppPurchase', {
+        'purchaseToken': purchaseToken,
+        'planId': planId,
+      });
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error acknowledging in-app purchase', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserResponse>> logout(String email) async {
+    try {
+      final bytes = await _methodChannel.invokeMethod('logout', email);
+      return Right(UserResponse.fromBuffer(bytes));
+    } catch (e, stackTrace) {
+      appLogger.error('Error logging out', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> paymentRedirect(
+      {required String provider,
+      required String planId,
+      required String email}) async {
+    if (PlatformUtils.isIOS) {
+      throw UnimplementedError("This not supported on IOS");
+    }
+    try {
+      final redirectUrl =
+          await _methodChannel.invokeMethod<String>('paymentRedirect', {
+        'provider': provider,
+        'planId': planId,
+        'email': email,
+      });
+      return Right(redirectUrl!);
+    } catch (e, stackTrace) {
+      appLogger.error('Error getting payment redirect URL', e, stackTrace);
       return Left(Failure(
           error: e.toString(),
           localizedErrorMessage: (e as Exception).localizedDescription));

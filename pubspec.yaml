@@ -2,7 +2,7 @@ name: lantern
 description: Lantern
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -84,8 +84,6 @@ dependencies:
   url_launcher: ^6.3.1
   # share
   share_plus: ^10.1.4
-  # preferences 
-  shared_preferences: ^2.5.2
   #native
   sentry_flutter: 9.0.0-alpha.2
   # Deeplink handling
@@ -96,6 +94,10 @@ dependencies:
   win32_registry: ^1.1.5
   # Utils
   fpdart: ^1.1.1
+  jwt_decoder: ^2.0.1
+
+  installed_apps: ^1.6.0
+
   flutter_inappwebview: ^6.1.5
   desktop_webview_window: ^0.2.3
   store_checker: ^1.8.0
@@ -104,6 +106,10 @@ dependencies:
   flutter_stripe: ^11.5.0
   # protobuf
   protobuf: ^4.0.0
+  flutter_local_notifications: ^19.2.0
+  timezone: ^0.10.1
+  flutter_timezone: ^4.1.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -123,7 +129,6 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
@@ -135,7 +140,6 @@ flutter:
     - assets/locales/
     - app.env
 
-
 objectbox:
   output_dir: core/services/db
   # Or optionally specify the lib and test output folder separately.
@@ -143,10 +147,11 @@ objectbox:
   #   lib: custom
   #   test: other
 
-
 ffigen:
-  name: 'LanternBindings'
+  name: "LanternBindings"
   output: "lib/lantern/lantern_generated_bindings.dart"
   headers:
     entry-points:
       - "bin/**/liblantern.h"
+      - "bin/windows-amd64/liblantern.h"
+      - "bin/windows-arm64/liblantern.h"

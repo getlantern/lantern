@@ -22,7 +22,39 @@ class Plans extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final plansState = ref.watch(plansNotifierProvider);
+    final size = MediaQuery.of(context).size;
     final textTheme = Theme.of(context).textTheme;
+
+    void onMenuTap() {
+      showAppBottomSheet(
+        context: context,
+        title: 'payment_options'.i18n,
+        scrollControlDisabledMaxHeightRatio: context.isSmallDevice ? 0.4 : 0.3,
+        builder: (context, scrollController) {
+          return ListView(
+            shrinkWrap: true,
+            padding: EdgeInsets.zero,
+            controller: scrollController,
+            children: [
+              AppTile(
+                icon: AppImagePaths.keypad,
+                label: 'Enter an Activation Code',
+                onPressed: () {
+                  appRouter
+                      .popAndPush(AddEmail(authFlow: AuthFlow.activationCode));
+                },
+              ),
+              DividerSpace(),
+              AppTile(
+                icon: AppImagePaths.restorePurchase,
+                label: 'Restore purchase',
+              )
+            ],
+          );
+        },
+      );
+    }
 
     void nonStoreFlow() {
       if (PlatformUtils.isIOS) {
@@ -37,6 +69,30 @@ class Plans extends HookConsumerWidget {
           .push(AddEmail(authFlow: AuthFlow.signUp, appFlow: AppFlow.store));
     }
 
+    Future<void> acknowledgeInAppPurchase(
+        String purchaseToken, String planId) async {
+      context.showLoadingDialog();
+      final result = await ref
+          .read(paymentNotifierProvider.notifier)
+          .acknowledgeInAppPurchase(
+            purchaseToken: purchaseToken,
+            planId: planId,
+          );
+      result.fold(
+        (error) {
+          context.hideLoadingDialog();
+          context.showSnackBarError(error.localizedErrorMessage);
+          appLogger.error('Error acknowledging purchase: $error');
+        },
+        (success) {
+          // Handle success
+          appLogger.info('Successfully acknowledged purchase');
+          context.hideLoadingDialog();
+          storeFlow();
+        },
+      );
+    }
+
     Future<void> startInAppPurchaseFlow(Plan plan) async {
       context.showLoadingDialog();
       final paymentProvider = ref.read(paymentNotifierProvider.notifier);
@@ -44,9 +100,9 @@ class Plans extends HookConsumerWidget {
         planId: plan.id,
         onSuccess: (purchase) {
           /// Subscription successful
-          //todo call api to acknowledge the purchase
           context.hideLoadingDialog();
-          storeFlow();
+          acknowledgeInAppPurchase(
+              purchase.verificationData.serverVerificationData, plan.id);
         },
         onError: (error) {
           ///Error while subscribing
@@ -89,10 +145,34 @@ class Plans extends HookConsumerWidget {
       }
     }
 
-    Widget _buildBody() {
-      final plansState = ref.watch(plansNotifierProvider);
-      final size = MediaQuery.of(context).size;
-      return Column(
+    return BaseScreen(
+      backgroundColor: AppColors.white,
+      padded: false,
+      appBar: CustomAppBar(
+        title: "",
+        titleWidget: SizedBox(
+          height: 20.h,
+          child: LanternLogo(
+            color: AppColors.gray9,
+            isPro: true,
+          ),
+        ),
+        backgroundColor: AppColors.white,
+        leading: IconButton(
+          icon: Icon(Icons.close),
+          onPressed: () {
+            context.router.maybePop();
+          },
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.more_vert),
+            onPressed: onMenuTap,
+          ),
+        ],
+      ),
+      title: "",
+      body: Column(
         children: [
           SizedBox(height: defaultSize),
           Padding(
@@ -174,67 +254,7 @@ class Plans extends HookConsumerWidget {
             ),
           ),
         ],
-      );
-    }
-
-    void onMenuTap() {
-      showAppBottomSheet(
-        context: context,
-        title: 'payment_options'.i18n,
-        scrollControlDisabledMaxHeightRatio: context.isSmallDevice ? 0.4 : 0.3,
-        builder: (context, scrollController) {
-          return ListView(
-            shrinkWrap: true,
-            padding: EdgeInsets.zero,
-            controller: scrollController,
-            children: [
-              AppTile(
-                icon: AppImagePaths.keypad,
-                label: 'Enter an Activation Code',
-                onPressed: () {
-                  appRouter
-                      .popAndPush(AddEmail(authFlow: AuthFlow.activationCode));
-                },
-              ),
-              DividerSpace(),
-              AppTile(
-                icon: AppImagePaths.restorePurchase,
-                label: 'Restore purchase',
-              )
-            ],
-          );
-        },
-      );
-    }
-
-    return BaseScreen(
-      backgroundColor: AppColors.white,
-      padded: false,
-      appBar: CustomAppBar(
-        title: "",
-        titleWidget: SizedBox(
-          height: 20.h,
-          child: LanternLogo(
-            color: AppColors.gray9,
-            isPro: true,
-          ),
-        ),
-        backgroundColor: AppColors.white,
-        leading: IconButton(
-          icon: Icon(Icons.close),
-          onPressed: () {
-            context.router.maybePop();
-          },
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.more_vert),
-            onPressed: onMenuTap,
-          ),
-        ],
       ),
-      title: "",
-      body: _buildBody(),
     );
   }
 }

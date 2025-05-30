@@ -33,9 +33,9 @@ class SplitTunnelingWebsites extends _$SplitTunnelingWebsites {
 
       result.match(
         (failure) => appLogger.error('Failed to add domain: ${failure.error}'),
-        (_) {
+        (_) async {
           state = {...state, website};
-          _db.saveWebsites(state);
+          await _db.saveWebsites(state);
         },
       );
     }
@@ -51,9 +51,9 @@ class SplitTunnelingWebsites extends _$SplitTunnelingWebsites {
 
     result.match(
       (failure) => appLogger.error('Failed to remove domain: ${failure.error}'),
-      (_) {
+      (_) async {
         state = state.where((a) => a.domain != website.domain).toSet();
-        _db.saveWebsites(state);
+        await _db.saveWebsites(state);
       },
     );
   }

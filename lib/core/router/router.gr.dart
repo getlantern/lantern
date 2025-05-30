@@ -442,13 +442,10 @@ class FollowUsArgs {
 
 /// generated route for
 /// [_i12.Home]
-class Home extends _i29.PageRouteInfo<HomeArgs> {
-  Home({
-    _i30.Key? key,
-    List<_i29.PageRouteInfo>? children,
-  }) : super(
+class Home extends _i29.PageRouteInfo<void> {
+  const Home({List<_i29.PageRouteInfo>? children})
+      : super(
           Home.name,
-          args: HomeArgs(key: key),
           initialChildren: children,
         );
 
@@ -457,21 +454,9 @@ class Home extends _i29.PageRouteInfo<HomeArgs> {
   static _i29.PageInfo page = _i29.PageInfo(
     name,
     builder: (data) {
-      final args = data.argsAs<HomeArgs>(orElse: () => const HomeArgs());
-      return _i12.Home(key: args.key);
+      return const _i12.Home();
     },
   );
-}
-
-class HomeArgs {
-  const HomeArgs({this.key});
-
-  final _i30.Key? key;
-
-  @override
-  String toString() {
-    return 'HomeArgs{key: $key}';
-  }
 }
 
 /// generated route for
@@ -683,13 +668,10 @@ class ServerSelection extends _i29.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i21.Setting]
-class Setting extends _i29.PageRouteInfo<SettingArgs> {
-  Setting({
-    _i30.Key? key,
-    List<_i29.PageRouteInfo>? children,
-  }) : super(
+class Setting extends _i29.PageRouteInfo<void> {
+  const Setting({List<_i29.PageRouteInfo>? children})
+      : super(
           Setting.name,
-          args: SettingArgs(key: key),
           initialChildren: children,
         );
 
@@ -698,21 +680,9 @@ class Setting extends _i29.PageRouteInfo<SettingArgs> {
   static _i29.PageInfo page = _i29.PageInfo(
     name,
     builder: (data) {
-      final args = data.argsAs<SettingArgs>(orElse: () => const SettingArgs());
-      return _i21.Setting(key: args.key);
+      return const _i21.Setting();
     },
   );
-}
-
-class SettingArgs {
-  const SettingArgs({this.key});
-
-  final _i30.Key? key;
-
-  @override
-  String toString() {
-    return 'SettingArgs{key: $key}';
-  }
 }
 
 /// generated route for

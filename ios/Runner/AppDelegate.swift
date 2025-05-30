@@ -2,6 +2,7 @@ import Flutter
 import Liblantern
 import NetworkExtension
 import UIKit
+import flutter_local_notifications
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -22,6 +23,9 @@ import UIKit
     // Register Flutter plugins
     GeneratedPluginRegistrant.register(with: self)
 
+    // Configure Flutter local notifications
+    notificationSetup()
+
     // Register event handlers
     registerEventHandlers()
 
@@ -31,8 +35,8 @@ import UIKit
     // Initialize directories and working paths
     setupFileSystem()
 
-    // set api handler
-    setupAPIHandler()
+    // set radiance
+    setupRadiance()
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
@@ -75,8 +79,23 @@ import UIKit
 
   }
 
+  /// Configures the Flutter local notifications plugin with the background isolate
+  ///
+  /// Reference:
+  /// https://github.com/MaikuB/flutter_local_notifications/blob/master/flutter_local_notifications/example/ios/Runner/AppDelegate.swift
+  private func notificationSetup() {
+    FlutterLocalNotificationsPlugin.setPluginRegistrantCallback { (registry) in
+      GeneratedPluginRegistrant.register(with: registry)
+    }
+
+    // Set UNUserNotificationCenter delegate to handle foreground notifications
+    if #available(iOS 10.0, *) {
+      UNUserNotificationCenter.current().delegate = self as UNUserNotificationCenterDelegate
+    }
+  }
+
   /// Calls API handler setup
-  private func setupAPIHandler() {
+  private func setupRadiance() {
     Task {
       // Set up the base directory and options
       let baseDir = FilePath.workingDirectory.relativePath
@@ -85,7 +104,7 @@ import UIKit
       opts.deviceid = DeviceIdentifier.getUDID()
       opts.locale = Locale.current.identifier
       var error: NSError?
-      await MobileNewAPIHandler(opts, &error)
+      await MobileSetupRadiance(opts, &error)
       // Handle any error returned by the setup
       if let error {
         appLogger.error("Error while setting up radiance: \(error)")

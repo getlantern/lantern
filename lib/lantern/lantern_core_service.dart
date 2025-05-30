@@ -23,26 +23,39 @@ abstract class LanternCoreService {
 
   ///Payments methods
   Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
-      {required StipeSubscriptionType type, required String planId});
+      {required StipeSubscriptionType type,
+      required String planId,
+      required String email});
 
-  /// this is used for stripe subscription
+  Future<Either<Failure, String>> paymentRedirect({
+    required String provider,
+    required String planId,
+    required String email,
+  });
+
+  // this is used for stripe subscription
   Future<Either<Failure, Map<String, dynamic>>> stipeSubscription(
-      {required String planId});
+      {required String planId, required String email});
 
-  /// this is used for google and apple subscription
+  Future<Either<Failure, String>> stripeBillingPortal();
+
+  // this is used for google and apple subscription
   Future<Either<Failure, Unit>> startInAppPurchaseFlow({
     required String planId,
     required PaymentSuccessCallback onSuccess,
     required PaymentErrorCallback onError,
   });
 
+  Future<Either<Failure, Unit>> acknowledgeInAppPurchase({
+    required String purchaseToken,
+    required String planId,
+  });
+
+  Future<Either<Failure, Unit>> showManageSubscriptions();
+
   Future<Either<Failure, PlansData>> plans();
 
-  Future<Either<Failure, Unit>> cancelSubscription();
-
-  Future<Either<Failure, Unit>> makeOneTimePayment({required String planID});
-
-  // Spilt tunnel methods
+  /// Spilt tunnel methods
   Future<Either<Failure, Unit>> addSplitTunnelItem(
       SplitTunnelFilterType type, String value);
 
@@ -51,11 +64,15 @@ abstract class LanternCoreService {
 
   Stream<List<AppData>> appsDataStream();
 
-  //OAuth methods
+  ///OAuth methods
   Future<Either<Failure, String>> getOAuthLoginUrl(String provider);
 
-  Future<Either<Failure, LoginResponse>> oAuthLoginCallback(String token);
+  Future<Either<Failure, UserResponse>> oAuthLoginCallback(String token);
 
-  Future<Either<Failure, LoginResponse>> getUserData();
+  Future<Either<Failure, UserResponse>> getUserData();
 
+  Future<Either<Failure, UserResponse>> fetchUserData();
+
+  //User management methods
+  Future<Either<Failure, UserResponse>> logout(String email);
 }

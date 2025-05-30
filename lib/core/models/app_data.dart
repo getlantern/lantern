@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:objectbox/objectbox.dart';
 
 @Entity()
@@ -5,6 +7,7 @@ class AppData {
   int id;
   String name;
   String bundleId;
+  Uint8List? iconBytes;
   String iconPath;
   String appPath;
   bool isEnabled;
@@ -13,9 +16,10 @@ class AppData {
     this.id = 0,
     required this.name,
     required this.bundleId,
-    required this.iconPath,
-    required this.appPath,
-    required this.isEnabled,
+    this.iconBytes,
+    this.iconPath = '',
+    this.appPath = '',
+    this.isEnabled = false,
   });
 
   AppData copyWith({
@@ -23,6 +27,7 @@ class AppData {
     String? name,
     String? bundleId,
     String? iconPath,
+    Uint8List? iconBytes,
     String? appPath,
     bool? isEnabled,
   }) {
@@ -31,6 +36,7 @@ class AppData {
       name: name ?? this.name,
       bundleId: bundleId ?? this.bundleId,
       iconPath: iconPath ?? this.iconPath,
+      iconBytes: iconBytes ?? this.iconBytes,
       appPath: appPath ?? this.appPath,
       isEnabled: isEnabled ?? this.isEnabled,
     );

@@ -6,6 +6,7 @@ import 'package:lantern/core/preferences/app_preferences.dart';
 import 'package:lantern/core/widgets/split_tunneling_tile.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 
 @RoutePage(name: 'VPNSetting')
 class VPNSetting extends HookConsumerWidget {
@@ -24,24 +25,25 @@ class VPNSetting extends HookConsumerWidget {
     final homeState = ref.watch(homeNotifierProvider);
     final isUserPro =
         homeState.valueOrNull?.legacyUserData.userStatus == 'pro' ?? false;
-    final preferences = ref.watch(appPreferencesProvider).value;
-    final splitTunnelingEnabled =
-        preferences?[Preferences.splitTunnelingEnabled] ?? false;
-    final blockAds = preferences?[Preferences.blockAds] ?? false;
 
+    final preferences = ref.watch(appSettingNotifierProvider);
+    final notifier = ref.watch(appSettingNotifierProvider.notifier);
+    final splitTunnelingEnabled = preferences.isSplitTunnelingOn;
     return Card(
       child: ListView(
         padding: const EdgeInsets.all(0),
         shrinkWrap: true,
         children: <Widget>[
-          SplitTunnelingTile(
-            label: 'split_tunneling'.i18n,
-            icon: AppImagePaths.callSpilt,
-            actionText:
-                splitTunnelingEnabled ? 'enabled'.i18n : 'disabled'.i18n,
-            onPressed: () => appRouter.push(const SplitTunneling()),
-          ),
-          DividerSpace(),
+          if (PlatformUtils.isAndroid) ...{
+            SplitTunnelingTile(
+              label: 'split_tunneling'.i18n,
+              icon: AppImagePaths.callSpilt,
+              actionText:
+                  splitTunnelingEnabled ? 'enabled'.i18n : 'disabled'.i18n,
+              onPressed: () => appRouter.push(const SplitTunneling()),
+            ),
+            DividerSpace()
+          },
           AppTile(
             label: 'server_locations'.i18n,
             icon: AppImagePaths.location,
@@ -57,16 +59,14 @@ class VPNSetting extends HookConsumerWidget {
             ),
             icon: AppImagePaths.blockAds,
             trailing: SwitchButton(
-              value: blockAds,
+              value: preferences.blockAds,
               onChanged: (bool? value) {
                 if (!isUserPro) {
                   appRouter.pushNamed('/plans-bottom');
                   return;
                 }
                 var newValue = value ?? false;
-                ref
-                    .read(appPreferencesProvider.notifier)
-                    .setPreference(Preferences.blockAds, newValue);
+                notifier.setBlockAds(newValue);
               },
             ),
             onPressed: () {},

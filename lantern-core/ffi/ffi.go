@@ -63,6 +63,7 @@ type lanternService struct {
 	*radiance.Radiance
 	proServer          *api.Pro
 	authClient         *api.User
+	vpnClient          client.VPNClient
 	servicesMap        map[service]int64
 	dataDir            string
 	splitTunnelHandler *client.SplitTunnel
@@ -97,12 +98,10 @@ func setup(_logDir, _dataDir, _locale *C.char, logPort, appsPort, statusPort C.i
 		dataDir := C.GoString(_dataDir)
 		locale := C.GoString(_locale)
 
-		opts := client.Options{
-			DataDir:              dataDir,
-			LogDir:               logDir,
-			EnableSplitTunneling: enableSplitTunneling(),
-			PlatIfce:             nil,
-			Locale:               locale,
+		opts := radiance.Options{
+			DataDir: dataDir,
+			LogDir:  logDir,
+			Locale:  locale,
 		}
 		r, err := radiance.NewRadiance(opts)
 		if err != nil {
@@ -113,27 +112,29 @@ func setup(_logDir, _dataDir, _locale *C.char, logPort, appsPort, statusPort C.i
 		// init app cache in background
 		go apps.LoadInstalledApps(dataDir, sendApps(int64(appsPort)))
 
-		apiHandler, err := radiance.NewAPIHandler(opts)
+		vpn, err := client.NewVPNClient(opts.DataDir, opts.LogDir, nil, enableSplitTunneling())
 		if err != nil {
 			outError = log.Errorf("unable to create API handler: %v", err)
 		}
 		server = &lanternService{
 			Radiance:   r,
-			proServer:  apiHandler.ProServer,
-			authClient: apiHandler.User,
+			proServer:  r.APIHandler().ProServer,
+			authClient: r.APIHandler().User,
+			vpnClient:  vpn,
 			dataDir:    dataDir,
 			servicesMap: map[service]int64{
 				logsService:   int64(logPort),
 				appsService:   int64(appsPort),
 				statusService: int64(statusPort),
 			},
-			splitTunnelHandler: r.SplitTunnelHandler(),
+			splitTunnelHandler: vpn.SplitTunnelHandler(),
 			userInfo:           r.UserInfo(),
 		}
 
 		if server.userInfo.LegacyID() == 0 {
 			createUser()
 		}
+		fetchUserData()
 
 	})
 	if outError != nil {
@@ -197,7 +198,7 @@ func startVPN() *C.char {
 
 	server.sendStatusToPort(Connecting)
 
-	if err := server.StartVPN(); err != nil {
+	if err := server.vpnClient.StartVPN(); err != nil {
 		err = fmt.Errorf("unable to start vpn server: %v", err)
 		server.sendStatusToPort(Disconnected)
 		return C.CString(err.Error())
@@ -224,7 +225,7 @@ func stopVPN() *C.char {
 
 	server.sendStatusToPort(Disconnecting)
 
-	if err := server.StopVPN(); err != nil {
+	if err := server.vpnClient.StopVPN(); err != nil {
 		err = fmt.Errorf("unable to stop vpn server: %v", err)
 		server.sendStatusToPort(Connected)
 		return C.CString(err.Error())
@@ -254,31 +255,32 @@ func (s *lanternService) sendStatusToPort(status VPNStatus) {
 // isVPNConnected checks if the VPN server is running and connected.
 //
 //export isVPNConnected
-func isVPNConnected() int {
+func isVPNConnected() *C.char {
 	mu.Lock()
 	defer mu.Unlock()
-
 	if server == nil {
-		return 0
+		return SendError(fmt.Errorf("radiance not initialized"))
 	}
-
-	connected := server.ConnectionStatus()
+	connected := server.vpnClient.ConnectionStatus()
 	if connected {
-		return 1
+		server.sendStatusToPort(Connected)
+	} else {
+		server.sendStatusToPort(Disconnected)
 	}
-	return 0
+	return C.CString("ok")
 }
 
 //APIS
 
-func createUser() error {
+func createUser() (*protos.UserDataResponse, error) {
 	log.Debug("Creating user")
 	user, err := server.proServer.UserCreate(context.Background())
 	log.Debugf("UserCreate response: %v", user)
 	if err != nil {
-		return log.Errorf("Error creating user: %v", err)
+		return nil, log.Errorf("Error creating user: %v", err)
 	}
-	return nil
+
+	return user, nil
 }
 
 // Get user data from the local config
@@ -299,30 +301,43 @@ func getUserData() *C.char {
 }
 
 // Get user data from the server
-func fetchUserData() (*protos.UserDataResponse, error) {
+//
+//export fetchUserData
+func fetchUserData() *C.char {
 	log.Debug("Getting user data")
 	user, err := server.proServer.UserData(context.Background())
 	if err != nil {
-		return nil, log.Errorf("Error getting user data: %v", err)
+		return SendError(fmt.Errorf("error getting user data: %v", err))
+	}
+	//Convert user to UserResponse
+	userResponse := &protos.LoginResponse{
+		LegacyID:       user.UserId,
+		LegacyToken:    user.Token,
+		LegacyUserData: user.LoginResponse_UserData,
 	}
 	log.Debugf("UserData response: %v", user)
-	return user, nil
+	bytes, err := proto.Marshal(userResponse)
+	if err != nil {
+		return SendError(log.Errorf("Error marshalling user data: %v", err))
+	}
+	encoded := base64.StdEncoding.EncodeToString(bytes)
+	return C.CString(encoded)
 }
 
 // Fetch stipe subscription payment redirect link
 //
 //export stripeSubscriptionPaymentRedirect
-func stripeSubscriptionPaymentRedirect(subType *C.char) *C.char {
+func stripeSubscriptionPaymentRedirect(subType, _planId, _email *C.char) *C.char {
 	slog.Debug("stripeSubscriptionPaymentRedirect called")
 	subscriptionType := C.GoString(subType)
-
+	planId := C.GoString(_planId)
+	email := C.GoString(_email)
 	log.Debugf("subscription type: %s", subscriptionType)
-
 	redirectBody := &protos.SubscriptionPaymentRedirectRequest{
 		Provider:         "stripe",
-		Plan:             "1y-usd",
-		DeviceName:       "test",
-		Email:            "test@getlantern.org",
+		Plan:             planId,
+		DeviceName:       server.userInfo.DeviceID(),
+		Email:            email,
 		SubscriptionType: protos.SubscriptionType(subscriptionType),
 	}
 
@@ -334,12 +349,47 @@ func stripeSubscriptionPaymentRedirect(subType *C.char) *C.char {
 	return C.CString(*redirect)
 }
 
+// Fetch payment redirect link for providers like alipay
+//
+//export paymentRedirect
+func paymentRedirect(_plan, _provider, _email *C.char) *C.char {
+	plan := C.GoString(_plan)
+	provider := C.GoString(_provider)
+	email := C.GoString(_email)
+	deviceName := server.userInfo.DeviceID()
+
+	body := &protos.PaymentRedirectRequest{
+		Plan:       plan,
+		Provider:   provider,
+		Email:      email,
+		DeviceName: deviceName,
+	}
+	redirect, err := server.proServer.PaymentRedirect(context.Background(), body)
+	if err != nil {
+		return SendError(err)
+	}
+	log.Debugf("PaymentRedirect response: %s", redirect.Redirect)
+	return C.CString(redirect.Redirect)
+}
+
+// Fetch stripe subscription link
+//
+//export stripeBillingPortalUrl
+func stripeBillingPortalUrl() *C.char {
+	url, err := server.proServer.StripeBillingPortalUrl()
+	if err != nil {
+		return SendError(err)
+	}
+	log.Debugf("StripeBilingPortalUrl response: %s", url.Redirect)
+	return C.CString(url.Redirect)
+}
+
 // Fetch plans from the server
 //
 //export plans
 func plans() *C.char {
 	log.Debug("Getting plans")
-	plans, err := server.proServer.Plans(context.Background())
+	plans, err := server.proServer.Plans(context.Background(), "non-store")
 	if err != nil {
 		return SendError(err)
 	}
@@ -400,11 +450,12 @@ func oAuthLoginCallback(_oAuthToken *C.char) *C.char {
 	}
 	server.userInfo.Save(login)
 	///Get user data from api this will also save data in user config
-	user, err := fetchUserData()
+	user, err := server.proServer.UserData(context.Background())
+
 	if err != nil {
 		return SendError(log.Errorf("Error getting user data: %v", err))
 	}
-	//Convert user to LoginResponse
+	//Convert user to UserResponse
 	userResponse := &protos.LoginResponse{
 		LegacyID:       user.UserId,
 		LegacyToken:    user.Token,
@@ -412,6 +463,37 @@ func oAuthLoginCallback(_oAuthToken *C.char) *C.char {
 	}
 	log.Debugf("UserData response: %v", user)
 	bytes, err := proto.Marshal(userResponse)
+	if err != nil {
+		return SendError(log.Errorf("Error marshalling user data: %v", err))
+	}
+	encoded := base64.StdEncoding.EncodeToString(bytes)
+	return C.CString(encoded)
+}
+
+// User management
+//
+//export logout
+func logout(_email *C.char) *C.char {
+	email := C.GoString(_email)
+	log.Debug("Logging out")
+	err := server.authClient.Logout(context.Background(), email)
+	if err != nil {
+		return SendError(log.Errorf("Error logging out: %v", err))
+	}
+	log.Debug("Logged out successfully")
+	// Clear user data
+
+	user, err := createUser()
+	if err != nil {
+		return SendError(log.Errorf("Error creating user: %v", err))
+	}
+	login := &protos.LoginResponse{
+		LegacyID:       user.UserId,
+		LegacyToken:    user.Token,
+		LegacyUserData: user.LoginResponse_UserData,
+	}
+	server.userInfo.Save(login)
+	bytes, err := proto.Marshal(login)
 	if err != nil {
 		return SendError(log.Errorf("Error marshalling user data: %v", err))
 	}

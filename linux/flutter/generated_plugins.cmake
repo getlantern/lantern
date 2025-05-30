@@ -4,6 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   desktop_webview_window
+  flutter_timezone
   gtk
   objectbox_flutter_libs
   screen_retriever_linux

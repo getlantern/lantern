@@ -43,6 +43,7 @@ class AppImagePaths {
   static const instagram = 'assets/images/instagram.svg';
   static const x = 'assets/images/x.svg';
   static const close = 'assets/images/close.svg';
+  static const appIcon = 'assets/images/lantern_app_icon.png';
 
   // split tunneling
   static const plus = 'assets/images/plus.svg';
