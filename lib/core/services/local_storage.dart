@@ -66,8 +66,9 @@ class LocalStorageService {
       final error = e.message;
       // only delete if it’s a debug build and the “last index ID" or
       // "does not match existing" errors
-      if (kDebugMode && error.contains("last index ID") ||
-          error.contains("does not match existing")) {
+      if (kDebugMode &&
+          (error.contains("last index ID") ||
+              error.contains("does not match existing"))) {
         dbLogger.warning(
             "ObjectBox schema mismatch detected – wiping old DB…", e);
 
@@ -77,7 +78,7 @@ class LocalStorageService {
           await dir.delete(recursive: true);
         }
 
-        // try again with a clean slate
+        // Retry after wiping the old schema-mismatched DB
         _store = await openStore(
           directory: dbPath,
           macosApplicationGroup: macosApplicationGroup,
