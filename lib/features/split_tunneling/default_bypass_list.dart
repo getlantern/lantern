@@ -37,9 +37,9 @@ class DefaultBypassLists extends HookConsumerWidget {
           children: [
             ...bypassListOptions.map(
               (bypassList) => AppTile(
-                label: '${bypassList.toString()}_bypass_list'.i18n,
+                label: '${bypassList.value}_bypass_list'.i18n,
                 subtitle: Text(
-                  '${bypassList.toString()}_bypass_desc'.i18n,
+                  '${bypassList.value}_bypass_desc'.i18n,
                   style: AppTestStyles.labelMedium.copyWith(
                     color: AppColors.gray7,
                     height: 1.33,
