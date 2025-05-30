@@ -246,7 +246,7 @@ class SplitTunnelingModeTile extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
-                mode.toString(),
+                mode.value,
                 style: AppTestStyles.bodyMedium.copyWith(
                   color: AppColors.black1,
                 ),

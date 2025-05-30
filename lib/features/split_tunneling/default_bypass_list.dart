@@ -46,7 +46,7 @@ class DefaultBypassLists extends HookConsumerWidget {
                   ),
                 ),
                 trailing: Radio<BypassListOption>(
-                  value: BypassListOption.global,
+                  value: bypassList,
                   groupValue: preferences.bypassList,
                   onChanged: (value) => onBypassTap(bypassList),
                 ),
