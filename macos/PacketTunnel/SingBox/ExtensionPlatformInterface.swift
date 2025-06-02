@@ -14,17 +14,18 @@
 import Foundation
 import Liblantern
 import NetworkExtension
+import OSLog
 import UserNotifications
 
 #if os(macOS)
   import CoreWLAN
 #endif
-import OSLog
 
 public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtocol,
   LibboxCommandServerHandlerProtocol
 {
-  let appLogger = Logger(subsystem: "org.getlantern.lantern", category: "ExtensionPlatformInterface")
+  let appLogger = Logger(
+    subsystem: "org.getlantern.lantern", category: "ExtensionPlatformInterface")
   private let tunnel: ExtensionProvider
   private var networkSettings: NEPacketTunnelNetworkSettings?
 
@@ -35,14 +36,14 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
   public func openTun(_ options: LibboxTunOptionsProtocol?, ret0_: UnsafeMutablePointer<Int32>?)
     throws
   {
-      appLogger.info("Opening TUN")
-      runBlocking { [self] in
-          do {
-              try await openTun0(options, ret0_)
-          } catch {
-              appLogger.error("Error opening TUN: \(error)")
-          }
+    appLogger.info("Opening TUN")
+    runBlocking { [self] in
+      do {
+        try await openTun0(options, ret0_)
+      } catch {
+        appLogger.error("Error opening TUN: \(error)")
       }
+    }
   }
 
   private func openTun0(_ options: LibboxTunOptionsProtocol?, _ ret0_: UnsafeMutablePointer<Int32>?)
@@ -63,7 +64,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
     let settings = NEPacketTunnelNetworkSettings(tunnelRemoteAddress: "127.0.0.1")
     if options.getAutoRoute() {
       settings.mtu = NSNumber(value: options.getMTU())
-        
+
       let dnsServer = try options.getDNSServerAddress()
       let dnsSettings = NEDNSSettings(servers: [dnsServer.value])
       dnsSettings.matchDomains = [""]

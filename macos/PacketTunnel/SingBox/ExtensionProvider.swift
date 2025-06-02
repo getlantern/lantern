@@ -24,7 +24,7 @@ import OSLog
 #endif
 
 class ExtensionProvider: NEPacketTunnelProvider {
-    let appLogger = Logger(subsystem: "org.getlantern.lantern", category: "ExtensionProvider")
+  let appLogger = Logger(subsystem: "org.getlantern.lantern", category: "ExtensionProvider")
   private var platformInterface: ExtensionPlatformInterface!
 
   override open func startTunnel(options _: [String: NSObject]?) async throws {
@@ -37,7 +37,7 @@ class ExtensionProvider: NEPacketTunnelProvider {
   }
 
   public func writeFatalError(_ message: String) {
-      appLogger.error("\(String(describing: message))")
+    appLogger.error("\(String(describing: message))")
     var error: NSError?
     LibboxWriteServiceError(message, &error)
     cancelTunnelWithError(nil)
@@ -88,8 +88,8 @@ class ExtensionProvider: NEPacketTunnelProvider {
   }
 
   override open func stopTunnel(with reason: NEProviderStopReason) async {
-      appLogger.error("\(String(describing: "Stopping tunnel with reason: \(reason)"))")
-      stopService()
+    appLogger.error("\(String(describing: "Stopping tunnel with reason: \(reason)"))")
+    stopService()
   }
 
   override open func handleAppMessage(_ messageData: Data) async -> Data? {

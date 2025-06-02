@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 70;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXAggregateTarget section */
@@ -21,6 +21,7 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		298E94C62DEA562D001CFEE6 /* API.swift in Sources */ = {isa = PBXBuildFile; fileRef = 298E94C52DEA5627001CFEE6 /* API.swift */; };
 		29952B062DE79CB200640E7F /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 29952B052DE79CB200640E7F /* NetworkExtension.framework */; };
 		29952B102DE79CB200640E7F /* org.getlantern.lantern.PacketTunnel.systemextension in Embed System Extensions */ = {isa = PBXBuildFile; fileRef = 29952B042DE79CB200640E7F /* org.getlantern.lantern.PacketTunnel.systemextension */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		29952B182DE79FDE00640E7F /* Liblantern.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 29952B172DE79FDE00640E7F /* Liblantern.xcframework */; };
@@ -91,6 +92,7 @@
 
 /* Begin PBXFileReference section */
 		1E9A6FC86FA886DA6665EC6D /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
+		298E94C52DEA5627001CFEE6 /* API.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = API.swift; sourceTree = "<group>"; };
 		29952B042DE79CB200640E7F /* org.getlantern.lantern.PacketTunnel.systemextension */ = {isa = PBXFileReference; explicitFileType = "wrapper.system-extension"; includeInIndex = 0; path = org.getlantern.lantern.PacketTunnel.systemextension; sourceTree = BUILT_PRODUCTS_DIR; };
 		29952B052DE79CB200640E7F /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
 		29952B172DE79FDE00640E7F /* Liblantern.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = Liblantern.xcframework; sourceTree = "<group>"; };
@@ -248,6 +250,7 @@
 		33FAB671232836740065AC1E /* Runner */ = {
 			isa = PBXGroup;
 			children = (
+				298E94C52DEA5627001CFEE6 /* API.swift */,
 				29952B222DE7A0B400640E7F /* SystemExtensionManager.swift */,
 				29952B202DE7A0A700640E7F /* VPNManager.swift */,
 				33CC10F02044A3C60003C045 /* AppDelegate.swift */,
@@ -566,6 +569,7 @@
 				29952B232DE7A0B400640E7F /* SystemExtensionManager.swift in Sources */,
 				33CC10F12044A3C60003C045 /* AppDelegate.swift in Sources */,
 				29952B212DE7A0A700640E7F /* VPNManager.swift in Sources */,
+				298E94C62DEA562D001CFEE6 /* API.swift in Sources */,
 				335BBD1B22A9A15E00E9071D /* GeneratedPluginRegistrant.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
