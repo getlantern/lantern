@@ -1,6 +1,6 @@
-import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/app_setting.dart';
@@ -9,14 +9,11 @@ import 'package:lantern/core/models/plan_entity.dart';
 import 'package:lantern/core/models/website.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
-import 'package:objectbox/objectbox.dart';
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 
 import '../../lantern/protos/protos/auth.pb.dart';
 import '../models/user_entity.dart';
 import 'db/objectbox.g.dart';
-import 'injection_container.dart';
 
 // class AppDB {
 //   static final LocalStorageService _localStorageService =
@@ -53,10 +50,39 @@ class LocalStorageService {
     final start = DateTime.now();
     dbLogger.debug("Initializing LocalStorageService");
     final docsDir = await AppStorageUtils.getAppDirectory();
-    _store = await openStore(
-      directory: p.join(docsDir.path, "objectbox-db"),
-      macosApplicationGroup: macosApplicationGroup,
-    );
+
+    final dbPath = p.join(docsDir.path, "objectbox-db");
+
+    try {
+      _store = await openStore(
+        directory: dbPath,
+        macosApplicationGroup: macosApplicationGroup,
+      );
+    } on ObjectBoxException catch (e) {
+      final error = e.message;
+      //Ex
+      //failed to create store: DB's last property ID XX is higher than the incoming one XX in entity XXX
+      if (kDebugMode &&
+          (error.contains("failed to create store") ||
+              error.contains("DB's last property ID"))) {
+        dbLogger.warning(
+            "ObjectBox schema mismatch detected – wiping old DB…", e);
+
+        // delete the entire store directory
+        final dir = Directory(dbPath);
+        if (await dir.exists()) {
+          await dir.delete(recursive: true);
+        }
+
+        // Retry after wiping the old schema-mismatched DB
+        _store = await openStore(
+          directory: dbPath,
+          macosApplicationGroup: macosApplicationGroup,
+        );
+      } else {
+        rethrow;
+      }
+    }
 
     _appSettingBox = _store.box<AppSetting>();
     _appsBox = _store.box<AppData>();
@@ -163,6 +189,7 @@ class LocalStorageService {
   void updateAppSetting(AppSetting appSetting) {
     _appSettingBox.put(appSetting);
   }
+
   AppSetting? getAppSetting() {
     final appSetting = _appSettingBox.getAll();
     return appSetting.isEmpty ? null : appSetting.first;
