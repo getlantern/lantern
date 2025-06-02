@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -10,14 +9,11 @@ import 'package:lantern/core/models/plan_entity.dart';
 import 'package:lantern/core/models/website.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
-import 'package:objectbox/objectbox.dart';
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 
 import '../../lantern/protos/protos/auth.pb.dart';
 import '../models/user_entity.dart';
 import 'db/objectbox.g.dart';
-import 'injection_container.dart';
 
 // class AppDB {
 //   static final LocalStorageService _localStorageService =
@@ -64,11 +60,11 @@ class LocalStorageService {
       );
     } on ObjectBoxException catch (e) {
       final error = e.message;
-      // only delete if it’s a debug build and the “last index ID" or
-      // "does not match existing" errors
+      //Ex
+      //failed to create store: DB's last property ID XX is higher than the incoming one XX in entity XXX
       if (kDebugMode &&
-          (error.contains("last index ID") ||
-              error.contains("does not match existing"))) {
+          (error.contains("failed to create store") ||
+              error.contains("DB's last property ID"))) {
         dbLogger.warning(
             "ObjectBox schema mismatch detected – wiping old DB…", e);
 
