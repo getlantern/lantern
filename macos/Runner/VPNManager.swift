@@ -132,7 +132,6 @@ class VPNManager: ObservableObject {
     }
   }
 
-  // Example usage:
   func setupVPN(completion: (() -> Void)? = nil) async {
     let result = await loadExistingVPNManager(targetLocalizedDescription: "Lantern")  // Optional: specify a profile name
     switch result {
