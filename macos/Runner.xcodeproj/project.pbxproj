@@ -21,9 +21,10 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		293C30302DEF247F00691115 /* Liblantern.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 293C302F2DEF247F00691115 /* Liblantern.xcframework */; };
+		293C30312DEF247F00691115 /* Liblantern.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 293C302F2DEF247F00691115 /* Liblantern.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		29952B062DE79CB200640E7F /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 29952B052DE79CB200640E7F /* NetworkExtension.framework */; };
 		29952B102DE79CB200640E7F /* org.getlantern.lantern.PacketTunnel.systemextension in Embed System Extensions */ = {isa = PBXBuildFile; fileRef = 29952B042DE79CB200640E7F /* org.getlantern.lantern.PacketTunnel.systemextension */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		29952B182DE79FDE00640E7F /* Liblantern.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 29952B172DE79FDE00640E7F /* Liblantern.xcframework */; };
 		29952B212DE7A0A700640E7F /* VPNManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B202DE7A0A700640E7F /* VPNManager.swift */; };
 		29952B232DE7A0B400640E7F /* SystemExtensionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B222DE7A0B400640E7F /* SystemExtensionManager.swift */; };
 		29952B432DE7A5F300640E7F /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B402DE7A5F300640E7F /* KeychainService.swift */; };
@@ -65,6 +66,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		293C30322DEF248000691115 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				293C30312DEF247F00691115 /* Liblantern.xcframework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		29952B112DE79CB200640E7F /* Embed System Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -91,9 +103,9 @@
 
 /* Begin PBXFileReference section */
 		1E9A6FC86FA886DA6665EC6D /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
+		293C302F2DEF247F00691115 /* Liblantern.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Liblantern.xcframework; path = Frameworks/Liblantern.xcframework; sourceTree = "<group>"; };
 		29952B042DE79CB200640E7F /* org.getlantern.lantern.PacketTunnel.systemextension */ = {isa = PBXFileReference; explicitFileType = "wrapper.system-extension"; includeInIndex = 0; path = org.getlantern.lantern.PacketTunnel.systemextension; sourceTree = BUILT_PRODUCTS_DIR; };
 		29952B052DE79CB200640E7F /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
-		29952B172DE79FDE00640E7F /* Liblantern.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = Liblantern.xcframework; sourceTree = "<group>"; };
 		29952B202DE7A0A700640E7F /* VPNManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VPNManager.swift; sourceTree = "<group>"; };
 		29952B222DE7A0B400640E7F /* SystemExtensionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemExtensionManager.swift; sourceTree = "<group>"; };
 		29952B402DE7A5F300640E7F /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
@@ -145,7 +157,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				29952B182DE79FDE00640E7F /* Liblantern.xcframework in Frameworks */,
+				293C30302DEF247F00691115 /* Liblantern.xcframework in Frameworks */,
 				29952B062DE79CB200640E7F /* NetworkExtension.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -263,7 +275,7 @@
 		D73912EC22F37F3D000D13A0 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				29952B172DE79FDE00640E7F /* Liblantern.xcframework */,
+				293C302F2DEF247F00691115 /* Liblantern.xcframework */,
 				3FD9DACB5BA763A29C28870C /* Pods_Runner.framework */,
 				831CC47A1A5EE5E9DF45C2BC /* Pods_RunnerTests.framework */,
 				29952B052DE79CB200640E7F /* NetworkExtension.framework */,
@@ -294,6 +306,7 @@
 				29952B002DE79CB200640E7F /* Sources */,
 				29952B012DE79CB200640E7F /* Frameworks */,
 				29952B022DE79CB200640E7F /* Resources */,
+				293C30322DEF248000691115 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
