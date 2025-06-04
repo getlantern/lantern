@@ -27,13 +27,14 @@ class LanternService implements LanternCoreService {
 
   @override
   Future<Either<Failure, String>> startVPN() async {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isDesktop && !PlatformUtils.isMacOS) {
       return _ffiService.startVPN();
     }
     return _platformService.startVPN();
   }
 
   @override
+
   Future<Either<Failure, String>> stopVPN() {
     if (PlatformUtils.isDesktop) {
       return _ffiService.stopVPN();

@@ -199,7 +199,7 @@ class MethodHandler {
       }
     }
   }
-        
+
   // User management
   func logout(result: @escaping FlutterResult) {
     /*
