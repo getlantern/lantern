@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 70;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXAggregateTarget section */
@@ -23,12 +23,22 @@
 /* Begin PBXBuildFile section */
 		293C30302DEF247F00691115 /* Liblantern.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 293C302F2DEF247F00691115 /* Liblantern.xcframework */; };
 		293C30312DEF247F00691115 /* Liblantern.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 293C302F2DEF247F00691115 /* Liblantern.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		293C305A2DEF649500691115 /* MethodHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C30552DEF649500691115 /* MethodHandler.swift */; };
+		293C305E2DEF67EB00691115 /* VPNManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C305C2DEF67EB00691115 /* VPNManager.swift */; };
+		293C305F2DEF67EB00691115 /* VPNBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C305B2DEF67EB00691115 /* VPNBase.swift */; };
+		293C30612DEF68B300691115 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C30602DEF68B300691115 /* Logger.swift */; };
+		293C30622DEF68B300691115 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C30602DEF68B300691115 /* Logger.swift */; };
 		29952B062DE79CB200640E7F /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 29952B052DE79CB200640E7F /* NetworkExtension.framework */; };
 		29952B102DE79CB200640E7F /* org.getlantern.lantern.PacketTunnel.systemextension in Embed System Extensions */ = {isa = PBXBuildFile; fileRef = 29952B042DE79CB200640E7F /* org.getlantern.lantern.PacketTunnel.systemextension */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		29952B212DE7A0A700640E7F /* VPNManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B202DE7A0A700640E7F /* VPNManager.swift */; };
+		29952B212DE7A0A700640E7F /* VPNManagerOld.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B202DE7A0A700640E7F /* VPNManagerOld.swift */; };
 		29952B232DE7A0B400640E7F /* SystemExtensionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B222DE7A0B400640E7F /* SystemExtensionManager.swift */; };
 		29952B432DE7A5F300640E7F /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B402DE7A5F300640E7F /* KeychainService.swift */; };
 		29952B442DE7A5F300640E7F /* FilePath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B412DE7A5F300640E7F /* FilePath.swift */; };
+		2995B42A2DF0AA4700429FE9 /* Extension+RunBlocking.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2995B4202DF0AA4700429FE9 /* Extension+RunBlocking.swift */; };
+		2995B42B2DF0AA4700429FE9 /* ExtensionPlatformInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2995B4212DF0AA4700429FE9 /* ExtensionPlatformInterface.swift */; };
+		2995B42C2DF0AA4700429FE9 /* ExtensionProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2995B4222DF0AA4700429FE9 /* ExtensionProvider.swift */; };
+		2995B42D2DF0AA4700429FE9 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2995B4252DF0AA4700429FE9 /* main.swift */; };
+		2995B42E2DF0AA4700429FE9 /* PacketTunnelProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2995B4272DF0AA4700429FE9 /* PacketTunnelProvider.swift */; };
 		331C80D8294CF71000263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C80D7294CF71000263BE5 /* RunnerTests.swift */; };
 		335BBD1B22A9A15E00E9071D /* GeneratedPluginRegistrant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 335BBD1A22A9A15E00E9071D /* GeneratedPluginRegistrant.swift */; };
 		33CC10F12044A3C60003C045 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CC10F02044A3C60003C045 /* AppDelegate.swift */; };
@@ -104,12 +114,23 @@
 /* Begin PBXFileReference section */
 		1E9A6FC86FA886DA6665EC6D /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
 		293C302F2DEF247F00691115 /* Liblantern.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Liblantern.xcframework; path = Frameworks/Liblantern.xcframework; sourceTree = "<group>"; };
+		293C30552DEF649500691115 /* MethodHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MethodHandler.swift; sourceTree = "<group>"; };
+		293C305B2DEF67EB00691115 /* VPNBase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VPNBase.swift; sourceTree = "<group>"; };
+		293C305C2DEF67EB00691115 /* VPNManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VPNManager.swift; sourceTree = "<group>"; };
+		293C30602DEF68B300691115 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		29952B042DE79CB200640E7F /* org.getlantern.lantern.PacketTunnel.systemextension */ = {isa = PBXFileReference; explicitFileType = "wrapper.system-extension"; includeInIndex = 0; path = org.getlantern.lantern.PacketTunnel.systemextension; sourceTree = BUILT_PRODUCTS_DIR; };
 		29952B052DE79CB200640E7F /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
-		29952B202DE7A0A700640E7F /* VPNManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VPNManager.swift; sourceTree = "<group>"; };
+		29952B202DE7A0A700640E7F /* VPNManagerOld.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VPNManagerOld.swift; sourceTree = "<group>"; };
 		29952B222DE7A0B400640E7F /* SystemExtensionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemExtensionManager.swift; sourceTree = "<group>"; };
 		29952B402DE7A5F300640E7F /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
 		29952B412DE7A5F300640E7F /* FilePath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilePath.swift; sourceTree = "<group>"; };
+		2995B4202DF0AA4700429FE9 /* Extension+RunBlocking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Extension+RunBlocking.swift"; sourceTree = "<group>"; };
+		2995B4212DF0AA4700429FE9 /* ExtensionPlatformInterface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionPlatformInterface.swift; sourceTree = "<group>"; };
+		2995B4222DF0AA4700429FE9 /* ExtensionProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionProvider.swift; sourceTree = "<group>"; };
+		2995B4242DF0AA4700429FE9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		2995B4252DF0AA4700429FE9 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		2995B4262DF0AA4700429FE9 /* PacketTunnel.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PacketTunnel.entitlements; sourceTree = "<group>"; };
+		2995B4272DF0AA4700429FE9 /* PacketTunnelProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PacketTunnelProvider.swift; sourceTree = "<group>"; };
 		331C80D5294CF71000263BE5 /* RunnerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RunnerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		331C80D7294CF71000263BE5 /* RunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunnerTests.swift; sourceTree = "<group>"; };
 		333000ED22D3DE5D00554162 /* Warnings.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Warnings.xcconfig; sourceTree = "<group>"; };
@@ -137,20 +158,6 @@
 		CAEDFD45C7CA749159F267FA /* Pods-RunnerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release.xcconfig"; sourceTree = "<group>"; };
 		EDC1670D3723C38E9F4EBE3E /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		29952B152DE79CB200640E7F /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 29952B032DE79CB200640E7F /* PacketTunnel */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		29952B072DE79CB200640E7F /* PacketTunnel */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (29952B152DE79CB200640E7F /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = PacketTunnel; sourceTree = "<group>"; };
-/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		29952B012DE79CB200640E7F /* Frameworks */ = {
@@ -182,13 +189,53 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		293C30572DEF649500691115 /* Handlers */ = {
+			isa = PBXGroup;
+			children = (
+				293C30552DEF649500691115 /* MethodHandler.swift */,
+			);
+			path = Handlers;
+			sourceTree = "<group>";
+		};
+		293C305D2DEF67EB00691115 /* VPN */ = {
+			isa = PBXGroup;
+			children = (
+				293C305B2DEF67EB00691115 /* VPNBase.swift */,
+				293C305C2DEF67EB00691115 /* VPNManager.swift */,
+			);
+			path = VPN;
+			sourceTree = "<group>";
+		};
 		29952B422DE7A5F300640E7F /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				293C30602DEF68B300691115 /* Logger.swift */,
 				29952B402DE7A5F300640E7F /* KeychainService.swift */,
 				29952B412DE7A5F300640E7F /* FilePath.swift */,
 			);
 			path = Shared;
+			sourceTree = "<group>";
+		};
+		2995B4232DF0AA4700429FE9 /* SingBox */ = {
+			isa = PBXGroup;
+			children = (
+				2995B4202DF0AA4700429FE9 /* Extension+RunBlocking.swift */,
+				2995B4212DF0AA4700429FE9 /* ExtensionPlatformInterface.swift */,
+				2995B4222DF0AA4700429FE9 /* ExtensionProvider.swift */,
+			);
+			path = SingBox;
+			sourceTree = "<group>";
+		};
+		2995B4282DF0AA4700429FE9 /* PacketTunnel */ = {
+			isa = PBXGroup;
+			children = (
+				2995B4232DF0AA4700429FE9 /* SingBox */,
+				2995B4242DF0AA4700429FE9 /* Info.plist */,
+				2995B4252DF0AA4700429FE9 /* main.swift */,
+				2995B4262DF0AA4700429FE9 /* PacketTunnel.entitlements */,
+				2995B4272DF0AA4700429FE9 /* PacketTunnelProvider.swift */,
+			);
+			path = PacketTunnel;
 			sourceTree = "<group>";
 		};
 		331C80D6294CF71000263BE5 /* RunnerTests */ = {
@@ -218,7 +265,7 @@
 				33FAB671232836740065AC1E /* Runner */,
 				33CEB47122A05771004F2AC0 /* Flutter */,
 				331C80D6294CF71000263BE5 /* RunnerTests */,
-				29952B072DE79CB200640E7F /* PacketTunnel */,
+				2995B4282DF0AA4700429FE9 /* PacketTunnel */,
 				33CC10EE2044A3C60003C045 /* Products */,
 				D73912EC22F37F3D000D13A0 /* Frameworks */,
 				FED29616DB27141FD4AD9EAF /* Pods */,
@@ -260,8 +307,10 @@
 		33FAB671232836740065AC1E /* Runner */ = {
 			isa = PBXGroup;
 			children = (
+				293C305D2DEF67EB00691115 /* VPN */,
+				293C30572DEF649500691115 /* Handlers */,
 				29952B222DE7A0B400640E7F /* SystemExtensionManager.swift */,
-				29952B202DE7A0A700640E7F /* VPNManager.swift */,
+				29952B202DE7A0A700640E7F /* VPNManagerOld.swift */,
 				33CC10F02044A3C60003C045 /* AppDelegate.swift */,
 				33CC11122044BFA00003C045 /* MainFlutterWindow.swift */,
 				33E51913231747F40026EE4D /* DebugProfile.entitlements */,
@@ -311,9 +360,6 @@
 			buildRules = (
 			);
 			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				29952B072DE79CB200640E7F /* PacketTunnel */,
 			);
 			name = PacketTunnel;
 			packageProductDependencies = (
@@ -560,6 +606,12 @@
 			files = (
 				29952B432DE7A5F300640E7F /* KeychainService.swift in Sources */,
 				29952B442DE7A5F300640E7F /* FilePath.swift in Sources */,
+				2995B42A2DF0AA4700429FE9 /* Extension+RunBlocking.swift in Sources */,
+				2995B42B2DF0AA4700429FE9 /* ExtensionPlatformInterface.swift in Sources */,
+				2995B42C2DF0AA4700429FE9 /* ExtensionProvider.swift in Sources */,
+				2995B42D2DF0AA4700429FE9 /* main.swift in Sources */,
+				2995B42E2DF0AA4700429FE9 /* PacketTunnelProvider.swift in Sources */,
+				293C30622DEF68B300691115 /* Logger.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -576,9 +628,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				33CC11132044BFA00003C045 /* MainFlutterWindow.swift in Sources */,
+				293C305E2DEF67EB00691115 /* VPNManager.swift in Sources */,
+				293C305F2DEF67EB00691115 /* VPNBase.swift in Sources */,
+				293C305A2DEF649500691115 /* MethodHandler.swift in Sources */,
+				293C30612DEF68B300691115 /* Logger.swift in Sources */,
 				29952B232DE7A0B400640E7F /* SystemExtensionManager.swift in Sources */,
 				33CC10F12044A3C60003C045 /* AppDelegate.swift in Sources */,
-				29952B212DE7A0A700640E7F /* VPNManager.swift in Sources */,
+				29952B212DE7A0A700640E7F /* VPNManagerOld.swift in Sources */,
 				335BBD1B22A9A15E00E9071D /* GeneratedPluginRegistrant.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

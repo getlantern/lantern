@@ -36,8 +36,6 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     )
     request.delegate = self
     self.currentRequest = request  // Keep a reference if needed
-    OSSystemExtensionManager.shared.submitRequest(request)
-
     NotificationCenter.default.addObserver(
       self,
       selector: #selector(handleNeedsUserApproval),
@@ -53,6 +51,7 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
       selector: #selector(handleActivationFailure),
       name: .systemExtensionActivationFailed,
       object: nil)
+    OSSystemExtensionManager.shared.submitRequest(request)
   }
 
   /// Initiates the deactivation of a system extension.
@@ -188,8 +187,7 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
   }
 
   @objc func handleNeedsUserApproval(notification: Notification) {
-    guard let extensionID = notification.object as? String else { return }
-    logger.log("UI: System extension \(extensionID) needs user approval.")
+    logger.log("UI: System extension needs user approval.")
     let alert = NSAlert()
     // TODO: internationalize this
     alert.messageText = "Lantern System Extension Approval Needed"
@@ -207,10 +205,6 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
   @objc func handleActivationSuccess(notification: Notification) {
     guard let extensionID = notification.object as? String else { return }
     logger.log("UI: System extension \(extensionID) activated successfully!")
-    logger.log("Initing VPNManager")
-    let manager = VPNManager()
-    let result = manager.activateVPN(bundleID: SystemExtensionManager.tunnelBundleID)
-    //Update UI, enable features, etc.
   }
 
   @objc func handleActivationFailure(notification: Notification) {

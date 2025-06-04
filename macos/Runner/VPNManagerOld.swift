@@ -1,7 +1,7 @@
 import NetworkExtension
 import OSLog
 
-class VPNManager: ObservableObject {
+class VPNManagerOld: ObservableObject {
   @Published var vpnStatus: NEVPNStatus = .invalid
   @Published var isVPNEnabled: Bool = false
 
