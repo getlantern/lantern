@@ -137,6 +137,10 @@ jobs:
           git add appcast.xml
           git commit -m "Update appcast.xml"
           git push
+          aws s3 cp appcast.xml "s3://${{ secrets.S3_RELEASES_BUCKET }}/releases/"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Notify Slack
         uses: slackapi/slack-github-action@v2.0.0
