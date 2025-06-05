@@ -4,7 +4,8 @@ on:
   push:
     tags:
       - "v*.*.*"
-
+permissions:
+  contents: write
 jobs:
   set-release-metadata:
     runs-on: ubuntu-latest
@@ -113,14 +114,6 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
 
-      - name: Generate appcast.xml
-        run: |
-          ./scripts/generate_appcast.sh \
-            "${{ needs.set-release-metadata.outputs.version }}" \
-            "2" \
-            "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/lantern-installer.dmg" \
-            "lantern-installer-dmg/${{ env.INSTALLER_NAME }}.dmg"
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -128,7 +121,6 @@ jobs:
           name: "Lantern ${{ env.BUILD_TYPE }} ${{ github.ref_name }}"
           generate_release_notes: true
           files: |
-            dist/appcast.xml
             lantern-installer-dmg/${{ env.INSTALLER_NAME }}.dmg
             lantern-installer-exe/${{ env.INSTALLER_NAME }}.exe
             lantern-installer-apk/${{ env.INSTALLER_NAME }}.apk
@@ -136,6 +128,15 @@ jobs:
             lantern-installer-rpm/${{ env.INSTALLER_NAME }}.rpm
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update appcast.xml
+        run: |
+          python3 scripts/generate_appcast.py
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add appcast.xml
+          git commit -m "Update appcast.xml"
+          git push
 
       - name: Notify Slack
         uses: slackapi/slack-github-action@v2.0.0
