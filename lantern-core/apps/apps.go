@@ -109,7 +109,6 @@ func scanAppDirs(appDirs []string, seen map[string]bool, cb Callback) []*AppData
 			}
 
 			cb(app)
-			log.Debugf("Adding %s to app cache", app.BundleID)
 			apps = append(apps, app)
 			seen[key] = true
 			return nil

@@ -14,10 +14,10 @@ PODS:
   - in_app_purchase_storekit (0.0.1):
     - Flutter
     - FlutterMacOS
-  - ObjectBox (4.1.0)
+  - ObjectBox (4.3.0)
   - objectbox_flutter_libs (0.0.1):
     - FlutterMacOS
-    - ObjectBox (= 4.1.0)
+    - ObjectBox (= 4.3.0)
   - OrderedSet (6.0.3)
   - package_info_plus (0.0.1):
     - FlutterMacOS
@@ -26,11 +26,11 @@ PODS:
     - FlutterMacOS
   - screen_retriever_macos (0.0.1):
     - FlutterMacOS
-  - Sentry/HybridSDK (8.46.0)
-  - sentry_flutter (9.0.0-alpha.2):
+  - Sentry/HybridSDK (8.49.2)
+  - sentry_flutter (9.0.0-beta.2):
     - Flutter
     - FlutterMacOS
-    - Sentry/HybridSDK (= 8.46.0)
+    - Sentry/HybridSDK (= 8.49.2)
   - share_plus (0.0.1):
     - FlutterMacOS
   - shared_preferences_foundation (0.0.1):
@@ -42,7 +42,7 @@ PODS:
     - FlutterMacOS
   - url_launcher_macos (0.0.1):
     - FlutterMacOS
-  - window_manager (0.2.0):
+  - window_manager (0.5.0):
     - FlutterMacOS
 
 DEPENDENCIES:
@@ -117,20 +117,20 @@ SPEC CHECKSUMS:
   flutter_timezone: 62400baa441155f2a4144188648f2ff861649747
   FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
   in_app_purchase_storekit: a1ce04056e23eecc666b086040239da7619cd783
-  ObjectBox: bf3d4b51075d52868422d5d1f2f2141b1d630d30
-  objectbox_flutter_libs: 90e8897eeef16e16bccaf0f91a6c92d53589dd64
+  ObjectBox: 7760fa9072adcffe102a6adf4646ca84ba70ab6b
+  objectbox_flutter_libs: 497ed1df869782e9f4afe18a9d16675ebe0e05e3
   OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
   package_info_plus: 12f1c5c2cfe8727ca46cbd0b26677728972d9a5b
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
   screen_retriever_macos: 776e0fa5d42c6163d2bf772d22478df4b302b161
-  Sentry: da60d980b197a46db0b35ea12cb8f39af48d8854
-  sentry_flutter: 77861d5f56b4afff9588afa8ed3819a60ccab229
+  Sentry: 47021097466aa130802420d485a34da445963d99
+  sentry_flutter: 8f759e5e4ae8bb717c104d4c39d7cc58a94ac227
   share_plus: 1fa619de8392a4398bfaf176d441853922614e89
   shared_preferences_foundation: fcdcbc04712aee1108ac7fda236f363274528f78
   store_checker: 387169de0dffe57b6370d54cc027e9f95051b57f
   tray_manager: 9064e219c56d75c476e46b9a21182087930baf90
   url_launcher_macos: c82c93949963e55b228a30115bd219499a6fe404
-  window_manager: 3a1844359a6295ab1e47659b1a777e36773cd6e8
+  window_manager: e25faf20d88283a0d46e7b1a759d07261ca27575
 
 PODFILE CHECKSUM: 9ebaf0ce3d369aaa26a9ea0e159195ed94724cf3
 
