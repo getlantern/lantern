@@ -36,7 +36,7 @@ class LanternService implements LanternCoreService {
   @override
 
   Future<Either<Failure, String>> stopVPN() {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isDesktop && !PlatformUtils.isMacOS) {
       return _ffiService.stopVPN();
     }
     return _platformService.stopVPN();
@@ -53,7 +53,7 @@ class LanternService implements LanternCoreService {
 
   @override
   Future<void> init() {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isDesktop && !PlatformUtils.isMacOS) {
       return _ffiService.init();
     }
     return _platformService.init();
@@ -61,7 +61,7 @@ class LanternService implements LanternCoreService {
 
   @override
   Stream<LanternStatus> watchVPNStatus() {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isDesktop && !PlatformUtils.isMacOS) {
       return _ffiService.watchVPNStatus();
     }
     return _platformService.watchVPNStatus();
@@ -77,7 +77,7 @@ class LanternService implements LanternCoreService {
 
   @override
   Future<Either<Failure, Unit>> isVPNConnected() {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isDesktop && !PlatformUtils.isMacOS) {
       return _ffiService.isVPNConnected();
     }
     return _platformService.isVPNConnected();
