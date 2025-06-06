@@ -109,6 +109,7 @@ dependencies:
   flutter_local_notifications: ^19.2.0
   timezone: ^0.10.1
   flutter_timezone: ^4.1.0
+  in_app_purchase_storekit: ^0.4.1
 
 dev_dependencies:
   flutter_test:
