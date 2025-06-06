@@ -50,8 +50,8 @@ class VPNManager: VPNBase {
 
       } else {
         createNewProfile()
-          appLogger.log("Saving new profile to preferences..")
-          try? await self.manager?.saveToPreferences()
+        appLogger.log("Saving new profile to preferences..")
+        try? await self.manager?.saveToPreferences()
         await setupVPN()
       }
     } catch {
@@ -59,8 +59,8 @@ class VPNManager: VPNBase {
         "An unexpected error occurred while loading VPN configurations: \(error.localizedDescription)"
       )
       createNewProfile()
-        appLogger.log("Saving new profile to preferences..")
-        try? await self.manager?.saveToPreferences()
+      appLogger.log("Saving new profile to preferences..")
+      try? await self.manager?.saveToPreferences()
       await setupVPN()
     }
   }
@@ -104,8 +104,11 @@ class VPNManager: VPNBase {
   /// Stops the VPN tunnel.
   /// Terminates the VPN connection and updates the configuration.
   func stopTunnel() async throws {
-    print("Stopping tunnel..")
-    guard connectionStatus == .connected else { return }
+    appLogger.log("Stopping tunnel..")
+    guard connectionStatus == .connected else {
+      appLogger.log("In unexpected state: \(connectionStatus)")
+      return
+    }
     manager?.connection.stopVPNTunnel()
     self.manager?.isOnDemandEnabled = false
     try await self.saveThenLoadProvider()

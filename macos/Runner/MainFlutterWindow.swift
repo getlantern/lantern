@@ -18,13 +18,12 @@ class MainFlutterWindow: NSWindow {
     )
     let methodHandler = MethodHandler(channel: nativeChannel, vpnManager: VPNManager.shared)
 
-    
     let registrar = flutterViewController.registrar(forPlugin: "StatusEventHandler")
     let statusChannel = FlutterEventChannel(
       name: "org.getlantern.lantern/status",
       binaryMessenger: registrar.messenger, codec: FlutterJSONMethodCodec())
     statusChannel.setStreamHandler(self)
-     
+
     RegisterGeneratedPlugins(registry: flutterViewController)
 
     super.awakeFromNib()
@@ -49,7 +48,7 @@ extension MainFlutterWindow: FlutterStreamHandler {
         events(["status": "Disconnected"])
       }
     }
-       
+
     return nil
   }
 
