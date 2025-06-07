@@ -60,3 +60,11 @@ After running `make android-debug`, you’ll find the APK here:
 ```
 build/app/outputs/flutter-apk/app-debug.apk
 ```
+
+4. Linux
+
+```sh
+./setup.sh
+make linux
+make linux-debug
+```
