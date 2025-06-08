@@ -487,9 +487,6 @@ msgstr "Continue without VPN"
 msgid "turn_on_vpn"
 msgstr "Turn on VPN"
 
-msgid "server_setup"
-msgstr "Server Setup"
-
 msgid "server_setup_do"
 msgstr "Set up a private server on Digital Ocean"
 
