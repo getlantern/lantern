@@ -111,6 +111,10 @@ dependencies:
   timezone: ^0.10.1
   flutter_timezone: ^4.1.0
 
+dependency_overrides:
+  analyzer: 7.4.5
+  analyzer_plugin: ^0.13.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
