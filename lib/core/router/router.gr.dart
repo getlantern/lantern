@@ -28,7 +28,8 @@ import 'package:lantern/features/home/home.dart' as _i12;
 import 'package:lantern/features/language/language.dart' as _i14;
 import 'package:lantern/features/logs/logs.dart' as _i15;
 import 'package:lantern/features/plans/plans.dart' as _i16;
-import 'package:lantern/features/private_server/private_server_setup.dart' as _i17;
+import 'package:lantern/features/private_server/private_server_setup.dart'
+    as _i17;
 import 'package:lantern/features/reportIssue/report_issue.dart' as _i18;
 import 'package:lantern/features/setting/download_links.dart' as _i10;
 import 'package:lantern/features/setting/follow_us.dart' as _i11;
@@ -63,27 +64,17 @@ class Account extends _i30.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i2.ActivationCode]
-<<<<<<< HEAD
-class ActivationCode extends _i30.PageRouteInfo<void> {
-  const ActivationCode({List<_i30.PageRouteInfo>? children})
-      : super(ActivationCode.name, initialChildren: children);
-=======
-class ActivationCode extends _i29.PageRouteInfo<ActivationCodeArgs> {
+class ActivationCode extends _i30.PageRouteInfo<ActivationCodeArgs> {
   ActivationCode({
-    _i30.Key? key,
+    _i31.Key? key,
     required String email,
     required String code,
-    List<_i29.PageRouteInfo>? children,
+    List<_i30.PageRouteInfo>? children,
   }) : super(
           ActivationCode.name,
-          args: ActivationCodeArgs(
-            key: key,
-            email: email,
-            code: code,
-          ),
+          args: ActivationCodeArgs(key: key, email: email, code: code),
           initialChildren: children,
         );
->>>>>>> origin/main
 
   static const String name = 'ActivationCode';
 
@@ -101,13 +92,9 @@ class ActivationCode extends _i29.PageRouteInfo<ActivationCodeArgs> {
 }
 
 class ActivationCodeArgs {
-  const ActivationCodeArgs({
-    this.key,
-    required this.email,
-    required this.code,
-  });
+  const ActivationCodeArgs({this.key, required this.email, required this.code});
 
-  final _i30.Key? key;
+  final _i31.Key? key;
 
   final String email;
 
@@ -117,31 +104,28 @@ class ActivationCodeArgs {
   String toString() {
     return 'ActivationCodeArgs{key: $key, email: $email, code: $code}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! ActivationCodeArgs) return false;
+    return key == other.key && email == other.email && code == other.code;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ email.hashCode ^ code.hashCode;
 }
 
 /// generated route for
 /// [_i3.AddEmail]
 class AddEmail extends _i30.PageRouteInfo<AddEmailArgs> {
   AddEmail({
-<<<<<<< HEAD
     _i31.Key? key,
     _i32.AuthFlow authFlow = _i32.AuthFlow.signUp,
-    _i32.AppFlow appFlow = _i32.AppFlow.nonStore,
     List<_i30.PageRouteInfo>? children,
   }) : super(
           AddEmail.name,
-          args: AddEmailArgs(key: key, authFlow: authFlow, appFlow: appFlow),
-=======
-    _i30.Key? key,
-    _i31.AuthFlow authFlow = _i31.AuthFlow.signUp,
-    List<_i29.PageRouteInfo>? children,
-  }) : super(
-          AddEmail.name,
-          args: AddEmailArgs(
-            key: key,
-            authFlow: authFlow,
-          ),
->>>>>>> origin/main
+          args: AddEmailArgs(key: key, authFlow: authFlow),
           initialChildren: children,
         );
 
@@ -153,34 +137,18 @@ class AddEmail extends _i30.PageRouteInfo<AddEmailArgs> {
       final args = data.argsAs<AddEmailArgs>(
         orElse: () => const AddEmailArgs(),
       );
-      return _i3.AddEmail(
-        key: args.key,
-        authFlow: args.authFlow,
-      );
+      return _i3.AddEmail(key: args.key, authFlow: args.authFlow);
     },
   );
 }
 
 class AddEmailArgs {
-  const AddEmailArgs({
-    this.key,
-<<<<<<< HEAD
-    this.authFlow = _i32.AuthFlow.signUp,
-    this.appFlow = _i32.AppFlow.nonStore,
-=======
-    this.authFlow = _i31.AuthFlow.signUp,
->>>>>>> origin/main
-  });
+  const AddEmailArgs({this.key, this.authFlow = _i32.AuthFlow.signUp});
 
   final _i31.Key? key;
 
   final _i32.AuthFlow authFlow;
 
-<<<<<<< HEAD
-  final _i32.AppFlow appFlow;
-
-=======
->>>>>>> origin/main
   @override
   String toString() {
     return 'AddEmailArgs{key: $key, authFlow: $authFlow}';
@@ -190,13 +158,11 @@ class AddEmailArgs {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! AddEmailArgs) return false;
-    return key == other.key &&
-        authFlow == other.authFlow &&
-        appFlow == other.appFlow;
+    return key == other.key && authFlow == other.authFlow;
   }
 
   @override
-  int get hashCode => key.hashCode ^ authFlow.hashCode ^ appFlow.hashCode;
+  int get hashCode => key.hashCode ^ authFlow.hashCode;
 }
 
 /// generated route for
@@ -271,14 +237,9 @@ class ChoosePaymentMethod extends _i30.PageRouteInfo<ChoosePaymentMethodArgs> {
   ChoosePaymentMethod({
     _i31.Key? key,
     required String email,
-<<<<<<< HEAD
+    String? code,
     required _i32.AuthFlow authFlow,
     List<_i30.PageRouteInfo>? children,
-=======
-    String? code,
-    required _i31.AuthFlow authFlow,
-    List<_i29.PageRouteInfo>? children,
->>>>>>> origin/main
   }) : super(
           ChoosePaymentMethod.name,
           args: ChoosePaymentMethodArgs(
@@ -318,13 +279,9 @@ class ChoosePaymentMethodArgs {
 
   final String email;
 
-<<<<<<< HEAD
-  final _i32.AuthFlow authFlow;
-=======
   final String? code;
 
-  final _i31.AuthFlow authFlow;
->>>>>>> origin/main
+  final _i32.AuthFlow authFlow;
 
   @override
   String toString() {
@@ -337,11 +294,13 @@ class ChoosePaymentMethodArgs {
     if (other is! ChoosePaymentMethodArgs) return false;
     return key == other.key &&
         email == other.email &&
+        code == other.code &&
         authFlow == other.authFlow;
   }
 
   @override
-  int get hashCode => key.hashCode ^ email.hashCode ^ authFlow.hashCode;
+  int get hashCode =>
+      key.hashCode ^ email.hashCode ^ code.hashCode ^ authFlow.hashCode;
 }
 
 /// generated route for
@@ -350,21 +309,11 @@ class ConfirmEmail extends _i30.PageRouteInfo<ConfirmEmailArgs> {
   ConfirmEmail({
     _i31.Key? key,
     required String email,
-<<<<<<< HEAD
     _i32.AuthFlow authFlow = _i32.AuthFlow.signUp,
-    _i32.AppFlow appFlow = _i32.AppFlow.nonStore,
     List<_i30.PageRouteInfo>? children,
-=======
-    _i31.AuthFlow authFlow = _i31.AuthFlow.signUp,
-    List<_i29.PageRouteInfo>? children,
->>>>>>> origin/main
   }) : super(
           ConfirmEmail.name,
-          args: ConfirmEmailArgs(
-            key: key,
-            email: email,
-            authFlow: authFlow,
-          ),
+          args: ConfirmEmailArgs(key: key, email: email, authFlow: authFlow),
           initialChildren: children,
         );
 
@@ -387,12 +336,7 @@ class ConfirmEmailArgs {
   const ConfirmEmailArgs({
     this.key,
     required this.email,
-<<<<<<< HEAD
     this.authFlow = _i32.AuthFlow.signUp,
-    this.appFlow = _i32.AppFlow.nonStore,
-=======
-    this.authFlow = _i31.AuthFlow.signUp,
->>>>>>> origin/main
   });
 
   final _i31.Key? key;
@@ -401,11 +345,6 @@ class ConfirmEmailArgs {
 
   final _i32.AuthFlow authFlow;
 
-<<<<<<< HEAD
-  final _i32.AppFlow appFlow;
-
-=======
->>>>>>> origin/main
   @override
   String toString() {
     return 'ConfirmEmailArgs{key: $key, email: $email, authFlow: $authFlow}';
@@ -417,13 +356,11 @@ class ConfirmEmailArgs {
     if (other is! ConfirmEmailArgs) return false;
     return key == other.key &&
         email == other.email &&
-        authFlow == other.authFlow &&
-        appFlow == other.appFlow;
+        authFlow == other.authFlow;
   }
 
   @override
-  int get hashCode =>
-      key.hashCode ^ email.hashCode ^ authFlow.hashCode ^ appFlow.hashCode;
+  int get hashCode => key.hashCode ^ email.hashCode ^ authFlow.hashCode;
 }
 
 /// generated route for
@@ -432,16 +369,9 @@ class CreatePassword extends _i30.PageRouteInfo<CreatePasswordArgs> {
   CreatePassword({
     _i31.Key? key,
     required String email,
-<<<<<<< HEAD
     required _i32.AuthFlow authFlow,
-    List<_i30.PageRouteInfo>? children,
-  }) : super(
-          CreatePassword.name,
-          args: CreatePasswordArgs(key: key, email: email, authFlow: authFlow),
-=======
-    required _i31.AuthFlow authFlow,
     required String code,
-    List<_i29.PageRouteInfo>? children,
+    List<_i30.PageRouteInfo>? children,
   }) : super(
           CreatePassword.name,
           args: CreatePasswordArgs(
@@ -450,7 +380,6 @@ class CreatePassword extends _i30.PageRouteInfo<CreatePasswordArgs> {
             authFlow: authFlow,
             code: code,
           ),
->>>>>>> origin/main
           initialChildren: children,
         );
 
@@ -497,11 +426,13 @@ class CreatePasswordArgs {
     if (other is! CreatePasswordArgs) return false;
     return key == other.key &&
         email == other.email &&
-        authFlow == other.authFlow;
+        authFlow == other.authFlow &&
+        code == other.code;
   }
 
   @override
-  int get hashCode => key.hashCode ^ email.hashCode ^ authFlow.hashCode;
+  int get hashCode =>
+      key.hashCode ^ email.hashCode ^ authFlow.hashCode ^ code.hashCode;
 }
 
 /// generated route for
@@ -757,22 +688,11 @@ class ResetPassword extends _i30.PageRouteInfo<ResetPasswordArgs> {
   ResetPassword({
     _i31.Key? key,
     required String email,
-<<<<<<< HEAD
+    required String code,
     List<_i30.PageRouteInfo>? children,
   }) : super(
           ResetPassword.name,
-          args: ResetPasswordArgs(key: key, email: email),
-=======
-    required String code,
-    List<_i29.PageRouteInfo>? children,
-  }) : super(
-          ResetPassword.name,
-          args: ResetPasswordArgs(
-            key: key,
-            email: email,
-            code: code,
-          ),
->>>>>>> origin/main
+          args: ResetPasswordArgs(key: key, email: email, code: code),
           initialChildren: children,
         );
 
@@ -782,29 +702,17 @@ class ResetPassword extends _i30.PageRouteInfo<ResetPasswordArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<ResetPasswordArgs>();
-<<<<<<< HEAD
-      return _i19.ResetPassword(key: args.key, email: args.email);
-=======
-      return _i18.ResetPassword(
+      return _i19.ResetPassword(
         key: args.key,
         email: args.email,
         code: args.code,
       );
->>>>>>> origin/main
     },
   );
 }
 
 class ResetPasswordArgs {
-<<<<<<< HEAD
-  const ResetPasswordArgs({this.key, required this.email});
-=======
-  const ResetPasswordArgs({
-    this.key,
-    required this.email,
-    required this.code,
-  });
->>>>>>> origin/main
+  const ResetPasswordArgs({this.key, required this.email, required this.code});
 
   final _i31.Key? key;
 
@@ -821,62 +729,43 @@ class ResetPasswordArgs {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! ResetPasswordArgs) return false;
-    return key == other.key && email == other.email;
+    return key == other.key && email == other.email && code == other.code;
   }
 
   @override
-  int get hashCode => key.hashCode ^ email.hashCode;
+  int get hashCode => key.hashCode ^ email.hashCode ^ code.hashCode;
 }
 
 /// generated route for
-<<<<<<< HEAD
 /// [_i20.ResetPasswordEmail]
-class ResetPasswordEmail extends _i30.PageRouteInfo<void> {
-  const ResetPasswordEmail({List<_i30.PageRouteInfo>? children})
-      : super(ResetPasswordEmail.name, initialChildren: children);
-=======
-/// [_i19.ResetPasswordEmail]
-class ResetPasswordEmail extends _i29.PageRouteInfo<ResetPasswordEmailArgs> {
+class ResetPasswordEmail extends _i30.PageRouteInfo<ResetPasswordEmailArgs> {
   ResetPasswordEmail({
-    _i30.Key? key,
+    _i31.Key? key,
     String? email,
-    List<_i29.PageRouteInfo>? children,
+    List<_i30.PageRouteInfo>? children,
   }) : super(
           ResetPasswordEmail.name,
-          args: ResetPasswordEmailArgs(
-            key: key,
-            email: email,
-          ),
+          args: ResetPasswordEmailArgs(key: key, email: email),
           initialChildren: children,
         );
->>>>>>> origin/main
 
   static const String name = 'ResetPasswordEmail';
 
   static _i30.PageInfo page = _i30.PageInfo(
     name,
     builder: (data) {
-<<<<<<< HEAD
-      return const _i20.ResetPasswordEmail();
-=======
       final args = data.argsAs<ResetPasswordEmailArgs>(
-          orElse: () => const ResetPasswordEmailArgs());
-      return _i19.ResetPasswordEmail(
-        key: args.key,
-        email: args.email,
+        orElse: () => const ResetPasswordEmailArgs(),
       );
->>>>>>> origin/main
+      return _i20.ResetPasswordEmail(key: args.key, email: args.email);
     },
   );
 }
 
 class ResetPasswordEmailArgs {
-  const ResetPasswordEmailArgs({
-    this.key,
-    this.email,
-  });
+  const ResetPasswordEmailArgs({this.key, this.email});
 
-  final _i30.Key? key;
+  final _i31.Key? key;
 
   final String? email;
 
@@ -884,6 +773,16 @@ class ResetPasswordEmailArgs {
   String toString() {
     return 'ResetPasswordEmailArgs{key: $key, email: $email}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! ResetPasswordEmailArgs) return false;
+    return key == other.key && email == other.email;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ email.hashCode;
 }
 
 /// generated route for
