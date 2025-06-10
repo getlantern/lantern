@@ -23,6 +23,7 @@ class AppTextField extends StatelessWidget {
   final bool obscureText;
   final List<TextInputFormatter> inputFormatters;
   final VoidCallback? onTap;
+  final int? maxLength;
 
   const AppTextField({
     super.key,
@@ -43,6 +44,7 @@ class AppTextField extends StatelessWidget {
     this.textInputAction,
     this.initialValue,
     this.onTap,
+    this.maxLength,
   });
 
   @override
@@ -54,7 +56,7 @@ class AppTextField extends StatelessWidget {
       keyboardType: keyboardType,
       enableSuggestions: true,
       controller: controller,
-
+      maxLength: maxLength,
       enabled: enable,
       initialValue: initialValue,
       inputFormatters: inputFormatters,
@@ -68,8 +70,7 @@ class AppTextField extends StatelessWidget {
       cursorRadius: Radius.circular(16),
       cursorHeight: defaultSize,
       cursorOpacityAnimates: true,
-
-      style: textTheme.bodyMedium!.copyWith(
+  style: textTheme.bodyMedium!.copyWith(
         color: AppColors.gray9,
         fontSize: 14.sp,
       ),

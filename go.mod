@@ -10,7 +10,7 @@ replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v
 
 require (
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
-	github.com/getlantern/radiance v0.0.0-20250527122256-62e7bd7c1c56
+	github.com/getlantern/radiance v0.0.0-20250609072648-b9e9ddf3fe17
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/sagernet/sing-box v1.11.5
 	github.com/stretchr/testify v1.10.0
@@ -78,7 +78,7 @@ require (
 	github.com/sagernet/nftables v0.3.0-beta.4 // indirect
 	github.com/sagernet/quic-go v0.49.0-beta.1 // indirect
 	github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691 // indirect
-	github.com/sagernet/sing-dns v0.4.2 // indirect
+	github.com/sagernet/sing-dns v0.4.3 // indirect
 	github.com/sagernet/sing-mux v0.3.2 // indirect
 	github.com/sagernet/sing-quic v0.4.1 // indirect
 	github.com/sagernet/sing-shadowsocks v0.2.7 // indirect
@@ -138,7 +138,7 @@ require (
 	github.com/getlantern/mtime v0.0.0-20200417132445-23682092d1f7 // indirect
 	github.com/getlantern/netx v0.0.0-20240830183145-c257516187f0 // indirect
 	github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 // indirect
-	github.com/getlantern/sing-box-extensions v0.0.3-0.20250513165743-4f40385f7529 // indirect
+	github.com/getlantern/sing-box-extensions v0.0.3-0.20250527123041-ac84f0af290f // indirect
 	github.com/getlantern/tlsdialer/v3 v3.0.3 // indirect
 	github.com/getsentry/sentry-go v0.31.1 // indirect
 	github.com/go-resty/resty/v2 v2.16.5 // indirect

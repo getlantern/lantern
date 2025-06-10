@@ -24,7 +24,7 @@ message UserResponse {
     int64 expiration = 10;
     repeated string servers = 11;
     string subscription = 12;
-    repeated Purchase purchases = 13;
+    repeated string purchases = 13;
     string bonusDays = 14;
     string bonusMonths = 15;
     repeated string inviters = 16;
@@ -50,7 +50,6 @@ message UserResponse {
   UserData legacyUserData = 6;
   // list of current user devices. returned only on successful login that is blocked by 'too many devices'
   repeated Device devices = 7;
-
 }
 
 message Purchase  {

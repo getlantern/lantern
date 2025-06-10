@@ -23,7 +23,7 @@ abstract class LanternCoreService {
 
   ///Payments methods
   Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
-      {required StipeSubscriptionType type,
+      {required BillingType type,
       required String planId,
       required String email});
 
@@ -69,10 +69,35 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, UserResponse>> oAuthLoginCallback(String token);
 
+  Future<Either<Failure, Unit>> activationCode(
+      {required String email, required String resellerCode});
+
+  ///User management methods
+  Future<Either<Failure, UserResponse>> login(
+      {required String email, required String password});
+
+  Future<Either<Failure, Unit>> signUp(
+      {required String email, required String password});
+
   Future<Either<Failure, UserResponse>> getUserData();
 
   Future<Either<Failure, UserResponse>> fetchUserData();
 
-  //User management methods
   Future<Either<Failure, UserResponse>> logout(String email);
+
+  //Forgot password
+  Future<Either<Failure, Unit>> startRecoveryByEmail(String email);
+
+  Future<Either<Failure, Unit>> validateRecoveryCode(
+      {required String email, required String code});
+
+  Future<Either<Failure, Unit>> completeChangeEmail({
+    required String email,
+    required String code,
+    required String newPassword,
+  });
+
+  //Delete account
+  Future<Either<Failure, UserResponse>> deleteAccount(
+      {required String email, required String password});
 }
