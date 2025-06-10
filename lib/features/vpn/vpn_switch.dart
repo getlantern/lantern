@@ -19,7 +19,7 @@ class VPNSwitch extends HookConsumerWidget {
       (previous, next) {
         if (next is AsyncData<LanternStatus> &&
             next.value.status == VPNStatus.error) {
-          context.showSnackBarError('vpn_error'.i18n);
+          context.showSnackBar('vpn_error'.i18n);
         }
       },
     );
@@ -79,7 +79,7 @@ class VPNSwitch extends HookConsumerWidget {
         await ref.read(vpnNotifierProvider.notifier).onVPNStateChange(context);
 
     result.fold(
-      (failure) => context.showSnackBarError(failure.localizedErrorMessage),
+      (failure) => context.showSnackBar(failure.localizedErrorMessage),
       (_) => null,
     );
   }

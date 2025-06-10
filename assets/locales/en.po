@@ -466,6 +466,9 @@ msgstr "Billed Once"
 msgid "subscription"
 msgstr "Subscription"
 
+msgid "subscribe"
+msgstr "Subscribe"
+
 msgid "checkout"
 msgstr "Checkout"
 
@@ -486,3 +489,44 @@ msgstr "Continue without VPN"
 
 msgid "turn_on_vpn"
 msgstr "Turn on VPN"
+
+msgid "error"
+msgstr "Error"
+
+msgid "signup_error_user_exists"
+msgstr "It looks like something went wrong with the sign-up. Please try resetting your password, and if the issue continues, reach out to our support team"
+
+msgid "user_not_found"
+msgstr "User not recognized. Please check your credentials and try again. If you continue to experience issues, please reach out to our support team for assistance."
+
+msgid "invalid_code"
+msgstr "Incorrect code or it might have expired. Please try resending again"
+
+msgid "email_resend_message"
+msgstr "Your new confirmation code has been sent"
+
+msgid "password_has_been_updated"
+msgstr "Password has been updated"
+
+msgid "password_has_been_updated_message"
+msgstr "Your password has been reset successfully"
+
+msgid "update_pro_account"
+msgstr "Update Pro Account"
+
+msgid "update_pro_account_message"
+msgstr "To manage your account or sign in to another device, please add an email and password to your account first."
+
+msgid "subscription_cancelled"
+msgstr "Your subscription has been cancelled."
+
+msgid "subscription_updated"
+msgstr "Your subscription has been updated."
+
+msgid "subscription_renewed"
+msgstr "Your subscription has been renewed."
+
+
+
+
+

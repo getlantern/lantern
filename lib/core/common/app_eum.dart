@@ -9,19 +9,14 @@ enum VPNStatus {
 
 enum AuthFlow{
   resetPassword,
+  oauth,
   signUp,
   activationCode
 }
 
-enum AppFlow{
-  store,
-  nonStore,
-}
 
-
-enum StipeSubscriptionType{
-  monthly,
-  yearly,
+enum BillingType{
+  subscription,
   one_time
 }
 enum SplitTunnelFilterType {

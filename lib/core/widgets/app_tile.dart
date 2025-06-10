@@ -60,20 +60,17 @@ class AppTile extends StatelessWidget {
         );
       } else if (icon is Image) {
         leading = icon as Image;
-      }
-      else if (icon is Widget) {
+      } else if (icon is Widget) {
         leading = icon as Widget;
-
       }
     }
 
     return ListTile(
-
       enableFeedback: true,
       minVerticalPadding: 0,
       contentPadding:
           contentPadding ?? const EdgeInsets.symmetric(horizontal: 16),
-      title: Text(label, style: _tileTextStyle),
+      title: Text(label, style: _tileTextStyle,maxLines: 1,overflow: TextOverflow.ellipsis ),
       subtitle: subtitle,
       leading: leading,
       trailing: trailing,

@@ -15,24 +15,7 @@ import '../../lantern/protos/protos/auth.pb.dart';
 import '../models/user_entity.dart';
 import 'db/objectbox.g.dart';
 
-// class AppDB {
-//   static final LocalStorageService _localStorageService =
-//       sl<LocalStorageService>();
-//
-//   static set<T>(String key, T value) {
-//     assert(T != dynamic, "You must explicitly specify a type for set<T>()");
-//     final start = DateTime.now();
-//     _localStorageService.set(key, value);
-//     dbLogger.info(
-//       "Key: $key saved successfully in ${DateTime.now().difference(start).inMilliseconds}ms",
-//     );
-//   }
-//
-//   static T? get<T>(String key) {
-//     return _localStorageService.get<T>(key);
-//   }
-// }
-
+/// LocalStorageService is responsible for managing local storage operations
 class LocalStorageService {
   late Store _store;
 
@@ -98,36 +81,6 @@ class LocalStorageService {
   void close() {
     _store.close();
   }
-
-  // T? get<T>(String key) {
-  //   dbLogger.debug("Getting key: $key");
-  //   return _cache[key] as T?;
-  //   // final Map<String, dynamic> dbMap = _appDb.map;
-  //   // return dbMap[key] as T?;
-  // }
-  //
-  // /// Save a key-value pair
-  // void set<T>(String key, T value) {
-  //   try {
-  //     final Map<String, dynamic> dbMap = _appDb.map;
-  //     dbMap[key] = value;
-  //     _appDb.map = dbMap;
-  //     _box.putAsync(_appDb);
-  //     //update cache
-  //     _cache[key] = value;
-  //   } catch (e) {
-  //     dbLogger.error("Error saving key: $key, value: $value");
-  //   }
-  // }
-
-  // /// Remove a key
-  // void remove(String key) {
-  //   final Map<String, dynamic> dbMap = _appDb.map;
-  //   dbMap.remove(key);
-  //   _appDb.map = dbMap;
-  //   _box.put(_appDb);
-  //   dbLogger.debug("Key: $key removed successfully");
-  // }
 
   // Apps methods
   Future<void> saveApps(Set<AppData> apps) async {
