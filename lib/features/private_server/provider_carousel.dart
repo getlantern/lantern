@@ -67,7 +67,9 @@ class ProviderCarousel extends HookConsumerWidget {
             const SizedBox(width: 8),
             AppIconButton(
               path: AppImagePaths.arrowForward,
-              onPressed: null,
+              onPressed: current.value < cards.length - 1
+                  ? () => goTo(current.value + 1)
+                  : null,
             ),
           ],
         ),
