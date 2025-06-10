@@ -28,7 +28,7 @@ import 'package:lantern/features/home/home.dart' as _i12;
 import 'package:lantern/features/language/language.dart' as _i14;
 import 'package:lantern/features/logs/logs.dart' as _i15;
 import 'package:lantern/features/plans/plans.dart' as _i16;
-import 'package:lantern/features/private_server/entry.dart' as _i17;
+import 'package:lantern/features/private_server/private_server_setup.dart' as _i17;
 import 'package:lantern/features/reportIssue/report_issue.dart' as _i18;
 import 'package:lantern/features/setting/download_links.dart' as _i10;
 import 'package:lantern/features/setting/follow_us.dart' as _i11;

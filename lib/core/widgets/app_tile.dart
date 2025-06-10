@@ -9,6 +9,7 @@ class AppTile extends StatelessWidget {
   final Widget? subtitle;
   final VoidCallback? onPressed;
   final EdgeInsets? contentPadding;
+  final bool? dense;
 
   final TextStyle? tileTextStyle;
 
@@ -21,6 +22,7 @@ class AppTile extends StatelessWidget {
     this.trailing,
     this.contentPadding,
     this.tileTextStyle,
+    this.dense,
   });
 
   factory AppTile.link({
@@ -60,21 +62,18 @@ class AppTile extends StatelessWidget {
         );
       } else if (icon is Image) {
         leading = icon as Image;
-      }
-      else if (icon is Widget) {
+      } else if (icon is Widget) {
         leading = icon as Widget;
-
       }
     }
 
     return ListTile(
-
       enableFeedback: true,
       minVerticalPadding: 0,
-      contentPadding:
-          contentPadding ?? const EdgeInsets.symmetric(horizontal: 16),
+      contentPadding: contentPadding ?? const EdgeInsets.symmetric(horizontal: 16),
       title: Text(label, style: _tileTextStyle),
       subtitle: subtitle,
+      dense: dense,
       leading: leading,
       trailing: trailing,
       onTap: onPressed,

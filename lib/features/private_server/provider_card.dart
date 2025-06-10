@@ -21,17 +21,13 @@ class ProviderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
-          color: AppColors.gray2,
-        ),
-      ),
+      margin: EdgeInsets.only(right: 5),
       elevation: 4,
       shadowColor: AppColors.shadowColor,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -39,11 +35,7 @@ class ProviderCard extends StatelessWidget {
             AppTile(
               icon: icon,
               label: title,
-              tileTextStyle: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: AppColors.black1,
-              ),
+              tileTextStyle: textTheme.titleMedium,
               contentPadding: EdgeInsets.symmetric(horizontal: 4.0),
             ),
             Divider(color: AppColors.gray2),
@@ -60,6 +52,8 @@ class ProviderCard extends StatelessWidget {
             CheckmarkTile(
               text: 'one_month_included'.i18n.fill([1]),
             ),
+            const SizedBox(height: 24),
+            PrimaryButton(label: 'continue_with_do'.i18n, onPressed: () {}),
           ],
         ),
       ),
@@ -79,11 +73,14 @@ class CheckmarkTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return AppTile(
       icon: AppImagePaths.checkmark,
       label: text,
       trailing: trailing,
-      contentPadding: EdgeInsets.symmetric(horizontal: 4.0),
+      dense: true,
+      tileTextStyle: textTheme.bodyMedium,
+      contentPadding: EdgeInsets.symmetric(horizontal: 4.0, vertical: 0),
     );
   }
 }

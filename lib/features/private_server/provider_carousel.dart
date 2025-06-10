@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 
@@ -11,7 +12,7 @@ class ProviderCarousel extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final current = useState(0);
-    final controller = usePageController();
+    final controller = usePageController(viewportFraction: .98);
     void goTo(int page) {
       if (page < 0 || page >= cards.length) return;
       controller.animateToPage(
@@ -24,7 +25,7 @@ class ProviderCarousel extends HookConsumerWidget {
     return Column(
       children: [
         SizedBox(
-          height: 360,
+          height: 400.h,
           child: PageView.builder(
             controller: controller,
             itemCount: cards.length,
@@ -34,7 +35,7 @@ class ProviderCarousel extends HookConsumerWidget {
         ),
         const SizedBox(height: 12),
         Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             IconButton(
               icon: Icon(Icons.arrow_back_ios),
@@ -64,18 +65,9 @@ class ProviderCarousel extends HookConsumerWidget {
               }),
             ),
             const SizedBox(width: 8),
-            IconButton(
-              icon: Icon(Icons.arrow_forward_ios),
-              onPressed: current.value < cards.length - 1
-                  ? () => goTo(current.value + 1)
-                  : null,
-              color: current.value < cards.length - 1
-                  ? Colors.black
-                  : Colors.grey[400],
-              tooltip: 'next'.i18n,
-              iconSize: 24,
-              padding: EdgeInsets.zero,
-              splashRadius: 20,
+            AppIconButton(
+              path: AppImagePaths.arrowForward,
+              onPressed: null,
             ),
           ],
         ),
