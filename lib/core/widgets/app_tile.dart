@@ -70,8 +70,10 @@ class AppTile extends StatelessWidget {
     return ListTile(
       enableFeedback: true,
       minVerticalPadding: 0,
-      contentPadding: contentPadding ?? const EdgeInsets.symmetric(horizontal: 16),
-      title: Text(label, style: _tileTextStyle),
+      contentPadding:
+          contentPadding ?? const EdgeInsets.symmetric(horizontal: 16),
+      title: Text(label,
+          style: _tileTextStyle, maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: subtitle,
       dense: dense,
       leading: leading,

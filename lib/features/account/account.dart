@@ -1,13 +1,15 @@
 import 'dart:io';
 
 import 'package:auto_route/annotations.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/extensions/plan.dart';
 import 'package:lantern/core/services/injection_container.dart';
-import 'package:lantern/core/utils/store_utils.dart';
 import 'package:lantern/core/widgets/user_devices.dart';
 import 'package:lantern/features/account/provider/account_notifier.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
@@ -27,6 +29,7 @@ class Account extends HookConsumerWidget {
 
   Widget _buildBody(BuildContext buildContext, WidgetRef ref) {
     final user = sl<LocalStorageService>().getUser();
+    final appSettings = ref.read(appSettingNotifierProvider);
     final theme = Theme.of(buildContext).textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -43,10 +46,13 @@ class Account extends HookConsumerWidget {
         ),
         Card(
           child: AppTile(
-            label: '122300984@qq.com',
-            icon: AppImagePaths.email,
-            onPressed: () {},
-          ),
+              label: appSettings.email,
+              icon: AppImagePaths.email,
+              onPressed: kDebugMode
+                  ? () {
+                      copyToClipboard(appSettings.email);
+                    }
+                  : null),
         ),
         SizedBox(height: defaultSize),
         Padding(
@@ -62,7 +68,7 @@ class Account extends HookConsumerWidget {
         ),
         Card(
           child: AppTile(
-            label: user.legacyUserData.subscriptionData.endAt.toMMDDYYDate(),
+            label: user.legacyUserData.toDate(),
             contentPadding: EdgeInsets.only(left: 16),
             icon: AppImagePaths.email,
             trailing: AppTextButton(
@@ -81,7 +87,7 @@ class Account extends HookConsumerWidget {
             ),
           ),
         ),
-        UserDevices(userDevices: user.devices.toList()),
+        UserDevices(userDevices: user.legacyUserData.devices.toList()),
         Spacer(),
         Padding(
           padding: const EdgeInsets.only(left: 16),
@@ -104,6 +110,7 @@ class Account extends HookConsumerWidget {
             ),
           ),
         ),
+        SizedBox(height: defaultSize),
       ],
     );
   }
@@ -116,7 +123,7 @@ class Account extends HookConsumerWidget {
       WidgetRef ref, BuildContext buildContext) async {
     switch (Platform.operatingSystem) {
       case "android":
-        if (sl<StoreUtils>().isPlayStoreVersion) {
+        if (isStoreVersion()) {
           /// user is using play store version
           openGooglePlaySubscriptions();
           return;
@@ -152,7 +159,7 @@ class Account extends HookConsumerWidget {
         (failure) {
           buildContext.hideLoadingDialog();
           appLogger.error('Error on manage subscription tap', failure);
-          buildContext.showSnackBarError(failure.localizedErrorMessage);
+          buildContext.showSnackBar(failure.localizedErrorMessage);
         },
         (stripeUrl) {
           buildContext.hideLoadingDialog();
@@ -182,6 +189,7 @@ class Account extends HookConsumerWidget {
         oldUser: oldUser,
         lanternService: lanternService,
         notifier: notifier,
+        context: context,
       );
     } catch (e) {
       appLogger.error('Exception during subscription check', e);
@@ -190,32 +198,44 @@ class Account extends HookConsumerWidget {
     }
   }
 
-  Future<void> _handleSubscriptionChange({
-    required UserResponse oldUser,
-    required LanternService lanternService,
-    required HomeNotifier notifier,
-  }) async {
+  Future<void> _handleSubscriptionChange(
+      {required UserResponse oldUser,
+      required LanternService lanternService,
+      required HomeNotifier notifier,
+      required BuildContext context}) async {
     final delays = [Duration(seconds: 1), Duration(seconds: 2)];
     for (final delay in delays) {
       appLogger.info('Checking subscription with delay: $delay');
       if (delay != Duration.zero) await Future.delayed(delay);
 
-      final result = await lanternService.getUserData();
+      final result = await lanternService.fetchUserData();
       final shouldStop = result.fold(
         (failure) {
           appLogger.error('Subscription check error', failure);
-          return false;
+          return;
         },
         (newUser) {
           final oldPlanId = oldUser.legacyUserData.subscriptionData.planID;
           final newPlanId = newUser.legacyUserData.subscriptionData.planID;
           final isPro = newUser.legacyUserData.userLevel == 'pro';
           final isPlanChanged = isPro && oldPlanId != newPlanId;
-          final isCancelled = !isPro;
+          final isCancelled = !isPro ||
+              (oldUser.legacyUserData.subscriptionData.autoRenew &&
+                  newUser.legacyUserData.subscriptionData.autoRenew == false);
+
+          final isRenew = (oldUser.legacyUserData.subscriptionData.autoRenew==false && newUser.legacyUserData.subscriptionData.autoRenew);
+
+          if (isRenew) {
+            appLogger.info('User renewed subscription: $oldPlanId → $newPlanId');
+            notifier.updateUserData(newUser);
+            context.showSnackBar('subscription_renewed'.i18n);
+            return true;
+          }
 
           if (isPlanChanged) {
             appLogger.info('User changed plan: $oldPlanId → $newPlanId');
             notifier.updateUserData(newUser);
+            context.showSnackBar('subscription_updated'.i18n);
             return true;
           }
 
@@ -223,11 +243,15 @@ class Account extends HookConsumerWidget {
             appLogger
                 .info('User cancelled subscription. Previous plan: $oldPlanId');
             notifier.updateUserData(newUser);
+            context.showSnackBar('subscription_cancelled'.i18n);
             return true;
           }
           return false;
         },
       );
+      if (shouldStop ?? false) {
+        break;
+      }
     }
   }
 }

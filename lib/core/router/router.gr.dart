@@ -63,24 +63,67 @@ class Account extends _i30.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i2.ActivationCode]
+<<<<<<< HEAD
 class ActivationCode extends _i30.PageRouteInfo<void> {
   const ActivationCode({List<_i30.PageRouteInfo>? children})
       : super(ActivationCode.name, initialChildren: children);
+=======
+class ActivationCode extends _i29.PageRouteInfo<ActivationCodeArgs> {
+  ActivationCode({
+    _i30.Key? key,
+    required String email,
+    required String code,
+    List<_i29.PageRouteInfo>? children,
+  }) : super(
+          ActivationCode.name,
+          args: ActivationCodeArgs(
+            key: key,
+            email: email,
+            code: code,
+          ),
+          initialChildren: children,
+        );
+>>>>>>> origin/main
 
   static const String name = 'ActivationCode';
 
   static _i30.PageInfo page = _i30.PageInfo(
     name,
     builder: (data) {
-      return const _i2.ActivationCode();
+      final args = data.argsAs<ActivationCodeArgs>();
+      return _i2.ActivationCode(
+        key: args.key,
+        email: args.email,
+        code: args.code,
+      );
     },
   );
+}
+
+class ActivationCodeArgs {
+  const ActivationCodeArgs({
+    this.key,
+    required this.email,
+    required this.code,
+  });
+
+  final _i30.Key? key;
+
+  final String email;
+
+  final String code;
+
+  @override
+  String toString() {
+    return 'ActivationCodeArgs{key: $key, email: $email, code: $code}';
+  }
 }
 
 /// generated route for
 /// [_i3.AddEmail]
 class AddEmail extends _i30.PageRouteInfo<AddEmailArgs> {
   AddEmail({
+<<<<<<< HEAD
     _i31.Key? key,
     _i32.AuthFlow authFlow = _i32.AuthFlow.signUp,
     _i32.AppFlow appFlow = _i32.AppFlow.nonStore,
@@ -88,6 +131,17 @@ class AddEmail extends _i30.PageRouteInfo<AddEmailArgs> {
   }) : super(
           AddEmail.name,
           args: AddEmailArgs(key: key, authFlow: authFlow, appFlow: appFlow),
+=======
+    _i30.Key? key,
+    _i31.AuthFlow authFlow = _i31.AuthFlow.signUp,
+    List<_i29.PageRouteInfo>? children,
+  }) : super(
+          AddEmail.name,
+          args: AddEmailArgs(
+            key: key,
+            authFlow: authFlow,
+          ),
+>>>>>>> origin/main
           initialChildren: children,
         );
 
@@ -102,7 +156,6 @@ class AddEmail extends _i30.PageRouteInfo<AddEmailArgs> {
       return _i3.AddEmail(
         key: args.key,
         authFlow: args.authFlow,
-        appFlow: args.appFlow,
       );
     },
   );
@@ -111,19 +164,26 @@ class AddEmail extends _i30.PageRouteInfo<AddEmailArgs> {
 class AddEmailArgs {
   const AddEmailArgs({
     this.key,
+<<<<<<< HEAD
     this.authFlow = _i32.AuthFlow.signUp,
     this.appFlow = _i32.AppFlow.nonStore,
+=======
+    this.authFlow = _i31.AuthFlow.signUp,
+>>>>>>> origin/main
   });
 
   final _i31.Key? key;
 
   final _i32.AuthFlow authFlow;
 
+<<<<<<< HEAD
   final _i32.AppFlow appFlow;
 
+=======
+>>>>>>> origin/main
   @override
   String toString() {
-    return 'AddEmailArgs{key: $key, authFlow: $authFlow, appFlow: $appFlow}';
+    return 'AddEmailArgs{key: $key, authFlow: $authFlow}';
   }
 
   @override
@@ -211,13 +271,20 @@ class ChoosePaymentMethod extends _i30.PageRouteInfo<ChoosePaymentMethodArgs> {
   ChoosePaymentMethod({
     _i31.Key? key,
     required String email,
+<<<<<<< HEAD
     required _i32.AuthFlow authFlow,
     List<_i30.PageRouteInfo>? children,
+=======
+    String? code,
+    required _i31.AuthFlow authFlow,
+    List<_i29.PageRouteInfo>? children,
+>>>>>>> origin/main
   }) : super(
           ChoosePaymentMethod.name,
           args: ChoosePaymentMethodArgs(
             key: key,
             email: email,
+            code: code,
             authFlow: authFlow,
           ),
           initialChildren: children,
@@ -232,6 +299,7 @@ class ChoosePaymentMethod extends _i30.PageRouteInfo<ChoosePaymentMethodArgs> {
       return _i6.ChoosePaymentMethod(
         key: args.key,
         email: args.email,
+        code: args.code,
         authFlow: args.authFlow,
       );
     },
@@ -242,6 +310,7 @@ class ChoosePaymentMethodArgs {
   const ChoosePaymentMethodArgs({
     this.key,
     required this.email,
+    this.code,
     required this.authFlow,
   });
 
@@ -249,11 +318,17 @@ class ChoosePaymentMethodArgs {
 
   final String email;
 
+<<<<<<< HEAD
   final _i32.AuthFlow authFlow;
+=======
+  final String? code;
+
+  final _i31.AuthFlow authFlow;
+>>>>>>> origin/main
 
   @override
   String toString() {
-    return 'ChoosePaymentMethodArgs{key: $key, email: $email, authFlow: $authFlow}';
+    return 'ChoosePaymentMethodArgs{key: $key, email: $email, code: $code, authFlow: $authFlow}';
   }
 
   @override
@@ -275,16 +350,20 @@ class ConfirmEmail extends _i30.PageRouteInfo<ConfirmEmailArgs> {
   ConfirmEmail({
     _i31.Key? key,
     required String email,
+<<<<<<< HEAD
     _i32.AuthFlow authFlow = _i32.AuthFlow.signUp,
     _i32.AppFlow appFlow = _i32.AppFlow.nonStore,
     List<_i30.PageRouteInfo>? children,
+=======
+    _i31.AuthFlow authFlow = _i31.AuthFlow.signUp,
+    List<_i29.PageRouteInfo>? children,
+>>>>>>> origin/main
   }) : super(
           ConfirmEmail.name,
           args: ConfirmEmailArgs(
             key: key,
             email: email,
             authFlow: authFlow,
-            appFlow: appFlow,
           ),
           initialChildren: children,
         );
@@ -299,7 +378,6 @@ class ConfirmEmail extends _i30.PageRouteInfo<ConfirmEmailArgs> {
         key: args.key,
         email: args.email,
         authFlow: args.authFlow,
-        appFlow: args.appFlow,
       );
     },
   );
@@ -309,8 +387,12 @@ class ConfirmEmailArgs {
   const ConfirmEmailArgs({
     this.key,
     required this.email,
+<<<<<<< HEAD
     this.authFlow = _i32.AuthFlow.signUp,
     this.appFlow = _i32.AppFlow.nonStore,
+=======
+    this.authFlow = _i31.AuthFlow.signUp,
+>>>>>>> origin/main
   });
 
   final _i31.Key? key;
@@ -319,11 +401,14 @@ class ConfirmEmailArgs {
 
   final _i32.AuthFlow authFlow;
 
+<<<<<<< HEAD
   final _i32.AppFlow appFlow;
 
+=======
+>>>>>>> origin/main
   @override
   String toString() {
-    return 'ConfirmEmailArgs{key: $key, email: $email, authFlow: $authFlow, appFlow: $appFlow}';
+    return 'ConfirmEmailArgs{key: $key, email: $email, authFlow: $authFlow}';
   }
 
   @override
@@ -347,11 +432,25 @@ class CreatePassword extends _i30.PageRouteInfo<CreatePasswordArgs> {
   CreatePassword({
     _i31.Key? key,
     required String email,
+<<<<<<< HEAD
     required _i32.AuthFlow authFlow,
     List<_i30.PageRouteInfo>? children,
   }) : super(
           CreatePassword.name,
           args: CreatePasswordArgs(key: key, email: email, authFlow: authFlow),
+=======
+    required _i31.AuthFlow authFlow,
+    required String code,
+    List<_i29.PageRouteInfo>? children,
+  }) : super(
+          CreatePassword.name,
+          args: CreatePasswordArgs(
+            key: key,
+            email: email,
+            authFlow: authFlow,
+            code: code,
+          ),
+>>>>>>> origin/main
           initialChildren: children,
         );
 
@@ -365,6 +464,7 @@ class CreatePassword extends _i30.PageRouteInfo<CreatePasswordArgs> {
         key: args.key,
         email: args.email,
         authFlow: args.authFlow,
+        code: args.code,
       );
     },
   );
@@ -375,6 +475,7 @@ class CreatePasswordArgs {
     this.key,
     required this.email,
     required this.authFlow,
+    required this.code,
   });
 
   final _i31.Key? key;
@@ -383,9 +484,11 @@ class CreatePasswordArgs {
 
   final _i32.AuthFlow authFlow;
 
+  final String code;
+
   @override
   String toString() {
-    return 'CreatePasswordArgs{key: $key, email: $email, authFlow: $authFlow}';
+    return 'CreatePasswordArgs{key: $key, email: $email, authFlow: $authFlow, code: $code}';
   }
 
   @override
@@ -654,10 +757,22 @@ class ResetPassword extends _i30.PageRouteInfo<ResetPasswordArgs> {
   ResetPassword({
     _i31.Key? key,
     required String email,
+<<<<<<< HEAD
     List<_i30.PageRouteInfo>? children,
   }) : super(
           ResetPassword.name,
           args: ResetPasswordArgs(key: key, email: email),
+=======
+    required String code,
+    List<_i29.PageRouteInfo>? children,
+  }) : super(
+          ResetPassword.name,
+          args: ResetPasswordArgs(
+            key: key,
+            email: email,
+            code: code,
+          ),
+>>>>>>> origin/main
           initialChildren: children,
         );
 
@@ -667,21 +782,39 @@ class ResetPassword extends _i30.PageRouteInfo<ResetPasswordArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<ResetPasswordArgs>();
+<<<<<<< HEAD
       return _i19.ResetPassword(key: args.key, email: args.email);
+=======
+      return _i18.ResetPassword(
+        key: args.key,
+        email: args.email,
+        code: args.code,
+      );
+>>>>>>> origin/main
     },
   );
 }
 
 class ResetPasswordArgs {
+<<<<<<< HEAD
   const ResetPasswordArgs({this.key, required this.email});
+=======
+  const ResetPasswordArgs({
+    this.key,
+    required this.email,
+    required this.code,
+  });
+>>>>>>> origin/main
 
   final _i31.Key? key;
 
   final String email;
 
+  final String code;
+
   @override
   String toString() {
-    return 'ResetPasswordArgs{key: $key, email: $email}';
+    return 'ResetPasswordArgs{key: $key, email: $email, code: $code}';
   }
 
   @override
@@ -696,19 +829,61 @@ class ResetPasswordArgs {
 }
 
 /// generated route for
+<<<<<<< HEAD
 /// [_i20.ResetPasswordEmail]
 class ResetPasswordEmail extends _i30.PageRouteInfo<void> {
   const ResetPasswordEmail({List<_i30.PageRouteInfo>? children})
       : super(ResetPasswordEmail.name, initialChildren: children);
+=======
+/// [_i19.ResetPasswordEmail]
+class ResetPasswordEmail extends _i29.PageRouteInfo<ResetPasswordEmailArgs> {
+  ResetPasswordEmail({
+    _i30.Key? key,
+    String? email,
+    List<_i29.PageRouteInfo>? children,
+  }) : super(
+          ResetPasswordEmail.name,
+          args: ResetPasswordEmailArgs(
+            key: key,
+            email: email,
+          ),
+          initialChildren: children,
+        );
+>>>>>>> origin/main
 
   static const String name = 'ResetPasswordEmail';
 
   static _i30.PageInfo page = _i30.PageInfo(
     name,
     builder: (data) {
+<<<<<<< HEAD
       return const _i20.ResetPasswordEmail();
+=======
+      final args = data.argsAs<ResetPasswordEmailArgs>(
+          orElse: () => const ResetPasswordEmailArgs());
+      return _i19.ResetPasswordEmail(
+        key: args.key,
+        email: args.email,
+      );
+>>>>>>> origin/main
     },
   );
+}
+
+class ResetPasswordEmailArgs {
+  const ResetPasswordEmailArgs({
+    this.key,
+    this.email,
+  });
+
+  final _i30.Key? key;
+
+  final String? email;
+
+  @override
+  String toString() {
+    return 'ResetPasswordEmailArgs{key: $key, email: $email}';
+  }
 }
 
 /// generated route for

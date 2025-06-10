@@ -79,4 +79,5 @@ class AppImagePaths {
   static const serverRack = 'assets/images/server_rack.svg';
   static const digitalOceanIcon = 'assets/images/digital_ocean_icon.svg';
   static const checkmark = 'assets/images/checkmark.svg';
+  static const personAdd = 'assets/images/person_add.svg';
 }

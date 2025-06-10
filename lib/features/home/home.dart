@@ -55,6 +55,7 @@ class Home extends HookConsumerWidget {
           Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
+              if(!isUserPro)
               DataUsage(),
               SizedBox(height: 8),
               _buildSetting(ref),

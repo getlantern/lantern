@@ -1,4 +1,5 @@
 import 'package:auto_route/annotations.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
@@ -12,14 +13,18 @@ import 'package:lantern/features/auth/provider/payment_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
 
+import '../../lantern/lantern_service_notifier.dart';
+
 @RoutePage(name: 'ChoosePaymentMethod')
 class ChoosePaymentMethod extends HookConsumerWidget {
   final String email;
+  final String? code;
   final AuthFlow authFlow;
 
   const ChoosePaymentMethod({
     super.key,
     required this.email,
+    this.code,
     required this.authFlow,
   });
 
@@ -59,7 +64,6 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           desktopPurchaseFlow(provider, ref, context);
           return;
         }
-
         // only android side load version should be here
         androidStripeSubscription(provider, ref, context);
         break;
@@ -79,7 +83,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     final result = await paymentProvider.stripeSubscription(userPlan.id, email);
     result.fold(
       (error) {
-        context.showSnackBarError(error.localizedErrorMessage);
+        context.showSnackBar(error.localizedErrorMessage);
         appLogger.error('Error subscribing to plan: $error');
         context.hideLoadingDialog();
       },
@@ -91,11 +95,11 @@ class ChoosePaymentMethod extends HookConsumerWidget {
         sl<StripeService>().startStripeSDK(
           options: StripeOptions.fromJson(stripeData),
           onSuccess: () {
-            onPurchaseSuccess(ref, context);
+            onPurchaseResult(true, context, ref);
           },
           onError: (error) {
             ///error while subscribing
-            context.showSnackBarError('purchase_not_completed'.i18n);
+            context.showSnackBar('purchase_not_completed'.i18n);
           },
         );
       },
@@ -112,20 +116,20 @@ class ChoosePaymentMethod extends HookConsumerWidget {
       ///Start stipe subscription flow
       final paymentProvider = ref.read(paymentNotifierProvider.notifier);
       final result = await paymentProvider.stripeSubscriptionLink(
-        StipeSubscriptionType.monthly,
+        BillingType.subscription,
         userPlan.id,
         email,
       );
       result.fold(
         (error) {
-          context.showSnackBarError(error.localizedErrorMessage);
+          context.showSnackBar(error.localizedErrorMessage);
           appLogger.error('Error subscribing to plan: $error');
           context.hideLoadingDialog();
         },
         (stripeUrl) async {
           // Handle success
           if (stripeUrl.isEmpty) {
-            context.showSnackBarError('empty_url'.i18n);
+            context.showSnackBar('empty_url'.i18n);
             appLogger.error('Error subscribing to plan: empty url');
             context.hideLoadingDialog();
             return;
@@ -136,14 +140,14 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           UrlUtils.openWebview<bool>(
             stripeUrl,
             title: 'stripe_payment'.i18n,
-            onWebviewResult: (result) => onPurchaseResult(result, context),
+            onWebviewResult: (result) => onPurchaseResult(result, context, ref),
           );
         },
       );
     } catch (e) {
       appLogger.error('Error subscribing to plan: $e');
       context.hideLoadingDialog();
-      context.showSnackBarError('error_subscribing_plan'.i18n);
+      context.showSnackBar('error_subscribing_plan'.i18n);
     }
   }
 
@@ -164,7 +168,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
         context.hideLoadingDialog();
         appLogger.error(
             'Error redirecting to payment: ${failure.localizedErrorMessage}');
-        context.showSnackBarError(failure.localizedErrorMessage);
+        context.showSnackBar(failure.localizedErrorMessage);
       },
       (url) {
         context.hideLoadingDialog();
@@ -173,47 +177,59 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     );
   }
 
-  Future<void> onPurchaseSuccess(WidgetRef ref, BuildContext context) async {
-    try {
-      if (authFlow == AuthFlow.signUp) {
-        final localStorage = sl<LocalStorageService>();
-        //at this point user should be stored
-        final user = localStorage.getUser()!;
-        await Future.delayed(const Duration(seconds: 1));
-        //update user status to pro
-        user.legacyUserData.userStatus = 'pro';
-        ref.read(homeNotifierProvider.notifier).updateUserData(user);
+  Future<void> onPurchaseResult(
+      bool purchased, BuildContext context, WidgetRef ref) async {
+    if (!purchased) {
+      context.showSnackBar('purchase_not_completed'.i18n);
+      return;
+    }
+    context.showLoadingDialog();
+    final delays = [Duration(seconds: 1), Duration(seconds: 2)];
+    for (final delay in delays) {
+      appLogger.info('Checking subscription with delay: $delay');
+      if (delay != Duration.zero) Future.delayed(delay);
 
-        /// Subscription successful
+      final result = await ref.read(lanternServiceProvider).fetchUserData();
+      result.fold(
+        (failure) {
+          appLogger.error('Subscription check error', failure);
+          return false;
+        },
+        (newUser) {
+          final isPro = newUser.legacyUserData.userLevel == 'pro';
+          if (isPro) {
+            // User has bought a plan
+            ref.read(homeNotifierProvider.notifier).updateUserData(newUser);
+            return true;
+          }
+          return true;
+        },
+      );
+    }
+    context.hideLoadingDialog();
+    resolveRoute(context);
+  }
+
+  void resolveRoute(BuildContext context) {
+    switch (authFlow) {
+      case AuthFlow.signUp:
+        appRouter.push(
+            CreatePassword(email: email, authFlow: authFlow, code: code!));
+        break;
+      case AuthFlow.oauth:
         AppDialog.showLanternProDialog(
           context: context,
           onPressed: () {
             appRouter.popUntilRoot();
           },
         );
-      } else {}
-    } catch (e) {
-      appLogger.error('Error subscribing to plan: $e');
-      context.showSnackBarError('error_subscribing_plan'.i18n);
+        break;
+      case AuthFlow.activationCode:
+        throw UnimplementedError('Activation code flow should not reach here');
+      case AuthFlow.resetPassword:
+        // TODO: Handle this case.
+        throw UnimplementedError('reset password flow should not reach here');
     }
-  }
-
-  void onPurchaseResult(bool purchased, BuildContext context) {
-    if (purchased) {
-      AppDialog.showLanternProDialog(
-        context: context,
-        onPressed: () {
-          appRouter.push(
-            CreatePassword(
-              email: email,
-              authFlow: authFlow,
-            ),
-          );
-        },
-      );
-      return;
-    }
-    context.showSnackBarError('purchase_not_completed'.i18n);
   }
 }
 

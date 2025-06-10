@@ -30,7 +30,7 @@ class PaymentNotifier extends _$PaymentNotifier {
   }
 
   Future<Either<Failure, String>> stripeSubscriptionLink(
-      StipeSubscriptionType type, String planId, String email) async {
+      BillingType type, String planId, String email) async {
     return ref.read(lanternServiceProvider).stipeSubscriptionPaymentRedirect(
         type: type, planId: planId, email: email);
   }

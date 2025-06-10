@@ -21,18 +21,18 @@ class UserDevices extends StatelessWidget {
         children: [
           ...userDevices.map((e) => _buildRow(e)),
           DividerSpace(),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 5),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                AppTextButton(
-                  label: 'add_device'.i18n,
-                  onPressed: () {},
-                ),
-              ],
-            ),
-          ),
+          // Padding(
+          //   padding: const EdgeInsets.symmetric(vertical: 5),
+          //   child: Row(
+          //     mainAxisAlignment: MainAxisAlignment.end,
+          //     children: [
+          //       AppTextButton(
+          //         label: 'add_device'.i18n,
+          //         onPressed: () {},
+          //       ),
+          //     ],
+          //   ),
+          // ),
         ],
       ),
     );
@@ -40,11 +40,11 @@ class UserDevices extends StatelessWidget {
 
   Widget _buildRow(UserResponse_Device e) {
     return AppTile(
-      label: e.name ?? e.id,
+      label: e.name,
       contentPadding: EdgeInsets.only(left: 16),
       icon: AppImagePaths.email,
-      trailing: AppTextButton(label: 'remove'.i18n, onPressed: () {}),
-      onPressed: () {},
+      // trailing: AppTextButton(label: 'remove'.i18n, onPressed: () {}),
+      // onPressed: () {},
     );
   }
 }

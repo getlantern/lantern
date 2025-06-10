@@ -42,11 +42,16 @@ extension UserDataMapper on UserResponse_UserData {
       servers: servers.toList().join(','),
       inviters: inviters.toList().join(','),
       invitees: invitees.toList().join(','),
+      purchases: purchases.toList().join(','),
     );
     user.devices.addAll(devices.map((e) => e.toEntity()));
-    user.purchases.addAll(purchases.map((e) => e.toEntity()));
+
     user.subscriptionData.target = subscriptionData.toEntity();
     return user;
+  }
+
+  bool isPro() {
+    return userLevel == 'pro';
   }
 }
 
@@ -123,7 +128,7 @@ extension UserData on UserDataEntity {
       inviters: inviters.split(',').toList(),
       invitees: invitees.split(',').toList(),
       devices: devices.map((e) => e.toDevice()).toList(),
-      purchases: purchases.map((e) => e.toPurchase()).toList(),
+      purchases: purchases.split(',').toList(),
       subscriptionData: subscriptionData.target!.toSubscriptionData(),
     );
   }

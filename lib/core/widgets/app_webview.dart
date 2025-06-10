@@ -85,7 +85,7 @@ class AppWebView extends HookWidget {
         uri?.path == '/auth' &&
         uri!.queryParameters.containsKey('token')) {
       appRouter.navigatorKey.currentContext
-          ?.showSnackBarError("Successfully logged in");
+          ?.showSnackBar("Successfully logged in");
       // User has successfully logged in to google or apple
       await appRouter.maybePop(uri.queryParameters);
 

@@ -5,13 +5,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/services/injection_container.dart';
-import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/lantern_app.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-
-import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
@@ -19,14 +17,11 @@ import 'core/common/app_secrets.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   initLogger();
   await _configureLocalTimeZone();
   await _loadAppSecrets();
   await injectServices();
-
   await Future.microtask(Localization.loadTranslations);
-
   await _setupSentry(
     runner: () {
       runApp(
