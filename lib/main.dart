@@ -39,6 +39,7 @@ Future<void> main() async {
 }
 
 Future<void> _configureAutoUpdate() async {
+  if (kDebugMode) return;
   if (!Platform.isMacOS && !Platform.isWindows) return;
   await autoUpdater.setFeedURL(AppUrls.appcastURL);
   await autoUpdater.checkForUpdates();
