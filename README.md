@@ -25,8 +25,9 @@ Censorship circumvention tool available for free download on any operating syste
 # Build and run the app on macOS
 
 ```
-make macos-debug
-sudo build/macos/Build/Products/Debug/Lantern.app/Contents/MacOS/Lantern
+make macos
+make ffigen
+flutter run -d macos
 ```
 
 # Build and run the app on iOS
