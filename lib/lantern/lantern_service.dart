@@ -100,7 +100,7 @@ class LanternService implements LanternCoreService {
 
   @override
   Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
-      {required StipeSubscriptionType type,
+      {required BillingType type,
       required String planId,
       required String email}) {
     if (PlatformUtils.isDesktop) {
@@ -226,5 +226,77 @@ class LanternService implements LanternCoreService {
     }
     return _platformService.paymentRedirect(
         provider: provider, planId: planId, email: email);
+  }
+
+  @override
+  Future<Either<Failure, UserResponse>> login(
+      {required String email, required String password}) {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.login(email: email, password: password);
+    }
+    return _platformService.login(email: email, password: password);
+  }
+
+  @override
+  Future<Either<Failure, Unit>> startRecoveryByEmail(String email) {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.startRecoveryByEmail(email);
+    }
+    return _platformService.startRecoveryByEmail(email);
+  }
+
+  @override
+  Future<Either<Failure, Unit>> validateRecoveryCode(
+      {required String email, required String code}) {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.validateRecoveryCode(email: email, code: code);
+    }
+    return _platformService.validateRecoveryCode(email: email, code: code);
+  }
+
+  @override
+  Future<Either<Failure, Unit>> completeChangeEmail(
+      {required String email,
+      required String code,
+      required String newPassword}) {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.completeChangeEmail(
+          email: email, code: code, newPassword: newPassword);
+    }
+    return _platformService.completeChangeEmail(
+        email: email, code: code, newPassword: newPassword);
+  }
+
+  @override
+  Future<Either<Failure, Unit>> signUp(
+      {required String email, required String password}) {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.signUp(email: email, password: password);
+    }
+    return _platformService.signUp(email: email, password: password);
+  }
+
+  @override
+  Future<Either<Failure, UserResponse>> deleteAccount(
+      {required String email, required String password}) {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.deleteAccount(email: email, password: password);
+    }
+    return _platformService.deleteAccount(email: email, password: password);
+  }
+
+  @override
+  Future<Either<Failure, Unit>> activationCode(
+      {required String email, required String resellerCode}) {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.activationCode(
+        email: email,
+        resellerCode: resellerCode,
+      );
+    }
+    return _platformService.activationCode(
+      email: email,
+      resellerCode: resellerCode,
+    );
   }
 }

@@ -59,10 +59,32 @@ class MethodHandler {
               details: nil))
         }
       // user management
+      case "startRecoveryByEmail":
+        let map = call.arguments as? [String: Any]
+        let email = map?["email"] as? String ?? ""
+        self.startRecoveryByEmail(result: result, email: email)
+      case "validateRecoveryCode":
+        let data = call.arguments as? [String: Any]
+        self.validateRecoveryCode(result: result, data: data!)
+      case "completeChangeEmail":
+        let data = call.arguments as? [String: Any]
+        self.completeChangeEmail(result: result, data: data!)
+      case "login":
+        let data = call.arguments as? [String: Any]
+        self.login(result: result, data: data!)
+      case "signUp":
+        let data = call.arguments as? [String: Any]
+        self.signUp(result: result, data: data!)
       case "logout":
-        // Handle logout if needed
-        self.logout(result: result)
-
+        let data = call.arguments as? [String: Any]
+        let email = data?["email"] as? String ?? ""
+        self.logout(result: result, email: email)
+      case "deleteAccount":
+        let data = call.arguments as? [String: Any]
+        self.deleteAccount(result: result, data: data!)
+      case "activationCode":
+        let data = call.arguments as? [String: Any]
+        self.activationCode(result: result, data: data!)
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -118,7 +140,7 @@ class MethodHandler {
     Task {
       do {
         var error: NSError?
-        var data = try await MobilePlans(&error)
+        var data = try await MobilePlans("store", &error)
         if error != nil {
           result(
             FlutterError(
@@ -177,8 +199,8 @@ class MethodHandler {
           result(
             FlutterError(
               code: "OAUTH_LOGIN_CALLBACK",
-              message: error?.description,
-              details: error?.localizedDescription))
+              message: error!.description,
+              details: error!.localizedDescription))
         }
         await MainActor.run {
           result(data)
@@ -204,8 +226,8 @@ class MethodHandler {
           result(
             FlutterError(
               code: "USER_DATA_ERROR",
-              message: error?.description,
-              details: error?.localizedDescription))
+              message: error!.description,
+              details: error.debugDescription))
         }
         await MainActor.run {
           result(data)
@@ -259,6 +281,14 @@ class MethodHandler {
       do {
         var error: NSError?
         MobileAcknowledgeApplePurchase(token, planId, &error)
+        if error != nil {
+          result(
+            FlutterError(
+              code: "ACKNOWLEDGE_FAILED",
+              message: error!.localizedDescription,
+              details: error!.debugDescription))
+          return
+        }
         await MainActor.run {
           result("success")
         }
@@ -275,22 +305,161 @@ class MethodHandler {
   }
 
   // User management
-  func logout(result: @escaping FlutterResult) {
+
+  func startRecoveryByEmail(result: @escaping FlutterResult, email: String) {
+    Task {
+      var error: NSError?
+      var data = try await MobileStartRecoveryByEmail(email, &error)
+      if error != nil {
+        result(
+          FlutterError(
+            code: "RECOVERY_FAILED",
+            message: error!.localizedDescription,
+            details: error!.debugDescription))
+        return
+      }
+      await MainActor.run {
+        result("Recovery email sent successfully.")
+      }
+    }
+  }
+
+  func validateRecoveryCode(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      let email = data["email"] as? String ?? ""
+      let code = data["code"] as? String ?? ""
+      var error: NSError?
+      var data = try await MobileValidateChangeEmailCode(email, code, &error)
+      if error != nil {
+        result(
+          FlutterError(
+            code: error!.localizedDescription,
+            message: error!.localizedDescription,
+            details: error?.localizedDescription))
+        return
+      }
+      await MainActor.run {
+        result("Recovery code validated successfully.")
+      }
+    }
+  }
+
+  func completeChangeEmail(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      let email = data["email"] as? String ?? ""
+      let code = data["code"] as? String ?? ""
+      let newPassword = data["newPassword"] as? String ?? ""
+      var error: NSError?
+      var data = try await MobileCompleteChangeEmail(email, newPassword, code, &error)
+      if error != nil {
+        result(
+          FlutterError(
+            code: "COMPLETE_CHANGE_EMAIL_FAILED",
+            message: error!.localizedDescription,
+            details: error!))
+        return
+      }
+      await MainActor.run {
+        result("Change email completed successfully.")
+      }
+    }
+  }
+
+  func login(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      let email = data["email"] as? String ?? ""
+      let password = data["password"] as? String ?? ""
+      var error: NSError?
+      var data = try await MobileLogin(email, password, &error)
+      if error != nil {
+        result(
+          FlutterError(
+            code: "LOGIN_FAILED",
+            message: error!.localizedDescription,
+            details: error!))
+        return
+      }
+      await MainActor.run {
+        result(data)
+      }
+    }
+  }
+  func signUp(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      let email = data["email"] as? String ?? ""
+      let password = data["password"] as? String ?? ""
+      var error: NSError?
+      var data = try await MobileSignUp(email, password, &error)
+      if error != nil {
+        result(
+          FlutterError(
+            code: "SIGNUP_FAILED",
+            message: error!.localizedDescription,
+            details: error!))
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  func logout(result: @escaping FlutterResult, email: String) {
     Task {
       do {
         var error: NSError?
-        MobileLogout(&error)
+        var data = try await MobileLogout(email, &error)
         await MainActor.run {
-          result("success")
+          result(data)
         }
       } catch {
         await MainActor.run {
           result(
             FlutterError(
               code: "LOGOUT_FAILED",
-              message: "Unable to logout.",
-              details: error.localizedDescription))
+              message: error.localizedDescription,
+              details: error))
         }
+      }
+    }
+  }
+
+  func deleteAccount(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      let email = data["email"] as? String ?? ""
+      let password = data["password"] as? String ?? ""
+      var error: NSError?
+      var data = try await MobileDeleteAccount(email, password, &error)
+      if error != nil {
+        result(
+          FlutterError(
+            code: "DELETE_ACCOUNT_FAILED",
+            message: error!.localizedDescription,
+            details: error!))
+        return
+      }
+      await MainActor.run {
+        result(data)
+      }
+    }
+  }
+
+  func activationCode(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      let email = data["email"] as? String ?? ""
+      let resellerCode = data["resellerCode"] as? String ?? ""
+      var error: NSError?
+      var data = try await MobileActivationCode(email, resellerCode, &error)
+      if error != nil {
+        result(
+          FlutterError(
+            code: "DELETE_ACCOUNT_FAILED",
+            message: error!.localizedDescription,
+            details: error!))
+        return
+      }
+      await MainActor.run {
+        result("ok")
       }
     }
   }

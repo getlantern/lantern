@@ -325,7 +325,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
       id: const obx_int.IdUid(9, 8860377402257268219),
       name: 'UserDataEntity',
-      lastPropertyId: const obx_int.IdUid(19, 8794862915387930471),
+      lastPropertyId: const obx_int.IdUid(20, 9105995417657118258),
       flags: 0,
       properties: <obx_int.ModelProperty>[
         obx_int.ModelProperty(
@@ -424,17 +424,18 @@ final _entities = <obx_int.ModelEntity>[
             type: 11,
             flags: 520,
             indexId: const obx_int.IdUid(2, 7118341107003198595),
-            relationTarget: 'SubscriptionDataEntity')
+            relationTarget: 'SubscriptionDataEntity'),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(20, 9105995417657118258),
+            name: 'purchases',
+            type: 9,
+            flags: 0)
       ],
       relations: <obx_int.ModelRelation>[
         obx_int.ModelRelation(
             id: const obx_int.IdUid(2, 4491095857220347583),
             name: 'devices',
-            targetId: const obx_int.IdUid(3, 6248675632289078443)),
-        obx_int.ModelRelation(
-            id: const obx_int.IdUid(3, 5581625935470873398),
-            name: 'purchases',
-            targetId: const obx_int.IdUid(7, 6397461911687250160))
+            targetId: const obx_int.IdUid(3, 6248675632289078443))
       ],
       backlinks: <obx_int.ModelBacklink>[]),
   obx_int.ModelEntity(
@@ -546,7 +547,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
       retiredEntityUids: const [],
       retiredIndexUids: const [],
       retiredPropertyUids: const [],
-      retiredRelationUids: const [],
+      retiredRelationUids: const [5581625935470873398],
       modelVersion: 5,
       modelVersionParserMinimum: 5,
       version: 1);
@@ -929,9 +930,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         toOneRelations: (UserDataEntity object) => [object.subscriptionData],
         toManyRelations: (UserDataEntity object) => {
               obx_int.RelInfo<UserDataEntity>.toMany(2, object.id):
-                  object.devices,
-              obx_int.RelInfo<UserDataEntity>.toMany(3, object.id):
-                  object.purchases
+                  object.devices
             },
         getId: (UserDataEntity object) => object.id,
         setId: (UserDataEntity object, int id) {
@@ -952,7 +951,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
           final serversOffset = fbb.writeString(object.servers);
           final invitersOffset = fbb.writeString(object.inviters);
           final inviteesOffset = fbb.writeString(object.invitees);
-          fbb.startTable(20);
+          final purchasesOffset = fbb.writeString(object.purchases);
+          fbb.startTable(21);
           fbb.addInt64(0, object.id);
           fbb.addInt64(1, object.userId);
           fbb.addOffset(2, codeOffset);
@@ -972,6 +972,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           fbb.addOffset(16, invitersOffset);
           fbb.addOffset(17, inviteesOffset);
           fbb.addInt64(18, object.subscriptionData.targetId);
+          fbb.addOffset(19, purchasesOffset);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -1016,6 +1017,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
               .vTableGet(buffer, rootOffset, 36, '');
           final inviteesParam = const fb.StringReader(asciiOptimization: true)
               .vTableGet(buffer, rootOffset, 38, '');
+          final purchasesParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 42, '');
           final object = UserDataEntity(
               id: idParam,
               userId: userIdParam,
@@ -1034,7 +1037,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
               yinbiEnabled: yinbiEnabledParam,
               servers: serversParam,
               inviters: invitersParam,
-              invitees: inviteesParam);
+              invitees: inviteesParam,
+              purchases: purchasesParam);
           object.subscriptionData.targetId =
               const fb.Int64Reader().vTableGet(buffer, rootOffset, 40, 0);
           object.subscriptionData.attach(store);
@@ -1042,10 +1046,6 @@ obx_int.ModelDefinition getObjectBoxModel() {
               object.devices,
               store,
               obx_int.RelInfo<UserDataEntity>.toMany(2, object.id));
-          obx_int.InternalToManyAccess.setRelInfo<UserDataEntity>(
-              object.purchases,
-              store,
-              obx_int.RelInfo<UserDataEntity>.toMany(3, object.id));
           return object;
         }),
     UserResponseEntity: obx_int.EntityDefinition<UserResponseEntity>(
@@ -1417,14 +1417,13 @@ class UserDataEntity_ {
       obx.QueryRelationToOne<UserDataEntity, SubscriptionDataEntity>(
           _entities[8].properties[18]);
 
+  /// See [UserDataEntity.purchases].
+  static final purchases =
+      obx.QueryStringProperty<UserDataEntity>(_entities[8].properties[19]);
+
   /// see [UserDataEntity.devices]
   static final devices = obx.QueryRelationToMany<UserDataEntity, DeviceEntity>(
       _entities[8].relations[0]);
-
-  /// see [UserDataEntity.purchases]
-  static final purchases =
-      obx.QueryRelationToMany<UserDataEntity, PurchaseEntity>(
-          _entities[8].relations[1]);
 }
 
 /// [UserResponseEntity] entity fields to define ObjectBox queries.

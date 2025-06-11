@@ -83,7 +83,9 @@ class PlanItem extends StatelessWidget {
                 value: true,
                 groupValue: planSelected,
                 fillColor: WidgetStatePropertyAll(AppColors.gray9),
-                onChanged: (value) {},
+                onChanged: (value) {
+                  onPressed.call(plan);
+                },
               ),
             ],
           ),

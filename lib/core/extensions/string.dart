@@ -17,8 +17,6 @@ extension EmailValidation on String {
 }
 
 extension IsoDateFormatter on String {
-  /// Converts an ISO8601 string (e.g., "2027-05-22T06:21:15Z")
-  /// to MM/DD/YY format (e.g., "05/22/27").
   String toMMDDYYDate() {
     try {
       final dateTime = DateTime.parse(this).toLocal();

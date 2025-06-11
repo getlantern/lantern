@@ -5,9 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/utils/screen_utils.dart';
-import 'package:lantern/core/utils/store_utils.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/features/auth/provider/payment_notifier.dart';
 import 'package:lantern/features/plans/feature_list.dart';
@@ -169,14 +167,16 @@ class _PlansState extends ConsumerState<Plans> {
               icon: AppImagePaths.keypad,
               label: 'Enter an Activation Code',
               onPressed: () {
-                appRouter
-                    .popAndPush(AddEmail(authFlow: AuthFlow.activationCode));
+                appRouter.popAndPush(AddEmail(authFlow: AuthFlow.activationCode));
               },
             ),
             DividerSpace(),
             AppTile(
               icon: AppImagePaths.restorePurchase,
               label: 'Restore purchase',
+              onPressed: () {
+                appRouter.popAndPush(SignInEmail());
+              },
             )
           ],
         );
@@ -189,7 +189,7 @@ class _PlansState extends ConsumerState<Plans> {
         ref.read(plansNotifierProvider.notifier).getSelectedPlan();
     switch (Platform.operatingSystem) {
       case 'android':
-        if (sl<StoreUtils>().isPlayStoreVersion) {
+        if (isStoreVersion()) {
           /// user is using play store version
           startInAppPurchaseFlow(userSelectedPlan);
           return;
@@ -217,7 +217,7 @@ class _PlansState extends ConsumerState<Plans> {
       },
       onError: (error) {
         ///Error while subscribing
-        context.showSnackBarError(error);
+        context.showSnackBar(error);
         appLogger.error('Error subscribing to plan: $error');
         context.hideLoadingDialog();
       },
@@ -226,7 +226,7 @@ class _PlansState extends ConsumerState<Plans> {
     result.fold(
       (error) {
         context.hideLoadingDialog();
-        context.showSnackBarError(error.localizedErrorMessage);
+        context.showSnackBar(error.localizedErrorMessage);
         appLogger.error('Error subscribing to plan: $error');
       },
       (success) {
@@ -248,7 +248,7 @@ class _PlansState extends ConsumerState<Plans> {
     result.fold(
       (error) {
         context.hideLoadingDialog();
-        context.showSnackBarError(error.localizedErrorMessage);
+        context.showSnackBar(error.localizedErrorMessage);
         appLogger.error('Error acknowledging purchase: $error');
       },
       (success) {
@@ -264,11 +264,10 @@ class _PlansState extends ConsumerState<Plans> {
     if (PlatformUtils.isIOS) {
       throw Exception('Not supported on IOS');
     }
-    appRouter
-        .push(AddEmail(authFlow: AuthFlow.signUp, appFlow: AppFlow.nonStore));
+    appRouter.push(AddEmail(authFlow: AuthFlow.signUp));
   }
 
   void storeFlow() {
-    appRouter.push(AddEmail(authFlow: AuthFlow.signUp, appFlow: AppFlow.store));
+    appRouter.push(AddEmail(authFlow: AuthFlow.signUp));
   }
 }

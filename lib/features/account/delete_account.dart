@@ -1,17 +1,23 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
-import 'package:lantern/core/common/app_text_field.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/home_notifier.dart';
+import 'package:lantern/lantern/lantern_service_notifier.dart';
+
 import '../../core/common/common.dart';
+import '../../core/services/injection_container.dart';
 
 @RoutePage(name: 'DeleteAccount')
-class DeleteAccount extends StatefulWidget {
+class DeleteAccount extends StatefulHookConsumerWidget {
   const DeleteAccount({super.key});
 
   @override
   _DeleteAccountState createState() => _DeleteAccountState();
 }
 
-class _DeleteAccountState extends State<DeleteAccount> {
+class _DeleteAccountState extends ConsumerState<DeleteAccount> {
   @override
   Widget build(BuildContext context) {
     return BaseScreen(title: 'delete_account'.i18n, body: _buildBody());
@@ -19,6 +25,8 @@ class _DeleteAccountState extends State<DeleteAccount> {
 
   Widget _buildBody() {
     final textTheme = Theme.of(context).textTheme;
+    final passwordController = useTextEditingController();
+    final buttonEnabled = useState(false);
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,15 +67,18 @@ class _DeleteAccountState extends State<DeleteAccount> {
             hintText: '',
             label: 'enter_password_to_confirm'.i18n,
             obscureText: true,
+            controller: passwordController,
             prefixIcon: AppImagePaths.lock,
-            onChanged: (value) {},
+            onChanged: (value) {
+              buttonEnabled.value = value.isNotEmpty;
+            },
           ),
           SizedBox(height: size24),
           PrimaryButton(
             label: 'confirm_deletion'.i18n,
-            enabled: false,
+            enabled: buttonEnabled.value,
             bgColor: AppColors.red7,
-            onPressed: () {},
+            onPressed: () => onDeleteAccount(passwordController.text),
           ),
           SizedBox(height: defaultSize),
           SecondaryButton(
@@ -78,6 +89,32 @@ class _DeleteAccountState extends State<DeleteAccount> {
           ),
         ],
       ),
+    );
+  }
+
+  Future<void> onDeleteAccount(String password) async {
+    context.showLoadingDialog();
+    final String email =
+        sl<LocalStorageService>().getUser()!.legacyUserData.email;
+    final result = await ref
+        .read(lanternServiceProvider)
+        .deleteAccount(email: email, password: password);
+
+    result.fold(
+      (failure) {
+        context.hideLoadingDialog();
+        context.showSnackBarError(failure.localizedErrorMessage);
+      },
+      (userResponse) async {
+        context.hideLoadingDialog();
+        ref.read(appSettingNotifierProvider.notifier)
+          ..setEmail("")
+          ..setOAuthToken("")
+          ..setUserLoggedIn(false);
+
+        ref.read(homeNotifierProvider.notifier).updateUserData(userResponse);
+        appRouter.popUntilRoot();
+      },
     );
   }
 }

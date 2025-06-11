@@ -2566,6 +2566,42 @@ class LanternBindings {
   late final _oAuthLoginCallback = _oAuthLoginCallbackPtr
       .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
 
+  ffi.Pointer<ffi.Char> login(
+    ffi.Pointer<ffi.Char> _email,
+    ffi.Pointer<ffi.Char> _password,
+  ) {
+    return _login(
+      _email,
+      _password,
+    );
+  }
+
+  late final _loginPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>>('login');
+  late final _login = _loginPtr.asFunction<
+      ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> signup(
+    ffi.Pointer<ffi.Char> _email,
+    ffi.Pointer<ffi.Char> _password,
+  ) {
+    return _signup(
+      _email,
+      _password,
+    );
+  }
+
+  late final _signupPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>>('signup');
+  late final _signup = _signupPtr.asFunction<
+      ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
+
   ffi.Pointer<ffi.Char> logout(
     ffi.Pointer<ffi.Char> _email,
   ) {
@@ -2579,6 +2615,98 @@ class LanternBindings {
           ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>>('logout');
   late final _logout = _logoutPtr
       .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> startRecoveryByEmail(
+    ffi.Pointer<ffi.Char> _email,
+  ) {
+    return _startRecoveryByEmail(
+      _email,
+    );
+  }
+
+  late final _startRecoveryByEmailPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>)>>('startRecoveryByEmail');
+  late final _startRecoveryByEmail = _startRecoveryByEmailPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> validateEmailRecoveryCode(
+    ffi.Pointer<ffi.Char> _email,
+    ffi.Pointer<ffi.Char> _code,
+  ) {
+    return _validateEmailRecoveryCode(
+      _email,
+      _code,
+    );
+  }
+
+  late final _validateEmailRecoveryCodePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>)>>('validateEmailRecoveryCode');
+  late final _validateEmailRecoveryCode =
+      _validateEmailRecoveryCodePtr.asFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> completeRecoveryByEmail(
+    ffi.Pointer<ffi.Char> _email,
+    ffi.Pointer<ffi.Char> _newPassword,
+    ffi.Pointer<ffi.Char> _code,
+  ) {
+    return _completeRecoveryByEmail(
+      _email,
+      _newPassword,
+      _code,
+    );
+  }
+
+  late final _completeRecoveryByEmailPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>)>>('completeRecoveryByEmail');
+  late final _completeRecoveryByEmail = _completeRecoveryByEmailPtr.asFunction<
+      ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> deleteAccount(
+    ffi.Pointer<ffi.Char> _email,
+    ffi.Pointer<ffi.Char> _password,
+  ) {
+    return _deleteAccount(
+      _email,
+      _password,
+    );
+  }
+
+  late final _deleteAccountPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>>('deleteAccount');
+  late final _deleteAccount = _deleteAccountPtr.asFunction<
+      ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> activationCode(
+    ffi.Pointer<ffi.Char> _email,
+    ffi.Pointer<ffi.Char> _resellerCode,
+  ) {
+    return _activationCode(
+      _email,
+      _resellerCode,
+    );
+  }
+
+  late final _activationCodePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>>('activationCode');
+  late final _activationCode = _activationCodePtr.asFunction<
+      ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
 
   void freeCString(
     ffi.Pointer<ffi.Char> cstr,

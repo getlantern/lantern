@@ -22,8 +22,7 @@ func TestCreateNewServer(t *testing.T) {
 	r, err := radiance.NewRadiance(radianceOptions())
 	if err != nil {
 		slog.Error("Unable to create Radiance", "error", err)
-
 	}
+	assert.Nil(t, err)
 	assert.NotNil(t, r)
-	slog.Debug("Radiance setup successfully")
 }

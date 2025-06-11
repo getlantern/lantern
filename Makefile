@@ -372,7 +372,6 @@ update-dart-api-dl:
 	@echo "Dart API DL bridge updated successfully!"
 
 
-
 #Routes generation
 gen:
 	dart run build_runner build --delete-conflicting-outputs
@@ -394,7 +393,18 @@ clean:
 	rm -rf $(ANDROID_LIB_PATH)
 	rm -rf $(IOS_DIR)$(IOS_FRAMEWORK)
 
+
+#this will used to delete all Lantern data from the user's home directory
+PHONY: delete-data
+delete-data:
+	@echo "Deleting Lantern data..."
+	@rm -rf "$(HOME)/Library/Application Support/org.getlantern.lantern"
+	@rm -rf "$(HOME)/Library/Logs/Lantern"
+	@rm -rf "$(HOME)/.lanternsecrets"
+	@echo "Lantern data deleted."
+
 .PHONY: protos
 # You can install the dart protoc support by running 'dart pub global activate protoc_plugin'
 protos:
 	@protoc --dart_out=lib/lantern/protos protos/auth.proto
+
