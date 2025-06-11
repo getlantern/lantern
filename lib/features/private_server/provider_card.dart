@@ -4,9 +4,11 @@ import 'package:lantern/core/common/app_colors.dart';
 import 'package:lantern/core/common/app_image_paths.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/app_tile.dart';
+import 'package:lantern/features/private_server/server_locations.dart';
 
 class ProviderCard extends StatelessWidget {
   final String title;
+  final String provider;
   final String price;
   final VoidCallback onContinue;
   final String icon;
@@ -14,6 +16,7 @@ class ProviderCard extends StatelessWidget {
   const ProviderCard({
     super.key,
     required this.title,
+    required this.provider,
     required this.price,
     required this.onContinue,
     required this.icon,
@@ -21,6 +24,20 @@ class ProviderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    void showServerLocationsModal() {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Theme.of(context).canvasColor,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        builder: (ctx) => provider == 'gcp'
+            ? GoogleCloudLocations()
+            : DigitalOceanLocations(),
+      );
+    }
+
     final textTheme = Theme.of(context).textTheme;
     return Card(
       margin: EdgeInsets.only(right: 5),
@@ -46,8 +63,10 @@ class ProviderCard extends StatelessWidget {
             CheckmarkTile(text: 'seamless_integration'.i18n),
             CheckmarkTile(
               text: 'choose_location'.i18n,
-              trailing:
-                  AppIconButton(path: AppImagePaths.info, onPressed: () => {}),
+              trailing: AppIconButton(
+                path: AppImagePaths.info,
+                onPressed: () => showServerLocationsModal(),
+              ),
             ),
             CheckmarkTile(
               text: 'one_month_included'.i18n.fill([1]),

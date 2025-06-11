@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/features/private_server/server_locations.dart';
 import 'package:lantern/features/private_server/provider_card.dart';
 import 'package:lantern/features/private_server/provider_carousel.dart';
 
@@ -29,14 +30,16 @@ class PrivateServerSetup extends StatelessWidget {
           ProviderCarousel(
             cards: [
               ProviderCard(
+                provider: 'gcp',
                 title: 'server_setup_do'.i18n,
                 price: 'server_setup_do_price'.i18n.fill(['\$8']),
                 onContinue: () {},
                 icon: AppImagePaths.digitalOceanIcon,
               ),
               ProviderCard(
-                title: 'server_setup_aws'.i18n,
-                price: 'server_setup_aws_price'.i18n.fill(['\$9']),
+                provider: 'do',
+                title: 'server_setup_do'.i18n,
+                price: 'server_setup_do_price'.i18n.fill(['\$9']),
                 onContinue: () {},
                 icon: AppImagePaths.digitalOceanIcon,
               ),

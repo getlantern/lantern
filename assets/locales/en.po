@@ -499,6 +499,9 @@ msgstr "Only %s month through Digital Ocean"
 msgid "continue_with_do"
 msgstr "Continue with Digital Ocean"
 
+msgid "digital_ocean_allows"
+msgstr "Digital Ocean allows you to pick one server location from the %d options below"
+
 msgid "server_setup_aws"
 msgstr "Set up a private server on Digital Ocean"
 
@@ -565,3 +568,8 @@ msgstr "Your subscription has been updated."
 msgid "subscription_renewed"
 msgstr "Your subscription has been renewed."
 
+msgid "google_cloud_allows"
+msgstr "Google Cloud Platform allows you to pick one server location from the %d options below:"
+
+msgid "got_it"
+msgstr "Got It"
