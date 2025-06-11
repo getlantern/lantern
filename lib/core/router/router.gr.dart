@@ -1,3 +1,4 @@
+// dart format width=80
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
 // **************************************************************************
@@ -47,10 +48,7 @@ import 'package:lantern/features/vpn/server_selection.dart' as _i20;
 /// [_i1.Account]
 class Account extends _i29.PageRouteInfo<void> {
   const Account({List<_i29.PageRouteInfo>? children})
-      : super(
-          Account.name,
-          initialChildren: children,
-        );
+      : super(Account.name, initialChildren: children);
 
   static const String name = 'Account';
 
@@ -72,11 +70,7 @@ class ActivationCode extends _i29.PageRouteInfo<ActivationCodeArgs> {
     List<_i29.PageRouteInfo>? children,
   }) : super(
           ActivationCode.name,
-          args: ActivationCodeArgs(
-            key: key,
-            email: email,
-            code: code,
-          ),
+          args: ActivationCodeArgs(key: key, email: email, code: code),
           initialChildren: children,
         );
 
@@ -96,11 +90,7 @@ class ActivationCode extends _i29.PageRouteInfo<ActivationCodeArgs> {
 }
 
 class ActivationCodeArgs {
-  const ActivationCodeArgs({
-    this.key,
-    required this.email,
-    required this.code,
-  });
+  const ActivationCodeArgs({this.key, required this.email, required this.code});
 
   final _i30.Key? key;
 
@@ -112,6 +102,16 @@ class ActivationCodeArgs {
   String toString() {
     return 'ActivationCodeArgs{key: $key, email: $email, code: $code}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! ActivationCodeArgs) return false;
+    return key == other.key && email == other.email && code == other.code;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ email.hashCode ^ code.hashCode;
 }
 
 /// generated route for
@@ -123,10 +123,7 @@ class AddEmail extends _i29.PageRouteInfo<AddEmailArgs> {
     List<_i29.PageRouteInfo>? children,
   }) : super(
           AddEmail.name,
-          args: AddEmailArgs(
-            key: key,
-            authFlow: authFlow,
-          ),
+          args: AddEmailArgs(key: key, authFlow: authFlow),
           initialChildren: children,
         );
 
@@ -135,21 +132,16 @@ class AddEmail extends _i29.PageRouteInfo<AddEmailArgs> {
   static _i29.PageInfo page = _i29.PageInfo(
     name,
     builder: (data) {
-      final args =
-          data.argsAs<AddEmailArgs>(orElse: () => const AddEmailArgs());
-      return _i3.AddEmail(
-        key: args.key,
-        authFlow: args.authFlow,
+      final args = data.argsAs<AddEmailArgs>(
+        orElse: () => const AddEmailArgs(),
       );
+      return _i3.AddEmail(key: args.key, authFlow: args.authFlow);
     },
   );
 }
 
 class AddEmailArgs {
-  const AddEmailArgs({
-    this.key,
-    this.authFlow = _i31.AuthFlow.signUp,
-  });
+  const AddEmailArgs({this.key, this.authFlow = _i31.AuthFlow.signUp});
 
   final _i30.Key? key;
 
@@ -159,6 +151,16 @@ class AddEmailArgs {
   String toString() {
     return 'AddEmailArgs{key: $key, authFlow: $authFlow}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! AddEmailArgs) return false;
+    return key == other.key && authFlow == other.authFlow;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ authFlow.hashCode;
 }
 
 /// generated route for
@@ -171,11 +173,7 @@ class AppWebview extends _i29.PageRouteInfo<AppWebviewArgs> {
     List<_i29.PageRouteInfo>? children,
   }) : super(
           AppWebview.name,
-          args: AppWebviewArgs(
-            key: key,
-            title: title,
-            url: url,
-          ),
+          args: AppWebviewArgs(key: key, title: title, url: url),
           initialChildren: children,
         );
 
@@ -185,21 +183,13 @@ class AppWebview extends _i29.PageRouteInfo<AppWebviewArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<AppWebviewArgs>();
-      return _i4.AppWebView(
-        key: args.key,
-        title: args.title,
-        url: args.url,
-      );
+      return _i4.AppWebView(key: args.key, title: args.title, url: args.url);
     },
   );
 }
 
 class AppWebviewArgs {
-  const AppWebviewArgs({
-    this.key,
-    required this.title,
-    required this.url,
-  });
+  const AppWebviewArgs({this.key, required this.title, required this.url});
 
   final _i30.Key? key;
 
@@ -211,16 +201,23 @@ class AppWebviewArgs {
   String toString() {
     return 'AppWebviewArgs{key: $key, title: $title, url: $url}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! AppWebviewArgs) return false;
+    return key == other.key && title == other.title && url == other.url;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ title.hashCode ^ url.hashCode;
 }
 
 /// generated route for
 /// [_i5.AppsSplitTunneling]
 class AppsSplitTunneling extends _i29.PageRouteInfo<void> {
   const AppsSplitTunneling({List<_i29.PageRouteInfo>? children})
-      : super(
-          AppsSplitTunneling.name,
-          initialChildren: children,
-        );
+      : super(AppsSplitTunneling.name, initialChildren: children);
 
   static const String name = 'AppsSplitTunneling';
 
@@ -288,6 +285,20 @@ class ChoosePaymentMethodArgs {
   String toString() {
     return 'ChoosePaymentMethodArgs{key: $key, email: $email, code: $code, authFlow: $authFlow}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! ChoosePaymentMethodArgs) return false;
+    return key == other.key &&
+        email == other.email &&
+        code == other.code &&
+        authFlow == other.authFlow;
+  }
+
+  @override
+  int get hashCode =>
+      key.hashCode ^ email.hashCode ^ code.hashCode ^ authFlow.hashCode;
 }
 
 /// generated route for
@@ -300,11 +311,7 @@ class ConfirmEmail extends _i29.PageRouteInfo<ConfirmEmailArgs> {
     List<_i29.PageRouteInfo>? children,
   }) : super(
           ConfirmEmail.name,
-          args: ConfirmEmailArgs(
-            key: key,
-            email: email,
-            authFlow: authFlow,
-          ),
+          args: ConfirmEmailArgs(key: key, email: email, authFlow: authFlow),
           initialChildren: children,
         );
 
@@ -340,6 +347,18 @@ class ConfirmEmailArgs {
   String toString() {
     return 'ConfirmEmailArgs{key: $key, email: $email, authFlow: $authFlow}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! ConfirmEmailArgs) return false;
+    return key == other.key &&
+        email == other.email &&
+        authFlow == other.authFlow;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ email.hashCode ^ authFlow.hashCode;
 }
 
 /// generated route for
@@ -398,16 +417,27 @@ class CreatePasswordArgs {
   String toString() {
     return 'CreatePasswordArgs{key: $key, email: $email, authFlow: $authFlow, code: $code}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! CreatePasswordArgs) return false;
+    return key == other.key &&
+        email == other.email &&
+        authFlow == other.authFlow &&
+        code == other.code;
+  }
+
+  @override
+  int get hashCode =>
+      key.hashCode ^ email.hashCode ^ authFlow.hashCode ^ code.hashCode;
 }
 
 /// generated route for
 /// [_i9.DeleteAccount]
 class DeleteAccount extends _i29.PageRouteInfo<void> {
   const DeleteAccount({List<_i29.PageRouteInfo>? children})
-      : super(
-          DeleteAccount.name,
-          initialChildren: children,
-        );
+      : super(DeleteAccount.name, initialChildren: children);
 
   static const String name = 'DeleteAccount';
 
@@ -423,10 +453,7 @@ class DeleteAccount extends _i29.PageRouteInfo<void> {
 /// [_i10.DownloadLinks]
 class DownloadLinks extends _i29.PageRouteInfo<void> {
   const DownloadLinks({List<_i29.PageRouteInfo>? children})
-      : super(
-          DownloadLinks.name,
-          initialChildren: children,
-        );
+      : super(DownloadLinks.name, initialChildren: children);
 
   static const String name = 'DownloadLinks';
 
@@ -441,10 +468,8 @@ class DownloadLinks extends _i29.PageRouteInfo<void> {
 /// generated route for
 /// [_i11.FollowUs]
 class FollowUs extends _i29.PageRouteInfo<FollowUsArgs> {
-  FollowUs({
-    _i30.Key? key,
-    List<_i29.PageRouteInfo>? children,
-  }) : super(
+  FollowUs({_i30.Key? key, List<_i29.PageRouteInfo>? children})
+      : super(
           FollowUs.name,
           args: FollowUsArgs(key: key),
           initialChildren: children,
@@ -455,8 +480,9 @@ class FollowUs extends _i29.PageRouteInfo<FollowUsArgs> {
   static _i29.PageInfo page = _i29.PageInfo(
     name,
     builder: (data) {
-      final args =
-          data.argsAs<FollowUsArgs>(orElse: () => const FollowUsArgs());
+      final args = data.argsAs<FollowUsArgs>(
+        orElse: () => const FollowUsArgs(),
+      );
       return _i11.FollowUs(key: args.key);
     },
   );
@@ -471,15 +497,23 @@ class FollowUsArgs {
   String toString() {
     return 'FollowUsArgs{key: $key}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! FollowUsArgs) return false;
+    return key == other.key;
+  }
+
+  @override
+  int get hashCode => key.hashCode;
 }
 
 /// generated route for
 /// [_i12.Home]
 class Home extends _i29.PageRouteInfo<HomeArgs> {
-  Home({
-    _i30.Key? key,
-    List<_i29.PageRouteInfo>? children,
-  }) : super(
+  Home({_i30.Key? key, List<_i29.PageRouteInfo>? children})
+      : super(
           Home.name,
           args: HomeArgs(key: key),
           initialChildren: children,
@@ -505,16 +539,23 @@ class HomeArgs {
   String toString() {
     return 'HomeArgs{key: $key}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! HomeArgs) return false;
+    return key == other.key;
+  }
+
+  @override
+  int get hashCode => key.hashCode;
 }
 
 /// generated route for
 /// [_i13.InviteFriends]
 class InviteFriends extends _i29.PageRouteInfo<void> {
   const InviteFriends({List<_i29.PageRouteInfo>? children})
-      : super(
-          InviteFriends.name,
-          initialChildren: children,
-        );
+      : super(InviteFriends.name, initialChildren: children);
 
   static const String name = 'InviteFriends';
 
@@ -530,10 +571,7 @@ class InviteFriends extends _i29.PageRouteInfo<void> {
 /// [_i14.Language]
 class Language extends _i29.PageRouteInfo<void> {
   const Language({List<_i29.PageRouteInfo>? children})
-      : super(
-          Language.name,
-          initialChildren: children,
-        );
+      : super(Language.name, initialChildren: children);
 
   static const String name = 'Language';
 
@@ -549,10 +587,7 @@ class Language extends _i29.PageRouteInfo<void> {
 /// [_i15.Logs]
 class Logs extends _i29.PageRouteInfo<void> {
   const Logs({List<_i29.PageRouteInfo>? children})
-      : super(
-          Logs.name,
-          initialChildren: children,
-        );
+      : super(Logs.name, initialChildren: children);
 
   static const String name = 'Logs';
 
@@ -568,10 +603,7 @@ class Logs extends _i29.PageRouteInfo<void> {
 /// [_i16.Plans]
 class Plans extends _i29.PageRouteInfo<void> {
   const Plans({List<_i29.PageRouteInfo>? children})
-      : super(
-          Plans.name,
-          initialChildren: children,
-        );
+      : super(Plans.name, initialChildren: children);
 
   static const String name = 'Plans';
 
@@ -592,10 +624,7 @@ class ReportIssue extends _i29.PageRouteInfo<ReportIssueArgs> {
     List<_i29.PageRouteInfo>? children,
   }) : super(
           ReportIssue.name,
-          args: ReportIssueArgs(
-            key: key,
-            description: description,
-          ),
+          args: ReportIssueArgs(key: key, description: description),
           initialChildren: children,
         );
 
@@ -604,21 +633,16 @@ class ReportIssue extends _i29.PageRouteInfo<ReportIssueArgs> {
   static _i29.PageInfo page = _i29.PageInfo(
     name,
     builder: (data) {
-      final args =
-          data.argsAs<ReportIssueArgs>(orElse: () => const ReportIssueArgs());
-      return _i17.ReportIssue(
-        key: args.key,
-        description: args.description,
+      final args = data.argsAs<ReportIssueArgs>(
+        orElse: () => const ReportIssueArgs(),
       );
+      return _i17.ReportIssue(key: args.key, description: args.description);
     },
   );
 }
 
 class ReportIssueArgs {
-  const ReportIssueArgs({
-    this.key,
-    this.description,
-  });
+  const ReportIssueArgs({this.key, this.description});
 
   final _i30.Key? key;
 
@@ -628,6 +652,16 @@ class ReportIssueArgs {
   String toString() {
     return 'ReportIssueArgs{key: $key, description: $description}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! ReportIssueArgs) return false;
+    return key == other.key && description == other.description;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ description.hashCode;
 }
 
 /// generated route for
@@ -640,11 +674,7 @@ class ResetPassword extends _i29.PageRouteInfo<ResetPasswordArgs> {
     List<_i29.PageRouteInfo>? children,
   }) : super(
           ResetPassword.name,
-          args: ResetPasswordArgs(
-            key: key,
-            email: email,
-            code: code,
-          ),
+          args: ResetPasswordArgs(key: key, email: email, code: code),
           initialChildren: children,
         );
 
@@ -664,11 +694,7 @@ class ResetPassword extends _i29.PageRouteInfo<ResetPasswordArgs> {
 }
 
 class ResetPasswordArgs {
-  const ResetPasswordArgs({
-    this.key,
-    required this.email,
-    required this.code,
-  });
+  const ResetPasswordArgs({this.key, required this.email, required this.code});
 
   final _i30.Key? key;
 
@@ -680,6 +706,16 @@ class ResetPasswordArgs {
   String toString() {
     return 'ResetPasswordArgs{key: $key, email: $email, code: $code}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! ResetPasswordArgs) return false;
+    return key == other.key && email == other.email && code == other.code;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ email.hashCode ^ code.hashCode;
 }
 
 /// generated route for
@@ -691,10 +727,7 @@ class ResetPasswordEmail extends _i29.PageRouteInfo<ResetPasswordEmailArgs> {
     List<_i29.PageRouteInfo>? children,
   }) : super(
           ResetPasswordEmail.name,
-          args: ResetPasswordEmailArgs(
-            key: key,
-            email: email,
-          ),
+          args: ResetPasswordEmailArgs(key: key, email: email),
           initialChildren: children,
         );
 
@@ -704,20 +737,15 @@ class ResetPasswordEmail extends _i29.PageRouteInfo<ResetPasswordEmailArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<ResetPasswordEmailArgs>(
-          orElse: () => const ResetPasswordEmailArgs());
-      return _i19.ResetPasswordEmail(
-        key: args.key,
-        email: args.email,
+        orElse: () => const ResetPasswordEmailArgs(),
       );
+      return _i19.ResetPasswordEmail(key: args.key, email: args.email);
     },
   );
 }
 
 class ResetPasswordEmailArgs {
-  const ResetPasswordEmailArgs({
-    this.key,
-    this.email,
-  });
+  const ResetPasswordEmailArgs({this.key, this.email});
 
   final _i30.Key? key;
 
@@ -727,16 +755,23 @@ class ResetPasswordEmailArgs {
   String toString() {
     return 'ResetPasswordEmailArgs{key: $key, email: $email}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! ResetPasswordEmailArgs) return false;
+    return key == other.key && email == other.email;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ email.hashCode;
 }
 
 /// generated route for
 /// [_i20.ServerSelection]
 class ServerSelection extends _i29.PageRouteInfo<void> {
   const ServerSelection({List<_i29.PageRouteInfo>? children})
-      : super(
-          ServerSelection.name,
-          initialChildren: children,
-        );
+      : super(ServerSelection.name, initialChildren: children);
 
   static const String name = 'ServerSelection';
 
@@ -752,10 +787,7 @@ class ServerSelection extends _i29.PageRouteInfo<void> {
 /// [_i21.Setting]
 class Setting extends _i29.PageRouteInfo<void> {
   const Setting({List<_i29.PageRouteInfo>? children})
-      : super(
-          Setting.name,
-          initialChildren: children,
-        );
+      : super(Setting.name, initialChildren: children);
 
   static const String name = 'Setting';
 
@@ -771,10 +803,7 @@ class Setting extends _i29.PageRouteInfo<void> {
 /// [_i22.SignInEmail]
 class SignInEmail extends _i29.PageRouteInfo<void> {
   const SignInEmail({List<_i29.PageRouteInfo>? children})
-      : super(
-          SignInEmail.name,
-          initialChildren: children,
-        );
+      : super(SignInEmail.name, initialChildren: children);
 
   static const String name = 'SignInEmail';
 
@@ -795,10 +824,7 @@ class SignInPassword extends _i29.PageRouteInfo<SignInPasswordArgs> {
     List<_i29.PageRouteInfo>? children,
   }) : super(
           SignInPassword.name,
-          args: SignInPasswordArgs(
-            key: key,
-            email: email,
-          ),
+          args: SignInPasswordArgs(key: key, email: email),
           initialChildren: children,
         );
 
@@ -808,19 +834,13 @@ class SignInPassword extends _i29.PageRouteInfo<SignInPasswordArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<SignInPasswordArgs>();
-      return _i23.SignInPassword(
-        key: args.key,
-        email: args.email,
-      );
+      return _i23.SignInPassword(key: args.key, email: args.email);
     },
   );
 }
 
 class SignInPasswordArgs {
-  const SignInPasswordArgs({
-    this.key,
-    required this.email,
-  });
+  const SignInPasswordArgs({this.key, required this.email});
 
   final _i30.Key? key;
 
@@ -830,16 +850,23 @@ class SignInPasswordArgs {
   String toString() {
     return 'SignInPasswordArgs{key: $key, email: $email}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! SignInPasswordArgs) return false;
+    return key == other.key && email == other.email;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ email.hashCode;
 }
 
 /// generated route for
 /// [_i24.SplitTunneling]
 class SplitTunneling extends _i29.PageRouteInfo<void> {
   const SplitTunneling({List<_i29.PageRouteInfo>? children})
-      : super(
-          SplitTunneling.name,
-          initialChildren: children,
-        );
+      : super(SplitTunneling.name, initialChildren: children);
 
   static const String name = 'SplitTunneling';
 
@@ -855,10 +882,7 @@ class SplitTunneling extends _i29.PageRouteInfo<void> {
 /// [_i25.SplitTunnelingInfo]
 class SplitTunnelingInfo extends _i29.PageRouteInfo<void> {
   const SplitTunnelingInfo({List<_i29.PageRouteInfo>? children})
-      : super(
-          SplitTunnelingInfo.name,
-          initialChildren: children,
-        );
+      : super(SplitTunnelingInfo.name, initialChildren: children);
 
   static const String name = 'SplitTunnelingInfo';
 
@@ -874,10 +898,7 @@ class SplitTunnelingInfo extends _i29.PageRouteInfo<void> {
 /// [_i26.Support]
 class Support extends _i29.PageRouteInfo<void> {
   const Support({List<_i29.PageRouteInfo>? children})
-      : super(
-          Support.name,
-          initialChildren: children,
-        );
+      : super(Support.name, initialChildren: children);
 
   static const String name = 'Support';
 
@@ -893,10 +914,7 @@ class Support extends _i29.PageRouteInfo<void> {
 /// [_i27.VPNSetting]
 class VPNSetting extends _i29.PageRouteInfo<void> {
   const VPNSetting({List<_i29.PageRouteInfo>? children})
-      : super(
-          VPNSetting.name,
-          initialChildren: children,
-        );
+      : super(VPNSetting.name, initialChildren: children);
 
   static const String name = 'VPNSetting';
 
@@ -912,10 +930,7 @@ class VPNSetting extends _i29.PageRouteInfo<void> {
 /// [_i28.WebsiteSplitTunneling]
 class WebsiteSplitTunneling extends _i29.PageRouteInfo<void> {
   const WebsiteSplitTunneling({List<_i29.PageRouteInfo>? children})
-      : super(
-          WebsiteSplitTunneling.name,
-          initialChildren: children,
-        );
+      : super(WebsiteSplitTunneling.name, initialChildren: children);
 
   static const String name = 'WebsiteSplitTunneling';
 

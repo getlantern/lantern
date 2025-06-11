@@ -24,7 +24,8 @@ environment:
 
 dependency_overrides:
   in_app_purchase_storekit: 0.3.22+1
-
+  analyzer: 7.4.5
+  analyzer_plugin: ^0.13.1
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
 # consider running `flutter pub upgrade --major-versions`. Alternatively,
@@ -114,9 +115,6 @@ dependencies:
   timezone: ^0.10.1
   flutter_timezone: ^4.1.0
 
-dependency_overrides:
-  analyzer: 7.4.5
-  analyzer_plugin: ^0.13.1
 
 dev_dependencies:
   flutter_test:
