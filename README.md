@@ -10,11 +10,24 @@ Censorship circumvention tool available for free download on any operating syste
 
 ![cover page](https://github.com/getlantern/.github/blob/main/resources/cover_page.png)
 
+
+# Setup project
+
+* [Flutter (3.32.XX)](https://flutter.dev)
+* [Android Studio](https://developer.android.com/studio?_gl=1*1wowe6v*_up*MQ..&gclid=Cj0KCQjw6auyBhDzARIsALIo6v-bn0juONfkfmQAJtwssRCQWADJMgGfRBisMNTSXHt5CZnyZVSK2Y8aAgCmEALw_wcB&gclsrc=aw.ds) (Android Studio Jellyfish | 2023.3.1 Patch 1) 
+* [gomobile](https://github.com/golang/go/wiki/Mobile#tools)
+* [Xcode](https://developer.apple.com/xcode/resources/)
+* [Git](https://git-scm.com/downloads)
+* [Android NDK](#steps-to-run-the-project)
+    * NDK should be version 26.x, for example 26.0.10792818.
+
+
 # Build and run the app on macOS
 
 ```
-make macos-debug
-sudo build/macos/Build/Products/Debug/Lantern.app/Contents/MacOS/Lantern
+make macos
+make ffigen
+flutter run -d macos
 ```
 
 # Build and run the app on iOS

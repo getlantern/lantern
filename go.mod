@@ -4,13 +4,13 @@ go 1.24
 
 toolchain go1.24.1
 
-// replace github.com/getlantern/radiance => ../radiance
+replace github.com/getlantern/radiance => ../radiance
 
 replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v1.11.6-0.20250411173055-d82f542dfd3f
 
 require (
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
-	github.com/getlantern/radiance v0.0.0-20250609072648-b9e9ddf3fe17
+	github.com/getlantern/radiance v0.0.0-20250611101038-755e7a0393dd
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/sagernet/sing-box v1.11.5
 	github.com/stretchr/testify v1.10.0
