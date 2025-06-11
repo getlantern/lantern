@@ -10,7 +10,7 @@ packages:
     source: hosted
     version: "82.0.0"
   analyzer:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: analyzer
       sha256: "904ae5bb474d32c38fb9482e2d925d5454cda04ddd0e55d2e6826bc72f6ba8c0"
@@ -18,13 +18,13 @@ packages:
     source: hosted
     version: "7.4.5"
   analyzer_plugin:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: analyzer_plugin
-      sha256: "1d460d14e3c2ae36dc2b32cef847c4479198cf87704f63c3c3c8150ee50c3916"
+      sha256: ee188b6df6c85f1441497c7171c84f1392affadc0384f71089cb10a3bc508cef
       url: "https://pub.dev"
     source: hosted
-    version: "0.12.0"
+    version: "0.13.1"
   animated_loading_border:
     dependency: "direct main"
     description:
