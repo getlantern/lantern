@@ -8,7 +8,7 @@ import 'package:lantern/features/private_server/server_locations.dart';
 
 class ProviderCard extends StatelessWidget {
   final String title;
-  final String provider;
+  final CloudProvider provider;
   final String price;
   final VoidCallback onContinue;
   final String icon;
@@ -32,7 +32,7 @@ class ProviderCard extends StatelessWidget {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
         ),
-        builder: (ctx) => provider == 'gcp'
+        builder: (ctx) => provider == CloudProvider.googleCloud
             ? GoogleCloudLocations()
             : DigitalOceanLocations(),
       );

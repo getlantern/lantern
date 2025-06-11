@@ -30,14 +30,14 @@ class PrivateServerSetup extends StatelessWidget {
           ProviderCarousel(
             cards: [
               ProviderCard(
-                provider: 'gcp',
+                provider: CloudProvider.googleCloud,
                 title: 'server_setup_do'.i18n,
                 price: 'server_setup_do_price'.i18n.fill(['\$8']),
                 onContinue: () {},
                 icon: AppImagePaths.digitalOceanIcon,
               ),
               ProviderCard(
-                provider: 'do',
+                provider: CloudProvider.digitalOcean,
                 title: 'server_setup_do'.i18n,
                 price: 'server_setup_do_price'.i18n.fill(['\$9']),
                 onContinue: () {},

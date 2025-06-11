@@ -97,19 +97,19 @@ class ServerLocationsModal extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             leadingIcon,
-            const SizedBox(height: 12),
+            const SizedBox(height: defaultSize),
             Text(
               'server_locations'.i18n,
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: defaultSize),
             Text(
               description,
               style: AppTestStyles.bodyMedium,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: defaultSize),
             BulletList(items: locations),
-            const SizedBox(height: 16),
+            const SizedBox(height: defaultSize),
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
