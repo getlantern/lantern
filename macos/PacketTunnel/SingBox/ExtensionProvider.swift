@@ -69,8 +69,10 @@ class ExtensionProvider: NEPacketTunnelProvider {
       appLogger.log("error while stopping tunnel \(error?.localizedDescription ?? "")")
       return
     }
-    platformInterface.reset()
-
+    if let platformInterface {
+      platformInterface.reset()
+    }
+    appLogger.info("(lantern-tunnel) service stopped")
   }
 
   func reloadService() {

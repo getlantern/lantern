@@ -62,6 +62,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
     let excludeAPNs = false
 
     let settings = NEPacketTunnelNetworkSettings(tunnelRemoteAddress: "127.0.0.1")
+    appLogger.info("Checking auto route")
     if options.getAutoRoute() {
       settings.mtu = NSNumber(value: options.getMTU())
 
@@ -74,6 +75,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
       var ipv4Address: [String] = []
       var ipv4Mask: [String] = []
       let ipv4AddressIterator = options.getInet4Address()!
+      appLogger.info("iterating over ipv4 addresses")
       while ipv4AddressIterator.hasNext() {
         let ipv4Prefix = ipv4AddressIterator.next()!
         ipv4Address.append(ipv4Prefix.address())
@@ -84,6 +86,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
       var ipv4Routes: [NEIPv4Route] = []
       var ipv4ExcludeRoutes: [NEIPv4Route] = []
 
+      appLogger.info("iterating over ipv4 routes")
       let inet4RouteAddressIterator = options.getInet4RouteAddress()!
       if inet4RouteAddressIterator.hasNext() {
         while inet4RouteAddressIterator.hasNext() {
@@ -104,6 +107,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
       } else {
         ipv4Routes.append(NEIPv4Route.default())
       }
+      appLogger.info("iterating over ipv4 exclude routes")
 
       let inet4RouteExcludeAddressIterator = options.getInet4RouteExcludeAddress()!
       while inet4RouteExcludeAddressIterator.hasNext() {
@@ -181,6 +185,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
       ipv6Settings.excludedRoutes = ipv6ExcludeRoutes
       settings.ipv6Settings = ipv6Settings
     }
+    appLogger.info("Checking if HTTP proxy is enabled...")
 
     if options.isHTTPProxyEnabled() {
       let proxySettings = NEProxySettings()
@@ -218,14 +223,19 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
       settings.proxySettings = proxySettings
     }
 
+    appLogger.info("Setting network settings...")
     networkSettings = settings
+    appLogger.info("Setting tunnel network settings to \(settings)...")
     try await tunnel.setTunnelNetworkSettings(settings)
 
+    appLogger.info("Accessing the socket file descriptor...")
     if let tunFd = tunnel.packetFlow.value(forKeyPath: "socket.fileDescriptor") as? Int32 {
       ret0_.pointee = tunFd
+      appLogger.info("Returning tunnel file descriptor \(tunFd)")
       return
     }
 
+    appLogger.info("Accessing tunnel file descriptor from C loop...")
     let tunFdFromLoop = LibboxGetTunnelFileDescriptor()
     if tunFdFromLoop != -1 {
       ret0_.pointee = tunFdFromLoop

@@ -109,9 +109,13 @@ class VPNManager: VPNBase {
       appLogger.log("In unexpected state: \(connectionStatus)")
       return
     }
+
+    if manager?.isOnDemandEnabled ?? false {
+      appLogger.info("Turning off on demand..")
+      manager?.isOnDemandEnabled = false
+      try await manager?.saveToPreferences()
+    }
     manager?.connection.stopVPNTunnel()
-    self.manager?.isOnDemandEnabled = false
-    try await self.saveThenLoadProvider()
   }
 
   /// Saves the current VPN configuration to preferences and reloads it.
