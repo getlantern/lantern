@@ -18,6 +18,7 @@ import 'core/common/app_secrets.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   initLogger();
+  await Localization.loadTranslations();
   await _configureLocalTimeZone();
   await _loadAppSecrets();
   await injectServices();

@@ -31,15 +31,11 @@ class PrivateServerSetup extends StatelessWidget {
             cards: [
               ProviderCard(
                 provider: CloudProvider.googleCloud,
-                title: 'server_setup_do'.i18n,
-                price: 'server_setup_do_price'.i18n.fill(['\$8']),
                 onContinue: () {},
-                icon: AppImagePaths.digitalOceanIcon,
+                icon: AppImagePaths.googleCloud,
               ),
               ProviderCard(
                 provider: CloudProvider.digitalOcean,
-                title: 'server_setup_do'.i18n,
-                price: 'server_setup_do_price'.i18n.fill(['\$9']),
                 onContinue: () {},
                 icon: AppImagePaths.digitalOceanIcon,
               ),

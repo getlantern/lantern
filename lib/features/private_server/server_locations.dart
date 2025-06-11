@@ -25,7 +25,6 @@ class DigitalOceanLocations extends StatelessWidget {
         path: AppImagePaths.digitalOcean,
       ),
       locations: doLocations,
-      description: 'digital_ocean_allows'.i18n.fill([doLocations.length]),
     );
   }
 }
@@ -71,21 +70,18 @@ class GoogleCloudLocations extends StatelessWidget {
         path: AppImagePaths.googleCloud,
       ),
       locations: gcpLocations,
-      description: 'google_cloud_allows'.i18n.fill([gcpLocations.length]),
     );
   }
 }
 
 class ServerLocationsModal extends StatelessWidget {
   final Widget leadingIcon;
-  final String description;
   final List<String> locations;
 
   const ServerLocationsModal({
     Key? key,
     required this.leadingIcon,
     required this.locations,
-    required this.description,
   }) : super(key: key);
 
   @override
@@ -104,7 +100,10 @@ class ServerLocationsModal extends StatelessWidget {
             ),
             const SizedBox(height: defaultSize),
             Text(
-              description,
+              'provider_allows'.i18n.args({
+                'provider': CloudProvider.digitalOcean.displayName,
+                'count': locations.length,
+              }),
               style: AppTestStyles.bodyMedium,
             ),
             const SizedBox(height: defaultSize),

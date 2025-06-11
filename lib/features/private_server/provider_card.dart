@@ -7,17 +7,13 @@ import 'package:lantern/core/widgets/app_tile.dart';
 import 'package:lantern/features/private_server/server_locations.dart';
 
 class ProviderCard extends StatelessWidget {
-  final String title;
   final CloudProvider provider;
-  final String price;
   final VoidCallback onContinue;
   final String icon;
 
   const ProviderCard({
     super.key,
-    required this.title,
     required this.provider,
-    required this.price,
     required this.onContinue,
     required this.icon,
   });
@@ -51,7 +47,8 @@ class ProviderCard extends StatelessWidget {
           children: [
             AppTile(
               icon: icon,
-              label: title,
+              label:
+                  'server_setup'.i18n.args({'provider': provider.displayName}),
               tileTextStyle: textTheme.titleMedium,
               contentPadding: EdgeInsets.symmetric(horizontal: 4.0),
             ),
@@ -59,7 +56,11 @@ class ProviderCard extends StatelessWidget {
             CheckmarkTile(
               text: 'handle_configuration'.i18n,
             ),
-            CheckmarkTile(text: price),
+            CheckmarkTile(
+                text: 'server_setup_price'.i18n.args({
+              'price': '\$8',
+              'provider': provider.displayName,
+            })),
             CheckmarkTile(text: 'seamless_integration'.i18n),
             CheckmarkTile(
               text: 'choose_location'.i18n,
@@ -72,7 +73,9 @@ class ProviderCard extends StatelessWidget {
               text: 'one_month_included'.i18n.fill([1]),
             ),
             const SizedBox(height: 24),
-            PrimaryButton(label: 'continue_with_do'.i18n, onPressed: () {}),
+            PrimaryButton(
+                label: 'continue_with'.i18n.fill([provider.displayName]),
+                onPressed: () {}),
           ],
         ),
       ),

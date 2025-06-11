@@ -89,4 +89,13 @@ enum CloudProvider {
         return 'do';
     }
   }
+
+  String get displayName {
+    switch (this) {
+      case CloudProvider.googleCloud:
+        return "Google";
+      case CloudProvider.digitalOcean:
+        return "Digital Ocean";
+    }
+  }
 }
