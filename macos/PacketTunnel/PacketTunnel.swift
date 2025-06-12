@@ -1,7 +1,7 @@
 import NetworkExtension
 import OSLog
 
-class PacketTunnelProvider: ExtensionProvider {
+class PacketTunnel: ExtensionProvider {
 
   static let logger = Logger(subsystem: "org.getlantern.lantern", category: "PacketTunnelProvider")
 

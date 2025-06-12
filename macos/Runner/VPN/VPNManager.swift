@@ -39,6 +39,18 @@ class VPNManager: VPNBase {
     }
   }
 
+  private func removeExistingVPNProfiles() async {
+    do {
+      let managers = try await NETunnelProviderManager.loadAllFromPreferences()
+      for manager in managers {
+        appLogger.log("Removing VPN configuration: \(manager.localizedDescription ?? "Unnamed")")
+        try await manager.removeFromPreferences()
+      }
+    } catch {
+      appLogger.error("Unable to remove VPN profile: \(error.localizedDescription)")
+    }
+  }
+
   private func setupVPN() async {
     do {
       let managers: [NETunnelProviderManager] =
@@ -93,6 +105,7 @@ class VPNManager: VPNBase {
       return
     }
     appLogger.log("Starting tunnel..")
+    await removeExistingVPNProfiles()
     await self.setupVPN()
     let options = ["netEx.StartReason": NSString("User Initiated")]
     try self.manager?.connection.startVPNTunnel(options: options)
