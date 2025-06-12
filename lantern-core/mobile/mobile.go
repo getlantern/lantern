@@ -7,15 +7,21 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"sync"
+	"time"
 
 	"github.com/getlantern/golog"
+	privateserver "github.com/getlantern/lantern-outline/lantern-core/private-server"
+	pcommon "github.com/getlantern/lantern-server-provisioner/common"
+
 	"github.com/getlantern/lantern-outline/lantern-core/utils"
 	"github.com/getlantern/radiance"
 	"github.com/getlantern/radiance/api"
 	"github.com/getlantern/radiance/api/protos"
 	"github.com/getlantern/radiance/client"
 	"github.com/getlantern/radiance/common"
+
 	"google.golang.org/protobuf/proto"
 
 	"github.com/sagernet/sing-box/experimental/libbox"
@@ -477,4 +483,138 @@ func ActivationCode(email, resellerCode string) error {
 		return fmt.Errorf("activation code failed: %s", purchase.Status)
 	}
 	return nil
+}
+
+type PrivateServerEventListener interface {
+	OpenBrowser(url string) error
+	OnPrivateServerEvent(event string)
+	OnError(err string)
+}
+
+func DigitalOceanPrivateServer(events PrivateServerEventListener) error {
+	provisioner := privateserver.AddDigitalOceanServerRoutes(context.Background(), func(url string) error {
+		return events.OpenBrowser(url)
+	})
+	session := provisioner.Session()
+	if session == nil {
+		return log.Error("Failed to strat DigitalOcean provisioner")
+	}
+	go listenToServerEvents(provisioner, events)
+	return nil
+}
+
+func listenToServerEvents(provisioner pcommon.Provisioner, events PrivateServerEventListener) {
+	session := provisioner.Session()
+	log.Debug("Listening to private server events")
+	for {
+		select {
+		case e := <-session.Events:
+			switch e.Type {
+			// OAuth events
+			case pcommon.EventTypeOAuthStarted:
+				log.Debug("OAuth started, waiting for user to complete")
+				events.OnPrivateServerEvent(convertStatusToJSON("EventTypeOAuthStarted", "OAuth started, waiting for user to complete"))
+			case pcommon.EventTypeOAuthCancelled:
+				log.Debug("OAuth cancelled by user")
+				events.OnError(convertErrorToJSON("EventTypeOAuthCancelled", fmt.Errorf("OAuth cancelled by user")))
+				return
+			case pcommon.EventTypeOAuthError:
+				log.Errorf("OAuth failed", e.Error)
+				events.OnError(convertErrorToJSON("EventTypeOAuthError", e.Error))
+				return
+
+				// Validation events
+			case pcommon.EventTypeOAuthCompleted:
+				log.Debugf("OAuth completed", e.Message)
+				// we have the token, now we can proceed
+				// this will start the validation process, preparing a list of healthy projects
+				// and billing accounts that can be used
+				events.OnPrivateServerEvent(convertStatusToJSON("EventTypeOAuthCompleted", "OAuth completed, starting validation"))
+				provisioner.Validate(context.Background(), e.Message)
+				continue
+			case pcommon.EventTypeValidationStarted:
+				log.Debug("Validation started")
+				events.OnPrivateServerEvent(convertStatusToJSON("EventTypeValidationStarted", "Validation started, please wait..."))
+			case pcommon.EventTypeValidationError:
+				log.Errorf("Validation failed", e.Error)
+				events.OnError(convertErrorToJSON("EventTypeValidationError", e.Error))
+				return
+			case pcommon.EventTypeValidationCompleted:
+				// at this point we have a list of projects and billing accounts
+				// present them to the user
+				// log.Debug("Validation completed, ready to create resources")
+				compartments := provisioner.Compartments()
+				if len(compartments) == 0 {
+					log.Error("No valid projects found, please check your billing account and permissions")
+					events.OnError("No valid projects found, please check your billing account and permissions")
+					return
+				}
+				log.Debug("Validation completed, ready to create resources")
+
+				accountNames := pcommon.CompartmentNames(compartments)
+				events.OnPrivateServerEvent(convertStatusToJSON("EventTypeValidationCompleted", strings.Join(accountNames, ", ")))
+
+				//Return selected account name by use
+				userSelectedAccountName := "dfdf"
+				userCompartment := pcommon.CompartmentByName(compartments, userSelectedAccountName)
+
+				// project := pcommon.CompartmentEntryIDs(userCompartment.Entries)
+				// //ASk user to select a project
+				// selectedProject := pcommon.CompartmentEntryLocations(project)
+
+				// //Location
+				// locationList := pcommon.CompartmentEntryByID(userCompartment.Entries, selectedProject)
+				// selectedLocation = pcommon.CompartmentEntryLocations("User selected location", locationList)
+
+				// selectedProject, _ := pterm.DefaultInteractiveSelect.WithOptions(common.CompartmentEntryIDs(compartment.Entries)).Show("Please select a project:")
+				// pterm.Info.Printfln("Selected project: %s", pterm.Green(selectedProject))
+
+				// project := common.CompartmentEntryByID(compartment.Entries, selectedProject)
+				// selectedLocation, _ := pterm.DefaultInteractiveSelect.WithOptions(common.CompartmentEntryLocations(project)).Show("Please select a location:")
+				// pterm.Info.Printfln("Selected location: %s", pterm.Green(selectedLocation))
+
+				// // we can now proceed to create resources
+				// cloc := common.CompartmentLocationByIdentifier(project.Locations, selectedLocation)
+				// p.Provision(ctx, selectedProject, cloc.GetID())
+
+				/// Provisioning events
+			case pcommon.EventTypeProvisioningStarted:
+				log.Debug("Provisioning started")
+
+				events.OnPrivateServerEvent(convertStatusToJSON("EventTypeProvisioningStarted", "Provisioning started, please wait..."))
+			case pcommon.EventTypeProvisioningCompleted:
+				log.Debugf("Provisioning completed successfully", e.Message)
+				events.OnPrivateServerEvent(convertStatusToJSON("EventTypeProvisioningCompleted", "Provisioning completed successfully"))
+				return
+			case pcommon.EventTypeProvisioningError:
+				log.Errorf("Provisioning failed", e.Error)
+				events.OnError(convertErrorToJSON("EventTypeProvisioningError", e.Error))
+				return
+			}
+
+		default:
+			time.Sleep(1 * time.Second)
+		}
+	}
+}
+
+func convertStatusToJSON(status, data string) string {
+	mapStatus := map[string]string{
+		"status": status,
+		"data":   data,
+	}
+	jsonData, _ := json.Marshal(mapStatus)
+	return string(jsonData)
+}
+
+func convertErrorToJSON(status string, err error) string {
+	if err == nil {
+		return ""
+	}
+	mapError := map[string]string{
+		"status": status,
+		"error":  err.Error(),
+	}
+	jsonData, _ := json.Marshal(mapError)
+	return string(jsonData)
 }

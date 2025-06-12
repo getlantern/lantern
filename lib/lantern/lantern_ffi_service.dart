@@ -11,6 +11,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/mapper/plan_mapper.dart';
+import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
@@ -627,6 +628,18 @@ class LanternFFIService implements LanternCoreService {
       appLogger.error('Error activating code', e, stackTrace);
       return Left(e.toFailure());
     }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> digitalOceanPrivateServer() {
+    // TODO: implement digitalOceanPrivateServer
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<PrivateServerStatus> watchPrivateServerStatus() {
+    // TODO: implement watchPrivateServerStatus
+    throw UnimplementedError();
   }
 }
 

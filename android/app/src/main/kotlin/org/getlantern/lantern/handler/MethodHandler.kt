@@ -12,6 +12,7 @@ import kotlinx.coroutines.withContext
 import lantern.io.mobile.Mobile
 import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.constant.VPNStatus
+import org.getlantern.lantern.utils.PrivateServerListener
 import org.getlantern.lantern.utils.VpnStatusManager
 
 
@@ -45,6 +46,9 @@ enum class Methods(val method: String) {
     Logout("logout"),
     DeleteAccount("deleteAccount"),
     ActivationCode("activationCode"),
+
+    //private server methods
+    DigitalOcean("digitalOcean"),
 
 }
 
@@ -300,6 +304,8 @@ class MethodHandler : FlutterPlugin,
                         withContext(Dispatchers.Main) {
                             success(bytes)
                         }
+
+
                     }.onFailure { e ->
                         result.error(
                             "OAuthLoginCallback",
@@ -378,7 +384,7 @@ class MethodHandler : FlutterPlugin,
                         val map = call.arguments as Map<*, *>
                         val email = map["email"] as String? ?: error("Missing email")
                         val password = map["password"] as String? ?: error("Missing password")
-                        val bytes = Mobile.login(email,password)
+                        val bytes = Mobile.login(email, password)
                         withContext(Dispatchers.Main) {
                             success(bytes)
                         }
@@ -391,13 +397,14 @@ class MethodHandler : FlutterPlugin,
                     }
                 }
             }
+
             Methods.SignUp.method -> {
                 scope.launch {
                     result.runCatching {
                         val map = call.arguments as Map<*, *>
                         val email = map["email"] as String? ?: error("Missing email")
                         val password = map["password"] as String? ?: error("Missing password")
-                        Mobile.signUp(email,password)
+                        Mobile.signUp(email, password)
                         withContext(Dispatchers.Main) {
                             success("")
                         }
@@ -427,13 +434,14 @@ class MethodHandler : FlutterPlugin,
                     }
                 }
             }
+
             Methods.DeleteAccount.method -> {
                 scope.launch {
                     result.runCatching {
                         val map = call.arguments as Map<*, *>
                         val email = map["email"] as String? ?: error("Missing email")
                         val password = map["password"] as String? ?: error("Missing password")
-                        val bytes = Mobile.deleteAccount(email,password)
+                        val bytes = Mobile.deleteAccount(email, password)
                         withContext(Dispatchers.Main) {
                             success(bytes)
                         }
@@ -446,13 +454,15 @@ class MethodHandler : FlutterPlugin,
                     }
                 }
             }
+
             Methods.ActivationCode.method -> {
                 scope.launch {
                     result.runCatching {
                         val map = call.arguments as Map<*, *>
                         val email = map["email"] as String? ?: error("Missing email")
-                        val resellerCode = map["resellerCode"] as String? ?: error("Missing resellerCode")
-                         Mobile.activationCode(email,resellerCode)
+                        val resellerCode =
+                            map["resellerCode"] as String? ?: error("Missing resellerCode")
+                        Mobile.activationCode(email, resellerCode)
                         withContext(Dispatchers.Main) {
                             success("ok")
                         }
@@ -465,6 +475,24 @@ class MethodHandler : FlutterPlugin,
                     }
                 }
             }
+
+            Methods.DigitalOcean.method -> {
+                scope.launch {
+                    result.runCatching {
+                        Mobile.digitalOceanPrivateServer(PrivateServerListener())
+                        withContext(Dispatchers.Main) {
+                            success("ok")
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "DigitalOcean",
+                            e.localizedMessage ?: "Error while activating Digital Ocean",
+                            e
+                        )
+                    }
+                }
+            }
+
             else -> {
                 result.notImplemented()
             }
