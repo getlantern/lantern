@@ -8,6 +8,8 @@ import android.net.wifi.WifiManager
 import android.os.PowerManager
 import androidx.core.content.getSystemService
 
+
+
 class LanternApp : Application() {
 
     companion object {

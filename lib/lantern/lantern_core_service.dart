@@ -3,6 +3,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/plan_data.dart';
+import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 
 import '../core/services/app_purchase.dart';
@@ -100,4 +101,8 @@ abstract class LanternCoreService {
   //Delete account
   Future<Either<Failure, UserResponse>> deleteAccount(
       {required String email, required String password});
+
+  /// Private server methods
+  Future<Either<Failure, Unit>> digitalOceanPrivateServer();
+  Stream <PrivateServerStatus> watchPrivateServerStatus();
 }

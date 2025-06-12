@@ -9,9 +9,9 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/mapper/plan_mapper.dart';
 import 'package:lantern/core/models/plan_data.dart';
+import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart';
-import 'package:lantern/core/utils/store_utils.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_ffi_service.dart';
 import 'package:lantern/lantern/protos/protos/auth.pb.dart';
@@ -30,7 +30,10 @@ class LanternPlatformService implements LanternCoreService {
   static const logsChannel = EventChannel("$channelPrefix/logs");
   static const statusChannel =
       EventChannel("$channelPrefix/status", JSONMethodCodec());
+  static const privateServerStatusChannel =
+      EventChannel("$channelPrefix/private_server_status", JSONMethodCodec());
   late final Stream<LanternStatus> _status;
+  late final Stream<PrivateServerStatus> _privateServerStatus;
 
   @override
   Future<void> init() async {
@@ -38,6 +41,13 @@ class LanternPlatformService implements LanternCoreService {
     _status = statusChannel
         .receiveBroadcastStream()
         .map((event) => LanternStatus.fromJson(event));
+    _privateServerStatus =
+        privateServerStatusChannel.receiveBroadcastStream().map(
+      (event) {
+        final map = jsonDecode(event);
+        return PrivateServerStatus.fromJson(map);
+      },
+    );
   }
 
   @override
@@ -204,7 +214,6 @@ class LanternPlatformService implements LanternCoreService {
   @override
   Future<Either<Failure, PlansData>> plans() async {
     try {
-
       final channel = isStoreVersion() ? 'store' : 'non-store';
       final subData =
           await _methodChannel.invokeMethod<String>('plans', channel);
@@ -431,8 +440,9 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> activationCode({required String email, required String resellerCode}) async {
-  try {
+  Future<Either<Failure, Unit>> activationCode(
+      {required String email, required String resellerCode}) async {
+    try {
       await _methodChannel.invokeMethod('activationCode', {
         'email': email,
         'resellerCode': resellerCode,
@@ -442,5 +452,21 @@ class LanternPlatformService implements LanternCoreService {
       appLogger.error('Error activating code', e, stackTrace);
       return Left(e.toFailure());
     }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> digitalOceanPrivateServer() async {
+    try {
+      await _methodChannel.invokeMethod('digitalOcean');
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error activating code', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Stream<PrivateServerStatus> watchPrivateServerStatus() {
+    return _privateServerStatus;
   }
 }
