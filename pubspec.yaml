@@ -111,6 +111,9 @@ dependencies:
   flutter_stripe: ^11.5.0
   # protobuf
   protobuf: ^4.0.0
+  # auto updates
+  auto_updater: ^1.0.0
+  # notifications
   flutter_local_notifications: ^19.2.0
   timezone: ^0.10.1
   flutter_timezone: ^4.1.0

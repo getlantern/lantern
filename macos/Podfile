@@ -30,7 +30,12 @@ target 'Runner' do
   use_frameworks!
   use_modular_headers!
 
+  # Extra Pods
+  pod 'Sparkle'
+  
   flutter_install_all_macos_pods File.dirname(File.realpath(__FILE__))
+
+
   target 'RunnerTests' do
     inherit! :search_paths
   end

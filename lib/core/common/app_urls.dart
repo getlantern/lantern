@@ -14,4 +14,7 @@ class AppUrls {
   static String telegramBot = 'https://twitter.com/getlantern';
 
   static String unbounded = 'https://unbounded.lantern.io';
+
+  static String appcastURL =
+      'https://lantern-vpn.s3.amazonaws.com/releases/appcast.xml';
 }
