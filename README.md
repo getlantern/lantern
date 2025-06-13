@@ -79,7 +79,7 @@ build/app/outputs/flutter-apk/app-debug.apk
 The app supports automatic updates on macOS and Windows, using the [auto_updater](https://pub.dev/packages/auto_updater) package, which is a Flutter-friendly wrapper around the Sparkle update framework.
 
 
-On startup, the app downloads the appcast.xml feed, hosted [in the repo](appcast.xml) and on S3. This file lists the latest version and the signed .dmg or .zip update files. The updater downloads the latest update and installs it via Sparkle.
+On startup, the app downloads the appcast.xml feed, hosted [in the repo](appcast.xml) and on S3. This file lists the latest version and the signed .dmg or .zip update files. The updater downloads the update and installs it via Sparkle.
 
 We generate the appcast.xml dynamically using a [Python script](scripts/generate_appcast.py) as part of our release process:
 
@@ -87,4 +87,4 @@ We generate the appcast.xml dynamically using a [Python script](scripts/generate
 python3 scripts/generate_appcast.py
 ```
 
-It works by fetching releases, the associated .dmg and .exe files, via the GitHub API, signing each asset using the `auto_updater:sign_update` Dart CLI tool, and emitting an [appcast.xml](appcast.xml) with signature, size, version metadata, etc.
+The script works by fetching releases, the associated .dmg and .exe files, via the GitHub API, signing each asset using the `auto_updater:sign_update` Dart CLI tool, and emitting an [appcast.xml](appcast.xml) with signature, size, and version metadata.
