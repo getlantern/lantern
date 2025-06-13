@@ -227,8 +227,8 @@ class _SettingState extends ConsumerState<Setting> {
         appRouter.push(DownloadLinks());
         break;
       case _SettingType.checkForUpdates:
-        await autoUpdater.checkForUpdates();
-
+        await checkForUpdates();
+        break;
       case _SettingType.account:
         final localUser = sl<LocalStorageService>().getUser()!;
         final userSignedIn = ref.watch(appSettingNotifierProvider).userLoggedIn;
@@ -248,6 +248,18 @@ class _SettingState extends ConsumerState<Setting> {
       case _SettingType.browserUnbounded:
         // TODO: Handle this case.
         throw UnimplementedError();
+    }
+  }
+
+  Future<void> checkForUpdates() async {
+    try {
+      autoUpdater.checkForUpdates();
+    } catch (e) {
+      appLogger.error('Error checking for updates: $e');
+      AppDialog.errorDialog(
+          context: context,
+          title: 'error'.i18n,
+          content: e.localizedDescription);
     }
   }
 
