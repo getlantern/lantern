@@ -485,10 +485,32 @@ func ActivationCode(email, resellerCode string) error {
 	return nil
 }
 
+var (
+	userSelection = make(chan string, 1)
+)
+
 type PrivateServerEventListener interface {
 	OpenBrowser(url string) error
 	OnPrivateServerEvent(event string)
 	OnError(err string)
+}
+
+func waitForUserInput() string {
+	select {
+	case v := <-userSelection:
+		return v
+	case <-time.After(60 * time.Second):
+		return ""
+	}
+}
+
+func SetUserInput(input string) {
+	log.Debugf("User input received: %s", input)
+	select {
+	case userSelection <- input:
+	default:
+		log.Debug("User input channel is full, discarding input")
+	}
 }
 
 func DigitalOceanPrivateServer(events PrivateServerEventListener) error {
@@ -551,33 +573,28 @@ func listenToServerEvents(provisioner pcommon.Provisioner, events PrivateServerE
 				}
 				log.Debug("Validation completed, ready to create resources")
 
+				//Accounts
+				//send account to the client
 				accountNames := pcommon.CompartmentNames(compartments)
-				events.OnPrivateServerEvent(convertStatusToJSON("EventTypeValidationCompleted", strings.Join(accountNames, ", ")))
-
-				//Return selected account name by use
-				userSelectedAccountName := "dfdf"
+				events.OnPrivateServerEvent(convertStatusToJSON("EventTypeAccounts", strings.Join(accountNames, ", ")))
+				userSelectedAccountName := waitForUserInput()
 				userCompartment := pcommon.CompartmentByName(compartments, userSelectedAccountName)
 
-				// project := pcommon.CompartmentEntryIDs(userCompartment.Entries)
-				// //ASk user to select a project
-				// selectedProject := pcommon.CompartmentEntryLocations(project)
+				//Projects
+				projectList := pcommon.CompartmentEntryIDs(userCompartment.Entries)
+				events.OnPrivateServerEvent(convertStatusToJSON("EventTypeProjects", strings.Join(projectList, ", ")))
+				selectedProject := waitForUserInput()
+				project := pcommon.CompartmentEntryByID(userCompartment.Entries, selectedProject)
 
-				// //Location
-				// locationList := pcommon.CompartmentEntryByID(userCompartment.Entries, selectedProject)
-				// selectedLocation = pcommon.CompartmentEntryLocations("User selected location", locationList)
+				//Location
+				locationList := pcommon.CompartmentEntryLocations(project)
+				events.OnPrivateServerEvent(convertStatusToJSON("EventTypeLocations", strings.Join(locationList, ", ")))
+				selectedLocation := waitForUserInput()
 
-				// selectedProject, _ := pterm.DefaultInteractiveSelect.WithOptions(common.CompartmentEntryIDs(compartment.Entries)).Show("Please select a project:")
-				// pterm.Info.Printfln("Selected project: %s", pterm.Green(selectedProject))
+				//Got all information, now we can start provisioning
+				cloc := pcommon.CompartmentLocationByIdentifier(project.Locations, selectedLocation)
+				provisioner.Provision(context.Background(), selectedProject, cloc.GetID())
 
-				// project := common.CompartmentEntryByID(compartment.Entries, selectedProject)
-				// selectedLocation, _ := pterm.DefaultInteractiveSelect.WithOptions(common.CompartmentEntryLocations(project)).Show("Please select a location:")
-				// pterm.Info.Printfln("Selected location: %s", pterm.Green(selectedLocation))
-
-				// // we can now proceed to create resources
-				// cloc := common.CompartmentLocationByIdentifier(project.Locations, selectedLocation)
-				// p.Provision(ctx, selectedProject, cloc.GetID())
-
-				/// Provisioning events
 			case pcommon.EventTypeProvisioningStarted:
 				log.Debug("Provisioning started")
 

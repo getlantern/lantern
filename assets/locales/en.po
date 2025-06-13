@@ -565,3 +565,11 @@ msgstr "Your subscription has been updated."
 msgid "subscription_renewed"
 msgstr "Your subscription has been renewed."
 
+msgid "private_server_location"
+msgstr "Server Location"
+
+msgid "private_server_note"
+msgstr "Select a region for your Private Server. Closer locations may improve speed and latency."
+
+
+

@@ -16,7 +16,11 @@ class PrivateServerNotifier extends _$PrivateServerNotifier {
 
   // Add methods to handle private server logic, e.g., fetching providers, etc.
   Future<Either<Failure, Unit>> digitalOcean() async {
-   return ref.read(lanternServiceProvider).digitalOceanPrivateServer();
+    return ref.read(lanternServiceProvider).digitalOceanPrivateServer();
+  }
+
+  Future<Either<Failure, Unit>> setUserInput(String input) async {
+    return ref.read(lanternServiceProvider).setUserInput(input: input);
   }
 
   Stream<PrivateServerStatus> watchPrivateServerLogs() {

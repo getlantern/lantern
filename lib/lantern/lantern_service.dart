@@ -316,4 +316,12 @@ class LanternService implements LanternCoreService {
     }
     return _platformService.watchPrivateServerStatus();
   }
+
+  @override
+  Future<Either<Failure, Unit>> setUserInput({required String input}) {
+  if (PlatformUtils.isDesktop) {
+      return _ffiService.setUserInput(input: input);
+    }
+    return _platformService.setUserInput(input: input);
+  }
 }
