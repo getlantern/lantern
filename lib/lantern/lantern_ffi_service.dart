@@ -641,6 +641,12 @@ class LanternFFIService implements LanternCoreService {
     // TODO: implement watchPrivateServerStatus
     throw UnimplementedError();
   }
+
+  @override
+  Future<Either<Failure, Unit>> setUserInput({required String input}) {
+    // TODO: implement setUserInput
+    throw UnimplementedError();
+  }
 }
 
 void checkAPIError(result) {

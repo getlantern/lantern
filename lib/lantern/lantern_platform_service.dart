@@ -469,4 +469,15 @@ class LanternPlatformService implements LanternCoreService {
   Stream<PrivateServerStatus> watchPrivateServerStatus() {
     return _privateServerStatus;
   }
+
+  @override
+  Future<Either<Failure, Unit>> setUserInput({required String input}) async {
+    try {
+      await _methodChannel.invokeMethod('setUserInput');
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error activating code', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
 }

@@ -49,6 +49,7 @@ enum class Methods(val method: String) {
 
     //private server methods
     DigitalOcean("digitalOcean"),
+    SetUserInput("setUserInput"),
 
 }
 
@@ -480,6 +481,23 @@ class MethodHandler : FlutterPlugin,
                 scope.launch {
                     result.runCatching {
                         Mobile.digitalOceanPrivateServer(PrivateServerListener())
+                        withContext(Dispatchers.Main) {
+                            success("ok")
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "DigitalOcean",
+                            e.localizedMessage ?: "Error while activating Digital Ocean",
+                            e
+                        )
+                    }
+                }
+            }
+            Methods.SetUserInput.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val userInput = call.arguments<String>()
+                        Mobile.setUserInput(userInput)
                         withContext(Dispatchers.Main) {
                             success("ok")
                         }

@@ -101,6 +101,7 @@ dependencies:
   # Utils
   fpdart: ^1.1.1
   jwt_decoder: ^2.0.1
+  country_flags: ^3.3.0
 
   installed_apps: ^1.6.0
 

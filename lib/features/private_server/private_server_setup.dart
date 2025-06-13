@@ -65,21 +65,22 @@ class _PrivateServerSetupState extends ConsumerState<PrivateServerSetup> {
 
   Future<void> onDigitalOceanTap() async {
     //Start the Digital Ocean setup process
-    final result =
-        await ref.read(privateServerNotifierProvider.notifier).digitalOcean();
-
-    result.fold(
-      (failure) {
-        context.showSnackBar(failure.localizedErrorMessage);
-      },
-      (success) {
-        //Listen to the private server status before so we don't miss any evens
-        ref
-            .read(privateServerNotifierProvider.notifier)
-            .watchPrivateServerLogs()
-            .listen(listenForStatusChange);
-      },
-    );
+    appRouter.push(PrivateServerLocation());
+    // final result =
+    //     await ref.read(privateServerNotifierProvider.notifier).digitalOcean();
+    //
+    // result.fold(
+    //   (failure) {
+    //     context.showSnackBar(failure.localizedErrorMessage);
+    //   },
+    //   (success) {
+    //     //Listen to the private server status before so we don't miss any evens
+    //     ref
+    //         .read(privateServerNotifierProvider.notifier)
+    //         .watchPrivateServerLogs()
+    //         .listen(listenForStatusChange);
+    //   },
+    // );
   }
 
   void listenForStatusChange(PrivateServerStatus status) {
@@ -94,6 +95,14 @@ class _PrivateServerSetupState extends ConsumerState<PrivateServerSetup> {
         }
         // Open the URL in a webview
         UrlUtils.openWebview(url);
+        break;
+      case 'EventTypeAccounts':
+        //We will get list of account from the server
+        final accounts = status.data;
+        appLogger.info("Received accounts: $accounts");
+
+
+
         break;
       case 'error':
         // Show an error message

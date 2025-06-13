@@ -573,3 +573,12 @@ msgstr "Google Cloud Platform allows you to pick one server location from the %d
 
 msgid "got_it"
 msgstr "Got It"
+
+msgid "private_server_location"
+msgstr "Server Location"
+
+msgid "private_server_note"
+msgstr "Select a region for your Private Server. Closer locations may improve speed and latency."
+
+
+

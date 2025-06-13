@@ -55,11 +55,16 @@ class AppWebView extends HookWidget {
                 // Handle load stop
                 loading.value = false;
               },
-              onReceivedError: (_, __, error) {
+              onReceivedError: (_, webResourceRequest, error) {
                 // Handle received error
                 appLogger.error("Received error: $error");
                 // Handle load stop
                 loading.value = false;
+                final url = webResourceRequest.url;
+                ///User has completed that private server setup
+                if (url.host == 'localhost') {
+                  appRouter.maybePop(true);
+                }
               },
             ),
             if (loading.value)

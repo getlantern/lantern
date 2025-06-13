@@ -104,5 +104,8 @@ abstract class LanternCoreService {
 
   /// Private server methods
   Future<Either<Failure, Unit>> digitalOceanPrivateServer();
-  Stream <PrivateServerStatus> watchPrivateServerStatus();
+
+  Stream<PrivateServerStatus> watchPrivateServerStatus();
+
+  Future<Either<Failure, Unit>> setUserInput({required String input});
 }
