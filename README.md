@@ -86,3 +86,5 @@ We generate the appcast.xml dynamically using a [Python script](scripts/generate
 ```
 python3 scripts/generate_appcast.py
 ```
+
+It works by fetching releases, the associated .dmg and .exe files, via the GitHub API, signing each asset using the `auto_updater:sign_update` Dart CLI tool, and emitting an [appcast.xml](appcast.xml) with signature, size, version metadata, etc.
