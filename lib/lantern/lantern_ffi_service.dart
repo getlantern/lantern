@@ -643,10 +643,12 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> setUserInput({required String input}) {
+  Future<Either<Failure, Unit>> setUserInput({required PrivateServerInput methodType, required String input}) {
     // TODO: implement setUserInput
     throw UnimplementedError();
   }
+
+
 }
 
 void checkAPIError(result) {

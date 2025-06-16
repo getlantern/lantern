@@ -471,12 +471,13 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> setUserInput({required String input}) async {
+  Future<Either<Failure, Unit>> setUserInput(
+      {required PrivateServerInput methodType, required String input}) async {
     try {
-      await _methodChannel.invokeMethod('setUserInput');
+      await _methodChannel.invokeMethod(methodType.name, input);
       return Right(unit);
     } catch (e, stackTrace) {
-      appLogger.error('Error activating code', e, stackTrace);
+      appLogger.error('Error setting user input', e, stackTrace);
       return Left(e.toFailure());
     }
   }

@@ -10,6 +10,7 @@ replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v
 
 require (
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
+	github.com/getlantern/lantern-server-provisioner v0.0.0-20250612135933-3965f8de83c0
 	github.com/getlantern/radiance v0.0.0-20250611101038-755e7a0393dd
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/sagernet/sing-box v1.11.5
@@ -135,11 +136,10 @@ require (
 	github.com/getlantern/keepcurrent v0.0.0-20240126172110-2e0264ca385d // indirect
 	github.com/getlantern/keyman v0.0.0-20230503155501-4e864ca2175b // indirect
 	github.com/getlantern/kindling v0.0.0-20250506175908-d622fb5c9990 // indirect
-	github.com/getlantern/lantern-server-provisioner v0.0.0-20250611130650-0574d3e5f163 // indirect
 	github.com/getlantern/mtime v0.0.0-20200417132445-23682092d1f7 // indirect
 	github.com/getlantern/netx v0.0.0-20240830183145-c257516187f0 // indirect
 	github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 // indirect
-	github.com/getlantern/sing-box-extensions v0.0.3-0.20250527123041-ac84f0af290f // indirect
+	github.com/getlantern/sing-box-extensions v0.0.3 // indirect
 	github.com/getlantern/tlsdialer/v3 v3.0.3 // indirect
 	github.com/getsentry/sentry-go v0.31.1 // indirect
 	github.com/go-resty/resty/v2 v2.16.5 // indirect

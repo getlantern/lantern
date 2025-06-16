@@ -49,7 +49,9 @@ enum class Methods(val method: String) {
 
     //private server methods
     DigitalOcean("digitalOcean"),
-    SetUserInput("setUserInput"),
+    SelectAccount("selectAccount"),
+    SelectProject("selectProject"),
+    SelectLocation("selectLocation"),
 
 }
 
@@ -493,11 +495,48 @@ class MethodHandler : FlutterPlugin,
                     }
                 }
             }
-            Methods.SetUserInput.method -> {
+
+            Methods.SelectAccount.method -> {
                 scope.launch {
                     result.runCatching {
                         val userInput = call.arguments<String>()
-                        Mobile.setUserInput(userInput)
+                        Mobile.selectAccount(userInput)
+                        withContext(Dispatchers.Main) {
+                            success("ok")
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "DigitalOcean",
+                            e.localizedMessage ?: "Error while activating Digital Ocean",
+                            e
+                        )
+                    }
+                }
+            }
+
+            Methods.SelectProject.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val userInput = call.arguments<String>()
+                        Mobile.selectProject(userInput)
+                        withContext(Dispatchers.Main) {
+                            success("ok")
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "DigitalOcean",
+                            e.localizedMessage ?: "Error while activating Digital Ocean",
+                            e
+                        )
+                    }
+                }
+            }
+
+            Methods.SelectLocation.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val userInput = call.arguments<String>()
+                        Mobile.selectLocation(userInput)
                         withContext(Dispatchers.Main) {
                             success("ok")
                         }

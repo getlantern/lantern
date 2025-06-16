@@ -7,18 +7,12 @@ enum VPNStatus {
   error,
 }
 
-enum AuthFlow{
-  resetPassword,
-  oauth,
-  signUp,
-  activationCode
-}
+enum AuthFlow { resetPassword, oauth, signUp, activationCode }
 
+enum BillingType { subscription, one_time }
 
-enum BillingType{
-  subscription,
-  one_time
-}
+enum PrivateServerInput { selectAccount, selectProject, selectLocation }
+
 enum SplitTunnelFilterType {
   domain,
   domainSuffix,

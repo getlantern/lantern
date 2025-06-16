@@ -1,12 +1,23 @@
 import 'package:auto_route/annotations.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 
 @RoutePage(name: 'PrivateServerLocation')
 class PrivateServerLocation extends StatefulHookConsumerWidget {
-  const PrivateServerLocation({super.key});
+  final List<String> location;
+  final String? selectedLocation;
+  final Function(String) onLocationSelected;
+
+  const PrivateServerLocation({
+    super.key,
+    required this.location,
+    required this.selectedLocation,
+    required this.onLocationSelected,
+  });
 
   @override
   ConsumerState<PrivateServerLocation> createState() =>
@@ -24,6 +35,7 @@ class _PrivateServerLocationState extends ConsumerState<PrivateServerLocation> {
 
   Widget _buildBody() {
     final textTheme = Theme.of(context).textTheme;
+    final selectedLocation = useState<String?>(widget.selectedLocation ?? '');
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -39,36 +51,52 @@ class _PrivateServerLocationState extends ConsumerState<PrivateServerLocation> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
-            'Digital Ocean Location Options',
+            'Digital Ocean Location Options (${widget.location.length}) ',
             style: textTheme.labelLarge!.copyWith(
               color: AppColors.gray8,
             ),
           ),
         ),
         Expanded(
-          child: AppCard(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                LocationListItem(),
-              ],
-            ),
+            child: AppCard(
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: widget.location
+                .map(
+                  (location) => LocationListItem(
+                    selectedLocation: selectedLocation.value,
+                    location: location,
+                    onLocationSelected: (p0) {
+                      selectedLocation.value = p0;
+                      Future.delayed(Duration(milliseconds: 300), () {
+                        widget.onLocationSelected(p0);
+                        appRouter.maybePop(p0);
+                      });
+                    },
+                  ),
+                )
+                .toList(),
           ),
-        ),
+        )),
         SizedBox(height: 16),
         DividerSpace(),
         SizedBox(height: 16),
-        PrimaryButton(
-          label: "Set Up Private Server",
-          onPressed: () {},
-        ),
       ],
     );
   }
 }
 
 class LocationListItem extends StatelessWidget {
-  const LocationListItem({super.key});
+  final String location;
+  final String? selectedLocation;
+  final Function(String) onLocationSelected;
+
+  const LocationListItem({
+    super.key,
+    required this.location,
+    required this.onLocationSelected,
+    this.selectedLocation,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -76,17 +104,27 @@ class LocationListItem extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         AppTile(
+          onPressed: () {
+            onLocationSelected(location);
+          },
           contentPadding: EdgeInsets.zero,
-          icon: CountryFlag.fromCountryCode('ES',
-              height: 20, width: 30, shape: RoundedRectangle(5.0)),
-          label: 'Australia - Sydney',
+          icon: CountryFlag.fromCountryCode(
+            location.countryCode,
+            height: 20,
+            width: 30,
+            shape: RoundedRectangle(5.0),
+          ),
+          label: '${location.countryCode} - ${location.locationName}',
           trailing: Radio(
             value: true,
-            groupValue: true,
-            onChanged: (value) {},
+            groupValue: selectedLocation,
+            onChanged: (value) {
+              onLocationSelected(location);
+            },
           ),
         ),
         DividerSpace(padding: EdgeInsets.zero),
       ],
-    );D}
+    );
+  }
 }

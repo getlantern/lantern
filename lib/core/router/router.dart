@@ -1,7 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:lantern/core/router/router.gr.dart';
 
-
 @AutoRouterConfig(
   replaceInRouteName: 'Page,Route,Screen',
 )
@@ -131,6 +130,14 @@ class AppRouter extends RootStackRouter {
     AutoRoute(
       path: '/private-server-location',
       page: PrivateServerLocation.page,
+    ),
+    AutoRoute(
+      path: '/private-server-details',
+      page: PrivateServerDetails.page,
+    ),
+    AutoRoute(
+      path: '/private-server-deploy',
+      page: PrivateServerDeploy.page,
     ),
   ];
 }
