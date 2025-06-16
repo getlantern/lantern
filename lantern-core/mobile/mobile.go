@@ -621,27 +621,27 @@ func SelectAccount(name string) error {
 }
 
 func SelectProject(selectedProject string) error {
-	defer func() {
-		if r := recover(); r != nil {
-			log.Errorf("Recovered from panic in SelectProject: %v", r)
-		}
-	}()
+	// defer func() {
+	// 	if r := recover(); r != nil {
+	// 		log.Errorf("Recovered from panic in SelectProject: %v", r)
+	// 	}
+	// }()
 	ps, err := getSession()
 	if err != nil {
 		return err
 	}
-	log.Debugf("Selecting project: %s", selectedProject)
+	// log.Debugf("Selecting project:%s", selectedProject)
 	//Store the user selected project
 	project := pcommon.CompartmentEntryByID(ps.userCompartment.Entries, selectedProject)
-	// log.Debugf("Selected project: %v", project)
+	log.Debugf("Selected project: %v", project)
 	ps.userProject = project
 	ps.userProjectString = selectedProject
 	sessions.Store("provisioner", ps)
-	log.Debugf("saved")
+	// log.Debugf("Selected project: %v", project)
 	//Send location list to the event sink
-	log.Debug("Fetching available locations for the selected project")
+	// log.Debugf("Fetching available locations for the selected project entry%v", project)
 	locationList := pcommon.CompartmentEntryLocations(project)
-	log.Debugf("Available locations: %v", strings.Join(locationList, ", "))
+	// log.Debugf("Available locations: %v", strings.Join(locationList, ", "))
 	ps.EventSink.OnPrivateServerEvent(convertStatusToJSON("EventTypeLocations", strings.Join(locationList, ", ")))
 	return nil
 }

@@ -1,4 +1,5 @@
 import 'package:auto_route/annotations.dart';
+import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -144,7 +145,15 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
               ),
               SizedBox(height: 16),
               AppTile(
-                  label: selectedLocation.value ?? 'Select Location',
+                  icon: selectedLocation.value != null
+                      ? CountryFlag.fromCountryCode(
+                          selectedLocation.value!.countryCode,
+                          height: 20,
+                          width: 30,
+                          shape: RoundedRectangle(5.0),
+                        )
+                      : SizedBox.shrink(),
+                  label: selectedLocation.value !=null? selectedLocation.value!.locationName: 'Select Location',
                   onPressed: () {
                     appRouter.push(PrivateServerLocation(
                       location: locationList.value,
@@ -189,7 +198,7 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
     appLogger.info("Selected account: $account");
     final result = await ref
         .read(privateServerNotifierProvider.notifier)
-        .setUserInput(input, account);
+        .setUserInput(input, account.trim());
     result.fold(
       (failure) {
         context.hideLoadingDialog();
@@ -197,7 +206,7 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
       },
       (_) {
         context.hideLoadingDialog();
-        appLogger.info("Account set successfully: $account");
+        appLogger.info("${input.name} set successfully: $account");
       },
     );
   }
