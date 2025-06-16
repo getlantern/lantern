@@ -20,6 +20,28 @@ class PrivateServerSetup extends StatefulHookConsumerWidget {
 class _PrivateServerSetupState extends ConsumerState<PrivateServerSetup> {
   @override
   Widget build(BuildContext context) {
+    final serverState = ref.watch(privateServerNotifierProvider);
+    // Open browser
+    if (serverState.status == 'openBrowser') {
+      UrlUtils.openWebview<bool>(
+        serverState.data!,
+        onWebviewResult: (p0) {
+          if (p0) {
+            context.showLoadingDialog();
+          }
+        },
+      );
+    }
+    if (serverState.status == 'EventTypeOAuthError') {
+      context.showSnackBar('private_server_setup_error'.i18n);
+    }
+    if (serverState.status == 'EventTypeAccounts') {
+      //Got account from cloud provider
+      context.hideLoadingDialog();
+      final accounts = serverState.data!;
+      appRouter.push(PrivateServerDetails(accounts: [accounts]));
+    }
+
     return BaseScreen(
       title: 'setup_private_server'.i18n,
       padded: true,
@@ -64,50 +86,13 @@ class _PrivateServerSetupState extends ConsumerState<PrivateServerSetup> {
   }
 
   Future<void> onDigitalOceanTap() async {
-    //Start the Digital Ocean setup process
-    appRouter.push(PrivateServerLocation());
-    // final result =
-    //     await ref.read(privateServerNotifierProvider.notifier).digitalOcean();
-    //
-    // result.fold(
-    //   (failure) {
-    //     context.showSnackBar(failure.localizedErrorMessage);
-    //   },
-    //   (success) {
-    //     //Listen to the private server status before so we don't miss any evens
-    //     ref
-    //         .read(privateServerNotifierProvider.notifier)
-    //         .watchPrivateServerLogs()
-    //         .listen(listenForStatusChange);
-    //   },
-    // );
-  }
-
-  void listenForStatusChange(PrivateServerStatus status) {
-    appLogger.info("Private server status changed: ${status.status}");
-    switch (status.status) {
-      case 'openBrowser':
-        // Open the browser to the private server URL
-        final url = status.data ?? '';
-        if (url.isEmpty) {
-          context.showSnackBar('private_server_setup_error'.i18n);
-          return;
-        }
-        // Open the URL in a webview
-        UrlUtils.openWebview(url);
-        break;
-      case 'EventTypeAccounts':
-        //We will get list of account from the server
-        final accounts = status.data;
-        appLogger.info("Received accounts: $accounts");
-
-
-
-        break;
-      case 'error':
-        // Show an error message
-        context.showSnackBar('private_server_setup_error'.i18n);
-        break;
-    }
+    final result =
+        await ref.read(privateServerNotifierProvider.notifier).digitalOcean();
+    result.fold(
+      (failure) {
+        context.showSnackBar(failure.localizedErrorMessage);
+      },
+      (_) {},
+    );
   }
 }

@@ -580,5 +580,12 @@ msgstr "Server Location"
 msgid "private_server_note"
 msgstr "Select a region for your Private Server. Closer locations may improve speed and latency."
 
+msgid "do_private_server_setup"
+msgstr "Do Private Server Setup"
+
+msgid "private_server_setup_error"
+msgstr "There was an error setting up your private server. Please try again later or contact support for assistance."
+
+
 
 

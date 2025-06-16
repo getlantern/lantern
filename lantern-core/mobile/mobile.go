@@ -3,6 +3,7 @@ package mobile
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -295,11 +296,7 @@ func StripeSubscription(email, planId string) (string, error) {
 }
 
 func Plans(channel string) (string, error) {
-	// defer func() {
-	// 	if err := recover(); err != nil {
-	// 		log.Errorf("Error creating stripe subscription: %v", err)
-	// 	}
-	// }()
+
 	log.Debug("Getting plans")
 	plans, err := radianceServer.apiClient.SubscriptionPlans(context.Background(), channel)
 	if err != nil {
@@ -485,33 +482,22 @@ func ActivationCode(email, resellerCode string) error {
 	return nil
 }
 
-var (
-	userSelection = make(chan string, 1)
-)
-
 type PrivateServerEventListener interface {
 	OpenBrowser(url string) error
 	OnPrivateServerEvent(event string)
 	OnError(err string)
 }
 
-func waitForUserInput() string {
-	select {
-	case v := <-userSelection:
-		return v
-	case <-time.After(60 * time.Second):
-		return ""
-	}
+type ProvisionSession struct {
+	Provisioner         pcommon.Provisioner
+	EventSink           PrivateServerEventListener
+	CurrentCompartments []pcommon.Compartment
+	userCompartment     *pcommon.Compartment
+	userProject         *pcommon.CompartmentEntry
+	userProjectString   string
 }
 
-func SetUserInput(input string) {
-	log.Debugf("User input received: %s", input)
-	select {
-	case userSelection <- input:
-	default:
-		log.Debug("User input channel is full, discarding input")
-	}
-}
+var sessions = sync.Map{}
 
 func DigitalOceanPrivateServer(events PrivateServerEventListener) error {
 	provisioner := privateserver.AddDigitalOceanServerRoutes(context.Background(), func(url string) error {
@@ -521,12 +507,29 @@ func DigitalOceanPrivateServer(events PrivateServerEventListener) error {
 	if session == nil {
 		return log.Error("Failed to strat DigitalOcean provisioner")
 	}
-	go listenToServerEvents(provisioner, events)
+	ps := &ProvisionSession{
+		Provisioner: provisioner,
+		EventSink:   events,
+	}
+	sessions.Store("provisioner", ps)
+	go listenToServerEvents(*ps)
 	return nil
 }
 
-func listenToServerEvents(provisioner pcommon.Provisioner, events PrivateServerEventListener) {
-	session := provisioner.Session()
+func getSession() (*ProvisionSession, error) {
+	val, ok := sessions.Load("provisioner")
+	log.Debug("Getting provision session from sessions map")
+	if !ok {
+		log.Error("No active session found")
+		return nil, errors.New("no active session")
+	}
+	return val.(*ProvisionSession), nil
+}
+
+func listenToServerEvents(ps ProvisionSession) {
+	provisioner := ps.Provisioner
+	session := ps.Provisioner.Session()
+	events := ps.EventSink
 	log.Debug("Listening to private server events")
 	for {
 		select {
@@ -571,33 +574,18 @@ func listenToServerEvents(provisioner pcommon.Provisioner, events PrivateServerE
 					events.OnError("No valid projects found, please check your billing account and permissions")
 					return
 				}
+				ps.CurrentCompartments = compartments
+				// update map
+				sessions.Store("provisioner", &ps)
 				log.Debug("Validation completed, ready to create resources")
-
 				//Accounts
 				//send account to the client
 				accountNames := pcommon.CompartmentNames(compartments)
+				log.Debugf("Available accounts: %v", strings.Join(accountNames, ", "))
 				events.OnPrivateServerEvent(convertStatusToJSON("EventTypeAccounts", strings.Join(accountNames, ", ")))
-				userSelectedAccountName := waitForUserInput()
-				userCompartment := pcommon.CompartmentByName(compartments, userSelectedAccountName)
-
-				//Projects
-				projectList := pcommon.CompartmentEntryIDs(userCompartment.Entries)
-				events.OnPrivateServerEvent(convertStatusToJSON("EventTypeProjects", strings.Join(projectList, ", ")))
-				selectedProject := waitForUserInput()
-				project := pcommon.CompartmentEntryByID(userCompartment.Entries, selectedProject)
-
-				//Location
-				locationList := pcommon.CompartmentEntryLocations(project)
-				events.OnPrivateServerEvent(convertStatusToJSON("EventTypeLocations", strings.Join(locationList, ", ")))
-				selectedLocation := waitForUserInput()
-
-				//Got all information, now we can start provisioning
-				cloc := pcommon.CompartmentLocationByIdentifier(project.Locations, selectedLocation)
-				provisioner.Provision(context.Background(), selectedProject, cloc.GetID())
 
 			case pcommon.EventTypeProvisioningStarted:
 				log.Debug("Provisioning started")
-
 				events.OnPrivateServerEvent(convertStatusToJSON("EventTypeProvisioningStarted", "Provisioning started, please wait..."))
 			case pcommon.EventTypeProvisioningCompleted:
 				log.Debugf("Provisioning completed successfully", e.Message)
@@ -613,6 +601,59 @@ func listenToServerEvents(provisioner pcommon.Provisioner, events PrivateServerE
 			time.Sleep(1 * time.Second)
 		}
 	}
+}
+
+func SelectAccount(name string) error {
+	log.Debugf("Selecting account: %s", name)
+	ps, err := getSession()
+	if err != nil {
+		return err
+	}
+	log.Debugf("Current compartments: %v", ps.CurrentCompartments)
+	//Store the user selected compartment
+	userCompartment := pcommon.CompartmentByName(ps.CurrentCompartments, name)
+	ps.userCompartment = userCompartment
+	sessions.Store("provisioner", ps)
+	// Send the user selected compartment to the event sink
+	projectList := pcommon.CompartmentEntryIDs(userCompartment.Entries)
+	ps.EventSink.OnPrivateServerEvent(convertStatusToJSON("EventTypeProjects", strings.Join(projectList, ", ")))
+	return nil
+}
+
+func SelectProject(selectedProject string) error {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Errorf("Recovered from panic in SelectProject: %v", r)
+		}
+	}()
+	ps, err := getSession()
+	if err != nil {
+		return err
+	}
+	log.Debugf("Selecting project: %s", selectedProject)
+	//Store the user selected project
+	project := pcommon.CompartmentEntryByID(ps.userCompartment.Entries, selectedProject)
+	// log.Debugf("Selected project: %v", project)
+	ps.userProject = project
+	ps.userProjectString = selectedProject
+	sessions.Store("provisioner", ps)
+	log.Debugf("saved")
+	//Send location list to the event sink
+	log.Debug("Fetching available locations for the selected project")
+	locationList := pcommon.CompartmentEntryLocations(project)
+	log.Debugf("Available locations: %v", strings.Join(locationList, ", "))
+	ps.EventSink.OnPrivateServerEvent(convertStatusToJSON("EventTypeLocations", strings.Join(locationList, ", ")))
+	return nil
+}
+
+func SelectLocation(selectedLocation string) error {
+	ps, err := getSession()
+	if err != nil {
+		return err
+	}
+	cloc := pcommon.CompartmentLocationByIdentifier(ps.userProject.Locations, selectedLocation)
+	ps.Provisioner.Provision(context.Background(), ps.userProjectString, cloc.GetID())
+	return nil
 }
 
 func convertStatusToJSON(status, data string) string {

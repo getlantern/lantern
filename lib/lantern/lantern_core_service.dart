@@ -107,5 +107,6 @@ abstract class LanternCoreService {
 
   Stream<PrivateServerStatus> watchPrivateServerStatus();
 
-  Future<Either<Failure, Unit>> setUserInput({required String input});
+  Future<Either<Failure, Unit>> setUserInput(
+      {required PrivateServerInput methodType, required String input});
 }

@@ -318,10 +318,12 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> setUserInput({required String input}) {
-  if (PlatformUtils.isDesktop) {
-      return _ffiService.setUserInput(input: input);
+  Future<Either<Failure, Unit>> setUserInput({required PrivateServerInput methodType, required String input}) {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.setUserInput(methodType: methodType, input: input);
     }
-    return _platformService.setUserInput(input: input);
+    return _platformService.setUserInput(methodType: methodType, input: input);
   }
+
+
 }
