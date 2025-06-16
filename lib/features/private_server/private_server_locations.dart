@@ -114,9 +114,9 @@ class LocationListItem extends StatelessWidget {
             width: 30,
             shape: RoundedRectangle(5.0),
           ),
-          label: '${location.countryCode} - ${location.locationName}',
-          trailing: Radio(
-            value: true,
+          label: location.locationName,
+          trailing: Radio<String>(
+            value: location,
             groupValue: selectedLocation,
             onChanged: (value) {
               onLocationSelected(location);

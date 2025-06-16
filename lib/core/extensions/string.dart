@@ -74,10 +74,11 @@ extension LocationParsing on String {
     final match = regex.firstMatch(this);
 
     final rawName = match?.group(1) ?? '';
-    return rawName
+    final name=  rawName
         .split('-')
         .map((w) => w[0].toUpperCase() + w.substring(1))
         .join(' ');
+    return '$countryCode-$name';
   }
 
   String get countryCode {
