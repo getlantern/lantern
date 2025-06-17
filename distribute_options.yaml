@@ -1,0 +1,19 @@
+output: dist/
+releases:
+  - name: prod
+    jobs:
+      - name: macos-zip
+        package:
+          platform: macos
+          target: zip
+          build_args:
+            dart-define:
+              APP_ENV: dev
+      # See full documentation: https://fastforge.dev/makers/exe
+      - name: windows-exe
+        package:
+          platform: windows
+          target: exe
+          build_args:
+            dart-define:
+              APP_ENV: dev

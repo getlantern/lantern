@@ -99,8 +99,10 @@ github.com/getlantern/ops v0.0.0-20231025133620-f368ab734534 h1:3BwvWj0JZzFEvNNi
 github.com/getlantern/ops v0.0.0-20231025133620-f368ab734534/go.mod h1:ZsLfOY6gKQOTyEcPYNA9ws5/XHZQFroxqCOhHjGcs9Y=
 github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 h1:JWH5BB2o0eAeGs0tZnFPpQGx+nMIo/WmxKnj2hnGjgE=
 github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175/go.mod h1:h3S9LBmmzN/xM+lwYZHE4abzTtCTtidKtG+nxZcCZX0=
-github.com/getlantern/sing-box-extensions v0.0.3-0.20250527123041-ac84f0af290f h1:k6K+XIkna3A2IHJpT4S5kRTOeKinY32JGNakLoJRIXU=
-github.com/getlantern/sing-box-extensions v0.0.3-0.20250527123041-ac84f0af290f/go.mod h1:NFLIYOX8xslKewQojGUPB3f8ShTM0ZcLoce+wdrVb5U=
+github.com/getlantern/radiance v0.0.0-20250611144756-5d639aa9a2e1 h1:rLcg2gpcEBdjheIg9XVCONQjZQxIHbqsEqWlf0LapRY=
+github.com/getlantern/radiance v0.0.0-20250611144756-5d639aa9a2e1/go.mod h1:PQMeSIRwboxF6bxr9V4lrbsQN1FXxKEr0eJqMyGQDNg=
+github.com/getlantern/sing-box-extensions v0.0.3 h1:wYm9EPP+TCaEFXCxUHoXlJ/hGgrJKQHsvnRzvxK4xUY=
+github.com/getlantern/sing-box-extensions v0.0.3/go.mod h1:/6+EDo75oa/ZEUc0c+r7QPGiq6FxGSyUGD1ER41S82w=
 github.com/getlantern/sing-box-minimal v1.11.6-0.20250411173055-d82f542dfd3f h1:1EM684uAJTApkeubw0W8BbxdrTaXkaXxbM1hJ+KRTZ8=
 github.com/getlantern/sing-box-minimal v1.11.6-0.20250411173055-d82f542dfd3f/go.mod h1:iKFH3Hqus29C3+CxQBsqk2+54SEjDDk2ljYplxN7Uzs=
 github.com/getlantern/timezone v0.0.0-20210901200113-3f9de9d360c9 h1:VTNjZxSuAHUzu13lYpEVB8gc3xz5hZePGNHG5enHYLY=
@@ -302,6 +304,7 @@ github.com/shadowsocks/go-shadowsocks2 v0.1.5/go.mod h1:AGGpIoek4HRno4xzyFiAtLHk
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.4.0/go.mod h1:YvHI0jy2hoMjB+UWwv71VJQ9isScKT/TqJzVSSt89Yw=
 github.com/stretchr/objx v0.5.0/go.mod h1:Yh+to48EsGEfYuaHDzXPcE3xhTkx73EhmCGUpEOglKo=
+github.com/stretchr/objx v0.5.2 h1:xuMeJ0Sdp5ZMRXx/aWO6RZxdr3beISkG5/G/aIRr3pY=
 github.com/stretchr/objx v0.5.2/go.mod h1:FRsXN1f5AsAjCGJKqEizvkpNtU+EGNCLh3NxZ/8L+MA=
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=

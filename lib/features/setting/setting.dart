@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:auto_updater/auto_updater.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
@@ -105,7 +106,8 @@ class _SettingState extends ConsumerState<Setting> {
                 AppTile(
                   label: 'check_for_updates'.i18n,
                   icon: AppImagePaths.update,
-                  onPressed: () => settingMenuTap(_SettingType.checkForUpdates),
+                  onPressed: () async =>
+                      await settingMenuTap(_SettingType.checkForUpdates),
                 ),
               ],
             ),
@@ -190,7 +192,7 @@ class _SettingState extends ConsumerState<Setting> {
     );
   }
 
-  void settingMenuTap(_SettingType menu) {
+  Future<void> settingMenuTap(_SettingType menu) async {
     switch (menu) {
       case _SettingType.signIn:
         appRouter.push(const SignInEmail());
@@ -225,8 +227,8 @@ class _SettingState extends ConsumerState<Setting> {
         appRouter.push(DownloadLinks());
         break;
       case _SettingType.checkForUpdates:
-        // TODO: Handle this case.
-        throw UnimplementedError();
+        await checkForUpdates();
+        break;
       case _SettingType.account:
         final localUser = sl<LocalStorageService>().getUser()!;
         final userSignedIn = ref.watch(appSettingNotifierProvider).userLoggedIn;
@@ -246,6 +248,18 @@ class _SettingState extends ConsumerState<Setting> {
       case _SettingType.browserUnbounded:
         // TODO: Handle this case.
         throw UnimplementedError();
+    }
+  }
+
+  Future<void> checkForUpdates() async {
+    try {
+      autoUpdater.checkForUpdates();
+    } catch (e) {
+      appLogger.error('Error checking for updates: $e');
+      AppDialog.errorDialog(
+          context: context,
+          title: 'error'.i18n,
+          content: e.localizedDescription);
     }
   }
 
