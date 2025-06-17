@@ -17,6 +17,7 @@ import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 import '../../../core/models/app_data.dart';
 import '../../../core/models/app_setting.dart';
 import '../../../core/models/plan_entity.dart';
+import '../../../core/models/private_server_entity.dart';
 import '../../../core/models/user_entity.dart';
 import '../../../core/models/website.dart';
 
@@ -589,6 +590,46 @@ final _entities = <obx_int.ModelEntity>[
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
   ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(12, 5793460567856033350),
+    name: 'PrivateServerEntity',
+    lastPropertyId: const obx_int.IdUid(5, 4219752625337096828),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 3562598503871904195),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 154286077152750051),
+        name: 'serverName',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 7546486618273485297),
+        name: 'externalIp',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 6291548011971740479),
+        name: 'port',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 4219752625337096828),
+        name: 'accessToken',
+        type: 9,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
 ];
 
 /// Shortcut for [obx.Store.new] that passes [getObjectBoxModel] and for Flutter
@@ -629,7 +670,7 @@ Future<obx.Store> openStore({
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(11, 6291023128215063355),
+    lastEntityId: const obx_int.IdUid(12, 5793460567856033350),
     lastIndexId: const obx_int.IdUid(3, 4121674010287421818),
     lastRelationId: const obx_int.IdUid(4, 1689263526393937792),
     lastSequenceId: const obx_int.IdUid(0, 0),
@@ -1373,6 +1414,53 @@ obx_int.ModelDefinition getObjectBoxModel() {
         return object;
       },
     ),
+    PrivateServerEntity: obx_int.EntityDefinition<PrivateServerEntity>(
+      model: _entities[11],
+      toOneRelations: (PrivateServerEntity object) => [],
+      toManyRelations: (PrivateServerEntity object) => {},
+      getId: (PrivateServerEntity object) => object.id,
+      setId: (PrivateServerEntity object, int id) {
+        object.id = id;
+      },
+      objectToFB: (PrivateServerEntity object, fb.Builder fbb) {
+        final serverNameOffset = fbb.writeString(object.serverName);
+        final externalIpOffset = fbb.writeString(object.externalIp);
+        final portOffset = fbb.writeString(object.port);
+        final accessTokenOffset = fbb.writeString(object.accessToken);
+        fbb.startTable(6);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, serverNameOffset);
+        fbb.addOffset(2, externalIpOffset);
+        fbb.addOffset(3, portOffset);
+        fbb.addOffset(4, accessTokenOffset);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final serverNameParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final externalIpParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 8, '');
+        final portParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 10, '');
+        final accessTokenParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 12, '');
+        final object = PrivateServerEntity(
+          serverName: serverNameParam,
+          externalIp: externalIpParam,
+          port: portParam,
+          accessToken: accessTokenParam,
+        )..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+
+        return object;
+      },
+    ),
   };
 
   return obx_int.ModelDefinition(model, bindings);
@@ -1788,5 +1876,33 @@ class Website_ {
   /// See [Website.domain].
   static final domain = obx.QueryStringProperty<Website>(
     _entities[10].properties[1],
+  );
+}
+
+/// [PrivateServerEntity] entity fields to define ObjectBox queries.
+class PrivateServerEntity_ {
+  /// See [PrivateServerEntity.id].
+  static final id = obx.QueryIntegerProperty<PrivateServerEntity>(
+    _entities[11].properties[0],
+  );
+
+  /// See [PrivateServerEntity.serverName].
+  static final serverName = obx.QueryStringProperty<PrivateServerEntity>(
+    _entities[11].properties[1],
+  );
+
+  /// See [PrivateServerEntity.externalIp].
+  static final externalIp = obx.QueryStringProperty<PrivateServerEntity>(
+    _entities[11].properties[2],
+  );
+
+  /// See [PrivateServerEntity.port].
+  static final port = obx.QueryStringProperty<PrivateServerEntity>(
+    _entities[11].properties[3],
+  );
+
+  /// See [PrivateServerEntity.accessToken].
+  static final accessToken = obx.QueryStringProperty<PrivateServerEntity>(
+    _entities[11].properties[4],
   );
 }

@@ -6,6 +6,7 @@ import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/app_setting.dart';
 import 'package:lantern/core/models/mapper/user_mapper.dart';
 import 'package:lantern/core/models/plan_entity.dart';
+import 'package:lantern/core/models/private_server_entity.dart';
 import 'package:lantern/core/models/website.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
@@ -24,6 +25,7 @@ class LocalStorageService {
   late Box<Website> _websitesBox;
   late Box<PlansDataEntity> _plansBox;
   late Box<UserResponseEntity> _userBox;
+  late Box<PrivateServerEntity> _privateServerBox;
 
   ///Due to limitations in macOS the value must be at most 19 characters
   /// Do not change this value
@@ -72,6 +74,7 @@ class LocalStorageService {
     _websitesBox = _store.box<Website>();
     _plansBox = _store.box<PlansDataEntity>();
     _userBox = _store.box<UserResponseEntity>();
+    _privateServerBox = _store.box<PrivateServerEntity>();
 
     dbLogger.info(
       "LocalStorageService initialized in ${DateTime.now().difference(start).inMilliseconds}ms",
@@ -146,5 +149,42 @@ class LocalStorageService {
   AppSetting? getAppSetting() {
     final appSetting = _appSettingBox.getAll();
     return appSetting.isEmpty ? null : appSetting.first;
+  }
+
+  // Private Server methods
+  Future<void> savePrivateServer(PrivateServerEntity server) async {
+    _privateServerBox.putAsync(server);
+  }
+
+  List<PrivateServerEntity> getPrivateServer() {
+    final server = _privateServerBox.getAll();
+    return server.isEmpty ? [] : server;
+  }
+
+  void updatePrivateServer(String serverName) async {
+    final existing = _privateServerBox
+        .query(PrivateServerEntity_.serverName.equals(serverName.toLowerCase()))
+        .build()
+        .findFirst();
+    if (existing != null) {
+      final newInstance = existing.copyWith(
+        serverName: serverName,
+      );
+      _privateServerBox.put(newInstance);
+      return;
+    }
+    throw Exception("Private server with name $serverName does not exist");
+  }
+
+  Future<void> deletePrivateServer(String serverName) async {
+    final existing = _privateServerBox
+        .query(PrivateServerEntity_.serverName.equals(serverName.toLowerCase()))
+        .build()
+        .findFirst();
+    if (existing != null) {
+      await _privateServerBox.removeAsync(existing.id);
+      return;
+    }
+    throw Exception("Private server with name $serverName does not exist");
   }
 }

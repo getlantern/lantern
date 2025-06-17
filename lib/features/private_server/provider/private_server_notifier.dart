@@ -32,6 +32,14 @@ class PrivateServerNotifier extends _$PrivateServerNotifier {
         );
   }
 
+  Future<Either<Failure, Unit>> startDeployment(String location,String serverName) async {
+    return ref.read(lanternServiceProvider).startDeployment(location: location,serverName: serverName);
+  }
+
+  Future<Either<Failure, Unit>> cancelDeployment() async {
+    return ref.read(lanternServiceProvider).cancelDeployment();
+  }
+
   Stream<PrivateServerStatus> watchPrivateServerLogs() {
     return ref.read(lanternServiceProvider).watchPrivateServerStatus();
   }

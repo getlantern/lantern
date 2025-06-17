@@ -481,4 +481,30 @@ class LanternPlatformService implements LanternCoreService {
       return Left(e.toFailure());
     }
   }
+
+  @override
+  Future<Either<Failure, Unit>> startDeployment(
+      {required String location, required String serverName}) async {
+    try {
+      await _methodChannel.invokeMethod('startDeployment', {
+        'location': location,
+        'serverName': serverName,
+      });
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error starting deployment', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> cancelDeployment() async {
+    try {
+      await _methodChannel.invokeMethod('cancelDeployment');
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error canceling deployment', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
 }

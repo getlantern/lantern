@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/services/logger_service.dart';
 
+
 import '../../features/home/provider/home_notifier.dart';
 import '../../lantern/lantern_service_notifier.dart';
 import '../services/injection_container.dart';
@@ -27,6 +28,7 @@ export 'package:lantern/core/extensions/context.dart';
 export 'package:lantern/core/extensions/error.dart';
 export 'package:lantern/core/extensions/pointer.dart';
 export 'package:lantern/core/extensions/ref.dart';
+
 // Extensions
 export 'package:lantern/core/extensions/string.dart';
 export 'package:lantern/core/localization/i18n.dart';
@@ -50,6 +52,7 @@ export 'package:lantern/core/widgets/lantern_logo.dart';
 export 'package:lantern/core/widgets/platform_card.dart';
 export 'package:lantern/core/widgets/pro_banner.dart';
 export 'package:lantern/core/widgets/pro_button.dart';
+export 'package:lantern/core/widgets/flag.dart';
 
 export '../../core/widgets/divider_space.dart';
 
@@ -105,3 +108,4 @@ Future<bool> checkUserAccountStatus(WidgetRef ref, BuildContext context) async {
 void hideKeyboard() {
   FocusManager.instance.primaryFocus?.unfocus();
 }
+

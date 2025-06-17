@@ -1,5 +1,4 @@
 import 'package:auto_route/annotations.dart';
-import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -35,11 +34,15 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
     final locationList = useState<List<String>>([]);
     final selectedLocation = useState<String?>(null);
     final serverState = ref.watch(privateServerNotifierProvider);
+    final serverNameController = useTextEditingController();
 
     if (serverState.status == 'EventTypeProjects') {
       projectList.value = serverState.data!.split(',');
     } else if (serverState.status == 'EventTypeLocations') {
       locationList.value = serverState.data!.split(',');
+    } else if (serverState.status == 'EventTypeProvisioningStarted') {
+      appRouter
+          .push(PrivateServerDeploy(serverName: serverNameController.text));
     }
     return Column(
       children: <Widget>[
@@ -140,54 +143,82 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "3. Choose your location",
+                "3. ${'choose_your_location'.i18n}",
                 style: textTheme.titleMedium,
               ),
               SizedBox(height: 16),
-              AppTile(
-                  icon: selectedLocation.value != null
-                      ? CountryFlag.fromCountryCode(
-                          selectedLocation.value!.countryCode,
-                          height: 20,
-                          width: 30,
-                          shape: RoundedRectangle(5.0),
-                        )
-                      : SizedBox.shrink(),
-                  label: selectedLocation.value !=null? selectedLocation.value!.locationName: 'Select Location',
-                  onPressed: () {
-                    appRouter.push(PrivateServerLocation(
-                      location: locationList.value,
-                      selectedLocation: selectedLocation.value,
-                      onLocationSelected: (p0) {
-                        selectedLocation.value = p0;
-                        onUserInput(PrivateServerInput.selectLocation, p0);
-                      },
-                    ));
-                  },
-                  trailing: selectedLocation.value != null
-                      ? AppTextButton(
-                          onPressed: () {
-                            appRouter.push(PrivateServerLocation(
-                              location: locationList.value,
-                              selectedLocation: selectedLocation.value,
-                              onLocationSelected: (p0) {
-                                selectedLocation.value = p0;
-                                onUserInput(
-                                    PrivateServerInput.selectLocation, p0);
-                              },
-                            ));
+              if (selectedLocation.value != null)
+                AppTile(
+                    contentPadding:
+                        EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                    icon:
+                        Flag(countryCode: selectedLocation.value!.countryCode),
+                    label: selectedLocation.value!.locationName,
+                    onPressed: () {
+                      appRouter.push(PrivateServerLocation(
+                        location: locationList.value,
+                        selectedLocation: selectedLocation.value,
+                        onLocationSelected: (p0) {
+                          selectedLocation.value = p0;
+                        },
+                      ));
+                    },
+                    trailing: AppTextButton(
+                      onPressed: () {
+                        appRouter.push(PrivateServerLocation(
+                          location: locationList.value,
+                          selectedLocation: selectedLocation.value,
+                          onLocationSelected: (p0) {
+                            selectedLocation.value = p0;
                           },
-                          label: 'Change',
-                        )
-                      : SizedBox.shrink()),
+                        ));
+                      },
+                      label: 'change'.i18n,
+                    ))
+              else
+                Center(
+                    child: AppTextButton(
+                        label: 'choose_location'.i18n,
+                        onPressed: () {
+                          appRouter.push(PrivateServerLocation(
+                            location: locationList.value,
+                            selectedLocation: selectedLocation.value,
+                            onLocationSelected: (p0) {
+                              selectedLocation.value = p0;
+                            },
+                          ));
+                        })),
+              SizedBox(height: 8),
+            ],
+          ),
+        ),
+        SizedBox(height: 16),
+        AppCard(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "4. Name your server",
+                style: textTheme.titleMedium,
+              ),
+              SizedBox(height: 16),
+              AppTextField(
+                hintText: "server_name".i18n,
+                controller: serverNameController,
+                prefixIcon: AppImage(path: AppImagePaths.server),
+              ),
               SizedBox(height: 8),
             ],
           ),
         ),
         Spacer(),
         PrimaryButton(
-          label: 'Start Deployment',
-          onPressed: onStartDeployment,
+          label: 'start_deployment'.i18n,
+          enabled: selectedProject.value != null &&
+              serverNameController.text.isNotEmpty,
+          onPressed: () => onStartDeployment(
+              selectedLocation.value!, serverNameController.text.trim()),
         ),
       ],
     );
@@ -211,7 +242,23 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
     );
   }
 
-  void onStartDeployment() {
-    appRouter.push(PrivateServerDeploy());
+  Future<void> onStartDeployment(String location, String serverName) async {
+    appLogger.info("Starting deployment for location: $location");
+    context.showLoadingDialog();
+    final result = await ref
+        .read(privateServerNotifierProvider.notifier)
+        .startDeployment(location, serverName);
+
+    result.fold(
+      (failure) {
+        context.hideLoadingDialog();
+        context.showSnackBar(failure.localizedErrorMessage);
+      },
+      (_) {
+        context.hideLoadingDialog();
+        appLogger
+            .info("Private server deployment started for location: $location");
+      },
+    );
   }
 }

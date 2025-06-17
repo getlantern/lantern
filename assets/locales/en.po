@@ -586,6 +586,27 @@ msgstr "Do Private Server Setup"
 msgid "private_server_setup_error"
 msgstr "There was an error setting up your private server. Please try again later or contact support for assistance."
 
+msgid "server_name"
+msgstr "Server Name"
+
+msgid "change"
+msgstr "Change"
+
+msgid "choose_location"
+msgstr "Choose Location"
+
+msgid "choose_your_location"
+msgstr "Choose Your Location"
+
+
+msgid "start_deployment"
+msgstr "Start Deployment"
+
+
+
+
+
+
 
 
 

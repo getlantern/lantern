@@ -59,27 +59,25 @@ class _PrivateServerLocationState extends ConsumerState<PrivateServerLocation> {
         ),
         Expanded(
             child: AppCard(
-          child: ListView(
+          child: ListView.builder(
             padding: EdgeInsets.zero,
-            children: widget.location
-                .map(
-                  (location) => LocationListItem(
-                    selectedLocation: selectedLocation.value,
-                    location: location,
-                    onLocationSelected: (p0) {
-                      selectedLocation.value = p0;
-                      Future.delayed(Duration(milliseconds: 300), () {
-                        widget.onLocationSelected(p0);
-                        appRouter.maybePop(p0);
-                      });
-                    },
-                  ),
-                )
-                .toList(),
+            itemCount: widget.location.length,
+            itemBuilder: (context, index) {
+              final item = widget.location[index];
+              return LocationListItem(
+                selectedLocation: selectedLocation.value,
+                location: item,
+                onLocationSelected: (p0) {
+                  selectedLocation.value = p0;
+                  Future.delayed(Duration(milliseconds: 300), () {
+                    widget.onLocationSelected(p0);
+                    appRouter.maybePop(p0);
+                  });
+                },
+              );
+            },
           ),
         )),
-        SizedBox(height: 16),
-        DividerSpace(),
         SizedBox(height: 16),
       ],
     );

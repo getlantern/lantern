@@ -51,7 +51,9 @@ enum class Methods(val method: String) {
     DigitalOcean("digitalOcean"),
     SelectAccount("selectAccount"),
     SelectProject("selectProject"),
-    SelectLocation("selectLocation"),
+    StartDeployment("startDeployment"),
+    CancelDeployment("cancelDeployment"),
+
 
 }
 
@@ -532,11 +534,30 @@ class MethodHandler : FlutterPlugin,
                 }
             }
 
-            Methods.SelectLocation.method -> {
+            Methods.StartDeployment.method -> {
                 scope.launch {
                     result.runCatching {
-                        val userInput = call.arguments<String>()
-                        Mobile.selectLocation(userInput)
+                        val map = call.arguments as Map<*, *>
+                        val location = map["location"] as String? ?: error("Missing location")
+                        val serverName = map["serverName"] as String? ?: error("Missing serverName")
+                        Mobile.startDepolyment(location, serverName)
+                        withContext(Dispatchers.Main) {
+                            success("ok")
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "DigitalOcean",
+                            e.localizedMessage ?: "Error while activating Digital Ocean",
+                            e
+                        )
+                    }
+                }
+            }
+
+            Methods.CancelDeployment.method -> {
+                scope.launch {
+                    result.runCatching {
+                        Mobile.cancelDepolyment()
                         withContext(Dispatchers.Main) {
                             success("ok")
                         }

@@ -318,12 +318,27 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> setUserInput({required PrivateServerInput methodType, required String input}) {
+  Future<Either<Failure, Unit>> setUserInput(
+      {required PrivateServerInput methodType, required String input}) {
     if (PlatformUtils.isDesktop) {
       return _ffiService.setUserInput(methodType: methodType, input: input);
     }
     return _platformService.setUserInput(methodType: methodType, input: input);
   }
 
+  @override
+  Future<Either<Failure, Unit>> cancelDeployment() {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.cancelDeployment();
+    }
+    return _platformService.cancelDeployment();
+  }
 
+  @override
+  Future<Either<Failure, Unit>> startDeployment({required String location, required String serverName}) {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.startDeployment(location: location,serverName: serverName);
+    }
+    return _platformService.startDeployment(location: location,serverName: serverName);
+  }
 }
