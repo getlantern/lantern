@@ -649,6 +649,20 @@ class LanternFFIService implements LanternCoreService {
   }
 
 
+
+  @override
+  Future<Either<Failure, Unit>> startDeployment({required String location, required String serverName}) {
+    // TODO: implement startDeployment
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> cancelDeployment() {
+    // TODO: implement cancelDeployment
+    throw UnimplementedError();
+  }
+
+
 }
 
 void checkAPIError(result) {

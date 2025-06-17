@@ -626,18 +626,52 @@ class Plans extends _i33.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i17.PrivateServerDeploy]
-class PrivateServerDeploy extends _i33.PageRouteInfo<void> {
-  const PrivateServerDeploy({List<_i33.PageRouteInfo>? children})
-      : super(PrivateServerDeploy.name, initialChildren: children);
+class PrivateServerDeploy extends _i33.PageRouteInfo<PrivateServerDeployArgs> {
+  PrivateServerDeploy({
+    _i34.Key? key,
+    required String serverName,
+    List<_i33.PageRouteInfo>? children,
+  }) : super(
+          PrivateServerDeploy.name,
+          args: PrivateServerDeployArgs(key: key, serverName: serverName),
+          initialChildren: children,
+        );
 
   static const String name = 'PrivateServerDeploy';
 
   static _i33.PageInfo page = _i33.PageInfo(
     name,
     builder: (data) {
-      return const _i17.PrivateServerDeploy();
+      final args = data.argsAs<PrivateServerDeployArgs>();
+      return _i17.PrivateServerDeploy(
+        key: args.key,
+        serverName: args.serverName,
+      );
     },
   );
+}
+
+class PrivateServerDeployArgs {
+  const PrivateServerDeployArgs({this.key, required this.serverName});
+
+  final _i34.Key? key;
+
+  final String serverName;
+
+  @override
+  String toString() {
+    return 'PrivateServerDeployArgs{key: $key, serverName: $serverName}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! PrivateServerDeployArgs) return false;
+    return key == other.key && serverName == other.serverName;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ serverName.hashCode;
 }
 
 /// generated route for

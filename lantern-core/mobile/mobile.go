@@ -21,6 +21,7 @@ import (
 	"github.com/getlantern/radiance/api"
 	"github.com/getlantern/radiance/api/protos"
 	"github.com/getlantern/radiance/client"
+	boxservice "github.com/getlantern/radiance/client/service"
 	"github.com/getlantern/radiance/common"
 
 	"google.golang.org/protobuf/proto"
@@ -495,9 +496,20 @@ type ProvisionSession struct {
 	userCompartment     *pcommon.Compartment
 	userProject         *pcommon.CompartmentEntry
 	userProjectString   string
+	serverName          string
+}
+
+type ProvisionerResponse struct {
+	ExternalIP  string `json:"external_ip"`
+	Port        int    `json:"port"`
+	AccessToken string `json:"access_token"`
+	Tag         string `json:"tag"`
 }
 
 var sessions = sync.Map{}
+
+// sync mutex
+var provisionerMutex sync.Mutex
 
 func DigitalOceanPrivateServer(events PrivateServerEventListener) error {
 	provisioner := privateserver.AddDigitalOceanServerRoutes(context.Background(), func(url string) error {
@@ -511,12 +523,20 @@ func DigitalOceanPrivateServer(events PrivateServerEventListener) error {
 		Provisioner: provisioner,
 		EventSink:   events,
 	}
-	sessions.Store("provisioner", ps)
+	storeSession(ps)
 	go listenToServerEvents(*ps)
 	return nil
 }
+func storeSession(ps *ProvisionSession) {
+	provisionerMutex.Lock()
+	defer provisionerMutex.Unlock()
+	log.Debug("Storing provision session in sessions map")
+	sessions.Store("provisioner", ps)
+}
 
 func getSession() (*ProvisionSession, error) {
+	provisionerMutex.Lock()
+	defer provisionerMutex.Unlock()
 	val, ok := sessions.Load("provisioner")
 	log.Debug("Getting provision session from sessions map")
 	if !ok {
@@ -588,8 +608,34 @@ func listenToServerEvents(ps ProvisionSession) {
 				log.Debug("Provisioning started")
 				events.OnPrivateServerEvent(convertStatusToJSON("EventTypeProvisioningStarted", "Provisioning started, please wait..."))
 			case pcommon.EventTypeProvisioningCompleted:
-				log.Debugf("Provisioning completed successfully", e.Message)
-				events.OnPrivateServerEvent(convertStatusToJSON("EventTypeProvisioningCompleted", "Provisioning completed successfully"))
+				log.Debugf("Provisioning completed successfully %s", e.Message)
+				//get session
+				provisioner, perr := getSession()
+				if perr != nil {
+					events.OnError(convertErrorToJSON("EventTypeProvisioningError", perr))
+				}
+				// we have the response, now we can add the server manager instance
+				resp := ProvisionerResponse{}
+				err := json.Unmarshal([]byte(e.Message), &provisioner)
+				if err != nil {
+					log.Errorf("Error unmarshalling provisioner response: %v", err)
+					events.OnError(convertErrorToJSON("EventTypeProvisioningError", err))
+					return
+				}
+				resp.Tag = provisioner.serverName
+				mangerErr := AddServerManagerInstance(resp)
+				if mangerErr != nil {
+					log.Errorf("Error adding server manager instance: %v", mangerErr)
+					events.OnError(convertErrorToJSON("EventTypeProvisioningError", mangerErr))
+					return
+				}
+				server, err := json.Marshal(resp)
+				if err != nil {
+					log.Errorf("Error marshalling server response: %v", err)
+					events.OnError(convertErrorToJSON("EventTypeProvisioningError", mangerErr))
+				}
+
+				events.OnPrivateServerEvent(convertStatusToJSON("EventTypeProvisioningCompleted", string(server)))
 				return
 			case pcommon.EventTypeProvisioningError:
 				log.Errorf("Provisioning failed", e.Error)
@@ -609,11 +655,10 @@ func SelectAccount(name string) error {
 	if err != nil {
 		return err
 	}
-	log.Debugf("Current compartments: %v", ps.CurrentCompartments)
 	//Store the user selected compartment
 	userCompartment := pcommon.CompartmentByName(ps.CurrentCompartments, name)
 	ps.userCompartment = userCompartment
-	sessions.Store("provisioner", ps)
+	storeSession(ps)
 	// Send the user selected compartment to the event sink
 	projectList := pcommon.CompartmentEntryIDs(userCompartment.Entries)
 	ps.EventSink.OnPrivateServerEvent(convertStatusToJSON("EventTypeProjects", strings.Join(projectList, ", ")))
@@ -621,38 +666,65 @@ func SelectAccount(name string) error {
 }
 
 func SelectProject(selectedProject string) error {
-	// defer func() {
-	// 	if r := recover(); r != nil {
-	// 		log.Errorf("Recovered from panic in SelectProject: %v", r)
-	// 	}
-	// }()
 	ps, err := getSession()
 	if err != nil {
 		return err
 	}
-	// log.Debugf("Selecting project:%s", selectedProject)
+	log.Debugf("Selecting project:%s", selectedProject)
 	//Store the user selected project
 	project := pcommon.CompartmentEntryByID(ps.userCompartment.Entries, selectedProject)
 	log.Debugf("Selected project: %v", project)
 	ps.userProject = project
 	ps.userProjectString = selectedProject
-	sessions.Store("provisioner", ps)
-	// log.Debugf("Selected project: %v", project)
+	storeSession(ps)
 	//Send location list to the event sink
-	// log.Debugf("Fetching available locations for the selected project entry%v", project)
 	locationList := pcommon.CompartmentEntryLocations(project)
-	// log.Debugf("Available locations: %v", strings.Join(locationList, ", "))
 	ps.EventSink.OnPrivateServerEvent(convertStatusToJSON("EventTypeLocations", strings.Join(locationList, ", ")))
 	return nil
 }
 
-func SelectLocation(selectedLocation string) error {
+func StartDepolyment(selectedLocation string, serverName_ string) error {
+	//Recovery
+	defer func() {
+		if r := recover(); r != nil {
+			log.Errorf("Recovered from panic: %v", r)
+		}
+	}()
+
 	ps, err := getSession()
 	if err != nil {
 		return err
 	}
+	if ps.userProject == nil {
+		log.Debugf("Project not selected, please select a project first")
+	}
+	log.Debugf("Starting deployment in location: %s name %s", selectedLocation, serverName_)
 	cloc := pcommon.CompartmentLocationByIdentifier(ps.userProject.Locations, selectedLocation)
+	ps.serverName = serverName_
+	storeSession(ps)
 	ps.Provisioner.Provision(context.Background(), ps.userProjectString, cloc.GetID())
+	return nil
+}
+
+func AddServerManagerInstance(resp ProvisionerResponse) error {
+	return vpnClient.AddServerManagerInstance(resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken, func(ip string, details []boxservice.CertDetail) *boxservice.CertDetail {
+		log.Debugf("Adding server manager instance: %s", ip)
+		if len(details) == 0 {
+			return nil
+		}
+		log.Debugf("Server manager instance details: %v", details[0])
+		return &details[0]
+	})
+}
+
+func CancelDepolyment() error {
+	ps, err := getSession()
+	if err != nil {
+		return err
+	}
+	log.Debug("Cancelling provisioning")
+	ps.Provisioner.Session().Cancel()
+	ps.EventSink.OnPrivateServerEvent(convertStatusToJSON("EventTypeProvisioningCancelled", "Provisioning cancelled by user"))
 	return nil
 }
 

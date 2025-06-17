@@ -109,4 +109,8 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, Unit>> setUserInput(
       {required PrivateServerInput methodType, required String input});
+
+  Future<Either<Failure, Unit>> startDeployment({required String location, required String serverName});
+
+  Future<Either<Failure, Unit>> cancelDeployment();
 }
