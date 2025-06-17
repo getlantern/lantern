@@ -53,6 +53,7 @@ enum class Methods(val method: String) {
     SelectProject("selectProject"),
     StartDeployment("startDeployment"),
     CancelDeployment("cancelDeployment"),
+    SelectCertFingerprint("selectCertFingerprint"),
 
 
 }
@@ -571,6 +572,22 @@ class MethodHandler : FlutterPlugin,
                 }
             }
 
+            Methods.SelectCertFingerprint.method -> {
+                scope.launch {
+                    result.runCatching {
+                        Mobile.selectedCertFingerprint(call.arguments as String)
+                        withContext(Dispatchers.Main) {
+                            success("ok")
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "DigitalOcean",
+                            e.localizedMessage ?: "Error while activating Digital Ocean",
+                            e
+                        )
+                    }
+                }
+            }
             else -> {
                 result.notImplemented()
             }

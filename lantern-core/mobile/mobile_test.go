@@ -2,6 +2,7 @@ package mobile
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"testing"
 
@@ -95,12 +96,12 @@ func TestOAuthLoginUrl(t *testing.T) {
 	assert.NotNil(t, user)
 }
 
-// func TestLogin(t *testing.T) {
-// 	rr, err := radiance.NewRadiance(radianceOptions())
-// 	api := rr.APIHandler()
-// 	assert.Nil(t, err)
-// 	assert.NotNil(t, rr)
-// 	user, err := api.Login(context.Background(), "jigar@lantern.org", "password123", "")
-// 	assert.Nil(t, err)
-// 	assert.NotNil(t, user)
-// }
+func TestLogin(t *testing.T) {
+	// {"external_ip":"165.22.186.62","port":34673,"access_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjI5MzQ4MDA2NDAwLCJzdWIiOiJhZG1pbiJ9.1uwQURKRS5-B3iXibi8esDRjVcUQZNIVkr1b67Rt9lU"}
+	data := `{"external_ip":"165.22.186.62","port":34673,"access_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjI5MzQ4MDA2NDAwLCJzdWIiOiJhZG1pbiJ9.1uwQURKRS5-B3iXibi8esDRjVcUQZNIVkr1b67Rt9lU"}`
+	resp := ProvisionerResponse{}
+	err := json.Unmarshal([]byte(data), &resp)
+	assert.Nil(t, err)
+	assert.NotNil(t, resp)
+
+}

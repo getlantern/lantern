@@ -341,4 +341,12 @@ class LanternService implements LanternCoreService {
     }
     return _platformService.startDeployment(location: location,serverName: serverName);
   }
+
+  @override
+  Future<Either<Failure, Unit>> setCert({required String fingerprint}) {
+  if (PlatformUtils.isDesktop) {
+    return _ffiService.setCert(fingerprint: fingerprint);
+  }
+  return _platformService.setCert(fingerprint: fingerprint);
+  }
 }

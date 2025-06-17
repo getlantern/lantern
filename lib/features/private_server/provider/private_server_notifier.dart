@@ -1,5 +1,4 @@
-import 'package:fpdart/src/either.dart';
-import 'package:fpdart/src/unit.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/utils/failure.dart';
@@ -38,6 +37,10 @@ class PrivateServerNotifier extends _$PrivateServerNotifier {
 
   Future<Either<Failure, Unit>> cancelDeployment() async {
     return ref.read(lanternServiceProvider).cancelDeployment();
+  }
+
+  Future<Either<Failure, Unit>> setCert(String fingerprint) async {
+    return ref.read(lanternServiceProvider).setCert(fingerprint: fingerprint);
   }
 
   Stream<PrivateServerStatus> watchPrivateServerLogs() {
