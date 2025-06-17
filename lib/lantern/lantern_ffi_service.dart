@@ -662,6 +662,12 @@ class LanternFFIService implements LanternCoreService {
     throw UnimplementedError();
   }
 
+  @override
+  Future<Either<Failure, Unit>> setCert({required String fingerprint}) {
+    // TODO: implement setCert
+    throw UnimplementedError();
+  }
+
 
 }
 

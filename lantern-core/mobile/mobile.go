@@ -596,7 +596,7 @@ func listenToServerEvents(ps ProvisionSession) {
 				}
 				ps.CurrentCompartments = compartments
 				// update map
-				sessions.Store("provisioner", &ps)
+				storeSession(&ps)
 				log.Debug("Validation completed, ready to create resources")
 				//Accounts
 				//send account to the client
@@ -616,14 +616,15 @@ func listenToServerEvents(ps ProvisionSession) {
 				}
 				// we have the response, now we can add the server manager instance
 				resp := ProvisionerResponse{}
-				err := json.Unmarshal([]byte(e.Message), &provisioner)
+				err := json.Unmarshal([]byte(e.Message), &resp)
 				if err != nil {
 					log.Errorf("Error unmarshalling provisioner response: %v", err)
 					events.OnError(convertErrorToJSON("EventTypeProvisioningError", err))
 					return
 				}
 				resp.Tag = provisioner.serverName
-				mangerErr := AddServerManagerInstance(resp)
+				log.Debugf("Provisioner response: %+v", resp)
+				mangerErr := AddServerManagerInstance(resp, provisioner)
 				if mangerErr != nil {
 					log.Errorf("Error adding server manager instance: %v", mangerErr)
 					events.OnError(convertErrorToJSON("EventTypeProvisioningError", mangerErr))
@@ -673,7 +674,7 @@ func SelectProject(selectedProject string) error {
 	log.Debugf("Selecting project:%s", selectedProject)
 	//Store the user selected project
 	project := pcommon.CompartmentEntryByID(ps.userCompartment.Entries, selectedProject)
-	log.Debugf("Selected project: %v", project)
+	log.Debugf("Selected project: %v", project.Locations)
 	ps.userProject = project
 	ps.userProjectString = selectedProject
 	storeSession(ps)
@@ -683,38 +684,88 @@ func SelectProject(selectedProject string) error {
 	return nil
 }
 
-func StartDepolyment(selectedLocation string, serverName_ string) error {
-	//Recovery
+func StartDepolyment(selectedLocation, serverName string) error {
+	// //Recovery
 	defer func() {
 		if r := recover(); r != nil {
 			log.Errorf("Recovered from panic: %v", r)
 		}
 	}()
-
 	ps, err := getSession()
 	if err != nil {
 		return err
 	}
-	if ps.userProject == nil {
-		log.Debugf("Project not selected, please select a project first")
-	}
-	log.Debugf("Starting deployment in location: %s name %s", selectedLocation, serverName_)
+	log.Debugf("Starting deployment in location: %s name %s", selectedLocation, serverName)
+	log.Debugf("Selected project: %s", ps.userProject)
 	cloc := pcommon.CompartmentLocationByIdentifier(ps.userProject.Locations, selectedLocation)
-	ps.serverName = serverName_
+	log.Debugf("Selected location: %v", cloc)
+	ps.serverName = serverName
+	log.Debugf("Selected server name: %s", ps.serverName)
 	storeSession(ps)
+	log.Debug("Starting provisioning")
 	ps.Provisioner.Provision(context.Background(), ps.userProjectString, cloc.GetID())
 	return nil
 }
 
-func AddServerManagerInstance(resp ProvisionerResponse) error {
+var certFingerprintChan = make(chan string, 1)
+
+type CertSummary struct {
+	Fingerprint string `json:"fingerprint"`
+	Issuer      string `json:"issuer"`
+	Subject     string `json:"subject"`
+}
+
+func AddServerManagerInstance(resp ProvisionerResponse, provisioner *ProvisionSession) error {
 	return vpnClient.AddServerManagerInstance(resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken, func(ip string, details []boxservice.CertDetail) *boxservice.CertDetail {
 		log.Debugf("Adding server manager instance: %s", ip)
 		if len(details) == 0 {
 			return nil
 		}
-		log.Debugf("Server manager instance details: %v", details[0])
-		return &details[0]
+		summaries := make([]CertSummary, len(details))
+		for i, detail := range details {
+			// F5:0E:E4:9A:32:DA:09:B9:4E:E3:5C:08:F1:40:94:AE:9A:31:45:13 - 147.182.166.138 [147.182.166.138]
+			summaries[i] = CertSummary{
+				Fingerprint: detail.Fingerprint,
+				Issuer:      detail.Issuer,
+				Subject:     detail.Subject,
+			}
+		}
+		jsonBytes, err := json.Marshal(summaries)
+		if err != nil {
+			log.Errorf("Error marshalling cert details: %v", err)
+			provisioner.EventSink.OnError(convertErrorToJSON("EventTypeServerTofuPermissionError", err))
+			return nil
+		}
+
+		log.Debugf("Available server manager instances: %v", string(jsonBytes))
+		provisioner.EventSink.OnPrivateServerEvent(convertStatusToJSON("EventTypeServerTofuPermission", string(jsonBytes)))
+		//Now wait for user to select the figerprint
+		// Wait for selected fingerprint from Flutter
+		select {
+		case selectedFp := <-certFingerprintChan:
+			for i := range details {
+				if details[i].Fingerprint == selectedFp {
+					log.Debugf("Matched selected cert: %v", details[i])
+					return &details[i]
+				}
+			}
+			log.Error("No certificate matched selected fingerprint")
+			return nil
+
+		case <-time.After(1 * time.Minute):
+			log.Error("Timeout: No cert fingerprint received from Flutter")
+			return nil
+		}
 	})
+}
+
+func SelectedCertFingerprint(fp string) {
+	select {
+	case certFingerprintChan <- fp:
+		log.Debugf("Received selected fingerprint: %s", fp)
+	default:
+		log.Debug("Cert fingerprint channel full or unused")
+	}
 }
 
 func CancelDepolyment() error {

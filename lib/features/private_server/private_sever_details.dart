@@ -39,7 +39,7 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
     if (serverState.status == 'EventTypeProjects') {
       projectList.value = serverState.data!.split(',');
     } else if (serverState.status == 'EventTypeLocations') {
-      locationList.value = serverState.data!.split(',');
+      locationList.value = serverState.data!.split(', ');
     } else if (serverState.status == 'EventTypeProvisioningStarted') {
       appRouter
           .push(PrivateServerDeploy(serverName: serverNameController.text));
@@ -229,7 +229,7 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
     appLogger.info("Selected account: $account");
     final result = await ref
         .read(privateServerNotifierProvider.notifier)
-        .setUserInput(input, account.trim());
+        .setUserInput(input, account);
     result.fold(
       (failure) {
         context.hideLoadingDialog();
@@ -243,7 +243,7 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
   }
 
   Future<void> onStartDeployment(String location, String serverName) async {
-    appLogger.info("Starting deployment for location: $location");
+    appLogger.info("Starting deployment for location: $location with name: $serverName");
     context.showLoadingDialog();
     final result = await ref
         .read(privateServerNotifierProvider.notifier)
