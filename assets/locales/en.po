@@ -493,20 +493,20 @@ msgstr "Turn on VPN"
 msgid "server_setup_do"
 msgstr "Set up a private server on Digital Ocean"
 
-msgid "server_setup_price"
-msgstr "Only %s month through %s"
+msgid "server_setup_do_price"
+msgstr "Only %s month through Digital Ocean"
 
-msgid "continue_with"
-msgstr "Continue with %s"
+msgid "continue_with_do"
+msgstr "Continue with Digital Ocean"
 
-msgid "server_setup"
-msgstr "Set up a private server on {provider}"
+msgid "digital_ocean_allows"
+msgstr "Digital Ocean allows you to pick one server location from the %d options below"
 
-msgid "provider_allows"
-msgstr "{provider} allows you to pick one server location from the {count} options below"
+msgid "server_setup_aws"
+msgstr "Set up a private server on Digital Ocean"
 
-msgid "server_setup_price"
-msgstr "Only {price} month through {provider}"
+msgid "server_setup_aws_price"
+msgstr "Only %s month through AWS"
 
 msgid "server_setup_manual"
 msgstr "Set Up Manuallly"
@@ -567,6 +567,9 @@ msgstr "Your subscription has been updated."
 
 msgid "subscription_renewed"
 msgstr "Your subscription has been renewed."
+
+msgid "google_cloud_allows"
+msgstr "Google Cloud Platform allows you to pick one server location from the %d options below:"
 
 msgid "got_it"
 msgstr "Got It"
