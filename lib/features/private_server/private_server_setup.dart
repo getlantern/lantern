@@ -15,38 +15,43 @@ class PrivateServerSetup extends StatelessWidget {
     return BaseScreen(
       title: 'setup_private_server'.i18n,
       padded: true,
-      body: ListView(
-        padding: EdgeInsets.zero,
-        children: <Widget>[
-          Center(
-            child: AppImage(
-              path: AppImagePaths.serverRack,
-              type: AssetType.svg,
-              height: 180.h,
-              width: 180.w,
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Center(
+              child: AppImage(
+                path: AppImagePaths.serverRack,
+                type: AssetType.svg,
+                height: 180.h,
+                width: 180.w,
+              ),
             ),
-          ),
-          SizedBox(height: 16),
-          ProviderCarousel(
-            cards: [
-              ProviderCard(
-                provider: CloudProvider.googleCloud,
-                onContinue: () {},
-                icon: AppImagePaths.googleCloud,
-              ),
-              ProviderCard(
-                provider: CloudProvider.digitalOcean,
-                onContinue: () {},
-                icon: AppImagePaths.digitalOceanIcon,
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          SecondaryButton(
-            label: 'server_setup_manual'.i18n,
-            onPressed: () {},
-          ),
-        ],
+            SizedBox(height: 16),
+            ProviderCarousel(
+              cards: [
+                ProviderCard(
+                  title: 'server_setup_gcp'.i18n,
+                  price: 'server_setup_gcp_price'.i18n.fill(['\$8']),
+                  provider: CloudProvider.googleCloud,
+                  onContinue: () {},
+                  icon: AppImagePaths.googleCloud,
+                ),
+                ProviderCard(
+                  title: 'server_setup_do'.i18n,
+                  price: 'server_setup_do_price'.i18n.fill(['\$8']),
+                  provider: CloudProvider.digitalOcean,
+                  onContinue: () {},
+                  icon: AppImagePaths.digitalOceanIcon,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            SecondaryButton(
+              label: 'server_setup_manual'.i18n,
+              onPressed: () {},
+            ),
+          ],
+        ),
       ),
     );
   }

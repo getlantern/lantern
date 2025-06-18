@@ -499,8 +499,20 @@ msgstr "Only %s month through Digital Ocean"
 msgid "continue_with_do"
 msgstr "Continue with Digital Ocean"
 
-msgid "digital_ocean_allows"
+msgid "do_allows"
 msgstr "Digital Ocean allows you to pick one server location from the %d options below"
+
+msgid "server_setup_gcp"
+msgstr "Set up a private server on Google Cloud Platform"
+
+msgid "server_setup_gcp_price"
+msgstr "Only %s month through Google Cloud Platform"
+
+msgid "continue_with_gcp"
+msgstr "Continue with Google"
+
+msgid "gcp_allows"
+msgstr "Google Cloud Platform allows you to pick one server location from the %d options below:"
 
 msgid "server_setup_aws"
 msgstr "Set up a private server on Digital Ocean"
@@ -513,6 +525,9 @@ msgstr "Set Up Manuallly"
 
 msgid "seamless_integration"
 msgstr "Seamless integration with Lantern"
+
+msgid "easiest_setup"
+msgstr "Easiest setup process"
 
 msgid "choose_location"
 msgstr "Choose your server's location"
@@ -567,9 +582,6 @@ msgstr "Your subscription has been updated."
 
 msgid "subscription_renewed"
 msgstr "Your subscription has been renewed."
-
-msgid "google_cloud_allows"
-msgstr "Google Cloud Platform allows you to pick one server location from the %d options below:"
 
 msgid "got_it"
 msgstr "Got It"
