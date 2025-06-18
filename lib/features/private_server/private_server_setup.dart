@@ -2,7 +2,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/features/private_server/server_locations.dart';
 import 'package:lantern/features/private_server/provider_card.dart';
 import 'package:lantern/features/private_server/provider_carousel.dart';
 

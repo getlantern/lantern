@@ -40,6 +40,7 @@ class ProviderCard extends StatelessWidget {
 
     final textTheme = Theme.of(context).textTheme;
     final providerName = provider.value;
+
     return Card(
       margin: EdgeInsets.only(right: 5),
       elevation: 4,
