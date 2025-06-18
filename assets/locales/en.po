@@ -491,7 +491,13 @@ msgid "turn_on_vpn"
 msgstr "Turn on VPN"
 
 msgid "server_setup_do"
-msgstr "Set up a private server on Digital Ocean"
+msgstr "Set up using  Digital Ocean"
+
+msgid "server_setup_do_price"
+msgstr "Only %s month through Digital Ocean"
+
+msgid "server_setup_gcp"
+msgstr "Set up using Google Cloud Platform"
 
 msgid "server_setup_do_price"
 msgstr "Only %s month through Digital Ocean"
@@ -598,10 +604,38 @@ msgstr "Choose Location"
 msgid "choose_your_location"
 msgstr "Choose Your Location"
 
-
 msgid "start_deployment"
 msgstr "Start Deployment"
 
+msgid "confirm_server_fingerprint"
+msgstr "Confirm Server Fingerprint"
+
+msgid "server_fingerprint"
+msgstr "Server Fingerprint"
+
+msgid "confirm_fingerprint"
+msgstr "Confirm Fingerprint"
+
+msgid "private_server_setup_in_progress"
+msgstr "Hang tight! Your Private Server is being set up. This may take a few minutes, please keep this screen open."
+
+msgid "cancel_server_deployment"
+msgstr "Cancel Server Deployment"
+
+msgid "server_setup_failed"
+msgstr "Server Setup Failed"
+
+msgid "cancel_deployment"
+msgstr "Cancel Deployment"
+
+msgid "server_setup_failed_message"
+msgstr "Something went wrong while setting up your Private Server. You can retry or try again later.."
+
+msgid "exit"
+msgstr "Exit"
+
+msgid "retry"
+msgstr "Retry"
 
 
 

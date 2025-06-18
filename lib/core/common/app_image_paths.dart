@@ -82,4 +82,5 @@ class AppImagePaths {
   static const personAdd = 'assets/images/person_add.svg';
   static const digitalOcean = 'assets/images/digital_ocean.svg';
   static const googleCloud = 'assets/images/google_cloud.svg';
+  static const errorIcon = 'assets/images/error_icon.svg';
 }

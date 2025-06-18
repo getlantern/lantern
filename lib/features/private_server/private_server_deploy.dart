@@ -23,10 +23,12 @@ class PrivateServerDeploy extends StatefulHookConsumerWidget {
 }
 
 class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
+  TextTheme? textTheme;
+
   @override
-  Widget build(
-    BuildContext context,
-  ) {
+  Widget build(BuildContext context) {
+    textTheme = Theme.of(context).textTheme;
+
     final serverState = ref.watch(privateServerNotifierProvider);
     if (serverState.status == 'EventTypeProvisioningCompleted') {
       appLogger.info("Private server deployment completed successfully.",
@@ -34,20 +36,23 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
     }
     if (serverState.status == 'EventTypeProvisioningError') {
       // If the server is ready, open the browser
-      appLogger.error("Private server deployment failed.", serverState.error);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        appLogger.error("Private server deployment failed.", serverState.error);
+        showErrorDialog();
+      });
     }
     if (serverState.status == 'EventTypeProvisioningCancelled') {
       appLogger.info("Private server deployment was cancelled.");
     }
     if (serverState.status == 'EventTypeServerTofuPermission') {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final List<dynamic> data = jsonDecode(serverState.data!);
-      final certList = data.map((item) => CertSummary.fromJson(item)).toList();
-      showFingerprintDialog(certList);
-    });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final List<dynamic> data = jsonDecode(serverState.data!);
+        final certList =
+            data.map((item) => CertSummary.fromJson(item)).toList();
+        showFingerprintDialog(certList);
+      });
     }
 
-    final textTheme = Theme.of(context).textTheme;
     return BaseScreen(
       title: 'Deploying Private Server',
       body: Column(
@@ -56,16 +61,16 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Text(
-              'Hang tight! Your Private Server is being set up. This may take a few minutes.',
-              style: textTheme.bodyLarge!.copyWith(
+              'private_server_setup_in_progress'.i18n,
+              style: textTheme!.bodyLarge!.copyWith(
                 color: AppColors.gray8,
               ),
             ),
           ),
           LoadingIndicator(),
           SecondaryButton(
-            label: 'Cancel Server Deployment',
-            onPressed: () {},
+            label: 'cancel_server_deployment'.i18n,
+            onPressed: cancelDeployment,
           ),
         ],
       ),
@@ -80,22 +85,82 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           SizedBox(height: 24),
+          Center(child: Icon(Icons.fingerprint, size: 40)),
+          SizedBox(height: 16),
           Text(
-            'Confirm Fingerprint',
-            style: Theme.of(context).textTheme.titleLarge,
+            'confirm_server_fingerprint'.i18n,
+            style: textTheme!.titleLarge,
           ),
           SizedBox(height: 16),
-          ...cert.map((e) => AppTile(
-                icon: Icon(Icons.fingerprint),
-                label: e.fingerprint,
-                onPressed: () {
-                  onConfirmFingerprint(e);
-                  appRouter.pop();
-                },
-              )),
+          Text(
+            'server_fingerprint'.i18n,
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
+          Text(
+            cert.first.fingerprint,
+            style: textTheme!.bodyMedium,
+          ),
         ],
       ),
-      action: [],
+      action: [
+        AppTextButton(
+          label: "cancel_deployment".i18n,
+          onPressed: () {
+            appRouter.pop();
+            cancelDeployment();
+          },
+          textColor: AppColors.gray6,
+        ),
+        AppTextButton(
+          label: "confirm_fingerprint".i18n,
+          textColor: AppColors.blue6,
+          onPressed: () {
+            onConfirmFingerprint(cert.first);
+            appRouter.pop();
+          },
+        ),
+      ],
+    );
+  }
+
+  void showErrorDialog() {
+    AppDialog.customDialog(
+      context: context,
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          SizedBox(height: 24),
+          Center(child: AppImage(path: AppImagePaths.errorIcon)),
+          SizedBox(height: 16),
+          Text(
+            'server_setup_failed'.i18n,
+            style: textTheme!.titleLarge,
+          ),
+          SizedBox(height: 16),
+          Text(
+            'server_setup_failed_message'.i18n,
+            style: textTheme!.bodyLarge,
+          ),
+        ],
+      ),
+      action: [
+        AppTextButton(
+          label: "exit".i18n,
+          onPressed: () {
+            appRouter.popUntilRoot();
+          },
+          textColor: AppColors.gray6,
+        ),
+        AppTextButton(
+          label: "retry".i18n,
+          textColor: AppColors.blue6,
+          onPressed: () {
+            appRouter.popUntil(
+                (route) => (route.settings.name == 'PrivateServerSetup'));
+          },
+        ),
+      ],
     );
   }
 
@@ -113,7 +178,31 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
       (_) {
         // Handle success case, e.g., navigate to the next screen or show a success message
         appLogger.info("Cert set successfully.");
-        context.showSnackBar('Cert set successfully.');
+      },
+    );
+  }
+
+  Future<void> cancelDeployment() async {
+    context.showLoadingDialog();
+    final result = await ref
+        .read(privateServerNotifierProvider.notifier)
+        .cancelDeployment();
+
+    result.fold(
+      (l) {
+        context.hideLoadingDialog();
+        // Handle failure case, e.g., show an error message
+        appLogger
+            .error("Failed to cancel deployment: ${l.localizedErrorMessage}");
+        context.showSnackBar(l.localizedErrorMessage);
+      },
+      (r) {
+        // Handle success case, e.g., navigate to the next screen or show a success message
+        context.hideLoadingDialog();
+        appLogger.info("Deployment cancelled successfully.");
+        context.showSnackBar('Deployment cancelled successfully.');
+
+        appRouter.popUntilRoot();
       },
     );
   }

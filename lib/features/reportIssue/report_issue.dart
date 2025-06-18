@@ -2,7 +2,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:lantern/core/common/app_text_field.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/radio_listview.dart';
 
@@ -97,10 +96,12 @@ class ReportIssue extends HookConsumerWidget {
   }
 
   void submitReport() {
-    // print('Email: ${emailController.text}');
-    // print('Issue: ${selectedIssueController.value}');
-    // print('Description: ${descriptionController.text}');
+
   }
+
+// print('Email: ${emailController.text}');
+// print('Issue: ${selectedIssueController.value}');
+// print('Description: ${descriptionController.text}');
 
   void _onIssueTap(String issueType) {}
 }

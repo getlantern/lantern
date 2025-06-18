@@ -61,16 +61,14 @@ class AppWebView extends HookWidget {
                 // Handle load stop
                 loading.value = false;
                 final url = webResourceRequest.url;
+
                 ///User has completed that private server setup
                 if (url.host == 'localhost') {
                   appRouter.maybePop(true);
                 }
               },
             ),
-            if (loading.value)
-              Center(
-                child: LoadingIndicator(),
-              ),
+            if (loading.value) Center(child: LoadingIndicator()),
           ],
         ));
   }

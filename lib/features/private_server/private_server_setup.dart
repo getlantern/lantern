@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/features/private_server/server_locations.dart';
-import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/features/private_server/provider/private_server_notifier.dart';
 import 'package:lantern/features/private_server/provider_card.dart';
 import 'package:lantern/features/private_server/provider_carousel.dart';
@@ -61,16 +59,16 @@ class _PrivateServerSetupState extends ConsumerState<PrivateServerSetup> {
             cards: [
               ProviderCard(
                 provider: CloudProvider.googleCloud,
-                onContinue: () {},
-                icon: AppImagePaths.googleCloud,
-                title: 'server_setup_do'.i18n,
-                price: 'server_setup_do_price'.i18n.fill(['\$8']),
                 onContinue: onDigitalOceanTap,
-                icon: AppImagePaths.digitalOceanIcon,
+                icon: AppImagePaths.googleCloud,
+                title: 'server_setup_gcp'.i18n,
+                price: 'server_setup_do_price'.i18n.fill(['\$3']),
               ),
               ProviderCard(
+                title: 'server_setup_do'.i18n,
+                price: 'server_setup_do_price'.i18n.fill(['\$8']),
                 provider: CloudProvider.digitalOcean,
-                onContinue: () {},
+                onContinue: onDigitalOceanTap,
                 icon: AppImagePaths.digitalOceanIcon,
               ),
             ],

@@ -12,7 +12,7 @@ class ProviderCarousel extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final current = useState(0);
-    final controller = usePageController(viewportFraction: .98);
+    final controller = usePageController(viewportFraction: .95);
     void goTo(int page) {
       if (page < 0 || page >= cards.length) return;
       controller.animateToPage(
@@ -25,7 +25,7 @@ class ProviderCarousel extends HookConsumerWidget {
     return Column(
       children: [
         SizedBox(
-          height: 400.h,
+          height: 350.h,
           child: PageView.builder(
             controller: controller,
             itemCount: cards.length,

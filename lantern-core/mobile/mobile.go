@@ -741,21 +741,15 @@ func AddServerManagerInstance(resp ProvisionerResponse, provisioner *ProvisionSe
 		provisioner.EventSink.OnPrivateServerEvent(convertStatusToJSON("EventTypeServerTofuPermission", string(jsonBytes)))
 		//Now wait for user to select the figerprint
 		// Wait for selected fingerprint from Flutter
-		select {
-		case selectedFp := <-certFingerprintChan:
-			for i := range details {
-				if details[i].Fingerprint == selectedFp {
-					log.Debugf("Matched selected cert: %v", details[i])
-					return &details[i]
-				}
+		selectedFp := <-certFingerprintChan
+		for i := range details {
+			if details[i].Fingerprint == selectedFp {
+				log.Debugf("Matched selected cert: %v", details[i])
+				return &details[i]
 			}
-			log.Error("No certificate matched selected fingerprint")
-			return nil
-
-		case <-time.After(1 * time.Minute):
-			log.Error("Timeout: No cert fingerprint received from Flutter")
-			return nil
 		}
+		log.Error("No certificate matched selected fingerprint")
+		return nil
 	})
 }
 
