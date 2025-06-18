@@ -490,6 +490,48 @@ msgstr "Continue without VPN"
 msgid "turn_on_vpn"
 msgstr "Turn on VPN"
 
+msgid "server_setup_do"
+msgstr "Set up a private server on Digital Ocean"
+
+msgid "server_setup_do_price"
+msgstr "Only %s month through Digital Ocean"
+
+msgid "continue_with_do"
+msgstr "Continue with Digital Ocean"
+
+msgid "digital_ocean_allows"
+msgstr "Digital Ocean allows you to pick one server location from the %d options below"
+
+msgid "server_setup_aws"
+msgstr "Set up a private server on Digital Ocean"
+
+msgid "server_setup_aws_price"
+msgstr "Only %s month through AWS"
+
+msgid "server_setup_manual"
+msgstr "Set Up Manuallly"
+
+msgid "seamless_integration"
+msgstr "Seamless integration with Lantern"
+
+msgid "choose_location"
+msgstr "Choose your server's location"
+
+msgid "one_month_included"
+msgstr "%d TB/month data included"
+
+msgid "handle_configuration"
+msgstr "We handle the configuration, just sign up."
+
+msgid "setup_private_server"
+msgstr "Set Up Private Server"
+
+msgid "previous"
+msgstr "Previous"
+
+msgid "next"
+msgstr "Next"
+
 msgid "error"
 msgstr "Error"
 
@@ -526,7 +568,8 @@ msgstr "Your subscription has been updated."
 msgid "subscription_renewed"
 msgstr "Your subscription has been renewed."
 
+msgid "google_cloud_allows"
+msgstr "Google Cloud Platform allows you to pick one server location from the %d options below:"
 
-
-
-
+msgid "got_it"
+msgstr "Got It"

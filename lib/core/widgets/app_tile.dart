@@ -9,6 +9,7 @@ class AppTile extends StatelessWidget {
   final Widget? subtitle;
   final VoidCallback? onPressed;
   final EdgeInsets? contentPadding;
+  final bool? dense;
 
   final TextStyle? tileTextStyle;
 
@@ -21,6 +22,7 @@ class AppTile extends StatelessWidget {
     this.trailing,
     this.contentPadding,
     this.tileTextStyle,
+    this.dense,
   });
 
   factory AppTile.link({
@@ -70,8 +72,10 @@ class AppTile extends StatelessWidget {
       minVerticalPadding: 0,
       contentPadding:
           contentPadding ?? const EdgeInsets.symmetric(horizontal: 16),
-      title: Text(label, style: _tileTextStyle,maxLines: 1,overflow: TextOverflow.ellipsis ),
+      title: Text(label,
+          style: _tileTextStyle, maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: subtitle,
+      dense: dense,
       leading: leading,
       trailing: trailing,
       onTap: onPressed,

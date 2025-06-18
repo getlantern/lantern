@@ -191,12 +191,12 @@ class AppTextButton extends StatelessWidget {
 
 class AppIconButton extends StatelessWidget {
   final String path;
-  final OnPressed onPressed;
+  final OnPressed? onPressed;
 
   const AppIconButton({
     super.key,
     required this.path,
-    required this.onPressed,
+     this.onPressed,
   });
 
   @override
