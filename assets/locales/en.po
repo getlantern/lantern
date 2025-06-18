@@ -637,7 +637,17 @@ msgstr "Exit"
 msgid "retry"
 msgstr "Retry"
 
+msgid "private_server_ready"
+msgstr "Your Private Server is Ready!"
 
+msgid "private_server_ready_message"
+msgstr "Your Server has been set up and added to your server list. You're ready to connect!"
+
+msgid "close"
+msgstr "Close"
+
+msgid "connect_now"
+msgstr "Connect Now"
 
 
 

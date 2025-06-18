@@ -72,10 +72,10 @@ TAGS=with_gvisor,with_quic,with_wireguard,with_ech,with_utls,with_clash_api,with
 GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go')
 GOMOBILE_VERSION ?= latest
 GOMOBILE_REPOS = \
-	$(RADIANCE_REPO) \
 	github.com/sagernet/sing-box/experimental/libbox \
 	github.com/getlantern/sing-box-extensions/ruleset \
-	./lantern-core/mobile
+	./lantern-core/mobile \
+	./lantern-core/utils
 
 SIGN_ID="Developer ID Application: Brave New Software Project, Inc (ACZRKC3LQ9)"
 

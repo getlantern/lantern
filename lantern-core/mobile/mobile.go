@@ -3,25 +3,20 @@ package mobile
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"sync"
-	"time"
 
 	"github.com/getlantern/golog"
-	privateserver "github.com/getlantern/lantern-outline/lantern-core/private-server"
-	pcommon "github.com/getlantern/lantern-server-provisioner/common"
 
+	privateserver "github.com/getlantern/lantern-outline/lantern-core/private-server"
 	"github.com/getlantern/lantern-outline/lantern-core/utils"
 	"github.com/getlantern/radiance"
 	"github.com/getlantern/radiance/api"
 	"github.com/getlantern/radiance/api/protos"
 	"github.com/getlantern/radiance/client"
-	boxservice "github.com/getlantern/radiance/client/service"
 	"github.com/getlantern/radiance/common"
 
 	"google.golang.org/protobuf/proto"
@@ -297,7 +292,6 @@ func StripeSubscription(email, planId string) (string, error) {
 }
 
 func Plans(channel string) (string, error) {
-
 	log.Debug("Getting plans")
 	plans, err := radianceServer.apiClient.SubscriptionPlans(context.Background(), channel)
 	if err != nil {
@@ -483,313 +477,28 @@ func ActivationCode(email, resellerCode string) error {
 	return nil
 }
 
-type PrivateServerEventListener interface {
-	OpenBrowser(url string) error
-	OnPrivateServerEvent(event string)
-	OnError(err string)
+//Private methods
+
+func DigitalOceanPrivateServer(events utils.PrivateServerEventListener) error {
+	return privateserver.StartDigitalOceanPrivateServerFlow(events, vpnClient)
 }
 
-type ProvisionSession struct {
-	Provisioner         pcommon.Provisioner
-	EventSink           PrivateServerEventListener
-	CurrentCompartments []pcommon.Compartment
-	userCompartment     *pcommon.Compartment
-	userProject         *pcommon.CompartmentEntry
-	userProjectString   string
-	serverName          string
+func SelectAccount(account string) error {
+	return privateserver.SelectAccount(account)
 }
 
-type ProvisionerResponse struct {
-	ExternalIP  string `json:"external_ip"`
-	Port        int    `json:"port"`
-	AccessToken string `json:"access_token"`
-	Tag         string `json:"tag"`
+func SelectProject(project string) error {
+	return privateserver.SelectProject(project)
 }
 
-var sessions = sync.Map{}
-
-// sync mutex
-var provisionerMutex sync.Mutex
-
-func DigitalOceanPrivateServer(events PrivateServerEventListener) error {
-	provisioner := privateserver.AddDigitalOceanServerRoutes(context.Background(), func(url string) error {
-		return events.OpenBrowser(url)
-	})
-	session := provisioner.Session()
-	if session == nil {
-		return log.Error("Failed to strat DigitalOcean provisioner")
-	}
-	ps := &ProvisionSession{
-		Provisioner: provisioner,
-		EventSink:   events,
-	}
-	storeSession(ps)
-	go listenToServerEvents(*ps)
-	return nil
-}
-func storeSession(ps *ProvisionSession) {
-	provisionerMutex.Lock()
-	defer provisionerMutex.Unlock()
-	log.Debug("Storing provision session in sessions map")
-	sessions.Store("provisioner", ps)
-}
-
-func getSession() (*ProvisionSession, error) {
-	provisionerMutex.Lock()
-	defer provisionerMutex.Unlock()
-	val, ok := sessions.Load("provisioner")
-	log.Debug("Getting provision session from sessions map")
-	if !ok {
-		log.Error("No active session found")
-		return nil, errors.New("no active session")
-	}
-	return val.(*ProvisionSession), nil
-}
-
-func listenToServerEvents(ps ProvisionSession) {
-	provisioner := ps.Provisioner
-	session := ps.Provisioner.Session()
-	events := ps.EventSink
-	log.Debug("Listening to private server events")
-	for {
-		select {
-		case e := <-session.Events:
-			switch e.Type {
-			// OAuth events
-			case pcommon.EventTypeOAuthStarted:
-				log.Debug("OAuth started, waiting for user to complete")
-				events.OnPrivateServerEvent(convertStatusToJSON("EventTypeOAuthStarted", "OAuth started, waiting for user to complete"))
-			case pcommon.EventTypeOAuthCancelled:
-				log.Debug("OAuth cancelled by user")
-				events.OnError(convertErrorToJSON("EventTypeOAuthCancelled", fmt.Errorf("OAuth cancelled by user")))
-				return
-			case pcommon.EventTypeOAuthError:
-				log.Errorf("OAuth failed", e.Error)
-				events.OnError(convertErrorToJSON("EventTypeOAuthError", e.Error))
-				return
-
-				// Validation events
-			case pcommon.EventTypeOAuthCompleted:
-				log.Debugf("OAuth completed", e.Message)
-				// we have the token, now we can proceed
-				// this will start the validation process, preparing a list of healthy projects
-				// and billing accounts that can be used
-				events.OnPrivateServerEvent(convertStatusToJSON("EventTypeOAuthCompleted", "OAuth completed, starting validation"))
-				provisioner.Validate(context.Background(), e.Message)
-				continue
-			case pcommon.EventTypeValidationStarted:
-				log.Debug("Validation started")
-				events.OnPrivateServerEvent(convertStatusToJSON("EventTypeValidationStarted", "Validation started, please wait..."))
-			case pcommon.EventTypeValidationError:
-				log.Errorf("Validation failed", e.Error)
-				events.OnError(convertErrorToJSON("EventTypeValidationError", e.Error))
-				return
-			case pcommon.EventTypeValidationCompleted:
-				// at this point we have a list of projects and billing accounts
-				// present them to the user
-				// log.Debug("Validation completed, ready to create resources")
-				compartments := provisioner.Compartments()
-				if len(compartments) == 0 {
-					log.Error("No valid projects found, please check your billing account and permissions")
-					events.OnError("No valid projects found, please check your billing account and permissions")
-					return
-				}
-				ps.CurrentCompartments = compartments
-				// update map
-				storeSession(&ps)
-				log.Debug("Validation completed, ready to create resources")
-				//Accounts
-				//send account to the client
-				accountNames := pcommon.CompartmentNames(compartments)
-				log.Debugf("Available accounts: %v", strings.Join(accountNames, ", "))
-				events.OnPrivateServerEvent(convertStatusToJSON("EventTypeAccounts", strings.Join(accountNames, ", ")))
-
-			case pcommon.EventTypeProvisioningStarted:
-				log.Debug("Provisioning started")
-				events.OnPrivateServerEvent(convertStatusToJSON("EventTypeProvisioningStarted", "Provisioning started, please wait..."))
-			case pcommon.EventTypeProvisioningCompleted:
-				log.Debugf("Provisioning completed successfully %s", e.Message)
-				//get session
-				provisioner, perr := getSession()
-				if perr != nil {
-					events.OnError(convertErrorToJSON("EventTypeProvisioningError", perr))
-				}
-				// we have the response, now we can add the server manager instance
-				resp := ProvisionerResponse{}
-				err := json.Unmarshal([]byte(e.Message), &resp)
-				if err != nil {
-					log.Errorf("Error unmarshalling provisioner response: %v", err)
-					events.OnError(convertErrorToJSON("EventTypeProvisioningError", err))
-					return
-				}
-				resp.Tag = provisioner.serverName
-				log.Debugf("Provisioner response: %+v", resp)
-				mangerErr := AddServerManagerInstance(resp, provisioner)
-				if mangerErr != nil {
-					log.Errorf("Error adding server manager instance: %v", mangerErr)
-					events.OnError(convertErrorToJSON("EventTypeProvisioningError", mangerErr))
-					return
-				}
-				server, err := json.Marshal(resp)
-				if err != nil {
-					log.Errorf("Error marshalling server response: %v", err)
-					events.OnError(convertErrorToJSON("EventTypeProvisioningError", mangerErr))
-				}
-
-				events.OnPrivateServerEvent(convertStatusToJSON("EventTypeProvisioningCompleted", string(server)))
-				return
-			case pcommon.EventTypeProvisioningError:
-				log.Errorf("Provisioning failed", e.Error)
-				events.OnError(convertErrorToJSON("EventTypeProvisioningError", e.Error))
-				return
-			}
-
-		default:
-			time.Sleep(1 * time.Second)
-		}
-	}
-}
-
-func SelectAccount(name string) error {
-	log.Debugf("Selecting account: %s", name)
-	ps, err := getSession()
-	if err != nil {
-		return err
-	}
-	//Store the user selected compartment
-	userCompartment := pcommon.CompartmentByName(ps.CurrentCompartments, name)
-	ps.userCompartment = userCompartment
-	storeSession(ps)
-	// Send the user selected compartment to the event sink
-	projectList := pcommon.CompartmentEntryIDs(userCompartment.Entries)
-	ps.EventSink.OnPrivateServerEvent(convertStatusToJSON("EventTypeProjects", strings.Join(projectList, ", ")))
-	return nil
-}
-
-func SelectProject(selectedProject string) error {
-	ps, err := getSession()
-	if err != nil {
-		return err
-	}
-	log.Debugf("Selecting project:%s", selectedProject)
-	//Store the user selected project
-	project := pcommon.CompartmentEntryByID(ps.userCompartment.Entries, selectedProject)
-	log.Debugf("Selected project: %v", project.Locations)
-	ps.userProject = project
-	ps.userProjectString = selectedProject
-	storeSession(ps)
-	//Send location list to the event sink
-	locationList := pcommon.CompartmentEntryLocations(project)
-	ps.EventSink.OnPrivateServerEvent(convertStatusToJSON("EventTypeLocations", strings.Join(locationList, ", ")))
-	return nil
-}
-
-func StartDepolyment(selectedLocation, serverName string) error {
-	// //Recovery
-	defer func() {
-		if r := recover(); r != nil {
-			log.Errorf("Recovered from panic: %v", r)
-		}
-	}()
-	ps, err := getSession()
-	if err != nil {
-		return err
-	}
-	log.Debugf("Starting deployment in location: %s name %s", selectedLocation, serverName)
-	log.Debugf("Selected project: %s", ps.userProject)
-	cloc := pcommon.CompartmentLocationByIdentifier(ps.userProject.Locations, selectedLocation)
-	log.Debugf("Selected location: %v", cloc)
-	ps.serverName = serverName
-	log.Debugf("Selected server name: %s", ps.serverName)
-	storeSession(ps)
-	log.Debug("Starting provisioning")
-	ps.Provisioner.Provision(context.Background(), ps.userProjectString, cloc.GetID())
-	return nil
-}
-
-var certFingerprintChan = make(chan string, 1)
-
-type CertSummary struct {
-	Fingerprint string `json:"fingerprint"`
-	Issuer      string `json:"issuer"`
-	Subject     string `json:"subject"`
-}
-
-func AddServerManagerInstance(resp ProvisionerResponse, provisioner *ProvisionSession) error {
-	return vpnClient.AddServerManagerInstance(resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken, func(ip string, details []boxservice.CertDetail) *boxservice.CertDetail {
-		log.Debugf("Adding server manager instance: %s", ip)
-		if len(details) == 0 {
-			return nil
-		}
-		summaries := make([]CertSummary, len(details))
-		for i, detail := range details {
-			// F5:0E:E4:9A:32:DA:09:B9:4E:E3:5C:08:F1:40:94:AE:9A:31:45:13 - 147.182.166.138 [147.182.166.138]
-			summaries[i] = CertSummary{
-				Fingerprint: detail.Fingerprint,
-				Issuer:      detail.Issuer,
-				Subject:     detail.Subject,
-			}
-		}
-		jsonBytes, err := json.Marshal(summaries)
-		if err != nil {
-			log.Errorf("Error marshalling cert details: %v", err)
-			provisioner.EventSink.OnError(convertErrorToJSON("EventTypeServerTofuPermissionError", err))
-			return nil
-		}
-
-		log.Debugf("Available server manager instances: %v", string(jsonBytes))
-		provisioner.EventSink.OnPrivateServerEvent(convertStatusToJSON("EventTypeServerTofuPermission", string(jsonBytes)))
-		//Now wait for user to select the figerprint
-		// Wait for selected fingerprint from Flutter
-		selectedFp := <-certFingerprintChan
-		for i := range details {
-			if details[i].Fingerprint == selectedFp {
-				log.Debugf("Matched selected cert: %v", details[i])
-				return &details[i]
-			}
-		}
-		log.Error("No certificate matched selected fingerprint")
-		return nil
-	})
-}
-
-func SelectedCertFingerprint(fp string) {
-	select {
-	case certFingerprintChan <- fp:
-		log.Debugf("Received selected fingerprint: %s", fp)
-	default:
-		log.Debug("Cert fingerprint channel full or unused")
-	}
+func StartDepolyment(location, serverName string) error {
+	return privateserver.StartDepolyment(location, serverName)
 }
 
 func CancelDepolyment() error {
-	ps, err := getSession()
-	if err != nil {
-		return err
-	}
-	log.Debug("Cancelling provisioning")
-	ps.Provisioner.Session().Cancel()
-	ps.EventSink.OnPrivateServerEvent(convertStatusToJSON("EventTypeProvisioningCancelled", "Provisioning cancelled by user"))
-	return nil
+	return privateserver.CancelDepolyment()
 }
 
-func convertStatusToJSON(status, data string) string {
-	mapStatus := map[string]string{
-		"status": status,
-		"data":   data,
-	}
-	jsonData, _ := json.Marshal(mapStatus)
-	return string(jsonData)
-}
-
-func convertErrorToJSON(status string, err error) string {
-	if err == nil {
-		return ""
-	}
-	mapError := map[string]string{
-		"status": status,
-		"error":  err.Error(),
-	}
-	jsonData, _ := json.Marshal(mapError)
-	return string(jsonData)
+func SelectedCertFingerprint(fp string) {
+	privateserver.SelectedCertFingerprint(fp)
 }

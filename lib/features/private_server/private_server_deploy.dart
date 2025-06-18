@@ -31,8 +31,11 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
 
     final serverState = ref.watch(privateServerNotifierProvider);
     if (serverState.status == 'EventTypeProvisioningCompleted') {
-      appLogger.info("Private server deployment completed successfully.",
-          serverState.data);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        appLogger.info("Private server deployment completed successfully.",
+            serverState.data);
+        showSuccessDialog();
+      });
     }
     if (serverState.status == 'EventTypeProvisioningError') {
       // If the server is ready, open the browser
@@ -118,6 +121,44 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
             onConfirmFingerprint(cert.first);
             appRouter.pop();
           },
+        ),
+      ],
+    );
+  }
+
+  void showSuccessDialog() {
+    AppDialog.customDialog(
+      context: context,
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          SizedBox(height: 24),
+          Center(child: AppImage(path: AppImagePaths.roundCorrect)),
+          SizedBox(height: 16),
+          Text(
+            'private_server_ready'.i18n,
+            style: textTheme!.titleLarge,
+          ),
+          SizedBox(height: 16),
+          Text(
+            'private_server_ready_message'.i18n,
+            style: textTheme!.bodyLarge,
+          ),
+        ],
+      ),
+      action: [
+        AppTextButton(
+          label: "close".i18n,
+          onPressed: () {
+            appRouter.popUntilRoot();
+          },
+          textColor: AppColors.gray6,
+        ),
+        AppTextButton(
+          label: "connect_now".i18n,
+          textColor: AppColors.blue6,
+          onPressed: () {},
         ),
       ],
     );
