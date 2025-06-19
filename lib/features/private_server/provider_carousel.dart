@@ -25,7 +25,7 @@ class ProviderCarousel extends HookConsumerWidget {
     return Column(
       children: [
         SizedBox(
-          height: 350.h,
+          height: 400.h,
           child: PageView.builder(
             controller: controller,
             itemCount: cards.length,

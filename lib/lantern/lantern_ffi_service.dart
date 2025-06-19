@@ -37,6 +37,7 @@ class LanternFFIService implements LanternCoreService {
   static final LanternBindings _ffiService = _gen();
 
   late final Stream<LanternStatus> _status;
+  late Stream<PrivateServerStatus> _privateServerStatus;
 
   static SendPort? _commandSendPort;
   static final Completer<void> _isolateInitialized = Completer<void>();
@@ -44,6 +45,7 @@ class LanternFFIService implements LanternCoreService {
   // Receive ports for different app services
   static final commandReceivePort = ReceivePort();
   static final statusReceivePort = ReceivePort();
+  static final privateServerReceivePort = ReceivePort();
   static final appsReceivePort = ReceivePort();
   static final loggingReceivePort = ReceivePort();
 
@@ -61,7 +63,7 @@ class LanternFFIService implements LanternCoreService {
     return LanternBindings(lib);
   }
 
-  Future<Either<String, Unit>> _setupRadiance(nativePort) async {
+  Future<Either<String, Unit>> _setupRadiance() async {
     try {
       appLogger.debug('Setting up radiance');
       final dataDir = await AppStorageUtils.getAppDirectory();
@@ -78,6 +80,7 @@ class LanternFFIService implements LanternCoreService {
         loggingReceivePort.sendPort.nativePort,
         appsReceivePort.sendPort.nativePort,
         statusReceivePort.sendPort.nativePort,
+        privateServerReceivePort.sendPort.nativePort,
         NativeApi.initializeApiDLData,
       );
 
@@ -87,6 +90,30 @@ class LanternFFIService implements LanternCoreService {
     } catch (e) {
       appLogger.error('Error while setting up radiance: $e');
       return left('Error while setting up radiance');
+    }
+  }
+
+  @override
+  Future<void> init() async {
+    try {
+      await _initializeCommandIsolate();
+      final nativePort = statusReceivePort.sendPort.nativePort;
+      // setup receive port to receive connection status updates
+      _status = statusReceivePort.map(
+        (event) {
+          Map<String, dynamic> result = jsonDecode(event);
+          return LanternStatus.fromJson(result);
+        },
+      );
+
+      _privateServerStatus = privateServerReceivePort.map((event) {
+        Map<String, dynamic> result = jsonDecode(event);
+        return PrivateServerStatus.fromJson(result);
+      });
+
+      await _setupRadiance();
+    } catch (e) {
+      appLogger.error('Error while setting up radiance: $e');
     }
   }
 
@@ -107,13 +134,6 @@ class LanternFFIService implements LanternCoreService {
       } catch (e) {
         appLogger.error("Failed to decode AppData: $e");
       }
-    }
-  }
-
-  @override
-  Stream<List<String>> logsStream() async* {
-    await for (final message in loggingReceivePort) {
-      yield message;
     }
   }
 
@@ -260,25 +280,6 @@ class LanternFFIService implements LanternCoreService {
     } catch (e) {
       appLogger.error('Error stopping VPN: $e');
       return Left(e.toFailure());
-    }
-  }
-
-  @override
-  Future<void> init() async {
-    try {
-      await _initializeCommandIsolate();
-      final nativePort = statusReceivePort.sendPort.nativePort;
-      // setup receive port to receive connection status updates
-      _status = statusReceivePort.map(
-        (event) {
-          Map<String, dynamic> result = jsonDecode(event);
-          return LanternStatus.fromJson(result);
-        },
-      );
-
-      await _setupRadiance(nativePort);
-    } catch (e) {
-      appLogger.error('Error while setting up radiance: $e');
     }
   }
 
@@ -593,8 +594,9 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> deleteAccount({required String email, required String password}) async {
-  try {
+  Future<Either<Failure, UserResponse>> deleteAccount(
+      {required String email, required String password}) async {
+    try {
       final result = await runInBackground<String>(
         () async {
           return _ffiService
@@ -613,8 +615,9 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> activationCode({required String email, required String resellerCode}) async {
-  try {
+  Future<Either<Failure, Unit>> activationCode(
+      {required String email, required String resellerCode}) async {
+    try {
       final result = await runInBackground<String>(
         () async {
           return _ffiService
@@ -631,44 +634,101 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> digitalOceanPrivateServer() {
-    // TODO: implement digitalOceanPrivateServer
-    throw UnimplementedError();
+  Future<Either<Failure, Unit>> digitalOceanPrivateServer() async {
+    try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService.digitalOceanPrivateServer().toDartString();
+        },
+      );
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.info(
+          'Error starting Digital Ocean private server', e, stackTrace);
+      return Left(e.toFailure());
+    }
   }
 
   @override
   Stream<PrivateServerStatus> watchPrivateServerStatus() {
-    // TODO: implement watchPrivateServerStatus
-    throw UnimplementedError();
+    return _privateServerStatus;
   }
 
   @override
-  Future<Either<Failure, Unit>> setUserInput({required PrivateServerInput methodType, required String input}) {
-    // TODO: implement setUserInput
-    throw UnimplementedError();
+  Future<Either<Failure, Unit>> setUserInput(
+      {required PrivateServerInput methodType, required String input}) async {
+    try {
+      final value = input.toCharPtr;
+      final result = await runInBackground<String>(
+        () async {
+          switch (methodType) {
+            case PrivateServerInput.selectAccount:
+              return _ffiService.selectAccount(value).toDartString();
+            case PrivateServerInput.selectProject:
+              return _ffiService.selectProject(value).toDartString();
+          }
+        },
+      );
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.info(
+          'Error starting Digital Ocean private server', e, stackTrace);
+      return Left(e.toFailure());
+    }
   }
-
-
 
   @override
-  Future<Either<Failure, Unit>> startDeployment({required String location, required String serverName}) {
-    // TODO: implement startDeployment
-    throw UnimplementedError();
+  Future<Either<Failure, Unit>> startDeployment(
+      {required String location, required String serverName}) async {
+    try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService
+              .startDepolyment(location.toCharPtr, serverName.toCharPtr)
+              .toDartString();
+        },
+      );
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error starting deployment', e, stackTrace);
+      return Left(e.toFailure());
+    }
   }
 
   @override
-  Future<Either<Failure, Unit>> cancelDeployment() {
-    // TODO: implement cancelDeployment
-    throw UnimplementedError();
+  Future<Either<Failure, Unit>> cancelDeployment() async {
+    try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService.cancelDepolyment().toDartString();
+        },
+      );
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error starting deployment', e, stackTrace);
+      return Left(e.toFailure());
+    }
   }
 
   @override
-  Future<Either<Failure, Unit>> setCert({required String fingerprint}) {
-    // TODO: implement setCert
-    throw UnimplementedError();
+  Future<Either<Failure, Unit>> setCert({required String fingerprint}) async {
+    try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService.setCert(fingerprint.toCharPtr).toDartString();
+        },
+      );
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error starting deployment', e, stackTrace);
+      return Left(e.toFailure());
+    }
   }
-
-
 }
 
 void checkAPIError(result) {
