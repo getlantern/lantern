@@ -5,6 +5,7 @@ import 'package:lantern/core/common/app_image_paths.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/app_tile.dart';
 import 'package:lantern/features/private_server/server_locations.dart';
+import 'package:lantern/features/private_server/server_locations_modal.dart';
 
 class ProviderCard extends StatelessWidget {
   final String title;
@@ -39,6 +40,8 @@ class ProviderCard extends StatelessWidget {
     }
 
     final textTheme = Theme.of(context).textTheme;
+    final providerName = provider.value;
+
     return Card(
       margin: EdgeInsets.only(right: 5),
       elevation: 4,
@@ -72,7 +75,10 @@ class ProviderCard extends StatelessWidget {
               text: 'one_month_included'.i18n.fill([1]),
             ),
             const SizedBox(height: 24),
-            PrimaryButton(label: 'continue_with_do'.i18n, onPressed: () {}),
+            PrimaryButton(
+              label: 'continue_with_$providerName'.i18n,
+              onPressed: onContinue,
+            ),
           ],
         ),
       ),

@@ -87,11 +87,13 @@ class ReportIssue extends HookConsumerWidget {
       title: 'select_an_issue'.i18n,
       builder: (context, scrollController) {
         return Expanded(
-            child: RadioListView(
-          scrollController: scrollController,
-          items: issueOptions,
-          onTap: _onIssueTap,
-        ));
+          child: RadioListView(
+            scrollController: scrollController,
+            items: issueOptions,
+            onChanged: _onIssueTap,
+            groupValue: '',
+          ),
+        );
       },
     );
   }

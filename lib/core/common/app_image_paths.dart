@@ -82,4 +82,8 @@ class AppImagePaths {
   static const personAdd = 'assets/images/person_add.svg';
   static const digitalOcean = 'assets/images/digital_ocean.svg';
   static const googleCloud = 'assets/images/google_cloud.svg';
+  static const creditCard = 'assets/images/credit_card.svg';
+  static const accountCircle = 'assets/images/account_circle.svg';
+  static const success = 'assets/images/green_checkmark.svg';
+  static const error = 'assets/images/error.svg';
 }

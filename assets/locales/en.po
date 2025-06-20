@@ -499,8 +499,20 @@ msgstr "Only %s month through Digital Ocean"
 msgid "continue_with_do"
 msgstr "Continue with Digital Ocean"
 
-msgid "digital_ocean_allows"
+msgid "do_allows"
 msgstr "Digital Ocean allows you to pick one server location from the %d options below"
+
+msgid "server_setup_gcp"
+msgstr "Set up a private server on Google Cloud Platform"
+
+msgid "server_setup_gcp_price"
+msgstr "Only %s month through Google Cloud Platform"
+
+msgid "continue_with_gcp"
+msgstr "Continue with Google"
+
+msgid "gcp_allows"
+msgstr "Google Cloud Platform allows you to pick one server location from the %d options below:"
 
 msgid "server_setup_aws"
 msgstr "Set up a private server on Digital Ocean"
@@ -513,6 +525,9 @@ msgstr "Set Up Manuallly"
 
 msgid "seamless_integration"
 msgstr "Seamless integration with Lantern"
+
+msgid "easiest_setup"
+msgstr "Easiest setup process"
 
 msgid "choose_location"
 msgstr "Choose your server's location"
@@ -568,8 +583,104 @@ msgstr "Your subscription has been updated."
 msgid "subscription_renewed"
 msgstr "Your subscription has been renewed."
 
-msgid "google_cloud_allows"
-msgstr "Google Cloud Platform allows you to pick one server location from the %d options below:"
-
 msgid "got_it"
 msgstr "Got It"
+
+msgid "server_location"
+msgstr "Server Location"
+
+msgid "choose"
+msgstr "Choose"
+
+msgid "name_your_google_cloud_project"
+msgstr "Name your Google Cloud Project"
+
+msgid "billing_account"
+msgstr "Billing Account"
+
+msgid "billing_account_placeholder"
+msgstr "Billing account for %s"
+
+msgid "name_your_server"
+msgstr "Name your server"
+
+msgid "server_name"
+msgstr "Server Name"
+
+msgid "google_project"
+msgstr "Google Project"
+
+msgid "field_name_required"
+msgstr "Name required"
+
+msgid "choose_google_account"
+msgstr "Choose Google billing account"
+
+msgid "server_name_placeholder"
+msgstr "Derek’s Server"
+
+msgid "start_deployment"
+msgstr "Start Deployment"
+
+msgid "server_name_description"
+msgstr "How the server will appear in the server selection list."
+
+msgid "select_private_server_region"
+msgstr "Select a region for your Private Server. Closer locations may improve speed and latency."
+
+msgid "gcp_location_options"
+msgstr "Google Cloud Platform Location Options (%d):"
+
+msgid "gcp_private_server_location"
+msgstr "GCP Private Server Locations"
+
+msgid "australia_sydney"
+msgstr "Australia - Sydney"
+
+msgid "belgium_stghislain"
+msgstr "Belgium - St. Ghislain"
+
+msgid "brazil_saopaulo"
+msgstr "São Paulo"
+
+msgid "us_los_angeles"
+msgstr "US - Los Angeles"
+
+msgid "japan_tokyo"
+msgstr "Japan - Tokyo"
+
+msgid "deploying_private_server"
+msgstr "Deploying Private Server"
+
+msgid "deploying_server_status"
+msgstr "Hang tight! Your Private Server is being set up. This may take a few minutes."
+
+msgid "cancel_server_deployment"
+msgstr "Cancel Server Deployment"
+
+msgid "server_ready_title"
+msgstr "Private Server is Ready"
+
+msgid "server_ready_message"
+msgstr "Your Private Server has been set up and added to your server list. You're ready to connect!"
+
+msgid "server_setup_failed"
+msgstr "Server Setup Failed"
+
+msgid "server_failed_message"
+msgstr "Something went wrong while setting up your Private Server. You can retry or try again later."
+
+msgid "close"
+msgstr "Close"
+
+msgid "connect_now"
+msgstr "Connect Now"
+
+msgid "exit"
+msgstr "Exit"
+
+msgid "retry"
+msgstr "Retry"
+
+msgid "all_required_fields"
+msgstr "Please fill out all required fields."

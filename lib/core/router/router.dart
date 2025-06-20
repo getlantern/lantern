@@ -127,5 +127,17 @@ class AppRouter extends RootStackRouter {
       path: '/private-server-setup',
       page: PrivateServerSetup.page,
     ),
+    AutoRoute(
+      path: '/private-server-gcp',
+      page: PrivateServerGCP.page,
+    ),
+    AutoRoute(
+      path: '/server-locations',
+      page: ServerLocations.page,
+    ),
+    AutoRoute(
+      path: '/deploy-server',
+      page: DeployingServer.page,
+    )
   ];
 }
