@@ -144,5 +144,9 @@ class AppRouter extends RootStackRouter {
       path: '/manual--server-setup',
       page: ManuallyServerSetup.page,
     ),
+    AutoRoute(
+      path: '/qr-scanner',
+      page: QrCodeScanner.page,
+    ),
   ];
 }

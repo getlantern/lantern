@@ -91,7 +91,10 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
                   label: 'access_key'.i18n,
                   controller: accessKeyController,
                   prefixIcon: AppImage(path: AppImagePaths.key),
-                  suffixIcon: AppImage(path: AppImagePaths.qrCodeScanner),
+                  suffixIcon: GestureDetector(
+                    onTap: openQrCodeScanner,
+                    child: AppImage(path: AppImagePaths.qrCodeScanner),
+                  ),
                 ),
                 SizedBox(height: 16),
                 PrimaryButton(
@@ -105,5 +108,9 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
         ],
       ),
     );
+  }
+
+  void openQrCodeScanner() {
+    appRouter.push(QrCodeScanner());
   }
 }
