@@ -83,4 +83,7 @@ class AppImagePaths {
   static const digitalOcean = 'assets/images/digital_ocean.svg';
   static const googleCloud = 'assets/images/google_cloud.svg';
   static const errorIcon = 'assets/images/error_icon.svg';
+  static const key = 'assets/images/key.svg';
+  static const qrCodeScanner = 'assets/images/qr_code_scanner.svg';
+
 }

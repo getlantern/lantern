@@ -20,33 +20,43 @@ class VPNSetting extends HookConsumerWidget {
   Widget _buildBody(BuildContext context, WidgetRef ref) {
     final preferences = ref.watch(appSettingNotifierProvider);
     final splitTunnelingEnabled = preferences.isSplitTunnelingOn;
-    return Card(
-      child: ListView(
-        padding: const EdgeInsets.all(0),
-        shrinkWrap: true,
-        children: <Widget>[
-          if (PlatformUtils.isAndroid) ...{
-            SplitTunnelingTile(
-              label: 'split_tunneling'.i18n,
-              icon: AppImagePaths.callSpilt,
-              actionText:
-                  splitTunnelingEnabled ? 'enabled'.i18n : 'disabled'.i18n,
-              onPressed: () => appRouter.push(const SplitTunneling()),
-            ),
-            DividerSpace()
-          },
-          AppTile(
-            label: 'server_locations'.i18n,
-            icon: AppImagePaths.location,
-            onPressed: () {},
+    return ListView(
+      padding: const EdgeInsets.all(0),
+      shrinkWrap: true,
+      children: <Widget>[
+        AppCard(
+          padding: EdgeInsets.zero,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (PlatformUtils.isAndroid) ...{
+                SplitTunnelingTile(
+                  label: 'split_tunneling'.i18n,
+                  icon: AppImagePaths.callSpilt,
+                  actionText:
+                      splitTunnelingEnabled ? 'enabled'.i18n : 'disabled'.i18n,
+                  onPressed: () => appRouter.push(const SplitTunneling()),
+                ),
+                DividerSpace()
+              },
+              AppTile(
+                label: 'server_locations'.i18n,
+                icon: AppImagePaths.location,
+                onPressed: () {},
+              ),
+            ],
           ),
-          AppTile(
+        ),
+        SizedBox(height: 16),
+        AppCard(
+          padding: EdgeInsets.zero,
+          child: AppTile(
             label: 'setup_private_server'.i18n,
             icon: AppImagePaths.server,
             onPressed: () => appRouter.push(const PrivateServerSetup()),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
