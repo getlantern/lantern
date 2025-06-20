@@ -96,7 +96,7 @@ class PrivateServerGCP extends HookConsumerWidget {
                   title: 'gcp_private_server_location'.i18n,
                   selectedCode: currentSelectedCode.value,
                   onSelected: (value) {
-                    currentSelectedCode.value = value.toString();
+                    currentSelectedCode.value = value.code;
                     currentSelectedLocation.value = value;
                   },
                 )),
