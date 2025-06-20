@@ -113,7 +113,7 @@ class LocationListItem extends StatelessWidget {
             shape: RoundedRectangle(5.0),
           ),
           label: location.locationName,
-          trailing: Radio<String>(
+          trailing: AppRadioButton<String>(
             value: location,
             groupValue: selectedLocation,
             onChanged: (value) {

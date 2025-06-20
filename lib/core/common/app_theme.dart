@@ -64,6 +64,11 @@ class AppTheme {
           ),
         ),
       ),
+      radioTheme: RadioThemeData(
+        fillColor: WidgetStatePropertyAll(AppColors.gray9),
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        splashRadius: 10.0,
+      ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           elevation: 0,

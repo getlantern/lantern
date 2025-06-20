@@ -196,7 +196,7 @@ class AppIconButton extends StatelessWidget {
   const AppIconButton({
     super.key,
     required this.path,
-     this.onPressed,
+    this.onPressed,
   });
 
   @override
@@ -208,6 +208,28 @@ class AppIconButton extends StatelessWidget {
         path: path,
         height: 24,
       ),
+    );
+  }
+}
+
+class AppRadioButton<T> extends StatelessWidget {
+  final T value;
+  final T? groupValue;
+  final ValueChanged<T?>? onChanged;
+
+  const AppRadioButton({
+    super.key,
+    required this.value,
+    this.groupValue,
+    this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Radio(
+      value: value,
+      groupValue: groupValue,
+      onChanged: onChanged,
     );
   }
 }

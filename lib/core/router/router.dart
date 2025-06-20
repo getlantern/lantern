@@ -130,6 +130,7 @@ class AppRouter extends RootStackRouter {
     AutoRoute(
       path: '/private-server-location',
       page: PrivateServerLocation.page,
+      fullscreenDialog: true,
     ),
     AutoRoute(
       path: '/private-server-details',

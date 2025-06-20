@@ -2,6 +2,7 @@ import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/common/app_dropdown.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/features/private_server/provider/private_server_notifier.dart';
 
@@ -59,35 +60,16 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
               SizedBox(height: 8),
               DividerSpace(padding: EdgeInsets.zero),
               SizedBox(height: 8),
-              Container(
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: AppColors.gray3,
-                    width: 1,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: DropdownButton<String>(
-                  isExpanded: true,
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  style: textTheme.bodyMedium!.copyWith(
-                    color: AppColors.gray9,
-                  ),
-                  value: selectedAccount.value,
-                  borderRadius: BorderRadius.circular(16),
-                  underline: const SizedBox.shrink(),
-                  items: widget.accounts
-                      .map((e) => DropdownMenuItem(
-                            value: e,
-                            child: Text(e),
-                          ))
-                      .toList(),
-                  onChanged: (value) {
-                    selectedAccount.value = value;
-                    onUserInput(PrivateServerInput.selectAccount, value!);
-                  },
-                ),
-              )
+              AppDropdown(
+                value: selectedAccount.value,
+                items: widget.accounts
+                    .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                    .toList(),
+                onChanged: (value) {
+                  selectedProject.value = value;
+                  onUserInput(PrivateServerInput.selectProject, value!);
+                },
+              ),
             ],
           ),
         ),
@@ -104,35 +86,16 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
               SizedBox(height: 8),
               DividerSpace(padding: EdgeInsets.zero),
               SizedBox(height: 8),
-              Container(
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: AppColors.gray3,
-                    width: 1,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: DropdownButton<String>(
-                  isExpanded: true,
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  style: textTheme.bodyMedium!.copyWith(
-                    color: AppColors.gray9,
-                  ),
-                  value: selectedProject.value,
-                  borderRadius: BorderRadius.circular(16),
-                  underline: const SizedBox.shrink(),
-                  items: projectList.value
-                      .map((e) => DropdownMenuItem(
-                            value: e,
-                            child: Text(e),
-                          ))
-                      .toList(),
-                  onChanged: (value) {
-                    selectedProject.value = value;
-                    onUserInput(PrivateServerInput.selectProject, value!);
-                  },
-                ),
-              )
+              AppDropdown(
+                value: selectedProject.value,
+                items: projectList.value
+                    .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                    .toList(),
+                onChanged: (value) {
+                  selectedProject.value = value;
+                  onUserInput(PrivateServerInput.selectProject, value!);
+                },
+              ),
             ],
           ),
         ),
@@ -180,13 +143,15 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
                     child: AppTextButton(
                         label: 'choose_location'.i18n,
                         onPressed: () {
-                          appRouter.push(PrivateServerLocation(
-                            location: locationList.value,
-                            selectedLocation: selectedLocation.value,
-                            onLocationSelected: (p0) {
-                              selectedLocation.value = p0;
-                            },
-                          ));
+                          appRouter.push(
+                            PrivateServerLocation(
+                              location: locationList.value,
+                              selectedLocation: selectedLocation.value,
+                              onLocationSelected: (p0) {
+                                selectedLocation.value = p0;
+                              },
+                            ),
+                          );
                         })),
               SizedBox(height: 8),
             ],
@@ -243,7 +208,8 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
   }
 
   Future<void> onStartDeployment(String location, String serverName) async {
-    appLogger.info("Starting deployment for location: $location with name: $serverName");
+    appLogger.info(
+        "Starting deployment for location: $location with name: $serverName");
     context.showLoadingDialog();
     final result = await ref
         .read(privateServerNotifierProvider.notifier)
