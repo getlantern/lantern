@@ -50,6 +50,10 @@ import flutter_local_notifications
     if let registrar = self.registrar(forPlugin: "LogsEventHandler") {
       LogsEventHandler.register(with: registrar)
     }
+
+    if let registrar = self.registrar(forPlugin: "PrivateServerEventHandler") {
+      PrivateServerEvent.register(with: registrar)
+    }
   }
 
   /// Initializes the native method channel handler

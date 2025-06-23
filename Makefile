@@ -335,7 +335,7 @@ build-ios:
 		-target=ios \
 		-o $(IOS_FRAMEWORK_BUILD) \
 		-ldflags="-w -s -checklinkname=0" \
-		$(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox github.com/getlantern/sing-box-extensions/ruleset  ./lantern-core/mobile
+		$(GOMOBILE_REPOS)
 	@echo "Built iOS Framework: $(IOS_FRAMEWORK_BUILD)"
 	mv $(IOS_FRAMEWORK_BUILD) $(IOS_FRAMEWORK_DIR)
 

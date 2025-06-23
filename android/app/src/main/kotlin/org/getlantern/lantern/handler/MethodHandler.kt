@@ -70,6 +70,7 @@ class MethodHandler : FlutterPlugin,
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
+    private val privateServerListener = PrivateServerListener()
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         channel = MethodChannel(
@@ -482,10 +483,11 @@ class MethodHandler : FlutterPlugin,
                 }
             }
 
+            //Private server methods
             Methods.DigitalOcean.method -> {
                 scope.launch {
                     result.runCatching {
-                        Mobile.digitalOceanPrivateServer(PrivateServerListener())
+                        Mobile.digitalOceanPrivateServer(privateServerListener)
                         withContext(Dispatchers.Main) {
                             success("ok")
                         }
