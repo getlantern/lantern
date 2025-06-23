@@ -12,11 +12,13 @@ import 'package:lantern/core/widgets/radio_listview.dart';
 class ServerLocations extends HookConsumerWidget {
   final String? selectedCode;
   final String title;
+  final CloudProvider provider;
   final void Function(ServerLocation) onSelected;
 
   const ServerLocations({
     super.key,
     this.selectedCode,
+    required this.provider,
     required this.title,
     required this.onSelected,
   });
@@ -31,7 +33,7 @@ class ServerLocations extends HookConsumerWidget {
     ];
     final selected = useState<ServerLocation?>(
         locations.firstWhere((l) => selectedCode == l.code));
-
+    final providerName = provider.value;
     return BaseScreen(
       title: title,
       backgroundColor: AppColors.gray1,
@@ -57,16 +59,10 @@ class ServerLocations extends HookConsumerWidget {
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.only(left: 8, bottom: 10),
-              child: Text(
-                'gcp_location_options'.i18n.fill([locations.length]),
-                style: AppTestStyles.bodyMedium.copyWith(
-                  color: AppColors.logTextColor,
-                  fontWeight: FontWeight.w500,
-                  height: 1.43,
-                ),
-              ),
+            const SizedBox(height: defaultSize),
+            Text(
+              '${providerName}_allows'.i18n,
+              style: AppTestStyles.bodyMedium,
             ),
             // Locations List
             Expanded(
