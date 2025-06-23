@@ -91,10 +91,12 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
                   label: 'access_key'.i18n,
                   controller: accessKeyController,
                   prefixIcon: AppImage(path: AppImagePaths.key),
-                  suffixIcon: GestureDetector(
-                    onTap: openQrCodeScanner,
-                    child: AppImage(path: AppImagePaths.qrCodeScanner),
-                  ),
+                  suffixIcon: PlatformUtils.isMobile
+                      ? GestureDetector(
+                          onTap: openQrCodeScanner,
+                          child: AppImage(path: AppImagePaths.qrCodeScanner),
+                        )
+                      : SizedBox.shrink(),
                 ),
                 SizedBox(height: 16),
                 PrimaryButton(

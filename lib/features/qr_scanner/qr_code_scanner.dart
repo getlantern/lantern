@@ -5,39 +5,46 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 
 @RoutePage(name: 'QrCodeScanner')
 class QrCodeScanner extends StatelessWidget {
-  const QrCodeScanner({super.key});
+  QrCodeScanner({super.key});
+
+  final MobileScannerController controller = MobileScannerController(
+    facing: CameraFacing.back,
+  );
 
   @override
   Widget build(BuildContext context) {
-    MobileScannerController controller = MobileScannerController();
     final scanWindow = Rect.fromCenter(
       center: MediaQuery.sizeOf(context).center(const Offset(0, -100)),
       width: 300,
       height: 200,
     );
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      backgroundColor: AppColors.whiteBlur,
+    return BaseScreen(
+      title: 'qr_code_scanner'.i18n,
       appBar: AppBar(backgroundColor: Colors.transparent),
+      padded: false,
       body: Stack(
         children: [
-          MobileScanner(
-            // useAppLifecycleState: false, // Only set to false if you want
-            // to handle lifecycle changes yourself
-            scanWindow: scanWindow,
-            controller: controller,
-            errorBuilder: (context, error) {
-              return Center(
-                child: Text(
-                  'Error: $error',
-                  style: const TextStyle(color: Colors.red),
-                ),
-              );
-            },
-            fit: BoxFit.contain,
+          Positioned.fill(
+            child: MobileScanner(
+              //scanWindow: scanWindow,
+              controller: controller,
+              errorBuilder: (context, error) {
+                return Center(
+                  child: Text(
+                    'Error: $error',
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                );
+              },
+              fit: BoxFit.fill,
+            ),
           ),
           ScanWindowOverlay(
             scanWindow: scanWindow,
+            color: AppColors.whiteBlur.withOpacity(.75),
+            borderRadius: BorderRadius.circular(16),
+            borderColor: AppColors.gray0,
+            borderWidth: 4,
             controller: controller!,
           ),
         ],

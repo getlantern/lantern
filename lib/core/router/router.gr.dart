@@ -834,18 +834,46 @@ class PrivateServerDetailsArgs {
 
 /// generated route for
 /// [_i22.QrCodeScanner]
-class QrCodeScanner extends _i35.PageRouteInfo<void> {
-  const QrCodeScanner({List<_i35.PageRouteInfo>? children})
-      : super(QrCodeScanner.name, initialChildren: children);
+class QrCodeScanner extends _i35.PageRouteInfo<QrCodeScannerArgs> {
+  QrCodeScanner({_i36.Key? key, List<_i35.PageRouteInfo>? children})
+      : super(
+          QrCodeScanner.name,
+          args: QrCodeScannerArgs(key: key),
+          initialChildren: children,
+        );
 
   static const String name = 'QrCodeScanner';
 
   static _i35.PageInfo page = _i35.PageInfo(
     name,
     builder: (data) {
-      return const _i22.QrCodeScanner();
+      final args = data.argsAs<QrCodeScannerArgs>(
+        orElse: () => const QrCodeScannerArgs(),
+      );
+      return _i22.QrCodeScanner(key: args.key);
     },
   );
+}
+
+class QrCodeScannerArgs {
+  const QrCodeScannerArgs({this.key});
+
+  final _i36.Key? key;
+
+  @override
+  String toString() {
+    return 'QrCodeScannerArgs{key: $key}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! QrCodeScannerArgs) return false;
+    return key == other.key;
+  }
+
+  @override
+  int get hashCode => key.hashCode;
 }
 
 /// generated route for
