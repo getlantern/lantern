@@ -7,9 +7,8 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 class QrCodeScanner extends StatelessWidget {
   QrCodeScanner({super.key});
 
-  final MobileScannerController controller = MobileScannerController(
-    facing: CameraFacing.back,
-  );
+  final MobileScannerController controller =
+      MobileScannerController(facing: CameraFacing.back);
 
   @override
   Widget build(BuildContext context) {
