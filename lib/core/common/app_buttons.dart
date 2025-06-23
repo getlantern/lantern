@@ -14,6 +14,7 @@ class PrimaryButton extends StatelessWidget {
   final bool expanded;
   final VoidCallback onPressed;
   final String? icon;
+  final Color? iconColor;
 
   final Color? bgColor;
 
@@ -22,6 +23,7 @@ class PrimaryButton extends StatelessWidget {
     required this.label,
     required this.onPressed,
     this.bgColor,
+    this.iconColor,
     this.enabled = true,
     this.expanded = true,
     this.icon,
@@ -42,6 +44,7 @@ class PrimaryButton extends StatelessWidget {
             icon: AppImage(
               path: icon!,
               height: 22,
+              color: iconColor,
             ),
             label: Text(label),
             style: _buildButtonStyle(button!),

@@ -650,6 +650,37 @@ msgid "connect_now"
 msgstr "Connect Now"
 
 
+msgid "set_up_your_server"
+msgstr "Set Up Your Server"
+
+msgid "view_instructions_github"
+msgstr "View Instructions on GitHub"
+
+msgid "server_access_key"
+msgstr "Server Access Key"
+
+msgid "access_key"
+msgstr "Access Key"
+
+msgid "name_your_server"
+msgstr "Name Your Server"
+
+msgid "how_server_appears"
+msgstr "How the server will appear in the server selection list"
+
+msgid "server_nickname"
+msgstr "Server Nickname"
+
+msgid "verify_server"
+msgstr "Verify Server"
+
+
+
+
+
+
+
+
 
 
 

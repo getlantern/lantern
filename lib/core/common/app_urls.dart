@@ -15,6 +15,6 @@ class AppUrls {
 
   static String unbounded = 'https://unbounded.lantern.io';
 
-  static String appcastURL =
-      'https://lantern-vpn.s3.amazonaws.com/releases/appcast.xml';
+  static String appcastURL = 'https://lantern-vpn.s3.amazonaws.com/releases/appcast.xml';
+  static String manuallyServerSetupURL = 'https://github.com/getlantern/lantern-server-manager';
 }
