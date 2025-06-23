@@ -39,6 +39,8 @@ class ProviderCard extends StatelessWidget {
     }
 
     final textTheme = Theme.of(context).textTheme;
+    final providerName = provider.value;
+
     return Card(
       margin: EdgeInsets.only(right: 5),
       elevation: 4,
@@ -72,7 +74,8 @@ class ProviderCard extends StatelessWidget {
               text: 'one_month_included'.i18n.fill([1]),
             ),
             const SizedBox(height: 24),
-            PrimaryButton(label: 'continue_with_do'.i18n, onPressed: () {}),
+            PrimaryButton(
+                label: 'continue_with_$providerName'.i18n, onPressed: () {}),
           ],
         ),
       ),
