@@ -828,6 +828,7 @@ class ServerLocations extends _i33.PageRouteInfo<ServerLocationsArgs> {
   ServerLocations({
     _i34.Key? key,
     String? selectedCode,
+    required _i35.CloudProvider provider,
     required String title,
     required void Function(_i36.ServerLocation) onSelected,
     List<_i33.PageRouteInfo>? children,
@@ -836,6 +837,7 @@ class ServerLocations extends _i33.PageRouteInfo<ServerLocationsArgs> {
           args: ServerLocationsArgs(
             key: key,
             selectedCode: selectedCode,
+            provider: provider,
             title: title,
             onSelected: onSelected,
           ),
@@ -851,6 +853,7 @@ class ServerLocations extends _i33.PageRouteInfo<ServerLocationsArgs> {
       return _i23.ServerLocations(
         key: args.key,
         selectedCode: args.selectedCode,
+        provider: args.provider,
         title: args.title,
         onSelected: args.onSelected,
       );
@@ -862,6 +865,7 @@ class ServerLocationsArgs {
   const ServerLocationsArgs({
     this.key,
     this.selectedCode,
+    required this.provider,
     required this.title,
     required this.onSelected,
   });
@@ -870,13 +874,15 @@ class ServerLocationsArgs {
 
   final String? selectedCode;
 
+  final _i35.CloudProvider provider;
+
   final String title;
 
   final void Function(_i36.ServerLocation) onSelected;
 
   @override
   String toString() {
-    return 'ServerLocationsArgs{key: $key, selectedCode: $selectedCode, title: $title, onSelected: $onSelected}';
+    return 'ServerLocationsArgs{key: $key, selectedCode: $selectedCode, provider: $provider, title: $title, onSelected: $onSelected}';
   }
 
   @override
@@ -885,11 +891,13 @@ class ServerLocationsArgs {
     if (other is! ServerLocationsArgs) return false;
     return key == other.key &&
         selectedCode == other.selectedCode &&
+        provider == other.provider &&
         title == other.title;
   }
 
   @override
-  int get hashCode => key.hashCode ^ selectedCode.hashCode ^ title.hashCode;
+  int get hashCode =>
+      key.hashCode ^ selectedCode.hashCode ^ provider.hashCode ^ title.hashCode;
 }
 
 /// generated route for
