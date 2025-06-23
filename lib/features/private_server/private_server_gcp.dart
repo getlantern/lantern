@@ -94,6 +94,7 @@ class PrivateServerGCP extends HookConsumerWidget {
                 countryLabelKey: currentSelectedLocation.value?.label ?? '',
                 onChoose: () => appRouter.push(ServerLocations(
                   title: 'gcp_private_server_location'.i18n,
+                  provider: CloudProvider.googleCloud,
                   selectedCode: currentSelectedCode.value,
                   onSelected: (value) {
                     currentSelectedCode.value = value.code;
