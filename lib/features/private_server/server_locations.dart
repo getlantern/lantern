@@ -105,7 +105,7 @@ class ServerLocationsModal extends StatelessWidget {
             ),
             const SizedBox(height: defaultSize),
             Text(
-              '${providerName}_allows'.i18n,
+              '${providerName}_allows'.i18n.fill([locations.length]),
               style: AppTestStyles.bodyMedium,
             ),
             const SizedBox(height: defaultSize),
