@@ -41,10 +41,10 @@ class LanternPlatformService implements LanternCoreService {
     _status = statusChannel
         .receiveBroadcastStream()
         .map((event) => LanternStatus.fromJson(event));
-    _privateServerStatus = privateServerStatusChannel.receiveBroadcastStream().map(
+    _privateServerStatus =
+        privateServerStatusChannel.receiveBroadcastStream().map(
       (event) {
         appLogger.info('Received private server status: $event');
-
         final map = jsonDecode(event);
         return PrivateServerStatus.fromJson(map);
       },
@@ -513,6 +513,22 @@ class LanternPlatformService implements LanternCoreService {
   Future<Either<Failure, Unit>> setCert({required String fingerprint}) async {
     try {
       await _methodChannel.invokeMethod('selectCertFingerprint', fingerprint);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error canceling deployment', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> addServerManually({required String ip, required String port, required String accessToken, required String serverName}) async {
+    try {
+      await _methodChannel.invokeMethod('addServerManually', {
+        'ip': ip,
+        'port': port,
+        'accessToken': accessToken,
+        'serverName': serverName,
+      });
       return Right(unit);
     } catch (e, stackTrace) {
       appLogger.error('Error canceling deployment', e, stackTrace);

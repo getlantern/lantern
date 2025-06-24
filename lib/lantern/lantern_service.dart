@@ -349,4 +349,12 @@ class LanternService implements LanternCoreService {
   }
   return _platformService.setCert(fingerprint: fingerprint);
   }
+
+  @override
+  Future<Either<Failure, Unit>> addServerManually({required String ip, required String port, required String accessToken, required String serverName}) {
+  if (PlatformUtils.isDesktop) {
+    return _ffiService.addServerManually(ip: ip, port: port, accessToken: accessToken, serverName: serverName);
+  }
+  return _platformService.addServerManually(ip: ip, port: port, accessToken: accessToken, serverName: serverName);
+  }
 }

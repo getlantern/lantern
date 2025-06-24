@@ -31,12 +31,25 @@ class PrivateServerNotifier extends _$PrivateServerNotifier {
         );
   }
 
-  Future<Either<Failure, Unit>> startDeployment(String location,String serverName) async {
-    return ref.read(lanternServiceProvider).startDeployment(location: location,serverName: serverName);
+  Future<Either<Failure, Unit>> startDeployment(
+      String location, String serverName) async {
+    return ref
+        .read(lanternServiceProvider)
+        .startDeployment(location: location, serverName: serverName);
   }
 
   Future<Either<Failure, Unit>> cancelDeployment() async {
     return ref.read(lanternServiceProvider).cancelDeployment();
+  }
+
+  Future<Either<Failure, Unit>> addServerManually(
+      String ip, String port, String accessToken, String serverName) async {
+    return ref.read(lanternServiceProvider).addServerManually(
+          ip: ip,
+          port: port,
+          accessToken: accessToken,
+          serverName: serverName,
+        );
   }
 
   Future<Either<Failure, Unit>> setCert(String fingerprint) async {

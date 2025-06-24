@@ -25,7 +25,17 @@ class QrCodeScanner extends StatelessWidget {
         children: [
           Positioned.fill(
             child: MobileScanner(
-              //scanWindow: scanWindow,
+              onDetect: (barcodes) {
+                for (final barcode in barcodes.barcodes) {
+                  final String? code = barcode.rawValue;
+                  if (code != null) {
+                    appLogger.info('Barcode found! $code');
+                    controller.stop();
+                    appRouter.pop(code);
+                  }
+                }
+              },
+              scanWindow: scanWindow,
               controller: controller,
               errorBuilder: (context, error) {
                 return Center(

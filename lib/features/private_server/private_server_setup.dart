@@ -19,7 +19,6 @@ class _PrivateServerSetupState extends ConsumerState<PrivateServerSetup> {
   @override
   Widget build(BuildContext context) {
     final serverState = ref.watch(privateServerNotifierProvider);
-    // Open browser
     if (serverState.status == 'openBrowser') {
       UrlUtils.openWebview<bool>(
         serverState.data!,

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -179,7 +180,7 @@ func listenToServerEvents(ps provisionSession) {
 				server, err := json.Marshal(resp)
 				if err != nil {
 					log.Errorf("Error marshalling server response: %v", err)
-					events.OnError(convertErrorToJSON("EventTypeProvisioningError", mangerErr))
+					events.OnError(convertErrorToJSON("EventTypeProvisioningError", err))
 				}
 
 				events.OnPrivateServerEvent(convertStatusToJSON("EventTypeProvisioningCompleted", string(server)))
@@ -310,12 +311,40 @@ func AddServerManagerInstance(resp provisionerResponse, provisioner *provisionSe
 		return nil
 	})
 	if err != nil {
-		log.Errorf("Error adding server manager instance: %v", err)
-		provisioner.eventSink.OnError(convertErrorToJSON("EventTypeServerManagerInstanceError", err))
-		return err
+		return log.Errorf("Error adding server manager instance: %v", err)
 	}
 	log.Debugf("Server manager instance added successfully: %s", resp.Tag)
 	return nil
+}
+
+// AddServerManually adds a server manually to the VPN client.
+// It takes the server's IP, port, access token, and tag, along with the VPN client and event listener.
+func AddServerManually(ip, port, accessToken, tag string, vpnClient client.VPNClient, events utils.PrivateServerEventListener) error {
+	log.Debugf("Adding server manually: %s:%s with tag %s", ip, port, tag)
+	portInt, _ := strconv.Atoi(port)
+	resp := provisionerResponse{
+		ExternalIP:  ip,
+		Port:        portInt,
+		AccessToken: accessToken,
+		Tag:         tag,
+	}
+	provisionSession := &provisionSession{
+		vpnClient: vpnClient,
+		eventSink: events,
+	}
+	storeSession(provisionSession)
+	err := AddServerManagerInstance(resp, provisionSession)
+	if err != nil {
+		return err
+	}
+	log.Debugf("Server manager instance added successfully: %s", resp.Tag)
+	server, jerr := json.Marshal(resp)
+	if jerr != nil {
+		return log.Errorf("Error marshalling server response: %v", err)
+	}
+	events.OnPrivateServerEvent(convertStatusToJSON("EventTypeProvisioningCompleted", string(server)))
+	return nil
+
 }
 
 func convertStatusToJSON(status, data string) string {

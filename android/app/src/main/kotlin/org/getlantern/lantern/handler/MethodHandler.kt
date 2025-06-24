@@ -54,6 +54,7 @@ enum class Methods(val method: String) {
     StartDeployment("startDeployment"),
     CancelDeployment("cancelDeployment"),
     SelectCertFingerprint("selectCertFingerprint"),
+    AddServerManually("addServerManually"),
 
 
 }
@@ -590,6 +591,35 @@ class MethodHandler : FlutterPlugin,
                     }
                 }
             }
+
+            Methods.AddServerManually.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val map = call.arguments as Map<*, *>
+                        val ip = map["ip"] as String? ?: error("Missing ip")
+                        val port = map["port"] as String? ?: error("Missing port")
+                        val accessToken = map["accessToken"] as String? ?: error("Missing accessToken")
+                        val serverName = map["serverName"] as String? ?: error("Missing serverName")
+                        Mobile.addServerManagerInstance(
+                            ip,
+                            port,
+                            accessToken,
+                            serverName,
+                            privateServerListener
+                        )
+                        withContext(Dispatchers.Main) {
+                            success("ok")
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "DigitalOcean",
+                            e.localizedMessage ?: "Error while activating Digital Ocean",
+                            e
+                        )
+                    }
+                }
+            }
+
             else -> {
                 result.notImplemented()
             }

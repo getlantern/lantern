@@ -729,6 +729,12 @@ class LanternFFIService implements LanternCoreService {
       return Left(e.toFailure());
     }
   }
+
+  @override
+  Future<Either<Failure, Unit>> addServerManually({required String ip, required String port, required String accessToken, required String serverName}) {
+    // TODO: implement addServerManually
+    throw UnimplementedError();
+  }
 }
 
 void checkAPIError(result) {

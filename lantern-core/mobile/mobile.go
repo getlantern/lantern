@@ -502,3 +502,7 @@ func CancelDepolyment() error {
 func SelectedCertFingerprint(fp string) {
 	privateserver.SelectedCertFingerprint(fp)
 }
+
+func AddServerManagerInstance(ip, port, accessToken, tag string, events utils.PrivateServerEventListener) error {
+	return privateserver.AddServerManually(ip, port, accessToken, tag, vpnClient, events)
+}
