@@ -7,16 +7,15 @@
 
 import Combine
 
-class PrivateServerEvent: NSObject, FlutterStreamHandler {
+class PrivateServerEventHandler: NSObject, FlutterPlugin, FlutterStreamHandler {
   static let name = "org.getlantern.lantern/private_server_status"
   private var channel: FlutterEventChannel?
   private var cancellable: AnyCancellable?
 
   public static func register(with registrar: FlutterPluginRegistrar) {
-    let instance = PrivateServerEvent()
+    let instance = PrivateServerEventHandler()
     instance.channel = FlutterEventChannel(
-      name: Self.name,
-      binaryMessenger: registrar.messenger())
+      name: Self.name, binaryMessenger: registrar.messenger(), codec: FlutterJSONMethodCodec())
     instance.channel?.setStreamHandler(instance)
   }
 
@@ -24,12 +23,15 @@ class PrivateServerEvent: NSObject, FlutterStreamHandler {
     -> FlutterError?
   {
     appLogger.info("PrivateServerEvent onListen called")
-//    cancellable = PrivateServerListener.shared.$eventSink
-//      .compactMap { $0 }
-//      .sink { event in
-//        appLogger.info("PrivateServerEvent received event: \(event)")
-//        events(event)
-//      }
+    cancellable = PrivateServerListener.shared.$eventSink
+      .compactMap { $0 }
+      .sink { event in
+        appLogger.info("PrivateServerEvent received event: \(event)")
+        if !event.isEmpty {
+          events(event)
+        }
+
+      }
     return nil
   }
 

@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0307936F2E09466D00EA2B3C /* PrivateServerEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0307936E2E09466100EA2B3C /* PrivateServerEvent.swift */; };
+		0307936F2E09466D00EA2B3C /* PrivateServerEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0307936E2E09466100EA2B3C /* PrivateServerEventHandler.swift */; };
 		032CB5192DBA86FF002331EB /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032CB5102DBA86FF002331EB /* KeychainService.swift */; };
 		032CB5242DBA8A55002331EB /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032CB5232DBA8A55002331EB /* Logger.swift */; };
 		032CB5292DBA90ED002331EB /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032CB5232DBA8A55002331EB /* Logger.swift */; };
@@ -92,7 +92,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		0307936E2E09466100EA2B3C /* PrivateServerEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivateServerEvent.swift; sourceTree = "<group>"; };
+		0307936E2E09466100EA2B3C /* PrivateServerEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivateServerEventHandler.swift; sourceTree = "<group>"; };
 		032CB5102DBA86FF002331EB /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
 		032CB5232DBA8A55002331EB /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
@@ -227,7 +227,7 @@
 		5FEB872F2D9F45EB000AE0DB /* Handlers */ = {
 			isa = PBXGroup;
 			children = (
-				0307936E2E09466100EA2B3C /* PrivateServerEvent.swift */,
+				0307936E2E09466100EA2B3C /* PrivateServerEventHandler.swift */,
 				5F3FD9A22D9F6A32009480A7 /* LogsEventHandler.swift */,
 				5FEB872D2D9F45EB000AE0DB /* MethodHandler.swift */,
 				5FEB872E2D9F45EB000AE0DB /* StatusEventHandler.swift */,
@@ -589,7 +589,7 @@
 				032CB52A2DBA9109002331EB /* KeychainService.swift in Sources */,
 				5FEB87302D9F45EB000AE0DB /* MethodHandler.swift in Sources */,
 				5FEB87312D9F45EB000AE0DB /* StatusEventHandler.swift in Sources */,
-				0307936F2E09466D00EA2B3C /* PrivateServerEvent.swift in Sources */,
+				0307936F2E09466D00EA2B3C /* PrivateServerEventHandler.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -692,6 +692,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = ACZRKC3LQ9;
 				ENABLE_BITCODE = NO;
@@ -1057,6 +1058,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = ACZRKC3LQ9;
 				ENABLE_BITCODE = NO;
