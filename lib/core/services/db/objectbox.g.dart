@@ -24,484 +24,571 @@ export 'package:objectbox/objectbox.dart'; // so that callers only have to impor
 
 final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
-      id: const obx_int.IdUid(1, 5896375529845655447),
-      name: 'AppData',
-      lastPropertyId: const obx_int.IdUid(7, 6148844070029241151),
-      flags: 0,
-      properties: <obx_int.ModelProperty>[
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(1, 5721099704313937938),
-            name: 'id',
-            type: 6,
-            flags: 1),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(2, 3490975852053075612),
-            name: 'name',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(3, 8906252712580284457),
-            name: 'bundleId',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(4, 1384728390293835560),
-            name: 'iconBytes',
-            type: 23,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(5, 1614200572563167243),
-            name: 'iconPath',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(6, 8213924028093217423),
-            name: 'appPath',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(7, 6148844070029241151),
-            name: 'isEnabled',
-            type: 1,
-            flags: 0)
-      ],
-      relations: <obx_int.ModelRelation>[],
-      backlinks: <obx_int.ModelBacklink>[]),
+    id: const obx_int.IdUid(1, 5896375529845655447),
+    name: 'AppData',
+    lastPropertyId: const obx_int.IdUid(7, 6148844070029241151),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 5721099704313937938),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 3490975852053075612),
+        name: 'name',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 8906252712580284457),
+        name: 'bundleId',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 1384728390293835560),
+        name: 'iconBytes',
+        type: 23,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 1614200572563167243),
+        name: 'iconPath',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 8213924028093217423),
+        name: 'appPath',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 6148844070029241151),
+        name: 'isEnabled',
+        type: 1,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
   obx_int.ModelEntity(
-      id: const obx_int.IdUid(2, 4608024332879865786),
-      name: 'AppSetting',
-      lastPropertyId: const obx_int.IdUid(8, 3150278383184422005),
-      flags: 0,
-      properties: <obx_int.ModelProperty>[
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(1, 6651022530483935208),
-            name: 'id',
-            type: 6,
-            flags: 1),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(2, 5885908841113911178),
-            name: 'isPro',
-            type: 1,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(3, 5526537567537795223),
-            name: 'isSplitTunnelingOn',
-            type: 1,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(4, 1846420527945857066),
-            name: 'splitTunnelingMode',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(5, 8132390214626615218),
-            name: 'locale',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(6, 9005421866456653123),
-            name: 'oAuthToken',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(7, 5477869871299032423),
-            name: 'userLoggedIn',
-            type: 1,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(8, 3150278383184422005),
-            name: 'email',
-            type: 9,
-            flags: 0)
-      ],
-      relations: <obx_int.ModelRelation>[],
-      backlinks: <obx_int.ModelBacklink>[]),
+    id: const obx_int.IdUid(2, 4608024332879865786),
+    name: 'AppSetting',
+    lastPropertyId: const obx_int.IdUid(8, 3150278383184422005),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 6651022530483935208),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 5885908841113911178),
+        name: 'isPro',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 5526537567537795223),
+        name: 'isSplitTunnelingOn',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 1846420527945857066),
+        name: 'splitTunnelingMode',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 8132390214626615218),
+        name: 'locale',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 9005421866456653123),
+        name: 'oAuthToken',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 5477869871299032423),
+        name: 'userLoggedIn',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(8, 3150278383184422005),
+        name: 'email',
+        type: 9,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
   obx_int.ModelEntity(
-      id: const obx_int.IdUid(3, 6248675632289078443),
-      name: 'DeviceEntity',
-      lastPropertyId: const obx_int.IdUid(4, 2374580978782923997),
-      flags: 0,
-      properties: <obx_int.ModelProperty>[
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(1, 2437015402915922356),
-            name: 'id',
-            type: 6,
-            flags: 1),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(2, 120643148422814086),
-            name: 'deviceId',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(3, 2292211842719314826),
-            name: 'name',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(4, 2374580978782923997),
-            name: 'created',
-            type: 6,
-            flags: 0)
-      ],
-      relations: <obx_int.ModelRelation>[],
-      backlinks: <obx_int.ModelBacklink>[]),
+    id: const obx_int.IdUid(3, 6248675632289078443),
+    name: 'DeviceEntity',
+    lastPropertyId: const obx_int.IdUid(4, 2374580978782923997),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 2437015402915922356),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 120643148422814086),
+        name: 'deviceId',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 2292211842719314826),
+        name: 'name',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 2374580978782923997),
+        name: 'created',
+        type: 6,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
   obx_int.ModelEntity(
-      id: const obx_int.IdUid(4, 1292021764142718717),
-      name: 'PlanEntity',
-      lastPropertyId: const obx_int.IdUid(7, 8310664451273680421),
-      flags: 0,
-      properties: <obx_int.ModelProperty>[
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(1, 7109718657964813085),
-            name: 'id',
-            type: 6,
-            flags: 1),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(2, 4086590156322773641),
-            name: 'planId',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(3, 5136355896948397335),
-            name: 'description',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(4, 5822829435428084207),
-            name: 'usdPrice',
-            type: 6,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(5, 8197482260752145809),
-            name: 'priceJson',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(6, 8301647740786497949),
-            name: 'expectedMonthlyPriceJson',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(7, 8310664451273680421),
-            name: 'bestValue',
-            type: 1,
-            flags: 0)
-      ],
-      relations: <obx_int.ModelRelation>[],
-      backlinks: <obx_int.ModelBacklink>[]),
+    id: const obx_int.IdUid(4, 1292021764142718717),
+    name: 'PlanEntity',
+    lastPropertyId: const obx_int.IdUid(7, 8310664451273680421),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 7109718657964813085),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 4086590156322773641),
+        name: 'planId',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 5136355896948397335),
+        name: 'description',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 5822829435428084207),
+        name: 'usdPrice',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 8197482260752145809),
+        name: 'priceJson',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 8301647740786497949),
+        name: 'expectedMonthlyPriceJson',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 8310664451273680421),
+        name: 'bestValue',
+        type: 1,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
   obx_int.ModelEntity(
-      id: const obx_int.IdUid(5, 269825882975327499),
-      name: 'PlansDataEntity',
-      lastPropertyId: const obx_int.IdUid(2, 1702618694805229062),
-      flags: 0,
-      properties: <obx_int.ModelProperty>[
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(1, 8650775261251552499),
-            name: 'id',
-            type: 6,
-            flags: 1),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(2, 1702618694805229062),
-            name: 'providersId',
-            type: 11,
-            flags: 520,
-            indexId: const obx_int.IdUid(1, 6201914979495464017),
-            relationTarget: 'ProvidersEntity')
-      ],
-      relations: <obx_int.ModelRelation>[
-        obx_int.ModelRelation(
-            id: const obx_int.IdUid(1, 6911198766561492993),
-            name: 'plans',
-            targetId: const obx_int.IdUid(4, 1292021764142718717))
-      ],
-      backlinks: <obx_int.ModelBacklink>[]),
+    id: const obx_int.IdUid(5, 269825882975327499),
+    name: 'PlansDataEntity',
+    lastPropertyId: const obx_int.IdUid(2, 1702618694805229062),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 8650775261251552499),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 1702618694805229062),
+        name: 'providersId',
+        type: 11,
+        flags: 520,
+        indexId: const obx_int.IdUid(1, 6201914979495464017),
+        relationTarget: 'ProvidersEntity',
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[
+      obx_int.ModelRelation(
+        id: const obx_int.IdUid(1, 6911198766561492993),
+        name: 'plans',
+        targetId: const obx_int.IdUid(4, 1292021764142718717),
+      ),
+    ],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
   obx_int.ModelEntity(
-      id: const obx_int.IdUid(6, 1023721387472956057),
-      name: 'ProvidersEntity',
-      lastPropertyId: const obx_int.IdUid(3, 261488009685063502),
-      flags: 0,
-      properties: <obx_int.ModelProperty>[
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(1, 7697872934100298351),
-            name: 'id',
-            type: 6,
-            flags: 1),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(2, 2749399659807261044),
-            name: 'androidJson',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(3, 261488009685063502),
-            name: 'desktopJson',
-            type: 9,
-            flags: 0)
-      ],
-      relations: <obx_int.ModelRelation>[],
-      backlinks: <obx_int.ModelBacklink>[]),
+    id: const obx_int.IdUid(6, 1023721387472956057),
+    name: 'ProvidersEntity',
+    lastPropertyId: const obx_int.IdUid(3, 261488009685063502),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 7697872934100298351),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 2749399659807261044),
+        name: 'androidJson',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 261488009685063502),
+        name: 'desktopJson',
+        type: 9,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
   obx_int.ModelEntity(
-      id: const obx_int.IdUid(7, 6397461911687250160),
-      name: 'PurchaseEntity',
-      lastPropertyId: const obx_int.IdUid(2, 2695572811473114092),
-      flags: 0,
-      properties: <obx_int.ModelProperty>[
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(1, 5255901286774178343),
-            name: 'id',
-            type: 6,
-            flags: 1),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(2, 2695572811473114092),
-            name: 'plan',
-            type: 9,
-            flags: 0)
-      ],
-      relations: <obx_int.ModelRelation>[],
-      backlinks: <obx_int.ModelBacklink>[]),
+    id: const obx_int.IdUid(7, 6397461911687250160),
+    name: 'PurchaseEntity',
+    lastPropertyId: const obx_int.IdUid(2, 2695572811473114092),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 5255901286774178343),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 2695572811473114092),
+        name: 'plan',
+        type: 9,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
   obx_int.ModelEntity(
-      id: const obx_int.IdUid(8, 7234271711453370142),
-      name: 'SubscriptionDataEntity',
-      lastPropertyId: const obx_int.IdUid(11, 2220856276610698938),
-      flags: 0,
-      properties: <obx_int.ModelProperty>[
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(1, 3021613679588121836),
-            name: 'id',
-            type: 6,
-            flags: 1),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(2, 3060680558342841480),
-            name: 'planID',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(3, 3173407586116672891),
-            name: 'stripeCustomerID',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(4, 7058767577822159156),
-            name: 'startAt',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(5, 1072017889526110439),
-            name: 'cancelledAt',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(6, 448936870899173072),
-            name: 'autoRenew',
-            type: 1,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(7, 4718688726079616389),
-            name: 'subscriptionID',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(8, 819188403992719361),
-            name: 'status',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(9, 417687581068943278),
-            name: 'provider',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(10, 1804133509452743261),
-            name: 'createdAt',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(11, 2220856276610698938),
-            name: 'endAt',
-            type: 9,
-            flags: 0)
-      ],
-      relations: <obx_int.ModelRelation>[],
-      backlinks: <obx_int.ModelBacklink>[]),
+    id: const obx_int.IdUid(8, 7234271711453370142),
+    name: 'SubscriptionDataEntity',
+    lastPropertyId: const obx_int.IdUid(11, 2220856276610698938),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 3021613679588121836),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 3060680558342841480),
+        name: 'planID',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 3173407586116672891),
+        name: 'stripeCustomerID',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 7058767577822159156),
+        name: 'startAt',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 1072017889526110439),
+        name: 'cancelledAt',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 448936870899173072),
+        name: 'autoRenew',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 4718688726079616389),
+        name: 'subscriptionID',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(8, 819188403992719361),
+        name: 'status',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(9, 417687581068943278),
+        name: 'provider',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(10, 1804133509452743261),
+        name: 'createdAt',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(11, 2220856276610698938),
+        name: 'endAt',
+        type: 9,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
   obx_int.ModelEntity(
-      id: const obx_int.IdUid(9, 8860377402257268219),
-      name: 'UserDataEntity',
-      lastPropertyId: const obx_int.IdUid(19, 8794862915387930471),
-      flags: 0,
-      properties: <obx_int.ModelProperty>[
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(1, 5967345635969174286),
-            name: 'id',
-            type: 6,
-            flags: 1),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(2, 1240304682152626110),
-            name: 'userId',
-            type: 6,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(3, 4658400107098925348),
-            name: 'code',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(4, 1478806894953004171),
-            name: 'token',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(5, 6940935442789941467),
-            name: 'referral',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(6, 3114036744747231508),
-            name: 'phone',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(7, 7825640138802717105),
-            name: 'email',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(8, 2503065188298950584),
-            name: 'userStatus',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(9, 8436097876158017270),
-            name: 'userLevel',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(10, 2302441656550853036),
-            name: 'locale',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(11, 6550405358633743849),
-            name: 'expiration',
-            type: 6,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(12, 5927224810127543857),
-            name: 'subscription',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(13, 3469071470410838515),
-            name: 'bonusDays',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(14, 4628280064546168149),
-            name: 'bonusMonths',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(15, 7495918937748115594),
-            name: 'yinbiEnabled',
-            type: 1,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(16, 7301803971401448337),
-            name: 'servers',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(17, 6457492019913091313),
-            name: 'inviters',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(18, 8269176151345197275),
-            name: 'invitees',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(19, 8794862915387930471),
-            name: 'subscriptionDataId',
-            type: 11,
-            flags: 520,
-            indexId: const obx_int.IdUid(2, 7118341107003198595),
-            relationTarget: 'SubscriptionDataEntity')
-      ],
-      relations: <obx_int.ModelRelation>[
-        obx_int.ModelRelation(
-            id: const obx_int.IdUid(2, 4491095857220347583),
-            name: 'devices',
-            targetId: const obx_int.IdUid(3, 6248675632289078443)),
-        obx_int.ModelRelation(
-            id: const obx_int.IdUid(3, 5581625935470873398),
-            name: 'purchases',
-            targetId: const obx_int.IdUid(7, 6397461911687250160))
-      ],
-      backlinks: <obx_int.ModelBacklink>[]),
+    id: const obx_int.IdUid(9, 8860377402257268219),
+    name: 'UserDataEntity',
+    lastPropertyId: const obx_int.IdUid(20, 9105995417657118258),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 5967345635969174286),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 1240304682152626110),
+        name: 'userId',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 4658400107098925348),
+        name: 'code',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 1478806894953004171),
+        name: 'token',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 6940935442789941467),
+        name: 'referral',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 3114036744747231508),
+        name: 'phone',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 7825640138802717105),
+        name: 'email',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(8, 2503065188298950584),
+        name: 'userStatus',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(9, 8436097876158017270),
+        name: 'userLevel',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(10, 2302441656550853036),
+        name: 'locale',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(11, 6550405358633743849),
+        name: 'expiration',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(12, 5927224810127543857),
+        name: 'subscription',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(13, 3469071470410838515),
+        name: 'bonusDays',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(14, 4628280064546168149),
+        name: 'bonusMonths',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(15, 7495918937748115594),
+        name: 'yinbiEnabled',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(16, 7301803971401448337),
+        name: 'servers',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(17, 6457492019913091313),
+        name: 'inviters',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(18, 8269176151345197275),
+        name: 'invitees',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(19, 8794862915387930471),
+        name: 'subscriptionDataId',
+        type: 11,
+        flags: 520,
+        indexId: const obx_int.IdUid(2, 7118341107003198595),
+        relationTarget: 'SubscriptionDataEntity',
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(20, 9105995417657118258),
+        name: 'purchases',
+        type: 9,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[
+      obx_int.ModelRelation(
+        id: const obx_int.IdUid(2, 4491095857220347583),
+        name: 'devices',
+        targetId: const obx_int.IdUid(3, 6248675632289078443),
+      ),
+    ],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
   obx_int.ModelEntity(
-      id: const obx_int.IdUid(10, 6498143934012749347),
-      name: 'UserResponseEntity',
-      lastPropertyId: const obx_int.IdUid(6, 5416290039903075800),
-      flags: 0,
-      properties: <obx_int.ModelProperty>[
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(1, 8552625967393483338),
-            name: 'id',
-            type: 6,
-            flags: 1),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(2, 8584855037850317354),
-            name: 'legacyID',
-            type: 6,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(3, 6961516989558159817),
-            name: 'legacyToken',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(4, 7920225293317175720),
-            name: 'emailConfirmed',
-            type: 1,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(5, 1908851992460731508),
-            name: 'success',
-            type: 1,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(6, 5416290039903075800),
-            name: 'legacyUserDataId',
-            type: 11,
-            flags: 520,
-            indexId: const obx_int.IdUid(3, 4121674010287421818),
-            relationTarget: 'UserDataEntity')
-      ],
-      relations: <obx_int.ModelRelation>[
-        obx_int.ModelRelation(
-            id: const obx_int.IdUid(4, 1689263526393937792),
-            name: 'devices',
-            targetId: const obx_int.IdUid(3, 6248675632289078443))
-      ],
-      backlinks: <obx_int.ModelBacklink>[]),
+    id: const obx_int.IdUid(10, 6498143934012749347),
+    name: 'UserResponseEntity',
+    lastPropertyId: const obx_int.IdUid(6, 5416290039903075800),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 8552625967393483338),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 8584855037850317354),
+        name: 'legacyID',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 6961516989558159817),
+        name: 'legacyToken',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 7920225293317175720),
+        name: 'emailConfirmed',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 1908851992460731508),
+        name: 'success',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 5416290039903075800),
+        name: 'legacyUserDataId',
+        type: 11,
+        flags: 520,
+        indexId: const obx_int.IdUid(3, 4121674010287421818),
+        relationTarget: 'UserDataEntity',
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[
+      obx_int.ModelRelation(
+        id: const obx_int.IdUid(4, 1689263526393937792),
+        name: 'devices',
+        targetId: const obx_int.IdUid(3, 6248675632289078443),
+      ),
+    ],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
   obx_int.ModelEntity(
-      id: const obx_int.IdUid(11, 6291023128215063355),
-      name: 'Website',
-      lastPropertyId: const obx_int.IdUid(2, 414559901587479124),
-      flags: 0,
-      properties: <obx_int.ModelProperty>[
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(1, 5596174936623057092),
-            name: 'id',
-            type: 6,
-            flags: 1),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(2, 414559901587479124),
-            name: 'domain',
-            type: 9,
-            flags: 0)
-      ],
-      relations: <obx_int.ModelRelation>[],
-      backlinks: <obx_int.ModelBacklink>[])
+    id: const obx_int.IdUid(11, 6291023128215063355),
+    name: 'Website',
+    lastPropertyId: const obx_int.IdUid(2, 414559901587479124),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 5596174936623057092),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 414559901587479124),
+        name: 'domain',
+        type: 9,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
 ];
 
 /// Shortcut for [obx.Store.new] that passes [getObjectBoxModel] and for Flutter
@@ -515,618 +602,777 @@ final _entities = <obx_int.ModelEntity>[
 /// For Flutter apps, also calls `loadObjectBoxLibraryAndroidCompat()` from
 /// the ObjectBox Flutter library to fix loading the native ObjectBox library
 /// on Android 6 and older.
-Future<obx.Store> openStore(
-    {String? directory,
-    int? maxDBSizeInKB,
-    int? maxDataSizeInKB,
-    int? fileMode,
-    int? maxReaders,
-    bool queriesCaseSensitiveDefault = true,
-    String? macosApplicationGroup}) async {
+Future<obx.Store> openStore({
+  String? directory,
+  int? maxDBSizeInKB,
+  int? maxDataSizeInKB,
+  int? fileMode,
+  int? maxReaders,
+  bool queriesCaseSensitiveDefault = true,
+  String? macosApplicationGroup,
+}) async {
   await loadObjectBoxLibraryAndroidCompat();
-  return obx.Store(getObjectBoxModel(),
-      directory: directory ?? (await defaultStoreDirectory()).path,
-      maxDBSizeInKB: maxDBSizeInKB,
-      maxDataSizeInKB: maxDataSizeInKB,
-      fileMode: fileMode,
-      maxReaders: maxReaders,
-      queriesCaseSensitiveDefault: queriesCaseSensitiveDefault,
-      macosApplicationGroup: macosApplicationGroup);
+  return obx.Store(
+    getObjectBoxModel(),
+    directory: directory ?? (await defaultStoreDirectory()).path,
+    maxDBSizeInKB: maxDBSizeInKB,
+    maxDataSizeInKB: maxDataSizeInKB,
+    fileMode: fileMode,
+    maxReaders: maxReaders,
+    queriesCaseSensitiveDefault: queriesCaseSensitiveDefault,
+    macosApplicationGroup: macosApplicationGroup,
+  );
 }
 
 /// Returns the ObjectBox model definition for this project for use with
 /// [obx.Store.new].
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
-      entities: _entities,
-      lastEntityId: const obx_int.IdUid(11, 6291023128215063355),
-      lastIndexId: const obx_int.IdUid(3, 4121674010287421818),
-      lastRelationId: const obx_int.IdUid(4, 1689263526393937792),
-      lastSequenceId: const obx_int.IdUid(0, 0),
-      retiredEntityUids: const [],
-      retiredIndexUids: const [],
-      retiredPropertyUids: const [],
-      retiredRelationUids: const [],
-      modelVersion: 5,
-      modelVersionParserMinimum: 5,
-      version: 1);
+    entities: _entities,
+    lastEntityId: const obx_int.IdUid(11, 6291023128215063355),
+    lastIndexId: const obx_int.IdUid(3, 4121674010287421818),
+    lastRelationId: const obx_int.IdUid(4, 1689263526393937792),
+    lastSequenceId: const obx_int.IdUid(0, 0),
+    retiredEntityUids: const [],
+    retiredIndexUids: const [],
+    retiredPropertyUids: const [],
+    retiredRelationUids: const [5581625935470873398],
+    modelVersion: 5,
+    modelVersionParserMinimum: 5,
+    version: 1,
+  );
 
   final bindings = <Type, obx_int.EntityDefinition>{
     AppData: obx_int.EntityDefinition<AppData>(
-        model: _entities[0],
-        toOneRelations: (AppData object) => [],
-        toManyRelations: (AppData object) => {},
-        getId: (AppData object) => object.id,
-        setId: (AppData object, int id) {
-          object.id = id;
-        },
-        objectToFB: (AppData object, fb.Builder fbb) {
-          final nameOffset = fbb.writeString(object.name);
-          final bundleIdOffset = fbb.writeString(object.bundleId);
-          final iconBytesOffset = object.iconBytes == null
-              ? null
-              : fbb.writeListInt8(object.iconBytes!);
-          final iconPathOffset = fbb.writeString(object.iconPath);
-          final appPathOffset = fbb.writeString(object.appPath);
-          fbb.startTable(8);
-          fbb.addInt64(0, object.id);
-          fbb.addOffset(1, nameOffset);
-          fbb.addOffset(2, bundleIdOffset);
-          fbb.addOffset(3, iconBytesOffset);
-          fbb.addOffset(4, iconPathOffset);
-          fbb.addOffset(5, appPathOffset);
-          fbb.addBool(6, object.isEnabled);
-          fbb.finish(fbb.endTable());
-          return object.id;
-        },
-        objectFromFB: (obx.Store store, ByteData fbData) {
-          final buffer = fb.BufferContext(fbData);
-          final rootOffset = buffer.derefObject(0);
-          final idParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
-          final nameParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 6, '');
-          final bundleIdParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 8, '');
-          final iconBytesParam = const fb.Uint8ListReader(lazy: false)
-              .vTableGetNullable(buffer, rootOffset, 10) as Uint8List?;
-          final iconPathParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 12, '');
-          final appPathParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 14, '');
-          final isEnabledParam =
-              const fb.BoolReader().vTableGet(buffer, rootOffset, 16, false);
-          final object = AppData(
-              id: idParam,
-              name: nameParam,
-              bundleId: bundleIdParam,
-              iconBytes: iconBytesParam,
-              iconPath: iconPathParam,
-              appPath: appPathParam,
-              isEnabled: isEnabledParam);
+      model: _entities[0],
+      toOneRelations: (AppData object) => [],
+      toManyRelations: (AppData object) => {},
+      getId: (AppData object) => object.id,
+      setId: (AppData object, int id) {
+        object.id = id;
+      },
+      objectToFB: (AppData object, fb.Builder fbb) {
+        final nameOffset = fbb.writeString(object.name);
+        final bundleIdOffset = fbb.writeString(object.bundleId);
+        final iconBytesOffset = object.iconBytes == null
+            ? null
+            : fbb.writeListInt8(object.iconBytes!);
+        final iconPathOffset = fbb.writeString(object.iconPath);
+        final appPathOffset = fbb.writeString(object.appPath);
+        fbb.startTable(8);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, nameOffset);
+        fbb.addOffset(2, bundleIdOffset);
+        fbb.addOffset(3, iconBytesOffset);
+        fbb.addOffset(4, iconPathOffset);
+        fbb.addOffset(5, appPathOffset);
+        fbb.addBool(6, object.isEnabled);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final idParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final nameParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final bundleIdParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 8, '');
+        final iconBytesParam =
+            const fb.Uint8ListReader(
+                  lazy: false,
+                ).vTableGetNullable(buffer, rootOffset, 10)
+                as Uint8List?;
+        final iconPathParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 12, '');
+        final appPathParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 14, '');
+        final isEnabledParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          16,
+          false,
+        );
+        final object = AppData(
+          id: idParam,
+          name: nameParam,
+          bundleId: bundleIdParam,
+          iconBytes: iconBytesParam,
+          iconPath: iconPathParam,
+          appPath: appPathParam,
+          isEnabled: isEnabledParam,
+        );
 
-          return object;
-        }),
+        return object;
+      },
+    ),
     AppSetting: obx_int.EntityDefinition<AppSetting>(
-        model: _entities[1],
-        toOneRelations: (AppSetting object) => [],
-        toManyRelations: (AppSetting object) => {},
-        getId: (AppSetting object) => object.id,
-        setId: (AppSetting object, int id) {
-          object.id = id;
-        },
-        objectToFB: (AppSetting object, fb.Builder fbb) {
-          final splitTunnelingModeOffset =
-              fbb.writeString(object.splitTunnelingMode);
-          final localeOffset = fbb.writeString(object.locale);
-          final oAuthTokenOffset = fbb.writeString(object.oAuthToken);
-          final emailOffset = fbb.writeString(object.email);
-          fbb.startTable(9);
-          fbb.addInt64(0, object.id);
-          fbb.addBool(1, object.isPro);
-          fbb.addBool(2, object.isSplitTunnelingOn);
-          fbb.addOffset(3, splitTunnelingModeOffset);
-          fbb.addOffset(4, localeOffset);
-          fbb.addOffset(5, oAuthTokenOffset);
-          fbb.addBool(6, object.userLoggedIn);
-          fbb.addOffset(7, emailOffset);
-          fbb.finish(fbb.endTable());
-          return object.id;
-        },
-        objectFromFB: (obx.Store store, ByteData fbData) {
-          final buffer = fb.BufferContext(fbData);
-          final rootOffset = buffer.derefObject(0);
-          final idParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
-          final isProParam =
-              const fb.BoolReader().vTableGet(buffer, rootOffset, 6, false);
-          final isSplitTunnelingOnParam =
-              const fb.BoolReader().vTableGet(buffer, rootOffset, 8, false);
-          final userLoggedInParam =
-              const fb.BoolReader().vTableGet(buffer, rootOffset, 16, false);
-          final splitTunnelingModeParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGet(buffer, rootOffset, 10, '');
-          final oAuthTokenParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 14, '');
-          final emailParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 18, '');
-          final localeParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 12, '');
-          final object = AppSetting(
-              id: idParam,
-              isPro: isProParam,
-              isSplitTunnelingOn: isSplitTunnelingOnParam,
-              userLoggedIn: userLoggedInParam,
-              splitTunnelingMode: splitTunnelingModeParam,
-              oAuthToken: oAuthTokenParam,
-              email: emailParam,
-              locale: localeParam);
+      model: _entities[1],
+      toOneRelations: (AppSetting object) => [],
+      toManyRelations: (AppSetting object) => {},
+      getId: (AppSetting object) => object.id,
+      setId: (AppSetting object, int id) {
+        object.id = id;
+      },
+      objectToFB: (AppSetting object, fb.Builder fbb) {
+        final splitTunnelingModeOffset = fbb.writeString(
+          object.splitTunnelingMode,
+        );
+        final localeOffset = fbb.writeString(object.locale);
+        final oAuthTokenOffset = fbb.writeString(object.oAuthToken);
+        final emailOffset = fbb.writeString(object.email);
+        fbb.startTable(9);
+        fbb.addInt64(0, object.id);
+        fbb.addBool(1, object.isPro);
+        fbb.addBool(2, object.isSplitTunnelingOn);
+        fbb.addOffset(3, splitTunnelingModeOffset);
+        fbb.addOffset(4, localeOffset);
+        fbb.addOffset(5, oAuthTokenOffset);
+        fbb.addBool(6, object.userLoggedIn);
+        fbb.addOffset(7, emailOffset);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final idParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final isProParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          6,
+          false,
+        );
+        final isSplitTunnelingOnParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          8,
+          false,
+        );
+        final userLoggedInParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          16,
+          false,
+        );
+        final splitTunnelingModeParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 10, '');
+        final oAuthTokenParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 14, '');
+        final emailParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 18, '');
+        final localeParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 12, '');
+        final object = AppSetting(
+          id: idParam,
+          isPro: isProParam,
+          isSplitTunnelingOn: isSplitTunnelingOnParam,
+          userLoggedIn: userLoggedInParam,
+          splitTunnelingMode: splitTunnelingModeParam,
+          oAuthToken: oAuthTokenParam,
+          email: emailParam,
+          locale: localeParam,
+        );
 
-          return object;
-        }),
+        return object;
+      },
+    ),
     DeviceEntity: obx_int.EntityDefinition<DeviceEntity>(
-        model: _entities[2],
-        toOneRelations: (DeviceEntity object) => [],
-        toManyRelations: (DeviceEntity object) => {},
-        getId: (DeviceEntity object) => object.id,
-        setId: (DeviceEntity object, int id) {
-          object.id = id;
-        },
-        objectToFB: (DeviceEntity object, fb.Builder fbb) {
-          final deviceIdOffset = fbb.writeString(object.deviceId);
-          final nameOffset = fbb.writeString(object.name);
-          fbb.startTable(5);
-          fbb.addInt64(0, object.id);
-          fbb.addOffset(1, deviceIdOffset);
-          fbb.addOffset(2, nameOffset);
-          fbb.addInt64(3, object.created);
-          fbb.finish(fbb.endTable());
-          return object.id;
-        },
-        objectFromFB: (obx.Store store, ByteData fbData) {
-          final buffer = fb.BufferContext(fbData);
-          final rootOffset = buffer.derefObject(0);
-          final idParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
-          final deviceIdParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 6, '');
-          final nameParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 8, '');
-          final createdParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0);
-          final object = DeviceEntity(
-              id: idParam,
-              deviceId: deviceIdParam,
-              name: nameParam,
-              created: createdParam);
+      model: _entities[2],
+      toOneRelations: (DeviceEntity object) => [],
+      toManyRelations: (DeviceEntity object) => {},
+      getId: (DeviceEntity object) => object.id,
+      setId: (DeviceEntity object, int id) {
+        object.id = id;
+      },
+      objectToFB: (DeviceEntity object, fb.Builder fbb) {
+        final deviceIdOffset = fbb.writeString(object.deviceId);
+        final nameOffset = fbb.writeString(object.name);
+        fbb.startTable(5);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, deviceIdOffset);
+        fbb.addOffset(2, nameOffset);
+        fbb.addInt64(3, object.created);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final idParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final deviceIdParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final nameParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 8, '');
+        final createdParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          10,
+          0,
+        );
+        final object = DeviceEntity(
+          id: idParam,
+          deviceId: deviceIdParam,
+          name: nameParam,
+          created: createdParam,
+        );
 
-          return object;
-        }),
+        return object;
+      },
+    ),
     PlanEntity: obx_int.EntityDefinition<PlanEntity>(
-        model: _entities[3],
-        toOneRelations: (PlanEntity object) => [],
-        toManyRelations: (PlanEntity object) => {},
-        getId: (PlanEntity object) => object.id,
-        setId: (PlanEntity object, int id) {
-          object.id = id;
-        },
-        objectToFB: (PlanEntity object, fb.Builder fbb) {
-          final planIdOffset = fbb.writeString(object.planId);
-          final descriptionOffset = fbb.writeString(object.description);
-          final priceJsonOffset = fbb.writeString(object.priceJson);
-          final expectedMonthlyPriceJsonOffset =
-              fbb.writeString(object.expectedMonthlyPriceJson);
-          fbb.startTable(8);
-          fbb.addInt64(0, object.id);
-          fbb.addOffset(1, planIdOffset);
-          fbb.addOffset(2, descriptionOffset);
-          fbb.addInt64(3, object.usdPrice);
-          fbb.addOffset(4, priceJsonOffset);
-          fbb.addOffset(5, expectedMonthlyPriceJsonOffset);
-          fbb.addBool(6, object.bestValue);
-          fbb.finish(fbb.endTable());
-          return object.id;
-        },
-        objectFromFB: (obx.Store store, ByteData fbData) {
-          final buffer = fb.BufferContext(fbData);
-          final rootOffset = buffer.derefObject(0);
-          final planIdParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 6, '');
-          final descriptionParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGet(buffer, rootOffset, 8, '');
-          final usdPriceParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0);
-          final priceJsonParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 12, '');
-          final expectedMonthlyPriceJsonParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGet(buffer, rootOffset, 14, '');
-          final bestValueParam =
-              const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 16);
-          final object = PlanEntity(
-              planId: planIdParam,
-              description: descriptionParam,
-              usdPrice: usdPriceParam,
-              priceJson: priceJsonParam,
-              expectedMonthlyPriceJson: expectedMonthlyPriceJsonParam,
-              bestValue: bestValueParam)
-            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+      model: _entities[3],
+      toOneRelations: (PlanEntity object) => [],
+      toManyRelations: (PlanEntity object) => {},
+      getId: (PlanEntity object) => object.id,
+      setId: (PlanEntity object, int id) {
+        object.id = id;
+      },
+      objectToFB: (PlanEntity object, fb.Builder fbb) {
+        final planIdOffset = fbb.writeString(object.planId);
+        final descriptionOffset = fbb.writeString(object.description);
+        final priceJsonOffset = fbb.writeString(object.priceJson);
+        final expectedMonthlyPriceJsonOffset = fbb.writeString(
+          object.expectedMonthlyPriceJson,
+        );
+        fbb.startTable(8);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, planIdOffset);
+        fbb.addOffset(2, descriptionOffset);
+        fbb.addInt64(3, object.usdPrice);
+        fbb.addOffset(4, priceJsonOffset);
+        fbb.addOffset(5, expectedMonthlyPriceJsonOffset);
+        fbb.addBool(6, object.bestValue);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final planIdParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final descriptionParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 8, '');
+        final usdPriceParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          10,
+          0,
+        );
+        final priceJsonParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 12, '');
+        final expectedMonthlyPriceJsonParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 14, '');
+        final bestValueParam = const fb.BoolReader().vTableGetNullable(
+          buffer,
+          rootOffset,
+          16,
+        );
+        final object = PlanEntity(
+          planId: planIdParam,
+          description: descriptionParam,
+          usdPrice: usdPriceParam,
+          priceJson: priceJsonParam,
+          expectedMonthlyPriceJson: expectedMonthlyPriceJsonParam,
+          bestValue: bestValueParam,
+        )..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
 
-          return object;
-        }),
+        return object;
+      },
+    ),
     PlansDataEntity: obx_int.EntityDefinition<PlansDataEntity>(
-        model: _entities[4],
-        toOneRelations: (PlansDataEntity object) => [object.providers],
-        toManyRelations: (PlansDataEntity object) => {
-              obx_int.RelInfo<PlansDataEntity>.toMany(1, object.id):
-                  object.plans
-            },
-        getId: (PlansDataEntity object) => object.id,
-        setId: (PlansDataEntity object, int id) {
-          object.id = id;
-        },
-        objectToFB: (PlansDataEntity object, fb.Builder fbb) {
-          fbb.startTable(3);
-          fbb.addInt64(0, object.id);
-          fbb.addInt64(1, object.providers.targetId);
-          fbb.finish(fbb.endTable());
-          return object.id;
-        },
-        objectFromFB: (obx.Store store, ByteData fbData) {
-          final buffer = fb.BufferContext(fbData);
-          final rootOffset = buffer.derefObject(0);
+      model: _entities[4],
+      toOneRelations: (PlansDataEntity object) => [object.providers],
+      toManyRelations: (PlansDataEntity object) => {
+        obx_int.RelInfo<PlansDataEntity>.toMany(1, object.id): object.plans,
+      },
+      getId: (PlansDataEntity object) => object.id,
+      setId: (PlansDataEntity object, int id) {
+        object.id = id;
+      },
+      objectToFB: (PlansDataEntity object, fb.Builder fbb) {
+        fbb.startTable(3);
+        fbb.addInt64(0, object.id);
+        fbb.addInt64(1, object.providers.targetId);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
 
-          final object = PlansDataEntity()
-            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
-          object.providers.targetId =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 6, 0);
-          object.providers.attach(store);
-          obx_int.InternalToManyAccess.setRelInfo<PlansDataEntity>(object.plans,
-              store, obx_int.RelInfo<PlansDataEntity>.toMany(1, object.id));
-          return object;
-        }),
+        final object = PlansDataEntity()
+          ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+        object.providers.targetId = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          6,
+          0,
+        );
+        object.providers.attach(store);
+        obx_int.InternalToManyAccess.setRelInfo<PlansDataEntity>(
+          object.plans,
+          store,
+          obx_int.RelInfo<PlansDataEntity>.toMany(1, object.id),
+        );
+        return object;
+      },
+    ),
     ProvidersEntity: obx_int.EntityDefinition<ProvidersEntity>(
-        model: _entities[5],
-        toOneRelations: (ProvidersEntity object) => [],
-        toManyRelations: (ProvidersEntity object) => {},
-        getId: (ProvidersEntity object) => object.id,
-        setId: (ProvidersEntity object, int id) {
-          object.id = id;
-        },
-        objectToFB: (ProvidersEntity object, fb.Builder fbb) {
-          final androidJsonOffset = fbb.writeString(object.androidJson);
-          final desktopJsonOffset = fbb.writeString(object.desktopJson);
-          fbb.startTable(4);
-          fbb.addInt64(0, object.id);
-          fbb.addOffset(1, androidJsonOffset);
-          fbb.addOffset(2, desktopJsonOffset);
-          fbb.finish(fbb.endTable());
-          return object.id;
-        },
-        objectFromFB: (obx.Store store, ByteData fbData) {
-          final buffer = fb.BufferContext(fbData);
-          final rootOffset = buffer.derefObject(0);
-          final androidJsonParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGet(buffer, rootOffset, 6, '');
-          final desktopJsonParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGet(buffer, rootOffset, 8, '');
-          final object = ProvidersEntity(
-              androidJson: androidJsonParam, desktopJson: desktopJsonParam)
-            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+      model: _entities[5],
+      toOneRelations: (ProvidersEntity object) => [],
+      toManyRelations: (ProvidersEntity object) => {},
+      getId: (ProvidersEntity object) => object.id,
+      setId: (ProvidersEntity object, int id) {
+        object.id = id;
+      },
+      objectToFB: (ProvidersEntity object, fb.Builder fbb) {
+        final androidJsonOffset = fbb.writeString(object.androidJson);
+        final desktopJsonOffset = fbb.writeString(object.desktopJson);
+        fbb.startTable(4);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, androidJsonOffset);
+        fbb.addOffset(2, desktopJsonOffset);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final androidJsonParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final desktopJsonParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 8, '');
+        final object = ProvidersEntity(
+          androidJson: androidJsonParam,
+          desktopJson: desktopJsonParam,
+        )..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
 
-          return object;
-        }),
+        return object;
+      },
+    ),
     PurchaseEntity: obx_int.EntityDefinition<PurchaseEntity>(
-        model: _entities[6],
-        toOneRelations: (PurchaseEntity object) => [],
-        toManyRelations: (PurchaseEntity object) => {},
-        getId: (PurchaseEntity object) => object.id,
-        setId: (PurchaseEntity object, int id) {
-          object.id = id;
-        },
-        objectToFB: (PurchaseEntity object, fb.Builder fbb) {
-          final planOffset = fbb.writeString(object.plan);
-          fbb.startTable(3);
-          fbb.addInt64(0, object.id);
-          fbb.addOffset(1, planOffset);
-          fbb.finish(fbb.endTable());
-          return object.id;
-        },
-        objectFromFB: (obx.Store store, ByteData fbData) {
-          final buffer = fb.BufferContext(fbData);
-          final rootOffset = buffer.derefObject(0);
-          final idParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
-          final planParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 6, '');
-          final object = PurchaseEntity(id: idParam, plan: planParam);
+      model: _entities[6],
+      toOneRelations: (PurchaseEntity object) => [],
+      toManyRelations: (PurchaseEntity object) => {},
+      getId: (PurchaseEntity object) => object.id,
+      setId: (PurchaseEntity object, int id) {
+        object.id = id;
+      },
+      objectToFB: (PurchaseEntity object, fb.Builder fbb) {
+        final planOffset = fbb.writeString(object.plan);
+        fbb.startTable(3);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, planOffset);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final idParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final planParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final object = PurchaseEntity(id: idParam, plan: planParam);
 
-          return object;
-        }),
+        return object;
+      },
+    ),
     SubscriptionDataEntity: obx_int.EntityDefinition<SubscriptionDataEntity>(
-        model: _entities[7],
-        toOneRelations: (SubscriptionDataEntity object) => [],
-        toManyRelations: (SubscriptionDataEntity object) => {},
-        getId: (SubscriptionDataEntity object) => object.id,
-        setId: (SubscriptionDataEntity object, int id) {
-          object.id = id;
-        },
-        objectToFB: (SubscriptionDataEntity object, fb.Builder fbb) {
-          final planIDOffset = fbb.writeString(object.planID);
-          final stripeCustomerIDOffset =
-              fbb.writeString(object.stripeCustomerID);
-          final startAtOffset = fbb.writeString(object.startAt);
-          final cancelledAtOffset = fbb.writeString(object.cancelledAt);
-          final subscriptionIDOffset = fbb.writeString(object.subscriptionID);
-          final statusOffset = fbb.writeString(object.status);
-          final providerOffset = fbb.writeString(object.provider);
-          final createdAtOffset = fbb.writeString(object.createdAt);
-          final endAtOffset = fbb.writeString(object.endAt);
-          fbb.startTable(12);
-          fbb.addInt64(0, object.id);
-          fbb.addOffset(1, planIDOffset);
-          fbb.addOffset(2, stripeCustomerIDOffset);
-          fbb.addOffset(3, startAtOffset);
-          fbb.addOffset(4, cancelledAtOffset);
-          fbb.addBool(5, object.autoRenew);
-          fbb.addOffset(6, subscriptionIDOffset);
-          fbb.addOffset(7, statusOffset);
-          fbb.addOffset(8, providerOffset);
-          fbb.addOffset(9, createdAtOffset);
-          fbb.addOffset(10, endAtOffset);
-          fbb.finish(fbb.endTable());
-          return object.id;
-        },
-        objectFromFB: (obx.Store store, ByteData fbData) {
-          final buffer = fb.BufferContext(fbData);
-          final rootOffset = buffer.derefObject(0);
-          final idParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
-          final planIDParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 6, '');
-          final stripeCustomerIDParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGet(buffer, rootOffset, 8, '');
-          final startAtParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 10, '');
-          final cancelledAtParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGet(buffer, rootOffset, 12, '');
-          final autoRenewParam =
-              const fb.BoolReader().vTableGet(buffer, rootOffset, 14, false);
-          final subscriptionIDParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGet(buffer, rootOffset, 16, '');
-          final statusParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 18, '');
-          final providerParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 20, '');
-          final createdAtParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 22, '');
-          final endAtParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 24, '');
-          final object = SubscriptionDataEntity(
-              id: idParam,
-              planID: planIDParam,
-              stripeCustomerID: stripeCustomerIDParam,
-              startAt: startAtParam,
-              cancelledAt: cancelledAtParam,
-              autoRenew: autoRenewParam,
-              subscriptionID: subscriptionIDParam,
-              status: statusParam,
-              provider: providerParam,
-              createdAt: createdAtParam,
-              endAt: endAtParam);
+      model: _entities[7],
+      toOneRelations: (SubscriptionDataEntity object) => [],
+      toManyRelations: (SubscriptionDataEntity object) => {},
+      getId: (SubscriptionDataEntity object) => object.id,
+      setId: (SubscriptionDataEntity object, int id) {
+        object.id = id;
+      },
+      objectToFB: (SubscriptionDataEntity object, fb.Builder fbb) {
+        final planIDOffset = fbb.writeString(object.planID);
+        final stripeCustomerIDOffset = fbb.writeString(object.stripeCustomerID);
+        final startAtOffset = fbb.writeString(object.startAt);
+        final cancelledAtOffset = fbb.writeString(object.cancelledAt);
+        final subscriptionIDOffset = fbb.writeString(object.subscriptionID);
+        final statusOffset = fbb.writeString(object.status);
+        final providerOffset = fbb.writeString(object.provider);
+        final createdAtOffset = fbb.writeString(object.createdAt);
+        final endAtOffset = fbb.writeString(object.endAt);
+        fbb.startTable(12);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, planIDOffset);
+        fbb.addOffset(2, stripeCustomerIDOffset);
+        fbb.addOffset(3, startAtOffset);
+        fbb.addOffset(4, cancelledAtOffset);
+        fbb.addBool(5, object.autoRenew);
+        fbb.addOffset(6, subscriptionIDOffset);
+        fbb.addOffset(7, statusOffset);
+        fbb.addOffset(8, providerOffset);
+        fbb.addOffset(9, createdAtOffset);
+        fbb.addOffset(10, endAtOffset);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final idParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final planIDParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final stripeCustomerIDParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 8, '');
+        final startAtParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 10, '');
+        final cancelledAtParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 12, '');
+        final autoRenewParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          14,
+          false,
+        );
+        final subscriptionIDParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 16, '');
+        final statusParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 18, '');
+        final providerParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 20, '');
+        final createdAtParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 22, '');
+        final endAtParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 24, '');
+        final object = SubscriptionDataEntity(
+          id: idParam,
+          planID: planIDParam,
+          stripeCustomerID: stripeCustomerIDParam,
+          startAt: startAtParam,
+          cancelledAt: cancelledAtParam,
+          autoRenew: autoRenewParam,
+          subscriptionID: subscriptionIDParam,
+          status: statusParam,
+          provider: providerParam,
+          createdAt: createdAtParam,
+          endAt: endAtParam,
+        );
 
-          return object;
-        }),
+        return object;
+      },
+    ),
     UserDataEntity: obx_int.EntityDefinition<UserDataEntity>(
-        model: _entities[8],
-        toOneRelations: (UserDataEntity object) => [object.subscriptionData],
-        toManyRelations: (UserDataEntity object) => {
-              obx_int.RelInfo<UserDataEntity>.toMany(2, object.id):
-                  object.devices,
-              obx_int.RelInfo<UserDataEntity>.toMany(3, object.id):
-                  object.purchases
-            },
-        getId: (UserDataEntity object) => object.id,
-        setId: (UserDataEntity object, int id) {
-          object.id = id;
-        },
-        objectToFB: (UserDataEntity object, fb.Builder fbb) {
-          final codeOffset = fbb.writeString(object.code);
-          final tokenOffset = fbb.writeString(object.token);
-          final referralOffset = fbb.writeString(object.referral);
-          final phoneOffset = fbb.writeString(object.phone);
-          final emailOffset = fbb.writeString(object.email);
-          final userStatusOffset = fbb.writeString(object.userStatus);
-          final userLevelOffset = fbb.writeString(object.userLevel);
-          final localeOffset = fbb.writeString(object.locale);
-          final subscriptionOffset = fbb.writeString(object.subscription);
-          final bonusDaysOffset = fbb.writeString(object.bonusDays);
-          final bonusMonthsOffset = fbb.writeString(object.bonusMonths);
-          final serversOffset = fbb.writeString(object.servers);
-          final invitersOffset = fbb.writeString(object.inviters);
-          final inviteesOffset = fbb.writeString(object.invitees);
-          fbb.startTable(20);
-          fbb.addInt64(0, object.id);
-          fbb.addInt64(1, object.userId);
-          fbb.addOffset(2, codeOffset);
-          fbb.addOffset(3, tokenOffset);
-          fbb.addOffset(4, referralOffset);
-          fbb.addOffset(5, phoneOffset);
-          fbb.addOffset(6, emailOffset);
-          fbb.addOffset(7, userStatusOffset);
-          fbb.addOffset(8, userLevelOffset);
-          fbb.addOffset(9, localeOffset);
-          fbb.addInt64(10, object.expiration);
-          fbb.addOffset(11, subscriptionOffset);
-          fbb.addOffset(12, bonusDaysOffset);
-          fbb.addOffset(13, bonusMonthsOffset);
-          fbb.addBool(14, object.yinbiEnabled);
-          fbb.addOffset(15, serversOffset);
-          fbb.addOffset(16, invitersOffset);
-          fbb.addOffset(17, inviteesOffset);
-          fbb.addInt64(18, object.subscriptionData.targetId);
-          fbb.finish(fbb.endTable());
-          return object.id;
-        },
-        objectFromFB: (obx.Store store, ByteData fbData) {
-          final buffer = fb.BufferContext(fbData);
-          final rootOffset = buffer.derefObject(0);
-          final idParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
-          final userIdParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 6, 0);
-          final codeParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 8, '');
-          final tokenParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 10, '');
-          final referralParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 12, '');
-          final phoneParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 14, '');
-          final emailParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 16, '');
-          final userStatusParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 18, '');
-          final userLevelParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 20, '');
-          final localeParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 22, '');
-          final expirationParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 24, 0);
-          final subscriptionParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGet(buffer, rootOffset, 26, '');
-          final bonusDaysParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 28, '');
-          final bonusMonthsParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGet(buffer, rootOffset, 30, '');
-          final yinbiEnabledParam =
-              const fb.BoolReader().vTableGet(buffer, rootOffset, 32, false);
-          final serversParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 34, '');
-          final invitersParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 36, '');
-          final inviteesParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 38, '');
-          final object = UserDataEntity(
-              id: idParam,
-              userId: userIdParam,
-              code: codeParam,
-              token: tokenParam,
-              referral: referralParam,
-              phone: phoneParam,
-              email: emailParam,
-              userStatus: userStatusParam,
-              userLevel: userLevelParam,
-              locale: localeParam,
-              expiration: expirationParam,
-              subscription: subscriptionParam,
-              bonusDays: bonusDaysParam,
-              bonusMonths: bonusMonthsParam,
-              yinbiEnabled: yinbiEnabledParam,
-              servers: serversParam,
-              inviters: invitersParam,
-              invitees: inviteesParam);
-          object.subscriptionData.targetId =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 40, 0);
-          object.subscriptionData.attach(store);
-          obx_int.InternalToManyAccess.setRelInfo<UserDataEntity>(
-              object.devices,
-              store,
-              obx_int.RelInfo<UserDataEntity>.toMany(2, object.id));
-          obx_int.InternalToManyAccess.setRelInfo<UserDataEntity>(
-              object.purchases,
-              store,
-              obx_int.RelInfo<UserDataEntity>.toMany(3, object.id));
-          return object;
-        }),
+      model: _entities[8],
+      toOneRelations: (UserDataEntity object) => [object.subscriptionData],
+      toManyRelations: (UserDataEntity object) => {
+        obx_int.RelInfo<UserDataEntity>.toMany(2, object.id): object.devices,
+      },
+      getId: (UserDataEntity object) => object.id,
+      setId: (UserDataEntity object, int id) {
+        object.id = id;
+      },
+      objectToFB: (UserDataEntity object, fb.Builder fbb) {
+        final codeOffset = fbb.writeString(object.code);
+        final tokenOffset = fbb.writeString(object.token);
+        final referralOffset = fbb.writeString(object.referral);
+        final phoneOffset = fbb.writeString(object.phone);
+        final emailOffset = fbb.writeString(object.email);
+        final userStatusOffset = fbb.writeString(object.userStatus);
+        final userLevelOffset = fbb.writeString(object.userLevel);
+        final localeOffset = fbb.writeString(object.locale);
+        final subscriptionOffset = fbb.writeString(object.subscription);
+        final bonusDaysOffset = fbb.writeString(object.bonusDays);
+        final bonusMonthsOffset = fbb.writeString(object.bonusMonths);
+        final serversOffset = fbb.writeString(object.servers);
+        final invitersOffset = fbb.writeString(object.inviters);
+        final inviteesOffset = fbb.writeString(object.invitees);
+        final purchasesOffset = fbb.writeString(object.purchases);
+        fbb.startTable(21);
+        fbb.addInt64(0, object.id);
+        fbb.addInt64(1, object.userId);
+        fbb.addOffset(2, codeOffset);
+        fbb.addOffset(3, tokenOffset);
+        fbb.addOffset(4, referralOffset);
+        fbb.addOffset(5, phoneOffset);
+        fbb.addOffset(6, emailOffset);
+        fbb.addOffset(7, userStatusOffset);
+        fbb.addOffset(8, userLevelOffset);
+        fbb.addOffset(9, localeOffset);
+        fbb.addInt64(10, object.expiration);
+        fbb.addOffset(11, subscriptionOffset);
+        fbb.addOffset(12, bonusDaysOffset);
+        fbb.addOffset(13, bonusMonthsOffset);
+        fbb.addBool(14, object.yinbiEnabled);
+        fbb.addOffset(15, serversOffset);
+        fbb.addOffset(16, invitersOffset);
+        fbb.addOffset(17, inviteesOffset);
+        fbb.addInt64(18, object.subscriptionData.targetId);
+        fbb.addOffset(19, purchasesOffset);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final idParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final userIdParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          6,
+          0,
+        );
+        final codeParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 8, '');
+        final tokenParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 10, '');
+        final referralParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 12, '');
+        final phoneParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 14, '');
+        final emailParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 16, '');
+        final userStatusParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 18, '');
+        final userLevelParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 20, '');
+        final localeParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 22, '');
+        final expirationParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          24,
+          0,
+        );
+        final subscriptionParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 26, '');
+        final bonusDaysParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 28, '');
+        final bonusMonthsParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 30, '');
+        final yinbiEnabledParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          32,
+          false,
+        );
+        final serversParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 34, '');
+        final invitersParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 36, '');
+        final inviteesParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 38, '');
+        final purchasesParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 42, '');
+        final object = UserDataEntity(
+          id: idParam,
+          userId: userIdParam,
+          code: codeParam,
+          token: tokenParam,
+          referral: referralParam,
+          phone: phoneParam,
+          email: emailParam,
+          userStatus: userStatusParam,
+          userLevel: userLevelParam,
+          locale: localeParam,
+          expiration: expirationParam,
+          subscription: subscriptionParam,
+          bonusDays: bonusDaysParam,
+          bonusMonths: bonusMonthsParam,
+          yinbiEnabled: yinbiEnabledParam,
+          servers: serversParam,
+          inviters: invitersParam,
+          invitees: inviteesParam,
+          purchases: purchasesParam,
+        );
+        object.subscriptionData.targetId = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          40,
+          0,
+        );
+        object.subscriptionData.attach(store);
+        obx_int.InternalToManyAccess.setRelInfo<UserDataEntity>(
+          object.devices,
+          store,
+          obx_int.RelInfo<UserDataEntity>.toMany(2, object.id),
+        );
+        return object;
+      },
+    ),
     UserResponseEntity: obx_int.EntityDefinition<UserResponseEntity>(
-        model: _entities[9],
-        toOneRelations: (UserResponseEntity object) => [object.legacyUserData],
-        toManyRelations: (UserResponseEntity object) => {
-              obx_int.RelInfo<UserResponseEntity>.toMany(4, object.id):
-                  object.devices
-            },
-        getId: (UserResponseEntity object) => object.id,
-        setId: (UserResponseEntity object, int id) {
-          object.id = id;
-        },
-        objectToFB: (UserResponseEntity object, fb.Builder fbb) {
-          final legacyTokenOffset = fbb.writeString(object.legacyToken);
-          fbb.startTable(7);
-          fbb.addInt64(0, object.id);
-          fbb.addInt64(1, object.legacyID);
-          fbb.addOffset(2, legacyTokenOffset);
-          fbb.addBool(3, object.emailConfirmed);
-          fbb.addBool(4, object.success);
-          fbb.addInt64(5, object.legacyUserData.targetId);
-          fbb.finish(fbb.endTable());
-          return object.id;
-        },
-        objectFromFB: (obx.Store store, ByteData fbData) {
-          final buffer = fb.BufferContext(fbData);
-          final rootOffset = buffer.derefObject(0);
-          final idParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
-          final legacyIDParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 6, 0);
-          final legacyTokenParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGet(buffer, rootOffset, 8, '');
-          final emailConfirmedParam =
-              const fb.BoolReader().vTableGet(buffer, rootOffset, 10, false);
-          final successParam =
-              const fb.BoolReader().vTableGet(buffer, rootOffset, 12, false);
-          final object = UserResponseEntity(
-              id: idParam,
-              legacyID: legacyIDParam,
-              legacyToken: legacyTokenParam,
-              emailConfirmed: emailConfirmedParam,
-              success: successParam);
-          object.legacyUserData.targetId =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0);
-          object.legacyUserData.attach(store);
-          obx_int.InternalToManyAccess.setRelInfo<UserResponseEntity>(
-              object.devices,
-              store,
-              obx_int.RelInfo<UserResponseEntity>.toMany(4, object.id));
-          return object;
-        }),
+      model: _entities[9],
+      toOneRelations: (UserResponseEntity object) => [object.legacyUserData],
+      toManyRelations: (UserResponseEntity object) => {
+        obx_int.RelInfo<UserResponseEntity>.toMany(4, object.id):
+            object.devices,
+      },
+      getId: (UserResponseEntity object) => object.id,
+      setId: (UserResponseEntity object, int id) {
+        object.id = id;
+      },
+      objectToFB: (UserResponseEntity object, fb.Builder fbb) {
+        final legacyTokenOffset = fbb.writeString(object.legacyToken);
+        fbb.startTable(7);
+        fbb.addInt64(0, object.id);
+        fbb.addInt64(1, object.legacyID);
+        fbb.addOffset(2, legacyTokenOffset);
+        fbb.addBool(3, object.emailConfirmed);
+        fbb.addBool(4, object.success);
+        fbb.addInt64(5, object.legacyUserData.targetId);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final idParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final legacyIDParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          6,
+          0,
+        );
+        final legacyTokenParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 8, '');
+        final emailConfirmedParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          10,
+          false,
+        );
+        final successParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          12,
+          false,
+        );
+        final object = UserResponseEntity(
+          id: idParam,
+          legacyID: legacyIDParam,
+          legacyToken: legacyTokenParam,
+          emailConfirmed: emailConfirmedParam,
+          success: successParam,
+        );
+        object.legacyUserData.targetId = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          14,
+          0,
+        );
+        object.legacyUserData.attach(store);
+        obx_int.InternalToManyAccess.setRelInfo<UserResponseEntity>(
+          object.devices,
+          store,
+          obx_int.RelInfo<UserResponseEntity>.toMany(4, object.id),
+        );
+        return object;
+      },
+    ),
     Website: obx_int.EntityDefinition<Website>(
-        model: _entities[10],
-        toOneRelations: (Website object) => [],
-        toManyRelations: (Website object) => {},
-        getId: (Website object) => object.id,
-        setId: (Website object, int id) {
-          object.id = id;
-        },
-        objectToFB: (Website object, fb.Builder fbb) {
-          final domainOffset = fbb.writeString(object.domain);
-          fbb.startTable(3);
-          fbb.addInt64(0, object.id);
-          fbb.addOffset(1, domainOffset);
-          fbb.finish(fbb.endTable());
-          return object.id;
-        },
-        objectFromFB: (obx.Store store, ByteData fbData) {
-          final buffer = fb.BufferContext(fbData);
-          final rootOffset = buffer.derefObject(0);
-          final idParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
-          final domainParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 6, '');
-          final object = Website(id: idParam, domain: domainParam);
+      model: _entities[10],
+      toOneRelations: (Website object) => [],
+      toManyRelations: (Website object) => {},
+      getId: (Website object) => object.id,
+      setId: (Website object, int id) {
+        object.id = id;
+      },
+      objectToFB: (Website object, fb.Builder fbb) {
+        final domainOffset = fbb.writeString(object.domain);
+        fbb.startTable(3);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, domainOffset);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final idParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final domainParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final object = Website(id: idParam, domain: domainParam);
 
-          return object;
-        })
+        return object;
+      },
+    ),
   };
 
   return obx_int.ModelDefinition(model, bindings);
@@ -1135,338 +1381,412 @@ obx_int.ModelDefinition getObjectBoxModel() {
 /// [AppData] entity fields to define ObjectBox queries.
 class AppData_ {
   /// See [AppData.id].
-  static final id =
-      obx.QueryIntegerProperty<AppData>(_entities[0].properties[0]);
+  static final id = obx.QueryIntegerProperty<AppData>(
+    _entities[0].properties[0],
+  );
 
   /// See [AppData.name].
-  static final name =
-      obx.QueryStringProperty<AppData>(_entities[0].properties[1]);
+  static final name = obx.QueryStringProperty<AppData>(
+    _entities[0].properties[1],
+  );
 
   /// See [AppData.bundleId].
-  static final bundleId =
-      obx.QueryStringProperty<AppData>(_entities[0].properties[2]);
+  static final bundleId = obx.QueryStringProperty<AppData>(
+    _entities[0].properties[2],
+  );
 
   /// See [AppData.iconBytes].
-  static final iconBytes =
-      obx.QueryByteVectorProperty<AppData>(_entities[0].properties[3]);
+  static final iconBytes = obx.QueryByteVectorProperty<AppData>(
+    _entities[0].properties[3],
+  );
 
   /// See [AppData.iconPath].
-  static final iconPath =
-      obx.QueryStringProperty<AppData>(_entities[0].properties[4]);
+  static final iconPath = obx.QueryStringProperty<AppData>(
+    _entities[0].properties[4],
+  );
 
   /// See [AppData.appPath].
-  static final appPath =
-      obx.QueryStringProperty<AppData>(_entities[0].properties[5]);
+  static final appPath = obx.QueryStringProperty<AppData>(
+    _entities[0].properties[5],
+  );
 
   /// See [AppData.isEnabled].
-  static final isEnabled =
-      obx.QueryBooleanProperty<AppData>(_entities[0].properties[6]);
+  static final isEnabled = obx.QueryBooleanProperty<AppData>(
+    _entities[0].properties[6],
+  );
 }
 
 /// [AppSetting] entity fields to define ObjectBox queries.
 class AppSetting_ {
   /// See [AppSetting.id].
-  static final id =
-      obx.QueryIntegerProperty<AppSetting>(_entities[1].properties[0]);
+  static final id = obx.QueryIntegerProperty<AppSetting>(
+    _entities[1].properties[0],
+  );
 
   /// See [AppSetting.isPro].
-  static final isPro =
-      obx.QueryBooleanProperty<AppSetting>(_entities[1].properties[1]);
+  static final isPro = obx.QueryBooleanProperty<AppSetting>(
+    _entities[1].properties[1],
+  );
 
   /// See [AppSetting.isSplitTunnelingOn].
-  static final isSplitTunnelingOn =
-      obx.QueryBooleanProperty<AppSetting>(_entities[1].properties[2]);
+  static final isSplitTunnelingOn = obx.QueryBooleanProperty<AppSetting>(
+    _entities[1].properties[2],
+  );
 
   /// See [AppSetting.splitTunnelingMode].
-  static final splitTunnelingMode =
-      obx.QueryStringProperty<AppSetting>(_entities[1].properties[3]);
+  static final splitTunnelingMode = obx.QueryStringProperty<AppSetting>(
+    _entities[1].properties[3],
+  );
 
   /// See [AppSetting.locale].
-  static final locale =
-      obx.QueryStringProperty<AppSetting>(_entities[1].properties[4]);
+  static final locale = obx.QueryStringProperty<AppSetting>(
+    _entities[1].properties[4],
+  );
 
   /// See [AppSetting.oAuthToken].
-  static final oAuthToken =
-      obx.QueryStringProperty<AppSetting>(_entities[1].properties[5]);
+  static final oAuthToken = obx.QueryStringProperty<AppSetting>(
+    _entities[1].properties[5],
+  );
 
   /// See [AppSetting.userLoggedIn].
-  static final userLoggedIn =
-      obx.QueryBooleanProperty<AppSetting>(_entities[1].properties[6]);
+  static final userLoggedIn = obx.QueryBooleanProperty<AppSetting>(
+    _entities[1].properties[6],
+  );
 
   /// See [AppSetting.email].
-  static final email =
-      obx.QueryStringProperty<AppSetting>(_entities[1].properties[7]);
+  static final email = obx.QueryStringProperty<AppSetting>(
+    _entities[1].properties[7],
+  );
 }
 
 /// [DeviceEntity] entity fields to define ObjectBox queries.
 class DeviceEntity_ {
   /// See [DeviceEntity.id].
-  static final id =
-      obx.QueryIntegerProperty<DeviceEntity>(_entities[2].properties[0]);
+  static final id = obx.QueryIntegerProperty<DeviceEntity>(
+    _entities[2].properties[0],
+  );
 
   /// See [DeviceEntity.deviceId].
-  static final deviceId =
-      obx.QueryStringProperty<DeviceEntity>(_entities[2].properties[1]);
+  static final deviceId = obx.QueryStringProperty<DeviceEntity>(
+    _entities[2].properties[1],
+  );
 
   /// See [DeviceEntity.name].
-  static final name =
-      obx.QueryStringProperty<DeviceEntity>(_entities[2].properties[2]);
+  static final name = obx.QueryStringProperty<DeviceEntity>(
+    _entities[2].properties[2],
+  );
 
   /// See [DeviceEntity.created].
-  static final created =
-      obx.QueryIntegerProperty<DeviceEntity>(_entities[2].properties[3]);
+  static final created = obx.QueryIntegerProperty<DeviceEntity>(
+    _entities[2].properties[3],
+  );
 }
 
 /// [PlanEntity] entity fields to define ObjectBox queries.
 class PlanEntity_ {
   /// See [PlanEntity.id].
-  static final id =
-      obx.QueryIntegerProperty<PlanEntity>(_entities[3].properties[0]);
+  static final id = obx.QueryIntegerProperty<PlanEntity>(
+    _entities[3].properties[0],
+  );
 
   /// See [PlanEntity.planId].
-  static final planId =
-      obx.QueryStringProperty<PlanEntity>(_entities[3].properties[1]);
+  static final planId = obx.QueryStringProperty<PlanEntity>(
+    _entities[3].properties[1],
+  );
 
   /// See [PlanEntity.description].
-  static final description =
-      obx.QueryStringProperty<PlanEntity>(_entities[3].properties[2]);
+  static final description = obx.QueryStringProperty<PlanEntity>(
+    _entities[3].properties[2],
+  );
 
   /// See [PlanEntity.usdPrice].
-  static final usdPrice =
-      obx.QueryIntegerProperty<PlanEntity>(_entities[3].properties[3]);
+  static final usdPrice = obx.QueryIntegerProperty<PlanEntity>(
+    _entities[3].properties[3],
+  );
 
   /// See [PlanEntity.priceJson].
-  static final priceJson =
-      obx.QueryStringProperty<PlanEntity>(_entities[3].properties[4]);
+  static final priceJson = obx.QueryStringProperty<PlanEntity>(
+    _entities[3].properties[4],
+  );
 
   /// See [PlanEntity.expectedMonthlyPriceJson].
-  static final expectedMonthlyPriceJson =
-      obx.QueryStringProperty<PlanEntity>(_entities[3].properties[5]);
+  static final expectedMonthlyPriceJson = obx.QueryStringProperty<PlanEntity>(
+    _entities[3].properties[5],
+  );
 
   /// See [PlanEntity.bestValue].
-  static final bestValue =
-      obx.QueryBooleanProperty<PlanEntity>(_entities[3].properties[6]);
+  static final bestValue = obx.QueryBooleanProperty<PlanEntity>(
+    _entities[3].properties[6],
+  );
 }
 
 /// [PlansDataEntity] entity fields to define ObjectBox queries.
 class PlansDataEntity_ {
   /// See [PlansDataEntity.id].
-  static final id =
-      obx.QueryIntegerProperty<PlansDataEntity>(_entities[4].properties[0]);
+  static final id = obx.QueryIntegerProperty<PlansDataEntity>(
+    _entities[4].properties[0],
+  );
 
   /// See [PlansDataEntity.providers].
   static final providers =
       obx.QueryRelationToOne<PlansDataEntity, ProvidersEntity>(
-          _entities[4].properties[1]);
+        _entities[4].properties[1],
+      );
 
   /// see [PlansDataEntity.plans]
   static final plans = obx.QueryRelationToMany<PlansDataEntity, PlanEntity>(
-      _entities[4].relations[0]);
+    _entities[4].relations[0],
+  );
 }
 
 /// [ProvidersEntity] entity fields to define ObjectBox queries.
 class ProvidersEntity_ {
   /// See [ProvidersEntity.id].
-  static final id =
-      obx.QueryIntegerProperty<ProvidersEntity>(_entities[5].properties[0]);
+  static final id = obx.QueryIntegerProperty<ProvidersEntity>(
+    _entities[5].properties[0],
+  );
 
   /// See [ProvidersEntity.androidJson].
-  static final androidJson =
-      obx.QueryStringProperty<ProvidersEntity>(_entities[5].properties[1]);
+  static final androidJson = obx.QueryStringProperty<ProvidersEntity>(
+    _entities[5].properties[1],
+  );
 
   /// See [ProvidersEntity.desktopJson].
-  static final desktopJson =
-      obx.QueryStringProperty<ProvidersEntity>(_entities[5].properties[2]);
+  static final desktopJson = obx.QueryStringProperty<ProvidersEntity>(
+    _entities[5].properties[2],
+  );
 }
 
 /// [PurchaseEntity] entity fields to define ObjectBox queries.
 class PurchaseEntity_ {
   /// See [PurchaseEntity.id].
-  static final id =
-      obx.QueryIntegerProperty<PurchaseEntity>(_entities[6].properties[0]);
+  static final id = obx.QueryIntegerProperty<PurchaseEntity>(
+    _entities[6].properties[0],
+  );
 
   /// See [PurchaseEntity.plan].
-  static final plan =
-      obx.QueryStringProperty<PurchaseEntity>(_entities[6].properties[1]);
+  static final plan = obx.QueryStringProperty<PurchaseEntity>(
+    _entities[6].properties[1],
+  );
 }
 
 /// [SubscriptionDataEntity] entity fields to define ObjectBox queries.
 class SubscriptionDataEntity_ {
   /// See [SubscriptionDataEntity.id].
   static final id = obx.QueryIntegerProperty<SubscriptionDataEntity>(
-      _entities[7].properties[0]);
+    _entities[7].properties[0],
+  );
 
   /// See [SubscriptionDataEntity.planID].
   static final planID = obx.QueryStringProperty<SubscriptionDataEntity>(
-      _entities[7].properties[1]);
+    _entities[7].properties[1],
+  );
 
   /// See [SubscriptionDataEntity.stripeCustomerID].
   static final stripeCustomerID =
       obx.QueryStringProperty<SubscriptionDataEntity>(
-          _entities[7].properties[2]);
+        _entities[7].properties[2],
+      );
 
   /// See [SubscriptionDataEntity.startAt].
   static final startAt = obx.QueryStringProperty<SubscriptionDataEntity>(
-      _entities[7].properties[3]);
+    _entities[7].properties[3],
+  );
 
   /// See [SubscriptionDataEntity.cancelledAt].
   static final cancelledAt = obx.QueryStringProperty<SubscriptionDataEntity>(
-      _entities[7].properties[4]);
+    _entities[7].properties[4],
+  );
 
   /// See [SubscriptionDataEntity.autoRenew].
   static final autoRenew = obx.QueryBooleanProperty<SubscriptionDataEntity>(
-      _entities[7].properties[5]);
+    _entities[7].properties[5],
+  );
 
   /// See [SubscriptionDataEntity.subscriptionID].
   static final subscriptionID = obx.QueryStringProperty<SubscriptionDataEntity>(
-      _entities[7].properties[6]);
+    _entities[7].properties[6],
+  );
 
   /// See [SubscriptionDataEntity.status].
   static final status = obx.QueryStringProperty<SubscriptionDataEntity>(
-      _entities[7].properties[7]);
+    _entities[7].properties[7],
+  );
 
   /// See [SubscriptionDataEntity.provider].
   static final provider = obx.QueryStringProperty<SubscriptionDataEntity>(
-      _entities[7].properties[8]);
+    _entities[7].properties[8],
+  );
 
   /// See [SubscriptionDataEntity.createdAt].
   static final createdAt = obx.QueryStringProperty<SubscriptionDataEntity>(
-      _entities[7].properties[9]);
+    _entities[7].properties[9],
+  );
 
   /// See [SubscriptionDataEntity.endAt].
   static final endAt = obx.QueryStringProperty<SubscriptionDataEntity>(
-      _entities[7].properties[10]);
+    _entities[7].properties[10],
+  );
 }
 
 /// [UserDataEntity] entity fields to define ObjectBox queries.
 class UserDataEntity_ {
   /// See [UserDataEntity.id].
-  static final id =
-      obx.QueryIntegerProperty<UserDataEntity>(_entities[8].properties[0]);
+  static final id = obx.QueryIntegerProperty<UserDataEntity>(
+    _entities[8].properties[0],
+  );
 
   /// See [UserDataEntity.userId].
-  static final userId =
-      obx.QueryIntegerProperty<UserDataEntity>(_entities[8].properties[1]);
+  static final userId = obx.QueryIntegerProperty<UserDataEntity>(
+    _entities[8].properties[1],
+  );
 
   /// See [UserDataEntity.code].
-  static final code =
-      obx.QueryStringProperty<UserDataEntity>(_entities[8].properties[2]);
+  static final code = obx.QueryStringProperty<UserDataEntity>(
+    _entities[8].properties[2],
+  );
 
   /// See [UserDataEntity.token].
-  static final token =
-      obx.QueryStringProperty<UserDataEntity>(_entities[8].properties[3]);
+  static final token = obx.QueryStringProperty<UserDataEntity>(
+    _entities[8].properties[3],
+  );
 
   /// See [UserDataEntity.referral].
-  static final referral =
-      obx.QueryStringProperty<UserDataEntity>(_entities[8].properties[4]);
+  static final referral = obx.QueryStringProperty<UserDataEntity>(
+    _entities[8].properties[4],
+  );
 
   /// See [UserDataEntity.phone].
-  static final phone =
-      obx.QueryStringProperty<UserDataEntity>(_entities[8].properties[5]);
+  static final phone = obx.QueryStringProperty<UserDataEntity>(
+    _entities[8].properties[5],
+  );
 
   /// See [UserDataEntity.email].
-  static final email =
-      obx.QueryStringProperty<UserDataEntity>(_entities[8].properties[6]);
+  static final email = obx.QueryStringProperty<UserDataEntity>(
+    _entities[8].properties[6],
+  );
 
   /// See [UserDataEntity.userStatus].
-  static final userStatus =
-      obx.QueryStringProperty<UserDataEntity>(_entities[8].properties[7]);
+  static final userStatus = obx.QueryStringProperty<UserDataEntity>(
+    _entities[8].properties[7],
+  );
 
   /// See [UserDataEntity.userLevel].
-  static final userLevel =
-      obx.QueryStringProperty<UserDataEntity>(_entities[8].properties[8]);
+  static final userLevel = obx.QueryStringProperty<UserDataEntity>(
+    _entities[8].properties[8],
+  );
 
   /// See [UserDataEntity.locale].
-  static final locale =
-      obx.QueryStringProperty<UserDataEntity>(_entities[8].properties[9]);
+  static final locale = obx.QueryStringProperty<UserDataEntity>(
+    _entities[8].properties[9],
+  );
 
   /// See [UserDataEntity.expiration].
-  static final expiration =
-      obx.QueryIntegerProperty<UserDataEntity>(_entities[8].properties[10]);
+  static final expiration = obx.QueryIntegerProperty<UserDataEntity>(
+    _entities[8].properties[10],
+  );
 
   /// See [UserDataEntity.subscription].
-  static final subscription =
-      obx.QueryStringProperty<UserDataEntity>(_entities[8].properties[11]);
+  static final subscription = obx.QueryStringProperty<UserDataEntity>(
+    _entities[8].properties[11],
+  );
 
   /// See [UserDataEntity.bonusDays].
-  static final bonusDays =
-      obx.QueryStringProperty<UserDataEntity>(_entities[8].properties[12]);
+  static final bonusDays = obx.QueryStringProperty<UserDataEntity>(
+    _entities[8].properties[12],
+  );
 
   /// See [UserDataEntity.bonusMonths].
-  static final bonusMonths =
-      obx.QueryStringProperty<UserDataEntity>(_entities[8].properties[13]);
+  static final bonusMonths = obx.QueryStringProperty<UserDataEntity>(
+    _entities[8].properties[13],
+  );
 
   /// See [UserDataEntity.yinbiEnabled].
-  static final yinbiEnabled =
-      obx.QueryBooleanProperty<UserDataEntity>(_entities[8].properties[14]);
+  static final yinbiEnabled = obx.QueryBooleanProperty<UserDataEntity>(
+    _entities[8].properties[14],
+  );
 
   /// See [UserDataEntity.servers].
-  static final servers =
-      obx.QueryStringProperty<UserDataEntity>(_entities[8].properties[15]);
+  static final servers = obx.QueryStringProperty<UserDataEntity>(
+    _entities[8].properties[15],
+  );
 
   /// See [UserDataEntity.inviters].
-  static final inviters =
-      obx.QueryStringProperty<UserDataEntity>(_entities[8].properties[16]);
+  static final inviters = obx.QueryStringProperty<UserDataEntity>(
+    _entities[8].properties[16],
+  );
 
   /// See [UserDataEntity.invitees].
-  static final invitees =
-      obx.QueryStringProperty<UserDataEntity>(_entities[8].properties[17]);
+  static final invitees = obx.QueryStringProperty<UserDataEntity>(
+    _entities[8].properties[17],
+  );
 
   /// See [UserDataEntity.subscriptionData].
   static final subscriptionData =
       obx.QueryRelationToOne<UserDataEntity, SubscriptionDataEntity>(
-          _entities[8].properties[18]);
+        _entities[8].properties[18],
+      );
+
+  /// See [UserDataEntity.purchases].
+  static final purchases = obx.QueryStringProperty<UserDataEntity>(
+    _entities[8].properties[19],
+  );
 
   /// see [UserDataEntity.devices]
   static final devices = obx.QueryRelationToMany<UserDataEntity, DeviceEntity>(
-      _entities[8].relations[0]);
-
-  /// see [UserDataEntity.purchases]
-  static final purchases =
-      obx.QueryRelationToMany<UserDataEntity, PurchaseEntity>(
-          _entities[8].relations[1]);
+    _entities[8].relations[0],
+  );
 }
 
 /// [UserResponseEntity] entity fields to define ObjectBox queries.
 class UserResponseEntity_ {
   /// See [UserResponseEntity.id].
-  static final id =
-      obx.QueryIntegerProperty<UserResponseEntity>(_entities[9].properties[0]);
+  static final id = obx.QueryIntegerProperty<UserResponseEntity>(
+    _entities[9].properties[0],
+  );
 
   /// See [UserResponseEntity.legacyID].
-  static final legacyID =
-      obx.QueryIntegerProperty<UserResponseEntity>(_entities[9].properties[1]);
+  static final legacyID = obx.QueryIntegerProperty<UserResponseEntity>(
+    _entities[9].properties[1],
+  );
 
   /// See [UserResponseEntity.legacyToken].
-  static final legacyToken =
-      obx.QueryStringProperty<UserResponseEntity>(_entities[9].properties[2]);
+  static final legacyToken = obx.QueryStringProperty<UserResponseEntity>(
+    _entities[9].properties[2],
+  );
 
   /// See [UserResponseEntity.emailConfirmed].
-  static final emailConfirmed =
-      obx.QueryBooleanProperty<UserResponseEntity>(_entities[9].properties[3]);
+  static final emailConfirmed = obx.QueryBooleanProperty<UserResponseEntity>(
+    _entities[9].properties[3],
+  );
 
   /// See [UserResponseEntity.success].
-  static final success =
-      obx.QueryBooleanProperty<UserResponseEntity>(_entities[9].properties[4]);
+  static final success = obx.QueryBooleanProperty<UserResponseEntity>(
+    _entities[9].properties[4],
+  );
 
   /// See [UserResponseEntity.legacyUserData].
   static final legacyUserData =
       obx.QueryRelationToOne<UserResponseEntity, UserDataEntity>(
-          _entities[9].properties[5]);
+        _entities[9].properties[5],
+      );
 
   /// see [UserResponseEntity.devices]
   static final devices =
       obx.QueryRelationToMany<UserResponseEntity, DeviceEntity>(
-          _entities[9].relations[0]);
+        _entities[9].relations[0],
+      );
 }
 
 /// [Website] entity fields to define ObjectBox queries.
 class Website_ {
   /// See [Website.id].
-  static final id =
-      obx.QueryIntegerProperty<Website>(_entities[10].properties[0]);
+  static final id = obx.QueryIntegerProperty<Website>(
+    _entities[10].properties[0],
+  );
 
   /// See [Website.domain].
-  static final domain =
-      obx.QueryStringProperty<Website>(_entities[10].properties[1]);
+  static final domain = obx.QueryStringProperty<Website>(
+    _entities[10].properties[1],
+  );
 }

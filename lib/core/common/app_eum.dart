@@ -7,23 +7,10 @@ enum VPNStatus {
   error,
 }
 
-enum AuthFlow{
-  resetPassword,
-  signUp,
-  activationCode
-}
+enum AuthFlow { resetPassword, oauth, signUp, activationCode }
 
-enum AppFlow{
-  store,
-  nonStore,
-}
+enum BillingType { subscription, one_time }
 
-
-enum StipeSubscriptionType{
-  monthly,
-  yearly,
-  one_time
-}
 enum SplitTunnelFilterType {
   domain,
   domainSuffix,
@@ -86,6 +73,29 @@ extension SplitTunnelingModeString on String {
         return SplitTunnelingMode.manual;
       default:
         return SplitTunnelingMode.automatic;
+    }
+  }
+}
+
+enum CloudProvider {
+  googleCloud,
+  digitalOcean;
+
+  String get value {
+    switch (this) {
+      case CloudProvider.googleCloud:
+        return 'gcp';
+      case CloudProvider.digitalOcean:
+        return 'do';
+    }
+  }
+
+  String get displayName {
+    switch (this) {
+      case CloudProvider.googleCloud:
+        return "Google";
+      case CloudProvider.digitalOcean:
+        return "Digital Ocean";
     }
   }
 }

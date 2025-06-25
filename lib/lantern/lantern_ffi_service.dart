@@ -5,6 +5,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:ffi/ffi.dart';
+import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
@@ -48,7 +49,7 @@ class LanternFFIService implements LanternCoreService {
   static LanternBindings _gen() {
     String fullPath = "";
     if (Platform.isWindows) {
-      fullPath = p.join(fullPath,"bin/windows", "$_libName.dll");
+      fullPath = p.join(fullPath, "bin/windows", "$_libName.dll");
     } else if (Platform.isMacOS) {
       fullPath = p.join(fullPath, "$_libName.dylib");
     } else {
@@ -303,7 +304,7 @@ class LanternFFIService implements LanternCoreService {
 
   @override
   Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
-      {required StipeSubscriptionType type,
+      {required BillingType type,
       required String planId,
       required String email}) async {
     try {
@@ -343,7 +344,7 @@ class LanternFFIService implements LanternCoreService {
       );
       return Right(result);
     } catch (e, stackTrace) {
-      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      appLogger.error('Error getting stipe billing', e, stackTrace);
       return Left(e.toFailure());
     }
   }
@@ -362,7 +363,7 @@ class LanternFFIService implements LanternCoreService {
       appLogger.info('Plans: $map');
       return Right(plans);
     } catch (e, stackTrace) {
-      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      appLogger.error('error getting plans', e, stackTrace);
       return Left(e.toFailure());
     }
   }
@@ -377,7 +378,7 @@ class LanternFFIService implements LanternCoreService {
       );
       return Right(result);
     } catch (e, stackTrace) {
-      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      appLogger.error('error getting oauth url', e, stackTrace);
       return Left(e.toFailure());
     }
   }
@@ -394,7 +395,7 @@ class LanternFFIService implements LanternCoreService {
       final user = UserResponse.fromBuffer(decodedResult);
       return Right(user);
     } catch (e, stackTrace) {
-      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      appLogger.error('error oauth callback', e, stackTrace);
       return Left(e.toFailure());
     }
   }
@@ -411,7 +412,7 @@ class LanternFFIService implements LanternCoreService {
       final user = UserResponse.fromBuffer(decodedResult);
       return Right(user);
     } catch (e, stackTrace) {
-      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      appLogger.error('Error getting user data', e, stackTrace);
       return Left(e.toFailure());
     }
   }
@@ -434,7 +435,7 @@ class LanternFFIService implements LanternCoreService {
       final user = UserResponse.fromBuffer(decodedResult);
       return Right(user);
     } catch (e, stackTrace) {
-      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      appLogger.error('error fetchUser data', e, stackTrace);
       return Left(e.toFailure());
     }
   }
@@ -444,24 +445,6 @@ class LanternFFIService implements LanternCoreService {
       {required String purchaseToken, required String planId}) {
     // TODO: implement acknowledgeInAppPurchase
     throw UnimplementedError();
-  }
-
-  @override
-  Future<Either<Failure, UserResponse>> logout(String email) async {
-    try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService.logout(email.toCharPtr).toDartString();
-        },
-      );
-
-      final decodedResult = base64Decode(result);
-      final user = UserResponse.fromBuffer(decodedResult);
-      return Right(user);
-    } catch (e, stackTrace) {
-      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
-      return Left(e.toFailure());
-    }
   }
 
   @override
@@ -483,9 +466,191 @@ class LanternFFIService implements LanternCoreService {
       );
       return Right(result);
     } catch (e, stackTrace) {
-      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      appLogger.error('error payment redirect', e, stackTrace);
       return Left(e.toFailure());
     }
+  }
+
+  @override
+  Future<Either<Failure, UserResponse>> logout(String email) async {
+    try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService.logout(email.toCharPtr).toDartString();
+        },
+      );
+      checkAPIError(result);
+      final decodedResult = base64Decode(result);
+      final user = UserResponse.fromBuffer(decodedResult);
+      return Right(user);
+    } catch (e, stackTrace) {
+      appLogger.error('error while logout', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserResponse>> login(
+      {required String email, required String password}) async {
+    try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService
+              .login(email.toCharPtr, password.toCharPtr)
+              .toDartString();
+        },
+      );
+      checkAPIError(result);
+      final decodedResult = base64Decode(result);
+      final user = UserResponse.fromBuffer(decodedResult);
+      return Right(user);
+    } catch (e, stackTrace) {
+      appLogger.error('error while login', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> startRecoveryByEmail(String email) async {
+    try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService
+              .startRecoveryByEmail(email.toCharPtr)
+              .toDartString();
+        },
+      );
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error starting recovery by email', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> validateRecoveryCode({
+    required String email,
+    required String code,
+  }) async {
+    try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService
+              .validateEmailRecoveryCode(email.toCharPtr, code.toCharPtr)
+              .toDartString();
+        },
+      );
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error validating recovery code', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> completeChangeEmail({
+    required String email,
+    required String code,
+    required String newPassword,
+  }) async {
+    try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService
+              .completeRecoveryByEmail(
+                  email.toCharPtr, newPassword.toCharPtr, code.toCharPtr)
+              .toDartString();
+        },
+      );
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error validating recovery code', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> signUp(
+      {required String email, required String password}) async {
+    try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService
+              .signup(email.toCharPtr, password.toCharPtr)
+              .toDartString();
+        },
+      );
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error validating recovery code', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserResponse>> deleteAccount({required String email, required String password}) async {
+  try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService
+              .deleteAccount(email.toCharPtr, password.toCharPtr)
+              .toDartString();
+        },
+      );
+      checkAPIError(result);
+      final decodedResult = base64Decode(result);
+      final user = UserResponse.fromBuffer(decodedResult);
+      return Right(user);
+    } catch (e, stackTrace) {
+      appLogger.error('Error deleting account', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> activationCode({required String email, required String resellerCode}) async {
+  try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService
+              .activationCode(email.toCharPtr, resellerCode.toCharPtr)
+              .toDartString();
+        },
+      );
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error activating code', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+}
+
+void checkAPIError(result) {
+  if (result is String) {
+    if (result == 'true' || result == 'ok') {
+      return;
+    }
+    dynamic decoded;
+    try {
+      decoded = jsonDecode(result);
+    } catch (_) {
+      return;
+    }
+    if (decoded is Map && decoded.containsKey('error')) {
+      throw PlatformException(
+        code: decoded['error'].toString(),
+        message: decoded['error'].toString(),
+      );
+    }
+    return;
+  }
+  if (result.error != "") {
+    throw PlatformException(code: result.error, message: result.error);
   }
 }
 

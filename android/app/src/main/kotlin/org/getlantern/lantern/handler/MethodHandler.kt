@@ -24,15 +24,28 @@ enum class Methods(val method: String) {
     StripeSubscription("stripeSubscription"),
     StripeBillingPortal("stripeBillingPortal"),
     Plans("plans"),
-    OAuthLoginUrl("oauthLoginUrl"),
-    OAuthLoginCallback("oauthLoginCallback"),
     GetUserData("getUserData"),
     FetchUserData("fetchUserData"),
     AcknowledgeInAppPurchase("acknowledgeInAppPurchase"),
     PaymentRedirect("paymentRedirect"),
 
-    //User management
-    Logout("logout")
+    //Oauth
+    OAuthLoginUrl("oauthLoginUrl"),
+    OAuthLoginCallback("oauthLoginCallback"),
+
+    //Forgot password
+    StartRecoveryByEmail("startRecoveryByEmail"),
+    ValidateRecoveryCode("validateRecoveryCode"),
+    CompleteChangeEmail("completeChangeEmail"),
+
+    //Login
+    Login("login"),
+    SignUp("signUp"),
+
+    Logout("logout"),
+    DeleteAccount("deleteAccount"),
+    ActivationCode("activationCode"),
+
 }
 
 class MethodHandler : FlutterPlugin,
@@ -80,7 +93,6 @@ class MethodHandler : FlutterPlugin,
                 scope.launch {
                     result.runCatching {
                         MainActivity.instance.stopVPN()
-
                         success("VPN stopped")
                     }.onFailure { e ->
                         result.error("stop_vpn", e.localizedMessage ?: "Please try again", e)
@@ -222,7 +234,7 @@ class MethodHandler : FlutterPlugin,
             Methods.Plans.method -> {
                 scope.launch {
                     result.runCatching {
-                        val plansData = Mobile.plans()
+                        val plansData = Mobile.plans(call.arguments<String>())
                         withContext(Dispatchers.Main) {
                             success(plansData)
                         }
@@ -297,6 +309,107 @@ class MethodHandler : FlutterPlugin,
                     }
                 }
             }
+            ///User management methods
+
+            Methods.StartRecoveryByEmail.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val map = call.arguments as Map<*, *>
+                        val email = map["email"] as String? ?: error("Missing email")
+                        Mobile.startRecoveryByEmail(email)
+                        withContext(Dispatchers.Main) {
+                            success("recovery mail sent")
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "StartRecoveryByEmail",
+                            e.localizedMessage ?: "Please try again",
+                            e
+                        )
+                    }
+                }
+            }
+
+            Methods.ValidateRecoveryCode.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val map = call.arguments as Map<*, *>
+                        val email = map["email"] as String? ?: error("Missing email")
+                        val code = call.argument<String>("code") ?: error("Missing code")
+                        Mobile.validateChangeEmailCode(email, code)
+                        withContext(Dispatchers.Main) {
+                            success("recovery code validated")
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "ValidateRecoveryCode",
+                            e.localizedMessage ?: "Please try again",
+                            e
+                        )
+                    }
+                }
+            }
+
+            Methods.CompleteChangeEmail.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val map = call.arguments as Map<*, *>
+                        val email = map["email"] as String? ?: error("Missing email")
+                        val code = call.argument<String>("code") ?: error("Missing code")
+                        val newPassword =
+                            map["newPassword"] as String? ?: error("Missing newPassword")
+                        Mobile.completeChangeEmail(email, newPassword, code)
+                        withContext(Dispatchers.Main) {
+                            success("email changed successfully")
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "CompleteChangeEmail",
+                            e.localizedMessage ?: "Please try again",
+                            e
+                        )
+                    }
+                }
+            }
+
+            Methods.Login.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val map = call.arguments as Map<*, *>
+                        val email = map["email"] as String? ?: error("Missing email")
+                        val password = map["password"] as String? ?: error("Missing password")
+                        val bytes = Mobile.login(email,password)
+                        withContext(Dispatchers.Main) {
+                            success(bytes)
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "OAuthLoginCallback",
+                            e.localizedMessage ?: "Please try again",
+                            e
+                        )
+                    }
+                }
+            }
+            Methods.SignUp.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val map = call.arguments as Map<*, *>
+                        val email = map["email"] as String? ?: error("Missing email")
+                        val password = map["password"] as String? ?: error("Missing password")
+                        Mobile.signUp(email,password)
+                        withContext(Dispatchers.Main) {
+                            success("")
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "OAuthLoginCallback",
+                            e.localizedMessage ?: "Please try again",
+                            e
+                        )
+                    }
+                }
+            }
 
             Methods.Logout.method -> {
                 scope.launch {
@@ -314,7 +427,44 @@ class MethodHandler : FlutterPlugin,
                     }
                 }
             }
-
+            Methods.DeleteAccount.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val map = call.arguments as Map<*, *>
+                        val email = map["email"] as String? ?: error("Missing email")
+                        val password = map["password"] as String? ?: error("Missing password")
+                        val bytes = Mobile.deleteAccount(email,password)
+                        withContext(Dispatchers.Main) {
+                            success(bytes)
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "OAuthLoginCallback",
+                            e.localizedMessage ?: "Please try again",
+                            e
+                        )
+                    }
+                }
+            }
+            Methods.ActivationCode.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val map = call.arguments as Map<*, *>
+                        val email = map["email"] as String? ?: error("Missing email")
+                        val resellerCode = map["resellerCode"] as String? ?: error("Missing resellerCode")
+                         Mobile.activationCode(email,resellerCode)
+                        withContext(Dispatchers.Main) {
+                            success("ok")
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "OAuthLoginCallback",
+                            e.localizedMessage ?: "Please try again",
+                            e
+                        )
+                    }
+                }
+            }
             else -> {
                 result.notImplemented()
             }

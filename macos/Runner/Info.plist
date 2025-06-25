@@ -35,6 +35,10 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSRequiresAquaSystemAppearance</key>
+	<true/>
+	<key>SUPublicEDKey</key>
+	<string>J9Pe9z0DTNLMygl0zxG0BWBON2HbTebIO1et3fARypo=</string>
 	<key>NSUserNotificationAlertStyle</key>
 	<string>alert</string>
 </dict>

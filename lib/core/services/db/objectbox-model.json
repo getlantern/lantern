@@ -306,7 +306,7 @@
     },
     {
       "id": "9:8860377402257268219",
-      "lastPropertyId": "19:8794862915387930471",
+      "lastPropertyId": "20:9105995417657118258",
       "name": "UserDataEntity",
       "properties": [
         {
@@ -407,6 +407,11 @@
           "flags": 520,
           "indexId": "2:7118341107003198595",
           "relationTarget": "SubscriptionDataEntity"
+        },
+        {
+          "id": "20:9105995417657118258",
+          "name": "purchases",
+          "type": 9
         }
       ],
       "relations": [
@@ -414,11 +419,6 @@
           "id": "2:4491095857220347583",
           "name": "devices",
           "targetId": "3:6248675632289078443"
-        },
-        {
-          "id": "3:5581625935470873398",
-          "name": "purchases",
-          "targetId": "7:6397461911687250160"
         }
       ]
     },
@@ -499,6 +499,8 @@
   "retiredEntityUids": [],
   "retiredIndexUids": [],
   "retiredPropertyUids": [],
-  "retiredRelationUids": [],
+  "retiredRelationUids": [
+    5581625935470873398
+  ],
   "version": 1
 }

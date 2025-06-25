@@ -40,6 +40,11 @@ class VPNSetting extends HookConsumerWidget {
             icon: AppImagePaths.location,
             onPressed: () {},
           ),
+          AppTile(
+            label: 'setup_private_server'.i18n,
+            icon: AppImagePaths.server,
+            onPressed: () => appRouter.push(const PrivateServerSetup()),
+          ),
         ],
       ),
     );

@@ -47,7 +47,8 @@ jobs:
               libgl1-mesa-dev \
               libegl1-mesa-dev \
               libayatana-appindicator3-dev \
-              libcurl4-openssl-dev
+              libcurl4-openssl-dev \
+              libwebkit2gtk-4.1-dev
 
       - name: Install the ninja build tool
         uses: seanmiddleditch/gha-setup-ninja@master
@@ -56,8 +57,7 @@ jobs:
         uses: subosito/flutter-action@v2.19.0
         with:
           channel: stable
-          flutter-version: 3.29.0
-          #flutter-version-file: pubspec.yaml
+          flutter-version-file: pubspec.yaml
 
       - name: Install dependencies
         run: make install-linux-deps

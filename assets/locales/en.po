@@ -466,6 +466,9 @@ msgstr "Billed Once"
 msgid "subscription"
 msgstr "Subscription"
 
+msgid "subscribe"
+msgstr "Subscribe"
+
 msgid "checkout"
 msgstr "Checkout"
 
@@ -486,3 +489,99 @@ msgstr "Continue without VPN"
 
 msgid "turn_on_vpn"
 msgstr "Turn on VPN"
+
+msgid "server_setup_do"
+msgstr "Set up a private server on Digital Ocean"
+
+msgid "server_setup_do_price"
+msgstr "Only %s month through Digital Ocean"
+
+msgid "continue_with_do"
+msgstr "Continue with Digital Ocean"
+
+msgid "do_allows"
+msgstr "Digital Ocean allows you to pick one server location from the %d options below"
+
+msgid "server_setup_gcp"
+msgstr "Set up a private server on Google Cloud Platform"
+
+msgid "server_setup_gcp_price"
+msgstr "Only %s month through Google Cloud Platform"
+
+msgid "continue_with_gcp"
+msgstr "Continue with Google"
+
+msgid "gcp_allows"
+msgstr "Google Cloud Platform allows you to pick one server location from the %d options below:"
+
+msgid "server_setup_aws"
+msgstr "Set up a private server on Digital Ocean"
+
+msgid "server_setup_aws_price"
+msgstr "Only %s month through AWS"
+
+msgid "server_setup_manual"
+msgstr "Set Up Manuallly"
+
+msgid "seamless_integration"
+msgstr "Seamless integration with Lantern"
+
+msgid "easiest_setup"
+msgstr "Easiest setup process"
+
+msgid "choose_location"
+msgstr "Choose your server's location"
+
+msgid "one_month_included"
+msgstr "%d TB/month data included"
+
+msgid "handle_configuration"
+msgstr "We handle the configuration, just sign up."
+
+msgid "setup_private_server"
+msgstr "Set Up Private Server"
+
+msgid "previous"
+msgstr "Previous"
+
+msgid "next"
+msgstr "Next"
+
+msgid "error"
+msgstr "Error"
+
+msgid "signup_error_user_exists"
+msgstr "It looks like something went wrong with the sign-up. Please try resetting your password, and if the issue continues, reach out to our support team"
+
+msgid "user_not_found"
+msgstr "User not recognized. Please check your credentials and try again. If you continue to experience issues, please reach out to our support team for assistance."
+
+msgid "invalid_code"
+msgstr "Incorrect code or it might have expired. Please try resending again"
+
+msgid "email_resend_message"
+msgstr "Your new confirmation code has been sent"
+
+msgid "password_has_been_updated"
+msgstr "Password has been updated"
+
+msgid "password_has_been_updated_message"
+msgstr "Your password has been reset successfully"
+
+msgid "update_pro_account"
+msgstr "Update Pro Account"
+
+msgid "update_pro_account_message"
+msgstr "To manage your account or sign in to another device, please add an email and password to your account first."
+
+msgid "subscription_cancelled"
+msgstr "Your subscription has been cancelled."
+
+msgid "subscription_updated"
+msgstr "Your subscription has been updated."
+
+msgid "subscription_renewed"
+msgstr "Your subscription has been renewed."
+
+msgid "got_it"
+msgstr "Got It"

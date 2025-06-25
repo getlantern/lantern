@@ -11,7 +11,9 @@ import 'package:lantern/core/models/mapper/plan_mapper.dart';
 import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/utils/store_utils.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
+import 'package:lantern/lantern/lantern_ffi_service.dart';
 import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 
 import '../core/models/lantern_status.dart';
@@ -164,7 +166,7 @@ class LanternPlatformService implements LanternCoreService {
 
   @override
   Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
-      {required StipeSubscriptionType type,
+      {required BillingType type,
       required String planId,
       required String email}) async {
     throw UnimplementedError("This not supported on mobile");
@@ -202,7 +204,10 @@ class LanternPlatformService implements LanternCoreService {
   @override
   Future<Either<Failure, PlansData>> plans() async {
     try {
-      final subData = await _methodChannel.invokeMethod<String>('plans');
+
+      final channel = isStoreVersion() ? 'store' : 'non-store';
+      final subData =
+          await _methodChannel.invokeMethod<String>('plans', channel);
       final map = jsonDecode(subData!);
       final plans = PlansData.fromJson(map);
       sl<LocalStorageService>().savePlans(plans.toEntity());
@@ -236,6 +241,7 @@ class LanternPlatformService implements LanternCoreService {
           await _methodChannel.invokeMethod('oauthLoginCallback', token);
       return Right(UserResponse.fromBuffer(bytes));
     } catch (e, stackTrace) {
+      appLogger.error('Error handling OAuth login callback', e, stackTrace);
       return Left(Failure(
           error: e.toString(),
           localizedErrorMessage: (e as Exception).localizedDescription));
@@ -297,17 +303,6 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> logout(String email) async {
-    try {
-      final bytes = await _methodChannel.invokeMethod('logout', email);
-      return Right(UserResponse.fromBuffer(bytes));
-    } catch (e, stackTrace) {
-      appLogger.error('Error logging out', e, stackTrace);
-      return Left(e.toFailure());
-    }
-  }
-
-  @override
   Future<Either<Failure, String>> paymentRedirect(
       {required String provider,
       required String planId,
@@ -328,6 +323,124 @@ class LanternPlatformService implements LanternCoreService {
       return Left(Failure(
           error: e.toString(),
           localizedErrorMessage: (e as Exception).localizedDescription));
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserResponse>> login(
+      {required String email, required String password}) async {
+    try {
+      final bytes = await _methodChannel.invokeMethod('login', {
+        'email': email,
+        'password': password,
+      });
+      return Right(UserResponse.fromBuffer(bytes));
+    } catch (e, stackTrace) {
+      appLogger.error('Error logging', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserResponse>> logout(String email) async {
+    try {
+      final bytes = await _methodChannel.invokeMethod('logout', email);
+      return Right(UserResponse.fromBuffer(bytes));
+    } catch (e, stackTrace) {
+      appLogger.error('Error logging out', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> startRecoveryByEmail(String email) async {
+    try {
+      await _methodChannel.invokeMethod('startRecoveryByEmail', {
+        'email': email,
+      });
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error starting recovery by email', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> validateRecoveryCode(
+      {required String email, required String code}) async {
+    try {
+      await _methodChannel.invokeMethod('validateRecoveryCode', {
+        'email': email,
+        'code': code,
+      });
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error validating recovery code', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> completeChangeEmail({
+    required String email,
+    required String code,
+    required String newPassword,
+  }) async {
+    try {
+      await _methodChannel.invokeMethod('completeChangeEmail', {
+        'email': email,
+        'code': code,
+        'newPassword': newPassword,
+      });
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error completing change email', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> signUp(
+      {required String email, required String password}) async {
+    try {
+      await _methodChannel.invokeMethod('signUp', {
+        'email': email,
+        'password': password,
+      });
+
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error signing up', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserResponse>> deleteAccount(
+      {required String email, required String password}) async {
+    try {
+      final bytes = await _methodChannel.invokeMethod('deleteAccount', {
+        'email': email,
+        'password': password,
+      });
+      return Right(UserResponse.fromBuffer(bytes));
+    } catch (e, stackTrace) {
+      appLogger.error('Error deleting account', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> activationCode({required String email, required String resellerCode}) async {
+  try {
+      await _methodChannel.invokeMethod('activationCode', {
+        'email': email,
+        'resellerCode': resellerCode,
+      });
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error activating code', e, stackTrace);
+      return Left(e.toFailure());
     }
   }
 }

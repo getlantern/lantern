@@ -66,7 +66,7 @@ class _CensoredDialogState extends ConsumerState<CensoredDialog> {
             result.fold(
               (failure) {
                 context.maybePop();
-                context.showSnackBarError(failure.localizedErrorMessage);
+                context.showSnackBar(failure.localizedErrorMessage);
               },
               (_) {},
             );

@@ -5,7 +5,8 @@ import 'package:lantern/core/utils/once.dart';
 extension Localization on String {
   static String defaultLocale = 'en_US';
 
-  static Translations translations = Translations.byLocale(defaultLocale.toBCP47());
+  static Translations translations =
+      Translations.byLocale(defaultLocale.toBCP47());
 
   static Future<Translations> Function(
     Future<Translations> Function(),
@@ -16,11 +17,15 @@ extension Localization on String {
         await GettextImporter().fromAssetDirectory("assets/locales");
   }
 
-  String get i18n => localize(this, translations,languageTag: defaultLocale.toBCP47());
+  String get i18n =>
+      localize(this, translations, languageTag: defaultLocale.toBCP47());
 
   String plural(value) => localizePlural(value, this, translations);
 
   String fill(List<Object> params) => localizeFill(this, params);
+
+  String args(Map<Object, Object> params) =>
+      localizeArgs(this, translations, params);
 }
 
 extension StringExtensions on String {
