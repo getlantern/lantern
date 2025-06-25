@@ -10,6 +10,7 @@ class PrivateServerEntity {
   final String accessToken;
   final String serverLocation;
   final bool isJoined;
+   bool userSelected ;
 
   PrivateServerEntity({
     required this.serverName,
@@ -18,6 +19,7 @@ class PrivateServerEntity {
     required this.accessToken,
     required this.serverLocation,
     this.isJoined = false,
+    this.userSelected = false,
   });
 
   PrivateServerEntity copyWith({
@@ -27,6 +29,7 @@ class PrivateServerEntity {
     String? accessToken,
     String? countryCode,
     bool? isJoined,
+    bool? userSelected,
   }) {
     return PrivateServerEntity(
       serverName: serverName ?? this.serverName,
@@ -35,6 +38,7 @@ class PrivateServerEntity {
       accessToken: accessToken ?? this.accessToken,
       serverLocation: countryCode ?? this.serverLocation,
       isJoined: isJoined ?? this.isJoined,
+      userSelected: userSelected ?? this.userSelected,
     );
   }
 

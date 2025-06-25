@@ -491,7 +491,7 @@
     },
     {
       "id": "12:5793460567856033350",
-      "lastPropertyId": "8:3747064734709393873",
+      "lastPropertyId": "9:922983583660449547",
       "name": "PrivateServerEntity",
       "properties": [
         {
@@ -529,6 +529,11 @@
           "id": "8:3747064734709393873",
           "name": "serverLocation",
           "type": 9
+        },
+        {
+          "id": "9:922983583660449547",
+          "name": "userSelected",
+          "type": 1
         }
       ],
       "relations": []

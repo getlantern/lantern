@@ -19,6 +19,7 @@ import org.getlantern.lantern.utils.VpnStatusManager
 enum class Methods(val method: String) {
     Start("startVPN"),
     Stop("stopVPN"),
+    SetPrivateServer("setPrivateServer"),
     IsVpnConnected("isVPNConnected"),
     AddSplitTunnelItem("addSplitTunnelItem"),
     RemoveSplitTunnelItem("removeSplitTunnelItem"),
@@ -107,6 +108,21 @@ class MethodHandler : FlutterPlugin,
                         success("VPN stopped")
                     }.onFailure { e ->
                         result.error("stop_vpn", e.localizedMessage ?: "Please try again", e)
+                    }
+                }
+            }
+
+            Methods.SetPrivateServer.method -> {
+                scope.launch {
+                    result.runCatching {
+                        Mobile.setPrivateServer(call.arguments as String)
+                        success("ok")
+                    }.onFailure { e ->
+                        result.error(
+                            "set_private_server",
+                            e.localizedMessage ?: "Please try again",
+                            e
+                        )
                     }
                 }
             }
@@ -597,7 +613,8 @@ class MethodHandler : FlutterPlugin,
                         val map = call.arguments as Map<*, *>
                         val ip = map["ip"] as String? ?: error("Missing ip")
                         val port = map["port"] as String? ?: error("Missing port")
-                        val accessToken = map["accessToken"] as String? ?: error("Missing accessToken")
+                        val accessToken =
+                            map["accessToken"] as String? ?: error("Missing accessToken")
                         val serverName = map["serverName"] as String? ?: error("Missing serverName")
                         Mobile.addServerManagerInstance(
                             ip,

@@ -735,6 +735,12 @@ class LanternFFIService implements LanternCoreService {
     // TODO: implement addServerManually
     throw UnimplementedError();
   }
+
+  @override
+  Future<Either<Failure, String>> setPrivateServer(String tag) {
+// TODO: implement addServerManually
+    throw UnimplementedError();
+  }
 }
 
 void checkAPIError(result) {

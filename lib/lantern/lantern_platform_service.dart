@@ -535,4 +535,15 @@ class LanternPlatformService implements LanternCoreService {
       return Left(e.toFailure());
     }
   }
+
+  @override
+  Future<Either<Failure, String>> setPrivateServer(String tag) async {
+    try {
+      await _methodChannel.invokeMethod('setPrivateServer', tag);
+      return Right("ok");
+    } catch (e, stackTrace) {
+      appLogger.debug('Error setting private server');
+      return Left(e.toFailure());
+    }
+  }
 }

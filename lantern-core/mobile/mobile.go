@@ -17,6 +17,7 @@ import (
 	"github.com/getlantern/radiance/api"
 	"github.com/getlantern/radiance/api/protos"
 	"github.com/getlantern/radiance/client"
+	"github.com/getlantern/radiance/client/boxoptions"
 	"github.com/getlantern/radiance/common"
 
 	"google.golang.org/protobuf/proto"
@@ -141,6 +142,22 @@ func StopVPN() error {
 	if er != nil {
 		log.Errorf("Error stopping VPN: %v", er)
 	}
+	return nil
+}
+
+func SetPrivateServer(tag string) error {
+	log.Debugf("Setting private server with tag: %s", tag)
+	radianceMutex.Lock()
+	defer radianceMutex.Unlock()
+	if vpnClient == nil {
+		return log.Error("VPN client not setup")
+	}
+	group := boxoptions.ServerGroupUser
+	err := vpnClient.SelectServer(group, tag)
+	if err != nil {
+		return log.Errorf("Error setting private server: %v", err)
+	}
+	log.Debugf("Private server set with tag: %s", tag)
 	return nil
 }
 

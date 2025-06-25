@@ -335,26 +335,43 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> startDeployment({required String location, required String serverName}) {
+  Future<Either<Failure, Unit>> startDeployment(
+      {required String location, required String serverName}) {
     if (PlatformUtils.isDesktop) {
-      return _ffiService.startDeployment(location: location,serverName: serverName);
+      return _ffiService.startDeployment(
+          location: location, serverName: serverName);
     }
-    return _platformService.startDeployment(location: location,serverName: serverName);
+    return _platformService.startDeployment(
+        location: location, serverName: serverName);
   }
 
   @override
   Future<Either<Failure, Unit>> setCert({required String fingerprint}) {
-  if (PlatformUtils.isDesktop) {
-    return _ffiService.setCert(fingerprint: fingerprint);
-  }
-  return _platformService.setCert(fingerprint: fingerprint);
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.setCert(fingerprint: fingerprint);
+    }
+    return _platformService.setCert(fingerprint: fingerprint);
   }
 
   @override
-  Future<Either<Failure, Unit>> addServerManually({required String ip, required String port, required String accessToken, required String serverName}) {
-  if (PlatformUtils.isDesktop) {
-    return _ffiService.addServerManually(ip: ip, port: port, accessToken: accessToken, serverName: serverName);
+  Future<Either<Failure, Unit>> addServerManually(
+      {required String ip,
+      required String port,
+      required String accessToken,
+      required String serverName}) {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.addServerManually(
+          ip: ip, port: port, accessToken: accessToken, serverName: serverName);
+    }
+    return _platformService.addServerManually(
+        ip: ip, port: port, accessToken: accessToken, serverName: serverName);
   }
-  return _platformService.addServerManually(ip: ip, port: port, accessToken: accessToken, serverName: serverName);
+
+  @override
+  Future<Either<Failure, String>> setPrivateServer(String tag) {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.setPrivateServer(tag);
+    }
+    return _platformService.setPrivateServer(tag);
   }
 }

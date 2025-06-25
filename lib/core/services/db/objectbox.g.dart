@@ -593,7 +593,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(12, 5793460567856033350),
     name: 'PrivateServerEntity',
-    lastPropertyId: const obx_int.IdUid(8, 3747064734709393873),
+    lastPropertyId: const obx_int.IdUid(9, 922983583660449547),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -636,6 +636,12 @@ final _entities = <obx_int.ModelEntity>[
         id: const obx_int.IdUid(8, 3747064734709393873),
         name: 'serverLocation',
         type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(9, 922983583660449547),
+        name: 'userSelected',
+        type: 1,
         flags: 0,
       ),
     ],
@@ -1440,7 +1446,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final portOffset = fbb.writeString(object.port);
         final accessTokenOffset = fbb.writeString(object.accessToken);
         final serverLocationOffset = fbb.writeString(object.serverLocation);
-        fbb.startTable(9);
+        fbb.startTable(10);
         fbb.addInt64(0, object.id);
         fbb.addOffset(1, serverNameOffset);
         fbb.addOffset(2, externalIpOffset);
@@ -1448,6 +1454,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addOffset(4, accessTokenOffset);
         fbb.addBool(6, object.isJoined);
         fbb.addOffset(7, serverLocationOffset);
+        fbb.addBool(8, object.userSelected);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -1475,6 +1482,12 @@ obx_int.ModelDefinition getObjectBoxModel() {
           16,
           false,
         );
+        final userSelectedParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          20,
+          false,
+        );
         final object = PrivateServerEntity(
           serverName: serverNameParam,
           externalIp: externalIpParam,
@@ -1482,6 +1495,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           accessToken: accessTokenParam,
           serverLocation: serverLocationParam,
           isJoined: isJoinedParam,
+          userSelected: userSelectedParam,
         )..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
 
         return object;
@@ -1940,5 +1954,10 @@ class PrivateServerEntity_ {
   /// See [PrivateServerEntity.serverLocation].
   static final serverLocation = obx.QueryStringProperty<PrivateServerEntity>(
     _entities[11].properties[6],
+  );
+
+  /// See [PrivateServerEntity.userSelected].
+  static final userSelected = obx.QueryBooleanProperty<PrivateServerEntity>(
+    _entities[11].properties[7],
   );
 }
