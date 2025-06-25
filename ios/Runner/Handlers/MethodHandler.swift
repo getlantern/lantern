@@ -32,6 +32,8 @@ class MethodHandler {
         self.startVPN(result: result)
       case "stopVPN":
         self.stopVPN(result: result)
+      case "SetPrivateServer":
+        self.setPrivateServer(result: result, tag: call.arguments as! String)
       case "isVPNConnected":
         self.isVPNConnected(result: result)
       case "plans":
@@ -115,6 +117,9 @@ class MethodHandler {
       case "selectCertFingerprint":
         let fingerprint = call.arguments as? String ?? ""
         self.selectCertFingerprint(result: result, fingerprint: fingerprint)
+      case "addServerManually":
+        let data = call.arguments as? [String: Any]
+        self.addServerManually(result: result, data: data!)
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -137,6 +142,20 @@ class MethodHandler {
               message: "Unable to start VPN tunnel.",
               details: error.localizedDescription))
         }
+      }
+    }
+  }
+
+  private func setPrivateServer(result: @escaping FlutterResult, tag: String) {
+    Task.detached {
+      var error: NSError?
+      MobileSetPrivateServer(tag, &error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "SET_PRIVATE_SERVER_ERROR")
+        return
+      }
+      await MainActor.run {
+        result("ok")
       }
     }
   }
@@ -581,6 +600,25 @@ class MethodHandler {
       MobileSelectedCertFingerprint(fingerprint)
       if let err = error {
         await self.handleFlutterError(err, result: result, code: "SELECT_CERT_FINGERPRINT_ERROR")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  func addServerManually(result: @escaping FlutterResult, data: [String: Any]) {
+    Task.detached {
+      let ip = data["ip"] as? String
+      let port = data["port"] as? String
+      let accessToken = data["accessToken"] as? String
+      let serverName = data["serverName"] as? String
+      var error: NSError?
+      MobileAddServerManagerInstance(
+        ip, port, accessToken, serverName, PrivateServerListener.shared, &error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "ADD_SERVER_MANUALLY_ERROR")
         return
       }
       await MainActor.run {

@@ -52,6 +52,19 @@ class _PrivateServerSetupState extends ConsumerState<PrivateServerSetup> {
         final accounts = serverState.data!;
         appRouter.push(PrivateServerDetails(accounts: [accounts]));
       }
+
+      if (serverState.status == 'EventTypeValidationError') {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          context.hideLoadingDialog();
+          appLogger.error(
+              "Private server deployment failed.", serverState.error);
+          AppDialog.errorDialog(
+              context: context,
+              title: 'error'.i18n,
+              content: serverState.error!);
+        });
+      }
+
       return null;
     }, [serverState.status]);
 

@@ -49,6 +49,8 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
           showSuccessDialog();
         });
       }
+
+
       return null;
     }, [serverState.status]);
 

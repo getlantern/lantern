@@ -64,10 +64,9 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
     useOnLoadResource: true,
     applicationNameForUserAgent: 'Lantern',
     useShouldOverrideUrlLoading: true,
+    hardwareAcceleration: true,
   );
   late final URLRequest _initialRequest;
-
-  Uri? _lastHandledUri;
 
   @override
   void initState() {
@@ -88,9 +87,15 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
         // Handle load start
         ref.read(webViewLoadingProvider.notifier).state = true;
       },
-      onLoadStop: (_, __) {
+      onLoadStop: (controller, webUri) {
         // Handle load stop
         ref.read(webViewLoadingProvider.notifier).state = false;
+        final url = webUri;
+
+        ///User has completed that private server setup
+        if (url?.host == 'localhost') {
+          appRouter.maybePop(true);
+        }
       },
       onReceivedError: (_, webResourceRequest, error) {
         // Handle received error
