@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"strconv"
 	"strings"
 	"sync"
@@ -341,6 +342,9 @@ func AddServerManually(ip, port, accessToken, tag string, vpnClient client.VPNCl
 		return err
 	}
 	log.Debugf("Server manager instance added successfully: %s", resp.Tag)
+	resp.Tag = tag
+	location := getGeoInfo(ip)
+	resp.Location = location
 	server, jerr := json.Marshal(resp)
 	if jerr != nil {
 		return log.Errorf("Error marshalling server response: %v", err)
@@ -348,6 +352,31 @@ func AddServerManually(ip, port, accessToken, tag string, vpnClient client.VPNCl
 	events.OnPrivateServerEvent(convertStatusToJSON("EventTypeProvisioningCompleted", string(server)))
 	return nil
 
+}
+
+type geoInfo struct {
+	CountryCode string `json:"countryCode"`
+	Country     string `json:"country"`
+	Region      string `json:"regionName"`
+	City        string `json:"city"`
+}
+
+// getGeoInfo fetches geographical information for a given IP address using the ip-api.com service.
+func getGeoInfo(ip string) string {
+	log.Debugf("Fetching geo info for IP: %s", ip)
+	resp, err := http.Get("http://ip-api.com/json/" + ip)
+	if err != nil {
+		log.Errorf("Error fetching geo info: %v", err)
+		return ""
+	}
+	defer resp.Body.Close()
+
+	var info geoInfo
+	if err := json.NewDecoder(resp.Body).Decode(&info); err != nil {
+		panic(err)
+	}
+	log.Debugf("Geo info for IP %s: %+v", ip, info)
+	return fmt.Sprintf("%s - %s [%s]", info.Region, info.Country, info.CountryCode)
 }
 
 func convertStatusToJSON(status, data string) string {

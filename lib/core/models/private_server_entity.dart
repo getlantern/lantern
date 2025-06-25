@@ -48,6 +48,6 @@ class PrivateServerEntity {
         externalIp: e['external_ip'],
         port: e['port'].toString(),
         accessToken: e['access_token'],
-        serverLocation: e['location']);
+        serverLocation: e['location']??'');
   }
 }

@@ -8,6 +8,9 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/features/private_server/provider/private_server_notifier.dart';
 
+import '../../core/models/private_server_entity.dart';
+import '../../core/services/injection_container.dart';
+
 @RoutePage(name: 'ManuallyServerSetup')
 class ManuallyServerSetup extends StatefulHookConsumerWidget {
   const ManuallyServerSetup({super.key});
@@ -25,21 +28,29 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
     final nameController = useTextEditingController();
     final buttonValid = useState(false);
     final serverState = ref.watch(privateServerNotifierProvider);
-    if (serverState.status == 'EventTypeServerTofuPermission') {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        final List<dynamic> data = jsonDecode(serverState.data!);
-        final certList =
-            data.map((item) => CertSummary.fromJson(item)).toList();
-        showFingerprintDialog(certList);
-      });
-    }
-    if (serverState.status == 'EventTypeProvisioningCompleted') {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        appLogger.info("Private server deployment completed successfully.",
-            serverState.data);
-        showSuccessDialog();
-      });
-    }
+
+    useEffect(() {
+      if (serverState.status == 'EventTypeServerTofuPermission') {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          context.hideLoadingDialog();
+          final List<dynamic> data = jsonDecode(serverState.data!);
+          final certList =
+              data.map((item) => CertSummary.fromJson(item)).toList();
+          showFingerprintDialog(certList);
+        });
+      }
+      if (serverState.status == 'EventTypeProvisioningCompleted') {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          appLogger.info("Private server deployment completed successfully.",
+              serverState.data);
+          final data = jsonDecode(serverState.data!);
+          final serverData = PrivateServerEntity.fromJson(data);
+          sl<LocalStorageService>().savePrivateServer(serverData);
+          showSuccessDialog();
+        });
+      }
+      return null;
+    }, [serverState.status]);
 
     return BaseScreen(
       title: 'set_up_your_server'.i18n,
@@ -229,17 +240,20 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
   }
 
   Future<void> onConfirmFingerprint(CertSummary cert) async {
+    context.showLoadingDialog();
     final result = await ref
         .read(privateServerNotifierProvider.notifier)
         .setCert(cert.fingerprint);
 
     result.fold(
       (failure) {
+        context.hideLoadingDialog();
         // Handle failure case, e.g., show an error message
         appLogger.error("Failed to set cert: ${failure.localizedErrorMessage}");
         context.showSnackBar(failure.localizedErrorMessage);
       },
       (_) {
+        context.hideLoadingDialog();
         // Handle success case, e.g., navigate to the next screen or show a success message
         appLogger.info("Cert set successfully.");
       },

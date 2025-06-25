@@ -42,10 +42,13 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
     } else if (serverState.status == 'EventTypeLocations') {
       locationList.value = serverState.data!.split(', ');
     } else if (serverState.status == 'EventTypeProvisioningStarted') {
-      appRouter
-          .push(PrivateServerDeploy(serverName: serverNameController.text));
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        appLogger.info("Private server deployment started successfully.");
+        appRouter
+            .push(PrivateServerDeploy(serverName: serverNameController.text));
+      });
     }
-    return Column(
+    return ListView(
       children: <Widget>[
         SizedBox(height: 16),
         AppCard(
@@ -177,7 +180,9 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
             ],
           ),
         ),
-        Spacer(),
+        SizedBox(
+          height: 36,
+        ),
         PrimaryButton(
           label: 'start_deployment'.i18n,
           enabled: selectedProject.value != null &&
