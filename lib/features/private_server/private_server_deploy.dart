@@ -2,11 +2,15 @@ import 'dart:convert';
 
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/models/private_server_entity.dart';
 import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/features/private_server/provider/private_server_notifier.dart';
+
+import '../../core/services/injection_container.dart';
 
 @RoutePage(name: 'PrivateServerDeploy')
 class PrivateServerDeploy extends StatefulHookConsumerWidget {
@@ -24,37 +28,44 @@ class PrivateServerDeploy extends StatefulHookConsumerWidget {
 
 class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
   TextTheme? textTheme;
+  final localStorage = sl<LocalStorageService>();
 
   @override
   Widget build(BuildContext context) {
     textTheme = Theme.of(context).textTheme;
-
     final serverState = ref.watch(privateServerNotifierProvider);
-    if (serverState.status == 'EventTypeProvisioningCompleted') {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        appLogger.info("Private server deployment completed successfully.",
-            serverState.data);
-        showSuccessDialog();
-      });
-    }
-    if (serverState.status == 'EventTypeProvisioningError') {
-      // If the server is ready, open the browser
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        appLogger.error("Private server deployment failed.", serverState.error);
-        showErrorDialog();
-      });
-    }
-    if (serverState.status == 'EventTypeProvisioningCancelled') {
-      appLogger.info("Private server deployment was cancelled.");
-    }
-    if (serverState.status == 'EventTypeServerTofuPermission') {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        final List<dynamic> data = jsonDecode(serverState.data!);
-        final certList =
-            data.map((item) => CertSummary.fromJson(item)).toList();
-        showFingerprintDialog(certList);
-      });
-    }
+    useEffect(() {
+      if (serverState.status == 'EventTypeProvisioningCompleted') {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          appLogger.info("Private server deployment completed successfully.",
+              serverState.data);
+          final data = jsonDecode(serverState.data!);
+          final serverData = PrivateServerEntity.fromJson(data);
+          localStorage.savePrivateServer(serverData);
+          showSuccessDialog();
+        });
+      }
+      if (serverState.status == 'EventTypeProvisioningError') {
+        // If the server is ready, open the browser
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          appLogger.error(
+              "Private server deployment failed.", serverState.error);
+          showErrorDialog();
+        });
+      }
+      if (serverState.status == 'EventTypeProvisioningCancelled') {
+        appLogger.info("Private server deployment was cancelled.");
+      }
+      if (serverState.status == 'EventTypeServerTofuPermission') {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final List<dynamic> data = jsonDecode(serverState.data!);
+          final certList =
+              data.map((item) => CertSummary.fromJson(item)).toList();
+          showFingerprintDialog(certList);
+        });
+      }
+      return null;
+    }, [serverState.status]);
 
     return BaseScreen(
       title: 'Deploying Private Server',
@@ -134,7 +145,11 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           SizedBox(height: 24),
-          Center(child: AppImage(path: AppImagePaths.roundCorrect)),
+          Center(
+              child: AppImage(
+            path: AppImagePaths.roundCorrect,
+            height: 36,
+          )),
           SizedBox(height: 16),
           Text(
             'private_server_ready'.i18n,

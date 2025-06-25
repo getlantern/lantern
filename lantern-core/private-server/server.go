@@ -33,6 +33,7 @@ type provisionSession struct {
 	userProject         *pcommon.CompartmentEntry
 	userProjectString   string
 	serverName          string
+	serverLocation      string
 	vpnClient           client.VPNClient
 }
 
@@ -41,6 +42,7 @@ type provisionerResponse struct {
 	Port        int    `json:"port"`
 	AccessToken string `json:"access_token"`
 	Tag         string `json:"tag"`
+	Location    string `json:"location,omitempty"`
 }
 
 type certSummary struct {
@@ -142,6 +144,7 @@ func listenToServerEvents(ps provisionSession) {
 					return
 				}
 				ps.CurrentCompartments = compartments
+
 				// update map
 				storeSession(&ps)
 				log.Debug("Validation completed, ready to create resources")
@@ -170,6 +173,7 @@ func listenToServerEvents(ps provisionSession) {
 					return
 				}
 				resp.Tag = provisioner.serverName
+				resp.Location = provisioner.serverLocation
 				mangerErr := AddServerManagerInstance(resp, provisioner)
 				if mangerErr != nil {
 					log.Errorf("Error adding server manager instance: %v", mangerErr)
@@ -234,16 +238,15 @@ func SelectProject(selectedProject string) error {
 
 // StartDepolyment starts the deployment process for the selected project and location.
 func StartDepolyment(selectedLocation, serverName string) error {
+
 	ps, err := getSession()
 	if err != nil {
 		return err
 	}
 	log.Debugf("Starting deployment in location: %s name %s", selectedLocation, serverName)
-	log.Debugf("Selected project: %s", ps.userProject)
 	cloc := pcommon.CompartmentLocationByIdentifier(ps.userProject.Locations, selectedLocation)
-	log.Debugf("Selected location: %v", cloc)
 	ps.serverName = serverName
-	log.Debugf("Selected server name: %s", ps.serverName)
+	ps.serverLocation = selectedLocation
 	storeSession(ps)
 	log.Debug("Starting provisioning")
 	ps.provisioner.Provision(context.Background(), ps.userProjectString, cloc.GetID())

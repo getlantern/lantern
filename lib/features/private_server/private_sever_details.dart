@@ -38,7 +38,7 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
     final serverNameController = useTextEditingController();
 
     if (serverState.status == 'EventTypeProjects') {
-      projectList.value = serverState.data!.split(',');
+      projectList.value = serverState.data!.split(', ');
     } else if (serverState.status == 'EventTypeLocations') {
       locationList.value = serverState.data!.split(', ');
     } else if (serverState.status == 'EventTypeProvisioningStarted') {
@@ -66,8 +66,8 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
                     .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                     .toList(),
                 onChanged: (value) {
-                  selectedProject.value = value;
-                  onUserInput(PrivateServerInput.selectProject, value!);
+                  selectedAccount.value = value;
+                  onUserInput(PrivateServerInput.selectAccount, value!);
                 },
               ),
             ],

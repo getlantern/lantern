@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
@@ -16,28 +17,43 @@ class PrivateServerSetup extends StatefulHookConsumerWidget {
 }
 
 class _PrivateServerSetupState extends ConsumerState<PrivateServerSetup> {
+  bool browserOpened = false;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     final serverState = ref.watch(privateServerNotifierProvider);
-    if (serverState.status == 'openBrowser') {
-      UrlUtils.openWebview<bool>(
-        serverState.data!,
-        onWebviewResult: (p0) {
-          if (p0) {
-            context.showLoadingDialog();
-          }
-        },
-      );
-    }
-    if (serverState.status == 'EventTypeOAuthError') {
-      context.showSnackBar('private_server_setup_error'.i18n);
-    }
-    if (serverState.status == 'EventTypeAccounts') {
-      //Got account from cloud provider
-      context.hideLoadingDialog();
-      final accounts = serverState.data!;
-      appRouter.push(PrivateServerDetails(accounts: [accounts]));
-    }
+    useEffect(() {
+      if (serverState.status == 'openBrowser') {
+        //Since build method is called multiple times, we need to check if the browser is already opened
+        if (!browserOpened) {
+          browserOpened = true;
+          UrlUtils.openWebview<bool>(
+            serverState.data!,
+            onWebviewResult: (p0) {
+              if (p0) {
+                context.showLoadingDialog();
+              }
+              browserOpened = false;
+            },
+          );
+        }
+      }
+      if (serverState.status == 'EventTypeOAuthError') {
+        context.showSnackBar('private_server_setup_error'.i18n);
+      }
+      if (serverState.status == 'EventTypeAccounts') {
+        //Got account from cloud provider
+        context.hideLoadingDialog();
+        final accounts = serverState.data!;
+        appRouter.push(PrivateServerDetails(accounts: [accounts]));
+      }
+      return null;
+    }, [serverState.status]);
 
     return BaseScreen(
       title: 'setup_private_server'.i18n,

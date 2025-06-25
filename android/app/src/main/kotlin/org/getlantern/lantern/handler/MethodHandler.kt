@@ -56,7 +56,6 @@ enum class Methods(val method: String) {
     SelectCertFingerprint("selectCertFingerprint"),
     AddServerManually("addServerManually"),
 
-
 }
 
 class MethodHandler : FlutterPlugin,

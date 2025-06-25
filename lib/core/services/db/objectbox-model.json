@@ -491,7 +491,7 @@
     },
     {
       "id": "12:5793460567856033350",
-      "lastPropertyId": "5:4219752625337096828",
+      "lastPropertyId": "8:3747064734709393873",
       "name": "PrivateServerEntity",
       "properties": [
         {
@@ -519,6 +519,16 @@
           "id": "5:4219752625337096828",
           "name": "accessToken",
           "type": 9
+        },
+        {
+          "id": "7:13583153016751584",
+          "name": "isJoined",
+          "type": 1
+        },
+        {
+          "id": "8:3747064734709393873",
+          "name": "serverLocation",
+          "type": 9
         }
       ],
       "relations": []
@@ -532,7 +542,9 @@
   "modelVersionParserMinimum": 5,
   "retiredEntityUids": [],
   "retiredIndexUids": [],
-  "retiredPropertyUids": [],
+  "retiredPropertyUids": [
+    2491245260035410366
+  ],
   "retiredRelationUids": [
     5581625935470873398
   ],

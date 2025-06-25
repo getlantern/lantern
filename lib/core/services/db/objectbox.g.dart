@@ -593,7 +593,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(12, 5793460567856033350),
     name: 'PrivateServerEntity',
-    lastPropertyId: const obx_int.IdUid(5, 4219752625337096828),
+    lastPropertyId: const obx_int.IdUid(8, 3747064734709393873),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -623,6 +623,18 @@ final _entities = <obx_int.ModelEntity>[
       obx_int.ModelProperty(
         id: const obx_int.IdUid(5, 4219752625337096828),
         name: 'accessToken',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 13583153016751584),
+        name: 'isJoined',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(8, 3747064734709393873),
+        name: 'serverLocation',
         type: 9,
         flags: 0,
       ),
@@ -676,7 +688,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [],
     retiredIndexUids: const [],
-    retiredPropertyUids: const [],
+    retiredPropertyUids: const [2491245260035410366],
     retiredRelationUids: const [5581625935470873398],
     modelVersion: 5,
     modelVersionParserMinimum: 5,
@@ -1427,12 +1439,15 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final externalIpOffset = fbb.writeString(object.externalIp);
         final portOffset = fbb.writeString(object.port);
         final accessTokenOffset = fbb.writeString(object.accessToken);
-        fbb.startTable(6);
+        final serverLocationOffset = fbb.writeString(object.serverLocation);
+        fbb.startTable(9);
         fbb.addInt64(0, object.id);
         fbb.addOffset(1, serverNameOffset);
         fbb.addOffset(2, externalIpOffset);
         fbb.addOffset(3, portOffset);
         fbb.addOffset(4, accessTokenOffset);
+        fbb.addBool(6, object.isJoined);
+        fbb.addOffset(7, serverLocationOffset);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -1451,11 +1466,22 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final accessTokenParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 12, '');
+        final serverLocationParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 18, '');
+        final isJoinedParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          16,
+          false,
+        );
         final object = PrivateServerEntity(
           serverName: serverNameParam,
           externalIp: externalIpParam,
           port: portParam,
           accessToken: accessTokenParam,
+          serverLocation: serverLocationParam,
+          isJoined: isJoinedParam,
         )..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
 
         return object;
@@ -1904,5 +1930,15 @@ class PrivateServerEntity_ {
   /// See [PrivateServerEntity.accessToken].
   static final accessToken = obx.QueryStringProperty<PrivateServerEntity>(
     _entities[11].properties[4],
+  );
+
+  /// See [PrivateServerEntity.isJoined].
+  static final isJoined = obx.QueryBooleanProperty<PrivateServerEntity>(
+    _entities[11].properties[5],
+  );
+
+  /// See [PrivateServerEntity.serverLocation].
+  static final serverLocation = obx.QueryStringProperty<PrivateServerEntity>(
+    _entities[11].properties[6],
   );
 }

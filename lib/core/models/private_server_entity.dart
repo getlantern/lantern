@@ -8,26 +8,42 @@ class PrivateServerEntity {
   final String externalIp;
   final String port;
   final String accessToken;
+  final String serverLocation;
+  final bool isJoined;
 
   PrivateServerEntity({
     required this.serverName,
     required this.externalIp,
     required this.port,
     required this.accessToken,
+    required this.serverLocation,
+    this.isJoined = false,
   });
-
 
   PrivateServerEntity copyWith({
     String? serverName,
     String? externalIp,
     String? port,
     String? accessToken,
+    String? countryCode,
+    bool? isJoined,
   }) {
     return PrivateServerEntity(
       serverName: serverName ?? this.serverName,
       externalIp: externalIp ?? this.externalIp,
       port: port ?? this.port,
       accessToken: accessToken ?? this.accessToken,
+      serverLocation: countryCode ?? this.serverLocation,
+      isJoined: isJoined ?? this.isJoined,
     );
+  }
+
+  static PrivateServerEntity fromJson(Map<String, dynamic> e) {
+    return PrivateServerEntity(
+        serverName: e['tag'],
+        externalIp: e['external_ip'],
+        port: e['port'].toString(),
+        accessToken: e['access_token'],
+        serverLocation: e['location']);
   }
 }
