@@ -6,6 +6,7 @@ on:
       - "v*.*.*"
 permissions:
   contents: write
+  id-token: "write"
 jobs:
   set-release-metadata:
     runs-on: ubuntu-latest
