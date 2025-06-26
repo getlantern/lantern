@@ -77,7 +77,6 @@ class _PrivateServerSetupState extends ConsumerState<PrivateServerSetup> {
           Center(
             child: AppImage(
               path: AppImagePaths.serverRack,
-              type: AssetType.svg,
               height: 180.h,
               width: 180.w,
             ),

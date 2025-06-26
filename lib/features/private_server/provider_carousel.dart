@@ -25,7 +25,7 @@ class ProviderCarousel extends HookConsumerWidget {
     return Column(
       children: [
         SizedBox(
-          height: 400.h,
+          height: PlatformUtils.isMobile ? 345.h : 370.h,
           child: PageView.builder(
             controller: controller,
             itemCount: cards.length,
@@ -33,7 +33,7 @@ class ProviderCarousel extends HookConsumerWidget {
             itemBuilder: (context, idx) => cards[idx],
           ),
         ),
-        const SizedBox(height: 12),
+
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [

@@ -143,7 +143,7 @@ func setup(_logDir, _dataDir, _locale *C.char, logPort, appsPort, statusPort, pr
 		return C.CString(outError.Error())
 	}
 	log.Debugf("Radiance setup successfully")
-	return nil
+	return C.CString("ok")
 
 }
 
@@ -163,7 +163,7 @@ func addSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
 		return C.CString(fmt.Sprintf("error adding item: %v", err))
 	}
 	log.Debugf("added %s split tunneling item %s", filterType, item)
-	return nil
+	return C.CString("ok")
 }
 
 //export removeSplitTunnelItem
@@ -182,7 +182,7 @@ func removeSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
 		return C.CString(fmt.Sprintf("error removing item: %v", err))
 	}
 	log.Debugf("removed %s split tunneling item %s", filterType, item)
-	return nil
+	return C.CString("ok")
 }
 
 // startVPN initializes and starts the VPN server if it is not already running.
@@ -209,7 +209,7 @@ func startVPN() *C.char {
 	server.sendStatusToPort(Connected)
 	log.Debug("VPN server started successfully")
 
-	return nil
+	return C.CString("ok")
 }
 
 // stopVPN stops the VPN server if it is running.
@@ -235,7 +235,7 @@ func stopVPN() *C.char {
 
 	server.sendStatusToPort(Disconnected)
 	log.Debug("VPN server stopped successfully")
-	return nil
+	return C.CString("ok")
 }
 
 // setPrivateServer sets the private server with the given tag.
@@ -249,7 +249,7 @@ func setPrivateServer(_tag *C.char) *C.char {
 		return SendError(log.Errorf("Error setting private server: %v", err))
 	}
 	log.Debugf("Private server set with tag: %s", tag)
-	return nil
+	return C.CString("ok")
 }
 
 func (s *lanternService) sendStatusToPort(status VPNStatus) {
