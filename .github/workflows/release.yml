@@ -163,5 +163,5 @@ jobs:
           webhook-type: webhook-trigger
           payload: |
             {
-              "text": "Lantern ${{ env.BUILD_TYPE }} ${{ needs.set-release-metadata.outputs.version }} released on GitHub: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
+              "text": "*Lantern ${{ env.BUILD_TYPE }} ${{ github.ref_name }} released!*\n*GitHub Release*: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}\n*Downloads:*\n• [macOS](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/${{ env.INSTALLER_NAME }}.dmg)\n• [Windows](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/${{ env.INSTALLER_NAME }}.exe)\n• [Android](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/${{ env.INSTALLER_NAME }}.apk)\n• [Linux (.deb)](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/${{ env.INSTALLER_NAME }}.deb)\n• [Linux (.rpm)](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/${{ env.INSTALLER_NAME }}.rpm)"
             }
