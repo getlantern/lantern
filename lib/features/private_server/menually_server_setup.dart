@@ -50,7 +50,6 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
         });
       }
 
-
       return null;
     }, [serverState.status]);
 
@@ -158,12 +157,14 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
   }
 
   void openQrCodeScanner(TextEditingController accessKeyController) {
+    hideKeyboard();
     appRouter.push(QrCodeScanner()).then(
       (value) {
         if (value != null) {
           try {
             final rawValue = value as String;
             accessKeyController.text = rawValue;
+            hideKeyboard();
           } catch (e) {
             appLogger.error("Error parsing QR code: $e");
           }
@@ -233,8 +234,8 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
           label: "confirm_fingerprint".i18n,
           textColor: AppColors.blue6,
           onPressed: () {
-            onConfirmFingerprint(cert.first);
             appRouter.pop();
+            onConfirmFingerprint(cert.first);
           },
         ),
       ],

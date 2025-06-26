@@ -18,6 +18,7 @@ import '../../../core/models/app_data.dart';
 import '../../../core/models/app_setting.dart';
 import '../../../core/models/plan_entity.dart';
 import '../../../core/models/private_server_entity.dart';
+import '../../../core/models/server_location_entity.dart';
 import '../../../core/models/user_entity.dart';
 import '../../../core/models/website.dart';
 
@@ -648,6 +649,46 @@ final _entities = <obx_int.ModelEntity>[
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
   ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(13, 8997345217874823658),
+    name: 'ServerLocationEntity',
+    lastPropertyId: const obx_int.IdUid(5, 6361303202257969351),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 588881311442191444),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 749892895163931068),
+        name: 'autoSelect',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 2644978804405275952),
+        name: 'serverLocation',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 569507912448715517),
+        name: 'serverName',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 6361303202257969351),
+        name: 'serverType',
+        type: 9,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
 ];
 
 /// Shortcut for [obx.Store.new] that passes [getObjectBoxModel] and for Flutter
@@ -688,7 +729,7 @@ Future<obx.Store> openStore({
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(12, 5793460567856033350),
+    lastEntityId: const obx_int.IdUid(13, 8997345217874823658),
     lastIndexId: const obx_int.IdUid(3, 4121674010287421818),
     lastRelationId: const obx_int.IdUid(4, 1689263526393937792),
     lastSequenceId: const obx_int.IdUid(0, 0),
@@ -1501,6 +1542,55 @@ obx_int.ModelDefinition getObjectBoxModel() {
         return object;
       },
     ),
+    ServerLocationEntity: obx_int.EntityDefinition<ServerLocationEntity>(
+      model: _entities[12],
+      toOneRelations: (ServerLocationEntity object) => [],
+      toManyRelations: (ServerLocationEntity object) => {},
+      getId: (ServerLocationEntity object) => object.id,
+      setId: (ServerLocationEntity object, int id) {
+        object.id = id;
+      },
+      objectToFB: (ServerLocationEntity object, fb.Builder fbb) {
+        final serverLocationOffset = fbb.writeString(object.serverLocation);
+        final serverNameOffset = fbb.writeString(object.serverName);
+        final serverTypeOffset = fbb.writeString(object.serverType);
+        fbb.startTable(6);
+        fbb.addInt64(0, object.id);
+        fbb.addBool(1, object.autoSelect);
+        fbb.addOffset(2, serverLocationOffset);
+        fbb.addOffset(3, serverNameOffset);
+        fbb.addOffset(4, serverTypeOffset);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final autoSelectParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          6,
+          false,
+        );
+        final serverLocationParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 8, '');
+        final serverNameParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 10, '');
+        final serverTypeParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 12, '');
+        final object = ServerLocationEntity(
+          autoSelect: autoSelectParam,
+          serverLocation: serverLocationParam,
+          serverName: serverNameParam,
+          serverType: serverTypeParam,
+        )..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+
+        return object;
+      },
+    ),
   };
 
   return obx_int.ModelDefinition(model, bindings);
@@ -1959,5 +2049,33 @@ class PrivateServerEntity_ {
   /// See [PrivateServerEntity.userSelected].
   static final userSelected = obx.QueryBooleanProperty<PrivateServerEntity>(
     _entities[11].properties[7],
+  );
+}
+
+/// [ServerLocationEntity] entity fields to define ObjectBox queries.
+class ServerLocationEntity_ {
+  /// See [ServerLocationEntity.id].
+  static final id = obx.QueryIntegerProperty<ServerLocationEntity>(
+    _entities[12].properties[0],
+  );
+
+  /// See [ServerLocationEntity.autoSelect].
+  static final autoSelect = obx.QueryBooleanProperty<ServerLocationEntity>(
+    _entities[12].properties[1],
+  );
+
+  /// See [ServerLocationEntity.serverLocation].
+  static final serverLocation = obx.QueryStringProperty<ServerLocationEntity>(
+    _entities[12].properties[2],
+  );
+
+  /// See [ServerLocationEntity.serverName].
+  static final serverName = obx.QueryStringProperty<ServerLocationEntity>(
+    _entities[12].properties[3],
+  );
+
+  /// See [ServerLocationEntity.serverType].
+  static final serverType = obx.QueryStringProperty<ServerLocationEntity>(
+    _entities[12].properties[4],
   );
 }

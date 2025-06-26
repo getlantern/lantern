@@ -762,3 +762,21 @@ func cancelDepolyment() *C.char {
 	log.Debugf("Deployment cancelled successfully")
 	return C.CString("ok")
 }
+
+// addServerManagerInstance adds a server manager instance manually.
+//
+//export addServerManagerInstance
+func addServerManagerInstance(_ip, _port, _accessToken, _tag *C.char) *C.char {
+	ffiEventListener := &ffiPrivateServerEventListener{}
+	ip := C.GoString(_ip)
+	port := C.GoString(_port)
+	accessToken := C.GoString(_accessToken)
+	tag := C.GoString(_tag)
+
+	err := privateserver.AddServerManually(ip, port, accessToken, tag, server.vpnClient, ffiEventListener)
+	if err != nil {
+		return SendError(log.Errorf("Error adding server manager instance: %v", err))
+	}
+	log.Debugf("Server manager instance added successfully with IP: %s, Port: %s, AccessToken: %s, Tag: %s", ip, port, accessToken, tag)
+	return C.CString("ok")
+}

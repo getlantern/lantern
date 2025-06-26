@@ -72,7 +72,7 @@ class ProviderCard extends StatelessWidget {
               text: 'one_month_included'.i18n.fill([1]),
             ),
             const SizedBox(height: 24),
-            PrimaryButton(label: 'continue_with_do'.i18n, onPressed: onContinue),
+            PrimaryButton(label: '${'continue_with'.i18n} ${provider.displayName}', onPressed: onContinue),
           ],
         ),
       ),

@@ -10,6 +10,9 @@ extension ErrorExetension on Object {
       if (description.contains("proxy_error")) {
         return "proxy_error".i18n;
       }
+      if(description.contains("VPN client not setup")) {
+        return "vpn_client_not_setup".i18n;
+      }
 
       if (description.contains("user_not_found")) {
         return "user_not_found".i18n;

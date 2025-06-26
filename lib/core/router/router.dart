@@ -141,8 +141,12 @@ class AppRouter extends RootStackRouter {
       page: PrivateServerDeploy.page,
     ),
     AutoRoute(
-      path: '/manual--server-setup',
+      path: '/manual-server-setup',
       page: ManuallyServerSetup.page,
+    ),
+    AutoRoute(
+      path: '/join-private-server',
+      page: JoinPrivateServer.page,
     ),
     AutoRoute(
       path: '/qr-scanner',

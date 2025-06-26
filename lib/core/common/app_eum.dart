@@ -7,6 +7,27 @@ enum VPNStatus {
   error,
 }
 
+enum ServerLocationType {
+  auto,
+  privateServer,
+  lanternLocation;
+}
+
+extension ServerLocationTypeExtension on String {
+  ServerLocationType get toServerLocationType {
+    switch (this) {
+      case 'auto':
+        return ServerLocationType.auto;
+      case 'privateServer':
+        return ServerLocationType.privateServer;
+      case 'lanternLocation':
+        return ServerLocationType.lanternLocation;
+      default:
+        return ServerLocationType.auto;
+    }
+  }
+}
+
 enum AuthFlow { resetPassword, oauth, signUp, activationCode }
 
 enum BillingType { subscription, one_time }

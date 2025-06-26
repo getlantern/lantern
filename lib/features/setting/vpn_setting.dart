@@ -50,12 +50,30 @@ class VPNSetting extends HookConsumerWidget {
         SizedBox(height: 16),
         AppCard(
           padding: EdgeInsets.zero,
-          child: AppTile(
-            label: 'setup_private_server'.i18n,
-            icon: AppImagePaths.server,
-            onPressed: () => appRouter.push(const PrivateServerSetup()),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AppTile(
+                label: 'setup_private_server'.i18n,
+                icon: AppImagePaths.server,
+                onPressed: () => appRouter.push(const PrivateServerSetup()),
+              ),
+              DividerSpace(),
+              AppTile(
+                label: 'join_private_server'.i18n,
+                icon: AppImagePaths.joinServer,
+                onPressed: () => appRouter.push(const JoinPrivateServer()),
+              ),
+              DividerSpace(),
+              AppTile(
+                label: 'manage_private_servers'.i18n,
+                icon: AppImagePaths.settingServer,
+                onPressed: () => appRouter.push(const PrivateServerSetup()),
+              ),
+            ],
           ),
         ),
+
       ],
     );
   }

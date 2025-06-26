@@ -8,7 +8,7 @@ class SettingTile extends StatelessWidget {
 
   final Widget? child;
 
-  final String icon;
+  final dynamic icon;
 
   final List<Widget> actions;
 
@@ -41,7 +41,7 @@ class SettingTile extends StatelessWidget {
               children: <Widget>[
                 SizedBox(
                   width: 24,
-                  child: AppImage(path: icon),
+                  child: icon is String ? AppImage(path: icon) : icon as Widget,
                 ),
                 SizedBox(width: 8),
                 Text(label,

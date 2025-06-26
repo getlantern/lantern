@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/models/private_server_entity.dart';
+import 'package:lantern/core/models/server_location_entity.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/widgets/vpn_status_indicator.dart';
+import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/vpn/server_desktop_view.dart';
 import 'package:lantern/features/vpn/server_mobile_view.dart';
@@ -38,7 +41,7 @@ class _ServerSelectionState extends State<ServerSelection> {
         children: <Widget>[
           // _buildSelectedLocation(),
           // DividerSpace(padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16)),
-          SizedBox(height: 8),
+          // SizedBox(height: 8),
           _buildSmartLocation(),
           SizedBox(height: 8),
           Padding(
@@ -85,11 +88,6 @@ class _ServerSelectionState extends State<ServerSelection> {
               ],
             ),
           ),
-
-          // Expanded(
-          //     child: ServerLocationListView(
-          //   userPro: isUserPro,
-          // )),
         ],
       ),
     );
@@ -115,10 +113,9 @@ class _ServerSelectionState extends State<ServerSelection> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 AppImage(path: AppImagePaths.blot),
-                Radio<bool>(
-                  activeColor: AppColors.gray9,
+                AppRadioButton<bool>(
                   value: true,
-                  groupValue: true,
+                  groupValue: false,
                   onChanged: (value) {},
                 ),
               ],
@@ -267,7 +264,7 @@ class _PrivateServerLocationListViewState
                   children: [
                     AppTile(
                       onPressed: () {
-                        onPrivateServerSelected(server.serverName);
+                        onPrivateServerSelected(server);
                         userSelectedServer.value = server;
                         _localStorage
                             .setDefaultPrivateServer(server.serverName);
@@ -291,7 +288,7 @@ class _PrivateServerLocationListViewState
                         value: server.serverName,
                         groupValue: userSelectedServer.value?.serverName,
                         onChanged: (value) {
-                          onPrivateServerSelected(server.serverName);
+                          onPrivateServerSelected(server);
                           userSelectedServer.value = server;
                           _localStorage
                               .setDefaultPrivateServer(server.serverName);
@@ -309,11 +306,12 @@ class _PrivateServerLocationListViewState
     );
   }
 
-  Future<void> onPrivateServerSelected(String selectedServer) async {
+  Future<void> onPrivateServerSelected(
+      PrivateServerEntity privateServer) async {
     context.showLoadingDialog();
     final result = await ref
         .read(vpnNotifierProvider.notifier)
-        .setPrivateServer(selectedServer);
+        .setPrivateServer(privateServer.serverName.trim());
 
     result.fold(
       (failure) {
@@ -322,9 +320,15 @@ class _PrivateServerLocationListViewState
       },
       (success) {
         context.hideLoadingDialog();
-        context.showSnackBar(
-          'Private server set successfully.',
-        );
+        context.showSnackBar('Private server set successfully.');
+        final serverLocation = ServerLocationEntity(
+            serverType: ServerLocationType.privateServer.name,
+            serverName: privateServer.serverName,
+            autoSelect: false,
+            serverLocation: privateServer.serverLocation);
+        ref
+            .read(serverLocationNotifierProvider.notifier)
+            .updateServerLocation(serverLocation);
       },
     );
   }

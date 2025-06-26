@@ -674,6 +674,23 @@ msgstr "Server Nickname"
 msgid "verify_server"
 msgstr "Verify Server"
 
+msgid "vpn_client_not_setup"
+msgstr "Please turn on the VPN client."
+
+msgid "continue_with"
+msgstr "Continue with"
+
+msgid "join_a_private_server"
+msgstr "Join a Private Server"
+
+msgid "manage_private_servers"
+msgstr "Manage Private Servers"
+
+
+msgid "join_private_server"
+msgstr "Join Private Server"
+
+
 
 
 

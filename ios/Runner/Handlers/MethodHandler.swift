@@ -35,7 +35,7 @@ class MethodHandler {
       case "SetPrivateServer":
         self.setPrivateServer(result: result, tag: call.arguments as! String)
       case "isVPNConnected":
-        self.isVPNConnected(result: result)
+        self.isVPNConnectedx(result: result)
       case "plans":
         self.plans(result: result)
       case "oauthLoginUrl":

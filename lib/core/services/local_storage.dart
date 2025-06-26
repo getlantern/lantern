@@ -1,12 +1,14 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/app_setting.dart';
 import 'package:lantern/core/models/mapper/user_mapper.dart';
 import 'package:lantern/core/models/plan_entity.dart';
 import 'package:lantern/core/models/private_server_entity.dart';
+import 'package:lantern/core/models/server_location_entity.dart';
 import 'package:lantern/core/models/website.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
@@ -26,6 +28,7 @@ class LocalStorageService {
   late Box<PlansDataEntity> _plansBox;
   late Box<UserResponseEntity> _userBox;
   late Box<PrivateServerEntity> _privateServerBox;
+  late Box<ServerLocationEntity> _serverLocationBox;
 
   ///Due to limitations in macOS the value must be at most 19 characters
   /// Do not change this value
@@ -75,10 +78,11 @@ class LocalStorageService {
     _plansBox = _store.box<PlansDataEntity>();
     _userBox = _store.box<UserResponseEntity>();
     _privateServerBox = _store.box<PrivateServerEntity>();
+    _serverLocationBox = _store.box<ServerLocationEntity>();
+    updateInitialServerLocation();
 
     dbLogger.info(
-      "LocalStorageService initialized in ${DateTime.now().difference(start).inMilliseconds}ms",
-    );
+        "LocalStorageService initialized in ${DateTime.now().difference(start).inMilliseconds}ms");
   }
 
   void close() {
@@ -204,5 +208,30 @@ class LocalStorageService {
       return;
     }
     throw Exception("Private server with name $serverName does not exist");
+  }
+
+  //Server Location methods
+
+  void updateInitialServerLocation() {
+    final server = _serverLocationBox.getAll();
+    if (server.isEmpty) {
+      final initialServer = ServerLocationEntity(
+        autoSelect: true,
+        serverLocation: 'Fastest Country',
+        serverName: '',
+        serverType: ServerLocationType.auto.name,
+      );
+      _serverLocationBox.put(initialServer);
+    }
+  }
+
+  Future<void> saveServerLocation(ServerLocationEntity server) async {
+    _serverLocationBox.removeAll();
+    _serverLocationBox.putAsync(server);
+  }
+
+  ServerLocationEntity getServerLocations() {
+    final server = _serverLocationBox.getAll();
+    return server.first!;
   }
 }

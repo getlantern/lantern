@@ -146,6 +146,7 @@ func StopVPN() error {
 }
 
 func SetPrivateServer(tag string) error {
+
 	log.Debugf("Setting private server with tag: %s", tag)
 	radianceMutex.Lock()
 	defer radianceMutex.Unlock()
@@ -497,6 +498,9 @@ func ActivationCode(email, resellerCode string) error {
 //Private methods
 
 func DigitalOceanPrivateServer(events utils.PrivateServerEventListener) error {
+	if vpnClient == nil {
+		return log.Error("VPN client not setup")
+	}
 	return privateserver.StartDigitalOceanPrivateServerFlow(events, vpnClient)
 }
 

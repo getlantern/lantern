@@ -13,6 +13,12 @@ class AppTheme {
           TargetPlatform.android: FadeForwardsPageTransitionsBuilder(),
         },
       ),
+      textSelectionTheme: TextSelectionThemeData(
+        cursorColor: AppColors.blue10,
+        selectionColor: AppColors.blue6,
+        selectionHandleColor: AppColors.blue7,
+
+      ),
       textTheme: TextTheme(
         bodyLarge: AppTestStyles.bodyLarge,
         bodyMedium: AppTestStyles.bodyMedium,

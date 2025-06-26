@@ -175,14 +175,17 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
                 hintText: "server_name".i18n,
                 controller: serverNameController,
                 prefixIcon: AppImage(path: AppImagePaths.server),
+                onChanged: (value) {
+                  setState(() {
+
+                  });
+                },
               ),
               SizedBox(height: 8),
             ],
           ),
         ),
-        SizedBox(
-          height: 36,
-        ),
+        SizedBox(height: 36),
         PrimaryButton(
           label: 'start_deployment'.i18n,
           enabled: selectedProject.value != null &&

@@ -15,7 +15,7 @@ class QrCodeScanner extends StatelessWidget {
     final scanWindow = Rect.fromCenter(
       center: MediaQuery.sizeOf(context).center(const Offset(0, -100)),
       width: 300,
-      height: 200,
+      height: 250,
     );
     return BaseScreen(
       title: 'qr_code_scanner'.i18n,
