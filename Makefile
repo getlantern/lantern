@@ -134,7 +134,7 @@ desktop-lib:
 # macOS Build
 .PHONY: install-macos-deps
 
-install-macos-deps:
+install-macos-deps: install-gomobile
 	npm install -g appdmg
 	brew tap joshdk/tap
 	brew install joshdk/tap/retry
@@ -266,14 +266,16 @@ windows-debug: windows
 windows-release: clean windows pubget gen
 	flutter_distributor package --flutter-build-args=verbose --platform windows --targets "exe"
 
-# Android Build
-.PHONY: install-android-deps
-install-android-deps:
-	@echo "Installing Android dependencies..."
-
+.PHONY: install-gomobile
+install-gomobile:
 	go install -v golang.org/x/mobile/cmd/gomobile@$(GOMOBILE_VERSION)
 	go install -v golang.org/x/mobile/cmd/gobind@$(GOMOBILE_VERSION)
 	gomobile init
+
+
+# Android Build
+.PHONY: install-android-deps
+install-android-deps: install-gomobile
 
 .PHONY: android
 android: check-gomobile $(ANDROID_LIB_BUILD)
