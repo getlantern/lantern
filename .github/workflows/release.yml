@@ -112,6 +112,9 @@ jobs:
       BUILD_TYPE: ${{ needs.set-release-metadata.outputs.build_type }}
       INSTALLER_NAME: ${{ needs.set-release-metadata.outputs.installer_name }}
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
 
