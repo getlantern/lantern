@@ -33,7 +33,7 @@ MACOS_FRAMEWORK := Liblantern.xcframework
 MACOS_FRAMEWORK_DIR := macos/Frameworks
 MACOS_FRAMEWORK_BUILD := $(BIN_DIR)/macos/$(MACOS_FRAMEWORK)
 MACOS_DEBUG_BUILD := $(BUILD_DIR)/macos/Runner.app
-PACKET_TUNNEL_ENTITLEMENTS := macos/PacketTunnel/PacketTunnelRelease.entitlements
+PACKET_ENTITLEMENTS := macos/PacketTunnel/PacketTunnelRelease.entitlements
 
 LINUX_LIB := $(LANTERN_LIB_NAME).so
 LINUX_LIB_AMD64 := $(BIN_DIR)/linux-amd64/$(LANTERN_LIB_NAME).so
@@ -194,9 +194,9 @@ notarize-darwin: require-ac-username require-ac-password
 	@echo "Notarization complete"
 
 sign-app:
-	$(call osxcodesign, $(FRAMEWORK_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR)/Contents/Frameworks/Liblantern.framework)
 	$(call osxcodesign, $(PACKET_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR)/Contents/MacOS/org.getlantern.lantern.PacketTunnel)
 	$(call osxcodesign, $(PACKET_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR))
+	$(call osxcodesign, $(MACOS_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR)/Contents/Frameworks/Liblantern.framework)
 	$(call osxcodesign, $(MACOS_ENTITLEMENTS), $(DARWIN_RELEASE_BUILD))
 
 package-macos: require-appdmg
