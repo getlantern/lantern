@@ -121,7 +121,7 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "2.  ${'server_access_key'.i18n}",
+                  "3.  ${'server_access_key'.i18n}",
                   style: textTheme.titleMedium,
                 ),
                 SizedBox(height: 16),
@@ -133,6 +133,9 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
                   onChanged: (value) {
                     buttonValid.value =
                         (value.isNotEmpty && nameController.text.isNotEmpty);
+                    setState(() {
+
+                    });
                   },
                   suffixIcon: PlatformUtils.isMobile
                       ? GestureDetector(
@@ -143,7 +146,7 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
                 ),
                 SizedBox(height: 16),
                 PrimaryButton(
-                  // enabled: buttonValid.value,
+                  enabled: buttonValid.value,
                   label: 'verify_server'.i18n,
                   onPressed: () => onVerifyServer(
                       accessKeyController.text, nameController.text),

@@ -29,6 +29,7 @@ import (
 	"github.com/getlantern/radiance/api"
 	"github.com/getlantern/radiance/api/protos"
 	"github.com/getlantern/radiance/client"
+	"github.com/getlantern/radiance/client/boxoptions"
 	"github.com/getlantern/radiance/common"
 )
 
@@ -234,6 +235,20 @@ func stopVPN() *C.char {
 
 	server.sendStatusToPort(Disconnected)
 	log.Debug("VPN server stopped successfully")
+	return nil
+}
+
+// setPrivateServer sets the private server with the given tag.
+//
+//export setPrivateServer
+func setPrivateServer(_tag *C.char) *C.char {
+	tag := C.GoString(_tag)
+	group := boxoptions.ServerGroupUser
+	err := server.vpnClient.SelectServer(group, tag)
+	if err != nil {
+		return SendError(log.Errorf("Error setting private server: %v", err))
+	}
+	log.Debugf("Private server set with tag: %s", tag)
 	return nil
 }
 

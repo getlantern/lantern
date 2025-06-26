@@ -731,19 +731,46 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> addServerManually({required String ip, required String port, required String accessToken, required String serverName}) {
-    // TODO: implement addServerManually
-    throw UnimplementedError();
+  Future<Either<Failure, Unit>> addServerManually(
+      {required String ip,
+      required String port,
+      required String accessToken,
+      required String serverName}) async {
+    try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService
+              .addServerManagerInstance(ip.toCharPtr, port.toCharPtr,
+                  accessToken.toCharPtr, serverName.toCharPtr)
+              .toDartString();
+        },
+      );
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error adding server manually', e, stackTrace);
+      return Left(e.toFailure());
+    }
   }
 
   @override
-  Future<Either<Failure, String>> setPrivateServer(String tag) {
-// TODO: implement addServerManually
-    throw UnimplementedError();
+  Future<Either<Failure, String>> setPrivateServer(String tag) async {
+    try {
+      final result = await runInBackground<String>(
+            () async {
+          return _ffiService.setPrivateServer(tag.toCharPtr).toDartString();
+        },
+      );
+      checkAPIError(result);
+      return Right('ok');
+    } catch (e, stackTrace) {
+      appLogger.error('Error setting private server', e, stackTrace);
+      return Left(e.toFailure());
+    }
   }
 }
 
-void checkAPIError(result) {
+void checkAPIError(dynamic result) {
   if (result is String) {
     if (result == 'true' || result == 'ok') {
       return;

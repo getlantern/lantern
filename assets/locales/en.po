@@ -686,9 +686,11 @@ msgstr "Join a Private Server"
 msgid "manage_private_servers"
 msgstr "Manage Private Servers"
 
-
 msgid "join_private_server"
 msgstr "Join Private Server"
+
+msgid "join_server"
+msgstr "Join Server"
 
 
 

@@ -146,7 +146,6 @@ func StopVPN() error {
 }
 
 func SetPrivateServer(tag string) error {
-
 	log.Debugf("Setting private server with tag: %s", tag)
 	radianceMutex.Lock()
 	defer radianceMutex.Unlock()

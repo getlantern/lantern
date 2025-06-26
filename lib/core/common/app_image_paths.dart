@@ -87,5 +87,6 @@ class AppImagePaths {
   static const qrCodeScanner = 'assets/images/qr_code_scanner.svg';
   static const settingServer = 'assets/images/setting_server.svg';
   static const joinServer = 'assets/images/join_server.svg';
+  static const warning = 'assets/images/warning.svg';
 
 }

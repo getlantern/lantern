@@ -8,12 +8,14 @@ class InfoRow extends StatelessWidget {
   final String text;
   final String? imagePath;
   final VoidCallback onPressed;
+  final Color? backgroundColor;
 
   const InfoRow({
     super.key,
     required this.text,
     required this.onPressed,
     this.imagePath,
+    this.backgroundColor,
   });
 
   @override
@@ -23,6 +25,7 @@ class InfoRow extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
+          color: backgroundColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: AppColors.gray2,

@@ -2447,6 +2447,21 @@ class LanternBindings {
   late final _stopVPN =
       _stopVPNPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
 
+  ffi.Pointer<ffi.Char> setPrivateServer(
+    ffi.Pointer<ffi.Char> _tag,
+  ) {
+    return _setPrivateServer(
+      _tag,
+    );
+  }
+
+  late final _setPrivateServerPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>)>>('setPrivateServer');
+  late final _setPrivateServer = _setPrivateServerPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
+
   ffi.Pointer<ffi.Char> isVPNConnected() {
     return _isVPNConnected();
   }
@@ -2807,6 +2822,35 @@ class LanternBindings {
           'cancelDepolyment');
   late final _cancelDepolyment =
       _cancelDepolymentPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
+
+  ffi.Pointer<ffi.Char> addServerManagerInstance(
+    ffi.Pointer<ffi.Char> _ip,
+    ffi.Pointer<ffi.Char> _port,
+    ffi.Pointer<ffi.Char> _accessToken,
+    ffi.Pointer<ffi.Char> _tag,
+  ) {
+    return _addServerManagerInstance(
+      _ip,
+      _port,
+      _accessToken,
+      _tag,
+    );
+  }
+
+  late final _addServerManagerInstancePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>)>>('addServerManagerInstance');
+  late final _addServerManagerInstance =
+      _addServerManagerInstancePtr.asFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>)>();
 }
 
 typedef __int8_t = ffi.SignedChar;
