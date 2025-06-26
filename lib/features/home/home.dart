@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/models/server_location_entity.dart';
+import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
@@ -47,6 +48,9 @@ class Home extends HookConsumerWidget {
   }
 
   Widget _buildBody(WidgetRef ref, bool isUserPro) {
+    final serverLocation = ref.watch(serverLocationNotifierProvider);
+    final serverType = serverLocation.serverType.toServerLocationType;
+
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: defaultSize),
       child: Column(
@@ -57,7 +61,15 @@ class Home extends HookConsumerWidget {
           Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              if (!isUserPro) DataUsage(),
+              if (!isUserPro) ...{
+                if (serverType == ServerLocationType.privateServer)
+                  InfoRow(
+                    text: 'private_server_usage_message'.i18n,
+                    onPressed: () {},
+                  )
+                else
+                  DataUsage(),
+              },
               SizedBox(height: 8),
               _buildSetting(ref),
               SizedBox(height: 20.h),

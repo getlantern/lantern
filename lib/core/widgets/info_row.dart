@@ -9,6 +9,7 @@ class InfoRow extends StatelessWidget {
   final String? imagePath;
   final VoidCallback onPressed;
   final Color? backgroundColor;
+  final Widget? child;
 
   const InfoRow({
     super.key,
@@ -16,6 +17,7 @@ class InfoRow extends StatelessWidget {
     required this.onPressed,
     this.imagePath,
     this.backgroundColor,
+    this.child,
   });
 
   @override
@@ -32,7 +34,7 @@ class InfoRow extends StatelessWidget {
             width: 1,
           ),
         ),
-        child: Row(
+        child: child??Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Padding(

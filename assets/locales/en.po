@@ -693,6 +693,11 @@ msgid "join_server"
 msgstr "Join Server"
 
 
+msgid "private_server_usage_message"
+msgstr "Private server usage is not counted towards your Lantern daily data cap."
+
+
+
 
 
 
