@@ -198,7 +198,7 @@ package-macos: require-appdmg
 	appdmg appdmg.json $(MACOS_INSTALLER)
 
 .PHONY: macos-release
-macos-release: clean macos pubget gen build-macos-release sign-app package-macos notarize-darwin
+macos-release: clean macos build-macos pubget gen build-macos-release sign-app package-macos notarize-darwin
 
 # Linux Build
 .PHONY: install-linux-deps
