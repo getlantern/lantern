@@ -116,7 +116,7 @@ class MethodHandler {
     Task {
       do {
         var error: NSError?
-        let data = MobilePlans(&error)
+        let data = MobilePlans("", &error)
         if error != nil {
           result(
             FlutterError(
