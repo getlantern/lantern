@@ -352,8 +352,7 @@ $(MACOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 
 build-macos:
 	@echo "Building macOS Framework.."
-	rm -rf $(MACOS_FRAMEWORK_BUILD)
-	rm -rf $(MACOS_FRAMEWORK_DIR) && mkdir -p $(MACOS_FRAMEWORK_DIR)
+	rm -rf $(MACOS_FRAMEWORK_BUILD) && mkdir -p $(MACOS_FRAMEWORK_DIR)
 	GOOS=darwin gomobile bind -v \
 		-tags=$(TAGS),netgo -trimpath \
 		-target=macos \
