@@ -115,6 +115,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2.19.0
+        with:
+          channel: stable
+          flutter-version-file: pubspec.yaml
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
 
@@ -132,6 +138,9 @@ jobs:
             lantern-installer-rpm/${{ env.INSTALLER_NAME }}.rpm
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Python dependencies
+        run: python3 -m pip install -r scripts/requirements.txt
 
       - name: Update appcast.xml
         run: |
