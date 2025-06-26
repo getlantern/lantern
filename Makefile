@@ -22,10 +22,18 @@ DARWIN_LIB := $(LANTERN_LIB_NAME).dylib
 DARWIN_LIB_AMD64 := $(BIN_DIR)/macos-amd64/$(LANTERN_LIB_NAME).dylib
 DARWIN_LIB_ARM64 := $(BIN_DIR)/macos-arm64/$(LANTERN_LIB_NAME).dylib
 DARWIN_LIB_BUILD := $(BIN_DIR)/macos/$(DARWIN_LIB)
+DARWIN_RELEASE_DIR := $(BUILD_DIR)/macos/Build/Products/Release
 DARWIN_DEBUG_BUILD := $(BUILD_DIR)/macos/Build/Products/Debug/$(DARWIN_APP_NAME)
-DARWIN_RELEASE_BUILD := $(BUILD_DIR)/macos/Build/Products/Release/$(DARWIN_APP_NAME)
+DARWIN_RELEASE_BUILD := $(DARWIN_RELEASE_DIR)/$(DARWIN_APP_NAME)
+SYSTEM_EXTENSION_DIR := $(DARWIN_RELEASE_DIR)/$(DARWIN_APP_NAME)/Contents/Library/SystemExtensions/org.getlantern.lantern.PacketTunnel.systemextension
 MACOS_ENTITLEMENTS := macos/Runner/Release.entitlements
 MACOS_INSTALLER := $(INSTALLER_NAME)$(if $(BUILD_TYPE),-$(BUILD_TYPE)).dmg
+MACOS_DIR := macos/
+MACOS_FRAMEWORK := Liblantern.xcframework
+MACOS_FRAMEWORK_DIR := macos/Frameworks
+MACOS_FRAMEWORK_BUILD := $(BIN_DIR)/macos/$(MACOS_FRAMEWORK)
+MACOS_DEBUG_BUILD := $(BUILD_DIR)/macos/Runner.app
+PACKET_TUNNEL_ENTITLEMENTS := macos/PacketTunnel/PacketTunnelRelease.entitlements
 
 LINUX_LIB := $(LANTERN_LIB_NAME).so
 LINUX_LIB_AMD64 := $(BIN_DIR)/linux-amd64/$(LANTERN_LIB_NAME).so
@@ -67,12 +75,6 @@ IOS_FRAMEWORK_DIR := ios/Frameworks
 IOS_FRAMEWORK_BUILD := $(BIN_DIR)/ios/$(IOS_FRAMEWORK)
 IOS_DEBUG_BUILD := $(BUILD_DIR)/ios/iphoneos/Runner.app
 
-MACOS_DIR := macos/
-MACOS_FRAMEWORK := Liblantern.xcframework
-MACOS_FRAMEWORK_DIR := macos/Frameworks
-MACOS_FRAMEWORK_BUILD := $(BIN_DIR)/macos/$(MACOS_FRAMEWORK)
-MACOS_DEBUG_BUILD := $(BUILD_DIR)/macos/Runner.app
-
 TAGS=with_gvisor,with_quic,with_wireguard,with_ech,with_utls,with_clash_api,with_grpc
 
 GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go')
@@ -86,7 +88,7 @@ GOMOBILE_REPOS = \
 SIGN_ID="Developer ID Application: Brave New Software Project, Inc (ACZRKC3LQ9)"
 
 define osxcodesign
-	codesign --deep --options runtime --strict --timestamp --force --entitlements $(MACOS_ENTITLEMENTS) -s $(SIGN_ID) -v $(1)
+	codesign --deep --options runtime --strict --timestamp --force --entitlements $(1) -s $(SIGN_ID) -v $(2)
 endef
 
 get-command = $(shell which="$$(which $(1) 2> /dev/null)" && if [[ ! -z "$$which" ]]; then printf %q "$$which"; fi)
@@ -192,7 +194,10 @@ notarize-darwin: require-ac-username require-ac-password
 	@echo "Notarization complete"
 
 sign-app:
-	$(call osxcodesign,$(DARWIN_RELEASE_BUILD))
+	$(call osxcodesign, $(FRAMEWORK_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR)/Contents/Frameworks/Liblantern.framework)
+	$(call osxcodesign, $(PACKET_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR)/Contents/MacOS/org.getlantern.lantern.PacketTunnel)
+	$(call osxcodesign, $(PACKET_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR))
+	$(call osxcodesign, $(MACOS_ENTITLEMENTS), $(DARWIN_RELEASE_BUILD))
 
 package-macos: require-appdmg
 	appdmg appdmg.json $(MACOS_INSTALLER)
