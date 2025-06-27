@@ -96,12 +96,9 @@ class ReportIssue extends HookConsumerWidget {
   }
 
   void submitReport() {
-
+    //todo implement the logic to submit the report
   }
 
-// print('Email: ${emailController.text}');
-// print('Issue: ${selectedIssueController.value}');
-// print('Description: ${descriptionController.text}');
 
   void _onIssueTap(String issueType) {}
 }
