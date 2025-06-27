@@ -24,6 +24,7 @@ class DigitalOceanLocations extends StatelessWidget {
       leadingIcon: AppImage(
         path: AppImagePaths.digitalOcean,
       ),
+      provider: CloudProvider.digitalOcean,
       locations: doLocations,
     );
   }
@@ -69,6 +70,7 @@ class GoogleCloudLocations extends StatelessWidget {
       leadingIcon: AppImage(
         path: AppImagePaths.googleCloud,
       ),
+      provider: CloudProvider.googleCloud,
       locations: gcpLocations,
     );
   }
@@ -77,15 +79,18 @@ class GoogleCloudLocations extends StatelessWidget {
 class ServerLocationsModal extends StatelessWidget {
   final Widget leadingIcon;
   final List<String> locations;
+  final CloudProvider provider;
 
   const ServerLocationsModal({
     Key? key,
     required this.leadingIcon,
     required this.locations,
+    required this.provider,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final providerName = provider.value;
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -100,10 +105,7 @@ class ServerLocationsModal extends StatelessWidget {
             ),
             const SizedBox(height: defaultSize),
             Text(
-              'provider_allows'.i18n.args({
-                'provider': CloudProvider.digitalOcean.displayName,
-                'count': locations.length,
-              }),
+              '${providerName}_allows'.i18n,
               style: AppTestStyles.bodyMedium,
             ),
             const SizedBox(height: defaultSize),

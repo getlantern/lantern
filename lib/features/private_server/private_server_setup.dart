@@ -110,6 +110,43 @@ class _PrivateServerSetupState extends ConsumerState<PrivateServerSetup> {
             },
           ),
         ],
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Center(
+              child: AppImage(
+                path: AppImagePaths.serverRack,
+                type: AssetType.svg,
+                height: 180.h,
+                width: 180.w,
+              ),
+            ),
+            SizedBox(height: 16),
+            ProviderCarousel(
+              cards: [
+                ProviderCard(
+                  title: 'server_setup_gcp'.i18n,
+                  price: 'server_setup_gcp_price'.i18n.fill(['\$8']),
+                  provider: CloudProvider.googleCloud,
+                  onContinue: () {},
+                  icon: AppImagePaths.googleCloud,
+                ),
+                ProviderCard(
+                  title: 'server_setup_do'.i18n,
+                  price: 'server_setup_do_price'.i18n.fill(['\$8']),
+                  provider: CloudProvider.digitalOcean,
+                  onContinue: () {},
+                  icon: AppImagePaths.digitalOceanIcon,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            SecondaryButton(
+              label: 'server_setup_manual'.i18n,
+              onPressed: () {},
+            ),
+          ],
+        ),
       ),
     );
   }
