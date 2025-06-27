@@ -86,7 +86,9 @@ class _PrivateServerSetupState extends ConsumerState<PrivateServerSetup> {
             cards: [
               ProviderCard(
                 provider: CloudProvider.googleCloud,
-                onContinue: onDigitalOceanTap,
+                onContinue: () {
+
+                },
                 icon: AppImagePaths.googleCloud,
                 title: 'server_setup_gcp'.i18n,
                 price: 'server_setup_do_price'.i18n.fill(['\$3']),

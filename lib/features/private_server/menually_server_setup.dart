@@ -133,9 +133,6 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
                   onChanged: (value) {
                     buttonValid.value =
                         (value.isNotEmpty && nameController.text.isNotEmpty);
-                    setState(() {
-
-                    });
                   },
                   suffixIcon: PlatformUtils.isMobile
                       ? GestureDetector(
@@ -146,7 +143,7 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
                 ),
                 SizedBox(height: 16),
                 PrimaryButton(
-                  enabled: buttonValid.value,
+                  enabled: accessKeyController.text.isNotEmpty,
                   label: 'verify_server'.i18n,
                   onPressed: () => onVerifyServer(
                       accessKeyController.text, nameController.text),
@@ -168,6 +165,7 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
             final rawValue = value as String;
             accessKeyController.text = rawValue;
             hideKeyboard();
+            setState(() {});
           } catch (e) {
             appLogger.error("Error parsing QR code: $e");
           }
