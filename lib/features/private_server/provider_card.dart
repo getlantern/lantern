@@ -65,48 +65,10 @@ class ProviderCard extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           PrimaryButton(
-              label: '${'continue_with'.i18n} ${provider.displayName}',
-              onPressed: onContinue),
+            label: '${'continue_with'.i18n} ${provider.displayName}',
+            onPressed: onContinue,
+          ),
         ],
-    final providerName = provider.value;
-
-    return Card(
-      margin: EdgeInsets.only(right: 5),
-      elevation: 4,
-      shadowColor: AppColors.shadowColor,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            AppTile(
-              icon: icon,
-              label: title,
-              tileTextStyle: textTheme.titleMedium,
-              contentPadding: EdgeInsets.symmetric(horizontal: 4.0),
-            ),
-            Divider(color: AppColors.gray2),
-            CheckmarkTile(
-              text: 'handle_configuration'.i18n,
-            ),
-            CheckmarkTile(text: price),
-            CheckmarkTile(text: 'seamless_integration'.i18n),
-            CheckmarkTile(
-              text: 'choose_location'.i18n,
-              trailing: AppIconButton(
-                path: AppImagePaths.info,
-                onPressed: () => showServerLocationsModal(),
-              ),
-            ),
-            CheckmarkTile(
-              text: 'one_month_included'.i18n.fill([1]),
-            ),
-            const SizedBox(height: 24),
-            PrimaryButton(
-                label: 'continue_with_$providerName'.i18n, onPressed: () {}),
-          ],
-        ),
       ),
     );
   }
