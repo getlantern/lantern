@@ -1,0 +1,210 @@
+import 'package:auto_route/auto_route.dart';
+import 'package:flutter/material.dart';
+import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/models/private_server_entity.dart';
+import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/widgets/info_row.dart';
+
+@RoutePage(name: 'ManagePrivateServer')
+class ManagePrivateServer extends StatefulWidget {
+  const ManagePrivateServer({super.key});
+
+  @override
+  State<ManagePrivateServer> createState() => _ManagePrivateServerState();
+}
+
+class _ManagePrivateServerState extends State<ManagePrivateServer> {
+  final _localStorage = sl<LocalStorageService>();
+  TextTheme? textTheme;
+
+  @override
+  Widget build(BuildContext context) {
+    textTheme = Theme.of(context).textTheme;
+    final servers = _localStorage.getPrivateServer();
+    final joinedServer = servers.where((element) => element.isJoined).toList();
+    return BaseScreen(
+      title: 'manage_private_servers'.i18n,
+      body: DefaultTabController(
+        length: 2,
+        child: Column(
+          children: [
+            TabBar(
+              indicatorSize: TabBarIndicatorSize.tab,
+              labelColor: Colors.teal.shade900,
+              indicatorColor: Colors.transparent,
+              dividerHeight: 0,
+              unselectedLabelColor: Colors.grey,
+              labelStyle: textTheme!.titleSmall,
+              indicator: BoxDecoration(
+                color: AppColors.blue2,
+                borderRadius: BorderRadius.circular(40),
+                shape: BoxShape.rectangle,
+                border: Border.all(color: AppColors.blue3, width: 1),
+              ),
+              tabs: [
+                Tab(child: Text('my_servers'.i18n)),
+                Tab(child: Text('joined_servers'.i18n))
+              ],
+            ),
+            const SizedBox(height: 16),
+            InfoRow(
+              text: 'access_key_expiration'.i18n,
+              onPressed: () {},
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: TabBarView(
+                children: [
+                  _buildListView(servers),
+                  _buildListView(joinedServer),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildListView(List<PrivateServerEntity> privateServers) {
+    return ListView.builder(
+      padding: const EdgeInsets.all(0),
+      itemCount: privateServers.length,
+      itemBuilder: (context, index) {
+        final item = privateServers[index];
+        return AppCard(
+          margin: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AppTile(
+                contentPadding: const EdgeInsets.all(0),
+                label: item.serverName,
+                subtitle: Text(item.serverLocation.locationName),
+                icon: Flag(countryCode: item.serverLocation.countryCode),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    // IconButton(
+                    //   icon: Icon(Icons.edit_outlined, color: AppColors.gray9),
+                    //   iconSize: 24,
+                    //   onPressed: () => showRenameDialog(item.serverName),
+                    // ),
+                    IconButton(
+                      icon: Icon(Icons.delete_outline, color: AppColors.gray9),
+                      iconSize: 24,
+                      onPressed: () => showDeleteDialog(item.serverName),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 16),
+              if (!item.isJoined)
+                PrimaryButton(
+                  label: 'share_access_key'.i18n,
+                  bgColor: AppColors.blue1,
+                  icon: AppImagePaths.share,
+                  iconColor: AppColors.gray9,
+                  textColor: AppColors.gray9,
+                  onPressed: () {},
+                ),
+              SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void showRenameDialog(String serverName) {
+    final textController = TextEditingController();
+    AppDialog.customDialog(
+      context: context,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          SizedBox(height: 16),
+          Text(
+            'rename_server'.i18n,
+            style: textTheme!.titleLarge,
+          ),
+          SizedBox(height: 16),
+          AppTextField(
+            label: 'server_name'.i18n,
+            onChanged: (value) {},
+            controller: textController,
+            prefixIcon: AppImagePaths.server,
+            hintText: serverName,
+          ),
+          SizedBox(height: 16),
+        ],
+      ),
+      action: [
+        AppTextButton(
+          label: 'cancel',
+          textColor: AppColors.gray6,
+          onPressed: () {
+            appRouter.pop();
+          },
+        ),
+        AppTextButton(
+          label: 'rename',
+          onPressed: () {
+            appRouter.pop();
+            onRename(serverName, textController.text.trim());
+          },
+        ),
+      ],
+    );
+  }
+
+  void showDeleteDialog(String serverName) {
+    final textController = TextEditingController();
+    AppDialog.customDialog(
+      context: context,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          SizedBox(height: 16),
+          AppImage(
+            path: AppImagePaths.delete,
+            height: 40,
+          ),
+          Text(
+            'remove_server'.i18n,
+            style: textTheme!.titleLarge,
+          ),
+          SizedBox(height: 16),
+          Text('remove_server_message'.i18n.fill([serverName])),
+          SizedBox(height: 16),
+        ],
+      ),
+      action: [
+        AppTextButton(
+          label: 'cancel',
+          textColor: AppColors.gray6,
+          onPressed: () {
+            appRouter.pop();
+          },
+        ),
+        AppTextButton(
+          label: 'remove',
+          textColor: AppColors.red7,
+          onPressed: () {
+            appRouter.pop();
+            onRename(serverName, textController.text.trim());
+          },
+        ),
+      ],
+    );
+  }
+
+  void onRename(String serverName, String newName) {
+    _localStorage.updatePrivateServerName(serverName, newName);
+    setState(() {});
+  }
+
+  void onDelete(String serverName) {
+    _localStorage.deletePrivateServer(serverName);
+  }
+}

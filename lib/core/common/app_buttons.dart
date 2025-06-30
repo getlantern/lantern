@@ -17,6 +17,7 @@ class PrimaryButton extends StatelessWidget {
   final Color? iconColor;
 
   final Color? bgColor;
+  final Color? textColor;
 
   // Default constructor for button without an icon
   const PrimaryButton({
@@ -24,6 +25,7 @@ class PrimaryButton extends StatelessWidget {
     required this.onPressed,
     this.bgColor,
     this.iconColor,
+    this.textColor,
     this.enabled = true,
     this.expanded = true,
     this.icon,
@@ -74,10 +76,13 @@ class PrimaryButton extends StatelessWidget {
       padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(
           EdgeInsets.symmetric(vertical: 12.0.h, horizontal: 40.0)),
       textStyle: WidgetStatePropertyAll<TextStyle>(
-          AppTestStyles.primaryButtonTextStyle.copyWith(
-              fontSize: expanded ? 16.0.sp : 16.0,
-              color: AppColors.gray1,
-              fontWeight: FontWeight.w600)),
+        AppTestStyles.primaryButtonTextStyle.copyWith(
+            fontSize: expanded ? 16.0.sp : 16.0,
+            color: textColor ?? AppColors.gray1,
+            fontWeight: FontWeight.w500),
+      ),
+      foregroundColor: WidgetStatePropertyAll<Color>(
+          textColor ?? AppColors.gray1),
       minimumSize: WidgetStatePropertyAll<Size>(
           expanded ? const Size(double.infinity, 52.0) : const Size(0, 52.0)),
     );
