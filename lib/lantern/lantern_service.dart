@@ -374,4 +374,24 @@ class LanternService implements LanternCoreService {
     }
     return _platformService.setPrivateServer(tag);
   }
+
+  @override
+  Future<Either<Failure, String>> inviteToServerManagerInstance({required String ip, required String port, required String accessToken, required String inviteName}) {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.inviteToServerManagerInstance(
+          ip: ip, port: port, accessToken: accessToken, inviteName: inviteName);
+    }
+    return _platformService.inviteToServerManagerInstance(
+        ip: ip, port: port, accessToken: accessToken, inviteName: inviteName);
+  }
+
+  @override
+  Future<Either<Failure, String>> revokeServerManagerInstance({required String ip, required String port, required String accessToken, required String inviteName}) {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.revokeServerManagerInstance(
+          ip: ip, port: port, accessToken: accessToken, inviteName: inviteName);
+    }
+    return _platformService.revokeServerManagerInstance(
+        ip: ip, port: port, accessToken: accessToken, inviteName: inviteName);
+  }
 }

@@ -757,8 +757,54 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, String>> setPrivateServer(String tag) async {
     try {
       final result = await runInBackground<String>(
-            () async {
+        () async {
           return _ffiService.setPrivateServer(tag.toCharPtr).toDartString();
+        },
+      );
+      checkAPIError(result);
+      return Right('ok');
+    } catch (e, stackTrace) {
+      appLogger.error('Error setting private server', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> inviteToServerManagerInstance(
+      {required String ip,
+      required String port,
+      required String accessToken,
+      required String inviteName}) async {
+    try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService
+              .inviteToServerManagerInstance(ip.toCharPtr, port.toCharPtr,
+                  accessToken.toCharPtr, inviteName.toCharPtr)
+              .toDartString();
+        },
+      );
+      checkAPIError(result);
+      return Right('ok');
+    } catch (e, stackTrace) {
+      appLogger.error('Error setting private server', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> revokeServerManagerInstance(
+      {required String ip,
+      required String port,
+      required String accessToken,
+      required String inviteName}) async {
+    try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService
+              .revokeServerManagerInvite(ip.toCharPtr, port.toCharPtr,
+                  accessToken.toCharPtr, inviteName.toCharPtr)
+              .toDartString();
         },
       );
       checkAPIError(result);

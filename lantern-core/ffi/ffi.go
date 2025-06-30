@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"runtime"
+	"strconv"
 	"sync"
 	"unsafe"
 
@@ -793,5 +794,41 @@ func addServerManagerInstance(_ip, _port, _accessToken, _tag *C.char) *C.char {
 		return SendError(log.Errorf("Error adding server manager instance: %v", err))
 	}
 	log.Debugf("Server manager instance added successfully with IP: %s, Port: %s, AccessToken: %s, Tag: %s", ip, port, accessToken, tag)
+	return C.CString("ok")
+}
+
+// inviteToServerManagerInstance invites to the server manager instance.
+//
+//export inviteToServerManagerInstance
+func inviteToServerManagerInstance(_ip, _port, _accessToken, _inviteName *C.char) *C.char {
+	ip := C.GoString(_ip)
+	port := C.GoString(_port)
+	accessToken := C.GoString(_accessToken)
+	inviteName := C.GoString(_inviteName)
+	portInt, _ := strconv.Atoi(port)
+	log.Debugf("Inviting to server manager instance %s:%s with invite name %s", ip, port, inviteName)
+	invite, err := privateserver.InviteToServerManagerInstance(ip, portInt, accessToken, inviteName, server.vpnClient)
+	if err != nil {
+		return SendError(log.Errorf("Error inviting to server manager instance: %v", err))
+	}
+	log.Debugf("Invite created successfully: %s", invite)
+	return C.CString(invite)
+}
+
+// revokeServerManagerInvite revokes the server manager invite.
+//
+//export revokeServerManagerInvite
+func revokeServerManagerInvite(_ip, _port, _accessToken, _inviteName *C.char) *C.char {
+	ip := C.GoString(_ip)
+	port := C.GoString(_port)
+	accessToken := C.GoString(_accessToken)
+	inviteName := C.GoString(_inviteName)
+	portInt, _ := strconv.Atoi(port)
+	log.Debugf("Revoking invite %s for server %s:%s", inviteName, ip, port)
+	err := privateserver.RevokeServerManagerInvite(ip, portInt, accessToken, inviteName, server.vpnClient)
+	if err != nil {
+		return SendError(log.Errorf("Error revoking server manager invite: %v", err))
+	}
+	log.Debugf("Invite %s revoked successfully for server %s:%s", inviteName, ip, port)
 	return C.CString("ok")
 }
