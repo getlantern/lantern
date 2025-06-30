@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:lantern/core/common/app_buttons.dart';
-import 'package:lantern/core/common/app_dimens.dart';
 
 export 'package:flutter_svg/flutter_svg.dart';
 
@@ -12,7 +11,6 @@ enum AssetType {
 
 class AppImage extends StatelessWidget {
   final String path;
-  final double size;
   final double? width;
   final double? height;
   final Color? color;
@@ -23,12 +21,11 @@ class AppImage extends StatelessWidget {
 
   const AppImage({
     required this.path,
-    this.size = iconSize,
     this.width,
     this.height,
     this.color,
     this.type = AssetType.svg,
-    this.onPressed ,
+    this.onPressed,
     super.key,
   });
 
@@ -41,9 +38,10 @@ class AppImage extends StatelessWidget {
           child: SvgPicture.asset(
             path,
             height: height,
-            width: width ,
-            colorFilter:
-                color != null ? ColorFilter.mode(color!, BlendMode.srcIn) : null,
+            width: width,
+            colorFilter: color != null
+                ? ColorFilter.mode(color!, BlendMode.srcIn)
+                : null,
           ),
         );
       case AssetType.png:

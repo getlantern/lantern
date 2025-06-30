@@ -15,7 +15,7 @@ import 'package:flutter/material.dart' as _i38;
 import 'package:lantern/core/common/common.dart' as _i39;
 import 'package:lantern/core/widgets/app_webview.dart' as _i4;
 import 'package:lantern/features/account/account.dart' as _i1;
-import 'package:lantern/features/account/delete_account.dart' as _i10;
+import 'package:lantern/features/account/delete_account.dart' as _i9;
 import 'package:lantern/features/auth/activation_code.dart' as _i2;
 import 'package:lantern/features/auth/add_email.dart' as _i3;
 import 'package:lantern/features/auth/choose_payment_method.dart' as _i6;
@@ -25,12 +25,14 @@ import 'package:lantern/features/auth/reset_password.dart' as _i26;
 import 'package:lantern/features/auth/reset_password_email.dart' as _i27;
 import 'package:lantern/features/auth/sign_in_email.dart' as _i30;
 import 'package:lantern/features/auth/sign_in_password.dart' as _i31;
-import 'package:lantern/features/home/home.dart' as _i13;
-import 'package:lantern/features/language/language.dart' as _i16;
-import 'package:lantern/features/logs/logs.dart' as _i17;
+import 'package:lantern/features/home/home.dart' as _i12;
+import 'package:lantern/features/language/language.dart' as _i15;
+import 'package:lantern/features/logs/logs.dart' as _i16;
 import 'package:lantern/features/plans/plans.dart' as _i19;
 import 'package:lantern/features/private_server/join_private_server.dart'
-    as _i15;
+    as _i14;
+import 'package:lantern/features/private_server/manage_private_server.dart'
+    as _i17;
 import 'package:lantern/features/private_server/menually_server_setup.dart'
     as _i18;
 import 'package:lantern/features/private_server/private_server_deploy.dart'
@@ -43,15 +45,13 @@ import 'package:lantern/features/private_server/private_sever_details.dart'
     as _i23;
 import 'package:lantern/features/qr_scanner/qr_code_scanner.dart' as _i24;
 import 'package:lantern/features/report_Issue/report_issue.dart' as _i25;
-import 'package:lantern/features/setting/download_links.dart' as _i11;
-import 'package:lantern/features/setting/follow_us.dart' as _i12;
-import 'package:lantern/features/setting/invite_friends.dart' as _i14;
+import 'package:lantern/features/setting/download_links.dart' as _i10;
+import 'package:lantern/features/setting/follow_us.dart' as _i11;
+import 'package:lantern/features/setting/invite_friends.dart' as _i13;
 import 'package:lantern/features/setting/setting.dart' as _i29;
 import 'package:lantern/features/setting/vpn_setting.dart' as _i35;
 import 'package:lantern/features/split_tunneling/apps_split_tunneling.dart'
     as _i5;
-import 'package:lantern/features/split_tunneling/default_bypass_list.dart'
-    as _i9;
 import 'package:lantern/features/split_tunneling/split_tunneling.dart' as _i32;
 import 'package:lantern/features/split_tunneling/split_tunneling_info.dart'
     as _i33;
@@ -450,23 +450,7 @@ class CreatePasswordArgs {
 }
 
 /// generated route for
-/// [_i9.DefaultBypassLists]
-class DefaultBypassLists extends _i37.PageRouteInfo<void> {
-  const DefaultBypassLists({List<_i37.PageRouteInfo>? children})
-      : super(DefaultBypassLists.name, initialChildren: children);
-
-  static const String name = 'DefaultBypassLists';
-
-  static _i37.PageInfo page = _i37.PageInfo(
-    name,
-    builder: (data) {
-      return const _i9.DefaultBypassLists();
-    },
-  );
-}
-
-/// generated route for
-/// [_i10.DeleteAccount]
+/// [_i9.DeleteAccount]
 class DeleteAccount extends _i37.PageRouteInfo<void> {
   const DeleteAccount({List<_i37.PageRouteInfo>? children})
       : super(DeleteAccount.name, initialChildren: children);
@@ -476,13 +460,13 @@ class DeleteAccount extends _i37.PageRouteInfo<void> {
   static _i37.PageInfo page = _i37.PageInfo(
     name,
     builder: (data) {
-      return const _i10.DeleteAccount();
+      return const _i9.DeleteAccount();
     },
   );
 }
 
 /// generated route for
-/// [_i11.DownloadLinks]
+/// [_i10.DownloadLinks]
 class DownloadLinks extends _i37.PageRouteInfo<void> {
   const DownloadLinks({List<_i37.PageRouteInfo>? children})
       : super(DownloadLinks.name, initialChildren: children);
@@ -492,13 +476,13 @@ class DownloadLinks extends _i37.PageRouteInfo<void> {
   static _i37.PageInfo page = _i37.PageInfo(
     name,
     builder: (data) {
-      return const _i11.DownloadLinks();
+      return const _i10.DownloadLinks();
     },
   );
 }
 
 /// generated route for
-/// [_i12.FollowUs]
+/// [_i11.FollowUs]
 class FollowUs extends _i37.PageRouteInfo<FollowUsArgs> {
   FollowUs({_i38.Key? key, List<_i37.PageRouteInfo>? children})
       : super(
@@ -515,7 +499,7 @@ class FollowUs extends _i37.PageRouteInfo<FollowUsArgs> {
       final args = data.argsAs<FollowUsArgs>(
         orElse: () => const FollowUsArgs(),
       );
-      return _i12.FollowUs(key: args.key);
+      return _i11.FollowUs(key: args.key);
     },
   );
 }
@@ -542,7 +526,7 @@ class FollowUsArgs {
 }
 
 /// generated route for
-/// [_i13.Home]
+/// [_i12.Home]
 class Home extends _i37.PageRouteInfo<HomeArgs> {
   Home({_i38.Key? key, List<_i37.PageRouteInfo>? children})
       : super(
@@ -557,7 +541,7 @@ class Home extends _i37.PageRouteInfo<HomeArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<HomeArgs>(orElse: () => const HomeArgs());
-      return _i13.Home(key: args.key);
+      return _i12.Home(key: args.key);
     },
   );
 }
@@ -584,7 +568,7 @@ class HomeArgs {
 }
 
 /// generated route for
-/// [_i14.InviteFriends]
+/// [_i13.InviteFriends]
 class InviteFriends extends _i37.PageRouteInfo<void> {
   const InviteFriends({List<_i37.PageRouteInfo>? children})
       : super(InviteFriends.name, initialChildren: children);
@@ -594,13 +578,13 @@ class InviteFriends extends _i37.PageRouteInfo<void> {
   static _i37.PageInfo page = _i37.PageInfo(
     name,
     builder: (data) {
-      return const _i14.InviteFriends();
+      return const _i13.InviteFriends();
     },
   );
 }
 
 /// generated route for
-/// [_i15.JoinPrivateServer]
+/// [_i14.JoinPrivateServer]
 class JoinPrivateServer extends _i37.PageRouteInfo<void> {
   const JoinPrivateServer({List<_i37.PageRouteInfo>? children})
       : super(JoinPrivateServer.name, initialChildren: children);
@@ -610,13 +594,13 @@ class JoinPrivateServer extends _i37.PageRouteInfo<void> {
   static _i37.PageInfo page = _i37.PageInfo(
     name,
     builder: (data) {
-      return const _i15.JoinPrivateServer();
+      return const _i14.JoinPrivateServer();
     },
   );
 }
 
 /// generated route for
-/// [_i16.Language]
+/// [_i15.Language]
 class Language extends _i37.PageRouteInfo<void> {
   const Language({List<_i37.PageRouteInfo>? children})
       : super(Language.name, initialChildren: children);
@@ -626,13 +610,13 @@ class Language extends _i37.PageRouteInfo<void> {
   static _i37.PageInfo page = _i37.PageInfo(
     name,
     builder: (data) {
-      return const _i16.Language();
+      return const _i15.Language();
     },
   );
 }
 
 /// generated route for
-/// [_i17.Logs]
+/// [_i16.Logs]
 class Logs extends _i37.PageRouteInfo<void> {
   const Logs({List<_i37.PageRouteInfo>? children})
       : super(Logs.name, initialChildren: children);
@@ -642,7 +626,23 @@ class Logs extends _i37.PageRouteInfo<void> {
   static _i37.PageInfo page = _i37.PageInfo(
     name,
     builder: (data) {
-      return const _i17.Logs();
+      return const _i16.Logs();
+    },
+  );
+}
+
+/// generated route for
+/// [_i17.ManagePrivateServer]
+class ManagePrivateServer extends _i37.PageRouteInfo<void> {
+  const ManagePrivateServer({List<_i37.PageRouteInfo>? children})
+      : super(ManagePrivateServer.name, initialChildren: children);
+
+  static const String name = 'ManagePrivateServer';
+
+  static _i37.PageInfo page = _i37.PageInfo(
+    name,
+    builder: (data) {
+      return const _i17.ManagePrivateServer();
     },
   );
 }
