@@ -521,7 +521,11 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> addServerManually({required String ip, required String port, required String accessToken, required String serverName}) async {
+  Future<Either<Failure, Unit>> addServerManually(
+      {required String ip,
+      required String port,
+      required String accessToken,
+      required String serverName}) async {
     try {
       await _methodChannel.invokeMethod('addServerManually', {
         'ip': ip,
@@ -543,6 +547,53 @@ class LanternPlatformService implements LanternCoreService {
       return Right("ok");
     } catch (e, stackTrace) {
       appLogger.debug('Error setting private server');
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> inviteToServerManagerInstance(
+      {required String ip,
+      required String port,
+      required String accessToken,
+      required String inviteName}) async {
+    try {
+      final inviteCode = await _methodChannel.invokeMethod<String>(
+        'inviteToServerManagerInstance',
+        {
+          'ip': ip,
+          'port': port,
+          'accessToken': accessToken,
+          'inviteName': inviteName,
+        },
+      );
+      return Right(inviteCode!);
+    } catch (e, stackTrace) {
+      appLogger.error(
+          'Error inviting to server manager instance', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> revokeServerManagerInstance(
+      {required String ip,
+      required String port,
+      required String accessToken,
+      required String inviteName}) async {
+    try {
+      final result =  await _methodChannel.invokeMethod<String>(
+        'revokeServerManagerInstance',
+        {
+          'ip': ip,
+          'port': port,
+          'accessToken': accessToken,
+          'inviteName': inviteName,
+        },
+      );
+      return Right('ok');
+    } catch (e, stackTrace) {
+      appLogger.error('Error revoking server manager instance', e, stackTrace);
       return Left(e.toFailure());
     }
   }

@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"sync"
 
 	"github.com/getlantern/golog"
@@ -525,4 +526,20 @@ func SelectedCertFingerprint(fp string) {
 
 func AddServerManagerInstance(ip, port, accessToken, tag string, events utils.PrivateServerEventListener) error {
 	return privateserver.AddServerManually(ip, port, accessToken, tag, vpnClient, events)
+}
+func InviteToServerManagerInstance(ip string, port string, accessToken string, inviteName string) (string, error) {
+	if vpnClient == nil {
+		return "", log.Error("VPN client not setup")
+	}
+	portInt, _ := strconv.Atoi(port)
+	return vpnClient.InviteToServerManagerInstance(ip, portInt, accessToken, inviteName)
+}
+
+func RevokeServerManagerInvite(ip string, port string, accessToken string, inviteName string) error {
+	if vpnClient == nil {
+		return log.Error("VPN client not setup")
+	}
+	portInt, _ := strconv.Atoi(port)
+	log.Debugf("Revoking invite %s for server %s:%d", inviteName, ip, port)
+	return vpnClient.RevokeServerManagerInvite(ip, portInt, accessToken, inviteName)
 }
