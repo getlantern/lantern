@@ -10,6 +10,9 @@ part 'window_notifier.g.dart';
 
 @Riverpod(keepAlive: true)
 class WindowNotifier extends _$WindowNotifier {
+  /// Flag set to transiently skip confirmation dialog on close
+  bool _skipNextCloseConfirm = false;
+
   @override
   Future<void> build() async {
     if (!PlatformUtils.isDesktop) return;
@@ -26,10 +29,25 @@ class WindowNotifier extends _$WindowNotifier {
     }
   }
 
-  Future<void> close() async {
+  /// Hide the window + set skip taskbar on macOS for tray-minimize UX
+  Future<void> hideToTray() async {
     await windowManager.hide();
     if (Platform.isMacOS) {
       await windowManager.setSkipTaskbar(true);
     }
+  }
+
+  /// Initiates a programmatic close from the system tray
+  Future<void> close() async {
+    _skipNextCloseConfirm = true;
+    await windowManager.close();
+    Future.microtask(() => _skipNextCloseConfirm = false);
+  }
+
+  /// Called by WindowWrapper to determine if next close should skip confirmation
+  bool consumeSkipNextCloseConfirm() {
+    final skip = _skipNextCloseConfirm;
+    _skipNextCloseConfirm = false;
+    return skip;
   }
 }

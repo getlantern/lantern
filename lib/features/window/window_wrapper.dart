@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:lantern/features/window/provider/window_notifier.dart';
 import 'package:lantern/features/window/windows_protocol_registry.dart';
 import 'package:window_manager/window_manager.dart';
@@ -31,14 +30,12 @@ class _WindowWrapperState extends ConsumerState<WindowWrapper>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback(
-      (timeStamp) {
-        if (PlatformUtils.isDesktop) {
-          windowManager.addListener(this);
-          _setupDesktopWindow();
-        }
-      },
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (PlatformUtils.isDesktop) {
+        windowManager.addListener(this);
+        _setupDesktopWindow();
+      }
+    });
     _setupProtocol();
   }
 
@@ -70,8 +67,21 @@ class _WindowWrapperState extends ConsumerState<WindowWrapper>
     if (!context.mounted) {
       return;
     }
-    bool isPreventClose = await windowManager.isPreventClose();
-    if (!isPreventClose) return;
+
+    final notifier = ref.read(windowNotifierProvider.notifier);
+    if (notifier.consumeSkipNextCloseConfirm()) {
+      // skip disalog if programmatic close
+      return;
+    }
+
+    if (Localizations.of<MaterialLocalizations>(
+            context, MaterialLocalizations) ==
+        null) {
+      // Fallback: don't show dialog if localizations are unavailable
+      await notifier.hideToTray();
+      return;
+    }
+
     await showDialog(
       context: context,
       builder: (BuildContext context) => AlertDialog(
@@ -86,8 +96,8 @@ class _WindowWrapperState extends ConsumerState<WindowWrapper>
           TextButton(
             child: Text('Yes'.i18n),
             onPressed: () async {
-              await windowManager.hide();
-              await windowManager.setSkipTaskbar(true);
+              await notifier.hideToTray();
+              Navigator.of(context).pop();
             },
           ),
         ],
