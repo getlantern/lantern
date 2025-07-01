@@ -61,7 +61,6 @@ class _WindowWrapperState extends ConsumerState<WindowWrapper>
     }
   }
 
-  // WindowListener
   @override
   void onWindowClose() async {
     if (!context.mounted) {
@@ -69,8 +68,7 @@ class _WindowWrapperState extends ConsumerState<WindowWrapper>
     }
 
     final notifier = ref.read(windowNotifierProvider.notifier);
-    if (notifier.consumeSkipNextCloseConfirm()) {
-      // skip disalog if programmatic close
+    if (notifier.shouldSkipNextCloseConfirm()) {
       return;
     }
 

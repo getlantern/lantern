@@ -46,7 +46,7 @@ class WindowNotifier extends _$WindowNotifier {
 
   /// Called by WindowWrapper to determine if next close should skip
   /// confirmation
-  bool consumeSkipNextCloseConfirm() {
+  bool shouldSkipNextCloseConfirm() {
     final skip = _skipNextCloseConfirm;
     _skipNextCloseConfirm = false;
     return skip;
