@@ -68,7 +68,7 @@ class _WindowWrapperState extends ConsumerState<WindowWrapper>
     }
 
     final notifier = ref.read(windowNotifierProvider.notifier);
-    if (notifier.shouldSkipNextCloseConfirm()) {
+    if (notifier.skipNextCloseConfirm) {
       return;
     }
 

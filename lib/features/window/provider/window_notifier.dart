@@ -10,7 +10,7 @@ part 'window_notifier.g.dart';
 
 @Riverpod(keepAlive: true)
 class WindowNotifier extends _$WindowNotifier {
-  bool _skipNextCloseConfirm = false;
+  bool skipNextCloseConfirm = false;
 
   @override
   Future<void> build() async {
@@ -38,17 +38,9 @@ class WindowNotifier extends _$WindowNotifier {
 
   /// Initiates a programmatic close from the system tray
   Future<void> close() async {
-    _skipNextCloseConfirm = true;
+    skipNextCloseConfirm = true;
     await windowManager.setPreventClose(false);
     await windowManager.close();
-    Future.microtask(() => _skipNextCloseConfirm = false);
-  }
-
-  /// Called by WindowWrapper to determine if next close should skip
-  /// confirmation
-  bool shouldSkipNextCloseConfirm() {
-    final skip = _skipNextCloseConfirm;
-    _skipNextCloseConfirm = false;
-    return skip;
+    Future.microtask(() => skipNextCloseConfirm = false);
   }
 }
