@@ -163,5 +163,7 @@ jobs:
           webhook-type: webhook-trigger
           payload: |
             {
-              "text": "*Lantern ${{ env.BUILD_TYPE }} ${{ github.ref_name }} released!*\n*GitHub Release*: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}\n*Downloads:*\n• [macOS](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/${{ env.INSTALLER_NAME }}.dmg)\n• [Windows](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/${{ env.INSTALLER_NAME }}.exe)\n• [Android](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/${{ env.INSTALLER_NAME }}.apk)\n• [Linux (.deb)](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/${{ env.INSTALLER_NAME }}.deb)\n• [Linux (.rpm)](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/${{ env.INSTALLER_NAME }}.rpm)"
+              "text": "*Lantern ${{ env.BUILD_TYPE }} ${{ github.ref_name }} released!*\n*Downloads:*\n• <https://lantern-vpn.s3.amazonaws.com/releases/${{ env.INSTALLER_NAME }}.dmg|macOS>\n• <https://lantern-vpn.s3.amazonaws.com/releases/${{ env.INSTALLER_NAME }}.exe|Windows>\n• <https://lantern-vpn.s3.amazonaws.com/releases/${{ env.INSTALLER_NAME }}.apk|Android>\n• <https://lantern-vpn.s3.amazonaws.com/releases/${{ env.INSTALLER_NAME }}.deb|Linux (.deb)>\n• <https://lantern-vpn.s3.amazonaws.com/releases/${{ env.INSTALLER_NAME }}.rpm|Linux (.rpm)>"
             }
+        env:
+          INSTALLER_NAME: ${{ needs.set-release-metadata.outputs.installer_name }}
