@@ -9,7 +9,7 @@ class PrivateServerEntity {
   final String port;
   final String accessToken;
   final String serverLocation;
-  final bool isJoined;
+   bool isJoined;
    bool userSelected ;
 
   PrivateServerEntity({
