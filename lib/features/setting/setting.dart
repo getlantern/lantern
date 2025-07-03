@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
 import 'package:lantern/core/models/mapper/user_mapper.dart';
+import 'package:lantern/core/widgets/pro_button.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/setting/follow_us.dart'

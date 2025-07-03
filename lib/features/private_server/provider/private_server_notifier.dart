@@ -97,4 +97,10 @@ class PrivateServerNotifier extends _$PrivateServerNotifier {
         state = status;
     }
   }
+
+  Future<Either<Failure, String>> inviteToServerManagerInstance(
+      String ip, String port, String accessToken, String inviteName) async {
+    return ref.read(lanternServiceProvider).inviteToServerManagerInstance(
+        ip: ip, port: port, accessToken: accessToken, inviteName: inviteName);
+  }
 }

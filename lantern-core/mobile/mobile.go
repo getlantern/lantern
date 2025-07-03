@@ -532,7 +532,12 @@ func InviteToServerManagerInstance(ip string, port string, accessToken string, i
 		return "", log.Error("VPN client not setup")
 	}
 	portInt, _ := strconv.Atoi(port)
-	return vpnClient.InviteToServerManagerInstance(ip, portInt, accessToken, inviteName)
+	accessToken, err := privateserver.InviteToServerManagerInstance(ip, portInt, accessToken, inviteName, vpnClient)
+	if err != nil {
+		return "", log.Errorf("Error inviting to server manager instance: %v", err)
+	}
+	log.Debugf("Invite to server manager instance %s:%d with name %s", ip, portInt, inviteName)
+	return accessToken, nil
 }
 
 func RevokeServerManagerInvite(ip string, port string, accessToken string, inviteName string) error {
@@ -541,5 +546,5 @@ func RevokeServerManagerInvite(ip string, port string, accessToken string, invit
 	}
 	portInt, _ := strconv.Atoi(port)
 	log.Debugf("Revoking invite %s for server %s:%d", inviteName, ip, port)
-	return vpnClient.RevokeServerManagerInvite(ip, portInt, accessToken, inviteName)
+	return privateserver.RevokeServerManagerInvite(ip, portInt, accessToken, inviteName, vpnClient)
 }
