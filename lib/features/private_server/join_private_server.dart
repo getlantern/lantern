@@ -9,7 +9,9 @@ import 'package:lantern/features/private_server/provider/private_server_notifier
 
 @RoutePage(name: 'JoinPrivateServer')
 class JoinPrivateServer extends StatefulHookConsumerWidget {
-  const JoinPrivateServer({super.key});
+  final Map<String, String>? deepLinkData;
+
+  const JoinPrivateServer({super.key, this.deepLinkData});
 
   @override
   ConsumerState<JoinPrivateServer> createState() => _JoinPrivateServerState();
@@ -19,7 +21,8 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final accessKeyController = useTextEditingController();
+    final accessKeyController =
+        useTextEditingController(text: widget.deepLinkData?['accessKey'] ?? '');
     final nameController = useTextEditingController();
     final buttonValid = useState(false);
     final serverState = ref.watch(privateServerNotifierProvider);
@@ -47,6 +50,7 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
                     boldUnderline: true,
                     texts: 'Only add servers run by people you trust ',
                     boldTexts: 'Learn More.',
+                    boldOnPressed: showTrustDialog,
                   ),
                 )
               ],
@@ -120,6 +124,52 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
         ]),
       ),
     );
+  }
+
+  void showTrustDialog() {
+    final textTheme = Theme.of(context).textTheme;
+    AppDialog.customDialog(
+        context: context,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            SizedBox(height: 16),
+            AppImage(
+              path: AppImagePaths.security,
+              height: 40,
+              color: AppColors.gray9,
+            ),
+            SizedBox(height: 16),
+            Text(
+              'trust_server_operator'.i18n,
+              style: textTheme.headlineMedium,
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 16),
+            Text(
+              'trust_server_operator_message_one'.i18n,
+              style: textTheme.bodyMedium,
+            ),
+            SizedBox(height: 16),
+            Text(
+              'trust_server_operator_message_two'.i18n,
+              style: textTheme.bodyMedium,
+            ),
+            SizedBox(height: 16),
+            Text(
+              'trust_server_operator_message_three'.i18n,
+              style: textTheme.bodyMedium,
+            ),
+          ],
+        ),
+        action: [
+          AppTextButton(
+            label: 'got_it'.i18n,
+            onPressed: () {
+              appRouter.pop();
+            },
+          )
+        ]);
   }
 
   void onJoinServer(String accessKey, String name) {}

@@ -62,7 +62,7 @@ class VPNSetting extends HookConsumerWidget {
               AppTile(
                 label: 'join_private_server'.i18n,
                 icon: AppImagePaths.joinServer,
-                onPressed: () => appRouter.push(const JoinPrivateServer()),
+                onPressed: () => appRouter.push( JoinPrivateServer()),
               ),
               DividerSpace(),
               AppTile(
