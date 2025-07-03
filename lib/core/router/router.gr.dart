@@ -585,18 +585,56 @@ class InviteFriends extends _i37.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i14.JoinPrivateServer]
-class JoinPrivateServer extends _i37.PageRouteInfo<void> {
-  const JoinPrivateServer({List<_i37.PageRouteInfo>? children})
-      : super(JoinPrivateServer.name, initialChildren: children);
+class JoinPrivateServer extends _i37.PageRouteInfo<JoinPrivateServerArgs> {
+  JoinPrivateServer({
+    _i38.Key? key,
+    Map<String, String>? deepLinkData,
+    List<_i37.PageRouteInfo>? children,
+  }) : super(
+          JoinPrivateServer.name,
+          args: JoinPrivateServerArgs(key: key, deepLinkData: deepLinkData),
+          initialChildren: children,
+        );
 
   static const String name = 'JoinPrivateServer';
 
   static _i37.PageInfo page = _i37.PageInfo(
     name,
     builder: (data) {
-      return const _i14.JoinPrivateServer();
+      final args = data.argsAs<JoinPrivateServerArgs>(
+        orElse: () => const JoinPrivateServerArgs(),
+      );
+      return _i14.JoinPrivateServer(
+        key: args.key,
+        deepLinkData: args.deepLinkData,
+      );
     },
   );
+}
+
+class JoinPrivateServerArgs {
+  const JoinPrivateServerArgs({this.key, this.deepLinkData});
+
+  final _i38.Key? key;
+
+  final Map<String, String>? deepLinkData;
+
+  @override
+  String toString() {
+    return 'JoinPrivateServerArgs{key: $key, deepLinkData: $deepLinkData}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! JoinPrivateServerArgs) return false;
+    return key == other.key &&
+        const _i40.MapEquality().equals(deepLinkData, other.deepLinkData);
+  }
+
+  @override
+  int get hashCode =>
+      key.hashCode ^ const _i40.MapEquality().hash(deepLinkData);
 }
 
 /// generated route for
