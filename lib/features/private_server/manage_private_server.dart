@@ -1,21 +1,26 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/private_server_entity.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/widgets/info_row.dart';
+import 'package:lantern/features/private_server/provider/private_server_notifier.dart';
 
 @RoutePage(name: 'ManagePrivateServer')
-class ManagePrivateServer extends StatefulWidget {
+class ManagePrivateServer extends StatefulHookConsumerWidget {
   const ManagePrivateServer({super.key});
 
   @override
-  State<ManagePrivateServer> createState() => _ManagePrivateServerState();
+  ConsumerState<ManagePrivateServer> createState() =>
+      _ManagePrivateServerState();
 }
 
-class _ManagePrivateServerState extends State<ManagePrivateServer> {
+class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
   final _localStorage = sl<LocalStorageService>();
   TextTheme? textTheme;
+  String shareAccessKey = "";
 
   @override
   Widget build(BuildContext context) {
@@ -101,17 +106,87 @@ class _ManagePrivateServerState extends State<ManagePrivateServer> {
               SizedBox(height: 16),
               if (!item.isJoined)
                 PrimaryButton(
-                  label: 'share_access_key'.i18n,
-                  bgColor: AppColors.blue1,
-                  icon: AppImagePaths.share,
-                  iconColor: AppColors.gray9,
-                  textColor: AppColors.gray9,
-                  onPressed: () {},
-                ),
+                    label: 'share_access_key'.i18n,
+                    bgColor: AppColors.blue1,
+                    icon: AppImagePaths.share,
+                    iconColor: AppColors.gray9,
+                    textColor: AppColors.gray9,
+                    onPressed: () {
+                      if (shareAccessKey.isNotEmpty && shareAccessKey != "") {
+                        // If the shareAccessKey is already generated, we don't need to generate it again.
+                        Map<String, dynamic> tokenData = JwtDecoder.decode(shareAccessKey);
+                        sharePrivateAccessKey(item, tokenData);
+                      } else {
+                        showShareAccessKeyDialog(item);
+                      }
+                    }),
               SizedBox(height: 16),
             ],
           ),
         );
+      },
+    );
+  }
+
+  void showShareAccessKeyDialog(PrivateServerEntity server) {
+    final inviteNameController = TextEditingController();
+    AppDialog.customDialog(
+        context: context,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            SizedBox(height: 16),
+            Text(
+              'Invite name',
+              style: textTheme!.headlineMedium,
+            ),
+            AppTextField(
+              label: 'invite_name'.i18n,
+              controller: inviteNameController,
+              hintText: '',
+            )
+          ],
+        ),
+        action: [
+          AppTextButton(
+            label: 'cancel'.i18n,
+            textColor: AppColors.gray6,
+            onPressed: () {
+              appRouter.pop();
+            },
+          ),
+          AppTextButton(
+            label: 'generate_access_key'.i18n,
+            onPressed: () {
+              generateAccessKey(server, inviteNameController.text.trim());
+              appRouter.pop();
+            },
+          )
+        ]);
+  }
+
+  Future<void> generateAccessKey(
+      PrivateServerEntity server, String inviteName) async {
+    context.showLoadingDialog();
+    final result = await ref
+        .read(privateServerNotifierProvider.notifier)
+        .inviteToServerManagerInstance(
+            server.externalIp, server.port, server.accessToken, inviteName);
+
+    result.fold(
+      (failure) {
+        context.hideLoadingDialog();
+        AppDialog.errorDialog(
+          context: context,
+          title: 'error'.i18n,
+          content: failure.localizedErrorMessage,
+        );
+      },
+      (accessKey) {
+        context.hideLoadingDialog();
+        shareAccessKey = accessKey;
+        Map<String, dynamic> tokenData = JwtDecoder.decode(accessKey);
+        sharePrivateAccessKey(server, tokenData);
       },
     );
   }

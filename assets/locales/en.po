@@ -737,6 +737,16 @@ msgid "remove_server_message"
 msgstr "Remove %s? This can’t be undone."
 
 
+msgid "generate_access_key"
+msgstr "Generate Access key"
+
+
+msgid "invite_name"
+msgstr "Invite Name"
+
+
+
+
 
 
 

@@ -647,14 +647,14 @@ class MethodHandler : FlutterPlugin,
                         val accessToken =
                             map["accessToken"] as String? ?: error("Missing accessToken")
                         val inviteName = map["inviteName"] as String? ?: error("Missing inviteName")
-                        Mobile.inviteToServerManagerInstance(
+                       val accessKey =  Mobile.inviteToServerManagerInstance(
                             ip,
                             port,
                             accessToken,
                             inviteName
                         )
                         withContext(Dispatchers.Main) {
-                            success("ok")
+                            success(accessKey)
                         }
                     }.onFailure { e ->
                         result.error(
