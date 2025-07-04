@@ -209,6 +209,20 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
     final ip = data['ip']!;
     final port = data['port']!;
     final accessToken = data['token']!;
+    final expiration = int.parse(data['exp'].toString());
+
+    if (ip.isEmpty || port.isEmpty || accessToken.isEmpty) {
+      context.showSnackBar('invalid_server_details'.i18n);
+      return;
+    }
+    final expired = DateTime.fromMillisecondsSinceEpoch(expiration * 1000);
+    // check if date is expired
+    if (expired.isBefore(DateTime.now())) {
+      appLogger.debug("DeepLink expired: $expired");
+      context.showSnackBar('deep_link_expired'.i18n);
+      return;
+    }
+
     context.showLoadingDialog();
     final result = await ref
         .read(privateServerNotifierProvider.notifier)
