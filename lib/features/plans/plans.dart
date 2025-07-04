@@ -8,6 +8,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/utils/screen_utils.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/features/auth/provider/payment_notifier.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/plans/feature_list.dart';
 import 'package:lantern/features/plans/plans_list.dart';
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
@@ -167,7 +168,8 @@ class _PlansState extends ConsumerState<Plans> {
               icon: AppImagePaths.keypad,
               label: 'Enter an Activation Code',
               onPressed: () {
-                appRouter.popAndPush(AddEmail(authFlow: AuthFlow.activationCode));
+                appRouter
+                    .popAndPush(AddEmail(authFlow: AuthFlow.activationCode));
               },
             ),
             DividerSpace(),
@@ -194,13 +196,13 @@ class _PlansState extends ConsumerState<Plans> {
           startInAppPurchaseFlow(userSelectedPlan);
           return;
         }
-        nonStoreFlow();
+        signUpFlow();
         break;
       case 'ios':
         startInAppPurchaseFlow(userSelectedPlan);
         break;
       default:
-        nonStoreFlow();
+        signUpFlow();
     }
   }
 
@@ -255,19 +257,33 @@ class _PlansState extends ConsumerState<Plans> {
         // Handle success
         appLogger.info('Successfully acknowledged purchase');
         context.hideLoadingDialog();
-        storeFlow();
+        signUpFlow();
       },
     );
   }
 
-  void nonStoreFlow() {
-    if (PlatformUtils.isIOS) {
-      throw Exception('Not supported on IOS');
+  void signUpFlow() {
+    final appSetting = ref.read(appSettingNotifierProvider);
+    if (appSetting.userLoggedIn) {
+      useProFlow();
+      return;
     }
     appRouter.push(AddEmail(authFlow: AuthFlow.signUp));
   }
 
-  void storeFlow() {
-    appRouter.push(AddEmail(authFlow: AuthFlow.signUp));
+  //This will be used for user has signed and there plan is expired
+  Future<void> useProFlow() async {
+    if (!mounted) {
+      return;
+    }
+    context.showLoadingDialog();
+    final isPro = await checkUserAccountStatus(ref, context);
+    context.hideLoadingDialog();
+    AppDialog.showLanternProDialog(
+      context: context,
+      onPressed: () {
+        appRouter.popUntilRoot();
+      },
+    );
   }
 }
