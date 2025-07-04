@@ -68,7 +68,8 @@ String generatePassword() {
 }
 
 bool isStoreVersion() {
-  return (sl<StoreUtils>().isSideLoaded() == false);
+  return true;
+  // return (sl<StoreUtils>().isSideLoaded() == false);
 }
 
 //copy to clipboard
