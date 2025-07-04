@@ -111,21 +111,28 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                     icon: AppImagePaths.share,
                     iconColor: AppColors.gray9,
                     textColor: AppColors.gray9,
-                    onPressed: () {
-                      if (shareAccessKey.isNotEmpty && shareAccessKey != "") {
-                        // If the shareAccessKey is already generated, we don't need to generate it again.
-                        Map<String, dynamic> tokenData = JwtDecoder.decode(shareAccessKey);
-                        sharePrivateAccessKey(item, tokenData);
-                      } else {
-                        showShareAccessKeyDialog(item);
-                      }
-                    }),
+                    onPressed: () => onTapShareAccessKey(item)),
               SizedBox(height: 16),
             ],
           ),
         );
       },
     );
+  }
+
+  void onTapShareAccessKey(PrivateServerEntity server) {
+    if (shareAccessKey.isNotEmpty && shareAccessKey != "") {
+      try {
+        // If the shareAccessKey is already generated, we don't need to generate it again.
+        Map<String, dynamic> tokenData = JwtDecoder.decode(shareAccessKey);
+        sharePrivateAccessKey(server, tokenData);
+      } catch (e) {
+        // If the shareAccessKey is invalid, we need to generate it again.
+        showShareAccessKeyDialog(server);
+      }
+    } else {
+      showShareAccessKeyDialog(server);
+    }
   }
 
   void showShareAccessKeyDialog(PrivateServerEntity server) {
@@ -267,7 +274,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
           textColor: AppColors.red7,
           onPressed: () {
             appRouter.pop();
-            onRename(serverName, textController.text.trim());
+            onDelete(serverName);
           },
         ),
       ],

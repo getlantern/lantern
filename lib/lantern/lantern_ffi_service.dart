@@ -787,7 +787,7 @@ class LanternFFIService implements LanternCoreService {
       checkAPIError(result);
       return Right('ok');
     } catch (e, stackTrace) {
-      appLogger.error('Error setting private server', e, stackTrace);
+      appLogger.error('Error inviting to server manager instance', e, stackTrace);
       return Left(e.toFailure());
     }
   }

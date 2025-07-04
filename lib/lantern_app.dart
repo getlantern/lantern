@@ -60,8 +60,7 @@ class _LanternAppState extends ConsumerState<LanternApp> {
           data['accessKey'] =
               uri.toString().replaceAll('https://lantern.io/', 'lantern//');
           final expiration = int.parse(data['exp'].toString());
-          final expired =
-              DateTime.fromMillisecondsSinceEpoch(expiration * 1000);
+          final expired = DateTime.fromMillisecondsSinceEpoch(expiration * 1000);
           // check if date is expired
           if (expired.isBefore(DateTime.now())) {
             appLogger.debug("DeepLink expired: $expired");
