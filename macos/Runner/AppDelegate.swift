@@ -6,8 +6,6 @@ class AppDelegate: FlutterAppDelegate {
   let logger = Logger(subsystem: "org.getlantern.lantern", category: "AppDelegate")
 
   override func applicationDidFinishLaunching(_ aNotification: Notification) {
-    let systemExtensionManager = SystemExtensionManager()
-    systemExtensionManager.activateExtension()
     super.applicationDidFinishLaunching(aNotification)
   }
 

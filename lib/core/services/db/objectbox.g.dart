@@ -125,12 +125,6 @@ final _entities = <obx_int.ModelEntity>[
         type: 9,
         flags: 0,
       ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(8, 3219350225026657695),
-        name: 'blockAds',
-        type: 1,
-        flags: 0,
-      ),
     ],
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
@@ -735,7 +729,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [],
     retiredIndexUids: const [],
-    retiredPropertyUids: const [],
+    retiredPropertyUids: const [3219350225026657695],
     retiredRelationUids: const [],
     modelVersion: 5,
     modelVersionParserMinimum: 5,
@@ -835,7 +829,6 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addOffset(4, oAuthTokenOffset);
         fbb.addBool(5, object.userLoggedIn);
         fbb.addOffset(6, emailOffset);
-        fbb.addBool(7, object.blockAds);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -869,12 +862,6 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final oAuthTokenParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 12, '');
-        final blockAdsParam = const fb.BoolReader().vTableGet(
-          buffer,
-          rootOffset,
-          18,
-          false,
-        );
         final emailParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 16, '');
@@ -887,7 +874,6 @@ obx_int.ModelDefinition getObjectBoxModel() {
           isSplitTunnelingOn: isSplitTunnelingOnParam,
           userLoggedIn: userLoggedInParam,
           oAuthToken: oAuthTokenParam,
-          blockAds: blockAdsParam,
           email: emailParam,
           locale: localeParam,
         );
@@ -1669,11 +1655,6 @@ class AppSetting_ {
   /// See [AppSetting.email].
   static final email = obx.QueryStringProperty<AppSetting>(
     _entities[1].properties[6],
-  );
-
-  /// See [AppSetting.blockAds].
-  static final blockAds = obx.QueryBooleanProperty<AppSetting>(
-    _entities[1].properties[7],
   );
 }
 

@@ -87,11 +87,6 @@
           "id": "7:5208577103578163297",
           "name": "email",
           "type": 9
-        },
-        {
-          "id": "8:3219350225026657695",
-          "name": "blockAds",
-          "type": 1
         }
       ],
       "relations": []
@@ -581,7 +576,9 @@
   "modelVersionParserMinimum": 5,
   "retiredEntityUids": [],
   "retiredIndexUids": [],
-  "retiredPropertyUids": [],
+  "retiredPropertyUids": [
+    3219350225026657695
+  ],
   "retiredRelationUids": [],
   "version": 1
 }
