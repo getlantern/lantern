@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/models/app_setting.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage.dart';
@@ -44,7 +45,7 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     update(state.copyWith(newIsSpiltTunnelingOn: value));
   }
 
-  void setSplitTunnelingMode(String mode) {
+  void setSplitTunnelingMode(SplitTunnelingMode mode) {
     update(state.copyWith(newSplitTunnelingMode: mode));
   }
 
@@ -65,5 +66,9 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     return deviceLocale.languageCode == 'en'
         ? const Locale('en', 'US')
         : deviceLocale;
+  }
+
+  void setByassList(BypassListOption list) {
+    update(state.copyWith(newBypassList: list));
   }
 }

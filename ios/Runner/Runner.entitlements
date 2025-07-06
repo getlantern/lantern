@@ -16,6 +16,7 @@
 	<key>com.apple.developer.networking.networkextension</key>
 	<array>
 		<string>packet-tunnel-provider</string>
+		<string>dns-proxy</string>
 	</array>
 	<key>com.apple.security.app-sandbox</key>
 	<true/>

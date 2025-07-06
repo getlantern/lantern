@@ -101,7 +101,8 @@ dependencies:
   # Utils
   fpdart: ^1.1.1
   jwt_decoder: ^2.0.1
-
+  country_flags: ^3.3.0
+  mobile_scanner: ^7.0.1
   installed_apps: ^1.6.0
 
   flutter_inappwebview: ^6.1.5

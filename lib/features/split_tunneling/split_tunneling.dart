@@ -23,8 +23,7 @@ class SplitTunneling extends HookConsumerWidget {
     final preferences = ref.watch(appSettingNotifierProvider);
     final _textTheme = Theme.of(context).textTheme;
     final splitTunnelingEnabled = preferences.isSplitTunnelingOn;
-    final splitTunnelingMode =
-        preferences.splitTunnelingMode.toSplitTunnelingMode;
+    final splitTunnelingMode = preferences.splitTunnelingMode;
     final isAutomaticMode = splitTunnelingMode == SplitTunnelingMode.automatic;
     final enabledApps = ref.watch(splitTunnelingAppsProvider).toList();
     final enabledWebsites = ref.watch(splitTunnelingWebsitesProvider).toList();
@@ -52,7 +51,7 @@ class SplitTunneling extends HookConsumerWidget {
                       if (newValue != null) {
                         ref
                             .read(appSettingNotifierProvider.notifier)
-                            .setSplitTunnelingMode(newValue.displayName);
+                            .setSplitTunnelingMode(newValue);
                         Navigator.pop(context);
                       }
                     },
@@ -164,8 +163,7 @@ class SplitTunneling extends HookConsumerWidget {
                                 if (newValue != null) {
                                   ref
                                       .read(appSettingNotifierProvider.notifier)
-                                      .setSplitTunnelingMode(
-                                          newValue.displayName);
+                                      .setSplitTunnelingMode(newValue);
 
                                   expansionTileController.collapse();
                                 }
@@ -248,7 +246,7 @@ class SplitTunnelingModeTile extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
-                mode.displayName,
+                mode.value,
                 style: AppTestStyles.bodyMedium.copyWith(
                   color: AppColors.black1,
                 ),

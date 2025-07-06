@@ -3,6 +3,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/plan_data.dart';
+import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 
 import '../core/services/app_purchase.dart';
@@ -16,6 +17,9 @@ abstract class LanternCoreService {
   Future<Either<Failure, String>> startVPN();
 
   Future<Either<Failure, String>> stopVPN();
+
+  Future<Either<Failure, String>> setPrivateServer(String tag);
+
 
   Stream<LanternStatus> watchVPNStatus();
 
@@ -100,4 +104,26 @@ abstract class LanternCoreService {
   //Delete account
   Future<Either<Failure, UserResponse>> deleteAccount(
       {required String email, required String password});
+
+  /// Private server methods
+  Future<Either<Failure, Unit>> digitalOceanPrivateServer();
+
+  Stream<PrivateServerStatus> watchPrivateServerStatus();
+
+  Future<Either<Failure, Unit>> setUserInput(
+      {required PrivateServerInput methodType, required String input});
+
+  Future<Either<Failure, Unit>> startDeployment(
+      {required String location, required String serverName});
+
+  //cert
+  Future<Either<Failure, Unit>> setCert({required String fingerprint});
+
+
+  Future<Either<Failure, Unit>> addServerManually(
+      {required String ip, required String port,required String accessToken,required String serverName});
+
+  Future<Either<Failure, Unit>> cancelDeployment();
+
+
 }

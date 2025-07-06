@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lantern/core/common/app_buttons.dart';
-import 'package:lantern/core/common/app_colors.dart';
-import 'package:lantern/core/common/app_image_paths.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/widgets/app_tile.dart';
 import 'package:lantern/features/private_server/server_locations.dart';
 
 class ProviderCard extends StatelessWidget {
@@ -39,45 +35,40 @@ class ProviderCard extends StatelessWidget {
     }
 
     final textTheme = Theme.of(context).textTheme;
-    final providerName = provider.value;
-
-    return Card(
-      margin: EdgeInsets.only(right: 5),
-      elevation: 4,
-      shadowColor: AppColors.shadowColor,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            AppTile(
-              icon: icon,
-              label: title,
-              tileTextStyle: textTheme.titleMedium,
-              contentPadding: EdgeInsets.symmetric(horizontal: 4.0),
+    return AppCard(
+      padding: const EdgeInsets.all(12),
+      margin: EdgeInsets.only(right: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          AppTile(
+            icon: icon,
+            label: title,
+            dense: true,
+            tileTextStyle: textTheme.titleMedium,
+            contentPadding: EdgeInsets.symmetric(horizontal: 4.0),
+          ),
+          Divider(color: AppColors.gray2),
+          CheckmarkTile(text: 'handle_configuration'.i18n),
+          CheckmarkTile(text: price),
+          CheckmarkTile(text: 'seamless_integration'.i18n),
+          CheckmarkTile(
+            text: 'choose_location'.i18n,
+            trailing: AppIconButton(
+              path: AppImagePaths.info,
+              onPressed: () => showServerLocationsModal(),
             ),
-            Divider(color: AppColors.gray2),
-            CheckmarkTile(
-              text: 'handle_configuration'.i18n,
-            ),
-            CheckmarkTile(text: price),
-            CheckmarkTile(text: 'seamless_integration'.i18n),
-            CheckmarkTile(
-              text: 'choose_location'.i18n,
-              trailing: AppIconButton(
-                path: AppImagePaths.info,
-                onPressed: () => showServerLocationsModal(),
-              ),
-            ),
-            CheckmarkTile(
-              text: 'one_month_included'.i18n.fill([1]),
-            ),
-            const SizedBox(height: 24),
-            PrimaryButton(
-                label: 'continue_with_$providerName'.i18n, onPressed: () {}),
-          ],
-        ),
+          ),
+          CheckmarkTile(
+            text: 'one_month_included'.i18n.fill([1]),
+          ),
+          const SizedBox(height: 24),
+          PrimaryButton(
+            label: '${'continue_with'.i18n} ${provider.displayName}',
+            onPressed: onContinue,
+          ),
+        ],
       ),
     );
   }
