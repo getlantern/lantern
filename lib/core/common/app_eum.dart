@@ -7,13 +7,6 @@ enum VPNStatus {
   error,
 }
 
-enum AppFlow {
-  store,
-  nonStore,
-}
-
-enum StipeSubscriptionType { monthly, yearly, one_time }
-
 enum ServerLocationType {
   auto,
   privateServer,
