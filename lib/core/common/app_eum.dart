@@ -90,10 +90,10 @@ enum SplitTunnelingMode {
 
 extension SplitTunnelingModeString on String {
   SplitTunnelingMode get toSplitTunnelingMode {
-    switch (this) {
-      case 'Automatic':
+    switch (toLowerCase()) {
+      case 'automatic':
         return SplitTunnelingMode.automatic;
-      case 'Manual':
+      case 'manual':
         return SplitTunnelingMode.manual;
       default:
         return SplitTunnelingMode.automatic;
