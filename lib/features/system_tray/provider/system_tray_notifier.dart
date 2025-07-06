@@ -4,6 +4,7 @@ import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/window/provider/window_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:tray_manager/tray_manager.dart';
+import 'package:window_manager/window_manager.dart';
 
 import '../../../core/common/common.dart';
 
@@ -16,16 +17,21 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
   @override
   Future<void> build() async {
     if (!PlatformUtils.isDesktop) return;
+
     _currentStatus = ref.read(vpnNotifierProvider);
 
     ref.listen<VPNStatus>(
       vpnNotifierProvider,
-      (previous, next) {
+      (previous, next) async {
         _currentStatus = next;
         // Refresh menu on change
-        updateTrayMenu();
+        await updateTrayMenu();
       },
     );
+
+    ref.onDispose(() {
+      trayManager.removeListener(this);
+    });
 
     trayManager.addListener(this);
     await updateTrayMenu();
@@ -73,7 +79,10 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
         MenuItem(
           key: 'exit',
           label: 'exit'.i18n,
-          onClick: (_) => exit(0),
+          onClick: (_) async {
+            await trayManager.destroy();
+            await ref.read(windowNotifierProvider.notifier).close();
+          },
         ),
       ],
     );
@@ -110,9 +119,5 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
   @override
   Future<void> onTrayIconRightMouseDown() async {
     await trayManager.popUpContextMenu();
-  }
-
-  void dispose() {
-    trayManager.removeListener(this);
   }
 }
