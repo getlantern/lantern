@@ -1,3 +1,4 @@
+import 'package:lantern/core/common/app_eum.dart';
 import 'package:objectbox/objectbox.dart';
 
 @Entity()
@@ -7,7 +8,8 @@ class AppSetting {
 
   bool isPro;
   bool isSplitTunnelingOn;
-  String splitTunnelingMode;
+  BypassListOption bypassList;
+  SplitTunnelingMode splitTunnelingMode;
   String locale;
   String oAuthToken;
   bool userLoggedIn;
@@ -19,9 +21,10 @@ class AppSetting {
     this.isPro = false,
     this.isSplitTunnelingOn = false,
     this.userLoggedIn = false,
-    this.splitTunnelingMode = 'Automatic',
+    this.splitTunnelingMode = SplitTunnelingMode.automatic,
     this.oAuthToken = '',
     this.blockAds = false,
+    this.bypassList = BypassListOption.global,
     this.email = '',
     this.locale = 'en_US',
   });
@@ -30,15 +33,17 @@ class AppSetting {
     bool? newPro,
     bool? newIsSpiltTunnelingOn,
     String? newLocale,
-    String? newSplitTunnelingMode,
     bool? userLoggedIn,
     bool? blockAds,
     String? oAuthToken,
     String? email,
+    SplitTunnelingMode? newSplitTunnelingMode,
+    BypassListOption? newBypassList,
   }) {
     return AppSetting(
       id: id,
       isPro: newPro ?? isPro,
+      bypassList: newBypassList ?? bypassList,
       isSplitTunnelingOn: newIsSpiltTunnelingOn ?? isSplitTunnelingOn,
       locale: newLocale ?? locale,
       blockAds: blockAds ?? this.blockAds,

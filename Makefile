@@ -72,10 +72,10 @@ TAGS=with_gvisor,with_quic,with_wireguard,with_ech,with_utls,with_clash_api,with
 GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go')
 GOMOBILE_VERSION ?= latest
 GOMOBILE_REPOS = \
-	$(RADIANCE_REPO) \
 	github.com/sagernet/sing-box/experimental/libbox \
 	github.com/getlantern/sing-box-extensions/ruleset \
-	./lantern-core/mobile
+	./lantern-core/mobile \
+	./lantern-core/utils
 
 SIGN_ID="Developer ID Application: Brave New Software Project, Inc (ACZRKC3LQ9)"
 
@@ -331,11 +331,11 @@ build-ios:
 	rm -rf $(IOS_FRAMEWORK_BUILD)
 	rm -rf $(IOS_FRAMEWORK_DIR) && mkdir -p $(IOS_FRAMEWORK_DIR)
 	GOOS=ios gomobile bind -v \
-		-tags=$(TAGS),with_low_memory,netgo -trimpath \
+		-tags=$(TAGS),with_low_memory, -trimpath \
 		-target=ios \
 		-o $(IOS_FRAMEWORK_BUILD) \
 		-ldflags="-w -s -checklinkname=0" \
-		$(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox github.com/getlantern/sing-box-extensions/ruleset  ./lantern-core/mobile
+		$(GOMOBILE_REPOS)
 	@echo "Built iOS Framework: $(IOS_FRAMEWORK_BUILD)"
 	mv $(IOS_FRAMEWORK_BUILD) $(IOS_FRAMEWORK_DIR)
 
@@ -372,7 +372,6 @@ update-dart-api-dl:
 	@echo "Dart API DL bridge updated successfully!"
 
 
-
 #Routes generation
 gen:
 	dart run build_runner build --delete-conflicting-outputs
@@ -394,7 +393,18 @@ clean:
 	rm -rf $(ANDROID_LIB_PATH)
 	rm -rf $(IOS_DIR)$(IOS_FRAMEWORK)
 
+
+#this will used to delete all Lantern data from the user's home directory
+PHONY: delete-data
+delete-data:
+	@echo "Deleting Lantern data..."
+	@rm -rf "$(HOME)/Library/Application Support/org.getlantern.lantern"
+	@rm -rf "$(HOME)/Library/Logs/Lantern"
+	@rm -rf "$(HOME)/.lanternsecrets"
+	@echo "Lantern data deleted."
+
 .PHONY: protos
 # You can install the dart protoc support by running 'dart pub global activate protoc_plugin'
 protos:
 	@protoc --dart_out=lib/lantern/protos protos/auth.proto
+

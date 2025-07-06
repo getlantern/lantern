@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/notification_event.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/notification_service.dart';
@@ -61,6 +60,11 @@ class VpnNotifier extends _$VpnNotifier {
 
   Future<Either<Failure, String>> startVPN() async {
     final result = await ref.read(lanternServiceProvider).startVPN();
+    return result;
+  }
+
+  Future<Either<Failure, String>> setPrivateServer(String tag) async {
+    final result = await ref.read(lanternServiceProvider).setPrivateServer(tag);
     return result;
   }
 

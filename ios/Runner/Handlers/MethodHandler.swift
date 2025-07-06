@@ -32,8 +32,10 @@ class MethodHandler {
         self.startVPN(result: result)
       case "stopVPN":
         self.stopVPN(result: result)
+      case "SetPrivateServer":
+        self.setPrivateServer(result: result, tag: call.arguments as! String)
       case "isVPNConnected":
-        self.isVPNConnected(result: result)
+        self.isVPNConnectedx(result: result)
       case "plans":
         self.plans(result: result)
       case "oauthLoginUrl":
@@ -59,10 +61,65 @@ class MethodHandler {
               details: nil))
         }
       // user management
+      case "startRecoveryByEmail":
+        let map = call.arguments as? [String: Any]
+        let email = map?["email"] as? String ?? ""
+        self.startRecoveryByEmail(result: result, email: email)
+        break
+      case "validateRecoveryCode":
+        let data = call.arguments as? [String: Any]
+        self.validateRecoveryCode(result: result, data: data!)
+        break
+      case "completeChangeEmail":
+        let data = call.arguments as? [String: Any]
+        self.completeChangeEmail(result: result, data: data!)
+        break
+      case "login":
+        let data = call.arguments as? [String: Any]
+        self.login(result: result, data: data!)
+        break
+      case "signUp":
+        let data = call.arguments as? [String: Any]
+        self.signUp(result: result, data: data!)
+        break
       case "logout":
-        // Handle logout if needed
-        self.logout(result: result)
-
+        let data = call.arguments as? [String: Any]
+        let email = data?["email"] as? String ?? ""
+        self.logout(result: result, email: email)
+        break
+      case "deleteAccount":
+        let data = call.arguments as? [String: Any]
+        self.deleteAccount(result: result, data: data!)
+        break
+      case "activationCode":
+        let data = call.arguments as? [String: Any]
+        self.activationCode(result: result, data: data!)
+        break
+      // Private server methods
+      case "digitalOcean":
+        self.digitalOcean(result: result)
+        break
+      case "selectAccount":
+        let account = call.arguments as? String ?? ""
+        self.selectAccount(result: result, account: account)
+        break
+      case "selectProject":
+        let project = call.arguments as? String ?? ""
+        self.selectProject(result: result, project: project)
+        break
+      case "startDeployment":
+        let data = call.arguments as? [String: Any]
+        self.startDeployment(result: result, data: data!)
+        break
+      case "cancelDeployment":
+        self.cancelDeployment(result: result)
+        break
+      case "selectCertFingerprint":
+        let fingerprint = call.arguments as? String ?? ""
+        self.selectCertFingerprint(result: result, fingerprint: fingerprint)
+      case "addServerManually":
+        let data = call.arguments as? [String: Any]
+        self.addServerManually(result: result, data: data!)
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -85,6 +142,20 @@ class MethodHandler {
               message: "Unable to start VPN tunnel.",
               details: error.localizedDescription))
         }
+      }
+    }
+  }
+
+  private func setPrivateServer(result: @escaping FlutterResult, tag: String) {
+    Task.detached {
+      var error: NSError?
+      MobileSetPrivateServer(tag, &error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "SET_PRIVATE_SERVER_ERROR")
+        return
+      }
+      await MainActor.run {
+        result("ok")
       }
     }
   }
@@ -118,7 +189,7 @@ class MethodHandler {
     Task {
       do {
         var error: NSError?
-        var data = try await MobilePlans(&error)
+        var data = try await MobilePlans("store", &error)
         if error != nil {
           result(
             FlutterError(
@@ -177,8 +248,8 @@ class MethodHandler {
           result(
             FlutterError(
               code: "OAUTH_LOGIN_CALLBACK",
-              message: error?.description,
-              details: error?.localizedDescription))
+              message: error!.description,
+              details: error!.localizedDescription))
         }
         await MainActor.run {
           result(data)
@@ -204,8 +275,8 @@ class MethodHandler {
           result(
             FlutterError(
               code: "USER_DATA_ERROR",
-              message: error?.description,
-              details: error?.localizedDescription))
+              message: error!.description,
+              details: error.debugDescription))
         }
         await MainActor.run {
           result(data)
@@ -259,6 +330,14 @@ class MethodHandler {
       do {
         var error: NSError?
         MobileAcknowledgeApplePurchase(token, planId, &error)
+        if error != nil {
+          result(
+            FlutterError(
+              code: "ACKNOWLEDGE_FAILED",
+              message: error!.localizedDescription,
+              details: error!.debugDescription))
+          return
+        }
         await MainActor.run {
           result("success")
         }
@@ -275,23 +354,296 @@ class MethodHandler {
   }
 
   // User management
-  func logout(result: @escaping FlutterResult) {
+
+  func startRecoveryByEmail(result: @escaping FlutterResult, email: String) {
+    Task {
+      var error: NSError?
+      var data = try await MobileStartRecoveryByEmail(email, &error)
+      if error != nil {
+        result(
+          FlutterError(
+            code: "RECOVERY_FAILED",
+            message: error!.localizedDescription,
+            details: error!.debugDescription))
+        return
+      }
+      await MainActor.run {
+        result("Recovery email sent successfully.")
+      }
+    }
+  }
+
+  func validateRecoveryCode(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      let email = data["email"] as? String ?? ""
+      let code = data["code"] as? String ?? ""
+      var error: NSError?
+      var data = try await MobileValidateChangeEmailCode(email, code, &error)
+      if error != nil {
+        result(
+          FlutterError(
+            code: error!.localizedDescription,
+            message: error!.localizedDescription,
+            details: error?.localizedDescription))
+        return
+      }
+      await MainActor.run {
+        result("Recovery code validated successfully.")
+      }
+    }
+  }
+
+  func completeChangeEmail(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      let email = data["email"] as? String ?? ""
+      let code = data["code"] as? String ?? ""
+      let newPassword = data["newPassword"] as? String ?? ""
+      var error: NSError?
+      var data = try await MobileCompleteChangeEmail(email, newPassword, code, &error)
+      if error != nil {
+        result(
+          FlutterError(
+            code: "COMPLETE_CHANGE_EMAIL_FAILED",
+            message: error!.localizedDescription,
+            details: error!.localizedDescription))
+        return
+      }
+      await MainActor.run {
+        result("Change email completed successfully.")
+      }
+    }
+  }
+
+  func login(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      let email = data["email"] as? String ?? ""
+      let password = data["password"] as? String ?? ""
+      var error: NSError?
+      var data = try await MobileLogin(email, password, &error)
+      if error != nil {
+        result(
+          FlutterError(
+            code: "LOGIN_FAILED",
+            message: error!.localizedDescription,
+            details: error!.localizedDescription))
+        return
+      }
+      await MainActor.run {
+        result(data)
+      }
+    }
+  }
+  func signUp(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      let email = data["email"] as? String ?? ""
+      let password = data["password"] as? String ?? ""
+      var error: NSError?
+      var data = try await MobileSignUp(email, password, &error)
+      if error != nil {
+        result(
+          FlutterError(
+            code: "SIGNUP_FAILED",
+            message: error!.localizedDescription,
+            details: error!.localizedDescription))
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  func logout(result: @escaping FlutterResult, email: String) {
     Task {
       do {
         var error: NSError?
-        MobileLogout(&error)
+        var data = try await MobileLogout(email, &error)
         await MainActor.run {
-          result("success")
+          result(data)
         }
       } catch {
         await MainActor.run {
           result(
             FlutterError(
               code: "LOGOUT_FAILED",
-              message: "Unable to logout.",
+              message: error.localizedDescription,
               details: error.localizedDescription))
         }
       }
+    }
+  }
+
+  func deleteAccount(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      let email = data["email"] as? String ?? ""
+      let password = data["password"] as? String ?? ""
+      var error: NSError?
+      var data = MobileDeleteAccount(email, password, &error)
+      if error != nil {
+        result(
+          FlutterError(
+            code: "DELETE_ACCOUNT_FAILED",
+            message: error!.localizedDescription,
+            details: error!.localizedDescription))
+        return
+      }
+      await MainActor.run {
+        result(data)
+      }
+    }
+  }
+
+  func activationCode(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      let email = data["email"] as? String ?? ""
+      let resellerCode = data["resellerCode"] as? String ?? ""
+      var error: NSError?
+      var data = try await MobileActivationCode(email, resellerCode, &error)
+      if error != nil {
+        result(
+          FlutterError(
+            code: "DELETE_ACCOUNT_FAILED",
+            message: error!.localizedDescription,
+            details: error!.localizedDescription))
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  /// Private server methods
+  /// Starts the Digital Ocean private server flow.
+  func digitalOcean(result: @escaping FlutterResult) {
+    Task.detached {
+      var error: NSError?
+      MobileDigitalOceanPrivateServer(PrivateServerListener.shared, &error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "DIGITAL_OCEAN_ERROR")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+
+    }
+  }
+
+  func selectAccount(result: @escaping FlutterResult, account: String) {
+    Task.detached {
+      var error: NSError?
+      MobileSelectAccount(account, &error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "SELECT_ACCOUNT_ERROR")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+
+    }
+  }
+
+  func selectProject(result: @escaping FlutterResult, project: String) {
+    Task.detached {
+
+      var error: NSError?
+      MobileSelectProject(project, &error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "SELECT_PROJECT_ERROR")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+
+    }
+  }
+
+  func startDeployment(result: @escaping FlutterResult, data: [String: Any]) {
+    Task.detached {
+      let location = data["location"] as? String ?? ""
+      let serverName = data["serverName"] as? String ?? ""
+
+      var error: NSError?
+      let success = MobileStartDepolyment(location, serverName, &error)
+
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "START_DEPLOYMENT_ERROR")
+        return
+      }
+
+      await MainActor.run {
+        result(success ? "ok" : "failed")
+      }
+    }
+  }
+
+  func cancelDeployment(result: @escaping FlutterResult) {
+    Task.detached {
+      var error: NSError?
+      let success = MobileCancelDepolyment(&error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "CANCEL_DEPLOYMENT_ERROR")
+        return
+      }
+      await MainActor.run {
+        result(success ? "ok" : "failed")
+      }
+    }
+  }
+
+  func selectCertFingerprint(result: @escaping FlutterResult, fingerprint: String) {
+    Task.detached {
+      var error: NSError?
+      MobileSelectedCertFingerprint(fingerprint)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "SELECT_CERT_FINGERPRINT_ERROR")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  func addServerManually(result: @escaping FlutterResult, data: [String: Any]) {
+    Task.detached {
+      let ip = data["ip"] as? String
+      let port = data["port"] as? String
+      let accessToken = data["accessToken"] as? String
+      let serverName = data["serverName"] as? String
+      var error: NSError?
+      MobileAddServerManagerInstance(
+        ip, port, accessToken, serverName, PrivateServerListener.shared, &error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "ADD_SERVER_MANUALLY_ERROR")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  //Utils method for hanlding Flutter errors
+  private func handleFlutterError(
+    _ error: Error?,
+    result: @escaping FlutterResult,
+    code: String = "UNKNOWN_ERROR"
+  ) async {
+    guard let error = error else { return }
+
+    let nsError = error as NSError
+    await MainActor.run {
+      result(
+        FlutterError(
+          code: code,
+          message: nsError.localizedDescription,
+          details: nsError.debugDescription
+        )
+      )
     }
   }
 

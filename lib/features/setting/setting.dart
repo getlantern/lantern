@@ -1,13 +1,17 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:auto_updater/auto_updater.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
+import 'package:lantern/core/models/mapper/user_mapper.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/setting/follow_us.dart'
     show showFollowUsBottomSheet;
 import 'package:lantern/lantern/lantern_service_notifier.dart';
+
+import '../../core/services/injection_container.dart';
 
 enum _SettingType {
   account,
@@ -59,13 +63,13 @@ class _SettingState extends ConsumerState<Setting> {
           const SizedBox(height: 16),
           if (isUserPro)
             Card(
-            margin: EdgeInsets.zero,
-            child: AppTile(
-              label: 'account'.i18n,
-              icon: AppImagePaths.signIn,
-              onPressed: () => settingMenuTap(_SettingType.account),
+              margin: EdgeInsets.zero,
+              child: AppTile(
+                label: 'account'.i18n,
+                icon: AppImagePaths.signIn,
+                onPressed: () => settingMenuTap(_SettingType.account),
+              ),
             ),
-          ),
           const SizedBox(height: 16),
           if (!appSetting.userLoggedIn)
             Card(
@@ -102,7 +106,8 @@ class _SettingState extends ConsumerState<Setting> {
                 AppTile(
                   label: 'check_for_updates'.i18n,
                   icon: AppImagePaths.update,
-                  onPressed: () => settingMenuTap(_SettingType.checkForUpdates),
+                  onPressed: () async =>
+                      await settingMenuTap(_SettingType.checkForUpdates),
                 ),
               ],
             ),
@@ -187,7 +192,7 @@ class _SettingState extends ConsumerState<Setting> {
     );
   }
 
-  void settingMenuTap(_SettingType menu) {
+  Future<void> settingMenuTap(_SettingType menu) async {
     switch (menu) {
       case _SettingType.signIn:
         appRouter.push(const SignInEmail());
@@ -222,9 +227,16 @@ class _SettingState extends ConsumerState<Setting> {
         appRouter.push(DownloadLinks());
         break;
       case _SettingType.checkForUpdates:
-        // TODO: Handle this case.
-        throw UnimplementedError();
+        await checkForUpdates();
+        break;
       case _SettingType.account:
+        final localUser = sl<LocalStorageService>().getUser()!;
+        final userSignedIn = ref.watch(appSettingNotifierProvider).userLoggedIn;
+        if (localUser.legacyUserData.isPro() && !userSignedIn) {
+          // this mean user has pro account but not signed in
+          updateProAccountFlow();
+          return;
+        }
         appRouter.push(Account());
         break;
       case _SettingType.vpnSetting:
@@ -236,6 +248,18 @@ class _SettingState extends ConsumerState<Setting> {
       case _SettingType.browserUnbounded:
         // TODO: Handle this case.
         throw UnimplementedError();
+    }
+  }
+
+  Future<void> checkForUpdates() async {
+    try {
+      autoUpdater.checkForUpdates();
+    } catch (e) {
+      appLogger.error('Error checking for updates: $e');
+      AppDialog.errorDialog(
+          context: context,
+          title: 'error'.i18n,
+          content: e.localizedDescription);
     }
   }
 
@@ -276,6 +300,46 @@ class _SettingState extends ConsumerState<Setting> {
           ),
         ],
       ),
+    );
+  }
+
+  void updateProAccountFlow() {
+    AppDialog.customDialog(
+      context: context,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          SizedBox(height: 24.0),
+          AppImage(path: AppImagePaths.personAdd),
+          SizedBox(height: 16.0),
+          Text(
+            'update_pro_account'.i18n,
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+          SizedBox(height: defaultSize),
+          Text(
+            'update_pro_account_message'.i18n,
+            style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                  color: AppColors.gray8,
+                ),
+          ),
+        ],
+      ),
+      action: [
+        AppTextButton(
+          label: 'cancel'.i18n,
+          textColor: AppColors.gray6,
+          onPressed: () {
+            appRouter.maybePop();
+          },
+        ),
+        AppTextButton(
+          label: 'add_email'.i18n,
+          onPressed: () {
+            appRouter.popAndPush(AddEmail(authFlow: AuthFlow.signUp));
+          },
+        ),
+      ],
     );
   }
 

@@ -55,7 +55,7 @@ class UserDataEntity {
   String inviters;
   String invitees;
   final devices = ToMany<DeviceEntity>();
-  final purchases = ToMany<PurchaseEntity>();
+  String purchases;
   final subscriptionData = ToOne<SubscriptionDataEntity>();
 
 
@@ -78,6 +78,7 @@ class UserDataEntity {
     required this.servers,
     required this.inviters,
     required this.invitees,
+    required this.purchases,
 
   });
 }

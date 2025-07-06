@@ -6,10 +6,11 @@ import (
 	"testing"
 
 	"github.com/getlantern/radiance"
-	"github.com/getlantern/radiance/api/protos"
+	"github.com/getlantern/radiance/api"
 	"github.com/zeebo/assert"
 )
 
+// todo implement a mock for all test cases
 func radianceOptions() radiance.Options {
 	return radiance.Options{
 		DataDir:  os.TempDir(),
@@ -39,34 +40,34 @@ func TestSetupRadiance(t *testing.T) {
 
 func TestCreateUser(t *testing.T) {
 	rr, err := radiance.NewRadiance(radianceOptions())
-	api := rr.APIHandler().ProServer
+	api := rr.APIHandler()
 	assert.Nil(t, err)
 	assert.NotNil(t, rr)
-	user, err := api.UserCreate(context.Background())
+	user, err := api.NewUser(context.Background())
 	assert.Nil(t, err)
 	assert.NotNil(t, user)
 }
 
 func TestSubscriptionRedirect(t *testing.T) {
 	rr, err := radiance.NewRadiance(radianceOptions())
-	api := rr.APIHandler().ProServer
+	apiClient := rr.APIHandler()
 	assert.Nil(t, err)
 	assert.NotNil(t, rr)
-	data := protos.SubscriptionPaymentRedirectRequest{
-		Provider:         "stripe",
-		Plan:             "monthly",
-		DeviceName:       "test-123",
-		Email:            "test@getlantern.org",
-		SubscriptionType: protos.SubscriptionTypeMonthly,
+	data := api.PaymentRedirectData{
+		Provider:    "stripe",
+		Plan:        "monthly",
+		DeviceName:  "test-123",
+		Email:       "test@getlantern.org",
+		BillingType: api.SubscriptionTypeSubscription,
 	}
-	user, err := api.SubscriptionPaymentRedirect(context.Background(), &data)
+	user, err := apiClient.SubscriptionPaymentRedirectURL(context.Background(), data)
 	assert.Nil(t, err)
 	assert.NotNil(t, user)
 }
 
 func TestUserData(t *testing.T) {
 	rr, err := radiance.NewRadiance(radianceOptions())
-	api := rr.APIHandler().ProServer
+	api := rr.APIHandler()
 	assert.Nil(t, err)
 	assert.NotNil(t, rr)
 	user, err := api.UserData(context.Background())
@@ -76,17 +77,17 @@ func TestUserData(t *testing.T) {
 
 func TestPlans(t *testing.T) {
 	rr, err := radiance.NewRadiance(radianceOptions())
-	api := rr.APIHandler().ProServer
+	api := rr.APIHandler()
 	assert.Nil(t, err)
 	assert.NotNil(t, rr)
-	plans, err := api.Plans(context.Background(), "non-store")
+	plans, err := api.SubscriptionPlans(context.Background(), "non-store")
 	assert.Nil(t, err)
 	assert.NotNil(t, plans)
 }
 
 func TestOAuthLoginUrl(t *testing.T) {
 	rr, err := radiance.NewRadiance(radianceOptions())
-	api := rr.APIHandler().User
+	api := rr.APIHandler()
 	assert.Nil(t, err)
 	assert.NotNil(t, rr)
 	user, err := api.OAuthLoginUrl(context.Background(), "google")

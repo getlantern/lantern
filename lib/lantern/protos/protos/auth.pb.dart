@@ -284,7 +284,7 @@ class UserResponse_UserData extends $pb.GeneratedMessage {
     $fixnum.Int64? expiration,
     $core.Iterable<$core.String>? servers,
     $core.String? subscription,
-    $core.Iterable<Purchase>? purchases,
+    $core.Iterable<$core.String>? purchases,
     $core.String? bonusDays,
     $core.String? bonusMonths,
     $core.Iterable<$core.String>? inviters,
@@ -373,7 +373,7 @@ class UserResponse_UserData extends $pb.GeneratedMessage {
     ..aInt64(10, _omitFieldNames ? '' : 'expiration')
     ..pPS(11, _omitFieldNames ? '' : 'servers')
     ..aOS(12, _omitFieldNames ? '' : 'subscription')
-    ..pc<Purchase>(13, _omitFieldNames ? '' : 'purchases', $pb.PbFieldType.PM, subBuilder: Purchase.create)
+    ..pPS(13, _omitFieldNames ? '' : 'purchases')
     ..aOS(14, _omitFieldNames ? '' : 'bonusDays', protoName: 'bonusDays')
     ..aOS(15, _omitFieldNames ? '' : 'bonusMonths', protoName: 'bonusMonths')
     ..pPS(16, _omitFieldNames ? '' : 'inviters')
@@ -508,7 +508,7 @@ class UserResponse_UserData extends $pb.GeneratedMessage {
   void clearSubscription() => $_clearField(12);
 
   @$pb.TagNumber(13)
-  $pb.PbList<Purchase> get purchases => $_getList(12);
+  $pb.PbList<$core.String> get purchases => $_getList(12);
 
   @$pb.TagNumber(14)
   $core.String get bonusDays => $_getSZ(13);
