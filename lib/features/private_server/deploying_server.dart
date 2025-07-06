@@ -101,7 +101,7 @@ class ErrorStatusModal extends StatelessWidget {
       onPrimary: () => Navigator.of(context).pop(),
       secondaryAction: 'exit'.i18n,
       onSecondary: () => Navigator.of(context).pop(),
-      icon: AppImagePaths.error,
+      icon: AppImagePaths.errorIcon,
     );
   }
 }

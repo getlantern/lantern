@@ -10,8 +10,21 @@ android {
     namespace = "org.getlantern.lantern"
     compileSdk = flutter.compileSdkVersion
     ndkVersion "27.0.12077973"
+//  ndkVersion = flutter.ndkVersion
 
-//    ndkVersion = flutter.ndkVersion
+
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']
+            jniLibs.srcDirs += ['src/main/jniLibs']
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "cpp/CMakeLists.txt"
+        }
+    }
 
     compileOptions {
         coreLibraryDesugaringEnabled true
@@ -21,6 +34,14 @@ android {
 
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_1_8
+    }
+
+    // Use legacy packaging to helps reduce apk size
+    packagingOptions{
+        exclude "DebugProbesKt.bin"
+        jniLibs {
+            useLegacyPackaging true
+        }
     }
 
     defaultConfig {
@@ -36,6 +57,12 @@ android {
             debugSymbolLevel 'FULL'
         }
 
+        externalNativeBuild {
+            cmake {
+                cppFlags "-std=c++14 -fexceptions -frtti"
+                arguments "-DANDROID_ARM_NEON=TRUE",'-DANDROID_STL=c++_shared'
+            }
+        }
         buildFeatures {
             buildConfig true
         }

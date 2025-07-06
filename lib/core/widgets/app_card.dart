@@ -5,17 +5,19 @@ class AppCard extends StatelessWidget {
   final Widget child;
 
   final EdgeInsets padding;
+  final EdgeInsets? margin;
 
   const AppCard({
-    Key? key,
+    super.key,
     required this.child,
     this.padding = const EdgeInsets.symmetric(horizontal: defaultSize),
-  }) : super(key: key);
+    this.margin ,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: EdgeInsets.zero,
+      margin: margin??EdgeInsets.zero,
       child: Padding(
         padding: padding,
         child: child,

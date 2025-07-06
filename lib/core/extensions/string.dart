@@ -6,6 +6,8 @@ import 'package:email_validator/email_validator.dart';
 import 'package:ffi/ffi.dart';
 import 'package:flutter/material.dart';
 
+final regex = RegExp(r'.+? - (.+?) \[[A-Z]{2}\]');
+
 extension CapExtension on String {
   String get capitalize => this[0].toUpperCase() + substring(1);
 }
@@ -29,7 +31,6 @@ extension IsoDateFormatter on String {
     }
   }
 }
-
 
 extension PasswordValidations on String {
   Map<String, bool> getValidationResults() => validatePassword(this);
@@ -63,5 +64,25 @@ extension LocalizationExtension on String {
       spilt[0],
       spilt.length > 1 ? spilt[1] : '',
     );
+  }
+}
+
+extension LocationParsing on String {
+  /// Extracts the readable city name (e.g., "New York City")
+  String get locationName {
+    if (isEmpty) return '';
+    final match = regex.firstMatch(this);
+    final rawName = match?.group(1) ?? '';
+    final name = rawName
+        .split('-')
+        .map((w) => w[0].toUpperCase() + w.substring(1))
+        .join(' ');
+    return '$countryCode-$name';
+  }
+
+  String get countryCode {
+    final regex = RegExp(r'\[([A-Z]{2})\]');
+    final match = regex.firstMatch(this);
+    return match?.group(1) ?? '';
   }
 }

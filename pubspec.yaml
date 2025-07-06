@@ -101,7 +101,8 @@ dependencies:
   # Utils
   fpdart: ^1.1.1
   jwt_decoder: ^2.0.1
-
+  country_flags: ^3.3.0
+  mobile_scanner: ^7.0.1
   installed_apps: ^1.6.0
 
   flutter_inappwebview: ^6.1.5
@@ -118,7 +119,6 @@ dependencies:
   flutter_local_notifications: ^19.2.0
   timezone: ^0.10.1
   flutter_timezone: ^4.1.0
-  country_flags: ^3.3.0
 
 dev_dependencies:
   flutter_test:

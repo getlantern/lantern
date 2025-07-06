@@ -31,7 +31,7 @@ class AppDialog {
             children: <Widget>[
               SizedBox(height: 24),
               LanternRoundedLogo(
-                height: 45,
+                height: 45
               ),
               SizedBox(height: defaultSize),
               Center(
