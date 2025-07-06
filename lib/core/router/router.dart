@@ -66,12 +66,6 @@ class AppRouter extends RootStackRouter {
       path: '/plans',
       page: Plans.page,
     ),
-    CustomRoute(
-      path: '/plans-bottom',
-      page: Plans.page,
-      transitionsBuilder: TransitionsBuilders.slideBottom,
-      durationInMilliseconds: 300,
-    ),
     AutoRoute(
       path: '/add-email',
       page: AddEmail.page,

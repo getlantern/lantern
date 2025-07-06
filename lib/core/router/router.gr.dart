@@ -543,18 +543,44 @@ class FollowUsArgs {
 
 /// generated route for
 /// [_i13.Home]
-class Home extends _i37.PageRouteInfo<void> {
-  const Home({List<_i37.PageRouteInfo>? children})
-      : super(Home.name, initialChildren: children);
+class Home extends _i37.PageRouteInfo<HomeArgs> {
+  Home({_i38.Key? key, List<_i37.PageRouteInfo>? children})
+      : super(
+          Home.name,
+          args: HomeArgs(key: key),
+          initialChildren: children,
+        );
 
   static const String name = 'Home';
 
   static _i37.PageInfo page = _i37.PageInfo(
     name,
     builder: (data) {
-      return const _i13.Home();
+      final args = data.argsAs<HomeArgs>(orElse: () => const HomeArgs());
+      return _i13.Home(key: args.key);
     },
   );
+}
+
+class HomeArgs {
+  const HomeArgs({this.key});
+
+  final _i38.Key? key;
+
+  @override
+  String toString() {
+    return 'HomeArgs{key: $key}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! HomeArgs) return false;
+    return key == other.key;
+  }
+
+  @override
+  int get hashCode => key.hashCode;
 }
 
 /// generated route for

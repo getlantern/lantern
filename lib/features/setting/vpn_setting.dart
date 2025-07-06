@@ -4,8 +4,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/split_tunneling_tile.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
-import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/home_notifier.dart';
 
 @RoutePage(name: 'VPNSetting')
 class VPNSetting extends HookConsumerWidget {
@@ -22,8 +22,7 @@ class VPNSetting extends HookConsumerWidget {
   Widget _buildBody(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
     final homeState = ref.watch(homeNotifierProvider);
-    final isUserPro =
-        homeState.valueOrNull?.legacyUserData.userStatus == 'pro' ?? false;
+    final isUserPro = homeState.valueOrNull?.legacyUserData.userStatus == 'pro';
 
     final preferences = ref.watch(appSettingNotifierProvider);
     final notifier = ref.watch(appSettingNotifierProvider.notifier);
