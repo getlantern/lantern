@@ -10,12 +10,16 @@ import (
 	"sync"
 
 	"github.com/getlantern/golog"
+
+	privateserver "github.com/getlantern/lantern-outline/lantern-core/private-server"
 	"github.com/getlantern/lantern-outline/lantern-core/utils"
 	"github.com/getlantern/radiance"
 	"github.com/getlantern/radiance/api"
 	"github.com/getlantern/radiance/api/protos"
 	"github.com/getlantern/radiance/client"
+	"github.com/getlantern/radiance/client/boxoptions"
 	"github.com/getlantern/radiance/common"
+
 	"google.golang.org/protobuf/proto"
 
 	"github.com/sagernet/sing-box/experimental/libbox"
@@ -138,6 +142,22 @@ func StopVPN() error {
 	if er != nil {
 		log.Errorf("Error stopping VPN: %v", er)
 	}
+	return nil
+}
+
+func SetPrivateServer(tag string) error {
+	log.Debugf("Setting private server with tag: %s", tag)
+	radianceMutex.Lock()
+	defer radianceMutex.Unlock()
+	if vpnClient == nil {
+		return log.Error("VPN client not setup")
+	}
+	group := boxoptions.ServerGroupUser
+	err := vpnClient.SelectServer(group, tag)
+	if err != nil {
+		return log.Errorf("Error setting private server: %v", err)
+	}
+	log.Debugf("Private server set with tag: %s", tag)
 	return nil
 }
 
@@ -289,11 +309,6 @@ func StripeSubscription(email, planId string) (string, error) {
 }
 
 func Plans(channel string) (string, error) {
-	// defer func() {
-	// 	if err := recover(); err != nil {
-	// 		log.Errorf("Error creating stripe subscription: %v", err)
-	// 	}
-	// }()
 	log.Debug("Getting plans")
 	plans, err := radianceServer.apiClient.SubscriptionPlans(context.Background(), channel)
 	if err != nil {
@@ -477,4 +492,37 @@ func ActivationCode(email, resellerCode string) error {
 		return fmt.Errorf("activation code failed: %s", purchase.Status)
 	}
 	return nil
+}
+
+//Private methods
+
+func DigitalOceanPrivateServer(events utils.PrivateServerEventListener) error {
+	if vpnClient == nil {
+		return log.Error("VPN client not setup")
+	}
+	return privateserver.StartDigitalOceanPrivateServerFlow(events, vpnClient)
+}
+
+func SelectAccount(account string) error {
+	return privateserver.SelectAccount(account)
+}
+
+func SelectProject(project string) error {
+	return privateserver.SelectProject(project)
+}
+
+func StartDepolyment(location, serverName string) error {
+	return privateserver.StartDepolyment(location, serverName)
+}
+
+func CancelDepolyment() error {
+	return privateserver.CancelDepolyment()
+}
+
+func SelectedCertFingerprint(fp string) {
+	privateserver.SelectedCertFingerprint(fp)
+}
+
+func AddServerManagerInstance(ip, port, accessToken, tag string, events utils.PrivateServerEventListener) error {
+	return privateserver.AddServerManually(ip, port, accessToken, tag, vpnClient, events)
 }

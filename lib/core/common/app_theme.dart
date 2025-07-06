@@ -13,6 +13,12 @@ class AppTheme {
           TargetPlatform.android: FadeForwardsPageTransitionsBuilder(),
         },
       ),
+      textSelectionTheme: TextSelectionThemeData(
+        cursorColor: AppColors.blue10,
+        selectionColor: AppColors.blue6,
+        selectionHandleColor: AppColors.blue7,
+
+      ),
       textTheme: TextTheme(
         bodyLarge: AppTestStyles.bodyLarge,
         bodyMedium: AppTestStyles.bodyMedium,
@@ -63,6 +69,11 @@ class AppTheme {
             width: 1,
           ),
         ),
+      ),
+      radioTheme: RadioThemeData(
+        fillColor: WidgetStatePropertyAll(AppColors.gray9),
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        splashRadius: 10.0,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(

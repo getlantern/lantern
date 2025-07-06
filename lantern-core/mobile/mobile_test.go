@@ -94,13 +94,3 @@ func TestOAuthLoginUrl(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, user)
 }
-
-// func TestLogin(t *testing.T) {
-// 	rr, err := radiance.NewRadiance(radianceOptions())
-// 	api := rr.APIHandler()
-// 	assert.Nil(t, err)
-// 	assert.NotNil(t, rr)
-// 	user, err := api.Login(context.Background(), "jigar@lantern.org", "password123", "")
-// 	assert.Nil(t, err)
-// 	assert.NotNil(t, user)
-// }

@@ -305,6 +305,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.2"
+  country_flags:
+    dependency: "direct main"
+    description:
+      name: country_flags
+      sha256: "78a7bf8aabd7ae1a90087f0c517471ac9ebfe07addc652692f58da0f0f833196"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.3.0"
   cross_file:
     dependency: transitive
     description:
@@ -868,6 +876,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.14.1"
+  jovial_misc:
+    dependency: transitive
+    description:
+      name: jovial_misc
+      sha256: "4301011027d87b8b919cb862db84071a34448eadbb32cc8d40fe505424dfe69a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.9.2"
+  jovial_svg:
+    dependency: transitive
+    description:
+      name: jovial_svg
+      sha256: a3cab3d46dc8df80cf0792e5e4246cbe13287542d9a357007114b1057da2fe89
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.26"
   js:
     dependency: transitive
     description:
@@ -988,6 +1012,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
+  mobile_scanner:
+    dependency: "direct main"
+    description:
+      name: mobile_scanner
+      sha256: "54005bdea7052d792d35b4fef0f84ec5ddc3a844b250ecd48dc192fb9b4ebc95"
+      url: "https://pub.dev"
+    source: hosted
+    version: "7.0.1"
   nested:
     dependency: transitive
     description:

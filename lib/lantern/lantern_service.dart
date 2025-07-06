@@ -3,6 +3,7 @@ import 'package:fpdart/src/unit.dart';
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/plan_data.dart';
+import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_ffi_service.dart';
@@ -298,5 +299,79 @@ class LanternService implements LanternCoreService {
       email: email,
       resellerCode: resellerCode,
     );
+  }
+
+  @override
+  Future<Either<Failure, Unit>> digitalOceanPrivateServer() {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.digitalOceanPrivateServer();
+    }
+    return _platformService.digitalOceanPrivateServer();
+  }
+
+  @override
+  Stream<PrivateServerStatus> watchPrivateServerStatus() {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.watchPrivateServerStatus();
+    }
+    return _platformService.watchPrivateServerStatus();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setUserInput(
+      {required PrivateServerInput methodType, required String input}) {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.setUserInput(methodType: methodType, input: input);
+    }
+    return _platformService.setUserInput(methodType: methodType, input: input);
+  }
+
+  @override
+  Future<Either<Failure, Unit>> cancelDeployment() {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.cancelDeployment();
+    }
+    return _platformService.cancelDeployment();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> startDeployment(
+      {required String location, required String serverName}) {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.startDeployment(
+          location: location, serverName: serverName);
+    }
+    return _platformService.startDeployment(
+        location: location, serverName: serverName);
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setCert({required String fingerprint}) {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.setCert(fingerprint: fingerprint);
+    }
+    return _platformService.setCert(fingerprint: fingerprint);
+  }
+
+  @override
+  Future<Either<Failure, Unit>> addServerManually(
+      {required String ip,
+      required String port,
+      required String accessToken,
+      required String serverName}) {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.addServerManually(
+          ip: ip, port: port, accessToken: accessToken, serverName: serverName);
+    }
+    return _platformService.addServerManually(
+        ip: ip, port: port, accessToken: accessToken, serverName: serverName);
+  }
+
+  @override
+  Future<Either<Failure, String>> setPrivateServer(String tag) {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.setPrivateServer(tag);
+    }
+    return _platformService.setPrivateServer(tag);
   }
 }

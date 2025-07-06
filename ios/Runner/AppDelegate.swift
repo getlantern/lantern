@@ -37,6 +37,10 @@ import flutter_local_notifications
 
     // set radiance
     setupRadiance()
+    NSSetUncaughtExceptionHandler { exception in
+      print(exception.reason)
+      print(exception.callStackSymbols)
+    }
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
@@ -49,6 +53,10 @@ import flutter_local_notifications
 
     if let registrar = self.registrar(forPlugin: "LogsEventHandler") {
       LogsEventHandler.register(with: registrar)
+    }
+
+    if let registrar = self.registrar(forPlugin: "PrivateServerEventHandler") {
+      PrivateServerEventHandler.register(with: registrar)
     }
   }
 

@@ -9,12 +9,11 @@ class AppUrls {
   static String downloadIos = '$baseUrl/download?os=ios';
   static String downloadMac = '$baseUrl/download?os=mac';
   static String downloadLinux = '$baseUrl/download?os=linux';
-
   static String lanternGithub = 'https://github.com/getlantern/lantern';
   static String telegramBot = 'https://twitter.com/getlantern';
-
   static String unbounded = 'https://unbounded.lantern.io';
-
   static String appcastURL =
       'https://lantern-vpn.s3.amazonaws.com/releases/appcast.xml';
+  static String manuallyServerSetupURL =
+      'https://github.com/getlantern/lantern-server-manager';
 }
