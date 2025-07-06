@@ -491,7 +491,13 @@ msgid "turn_on_vpn"
 msgstr "Turn on VPN"
 
 msgid "server_setup_do"
-msgstr "Set up a private server on Digital Ocean"
+msgstr "Set up using  Digital Ocean"
+
+msgid "server_setup_do_price"
+msgstr "Only %s month through Digital Ocean"
+
+msgid "server_setup_gcp"
+msgstr "Set up using Google Cloud Platform"
 
 msgid "server_setup_do_price"
 msgstr "Only %s month through Digital Ocean"
@@ -585,3 +591,133 @@ msgstr "Your subscription has been renewed."
 
 msgid "got_it"
 msgstr "Got It"
+
+msgid "private_server_location"
+msgstr "Server Location"
+
+msgid "private_server_note"
+msgstr "Select a region for your Private Server. Closer locations may improve speed and latency."
+
+msgid "do_private_server_setup"
+msgstr "Do Private Server Setup"
+
+msgid "private_server_setup_error"
+msgstr "There was an error setting up your private server. Please try again later or contact support for assistance."
+
+msgid "server_name"
+msgstr "Server Name"
+
+msgid "change"
+msgstr "Change"
+
+msgid "choose_location"
+msgstr "Choose Location"
+
+msgid "choose_your_location"
+msgstr "Choose Your Location"
+
+msgid "start_deployment"
+msgstr "Start Deployment"
+
+msgid "confirm_server_fingerprint"
+msgstr "Confirm Server Fingerprint"
+
+msgid "server_fingerprint"
+msgstr "Server Fingerprint"
+
+msgid "confirm_fingerprint"
+msgstr "Confirm Fingerprint"
+
+msgid "private_server_setup_in_progress"
+msgstr "Hang tight! Your Private Server is being set up. This may take a few minutes, please keep this screen open."
+
+msgid "cancel_server_deployment"
+msgstr "Cancel Server Deployment"
+
+msgid "server_setup_failed"
+msgstr "Server Setup Failed"
+
+msgid "cancel_deployment"
+msgstr "Cancel Deployment"
+
+msgid "server_setup_failed_message"
+msgstr "Something went wrong while setting up your Private Server. You can retry or try again later.."
+
+msgid "exit"
+msgstr "Exit"
+
+msgid "retry"
+msgstr "Retry"
+
+msgid "private_server_ready"
+msgstr "Your Private Server is Ready!"
+
+msgid "private_server_ready_message"
+msgstr "Your Server has been set up and added to your server list. You're ready to connect!"
+
+msgid "close"
+msgstr "Close"
+
+msgid "connect_now"
+msgstr "Connect Now"
+
+
+msgid "set_up_your_server"
+msgstr "Set Up Your Server"
+
+msgid "view_instructions_github"
+msgstr "View Instructions on GitHub"
+
+msgid "server_access_key"
+msgstr "Server Access Key"
+
+msgid "access_key"
+msgstr "Access Key"
+
+msgid "name_your_server"
+msgstr "Name Your Server"
+
+msgid "how_server_appears"
+msgstr "How the server will appear in the server selection list"
+
+msgid "server_nickname"
+msgstr "Server Nickname"
+
+msgid "verify_server"
+msgstr "Verify Server"
+
+msgid "vpn_client_not_setup"
+msgstr "Please turn on the VPN client."
+
+msgid "continue_with"
+msgstr "Continue with"
+
+msgid "join_a_private_server"
+msgstr "Join a Private Server"
+
+msgid "manage_private_servers"
+msgstr "Manage Private Servers"
+
+msgid "join_private_server"
+msgstr "Join Private Server"
+
+msgid "join_server"
+msgstr "Join Server"
+
+
+msgid "private_server_usage_message"
+msgstr "Private server usage is not counted towards your Lantern daily data cap."
+
+
+
+
+
+
+
+
+
+
+
+
+
+

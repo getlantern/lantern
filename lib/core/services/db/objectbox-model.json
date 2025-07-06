@@ -488,9 +488,92 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "12:5793460567856033350",
+      "lastPropertyId": "9:922983583660449547",
+      "name": "PrivateServerEntity",
+      "properties": [
+        {
+          "id": "1:3562598503871904195",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:154286077152750051",
+          "name": "serverName",
+          "type": 9
+        },
+        {
+          "id": "3:7546486618273485297",
+          "name": "externalIp",
+          "type": 9
+        },
+        {
+          "id": "4:6291548011971740479",
+          "name": "port",
+          "type": 9
+        },
+        {
+          "id": "5:4219752625337096828",
+          "name": "accessToken",
+          "type": 9
+        },
+        {
+          "id": "7:13583153016751584",
+          "name": "isJoined",
+          "type": 1
+        },
+        {
+          "id": "8:3747064734709393873",
+          "name": "serverLocation",
+          "type": 9
+        },
+        {
+          "id": "9:922983583660449547",
+          "name": "userSelected",
+          "type": 1
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "13:8997345217874823658",
+      "lastPropertyId": "5:6361303202257969351",
+      "name": "ServerLocationEntity",
+      "properties": [
+        {
+          "id": "1:588881311442191444",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:749892895163931068",
+          "name": "autoSelect",
+          "type": 1
+        },
+        {
+          "id": "3:2644978804405275952",
+          "name": "serverLocation",
+          "type": 9
+        },
+        {
+          "id": "4:569507912448715517",
+          "name": "serverName",
+          "type": 9
+        },
+        {
+          "id": "5:6361303202257969351",
+          "name": "serverType",
+          "type": 9
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "11:6291023128215063355",
+  "lastEntityId": "13:8997345217874823658",
   "lastIndexId": "3:4121674010287421818",
   "lastRelationId": "4:1689263526393937792",
   "lastSequenceId": "0:0",
@@ -498,7 +581,9 @@
   "modelVersionParserMinimum": 5,
   "retiredEntityUids": [],
   "retiredIndexUids": [],
-  "retiredPropertyUids": [],
+  "retiredPropertyUids": [
+    2491245260035410366
+  ],
   "retiredRelationUids": [
     5581625935470873398
   ],
