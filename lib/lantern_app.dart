@@ -81,8 +81,6 @@ class _LanternAppState extends ConsumerState<LanternApp> {
   Widget build(BuildContext context) {
     final locale = ref.watch(appSettingNotifierProvider).locale;
     Localization.defaultLocale = locale;
-    final size = MediaQuery.of(context).size;
-    appLogger.debug('MediaQuery: Size ${size}');
     return GlobalLoaderOverlay(
       overlayColor: Colors.black.withOpacity(0.5),
       overlayWidgetBuilder: (_) => Center(

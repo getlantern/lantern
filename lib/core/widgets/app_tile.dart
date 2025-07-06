@@ -30,10 +30,12 @@ class AppTile extends StatelessWidget {
     required String label,
     required String url,
     EdgeInsets? contentPadding,
+    Widget? subtitle,
   }) =>
       AppTile(
         icon: icon,
         label: label,
+        subtitle: subtitle,
         onPressed: () => UrlUtils.openWithSystemBrowser(url),
         trailing: AppImage(path: AppImagePaths.outsideBrowser),
         contentPadding: contentPadding,

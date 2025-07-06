@@ -20,6 +20,7 @@ import (
 
 	"github.com/getlantern/golog"
 	"github.com/getlantern/lantern-outline/lantern-core/apps"
+	privateserver "github.com/getlantern/lantern-outline/lantern-core/private-server"
 	"github.com/getlantern/lantern-outline/lantern-core/utils"
 	"google.golang.org/protobuf/proto"
 
@@ -28,15 +29,17 @@ import (
 	"github.com/getlantern/radiance/api"
 	"github.com/getlantern/radiance/api/protos"
 	"github.com/getlantern/radiance/client"
+	"github.com/getlantern/radiance/client/boxoptions"
 	"github.com/getlantern/radiance/common"
 )
 
 type service string
 
 const (
-	appsService   service = "apps"
-	logsService   service = "logs"
-	statusService service = "status"
+	appsService          service = "apps"
+	logsService          service = "logs"
+	statusService        service = "status"
+	privateserverService service = "privateServer"
 )
 
 type VPNStatus string
@@ -88,7 +91,7 @@ func sendApps(port int64) func(apps ...*apps.AppData) error {
 }
 
 //export setup
-func setup(_logDir, _dataDir, _locale *C.char, logPort, appsPort, statusPort C.int64_t, api unsafe.Pointer) *C.char {
+func setup(_logDir, _dataDir, _locale *C.char, logPort, appsPort, statusPort, privateServerPort C.int64_t, api unsafe.Pointer) *C.char {
 	var outError error
 	setupOnce.Do(func() {
 		// initialize the Dart API DL bridge.
@@ -121,9 +124,10 @@ func setup(_logDir, _dataDir, _locale *C.char, logPort, appsPort, statusPort C.i
 			vpnClient: vpn,
 			dataDir:   dataDir,
 			servicesMap: map[service]int64{
-				logsService:   int64(logPort),
-				appsService:   int64(appsPort),
-				statusService: int64(statusPort),
+				logsService:          int64(logPort),
+				appsService:          int64(appsPort),
+				statusService:        int64(statusPort),
+				privateserverService: int64(privateServerPort),
 			},
 			splitTunnelHandler: vpn.SplitTunnelHandler(),
 			userInfo:           r.UserInfo(),
@@ -139,7 +143,7 @@ func setup(_logDir, _dataDir, _locale *C.char, logPort, appsPort, statusPort C.i
 		return C.CString(outError.Error())
 	}
 	log.Debugf("Radiance setup successfully")
-	return nil
+	return C.CString("ok")
 
 }
 
@@ -159,7 +163,7 @@ func addSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
 		return C.CString(fmt.Sprintf("error adding item: %v", err))
 	}
 	log.Debugf("added %s split tunneling item %s", filterType, item)
-	return nil
+	return C.CString("ok")
 }
 
 //export removeSplitTunnelItem
@@ -178,7 +182,7 @@ func removeSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
 		return C.CString(fmt.Sprintf("error removing item: %v", err))
 	}
 	log.Debugf("removed %s split tunneling item %s", filterType, item)
-	return nil
+	return C.CString("ok")
 }
 
 // startVPN initializes and starts the VPN server if it is not already running.
@@ -205,7 +209,7 @@ func startVPN() *C.char {
 	server.sendStatusToPort(Connected)
 	log.Debug("VPN server started successfully")
 
-	return nil
+	return C.CString("ok")
 }
 
 // stopVPN stops the VPN server if it is running.
@@ -231,7 +235,21 @@ func stopVPN() *C.char {
 
 	server.sendStatusToPort(Disconnected)
 	log.Debug("VPN server stopped successfully")
-	return nil
+	return C.CString("ok")
+}
+
+// setPrivateServer sets the private server with the given tag.
+//
+//export setPrivateServer
+func setPrivateServer(_tag *C.char) *C.char {
+	tag := C.GoString(_tag)
+	group := boxoptions.ServerGroupUser
+	err := server.vpnClient.SelectServer(group, tag)
+	if err != nil {
+		return SendError(log.Errorf("Error setting private server: %v", err))
+	}
+	log.Debugf("Private server set with tag: %s", tag)
+	return C.CString("ok")
 }
 
 func (s *lanternService) sendStatusToPort(status VPNStatus) {
@@ -631,7 +649,149 @@ func freeCString(cstr *C.char) {
 	C.free(unsafe.Pointer(cstr))
 }
 
-//export enforce_binding
-func enforce_binding() {}
+func main() {
 
-func main() {}
+}
+
+//Private server methods
+
+// interface that interact with the private server
+
+type ffiPrivateServerEventListener struct{}
+
+func (l *ffiPrivateServerEventListener) OnPrivateServerEvent(event string) {
+	log.Debugf("Private server event: %s", event)
+	sendPrivateServerEvent(event)
+}
+
+func (l *ffiPrivateServerEventListener) OnError(err string) {
+	log.Debugf("Private server error: %v", err)
+	sendPrivateServerEvent(err)
+}
+
+func (l *ffiPrivateServerEventListener) OpenBrowser(url string) error {
+	log.Debugf("Opening browser with URL: %s", url)
+	mapStatus := map[string]string{
+		"status": "openBrowser",
+		"data":   url,
+	}
+	jsonData, _ := json.Marshal(mapStatus)
+	sendPrivateServerEvent(string(jsonData))
+	return nil
+}
+
+func sendPrivateServerEvent(event string) {
+	mu.Lock()
+	defer mu.Unlock()
+
+	if server == nil {
+		log.Errorf("Radiance not initialized")
+		return
+	}
+
+	servicePort, ok := server.servicesMap[privateserverService]
+	if !ok {
+		log.Errorf("Private server service not initialized")
+		return
+	}
+
+	go func() {
+		dart_api_dl.SendToPort(servicePort, event)
+	}()
+}
+
+// digitalOceanPrivateServer starts the DigitalOcean private server flow.
+//
+//export digitalOceanPrivateServer
+func digitalOceanPrivateServer() *C.char {
+	ffiEventListener := &ffiPrivateServerEventListener{}
+	err := privateserver.StartDigitalOceanPrivateServerFlow(ffiEventListener, server.vpnClient)
+	if err != nil {
+		log.Errorf("Error starting DigitalOcean private server flow: %v", err)
+		return SendError(err)
+	}
+	log.Debug("DigitalOcean private server flow started successfully")
+	return C.CString("ok")
+}
+
+// selectAccount selects the account for the private server.
+//
+//export selectAccount
+func selectAccount(_account *C.char) *C.char {
+	account := C.GoString(_account)
+	log.Debugf("Selecting account: %s", account)
+	if err := privateserver.SelectAccount(account); err != nil {
+		return SendError(log.Errorf("Error selecting account: %v", err))
+	}
+	log.Debugf("Account %s selected successfully", account)
+	return C.CString("ok")
+}
+
+// selectedProject selects the project for the private server.
+//
+//export selectProject
+func selectProject(_project *C.char) *C.char {
+	project := C.GoString(_project)
+	err := privateserver.SelectProject(project)
+	if err != nil {
+		return SendError(log.Errorf("Error getting selected project: %v", err))
+	}
+	log.Debugf("Selected project: %s", project)
+	return C.CString("ok")
+}
+
+// startDepolyment starts the deployment for the private server.
+//
+//export startDepolyment
+func startDepolyment(_selectedLocation, _serverName *C.char) *C.char {
+	location := C.GoString(_selectedLocation)
+	serverName := C.GoString(_serverName)
+
+	log.Debugf("Starting deployment with location: %s and plan: %s", location, serverName)
+	err := privateserver.StartDepolyment(location, serverName)
+	if err != nil {
+		return SendError(log.Errorf("Error starting deployment: %v", err))
+	}
+	log.Debugf("Deployment started successfully with location: %s and plan: %s", location, serverName)
+	return C.CString("ok")
+}
+
+// setCert sets the certificate fingerprint for the private server.
+//
+//export setCert
+func setCert(fp *C.char) *C.char {
+	log.Debug("Setting cert")
+	privateserver.SelectedCertFingerprint(C.GoString(fp))
+	log.Debugf("Cert set successfully")
+	return C.CString("ok")
+}
+
+// cancelDepolyment cancels the deployment for the private server.
+//
+//export cancelDepolyment
+func cancelDepolyment() *C.char {
+	log.Debug("Cancelling deployment")
+	if err := privateserver.CancelDepolyment(); err != nil {
+		return SendError(log.Errorf("Error cancelling deployment: %v", err))
+	}
+	log.Debugf("Deployment cancelled successfully")
+	return C.CString("ok")
+}
+
+// addServerManagerInstance adds a server manager instance manually.
+//
+//export addServerManagerInstance
+func addServerManagerInstance(_ip, _port, _accessToken, _tag *C.char) *C.char {
+	ffiEventListener := &ffiPrivateServerEventListener{}
+	ip := C.GoString(_ip)
+	port := C.GoString(_port)
+	accessToken := C.GoString(_accessToken)
+	tag := C.GoString(_tag)
+
+	err := privateserver.AddServerManually(ip, port, accessToken, tag, server.vpnClient, ffiEventListener)
+	if err != nil {
+		return SendError(log.Errorf("Error adding server manager instance: %v", err))
+	}
+	log.Debugf("Server manager instance added successfully with IP: %s, Port: %s, AccessToken: %s, Tag: %s", ip, port, accessToken, tag)
+	return C.CString("ok")
+}
