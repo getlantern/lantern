@@ -46,7 +46,7 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
               label: 'default_bypass'.i18n,
               trailing: AppIconButton(
                 path: AppImagePaths.arrowForward,
-                onPressed: () => {},
+                onPressed: () => appRouter.push(DefaultBypassLists()),
               ),
             ),
           ),

@@ -261,6 +261,36 @@ msgstr "Use commas to separate multiple URLs"
 msgid "default_bypass"
 msgstr "Default Bypass Lists"
 
+msgid "global_bypass_list"
+msgstr "Global Bypass List"
+
+msgid "global_bypass_desc"
+msgstr "Trusted sites (HTTPS) with non-sensitive content."
+
+msgid "china_bypass_list"
+msgstr "China Bypass List"
+
+msgid "china_bypass_desc"
+msgstr "Sites freely accessible in China. Updated regularly."
+
+msgid "iran_bypass_list"
+msgstr "Iran Bypass List"
+
+msgid "iran_bypass_desc"
+msgstr "Sites freely accessible in Iran. Updated regularly."
+
+msgid "russia_bypass_list"
+msgstr "Russia Bypass List"
+
+msgid "russia_bypass_desc"
+msgstr "Sites freely accessible in Russia. Updated regularly."
+
+msgid "see_sites_included"
+msgstr "See sites included in the "
+
+msgid "default_lists_here"
+msgstr "default lists here"
+
 msgid "when_connected"
 msgstr "When connected, the websites you select will bypass the VPN."
 

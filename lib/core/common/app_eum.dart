@@ -74,28 +74,64 @@ enum SplitTunnelActionType {
   }
 }
 
-enum SplitTunnelingMode { automatic, manual }
+enum SplitTunnelingMode {
+  automatic,
+  manual;
 
-extension SplitTunnelingModeExtension on SplitTunnelingMode {
-  String get displayName {
+  String get value {
     switch (this) {
       case SplitTunnelingMode.automatic:
-        return "Automatic";
+        return 'automatic';
       case SplitTunnelingMode.manual:
-        return "Manual";
+        return 'manual';
     }
   }
 }
 
 extension SplitTunnelingModeString on String {
   SplitTunnelingMode get toSplitTunnelingMode {
-    switch (this) {
-      case 'Automatic':
+    switch (toLowerCase()) {
+      case 'automatic':
         return SplitTunnelingMode.automatic;
-      case 'Manual':
+      case 'manual':
         return SplitTunnelingMode.manual;
       default:
         return SplitTunnelingMode.automatic;
+    }
+  }
+}
+
+enum BypassListOption {
+  global,
+  russia,
+  china,
+  iran;
+
+  String get value {
+    switch (this) {
+      case BypassListOption.russia:
+        return 'russia';
+      case BypassListOption.china:
+        return 'china';
+      case BypassListOption.iran:
+        return 'iran';
+      case BypassListOption.global:
+        return 'global';
+    }
+  }
+}
+
+extension BypassListOptionString on String {
+  BypassListOption get toBypassList {
+    switch (this) {
+      case 'russia':
+        return BypassListOption.russia;
+      case 'china':
+        return BypassListOption.china;
+      case 'iran':
+        return BypassListOption.iran;
+      default:
+        return BypassListOption.global;
     }
   }
 }
