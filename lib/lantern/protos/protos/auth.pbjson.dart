@@ -54,7 +54,7 @@ const UserResponse_UserData$json = {
     {'1': 'expiration', '3': 10, '4': 1, '5': 3, '10': 'expiration'},
     {'1': 'servers', '3': 11, '4': 3, '5': 9, '10': 'servers'},
     {'1': 'subscription', '3': 12, '4': 1, '5': 9, '10': 'subscription'},
-    {'1': 'purchases', '3': 13, '4': 3, '5': 11, '6': '.Purchase', '10': 'purchases'},
+    {'1': 'purchases', '3': 13, '4': 3, '5': 9, '10': 'purchases'},
     {'1': 'bonusDays', '3': 14, '4': 1, '5': 9, '10': 'bonusDays'},
     {'1': 'bonusMonths', '3': 15, '4': 1, '5': 9, '10': 'bonusMonths'},
     {'1': 'inviters', '3': 16, '4': 3, '5': 9, '10': 'inviters'},
@@ -91,24 +91,24 @@ final $typed_data.Uint8List userResponseDescriptor = $convert.base64Decode(
     'N5VXNlckRhdGEYBiABKAsyFi5Vc2VyUmVzcG9uc2UuVXNlckRhdGFSDmxlZ2FjeVVzZXJEYXRh'
     'Ei4KB2RldmljZXMYByADKAsyFC5Vc2VyUmVzcG9uc2UuRGV2aWNlUgdkZXZpY2VzGkYKBkRldm'
     'ljZRIOCgJpZBgBIAEoCVICaWQSEgoEbmFtZRgCIAEoCVIEbmFtZRIYCgdjcmVhdGVkGAMgASgD'
-    'UgdjcmVhdGVkGtUHCghVc2VyRGF0YRIWCgZ1c2VySWQYASABKANSBnVzZXJJZBISCgRjb2RlGA'
+    'UgdjcmVhdGVkGsoHCghVc2VyRGF0YRIWCgZ1c2VySWQYASABKANSBnVzZXJJZBISCgRjb2RlGA'
     'IgASgJUgRjb2RlEhQKBXRva2VuGAMgASgJUgV0b2tlbhIaCghyZWZlcnJhbBgEIAEoCVIIcmVm'
     'ZXJyYWwSFAoFcGhvbmUYBSABKAlSBXBob25lEhQKBWVtYWlsGAYgASgJUgVlbWFpbBIeCgp1c2'
     'VyU3RhdHVzGAcgASgJUgp1c2VyU3RhdHVzEhwKCXVzZXJMZXZlbBgIIAEoCVIJdXNlckxldmVs'
     'EhYKBmxvY2FsZRgJIAEoCVIGbG9jYWxlEh4KCmV4cGlyYXRpb24YCiABKANSCmV4cGlyYXRpb2'
     '4SGAoHc2VydmVycxgLIAMoCVIHc2VydmVycxIiCgxzdWJzY3JpcHRpb24YDCABKAlSDHN1YnNj'
-    'cmlwdGlvbhInCglwdXJjaGFzZXMYDSADKAsyCS5QdXJjaGFzZVIJcHVyY2hhc2VzEhwKCWJvbn'
-    'VzRGF5cxgOIAEoCVIJYm9udXNEYXlzEiAKC2JvbnVzTW9udGhzGA8gASgJUgtib251c01vbnRo'
-    'cxIaCghpbnZpdGVycxgQIAMoCVIIaW52aXRlcnMSGgoIaW52aXRlZXMYESADKAlSCGludml0ZW'
-    'VzEi4KB2RldmljZXMYEiADKAsyFC5Vc2VyUmVzcG9uc2UuRGV2aWNlUgdkZXZpY2VzEiIKDHlp'
-    'bmJpRW5hYmxlZBgTIAEoCFIMeWluYmlFbmFibGVkElMKEHN1YnNjcmlwdGlvbkRhdGEYFCABKA'
-    'syJy5Vc2VyUmVzcG9uc2UuVXNlckRhdGEuU3Vic2NyaXB0aW9uRGF0YVIQc3Vic2NyaXB0aW9u'
-    'RGF0YRrAAgoQU3Vic2NyaXB0aW9uRGF0YRIWCgZwbGFuSUQYASABKAlSBnBsYW5JRBIqChBzdH'
-    'JpcGVDdXN0b21lcklEGAIgASgJUhBzdHJpcGVDdXN0b21lcklEEhgKB3N0YXJ0QXQYAyABKAlS'
-    'B3N0YXJ0QXQSIAoLY2FuY2VsbGVkQXQYBCABKAlSC2NhbmNlbGxlZEF0EhwKCWF1dG9SZW5ldx'
-    'gFIAEoCFIJYXV0b1JlbmV3EiYKDnN1YnNjcmlwdGlvbklEGAYgASgJUg5zdWJzY3JpcHRpb25J'
-    'RBIWCgZzdGF0dXMYByABKAlSBnN0YXR1cxIaCghwcm92aWRlchgIIAEoCVIIcHJvdmlkZXISHA'
-    'oJY3JlYXRlZEF0GAkgASgJUgljcmVhdGVkQXQSFAoFZW5kQXQYCiABKAlSBWVuZEF0');
+    'cmlwdGlvbhIcCglwdXJjaGFzZXMYDSADKAlSCXB1cmNoYXNlcxIcCglib251c0RheXMYDiABKA'
+    'lSCWJvbnVzRGF5cxIgCgtib251c01vbnRocxgPIAEoCVILYm9udXNNb250aHMSGgoIaW52aXRl'
+    'cnMYECADKAlSCGludml0ZXJzEhoKCGludml0ZWVzGBEgAygJUghpbnZpdGVlcxIuCgdkZXZpY2'
+    'VzGBIgAygLMhQuVXNlclJlc3BvbnNlLkRldmljZVIHZGV2aWNlcxIiCgx5aW5iaUVuYWJsZWQY'
+    'EyABKAhSDHlpbmJpRW5hYmxlZBJTChBzdWJzY3JpcHRpb25EYXRhGBQgASgLMicuVXNlclJlc3'
+    'BvbnNlLlVzZXJEYXRhLlN1YnNjcmlwdGlvbkRhdGFSEHN1YnNjcmlwdGlvbkRhdGEawAIKEFN1'
+    'YnNjcmlwdGlvbkRhdGESFgoGcGxhbklEGAEgASgJUgZwbGFuSUQSKgoQc3RyaXBlQ3VzdG9tZX'
+    'JJRBgCIAEoCVIQc3RyaXBlQ3VzdG9tZXJJRBIYCgdzdGFydEF0GAMgASgJUgdzdGFydEF0EiAK'
+    'C2NhbmNlbGxlZEF0GAQgASgJUgtjYW5jZWxsZWRBdBIcCglhdXRvUmVuZXcYBSABKAhSCWF1dG'
+    '9SZW5ldxImCg5zdWJzY3JpcHRpb25JRBgGIAEoCVIOc3Vic2NyaXB0aW9uSUQSFgoGc3RhdHVz'
+    'GAcgASgJUgZzdGF0dXMSGgoIcHJvdmlkZXIYCCABKAlSCHByb3ZpZGVyEhwKCWNyZWF0ZWRBdB'
+    'gJIAEoCVIJY3JlYXRlZEF0EhQKBWVuZEF0GAogASgJUgVlbmRBdA==');
 
 @$core.Deprecated('Use purchaseDescriptor instead')
 const Purchase$json = {

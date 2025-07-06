@@ -14,6 +14,7 @@ class PrimaryButton extends StatelessWidget {
   final bool expanded;
   final VoidCallback onPressed;
   final String? icon;
+  final Color? iconColor;
 
   final Color? bgColor;
 
@@ -22,6 +23,7 @@ class PrimaryButton extends StatelessWidget {
     required this.label,
     required this.onPressed,
     this.bgColor,
+    this.iconColor,
     this.enabled = true,
     this.expanded = true,
     this.icon,
@@ -42,6 +44,7 @@ class PrimaryButton extends StatelessWidget {
             icon: AppImage(
               path: icon!,
               height: 22,
+              color: iconColor,
             ),
             label: Text(label),
             style: _buildButtonStyle(button!),
@@ -191,12 +194,12 @@ class AppTextButton extends StatelessWidget {
 
 class AppIconButton extends StatelessWidget {
   final String path;
-  final OnPressed onPressed;
+  final OnPressed? onPressed;
 
   const AppIconButton({
     super.key,
     required this.path,
-    required this.onPressed,
+    this.onPressed,
   });
 
   @override
@@ -208,6 +211,28 @@ class AppIconButton extends StatelessWidget {
         path: path,
         height: 24,
       ),
+    );
+  }
+}
+
+class AppRadioButton<T> extends StatelessWidget {
+  final T value;
+  final T? groupValue;
+  final ValueChanged<T?>? onChanged;
+
+  const AppRadioButton({
+    super.key,
+    required this.value,
+    this.groupValue,
+    this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Radio(
+      value: value,
+      groupValue: groupValue,
+      onChanged: onChanged,
     );
   }
 }

@@ -127,5 +127,34 @@ class AppRouter extends RootStackRouter {
       path: '/website-split-tunneling',
       page: WebsiteSplitTunneling.page,
     ),
+    AutoRoute(
+      path: '/private-server-setup',
+      page: PrivateServerSetup.page,
+    ),
+    AutoRoute(
+      path: '/private-server-location',
+      page: PrivateServerLocation.page,
+      fullscreenDialog: true,
+    ),
+    AutoRoute(
+      path: '/private-server-details',
+      page: PrivateServerDetails.page,
+    ),
+    AutoRoute(
+      path: '/private-server-deploy',
+      page: PrivateServerDeploy.page,
+    ),
+    AutoRoute(
+      path: '/manual-server-setup',
+      page: ManuallyServerSetup.page,
+    ),
+    AutoRoute(
+      path: '/join-private-server',
+      page: JoinPrivateServer.page,
+    ),
+    AutoRoute(
+      path: '/qr-scanner',
+      page: QrCodeScanner.page,
+    ),
   ];
 }

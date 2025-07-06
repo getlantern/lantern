@@ -14,11 +14,8 @@ import '../router/router.dart';
 final GetIt sl = GetIt.instance;
 
 Future<void> injectServices() async {
-  if (PlatformUtils.isAndroid) {
-    sl.registerLazySingleton(() => StoreUtils());
-    sl<StoreUtils>().init();
-  }
-
+  sl.registerLazySingleton(() => StoreUtils());
+  sl<StoreUtils>().init();
   sl.registerLazySingleton(() => AppPurchase());
   sl<AppPurchase>().init();
 

@@ -8,7 +8,7 @@ import 'package:lantern/core/widgets/censored_dialog.dart';
 import 'package:lantern/features/auth/add_email.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 
-import '../../features/auth/provider/oauth_notifier.dart';
+import '../../features/auth/provider/auth_notifier.dart';
 import '../common/common.dart';
 import '../services/injection_container.dart' show sl;
 
@@ -87,11 +87,11 @@ class OAuthLogin extends HookConsumerWidget {
       SignUpMethodType type, WidgetRef ref, BuildContext context) async {
     context.showLoadingDialog();
     final result =
-        await ref.read(oAuthNotifierProvider.notifier).oAuthLogin(type.name);
+        await ref.read(authNotifierProvider.notifier).oAuthLogin(type.name);
     result.fold(
       (failure) {
         context.hideLoadingDialog();
-        context.showSnackBarError(failure.localizedErrorMessage);
+        context.showSnackBar(failure.localizedErrorMessage);
       },
       (url) async {
         context.hideLoadingDialog();

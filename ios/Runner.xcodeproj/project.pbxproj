@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0307936F2E09466D00EA2B3C /* PrivateServerEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0307936E2E09466100EA2B3C /* PrivateServerEventHandler.swift */; };
 		032CB5192DBA86FF002331EB /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032CB5102DBA86FF002331EB /* KeychainService.swift */; };
 		032CB5242DBA8A55002331EB /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032CB5232DBA8A55002331EB /* Logger.swift */; };
 		032CB5292DBA90ED002331EB /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032CB5232DBA8A55002331EB /* Logger.swift */; };
@@ -17,7 +18,7 @@
 		530385FFD1EF91BE50B06694 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A430D395EEE508A6C60559A5 /* Pods_RunnerTests.framework */; };
 		5F0515D02D20DB5100E704BE /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F0515CF2D20DB5100E704BE /* NetworkExtension.framework */; };
 		5F05186F2D224C3300E704BE /* Tunnel.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5F0515CE2D20DB5100E704BE /* Tunnel.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		5F3FD9A32D9F6A33009480A7 /* LogsHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F3FD9A22D9F6A32009480A7 /* LogsHandler.swift */; };
+		5F3FD9A32D9F6A33009480A7 /* LogsEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F3FD9A22D9F6A32009480A7 /* LogsEventHandler.swift */; };
 		5F3FD9A52D9F6ADD009480A7 /* CommandClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F3FD9A42D9F6ADD009480A7 /* CommandClient.swift */; };
 		5F3FD9A62D9F6ADD009480A7 /* CommandClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F3FD9A42D9F6ADD009480A7 /* CommandClient.swift */; };
 		5F4C38512D9155BC0053105F /* FilePath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F4C384F2D9155BC0053105F /* FilePath.swift */; };
@@ -91,6 +92,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0307936E2E09466100EA2B3C /* PrivateServerEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivateServerEventHandler.swift; sourceTree = "<group>"; };
 		032CB5102DBA86FF002331EB /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
 		032CB5232DBA8A55002331EB /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
@@ -106,7 +108,7 @@
 		5F0515CE2D20DB5100E704BE /* Tunnel.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = Tunnel.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		5F0515CF2D20DB5100E704BE /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
 		5F0517192D2233D200E704BE /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
-		5F3FD9A22D9F6A32009480A7 /* LogsHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogsHandler.swift; sourceTree = "<group>"; };
+		5F3FD9A22D9F6A32009480A7 /* LogsEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogsEventHandler.swift; sourceTree = "<group>"; };
 		5F3FD9A42D9F6ADD009480A7 /* CommandClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandClient.swift; sourceTree = "<group>"; };
 		5F4C384F2D9155BC0053105F /* FilePath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilePath.swift; sourceTree = "<group>"; };
 		5FEB872D2D9F45EB000AE0DB /* MethodHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MethodHandler.swift; sourceTree = "<group>"; };
@@ -140,6 +142,13 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		030793842E0980FC00EA2B3C /* Utils */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
 		0366A7752DBBC1CA0016E3F9 /* Constants */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -218,7 +227,8 @@
 		5FEB872F2D9F45EB000AE0DB /* Handlers */ = {
 			isa = PBXGroup;
 			children = (
-				5F3FD9A22D9F6A32009480A7 /* LogsHandler.swift */,
+				0307936E2E09466100EA2B3C /* PrivateServerEventHandler.swift */,
+				5F3FD9A22D9F6A32009480A7 /* LogsEventHandler.swift */,
 				5FEB872D2D9F45EB000AE0DB /* MethodHandler.swift */,
 				5FEB872E2D9F45EB000AE0DB /* StatusEventHandler.swift */,
 			);
@@ -280,9 +290,10 @@
 				0366A7762DBBC20D0016E3F9 /* VPN */,
 				0366A7752DBBC1CA0016E3F9 /* Constants */,
 				5FEB872F2D9F45EB000AE0DB /* Handlers */,
-				97C146FA1CF9000F007C117D /* Main.storyboard */,
+				030793842E0980FC00EA2B3C /* Utils */,
 				97C146FD1CF9000F007C117D /* Assets.xcassets */,
 				97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */,
+				97C146FA1CF9000F007C117D /* Main.storyboard */,
 				97C147021CF9000F007C117D /* Info.plist */,
 				1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */,
 				1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */,
@@ -368,6 +379,7 @@
 				5F0515D72D20DB5200E704BE /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
+				030793842E0980FC00EA2B3C /* Utils */,
 				0366A7752DBBC1CA0016E3F9 /* Constants */,
 				0366A7762DBBC20D0016E3F9 /* VPN */,
 			);
@@ -568,7 +580,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5F3FD9A32D9F6A33009480A7 /* LogsHandler.swift in Sources */,
+				5F3FD9A32D9F6A33009480A7 /* LogsEventHandler.swift in Sources */,
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				032CB5242DBA8A55002331EB /* Logger.swift in Sources */,
@@ -577,6 +589,7 @@
 				032CB52A2DBA9109002331EB /* KeychainService.swift in Sources */,
 				5FEB87302D9F45EB000AE0DB /* MethodHandler.swift in Sources */,
 				5FEB87312D9F45EB000AE0DB /* StatusEventHandler.swift in Sources */,
+				0307936F2E09466D00EA2B3C /* PrivateServerEventHandler.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -679,6 +692,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = ACZRKC3LQ9;
 				ENABLE_BITCODE = NO;
@@ -1044,6 +1058,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = ACZRKC3LQ9;
 				ENABLE_BITCODE = NO;

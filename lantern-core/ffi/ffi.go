@@ -20,6 +20,7 @@ import (
 
 	"github.com/getlantern/golog"
 	"github.com/getlantern/lantern-outline/lantern-core/apps"
+	privateserver "github.com/getlantern/lantern-outline/lantern-core/private-server"
 	"github.com/getlantern/lantern-outline/lantern-core/utils"
 	"google.golang.org/protobuf/proto"
 
@@ -28,15 +29,17 @@ import (
 	"github.com/getlantern/radiance/api"
 	"github.com/getlantern/radiance/api/protos"
 	"github.com/getlantern/radiance/client"
+	"github.com/getlantern/radiance/client/boxoptions"
 	"github.com/getlantern/radiance/common"
 )
 
 type service string
 
 const (
-	appsService   service = "apps"
-	logsService   service = "logs"
-	statusService service = "status"
+	appsService          service = "apps"
+	logsService          service = "logs"
+	statusService        service = "status"
+	privateserverService service = "privateServer"
 )
 
 type VPNStatus string
@@ -61,8 +64,7 @@ var (
 
 type lanternService struct {
 	*radiance.Radiance
-	proServer          *api.Pro
-	authClient         *api.User
+	apiClient          *api.APIClient
 	vpnClient          client.VPNClient
 	servicesMap        map[service]int64
 	dataDir            string
@@ -89,7 +91,7 @@ func sendApps(port int64) func(apps ...*apps.AppData) error {
 }
 
 //export setup
-func setup(_logDir, _dataDir, _locale *C.char, logPort, appsPort, statusPort C.int64_t, api unsafe.Pointer) *C.char {
+func setup(_logDir, _dataDir, _locale *C.char, logPort, appsPort, statusPort, privateServerPort C.int64_t, api unsafe.Pointer) *C.char {
 	var outError error
 	setupOnce.Do(func() {
 		// initialize the Dart API DL bridge.
@@ -117,15 +119,15 @@ func setup(_logDir, _dataDir, _locale *C.char, logPort, appsPort, statusPort C.i
 			outError = log.Errorf("unable to create API handler: %v", err)
 		}
 		server = &lanternService{
-			Radiance:   r,
-			proServer:  r.APIHandler().ProServer,
-			authClient: r.APIHandler().User,
-			vpnClient:  vpn,
-			dataDir:    dataDir,
+			Radiance:  r,
+			apiClient: r.APIHandler(),
+			vpnClient: vpn,
+			dataDir:   dataDir,
 			servicesMap: map[service]int64{
-				logsService:   int64(logPort),
-				appsService:   int64(appsPort),
-				statusService: int64(statusPort),
+				logsService:          int64(logPort),
+				appsService:          int64(appsPort),
+				statusService:        int64(statusPort),
+				privateserverService: int64(privateServerPort),
 			},
 			splitTunnelHandler: vpn.SplitTunnelHandler(),
 			userInfo:           r.UserInfo(),
@@ -141,7 +143,7 @@ func setup(_logDir, _dataDir, _locale *C.char, logPort, appsPort, statusPort C.i
 		return C.CString(outError.Error())
 	}
 	log.Debugf("Radiance setup successfully")
-	return nil
+	return C.CString("ok")
 
 }
 
@@ -161,7 +163,7 @@ func addSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
 		return C.CString(fmt.Sprintf("error adding item: %v", err))
 	}
 	log.Debugf("added %s split tunneling item %s", filterType, item)
-	return nil
+	return C.CString("ok")
 }
 
 //export removeSplitTunnelItem
@@ -180,7 +182,7 @@ func removeSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
 		return C.CString(fmt.Sprintf("error removing item: %v", err))
 	}
 	log.Debugf("removed %s split tunneling item %s", filterType, item)
-	return nil
+	return C.CString("ok")
 }
 
 // startVPN initializes and starts the VPN server if it is not already running.
@@ -207,7 +209,7 @@ func startVPN() *C.char {
 	server.sendStatusToPort(Connected)
 	log.Debug("VPN server started successfully")
 
-	return nil
+	return C.CString("ok")
 }
 
 // stopVPN stops the VPN server if it is running.
@@ -233,7 +235,21 @@ func stopVPN() *C.char {
 
 	server.sendStatusToPort(Disconnected)
 	log.Debug("VPN server stopped successfully")
-	return nil
+	return C.CString("ok")
+}
+
+// setPrivateServer sets the private server with the given tag.
+//
+//export setPrivateServer
+func setPrivateServer(_tag *C.char) *C.char {
+	tag := C.GoString(_tag)
+	group := boxoptions.ServerGroupUser
+	err := server.vpnClient.SelectServer(group, tag)
+	if err != nil {
+		return SendError(log.Errorf("Error setting private server: %v", err))
+	}
+	log.Debugf("Private server set with tag: %s", tag)
+	return C.CString("ok")
 }
 
 func (s *lanternService) sendStatusToPort(status VPNStatus) {
@@ -270,11 +286,10 @@ func isVPNConnected() *C.char {
 	return C.CString("ok")
 }
 
-//APIS
-
-func createUser() (*protos.UserDataResponse, error) {
+// APIS
+func createUser() (*api.UserDataResponse, error) {
 	log.Debug("Creating user")
-	user, err := server.proServer.UserCreate(context.Background())
+	user, err := server.apiClient.NewUser(context.Background())
 	log.Debugf("UserCreate response: %v", user)
 	if err != nil {
 		return nil, log.Errorf("Error creating user: %v", err)
@@ -288,7 +303,7 @@ func createUser() (*protos.UserDataResponse, error) {
 //export getUserData
 func getUserData() *C.char {
 	log.Debug("Getting user data locally")
-	user, err := server.UserInfo().GetUserData()
+	user, err := server.userInfo.GetData()
 	if err != nil {
 		return SendError(err)
 	}
@@ -305,7 +320,7 @@ func getUserData() *C.char {
 //export fetchUserData
 func fetchUserData() *C.char {
 	log.Debug("Getting user data")
-	user, err := server.proServer.UserData(context.Background())
+	user, err := server.apiClient.UserData(context.Background())
 	if err != nil {
 		return SendError(fmt.Errorf("error getting user data: %v", err))
 	}
@@ -315,7 +330,7 @@ func fetchUserData() *C.char {
 		LegacyToken:    user.Token,
 		LegacyUserData: user.LoginResponse_UserData,
 	}
-	log.Debugf("UserData response: %v", user)
+	log.Debugf("UserData response: %v", userResponse)
 	bytes, err := proto.Marshal(userResponse)
 	if err != nil {
 		return SendError(log.Errorf("Error marshalling user data: %v", err))
@@ -333,19 +348,18 @@ func stripeSubscriptionPaymentRedirect(subType, _planId, _email *C.char) *C.char
 	planId := C.GoString(_planId)
 	email := C.GoString(_email)
 	log.Debugf("subscription type: %s", subscriptionType)
-	redirectBody := &protos.SubscriptionPaymentRedirectRequest{
-		Provider:         "stripe",
-		Plan:             planId,
-		DeviceName:       server.userInfo.DeviceID(),
-		Email:            email,
-		SubscriptionType: protos.SubscriptionType(subscriptionType),
+	redirectBody := api.PaymentRedirectData{
+		Provider:    "stripe",
+		Plan:        planId,
+		DeviceName:  server.userInfo.DeviceID(),
+		Email:       email,
+		BillingType: api.SubscriptionType(subscriptionType),
 	}
-
 	redirect, err := subscriptionPaymentRedirect(redirectBody)
 	if err != nil {
 		return SendError(err)
 	}
-	log.Debugf("stripeSubscriptionPaymentRedirect response: %s", *redirect)
+	log.Debugf("stripeSubscriptionPaymentRedirect response: %s", redirect)
 	return C.CString(*redirect)
 }
 
@@ -358,30 +372,30 @@ func paymentRedirect(_plan, _provider, _email *C.char) *C.char {
 	email := C.GoString(_email)
 	deviceName := server.userInfo.DeviceID()
 
-	body := &protos.PaymentRedirectRequest{
+	body := api.PaymentRedirectData{
 		Plan:       plan,
 		Provider:   provider,
 		Email:      email,
 		DeviceName: deviceName,
 	}
-	redirect, err := server.proServer.PaymentRedirect(context.Background(), body)
+	redirect, err := server.apiClient.PaymentRedirect(context.Background(), body)
 	if err != nil {
 		return SendError(err)
 	}
-	log.Debugf("PaymentRedirect response: %s", redirect.Redirect)
-	return C.CString(redirect.Redirect)
+	log.Debugf("PaymentRedirect response: %s", redirect)
+	return C.CString(redirect)
 }
 
 // Fetch stripe subscription link
 //
 //export stripeBillingPortalUrl
 func stripeBillingPortalUrl() *C.char {
-	url, err := server.proServer.StripeBillingPortalUrl()
+	url, err := server.apiClient.StripeBillingPortalUrl()
 	if err != nil {
 		return SendError(err)
 	}
-	log.Debugf("StripeBilingPortalUrl response: %s", url.Redirect)
-	return C.CString(url.Redirect)
+	log.Debugf("StripeBilingPortalUrl response: %s", url)
+	return C.CString(url)
 }
 
 // Fetch plans from the server
@@ -389,7 +403,7 @@ func stripeBillingPortalUrl() *C.char {
 //export plans
 func plans() *C.char {
 	log.Debug("Getting plans")
-	plans, err := server.proServer.Plans(context.Background(), "non-store")
+	plans, err := server.apiClient.SubscriptionPlans(context.Background(), "non-store")
 	if err != nil {
 		return SendError(err)
 	}
@@ -401,13 +415,13 @@ func plans() *C.char {
 	return C.CString(string(jsonData))
 }
 
-func subscriptionPaymentRedirect(redirectBody *protos.SubscriptionPaymentRedirectRequest) (*string, error) {
-	rediret, err := server.proServer.SubscriptionPaymentRedirect(context.Background(), redirectBody)
+func subscriptionPaymentRedirect(redirectBody api.PaymentRedirectData) (*string, error) {
+	rediret, err := server.apiClient.SubscriptionPaymentRedirectURL(context.Background(), redirectBody)
 	if err != nil {
 		return nil, log.Errorf("Error getting subscription link: %v", err)
 	}
 	log.Debugf("SubscriptionPaymentRedirect response: %v", rediret)
-	return &rediret.Redirect, nil
+	return &rediret, nil
 }
 
 // OAuth methods
@@ -415,12 +429,12 @@ func subscriptionPaymentRedirect(redirectBody *protos.SubscriptionPaymentRedirec
 //export oauthLoginUrl
 func oauthLoginUrl(_provider *C.char) *C.char {
 	provider := C.GoString(_provider)
-	url, err := server.authClient.OAuthLoginUrl(context.Background(), provider)
+	url, err := server.apiClient.OAuthLoginUrl(context.Background(), provider)
 	if err != nil {
 		return SendError(err)
 	}
-	log.Debugf("OAuthLoginURL response: %s", url.Redirect)
-	return C.CString(url.Redirect)
+	log.Debugf("OAuthLoginURL response: %s", url)
+	return C.CString(url)
 }
 
 // oauthLoginCallback is called when the user has logged in with OAuth and the callback URL is called.
@@ -448,9 +462,9 @@ func oAuthLoginCallback(_oAuthToken *C.char) *C.char {
 			Token:  userInfo.LegacyToken,
 		},
 	}
-	server.userInfo.Save(login)
+	server.userInfo.SetData(login)
 	///Get user data from api this will also save data in user config
-	user, err := server.proServer.UserData(context.Background())
+	user, err := server.apiClient.UserData(context.Background())
 
 	if err != nil {
 		return SendError(log.Errorf("Error getting user data: %v", err))
@@ -472,17 +486,55 @@ func oAuthLoginCallback(_oAuthToken *C.char) *C.char {
 
 // User management
 //
+// login is called when the user logs in with email and password.
+//
+//export login
+func login(_email *C.char, _password *C.char) *C.char {
+	email := C.GoString(_email)
+	password := C.GoString(_password)
+	deviceId := server.userInfo.DeviceID()
+	log.Debugf("Logging in user with email: %s %s", email, password)
+	loginResponse, err := server.apiClient.Login(context.Background(), email, password, deviceId)
+	if err != nil {
+		log.Errorf("Error logging in: %v", err)
+		return SendError(err)
+	}
+	log.Debugf("Login response: %v", loginResponse)
+	// Set user data
+	server.userInfo.SetData(loginResponse)
+
+	bytes, err := proto.Marshal(loginResponse)
+	if err != nil {
+		return SendError(log.Errorf("Error marshalling user data: %v", err))
+	}
+	encoded := base64.StdEncoding.EncodeToString(bytes)
+	return C.CString(encoded)
+}
+
+// signup is called when the user signs up with email and password.
+//
+//export signup
+func signup(_email *C.char, _password *C.char) *C.char {
+	log.Debug("Signing up user")
+	email := C.GoString(_email)
+	password := C.GoString(_password)
+	err := server.apiClient.SignUp(context.Background(), email, password)
+	if err != nil {
+		return SendError(err)
+	}
+	return C.CString("ok")
+}
+
 //export logout
 func logout(_email *C.char) *C.char {
 	email := C.GoString(_email)
 	log.Debug("Logging out")
-	err := server.authClient.Logout(context.Background(), email)
+	err := server.apiClient.Logout(context.Background(), email)
 	if err != nil {
 		return SendError(log.Errorf("Error logging out: %v", err))
 	}
 	log.Debug("Logged out successfully")
 	// Clear user data
-
 	user, err := createUser()
 	if err != nil {
 		return SendError(log.Errorf("Error creating user: %v", err))
@@ -492,7 +544,7 @@ func logout(_email *C.char) *C.char {
 		LegacyToken:    user.Token,
 		LegacyUserData: user.LoginResponse_UserData,
 	}
-	server.userInfo.Save(login)
+	server.userInfo.SetData(login)
 	bytes, err := proto.Marshal(login)
 	if err != nil {
 		return SendError(log.Errorf("Error marshalling user data: %v", err))
@@ -501,12 +553,245 @@ func logout(_email *C.char) *C.char {
 	return C.CString(encoded)
 }
 
+// startRecoveryByEmail will send recovery code to the email
+//
+//export startRecoveryByEmail
+func startRecoveryByEmail(_email *C.char) *C.char {
+	email := C.GoString(_email)
+	log.Debugf("Starting recovery by email for %s", email)
+	err := server.apiClient.StartRecoveryByEmail(context.Background(), email)
+	if err != nil {
+		return SendError(log.Errorf("Error starting recovery by email: %v", err))
+	}
+	log.Debug("Recovery by email started successfully")
+	return C.CString("ok")
+}
+
+// Validate email recovery code
+//
+//export validateEmailRecoveryCode
+func validateEmailRecoveryCode(_email, _code *C.char) *C.char {
+	email := C.GoString(_email)
+	code := C.GoString(_code)
+	log.Debugf("Validating email recovery code for %s with code %s", email, code)
+	err := server.apiClient.ValidateEmailRecoveryCode(context.Background(), email, code)
+	if err != nil {
+		return SendError(log.Errorf("invalid_code: %v", err))
+	}
+	log.Debug("Email recovery code validated successfully")
+	return C.CString("ok")
+}
+
+// Complete recovery by email
+//
+//export completeRecoveryByEmail
+func completeRecoveryByEmail(_email, _newPassword, _code *C.char) *C.char {
+	email := C.GoString(_email)
+	code := C.GoString(_code)
+	newPassword := C.GoString(_newPassword)
+	log.Debugf("Completing recovery by email for %s with code %s", email, code)
+	err := server.apiClient.CompleteRecoveryByEmail(context.Background(), email, newPassword, code)
+	if err != nil {
+		return SendError(log.Errorf("%v", err))
+	}
+	log.Debug("Recovery by email completed successfully")
+	return C.CString("ok")
+}
+
+// Delete account permanently
+//
+//export deleteAccount
+func deleteAccount(_email, _password *C.char) *C.char {
+	email := C.GoString(_email)
+	password := C.GoString(_password)
+	log.Debugf("Deleting account for %s", email)
+	err := server.apiClient.DeleteAccount(context.Background(), email, password)
+	if err != nil {
+		return SendError(log.Errorf("Error deleting account: %v", err))
+	}
+	log.Debug("Account deleted successfully")
+	// Clear user data
+	user, err := createUser()
+	if err != nil {
+		return SendError(log.Errorf("Error creating user: %v", err))
+	}
+	login := &protos.LoginResponse{
+		LegacyID:       user.UserId,
+		LegacyToken:    user.Token,
+		LegacyUserData: user.LoginResponse_UserData,
+	}
+	server.userInfo.SetData(login)
+	bytes, err := proto.Marshal(login)
+	if err != nil {
+		return SendError(log.Errorf("Error marshalling user data: %v", err))
+	}
+	encoded := base64.StdEncoding.EncodeToString(bytes)
+	return C.CString(encoded)
+}
+
+// activationCode create subscription using activation code
+//
+//export activationCode
+func activationCode(_email, _resellerCode *C.char) *C.char {
+	email := C.GoString(_email)
+	resellerCode := C.GoString(_resellerCode)
+	log.Debug("Getting activation code")
+	purchase, err := server.apiClient.ActivationCode(context.Background(), email, resellerCode)
+	if err != nil {
+		return SendError(err)
+	}
+	log.Debugf("ActivationCode response: %v", purchase)
+	return C.CString("ok")
+}
+
 //export freeCString
 func freeCString(cstr *C.char) {
 	C.free(unsafe.Pointer(cstr))
 }
 
-//export enforce_binding
-func enforce_binding() {}
+func main() {
 
-func main() {}
+}
+
+//Private server methods
+
+// interface that interact with the private server
+
+type ffiPrivateServerEventListener struct{}
+
+func (l *ffiPrivateServerEventListener) OnPrivateServerEvent(event string) {
+	log.Debugf("Private server event: %s", event)
+	sendPrivateServerEvent(event)
+}
+
+func (l *ffiPrivateServerEventListener) OnError(err string) {
+	log.Debugf("Private server error: %v", err)
+	sendPrivateServerEvent(err)
+}
+
+func (l *ffiPrivateServerEventListener) OpenBrowser(url string) error {
+	log.Debugf("Opening browser with URL: %s", url)
+	mapStatus := map[string]string{
+		"status": "openBrowser",
+		"data":   url,
+	}
+	jsonData, _ := json.Marshal(mapStatus)
+	sendPrivateServerEvent(string(jsonData))
+	return nil
+}
+
+func sendPrivateServerEvent(event string) {
+	mu.Lock()
+	defer mu.Unlock()
+
+	if server == nil {
+		log.Errorf("Radiance not initialized")
+		return
+	}
+
+	servicePort, ok := server.servicesMap[privateserverService]
+	if !ok {
+		log.Errorf("Private server service not initialized")
+		return
+	}
+
+	go func() {
+		dart_api_dl.SendToPort(servicePort, event)
+	}()
+}
+
+// digitalOceanPrivateServer starts the DigitalOcean private server flow.
+//
+//export digitalOceanPrivateServer
+func digitalOceanPrivateServer() *C.char {
+	ffiEventListener := &ffiPrivateServerEventListener{}
+	err := privateserver.StartDigitalOceanPrivateServerFlow(ffiEventListener, server.vpnClient)
+	if err != nil {
+		log.Errorf("Error starting DigitalOcean private server flow: %v", err)
+		return SendError(err)
+	}
+	log.Debug("DigitalOcean private server flow started successfully")
+	return C.CString("ok")
+}
+
+// selectAccount selects the account for the private server.
+//
+//export selectAccount
+func selectAccount(_account *C.char) *C.char {
+	account := C.GoString(_account)
+	log.Debugf("Selecting account: %s", account)
+	if err := privateserver.SelectAccount(account); err != nil {
+		return SendError(log.Errorf("Error selecting account: %v", err))
+	}
+	log.Debugf("Account %s selected successfully", account)
+	return C.CString("ok")
+}
+
+// selectedProject selects the project for the private server.
+//
+//export selectProject
+func selectProject(_project *C.char) *C.char {
+	project := C.GoString(_project)
+	err := privateserver.SelectProject(project)
+	if err != nil {
+		return SendError(log.Errorf("Error getting selected project: %v", err))
+	}
+	log.Debugf("Selected project: %s", project)
+	return C.CString("ok")
+}
+
+// startDepolyment starts the deployment for the private server.
+//
+//export startDepolyment
+func startDepolyment(_selectedLocation, _serverName *C.char) *C.char {
+	location := C.GoString(_selectedLocation)
+	serverName := C.GoString(_serverName)
+
+	log.Debugf("Starting deployment with location: %s and plan: %s", location, serverName)
+	err := privateserver.StartDepolyment(location, serverName)
+	if err != nil {
+		return SendError(log.Errorf("Error starting deployment: %v", err))
+	}
+	log.Debugf("Deployment started successfully with location: %s and plan: %s", location, serverName)
+	return C.CString("ok")
+}
+
+// setCert sets the certificate fingerprint for the private server.
+//
+//export setCert
+func setCert(fp *C.char) *C.char {
+	log.Debug("Setting cert")
+	privateserver.SelectedCertFingerprint(C.GoString(fp))
+	log.Debugf("Cert set successfully")
+	return C.CString("ok")
+}
+
+// cancelDepolyment cancels the deployment for the private server.
+//
+//export cancelDepolyment
+func cancelDepolyment() *C.char {
+	log.Debug("Cancelling deployment")
+	if err := privateserver.CancelDepolyment(); err != nil {
+		return SendError(log.Errorf("Error cancelling deployment: %v", err))
+	}
+	log.Debugf("Deployment cancelled successfully")
+	return C.CString("ok")
+}
+
+// addServerManagerInstance adds a server manager instance manually.
+//
+//export addServerManagerInstance
+func addServerManagerInstance(_ip, _port, _accessToken, _tag *C.char) *C.char {
+	ffiEventListener := &ffiPrivateServerEventListener{}
+	ip := C.GoString(_ip)
+	port := C.GoString(_port)
+	accessToken := C.GoString(_accessToken)
+	tag := C.GoString(_tag)
+
+	err := privateserver.AddServerManually(ip, port, accessToken, tag, server.vpnClient, ffiEventListener)
+	if err != nil {
+		return SendError(log.Errorf("Error adding server manager instance: %v", err))
+	}
+	log.Debugf("Server manager instance added successfully with IP: %s, Port: %s, AccessToken: %s, Tag: %s", ip, port, accessToken, tag)
+	return C.CString("ok")
+}

@@ -7,14 +7,39 @@ enum VPNStatus {
   error,
 }
 
-enum AuthFlow { resetPassword, signUp, activationCode }
-
 enum AppFlow {
   store,
   nonStore,
 }
 
 enum StipeSubscriptionType { monthly, yearly, one_time }
+
+enum ServerLocationType {
+  auto,
+  privateServer,
+  lanternLocation;
+}
+
+extension ServerLocationTypeExtension on String {
+  ServerLocationType get toServerLocationType {
+    switch (this) {
+      case 'auto':
+        return ServerLocationType.auto;
+      case 'privateServer':
+        return ServerLocationType.privateServer;
+      case 'lanternLocation':
+        return ServerLocationType.lanternLocation;
+      default:
+        return ServerLocationType.auto;
+    }
+  }
+}
+
+enum AuthFlow { resetPassword, oauth, signUp, activationCode }
+
+enum BillingType { subscription, one_time }
+
+enum PrivateServerInput { selectAccount, selectProject }
 
 enum SplitTunnelFilterType {
   domain,
@@ -114,6 +139,29 @@ extension BypassListOptionString on String {
         return BypassListOption.iran;
       default:
         return BypassListOption.global;
+    }
+  }
+}
+
+enum CloudProvider {
+  googleCloud,
+  digitalOcean;
+
+  String get value {
+    switch (this) {
+      case CloudProvider.googleCloud:
+        return 'gcp';
+      case CloudProvider.digitalOcean:
+        return 'do';
+    }
+  }
+
+  String get displayName {
+    switch (this) {
+      case CloudProvider.googleCloud:
+        return "Google";
+      case CloudProvider.digitalOcean:
+        return "Digital Ocean";
     }
   }
 }

@@ -37,7 +37,7 @@ jobs:
         uses: subosito/flutter-action@v2.19.0
         with:
           channel: stable
-          flutter-version: 3.29.0
+          flutter-version-file: pubspec.yaml
 
       - name: Decode APP_ENV
         uses: timheuer/base64-to-file@v1.2
