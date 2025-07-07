@@ -35,7 +35,7 @@ class MethodHandler {
       case "SetPrivateServer":
         self.setPrivateServer(result: result, tag: call.arguments as! String)
       case "isVPNConnected":
-        self.isVPNConnectedx(result: result)
+        self.isVPNConnected(result: result)
       case "plans":
         self.plans(result: result)
       case "oauthLoginUrl":
@@ -45,6 +45,8 @@ class MethodHandler {
         var token = call.arguments as! String
         self.oauthLoginCallback(result: result, token: token)
       case "getUserData":
+        self.getUserData(result: result)
+      case "fetchUserData":
         self.getUserData(result: result)
       case "showManageSubscriptions":
         self.showManageSubscriptions(result: result)
@@ -291,6 +293,21 @@ class MethodHandler {
         }
       }
     }
+  }
+
+  private func fetchUserData(result: @escaping FlutterResult) {
+    Task.detached {
+      var error: NSError?
+      let bytes = MobileFetchUserData(&error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "FETCH_USER_DATA_ERROR")
+        return
+      }
+      await MainActor.run {
+        result(bytes)
+      }
+    }
+
   }
 
   private func showManageSubscriptions(result: @escaping FlutterResult) {

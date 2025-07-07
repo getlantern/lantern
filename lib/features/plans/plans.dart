@@ -26,10 +26,6 @@ class Plans extends StatefulHookConsumerWidget {
 class _PlansState extends ConsumerState<Plans> {
   late TextTheme textTheme;
 
-  @override
-  void initState() {
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -218,6 +214,10 @@ class _PlansState extends ConsumerState<Plans> {
             purchase.verificationData.serverVerificationData, plan.id);
       },
       onError: (error) {
+        if (!mounted) {
+          return;
+        }
+
         ///Error while subscribing
         context.showSnackBar(error);
         appLogger.error('Error subscribing to plan: $error');
