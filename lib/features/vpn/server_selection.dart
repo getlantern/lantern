@@ -24,8 +24,8 @@ class ServerSelection extends StatefulWidget {
 
 class _ServerSelectionState extends State<ServerSelection> {
   TextTheme? _textTheme;
-
   bool isUserPro = true;
+  final serverLocation = sl<LocalStorageService>().getServerLocations();
 
   @override
   Widget build(BuildContext context) {
@@ -39,9 +39,7 @@ class _ServerSelectionState extends State<ServerSelection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          // _buildSelectedLocation(),
-          // DividerSpace(padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16)),
-          // SizedBox(height: 8),
+          _buildSelectedLocation(),
           _buildSmartLocation(),
           SizedBox(height: 8),
           Padding(
@@ -58,7 +56,6 @@ class _ServerSelectionState extends State<ServerSelection> {
               padding: const EdgeInsets.only(bottom: 16.0),
               child: ProBanner(),
             ),
-
           TabBar(
             indicatorSize: TabBarIndicatorSize.tab,
             labelColor: Colors.teal.shade900,
@@ -115,7 +112,8 @@ class _ServerSelectionState extends State<ServerSelection> {
                 AppImage(path: AppImagePaths.blot),
                 AppRadioButton<bool>(
                   value: true,
-                  groupValue: false,
+                  groupValue: serverLocation.serverType.toServerLocationType ==
+                      ServerLocationType.auto,
                   onChanged: (value) {},
                 ),
               ],
@@ -127,12 +125,16 @@ class _ServerSelectionState extends State<ServerSelection> {
   }
 
   Widget _buildSelectedLocation() {
+    if (serverLocation.serverType.toServerLocationType ==
+        ServerLocationType.auto) {
+      return const SizedBox.shrink();
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Text('smart_location'.i18n,
+          child: Text('selected_location'.i18n,
               style: _textTheme?.labelLarge!.copyWith(
                 color: AppColors.gray8,
               )),
@@ -156,6 +158,9 @@ class _ServerSelectionState extends State<ServerSelection> {
             ),
           ),
         ),
+        DividerSpace(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16)),
+        SizedBox(height: 8),
       ],
     );
   }
@@ -328,7 +333,8 @@ class _PrivateServerLocationListViewState
             autoSelect: false,
             serverLocation: privateServer.serverLocation);
 
-        ref.read(serverLocationNotifierProvider.notifier)
+        ref
+            .read(serverLocationNotifierProvider.notifier)
             .updateServerLocation(serverLocation);
       },
     );

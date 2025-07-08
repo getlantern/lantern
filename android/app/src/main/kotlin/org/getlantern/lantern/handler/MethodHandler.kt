@@ -117,7 +117,10 @@ class MethodHandler : FlutterPlugin,
             Methods.SetPrivateServer.method -> {
                 scope.launch {
                     result.runCatching {
-                        Mobile.setPrivateServer(call.arguments as String)
+                        val map = call.arguments as Map<*, *>
+                        val location = map["location"] as String? ?: error("Missing location")
+                        val tag = map["tag"] as String? ?: error("Missing tag")
+                            Mobile.setPrivateServer(location, tag)
                         success("ok")
                     }.onFailure { e ->
                         result.error(

@@ -48,7 +48,7 @@ class MethodHandler {
       case "getUserData":
         self.getUserData(result: result)
       case "fetchUserData":
-        self.getUserData(result: result)
+        self.fetchUserData(result: result)
       case "showManageSubscriptions":
         self.showManageSubscriptions(result: result)
       case "acknowledgeInAppPurchase":

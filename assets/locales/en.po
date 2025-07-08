@@ -759,6 +759,8 @@ msgstr "Rename Server"
 msgid "rename"
 msgstr "Rename"
 
+msgid "selected_location"
+msgstr "Selected Location"
 
 msgid "remove_server"
 msgstr "Remove Server?"
