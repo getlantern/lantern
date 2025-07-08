@@ -311,7 +311,8 @@ class _PrivateServerLocationListViewState
     context.showLoadingDialog();
     final result = await ref
         .read(vpnNotifierProvider.notifier)
-        .setPrivateServer(privateServer.serverName.trim());
+        .setPrivateServer(
+            privateServer.serverLocation, privateServer.serverName.trim());
 
     result.fold(
       (failure) {
@@ -326,8 +327,8 @@ class _PrivateServerLocationListViewState
             serverName: privateServer.serverName,
             autoSelect: false,
             serverLocation: privateServer.serverLocation);
-        ref
-            .read(serverLocationNotifierProvider.notifier)
+
+        ref.read(serverLocationNotifierProvider.notifier)
             .updateServerLocation(serverLocation);
       },
     );

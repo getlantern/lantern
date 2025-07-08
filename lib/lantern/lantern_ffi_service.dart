@@ -754,11 +754,11 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> setPrivateServer(String tag) async {
+  Future<Either<Failure, String>> setPrivateServer(String location,String tag) async {
     try {
       final result = await runInBackground<String>(
         () async {
-          return _ffiService.setPrivateServer(tag.toCharPtr).toDartString();
+          return _ffiService.setPrivateServer(location.toCharPtr,tag.toCharPtr).toDartString();
         },
       );
       checkAPIError(result);

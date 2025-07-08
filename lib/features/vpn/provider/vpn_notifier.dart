@@ -13,6 +13,10 @@ part 'vpn_notifier.g.dart';
 var isDisconnectingState = (status) =>
     status == VPNStatus.connecting || status == VPNStatus.disconnecting;
 
+// This should be called only once
+// when app is in memory after radiance will track it
+bool isServerLocationSet = false;
+
 @Riverpod(keepAlive: true)
 class VpnNotifier extends _$VpnNotifier {
   @override
@@ -59,12 +63,32 @@ class VpnNotifier extends _$VpnNotifier {
   }
 
   Future<Either<Failure, String>> startVPN() async {
+    // Check if private server is connected
+    // also check for custom location server
+    final serverLocation = sl<LocalStorageService>().getServerLocations();
+    final locationType = serverLocation.serverType.toServerLocationType;
+    if (!isServerLocationSet) {
+      final result = await setPrivateServer(
+          serverLocation.serverType, serverLocation.serverName);
+      result.fold(
+        (failure) {
+          appLogger.error("Failed to set private server: $failure");
+        },
+        (success) {
+          appLogger.info("Private server set successfully: $success");
+        },
+      );
+      isServerLocationSet = true;
+    }
+
     final result = await ref.read(lanternServiceProvider).startVPN();
     return result;
   }
 
-  Future<Either<Failure, String>> setPrivateServer(String tag) async {
-    final result = await ref.read(lanternServiceProvider).setPrivateServer(tag);
+  Future<Either<Failure, String>> setPrivateServer(
+      String location, String tag) async {
+    final result =
+        await ref.read(lanternServiceProvider).setPrivateServer(location, tag);
     return result;
   }
 

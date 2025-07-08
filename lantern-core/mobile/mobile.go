@@ -146,15 +146,30 @@ func StopVPN() error {
 	return nil
 }
 
-func SetPrivateServer(tag string) error {
+func SetPrivateServer(locationType, tag string) error {
 	log.Debugf("Setting private server with tag: %s", tag)
 	radianceMutex.Lock()
 	defer radianceMutex.Unlock()
 	if vpnClient == nil {
 		return log.Error("VPN client not setup")
 	}
-	group := boxoptions.ServerGroupUser
-	err := vpnClient.SelectServer(group, tag)
+	// Valid location types are:
+	// auto,
+	// privateServer,
+	// lanternLocation;
+	var group = ""
+	var tagName = ""
+	if locationType == "auto" {
+		group = boxoptions.ServerGroupLantern
+		tagName = boxoptions.LanternAutoTag
+	} else if locationType == "privateServer" {
+		group = boxoptions.ServerGroupUser
+		tagName = tag
+	} else if locationType == "lanternLocation" {
+		group = boxoptions.ServerGroupLantern
+		tagName = tag
+	}
+	err := vpnClient.SelectServer(group, tagName)
 	if err != nil {
 		return log.Errorf("Error setting private server: %v", err)
 	}

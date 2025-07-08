@@ -242,14 +242,31 @@ func stopVPN() *C.char {
 // setPrivateServer sets the private server with the given tag.
 //
 //export setPrivateServer
-func setPrivateServer(_tag *C.char) *C.char {
+func setPrivateServer(_location, _tag *C.char) *C.char {
 	tag := C.GoString(_tag)
-	group := boxoptions.ServerGroupUser
-	err := server.vpnClient.SelectServer(group, tag)
+	locationType := C.GoString(_location)
+
+	// Valid location types are:
+	// auto,
+	// privateServer,
+	// lanternLocation;
+	var group = ""
+	var tagName = ""
+	if locationType == "auto" {
+		group = boxoptions.ServerGroupLantern
+		tagName = boxoptions.LanternAutoTag
+	} else if locationType == "privateServer" {
+		group = boxoptions.ServerGroupUser
+		tagName = tag
+	} else if locationType == "lanternLocation" {
+		group = boxoptions.ServerGroupLantern
+		tagName = tag
+	}
+	err := server.vpnClient.SelectServer(group, tagName)
 	if err != nil {
 		return SendError(log.Errorf("Error setting private server: %v", err))
 	}
-	log.Debugf("Private server set with tag: %s", tag)
+	log.Debugf("Private server set with tag: %s", tagName)
 	return C.CString("ok")
 }
 

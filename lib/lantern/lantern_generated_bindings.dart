@@ -2448,19 +2448,22 @@ class LanternBindings {
       _stopVPNPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
 
   ffi.Pointer<ffi.Char> setPrivateServer(
+    ffi.Pointer<ffi.Char> _location,
     ffi.Pointer<ffi.Char> _tag,
   ) {
     return _setPrivateServer(
+      _location,
       _tag,
     );
   }
 
   late final _setPrivateServerPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>,
               ffi.Pointer<ffi.Char>)>>('setPrivateServer');
-  late final _setPrivateServer = _setPrivateServerPtr
-      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
+  late final _setPrivateServer = _setPrivateServerPtr.asFunction<
+      ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
 
   ffi.Pointer<ffi.Char> isVPNConnected() {
     return _isVPNConnected();

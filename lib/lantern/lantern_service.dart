@@ -368,11 +368,11 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> setPrivateServer(String tag) {
+  Future<Either<Failure, String>> setPrivateServer(String location,String tag) {
     if (PlatformUtils.isDesktop) {
-      return _ffiService.setPrivateServer(tag);
+      return _ffiService.setPrivateServer(location,tag);
     }
-    return _platformService.setPrivateServer(tag);
+    return _platformService.setPrivateServer(location,tag);
   }
 
   @override

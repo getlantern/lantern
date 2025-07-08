@@ -541,9 +541,12 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> setPrivateServer(String tag) async {
+  Future<Either<Failure, String>> setPrivateServer(String location,String tag) async {
     try {
-      await _methodChannel.invokeMethod('setPrivateServer', tag);
+      await _methodChannel.invokeMethod('setPrivateServer', {
+        'location': location,
+        'tag': tag,
+      });
       return Right("ok");
     } catch (e, stackTrace) {
       appLogger.debug('Error setting private server');

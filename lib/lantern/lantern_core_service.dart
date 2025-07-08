@@ -18,7 +18,7 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, String>> stopVPN();
 
-  Future<Either<Failure, String>> setPrivateServer(String tag);
+  Future<Either<Failure, String>> setPrivateServer(String location,String tag);
 
   Stream<LanternStatus> watchVPNStatus();
 

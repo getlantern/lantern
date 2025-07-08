@@ -32,8 +32,9 @@ class MethodHandler {
         self.startVPN(result: result)
       case "stopVPN":
         self.stopVPN(result: result)
-      case "SetPrivateServer":
-        self.setPrivateServer(result: result, tag: call.arguments as! String)
+      case "setPrivateServer":
+        let map = call.arguments as? [String: Any]
+        self.setPrivateServer(result: result, data: map ?? [:])
       case "isVPNConnected":
         self.isVPNConnected(result: result)
       case "plans":
@@ -148,10 +149,12 @@ class MethodHandler {
     }
   }
 
-  private func setPrivateServer(result: @escaping FlutterResult, tag: String) {
+  private func setPrivateServer(result: @escaping FlutterResult, data: [String: Any]) {
     Task.detached {
+      let location = data["location"] as? String ?? ""
+      let tag = data["tag"] as? String ?? ""
       var error: NSError?
-      MobileSetPrivateServer(tag, &error)
+      MobileSetPrivateServer(location, tag, &error)
       if let err = error {
         await self.handleFlutterError(err, result: result, code: "SET_PRIVATE_SERVER_ERROR")
         return
