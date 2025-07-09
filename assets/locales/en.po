@@ -804,8 +804,14 @@ msgstr "Fastest Country"
 msgid "join_my_private_server"
 msgstr "Join My Lantern Private Server"
 
+msgid "your_server"
+msgstr "Your Servers:"
+
 msgid "joined_servers"
 msgstr "Joined Servers:"
+
+msgid "no_private_server_setup_yet"
+msgstr "You haven't set up a private server yet. Click the button below to get started."
 
 
 

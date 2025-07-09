@@ -1,4 +1,4 @@
-import 'package:auto_route/annotations.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -282,6 +282,26 @@ class _PrivateServerLocationListViewState
     final servers = _localStorage.getPrivateServer();
     final myServer = servers.where((element) => !element.isJoined).toList();
     final joinedServer = servers.where((element) => element.isJoined).toList();
+
+    if (servers.isEmpty) {
+      return Column(
+        children: [
+          Text('no_private_server_setup_yet'.i18n,
+              textAlign: TextAlign.center,
+              style: _textTheme!.titleSmall!.copyWith(
+                color: AppColors.gray8,
+              )),
+          SizedBox(height: 16),
+          PrimaryButton(
+            label: 'setup_private_server'.i18n,
+            onPressed: () {
+              context.pushRoute(VPNSetting());
+            },
+          ),
+        ],
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -355,7 +375,7 @@ class _PrivateServerLocationListViewState
             padding: EdgeInsets.zero,
             shrinkWrap: true,
             children: joinedServer.map(
-                  (server) {
+              (server) {
                 return Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -384,8 +404,8 @@ class _PrivateServerLocationListViewState
                       trailing: AppRadioButton<String>(
                         value: server.serverName,
                         groupValue: (userSelectedServer.value?.serverName ==
-                            server.serverName &&
-                            serverLocation.serverName == server.serverName)
+                                    server.serverName &&
+                                serverLocation.serverName == server.serverName)
                             ? server.serverName
                             : null,
                         onChanged: (value) {
@@ -403,7 +423,6 @@ class _PrivateServerLocationListViewState
             ).toList(),
           ),
         )
-
       ],
     );
   }
