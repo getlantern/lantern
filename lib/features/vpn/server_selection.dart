@@ -206,7 +206,7 @@ class ServerLocationListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final _textTheme = Theme.of(context).textTheme;
+    final textTheme = Theme.of(context).textTheme;
     return Stack(
       children: [
         Positioned(
@@ -215,7 +215,7 @@ class ServerLocationListView extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Text('pro_locations'.i18n,
-                style: _textTheme!.labelLarge!.copyWith(
+                style: textTheme.labelLarge!.copyWith(
                   color: AppColors.gray8,
                 )),
           ),

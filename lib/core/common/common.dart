@@ -13,7 +13,6 @@ import 'package:share_plus/share_plus.dart';
 import '../../features/home/provider/home_notifier.dart';
 import '../../lantern/lantern_service_notifier.dart';
 import '../services/injection_container.dart';
-import '../utils/store_utils.dart';
 
 export 'package:lantern/core/common/app_asset.dart';
 export 'package:lantern/core/common/app_buttons.dart';

@@ -193,7 +193,7 @@ class LanternPlatformService implements LanternCoreService {
       });
       final map = jsonDecode(subData!);
       return Right(map);
-    } catch (e, stackTrace) {
+    } catch (e) {
       return Left(Failure(
           error: e.toString(),
           localizedErrorMessage: (e as Exception).localizedDescription));
@@ -206,7 +206,7 @@ class LanternPlatformService implements LanternCoreService {
       final url =
           await _methodChannel.invokeMethod<String>('stripeBillingPortal');
       return Right(url!);
-    } catch (e, stackTrace) {
+    } catch (e) {
       return Left(e.toFailure());
     }
   }
@@ -236,7 +236,7 @@ class LanternPlatformService implements LanternCoreService {
       final loginUrl =
           await _methodChannel.invokeMethod<String>('oauthLoginUrl', provider);
       return Right(loginUrl!);
-    } catch (e, stackTrace) {
+    } catch (e) {
       return Left(Failure(
           error: e.toString(),
           localizedErrorMessage: (e as Exception).localizedDescription));
@@ -276,7 +276,7 @@ class LanternPlatformService implements LanternCoreService {
     try {
       await _methodChannel.invokeMethod('showManageSubscriptions');
       return Right(unit);
-    } catch (e, stackTrace) {
+    } catch (e) {
       return Left(Failure(
           error: e.toString(),
           localizedErrorMessage: (e as Exception).localizedDescription));
@@ -547,7 +547,7 @@ class LanternPlatformService implements LanternCoreService {
         'tag': tag,
       });
       return Right("ok");
-    } catch (e, stackTrace) {
+    } catch (e) {
       appLogger.debug('Error setting private server');
       return Left(e.toFailure());
     }

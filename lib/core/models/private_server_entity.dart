@@ -36,7 +36,7 @@ class PrivateServerEntity {
       externalIp: externalIp ?? this.externalIp,
       port: port ?? this.port,
       accessToken: accessToken ?? this.accessToken,
-      serverLocation: countryCode ?? this.serverLocation,
+      serverLocation: countryCode ?? serverLocation,
       isJoined: isJoined ?? this.isJoined,
       userSelected: userSelected ?? this.userSelected,
     );

@@ -82,11 +82,11 @@ class ServerLocationsModal extends StatelessWidget {
   final CloudProvider provider;
 
   const ServerLocationsModal({
-    Key? key,
+    super.key,
     required this.leadingIcon,
     required this.locations,
     required this.provider,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

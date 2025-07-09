@@ -1,6 +1,5 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:lantern/core/widgets/pro_button.dart';
 
 import '../common/common.dart';
 

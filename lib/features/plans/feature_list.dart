@@ -1,6 +1,5 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:lantern/core/utils/screen_utils.dart';
 
 import '../../core/common/common.dart';
 
@@ -41,7 +40,7 @@ class _FeatureTile extends StatelessWidget {
   final String image;
   final String title;
 
-  const _FeatureTile({super.key, required this.image, required this.title});
+  const _FeatureTile({required this.image, required this.title});
 
   @override
   Widget build(BuildContext context) {
