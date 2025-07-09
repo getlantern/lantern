@@ -801,6 +801,12 @@ msgstr "Private Server"
 msgid "fastest_country"
 msgstr "Fastest Country"
 
+msgid "join_my_private_server"
+msgstr "Join My Lantern Private Server"
+
+msgid "joined_servers"
+msgstr "Joined Servers:"
+
 
 
 

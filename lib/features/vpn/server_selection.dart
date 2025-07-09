@@ -277,14 +277,16 @@ class _PrivateServerLocationListViewState
   @override
   Widget build(BuildContext context) {
     _textTheme = Theme.of(context).textTheme;
-    final privateServers = _localStorage.getPrivateServer();
     final userSelectedServer = useState(_localStorage.defaultPrivateServer());
     final serverLocation = ref.watch(serverLocationNotifierProvider);
+    final servers = _localStorage.getPrivateServer();
+    final myServer = servers.where((element) => !element.isJoined).toList();
+    final joinedServer = servers.where((element) => element.isJoined).toList();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         SizedBox(height: 16),
-        Text('Your Servers:',
+        Text('your_server'.i18n,
             style: _textTheme!.titleSmall!.copyWith(
               color: AppColors.gray4,
             )),
@@ -293,7 +295,7 @@ class _PrivateServerLocationListViewState
           child: ListView(
             padding: EdgeInsets.zero,
             shrinkWrap: true,
-            children: privateServers.map(
+            children: myServer.map(
               (server) {
                 return Column(
                   mainAxisSize: MainAxisSize.min,
@@ -341,7 +343,67 @@ class _PrivateServerLocationListViewState
               },
             ).toList(),
           ),
+        ),
+        SizedBox(height: 16),
+        Text('joined_servers'.i18n,
+            style: _textTheme!.titleSmall!.copyWith(
+              color: AppColors.gray4,
+            )),
+        SizedBox(height: 8),
+        AppCard(
+          child: ListView(
+            padding: EdgeInsets.zero,
+            shrinkWrap: true,
+            children: joinedServer.map(
+                  (server) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    AppTile(
+                      onPressed: () {
+                        onPrivateServerSelected(server);
+                        userSelectedServer.value = server;
+                        _localStorage
+                            .setDefaultPrivateServer(server.serverName);
+                      },
+                      contentPadding: EdgeInsets.symmetric(vertical: 5),
+                      icon: Flag(
+                        countryCode: server.serverLocation.countryCode,
+                        size: Size(40, 28),
+                      ),
+                      label: server.serverName,
+                      subtitle: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 3),
+                        child: Text(
+                          '${server.serverLocation.locationName} - ${server.externalIp}',
+                          style: _textTheme!.labelMedium!.copyWith(
+                            color: AppColors.gray7,
+                          ),
+                        ),
+                      ),
+                      trailing: AppRadioButton<String>(
+                        value: server.serverName,
+                        groupValue: (userSelectedServer.value?.serverName ==
+                            server.serverName &&
+                            serverLocation.serverName == server.serverName)
+                            ? server.serverName
+                            : null,
+                        onChanged: (value) {
+                          onPrivateServerSelected(server);
+                          userSelectedServer.value = server;
+                          _localStorage
+                              .setDefaultPrivateServer(server.serverName);
+                        },
+                      ),
+                    ),
+                    DividerSpace(padding: EdgeInsets.zero),
+                  ],
+                );
+              },
+            ).toList(),
+          ),
         )
+
       ],
     );
   }

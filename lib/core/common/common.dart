@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lantern/core/common/app_urls.dart';
+import 'package:lantern/core/localization/i18n.dart';
 import 'package:lantern/core/models/private_server_entity.dart';
 import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/services/logger_service.dart';
@@ -114,7 +115,8 @@ void sharePrivateAccessKey(
     PrivateServerEntity server, Map<String, dynamic> tokenPayload) {
   final expirationDate = tokenPayload['exp'];
   final buffer = StringBuffer()
-    ..write('Join my Lantern Private Server:')
+    ..write('join_my_private_server'.i18n)
+    ..write(' ')
     ..write(AppUrls.baseUrl)
     ..write(
         '/private-server?ip=${server.externalIp}&port=${server.port}&token=${server.accessToken}&name=${server.serverName}&exp=$expirationDate');

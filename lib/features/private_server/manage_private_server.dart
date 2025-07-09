@@ -26,6 +26,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
   Widget build(BuildContext context) {
     textTheme = Theme.of(context).textTheme;
     final servers = _localStorage.getPrivateServer();
+    final myServer = servers.where((element) => !element.isJoined).toList();
     final joinedServer = servers.where((element) => element.isJoined).toList();
     return BaseScreen(
       title: 'manage_private_servers'.i18n,
@@ -60,7 +61,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
             Expanded(
               child: TabBarView(
                 children: [
-                  _buildListView(servers),
+                  _buildListView(myServer),
                   _buildListView(joinedServer),
                 ],
               ),
