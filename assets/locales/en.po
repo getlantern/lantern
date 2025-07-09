@@ -734,10 +734,23 @@ msgstr "Join Private Server"
 msgid "join_server"
 msgstr "Join Server"
 
-
 msgid "private_server_usage_message"
 msgstr "Private server usage is not counted towards your Lantern daily data cap."
 
+msgid "connect"
+msgstr "Connect"
+
+msgid "disconnect"
+msgstr "Disconnect"
+
+msgid "show"
+msgstr "Show"
+
+msgid "status_on"
+msgstr "Connected"
+
+msgid "status_off"
+msgstr "Disconnected"
 
 
 

@@ -4,7 +4,6 @@ import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/window/provider/window_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:tray_manager/tray_manager.dart';
-import 'package:window_manager/window_manager.dart';
 
 import '../../../core/common/common.dart';
 
@@ -17,9 +16,7 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
   @override
   Future<void> build() async {
     if (!PlatformUtils.isDesktop) return;
-
     _currentStatus = ref.read(vpnNotifierProvider);
-
     ref.listen<VPNStatus>(
       vpnNotifierProvider,
       (previous, next) async {
@@ -72,7 +69,7 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
           key: 'show_window',
           label: 'show'.i18n,
           onClick: (_) {
-            ref.read(windowNotifierProvider.notifier).open();
+            ref.read(windowNotifierProvider.notifier).open(focus: true);
           },
         ),
         MenuItem.separator(),
