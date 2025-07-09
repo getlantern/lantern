@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/models/private_server_status.dart';
@@ -9,12 +11,12 @@ import '../../../core/services/logger_service.dart';
 
 part 'private_server_notifier.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 class PrivateServerNotifier extends _$PrivateServerNotifier {
   @override
   PrivateServerStatus build() {
-    // Initialize any state or perform setup here
-    watchPrivateServerLogs().listen(_handleStatus);
+    // Only once
+    watchPrivateServerLogs();
     return PrivateServerStatus(status: 'initial', data: null, error: null);
   }
 
@@ -56,8 +58,11 @@ class PrivateServerNotifier extends _$PrivateServerNotifier {
     return ref.read(lanternServiceProvider).setCert(fingerprint: fingerprint);
   }
 
-  Stream<PrivateServerStatus> watchPrivateServerLogs() {
-    return ref.read(lanternServiceProvider).watchPrivateServerStatus();
+  void watchPrivateServerLogs() {
+    ref
+        .read(lanternServiceProvider)
+        .watchPrivateServerStatus()
+        .listen(_handleStatus);
   }
 
   void _handleStatus(PrivateServerStatus status) {
