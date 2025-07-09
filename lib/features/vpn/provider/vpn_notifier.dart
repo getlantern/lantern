@@ -66,7 +66,6 @@ class VpnNotifier extends _$VpnNotifier {
     // Check if private server is connected
     // also check for custom location server
     final serverLocation = sl<LocalStorageService>().getServerLocations();
-    final locationType = serverLocation.serverType.toServerLocationType;
     if (!isServerLocationSet) {
       final result = await setPrivateServer(
           serverLocation.serverType, serverLocation.serverName);

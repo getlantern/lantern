@@ -6,7 +6,6 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/private_server_entity.dart';
 import 'package:lantern/core/models/server_location_entity.dart';
 import 'package:lantern/core/services/injection_container.dart';
-import 'package:lantern/core/widgets/vpn_status_indicator.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/vpn/server_desktop_view.dart';
@@ -15,32 +14,33 @@ import 'package:lantern/features/vpn/server_mobile_view.dart';
 typedef OnSeverSelected = Function(String selectedServer);
 
 @RoutePage(name: 'ServerSelection')
-class ServerSelection extends StatefulWidget {
+class ServerSelection extends StatefulHookConsumerWidget {
   const ServerSelection({super.key});
 
   @override
-  State<ServerSelection> createState() => _ServerSelectionState();
+  ConsumerState<ServerSelection> createState() => _ServerSelectionState();
 }
 
-class _ServerSelectionState extends State<ServerSelection> {
+class _ServerSelectionState extends ConsumerState<ServerSelection> {
   TextTheme? _textTheme;
   bool isUserPro = true;
-  final serverLocation = sl<LocalStorageService>().getServerLocations();
 
   @override
   Widget build(BuildContext context) {
+    var serverLocation = ref.watch(serverLocationNotifierProvider);
     _textTheme = Theme.of(context).textTheme;
-    return BaseScreen(title: 'server_selection'.i18n, body: _buildBody());
+    return BaseScreen(
+        title: 'server_selection'.i18n, body: _buildBody(serverLocation));
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(ServerLocationEntity serverLocation) {
     return DefaultTabController(
       length: 2,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          _buildSelectedLocation(),
-          _buildSmartLocation(),
+          _buildSelectedLocation(serverLocation),
+          _buildSmartLocation(serverLocation),
           SizedBox(height: 8),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -70,8 +70,8 @@ class _ServerSelectionState extends State<ServerSelection> {
               border: Border.all(color: AppColors.blue3, width: 1),
             ),
             tabs: [
-              Tab(child: Text('Lantern Server')),
-              Tab(child: Text('Private Server'))
+              Tab(child: Text('lantern_server'.i18n)),
+              Tab(child: Text('private_server'.i18n))
             ],
           ),
           SizedBox(height: 16),
@@ -90,7 +90,7 @@ class _ServerSelectionState extends State<ServerSelection> {
     );
   }
 
-  Widget _buildSmartLocation() {
+  Widget _buildSmartLocation(ServerLocationEntity serverLocation) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -105,7 +105,7 @@ class _ServerSelectionState extends State<ServerSelection> {
           padding: EdgeInsets.zero,
           child: AppTile(
             icon: AppImagePaths.location,
-            label: 'Fastest Country',
+            label: 'fastest_country'.i18n,
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -114,7 +114,8 @@ class _ServerSelectionState extends State<ServerSelection> {
                   value: true,
                   groupValue: serverLocation.serverType.toServerLocationType ==
                       ServerLocationType.auto,
-                  onChanged: (value) {},
+                  onChanged: (value) =>
+                      onSmartLocation(ServerLocationType.auto),
                 ),
               ],
             ),
@@ -124,7 +125,7 @@ class _ServerSelectionState extends State<ServerSelection> {
     );
   }
 
-  Widget _buildSelectedLocation() {
+  Widget _buildSelectedLocation(ServerLocationEntity serverLocation) {
     if (serverLocation.serverType.toServerLocationType ==
         ServerLocationType.auto) {
       return const SizedBox.shrink();
@@ -140,21 +141,27 @@ class _ServerSelectionState extends State<ServerSelection> {
               )),
         ),
         AppCard(
-          padding: EdgeInsets.zero,
+          // padding: EdgeInsets.zero,
           child: AppTile(
-            icon: AppImagePaths.location,
-            label: 'Fastest Country',
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                VPNStatusIndicator(status: VPNStatus.disconnected),
-                Radio<bool>(
-                  activeColor: AppColors.gray9,
-                  value: true,
-                  groupValue: false,
-                  onChanged: (value) {},
+            contentPadding: EdgeInsets.symmetric(vertical: 5),
+            icon: Flag(
+              countryCode: serverLocation.serverLocation.countryCode,
+              size: Size(40, 28),
+            ),
+            label: serverLocation.serverName,
+            subtitle: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 3),
+              child: Text(
+                serverLocation.serverLocation.locationName,
+                style: _textTheme!.labelMedium!.copyWith(
+                  color: AppColors.gray7,
                 ),
-              ],
+              ),
+            ),
+            trailing: AppRadioButton<String>(
+              value: serverLocation.serverName,
+              groupValue: serverLocation.serverName,
+              onChanged: (value) {},
             ),
           ),
         ),
@@ -162,6 +169,29 @@ class _ServerSelectionState extends State<ServerSelection> {
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16)),
         SizedBox(height: 8),
       ],
+    );
+  }
+
+  Future<void> onSmartLocation(ServerLocationType type) async {
+    final result = await ref
+        .read(vpnNotifierProvider.notifier)
+        .setPrivateServer(type.name, "");
+
+    result.fold(
+      (failure) {
+        context.showSnackBar(failure.localizedErrorMessage);
+      },
+      (success) {
+        final serverLocation = ServerLocationEntity(
+          serverType: type.name,
+          serverName: 'Smart Location',
+          autoSelect: true,
+          serverLocation: ServerLocationType.auto.name,
+        );
+        ref
+            .read(serverLocationNotifierProvider.notifier)
+            .updateServerLocation(serverLocation);
+      },
     );
   }
 }
@@ -249,6 +279,7 @@ class _PrivateServerLocationListViewState
     _textTheme = Theme.of(context).textTheme;
     final privateServers = _localStorage.getPrivateServer();
     final userSelectedServer = useState(_localStorage.defaultPrivateServer());
+    final serverLocation = ref.watch(serverLocationNotifierProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -291,7 +322,11 @@ class _PrivateServerLocationListViewState
                       ),
                       trailing: AppRadioButton<String>(
                         value: server.serverName,
-                        groupValue: userSelectedServer.value?.serverName,
+                        groupValue: (userSelectedServer.value?.serverName ==
+                                    server.serverName &&
+                                serverLocation.serverName == server.serverName)
+                            ? server.serverName
+                            : null,
                         onChanged: (value) {
                           onPrivateServerSelected(server);
                           userSelectedServer.value = server;
@@ -316,8 +351,8 @@ class _PrivateServerLocationListViewState
     context.showLoadingDialog();
     final result = await ref
         .read(vpnNotifierProvider.notifier)
-        .setPrivateServer(
-            privateServer.serverLocation, privateServer.serverName.trim());
+        .setPrivateServer(ServerLocationType.privateServer.name,
+            privateServer.serverName.trim());
 
     result.fold(
       (failure) {

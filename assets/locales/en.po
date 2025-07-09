@@ -789,9 +789,17 @@ msgstr "Lantern does not manage or monitor private servers. Make sure you know a
 msgid "trust_server_operator_message_three"
 msgstr "If you're unsure who runs the server or how it's configured, we recommend using one of the default Lantern servers available in your server list"
 
-
 msgid "invalid_server_details"
 msgstr "Invalid server details. Please check the access key and try again."
+
+msgid "lantern_server"
+msgstr "Lantern Server"
+
+msgid "private_server"
+msgstr "Private Server"
+
+msgid "fastest_country"
+msgstr "Fastest Country"
 
 
 
