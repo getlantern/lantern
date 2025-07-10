@@ -26,11 +26,11 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"github.com/getlantern/lantern-outline/lantern-core/dart_api_dl"
+	"github.com/getlantern/lantern-outline/lantern-core/types"
 	"github.com/getlantern/radiance"
 	"github.com/getlantern/radiance/api"
 	"github.com/getlantern/radiance/api/protos"
 	"github.com/getlantern/radiance/client"
-	"github.com/getlantern/radiance/client/boxoptions"
 	"github.com/getlantern/radiance/common"
 )
 
@@ -244,26 +244,18 @@ func stopVPN() *C.char {
 //export setPrivateServer
 func setPrivateServer(_location, _tag *C.char) *C.char {
 	tag := C.GoString(_tag)
-	locationType := C.GoString(_location)
+	locationType := types.LocationType(C.GoString(_location))
 
 	// Valid location types are:
 	// auto,
 	// privateServer,
 	// lanternLocation;
-	var group = ""
-	var tagName = ""
-	if locationType == "auto" {
-		group = boxoptions.ServerGroupLantern
-		tagName = boxoptions.LanternAutoTag
-	} else if locationType == "privateServer" {
-		group = boxoptions.ServerGroupUser
-		tagName = tag
-	} else if locationType == "lanternLocation" {
-		group = boxoptions.ServerGroupLantern
-		tagName = tag
-	}
-	err := server.vpnClient.SelectServer(group, tagName)
+	group, tagName, err := types.LocationGroupAndTag(locationType, tag)
 	if err != nil {
+		return SendError(log.Errorf("Invalid locationType: %s", locationType))
+	}
+
+	if err := server.vpnClient.SelectServer(group, tagName); err != nil {
 		return SendError(log.Errorf("Error setting private server: %v", err))
 	}
 	log.Debugf("Private server set with tag: %s", tagName)

@@ -813,20 +813,20 @@ msgstr "Joined Servers:"
 msgid "no_private_server_setup_yet"
 msgstr "You haven't set up a private server yet. Click the button below to get started."
 
+msgid "connect"
+msgstr "Connect"
 
+msgid "disconnect"
+msgstr "Disconnect"
 
+msgid "show"
+msgstr "Show"
 
+msgid "status_on"
+msgstr "Connected"
 
-
-
-
-
-
-
-
-
-
-
+msgid "status_off"
+msgstr "Disconnected"
 
 
 
