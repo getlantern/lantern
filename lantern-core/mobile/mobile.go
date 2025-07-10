@@ -13,12 +13,12 @@ import (
 	"github.com/getlantern/golog"
 
 	privateserver "github.com/getlantern/lantern-outline/lantern-core/private-server"
+	"github.com/getlantern/lantern-outline/lantern-core/types"
 	"github.com/getlantern/lantern-outline/lantern-core/utils"
 	"github.com/getlantern/radiance"
 	"github.com/getlantern/radiance/api"
 	"github.com/getlantern/radiance/api/protos"
 	"github.com/getlantern/radiance/client"
-	"github.com/getlantern/radiance/client/boxoptions"
 	"github.com/getlantern/radiance/common"
 
 	"google.golang.org/protobuf/proto"
@@ -157,19 +157,11 @@ func SetPrivateServer(locationType, tag string) error {
 	// auto,
 	// privateServer,
 	// lanternLocation;
-	var group = ""
-	var tagName = ""
-	if locationType == "auto" {
-		group = boxoptions.ServerGroupLantern
-		tagName = boxoptions.LanternAutoTag
-	} else if locationType == "privateServer" {
-		group = boxoptions.ServerGroupUser
-		tagName = tag
-	} else if locationType == "lanternLocation" {
-		group = boxoptions.ServerGroupLantern
-		tagName = tag
+	group, tagName, err := types.LocationGroupAndTag(types.LocationType(locationType), tag)
+	if err != nil {
+		return log.Error(err)
 	}
-	err := vpnClient.SelectServer(group, tagName)
+	err = vpnClient.SelectServer(group, tagName)
 	if err != nil {
 		return log.Errorf("Error setting private server: %v", err)
 	}
