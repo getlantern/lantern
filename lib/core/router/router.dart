@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:lantern/core/router/router.gr.dart';
 
+
 @AutoRouterConfig(
   replaceInRouteName: 'Page,Route,Screen',
 )
@@ -151,6 +152,10 @@ class AppRouter extends RootStackRouter {
     AutoRoute(
       path: '/join-private-server',
       page: JoinPrivateServer.page,
+    ),
+    AutoRoute(
+      path: '/manage-private-server',
+      page: ManagePrivateServer.page,
     ),
     AutoRoute(
       path: '/qr-scanner',

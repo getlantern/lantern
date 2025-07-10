@@ -5,7 +5,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/bullet_list.dart';
-import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 
 @RoutePage(name: 'SplitTunnelingInfo')
 class SplitTunnelingInfo extends HookConsumerWidget {
@@ -76,7 +75,7 @@ class SplitTunnelingInfo extends HookConsumerWidget {
 class SectionTitle extends StatelessWidget {
   final String text;
 
-  const SectionTitle({Key? key, required this.text}) : super(key: key);
+  const SectionTitle({super.key, required this.text});
 
   @override
   Widget build(BuildContext context) {
@@ -111,11 +110,11 @@ class SubsectionTitle extends StatelessWidget {
   final bool isLarge;
 
   const SubsectionTitle({
-    Key? key,
+    super.key,
     required this.text,
     this.icon,
     this.isLarge = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -48,7 +48,6 @@ class _InnerWebView extends StatefulHookConsumerWidget {
   final String url;
 
   const _InnerWebView({
-    super.key,
     required this.url,
   });
 

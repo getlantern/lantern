@@ -20,7 +20,7 @@ class _ServerDesktopViewState extends State<ServerDesktopView> {
 
   @override
   Widget build(BuildContext context) {
-    final _textTheme = Theme.of(context).textTheme;
+    final textTheme = Theme.of(context).textTheme;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -38,7 +38,7 @@ class _ServerDesktopViewState extends State<ServerDesktopView> {
           ),
           title: Text(
             'Korea',
-            style: _textTheme!.bodyLarge!.copyWith(color: AppColors.gray9),
+            style: textTheme.bodyLarge!.copyWith(color: AppColors.gray9),
           ),
           shape: RoundedRectangleBorder(side: BorderSide.none),
           leading: AppImage(path: AppImagePaths.location),
@@ -49,7 +49,7 @@ class _ServerDesktopViewState extends State<ServerDesktopView> {
               contentPadding: EdgeInsets.only(left: 46),
               label: 'USA - New Jersey',
               tileTextStyle:
-              _textTheme!.bodyMedium!.copyWith(color: AppColors.gray9),
+              textTheme.bodyMedium!.copyWith(color: AppColors.gray9),
               trailing: Radio<bool>(
                 visualDensity: VisualDensity.compact,
                 activeColor: AppColors.gray9,

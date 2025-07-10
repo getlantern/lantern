@@ -2,6 +2,7 @@ import Flutter
 import Liblantern
 import NetworkExtension
 import UIKit
+import app_links
 import flutter_local_notifications
 
 @main
@@ -40,6 +41,11 @@ import flutter_local_notifications
     NSSetUncaughtExceptionHandler { exception in
       print(exception.reason)
       print(exception.callStackSymbols)
+    }
+    if let url = AppLinks.shared.getLink(launchOptions: launchOptions) {
+      // We have a link, propagate it to your Flutter app or not
+      AppLinks.shared.handleLink(url: url)
+      return true  // Returning true will stop the propagation to other packages
     }
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
