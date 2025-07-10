@@ -237,6 +237,9 @@ msgstr "Disabled"
 msgid "automatic"
 msgstr "Automatic"
 
+msgid "automatic_mode"
+msgstr "Automatic mode"
+
 msgid "manual"
 msgstr "Manual"
 

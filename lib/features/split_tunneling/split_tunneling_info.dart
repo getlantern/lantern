@@ -16,19 +16,20 @@ class SplitTunnelingInfo extends HookConsumerWidget {
     return BaseScreen(
       title: '',
       appBar: AppBar(
+        elevation: 0,
+        centerTitle: false,
+        titleSpacing: 0,
         automaticallyImplyLeading: false,
         backgroundColor: Colors.white,
-        elevation: 0,
         title: Padding(
-          padding: EdgeInsets.only(left: 32.0),
+          padding: EdgeInsets.only(left: 16.0),
           child: Text(
-            'automatic'.i18n,
-            style: TextStyle(
+            'automatic_mode'.i18n,
+            style: AppTestStyles.headingSmall.copyWith(
               color: Colors.black,
             ),
           ),
         ),
-        centerTitle: false,
         actionsPadding: EdgeInsets.only(right: 16.0),
         actions: [
           IconButton(
@@ -37,35 +38,69 @@ class SplitTunnelingInfo extends HookConsumerWidget {
           ),
         ],
       ),
-      body: AppCard(
+      body: SafeArea(
         child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Description
-              DescriptionText(text: 'split_tunneling_description'.i18n),
-              SubsectionTitle(
-                  text: "🌍 ${'region_specific_rules'.i18n}", isLarge: true),
-              DescriptionText(text: 'location_based_rules'.i18n),
-              SubsectionTitle(icon: "🔒", text: 'censored_regions'.i18n),
-              BulletList(items: [
-                'blocked_sites_proxied'.i18n,
-                'unblocked_sites_bypass'.i18n,
-              ]),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Description
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Text(
+                    'split_tunneling_description'.i18n,
+                    style: AppTestStyles.bodyLarge.copyWith(
+                      height: 1.625,
+                      color: AppColors.gray9,
+                    ),
+                  ),
+                ),
+                SubsectionTitle(
+                    text: "🌍 ${'region_specific_rules'.i18n}", isLarge: true),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Text(
+                    'location_based_rules'.i18n,
+                    style: AppTestStyles.bodyLarge.copyWith(
+                      height: 1.625,
+                      color: AppColors.gray9,
+                    ),
+                  ),
+                ),
+                SubsectionTitle(icon: "🔒", text: 'censored_regions'.i18n),
+                BulletList(
+                  items: [
+                    'blocked_sites_proxied'.i18n,
+                    'unblocked_sites_bypass'.i18n,
+                  ],
+                  textStyle: AppTestStyles.bodyMedium.copyWith(
+                    color: AppColors.gray8,
+                    height: 1.5,
+                  ),
+                  bulletColor: AppColors.gray7,
+                ),
 
-              SubsectionTitle(icon: "✅", text: 'uncensored_regions'.i18n),
-              BulletList(items: [
-                'trusted_sites_bypass'.i18n,
-                'examples_of_bypassed_sites'.i18n,
-              ]),
-              SizedBox(height: 16.0),
-              LinkText(
-                prefix: 'routing_rules_vary'.i18n,
-                linkLabel: 'view_the_full_list'.i18n,
-                onTap: () {},
-              ),
-            ],
+                SubsectionTitle(icon: "✅", text: 'uncensored_regions'.i18n),
+                BulletList(
+                  items: [
+                    'trusted_sites_bypass'.i18n,
+                    'examples_of_bypassed_sites'.i18n,
+                  ],
+                  textStyle: AppTestStyles.bodyMedium.copyWith(
+                    color: AppColors.gray8,
+                    height: 1.5,
+                  ),
+                  bulletColor: AppColors.gray7,
+                ),
+                SizedBox(height: 16.0),
+                LinkText(
+                  prefix: 'routing_rules_vary'.i18n,
+                  linkLabel: 'view_the_full_list'.i18n,
+                  onTap: () {},
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -83,23 +118,6 @@ class SectionTitle extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
       child: Text(text, style: AppTestStyles.headingSmall),
-    );
-  }
-}
-
-class DescriptionText extends StatelessWidget {
-  final String text;
-
-  const DescriptionText({super.key, required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 8.0, bottom: 16.0),
-      child: Text(
-        text,
-        style: AppTestStyles.bodyLarge,
-      ),
     );
   }
 }

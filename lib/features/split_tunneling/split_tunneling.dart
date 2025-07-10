@@ -101,7 +101,9 @@ class SplitTunneling extends HookConsumerWidget {
                   tileTextStyle: AppTestStyles.bodyMedium.copyWith(
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
+                    color: AppColors.gray9,
                   ),
+                  minHeight: 56,
                   trailing: SwitchButton(
                     value: splitTunnelingEnabled,
                     onChanged: (bool? value) {
@@ -110,12 +112,14 @@ class SplitTunneling extends HookConsumerWidget {
                           .read(appSettingNotifierProvider.notifier)
                           .toggleSplitTunneling(newValue);
                     },
+                    activeColor: AppColors.green5,
                   ),
                 ),
                 DividerSpace(),
                 if (splitTunnelingEnabled) ...{
                   ExpansionTile(
                     controller: expansionTileController,
+                    backgroundColor: Colors.transparent,
                     title: Text(
                       'mode'.i18n,
                       style: _textTheme.bodyLarge!
@@ -135,9 +139,14 @@ class SplitTunneling extends HookConsumerWidget {
                               ? expansionTileController.collapse()
                               : expansionTileController.expand(),
                         ),
-                        AppImage(
-                          path: AppImagePaths.arrowForward,
-                          height: 20,
+                        // Animate arrow direction
+                        AnimatedRotation(
+                          turns: expansionTileController.isExpanded ? 0.5 : 0.0,
+                          duration: Duration(milliseconds: 180),
+                          child: AppImage(
+                            path: AppImagePaths.arrowForward,
+                            height: 20,
+                          ),
                         ),
                       ],
                     ),
@@ -151,26 +160,44 @@ class SplitTunneling extends HookConsumerWidget {
                           )
                         : null,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.only(
-                            left: 16.0, right: 16.0, top: 8.0),
-                        child: Column(
-                          children: SplitTunnelingMode.values.map((mode) {
-                            return SplitTunnelingModeTile(
-                              mode: mode,
-                              selectedMode: splitTunnelingMode,
-                              onChanged: (newValue) {
-                                if (newValue != null) {
-                                  ref
-                                      .read(appSettingNotifierProvider.notifier)
-                                      .setSplitTunnelingMode(newValue);
-
-                                  expansionTileController.collapse();
-                                }
-                              },
-                            );
-                          }).toList(),
-                        ),
+                      Column(
+                        children: SplitTunnelingMode.values.map((mode) {
+                          final isSelected = splitTunnelingMode == mode;
+                          return InkWell(
+                            onTap: () {
+                              ref
+                                  .read(appSettingNotifierProvider.notifier)
+                                  .setSplitTunnelingMode(mode);
+                              expansionTileController.collapse();
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 12, horizontal: 24),
+                              child: Row(
+                                children: [
+                                  Text(
+                                    mode.value,
+                                    style: AppTestStyles.bodyMedium.copyWith(
+                                      color: isSelected
+                                          ? AppColors.green5
+                                          : AppColors.gray9,
+                                      fontWeight: isSelected
+                                          ? FontWeight.w700
+                                          : FontWeight.w400,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  if (isSelected)
+                                    Icon(Icons.radio_button_checked,
+                                        color: AppColors.green5, size: 20)
+                                  else
+                                    Icon(Icons.radio_button_off,
+                                        color: AppColors.gray3, size: 20),
+                                ],
+                              ),
+                            ),
+                          );
+                        }).toList(),
                       ),
                     ],
                   ),
