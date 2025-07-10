@@ -70,14 +70,14 @@ class AppTextField extends StatelessWidget {
       cursorRadius: Radius.circular(16),
       cursorHeight: defaultSize,
       cursorOpacityAnimates: true,
-  style: textTheme.bodyMedium!.copyWith(
+      style: textTheme.bodyMedium!.copyWith(
         color: AppColors.gray9,
         fontSize: 14.sp,
       ),
       textInputAction: textInputAction,
-
       maxLines: maxLines,
       decoration: InputDecoration(
+          contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
           filled: true,
           fillColor: AppColors.white,
           hintText: hintText,
@@ -150,8 +150,7 @@ class AppTextField extends StatelessWidget {
         path: iconPath,
         color: AppColors.yellow9,
       );
-    }
-    else if (iconPath is Widget) {
+    } else if (iconPath is Widget) {
       appAsset = iconPath;
     }
     return Padding(
