@@ -80,7 +80,9 @@ class LanguageListView extends HookConsumerWidget {
             onChanged: (value) {
               onLanguageTap(value!);
             },
+            activeColor: AppColors.blue7,
           ),
+          minHeight: 56,
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
