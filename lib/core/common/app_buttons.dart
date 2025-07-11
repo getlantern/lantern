@@ -163,7 +163,7 @@ class SecondaryButton extends StatelessWidget {
               color: AppColors.gray9,
               fontWeight: FontWeight.w600)),
       minimumSize: WidgetStatePropertyAll<Size>(
-           Size(double.infinity, isTaller == true ? 56.0.h : 50.0.h)),
+           Size(double.infinity, isTaller == true ? 56.0.h : 50.0)),
     );
   }
 }
