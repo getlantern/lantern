@@ -112,9 +112,7 @@ class ConfirmEmail extends HookConsumerWidget {
       },
       (_) {
         context.hideLoadingDialog();
-        navigateRoute(
-          code,
-        );
+        navigateRoute(code);
       },
     );
   }
@@ -125,14 +123,22 @@ class ConfirmEmail extends HookConsumerWidget {
         appRouter.push(ResetPassword(email: email, code: code));
       case AuthFlow.signUp:
         // Check if user is pro or not
-        final user = sl<LocalStorageService>().getUser()!;
-        final isPro = user.legacyUserData.isPro();
-        if (isStoreVersion() || isPro) {
-          appRouter.push(CreatePassword(email: email, authFlow: authFlow, code: code));
-          break;
+        if (PlatformUtils.isDesktop) {
+          appRouter.push(ChoosePaymentMethod(
+              email: email, authFlow: authFlow, code: code));
+          return;
+        } else {
+          final user = sl<LocalStorageService>().getUser()!;
+          final isPro = user.legacyUserData.isPro();
+          if (isStoreVersion() || isPro) {
+            appRouter.push(
+                CreatePassword(email: email, authFlow: authFlow, code: code));
+            return;
+          }
+          appRouter.push(ChoosePaymentMethod(
+              email: email, authFlow: authFlow, code: code));
         }
-        appRouter.push(
-            ChoosePaymentMethod(email: email, authFlow: authFlow, code: code));
+
         break;
       case AuthFlow.activationCode:
         appRouter.push(ActivationCode(email: email, code: code));
