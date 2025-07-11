@@ -18,6 +18,7 @@ class PrimaryButton extends StatelessWidget {
 
   final Color? bgColor;
   final Color? textColor;
+  final bool? isTaller;
 
   // Default constructor for button without an icon
   const PrimaryButton({
@@ -28,6 +29,7 @@ class PrimaryButton extends StatelessWidget {
     this.textColor,
     this.enabled = true,
     this.expanded = true,
+    this.isTaller = false,
     this.icon,
     super.key,
   });
@@ -81,10 +83,11 @@ class PrimaryButton extends StatelessWidget {
             color: textColor ?? AppColors.gray1,
             fontWeight: FontWeight.w500),
       ),
-      foregroundColor: WidgetStatePropertyAll<Color>(
-          textColor ?? AppColors.gray1),
-      minimumSize: WidgetStatePropertyAll<Size>(
-          expanded ? const Size(double.infinity, 52.0) : const Size(0, 52.0)),
+      foregroundColor:
+          WidgetStatePropertyAll<Color>(textColor ?? AppColors.gray1),
+      minimumSize: WidgetStatePropertyAll<Size>(expanded
+          ?  Size(double.infinity, isTaller==true ? 56.0 : 52.0)
+          : const Size(0, 52.0)),
     );
   }
 }
