@@ -6,8 +6,6 @@
 	<array>
 		<string>packet-tunnel-provider</string>
 	</array>
-    <key>com.apple.developer.system-extension.install</key>
-    <true/>
 	<key>com.apple.security.app-sandbox</key>
 	<false/>
 	<key>com.apple.security.cs.allow-jit</key>
