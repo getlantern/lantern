@@ -21,7 +21,7 @@ class SplitTunneling extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final preferences = ref.watch(appSettingNotifierProvider);
-    final _textTheme = Theme.of(context).textTheme;
+    final textTheme = Theme.of(context).textTheme;
     final splitTunnelingEnabled = preferences.isSplitTunnelingOn;
     final splitTunnelingMode = preferences.splitTunnelingMode;
     final isAutomaticMode = splitTunnelingMode == SplitTunnelingMode.automatic;
@@ -118,7 +118,7 @@ class SplitTunneling extends HookConsumerWidget {
                     controller: expansionTileController,
                     title: Text(
                       'mode'.i18n,
-                      style: _textTheme.bodyLarge!
+                      style: textTheme.bodyLarge!
                           .copyWith(color: AppColors.gray9),
                     ),
                     initiallyExpanded: false,
@@ -145,7 +145,7 @@ class SplitTunneling extends HookConsumerWidget {
                     subtitle: isAutomaticMode
                         ? Text(
                             locationSubtitle.value,
-                            style: _textTheme.labelMedium!.copyWith(
+                            style: textTheme.labelMedium!.copyWith(
                               color: AppColors.gray7,
                             ),
                           )

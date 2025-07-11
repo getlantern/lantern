@@ -56,6 +56,8 @@ enum class Methods(val method: String) {
     CancelDeployment("cancelDeployment"),
     SelectCertFingerprint("selectCertFingerprint"),
     AddServerManually("addServerManually"),
+    InviteToServerManagerInstance("inviteToServerManagerInstance"),
+    RevokeServerManagerInstance("revokeServerManagerInstance"),
 
 }
 
@@ -115,7 +117,10 @@ class MethodHandler : FlutterPlugin,
             Methods.SetPrivateServer.method -> {
                 scope.launch {
                     result.runCatching {
-                        Mobile.setPrivateServer(call.arguments as String)
+                        val map = call.arguments as Map<*, *>
+                        val location = map["location"] as String? ?: error("Missing location")
+                        val tag = map["tag"] as String? ?: error("Missing tag")
+                            Mobile.setPrivateServer(location, tag)
                         success("ok")
                     }.onFailure { e ->
                         result.error(
@@ -581,6 +586,62 @@ class MethodHandler : FlutterPlugin,
                             accessToken,
                             serverName,
                             privateServerListener
+                        )
+                        withContext(Dispatchers.Main) {
+                            success("ok")
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "DigitalOcean",
+                            e.localizedMessage ?: "Error while activating Digital Ocean",
+                            e
+                        )
+                    }
+                }
+            }
+
+            Methods.InviteToServerManagerInstance.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val map = call.arguments as Map<*, *>
+                        val ip = map["ip"] as String? ?: error("Missing ip")
+                        val port = map["port"] as String? ?: error("Missing port")
+                        val accessToken =
+                            map["accessToken"] as String? ?: error("Missing accessToken")
+                        val inviteName = map["inviteName"] as String? ?: error("Missing inviteName")
+                       val accessKey =  Mobile.inviteToServerManagerInstance(
+                            ip,
+                            port,
+                            accessToken,
+                            inviteName
+                        )
+                        withContext(Dispatchers.Main) {
+                            success(accessKey)
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "DigitalOcean",
+                            e.localizedMessage ?: "Error while activating Digital Ocean",
+                            e
+                        )
+                    }
+                }
+            }
+
+            Methods.RevokeServerManagerInstance.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val map = call.arguments as Map<*, *>
+                        val ip = map["ip"] as String? ?: error("Missing ip")
+                        val port = map["port"] as String? ?: error("Missing port")
+                        val accessToken =
+                            map["accessToken"] as String? ?: error("Missing accessToken")
+                        val inviteName = map["inviteName"] as String? ?: error("Missing inviteName")
+                        Mobile.revokeServerManagerInvite(
+                            ip,
+                            port,
+                            accessToken,
+                            inviteName
                         )
                         withContext(Dispatchers.Main) {
                             success("ok")

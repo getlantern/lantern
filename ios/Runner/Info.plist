@@ -58,5 +58,7 @@
 	</array>
 	<key>NSUserNotificationAlertUsageDescription</key>
 	<string>We use notifications to keep you informed.</string>
+	<key>FlutterDeepLinkingEnabled</key>
+	<false/>
 </dict>
 </plist>

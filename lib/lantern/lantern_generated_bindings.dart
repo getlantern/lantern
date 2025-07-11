@@ -2448,19 +2448,22 @@ class LanternBindings {
       _stopVPNPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
 
   ffi.Pointer<ffi.Char> setPrivateServer(
+    ffi.Pointer<ffi.Char> _location,
     ffi.Pointer<ffi.Char> _tag,
   ) {
     return _setPrivateServer(
+      _location,
       _tag,
     );
   }
 
   late final _setPrivateServerPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>,
               ffi.Pointer<ffi.Char>)>>('setPrivateServer');
-  late final _setPrivateServer = _setPrivateServerPtr
-      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
+  late final _setPrivateServer = _setPrivateServerPtr.asFunction<
+      ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
 
   ffi.Pointer<ffi.Char> isVPNConnected() {
     return _isVPNConnected();
@@ -2846,6 +2849,64 @@ class LanternBindings {
               ffi.Pointer<ffi.Char>)>>('addServerManagerInstance');
   late final _addServerManagerInstance =
       _addServerManagerInstancePtr.asFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> inviteToServerManagerInstance(
+    ffi.Pointer<ffi.Char> _ip,
+    ffi.Pointer<ffi.Char> _port,
+    ffi.Pointer<ffi.Char> _accessToken,
+    ffi.Pointer<ffi.Char> _inviteName,
+  ) {
+    return _inviteToServerManagerInstance(
+      _ip,
+      _port,
+      _accessToken,
+      _inviteName,
+    );
+  }
+
+  late final _inviteToServerManagerInstancePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>)>>('inviteToServerManagerInstance');
+  late final _inviteToServerManagerInstance =
+      _inviteToServerManagerInstancePtr.asFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> revokeServerManagerInvite(
+    ffi.Pointer<ffi.Char> _ip,
+    ffi.Pointer<ffi.Char> _port,
+    ffi.Pointer<ffi.Char> _accessToken,
+    ffi.Pointer<ffi.Char> _inviteName,
+  ) {
+    return _revokeServerManagerInvite(
+      _ip,
+      _port,
+      _accessToken,
+      _inviteName,
+    );
+  }
+
+  late final _revokeServerManagerInvitePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>)>>('revokeServerManagerInvite');
+  late final _revokeServerManagerInvite =
+      _revokeServerManagerInvitePtr.asFunction<
           ffi.Pointer<ffi.Char> Function(
               ffi.Pointer<ffi.Char>,
               ffi.Pointer<ffi.Char>,
