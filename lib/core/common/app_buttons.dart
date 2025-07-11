@@ -86,7 +86,7 @@ class PrimaryButton extends StatelessWidget {
       foregroundColor:
           WidgetStatePropertyAll<Color>(textColor ?? AppColors.gray1),
       minimumSize: WidgetStatePropertyAll<Size>(expanded
-          ? Size(double.infinity, isTaller == true ? 56.0 : 46.0)
+          ? Size(double.infinity, isTaller == true ? 56.0 : 48.0)
           : const Size(0, 52.0)),
     );
   }
