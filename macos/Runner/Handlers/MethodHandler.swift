@@ -16,7 +16,7 @@ class MethodHandler {
 
   private var vpnManager: VPNManager
 
-  init(channel: FlutterMethodChannel, vpnManager: VPNManager = VPNManager.shared) {
+  init(channel: FlutterMethodChannel, vpnManager: VPNManager) {
     self.channel = channel
     self.vpnManager = vpnManager
     setupMethodCallHandler()

@@ -357,7 +357,7 @@ $(MACOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 
 build-macos:
 	@echo "Building macOS Framework.."
-	rm -rf $(MACOS_FRAMEWORK_BUILD) && mkdir -p $(MACOS_FRAMEWORK_DIR)
+	rm -rf $(MACOS_FRAMEWORK_BUILD) && rm -rf $(MACOS_FRAMEWORK_DIR)  && mkdir -p $(MACOS_FRAMEWORK_DIR)
 	GOOS=darwin gomobile bind -v \
 		-tags=$(TAGS),netgo -trimpath \
 		-target=macos \
@@ -369,7 +369,7 @@ build-macos:
 
 .PHONY: format swift-format
 swift-format:
-	swift-format format --in-place --recursive ios/Runner macos/Runner ios/Tunnel
+	swift-format format --in-place --recursive ios/Runner macos/Runner macos/PacketTunnel
 
 format:
 	@echo "Formatting Dart code..."

@@ -20,7 +20,7 @@ version: 1.0.0+1
 
 environment:
   sdk: ^3.6.0
-  flutter: 3.32.4
+  flutter: 3.32.0
 
 dependency_overrides:
   in_app_purchase_storekit: 0.3.22+1
