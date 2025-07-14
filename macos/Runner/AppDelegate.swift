@@ -22,7 +22,7 @@ class AppDelegate: FlutterAppDelegate {
     guard let controller = mainFlutterWindow?.contentViewController as? FlutterViewController else {
       fatalError("contentViewController is not a FlutterViewController")
     }
-      RegisterGeneratedPlugins(registry: controller)
+    RegisterGeneratedPlugins(registry: controller)
 
     // Register event handlers
     registerEventHandlers(controller: controller)
@@ -97,7 +97,6 @@ class AppDelegate: FlutterAppDelegate {
       let baseDir = FilePath.workingDirectory.relativePath
       let opts = MobileOpts()
       opts.dataDir = baseDir
-      opts.deviceid = DeviceIdentifier.getUDID()
       opts.locale = Locale.current.identifier
       var error: NSError?
       await MobileSetupRadiance(opts, &error)
