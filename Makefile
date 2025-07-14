@@ -24,7 +24,6 @@ DARWIN_LIB_BUILD := $(BIN_DIR)/macos/$(DARWIN_LIB)
 DARWIN_RELEASE_DIR := $(BUILD_DIR)/macos/Build/Products/Release
 DARWIN_DEBUG_BUILD := $(BUILD_DIR)/macos/Build/Products/Debug/$(DARWIN_APP_NAME)
 DARWIN_RELEASE_BUILD := $(DARWIN_RELEASE_DIR)/$(DARWIN_APP_NAME)
-SYSTEM_EXTENSION_DIR := $(DARWIN_RELEASE_DIR)/$(DARWIN_APP_NAME)/Contents/Library/SystemExtensions/org.getlantern.lantern.PacketTunnel.systemextension
 MACOS_ENTITLEMENTS := macos/Runner/Release.entitlements
 MACOS_INSTALLER := $(INSTALLER_NAME)$(if $(BUILD_TYPE),-$(BUILD_TYPE)).dmg
 MACOS_DIR := macos/
@@ -155,7 +154,7 @@ $(DARWIN_LIB_AMD64): $(GO_SOURCES)
 	GOARCH=amd64 LIB_NAME=$@ make desktop-lib
 
 .PHONY: macos
-macos: $(DARWIN_LIB_BUILD) $(MACOS_FRAMEWORK_BUILD)
+macos: $(DARWIN_LIB_BUILD)
 
 $(DARWIN_LIB_BUILD): $(GO_SOURCES)
 	$(MAKE) macos-arm64 macos-amd64
@@ -166,18 +165,18 @@ $(DARWIN_LIB_BUILD): $(GO_SOURCES)
 	cp $(BIN_DIR)/macos-amd64/$(LANTERN_LIB_NAME)*.h $(MACOS_FRAMEWORK_DIR)/
 	@echo "Built macOS library: $(MACOS_FRAMEWORK_DIR)/$(DARWIN_LIB)"
 
-$(MACOS_FRAMEWORK_BUILD): $(GO_SOURCES)
-	$(MAKE) build-macos-framework
+.PHONY: macos-framework
+macos-framework: $(MACOS_FRAMEWORK_BUILD)
 
-build-macos-framework:
+$(MACOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 	@echo "Building macOS Framework.."
 	rm -rf $(MACOS_FRAMEWORK_BUILD) && mkdir -p $(MACOS_FRAMEWORK_DIR)
 	GOOS=darwin gomobile bind -v \
-		-tags=$(TAGS),netgo -trimpath \
+		-tags=$(TAGS) -trimpath \
 		-target=macos \
 		-o $(MACOS_FRAMEWORK_BUILD) \
-		-ldflags="-w -s -checklinkname=0" \
-		$(GOMOBILE_REPOS)
+		-ldflags="-w -s -linkmode=external -extldflags=-lc++" \
+		$(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox github.com/getlantern/sing-box-extensions/ruleset ./lantern-core/mobile
 	@echo "Built macOS Framework: $(MACOS_FRAMEWORK_BUILD)"
 	mv $(MACOS_FRAMEWORK_BUILD) $(MACOS_FRAMEWORK_DIR)
 
@@ -208,9 +207,6 @@ notarize-darwin: require-ac-username require-ac-password
 	@echo "Notarization complete"
 
 sign-app:
-	$(call osxcodesign, $(PACKET_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR)/Contents/MacOS/org.getlantern.lantern.PacketTunnel)
-	$(call osxcodesign, $(PACKET_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR))
-	$(call osxcodesign, $(MACOS_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR)/Contents/Frameworks/Liblantern.framework)
 	$(call osxcodesign, $(MACOS_ENTITLEMENTS), $(DARWIN_RELEASE_BUILD))
 
 package-macos: require-appdmg
