@@ -12,7 +12,7 @@ class Language extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: 'language'.i18n),
+      appBar: CustomAppBar(title: Text('language'.i18n)),
       extendBody: true,
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
