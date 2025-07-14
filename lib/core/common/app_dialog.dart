@@ -17,7 +17,7 @@ class AppDialog {
         return AlertDialog(
           backgroundColor: AppColors.gray1,
           contentPadding: EdgeInsets.symmetric(horizontal: defaultSize),
-          actionsPadding: EdgeInsets.all(16),
+          actionsPadding: EdgeInsets.all(24),
           // contentPadding: EdgeInsets.zero,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
