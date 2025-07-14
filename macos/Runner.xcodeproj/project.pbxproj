@@ -29,7 +29,6 @@
 		293C30612DEF68B300691115 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C30602DEF68B300691115 /* Logger.swift */; };
 		293C30622DEF68B300691115 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C30602DEF68B300691115 /* Logger.swift */; };
 		29952B062DE79CB200640E7F /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 29952B052DE79CB200640E7F /* NetworkExtension.framework */; };
-		29952B102DE79CB200640E7F /* org.getlantern.lantern.PacketTunnel.systemextension in Embed System Extensions */ = {isa = PBXBuildFile; fileRef = 29952B042DE79CB200640E7F /* org.getlantern.lantern.PacketTunnel.systemextension */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		29952B432DE7A5F300640E7F /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B402DE7A5F300640E7F /* KeychainService.swift */; };
 		29952B442DE7A5F300640E7F /* FilePath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B412DE7A5F300640E7F /* FilePath.swift */; };
 		2995B42A2DF0AA4700429FE9 /* Extension+RunBlocking.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2995B4202DF0AA4700429FE9 /* Extension+RunBlocking.swift */; };
@@ -83,17 +82,6 @@
 				293C30312DEF247F00691115 /* Liblantern.xcframework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		29952B112DE79CB200640E7F /* Embed System Extensions */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "$(SYSTEM_EXTENSIONS_FOLDER_PATH)";
-			dstSubfolderSpec = 16;
-			files = (
-				29952B102DE79CB200640E7F /* org.getlantern.lantern.PacketTunnel.systemextension in Embed System Extensions */,
-			);
-			name = "Embed System Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		33CC110E2044A8840003C045 /* Bundle Framework */ = {
@@ -396,7 +384,6 @@
 				33CC110E2044A8840003C045 /* Bundle Framework */,
 				3399D490228B24CF009A79C7 /* ShellScript */,
 				8E19D0FE18076EDF51417438 /* [CP] Embed Pods Frameworks */,
-				29952B112DE79CB200640E7F /* Embed System Extensions */,
 			);
 			buildRules = (
 			);
