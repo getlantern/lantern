@@ -17,7 +17,6 @@ EXTRA_LDFLAGS ?=
 BUILD_TAGS ?=
 
 DARWIN_APP_NAME := $(CAPITALIZED_APP).app
-DARWIN_FRAMEWORK_DIR := macos/Frameworks
 DARWIN_LIB := $(LANTERN_LIB_NAME).dylib
 DARWIN_LIB_AMD64 := $(BIN_DIR)/macos-amd64/$(LANTERN_LIB_NAME).dylib
 DARWIN_LIB_ARM64 := $(BIN_DIR)/macos-arm64/$(LANTERN_LIB_NAME).dylib
@@ -156,16 +155,31 @@ $(DARWIN_LIB_AMD64): $(GO_SOURCES)
 	GOARCH=amd64 LIB_NAME=$@ make desktop-lib
 
 .PHONY: macos
-macos: $(DARWIN_LIB_BUILD)
+macos: $(DARWIN_LIB_BUILD) $(MACOS_FRAMEWORK_BUILD)
 
 $(DARWIN_LIB_BUILD): $(GO_SOURCES)
 	$(MAKE) macos-arm64 macos-amd64
 	rm -rf $@ && mkdir -p $(dir $@)
 	lipo -create $(DARWIN_LIB_ARM64) $(DARWIN_LIB_AMD64) -output $@
 	install_name_tool -id "@rpath/${DARWIN_LIB}" $@
-	mkdir -p $(DARWIN_FRAMEWORK_DIR) && cp $@ $(DARWIN_FRAMEWORK_DIR)
-	cp $(BIN_DIR)/macos-amd64/$(LANTERN_LIB_NAME)*.h $(DARWIN_FRAMEWORK_DIR)/
-	@echo "Built macOS library: $(DARWIN_FRAMEWORK_DIR)/$(DARWIN_LIB)"
+	mkdir -p $(MACOS_FRAMEWORK_DIR) && cp $@ $(MACOS_FRAMEWORK_DIR)
+	cp $(BIN_DIR)/macos-amd64/$(LANTERN_LIB_NAME)*.h $(MACOS_FRAMEWORK_DIR)/
+	@echo "Built macOS library: $(MACOS_FRAMEWORK_DIR)/$(DARWIN_LIB)"
+
+$(MACOS_FRAMEWORK_BUILD): $(GO_SOURCES)
+	$(MAKE) build-macos-framework
+
+build-macos-framework:
+	@echo "Building macOS Framework.."
+	rm -rf $(MACOS_FRAMEWORK_BUILD) && mkdir -p $(MACOS_FRAMEWORK_DIR)
+	GOOS=darwin gomobile bind -v \
+		-tags=$(TAGS),netgo -trimpath \
+		-target=macos \
+		-o $(MACOS_FRAMEWORK_BUILD) \
+		-ldflags="-w -s -checklinkname=0" \
+		$(GOMOBILE_REPOS)
+	@echo "Built macOS Framework: $(MACOS_FRAMEWORK_BUILD)"
+	mv $(MACOS_FRAMEWORK_BUILD) $(MACOS_FRAMEWORK_DIR)
 
 .PHONY: macos-debug
 macos-debug: $(DARWIN_DEBUG_BUILD)
@@ -352,20 +366,6 @@ build-ios:
 	@echo "Built iOS Framework: $(IOS_FRAMEWORK_BUILD)"
 	mv $(IOS_FRAMEWORK_BUILD) $(IOS_FRAMEWORK_DIR)
 
-$(MACOS_FRAMEWORK_BUILD): $(GO_SOURCES)
-	$(MAKE) build-macos
-
-build-macos:
-	@echo "Building macOS Framework.."
-	rm -rf $(MACOS_FRAMEWORK_BUILD) && mkdir -p $(MACOS_FRAMEWORK_DIR)
-	GOOS=darwin gomobile bind -v \
-		-tags=$(TAGS),netgo -trimpath \
-		-target=macos \
-		-o $(MACOS_FRAMEWORK_BUILD) \
-		-ldflags="-w -s -checklinkname=0" \
-		$(GOMOBILE_REPOS)
-	@echo "Built macOS Framework: $(MACOS_FRAMEWORK_BUILD)"
-	mv $(MACOS_FRAMEWORK_BUILD) $(MACOS_FRAMEWORK_DIR)
 
 .PHONY: format swift-format
 swift-format:
@@ -419,7 +419,7 @@ find-duplicate-translations:
 clean:
 	rm -rf $(BUILD_DIR)/*
 	rm -rf $(BIN_DIR)/*
-	rm -rf $(DARWIN_FRAMEWORK_DIR)/*
+	rm -rf $(MACOS_FRAMEWORK_DIR)/*
 	rm -rf $(ANDROID_LIB_PATH)
 	rm -rf $(IOS_DIR)$(IOS_FRAMEWORK)
 
