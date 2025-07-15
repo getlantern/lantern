@@ -83,6 +83,10 @@ class LanternPlatformService implements LanternCoreService {
     return _status;
   }
 
+  Future<String?> getAppGroupDirectory() async {
+    return await _methodChannel.invokeMethod<String>('getAppGroupDirectory');
+  }
+
   @override
   Stream<List<String>> watchLogs(String path) async* {
     yield* logsChannel
@@ -541,7 +545,8 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> setPrivateServer(String location,String tag) async {
+  Future<Either<Failure, String>> setPrivateServer(
+      String location, String tag) async {
     try {
       await _methodChannel.invokeMethod('setPrivateServer', {
         'location': location,
@@ -585,7 +590,7 @@ class LanternPlatformService implements LanternCoreService {
       required String accessToken,
       required String inviteName}) async {
     try {
-      final result =  await _methodChannel.invokeMethod<String>(
+      final result = await _methodChannel.invokeMethod<String>(
         'revokeServerManagerInstance',
         {
           'ip': ip,

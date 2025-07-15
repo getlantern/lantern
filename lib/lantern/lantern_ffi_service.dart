@@ -657,6 +657,11 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
+  Future<String> getAppGroupDirectory() {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<Either<Failure, Unit>> setUserInput(
       {required PrivateServerInput methodType, required String input}) async {
     try {
@@ -755,11 +760,14 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> setPrivateServer(String location,String tag) async {
+  Future<Either<Failure, String>> setPrivateServer(
+      String location, String tag) async {
     try {
       final result = await runInBackground<String>(
         () async {
-          return _ffiService.setPrivateServer(location.toCharPtr,tag.toCharPtr).toDartString();
+          return _ffiService
+              .setPrivateServer(location.toCharPtr, tag.toCharPtr)
+              .toDartString();
         },
       );
       checkAPIError(result);
@@ -788,7 +796,8 @@ class LanternFFIService implements LanternCoreService {
       checkAPIError(result);
       return Right('ok');
     } catch (e, stackTrace) {
-      appLogger.error('Error inviting to server manager instance', e, stackTrace);
+      appLogger.error(
+          'Error inviting to server manager instance', e, stackTrace);
       return Left(e.toFailure());
     }
   }

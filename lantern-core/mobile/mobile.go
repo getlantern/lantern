@@ -221,6 +221,9 @@ func CreateUser() (*api.UserDataResponse, error) {
 
 // this will return the user data from the user config
 func UserData() ([]byte, error) {
+	if radianceServer == nil || radianceServer.userConfig == nil {
+		return []byte{}, nil
+	}
 	user, err := radianceServer.userConfig.GetData()
 	if err != nil {
 		return nil, log.Errorf("Error getting user data: %v", err)

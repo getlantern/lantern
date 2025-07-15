@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:get_it/get_it.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/local_storage.dart';
@@ -5,9 +7,11 @@ import 'package:lantern/core/services/notification_service.dart';
 import 'package:lantern/core/services/stripe_service.dart';
 import 'package:lantern/core/utils/deeplink_utils.dart';
 import 'package:lantern/core/utils/platform_utils.dart' show PlatformUtils;
+import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/core/utils/store_utils.dart';
 import 'package:lantern/lantern/lantern_ffi_service.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
+import 'package:path/path.dart' as p;
 
 import '../router/router.dart';
 
@@ -31,7 +35,20 @@ Future<void> injectServices() async {
     sl.registerLazySingleton<LanternFFIService>(() => MockLanternFFIService());
   }
   sl.registerLazySingleton(() => LocalStorageService());
-  await sl<LocalStorageService>().init();
+
+  final dbPath;
+  if (Platform.isMacOS) {
+    dbPath = await sl<LanternPlatformService>().getAppGroupDirectory();
+  } else {
+    dbPath = await AppStorageUtils.getAppDirectory();
+  }
+  final dbDir = Directory(dbPath);
+  print("Using dir $dbDir");
+  if (!await dbDir.exists()) {
+    await dbDir.create(recursive: true);
+  }
+  await sl<LocalStorageService>().init(dbDir.path);
+
   sl.registerLazySingleton(() => AppRouter());
   sl.registerLazySingleton(() => StripeService());
   await sl<StripeService>().initialize();

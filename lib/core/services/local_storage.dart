@@ -34,17 +34,14 @@ class LocalStorageService {
   /// Do not change this value
   final macosApplicationGroup = AppSecrets.macosAppGroupId;
 
-  Future<void> init() async {
+  Future<void> init(String dbPath) async {
     final start = DateTime.now();
-    dbLogger.debug("Initializing LocalStorageService");
-    final docsDir = await AppStorageUtils.getAppDirectory();
-
-    final dbPath = p.join(docsDir.path, "objectbox-db");
+    dbLogger.debug("Initializing LocalStorageService with dbPath $dbPath");
 
     try {
       _store = await openStore(
         directory: dbPath,
-        macosApplicationGroup: macosApplicationGroup,
+        //macosApplicationGroup: macosApplicationGroup,
       );
     } on ObjectBoxException catch (e) {
       final error = e.message;
@@ -192,7 +189,7 @@ class LocalStorageService {
       final newInstance = existing.copyWith(
         serverName: newName,
       );
-      _privateServerBox.put(newInstance,mode: PutMode.update);
+      _privateServerBox.put(newInstance, mode: PutMode.update);
       return;
     }
     throw Exception("Private server with name $serverName does not exist");
@@ -232,7 +229,7 @@ class LocalStorageService {
 
   ServerLocationEntity getServerLocations() {
     final server = _serverLocationBox.getAll();
-  return server.isEmpty
+    return server.isEmpty
         ? ServerLocationEntity(
             autoSelect: true,
             serverLocation: 'Fastest Country',

@@ -29,6 +29,8 @@ class MethodHandler {
 
       appLogger.info(String(describing: call.method))
       switch call.method {
+      case "getAppGroupDirectory":
+        self.getAppGroupDirectory(result: result)
       case "startVPN":
         self.startVPN(result: result)
       case "stopVPN":
@@ -197,6 +199,21 @@ class MethodHandler {
           result("success")
         }
       }
+    }
+  }
+
+  private func getAppGroupDirectory(result: @escaping FlutterResult) {
+    let groupId = "group.getlantern.lantern"
+    if let url = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: groupId) {
+      result(url.path)
+    } else {
+      result(
+        FlutterError(
+          code: "UNAVAILABLE",
+          message: "App Group directory not available",
+          details: nil
+        )
+      )
     }
   }
 
