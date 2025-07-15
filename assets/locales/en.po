@@ -740,6 +740,82 @@ msgstr "Join Server"
 msgid "private_server_usage_message"
 msgstr "Private server usage is not counted towards your Lantern daily data cap."
 
+msgid "manage_private_servers"
+msgstr "Manage Private Servers"
+
+msgid "my_servers"
+msgstr "My Servers"
+
+msgid "joined_servers"
+msgstr "Joined Servers"
+
+msgid "access_key_expiration"
+msgstr "Each access key is unique and expires after 1 day. You can generate a new one anytime."
+
+msgid "share_access_key"
+msgstr "Share Access Key"
+
+
+msgid "rename_server"
+msgstr "Rename Server"
+
+msgid "rename"
+msgstr "Rename"
+
+msgid "selected_location"
+msgstr "Selected Location"
+
+msgid "remove_server"
+msgstr "Remove Server?"
+
+msgid "remove_server_message"
+msgstr "Remove %s? This can’t be undone."
+
+
+msgid "generate_access_key"
+msgstr "Generate Access key"
+
+msgid "invite_name"
+msgstr "Invite Name"
+
+
+msgid "trust_server_operator"
+msgstr "Trust the Server Operator"
+
+
+msgid "trust_server_operator_message_one"
+msgstr "Private servers are hosted and operated by individuals or organizations outside of Lantern. When you connect to one, you're trusting the person running it to manage it securely and use it responsibly."
+
+msgid "trust_server_operator_message_two"
+msgstr "Lantern does not manage or monitor private servers. Make sure you know and trust the server operator before joining one."
+
+msgid "trust_server_operator_message_three"
+msgstr "If you're unsure who runs the server or how it's configured, we recommend using one of the default Lantern servers available in your server list"
+
+msgid "invalid_server_details"
+msgstr "Invalid server details. Please check the access key and try again."
+
+msgid "lantern_server"
+msgstr "Lantern Server"
+
+msgid "private_server"
+msgstr "Private Server"
+
+msgid "fastest_country"
+msgstr "Fastest Country"
+
+msgid "join_my_private_server"
+msgstr "Join My Lantern Private Server"
+
+msgid "your_server"
+msgstr "Your Servers:"
+
+msgid "joined_servers"
+msgstr "Joined Servers:"
+
+msgid "no_private_server_setup_yet"
+msgstr "You haven't set up a private server yet. Click the button below to get started."
+
 msgid "connect"
 msgstr "Connect"
 

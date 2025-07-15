@@ -55,7 +55,7 @@ class QrCodeScanner extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             borderColor: AppColors.gray0,
             borderWidth: 4,
-            controller: controller!,
+            controller: controller,
           ),
         ],
       ),

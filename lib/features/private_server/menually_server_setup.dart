@@ -217,7 +217,7 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
           SizedBox(height: 16),
           Text(
             'confirm_server_fingerprint'.i18n,
-            style: textTheme!.titleLarge,
+            style: textTheme.titleLarge,
           ),
           SizedBox(height: 16),
           Text(
@@ -226,7 +226,7 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
           ),
           Text(
             cert.first.fingerprint,
-            style: textTheme!.bodyMedium,
+            style: textTheme.bodyMedium,
           ),
         ],
       ),
@@ -277,12 +277,12 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
           SizedBox(height: 16),
           Text(
             'private_server_ready'.i18n,
-            style: textTheme!.titleLarge,
+            style: textTheme.titleLarge,
           ),
           SizedBox(height: 16),
           Text(
             'private_server_ready_message'.i18n,
-            style: textTheme!.bodyLarge,
+            style: textTheme.bodyLarge,
           ),
         ],
       ),

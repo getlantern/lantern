@@ -96,7 +96,7 @@ class _PrivateServerSetupState extends ConsumerState<PrivateServerSetup> {
                   title: 'server_setup_do'.i18n,
                   price: 'server_setup_do_price'.i18n.fill(['\$8']),
                   provider: CloudProvider.digitalOcean,
-                  onContinue: () {},
+                  onContinue:onDigitalOceanTap,
                   icon: AppImagePaths.digitalOceanIcon,
                 ),
               ],

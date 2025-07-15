@@ -9,7 +9,7 @@ class PrivateServerEntity {
   final String port;
   final String accessToken;
   final String serverLocation;
-  final bool isJoined;
+   bool isJoined;
    bool userSelected ;
 
   PrivateServerEntity({
@@ -36,7 +36,7 @@ class PrivateServerEntity {
       externalIp: externalIp ?? this.externalIp,
       port: port ?? this.port,
       accessToken: accessToken ?? this.accessToken,
-      serverLocation: countryCode ?? this.serverLocation,
+      serverLocation: countryCode ?? serverLocation,
       isJoined: isJoined ?? this.isJoined,
       userSelected: userSelected ?? this.userSelected,
     );

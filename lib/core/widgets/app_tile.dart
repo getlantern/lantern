@@ -45,10 +45,11 @@ class AppTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final _tileTextStyle = tileTextStyle ??
-        Theme.of(context).textTheme.labelLarge!.copyWith(
-              color: AppColors.gray9,
-            );
+    final textStyle = tileTextStyle ??
+        Theme.of(context)
+            .textTheme
+            .labelLarge!
+            .copyWith(color: AppColors.gray9);
 
     Widget? leading;
     if (icon != null) {
@@ -77,7 +78,7 @@ class AppTile extends StatelessWidget {
       contentPadding:
           contentPadding ?? const EdgeInsets.symmetric(horizontal: 16),
       title: Text(label,
-          style: _tileTextStyle, maxLines: 1, overflow: TextOverflow.ellipsis),
+          style: textStyle, maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: subtitle,
       dense: dense,
       leading: leading,

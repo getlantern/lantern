@@ -104,7 +104,8 @@ TextStyle getLogStyle(String logLine) {
   if (logLine.startsWith('DEBUG[')) return base.copyWith(color: Colors.teal);
   if (logLine.startsWith('INFO[')) return base.copyWith(color: Colors.blue);
   if (logLine.startsWith('WARN[')) return base.copyWith(color: Colors.orange);
-  if (logLine.startsWith('ERROR['))
+  if (logLine.startsWith('ERROR[')) {
     return base.copyWith(color: Colors.redAccent);
+  }
   return base;
 }

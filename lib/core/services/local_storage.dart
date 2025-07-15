@@ -183,16 +183,16 @@ class LocalStorageService {
     }
   }
 
-  void updatePrivateServer(String serverName) async {
+  void updatePrivateServerName(String serverName, String newName) async {
     final existing = _privateServerBox
         .query(PrivateServerEntity_.serverName.equals(serverName.toLowerCase()))
         .build()
         .findFirst();
     if (existing != null) {
       final newInstance = existing.copyWith(
-        serverName: serverName,
+        serverName: newName,
       );
-      _privateServerBox.put(newInstance);
+      _privateServerBox.put(newInstance,mode: PutMode.update);
       return;
     }
     throw Exception("Private server with name $serverName does not exist");

@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:window_manager/window_manager.dart';
 

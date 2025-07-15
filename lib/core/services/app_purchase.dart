@@ -70,7 +70,7 @@ class AppPurchase {
       _onError?.call("Invalid plan: $plan");
       return;
     }
-    final purchaseParam = PurchaseParam(productDetails: product!);
+    final purchaseParam = PurchaseParam(productDetails: product);
     try {
       final started = await _inAppPurchase.buyNonConsumable(
         purchaseParam: purchaseParam,

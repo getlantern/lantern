@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:lantern/core/common/app_colors.dart';
 import 'package:lantern/core/common/common.dart';
 
-import '../common/app_text_styles.dart';
 
 class PasswordCriteriaWidget extends StatefulWidget {
   final TextEditingController textEditingController;

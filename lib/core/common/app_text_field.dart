@@ -49,7 +49,7 @@ class AppTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme!;
+    final textTheme = Theme.of(context).textTheme;
     Widget inputField = TextFormField(
       textAlign: TextAlign.start,
       textAlignVertical: TextAlignVertical.top,

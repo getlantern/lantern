@@ -1,7 +1,5 @@
 // Bullet point info rows
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:lantern/core/common/app_colors.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 
 class BulletList extends StatelessWidget {

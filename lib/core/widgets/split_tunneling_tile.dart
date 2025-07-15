@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:lantern/core/common/app_colors.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/widgets/app_tile.dart';
 
 class SplitTunnelingTile extends StatelessWidget {
   final String label;
