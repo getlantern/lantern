@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/utils/ip_utils.dart';
@@ -28,7 +29,6 @@ class SplitTunneling extends HookConsumerWidget {
     final enabledApps = ref.watch(splitTunnelingAppsProvider).toList();
     final enabledWebsites = ref.watch(splitTunnelingWebsitesProvider).toList();
     final expansionTileController = useExpansionTileController();
-    final isExpanded = useState<bool>(false);
 
     void showBottomSheet() {
       showAppBottomSheet(
@@ -117,91 +117,103 @@ class SplitTunneling extends HookConsumerWidget {
                 ),
                 DividerSpace(),
                 if (splitTunnelingEnabled) ...{
-                  ExpansionTile(
-                    controller: expansionTileController,
-                    backgroundColor: Colors.transparent,
-                    title: Text(
-                      'mode'.i18n,
-                      style: _textTheme.bodyLarge!
-                          .copyWith(color: AppColors.gray9),
-                    ),
-                    initiallyExpanded: false,
-                    trailing: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        AppTextButton(
-                          label: isAutomaticMode
-                              ? 'automatic'.i18n
-                              : 'manual'.i18n,
-                          onPressed: () => expansionTileController.isExpanded
-                              ? expansionTileController.collapse()
-                              : expansionTileController.expand(),
-                        ),
-                        // Animate arrow direction
-                        AnimatedRotation(
-                          turns: expansionTileController.isExpanded ? 0.5 : 0.0,
-                          duration: Duration(milliseconds: 180),
-                          child: AppImage(
-                            path: AppImagePaths.arrowForward,
-                            height: 20,
+                  Theme(
+                    data: Theme.of(context)
+                        .copyWith(dividerColor: Colors.transparent),
+                    child: ExpansionTile(
+                      controller: expansionTileController,
+                      backgroundColor: Colors.transparent,
+                      title: Text(
+                        'mode'.i18n,
+                        style: _textTheme.bodyLarge!
+                            .copyWith(color: AppColors.gray9),
+                      ),
+                      initiallyExpanded: false,
+                      trailing: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          AppTextButton(
+                            label: toBeginningOfSentenceCase(isAutomaticMode
+                                ? 'automatic'.i18n
+                                : 'manual'.i18n),
+                            onPressed: () => expansionTileController.isExpanded
+                                ? expansionTileController.collapse()
+                                : expansionTileController.expand(),
                           ),
+                          // Animate arrow direction
+                          AnimatedBuilder(
+                            animation: expansionTileController,
+                            builder: (context, child) {
+                              return AnimatedRotation(
+                                turns: expansionTileController.isExpanded
+                                    ? 0.25
+                                    : 0.0,
+                                duration: const Duration(milliseconds: 180),
+                                child: child,
+                              );
+                            },
+                            child: AppImage(
+                              path: AppImagePaths.arrowForward,
+                              height: 20,
+                            ),
+                          ),
+                        ],
+                      ),
+                      subtitle: isAutomaticMode
+                          ? Text(
+                              locationSubtitle.value,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: _textTheme.labelMedium!.copyWith(
+                                color: AppColors.gray7,
+                                letterSpacing: 0.0,
+                              ),
+                            )
+                          : null,
+                      children: [
+                        Column(
+                          children: SplitTunnelingMode.values.map((mode) {
+                            final isSelected = splitTunnelingMode == mode;
+                            return InkWell(
+                              onTap: () {
+                                ref
+                                    .read(appSettingNotifierProvider.notifier)
+                                    .setSplitTunnelingMode(mode);
+                                expansionTileController.collapse();
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 12, horizontal: 24),
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      toBeginningOfSentenceCase(mode.value),
+                                      style: AppTestStyles.bodyMedium.copyWith(
+                                        color: isSelected
+                                            ? AppColors.green5
+                                            : AppColors.gray9,
+                                        fontWeight: isSelected
+                                            ? FontWeight.w700
+                                            : FontWeight.w400,
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    if (isSelected)
+                                      Icon(Icons.radio_button_checked,
+                                          color: AppColors.green5, size: 20)
+                                    else
+                                      Icon(Icons.radio_button_off,
+                                          color: AppColors.gray3, size: 20),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }).toList(),
                         ),
                       ],
                     ),
-                    subtitle: isAutomaticMode
-                        ? Text(
-                            locationSubtitle.value,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: _textTheme.labelMedium!.copyWith(
-                              color: AppColors.gray7,
-                              letterSpacing: 0.0,
-                            ),
-                          )
-                        : null,
-                    children: [
-                      Column(
-                        children: SplitTunnelingMode.values.map((mode) {
-                          final isSelected = splitTunnelingMode == mode;
-                          return InkWell(
-                            onTap: () {
-                              ref
-                                  .read(appSettingNotifierProvider.notifier)
-                                  .setSplitTunnelingMode(mode);
-                              expansionTileController.collapse();
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 12, horizontal: 24),
-                              child: Row(
-                                children: [
-                                  Text(
-                                    mode.value,
-                                    style: AppTestStyles.bodyMedium.copyWith(
-                                      color: isSelected
-                                          ? AppColors.green5
-                                          : AppColors.gray9,
-                                      fontWeight: isSelected
-                                          ? FontWeight.w700
-                                          : FontWeight.w400,
-                                    ),
-                                  ),
-                                  const Spacer(),
-                                  if (isSelected)
-                                    Icon(Icons.radio_button_checked,
-                                        color: AppColors.green5, size: 20)
-                                  else
-                                    Icon(Icons.radio_button_off,
-                                        color: AppColors.gray3, size: 20),
-                                ],
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ],
                   ),
                 },
               ],
