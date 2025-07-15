@@ -19,7 +19,51 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
     return _db.getEnabledApps();
   }
 
-  // Toggle app selection for split tunneling
+  /// Batch add all of these apps to split tunneling
+  Future<void> addApps(List<AppData> apps) async {
+    for (final app in apps) {
+      if (state.any((a) => a.name == app.name)) continue;
+
+      final result = await _lanternService.addSplitTunnelItem(
+        SplitTunnelFilterType.packageName,
+        app.bundleId,
+      );
+
+      await result.match(
+        (failure) {
+          appLogger.error('Failed to add ${app.name}: ${failure.error}');
+        },
+        (r) async {
+          state = {
+            ...state,
+            app.copyWith(isEnabled: true),
+          };
+          await _db.saveApps(state);
+        },
+      );
+    }
+  }
+
+  Future<void> clearAll() async {
+    final toRemove = state.toList();
+    for (final app in toRemove) {
+      final result = await _lanternService.removeSplitTunnelItem(
+        SplitTunnelFilterType.packageName,
+        app.bundleId,
+      );
+
+      await result.match(
+        (failure) {
+          appLogger.error('Failed to remove ${app.name}: ${failure.error}');
+        },
+        (r) async {
+          state = state.where((a) => a.name != app.name).toSet();
+          await _db.saveApps(state);
+        },
+      );
+    }
+  }
+
   Future<void> toggleApp(AppData app) async {
     final isEnabled = state.any((a) => a.name == app.name);
     final action =

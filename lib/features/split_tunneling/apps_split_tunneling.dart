@@ -23,31 +23,26 @@ class AppsSplitTunneling extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final searchQuery = ref.watch(searchQueryProvider);
-
-    final allApps = ref.watch(appsDataProvider).value ?? [];
+    final notifier = ref.read(splitTunnelingAppsProvider.notifier);
     final enabledApps = ref.watch(splitTunnelingAppsProvider);
-    final installedApps = allApps
+    final allApps = (ref.watch(appsDataProvider).value ?? [])
         .where((a) => a.iconPath.isNotEmpty || a.iconBytes != null)
         .where((a) => a.name != lanternPackageName)
-        .toSet();
+        .toList()
+      ..sort((a, b) => a.name.compareTo(b.name));
+    final installedApps = allApps;
 
-    matchesSearch(app) =>
+    bool matchesSearch(AppData a) =>
         searchQuery.isEmpty ||
-        app.name.toLowerCase().contains(searchQuery.toLowerCase());
+        a.name.toLowerCase().contains(searchQuery.toLowerCase());
 
-    final enabledAppNames =
-        enabledApps.map((a) => a.name.toLowerCase()).toSet();
-
-    final enabledList = enabledApps.where(matchesSearch).toList()
-      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-
-    final disabledApps = installedApps.where((app) {
-      final isDisabled = !enabledAppNames.contains(app.name.toLowerCase());
-      final notLantern = app.name != lanternPackageName;
-
-      return matchesSearch(app) && isDisabled && notLantern;
-    }).toList()
-      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    final filteredEnabled = enabledApps.where(matchesSearch).toList()
+      ..sort((a, b) => a.name.compareTo(b.name));
+    final filteredDisabled = installedApps
+        .where((a) => !enabledApps.any((e) => e.name == a.name))
+        .where(matchesSearch)
+        .toList()
+      ..sort((a, b) => a.name.compareTo(b.name));
 
     return BaseScreen(
       title: 'apps_split_tunneling'.i18n,
@@ -56,64 +51,104 @@ class AppsSplitTunneling extends HookConsumerWidget {
         title: 'apps_split_tunneling'.i18n,
         hintText: 'search_apps'.i18n,
       ),
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        child: installedApps.isEmpty
-            ? const Center(child: LoadingIndicator())
-            : CustomScrollView(
-                slivers: [
-                  if (enabledApps.isNotEmpty) ...[
-                    SliverToBoxAdapter(
-                      child: SectionLabel(
-                        'apps_bypassing_vpn'.i18n.fill([enabledApps.length]),
-                      ),
-                    ),
-                    SliverToBoxAdapter(
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppColors.gray1,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: ListView.separated(
-                          shrinkWrap: true,
-                          physics: NeverScrollableScrollPhysics(),
-                          itemCount: enabledList.length,
-                          separatorBuilder: (_, __) => Divider(
-                              height: 0.5,
-                              thickness: 1,
-                              color: Colors.grey.shade400),
-                          itemBuilder: (context, index) {
-                            final app = enabledList[index];
-                            return AppRow(
-                              app: app.copyWith(isEnabled: true),
-                              onToggle: () => ref
-                                  .read(splitTunnelingAppsProvider.notifier)
-                                  .toggleApp(app),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
-                  if (disabledApps.isNotEmpty) ...[
-                    SliverToBoxAdapter(
-                      child: SectionLabel('installed_apps'.i18n),
-                    ),
-                    SliverList.list(
-                      children: disabledApps
-                          .map((app) => AppRow(
-                                app: app,
-                                onToggle: () => ref
-                                    .read(splitTunnelingAppsProvider.notifier)
-                                    .toggleApp(app),
-                              ))
-                          .toList(),
-                    ),
-                  ],
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  SectionLabel(
+                    'apps_bypassing_vpn'.i18n.fill([enabledApps.length]),
+                  ),
+                  const Spacer(),
+                  // TextButton(
+                  //   onPressed: () {
+                  //     if (enabledApps.isEmpty) {
+                  //       notifier.addApps(installedApps.toList());
+                  //     } else {
+                  //       notifier.clearAll();
+                  //     }
+                  //   },
+                  //   child: Text(
+                  //     enabledApps.isEmpty
+                  //         ? 'select_all'.i18n
+                  //         : 'deselect_all'.i18n,
+                  //   ),
+                  // ),
                 ],
               ),
+            ),
+          ),
+          if (enabledApps.isEmpty)
+            // empty-state: "No apps selected"
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: ListTile(
+                  title: Text(
+                    'no_apps_selected'.i18n,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  leading: Icon(Icons.info_outline, color: AppColors.gray7),
+                ),
+              ),
+            )
+          else
+            // real list
+            SliverToBoxAdapter(
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.gray1,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: filteredEnabled.length,
+                  separatorBuilder: (_, __) =>
+                      Divider(height: 1, color: AppColors.gray3),
+                  itemBuilder: (ctx, i) {
+                    final app = filteredEnabled[i];
+                    return AppRow(
+                      app: app.copyWith(isEnabled: true),
+                      onToggle: () => notifier.toggleApp(app),
+                    );
+                  },
+                ),
+              ),
+            ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: SectionLabel('installed_apps'.i18n),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.gray1,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: filteredDisabled.length,
+                separatorBuilder: (_, __) =>
+                    Divider(height: 1, color: AppColors.gray3),
+                itemBuilder: (ctx, i) {
+                  final app = filteredDisabled[i];
+                  return AppRow(
+                    app: app,
+                    onToggle: () => notifier.toggleApp(app),
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -153,25 +188,26 @@ class AppRow extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Icon + App Name
-            Row(
-              children: [
-                buildAppIcon(app),
-                const SizedBox(width: 12),
-                Text(
-                  app.name.replaceAll(".app", ""),
-                  style: AppTestStyles.bodyMedium.copyWith(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w400,
-                    color: AppColors.gray9,
+            Expanded(
+              child: Row(
+                children: [
+                  buildAppIcon(app),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      app.name.replaceAll(".app", ""),
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTestStyles.bodyMedium.copyWith(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.gray9,
+                      ),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-            // Toggle Button
             if (onToggle != null)
               AppIconButton(
                 path: app.isEnabled ? AppImagePaths.minus : AppImagePaths.plus,
