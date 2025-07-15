@@ -28,7 +28,7 @@ class BulletList extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    margin: const EdgeInsets.only(top: 7),
+                    margin: const EdgeInsets.only(top: 7, left: 16.0),
                     width: 6,
                     height: 6,
                     decoration: BoxDecoration(
@@ -43,7 +43,7 @@ class BulletList extends StatelessWidget {
                       style: textStyle ??
                           AppTestStyles.bodyLarge.copyWith(
                             color: AppColors.gray8,
-                            height: 1.5,
+                            height: 1.625,
                           ),
                     ),
                   ),

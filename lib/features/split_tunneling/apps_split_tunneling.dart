@@ -71,7 +71,7 @@ class AppsSplitTunneling extends HookConsumerWidget {
                     SliverToBoxAdapter(
                       child: Container(
                         margin: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 4),
+                            horizontal: 14, vertical: 4),
                         decoration: BoxDecoration(
                           color: AppColors.gray1,
                           borderRadius: BorderRadius.circular(12),
@@ -80,21 +80,17 @@ class AppsSplitTunneling extends HookConsumerWidget {
                           shrinkWrap: true,
                           physics: NeverScrollableScrollPhysics(),
                           itemCount: enabledList.length,
-                          separatorBuilder: (_, __) =>
-                              Divider(height: 1, color: AppColors.gray3),
+                          separatorBuilder: (_, __) => Divider(
+                              height: 0.5,
+                              thickness: 1,
+                              color: Colors.grey.shade400),
                           itemBuilder: (context, index) {
                             final app = enabledList[index];
-                            return Column(
-                              children: [
-                                AppRow(
-                                  app: app.copyWith(isEnabled: true),
-                                  onToggle: () => ref
-                                      .read(splitTunnelingAppsProvider.notifier)
-                                      .toggleApp(app),
-                                ),
-                                if (index != enabledList.length - 1)
-                                  Divider(height: 1, color: AppColors.gray3),
-                              ],
+                            return AppRow(
+                              app: app.copyWith(isEnabled: true),
+                              onToggle: () => ref
+                                  .read(splitTunnelingAppsProvider.notifier)
+                                  .toggleApp(app),
                             );
                           },
                         ),

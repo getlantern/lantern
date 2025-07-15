@@ -18,7 +18,7 @@ class SplitTunnelingInfo extends HookConsumerWidget {
       appBar: AppBar(
         elevation: 0,
         centerTitle: false,
-        titleSpacing: 0,
+        titleSpacing: 16,
         automaticallyImplyLeading: false,
         backgroundColor: Colors.white,
         title: Padding(

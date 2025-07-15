@@ -150,12 +150,14 @@ class SplitTunneling extends HookConsumerWidget {
                         ),
                       ],
                     ),
-                    // subtitle: isAutomaticMode ? locationSubtitle.value : '',
                     subtitle: isAutomaticMode
                         ? Text(
                             locationSubtitle.value,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: _textTheme.labelMedium!.copyWith(
                               color: AppColors.gray7,
+                              letterSpacing: 0.0,
                             ),
                           )
                         : null,
