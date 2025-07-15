@@ -4,8 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_asset.dart';
 import 'package:lantern/core/common/app_colors.dart';
 import 'package:lantern/core/common/app_image_paths.dart';
-
-final searchQueryProvider = StateProvider<String>((ref) => "");
+import 'package:lantern/features/split_tunneling/provider/search_query.dart';
 
 class AppSearchBar extends AppBar {
   AppSearchBar({
@@ -51,7 +50,6 @@ class _SearchBarContent extends HookConsumerWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        // Back arrow
         IconButton(
           icon: const Icon(Icons.arrow_back_ios, size: 20),
           onPressed: onBack ?? () => Navigator.pop(context),
@@ -72,7 +70,7 @@ class _SearchBarContent extends HookConsumerWidget {
                     controller: controller,
                     autofocus: true,
                     onChanged: (value) =>
-                        ref.read(searchQueryProvider.notifier).state = value,
+                        ref.read(searchQueryProvider.notifier).setQuery(value),
                     decoration: InputDecoration(
                       hintText: hintText,
                       hintStyle: TextStyle(
@@ -110,7 +108,7 @@ class _SearchBarContent extends HookConsumerWidget {
             if (isSearching.value) {
               isSearching.value = false;
               controller.clear();
-              ref.read(searchQueryProvider.notifier).state = "";
+              ref.read(searchQueryProvider.notifier).setQuery("");
             } else {
               isSearching.value = true;
             }
