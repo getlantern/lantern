@@ -48,7 +48,6 @@ class ExtensionProvider: NEPacketTunnelProvider {
     let baseDir = FilePath.workingDirectory.relativePath
     let opts = MobileOpts()
     opts.dataDir = baseDir
-    opts.deviceid = DeviceIdentifier.getUDID()
     opts.locale = Locale.current.identifier
     MobileNewVPNClient(opts, platformInterface, &error)
     if let error {

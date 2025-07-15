@@ -154,7 +154,7 @@ $(DARWIN_LIB_AMD64): $(GO_SOURCES)
 	GOARCH=amd64 LIB_NAME=$@ make desktop-lib
 
 .PHONY: macos
-macos: $(DARWIN_LIB_BUILD)
+macos: $(DARWIN_LIB_BUILD) $(MACOS_FRAMEWORK_BUILD)
 
 $(DARWIN_LIB_BUILD): $(GO_SOURCES)
 	$(MAKE) macos-arm64 macos-amd64
@@ -165,19 +165,17 @@ $(DARWIN_LIB_BUILD): $(GO_SOURCES)
 	cp $(BIN_DIR)/macos-amd64/$(LANTERN_LIB_NAME)*.h $(MACOS_FRAMEWORK_DIR)/
 	@echo "Built macOS library: $(MACOS_FRAMEWORK_DIR)/$(DARWIN_LIB)"
 
-.PHONY: macos-framework
-macos-framework: $(MACOS_FRAMEWORK_BUILD)
-
 $(MACOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 	@echo "Building macOS Framework.."
 	rm -rf $(MACOS_FRAMEWORK_BUILD) && mkdir -p $(MACOS_FRAMEWORK_DIR)
 	GOOS=darwin gomobile bind -v \
-		-tags=$(TAGS) -trimpath \
+		-tags=$(TAGS),netgo -trimpath \
 		-target=macos \
 		-o $(MACOS_FRAMEWORK_BUILD) \
-		-ldflags="-w -s -linkmode=external -extldflags=-lc++" \
-		$(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox github.com/getlantern/sing-box-extensions/ruleset ./lantern-core/mobile
+		-ldflags="-w -s -checklinkname=0" \
+		$(GOMOBILE_REPOS)
 	@echo "Built macOS Framework: $(MACOS_FRAMEWORK_BUILD)"
+	rm -rf $(MACOS_FRAMEWORK_DIR)/$(MACOS_FRAMEWORK)
 	mv $(MACOS_FRAMEWORK_BUILD) $(MACOS_FRAMEWORK_DIR)
 
 .PHONY: macos-debug
@@ -213,7 +211,7 @@ package-macos: require-appdmg
 	appdmg appdmg.json $(MACOS_INSTALLER)
 
 .PHONY: macos-release
-macos-release: clean macos build-macos pubget gen build-macos-release sign-app package-macos notarize-darwin
+macos-release: clean macos pubget gen build-macos-release sign-app package-macos notarize-darwin
 
 # Linux Build
 .PHONY: install-linux-deps
@@ -362,10 +360,9 @@ build-ios:
 	@echo "Built iOS Framework: $(IOS_FRAMEWORK_BUILD)"
 	mv $(IOS_FRAMEWORK_BUILD) $(IOS_FRAMEWORK_DIR)
 
-
 .PHONY: format swift-format
 swift-format:
-	swift-format format --in-place --recursive ios/Runner macos/Runner ios/Tunnel
+	swift-format format --in-place --recursive ios/Runner macos/Runner macos/PacketTunnel
 
 format:
 	@echo "Formatting Dart code..."

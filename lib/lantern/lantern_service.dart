@@ -28,7 +28,7 @@ class LanternService implements LanternCoreService {
 
   @override
   Future<Either<Failure, String>> startVPN() async {
-    if (PlatformUtils.isDesktop && !PlatformUtils.isMacOS) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.startVPN();
     }
     return _platformService.startVPN();
@@ -37,7 +37,7 @@ class LanternService implements LanternCoreService {
   @override
 
   Future<Either<Failure, String>> stopVPN() {
-    if (PlatformUtils.isDesktop && !PlatformUtils.isMacOS) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.stopVPN();
     }
     return _platformService.stopVPN();
@@ -45,7 +45,7 @@ class LanternService implements LanternCoreService {
 
   @override
   Stream<List<AppData>> appsDataStream() async* {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       yield* _ffiService.appsDataStream();
     } else {
       yield* _platformService.appsDataStream();
@@ -54,7 +54,7 @@ class LanternService implements LanternCoreService {
 
   @override
   Future<void> init() {
-    if (PlatformUtils.isDesktop && !PlatformUtils.isMacOS) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.init();
     }
     return _platformService.init();
@@ -62,7 +62,7 @@ class LanternService implements LanternCoreService {
 
   @override
   Stream<LanternStatus> watchVPNStatus() {
-    if (PlatformUtils.isDesktop && !PlatformUtils.isMacOS) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.watchVPNStatus();
     }
     return _platformService.watchVPNStatus();
@@ -70,7 +70,7 @@ class LanternService implements LanternCoreService {
 
   @override
   Stream<List<String>> watchLogs(String path) {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       throw UnimplementedError();
     }
     return _platformService.watchLogs(path);
@@ -78,7 +78,7 @@ class LanternService implements LanternCoreService {
 
   @override
   Future<Either<Failure, Unit>> isVPNConnected() {
-    if (PlatformUtils.isDesktop && !PlatformUtils.isMacOS) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.isVPNConnected();
     }
     return _platformService.isVPNConnected();
@@ -90,7 +90,7 @@ class LanternService implements LanternCoreService {
     required PaymentSuccessCallback onSuccess,
     required PaymentErrorCallback onError,
   }) {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       throw UnimplementedError();
     }
     return _platformService.startInAppPurchaseFlow(
@@ -105,7 +105,7 @@ class LanternService implements LanternCoreService {
       {required BillingType type,
       required String planId,
       required String email}) {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.stipeSubscriptionPaymentRedirect(
         type: type,
         planId: planId,
@@ -118,7 +118,7 @@ class LanternService implements LanternCoreService {
   @override
   Future<Either<Failure, Map<String, dynamic>>> stipeSubscription(
       {required String planId, required String email}) {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       throw UnimplementedError();
     }
     return _platformService.stipeSubscription(planId: planId, email: email);
@@ -127,7 +127,7 @@ class LanternService implements LanternCoreService {
   @override
   Future<Either<Failure, Unit>> addSplitTunnelItem(
       SplitTunnelFilterType type, String value) {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.addSplitTunnelItem(type, value);
     }
     return _platformService.addSplitTunnelItem(type, value);
@@ -136,7 +136,7 @@ class LanternService implements LanternCoreService {
   @override
   Future<Either<Failure, Unit>> removeSplitTunnelItem(
       SplitTunnelFilterType type, String value) {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.removeSplitTunnelItem(type, value);
     }
     return _platformService.removeSplitTunnelItem(type, value);
@@ -144,7 +144,7 @@ class LanternService implements LanternCoreService {
 
   @override
   Future<Either<Failure, PlansData>> plans() {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.plans();
     }
     return _platformService.plans();
@@ -152,7 +152,7 @@ class LanternService implements LanternCoreService {
 
   @override
   Future<Either<Failure, String>> getOAuthLoginUrl(String provider) {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.getOAuthLoginUrl(provider);
     }
     return _platformService.getOAuthLoginUrl(provider);
@@ -160,7 +160,7 @@ class LanternService implements LanternCoreService {
 
   @override
   Future<Either<Failure, UserResponse>> oAuthLoginCallback(String token) {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.oAuthLoginCallback(token);
     }
     return _platformService.oAuthLoginCallback(token);
@@ -168,7 +168,7 @@ class LanternService implements LanternCoreService {
 
   @override
   Future<Either<Failure, UserResponse>> getUserData() {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.getUserData();
     }
     return _platformService.getUserData();
@@ -176,7 +176,7 @@ class LanternService implements LanternCoreService {
 
   @override
   Future<Either<Failure, String>> stripeBillingPortal() {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.stripeBillingPortal();
     }
     return _platformService.stripeBillingPortal();
@@ -184,7 +184,7 @@ class LanternService implements LanternCoreService {
 
   @override
   Future<Either<Failure, Unit>> showManageSubscriptions() {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.showManageSubscriptions();
     }
     return _platformService.showManageSubscriptions();
@@ -192,7 +192,7 @@ class LanternService implements LanternCoreService {
 
   @override
   Future<Either<Failure, UserResponse>> fetchUserData() {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.fetchUserData();
     }
     return _platformService.fetchUserData();
@@ -201,7 +201,7 @@ class LanternService implements LanternCoreService {
   @override
   Future<Either<Failure, Unit>> acknowledgeInAppPurchase(
       {required String purchaseToken, required String planId}) {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.acknowledgeInAppPurchase(
           purchaseToken: purchaseToken, planId: planId);
     }
@@ -211,7 +211,7 @@ class LanternService implements LanternCoreService {
 
   @override
   Future<Either<Failure, UserResponse>> logout(String email) {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.logout(email);
     }
     return _platformService.logout(email);
@@ -222,7 +222,7 @@ class LanternService implements LanternCoreService {
       {required String provider,
       required String planId,
       required String email}) {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.paymentRedirect(
           provider: provider, planId: planId, email: email);
     }
@@ -233,7 +233,7 @@ class LanternService implements LanternCoreService {
   @override
   Future<Either<Failure, UserResponse>> login(
       {required String email, required String password}) {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.login(email: email, password: password);
     }
     return _platformService.login(email: email, password: password);
@@ -241,7 +241,7 @@ class LanternService implements LanternCoreService {
 
   @override
   Future<Either<Failure, Unit>> startRecoveryByEmail(String email) {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.startRecoveryByEmail(email);
     }
     return _platformService.startRecoveryByEmail(email);
@@ -250,7 +250,7 @@ class LanternService implements LanternCoreService {
   @override
   Future<Either<Failure, Unit>> validateRecoveryCode(
       {required String email, required String code}) {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.validateRecoveryCode(email: email, code: code);
     }
     return _platformService.validateRecoveryCode(email: email, code: code);
@@ -261,7 +261,7 @@ class LanternService implements LanternCoreService {
       {required String email,
       required String code,
       required String newPassword}) {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.completeChangeEmail(
           email: email, code: code, newPassword: newPassword);
     }
@@ -272,7 +272,7 @@ class LanternService implements LanternCoreService {
   @override
   Future<Either<Failure, Unit>> signUp(
       {required String email, required String password}) {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.signUp(email: email, password: password);
     }
     return _platformService.signUp(email: email, password: password);
@@ -281,7 +281,7 @@ class LanternService implements LanternCoreService {
   @override
   Future<Either<Failure, UserResponse>> deleteAccount(
       {required String email, required String password}) {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.deleteAccount(email: email, password: password);
     }
     return _platformService.deleteAccount(email: email, password: password);
@@ -290,7 +290,7 @@ class LanternService implements LanternCoreService {
   @override
   Future<Either<Failure, Unit>> activationCode(
       {required String email, required String resellerCode}) {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.activationCode(
         email: email,
         resellerCode: resellerCode,
@@ -304,7 +304,7 @@ class LanternService implements LanternCoreService {
 
   @override
   Future<Either<Failure, Unit>> digitalOceanPrivateServer() {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.digitalOceanPrivateServer();
     }
     return _platformService.digitalOceanPrivateServer();
@@ -312,7 +312,7 @@ class LanternService implements LanternCoreService {
 
   @override
   Stream<PrivateServerStatus> watchPrivateServerStatus() {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.watchPrivateServerStatus();
     }
     return _platformService.watchPrivateServerStatus();
@@ -321,7 +321,7 @@ class LanternService implements LanternCoreService {
   @override
   Future<Either<Failure, Unit>> setUserInput(
       {required PrivateServerInput methodType, required String input}) {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.setUserInput(methodType: methodType, input: input);
     }
     return _platformService.setUserInput(methodType: methodType, input: input);
@@ -329,7 +329,7 @@ class LanternService implements LanternCoreService {
 
   @override
   Future<Either<Failure, Unit>> cancelDeployment() {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.cancelDeployment();
     }
     return _platformService.cancelDeployment();
@@ -338,7 +338,7 @@ class LanternService implements LanternCoreService {
   @override
   Future<Either<Failure, Unit>> startDeployment(
       {required String location, required String serverName}) {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.startDeployment(
           location: location, serverName: serverName);
     }
@@ -348,7 +348,7 @@ class LanternService implements LanternCoreService {
 
   @override
   Future<Either<Failure, Unit>> setCert({required String fingerprint}) {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.setCert(fingerprint: fingerprint);
     }
     return _platformService.setCert(fingerprint: fingerprint);
@@ -360,7 +360,7 @@ class LanternService implements LanternCoreService {
       required String port,
       required String accessToken,
       required String serverName}) {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.addServerManually(
           ip: ip, port: port, accessToken: accessToken, serverName: serverName);
     }
@@ -370,7 +370,7 @@ class LanternService implements LanternCoreService {
 
   @override
   Future<Either<Failure, String>> setPrivateServer(String location,String tag) {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.setPrivateServer(location,tag);
     }
     return _platformService.setPrivateServer(location,tag);
@@ -378,7 +378,7 @@ class LanternService implements LanternCoreService {
 
   @override
   Future<Either<Failure, String>> inviteToServerManagerInstance({required String ip, required String port, required String accessToken, required String inviteName}) {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.inviteToServerManagerInstance(
           ip: ip, port: port, accessToken: accessToken, inviteName: inviteName);
     }
@@ -388,7 +388,7 @@ class LanternService implements LanternCoreService {
 
   @override
   Future<Either<Failure, String>> revokeServerManagerInstance({required String ip, required String port, required String accessToken, required String inviteName}) {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.revokeServerManagerInstance(
           ip: ip, port: port, accessToken: accessToken, inviteName: inviteName);
     }
