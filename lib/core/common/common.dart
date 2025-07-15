@@ -7,7 +7,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/services/logger_service.dart';
 
-
 import '../../features/home/provider/home_notifier.dart';
 import '../../lantern/lantern_service_notifier.dart';
 import '../services/injection_container.dart';
@@ -108,4 +107,3 @@ Future<bool> checkUserAccountStatus(WidgetRef ref, BuildContext context) async {
 void hideKeyboard() {
   FocusManager.instance.primaryFocus?.unfocus();
 }
-

@@ -30,23 +30,6 @@ class InfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // final child = Row(
-    //   crossAxisAlignment: CrossAxisAlignment.center,
-    //   children: [
-    //     if (icon != null) icon!,
-    //     const SizedBox(width: 8),
-    //     Expanded(
-    //       child: Text(
-    //         text,
-    //         style: textStyle ??
-    //             Theme.of(context)
-    //                 .textTheme
-    //                 .bodyMedium!
-    //                 .copyWith(color: AppColors.gray8),
-    //       ),
-    //     ),
-    //   ],
-    // );
     return Material(
       color: backgroundColor ?? AppColors.gray1,
       borderRadius: BorderRadius.circular(borderRadius),
@@ -64,8 +47,8 @@ class InfoRow extends StatelessWidget {
                     padding: const EdgeInsets.only(right: 12),
                     child: AppImage(
                       path: imagePath ?? AppImagePaths.info,
-                      width: 20,
-                      height: 20,
+                      width: 24,
+                      height: 24,
                     ),
                   ),
                   Expanded(
@@ -74,6 +57,7 @@ class InfoRow extends StatelessWidget {
                       style: AppTestStyles.bodyMedium.copyWith(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
+                        color: AppColors.gray9,
                         height: 1.43,
                       ),
                     ),

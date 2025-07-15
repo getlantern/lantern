@@ -13,6 +13,8 @@ import 'package:lantern/core/widgets/section_label.dart';
 import 'package:lantern/features/split_tunneling/provider/apps_data_provider.dart';
 import 'package:lantern/features/split_tunneling/provider/apps_notifier.dart';
 
+const lanternPackageName = "org.getlantern.lantern";
+
 // Widget to display and manage split tunneling apps
 @RoutePage(name: 'AppsSplitTunneling')
 class AppsSplitTunneling extends HookConsumerWidget {
@@ -26,6 +28,7 @@ class AppsSplitTunneling extends HookConsumerWidget {
     final enabledApps = ref.watch(splitTunnelingAppsProvider);
     final installedApps = allApps
         .where((a) => a.iconPath.isNotEmpty || a.iconBytes != null)
+        .where((a) => a.name != lanternPackageName)
         .toSet();
 
     matchesSearch(app) =>
@@ -40,7 +43,9 @@ class AppsSplitTunneling extends HookConsumerWidget {
 
     final disabledApps = installedApps.where((app) {
       final isDisabled = !enabledAppNames.contains(app.name.toLowerCase());
-      return matchesSearch(app) && isDisabled;
+      final notLantern = app.name != lanternPackageName;
+
+      return matchesSearch(app) && isDisabled && notLantern;
     }).toList()
       ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 
@@ -63,15 +68,37 @@ class AppsSplitTunneling extends HookConsumerWidget {
                         'apps_bypassing_vpn'.i18n.fill([enabledApps.length]),
                       ),
                     ),
-                    SliverList.list(
-                      children: enabledList
-                          .map((app) => AppRow(
-                                app: app.copyWith(isEnabled: true),
-                                onToggle: () => ref
-                                    .read(splitTunnelingAppsProvider.notifier)
-                                    .toggleApp(app),
-                              ))
-                          .toList(),
+                    SliverToBoxAdapter(
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.gray1,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: ListView.separated(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          itemCount: enabledList.length,
+                          separatorBuilder: (_, __) =>
+                              Divider(height: 1, color: AppColors.gray3),
+                          itemBuilder: (context, index) {
+                            final app = enabledList[index];
+                            return Column(
+                              children: [
+                                AppRow(
+                                  app: app.copyWith(isEnabled: true),
+                                  onToggle: () => ref
+                                      .read(splitTunnelingAppsProvider.notifier)
+                                      .toggleApp(app),
+                                ),
+                                if (index != enabledList.length - 1)
+                                  Divider(height: 1, color: AppColors.gray3),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
                     ),
                   ],
                   if (disabledApps.isNotEmpty) ...[
@@ -125,34 +152,37 @@ class AppRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Icon + App Name
-          Row(
-            children: [
-              buildAppIcon(app),
-              const SizedBox(width: 12),
-              Text(
-                app.name.replaceAll(".app", ""),
-                style: AppTestStyles.bodyMedium.copyWith(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w400,
-                  color: AppColors.gray9,
+    return SizedBox(
+      height: 56,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // Icon + App Name
+            Row(
+              children: [
+                buildAppIcon(app),
+                const SizedBox(width: 12),
+                Text(
+                  app.name.replaceAll(".app", ""),
+                  style: AppTestStyles.bodyMedium.copyWith(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w400,
+                    color: AppColors.gray9,
+                  ),
                 ),
-              ),
-            ],
-          ),
-          // Toggle Button
-          if (onToggle != null)
-            AppIconButton(
-              path: app.isEnabled ? AppImagePaths.minus : AppImagePaths.plus,
-              onPressed: onToggle!,
+              ],
             ),
-        ],
+            // Toggle Button
+            if (onToggle != null)
+              AppIconButton(
+                path: app.isEnabled ? AppImagePaths.minus : AppImagePaths.plus,
+                onPressed: onToggle!,
+              ),
+          ],
+        ),
       ),
     );
   }
