@@ -15,13 +15,9 @@ class AppDialog {
       barrierDismissible: false,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: AppColors.gray3,
+          backgroundColor: AppColors.gray1,
           contentPadding: EdgeInsets.symmetric(horizontal: defaultSize),
-          actionsPadding: EdgeInsets.only(
-              top: defaultSize,
-              bottom: defaultSize,
-              left: defaultSize,
-              right: defaultSize),
+          actionsPadding: EdgeInsets.all(24),
           // contentPadding: EdgeInsets.zero,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -30,10 +26,8 @@ class AppDialog {
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               SizedBox(height: 24),
-              LanternRoundedLogo(
-                height: 45
-              ),
-              SizedBox(height: defaultSize),
+              LanternRoundedLogo(height: 45),
+              SizedBox(height: 24),
               Center(
                 child: SizedBox(
                   width: size.width * 0.7,
@@ -51,7 +45,9 @@ class AppDialog {
               SizedBox(height: defaultSize),
               Text(
                 'lantern_pro_description'.i18n,
-                style: textTheme.bodyMedium,
+                style: textTheme.bodyMedium?.copyWith(
+                  height: 23 / 16,
+                ),
               ),
             ],
           ),

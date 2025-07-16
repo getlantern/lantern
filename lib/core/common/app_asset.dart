@@ -14,10 +14,9 @@ class AppImage extends StatelessWidget {
   final double? width;
   final double? height;
   final Color? color;
-
   final AssetType type;
-
   final OnPressed? onPressed;
+  final BoxFit? fit;
 
   const AppImage({
     required this.path,
@@ -26,6 +25,7 @@ class AppImage extends StatelessWidget {
     this.color,
     this.type = AssetType.svg,
     this.onPressed,
+    this.fit,
     super.key,
   });
 
@@ -39,6 +39,7 @@ class AppImage extends StatelessWidget {
             path,
             height: height,
             width: width,
+            fit: fit ?? BoxFit.contain,
             colorFilter: color != null
                 ? ColorFilter.mode(color!, BlendMode.srcIn)
                 : null,
@@ -52,7 +53,7 @@ class AppImage extends StatelessWidget {
             color: color,
             height: height,
             width: width,
-            fit: BoxFit.cover,
+            fit: fit ?? BoxFit.cover,
           ),
         );
     }

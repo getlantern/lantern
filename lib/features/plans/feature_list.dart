@@ -13,24 +13,21 @@ class FeatureList extends StatelessWidget {
       children: [
         _FeatureTile(
             image: AppImagePaths.location,
-            title: 'Select your server location'),
+            title: 'select_your_server_location'.i18n),
         _FeatureTile(
             image: AppImagePaths.blot,
-            title: 'Faster speeds & unlimited bandwidth'),
+            title: 'faster_speeds_unlimited_bandwidth'.i18n),
         _FeatureTile(
             image: AppImagePaths.premium,
-            title: 'Premium servers with less congestion'),
+            title: 'premium_servers_less_congestion'.i18n),
         _FeatureTile(
             image: AppImagePaths.eyeHide,
-            title: 'Advanced anti-censorship technology'),
-        _FeatureTile(
-            image: AppImagePaths.roundCorrect,
-            title: 'Exclusive access to new features'),
+            title: 'advanced_anti_censorship'.i18n),
         _FeatureTile(
             image: AppImagePaths.connectDevice,
-            title: 'Connect up to 5 devices'),
+            title: 'connect_up_to_five_devices'.i18n),
         _FeatureTile(
-            image: AppImagePaths.adBlock, title: 'Built in ad blocking'),
+            image: AppImagePaths.adBlock, title: 'built_in_ad_blocking'.i18n),
       ],
     );
   }
@@ -48,7 +45,7 @@ class _FeatureTile extends StatelessWidget {
 
     return Padding(
       padding: EdgeInsets.symmetric(
-          horizontal: 16, vertical:7),
+          horizontal: 16, vertical:8),
       child: Row(
         children: [
           AppImage(

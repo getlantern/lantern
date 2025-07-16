@@ -10,7 +10,7 @@ class AppTile extends StatelessWidget {
   final VoidCallback? onPressed;
   final EdgeInsets? contentPadding;
   final bool? dense;
-
+  final double? minHeight;
   final TextStyle? tileTextStyle;
 
   const AppTile({
@@ -23,6 +23,7 @@ class AppTile extends StatelessWidget {
     this.contentPadding,
     this.tileTextStyle,
     this.dense,
+    this.minHeight = 56,
   });
 
   factory AppTile.link({
@@ -43,11 +44,16 @@ class AppTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDoubleLine = subtitle != null;
+    final effectiveMinHeight = isDoubleLine ? 72.0 : minHeight;
+
     final textStyle = tileTextStyle ??
-        Theme.of(context)
-            .textTheme
-            .labelLarge!
-            .copyWith(color: AppColors.gray9);
+        Theme.of(context).textTheme.labelLarge!.copyWith(
+              color: AppColors.gray9,
+              fontFamily: 'Urbanist',
+              fontWeight: FontWeight.w400,
+              fontSize: 16,
+            );
 
     Widget? leading;
     if (icon != null) {
@@ -70,7 +76,7 @@ class AppTile extends StatelessWidget {
       }
     }
 
-    return ListTile(
+    final tile = ListTile(
       enableFeedback: true,
       minVerticalPadding: 0,
       contentPadding:
@@ -82,6 +88,17 @@ class AppTile extends StatelessWidget {
       leading: leading,
       trailing: trailing,
       onTap: onPressed,
+      horizontalTitleGap: 12,
+      visualDensity: VisualDensity.standard,
     );
+
+    return effectiveMinHeight != null
+        ? ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: effectiveMinHeight!,
+            ),
+            child: tile,
+          )
+        : tile;
   }
 }

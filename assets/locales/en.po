@@ -237,6 +237,9 @@ msgstr "Disabled"
 msgid "automatic"
 msgstr "Automatic"
 
+msgid "automatic_mode"
+msgstr "Automatic mode"
+
 msgid "manual"
 msgstr "Manual"
 
@@ -827,6 +830,33 @@ msgstr "Connected"
 
 msgid "status_off"
 msgstr "Disconnected"
+
+
+msgid "select_your_server_location"
+msgstr "Select Your Server Location"
+
+msgid "faster_speeds_unlimited_bandwidth"
+msgstr "Faster speeds & unlimited bandwidth"
+
+
+msgid "premium_servers_less_congestion"
+msgstr "Premium servers with less congestion"
+
+msgid "advanced_anti_censorship"
+msgstr "Advanced Anti-Censorship Technology"
+
+msgid "connect_up_to_five_devices"
+msgstr "Connect up to 5 devices"
+
+msgid "built_in_ad_blocking"
+msgstr "Built-in Ad Blocking"
+
+
+msgid "get_lantern_pro"
+msgstr "Get Lantern Pro"
+
+
+
 
 
 
