@@ -66,7 +66,8 @@ class _SettingState extends ConsumerState<Setting> {
               margin: EdgeInsets.zero,
               child: AppTile(
                 label: 'account'.i18n,
-                icon: AppImagePaths.signIn,
+                icon:
+                    isUserPro ? AppImagePaths.accountPro : AppImagePaths.signIn,
                 onPressed: () => settingMenuTap(_SettingType.account),
               ),
             ),
@@ -171,19 +172,22 @@ class _SettingState extends ConsumerState<Setting> {
             ),
           ),
           Card(
-            child: AppTile(
-              icon: AppImagePaths.lanternLogoRounded,
-              trailing: AppImage(path: AppImagePaths.outsideBrowser),
-              subtitle: Text(
-                'help_fight_global_internet_censorship'.i18n,
-                style: textTheme.labelMedium!.copyWith(
-                  color: AppColors.gray7,
+            child: Container(
+              height: 72,
+              child: AppTile(
+                icon: AppImagePaths.lanternLogoRounded,
+                trailing: AppImage(path: AppImagePaths.outsideBrowser),
+                subtitle: Text(
+                  'help_fight_global_internet_censorship'.i18n,
+                  style: textTheme.labelMedium!.copyWith(
+                    color: AppColors.gray7,
+                  ),
                 ),
+                label: 'unbounded'.i18n,
+                onPressed: () {
+                  UrlUtils.openUrl(AppUrls.unbounded);
+                },
               ),
-              label: 'unbounded'.i18n,
-              onPressed: () {
-                UrlUtils.openUrl(AppUrls.unbounded);
-              },
             ),
           ),
           SizedBox(height: defaultSize),
