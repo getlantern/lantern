@@ -30,7 +30,7 @@ class AppWebView extends HookConsumerWidget {
             IconButton(
               icon: const Icon(Icons.close),
               onPressed: () {
-                appRouter.maybePop(false);
+                appRouter.maybePop();
               },
             ),
           ],

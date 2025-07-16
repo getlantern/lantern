@@ -51,7 +51,7 @@ class CreatePassword extends HookConsumerWidget {
               onPressed: () =>
                   onContinue(ref, passwordTextController.text, context),
             ),
-            SizedBox(height: defaultSize),
+            SizedBox(height: 32.0),
             PasswordCriteriaWidget(
                 textEditingController: passwordTextController)
           ],

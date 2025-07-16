@@ -35,8 +35,7 @@ class _PlansState extends ConsumerState<Plans> {
       backgroundColor: AppColors.white,
       padded: false,
       appBar: CustomAppBar(
-        title: "",
-        titleWidget: SizedBox(
+        title: SizedBox(
           height: 20.h,
           child: LanternLogo(
             color: AppColors.gray9,
@@ -67,19 +66,19 @@ class _PlansState extends ConsumerState<Plans> {
     final size = MediaQuery.of(context).size;
     return Column(
       children: [
-        SizedBox(height: defaultSize),
+        SizedBox(height: 24.0),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: defaultSize),
           child: SizedBox(
             height:
-                context.isSmallDevice ? size.height * 0.4 : size.height * 0.33,
+                context.isSmallDevice ? size.height * 0.4 : size.height * 0.36,
             child: SingleChildScrollView(child: FeatureList()),
           ),
         ),
         SizedBox(height: defaultSize),
         Expanded(
           child: Container(
-            color: AppColors.gray2,
+            color: AppColors.gray1,
             padding: EdgeInsets.symmetric(
                 horizontal: context.isSmallDevice ? 0 : defaultSize),
             child: Column(
@@ -127,19 +126,13 @@ class _PlansState extends ConsumerState<Plans> {
                   padding: EdgeInsets.symmetric(
                       horizontal: context.isSmallDevice ? defaultSize : 0),
                   child: PrimaryButton(
-                    label: 'Get Lantern Pro',
+                    label: 'get_lantern_pro'.i18n,
+                    isTaller: true,
                     onPressed: onGetLanternProTap,
                   ),
                 ),
                 SizedBox(height: defaultSize),
-                Center(
-                  child: Text(
-                    'Plan automatically renews until canceled',
-                    style: textTheme.labelMedium!.copyWith(
-                      color: AppColors.gray7,
-                    ),
-                  ),
-                ),
+
                 SizedBox(height: 20),
               ],
             ),

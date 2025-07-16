@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lantern/core/common/common.dart';
 
-
 class PasswordCriteriaWidget extends StatefulWidget {
   final TextEditingController textEditingController;
 
@@ -51,7 +50,13 @@ class _PasswordCriteriaWidgetState extends State<PasswordCriteriaWidget> {
     return Container(
       padding: const EdgeInsets.all(12.0),
       decoration: BoxDecoration(
-          color: AppColors.white, borderRadius: BorderRadius.circular(8.0)),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(
+          color: AppColors.gray3,
+          width: .5,
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -80,13 +85,14 @@ class _PasswordCriteriaWidgetState extends State<PasswordCriteriaWidget> {
           Icon(
             metCriteria ? Icons.check_circle : Icons.radio_button_unchecked,
             color: metCriteria ? AppColors.green6 : Colors.grey,
-            size: 20,
+            size: 18,
           ),
           const SizedBox(width: 8),
           Text(
             criteria,
             style: textTheme!.labelMedium!.copyWith(
               fontSize: 14,
+              color: AppColors.gray9,
             ),
           ),
         ],
