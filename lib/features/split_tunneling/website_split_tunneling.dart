@@ -6,6 +6,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/website.dart';
 import 'package:lantern/core/widgets/search_bar.dart';
 import 'package:lantern/core/widgets/section_label.dart';
+import 'package:lantern/features/split_tunneling/provider/search_query.dart';
 import 'package:lantern/features/split_tunneling/provider/website_notifier.dart';
 import 'package:lantern/features/split_tunneling/website_domain_input.dart';
 
