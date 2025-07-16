@@ -10,6 +10,7 @@ class AppTile extends StatelessWidget {
   final VoidCallback? onPressed;
   final EdgeInsets? contentPadding;
   final bool? dense;
+  final double? minHeight;
 
   final TextStyle? tileTextStyle;
 
@@ -23,6 +24,7 @@ class AppTile extends StatelessWidget {
     this.contentPadding,
     this.tileTextStyle,
     this.dense,
+    this.minHeight,
   });
 
   factory AppTile.link({
@@ -70,7 +72,7 @@ class AppTile extends StatelessWidget {
       }
     }
 
-    return ListTile(
+    final tile = ListTile(
       enableFeedback: true,
       minVerticalPadding: 0,
       contentPadding:
@@ -82,6 +84,17 @@ class AppTile extends StatelessWidget {
       leading: leading,
       trailing: trailing,
       onTap: onPressed,
+      horizontalTitleGap: 12,
+      visualDensity: VisualDensity.standard,
     );
+
+    return minHeight != null
+        ? ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: minHeight!,
+            ),
+            child: tile,
+          )
+        : tile;
   }
 }
