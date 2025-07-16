@@ -11,30 +11,24 @@ import (
 	"sync"
 
 	"github.com/getlantern/golog"
-
-	privateserver "github.com/getlantern/lantern-outline/lantern-core/private-server"
-	"github.com/getlantern/lantern-outline/lantern-core/types"
 	"github.com/getlantern/lantern-outline/lantern-core/utils"
+	"github.com/getlantern/lantern-outline/lantern-core/vpn_tunnel"
 	"github.com/getlantern/radiance"
+
 	"github.com/getlantern/radiance/api"
 	"github.com/getlantern/radiance/api/protos"
-	"github.com/getlantern/radiance/client"
 	"github.com/getlantern/radiance/common"
-
-	"google.golang.org/protobuf/proto"
-
+	"github.com/getlantern/radiance/vpn"
 	"github.com/sagernet/sing-box/experimental/libbox"
-	_ "golang.org/x/mobile/bind"
+	"google.golang.org/protobuf/proto"
 )
 
 var (
-	log            = golog.LoggerFor("lantern-outline.native")
-	radianceMutex  = sync.Mutex{}
-	radianceServer *lanternService
-	vpnClient      client.VPNClient
-
-	setupRadiance   sync.Once
-	setupRVPNClient sync.Once
+	log                = golog.LoggerFor("lantern-outline.native")
+	radianceMutex      = sync.Mutex{}
+	radianceServer     *lanternService
+	splitTunnelHandler *vpn.SplitTunnel
+	setupRadiance      sync.Once
 )
 
 type lanternService struct {
@@ -74,6 +68,9 @@ func SetupRadiance(opts *Opts) error {
 			innerErr = fmt.Errorf("unable to create Radiance: %v", err)
 			return
 		}
+		sth, err := vpn.NewSplitTunnelHandler()
+		splitTunnelHandler = sth
+
 		radianceServer = &lanternService{
 			Radiance:   r,
 			userConfig: r.UserInfo(),
@@ -93,38 +90,18 @@ func SetupRadiance(opts *Opts) error {
 	return nil
 }
 
-func NewVPNClient(opts *Opts, platform libbox.PlatformInterface) error {
-	var innerErr error
-	setupRVPNClient.Do(func() {
-		logDir := filepath.Join(opts.DataDir, "logs")
-		client, err := client.NewVPNClient(opts.DataDir, logDir, platform, enableSplitTunneling())
-		if err != nil {
-			innerErr = fmt.Errorf("unable to create vpn client: %v", err)
-			return
-		}
-		vpnClient = client
-		log.Debugf("VPN client setup successfully")
-	})
-	if innerErr != nil {
-		return innerErr
-	}
-	return nil
-}
-
 func IsRadianceConnected() bool {
 	radianceMutex.Lock()
 	defer radianceMutex.Unlock()
 	return radianceServer != nil
 }
 
-func StartVPN() error {
+func StartVPN(platform libbox.PlatformInterface) error {
 	log.Debug("Starting VPN")
 	radianceMutex.Lock()
 	defer radianceMutex.Unlock()
-	if vpnClient == nil {
-		return log.Error("VPN client not setup")
-	}
-	err := vpnClient.StartVPN()
+
+	err := vpn_tunnel.StartVPN(platform)
 	if err != nil {
 		log.Errorf("Error starting VPN: %v", err)
 		return err
@@ -136,32 +113,18 @@ func StopVPN() error {
 	log.Debug("Stopping VPN")
 	radianceMutex.Lock()
 	defer radianceMutex.Unlock()
-	if vpnClient == nil {
-		return log.Error("VPN client not setup")
-	}
-	er := vpnClient.StopVPN()
+	er := vpn_tunnel.StopVPN()
 	if er != nil {
 		log.Errorf("Error stopping VPN: %v", er)
 	}
 	return nil
 }
 
-func SetPrivateServer(locationType, tag string) error {
+func SetPrivateServer(locationType, tag string, platIfce libbox.PlatformInterface) error {
 	log.Debugf("Setting private server with tag: %s", tag)
 	radianceMutex.Lock()
 	defer radianceMutex.Unlock()
-	if vpnClient == nil {
-		return log.Error("VPN client not setup")
-	}
-	// Valid location types are:
-	// auto,
-	// privateServer,
-	// lanternLocation;
-	group, tagName, err := types.LocationGroupAndTag(types.LocationType(locationType), tag)
-	if err != nil {
-		return log.Error(err)
-	}
-	err = vpnClient.SelectServer(group, tagName)
+	err := vpn_tunnel.ConnectToServer(locationType, tag, platIfce)
 	if err != nil {
 		return log.Errorf("Error setting private server: %v", err)
 	}
@@ -172,20 +135,17 @@ func SetPrivateServer(locationType, tag string) error {
 func IsVPNConnected() bool {
 	radianceMutex.Lock()
 	defer radianceMutex.Unlock()
-	if vpnClient == nil {
-		return false
-	}
-	return vpnClient.ConnectionStatus()
+	return vpn_tunnel.IsVPNRunning()
 }
 
 func AddSplitTunnelItem(filterType, item string) error {
 	radianceMutex.Lock()
 	defer radianceMutex.Unlock()
-	if vpnClient == nil {
-		return log.Error("Radiance not setup")
+	if splitTunnelHandler == nil {
+		return log.Error("spilt tunnel handler not setup")
 	}
 
-	if err := vpnClient.SplitTunnelHandler().AddItem(filterType, item); err != nil {
+	if err := splitTunnelHandler.AddItem(filterType, item); err != nil {
 		return fmt.Errorf("error adding item: %v", err)
 	}
 	log.Debugf("added %s split tunneling item %s", filterType, item)
@@ -195,11 +155,11 @@ func AddSplitTunnelItem(filterType, item string) error {
 func RemoveSplitTunnelItem(filterType, item string) error {
 	radianceMutex.Lock()
 	defer radianceMutex.Unlock()
-	if vpnClient == nil {
-		return log.Error("Radiance not setup")
+	if splitTunnelHandler == nil {
+		return log.Error("spilt tunnel handler not setup")
 	}
 
-	if err := vpnClient.SplitTunnelHandler().RemoveItem(filterType, item); err != nil {
+	if err := splitTunnelHandler.RemoveItem(filterType, item); err != nil {
 		return fmt.Errorf("error removing item: %v", err)
 	}
 	log.Debugf("removed %s split tunneling item %s", filterType, item)

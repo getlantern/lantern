@@ -35,7 +35,7 @@ type provisionSession struct {
 	userProjectString   string
 	serverName          string
 	serverLocation      string
-	vpnClient           client.VPNClient
+	// vpnClient           client.VPNClient
 }
 
 type provisionerResponse struct {
