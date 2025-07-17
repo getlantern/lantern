@@ -227,7 +227,7 @@ linux-debug:
 .PHONY: linux-release
 linux-release: clean linux pubget gen
 	@echo "Building Flutter app (release) for Linux..."
-	flutter build linux --release
+	flutter build linux --release --dart-define=BUILD_TYPE=$(BUILD_TYPE)
 	cp $(LINUX_LIB_BUILD) build/linux/x64/release/bundle
 	flutter_distributor package --build-dart-define=BUILD_TYPE=$(BUILD_TYPE) --platform linux --targets "deb,rpm" --skip-clean
 	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-linux.rpm $(LINUX_INSTALLER_RPM)
