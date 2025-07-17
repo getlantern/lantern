@@ -16,6 +16,9 @@ import 'package:timezone/timezone.dart' as tz;
 
 import 'core/common/app_secrets.dart';
 
+const String kBuildType =
+    String.fromEnvironment('BUILD_TYPE', defaultValue: 'production');
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   initLogger();
@@ -41,6 +44,7 @@ Future<void> main() async {
 Future<void> _configureAutoUpdate() async {
   if (kDebugMode) return;
   if (!Platform.isMacOS && !Platform.isWindows) return;
+  if (AppSecrets.buildType != 'production') return;
   await autoUpdater.setFeedURL(AppUrls.appcastURL);
   await autoUpdater.checkForUpdates();
   await autoUpdater.setScheduledCheckInterval(3600);
