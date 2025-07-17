@@ -9,6 +9,9 @@ class AppSecrets {
       dotenv.env['WINDOWS_APP_USER_MODEL_ID'] ?? '';
   static String get windowsGuid => dotenv.env['WINDOWS_GUID'] ?? '';
 
+  static String get buildType =>
+      String.fromEnvironment('BUILD_TYPE', defaultValue: 'production');
+
   static String dnsConfig() {
     if (Platform.isAndroid) {
       return "https://4753d78f885f4b79a497435907ce4210@o75725.ingest.sentry.io/5850353";
