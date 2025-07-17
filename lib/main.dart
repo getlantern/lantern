@@ -13,11 +13,7 @@ import 'package:auto_updater/auto_updater.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
-
 import 'core/common/app_secrets.dart';
-
-const String kBuildType =
-    String.fromEnvironment('BUILD_TYPE', defaultValue: 'production');
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
