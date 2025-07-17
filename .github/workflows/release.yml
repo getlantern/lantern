@@ -5,7 +5,8 @@ on:
     tags:
       - "v*.*.*"
 permissions:
-  contents: write
+  contents: "read"
+  id-token: "write"
 jobs:
   set-release-metadata:
     runs-on: ubuntu-latest
