@@ -754,12 +754,18 @@ class LanternFFIService implements LanternCoreService {
     }
   }
 
+  /// connectToServer is used to connect to a server
+  /// this will work with lantern customer and private server
+  /// requires location and tag
   @override
-  Future<Either<Failure, String>> setPrivateServer(String location,String tag) async {
+  Future<Either<Failure, String>> connectToServer(
+      String location, String tag) async {
     try {
       final result = await runInBackground<String>(
         () async {
-          return _ffiService.setPrivateServer(location.toCharPtr,tag.toCharPtr).toDartString();
+          return _ffiService
+              .setPrivateServer(location.toCharPtr, tag.toCharPtr)
+              .toDartString();
         },
       );
       checkAPIError(result);
@@ -788,7 +794,8 @@ class LanternFFIService implements LanternCoreService {
       checkAPIError(result);
       return Right('ok');
     } catch (e, stackTrace) {
-      appLogger.error('Error inviting to server manager instance', e, stackTrace);
+      appLogger.error(
+          'Error inviting to server manager instance', e, stackTrace);
       return Left(e.toFailure());
     }
   }

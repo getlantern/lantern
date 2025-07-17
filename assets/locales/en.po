@@ -828,7 +828,6 @@ msgstr "Connected"
 msgid "status_off"
 msgstr "Disconnected"
 
-
 msgid "select_your_server_location"
 msgstr "Select Your Server Location"
 
@@ -848,9 +847,12 @@ msgstr "Connect up to 5 devices"
 msgid "built_in_ad_blocking"
 msgstr "Built-in Ad Blocking"
 
-
 msgid "get_lantern_pro"
 msgstr "Get Lantern Pro"
+
+
+msgid "connected_to_private_server"
+msgstr "Connected to Private Server"
 
 
 

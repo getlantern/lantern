@@ -12,6 +12,8 @@ replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v
 
 replace github.com/sagernet/wireguard-go => github.com/getlantern/wireguard-go v0.0.1-beta.5.0.20250310145906-45220d8aec77
 
+replace google.golang.org/genproto v0.0.0-20211118181313-81c1377c94b1 => google.golang.org/genproto v0.0.0-20250715232539-7130f93afb79
+
 replace github.com/tetratelabs/wazero => github.com/refraction-networking/wazero v1.7.1-w
 
 require (
@@ -210,7 +212,7 @@ require (
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rs/dnscache v0.0.0-20211102005908-e0241e321417 // indirect
 	github.com/sagernet/sing v0.6.10 // indirect
-	github.com/sagernet/sing-tun v0.6.5 // indirect
+	github.com/sagernet/sing-tun v0.6.8 // indirect
 	github.com/shadowsocks/go-shadowsocks2 v0.1.5 // indirect
 	github.com/tetratelabs/wazero v1.7.1 // indirect
 	github.com/tevino/abool/v2 v2.1.0 // indirect
@@ -230,7 +232,6 @@ require (
 	golang.org/x/crypto v0.39.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
 	golang.zx2c4.com/wireguard/wgctrl v0.0.0-20241231184526-a9ab2273dd10 // indirect
-	google.golang.org/genproto v0.0.0-20250715232539-7130f93afb79 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250715232539-7130f93afb79 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	modernc.org/libc v1.22.3 // indirect

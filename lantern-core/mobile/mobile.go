@@ -68,7 +68,6 @@ func SetupRadiance(opts *Opts) error {
 			DataDir:  opts.DataDir,
 			Locale:   opts.Locale,
 			DeviceID: opts.Deviceid,
-			
 		}
 		r, err := radiance.NewRadiance(clientOpts)
 		log.Debugf("Paths: %s %s", logDir, opts.DataDir)
@@ -76,9 +75,10 @@ func SetupRadiance(opts *Opts) error {
 			innerErr = fmt.Errorf("unable to create Radiance: %v", err)
 			return
 		}
+		
 		sth, sthErr := vpn.NewSplitTunnelHandler()
 		if sthErr != nil {
-			innerErr = fmt.Errorf("unable to create split tunnel handler: %v", err)
+			innerErr = fmt.Errorf("unable to create split tunnel handler: %v", sthErr)
 		}
 		storeRadiance.Store(spiltTunnelHandlerKey, sth)
 		serverManager, mngErr := servers.NewManager(opts.DataDir)

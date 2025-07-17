@@ -539,10 +539,11 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
+
   @override
-  Future<Either<Failure, String>> setPrivateServer(String location,String tag) async {
+  Future<Either<Failure, String>> connectToServer(String location,String tag) async {
     try {
-      await _methodChannel.invokeMethod('setPrivateServer', {
+      await _methodChannel.invokeMethod('connectToServer', {
         'location': location,
         'tag': tag,
       });

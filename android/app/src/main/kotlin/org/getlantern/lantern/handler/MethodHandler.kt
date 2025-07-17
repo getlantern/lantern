@@ -12,6 +12,7 @@ import kotlinx.coroutines.withContext
 import lantern.io.mobile.Mobile
 import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.constant.VPNStatus
+import org.getlantern.lantern.service.LanternVpnService
 import org.getlantern.lantern.utils.PrivateServerListener
 import org.getlantern.lantern.utils.VpnStatusManager
 
@@ -19,7 +20,7 @@ import org.getlantern.lantern.utils.VpnStatusManager
 enum class Methods(val method: String) {
     Start("startVPN"),
     Stop("stopVPN"),
-    SetPrivateServer("setPrivateServer"),
+    ConnectToServer("connectToServer"),
     IsVpnConnected("isVPNConnected"),
     AddSplitTunnelItem("addSplitTunnelItem"),
     RemoveSplitTunnelItem("removeSplitTunnelItem"),
@@ -114,13 +115,13 @@ class MethodHandler : FlutterPlugin,
                 }
             }
 
-            Methods.SetPrivateServer.method -> {
+            Methods.ConnectToServer.method -> {
                 scope.launch {
                     result.runCatching {
                         val map = call.arguments as Map<*, *>
                         val location = map["location"] as String? ?: error("Missing location")
                         val tag = map["tag"] as String? ?: error("Missing tag")
-                            Mobile.setPrivateServer(location, tag)
+                            Mobile.connectToServer(location, tag,LanternVpnService.instance)
                         success("ok")
                     }.onFailure { e ->
                         result.error(
