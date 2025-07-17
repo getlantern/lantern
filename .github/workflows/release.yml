@@ -142,18 +142,18 @@ jobs:
       - name: Install Python dependencies
         run: python3 -m pip install -r scripts/requirements.txt
 
-      # - name: Update appcast.xml
-      #   run: |
-      #     python3 scripts/generate_appcast.py
-      #     git config user.name github-actions
-      #     git config user.email github-actions@github.com
-      #     git add appcast.xml
-      #     git commit -m "Update appcast.xml"
-      #     git push
-      #     aws s3 cp appcast.xml "s3://${{ secrets.S3_RELEASES_BUCKET }}/releases/"
-      #   env:
-      #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: Update appcast.xml
+        run: |
+          python3 scripts/generate_appcast.py
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add appcast.xml
+          git commit -m "Update appcast.xml"
+          git push
+          aws s3 cp appcast.xml "s3://${{ secrets.S3_RELEASES_BUCKET }}/releases/"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Notify Slack
         uses: slackapi/slack-github-action@v2.0.0
