@@ -12,6 +12,8 @@ class AppSecrets {
   static String get buildType =>
       String.fromEnvironment('BUILD_TYPE', defaultValue: 'production');
 
+  static String get lanternPackageName => "org.getlantern.lantern";
+
   static String dnsConfig() {
     if (Platform.isAndroid) {
       return "https://4753d78f885f4b79a497435907ce4210@o75725.ingest.sentry.io/5850353";
