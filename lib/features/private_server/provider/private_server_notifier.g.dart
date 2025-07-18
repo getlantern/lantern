@@ -7,12 +7,12 @@ part of 'private_server_notifier.dart';
 // **************************************************************************
 
 String _$privateServerNotifierHash() =>
-    r'fe96ac1824a7e91c98843b2391321ebb19457ebc';
+    r'56d4ed9176a879f448830f93edf14a65c8a23db6';
 
 /// See also [PrivateServerNotifier].
 @ProviderFor(PrivateServerNotifier)
-final privateServerNotifierProvider = AutoDisposeNotifierProvider<
-    PrivateServerNotifier, PrivateServerStatus>.internal(
+final privateServerNotifierProvider =
+    NotifierProvider<PrivateServerNotifier, PrivateServerStatus>.internal(
   PrivateServerNotifier.new,
   name: r'privateServerNotifierProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -22,6 +22,6 @@ final privateServerNotifierProvider = AutoDisposeNotifierProvider<
   allTransitiveDependencies: null,
 );
 
-typedef _$PrivateServerNotifier = AutoDisposeNotifier<PrivateServerStatus>;
+typedef _$PrivateServerNotifier = Notifier<PrivateServerStatus>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

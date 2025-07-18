@@ -7,11 +7,13 @@ import 'package:lantern/core/utils/platform_utils.dart';
 class SwitchButton extends StatelessWidget {
   final bool value;
   final ValueChanged<bool> onChanged;
+  final Color? activeColor;
 
   const SwitchButton({
     super.key,
     required this.value,
     required this.onChanged,
+    this.activeColor,
   });
 
   @override
@@ -31,7 +33,7 @@ class SwitchButton extends StatelessWidget {
           width: 75,
           padding: const EdgeInsets.symmetric(horizontal: 5),
           decoration: BoxDecoration(
-            color: value ? AppColors.green12 : AppColors.gray7,
+            color: value ? (activeColor ?? AppColors.green5) : AppColors.gray7,
             borderRadius: BorderRadius.circular(100),
           ),
           child: child,

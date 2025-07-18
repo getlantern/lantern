@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_asset.dart';
+import 'package:lantern/core/common/app_colors.dart';
 import 'package:lantern/core/common/app_image_paths.dart';
-
-final searchQueryProvider = StateProvider<String>((ref) => "");
+import 'package:lantern/features/split_tunneling/provider/search_query.dart';
 
 class AppSearchBar extends AppBar {
   AppSearchBar({
@@ -50,7 +50,6 @@ class _SearchBarContent extends HookConsumerWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        // Back arrow
         IconButton(
           icon: const Icon(Icons.arrow_back_ios, size: 20),
           onPressed: onBack ?? () => Navigator.pop(context),
@@ -58,37 +57,44 @@ class _SearchBarContent extends HookConsumerWidget {
         // Search input or title
         Expanded(
           child: isSearching.value
-              ? Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: controller,
-                        autofocus: true,
-                        onChanged: (value) => ref
-                            .read(searchQueryProvider.notifier)
-                            .state = value,
-                        decoration: InputDecoration(
-                          hintText: hintText,
-                          border: InputBorder.none,
-                          isDense: true,
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 8,
-                            horizontal: 0,
-                          ),
-                        ),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w400,
-                        ),
+              ? Container(
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppColors.gray1,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.gray3, width: 1),
+                  ),
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: TextField(
+                    controller: controller,
+                    autofocus: true,
+                    onChanged: (value) =>
+                        ref.read(searchQueryProvider.notifier).setQuery(value),
+                    decoration: InputDecoration(
+                      hintText: hintText,
+                      hintStyle: TextStyle(
+                        color: AppColors.gray7,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w400,
                       ),
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 8),
                     ),
-                  ],
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                      color: AppColors.gray9,
+                    ),
+                  ),
                 )
               : Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w600,
+                    color: AppColors.gray9,
                   ),
                 ),
         ),
@@ -102,7 +108,7 @@ class _SearchBarContent extends HookConsumerWidget {
             if (isSearching.value) {
               isSearching.value = false;
               controller.clear();
-              ref.read(searchQueryProvider.notifier).state = "";
+              ref.read(searchQueryProvider.notifier).setQuery("");
             } else {
               isSearching.value = true;
             }

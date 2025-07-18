@@ -7,17 +7,18 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"sync"
 
 	"github.com/getlantern/golog"
 
 	privateserver "github.com/getlantern/lantern-outline/lantern-core/private-server"
+	"github.com/getlantern/lantern-outline/lantern-core/types"
 	"github.com/getlantern/lantern-outline/lantern-core/utils"
 	"github.com/getlantern/radiance"
 	"github.com/getlantern/radiance/api"
 	"github.com/getlantern/radiance/api/protos"
 	"github.com/getlantern/radiance/client"
-	"github.com/getlantern/radiance/client/boxoptions"
 	"github.com/getlantern/radiance/common"
 
 	"google.golang.org/protobuf/proto"
@@ -145,15 +146,22 @@ func StopVPN() error {
 	return nil
 }
 
-func SetPrivateServer(tag string) error {
+func SetPrivateServer(locationType, tag string) error {
 	log.Debugf("Setting private server with tag: %s", tag)
 	radianceMutex.Lock()
 	defer radianceMutex.Unlock()
 	if vpnClient == nil {
 		return log.Error("VPN client not setup")
 	}
-	group := boxoptions.ServerGroupUser
-	err := vpnClient.SelectServer(group, tag)
+	// Valid location types are:
+	// auto,
+	// privateServer,
+	// lanternLocation;
+	group, tagName, err := types.LocationGroupAndTag(types.LocationType(locationType), tag)
+	if err != nil {
+		return log.Error(err)
+	}
+	err = vpnClient.SelectServer(group, tagName)
 	if err != nil {
 		return log.Errorf("Error setting private server: %v", err)
 	}
@@ -525,4 +533,25 @@ func SelectedCertFingerprint(fp string) {
 
 func AddServerManagerInstance(ip, port, accessToken, tag string, events utils.PrivateServerEventListener) error {
 	return privateserver.AddServerManually(ip, port, accessToken, tag, vpnClient, events)
+}
+func InviteToServerManagerInstance(ip string, port string, accessToken string, inviteName string) (string, error) {
+	if vpnClient == nil {
+		return "", log.Error("VPN client not setup")
+	}
+	portInt, _ := strconv.Atoi(port)
+	accessToken, err := privateserver.InviteToServerManagerInstance(ip, portInt, accessToken, inviteName, vpnClient)
+	if err != nil {
+		return "", log.Errorf("Error inviting to server manager instance: %v", err)
+	}
+	log.Debugf("Invite to server manager instance %s:%d with name %s", ip, portInt, inviteName)
+	return accessToken, nil
+}
+
+func RevokeServerManagerInvite(ip string, port string, accessToken string, inviteName string) error {
+	if vpnClient == nil {
+		return log.Error("VPN client not setup")
+	}
+	portInt, _ := strconv.Atoi(port)
+	log.Debugf("Revoking invite %s for server %s:%d", inviteName, ip, port)
+	return privateserver.RevokeServerManagerInvite(ip, portInt, accessToken, inviteName, vpnClient)
 }

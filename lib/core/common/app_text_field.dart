@@ -49,7 +49,7 @@ class AppTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme!;
+    final textTheme = Theme.of(context).textTheme;
     Widget inputField = TextFormField(
       textAlign: TextAlign.start,
       textAlignVertical: TextAlignVertical.top,
@@ -70,12 +70,11 @@ class AppTextField extends StatelessWidget {
       cursorRadius: Radius.circular(16),
       cursorHeight: defaultSize,
       cursorOpacityAnimates: true,
-  style: textTheme.bodyMedium!.copyWith(
-        color: AppColors.gray9,
+      style: textTheme.bodyMedium!.copyWith(
+        color: AppColors.gray8,
         fontSize: 14.sp,
       ),
       textInputAction: textInputAction,
-
       maxLines: maxLines,
       decoration: InputDecoration(
           filled: true,
@@ -150,12 +149,11 @@ class AppTextField extends StatelessWidget {
         path: iconPath,
         color: AppColors.yellow9,
       );
-    }
-    else if (iconPath is Widget) {
+    } else if (iconPath is Widget) {
       appAsset = iconPath;
     }
     return Padding(
-      padding: EdgeInsets.only(left: 16, right: 16, top: 14.h, bottom: 14.h),
+      padding: EdgeInsets.only(left: 16, right: 16, top: 16.h, bottom: 16.h),
       child: Align(
         alignment: Alignment.topCenter,
         widthFactor: 1.0,

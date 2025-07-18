@@ -30,7 +30,7 @@ class AppWebView extends HookConsumerWidget {
             IconButton(
               icon: const Icon(Icons.close),
               onPressed: () {
-                appRouter.maybePop(false);
+                appRouter.maybePop();
               },
             ),
           ],
@@ -48,7 +48,6 @@ class _InnerWebView extends StatefulHookConsumerWidget {
   final String url;
 
   const _InnerWebView({
-    super.key,
     required this.url,
   });
 

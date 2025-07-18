@@ -8,7 +8,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'home_notifier.g.dart';
 
-@Riverpod()
+@Riverpod(keepAlive: true)
 class HomeNotifier extends _$HomeNotifier {
   @override
   Future<UserResponse> build() async {

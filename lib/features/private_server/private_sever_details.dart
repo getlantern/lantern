@@ -70,7 +70,7 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
                     .toList(),
                 onChanged: (value) {
                   selectedAccount.value = value;
-                  onUserInput(PrivateServerInput.selectAccount, value!);
+                  onUserInput(PrivateServerInput.selectAccount, value);
                 },
               ),
             ],
@@ -96,7 +96,7 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
                     .toList(),
                 onChanged: (value) {
                   selectedProject.value = value;
-                  onUserInput(PrivateServerInput.selectProject, value!);
+                  onUserInput(PrivateServerInput.selectProject, value);
                 },
               ),
             ],
