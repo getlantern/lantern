@@ -19,7 +19,6 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
     return _db.getEnabledApps();
   }
 
-  // Toggle app selection for split tunneling
   Future<void> toggleApp(AppData app) async {
     final isEnabled = state.any((a) => a.name == app.name);
     final action =

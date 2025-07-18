@@ -10,8 +10,8 @@ class AppTile extends StatelessWidget {
   final VoidCallback? onPressed;
   final EdgeInsets? contentPadding;
   final bool? dense;
+  final double? minHeight;
   final TextStyle? tileTextStyle;
-  final double minHeight;
 
   const AppTile({
     super.key,
@@ -23,7 +23,7 @@ class AppTile extends StatelessWidget {
     this.contentPadding,
     this.tileTextStyle,
     this.dense,
-    this.minHeight = 56,
+    this.minHeight,
   });
 
   factory AppTile.link({
@@ -76,21 +76,21 @@ class AppTile extends StatelessWidget {
       }
     }
 
-    return Container(
-      constraints: BoxConstraints(minHeight: effectiveMinHeight),
-      child: ListTile(
-        enableFeedback: true,
-        minVerticalPadding: 0,
-        contentPadding:
-            contentPadding ?? const EdgeInsets.symmetric(horizontal: 16),
-        title: Text(label,
-            style: textStyle, maxLines: 1, overflow: TextOverflow.ellipsis),
-        subtitle: subtitle,
-        dense: dense,
-        leading: leading,
-        trailing: trailing,
-        onTap: onPressed,
-      ),
+    return ListTile(
+      enableFeedback: true,
+      minVerticalPadding: 0,
+      minTileHeight: effectiveMinHeight,
+      contentPadding:
+          contentPadding ?? const EdgeInsets.symmetric(horizontal: 16),
+      title: Text(label,
+          style: textStyle, maxLines: 1, overflow: TextOverflow.ellipsis),
+      subtitle: subtitle,
+      dense: dense,
+      leading: leading,
+      trailing: trailing,
+      onTap: onPressed,
+      horizontalTitleGap: 12,
+      visualDensity: VisualDensity.standard,
     );
   }
 }

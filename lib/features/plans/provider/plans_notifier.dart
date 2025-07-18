@@ -56,8 +56,11 @@ class PlansNotifier extends _$PlansNotifier {
       },
       (remote) async {
         remote.plans.sort((a, b) {
-          if (a.bestValue == b.bestValue) return 0;
-          return a.bestValue ? -1 : 1;
+          if (a.bestValue != b.bestValue) {
+            return a.bestValue ? -1 : 1;
+          }
+          // Then: sort by usdPrice descending
+          return b.usdPrice.compareTo(a.usdPrice);
         });
         return remote;
       },

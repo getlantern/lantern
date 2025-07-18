@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:lantern/core/common/app_colors.dart';
 
 class CustomAppBar extends AppBar {
   final Widget? title;
