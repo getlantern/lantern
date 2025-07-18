@@ -75,7 +75,7 @@ func SetupRadiance(opts *Opts) error {
 			innerErr = fmt.Errorf("unable to create Radiance: %v", err)
 			return
 		}
-		
+
 		sth, sthErr := vpn.NewSplitTunnelHandler()
 		if sthErr != nil {
 			innerErr = fmt.Errorf("unable to create split tunnel handler: %v", sthErr)
@@ -134,6 +134,12 @@ func IsRadianceConnected() bool {
 
 func StartVPN(platform libbox.PlatformInterface) error {
 	log.Debug("Starting VPN")
+	// defer func() {
+	// 	if r := recover(); r != nil {
+	// 		// Handle panic gracefully, possibly logging it or returning an error
+	// 		fmt.Printf("Recovered from panic in StartVPN: %v\n", r)
+	// 	}
+	// }()
 	radianceMutex.Lock()
 	defer radianceMutex.Unlock()
 
