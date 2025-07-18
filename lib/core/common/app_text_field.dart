@@ -71,7 +71,7 @@ class AppTextField extends StatelessWidget {
       cursorHeight: defaultSize,
       cursorOpacityAnimates: true,
       style: textTheme.bodyMedium!.copyWith(
-        color: AppColors.gray9,
+        color: AppColors.gray8,
         fontSize: 14.sp,
       ),
       textInputAction: textInputAction,
@@ -154,7 +154,7 @@ class AppTextField extends StatelessWidget {
       appAsset = iconPath;
     }
     return Padding(
-      padding: EdgeInsets.only(left: 16, right: 16, top: 14.h, bottom: 14.h),
+      padding: EdgeInsets.only(left: 16, right: 16, top: 16.h, bottom: 16.h),
       child: Align(
         alignment: Alignment.topCenter,
         widthFactor: 1.0,

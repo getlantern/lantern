@@ -64,7 +64,10 @@ class _AddEmailState extends ConsumerState<AddEmail> {
               SizedBox(height: defaultSize),
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: defaultSize),
-                child: Text('add_your_email_message'.i18n),
+                child: Text('add_your_email_message'.i18n,
+                    style: textTheme!.bodyMedium!.copyWith(
+                      color: AppColors.gray6,
+                    )),
               ),
               SizedBox(height: 32),
               PrimaryButton(
