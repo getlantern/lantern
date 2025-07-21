@@ -186,6 +186,30 @@ func removeSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
 	return C.CString("ok")
 }
 
+//export reportIssue
+func reportIssue(emailC, typeC, descC *C.char) *C.char {
+	mu.Lock()
+	defer mu.Unlock()
+
+	if server == nil {
+		return C.CString("radiance not initialized")
+	}
+
+	email := C.GoString(emailC)
+	issueType := C.GoString(typeC)
+	desc := C.GoString(descC)
+
+	report := &radiance.IssueReport{
+		Type:        issueType,
+		Description: desc,
+	}
+	err := server.ReportIssue(email, report)
+	if err != nil {
+		return C.CString(fmt.Sprintf("error: %v", err))
+	}
+	return C.CString("ok")
+}
+
 // startVPN initializes and starts the VPN server if it is not already running.
 //
 //export startVPN

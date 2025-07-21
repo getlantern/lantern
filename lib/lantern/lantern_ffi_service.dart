@@ -264,6 +264,40 @@ class LanternFFIService implements LanternCoreService {
     }
   }
 
+  Future<Either<Failure, Unit>> reportIssue(
+    String email,
+    String issueType,
+    String description,
+  ) async {
+    final emailPtr = email.toNativeUtf8();
+    final typePtr = issueType.toNativeUtf8();
+    final descPtr = description.toNativeUtf8();
+    try {
+      final resultPtr = _ffiService.reportIssue(
+          emailPtr.cast<Char>(), typePtr.cast<Char>(), descPtr.cast<Char>());
+      final result = resultPtr.toDartString();
+      malloc.free(resultPtr);
+      if (result == 'ok') {
+        return right(unit);
+      } else {
+        return left(Failure(
+          error: result,
+          localizedErrorMessage: result,
+        ));
+      }
+    } catch (e) {
+      return left(Failure(
+        error: e.toString(),
+        localizedErrorMessage:
+            (e is Exception) ? e.localizedDescription : e.toString(),
+      ));
+    } finally {
+      malloc.free(emailPtr);
+      malloc.free(typePtr);
+      malloc.free(descPtr);
+    }
+  }
+
   @override
   Future<Either<Failure, String>> startVPN() async {
     try {

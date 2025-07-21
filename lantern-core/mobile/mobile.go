@@ -206,6 +206,24 @@ func RemoveSplitTunnelItem(filterType, item string) error {
 	return nil
 }
 
+func ReportIssue(email, issueType, description string) error {
+	radianceMutex.Lock()
+	defer radianceMutex.Unlock()
+	if radianceServer == nil {
+		return log.Error("Radiance not setup")
+	}
+	report := &radiance.IssueReport{
+		Type:        issueType,
+		Description: description,
+	}
+	err := radianceServer.ReportIssue(email, report)
+	if err != nil {
+		return fmt.Errorf("error reporting issue: %v", err)
+	}
+	log.Debugf("Reported issue: %s - %s", email, issueType)
+	return nil
+}
+
 // User Methods
 // Todo make sure to add retry logic
 // we need to make sure that the user is created before we can use the radiance server

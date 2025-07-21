@@ -2429,6 +2429,26 @@ class LanternBindings {
       ffi.Pointer<ffi.Char> Function(
           ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
 
+  ffi.Pointer<ffi.Char> reportIssue(
+    ffi.Pointer<ffi.Char> emailC,
+    ffi.Pointer<ffi.Char> typeC,
+    ffi.Pointer<ffi.Char> descC,
+  ) {
+    return _reportIssue(
+      emailC,
+      typeC,
+      descC,
+    );
+  }
+
+  late final _reportIssuePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>>('reportIssue');
+  late final _reportIssue = _reportIssuePtr.asFunction<
+      ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
+
   ffi.Pointer<ffi.Char> startVPN() {
     return _startVPN();
   }

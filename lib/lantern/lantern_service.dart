@@ -142,6 +142,18 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> reportIssue(
+    String email,
+    String issueType,
+    String description,
+  ) {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.reportIssue(email, issueType, description);
+    }
+    return _platformService.reportIssue(email, issueType, description);
+  }
+
+  @override
   Future<Either<Failure, PlansData>> plans() {
     if (PlatformUtils.isDesktop) {
       return _ffiService.plans();
@@ -368,15 +380,20 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> setPrivateServer(String location,String tag) {
+  Future<Either<Failure, String>> setPrivateServer(
+      String location, String tag) {
     if (PlatformUtils.isDesktop) {
-      return _ffiService.setPrivateServer(location,tag);
+      return _ffiService.setPrivateServer(location, tag);
     }
-    return _platformService.setPrivateServer(location,tag);
+    return _platformService.setPrivateServer(location, tag);
   }
 
   @override
-  Future<Either<Failure, String>> inviteToServerManagerInstance({required String ip, required String port, required String accessToken, required String inviteName}) {
+  Future<Either<Failure, String>> inviteToServerManagerInstance(
+      {required String ip,
+      required String port,
+      required String accessToken,
+      required String inviteName}) {
     if (PlatformUtils.isDesktop) {
       return _ffiService.inviteToServerManagerInstance(
           ip: ip, port: port, accessToken: accessToken, inviteName: inviteName);
@@ -386,7 +403,11 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> revokeServerManagerInstance({required String ip, required String port, required String accessToken, required String inviteName}) {
+  Future<Either<Failure, String>> revokeServerManagerInstance(
+      {required String ip,
+      required String port,
+      required String accessToken,
+      required String inviteName}) {
     if (PlatformUtils.isDesktop) {
       return _ffiService.revokeServerManagerInstance(
           ip: ip, port: port, accessToken: accessToken, inviteName: inviteName);

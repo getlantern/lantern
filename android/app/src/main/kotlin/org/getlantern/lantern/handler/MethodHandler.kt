@@ -30,6 +30,7 @@ enum class Methods(val method: String) {
     FetchUserData("fetchUserData"),
     AcknowledgeInAppPurchase("acknowledgeInAppPurchase"),
     PaymentRedirect("paymentRedirect"),
+    ReportIssue("reportIssue"),
 
     //Oauth
     OAuthLoginUrl("oauthLoginUrl"),
@@ -180,6 +181,27 @@ class MethodHandler : FlutterPlugin,
                         result.error(
                             "remove_split_tunnel_item",
                             e.localizedMessage ?: "Failed to remove split tunnel item",
+                            e
+                        )
+                    }
+                }
+            }
+
+            Methods.ReportIssue.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val map = call.arguments as Map<*, *>
+                        val email = map["email"] as String? ?: ""
+                        val issueType = map["issueType"] as String? ?: ""
+                        val description = map["description"] as String? ?: ""
+                        Mobile.reportIssue(email, issueType, description)
+                        withContext(Dispatchers.Main) {
+                            success("ok")
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "report_issue",
+                            e.localizedMessage ?: "Failed to report issue",
                             e
                         )
                     }
