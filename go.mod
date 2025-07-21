@@ -22,6 +22,7 @@ require (
 	github.com/getlantern/radiance v0.0.0-20250626212255-c51611b432be
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/sagernet/sing-box v1.11.5
+	github.com/zeebo/assert v1.3.0
 	golang.org/x/mobile v0.0.0-20240520174638-fa72addaaa1b
 	google.golang.org/protobuf v1.36.6
 	howett.net/plist v1.0.1
@@ -220,7 +221,6 @@ require (
 	github.com/tkuchiki/go-timezone v0.2.0 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
-	github.com/zeebo/assert v1.3.0 // indirect
 	go.etcd.io/bbolt v1.3.6 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.37.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.37.0 // indirect

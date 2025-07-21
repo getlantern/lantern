@@ -54,6 +54,11 @@ func enableSplitTunneling() bool {
 }
 
 func SetupRadiance(opts *Opts) error {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Errorf("Recovered from panic in SetupRadiance: %v", r)
+		}
+	}()
 	var innerErr error
 	setupRadiance.Do(func() {
 		logDir := filepath.Join(opts.DataDir, "logs")
@@ -134,12 +139,6 @@ func IsRadianceConnected() bool {
 
 func StartVPN(platform libbox.PlatformInterface) error {
 	log.Debug("Starting VPN")
-	// defer func() {
-	// 	if r := recover(); r != nil {
-	// 		// Handle panic gracefully, possibly logging it or returning an error
-	// 		fmt.Printf("Recovered from panic in StartVPN: %v\n", r)
-	// 	}
-	// }()
 	radianceMutex.Lock()
 	defer radianceMutex.Unlock()
 
