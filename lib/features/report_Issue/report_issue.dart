@@ -46,6 +46,7 @@ class ReportIssue extends HookConsumerWidget {
               scrollController: scrollController,
               items: issueOptions,
               onTap: (issueType) {
+                selectedIssueController.text = issueType;
                 Navigator.of(context).pop(issueType);
               },
             ),
