@@ -82,9 +82,7 @@ class DownloadLinks extends StatelessWidget {
             ),
           ),
           SizedBox(height: defaultSize),
-          DividerSpace(
-            padding: EdgeInsets.zero
-          ),
+          DividerSpace(padding: EdgeInsets.zero),
           SizedBox(height: defaultSize),
           Padding(
             padding: const EdgeInsets.only(left: 16),
@@ -106,9 +104,9 @@ class DownloadLinks extends StatelessWidget {
     return SizedBox(
       width: double.infinity,
       child: Wrap(
-        runSpacing: 5,
+        runSpacing: 0,
         alignment: WrapAlignment.spaceEvenly,
-        spacing: 5,
+        spacing: 8,
         children: [
           PlatformCard(
             imagePath: AppImagePaths.android,
