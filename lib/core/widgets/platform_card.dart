@@ -5,7 +5,8 @@ import '../common/common.dart';
 class PlatformCard extends StatelessWidget {
   final String imagePath;
   final VoidCallback onPressed;
-  const PlatformCard({super.key, required this.imagePath, required this.onPressed});
+  const PlatformCard(
+      {super.key, required this.imagePath, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +14,12 @@ class PlatformCard extends StatelessWidget {
       onTap: onPressed,
       child: AppCard(
         padding: EdgeInsets.all(15.r),
-        child: AppImage(path: imagePath),
+        child: AppImage(
+          fit: BoxFit.contain,
+          path: imagePath,
+          height: 32,
+          width: 32,
+        ),
       ),
     );
   }
