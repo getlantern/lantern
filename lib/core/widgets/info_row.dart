@@ -30,6 +30,7 @@ class InfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return Material(
       color: backgroundColor ?? AppColors.gray1,
       borderRadius: BorderRadius.circular(borderRadius),
@@ -54,12 +55,7 @@ class InfoRow extends StatelessWidget {
                   Expanded(
                     child: Text(
                       text,
-                      style: AppTestStyles.bodyMedium.copyWith(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.gray9,
-                        height: 1.43,
-                      ),
+                      style: textTheme.bodyMedium,
                     ),
                   ),
                 ],

@@ -77,7 +77,7 @@ class AppTextField extends StatelessWidget {
       textInputAction: textInputAction,
       maxLines: maxLines,
       decoration: InputDecoration(
-          contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+          contentPadding: EdgeInsets.symmetric(vertical: 20, horizontal: 16),
           filled: true,
           fillColor: AppColors.white,
           hintText: hintText,

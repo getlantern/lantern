@@ -172,22 +172,20 @@ class _SettingState extends ConsumerState<Setting> {
             ),
           ),
           Card(
-            child: Container(
-              height: 72,
-              child: AppTile(
-                icon: AppImagePaths.lanternLogoRounded,
-                trailing: AppImage(path: AppImagePaths.outsideBrowser),
-                subtitle: Text(
-                  'help_fight_global_internet_censorship'.i18n,
-                  style: textTheme.labelMedium!.copyWith(
-                    color: AppColors.gray7,
-                  ),
+            child: AppTile(
+              minHeight: 72,
+              icon: AppImagePaths.lanternLogoRounded,
+              trailing: AppImage(path: AppImagePaths.outsideBrowser),
+              label: 'unbounded'.i18n,
+              subtitle: Text(
+                'help_fight_global_internet_censorship'.i18n,
+                style: textTheme.labelMedium!.copyWith(
+                  color: AppColors.gray7,
                 ),
-                label: 'unbounded'.i18n,
-                onPressed: () {
-                  UrlUtils.openUrl(AppUrls.unbounded);
-                },
               ),
+              onPressed: () {
+                UrlUtils.openUrl(AppUrls.unbounded);
+              },
             ),
           ),
           SizedBox(height: defaultSize),

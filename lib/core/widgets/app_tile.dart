@@ -23,7 +23,7 @@ class AppTile extends StatelessWidget {
     this.contentPadding,
     this.tileTextStyle,
     this.dense,
-    this.minHeight = 56,
+    this.minHeight,
   });
 
   factory AppTile.link({
@@ -76,9 +76,10 @@ class AppTile extends StatelessWidget {
       }
     }
 
-    final tile = ListTile(
+    return ListTile(
       enableFeedback: true,
       minVerticalPadding: 0,
+      minTileHeight: effectiveMinHeight,
       contentPadding:
           contentPadding ?? const EdgeInsets.symmetric(horizontal: 16),
       title: Text(label,
@@ -91,14 +92,5 @@ class AppTile extends StatelessWidget {
       horizontalTitleGap: 12,
       visualDensity: VisualDensity.standard,
     );
-
-    return effectiveMinHeight != null
-        ? ConstrainedBox(
-            constraints: BoxConstraints(
-              minHeight: effectiveMinHeight!,
-            ),
-            child: tile,
-          )
-        : tile;
   }
 }

@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
@@ -12,8 +13,6 @@ import 'package:lantern/core/widgets/section_label.dart';
 import 'package:lantern/features/split_tunneling/provider/apps_data_provider.dart';
 import 'package:lantern/features/split_tunneling/provider/apps_notifier.dart';
 import 'package:lantern/features/split_tunneling/provider/search_query.dart';
-
-const lanternPackageName = "org.getlantern.lantern";
 
 // Widget to display and manage split tunneling apps
 @RoutePage(name: 'AppsSplitTunneling')
@@ -27,7 +26,7 @@ class AppsSplitTunneling extends HookConsumerWidget {
     final enabledApps = ref.watch(splitTunnelingAppsProvider);
     final allApps = (ref.watch(appsDataProvider).value ?? [])
         .where((a) => a.iconPath.isNotEmpty || a.iconBytes != null)
-        .where((a) => a.name != lanternPackageName)
+        .where((a) => a.name != AppSecrets.lanternPackageName)
         .toList()
       ..sort((a, b) => a.name.compareTo(b.name));
     final installedApps = allApps;
@@ -62,20 +61,6 @@ class AppsSplitTunneling extends HookConsumerWidget {
                     'apps_bypassing_vpn'.i18n.fill([enabledApps.length]),
                   ),
                   const Spacer(),
-                  // TextButton(
-                  //   onPressed: () {
-                  //     if (enabledApps.isEmpty) {
-                  //       notifier.addApps(installedApps.toList());
-                  //     } else {
-                  //       notifier.clearAll();
-                  //     }
-                  //   },
-                  //   child: Text(
-                  //     enabledApps.isEmpty
-                  //         ? 'select_all'.i18n
-                  //         : 'deselect_all'.i18n,
-                  //   ),
-                  // ),
                 ],
               ),
             ),

@@ -87,9 +87,9 @@ class AppDialog {
               bottom: defaultSize,
               left: defaultSize,
               right: defaultSize),
-          // contentPadding: EdgeInsets.zero,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: AppColors.gray3, width: 1),
           ),
           content: content,
           actions: action,
