@@ -92,10 +92,15 @@ class VPNManager: VPNBase {
       appLogger.log("In unexpected state: \(connectionStatus)")
       return
     }
-    appLogger.log("Starting tunnel..")
+    appLogger.log("Setting up vpn..")
     await self.setupVPN()
+      
+    appLogger.log("Starting tunnel..")
     let options = ["netEx.StartReason": NSString("User Initiated")]
+    self.manager?.isOnDemandEnabled = true
+    self.manager?.isEnabled = true
     try self.manager?.connection.startVPNTunnel(options: options)
+    appLogger.log("Tunnel started..")
 
     self.manager?.isOnDemandEnabled = true
     try await self.saveThenLoadProvider()
