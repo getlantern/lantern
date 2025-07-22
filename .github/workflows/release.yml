@@ -56,6 +56,26 @@ jobs:
               echo "platform=all" >> $GITHUB_OUTPUT
               ;;
           esac
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Update app version in pubspec.yaml
+        shell: bash
+        env:
+          RUN_NUMBER: ${{ github.run_number }}
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          NEW_VERSION="${VERSION}+${RUN_NUMBER}"
+          echo "Updating pubspec.yaml to version: $NEW_VERSION"
+          sed -i.bak -E "s/^version: .*/version: $NEW_VERSION/" pubspec.yaml
+          cat pubspec.yaml
+          echo "app_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Upload pubspec.yaml as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pubspec
+          path: pubspec.yaml
 
   build-macos:
     needs: set-release-metadata
