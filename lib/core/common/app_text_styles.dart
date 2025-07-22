@@ -113,4 +113,16 @@ class AppTestStyles {
         fontWeight: FontWeight.w400,
         height: 1.30,
       );
+
+  static TextStyle monospace({
+    double fontSize = 12,
+    Color color = Colors.white,
+    FontWeight fontWeight = FontWeight.w400,
+  }) {
+    return GoogleFonts.ibmPlexMono(
+      fontSize: fontSize,
+      color: color,
+      fontWeight: fontWeight,
+    );
+  }
 }
