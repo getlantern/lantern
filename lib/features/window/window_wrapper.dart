@@ -49,8 +49,7 @@ class _WindowWrapperState extends ConsumerState<WindowWrapper>
     if (Platform.isMacOS) {
       await windowManager.setTitle('');
       // Hide system titlebar
-      await windowManager.setTitleBarStyle(TitleBarStyle.hidden,
-          windowButtonVisibility: false);
+      await windowManager.setTitleBarStyle(TitleBarStyle.hidden, windowButtonVisibility: false);
       await windowManager.setBackgroundColor(AppColors.white);
     }
 
