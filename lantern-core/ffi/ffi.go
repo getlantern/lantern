@@ -220,7 +220,7 @@ func removeSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
 // startVPN initializes and starts the VPN server if it is not already running.
 //
 //export startVPN
-func startVPN() *C.char {
+func startVPN(_logDir, _dataDir, _locale *C.char) *C.char {
 	slog.Debug("startVPN called")
 	mu.Lock()
 	defer mu.Unlock()
@@ -228,7 +228,10 @@ func startVPN() *C.char {
 		return C.CString("radiance not initialized")
 	}
 	server.sendStatusToPort(Connecting)
-	if err := vpn_tunnel.StartVPN(nil); err != nil {
+	if err := vpn_tunnel.StartVPN(nil, &utils.Opts{
+		DataDir: C.GoString(_dataDir),
+		Locale:  C.GoString(_locale),
+	}); err != nil {
 		err = fmt.Errorf("unable to start vpn server: %v", err)
 		server.sendStatusToPort(Disconnected)
 		return C.CString(err.Error())
@@ -243,31 +246,26 @@ func startVPN() *C.char {
 //export stopVPN
 func stopVPN() *C.char {
 	slog.Debug("stopVPN called")
-
 	mu.Lock()
 	defer mu.Unlock()
-
 	if server == nil {
 		return C.CString("radiance not initialized")
 	}
-
 	server.sendStatusToPort(Disconnecting)
-
 	if err := vpn_tunnel.StopVPN(); err != nil {
 		err = fmt.Errorf("unable to stop vpn server: %v", err)
 		server.sendStatusToPort(Connected)
 		return C.CString(err.Error())
 	}
-
 	server.sendStatusToPort(Disconnected)
 	log.Debug("VPN server stopped successfully")
 	return C.CString("ok")
 }
 
-// setPrivateServer sets the private server with the given tag.
+// connectToServer sets the private server with the given tag.
 //
-//export setPrivateServer
-func setPrivateServer(_location, _tag *C.char) *C.char {
+//export connectToServer
+func connectToServer(_location, _tag, _logDir, _dataDir, _locale *C.char) *C.char {
 	tag := C.GoString(_tag)
 	locationType := C.GoString(_location)
 
@@ -275,7 +273,10 @@ func setPrivateServer(_location, _tag *C.char) *C.char {
 	// auto,
 	// privateServer,
 	// lanternLocation;
-	if err := vpn_tunnel.ConnectToServer(locationType, tag, nil); err != nil {
+	if err := vpn_tunnel.ConnectToServer(locationType, tag, nil, &utils.Opts{
+		DataDir: C.GoString(_dataDir),
+		Locale:  C.GoString(_locale),
+	}); err != nil {
 		return SendError(log.Errorf("Error setting private server: %v", err))
 	}
 	log.Debugf("Private server set with tag: %s", tag)

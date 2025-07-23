@@ -6,6 +6,8 @@ toolchain go1.24.1
 
 replace github.com/getlantern/radiance => ../radiance
 
+// replace github.com/getlantern/sing-box-minimal => ../sing-box-minimal
+
 // replace github.com/getlantern/lantern-server-provisioner => ../lantern-server-provisioner
 
 replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v1.11.12-0.20250716231657-20b15178474a

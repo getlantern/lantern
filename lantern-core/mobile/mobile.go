@@ -43,17 +43,12 @@ type lanternService struct {
 	userConfig common.UserInfo
 	apiClient  *api.APIClient
 }
-type Opts struct {
-	DataDir  string
-	Deviceid string
-	Locale   string
-}
 
 func enableSplitTunneling() bool {
 	return runtime.GOOS == "android"
 }
 
-func SetupRadiance(opts *Opts) error {
+func SetupRadiance(opts *utils.Opts) error {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Errorf("Recovered from panic in SetupRadiance: %v", r)
@@ -137,12 +132,12 @@ func IsRadianceConnected() bool {
 	return radianceServer != nil
 }
 
-func StartVPN(platform libbox.PlatformInterface) error {
+func StartVPN(platform libbox.PlatformInterface, opts *utils.Opts) error {
 	log.Debug("Starting VPN")
 	radianceMutex.Lock()
 	defer radianceMutex.Unlock()
 
-	err := vpn_tunnel.StartVPN(platform)
+	err := vpn_tunnel.StartVPN(platform, opts)
 	if err != nil {
 		log.Errorf("Error starting VPN: %v", err)
 		return err
@@ -163,11 +158,11 @@ func StopVPN() error {
 
 // ConnectToServer connects to a server with the given location type and tag.
 // It work with private servers and lantern location servers
-func ConnectToServer(locationType, tag string, platIfce libbox.PlatformInterface) error {
+func ConnectToServer(locationType, tag string, platIfce libbox.PlatformInterface, options *utils.Opts) error {
 	log.Debugf("Setting private server with tag: %s", tag)
 	radianceMutex.Lock()
 	defer radianceMutex.Unlock()
-	err := vpn_tunnel.ConnectToServer(locationType, tag, platIfce)
+	err := vpn_tunnel.ConnectToServer(locationType, tag, platIfce, options)
 	if err != nil {
 		return log.Errorf("Error setting private server: %v", err)
 	}

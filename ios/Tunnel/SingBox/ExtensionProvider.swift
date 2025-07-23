@@ -26,8 +26,6 @@ class ExtensionProvider: NEPacketTunnelProvider {
   private var platformInterface: ExtensionPlatformInterface!
 
   override open func startTunnel(options: [String: NSObject]?) async throws {
-    let ignoreMemoryLimit = false
-    LibboxSetMemoryLimit(!ignoreMemoryLimit)
     if platformInterface == nil {
       platformInterface = ExtensionPlatformInterface(self)
     }
@@ -56,7 +54,8 @@ class ExtensionProvider: NEPacketTunnelProvider {
   func startVPN() {
     appLogger.log("(lantern-tunnel) quick connect")
     var error: NSError?
-    MobileStartVPN(platformInterface, &error)
+
+    MobileStartVPN(platformInterface, opts(), &error)
     if error != nil {
       appLogger.log("error while starting tunnel \(error?.localizedDescription ?? "")")
       // Inform system and close tunnel
@@ -69,7 +68,7 @@ class ExtensionProvider: NEPacketTunnelProvider {
   func connectToServer(location: String, serverName: String) {
     appLogger.log("(lantern-tunnel) connecting to server")
     var error: NSError?
-    MobileConnectToServer(location, serverName, platformInterface, &error)
+    MobileConnectToServer(location, serverName, platformInterface, opts(), &error)
     if error != nil {
       appLogger.log("error while connecting to server \(error?.localizedDescription ?? "")")
       cancelTunnelWithError(error)
@@ -86,21 +85,6 @@ class ExtensionProvider: NEPacketTunnelProvider {
       return
     }
     platformInterface.reset()
-
-  }
-
-  //  func reloadService() {
-  //    appLogger.log("(lantern-tunnel) reloading service")
-  //    reasserting = true
-  //    defer {
-  //      reasserting = false
-  //    }
-  //    stopService()
-  //    startService()
-  //  }
-
-  func postServiceClose() {
-    //    radiance = nil
   }
 
   override open func stopTunnel(with reason: NEProviderStopReason) async {
@@ -108,19 +92,14 @@ class ExtensionProvider: NEPacketTunnelProvider {
     stopService()
   }
 
-  override open func handleAppMessage(_ messageData: Data) async -> Data? {
-    messageData
+  func opts() -> UtilsOpts {
+    let baseDir = FilePath.sharedDirectory.relativePath
+
+    let opts = UtilsOpts()
+    opts.dataDir = baseDir
+    opts.locale = Locale.current.identifier
+
+    return opts
   }
 
-  override open func sleep() async {
-    // if let boxService {
-    //     boxService.pause()
-    // }
-  }
-
-  override open func wake() {
-    // if let boxService {
-    //     boxService.wake()
-    // }
-  }
 }

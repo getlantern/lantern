@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/getlantern/lantern-outline/lantern-core/stub"
+	"github.com/getlantern/lantern-outline/lantern-core/utils"
 	"github.com/getlantern/radiance"
 	"github.com/zeebo/assert"
 )
@@ -12,7 +13,7 @@ import (
 func TestStartVPN(t *testing.T) {
 	radiance.NewRadiance(radianceOptions())
 	pltf := stub.NewPlatformInterfaceStub()
-	err := StartVPN(pltf)
+	err := StartVPN(pltf, &utils.Opts{})
 	assert.NoError(t, err)
 
 }
