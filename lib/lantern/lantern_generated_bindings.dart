@@ -2429,14 +2429,25 @@ class LanternBindings {
       ffi.Pointer<ffi.Char> Function(
           ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
 
-  ffi.Pointer<ffi.Char> startVPN() {
-    return _startVPN();
+  ffi.Pointer<ffi.Char> startVPN(
+    ffi.Pointer<ffi.Char> _logDir,
+    ffi.Pointer<ffi.Char> _dataDir,
+    ffi.Pointer<ffi.Char> _locale,
+  ) {
+    return _startVPN(
+      _logDir,
+      _dataDir,
+      _locale,
+    );
   }
 
-  late final _startVPNPtr =
-      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>('startVPN');
-  late final _startVPN =
-      _startVPNPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
+  late final _startVPNPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>>('startVPN');
+  late final _startVPN = _startVPNPtr.asFunction<
+      ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
 
   ffi.Pointer<ffi.Char> stopVPN() {
     return _stopVPN();
@@ -2447,23 +2458,37 @@ class LanternBindings {
   late final _stopVPN =
       _stopVPNPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
 
-  ffi.Pointer<ffi.Char> setPrivateServer(
+  ffi.Pointer<ffi.Char> connectToServer(
     ffi.Pointer<ffi.Char> _location,
     ffi.Pointer<ffi.Char> _tag,
+    ffi.Pointer<ffi.Char> _logDir,
+    ffi.Pointer<ffi.Char> _dataDir,
+    ffi.Pointer<ffi.Char> _locale,
   ) {
-    return _setPrivateServer(
+    return _connectToServer(
       _location,
       _tag,
+      _logDir,
+      _dataDir,
+      _locale,
     );
   }
 
-  late final _setPrivateServerPtr = _lookup<
+  late final _connectToServerPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>,
-              ffi.Pointer<ffi.Char>)>>('setPrivateServer');
-  late final _setPrivateServer = _setPrivateServerPtr.asFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>)>>('connectToServer');
+  late final _connectToServer = _connectToServerPtr.asFunction<
       ffi.Pointer<ffi.Char> Function(
-          ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>)>();
 
   ffi.Pointer<ffi.Char> isVPNConnected() {
     return _isVPNConnected();

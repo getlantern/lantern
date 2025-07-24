@@ -247,8 +247,14 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, String>> startVPN() async {
     try {
       appLogger.debug('Starting VPN');
+      final dataDir = await AppStorageUtils.getAppDirectory();
+      final logDir = await AppStorageUtils.getAppLogDirectory();
+      appLogger.debug('Data dir: ${dataDir.path}');
+      appLogger.debug('Log dir: $logDir');
+      final dataDirPtr = dataDir.path.toNativeUtf8();
+      final logDirPtr = logDir.toNativeUtf8();
 
-      final result = _ffiService.startVPN().cast<Utf8>().toDartString();
+      final result = _ffiService.startVPN(logDirPtr.cast(), dataDirPtr.cast(), Localization.defaultLocale.toCharPtr).cast<Utf8>().toDartString();
       if (result.isNotEmpty) {
         return left(Failure(
           error: result,
@@ -760,6 +766,7 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, String>> connectToServer(
       String location, String tag) async {
+        /*
     try {
       final result = await runInBackground<String>(
         () async {
@@ -774,6 +781,8 @@ class LanternFFIService implements LanternCoreService {
       appLogger.error('Error setting private server', e, stackTrace);
       return Left(e.toFailure());
     }
+    */
+    return Right('ok'); // TODO: Implement this method
   }
 
   @override
