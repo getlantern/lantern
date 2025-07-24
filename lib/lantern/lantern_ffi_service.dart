@@ -146,12 +146,22 @@ class LanternFFIService implements LanternCoreService {
       try {
         final result =
             await _runSplitTunnelCall(msg.type, msg.value, msg.action);
-        msg.replyPort.send(result);
+        if (result.isLeft()) {
+          final failure = result.fold((f) => f, (_) => null)!;
+          msg.replyPort.send({
+            'isError': true,
+            'error': failure.error,
+            'localizedErrorMessage': failure.localizedErrorMessage,
+          });
+        } else {
+          msg.replyPort.send({'isError': false});
+        }
       } catch (e) {
-        msg.replyPort.send(left(Failure(
-          error: e.toString(),
-          localizedErrorMessage: e.toString(),
-        )));
+        msg.replyPort.send({
+          'isError': true,
+          'error': e.toString(),
+          'localizedErrorMessage': e.toString(),
+        });
       }
     });
   }
@@ -177,7 +187,18 @@ class LanternFFIService implements LanternCoreService {
 
     final result = await responsePort.first;
     responsePort.close();
-    return result;
+
+    if (result is Map && result['isError'] == true) {
+      return left(
+        Failure(
+          error: result['error'] ?? 'Unknown error',
+          localizedErrorMessage: result['localizedErrorMessage'] ??
+              result['error'] ??
+              'Unknown error',
+        ),
+      );
+    }
+    return right(unit);
   }
 
   @override
@@ -268,6 +289,7 @@ class LanternFFIService implements LanternCoreService {
     throw UnimplementedError();
   }
 
+  @override
   Future<Either<Failure, String>> stopVPN() async {
     try {
       appLogger.debug('Stopping VPN');
@@ -754,11 +776,61 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> setPrivateServer(String tag) async {
+  Future<Either<Failure, String>> setPrivateServer(
+      String location, String tag) async {
     try {
       final result = await runInBackground<String>(
-            () async {
-          return _ffiService.setPrivateServer(tag.toCharPtr).toDartString();
+        () async {
+          return _ffiService
+              .setPrivateServer(location.toCharPtr, tag.toCharPtr)
+              .toDartString();
+        },
+      );
+      checkAPIError(result);
+      return Right('ok');
+    } catch (e, stackTrace) {
+      appLogger.error('Error setting private server', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> inviteToServerManagerInstance(
+      {required String ip,
+      required String port,
+      required String accessToken,
+      required String inviteName}) async {
+    try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService
+              .inviteToServerManagerInstance(ip.toCharPtr, port.toCharPtr,
+                  accessToken.toCharPtr, inviteName.toCharPtr)
+              .toDartString();
+        },
+      );
+      checkAPIError(result);
+      return Right('ok');
+    } catch (e, stackTrace) {
+      appLogger.error(
+          'Error inviting to server manager instance', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> revokeServerManagerInstance(
+      {required String ip,
+      required String port,
+      required String accessToken,
+      required String inviteName}) async {
+    try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService
+              .revokeServerManagerInvite(ip.toCharPtr, port.toCharPtr,
+                  accessToken.toCharPtr, inviteName.toCharPtr)
+              .toDartString();
         },
       );
       checkAPIError(result);

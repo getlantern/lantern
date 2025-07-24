@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:lantern/features/window/provider/window_notifier.dart';
 import 'package:lantern/features/window/windows_protocol_registry.dart';
 import 'package:window_manager/window_manager.dart';
@@ -45,6 +44,15 @@ class _WindowWrapperState extends ConsumerState<WindowWrapper>
   Future<void> _setupDesktopWindow() async {
     await windowManager.setPreventClose(true);
     await windowManager.setResizable(false);
+
+    // macOS only: customize title bar and window
+    if (Platform.isMacOS) {
+      await windowManager.setTitle('');
+      // Hide system titlebar
+      await windowManager.setTitleBarStyle(TitleBarStyle.hidden, windowButtonVisibility: false);
+      await windowManager.setBackgroundColor(AppColors.white);
+    }
+
     await windowManager.show();
     await windowManager.focus();
   }

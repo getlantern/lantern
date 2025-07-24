@@ -12,22 +12,22 @@ class VpnStatus extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final _vpnStatus = ref.watch(vpnNotifierProvider);
+    final vpnStatus = ref.watch(vpnNotifierProvider);
     final textTheme = Theme.of(context).textTheme;
     return SettingTile(
       label: 'vpn_status'.i18n,
-      value: _vpnStatus.name.capitalize,
+      value: vpnStatus.name.capitalize,
       icon: AppImagePaths.glob,
       actions: [
-        VPNStatusIndicator(status: _vpnStatus),
+        VPNStatusIndicator(status: vpnStatus),
       ],
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          Text(_vpnStatus.name.capitalize,
+          Text(vpnStatus.name.capitalize,
               style: textTheme.titleMedium!
-                  .copyWith(color: getStatusColor(_vpnStatus))),
-          if (_vpnStatus == VPNStatus.connecting)
+                  .copyWith(color: getStatusColor(vpnStatus))),
+          if (vpnStatus == VPNStatus.connecting)
             AnimatedTextKit(
               animatedTexts: [
                 TyperAnimatedText('.  ',

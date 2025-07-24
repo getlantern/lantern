@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 class IPUtils {
 
   // List of countries where the app is censored
- static final censoredRegion= ['CN', 'RU', 'IR','IN'];
+ static final censoredRegion= ['CN', 'RU', 'IR'];
  static String cacheCountry='';
 
   static Future<String?> getUserCountry() async {

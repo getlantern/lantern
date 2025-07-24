@@ -7,9 +7,9 @@ class EmailTag extends StatelessWidget {
   final String email;
 
   const EmailTag({
-    Key? key,
+    super.key,
     required this.email,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

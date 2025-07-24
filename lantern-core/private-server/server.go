@@ -351,7 +351,16 @@ func AddServerManually(ip, port, accessToken, tag string, vpnClient client.VPNCl
 	}
 	events.OnPrivateServerEvent(convertStatusToJSON("EventTypeProvisioningCompleted", string(server)))
 	return nil
+}
 
+func InviteToServerManagerInstance(ip string, port int, accessToken string, inviteName string, vpnClient client.VPNClient) (string, error) {
+	log.Debugf("Inviting to server manager instance %s:%d with invite name %s", ip, port, inviteName)
+	return vpnClient.InviteToServerManagerInstance(ip, port, accessToken, inviteName)
+}
+
+func RevokeServerManagerInvite(ip string, port int, accessToken string, inviteName string, vpnClient client.VPNClient) error {
+	log.Debugf("Revoking invite %s for server %s:%d", inviteName, ip, port)
+	return vpnClient.RevokeServerManagerInvite(ip, port, accessToken, inviteName)
 }
 
 type geoInfo struct {

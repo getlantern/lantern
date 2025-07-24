@@ -35,7 +35,7 @@ class AppDropdown<T> extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         underline: const SizedBox.shrink(),
         items: items,
-        onChanged: (value) => onChanged?.call(value!),
+        onChanged: (value) => onChanged?.call(value as T),
       ),
     );
   }

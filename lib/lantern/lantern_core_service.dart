@@ -18,8 +18,7 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, String>> stopVPN();
 
-  Future<Either<Failure, String>> setPrivateServer(String tag);
-
+  Future<Either<Failure, String>> setPrivateServer(String location,String tag);
 
   Stream<LanternStatus> watchVPNStatus();
 
@@ -119,11 +118,25 @@ abstract class LanternCoreService {
   //cert
   Future<Either<Failure, Unit>> setCert({required String fingerprint});
 
-
   Future<Either<Failure, Unit>> addServerManually(
-      {required String ip, required String port,required String accessToken,required String serverName});
+      {required String ip,
+      required String port,
+      required String accessToken,
+      required String serverName});
 
   Future<Either<Failure, Unit>> cancelDeployment();
 
+  Future<Either<Failure, String>> inviteToServerManagerInstance({
+    required String ip,
+    required String port,
+    required String accessToken,
+    required String inviteName,
+    });
 
+  Future<Either<Failure, String>> revokeServerManagerInstance({
+    required String ip,
+    required String port,
+    required String accessToken,
+    required String inviteName,
+  });
 }

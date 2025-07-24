@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:lantern/core/router/router.gr.dart';
+import 'package:lantern/core/utils/route_utils.dart';
 
 @AutoRouterConfig(
   replaceInRouteName: 'Page,Route,Screen',
@@ -14,9 +15,11 @@ class AppRouter extends RootStackRouter {
       path: '/',
       page: Home.page,
     ),
-    AutoRoute(
+    CustomRoute(
       path: '/setting',
       page: Setting.page,
+      transitionsBuilder: slideLeftToRight,
+      duration: Duration(milliseconds: 320),
     ),
     AutoRoute(
       path: '/language',
@@ -163,6 +166,10 @@ class AppRouter extends RootStackRouter {
     AutoRoute(
       path: '/join-private-server',
       page: JoinPrivateServer.page,
+    ),
+    AutoRoute(
+      path: '/manage-private-server',
+      page: ManagePrivateServer.page,
     ),
     AutoRoute(
       path: '/qr-scanner',

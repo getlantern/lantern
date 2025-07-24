@@ -23,10 +23,10 @@ class BaseScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: backgroundColor??AppColors.gray1,
+      backgroundColor: backgroundColor ?? AppColors.gray1,
       appBar: appBar ??
           CustomAppBar(
-            title: title,
+            title: Text(title),
           ),
       body: Padding(
         padding: padded ? defaultPadding : EdgeInsets.zero,

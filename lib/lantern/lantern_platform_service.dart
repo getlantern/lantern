@@ -2,8 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/services.dart';
-import 'package:fpdart/src/either.dart';
-import 'package:fpdart/src/unit.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
@@ -194,7 +193,7 @@ class LanternPlatformService implements LanternCoreService {
       });
       final map = jsonDecode(subData!);
       return Right(map);
-    } catch (e, stackTrace) {
+    } catch (e) {
       return Left(Failure(
           error: e.toString(),
           localizedErrorMessage: (e as Exception).localizedDescription));
@@ -207,7 +206,7 @@ class LanternPlatformService implements LanternCoreService {
       final url =
           await _methodChannel.invokeMethod<String>('stripeBillingPortal');
       return Right(url!);
-    } catch (e, stackTrace) {
+    } catch (e) {
       return Left(e.toFailure());
     }
   }
@@ -237,7 +236,7 @@ class LanternPlatformService implements LanternCoreService {
       final loginUrl =
           await _methodChannel.invokeMethod<String>('oauthLoginUrl', provider);
       return Right(loginUrl!);
-    } catch (e, stackTrace) {
+    } catch (e) {
       return Left(Failure(
           error: e.toString(),
           localizedErrorMessage: (e as Exception).localizedDescription));
@@ -277,7 +276,7 @@ class LanternPlatformService implements LanternCoreService {
     try {
       await _methodChannel.invokeMethod('showManageSubscriptions');
       return Right(unit);
-    } catch (e, stackTrace) {
+    } catch (e) {
       return Left(Failure(
           error: e.toString(),
           localizedErrorMessage: (e as Exception).localizedDescription));
@@ -521,7 +520,11 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> addServerManually({required String ip, required String port, required String accessToken, required String serverName}) async {
+  Future<Either<Failure, Unit>> addServerManually(
+      {required String ip,
+      required String port,
+      required String accessToken,
+      required String serverName}) async {
     try {
       await _methodChannel.invokeMethod('addServerManually', {
         'ip': ip,
@@ -537,12 +540,62 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> setPrivateServer(String tag) async {
+  Future<Either<Failure, String>> setPrivateServer(String location,String tag) async {
     try {
-      await _methodChannel.invokeMethod('setPrivateServer', tag);
+      await _methodChannel.invokeMethod('setPrivateServer', {
+        'location': location,
+        'tag': tag,
+      });
       return Right("ok");
-    } catch (e, stackTrace) {
+    } catch (e) {
       appLogger.debug('Error setting private server');
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> inviteToServerManagerInstance(
+      {required String ip,
+      required String port,
+      required String accessToken,
+      required String inviteName}) async {
+    try {
+      final inviteCode = await _methodChannel.invokeMethod<String>(
+        'inviteToServerManagerInstance',
+        {
+          'ip': ip,
+          'port': port,
+          'accessToken': accessToken,
+          'inviteName': inviteName,
+        },
+      );
+      return Right(inviteCode!);
+    } catch (e, stackTrace) {
+      appLogger.error(
+          'Error inviting to server manager instance', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> revokeServerManagerInstance(
+      {required String ip,
+      required String port,
+      required String accessToken,
+      required String inviteName}) async {
+    try {
+      final result =  await _methodChannel.invokeMethod<String>(
+        'revokeServerManagerInstance',
+        {
+          'ip': ip,
+          'port': port,
+          'accessToken': accessToken,
+          'inviteName': inviteName,
+        },
+      );
+      return Right('ok');
+    } catch (e, stackTrace) {
+      appLogger.error('Error revoking server manager instance', e, stackTrace);
       return Left(e.toFailure());
     }
   }

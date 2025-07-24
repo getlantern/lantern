@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lantern/core/common/app_colors.dart';
 
@@ -114,4 +113,16 @@ class AppTestStyles {
         fontWeight: FontWeight.w400,
         height: 1.30,
       );
+
+  static TextStyle monospace({
+    double fontSize = 12,
+    Color color = Colors.white,
+    FontWeight fontWeight = FontWeight.w400,
+  }) {
+    return GoogleFonts.ibmPlexMono(
+      fontSize: fontSize,
+      color: color,
+      fontWeight: fontWeight,
+    );
+  }
 }

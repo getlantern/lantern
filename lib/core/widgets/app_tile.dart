@@ -10,7 +10,7 @@ class AppTile extends StatelessWidget {
   final VoidCallback? onPressed;
   final EdgeInsets? contentPadding;
   final bool? dense;
-
+  final double? minHeight;
   final TextStyle? tileTextStyle;
 
   const AppTile({
@@ -23,6 +23,7 @@ class AppTile extends StatelessWidget {
     this.contentPadding,
     this.tileTextStyle,
     this.dense,
+    this.minHeight,
   });
 
   factory AppTile.link({
@@ -43,9 +44,14 @@ class AppTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final _tileTextStyle = tileTextStyle ??
+    final isDoubleLine = subtitle != null;
+    final effectiveMinHeight = isDoubleLine ? 72.0 : minHeight;
+
+    final textStyle = tileTextStyle ??
         Theme.of(context).textTheme.labelLarge!.copyWith(
               color: AppColors.gray9,
+              fontWeight: FontWeight.w400,
+              fontSize: 16,
             );
 
     Widget? leading;
@@ -72,15 +78,18 @@ class AppTile extends StatelessWidget {
     return ListTile(
       enableFeedback: true,
       minVerticalPadding: 0,
+      minTileHeight: effectiveMinHeight,
       contentPadding:
           contentPadding ?? const EdgeInsets.symmetric(horizontal: 16),
       title: Text(label,
-          style: _tileTextStyle, maxLines: 1, overflow: TextOverflow.ellipsis),
+          style: textStyle, maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: subtitle,
       dense: dense,
       leading: leading,
       trailing: trailing,
       onTap: onPressed,
+      horizontalTitleGap: 12,
+      visualDensity: VisualDensity.standard,
     );
   }
 }

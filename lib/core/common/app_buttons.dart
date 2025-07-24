@@ -17,6 +17,8 @@ class PrimaryButton extends StatelessWidget {
   final Color? iconColor;
 
   final Color? bgColor;
+  final Color? textColor;
+  final bool? isTaller;
 
   // Default constructor for button without an icon
   const PrimaryButton({
@@ -24,8 +26,10 @@ class PrimaryButton extends StatelessWidget {
     required this.onPressed,
     this.bgColor,
     this.iconColor,
+    this.textColor,
     this.enabled = true,
     this.expanded = true,
+    this.isTaller = false,
     this.icon,
     super.key,
   });
@@ -74,12 +78,16 @@ class PrimaryButton extends StatelessWidget {
       padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(
           EdgeInsets.symmetric(vertical: 12.0.h, horizontal: 40.0)),
       textStyle: WidgetStatePropertyAll<TextStyle>(
-          AppTestStyles.primaryButtonTextStyle.copyWith(
-              fontSize: expanded ? 16.0.sp : 16.0,
-              color: AppColors.gray1,
-              fontWeight: FontWeight.w600)),
-      minimumSize: WidgetStatePropertyAll<Size>(
-          expanded ? const Size(double.infinity, 52.0) : const Size(0, 52.0)),
+        AppTestStyles.primaryButtonTextStyle.copyWith(
+            fontSize: expanded ? 16.0.sp : 16.0,
+            color: textColor ?? AppColors.gray1,
+            fontWeight: FontWeight.w500),
+      ),
+      foregroundColor:
+          WidgetStatePropertyAll<Color>(textColor ?? AppColors.gray1),
+      minimumSize: WidgetStatePropertyAll<Size>(expanded
+          ? Size(double.infinity, isTaller == true ? 56.0 : 48.0)
+          : const Size(0, 52.0)),
     );
   }
 }
@@ -94,12 +102,14 @@ class SecondaryButton extends StatelessWidget {
   final String? icon;
 
   final Color? bgColor;
+  final bool? isTaller;
 
   const SecondaryButton(
       {super.key,
       required this.label,
       this.enabled = true,
       this.expanded = true,
+      this.isTaller = false,
       required this.onPressed,
       this.icon,
       this.bgColor});
@@ -152,8 +162,8 @@ class SecondaryButton extends StatelessWidget {
               fontSize: expanded ? 16.0.sp : 16.0,
               color: AppColors.gray9,
               fontWeight: FontWeight.w600)),
-      minimumSize:
-          WidgetStatePropertyAll<Size>(const Size(double.infinity, 52.0)),
+      minimumSize: WidgetStatePropertyAll<Size>(
+           Size(double.infinity, isTaller == true ? 56.0.h : 50.0)),
     );
   }
 }

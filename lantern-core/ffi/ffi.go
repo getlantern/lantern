@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"runtime"
+	"strconv"
 	"sync"
 	"unsafe"
 
@@ -25,11 +26,11 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"github.com/getlantern/lantern-outline/lantern-core/dart_api_dl"
+	"github.com/getlantern/lantern-outline/lantern-core/types"
 	"github.com/getlantern/radiance"
 	"github.com/getlantern/radiance/api"
 	"github.com/getlantern/radiance/api/protos"
 	"github.com/getlantern/radiance/client"
-	"github.com/getlantern/radiance/client/boxoptions"
 	"github.com/getlantern/radiance/common"
 )
 
@@ -163,7 +164,7 @@ func addSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
 		return C.CString(fmt.Sprintf("error adding item: %v", err))
 	}
 	log.Debugf("added %s split tunneling item %s", filterType, item)
-	return C.CString("ok")
+	return nil
 }
 
 //export removeSplitTunnelItem
@@ -182,7 +183,7 @@ func removeSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
 		return C.CString(fmt.Sprintf("error removing item: %v", err))
 	}
 	log.Debugf("removed %s split tunneling item %s", filterType, item)
-	return C.CString("ok")
+	return nil
 }
 
 // startVPN initializes and starts the VPN server if it is not already running.
@@ -241,14 +242,23 @@ func stopVPN() *C.char {
 // setPrivateServer sets the private server with the given tag.
 //
 //export setPrivateServer
-func setPrivateServer(_tag *C.char) *C.char {
+func setPrivateServer(_location, _tag *C.char) *C.char {
 	tag := C.GoString(_tag)
-	group := boxoptions.ServerGroupUser
-	err := server.vpnClient.SelectServer(group, tag)
+	locationType := types.LocationType(C.GoString(_location))
+
+	// Valid location types are:
+	// auto,
+	// privateServer,
+	// lanternLocation;
+	group, tagName, err := types.LocationGroupAndTag(locationType, tag)
 	if err != nil {
+		return SendError(log.Errorf("Invalid locationType: %s", locationType))
+	}
+
+	if err := server.vpnClient.SelectServer(group, tagName); err != nil {
 		return SendError(log.Errorf("Error setting private server: %v", err))
 	}
-	log.Debugf("Private server set with tag: %s", tag)
+	log.Debugf("Private server set with tag: %s", tagName)
 	return C.CString("ok")
 }
 
@@ -793,5 +803,41 @@ func addServerManagerInstance(_ip, _port, _accessToken, _tag *C.char) *C.char {
 		return SendError(log.Errorf("Error adding server manager instance: %v", err))
 	}
 	log.Debugf("Server manager instance added successfully with IP: %s, Port: %s, AccessToken: %s, Tag: %s", ip, port, accessToken, tag)
+	return C.CString("ok")
+}
+
+// inviteToServerManagerInstance invites to the server manager instance.
+//
+//export inviteToServerManagerInstance
+func inviteToServerManagerInstance(_ip, _port, _accessToken, _inviteName *C.char) *C.char {
+	ip := C.GoString(_ip)
+	port := C.GoString(_port)
+	accessToken := C.GoString(_accessToken)
+	inviteName := C.GoString(_inviteName)
+	portInt, _ := strconv.Atoi(port)
+	log.Debugf("Inviting to server manager instance %s:%s with invite name %s", ip, port, inviteName)
+	invite, err := privateserver.InviteToServerManagerInstance(ip, portInt, accessToken, inviteName, server.vpnClient)
+	if err != nil {
+		return SendError(log.Errorf("Error inviting to server manager instance: %v", err))
+	}
+	log.Debugf("Invite created successfully: %s", invite)
+	return C.CString(invite)
+}
+
+// revokeServerManagerInvite revokes the server manager invite.
+//
+//export revokeServerManagerInvite
+func revokeServerManagerInvite(_ip, _port, _accessToken, _inviteName *C.char) *C.char {
+	ip := C.GoString(_ip)
+	port := C.GoString(_port)
+	accessToken := C.GoString(_accessToken)
+	inviteName := C.GoString(_inviteName)
+	portInt, _ := strconv.Atoi(port)
+	log.Debugf("Revoking invite %s for server %s:%s", inviteName, ip, port)
+	err := privateserver.RevokeServerManagerInvite(ip, portInt, accessToken, inviteName, server.vpnClient)
+	if err != nil {
+		return SendError(log.Errorf("Error revoking server manager invite: %v", err))
+	}
+	log.Debugf("Invite %s revoked successfully for server %s:%s", inviteName, ip, port)
 	return C.CString("ok")
 }

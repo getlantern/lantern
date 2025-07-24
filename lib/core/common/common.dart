@@ -4,9 +4,12 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lantern/core/common/app_urls.dart';
+import 'package:lantern/core/localization/i18n.dart';
+import 'package:lantern/core/models/private_server_entity.dart';
 import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/services/logger_service.dart';
-
+import 'package:share_plus/share_plus.dart';
 
 import '../../features/home/provider/home_notifier.dart';
 import '../../lantern/lantern_service_notifier.dart';
@@ -28,7 +31,6 @@ export 'package:lantern/core/extensions/context.dart';
 export 'package:lantern/core/extensions/error.dart';
 export 'package:lantern/core/extensions/pointer.dart';
 export 'package:lantern/core/extensions/ref.dart';
-
 // Extensions
 export 'package:lantern/core/extensions/string.dart';
 export 'package:lantern/core/localization/i18n.dart';
@@ -47,12 +49,12 @@ export 'package:lantern/core/widgets/base_screen.dart';
 export 'package:lantern/core/widgets/bottomsheet.dart';
 export 'package:lantern/core/widgets/custom_app_bar.dart';
 export 'package:lantern/core/widgets/data_usage.dart';
+export 'package:lantern/core/widgets/flag.dart';
 // UI
 export 'package:lantern/core/widgets/lantern_logo.dart';
 export 'package:lantern/core/widgets/platform_card.dart';
 export 'package:lantern/core/widgets/pro_banner.dart';
 export 'package:lantern/core/widgets/pro_button.dart';
-export 'package:lantern/core/widgets/flag.dart';
 
 export '../../core/widgets/divider_space.dart';
 
@@ -67,6 +69,7 @@ String generatePassword() {
 }
 
 bool isStoreVersion() {
+  // return true;
   return (sl<StoreUtils>().isSideLoaded() == false);
 }
 
@@ -109,3 +112,14 @@ void hideKeyboard() {
   FocusManager.instance.primaryFocus?.unfocus();
 }
 
+void sharePrivateAccessKey(
+    PrivateServerEntity server, Map<String, dynamic> tokenPayload) {
+  final expirationDate = tokenPayload['exp'];
+  final buffer = StringBuffer()
+    ..write('join_my_private_server'.i18n)
+    ..write(' ')
+    ..write(AppUrls.baseUrl)
+    ..write(
+        '/private-server?ip=${server.externalIp}&port=${server.port}&token=${server.accessToken}&name=${server.serverName}&exp=$expirationDate');
+  SharePlus.instance.share(ShareParams(text: buffer.toString()));
+}
