@@ -13,7 +13,8 @@ import kotlinx.coroutines.withContext
 import lantern.io.libbox.Notification
 import lantern.io.libbox.TunOptions
 import lantern.io.mobile.Mobile
-import lantern.io.mobile.Opts
+import lantern.io.utils.Opts
+import lantern.io.utils.Utils
 import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.notification.NotificationHelper
@@ -126,17 +127,15 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
     private suspend fun startRadiance() {
         try {
             withContext(Dispatchers.IO) {
-                val opts = Opts()
-                opts.dataDir = initConfigDir()
-                opts.deviceid = DeviceUtil.deviceId()
-                opts.locale = DeviceUtil.getLanguageCode(this@LanternVpnService)
-                Mobile.setupRadiance(opts)
+                Mobile.setupRadiance(opts())
             }
             Log.d(TAG, "Radiance setup completed ${DeviceUtil.deviceId()}")
         } catch (e: Exception) {
             Log.e(TAG, "Error in Radiance setup", e)
         }
     }
+
+
 
 
     private suspend fun startVPN() = withContext(Dispatchers.IO) {
@@ -146,7 +145,7 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
         }
         runCatching {
             DefaultNetworkMonitor.start()
-            Mobile.startVPN(this@LanternVpnService)
+            Mobile.startVPN(this@LanternVpnService, opts())
             Log.d(TAG, "VPN service started")
             VpnStatusManager.postVPNStatus(VPNStatus.Connected)
             notificationHelper.showVPNConnectedNotification(this@LanternVpnService)
@@ -266,6 +265,14 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
             }
         }
         return builder
+    }
+
+     fun opts(): Opts {
+        val opts = Opts()
+        opts.dataDir = initConfigDir()
+        opts.deviceid = DeviceUtil.deviceId()
+        opts.locale = DeviceUtil.getLanguageCode(this@LanternVpnService)
+        return opts
     }
 
 }
