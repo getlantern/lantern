@@ -98,6 +98,7 @@ func SetupRadiance(opts *utils.Opts) error {
 			CreateUser()
 		}
 		FetchUserData()
+		go AvailableFeatures()
 	})
 
 	if innerErr != nil {
@@ -124,6 +125,17 @@ func getSplitTunnelHandler() (*vpn.SplitTunnel, error) {
 		return nil, fmt.Errorf("split tunnel handler not found")
 	}
 	return nil, fmt.Errorf("split tunnel handler not found")
+}
+
+func AvailableFeatures() []byte {
+	features := radianceServer.Features()
+	log.Debugf("Available features: %v", features)
+	jsonBytes, err := json.Marshal(features)
+	if err != nil {
+		log.Errorf("Error marshalling features: %v", err)
+		return nil
+	}
+	return jsonBytes
 }
 
 func IsRadianceConnected() bool {
