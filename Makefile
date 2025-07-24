@@ -178,6 +178,10 @@ $(MACOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 	rm -rf $(MACOS_FRAMEWORK_DIR)/$(MACOS_FRAMEWORK)
 	mv $(MACOS_FRAMEWORK_BUILD) $(MACOS_FRAMEWORK_DIR)
 
+
+.PHONY: macos-framework
+macos-framework: $(MACOS_FRAMEWORK_BUILD)
+
 .PHONY: macos-debug
 macos-debug: $(DARWIN_DEBUG_BUILD)
 

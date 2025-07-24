@@ -7,6 +7,13 @@
 		<string>webcredentials:lantern.io</string>
 		<string>applinks:lantern.io</string>
 	</array>
+	<key>com.apple.developer.networking.networkextension</key>
+	<array>
+		<string>packet-tunnel-provider</string>
+		<string>packet-tunnel-provider-systemextension</string>
+	</array>
+	<key>com.apple.security.app-sandbox</key>
+	<false/>
 	<key>com.apple.security.application-groups</key>
 	<array>
 		<string>$(TeamIdentifierPrefix)objectbx</string>
@@ -14,17 +21,9 @@
 	</array>
 	<key>com.apple.security.cs.allow-jit</key>
 	<true/>
-	<key>com.apple.developer.networking.networkextension</key>
-	<array>
-		<string>packet-tunnel-provider-systemextension</string>
-	</array>
-	<key>com.apple.developer.system-extension.install</key>
-	<true/>
-	<key>com.apple.security.app-sandbox</key>
-	<false/>
-	<key>com.apple.security.files.user-selected.read-write</key>
-	<true/>
 	<key>com.apple.security.files.system.read-write</key>
+	<true/>
+	<key>com.apple.security.files.user-selected.read-write</key>
 	<true/>
 	<key>com.apple.security.network.client</key>
 	<true/>

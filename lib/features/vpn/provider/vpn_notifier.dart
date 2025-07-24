@@ -65,20 +65,20 @@ class VpnNotifier extends _$VpnNotifier {
   Future<Either<Failure, String>> startVPN() async {
     // Check if private server is connected
     // also check for custom location server
-    final serverLocation = sl<LocalStorageService>().getServerLocations();
-    if (!isServerLocationSet) {
-      final result = await setPrivateServer(
-          serverLocation.serverType, serverLocation.serverName);
-      result.fold(
-        (failure) {
-          appLogger.error("Failed to set private server: $failure");
-        },
-        (success) {
-          appLogger.info("Private server set successfully: $success");
-        },
-      );
-      isServerLocationSet = true;
-    }
+    // final serverLocation = sl<LocalStorageService>().getServerLocations();
+    // if (!isServerLocationSet) {
+    //   final result = await setPrivateServer(
+    //       serverLocation.serverType, serverLocation.serverName);
+    //   result.fold(
+    //     (failure) {
+    //       appLogger.error("Failed to set private server: $failure");
+    //     },
+    //     (success) {
+    //       appLogger.info("Private server set successfully: $success");
+    //     },
+    //   );
+    //   isServerLocationSet = true;
+    // }
 
     final result = await ref.read(lanternServiceProvider).startVPN();
     return result;

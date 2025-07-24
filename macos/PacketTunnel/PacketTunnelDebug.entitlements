@@ -4,6 +4,11 @@
 <dict>
 	<key>com.apple.developer.networking.networkextension</key>
 	<array>
+		<string>dns-settings</string>
+		<string>content-filter-provider</string>
+		<string>app-proxy-provider</string>
+		<string>dns-proxy</string>
+		<string>relay</string>
 		<string>packet-tunnel-provider</string>
 	</array>
 	<key>com.apple.security.app-sandbox</key>

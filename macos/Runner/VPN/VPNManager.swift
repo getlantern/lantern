@@ -53,27 +53,19 @@ class VPNManager: VPNBase {
 
   private func setupVPN() async {
     do {
-      let managers: [NETunnelProviderManager] =
-        try await NETunnelProviderManager.loadAllFromPreferences()
-
+      let managers = try await NETunnelProviderManager.loadAllFromPreferences()
       if let existing = managers.first {
         self.manager = existing
-        appLogger.log("Found the manager")
-
+        appLogger.log("Found existing VPN manager")
       } else {
+        appLogger.log("No VPN profiles found, creating new profile")
         createNewProfile()
-        appLogger.log("Saving new profile to preferences..")
-        try? await self.manager?.saveToPreferences()
-        await setupVPN()
+        try await self.manager?.saveToPreferences()
+        try await self.manager?.loadFromPreferences()
+        appLogger.log("Created and loaded new VPN profile")
       }
     } catch {
-      appLogger.error(
-        "An unexpected error occurred while loading VPN configurations: \(error.localizedDescription)"
-      )
-      createNewProfile()
-      appLogger.log("Saving new profile to preferences..")
-      try? await self.manager?.saveToPreferences()
-      await setupVPN()
+      appLogger.error("Failed to set up VPN: \(error.localizedDescription)")
     }
   }
 
