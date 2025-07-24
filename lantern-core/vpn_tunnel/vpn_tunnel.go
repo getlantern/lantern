@@ -4,7 +4,6 @@ import (
 	"path/filepath"
 
 	"github.com/getlantern/lantern-outline/lantern-core/utils"
-	"github.com/getlantern/radiance"
 	"github.com/getlantern/radiance/servers"
 	"github.com/getlantern/radiance/vpn"
 	"github.com/sagernet/sing-box/experimental/libbox"
@@ -13,11 +12,7 @@ import (
 // StartVPN will start the VPN tunnel using the provided platform interface.
 // it pass empty string so it will connect to best server available.
 func StartVPN(platform libbox.PlatformInterface, options *utils.Opts) error {
-	return vpn.QuickConnect("", platform, radiance.Options{
-		DataDir:  options.DataDir,
-		LogDir:   filepath.Join(options.DataDir, "logs"),
-		LogLevel: options.LogLevel,
-	})
+	return vpn.QuickConnect("", platform, options.DataDir, filepath.Join(options.DataDir, "logs"), options.LogLevel)
 }
 
 // StopVPN will stop the VPN tunnel.
@@ -38,11 +33,7 @@ func ConnectToServer(group, tag string, platIfce libbox.PlatformInterface, optio
 	case "lanternLocation":
 		internalTag = servers.SGLantern
 	}
-	return vpn.ConnectToServer(internalTag, tag, platIfce, radiance.Options{
-		DataDir:  options.DataDir,
-		LogDir:   filepath.Join(options.DataDir, "logs"),
-		LogLevel: options.LogLevel,
-	})
+	return vpn.ConnectToServer(internalTag, tag, platIfce, options.DataDir, filepath.Join(options.DataDir, "logs"), options.LogLevel)
 }
 
 func IsVPNRunning() bool {
