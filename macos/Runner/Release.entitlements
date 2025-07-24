@@ -16,8 +16,10 @@
 	<true/>
 	<key>com.apple.developer.networking.networkextension</key>
 	<array>
-		<string>packet-tunnel-provider</string>
+		<string>packet-tunnel-provider-systemextension</string>
 	</array>
+	<key>com.apple.developer.system-extension.install</key>
+	<true/>
 	<key>com.apple.security.app-sandbox</key>
 	<false/>
 	<key>com.apple.security.files.user-selected.read-write</key>
