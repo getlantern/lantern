@@ -4,6 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/features/private_server/provider/private_server_notifier.dart';
 import 'package:lantern/features/private_server/provider_card.dart';
 import 'package:lantern/features/private_server/provider_carousel.dart';
@@ -27,6 +28,7 @@ class _PrivateServerSetupState extends ConsumerState<PrivateServerSetup> {
   @override
   Widget build(BuildContext context) {
     final serverState = ref.watch(privateServerNotifierProvider);
+    final featureFlags = ref.read(featureFlagNotifierProvider.notifier);
     useEffect(() {
       if (serverState.status == 'openBrowser') {
         //Since build method is called multiple times, we need to check if the browser is already opened
@@ -85,18 +87,19 @@ class _PrivateServerSetupState extends ConsumerState<PrivateServerSetup> {
             SizedBox(height: 16),
             ProviderCarousel(
               cards: [
-                ProviderCard(
-                  title: 'server_setup_gcp'.i18n,
-                  price: 'server_setup_gcp_price'.i18n.fill(['\$8']),
-                  provider: CloudProvider.googleCloud,
-                  onContinue: () {},
-                  icon: AppImagePaths.googleCloud,
-                ),
+                if (featureFlags.isGCPFlag())
+                  ProviderCard(
+                    title: 'server_setup_gcp'.i18n,
+                    price: 'server_setup_gcp_price'.i18n.fill(['\$8']),
+                    provider: CloudProvider.googleCloud,
+                    onContinue: () {},
+                    icon: AppImagePaths.googleCloud,
+                  ),
                 ProviderCard(
                   title: 'server_setup_do'.i18n,
                   price: 'server_setup_do_price'.i18n.fill(['\$8']),
                   provider: CloudProvider.digitalOcean,
-                  onContinue:onDigitalOceanTap,
+                  onContinue: onDigitalOceanTap,
                   icon: AppImagePaths.digitalOceanIcon,
                 ),
               ],

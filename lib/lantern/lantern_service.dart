@@ -405,4 +405,12 @@ class LanternService implements LanternCoreService {
     return _platformService.revokeServerManagerInstance(
         ip: ip, port: port, accessToken: accessToken, inviteName: inviteName);
   }
+
+  @override
+  Future<Either<Failure, String>> featureFlag() {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.featureFlag();
+    }
+    return _platformService.featureFlag();
+  }
 }

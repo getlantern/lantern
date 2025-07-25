@@ -822,6 +822,12 @@ class LanternFFIService implements LanternCoreService {
       return Left(e.toFailure());
     }
   }
+
+  @override
+  Future<Either<Failure, String>> featureFlag() {
+    // TODO: implement featureFlag
+    throw UnimplementedError();
+  }
 }
 
 void checkAPIError(dynamic result) {
