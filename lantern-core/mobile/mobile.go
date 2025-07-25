@@ -98,7 +98,6 @@ func SetupRadiance(opts *utils.Opts) error {
 			CreateUser()
 		}
 		FetchUserData()
-		go AvailableFeatures()
 	})
 
 	if innerErr != nil {
