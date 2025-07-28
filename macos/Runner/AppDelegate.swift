@@ -6,6 +6,7 @@ import app_links
 @main
 class AppDelegate: FlutterAppDelegate {
 
+  let systemExtensionManager = SystemExtensionManager.shared
   private let vpnManager = VPNManager.shared
 
   override func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -17,8 +18,6 @@ class AppDelegate: FlutterAppDelegate {
   }
 
   override func applicationDidFinishLaunching(_ aNotification: Notification) {
-
-    let systemExtensionManager = SystemExtensionManager()
     systemExtensionManager.activateExtension()
 
     guard let controller = mainFlutterWindow?.contentViewController as? FlutterViewController else {
@@ -26,7 +25,6 @@ class AppDelegate: FlutterAppDelegate {
     }
     RegisterGeneratedPlugins(registry: controller)
 
-    // Register event handlers
     registerEventHandlers(controller: controller)
 
     // Setup native method channel
@@ -35,7 +33,6 @@ class AppDelegate: FlutterAppDelegate {
     // Initialize directories and working paths
     setupFileSystem()
 
-    // set radiance
     setupRadiance()
     NSSetUncaughtExceptionHandler { exception in
       print(exception.reason)

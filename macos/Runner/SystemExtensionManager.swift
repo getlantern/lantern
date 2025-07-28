@@ -20,6 +20,10 @@ extension Notification.Name {
 // This class should conform to OSSystemExtensionRequestDelegate
 class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
 
+  static let shared = SystemExtensionManager()
+
+  private override init() { super.init() }
+
   let logger = Logger(subsystem: "org.getlantern.lantern", category: "SystemExtensionManager")
   private var currentRequest: OSSystemExtensionRequest?
   static let tunnelBundleID = "org.getlantern.lantern.PacketTunnel"

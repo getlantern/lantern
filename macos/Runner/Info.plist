@@ -9,6 +9,8 @@
     </dict>
 	<key>NSRequiresAquaSystemAppearance</key>
 	<true/>
+	<key>NSSystemExtensionUsageDescription</key>
+	<string>Lantern needs to install a system extension to create a secure VPN tunnel.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleExecutable</key>

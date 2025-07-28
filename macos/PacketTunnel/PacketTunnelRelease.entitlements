@@ -12,8 +12,6 @@
 	<array>
 		<string>group.getlantern.lantern</string>
 	</array>
-	<key>com.apple.security.cs.allow-jit</key>
-	<true/>
 	<key>com.apple.security.network.client</key>
 	<true/>
 	<key>com.apple.security.network.server</key>
