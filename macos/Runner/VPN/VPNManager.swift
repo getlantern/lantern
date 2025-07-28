@@ -102,7 +102,7 @@ class VPNManager: VPNBase {
     let options = ["netEx.StartReason": NSString("User Initiated")]
     try self.manager?.connection.startVPNTunnel(options: options)
 
-    self.manager?.isOnDemandEnabled = true
+    self.manager?.isOnDemandEnabled = false
     try await self.saveThenLoadProvider()
   }
 
