@@ -18,8 +18,8 @@ class AppDelegate: FlutterAppDelegate {
 
   override func applicationDidFinishLaunching(_ aNotification: Notification) {
 
-//    let systemExtensionManager = SystemExtensionManager()
-//    systemExtensionManager.activateExtension()
+    let systemExtensionManager = SystemExtensionManager()
+    systemExtensionManager.activateExtension()
 
     guard let controller = mainFlutterWindow?.contentViewController as? FlutterViewController else {
       fatalError("contentViewController is not a FlutterViewController")

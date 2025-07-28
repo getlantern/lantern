@@ -35,14 +35,14 @@
 		33CC10F62044A3C60003C045 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 33CC10F42044A3C60003C045 /* MainMenu.xib */; };
 		33CC11132044BFA00003C045 /* MainFlutterWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CC11122044BFA00003C045 /* MainFlutterWindow.swift */; };
 		5542FA9C165A7489A54D69E6 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3FD9DACB5BA763A29C28870C /* Pods_Runner.framework */; };
+		5F0B0BE42E37EE7E00524F7D /* Liblantern.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 293C302F2DEF247F00691115 /* Liblantern.xcframework */; };
+		5F0B0BE52E37EE7E00524F7D /* Liblantern.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 293C302F2DEF247F00691115 /* Liblantern.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		5F31973F2E32BA7900FCCE66 /* SystemExtensionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F31973E2E32BA5B00FCCE66 /* SystemExtensionManager.swift */; };
-		5F3197452E32D40B00FCCE66 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 29952B052DE79CB200640E7F /* NetworkExtension.framework */; };
-		5F31974D2E32D40B00FCCE66 /* PacketTunnel.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5F3197442E32D40B00FCCE66 /* PacketTunnel.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		5F3197612E32D41500FCCE66 /* Liblantern.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 293C302F2DEF247F00691115 /* Liblantern.xcframework */; };
-		5F3197622E32D41500FCCE66 /* Liblantern.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 293C302F2DEF247F00691115 /* Liblantern.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		5F3197D02E32D58200FCCE66 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C30602DEF68B300691115 /* Logger.swift */; };
-		5F3197D12E32D58200FCCE66 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B402DE7A5F300640E7F /* KeychainService.swift */; };
-		5F3197D22E32D58200FCCE66 /* FilePath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B412DE7A5F300640E7F /* FilePath.swift */; };
+		5F6809CA2E3782480080A33A /* Liblantern.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 293C302F2DEF247F00691115 /* Liblantern.xcframework */; };
+		5F6809CB2E3782480080A33A /* Liblantern.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 293C302F2DEF247F00691115 /* Liblantern.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		5FF3F90D2E37E50600EF2BF0 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5FF3F90C2E37E50600EF2BF0 /* Info.plist */; };
+		5FF3F9492E37E9F900EF2BF0 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 29952B052DE79CB200640E7F /* NetworkExtension.framework */; };
+		5FF3F9532E37E9F900EF2BF0 /* org.getlantern.lantern.PacketTunnel.systemextension in Embed System Extensions */ = {isa = PBXBuildFile; fileRef = 5FF3F9482E37E9F800EF2BF0 /* org.getlantern.lantern.PacketTunnel.systemextension */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		6F8419314D5C43EF38859D72 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 831CC47A1A5EE5E9DF45C2BC /* Pods_RunnerTests.framework */; };
 		78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */; };
 /* End PBXBuildFile section */
@@ -62,36 +62,47 @@
 			remoteGlobalIDString = 33CC111A2044C6BA0003C045;
 			remoteInfo = FLX;
 		};
-		5F31974B2E32D40B00FCCE66 /* PBXContainerItemProxy */ = {
+		5FF3F97F2E37EAC700EF2BF0 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 33CC10E52044A3C60003C045 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 5F3197432E32D40B00FCCE66;
+			remoteGlobalIDString = 5FF3F9472E37E9F800EF2BF0;
 			remoteInfo = PacketTunnel;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		5F3197532E32D40B00FCCE66 /* Embed Foundation Extensions */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 13;
-			files = (
-				5F31974D2E32D40B00FCCE66 /* PacketTunnel.appex in Embed Foundation Extensions */,
-			);
-			name = "Embed Foundation Extensions";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		5F3197632E32D41600FCCE66 /* Embed Frameworks */ = {
+		5F0B0BE62E37EE7E00524F7D /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				5F3197622E32D41500FCCE66 /* Liblantern.xcframework in Embed Frameworks */,
+				5F0B0BE52E37EE7E00524F7D /* Liblantern.xcframework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5F6809CC2E3782480080A33A /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				5F6809CB2E3782480080A33A /* Liblantern.xcframework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5F680A622E379E630080A33A /* Embed System Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(SYSTEM_EXTENSIONS_FOLDER_PATH)";
+			dstSubfolderSpec = 16;
+			files = (
+				5FF3F9532E37E9F900EF2BF0 /* org.getlantern.lantern.PacketTunnel.systemextension in Embed System Extensions */,
+			);
+			name = "Embed System Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -107,13 +118,6 @@
 		29952B052DE79CB200640E7F /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
 		29952B402DE7A5F300640E7F /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
 		29952B412DE7A5F300640E7F /* FilePath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilePath.swift; sourceTree = "<group>"; };
-		2995B4202DF0AA4700429FE9 /* Extension+RunBlocking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Extension+RunBlocking.swift"; sourceTree = "<group>"; };
-		2995B4212DF0AA4700429FE9 /* ExtensionPlatformInterface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionPlatformInterface.swift; sourceTree = "<group>"; };
-		2995B4222DF0AA4700429FE9 /* ExtensionProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionProvider.swift; sourceTree = "<group>"; };
-		2995B4242DF0AA4700429FE9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		2995B4252DF0AA4700429FE9 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
-		2995B4262DF0AA4700429FE9 /* PacketTunnel.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PacketTunnel.entitlements; sourceTree = "<group>"; };
-		2995B4272DF0AA4700429FE9 /* PacketTunnel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PacketTunnel.swift; sourceTree = "<group>"; };
 		331C80D5294CF71000263BE5 /* RunnerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RunnerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		331C80D7294CF71000263BE5 /* RunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunnerTests.swift; sourceTree = "<group>"; };
 		333000ED22D3DE5D00554162 /* Warnings.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Warnings.xcconfig; sourceTree = "<group>"; };
@@ -133,11 +137,10 @@
 		3FD9DACB5BA763A29C28870C /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		4062AE3F330289DCB86FAD4E /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
 		5F31973E2E32BA5B00FCCE66 /* SystemExtensionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemExtensionManager.swift; sourceTree = "<group>"; };
-		5F3197442E32D40B00FCCE66 /* PacketTunnel.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PacketTunnel.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		5F3198092E32D77F00FCCE66 /* liblantern.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = liblantern.dylib; path = Frameworks/liblantern.dylib; sourceTree = "<group>"; };
-		5F64C2292E0D44B900B57E96 /* PacketTunnelRelease.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PacketTunnelRelease.entitlements; sourceTree = "<group>"; };
 		5FD28A9A2DFAEB1B009AE259 /* RunnerDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = RunnerDebug.entitlements; sourceTree = "<group>"; };
-		5FD28A9B2DFAEB5B009AE259 /* PacketTunnelDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PacketTunnelDebug.entitlements; sourceTree = "<group>"; };
+		5FF3F90C2E37E50600EF2BF0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		5FF3F9482E37E9F800EF2BF0 /* org.getlantern.lantern.PacketTunnel.systemextension */ = {isa = PBXFileReference; explicitFileType = "wrapper.system-extension"; includeInIndex = 0; path = org.getlantern.lantern.PacketTunnel.systemextension; sourceTree = BUILT_PRODUCTS_DIR; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 		831CC47A1A5EE5E9DF45C2BC /* Pods_RunnerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_RunnerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		967C821650324F795ACA825A /* Pods-RunnerTests.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.profile.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.profile.xcconfig"; sourceTree = "<group>"; };
@@ -148,20 +151,20 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		5F31974E2E32D40B00FCCE66 /* Exceptions for "PacketTunnel" folder in "PacketTunnel" target */ = {
+		5FF3F9542E37E9F900EF2BF0 /* Exceptions for "PacketTunnel" folder in "PacketTunnel" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = 5F3197432E32D40B00FCCE66 /* PacketTunnel */;
+			target = 5FF3F9472E37E9F800EF2BF0 /* PacketTunnel */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		5F3197462E32D40B00FCCE66 /* PacketTunnel */ = {
+		5FF3F94A2E37E9F900EF2BF0 /* PacketTunnel */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				5F31974E2E32D40B00FCCE66 /* Exceptions for "PacketTunnel" folder in "PacketTunnel" target */,
+				5FF3F9542E37E9F900EF2BF0 /* Exceptions for "PacketTunnel" folder in "PacketTunnel" target */,
 			);
 			explicitFileTypes = {
 			};
@@ -187,15 +190,16 @@
 			files = (
 				78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */,
 				5542FA9C165A7489A54D69E6 /* Pods_Runner.framework in Frameworks */,
+				5F6809CA2E3782480080A33A /* Liblantern.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		5F3197412E32D40B00FCCE66 /* Frameworks */ = {
+		5FF3F9452E37E9F800EF2BF0 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5F3197612E32D41500FCCE66 /* Liblantern.xcframework in Frameworks */,
-				5F3197452E32D40B00FCCE66 /* NetworkExtension.framework in Frameworks */,
+				5F0B0BE42E37EE7E00524F7D /* Liblantern.xcframework in Frameworks */,
+				5FF3F9492E37E9F900EF2BF0 /* NetworkExtension.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -230,30 +234,6 @@
 			path = Shared;
 			sourceTree = "<group>";
 		};
-		2995B4232DF0AA4700429FE9 /* SingBox */ = {
-			isa = PBXGroup;
-			children = (
-				2995B4202DF0AA4700429FE9 /* Extension+RunBlocking.swift */,
-				2995B4212DF0AA4700429FE9 /* ExtensionPlatformInterface.swift */,
-				2995B4222DF0AA4700429FE9 /* ExtensionProvider.swift */,
-			);
-			path = SingBox;
-			sourceTree = "<group>";
-		};
-		2995B4282DF0AA4700429FE9 /* PacketTunnel */ = {
-			isa = PBXGroup;
-			children = (
-				5F64C2292E0D44B900B57E96 /* PacketTunnelRelease.entitlements */,
-				5FD28A9B2DFAEB5B009AE259 /* PacketTunnelDebug.entitlements */,
-				2995B4232DF0AA4700429FE9 /* SingBox */,
-				2995B4242DF0AA4700429FE9 /* Info.plist */,
-				2995B4252DF0AA4700429FE9 /* main.swift */,
-				2995B4262DF0AA4700429FE9 /* PacketTunnel.entitlements */,
-				2995B4272DF0AA4700429FE9 /* PacketTunnel.swift */,
-			);
-			path = PacketTunnel;
-			sourceTree = "<group>";
-		};
 		331C80D6294CF71000263BE5 /* RunnerTests */ = {
 			isa = PBXGroup;
 			children = (
@@ -280,8 +260,7 @@
 				33FAB671232836740065AC1E /* Runner */,
 				33CEB47122A05771004F2AC0 /* Flutter */,
 				331C80D6294CF71000263BE5 /* RunnerTests */,
-				2995B4282DF0AA4700429FE9 /* PacketTunnel */,
-				5F3197462E32D40B00FCCE66 /* PacketTunnel */,
+				5FF3F94A2E37E9F900EF2BF0 /* PacketTunnel */,
 				33CC10EE2044A3C60003C045 /* Products */,
 				D73912EC22F37F3D000D13A0 /* Frameworks */,
 				FED29616DB27141FD4AD9EAF /* Pods */,
@@ -293,7 +272,7 @@
 			children = (
 				33CC10ED2044A3C60003C045 /* Lantern.app */,
 				331C80D5294CF71000263BE5 /* RunnerTests.xctest */,
-				5F3197442E32D40B00FCCE66 /* PacketTunnel.appex */,
+				5FF3F9482E37E9F800EF2BF0 /* org.getlantern.lantern.PacketTunnel.systemextension */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -333,6 +312,7 @@
 				33E51914231749380026EE4D /* Release.entitlements */,
 				33CC11242044D66E0003C045 /* Resources */,
 				33BA886A226E78AF003329D5 /* Configs */,
+				5FF3F90C2E37E50600EF2BF0 /* Info.plist */,
 			);
 			path = Runner;
 			sourceTree = "<group>";
@@ -394,13 +374,14 @@
 				33CC10EB2044A3C60003C045 /* Resources */,
 				3399D490228B24CF009A79C7 /* ShellScript */,
 				8E19D0FE18076EDF51417438 /* [CP] Embed Pods Frameworks */,
-				5F3197532E32D40B00FCCE66 /* Embed Foundation Extensions */,
+				5F6809CC2E3782480080A33A /* Embed Frameworks */,
+				5F680A622E379E630080A33A /* Embed System Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				5FF3F9802E37EAC700EF2BF0 /* PBXTargetDependency */,
 				33CC11202044C79F0003C045 /* PBXTargetDependency */,
-				5F31974C2E32D40B00FCCE66 /* PBXTargetDependency */,
 			);
 			name = Runner;
 			packageProductDependencies = (
@@ -410,26 +391,26 @@
 			productReference = 33CC10ED2044A3C60003C045 /* Lantern.app */;
 			productType = "com.apple.product-type.application";
 		};
-		5F3197432E32D40B00FCCE66 /* PacketTunnel */ = {
+		5FF3F9472E37E9F800EF2BF0 /* PacketTunnel */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 5F31974F2E32D40B00FCCE66 /* Build configuration list for PBXNativeTarget "PacketTunnel" */;
+			buildConfigurationList = 5FF3F9552E37E9F900EF2BF0 /* Build configuration list for PBXNativeTarget "PacketTunnel" */;
 			buildPhases = (
-				5F3197402E32D40B00FCCE66 /* Sources */,
-				5F3197412E32D40B00FCCE66 /* Frameworks */,
-				5F3197422E32D40B00FCCE66 /* Resources */,
-				5F3197632E32D41600FCCE66 /* Embed Frameworks */,
+				5FF3F9442E37E9F800EF2BF0 /* Sources */,
+				5FF3F9452E37E9F800EF2BF0 /* Frameworks */,
+				5FF3F9462E37E9F800EF2BF0 /* Resources */,
+				5F0B0BE62E37EE7E00524F7D /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				5F3197462E32D40B00FCCE66 /* PacketTunnel */,
+				5FF3F94A2E37E9F900EF2BF0 /* PacketTunnel */,
 			);
 			name = PacketTunnel;
 			productName = PacketTunnel;
-			productReference = 5F3197442E32D40B00FCCE66 /* PacketTunnel.appex */;
-			productType = "com.apple.product-type.app-extension";
+			productReference = 5FF3F9482E37E9F800EF2BF0 /* org.getlantern.lantern.PacketTunnel.systemextension */;
+			productType = "com.apple.product-type.system-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -459,7 +440,7 @@
 						CreatedOnToolsVersion = 9.2;
 						ProvisioningStyle = Manual;
 					};
-					5F3197432E32D40B00FCCE66 = {
+					5FF3F9472E37E9F800EF2BF0 = {
 						CreatedOnToolsVersion = 16.4;
 					};
 				};
@@ -483,7 +464,7 @@
 				33CC10EC2044A3C60003C045 /* Runner */,
 				331C80D4294CF70F00263BE5 /* RunnerTests */,
 				33CC111A2044C6BA0003C045 /* Flutter Assemble */,
-				5F3197432E32D40B00FCCE66 /* PacketTunnel */,
+				5FF3F9472E37E9F800EF2BF0 /* PacketTunnel */,
 			);
 		};
 /* End PBXProject section */
@@ -502,10 +483,11 @@
 			files = (
 				33CC10F62044A3C60003C045 /* MainMenu.xib in Resources */,
 				33CC10F32044A3C60003C045 /* Assets.xcassets in Resources */,
+				5FF3F90D2E37E50600EF2BF0 /* Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		5F3197422E32D40B00FCCE66 /* Resources */ = {
+		5FF3F9462E37E9F800EF2BF0 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -643,13 +625,10 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		5F3197402E32D40B00FCCE66 /* Sources */ = {
+		5FF3F9442E37E9F800EF2BF0 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5F3197D02E32D58200FCCE66 /* Logger.swift in Sources */,
-				5F3197D12E32D58200FCCE66 /* KeychainService.swift in Sources */,
-				5F3197D22E32D58200FCCE66 /* FilePath.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -666,10 +645,10 @@
 			target = 33CC111A2044C6BA0003C045 /* Flutter Assemble */;
 			targetProxy = 33CC111F2044C79F0003C045 /* PBXContainerItemProxy */;
 		};
-		5F31974C2E32D40B00FCCE66 /* PBXTargetDependency */ = {
+		5FF3F9802E37EAC700EF2BF0 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 5F3197432E32D40B00FCCE66 /* PacketTunnel */;
-			targetProxy = 5F31974B2E32D40B00FCCE66 /* PBXContainerItemProxy */;
+			target = 5FF3F9472E37E9F800EF2BF0 /* PacketTunnel */;
+			targetProxy = 5FF3F97F2E37EAC700EF2BF0 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -775,6 +754,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACH_O_TYPE = mh_bundle;
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
@@ -870,6 +850,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACH_O_TYPE = mh_bundle;
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -920,6 +901,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACH_O_TYPE = mh_bundle;
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
@@ -966,7 +948,6 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Runner/Release.entitlements;
 				CODE_SIGN_IDENTITY = "Developer ID Application";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = "";
@@ -985,7 +966,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "macOS distribution";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = org.getlantern.lantern;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
@@ -1008,7 +989,7 @@
 			};
 			name = Release;
 		};
-		5F3197502E32D40B00FCCE66 /* Debug */ = {
+		5FF3F9562E37E9F900EF2BF0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -1043,17 +1024,10 @@
 				MARKETING_VERSION = 1.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					"-framework",
-					"\"Foundation\"",
-					"-framework",
-					"\"NetworkExtension\"",
-					"-lc++",
-				);
 				PRODUCT_BUNDLE_IDENTIFIER = org.getlantern.lantern.PacketTunnel;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "$(inherited)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				REGISTER_APP_GROUPS = YES;
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -1061,7 +1035,7 @@
 			};
 			name = Debug;
 		};
-		5F3197512E32D40B00FCCE66 /* Release */ = {
+		5FF3F9572E37E9F900EF2BF0 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -1074,11 +1048,12 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_ENTITLEMENTS = PacketTunnel/PacketTunnelRelease.entitlements;
-				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = ACZRKC3LQ9;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
@@ -1096,23 +1071,18 @@
 				MACOSX_DEPLOYMENT_TARGET = 15.5;
 				MARKETING_VERSION = 1.0;
 				MTL_FAST_MATH = YES;
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					"-framework",
-					"\"Foundation\"",
-					"-framework",
-					"\"NetworkExtension\"",
-					"-lc++",
-				);
 				PRODUCT_BUNDLE_IDENTIFIER = org.getlantern.lantern.PacketTunnel;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "$(inherited)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = org.getlantern.lantern.PacketTunnel;
+				REGISTER_APP_GROUPS = YES;
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
-		5F3197522E32D40B00FCCE66 /* Profile */ = {
+		5FF3F9582E37E9F900EF2BF0 /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -1127,7 +1097,7 @@
 				CODE_SIGN_ENTITLEMENTS = PacketTunnel/PacketTunnel.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = ACZRKC3LQ9;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
@@ -1145,16 +1115,9 @@
 				MACOSX_DEPLOYMENT_TARGET = 15.5;
 				MARKETING_VERSION = 1.0;
 				MTL_FAST_MATH = YES;
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					"-framework",
-					"\"Foundation\"",
-					"-framework",
-					"\"NetworkExtension\"",
-					"-lc++",
-				);
 				PRODUCT_BUNDLE_IDENTIFIER = org.getlantern.lantern.PacketTunnel;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "$(inherited)";
+				REGISTER_APP_GROUPS = YES;
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -1204,12 +1167,12 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		5F31974F2E32D40B00FCCE66 /* Build configuration list for PBXNativeTarget "PacketTunnel" */ = {
+		5FF3F9552E37E9F900EF2BF0 /* Build configuration list for PBXNativeTarget "PacketTunnel" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				5F3197502E32D40B00FCCE66 /* Debug */,
-				5F3197512E32D40B00FCCE66 /* Release */,
-				5F3197522E32D40B00FCCE66 /* Profile */,
+				5FF3F9562E37E9F900EF2BF0 /* Debug */,
+				5FF3F9572E37E9F900EF2BF0 /* Release */,
+				5FF3F9582E37E9F900EF2BF0 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -3,9 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>com.apple.developer.networking.networkextension</key>
-	<array>
-		<string>packet-tunnel-provider</string>
-	</array>
+	<array/>
 	<key>com.apple.security.app-sandbox</key>
 	<true/>
 	<key>com.apple.security.application-groups</key>
