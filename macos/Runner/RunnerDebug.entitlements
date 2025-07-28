@@ -8,8 +8,6 @@
 	</array>
 	<key>com.apple.security.app-sandbox</key>
 	<false/>
-	<key>com.apple.security.cs.allow-jit</key>
-	<true/>
 	<key>com.apple.security.files.system.read-write</key>
 	<true/>
 	<key>com.apple.security.network.client</key>

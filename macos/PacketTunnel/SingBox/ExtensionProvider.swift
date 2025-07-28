@@ -23,7 +23,7 @@ import OSLog
   import CoreLocation
 #endif
 
-class ExtensionProvider: NEPacketTunnelProvider {
+public class ExtensionProvider: NEPacketTunnelProvider {
   let appLogger = Logger(subsystem: "org.getlantern.lantern", category: "ExtensionProvider")
   private var platformInterface: ExtensionPlatformInterface!
 

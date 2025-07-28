@@ -4,24 +4,13 @@
 <dict>
 	<key>com.apple.developer.networking.networkextension</key>
 	<array>
-		<string>dns-settings</string>
-		<string>content-filter-provider</string>
-		<string>app-proxy-provider</string>
-		<string>dns-proxy</string>
-		<string>relay</string>
 		<string>packet-tunnel-provider</string>
 	</array>
 	<key>com.apple.security.app-sandbox</key>
-	<false/>
+	<true/>
 	<key>com.apple.security.application-groups</key>
 	<array>
 		<string>group.getlantern.lantern</string>
 	</array>
-	<key>com.apple.security.cs.allow-jit</key>
-	<true/>
-	<key>com.apple.security.network.client</key>
-	<true/>
-	<key>com.apple.security.network.server</key>
-	<true/>
 </dict>
 </plist>

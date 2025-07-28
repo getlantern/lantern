@@ -24,6 +24,11 @@
 		039A061E2E24D89700B64255 /* StatusEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 039A061D2E24D89700B64255 /* StatusEventHandler.swift */; };
 		039A061F2E24DB6000B64255 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B402DE7A5F300640E7F /* KeychainService.swift */; };
 		039A06202E24DB6500B64255 /* FilePath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B412DE7A5F300640E7F /* FilePath.swift */; };
+		03C1121F2E37AA1200172A22 /* Extension+RunBlocking.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2995B4202DF0AA4700429FE9 /* Extension+RunBlocking.swift */; };
+		03C112202E37AA1800172A22 /* ExtensionPlatformInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2995B4212DF0AA4700429FE9 /* ExtensionPlatformInterface.swift */; };
+		03C112212E37AA1C00172A22 /* ExtensionProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2995B4222DF0AA4700429FE9 /* ExtensionProvider.swift */; };
+		03C112222E37AA2000172A22 /* PacketTunnelProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2995B4272DF0AA4700429FE9 /* PacketTunnelProvider.swift */; };
+		03C112232E37AA2700172A22 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2995B4252DF0AA4700429FE9 /* main.swift */; };
 		293C305A2DEF649500691115 /* MethodHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C30552DEF649500691115 /* MethodHandler.swift */; };
 		293C305E2DEF67EB00691115 /* VPNManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C305C2DEF67EB00691115 /* VPNManager.swift */; };
 		293C305F2DEF67EB00691115 /* VPNBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C305B2DEF67EB00691115 /* VPNBase.swift */; };
@@ -113,7 +118,7 @@
 		2995B4242DF0AA4700429FE9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		2995B4252DF0AA4700429FE9 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		2995B4262DF0AA4700429FE9 /* PacketTunnel.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PacketTunnel.entitlements; sourceTree = "<group>"; };
-		2995B4272DF0AA4700429FE9 /* PacketTunnel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PacketTunnel.swift; sourceTree = "<group>"; };
+		2995B4272DF0AA4700429FE9 /* PacketTunnelProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PacketTunnelProvider.swift; sourceTree = "<group>"; };
 		331C80D5294CF71000263BE5 /* RunnerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RunnerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		331C80D7294CF71000263BE5 /* RunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunnerTests.swift; sourceTree = "<group>"; };
 		333000ED22D3DE5D00554162 /* Warnings.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Warnings.xcconfig; sourceTree = "<group>"; };
@@ -146,31 +151,6 @@
 		CAEDFD45C7CA749159F267FA /* Pods-RunnerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release.xcconfig"; sourceTree = "<group>"; };
 		EDC1670D3723C38E9F4EBE3E /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		5F31974E2E32D40B00FCCE66 /* Exceptions for "PacketTunnel" folder in "PacketTunnel" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 5F3197432E32D40B00FCCE66 /* PacketTunnel */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		5F3197462E32D40B00FCCE66 /* PacketTunnel */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				5F31974E2E32D40B00FCCE66 /* Exceptions for "PacketTunnel" folder in "PacketTunnel" target */,
-			);
-			explicitFileTypes = {
-			};
-			explicitFolders = (
-			);
-			path = PacketTunnel;
-			sourceTree = "<group>";
-		};
-/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		331C80D2294CF70F00263BE5 /* Frameworks */ = {
@@ -249,7 +229,7 @@
 				2995B4242DF0AA4700429FE9 /* Info.plist */,
 				2995B4252DF0AA4700429FE9 /* main.swift */,
 				2995B4262DF0AA4700429FE9 /* PacketTunnel.entitlements */,
-				2995B4272DF0AA4700429FE9 /* PacketTunnel.swift */,
+				2995B4272DF0AA4700429FE9 /* PacketTunnelProvider.swift */,
 			);
 			path = PacketTunnel;
 			sourceTree = "<group>";
@@ -281,7 +261,6 @@
 				33CEB47122A05771004F2AC0 /* Flutter */,
 				331C80D6294CF71000263BE5 /* RunnerTests */,
 				2995B4282DF0AA4700429FE9 /* PacketTunnel */,
-				5F3197462E32D40B00FCCE66 /* PacketTunnel */,
 				33CC10EE2044A3C60003C045 /* Products */,
 				D73912EC22F37F3D000D13A0 /* Frameworks */,
 				FED29616DB27141FD4AD9EAF /* Pods */,
@@ -422,9 +401,6 @@
 			buildRules = (
 			);
 			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				5F3197462E32D40B00FCCE66 /* PacketTunnel */,
 			);
 			name = PacketTunnel;
 			productName = PacketTunnel;
@@ -647,8 +623,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				03C1121F2E37AA1200172A22 /* Extension+RunBlocking.swift in Sources */,
 				5F3197D02E32D58200FCCE66 /* Logger.swift in Sources */,
+				03C112232E37AA2700172A22 /* main.swift in Sources */,
+				03C112212E37AA1C00172A22 /* ExtensionProvider.swift in Sources */,
+				03C112202E37AA1800172A22 /* ExtensionPlatformInterface.swift in Sources */,
 				5F3197D12E32D58200FCCE66 /* KeychainService.swift in Sources */,
+				03C112222E37AA2000172A22 /* PacketTunnelProvider.swift in Sources */,
 				5F3197D22E32D58200FCCE66 /* FilePath.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -795,7 +776,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = ACZRKC3LQ9;
-				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_HARDENED_RUNTIME = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Lantern;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
@@ -939,7 +920,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = ACZRKC3LQ9;
-				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_HARDENED_RUNTIME = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Lantern;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
@@ -971,7 +952,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = ACZRKC3LQ9;
-				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_HARDENED_RUNTIME = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Lantern;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
@@ -1025,7 +1006,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = ACZRKC3LQ9;
-				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_HARDENED_RUNTIME = NO;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -1079,7 +1060,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
-				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_HARDENED_RUNTIME = NO;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -1128,7 +1109,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
-				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_HARDENED_RUNTIME = NO;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
