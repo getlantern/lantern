@@ -57,7 +57,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     MobileStartVPN(&error)
     if error != nil {
       appLogger.error("error while starting tunnel \(error?.localizedDescription ?? "")")
-
+        cancelTunnelWithError(error)
     }
   }
 
