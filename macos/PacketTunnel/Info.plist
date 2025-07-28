@@ -5,36 +5,36 @@
 	<key>CFBundleIdentifier</key>
 	<string>org.getlantern.lantern.PacketTunnel</string>
 	<key>CFBundleName</key>
-	<string>Lantern Packet Tunnel</string>
-	<key>CFBundleVersion</key>
-	<string>1</string>
-	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
+	<string>PacketTunnel</string>
 	<key>CFBundlePackageType</key>
 	<string>XPC!</string>
-    <key>NSSystemExtensionUsageDescription</key>
-    <string>Lantern requires a system extension to manage secure VPN connections on your Mac.</string>
-    <key>NetworkExtension</key>
-    <dict>
-        <key>NEMachServiceName</key>
-        <string>group.getlantern.lantern.packettunnel</string>
-        <key>NEProviderClasses</key>
-        <dict>
-            <key>com.apple.networkextension.packet-tunnel</key>
-            <string>$(PRODUCT_MODULE_NAME).PacketTunnelProvider</string>
-        </dict>
-    </dict>
-    <key>NSExtension</key>
-    <dict>
-        <key>NSExtensionAttributes</key>
-        <dict>
-            <key>SystemExtensionType</key>
-            <string>com.apple.system-extension.network-extension</string>
-        </dict>
-        <key>NSExtensionPointIdentifier</key>
-        <string>com.apple.system.extension.network-extension</string>
-        <key>NSExtensionPrincipalClass</key>
-        <string>$(PRODUCT_MODULE_NAME).PacketTunnelProvider</string>
-    </dict>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>NSExtension</key>
+	<dict>
+		<key>NSExtensionAttributes</key>
+		<dict>
+			<key>SystemExtensionType</key>
+			<string>com.apple.system-extension.network-extension</string>
+		</dict>
+		<key>NSExtensionPointIdentifier</key>
+		<string>com.apple.system.extension.network-extension</string>
+		<key>NSExtensionPrincipalClass</key>
+		<string>$(PRODUCT_MODULE_NAME).PacketTunnelProvider</string>
+	</dict>
+	<key>NSSystemExtensionUsageDescription</key>
+	<string>Lantern requires a system extension to manage secure VPN connections on your Mac.</string>
+	<key>NetworkExtension</key>
+	<dict>
+		<key>NEMachServiceName</key>
+		<string>group.getlantern.lantern.packettunnel</string>
+		<key>NEProviderClasses</key>
+		<dict>
+			<key>com.apple.networkextension.packet-tunnel</key>
+			<string>$(PRODUCT_MODULE_NAME).PacketTunnelProvider</string>
+		</dict>
+	</dict>
 </dict>
 </plist>
