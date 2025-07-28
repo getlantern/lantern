@@ -1,14 +1,7 @@
-//
-//  PacketTunnelProvider.swift
-//  PacketTunnel
-//
-//  Created by Todd B on 7/28/25.
-//
-
 import NetworkExtension
 import OSLog
 
-class PacketTunnelProvider: ExtensionProvider {
+public class PacketTunnelProvider: ExtensionProvider {
 
     static let logger = Logger(
         subsystem: "org.getlantern.lantern", category: "PacketTunnelProvider")
@@ -21,7 +14,7 @@ class PacketTunnelProvider: ExtensionProvider {
         super.init()
     }
 
-    override func startTunnel(options: [String: NSObject]?) async throws {
+    public override func startTunnel(options: [String: NSObject]?) async throws {
         logger.log("PacketTunnelProvider starting tunnel")
         try await super.startTunnel(options: options)
     }

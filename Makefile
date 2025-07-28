@@ -33,7 +33,8 @@ MACOS_FRAMEWORK_BUILD := $(BIN_DIR)/macos/$(MACOS_FRAMEWORK)
 MACOS_DEBUG_BUILD := $(BUILD_DIR)/macos/Runner.app
 PACKET_TUNNEL_DIR := $(DARWIN_RELEASE_BUILD)/Contents/PlugIns/PacketTunnel.appex
 SYSTEM_EXTENSION_DIR := $(DARWIN_RELEASE_DIR)/$(DARWIN_APP_NAME)/Contents/Library/SystemExtensions/PacketTunnel.systemextension
-PACKET_ENTITLEMENTS := macos/PacketTunnel/PacketTunnel.entitlements
+PACKET_ENTITLEMENTS := macos/PacketTunnel/PacketTunnelRelease.entitlements
+
 
 LINUX_LIB := $(LANTERN_LIB_NAME).so
 LINUX_LIB_AMD64 := $(BIN_DIR)/linux-amd64/$(LANTERN_LIB_NAME).so
@@ -88,7 +89,7 @@ GOMOBILE_REPOS = \
 SIGN_ID="Developer ID Application: Brave New Software Project, Inc (ACZRKC3LQ9)"
 
 define osxcodesign
-	codesign --options runtime --strict --timestamp --force --entitlements $(1) -s $(SIGN_ID) -v $(2)
+	codesign --deep --options runtime --strict --timestamp --force --entitlements $(1) -s $(SIGN_ID) -v $(2)
 endef
 
 get-command = $(shell which="$$(which $(1) 2> /dev/null)" && if [[ ! -z "$$which" ]]; then printf %q "$$which"; fi)
@@ -214,8 +215,7 @@ sign-app:
 	$(call osxcodesign, $(PACKET_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR)/Contents/Frameworks/Liblantern.framework)
 	$(call osxcodesign, $(PACKET_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR)/Contents/MacOS/PacketTunnel)
 	$(call osxcodesign, $(PACKET_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR))
-# 	$(call osxcodesign, $(MACOS_ENTITLEMENTS), $(DARWIN_RELEASE_BUILD)/Contents/Frameworks/Liblantern.framework)
-# 	$(call osxcodesign, $(MACOS_ENTITLEMENTS), $(DARWIN_RELEASE_BUILD))
+	$(call osxcodesign, $(MACOS_ENTITLEMENTS), $(DARWIN_RELEASE_BUILD))
 
 package-macos: require-appdmg
 	appdmg appdmg.json $(MACOS_INSTALLER)

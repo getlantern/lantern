@@ -6,7 +6,8 @@ import app_links
 @main
 class AppDelegate: FlutterAppDelegate {
 
-  let systemExtensionManager = SystemExtensionManager.shared
+  private let systemExtensionManager = SystemExtensionManager.shared
+
   private let vpnManager = VPNManager.shared
 
   override func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -18,6 +19,7 @@ class AppDelegate: FlutterAppDelegate {
   }
 
   override func applicationDidFinishLaunching(_ aNotification: Notification) {
+
     systemExtensionManager.activateExtension()
 
     guard let controller = mainFlutterWindow?.contentViewController as? FlutterViewController else {
