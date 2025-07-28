@@ -49,7 +49,7 @@
     },
     {
       "id": "2:4122344290656466929",
-      "lastPropertyId": "7:5208577103578163297",
+      "lastPropertyId": "8:3219350225026657695",
       "name": "AppSetting",
       "properties": [
         {
@@ -576,7 +576,9 @@
   "modelVersionParserMinimum": 5,
   "retiredEntityUids": [],
   "retiredIndexUids": [],
-  "retiredPropertyUids": [],
+  "retiredPropertyUids": [
+    3219350225026657695
+  ],
   "retiredRelationUids": [],
   "version": 1
 }

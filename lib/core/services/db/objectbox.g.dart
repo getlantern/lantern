@@ -80,7 +80,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(2, 4122344290656466929),
     name: 'AppSetting',
-    lastPropertyId: const obx_int.IdUid(7, 5208577103578163297),
+    lastPropertyId: const obx_int.IdUid(8, 3219350225026657695),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -729,7 +729,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [],
     retiredIndexUids: const [],
-    retiredPropertyUids: const [],
+    retiredPropertyUids: const [3219350225026657695],
     retiredRelationUids: const [],
     modelVersion: 5,
     modelVersionParserMinimum: 5,
@@ -821,7 +821,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final localeOffset = fbb.writeString(object.locale);
         final oAuthTokenOffset = fbb.writeString(object.oAuthToken);
         final emailOffset = fbb.writeString(object.email);
-        fbb.startTable(8);
+        fbb.startTable(9);
         fbb.addInt64(0, object.id);
         fbb.addBool(1, object.isPro);
         fbb.addBool(2, object.isSplitTunnelingOn);
