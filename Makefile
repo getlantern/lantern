@@ -17,15 +17,21 @@ EXTRA_LDFLAGS ?=
 BUILD_TAGS ?=
 
 DARWIN_APP_NAME := $(CAPITALIZED_APP).app
-DARWIN_FRAMEWORK_DIR := macos/Frameworks
 DARWIN_LIB := $(LANTERN_LIB_NAME).dylib
 DARWIN_LIB_AMD64 := $(BIN_DIR)/macos-amd64/$(LANTERN_LIB_NAME).dylib
 DARWIN_LIB_ARM64 := $(BIN_DIR)/macos-arm64/$(LANTERN_LIB_NAME).dylib
 DARWIN_LIB_BUILD := $(BIN_DIR)/macos/$(DARWIN_LIB)
+DARWIN_RELEASE_DIR := $(BUILD_DIR)/macos/Build/Products/Release
 DARWIN_DEBUG_BUILD := $(BUILD_DIR)/macos/Build/Products/Debug/$(DARWIN_APP_NAME)
-DARWIN_RELEASE_BUILD := $(BUILD_DIR)/macos/Build/Products/Release/$(DARWIN_APP_NAME)
+DARWIN_RELEASE_BUILD := $(DARWIN_RELEASE_DIR)/$(DARWIN_APP_NAME)
 MACOS_ENTITLEMENTS := macos/Runner/Release.entitlements
 MACOS_INSTALLER := $(INSTALLER_NAME)$(if $(BUILD_TYPE),-$(BUILD_TYPE)).dmg
+MACOS_DIR := macos/
+MACOS_FRAMEWORK := Liblantern.xcframework
+MACOS_FRAMEWORK_DIR := macos/Frameworks
+MACOS_FRAMEWORK_BUILD := $(BIN_DIR)/macos/$(MACOS_FRAMEWORK)
+MACOS_DEBUG_BUILD := $(BUILD_DIR)/macos/Runner.app
+PACKET_ENTITLEMENTS := macos/PacketTunnel/PacketTunnelRelease.entitlements
 
 LINUX_LIB := $(LANTERN_LIB_NAME).so
 LINUX_LIB_AMD64 := $(BIN_DIR)/linux-amd64/$(LANTERN_LIB_NAME).so
@@ -80,7 +86,7 @@ GOMOBILE_REPOS = \
 SIGN_ID="Developer ID Application: Brave New Software Project, Inc (ACZRKC3LQ9)"
 
 define osxcodesign
-	codesign --deep --options runtime --strict --timestamp --force --entitlements $(MACOS_ENTITLEMENTS) -s $(SIGN_ID) -v $(1)
+	codesign --deep --options runtime --strict --timestamp --force --entitlements $(1) -s $(SIGN_ID) -v $(2)
 endef
 
 get-command = $(shell which="$$(which $(1) 2> /dev/null)" && if [[ ! -z "$$which" ]]; then printf %q "$$which"; fi)
@@ -130,7 +136,7 @@ desktop-lib:
 # macOS Build
 .PHONY: install-macos-deps
 
-install-macos-deps:
+install-macos-deps: install-gomobile
 	npm install -g appdmg
 	brew tap joshdk/tap
 	brew install joshdk/tap/retry
@@ -150,16 +156,33 @@ $(DARWIN_LIB_AMD64): $(GO_SOURCES)
 	GOARCH=amd64 LIB_NAME=$@ make desktop-lib
 
 .PHONY: macos
-macos: $(DARWIN_LIB_BUILD)
+macos: $(DARWIN_LIB_BUILD) $(MACOS_FRAMEWORK_BUILD)
 
 $(DARWIN_LIB_BUILD): $(GO_SOURCES)
 	$(MAKE) macos-arm64 macos-amd64
 	rm -rf $@ && mkdir -p $(dir $@)
 	lipo -create $(DARWIN_LIB_ARM64) $(DARWIN_LIB_AMD64) -output $@
 	install_name_tool -id "@rpath/${DARWIN_LIB}" $@
-	mkdir -p $(DARWIN_FRAMEWORK_DIR) && cp $@ $(DARWIN_FRAMEWORK_DIR)
-	cp $(BIN_DIR)/macos-amd64/$(LANTERN_LIB_NAME)*.h $(DARWIN_FRAMEWORK_DIR)/
-	@echo "Built macOS library: $(DARWIN_FRAMEWORK_DIR)/$(DARWIN_LIB)"
+	mkdir -p $(MACOS_FRAMEWORK_DIR) && cp $@ $(MACOS_FRAMEWORK_DIR)
+	cp $(BIN_DIR)/macos-amd64/$(LANTERN_LIB_NAME)*.h $(MACOS_FRAMEWORK_DIR)/
+	@echo "Built macOS library: $(MACOS_FRAMEWORK_DIR)/$(DARWIN_LIB)"
+
+$(MACOS_FRAMEWORK_BUILD): $(GO_SOURCES)
+	@echo "Building macOS Framework.."
+	rm -rf $(MACOS_FRAMEWORK_BUILD) && mkdir -p $(MACOS_FRAMEWORK_DIR)
+	GOOS=darwin gomobile bind -v \
+		-tags=$(TAGS),netgo -trimpath \
+		-target=macos \
+		-o $(MACOS_FRAMEWORK_BUILD) \
+		-ldflags="-w -s -checklinkname=0" \
+		$(GOMOBILE_REPOS)
+	@echo "Built macOS Framework: $(MACOS_FRAMEWORK_BUILD)"
+	rm -rf $(MACOS_FRAMEWORK_DIR)/$(MACOS_FRAMEWORK)
+	mv $(MACOS_FRAMEWORK_BUILD) $(MACOS_FRAMEWORK_DIR)
+
+
+.PHONY: macos-framework
+macos-framework: $(MACOS_FRAMEWORK_BUILD)
 
 .PHONY: macos-debug
 macos-debug: $(DARWIN_DEBUG_BUILD)
@@ -188,7 +211,7 @@ notarize-darwin: require-ac-username require-ac-password
 	@echo "Notarization complete"
 
 sign-app:
-	$(call osxcodesign,$(DARWIN_RELEASE_BUILD))
+	$(call osxcodesign, $(MACOS_ENTITLEMENTS), $(DARWIN_RELEASE_BUILD))
 
 package-macos: require-appdmg
 	appdmg appdmg.json $(MACOS_INSTALLER)
@@ -262,14 +285,16 @@ windows-debug: windows
 windows-release: clean windows pubget gen
 	flutter_distributor package --build-dart-define=BUILD_TYPE=$(BUILD_TYPE) --platform windows --targets "exe"
 
-# Android Build
-.PHONY: install-android-deps
-install-android-deps:
-	@echo "Installing Android dependencies..."
-
+.PHONY: install-gomobile
+install-gomobile:
 	go install -v golang.org/x/mobile/cmd/gomobile@$(GOMOBILE_VERSION)
 	go install -v golang.org/x/mobile/cmd/gobind@$(GOMOBILE_VERSION)
 	gomobile init
+
+
+# Android Build
+.PHONY: install-android-deps
+install-android-deps: install-gomobile
 
 .PHONY: android
 android: check-gomobile $(ANDROID_LIB_BUILD)
@@ -343,7 +368,7 @@ build-ios:
 
 .PHONY: format swift-format
 swift-format:
-	swift-format format --in-place --recursive ios/Runner macos/Runner ios/Tunnel
+	swift-format format --in-place --recursive ios/Runner macos/Runner macos/PacketTunnel
 
 format:
 	@echo "Formatting Dart code..."
@@ -393,7 +418,7 @@ find-duplicate-translations:
 clean:
 	rm -rf $(BUILD_DIR)/*
 	rm -rf $(BIN_DIR)/*
-	rm -rf $(DARWIN_FRAMEWORK_DIR)/*
+	rm -rf $(MACOS_FRAMEWORK_DIR)/*
 	rm -rf $(ANDROID_LIB_PATH)
 	rm -rf $(IOS_DIR)$(IOS_FRAMEWORK)
 

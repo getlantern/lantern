@@ -5,7 +5,7 @@ on:
     tags:
       - "v*.*.*"
 permissions:
-  contents: "write"
+  contents: write
   id-token: "write"
 jobs:
   set-release-metadata:
@@ -142,6 +142,9 @@ jobs:
       - name: Install Python dependencies
         run: python3 -m pip install -r scripts/requirements.txt
 
+      - name: Install Python dependencies
+        run: python3 -m pip install -r scripts/requirements.txt
+
       - name: Update appcast.xml
         run: |
           python3 scripts/generate_appcast.py
@@ -165,3 +168,5 @@ jobs:
             {
               "text": "Lantern ${{ env.BUILD_TYPE }} ${{ github.ref_name }} released!*\n*Downloads:*\n• <https://lantern-vpn.s3.amazonaws.com/releases/${{ env.INSTALLER_NAME }}.dmg|macOS>\n• <https://lantern-vpn.s3.amazonaws.com/releases/${{ env.INSTALLER_NAME }}.exe|Windows>\n• <https://lantern-vpn.s3.amazonaws.com/releases/${{ env.INSTALLER_NAME }}.apk|Android>\n• <https://lantern-vpn.s3.amazonaws.com/releases/${{ env.INSTALLER_NAME }}.deb|Linux (.deb)>\n• <https://lantern-vpn.s3.amazonaws.com/releases/${{ env.INSTALLER_NAME }}.rpm|Linux (.rpm)>"
             }
+        env:
+          INSTALLER_NAME: ${{ needs.set-release-metadata.outputs.installer_name }}

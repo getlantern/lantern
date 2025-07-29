@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/features/logs/parsed_log.dart';
 
 class LogLineWidget extends StatelessWidget {
@@ -13,9 +14,8 @@ class LogLineWidget extends StatelessWidget {
     if (parsed == null) {
       return Text(
         line,
-        style: const TextStyle(
+        style: AppTestStyles.monospace(
           color: Colors.white,
-          fontFamily: 'monospace',
         ),
       );
     }
@@ -25,8 +25,7 @@ class LogLineWidget extends StatelessWidget {
 
     return RichText(
       text: TextSpan(
-        style: const TextStyle(
-          fontFamily: 'monospace',
+        style: AppTestStyles.monospace(
           fontSize: 13,
         ),
         children: [
