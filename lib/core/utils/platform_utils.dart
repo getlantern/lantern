@@ -16,4 +16,7 @@ class PlatformUtils {
   static bool get isAndroid {
     return Platform.isAndroid;
   }
+  static bool get isFFISupported {
+    return Platform.isWindows || Platform.isLinux;
+  }
 }

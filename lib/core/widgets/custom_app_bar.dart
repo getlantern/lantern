@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+
 import 'package:lantern/core/common/app_asset.dart';
 
 class CustomAppBar extends AppBar {
