@@ -6,6 +6,7 @@ import 'package:fpdart/fpdart.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/mapper/plan_mapper.dart';
 import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/models/private_server_status.dart';
@@ -313,6 +314,11 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, DataCapInfo>> fetchDataCapInfo() async {
+    throw UnimplementedError("This not supported on IOS");
+  }
+
+  @override
   Future<Either<Failure, String>> paymentRedirect(
       {required String provider,
       required String planId,
@@ -541,7 +547,8 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> setPrivateServer(String location,String tag) async {
+  Future<Either<Failure, String>> setPrivateServer(
+      String location, String tag) async {
     try {
       await _methodChannel.invokeMethod('setPrivateServer', {
         'location': location,
@@ -585,7 +592,7 @@ class LanternPlatformService implements LanternCoreService {
       required String accessToken,
       required String inviteName}) async {
     try {
-      final result =  await _methodChannel.invokeMethod<String>(
+      final result = await _methodChannel.invokeMethod<String>(
         'revokeServerManagerInstance',
         {
           'ip': ip,

@@ -186,6 +186,32 @@ func removeSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
 	return nil
 }
 
+//export getDataCapInfo
+func getDataCapInfo() *C.char {
+	mu.Lock()
+	defer mu.Unlock()
+	if server == nil || server.apiClient == nil {
+		return SendError(fmt.Errorf("radiance not initialized"))
+	}
+
+	info, err := server.apiClient.DataCapInfo()
+	if err != nil {
+		return SendError(err)
+	}
+
+	result := map[string]interface{}{
+		"bytesAllotted":  info.BytesAllotted,
+		"bytesRemaining": info.BytesRemaining,
+		"allotmentStart": info.AllotmentStart.Unix(),
+		"allotmentEnd":   info.AllotmentEnd.Unix(),
+	}
+	data, err := json.Marshal(result)
+	if err != nil {
+		return SendError(err)
+	}
+	return C.CString(string(data))
+}
+
 // startVPN initializes and starts the VPN server if it is not already running.
 //
 //export startVPN

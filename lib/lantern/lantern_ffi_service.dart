@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/mapper/plan_mapper.dart';
 import 'package:lantern/core/models/private_server_status.dart';
@@ -223,6 +224,23 @@ class LanternFFIService implements LanternCoreService {
       value,
       SplitTunnelActionType.remove,
     );
+  }
+
+  Future<Either<Failure, DataCapInfo>> fetchDataCapInfo() async {
+    try {
+      final ptr = _ffiService.getDataCapInfo();
+      final jsonStr = ptr.toDartString();
+      malloc.free(ptr);
+      final map = jsonDecode(jsonStr);
+      final dataCap = DataCapInfo.fromJson(map);
+      return Right(dataCap);
+    } catch (e, st) {
+      appLogger.error('Failed to get data cap info: $e', e, st);
+      return Left(Failure(
+        error: e.toString(),
+        localizedErrorMessage: 'Unable to fetch data cap info',
+      ));
+    }
   }
 
   static Future<Either<Failure, Unit>> _runSplitTunnelCall(

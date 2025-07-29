@@ -1,6 +1,7 @@
 import 'package:fpdart/src/either.dart';
 import 'package:fpdart/src/unit.dart';
 import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/models/private_server_status.dart';
@@ -35,7 +36,6 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-
   Future<Either<Failure, String>> stopVPN() {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.stopVPN();
@@ -98,6 +98,14 @@ class LanternService implements LanternCoreService {
       onSuccess: onSuccess,
       onError: onError,
     );
+  }
+
+  @override
+  Future<Either<Failure, DataCapInfo>> fetchDataCapInfo() async {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.fetchDataCapInfo();
+    }
+    return _platformService.fetchDataCapInfo();
   }
 
   @override
@@ -369,15 +377,20 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> setPrivateServer(String location,String tag) {
+  Future<Either<Failure, String>> setPrivateServer(
+      String location, String tag) {
     if (PlatformUtils.isFFISupported) {
-      return _ffiService.setPrivateServer(location,tag);
+      return _ffiService.setPrivateServer(location, tag);
     }
-    return _platformService.setPrivateServer(location,tag);
+    return _platformService.setPrivateServer(location, tag);
   }
 
   @override
-  Future<Either<Failure, String>> inviteToServerManagerInstance({required String ip, required String port, required String accessToken, required String inviteName}) {
+  Future<Either<Failure, String>> inviteToServerManagerInstance(
+      {required String ip,
+      required String port,
+      required String accessToken,
+      required String inviteName}) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.inviteToServerManagerInstance(
           ip: ip, port: port, accessToken: accessToken, inviteName: inviteName);
@@ -387,7 +400,11 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> revokeServerManagerInstance({required String ip, required String port, required String accessToken, required String inviteName}) {
+  Future<Either<Failure, String>> revokeServerManagerInstance(
+      {required String ip,
+      required String port,
+      required String accessToken,
+      required String inviteName}) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.revokeServerManagerInstance(
           ip: ip, port: port, accessToken: accessToken, inviteName: inviteName);

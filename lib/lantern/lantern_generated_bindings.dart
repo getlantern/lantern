@@ -2429,6 +2429,16 @@ class LanternBindings {
       ffi.Pointer<ffi.Char> Function(
           ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
 
+  ffi.Pointer<ffi.Char> getDataCapInfo() {
+    return _getDataCapInfo();
+  }
+
+  late final _getDataCapInfoPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+          'getDataCapInfo');
+  late final _getDataCapInfo =
+      _getDataCapInfoPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
+
   ffi.Pointer<ffi.Char> startVPN() {
     return _startVPN();
   }

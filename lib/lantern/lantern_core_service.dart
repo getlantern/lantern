@@ -1,6 +1,7 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/models/private_server_status.dart';
@@ -18,7 +19,7 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, String>> stopVPN();
 
-  Future<Either<Failure, String>> setPrivateServer(String location,String tag);
+  Future<Either<Failure, String>> setPrivateServer(String location, String tag);
 
   Stream<LanternStatus> watchVPNStatus();
 
@@ -86,6 +87,8 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, UserResponse>> fetchUserData();
 
+  Future<Either<Failure, DataCapInfo>> fetchDataCapInfo();
+
   Future<Either<Failure, UserResponse>> logout(String email);
 
   //Forgot password
@@ -131,7 +134,7 @@ abstract class LanternCoreService {
     required String port,
     required String accessToken,
     required String inviteName,
-    });
+  });
 
   Future<Either<Failure, String>> revokeServerManagerInstance({
     required String ip,
