@@ -5,7 +5,6 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/split_tunneling_tile.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
-import 'package:lantern/features/home/provider/home_notifier.dart';
 
 @RoutePage(name: 'VPNSetting')
 class VPNSetting extends HookConsumerWidget {
@@ -21,12 +20,12 @@ class VPNSetting extends HookConsumerWidget {
 
   Widget _buildBody(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
-    final homeState = ref.watch(homeNotifierProvider);
-    final isUserPro = homeState.valueOrNull?.legacyUserData.userStatus == 'pro';
+    final isUserPro = ref.isUserPro;
 
-    final preferences = ref.watch(appSettingNotifierProvider);
+    final preferences = ref.read(appSettingNotifierProvider);
     final notifier = ref.watch(appSettingNotifierProvider.notifier);
-    final splitTunnelingEnabled = preferences.isSplitTunnelingOn;
+    final splitTunnelingEnabled =
+        ref.read(appSettingNotifierProvider).isSplitTunnelingOn;
     return ListView(
       padding: const EdgeInsets.all(0),
       shrinkWrap: true,
@@ -64,14 +63,13 @@ class VPNSetting extends HookConsumerWidget {
                   value: preferences.blockAds,
                   onChanged: (bool? value) {
                     if (!isUserPro) {
-                      appRouter.pushNamed('/plans-bottom');
+                      appRouter.push(Plans());
                       return;
                     }
                     var newValue = value ?? false;
                     notifier.setBlockAds(newValue);
                   },
                 ),
-                onPressed: () {},
               ),
             ],
           ),
@@ -91,7 +89,7 @@ class VPNSetting extends HookConsumerWidget {
               AppTile(
                 label: 'join_private_server'.i18n,
                 icon: AppImagePaths.joinServer,
-                onPressed: () => appRouter.push( JoinPrivateServer()),
+                onPressed: () => appRouter.push(JoinPrivateServer()),
               ),
               DividerSpace(),
               AppTile(

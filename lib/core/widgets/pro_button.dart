@@ -15,6 +15,7 @@ class ProButton extends StatelessWidget {
       label: 'Upgrade to Pro',
       icon: AppImagePaths.crown,
       expanded: true,
+      isTaller: true,
       onPressed: onPressed,
     );
   }

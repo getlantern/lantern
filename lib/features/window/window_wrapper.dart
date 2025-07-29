@@ -44,6 +44,15 @@ class _WindowWrapperState extends ConsumerState<WindowWrapper>
   Future<void> _setupDesktopWindow() async {
     await windowManager.setPreventClose(true);
     await windowManager.setResizable(false);
+
+    // macOS only: customize title bar and window
+    if (Platform.isMacOS) {
+      await windowManager.setTitle('');
+      // Hide system titlebar
+      await windowManager.setTitleBarStyle(TitleBarStyle.hidden, windowButtonVisibility: false);
+      await windowManager.setBackgroundColor(AppColors.white);
+    }
+
     await windowManager.show();
     await windowManager.focus();
   }
