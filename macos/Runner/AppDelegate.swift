@@ -60,9 +60,18 @@ class AppDelegate: FlutterAppDelegate {
 
   /// Registers Flutter event channel handlers
   private func registerEventHandlers(controller: FlutterViewController) {
-    let registry = controller as! FlutterPluginRegistry
-    let statusRegistrar = registry.registrar(forPlugin: "StatusEventHandler")
-    StatusEventHandler.register(with: statusRegistrar)
+      let registry = controller as! FlutterPluginRegistry
+      let statusRegistrar = registry.registrar(forPlugin: "StatusEventHandler")
+      StatusEventHandler.register(with: statusRegistrar)
+      
+
+//      if let registrar = self.registrar(forPlugin: "LogsEventHandler") {
+//        LogsEventHandler.register(with: registrar)
+//      }
+
+      let privateStatusRegistrar = registry.registrar(forPlugin: "PrivateServerEventHandler")
+        PrivateServerEventHandler.register(with: privateStatusRegistrar)
+      
   }
 
   /// Initializes the native method channel handler

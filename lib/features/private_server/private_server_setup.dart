@@ -107,7 +107,9 @@ class _PrivateServerSetupState extends ConsumerState<PrivateServerSetup> {
             const SizedBox(height: 16),
             SecondaryButton(
               label: 'server_setup_manual'.i18n,
-              onPressed: () {},
+              onPressed: () {
+                appRouter.push(ManuallyServerSetup());
+              },
             ),
           ],
         ),
