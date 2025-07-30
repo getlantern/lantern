@@ -5,57 +5,61 @@ import 'package:lantern/core/common/app_image_paths.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 
 class InfoRow extends StatelessWidget {
+  final Widget? icon;
   final String text;
-  final String? imagePath;
-  final VoidCallback onPressed;
+  final TextStyle? textStyle;
   final Color? backgroundColor;
   final Widget? child;
+  final double borderRadius;
+  final String? imagePath;
+  final EdgeInsetsGeometry? padding;
+  final VoidCallback? onPressed;
 
   const InfoRow({
-    super.key,
+    Key? key,
+    this.icon,
     required this.text,
-    required this.onPressed,
-    this.imagePath,
+    this.textStyle,
     this.backgroundColor,
+    this.imagePath,
+    this.borderRadius = 8,
+    this.padding,
+    this.onPressed,
     this.child,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: AppColors.gray2,
-            width: 1,
-          ),
-        ),
-        child: child??Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(right: 12),
-              child: AppImage(
-                path: imagePath ?? AppImagePaths.info,
-                width: 20,
-                height: 20,
+    final textTheme = Theme.of(context).textTheme;
+    return Material(
+      color: backgroundColor ?? AppColors.gray1,
+      borderRadius: BorderRadius.circular(borderRadius),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(borderRadius),
+        child: Padding(
+          padding: padding ??
+              const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+          child: child ??
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: AppImage(
+                      path: imagePath ?? AppImagePaths.info,
+                      width: 24,
+                      height: 24,
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      text,
+                      style: textTheme.bodyMedium,
+                    ),
+                  ),
+                ],
               ),
-            ),
-            Expanded(
-              child: Text(
-                text,
-                style: AppTestStyles.bodyMedium.copyWith(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  height: 1.43,
-                ),
-              ),
-            ),
-          ],
         ),
       ),
     );

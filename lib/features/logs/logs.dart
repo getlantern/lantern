@@ -44,7 +44,7 @@ class Logs extends HookConsumerWidget {
     return BaseScreen(
       title: 'Diagnostic Logs'.i18n,
       appBar: CustomAppBar(
-        title: 'Diagnostic Logs'.i18n,
+        title: Text('Diagnostic Logs'.i18n),
         actionsPadding: EdgeInsets.only(right: 24.0),
         actions: [
           AppIconButton(
@@ -100,7 +100,7 @@ class Logs extends HookConsumerWidget {
 }
 
 TextStyle getLogStyle(String logLine) {
-  final base = AppTestStyles.logTextStyle.copyWith(fontFamily: 'monospace');
+  final base = AppTestStyles.logTextStyle;
   if (logLine.startsWith('DEBUG[')) return base.copyWith(color: Colors.teal);
   if (logLine.startsWith('INFO[')) return base.copyWith(color: Colors.blue);
   if (logLine.startsWith('WARN[')) return base.copyWith(color: Colors.orange);

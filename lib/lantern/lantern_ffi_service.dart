@@ -146,12 +146,22 @@ class LanternFFIService implements LanternCoreService {
       try {
         final result =
             await _runSplitTunnelCall(msg.type, msg.value, msg.action);
-        msg.replyPort.send(result);
+        if (result.isLeft()) {
+          final failure = result.fold((f) => f, (_) => null)!;
+          msg.replyPort.send({
+            'isError': true,
+            'error': failure.error,
+            'localizedErrorMessage': failure.localizedErrorMessage,
+          });
+        } else {
+          msg.replyPort.send({'isError': false});
+        }
       } catch (e) {
-        msg.replyPort.send(left(Failure(
-          error: e.toString(),
-          localizedErrorMessage: e.toString(),
-        )));
+        msg.replyPort.send({
+          'isError': true,
+          'error': e.toString(),
+          'localizedErrorMessage': e.toString(),
+        });
       }
     });
   }
@@ -177,7 +187,18 @@ class LanternFFIService implements LanternCoreService {
 
     final result = await responsePort.first;
     responsePort.close();
-    return result;
+
+    if (result is Map && result['isError'] == true) {
+      return left(
+        Failure(
+          error: result['error'] ?? 'Unknown error',
+          localizedErrorMessage: result['localizedErrorMessage'] ??
+              result['error'] ??
+              'Unknown error',
+        ),
+      );
+    }
+    return right(unit);
   }
 
   @override
