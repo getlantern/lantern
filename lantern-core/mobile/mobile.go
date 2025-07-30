@@ -34,7 +34,7 @@ var (
 )
 
 const (
-	serverMmanagerKey     = "server-manager"
+	serverManagerKey     = "server-manager"
 	spiltTunnelHandlerKey = "splitTunnelHandler"
 )
 
@@ -86,7 +86,7 @@ func SetupRadiance(opts *utils.Opts) error {
 			innerErr = fmt.Errorf("unable to create server manager: %v", mngErr)
 			return
 		}
-		storeRadiance.Store(serverMmanagerKey, serverManager)
+		storeRadiance.Store(serverManagerKey, serverManager)
 		radianceServer = &lanternService{
 			Radiance:   r,
 			userConfig: r.UserInfo(),
@@ -107,7 +107,7 @@ func SetupRadiance(opts *utils.Opts) error {
 }
 
 func getServerManager() (*servers.Manager, error) {
-	if v, ok := storeRadiance.Load(serverMmanagerKey); ok {
+	if v, ok := storeRadiance.Load(serverManagerKey); ok {
 		if sm, ok := v.(*servers.Manager); ok {
 			return sm, nil
 		}
@@ -167,8 +167,8 @@ func StopVPN() error {
 	return nil
 }
 
-// ConnectToServer connects to a server with the given location type and tag.
-// It work with private servers and lantern location servers
+// ConnectToServer connects to a server using the provided location type and tag.
+// It works with private servers and lantern location servers.
 func ConnectToServer(locationType, tag string, platIfce libbox.PlatformInterface, options *utils.Opts) error {
 	log.Debugf("Setting private server with tag: %s", tag)
 	radianceMutex.Lock()

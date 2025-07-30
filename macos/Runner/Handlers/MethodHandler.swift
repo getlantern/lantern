@@ -432,7 +432,7 @@ class MethodHandler {
       if error != nil {
         result(
           FlutterError(
-            code: "DELETE_ACCOUNT_FAILED",
+            code: "ACTIVATION_CODE_FAILED",
             message: error!.localizedDescription,
             details: error!.localizedDescription))
         return
