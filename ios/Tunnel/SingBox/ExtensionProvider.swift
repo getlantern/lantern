@@ -41,7 +41,6 @@ class ExtensionProvider: NEPacketTunnelProvider {
       // Fallback or unknown type
       startVPN()
     }
-
   }
 
   public func writeFatalError(_ message: String) {

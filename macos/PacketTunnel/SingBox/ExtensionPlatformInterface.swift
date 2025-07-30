@@ -21,11 +21,7 @@ import UserNotifications
   import CoreWLAN
 #endif
 
-public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtocol,
-  LibboxCommandServerHandlerProtocol
-{
-  let appLogger = Logger(
-    subsystem: "org.getlantern.lantern", category: "ExtensionPlatformInterface")
+public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtocol {
   private let tunnel: ExtensionProvider
   private var networkSettings: NEPacketTunnelNetworkSettings?
 
@@ -404,17 +400,6 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
     #else
       return nil
     #endif
-  }
-
-  public func serviceReload() throws {
-    runBlocking { [self] in
-      tunnel.reloadService()
-    }
-  }
-
-  public func postServiceClose() {
-    reset()
-    tunnel.postServiceClose()
   }
 
   public func getSystemProxyStatus() -> LibboxSystemProxyStatus? {

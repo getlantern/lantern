@@ -372,7 +372,7 @@ class LanternService implements LanternCoreService {
   /// requires location and tag
   @override
   Future<Either<Failure, String>> connectToServer(String location, String tag) {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.connectToServer(location, tag);
     }
     return _platformService.connectToServer(location, tag);
@@ -384,7 +384,7 @@ class LanternService implements LanternCoreService {
       required String port,
       required String accessToken,
       required String inviteName}) {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.inviteToServerManagerInstance(
           ip: ip, port: port, accessToken: accessToken, inviteName: inviteName);
     }
@@ -398,7 +398,7 @@ class LanternService implements LanternCoreService {
       required String port,
       required String accessToken,
       required String inviteName}) {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.revokeServerManagerInstance(
           ip: ip, port: port, accessToken: accessToken, inviteName: inviteName);
     }
@@ -408,7 +408,7 @@ class LanternService implements LanternCoreService {
 
   @override
   Future<Either<Failure, String>> featureFlag() {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.featureFlag();
     }
     return _platformService.featureFlag();

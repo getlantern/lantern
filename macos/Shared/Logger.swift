@@ -13,15 +13,15 @@ let appLogger = LanternLogger()
 class LanternLogger {
   private let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "Swidr")
 
-  func log(_ message: String) {
-    logger.debug("\(message)")
-  }
+    func log(_ message: String) {
+        logger.debug("\(String(describing: message), privacy: .public)")
+    }
 
-  func info(_ message: String) {
-    logger.info("\(message)")
-  }
+    func info(_ message: String) {
+        logger.info("\(String(describing: message), privacy: .public)")
+    }
 
-  func error(_ message: String) {
-    logger.error("\(message)")
-  }
+    func error(_ message: String) {
+        logger.error("\(String(describing: message), privacy: .public)")
+    }
 }
