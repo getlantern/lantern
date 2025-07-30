@@ -38,7 +38,7 @@ class FeatureFlagNotifier extends _$FeatureFlagNotifier {
     }
     final gcpEnabled = flags['private.gcp'] ?? false;
     appLogger.debug('GCP enabled: $gcpEnabled');
-    return false;
+    return gcpEnabled;
   }
 
 
