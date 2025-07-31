@@ -11,10 +11,6 @@
 	<array>
 		<string>packet-tunnel-provider-systemextension</string>
 	</array>
-	<key>com.apple.developer.networking.vpn.api</key>
-	<array>
-		<string>allow-vpn</string>
-	</array>
 	<key>com.apple.developer.system-extension.install</key>
 	<true/>
 	<key>com.apple.security.app-sandbox</key>
