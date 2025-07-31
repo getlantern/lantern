@@ -26,7 +26,6 @@ class Plans extends StatefulHookConsumerWidget {
 class _PlansState extends ConsumerState<Plans> {
   late TextTheme textTheme;
 
-
   @override
   Widget build(BuildContext context) {
     textTheme = Theme.of(context).textTheme;

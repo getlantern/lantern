@@ -4,6 +4,7 @@ class AppImagePaths {
   static const crown = 'assets/images/crown.svg';
   static const callSpilt = 'assets/images/call_split.svg';
   static const location = 'assets/images/location.svg';
+  static const blockAds = 'assets/images/block_ads.svg';
   static const signIn = 'assets/images/sign_in.svg';
   static const translate = 'assets/images/translate.svg';
   static const theme = 'assets/images/theme.svg';
@@ -88,5 +89,5 @@ class AppImagePaths {
   static const settingServer = 'assets/images/setting_server.svg';
   static const joinServer = 'assets/images/join_server.svg';
   static const warning = 'assets/images/warning.svg';
-
+  static const account = 'assets/images/account.svg';
 }

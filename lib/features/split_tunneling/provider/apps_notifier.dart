@@ -19,7 +19,6 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
     return _db.getEnabledApps();
   }
 
-  // Toggle app selection for split tunneling
   Future<void> toggleApp(AppData app) async {
     final isEnabled = state.any((a) => a.name == app.name);
     final action =
@@ -31,21 +30,19 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
         : await _lanternService.addSplitTunnelItem(
             SplitTunnelFilterType.packageName, app.bundleId);
 
-    result.match(
-      (failure) {
-        appLogger.error('Failed to $action item: ${failure.error}');
-      },
-      (_) async {
-        state = isEnabled
-            ? state.where((a) => a.name != app.name).toSet()
-            : {
-                ...state,
-                app.copyWith(
-                  isEnabled: true,
-                )
-              };
-        await _db.saveApps(state);
-      },
-    );
+    if (result.isLeft()) {
+      final failure = result.fold((l) => l, (r) => null);
+      appLogger.error('Failed to $action item: ${failure?.error}');
+    } else {
+      state = isEnabled
+          ? state.where((a) => a.name != app.name).toSet()
+          : {
+              ...state,
+              app.copyWith(
+                isEnabled: true,
+              )
+            };
+      await _db.saveApps(state);
+    }
   }
 }

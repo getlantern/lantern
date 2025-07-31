@@ -61,6 +61,10 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     update(state.copyWith(email: email));
   }
 
+  void setBlockAds(bool value) {
+    update(state.copyWith(blockAds: value));
+  }
+
   Locale _detectDeviceLocale() {
     final deviceLocale = PlatformDispatcher.instance.locale;
     return deviceLocale.languageCode == 'en'

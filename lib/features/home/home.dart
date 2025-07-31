@@ -6,6 +6,7 @@ import 'package:lantern/core/models/server_location_entity.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/vpn_status.dart';
 import 'package:lantern/features/vpn/vpn_switch.dart';
@@ -26,6 +27,7 @@ class Home extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isUserPro = ref.isUserPro;
+    ref.read(featureFlagNotifierProvider.notifier);
     textTheme = Theme.of(context).textTheme;
     return Scaffold(
       appBar: AppBar(

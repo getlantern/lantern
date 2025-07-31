@@ -60,6 +60,8 @@ enum class Methods(val method: String) {
     InviteToServerManagerInstance("inviteToServerManagerInstance"),
     RevokeServerManagerInstance("revokeServerManagerInstance"),
 
+    FeatureFlag("featureFlag"),
+
 }
 
 class MethodHandler : FlutterPlugin,
@@ -651,6 +653,22 @@ class MethodHandler : FlutterPlugin,
                         )
                         withContext(Dispatchers.Main) {
                             success("ok")
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "DigitalOcean",
+                            e.localizedMessage ?: "Error while activating Digital Ocean",
+                            e
+                        )
+                    }
+                }
+            }
+            Methods.FeatureFlag.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val map = Mobile.availableFeatures()
+                        withContext(Dispatchers.Main) {
+                            success(String(map))
                         }
                     }.onFailure { e ->
                         result.error(

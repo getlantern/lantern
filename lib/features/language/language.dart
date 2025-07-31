@@ -12,7 +12,7 @@ class Language extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: 'language'.i18n),
+      appBar: CustomAppBar(title: Text('language'.i18n)),
       extendBody: true,
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -80,7 +80,9 @@ class LanguageListView extends HookConsumerWidget {
             onChanged: (value) {
               onLanguageTap(value!);
             },
+            activeColor: AppColors.blue7,
           ),
+          minHeight: 56,
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),

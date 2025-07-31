@@ -29,6 +29,7 @@ class LanternPlatformService implements LanternCoreService {
   static const logsChannel = EventChannel("$channelPrefix/logs");
   static const statusChannel =
       EventChannel("$channelPrefix/status", JSONMethodCodec());
+
   static const privateServerStatusChannel =
       EventChannel("$channelPrefix/private_server_status", JSONMethodCodec());
   late final Stream<LanternStatus> _status;
@@ -539,9 +540,9 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
-
   @override
-  Future<Either<Failure, String>> connectToServer(String location,String tag) async {
+  Future<Either<Failure, String>> connectToServer(
+      String location, String tag) async {
     try {
       await _methodChannel.invokeMethod('connectToServer', {
         'location': location,
@@ -585,7 +586,7 @@ class LanternPlatformService implements LanternCoreService {
       required String accessToken,
       required String inviteName}) async {
     try {
-      final result =  await _methodChannel.invokeMethod<String>(
+      final result = await _methodChannel.invokeMethod<String>(
         'revokeServerManagerInstance',
         {
           'ip': ip,
@@ -597,6 +598,18 @@ class LanternPlatformService implements LanternCoreService {
       return Right('ok');
     } catch (e, stackTrace) {
       appLogger.error('Error revoking server manager instance', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> featureFlag() async {
+    try {
+      final featureFlag =
+          await _methodChannel.invokeMethod<String>('featureFlag');
+      return Right(featureFlag!);
+    } catch (e, stackTrace) {
+      appLogger.error('Error fetching feature flag', e, stackTrace);
       return Left(e.toFailure());
     }
   }

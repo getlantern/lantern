@@ -34,7 +34,7 @@ var (
 )
 
 const (
-	serverMmanagerKey     = "server-manager"
+	serverManagerKey     = "server-manager"
 	spiltTunnelHandlerKey = "splitTunnelHandler"
 )
 
@@ -86,7 +86,7 @@ func SetupRadiance(opts *utils.Opts) error {
 			innerErr = fmt.Errorf("unable to create server manager: %v", mngErr)
 			return
 		}
-		storeRadiance.Store(serverMmanagerKey, serverManager)
+		storeRadiance.Store(serverManagerKey, serverManager)
 		radianceServer = &lanternService{
 			Radiance:   r,
 			userConfig: r.UserInfo(),
@@ -98,7 +98,6 @@ func SetupRadiance(opts *utils.Opts) error {
 			CreateUser()
 		}
 		FetchUserData()
-		go AvailableFeatures()
 	})
 
 	if innerErr != nil {
@@ -108,7 +107,7 @@ func SetupRadiance(opts *utils.Opts) error {
 }
 
 func getServerManager() (*servers.Manager, error) {
-	if v, ok := storeRadiance.Load(serverMmanagerKey); ok {
+	if v, ok := storeRadiance.Load(serverManagerKey); ok {
 		if sm, ok := v.(*servers.Manager); ok {
 			return sm, nil
 		}
@@ -168,8 +167,8 @@ func StopVPN() error {
 	return nil
 }
 
-// ConnectToServer connects to a server with the given location type and tag.
-// It work with private servers and lantern location servers
+// ConnectToServer connects to a server using the provided location type and tag.
+// It works with private servers and lantern location servers.
 func ConnectToServer(locationType, tag string, platIfce libbox.PlatformInterface, options *utils.Opts) error {
 	log.Debugf("Setting private server with tag: %s", tag)
 	radianceMutex.Lock()
@@ -180,6 +179,15 @@ func ConnectToServer(locationType, tag string, platIfce libbox.PlatformInterface
 	}
 	log.Debugf("Private server set with tag: %s", tag)
 	return nil
+}
+
+func getLanternService() (*lanternService, error) {
+	radianceMutex.Lock()
+	defer radianceMutex.Unlock()
+	if radianceServer == nil {
+		return nil, fmt.Errorf("radiance not initialized")
+	}
+	return radianceServer, nil
 }
 
 func IsVPNConnected() bool {
@@ -220,6 +228,10 @@ func RemoveSplitTunnelItem(filterType, item string) error {
 // Todo make sure to add retry logic
 // we need to make sure that the user is created before we can use the radiance server
 func CreateUser() (*api.UserDataResponse, error) {
+	radianceServer, err := getLanternService()
+	if err != nil {
+		return nil, err
+	}
 	log.Debug("Creating user")
 	user, err := radianceServer.apiClient.NewUser(context.Background())
 	log.Debugf("UserCreate response: %v", user)
@@ -231,6 +243,10 @@ func CreateUser() (*api.UserDataResponse, error) {
 
 // this will return the user data from the user config
 func UserData() ([]byte, error) {
+	radianceServer, err := getLanternService()
+	if err != nil {
+		return nil, err
+	}
 	user, err := radianceServer.userConfig.GetData()
 	if err != nil {
 		return nil, log.Errorf("Error getting user data: %v", err)

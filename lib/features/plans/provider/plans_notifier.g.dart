@@ -6,7 +6,7 @@ part of 'plans_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$plansNotifierHash() => r'932fb3eae4508eddeb64b861337ee607ddafb369';
+String _$plansNotifierHash() => r'0b9b40926faad7487cd0c7196d159b36671fc94b';
 
 /// See also [PlansNotifier].
 @ProviderFor(PlansNotifier)

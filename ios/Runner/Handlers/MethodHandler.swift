@@ -123,6 +123,8 @@ class MethodHandler {
       case "addServerManually":
         let data = call.arguments as? [String: Any]
         self.addServerManually(result: result, data: data!)
+      case "featureFlag":
+        self.featureFlags(result: result)
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -646,6 +648,15 @@ class MethodHandler {
       }
       await MainActor.run {
         result("ok")
+      }
+    }
+  }
+
+  func featureFlags(result: @escaping FlutterResult) {
+    Task.detached {
+      let flags = MobileAvailableFeatures()
+      await MainActor.run {
+        result(String(data: flags!, encoding: .utf8))
       }
     }
   }

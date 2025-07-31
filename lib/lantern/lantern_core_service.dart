@@ -139,4 +139,6 @@ abstract class LanternCoreService {
     required String accessToken,
     required String inviteName,
   });
+
+  Future<Either<Failure, String>> featureFlag();
 }

@@ -40,7 +40,7 @@ const (
 	logsService           service = "logs"
 	statusService         service = "status"
 	privateserverService  service = "privateServer"
-	serverMmanagerKey             = "server-manager"
+	serverManagerKey             = "server-manager"
 	spiltTunnelHandlerKey         = "splitTunnelHandler"
 )
 
@@ -130,7 +130,7 @@ func setup(_logDir, _dataDir, _locale *C.char, logPort, appsPort, statusPort, pr
 			outError = fmt.Errorf("unable to create server manager: %v", mngErr)
 			return
 		}
-		storeRadiance.Store(serverMmanagerKey, serverManager)
+		storeRadiance.Store(serverManagerKey, serverManager)
 
 		server = &lanternService{
 			Radiance:  r,
@@ -160,7 +160,7 @@ func setup(_logDir, _dataDir, _locale *C.char, logPort, appsPort, statusPort, pr
 }
 
 func getServerManager() (*servers.Manager, error) {
-	if v, ok := storeRadiance.Load(serverMmanagerKey); ok {
+	if v, ok := storeRadiance.Load(serverManagerKey); ok {
 		if sm, ok := v.(*servers.Manager); ok {
 			return sm, nil
 		}
@@ -195,7 +195,7 @@ func addSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
 		return C.CString(fmt.Sprintf("error adding item: %v", err))
 	}
 	log.Debugf("added %s split tunneling item %s", filterType, item)
-	return C.CString("ok")
+	return nil
 }
 
 //export removeSplitTunnelItem
@@ -214,7 +214,7 @@ func removeSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
 		return C.CString(fmt.Sprintf("error removing item: %v", err))
 	}
 	log.Debugf("removed %s split tunneling item %s", filterType, item)
-	return C.CString("ok")
+	return nil
 }
 
 // startVPN initializes and starts the VPN server if it is not already running.

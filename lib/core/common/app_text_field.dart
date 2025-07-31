@@ -71,12 +71,13 @@ class AppTextField extends StatelessWidget {
       cursorHeight: defaultSize,
       cursorOpacityAnimates: true,
       style: textTheme.bodyMedium!.copyWith(
-        color: AppColors.gray8,
+        color: AppColors.gray9,
         fontSize: 14.sp,
       ),
       textInputAction: textInputAction,
       maxLines: maxLines,
       decoration: InputDecoration(
+          contentPadding: EdgeInsets.symmetric(vertical: 20, horizontal: 16),
           filled: true,
           fillColor: AppColors.white,
           hintText: hintText,

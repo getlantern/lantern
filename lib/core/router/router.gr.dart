@@ -33,7 +33,7 @@ import 'package:lantern/features/private_server/join_private_server.dart'
     as _i15;
 import 'package:lantern/features/private_server/manage_private_server.dart'
     as _i18;
-import 'package:lantern/features/private_server/menually_server_setup.dart'
+import 'package:lantern/features/private_server/manually_server_setup.dart'
     as _i19;
 import 'package:lantern/features/private_server/private_server_deploy.dart'
     as _i21;
