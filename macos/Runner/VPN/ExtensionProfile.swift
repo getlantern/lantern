@@ -10,7 +10,7 @@ import NetworkExtension
 
 public class ExtensionProfile {
   public static let shared = ExtensionProfile()
-    private(set) var manager: NETunnelProviderManager?
+  private(set) var manager: NETunnelProviderManager?
 
   /// Loads or creates the NETunnelProviderManager and caches it in-memory.
   /// Subsequent calls return immediately without touching disk.
@@ -47,23 +47,23 @@ public class ExtensionProfile {
     }
   }
 
-//  private func setupVPN() async {
-//    do {
-//      let managers = try await NETunnelProviderManager.loadAllFromPreferences()
-//      if let existing = managers.first {
-//        self.manager = existing
-//        appLogger.log("Found existing VPN manager")
-//      } else {
-//        appLogger.log("No VPN profiles found, creating new profile")
-//        createNewProfile()
-//          try await self.manager?.saveToPreferences()
-//        try await self.manager?.loadFromPreferences()
-//        appLogger.log("Created and loaded new VPN profile")
-//      }
-//    } catch {
-//      appLogger.error("Failed to set up VPN: \(error.localizedDescription)")
-//    }
-//  }
+  //  private func setupVPN() async {
+  //    do {
+  //      let managers = try await NETunnelProviderManager.loadAllFromPreferences()
+  //      if let existing = managers.first {
+  //        self.manager = existing
+  //        appLogger.log("Found existing VPN manager")
+  //      } else {
+  //        appLogger.log("No VPN profiles found, creating new profile")
+  //        createNewProfile()
+  //          try await self.manager?.saveToPreferences()
+  //        try await self.manager?.loadFromPreferences()
+  //        appLogger.log("Created and loaded new VPN profile")
+  //      }
+  //    } catch {
+  //      appLogger.error("Failed to set up VPN: \(error.localizedDescription)")
+  //    }
+  //  }
 
   /// Creates a new NETunnelProviderManager with Lantern settings.
   private func createNewProfile() -> NETunnelProviderManager {

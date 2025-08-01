@@ -8,18 +8,30 @@ class AppDelegate: FlutterAppDelegate {
 
   private let vpnManager = VPNManager.shared
 
+  // Close app when last window is closed
   override func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
-    return true
+    return false
   }
 
+  // Disable secure state restoration
   override func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
-    return true
+    return false
+  }
+
+  // MARK: — Disable all state restoration —
+
+  @objc func applicationShouldRestoreApplicationState(_ app: NSApplication) -> Bool {
+    return false
+  }
+  @objc func applicationShouldRestoreWindowState(_ app: NSApplication, window: NSWindow) -> Bool {
+    return false
   }
 
   override func applicationDidFinishLaunching(_ aNotification: Notification) {
-
-    //    let systemExtensionManager = SystemExtensionManager()
-    //    systemExtensionManager.activateExtension()
+    // Ensure Flutter window is key and visible
+    if let window = mainFlutterWindow {
+      window.makeKeyAndOrderFront(nil)
+    }
 
     guard let controller = mainFlutterWindow?.contentViewController as? FlutterViewController else {
       fatalError("contentViewController is not a FlutterViewController")
@@ -37,8 +49,9 @@ class AppDelegate: FlutterAppDelegate {
 
     // set radiance
     setupRadiance()
+    // Catch uncaught exceptions
     NSSetUncaughtExceptionHandler { exception in
-      print(exception.reason)
+      print(exception.reason ?? "Unknown reason")
       print(exception.callStackSymbols)
     }
     super.applicationDidFinishLaunching(aNotification)

@@ -142,7 +142,7 @@ class MethodHandler {
           result(
             FlutterError(
               code: "START_FAILED",
-              message: "Unable to start VPN tunnel.",
+              message: error.localizedDescription,
               details: error.localizedDescription))
         }
       }

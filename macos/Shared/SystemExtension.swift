@@ -49,6 +49,8 @@ public class SystemExtension: NSObject, OSSystemExtensionRequestDelegate {
 
   public func request(_: OSSystemExtensionRequest, didFailWithError error: Error) {
     self.error = error
+    NSLog("Failed to activate: \(error.localizedDescription), code: \((error as NSError).code)")
+
     semaphore.signal()
   }
 
@@ -73,7 +75,7 @@ public class SystemExtension: NSObject, OSSystemExtensionRequestDelegate {
 
   public func deactivation() throws -> OSSystemExtensionRequest.Result? {
     let request = OSSystemExtensionRequest.deactivationRequest(
-      forExtensionWithIdentifier: FilePath.systemExtensionName , queue: .main)
+      forExtensionWithIdentifier: FilePath.systemExtensionName, queue: .main)
     request.delegate = self
     OSSystemExtensionManager.shared.submitRequest(request)
     semaphore.wait()
@@ -85,7 +87,7 @@ public class SystemExtension: NSObject, OSSystemExtensionRequestDelegate {
 
   public func getProperties() throws -> [OSSystemExtensionProperties] {
     let request = OSSystemExtensionRequest.propertiesRequest(
-      forExtensionWithIdentifier: FilePath.packageName + ".system", queue: .main)
+      forExtensionWithIdentifier: FilePath.systemExtensionName, queue: .main)
     request.delegate = self
     OSSystemExtensionManager.shared.submitRequest(request)
     semaphore.wait()

@@ -61,13 +61,9 @@ class VPNManager: VPNBase {
       )
     } catch {
       // other install failures
-      let msg = "Could not install network extension: \(error.localizedDescription)"
-      appLogger.error(msg)
-      throw NSError(
-        domain: "com.yourapp.vpn",
-        code: 1002,
-        userInfo: [NSLocalizedDescriptionKey: msg]
-      )
+      //      let msg = "Could not install network extension: \(error.localizedDescription)"
+      //      appLogger.error(msg)
+      throw error
     }
 
     // if we get here, the extension is fully installed and ready
@@ -92,7 +88,7 @@ class VPNManager: VPNBase {
     do {
       try manager.connection.startVPNTunnel(options: options)
       appLogger.log("Tunnel started successfully.")
-        /// Enable on-demand to allow automatic reconnections
+      /// Enable on-demand to allow automatic reconnections
       /// if error it will stuck in infinite loop
       //self.manager.isOnDemandEnabled = true
       // try await self.saveThenLoadProvider()
@@ -107,7 +103,7 @@ class VPNManager: VPNBase {
     location: String,
     serverName: String,
   ) async throws {
-//    await self.setupVPN()
+    //    await self.setupVPN()
     let options: [String: NSObject] = [
       "netEx.Type": "PrivateServer" as NSString,
       "netEx.StartReason": "Private server Initiated" as NSString,
@@ -252,8 +248,8 @@ class VPNManager: VPNBase {
         return
       }
     } catch {
-      NSLog("System extension install threw: \(error.localizedDescription)")
-      throw SystemExtensionError.underlying(error)
+      NSLog("System extension install threw: \(error)")
+      throw error
     }
   }
 

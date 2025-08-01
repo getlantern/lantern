@@ -24,7 +24,9 @@ DARWIN_LIB_BUILD := $(BIN_DIR)/macos/$(DARWIN_LIB)
 DARWIN_RELEASE_DIR := $(BUILD_DIR)/macos/Build/Products/Release
 DARWIN_DEBUG_BUILD := $(BUILD_DIR)/macos/Build/Products/Debug/$(DARWIN_APP_NAME)
 DARWIN_RELEASE_BUILD := $(DARWIN_RELEASE_DIR)/$(DARWIN_APP_NAME)
+SYSTEM_EXTENSION_BUILD := $(DARWIN_RELEASE_BUILD)/Contents/Library/SystemExtensions/org.getlantern.lantern.PacketTunnel.systemextension
 MACOS_ENTITLEMENTS := macos/Runner/Release.entitlements
+MACOS_SYSTEM_EXTENSION_ENTITLEMENTS := macos/PacketTunnel/PacketTunnel.entitlements
 MACOS_INSTALLER := $(INSTALLER_NAME)$(if $(BUILD_TYPE),-$(BUILD_TYPE)).dmg
 MACOS_DIR := macos/
 MACOS_FRAMEWORK := Liblantern.xcframework
@@ -141,29 +143,9 @@ install-macos-deps: install-gomobile
 	brew install imagemagick || true
 	dart pub global activate flutter_distributor
 
-.PHONY: macos-arm64
-macos-arm64: $(DARWIN_LIB_ARM64)
-
-$(DARWIN_LIB_ARM64): $(GO_SOURCES)
-	GOARCH=arm64 LIB_NAME=$@ make desktop-lib
-
-.PHONY: macos-amd64
-macos-amd64: $(DARWIN_LIB_AMD64)
-
-$(DARWIN_LIB_AMD64): $(GO_SOURCES)
-	GOARCH=amd64 LIB_NAME=$@ make desktop-lib
 
 .PHONY: macos
-macos: $(DARWIN_LIB_BUILD) $(MACOS_FRAMEWORK_BUILD)
-
-$(DARWIN_LIB_BUILD): $(GO_SOURCES)
-	$(MAKE) macos-arm64 macos-amd64
-	rm -rf $@ && mkdir -p $(dir $@)
-	lipo -create $(DARWIN_LIB_ARM64) $(DARWIN_LIB_AMD64) -output $@
-	install_name_tool -id "@rpath/${DARWIN_LIB}" $@
-	mkdir -p $(MACOS_FRAMEWORK_DIR) && cp $@ $(MACOS_FRAMEWORK_DIR)
-	cp $(BIN_DIR)/macos-amd64/$(LANTERN_LIB_NAME)*.h $(MACOS_FRAMEWORK_DIR)/
-	@echo "Built macOS library: $(MACOS_FRAMEWORK_DIR)/$(DARWIN_LIB)"
+macos: $(MACOS_FRAMEWORK_BUILD)
 
 $(MACOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 	@echo "Building macOS Framework.."
@@ -196,26 +178,42 @@ $(DARWIN_RELEASE_BUILD):
 build-macos-release: $(DARWIN_RELEASE_BUILD)
 
 .PHONY: notarize-darwin
-notarize-darwin: require-ac-username require-ac-password
+notarize-darwin:
 	@echo "Notarizing distribution package..."
 	xcrun notarytool submit $(MACOS_INSTALLER) \
-		--apple-id $$AC_USERNAME \
+		--apple-id $(AC_USERNAME) \
 		--team-id "ACZRKC3LQ9" \
-		--password $$AC_PASSWORD \
-		--wait
+		--password $(AC_PASSWORD) \
+		--wait \
+	    --output-format json > notary_output.json
 
 	@echo "Stapling notarization ticket..."
 	xcrun stapler staple $(MACOS_INSTALLER)
 	@echo "Notarization complete"
 
+
+.PHONY: notarize-log
+notarize-log:
+	xcrun notarytool log 573890c2-f06e-45d4-b132-2c4cefdf3a56 \
+    	--apple-id $(AC_USERNAME) \
+	  --team-id "ACZRKC3LQ9" \
+	--password $(AC_PASSWORD) \
+	  --output-format json > notary_log.json
+
 sign-app:
+	# 3. Sign the whole app bundle
 	$(call osxcodesign, $(MACOS_ENTITLEMENTS), $(DARWIN_RELEASE_BUILD))
+	# 1. Sign the tunnel extension binary (must be done separately!)
+	$(call osxcodesign, $(MACOS_SYSTEM_EXTENSION_ENTITLEMENTS), $(SYSTEM_EXTENSION_BUILD))
+	# 2. Sign your main app binary
+	$(call osxcodesign, $(MACOS_ENTITLEMENTS), $(DARWIN_RELEASE_BUILD)/Contents/MacOS/Lantern)
+
 
 package-macos: require-appdmg
 	appdmg appdmg.json $(MACOS_INSTALLER)
 
 .PHONY: macos-release
-macos-release: clean macos pubget gen build-macos-release sign-app package-macos notarize-darwin
+macos-release:clean macos pubget gen build-macos-release sign-app package-macos notarize-darwin
 
 # Linux Build
 .PHONY: install-linux-deps
