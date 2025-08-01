@@ -16,7 +16,7 @@ class MethodHandler {
 
   private var vpnManager: VPNManager
 
-  init(channel: FlutterMethodChannel, vpnManager: VPNManager = VPNManager.shared) {
+  init(channel: FlutterMethodChannel, vpnManager: VPNManager) {
     self.channel = channel
     self.vpnManager = vpnManager
     setupMethodCallHandler()
@@ -37,6 +37,21 @@ class MethodHandler {
         self.isVPNConnected(result: result)
       case "plans":
         self.plans(result: result)
+      case "setPrivateServer":
+        if let args = call.arguments as? [String: Any],
+          let location = args["location"] as? String,
+          let tag = args["tag"] as? String
+        {
+          self.setPrivateServer(location: location, tag: tag, result: result)
+        } else {
+          result(
+            FlutterError(
+              code: "INVALID_ARGUMENTS",
+              message: "Missing or invalid 'location' or 'tag' for setPrivateServer",
+              details: nil
+            )
+          )
+        }
       case "oauthLoginUrl":
         let provider = call.arguments as! String
         self.oauthLoginUrl(result: result, provider: provider)
@@ -87,6 +102,30 @@ class MethodHandler {
     }
   }
 
+  private func setPrivateServer(location: String, tag: String, result: @escaping FlutterResult) {
+    Task {
+      do {
+        var error: NSError?
+        MobileSetPrivateServer(location, tag, &error)
+        if let error = error {
+          await MainActor.run {
+            result(
+              FlutterError(
+                code: "SET_PRIVATE_SERVER_FAILED",
+                message: error.localizedDescription,
+                details: error.description
+              )
+            )
+          }
+        } else {
+          await MainActor.run {
+            result("ok")
+          }
+        }
+      }
+    }
+  }
+
   private func stopVPN(result: @escaping FlutterResult) {
     Task {
       do {
@@ -116,7 +155,7 @@ class MethodHandler {
     Task {
       do {
         var error: NSError?
-        let data = MobilePlans(&error)
+        let data = MobilePlans("", &error)
         if error != nil {
           result(
             FlutterError(

@@ -1,15 +1,14 @@
 import FlutterMacOS
+import Liblantern
 import OSLog
+import app_links
 
 @main
 class AppDelegate: FlutterAppDelegate {
-  let logger = Logger(subsystem: "org.getlantern.lantern", category: "AppDelegate")
 
-  override func applicationDidFinishLaunching(_ aNotification: Notification) {
-    let systemExtensionManager = SystemExtensionManager()
-    systemExtensionManager.activateExtension()
-    super.applicationDidFinishLaunching(aNotification)
-  }
+  private let systemExtensionManager = SystemExtensionManager.shared
+
+  private let vpnManager = VPNManager.shared
 
   override func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
     return true
@@ -17,6 +16,98 @@ class AppDelegate: FlutterAppDelegate {
 
   override func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
     return true
+  }
+
+  override func applicationDidFinishLaunching(_ aNotification: Notification) {
+
+    systemExtensionManager.activateExtension()
+
+    guard let controller = mainFlutterWindow?.contentViewController as? FlutterViewController else {
+      fatalError("contentViewController is not a FlutterViewController")
+    }
+    RegisterGeneratedPlugins(registry: controller)
+
+    registerEventHandlers(controller: controller)
+
+    // Setup native method channel
+    setupMethodHandler(controller: controller)
+
+    // Initialize directories and working paths
+    setupFileSystem()
+
+    setupRadiance()
+    NSSetUncaughtExceptionHandler { exception in
+      print(exception.reason)
+      print(exception.callStackSymbols)
+    }
+    super.applicationDidFinishLaunching(aNotification)
+  }
+
+  public override func application(
+    _ application: NSApplication,
+    continue userActivity: NSUserActivity,
+    restorationHandler: @escaping ([any NSUserActivityRestoring]) -> Void
+  ) -> Bool {
+
+    guard let url = AppLinks.shared.getUniversalLink(userActivity) else {
+      return false
+    }
+
+    AppLinks.shared.handleLink(link: url.absoluteString)
+    return false
+  }
+
+  /// Registers Flutter event channel handlers
+  private func registerEventHandlers(controller: FlutterViewController) {
+    let registry = controller as! FlutterPluginRegistry
+    let statusRegistrar = registry.registrar(forPlugin: "StatusEventHandler")
+    StatusEventHandler.register(with: statusRegistrar)
+  }
+
+  /// Initializes the native method channel handler
+  private func setupMethodHandler(controller: FlutterViewController) {
+    let nativeChannel = FlutterMethodChannel(
+      name: "org.getlantern.lantern/method",
+      binaryMessenger: controller.engine.binaryMessenger
+    )
+    MethodHandler(channel: nativeChannel, vpnManager: vpnManager)
+  }
+
+  /// Prepares the file system directories for use
+  private func setupFileSystem() {
+      // Use the FilePath extension to get the working directory.
+      
+    do {
+      try FileManager.default.createDirectory(
+        at: FilePath.workingDirectory,
+        withIntermediateDirectories: true
+      )
+    } catch {
+      appLogger.error("Failed to create working directory: \(error.localizedDescription)")
+    }
+
+    guard FileManager.default.changeCurrentDirectoryPath(FilePath.sharedDirectory.path) else {
+      appLogger.error("Failed to change current directory to: \(FilePath.sharedDirectory.path)")
+      return
+    }
+
+  }
+
+  /// Calls API handler setup
+  private func setupRadiance() {
+    Task {
+      // Set up the base directory and options
+      let baseDir = FilePath.workingDirectory.relativePath
+      let opts = MobileOpts()
+      opts.dataDir = baseDir
+      opts.locale = Locale.current.identifier
+      var error: NSError?
+      await MobileSetupRadiance(opts, &error)
+      // Handle any error returned by the setup
+      if let error {
+        appLogger.error("Error while setting up radiance: \(error)")
+      }
+    }
   }
 
 }

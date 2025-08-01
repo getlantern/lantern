@@ -39,29 +39,33 @@ class VPNManager: VPNBase {
     }
   }
 
-  private func setupVPN() async {
+  private func removeExistingVPNProfiles() async {
     do {
-      let managers: [NETunnelProviderManager] =
-        try await NETunnelProviderManager.loadAllFromPreferences()
-
-      if let existing = managers.first {
-        self.manager = existing
-        appLogger.log("Found the manager")
-
-      } else {
-        createNewProfile()
-        appLogger.log("Saving new profile to preferences..")
-        try? await self.manager?.saveToPreferences()
-        await setupVPN()
+      let managers = try await NETunnelProviderManager.loadAllFromPreferences()
+      for manager in managers {
+        appLogger.log("Removing VPN configuration: \(manager.localizedDescription ?? "Unnamed")")
+        try await manager.removeFromPreferences()
       }
     } catch {
-      appLogger.error(
-        "An unexpected error occurred while loading VPN configurations: \(error.localizedDescription)"
-      )
-      createNewProfile()
-      appLogger.log("Saving new profile to preferences..")
-      try? await self.manager?.saveToPreferences()
-      await setupVPN()
+      appLogger.error("Unable to remove VPN profile: \(error.localizedDescription)")
+    }
+  }
+
+  private func setupVPN() async {
+    do {
+      let managers = try await NETunnelProviderManager.loadAllFromPreferences()
+      if let existing = managers.first {
+        self.manager = existing
+        appLogger.log("Found existing VPN manager")
+      } else {
+        appLogger.log("No VPN profiles found, creating new profile")
+        createNewProfile()
+        try await self.manager?.saveToPreferences()
+        try await self.manager?.loadFromPreferences()
+        appLogger.log("Created and loaded new VPN profile")
+      }
+    } catch {
+      appLogger.error("Failed to set up VPN: \(error.localizedDescription)")
     }
   }
 
@@ -69,7 +73,7 @@ class VPNManager: VPNBase {
   private func createNewProfile() {
     let manager = NETunnelProviderManager()
     let tunnelProtocol = NETunnelProviderProtocol()
-    tunnelProtocol.providerBundleIdentifier = SystemExtensionManager.tunnelBundleID
+    tunnelProtocol.providerBundleIdentifier = "org.getlantern.lantern.packet"
     tunnelProtocol.serverAddress = "0.0.0.0"
 
     manager.protocolConfiguration = tunnelProtocol
@@ -93,11 +97,13 @@ class VPNManager: VPNBase {
       return
     }
     appLogger.log("Starting tunnel..")
+    //await removeExistingVPNProfiles()
     await self.setupVPN()
     let options = ["netEx.StartReason": NSString("User Initiated")]
     try self.manager?.connection.startVPNTunnel(options: options)
 
-    self.manager?.isOnDemandEnabled = true
+    self.manager?.isOnDemandEnabled = false
+
     try await self.saveThenLoadProvider()
   }
 
