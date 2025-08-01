@@ -24,7 +24,7 @@ Future<void> injectServices() async {
 
   sl.registerLazySingleton(() => LanternPlatformService(sl<AppPurchase>()));
   await sl<LanternPlatformService>().init();
-  if (PlatformUtils.isDesktop) {
+  if (PlatformUtils.isFFISupported) {
     sl.registerLazySingleton(() => LanternFFIService());
     await sl<LanternFFIService>().init();
   } else {
