@@ -49,11 +49,11 @@ func enableSplitTunneling() bool {
 }
 
 func SetupRadiance(opts *utils.Opts) error {
-	defer func() {
-		if r := recover(); r != nil {
-			log.Errorf("Recovered from panic in SetupRadiance: %v", r)
-		}
-	}()
+	// defer func() {
+	// 	if r := recover(); r != nil {
+	// 		log.Errorf("Recovered from panic in SetupRadiance: %v", r)
+	// 	}
+	// }()
 	var innerErr error
 	setupRadiance.Do(func() {
 		logDir := filepath.Join(opts.DataDir, "logs")
@@ -127,14 +127,14 @@ func getSplitTunnelHandler() (*vpn.SplitTunnel, error) {
 }
 
 func AvailableFeatures() []byte {
-	features := radianceServer.Features()
-	log.Debugf("Available features: %v", features)
-	jsonBytes, err := json.Marshal(features)
-	if err != nil {
-		log.Errorf("Error marshalling features: %v", err)
-		return nil
-	}
-	return jsonBytes
+	// features := radianceServer.Features()
+	// log.Debugf("Available features: %v", features)
+	// jsonBytes, err := json.Marshal(features)
+	// if err != nil {
+	// 	log.Errorf("Error marshalling features: %v", err)
+	// 	return nil
+	// }
+	return []byte{}
 }
 
 func IsRadianceConnected() bool {

@@ -16,7 +16,7 @@ FFI_DIR := $(LANTERN_CORE)/ffi
 EXTRA_LDFLAGS ?=
 BUILD_TAGS ?=
 
-DARWIN_APP_NAME := $(CAPITALIZED_APP).app
+DARWIN_APP_NAME := lantern.app
 DARWIN_LIB := $(LANTERN_LIB_NAME).dylib
 DARWIN_LIB_AMD64 := $(BIN_DIR)/macos-amd64/$(LANTERN_LIB_NAME).dylib
 DARWIN_LIB_ARM64 := $(BIN_DIR)/macos-arm64/$(LANTERN_LIB_NAME).dylib
@@ -181,9 +181,9 @@ build-macos-release: $(DARWIN_RELEASE_BUILD)
 notarize-darwin:
 	@echo "Notarizing distribution package..."
 	xcrun notarytool submit $(MACOS_INSTALLER) \
-		--apple-id $(AC_USERNAME) \
-		--team-id "ACZRKC3LQ9" \
-		--password $(AC_PASSWORD) \
+			--apple-id $(AC_USERNAME) \
+        	  --team-id "ACZRKC3LQ9" \
+        	--password $(AC_PASSWORD) \
 		--wait \
 	    --output-format json > notary_output.json
 
@@ -194,18 +194,18 @@ notarize-darwin:
 
 .PHONY: notarize-log
 notarize-log:
-	xcrun notarytool log 573890c2-f06e-45d4-b132-2c4cefdf3a56 \
+	xcrun notarytool log 41f71b65-33b7-40aa-b035-262ee6a13292 \
     	--apple-id $(AC_USERNAME) \
-	  --team-id "ACZRKC3LQ9" \
-	--password $(AC_PASSWORD) \
+    	  --team-id "ACZRKC3LQ9" \
+    	--password $(AC_PASSWORD) \
 	  --output-format json > notary_log.json
 
 sign-app:
-	# 3. Sign the whole app bundle
+	# 1. Sign the whole app bundle
 	$(call osxcodesign, $(MACOS_ENTITLEMENTS), $(DARWIN_RELEASE_BUILD))
-	# 1. Sign the tunnel extension binary (must be done separately!)
+	# 2. Sign the tunnel extension binary (must be done separately!)
 	$(call osxcodesign, $(MACOS_SYSTEM_EXTENSION_ENTITLEMENTS), $(SYSTEM_EXTENSION_BUILD))
-	# 2. Sign your main app binary
+#	# 3. Sign your main app binary
 	$(call osxcodesign, $(MACOS_ENTITLEMENTS), $(DARWIN_RELEASE_BUILD)/Contents/MacOS/Lantern)
 
 
@@ -213,7 +213,7 @@ package-macos: require-appdmg
 	appdmg appdmg.json $(MACOS_INSTALLER)
 
 .PHONY: macos-release
-macos-release:clean macos pubget gen build-macos-release sign-app package-macos notarize-darwin
+macos-release: clean macos pubget gen build-macos-release sign-app package-macos notarize-darwin
 
 # Linux Build
 .PHONY: install-linux-deps

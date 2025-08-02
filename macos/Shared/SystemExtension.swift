@@ -21,8 +21,12 @@ public class SystemExtension: NSObject, OSSystemExtensionRequestDelegate {
     if forceUpdate {
       return .replace
     }
-    if existing.isAwaitingUserApproval, !inBackground {
-      return .replace
+    if #available(macOS 12.0, *) {
+      if existing.isAwaitingUserApproval, !inBackground {
+        return .replace
+      }
+    } else {
+      // Fallback on earlier versions
     }
     if existing.bundleIdentifier == ext.bundleIdentifier,
       existing.bundleVersion == ext.bundleVersion,

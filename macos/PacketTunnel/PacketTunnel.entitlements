@@ -6,14 +6,15 @@
 	<array>
 		<string>packet-tunnel-provider-systemextension</string>
 	</array>
-	<key>com.apple.developer.system-extension.install</key>
+	<key>com.apple.security.app-sandbox</key>
 	<true/>
 	<key>com.apple.security.application-groups</key>
 	<array>
 		<string>group.getlantern.lantern</string>
-		<string>ACZRKC3LQ9.objectbx</string>
 	</array>
-	<key>com.apple.security.get-task-allow</key>
-	<false/>
+	<key>com.apple.security.network.client</key>
+	<true/>
+	<key>com.apple.security.network.server</key>
+	<true/>
 </dict>
 </plist>

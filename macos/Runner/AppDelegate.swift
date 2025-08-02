@@ -1,41 +1,24 @@
+import Cocoa
 import FlutterMacOS
 import Liblantern
-import OSLog
-import app_links
 
 @main
 class AppDelegate: FlutterAppDelegate {
-
   private let vpnManager = VPNManager.shared
 
-  // Close app when last window is closed
   override func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
-    return false
+    return true
   }
 
-  // Disable secure state restoration
   override func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
-    return false
+    return true
   }
 
-  // MARK: — Disable all state restoration —
-
-  @objc func applicationShouldRestoreApplicationState(_ app: NSApplication) -> Bool {
-    return false
-  }
-  @objc func applicationShouldRestoreWindowState(_ app: NSApplication, window: NSWindow) -> Bool {
-    return false
-  }
-
-  override func applicationDidFinishLaunching(_ aNotification: Notification) {
-    // Ensure Flutter window is key and visible
-    if let window = mainFlutterWindow {
-      window.makeKeyAndOrderFront(nil)
-    }
-
+  override func applicationDidFinishLaunching(_ notification: Notification) {
     guard let controller = mainFlutterWindow?.contentViewController as? FlutterViewController else {
       fatalError("contentViewController is not a FlutterViewController")
     }
+    appLogger.info("Application did finish launching")
     RegisterGeneratedPlugins(registry: controller)
 
     // Register event handlers
@@ -49,26 +32,13 @@ class AppDelegate: FlutterAppDelegate {
 
     // set radiance
     setupRadiance()
-    // Catch uncaught exceptions
+      
     NSSetUncaughtExceptionHandler { exception in
-      print(exception.reason ?? "Unknown reason")
-      print(exception.callStackSymbols)
-    }
-    super.applicationDidFinishLaunching(aNotification)
-  }
-
-  public override func application(
-    _ application: NSApplication,
-    continue userActivity: NSUserActivity,
-    restorationHandler: @escaping ([any NSUserActivityRestoring]) -> Void
-  ) -> Bool {
-
-    guard let url = AppLinks.shared.getUniversalLink(userActivity) else {
-      return false
+      NSLog(exception.reason ?? "Unknown reason")
+      NSLog(exception.callStackSymbols.joined(separator: "\n"))
     }
 
-    AppLinks.shared.handleLink(link: url.absoluteString)
-    return false
+    super.applicationDidFinishLaunching(notification)
   }
 
   /// Registers Flutter event channel handlers
@@ -123,7 +93,8 @@ class AppDelegate: FlutterAppDelegate {
 
   /// Calls API handler setup
   private func setupRadiance() {
-    Task {
+    appLogger.info("Setting up radiance")
+      Task {
       // Set up the base directory and options
       let baseDir = FilePath.workingDirectory.relativePath
       let opts = UtilsOpts()
@@ -138,5 +109,4 @@ class AppDelegate: FlutterAppDelegate {
       }
     }
   }
-
 }

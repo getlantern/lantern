@@ -561,7 +561,7 @@ class MethodHandler {
     Task.detached {
       let flags = MobileAvailableFeatures()
       await MainActor.run {
-        result(String(data: flags!, encoding: .utf8))
+        result("ok")
       }
     }
   }

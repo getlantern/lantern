@@ -2,19 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<true/>
-	</dict>
-	<key>NSRequiresAquaSystemAppearance</key>
-	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleExecutable</key>
-	<string>Lantern</string>
+	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIconFile</key>
-	<string>AppIcon</string>
+	<string></string>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -35,14 +28,12 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
-	<key>SUPublicEDKey</key>
-	<string>J9Pe9z0DTNLMygl0zxG0BWBON2HbTebIO1et3fARypo=</string>
-	<key>NSUserNotificationAlertStyle</key>
-	<string>alert</string>
-    <key>NSDisableAutomaticTermination</key>
-    <true/>
-
-    <key>NSQuitAlwaysKeepsWindows</key>
-    <false/>
+    <key>SUPublicEDKey</key>
+    <string>J9Pe9z0DTNLMygl0zxG0BWBON2HbTebIO1et3fARypo=</string>
+    <key>NSAppTransportSecurity</key>
+        <dict>
+            <key>NSAllowsArbitraryLoads</key>
+            <true/>
+        </dict>
 </dict>
 </plist>

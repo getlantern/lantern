@@ -21,40 +21,43 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
-		031AC3872E3D0EE900D7010F /* MainFlutterWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 031AC3862E3D0EE900D7010F /* MainFlutterWindow.swift */; };
-		033C730B2E3B38FD007BD2B0 /* org.getlantern.lantern.PacketTunnel.systemextension in Embed System Extensions */ = {isa = PBXBuildFile; fileRef = 033C73002E3B38FD007BD2B0 /* org.getlantern.lantern.PacketTunnel.systemextension */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		033C73132E3B3A4F007BD2B0 /* SystemExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 033C73122E3B3A4F007BD2B0 /* SystemExtension.swift */; };
-		033C73152E3B3E8F007BD2B0 /* ExtensionProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 033C73142E3B3E82007BD2B0 /* ExtensionProfile.swift */; };
-		033C73162E3B44E5007BD2B0 /* Liblantern.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 293C302F2DEF247F00691115 /* Liblantern.xcframework */; };
-		033C73172E3B44E5007BD2B0 /* Liblantern.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 293C302F2DEF247F00691115 /* Liblantern.xcframework */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		033C73192E3B4502007BD2B0 /* Liblantern.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 293C302F2DEF247F00691115 /* Liblantern.xcframework */; };
-		033C731A2E3B4502007BD2B0 /* Liblantern.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 293C302F2DEF247F00691115 /* Liblantern.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		036606162E3C9FAD00A64B7B /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 33CC10F72044A3C60003C045 /* Info.plist */; };
-		039A061E2E24D89700B64255 /* StatusEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 039A061D2E24D89700B64255 /* StatusEventHandler.swift */; };
-		039A061F2E24DB6000B64255 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B402DE7A5F300640E7F /* KeychainService.swift */; };
-		039A06202E24DB6500B64255 /* FilePath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B412DE7A5F300640E7F /* FilePath.swift */; };
-		03B2F9802E3B6207000BCF94 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 29952B052DE79CB200640E7F /* NetworkExtension.framework */; };
-		03D2366D2E3A067F0004EC53 /* PrivateServerEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03D2366C2E3A067F0004EC53 /* PrivateServerEventHandler.swift */; };
-		293C305A2DEF649500691115 /* MethodHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C30552DEF649500691115 /* MethodHandler.swift */; };
-		293C305E2DEF67EB00691115 /* VPNManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C305C2DEF67EB00691115 /* VPNManager.swift */; };
-		293C305F2DEF67EB00691115 /* VPNBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C305B2DEF67EB00691115 /* VPNBase.swift */; };
-		293C30612DEF68B300691115 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C30602DEF68B300691115 /* Logger.swift */; };
+		03583B302E3DEB4700C70B06 /* MethodHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03583B2C2E3DEB4700C70B06 /* MethodHandler.swift */; };
+		03583B312E3DEB4700C70B06 /* PrivateServerEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03583B2D2E3DEB4700C70B06 /* PrivateServerEventHandler.swift */; };
+		03583B322E3DEB4700C70B06 /* StatusEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03583B2E2E3DEB4700C70B06 /* StatusEventHandler.swift */; };
+		03583B392E3DEB6800C70B06 /* ExtensionProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03583B352E3DEB6800C70B06 /* ExtensionProfile.swift */; };
+		03583B3A2E3DEB6800C70B06 /* PrivateServerListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03583B332E3DEB6800C70B06 /* PrivateServerListener.swift */; };
+		03583B3B2E3DEB6800C70B06 /* VPNBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03583B362E3DEB6800C70B06 /* VPNBase.swift */; };
+		03583B3C2E3DEB6800C70B06 /* VPNManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03583B372E3DEB6800C70B06 /* VPNManager.swift */; };
+		0375980E2E3DEFFF00DB16E2 /* Liblantern.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0375980D2E3DEFFF00DB16E2 /* Liblantern.xcframework */; };
+		0375980F2E3DEFFF00DB16E2 /* Liblantern.xcframework in Bundle Framework */ = {isa = PBXBuildFile; fileRef = 0375980D2E3DEFFF00DB16E2 /* Liblantern.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		037598152E3DF0EE00DB16E2 /* FilePath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 037598102E3DF0E600DB16E2 /* FilePath.swift */; };
+		037598162E3DF0F200DB16E2 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 037598112E3DF0E600DB16E2 /* KeychainService.swift */; };
+		037598172E3DF0F600DB16E2 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 037598122E3DF0E600DB16E2 /* Logger.swift */; };
+		037598182E3DF0FC00DB16E2 /* SystemExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 037598132E3DF0E600DB16E2 /* SystemExtension.swift */; };
+		0375981F2E3DF87500DB16E2 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0375981E2E3DF87500DB16E2 /* NetworkExtension.framework */; };
+		037598292E3DF87500DB16E2 /* org.getlantern.lantern.PacketTunnel.systemextension in Embed System Extensions */ = {isa = PBXBuildFile; fileRef = 0375981D2E3DF87400DB16E2 /* org.getlantern.lantern.PacketTunnel.systemextension */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		037598682E3E102400DB16E2 /* FilePath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 037598102E3DF0E600DB16E2 /* FilePath.swift */; };
+		037598692E3E102900DB16E2 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 037598112E3DF0E600DB16E2 /* KeychainService.swift */; };
+		0375986A2E3E102E00DB16E2 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 037598122E3DF0E600DB16E2 /* Logger.swift */; };
+		0375986B2E3E103200DB16E2 /* SystemExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 037598132E3DF0E600DB16E2 /* SystemExtension.swift */; };
+		0375986D2E3E109200DB16E2 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 0375986C2E3E108600DB16E2 /* libresolv.tbd */; };
 		331C80D8294CF71000263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C80D7294CF71000263BE5 /* RunnerTests.swift */; };
 		335BBD1B22A9A15E00E9071D /* GeneratedPluginRegistrant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 335BBD1A22A9A15E00E9071D /* GeneratedPluginRegistrant.swift */; };
 		33CC10F12044A3C60003C045 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CC10F02044A3C60003C045 /* AppDelegate.swift */; };
 		33CC10F32044A3C60003C045 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 33CC10F22044A3C60003C045 /* Assets.xcassets */; };
 		33CC10F62044A3C60003C045 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 33CC10F42044A3C60003C045 /* MainMenu.xib */; };
-		5542FA9C165A7489A54D69E6 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3FD9DACB5BA763A29C28870C /* Pods_Runner.framework */; };
-		6F8419314D5C43EF38859D72 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 831CC47A1A5EE5E9DF45C2BC /* Pods_RunnerTests.framework */; };
-		78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */; };
+		33CC11132044BFA00003C045 /* MainFlutterWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CC11122044BFA00003C045 /* MainFlutterWindow.swift */; };
+		5E9D51F084E7FB8C79CC6B79 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FB78583079A815499ADBD28D /* Pods_Runner.framework */; };
+		A2B4BE61FD448D2A34DC0933 /* libPods-PacketTunnel.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8C6C7C0955FB9BABA7E5C189 /* libPods-PacketTunnel.a */; };
+		E4E4AB98A074C95E2BB852DE /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EB6DDD04D89A032BAA96722F /* Pods_RunnerTests.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		033C73092E3B38FD007BD2B0 /* PBXContainerItemProxy */ = {
+		037598272E3DF87500DB16E2 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 33CC10E52044A3C60003C045 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 033C72FF2E3B38FD007BD2B0;
+			remoteGlobalIDString = 0375981C2E3DF87400DB16E2;
 			remoteInfo = PacketTunnel;
 		};
 		331C80D9294CF71000263BE5 /* PBXContainerItemProxy */ = {
@@ -74,105 +77,100 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		033C73112E3B38FD007BD2B0 /* Embed System Extensions */ = {
+		0375982A2E3DF87500DB16E2 /* Embed System Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "$(SYSTEM_EXTENSIONS_FOLDER_PATH)";
 			dstSubfolderSpec = 16;
 			files = (
-				033C730B2E3B38FD007BD2B0 /* org.getlantern.lantern.PacketTunnel.systemextension in Embed System Extensions */,
+				037598292E3DF87500DB16E2 /* org.getlantern.lantern.PacketTunnel.systemextension in Embed System Extensions */,
 			);
 			name = "Embed System Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		033C73182E3B44E5007BD2B0 /* Embed Frameworks */ = {
+		33CC110E2044A8840003C045 /* Bundle Framework */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				033C73172E3B44E5007BD2B0 /* Liblantern.xcframework in Embed Frameworks */,
+				0375980F2E3DEFFF00DB16E2 /* Liblantern.xcframework in Bundle Framework */,
 			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		033C731B2E3B4502007BD2B0 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				033C731A2E3B4502007BD2B0 /* Liblantern.xcframework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		5F3197532E32D40B00FCCE66 /* Embed Foundation Extensions */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 13;
-			files = (
-			);
-			name = "Embed Foundation Extensions";
+			name = "Bundle Framework";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		031AC3862E3D0EE900D7010F /* MainFlutterWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainFlutterWindow.swift; sourceTree = "<group>"; };
-		033C73002E3B38FD007BD2B0 /* org.getlantern.lantern.PacketTunnel.systemextension */ = {isa = PBXFileReference; explicitFileType = "wrapper.system-extension"; includeInIndex = 0; path = org.getlantern.lantern.PacketTunnel.systemextension; sourceTree = BUILT_PRODUCTS_DIR; };
-		033C73122E3B3A4F007BD2B0 /* SystemExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemExtension.swift; sourceTree = "<group>"; };
-		033C73142E3B3E82007BD2B0 /* ExtensionProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionProfile.swift; sourceTree = "<group>"; };
-		039A061D2E24D89700B64255 /* StatusEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusEventHandler.swift; sourceTree = "<group>"; };
-		03D2366C2E3A067F0004EC53 /* PrivateServerEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivateServerEventHandler.swift; sourceTree = "<group>"; };
-		1E9A6FC86FA886DA6665EC6D /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
-		293C302F2DEF247F00691115 /* Liblantern.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Liblantern.xcframework; path = Frameworks/Liblantern.xcframework; sourceTree = "<group>"; };
-		293C30552DEF649500691115 /* MethodHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MethodHandler.swift; sourceTree = "<group>"; };
-		293C305B2DEF67EB00691115 /* VPNBase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VPNBase.swift; sourceTree = "<group>"; };
-		293C305C2DEF67EB00691115 /* VPNManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VPNManager.swift; sourceTree = "<group>"; };
-		293C30602DEF68B300691115 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
-		29952B052DE79CB200640E7F /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
-		29952B402DE7A5F300640E7F /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
-		29952B412DE7A5F300640E7F /* FilePath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilePath.swift; sourceTree = "<group>"; };
+		03583B2C2E3DEB4700C70B06 /* MethodHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MethodHandler.swift; sourceTree = "<group>"; };
+		03583B2D2E3DEB4700C70B06 /* PrivateServerEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivateServerEventHandler.swift; sourceTree = "<group>"; };
+		03583B2E2E3DEB4700C70B06 /* StatusEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusEventHandler.swift; sourceTree = "<group>"; };
+		03583B332E3DEB6800C70B06 /* PrivateServerListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivateServerListener.swift; sourceTree = "<group>"; };
+		03583B352E3DEB6800C70B06 /* ExtensionProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionProfile.swift; sourceTree = "<group>"; };
+		03583B362E3DEB6800C70B06 /* VPNBase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VPNBase.swift; sourceTree = "<group>"; };
+		03583B372E3DEB6800C70B06 /* VPNManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VPNManager.swift; sourceTree = "<group>"; };
+		0375980D2E3DEFFF00DB16E2 /* Liblantern.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Liblantern.xcframework; path = Frameworks/Liblantern.xcframework; sourceTree = "<group>"; };
+		037598102E3DF0E600DB16E2 /* FilePath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilePath.swift; sourceTree = "<group>"; };
+		037598112E3DF0E600DB16E2 /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
+		037598122E3DF0E600DB16E2 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
+		037598132E3DF0E600DB16E2 /* SystemExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemExtension.swift; sourceTree = "<group>"; };
+		0375981D2E3DF87400DB16E2 /* org.getlantern.lantern.PacketTunnel.systemextension */ = {isa = PBXFileReference; explicitFileType = "wrapper.system-extension"; includeInIndex = 0; path = org.getlantern.lantern.PacketTunnel.systemextension; sourceTree = BUILT_PRODUCTS_DIR; };
+		0375981E2E3DF87500DB16E2 /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
+		0375986C2E3E108600DB16E2 /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = usr/lib/libresolv.tbd; sourceTree = SDKROOT; };
+		043AE92370495544AEBA7069 /* Pods-RunnerTests.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.profile.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.profile.xcconfig"; sourceTree = "<group>"; };
+		08AEA35FE37A4F75480CBCFD /* Pods-PacketTunnel.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PacketTunnel.profile.xcconfig"; path = "Target Support Files/Pods-PacketTunnel/Pods-PacketTunnel.profile.xcconfig"; sourceTree = "<group>"; };
 		331C80D5294CF71000263BE5 /* RunnerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RunnerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		331C80D7294CF71000263BE5 /* RunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunnerTests.swift; sourceTree = "<group>"; };
 		333000ED22D3DE5D00554162 /* Warnings.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Warnings.xcconfig; sourceTree = "<group>"; };
 		335BBD1A22A9A15E00E9071D /* GeneratedPluginRegistrant.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GeneratedPluginRegistrant.swift; sourceTree = "<group>"; };
-		33CC10ED2044A3C60003C045 /* Lantern.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Lantern.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		33CC10ED2044A3C60003C045 /* lantern.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = lantern.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		33CC10F02044A3C60003C045 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		33CC10F22044A3C60003C045 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = Runner/Assets.xcassets; sourceTree = "<group>"; };
 		33CC10F52044A3C60003C045 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		33CC10F72044A3C60003C045 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = Runner/Info.plist; sourceTree = "<group>"; };
+		33CC11122044BFA00003C045 /* MainFlutterWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainFlutterWindow.swift; sourceTree = "<group>"; };
 		33CEB47222A05771004F2AC0 /* Flutter-Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Flutter-Debug.xcconfig"; sourceTree = "<group>"; };
 		33CEB47422A05771004F2AC0 /* Flutter-Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Flutter-Release.xcconfig"; sourceTree = "<group>"; };
 		33CEB47722A0578A004F2AC0 /* Flutter-Generated.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = "Flutter-Generated.xcconfig"; path = "ephemeral/Flutter-Generated.xcconfig"; sourceTree = "<group>"; };
+		33E51913231747F40026EE4D /* DebugProfile.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DebugProfile.entitlements; sourceTree = "<group>"; };
 		33E51914231749380026EE4D /* Release.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = Release.entitlements; sourceTree = "<group>"; };
 		33E5194F232828860026EE4D /* AppInfo.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = AppInfo.xcconfig; sourceTree = "<group>"; };
-		3FD9DACB5BA763A29C28870C /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		4062AE3F330289DCB86FAD4E /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
-		5FD28A9A2DFAEB1B009AE259 /* RunnerDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = RunnerDebug.entitlements; sourceTree = "<group>"; };
+		3515045454B49C5219D1512A /* Pods-PacketTunnel.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PacketTunnel.debug.xcconfig"; path = "Target Support Files/Pods-PacketTunnel/Pods-PacketTunnel.debug.xcconfig"; sourceTree = "<group>"; };
+		72A0FEC326CA914B6816759A /* Pods-RunnerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release.xcconfig"; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
-		831CC47A1A5EE5E9DF45C2BC /* Pods_RunnerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_RunnerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		967C821650324F795ACA825A /* Pods-RunnerTests.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.profile.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.profile.xcconfig"; sourceTree = "<group>"; };
+		8C6C7C0955FB9BABA7E5C189 /* libPods-PacketTunnel.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-PacketTunnel.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
-		C880C8AAD01AAC936ECE1814 /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
-		CAEDFD45C7CA749159F267FA /* Pods-RunnerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release.xcconfig"; sourceTree = "<group>"; };
-		EDC1670D3723C38E9F4EBE3E /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
+		A97FD6A52C3A81DCCDE9213D /* Pods-PacketTunnel.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PacketTunnel.release.xcconfig"; path = "Target Support Files/Pods-PacketTunnel/Pods-PacketTunnel.release.xcconfig"; sourceTree = "<group>"; };
+		D0D2B72DDCCEF3A07B51865A /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
+		E87D8437BAE86638CDFB0BE6 /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
+		EB6DDD04D89A032BAA96722F /* Pods_RunnerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_RunnerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		F2020512A00F017F635E69A7 /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
+		FB78583079A815499ADBD28D /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		FE38E38218A6AB746D05E315 /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		0375982E2E3DF87500DB16E2 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 0375981C2E3DF87400DB16E2 /* PacketTunnel */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		033C73022E3B38FD007BD2B0 /* PacketTunnel */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = PacketTunnel; sourceTree = "<group>"; };
-		03D236712E3A06E20004EC53 /* Utils */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Utils; sourceTree = "<group>"; };
+		037598202E3DF87500DB16E2 /* PacketTunnel */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (0375982E2E3DF87500DB16E2 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = PacketTunnel; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		033C72FD2E3B38FD007BD2B0 /* Frameworks */ = {
+		0375981A2E3DF87400DB16E2 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				033C73162E3B44E5007BD2B0 /* Liblantern.xcframework in Frameworks */,
-				03B2F9802E3B6207000BCF94 /* NetworkExtension.framework in Frameworks */,
+				0375981F2E3DF87500DB16E2 /* NetworkExtension.framework in Frameworks */,
+				0375986D2E3E109200DB16E2 /* libresolv.tbd in Frameworks */,
+				A2B4BE61FD448D2A34DC0933 /* libPods-PacketTunnel.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -180,7 +178,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6F8419314D5C43EF38859D72 /* Pods_RunnerTests.framework in Frameworks */,
+				E4E4AB98A074C95E2BB852DE /* Pods_RunnerTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -188,42 +186,49 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */,
-				5542FA9C165A7489A54D69E6 /* Pods_Runner.framework in Frameworks */,
-				033C73192E3B4502007BD2B0 /* Liblantern.xcframework in Frameworks */,
+				0375980E2E3DEFFF00DB16E2 /* Liblantern.xcframework in Frameworks */,
+				5E9D51F084E7FB8C79CC6B79 /* Pods_Runner.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		293C30572DEF649500691115 /* Handlers */ = {
+		03583B2F2E3DEB4700C70B06 /* Handlers */ = {
 			isa = PBXGroup;
 			children = (
-				03D2366C2E3A067F0004EC53 /* PrivateServerEventHandler.swift */,
-				039A061D2E24D89700B64255 /* StatusEventHandler.swift */,
-				293C30552DEF649500691115 /* MethodHandler.swift */,
+				03583B2C2E3DEB4700C70B06 /* MethodHandler.swift */,
+				03583B2D2E3DEB4700C70B06 /* PrivateServerEventHandler.swift */,
+				03583B2E2E3DEB4700C70B06 /* StatusEventHandler.swift */,
 			);
 			path = Handlers;
 			sourceTree = "<group>";
 		};
-		293C305D2DEF67EB00691115 /* VPN */ = {
+		03583B342E3DEB6800C70B06 /* Utils */ = {
 			isa = PBXGroup;
 			children = (
-				033C73142E3B3E82007BD2B0 /* ExtensionProfile.swift */,
-				293C305B2DEF67EB00691115 /* VPNBase.swift */,
-				293C305C2DEF67EB00691115 /* VPNManager.swift */,
+				03583B332E3DEB6800C70B06 /* PrivateServerListener.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		03583B382E3DEB6800C70B06 /* VPN */ = {
+			isa = PBXGroup;
+			children = (
+				03583B352E3DEB6800C70B06 /* ExtensionProfile.swift */,
+				03583B362E3DEB6800C70B06 /* VPNBase.swift */,
+				03583B372E3DEB6800C70B06 /* VPNManager.swift */,
 			);
 			path = VPN;
 			sourceTree = "<group>";
 		};
-		29952B422DE7A5F300640E7F /* Shared */ = {
+		037598142E3DF0E600DB16E2 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
-				033C73122E3B3A4F007BD2B0 /* SystemExtension.swift */,
-				293C30602DEF68B300691115 /* Logger.swift */,
-				29952B402DE7A5F300640E7F /* KeychainService.swift */,
-				29952B412DE7A5F300640E7F /* FilePath.swift */,
+				037598102E3DF0E600DB16E2 /* FilePath.swift */,
+				037598112E3DF0E600DB16E2 /* KeychainService.swift */,
+				037598122E3DF0E600DB16E2 /* Logger.swift */,
+				037598132E3DF0E600DB16E2 /* SystemExtension.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -250,23 +255,23 @@
 		33CC10E42044A3C60003C045 = {
 			isa = PBXGroup;
 			children = (
-				29952B422DE7A5F300640E7F /* Shared */,
+				037598142E3DF0E600DB16E2 /* Shared */,
 				33FAB671232836740065AC1E /* Runner */,
 				33CEB47122A05771004F2AC0 /* Flutter */,
 				331C80D6294CF71000263BE5 /* RunnerTests */,
-				033C73022E3B38FD007BD2B0 /* PacketTunnel */,
+				037598202E3DF87500DB16E2 /* PacketTunnel */,
 				33CC10EE2044A3C60003C045 /* Products */,
 				D73912EC22F37F3D000D13A0 /* Frameworks */,
-				FED29616DB27141FD4AD9EAF /* Pods */,
+				80D463B8ADF069EBDFACA01C /* Pods */,
 			);
 			sourceTree = "<group>";
 		};
 		33CC10EE2044A3C60003C045 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				33CC10ED2044A3C60003C045 /* Lantern.app */,
+				33CC10ED2044A3C60003C045 /* lantern.app */,
 				331C80D5294CF71000263BE5 /* RunnerTests.xctest */,
-				033C73002E3B38FD007BD2B0 /* org.getlantern.lantern.PacketTunnel.systemextension */,
+				0375981D2E3DF87400DB16E2 /* org.getlantern.lantern.PacketTunnel.systemextension */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -296,12 +301,12 @@
 		33FAB671232836740065AC1E /* Runner */ = {
 			isa = PBXGroup;
 			children = (
-				03D236712E3A06E20004EC53 /* Utils */,
-				5FD28A9A2DFAEB1B009AE259 /* RunnerDebug.entitlements */,
-				293C305D2DEF67EB00691115 /* VPN */,
-				293C30572DEF649500691115 /* Handlers */,
+				03583B342E3DEB6800C70B06 /* Utils */,
+				03583B382E3DEB6800C70B06 /* VPN */,
+				03583B2F2E3DEB4700C70B06 /* Handlers */,
 				33CC10F02044A3C60003C045 /* AppDelegate.swift */,
-				031AC3862E3D0EE900D7010F /* MainFlutterWindow.swift */,
+				33CC11122044BFA00003C045 /* MainFlutterWindow.swift */,
+				33E51913231747F40026EE4D /* DebugProfile.entitlements */,
 				33E51914231749380026EE4D /* Release.entitlements */,
 				33CC11242044D66E0003C045 /* Resources */,
 				33BA886A226E78AF003329D5 /* Configs */,
@@ -309,59 +314,64 @@
 			path = Runner;
 			sourceTree = "<group>";
 		};
+		80D463B8ADF069EBDFACA01C /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				FE38E38218A6AB746D05E315 /* Pods-Runner.debug.xcconfig */,
+				D0D2B72DDCCEF3A07B51865A /* Pods-Runner.release.xcconfig */,
+				F2020512A00F017F635E69A7 /* Pods-Runner.profile.xcconfig */,
+				E87D8437BAE86638CDFB0BE6 /* Pods-RunnerTests.debug.xcconfig */,
+				72A0FEC326CA914B6816759A /* Pods-RunnerTests.release.xcconfig */,
+				043AE92370495544AEBA7069 /* Pods-RunnerTests.profile.xcconfig */,
+				3515045454B49C5219D1512A /* Pods-PacketTunnel.debug.xcconfig */,
+				A97FD6A52C3A81DCCDE9213D /* Pods-PacketTunnel.release.xcconfig */,
+				08AEA35FE37A4F75480CBCFD /* Pods-PacketTunnel.profile.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
 		D73912EC22F37F3D000D13A0 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				293C302F2DEF247F00691115 /* Liblantern.xcframework */,
-				3FD9DACB5BA763A29C28870C /* Pods_Runner.framework */,
-				831CC47A1A5EE5E9DF45C2BC /* Pods_RunnerTests.framework */,
-				29952B052DE79CB200640E7F /* NetworkExtension.framework */,
+				0375986C2E3E108600DB16E2 /* libresolv.tbd */,
+				0375980D2E3DEFFF00DB16E2 /* Liblantern.xcframework */,
+				FB78583079A815499ADBD28D /* Pods_Runner.framework */,
+				EB6DDD04D89A032BAA96722F /* Pods_RunnerTests.framework */,
+				0375981E2E3DF87500DB16E2 /* NetworkExtension.framework */,
+				8C6C7C0955FB9BABA7E5C189 /* libPods-PacketTunnel.a */,
 			);
 			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		FED29616DB27141FD4AD9EAF /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				4062AE3F330289DCB86FAD4E /* Pods-Runner.debug.xcconfig */,
-				C880C8AAD01AAC936ECE1814 /* Pods-Runner.release.xcconfig */,
-				EDC1670D3723C38E9F4EBE3E /* Pods-Runner.profile.xcconfig */,
-				1E9A6FC86FA886DA6665EC6D /* Pods-RunnerTests.debug.xcconfig */,
-				CAEDFD45C7CA749159F267FA /* Pods-RunnerTests.release.xcconfig */,
-				967C821650324F795ACA825A /* Pods-RunnerTests.profile.xcconfig */,
-			);
-			path = Pods;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		033C72FF2E3B38FD007BD2B0 /* PacketTunnel */ = {
+		0375981C2E3DF87400DB16E2 /* PacketTunnel */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 033C730D2E3B38FD007BD2B0 /* Build configuration list for PBXNativeTarget "PacketTunnel" */;
+			buildConfigurationList = 0375982F2E3DF87500DB16E2 /* Build configuration list for PBXNativeTarget "PacketTunnel" */;
 			buildPhases = (
-				033C72FC2E3B38FD007BD2B0 /* Sources */,
-				033C72FD2E3B38FD007BD2B0 /* Frameworks */,
-				033C72FE2E3B38FD007BD2B0 /* Resources */,
-				033C73182E3B44E5007BD2B0 /* Embed Frameworks */,
+				93CFF3F12E45CF7D4BCD30A5 /* [CP] Check Pods Manifest.lock */,
+				037598192E3DF87400DB16E2 /* Sources */,
+				0375981A2E3DF87400DB16E2 /* Frameworks */,
+				0375981B2E3DF87400DB16E2 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				033C73022E3B38FD007BD2B0 /* PacketTunnel */,
+				037598202E3DF87500DB16E2 /* PacketTunnel */,
 			);
 			name = PacketTunnel;
 			productName = PacketTunnel;
-			productReference = 033C73002E3B38FD007BD2B0 /* org.getlantern.lantern.PacketTunnel.systemextension */;
+			productReference = 0375981D2E3DF87400DB16E2 /* org.getlantern.lantern.PacketTunnel.systemextension */;
 			productType = "com.apple.product-type.system-extension";
 		};
 		331C80D4294CF70F00263BE5 /* RunnerTests */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 331C80DE294CF71000263BE5 /* Build configuration list for PBXNativeTarget "RunnerTests" */;
 			buildPhases = (
-				990CCCC18A5EC738AB11281D /* [CP] Check Pods Manifest.lock */,
+				42790A546021AD5D96E8D571 /* [CP] Check Pods Manifest.lock */,
 				331C80D1294CF70F00263BE5 /* Sources */,
 				331C80D2294CF70F00263BE5 /* Frameworks */,
 				331C80D3294CF70F00263BE5 /* Resources */,
@@ -380,31 +390,24 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 33CC10FB2044A3C60003C045 /* Build configuration list for PBXNativeTarget "Runner" */;
 			buildPhases = (
-				EC1F0CFC04B1D15BFEA07400 /* [CP] Check Pods Manifest.lock */,
+				4B4ADB3438D1ECBCA1655461 /* [CP] Check Pods Manifest.lock */,
 				33CC10E92044A3C60003C045 /* Sources */,
 				33CC10EA2044A3C60003C045 /* Frameworks */,
 				33CC10EB2044A3C60003C045 /* Resources */,
+				33CC110E2044A8840003C045 /* Bundle Framework */,
 				3399D490228B24CF009A79C7 /* ShellScript */,
-				8E19D0FE18076EDF51417438 /* [CP] Embed Pods Frameworks */,
-				5F3197532E32D40B00FCCE66 /* Embed Foundation Extensions */,
-				033C73112E3B38FD007BD2B0 /* Embed System Extensions */,
-				033C731B2E3B4502007BD2B0 /* Embed Frameworks */,
+				AA9D97C15EDC7D80B5BDDDC6 /* [CP] Embed Pods Frameworks */,
+				0375982A2E3DF87500DB16E2 /* Embed System Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				33CC11202044C79F0003C045 /* PBXTargetDependency */,
-				033C730A2E3B38FD007BD2B0 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				03D236712E3A06E20004EC53 /* Utils */,
+				037598282E3DF87500DB16E2 /* PBXTargetDependency */,
 			);
 			name = Runner;
-			packageProductDependencies = (
-				78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */,
-			);
 			productName = Runner;
-			productReference = 33CC10ED2044A3C60003C045 /* Lantern.app */;
+			productReference = 33CC10ED2044A3C60003C045 /* lantern.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -418,7 +421,7 @@
 				LastUpgradeCheck = 1510;
 				ORGANIZATIONNAME = "";
 				TargetAttributes = {
-					033C72FF2E3B38FD007BD2B0 = {
+					0375981C2E3DF87400DB16E2 = {
 						CreatedOnToolsVersion = 16.4;
 					};
 					331C80D4294CF70F00263BE5 = {
@@ -449,9 +452,6 @@
 				Base,
 			);
 			mainGroup = 33CC10E42044A3C60003C045;
-			packageReferences = (
-				781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage" */,
-			);
 			productRefGroup = 33CC10EE2044A3C60003C045 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -459,13 +459,13 @@
 				33CC10EC2044A3C60003C045 /* Runner */,
 				331C80D4294CF70F00263BE5 /* RunnerTests */,
 				33CC111A2044C6BA0003C045 /* Flutter Assemble */,
-				033C72FF2E3B38FD007BD2B0 /* PacketTunnel */,
+				0375981C2E3DF87400DB16E2 /* PacketTunnel */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		033C72FE2E3B38FD007BD2B0 /* Resources */ = {
+		0375981B2E3DF87400DB16E2 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -483,9 +483,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				33CC10F62044A3C60003C045 /* MainMenu.xib in Resources */,
 				33CC10F32044A3C60003C045 /* Assets.xcassets in Resources */,
-				036606162E3C9FAD00A64B7B /* Info.plist in Resources */,
+				33CC10F62044A3C60003C045 /* MainMenu.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -530,28 +529,7 @@
 			shellPath = /bin/sh;
 			shellScript = "\"$FLUTTER_ROOT\"/packages/flutter_tools/bin/macos_assemble.sh && touch Flutter/ephemeral/tripwire";
 		};
-		8E19D0FE18076EDF51417438 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			inputPaths = (
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		990CCCC18A5EC738AB11281D /* [CP] Check Pods Manifest.lock */ = {
+		42790A546021AD5D96E8D571 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -573,7 +551,7 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		EC1F0CFC04B1D15BFEA07400 /* [CP] Check Pods Manifest.lock */ = {
+		4B4ADB3438D1ECBCA1655461 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -595,13 +573,60 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
+		93CFF3F12E45CF7D4BCD30A5 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-PacketTunnel-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		AA9D97C15EDC7D80B5BDDDC6 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			inputPaths = (
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		033C72FC2E3B38FD007BD2B0 /* Sources */ = {
+		037598192E3DF87400DB16E2 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				037598682E3E102400DB16E2 /* FilePath.swift in Sources */,
+				0375986B2E3E103200DB16E2 /* SystemExtension.swift in Sources */,
+				037598692E3E102900DB16E2 /* KeychainService.swift in Sources */,
+				0375986A2E3E102E00DB16E2 /* Logger.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -617,29 +642,30 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				03D2366D2E3A067F0004EC53 /* PrivateServerEventHandler.swift in Sources */,
-				031AC3872E3D0EE900D7010F /* MainFlutterWindow.swift in Sources */,
-				033C73132E3B3A4F007BD2B0 /* SystemExtension.swift in Sources */,
-				293C305E2DEF67EB00691115 /* VPNManager.swift in Sources */,
-				293C305F2DEF67EB00691115 /* VPNBase.swift in Sources */,
-				293C305A2DEF649500691115 /* MethodHandler.swift in Sources */,
-				293C30612DEF68B300691115 /* Logger.swift in Sources */,
-				039A061F2E24DB6000B64255 /* KeychainService.swift in Sources */,
-				039A06202E24DB6500B64255 /* FilePath.swift in Sources */,
+				03583B302E3DEB4700C70B06 /* MethodHandler.swift in Sources */,
+				03583B312E3DEB4700C70B06 /* PrivateServerEventHandler.swift in Sources */,
+				037598182E3DF0FC00DB16E2 /* SystemExtension.swift in Sources */,
+				03583B322E3DEB4700C70B06 /* StatusEventHandler.swift in Sources */,
+				33CC11132044BFA00003C045 /* MainFlutterWindow.swift in Sources */,
+				03583B392E3DEB6800C70B06 /* ExtensionProfile.swift in Sources */,
+				037598162E3DF0F200DB16E2 /* KeychainService.swift in Sources */,
+				03583B3A2E3DEB6800C70B06 /* PrivateServerListener.swift in Sources */,
+				03583B3B2E3DEB6800C70B06 /* VPNBase.swift in Sources */,
+				03583B3C2E3DEB6800C70B06 /* VPNManager.swift in Sources */,
+				037598172E3DF0F600DB16E2 /* Logger.swift in Sources */,
+				037598152E3DF0EE00DB16E2 /* FilePath.swift in Sources */,
 				33CC10F12044A3C60003C045 /* AppDelegate.swift in Sources */,
 				335BBD1B22A9A15E00E9071D /* GeneratedPluginRegistrant.swift in Sources */,
-				039A061E2E24D89700B64255 /* StatusEventHandler.swift in Sources */,
-				033C73152E3B3E8F007BD2B0 /* ExtensionProfile.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		033C730A2E3B38FD007BD2B0 /* PBXTargetDependency */ = {
+		037598282E3DF87500DB16E2 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 033C72FF2E3B38FD007BD2B0 /* PacketTunnel */;
-			targetProxy = 033C73092E3B38FD007BD2B0 /* PBXContainerItemProxy */;
+			target = 0375981C2E3DF87400DB16E2 /* PacketTunnel */;
+			targetProxy = 037598272E3DF87500DB16E2 /* PBXContainerItemProxy */;
 		};
 		331C80DA294CF71000263BE5 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -666,8 +692,9 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
-		033C730E2E3B38FD007BD2B0 /* Debug */ = {
+		0375982B2E3DF87500DB16E2 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3515045454B49C5219D1512A /* Pods-PacketTunnel.debug.xcconfig */;
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CLANG_ENABLE_OBJC_WEAK = YES;
@@ -678,7 +705,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_ENTITLEMENTS = PacketTunnel/PacketTunnelDebug.entitlements;
+				CODE_SIGN_ENTITLEMENTS = PacketTunnel/PacketTunnel.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
@@ -703,6 +730,58 @@
 				MARKETING_VERSION = 1.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					"\"Foundation\"",
+					"-framework",
+					"\"ObjectBox\"",
+					"-framework",
+					"\"OrderedSet\"",
+					"-framework",
+					"\"Sentry\"",
+					"-framework",
+					"\"Sparkle\"",
+					"-framework",
+					"\"app_links\"",
+					"-framework",
+					"\"auto_updater_macos\"",
+					"-framework",
+					"\"desktop_webview_window\"",
+					"-framework",
+					"\"flutter_inappwebview_macos\"",
+					"-framework",
+					"\"flutter_local_notifications\"",
+					"-framework",
+					"\"flutter_timezone\"",
+					"-framework",
+					"\"in_app_purchase_storekit\"",
+					"-framework",
+					"\"mobile_scanner\"",
+					"-framework",
+					"\"objectbox_flutter_libs\"",
+					"-framework",
+					"\"package_info_plus\"",
+					"-framework",
+					"\"path_provider_foundation\"",
+					"-framework",
+					"\"screen_retriever_macos\"",
+					"-framework",
+					"\"sentry_flutter\"",
+					"-framework",
+					"\"share_plus\"",
+					"-framework",
+					"\"shared_preferences_foundation\"",
+					"-framework",
+					"\"store_checker\"",
+					"-framework",
+					"\"tray_manager\"",
+					"-framework",
+					"\"url_launcher_macos\"",
+					"-framework",
+					"\"window_manager\"",
+					"-lc++",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = org.getlantern.lantern.PacketTunnel;
 				PRODUCT_NAME = "$(inherited)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -715,8 +794,9 @@
 			};
 			name = Debug;
 		};
-		033C730F2E3B38FD007BD2B0 /* Release */ = {
+		0375982C2E3DF87500DB16E2 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A97FD6A52C3A81DCCDE9213D /* Pods-PacketTunnel.release.xcconfig */;
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CLANG_ENABLE_OBJC_WEAK = YES;
@@ -751,6 +831,58 @@
 				MACOSX_DEPLOYMENT_TARGET = 15.5;
 				MARKETING_VERSION = 1.0;
 				MTL_FAST_MATH = YES;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					"\"Foundation\"",
+					"-framework",
+					"\"ObjectBox\"",
+					"-framework",
+					"\"OrderedSet\"",
+					"-framework",
+					"\"Sentry\"",
+					"-framework",
+					"\"Sparkle\"",
+					"-framework",
+					"\"app_links\"",
+					"-framework",
+					"\"auto_updater_macos\"",
+					"-framework",
+					"\"desktop_webview_window\"",
+					"-framework",
+					"\"flutter_inappwebview_macos\"",
+					"-framework",
+					"\"flutter_local_notifications\"",
+					"-framework",
+					"\"flutter_timezone\"",
+					"-framework",
+					"\"in_app_purchase_storekit\"",
+					"-framework",
+					"\"mobile_scanner\"",
+					"-framework",
+					"\"objectbox_flutter_libs\"",
+					"-framework",
+					"\"package_info_plus\"",
+					"-framework",
+					"\"path_provider_foundation\"",
+					"-framework",
+					"\"screen_retriever_macos\"",
+					"-framework",
+					"\"sentry_flutter\"",
+					"-framework",
+					"\"share_plus\"",
+					"-framework",
+					"\"shared_preferences_foundation\"",
+					"-framework",
+					"\"store_checker\"",
+					"-framework",
+					"\"tray_manager\"",
+					"-framework",
+					"\"url_launcher_macos\"",
+					"-framework",
+					"\"window_manager\"",
+					"-lc++",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = org.getlantern.lantern.PacketTunnel;
 				PRODUCT_NAME = "$(inherited)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -762,8 +894,9 @@
 			};
 			name = Release;
 		};
-		033C73102E3B38FD007BD2B0 /* Profile */ = {
+		0375982D2E3DF87500DB16E2 /* Profile */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 08AEA35FE37A4F75480CBCFD /* Pods-PacketTunnel.profile.xcconfig */;
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CLANG_ENABLE_OBJC_WEAK = YES;
@@ -774,7 +907,9 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_ENTITLEMENTS = PacketTunnel/PacketTunnelDebug.entitlements;
+				CODE_SIGN_ENTITLEMENTS = PacketTunnel/PacketTunnel.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
@@ -796,6 +931,58 @@
 				MACOSX_DEPLOYMENT_TARGET = 15.5;
 				MARKETING_VERSION = 1.0;
 				MTL_FAST_MATH = YES;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					"\"Foundation\"",
+					"-framework",
+					"\"ObjectBox\"",
+					"-framework",
+					"\"OrderedSet\"",
+					"-framework",
+					"\"Sentry\"",
+					"-framework",
+					"\"Sparkle\"",
+					"-framework",
+					"\"app_links\"",
+					"-framework",
+					"\"auto_updater_macos\"",
+					"-framework",
+					"\"desktop_webview_window\"",
+					"-framework",
+					"\"flutter_inappwebview_macos\"",
+					"-framework",
+					"\"flutter_local_notifications\"",
+					"-framework",
+					"\"flutter_timezone\"",
+					"-framework",
+					"\"in_app_purchase_storekit\"",
+					"-framework",
+					"\"mobile_scanner\"",
+					"-framework",
+					"\"objectbox_flutter_libs\"",
+					"-framework",
+					"\"package_info_plus\"",
+					"-framework",
+					"\"path_provider_foundation\"",
+					"-framework",
+					"\"screen_retriever_macos\"",
+					"-framework",
+					"\"sentry_flutter\"",
+					"-framework",
+					"\"share_plus\"",
+					"-framework",
+					"\"shared_preferences_foundation\"",
+					"-framework",
+					"\"store_checker\"",
+					"-framework",
+					"\"tray_manager\"",
+					"-framework",
+					"\"url_launcher_macos\"",
+					"-framework",
+					"\"window_manager\"",
+					"-lc++",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = org.getlantern.lantern.PacketTunnel;
 				PRODUCT_NAME = "$(inherited)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -809,12 +996,11 @@
 		};
 		331C80DB294CF71000263BE5 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1E9A6FC86FA886DA6665EC6D /* Pods-RunnerTests.debug.xcconfig */;
+			baseConfigurationReference = E87D8437BAE86638CDFB0BE6 /* Pods-RunnerTests.debug.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.getlantern.lantern.RunnerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -825,12 +1011,11 @@
 		};
 		331C80DC294CF71000263BE5 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = CAEDFD45C7CA749159F267FA /* Pods-RunnerTests.release.xcconfig */;
+			baseConfigurationReference = 72A0FEC326CA914B6816759A /* Pods-RunnerTests.release.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.getlantern.lantern.RunnerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -841,12 +1026,11 @@
 		};
 		331C80DD294CF71000263BE5 /* Profile */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 967C821650324F795ACA825A /* Pods-RunnerTests.profile.xcconfig */;
+			baseConfigurationReference = 043AE92370495544AEBA7069 /* Pods-RunnerTests.profile.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.getlantern.lantern.RunnerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -896,7 +1080,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
@@ -909,27 +1093,20 @@
 			baseConfigurationReference = 33E5194F232828860026EE4D /* AppInfo.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = Runner/RunnerDebug.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Runner/DebugProfile.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = ACZRKC3LQ9;
-				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = Runner/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Lantern;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/Frameworks",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MACOSX_DEPLOYMENT_TARGET = 12.4;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "Macos Development Profile";
 				REGISTER_APP_GROUPS = YES;
@@ -941,7 +1118,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Manual;
-				NEW_SETTING = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Profile;
@@ -993,7 +1169,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -1043,7 +1219,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
@@ -1056,28 +1232,20 @@
 			baseConfigurationReference = 33E5194F232828860026EE4D /* AppInfo.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = Runner/RunnerDebug.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Runner/DebugProfile.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = ACZRKC3LQ9;
-				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = Runner/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Lantern;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/Frameworks",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MACOSX_DEPLOYMENT_TARGET = 12.4;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "Macos Development Profile";
 				REGISTER_APP_GROUPS = YES;
@@ -1091,7 +1259,6 @@
 			baseConfigurationReference = 33E5194F232828860026EE4D /* AppInfo.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Runner/Release.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
@@ -1100,19 +1267,12 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = ACZRKC3LQ9;
-				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = Runner/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Lantern;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/Frameworks",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MACOSX_DEPLOYMENT_TARGET = 12.4;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "Macos Development Profile";
 				REGISTER_APP_GROUPS = YES;
@@ -1124,7 +1284,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Manual;
-				NEW_SETTING = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -1133,7 +1292,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				NEW_SETTING = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -1141,12 +1299,12 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		033C730D2E3B38FD007BD2B0 /* Build configuration list for PBXNativeTarget "PacketTunnel" */ = {
+		0375982F2E3DF87500DB16E2 /* Build configuration list for PBXNativeTarget "PacketTunnel" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				033C730E2E3B38FD007BD2B0 /* Debug */,
-				033C730F2E3B38FD007BD2B0 /* Release */,
-				033C73102E3B38FD007BD2B0 /* Profile */,
+				0375982B2E3DF87500DB16E2 /* Debug */,
+				0375982C2E3DF87500DB16E2 /* Release */,
+				0375982D2E3DF87500DB16E2 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -1192,20 +1350,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCLocalSwiftPackageReference section */
-		781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage;
-		};
-/* End XCLocalSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = FlutterGeneratedPluginSwiftPackage;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 33CC10E52044A3C60003C045 /* Project object */;
 }
