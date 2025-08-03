@@ -47,6 +47,7 @@
 		33CC10F62044A3C60003C045 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 33CC10F42044A3C60003C045 /* MainMenu.xib */; };
 		33CC11132044BFA00003C045 /* MainFlutterWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CC11122044BFA00003C045 /* MainFlutterWindow.swift */; };
 		5542FA9C165A7489A54D69E6 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3FD9DACB5BA763A29C28870C /* Pods_Runner.framework */; };
+		5F53D0112E3FC92F00740586 /* FilePath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B412DE7A5F300640E7F /* FilePath.swift */; };
 		5FEB87042D9E3AAC000AE0DB /* liblantern.dylib in Bundle Framework */ = {isa = PBXBuildFile; fileRef = 5FEB87032D9E3AAC000AE0DB /* liblantern.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		6F8419314D5C43EF38859D72 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 831CC47A1A5EE5E9DF45C2BC /* Pods_RunnerTests.framework */; };
 		78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */; };
@@ -638,7 +639,7 @@
 				33CC10F12044A3C60003C045 /* AppDelegate.swift in Sources */,
 				29952B212DE7A0A700640E7F /* VPNManagerOld.swift in Sources */,
 				335BBD1B22A9A15E00E9071D /* GeneratedPluginRegistrant.swift in Sources */,
-				29952B442DE7A5F300640E7F /* FilePath.swift in Sources */,
+				5F53D0112E3FC92F00740586 /* FilePath.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1114,7 +1115,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = Lantern;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = runner;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;

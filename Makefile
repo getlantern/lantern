@@ -17,15 +17,24 @@ EXTRA_LDFLAGS ?=
 BUILD_TAGS ?=
 
 DARWIN_APP_NAME := $(CAPITALIZED_APP).app
-DARWIN_FRAMEWORK_DIR := macos/Frameworks
 DARWIN_LIB := $(LANTERN_LIB_NAME).dylib
 DARWIN_LIB_AMD64 := $(BIN_DIR)/macos-amd64/$(LANTERN_LIB_NAME).dylib
 DARWIN_LIB_ARM64 := $(BIN_DIR)/macos-arm64/$(LANTERN_LIB_NAME).dylib
 DARWIN_LIB_BUILD := $(BIN_DIR)/macos/$(DARWIN_LIB)
+DARWIN_RELEASE_DIR := $(BUILD_DIR)/macos/Build/Products/Release
 DARWIN_DEBUG_BUILD := $(BUILD_DIR)/macos/Build/Products/Debug/$(DARWIN_APP_NAME)
-DARWIN_RELEASE_BUILD := $(BUILD_DIR)/macos/Build/Products/Release/$(DARWIN_APP_NAME)
+DARWIN_RELEASE_BUILD := $(DARWIN_RELEASE_DIR)/$(DARWIN_APP_NAME)
 MACOS_ENTITLEMENTS := macos/Runner/Release.entitlements
 MACOS_INSTALLER := $(INSTALLER_NAME)$(if $(BUILD_TYPE),-$(BUILD_TYPE)).dmg
+MACOS_DIR := macos/
+MACOS_FRAMEWORK := Liblantern.xcframework
+MACOS_FRAMEWORK_DIR := macos/Frameworks
+MACOS_FRAMEWORK_BUILD := $(BIN_DIR)/macos/$(MACOS_FRAMEWORK)
+MACOS_DEBUG_BUILD := $(BUILD_DIR)/macos/Runner.app
+PACKET_TUNNEL_DIR := $(DARWIN_RELEASE_BUILD)/Contents/PlugIns/PacketTunnel.appex
+SYSTEM_EXTENSION_DIR := $(DARWIN_RELEASE_DIR)/$(DARWIN_APP_NAME)/Contents/Library/SystemExtensions/org.getlantern.lantern.packet.systemextension
+PACKET_ENTITLEMENTS := macos/PacketTunnel/PacketTunnel.entitlements
+
 
 LINUX_LIB := $(LANTERN_LIB_NAME).so
 LINUX_LIB_AMD64 := $(BIN_DIR)/linux-amd64/$(LANTERN_LIB_NAME).so
@@ -67,26 +76,20 @@ IOS_FRAMEWORK_DIR := ios/Frameworks
 IOS_FRAMEWORK_BUILD := $(BIN_DIR)/ios/$(IOS_FRAMEWORK)
 IOS_DEBUG_BUILD := $(BUILD_DIR)/ios/iphoneos/Runner.app
 
-MACOS_DIR := macos/
-MACOS_FRAMEWORK := Liblantern.xcframework
-MACOS_FRAMEWORK_DIR := macos/Frameworks
-MACOS_FRAMEWORK_BUILD := $(BIN_DIR)/macos/$(MACOS_FRAMEWORK)
-MACOS_DEBUG_BUILD := $(BUILD_DIR)/macos/Runner.app
-
 TAGS=with_gvisor,with_quic,with_wireguard,with_ech,with_utls,with_clash_api,with_grpc
 
 GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go')
 GOMOBILE_VERSION ?= latest
 GOMOBILE_REPOS = \
-	$(RADIANCE_REPO) \
 	github.com/sagernet/sing-box/experimental/libbox \
 	github.com/getlantern/sing-box-extensions/ruleset \
-	./lantern-core/mobile
+	./lantern-core/mobile \
+	./lantern-core/utils
 
 SIGN_ID="Developer ID Application: Brave New Software Project, Inc (ACZRKC3LQ9)"
 
 define osxcodesign
-	codesign --deep --options runtime --strict --timestamp --force --entitlements $(MACOS_ENTITLEMENTS) -s $(SIGN_ID) -v $(1)
+	codesign --deep --options runtime --strict --timestamp --force --entitlements $(1) -s $(SIGN_ID) -v $(2)
 endef
 
 get-command = $(shell which="$$(which $(1) 2> /dev/null)" && if [[ ! -z "$$which" ]]; then printf %q "$$which"; fi)
@@ -134,7 +137,7 @@ desktop-lib:
 # macOS Build
 .PHONY: install-macos-deps
 
-install-macos-deps:
+install-macos-deps: install-gomobile
 	npm install -g appdmg
 	brew tap joshdk/tap
 	brew install joshdk/tap/retry
@@ -154,16 +157,33 @@ $(DARWIN_LIB_AMD64): $(GO_SOURCES)
 	GOARCH=amd64 LIB_NAME=$@ make desktop-lib
 
 .PHONY: macos
-macos: $(DARWIN_LIB_BUILD)
+macos: $(DARWIN_LIB_BUILD) $(MACOS_FRAMEWORK_BUILD)
 
 $(DARWIN_LIB_BUILD): $(GO_SOURCES)
 	$(MAKE) macos-arm64 macos-amd64
 	rm -rf $@ && mkdir -p $(dir $@)
 	lipo -create $(DARWIN_LIB_ARM64) $(DARWIN_LIB_AMD64) -output $@
 	install_name_tool -id "@rpath/${DARWIN_LIB}" $@
-	mkdir -p $(DARWIN_FRAMEWORK_DIR) && cp $@ $(DARWIN_FRAMEWORK_DIR)
-	cp $(BIN_DIR)/macos-amd64/$(LANTERN_LIB_NAME)*.h $(DARWIN_FRAMEWORK_DIR)/
-	@echo "Built macOS library: $(DARWIN_FRAMEWORK_DIR)/$(DARWIN_LIB)"
+	mkdir -p $(MACOS_FRAMEWORK_DIR) && cp $@ $(MACOS_FRAMEWORK_DIR)
+	cp $(BIN_DIR)/macos-amd64/$(LANTERN_LIB_NAME)*.h $(MACOS_FRAMEWORK_DIR)/
+	@echo "Built macOS library: $(MACOS_FRAMEWORK_DIR)/$(DARWIN_LIB)"
+
+$(MACOS_FRAMEWORK_BUILD): $(GO_SOURCES)
+	@echo "Building macOS Framework.."
+	rm -rf $(MACOS_FRAMEWORK_BUILD) && mkdir -p $(MACOS_FRAMEWORK_DIR)
+	GOOS=darwin gomobile bind -v \
+		-tags=$(TAGS),netgo -trimpath \
+		-target=macos \
+		-o $(MACOS_FRAMEWORK_BUILD) \
+		-ldflags="-w -s -checklinkname=0" \
+		$(GOMOBILE_REPOS)
+	@echo "Built macOS Framework: $(MACOS_FRAMEWORK_BUILD)"
+	rm -rf $(MACOS_FRAMEWORK_DIR)/$(MACOS_FRAMEWORK)
+	mv $(MACOS_FRAMEWORK_BUILD) $(MACOS_FRAMEWORK_DIR)
+
+
+.PHONY: macos-framework
+macos-framework: $(MACOS_FRAMEWORK_BUILD)
 
 .PHONY: macos-debug
 macos-debug: $(DARWIN_DEBUG_BUILD)
@@ -192,7 +212,10 @@ notarize-darwin: require-ac-username require-ac-password
 	@echo "Notarization complete"
 
 sign-app:
-	$(call osxcodesign,$(DARWIN_RELEASE_BUILD))
+	$(call osxcodesign, $(PACKET_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR)/Contents/Frameworks/Liblantern.framework)
+	$(call osxcodesign, $(PACKET_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR)/Contents/MacOS/org.getlantern.lantern.packet)
+	$(call osxcodesign, $(PACKET_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR))
+	$(call osxcodesign, $(MACOS_ENTITLEMENTS), $(DARWIN_RELEASE_BUILD))
 
 package-macos: require-appdmg
 	appdmg appdmg.json $(MACOS_INSTALLER)
@@ -266,14 +289,16 @@ windows-debug: windows
 windows-release: clean windows pubget gen
 	flutter_distributor package --flutter-build-args=verbose --platform windows --targets "exe"
 
-# Android Build
-.PHONY: install-android-deps
-install-android-deps:
-	@echo "Installing Android dependencies..."
-
+.PHONY: install-gomobile
+install-gomobile:
 	go install -v golang.org/x/mobile/cmd/gomobile@$(GOMOBILE_VERSION)
 	go install -v golang.org/x/mobile/cmd/gobind@$(GOMOBILE_VERSION)
 	gomobile init
+
+
+# Android Build
+.PHONY: install-android-deps
+install-android-deps: install-gomobile
 
 .PHONY: android
 android: check-gomobile $(ANDROID_LIB_BUILD)
@@ -337,39 +362,25 @@ build-ios:
 	rm -rf $(IOS_FRAMEWORK_BUILD)
 	rm -rf $(IOS_FRAMEWORK_DIR) && mkdir -p $(IOS_FRAMEWORK_DIR)
 	GOOS=ios gomobile bind -v \
-		-tags=$(TAGS),with_low_memory,netgo -trimpath \
+		-tags=$(TAGS),with_low_memory, -trimpath \
 		-target=ios \
 		-o $(IOS_FRAMEWORK_BUILD) \
 		-ldflags="-w -s -checklinkname=0" \
-		$(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox github.com/getlantern/sing-box-extensions/ruleset  ./lantern-core/mobile
+		$(GOMOBILE_REPOS)
 	@echo "Built iOS Framework: $(IOS_FRAMEWORK_BUILD)"
 	mv $(IOS_FRAMEWORK_BUILD) $(IOS_FRAMEWORK_DIR)
 
-$(MACOS_FRAMEWORK_BUILD): $(GO_SOURCES)
-	$(MAKE) build-macos
-
-build-macos:
-	@echo "Building macOS Framework.."
-	rm -rf $(MACOS_FRAMEWORK_BUILD)
-	rm -rf $(MACOS_FRAMEWORK_DIR) && mkdir -p $(MACOS_FRAMEWORK_DIR)
-	GOOS=darwin gomobile bind -v \
-		-tags=$(TAGS),netgo -trimpath \
-		-target=macos \
-		-o $(MACOS_FRAMEWORK_BUILD) \
-		-ldflags="-w -s -checklinkname=0" \
-		$(RADIANCE_REPO) github.com/sagernet/sing-box/experimental/libbox github.com/getlantern/sing-box-extensions/ruleset  ./lantern-core/mobile
-	@echo "Built macOS Framework: $(MACOS_FRAMEWORK_BUILD)"
-	mv $(MACOS_FRAMEWORK_BUILD) $(MACOS_FRAMEWORK_DIR)
-
 .PHONY: format swift-format
 swift-format:
-	swift-format format --in-place --recursive ios/Runner macos/Runner ios/Tunnel
+	swift-format format --in-place --recursive ios/Runner macos/Runner macos/PacketTunnel
 
 format:
 	@echo "Formatting Dart code..."
-	dart format --set-exit-if-changed .
+	@dart format .
 	@echo "Formatting Swift code..."
 	$(MAKE) swift-format
+	@echo "Formatting go code"
+	@cd lantern-core && go fmt ./...
 
 ios-release: clean pubget
 	flutter build ipa --flavor prod --release --export-options-plist ./ExportOptions.plist
@@ -394,7 +405,6 @@ update-dart-api-dl:
 	@echo "Dart API DL bridge updated successfully!"
 
 
-
 #Routes generation
 gen:
 	dart run build_runner build --delete-conflicting-outputs
@@ -412,11 +422,22 @@ find-duplicate-translations:
 clean:
 	rm -rf $(BUILD_DIR)/*
 	rm -rf $(BIN_DIR)/*
-	rm -rf $(DARWIN_FRAMEWORK_DIR)/*
+	rm -rf $(MACOS_FRAMEWORK_DIR)/*
 	rm -rf $(ANDROID_LIB_PATH)
 	rm -rf $(IOS_DIR)$(IOS_FRAMEWORK)
+
+
+#this will used to delete all Lantern data from the user's home directory
+PHONY: delete-data
+delete-data:
+	@echo "Deleting Lantern data..."
+	@rm -rf "$(HOME)/Library/Application Support/org.getlantern.lantern"
+	@rm -rf "$(HOME)/Library/Logs/Lantern"
+	@rm -rf "$(HOME)/.lanternsecrets"
+	@echo "Lantern data deleted."
 
 .PHONY: protos
 # You can install the dart protoc support by running 'dart pub global activate protoc_plugin'
 protos:
 	@protoc --dart_out=lib/lantern/protos protos/auth.proto
+
