@@ -174,16 +174,19 @@ $(DARWIN_DEBUG_BUILD): $(DARWIN_LIB_BUILD)
 $(DARWIN_RELEASE_BUILD):
 	@echo "Building Flutter app (release) for macOS..."
 	flutter build macos --release
+	@echo "Copying full Frameworks folder into system extension..."
+	cp -R $(DARWIN_RELEASE_BUILD)/Contents/Frameworks \
+    		$(DARWIN_RELEASE_BUILD)/Contents/Library/SystemExtensions/org.getlantern.lantern.PacketTunnel.systemextension/Contents/
 
 build-macos-release: $(DARWIN_RELEASE_BUILD)
 
 .PHONY: notarize-darwin
-notarize-darwin:
+notarize-darwin:require-ac-password	 require-ac-username
 	@echo "Notarizing distribution package..."
 	xcrun notarytool submit $(MACOS_INSTALLER) \
-			--apple-id $(AC_USERNAME) \
-        	  --team-id "ACZRKC3LQ9" \
-        	--password $(AC_PASSWORD) \
+		--apple-id $(AC_USERNAME) \
+		--team-id "ACZRKC3LQ9" \
+		--password $(AC_PASSWORD) \
 		--wait \
 	    --output-format json > notary_output.json
 
@@ -195,9 +198,9 @@ notarize-darwin:
 .PHONY: notarize-log
 notarize-log:
 	xcrun notarytool log 41f71b65-33b7-40aa-b035-262ee6a13292 \
-    	--apple-id $(AC_USERNAME) \
-    	  --team-id "ACZRKC3LQ9" \
-    	--password $(AC_PASSWORD) \
+ 		--apple-id $(AC_USERNAME) \
+ 		--team-id "ACZRKC3LQ9" \
+ 		--password $(AC_PASSWORD) \
 	  --output-format json > notary_log.json
 
 sign-app:
@@ -213,8 +216,7 @@ package-macos: require-appdmg
 	appdmg appdmg.json $(MACOS_INSTALLER)
 
 .PHONY: macos-release
-macos-release: clean macos pubget gen build-macos-release sign-app package-macos notarize-darwin
-
+macos-release:clean macos pubget gen build-macos-release sign-app package-macos notarize-darwin
 # Linux Build
 .PHONY: install-linux-deps
 
