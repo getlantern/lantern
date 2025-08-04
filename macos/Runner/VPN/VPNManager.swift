@@ -9,7 +9,7 @@ import NetworkExtension
 
 class VPNManager: VPNBase {
   private var observer: NSObjectProtocol?
-  private var manager: NEVPNManager = NEVPNManager.shared()
+  private var manager: NEVPNManager?  // = NEVPNManager.shared()
   static let shared: VPNManager = VPNManager()
 
   @Published private(set) var connectionStatus: NEVPNStatus = .disconnected {
@@ -39,110 +39,73 @@ class VPNManager: VPNBase {
     }
   }
 
-  // MARK: - VPN Control Methods
-
-  func startTunnel() async throws {
-    guard connectionStatus == .disconnected else {
-      appLogger.log("Tunnel already running.")
-      return
-    }
-
-    // ❗️ Now we use `try await` so setupSystemExtension can stop us if we’re not ready
+  private func removeExistingVPNProfiles() async {
     do {
-      try await setupSystemExtension()
-    } catch SystemExtensionError.requiresReboot {
-      // surface a user-friendly message
-      let msg = "The app needs a reboot to finish installing its network extension."
-      throw NSError(
-        domain: "SetupSystemExtensionError",
-        code: 1001,
-        userInfo: [NSLocalizedDescriptionKey: msg]
-      )
+      let managers = try await NETunnelProviderManager.loadAllFromPreferences()
+      for manager in managers {
+        appLogger.log("Removing VPN configuration: \(manager.localizedDescription ?? "Unnamed")")
+        try await manager.removeFromPreferences()
+      }
     } catch {
-      throw error
-    }
-    // if we get here, the extension is fully installed and ready
-    appLogger.log("System extension ready — starting tunnel…")
-
-    guard let manager = await ExtensionProfile.shared.getManager() else {
-      let msg = "Unable to load or create VPN manager."
-      appLogger.error(msg)
-      throw NSError(
-        domain: "VPNManagerError",
-        code: 1003,
-        userInfo: [NSLocalizedDescriptionKey: msg]
-      )
-    }
-    self.manager = manager
-
-    let options: [String: NSObject] = [
-      "netEx.Type": "User" as NSString,
-      "netEx.StartReason": "User Initiated" as NSString,
-    ]
-
-    do {
-      try manager.connection.startVPNTunnel(options: options)
-      appLogger.log("Tunnel started successfully.")
-      /// Enable on-demand to allow automatic reconnections
-      /// if error it will stuck in infinite loop
-      //self.manager.isOnDemandEnabled = true
-      // try await self.saveThenLoadProvider()
-
-    } catch {
-      appLogger.error("Failed to start tunnel: \(error.localizedDescription)")
-      throw error
+      appLogger.error("Unable to remove VPN profile: \(error.localizedDescription)")
     }
   }
 
-  func connectToServer(
-    location: String,
-    serverName: String,
-  ) async throws {
-      guard connectionStatus == .disconnected else {
-        appLogger.log("Tunnel already running.")
-        return
+  private func setupVPN() async {
+    do {
+      let managers = try await NETunnelProviderManager.loadAllFromPreferences()
+      if let existing = managers.first {
+        self.manager = existing
+        appLogger.log("Found existing VPN manager")
+          try await self.manager?.loadFromPreferences()
+      } else {
+        appLogger.log("No VPN profiles found, creating new profile")
+        createNewProfile()
+        try await self.manager?.saveToPreferences()
+        try await self.manager?.loadFromPreferences()
+        appLogger.log("Created and loaded new VPN profile")
       }
+    } catch {
+      appLogger.error("Failed to set up VPN: \(error.localizedDescription)")
+    }
+  }
 
-      // ❗️ Now we use `try await` so setupSystemExtension can stop us if we’re not ready
-      do {
-        try await setupSystemExtension()
-      } catch SystemExtensionError.requiresReboot {
-        // surface a user-friendly message
-        let msg = "The app needs a reboot to finish installing its network extension."
-        throw NSError(
-          domain: "SetupSystemExtensionError",
-          code: 1001,
-          userInfo: [NSLocalizedDescriptionKey: msg]
-        )
-      } catch {
-        throw error
-      }
-      // if we get here, the extension is fully installed and ready
-      appLogger.log("System extension ready — starting tunnel…")
+  // Sets up a new VPN configuration for Lantern.
+  private func createNewProfile() {
+    let manager = NETunnelProviderManager()
+    let tunnelProtocol = NETunnelProviderProtocol()
+    tunnelProtocol.providerBundleIdentifier = "org.getlantern.lantern.packet"
+    tunnelProtocol.serverAddress = "0.0.0.0"
 
-      guard let manager = await ExtensionProfile.shared.getManager() else {
-        let msg = "Unable to load or create VPN manager."
-        appLogger.error(msg)
-        throw NSError(
-          domain: "VPNManagerError",
-          code: 1003,
-          userInfo: [NSLocalizedDescriptionKey: msg]
-        )
-      }
-      self.manager = manager
-      let options: [String: NSObject] = [
-          "netEx.Type": "PrivateServer" as NSString,
-          "netEx.StartReason": "Private server Initiated" as NSString,
-          "netEx.ServerName": serverName as NSString,
-          "netEx.Location": location as NSString,
-        ]
-      
-    try self.manager.connection.startVPNTunnel(options: options)
-    /// Enable on-demand to allow automatic reconnections
-    /// if error it will stuck in infinite loop
-    //    self.manager.isOnDemandEnabled = true
-    //    try await self.saveThenLoadProvider()
+    manager.protocolConfiguration = tunnelProtocol
+    manager.localizedDescription = "Lantern"
+    manager.isEnabled = true
 
+    let alwaysConnectRule = NEOnDemandRuleConnect()
+    manager.onDemandRules = [alwaysConnectRule]
+
+    manager.isOnDemandEnabled = false
+    self.manager = manager
+  }
+
+  // MARK: - VPN Control Methods
+
+  /// Starts the VPN tunnel.
+  /// Loads VPN preferences and initiates the VPN connection.
+  func startTunnel() async throws {
+    guard connectionStatus == .disconnected else {
+      appLogger.log("In unexpected state: \(connectionStatus)")
+      return
+    }
+    appLogger.log("Starting tunnel..")
+    //await removeExistingVPNProfiles()
+    await self.setupVPN()
+    let options = ["netEx.StartReason": NSString("User Initiated")]
+    try self.manager?.connection.startVPNTunnel(options: options)
+
+    self.manager?.isOnDemandEnabled = false
+
+    try await self.saveThenLoadProvider()
   }
 
   /// Stops the VPN tunnel.
@@ -154,18 +117,18 @@ class VPNManager: VPNBase {
       return
     }
 
-    if manager.isOnDemandEnabled ?? false {
+    if manager?.isOnDemandEnabled ?? false {
       appLogger.info("Turning off on demand..")
-      manager.isOnDemandEnabled = false
-      try await manager.saveToPreferences()
+      manager?.isOnDemandEnabled = false
+      try await manager?.saveToPreferences()
     }
-    manager.connection.stopVPNTunnel()
+    manager?.connection.stopVPNTunnel()
   }
 
   /// Saves the current VPN configuration to preferences and reloads it.
   private func saveThenLoadProvider() async throws {
-    try await self.manager.saveToPreferences()
-    try await self.manager.loadFromPreferences()
+    try await self.manager?.saveToPreferences()
+    try await self.manager?.loadFromPreferences()
   }
 
   /// MARK: - Extension Communication
@@ -175,7 +138,7 @@ class VPNManager: VPNBase {
     onSuccess: ((String) -> Void)? = nil,
     onError: ((Error) -> Void)? = nil
   ) {
-    guard let session = self.manager.connection as? NETunnelProviderSession else {
+    guard let session = self.manager?.connection as? NETunnelProviderSession else {
       let error = NSError(
         domain: "VPNManager", code: -1,
         userInfo: [NSLocalizedDescriptionKey: "Could not get tunnel session"])
@@ -240,44 +203,6 @@ class VPNManager: VPNBase {
     } catch {
       appLogger.error("triggerExtensionMethod exception: \(error.localizedDescription)")
       onError?(error)
-    }
-  }
-  enum SystemExtensionError: Error {
-    case installReturnedNil
-    case requiresReboot
-    case underlying(Error)
-  }
-
-  private nonisolated func setupSystemExtension() async throws {
-    // 1️⃣ Already installed?  Done.
-    if await SystemExtension.isInstalled() {
-      appLogger.info("System extension already installed.")
-      return
-    }
-
-    // 2️⃣ Try to install
-    do {
-      guard let result = try await SystemExtension.install() else {
-        appLogger.error("SystemExtension.install returned nil.")
-          throw SystemExtensionError.installReturnedNil
-      }
-
-      switch result {
-      case .completed:
-        appLogger.info("System extension installed immediately.")
-        return
-      case .willCompleteAfterReboot:
-        appLogger.error("System extension requires reboot to finish installation.")
-        throw SystemExtensionError.requiresReboot
-      @unknown default:
-        // In case Apple adds new cases in the future
-        appLogger.error(
-          "SystemExtension.install returned unknown result: \(String(describing: result))")
-        return
-      }
-    } catch {
-      appLogger.error("System extension install threw error: \(error.localizedDescription)")
-      throw error
     }
   }
 

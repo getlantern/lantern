@@ -51,7 +51,7 @@ public class ExtensionProfile {
   private func createNewProfile() -> NETunnelProviderManager {
     let manager = NETunnelProviderManager()
     let proto = NETunnelProviderProtocol()
-    proto.providerBundleIdentifier = "org.getlantern.lantern.PacketTunnel"
+    proto.providerBundleIdentifier = "org.getlantern.lantern.packet"
     proto.serverAddress = "0.0.0.0"
 
     manager.protocolConfiguration = proto

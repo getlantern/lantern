@@ -1,9 +1,13 @@
-import Cocoa
 import FlutterMacOS
 import Liblantern
+import OSLog
+import app_links
 
 @main
 class AppDelegate: FlutterAppDelegate {
+
+  private let systemExtensionManager = SystemExtensionManager.shared
+
   private let vpnManager = VPNManager.shared
 
   override func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -14,14 +18,15 @@ class AppDelegate: FlutterAppDelegate {
     return true
   }
 
-  override func applicationDidFinishLaunching(_ notification: Notification) {
+  override func applicationDidFinishLaunching(_ aNotification: Notification) {
+
+    systemExtensionManager.activateExtension()
+
     guard let controller = mainFlutterWindow?.contentViewController as? FlutterViewController else {
       fatalError("contentViewController is not a FlutterViewController")
     }
-    appLogger.info("Application did finish launching")
     RegisterGeneratedPlugins(registry: controller)
 
-    // Register event handlers
     registerEventHandlers(controller: controller)
 
     // Setup native method channel
@@ -30,15 +35,26 @@ class AppDelegate: FlutterAppDelegate {
     // Initialize directories and working paths
     setupFileSystem()
 
-    // set radiance
     setupRadiance()
-
     NSSetUncaughtExceptionHandler { exception in
-      NSLog(exception.reason ?? "Unknown reason")
-      NSLog(exception.callStackSymbols.joined(separator: "\n"))
+      print(exception.reason)
+      print(exception.callStackSymbols)
+    }
+    super.applicationDidFinishLaunching(aNotification)
+  }
+
+  public override func application(
+    _ application: NSApplication,
+    continue userActivity: NSUserActivity,
+    restorationHandler: @escaping ([any NSUserActivityRestoring]) -> Void
+  ) -> Bool {
+
+    guard let url = AppLinks.shared.getUniversalLink(userActivity) else {
+      return false
     }
 
-    super.applicationDidFinishLaunching(notification)
+    AppLinks.shared.handleLink(link: url.absoluteString)
+    return false
   }
 
   /// Registers Flutter event channel handlers
@@ -46,14 +62,6 @@ class AppDelegate: FlutterAppDelegate {
     let registry = controller as! FlutterPluginRegistry
     let statusRegistrar = registry.registrar(forPlugin: "StatusEventHandler")
     StatusEventHandler.register(with: statusRegistrar)
-
-    //      if let registrar = self.registrar(forPlugin: "LogsEventHandler") {
-    //        LogsEventHandler.register(with: registrar)
-    //      }
-
-    let privateStatusRegistrar = registry.registrar(forPlugin: "PrivateServerEventHandler")
-    PrivateServerEventHandler.register(with: privateStatusRegistrar)
-
   }
 
   /// Initializes the native method channel handler
@@ -67,18 +75,13 @@ class AppDelegate: FlutterAppDelegate {
 
   /// Prepares the file system directories for use
   private func setupFileSystem() {
+      // Use the FilePath extension to get the working directory.
+      
     do {
-
       try FileManager.default.createDirectory(
-        at: FilePath.sharedDirectory,
+        at: FilePath.workingDirectory,
         withIntermediateDirectories: true
       )
-      appLogger.info("Shared directory created at: \(FilePath.sharedDirectory.path)")
-      try FileManager.default.createDirectory(
-        at: FilePath.logsDirectory,
-        withIntermediateDirectories: true
-      )
-      appLogger.info("logs directory created at: \(FilePath.workingDirectory.path)")
     } catch {
       appLogger.error("Failed to create working directory: \(error.localizedDescription)")
     }
@@ -87,26 +90,27 @@ class AppDelegate: FlutterAppDelegate {
       appLogger.error("Failed to change current directory to: \(FilePath.sharedDirectory.path)")
       return
     }
-    appLogger.info("Current directory changed to: \(FilePath.sharedDirectory.path)")
 
   }
 
   /// Calls API handler setup
   private func setupRadiance() {
-    appLogger.info("Setting up radiance")
     Task {
       // Set up the base directory and options
       let baseDir = FilePath.workingDirectory.relativePath
       let opts = UtilsOpts()
       opts.dataDir = baseDir
-      opts.deviceid = ""
       opts.locale = Locale.current.identifier
+      opts.deviceid = ""
       var error: NSError?
-      await MobileSetupRadiance(opts, &error)
+        appLogger.info("Setting up radiance with options: \(opts)")
+      MobileSetupRadiance(opts, &error)
       // Handle any error returned by the setup
       if let error {
         appLogger.error("Error while setting up radiance: \(error)")
       }
+        appLogger.info("Set up radiance successfully.")
     }
   }
+
 }

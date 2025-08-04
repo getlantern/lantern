@@ -9,7 +9,7 @@ import Foundation
 
 public enum FilePath {
   public static let packageName = "org.getlantern.lantern"
-  public static let systemExtensionName = "org.getlantern.lantern.PacketTunnel"
+  public static let systemExtensionName = "org.getlantern.lantern.packet"
 }
 
 extension FilePath {
