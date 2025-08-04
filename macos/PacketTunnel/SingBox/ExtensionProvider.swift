@@ -14,13 +14,8 @@
 import Foundation
 import Liblantern
 import NetworkExtension
+import CoreLocation
 
-#if os(iOS)
-  import WidgetKit
-#endif
-#if os(macOS)
-  import CoreLocation
-#endif
 
 class ExtensionProvider: NEPacketTunnelProvider {
   private var platformInterface: ExtensionPlatformInterface!

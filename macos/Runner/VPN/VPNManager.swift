@@ -98,14 +98,45 @@ class VPNManager: VPNBase {
     location: String,
     serverName: String,
   ) async throws {
-    //    await self.setupVPN()
-    let options: [String: NSObject] = [
-      "netEx.Type": "PrivateServer" as NSString,
-      "netEx.StartReason": "Private server Initiated" as NSString,
-      "netEx.ServerName": serverName as NSString,
-      "netEx.Location": location as NSString,
-    ]
+      guard connectionStatus == .disconnected else {
+        appLogger.log("Tunnel already running.")
+        return
+      }
 
+      // ❗️ Now we use `try await` so setupSystemExtension can stop us if we’re not ready
+      do {
+        try await setupSystemExtension()
+      } catch SystemExtensionError.requiresReboot {
+        // surface a user-friendly message
+        let msg = "The app needs a reboot to finish installing its network extension."
+        throw NSError(
+          domain: "SetupSystemExtensionError",
+          code: 1001,
+          userInfo: [NSLocalizedDescriptionKey: msg]
+        )
+      } catch {
+        throw error
+      }
+      // if we get here, the extension is fully installed and ready
+      appLogger.log("System extension ready — starting tunnel…")
+
+      guard let manager = await ExtensionProfile.shared.getManager() else {
+        let msg = "Unable to load or create VPN manager."
+        appLogger.error(msg)
+        throw NSError(
+          domain: "VPNManagerError",
+          code: 1003,
+          userInfo: [NSLocalizedDescriptionKey: msg]
+        )
+      }
+      self.manager = manager
+      let options: [String: NSObject] = [
+          "netEx.Type": "PrivateServer" as NSString,
+          "netEx.StartReason": "Private server Initiated" as NSString,
+          "netEx.ServerName": serverName as NSString,
+          "netEx.Location": location as NSString,
+        ]
+      
     try self.manager.connection.startVPNTunnel(options: options)
     /// Enable on-demand to allow automatic reconnections
     /// if error it will stuck in infinite loop
@@ -228,8 +259,7 @@ class VPNManager: VPNBase {
     do {
       guard let result = try await SystemExtension.install() else {
         appLogger.error("SystemExtension.install returned nil.")
-
-        throw SystemExtensionError.installReturnedNil
+          throw SystemExtensionError.installReturnedNil
       }
 
       switch result {

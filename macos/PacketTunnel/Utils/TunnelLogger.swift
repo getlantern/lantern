@@ -10,11 +10,12 @@ import os.log
 let tunnelLogger = TunnelLogger()
 
 class TunnelLogger {
+    private let systemIdentifier = org.getlantern.lantern.PacketTunnel"
   private let generalLog = OSLog(
-    subsystem: "org.getlantern.lantern.PacketTunnel", category: "General")
+    subsystem: systemIdentifier, category: "General")
   private let networkLog = OSLog(
-    subsystem: "org.getlantern.lantern.PacketTunnel", category: "Networking")
-  private let debugLog = OSLog(subsystem: "org.getlantern.lantern.PacketTunnel", category: "Debug")
+    subsystem: systemIdentifier, category: "Networking")
+  private let debugLog = OSLog(subsystem: systemIdentifier, category: "Debug")
 
   func log(_ message: String) {
     os_log("%{public}@", log: generalLog, type: .default, message)
