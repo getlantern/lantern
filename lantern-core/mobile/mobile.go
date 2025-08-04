@@ -139,10 +139,11 @@ func StopVPN() error {
 	if vpnClient == nil {
 		return log.Error("VPN client not setup")
 	}
-	er := vpnClient.StopVPN()
-	if er != nil {
-		log.Errorf("Error stopping VPN: %v", er)
-	}
+	go func() {
+		if err := vpnClient.StopVPN(); err != nil {
+			log.Errorf("Error stopping VPN (async): %v", err)
+		}
+	}()
 	return nil
 }
 
