@@ -26,77 +26,95 @@ class ExtensionProvider: NEPacketTunnelProvider {
   private var platformInterface: ExtensionPlatformInterface!
 
   override open func startTunnel(options: [String: NSObject]?) async throws {
+    tunnelLogger.info("startTunnel called with options: \(String(describing: options))")
+
     if platformInterface == nil {
+      tunnelLogger.debug("Initializing platform interface")
       platformInterface = ExtensionPlatformInterface(self)
     }
+
     let tunnelType = options?["netEx.Type"] as? String
+    tunnelLogger.info("Tunnel type: \(String(describing: tunnelType))")
+
     switch tunnelType {
     case "User":
+      tunnelLogger.debug("Starting user tunnel")
       startVPN()
     case "PrivateServer":
       let serverName = options?["netEx.ServerName"] as? String
       let location = options?["netEx.Location"] as? String
-      connectToServer(location: location!, serverName: serverName!)
+
+      guard let location = location, let serverName = serverName else {
+        tunnelLogger.error("Missing serverName or location for PrivateServer tunnel")
+        return
+      }
+
+      tunnelLogger.debug(
+        "Connecting to private server - Name: \(serverName), Location: \(location)")
+      connectToServer(location: location, serverName: serverName)
     default:
-      // Fallback or unknown type
+      tunnelLogger.error(
+        "Unknown tunnel type '\(String(describing: tunnelType))', falling back to user tunnel")
       startVPN()
     }
   }
 
   public func writeFatalError(_ message: String) {
-    appLogger.error(message)
+    tunnelLogger.error("Fatal error: \(message)")
     var error: NSError?
     LibboxWriteServiceError(message, &error)
     cancelTunnelWithError(nil)
   }
 
   func startVPN() {
-      NSLog("Starting VPN...")
-    appLogger.log("(lantern-tunnel) quick connect")
+    tunnelLogger.info("Starting VPN")
     var error: NSError?
-
-    NSLog("Starting SingBox VPN")
     MobileStartVPN(platformInterface, opts(), &error)
-    if error != nil {
-        // Log the error and cancel the tunnel
-        NSLog("Error while starting SingBox VPN: \(error?.localizedDescription ?? "Unknown error")")
-      appLogger.log("error while starting tunnel \(error?.localizedDescription ?? "")")
-      // Inform system and close tunnel
-      cancelTunnelWithError(error)
+
+    if let err = error {
+      tunnelLogger.error("Failed to start VPN: \(err.localizedDescription)")
+      cancelTunnelWithError(err)
       return
     }
-    appLogger.log("(lantern-tunnel) tunnel started successfully")
+    tunnelLogger.info("Tunnel started successfully")
   }
 
   func connectToServer(location: String, serverName: String) {
-    appLogger.log("(lantern-tunnel) connecting to server")
+    tunnelLogger.info("Connecting to server \(serverName) at location \(location)")
     var error: NSError?
     MobileConnectToServer(location, serverName, platformInterface, opts(), &error)
-    if error != nil {
-      appLogger.log("error while connecting to server \(error?.localizedDescription ?? "")")
-      cancelTunnelWithError(error)
+
+    if let err = error {
+      tunnelLogger.error("Failed to connect to server: \(err.localizedDescription)")
+      cancelTunnelWithError(err)
       return
     }
-    appLogger.log("(lantern-tunnel) connected to server successfully")
+
+    tunnelLogger.info("Connected to server successfully")
   }
 
   private func stopService() {
+    tunnelLogger.info("Stopping VPN service")
     var error: NSError?
     MobileStopVPN(&error)
-    if error != nil {
-      appLogger.log("error while stopping tunnel \(error?.localizedDescription ?? "")")
-      return
+
+    if let err = error {
+      tunnelLogger.error("Error while stopping tunnel: \(err.localizedDescription)")
+    } else {
+      tunnelLogger.info("VPN stopped successfully")
     }
+
     platformInterface.reset()
   }
 
   override open func stopTunnel(with reason: NEProviderStopReason) async {
-    appLogger.log("(lantern-tunnel) stopping, reason: \(reason)")
+    tunnelLogger.info("stopTunnel called with reason: \(reason.rawValue)")
     stopService()
   }
 
   func opts() -> UtilsOpts {
     let baseDir = FilePath.sharedDirectory.relativePath
+    tunnelLogger.debug("Tunnel options - dataDir: \(baseDir), locale: \(Locale.current.identifier)")
 
     let opts = UtilsOpts()
     opts.dataDir = baseDir
@@ -104,5 +122,4 @@ class ExtensionProvider: NEPacketTunnelProvider {
 
     return opts
   }
-
 }

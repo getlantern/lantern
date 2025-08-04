@@ -13,4 +13,3 @@ class PacketTunnelProvider: ExtensionProvider {
     try await super.startTunnel(options: options)
   }
 }
-

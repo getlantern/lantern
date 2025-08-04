@@ -32,7 +32,7 @@ class AppDelegate: FlutterAppDelegate {
 
     // set radiance
     setupRadiance()
-      
+
     NSSetUncaughtExceptionHandler { exception in
       NSLog(exception.reason ?? "Unknown reason")
       NSLog(exception.callStackSymbols.joined(separator: "\n"))
@@ -94,7 +94,7 @@ class AppDelegate: FlutterAppDelegate {
   /// Calls API handler setup
   private func setupRadiance() {
     appLogger.info("Setting up radiance")
-      Task {
+    Task {
       // Set up the base directory and options
       let baseDir = FilePath.workingDirectory.relativePath
       let opts = UtilsOpts()

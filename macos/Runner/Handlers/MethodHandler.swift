@@ -132,7 +132,7 @@ class MethodHandler {
   private func startVPN(result: @escaping FlutterResult) {
     Task {
       do {
-        appLogger.info("Received start VPN call")
+        appLogger.log("Received start VPN call")
         try await vpnManager.startTunnel()
         await MainActor.run {
           result("VPN started successfully.")

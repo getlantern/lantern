@@ -253,7 +253,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
     guard let message else {
       return
     }
-    appLogger.log(message)
+    tunnelLogger.log(message)
   }
 
   private var nwMonitor: NWPathMonitor? = nil

@@ -53,19 +53,14 @@ class VPNManager: VPNBase {
     } catch SystemExtensionError.requiresReboot {
       // surface a user-friendly message
       let msg = "The app needs a reboot to finish installing its network extension."
-      appLogger.error(msg)
       throw NSError(
-        domain: "com.yourapp.vpn",
+        domain: "SetupSystemExtensionError",
         code: 1001,
         userInfo: [NSLocalizedDescriptionKey: msg]
       )
     } catch {
-      // other install failures
-      //      let msg = "Could not install network extension: \(error.localizedDescription)"
-      //      appLogger.error(msg)
       throw error
     }
-
     // if we get here, the extension is fully installed and ready
     appLogger.log("System extension ready — starting tunnel…")
 
@@ -73,7 +68,7 @@ class VPNManager: VPNBase {
       let msg = "Unable to load or create VPN manager."
       appLogger.error(msg)
       throw NSError(
-        domain: "com.yourapp.vpn",
+        domain: "VPNManagerError",
         code: 1003,
         userInfo: [NSLocalizedDescriptionKey: msg]
       )
@@ -225,30 +220,33 @@ class VPNManager: VPNBase {
   private nonisolated func setupSystemExtension() async throws {
     // 1️⃣ Already installed?  Done.
     if await SystemExtension.isInstalled() {
-      NSLog("System extension already installed.")
+      appLogger.info("System extension already installed.")
       return
     }
 
     // 2️⃣ Try to install
     do {
       guard let result = try await SystemExtension.install() else {
+        appLogger.error("SystemExtension.install returned nil.")
+
         throw SystemExtensionError.installReturnedNil
       }
 
       switch result {
       case .completed:
-        NSLog("System extension installed immediately.")
+        appLogger.info("System extension installed immediately.")
         return
       case .willCompleteAfterReboot:
-        NSLog("System extension requires reboot to finish installation.")
+        appLogger.error("System extension requires reboot to finish installation.")
         throw SystemExtensionError.requiresReboot
       @unknown default:
         // In case Apple adds new cases in the future
-        NSLog("SystemExtension.install returned unexpected result: \(result)")
+        appLogger.error(
+          "SystemExtension.install returned unknown result: \(String(describing: result))")
         return
       }
     } catch {
-      NSLog("System extension install threw: \(error)")
+      appLogger.error("System extension install threw error: \(error.localizedDescription)")
       throw error
     }
   }
