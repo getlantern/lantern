@@ -8,9 +8,9 @@
 import os.log
 
 let tunnelLogger = TunnelLogger()
-
+private let systemIdentifier = "org.getlantern.lantern.PacketTunnel"
 class TunnelLogger {
-    private let systemIdentifier = org.getlantern.lantern.PacketTunnel"
+    
   private let generalLog = OSLog(
     subsystem: systemIdentifier, category: "General")
   private let networkLog = OSLog(
