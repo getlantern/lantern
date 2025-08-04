@@ -12,6 +12,7 @@ let appLogger = LanternLogger()
 
 class LanternLogger {
   private let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "Swidr")
+ 
 
   func log(_ message: String) {
     logger.debug("\(String(describing: message), privacy: .public)")

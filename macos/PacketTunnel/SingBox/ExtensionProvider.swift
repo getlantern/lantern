@@ -51,11 +51,15 @@ class ExtensionProvider: NEPacketTunnelProvider {
   }
 
   func startVPN() {
+      NSLog("Starting VPN...")
     appLogger.log("(lantern-tunnel) quick connect")
     var error: NSError?
 
+    NSLog("Starting SingBox VPN")
     MobileStartVPN(platformInterface, opts(), &error)
     if error != nil {
+        // Log the error and cancel the tunnel
+        NSLog("Error while starting SingBox VPN: \(error?.localizedDescription ?? "Unknown error")")
       appLogger.log("error while starting tunnel \(error?.localizedDescription ?? "")")
       // Inform system and close tunnel
       cancelTunnelWithError(error)
