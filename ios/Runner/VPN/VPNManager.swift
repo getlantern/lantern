@@ -132,15 +132,15 @@ class VPNManager: VPNBase {
   /// Stops the VPN tunnel.
   /// Terminates the VPN connection and updates the configuration.
   func stopTunnel() async throws {
-    let startTime = Date()
-    print("Stopping tunnel..")
+      let startTime = Date()
+      print("Stopping tunnel..")
     guard connectionStatus == .connected else { return }
     manager.connection.stopVPNTunnel()
     self.manager.isOnDemandEnabled = false
     try await self.saveThenLoadProvider()
-    let elapsed = Date().timeIntervalSince(startTime)
+      let elapsed = Date().timeIntervalSince(startTime)
 
-    NSLog("stopTunnel completed in \(elapsed) seconds")
+      NSLog("stopTunnel completed in \(elapsed) seconds")
 
   }
 
