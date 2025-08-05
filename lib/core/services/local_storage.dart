@@ -230,7 +230,7 @@ class LocalStorageService {
     await _serverLocationBox.putAsync(server);
   }
 
-  ServerLocationEntity getServerLocations() {
+  ServerLocationEntity getSavedServerLocations() {
     final server = _serverLocationBox.getAll();
     return server.isEmpty
         ? ServerLocationEntity(

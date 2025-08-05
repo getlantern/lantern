@@ -167,6 +167,26 @@ func StopVPN() error {
 	return nil
 }
 
+// GetAvailableServers returns the available servers in JSON format.
+// This function retrieves the servers from lantern
+func GetAvailableServers() ([]byte, error) {
+	sm, err := getServerManager()
+	if err != nil {
+		return nil, err
+	}
+	serversList, found := sm.GetServerByTag(servers.SGLantern)
+	if !found {
+		return []byte{}, nil
+	}
+	jsonBytes, err := json.Marshal(serversList)
+	if err != nil {
+		log.Errorf("Error marshalling servers: %v", err)
+		return nil, err
+	}
+	log.Debugf("Available servers JSON: %s", string(jsonBytes))
+	return jsonBytes, nil
+}
+
 // ConnectToServer connects to a server using the provided location type and tag.
 // It works with private servers and lantern location servers.
 func ConnectToServer(locationType, tag string, platIfce libbox.PlatformInterface, options *utils.Opts) error {

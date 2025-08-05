@@ -442,4 +442,12 @@ class LanternService implements LanternCoreService {
     }
     return _platformService.featureFlag();
   }
+
+  @override
+  Future<Either<Failure, Unit>> getLanternAvailableServers() {
+  if (PlatformUtils.isFFISupported) {
+      return _ffiService.getLanternAvailableServers();
+    }
+    return _platformService.getLanternAvailableServers();
+  }
 }

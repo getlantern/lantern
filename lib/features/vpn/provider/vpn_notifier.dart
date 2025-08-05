@@ -67,7 +67,7 @@ class VpnNotifier extends _$VpnNotifier {
   /// If a specific server location is set, it will connect to that server
   /// valid server location types are: auto,lanternLocation,privateServer
   Future<Either<Failure, String>> startVPN() async {
-    final serverLocation = sl<LocalStorageService>().getServerLocations();
+    final serverLocation = sl<LocalStorageService>().getSavedServerLocations();
     if (serverLocation.serverLocation.toServerLocationType ==
         ServerLocationType.auto) {
       return ref.read(lanternServiceProvider).startVPN();

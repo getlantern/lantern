@@ -28,6 +28,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
   @override
   Widget build(BuildContext context) {
     var serverLocation = ref.watch(serverLocationNotifierProvider);
+    ref.read(serverLocationNotifierProvider.notifier).getLanternServers();
     _textTheme = Theme.of(context).textTheme;
     return BaseScreen(
         title: 'server_selection'.i18n, body: _buildBody(serverLocation));

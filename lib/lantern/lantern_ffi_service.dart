@@ -918,6 +918,12 @@ class LanternFFIService implements LanternCoreService {
     // TODO: implement featureFlag
     throw UnimplementedError();
   }
+
+  @override
+  Future<Either<Failure, Unit>> getLanternAvailableServers() {
+    // TODO: implement getLanternAvailableServers
+    throw UnimplementedError();
+  }
 }
 
 void checkAPIError(dynamic result) {

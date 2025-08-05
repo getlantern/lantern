@@ -32,6 +32,8 @@ enum class Methods(val method: String) {
     AcknowledgeInAppPurchase("acknowledgeInAppPurchase"),
     PaymentRedirect("paymentRedirect"),
     ReportIssue("reportIssue"),
+    FeatureFlag("featureFlag"),
+
 
     //Oauth
     OAuthLoginUrl("oauthLoginUrl"),
@@ -61,7 +63,8 @@ enum class Methods(val method: String) {
     InviteToServerManagerInstance("inviteToServerManagerInstance"),
     RevokeServerManagerInstance("revokeServerManagerInstance"),
 
-    FeatureFlag("featureFlag"),
+    //custom/lantern servers
+    GetLanternAvailableServers("getLanternAvailableServers"),
 
 }
 
@@ -688,6 +691,7 @@ class MethodHandler : FlutterPlugin,
                     }
                 }
             }
+
             Methods.FeatureFlag.method -> {
                 scope.launch {
                     result.runCatching {
@@ -699,6 +703,23 @@ class MethodHandler : FlutterPlugin,
                         result.error(
                             "DigitalOcean",
                             e.localizedMessage ?: "Error while activating Digital Ocean",
+                            e
+                        )
+                    }
+                }
+            }
+
+            Methods.GetLanternAvailableServers.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val data = Mobile.getAvailableServers()
+                        withContext(Dispatchers.Main) {
+                            success(String(data))
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "GetAvailableServers",
+                            e.localizedMessage ?: "Error while fetching available servers",
                             e
                         )
                     }
