@@ -48,6 +48,8 @@
 		33CC11132044BFA00003C045 /* MainFlutterWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CC11122044BFA00003C045 /* MainFlutterWindow.swift */; };
 		5542FA9C165A7489A54D69E6 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3FD9DACB5BA763A29C28870C /* Pods_Runner.framework */; };
 		5F53D0112E3FC92F00740586 /* FilePath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B412DE7A5F300640E7F /* FilePath.swift */; };
+		5F53D0142E42440F00740586 /* PrivateServerListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F53D0122E42440F00740586 /* PrivateServerListener.swift */; };
+		5F53D0162E42442000740586 /* PrivateServerEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F53D0152E42442000740586 /* PrivateServerEventHandler.swift */; };
 		5FEB87042D9E3AAC000AE0DB /* liblantern.dylib in Bundle Framework */ = {isa = PBXBuildFile; fileRef = 5FEB87032D9E3AAC000AE0DB /* liblantern.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		6F8419314D5C43EF38859D72 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 831CC47A1A5EE5E9DF45C2BC /* Pods_RunnerTests.framework */; };
 		78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */; };
@@ -152,6 +154,8 @@
 		33E5194F232828860026EE4D /* AppInfo.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = AppInfo.xcconfig; sourceTree = "<group>"; };
 		3FD9DACB5BA763A29C28870C /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		4062AE3F330289DCB86FAD4E /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
+		5F53D0122E42440F00740586 /* PrivateServerListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivateServerListener.swift; sourceTree = "<group>"; };
+		5F53D0152E42442000740586 /* PrivateServerEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivateServerEventHandler.swift; sourceTree = "<group>"; };
 		5FEB87032D9E3AAC000AE0DB /* liblantern.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = liblantern.dylib; path = Frameworks/liblantern.dylib; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 		831CC47A1A5EE5E9DF45C2BC /* Pods_RunnerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_RunnerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -197,6 +201,7 @@
 			children = (
 				2974E0C72E3D35E400EF7DB3 /* StatusEventHandler.swift */,
 				293C30552DEF649500691115 /* MethodHandler.swift */,
+				5F53D0152E42442000740586 /* PrivateServerEventHandler.swift */,
 			);
 			path = Handlers;
 			sourceTree = "<group>";
@@ -321,8 +326,17 @@
 				33E51914231749380026EE4D /* Release.entitlements */,
 				33CC11242044D66E0003C045 /* Resources */,
 				33BA886A226E78AF003329D5 /* Configs */,
+				5F53D0132E42440F00740586 /* Utils */,
 			);
 			path = Runner;
+			sourceTree = "<group>";
+		};
+		5F53D0132E42440F00740586 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				5F53D0122E42440F00740586 /* PrivateServerListener.swift */,
+			);
+			path = Utils;
 			sourceTree = "<group>";
 		};
 		D73912EC22F37F3D000D13A0 /* Frameworks */ = {
@@ -629,6 +643,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5F53D0162E42442000740586 /* PrivateServerEventHandler.swift in Sources */,
 				33CC11132044BFA00003C045 /* MainFlutterWindow.swift in Sources */,
 				2974E0C82E3D35E400EF7DB3 /* StatusEventHandler.swift in Sources */,
 				293C305E2DEF67EB00691115 /* VPNManager.swift in Sources */,
@@ -639,6 +654,7 @@
 				33CC10F12044A3C60003C045 /* AppDelegate.swift in Sources */,
 				29952B212DE7A0A700640E7F /* VPNManagerOld.swift in Sources */,
 				335BBD1B22A9A15E00E9071D /* GeneratedPluginRegistrant.swift in Sources */,
+				5F53D0142E42440F00740586 /* PrivateServerListener.swift in Sources */,
 				5F53D0112E3FC92F00740586 /* FilePath.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

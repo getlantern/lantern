@@ -75,8 +75,8 @@ class AppDelegate: FlutterAppDelegate {
 
   /// Prepares the file system directories for use
   private func setupFileSystem() {
-      // Use the FilePath extension to get the working directory.
-      
+    // Use the FilePath extension to get the working directory.
+
     do {
       try FileManager.default.createDirectory(
         at: FilePath.workingDirectory,
@@ -98,8 +98,9 @@ class AppDelegate: FlutterAppDelegate {
     Task {
       // Set up the base directory and options
       let baseDir = FilePath.workingDirectory.relativePath
-      let opts = MobileOpts()
+      let opts = UtilsOpts()
       opts.dataDir = baseDir
+      opts.deviceid = ""
       opts.locale = Locale.current.identifier
       var error: NSError?
       await MobileSetupRadiance(opts, &error)

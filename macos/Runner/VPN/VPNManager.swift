@@ -124,6 +124,20 @@ class VPNManager: VPNBase {
     manager?.connection.stopVPNTunnel()
   }
 
+  func connectToServer(
+    location: String,
+    serverName: String,
+  ) async throws {
+    await self.setupVPN()
+    let options: [String: NSObject] = [
+      "netEx.Type": "PrivateServer" as NSString,
+      "netEx.StartReason": "Private server Initiated" as NSString,
+      "netEx.ServerName": serverName as NSString,
+      "netEx.Location": location as NSString,
+    ]
+    try self.manager?.connection.startVPNTunnel(options: options)
+  }
+
   /// Saves the current VPN configuration to preferences and reloads it.
   private func saveThenLoadProvider() async throws {
     try await self.manager?.saveToPreferences()

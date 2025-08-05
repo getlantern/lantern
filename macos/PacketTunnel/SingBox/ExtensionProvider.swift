@@ -45,17 +45,7 @@ class ExtensionProvider: NEPacketTunnelProvider {
 
   private func startService() {
     var error: NSError?
-    let baseDir = FilePath.workingDirectory.relativePath
-    let opts = MobileOpts()
-    opts.dataDir = baseDir
-    opts.deviceid = DeviceIdentifier.getUDID()
-    opts.locale = Locale.current.identifier
-    MobileNewVPNClient(opts, platformInterface, &error)
-    if let error {
-      writeFatalError("(lantern-tunnel) error: create service: \(error.localizedDescription)")
-      return
-    }
-    MobileStartVPN(&error)
+    MobileStartVPN(platformInterface, opts(), &error)
     if error != nil {
       appLogger.error("error while starting tunnel \(error?.localizedDescription ?? "")")
 
@@ -96,6 +86,14 @@ class ExtensionProvider: NEPacketTunnelProvider {
 
   override open func handleAppMessage(_ messageData: Data) async -> Data? {
     messageData
+  }
+
+  func opts() -> UtilsOpts {
+    let baseDir = FilePath.sharedDirectory.relativePath
+    let opts = UtilsOpts()
+    opts.dataDir = baseDir
+    opts.locale = Locale.current.identifier
+    return opts
   }
 
   override open func sleep() async {
