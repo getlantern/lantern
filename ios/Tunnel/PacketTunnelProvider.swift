@@ -11,4 +11,9 @@ class PacketTunnelProvider: ExtensionProvider {
   override func startTunnel(options: [String: NSObject]?) async throws {
     try await super.startTunnel(options: options)
   }
+    
+    
+    override func stopTunnel(with reason: NEProviderStopReason) async {
+        try? await super.stopTunnel(with: reason)
+    }
 }

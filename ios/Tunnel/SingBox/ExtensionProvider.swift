@@ -87,8 +87,12 @@ class ExtensionProvider: NEPacketTunnelProvider {
   }
 
   override open func stopTunnel(with reason: NEProviderStopReason) async {
-    appLogger.log("(lantern-tunnel) stopping, reason: \(reason)")
+      let startTime = Date()
+
+      appLogger.log("(lantern-tunnel) stopping, reason: \(reason)")
     stopService()
+      let elapsed = Date().timeIntervalSince(startTime)
+        NSLog("stopTunnel completed in \(elapsed) seconds")
   }
 
   func opts() -> UtilsOpts {
