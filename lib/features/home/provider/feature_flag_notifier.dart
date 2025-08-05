@@ -34,7 +34,10 @@ class FeatureFlagNotifier extends _$FeatureFlagNotifier {
     final flags = state;
     if (flags.isEmpty) {
       appLogger.debug('Feature flags are empty, GCP is enable by default.');
-      return true;
+      ///Since the flags are empty, we assume GCP is disable by default.
+      /// Majority of out user are in censorship regions, so we assume GCP is not enable.
+      /// This is a safe assumption to avoid breaking the app.
+      return false;
     }
     final gcpEnabled = flags['private.gcp'] ?? false;
     appLogger.debug('GCP enabled: $gcpEnabled');

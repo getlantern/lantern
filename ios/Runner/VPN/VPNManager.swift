@@ -9,7 +9,7 @@ import NetworkExtension
 
 class VPNManager: VPNBase {
   private var observer: NSObjectProtocol?
-  private var manager: NEVPNManager = NEVPNManager.shared()
+  private var manager: NEVPNManager = NETunnelProviderManager.shared()
   static let shared: VPNManager = VPNManager()
 
   @Published private(set) var connectionStatus: NEVPNStatus = .disconnected {

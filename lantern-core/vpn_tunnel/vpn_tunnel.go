@@ -11,6 +11,14 @@ import (
 	"github.com/sagernet/sing-box/experimental/libbox"
 )
 
+type InternalTag string
+
+const (
+	InternalTagAutoAll InternalTag = "auto-all"
+	InternalTagUser    InternalTag = InternalTag(string(servers.SGUser))
+	InternalTagLantern InternalTag = InternalTag(string(servers.SGLantern))
+)
+
 // StartVPN will start the VPN tunnel using the provided platform interface.
 // it pass empty string so it will connect to best server available.
 func StartVPN(platform libbox.PlatformInterface, options *utils.Opts) error {
@@ -35,11 +43,11 @@ func ConnectToServer(group, tag string, platIfce libbox.PlatformInterface, optio
 	var internalTag string
 	switch group {
 	case "auto":
-		internalTag = "auto-all"
+		internalTag = string(InternalTagAutoAll)
 	case "privateServer":
-		internalTag = servers.SGUser
+		internalTag = string(InternalTagUser)
 	case "lanternLocation":
-		internalTag = servers.SGLantern
+		internalTag = string(InternalTagLantern)
 	}
 	if radianceCommon.IsIOS() || radianceCommon.IsMacOS() {
 		err := initializeCommonForApplePlatforms(options.DataDir, filepath.Join(options.DataDir, "logs"), options.LogLevel)
