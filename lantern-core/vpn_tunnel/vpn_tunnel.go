@@ -33,6 +33,11 @@ func StartVPN(platform libbox.PlatformInterface, options *utils.Opts) error {
 
 // StopVPN will stop the VPN tunnel.
 func StopVPN() error {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Errorf("Recovered from panic in StopVPN: %v", r)
+		}
+	}()
 	return vpn.Disconnect()
 }
 
@@ -59,10 +64,14 @@ func ConnectToServer(group, tag string, platIfce libbox.PlatformInterface, optio
 }
 
 func IsVPNRunning() bool {
+	fmt.Println("Checking if VPN is running...")
 	status, err := vpn.GetStatus()
-	if err != nil {
-		return false
-	}
+	fmt.Println("VPN status:", status, "Error:", err)
+	// if err != nil {
+	// 	fmt.Errorf("failed to get VPN status: %w", err)
+	// 	return false
+	// }
+	fmt.Println("VPN status is tunnel:", status.TunnelOpen)
 	return status.TunnelOpen
 }
 

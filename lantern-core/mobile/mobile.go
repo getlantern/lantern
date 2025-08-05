@@ -34,7 +34,7 @@ var (
 )
 
 const (
-	serverManagerKey     = "server-manager"
+	serverManagerKey      = "server-manager"
 	spiltTunnelHandlerKey = "splitTunnelHandler"
 )
 
