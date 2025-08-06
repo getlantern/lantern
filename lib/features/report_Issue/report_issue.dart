@@ -1,5 +1,3 @@
-import 'dart:ui' show PlatformDispatcher;
-
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -13,7 +11,6 @@ import 'package:lantern/lantern/lantern_service_notifier.dart';
 @RoutePage(name: 'ReportIssue')
 class ReportIssue extends HookConsumerWidget {
   final String? description;
-  final _formKey = GlobalKey<FormState>();
 
   ReportIssue({
     super.key,
@@ -34,13 +31,13 @@ class ReportIssue extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final formKey = GlobalKey<FormState>();
     final emailController = useTextEditingController();
     final descriptionController = useTextEditingController();
     final selectedIssueController = useTextEditingController();
     final isLoading = useState(false);
 
     Future<void> openIssueSelection(BuildContext context) async {
-      // Navigate to a full-screen issue selection screen and wait for the selected option.
       showAppBottomSheet(
         context: context,
         title: 'select_an_issue'.i18n,
@@ -117,7 +114,7 @@ class ReportIssue extends HookConsumerWidget {
       title: 'report_issue'.i18n,
       body: SingleChildScrollView(
         child: Form(
-          key: _formKey,
+          key: formKey,
           child: Column(
             children: <Widget>[
               AppTextField(
@@ -159,7 +156,7 @@ class ReportIssue extends HookConsumerWidget {
               PrimaryButton(
                 label: 'submit_issue_report'.i18n,
                 onPressed: () async {
-                  if (!_formKey.currentState!.validate()) return;
+                  if (!formKey.currentState!.validate()) return;
                   await submitReport();
                 },
               ),
