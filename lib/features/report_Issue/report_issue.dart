@@ -7,6 +7,7 @@ import 'package:lantern/core/utils/device_utils.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/core/widgets/radio_listview.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
+import 'package:email_validator/email_validator.dart';
 
 @RoutePage(name: 'ReportIssue')
 class ReportIssue extends HookConsumerWidget {
@@ -56,18 +57,12 @@ class ReportIssue extends HookConsumerWidget {
       );
     }
 
-    bool isEmailValid(String email) {
-      if (email.isEmpty) return true;
-      final emailRegex = RegExp(r"^[\w\.\-]+@([\w\-]+\.)+[a-zA-Z]{2,}$");
-      return emailRegex.hasMatch(email);
-    }
-
     Future<void> submitReport() async {
       final email = emailController.text.trim();
       final issueType = selectedIssueController.text.trim();
       final description = descriptionController.text.trim();
 
-      if (!isEmailValid(email)) {
+      if (!EmailValidator.validate(email)) {
         context.showSnackBar('Please enter a valid email address');
         return;
       }
@@ -126,7 +121,7 @@ class ReportIssue extends HookConsumerWidget {
                 validator: (value) {
                   if (value != null &&
                       value.isNotEmpty &&
-                      !isEmailValid(value)) {
+                      !EmailValidator.validate(value)) {
                     return 'Please enter a valid email';
                   }
                   return null;
