@@ -68,13 +68,14 @@ class VpnNotifier extends _$VpnNotifier {
   /// valid server location types are: auto,lanternLocation,privateServer
   Future<Either<Failure, String>> startVPN() async {
     final serverLocation = sl<LocalStorageService>().getSavedServerLocations();
-    if (serverLocation.serverLocation.toServerLocationType ==
+    if (serverLocation.serverType.toServerLocationType ==
         ServerLocationType.auto) {
+      appLogger.debug("Starting VPN with auto server location");
       return ref.read(lanternServiceProvider).startVPN();
     } else {
-      final location = serverLocation.serverLocation;
+      final serverType = serverLocation.serverType;
       final tag = serverLocation.serverName;
-      return connectToServer(location, tag);
+      return connectToServer(serverType, tag);
     }
   }
 
@@ -82,6 +83,9 @@ class VpnNotifier extends _$VpnNotifier {
   /// it supports lantern locations and private servers.
   Future<Either<Failure, String>> connectToServer(
       String location, String tag) async {
+    appLogger.debug(
+      "Connecting to server: $location with tag: $tag",
+    );
     final result =
         await ref.read(lanternServiceProvider).connectToServer(location, tag);
     return result;

@@ -12,7 +12,6 @@ import kotlinx.coroutines.withContext
 import lantern.io.mobile.Mobile
 import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.constant.VPNStatus
-import org.getlantern.lantern.service.LanternVpnService
 import org.getlantern.lantern.utils.PrivateServerListener
 import org.getlantern.lantern.utils.VpnStatusManager
 
@@ -127,11 +126,9 @@ class MethodHandler : FlutterPlugin,
                         val map = call.arguments as Map<*, *>
                         val location = map["location"] as String? ?: error("Missing location")
                         val tag = map["tag"] as String? ?: error("Missing tag")
-                        Mobile.connectToServer(
+                        MainActivity.instance.connectToServer(
                             location,
                             tag,
-                            LanternVpnService.instance,
-                            LanternVpnService.instance.opts()
                         )
                         success("ok")
                     }.onFailure { e ->

@@ -859,9 +859,12 @@ msgstr "Built-in Ad Blocking"
 msgid "get_lantern_pro"
 msgstr "Get Lantern Pro"
 
-
 msgid "connected_to_private_server"
 msgstr "Connected to Private Server"
+
+
+msgid "server_already_selected"
+msgstr "You are already connected to this server."
 
 
 

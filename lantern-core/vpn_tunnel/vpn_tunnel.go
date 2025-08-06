@@ -28,7 +28,9 @@ func StartVPN(platform libbox.PlatformInterface, options *utils.Opts) error {
 			return err
 		}
 	}
-	return vpn.QuickConnect("", platform)
+	/// it should use InternalTagLantern so it will connect to best lantern server by default.
+	// if you want to connect to user server, use ConnectToServer with InternalTagUser
+	return vpn.QuickConnect(string(InternalTagLantern), platform)
 }
 
 // StopVPN will stop the VPN tunnel.

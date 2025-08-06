@@ -29,7 +29,9 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
   Widget build(BuildContext context) {
     var serverLocation = ref.watch(serverLocationNotifierProvider);
     ref.read(serverLocationNotifierProvider.notifier).getLanternServers();
-    _textTheme = Theme.of(context).textTheme;
+    _textTheme = Theme
+        .of(context)
+        .textTheme;
     return BaseScreen(
         title: 'server_selection'.i18n, body: _buildBody(serverLocation));
   }
@@ -175,12 +177,11 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
 
   Future<void> onSmartLocation(ServerLocationType type) async {
     final result = await ref.read(vpnNotifierProvider.notifier).startVPN();
-
-    result.fold(
-      (failure) {
+      result.fold(
+          (failure) {
         context.showSnackBar(failure.localizedErrorMessage);
       },
-      (success) {
+          (success) {
         final serverLocation = ServerLocationEntity(
           serverType: type.name,
           serverName: 'Smart Location',
@@ -205,7 +206,9 @@ class ServerLocationListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
+    final textTheme = Theme
+        .of(context)
+        .textTheme;
     return Stack(
       children: [
         Positioned(
@@ -275,9 +278,12 @@ class _PrivateServerLocationListViewState
 
   @override
   Widget build(BuildContext context) {
-    _textTheme = Theme.of(context).textTheme;
-    final userSelectedServer = useState(_localStorage.defaultPrivateServer());
+    _textTheme = Theme
+        .of(context)
+        .textTheme;
+
     final serverLocation = ref.watch(serverLocationNotifierProvider);
+    final userSelectedServer = useState(serverLocation);
     final servers = _localStorage.getPrivateServer();
     final myServer = servers.where((element) => !element.isJoined).toList();
     final joinedServer = servers.where((element) => element.isJoined).toList();
@@ -315,12 +321,17 @@ class _PrivateServerLocationListViewState
             padding: EdgeInsets.zero,
             shrinkWrap: true,
             children: myServer.map(
-              (server) {
+                  (server) {
                 return Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     AppTile(
                       onPressed: () {
+                        if(userSelectedServer.value?.serverName==server.serverName) {
+                          appLogger.debug('Already selected this server');
+                          context.showSnackBar('server_already_selected'.i18n);
+                          return;
+                        }
                         onPrivateServerSelected(server);
                         userSelectedServer.value = server;
                         _localStorage
@@ -335,7 +346,8 @@ class _PrivateServerLocationListViewState
                       subtitle: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 3),
                         child: Text(
-                          '${server.serverLocation.locationName} - ${server.externalIp}',
+                          '${server.serverLocation.locationName} - ${server
+                              .externalIp}',
                           style: _textTheme!.labelMedium!.copyWith(
                             color: AppColors.gray7,
                           ),
@@ -344,11 +356,16 @@ class _PrivateServerLocationListViewState
                       trailing: AppRadioButton<String>(
                         value: server.serverName,
                         groupValue: (userSelectedServer.value?.serverName ==
-                                    server.serverName &&
-                                serverLocation.serverName == server.serverName)
+                            server.serverName &&
+                            serverLocation.serverName == server.serverName)
                             ? server.serverName
                             : null,
                         onChanged: (value) {
+                          if(userSelectedServer.value?.serverName==server.serverName) {
+                            appLogger.debug('Already selected this server');
+                            context.showSnackBar('server_already_selected'.i18n);
+                            return;
+                          }
                           onPrivateServerSelected(server);
                           userSelectedServer.value = server;
                           _localStorage
@@ -374,7 +391,7 @@ class _PrivateServerLocationListViewState
             padding: EdgeInsets.zero,
             shrinkWrap: true,
             children: joinedServer.map(
-              (server) {
+                  (server) {
                 return Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -394,7 +411,8 @@ class _PrivateServerLocationListViewState
                       subtitle: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 3),
                         child: Text(
-                          '${server.serverLocation.locationName} - ${server.externalIp}',
+                          '${server.serverLocation.locationName} - ${server
+                              .externalIp}',
                           style: _textTheme!.labelMedium!.copyWith(
                             color: AppColors.gray7,
                           ),
@@ -403,8 +421,8 @@ class _PrivateServerLocationListViewState
                       trailing: AppRadioButton<String>(
                         value: server.serverName,
                         groupValue: (userSelectedServer.value?.serverName ==
-                                    server.serverName &&
-                                serverLocation.serverName == server.serverName)
+                            server.serverName &&
+                            serverLocation.serverName == server.serverName)
                             ? server.serverName
                             : null,
                         onChanged: (value) {
@@ -446,13 +464,14 @@ class _PrivateServerLocationListViewState
         ServerLocationType.privateServer.name, privateServer.serverName.trim());
 
     result.fold(
-      (failure) {
+          (failure) {
         context.hideLoadingDialog();
         context.showSnackBar(failure.localizedErrorMessage);
       },
-      (success) {
+          (success) {
         context.hideLoadingDialog();
         context.showSnackBar('connected_to_private_server'.i18n);
+        appRouter.popUntilRoot();
       },
     );
   }

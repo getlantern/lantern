@@ -179,42 +179,18 @@ func getSplitTunnelHandler() (*vpn.SplitTunnel, error) {
 	return nil, fmt.Errorf("split tunnel handler not found")
 }
 
-//export addSplitTunnelItem
-func addSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
-	mu.Lock()
-	defer mu.Unlock()
-
-	if server == nil {
-		return C.CString("radiance not initialized")
+// availableFeatures returns the available features in JSON format
+//
+//export availableFeatures
+func availableFeatures() []byte {
+	features := server.Features()
+	log.Debugf("Available features: %v", features)
+	jsonBytes, err := json.Marshal(features)
+	if err != nil {
+		log.Errorf("Error marshalling features: %v", err)
+		return nil
 	}
-
-	filterType := C.GoString(filterTypeC)
-	item := C.GoString(itemC)
-
-	if err := server.splitTunnelHandler.AddItem(filterType, item); err != nil {
-		return C.CString(fmt.Sprintf("error adding item: %v", err))
-	}
-	log.Debugf("added %s split tunneling item %s", filterType, item)
-	return nil
-}
-
-//export removeSplitTunnelItem
-func removeSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
-	mu.Lock()
-	defer mu.Unlock()
-
-	if server == nil {
-		return C.CString("radiance not initialized")
-	}
-
-	filterType := C.GoString(filterTypeC)
-	item := C.GoString(itemC)
-
-	if err := server.splitTunnelHandler.RemoveItem(filterType, item); err != nil {
-		return C.CString(fmt.Sprintf("error removing item: %v", err))
-	}
-	log.Debugf("removed %s split tunneling item %s", filterType, item)
-	return nil
+	return jsonBytes
 }
 
 //export reportIssue
@@ -295,6 +271,27 @@ func stopVPN() *C.char {
 	server.sendStatusToPort(Disconnected)
 	log.Debug("VPN server stopped successfully")
 	return C.CString("ok")
+}
+
+// GetAvailableServers returns the available servers in JSON format.
+//
+//export getAvailableServers
+func getAvailableServers() *C.char {
+	sm, err := getServerManager()
+	if err != nil {
+		return SendError(err)
+	}
+	serversList, found := sm.GetServerByTag(servers.SGLantern)
+	if !found {
+		return C.CString("[]")
+	}
+	jsonBytes, err := json.Marshal(serversList)
+	if err != nil {
+		log.Errorf("Error marshalling servers: %v", err)
+		return SendError(err)
+	}
+	log.Debugf("Available servers JSON: %s", string(jsonBytes))
+	return C.CString(string(jsonBytes))
 }
 
 // connectToServer sets the private server with the given tag.
@@ -912,4 +909,42 @@ func revokeServerManagerInvite(_ip, _port, _accessToken, _inviteName *C.char) *C
 	}
 	log.Debugf("Invite %s revoked successfully for server %s:%s", inviteName, ip, port)
 	return C.CString("ok")
+}
+
+//export addSplitTunnelItem
+func addSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
+	mu.Lock()
+	defer mu.Unlock()
+
+	if server == nil {
+		return C.CString("radiance not initialized")
+	}
+
+	filterType := C.GoString(filterTypeC)
+	item := C.GoString(itemC)
+
+	if err := server.splitTunnelHandler.AddItem(filterType, item); err != nil {
+		return C.CString(fmt.Sprintf("error adding item: %v", err))
+	}
+	log.Debugf("added %s split tunneling item %s", filterType, item)
+	return nil
+}
+
+//export removeSplitTunnelItem
+func removeSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
+	mu.Lock()
+	defer mu.Unlock()
+
+	if server == nil {
+		return C.CString("radiance not initialized")
+	}
+
+	filterType := C.GoString(filterTypeC)
+	item := C.GoString(itemC)
+
+	if err := server.splitTunnelHandler.RemoveItem(filterType, item); err != nil {
+		return C.CString(fmt.Sprintf("error removing item: %v", err))
+	}
+	log.Debugf("removed %s split tunneling item %s", filterType, item)
+	return nil
 }
