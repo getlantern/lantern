@@ -18,8 +18,8 @@ class AppDelegate: FlutterAppDelegate {
 
   override func applicationDidFinishLaunching(_ aNotification: Notification) {
 
-//    let systemExtensionManager = SystemExtensionManager()
-//    systemExtensionManager.activateExtension()
+    //    let systemExtensionManager = SystemExtensionManager()
+    //    systemExtensionManager.activateExtension()
 
     guard let controller = mainFlutterWindow?.contentViewController as? FlutterViewController else {
       fatalError("contentViewController is not a FlutterViewController")
@@ -60,9 +60,18 @@ class AppDelegate: FlutterAppDelegate {
 
   /// Registers Flutter event channel handlers
   private func registerEventHandlers(controller: FlutterViewController) {
-    let registry = controller as! FlutterPluginRegistry
-    let statusRegistrar = registry.registrar(forPlugin: "StatusEventHandler")
-    StatusEventHandler.register(with: statusRegistrar)
+      let registry = controller as! FlutterPluginRegistry
+      let statusRegistrar = registry.registrar(forPlugin: "StatusEventHandler")
+      StatusEventHandler.register(with: statusRegistrar)
+      
+
+//      if let registrar = self.registrar(forPlugin: "LogsEventHandler") {
+//        LogsEventHandler.register(with: registrar)
+//      }
+
+      let privateStatusRegistrar = registry.registrar(forPlugin: "PrivateServerEventHandler")
+        PrivateServerEventHandler.register(with: privateStatusRegistrar)
+      
   }
 
   /// Initializes the native method channel handler
@@ -77,10 +86,17 @@ class AppDelegate: FlutterAppDelegate {
   /// Prepares the file system directories for use
   private func setupFileSystem() {
     do {
+
       try FileManager.default.createDirectory(
-        at: FilePath.workingDirectory,
+        at: FilePath.sharedDirectory,
         withIntermediateDirectories: true
       )
+      appLogger.info("Shared directory created at: \(FilePath.sharedDirectory.path)")
+      try FileManager.default.createDirectory(
+        at: FilePath.logsDirectory,
+        withIntermediateDirectories: true
+      )
+      appLogger.info("logs directory created at: \(FilePath.workingDirectory.path)")
     } catch {
       appLogger.error("Failed to create working directory: \(error.localizedDescription)")
     }
@@ -89,6 +105,7 @@ class AppDelegate: FlutterAppDelegate {
       appLogger.error("Failed to change current directory to: \(FilePath.sharedDirectory.path)")
       return
     }
+    appLogger.info("Current directory changed to: \(FilePath.sharedDirectory.path)")
 
   }
 
@@ -97,8 +114,9 @@ class AppDelegate: FlutterAppDelegate {
     Task {
       // Set up the base directory and options
       let baseDir = FilePath.workingDirectory.relativePath
-      let opts = MobileOpts()
+      let opts = UtilsOpts()
       opts.dataDir = baseDir
+      opts.deviceid = ""
       opts.locale = Locale.current.identifier
       var error: NSError?
       await MobileSetupRadiance(opts, &error)

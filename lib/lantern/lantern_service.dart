@@ -35,7 +35,6 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-
   Future<Either<Failure, String>> stopVPN() {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.stopVPN();
@@ -368,16 +367,23 @@ class LanternService implements LanternCoreService {
         ip: ip, port: port, accessToken: accessToken, serverName: serverName);
   }
 
+  /// connectToServer is used to connect to a server
+  /// this will work with lantern customer and private server
+  /// requires location and tag
   @override
-  Future<Either<Failure, String>> setPrivateServer(String location,String tag) {
+  Future<Either<Failure, String>> connectToServer(String location, String tag) {
     if (PlatformUtils.isFFISupported) {
-      return _ffiService.setPrivateServer(location,tag);
+      return _ffiService.connectToServer(location, tag);
     }
-    return _platformService.setPrivateServer(location,tag);
+    return _platformService.connectToServer(location, tag);
   }
 
   @override
-  Future<Either<Failure, String>> inviteToServerManagerInstance({required String ip, required String port, required String accessToken, required String inviteName}) {
+  Future<Either<Failure, String>> inviteToServerManagerInstance(
+      {required String ip,
+      required String port,
+      required String accessToken,
+      required String inviteName}) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.inviteToServerManagerInstance(
           ip: ip, port: port, accessToken: accessToken, inviteName: inviteName);
@@ -387,12 +393,24 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> revokeServerManagerInstance({required String ip, required String port, required String accessToken, required String inviteName}) {
+  Future<Either<Failure, String>> revokeServerManagerInstance(
+      {required String ip,
+      required String port,
+      required String accessToken,
+      required String inviteName}) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.revokeServerManagerInstance(
           ip: ip, port: port, accessToken: accessToken, inviteName: inviteName);
     }
     return _platformService.revokeServerManagerInstance(
         ip: ip, port: port, accessToken: accessToken, inviteName: inviteName);
+  }
+
+  @override
+  Future<Either<Failure, String>> featureFlag() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.featureFlag();
+    }
+    return _platformService.featureFlag();
   }
 }

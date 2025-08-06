@@ -156,7 +156,7 @@ $(DARWIN_LIB_AMD64): $(GO_SOURCES)
 	GOARCH=amd64 LIB_NAME=$@ make desktop-lib
 
 .PHONY: macos
-macos: $(DARWIN_LIB_BUILD) $(MACOS_FRAMEWORK_BUILD)
+macos:$(MACOS_FRAMEWORK_BUILD)
 
 $(DARWIN_LIB_BUILD): $(GO_SOURCES)
 	$(MAKE) macos-arm64 macos-amd64
@@ -368,7 +368,7 @@ build-ios:
 
 .PHONY: format swift-format
 swift-format:
-	swift-format format --in-place --recursive ios/Runner macos/Runner macos/PacketTunnel
+	swift-format format --in-place --recursive ios/Runner ios/Tunnel macos/Runner macos/PacketTunnel
 
 format:
 	@echo "Formatting Dart code..."

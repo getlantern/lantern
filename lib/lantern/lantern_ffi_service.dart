@@ -775,8 +775,11 @@ class LanternFFIService implements LanternCoreService {
     }
   }
 
+  /// connectToServer is used to connect to a server
+  /// this will work with lantern customer and private server
+  /// requires location and tag
   @override
-  Future<Either<Failure, String>> setPrivateServer(
+  Future<Either<Failure, String>> connectToServer(
       String location, String tag) async {
     try {
       final result = await runInBackground<String>(
@@ -839,6 +842,12 @@ class LanternFFIService implements LanternCoreService {
       appLogger.error('Error setting private server', e, stackTrace);
       return Left(e.toFailure());
     }
+  }
+
+  @override
+  Future<Either<Failure, String>> featureFlag() {
+    // TODO: implement featureFlag
+    throw UnimplementedError();
   }
 }
 

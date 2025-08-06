@@ -12,35 +12,36 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"runtime"
 	"strconv"
 	"sync"
 	"unsafe"
 
-	"log/slog"
-
 	"github.com/getlantern/golog"
 	"github.com/getlantern/lantern-outline/lantern-core/apps"
+	"github.com/getlantern/lantern-outline/lantern-core/dart_api_dl"
 	privateserver "github.com/getlantern/lantern-outline/lantern-core/private-server"
 	"github.com/getlantern/lantern-outline/lantern-core/utils"
-	"google.golang.org/protobuf/proto"
-
-	"github.com/getlantern/lantern-outline/lantern-core/dart_api_dl"
-	"github.com/getlantern/lantern-outline/lantern-core/types"
+	"github.com/getlantern/lantern-outline/lantern-core/vpn_tunnel"
 	"github.com/getlantern/radiance"
 	"github.com/getlantern/radiance/api"
 	"github.com/getlantern/radiance/api/protos"
-	"github.com/getlantern/radiance/client"
 	"github.com/getlantern/radiance/common"
+	"github.com/getlantern/radiance/servers"
+	"github.com/getlantern/radiance/vpn"
+	"google.golang.org/protobuf/proto"
 )
 
 type service string
 
 const (
-	appsService          service = "apps"
-	logsService          service = "logs"
-	statusService        service = "status"
-	privateserverService service = "privateServer"
+	appsService           service = "apps"
+	logsService           service = "logs"
+	statusService         service = "status"
+	privateserverService  service = "privateServer"
+	serverManagerKey              = "server-manager"
+	spiltTunnelHandlerKey         = "splitTunnelHandler"
 )
 
 type VPNStatus string
@@ -56,20 +57,20 @@ const (
 )
 
 var (
-	server    *lanternService
-	mu        sync.Mutex
-	setupOnce sync.Once
-
-	log = golog.LoggerFor("lantern-outline.ffi")
+	server        *lanternService
+	mu            sync.Mutex
+	setupOnce     sync.Once
+	storeRadiance = sync.Map{}
+	log           = golog.LoggerFor("lantern-outline.ffi")
 )
 
 type lanternService struct {
 	*radiance.Radiance
-	apiClient          *api.APIClient
-	vpnClient          client.VPNClient
+	apiClient *api.APIClient
+
 	servicesMap        map[service]int64
 	dataDir            string
-	splitTunnelHandler *client.SplitTunnel
+	splitTunnelHandler *vpn.SplitTunnel
 	userInfo           common.UserInfo
 
 	mu sync.Mutex
@@ -115,14 +116,25 @@ func setup(_logDir, _dataDir, _locale *C.char, logPort, appsPort, statusPort, pr
 		// init app cache in background
 		go apps.LoadInstalledApps(dataDir, sendApps(int64(appsPort)))
 
-		vpn, err := client.NewVPNClient(opts.DataDir, opts.LogDir, nil, enableSplitTunneling())
+		spilt, err := vpn.NewSplitTunnelHandler()
 		if err != nil {
-			outError = log.Errorf("unable to create API handler: %v", err)
+			log.Errorf("Error creating split tunnel handler: %v", err)
 		}
+		sth, sthErr := vpn.NewSplitTunnelHandler()
+		if sthErr != nil {
+			outError = fmt.Errorf("unable to create split tunnel handler: %v", sthErr)
+		}
+		storeRadiance.Store(spiltTunnelHandlerKey, sth)
+		serverManager, mngErr := servers.NewManager(opts.DataDir)
+		if mngErr != nil {
+			outError = fmt.Errorf("unable to create server manager: %v", mngErr)
+			return
+		}
+		storeRadiance.Store(serverManagerKey, serverManager)
+
 		server = &lanternService{
 			Radiance:  r,
 			apiClient: r.APIHandler(),
-			vpnClient: vpn,
 			dataDir:   dataDir,
 			servicesMap: map[service]int64{
 				logsService:          int64(logPort),
@@ -130,7 +142,7 @@ func setup(_logDir, _dataDir, _locale *C.char, logPort, appsPort, statusPort, pr
 				statusService:        int64(statusPort),
 				privateserverService: int64(privateServerPort),
 			},
-			splitTunnelHandler: vpn.SplitTunnelHandler(),
+			splitTunnelHandler: spilt,
 			userInfo:           r.UserInfo(),
 		}
 
@@ -145,7 +157,26 @@ func setup(_logDir, _dataDir, _locale *C.char, logPort, appsPort, statusPort, pr
 	}
 	log.Debugf("Radiance setup successfully")
 	return C.CString("ok")
+}
 
+func getServerManager() (*servers.Manager, error) {
+	if v, ok := storeRadiance.Load(serverManagerKey); ok {
+		if sm, ok := v.(*servers.Manager); ok {
+			return sm, nil
+		}
+		return nil, fmt.Errorf("server manager not found")
+	}
+	return nil, fmt.Errorf("server manager not found")
+}
+
+func getSplitTunnelHandler() (*vpn.SplitTunnel, error) {
+	if v, ok := storeRadiance.Load(spiltTunnelHandlerKey); ok {
+		if sth, ok := v.(*vpn.SplitTunnel); ok {
+			return sth, nil
+		}
+		return nil, fmt.Errorf("split tunnel handler not found")
+	}
+	return nil, fmt.Errorf("split tunnel handler not found")
 }
 
 //export addSplitTunnelItem
@@ -189,27 +220,24 @@ func removeSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
 // startVPN initializes and starts the VPN server if it is not already running.
 //
 //export startVPN
-func startVPN() *C.char {
+func startVPN(_logDir, _dataDir, _locale *C.char) *C.char {
 	slog.Debug("startVPN called")
-
 	mu.Lock()
 	defer mu.Unlock()
-
 	if server == nil {
 		return C.CString("radiance not initialized")
 	}
-
 	server.sendStatusToPort(Connecting)
-
-	if err := server.vpnClient.StartVPN(); err != nil {
+	if err := vpn_tunnel.StartVPN(nil, &utils.Opts{
+		DataDir: C.GoString(_dataDir),
+		Locale:  C.GoString(_locale),
+	}); err != nil {
 		err = fmt.Errorf("unable to start vpn server: %v", err)
 		server.sendStatusToPort(Disconnected)
 		return C.CString(err.Error())
 	}
-
 	server.sendStatusToPort(Connected)
 	log.Debug("VPN server started successfully")
-
 	return C.CString("ok")
 }
 
@@ -218,47 +246,40 @@ func startVPN() *C.char {
 //export stopVPN
 func stopVPN() *C.char {
 	slog.Debug("stopVPN called")
-
 	mu.Lock()
 	defer mu.Unlock()
-
 	if server == nil {
 		return C.CString("radiance not initialized")
 	}
-
 	server.sendStatusToPort(Disconnecting)
-
-	if err := server.vpnClient.StopVPN(); err != nil {
+	if err := vpn_tunnel.StopVPN(); err != nil {
 		err = fmt.Errorf("unable to stop vpn server: %v", err)
 		server.sendStatusToPort(Connected)
 		return C.CString(err.Error())
 	}
-
 	server.sendStatusToPort(Disconnected)
 	log.Debug("VPN server stopped successfully")
 	return C.CString("ok")
 }
 
-// setPrivateServer sets the private server with the given tag.
+// connectToServer sets the private server with the given tag.
 //
-//export setPrivateServer
-func setPrivateServer(_location, _tag *C.char) *C.char {
+//export connectToServer
+func connectToServer(_location, _tag, _logDir, _dataDir, _locale *C.char) *C.char {
 	tag := C.GoString(_tag)
-	locationType := types.LocationType(C.GoString(_location))
+	locationType := C.GoString(_location)
 
 	// Valid location types are:
 	// auto,
 	// privateServer,
 	// lanternLocation;
-	group, tagName, err := types.LocationGroupAndTag(locationType, tag)
-	if err != nil {
-		return SendError(log.Errorf("Invalid locationType: %s", locationType))
-	}
-
-	if err := server.vpnClient.SelectServer(group, tagName); err != nil {
+	if err := vpn_tunnel.ConnectToServer(locationType, tag, nil, &utils.Opts{
+		DataDir: C.GoString(_dataDir),
+		Locale:  C.GoString(_locale),
+	}); err != nil {
 		return SendError(log.Errorf("Error setting private server: %v", err))
 	}
-	log.Debugf("Private server set with tag: %s", tagName)
+	log.Debugf("Private server set with tag: %s", tag)
 	return C.CString("ok")
 }
 
@@ -287,7 +308,7 @@ func isVPNConnected() *C.char {
 	if server == nil {
 		return SendError(fmt.Errorf("radiance not initialized"))
 	}
-	connected := server.vpnClient.ConnectionStatus()
+	connected := vpn_tunnel.IsVPNRunning()
 	if connected {
 		server.sendStatusToPort(Connected)
 	} else {
@@ -714,8 +735,12 @@ func sendPrivateServerEvent(event string) {
 //
 //export digitalOceanPrivateServer
 func digitalOceanPrivateServer() *C.char {
+	mngr, err := getServerManager()
+	if err != nil {
+		return SendError(log.Errorf("Error getting server manager: %v", err))
+	}
 	ffiEventListener := &ffiPrivateServerEventListener{}
-	err := privateserver.StartDigitalOceanPrivateServerFlow(ffiEventListener, server.vpnClient)
+	err = privateserver.StartDigitalOceanPrivateServerFlow(ffiEventListener, mngr)
 	if err != nil {
 		log.Errorf("Error starting DigitalOcean private server flow: %v", err)
 		return SendError(err)
@@ -792,13 +817,17 @@ func cancelDepolyment() *C.char {
 //
 //export addServerManagerInstance
 func addServerManagerInstance(_ip, _port, _accessToken, _tag *C.char) *C.char {
+	mngr, mErr := getServerManager()
+	if mErr != nil {
+		return SendError(log.Errorf("Error getting server manager: %v", mErr))
+	}
 	ffiEventListener := &ffiPrivateServerEventListener{}
 	ip := C.GoString(_ip)
 	port := C.GoString(_port)
 	accessToken := C.GoString(_accessToken)
 	tag := C.GoString(_tag)
 
-	err := privateserver.AddServerManually(ip, port, accessToken, tag, server.vpnClient, ffiEventListener)
+	err := privateserver.AddServerManually(ip, port, accessToken, tag, mngr, ffiEventListener)
 	if err != nil {
 		return SendError(log.Errorf("Error adding server manager instance: %v", err))
 	}
@@ -810,13 +839,17 @@ func addServerManagerInstance(_ip, _port, _accessToken, _tag *C.char) *C.char {
 //
 //export inviteToServerManagerInstance
 func inviteToServerManagerInstance(_ip, _port, _accessToken, _inviteName *C.char) *C.char {
+	mngr, mErr := getServerManager()
+	if mErr != nil {
+		return SendError(log.Errorf("Error getting server manager: %v", mErr))
+	}
 	ip := C.GoString(_ip)
 	port := C.GoString(_port)
 	accessToken := C.GoString(_accessToken)
 	inviteName := C.GoString(_inviteName)
 	portInt, _ := strconv.Atoi(port)
 	log.Debugf("Inviting to server manager instance %s:%s with invite name %s", ip, port, inviteName)
-	invite, err := privateserver.InviteToServerManagerInstance(ip, portInt, accessToken, inviteName, server.vpnClient)
+	invite, err := privateserver.InviteToServerManagerInstance(ip, portInt, accessToken, inviteName, mngr)
 	if err != nil {
 		return SendError(log.Errorf("Error inviting to server manager instance: %v", err))
 	}
@@ -828,13 +861,17 @@ func inviteToServerManagerInstance(_ip, _port, _accessToken, _inviteName *C.char
 //
 //export revokeServerManagerInvite
 func revokeServerManagerInvite(_ip, _port, _accessToken, _inviteName *C.char) *C.char {
+	mngr, mErr := getServerManager()
+	if mErr != nil {
+		return SendError(log.Errorf("Error getting server manager: %v", mErr))
+	}
 	ip := C.GoString(_ip)
 	port := C.GoString(_port)
 	accessToken := C.GoString(_accessToken)
 	inviteName := C.GoString(_inviteName)
 	portInt, _ := strconv.Atoi(port)
 	log.Debugf("Revoking invite %s for server %s:%s", inviteName, ip, port)
-	err := privateserver.RevokeServerManagerInvite(ip, portInt, accessToken, inviteName, server.vpnClient)
+	err := privateserver.RevokeServerManagerInvite(ip, portInt, accessToken, inviteName, mngr)
 	if err != nil {
 		return SendError(log.Errorf("Error revoking server manager invite: %v", err))
 	}

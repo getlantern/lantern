@@ -29,7 +29,7 @@ class VPNSwitch extends HookConsumerWidget {
       values: [false, true],
       spacing: 10.h,
       loading: false,
-      height: PlatformUtils.isDesktop ? 70.h : 60.h,
+      height: PlatformUtils.isDesktop ? 70.h : 65.h,
       indicatorSize: Size(60.r, 60.r),
       iconBuilder: (context, local, global) {
         return SizedBox();
