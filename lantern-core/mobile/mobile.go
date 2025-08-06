@@ -169,6 +169,15 @@ func SetPrivateServer(locationType, tag string) error {
 	return nil
 }
 
+func getLanternService() (*lanternService, error) {
+	radianceMutex.Lock()
+	defer radianceMutex.Unlock()
+	if radianceServer == nil {
+		return nil, fmt.Errorf("radiance not initialized")
+	}
+	return radianceServer, nil
+}
+
 func IsVPNConnected() bool {
 	radianceMutex.Lock()
 	defer radianceMutex.Unlock()
@@ -228,6 +237,10 @@ func ReportIssue(email, issueType, description string) error {
 // Todo make sure to add retry logic
 // we need to make sure that the user is created before we can use the radiance server
 func CreateUser() (*api.UserDataResponse, error) {
+	radianceServer, err := getLanternService()
+	if err != nil {
+		return nil, err
+	}
 	log.Debug("Creating user")
 	user, err := radianceServer.apiClient.NewUser(context.Background())
 	log.Debugf("UserCreate response: %v", user)
@@ -239,6 +252,10 @@ func CreateUser() (*api.UserDataResponse, error) {
 
 // this will return the user data from the user config
 func UserData() ([]byte, error) {
+	radianceServer, err := getLanternService()
+	if err != nil {
+		return nil, err
+	}
 	user, err := radianceServer.userConfig.GetData()
 	if err != nil {
 		return nil, log.Errorf("Error getting user data: %v", err)

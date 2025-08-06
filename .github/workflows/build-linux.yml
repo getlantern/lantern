@@ -22,6 +22,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Download pubspec.yaml
+        uses: actions/download-artifact@v4
+        with:
+          name: pubspec
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
@@ -92,8 +97,8 @@ jobs:
 
       - name: Upload to S3
         run: |
-          aws s3 cp ${{ inputs.installer_name }}.deb "s3://${{ secrets.S3_RELEASES_BUCKET }}/releases/"
-          aws s3 cp ${{ inputs.installer_name }}.rpm "s3://${{ secrets.S3_RELEASES_BUCKET }}/releases/"
+          aws s3 cp ${{ inputs.installer_name }}.deb "s3://${{ secrets.S3_RELEASES_BUCKET }}/releases/" --acl public-read
+          aws s3 cp ${{ inputs.installer_name }}.rpm "s3://${{ secrets.S3_RELEASES_BUCKET }}/releases/" --acl public-read
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

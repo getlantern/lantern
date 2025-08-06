@@ -13,6 +13,7 @@ class AppSetting {
   String locale;
   String oAuthToken;
   bool userLoggedIn;
+  bool blockAds;
   String email;
 
   AppSetting({
@@ -22,6 +23,7 @@ class AppSetting {
     this.userLoggedIn = false,
     this.splitTunnelingMode = SplitTunnelingMode.automatic,
     this.oAuthToken = '',
+    this.blockAds = false,
     this.bypassList = BypassListOption.global,
     this.email = '',
     this.locale = 'en_US',
@@ -32,6 +34,7 @@ class AppSetting {
     bool? newIsSpiltTunnelingOn,
     String? newLocale,
     bool? userLoggedIn,
+    bool? blockAds,
     String? oAuthToken,
     String? email,
     SplitTunnelingMode? newSplitTunnelingMode,
@@ -43,6 +46,7 @@ class AppSetting {
       bypassList: newBypassList ?? bypassList,
       isSplitTunnelingOn: newIsSpiltTunnelingOn ?? isSplitTunnelingOn,
       locale: newLocale ?? locale,
+      blockAds: blockAds ?? this.blockAds,
       splitTunnelingMode: newSplitTunnelingMode ?? splitTunnelingMode,
       userLoggedIn: userLoggedIn ?? this.userLoggedIn,
       oAuthToken: oAuthToken ?? this.oAuthToken,

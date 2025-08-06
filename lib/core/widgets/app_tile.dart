@@ -50,7 +50,6 @@ class AppTile extends StatelessWidget {
     final textStyle = tileTextStyle ??
         Theme.of(context).textTheme.labelLarge!.copyWith(
               color: AppColors.gray9,
-              fontFamily: 'Urbanist',
               fontWeight: FontWeight.w400,
               fontSize: 16,
             );

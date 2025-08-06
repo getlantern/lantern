@@ -9,6 +9,9 @@ class AppSecrets {
       dotenv.env['WINDOWS_APP_USER_MODEL_ID'] ?? '';
   static String get windowsGuid => dotenv.env['WINDOWS_GUID'] ?? '';
 
+  static String get buildType =>
+      String.fromEnvironment('BUILD_TYPE', defaultValue: 'production');
+
   static String get lanternPackageName => "org.getlantern.lantern";
 
   static String dnsConfig() {

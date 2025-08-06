@@ -27,8 +27,9 @@ class LanternPlatformService implements LanternCoreService {
   static const MethodChannel _methodChannel =
       MethodChannel('org.getlantern.lantern/method');
   static const logsChannel = EventChannel("$channelPrefix/logs");
-  static const statusChannel =
+  static const EventChannel statusChannel =
       EventChannel("$channelPrefix/status", JSONMethodCodec());
+
   static const privateServerStatusChannel =
       EventChannel("$channelPrefix/private_server_status", JSONMethodCodec());
   late final Stream<LanternStatus> _status;
