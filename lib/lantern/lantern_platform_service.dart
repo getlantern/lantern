@@ -27,7 +27,7 @@ class LanternPlatformService implements LanternCoreService {
   static const MethodChannel _methodChannel =
       MethodChannel('org.getlantern.lantern/method');
   static const logsChannel = EventChannel("$channelPrefix/logs");
-  static const EventChannel statusChannel =
+  static const statusChannel =
       EventChannel("$channelPrefix/status", JSONMethodCodec());
 
   static const privateServerStatusChannel =
@@ -152,12 +152,18 @@ class LanternPlatformService implements LanternCoreService {
     String email,
     String issueType,
     String description,
+    String device,
+    String model,
+    String logFilePath,
   ) async {
     try {
       await _methodChannel.invokeMethod('reportIssue', {
         'email': email,
         'issueType': issueType,
         'description': description,
+        'device': device,
+        'model': model,
+        'logFilePath': logFilePath,
       });
       return right(unit);
     } catch (e, stackTrace) {
@@ -560,10 +566,10 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> setPrivateServer(
+  Future<Either<Failure, String>> connectToServer(
       String location, String tag) async {
     try {
-      await _methodChannel.invokeMethod('setPrivateServer', {
+      await _methodChannel.invokeMethod('connectToServer', {
         'location': location,
         'tag': tag,
       });
@@ -617,6 +623,18 @@ class LanternPlatformService implements LanternCoreService {
       return Right('ok');
     } catch (e, stackTrace) {
       appLogger.error('Error revoking server manager instance', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> featureFlag() async {
+    try {
+      final featureFlag =
+          await _methodChannel.invokeMethod<String>('featureFlag');
+      return Right(featureFlag!);
+    } catch (e, stackTrace) {
+      appLogger.error('Error fetching feature flag', e, stackTrace);
       return Left(e.toFailure());
     }
   }

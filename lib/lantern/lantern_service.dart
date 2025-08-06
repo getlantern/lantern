@@ -5,10 +5,13 @@ import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/services/app_purchase.dart';
+import 'package:lantern/core/utils/device_utils.dart';
+import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_ffi_service.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
 import 'package:lantern/lantern/protos/protos/auth.pb.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 
 import '../core/common/common.dart';
 
@@ -146,11 +149,28 @@ class LanternService implements LanternCoreService {
     String email,
     String issueType,
     String description,
-  ) {
+    String device,
+    String model,
+    String logFilePath,
+  ) async {
     if (PlatformUtils.isDesktop) {
-      return _ffiService.reportIssue(email, issueType, description);
+      return _ffiService.reportIssue(
+        email,
+        issueType,
+        description,
+        device,
+        model,
+        logFilePath,
+      );
     }
-    return _platformService.reportIssue(email, issueType, description);
+    return _platformService.reportIssue(
+      email,
+      issueType,
+      description,
+      device,
+      model,
+      logFilePath,
+    );
   }
 
   @override
@@ -379,13 +399,15 @@ class LanternService implements LanternCoreService {
         ip: ip, port: port, accessToken: accessToken, serverName: serverName);
   }
 
+  /// connectToServer is used to connect to a server
+  /// this will work with lantern customer and private server
+  /// requires location and tag
   @override
-  Future<Either<Failure, String>> setPrivateServer(
-      String location, String tag) {
+  Future<Either<Failure, String>> connectToServer(String location, String tag) {
     if (PlatformUtils.isFFISupported) {
-      return _ffiService.setPrivateServer(location, tag);
+      return _ffiService.connectToServer(location, tag);
     }
-    return _platformService.setPrivateServer(location, tag);
+    return _platformService.connectToServer(location, tag);
   }
 
   @override
@@ -414,5 +436,13 @@ class LanternService implements LanternCoreService {
     }
     return _platformService.revokeServerManagerInstance(
         ip: ip, port: port, accessToken: accessToken, inviteName: inviteName);
+  }
+
+  @override
+  Future<Either<Failure, String>> featureFlag() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.featureFlag();
+    }
+    return _platformService.featureFlag();
   }
 }

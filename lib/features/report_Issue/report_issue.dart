@@ -1,8 +1,12 @@
+import 'dart:ui' show PlatformDispatcher;
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/utils/device_utils.dart';
+import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/core/widgets/radio_listview.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 
@@ -80,9 +84,20 @@ class ReportIssue extends HookConsumerWidget {
       }
 
       isLoading.value = true;
-      final result = await ref
-          .read(lanternServiceProvider)
-          .reportIssue(email, issueType, description);
+
+      final logFile = await AppStorageUtils.appLogFile();
+      DeviceInfo deviceInfo = await DeviceUtils.getDeviceAndModel();
+      final device = deviceInfo.device;
+      final model = deviceInfo.model;
+
+      final result = await ref.read(lanternServiceProvider).reportIssue(
+            email,
+            issueType,
+            description,
+            device,
+            model,
+            logFile.path,
+          );
 
       isLoading.value = false;
 

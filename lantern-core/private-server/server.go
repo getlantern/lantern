@@ -15,8 +15,7 @@ import (
 	"github.com/getlantern/lantern-outline/lantern-core/utils"
 	pcommon "github.com/getlantern/lantern-server-provisioner/common"
 	"github.com/getlantern/lantern-server-provisioner/digitalocean"
-	"github.com/getlantern/radiance/client"
-	boxservice "github.com/getlantern/radiance/client/service"
+	"github.com/getlantern/radiance/servers"
 )
 
 var (
@@ -35,7 +34,7 @@ type provisionSession struct {
 	userProjectString   string
 	serverName          string
 	serverLocation      string
-	vpnClient           client.VPNClient
+	manager             *servers.Manager
 }
 
 type provisionerResponse struct {
@@ -76,7 +75,7 @@ func getSession() (*provisionSession, error) {
 // StartDigitalOceanPrivateServerFlow initializes the DigitalOcean provisioner and starts listening for events.
 // It takes a PrivateServerEventListener to handle events and browser opening.
 // It returns an error if the provisioner fails to start or if there are issues during the session.
-func StartDigitalOceanPrivateServerFlow(events utils.PrivateServerEventListener, vpnClient client.VPNClient) error {
+func StartDigitalOceanPrivateServerFlow(events utils.PrivateServerEventListener, vpnClient *servers.Manager) error {
 	ctx := context.Background()
 	provisioner := digitalocean.GetProvisioner(ctx, func(url string) error {
 		return events.OpenBrowser(url)
@@ -88,7 +87,7 @@ func StartDigitalOceanPrivateServerFlow(events utils.PrivateServerEventListener,
 	ps := &provisionSession{
 		provisioner: provisioner,
 		eventSink:   events,
-		vpnClient:   vpnClient,
+		manager:     vpnClient,
 	}
 	storeSession(ps)
 	go listenToServerEvents(*ps)
@@ -280,7 +279,7 @@ func CancelDepolyment() error {
 // this call radiance and store connect last part
 func AddServerManagerInstance(resp provisionerResponse, provisioner *provisionSession) error {
 	log.Debug("Adding server manager instance")
-	err := provisioner.vpnClient.AddServerManagerInstance(resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken, func(ip string, details []boxservice.CertDetail) *boxservice.CertDetail {
+	err := provisioner.manager.AddPrivateServer(resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken, func(ip string, details []servers.CertDetail) *servers.CertDetail {
 		if len(details) == 0 {
 			return nil
 		}
@@ -323,7 +322,7 @@ func AddServerManagerInstance(resp provisionerResponse, provisioner *provisionSe
 
 // AddServerManually adds a server manually to the VPN client.
 // It takes the server's IP, port, access token, and tag, along with the VPN client and event listener.
-func AddServerManually(ip, port, accessToken, tag string, vpnClient client.VPNClient, events utils.PrivateServerEventListener) error {
+func AddServerManually(ip, port, accessToken, tag string, vpnClient *servers.Manager, events utils.PrivateServerEventListener) error {
 	log.Debugf("Adding server manually: %s:%s with tag %s", ip, port, tag)
 	portInt, _ := strconv.Atoi(port)
 	resp := provisionerResponse{
@@ -333,7 +332,7 @@ func AddServerManually(ip, port, accessToken, tag string, vpnClient client.VPNCl
 		Tag:         tag,
 	}
 	provisionSession := &provisionSession{
-		vpnClient: vpnClient,
+		manager:   vpnClient,
 		eventSink: events,
 	}
 	storeSession(provisionSession)
@@ -353,14 +352,14 @@ func AddServerManually(ip, port, accessToken, tag string, vpnClient client.VPNCl
 	return nil
 }
 
-func InviteToServerManagerInstance(ip string, port int, accessToken string, inviteName string, vpnClient client.VPNClient) (string, error) {
+func InviteToServerManagerInstance(ip string, port int, accessToken string, inviteName string, vpnClient *servers.Manager) (string, error) {
 	log.Debugf("Inviting to server manager instance %s:%d with invite name %s", ip, port, inviteName)
-	return vpnClient.InviteToServerManagerInstance(ip, port, accessToken, inviteName)
+	return vpnClient.InviteToPrivateServer(ip, port, accessToken, inviteName)
 }
 
-func RevokeServerManagerInvite(ip string, port int, accessToken string, inviteName string, vpnClient client.VPNClient) error {
+func RevokeServerManagerInvite(ip string, port int, accessToken string, inviteName string, vpnClient *servers.Manager) error {
 	log.Debugf("Revoking invite %s for server %s:%d", inviteName, ip, port)
-	return vpnClient.RevokeServerManagerInvite(ip, port, accessToken, inviteName)
+	return vpnClient.RevokePrivateServerInvite(ip, port, accessToken, inviteName)
 }
 
 type geoInfo struct {

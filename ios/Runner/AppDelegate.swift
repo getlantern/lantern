@@ -78,10 +78,17 @@ import flutter_local_notifications
   /// Prepares the file system directories for use
   private func setupFileSystem() {
     do {
+
       try FileManager.default.createDirectory(
-        at: FilePath.workingDirectory,
+        at: FilePath.sharedDirectory,
         withIntermediateDirectories: true
       )
+      appLogger.info("Shared directory created at: \(FilePath.sharedDirectory.path)")
+      try FileManager.default.createDirectory(
+        at: FilePath.logsDirectory,
+        withIntermediateDirectories: true
+      )
+      appLogger.info("logs directory created at: \(FilePath.workingDirectory.path)")
     } catch {
       appLogger.error("Failed to create working directory: \(error.localizedDescription)")
     }
@@ -90,6 +97,7 @@ import flutter_local_notifications
       appLogger.error("Failed to change current directory to: \(FilePath.sharedDirectory.path)")
       return
     }
+    appLogger.info("Current directory changed to: \(FilePath.sharedDirectory.path)")
 
   }
 
@@ -112,8 +120,8 @@ import flutter_local_notifications
   private func setupRadiance() {
     Task {
       // Set up the base directory and options
-      let baseDir = FilePath.workingDirectory.relativePath
-      let opts = MobileOpts()
+      let baseDir = FilePath.sharedDirectory.relativePath
+      let opts = UtilsOpts()
       opts.dataDir = baseDir
       opts.deviceid = DeviceIdentifier.getUDID()
       opts.locale = Locale.current.identifier

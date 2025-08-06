@@ -62,32 +62,28 @@ class VpnNotifier extends _$VpnNotifier {
     return state == VPNStatus.disconnected ? startVPN() : stopVPN();
   }
 
+  /// Starts the VPN connection.
+  /// If the server location is set to auto, it will connect to the best available server.
+  /// If a specific server location is set, it will connect to that server
+  /// valid server location types are: auto,lanternLocation,privateServer
   Future<Either<Failure, String>> startVPN() async {
-    // Check if private server is connected
-    // also check for custom location server
     final serverLocation = sl<LocalStorageService>().getServerLocations();
-    if (!isServerLocationSet) {
-      final result = await setPrivateServer(
-          serverLocation.serverType, serverLocation.serverName);
-      result.fold(
-        (failure) {
-          appLogger.error("Failed to set private server: $failure");
-        },
-        (success) {
-          appLogger.info("Private server set successfully: $success");
-        },
-      );
-      isServerLocationSet = true;
+    if (serverLocation.serverLocation.toServerLocationType ==
+        ServerLocationType.auto) {
+      return ref.read(lanternServiceProvider).startVPN();
+    } else {
+      final location = serverLocation.serverLocation;
+      final tag = serverLocation.serverName;
+      return connectToServer(location, tag);
     }
-
-    final result = await ref.read(lanternServiceProvider).startVPN();
-    return result;
   }
 
-  Future<Either<Failure, String>> setPrivateServer(
+  /// Connects to a specific server location.
+  /// it supports lantern locations and private servers.
+  Future<Either<Failure, String>> connectToServer(
       String location, String tag) async {
     final result =
-        await ref.read(lanternServiceProvider).setPrivateServer(location, tag);
+        await ref.read(lanternServiceProvider).connectToServer(location, tag);
     return result;
   }
 

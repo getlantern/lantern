@@ -173,9 +173,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
   }
 
   Future<void> onSmartLocation(ServerLocationType type) async {
-    final result = await ref
-        .read(vpnNotifierProvider.notifier)
-        .setPrivateServer(type.name, "");
+    final result = await ref.read(vpnNotifierProvider.notifier).startVPN();
 
     result.fold(
       (failure) {
@@ -430,10 +428,21 @@ class _PrivateServerLocationListViewState
   Future<void> onPrivateServerSelected(
       PrivateServerEntity privateServer) async {
     context.showLoadingDialog();
-    final result = await ref
-        .read(vpnNotifierProvider.notifier)
-        .setPrivateServer(ServerLocationType.privateServer.name,
-            privateServer.serverName.trim());
+
+    ///Save the selected private server location
+    final serverLocation = ServerLocationEntity(
+        serverType: ServerLocationType.privateServer.name,
+        serverName: privateServer.serverName,
+        autoSelect: false,
+        serverLocation: privateServer.serverLocation);
+
+    ref
+        .read(serverLocationNotifierProvider.notifier)
+        .updateServerLocation(serverLocation);
+
+    /// Connect to the private server
+    final result = await ref.read(vpnNotifierProvider.notifier).connectToServer(
+        ServerLocationType.privateServer.name, privateServer.serverName.trim());
 
     result.fold(
       (failure) {
@@ -442,16 +451,7 @@ class _PrivateServerLocationListViewState
       },
       (success) {
         context.hideLoadingDialog();
-        context.showSnackBar('Private server set successfully.');
-        final serverLocation = ServerLocationEntity(
-            serverType: ServerLocationType.privateServer.name,
-            serverName: privateServer.serverName,
-            autoSelect: false,
-            serverLocation: privateServer.serverLocation);
-
-        ref
-            .read(serverLocationNotifierProvider.notifier)
-            .updateServerLocation(serverLocation);
+        context.showSnackBar('connected_to_private_server'.i18n);
       },
     );
   }
