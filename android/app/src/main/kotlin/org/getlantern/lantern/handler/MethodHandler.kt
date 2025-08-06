@@ -202,7 +202,10 @@ class MethodHandler : FlutterPlugin,
                         val email = map["email"] as String? ?: ""
                         val issueType = map["issueType"] as String? ?: ""
                         val description = map["description"] as String? ?: ""
-                        Mobile.reportIssue(email, issueType, description)
+                        val device = map["device"] as String? ?: ""
+                        val model = map["model"] as String? ?: ""
+                        val logFilePath = map["logFilePath"] as String? ?: ""
+                        Mobile.reportIssue(email, issueType, description, device, model, logFilePath)
                         withContext(Dispatchers.Main) {
                             success("ok")
                         }
