@@ -22,7 +22,6 @@
 
 /* Begin PBXBuildFile section */
 		039A061F2E24DB6000B64255 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B402DE7A5F300640E7F /* KeychainService.swift */; };
-		039A06202E24DB6500B64255 /* FilePath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B412DE7A5F300640E7F /* FilePath.swift */; };
 		293C305A2DEF649500691115 /* MethodHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C30552DEF649500691115 /* MethodHandler.swift */; };
 		293C305E2DEF67EB00691115 /* VPNManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C305C2DEF67EB00691115 /* VPNManager.swift */; };
 		293C305F2DEF67EB00691115 /* VPNBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C305B2DEF67EB00691115 /* VPNBase.swift */; };
@@ -41,10 +40,11 @@
 		5F53D01F2E440BBC00740586 /* PacketTunnelProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2995B4272DF0AA4700429FE9 /* PacketTunnelProvider.swift */; };
 		5F53D02A2E440E9400740586 /* Liblantern.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 293C302F2DEF247F00691115 /* Liblantern.xcframework */; };
 		5F53D02B2E440E9400740586 /* Liblantern.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 293C302F2DEF247F00691115 /* Liblantern.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		5F53D02E2E44103E00740586 /* FilePath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B412DE7A5F300640E7F /* FilePath.swift */; };
 		5F53D0322E4410F100740586 /* StatusEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2974E0C72E3D35E400EF7DB3 /* StatusEventHandler.swift */; };
 		5F53D0332E4410F100740586 /* PrivateServerEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F53D0152E42442000740586 /* PrivateServerEventHandler.swift */; };
 		5F53D03A2E44112E00740586 /* SystemExtensionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F53D0392E44112E00740586 /* SystemExtensionManager.swift */; };
+		5F53D0402E4414A100740586 /* FilePath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F53D03F2E4414A100740586 /* FilePath.swift */; };
+		5F53D0452E4414D000740586 /* FilePath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F53D03F2E4414A100740586 /* FilePath.swift */; };
 		6F8419314D5C43EF38859D72 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 831CC47A1A5EE5E9DF45C2BC /* Pods_RunnerTests.framework */; };
 		78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */; };
 /* End PBXBuildFile section */
@@ -108,7 +108,6 @@
 		29952B042DE79CB200640E7F /* org.getlantern.lantern.packet.systemextension */ = {isa = PBXFileReference; explicitFileType = "wrapper.system-extension"; includeInIndex = 0; path = org.getlantern.lantern.packet.systemextension; sourceTree = BUILT_PRODUCTS_DIR; };
 		29952B052DE79CB200640E7F /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
 		29952B402DE7A5F300640E7F /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
-		29952B412DE7A5F300640E7F /* FilePath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilePath.swift; sourceTree = "<group>"; };
 		2995B4202DF0AA4700429FE9 /* Extension+RunBlocking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Extension+RunBlocking.swift"; sourceTree = "<group>"; };
 		2995B4212DF0AA4700429FE9 /* ExtensionPlatformInterface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionPlatformInterface.swift; sourceTree = "<group>"; };
 		2995B4222DF0AA4700429FE9 /* ExtensionProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionProvider.swift; sourceTree = "<group>"; };
@@ -136,6 +135,7 @@
 		5F53D0122E42440F00740586 /* PrivateServerListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivateServerListener.swift; sourceTree = "<group>"; };
 		5F53D0152E42442000740586 /* PrivateServerEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivateServerEventHandler.swift; sourceTree = "<group>"; };
 		5F53D0392E44112E00740586 /* SystemExtensionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemExtensionManager.swift; sourceTree = "<group>"; };
+		5F53D03F2E4414A100740586 /* FilePath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilePath.swift; sourceTree = "<group>"; };
 		5FEB87032D9E3AAC000AE0DB /* liblantern.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = liblantern.dylib; path = Frameworks/liblantern.dylib; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 		831CC47A1A5EE5E9DF45C2BC /* Pods_RunnerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_RunnerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -147,7 +147,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		5F53D0342E4410F100740586 /* Exceptions for "Utils" folder in "Runner" target */ = {
+		5F53D0342E4410F100740586 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				PrivateServerListener.swift,
@@ -157,18 +157,7 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		03D236712E3A06E20004EC53 /* Utils */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				5F53D0342E4410F100740586 /* Exceptions for "Utils" folder in "Runner" target */,
-			);
-			explicitFileTypes = {
-			};
-			explicitFolders = (
-			);
-			path = Utils;
-			sourceTree = "<group>";
-		};
+		03D236712E3A06E20004EC53 /* Utils */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (5F53D0342E4410F100740586 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = Utils; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -224,6 +213,7 @@
 			children = (
 				293C30602DEF68B300691115 /* Logger.swift */,
 				29952B402DE7A5F300640E7F /* KeychainService.swift */,
+				5F53D03F2E4414A100740586 /* FilePath.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -323,7 +313,6 @@
 				293C305D2DEF67EB00691115 /* VPN */,
 				293C30572DEF649500691115 /* Handlers */,
 				33CC10F02044A3C60003C045 /* AppDelegate.swift */,
-				29952B412DE7A5F300640E7F /* FilePath.swift */,
 				33CC11122044BFA00003C045 /* MainFlutterWindow.swift */,
 				33E51914231749380026EE4D /* Release.entitlements */,
 				33CC11242044D66E0003C045 /* Resources */,
@@ -475,7 +464,7 @@
 			);
 			mainGroup = 33CC10E42044A3C60003C045;
 			packageReferences = (
-				781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "FlutterGeneratedPluginSwiftPackage" */,
+				781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage" */,
 			);
 			productRefGroup = 33CC10EE2044A3C60003C045 /* Products */;
 			projectDirPath = "";
@@ -562,9 +551,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -622,7 +615,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5F53D02E2E44103E00740586 /* FilePath.swift in Sources */,
+				5F53D0452E4414D000740586 /* FilePath.swift in Sources */,
 				5F53D01A2E440BBC00740586 /* Extension+RunBlocking.swift in Sources */,
 				5F53D01B2E440BBC00740586 /* ExtensionPlatformInterface.swift in Sources */,
 				5F53D01C2E440BBC00740586 /* ExtensionProvider.swift in Sources */,
@@ -652,8 +645,8 @@
 				293C305A2DEF649500691115 /* MethodHandler.swift in Sources */,
 				293C30612DEF68B300691115 /* Logger.swift in Sources */,
 				039A061F2E24DB6000B64255 /* KeychainService.swift in Sources */,
-				039A06202E24DB6500B64255 /* FilePath.swift in Sources */,
 				33CC10F12044A3C60003C045 /* AppDelegate.swift in Sources */,
+				5F53D0402E4414A100740586 /* FilePath.swift in Sources */,
 				335BBD1B22A9A15E00E9071D /* GeneratedPluginRegistrant.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1223,7 +1216,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "FlutterGeneratedPluginSwiftPackage" */ = {
+		781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage;
 		};
