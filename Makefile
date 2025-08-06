@@ -156,7 +156,7 @@ $(DARWIN_LIB_AMD64): $(GO_SOURCES)
 	GOARCH=amd64 LIB_NAME=$@ make desktop-lib
 
 .PHONY: macos
-macos:$(MACOS_FRAMEWORK_BUILD)
+macos: $(MACOS_FRAMEWORK_BUILD)
 
 $(DARWIN_LIB_BUILD): $(GO_SOURCES)
 	$(MAKE) macos-arm64 macos-amd64

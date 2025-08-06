@@ -148,6 +148,31 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> reportIssue(
+    String email,
+    String issueType,
+    String description,
+    String device,
+    String model,
+    String logFilePath,
+  ) async {
+    try {
+      await _methodChannel.invokeMethod('reportIssue', {
+        'email': email,
+        'issueType': issueType,
+        'description': description,
+        'device': device,
+        'model': model,
+        'logFilePath': logFilePath,
+      });
+      return right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error reporting issue', e, stackTrace);
+      return left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, Unit>> isVPNConnected() async {
     try {
       await _methodChannel.invokeMethod('isVPNConnected');

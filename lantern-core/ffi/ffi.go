@@ -217,6 +217,41 @@ func removeSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
 	return nil
 }
 
+//export reportIssue
+func reportIssue(emailC, typeC, descC, deviceC, modelC, logPathC *C.char) *C.char {
+	mu.Lock()
+	defer mu.Unlock()
+
+	if server == nil {
+		return C.CString("radiance not initialized")
+	}
+
+	email := C.GoString(emailC)
+	issueType := C.GoString(typeC)
+	desc := C.GoString(descC)
+	device := C.GoString(deviceC)
+	model := C.GoString(modelC)
+	logPath := C.GoString(logPathC)
+
+	report := radiance.IssueReport{
+		Type:        issueType,
+		Description: desc,
+		Device:      device,
+		Model:       model,
+		Attachments: utils.CreateLogAttachment(logPath),
+	}
+
+	if err := server.ReportIssue(email, report); err != nil {
+		return C.CString(fmt.Sprintf("error reporting issue: %v", err))
+	}
+
+	log.Debugf(
+		"Reported issue: %s – %s on %s/%s",
+		email, issueType, device, model,
+	)
+	return C.CString("ok")
+}
+
 // startVPN initializes and starts the VPN server if it is not already running.
 //
 //export startVPN

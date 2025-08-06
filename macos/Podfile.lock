@@ -6,6 +6,8 @@ PODS:
     - Sparkle
   - desktop_webview_window (0.0.1):
     - FlutterMacOS
+  - device_info_plus (0.0.1):
+    - FlutterMacOS
   - flutter_inappwebview_macos (0.0.1):
     - FlutterMacOS
     - OrderedSet (~> 6.0.3)
@@ -56,6 +58,7 @@ DEPENDENCIES:
   - app_links (from `Flutter/ephemeral/.symlinks/plugins/app_links/macos`)
   - auto_updater_macos (from `Flutter/ephemeral/.symlinks/plugins/auto_updater_macos/macos`)
   - desktop_webview_window (from `Flutter/ephemeral/.symlinks/plugins/desktop_webview_window/macos`)
+  - device_info_plus (from `Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos`)
   - flutter_inappwebview_macos (from `Flutter/ephemeral/.symlinks/plugins/flutter_inappwebview_macos/macos`)
   - flutter_local_notifications (from `Flutter/ephemeral/.symlinks/plugins/flutter_local_notifications/macos`)
   - flutter_timezone (from `Flutter/ephemeral/.symlinks/plugins/flutter_timezone/macos`)
@@ -89,6 +92,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/auto_updater_macos/macos
   desktop_webview_window:
     :path: Flutter/ephemeral/.symlinks/plugins/desktop_webview_window/macos
+  device_info_plus:
+    :path: Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos
   flutter_inappwebview_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/flutter_inappwebview_macos/macos
   flutter_local_notifications:
@@ -128,6 +133,7 @@ SPEC CHECKSUMS:
   app_links: 86a57d95d4dec830373b8c85c21d1c59a4a5dc21
   auto_updater_macos: 3e3462c418fe4e731917eacd8d28eef7af84086d
   desktop_webview_window: d4365e71bcd4e1aa0c14cf0377aa24db0c16a7e2
+  device_info_plus: 1b14eed9bf95428983aed283a8d51cce3d8c4215
   flutter_inappwebview_macos: bdf207b8f4ebd58e86ae06cd96b147de99a67c9b
   flutter_local_notifications: 4ccab5b7a22835214a6672e3f9c5e8ae207dab36
   flutter_timezone: 62400baa441155f2a4144188648f2ff861649747

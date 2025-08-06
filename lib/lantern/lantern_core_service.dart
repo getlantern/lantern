@@ -18,7 +18,7 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, String>> stopVPN();
 
-  Future<Either<Failure, String>> connectToServer(String location,String tag);
+  Future<Either<Failure, String>> connectToServer(String location, String tag);
 
   Stream<LanternStatus> watchVPNStatus();
 
@@ -64,6 +64,15 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, Unit>> removeSplitTunnelItem(
       SplitTunnelFilterType type, String value);
+
+  Future<Either<Failure, Unit>> reportIssue(
+    String email,
+    String issueType,
+    String description,
+    String device,
+    String model,
+    String logFilePath,
+  );
 
   Stream<List<AppData>> appsDataStream();
 
@@ -131,7 +140,7 @@ abstract class LanternCoreService {
     required String port,
     required String accessToken,
     required String inviteName,
-    });
+  });
 
   Future<Either<Failure, String>> revokeServerManagerInstance({
     required String ip,

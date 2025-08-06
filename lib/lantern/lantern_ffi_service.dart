@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:ui' show PlatformDispatcher;
 
 import 'package:ffi/ffi.dart';
 import 'package:flutter/services.dart';
@@ -264,12 +265,68 @@ class LanternFFIService implements LanternCoreService {
     }
   }
 
+  Future<Either<Failure, Unit>> reportIssue(
+    String email,
+    String issueType,
+    String description,
+    String device,
+    String model,
+    String logFilePath,
+  ) async {
+    final emailPtr = email.toNativeUtf8();
+    final typePtr = issueType.toNativeUtf8();
+    final descPtr = description.toNativeUtf8();
+    final devicePtr = device.toNativeUtf8();
+    final modelPtr = model.toNativeUtf8();
+    final logFilePathPtr = logFilePath.toNativeUtf8();
+    try {
+      final resultPtr = _ffiService.reportIssue(
+        emailPtr.cast<Char>(),
+        typePtr.cast<Char>(),
+        descPtr.cast<Char>(),
+        devicePtr.cast<Char>(),
+        modelPtr.cast<Char>(),
+        logFilePathPtr.cast<Char>(),
+      );
+      final result = resultPtr.toDartString();
+      malloc.free(resultPtr);
+      if (result == 'ok') {
+        return right(unit);
+      } else {
+        return left(Failure(
+          error: result,
+          localizedErrorMessage: result,
+        ));
+      }
+    } catch (e) {
+      return left(Failure(
+        error: e.toString(),
+        localizedErrorMessage:
+            (e is Exception) ? e.localizedDescription : e.toString(),
+      ));
+    } finally {
+      malloc.free(emailPtr);
+      malloc.free(typePtr);
+      malloc.free(descPtr);
+      malloc.free(devicePtr);
+      malloc.free(modelPtr);
+      malloc.free(logFilePathPtr);
+    }
+  }
+
   @override
   Future<Either<Failure, String>> startVPN() async {
+    final ffiPaths = await PlatformFfiUtils.getFfiPlatformPaths();
     try {
       appLogger.debug('Starting VPN');
-
-      final result = _ffiService.startVPN().cast<Utf8>().toDartString();
+      final result = _ffiService
+          .startVPN(
+            ffiPaths.logFilePathPtr.cast<Char>(),
+            ffiPaths.dataDirPtr.cast<Char>(),
+            ffiPaths.localePtr.cast<Char>(),
+          )
+          .cast<Utf8>()
+          .toDartString();
       if (result.isNotEmpty) {
         return left(Failure(
           error: result,
@@ -281,6 +338,8 @@ class LanternFFIService implements LanternCoreService {
     } catch (e) {
       appLogger.error('Error starting VPN: $e');
       return Left(e.toFailure());
+    } finally {
+      ffiPaths.free();
     }
   }
 
@@ -781,11 +840,18 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, String>> connectToServer(
       String location, String tag) async {
+    final ffiPaths = await PlatformFfiUtils.getFfiPlatformPaths();
     try {
       final result = await runInBackground<String>(
         () async {
           return _ffiService
-              .setPrivateServer(location.toCharPtr, tag.toCharPtr)
+              .connectToServer(
+                location.toCharPtr,
+                tag.toCharPtr,
+                ffiPaths.logFilePathPtr.cast<Char>(),
+                ffiPaths.dataDirPtr.cast<Char>(),
+                ffiPaths.localePtr.cast<Char>(),
+              )
               .toDartString();
         },
       );
@@ -794,6 +860,8 @@ class LanternFFIService implements LanternCoreService {
     } catch (e, stackTrace) {
       appLogger.error('Error setting private server', e, stackTrace);
       return Left(e.toFailure());
+    } finally {
+      ffiPaths.free();
     }
   }
 
@@ -882,6 +950,42 @@ class SplitTunnelMessage {
   final SendPort replyPort;
 
   SplitTunnelMessage(this.type, this.value, this.action, this.replyPort);
+}
+
+class PlatformFfiUtils {
+  static Future<FfiPlatformPaths> getFfiPlatformPaths() async {
+    final logFile = await AppStorageUtils.appLogFile();
+    final dataDir = await AppStorageUtils.getAppDirectory();
+    final locale = PlatformDispatcher.instance.locale.toString();
+
+    final logFilePathPtr = logFile.path.toNativeUtf8();
+    final dataDirPtr = dataDir.path.toNativeUtf8();
+    final localePtr = locale.toNativeUtf8();
+
+    return FfiPlatformPaths(
+      logFilePathPtr: logFilePathPtr,
+      dataDirPtr: dataDirPtr,
+      localePtr: localePtr,
+    );
+  }
+}
+
+class FfiPlatformPaths {
+  final Pointer<Utf8> logFilePathPtr;
+  final Pointer<Utf8> dataDirPtr;
+  final Pointer<Utf8> localePtr;
+
+  FfiPlatformPaths({
+    required this.logFilePathPtr,
+    required this.dataDirPtr,
+    required this.localePtr,
+  });
+
+  void free() {
+    malloc.free(logFilePathPtr);
+    malloc.free(dataDirPtr);
+    malloc.free(localePtr);
+  }
 }
 
 class MockLanternFFIService extends LanternFFIService {}
