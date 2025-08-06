@@ -30,7 +30,7 @@ func StartVPN(platform libbox.PlatformInterface, options *utils.Opts) error {
 	}
 	/// it should use InternalTagLantern so it will connect to best lantern server by default.
 	// if you want to connect to user server, use ConnectToServer with InternalTagUser
-	return vpn.QuickConnect(string(InternalTagLantern), platform)
+	return vpn.QuickConnect("", platform)
 }
 
 // StopVPN will stop the VPN tunnel.
@@ -69,11 +69,6 @@ func IsVPNRunning() bool {
 	fmt.Println("Checking if VPN is running...")
 	status, err := vpn.GetStatus()
 	fmt.Println("VPN status:", status, "Error:", err)
-	// if err != nil {
-	// 	fmt.Errorf("failed to get VPN status: %w", err)
-	// 	return false
-	// }
-	fmt.Println("VPN status is tunnel:", status.TunnelOpen)
 	return status.TunnelOpen
 }
 

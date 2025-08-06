@@ -174,8 +174,8 @@ func GetAvailableServers() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	serversList, found := sm.GetServerByTag(servers.SGLantern)
-	if !found {
+	serversList := sm.Servers()
+	if len(serversList) == 0 {
 		return []byte{}, nil
 	}
 	jsonBytes, err := json.Marshal(serversList)

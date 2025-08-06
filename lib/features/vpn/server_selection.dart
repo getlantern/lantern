@@ -1,6 +1,5 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/private_server_entity.dart';
@@ -29,9 +28,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
   Widget build(BuildContext context) {
     var serverLocation = ref.watch(serverLocationNotifierProvider);
     ref.read(serverLocationNotifierProvider.notifier).getLanternServers();
-    _textTheme = Theme
-        .of(context)
-        .textTheme;
+    _textTheme = Theme.of(context).textTheme;
     return BaseScreen(
         title: 'server_selection'.i18n, body: _buildBody(serverLocation));
   }
@@ -177,20 +174,22 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
 
   Future<void> onSmartLocation(ServerLocationType type) async {
     final result = await ref.read(vpnNotifierProvider.notifier).startVPN();
-      result.fold(
-          (failure) {
+    result.fold(
+      (failure) {
         context.showSnackBar(failure.localizedErrorMessage);
       },
-          (success) {
+      (success) async {
         final serverLocation = ServerLocationEntity(
           serverType: type.name,
           serverName: 'Smart Location',
           autoSelect: true,
           serverLocation: ServerLocationType.auto.name,
         );
-        ref
+        await ref
             .read(serverLocationNotifierProvider.notifier)
             .updateServerLocation(serverLocation);
+
+        appRouter.popUntilRoot();
       },
     );
   }
@@ -206,9 +205,7 @@ class ServerLocationListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme
-        .of(context)
-        .textTheme;
+    final textTheme = Theme.of(context).textTheme;
     return Stack(
       children: [
         Positioned(
@@ -278,12 +275,11 @@ class _PrivateServerLocationListViewState
 
   @override
   Widget build(BuildContext context) {
-    _textTheme = Theme
-        .of(context)
-        .textTheme;
+    _textTheme = Theme.of(context).textTheme;
 
-    final serverLocation = ref.watch(serverLocationNotifierProvider);
-    final userSelectedServer = useState(serverLocation);
+    // final serverLocationNotifier = ref.read(serverLocationNotifierProvider.notifier);
+    final userSelectedServer = ref.watch(serverLocationNotifierProvider);
+    // final userSelectedServer = useState(serverLocation);
     final servers = _localStorage.getPrivateServer();
     final myServer = servers.where((element) => !element.isJoined).toList();
     final joinedServer = servers.where((element) => element.isJoined).toList();
@@ -321,21 +317,19 @@ class _PrivateServerLocationListViewState
             padding: EdgeInsets.zero,
             shrinkWrap: true,
             children: myServer.map(
-                  (server) {
+              (server) {
                 return Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     AppTile(
                       onPressed: () {
-                        if(userSelectedServer.value?.serverName==server.serverName) {
+                        if (userSelectedServer.serverName ==
+                            server.serverName) {
                           appLogger.debug('Already selected this server');
                           context.showSnackBar('server_already_selected'.i18n);
                           return;
                         }
                         onPrivateServerSelected(server);
-                        userSelectedServer.value = server;
-                        _localStorage
-                            .setDefaultPrivateServer(server.serverName);
                       },
                       contentPadding: EdgeInsets.symmetric(vertical: 5),
                       icon: Flag(
@@ -346,8 +340,7 @@ class _PrivateServerLocationListViewState
                       subtitle: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 3),
                         child: Text(
-                          '${server.serverLocation.locationName} - ${server
-                              .externalIp}',
+                          '${server.serverLocation.locationName} - ${server.externalIp}',
                           style: _textTheme!.labelMedium!.copyWith(
                             color: AppColors.gray7,
                           ),
@@ -355,21 +348,19 @@ class _PrivateServerLocationListViewState
                       ),
                       trailing: AppRadioButton<String>(
                         value: server.serverName,
-                        groupValue: (userSelectedServer.value?.serverName ==
-                            server.serverName &&
-                            serverLocation.serverName == server.serverName)
-                            ? server.serverName
-                            : null,
+                        groupValue:
+                            (userSelectedServer.serverName == server.serverName)
+                                ? server.serverName
+                                : null,
                         onChanged: (value) {
-                          if(userSelectedServer.value?.serverName==server.serverName) {
+                          if (userSelectedServer.serverName ==
+                              server.serverName) {
                             appLogger.debug('Already selected this server');
-                            context.showSnackBar('server_already_selected'.i18n);
+                            context
+                                .showSnackBar('server_already_selected'.i18n);
                             return;
                           }
                           onPrivateServerSelected(server);
-                          userSelectedServer.value = server;
-                          _localStorage
-                              .setDefaultPrivateServer(server.serverName);
                         },
                       ),
                     ),
@@ -391,16 +382,13 @@ class _PrivateServerLocationListViewState
             padding: EdgeInsets.zero,
             shrinkWrap: true,
             children: joinedServer.map(
-                  (server) {
+              (server) {
                 return Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     AppTile(
                       onPressed: () {
                         onPrivateServerSelected(server);
-                        userSelectedServer.value = server;
-                        _localStorage
-                            .setDefaultPrivateServer(server.serverName);
                       },
                       contentPadding: EdgeInsets.symmetric(vertical: 5),
                       icon: Flag(
@@ -411,8 +399,7 @@ class _PrivateServerLocationListViewState
                       subtitle: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 3),
                         child: Text(
-                          '${server.serverLocation.locationName} - ${server
-                              .externalIp}',
+                          '${server.serverLocation.locationName} - ${server.externalIp}',
                           style: _textTheme!.labelMedium!.copyWith(
                             color: AppColors.gray7,
                           ),
@@ -420,16 +407,12 @@ class _PrivateServerLocationListViewState
                       ),
                       trailing: AppRadioButton<String>(
                         value: server.serverName,
-                        groupValue: (userSelectedServer.value?.serverName ==
-                            server.serverName &&
-                            serverLocation.serverName == server.serverName)
-                            ? server.serverName
-                            : null,
+                        groupValue:
+                            (userSelectedServer.serverName == server.serverName)
+                                ? server.serverName
+                                : null,
                         onChanged: (value) {
                           onPrivateServerSelected(server);
-                          userSelectedServer.value = server;
-                          _localStorage
-                              .setDefaultPrivateServer(server.serverName);
                         },
                       ),
                     ),
@@ -464,11 +447,11 @@ class _PrivateServerLocationListViewState
         ServerLocationType.privateServer.name, privateServer.serverName.trim());
 
     result.fold(
-          (failure) {
+      (failure) {
         context.hideLoadingDialog();
         context.showSnackBar(failure.localizedErrorMessage);
       },
-          (success) {
+      (success) {
         context.hideLoadingDialog();
         context.showSnackBar('connected_to_private_server'.i18n);
         appRouter.popUntilRoot();
