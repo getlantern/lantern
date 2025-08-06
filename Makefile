@@ -92,6 +92,8 @@ endef
 get-command = $(shell which="$$(which $(1) 2> /dev/null)" && if [[ ! -z "$$which" ]]; then printf %q "$$which"; fi)
 APPDMG    := $(call get-command,appdmg)
 
+DART_DEFINE := --dart-define=BUILD_TYPE=$(BUILD_TYPE)
+
 ## APP_VERSION is the version defined in pubspec.yaml
 APP_VERSION := $(shell grep '^version:' pubspec.yaml | sed 's/version: //;s/ //g')
 
@@ -191,7 +193,7 @@ $(DARWIN_DEBUG_BUILD): $(DARWIN_LIB_BUILD)
 
 $(DARWIN_RELEASE_BUILD):
 	@echo "Building Flutter app (release) for macOS..."
-	flutter build macos --release
+	flutter build macos --release --dart-define=BUILD_TYPE=$(BUILD_TYPE)
 
 build-macos-release: $(DARWIN_RELEASE_BUILD)
 
@@ -248,9 +250,9 @@ linux-debug:
 .PHONY: linux-release
 linux-release: clean linux pubget gen
 	@echo "Building Flutter app (release) for Linux..."
-	flutter build linux --release
+	flutter build linux --release --dart-define=BUILD_TYPE=$(BUILD_TYPE)
 	cp $(LINUX_LIB_BUILD) build/linux/x64/release/bundle
-	flutter_distributor package --platform linux --targets "deb,rpm" --skip-clean
+	flutter_distributor package --build-dart-define=BUILD_TYPE=$(BUILD_TYPE) --platform linux --targets "deb,rpm" --skip-clean
 	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-linux.rpm $(LINUX_INSTALLER_RPM)
 	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-linux.deb $(LINUX_INSTALLER_DEB)
 
@@ -281,7 +283,7 @@ windows-debug: windows
 
 .PHONY: windows-release
 windows-release: clean windows pubget gen
-	flutter_distributor package --flutter-build-args=verbose --platform windows --targets "exe"
+	flutter_distributor package --build-dart-define=BUILD_TYPE=$(BUILD_TYPE) --platform windows --targets "exe"
 
 .PHONY: install-gomobile
 install-gomobile:
