@@ -100,28 +100,11 @@ class VPNManager: VPNBase {
     //await removeExistingVPNProfiles()
     await self.setupVPN()
     let options = ["netEx.StartReason": NSString("User Initiated")]
-    try self.manager?.connection.startVPNTunnel(options: options)
+    try self.manager.connection.startVPNTunnel(options: options)
 
-    self.manager?.isOnDemandEnabled = false
+    self.manager.isOnDemandEnabled = false
 
     try await self.saveThenLoadProvider()
-  }
-
-  /// Stops the VPN tunnel.
-  /// Terminates the VPN connection and updates the configuration.
-  func stopTunnel() async throws {
-    appLogger.log("Stopping tunnel..")
-    guard connectionStatus == .connected else {
-      appLogger.log("In unexpected state: \(connectionStatus)")
-      return
-    }
-
-    if manager?.isOnDemandEnabled ?? false {
-      appLogger.info("Turning off on demand..")
-      manager?.isOnDemandEnabled = false
-      try await manager?.saveToPreferences()
-    }
-    manager?.connection.stopVPNTunnel()
   }
 
   func connectToServer(

@@ -24,7 +24,8 @@ import OSLog
 #endif
 
 public class ExtensionProvider: NEPacketTunnelProvider {
-
+  let appLogger = Logger(
+    subsystem: "org.getlantern.lantern", category: "ExtensionProvider")
   private var platformInterface: ExtensionPlatformInterface!
 
   override open func startTunnel(options: [String: NSObject]?) async throws {
@@ -89,22 +90,8 @@ public class ExtensionProvider: NEPacketTunnelProvider {
   }
 
   override open func stopTunnel(with reason: NEProviderStopReason) async {
-    appLogger.log("(lantern-tunnel) stopping, reason: \(reason)")
+    appLogger.log("(lantern-tunnel) stopping, reason:\(String(describing: reason))")
     stopService()
-  }
-
-  func reloadService() {
-    appLogger.log("(lantern-tunnel) reloading service")
-    reasserting = true
-    defer {
-      reasserting = false
-    }
-    stopService()
-    startService()
-  }
-
-  func postServiceClose() {
-    //    radiance = nil
   }
 
   func opts() -> UtilsOpts {
