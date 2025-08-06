@@ -1,20 +1,22 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 
+final webViewLoadingProvider = StateProvider.autoDispose<bool>((ref) => false);
+
 @RoutePage(name: 'AppWebview')
-class AppWebView extends HookWidget {
+class AppWebView extends HookConsumerWidget {
   final String title;
   final String url;
 
   const AppWebView({super.key, required this.title, required this.url});
 
   @override
-  Widget build(BuildContext context) {
-    final loading = useState(false);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isLoading = ref.watch(webViewLoadingProvider);
     return BaseScreen(
         title: "",
         padded: false,
@@ -28,46 +30,86 @@ class AppWebView extends HookWidget {
             IconButton(
               icon: const Icon(Icons.close),
               onPressed: () {
-                appRouter.maybePop(false);
+                appRouter.maybePop();
               },
             ),
           ],
         ),
         body: Stack(
           children: [
-            InAppWebView(
-              shouldOverrideUrlLoading: shouldOverrideUrlLoading,
-              initialUrlRequest: URLRequest(url: WebUri(url)),
-              initialSettings: InAppWebViewSettings(
-                javaScriptEnabled: true,
-                mediaPlaybackRequiresUserGesture: false,
-                useOnDownloadStart: true,
-                useOnLoadResource: true,
-                applicationNameForUserAgent: 'Lantern',
-                useShouldOverrideUrlLoading: true,
-              ),
-              onWebViewCreated: (controller) {},
-              onLoadStart: (_, __) {
-                // Handle load start
-                loading.value = true;
-              },
-              onLoadStop: (_, __) {
-                // Handle load stop
-                loading.value = false;
-              },
-              onReceivedError: (_, __, error) {
-                // Handle received error
-                appLogger.error("Received error: $error");
-                // Handle load stop
-                loading.value = false;
-              },
-            ),
-            if (loading.value)
-              Center(
-                child: LoadingIndicator(),
-              ),
+            _InnerWebView(url: url),
+            if (isLoading) Center(child: LoadingIndicator()),
           ],
         ));
+  }
+}
+
+class _InnerWebView extends StatefulHookConsumerWidget {
+  final String url;
+
+  const _InnerWebView({
+    required this.url,
+  });
+
+  @override
+  ConsumerState<_InnerWebView> createState() => _InnerWebViewState();
+}
+
+class _InnerWebViewState extends ConsumerState<_InnerWebView> {
+  final setting = InAppWebViewSettings(
+    javaScriptEnabled: true,
+    mediaPlaybackRequiresUserGesture: false,
+    useOnDownloadStart: true,
+    useOnLoadResource: true,
+    applicationNameForUserAgent: 'Lantern',
+    useShouldOverrideUrlLoading: true,
+    hardwareAcceleration: true,
+  );
+  late final URLRequest _initialRequest;
+
+  @override
+  void initState() {
+    super.initState();
+    _initialRequest = URLRequest(url: WebUri(widget.url));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    appLogger.debug("Building _InnerWebView with URL: ${widget.url}");
+    return InAppWebView(
+      key: const ValueKey('app-webview'),
+      shouldOverrideUrlLoading: shouldOverrideUrlLoading,
+      initialUrlRequest: _initialRequest,
+      initialSettings: setting,
+      onWebViewCreated: (controller) {},
+      onLoadStart: (_, __) {
+        // Handle load start
+        ref.read(webViewLoadingProvider.notifier).state = true;
+      },
+      onLoadStop: (controller, webUri) {
+        // Handle load stop
+        ref.read(webViewLoadingProvider.notifier).state = false;
+        final url = webUri;
+
+        ///User has completed that private server setup
+        if (url?.host == 'localhost') {
+          appRouter.maybePop(true);
+        }
+      },
+      onReceivedError: (_, webResourceRequest, error) {
+        // Handle received error
+        appLogger.error("Received error: $error");
+        // Handle load stop
+        ref.read(webViewLoadingProvider.notifier).state = true;
+
+        final url = webResourceRequest.url;
+
+        ///User has completed that private server setup
+        if (url.host == 'localhost') {
+          appRouter.maybePop(true);
+        }
+      },
+    );
   }
 
   Future<NavigationActionPolicy?> shouldOverrideUrlLoading(
@@ -75,6 +117,7 @@ class AppWebView extends HookWidget {
     NavigationAction navigationAction,
   ) async {
     final uri = navigationAction.request.url;
+
     if (uri?.fragment.contains('purchaseResult=') ?? false) {
       final normalized = uri.toString().replaceFirst(RegExp(r'#\/\?'), '?');
       final uri2 = Uri.parse(normalized);
@@ -85,7 +128,7 @@ class AppWebView extends HookWidget {
         uri?.path == '/auth' &&
         uri!.queryParameters.containsKey('token')) {
       appRouter.navigatorKey.currentContext
-          ?.showSnackBarError("Successfully logged in");
+          ?.showSnackBar("Successfully logged in");
       // User has successfully logged in to google or apple
       await appRouter.maybePop(uri.queryParameters);
 

@@ -155,18 +155,18 @@ class LanternBindings {
   late final _setrlimit =
       _setrlimitPtr.asFunction<int Function(int, ffi.Pointer<rlimit>)>();
 
-  int wait1(
+  int wait$1(
     ffi.Pointer<ffi.Int> arg0,
   ) {
-    return _wait1(
+    return _wait$1(
       arg0,
     );
   }
 
-  late final _wait1Ptr =
+  late final _wait$1Ptr =
       _lookup<ffi.NativeFunction<pid_t Function(ffi.Pointer<ffi.Int>)>>('wait');
-  late final _wait1 =
-      _wait1Ptr.asFunction<int Function(ffi.Pointer<ffi.Int>)>();
+  late final _wait$1 =
+      _wait$1Ptr.asFunction<int Function(ffi.Pointer<ffi.Int>)>();
 
   int waitpid(
     int arg0,
@@ -2356,6 +2356,7 @@ class LanternBindings {
     int logPort,
     int appsPort,
     int statusPort,
+    int privateServerPort,
     ffi.Pointer<ffi.Void> api,
   ) {
     return _setup(
@@ -2365,6 +2366,7 @@ class LanternBindings {
       logPort,
       appsPort,
       statusPort,
+      privateServerPort,
       api,
     );
   }
@@ -2378,12 +2380,14 @@ class LanternBindings {
               ffi.Int64,
               ffi.Int64,
               ffi.Int64,
+              ffi.Int64,
               ffi.Pointer<ffi.Void>)>>('setup');
   late final _setup = _setupPtr.asFunction<
       ffi.Pointer<ffi.Char> Function(
           ffi.Pointer<ffi.Char>,
           ffi.Pointer<ffi.Char>,
           ffi.Pointer<ffi.Char>,
+          int,
           int,
           int,
           int,
@@ -2425,14 +2429,61 @@ class LanternBindings {
       ffi.Pointer<ffi.Char> Function(
           ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
 
-  ffi.Pointer<ffi.Char> startVPN() {
-    return _startVPN();
+  ffi.Pointer<ffi.Char> reportIssue(
+    ffi.Pointer<ffi.Char> emailC,
+    ffi.Pointer<ffi.Char> typeC,
+    ffi.Pointer<ffi.Char> descC,
+    ffi.Pointer<ffi.Char> deviceC,
+    ffi.Pointer<ffi.Char> modelC,
+    ffi.Pointer<ffi.Char> logPathC,
+  ) {
+    return _reportIssue(
+      emailC,
+      typeC,
+      descC,
+      deviceC,
+      modelC,
+      logPathC,
+    );
   }
 
-  late final _startVPNPtr =
-      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>('startVPN');
-  late final _startVPN =
-      _startVPNPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
+  late final _reportIssuePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>)>>('reportIssue');
+  late final _reportIssue = _reportIssuePtr.asFunction<
+      ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> startVPN(
+    ffi.Pointer<ffi.Char> _logDir,
+    ffi.Pointer<ffi.Char> _dataDir,
+    ffi.Pointer<ffi.Char> _locale,
+  ) {
+    return _startVPN(
+      _logDir,
+      _dataDir,
+      _locale,
+    );
+  }
+
+  late final _startVPNPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>>('startVPN');
+  late final _startVPN = _startVPNPtr.asFunction<
+      ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
 
   ffi.Pointer<ffi.Char> stopVPN() {
     return _stopVPN();
@@ -2442,6 +2493,38 @@ class LanternBindings {
       _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>('stopVPN');
   late final _stopVPN =
       _stopVPNPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
+
+  ffi.Pointer<ffi.Char> connectToServer(
+    ffi.Pointer<ffi.Char> _location,
+    ffi.Pointer<ffi.Char> _tag,
+    ffi.Pointer<ffi.Char> _logDir,
+    ffi.Pointer<ffi.Char> _dataDir,
+    ffi.Pointer<ffi.Char> _locale,
+  ) {
+    return _connectToServer(
+      _location,
+      _tag,
+      _logDir,
+      _dataDir,
+      _locale,
+    );
+  }
+
+  late final _connectToServerPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>)>>('connectToServer');
+  late final _connectToServer = _connectToServerPtr.asFunction<
+      ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>)>();
 
   ffi.Pointer<ffi.Char> isVPNConnected() {
     return _isVPNConnected();
@@ -2566,6 +2649,42 @@ class LanternBindings {
   late final _oAuthLoginCallback = _oAuthLoginCallbackPtr
       .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
 
+  ffi.Pointer<ffi.Char> login(
+    ffi.Pointer<ffi.Char> _email,
+    ffi.Pointer<ffi.Char> _password,
+  ) {
+    return _login(
+      _email,
+      _password,
+    );
+  }
+
+  late final _loginPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>>('login');
+  late final _login = _loginPtr.asFunction<
+      ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> signup(
+    ffi.Pointer<ffi.Char> _email,
+    ffi.Pointer<ffi.Char> _password,
+  ) {
+    return _signup(
+      _email,
+      _password,
+    );
+  }
+
+  late final _signupPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>>('signup');
+  late final _signup = _signupPtr.asFunction<
+      ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
+
   ffi.Pointer<ffi.Char> logout(
     ffi.Pointer<ffi.Char> _email,
   ) {
@@ -2579,6 +2698,98 @@ class LanternBindings {
           ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>>('logout');
   late final _logout = _logoutPtr
       .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> startRecoveryByEmail(
+    ffi.Pointer<ffi.Char> _email,
+  ) {
+    return _startRecoveryByEmail(
+      _email,
+    );
+  }
+
+  late final _startRecoveryByEmailPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>)>>('startRecoveryByEmail');
+  late final _startRecoveryByEmail = _startRecoveryByEmailPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> validateEmailRecoveryCode(
+    ffi.Pointer<ffi.Char> _email,
+    ffi.Pointer<ffi.Char> _code,
+  ) {
+    return _validateEmailRecoveryCode(
+      _email,
+      _code,
+    );
+  }
+
+  late final _validateEmailRecoveryCodePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>)>>('validateEmailRecoveryCode');
+  late final _validateEmailRecoveryCode =
+      _validateEmailRecoveryCodePtr.asFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> completeRecoveryByEmail(
+    ffi.Pointer<ffi.Char> _email,
+    ffi.Pointer<ffi.Char> _newPassword,
+    ffi.Pointer<ffi.Char> _code,
+  ) {
+    return _completeRecoveryByEmail(
+      _email,
+      _newPassword,
+      _code,
+    );
+  }
+
+  late final _completeRecoveryByEmailPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>)>>('completeRecoveryByEmail');
+  late final _completeRecoveryByEmail = _completeRecoveryByEmailPtr.asFunction<
+      ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> deleteAccount(
+    ffi.Pointer<ffi.Char> _email,
+    ffi.Pointer<ffi.Char> _password,
+  ) {
+    return _deleteAccount(
+      _email,
+      _password,
+    );
+  }
+
+  late final _deleteAccountPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>>('deleteAccount');
+  late final _deleteAccount = _deleteAccountPtr.asFunction<
+      ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> activationCode(
+    ffi.Pointer<ffi.Char> _email,
+    ffi.Pointer<ffi.Char> _resellerCode,
+  ) {
+    return _activationCode(
+      _email,
+      _resellerCode,
+    );
+  }
+
+  late final _activationCodePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>>('activationCode');
+  late final _activationCode = _activationCodePtr.asFunction<
+      ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
 
   void freeCString(
     ffi.Pointer<ffi.Char> cstr,
@@ -2594,14 +2805,174 @@ class LanternBindings {
   late final _freeCString =
       _freeCStringPtr.asFunction<void Function(ffi.Pointer<ffi.Char>)>();
 
-  void enforce_binding() {
-    return _enforce_binding();
+  ffi.Pointer<ffi.Char> digitalOceanPrivateServer() {
+    return _digitalOceanPrivateServer();
   }
 
-  late final _enforce_bindingPtr =
-      _lookup<ffi.NativeFunction<ffi.Void Function()>>('enforce_binding');
-  late final _enforce_binding =
-      _enforce_bindingPtr.asFunction<void Function()>();
+  late final _digitalOceanPrivateServerPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+          'digitalOceanPrivateServer');
+  late final _digitalOceanPrivateServer = _digitalOceanPrivateServerPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function()>();
+
+  ffi.Pointer<ffi.Char> selectAccount(
+    ffi.Pointer<ffi.Char> _account,
+  ) {
+    return _selectAccount(
+      _account,
+    );
+  }
+
+  late final _selectAccountPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>)>>('selectAccount');
+  late final _selectAccount = _selectAccountPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> selectProject(
+    ffi.Pointer<ffi.Char> _project,
+  ) {
+    return _selectProject(
+      _project,
+    );
+  }
+
+  late final _selectProjectPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>)>>('selectProject');
+  late final _selectProject = _selectProjectPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> startDepolyment(
+    ffi.Pointer<ffi.Char> _selectedLocation,
+    ffi.Pointer<ffi.Char> _serverName,
+  ) {
+    return _startDepolyment(
+      _selectedLocation,
+      _serverName,
+    );
+  }
+
+  late final _startDepolymentPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>)>>('startDepolyment');
+  late final _startDepolyment = _startDepolymentPtr.asFunction<
+      ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> setCert(
+    ffi.Pointer<ffi.Char> fp,
+  ) {
+    return _setCert(
+      fp,
+    );
+  }
+
+  late final _setCertPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>>('setCert');
+  late final _setCert = _setCertPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> cancelDepolyment() {
+    return _cancelDepolyment();
+  }
+
+  late final _cancelDepolymentPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+          'cancelDepolyment');
+  late final _cancelDepolyment =
+      _cancelDepolymentPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
+
+  ffi.Pointer<ffi.Char> addServerManagerInstance(
+    ffi.Pointer<ffi.Char> _ip,
+    ffi.Pointer<ffi.Char> _port,
+    ffi.Pointer<ffi.Char> _accessToken,
+    ffi.Pointer<ffi.Char> _tag,
+  ) {
+    return _addServerManagerInstance(
+      _ip,
+      _port,
+      _accessToken,
+      _tag,
+    );
+  }
+
+  late final _addServerManagerInstancePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>)>>('addServerManagerInstance');
+  late final _addServerManagerInstance =
+      _addServerManagerInstancePtr.asFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> inviteToServerManagerInstance(
+    ffi.Pointer<ffi.Char> _ip,
+    ffi.Pointer<ffi.Char> _port,
+    ffi.Pointer<ffi.Char> _accessToken,
+    ffi.Pointer<ffi.Char> _inviteName,
+  ) {
+    return _inviteToServerManagerInstance(
+      _ip,
+      _port,
+      _accessToken,
+      _inviteName,
+    );
+  }
+
+  late final _inviteToServerManagerInstancePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>)>>('inviteToServerManagerInstance');
+  late final _inviteToServerManagerInstance =
+      _inviteToServerManagerInstancePtr.asFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> revokeServerManagerInvite(
+    ffi.Pointer<ffi.Char> _ip,
+    ffi.Pointer<ffi.Char> _port,
+    ffi.Pointer<ffi.Char> _accessToken,
+    ffi.Pointer<ffi.Char> _inviteName,
+  ) {
+    return _revokeServerManagerInvite(
+      _ip,
+      _port,
+      _accessToken,
+      _inviteName,
+    );
+  }
+
+  late final _revokeServerManagerInvitePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>)>>('revokeServerManagerInvite');
+  late final _revokeServerManagerInvite =
+      _revokeServerManagerInvitePtr.asFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>)>();
 }
 
 typedef __int8_t = ffi.SignedChar;
@@ -2820,7 +3191,7 @@ enum idtype_t {
         0 => P_ALL,
         1 => P_PID,
         2 => P_PGID,
-        _ => throw ArgumentError("Unknown value for idtype_t: $value"),
+        _ => throw ArgumentError('Unknown value for idtype_t: $value'),
       };
 }
 
@@ -3112,7 +3483,7 @@ final class __sigaction_u extends ffi.Union {
 }
 
 final class __sigaction extends ffi.Struct {
-  external __sigaction_u __sigaction_u1;
+  external __sigaction_u __sigaction_u$1;
 
   external ffi.Pointer<
       ffi.NativeFunction<
@@ -3127,7 +3498,7 @@ final class __sigaction extends ffi.Struct {
 }
 
 final class sigaction extends ffi.Struct {
-  external __sigaction_u __sigaction_u1;
+  external __sigaction_u __sigaction_u$1;
 
   @sigset_t()
   external int sa_mask;

@@ -21,25 +21,12 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
-		293C30302DEF247F00691115 /* Liblantern.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 293C302F2DEF247F00691115 /* Liblantern.xcframework */; };
-		293C30312DEF247F00691115 /* Liblantern.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 293C302F2DEF247F00691115 /* Liblantern.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		039A061F2E24DB6000B64255 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B402DE7A5F300640E7F /* KeychainService.swift */; };
+		039A06202E24DB6500B64255 /* FilePath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B412DE7A5F300640E7F /* FilePath.swift */; };
 		293C305A2DEF649500691115 /* MethodHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C30552DEF649500691115 /* MethodHandler.swift */; };
 		293C305E2DEF67EB00691115 /* VPNManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C305C2DEF67EB00691115 /* VPNManager.swift */; };
 		293C305F2DEF67EB00691115 /* VPNBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C305B2DEF67EB00691115 /* VPNBase.swift */; };
 		293C30612DEF68B300691115 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C30602DEF68B300691115 /* Logger.swift */; };
-		293C30622DEF68B300691115 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C30602DEF68B300691115 /* Logger.swift */; };
-		2974E0C82E3D35E400EF7DB3 /* StatusEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2974E0C72E3D35E400EF7DB3 /* StatusEventHandler.swift */; };
-		29952B062DE79CB200640E7F /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 29952B052DE79CB200640E7F /* NetworkExtension.framework */; };
-		29952B102DE79CB200640E7F /* org.getlantern.lantern.packet.systemextension in Embed System Extensions */ = {isa = PBXBuildFile; fileRef = 29952B042DE79CB200640E7F /* org.getlantern.lantern.packet.systemextension */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		29952B212DE7A0A700640E7F /* VPNManagerOld.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B202DE7A0A700640E7F /* VPNManagerOld.swift */; };
-		29952B232DE7A0B400640E7F /* SystemExtensionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B222DE7A0B400640E7F /* SystemExtensionManager.swift */; };
-		29952B432DE7A5F300640E7F /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B402DE7A5F300640E7F /* KeychainService.swift */; };
-		29952B442DE7A5F300640E7F /* FilePath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B412DE7A5F300640E7F /* FilePath.swift */; };
-		2995B42A2DF0AA4700429FE9 /* Extension+RunBlocking.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2995B4202DF0AA4700429FE9 /* Extension+RunBlocking.swift */; };
-		2995B42B2DF0AA4700429FE9 /* ExtensionPlatformInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2995B4212DF0AA4700429FE9 /* ExtensionPlatformInterface.swift */; };
-		2995B42C2DF0AA4700429FE9 /* ExtensionProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2995B4222DF0AA4700429FE9 /* ExtensionProvider.swift */; };
-		2995B42D2DF0AA4700429FE9 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2995B4252DF0AA4700429FE9 /* main.swift */; };
-		2995B42E2DF0AA4700429FE9 /* PacketTunnelProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2995B4272DF0AA4700429FE9 /* PacketTunnelProvider.swift */; };
 		331C80D8294CF71000263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C80D7294CF71000263BE5 /* RunnerTests.swift */; };
 		335BBD1B22A9A15E00E9071D /* GeneratedPluginRegistrant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 335BBD1A22A9A15E00E9071D /* GeneratedPluginRegistrant.swift */; };
 		33CC10F12044A3C60003C045 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CC10F02044A3C60003C045 /* AppDelegate.swift */; };
@@ -47,10 +34,13 @@
 		33CC10F62044A3C60003C045 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 33CC10F42044A3C60003C045 /* MainMenu.xib */; };
 		33CC11132044BFA00003C045 /* MainFlutterWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CC11122044BFA00003C045 /* MainFlutterWindow.swift */; };
 		5542FA9C165A7489A54D69E6 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3FD9DACB5BA763A29C28870C /* Pods_Runner.framework */; };
-		5F53D0112E3FC92F00740586 /* FilePath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B412DE7A5F300640E7F /* FilePath.swift */; };
-		5F53D0142E42440F00740586 /* PrivateServerListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F53D0122E42440F00740586 /* PrivateServerListener.swift */; };
-		5F53D0162E42442000740586 /* PrivateServerEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F53D0152E42442000740586 /* PrivateServerEventHandler.swift */; };
-		5FEB87042D9E3AAC000AE0DB /* liblantern.dylib in Bundle Framework */ = {isa = PBXBuildFile; fileRef = 5FEB87032D9E3AAC000AE0DB /* liblantern.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		5F53D01A2E440BBC00740586 /* Extension+RunBlocking.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2995B4202DF0AA4700429FE9 /* Extension+RunBlocking.swift */; };
+		5F53D01B2E440BBC00740586 /* ExtensionPlatformInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2995B4212DF0AA4700429FE9 /* ExtensionPlatformInterface.swift */; };
+		5F53D01C2E440BBC00740586 /* ExtensionProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2995B4222DF0AA4700429FE9 /* ExtensionProvider.swift */; };
+		5F53D01D2E440BBC00740586 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2995B4252DF0AA4700429FE9 /* main.swift */; };
+		5F53D01F2E440BBC00740586 /* PacketTunnelProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2995B4272DF0AA4700429FE9 /* PacketTunnelProvider.swift */; };
+		5F53D02A2E440E9400740586 /* Liblantern.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 293C302F2DEF247F00691115 /* Liblantern.xcframework */; };
+		5F53D02B2E440E9400740586 /* Liblantern.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 293C302F2DEF247F00691115 /* Liblantern.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		6F8419314D5C43EF38859D72 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 831CC47A1A5EE5E9DF45C2BC /* Pods_RunnerTests.framework */; };
 		78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */; };
 /* End PBXBuildFile section */
@@ -86,7 +76,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				293C30312DEF247F00691115 /* Liblantern.xcframework in Embed Frameworks */,
+				5F53D02B2E440E9400740586 /* Liblantern.xcframework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -97,20 +87,8 @@
 			dstPath = "$(SYSTEM_EXTENSIONS_FOLDER_PATH)";
 			dstSubfolderSpec = 16;
 			files = (
-				29952B102DE79CB200640E7F /* org.getlantern.lantern.packet.systemextension in Embed System Extensions */,
 			);
 			name = "Embed System Extensions";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		33CC110E2044A8840003C045 /* Bundle Framework */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				5FEB87042D9E3AAC000AE0DB /* liblantern.dylib in Bundle Framework */,
-			);
-			name = "Bundle Framework";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -125,8 +103,6 @@
 		2974E0C72E3D35E400EF7DB3 /* StatusEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusEventHandler.swift; sourceTree = "<group>"; };
 		29952B042DE79CB200640E7F /* org.getlantern.lantern.packet.systemextension */ = {isa = PBXFileReference; explicitFileType = "wrapper.system-extension"; includeInIndex = 0; path = org.getlantern.lantern.packet.systemextension; sourceTree = BUILT_PRODUCTS_DIR; };
 		29952B052DE79CB200640E7F /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
-		29952B202DE7A0A700640E7F /* VPNManagerOld.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VPNManagerOld.swift; sourceTree = "<group>"; };
-		29952B222DE7A0B400640E7F /* SystemExtensionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemExtensionManager.swift; sourceTree = "<group>"; };
 		29952B402DE7A5F300640E7F /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
 		29952B412DE7A5F300640E7F /* FilePath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilePath.swift; sourceTree = "<group>"; };
 		2995B4202DF0AA4700429FE9 /* Extension+RunBlocking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Extension+RunBlocking.swift"; sourceTree = "<group>"; };
@@ -149,7 +125,6 @@
 		33CEB47222A05771004F2AC0 /* Flutter-Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Flutter-Debug.xcconfig"; sourceTree = "<group>"; };
 		33CEB47422A05771004F2AC0 /* Flutter-Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Flutter-Release.xcconfig"; sourceTree = "<group>"; };
 		33CEB47722A0578A004F2AC0 /* Flutter-Generated.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = "Flutter-Generated.xcconfig"; path = "ephemeral/Flutter-Generated.xcconfig"; sourceTree = "<group>"; };
-		33E51913231747F40026EE4D /* DebugProfile.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DebugProfile.entitlements; sourceTree = "<group>"; };
 		33E51914231749380026EE4D /* Release.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = Release.entitlements; sourceTree = "<group>"; };
 		33E5194F232828860026EE4D /* AppInfo.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = AppInfo.xcconfig; sourceTree = "<group>"; };
 		3FD9DACB5BA763A29C28870C /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -166,13 +141,26 @@
 		EDC1670D3723C38E9F4EBE3E /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		03D236712E3A06E20004EC53 /* Utils */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
 		29952B012DE79CB200640E7F /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				293C30302DEF247F00691115 /* Liblantern.xcframework in Frameworks */,
-				29952B062DE79CB200640E7F /* NetworkExtension.framework in Frameworks */,
+				5F53D02A2E440E9400740586 /* Liblantern.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -315,14 +303,12 @@
 		33FAB671232836740065AC1E /* Runner */ = {
 			isa = PBXGroup;
 			children = (
+				03D236712E3A06E20004EC53 /* Utils */,
 				293C305D2DEF67EB00691115 /* VPN */,
 				293C30572DEF649500691115 /* Handlers */,
-				29952B222DE7A0B400640E7F /* SystemExtensionManager.swift */,
-				29952B202DE7A0A700640E7F /* VPNManagerOld.swift */,
 				33CC10F02044A3C60003C045 /* AppDelegate.swift */,
 				29952B412DE7A5F300640E7F /* FilePath.swift */,
 				33CC11122044BFA00003C045 /* MainFlutterWindow.swift */,
-				33E51913231747F40026EE4D /* DebugProfile.entitlements */,
 				33E51914231749380026EE4D /* Release.entitlements */,
 				33CC11242044D66E0003C045 /* Resources */,
 				33BA886A226E78AF003329D5 /* Configs */,
@@ -411,7 +397,6 @@
 				33CC10E92044A3C60003C045 /* Sources */,
 				33CC10EA2044A3C60003C045 /* Frameworks */,
 				33CC10EB2044A3C60003C045 /* Resources */,
-				33CC110E2044A8840003C045 /* Bundle Framework */,
 				3399D490228B24CF009A79C7 /* ShellScript */,
 				8E19D0FE18076EDF51417438 /* [CP] Embed Pods Frameworks */,
 				29952B112DE79CB200640E7F /* Embed System Extensions */,
@@ -437,7 +422,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastSwiftUpdateCheck = 1620;
+				LastSwiftUpdateCheck = 1640;
 				LastUpgradeCheck = 1510;
 				ORGANIZATIONNAME = "";
 				TargetAttributes = {
@@ -620,14 +605,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				29952B432DE7A5F300640E7F /* KeychainService.swift in Sources */,
-				29952B442DE7A5F300640E7F /* FilePath.swift in Sources */,
-				2995B42A2DF0AA4700429FE9 /* Extension+RunBlocking.swift in Sources */,
-				2995B42B2DF0AA4700429FE9 /* ExtensionPlatformInterface.swift in Sources */,
-				2995B42C2DF0AA4700429FE9 /* ExtensionProvider.swift in Sources */,
-				2995B42D2DF0AA4700429FE9 /* main.swift in Sources */,
-				2995B42E2DF0AA4700429FE9 /* PacketTunnelProvider.swift in Sources */,
-				293C30622DEF68B300691115 /* Logger.swift in Sources */,
+				5F53D01A2E440BBC00740586 /* Extension+RunBlocking.swift in Sources */,
+				5F53D01B2E440BBC00740586 /* ExtensionPlatformInterface.swift in Sources */,
+				5F53D01C2E440BBC00740586 /* ExtensionProvider.swift in Sources */,
+				5F53D01D2E440BBC00740586 /* main.swift in Sources */,
+				5F53D01F2E440BBC00740586 /* PacketTunnelProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -643,19 +625,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5F53D0162E42442000740586 /* PrivateServerEventHandler.swift in Sources */,
 				33CC11132044BFA00003C045 /* MainFlutterWindow.swift in Sources */,
-				2974E0C82E3D35E400EF7DB3 /* StatusEventHandler.swift in Sources */,
 				293C305E2DEF67EB00691115 /* VPNManager.swift in Sources */,
 				293C305F2DEF67EB00691115 /* VPNBase.swift in Sources */,
 				293C305A2DEF649500691115 /* MethodHandler.swift in Sources */,
 				293C30612DEF68B300691115 /* Logger.swift in Sources */,
-				29952B232DE7A0B400640E7F /* SystemExtensionManager.swift in Sources */,
+				039A061F2E24DB6000B64255 /* KeychainService.swift in Sources */,
+				039A06202E24DB6500B64255 /* FilePath.swift in Sources */,
 				33CC10F12044A3C60003C045 /* AppDelegate.swift in Sources */,
-				29952B212DE7A0A700640E7F /* VPNManagerOld.swift in Sources */,
 				335BBD1B22A9A15E00E9071D /* GeneratedPluginRegistrant.swift in Sources */,
-				5F53D0142E42440F00740586 /* PrivateServerListener.swift in Sources */,
-				5F53D0112E3FC92F00740586 /* FilePath.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -705,7 +683,8 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_ENTITLEMENTS = PacketTunnel/PacketTunnel.entitlements;
-				CODE_SIGN_IDENTITY = "Developer ID Application: Brave New Software Project, Inc (ACZRKC3LQ9)";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
@@ -959,6 +938,10 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Frameworks",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = Lantern;
@@ -1086,7 +1069,41 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = Runner/DebugProfile.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Runner/RunnerDebug.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = ACZRKC3LQ9;
+				ENABLE_HARDENED_RUNTIME = NO;
+				INFOPLIST_FILE = Runner/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Lantern;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = runner;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		33CC10FD2044A3C60003C045 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 33E5194F232828860026EE4D /* AppInfo.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Runner/Release.entitlements;
+				CODE_SIGN_IDENTITY = "Developer ID Application";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -1100,34 +1117,9 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = Lantern;
-				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 5.0;
-			};
-			name = Debug;
-		};
-		33CC10FD2044A3C60003C045 /* Release */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = 33E5194F232828860026EE4D /* AppInfo.xcconfig */;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = Runner/Release.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
-				CODE_SIGN_STYLE = Manual;
-				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=macosx*]" = ACZRKC3LQ9;
-				ENABLE_HARDENED_RUNTIME = YES;
-				INFOPLIST_FILE = Runner/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Lantern;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				LD_RUNPATH_SEARCH_PATHS = (
+				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"@executable_path/../Frameworks",
+					"$(PROJECT_DIR)/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				PROVISIONING_PROFILE_SPECIFIER = "";

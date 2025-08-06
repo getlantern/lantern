@@ -23,17 +23,26 @@ import OSLog
   import CoreLocation
 #endif
 
-class ExtensionProvider: NEPacketTunnelProvider {
-  let appLogger = Logger(subsystem: "org.getlantern.lantern", category: "ExtensionProvider")
+public class ExtensionProvider: NEPacketTunnelProvider {
+
   private var platformInterface: ExtensionPlatformInterface!
 
-  override open func startTunnel(options _: [String: NSObject]?) async throws {
-    let ignoreMemoryLimit = false
-    LibboxSetMemoryLimit(!ignoreMemoryLimit)
+  override open func startTunnel(options: [String: NSObject]?) async throws {
     if platformInterface == nil {
       platformInterface = ExtensionPlatformInterface(self)
     }
-    startService()
+    let tunnelType = options?["netEx.Type"] as? String
+    switch tunnelType {
+    case "User":
+      startVPN()
+    case "PrivateServer":
+      let serverName = options?["netEx.ServerName"] as? String
+      let location = options?["netEx.Location"] as? String
+      connectToServer(location: location!, serverName: serverName!)
+    default:
+      // Fallback or unknown type
+      startVPN()
+    }
   }
 
   public func writeFatalError(_ message: String) {
@@ -43,13 +52,30 @@ class ExtensionProvider: NEPacketTunnelProvider {
     cancelTunnelWithError(nil)
   }
 
-  private func startService() {
+  func startVPN() {
+    appLogger.log("(lantern-tunnel) quick connect")
     var error: NSError?
+
     MobileStartVPN(platformInterface, opts(), &error)
     if error != nil {
-      appLogger.error("error while starting tunnel \(error?.localizedDescription ?? "")")
-
+      appLogger.log("error while starting tunnel \(error?.localizedDescription ?? "")")
+      // Inform system and close tunnel
+      cancelTunnelWithError(error)
+      return
     }
+    appLogger.log("(lantern-tunnel) tunnel started successfully")
+  }
+
+  func connectToServer(location: String, serverName: String) {
+    appLogger.log("(lantern-tunnel) connecting to server")
+    var error: NSError?
+    MobileConnectToServer(location, serverName, platformInterface, opts(), &error)
+    if error != nil {
+      appLogger.log("error while connecting to server \(error?.localizedDescription ?? "")")
+      cancelTunnelWithError(error)
+      return
+    }
+    appLogger.log("(lantern-tunnel) connected to server successfully")
   }
 
   private func stopService() {
@@ -59,10 +85,12 @@ class ExtensionProvider: NEPacketTunnelProvider {
       appLogger.log("error while stopping tunnel \(error?.localizedDescription ?? "")")
       return
     }
-    if let platformInterface {
-      platformInterface.reset()
-    }
-    appLogger.info("(lantern-tunnel) service stopped")
+    platformInterface.reset()
+  }
+
+  override open func stopTunnel(with reason: NEProviderStopReason) async {
+    appLogger.log("(lantern-tunnel) stopping, reason: \(reason)")
+    stopService()
   }
 
   func reloadService() {
@@ -77,15 +105,6 @@ class ExtensionProvider: NEPacketTunnelProvider {
 
   func postServiceClose() {
     //    radiance = nil
-  }
-
-  override open func stopTunnel(with reason: NEProviderStopReason) async {
-    appLogger.error("\(String(describing: "Stopping tunnel with reason: \(reason)"))")
-    stopService()
-  }
-
-  override open func handleAppMessage(_ messageData: Data) async -> Data? {
-    messageData
   }
 
   func opts() -> UtilsOpts {
@@ -107,4 +126,5 @@ class ExtensionProvider: NEPacketTunnelProvider {
     //     boxService.wake()
     // }
   }
+
 }

@@ -1,11 +1,14 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/app_setting.dart';
 import 'package:lantern/core/models/mapper/user_mapper.dart';
 import 'package:lantern/core/models/plan_entity.dart';
+import 'package:lantern/core/models/private_server_entity.dart';
+import 'package:lantern/core/models/server_location_entity.dart';
 import 'package:lantern/core/models/website.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
@@ -15,24 +18,7 @@ import '../../lantern/protos/protos/auth.pb.dart';
 import '../models/user_entity.dart';
 import 'db/objectbox.g.dart';
 
-// class AppDB {
-//   static final LocalStorageService _localStorageService =
-//       sl<LocalStorageService>();
-//
-//   static set<T>(String key, T value) {
-//     assert(T != dynamic, "You must explicitly specify a type for set<T>()");
-//     final start = DateTime.now();
-//     _localStorageService.set(key, value);
-//     dbLogger.info(
-//       "Key: $key saved successfully in ${DateTime.now().difference(start).inMilliseconds}ms",
-//     );
-//   }
-//
-//   static T? get<T>(String key) {
-//     return _localStorageService.get<T>(key);
-//   }
-// }
-
+/// LocalStorageService is responsible for managing local storage operations
 class LocalStorageService {
   late Store _store;
 
@@ -41,6 +27,8 @@ class LocalStorageService {
   late Box<Website> _websitesBox;
   late Box<PlansDataEntity> _plansBox;
   late Box<UserResponseEntity> _userBox;
+  late Box<PrivateServerEntity> _privateServerBox;
+  late Box<ServerLocationEntity> _serverLocationBox;
 
   ///Due to limitations in macOS the value must be at most 19 characters
   /// Do not change this value
@@ -89,45 +77,17 @@ class LocalStorageService {
     _websitesBox = _store.box<Website>();
     _plansBox = _store.box<PlansDataEntity>();
     _userBox = _store.box<UserResponseEntity>();
+    _privateServerBox = _store.box<PrivateServerEntity>();
+    _serverLocationBox = _store.box<ServerLocationEntity>();
+    updateInitialServerLocation();
 
     dbLogger.info(
-      "LocalStorageService initialized in ${DateTime.now().difference(start).inMilliseconds}ms",
-    );
+        "LocalStorageService initialized in ${DateTime.now().difference(start).inMilliseconds}ms");
   }
 
   void close() {
     _store.close();
   }
-
-  // T? get<T>(String key) {
-  //   dbLogger.debug("Getting key: $key");
-  //   return _cache[key] as T?;
-  //   // final Map<String, dynamic> dbMap = _appDb.map;
-  //   // return dbMap[key] as T?;
-  // }
-  //
-  // /// Save a key-value pair
-  // void set<T>(String key, T value) {
-  //   try {
-  //     final Map<String, dynamic> dbMap = _appDb.map;
-  //     dbMap[key] = value;
-  //     _appDb.map = dbMap;
-  //     _box.putAsync(_appDb);
-  //     //update cache
-  //     _cache[key] = value;
-  //   } catch (e) {
-  //     dbLogger.error("Error saving key: $key, value: $value");
-  //   }
-  // }
-
-  // /// Remove a key
-  // void remove(String key) {
-  //   final Map<String, dynamic> dbMap = _appDb.map;
-  //   dbMap.remove(key);
-  //   _appDb.map = dbMap;
-  //   _box.put(_appDb);
-  //   dbLogger.debug("Key: $key removed successfully");
-  // }
 
   // Apps methods
   Future<void> saveApps(Set<AppData> apps) async {
@@ -193,5 +153,92 @@ class LocalStorageService {
   AppSetting? getAppSetting() {
     final appSetting = _appSettingBox.getAll();
     return appSetting.isEmpty ? null : appSetting.first;
+  }
+
+  // Private Server methods
+  Future<void> savePrivateServer(PrivateServerEntity server) async {
+    _privateServerBox.putAsync(server);
+  }
+
+  List<PrivateServerEntity> getPrivateServer() {
+    final server = _privateServerBox.getAll();
+    return server.isEmpty ? [] : server;
+  }
+
+  PrivateServerEntity? defaultPrivateServer() {
+    final server = _privateServerBox
+        .query(PrivateServerEntity_.userSelected.equals(true))
+        .build()
+        .findFirst();
+    return server;
+  }
+
+  void setDefaultPrivateServer(String serverName) {
+    final servers = _privateServerBox.getAll();
+
+    for (var server in servers) {
+      final isSelected = server.serverName == serverName;
+      server.userSelected = isSelected;
+      _privateServerBox.put(server);
+    }
+  }
+
+  void updatePrivateServerName(String serverName, String newName) async {
+    final existing = _privateServerBox
+        .query(PrivateServerEntity_.serverName.equals(serverName.toLowerCase()))
+        .build()
+        .findFirst();
+    if (existing != null) {
+      final newInstance = existing.copyWith(
+        serverName: newName,
+      );
+      _privateServerBox.put(newInstance,mode: PutMode.update);
+      return;
+    }
+    throw Exception("Private server with name $serverName does not exist");
+  }
+
+  Future<void> deletePrivateServer(String serverName) async {
+    final existing = _privateServerBox
+        .query(PrivateServerEntity_.serverName.equals(serverName.toLowerCase()))
+        .build()
+        .findFirst();
+    if (existing != null) {
+      await _privateServerBox.removeAsync(existing.id);
+      return;
+    }
+    throw Exception("Private server with name $serverName does not exist");
+  }
+
+  //Server Location methods
+
+  void updateInitialServerLocation() {
+    final server = _serverLocationBox.getAll();
+    if (server.isEmpty) {
+      final initialServer = ServerLocationEntity(
+        autoSelect: true,
+        serverLocation: 'Fastest Country',
+        serverName: '',
+        serverType: ServerLocationType.auto.name,
+      );
+      _serverLocationBox.put(initialServer);
+    }
+  }
+
+  Future<void> saveServerLocation(ServerLocationEntity server) async {
+    _serverLocationBox.removeAll();
+    await _serverLocationBox.putAsync(server);
+  }
+
+  ServerLocationEntity getServerLocations() {
+    final server = _serverLocationBox.getAll();
+  return server.isEmpty
+        ? ServerLocationEntity(
+            autoSelect: true,
+            serverLocation: 'Fastest Country',
+            serverName: '',
+            serverType: ServerLocationType.auto.name,
+          )
+        : server.first;
   }
 }

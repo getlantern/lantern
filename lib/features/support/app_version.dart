@@ -30,7 +30,7 @@ class AppVersion extends StatelessWidget {
         children: [
           Text(
             'Lantern Version',
-            style: theme!.bodyMedium,
+            style: theme.bodyMedium,
           ),
           Text(
             version,

@@ -4,7 +4,9 @@ on:
   push:
     tags:
       - "v*.*.*"
-
+permissions:
+  contents: write
+  id-token: "write"
 jobs:
   set-release-metadata:
     runs-on: ubuntu-latest
@@ -54,6 +56,26 @@ jobs:
               echo "platform=all" >> $GITHUB_OUTPUT
               ;;
           esac
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Update app version in pubspec.yaml
+        shell: bash
+        env:
+          RUN_NUMBER: ${{ github.run_number }}
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          NEW_VERSION="${VERSION}+${RUN_NUMBER}"
+          echo "Updating pubspec.yaml to version: $NEW_VERSION"
+          sed -i.bak -E "s/^version: .*/version: $NEW_VERSION/" pubspec.yaml
+          cat pubspec.yaml
+          echo "app_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Upload pubspec.yaml as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pubspec
+          path: pubspec.yaml
 
   build-macos:
     needs: set-release-metadata
@@ -110,6 +132,15 @@ jobs:
       BUILD_TYPE: ${{ needs.set-release-metadata.outputs.build_type }}
       INSTALLER_NAME: ${{ needs.set-release-metadata.outputs.installer_name }}
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2.19.0
+        with:
+          channel: stable
+          flutter-version-file: pubspec.yaml
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
 
@@ -126,7 +157,27 @@ jobs:
             lantern-installer-deb/${{ env.INSTALLER_NAME }}.deb
             lantern-installer-rpm/${{ env.INSTALLER_NAME }}.rpm
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.CI_PRIVATE_REPOS_GH_TOKEN }}
+
+      - name: Install Python dependencies
+        run: python3 -m pip install -r scripts/requirements.txt
+
+      - name: Install Python dependencies
+        run: python3 -m pip install -r scripts/requirements.txt
+
+      - name: Update appcast.xml
+        run: |
+          python3 scripts/generate_appcast.py
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add appcast.xml
+          git commit -m "Update appcast.xml"
+          git push
+          aws s3 cp appcast.xml "s3://${{ secrets.S3_RELEASES_BUCKET }}/releases/"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          GITHUB_TOKEN: ${{ secrets.CI_PRIVATE_REPOS_GH_TOKEN }}
 
       - name: Notify Slack
         uses: slackapi/slack-github-action@v2.0.0
@@ -135,5 +186,7 @@ jobs:
           webhook-type: webhook-trigger
           payload: |
             {
-              "text": "Lantern ${{ env.BUILD_TYPE }} ${{ needs.set-release-metadata.outputs.version }} released on GitHub: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
+              "text": "Lantern ${{ env.BUILD_TYPE }} ${{ github.ref_name }} released!*\n*Downloads:*\n• <https://lantern-vpn.s3.amazonaws.com/releases/${{ env.INSTALLER_NAME }}.dmg|macOS>\n• <https://lantern-vpn.s3.amazonaws.com/releases/${{ env.INSTALLER_NAME }}.exe|Windows>\n• <https://lantern-vpn.s3.amazonaws.com/releases/${{ env.INSTALLER_NAME }}.apk|Android>\n• <https://lantern-vpn.s3.amazonaws.com/releases/${{ env.INSTALLER_NAME }}.deb|Linux (.deb)>\n• <https://lantern-vpn.s3.amazonaws.com/releases/${{ env.INSTALLER_NAME }}.rpm|Linux (.rpm)>"
             }
+        env:
+          INSTALLER_NAME: ${{ needs.set-release-metadata.outputs.installer_name }}

@@ -6,11 +6,14 @@ import FlutterMacOS
 import Foundation
 
 import app_links
+import auto_updater_macos
 import desktop_webview_window
+import device_info_plus
 import flutter_inappwebview_macos
 import flutter_local_notifications
 import flutter_timezone
 import in_app_purchase_storekit
+import mobile_scanner
 import objectbox_flutter_libs
 import package_info_plus
 import path_provider_foundation
@@ -25,11 +28,14 @@ import window_manager
 
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   AppLinksMacosPlugin.register(with: registry.registrar(forPlugin: "AppLinksMacosPlugin"))
+  AutoUpdaterMacosPlugin.register(with: registry.registrar(forPlugin: "AutoUpdaterMacosPlugin"))
   DesktopWebviewWindowPlugin.register(with: registry.registrar(forPlugin: "DesktopWebviewWindowPlugin"))
+  DeviceInfoPlusMacosPlugin.register(with: registry.registrar(forPlugin: "DeviceInfoPlusMacosPlugin"))
   InAppWebViewFlutterPlugin.register(with: registry.registrar(forPlugin: "InAppWebViewFlutterPlugin"))
   FlutterLocalNotificationsPlugin.register(with: registry.registrar(forPlugin: "FlutterLocalNotificationsPlugin"))
   FlutterTimezonePlugin.register(with: registry.registrar(forPlugin: "FlutterTimezonePlugin"))
   InAppPurchasePlugin.register(with: registry.registrar(forPlugin: "InAppPurchasePlugin"))
+  MobileScannerPlugin.register(with: registry.registrar(forPlugin: "MobileScannerPlugin"))
   ObjectboxFlutterLibsPlugin.register(with: registry.registrar(forPlugin: "ObjectboxFlutterLibsPlugin"))
   FPPPackageInfoPlusPlugin.register(with: registry.registrar(forPlugin: "FPPPackageInfoPlusPlugin"))
   PathProviderPlugin.register(with: registry.registrar(forPlugin: "PathProviderPlugin"))

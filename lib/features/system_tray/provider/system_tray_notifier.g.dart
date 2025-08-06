@@ -7,7 +7,7 @@ part of 'system_tray_notifier.dart';
 // **************************************************************************
 
 String _$systemTrayNotifierHash() =>
-    r'd5c39653b4976bc8739c1a5b66ba867fa251a3c2';
+    r'e1be73a6cf1adca987ee4681829e558b777953a8';
 
 /// See also [SystemTrayNotifier].
 @ProviderFor(SystemTrayNotifier)

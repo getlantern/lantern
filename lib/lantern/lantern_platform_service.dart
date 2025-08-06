@@ -2,16 +2,17 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/services.dart';
-import 'package:fpdart/src/either.dart';
-import 'package:fpdart/src/unit.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/mapper/plan_mapper.dart';
 import 'package:lantern/core/models/plan_data.dart';
+import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
+import 'package:lantern/lantern/lantern_ffi_service.dart';
 import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 
 import '../core/models/lantern_status.dart';
@@ -28,14 +29,27 @@ class LanternPlatformService implements LanternCoreService {
   static const logsChannel = EventChannel("$channelPrefix/logs");
   static const EventChannel statusChannel =
       EventChannel("$channelPrefix/status", JSONMethodCodec());
-  static final Stream<LanternStatus> _status = statusChannel
-        .receiveBroadcastStream()
-        .map((event) => LanternStatus.fromJson(event));
 
+  static const privateServerStatusChannel =
+      EventChannel("$channelPrefix/private_server_status", JSONMethodCodec());
+  late final Stream<LanternStatus> _status;
+  late final Stream<PrivateServerStatus> _privateServerStatus;
 
   @override
   Future<void> init() async {
     appLogger.info(' LanternPlatformService');
+
+    _status = statusChannel
+        .receiveBroadcastStream()
+        .map((event) => LanternStatus.fromJson(event));
+    _privateServerStatus =
+        privateServerStatusChannel.receiveBroadcastStream().map(
+      (event) {
+        appLogger.info('Received private server status: $event');
+        final map = jsonDecode(event);
+        return PrivateServerStatus.fromJson(map);
+      },
+    );
   }
 
   @override
@@ -135,6 +149,31 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> reportIssue(
+    String email,
+    String issueType,
+    String description,
+    String device,
+    String model,
+    String logFilePath,
+  ) async {
+    try {
+      await _methodChannel.invokeMethod('reportIssue', {
+        'email': email,
+        'issueType': issueType,
+        'description': description,
+        'device': device,
+        'model': model,
+        'logFilePath': logFilePath,
+      });
+      return right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error reporting issue', e, stackTrace);
+      return left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, Unit>> isVPNConnected() async {
     try {
       await _methodChannel.invokeMethod('isVPNConnected');
@@ -164,7 +203,7 @@ class LanternPlatformService implements LanternCoreService {
 
   @override
   Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
-      {required StipeSubscriptionType type,
+      {required BillingType type,
       required String planId,
       required String email}) async {
     throw UnimplementedError("This not supported on mobile");
@@ -181,7 +220,7 @@ class LanternPlatformService implements LanternCoreService {
       });
       final map = jsonDecode(subData!);
       return Right(map);
-    } catch (e, stackTrace) {
+    } catch (e) {
       return Left(Failure(
           error: e.toString(),
           localizedErrorMessage: (e as Exception).localizedDescription));
@@ -194,7 +233,7 @@ class LanternPlatformService implements LanternCoreService {
       final url =
           await _methodChannel.invokeMethod<String>('stripeBillingPortal');
       return Right(url!);
-    } catch (e, stackTrace) {
+    } catch (e) {
       return Left(e.toFailure());
     }
   }
@@ -202,7 +241,9 @@ class LanternPlatformService implements LanternCoreService {
   @override
   Future<Either<Failure, PlansData>> plans() async {
     try {
-      final subData = await _methodChannel.invokeMethod<String>('plans');
+      final channel = isStoreVersion() ? 'store' : 'non-store';
+      final subData =
+          await _methodChannel.invokeMethod<String>('plans', channel);
       final map = jsonDecode(subData!);
       final plans = PlansData.fromJson(map);
       sl<LocalStorageService>().savePlans(plans.toEntity());
@@ -222,7 +263,7 @@ class LanternPlatformService implements LanternCoreService {
       final loginUrl =
           await _methodChannel.invokeMethod<String>('oauthLoginUrl', provider);
       return Right(loginUrl!);
-    } catch (e, stackTrace) {
+    } catch (e) {
       return Left(Failure(
           error: e.toString(),
           localizedErrorMessage: (e as Exception).localizedDescription));
@@ -236,6 +277,7 @@ class LanternPlatformService implements LanternCoreService {
           await _methodChannel.invokeMethod('oauthLoginCallback', token);
       return Right(UserResponse.fromBuffer(bytes));
     } catch (e, stackTrace) {
+      appLogger.error('Error handling OAuth login callback', e, stackTrace);
       return Left(Failure(
           error: e.toString(),
           localizedErrorMessage: (e as Exception).localizedDescription));
@@ -261,7 +303,7 @@ class LanternPlatformService implements LanternCoreService {
     try {
       await _methodChannel.invokeMethod('showManageSubscriptions');
       return Right(unit);
-    } catch (e, stackTrace) {
+    } catch (e) {
       return Left(Failure(
           error: e.toString(),
           localizedErrorMessage: (e as Exception).localizedDescription));
@@ -297,17 +339,6 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> logout(String email) async {
-    try {
-      final bytes = await _methodChannel.invokeMethod('logout', email);
-      return Right(UserResponse.fromBuffer(bytes));
-    } catch (e, stackTrace) {
-      appLogger.error('Error logging out', e, stackTrace);
-      return Left(e.toFailure());
-    }
-  }
-
-  @override
   Future<Either<Failure, String>> paymentRedirect(
       {required String provider,
       required String planId,
@@ -328,6 +359,284 @@ class LanternPlatformService implements LanternCoreService {
       return Left(Failure(
           error: e.toString(),
           localizedErrorMessage: (e as Exception).localizedDescription));
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserResponse>> login(
+      {required String email, required String password}) async {
+    try {
+      final bytes = await _methodChannel.invokeMethod('login', {
+        'email': email,
+        'password': password,
+      });
+      return Right(UserResponse.fromBuffer(bytes));
+    } catch (e, stackTrace) {
+      appLogger.error('Error logging', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserResponse>> logout(String email) async {
+    try {
+      final bytes = await _methodChannel.invokeMethod('logout', email);
+      return Right(UserResponse.fromBuffer(bytes));
+    } catch (e, stackTrace) {
+      appLogger.error('Error logging out', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> startRecoveryByEmail(String email) async {
+    try {
+      await _methodChannel.invokeMethod('startRecoveryByEmail', {
+        'email': email,
+      });
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error starting recovery by email', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> validateRecoveryCode(
+      {required String email, required String code}) async {
+    try {
+      await _methodChannel.invokeMethod('validateRecoveryCode', {
+        'email': email,
+        'code': code,
+      });
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error validating recovery code', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> completeChangeEmail({
+    required String email,
+    required String code,
+    required String newPassword,
+  }) async {
+    try {
+      await _methodChannel.invokeMethod('completeChangeEmail', {
+        'email': email,
+        'code': code,
+        'newPassword': newPassword,
+      });
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error completing change email', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> signUp(
+      {required String email, required String password}) async {
+    try {
+      await _methodChannel.invokeMethod('signUp', {
+        'email': email,
+        'password': password,
+      });
+
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error signing up', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserResponse>> deleteAccount(
+      {required String email, required String password}) async {
+    try {
+      final bytes = await _methodChannel.invokeMethod('deleteAccount', {
+        'email': email,
+        'password': password,
+      });
+      return Right(UserResponse.fromBuffer(bytes));
+    } catch (e, stackTrace) {
+      appLogger.error('Error deleting account', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> activationCode(
+      {required String email, required String resellerCode}) async {
+    try {
+      await _methodChannel.invokeMethod('activationCode', {
+        'email': email,
+        'resellerCode': resellerCode,
+      });
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error activating code', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> digitalOceanPrivateServer() async {
+    try {
+      await _methodChannel.invokeMethod('digitalOcean');
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error activating code', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Stream<PrivateServerStatus> watchPrivateServerStatus() {
+    return _privateServerStatus;
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setUserInput(
+      {required PrivateServerInput methodType, required String input}) async {
+    try {
+      await _methodChannel.invokeMethod(methodType.name, input);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error setting user input', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> startDeployment(
+      {required String location, required String serverName}) async {
+    try {
+      await _methodChannel.invokeMethod('startDeployment', {
+        'location': location,
+        'serverName': serverName,
+      });
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error starting deployment', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> cancelDeployment() async {
+    try {
+      await _methodChannel.invokeMethod('cancelDeployment');
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error canceling deployment', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setCert({required String fingerprint}) async {
+    try {
+      await _methodChannel.invokeMethod('selectCertFingerprint', fingerprint);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error canceling deployment', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> addServerManually(
+      {required String ip,
+      required String port,
+      required String accessToken,
+      required String serverName}) async {
+    try {
+      await _methodChannel.invokeMethod('addServerManually', {
+        'ip': ip,
+        'port': port,
+        'accessToken': accessToken,
+        'serverName': serverName,
+      });
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error canceling deployment', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> connectToServer(
+      String location, String tag) async {
+    try {
+      await _methodChannel.invokeMethod('connectToServer', {
+        'location': location,
+        'tag': tag,
+      });
+      return Right("ok");
+    } catch (e) {
+      appLogger.debug('Error setting private server');
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> inviteToServerManagerInstance(
+      {required String ip,
+      required String port,
+      required String accessToken,
+      required String inviteName}) async {
+    try {
+      final inviteCode = await _methodChannel.invokeMethod<String>(
+        'inviteToServerManagerInstance',
+        {
+          'ip': ip,
+          'port': port,
+          'accessToken': accessToken,
+          'inviteName': inviteName,
+        },
+      );
+      return Right(inviteCode!);
+    } catch (e, stackTrace) {
+      appLogger.error(
+          'Error inviting to server manager instance', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> revokeServerManagerInstance(
+      {required String ip,
+      required String port,
+      required String accessToken,
+      required String inviteName}) async {
+    try {
+      final result = await _methodChannel.invokeMethod<String>(
+        'revokeServerManagerInstance',
+        {
+          'ip': ip,
+          'port': port,
+          'accessToken': accessToken,
+          'inviteName': inviteName,
+        },
+      );
+      return Right('ok');
+    } catch (e, stackTrace) {
+      appLogger.error('Error revoking server manager instance', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> featureFlag() async {
+    try {
+      final featureFlag =
+          await _methodChannel.invokeMethod<String>('featureFlag');
+      return Right(featureFlag!);
+    } catch (e, stackTrace) {
+      appLogger.error('Error fetching feature flag', e, stackTrace);
+      return Left(e.toFailure());
     }
   }
 }

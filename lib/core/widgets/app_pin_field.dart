@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:pinput/pinput.dart';
 
 import '../common/common.dart';
@@ -6,8 +7,14 @@ import '../common/common.dart';
 class AppPinField extends StatelessWidget {
   final Function(String)? onCompleted;
   final Function(String)? onChanged;
+  final TextEditingController? controller;
 
-  const AppPinField({super.key, this.onCompleted, this.onChanged,});
+  const AppPinField({
+    super.key,
+    this.onCompleted,
+    this.onChanged,
+    this.controller,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +34,11 @@ class AppPinField extends StatelessWidget {
               length: 6,
               showCursor: true,
               onCompleted: onCompleted,
-              onChanged:onChanged,
+              onChanged: onChanged,
+              controller: controller,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+              ],
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.start,
               cursor: Column(
@@ -48,19 +59,13 @@ class AppPinField extends StatelessWidget {
               defaultPinTheme: PinTheme(
                 width: 20,
                 height: 45,
-                textStyle: Theme
-                    .of(context)
-                    .textTheme
-                    .titleMedium,
+                textStyle: Theme.of(context).textTheme.titleMedium,
                 decoration: BoxDecoration(),
               ),
               focusedPinTheme: PinTheme(
                 width: 20,
                 height: 45,
-                textStyle: Theme
-                    .of(context)
-                    .textTheme
-                    .titleMedium,
+                textStyle: Theme.of(context).textTheme.titleMedium,
                 decoration: BoxDecoration(),
               ),
             ),

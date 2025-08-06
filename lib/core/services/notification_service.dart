@@ -11,34 +11,39 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
 
   Future<void> init() async {
-    const androidSettings =
-        AndroidInitializationSettings('lantern_notification_icon');
-    const darwinSettings = DarwinInitializationSettings(
-      requestSoundPermission: true,
-      requestBadgePermission: true,
-      requestAlertPermission: true,
-    );
-    final linuxSettings = LinuxInitializationSettings(
-      defaultActionName: 'open_notification'.i18n,
-      defaultIcon: AssetsLinuxIcon(AppImagePaths.appIcon),
-    );
-    final windowsSettings = WindowsInitializationSettings(
-      appName: 'app_name'.i18n,
-      appUserModelId: AppSecrets.windowsAppUserModelId,
-      guid: AppSecrets.windowsGuid,
-    );
-    final settings = InitializationSettings(
-      android: androidSettings,
-      iOS: darwinSettings,
-      macOS: darwinSettings,
-      linux: linuxSettings,
-      windows: windowsSettings,
-    );
-    await _plugin.initialize(
-      settings,
-      onDidReceiveNotificationResponse: onDidReceiveNotificationResponse,
-    );
-    _notificationsEnabled = await _permissionsGranted() ?? false;
+    try {
+      const androidSettings =
+          AndroidInitializationSettings('lantern_notification_icon');
+      const darwinSettings = DarwinInitializationSettings(
+        requestSoundPermission: true,
+        requestBadgePermission: true,
+        requestAlertPermission: true,
+      );
+      final linuxSettings = LinuxInitializationSettings(
+        defaultActionName: 'open_notification'.i18n,
+        defaultIcon: AssetsLinuxIcon(AppImagePaths.appIcon),
+      );
+      final windowsSettings = WindowsInitializationSettings(
+        appName: 'app_name'.i18n,
+        appUserModelId: AppSecrets.windowsAppUserModelId,
+        guid: AppSecrets.windowsGuid,
+      );
+      final settings = InitializationSettings(
+        android: androidSettings,
+        iOS: darwinSettings,
+        macOS: darwinSettings,
+        linux: linuxSettings,
+        windows: windowsSettings,
+      );
+      await _plugin.initialize(
+        settings,
+        onDidReceiveNotificationResponse: onDidReceiveNotificationResponse,
+      );
+      _notificationsEnabled = await _permissionsGranted() ?? false;
+    } catch (e) {
+      appLogger.error('Error initializing notifications: $e');
+      _notificationsEnabled = false;
+    }
   }
 
   Future<bool?> _permissionsGranted() async {

@@ -13,6 +13,12 @@ class AppTheme {
           TargetPlatform.android: FadeForwardsPageTransitionsBuilder(),
         },
       ),
+      textSelectionTheme: TextSelectionThemeData(
+        cursorColor: AppColors.blue10,
+        selectionColor: AppColors.blue6,
+        selectionHandleColor: AppColors.blue7,
+
+      ),
       textTheme: TextTheme(
         bodyLarge: AppTestStyles.bodyLarge,
         bodyMedium: AppTestStyles.bodyMedium,
@@ -64,14 +70,18 @@ class AppTheme {
           ),
         ),
       ),
+      radioTheme: RadioThemeData(
+        fillColor: WidgetStatePropertyAll(AppColors.gray9),
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        splashRadius: 10.0,
+      ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           elevation: 0,
           backgroundColor: AppColors.blue10,
           enableFeedback: true,
           foregroundColor: AppColors.gray1,
-          textStyle: AppTestStyles.primaryButtonTextStyle
-              .copyWith(fontSize: 18.0, color: AppColors.gray1),
+          textStyle: AppTestStyles.primaryButtonTextStyle.copyWith(fontSize: 18.0, color: AppColors.gray1),
           overlayColor: AppColors.blue6,
           minimumSize: const Size(double.infinity, 52),
           tapTargetSize: MaterialTapTargetSize.padded,

@@ -19,7 +19,6 @@ class AppDelegate: FlutterAppDelegate {
   }
 
   override func applicationDidFinishLaunching(_ aNotification: Notification) {
-
     systemExtensionManager.activateExtension()
 
     guard let controller = mainFlutterWindow?.contentViewController as? FlutterViewController else {
@@ -62,6 +61,14 @@ class AppDelegate: FlutterAppDelegate {
     let registry = controller as! FlutterPluginRegistry
     let statusRegistrar = registry.registrar(forPlugin: "StatusEventHandler")
     StatusEventHandler.register(with: statusRegistrar)
+
+    //      if let registrar = self.registrar(forPlugin: "LogsEventHandler") {
+    //        LogsEventHandler.register(with: registrar)
+    //      }
+
+    let privateStatusRegistrar = registry.registrar(forPlugin: "PrivateServerEventHandler")
+    PrivateServerEventHandler.register(with: privateStatusRegistrar)
+
   }
 
   /// Initializes the native method channel handler
@@ -75,13 +82,18 @@ class AppDelegate: FlutterAppDelegate {
 
   /// Prepares the file system directories for use
   private func setupFileSystem() {
-    // Use the FilePath extension to get the working directory.
-
     do {
+
       try FileManager.default.createDirectory(
-        at: FilePath.workingDirectory,
+        at: FilePath.sharedDirectory,
         withIntermediateDirectories: true
       )
+      appLogger.info("Shared directory created at: \(FilePath.sharedDirectory.path)")
+      try FileManager.default.createDirectory(
+        at: FilePath.logsDirectory,
+        withIntermediateDirectories: true
+      )
+      appLogger.info("logs directory created at: \(FilePath.workingDirectory.path)")
     } catch {
       appLogger.error("Failed to create working directory: \(error.localizedDescription)")
     }
@@ -90,6 +102,8 @@ class AppDelegate: FlutterAppDelegate {
       appLogger.error("Failed to change current directory to: \(FilePath.sharedDirectory.path)")
       return
     }
+
+    appLogger.info("Current directory changed to: \(FilePath.sharedDirectory.path)")
 
   }
 

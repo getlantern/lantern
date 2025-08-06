@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/notification_event.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/notification_service.dart';
@@ -13,6 +12,10 @@ part 'vpn_notifier.g.dart';
 
 var isDisconnectingState = (status) =>
     status == VPNStatus.connecting || status == VPNStatus.disconnecting;
+
+// This should be called only once
+// when app is in memory after radiance will track it
+bool isServerLocationSet = false;
 
 @Riverpod(keepAlive: true)
 class VpnNotifier extends _$VpnNotifier {
@@ -59,8 +62,28 @@ class VpnNotifier extends _$VpnNotifier {
     return state == VPNStatus.disconnected ? startVPN() : stopVPN();
   }
 
+  /// Starts the VPN connection.
+  /// If the server location is set to auto, it will connect to the best available server.
+  /// If a specific server location is set, it will connect to that server
+  /// valid server location types are: auto,lanternLocation,privateServer
   Future<Either<Failure, String>> startVPN() async {
-    final result = await ref.read(lanternServiceProvider).startVPN();
+    final serverLocation = sl<LocalStorageService>().getServerLocations();
+    if (serverLocation.serverLocation.toServerLocationType ==
+        ServerLocationType.auto) {
+      return ref.read(lanternServiceProvider).startVPN();
+    } else {
+      final location = serverLocation.serverLocation;
+      final tag = serverLocation.serverName;
+      return connectToServer(location, tag);
+    }
+  }
+
+  /// Connects to a specific server location.
+  /// it supports lantern locations and private servers.
+  Future<Either<Failure, String>> connectToServer(
+      String location, String tag) async {
+    final result =
+        await ref.read(lanternServiceProvider).connectToServer(location, tag);
     return result;
   }
 

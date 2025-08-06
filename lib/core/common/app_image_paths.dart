@@ -4,6 +4,7 @@ class AppImagePaths {
   static const crown = 'assets/images/crown.svg';
   static const callSpilt = 'assets/images/call_split.svg';
   static const location = 'assets/images/location.svg';
+  static const blockAds = 'assets/images/block_ads.svg';
   static const signIn = 'assets/images/sign_in.svg';
   static const translate = 'assets/images/translate.svg';
   static const theme = 'assets/images/theme.svg';
@@ -75,4 +76,18 @@ class AppImagePaths {
   static const apple = 'assets/images/apple.svg';
   static const number = 'assets/images/number.svg';
   static const security = 'assets/images/security.svg';
+  static const server = 'assets/images/server.svg';
+  static const serverRack = 'assets/images/server_rack.svg';
+  static const digitalOceanIcon = 'assets/images/digital_ocean_icon.svg';
+  static const checkmark = 'assets/images/checkmark.svg';
+  static const personAdd = 'assets/images/person_add.svg';
+  static const digitalOcean = 'assets/images/digital_ocean.svg';
+  static const googleCloud = 'assets/images/google_cloud.svg';
+  static const errorIcon = 'assets/images/error_icon.svg';
+  static const key = 'assets/images/key.svg';
+  static const qrCodeScanner = 'assets/images/qr_code_scanner.svg';
+  static const settingServer = 'assets/images/setting_server.svg';
+  static const joinServer = 'assets/images/join_server.svg';
+  static const warning = 'assets/images/warning.svg';
+  static const account = 'assets/images/account.svg';
 }

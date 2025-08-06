@@ -55,6 +55,21 @@ class _LanternAppState extends ConsumerState<LanternApp> {
                 .handleDeepLink(pathUrl.queryParameters);
           }
         }
+        if (uri.path.startsWith('/private-server')) {
+          final data = Map.of(uri.queryParameters);
+          data['accessKey'] =
+              uri.toString().replaceAll('https://lantern.io/', 'lantern//');
+          final expiration = int.parse(data['exp'].toString());
+          final expired = DateTime.fromMillisecondsSinceEpoch(expiration * 1000);
+          // check if date is expired
+          if (expired.isBefore(DateTime.now())) {
+            appLogger.debug("DeepLink expired: $expired");
+            context.showSnackBar('deep_link_expired'.i18n);
+            return;
+          }
+
+          appRouter.push(JoinPrivateServer(deepLinkData: data));
+        }
       }
     });
   }
@@ -81,8 +96,6 @@ class _LanternAppState extends ConsumerState<LanternApp> {
   Widget build(BuildContext context) {
     final locale = ref.watch(appSettingNotifierProvider).locale;
     Localization.defaultLocale = locale;
-    final size = MediaQuery.of(context).size;
-    appLogger.debug('MediaQuery: Size ${size}');
     return GlobalLoaderOverlay(
       overlayColor: Colors.black.withOpacity(0.5),
       overlayWidgetBuilder: (_) => Center(

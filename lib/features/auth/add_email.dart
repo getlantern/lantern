@@ -6,7 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/oauth_login.dart';
-import 'package:lantern/features/auth/provider/oauth_notifier.dart';
+import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 
@@ -15,12 +15,10 @@ enum SignUpMethodType { email, google, apple, withoutEmail }
 @RoutePage(name: 'AddEmail')
 class AddEmail extends StatefulHookConsumerWidget {
   final AuthFlow authFlow;
-  final AppFlow appFlow;
 
   const AddEmail({
     super.key,
     this.authFlow = AuthFlow.signUp,
-    this.appFlow = AppFlow.nonStore,
   });
 
   @override
@@ -66,7 +64,10 @@ class _AddEmailState extends ConsumerState<AddEmail> {
               SizedBox(height: defaultSize),
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: defaultSize),
-                child: Text('add_your_email_message'.i18n),
+                child: Text('add_your_email_message'.i18n,
+                    style: textTheme!.bodyMedium!.copyWith(
+                      color: AppColors.gray6,
+                    )),
               ),
               SizedBox(height: 32),
               PrimaryButton(
@@ -92,7 +93,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
               SizedBox(height: defaultSize),
               DividerSpace(),
               SizedBox(height: defaultSize),
-              if (widget.appFlow == AppFlow.store)
+              if (isStoreVersion())
                 Center(
                   child: AppTextButton(
                     label: 'continue_without_email'.i18n,
@@ -114,8 +115,50 @@ class _AddEmailState extends ConsumerState<AddEmail> {
       if (!_formKey.currentState!.validate()) {
         return;
       }
+      await signupFlow(email);
+      return;
     }
-    postPaymentNavigate(type, email);
+    navigateRoute(type, email);
+  }
+
+  Future<void> signupFlow(String email) async {
+    context.showLoadingDialog();
+    final result = await ref
+        .read(authNotifierProvider.notifier)
+        .signUpWithEmail(email, generatePassword());
+
+    result.fold(
+      (failure) {
+        context.hideLoadingDialog();
+        context.showSnackBar(failure.localizedErrorMessage);
+      },
+      (response) {
+        //sign up successful
+        //start forgot password flow
+        context.hideLoadingDialog();
+        ref.read(appSettingNotifierProvider.notifier)
+          ..setEmail(email)
+          ..setUserLoggedIn(true);
+        startForgotPasswordFlow(email);
+      },
+    );
+  }
+
+  Future<void> startForgotPasswordFlow(String email) async {
+    context.showLoadingDialog();
+    final result = await ref
+        .read(authNotifierProvider.notifier)
+        .startRecoveryByEmail(email);
+    result.fold(
+      (failure) {
+        context.hideLoadingDialog();
+        context.showSnackBar(failure.localizedErrorMessage);
+      },
+      (_) {
+        context.hideLoadingDialog();
+        navigateRoute(SignUpMethodType.email, email);
+      },
+    );
   }
 
   Future<void> onOAuthResult(
@@ -124,12 +167,12 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     if (token != null) {
       context.showLoadingDialog();
       final result = await ref
-          .read(oAuthNotifierProvider.notifier)
+          .read(authNotifierProvider.notifier)
           .oAuthLoginCallback(token);
       result.fold(
         (failure) {
           context.hideLoadingDialog();
-          context.showSnackBarError(failure.localizedErrorMessage);
+          context.showSnackBar(failure.localizedErrorMessage);
         },
         (response) {
           context.hideLoadingDialog();
@@ -140,15 +183,15 @@ class _AddEmailState extends ConsumerState<AddEmail> {
             ..setOAuthToken(token)
             ..setEmail(tokenData['email'] ?? '')
             ..setUserLoggedIn(true);
-          postPaymentNavigate(type, response.legacyUserData.email);
+          navigateRoute(type, response.legacyUserData.email);
         },
       );
     } else {
-      context.showSnackBarError('Failed to retrieve token');
+      context.showSnackBar('Failed to retrieve token');
     }
   }
 
-  void postPaymentNavigate(SignUpMethodType type, String email) {
+  void navigateRoute(SignUpMethodType type, String email) {
     switch (type) {
       case SignUpMethodType.apple:
       case SignUpMethodType.google:
@@ -162,63 +205,83 @@ class _AddEmailState extends ConsumerState<AddEmail> {
           return;
         }
         appRouter
-            .push(ChoosePaymentMethod(email: email, authFlow: AuthFlow.signUp));
+            .push(ChoosePaymentMethod(email: email, authFlow: AuthFlow.oauth));
         break;
       case SignUpMethodType.email:
         appRouter.push(ConfirmEmail(email: email, authFlow: widget.authFlow));
         break;
       case SignUpMethodType.withoutEmail:
-        final size = MediaQuery.sizeOf(context);
-        AppDialog.customDialog(
-          context: context,
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(height: 24),
-              Center(
-                child: SizedBox(
-                  width: size.width * 0.7,
-                  height: 40,
-                  child: AutoSizeText(
-                    'are_you_sure'.i18n,
-                    style: textTheme!.headlineMedium,
-                    maxLines: 1,
-                    minFontSize: 20,
-                    maxFontSize: 24,
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-              SizedBox(height: defaultSize),
-              Text(
-                'continue_without_email_message'.i18n,
-                style: textTheme!.bodyMedium,
-              ),
-            ],
-          ),
-          action: [
-            AppTextButton(
-              label: 'continue'.i18n,
-              textColor: AppColors.gray6,
-              onPressed: () {
-                appRouter.maybePop();
-                Future.delayed(
-                  const Duration(milliseconds: 500),
-                  () {
-                    appRouter.popUntilRoot();
-                  },
-                );
-              },
-            ),
-            AppTextButton(
-              label: 'add_email'.i18n,
-              textColor: AppColors.blue6,
-              onPressed: () {
-                appRouter.maybePop();
-              },
-            )
-          ],
-        );
+        continueWithoutEmail();
+        break;
     }
+  }
+
+  void continueWithoutEmail() {
+    showEmailDialog(() async {
+      try {
+        context.showLoadingDialog();
+        await checkUserAccountStatus(ref, context);
+        context.hideLoadingDialog();
+        AppDialog.showLanternProDialog(
+          context: context,
+          onPressed: () {
+            appRouter.popUntilRoot();
+          },
+        );
+      } catch (e) {
+        context.hideLoadingDialog();
+        appLogger.error('Error while continuing without email: $e');
+        context.showSnackBar('error_occurred'.i18n);
+      }
+    });
+  }
+
+  void showEmailDialog(OnPressed onContinue) {
+    final size = MediaQuery.of(context).size;
+    AppDialog.customDialog(
+      context: context,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(height: 24),
+          Center(
+            child: SizedBox(
+              width: size.width * 0.7,
+              height: 40,
+              child: AutoSizeText(
+                'are_you_sure'.i18n,
+                style: textTheme!.headlineMedium,
+                maxLines: 1,
+                minFontSize: 20,
+                maxFontSize: 24,
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+          SizedBox(height: defaultSize),
+          Text(
+            'continue_without_email_message'.i18n,
+            style: textTheme!.bodyMedium,
+          ),
+        ],
+      ),
+      action: [
+        AppTextButton(
+          label: 'continue'.i18n,
+          textColor: AppColors.gray6,
+          onPressed: () {
+            appRouter.maybePop();
+            Future.delayed(const Duration(milliseconds: 300), onContinue);
+          },
+        ),
+        AppTextButton(
+          label: 'add_email'.i18n,
+          textColor: AppColors.blue6,
+          onPressed: () {
+            appRouter.maybePop();
+          },
+        )
+      ],
+    );
   }
 }

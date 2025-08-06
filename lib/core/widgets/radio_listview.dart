@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../common/common.dart';
-import 'app_tile.dart';
 
 class RadioListView extends StatelessWidget {
   final List<String> items;
@@ -11,11 +10,11 @@ class RadioListView extends StatelessWidget {
   final ScrollController? scrollController;
 
   const RadioListView({
-    Key? key,
+    super.key,
     required this.items,
     required this.onTap,
      this.scrollController,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

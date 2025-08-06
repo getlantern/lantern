@@ -37,35 +37,32 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
     throws
   {
     appLogger.info("Opening TUN")
+    guard let opts = options, let retPtr = ret0_ else {
+      throw NSError(domain: "Invalid arguments to openTun", code: 0)
+    }
     runBlocking { [self] in
       do {
-        try await openTun0(options, ret0_)
+        try await openTunAsync(opts, retPtr)
       } catch {
         appLogger.error("Error opening TUN: \(error)")
       }
     }
   }
 
-  private func openTun0(_ options: LibboxTunOptionsProtocol?, _ ret0_: UnsafeMutablePointer<Int32>?)
-    async throws
-  {
-    guard let options else {
-      throw NSError(domain: "nil options", code: 0)
-    }
-    guard let ret0_ else {
-      throw NSError(domain: "nil return pointer", code: 0)
-    }
-
+  private func openTunAsync(
+    _ options: LibboxTunOptionsProtocol, _ ret0_: UnsafeMutablePointer<Int32>
+  ) async throws {
+    // Use subranges instead of a single default route
+    let autoRouteUseSubRangesByDefault = true
+    // Exclude Apple Push Notification Service by default
+    let excludeAPNs = true
     //let autoRouteUseSubRangesByDefault = await SharedPreferences.autoRouteUseSubRangesByDefault.get()
     //let excludeAPNs = await SharedPreferences.excludeAPNsRoute.get()
-    let autoRouteUseSubRangesByDefault = false
-    let excludeAPNs = false
-
+    // Base network settings
     let settings = NEPacketTunnelNetworkSettings(tunnelRemoteAddress: "127.0.0.1")
     appLogger.info("Checking auto route")
     if options.getAutoRoute() {
       settings.mtu = NSNumber(value: options.getMTU())
-
       let dnsServer = try options.getDNSServerAddress()
       let dnsSettings = NEDNSSettings(servers: [dnsServer.value])
       dnsSettings.matchDomains = [""]
@@ -224,6 +221,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
     }
 
     appLogger.info("Setting network settings...")
+
     networkSettings = settings
     appLogger.info("Setting tunnel network settings to \(settings)...")
     try await tunnel.setTunnelNetworkSettings(settings)
@@ -237,11 +235,10 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
 
     appLogger.info("Accessing tunnel file descriptor from C loop...")
     let tunFdFromLoop = LibboxGetTunnelFileDescriptor()
-    if tunFdFromLoop != -1 {
-      ret0_.pointee = tunFdFromLoop
-    } else {
-      throw NSError(domain: "missing file descriptor", code: 0)
+    guard tunFdFromLoop != -1 else {
+      throw NSError(domain: "Missing TUN FD", code: 0)
     }
+    ret0_.pointee = tunFdFromLoop
   }
 
   public func usePlatformAutoDetectControl() -> Bool {
@@ -408,17 +405,6 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
     #endif
   }
 
-  public func serviceReload() throws {
-    runBlocking { [self] in
-      tunnel.reloadService()
-    }
-  }
-
-  public func postServiceClose() {
-    reset()
-    tunnel.postServiceClose()
-  }
-
   public func getSystemProxyStatus() -> LibboxSystemProxyStatus? {
     let status = LibboxSystemProxyStatus()
     guard let networkSettings else {
@@ -458,6 +444,14 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
 
   func reset() {
     networkSettings = nil
+  }
+
+  public func serviceReload() throws {
+
+  }
+
+  public func postServiceClose() {
+    //    radiance = nil
   }
 
   public func send(_ notification: LibboxNotification?) throws {

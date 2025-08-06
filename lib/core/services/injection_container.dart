@@ -14,11 +14,8 @@ import '../router/router.dart';
 final GetIt sl = GetIt.instance;
 
 Future<void> injectServices() async {
-  if (PlatformUtils.isAndroid) {
-    sl.registerLazySingleton(() => StoreUtils());
-    sl<StoreUtils>().init();
-  }
-
+  sl.registerLazySingleton(() => StoreUtils());
+  sl<StoreUtils>().init();
   sl.registerLazySingleton(() => AppPurchase());
   sl<AppPurchase>().init();
 
@@ -27,7 +24,7 @@ Future<void> injectServices() async {
 
   sl.registerLazySingleton(() => LanternPlatformService(sl<AppPurchase>()));
   await sl<LanternPlatformService>().init();
-  if (PlatformUtils.isDesktop) {
+  if (PlatformUtils.isFFISupported) {
     sl.registerLazySingleton(() => LanternFFIService());
     await sl<LanternFFIService>().init();
   } else {

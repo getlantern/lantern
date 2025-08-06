@@ -34,7 +34,7 @@ type provisionSession struct {
 	userProjectString   string
 	serverName          string
 	serverLocation      string
-	manager           *servers.Manager
+	manager             *servers.Manager
 }
 
 type provisionerResponse struct {
@@ -87,7 +87,7 @@ func StartDigitalOceanPrivateServerFlow(events utils.PrivateServerEventListener,
 	ps := &provisionSession{
 		provisioner: provisioner,
 		eventSink:   events,
-		manager:   vpnClient,
+		manager:     vpnClient,
 	}
 	storeSession(ps)
 	go listenToServerEvents(*ps)
@@ -332,7 +332,7 @@ func AddServerManually(ip, port, accessToken, tag string, vpnClient *servers.Man
 		Tag:         tag,
 	}
 	provisionSession := &provisionSession{
-		manager: vpnClient,
+		manager:   vpnClient,
 		eventSink: events,
 	}
 	storeSession(provisionSession)

@@ -65,8 +65,12 @@ class AppPurchase {
   }) async {
     _onSuccess = onSuccess;
     _onError = onError;
-
-    final purchaseParam = PurchaseParam(productDetails: _subscriptionSku.first);
+    final product = _normalizePlan(plan);
+    if (product == null) {
+      _onError?.call("Invalid plan: $plan");
+      return;
+    }
+    final purchaseParam = PurchaseParam(productDetails: product);
     try {
       final started = await _inAppPurchase.buyNonConsumable(
         purchaseParam: purchaseParam,
@@ -88,10 +92,8 @@ class AppPurchase {
 
   Future<void> _handlePurchase(PurchaseDetails purchaseDetails) async {
     appLogger.info('Handling purchase: ${purchaseDetails.status}');
-
     try {
       final status = purchaseDetails.status;
-
       if (status == PurchaseStatus.error) {
         /// Error occurred during purchase
         appLogger.error('Purchase error: ${purchaseDetails.error}');
@@ -99,11 +101,10 @@ class AppPurchase {
           /// iOS specific handling
           await _inAppPurchase.completePurchase(purchaseDetails);
         }
-        _onError?.call(purchaseDetails.error?.message.localizedDescription ??
-            "Unknown error");
 
         /// User has cancelled the purchase
-
+        _onError?.call(purchaseDetails.error?.message.localizedDescription ??
+            "Unknown error");
         return;
       }
       if (status == PurchaseStatus.canceled) {
@@ -139,5 +140,16 @@ class AppPurchase {
   void _updateStreamOnError(Object error) {
     appLogger.error('Purchase stream error: $error');
     _onError?.call(error.toString());
+  }
+
+  ProductDetails? _normalizePlan(String planId) {
+    final plan = planId.split('-').first;
+    for (final sku in _subscriptionSku) {
+      final subId = sku.id.split('_').first;
+      if (subId == plan) {
+        return sku;
+      }
+    }
+    return null;
   }
 }

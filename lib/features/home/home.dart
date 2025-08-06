@@ -2,8 +2,12 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/models/server_location_entity.dart';
+import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
+import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/vpn_status.dart';
 import 'package:lantern/features/vpn/vpn_switch.dart';
 
@@ -23,6 +27,7 @@ class Home extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isUserPro = ref.isUserPro;
+    ref.read(featureFlagNotifierProvider.notifier);
     textTheme = Theme.of(context).textTheme;
     return Scaffold(
       appBar: AppBar(
@@ -45,6 +50,9 @@ class Home extends HookConsumerWidget {
   }
 
   Widget _buildBody(WidgetRef ref, bool isUserPro) {
+    final serverLocation = ref.watch(serverLocationNotifierProvider);
+    final serverType = serverLocation.serverType.toServerLocationType;
+
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: defaultSize),
       child: Column(
@@ -55,7 +63,15 @@ class Home extends HookConsumerWidget {
           Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              DataUsage(),
+              if (!isUserPro) ...{
+                if (serverType == ServerLocationType.privateServer)
+                  InfoRow(
+                    text: 'private_server_usage_message'.i18n,
+                    onPressed: () {},
+                  )
+                else
+                  DataUsage(),
+              },
               SizedBox(height: 8),
               _buildSetting(ref),
               SizedBox(height: 20.h),
@@ -69,6 +85,13 @@ class Home extends HookConsumerWidget {
   Widget _buildSetting(WidgetRef ref) {
     final preferences = ref.watch(appSettingNotifierProvider);
     final splitTunnelingEnabled = preferences.isSplitTunnelingOn;
+    final serverLocation = ref.watch(serverLocationNotifierProvider);
+    final serverType = serverLocation.serverType.toServerLocationType;
+    switch (serverType) {
+      case ServerLocationType.auto:
+      case ServerLocationType.lanternLocation:
+      case ServerLocationType.privateServer:
+    }
 
     return Container(
       decoration: BoxDecoration(boxShadow: [
@@ -87,11 +110,15 @@ class Home extends HookConsumerWidget {
             VpnStatus(),
             DividerSpace(),
             SettingTile(
-              label: 'smart_location'.i18n,
-              value: 'Fastest Country',
-              icon: AppImagePaths.location,
+              label: getServerTitle(serverLocation),
+              value: getServerValue(serverLocation),
+              icon: serverType == ServerLocationType.auto
+                  ? AppImagePaths.location
+                  : Flag(
+                      countryCode: serverLocation.serverLocation.countryCode),
               actions: [
-                AppImage(path: AppImagePaths.blot),
+                if (serverType == ServerLocationType.auto)
+                  AppImage(path: AppImagePaths.blot),
                 SizedBox(width: 8),
                 IconButton(
                   onPressed: () {
@@ -144,6 +171,28 @@ class Home extends HookConsumerWidget {
       case _SettingTileType.splitTunneling:
         appRouter.push(const SplitTunneling());
         break;
+    }
+  }
+
+  String getServerTitle(ServerLocationEntity serverLocation) {
+    switch (serverLocation.serverType.toServerLocationType) {
+      case ServerLocationType.auto:
+        return 'Smart Location';
+      case ServerLocationType.lanternLocation:
+        return 'Selected Location';
+      case ServerLocationType.privateServer:
+        return serverLocation.serverName;
+    }
+  }
+
+  String getServerValue(ServerLocationEntity serverLocation) {
+    switch (serverLocation.serverType.toServerLocationType) {
+      case ServerLocationType.auto:
+        return 'Fastest Country';
+      case ServerLocationType.lanternLocation:
+        return serverLocation.serverLocation;
+      case ServerLocationType.privateServer:
+        return serverLocation.serverLocation.locationName;
     }
   }
 }

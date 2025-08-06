@@ -2,6 +2,7 @@ import Flutter
 import Liblantern
 import NetworkExtension
 import UIKit
+import app_links
 import flutter_local_notifications
 
 @main
@@ -37,6 +38,15 @@ import flutter_local_notifications
 
     // set radiance
     setupRadiance()
+    NSSetUncaughtExceptionHandler { exception in
+      print(exception.reason)
+      print(exception.callStackSymbols)
+    }
+    if let url = AppLinks.shared.getLink(launchOptions: launchOptions) {
+      // We have a link, propagate it to your Flutter app or not
+      AppLinks.shared.handleLink(url: url)
+      return true  // Returning true will stop the propagation to other packages
+    }
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
@@ -49,6 +59,10 @@ import flutter_local_notifications
 
     if let registrar = self.registrar(forPlugin: "LogsEventHandler") {
       LogsEventHandler.register(with: registrar)
+    }
+
+    if let registrar = self.registrar(forPlugin: "PrivateServerEventHandler") {
+      PrivateServerEventHandler.register(with: registrar)
     }
   }
 
@@ -64,10 +78,17 @@ import flutter_local_notifications
   /// Prepares the file system directories for use
   private func setupFileSystem() {
     do {
+
       try FileManager.default.createDirectory(
-        at: FilePath.workingDirectory,
+        at: FilePath.sharedDirectory,
         withIntermediateDirectories: true
       )
+      appLogger.info("Shared directory created at: \(FilePath.sharedDirectory.path)")
+      try FileManager.default.createDirectory(
+        at: FilePath.logsDirectory,
+        withIntermediateDirectories: true
+      )
+      appLogger.info("logs directory created at: \(FilePath.workingDirectory.path)")
     } catch {
       appLogger.error("Failed to create working directory: \(error.localizedDescription)")
     }
@@ -76,6 +97,7 @@ import flutter_local_notifications
       appLogger.error("Failed to change current directory to: \(FilePath.sharedDirectory.path)")
       return
     }
+    appLogger.info("Current directory changed to: \(FilePath.sharedDirectory.path)")
 
   }
 
@@ -98,8 +120,8 @@ import flutter_local_notifications
   private func setupRadiance() {
     Task {
       // Set up the base directory and options
-      let baseDir = FilePath.workingDirectory.relativePath
-      let opts = MobileOpts()
+      let baseDir = FilePath.sharedDirectory.relativePath
+      let opts = UtilsOpts()
       opts.dataDir = baseDir
       opts.deviceid = DeviceIdentifier.getUDID()
       opts.locale = Locale.current.identifier

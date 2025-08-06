@@ -19,6 +19,7 @@
         android:name=".LanternApp"
         android:icon="@mipmap/ic_launcher"
         android:label="Lantern"
+        android:usesCleartextTraffic="true"
         android:roundIcon="@mipmap/ic_launcher_round">
 
         <activity
@@ -43,7 +44,7 @@
             </intent-filter>
             <meta-data
                 android:name="flutter_deeplinking_enabled"
-                android:value="true" />
+                android:value="false" />
 
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />

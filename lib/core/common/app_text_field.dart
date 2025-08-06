@@ -23,6 +23,7 @@ class AppTextField extends StatelessWidget {
   final bool obscureText;
   final List<TextInputFormatter> inputFormatters;
   final VoidCallback? onTap;
+  final int? maxLength;
 
   const AppTextField({
     super.key,
@@ -43,18 +44,19 @@ class AppTextField extends StatelessWidget {
     this.textInputAction,
     this.initialValue,
     this.onTap,
+    this.maxLength,
   });
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme!;
+    final textTheme = Theme.of(context).textTheme;
     Widget inputField = TextFormField(
       textAlign: TextAlign.start,
       textAlignVertical: TextAlignVertical.top,
       keyboardType: keyboardType,
       enableSuggestions: true,
       controller: controller,
-
+      maxLength: maxLength,
       enabled: enable,
       initialValue: initialValue,
       inputFormatters: inputFormatters,
@@ -68,15 +70,14 @@ class AppTextField extends StatelessWidget {
       cursorRadius: Radius.circular(16),
       cursorHeight: defaultSize,
       cursorOpacityAnimates: true,
-
       style: textTheme.bodyMedium!.copyWith(
         color: AppColors.gray9,
         fontSize: 14.sp,
       ),
       textInputAction: textInputAction,
-
       maxLines: maxLines,
       decoration: InputDecoration(
+          contentPadding: EdgeInsets.symmetric(vertical: 20, horizontal: 16),
           filled: true,
           fillColor: AppColors.white,
           hintText: hintText,
@@ -149,12 +150,11 @@ class AppTextField extends StatelessWidget {
         path: iconPath,
         color: AppColors.yellow9,
       );
-    }
-    else if (iconPath is Widget) {
+    } else if (iconPath is Widget) {
       appAsset = iconPath;
     }
     return Padding(
-      padding: EdgeInsets.only(left: 16, right: 16, top: 14.h, bottom: 14.h),
+      padding: EdgeInsets.only(left: 16, right: 16, top: 16.h, bottom: 16.h),
       child: Align(
         alignment: Alignment.topCenter,
         widthFactor: 1.0,

@@ -20,6 +20,12 @@ version: 1.0.0+1
 
 environment:
   sdk: ^3.6.0
+  flutter: 3.32.0
+
+dependency_overrides:
+  in_app_purchase_storekit: 0.3.22+1
+  analyzer: ^7.7.1
+  analyzer_plugin: ^0.13.5
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -40,9 +46,9 @@ dependencies:
   path: ^1.9.1
   path_provider: ^2.1.5
   #Routing
-  auto_route: ^9.3.0+1
+  auto_route: ^10.1.0+1
   #UI Utils
-  animated_toggle_switch: ^0.8.4
+  animated_toggle_switch: ^0.8.5
   animated_text_kit: ^4.2.3
   flutter_screenutil: ^5.9.3
   auto_size_text: ^3.0.0
@@ -66,8 +72,8 @@ dependencies:
   flutter_loggy: ^2.0.3+1
   loggy: ^2.0.3
   # Local DB
-  objectbox: ^4.1.0
-  objectbox_flutter_libs: ^4.1.0
+  objectbox: ^4.3.0
+  objectbox_flutter_libs: ^4.3.0
   #FFI gen
   ffi: ^2.1.4
   #State management
@@ -83,29 +89,34 @@ dependencies:
   flutter_dotenv: ^5.2.1
   url_launcher: ^6.3.1
   # share
-  share_plus: ^10.1.4
+  share_plus: ^11.0.0
   #native
-  sentry_flutter: 9.0.0-alpha.2
+  sentry_flutter: ^9.0.0-beta.2
   # Deeplink handling
   app_links: ^6.4.0
   # Desktop
-  window_manager: ^0.4.3
-  tray_manager: ^0.3.2
-  win32_registry: ^1.1.5
+  window_manager: ^0.5.0
+  tray_manager: ^0.5.0
+  win32_registry: ^2.1.0
   # Utils
   fpdart: ^1.1.1
   jwt_decoder: ^2.0.1
-
+  country_flags: ^3.3.0
+  mobile_scanner: ^7.0.1
   installed_apps: ^1.6.0
+  device_info_plus: ^11.5.0
 
   flutter_inappwebview: ^6.1.5
   desktop_webview_window: ^0.2.3
   store_checker: ^1.8.0
   # payment
-  in_app_purchase: ^3.2.1
+  in_app_purchase: 3.2.2
   flutter_stripe: ^11.5.0
   # protobuf
   protobuf: ^4.0.0
+  # auto updates
+  auto_updater: ^1.0.0
+  # notifications
   flutter_local_notifications: ^19.2.0
   timezone: ^0.10.1
   flutter_timezone: ^4.1.0
@@ -116,14 +127,14 @@ dev_dependencies:
     sdk: flutter
   integration_test:
     sdk: flutter
-  flutter_lints: ^5.0.0
-  auto_route_generator: ^9.0.0
+  flutter_lints: ^6.0.0
+  auto_route_generator: ^10.1.0
   build_runner: ^2.4.15
-  objectbox_generator: 4.1.0
+  objectbox_generator: ^4.3.0
   riverpod_generator: ^2.3.3
 
   riverpod_lint: ^2.3.5
-  ffigen: ^16.1.0
+  ffigen: ^19.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

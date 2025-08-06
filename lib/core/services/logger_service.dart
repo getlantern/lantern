@@ -1,7 +1,7 @@
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_loggy/flutter_loggy.dart';
+import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:loggy/loggy.dart';
 
 final dbLogger = Loggy("DB-Logger");
@@ -10,8 +10,9 @@ final appLogger = Loggy(
 );
 
 void initLogger() {
-  final logPrinter =
-      Platform.isIOS ? DebugPrintLoggyPrinter() : PrettyDeveloperPrinter();
+  final logPrinter = PlatformUtils.isDesktop
+      ? DebugPrintLoggyPrinter()
+      : PrettyDeveloperPrinter();
 
   Loggy.initLoggy(
     logPrinter: logPrinter,

@@ -3,6 +3,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/plan_data.dart';
+import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 
 import '../core/services/app_purchase.dart';
@@ -17,13 +18,15 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, String>> stopVPN();
 
+  Future<Either<Failure, String>> connectToServer(String location, String tag);
+
   Stream<LanternStatus> watchVPNStatus();
 
   Stream<List<String>> watchLogs(String path);
 
   ///Payments methods
   Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
-      {required StipeSubscriptionType type,
+      {required BillingType type,
       required String planId,
       required String email});
 
@@ -62,6 +65,15 @@ abstract class LanternCoreService {
   Future<Either<Failure, Unit>> removeSplitTunnelItem(
       SplitTunnelFilterType type, String value);
 
+  Future<Either<Failure, Unit>> reportIssue(
+    String email,
+    String issueType,
+    String description,
+    String device,
+    String model,
+    String logFilePath,
+  );
+
   Stream<List<AppData>> appsDataStream();
 
   ///OAuth methods
@@ -69,10 +81,73 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, UserResponse>> oAuthLoginCallback(String token);
 
+  Future<Either<Failure, Unit>> activationCode(
+      {required String email, required String resellerCode});
+
+  ///User management methods
+  Future<Either<Failure, UserResponse>> login(
+      {required String email, required String password});
+
+  Future<Either<Failure, Unit>> signUp(
+      {required String email, required String password});
+
   Future<Either<Failure, UserResponse>> getUserData();
 
   Future<Either<Failure, UserResponse>> fetchUserData();
 
-  //User management methods
   Future<Either<Failure, UserResponse>> logout(String email);
+
+  //Forgot password
+  Future<Either<Failure, Unit>> startRecoveryByEmail(String email);
+
+  Future<Either<Failure, Unit>> validateRecoveryCode(
+      {required String email, required String code});
+
+  Future<Either<Failure, Unit>> completeChangeEmail({
+    required String email,
+    required String code,
+    required String newPassword,
+  });
+
+  //Delete account
+  Future<Either<Failure, UserResponse>> deleteAccount(
+      {required String email, required String password});
+
+  /// Private server methods
+  Future<Either<Failure, Unit>> digitalOceanPrivateServer();
+
+  Stream<PrivateServerStatus> watchPrivateServerStatus();
+
+  Future<Either<Failure, Unit>> setUserInput(
+      {required PrivateServerInput methodType, required String input});
+
+  Future<Either<Failure, Unit>> startDeployment(
+      {required String location, required String serverName});
+
+  //cert
+  Future<Either<Failure, Unit>> setCert({required String fingerprint});
+
+  Future<Either<Failure, Unit>> addServerManually(
+      {required String ip,
+      required String port,
+      required String accessToken,
+      required String serverName});
+
+  Future<Either<Failure, Unit>> cancelDeployment();
+
+  Future<Either<Failure, String>> inviteToServerManagerInstance({
+    required String ip,
+    required String port,
+    required String accessToken,
+    required String inviteName,
+  });
+
+  Future<Either<Failure, String>> revokeServerManagerInstance({
+    required String ip,
+    required String port,
+    required String accessToken,
+    required String inviteName,
+  });
+
+  Future<Either<Failure, String>> featureFlag();
 }

@@ -28,7 +28,7 @@ class PlanItem extends StatelessWidget {
       badgeAnimation: badges.BadgeAnimation.scale(
         toAnimate: false,
       ),
-      position: badges.BadgePosition.custom(start: (finalSize - 10), top: 6),
+      position: badges.BadgePosition.custom(start: (finalSize - 10)),
       // Adjust values as needed
       badgeStyle: badges.BadgeStyle(
         shape: badges.BadgeShape.square,
@@ -49,9 +49,7 @@ class PlanItem extends StatelessWidget {
           onPressed.call(plan);
         },
         child: AnimatedContainer(
-          margin: EdgeInsets.only(
-            top: 20,
-          ),
+          margin: EdgeInsets.only(top: 16),
           padding: EdgeInsets.symmetric(horizontal: defaultSize, vertical: 12),
           duration: Duration(milliseconds: 300),
           decoration: planSelected ? selectedDecoration : unselectedDecoration,
@@ -83,7 +81,9 @@ class PlanItem extends StatelessWidget {
                 value: true,
                 groupValue: planSelected,
                 fillColor: WidgetStatePropertyAll(AppColors.gray9),
-                onChanged: (value) {},
+                onChanged: (value) {
+                  onPressed.call(plan);
+                },
               ),
             ],
           ),

@@ -4,8 +4,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/lantern_status.dart';
-import 'package:lantern/core/utils/screen_utils.dart';
-import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_status_notifier.dart';
 
@@ -19,27 +17,27 @@ class VPNSwitch extends HookConsumerWidget {
       (previous, next) {
         if (next is AsyncData<LanternStatus> &&
             next.value.status == VPNStatus.error) {
-          context.showSnackBarError('vpn_error'.i18n);
+          context.showSnackBar('vpn_error'.i18n);
         }
       },
     );
-    final _vpnStatus = ref.watch(vpnNotifierProvider);
-    final isVPNOn = (_vpnStatus == VPNStatus.connected);
+    final vpnStatus = ref.watch(vpnNotifierProvider);
+    final isVPNOn = (vpnStatus == VPNStatus.connected);
     return CustomAnimatedToggleSwitch<bool>(
       current: isVPNOn,
       allowUnlistedValues: false,
       values: [false, true],
       spacing: 10.h,
       loading: false,
-      height: PlatformUtils.isDesktop ? 70.h : 60.h,
-      indicatorSize: Size(60, 60),
+      height: PlatformUtils.isDesktop ? 70.h : 65.h,
+      indicatorSize: Size(60.r, 60.r),
       iconBuilder: (context, local, global) {
         return SizedBox();
       },
       onTap: (newValue) => onVPNStateChange(ref, context),
       foregroundIndicatorBuilder: (context, global) {
-        if (_vpnStatus == VPNStatus.connecting ||
-            _vpnStatus == VPNStatus.disconnecting) {
+        if (vpnStatus == VPNStatus.connecting ||
+            vpnStatus == VPNStatus.disconnecting) {
           return Container(
             decoration: BoxDecoration(
               color: Colors.transparent,
@@ -65,7 +63,7 @@ class VPNSwitch extends HookConsumerWidget {
         return Container(
           padding: EdgeInsets.all(5.r),
           decoration: BoxDecoration(
-            color: _wrapperColor(_vpnStatus),
+            color: _wrapperColor(vpnStatus),
             borderRadius: BorderRadius.circular(50.r),
           ),
           child: child,
@@ -79,7 +77,7 @@ class VPNSwitch extends HookConsumerWidget {
         await ref.read(vpnNotifierProvider.notifier).onVPNStateChange(context);
 
     result.fold(
-      (failure) => context.showSnackBarError(failure.localizedErrorMessage),
+      (failure) => context.showSnackBar(failure.localizedErrorMessage),
       (_) => null,
     );
   }

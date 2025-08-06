@@ -9,7 +9,8 @@ class AppTile extends StatelessWidget {
   final Widget? subtitle;
   final VoidCallback? onPressed;
   final EdgeInsets? contentPadding;
-
+  final bool? dense;
+  final double? minHeight;
   final TextStyle? tileTextStyle;
 
   const AppTile({
@@ -21,6 +22,8 @@ class AppTile extends StatelessWidget {
     this.trailing,
     this.contentPadding,
     this.tileTextStyle,
+    this.dense,
+    this.minHeight,
   });
 
   factory AppTile.link({
@@ -28,10 +31,12 @@ class AppTile extends StatelessWidget {
     required String label,
     required String url,
     EdgeInsets? contentPadding,
+    Widget? subtitle,
   }) =>
       AppTile(
         icon: icon,
         label: label,
+        subtitle: subtitle,
         onPressed: () => UrlUtils.openWithSystemBrowser(url),
         trailing: AppImage(path: AppImagePaths.outsideBrowser),
         contentPadding: contentPadding,
@@ -39,9 +44,14 @@ class AppTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final _tileTextStyle = tileTextStyle ??
+    final isDoubleLine = subtitle != null;
+    final effectiveMinHeight = isDoubleLine ? 72.0 : minHeight;
+
+    final textStyle = tileTextStyle ??
         Theme.of(context).textTheme.labelLarge!.copyWith(
               color: AppColors.gray9,
+              fontWeight: FontWeight.w400,
+              fontSize: 16,
             );
 
     Widget? leading;
@@ -60,24 +70,26 @@ class AppTile extends StatelessWidget {
         );
       } else if (icon is Image) {
         leading = icon as Image;
-      }
-      else if (icon is Widget) {
+      } else if (icon is Widget) {
         leading = icon as Widget;
-
       }
     }
 
     return ListTile(
-
       enableFeedback: true,
       minVerticalPadding: 0,
+      minTileHeight: effectiveMinHeight,
       contentPadding:
           contentPadding ?? const EdgeInsets.symmetric(horizontal: 16),
-      title: Text(label, style: _tileTextStyle),
+      title: Text(label,
+          style: textStyle, maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: subtitle,
+      dense: dense,
       leading: leading,
       trailing: trailing,
       onTap: onPressed,
+      horizontalTitleGap: 12,
+      visualDensity: VisualDensity.standard,
     );
   }
 }

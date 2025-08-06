@@ -5,11 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/utils/screen_utils.dart';
-import 'package:lantern/core/utils/store_utils.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/features/auth/provider/payment_notifier.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/plans/feature_list.dart';
 import 'package:lantern/features/plans/plans_list.dart';
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
@@ -28,11 +27,6 @@ class _PlansState extends ConsumerState<Plans> {
   late TextTheme textTheme;
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     textTheme = Theme.of(context).textTheme;
 
@@ -40,8 +34,7 @@ class _PlansState extends ConsumerState<Plans> {
       backgroundColor: AppColors.white,
       padded: false,
       appBar: CustomAppBar(
-        title: "",
-        titleWidget: SizedBox(
+        title: SizedBox(
           height: 20.h,
           child: LanternLogo(
             color: AppColors.gray9,
@@ -72,19 +65,19 @@ class _PlansState extends ConsumerState<Plans> {
     final size = MediaQuery.of(context).size;
     return Column(
       children: [
-        SizedBox(height: defaultSize),
+        SizedBox(height: 24.0),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: defaultSize),
           child: SizedBox(
             height:
-                context.isSmallDevice ? size.height * 0.4 : size.height * 0.33,
+                context.isSmallDevice ? size.height * 0.4 : size.height * 0.36,
             child: SingleChildScrollView(child: FeatureList()),
           ),
         ),
         SizedBox(height: defaultSize),
         Expanded(
           child: Container(
-            color: AppColors.gray2,
+            color: AppColors.gray1,
             padding: EdgeInsets.symmetric(
                 horizontal: context.isSmallDevice ? 0 : defaultSize),
             child: Column(
@@ -132,19 +125,13 @@ class _PlansState extends ConsumerState<Plans> {
                   padding: EdgeInsets.symmetric(
                       horizontal: context.isSmallDevice ? defaultSize : 0),
                   child: PrimaryButton(
-                    label: 'Get Lantern Pro',
+                    label: 'get_lantern_pro'.i18n,
+                    isTaller: true,
                     onPressed: onGetLanternProTap,
                   ),
                 ),
                 SizedBox(height: defaultSize),
-                Center(
-                  child: Text(
-                    'Plan automatically renews until canceled',
-                    style: textTheme.labelMedium!.copyWith(
-                      color: AppColors.gray7,
-                    ),
-                  ),
-                ),
+
                 SizedBox(height: 20),
               ],
             ),
@@ -177,6 +164,9 @@ class _PlansState extends ConsumerState<Plans> {
             AppTile(
               icon: AppImagePaths.restorePurchase,
               label: 'Restore purchase',
+              onPressed: () {
+                appRouter.popAndPush(SignInEmail());
+              },
             )
           ],
         );
@@ -189,18 +179,18 @@ class _PlansState extends ConsumerState<Plans> {
         ref.read(plansNotifierProvider.notifier).getSelectedPlan();
     switch (Platform.operatingSystem) {
       case 'android':
-        if (sl<StoreUtils>().isPlayStoreVersion) {
+        if (isStoreVersion()) {
           /// user is using play store version
           startInAppPurchaseFlow(userSelectedPlan);
           return;
         }
-        nonStoreFlow();
+        signUpFlow();
         break;
       case 'ios':
         startInAppPurchaseFlow(userSelectedPlan);
         break;
       default:
-        nonStoreFlow();
+        signUpFlow();
     }
   }
 
@@ -216,8 +206,12 @@ class _PlansState extends ConsumerState<Plans> {
             purchase.verificationData.serverVerificationData, plan.id);
       },
       onError: (error) {
+        if (!mounted) {
+          return;
+        }
+
         ///Error while subscribing
-        context.showSnackBarError(error);
+        context.showSnackBar(error);
         appLogger.error('Error subscribing to plan: $error');
         context.hideLoadingDialog();
       },
@@ -226,7 +220,7 @@ class _PlansState extends ConsumerState<Plans> {
     result.fold(
       (error) {
         context.hideLoadingDialog();
-        context.showSnackBarError(error.localizedErrorMessage);
+        context.showSnackBar(error.localizedErrorMessage);
         appLogger.error('Error subscribing to plan: $error');
       },
       (success) {
@@ -248,27 +242,40 @@ class _PlansState extends ConsumerState<Plans> {
     result.fold(
       (error) {
         context.hideLoadingDialog();
-        context.showSnackBarError(error.localizedErrorMessage);
+        context.showSnackBar(error.localizedErrorMessage);
         appLogger.error('Error acknowledging purchase: $error');
       },
       (success) {
         // Handle success
         appLogger.info('Successfully acknowledged purchase');
         context.hideLoadingDialog();
-        storeFlow();
+        signUpFlow();
       },
     );
   }
 
-  void nonStoreFlow() {
-    if (PlatformUtils.isIOS) {
-      throw Exception('Not supported on IOS');
+  void signUpFlow() {
+    final appSetting = ref.read(appSettingNotifierProvider);
+    if (appSetting.userLoggedIn) {
+      useProFlow();
+      return;
     }
-    appRouter
-        .push(AddEmail(authFlow: AuthFlow.signUp, appFlow: AppFlow.nonStore));
+    appRouter.push(AddEmail(authFlow: AuthFlow.signUp));
   }
 
-  void storeFlow() {
-    appRouter.push(AddEmail(authFlow: AuthFlow.signUp, appFlow: AppFlow.store));
+  //This will be used for user has signed and there plan is expired
+  Future<void> useProFlow() async {
+    if (!mounted) {
+      return;
+    }
+    context.showLoadingDialog();
+    final isPro = await checkUserAccountStatus(ref, context);
+    context.hideLoadingDialog();
+    AppDialog.showLanternProDialog(
+      context: context,
+      onPressed: () {
+        appRouter.popUntilRoot();
+      },
+    );
   }
 }

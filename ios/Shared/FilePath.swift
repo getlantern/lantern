@@ -20,6 +20,9 @@ public extension FilePath {
 
     static let sharedDirectory = defaultSharedDirectory!
 
+    static let logsDirectory = sharedDirectory
+        .appendingPathComponent("Logs", isDirectory: true)
+    
     static let cacheDirectory = sharedDirectory
         .appendingPathComponent("Library", isDirectory: true)
         .appendingPathComponent("Caches", isDirectory: true)
