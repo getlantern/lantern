@@ -83,6 +83,13 @@
 			remoteGlobalIDString = 29952B032DE79CB200640E7F;
 			remoteInfo = PacketTunnel;
 		};
+		5F53D0A52E45260400740586 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 33CC10E52044A3C60003C045 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 29952B032DE79CB200640E7F;
+			remoteInfo = PacketTunnel;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -451,6 +458,7 @@
 				33CC11202044C79F0003C045 /* PBXTargetDependency */,
 				29952B0F2DE79CB200640E7F /* PBXTargetDependency */,
 				5F53D0532E44EBB700740586 /* PBXTargetDependency */,
+				5F53D0A62E45260400740586 /* PBXTargetDependency */,
 			);
 			name = Runner;
 			packageProductDependencies = (
@@ -710,6 +718,11 @@
 			target = 29952B032DE79CB200640E7F /* PacketTunnel */;
 			targetProxy = 5F53D0522E44EBB700740586 /* PBXContainerItemProxy */;
 		};
+		5F53D0A62E45260400740586 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 29952B032DE79CB200640E7F /* PacketTunnel */;
+			targetProxy = 5F53D0A52E45260400740586 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
@@ -769,7 +782,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.getlantern.lantern.packet;
 				PRODUCT_NAME = "$(inherited)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = packet;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = systemtunnel;
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -1178,7 +1191,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = runner;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = Lantern;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
