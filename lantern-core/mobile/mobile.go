@@ -61,7 +61,7 @@ func SetupRadiance(opts *utils.Opts) error {
 			LogLevel: opts.LogLevel,
 			Locale:   opts.Locale,
 		})
-		log.Debugf("Paths: %s %s", opts.LogDir, opts.DataDir)
+		log.Debugf("Paths: %s %s", common.LogPath(), common.DataPath())
 		if err != nil {
 			innerErr = fmt.Errorf("unable to create Radiance: %v", err)
 			return
