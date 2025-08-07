@@ -265,6 +265,7 @@ class LanternFFIService implements LanternCoreService {
     }
   }
 
+  @override
   Future<Either<Failure, Unit>> reportIssue(
     String email,
     String issueType,

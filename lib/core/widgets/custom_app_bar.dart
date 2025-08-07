@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 
 import 'package:lantern/core/common/app_asset.dart';
 
 class CustomAppBar extends AppBar {
+  @override
   final Widget? title;
+  @override
   final Widget? leading;
 
   CustomAppBar({
@@ -30,7 +31,7 @@ class BackButton extends StatelessWidget {
   final Color? color;
   final double size;
 
-  const BackButton({Key? key, this.color, this.size = 24}) : super(key: key);
+  const BackButton({super.key, this.color, this.size = 24});
 
   @override
   Widget build(BuildContext context) {
