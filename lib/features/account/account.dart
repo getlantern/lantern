@@ -223,10 +223,13 @@ class Account extends HookConsumerWidget {
               (oldUser.legacyUserData.subscriptionData.autoRenew &&
                   newUser.legacyUserData.subscriptionData.autoRenew == false);
 
-          final isRenew = (oldUser.legacyUserData.subscriptionData.autoRenew==false && newUser.legacyUserData.subscriptionData.autoRenew);
+          final isRenew =
+              (oldUser.legacyUserData.subscriptionData.autoRenew == false &&
+                  newUser.legacyUserData.subscriptionData.autoRenew);
 
           if (isRenew) {
-            appLogger.info('User renewed subscription: $oldPlanId → $newPlanId');
+            appLogger
+                .info('User renewed subscription: $oldPlanId → $newPlanId');
             notifier.updateUserData(newUser);
             context.showSnackBar('subscription_renewed'.i18n);
             return true;

@@ -57,6 +57,7 @@ class SignInPassword extends HookConsumerWidget {
       ),
     );
   }
+
   Widget _buildSuffix(ValueNotifier<bool> obscureText) {
     return AppImage(
       color: AppColors.yellow9,
@@ -66,8 +67,6 @@ class SignInPassword extends HookConsumerWidget {
       },
     );
   }
-
-
 
   Future<void> signInWithPassword(
     BuildContext context,
@@ -93,7 +92,8 @@ class SignInPassword extends HookConsumerWidget {
         if (!user.success) {
           // Login has failed
           // start device flow
-          appLogger.warning("Login failed for user: $email, starting device flow");
+          appLogger
+              .warning("Login failed for user: $email, starting device flow");
           startDeviceFlow();
         }
         //login successfully

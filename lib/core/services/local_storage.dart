@@ -192,7 +192,7 @@ class LocalStorageService {
       final newInstance = existing.copyWith(
         serverName: newName,
       );
-      _privateServerBox.put(newInstance,mode: PutMode.update);
+      _privateServerBox.put(newInstance, mode: PutMode.update);
       return;
     }
     throw Exception("Private server with name $serverName does not exist");
@@ -232,7 +232,7 @@ class LocalStorageService {
 
   ServerLocationEntity getServerLocations() {
     final server = _serverLocationBox.getAll();
-  return server.isEmpty
+    return server.isEmpty
         ? ServerLocationEntity(
             autoSelect: true,
             serverLocation: 'Fastest Country',

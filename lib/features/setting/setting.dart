@@ -66,7 +66,7 @@ class _SettingState extends ConsumerState<Setting> {
               margin: EdgeInsets.zero,
               child: AppTile(
                 label: 'account'.i18n,
-                icon:AppImagePaths.account,
+                icon: AppImagePaths.account,
                 onPressed: () => settingMenuTap(_SettingType.account),
               ),
             ),

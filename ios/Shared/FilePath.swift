@@ -8,34 +8,38 @@
 import Foundation
 
 public enum FilePath {
-    public static let packageName = {
-        Bundle.main.infoDictionary?["BASE_BUNDLE_IDENTIFIER"] as? String ?? "unknown"
-    }()
+  public static let packageName = {
+    Bundle.main.infoDictionary?["BASE_BUNDLE_IDENTIFIER"] as? String ?? "unknown"
+  }()
 }
 
-public extension FilePath {
-    static let groupName = "group.getlantern.lantern"
+extension FilePath {
+  public static let groupName = "group.getlantern.lantern"
 
-    private static let defaultSharedDirectory: URL! = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: FilePath.groupName)
+  private static let defaultSharedDirectory: URL! = FileManager.default.containerURL(
+    forSecurityApplicationGroupIdentifier: FilePath.groupName)
 
-    static let sharedDirectory = defaultSharedDirectory!
+  public static let sharedDirectory = defaultSharedDirectory!
 
-    static let logsDirectory = sharedDirectory
-        .appendingPathComponent("Logs", isDirectory: true)
-    
-    static let cacheDirectory = sharedDirectory
-        .appendingPathComponent("Library", isDirectory: true)
-        .appendingPathComponent("Caches", isDirectory: true)
+  public static let logsDirectory =
+    sharedDirectory
+    .appendingPathComponent("Logs", isDirectory: true)
 
-    static let workingDirectory = cacheDirectory.appendingPathComponent("Working", isDirectory: true)
+  public static let cacheDirectory =
+    sharedDirectory
+    .appendingPathComponent("Library", isDirectory: true)
+    .appendingPathComponent("Caches", isDirectory: true)
+
+  public static let workingDirectory = cacheDirectory.appendingPathComponent(
+    "Working", isDirectory: true)
 }
 
-public extension URL {
-    var fileName: String {
-        var path = relativePath
-        if let index = path.lastIndex(of: "/") {
-            path = String(path[path.index(index, offsetBy: 1)...])
-        }
-        return path
+extension URL {
+  public var fileName: String {
+    var path = relativePath
+    if let index = path.lastIndex(of: "/") {
+      path = String(path[path.index(index, offsetBy: 1)...])
     }
+    return path
+  }
 }

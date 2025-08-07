@@ -16,7 +16,7 @@ class AppRichText extends StatelessWidget {
     required this.texts,
     required this.boldTexts,
     this.boldOnPressed,
-    this.boldUnderline=false,
+    this.boldUnderline = false,
   });
 
   @override
@@ -32,7 +32,9 @@ class AppRichText extends StatelessWidget {
             style: textTheme.bodyMedium!.copyWith(
               fontWeight: FontWeight.bold,
               color: AppColors.gray9,
-              decoration: boldUnderline?TextDecoration.underline:TextDecoration.none,
+              decoration: boldUnderline
+                  ? TextDecoration.underline
+                  : TextDecoration.none,
             ),
             recognizer: TapGestureRecognizer()..onTap = boldOnPressed,
           )

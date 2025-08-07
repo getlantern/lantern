@@ -34,18 +34,18 @@ class PlansNotifier extends _$PlansNotifier {
         return localPlans.toPlanData();
       }
       return null;
-    } catch (e,s) {
-      appLogger.error('Error getting local plans: $e',e,s);
+    } catch (e, s) {
+      appLogger.error('Error getting local plans: $e', e, s);
       return null;
     }
   }
 
-  Future<PlansData> fetchPlans({bool fromBackground=false}) async {
+  Future<PlansData> fetchPlans({bool fromBackground = false}) async {
     state = AsyncLoading();
     final result = await ref.read(lanternServiceProvider).plans();
     return await result.fold(
       (error) {
-        if(fromBackground) {
+        if (fromBackground) {
           appLogger.error('Error fetching plans in background: $error');
           // Since we already have plans in local storage, we can return them
           return _getPlansFromLocalStorage()!;

@@ -2,8 +2,6 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:lantern/core/common/common.dart';
 
 class DeviceUtils {
-
-
   static Future<(String, String)> getDeviceAndModel() async {
     DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
     if (PlatformUtils.isAndroid) {

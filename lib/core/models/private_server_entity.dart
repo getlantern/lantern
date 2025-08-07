@@ -9,8 +9,8 @@ class PrivateServerEntity {
   final String port;
   final String accessToken;
   final String serverLocation;
-   bool isJoined;
-   bool userSelected ;
+  bool isJoined;
+  bool userSelected;
 
   PrivateServerEntity({
     required this.serverName,
@@ -48,6 +48,6 @@ class PrivateServerEntity {
         externalIp: e['external_ip'],
         port: e['port'].toString(),
         accessToken: e['access_token'],
-        serverLocation: e['location']??'');
+        serverLocation: e['location'] ?? '');
   }
 }

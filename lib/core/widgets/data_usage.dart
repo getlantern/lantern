@@ -13,16 +13,14 @@ class DataUsage extends StatelessWidget {
     final usageString = '$remainingData/$totalData';
 
     return Container(
-      decoration: BoxDecoration(
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x19006162),
-            blurRadius: 32,
-            offset: Offset(0, 4),
-            spreadRadius: 0,
-          )
-        ]
-      ),
+      decoration: BoxDecoration(boxShadow: [
+        BoxShadow(
+          color: Color(0x19006162),
+          blurRadius: 32,
+          offset: Offset(0, 4),
+          spreadRadius: 0,
+        )
+      ]),
       child: Card(
         margin: EdgeInsets.zero,
         child: Padding(
@@ -50,15 +48,15 @@ class DataUsage extends StatelessWidget {
               Container(
                 decoration: ShapeDecoration(
                   shape: RoundedRectangleBorder(
-                    side: BorderSide(width:   1, color: AppColors.gray3),
+                    side: BorderSide(width: 1, color: AppColors.gray3),
                     borderRadius: BorderRadius.circular(8),
                   ),
-
-              ),
+                ),
                 child: LinearProgressIndicator(
                   value: (50.0 / 100).toDouble(),
                   minHeight: 8,
-                  borderRadius: const BorderRadius.all(Radius.circular(defaultSize)),
+                  borderRadius:
+                      const BorderRadius.all(Radius.circular(defaultSize)),
                   trackGap: 10,
                   backgroundColor: AppColors.gray1,
                   valueColor: AlwaysStoppedAnimation(AppColors.yellow3),

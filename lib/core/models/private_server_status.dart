@@ -15,8 +15,6 @@ class PrivateServerStatus {
 }
 
 class CertSummary {
-
-
   final String fingerprint;
   final String issuer;
   final String subject;

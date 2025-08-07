@@ -72,7 +72,8 @@ class ResetPasswordEmail extends HookConsumerWidget {
       },
       (_) {
         context.hideLoadingDialog();
-        appRouter.push(ConfirmEmail(email: email,authFlow: AuthFlow.resetPassword));
+        appRouter
+            .push(ConfirmEmail(email: email, authFlow: AuthFlow.resetPassword));
       },
     );
   }

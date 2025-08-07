@@ -58,7 +58,6 @@ class UserDataEntity {
   String purchases;
   final subscriptionData = ToOne<SubscriptionDataEntity>();
 
-
   UserDataEntity({
     this.id = 0,
     required this.userId,
@@ -79,7 +78,6 @@ class UserDataEntity {
     required this.inviters,
     required this.invitees,
     required this.purchases,
-
   });
 }
 
@@ -121,5 +119,4 @@ class SubscriptionDataEntity {
     required this.createdAt,
     required this.endAt,
   });
-
 }

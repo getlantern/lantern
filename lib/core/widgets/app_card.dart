@@ -11,13 +11,13 @@ class AppCard extends StatelessWidget {
     super.key,
     required this.child,
     this.padding = const EdgeInsets.symmetric(horizontal: defaultSize),
-    this.margin ,
+    this.margin,
   });
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: margin??EdgeInsets.zero,
+      margin: margin ?? EdgeInsets.zero,
       child: Padding(
         padding: padding,
         child: child,

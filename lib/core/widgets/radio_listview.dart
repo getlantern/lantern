@@ -13,7 +13,7 @@ class RadioListView extends StatelessWidget {
     super.key,
     required this.items,
     required this.onTap,
-     this.scrollController,
+    this.scrollController,
   });
 
   @override

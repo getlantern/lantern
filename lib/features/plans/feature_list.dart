@@ -44,8 +44,7 @@ class _FeatureTile extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme.bodyLarge;
 
     return Padding(
-      padding: EdgeInsets.symmetric(
-          horizontal: 16, vertical:8),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
           AppImage(

@@ -9,7 +9,6 @@ class AppColors {
 
   static Color get whiteBlur => const Color(0xCCF8FAFB);
 
-
   static Color get blue1 => const Color(0xFFF0FDFF);
 
   static Color get blue2 => const Color(0xFFD6F6FA);

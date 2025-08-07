@@ -31,6 +31,4 @@ class HomeNotifier extends _$HomeNotifier {
     state = AsyncValue.data(userData);
     sl<LocalStorageService>().saveUser(userData.toEntity());
   }
-
-
 }
