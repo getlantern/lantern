@@ -78,9 +78,9 @@ class ReportIssue extends HookConsumerWidget {
       isLoading.value = true;
 
       final logFile = await AppStorageUtils.appLogFile();
-      DeviceInfo deviceInfo = await DeviceUtils.getDeviceAndModel();
-      final device = deviceInfo.device;
-      final model = deviceInfo.model;
+      final deviceInfo = await DeviceUtils.getDeviceAndModel();
+      final device = deviceInfo.$1;
+      final model = deviceInfo.$2;
 
       final result = await ref.read(lanternServiceProvider).reportIssue(
             email,
