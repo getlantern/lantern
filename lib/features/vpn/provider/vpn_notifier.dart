@@ -63,13 +63,16 @@ class VpnNotifier extends _$VpnNotifier {
   }
 
   /// Starts the VPN connection.
+  /// force parameter, if true it will always connect to auto tag
   /// If the server location is set to auto, it will connect to the best available server.
   /// If a specific server location is set, it will connect to that server
   /// valid server location types are: auto,lanternLocation,privateServer
-  Future<Either<Failure, String>> startVPN() async {
+
+  Future<Either<Failure, String>> startVPN({bool force = false}) async {
     final serverLocation = sl<LocalStorageService>().getSavedServerLocations();
     if (serverLocation.serverType.toServerLocationType ==
-        ServerLocationType.auto) {
+            ServerLocationType.auto ||
+        force) {
       appLogger.debug("Starting VPN with auto server location");
       return ref.read(lanternServiceProvider).startVPN();
     } else {

@@ -180,7 +180,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
   }
 
   Future<void> onSmartLocation(ServerLocationType type) async {
-    final result = await ref.read(vpnNotifierProvider.notifier).startVPN();
+    final result = await ref.read(vpnNotifierProvider.notifier).startVPN(force: true);
     result.fold(
       (failure) {
         context.showSnackBar(failure.localizedErrorMessage);
