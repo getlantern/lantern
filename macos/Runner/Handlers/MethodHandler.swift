@@ -288,7 +288,7 @@ class MethodHandler {
   func startRecoveryByEmail(result: @escaping FlutterResult, email: String) {
     Task {
       var error: NSError?
-      var data = try await MobileStartRecoveryByEmail(email, &error)
+      let data = MobileStartRecoveryByEmail(email, &error)
       if error != nil {
         result(
           FlutterError(
@@ -308,7 +308,7 @@ class MethodHandler {
       let email = data["email"] as? String ?? ""
       let code = data["code"] as? String ?? ""
       var error: NSError?
-      var data = try await MobileValidateChangeEmailCode(email, code, &error)
+      let data = MobileValidateChangeEmailCode(email, code, &error)
       if error != nil {
         result(
           FlutterError(
@@ -329,7 +329,7 @@ class MethodHandler {
       let code = data["code"] as? String ?? ""
       let newPassword = data["newPassword"] as? String ?? ""
       var error: NSError?
-      var data = try await MobileCompleteChangeEmail(email, newPassword, code, &error)
+      let data = MobileCompleteChangeEmail(email, newPassword, code, &error)
       if error != nil {
         result(
           FlutterError(
@@ -349,7 +349,7 @@ class MethodHandler {
       let email = data["email"] as? String ?? ""
       let password = data["password"] as? String ?? ""
       var error: NSError?
-      var data = try await MobileLogin(email, password, &error)
+      let data = MobileLogin(email, password, &error)
       if error != nil {
         result(
           FlutterError(
@@ -368,7 +368,7 @@ class MethodHandler {
       let email = data["email"] as? String ?? ""
       let password = data["password"] as? String ?? ""
       var error: NSError?
-      var data = try await MobileSignUp(email, password, &error)
+      let data = MobileSignUp(email, password, &error)
       if error != nil {
         result(
           FlutterError(
@@ -385,20 +385,10 @@ class MethodHandler {
 
   func logout(result: @escaping FlutterResult, email: String) {
     Task {
-      do {
-        var error: NSError?
-        var data = try await MobileLogout(email, &error)
-        await MainActor.run {
-          result(data)
-        }
-      } catch {
-        await MainActor.run {
-          result(
-            FlutterError(
-              code: "LOGOUT_FAILED",
-              message: error.localizedDescription,
-              details: error.localizedDescription))
-        }
+      var error: NSError?
+      let data = MobileLogout(email, &error)
+      await MainActor.run {
+        result(data)
       }
     }
   }
@@ -408,7 +398,7 @@ class MethodHandler {
       let email = data["email"] as? String ?? ""
       let password = data["password"] as? String ?? ""
       var error: NSError?
-      var data = MobileDeleteAccount(email, password, &error)
+      let data = MobileDeleteAccount(email, password, &error)
       if error != nil {
         result(
           FlutterError(
@@ -428,7 +418,7 @@ class MethodHandler {
       let email = data["email"] as? String ?? ""
       let resellerCode = data["resellerCode"] as? String ?? ""
       var error: NSError?
-      var data = try await MobileActivationCode(email, resellerCode, &error)
+      let data = MobileActivationCode(email, resellerCode, &error)
       if error != nil {
         result(
           FlutterError(

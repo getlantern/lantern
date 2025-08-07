@@ -28,15 +28,16 @@ class AppDelegate: FlutterAppDelegate {
 
     registerEventHandlers(controller: controller)
 
+    // Initialize directories and working paths
+    setupFileSystem()
+      
+    setupRadiance()
+      
     // Setup native method channel
     setupMethodHandler(controller: controller)
 
-    // Initialize directories and working paths
-    setupFileSystem()
-
-    setupRadiance()
     NSSetUncaughtExceptionHandler { exception in
-      print(exception.reason)
+      print(exception.reason as Any)
       print(exception.callStackSymbols)
     }
     super.applicationDidFinishLaunching(aNotification)
@@ -58,7 +59,7 @@ class AppDelegate: FlutterAppDelegate {
 
   /// Registers Flutter event channel handlers
   private func registerEventHandlers(controller: FlutterViewController) {
-    let registry = controller as! FlutterPluginRegistry
+    let registry = controller as FlutterPluginRegistry
     let statusRegistrar = registry.registrar(forPlugin: "StatusEventHandler")
     StatusEventHandler.register(with: statusRegistrar)
 
