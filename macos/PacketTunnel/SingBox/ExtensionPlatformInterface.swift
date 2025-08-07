@@ -447,11 +447,14 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
   }
 
   public func serviceReload() throws {
-
+    runBlocking { [self] in
+      tunnel.reloadService()
+    }
   }
 
   public func postServiceClose() {
-    //    radiance = nil
+    reset()
+    tunnel.postServiceClose()
   }
 
   public func send(_ notification: LibboxNotification?) throws {

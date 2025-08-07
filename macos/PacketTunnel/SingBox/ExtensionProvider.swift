@@ -114,4 +114,19 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     // }
   }
 
+  func reloadService() {
+    appLogger.log("(lantern-tunnel) reloading service")
+    reasserting = true
+    defer {
+      reasserting = false
+    }
+    stopService()
+    startService()
+  }
+
+  func postServiceClose() {
+    //    radiance = nil
+    platformInterface.reset()
+  }
+
 }

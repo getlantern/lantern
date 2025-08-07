@@ -16,5 +16,4 @@ public class PacketTunnelProvider: ExtensionProvider {
     logger.log("PacketTunnelProvider starting tunnel")
     try await super.startTunnel(options: options)
   }
-
 }
