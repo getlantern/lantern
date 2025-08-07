@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXAggregateTarget section */
@@ -45,9 +45,9 @@
 		5F53D03A2E44112E00740586 /* SystemExtensionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F53D0392E44112E00740586 /* SystemExtensionManager.swift */; };
 		5F53D0402E4414A100740586 /* FilePath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F53D03F2E4414A100740586 /* FilePath.swift */; };
 		5F53D0452E4414D000740586 /* FilePath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F53D03F2E4414A100740586 /* FilePath.swift */; };
-		5F53D04E2E44EBB400740586 /* Liblantern.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 293C302F2DEF247F00691115 /* Liblantern.xcframework */; };
-		5F53D04F2E44EBB400740586 /* Liblantern.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 293C302F2DEF247F00691115 /* Liblantern.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		5F53D0512E44EBB700740586 /* org.getlantern.lantern.packet.systemextension in Embed System Extensions */ = {isa = PBXBuildFile; fileRef = 29952B042DE79CB200640E7F /* org.getlantern.lantern.packet.systemextension */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		5F53D0582E44ECBF00740586 /* liblantern.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5FEB87032D9E3AAC000AE0DB /* liblantern.dylib */; };
+		5F53D0592E44ECBF00740586 /* liblantern.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 5FEB87032D9E3AAC000AE0DB /* liblantern.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		6F8419314D5C43EF38859D72 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 831CC47A1A5EE5E9DF45C2BC /* Pods_RunnerTests.framework */; };
 		78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */; };
 /* End PBXBuildFile section */
@@ -106,15 +106,15 @@
 			name = "Embed System Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		5F53D0502E44EBB400740586 /* Embed Frameworks */ = {
+		5F53D05A2E44ECBF00740586 /* Embed Libraries */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				5F53D04F2E44EBB400740586 /* Liblantern.xcframework in Embed Frameworks */,
+				5F53D0592E44ECBF00740586 /* liblantern.dylib in Embed Libraries */,
 			);
-			name = "Embed Frameworks";
+			name = "Embed Libraries";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -169,7 +169,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		5F53D0342E4410F100740586 /* Exceptions for "Utils" folder in "Runner" target */ = {
+		5F53D0342E4410F100740586 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				PrivateServerListener.swift,
@@ -179,18 +179,7 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		03D236712E3A06E20004EC53 /* Utils */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				5F53D0342E4410F100740586 /* Exceptions for "Utils" folder in "Runner" target */,
-			);
-			explicitFileTypes = {
-			};
-			explicitFolders = (
-			);
-			path = Utils;
-			sourceTree = "<group>";
-		};
+		03D236712E3A06E20004EC53 /* Utils */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (5F53D0342E4410F100740586 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = Utils; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -215,8 +204,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */,
+				5F53D0582E44ECBF00740586 /* liblantern.dylib in Frameworks */,
 				5542FA9C165A7489A54D69E6 /* Pods_Runner.framework in Frameworks */,
-				5F53D04E2E44EBB400740586 /* Liblantern.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -440,7 +429,7 @@
 				3399D490228B24CF009A79C7 /* ShellScript */,
 				8E19D0FE18076EDF51417438 /* [CP] Embed Pods Frameworks */,
 				29952B112DE79CB200640E7F /* Embed System Extensions */,
-				5F53D0502E44EBB400740586 /* Embed Frameworks */,
+				5F53D05A2E44ECBF00740586 /* Embed Libraries */,
 			);
 			buildRules = (
 			);
@@ -500,7 +489,7 @@
 			);
 			mainGroup = 33CC10E42044A3C60003C045;
 			packageReferences = (
-				781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "FlutterGeneratedPluginSwiftPackage" */,
+				781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage" */,
 			);
 			productRefGroup = 33CC10EE2044A3C60003C045 /* Products */;
 			projectDirPath = "";
@@ -587,9 +576,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1253,7 +1246,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "FlutterGeneratedPluginSwiftPackage" */ = {
+		781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage;
 		};
