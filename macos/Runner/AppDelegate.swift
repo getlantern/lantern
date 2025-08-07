@@ -40,7 +40,6 @@ class AppDelegate: FlutterAppDelegate {
       print(exception.reason ?? "Unknown exception reason")
       print(exception.callStackSymbols)
     }
-    super.applicationDidFinishLaunching(aNotification)
   }
 
   public override func application(
