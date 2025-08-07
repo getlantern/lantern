@@ -30,14 +30,15 @@ import flutter_local_notifications
     // Register event handlers
     registerEventHandlers()
 
-    // Setup native method channel
-    setupMethodHandler(controller: controller)
-
     // Initialize directories and working paths
     setupFileSystem()
 
     // set radiance
     setupRadiance()
+      
+    // Setup native method channel
+    setupMethodHandler(controller: controller)
+      
     NSSetUncaughtExceptionHandler { exception in
       print(exception.reason)
       print(exception.callStackSymbols)
@@ -120,9 +121,10 @@ import flutter_local_notifications
   private func setupRadiance() {
     Task {
       // Set up the base directory and options
-      let baseDir = FilePath.sharedDirectory.relativePath
+      let baseDir = FilePath.sharedDirectory.absoluteString
       let opts = UtilsOpts()
       opts.dataDir = baseDir
+      opts.logDir = FilePath.logsDirectory.absoluteString
       opts.deviceid = DeviceIdentifier.getUDID()
       opts.locale = Locale.current.identifier
       var error: NSError?
