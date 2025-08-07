@@ -117,10 +117,12 @@ class AppDelegate: FlutterAppDelegate {
       opts.deviceid = ""
       opts.locale = Locale.current.identifier
       var error: NSError?
-      await MobileSetupRadiance(opts, &error)
+      MobileSetupRadiance(opts, &error)
       // Handle any error returned by the setup
       if let error {
         appLogger.error("Error while setting up radiance: \(error)")
+      } else {
+        appLogger.info("Radiance setup complete")
       }
     }
   }
