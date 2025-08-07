@@ -33,7 +33,6 @@ class ProviderCarousel extends HookConsumerWidget {
             itemBuilder: (context, idx) => cards[idx],
           ),
         ),
-
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [

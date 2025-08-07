@@ -1,55 +1,24 @@
-import 'dart:io' show Platform;
 import 'package:device_info_plus/device_info_plus.dart';
-
-class DeviceInfo {
-  final String device;
-  final String model;
-
-  const DeviceInfo({
-    required this.device,
-    required this.model,
-  });
-}
+import 'package:lantern/core/common/common.dart';
 
 class DeviceUtils {
-  static Future<DeviceInfo> getDeviceAndModel() async {
-    final plugin = DeviceInfoPlugin();
-    switch (Platform.operatingSystem) {
-      case 'android':
-        final info = await plugin.androidInfo;
-        return DeviceInfo(
-          device: info.manufacturer,
-          model: info.model,
-        );
-      case 'ios':
-        final info = await plugin.iosInfo;
-        return DeviceInfo(
-          device: info.name,
-          model: info.utsname.machine,
-        );
-      case 'macos':
-        final info = await plugin.macOsInfo;
-        return DeviceInfo(
-          device: info.computerName,
-          model: info.model,
-        );
-      case 'windows':
-        final info = await plugin.windowsInfo;
-        return DeviceInfo(
-          device: info.computerName,
-          model: info.productName,
-        );
-      case 'linux':
-        final info = await plugin.linuxInfo;
-        return DeviceInfo(
-          device: info.name,
-          model: info.machineId ?? 'unknown',
-        );
-      default:
-        return DeviceInfo(
-          device: Platform.operatingSystem,
-          model: 'unknown',
-        );
+  static Future<(String, String)> getDeviceAndModel() async {
+    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+    if (PlatformUtils.isAndroid) {
+      final info = await deviceInfo.androidInfo;
+      return (info.device, info.model);
+    } else if (PlatformUtils.isIOS) {
+      final info = await deviceInfo.iosInfo;
+      return (info.utsname.machine, info.modelName);
+    } else if (PlatformUtils.isLinux) {
+      final info = await deviceInfo.linuxInfo;
+      return (info.name, info.prettyName);
+    } else if (PlatformUtils.isMacOS) {
+      final info = await deviceInfo.macOsInfo;
+      return (info.osRelease, info.modelName);
+    } else {
+      final info = await deviceInfo.windowsInfo;
+      return (info.computerName, info.computerName);
     }
   }
 }

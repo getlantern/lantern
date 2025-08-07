@@ -18,7 +18,7 @@ extension PlanEntityMapper on Plan {
       planId: id,
       description: description,
       usdPrice: usdPrice,
-      priceJson: jsonEncode(price) ,
+      priceJson: jsonEncode(price),
       expectedMonthlyPriceJson: jsonEncode(expectedMonthlyPrice),
       bestValue: bestValue,
     );
@@ -34,12 +34,10 @@ extension ProvidersMapper on Providers {
   }
 }
 
-
 extension ToPlanData on PlansDataEntity {
   PlansData toPlanData() => PlansData(
         providers: providers.target!.toProvider(),
         plans: plans.map((e) => e.toPlan()).toList(),
-
       );
 }
 
@@ -50,7 +48,7 @@ extension PlanData on PlanEntity {
         usdPrice: usdPrice,
         price: jsonDecode(priceJson),
         expectedMonthlyPrice: jsonDecode(expectedMonthlyPriceJson),
-        bestValue: bestValue??false,
+        bestValue: bestValue ?? false,
       );
 }
 
@@ -60,6 +58,5 @@ extension ProvidersEntityMapper on ProvidersEntity {
             jsonDecode(androidJson).map((x) => Android.fromJson(x))),
         desktop: List<Android>.from(
             jsonDecode(desktopJson).map((x) => Android.fromJson(x))),
-
       );
 }

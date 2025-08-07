@@ -2,14 +2,13 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class IPUtils {
-
   // List of countries where the app is censored
- static final censoredRegion= ['CN', 'RU', 'IR'];
- static String cacheCountry='';
+  static final censoredRegion = ['CN', 'RU', 'IR'];
+  static String cacheCountry = '';
 
   static Future<String?> getUserCountry() async {
     try {
-      if(cacheCountry!= ''){
+      if (cacheCountry != '') {
         return cacheCountry;
       }
       final response = await http.get(Uri.parse('https://ipinfo.io/json'));

@@ -28,6 +28,7 @@ extension SnackBarExtensions on BuildContext {
       ),
     );
   }
+
   void showSnackBar(String message, {bool closeButton = false}) {
     final textTheme = Theme.of(this).textTheme.bodyMedium;
     ScaffoldMessenger.of(this).showSnackBar(

@@ -375,7 +375,7 @@ build-ios:
 
 .PHONY: format swift-format
 swift-format:
-	swift-format format --in-place --recursive ios/Runner ios/Tunnel macos/Runner macos/PacketTunnel
+	swift-format format --in-place --recursive ios/Runner ios/Tunnel ios/Shared macos/Runner macos/PacketTunnel macos/Shared
 
 format:
 	@echo "Formatting Dart code..."

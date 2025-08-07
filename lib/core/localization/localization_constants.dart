@@ -18,8 +18,8 @@ const languages = [
   'bn_BD',
 ];
 
-String checkSupportedLanguages(String language){
-  if(languages.contains(language)) {
+String checkSupportedLanguages(String language) {
+  if (languages.contains(language)) {
     return language;
   }
   return 'en_Us';

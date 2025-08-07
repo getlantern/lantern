@@ -26,7 +26,8 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final accessKeyController = useTextEditingController(text: widget.deepLinkData?['accessKey'] ?? '');
+    final accessKeyController =
+        useTextEditingController(text: widget.deepLinkData?['accessKey'] ?? '');
     final nameController = useTextEditingController();
     final buttonValid = useState(false);
     final serverState = ref.watch(privateServerNotifierProvider);

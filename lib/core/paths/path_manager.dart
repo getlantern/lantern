@@ -21,7 +21,6 @@ class PathManager {
   // Returns the temp directory
   Directory get tempDirectory => Directory(tempPath);
 
-
   File appLogFile() {
     return File(p.join(logsPath, 'lantern.log'));
   }

@@ -5,5 +5,6 @@ class Failure {
   Failure({required this.error, required this.localizedErrorMessage});
 
   @override
-  String toString() => 'Failure(error: $error, localizedErrorMessage: $localizedErrorMessage)';
+  String toString() =>
+      'Failure(error: $error, localizedErrorMessage: $localizedErrorMessage)';
 }

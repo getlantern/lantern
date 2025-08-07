@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:lantern/core/common/app_asset.dart';
 import 'package:lantern/core/common/app_colors.dart';
 import 'package:lantern/core/common/app_image_paths.dart';
-import 'package:lantern/core/common/app_text_styles.dart';
 
 class InfoRow extends StatelessWidget {
   final Widget? icon;
@@ -16,7 +15,7 @@ class InfoRow extends StatelessWidget {
   final VoidCallback? onPressed;
 
   const InfoRow({
-    Key? key,
+    super.key,
     this.icon,
     required this.text,
     this.textStyle,
@@ -26,7 +25,7 @@ class InfoRow extends StatelessWidget {
     this.padding,
     this.onPressed,
     this.child,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

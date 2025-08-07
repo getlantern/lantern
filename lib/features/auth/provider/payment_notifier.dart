@@ -45,12 +45,10 @@ class PaymentNotifier extends _$PaymentNotifier {
   Future<Either<Failure, String>> paymentRedirect({
     required String provider,
     required String planId,
-
     required String email,
   }) async {
-    return ref.read(lanternServiceProvider).paymentRedirect(
-        provider: provider,
-        planId: planId,
-        email: email);
+    return ref
+        .read(lanternServiceProvider)
+        .paymentRedirect(provider: provider, planId: planId, email: email);
   }
 }

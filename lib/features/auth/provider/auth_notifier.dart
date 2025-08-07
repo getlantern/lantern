@@ -29,6 +29,7 @@ class AuthNotifier extends _$AuthNotifier {
           password: password,
         );
   }
+
   Future<Either<Failure, Unit>> signUpWithEmail(
       String email, String password) async {
     return ref.read(lanternServiceProvider).signUp(
