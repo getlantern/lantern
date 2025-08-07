@@ -45,6 +45,9 @@
 		5F53D03A2E44112E00740586 /* SystemExtensionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F53D0392E44112E00740586 /* SystemExtensionManager.swift */; };
 		5F53D0402E4414A100740586 /* FilePath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F53D03F2E4414A100740586 /* FilePath.swift */; };
 		5F53D0452E4414D000740586 /* FilePath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F53D03F2E4414A100740586 /* FilePath.swift */; };
+		5F53D04E2E44EBB400740586 /* Liblantern.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 293C302F2DEF247F00691115 /* Liblantern.xcframework */; };
+		5F53D04F2E44EBB400740586 /* Liblantern.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 293C302F2DEF247F00691115 /* Liblantern.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		5F53D0512E44EBB700740586 /* org.getlantern.lantern.packet.systemextension in Embed System Extensions */ = {isa = PBXBuildFile; fileRef = 29952B042DE79CB200640E7F /* org.getlantern.lantern.packet.systemextension */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		6F8419314D5C43EF38859D72 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 831CC47A1A5EE5E9DF45C2BC /* Pods_RunnerTests.framework */; };
 		78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */; };
 /* End PBXBuildFile section */
@@ -71,6 +74,13 @@
 			remoteGlobalIDString = 33CC111A2044C6BA0003C045;
 			remoteInfo = FLX;
 		};
+		5F53D0522E44EBB700740586 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 33CC10E52044A3C60003C045 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 29952B032DE79CB200640E7F;
+			remoteInfo = PacketTunnel;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -91,8 +101,20 @@
 			dstPath = "$(SYSTEM_EXTENSIONS_FOLDER_PATH)";
 			dstSubfolderSpec = 16;
 			files = (
+				5F53D0512E44EBB700740586 /* org.getlantern.lantern.packet.systemextension in Embed System Extensions */,
 			);
 			name = "Embed System Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5F53D0502E44EBB400740586 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				5F53D04F2E44EBB400740586 /* Liblantern.xcframework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -194,6 +216,7 @@
 			files = (
 				78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */,
 				5542FA9C165A7489A54D69E6 /* Pods_Runner.framework in Frameworks */,
+				5F53D04E2E44EBB400740586 /* Liblantern.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -417,12 +440,14 @@
 				3399D490228B24CF009A79C7 /* ShellScript */,
 				8E19D0FE18076EDF51417438 /* [CP] Embed Pods Frameworks */,
 				29952B112DE79CB200640E7F /* Embed System Extensions */,
+				5F53D0502E44EBB400740586 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				33CC11202044C79F0003C045 /* PBXTargetDependency */,
 				29952B0F2DE79CB200640E7F /* PBXTargetDependency */,
+				5F53D0532E44EBB700740586 /* PBXTargetDependency */,
 			);
 			name = Runner;
 			packageProductDependencies = (
@@ -675,6 +700,11 @@
 			isa = PBXTargetDependency;
 			target = 33CC111A2044C6BA0003C045 /* Flutter Assemble */;
 			targetProxy = 33CC111F2044C79F0003C045 /* PBXContainerItemProxy */;
+		};
+		5F53D0532E44EBB700740586 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 29952B032DE79CB200640E7F /* PacketTunnel */;
+			targetProxy = 5F53D0522E44EBB700740586 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
