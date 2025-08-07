@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
-	"path/filepath"
 	"runtime"
 	"strconv"
 	"sync"
@@ -56,21 +54,14 @@ func SetupRadiance(opts *utils.Opts) error {
 	}()
 	var innerErr error
 	setupRadiance.Do(func() {
-		logDir := filepath.Join(opts.DataDir, "logs")
-		if err := os.MkdirAll(opts.DataDir, 0o777); err != nil {
-			log.Errorf("unable to create data directory: %v", err)
-		}
-		if err := os.MkdirAll(logDir, 0o777); err != nil {
-			log.Errorf("unable to create log directory: %v", err)
-		}
-		clientOpts := radiance.Options{
-			LogDir:   logDir,
+		r, err := radiance.NewRadiance(radiance.Options{
+			LogDir:   opts.LogDir,
 			DataDir:  opts.DataDir,
-			Locale:   opts.Locale,
 			DeviceID: opts.Deviceid,
-		}
-		r, err := radiance.NewRadiance(clientOpts)
-		log.Debugf("Paths: %s %s", logDir, opts.DataDir)
+			LogLevel: opts.LogLevel,
+			Locale:   opts.Locale,
+		})
+		log.Debugf("Paths: %s %s", common.LogPath(), common.DataPath())
 		if err != nil {
 			innerErr = fmt.Errorf("unable to create Radiance: %v", err)
 			return
