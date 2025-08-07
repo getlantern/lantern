@@ -22,18 +22,25 @@ class ServerSelection extends StatefulHookConsumerWidget {
 
 class _ServerSelectionState extends ConsumerState<ServerSelection> {
   TextTheme? _textTheme;
-  bool isUserPro = true;
+
+
+  @override
+  void initState() {
+    super.initState();
+    ref.read(serverLocationNotifierProvider.notifier).getLanternServers();
+  }
+
 
   @override
   Widget build(BuildContext context) {
     var serverLocation = ref.watch(serverLocationNotifierProvider);
-    ref.read(serverLocationNotifierProvider.notifier).getLanternServers();
     _textTheme = Theme.of(context).textTheme;
     return BaseScreen(
         title: 'server_selection'.i18n, body: _buildBody(serverLocation));
   }
 
   Widget _buildBody(ServerLocationEntity serverLocation) {
+    final isUserPro = ref.isUserPro;
     return DefaultTabController(
       length: 2,
       child: Column(
@@ -50,7 +57,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
                 )),
           ),
           DividerSpace(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16)),
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 0)),
           if (!isUserPro)
             Padding(
               padding: const EdgeInsets.only(bottom: 16.0),

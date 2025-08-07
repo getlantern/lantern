@@ -165,24 +165,6 @@ class LocalStorageService {
     return server.isEmpty ? [] : server;
   }
 
-  // PrivateServerEntity? defaultPrivateServer() {
-  //   final server = _privateServerBox
-  //       .query(PrivateServerEntity_.userSelected.equals(true))
-  //       .build()
-  //       .findFirst();
-  //   return server;
-  // }
-  //
-  // void setDefaultPrivateServer(String serverName) {
-  //   final servers = _privateServerBox.getAll();
-  //
-  //   for (var server in servers) {
-  //     final isSelected = server.serverName == serverName;
-  //     server.userSelected = isSelected;
-  //     _privateServerBox.put(server);
-  //   }
-  // }
-
   void updatePrivateServerName(String serverName, String newName) async {
     final existing = _privateServerBox
         .query(PrivateServerEntity_.serverName.equals(serverName.toLowerCase()))
