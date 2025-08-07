@@ -121,7 +121,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
       reasserting = false
     }
     stopService()
-    startService()
+    startVPN()
   }
 
   func postServiceClose() {
