@@ -18,6 +18,9 @@ jobs:
     permissions:
       contents: "read"
       id-token: "write"
+    env:
+      BUILD_TYPE: ${{ inputs.build_type || '' }}
+      VERSION: ${{ inputs.version }}
     runs-on: macos-15
     steps:
       - name: Checkout code
@@ -77,19 +80,6 @@ jobs:
           fileName: "keystore.release.jks"
           fileDir: "./android/app"
           encodedString: ${{ secrets.KEYSTORE }}
-
-      - name: Update app version in pubspec.yaml
-        shell: bash
-        env:
-          RUN_NUMBER: ${{ github.run_number }}
-        run: |
-          NEW_VERSION="${{ inputs.version }}+${RUN_NUMBER}"
-          echo "Updating pubspec.yaml to version: $NEW_VERSION"
-          sed -i.bak -E "s/^version: .*/version: $NEW_VERSION/" pubspec.yaml
-          rm -f pubspec.yaml.bak
-          cat pubspec.yaml
-          APP_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //')
-          echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
 
       - name: Install dependencies
         run: make install-android-deps
