@@ -23,13 +23,11 @@ class ServerSelection extends StatefulHookConsumerWidget {
 class _ServerSelectionState extends ConsumerState<ServerSelection> {
   TextTheme? _textTheme;
 
-
   @override
   void initState() {
     super.initState();
     ref.read(serverLocationNotifierProvider.notifier).getLanternServers();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -180,7 +178,8 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
   }
 
   Future<void> onSmartLocation(ServerLocationType type) async {
-    final result = await ref.read(vpnNotifierProvider.notifier).startVPN(force: true);
+    final result =
+        await ref.read(vpnNotifierProvider.notifier).startVPN(force: true);
     result.fold(
       (failure) {
         context.showSnackBar(failure.localizedErrorMessage);

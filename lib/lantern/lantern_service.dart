@@ -445,7 +445,7 @@ class LanternService implements LanternCoreService {
 
   @override
   Future<Either<Failure, Unit>> getLanternAvailableServers() {
-  if (PlatformUtils.isFFISupported) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.getLanternAvailableServers();
     }
     return _platformService.getLanternAvailableServers();

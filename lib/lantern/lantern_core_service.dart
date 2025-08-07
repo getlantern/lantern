@@ -124,7 +124,6 @@ abstract class LanternCoreService {
   Future<Either<Failure, Unit>> startDeployment(
       {required String location, required String serverName});
 
-
   //cert
   Future<Either<Failure, Unit>> setCert({required String fingerprint});
 
@@ -151,7 +150,6 @@ abstract class LanternCoreService {
   });
 
   Future<Either<Failure, String>> featureFlag();
-
 
   ///Custom/lantern server methods
   Future<Either<Failure, Unit>> getLanternAvailableServers();

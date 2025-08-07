@@ -640,12 +640,14 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> getLanternAvailableServers() async{
+  Future<Either<Failure, Unit>> getLanternAvailableServers() async {
     try {
-      final result = await  _methodChannel.invokeMethod('getLanternAvailableServers');
+      final result =
+          await _methodChannel.invokeMethod('getLanternAvailableServers');
       return Right(unit);
     } catch (e, stackTrace) {
-      appLogger.error('Error fetching Lantern available servers', e, stackTrace);
+      appLogger.error(
+          'Error fetching Lantern available servers', e, stackTrace);
       return Left(e.toFailure());
     }
   }
