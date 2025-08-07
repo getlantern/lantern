@@ -115,6 +115,7 @@ class AppDelegate: FlutterAppDelegate {
       let opts = UtilsOpts()
       opts.dataDir = baseDir
       opts.logDir = FilePath.logsDirectory.absoluteString
+      opts.deviceid = ""
       opts.locale = Locale.current.identifier
       var error: NSError?
       MobileSetupRadiance(opts, &error)
