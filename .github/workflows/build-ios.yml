@@ -6,6 +6,12 @@ on:
       version:
         required: true
         type: string
+      build_type:
+        required: false
+        type: string
+      installer_name:
+        required: false
+        type: string
 
 jobs:
   build-ios:

@@ -107,6 +107,16 @@ jobs:
       build_type: ${{ needs.set-release-metadata.outputs.build_type }}
       installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
 
+  build-ios:
+    needs: set-release-metadata
+    uses: ./.github/workflows/build-ios.yml
+    secrets: inherit
+    if: ${{ needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'ios' }}
+    with:
+      version: ${{ needs.set-release-metadata.outputs.version }}
+      build_type: ${{ needs.set-release-metadata.outputs.build_type }}
+      installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
+
   build-android:
     needs: set-release-metadata
     uses: ./.github/workflows/build-android.yml
@@ -124,6 +134,7 @@ jobs:
         build-linux,
         build-windows,
         build-android,
+        build-ios,
         set-release-metadata,
       ]
     if: ${{ needs.set-release-metadata.outputs.platform == 'all' }}
@@ -190,3 +201,21 @@ jobs:
             }
         env:
           INSTALLER_NAME: ${{ needs.set-release-metadata.outputs.installer_name }}
+
+  upload-testflight:
+    needs: [release, build-ios, set-release-metadata]
+    if: ${{ needs.set-release-metadata.outputs.platform == 'all' }}
+    runs-on: macos-15
+    steps:
+      - name: Download iOS Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: lantern-ios
+
+      - name: Upload to TestFlight
+        uses: apple-actions/upload-testflight-build@v3.0.0
+        with:
+          app-path: lantern-installer.ipa
+          issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
+          api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
+          api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
