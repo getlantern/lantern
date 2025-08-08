@@ -11,14 +11,21 @@
 //  Copyright (c) SagerNet. Licensed under GPLv3.
 //
 
-import CoreLocation
 import Foundation
 import Liblantern
 import NetworkExtension
 import OSLog
 
-public class ExtensionProvider: NEPacketTunnelProvider {
+#if os(iOS)
+  import WidgetKit
+#endif
+#if os(macOS)
+  import CoreLocation
+#endif
 
+public class ExtensionProvider: NEPacketTunnelProvider {
+  let appLogger = Logger(
+    subsystem: "org.getlantern.lantern", category: "ExtensionProvider")
   private var platformInterface: ExtensionPlatformInterface!
 
   override open func startTunnel(options: [String: NSObject]?) async throws {
@@ -83,16 +90,44 @@ public class ExtensionProvider: NEPacketTunnelProvider {
   }
 
   override open func stopTunnel(with reason: NEProviderStopReason) async {
-    appLogger.log("(lantern-tunnel) stopping, reason: \(reason)")
+    appLogger.log("(lantern-tunnel) stopping, reason:\(String(describing: reason))")
     stopService()
   }
 
   func opts() -> UtilsOpts {
-    let baseDir = FilePath.sharedDirectory.relativePath
+    let baseDir = FilePath.workingDirectory.relativePath
     let opts = UtilsOpts()
     opts.dataDir = baseDir
+    // opts.deviceid = DeviceIdentifier.getUDID()
     opts.locale = Locale.current.identifier
-
     return opts
   }
+
+  override open func sleep() async {
+    // if let boxService {
+    //     boxService.pause()
+    // }
+  }
+
+  override open func wake() {
+    // if let boxService {
+    //     boxService.wake()
+    // }
+  }
+
+  func reloadService() {
+    appLogger.log("(lantern-tunnel) reloading service")
+    reasserting = true
+    defer {
+      reasserting = false
+    }
+    stopService()
+    startVPN()
+  }
+
+  func postServiceClose() {
+    //    radiance = nil
+    platformInterface.reset()
+  }
+
 }

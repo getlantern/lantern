@@ -6,6 +6,8 @@ import app_links
 @main
 class AppDelegate: FlutterAppDelegate {
 
+  private let systemExtensionManager = SystemExtensionManager.shared
+
   private let vpnManager = VPNManager.shared
 
   override func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -17,31 +19,27 @@ class AppDelegate: FlutterAppDelegate {
   }
 
   override func applicationDidFinishLaunching(_ aNotification: Notification) {
-
-    //    let systemExtensionManager = SystemExtensionManager()
-    //    systemExtensionManager.activateExtension()
+    systemExtensionManager.activateExtension()
 
     guard let controller = mainFlutterWindow?.contentViewController as? FlutterViewController else {
       fatalError("contentViewController is not a FlutterViewController")
     }
     RegisterGeneratedPlugins(registry: controller)
 
-    // Register event handlers
     registerEventHandlers(controller: controller)
-
-    // Setup native method channel
-    setupMethodHandler(controller: controller)
 
     // Initialize directories and working paths
     setupFileSystem()
-
-    // set radiance
+      
     setupRadiance()
+      
+    // Setup native method channel
+    setupMethodHandler(controller: controller)
+
     NSSetUncaughtExceptionHandler { exception in
-      print(exception.reason)
+      print(exception.reason ?? "Unknown exception reason")
       print(exception.callStackSymbols)
     }
-    super.applicationDidFinishLaunching(aNotification)
   }
 
   public override func application(
@@ -60,7 +58,7 @@ class AppDelegate: FlutterAppDelegate {
 
   /// Registers Flutter event channel handlers
   private func registerEventHandlers(controller: FlutterViewController) {
-    let registry = controller as! FlutterPluginRegistry
+    let registry = controller as FlutterPluginRegistry
     let statusRegistrar = registry.registrar(forPlugin: "StatusEventHandler")
     StatusEventHandler.register(with: statusRegistrar)
 
@@ -104,6 +102,7 @@ class AppDelegate: FlutterAppDelegate {
       appLogger.error("Failed to change current directory to: \(FilePath.sharedDirectory.path)")
       return
     }
+
     appLogger.info("Current directory changed to: \(FilePath.sharedDirectory.path)")
 
   }
@@ -112,16 +111,19 @@ class AppDelegate: FlutterAppDelegate {
   private func setupRadiance() {
     Task {
       // Set up the base directory and options
-      let baseDir = FilePath.workingDirectory.relativePath
+      let baseDir = FilePath.workingDirectory.absoluteString
       let opts = UtilsOpts()
       opts.dataDir = baseDir
+      opts.logDir = FilePath.logsDirectory.absoluteString
       opts.deviceid = ""
       opts.locale = Locale.current.identifier
       var error: NSError?
-      await MobileSetupRadiance(opts, &error)
+      MobileSetupRadiance(opts, &error)
       // Handle any error returned by the setup
       if let error {
         appLogger.error("Error while setting up radiance: \(error)")
+      } else {
+        appLogger.info("Radiance setup complete")
       }
     }
   }

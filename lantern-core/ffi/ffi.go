@@ -36,12 +36,13 @@ import (
 type service string
 
 const (
-	appsService           service = "apps"
-	logsService           service = "logs"
-	statusService         service = "status"
-	privateserverService  service = "privateServer"
-	serverManagerKey              = "server-manager"
-	spiltTunnelHandlerKey         = "splitTunnelHandler"
+	appsService          service = "apps"
+	logsService          service = "logs"
+	statusService        service = "status"
+	privateserverService service = "privateServer"
+
+	serverManagerKey      = "server-manager"
+	spiltTunnelHandlerKey = "splitTunnelHandler"
 )
 
 type VPNStatus string
@@ -219,9 +220,9 @@ func removeSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
 
 //export reportIssue
 func reportIssue(emailC, typeC, descC, deviceC, modelC, logPathC *C.char) *C.char {
+
 	mu.Lock()
 	defer mu.Unlock()
-
 	if server == nil {
 		return C.CString("radiance not initialized")
 	}

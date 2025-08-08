@@ -27,7 +27,7 @@ class LanternPlatformService implements LanternCoreService {
   static const MethodChannel _methodChannel =
       MethodChannel('org.getlantern.lantern/method');
   static const logsChannel = EventChannel("$channelPrefix/logs");
-  static const statusChannel =
+  static const EventChannel statusChannel =
       EventChannel("$channelPrefix/status", JSONMethodCodec());
 
   static const privateServerStatusChannel =
@@ -38,6 +38,7 @@ class LanternPlatformService implements LanternCoreService {
   @override
   Future<void> init() async {
     appLogger.info(' LanternPlatformService');
+
     _status = statusChannel
         .receiveBroadcastStream()
         .map((event) => LanternStatus.fromJson(event));

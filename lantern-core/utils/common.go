@@ -8,6 +8,7 @@ import (
 )
 
 type Opts struct {
+	LogDir   string
 	DataDir  string
 	Deviceid string
 	LogLevel string

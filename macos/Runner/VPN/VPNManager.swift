@@ -73,7 +73,7 @@ class VPNManager: VPNBase {
   private func createNewProfile() {
     let manager = NETunnelProviderManager()
     let tunnelProtocol = NETunnelProviderProtocol()
-    tunnelProtocol.providerBundleIdentifier = "org.getlantern.lantern.PacketTunnel"
+    tunnelProtocol.providerBundleIdentifier = "org.getlantern.lantern.packet"
     tunnelProtocol.serverAddress = "0.0.0.0"
 
     manager.protocolConfiguration = tunnelProtocol
@@ -92,19 +92,21 @@ class VPNManager: VPNBase {
   /// Starts the VPN tunnel.
   /// Loads VPN preferences and initiates the VPN connection.
   func startTunnel() async throws {
-    guard connectionStatus == .disconnected else { return }
+    guard connectionStatus == .disconnected else {
+      appLogger.log("In unexpected state: \(connectionStatus)")
+      return
+    }
     appLogger.log("Starting tunnel..")
+    //await removeExistingVPNProfiles()
     await self.setupVPN()
-    let options: [String: NSObject] = [
-      "netEx.Type": "User" as NSString,
-      "netEx.StartReason": "User Initiated" as NSString,
-    ]
+    let options = ["netEx.StartReason": NSString("User Initiated")]
     try self.manager.connection.startVPNTunnel(options: options)
-    /// Enable on-demand to allow automatic reconnections
-    /// if error it will stuck in infinite loop
-    //self.manager.isOnDemandEnabled = true
-    // try await self.saveThenLoadProvider()
+
+    self.manager.isOnDemandEnabled = false
+
+    try await self.saveThenLoadProvider()
   }
+
   func connectToServer(
     location: String,
     serverName: String,
