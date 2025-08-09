@@ -111,11 +111,16 @@ class AppDelegate: FlutterAppDelegate {
   private func setupRadiance() {
     Task {
       // Set up the base directory and options
-      let baseDir = FilePath.workingDirectory.absoluteString
+      let baseDir = FilePath.workingDirectory.relativePath
       let opts = UtilsOpts()
       opts.dataDir = baseDir
-      opts.logDir = FilePath.logsDirectory.absoluteString
+        opts.logDir = FilePath.logsDirectory.relativePath
+      appLogger.info("Data directory: " + opts.dataDir)
+      appLogger.info("Log directory: " + opts.logDir)
       opts.deviceid = ""
+      opts.logLevel = "debug"
+      appLogger.info("Log level: " + opts.logLevel)
+    
       opts.locale = Locale.current.identifier
       var error: NSError?
       MobileSetupRadiance(opts, &error)
