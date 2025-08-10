@@ -24,8 +24,8 @@ environment:
 
 dependency_overrides:
   in_app_purchase_storekit: 0.3.22+1
-  analyzer: ^7.7.1
-  analyzer_plugin: ^0.13.5
+  analyzer: 7.4.5
+  analyzer_plugin: 0.13.1
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
