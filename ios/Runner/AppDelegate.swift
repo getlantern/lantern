@@ -35,10 +35,10 @@ import flutter_local_notifications
 
     // set radiance
     setupRadiance()
-      
+
     // Setup native method channel
     setupMethodHandler(controller: controller)
-      
+
     NSSetUncaughtExceptionHandler { exception in
       print(exception.reason)
       print(exception.callStackSymbols)
@@ -89,9 +89,9 @@ import flutter_local_notifications
         at: FilePath.logsDirectory,
         withIntermediateDirectories: true
       )
-      appLogger.info("logs directory created at: \(FilePath.workingDirectory.path)")
+      appLogger.info("logs directory created at: \(FilePath.logsDirectory.path)")
     } catch {
-      appLogger.error("Failed to create working directory: \(error.localizedDescription)")
+      appLogger.error("Failed to create  directory: \(error.localizedDescription)")
     }
 
     guard FileManager.default.changeCurrentDirectoryPath(FilePath.sharedDirectory.path) else {
@@ -126,6 +126,7 @@ import flutter_local_notifications
       opts.dataDir = baseDir
       opts.logDir = FilePath.logsDirectory.absoluteString
       opts.deviceid = DeviceIdentifier.getUDID()
+      opts.logLevel = "debug"
       opts.locale = Locale.current.identifier
       var error: NSError?
       await MobileSetupRadiance(opts, &error)
