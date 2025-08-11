@@ -1,72 +1,99 @@
 import 'package:flutter/material.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/features/private_server/server_locations.dart';
 
 class ProviderCard extends StatelessWidget {
   final String title;
   final CloudProvider provider;
   final String price;
-  final VoidCallback onContinue;
   final String icon;
+  final VoidCallback? onShowLocations;
 
   const ProviderCard({
     super.key,
     required this.title,
     required this.provider,
     required this.price,
-    required this.onContinue,
     required this.icon,
+    this.onShowLocations,
   });
 
   @override
   Widget build(BuildContext context) {
-    void showServerLocationsModal() {
-      showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        backgroundColor: Theme.of(context).canvasColor,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-        ),
-        builder: (ctx) => provider == CloudProvider.googleCloud
-            ? GoogleCloudLocations()
-            : DigitalOceanLocations(),
-      );
-    }
+    final t = Theme.of(context).textTheme;
 
-    final textTheme = Theme.of(context).textTheme;
-    return AppCard(
-      padding: const EdgeInsets.all(12),
-      margin: EdgeInsets.only(right: 8),
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        border: Border.all(color: AppColors.gray2, width: 1),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadowColor,
+            blurRadius: 32,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          AppTile(
-            icon: icon,
-            label: title,
-            dense: true,
-            tileTextStyle: textTheme.titleMedium,
-            contentPadding: EdgeInsets.symmetric(horizontal: 4.0),
+          // Title row
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 24,
+                height: 24,
+                child: FittedBox(
+                  fit: BoxFit.contain,
+                  child: AppImage(path: icon, width: 24, height: 24),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  title,
+                  style: t.titleMedium?.copyWith(
+                    color: AppColors.black1,
+                    fontWeight: FontWeight.w600,
+                    height: 1.50,
+                  ),
+                ),
+              ),
+            ],
           ),
-          Divider(color: AppColors.gray2),
-          CheckmarkTile(text: 'handle_configuration'.i18n),
-          CheckmarkTile(text: price),
-          CheckmarkTile(text: 'seamless_integration'.i18n),
+
+          const SizedBox(height: 16),
+          Divider(height: 1, color: AppColors.gray2),
+          CheckmarkTile(
+            text: 'handle_configuration'.i18n,
+            showDivider: true,
+          ),
+          CheckmarkTile(
+            text: price,
+            showDivider: true,
+          ),
+          CheckmarkTile(
+            text: 'seamless_integration'.i18n,
+            showDivider: true,
+          ),
           CheckmarkTile(
             text: 'choose_location'.i18n,
-            trailing: AppIconButton(
-              path: AppImagePaths.info,
-              onPressed: () => showServerLocationsModal(),
+            trailing: Semantics(
+              button: true,
+              label: 'choose_location'.i18n,
+              child: AppIconButton(
+                path: AppImagePaths.info,
+                onPressed: onShowLocations,
+              ),
             ),
+            showDivider: false,
           ),
           CheckmarkTile(
             text: 'one_month_included'.i18n.fill([1]),
-          ),
-          const SizedBox(height: 24),
-          PrimaryButton(
-            label: '${'continue_with'.i18n} ${provider.displayName}',
-            onPressed: onContinue,
+            showDivider: false,
+            topPadding: 8,
           ),
         ],
       ),
@@ -77,23 +104,66 @@ class ProviderCard extends StatelessWidget {
 class CheckmarkTile extends StatelessWidget {
   final String text;
   final Widget? trailing;
+  final String? iconPath;
+  final bool showDivider;
+  final double topPadding;
+  final double bottomPadding;
 
   const CheckmarkTile({
     super.key,
     required this.text,
     this.trailing,
+    this.iconPath,
+    this.showDivider = false,
+    this.topPadding = 8,
+    this.bottomPadding = 8,
   });
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    return AppTile(
-      icon: AppImagePaths.checkmark,
+    final t = Theme.of(context).textTheme;
+
+    final row = Semantics(
       label: text,
-      trailing: trailing,
-      dense: true,
-      tileTextStyle: textTheme.bodyMedium,
-      contentPadding: EdgeInsets.symmetric(horizontal: 4.0, vertical: 0),
+      readOnly: true,
+      child: Padding(
+        padding: EdgeInsets.only(top: topPadding, bottom: bottomPadding),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            AppImage(
+              path: iconPath ?? AppImagePaths.checkmark,
+              width: 24,
+              height: 24,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                text,
+                softWrap: true,
+                overflow: TextOverflow.visible,
+                style: t.bodyMedium?.copyWith(
+                  color: AppColors.black1,
+                  height: 1.64,
+                ),
+              ),
+            ),
+            if (trailing != null) ...[
+              const SizedBox(width: 8),
+              trailing!,
+            ],
+          ],
+        ),
+      ),
+    );
+
+    if (!showDivider) return row;
+
+    return Column(
+      children: [
+        row,
+        Divider(height: 1, color: AppColors.gray2),
+      ],
     );
   }
 }

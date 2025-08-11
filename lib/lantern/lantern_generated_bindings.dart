@@ -2815,6 +2815,16 @@ class LanternBindings {
   late final _digitalOceanPrivateServer = _digitalOceanPrivateServerPtr
       .asFunction<ffi.Pointer<ffi.Char> Function()>();
 
+  ffi.Pointer<ffi.Char> googleCloudPrivateServer() {
+    return _googleCloudPrivateServer();
+  }
+
+  late final _googleCloudPrivateServerPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+          'googleCloudPrivateServer');
+  late final _googleCloudPrivateServer = _googleCloudPrivateServerPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function()>();
+
   ffi.Pointer<ffi.Char> selectAccount(
     ffi.Pointer<ffi.Char> _account,
   ) {

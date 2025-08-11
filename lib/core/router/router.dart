@@ -135,6 +135,14 @@ class AppRouter extends RootStackRouter {
       page: PrivateServerSetup.page,
     ),
     AutoRoute(
+      path: '/server-locations',
+      page: ServerLocations.page,
+    ),
+    AutoRoute(
+      path: '/deploy-server',
+      page: DeployingServer.page,
+    ),
+    AutoRoute(
       path: '/private-server-location',
       page: PrivateServerLocation.page,
       fullscreenDialog: true,

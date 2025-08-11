@@ -785,6 +785,24 @@ func digitalOceanPrivateServer() *C.char {
 	return C.CString("ok")
 }
 
+// googleCloudPrivateServer starts the Google Cloud private server flow.
+//
+//export googleCloudPrivateServer
+func googleCloudPrivateServer() *C.char {
+	mngr, err := getServerManager()
+	if err != nil {
+		return SendError(log.Errorf("Error getting server manager: %v", err))
+	}
+	ffiEventListener := &ffiPrivateServerEventListener{}
+	err = privateserver.StartGoogleCloudPrivateServerFlow(ffiEventListener, mngr)
+	if err != nil {
+		log.Errorf("Error starting DigitalOcean private server flow: %v", err)
+		return SendError(err)
+	}
+	log.Debug("Google Cloud private server flow started successfully")
+	return C.CString("ok")
+}
+
 // selectAccount selects the account for the private server.
 //
 //export selectAccount
