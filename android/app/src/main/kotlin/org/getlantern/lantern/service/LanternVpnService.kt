@@ -14,13 +14,13 @@ import lantern.io.libbox.Notification
 import lantern.io.libbox.TunOptions
 import lantern.io.mobile.Mobile
 import lantern.io.utils.Opts
-import lantern.io.utils.Utils
 import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.notification.NotificationHelper
 import org.getlantern.lantern.utils.DeviceUtil
 import org.getlantern.lantern.utils.VpnStatusManager
 import org.getlantern.lantern.utils.initConfigDir
+import org.getlantern.lantern.utils.logDir
 import org.getlantern.lantern.utils.toIpPrefix
 
 /**
@@ -134,8 +134,6 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
             Log.e(TAG, "Error in Radiance setup", e)
         }
     }
-
-
 
 
     private suspend fun startVPN() = withContext(Dispatchers.IO) {
@@ -267,9 +265,11 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
         return builder
     }
 
-     fun opts(): Opts {
+    fun opts(): Opts {
         val opts = Opts()
         opts.dataDir = initConfigDir()
+        opts.logDir = logDir()
+        opts.logLevel = "debug"
         opts.deviceid = DeviceUtil.deviceId()
         opts.locale = DeviceUtil.getLanguageCode(this@LanternVpnService)
         return opts

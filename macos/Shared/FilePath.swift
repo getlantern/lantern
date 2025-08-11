@@ -27,11 +27,11 @@ extension FilePath {
   public static let cacheDirectory =
     libraryDirectory
     .appendingPathComponent("Caches", isDirectory: true)
-    
+
   public static let logsDirectory =
     FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask)[0]
-        .appendingPathComponent("Logs", isDirectory: true)
-        .appendingPathComponent(Bundle.main.bundleIdentifier!, isDirectory: true)
+    .appendingPathComponent("Logs", isDirectory: true)
+    .appendingPathComponent(Bundle.main.bundleIdentifier!, isDirectory: true)
 
   public static let workingDirectory = cacheDirectory.appendingPathComponent(
     "Working", isDirectory: true)

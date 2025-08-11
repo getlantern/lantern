@@ -44,6 +44,24 @@ fun initConfigDir(): String {
     return dir.absolutePath
 }
 
+fun logDir(): String {
+    val dir = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+        File(LanternApp.application.dataDir, ".lantern/logs")
+    } else {
+        File(LanternApp.application.filesDir, ".lantern/logs")
+    }
+
+    if (dir.exists()) {
+        return dir.absolutePath
+    }
+    val success = dir.mkdir()
+    if (!success) {
+        throw Exception("Failed to create logs directory")
+    }
+    Log.d("Paths", "Created config directory ${dir.absolutePath}")
+    return dir.absolutePath
+}
+
 
 fun <T> Continuation<T>.tryResume(value: T) {
     try {

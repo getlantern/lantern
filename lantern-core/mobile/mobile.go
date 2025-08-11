@@ -47,11 +47,11 @@ func enableSplitTunneling() bool {
 }
 
 func SetupRadiance(opts *utils.Opts) error {
-	defer func() {
-		if r := recover(); r != nil {
-			log.Errorf("Recovered from panic in SetupRadiance: %v", r)
-		}
-	}()
+	// defer func() {
+	// 	if r := recover(); r != nil {
+	// 		log.Errorf("Recovered from panic in SetupRadiance: %v", r)
+	// 	}
+	// }()
 	var innerErr error
 	setupRadiance.Do(func() {
 		r, err := radiance.NewRadiance(radiance.Options{

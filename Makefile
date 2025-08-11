@@ -146,30 +146,8 @@ install-macos-deps: install-gomobile
 	brew install imagemagick || true
 	dart pub global activate flutter_distributor
 
-.PHONY: macos-arm64
-macos-arm64: $(DARWIN_LIB_ARM64)
-
-$(DARWIN_LIB_ARM64): $(GO_SOURCES)
-	GOARCH=arm64 LIB_NAME=$@ make desktop-lib
-
-.PHONY: macos-amd64
-macos-amd64: $(DARWIN_LIB_AMD64)
-
-$(DARWIN_LIB_AMD64): $(GO_SOURCES)
-	GOARCH=amd64 LIB_NAME=$@ make desktop-lib
-
 .PHONY: macos
-macos: $(DARWIN_LIB_BUILD) $(MACOS_FRAMEWORK_BUILD)
-
-
-$(DARWIN_LIB_BUILD): $(GO_SOURCES)
-	$(MAKE) macos-arm64 macos-amd64
-	rm -rf $@ && mkdir -p $(dir $@)
-	lipo -create $(DARWIN_LIB_ARM64) $(DARWIN_LIB_AMD64) -output $@
-	install_name_tool -id "@rpath/${DARWIN_LIB}" $@
-	mkdir -p $(MACOS_FRAMEWORK_DIR) && cp $@ $(MACOS_FRAMEWORK_DIR)
-	cp $(BIN_DIR)/macos-amd64/$(LANTERN_LIB_NAME)*.h $(MACOS_FRAMEWORK_DIR)/
-	@echo "Built macOS library: $(MACOS_FRAMEWORK_DIR)/$(DARWIN_LIB)"
+macos: $(MACOS_FRAMEWORK_BUILD)
 
 $(MACOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 	@echo "Building macOS Framework.."
