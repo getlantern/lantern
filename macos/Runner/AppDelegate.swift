@@ -110,10 +110,8 @@ class AppDelegate: FlutterAppDelegate {
   /// Calls API handler setup
   private func setupRadiance() {
     Task {
-      // Set up the base directory and options
-      let baseDir = FilePath.workingDirectory.relativePath
       let opts = UtilsOpts()
-      opts.dataDir = baseDir
+      opts.dataDir = FilePath.dataDirectory.relativePath
       opts.logDir = FilePath.logsDirectory.relativePath
       appLogger.info("Data directory: " + opts.dataDir)
       appLogger.info("Log directory: " + opts.logDir)
