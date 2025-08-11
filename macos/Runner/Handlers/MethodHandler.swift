@@ -99,6 +99,9 @@ class MethodHandler {
       case "digitalOcean":
         self.digitalOcean(result: result)
         break
+      case "googleCloud":
+        self.googleCloud(result: result)
+        break
       case "selectAccount":
         let account = call.arguments as? String ?? ""
         self.selectAccount(result: result, account: account)
@@ -449,6 +452,21 @@ class MethodHandler {
       MobileDigitalOceanPrivateServer(PrivateServerListener.shared, &error)
       if let err = error {
         await self.handleFlutterError(err, result: result, code: "DIGITAL_OCEAN_ERROR")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+
+    }
+  }
+
+  func googleCloud(result: @escaping FlutterResult) {
+    Task.detached {
+      var error: NSError?
+      MobileGoogleCloudPrivateServer(PrivateServerListener.shared, &error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "GOOGLE_CLOUD_ERROR")
         return
       }
       await MainActor.run {

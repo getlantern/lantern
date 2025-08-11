@@ -493,6 +493,17 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> googleCloudPrivateServer() async {
+    try {
+      await _methodChannel.invokeMethod('googleCloud');
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error activating code', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
   Stream<PrivateServerStatus> watchPrivateServerStatus() {
     return _privateServerStatus;
   }

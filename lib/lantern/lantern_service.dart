@@ -339,6 +339,14 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> googleCloudPrivateServer() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.googleCloudPrivateServer();
+    }
+    return _platformService.googleCloudPrivateServer();
+  }
+
+  @override
   Stream<PrivateServerStatus> watchPrivateServerStatus() {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.watchPrivateServerStatus();

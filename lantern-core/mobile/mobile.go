@@ -554,6 +554,14 @@ func DigitalOceanPrivateServer(events utils.PrivateServerEventListener) error {
 	return privateserver.StartDigitalOceanPrivateServerFlow(events, mgn)
 }
 
+func GoogleCloudPrivateServer(events utils.PrivateServerEventListener) error {
+	mgn, err := getServerManager()
+	if err != nil {
+		return log.Errorf("Error getting server manager: %v", err)
+	}
+	return privateserver.StartGoogleCloudPrivateServerFlow(events, mgn)
+}
+
 func SelectAccount(account string) error {
 	return privateserver.SelectAccount(account)
 }

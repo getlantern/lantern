@@ -29,6 +29,7 @@ class Home extends HookConsumerWidget {
     final isUserPro = ref.isUserPro;
     ref.read(featureFlagNotifierProvider.notifier);
     textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
       appBar: AppBar(
           backgroundColor: AppColors.white,
