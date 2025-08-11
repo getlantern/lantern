@@ -848,7 +848,7 @@ packages:
     source: hosted
     version: "1.4.0"
   in_app_purchase_storekit:
-    dependency: "direct main"
+    dependency: "direct overridden"
     description:
       name: in_app_purchase_storekit
       sha256: "6ce1361278cacc0481508989ba419b2c9f46a2b0dc54b3fe54f5ee63c2718fef"
