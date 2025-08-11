@@ -100,6 +100,9 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     opts.dataDir = baseDir
     // opts.deviceid = DeviceIdentifier.getUDID()
     opts.locale = Locale.current.identifier
+    opts.logLevel = "debug"
+    opts.logDir = FilePath.logsDirectory.relativePath
+    appLogger.info("logging to \(opts.logDir)")
     return opts
   }
 
