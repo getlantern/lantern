@@ -53,7 +53,7 @@ func ConnectToServer(group, tag string, platIfce libbox.PlatformInterface, optio
 		}
 	}
 	if group == GroupTagAutoAll || tag == "" {
-		vpn.QuickConnect(group, platIfce)
+		return vpn.QuickConnect(group, platIfce)
 	}
 	return vpn.ConnectToServer(group, tag, platIfce)
 }
