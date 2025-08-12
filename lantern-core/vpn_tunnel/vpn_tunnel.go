@@ -2,7 +2,6 @@ package vpn_tunnel
 
 import (
 	"fmt"
-	"path/filepath"
 
 	"github.com/getlantern/lantern-outline/lantern-core/utils"
 	radianceCommon "github.com/getlantern/radiance/common"
@@ -23,7 +22,7 @@ const (
 // it pass empty string so it will connect to best server available.
 func StartVPN(platform libbox.PlatformInterface, options *utils.Opts) error {
 	if radianceCommon.IsIOS() || radianceCommon.IsMacOS() {
-		err := initializeCommonForApplePlatforms(options.DataDir, options.LogDir, options.LogLevel)
+		err := initializeCommonForApplePlatforms(options)
 		if err != nil {
 			return err
 		}
@@ -55,7 +54,7 @@ func ConnectToServer(group, tag string, platIfce libbox.PlatformInterface, optio
 		internalTag = string(InternalTagLantern)
 	}
 	if radianceCommon.IsIOS() || radianceCommon.IsMacOS() {
-		err := initializeCommonForApplePlatforms(options.DataDir, filepath.Join(options.DataDir, "logs"), options.LogLevel)
+		err := initializeCommonForApplePlatforms(options)
 		if err != nil {
 			return err
 		}
@@ -75,11 +74,12 @@ func IsVPNRunning() bool {
 	return status.TunnelOpen
 }
 
-func initializeCommonForApplePlatforms(dataDir, logDir, logLevel string) error {
+func initializeCommonForApplePlatforms(options *utils.Opts) error {
 	// Since this will start as a new process, we need to ask for path and logger.
 	// This ensures options are correctly set for the new process.
-	fmt.Println("Initializing common for Apple platforms with dataDir:", dataDir, "logDir:", logDir, "logLevel:", logLevel)
-	if err := radianceCommon.Init(dataDir, logDir, logLevel); err != nil {
+	fmt.Println("Initializing common for Apple platforms with dataDir:", options.DataDir, "logDir:",
+		options.LogDir, "logLevel:", options.LogLevel)
+	if err := radianceCommon.Init(options.DataDir, options.LogDir, options.LogLevel); err != nil {
 		return fmt.Errorf("failed to initialize common: %w", err)
 	}
 	return nil

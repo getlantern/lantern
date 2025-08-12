@@ -3,10 +3,11 @@ package mobile
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"runtime"
 	"strconv"
-	"sync"
+	"sync/atomic"
 
 	"github.com/getlantern/golog"
 	privateserver "github.com/getlantern/lantern-outline/lantern-core/private-server"
@@ -23,24 +24,15 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+var log = golog.LoggerFor("lantern-outline.mobile")
+
 var (
-	log            = golog.LoggerFor("lantern-outline.mobile")
-	radianceMutex  = sync.Mutex{}
-	setupRadiance  sync.Once
-	storeRadiance  = sync.Map{}
-	radianceServer *lanternService
+	serverManager      atomic.Pointer[servers.Manager]
+	splitTunnelHandler atomic.Pointer[vpn.SplitTunnel]
+	apiClient          atomic.Pointer[api.APIClient]
+	userInfo           atomic.Pointer[common.UserInfo]
+	rad                atomic.Pointer[radiance.Radiance]
 )
-
-const (
-	serverManagerKey      = "server-manager"
-	spiltTunnelHandlerKey = "splitTunnelHandler"
-)
-
-type lanternService struct {
-	*radiance.Radiance
-	userConfig common.UserInfo
-	apiClient  *api.APIClient
-}
 
 func enableSplitTunneling() bool {
 	return runtime.GOOS == "android"
@@ -52,73 +44,57 @@ func SetupRadiance(opts *utils.Opts) error {
 			log.Errorf("Recovered from panic in SetupRadiance: %v", r)
 		}
 	}()
-	var innerErr error
-	setupRadiance.Do(func() {
-		r, err := radiance.NewRadiance(radiance.Options{
-			LogDir:   opts.LogDir,
-			DataDir:  opts.DataDir,
-			DeviceID: opts.Deviceid,
-			LogLevel: opts.LogLevel,
-			Locale:   opts.Locale,
-		})
-		log.Debugf("Paths: %s %s", common.LogPath(), common.DataPath())
-		if err != nil {
-			innerErr = fmt.Errorf("unable to create Radiance: %v", err)
-			return
-		}
 
-		sth, sthErr := vpn.NewSplitTunnelHandler()
-		if sthErr != nil {
-			innerErr = fmt.Errorf("unable to create split tunnel handler: %v", sthErr)
-		}
-		storeRadiance.Store(spiltTunnelHandlerKey, sth)
-		serverManager, mngErr := servers.NewManager(opts.DataDir)
-		if mngErr != nil {
-			innerErr = fmt.Errorf("unable to create server manager: %v", mngErr)
-			return
-		}
-		storeRadiance.Store(serverManagerKey, serverManager)
-		radianceServer = &lanternService{
-			Radiance:   r,
-			userConfig: r.UserInfo(),
-			apiClient:  r.APIHandler(),
-		}
-		log.Debug("Radiance setup successfully")
-		if radianceServer.userConfig.LegacyID() == 0 {
-			log.Debug("Creating user")
-			CreateUser()
-		}
-		FetchUserData()
+	r, err := radiance.NewRadiance(radiance.Options{
+		LogDir:   opts.LogDir,
+		DataDir:  opts.DataDir,
+		DeviceID: opts.Deviceid,
+		LogLevel: opts.LogLevel,
+		Locale:   opts.Locale,
 	})
-
-	if innerErr != nil {
-		return innerErr
+	log.Debugf("Paths: %s %s", common.LogPath(), common.DataPath())
+	if err != nil {
+		return fmt.Errorf("unable to create Radiance: %v", err)
 	}
+	rad.Store(r)
+
+	sth, sthErr := vpn.NewSplitTunnelHandler()
+	if sthErr != nil {
+		return fmt.Errorf("unable to create split tunnel handler: %v", sthErr)
+	}
+	splitTunnelHandler.Store(sth)
+	sm, mngErr := servers.NewManager(opts.DataDir)
+	if mngErr != nil {
+		return fmt.Errorf("unable to create server manager: %v", mngErr)
+	}
+	serverManager.Store(sm)
+
+	info := r.UserInfo()
+	userInfo.Store(&info)
+	apiClient.Store(r.APIHandler())
+
+	log.Debug("Radiance setup successfully")
+	go func() {
+		if info.LegacyID() == 0 {
+			log.Debug("Creating user")
+			if _, err := CreateUser(); err != nil {
+				log.Errorf("Error creating user: %v", err)
+			}
+		}
+		if _, err := FetchUserData(); err != nil {
+			log.Errorf("Error fetching user data: %v", err)
+		}
+	}()
+
 	return nil
 }
 
-func getServerManager() (*servers.Manager, error) {
-	if v, ok := storeRadiance.Load(serverManagerKey); ok {
-		if sm, ok := v.(*servers.Manager); ok {
-			return sm, nil
-		}
-		return nil, fmt.Errorf("server manager not found")
-	}
-	return nil, fmt.Errorf("server manager not found")
-}
-
-func getSplitTunnelHandler() (*vpn.SplitTunnel, error) {
-	if v, ok := storeRadiance.Load(spiltTunnelHandlerKey); ok {
-		if sth, ok := v.(*vpn.SplitTunnel); ok {
-			return sth, nil
-		}
-		return nil, fmt.Errorf("split tunnel handler not found")
-	}
-	return nil, fmt.Errorf("split tunnel handler not found")
-}
-
 func AvailableFeatures() []byte {
-	features := radianceServer.Features()
+	if rad.Load() == nil {
+		log.Error("Radiance server not initialized")
+		return nil
+	}
+	features := rad.Load().Features()
 	log.Debugf("Available features: %v", features)
 	jsonBytes, err := json.Marshal(features)
 	if err != nil {
@@ -129,16 +105,11 @@ func AvailableFeatures() []byte {
 }
 
 func IsRadianceConnected() bool {
-	radianceMutex.Lock()
-	defer radianceMutex.Unlock()
-	return radianceServer != nil
+	return rad.Load() != nil
 }
 
 func StartVPN(platform libbox.PlatformInterface, opts *utils.Opts) error {
 	log.Debug("Starting VPN")
-	radianceMutex.Lock()
-	defer radianceMutex.Unlock()
-
 	err := vpn_tunnel.StartVPN(platform, opts)
 	if err != nil {
 		log.Errorf("Error starting VPN: %v", err)
@@ -149,8 +120,6 @@ func StartVPN(platform libbox.PlatformInterface, opts *utils.Opts) error {
 
 func StopVPN() error {
 	log.Debug("Stopping VPN")
-	radianceMutex.Lock()
-	defer radianceMutex.Unlock()
 	er := vpn_tunnel.StopVPN()
 	if er != nil {
 		log.Errorf("Error stopping VPN: %v", er)
@@ -162,8 +131,6 @@ func StopVPN() error {
 // It works with private servers and lantern location servers.
 func ConnectToServer(locationType, tag string, platIfce libbox.PlatformInterface, options *utils.Opts) error {
 	log.Debugf("Setting private server with tag: %s", tag)
-	radianceMutex.Lock()
-	defer radianceMutex.Unlock()
 	err := vpn_tunnel.ConnectToServer(locationType, tag, platIfce, options)
 	if err != nil {
 		return log.Errorf("Error setting private server: %v", err)
@@ -172,29 +139,15 @@ func ConnectToServer(locationType, tag string, platIfce libbox.PlatformInterface
 	return nil
 }
 
-func getLanternService() (*lanternService, error) {
-	radianceMutex.Lock()
-	defer radianceMutex.Unlock()
-	if radianceServer == nil {
-		return nil, fmt.Errorf("radiance not initialized")
-	}
-	return radianceServer, nil
-}
-
 func IsVPNConnected() bool {
-	radianceMutex.Lock()
-	defer radianceMutex.Unlock()
 	return vpn_tunnel.IsVPNRunning()
 }
 
 func AddSplitTunnelItem(filterType, item string) error {
-	radianceMutex.Lock()
-	defer radianceMutex.Unlock()
-	spiltHandler, sErr := getSplitTunnelHandler()
-	if sErr != nil {
-		return log.Errorf("Error getting split tunnel handler: %v", sErr)
+	if splitTunnelHandler.Load() == nil {
+		return errors.New("splitTunnelHandler is nil")
 	}
-	if err := spiltHandler.AddItem(filterType, item); err != nil {
+	if err := splitTunnelHandler.Load().AddItem(filterType, item); err != nil {
 		return fmt.Errorf("error adding item: %v", err)
 	}
 	log.Debugf("added %s split tunneling item %s", filterType, item)
@@ -202,13 +155,10 @@ func AddSplitTunnelItem(filterType, item string) error {
 }
 
 func RemoveSplitTunnelItem(filterType, item string) error {
-	radianceMutex.Lock()
-	defer radianceMutex.Unlock()
-	spiltHandler, sErr := getSplitTunnelHandler()
-	if sErr != nil {
-		return log.Errorf("Error getting split tunnel handler: %v", sErr)
+	if splitTunnelHandler.Load() == nil {
+		return errors.New("splitTunnelHandler is nil")
 	}
-	if err := spiltHandler.RemoveItem(filterType, item); err != nil {
+	if err := splitTunnelHandler.Load().RemoveItem(filterType, item); err != nil {
 		return fmt.Errorf("error removing item: %v", err)
 	}
 	log.Debugf("removed %s split tunneling item %s", filterType, item)
@@ -216,10 +166,7 @@ func RemoveSplitTunnelItem(filterType, item string) error {
 }
 
 func ReportIssue(email, issueType, description, device, model, logFilePath string) error {
-	radianceMutex.Lock()
-	defer radianceMutex.Unlock()
-
-	if radianceServer == nil {
+	if rad.Load() == nil {
 		return fmt.Errorf("radiance not setup")
 	}
 
@@ -232,7 +179,7 @@ func ReportIssue(email, issueType, description, device, model, logFilePath strin
 		Model:       model,
 	}
 
-	if err := radianceServer.ReportIssue(email, report); err != nil {
+	if err := rad.Load().ReportIssue(email, report); err != nil {
 		return fmt.Errorf("error reporting issue: %w", err)
 	}
 
@@ -244,12 +191,11 @@ func ReportIssue(email, issueType, description, device, model, logFilePath strin
 // Todo make sure to add retry logic
 // we need to make sure that the user is created before we can use the radiance server
 func CreateUser() (*api.UserDataResponse, error) {
-	radianceServer, err := getLanternService()
-	if err != nil {
-		return nil, err
+	if apiClient.Load() == nil {
+		return nil, fmt.Errorf("apiClient not initialized")
 	}
 	log.Debug("Creating user")
-	user, err := radianceServer.apiClient.NewUser(context.Background())
+	user, err := apiClient.Load().NewUser(context.Background())
 	log.Debugf("UserCreate response: %v", user)
 	if err != nil {
 		return nil, log.Errorf("Error creating user: %v", err)
@@ -259,11 +205,11 @@ func CreateUser() (*api.UserDataResponse, error) {
 
 // this will return the user data from the user config
 func UserData() ([]byte, error) {
-	radianceServer, err := getLanternService()
-	if err != nil {
-		return nil, err
+	if userInfo.Load() == nil {
+		return nil, fmt.Errorf("userInfo not initialized")
 	}
-	user, err := radianceServer.userConfig.GetData()
+	log.Debug("Getting user data from user config")
+	user, err := (*userInfo.Load()).GetData()
 	if err != nil {
 		return nil, log.Errorf("Error getting user data: %v", err)
 	}
@@ -278,9 +224,12 @@ func UserData() ([]byte, error) {
 // GetUserData will get the user data from the server
 func FetchUserData() ([]byte, error) {
 	log.Debug("Getting user data")
-	//this call will also save the user data in the user config
+	if apiClient.Load() == nil {
+		return nil, fmt.Errorf("api client not initialized")
+	}
+	// this call will also save the user data in the user config
 	// so we can use it later
-	user, err := radianceServer.apiClient.UserData(context.Background())
+	user, err := apiClient.Load().UserData(context.Background())
 	if err != nil {
 		return nil, log.Errorf("Error getting user data: %v", err)
 	}
@@ -300,40 +249,46 @@ func FetchUserData() ([]byte, error) {
 // OAuth Methods
 func OAuthLoginUrl(provider string) (string, error) {
 	log.Debug("Getting OAuth login URL")
-	oauthLoginUrl, err := radianceServer.apiClient.OAuthLoginUrl(context.Background(), provider)
+	if apiClient.Load() == nil {
+		return "", fmt.Errorf("api client not initialized")
+	}
+	oauthLoginURL, err := apiClient.Load().OAuthLoginUrl(context.Background(), provider)
 	if err != nil {
 		return "", log.Errorf("Error getting OAuth login URL: %v", err)
 	}
-	log.Debugf("OAuthLoginUrl response: %v", oauthLoginUrl)
-	return oauthLoginUrl, nil
+	log.Debugf("OAuthLoginUrl response: %v", oauthLoginURL)
+	return oauthLoginURL, nil
 }
 
 func OAuthLoginCallback(oAuthToken string) ([]byte, error) {
 	log.Debug("Getting OAuth login callback")
-	userInfo, err := utils.DecodeJWT(oAuthToken)
+	jwtUserInfo, err := utils.DecodeJWT(oAuthToken)
 	if err != nil {
 		return nil, log.Errorf("Error decoding JWT: %v", err)
 	}
+	if apiClient.Load() == nil || userInfo.Load() == nil {
+		return nil, fmt.Errorf("api client or user info not initialized")
+	}
 	// Temporary  set user data to so api can read it
 	login := &protos.LoginResponse{
-		LegacyID:    userInfo.LegacyUserId,
-		LegacyToken: userInfo.LegacyToken,
+		LegacyID:    jwtUserInfo.LegacyUserId,
+		LegacyToken: jwtUserInfo.LegacyToken,
 	}
-	radianceServer.userConfig.SetData(login)
+	(*userInfo.Load()).SetData(login)
 	///Get user data from api this will also save data in user config
-	user, err := radianceServer.apiClient.UserData(context.Background())
+	user, err := apiClient.Load().UserData(context.Background())
 	if err != nil {
 		return nil, log.Errorf("Error getting user data: %v", err)
 	}
 	log.Debugf("UserData response: %v", user)
 	userResponse := &protos.LoginResponse{
-		Id:             userInfo.Email,
+		Id:             jwtUserInfo.Email,
 		EmailConfirmed: true,
 		LegacyID:       user.UserId,
 		LegacyToken:    user.Token,
 		LegacyUserData: user.LoginResponse_UserData,
 	}
-	radianceServer.userConfig.SetData(userResponse)
+	(*userInfo.Load()).SetData(userResponse)
 	bytes, err := proto.Marshal(userResponse)
 	if err != nil {
 		return nil, log.Errorf("Error marshalling user data: %v", err)
@@ -341,9 +296,12 @@ func OAuthLoginCallback(oAuthToken string) ([]byte, error) {
 	return bytes, nil
 }
 
-func StripeSubscription(email, planId string) (string, error) {
+func StripeSubscription(email, planID string) (string, error) {
 	log.Debug("Creating stripe subscription")
-	stripeSubscription, err := radianceServer.apiClient.NewStripeSubscription(context.Background(), email, planId)
+	if apiClient.Load() == nil {
+		return "", fmt.Errorf("api client not initialized")
+	}
+	stripeSubscription, err := apiClient.Load().NewStripeSubscription(context.Background(), email, planID)
 	if err != nil {
 		return "", log.Errorf("Error creating stripe subscription: %v", err)
 	}
@@ -360,7 +318,10 @@ func StripeSubscription(email, planId string) (string, error) {
 
 func Plans(channel string) (string, error) {
 	log.Debug("Getting plans")
-	plans, err := radianceServer.apiClient.SubscriptionPlans(context.Background(), channel)
+	if apiClient.Load() == nil {
+		return "", fmt.Errorf("api client not initialized")
+	}
+	plans, err := apiClient.Load().SubscriptionPlans(context.Background(), channel)
 	if err != nil {
 		return "", log.Errorf("Error getting plans: %v", err)
 	}
@@ -374,7 +335,10 @@ func Plans(channel string) (string, error) {
 }
 func StripeBillingPortalUrl() (string, error) {
 	log.Debug("Getting stripe billing portal")
-	billingPortal, err := radianceServer.apiClient.StripeBillingPortalUrl()
+	if apiClient.Load() == nil {
+		return "", fmt.Errorf("api client not initialized")
+	}
+	billingPortal, err := apiClient.Load().StripeBillingPortalUrl()
 	if err != nil {
 		return "", log.Errorf("Error getting stripe billing portal: %v", err)
 	}
@@ -384,11 +348,14 @@ func StripeBillingPortalUrl() (string, error) {
 
 func AcknowledgeGooglePurchase(purchaseToken, planId string) error {
 	log.Debugf("Purchase token: %s planId %s", purchaseToken, planId)
+	if apiClient.Load() == nil {
+		return fmt.Errorf("api client not initialized")
+	}
 	params := map[string]string{
 		"purchaseToken": purchaseToken,
 		"planId":        planId,
 	}
-	status, _, err := radianceServer.apiClient.VerifySubscription(context.Background(), api.GoogleService, params)
+	status, _, err := apiClient.Load().VerifySubscription(context.Background(), api.GoogleService, params)
 	if err != nil {
 		return log.Errorf("Error acknowledging: %v", err)
 	}
@@ -396,13 +363,16 @@ func AcknowledgeGooglePurchase(purchaseToken, planId string) error {
 	return nil
 }
 
-func AcknowledgeApplePurchase(receipt, planId string) error {
-	log.Debugf("Apple receipt: %s planId %s", receipt, planId)
+func AcknowledgeApplePurchase(receipt, planII string) error {
+	log.Debugf("Apple receipt: %s planId %s", receipt, planII)
+	if apiClient.Load() == nil {
+		return fmt.Errorf("api client not initialized")
+	}
 	params := map[string]string{
 		"receipt": receipt,
-		"planId":  planId,
+		"planId":  planII,
 	}
-	status, _, err := radianceServer.apiClient.VerifySubscription(context.Background(), api.AppleService, params)
+	status, _, err := apiClient.Load().VerifySubscription(context.Background(), api.AppleService, params)
 	if err != nil {
 		return log.Errorf("Error acknowledging: %v", err)
 	}
@@ -412,14 +382,17 @@ func AcknowledgeApplePurchase(receipt, planId string) error {
 
 func PaymentRedirect(provider, planId, email string) (string, error) {
 	log.Debug("Payment redirect")
-	deviceName := radianceServer.userConfig.DeviceID()
+	if apiClient.Load() == nil || userInfo.Load() == nil {
+		return "", fmt.Errorf("api client or user info not initialized")
+	}
+	deviceName := (*userInfo.Load()).DeviceID()
 	body := api.PaymentRedirectData{
 		Provider:   provider,
 		Plan:       planId,
 		DeviceName: deviceName,
 		Email:      email,
 	}
-	paymentRedirect, err := radianceServer.apiClient.PaymentRedirect(context.Background(), body)
+	paymentRedirect, err := apiClient.Load().PaymentRedirect(context.Background(), body)
 	if err != nil {
 		return "", log.Errorf("Error getting payment redirect: %v", err)
 	}
@@ -431,8 +404,11 @@ func PaymentRedirect(provider, planId, email string) (string, error) {
 
 func Login(email, password string) ([]byte, error) {
 	log.Debug("Logging in user")
-	deviceId := radianceServer.userConfig.DeviceID()
-	loginResponse, err := radianceServer.apiClient.Login(context.Background(), email, password, deviceId)
+	if apiClient.Load() == nil || userInfo.Load() == nil {
+		return nil, fmt.Errorf("api client or user info not initialized")
+	}
+	deviceID := (*userInfo.Load()).DeviceID()
+	loginResponse, err := apiClient.Load().Login(context.Background(), email, password, deviceID)
 	if err != nil {
 		return nil, log.Errorf("%v", err)
 	}
@@ -446,7 +422,10 @@ func Login(email, password string) ([]byte, error) {
 
 func SignUp(email, password string) error {
 	log.Debug("Signing up user")
-	err := radianceServer.apiClient.SignUp(context.Background(), email, password)
+	if apiClient.Load() == nil {
+		return fmt.Errorf("api client not initialized")
+	}
+	err := apiClient.Load().SignUp(context.Background(), email, password)
 	if err != nil {
 		return log.Errorf("Error signing up: %v", err)
 	}
@@ -455,11 +434,14 @@ func SignUp(email, password string) error {
 
 func Logout(email string) ([]byte, error) {
 	log.Debug("Logging out")
-	err := radianceServer.apiClient.Logout(context.Background(), email)
+	if apiClient.Load() == nil {
+		return nil, fmt.Errorf("api client not initialized")
+	}
+	err := apiClient.Load().Logout(context.Background(), email)
 	if err != nil {
 		return nil, log.Errorf("Error logging out: %v", err)
 	}
-	//this call will save data
+	// this call will save data
 	user, err := CreateUser()
 	if err != nil {
 		return nil, log.Errorf("Error creating user: %v", err)
@@ -480,7 +462,10 @@ func Logout(email string) ([]byte, error) {
 // This will start the email recovery process by sending a recovery code to the user's email
 func StartRecoveryByEmail(email string) error {
 	log.Debug("Starting change email")
-	err := radianceServer.apiClient.StartRecoveryByEmail(context.Background(), email)
+	if apiClient.Load() == nil {
+		return fmt.Errorf("api client not initialized")
+	}
+	err := apiClient.Load().StartRecoveryByEmail(context.Background(), email)
 	if err != nil {
 		return log.Errorf("Error starting change email: %v", err)
 	}
@@ -490,18 +475,24 @@ func StartRecoveryByEmail(email string) error {
 // This will validate the recovery code sent to the user's email
 func ValidateChangeEmailCode(email, code string) error {
 	log.Debug("Validating change email code")
-	err := radianceServer.apiClient.ValidateEmailRecoveryCode(context.Background(), email, code)
+	if apiClient.Load() == nil {
+		return fmt.Errorf("api client not initialized")
+	}
+	err := apiClient.Load().ValidateEmailRecoveryCode(context.Background(), email, code)
 	if err != nil {
 		return log.Errorf("Error validating change email code: %v", err)
 	}
-	log.Debugf("ValidateChangeEmailCode Sucessful for email: %s", email)
+	log.Debugf("ValidateChangeEmailCode successful for email: %s", email)
 	return nil
 }
 
 // This will complete the email recovery by setting the new password
 func CompleteChangeEmail(email, password, code string) error {
 	log.Debug("Completing change email")
-	err := radianceServer.apiClient.CompleteRecoveryByEmail(context.Background(), email, password, code)
+	if apiClient.Load() == nil {
+		return fmt.Errorf("api client not initialized")
+	}
+	err := apiClient.Load().CompleteRecoveryByEmail(context.Background(), email, password, code)
 	if err != nil {
 		return log.Errorf("Error completing change email: %v", err)
 	}
@@ -510,7 +501,10 @@ func CompleteChangeEmail(email, password, code string) error {
 
 func DeleteAccount(email, password string) ([]byte, error) {
 	log.Debug("Deleting account")
-	err := radianceServer.apiClient.DeleteAccount(context.Background(), email, password)
+	if apiClient.Load() == nil {
+		return nil, fmt.Errorf("api client not initialized")
+	}
+	err := apiClient.Load().DeleteAccount(context.Background(), email, password)
 	if err != nil {
 		return nil, log.Errorf("Error deleting account: %v", err)
 	}
@@ -527,13 +521,17 @@ func DeleteAccount(email, password string) ([]byte, error) {
 	if err != nil {
 		return nil, log.Errorf("Error marshalling user data: %v", err)
 	}
-	radianceServer.userConfig.SetData(login)
+
+	(*userInfo.Load()).SetData(login)
 	return protoUserData, nil
 }
 
 func ActivationCode(email, resellerCode string) error {
 	log.Debug("Getting activation code")
-	purchase, err := radianceServer.apiClient.ActivationCode(context.Background(), email, resellerCode)
+	if apiClient.Load() == nil {
+		return fmt.Errorf("api client not initialized")
+	}
+	purchase, err := apiClient.Load().ActivationCode(context.Background(), email, resellerCode)
 	if err != nil {
 		return log.Errorf("Error getting activation code: %v", err)
 	}
@@ -547,19 +545,18 @@ func ActivationCode(email, resellerCode string) error {
 //Private methods
 
 func DigitalOceanPrivateServer(events utils.PrivateServerEventListener) error {
-	mgn, err := getServerManager()
-	if err != nil {
-		return log.Errorf("Error getting server manager: %v", err)
+	if serverManager.Load() == nil {
+		return log.Errorf("Server manager not initialized")
 	}
-	return privateserver.StartDigitalOceanPrivateServerFlow(events, mgn)
+	log.Debug("Starting DigitalOcean private server flow")
+	return privateserver.StartDigitalOceanPrivateServerFlow(events, serverManager.Load())
 }
 
 func GoogleCloudPrivateServer(events utils.PrivateServerEventListener) error {
-	mgn, err := getServerManager()
-	if err != nil {
-		return log.Errorf("Error getting server manager: %v", err)
+	if serverManager.Load() == nil {
+		return log.Errorf("Server manager not initialized")
 	}
-	return privateserver.StartGoogleCloudPrivateServerFlow(events, mgn)
+	return privateserver.StartGoogleCloudPrivateServerFlow(events, serverManager.Load())
 }
 
 func SelectAccount(account string) error {
@@ -583,19 +580,17 @@ func SelectedCertFingerprint(fp string) {
 }
 
 func AddServerManagerInstance(ip, port, accessToken, tag string, events utils.PrivateServerEventListener) error {
-	mgn, err := getServerManager()
-	if err != nil {
-		return log.Errorf("Error getting server manager: %v", err)
+	if serverManager.Load() == nil {
+		return log.Errorf("Server manager not initialized")
 	}
-	return privateserver.AddServerManually(ip, port, accessToken, tag, mgn, events)
+	return privateserver.AddServerManually(ip, port, accessToken, tag, serverManager.Load(), events)
 }
 func InviteToServerManagerInstance(ip string, port string, accessToken string, inviteName string) (string, error) {
-	mgn, mErr := getServerManager()
-	if mErr != nil {
-		return "", log.Errorf("Error getting server manager: %v", mErr)
+	if serverManager.Load() == nil {
+		return "", log.Errorf("Server manager not initialized")
 	}
 	portInt, _ := strconv.Atoi(port)
-	accessToken, err := privateserver.InviteToServerManagerInstance(ip, portInt, accessToken, inviteName, mgn)
+	accessToken, err := privateserver.InviteToServerManagerInstance(ip, portInt, accessToken, inviteName, serverManager.Load())
 	if err != nil {
 		return "", log.Errorf("Error inviting to server manager instance: %v", err)
 	}
@@ -604,11 +599,10 @@ func InviteToServerManagerInstance(ip string, port string, accessToken string, i
 }
 
 func RevokeServerManagerInvite(ip string, port string, accessToken string, inviteName string) error {
-	mgn, err := getServerManager()
-	if err != nil {
-		return log.Errorf("Error getting server manager: %v", err)
+	if serverManager.Load() == nil {
+		return log.Errorf("Server manager not initialized")
 	}
 	portInt, _ := strconv.Atoi(port)
 	log.Debugf("Revoking invite %s for server %s:%d", inviteName, ip, port)
-	return privateserver.RevokeServerManagerInvite(ip, portInt, accessToken, inviteName, mgn)
+	return privateserver.RevokeServerManagerInvite(ip, portInt, accessToken, inviteName, serverManager.Load())
 }
