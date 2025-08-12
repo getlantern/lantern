@@ -14,7 +14,7 @@ import (
 type InternalTag string
 
 const (
-	InternalTagAutoAll InternalTag = "auto-all"
+	InternalTagAutoAll InternalTag = "all"
 	InternalTagUser    InternalTag = InternalTag(string(servers.SGUser))
 	InternalTagLantern InternalTag = InternalTag(string(servers.SGLantern))
 )

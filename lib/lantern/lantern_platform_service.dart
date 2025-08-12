@@ -41,14 +41,9 @@ class LanternPlatformService implements LanternCoreService {
     _status = statusChannel
         .receiveBroadcastStream()
         .map((event) => LanternStatus.fromJson(event));
-    _privateServerStatus =
-        privateServerStatusChannel.receiveBroadcastStream().map(
-      (event) {
-        appLogger.info('Received private server status: $event');
-        final map = jsonDecode(event);
-        return PrivateServerStatus.fromJson(map);
-      },
-    );
+    _privateServerStatus = privateServerStatusChannel
+        .receiveBroadcastStream()
+        .map((event) => PrivateServerStatus.fromJson(jsonDecode(event)));
   }
 
   @override
