@@ -31,7 +31,7 @@ class ExtensionProvider: NEPacketTunnelProvider {
     }
     let tunnelType = options?["netEx.Type"] as? String
     switch tunnelType {
-    case "User":
+    case "User": // shouldn't this be lantern?
       startVPN()
     case "PrivateServer":
       let serverName = options?["netEx.ServerName"] as? String

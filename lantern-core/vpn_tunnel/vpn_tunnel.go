@@ -4,19 +4,18 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/getlantern/lantern-outline/lantern-core/utils"
 	radianceCommon "github.com/getlantern/radiance/common"
 	"github.com/getlantern/radiance/servers"
 	"github.com/getlantern/radiance/vpn"
 	"github.com/sagernet/sing-box/experimental/libbox"
+
+	"github.com/getlantern/lantern-outline/lantern-core/utils"
 )
 
-type InternalTag string
-
 const (
-	InternalTagAutoAll InternalTag = "auto-all"
-	InternalTagUser    InternalTag = InternalTag(string(servers.SGUser))
-	InternalTagLantern InternalTag = InternalTag(string(servers.SGLantern))
+	GroupTagAutoAll = "all"
+	GroupTagUser    = servers.SGUser
+	GroupTagLantern = servers.SGLantern
 )
 
 // StartVPN will start the VPN tunnel using the provided platform interface.
@@ -41,26 +40,22 @@ func StopVPN() error {
 	return vpn.Disconnect()
 }
 
-// ConnectToServer will connect to a specific VPN server group and tag.
-// this will select server and start the VPN tunnel.
-// Valid location types are: [auto],[privateServer],[lanternLocation]
+// ConnectToServer will connect to a specific VPN server identified by the group and tag. If tag is
+// empty, it will connect to the best server available in that group. ConnectToServer will start the
+// VPN tunnel if it's not already running.
+//
+// Valid group types are: [GroupTagAutoAll, GroupTagUser, GroupTagLantern].
 func ConnectToServer(group, tag string, platIfce libbox.PlatformInterface, options *utils.Opts) error {
-	var internalTag string
-	switch group {
-	case "auto":
-		internalTag = string(InternalTagAutoAll)
-	case "privateServer":
-		internalTag = string(InternalTagUser)
-	case "lanternLocation":
-		internalTag = string(InternalTagLantern)
-	}
 	if radianceCommon.IsIOS() || radianceCommon.IsMacOS() {
 		err := initializeCommonForApplePlatforms(options.DataDir, filepath.Join(options.DataDir, "logs"), options.LogLevel)
 		if err != nil {
 			return err
 		}
 	}
-	return vpn.ConnectToServer(internalTag, tag, platIfce)
+	if group == GroupTagAutoAll || tag == "" {
+		vpn.QuickConnect(group, platIfce)
+	}
+	return vpn.ConnectToServer(group, tag, platIfce)
 }
 
 func IsVPNRunning() bool {

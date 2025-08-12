@@ -11,9 +11,6 @@ import (
 	"sync"
 
 	"github.com/getlantern/golog"
-	privateserver "github.com/getlantern/lantern-outline/lantern-core/private-server"
-	"github.com/getlantern/lantern-outline/lantern-core/utils"
-	"github.com/getlantern/lantern-outline/lantern-core/vpn_tunnel"
 	"github.com/getlantern/radiance"
 	"github.com/getlantern/radiance/api"
 	"github.com/getlantern/radiance/api/protos"
@@ -23,6 +20,10 @@ import (
 	"github.com/sagernet/sing-box/experimental/libbox"
 	_ "golang.org/x/mobile/bind"
 	"google.golang.org/protobuf/proto"
+
+	privateserver "github.com/getlantern/lantern-outline/lantern-core/private-server"
+	"github.com/getlantern/lantern-outline/lantern-core/utils"
+	"github.com/getlantern/lantern-outline/lantern-core/vpn_tunnel"
 )
 
 var (
@@ -81,11 +82,7 @@ func SetupRadiance(opts *utils.Opts) error {
 			innerErr = fmt.Errorf("unable to create split tunnel handler: %v", sthErr)
 		}
 		storeRadiance.Store(spiltTunnelHandlerKey, sth)
-		serverManager, mngErr := servers.NewManager(opts.DataDir)
-		if mngErr != nil {
-			innerErr = fmt.Errorf("unable to create server manager: %v", mngErr)
-			return
-		}
+		serverManager := r.ServerManager()
 		storeRadiance.Store(serverManagerKey, serverManager)
 		radianceServer = &lanternService{
 			Radiance:   r,
