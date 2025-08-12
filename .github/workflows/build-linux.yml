@@ -22,6 +22,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Download pubspec.yaml
+        uses: actions/download-artifact@v4
+        with:
+          name: pubspec
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:

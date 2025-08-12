@@ -10,18 +10,17 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import lantern.io.libbox.Libbox
 import lantern.io.libbox.Notification
 import lantern.io.libbox.TunOptions
 import lantern.io.mobile.Mobile
-import lantern.io.mobile.Opts
+import lantern.io.utils.Opts
 import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.notification.NotificationHelper
 import org.getlantern.lantern.utils.DeviceUtil
-import org.getlantern.lantern.utils.LocalResolver
 import org.getlantern.lantern.utils.VpnStatusManager
 import org.getlantern.lantern.utils.initConfigDir
+import org.getlantern.lantern.utils.logDir
 import org.getlantern.lantern.utils.toIpPrefix
 
 /**
@@ -128,12 +127,7 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
     private suspend fun startRadiance() {
         try {
             withContext(Dispatchers.IO) {
-                val opts = Opts()
-                opts.dataDir = initConfigDir()
-                opts.deviceid = DeviceUtil.deviceId()
-                opts.locale = DeviceUtil.getLanguageCode(this@LanternVpnService)
-                Mobile.setupRadiance(opts)
-                Mobile.newVPNClient(opts, this@LanternVpnService)
+                Mobile.setupRadiance(opts())
             }
             Log.d(TAG, "Radiance setup completed ${DeviceUtil.deviceId()}")
         } catch (e: Exception) {
@@ -149,9 +143,7 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
         }
         runCatching {
             DefaultNetworkMonitor.start()
-            Libbox.registerLocalDNSTransport(LocalResolver)
-            Libbox.setMemoryLimit(false)
-            Mobile.startVPN()
+            Mobile.startVPN(this@LanternVpnService, opts())
             Log.d(TAG, "VPN service started")
             VpnStatusManager.postVPNStatus(VPNStatus.Connected)
             notificationHelper.showVPNConnectedNotification(this@LanternVpnService)
@@ -179,7 +171,7 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
                 if (Mobile.isVPNConnected()) {
                     Mobile.stopVPN()
                 }
-                Libbox.registerLocalDNSTransport(null)
+
                 DefaultNetworkMonitor.stop()
                 VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
                 notificationHelper.stopVPNConnectedNotification(this@LanternVpnService)
@@ -271,6 +263,16 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
             }
         }
         return builder
+    }
+
+    fun opts(): Opts {
+        val opts = Opts()
+        opts.dataDir = initConfigDir()
+        opts.logDir = logDir()
+        opts.logLevel = "debug"
+        opts.deviceid = DeviceUtil.deviceId()
+        opts.locale = DeviceUtil.getLanguageCode(this@LanternVpnService)
+        return opts
     }
 
 }

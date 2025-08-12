@@ -151,6 +151,35 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> reportIssue(
+    String email,
+    String issueType,
+    String description,
+    String device,
+    String model,
+    String logFilePath,
+  ) async {
+    if (PlatformUtils.isDesktop) {
+      return _ffiService.reportIssue(
+        email,
+        issueType,
+        description,
+        device,
+        model,
+        logFilePath,
+      );
+    }
+    return _platformService.reportIssue(
+      email,
+      issueType,
+      description,
+      device,
+      model,
+      logFilePath,
+    );
+  }
+
+  @override
   Future<Either<Failure, PlansData>> plans() {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.plans();
@@ -319,6 +348,14 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> googleCloudPrivateServer() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.googleCloudPrivateServer();
+    }
+    return _platformService.googleCloudPrivateServer();
+  }
+
+  @override
   Stream<PrivateServerStatus> watchPrivateServerStatus() {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.watchPrivateServerStatus();
@@ -376,13 +413,15 @@ class LanternService implements LanternCoreService {
         ip: ip, port: port, accessToken: accessToken, serverName: serverName);
   }
 
+  /// connectToServer is used to connect to a server
+  /// this will work with lantern customer and private server
+  /// requires location and tag
   @override
-  Future<Either<Failure, String>> setPrivateServer(
-      String location, String tag) {
+  Future<Either<Failure, String>> connectToServer(String location, String tag) {
     if (PlatformUtils.isFFISupported) {
-      return _ffiService.setPrivateServer(location, tag);
+      return _ffiService.connectToServer(location, tag);
     }
-    return _platformService.setPrivateServer(location, tag);
+    return _platformService.connectToServer(location, tag);
   }
 
   @override
@@ -411,5 +450,13 @@ class LanternService implements LanternCoreService {
     }
     return _platformService.revokeServerManagerInstance(
         ip: ip, port: port, accessToken: accessToken, inviteName: inviteName);
+  }
+
+  @override
+  Future<Either<Failure, String>> featureFlag() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.featureFlag();
+    }
+    return _platformService.featureFlag();
   }
 }

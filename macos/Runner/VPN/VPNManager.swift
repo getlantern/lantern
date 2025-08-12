@@ -9,7 +9,7 @@ import NetworkExtension
 
 class VPNManager: VPNBase {
   private var observer: NSObjectProtocol?
-  private var manager: NEVPNManager?  // = NEVPNManager.shared()
+  private var manager: NEVPNManager = NEVPNManager.shared()
   static let shared: VPNManager = VPNManager()
 
   @Published private(set) var connectionStatus: NEVPNStatus = .disconnected {
@@ -60,8 +60,8 @@ class VPNManager: VPNBase {
       } else {
         appLogger.log("No VPN profiles found, creating new profile")
         createNewProfile()
-        try await self.manager?.saveToPreferences()
-        try await self.manager?.loadFromPreferences()
+        try await self.manager.saveToPreferences()
+        try await self.manager.loadFromPreferences()
         appLogger.log("Created and loaded new VPN profile")
       }
     } catch {
@@ -73,7 +73,7 @@ class VPNManager: VPNBase {
   private func createNewProfile() {
     let manager = NETunnelProviderManager()
     let tunnelProtocol = NETunnelProviderProtocol()
-    tunnelProtocol.providerBundleIdentifier = "org.getlantern.lantern.PacketTunnel"
+    tunnelProtocol.providerBundleIdentifier = "org.getlantern.lantern.packet"
     tunnelProtocol.serverAddress = "0.0.0.0"
 
     manager.protocolConfiguration = tunnelProtocol
@@ -100,10 +100,31 @@ class VPNManager: VPNBase {
     //await removeExistingVPNProfiles()
     await self.setupVPN()
     let options = ["netEx.StartReason": NSString("User Initiated")]
-    try self.manager?.connection.startVPNTunnel(options: options)
+    try self.manager.connection.startVPNTunnel(options: options)
 
-    self.manager?.isOnDemandEnabled = false
+    self.manager.isOnDemandEnabled = false
+
     try await self.saveThenLoadProvider()
+  }
+
+  func connectToServer(
+    location: String,
+    serverName: String,
+  ) async throws {
+    await self.setupVPN()
+    let options: [String: NSObject] = [
+      "netEx.Type": "PrivateServer" as NSString,
+      "netEx.StartReason": "Private server Initiated" as NSString,
+      "netEx.ServerName": serverName as NSString,
+      "netEx.Location": location as NSString,
+    ]
+
+    try self.manager.connection.startVPNTunnel(options: options)
+    /// Enable on-demand to allow automatic reconnections
+    /// if error it will stuck in infinite loop
+    //    self.manager.isOnDemandEnabled = true
+    //    try await self.saveThenLoadProvider()
+
   }
 
   /// Stops the VPN tunnel.
@@ -115,18 +136,18 @@ class VPNManager: VPNBase {
       return
     }
 
-    if manager?.isOnDemandEnabled ?? false {
+    if manager.isOnDemandEnabled ?? false {
       appLogger.info("Turning off on demand..")
-      manager?.isOnDemandEnabled = false
-      try await manager?.saveToPreferences()
+      manager.isOnDemandEnabled = false
+      try await manager.saveToPreferences()
     }
-    manager?.connection.stopVPNTunnel()
+    manager.connection.stopVPNTunnel()
   }
 
   /// Saves the current VPN configuration to preferences and reloads it.
   private func saveThenLoadProvider() async throws {
-    try await self.manager?.saveToPreferences()
-    try await self.manager?.loadFromPreferences()
+    try await self.manager.saveToPreferences()
+    try await self.manager.loadFromPreferences()
   }
 
   /// MARK: - Extension Communication
@@ -136,7 +157,7 @@ class VPNManager: VPNBase {
     onSuccess: ((String) -> Void)? = nil,
     onError: ((Error) -> Void)? = nil
   ) {
-    guard let session = self.manager?.connection as? NETunnelProviderSession else {
+    guard let session = self.manager.connection as? NETunnelProviderSession else {
       let error = NSError(
         domain: "VPNManager", code: -1,
         userInfo: [NSLocalizedDescriptionKey: "Could not get tunnel session"])

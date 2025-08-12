@@ -50,6 +50,7 @@ class AppImagePaths {
   static const minus = 'assets/images/minus.svg';
   static const search = 'assets/images/search.svg';
   static const arrowForward = 'assets/images/arrow_forward.svg';
+  static const arrowBack = 'assets/images/arrow_back.svg';
   static const bypassList = 'assets/images/bypass_list.svg';
   // app icons for testing
   static const appleMusicIcon = 'assets/images/app_icon_apple_music.svg';
@@ -83,11 +84,14 @@ class AppImagePaths {
   static const personAdd = 'assets/images/person_add.svg';
   static const digitalOcean = 'assets/images/digital_ocean.svg';
   static const googleCloud = 'assets/images/google_cloud.svg';
+  static const creditCard = 'assets/images/credit_card.svg';
+  static const accountCircle = 'assets/images/account_circle.svg';
+  static const success = 'assets/images/green_checkmark.svg';
   static const errorIcon = 'assets/images/error_icon.svg';
   static const key = 'assets/images/key.svg';
   static const qrCodeScanner = 'assets/images/qr_code_scanner.svg';
   static const settingServer = 'assets/images/setting_server.svg';
   static const joinServer = 'assets/images/join_server.svg';
   static const warning = 'assets/images/warning.svg';
-  static const accountPro = 'assets/images/account_pro.svg';
+  static const account = 'assets/images/account.svg';
 }

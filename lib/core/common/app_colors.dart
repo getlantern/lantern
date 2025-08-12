@@ -9,7 +9,6 @@ class AppColors {
 
   static Color get whiteBlur => const Color(0xCCF8FAFB);
 
-
   static Color get blue1 => const Color(0xFFF0FDFF);
 
   static Color get blue2 => const Color(0xFFD6F6FA);
@@ -55,6 +54,7 @@ class AppColors {
   static Color get gray11 => const Color(0xFF040404);
 
   static Color get gray12 => const Color(0xFFBDBDBD);
+  static Color get lightGray => const Color(0xFF838383);
 
   static Color get yellow0 => const Color(0xFFFEFDF6);
 

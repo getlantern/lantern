@@ -30,11 +30,11 @@ class MethodHandler {
       switch call.method {
       case "startVPN":
         self.startVPN(result: result)
+      case "connectToServer":
+        let map = call.arguments as? [String: Any]
+        self.connectToServer(result: result, data: map!)
       case "stopVPN":
         self.stopVPN(result: result)
-      case "setPrivateServer":
-        let map = call.arguments as? [String: Any]
-        self.setPrivateServer(result: result, data: map ?? [:])
       case "isVPNConnected":
         self.isVPNConnected(result: result)
       case "plans":
@@ -123,6 +123,8 @@ class MethodHandler {
       case "addServerManually":
         let data = call.arguments as? [String: Any]
         self.addServerManually(result: result, data: data!)
+      case "featureFlag":
+        self.featureFlags(result: result)
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -132,7 +134,6 @@ class MethodHandler {
   private func startVPN(result: @escaping FlutterResult) {
     Task {
       do {
-        print("Received start VPN call")
         try await vpnManager.startTunnel()
         await MainActor.run {
           result("VPN started successfully.")
@@ -148,19 +149,23 @@ class MethodHandler {
       }
     }
   }
-
-  private func setPrivateServer(result: @escaping FlutterResult, data: [String: Any]) {
+  private func connectToServer(result: @escaping FlutterResult, data: [String: Any]) {
     Task.detached {
-      let location = data["location"] as? String ?? ""
-      let tag = data["tag"] as? String ?? ""
-      var error: NSError?
-      MobileSetPrivateServer(location, tag, &error)
-      if let err = error {
-        await self.handleFlutterError(err, result: result, code: "SET_PRIVATE_SERVER_ERROR")
-        return
-      }
-      await MainActor.run {
-        result("ok")
+      do {
+        let location = data["location"] as? String ?? ""
+        let serverName = data["serverName"] as? String ?? ""
+        try await self.vpnManager.connectToServer(location: location, serverName: serverName)
+        await MainActor.run {
+          result("VPN connected successfully to \(serverName) at \(location).")
+        }
+      } catch {
+        await MainActor.run {
+          result(
+            FlutterError(
+              code: "CONNECT_TO_SERVER_FAILED",
+              message: "Unable to connect to VPN server.",
+              details: error.localizedDescription))
+        }
       }
     }
   }
@@ -643,6 +648,15 @@ class MethodHandler {
       }
       await MainActor.run {
         result("ok")
+      }
+    }
+  }
+
+  func featureFlags(result: @escaping FlutterResult) {
+    Task.detached {
+      let flags = MobileAvailableFeatures()
+      await MainActor.run {
+        result(String(data: flags!, encoding: .utf8))
       }
     }
   }

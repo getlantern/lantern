@@ -6,28 +6,31 @@ toolchain go1.24.1
 
 // replace github.com/getlantern/radiance => ../radiance
 
+// replace github.com/getlantern/sing-box-minimal => ../sing-box-minimal
+
 // replace github.com/getlantern/lantern-server-provisioner => ../lantern-server-provisioner
 
-replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v1.11.12-0.20250616155750-74188abad925
+replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v1.11.12-0.20250716231657-20b15178474a
+
+replace github.com/sagernet/wireguard-go => github.com/getlantern/wireguard-go v0.0.1-beta.5.0.20250310145906-45220d8aec77
+
+replace google.golang.org/genproto v0.0.0-20211118181313-81c1377c94b1 => google.golang.org/genproto v0.0.0-20250715232539-7130f93afb79
 
 replace github.com/tetratelabs/wazero => github.com/refraction-networking/wazero v1.7.1-w
 
 require (
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
-	github.com/getlantern/lantern-server-provisioner v0.0.0-20250612135933-3965f8de83c0
-	github.com/getlantern/radiance v0.0.0-20250626212255-c51611b432be
+	github.com/getlantern/lantern-server-provisioner v0.0.0-20250617134205-a652cb0cef27
+	github.com/getlantern/radiance v0.0.0-20250806212047-82e3ef1167f8
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/sagernet/sing-box v1.11.5
-	github.com/stretchr/testify v1.10.0
 	github.com/zeebo/assert v1.3.0
-	golang.org/x/mobile v0.0.0-20250408133729-978277e7eaf7
-	google.golang.org/protobuf v1.36.5
+	golang.org/x/mobile v0.0.0-20250711185624-d5bb5ecc55c0
+	google.golang.org/protobuf v1.36.6
 	howett.net/plist v1.0.1
 )
 
 require (
-	github.com/1Password/srp v0.2.0 // indirect
-	github.com/Jigsaw-Code/outline-sdk v0.0.19 // indirect
 	github.com/ajg/form v1.5.1 // indirect
 	github.com/andybalholm/brotli v1.1.1 // indirect
 	github.com/caddyserver/certmagic v0.22.0 // indirect
@@ -40,10 +43,9 @@ require (
 	github.com/getlantern/hex v0.0.0-20220104173244-ad7e4b9194dc // indirect
 	github.com/getlantern/hidden v0.0.0-20220104173330-f221c5a24770 // indirect
 	github.com/getlantern/ops v0.0.0-20231025133620-f368ab734534 // indirect
-	github.com/getlantern/timezone v0.0.0-20210901200113-3f9de9d360c9 // indirect
 	github.com/go-chi/chi/v5 v5.2.1 // indirect
 	github.com/go-chi/render v1.0.3 // indirect
-	github.com/go-logr/logr v1.4.2 // indirect
+	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/go-stack/stack v1.8.1 // indirect
@@ -52,12 +54,11 @@ require (
 	github.com/gofrs/uuid/v5 v5.3.2 // indirect
 	github.com/google/btree v1.1.3 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/yamux v0.1.2 // indirect
 	github.com/insomniacslk/dhcp v0.0.0-20250109001534-8abf58130905 // indirect
 	github.com/josharian/native v1.1.1-0.20230202152459-5c7d0dd6ab86 // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
-	github.com/klauspost/cpuid/v2 v2.2.10 // indirect
+	github.com/klauspost/cpuid/v2 v2.2.11 // indirect
 	github.com/libdns/alidns v1.0.3 // indirect
 	github.com/libdns/cloudflare v0.1.3 // indirect
 	github.com/libdns/libdns v0.2.3 // indirect
@@ -71,7 +72,6 @@ require (
 	github.com/oschwald/maxminddb-golang v1.13.1 // indirect
 	github.com/oxtoacart/bpool v0.0.0-20190530202638-03653db5a59c // indirect
 	github.com/pierrec/lz4/v4 v4.1.22 // indirect
-	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/quic-go/qpack v0.5.1 // indirect
 	github.com/quic-go/qtls-go1-20 v0.4.1 // indirect
 	github.com/sagernet/bbolt v0.0.0-20231014093535-ea5cb2fe9f0a // indirect
@@ -94,34 +94,35 @@ require (
 	github.com/sagernet/utls v1.6.7 // indirect
 	github.com/sagernet/wireguard-go v0.0.1-beta.7 // indirect
 	github.com/sagernet/ws v0.0.0-20231204124109-acfe8907c854 // indirect
-	github.com/tkuchiki/go-timezone v0.2.0 // indirect
 	github.com/u-root/uio v0.0.0-20240224005618-d2acac8f3701 // indirect
 	github.com/vishvananda/netns v0.0.5 // indirect
 	github.com/zeebo/blake3 v0.2.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
-	go.opentelemetry.io/otel v1.35.0 // indirect
-	go.opentelemetry.io/otel/metric v1.35.0 // indirect
-	go.opentelemetry.io/otel/trace v1.35.0 // indirect
+	go.opentelemetry.io/otel v1.37.0 // indirect
+	go.opentelemetry.io/otel/metric v1.37.0 // indirect
+	go.opentelemetry.io/otel/trace v1.37.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	go.uber.org/zap/exp v0.3.0 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
 	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394 // indirect
-	golang.org/x/mod v0.24.0 // indirect
-	golang.org/x/net v0.39.0 // indirect
-	golang.org/x/sync v0.14.0 // indirect
-	golang.org/x/text v0.25.0 // indirect
+	golang.org/x/mod v0.26.0 // indirect
+	golang.org/x/net v0.42.0 // indirect
+	golang.org/x/sync v0.16.0 // indirect
+	golang.org/x/text v0.27.0 // indirect
 	golang.org/x/time v0.11.0 // indirect
-	golang.org/x/tools v0.32.0 // indirect
+	golang.org/x/tools v0.35.0 // indirect
 	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250311190419-81fb87f6b8bf // indirect
-	google.golang.org/grpc v1.71.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250715232539-7130f93afb79 // indirect
+	google.golang.org/grpc v1.73.0 // indirect
 	lukechampine.com/blake3 v1.4.1 // indirect
 )
 
 require (
+	cloud.google.com/go/compute/metadata v0.8.0 // indirect
 	dario.cat/mergo v1.0.1 // indirect
+	github.com/1Password/srp v0.2.0 // indirect
+	github.com/Jigsaw-Code/outline-sdk v0.0.19 // indirect
 	github.com/Jigsaw-Code/outline-sdk/x v0.0.2 // indirect
 	github.com/RoaringBitmap/roaring v1.2.3 // indirect
 	github.com/Xuanwo/go-locale v1.1.3 // indirect
@@ -132,12 +133,12 @@ require (
 	github.com/anacrolix/dht/v2 v2.19.2-0.20221121215055-066ad8494444 // indirect
 	github.com/anacrolix/envpprof v1.3.0 // indirect
 	github.com/anacrolix/generics v0.0.0-20230816105729-c755655aee45 // indirect
-	github.com/anacrolix/go-libutp v1.3.1 // indirect
+	github.com/anacrolix/go-libutp v1.3.2 // indirect
 	github.com/anacrolix/log v0.14.6-0.20231202035202-ed7a02cad0b4 // indirect
 	github.com/anacrolix/missinggo v1.3.0 // indirect
 	github.com/anacrolix/missinggo/perf v1.0.0 // indirect
 	github.com/anacrolix/missinggo/v2 v2.7.2-0.20230527121029-a582b4f397b9 // indirect
-	github.com/anacrolix/mmsg v1.0.0 // indirect
+	github.com/anacrolix/mmsg v1.0.1 // indirect
 	github.com/anacrolix/multiless v0.3.0 // indirect
 	github.com/anacrolix/stm v0.4.0 // indirect
 	github.com/anacrolix/sync v0.5.1 // indirect
@@ -150,15 +151,17 @@ require (
 	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/blang/vfs v1.0.0 // indirect
 	github.com/bradfitz/iter v0.0.0-20191230175014-e8f45d346db8 // indirect
+	github.com/cenkalti/backoff/v5 v5.0.2 // indirect
 	github.com/cretz/bine v0.2.0 // indirect
 	github.com/dsnet/compress v0.0.2-0.20210315054119-f66993602bf5 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/edsrzf/mmap-go v1.1.0 // indirect
+	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
 	github.com/gaukas/wazerofs v0.1.0 // indirect
 	github.com/getlantern/algeneva v0.0.0-20250307163401-1824e7b54f52 // indirect
 	github.com/getlantern/appdir v0.0.0-20250324200952-507a0625eb01 // indirect
 	github.com/getlantern/byteexec v0.0.0-20220903142956-e6ed20032cfd // indirect
-	github.com/getlantern/common v1.2.1-0.20250507184827-3e58a77acb6b // indirect
+	github.com/getlantern/common v1.2.1-0.20250711182004-51a659011c7a // indirect
 	github.com/getlantern/elevate v0.0.0-20220903142053-479ab992b264 // indirect
 	github.com/getlantern/filepersist v0.0.0-20210901195658-ed29a1cb0b7c // indirect
 	github.com/getlantern/fronted v0.0.0-20250619212426-1120fc75a5e4 // indirect
@@ -172,22 +175,26 @@ require (
 	github.com/getlantern/netx v0.0.0-20240830183145-c257516187f0 // indirect
 	github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 // indirect
 	github.com/getlantern/sing-box-extensions v0.0.5-0.20250620193835-ad2cc4d65801 // indirect
+	github.com/getlantern/timezone v0.0.0-20210901200113-3f9de9d360c9 // indirect
 	github.com/getlantern/tlsdialer/v3 v3.0.3 // indirect
 	github.com/getsentry/sentry-go v0.31.1 // indirect
 	github.com/go-llsqlite/adapter v0.0.0-20230927005056-7f5ce7f0c916 // indirect
 	github.com/go-llsqlite/crawshaw v0.4.0 // indirect
+	github.com/go-playground/locales v0.14.1 // indirect
+	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-resty/resty/v2 v2.16.5 // indirect
 	github.com/gobwas/ws v1.4.0 // indirect
 	github.com/goccy/go-yaml v1.15.13 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.1 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/klauspost/pgzip v1.2.5 // indirect
-	github.com/mattn/go-isatty v0.0.16 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mholt/archiver/v3 v3.5.1 // indirect
 	github.com/mschoch/smat v0.2.0 // indirect
 	github.com/nwaples/rardecode v1.1.0 // indirect
-	github.com/nxadm/tail v1.4.11 // indirect
 	github.com/pion/datachannel v1.5.2 // indirect
 	github.com/pion/dtls/v2 v2.2.7 // indirect
 	github.com/pion/ice/v2 v2.2.6 // indirect
@@ -212,24 +219,28 @@ require (
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rs/dnscache v0.0.0-20211102005908-e0241e321417 // indirect
 	github.com/sagernet/sing v0.6.10 // indirect
-	github.com/sagernet/sing-tun v0.6.5 // indirect
+	github.com/sagernet/sing-tun v0.6.8 // indirect
 	github.com/shadowsocks/go-shadowsocks2 v0.1.5 // indirect
 	github.com/tetratelabs/wazero v1.7.1 // indirect
+	github.com/tevino/abool/v2 v2.1.0 // indirect
 	github.com/tidwall/btree v1.6.0 // indirect
+	github.com/tkuchiki/go-timezone v0.2.0 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	go.etcd.io/bbolt v1.3.6 // indirect
-	go.opentelemetry.io/otel/exporters/stdout/stdoutlog v0.11.0 // indirect
-	go.opentelemetry.io/otel/exporters/stdout/stdoutmetric v1.35.0 // indirect
-	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.35.0 // indirect
-	go.opentelemetry.io/otel/log v0.11.0 // indirect
-	go.opentelemetry.io/otel/sdk v1.35.0 // indirect
-	go.opentelemetry.io/otel/sdk/log v0.11.0 // indirect
-	go.opentelemetry.io/otel/sdk/metric v1.35.0 // indirect
+	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.37.0 // indirect
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.37.0 // indirect
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.37.0 // indirect
+	go.opentelemetry.io/otel/sdk v1.37.0 // indirect
+	go.opentelemetry.io/otel/sdk/metric v1.37.0 // indirect
+	go.opentelemetry.io/proto/otlp v1.7.0 // indirect
 	go.uber.org/mock v0.5.0 // indirect
-	golang.org/x/crypto v0.38.0 // indirect
-	golang.org/x/sys v0.33.0 // indirect
+	golang.org/x/crypto v0.40.0 // indirect
+	golang.org/x/oauth2 v0.30.0 // indirect
+	golang.org/x/sys v0.34.0 // indirect
 	golang.zx2c4.com/wireguard/wgctrl v0.0.0-20241231184526-a9ab2273dd10 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20250715232539-7130f93afb79 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	modernc.org/libc v1.22.3 // indirect
 	modernc.org/mathutil v1.5.0 // indirect
 	modernc.org/memory v1.5.0 // indirect

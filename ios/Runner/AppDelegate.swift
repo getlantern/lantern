@@ -30,14 +30,15 @@ import flutter_local_notifications
     // Register event handlers
     registerEventHandlers()
 
-    // Setup native method channel
-    setupMethodHandler(controller: controller)
-
     // Initialize directories and working paths
     setupFileSystem()
 
     // set radiance
     setupRadiance()
+
+    // Setup native method channel
+    setupMethodHandler(controller: controller)
+
     NSSetUncaughtExceptionHandler { exception in
       print(exception.reason)
       print(exception.callStackSymbols)
@@ -78,18 +79,26 @@ import flutter_local_notifications
   /// Prepares the file system directories for use
   private func setupFileSystem() {
     do {
+
       try FileManager.default.createDirectory(
-        at: FilePath.workingDirectory,
+        at: FilePath.sharedDirectory,
         withIntermediateDirectories: true
       )
+      appLogger.info("Shared directory created at: \(FilePath.sharedDirectory.path)")
+      try FileManager.default.createDirectory(
+        at: FilePath.logsDirectory,
+        withIntermediateDirectories: true
+      )
+      appLogger.info("logs directory created at: \(FilePath.logsDirectory.path)")
     } catch {
-      appLogger.error("Failed to create working directory: \(error.localizedDescription)")
+      appLogger.error("Failed to create  directory: \(error.localizedDescription)")
     }
 
     guard FileManager.default.changeCurrentDirectoryPath(FilePath.sharedDirectory.path) else {
       appLogger.error("Failed to change current directory to: \(FilePath.sharedDirectory.path)")
       return
     }
+    appLogger.info("Current directory changed to: \(FilePath.sharedDirectory.path)")
 
   }
 
@@ -112,10 +121,12 @@ import flutter_local_notifications
   private func setupRadiance() {
     Task {
       // Set up the base directory and options
-      let baseDir = FilePath.workingDirectory.relativePath
-      let opts = MobileOpts()
+      let baseDir = FilePath.sharedDirectory.absoluteString
+      let opts = UtilsOpts()
       opts.dataDir = baseDir
+      opts.logDir = FilePath.logsDirectory.absoluteString
       opts.deviceid = DeviceIdentifier.getUDID()
+      opts.logLevel = "debug"
       opts.locale = Locale.current.identifier
       var error: NSError?
       await MobileSetupRadiance(opts, &error)

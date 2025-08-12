@@ -12,6 +12,7 @@ import kotlinx.coroutines.withContext
 import lantern.io.mobile.Mobile
 import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.constant.VPNStatus
+import org.getlantern.lantern.service.LanternVpnService
 import org.getlantern.lantern.utils.PrivateServerListener
 import org.getlantern.lantern.utils.VpnStatusManager
 
@@ -19,7 +20,7 @@ import org.getlantern.lantern.utils.VpnStatusManager
 enum class Methods(val method: String) {
     Start("startVPN"),
     Stop("stopVPN"),
-    SetPrivateServer("setPrivateServer"),
+    ConnectToServer("connectToServer"),
     IsVpnConnected("isVPNConnected"),
     AddSplitTunnelItem("addSplitTunnelItem"),
     RemoveSplitTunnelItem("removeSplitTunnelItem"),
@@ -30,6 +31,7 @@ enum class Methods(val method: String) {
     FetchUserData("fetchUserData"),
     AcknowledgeInAppPurchase("acknowledgeInAppPurchase"),
     PaymentRedirect("paymentRedirect"),
+    ReportIssue("reportIssue"),
 
     //Oauth
     OAuthLoginUrl("oauthLoginUrl"),
@@ -58,6 +60,8 @@ enum class Methods(val method: String) {
     AddServerManually("addServerManually"),
     InviteToServerManagerInstance("inviteToServerManagerInstance"),
     RevokeServerManagerInstance("revokeServerManagerInstance"),
+
+    FeatureFlag("featureFlag"),
 
 }
 
@@ -114,13 +118,18 @@ class MethodHandler : FlutterPlugin,
                 }
             }
 
-            Methods.SetPrivateServer.method -> {
+            Methods.ConnectToServer.method -> {
                 scope.launch {
                     result.runCatching {
                         val map = call.arguments as Map<*, *>
                         val location = map["location"] as String? ?: error("Missing location")
                         val tag = map["tag"] as String? ?: error("Missing tag")
-                            Mobile.setPrivateServer(location, tag)
+                        Mobile.connectToServer(
+                            location,
+                            tag,
+                            LanternVpnService.instance,
+                            LanternVpnService.instance.opts()
+                        )
                         success("ok")
                     }.onFailure { e ->
                         result.error(
@@ -180,6 +189,30 @@ class MethodHandler : FlutterPlugin,
                         result.error(
                             "remove_split_tunnel_item",
                             e.localizedMessage ?: "Failed to remove split tunnel item",
+                            e
+                        )
+                    }
+                }
+            }
+
+            Methods.ReportIssue.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val map = call.arguments as Map<*, *>
+                        val email = map["email"] as String? ?: ""
+                        val issueType = map["issueType"] as String? ?: ""
+                        val description = map["description"] as String? ?: ""
+                        val device = map["device"] as String? ?: ""
+                        val model = map["model"] as String? ?: ""
+                        val logFilePath = map["logFilePath"] as String? ?: ""
+                        Mobile.reportIssue(email, issueType, description, device, model, logFilePath)
+                        withContext(Dispatchers.Main) {
+                            success("ok")
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "report_issue",
+                            e.localizedMessage ?: "Failed to report issue",
                             e
                         )
                     }
@@ -609,7 +642,7 @@ class MethodHandler : FlutterPlugin,
                         val accessToken =
                             map["accessToken"] as String? ?: error("Missing accessToken")
                         val inviteName = map["inviteName"] as String? ?: error("Missing inviteName")
-                       val accessKey =  Mobile.inviteToServerManagerInstance(
+                        val accessKey = Mobile.inviteToServerManagerInstance(
                             ip,
                             port,
                             accessToken,
@@ -645,6 +678,22 @@ class MethodHandler : FlutterPlugin,
                         )
                         withContext(Dispatchers.Main) {
                             success("ok")
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "DigitalOcean",
+                            e.localizedMessage ?: "Error while activating Digital Ocean",
+                            e
+                        )
+                    }
+                }
+            }
+            Methods.FeatureFlag.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val map = Mobile.availableFeatures()
+                        withContext(Dispatchers.Main) {
+                            success(String(map))
                         }
                     }.onFailure { e ->
                         result.error(

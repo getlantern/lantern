@@ -97,7 +97,7 @@ class CreatePassword extends HookConsumerWidget {
     if (isStoreVersion()) {
       //We need call get user details here by then user has made payment
       context.showLoadingDialog();
-     await checkUserAccountStatus(ref, context);
+      await checkUserAccountStatus(ref, context);
       context.hideLoadingDialog();
     }
     AppDialog.showLanternProDialog(

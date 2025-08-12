@@ -1,5 +1,6 @@
 class DeepLinkCallbackManager {
-  static final DeepLinkCallbackManager _instance = DeepLinkCallbackManager._internal();
+  static final DeepLinkCallbackManager _instance =
+      DeepLinkCallbackManager._internal();
 
   factory DeepLinkCallbackManager() => _instance;
   DeepLinkCallbackManager._internal();
@@ -15,4 +16,3 @@ class DeepLinkCallbackManager {
     _handler = null; // Reset after use
   }
 }
-

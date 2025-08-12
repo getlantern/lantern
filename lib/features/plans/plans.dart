@@ -131,7 +131,6 @@ class _PlansState extends ConsumerState<Plans> {
                   ),
                 ),
                 SizedBox(height: defaultSize),
-
                 SizedBox(height: 20),
               ],
             ),

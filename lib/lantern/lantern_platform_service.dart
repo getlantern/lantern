@@ -39,6 +39,7 @@ class LanternPlatformService implements LanternCoreService {
   @override
   Future<void> init() async {
     appLogger.info(' LanternPlatformService');
+
     _status = statusChannel
         .receiveBroadcastStream()
         .map((event) => LanternStatus.fromJson(event));
@@ -145,6 +146,31 @@ class LanternPlatformService implements LanternCoreService {
       return right(unit);
     } catch (e) {
       return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> reportIssue(
+    String email,
+    String issueType,
+    String description,
+    String device,
+    String model,
+    String logFilePath,
+  ) async {
+    try {
+      await _methodChannel.invokeMethod('reportIssue', {
+        'email': email,
+        'issueType': issueType,
+        'description': description,
+        'device': device,
+        'model': model,
+        'logFilePath': logFilePath,
+      });
+      return right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error reporting issue', e, stackTrace);
+      return left(e.toFailure());
     }
   }
 
@@ -473,6 +499,17 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> googleCloudPrivateServer() async {
+    try {
+      await _methodChannel.invokeMethod('googleCloud');
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error activating code', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
   Stream<PrivateServerStatus> watchPrivateServerStatus() {
     return _privateServerStatus;
   }
@@ -547,10 +584,10 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> setPrivateServer(
+  Future<Either<Failure, String>> connectToServer(
       String location, String tag) async {
     try {
-      await _methodChannel.invokeMethod('setPrivateServer', {
+      await _methodChannel.invokeMethod('connectToServer', {
         'location': location,
         'tag': tag,
       });
@@ -604,6 +641,18 @@ class LanternPlatformService implements LanternCoreService {
       return Right('ok');
     } catch (e, stackTrace) {
       appLogger.error('Error revoking server manager instance', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> featureFlag() async {
+    try {
+      final featureFlag =
+          await _methodChannel.invokeMethod<String>('featureFlag');
+      return Right(featureFlag!);
+    } catch (e, stackTrace) {
+      appLogger.error('Error fetching feature flag', e, stackTrace);
       return Left(e.toFailure());
     }
   }

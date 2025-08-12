@@ -2,12 +2,15 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSExtension</key>
+	<key>NetworkExtension</key>
 	<dict>
-		<key>NSExtensionPointIdentifier</key>
-		<string>com.apple.networkextension.packet-tunnel</string>
-		<key>NSExtensionPrincipalClass</key>
-        <string>$(PRODUCT_MODULE_NAME).PacketTunnelProvider</string>
+		<key>NEMachServiceName</key>
+		<string>group.getlantern.lantern.packet</string>
+		<key>NEProviderClasses</key>
+		<dict>
+			<key>com.apple.networkextension.packet-tunnel</key>
+			<string>$(PRODUCT_MODULE_NAME).PacketTunnelProvider</string>
+		</dict>
 	</dict>
 </dict>
 </plist>

@@ -9,7 +9,7 @@ import NetworkExtension
 
 class VPNManager: VPNBase {
   private var observer: NSObjectProtocol?
-  private var manager: NEVPNManager = NEVPNManager.shared()
+  private var manager: NEVPNManager = NETunnelProviderManager.shared()
   static let shared: VPNManager = VPNManager()
 
   @Published private(set) var connectionStatus: NEVPNStatus = .disconnected {
@@ -77,7 +77,7 @@ class VPNManager: VPNBase {
       tunnelProtocol.serverAddress = "0.0.0.0"
 
       manager.protocolConfiguration = tunnelProtocol
-      manager.localizedDescription = "Lantern"
+      manager.localizedDescription = "LanternVPN"
       manager.isEnabled = true
 
       let alwaysConnectRule = NEOnDemandRuleConnect()
@@ -98,23 +98,50 @@ class VPNManager: VPNBase {
   /// Loads VPN preferences and initiates the VPN connection.
   func startTunnel() async throws {
     guard connectionStatus == .disconnected else { return }
-    print("Starting tunnel..")
+    appLogger.log("Starting tunnel..")
     await self.loadVPNPreferences()
-    let options = ["netEx.StartReason": NSString("User Initiated")]
+    let options: [String: NSObject] = [
+      "netEx.Type": "User" as NSString,
+      "netEx.StartReason": "User Initiated" as NSString,
+    ]
     try self.manager.connection.startVPNTunnel(options: options)
+    /// Enable on-demand to allow automatic reconnections
+    /// this getting stuck in infinite loop
+    //self.manager.isOnDemandEnabled = true
+    // try await self.saveThenLoadProvider()
+  }
 
+  func connectToServer(
+    location: String,
+    serverName: String,
+  ) async throws {
+    await self.loadVPNPreferences()
+    let options: [String: NSObject] = [
+      "netEx.Type": "PrivateServer" as NSString,
+      "netEx.StartReason": "Private server Initiated" as NSString,
+      "netEx.ServerName": serverName as NSString,
+      "netEx.Location": location as NSString,
+    ]
+
+    try self.manager.connection.startVPNTunnel(options: options)
     self.manager.isOnDemandEnabled = true
     try await self.saveThenLoadProvider()
+
   }
 
   /// Stops the VPN tunnel.
   /// Terminates the VPN connection and updates the configuration.
   func stopTunnel() async throws {
+    let startTime = Date()
     print("Stopping tunnel..")
     guard connectionStatus == .connected else { return }
     manager.connection.stopVPNTunnel()
     self.manager.isOnDemandEnabled = false
     try await self.saveThenLoadProvider()
+    let elapsed = Date().timeIntervalSince(startTime)
+
+    NSLog("stopTunnel completed in \(elapsed) seconds")
+
   }
 
   /// Saves the current VPN configuration to preferences and reloads it.

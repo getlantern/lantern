@@ -3,7 +3,6 @@ import 'package:lantern/features/vpn/server_selection.dart';
 
 import '../../core/common/common.dart';
 
-
 class ServerMobileView extends StatefulWidget {
   final OnSeverSelected onServerSelected;
 

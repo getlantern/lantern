@@ -49,7 +49,7 @@ class _ServerDesktopViewState extends State<ServerDesktopView> {
               contentPadding: EdgeInsets.only(left: 46),
               label: 'USA - New Jersey',
               tileTextStyle:
-              textTheme.bodyMedium!.copyWith(color: AppColors.gray9),
+                  textTheme.bodyMedium!.copyWith(color: AppColors.gray9),
               trailing: Radio<bool>(
                 visualDensity: VisualDensity.compact,
                 activeColor: AppColors.gray9,

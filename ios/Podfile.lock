@@ -1,6 +1,8 @@
 PODS:
   - app_links (0.0.2):
     - Flutter
+  - device_info_plus (0.0.1):
+    - Flutter
   - Flutter (1.0.0)
   - flutter_inappwebview_ios (0.0.1):
     - Flutter
@@ -32,7 +34,7 @@ PODS:
     - Flutter
     - FlutterMacOS
   - Sentry/HybridSDK (8.52.1)
-  - sentry_flutter (9.3.0):
+  - sentry_flutter (9.6.0):
     - Flutter
     - FlutterMacOS
     - Sentry/HybridSDK (= 8.52.1)
@@ -103,6 +105,7 @@ PODS:
 
 DEPENDENCIES:
   - app_links (from `.symlinks/plugins/app_links/ios`)
+  - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - Flutter (from `Flutter`)
   - flutter_inappwebview_ios (from `.symlinks/plugins/flutter_inappwebview_ios/ios`)
   - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
@@ -137,6 +140,8 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   app_links:
     :path: ".symlinks/plugins/app_links/ios"
+  device_info_plus:
+    :path: ".symlinks/plugins/device_info_plus/ios"
   Flutter:
     :path: Flutter
   flutter_inappwebview_ios:
@@ -172,6 +177,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   app_links: f3e17e4ee5e357b39d8b95290a9b2c299fca71c6
+  device_info_plus: bf2e3232933866d73fe290f2942f2156cdd10342
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   flutter_inappwebview_ios: 6f63631e2c62a7c350263b13fa5427aedefe81d4
   flutter_local_notifications: ff50f8405aaa0ccdc7dcfb9022ca192e8ad9688f
@@ -185,7 +191,7 @@ SPEC CHECKSUMS:
   package_info_plus: c0502532a26c7662a62a356cebe2692ec5fe4ec4
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
   Sentry: 2cbbe3592f30050c60e916c63c7f5a2fa584005e
-  sentry_flutter: 072b525ea44fe9a7a2bf26ec0f0caf68ea0ddb6b
+  sentry_flutter: feb376a4d8fd37387898b94e00da2060eeab2a41
   share_plus: 8b6f8b3447e494cca5317c8c3073de39b3600d1f
   shared_preferences_foundation: fcdcbc04712aee1108ac7fda236f363274528f78
   store_checker: a7be624ac44a4ba88e7917e71afe8433f197161e

@@ -176,9 +176,7 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
                 controller: serverNameController,
                 prefixIcon: AppImage(path: AppImagePaths.server),
                 onChanged: (value) {
-                  setState(() {
-
-                  });
+                  setState(() {});
                 },
               ),
               SizedBox(height: 8),

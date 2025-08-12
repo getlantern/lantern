@@ -19,7 +19,7 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, String>> stopVPN();
 
-  Future<Either<Failure, String>> setPrivateServer(String location, String tag);
+  Future<Either<Failure, String>> connectToServer(String location, String tag);
 
   Stream<LanternStatus> watchVPNStatus();
 
@@ -66,6 +66,15 @@ abstract class LanternCoreService {
   Future<Either<Failure, Unit>> removeSplitTunnelItem(
       SplitTunnelFilterType type, String value);
 
+  Future<Either<Failure, Unit>> reportIssue(
+    String email,
+    String issueType,
+    String description,
+    String device,
+    String model,
+    String logFilePath,
+  );
+
   Stream<List<AppData>> appsDataStream();
 
   ///OAuth methods
@@ -109,6 +118,7 @@ abstract class LanternCoreService {
 
   /// Private server methods
   Future<Either<Failure, Unit>> digitalOceanPrivateServer();
+  Future<Either<Failure, Unit>> googleCloudPrivateServer();
 
   Stream<PrivateServerStatus> watchPrivateServerStatus();
 
@@ -142,4 +152,6 @@ abstract class LanternCoreService {
     required String accessToken,
     required String inviteName,
   });
+
+  Future<Either<Failure, String>> featureFlag();
 }

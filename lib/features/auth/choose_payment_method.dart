@@ -274,7 +274,8 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
                 width: 1,
               ),
             ),
-            tilePadding: EdgeInsets.symmetric(horizontal: defaultSize,vertical: 2),
+            tilePadding:
+                EdgeInsets.symmetric(horizontal: defaultSize, vertical: 2),
             childrenPadding: EdgeInsets.symmetric(
                 horizontal: defaultSize, vertical: defaultSize),
             title: Row(

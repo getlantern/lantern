@@ -6,6 +6,8 @@ PODS:
     - Sparkle
   - desktop_webview_window (0.0.1):
     - FlutterMacOS
+  - device_info_plus (0.0.1):
+    - FlutterMacOS
   - flutter_inappwebview_macos (0.0.1):
     - FlutterMacOS
     - OrderedSet (~> 6.0.3)
@@ -33,7 +35,7 @@ PODS:
   - screen_retriever_macos (0.0.1):
     - FlutterMacOS
   - Sentry/HybridSDK (8.52.1)
-  - sentry_flutter (9.3.0):
+  - sentry_flutter (9.6.0):
     - Flutter
     - FlutterMacOS
     - Sentry/HybridSDK (= 8.52.1)
@@ -56,6 +58,7 @@ DEPENDENCIES:
   - app_links (from `Flutter/ephemeral/.symlinks/plugins/app_links/macos`)
   - auto_updater_macos (from `Flutter/ephemeral/.symlinks/plugins/auto_updater_macos/macos`)
   - desktop_webview_window (from `Flutter/ephemeral/.symlinks/plugins/desktop_webview_window/macos`)
+  - device_info_plus (from `Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos`)
   - flutter_inappwebview_macos (from `Flutter/ephemeral/.symlinks/plugins/flutter_inappwebview_macos/macos`)
   - flutter_local_notifications (from `Flutter/ephemeral/.symlinks/plugins/flutter_local_notifications/macos`)
   - flutter_timezone (from `Flutter/ephemeral/.symlinks/plugins/flutter_timezone/macos`)
@@ -89,6 +92,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/auto_updater_macos/macos
   desktop_webview_window:
     :path: Flutter/ephemeral/.symlinks/plugins/desktop_webview_window/macos
+  device_info_plus:
+    :path: Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos
   flutter_inappwebview_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/flutter_inappwebview_macos/macos
   flutter_local_notifications:
@@ -128,6 +133,7 @@ SPEC CHECKSUMS:
   app_links: 86a57d95d4dec830373b8c85c21d1c59a4a5dc21
   auto_updater_macos: 3e3462c418fe4e731917eacd8d28eef7af84086d
   desktop_webview_window: d4365e71bcd4e1aa0c14cf0377aa24db0c16a7e2
+  device_info_plus: 1b14eed9bf95428983aed283a8d51cce3d8c4215
   flutter_inappwebview_macos: bdf207b8f4ebd58e86ae06cd96b147de99a67c9b
   flutter_local_notifications: 4ccab5b7a22835214a6672e3f9c5e8ae207dab36
   flutter_timezone: 62400baa441155f2a4144188648f2ff861649747
@@ -141,7 +147,7 @@ SPEC CHECKSUMS:
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
   screen_retriever_macos: 776e0fa5d42c6163d2bf772d22478df4b302b161
   Sentry: 2cbbe3592f30050c60e916c63c7f5a2fa584005e
-  sentry_flutter: 072b525ea44fe9a7a2bf26ec0f0caf68ea0ddb6b
+  sentry_flutter: feb376a4d8fd37387898b94e00da2060eeab2a41
   share_plus: 1fa619de8392a4398bfaf176d441853922614e89
   shared_preferences_foundation: fcdcbc04712aee1108ac7fda236f363274528f78
   Sparkle: 5f93557176b762f712e8cd80680778bf23c7348c

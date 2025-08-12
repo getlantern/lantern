@@ -6,6 +6,8 @@ import app_links
 @main
 class AppDelegate: FlutterAppDelegate {
 
+  private let systemExtensionManager = SystemExtensionManager.shared
+
   private let vpnManager = VPNManager.shared
 
   override func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -17,31 +19,27 @@ class AppDelegate: FlutterAppDelegate {
   }
 
   override func applicationDidFinishLaunching(_ aNotification: Notification) {
-
-//    let systemExtensionManager = SystemExtensionManager()
-//    systemExtensionManager.activateExtension()
+    systemExtensionManager.activateExtension()
 
     guard let controller = mainFlutterWindow?.contentViewController as? FlutterViewController else {
       fatalError("contentViewController is not a FlutterViewController")
     }
     RegisterGeneratedPlugins(registry: controller)
 
-    // Register event handlers
     registerEventHandlers(controller: controller)
-
-    // Setup native method channel
-    setupMethodHandler(controller: controller)
 
     // Initialize directories and working paths
     setupFileSystem()
 
-    // set radiance
     setupRadiance()
+
+    // Setup native method channel
+    setupMethodHandler(controller: controller)
+
     NSSetUncaughtExceptionHandler { exception in
-      print(exception.reason)
+      print(exception.reason ?? "Unknown exception reason")
       print(exception.callStackSymbols)
     }
-    super.applicationDidFinishLaunching(aNotification)
   }
 
   public override func application(
@@ -60,9 +58,17 @@ class AppDelegate: FlutterAppDelegate {
 
   /// Registers Flutter event channel handlers
   private func registerEventHandlers(controller: FlutterViewController) {
-    let registry = controller as! FlutterPluginRegistry
+    let registry = controller as FlutterPluginRegistry
     let statusRegistrar = registry.registrar(forPlugin: "StatusEventHandler")
     StatusEventHandler.register(with: statusRegistrar)
+
+    //      if let registrar = self.registrar(forPlugin: "LogsEventHandler") {
+    //        LogsEventHandler.register(with: registrar)
+    //      }
+
+    let privateStatusRegistrar = registry.registrar(forPlugin: "PrivateServerEventHandler")
+    PrivateServerEventHandler.register(with: privateStatusRegistrar)
+
   }
 
   /// Initializes the native method channel handler
@@ -77,10 +83,17 @@ class AppDelegate: FlutterAppDelegate {
   /// Prepares the file system directories for use
   private func setupFileSystem() {
     do {
+
       try FileManager.default.createDirectory(
-        at: FilePath.workingDirectory,
+        at: FilePath.sharedDirectory,
         withIntermediateDirectories: true
       )
+      appLogger.info("Shared directory created at: \(FilePath.sharedDirectory.path)")
+      try FileManager.default.createDirectory(
+        at: FilePath.logsDirectory,
+        withIntermediateDirectories: true
+      )
+      appLogger.info("logs directory created at: \(FilePath.workingDirectory.path)")
     } catch {
       appLogger.error("Failed to create working directory: \(error.localizedDescription)")
     }
@@ -90,21 +103,30 @@ class AppDelegate: FlutterAppDelegate {
       return
     }
 
+    appLogger.info("Current directory changed to: \(FilePath.sharedDirectory.path)")
+
   }
 
   /// Calls API handler setup
   private func setupRadiance() {
     Task {
-      // Set up the base directory and options
-      let baseDir = FilePath.workingDirectory.relativePath
-      let opts = MobileOpts()
-      opts.dataDir = baseDir
+      let opts = UtilsOpts()
+      opts.dataDir = FilePath.dataDirectory.relativePath
+      opts.logDir = FilePath.logsDirectory.relativePath
+      appLogger.info("Data directory: " + opts.dataDir)
+      appLogger.info("Log directory: " + opts.logDir)
+      opts.deviceid = ""
+      opts.logLevel = "debug"
+      appLogger.info("Log level: " + opts.logLevel)
+
       opts.locale = Locale.current.identifier
       var error: NSError?
-      await MobileSetupRadiance(opts, &error)
+      MobileSetupRadiance(opts, &error)
       // Handle any error returned by the setup
       if let error {
         appLogger.error("Error while setting up radiance: \(error)")
+      } else {
+        appLogger.info("Radiance setup complete")
       }
     }
   }

@@ -31,7 +31,10 @@ MACOS_FRAMEWORK := Liblantern.xcframework
 MACOS_FRAMEWORK_DIR := macos/Frameworks
 MACOS_FRAMEWORK_BUILD := $(BIN_DIR)/macos/$(MACOS_FRAMEWORK)
 MACOS_DEBUG_BUILD := $(BUILD_DIR)/macos/Runner.app
-PACKET_ENTITLEMENTS := macos/PacketTunnel/PacketTunnelRelease.entitlements
+PACKET_TUNNEL_DIR := $(DARWIN_RELEASE_BUILD)/Contents/PlugIns/PacketTunnel.appex
+SYSTEM_EXTENSION_DIR := $(DARWIN_RELEASE_DIR)/$(DARWIN_APP_NAME)/Contents/Library/SystemExtensions/org.getlantern.lantern.packet.systemextension
+PACKET_ENTITLEMENTS := macos/PacketTunnel/PacketTunnel.entitlements
+
 
 LINUX_LIB := $(LANTERN_LIB_NAME).so
 LINUX_LIB_AMD64 := $(BIN_DIR)/linux-amd64/$(LANTERN_LIB_NAME).so
@@ -92,6 +95,8 @@ endef
 get-command = $(shell which="$$(which $(1) 2> /dev/null)" && if [[ ! -z "$$which" ]]; then printf %q "$$which"; fi)
 APPDMG    := $(call get-command,appdmg)
 
+DART_DEFINE := --dart-define=BUILD_TYPE=$(BUILD_TYPE)
+
 ## APP_VERSION is the version defined in pubspec.yaml
 APP_VERSION := $(shell grep '^version:' pubspec.yaml | sed 's/version: //;s/ //g')
 
@@ -141,29 +146,8 @@ install-macos-deps: install-gomobile
 	brew install imagemagick || true
 	dart pub global activate flutter_distributor
 
-.PHONY: macos-arm64
-macos-arm64: $(DARWIN_LIB_ARM64)
-
-$(DARWIN_LIB_ARM64): $(GO_SOURCES)
-	GOARCH=arm64 LIB_NAME=$@ make desktop-lib
-
-.PHONY: macos-amd64
-macos-amd64: $(DARWIN_LIB_AMD64)
-
-$(DARWIN_LIB_AMD64): $(GO_SOURCES)
-	GOARCH=amd64 LIB_NAME=$@ make desktop-lib
-
 .PHONY: macos
-macos: $(DARWIN_LIB_BUILD) $(MACOS_FRAMEWORK_BUILD)
-
-$(DARWIN_LIB_BUILD): $(GO_SOURCES)
-	$(MAKE) macos-arm64 macos-amd64
-	rm -rf $@ && mkdir -p $(dir $@)
-	lipo -create $(DARWIN_LIB_ARM64) $(DARWIN_LIB_AMD64) -output $@
-	install_name_tool -id "@rpath/${DARWIN_LIB}" $@
-	mkdir -p $(MACOS_FRAMEWORK_DIR) && cp $@ $(MACOS_FRAMEWORK_DIR)
-	cp $(BIN_DIR)/macos-amd64/$(LANTERN_LIB_NAME)*.h $(MACOS_FRAMEWORK_DIR)/
-	@echo "Built macOS library: $(MACOS_FRAMEWORK_DIR)/$(DARWIN_LIB)"
+macos: $(MACOS_FRAMEWORK_BUILD)
 
 $(MACOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 	@echo "Building macOS Framework.."
@@ -191,7 +175,7 @@ $(DARWIN_DEBUG_BUILD): $(DARWIN_LIB_BUILD)
 
 $(DARWIN_RELEASE_BUILD):
 	@echo "Building Flutter app (release) for macOS..."
-	flutter build macos --release
+	flutter build macos --release --dart-define=BUILD_TYPE=$(BUILD_TYPE)
 
 build-macos-release: $(DARWIN_RELEASE_BUILD)
 
@@ -209,6 +193,9 @@ notarize-darwin: require-ac-username require-ac-password
 	@echo "Notarization complete"
 
 sign-app:
+	$(call osxcodesign, $(PACKET_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR)/Contents/Frameworks/Liblantern.framework)
+	$(call osxcodesign, $(PACKET_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR)/Contents/MacOS/org.getlantern.lantern.packet)
+	$(call osxcodesign, $(PACKET_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR))
 	$(call osxcodesign, $(MACOS_ENTITLEMENTS), $(DARWIN_RELEASE_BUILD))
 
 package-macos: require-appdmg
@@ -248,9 +235,9 @@ linux-debug:
 .PHONY: linux-release
 linux-release: clean linux pubget gen
 	@echo "Building Flutter app (release) for Linux..."
-	flutter build linux --release
+	flutter build linux --release --dart-define=BUILD_TYPE=$(BUILD_TYPE)
 	cp $(LINUX_LIB_BUILD) build/linux/x64/release/bundle
-	flutter_distributor package --platform linux --targets "deb,rpm" --skip-clean
+	flutter_distributor package --build-dart-define=BUILD_TYPE=$(BUILD_TYPE) --platform linux --targets "deb,rpm" --skip-clean
 	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-linux.rpm $(LINUX_INSTALLER_RPM)
 	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-linux.deb $(LINUX_INSTALLER_DEB)
 
@@ -281,7 +268,7 @@ windows-debug: windows
 
 .PHONY: windows-release
 windows-release: clean windows pubget gen
-	flutter_distributor package --flutter-build-args=verbose --platform windows --targets "exe"
+	flutter_distributor package --build-dart-define=BUILD_TYPE=$(BUILD_TYPE) --platform windows --targets "exe"
 
 .PHONY: install-gomobile
 install-gomobile:
@@ -366,7 +353,7 @@ build-ios:
 
 .PHONY: format swift-format
 swift-format:
-	swift-format format --in-place --recursive ios/Runner macos/Runner macos/PacketTunnel
+	swift-format format --in-place --recursive ios/Runner ios/Tunnel ios/Shared macos/Runner macos/PacketTunnel macos/Shared
 
 format:
 	@echo "Formatting Dart code..."
