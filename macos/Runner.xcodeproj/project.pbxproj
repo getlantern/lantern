@@ -167,7 +167,6 @@
 		5F53D0152E42442000740586 /* PrivateServerEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivateServerEventHandler.swift; sourceTree = "<group>"; };
 		5F53D0392E44112E00740586 /* SystemExtensionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemExtensionManager.swift; sourceTree = "<group>"; };
 		5F53D03F2E4414A100740586 /* FilePath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilePath.swift; sourceTree = "<group>"; };
-		5FEB87032D9E3AAC000AE0DB /* liblantern.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = liblantern.dylib; path = Frameworks/liblantern.dylib; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 		831CC47A1A5EE5E9DF45C2BC /* Pods_RunnerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_RunnerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		967C821650324F795ACA825A /* Pods-RunnerTests.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.profile.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.profile.xcconfig"; sourceTree = "<group>"; };
@@ -307,7 +306,6 @@
 			isa = PBXGroup;
 			children = (
 				29952B422DE7A5F300640E7F /* Shared */,
-				5FEB87032D9E3AAC000AE0DB /* liblantern.dylib */,
 				33FAB671232836740065AC1E /* Runner */,
 				33CEB47122A05771004F2AC0 /* Flutter */,
 				331C80D6294CF71000263BE5 /* RunnerTests */,
