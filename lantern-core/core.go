@@ -135,7 +135,7 @@ func (lc *LanternCore) initialize() error {
 	}
 
 	var smErr error
-	if lc.serverManager, smErr = servers.NewManager(lc.opts.DataDir); smErr != nil {
+	if lc.serverManager, smErr = lc.rad.ServerManager(); smErr != nil {
 		return fmt.Errorf("unable to create server manager: %v", smErr)
 	}
 
