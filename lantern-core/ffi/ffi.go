@@ -258,12 +258,12 @@ func stripeSubscriptionPaymentRedirect(subType, _planId, _email *C.char) *C.char
 	subscriptionType := C.GoString(subType)
 	planId := C.GoString(_planId)
 	email := C.GoString(_email)
-	slog.Debug("subscription type: %s", subscriptionType)
+	slog.Debug("subscription type:", "subscriptionType", subscriptionType)
 	redirect, err := core().StripeSubscriptionPaymentRedirect(subscriptionType, planId, email)
 	if err != nil {
 		return SendError(err)
 	}
-	slog.Debug("stripeSubscriptionPaymentRedirect response: %s", redirect)
+	slog.Debug("stripeSubscriptionPaymentRedirect response:", "redirect", redirect)
 	return C.CString(redirect)
 }
 
@@ -432,7 +432,7 @@ func completeRecoveryByEmail(_email, _newPassword, _code *C.char) *C.char {
 func deleteAccount(_email, _password *C.char) *C.char {
 	email := C.GoString(_email)
 	password := C.GoString(_password)
-	slog.Debug("Deleting account for %s", email)
+	slog.Debug("Deleting account for:", "email", email)
 	bytes, err := core().DeleteAccount(email, password)
 	if err != nil {
 		return SendError(fmt.Errorf("Error deleting account: %v", err))
@@ -472,17 +472,17 @@ func main() {
 type ffiPrivateServerEventListener struct{}
 
 func (l *ffiPrivateServerEventListener) OnPrivateServerEvent(event string) {
-	slog.Debug("Private server event: %s", event)
+	slog.Debug("Private server event:", "event", event)
 	sendPrivateServerEvent(event)
 }
 
 func (l *ffiPrivateServerEventListener) OnError(err string) {
-	slog.Debug("Private server error: %v", err)
+	slog.Debug("Private server error:", "err", err)
 	sendPrivateServerEvent(err)
 }
 
 func (l *ffiPrivateServerEventListener) OpenBrowser(url string) error {
-	slog.Debug("Opening browser with URL: %s", url)
+	slog.Debug("Opening browser with URL:", "url", url)
 	mapStatus := map[string]string{
 		"status": "openBrowser",
 		"data":   url,
@@ -510,7 +510,7 @@ func digitalOceanPrivateServer() *C.char {
 	ffiEventListener := &ffiPrivateServerEventListener{}
 	err := core().DigitalOceanPrivateServer(ffiEventListener)
 	if err != nil {
-		slog.Error("Error starting DigitalOcean private server flow: %v", err)
+		slog.Error("Error starting DigitalOcean private server flow:", "err", err)
 		return SendError(err)
 	}
 	slog.Debug("DigitalOcean private server flow started successfully")
@@ -535,11 +535,11 @@ func googleCloudPrivateServer() *C.char {
 //export selectAccount
 func selectAccount(_account *C.char) *C.char {
 	account := C.GoString(_account)
-	slog.Debug("Selecting account: %s", account)
+	slog.Debug("Selecting account:", "account", account)
 	if err := core().SelectAccount(account); err != nil {
 		return SendError(fmt.Errorf("Error selecting account: %v", err))
 	}
-	slog.Debug("Account %s selected successfully", account)
+	slog.Debug("Account selected successfully:", "account", account)
 	return C.CString("ok")
 }
 
@@ -552,7 +552,7 @@ func selectProject(_project *C.char) *C.char {
 	if err != nil {
 		return SendError(fmt.Errorf("Error getting selected project: %v", err))
 	}
-	slog.Debug("Selected project: %s", project)
+	slog.Debug("Selected project:", "project", project)
 	return C.CString("ok")
 }
 
@@ -620,12 +620,12 @@ func inviteToServerManagerInstance(_ip, _port, _accessToken, _inviteName *C.char
 	port := C.GoString(_port)
 	accessToken := C.GoString(_accessToken)
 	inviteName := C.GoString(_inviteName)
-	slog.Debug("Inviting to server manager instance %s:%s with invite name %s", ip, port, inviteName)
+	slog.Debug("Inviting to server manager instance:", "ip", ip, "port", port, "inviteName", inviteName)
 	invite, err := core().InviteToServerManagerInstance(ip, port, accessToken, inviteName)
 	if err != nil {
 		return SendError(fmt.Errorf("Error inviting to server manager instance: %v", err))
 	}
-	slog.Debug("Invite created successfully: %s", invite)
+	slog.Debug("Invite created successfully:", "invite", invite)
 	return C.CString(invite)
 }
 
@@ -637,11 +637,11 @@ func revokeServerManagerInvite(_ip, _port, _accessToken, _inviteName *C.char) *C
 	port := C.GoString(_port)
 	accessToken := C.GoString(_accessToken)
 	inviteName := C.GoString(_inviteName)
-	slog.Debug("Revoking invite %s for server %s:%s", inviteName, ip, port)
+	slog.Debug("Revoking invite:", "inviteName", inviteName, "ip", ip, "port", port)
 	err := core().RevokeServerManagerInvite(ip, port, accessToken, inviteName)
 	if err != nil {
 		return SendError(fmt.Errorf("Error revoking server manager invite: %v", err))
 	}
-	slog.Debug("Invite %s revoked successfully for server %s:%s", inviteName, ip, port)
+	slog.Debug("Invite revoked successfully:", "inviteName", inviteName, "ip", ip, "port", port)
 	return C.CString("ok")
 }
