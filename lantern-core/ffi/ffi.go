@@ -42,7 +42,7 @@ const (
 	privateserverService service = "privateServer"
 
 	serverManagerKey      = "server-manager"
-	spiltTunnelHandlerKey = "splitTunnelHandler"
+	splitTunnelHandlerKey = "splitTunnelHandler"
 )
 
 type VPNStatus string
@@ -121,7 +121,7 @@ func setup(_logDir, _dataDir, _locale *C.char, logPort, appsPort, statusPort, pr
 		if sthErr != nil {
 			outError = fmt.Errorf("unable to create split tunnel handler: %v", sthErr)
 		}
-		storeRadiance.Store(spiltTunnelHandlerKey, sth)
+		storeRadiance.Store(splitTunnelHandlerKey, sth)
 		serverManager := r.ServerManager()
 		storeRadiance.Store(serverManagerKey, serverManager)
 
@@ -163,7 +163,7 @@ func getServerManager() (*servers.Manager, error) {
 }
 
 func getSplitTunnelHandler() (*vpn.SplitTunnel, error) {
-	if v, ok := storeRadiance.Load(spiltTunnelHandlerKey); ok {
+	if v, ok := storeRadiance.Load(splitTunnelHandlerKey); ok {
 		if sth, ok := v.(*vpn.SplitTunnel); ok {
 			return sth, nil
 		}
