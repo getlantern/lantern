@@ -652,19 +652,19 @@ class MethodHandler {
     }
   }
 
-    func featureFlags(result: @escaping FlutterResult) {
-      Task.detached {
-        var error: NSError?
-        let flags = MobileAvailableFeatures(&error)
-          if let err = error {
-              await self.handleFlutterError(err, result: result, code: "FEATURE_FLAGS_ERROR")
-              return
-          }
-        await MainActor.run {
-          result(String(data: flags!, encoding: .utf8))
-        }
+  func featureFlags(result: @escaping FlutterResult) {
+    Task.detached {
+      var error: NSError?
+      let flags = MobileAvailableFeatures(&error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "FEATURE_FLAGS_ERROR")
+        return
+      }
+      await MainActor.run {
+        result(String(data: flags!, encoding: .utf8))
       }
     }
+  }
 
   //Utils method for hanlding Flutter errors
   private func handleFlutterError(
