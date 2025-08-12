@@ -148,10 +148,10 @@ func (lc *LanternCore) initialize() error {
 
 func (lc *LanternCore) AvailableFeatures() []byte {
 	features := lc.rad.Features()
-	slog.Debug("Available features: %v", features)
+	slog.Debug("Available features", "features", features)
 	jsonBytes, err := json.Marshal(features)
 	if err != nil {
-		slog.Error("Error marshalling features: %v", err)
+		slog.Error("Error marshalling features", "error", err)
 		return nil
 	}
 	return jsonBytes
@@ -236,7 +236,7 @@ func (lc *LanternCore) FetchUserData() ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error getting user data: %w", err)
 	}
-	slog.Debug("UserData response: %v", user)
+	slog.Debug("UserData response:", "user", user)
 	login := &protos.LoginResponse{
 		LegacyID:       user.UserId,
 		LegacyToken:    user.Token,
@@ -277,7 +277,7 @@ func (lc *LanternCore) OAuthLoginCallback(oAuthToken string) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error getting user data: %w", err)
 	}
-	slog.Debug("UserData response: %v", user)
+	slog.Debug("UserData response:", "user", user)
 	userResponse := &protos.LoginResponse{
 		Id:             jwtUserInfo.Email,
 		EmailConfirmed: true,
@@ -310,14 +310,14 @@ func (lc *LanternCore) StripeSubscription(email, planID string) (string, error) 
 	if err != nil {
 		return "", fmt.Errorf("error creating stripe subscription: %w", err)
 	}
-	slog.Debug("StripeSubscription response: %v", stripeSubscription)
+	slog.Debug("StripeSubscription response:", "response", stripeSubscription)
 	jsonData, err := json.Marshal(stripeSubscription)
 	if err != nil {
 		return "", fmt.Errorf("error marshalling stripe subscription: %w", err)
 	}
 	// Convert bytes to string and print
 	jsonString := string(jsonData)
-	slog.Debug("StripeSubscription response: %v", jsonString)
+	slog.Debug("StripeSubscription response:", "response", jsonString)
 	return jsonString, nil
 }
 
@@ -331,7 +331,7 @@ func (lc *LanternCore) Plans(channel string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error marshalling plans: %w", err)
 	}
-	slog.Debug("Plans response: %v", string(jsonData))
+	slog.Debug("Plans response:", "response", string(jsonData))
 	// Convert bytes to string and print
 	return string(jsonData), nil
 }
@@ -355,12 +355,12 @@ func (lc *LanternCore) AcknowledgeGooglePurchase(purchaseToken, planId string) e
 	if err != nil {
 		return fmt.Errorf("error acknowledging google purchase: %w", err)
 	}
-	slog.Debug("acknowledge google purchase: %v", status)
+	slog.Debug("acknowledge google purchase:", "status", status)
 	return nil
 }
 
 func (lc *LanternCore) AcknowledgeApplePurchase(receipt, planII string) error {
-	slog.Debug("Apple receipt: ", "receipt", receipt, "planId", planII)
+	slog.Debug("Apple receipt:", "receipt", receipt, "planId", planII)
 	params := map[string]string{
 		"receipt": receipt,
 		"planId":  planII,
@@ -528,19 +528,19 @@ func (lc *LanternCore) SelectedCertFingerprint(fp string) {
 func (lc *LanternCore) AddServerManagerInstance(ip, port, accessToken, tag string, events utils.PrivateServerEventListener) error {
 	return privateserver.AddServerManually(ip, port, accessToken, tag, lc.serverManager, events)
 }
-func (lc *LanternCore) InviteToServerManagerInstance(ip string, port string, accessToken string, inviteName string) (string, error) {
+func (lc *LanternCore) InviteToServerManagerInstance(ip, port, accessToken, inviteName string) (string, error) {
 	portInt, _ := strconv.Atoi(port)
 	accessToken, err := privateserver.InviteToServerManagerInstance(ip, portInt, accessToken, inviteName, lc.serverManager)
 	if err != nil {
 		return "", fmt.Errorf("error inviting to server manager instance: %w", err)
 	}
-	slog.Debug("Invite to server manager instance %s:%d with name %s", ip, portInt, inviteName)
+	slog.Debug("Invite to server manager instance:", "ip", ip, "port", portInt, "name", inviteName)
 	return accessToken, nil
 }
 
-func (lc *LanternCore) RevokeServerManagerInvite(ip string, port string, accessToken string, inviteName string) error {
+func (lc *LanternCore) RevokeServerManagerInvite(ip, port, accessToken, inviteName string) error {
 	portInt, _ := strconv.Atoi(port)
-	slog.Debug("Revoking invite %s for server %s:%d", inviteName, ip, portInt)
+	slog.Debug("Revoking invite:", "name", inviteName, "ip", ip, "port", port)
 	return privateserver.RevokeServerManagerInvite(ip, portInt, accessToken, inviteName, lc.serverManager)
 }
 
