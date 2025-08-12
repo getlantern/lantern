@@ -117,20 +117,12 @@ func setup(_logDir, _dataDir, _locale *C.char, logPort, appsPort, statusPort, pr
 		// init app cache in background
 		go apps.LoadInstalledApps(dataDir, sendApps(int64(appsPort)))
 
-		spilt, err := vpn.NewSplitTunnelHandler()
-		if err != nil {
-			log.Errorf("Error creating split tunnel handler: %v", err)
-		}
 		sth, sthErr := vpn.NewSplitTunnelHandler()
 		if sthErr != nil {
 			outError = fmt.Errorf("unable to create split tunnel handler: %v", sthErr)
 		}
 		storeRadiance.Store(spiltTunnelHandlerKey, sth)
-		serverManager, mngErr := servers.NewManager(opts.DataDir)
-		if mngErr != nil {
-			outError = fmt.Errorf("unable to create server manager: %v", mngErr)
-			return
-		}
+		serverManager := r.ServerManager()
 		storeRadiance.Store(serverManagerKey, serverManager)
 
 		server = &lanternService{
@@ -143,7 +135,7 @@ func setup(_logDir, _dataDir, _locale *C.char, logPort, appsPort, statusPort, pr
 				statusService:        int64(statusPort),
 				privateserverService: int64(privateServerPort),
 			},
-			splitTunnelHandler: spilt,
+			splitTunnelHandler: sth,
 			userInfo:           r.UserInfo(),
 		}
 
@@ -178,6 +170,22 @@ func getSplitTunnelHandler() (*vpn.SplitTunnel, error) {
 		return nil, fmt.Errorf("split tunnel handler not found")
 	}
 	return nil, fmt.Errorf("split tunnel handler not found")
+}
+
+// availableFeatures returns a list of available features.
+//
+//export availableFeatures
+func availableFeatures() *C.char {
+	if server == nil {
+		return SendError(log.Errorf("radiance not initialized"))
+	}
+	features := server.Features()
+	log.Debugf("available features: %v", features)
+	jsonBytes, err := json.Marshal(features)
+	if err != nil {
+		return SendError(log.Errorf("Error marshalling features: %v", err))
+	}
+	return C.CString(string(jsonBytes))
 }
 
 //export addSplitTunnelItem

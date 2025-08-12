@@ -19,17 +19,27 @@ enum _SettingTileType {
 }
 
 @RoutePage(name: 'Home')
-class Home extends HookConsumerWidget {
-  Home({super.key});
+class Home extends StatefulHookConsumerWidget {
+  const Home({super.key});
 
+  @override
+  ConsumerState<Home> createState() => _HomeState();
+}
+
+class _HomeState extends ConsumerState<Home> {
   TextTheme? textTheme;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isUserPro = ref.isUserPro;
+  void initState() {
+    //should be called only once
     ref.read(featureFlagNotifierProvider.notifier);
-    textTheme = Theme.of(context).textTheme;
+    super.initState();
+  }
 
+  @override
+  Widget build(BuildContext context) {
+    final isUserPro = ref.isUserPro;
+    textTheme = Theme.of(context).textTheme;
     return Scaffold(
       appBar: AppBar(
           backgroundColor: AppColors.white,
