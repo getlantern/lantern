@@ -50,7 +50,7 @@ msgid "manage_subscription"
 msgstr "Manage Subscription"
 
 msgid "lantern_pro_devices"
-msgstr "Lantern Pro Devices (Up to 3)"
+msgstr "Lantern Pro Devices"
 
 msgid "remove"
 msgstr "Remove"
@@ -930,4 +930,17 @@ msgstr "Get Lantern Pro"
 
 msgid "connected_to_private_server"
 msgstr "Connected to Private Server"
+
+
+msgid "device_limit_reached"
+msgstr "Device Limit Reached"
+
+msgid "device_limit_reached_message"
+msgstr "You’ve reached your 5-device limit. Please remove a device to continue."
+
+msgid "remove_device_and_sign_in"
+msgstr "Remove Device and Sign In"
+
+msgid "cancel_sign_in"
+msgstr "Cancel Sign In"
 

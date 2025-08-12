@@ -113,6 +113,10 @@ abstract class LanternCoreService {
   Future<Either<Failure, UserResponse>> deleteAccount(
       {required String email, required String password});
 
+  //Device Remove
+  Future<Either<Failure, String>> deviceRemove({required String deviceId,});
+
+
   /// Private server methods
   Future<Either<Failure, Unit>> digitalOceanPrivateServer();
   Future<Either<Failure, Unit>> googleCloudPrivateServer();

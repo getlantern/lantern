@@ -7,6 +7,7 @@ import 'package:lantern/core/widgets/email_tag.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
+import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 
 @RoutePage(name: 'SignInPassword')
 class SignInPassword extends HookConsumerWidget {
@@ -22,38 +23,40 @@ class SignInPassword extends HookConsumerWidget {
     useListenable(passwordController);
     return BaseScreen(
       title: 'welcome_to_lantern_pro'.i18n,
-      body: Column(
-        children: <Widget>[
-          SizedBox(height: defaultSize),
-          Center(child: EmailTag(email: email)),
-          SizedBox(height: defaultSize),
-          AppTextField(
-            hintText: '',
-            controller: passwordController,
-            prefixIcon: AppImagePaths.lock,
-            label: 'enter_password'.i18n,
-            obscureText: obscureText.value,
-            suffixIcon: _buildSuffix(obscureText),
-            onChanged: (value) {},
-          ),
-          SizedBox(height: 32),
-          PrimaryButton(
-            label: 'continue'.i18n,
-            enabled: passwordController.text.isNotEmpty,
-            onPressed: () => signInWithPassword(
-                context, ref, passwordController.text.trim()),
-          ),
-          SizedBox(height: defaultSize),
-          DividerSpace(),
-          SizedBox(height: 32),
-          AppTextButton(
-            label: 'forgot_password'.i18n,
-            textColor: AppColors.gray9,
-            onPressed: () {
-              appRouter.push(ResetPasswordEmail(email: email));
-            },
-          )
-        ],
+      body: SingleChildScrollView(
+        child: Column(
+          children: <Widget>[
+            SizedBox(height: defaultSize),
+            Center(child: EmailTag(email: email)),
+            SizedBox(height: defaultSize),
+            AppTextField(
+              hintText: '',
+              controller: passwordController,
+              prefixIcon: AppImagePaths.lock,
+              label: 'enter_password'.i18n,
+              obscureText: obscureText.value,
+              suffixIcon: _buildSuffix(obscureText),
+              onChanged: (value) {},
+            ),
+            SizedBox(height: 32),
+            PrimaryButton(
+              label: 'continue'.i18n,
+              enabled: passwordController.text.isNotEmpty,
+              onPressed: () => signInWithPassword(
+                  context, ref, passwordController.text.trim()),
+            ),
+            SizedBox(height: defaultSize),
+            DividerSpace(),
+            SizedBox(height: 32),
+            AppTextButton(
+              label: 'forgot_password'.i18n,
+              textColor: AppColors.gray9,
+              onPressed: () {
+                appRouter.push(ResetPasswordEmail(email: email));
+              },
+            )
+          ],
+        ),
       ),
     );
   }
@@ -90,11 +93,12 @@ class SignInPassword extends HookConsumerWidget {
       (user) {
         context.hideLoadingDialog();
         if (!user.success) {
-          // Login has failed
+          // Login has failed reason being user has reached device limit
           // start device flow
           appLogger
               .warning("Login failed for user: $email, starting device flow");
-          startDeviceFlow();
+          startDeviceFlow(user.devices.toList());
+          return;
         }
         //login successfully
         ref.read(appSettingNotifierProvider.notifier)
@@ -106,9 +110,14 @@ class SignInPassword extends HookConsumerWidget {
     );
   }
 
-  void startDeviceFlow() {
-    // Implement the logic to start the device flow
-    // This could involve navigating to a specific screen or showing a dialog
-    // appRouter.push(const DeviceFlowScreen());
+  void startDeviceFlow(List<UserResponse_Device> devices) {
+    appRouter.push(DeviceLimitReached(devices: devices)).then(
+      (value) {
+        if (value != null && value is bool) {
+          /// If a device was selected, remove it and now sign in
+
+        }
+      },
+    );
   }
 }

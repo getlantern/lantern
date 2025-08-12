@@ -50,6 +50,9 @@ enum class Methods(val method: String) {
     DeleteAccount("deleteAccount"),
     ActivationCode("activationCode"),
 
+    //Device
+    RemoveDevice("removeDevice"),
+
     //private server methods
     DigitalOcean("digitalOcean"),
     SelectAccount("selectAccount"),
@@ -524,6 +527,24 @@ class MethodHandler : FlutterPlugin,
                         val resellerCode =
                             map["resellerCode"] as String? ?: error("Missing resellerCode")
                         Mobile.activationCode(email, resellerCode)
+                        withContext(Dispatchers.Main) {
+                            success("ok")
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "OAuthLoginCallback",
+                            e.localizedMessage ?: "Please try again",
+                            e
+                        )
+                    }
+                }
+            }
+            Methods.RemoveDevice.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val map = call.arguments as Map<*, *>
+                        val deviceId = map["deviceId"] as String? ?: error("Missing device ID")
+                        Mobile.removeDevice(deviceId)
                         withContext(Dispatchers.Main) {
                             success("ok")
                         }

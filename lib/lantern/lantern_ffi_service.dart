@@ -935,6 +935,12 @@ class LanternFFIService implements LanternCoreService {
     // TODO: implement featureFlag
     throw UnimplementedError();
   }
+
+  @override
+  Future<Either<Failure, String>> deviceRemove({required String deviceId}) {
+    // TODO: implement deviceRemove
+    throw UnimplementedError();
+  }
 }
 
 void checkAPIError(dynamic result) {

@@ -450,4 +450,12 @@ class LanternService implements LanternCoreService {
     }
     return _platformService.featureFlag();
   }
+
+  @override
+  Future<Either<Failure, String>> deviceRemove({required String deviceId}) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.deviceRemove(deviceId: deviceId);
+    }
+    return _platformService.deviceRemove(deviceId: deviceId);
+  }
 }

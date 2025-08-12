@@ -508,6 +508,16 @@ func CompleteChangeEmail(email, password, code string) error {
 	return nil
 }
 
+func RemoveDevice(deviceId string) error {
+	log.Debug("Removing device")
+	linkResponse, err := radianceServer.apiClient.DeviceRemove(context.Background(), deviceId)
+	if err != nil {
+		return log.Errorf("Error removing device: %v", err)
+	}
+	log.Debugf("DeviceRemove response: %v", linkResponse)
+	return nil
+}
+
 func DeleteAccount(email, password string) ([]byte, error) {
 	log.Debug("Deleting account")
 	err := radianceServer.apiClient.DeleteAccount(context.Background(), email, password)

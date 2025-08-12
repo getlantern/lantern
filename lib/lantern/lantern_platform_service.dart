@@ -650,4 +650,19 @@ class LanternPlatformService implements LanternCoreService {
       return Left(e.toFailure());
     }
   }
+
+  @override
+  Future<Either<Failure, String>> deviceRemove(
+      {required String deviceId}) async {
+    try {
+      final result = await _methodChannel.invokeMethod<String>('removeDevice', {
+        'deviceId': deviceId,
+      });
+      return Right(result!);
+    } catch (e, stackTrace) {
+      appLogger.error('Error removing device', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
 }
