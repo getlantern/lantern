@@ -52,7 +52,11 @@ add_subdirectory(${FLUTTER_MANAGED_DIR})
 # Application build; see runner/CMakeLists.txt.
 add_subdirectory("runner")
 
-#
+# wintun.dll
+set(WINTUN_DLL "${CMAKE_CURRENT_SOURCE_DIR}/third_party/wintun/bin/amd64/wintun.dll")
+install(FILES "${WINTUN_DLL}" DESTINATION "${CMAKE_INSTALL_PREFIX}" COMPONENT Runtime)
+
+
 ## Copy liblantern.dll for local development
 set(LANTERN_DIR "..")
 
