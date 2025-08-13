@@ -9,7 +9,6 @@ import 'package:lantern/core/widgets/spinner.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
-import 'package:lantern/features/vpn/server_desktop_view.dart';
 import 'package:lantern/features/vpn/server_mobile_view.dart';
 
 typedef OnSeverSelected = Function(String selectedServer);
@@ -229,43 +228,47 @@ class ServerLocationListView extends HookConsumerWidget {
           left: 0,
           child: Column(
             children: [
-              Expanded(
-                child: AppCard(
-                  padding: EdgeInsets.zero,
-                  child: availableServers.when(
-                      data: (data) {
-                        return ListView.builder(
-                          padding: EdgeInsets.zero,
-                          shrinkWrap: true,
-                          itemCount: 15,
-                          itemBuilder: (context, index) {
-                            if (PlatformUtils.isDesktop) {
-                              return ServerDesktopView(
-                                onServerSelected: onServerSelected,
-                              );
-                            }
-                            return ServerMobileView(
-                              onServerSelected: onServerSelected,
-                            );
-                          },
-                        );
-                      },
-                      error: (error, stackTrace) => Text(error.localizedDescription),
-                      loading: () => const Spinner()),
-                ),
+              AppCard(
+                padding: EdgeInsets.zero,
+                child: availableServers.when(
+                    data: (data) {
+                      return ListView.builder(
+                        padding: EdgeInsets.zero,
+                        shrinkWrap: true,
+                        itemCount: data.lantern.locations.keys.length,
+                        itemBuilder: (context, index) {
+                          final serverData = data.lantern.locations.values.elementAt(index);
+                          // if (PlatformUtils.isDesktop) {
+                          //   return ServerDesktopView(
+                          //       onServerSelected: onServerSelected);
+                          // }
+                          return ServerMobileView(
+                            onServerSelected: onServerSelected,
+                            location: serverData,
+                          );
+                        },
+                      );
+                    },
+                    error: (error, stackTrace) =>
+                        Text(error.localizedDescription),
+                    loading: () => const Spinner()),
               ),
             ],
           ),
         ),
         if (!userPro)
           Container(
-            color: AppColors.white.withValues(alpha: 0.5),
+            color: AppColors.white.withValues(alpha: 0.7),
           )
       ],
     );
   }
 
-  void onServerSelected(String selectedServer) {}
+  void onServerSelected(String selectedServer) {
+
+
+
+  }
 }
 
 class PrivateServerLocationListView extends StatefulHookConsumerWidget {
