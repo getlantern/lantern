@@ -35,7 +35,6 @@ PACKET_TUNNEL_DIR := $(DARWIN_RELEASE_BUILD)/Contents/PlugIns/PacketTunnel.appex
 SYSTEM_EXTENSION_DIR := $(DARWIN_RELEASE_DIR)/$(DARWIN_APP_NAME)/Contents/Library/SystemExtensions/org.getlantern.lantern.packet.systemextension
 PACKET_ENTITLEMENTS := macos/PacketTunnel/PacketTunnel.entitlements
 
-
 LINUX_LIB := $(LANTERN_LIB_NAME).so
 LINUX_LIB_AMD64 := $(BIN_DIR)/linux-amd64/$(LANTERN_LIB_NAME).so
 LINUX_LIB_ARM64 := $(BIN_DIR)/linux-arm64/$(LANTERN_LIB_NAME).so
@@ -54,10 +53,29 @@ $(subst /,$(PATH_SEP),$1)
 endef
 
 WINDOWS_LIB := $(LANTERN_LIB_NAME).dll
+WINDOWS_DIR := windows
 WINDOWS_LIB_AMD64 := $(BIN_DIR)/windows-amd64/$(WINDOWS_LIB)
 WINDOWS_LIB_ARM64 := $(BIN_DIR)/windows-arm64/$(WINDOWS_LIB)
-WINDOWS_LIB_BUILD := $(call join_path,$(BIN_DIR)/windows/$(WINDOWS_LIB))
-WINDOWS_RELEASE_DIR := $(call join_path,$(BUILD_DIR)/windows/x64/runner/Release)
+WINDOWS_LIB_BUILD := $(call join_path,$(BIN_DIR)/$(WINDOWS_DIR)/$(WINDOWS_LIB))
+
+WINDOWS_RELEASE_DIR := $(call join_path,$(BUILD_DIR)/$(WINDOWS_DIR)/x64/runner/Release)
+WINDOWS_DEBUG_DIR   := $(call join_path,$(BUILD_DIR)/$(WINDOWS_DIR)/x64/runner/Debug)
+
+WINDOWS_SERVICE_NAME := lanternsvc.exe
+WINDOWS_SERVICE_SRC  := ./$(LANTERN_CORE)/cmd/lanternsvc
+WINDOWS_SERVICE_BUILD := $(call join_path,$(BIN_DIR)/windows-amd64/$(WINDOWS_SERVICE_NAME))
+
+WINTUN_ARCH ?= amd64
+WINTUN_BASE_URL := https://wwW.wintun.net
+WINTUN_BUILDS_URL  := $(WINTUN_BASE_URL)/builds
+WINTUN_OUT_DIR     ?= $(WINDOWS_DIR)/third_party/wintun/bin/$(WINTUN_ARCH)
+WINTUN_DLL         := $(WINTUN_OUT_DIR)/wintun.dll
+WINTUN_DLL_RELEASE := $(WINDOWS_RELEASE_DIR)/wintun.dll
+WINTUN_DLL_DEBUG   := $(WINDOWS_DEBUG_DIR)/wintun.dll
+
+OSNAME := $(shell uname 2>/dev/null || echo Windows)
+HAS_UNZIP := $(shell command -v unzip >/dev/null 2>&1 && echo yes || echo no)
+POWERSHELL := $(shell command -v powershell >/dev/null 2>&1 && echo powershell || echo pwsh)
 
 ANDROID_LIB := $(LANTERN_LIB_NAME).aar
 ANDROID_LIBS_DIR := android/app/libs
@@ -242,6 +260,8 @@ linux-release: clean linux pubget gen
 	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-linux.deb $(LINUX_INSTALLER_DEB)
 
 # Windows Build
+
+
 .PHONY: install-windows-deps
 install-windows-deps:
 	dart pub global activate flutter_distributor
@@ -261,13 +281,101 @@ windows-arm64: WINDOWS_GOARCH := arm64
 windows-arm64:
 	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_ARM64)
 
+.PHONY: build-lanternsvc-windows
+build-lanternsvc-windows: $(WINDOWS_SERVICE_BUILD)
+
+$(WINDOWS_SERVICE_BUILD):
+	mkdir -p $(dir $@)
+	GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -tags '$(BUILD_TAGS)' \
+		-ldflags '$(EXTRA_LDFLAGS)' \
+		-o $@ $(WINDOWS_SERVICE_SRC)
+
+.PHONY: copy-lanternsvc-release copy-lanternsvc-debug
+copy-lanternsvc-release: $(WINDOWS_SERVICE_BUILD)
+	mkdir -p "$(WINDOWS_RELEASE_DIR)"
+	cp -f "$(WINDOWS_SERVICE_BUILD)" "$(WINDOWS_RELEASE_DIR)/$(WINDOWS_SERVICE_NAME)"
+
+copy-lanternsvc-debug: $(WINDOWS_SERVICE_BUILD)
+	mkdir -p "$(WINDOWS_DEBUG_DIR)"
+	cp -f "$(WINDOWS_SERVICE_BUILD)" "$(WINDOWS_DEBUG_DIR)/$(WINDOWS_SERVICE_NAME)"
+
+.PHONY: wintun clean-wintun
+wintun: $(WINTUN_DLL)
+
+clean-wintun:
+	@rm -rf "$(WINTUN_OUT_DIR)"/*
+
+define PY_RESOLVE_LATEST
+import re, sys, urllib.request
+u = urllib.request.urlopen("$(WINTUN_BASE_URL)")
+h = u.read().decode("utf-8", "replace")
+m = re.search(r"wintun-(\d+\.\d+\.\d+)\.zip", h)
+if not m: sys.exit("Could not locate latest Wintun zip on page")
+ver = m.group(1)
+hm = re.search(r"SHA2-256:\s*`?([0-9a-fA-F]{64})`?", h)
+sha = hm.group(1) if hm else ""
+print(ver + "|" + sha)
+endef
+export PY_RESOLVE_LATEST
+
+$(WINTUN_DLL):
+	@mkdir -p "$(WINTUN_OUT_DIR)"
+	@echo "Downloading latest Wintun version from $(WINTUN_BASE_URL)…"
+	@python3 -c "$$PY_RESOLVE_LATEST" > "$(WINTUN_OUT_DIR)/.latest"
+	@VER=$$(cut -d'|' -f1 "$(WINTUN_OUT_DIR)/.latest"); \
+	  SHA=$$(cut -d'|' -f2 "$(WINTUN_OUT_DIR)/.latest"); \
+	  ZIP="$(WINTUN_OUT_DIR)/wintun-$$VER.zip"; \
+	  URL="$(WINTUN_BUILDS_URL)/wintun-$$VER.zip"; \
+	  echo "Latest version: $$VER"; \
+	  echo "Downloading $$URL"; \
+	  curl -fsSL -o "$$ZIP" "$$URL"; \
+	  if [ -n "$$SHA" ]; then \
+	    echo "$$SHA  $$ZIP" > "$(WINTUN_OUT_DIR)/.sha"; \
+	    if command -v sha256sum >/dev/null 2>&1; then \
+	      sha256sum -c "$(WINTUN_OUT_DIR)/.sha"; \
+	    elif command -v shasum >/dev/null 2>&1; then \
+	      shasum -a 256 -c "$(WINTUN_OUT_DIR)/.sha"; \
+	    else \
+	      echo "No sha256 tool available...Skipping integrity check."; \
+	    fi; \
+	  fi; \
+	  if [ "$(HAS_UNZIP)" = "yes" ]; then \
+	    unzip -q -o "$$ZIP" "wintun/bin/$(WINTUN_ARCH)/wintun.dll" -d "$(WINTUN_OUT_DIR)/_unz"; \
+	    cp -f "$(WINTUN_OUT_DIR)/_unz/wintun/bin/$(WINTUN_ARCH)/wintun.dll" "$(WINTUN_DLL)"; \
+	  else \
+	    echo "Using PowerShell to extract (Windows)"; \
+	    $(POWERSHELL) -NoProfile -ExecutionPolicy Bypass -Command "\
+	      Expand-Archive -Force -Path '$$ZIP' -DestinationPath '$(WINTUN_OUT_DIR)/_unz'; \
+	      Copy-Item -Force '$(WINTUN_OUT_DIR)/_unz/wintun/bin/$(WINTUN_ARCH)/wintun.dll' '$(WINTUN_DLL)'; \
+	    "; \
+	  fi; \
+	  rm -rf "$(WINTUN_OUT_DIR)/_unz"
+	@echo "Installed: $(WINTUN_DLL)"
+
+
+.PHONY: copy-wintun-release copy-wintun-debug
+copy-wintun-release: $(WINTUN_DLL)
+	mkdir -p "$(WINDOWS_RELEASE_DIR)"
+	cp -f "$(WINTUN_DLL)" "$(WINTUN_DLL_RELEASE)"
+
+copy-wintun-debug: $(WINTUN_DLL)
+	mkdir -p "$(WINDOWS_DEBUG_DIR)"
+	cp -f "$(WINTUN_DLL)" "$(WINTUN_DLL_DEBUG)"
+
 .PHONY: windows-debug
 windows-debug: windows
 	@echo "Building Flutter app (debug) for Windows..."
 	flutter build windows --debug
+	$(MAKE) prepare-windows-debug
+
+.PHONY: build-windows-release
+build-windows-release:
+	@echo "Building Flutter app (release) for Windows..."
+	flutter build windows --release
 
 .PHONY: windows-release
-windows-release: clean windows pubget gen
+windows-release: clean windows pubget gen build-windows-release
+	$(MAKE) prepare-windows-release
 	flutter_distributor package --build-dart-define=BUILD_TYPE=$(BUILD_TYPE) --platform windows --targets "exe"
 
 .PHONY: install-gomobile
