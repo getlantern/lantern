@@ -2,7 +2,6 @@ import NetworkExtension
 import OSLog
 
 public class PacketTunnelProvider: ExtensionProvider {
-
   static let logger = Logger(subsystem: "org.getlantern.lantern", category: "PacketTunnelProvider")
 
   let logger: Logger
@@ -17,5 +16,4 @@ public class PacketTunnelProvider: ExtensionProvider {
     logger.log("PacketTunnelProvider starting tunnel")
     try await super.startTunnel(options: options)
   }
-
 }

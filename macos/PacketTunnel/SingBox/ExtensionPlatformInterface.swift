@@ -21,7 +21,11 @@ import UserNotifications
   import CoreWLAN
 #endif
 
-public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtocol {
+public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtocol,
+  LibboxCommandServerHandlerProtocol
+{
+  let appLogger = Logger(
+    subsystem: "org.getlantern.lantern", category: "ExtensionPlatformInterface")
   private let tunnel: ExtensionProvider
   private var networkSettings: NEPacketTunnelNetworkSettings?
 
@@ -45,13 +49,6 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
     }
   }
 
-  func buildDNSSettings(from server: String) -> NEDNSSettings {
-    let dns = NEDNSSettings(servers: [server])
-    dns.matchDomains = [""]
-    dns.matchDomainsNoSearch = true
-    return dns
-  }
-
   private func openTunAsync(
     _ options: LibboxTunOptionsProtocol, _ ret0_: UnsafeMutablePointer<Int32>
   ) async throws {
@@ -66,8 +63,11 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
     appLogger.info("Checking auto route")
     if options.getAutoRoute() {
       settings.mtu = NSNumber(value: options.getMTU())
-      let dnsServer = try options.getDNSServerAddress().value
-      settings.dnsSettings = buildDNSSettings(from: dnsServer)
+      let dnsServer = try options.getDNSServerAddress()
+      let dnsSettings = NEDNSSettings(servers: [dnsServer.value])
+      dnsSettings.matchDomains = [""]
+      dnsSettings.matchDomainsNoSearch = true
+      settings.dnsSettings = dnsSettings
 
       var ipv4Address: [String] = []
       var ipv4Mask: [String] = []
@@ -219,6 +219,9 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
       }
       settings.proxySettings = proxySettings
     }
+
+    appLogger.info("Setting network settings...")
+
     networkSettings = settings
     appLogger.info("Setting tunnel network settings to \(settings)...")
     try await tunnel.setTunnelNetworkSettings(settings)
@@ -441,6 +444,17 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
 
   func reset() {
     networkSettings = nil
+  }
+
+  public func serviceReload() throws {
+    runBlocking { [self] in
+      tunnel.reloadService()
+    }
+  }
+
+  public func postServiceClose() {
+    reset()
+    tunnel.postServiceClose()
   }
 
   public func send(_ notification: LibboxNotification?) throws {

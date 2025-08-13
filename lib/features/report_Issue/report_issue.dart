@@ -47,10 +47,11 @@ class ReportIssue extends HookConsumerWidget {
             child: RadioListView(
               scrollController: scrollController,
               items: issueOptions,
-              onTap: (issueType) {
+              onChanged: (String issueType) {
                 selectedIssueController.text = issueType;
                 Navigator.of(context).pop(issueType);
               },
+              groupValue: '',
             ),
           );
         },

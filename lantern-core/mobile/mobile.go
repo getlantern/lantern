@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
-	"path/filepath"
 	"runtime"
 	"strconv"
 	"sync"
@@ -49,28 +47,21 @@ func enableSplitTunneling() bool {
 }
 
 func SetupRadiance(opts *utils.Opts) error {
-	defer func() {
-		if r := recover(); r != nil {
-			log.Errorf("Recovered from panic in SetupRadiance: %v", r)
-		}
-	}()
+	// defer func() {
+	// 	if r := recover(); r != nil {
+	// 		log.Errorf("Recovered from panic in SetupRadiance: %v", r)
+	// 	}
+	// }()
 	var innerErr error
 	setupRadiance.Do(func() {
-		logDir := filepath.Join(opts.DataDir, "logs")
-		if err := os.MkdirAll(opts.DataDir, 0o777); err != nil {
-			log.Errorf("unable to create data directory: %v", err)
-		}
-		if err := os.MkdirAll(logDir, 0o777); err != nil {
-			log.Errorf("unable to create log directory: %v", err)
-		}
-		clientOpts := radiance.Options{
-			LogDir:   logDir,
+		r, err := radiance.NewRadiance(radiance.Options{
+			LogDir:   opts.LogDir,
 			DataDir:  opts.DataDir,
-			Locale:   opts.Locale,
 			DeviceID: opts.Deviceid,
-		}
-		r, err := radiance.NewRadiance(clientOpts)
-		log.Debugf("Paths: %s %s", logDir, opts.DataDir)
+			LogLevel: opts.LogLevel,
+			Locale:   opts.Locale,
+		})
+		log.Debugf("Paths: %s %s", common.LogPath(), common.DataPath())
 		if err != nil {
 			innerErr = fmt.Errorf("unable to create Radiance: %v", err)
 			return
@@ -584,6 +575,14 @@ func DigitalOceanPrivateServer(events utils.PrivateServerEventListener) error {
 		return log.Errorf("Error getting server manager: %v", err)
 	}
 	return privateserver.StartDigitalOceanPrivateServerFlow(events, mgn)
+}
+
+func GoogleCloudPrivateServer(events utils.PrivateServerEventListener) error {
+	mgn, err := getServerManager()
+	if err != nil {
+		return log.Errorf("Error getting server manager: %v", err)
+	}
+	return privateserver.StartGoogleCloudPrivateServerFlow(events, mgn)
 }
 
 func SelectAccount(account string) error {

@@ -25,13 +25,6 @@ extension FilePath {
     sharedDirectory
     .appendingPathComponent("Logs", isDirectory: true)
 
-  public static let cacheDirectory =
-    sharedDirectory
-    .appendingPathComponent("Library", isDirectory: true)
-    .appendingPathComponent("Caches", isDirectory: true)
-
-  public static let workingDirectory = cacheDirectory.appendingPathComponent(
-    "Working", isDirectory: true)
 }
 
 extension URL {

@@ -36,12 +36,13 @@ import (
 type service string
 
 const (
-	appsService           service = "apps"
-	logsService           service = "logs"
-	statusService         service = "status"
-	privateserverService  service = "privateServer"
-	serverManagerKey              = "server-manager"
-	spiltTunnelHandlerKey         = "splitTunnelHandler"
+	appsService          service = "apps"
+	logsService          service = "logs"
+	statusService        service = "status"
+	privateserverService service = "privateServer"
+
+	serverManagerKey      = "server-manager"
+	spiltTunnelHandlerKey = "splitTunnelHandler"
 )
 
 type VPNStatus string
@@ -195,9 +196,9 @@ func availableFeatures() []byte {
 
 //export reportIssue
 func reportIssue(emailC, typeC, descC, deviceC, modelC, logPathC *C.char) *C.char {
+
 	mu.Lock()
 	defer mu.Unlock()
-
 	if server == nil {
 		return C.CString("radiance not initialized")
 	}
@@ -778,6 +779,24 @@ func digitalOceanPrivateServer() *C.char {
 		return SendError(err)
 	}
 	log.Debug("DigitalOcean private server flow started successfully")
+	return C.CString("ok")
+}
+
+// googleCloudPrivateServer starts the Google Cloud private server flow.
+//
+//export googleCloudPrivateServer
+func googleCloudPrivateServer() *C.char {
+	mngr, err := getServerManager()
+	if err != nil {
+		return SendError(log.Errorf("Error getting server manager: %v", err))
+	}
+	ffiEventListener := &ffiPrivateServerEventListener{}
+	err = privateserver.StartGoogleCloudPrivateServerFlow(ffiEventListener, mngr)
+	if err != nil {
+		log.Errorf("Error starting DigitalOcean private server flow: %v", err)
+		return SendError(err)
+	}
+	log.Debug("Google Cloud private server flow started successfully")
 	return C.CString("ok")
 }
 

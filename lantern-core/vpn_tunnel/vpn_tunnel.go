@@ -23,7 +23,7 @@ const (
 // it pass empty string so it will connect to best server available.
 func StartVPN(platform libbox.PlatformInterface, options *utils.Opts) error {
 	if radianceCommon.IsIOS() || radianceCommon.IsMacOS() {
-		err := initializeCommonForApplePlatforms(options.DataDir, filepath.Join(options.DataDir, "logs"), options.LogLevel)
+		err := initializeCommonForApplePlatforms(options.DataDir, options.LogDir, options.LogLevel)
 		if err != nil {
 			return err
 		}

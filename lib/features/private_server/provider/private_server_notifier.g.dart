@@ -7,7 +7,7 @@ part of 'private_server_notifier.dart';
 // **************************************************************************
 
 String _$privateServerNotifierHash() =>
-    r'56d4ed9176a879f448830f93edf14a65c8a23db6';
+    r'7cf68d77a896bcb87f13e055d167a4e88ae090a8';
 
 /// See also [PrivateServerNotifier].
 @ProviderFor(PrivateServerNotifier)

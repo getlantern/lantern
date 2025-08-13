@@ -27,7 +27,7 @@ class LanternPlatformService implements LanternCoreService {
   static const MethodChannel _methodChannel =
       MethodChannel('org.getlantern.lantern/method');
   static const logsChannel = EventChannel("$channelPrefix/logs");
-  static const statusChannel =
+  static const EventChannel statusChannel =
       EventChannel("$channelPrefix/status", JSONMethodCodec());
 
   static const privateServerStatusChannel =
@@ -38,6 +38,7 @@ class LanternPlatformService implements LanternCoreService {
   @override
   Future<void> init() async {
     appLogger.info(' LanternPlatformService');
+
     _status = statusChannel
         .receiveBroadcastStream()
         .map((event) => LanternStatus.fromJson(event));
@@ -479,6 +480,17 @@ class LanternPlatformService implements LanternCoreService {
   Future<Either<Failure, Unit>> digitalOceanPrivateServer() async {
     try {
       await _methodChannel.invokeMethod('digitalOcean');
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error activating code', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> googleCloudPrivateServer() async {
+    try {
+      await _methodChannel.invokeMethod('googleCloud');
       return Right(unit);
     } catch (e, stackTrace) {
       appLogger.error('Error activating code', e, stackTrace);
