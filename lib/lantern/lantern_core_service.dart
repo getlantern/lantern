@@ -1,6 +1,7 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/models/private_server_status.dart';
@@ -153,5 +154,5 @@ abstract class LanternCoreService {
   Future<Either<Failure, String>> featureFlag();
 
   ///Custom/lantern server methods
-  Future<Either<Failure, Unit>> getLanternAvailableServers();
+  Future<Either<Failure, AvailableServers>> getLanternAvailableServers();
 }

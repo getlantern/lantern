@@ -5,6 +5,8 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/private_server_entity.dart';
 import 'package:lantern/core/models/server_location_entity.dart';
 import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/widgets/spinner.dart';
+import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/vpn/server_desktop_view.dart';
@@ -22,12 +24,6 @@ class ServerSelection extends StatefulHookConsumerWidget {
 
 class _ServerSelectionState extends ConsumerState<ServerSelection> {
   TextTheme? _textTheme;
-
-  @override
-  void initState() {
-    super.initState();
-    ref.read(serverLocationNotifierProvider.notifier).getLanternServers();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -201,7 +197,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
   }
 }
 
-class ServerLocationListView extends StatelessWidget {
+class ServerLocationListView extends HookConsumerWidget {
   final bool userPro;
 
   const ServerLocationListView({
@@ -210,8 +206,9 @@ class ServerLocationListView extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
+    final availableServers = ref.watch(availableServersNotifierProvider);
     return Stack(
       children: [
         Positioned(
@@ -235,21 +232,26 @@ class ServerLocationListView extends StatelessWidget {
               Expanded(
                 child: AppCard(
                   padding: EdgeInsets.zero,
-                  child: ListView.builder(
-                    padding: EdgeInsets.zero,
-                    shrinkWrap: true,
-                    itemCount: 15,
-                    itemBuilder: (context, index) {
-                      if (PlatformUtils.isDesktop) {
-                        return ServerDesktopView(
-                          onServerSelected: onServerSelected,
+                  child: availableServers.when(
+                      data: (data) {
+                        return ListView.builder(
+                          padding: EdgeInsets.zero,
+                          shrinkWrap: true,
+                          itemCount: 15,
+                          itemBuilder: (context, index) {
+                            if (PlatformUtils.isDesktop) {
+                              return ServerDesktopView(
+                                onServerSelected: onServerSelected,
+                              );
+                            }
+                            return ServerMobileView(
+                              onServerSelected: onServerSelected,
+                            );
+                          },
                         );
-                      }
-                      return ServerMobileView(
-                        onServerSelected: onServerSelected,
-                      );
-                    },
-                  ),
+                      },
+                      error: (error, stackTrace) => Text(error.localizedDescription),
+                      loading: () => const Spinner()),
                 ),
               ),
             ],
@@ -283,9 +285,7 @@ class _PrivateServerLocationListViewState
   Widget build(BuildContext context) {
     _textTheme = Theme.of(context).textTheme;
 
-    // final serverLocationNotifier = ref.read(serverLocationNotifierProvider.notifier);
     final userSelectedServer = ref.watch(serverLocationNotifierProvider);
-    // final userSelectedServer = useState(serverLocation);
     final servers = _localStorage.getPrivateServer();
     final myServer = servers.where((element) => !element.isJoined).toList();
     final joinedServer = servers.where((element) => element.isJoined).toList();

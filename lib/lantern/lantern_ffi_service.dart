@@ -21,6 +21,7 @@ import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 import 'package:path/path.dart' as p;
 
+import '../core/models/available_servers.dart';
 import '../core/models/plan_data.dart';
 import '../core/services/injection_container.dart' show sl;
 import '../core/utils/compute_worker.dart';
@@ -937,7 +938,7 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> getLanternAvailableServers() {
+  Future<Either<Failure, AvailableServers>> getLanternAvailableServers() {
     // TODO: implement getLanternAvailableServers
     throw UnimplementedError();
   }

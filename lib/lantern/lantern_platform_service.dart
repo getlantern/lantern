@@ -6,6 +6,7 @@ import 'package:fpdart/fpdart.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/mapper/plan_mapper.dart';
 import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/models/private_server_status.dart';
@@ -647,11 +648,11 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> getLanternAvailableServers() async {
+  Future<Either<Failure, AvailableServers>> getLanternAvailableServers() async {
     try {
       final result =
           await _methodChannel.invokeMethod('getLanternAvailableServers');
-      return Right(unit);
+      return Right(AvailableServers.fromJson(jsonDecode(result)));
     } catch (e, stackTrace) {
       appLogger.error(
           'Error fetching Lantern available servers', e, stackTrace);

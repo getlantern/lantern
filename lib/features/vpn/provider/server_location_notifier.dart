@@ -37,7 +37,8 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
         dbLogger.error("Failed to fetch Lantern servers: $error");
       },
       (servers) {
-        appLogger.debug("Fetched Lantern servers for location");
+        appLogger.debug(
+            "Fetched Lantern servers for location", servers.toJson());
       },
     );
   }

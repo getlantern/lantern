@@ -256,7 +256,6 @@ func SelectProject(selectedProject string) error {
 
 // StartDepolyment starts the deployment process for the selected project and location.
 func StartDepolyment(selectedLocation, serverName string) error {
-
 	ps, err := getSession()
 	if err != nil {
 		return err

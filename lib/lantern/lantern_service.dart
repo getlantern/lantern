@@ -11,6 +11,7 @@ import 'package:lantern/lantern/lantern_platform_service.dart';
 import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 
 import '../core/common/common.dart';
+import '../core/models/available_servers.dart';
 
 ///LanternService is wrapper around native and ffi services
 /// all communication happens here
@@ -452,7 +453,7 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> getLanternAvailableServers() {
+  Future<Either<Failure, AvailableServers>> getLanternAvailableServers() {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.getLanternAvailableServers();
     }

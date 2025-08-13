@@ -177,7 +177,6 @@ func GetAvailableServers() ([]byte, error) {
 		log.Errorf("Error marshalling servers: %v", err)
 		return nil, err
 	}
-	log.Debugf("Available servers JSON: %s", string(jsonBytes))
 	return jsonBytes, nil
 }
 
