@@ -138,6 +138,8 @@ func (lc *LanternCore) initialize() error {
 	lc.userInfo = lc.rad.UserInfo()
 	lc.apiClient = lc.rad.APIHandler()
 
+	// TODO: This should all be handled by the single call to get the user config -
+	// i.e. CreateUser and FetchUserData should not exist as separate calls.
 	go func() {
 		if lc.userInfo.LegacyID() == 0 {
 			slog.Debug("Creating user")
