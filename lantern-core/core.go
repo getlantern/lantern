@@ -138,6 +138,14 @@ func (lc *LanternCore) initialize() error {
 	lc.userInfo = lc.rad.UserInfo()
 	lc.apiClient = lc.rad.APIHandler()
 
+	go func() {
+		if lc.userInfo.LegacyID() == 0 {
+			slog.Debug("Creating user")
+			lc.CreateUser()
+		}
+		lc.FetchUserData()
+	}()
+
 	slog.Debug("LanternCore initialized successfully")
 	return nil
 }
@@ -215,7 +223,7 @@ func (lc *LanternCore) UserData() ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error getting user data: %w", err)
 	}
-	fmt.Printf("UserData: %v\n", user)
+	slog.Debug("UserData:", "user", user)
 	bytes, err := proto.Marshal(user)
 	if err != nil {
 		return nil, fmt.Errorf("error marshalling user data: %w", err)
