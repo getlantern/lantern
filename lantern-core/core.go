@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log/slog"
 	"strconv"
+	"sync"
+	"sync/atomic"
 
 	privateserver "github.com/getlantern/lantern-outline/lantern-core/private-server"
 	"github.com/getlantern/lantern-outline/lantern-core/utils"
@@ -22,17 +24,23 @@ import (
 
 // LanternCore is the main structure accessing the Lantern backend.
 type LanternCore struct {
-	opts          *utils.Opts
 	rad           *radiance.Radiance
 	splitTunnel   *vpn.SplitTunnel
 	serverManager *servers.Manager
 	userInfo      common.UserInfo
 	apiClient     *api.APIClient
+	initOnce      sync.Once
 }
+
+var (
+	core      = &LanternCore{}
+	initError atomic.Pointer[error]
+)
 
 type App interface {
 	AvailableFeatures() []byte
 	ReportIssue(email, issueType, description, device, model, logFilePath string) error
+	IsRadianceConnected() bool
 }
 
 type User interface {
@@ -70,7 +78,7 @@ type Payment interface {
 	StripeBillingPortalUrl() (string, error)
 	AcknowledgeGooglePurchase(purchaseToken, planId string) error
 	AcknowledgeApplePurchase(receipt, planII string) error
-	PaymentRedirect(provider, planId, email string) (string, error)
+	PaymentRedirect(provider, planID, email string) (string, error)
 	ActivationCode(email, resellerCode string) error
 	SubscriptionPaymentRedirectURL(redirectBody api.PaymentRedirectData) (string, error)
 	StripeSubscriptionPaymentRedirect(subscriptionType, planID, email string) (string, error)
@@ -101,29 +109,32 @@ func New(opts *utils.Opts) (Core, error) {
 		return nil, fmt.Errorf("opts cannot be nil")
 	}
 
-	slog.Debug("Initializing LanternCore with opts: ", "opts", opts)
-
-	core := &LanternCore{
-		opts: opts,
-	}
-
-	if err := core.initialize(); err != nil {
-		return nil, fmt.Errorf("failed to initialize LanternCore: %w", err)
+	// This isn't ideal, but currently on Android and maybe other platforms
+	// there are multiple places that try to initialize the backend, so we
+	// need to ensure it's only done once.
+	core.initOnce.Do(func() {
+		slog.Debug("Initializing LanternCore with opts: ", "opts", opts)
+		if err := core.initialize(opts); err != nil {
+			initError.Store(&err)
+		}
+	})
+	if initError.Load() != nil {
+		return nil, *initError.Load()
 	}
 
 	return core, nil
 }
 
-func (lc *LanternCore) initialize() error {
+func (lc *LanternCore) initialize(opts *utils.Opts) error {
 	slog.Debug("Starting LanternCore initialization")
 
 	var radErr error
 	if lc.rad, radErr = radiance.NewRadiance(radiance.Options{
-		LogDir:   lc.opts.LogDir,
-		DataDir:  lc.opts.DataDir,
-		DeviceID: lc.opts.Deviceid,
-		LogLevel: lc.opts.LogLevel,
-		Locale:   lc.opts.Locale,
+		LogDir:   opts.LogDir,
+		DataDir:  opts.DataDir,
+		DeviceID: opts.Deviceid,
+		LogLevel: opts.LogLevel,
+		Locale:   opts.Locale,
 	}); radErr != nil {
 		return fmt.Errorf("failed to create Radiance: %w", radErr)
 	}
@@ -150,6 +161,10 @@ func (lc *LanternCore) initialize() error {
 
 	slog.Debug("LanternCore initialized successfully")
 	return nil
+}
+
+func (lc *LanternCore) IsRadianceConnected() bool {
+	return true
 }
 
 func (lc *LanternCore) AvailableFeatures() []byte {
@@ -566,122 +581,126 @@ func (cs *CoreStub) ReportIssue(email, issueType, description, device, model, lo
 	return nil
 }
 func (cs *CoreStub) CreateUser() (*api.UserDataResponse, error) {
-	return nil, fmt.Errorf("not implemented")
+	return nil, fmt.Errorf("not initialized")
 }
 func (cs *CoreStub) UserData() ([]byte, error) {
-	return nil, fmt.Errorf("not implemented")
+	return nil, fmt.Errorf("not initialized")
 }
 func (cs *CoreStub) FetchUserData() ([]byte, error) {
-	return nil, fmt.Errorf("not implemented")
+	return nil, fmt.Errorf("not initialized")
 }
 func (cs *CoreStub) OAuthLoginUrl(provider string) (string, error) {
-	return "", fmt.Errorf("not implemented")
+	return "", fmt.Errorf("not initialized")
 }
 func (cs *CoreStub) OAuthLoginCallback(oAuthToken string) ([]byte, error) {
-	return nil, fmt.Errorf("not implemented")
+	return nil, fmt.Errorf("not initialized")
 }
 func (cs *CoreStub) Login(email, password string) ([]byte, error) {
-	return nil, fmt.Errorf("not implemented")
+	return nil, fmt.Errorf("not initialized")
 }
 func (cs *CoreStub) SignUp(email, password string) error {
-	return fmt.Errorf("not implemented")
+	return fmt.Errorf("not initialized")
 }
 func (cs *CoreStub) Logout(email string) ([]byte, error) {
-	return nil, fmt.Errorf("not implemented")
+	return nil, fmt.Errorf("not initialized")
 }
 func (cs *CoreStub) StartRecoveryByEmail(email string) error {
-	return fmt.Errorf("not implemented")
+	return fmt.Errorf("not initialized")
 }
 func (cs *CoreStub) ValidateChangeEmailCode(email, code string) error {
-	return fmt.Errorf("not implemented")
+	return fmt.Errorf("not initialized")
 }
 func (cs *CoreStub) CompleteChangeEmail(email, password, code string) error {
-	return fmt.Errorf("not implemented")
+	return fmt.Errorf("not initialized")
 }
 func (cs *CoreStub) DeleteAccount(email, password string) ([]byte, error) {
-	return nil, fmt.Errorf("not implemented")
+	return nil, fmt.Errorf("not initialized")
 }
 func (cs *CoreStub) ActivationCode(email, resellerCode string) error {
-	return fmt.Errorf("not implemented")
+	return fmt.Errorf("not initialized")
 }
 func (cs *CoreStub) StripeSubscription(email, planID string) (string, error) {
-	return "", fmt.Errorf("not implemented")
+	return "", fmt.Errorf("not initialized")
 }
 func (cs *CoreStub) Plans(channel string) (string, error) {
-	return "", fmt.Errorf("not implemented")
+	return "", fmt.Errorf("not initialized")
 }
 func (cs *CoreStub) StripeBillingPortalUrl() (string, error) {
-	return "", fmt.Errorf("not implemented")
+	return "", fmt.Errorf("not initialized")
 }
 func (cs *CoreStub) AcknowledgeGooglePurchase(purchaseToken, planId string) error {
-	return fmt.Errorf("not implemented")
+	return fmt.Errorf("not initialized")
 }
 func (cs *CoreStub) AcknowledgeApplePurchase(receipt, planII string) error {
-	return fmt.Errorf("not implemented")
+	return fmt.Errorf("not initialized")
 }
 func (cs *CoreStub) PaymentRedirect(provider, planId, email string) (string, error) {
-	return "", fmt.Errorf("not implemented")
+	return "", fmt.Errorf("not initialized")
 }
 func (cs *CoreStub) StartVPN(platform libbox.PlatformInterface, opts *utils.Opts) error {
-	return fmt.Errorf("not implemented")
+	return fmt.Errorf("not initialized")
 }
 func (cs *CoreStub) StopVPN() error {
-	return fmt.Errorf("not implemented")
+	return fmt.Errorf("not initialized")
 }
 func (cs *CoreStub) ConnectToServer(locationType, tag string, platIfce libbox.PlatformInterface, options *utils.Opts) error {
-	return fmt.Errorf("not implemented")
+	return fmt.Errorf("not initialized")
 }
 func (cs *CoreStub) IsVPNConnected() bool {
 	return false
 }
 func (cs *CoreStub) AddSplitTunnelItem(filterType, item string) error {
-	return fmt.Errorf("not implemented")
+	return fmt.Errorf("not initialized")
 }
 func (cs *CoreStub) RemoveSplitTunnelItem(filterType, item string) error {
-	return fmt.Errorf("not implemented")
+	return fmt.Errorf("not initialized")
 }
 func (cs *CoreStub) DigitalOceanPrivateServer(events utils.PrivateServerEventListener) error {
-	return fmt.Errorf("not implemented")
+	return fmt.Errorf("not initialized")
 }
 func (cs *CoreStub) GoogleCloudPrivateServer(events utils.PrivateServerEventListener) error {
-	return fmt.Errorf("not implemented")
+	return fmt.Errorf("not initialized")
 }
 func (cs *CoreStub) SelectAccount(account string) error {
-	return fmt.Errorf("not implemented")
+	return fmt.Errorf("not initialized")
 }
 func (cs *CoreStub) SelectProject(project string) error {
-	return fmt.Errorf("not implemented")
+	return fmt.Errorf("not initialized")
 }
 func (cs *CoreStub) StartDepolyment(location, serverName string) error {
-	return fmt.Errorf("not implemented")
+	return fmt.Errorf("not initialized")
 }
 func (cs *CoreStub) CancelDepolyment() error {
-	return fmt.Errorf("not implemented")
+	return fmt.Errorf("not initialized")
 }
 func (cs *CoreStub) SelectedCertFingerprint(fp string) {
 	// No-op for stub
 }
 func (cs *CoreStub) AddServerManagerInstance(ip, port, accessToken, tag string, events utils.PrivateServerEventListener) error {
-	return fmt.Errorf("not implemented")
+	return fmt.Errorf("not initialized")
 }
 func (cs *CoreStub) InviteToServerManagerInstance(ip string, port string, accessToken string, inviteName string) (string, error) {
-	return "", fmt.Errorf("not implemented")
+	return "", fmt.Errorf("not initialized")
 }
 func (cs *CoreStub) RevokeServerManagerInvite(ip string, port string, accessToken string, inviteName string) error {
-	return fmt.Errorf("not implemented")
+	return fmt.Errorf("not initialized")
 }
 
 func (cs *CoreStub) StartDeployment(location, serverName string) error {
-	return fmt.Errorf("not implemented")
+	return fmt.Errorf("not initialized")
 }
 func (cs *CoreStub) CancelDeployment() error {
-	return fmt.Errorf("not implemented")
+	return fmt.Errorf("not initialized")
 }
 
 func (cs *CoreStub) SubscriptionPaymentRedirectURL(redirectBody api.PaymentRedirectData) (string, error) {
-	return "", fmt.Errorf("not implemented")
+	return "", fmt.Errorf("not initialized")
 }
 
 func (cs *CoreStub) StripeSubscriptionPaymentRedirect(subscriptionType, planID, email string) (string, error) {
-	return "", fmt.Errorf("not implemented")
+	return "", fmt.Errorf("not initialized")
+}
+
+func (cs *CoreStub) IsRadianceConnected() bool {
+	return false
 }
