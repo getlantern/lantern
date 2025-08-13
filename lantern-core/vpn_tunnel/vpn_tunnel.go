@@ -2,7 +2,7 @@ package vpn_tunnel
 
 import (
 	"fmt"
-	"path/filepath"
+	"log/slog"
 
 	"github.com/getlantern/lantern-outline/lantern-core/utils"
 	radianceCommon "github.com/getlantern/radiance/common"
@@ -15,15 +15,15 @@ type InternalTag string
 
 const (
 	InternalTagAutoAll InternalTag = "auto-all"
-	InternalTagUser    InternalTag = InternalTag(string(servers.SGUser))
-	InternalTagLantern InternalTag = InternalTag(string(servers.SGLantern))
+	InternalTagUser    InternalTag = InternalTag(servers.SGUser)
+	InternalTagLantern InternalTag = InternalTag(servers.SGLantern)
 )
 
 // StartVPN will start the VPN tunnel using the provided platform interface.
 // it pass empty string so it will connect to best server available.
 func StartVPN(platform libbox.PlatformInterface, options *utils.Opts) error {
 	if radianceCommon.IsIOS() || radianceCommon.IsMacOS() {
-		err := initializeCommonForApplePlatforms(options.DataDir, options.LogDir, options.LogLevel)
+		err := initializeCommonForApplePlatforms(options)
 		if err != nil {
 			return err
 		}
@@ -35,7 +35,7 @@ func StartVPN(platform libbox.PlatformInterface, options *utils.Opts) error {
 func StopVPN() error {
 	defer func() {
 		if r := recover(); r != nil {
-			fmt.Errorf("Recovered from panic in StopVPN: %v", r)
+			slog.Error("recovered from panic in StopVPN:", "r", r)
 		}
 	}()
 	return vpn.Disconnect()
@@ -55,7 +55,7 @@ func ConnectToServer(group, tag string, platIfce libbox.PlatformInterface, optio
 		internalTag = string(InternalTagLantern)
 	}
 	if radianceCommon.IsIOS() || radianceCommon.IsMacOS() {
-		err := initializeCommonForApplePlatforms(options.DataDir, filepath.Join(options.DataDir, "logs"), options.LogLevel)
+		err := initializeCommonForApplePlatforms(options)
 		if err != nil {
 			return err
 		}
@@ -64,22 +64,23 @@ func ConnectToServer(group, tag string, platIfce libbox.PlatformInterface, optio
 }
 
 func IsVPNRunning() bool {
-	fmt.Println("Checking if VPN is running...")
+	slog.Debug("Checking if VPN is running...")
 	status, err := vpn.GetStatus()
-	fmt.Println("VPN status:", status, "Error:", err)
+	slog.Debug("VPN status:", "status", status, "Error:", err)
 	// if err != nil {
 	// 	fmt.Errorf("failed to get VPN status: %w", err)
 	// 	return false
 	// }
-	fmt.Println("VPN status is tunnel:", status.TunnelOpen)
+	slog.Debug("VPN status is tunnel:", "tunnelOpen", status.TunnelOpen)
 	return status.TunnelOpen
 }
 
-func initializeCommonForApplePlatforms(dataDir, logDir, logLevel string) error {
+func initializeCommonForApplePlatforms(options *utils.Opts) error {
 	// Since this will start as a new process, we need to ask for path and logger.
 	// This ensures options are correctly set for the new process.
-	fmt.Println("Initializing common for Apple platforms with dataDir:", dataDir, "logDir:", logDir, "logLevel:", logLevel)
-	if err := radianceCommon.Init(dataDir, logDir, logLevel); err != nil {
+	slog.Debug("Initializing common for Apple platforms", "dataDir", options.DataDir, "logDir:",
+		options.LogDir, "logLevel:", options.LogLevel)
+	if err := radianceCommon.Init(options.DataDir, options.LogDir, options.LogLevel); err != nil {
 		return fmt.Errorf("failed to initialize common: %w", err)
 	}
 	return nil
