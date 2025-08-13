@@ -134,11 +134,7 @@ func (lc *LanternCore) initialize() error {
 		return fmt.Errorf("unable to create split tunnel handler: %v", sthErr)
 	}
 
-	var smErr error
-	if lc.serverManager, smErr = lc.rad.ServerManager(); smErr != nil {
-		return fmt.Errorf("unable to create server manager: %v", smErr)
-	}
-
+	lc.serverManager = lc.rad.ServerManager()
 	lc.userInfo = lc.rad.UserInfo()
 	lc.apiClient = lc.rad.APIHandler()
 
