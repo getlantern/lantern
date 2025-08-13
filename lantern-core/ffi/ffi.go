@@ -244,7 +244,7 @@ func fetchUserData() *C.char {
 	slog.Debug("Getting user data")
 	bytes, err := core().FetchUserData()
 	if err != nil {
-		return SendError(fmt.Errorf("Error marshalling user data: %v", err))
+		return SendError(fmt.Errorf("error marshalling user data: %v", err))
 	}
 	encoded := base64.StdEncoding.EncodeToString(bytes)
 	return C.CString(encoded)
@@ -256,10 +256,10 @@ func fetchUserData() *C.char {
 func stripeSubscriptionPaymentRedirect(subType, _planId, _email *C.char) *C.char {
 	slog.Debug("stripeSubscriptionPaymentRedirect called")
 	subscriptionType := C.GoString(subType)
-	planId := C.GoString(_planId)
+	planID := C.GoString(_planId)
 	email := C.GoString(_email)
 	slog.Debug("subscription type:", "subscriptionType", subscriptionType)
-	redirect, err := core().StripeSubscriptionPaymentRedirect(subscriptionType, planId, email)
+	redirect, err := core().StripeSubscriptionPaymentRedirect(subscriptionType, planID, email)
 	if err != nil {
 		return SendError(err)
 	}
@@ -344,7 +344,7 @@ func oAuthLoginCallback(_oAuthToken *C.char) *C.char {
 // login is called when the user logs in with email and password.
 //
 //export login
-func login(_email *C.char, _password *C.char) *C.char {
+func login(_email, _password *C.char) *C.char {
 	email := C.GoString(_email)
 	password := C.GoString(_password)
 	bytes, err := core().Login(email, password)
@@ -358,7 +358,7 @@ func login(_email *C.char, _password *C.char) *C.char {
 // signup is called when the user signs up with email and password.
 //
 //export signup
-func signup(_email *C.char, _password *C.char) *C.char {
+func signup(_email, _password *C.char) *C.char {
 	slog.Debug("Signing up user")
 	email := C.GoString(_email)
 	password := C.GoString(_password)
@@ -375,7 +375,7 @@ func logout(_email *C.char) *C.char {
 	slog.Debug("Logging out")
 	bytes, err := core().Logout(email)
 	if err != nil {
-		return SendError(fmt.Errorf("Error logging out: %v", err))
+		return SendError(fmt.Errorf("error logging out: %v", err))
 	}
 	encoded := base64.StdEncoding.EncodeToString(bytes)
 	return C.CString(encoded)
@@ -389,7 +389,7 @@ func startRecoveryByEmail(_email *C.char) *C.char {
 	slog.Debug("Starting recovery by email for", "email", email)
 	err := core().StartRecoveryByEmail(email)
 	if err != nil {
-		return SendError(fmt.Errorf("Error starting recovery by email: %v", err))
+		return SendError(fmt.Errorf("error starting recovery by email: %v", err))
 	}
 	slog.Debug("Recovery by email started successfully")
 	return C.CString("ok")
@@ -465,7 +465,7 @@ func main() {
 
 }
 
-//Private server methods
+// Private server methods
 
 // interface that interact with the private server
 
