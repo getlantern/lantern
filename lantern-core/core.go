@@ -277,7 +277,7 @@ func (lc *LanternCore) OAuthLoginUrl(provider string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error getting OAuth login URL: %w", err)
 	}
-	slog.Debug("OAuthLoginUrl response: %v", oauthLoginURL)
+	slog.Debug("OAuthLoginUrl response: %v", "oauthLoginURL", oauthLoginURL)
 	return oauthLoginURL, nil
 }
 
