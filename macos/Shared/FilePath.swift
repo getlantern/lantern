@@ -24,21 +24,12 @@ extension FilePath {
   public static let libraryDirectory =
     sharedDirectory
     .appendingPathComponent("Library", isDirectory: true)
-  public static let cacheDirectory =
-    libraryDirectory
-    .appendingPathComponent("Caches", isDirectory: true)
 
-  public static let logsDirectory =
-    FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask)[0]
-        .appendingPathComponent("Logs", isDirectory: true)
-        .appendingPathComponent(Bundle.main.bundleIdentifier!, isDirectory: true)
-    
-  public static let dataDirectory =
-    FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        .appendingPathComponent(Bundle.main.bundleIdentifier!, isDirectory: true)
+  public static var dataDirectory = sharedDirectory
+  public static var logsDirectory =
+    dataDirectory
+    .appendingPathComponent("Logs", isDirectory: true)
 
-  public static let workingDirectory = cacheDirectory.appendingPathComponent(
-    "Working", isDirectory: true)
 }
 
 extension URL {
