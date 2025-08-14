@@ -16,10 +16,11 @@ enum SignUpMethodType { email, google, apple, withoutEmail }
 class AddEmail extends StatefulHookConsumerWidget {
   final AuthFlow authFlow;
 
-  const AddEmail({
-    super.key,
-    this.authFlow = AuthFlow.signUp,
-  });
+  ///password will be used for change email flow
+  /// all other times it will be null
+  final String? password;
+
+  const AddEmail({super.key, this.authFlow = AuthFlow.signUp, this.password});
 
   @override
   ConsumerState<AddEmail> createState() => _AddEmailState();
@@ -34,7 +35,9 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     final emailController = useTextEditingController();
     textTheme = Theme.of(context).textTheme;
     return BaseScreen(
-      title: 'add_your_email'.i18n,
+      title: widget.authFlow == AuthFlow.changeEmail
+          ? 'enter_new_email'.i18n
+          : 'add_your_email'.i18n,
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -62,19 +65,28 @@ class _AddEmailState extends ConsumerState<AddEmail> {
                 },
               ),
               SizedBox(height: defaultSize),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: defaultSize),
-                child: Text('add_your_email_message'.i18n,
-                    style: textTheme!.bodyMedium!.copyWith(
-                      color: AppColors.gray6,
-                    )),
-              ),
+              if (widget.authFlow == AuthFlow.changeEmail)
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: defaultSize),
+                  child: Text('change_email_message'.i18n,
+                      style: textTheme!.bodyMedium!.copyWith(
+                        color: AppColors.gray6,
+                      )),
+                )
+              else
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: defaultSize),
+                  child: Text('add_your_email_message'.i18n,
+                      style: textTheme!.bodyMedium!.copyWith(
+                        color: AppColors.gray6,
+                      )),
+                ),
               SizedBox(height: 32),
               PrimaryButton(
                 label: 'continue'.i18n,
                 enabled: emailController.text.isValidEmail(),
-                onPressed: () => onContinueTap(SignUpMethodType.email,
-                    email: emailController.text),
+                onPressed: () =>
+                    onContinueTap(SignUpMethodType.email, emailController.text),
               ),
               SizedBox(height: defaultSize),
               DividerSpace(),
@@ -99,7 +111,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
                     label: 'continue_without_email'.i18n,
                     textColor: AppColors.gray9,
                     onPressed: () =>
-                        onContinueTap(SignUpMethodType.withoutEmail),
+                        navigateRoute(SignUpMethodType.withoutEmail, ""),
                   ),
                 ),
             ],
@@ -109,16 +121,23 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     );
   }
 
-  Future<void> onContinueTap(SignUpMethodType type, {String email = ''}) async {
+  Future<void> onContinueTap(SignUpMethodType type, String email) async {
     appLogger.debug('Continue tapped with type: $type');
-    if (type == SignUpMethodType.email) {
+    try {
       if (!_formKey.currentState!.validate()) {
         return;
       }
-      await signupFlow(email);
-      return;
+      if (widget.authFlow == AuthFlow.changeEmail) {
+        //Change email flow
+        startChangeEmailFlow(email);
+      } else {
+        await signupFlow(email);
+        return;
+      }
+    }catch (e) {
+      appLogger.error('Error in onContinueTap: $e');
+      context.showSnackBar('error_occurred'.i18n);
     }
-    navigateRoute(type, email);
   }
 
   Future<void> signupFlow(String email) async {
@@ -191,6 +210,28 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     }
   }
 
+  //Change Email flow
+
+  void startChangeEmailFlow(String email) async {
+
+    context.showLoadingDialog();
+    final result = await ref
+        .read(authNotifierProvider.notifier)
+        .startChangeEmail(email, widget.password!);
+
+    result.fold(
+      (failure) {
+        context.hideLoadingDialog();
+        context.showSnackBar(failure.localizedErrorMessage);
+      },
+      (newEmail) {
+        context.hideLoadingDialog();
+        appLogger.debug('Change email started successfully: $newEmail');
+        navigateRoute(SignUpMethodType.email, email);
+      },
+    );
+  }
+
   void navigateRoute(SignUpMethodType type, String email) {
     switch (type) {
       case SignUpMethodType.apple:
@@ -208,7 +249,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
             .push(ChoosePaymentMethod(email: email, authFlow: AuthFlow.oauth));
         break;
       case SignUpMethodType.email:
-        appRouter.push(ConfirmEmail(email: email, authFlow: widget.authFlow));
+        appRouter.push(ConfirmEmail(email: email, authFlow: widget.authFlow,password: widget.password));
         break;
       case SignUpMethodType.withoutEmail:
         continueWithoutEmail();

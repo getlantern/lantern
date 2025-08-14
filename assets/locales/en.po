@@ -931,7 +931,6 @@ msgstr "Get Lantern Pro"
 msgid "connected_to_private_server"
 msgstr "Connected to Private Server"
 
-
 msgid "device_limit_reached"
 msgstr "Device Limit Reached"
 
@@ -946,3 +945,16 @@ msgstr "Cancel Sign In"
 
 msgid "change_email"
 msgstr "Change Email"
+
+msgid "change_email_message"
+msgstr "This will become your new login email. You’ll need to verify it before the change takes effect."
+
+msgid "enter_new_email"
+msgstr "Enter your new Email"
+
+msgid "confirm_password_to_continue"
+msgstr "To continue, please confirm your password."
+
+
+msgid "email_updated"
+msgstr "Your email has been updated."

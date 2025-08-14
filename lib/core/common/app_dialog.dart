@@ -144,4 +144,52 @@ class AppDialog {
       },
     );
   }
+
+  static void dialog({
+    required BuildContext context,
+    required String title,
+    required String content,
+    String action = 'ok',
+    OnPressed? onPressed,
+  }) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: AppColors.gray3,
+          contentPadding: EdgeInsets.symmetric(horizontal: defaultSize),
+          actionsPadding: EdgeInsets.only(
+              top: defaultSize,
+              bottom: defaultSize,
+              left: defaultSize,
+              right: defaultSize),
+          // contentPadding: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              SizedBox(height: 24),
+              Text(title, style: Theme.of(context).textTheme.headlineMedium),
+              SizedBox(height: defaultSize),
+              Text(
+                content,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ],
+          ),
+          actions: [
+            AppTextButton(
+              label: action,
+              onPressed: onPressed??() {
+                appRouter.maybePop();
+              },
+            )
+          ],
+        );
+      },
+    );
+  }
 }

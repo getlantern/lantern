@@ -417,16 +417,16 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> completeChangeEmail({
+  Future<Either<Failure, Unit>> completeRecoveryByEmail({
     required String email,
     required String code,
     required String newPassword,
   }) async {
     try {
       await _methodChannel.invokeMethod('completeChangeEmail', {
-        'email': email,
+        'newEmail': email,
         'code': code,
-        'newPassword': newPassword,
+        'password': newPassword,
       });
       return Right(unit);
     } catch (e, stackTrace) {
@@ -665,4 +665,38 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
+  @override
+  Future<Either<Failure, String>> startChangeEmail(
+      String newEmail, String password) async {
+    try {
+      final result =
+          await _methodChannel.invokeMethod<String>('startChangeEmail', {
+        'newEmail': newEmail,
+        'password': password,
+      });
+      return Right(result!);
+    } catch (e, stackTrace) {
+      appLogger.error('Error starting change email', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> completeChangeEmail(
+      {required String newEmail,
+      required String password,
+      required String code}) async {
+    try {
+      final result =
+          await _methodChannel.invokeMethod<String>('completeChangeEmail', {
+        'newEmail': newEmail,
+        'password': password,
+        'code': code,
+      });
+      return right(result!);
+    } catch (e, stackTrace) {
+      appLogger.error('Error completing change email', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
 }

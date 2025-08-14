@@ -143,10 +143,11 @@ class AddEmail extends _i41.PageRouteInfo<AddEmailArgs> {
   AddEmail({
     _i42.Key? key,
     _i43.AuthFlow authFlow = _i43.AuthFlow.signUp,
+    String? password,
     List<_i41.PageRouteInfo>? children,
   }) : super(
           AddEmail.name,
-          args: AddEmailArgs(key: key, authFlow: authFlow),
+          args: AddEmailArgs(key: key, authFlow: authFlow, password: password),
           initialChildren: children,
         );
 
@@ -158,32 +159,44 @@ class AddEmail extends _i41.PageRouteInfo<AddEmailArgs> {
       final args = data.argsAs<AddEmailArgs>(
         orElse: () => const AddEmailArgs(),
       );
-      return _i3.AddEmail(key: args.key, authFlow: args.authFlow);
+      return _i3.AddEmail(
+        key: args.key,
+        authFlow: args.authFlow,
+        password: args.password,
+      );
     },
   );
 }
 
 class AddEmailArgs {
-  const AddEmailArgs({this.key, this.authFlow = _i43.AuthFlow.signUp});
+  const AddEmailArgs({
+    this.key,
+    this.authFlow = _i43.AuthFlow.signUp,
+    this.password,
+  });
 
   final _i42.Key? key;
 
   final _i43.AuthFlow authFlow;
 
+  final String? password;
+
   @override
   String toString() {
-    return 'AddEmailArgs{key: $key, authFlow: $authFlow}';
+    return 'AddEmailArgs{key: $key, authFlow: $authFlow, password: $password}';
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! AddEmailArgs) return false;
-    return key == other.key && authFlow == other.authFlow;
+    return key == other.key &&
+        authFlow == other.authFlow &&
+        password == other.password;
   }
 
   @override
-  int get hashCode => key.hashCode ^ authFlow.hashCode;
+  int get hashCode => key.hashCode ^ authFlow.hashCode ^ password.hashCode;
 }
 
 /// generated route for
@@ -330,11 +343,17 @@ class ConfirmEmail extends _i41.PageRouteInfo<ConfirmEmailArgs> {
   ConfirmEmail({
     _i42.Key? key,
     required String email,
+    String? password,
     _i43.AuthFlow authFlow = _i43.AuthFlow.signUp,
     List<_i41.PageRouteInfo>? children,
   }) : super(
           ConfirmEmail.name,
-          args: ConfirmEmailArgs(key: key, email: email, authFlow: authFlow),
+          args: ConfirmEmailArgs(
+            key: key,
+            email: email,
+            password: password,
+            authFlow: authFlow,
+          ),
           initialChildren: children,
         );
 
@@ -347,6 +366,7 @@ class ConfirmEmail extends _i41.PageRouteInfo<ConfirmEmailArgs> {
       return _i7.ConfirmEmail(
         key: args.key,
         email: args.email,
+        password: args.password,
         authFlow: args.authFlow,
       );
     },
@@ -357,6 +377,7 @@ class ConfirmEmailArgs {
   const ConfirmEmailArgs({
     this.key,
     required this.email,
+    this.password,
     this.authFlow = _i43.AuthFlow.signUp,
   });
 
@@ -364,11 +385,13 @@ class ConfirmEmailArgs {
 
   final String email;
 
+  final String? password;
+
   final _i43.AuthFlow authFlow;
 
   @override
   String toString() {
-    return 'ConfirmEmailArgs{key: $key, email: $email, authFlow: $authFlow}';
+    return 'ConfirmEmailArgs{key: $key, email: $email, password: $password, authFlow: $authFlow}';
   }
 
   @override
@@ -377,11 +400,13 @@ class ConfirmEmailArgs {
     if (other is! ConfirmEmailArgs) return false;
     return key == other.key &&
         email == other.email &&
+        password == other.password &&
         authFlow == other.authFlow;
   }
 
   @override
-  int get hashCode => key.hashCode ^ email.hashCode ^ authFlow.hashCode;
+  int get hashCode =>
+      key.hashCode ^ email.hashCode ^ password.hashCode ^ authFlow.hashCode;
 }
 
 /// generated route for
@@ -1321,10 +1346,15 @@ class SignInPassword extends _i41.PageRouteInfo<SignInPasswordArgs> {
   SignInPassword({
     _i42.Key? key,
     required String email,
+    bool fromChangeEmail = false,
     List<_i41.PageRouteInfo>? children,
   }) : super(
           SignInPassword.name,
-          args: SignInPasswordArgs(key: key, email: email),
+          args: SignInPasswordArgs(
+            key: key,
+            email: email,
+            fromChangeEmail: fromChangeEmail,
+          ),
           initialChildren: children,
         );
 
@@ -1334,32 +1364,44 @@ class SignInPassword extends _i41.PageRouteInfo<SignInPasswordArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<SignInPasswordArgs>();
-      return _i35.SignInPassword(key: args.key, email: args.email);
+      return _i35.SignInPassword(
+        key: args.key,
+        email: args.email,
+        fromChangeEmail: args.fromChangeEmail,
+      );
     },
   );
 }
 
 class SignInPasswordArgs {
-  const SignInPasswordArgs({this.key, required this.email});
+  const SignInPasswordArgs({
+    this.key,
+    required this.email,
+    this.fromChangeEmail = false,
+  });
 
   final _i42.Key? key;
 
   final String email;
 
+  final bool fromChangeEmail;
+
   @override
   String toString() {
-    return 'SignInPasswordArgs{key: $key, email: $email}';
+    return 'SignInPasswordArgs{key: $key, email: $email, fromChangeEmail: $fromChangeEmail}';
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! SignInPasswordArgs) return false;
-    return key == other.key && email == other.email;
+    return key == other.key &&
+        email == other.email &&
+        fromChangeEmail == other.fromChangeEmail;
   }
 
   @override
-  int get hashCode => key.hashCode ^ email.hashCode;
+  int get hashCode => key.hashCode ^ email.hashCode ^ fromChangeEmail.hashCode;
 }
 
 /// generated route for

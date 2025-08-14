@@ -444,6 +444,24 @@ func Login(email, password string) ([]byte, error) {
 	return protoUserData, nil
 }
 
+func StartChangeEmail(newEmail, password string) error {
+	log.Debugf("Starting change email to: %s, password: %s", newEmail, password)
+	err := radianceServer.apiClient.StartChangeEmail(context.Background(), newEmail, password)
+	if err != nil {
+		return log.Errorf("Error starting change email: %v", err)
+	}
+	return nil
+}
+
+func CompleteChangeEmail(email, password, code string) error {
+	log.Debugf("Completing change email for: %s", email)
+	err := radianceServer.apiClient.CompleteChangeEmail(context.Background(), email, password, code)
+	if err != nil {
+		return log.Errorf("Error completing change email: %v", err)
+	}
+	return nil
+}
+
 func SignUp(email, password string) error {
 	log.Debug("Signing up user")
 	err := radianceServer.apiClient.SignUp(context.Background(), email, password)
@@ -498,13 +516,13 @@ func ValidateChangeEmailCode(email, code string) error {
 	return nil
 }
 
-// This will complete the email recovery by setting the new password
-func CompleteChangeEmail(email, password, code string) error {
-	log.Debug("Completing change email")
-	err := radianceServer.apiClient.CompleteRecoveryByEmail(context.Background(), email, password, code)
+func CompleteRecoveryByEmail(email, newPassword, code string) error {
+	log.Debug("Completing email recovery")
+	err := radianceServer.apiClient.CompleteRecoveryByEmail(context.Background(), email, newPassword, code)
 	if err != nil {
-		return log.Errorf("Error completing change email: %v", err)
+		return log.Errorf("Error completing email recovery: %v", err)
 	}
+	log.Debugf("ValidateChangeEmailCode Sucessful for email: %s", email)
 	return nil
 }
 

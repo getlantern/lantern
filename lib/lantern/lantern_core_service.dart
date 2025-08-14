@@ -97,13 +97,23 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, UserResponse>> logout(String email);
 
+  //Change email
+  Future<Either<Failure, String>> startChangeEmail(
+      String newEmail, String password);
+
+  Future<Either<Failure, String>> completeChangeEmail({
+    required String newEmail,
+    required String password,
+    required String code,
+  });
+
   //Forgot password
   Future<Either<Failure, Unit>> startRecoveryByEmail(String email);
 
   Future<Either<Failure, Unit>> validateRecoveryCode(
       {required String email, required String code});
 
-  Future<Either<Failure, Unit>> completeChangeEmail({
+  Future<Either<Failure, Unit>> completeRecoveryByEmail({
     required String email,
     required String code,
     required String newPassword,
@@ -114,11 +124,13 @@ abstract class LanternCoreService {
       {required String email, required String password});
 
   //Device Remove
-  Future<Either<Failure, String>> deviceRemove({required String deviceId,});
-
+  Future<Either<Failure, String>> deviceRemove({
+    required String deviceId,
+  });
 
   /// Private server methods
   Future<Either<Failure, Unit>> digitalOceanPrivateServer();
+
   Future<Either<Failure, Unit>> googleCloudPrivateServer();
 
   Stream<PrivateServerStatus> watchPrivateServerStatus();

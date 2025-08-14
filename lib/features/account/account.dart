@@ -44,10 +44,12 @@ class Account extends HookConsumerWidget {
             ),
           ),
         ),
-        Card(
+        AppCard(
+          padding: EdgeInsets.zero,
           child: AppTile(
             label: appSettings.email,
             icon: AppImagePaths.email,
+            contentPadding: EdgeInsets.only(left: 16),
             onPressed: kDebugMode
                 ? () {
                     copyToClipboard(appSettings.email);
@@ -56,7 +58,7 @@ class Account extends HookConsumerWidget {
             trailing: AppTextButton(
               label: 'change_email'.i18n,
               onPressed: () {
-                appRouter.push(AddEmail(authFlow: AuthFlow.changeEmail));
+                appRouter.push(SignInPassword(email:appSettings.email ,fromChangeEmail: true));
               },
             ),
           ),

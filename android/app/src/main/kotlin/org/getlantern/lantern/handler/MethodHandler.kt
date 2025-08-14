@@ -40,11 +40,17 @@ enum class Methods(val method: String) {
     //Forgot password
     StartRecoveryByEmail("startRecoveryByEmail"),
     ValidateRecoveryCode("validateRecoveryCode"),
-    CompleteChangeEmail("completeChangeEmail"),
+    CompleteRecoveryByEmail("completeRecoveryByEmail"),
 
     //Login
     Login("login"),
     SignUp("signUp"),
+
+
+    //Change Email
+    StartChangeEmail("startChangeEmail"),
+    CompleteChangeEmail("completeChangeEmail"),
+
 
     Logout("logout"),
     DeleteAccount("deleteAccount"),
@@ -208,7 +214,14 @@ class MethodHandler : FlutterPlugin,
                         val device = map["device"] as String? ?: ""
                         val model = map["model"] as String? ?: ""
                         val logFilePath = map["logFilePath"] as String? ?: ""
-                        Mobile.reportIssue(email, issueType, description, device, model, logFilePath)
+                        Mobile.reportIssue(
+                            email,
+                            issueType,
+                            description,
+                            device,
+                            model,
+                            logFilePath
+                        )
                         withContext(Dispatchers.Main) {
                             success("ok")
                         }
@@ -420,7 +433,7 @@ class MethodHandler : FlutterPlugin,
                 }
             }
 
-            Methods.CompleteChangeEmail.method -> {
+            Methods.CompleteRecoveryByEmail.method -> {
                 scope.launch {
                     result.runCatching {
                         val map = call.arguments as Map<*, *>
@@ -428,7 +441,7 @@ class MethodHandler : FlutterPlugin,
                         val code = call.argument<String>("code") ?: error("Missing code")
                         val newPassword =
                             map["newPassword"] as String? ?: error("Missing newPassword")
-                        Mobile.completeChangeEmail(email, newPassword, code)
+                        Mobile.completeRecoveryByEmail(email, newPassword, code)
                         withContext(Dispatchers.Main) {
                             success("email changed successfully")
                         }
@@ -539,6 +552,7 @@ class MethodHandler : FlutterPlugin,
                     }
                 }
             }
+
             Methods.RemoveDevice.method -> {
                 scope.launch {
                     result.runCatching {
@@ -576,7 +590,6 @@ class MethodHandler : FlutterPlugin,
                     val userInput = call.arguments<String>()
                     Mobile.selectAccount(userInput)
                 }
-
             }
 
             Methods.SelectProject.method -> {
@@ -589,7 +602,6 @@ class MethodHandler : FlutterPlugin,
                     val userInput = call.arguments<String>()
                     Mobile.selectProject(userInput)
                 }
-
             }
 
             Methods.StartDeployment.method -> {
@@ -709,6 +721,7 @@ class MethodHandler : FlutterPlugin,
                     }
                 }
             }
+
             Methods.FeatureFlag.method -> {
                 scope.launch {
                     result.runCatching {
@@ -720,6 +733,47 @@ class MethodHandler : FlutterPlugin,
                         result.error(
                             "DigitalOcean",
                             e.localizedMessage ?: "Error while activating Digital Ocean",
+                            e
+                        )
+                    }
+                }
+            }
+            //Change Email
+            Methods.StartChangeEmail.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val map = call.arguments as Map<*, *>
+                        val newEmail = map["newEmail"] as String? ?: error("Missing newEmail")
+                        val password = map["password"] as String? ?: error("Missing password")
+                        Mobile.startChangeEmail(newEmail, password)
+                        withContext(Dispatchers.Main) {
+                            success("ok")
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "StartChangeEmail",
+                            e.localizedMessage ?: "Error while starting change email",
+                            e
+                        )
+                    }
+                }
+            }
+
+            Methods.CompleteChangeEmail.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val map = call.arguments as Map<*, *>
+                        val newEmail = map["newEmail"] as String? ?: error("Missing newEmail")
+                        val password = map["password"] as String? ?: error("Missing password")
+                        val code = map["code"] as String? ?: error("Missing code")
+                        Mobile.completeChangeEmail(newEmail, password, code)
+                        withContext(Dispatchers.Main) {
+                            success("ok")
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "StartChangeEmail",
+                            e.localizedMessage ?: "Error while starting change email",
                             e
                         )
                     }

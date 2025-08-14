@@ -1,4 +1,4 @@
-import 'package:auto_route/annotations.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -12,24 +12,26 @@ import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 @RoutePage(name: 'SignInPassword')
 class SignInPassword extends StatefulHookConsumerWidget {
   final String email;
+  final bool fromChangeEmail;
 
-  const SignInPassword({super.key, required this.email});
+  const SignInPassword(
+      {super.key, required this.email, this.fromChangeEmail = false});
 
   @override
   ConsumerState createState() => _SignInPasswordState();
 }
 
 class _SignInPasswordState extends ConsumerState<SignInPassword> {
-
-
   @override
   Widget build(BuildContext context) {
-   final passwordController = useTextEditingController();
-   final obscureText = useState(true);
+    final passwordController = useTextEditingController();
+    final obscureText = useState(true);
 
     useListenable(passwordController);
     return BaseScreen(
-      title: 'welcome_to_lantern_pro'.i18n,
+      title: widget.fromChangeEmail
+          ? 'change_email'.i18n
+          : 'welcome_to_lantern_pro'.i18n,
       body: SingleChildScrollView(
         child: Column(
           children: <Widget>[
@@ -45,6 +47,12 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
               suffixIcon: _buildSuffix(obscureText),
               onChanged: (value) {},
             ),
+            SizedBox(height: 16),
+            if (widget.fromChangeEmail)
+              Text('confirm_password_to_continue'.i18n,
+                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                        color: AppColors.gray8,
+                      )),
             SizedBox(height: 32),
             PrimaryButton(
               label: 'continue'.i18n,
@@ -80,6 +88,11 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
 
   Future<void> signInWithPassword(String password) async {
     hideKeyboard();
+    if (widget.fromChangeEmail) {
+      /// If the user is changing email, we need to verify the password
+      context.pushRoute(AddEmail(authFlow: AuthFlow.changeEmail,password: password));
+      return;
+    }
     context.showLoadingDialog();
     final result = await ref
         .read(authNotifierProvider.notifier)
