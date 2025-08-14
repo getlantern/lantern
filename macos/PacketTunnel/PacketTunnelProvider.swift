@@ -19,7 +19,7 @@ public class PacketTunnelProvider: ExtensionProvider {
     // the system extension will use /var/root because it's running as root, while the
     // main process will use /Users/username.
     guard let usernameObject = options?["username"] else {
-      writeFatalError("missing start options")
+      writeFatalError("missing 'username' start option")
       return
     }
     guard let username = usernameObject as? NSString else {
