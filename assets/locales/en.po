@@ -944,3 +944,5 @@ msgstr "Remove Device and Sign In"
 msgid "cancel_sign_in"
 msgstr "Cancel Sign In"
 
+msgid "change_email"
+msgstr "Change Email"

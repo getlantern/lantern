@@ -40,12 +40,24 @@ class DeviceLimitReached extends HookConsumerWidget {
             shrinkWrap: true,
             padding: const EdgeInsets.all(0),
             children: devices.map((device) {
-              return AppTile(
-                label: device.name,
-                trailing: AppRadioButton(
-                  value: device,
-                  groupValue: selectedDevice,
-                ),
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AppTile(
+                    contentPadding: EdgeInsets.zero,
+                    label: device.name,
+                    trailing: AppRadioButton<UserResponse_Device>(
+                      value: device,
+                      groupValue: selectedDevice.value,
+                      onChanged: (value) {
+                        selectedDevice.value = value;
+                      },
+                    ),
+                  ),
+                  DividerSpace(
+                    padding: EdgeInsetsGeometry.zero,
+                  ),
+                ],
               );
             }).toList(),
           )),
@@ -62,7 +74,7 @@ class DeviceLimitReached extends HookConsumerWidget {
               label: 'cancel_sign_in'.i18n,
               textColor: AppColors.gray9,
               onPressed: () {
-                appRouter.pop(context);
+                appRouter.popUntilRoot();
               },
             ),
           )
@@ -73,13 +85,15 @@ class DeviceLimitReached extends HookConsumerWidget {
 
   Future<void> removeDeviceAndLogin(
       WidgetRef ref, String deviceId, BuildContext context) async {
-    final result =
-        await ref.read(lanternServiceProvider).deviceRemove(deviceId: deviceId);
+    context.showLoadingDialog();
+    final result = await ref.read(lanternServiceProvider).deviceRemove(deviceId: deviceId);
     result.fold(
       (failure) {
+        context.hideLoadingDialog();
         context.showSnackBar(failure.localizedErrorMessage);
       },
       (message) {
+        context.hideLoadingDialog();
         appRouter.pop(true);
       },
     );

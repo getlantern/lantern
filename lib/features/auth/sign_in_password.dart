@@ -10,15 +10,22 @@ import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 
 @RoutePage(name: 'SignInPassword')
-class SignInPassword extends HookConsumerWidget {
+class SignInPassword extends StatefulHookConsumerWidget {
   final String email;
 
   const SignInPassword({super.key, required this.email});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final passwordController = useTextEditingController();
-    final obscureText = useState(true);
+  ConsumerState createState() => _SignInPasswordState();
+}
+
+class _SignInPasswordState extends ConsumerState<SignInPassword> {
+
+
+  @override
+  Widget build(BuildContext context) {
+   final passwordController = useTextEditingController();
+   final obscureText = useState(true);
 
     useListenable(passwordController);
     return BaseScreen(
@@ -27,7 +34,7 @@ class SignInPassword extends HookConsumerWidget {
         child: Column(
           children: <Widget>[
             SizedBox(height: defaultSize),
-            Center(child: EmailTag(email: email)),
+            Center(child: EmailTag(email: widget.email)),
             SizedBox(height: defaultSize),
             AppTextField(
               hintText: '',
@@ -42,8 +49,8 @@ class SignInPassword extends HookConsumerWidget {
             PrimaryButton(
               label: 'continue'.i18n,
               enabled: passwordController.text.isNotEmpty,
-              onPressed: () => signInWithPassword(
-                  context, ref, passwordController.text.trim()),
+              onPressed: () =>
+                  signInWithPassword(passwordController.text.trim()),
             ),
             SizedBox(height: defaultSize),
             DividerSpace(),
@@ -52,7 +59,7 @@ class SignInPassword extends HookConsumerWidget {
               label: 'forgot_password'.i18n,
               textColor: AppColors.gray9,
               onPressed: () {
-                appRouter.push(ResetPasswordEmail(email: email));
+                appRouter.push(ResetPasswordEmail(email: widget.email));
               },
             )
           ],
@@ -71,16 +78,12 @@ class SignInPassword extends HookConsumerWidget {
     );
   }
 
-  Future<void> signInWithPassword(
-    BuildContext context,
-    WidgetRef ref,
-    String password,
-  ) async {
+  Future<void> signInWithPassword(String password) async {
     hideKeyboard();
     context.showLoadingDialog();
     final result = await ref
         .read(authNotifierProvider.notifier)
-        .signInWithEmail(email, password);
+        .signInWithEmail(widget.email, password);
     result.fold(
       (error) {
         context.hideLoadingDialog();
@@ -95,27 +98,28 @@ class SignInPassword extends HookConsumerWidget {
         if (!user.success) {
           // Login has failed reason being user has reached device limit
           // start device flow
-          appLogger
-              .warning("Login failed for user: $email, starting device flow");
-          startDeviceFlow(user.devices.toList());
+          appLogger.warning(
+              "Login failed for user: ${widget.email}, starting device flow");
+          startDeviceFlow(user.devices.toList(), password, context);
           return;
         }
         //login successfully
         ref.read(appSettingNotifierProvider.notifier)
           ..setUserLoggedIn(true)
-          ..setEmail(email);
+          ..setEmail(widget.email);
         ref.read(homeNotifierProvider.notifier).updateUserData(user);
         appRouter.popUntilRoot();
       },
     );
   }
 
-  void startDeviceFlow(List<UserResponse_Device> devices) {
+  void startDeviceFlow(List<UserResponse_Device> devices, String password,
+      BuildContext context) {
     appRouter.push(DeviceLimitReached(devices: devices)).then(
       (value) {
         if (value != null && value is bool) {
           /// If a device was selected, remove it and now sign in
-
+          signInWithPassword(password);
         }
       },
     );

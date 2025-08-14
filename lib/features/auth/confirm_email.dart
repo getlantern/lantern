@@ -95,6 +95,9 @@ class ConfirmEmail extends HookConsumerWidget {
       case AuthFlow.oauth:
         // TODO: Handle this case.
         throw UnimplementedError();
+      case AuthFlow.changeEmail:
+        // TODO: Handle this case.
+        throw UnimplementedError();
     }
   }
 
@@ -141,6 +144,9 @@ class ConfirmEmail extends HookConsumerWidget {
       case AuthFlow.oauth:
         // TODO: Handle this case.
         throw UnimplementedError();
+      case AuthFlow.changeEmail:
+        // TODO: Handle this case.
+        throw UnimplementedError();
     }
   }
 
@@ -157,6 +163,9 @@ class ConfirmEmail extends HookConsumerWidget {
         // TODO: Handle this case.
         throw UnimplementedError();
       case AuthFlow.oauth:
+        // TODO: Handle this case.
+        throw UnimplementedError();
+      case AuthFlow.changeEmail:
         // TODO: Handle this case.
         throw UnimplementedError();
     }

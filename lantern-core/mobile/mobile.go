@@ -509,11 +509,17 @@ func CompleteChangeEmail(email, password, code string) error {
 }
 
 func RemoveDevice(deviceId string) error {
-	log.Debug("Removing device")
+	// defer func() {
+	// 	if r := recover(); r != nil {
+	// 		log.Errorf("Recovered from panic in RemoveDevice: %v", r)
+	// 	}
+	// }()
+	log.Debugf("Removing device: %s", deviceId)
 	linkResponse, err := radianceServer.apiClient.DeviceRemove(context.Background(), deviceId)
 	if err != nil {
 		return log.Errorf("Error removing device: %v", err)
 	}
+
 	log.Debugf("DeviceRemove response: %v", linkResponse)
 	return nil
 }
