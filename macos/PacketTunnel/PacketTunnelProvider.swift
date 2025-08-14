@@ -14,6 +14,21 @@ public class PacketTunnelProvider: ExtensionProvider {
 
   public override func startTunnel(options: [String: NSObject]?) async throws {
     logger.log("PacketTunnelProvider starting tunnel")
+    // We have to carefully handle the data directory and logs directory here so that the
+    // system extension and the main process are looking in the same place. Without this,
+    // the system extension will use /var/root because it's running as root, while the
+    // main process will use /Users/username.
+    guard let usernameObject = options?["username"] else {
+      writeFatalError("missing start options")
+      return
+    }
+    let username = usernameObject as! NSString
+    let dataDirString = FilePath.dataDirectory.path
+    let newDataDirString = dataDirString.replacingOccurrences(
+      of: "/var/root", with: "/Users/\(username)")
+    FilePath.dataDirectory = URL(filePath: newDataDirString)
+    FilePath.logsDirectory = FilePath.dataDirectory
+      .appendingPathComponent("Logs", isDirectory: true)
     try await super.startTunnel(options: options)
   }
 }
