@@ -29,7 +29,9 @@ public class PacketTunnelProvider: ExtensionProvider {
     let dataDirString = FilePath.dataDirectory.path
     let newDataDirString = dataDirString.replacingOccurrences(
       of: "/var/root", with: "/Users/\(username)")
-    FilePath.dataDirectory = URL(filePath: newDataDirString)
+    let noPrivateDataDirString = newDataDirString.replacingOccurrences(
+        of: "/private", with: "")
+    FilePath.dataDirectory = URL(filePath: noPrivateDataDirString)
     FilePath.logsDirectory = FilePath.dataDirectory
       .appendingPathComponent("Logs", isDirectory: true)
     try await super.startTunnel(options: options)

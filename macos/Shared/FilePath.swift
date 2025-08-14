@@ -26,20 +26,10 @@ extension FilePath {
     .appendingPathComponent("Library", isDirectory: true)
 
   public static var dataDirectory = sharedDirectory
-  private static var _dataDirectory = sharedDirectory
-  private static let dataDirectoryQueue = DispatchQueue(label: "FilePath.dataDirectory.queue")
-
-  public static var dataDirectory: URL {
-    get {
-      return dataDirectoryQueue.sync { _dataDirectory }
-    }
-    set {
-      dataDirectoryQueue.sync { _dataDirectory = newValue }
-    }
-  }
   public static var logsDirectory =
     dataDirectory
     .appendingPathComponent("Logs", isDirectory: true)
+
 }
 
 extension URL {

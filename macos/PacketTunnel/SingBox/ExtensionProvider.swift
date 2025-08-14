@@ -59,7 +59,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
 
     MobileStartVPN(platformInterface, opts(), &error)
     if error != nil {
-      appLogger.log("error while starting tunnel \(error?.localizedDescription ?? "")")
+      appLogger.error("error while starting tunnel \(error?.localizedDescription ?? "")")
       // Inform system and close tunnel
       cancelTunnelWithError(error)
       return
@@ -72,7 +72,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     var error: NSError?
     MobileConnectToServer(location, serverName, platformInterface, opts(), &error)
     if error != nil {
-      appLogger.log("error while connecting to server \(error?.localizedDescription ?? "")")
+      appLogger.error("error while connecting to server \(error?.localizedDescription ?? "")")
       cancelTunnelWithError(error)
       return
     }
@@ -83,7 +83,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     var error: NSError?
     MobileStopVPN(&error)
     if error != nil {
-      appLogger.log("error while stopping tunnel \(error?.localizedDescription ?? "")")
+      appLogger.error("error while stopping tunnel \(error?.localizedDescription ?? "")")
       return
     }
     platformInterface.reset()
