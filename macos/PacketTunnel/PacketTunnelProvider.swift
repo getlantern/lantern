@@ -22,7 +22,10 @@ public class PacketTunnelProvider: ExtensionProvider {
       writeFatalError("missing start options")
       return
     }
-    let username = usernameObject as! NSString
+    guard let username = usernameObject as? NSString else {
+      writeFatalError("username is not an NSString")
+      return
+    }
     let dataDirString = FilePath.dataDirectory.path
     let newDataDirString = dataDirString.replacingOccurrences(
       of: "/var/root", with: "/Users/\(username)")
