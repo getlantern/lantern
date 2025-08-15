@@ -27,7 +27,7 @@ extension FilePath {
 
   public static var dataDirectory = sharedDirectory
   public static var logsDirectory =
-    dataDirectory
+    sharedDirectory
     .appendingPathComponent("Logs", isDirectory: true)
 
 }
