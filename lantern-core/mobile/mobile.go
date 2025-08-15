@@ -3,11 +3,13 @@ package mobile
 import (
 	"fmt"
 	"log/slog"
+	"reflect"
 	"runtime"
 	"sync/atomic"
 
 	lanterncore "github.com/getlantern/lantern-outline/lantern-core"
 	"github.com/getlantern/lantern-outline/lantern-core/utils"
+	"github.com/getlantern/lantern-outline/lantern-core/vpn_tunnel"
 	"github.com/getlantern/radiance/api"
 	"github.com/sagernet/sing-box/experimental/libbox"
 	_ "golang.org/x/mobile/bind"
@@ -22,6 +24,7 @@ func init() {
 
 func core() lanterncore.Core {
 	c := lanternCore.Load()
+	slog.Debug("Using LanternCore instance", "instance", reflect.TypeOf(c).String())
 	return *c
 }
 
@@ -49,26 +52,26 @@ func AvailableFeatures() []byte {
 }
 
 func IsRadianceConnected() bool {
-	//return core.Load().IsRadianceConnected()
 	return true
 }
 
 func StartVPN(platform libbox.PlatformInterface, opts *utils.Opts) error {
-	return core().StartVPN(platform, opts)
+	slog.Info("Starting VPN")
+	return vpn_tunnel.StartVPN(platform, opts)
 }
 
 func StopVPN() error {
-	return core().StopVPN()
+	return vpn_tunnel.StopVPN()
 }
 
 // ConnectToServer connects to a server using the provided location type and tag.
 // It works with private servers and lantern location servers.
 func ConnectToServer(locationType, tag string, platIfce libbox.PlatformInterface, options *utils.Opts) error {
-	return core().ConnectToServer(locationType, tag, platIfce, options)
+	return vpn_tunnel.ConnectToServer(locationType, tag, platIfce, options)
 }
 
 func IsVPNConnected() bool {
-	return core().IsVPNConnected()
+	return vpn_tunnel.IsVPNRunning()
 }
 
 func AddSplitTunnelItem(filterType, item string) error {
@@ -92,11 +95,13 @@ func CreateUser() (*api.UserDataResponse, error) {
 
 // this will return the user data from the user config
 func UserData() ([]byte, error) {
+	slog.Debug("User data")
 	return core().UserData()
 }
 
 // GetUserData will get the user data from the server
 func FetchUserData() ([]byte, error) {
+	slog.Debug("Fetching user data")
 	return core().FetchUserData()
 }
 
