@@ -35,6 +35,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     let tunnelType = options?["netEx.Type"] as? String
     switch tunnelType {
     case "User":
+      appLogger.info("(lantern-tunnel) user initiated connection")
       startVPN()
     case "PrivateServer":
       let serverName = options?["netEx.ServerName"] as? String
@@ -42,6 +43,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
       connectToServer(location: location!, serverName: serverName!)
     default:
       // Fallback or unknown type
+      appLogger.info("(lantern-tunnel) unknown tunnel type \(String(describing: tunnelType))")
       startVPN()
     }
   }

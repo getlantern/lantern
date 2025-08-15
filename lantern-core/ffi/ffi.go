@@ -12,7 +12,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
-	"runtime"
 	"sync/atomic"
 	"unsafe"
 
@@ -56,7 +55,7 @@ func core() lanterncore.Core {
 }
 
 func enableSplitTunneling() bool {
-	return runtime.GOOS == "darwin"
+	return false
 }
 
 func sendApps(port int64) func(apps ...*apps.AppData) error {

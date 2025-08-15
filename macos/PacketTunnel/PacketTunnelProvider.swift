@@ -26,14 +26,9 @@ public class PacketTunnelProvider: ExtensionProvider {
       writeFatalError("username is not an NSString")
       return
     }
-    let dataDirString = FilePath.dataDirectory.path
-    let newDataDirString = dataDirString.replacingOccurrences(
-      of: "/var/root", with: "/Users/\(username)")
-    let noPrivateDataDirString = newDataDirString.replacingOccurrences(
-        of: "/private", with: "")
-    FilePath.dataDirectory = URL(filePath: noPrivateDataDirString)
-    FilePath.logsDirectory = FilePath.dataDirectory
-      .appendingPathComponent("Logs", isDirectory: true)
+    FilePath.dataDirectory = URL(filePath: "/Users/Shared/Lantern")
+
+    appLogger.info("PacketTunnelProvider::Using logs directory \(FilePath.logsDirectory)")
     try await super.startTunnel(options: options)
   }
 }
