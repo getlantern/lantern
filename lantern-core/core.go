@@ -17,7 +17,6 @@ import (
 	"github.com/getlantern/radiance/common"
 	"github.com/getlantern/radiance/servers"
 	"github.com/getlantern/radiance/vpn"
-	"github.com/sagernet/sing-box/experimental/libbox"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -611,18 +610,7 @@ func (cs *CoreStub) AcknowledgeApplePurchase(receipt, planII string) error {
 func (cs *CoreStub) PaymentRedirect(provider, planId, email string) (string, error) {
 	return "", fmt.Errorf("radiance not initialized")
 }
-func (cs *CoreStub) StartVPN(platform libbox.PlatformInterface, opts *utils.Opts) error {
-	return fmt.Errorf("radiance not initialized")
-}
-func (cs *CoreStub) StopVPN() error {
-	return fmt.Errorf("radiance not initialized")
-}
-func (cs *CoreStub) ConnectToServer(locationType, tag string, platIfce libbox.PlatformInterface, options *utils.Opts) error {
-	return fmt.Errorf("radiance not initialized")
-}
-func (cs *CoreStub) IsVPNConnected() bool {
-	return false
-}
+
 func (cs *CoreStub) AddSplitTunnelItem(filterType, item string) error {
 	return fmt.Errorf("radiance not initialized")
 }
