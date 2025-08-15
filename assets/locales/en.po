@@ -631,20 +631,38 @@ msgstr "Your subscription has been renewed."
 msgid "got_it"
 msgstr "Got It"
 
-msgid "private_server_location"
+msgid "server_location"
 msgstr "Server Location"
 
-msgid "private_server_note"
-msgstr "Select a region for your Private Server. Closer locations may improve speed and latency."
+msgid "choose"
+msgstr "Choose"
 
-msgid "do_private_server_setup"
-msgstr "Do Private Server Setup"
+msgid "name_your_google_cloud_project"
+msgstr "Name your Google Cloud Project"
 
-msgid "private_server_setup_error"
-msgstr "There was an error setting up your private server. Please try again later or contact support for assistance."
+msgid "billing_account"
+msgstr "Billing Account"
+
+msgid "billing_account_placeholder"
+msgstr "Billing account for %s"
+
+msgid "name_your_server"
+msgstr "Name your server"
 
 msgid "server_name"
 msgstr "Server Name"
+
+msgid "google_project"
+msgstr "Google Project"
+
+msgid "field_name_required"
+msgstr "Name required"
+
+msgid "choose_google_account"
+msgstr "Choose Google billing account"
+
+msgid "server_name_placeholder"
+msgstr "Derek’s Server"
 
 msgid "change"
 msgstr "Change"
@@ -657,6 +675,39 @@ msgstr "Choose Your Location"
 
 msgid "start_deployment"
 msgstr "Start Deployment"
+
+msgid "server_name_description"
+msgstr "How the server will appear in the server selection list."
+
+msgid "select_private_server_region"
+msgstr "Select a region for your Private Server. Closer locations may improve speed and latency."
+
+msgid "gcp_location_options"
+msgstr "Google Cloud Platform Location Options (%d):"
+
+msgid "gcp_private_server_location"
+msgstr "GCP Private Server Locations"
+
+msgid "australia_sydney"
+msgstr "Australia - Sydney"
+
+msgid "belgium_stghislain"
+msgstr "Belgium - St. Ghislain"
+
+msgid "brazil_saopaulo"
+msgstr "São Paulo"
+
+msgid "us_los_angeles"
+msgstr "US - Los Angeles"
+
+msgid "japan_tokyo"
+msgstr "Japan - Tokyo"
+
+msgid "deploying_private_server"
+msgstr "Deploying Private Server"
+
+msgid "deploying_server_status"
+msgstr "Hang tight! Your Private Server is being set up. This may take a few minutes."
 
 msgid "confirm_server_fingerprint"
 msgstr "Confirm Server Fingerprint"
@@ -673,6 +724,24 @@ msgstr "Hang tight! Your Private Server is being set up. This may take a few min
 msgid "cancel_server_deployment"
 msgstr "Cancel Server Deployment"
 
+msgid "server_ready_title"
+msgstr "Private Server is Ready"
+
+msgid "server_ready_message"
+msgstr "Your Private Server has been set up and added to your server list. You're ready to connect!"
+
+msgid "server_setup_failed"
+msgstr "Server Setup Failed"
+
+msgid "server_failed_message"
+msgstr "Something went wrong while setting up your Private Server. You can retry or try again later."
+
+msgid "close"
+msgstr "Close"
+
+msgid "connect_now"
+msgstr "Connect Now"
+
 msgid "server_setup_failed"
 msgstr "Server Setup Failed"
 
@@ -688,6 +757,9 @@ msgstr "Exit"
 msgid "retry"
 msgstr "Retry"
 
+msgid "all_required_fields"
+msgstr "Please fill out all required fields."
+
 msgid "private_server_ready"
 msgstr "Your Private Server is Ready!"
 
@@ -699,7 +771,6 @@ msgstr "Close"
 
 msgid "connect_now"
 msgstr "Connect Now"
-
 
 msgid "set_up_your_server"
 msgstr "Set Up Your Server"
@@ -784,10 +855,8 @@ msgstr "Generate Access key"
 msgid "invite_name"
 msgstr "Invite Name"
 
-
 msgid "trust_server_operator"
 msgstr "Trust the Server Operator"
-
 
 msgid "trust_server_operator_message_one"
 msgstr "Private servers are hosted and operated by individuals or organizations outside of Lantern. When you connect to one, you're trusting the person running it to manage it securely and use it responsibly."
@@ -859,22 +928,6 @@ msgstr "Built-in Ad Blocking"
 msgid "get_lantern_pro"
 msgstr "Get Lantern Pro"
 
-
 msgid "connected_to_private_server"
 msgstr "Connected to Private Server"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

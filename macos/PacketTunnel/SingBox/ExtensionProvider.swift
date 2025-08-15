@@ -11,14 +11,21 @@
 //  Copyright (c) SagerNet. Licensed under GPLv3.
 //
 
-import CoreLocation
 import Foundation
 import Liblantern
 import NetworkExtension
 import OSLog
 
-public class ExtensionProvider: NEPacketTunnelProvider {
+#if os(iOS)
+  import WidgetKit
+#endif
+#if os(macOS)
+  import CoreLocation
+#endif
 
+public class ExtensionProvider: NEPacketTunnelProvider {
+  let appLogger = Logger(
+    subsystem: "org.getlantern.lantern", category: "ExtensionProvider")
   private var platformInterface: ExtensionPlatformInterface!
 
   override open func startTunnel(options: [String: NSObject]?) async throws {
@@ -52,7 +59,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
 
     MobileStartVPN(platformInterface, opts(), &error)
     if error != nil {
-      appLogger.log("error while starting tunnel \(error?.localizedDescription ?? "")")
+      appLogger.error("error while starting tunnel \(error?.localizedDescription ?? "")")
       // Inform system and close tunnel
       cancelTunnelWithError(error)
       return
@@ -65,7 +72,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     var error: NSError?
     MobileConnectToServer(location, serverName, platformInterface, opts(), &error)
     if error != nil {
-      appLogger.log("error while connecting to server \(error?.localizedDescription ?? "")")
+      appLogger.error("error while connecting to server \(error?.localizedDescription ?? "")")
       cancelTunnelWithError(error)
       return
     }
@@ -76,23 +83,53 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     var error: NSError?
     MobileStopVPN(&error)
     if error != nil {
-      appLogger.log("error while stopping tunnel \(error?.localizedDescription ?? "")")
+      appLogger.error("error while stopping tunnel \(error?.localizedDescription ?? "")")
       return
     }
     platformInterface.reset()
   }
 
   override open func stopTunnel(with reason: NEProviderStopReason) async {
-    appLogger.log("(lantern-tunnel) stopping, reason: \(reason)")
+    appLogger.log("(lantern-tunnel) stopping, reason:\(String(describing: reason))")
     stopService()
   }
 
   func opts() -> UtilsOpts {
-    let baseDir = FilePath.sharedDirectory.relativePath
     let opts = UtilsOpts()
-    opts.dataDir = baseDir
+    opts.dataDir = FilePath.dataDirectory.relativePath
+    // opts.deviceid = DeviceIdentifier.getUDID()
     opts.locale = Locale.current.identifier
-
+    opts.logLevel = "debug"
+    opts.logDir = FilePath.logsDirectory.relativePath
+    appLogger.info("logging to \(opts.logDir)")
     return opts
   }
+
+  override open func sleep() async {
+    // if let boxService {
+    //     boxService.pause()
+    // }
+  }
+
+  override open func wake() {
+    // if let boxService {
+    //     boxService.wake()
+    // }
+  }
+
+  func reloadService() {
+    appLogger.log("(lantern-tunnel) reloading service")
+    reasserting = true
+    defer {
+      reasserting = false
+    }
+    stopService()
+    startVPN()
+  }
+
+  func postServiceClose() {
+    //    radiance = nil
+    platformInterface.reset()
+  }
+
 }

@@ -1,127 +1,147 @@
+import 'package:auto_route/auto_route.dart';
+import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/widgets/bullet_list.dart';
+import 'package:lantern/core/models/server_location.dart';
+import 'package:lantern/core/widgets/radio_listview.dart';
 
-class DigitalOceanLocations extends StatelessWidget {
-  const DigitalOceanLocations({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final doLocations = <String>[
-      'Australia – Sydney',
-      'Canada – Toronto',
-      'Germany – Frankfurt',
-      'India – Bangalore',
-      'Netherlands – Amsterdam',
-      'Singapore – Singapore',
-      'United Kingdom – London',
-      'United States – New York City',
-      'United States – San Francisco',
-    ];
-
-    return ServerLocationsModal(
-      leadingIcon: AppImage(
-        path: AppImagePaths.digitalOcean,
-      ),
-      provider: CloudProvider.digitalOcean,
-      locations: doLocations,
-    );
-  }
-}
-
-class GoogleCloudLocations extends StatelessWidget {
-  const GoogleCloudLocations({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    // TEST DATA. TODO: Populate with actual GCP and DO locations
-    const List<String> gcpLocations = [
-      'Australia – Melbourne',
-      'Australia – Sydney',
-      'Belgium – St. Ghislain',
-      'Brazil – São Paulo',
-      'Canada – Montreal',
-      'Canada – Toronto',
-      'Finland – Hamina',
-      'Germany – Frankfurt',
-      'Hong Kong – Hong Kong',
-      'India – Delhi',
-      'India – Mumbai',
-      'Indonesia – Jakarta',
-      'Japan – Osaka',
-      'Japan – Tokyo',
-      'Netherlands – Eemshaven',
-      'Poland – Warsaw',
-      'Singapore – Jurong West',
-      'South Korea – Seoul',
-      'Switzerland – Zurich',
-      'Taiwan – Changhua County',
-      'United Kingdom – London',
-      'United States – Iowa',
-      'United States – Las Vegas',
-      'United States – Los Angeles',
-      'United States – Northern Virginia',
-      'United States – Oregon',
-      'United States – Salt Lake City',
-      'United States – South Carolina',
-    ];
-    return ServerLocationsModal(
-      leadingIcon: AppImage(
-        path: AppImagePaths.googleCloud,
-      ),
-      provider: CloudProvider.googleCloud,
-      locations: gcpLocations,
-    );
-  }
-}
-
-class ServerLocationsModal extends StatelessWidget {
-  final Widget leadingIcon;
-  final List<String> locations;
+@RoutePage(name: 'ServerLocations')
+class ServerLocations extends HookConsumerWidget {
+  final String? selectedCode;
+  final String title;
   final CloudProvider provider;
+  final void Function(ServerLocation) onSelected;
 
-  const ServerLocationsModal({
+  const ServerLocations({
     super.key,
-    required this.leadingIcon,
-    required this.locations,
+    this.selectedCode,
     required this.provider,
+    required this.title,
+    required this.onSelected,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final locations = [
+      ServerLocation(code: 'BE', label: 'belgium_stghislain'.i18n),
+      ServerLocation(code: 'AU', label: 'australia_sydney'.i18n),
+      ServerLocation(code: 'BR', label: 'brazil_saopaulo'.i18n),
+    ];
+    final selected = useState<ServerLocation?>(
+        locations.firstWhere((l) => selectedCode == l.code));
     final providerName = provider.value;
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+    return BaseScreen(
+      title: title,
+      backgroundColor: AppColors.gray1,
+      appBar: AppBar(
+        title: Text(title),
+        centerTitle: true,
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        iconTheme: const IconThemeData(color: Colors.black),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            leadingIcon,
-            const SizedBox(height: defaultSize),
-            Text(
-              'server_locations'.i18n,
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
+            // Description
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Text(
+                'select_private_server_region'.i18n,
+                style: AppTestStyles.bodyLarge.copyWith(
+                  color: AppColors.logTextColor,
+                ),
+              ),
             ),
             const SizedBox(height: defaultSize),
             Text(
               '${providerName}_allows'.i18n,
               style: AppTestStyles.bodyMedium,
             ),
-            const SizedBox(height: defaultSize),
-            BulletList(items: locations),
-            const SizedBox(height: defaultSize),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text(
-                  'got_it'.i18n,
-                  style: AppTestStyles.titleMedium.copyWith(
-                    color: AppColors.blue6,
+            // Locations List
+            Expanded(
+              child: Card(
+                elevation: 0,
+                color: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(
+                    color: AppColors.gray2,
+                    width: 1,
+                  ),
+                ),
+                child: RadioListView<ServerLocation>(
+                  items: locations,
+                  groupValue: selected.value,
+                  onChanged: (value) {
+                    selected.value = value;
+                    onSelected(value);
+                    Navigator.of(context).pop();
+                  },
+                  rowBuilder: (loc, sel, onTap) => ServerLocationRow(
+                    location: loc,
+                    selected: sel,
+                    onTap: onTap,
                   ),
                 ),
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ServerLocationRow extends StatelessWidget {
+  final ServerLocation location;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const ServerLocationRow({
+    super.key,
+    required this.location,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 8),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: Color(0xFFEDEFEF),
+              width: 1,
+            ),
+          ),
+        ),
+        child: Row(
+          children: [
+            CountryFlag.fromCountryCode(location.code, width: 24, height: 17),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                location.label,
+                style: AppTestStyles.bodyLarge.copyWith(
+                  color: AppColors.black1,
+                ),
+              ),
+            ),
+            Radio<ServerLocation>(
+              value: location,
+              groupValue: selected ? location : null,
+              onChanged: (_) => onTap(),
+              activeColor: AppColors.black1,
             ),
           ],
         ),
