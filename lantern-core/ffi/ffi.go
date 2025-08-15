@@ -119,24 +119,12 @@ func removeSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
 
 //export getDataCapInfo
 func getDataCapInfo() *C.char {
-	mu.Lock()
-	defer mu.Unlock()
-	if server == nil || server.apiClient == nil {
-		return SendError(fmt.Errorf("radiance not initialized"))
-	}
-
-	info, err := server.apiClient.DataCapInfo()
+	info, err := core().DataCapInfo()
 	if err != nil {
 		return SendError(err)
 	}
 
-	result := map[string]interface{}{
-		"bytesAllotted":  info.BytesAllotted,
-		"bytesRemaining": info.BytesRemaining,
-		"allotmentStart": info.AllotmentStart.Unix(),
-		"allotmentEnd":   info.AllotmentEnd.Unix(),
-	}
-	data, err := json.Marshal(result)
+	data, err := json.Marshal(info)
 	if err != nil {
 		return SendError(err)
 	}
