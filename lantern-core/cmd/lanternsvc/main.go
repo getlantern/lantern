@@ -6,15 +6,18 @@ import (
 	"context"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/getlantern/golog"
+	"github.com/getlantern/lantern-outline/lantern-core/utils"
 	"github.com/getlantern/lantern-outline/lantern-core/wintunmgr"
 )
 
 const (
-	adapterName = "Lantern"
-	poolName    = "Lantern"
+	adapterName     = "Lantern"
+	poolName        = "Lantern"
+	servicePipeName = `\\.\pipe\LanternService`
 )
 
 var (
@@ -22,27 +25,23 @@ var (
 )
 
 func main() {
-	mgr := wintunmgr.New(adapterName, poolName, nil)
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
 
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
-	defer stop()
+	wt := wintunmgr.New("Lantern", "Lantern", nil)
+	svc := wintunmgr.NewService(wintunmgr.ServiceOptions{
+		PipeName: servicePipeName,
+		DataDir:  utils.DefaultDataDir(),
+		LogDir:   utils.DefaultLogDir(),
+		Locale:   "en_US",
+	}, wt)
 
-	ad, err := mgr.OpenOrCreateTunAdapter(ctx)
-	if err != nil {
-		log.Fatalf("open wintun adapter: %v", err)
-	}
-	defer ad.Close()
+	go func() {
+		<-ctx.Done()
+		time.Sleep(200 * time.Millisecond)
+	}()
 
-	// Start Lantern core service here
-
-	t := time.NewTicker(10 * time.Second)
-	defer t.Stop()
-	for {
-		select {
-		case <-ctx.Done():
-			log.Debug("shutting down…")
-			return
-		case <-t.C:
-		}
+	if err := svc.Start(ctx); err != nil {
+		os.Exit(1)
 	}
 }
