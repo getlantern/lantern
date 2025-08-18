@@ -96,13 +96,13 @@ class ExtensionProvider: NEPacketTunnelProvider {
   }
 
   func opts() -> UtilsOpts {
-      let opts = UtilsOpts()
-      opts.dataDir = FilePath.sharedDirectory.absoluteString
-      opts.logDir = FilePath.logsDirectory.absoluteString
-      opts.deviceid = DeviceIdentifier.getUDID()
-      opts.logLevel = "debug"
-      opts.locale = Locale.current.identifier
-return opts
+    let opts = UtilsOpts()
+    opts.dataDir = FilePath.sharedDirectory.absoluteString
+    opts.logDir = FilePath.logsDirectory.absoluteString
+    opts.deviceid = DeviceIdentifier.getUDID()
+    opts.logLevel = "debug"
+    opts.locale = Locale.current.identifier
+    return opts
   }
 
 }

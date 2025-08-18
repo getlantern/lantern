@@ -473,9 +473,12 @@ func SignUp(email, password string) error {
 
 func Logout(email string) ([]byte, error) {
 	log.Debug("Logging out")
+	if email == "" {
+		return nil, log.Errorf("Email is required to log out")
+	}
 	err := radianceServer.apiClient.Logout(context.Background(), email)
 	if err != nil {
-		return nil, log.Errorf("Error logging out: %v", err)
+		return []byte{}, log.Errorf("Error logging out: %v", err)
 	}
 	//this call will save data
 	user, err := CreateUser()

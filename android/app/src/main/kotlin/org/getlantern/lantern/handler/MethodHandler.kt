@@ -498,13 +498,15 @@ class MethodHandler : FlutterPlugin,
             Methods.Logout.method -> {
                 scope.launch {
                     result.runCatching {
-                        val bytes = Mobile.logout(call.arguments<String>() as String)
+                        val email = call.arguments<String>();
+                        Log.d(TAG, "Logout email: $email")
+                        val bytes = Mobile.logout(email)
                         withContext(Dispatchers.Main) {
                             success(bytes)
                         }
                     }.onFailure { e ->
                         result.error(
-                            "OAuthLoginCallback",
+                            "Logout",
                             e.localizedMessage ?: "Please try again",
                             e
                         )

@@ -9,7 +9,7 @@ import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/widgets/app_pin_field.dart';
 import 'package:lantern/core/widgets/app_rich_text.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
-import 'package:lantern/features/home/provider/home_notifier.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 
 @RoutePage(name: 'ConfirmEmail')
 class ConfirmEmail extends HookConsumerWidget {
@@ -106,9 +106,10 @@ class ConfirmEmail extends HookConsumerWidget {
 
   Future<void> completeChangeEmail(
       BuildContext context, WidgetRef ref, String code) async {
+    context.showLoadingDialog();
     final result = await ref
         .read(authNotifierProvider.notifier)
-        .completeRecoveryByEmail(email, password!, code);
+        .completeChangeEmail(email, password!, code);
     result.fold(
       (failure) {
         context.hideLoadingDialog();
@@ -116,11 +117,13 @@ class ConfirmEmail extends HookConsumerWidget {
       },
       (_) {
         context.hideLoadingDialog();
-
+        //update email in app settings
+        ref.read(appSettingNotifierProvider.notifier).setEmail(email);
         AppDialog.dialog(
           context: context,
           title: 'change_email'.i18n,
           content: 'email_updated'.i18n,
+          action: 'ok'.i18n,
           onPressed: () {
             appRouter.popUntil((route) => (route.settings.name == 'Account'));
           },

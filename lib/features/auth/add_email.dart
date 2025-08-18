@@ -134,7 +134,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
         await signupFlow(email);
         return;
       }
-    }catch (e) {
+    } catch (e) {
       appLogger.error('Error in onContinueTap: $e');
       context.showSnackBar('error_occurred'.i18n);
     }
@@ -213,7 +213,6 @@ class _AddEmailState extends ConsumerState<AddEmail> {
   //Change Email flow
 
   void startChangeEmailFlow(String email) async {
-
     context.showLoadingDialog();
     final result = await ref
         .read(authNotifierProvider.notifier)
@@ -249,7 +248,10 @@ class _AddEmailState extends ConsumerState<AddEmail> {
             .push(ChoosePaymentMethod(email: email, authFlow: AuthFlow.oauth));
         break;
       case SignUpMethodType.email:
-        appRouter.push(ConfirmEmail(email: email, authFlow: widget.authFlow,password: widget.password));
+        appRouter.push(ConfirmEmail(
+            email: email,
+            authFlow: widget.authFlow,
+            password: widget.password));
         break;
       case SignUpMethodType.withoutEmail:
         continueWithoutEmail();

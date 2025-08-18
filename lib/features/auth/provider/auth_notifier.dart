@@ -66,4 +66,11 @@ class AuthNotifier extends _$AuthNotifier {
         .read(lanternServiceProvider)
         .startChangeEmail(newEmail, password);
   }
+
+  Future<Either<Failure, String>> completeChangeEmail(
+      String newEmail, String password,String code) async {
+    return ref
+        .read(lanternServiceProvider)
+        .completeChangeEmail(newEmail: newEmail, password: password, code: code);
+  }
 }

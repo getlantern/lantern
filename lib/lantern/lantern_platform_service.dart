@@ -25,7 +25,7 @@ class LanternPlatformService implements LanternCoreService {
 
   static const channelPrefix = 'org.getlantern.lantern';
   static const MethodChannel _methodChannel =
-      MethodChannel('org.getlantern.lantern/method');
+      MethodChannel('$channelPrefix/method');
   static const logsChannel = EventChannel("$channelPrefix/logs");
   static const EventChannel statusChannel =
       EventChannel("$channelPrefix/status", JSONMethodCodec());
@@ -423,10 +423,10 @@ class LanternPlatformService implements LanternCoreService {
     required String newPassword,
   }) async {
     try {
-      await _methodChannel.invokeMethod('completeChangeEmail', {
-        'newEmail': email,
+      await _methodChannel.invokeMethod('completeRecoveryByEmail', {
+        'email': email,
         'code': code,
-        'password': newPassword,
+        'newPassword': newPassword,
       });
       return Right(unit);
     } catch (e, stackTrace) {
