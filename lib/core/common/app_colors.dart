@@ -54,6 +54,7 @@ class AppColors {
   static Color get gray11 => const Color(0xFF040404);
 
   static Color get gray12 => const Color(0xFFBDBDBD);
+  static Color get lightGray => const Color(0xFF838383);
 
   static Color get yellow0 => const Color(0xFFFEFDF6);
 

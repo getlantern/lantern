@@ -25,6 +25,10 @@ class PrivateServerNotifier extends _$PrivateServerNotifier {
     return ref.read(lanternServiceProvider).digitalOceanPrivateServer();
   }
 
+  Future<Either<Failure, Unit>> googleCloud() async {
+    return ref.read(lanternServiceProvider).googleCloudPrivateServer();
+  }
+
   Future<Either<Failure, Unit>> setUserInput(
       PrivateServerInput method, String input) async {
     return ref.read(lanternServiceProvider).setUserInput(

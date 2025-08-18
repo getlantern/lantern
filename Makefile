@@ -31,7 +31,10 @@ MACOS_FRAMEWORK := Liblantern.xcframework
 MACOS_FRAMEWORK_DIR := macos/Frameworks
 MACOS_FRAMEWORK_BUILD := $(BIN_DIR)/macos/$(MACOS_FRAMEWORK)
 MACOS_DEBUG_BUILD := $(BUILD_DIR)/macos/Runner.app
-PACKET_ENTITLEMENTS := macos/PacketTunnel/PacketTunnelRelease.entitlements
+PACKET_TUNNEL_DIR := $(DARWIN_RELEASE_BUILD)/Contents/PlugIns/PacketTunnel.appex
+SYSTEM_EXTENSION_DIR := $(DARWIN_RELEASE_DIR)/$(DARWIN_APP_NAME)/Contents/Library/SystemExtensions/org.getlantern.lantern.packet.systemextension
+PACKET_ENTITLEMENTS := macos/PacketTunnel/PacketTunnel.entitlements
+
 
 LINUX_LIB := $(LANTERN_LIB_NAME).so
 LINUX_LIB_AMD64 := $(BIN_DIR)/linux-amd64/$(LANTERN_LIB_NAME).so
@@ -143,29 +146,8 @@ install-macos-deps: install-gomobile
 	brew install imagemagick || true
 	dart pub global activate flutter_distributor
 
-.PHONY: macos-arm64
-macos-arm64: $(DARWIN_LIB_ARM64)
-
-$(DARWIN_LIB_ARM64): $(GO_SOURCES)
-	GOARCH=arm64 LIB_NAME=$@ make desktop-lib
-
-.PHONY: macos-amd64
-macos-amd64: $(DARWIN_LIB_AMD64)
-
-$(DARWIN_LIB_AMD64): $(GO_SOURCES)
-	GOARCH=amd64 LIB_NAME=$@ make desktop-lib
-
 .PHONY: macos
 macos: $(MACOS_FRAMEWORK_BUILD)
-
-$(DARWIN_LIB_BUILD): $(GO_SOURCES)
-	$(MAKE) macos-arm64 macos-amd64
-	rm -rf $@ && mkdir -p $(dir $@)
-	lipo -create $(DARWIN_LIB_ARM64) $(DARWIN_LIB_AMD64) -output $@
-	install_name_tool -id "@rpath/${DARWIN_LIB}" $@
-	mkdir -p $(MACOS_FRAMEWORK_DIR) && cp $@ $(MACOS_FRAMEWORK_DIR)
-	cp $(BIN_DIR)/macos-amd64/$(LANTERN_LIB_NAME)*.h $(MACOS_FRAMEWORK_DIR)/
-	@echo "Built macOS library: $(MACOS_FRAMEWORK_DIR)/$(DARWIN_LIB)"
 
 $(MACOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 	@echo "Building macOS Framework.."
@@ -211,6 +193,9 @@ notarize-darwin: require-ac-username require-ac-password
 	@echo "Notarization complete"
 
 sign-app:
+	$(call osxcodesign, $(PACKET_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR)/Contents/Frameworks/Liblantern.framework)
+	$(call osxcodesign, $(PACKET_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR)/Contents/MacOS/org.getlantern.lantern.packet)
+	$(call osxcodesign, $(PACKET_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR))
 	$(call osxcodesign, $(MACOS_ENTITLEMENTS), $(DARWIN_RELEASE_BUILD))
 
 package-macos: require-appdmg

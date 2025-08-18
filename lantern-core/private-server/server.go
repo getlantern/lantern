@@ -15,6 +15,7 @@ import (
 	"github.com/getlantern/lantern-outline/lantern-core/utils"
 	pcommon "github.com/getlantern/lantern-server-provisioner/common"
 	"github.com/getlantern/lantern-server-provisioner/digitalocean"
+	gcp "github.com/getlantern/lantern-server-provisioner/gcp"
 	"github.com/getlantern/radiance/servers"
 )
 
@@ -94,6 +95,26 @@ func StartDigitalOceanPrivateServerFlow(events utils.PrivateServerEventListener,
 	return nil
 }
 
+// StartGoogleCloudPrivateServerFlow initializes the GCP provisioner and starts listening for events
+func StartGoogleCloudPrivateServerFlow(events utils.PrivateServerEventListener, vpnClient *servers.Manager) error {
+	ctx := context.Background()
+	provisioner := gcp.GetProvisioner(ctx, func(url string) error {
+		return events.OpenBrowser(url)
+	})
+	session := provisioner.Session()
+	if session == nil {
+		return log.Error("Failed to start Google Cloud provisioner")
+	}
+	ps := &provisionSession{
+		provisioner: provisioner,
+		eventSink:   events,
+		manager:     vpnClient,
+	}
+	storeSession(ps)
+	go listenToServerEvents(*ps)
+	return nil
+}
+
 // listenToServerEvents listens for events from the provisioner session and handles them accordingly.
 func listenToServerEvents(ps provisionSession) {
 	provisioner := ps.provisioner
@@ -113,18 +134,15 @@ func listenToServerEvents(ps provisionSession) {
 				events.OnError(convertErrorToJSON("EventTypeOAuthCancelled", fmt.Errorf("OAuth cancelled by user")))
 				return
 			case pcommon.EventTypeOAuthError:
-				log.Errorf("OAuth failed", e.Error)
+				log.Errorf("OAuth failed: %v", e.Error)
 				events.OnError(convertErrorToJSON("EventTypeOAuthError", e.Error))
 				return
 
 				// Validation events
 			case pcommon.EventTypeOAuthCompleted:
-				log.Debugf("OAuth completed", e.Message)
-				// we have the token, now we can proceed
-				// this will start the validation process, preparing a list of healthy projects
-				// and billing accounts that can be used
+				log.Debug("OAuth completed; starting validation")
 				events.OnPrivateServerEvent(convertStatusToJSON("EventTypeOAuthCompleted", "OAuth completed, starting validation"))
-				provisioner.Validate(context.Background(), e.Message)
+				ps.provisioner.Validate(context.Background(), e.Message)
 				continue
 			case pcommon.EventTypeValidationStarted:
 				log.Debug("Validation started")
@@ -136,7 +154,7 @@ func listenToServerEvents(ps provisionSession) {
 			case pcommon.EventTypeValidationCompleted:
 				// at this point we have a list of projects and billing accounts
 				// present them to the user
-				// log.Debug("Validation completed, ready to create resources")
+				log.Debugf("Provisioning completed successfully: %s", e.Message)
 				compartments := provisioner.Compartments()
 				if len(compartments) == 0 {
 					log.Error("No valid projects found, please check your billing account and permissions")
@@ -263,8 +281,8 @@ func SelectedCertFingerprint(fp string) {
 	}
 }
 
-// CancelDepolyment cancels the current provisioning session.
-func CancelDepolyment() error {
+// CancelDeployment cancels the current provisioning session.
+func CancelDeployment() error {
 	ps, err := getSession()
 	if err != nil {
 		return err

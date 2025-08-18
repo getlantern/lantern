@@ -16,23 +16,20 @@ public enum FilePath {
 extension FilePath {
   public static let groupName = "group.getlantern.lantern"
 
-  private static let defaultSharedDirectory: URL! = FileManager.default.containerURL(
+  private static let containerSharedDirectory: URL! = FileManager.default.containerURL(
     forSecurityApplicationGroupIdentifier: FilePath.groupName)
 
-  public static let sharedDirectory = defaultSharedDirectory!
+  public static let sharedDirectory = containerSharedDirectory!
 
   public static let libraryDirectory =
     sharedDirectory
     .appendingPathComponent("Library", isDirectory: true)
-  public static let cacheDirectory =
-    libraryDirectory
-    .appendingPathComponent("Caches", isDirectory: true)
-  public static let logsDirectory =
-    libraryDirectory
+
+  public static var dataDirectory = sharedDirectory
+  public static var logsDirectory =
+    sharedDirectory
     .appendingPathComponent("Logs", isDirectory: true)
 
-  public static let workingDirectory = cacheDirectory.appendingPathComponent(
-    "Working", isDirectory: true)
 }
 
 extension URL {
