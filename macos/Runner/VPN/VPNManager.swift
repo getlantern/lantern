@@ -99,7 +99,10 @@ class VPNManager: VPNBase {
     appLogger.log("Starting tunnel..")
     //await removeExistingVPNProfiles()
     await self.setupVPN()
-    let options = ["netEx.StartReason": NSString("User Initiated")]
+    let options = [
+      "netEx.StartReason": NSString("User Initiated"),
+      "username": NSString(string: NSUserName()),
+    ]
     try self.manager.connection.startVPNTunnel(options: options)
 
     self.manager.isOnDemandEnabled = false
