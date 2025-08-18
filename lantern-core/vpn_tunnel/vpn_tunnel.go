@@ -47,7 +47,7 @@ func StopVPN() error {
 // VPN tunnel if it's not already running.
 func ConnectToServer(group, tag string, platIfce libbox.PlatformInterface, options *utils.Opts) error {
 	switch group {
-	case InternalTagAutoAll:
+	case InternalTagAutoAll, "auto":
 		group = "all"
 	case "privateServer":
 		group = InternalTagUser
