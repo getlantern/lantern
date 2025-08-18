@@ -12,12 +12,12 @@ import (
 	"github.com/getlantern/lantern-outline/lantern-core/utils"
 )
 
-type InternalTag = string
+type InternalTag string
 
 const (
-	InternalTagAutoAll InternalTag = "auto_all"
-	InternalTagUser    InternalTag = servers.SGUser
-	InternalTagLantern InternalTag = servers.SGLantern
+	InternalTagAutoAll InternalTag = "auto-all"
+	InternalTagUser    InternalTag = InternalTag(servers.SGUser)
+	InternalTagLantern InternalTag = InternalTag(servers.SGLantern)
 )
 
 // StartVPN will start the VPN tunnel using the provided platform interface.
@@ -47,12 +47,12 @@ func StopVPN() error {
 // VPN tunnel if it's not already running.
 func ConnectToServer(group, tag string, platIfce libbox.PlatformInterface, options *utils.Opts) error {
 	switch group {
-	case InternalTagAutoAll, "auto":
+	case string(InternalTagAutoAll), "auto":
 		group = "all"
 	case "privateServer":
-		group = InternalTagUser
+		group = string(InternalTagUser)
 	case "lanternLocation":
-		group = InternalTagLantern
+		group = string(InternalTagLantern)
 	}
 	if radianceCommon.IsIOS() || radianceCommon.IsMacOS() {
 		err := initializeCommonForApplePlatforms(options)
