@@ -431,12 +431,10 @@ func completeRecoveryByEmail(_email, _newPassword, _code *C.char) *C.char {
 func startChangeEmail(_newEmail, _password *C.char) *C.char {
 	newEmail := C.GoString(_newEmail)
 	password := C.GoString(_password)
-	log.Debugf("Starting email change from %s to %s", newEmail, newEmail)
-	err := server.apiClient.StartChangeEmail(context.Background(), newEmail, password)
+	err := core().StartChangeEmail(newEmail, password)
 	if err != nil {
-		return SendError(log.Errorf("Error starting email change: %v", err))
+		return SendError(fmt.Errorf("error starting email change: %v", err))
 	}
-	log.Debug("Email change started successfully")
 	return C.CString("ok")
 }
 
@@ -447,12 +445,10 @@ func completeChangeEmail(_newEmail, _password, _code *C.char) *C.char {
 	newEmail := C.GoString(_newEmail)
 	password := C.GoString(_password)
 	code := C.GoString(_code)
-	log.Debugf("Completing email change for %s with code %s", newEmail, code)
-	err := server.apiClient.CompleteChangeEmail(context.Background(), newEmail, password, code)
+	err := core().CompleteChangeEmail(newEmail, password, code)
 	if err != nil {
-		return SendError(log.Errorf("Error completing email change: %v", err))
+		return SendError(fmt.Errorf("error completing email change: %v", err))
 	}
-	log.Debug("Email change completed successfully")
 	return C.CString("ok")
 }
 

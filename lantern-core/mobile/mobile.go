@@ -1,7 +1,6 @@
 package mobile
 
 import (
-	"context"
 	"fmt"
 	"log/slog"
 	"reflect"
@@ -13,7 +12,6 @@ import (
 	"github.com/getlantern/lantern-outline/lantern-core/vpn_tunnel"
 	"github.com/getlantern/radiance/api"
 	"github.com/sagernet/sing-box/experimental/libbox"
-	"github.com/siddontang/go/log"
 	_ "golang.org/x/mobile/bind"
 )
 
@@ -146,21 +144,11 @@ func Login(email, password string) ([]byte, error) {
 }
 
 func StartChangeEmail(newEmail, password string) error {
-	log.Debugf("Starting change email to: %s, password: %s", newEmail, password)
-	err := radianceServer.apiClient.StartChangeEmail(context.Background(), newEmail, password)
-	if err != nil {
-		return log.Errorf("Error starting change email: %v", err)
-	}
-	return nil
+	return core().StartChangeEmail(newEmail, password)
 }
 
 func CompleteChangeEmail(email, password, code string) error {
-	log.Debugf("Completing change email for: %s", email)
-	err := radianceServer.apiClient.CompleteChangeEmail(context.Background(), email, password, code)
-	if err != nil {
-		return log.Errorf("Error completing change email: %v", err)
-	}
-	return nil
+	return core().CompleteChangeEmail(email, password, code)
 }
 
 func SignUp(email, password string) error {
@@ -183,35 +171,22 @@ func ValidateChangeEmailCode(email, code string) error {
 }
 
 func CompleteRecoveryByEmail(email, newPassword, code string) error {
-	log.Debug("Completing email recovery")
-	err := radianceServer.apiClient.CompleteRecoveryByEmail(context.Background(), email, newPassword, code)
-	if err != nil {
-		return log.Errorf("Error completing email recovery: %v", err)
-	}
-	log.Debugf("ValidateChangeEmailCode Sucessful for email: %s", email)
-	return nil
+	return core().CompleteRecoveryByEmail(email, newPassword, code)
 }
 
 func RemoveDevice(deviceId string) error {
-	// defer func() {
-	// 	if r := recover(); r != nil {
-	// 		log.Errorf("Recovered from panic in RemoveDevice: %v", r)
-	// 	}
-	// }()
-	log.Debugf("Removing device: %s", deviceId)
-	linkResponse, err := radianceServer.apiClient.DeviceRemove(context.Background(), deviceId)
+	linkresp, err := core().DeviceRemove(deviceId)
 	if err != nil {
-		return log.Errorf("Error removing device: %v", err)
+		return err
 	}
-
-	log.Debugf("DeviceRemove response: %v", linkResponse)
+	slog.Debug("Device removed successfully", "deviceId", deviceId, "response", linkresp)
 	return nil
 }
 
-// This will complete the email recovery by setting the new password
-func CompleteChangeEmail(email, password, code string) error {
-	return core().CompleteChangeEmail(email, password, code)
-}
+// // This will complete the email recovery by setting the new password
+// func CompleteChangeEmail(email, password, code string) error {
+// 	return core().CompleteChangeEmail(email, password, code)
+// }
 
 func DeleteAccount(email, password string) ([]byte, error) {
 	return core().DeleteAccount(email, password)

@@ -53,8 +53,12 @@ type User interface {
 	Logout(email string) ([]byte, error)
 	StartRecoveryByEmail(email string) error
 	ValidateChangeEmailCode(email, code string) error
-	CompleteChangeEmail(email, password, code string) error
+	CompleteRecoveryByEmail(email, password, code string) error
 	DeleteAccount(email, password string) ([]byte, error)
+	DeviceRemove(deviceId string) (*api.LinkResponse, error)
+	//Change email
+	StartChangeEmail(newEmail, password string) error
+	CompleteChangeEmail(email, password, code string) error
 }
 
 type PrivateServer interface {
@@ -448,8 +452,8 @@ func (lc *LanternCore) ValidateChangeEmailCode(email, code string) error {
 }
 
 // This will complete the email recovery by setting the new password
-func (lc *LanternCore) CompleteChangeEmail(email, password, code string) error {
-	slog.Debug("Completing change email")
+func (lc *LanternCore) CompleteRecoveryByEmail(email, password, code string) error {
+	slog.Debug("Completing email recovery")
 	return lc.apiClient.CompleteRecoveryByEmail(context.Background(), email, password, code)
 }
 
@@ -475,6 +479,22 @@ func (lc *LanternCore) DeleteAccount(email, password string) ([]byte, error) {
 
 	lc.userInfo.SetData(login)
 	return protoUserData, nil
+}
+
+func (lc *LanternCore) DeviceRemove(deviceID string) (*api.LinkResponse, error) {
+	slog.Debug("Removing device: %s", deviceID)
+	return lc.apiClient.DeviceRemove(context.Background(), deviceID)
+}
+
+// Change email
+func (lc *LanternCore) StartChangeEmail(newEmail, password string) error {
+	slog.Debug("Starting change email")
+	return lc.apiClient.StartChangeEmail(context.Background(), newEmail, password)
+}
+
+func (lc *LanternCore) CompleteChangeEmail(email, password, code string) error {
+	slog.Debug("Completing change email")
+	return lc.apiClient.CompleteChangeEmail(context.Background(), email, password, code)
 }
 
 func (lc *LanternCore) ActivationCode(email, resellerCode string) error {
@@ -583,12 +603,25 @@ func (cs *CoreStub) StartRecoveryByEmail(email string) error {
 func (cs *CoreStub) ValidateChangeEmailCode(email, code string) error {
 	return fmt.Errorf("radiance not initialized")
 }
-func (cs *CoreStub) CompleteChangeEmail(email, password, code string) error {
+func (cs *CoreStub) CompleteRecoveryByEmail(email, password, code string) error {
 	return fmt.Errorf("radiance not initialized")
 }
 func (cs *CoreStub) DeleteAccount(email, password string) ([]byte, error) {
 	return nil, fmt.Errorf("radiance not initialized")
 }
+
+func (cs *CoreStub) DeviceRemove(deviceId string) (*api.LinkResponse, error) {
+	return nil, fmt.Errorf("radiance not initialized")
+}
+
+func (cs *CoreStub) StartChangeEmail(newEmail, password string) error {
+	return fmt.Errorf("radiance not initialized")
+}
+
+func (cs *CoreStub) CompleteChangeEmail(email, password, code string) error {
+	return fmt.Errorf("radiance not initialized")
+}
+
 func (cs *CoreStub) ActivationCode(email, resellerCode string) error {
 	return fmt.Errorf("radiance not initialized")
 }
