@@ -12,10 +12,12 @@ import (
 	"github.com/getlantern/lantern-outline/lantern-core/utils"
 )
 
+type InternalTag = string
+
 const (
-	InternalTagAutoAll = "all"
-	InternalTagUser    = servers.SGUser
-	InternalTagLantern = servers.SGLantern
+	InternalTagAutoAll InternalTag = "auto_all"
+	InternalTagUser    InternalTag = servers.SGUser
+	InternalTagLantern InternalTag = servers.SGLantern
 )
 
 // StartVPN will start the VPN tunnel using the provided platform interface.
@@ -43,17 +45,23 @@ func StopVPN() error {
 // ConnectToServer will connect to a specific VPN server identified by the group and tag. If tag is
 // empty, it will connect to the best server available in that group. ConnectToServer will start the
 // VPN tunnel if it's not already running.
-//
-// Valid group types are: [GroupTagAutoAll, GroupTagUser, GroupTagLantern].
 func ConnectToServer(group, tag string, platIfce libbox.PlatformInterface, options *utils.Opts) error {
+	switch group {
+	case InternalTagAutoAll:
+		group = "all"
+	case "privateServer":
+		group = InternalTagUser
+	case "lanternLocation":
+		group = InternalTagLantern
+	}
 	if radianceCommon.IsIOS() || radianceCommon.IsMacOS() {
 		err := initializeCommonForApplePlatforms(options)
 		if err != nil {
 			return err
 		}
 	}
-	if group == InternalTagAutoAll || tag == "" {
-		return vpn.QuickConnect(InternalTagAutoAll, platIfce)
+	if tag == "" {
+		return vpn.QuickConnect(group, platIfce)
 	}
 	return vpn.ConnectToServer(group, tag, platIfce)
 }
