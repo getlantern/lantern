@@ -83,19 +83,22 @@ class AppDelegate: FlutterAppDelegate {
   /// Prepares the file system directories for use
   private func setupFileSystem() {
     do {
-
-      try FileManager.default.createDirectory(
-        at: FilePath.sharedDirectory,
-        withIntermediateDirectories: true
-      )
-      appLogger.info("Shared directory created at: \(FilePath.sharedDirectory.path)")
       try FileManager.default.createDirectory(
         at: FilePath.logsDirectory,
         withIntermediateDirectories: true
       )
-      appLogger.info("logs directory created at: \(FilePath.workingDirectory.path)")
+      appLogger.info("logs directory created at: \(FilePath.logsDirectory.path)")
     } catch {
-      appLogger.error("Failed to create working directory: \(error.localizedDescription)")
+      appLogger.error("Failed to create logs directory: \(error.localizedDescription)")
+    }
+    do {
+      try FileManager.default.createDirectory(
+        at: FilePath.dataDirectory,
+        withIntermediateDirectories: true
+      )
+      appLogger.info("data directory created at: \(FilePath.dataDirectory.path)")
+    } catch {
+      appLogger.error("Failed to create data directory: \(error.localizedDescription)")
     }
 
     guard FileManager.default.changeCurrentDirectoryPath(FilePath.sharedDirectory.path) else {

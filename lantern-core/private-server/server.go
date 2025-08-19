@@ -280,8 +280,8 @@ func SelectedCertFingerprint(fp string) {
 	}
 }
 
-// CancelDepolyment cancels the current provisioning session.
-func CancelDepolyment() error {
+// CancelDeployment cancels the current provisioning session.
+func CancelDeployment() error {
 	ps, err := getSession()
 	if err != nil {
 		return err

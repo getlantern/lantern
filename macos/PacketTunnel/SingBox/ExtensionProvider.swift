@@ -34,7 +34,8 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     }
     let tunnelType = options?["netEx.Type"] as? String
     switch tunnelType {
-    case "User":
+    case "Lantern":
+      appLogger.info("(lantern-tunnel) user initiated connection")
       startVPN()
     case "PrivateServer":
       let serverName = options?["netEx.ServerName"] as? String
@@ -42,6 +43,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
       connectToServer(location: location!, serverName: serverName!)
     default:
       // Fallback or unknown type
+      appLogger.info("(lantern-tunnel) unknown tunnel type \(String(describing: tunnelType))")
       startVPN()
     }
   }
@@ -59,7 +61,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
 
     MobileStartVPN(platformInterface, opts(), &error)
     if error != nil {
-      appLogger.log("error while starting tunnel \(error?.localizedDescription ?? "")")
+      appLogger.error("error while starting tunnel \(error?.localizedDescription ?? "")")
       // Inform system and close tunnel
       cancelTunnelWithError(error)
       return
@@ -72,7 +74,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     var error: NSError?
     MobileConnectToServer(location, serverName, platformInterface, opts(), &error)
     if error != nil {
-      appLogger.log("error while connecting to server \(error?.localizedDescription ?? "")")
+      appLogger.error("error while connecting to server \(error?.localizedDescription ?? "")")
       cancelTunnelWithError(error)
       return
     }
@@ -83,7 +85,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     var error: NSError?
     MobileStopVPN(&error)
     if error != nil {
-      appLogger.log("error while stopping tunnel \(error?.localizedDescription ?? "")")
+      appLogger.error("error while stopping tunnel \(error?.localizedDescription ?? "")")
       return
     }
     platformInterface.reset()
