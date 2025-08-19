@@ -34,11 +34,6 @@ func StartVPN(platform libbox.PlatformInterface, options *utils.Opts) error {
 
 // StopVPN will stop the VPN tunnel.
 func StopVPN() error {
-	defer func() {
-		if r := recover(); r != nil {
-			slog.Error("recovered from panic in StopVPN:", "r", r)
-		}
-	}()
 	return vpn.Disconnect()
 }
 
@@ -70,11 +65,6 @@ func IsVPNRunning() bool {
 	slog.Debug("Checking if VPN is running...")
 	status, err := vpn.GetStatus()
 	slog.Debug("VPN status:", "status", status, "Error:", err)
-	// if err != nil {
-	// 	fmt.Errorf("failed to get VPN status: %w", err)
-	// 	return false
-	// }
-	slog.Debug("VPN status is tunnel:", "tunnelOpen", status.TunnelOpen)
 	return status.TunnelOpen
 }
 
