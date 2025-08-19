@@ -18,7 +18,7 @@ class AvailableServersNotifier extends _$AvailableServersNotifier {
         throw Exception('Failed to get user data');
       },
       (servers) {
-        appLogger.debug('Available servers: $servers');
+        appLogger.debug('Available servers: ${servers.toJson()}');
         return servers;
       },
     );

@@ -72,11 +72,7 @@ func SetupRadiance(opts *utils.Opts) error {
 			innerErr = fmt.Errorf("unable to create split tunnel handler: %v", sthErr)
 		}
 		storeRadiance.Store(spiltTunnelHandlerKey, sth)
-		serverManager, mngErr := servers.NewManager(opts.DataDir)
-		if mngErr != nil {
-			innerErr = fmt.Errorf("unable to create server manager: %v", mngErr)
-			return
-		}
+		serverManager := r.ServerManager()
 		storeRadiance.Store(serverManagerKey, serverManager)
 		radianceServer = &lanternService{
 			Radiance:   r,
