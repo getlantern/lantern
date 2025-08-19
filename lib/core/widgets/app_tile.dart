@@ -12,6 +12,7 @@ class AppTile extends StatelessWidget {
   final bool? dense;
   final double? minHeight;
   final TextStyle? tileTextStyle;
+  final bool selected;
 
   const AppTile({
     super.key,
@@ -24,6 +25,7 @@ class AppTile extends StatelessWidget {
     this.tileTextStyle,
     this.dense,
     this.minHeight,
+    this.selected=false,
   });
 
   factory AppTile.link({
@@ -78,8 +80,10 @@ class AppTile extends StatelessWidget {
     return ListTile(
       enableFeedback: true,
       minVerticalPadding: 0,
+      selected: selected,
+      selectedTileColor: AppColors.blue1,
       minTileHeight: effectiveMinHeight,
-      contentPadding:
+    contentPadding:
           contentPadding ?? const EdgeInsets.symmetric(horizontal: 16),
       title: Text(label,
           style: textStyle, maxLines: 1, overflow: TextOverflow.ellipsis),

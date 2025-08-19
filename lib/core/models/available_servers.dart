@@ -23,8 +23,9 @@ class Lantern {
   factory Lantern.fromJson(Map<String, dynamic> json) => Lantern(
         endpoints: List<Endpoint>.from(
             json["endpoints"].map((x) => Endpoint.fromJson(x))),
-        locations: (Map<String, Location_>.from(json["locations"]
-            .map((k, v) => MapEntry(k, Location_.fromJson(v))))),
+        locations: (Map<String, Location_>.from(json["locations"].map(
+          (k, v) => MapEntry(k, Location_.fromJson(v)..tag = k),
+        ))),
       );
 
   Map<String, dynamic> toJson() => {
@@ -55,22 +56,31 @@ class Endpoint {
 
 class Location_ {
   String country;
+  String countryCode;
   String city;
   double latitude;
   double longitude;
 
+  //tag will be assigned later, not in the JSON
+  // it will map to the endpoint tag
+  String tag;
+
   Location_({
     required this.country,
+    required this.countryCode,
     required this.city,
     required this.latitude,
     required this.longitude,
+    required this.tag,
   });
 
   factory Location_.fromJson(Map<String, dynamic> json) => Location_(
         country: json["country"],
+        countryCode: json["country_code"],
         city: json["city"],
         latitude: json["latitude"]?.toDouble(),
         longitude: json["longitude"]?.toDouble(),
+        tag: "",
       );
 
   Map<String, dynamic> toJson() => {
@@ -78,5 +88,6 @@ class Location_ {
         "city": city,
         "latitude": latitude,
         "longitude": longitude,
+        "country_code": countryCode,
       };
 }

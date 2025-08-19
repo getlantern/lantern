@@ -36,7 +36,7 @@ class MainActivity : FlutterFragmentActivity() {
 
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
-        super.configureFlutterEngine(flutterEngine)
+        super.configureFlutterEngine( flutterEngine)
 
         instance = this
         Log.d(TAG, "Configuring FlutterEngine ${DeviceUtil.deviceId()}")

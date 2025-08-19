@@ -78,19 +78,19 @@ class VpnNotifier extends _$VpnNotifier {
     } else {
       final serverType = serverLocation.serverType;
       final tag = serverLocation.serverName;
-      return connectToServer(serverType, tag);
+      return connectToServer(serverType.toServerLocationType, tag);
     }
   }
 
   /// Connects to a specific server location.
   /// it supports lantern locations and private servers.
   Future<Either<Failure, String>> connectToServer(
-      String location, String tag) async {
+  ServerLocationType location, String tag) async {
     appLogger.debug(
       "Connecting to server: $location with tag: $tag",
     );
     final result =
-        await ref.read(lanternServiceProvider).connectToServer(location, tag);
+        await ref.read(lanternServiceProvider).connectToServer(location.name, tag);
     return result;
   }
 

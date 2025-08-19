@@ -57,7 +57,7 @@ class _ServerDesktopViewState extends State<ServerDesktopView> {
                 groupValue: false,
                 onChanged: (value) {},
               ),
-              onPressed: onServerTap,
+              onPressed: () => onServerTap(),
             )
           ],
         ),
@@ -73,6 +73,6 @@ class _ServerDesktopViewState extends State<ServerDesktopView> {
   }
 
   void onServerTap() {
-    widget.onServerSelected('Korea');
+    // widget.onServerSelected('Korea');
   }
 }
