@@ -16,8 +16,6 @@ import (
 	"unsafe"
 
 	"github.com/getlantern/radiance/api"
-	"github.com/getlantern/radiance/servers"
-	"github.com/siddontang/go/log"
 
 	lanterncore "github.com/getlantern/lantern-outline/lantern-core"
 	"github.com/getlantern/lantern-outline/lantern-core/apps"
@@ -178,21 +176,7 @@ func stopVPN() *C.char {
 //
 //export getAvailableServers
 func getAvailableServers() *C.char {
-	sm, err := getServerManager()
-	if err != nil {
-		return SendError(err)
-	}
-	serversList, found := sm.GetServerByTag(servers.SGLantern)
-	if !found {
-		return C.CString("[]")
-	}
-	jsonBytes, err := json.Marshal(serversList)
-	if err != nil {
-		log.Errorf("Error marshalling servers: %v", err)
-		return SendError(err)
-	}
-	log.Debugf("Available servers JSON: %s", string(jsonBytes))
-	return C.CString(string(jsonBytes))
+	return C.CString(string(core().GetAvailableServers()))
 }
 
 // connectToServer sets the private server with the given tag.
@@ -230,18 +214,18 @@ func sendStatusToPort(status VPNStatus) {
 	}()
 }
 
-// isVPNConnected checks if the VPN server is running and connected.
-//
-//export isVPNConnected
-func isVPNConnected() *C.char {
-	connected := vpn_tunnel.IsVPNRunning()
-	if connected {
-		sendStatusToPort(Connected)
-	} else {
-		sendStatusToPort(Disconnected)
-	}
-	return C.CString("ok")
-}
+// // isVPNConnected checks if the VPN server is running and connected.
+// //
+// //export isVPNConnected
+// func isVPNConnected() *C.char {
+// 	connected := vpn_tunnel.IsVPNRunning()
+// 	if connected {
+// 		sendStatusToPort(Connected)
+// 	} else {
+// 		sendStatusToPort(Disconnected)
+// 	}
+// 	return C.CString("ok")
+// }
 
 // APIS
 func createUser() (*api.UserDataResponse, error) {
@@ -669,42 +653,4 @@ func revokeServerManagerInvite(_ip, _port, _accessToken, _inviteName *C.char) *C
 	}
 	slog.Debug("Invite revoked successfully:", "inviteName", inviteName, "ip", ip, "port", port)
 	return C.CString("ok")
-}
-
-//export addSplitTunnelItem
-func addSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
-	mu.Lock()
-	defer mu.Unlock()
-
-	if server == nil {
-		return C.CString("radiance not initialized")
-	}
-
-	filterType := C.GoString(filterTypeC)
-	item := C.GoString(itemC)
-
-	if err := server.splitTunnelHandler.AddItem(filterType, item); err != nil {
-		return C.CString(fmt.Sprintf("error adding item: %v", err))
-	}
-	log.Debugf("added %s split tunneling item %s", filterType, item)
-	return nil
-}
-
-//export removeSplitTunnelItem
-func removeSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
-	mu.Lock()
-	defer mu.Unlock()
-
-	if server == nil {
-		return C.CString("radiance not initialized")
-	}
-
-	filterType := C.GoString(filterTypeC)
-	item := C.GoString(itemC)
-
-	if err := server.splitTunnelHandler.RemoveItem(filterType, item); err != nil {
-		return C.CString(fmt.Sprintf("error removing item: %v", err))
-	}
-	log.Debugf("removed %s split tunneling item %s", filterType, item)
-	return nil
 }

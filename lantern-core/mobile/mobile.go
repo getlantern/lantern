@@ -65,23 +65,10 @@ func StopVPN() error {
 	return vpn_tunnel.StopVPN()
 }
 
-// GetAvailableServers returns the available servers in JSON format.
-// This function retrieves the servers from lantern
+// // GetAvailableServers returns the available servers in JSON format.
+// // This function retrieves the servers from lantern
 func GetAvailableServers() ([]byte, error) {
-	sm, err := getServerManager()
-	if err != nil {
-		return nil, err
-	}
-	serversList := sm.Servers()
-	if len(serversList) == 0 {
-		return []byte{}, nil
-	}
-	jsonBytes, err := json.Marshal(serversList)
-	if err != nil {
-		log.Errorf("Error marshalling servers: %v", err)
-		return nil, err
-	}
-	return jsonBytes, nil
+	return core().GetAvailableServers(), nil
 }
 
 // ConnectToServer connects to a server using the provided location type and tag.
