@@ -101,7 +101,7 @@ class VPNManager: VPNBase {
     appLogger.log("Starting tunnel..")
     await self.loadVPNPreferences()
     let options: [String: NSObject] = [
-      "netEx.Type": "User" as NSString,
+      "netEx.Type": "Lantern" as NSString,
       "netEx.StartReason": "User Initiated" as NSString,
     ]
     try self.manager.connection.startVPNTunnel(options: options)
