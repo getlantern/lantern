@@ -288,7 +288,7 @@ windows-service-build:
 	$(call MKDIR_P,$(dir $(WINDOWS_SERVICE_BUILD)))
 	go build -trimpath -tags '$(BUILD_TAGS)' \
 		-ldflags '$(EXTRA_LDFLAGS)' \
-		-o $@ $(WINDOWS_SERVICE_SRC)
+		-o $(WINDOWS_SERVICE_BUILD) $(WINDOWS_SERVICE_SRC)
 
 copy-lanternsvc-release: $(WINDOWS_SERVICE_BUILD)
 	$(call MKDIR_P,$(WINDOWS_RELEASE_DIR))
