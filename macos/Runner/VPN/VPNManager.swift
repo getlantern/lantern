@@ -48,7 +48,17 @@ class VPNManager: VPNBase {
             appLogger.info("VPN reasserting")
             break
         default:
-            break
+        case .disconnected:
+            appLogger.info("VPN disconnected")
+        case .invalid:
+            appLogger.info("VPN invalid")
+        case .connecting:
+            appLogger.info("VPN connecting")
+        case .disconnecting:
+            appLogger.info("VPN disconnecting")
+        case .reasserting:
+            appLogger.info( "VPN reasserting")
+        default:
         }
     }
 
