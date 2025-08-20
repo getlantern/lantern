@@ -346,7 +346,6 @@ copy-wintun-debug: $(WINTUN_DLL)
 windows-debug: windows
 	@echo "Building Flutter app (debug) for Windows..."
 	flutter build windows --debug
-	$(MAKE) prepare-windows-debug
 
 .PHONY: build-windows-release
 build-windows-release:
