@@ -7,12 +7,13 @@ import (
 	"runtime"
 	"sync/atomic"
 
-	lanterncore "github.com/getlantern/lantern-outline/lantern-core"
-	"github.com/getlantern/lantern-outline/lantern-core/utils"
-	"github.com/getlantern/lantern-outline/lantern-core/vpn_tunnel"
 	"github.com/getlantern/radiance/api"
 	"github.com/sagernet/sing-box/experimental/libbox"
 	_ "golang.org/x/mobile/bind"
+
+	lanterncore "github.com/getlantern/lantern-outline/lantern-core"
+	"github.com/getlantern/lantern-outline/lantern-core/utils"
+	"github.com/getlantern/lantern-outline/lantern-core/vpn_tunnel"
 )
 
 var lanternCore atomic.Pointer[lanterncore.Core]
