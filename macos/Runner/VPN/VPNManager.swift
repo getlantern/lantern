@@ -45,7 +45,7 @@ class VPNManager: VPNBase {
             appLogger.info("VPN disconnecting")
             break
         case .reasserting:
-            appLogger.info( "VPN reasserting")
+            appLogger.info("VPN reasserting")
             break
         default:
             break
