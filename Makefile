@@ -44,20 +44,21 @@ LINUX_INSTALLER_DEB := $(INSTALLER_NAME)$(if $(BUILD_TYPE),-$(BUILD_TYPE)).deb
 LINUX_INSTALLER_RPM := $(INSTALLER_NAME)$(if $(BUILD_TYPE),-$(BUILD_TYPE)).rpm
 
 ifeq ($(OS),Windows_NT)
-	PATH_SEP := \\
+  PS := powershell -NoProfile -ExecutionPolicy Bypass -Command
+  MKDIR_P = $(PS) "New-Item -ItemType Directory -Force -Path '$(1)' | Out-Null"
+  COPY_FILE = $(PS) "Copy-Item -Force -LiteralPath '$(1)' -Destination '$(2)'"
+  RM_RF = $(PS) "Remove-Item -Recurse -Force -LiteralPath '$(1)'"
 else
-	PATH_SEP := /
+  MKDIR_P = mkdir -p -- '$(1)'
+  COPY_FILE = cp -f -- '$(1)' '$(2)'
+  RM_RF = rm -rf -- '$(1)'
 endif
 
-define join_path
-$(subst /,$(PATH_SEP),$1)
-endef
-
-WINDOWS_LIB := $(LANTERN_LIB_NAME).dll
-WINDOWS_LIB_AMD64 := $(BIN_DIR)/windows-amd64/$(WINDOWS_LIB)
-WINDOWS_LIB_ARM64 := $(BIN_DIR)/windows-arm64/$(WINDOWS_LIB)
-WINDOWS_LIB_BUILD := $(call join_path,$(BIN_DIR)/windows/$(WINDOWS_LIB))
-WINDOWS_RELEASE_DIR := $(call join_path,$(BUILD_DIR)/windows/x64/runner/Release)
+WINDOWS_LIB          := $(LANTERN_LIB_NAME).dll
+WINDOWS_LIB_AMD64    := $(BIN_DIR)/windows-amd64/$(WINDOWS_LIB)
+WINDOWS_LIB_ARM64    := $(BIN_DIR)/windows-arm64/$(WINDOWS_LIB)
+WINDOWS_LIB_BUILD    := $(BIN_DIR)/windows/$(WINDOWS_LIB)
+WINDOWS_RELEASE_DIR  := $(BUILD_DIR)/windows/x64/runner/Release
 
 ANDROID_LIB := $(LANTERN_LIB_NAME).aar
 ANDROID_LIBS_DIR := android/app/libs
@@ -247,18 +248,19 @@ install-windows-deps:
 	dart pub global activate flutter_distributor
 
 windows: windows-amd64
-	mkdir -p $(dir $(WINDOWS_LIB_BUILD))
-	cp $(WINDOWS_LIB_AMD64) $(WINDOWS_LIB_BUILD)
+	$(call MKDIR_P,$(dir $(WINDOWS_LIB_BUILD)))
+	$(call COPY_FILE,$(WINDOWS_LIB_AMD64),$(WINDOWS_LIB_BUILD))
 
 windows-amd64: WINDOWS_GOOS := windows
 windows-amd64: WINDOWS_GOARCH := amd64
 windows-amd64:
-	mkdir -p $(dir $(WINDOWS_LIB_AMD64))
+	$(call MKDIR_P,$(dir $(WINDOWS_LIB_AMD64)))
 	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_AMD64)
 
 windows-arm64: WINDOWS_GOOS := windows
 windows-arm64: WINDOWS_GOARCH := arm64
 windows-arm64:
+	$(call MKDIR_P,$(dir $(WINDOWS_LIB_ARM64)))
 	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_ARM64)
 
 .PHONY: windows-debug
