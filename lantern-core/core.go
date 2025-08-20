@@ -55,7 +55,7 @@ type User interface {
 	ValidateChangeEmailCode(email, code string) error
 	CompleteRecoveryByEmail(email, password, code string) error
 	DeleteAccount(email, password string) ([]byte, error)
-	DeviceRemove(deviceId string) (*api.LinkResponse, error)
+	RemoveDevice(deviceId string) (*api.LinkResponse, error)
 	//Change email
 	StartChangeEmail(newEmail, password string) error
 	CompleteChangeEmail(email, password, code string) error
@@ -481,9 +481,9 @@ func (lc *LanternCore) DeleteAccount(email, password string) ([]byte, error) {
 	return protoUserData, nil
 }
 
-func (lc *LanternCore) DeviceRemove(deviceID string) (*api.LinkResponse, error) {
+func (lc *LanternCore) RemoveDevice(deviceID string) (*api.LinkResponse, error) {
 	slog.Debug("Removing device: %s", deviceID)
-	return lc.apiClient.DeviceRemove(context.Background(), deviceID)
+	return lc.apiClient.RemoveDevice(context.Background(), deviceID)
 }
 
 // Change email
@@ -610,7 +610,7 @@ func (cs *CoreStub) DeleteAccount(email, password string) ([]byte, error) {
 	return nil, fmt.Errorf("radiance not initialized")
 }
 
-func (cs *CoreStub) DeviceRemove(deviceId string) (*api.LinkResponse, error) {
+func (cs *CoreStub) RemoveDevice(deviceId string) (*api.LinkResponse, error) {
 	return nil, fmt.Errorf("radiance not initialized")
 }
 

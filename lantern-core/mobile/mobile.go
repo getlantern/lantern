@@ -175,7 +175,7 @@ func CompleteRecoveryByEmail(email, newPassword, code string) error {
 }
 
 func RemoveDevice(deviceId string) error {
-	linkresp, err := core().DeviceRemove(deviceId)
+	linkresp, err := core().RemoveDevice(deviceId)
 	if err != nil {
 		return err
 	}
