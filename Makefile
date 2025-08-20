@@ -310,7 +310,7 @@ ifeq ($(OS),Windows_NT)
 	  $${u}='$(WINTUN_BASE_URL)'; \
 	  $${h}=(Invoke-WebRequest -UseBasicParsing $${u}).Content; \
 	  $${m}=[regex]::Match($${h}, 'wintun-([0-9\.]+)\.zip'); \
-	  if(-not $${m}.Success){ throw 'Couldn't find Wintun version'; } \
+	  if(-not $${m}.Success){ throw 'Could not find Wintun version'; } \
 	  $${ver}=$${m}.Groups[1].Value; \
 	  $${zip}='$(WINTUN_OUT_DIR)/wintun-'+$${ver}+'.zip'; \
 	  $${url}='$(WINTUN_BUILDS_URL)/wintun-'+$${ver}+'.zip'; \
