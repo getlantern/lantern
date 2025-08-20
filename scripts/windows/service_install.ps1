@@ -1,7 +1,7 @@
 param(
   [string]$Name = "LanternSvc",
   [string]$Exe  = "$PSScriptRoot\..\..\bin\windows-amd64\lanternsvc.exe",
-  [string]$Args = "--service"
+  [string]$Args = "--service",
   [string]$DisplayName = "Lantern Service (dev)"
 )
 
