@@ -3,7 +3,7 @@ package wintunmgr
 type Command string
 
 const (
-	CmdSetupAdapter          Command = "EnsureAdapter"
+	CmdSetupAdapter          Command = "SetupAdapter"
 	CmdStartTunnel           Command = "StartTunnel"
 	CmdStopTunnel            Command = "StopTunnel"
 	CmdIsVPNRunning          Command = "IsVPNRunning"
