@@ -21,12 +21,15 @@ class LanternServiceWindows {
 
     final stream = await _statusPipe!.watchStatus();
     stream.listen((evt) {
+      print('[LanternServiceWindows] Received raw status event: $evt');
       final state = (evt['state'] as String? ??
               (evt['data'] is Map ? (evt['data']['state'] as String?) : null) ??
               'Disconnected')
           .toLowerCase();
       _statusCtrl.add(LanternStatus.fromJson({'status': state}));
-    }, onError: (_) {});
+    }, onError: (err) {
+      print('[LanternServiceWindows] Error in status stream: $err');
+    });
   }
 
   Future<void> dispose() async {

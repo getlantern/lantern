@@ -304,12 +304,12 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		// if err := s.setupAdapter(ctx); err != nil {
 		// 	return rpcErr(r.ID, "adapter_error", err.Error())
 		// }
-		s.setIsRunning(true)
 		if err := vpn_tunnel.StartVPN(nil, &utils.Opts{
 			DataDir: s.opts.DataDir, Locale: s.opts.Locale,
 		}); err != nil {
 			return rpcErr(r.ID, "start_error", err.Error())
 		}
+		s.setIsRunning(true)
 		return &Response{ID: r.ID, Result: map[string]any{"started": true}}
 
 	case CmdStopTunnel:
