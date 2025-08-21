@@ -44,12 +44,11 @@ func CreateLogAttachment(logFilePath string) []*issue.Attachment {
 func DefaultDataDir() string {
 	switch runtime.GOOS {
 	case "windows":
-		return ""
-		// programData := os.Getenv("ProgramData")
-		// if programData == "" {
-		// 	programData = `C:\ProgramData`
-		// }
-		// return filepath.Join(programData, "Lantern")
+		programData := os.Getenv("ProgramData")
+		if programData == "" {
+			programData = `C:\ProgramData`
+		}
+		return filepath.Join(programData, "Lantern")
 	case "darwin":
 		home, _ := os.UserHomeDir()
 		return filepath.Join(home, "Library", "Application Support", "Lantern")

@@ -21,7 +21,7 @@ replace github.com/tetratelabs/wazero => github.com/refraction-networking/wazero
 require (
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20250617134205-a652cb0cef27
-	github.com/getlantern/radiance v0.0.0-20250821094222-07b50a19dc1c
+	github.com/getlantern/radiance v0.0.0-20250821095649-98f6e6c869f2
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/sagernet/sing-box v1.11.5
 	github.com/zeebo/assert v1.3.0
