@@ -189,15 +189,15 @@ func (s *Service) setupAdapter(ctx context.Context) error {
 func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 	switch r.Cmd {
 	case CmdSetupAdapter:
-		if _, err := s.wtmgr.OpenOrCreateTunAdapter(ctx); err != nil {
-			return rpcErr(r.ID, "adapter_error", err.Error())
-		}
+		// if _, err := s.wtmgr.OpenOrCreateTunAdapter(ctx); err != nil {
+		// 	return rpcErr(r.ID, "adapter_error", err.Error())
+		// }
 		return &Response{ID: r.ID, Result: map[string]any{"ok": true}}
 	case CmdStartTunnel:
 		// Make sure adapter exists first
-		if err := s.setupAdapter(ctx); err != nil {
-			return rpcErr(r.ID, "adapter_error", err.Error())
-		}
+		// if err := s.setupAdapter(ctx); err != nil {
+		// 	return rpcErr(r.ID, "adapter_error", err.Error())
+		// }
 		// runs Radiance (vpn_tunnel) inside the service
 		if err := vpn_tunnel.StartVPN(nil, &utils.Opts{
 			DataDir: s.opts.DataDir, Locale: s.opts.Locale,
