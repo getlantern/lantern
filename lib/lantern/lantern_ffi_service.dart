@@ -110,7 +110,6 @@ class LanternFFIService implements LanternCoreService {
         final pipe = PipeClient(token: token);
         _windowsService = LanternServiceWindows(pipe);
         await _windowsService.init();
-        return;
       } else {
         await _initializeCommandIsolate();
       }
