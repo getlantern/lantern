@@ -13,6 +13,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"sync"
 	"time"
 
@@ -83,7 +84,10 @@ func (s *Service) getToken() (string, error) {
 }
 
 func (s *Service) Start(ctx context.Context) error {
-	if err := s.InitCore(); err != nil {
+	var err error
+	defer recoverErr("Service.Start", &err)
+
+	if err = s.InitCore(); err != nil {
 		return err
 	}
 	if s.opts.PipeName == "" {
@@ -187,6 +191,12 @@ func (s *Service) setupAdapter(ctx context.Context) error {
 }
 
 func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
+	defer func() {
+		if rec := recover(); rec != nil {
+			slog.Errorf("panic in dispatch cmd=%s: %v\n%s", r.Cmd, rec, debug.Stack())
+		}
+	}()
+
 	switch r.Cmd {
 	case CmdSetupAdapter:
 		// if _, err := s.wtmgr.OpenOrCreateTunAdapter(ctx); err != nil {
