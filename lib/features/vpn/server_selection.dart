@@ -159,7 +159,9 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
             ),
           ),
         ),
-        DividerSpace(padding: EdgeInsetsGeometry.symmetric(vertical: 8),),
+        DividerSpace(
+          padding: EdgeInsetsGeometry.symmetric(vertical: 8),
+        ),
       ],
     );
   }
@@ -287,8 +289,8 @@ class _ServerLocationListViewState
                           return ServerMobileView(
                             onServerSelected: onServerSelected,
                             location: serverData,
-                            isSelected: serverLocation.serverName==serverData.tag,
-
+                            isSelected:
+                                serverLocation.serverName == serverData.tag,
                           );
                         },
                       );

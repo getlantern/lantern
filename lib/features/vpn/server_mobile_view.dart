@@ -14,7 +14,7 @@ class ServerMobileView extends StatefulWidget {
     super.key,
     required this.onServerSelected,
     required this.location,
-     this.isSelected=false,
+    this.isSelected = false,
   });
 
   @override

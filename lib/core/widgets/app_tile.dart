@@ -25,7 +25,7 @@ class AppTile extends StatelessWidget {
     this.tileTextStyle,
     this.dense,
     this.minHeight,
-    this.selected=false,
+    this.selected = false,
   });
 
   factory AppTile.link({
@@ -83,7 +83,7 @@ class AppTile extends StatelessWidget {
       selected: selected,
       selectedTileColor: AppColors.blue1,
       minTileHeight: effectiveMinHeight,
-    contentPadding:
+      contentPadding:
           contentPadding ?? const EdgeInsets.symmetric(horizontal: 16),
       title: Text(label,
           style: textStyle, maxLines: 1, overflow: TextOverflow.ellipsis),
