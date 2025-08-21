@@ -106,8 +106,12 @@ class LanternFFIService implements LanternCoreService {
               'Lantern', 'ipc-token'),
         );
         final token = (await tokenFile.readAsString()).trim();
-
-        final nativePort = statusReceivePort.sendPort.nativePort;
+        final pipe = PipeClient(token: token);
+        _windowsService = LanternServiceWindows(pipe);
+        await _windowsService.init();
+        _status = _windowsService.watchVPNStatus();
+      } else {
+        await _initializeCommandIsolate();
         // setup receive port to receive connection status updates
         _status = statusReceivePort.map(
           (event) {
@@ -115,21 +119,12 @@ class LanternFFIService implements LanternCoreService {
             return LanternStatus.fromJson(result);
           },
         );
-
-        _privateServerStatus = privateServerReceivePort.map((event) {
-          Map<String, dynamic> result = jsonDecode(event);
-          return PrivateServerStatus.fromJson(result);
-        });
-
-        final pipe = PipeClient(token: token);
-        _windowsService = LanternServiceWindows(pipe);
-        await _windowsService.init();
-        return;
-      } else {
-        await _initializeCommandIsolate();
       }
-
-      await _setupRadiance();
+      _privateServerStatus = privateServerReceivePort.map((event) {
+        Map<String, dynamic> result = jsonDecode(event);
+        return PrivateServerStatus.fromJson(result);
+      });
+      if (!Platform.isWindows) await _setupRadiance();
     } catch (e) {
       appLogger.error('Error while setting up radiance: $e');
     }
