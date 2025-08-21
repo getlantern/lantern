@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/getlantern/golog"
 	"github.com/getlantern/lantern-outline/lantern-core/utils"
@@ -67,10 +66,12 @@ type lanternHandler struct{}
 func (h *lanternHandler) Execute(args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Status) (svcSpecificEC bool, exitCode uint32) {
 	const accepts = svc.AcceptStop | svc.AcceptShutdown
 
-	changes <- svc.Status{State: svc.StartPending}
+	changes <- svc.Status{
+		State:    svc.StartPending,
+		WaitHint: 10 * 1000, // milliseconds; optional
+	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	// Start service
 	started := make(chan error, 1)
@@ -82,35 +83,47 @@ func (h *lanternHandler) Execute(args []string, r <-chan svc.ChangeRequest, chan
 			LogDir:   utils.DefaultLogDir(),
 			Locale:   "en_US",
 		}, wt)
-
 		err := s.Start(ctx)
 		started <- err
 	}()
 
 	// Report Running to SCM
-	select {
-	case err := <-started:
-		if err != nil {
-			changes <- svc.Status{State: svc.Stopped}
-			return false, 1
-		}
-	case <-time.After(2 * time.Second):
-	}
-
 	changes <- svc.Status{State: svc.Running, Accepts: accepts}
+
 	for {
 		select {
-		case c := <-r:
+		case c, ok := <-r:
+			if !ok {
+				cancel()
+				if err := <-started; err != nil {
+					log.Errorf("service worker exited after SCM channel close: %v", err)
+					return false, 1
+				}
+				return false, 0
+			}
 			switch c.Cmd {
 			case svc.Interrogate:
 				changes <- c.CurrentStatus
+
 			case svc.Stop, svc.Shutdown:
 				changes <- svc.Status{State: svc.StopPending}
 				cancel()
-				time.Sleep(300 * time.Millisecond)
+				if err := <-started; err != nil {
+					log.Errorf("service worker exited with error on stop: %v", err)
+					changes <- svc.Status{State: svc.Stopped}
+					return false, 1
+				}
 				changes <- svc.Status{State: svc.Stopped}
 				return false, 0
 			}
+		case err := <-started:
+			if err != nil {
+				log.Errorf("service worker exited unexpectedly: %v", err)
+				changes <- svc.Status{State: svc.Stopped}
+				return false, 1
+			}
+			changes <- svc.Status{State: svc.Stopped}
+			return false, 0
 		}
 	}
 }
