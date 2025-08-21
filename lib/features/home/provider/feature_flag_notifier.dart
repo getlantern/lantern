@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
@@ -16,18 +17,21 @@ class FeatureFlagNotifier extends _$FeatureFlagNotifier {
 
   void fetchFeatureFlags() async {
     appLogger.debug('Fetching feature flags...');
-    final result = await ref.read(lanternServiceProvider).featureFlag();
-    result.fold(
-      (failure) {
-        // Handle failure, maybe log it or show a message
-        appLogger.error(
-            'Error fetching feature flags: ${failure.localizedErrorMessage}');
-      },
-      (flags) {
-        state = json.decode(flags);
-        appLogger.debug('Feature flags fetched successfully: $flags');
-      },
-    );
+    try {
+      if (Platform.isWindows) return;
+      final result = await ref.read(lanternServiceProvider).featureFlag();
+      result.fold(
+        (failure) {
+          // Handle failure, maybe log it or show a message
+          appLogger.error(
+              'Error fetching feature flags: ${failure.localizedErrorMessage}');
+        },
+        (flags) {
+          state = json.decode(flags);
+          appLogger.debug('Feature flags fetched successfully: $flags');
+        },
+      );
+    } catch (_) {}
   }
 
   bool isGCPFlag() {
