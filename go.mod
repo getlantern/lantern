@@ -219,8 +219,8 @@ require (
 	github.com/refraction-networking/water v0.7.1-alpha // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rs/dnscache v0.0.0-20211102005908-e0241e321417 // indirect
-	github.com/sagernet/sing v0.7.0-beta.1 // indirect
-	github.com/sagernet/sing-tun v0.7.0-beta.1.0.20250802161224-4a56d470354f // indirect
+	github.com/sagernet/sing v0.6.10 // indirect
+	github.com/sagernet/sing-tun v0.6.9 // indirect
 	github.com/shadowsocks/go-shadowsocks2 v0.1.5 // indirect
 	github.com/tetratelabs/wazero v1.7.3 // indirect
 	github.com/tevino/abool/v2 v2.1.0 // indirect
