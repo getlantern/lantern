@@ -23,7 +23,7 @@ class LanternServiceWindows {
     stream.listen((evt) {
       final state = (evt['state'] as String? ??
               (evt['data'] is Map ? (evt['data']['state'] as String?) : null) ??
-              'disconnected')
+              'Disconnected')
           .toLowerCase();
       _statusCtrl.add(LanternStatus.fromJson({'status': state}));
     }, onError: (_) {});
