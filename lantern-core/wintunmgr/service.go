@@ -51,7 +51,11 @@ type statusEvent struct {
 }
 
 func NewService(opts ServiceOptions, wt *Manager) *Service {
-	return &Service{opts: opts, wtmgr: wt}
+	return &Service{
+		opts:       opts,
+		wtmgr:      wt,
+		statusSubs: make(map[string]chan statusEvent),
+	}
 }
 
 func (s *Service) InitCore() error {
