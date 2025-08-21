@@ -39,7 +39,15 @@ type Service struct {
 	mu      sync.RWMutex
 	running bool
 
-	cancel context.CancelFunc
+	cancel     context.CancelFunc
+	subsMu     sync.RWMutex
+	statusSubs map[string]chan statusEvent
+}
+
+type statusEvent struct {
+	Event string `json:"event"`
+	State string `json:"state"`
+	Ts    int64  `json:"ts"`
 }
 
 func NewService(opts ServiceOptions, wt *Manager) *Service {
@@ -60,6 +68,39 @@ func (s *Service) InitCore() error {
 	s.core = core
 	slog.Debugf("Service.InitCore ok")
 	return nil
+}
+
+func (s *Service) statusSnapshot() statusEvent {
+	return statusEvent{
+		Event: "Status",
+		State: s.connectionState(),
+		Ts:    time.Now().Unix(),
+	}
+}
+
+func (s *Service) connectionState() string {
+	running := s.isRunning()
+	if running {
+		return "connected"
+	}
+	return "disconnected"
+}
+
+func (s *Service) broadcastStatus() {
+	evt := s.statusSnapshot()
+	s.subsMu.RLock()
+	for id, ch := range s.statusSubs {
+		select {
+		case ch <- evt:
+		default:
+			go func(id string) {
+				s.subsMu.Lock()
+				delete(s.statusSubs, id)
+				s.subsMu.Unlock()
+			}(id)
+		}
+	}
+	s.subsMu.RUnlock()
 }
 
 // token file is created at install time
@@ -143,14 +184,48 @@ func (s *Service) Start(ctx context.Context) error {
 	}
 }
 
+func (s *Service) handleWatchStatus(ctx context.Context, connID string, enc *json.Encoder, done chan struct{}) {
+	ch := make(chan statusEvent, 8)
+
+	s.subsMu.Lock()
+	s.statusSubs[connID] = ch
+	s.subsMu.Unlock()
+
+	_ = enc.Encode(s.statusSnapshot())
+
+	// write loop that pushes events until conn is closed
+	go func() {
+		for {
+			select {
+			case evt := <-ch:
+				if err := enc.Encode(evt); err != nil {
+					slog.Debugf("watch write error conn_id=%s: %v", connID, err)
+					s.subsMu.Lock()
+					delete(s.statusSubs, connID)
+					s.subsMu.Unlock()
+					return
+				}
+			case <-ctx.Done():
+				return
+			case <-done:
+				return
+			}
+		}
+	}()
+
+}
+
 func (s *Service) handleConn(ctx context.Context, c net.Conn, token, connID string) {
+
+	dec := json.NewDecoder(c)
+	enc := json.NewEncoder(c)
+
+	done := make(chan struct{})
+
 	defer func() {
 		_ = c.Close()
 		slog.Debugf("conn closed conn_id=%s", connID)
 	}()
-
-	dec := json.NewDecoder(c)
-	enc := json.NewEncoder(c)
 
 	for {
 		var req Request
@@ -164,9 +239,12 @@ func (s *Service) handleConn(ctx context.Context, c net.Conn, token, connID stri
 		cmd := string(req.Cmd)
 
 		if req.Token != token {
-			slog.Errorf("unauthorized request conn_id=%s req_id=%s cmd=%s", connID, reqID, cmd)
-			_ = enc.Encode(rpcErr(reqID, "unauthorized", "bad token"))
+			_ = enc.Encode(rpcErr(req.ID, "unauthorized", "bad token"))
 			continue
+		}
+		if req.Cmd == CmdWatchStatus {
+			s.handleWatchStatus(ctx, connID, enc, done)
+			return
 		}
 		start := time.Now()
 		resp := s.dispatch(ctx, &req)
@@ -201,6 +279,7 @@ func (s *Service) setIsRunning(running bool) {
 	s.mu.Lock()
 	s.running = running
 	s.mu.Unlock()
+	s.broadcastStatus()
 }
 
 func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
@@ -237,17 +316,17 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		return &Response{ID: r.ID, Result: map[string]any{"stopped": true}}
 	case CmdIsVPNRunning:
 		return &Response{ID: r.ID, Result: map[string]any{"running": s.isRunning()}}
-	case CmdStatus:
-		running := vpn_tunnel.IsVPNRunning()
-		status := "disconnected"
-		if s.isRunning() || vpn_tunnel.IsVPNRunning() {
-			s.setIsRunning(running)
-			status = "connected"
-		}
-		return &Response{ID: r.ID, Result: map[string]any{
-			"state": status,
-			"ts":    time.Now().Unix(),
-		}}
+	// case CmdStatus:
+	// 	running := vpn_tunnel.IsVPNRunning()
+	// 	status := "disconnected"
+	// 	if s.isRunning() || vpn_tunnel.IsVPNRunning() {
+	// 		s.setIsRunning(running)
+	// 		status = "connected"
+	// 	}
+	// 	return &Response{ID: r.ID, Result: map[string]any{
+	// 		"state": status,
+	// 		"ts":    time.Now().Unix(),
+	// 	}}
 	case CmdConnectToServer:
 		var p struct {
 			Location string `json:"location"`

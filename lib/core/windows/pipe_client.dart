@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
@@ -147,5 +148,76 @@ class PipeClient {
       CloseHandle(_hPipe);
       _hPipe = INVALID_HANDLE_VALUE;
     }
+  }
+
+  Future<Stream<Map<String, dynamic>>> watchStatus() async {
+    if (!isConnected) {
+      await connect();
+    }
+    await _getToken();
+
+    final payload = '${jsonEncode({
+          'id': DateTime.now().microsecondsSinceEpoch.toString(),
+          'cmd': 'WatchStatus',
+          'token': token,
+        })}\n';
+
+    final bytes = utf8.encode(payload);
+    final pBuf = calloc<Uint8>(bytes.length);
+    final written = calloc<Uint32>();
+    try {
+      pBuf.asTypedList(bytes.length).setAll(0, bytes);
+      final ok = WriteFile(_hPipe, pBuf, bytes.length, written, nullptr);
+      if (ok == 0) {
+        throw Exception('WriteFile failed: ${GetLastError()}');
+      }
+    } finally {
+      free(written);
+      free(pBuf);
+    }
+
+    final controller =
+        StreamController<Map<String, dynamic>>(onCancel: () async {
+      await close();
+    });
+
+    // Reader loop
+    () async {
+      final pBuf = calloc<Uint8>(bufSize);
+      final pRead = calloc<Uint32>();
+      final bldr = BytesBuilder();
+      try {
+        while (true) {
+          final ok = ReadFile(_hPipe, pBuf, bufSize, pRead, nullptr);
+          if (ok == 0) {
+            controller
+                .addError(Exception('ReadFile failed: ${GetLastError()}'));
+            break;
+          }
+          final n = pRead.value;
+          if (n == 0) continue;
+          final chunk = Uint8List.sublistView(pBuf.asTypedList(n));
+          final nl = chunk.indexOf(0x0A);
+          if (nl >= 0) {
+            bldr.add(chunk.sublist(0, nl));
+            final line = utf8.decode(bldr.takeBytes());
+            controller.add(jsonDecode(line) as Map<String, dynamic>);
+            if (nl + 1 < chunk.length) {
+              bldr.add(chunk.sublist(nl + 1));
+            }
+          } else {
+            bldr.add(chunk);
+          }
+        }
+      } catch (e, _) {
+        controller.addError(e);
+      } finally {
+        free(pBuf);
+        free(pRead);
+        await controller.close();
+      }
+    }();
+
+    return controller.stream;
   }
 }
