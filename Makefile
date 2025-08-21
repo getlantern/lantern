@@ -14,7 +14,6 @@ LANTERN_CORE := lantern-core
 RADIANCE_REPO := github.com/getlantern/radiance
 FFI_DIR := $(LANTERN_CORE)/ffi
 EXTRA_LDFLAGS ?=
-BUILD_TAGS ?=
 
 DARWIN_APP_NAME := $(CAPITALIZED_APP).app
 DARWIN_LIB := $(LANTERN_LIB_NAME).dylib
@@ -286,7 +285,7 @@ $(WINDOWS_SERVICE_BUILD): windows-service-build
 
 windows-service-build:
 	$(call MKDIR_P,$(dir $(WINDOWS_SERVICE_BUILD)))
-	go build -trimpath -tags '$(BUILD_TAGS)' \
+	go build -trimpath -tags '$(TAGS)' \
 		-ldflags '$(EXTRA_LDFLAGS)' \
 		-o $(WINDOWS_SERVICE_BUILD) $(WINDOWS_SERVICE_SRC)
 
