@@ -15,7 +15,7 @@ class LanternServiceWindows {
   Future<void> init() async {
     await _pipe.connect();
     _pollTimer?.cancel();
-    _pollTimer = Timer.periodic(const Duration(milliseconds: 2), (_) async {
+    _pollTimer = Timer.periodic(const Duration(milliseconds: 200), (_) async {
       try {
         final res = await _pipe.call(ServiceCommand.status.wire);
         final s = ((res['state'] as String?) ?? 'disconnected').toLowerCase();
