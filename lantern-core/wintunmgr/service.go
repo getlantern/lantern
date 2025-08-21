@@ -239,9 +239,13 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		return &Response{ID: r.ID, Result: map[string]any{"running": s.isRunning()}}
 	case CmdStatus:
 		running := vpn_tunnel.IsVPNRunning()
-		s.setIsRunning(running)
+		status := "disconnected"
+		if s.isRunning() || vpn_tunnel.IsVPNRunning() {
+			s.setIsRunning(running)
+			status = "connected"
+		}
 		return &Response{ID: r.ID, Result: map[string]any{
-			"state": map[bool]string{true: "connected", false: "disconnected"}[running],
+			"state": status,
 			"ts":    time.Now().Unix(),
 		}}
 	case CmdConnectToServer:
