@@ -190,6 +190,19 @@ func (s *Service) setupAdapter(ctx context.Context) error {
 	return nil
 }
 
+func (s *Service) isRunning() bool {
+	s.mu.RLock()
+	running := s.running
+	s.mu.RUnlock()
+	return running
+}
+
+func (s *Service) setIsRunning(running bool) {
+	s.mu.Lock()
+	s.running = running
+	s.mu.Unlock()
+}
+
 func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 	defer func() {
 		if rec := recover(); rec != nil {
@@ -213,25 +226,19 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		}); err != nil {
 			return rpcErr(r.ID, "start_error", err.Error())
 		}
-		s.mu.Lock()
-		s.running = true
-		s.mu.Unlock()
+		s.setIsRunning(true)
 		return &Response{ID: r.ID, Result: map[string]any{"started": true}}
 
 	case CmdStopTunnel:
 		if err := vpn_tunnel.StopVPN(); err != nil {
 			return rpcErr(r.ID, "stop_error", err.Error())
 		}
-		s.mu.Lock()
-		s.running = false
-		s.mu.Unlock()
+		s.setIsRunning(false)
 		return &Response{ID: r.ID, Result: map[string]any{"stopped": true}}
 	case CmdIsVPNRunning:
-		return &Response{ID: r.ID, Result: map[string]any{"running": vpn_tunnel.IsVPNRunning()}}
+		return &Response{ID: r.ID, Result: map[string]any{"running": s.isRunning()}}
 	case CmdStatus:
-		s.mu.RLock()
-		running := s.running
-		s.mu.RUnlock()
+		running := s.isRunning()
 		return &Response{ID: r.ID, Result: map[string]any{
 			"state": map[bool]string{true: "connected", false: "disconnected"}[running],
 			"ts":    time.Now().Unix(),
