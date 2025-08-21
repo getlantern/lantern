@@ -7,6 +7,8 @@ import (
 	"flag"
 	"os"
 	"os/signal"
+	"runtime"
+	"runtime/debug"
 	"syscall"
 
 	"github.com/getlantern/golog"
@@ -23,6 +25,19 @@ const (
 )
 
 var log = golog.LoggerFor("lantern-core.wintunmgr")
+
+func guard(where string) {
+	if r := recover(); r != nil {
+		buf := make([]byte, 1<<20)
+		n := runtime.Stack(buf, true)
+		log.Errorf("PANIC in %s: %v\n%s", where, r, string(buf[:n]))
+	}
+}
+
+func init() {
+	debug.SetTraceback("all")
+	debug.SetPanicOnFault(true)
+}
 
 func main() {
 
@@ -48,6 +63,10 @@ func runConsole() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
+	log.Debugf("Starting %s in console mode (pid=%d)", svcName, os.Getpid())
+
+	defer guard("runConsole")
+
 	wt := wintunmgr.New(adapterName, poolName, nil)
 	s := wintunmgr.NewService(wintunmgr.ServiceOptions{
 		PipeName: servicePipeName,
@@ -66,6 +85,8 @@ type lanternHandler struct{}
 func (h *lanternHandler) Execute(args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Status) (svcSpecificEC bool, exitCode uint32) {
 	const accepts = svc.AcceptStop | svc.AcceptShutdown
 
+	defer guard("lanternHandler.Execute")
+
 	changes <- svc.Status{
 		State:    svc.StartPending,
 		WaitHint: 10 * 1000, // milliseconds; optional
@@ -76,6 +97,7 @@ func (h *lanternHandler) Execute(args []string, r <-chan svc.ChangeRequest, chan
 	// Start service
 	started := make(chan error, 1)
 	go func() {
+		defer guard("service worker")
 		wt := wintunmgr.New(adapterName, poolName, nil)
 		s := wintunmgr.NewService(wintunmgr.ServiceOptions{
 			PipeName: servicePipeName,
@@ -84,6 +106,11 @@ func (h *lanternHandler) Execute(args []string, r <-chan svc.ChangeRequest, chan
 			Locale:   "en_US",
 		}, wt)
 		err := s.Start(ctx)
+		if err != nil {
+			log.Errorf("Service worker returned error: %v", err)
+		} else {
+			log.Debugf("Service worker exited normally")
+		}
 		started <- err
 	}()
 
