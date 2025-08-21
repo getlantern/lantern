@@ -5,7 +5,6 @@ package vpn_tunnel
 // 	pltf := stub.NewPlatformInterfaceStub()
 // 	err := StartVPN(pltf, &utils.Opts{})
 // 	assert.NoError(t, err)
-
 // }
 
 // func radianceOptions() radiance.Options {

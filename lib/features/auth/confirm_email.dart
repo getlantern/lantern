@@ -9,15 +9,20 @@ import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/widgets/app_pin_field.dart';
 import 'package:lantern/core/widgets/app_rich_text.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 
 @RoutePage(name: 'ConfirmEmail')
 class ConfirmEmail extends HookConsumerWidget {
   final String email;
+
+  /// Optional parameter for new password, used in change email flow
+  final String? password;
   final AuthFlow authFlow;
 
   const ConfirmEmail({
     super.key,
     required this.email,
+    this.password,
     this.authFlow = AuthFlow.signUp,
   });
 
@@ -93,9 +98,38 @@ class ConfirmEmail extends HookConsumerWidget {
         validateCode(context, ref, code);
         break;
       case AuthFlow.oauth:
-        // TODO: Handle this case.
-        throw UnimplementedError();
+        throw Exception('OAuth flow should not reach this point');
+      case AuthFlow.changeEmail:
+        completeChangeEmail(context, ref, code);
     }
+  }
+
+  Future<void> completeChangeEmail(
+      BuildContext context, WidgetRef ref, String code) async {
+    context.showLoadingDialog();
+    final result = await ref
+        .read(authNotifierProvider.notifier)
+        .completeChangeEmail(email, password!, code);
+    result.fold(
+      (failure) {
+        context.hideLoadingDialog();
+        context.showSnackBar(failure.localizedErrorMessage);
+      },
+      (_) {
+        context.hideLoadingDialog();
+        //update email in app settings
+        ref.read(appSettingNotifierProvider.notifier).setEmail(email);
+        AppDialog.dialog(
+          context: context,
+          title: 'change_email'.i18n,
+          content: 'email_updated'.i18n,
+          action: 'ok'.i18n,
+          onPressed: () {
+            appRouter.popUntil((route) => (route.settings.name == 'Account'));
+          },
+        );
+      },
+    );
   }
 
   Future<void> validateCode(
@@ -141,6 +175,9 @@ class ConfirmEmail extends HookConsumerWidget {
       case AuthFlow.oauth:
         // TODO: Handle this case.
         throw UnimplementedError();
+      case AuthFlow.changeEmail:
+        // TODO: Handle this case.
+        throw UnimplementedError();
     }
   }
 
@@ -154,12 +191,30 @@ class ConfirmEmail extends HookConsumerWidget {
         onResendCode(context, ref);
         break;
       case AuthFlow.activationCode:
-        // TODO: Handle this case.
-        throw UnimplementedError();
+        throw Exception('activation should not reach this point');
       case AuthFlow.oauth:
-        // TODO: Handle this case.
-        throw UnimplementedError();
+        throw Exception('OAuth flow should not reach this point');
+      case AuthFlow.changeEmail:
+        resendChangeEmail(context, ref);
+        break;
     }
+  }
+
+  Future<void> resendChangeEmail(BuildContext context, WidgetRef ref) async {
+    context.showLoadingDialog();
+    final result = await ref
+        .read(authNotifierProvider.notifier)
+        .startChangeEmail(email, password!);
+    result.fold(
+      (failure) {
+        context.hideLoadingDialog();
+        context.showSnackBar(failure.localizedErrorMessage);
+      },
+      (newEmail) {
+        context.hideLoadingDialog();
+        context.showSnackBar('email_resend_message'.i18n);
+      },
+    );
   }
 
   void onResendCode(BuildContext context, WidgetRef ref) async {

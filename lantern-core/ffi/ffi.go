@@ -435,6 +435,33 @@ func completeRecoveryByEmail(_email, _newPassword, _code *C.char) *C.char {
 	return C.CString("ok")
 }
 
+// startChangeEmail initiates the process of changing the user's email address.
+//
+//export startChangeEmail
+func startChangeEmail(_newEmail, _password *C.char) *C.char {
+	newEmail := C.GoString(_newEmail)
+	password := C.GoString(_password)
+	err := core().StartChangeEmail(newEmail, password)
+	if err != nil {
+		return SendError(fmt.Errorf("error starting email change: %v", err))
+	}
+	return C.CString("ok")
+}
+
+// completeChangeEmail completes the process of changing the user's email address.
+//
+//export completeChangeEmail
+func completeChangeEmail(_newEmail, _password, _code *C.char) *C.char {
+	newEmail := C.GoString(_newEmail)
+	password := C.GoString(_password)
+	code := C.GoString(_code)
+	err := core().CompleteChangeEmail(newEmail, password, code)
+	if err != nil {
+		return SendError(fmt.Errorf("error completing email change: %v", err))
+	}
+	return C.CString("ok")
+}
+
 // Delete account permanently
 //
 //export deleteAccount

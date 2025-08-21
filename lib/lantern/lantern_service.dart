@@ -286,15 +286,15 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> completeChangeEmail(
+  Future<Either<Failure, Unit>> completeRecoveryByEmail(
       {required String email,
       required String code,
       required String newPassword}) {
     if (PlatformUtils.isFFISupported) {
-      return _ffiService.completeChangeEmail(
+      return _ffiService.completeRecoveryByEmail(
           email: email, code: code, newPassword: newPassword);
     }
-    return _platformService.completeChangeEmail(
+    return _platformService.completeRecoveryByEmail(
         email: email, code: code, newPassword: newPassword);
   }
 
@@ -458,5 +458,34 @@ class LanternService implements LanternCoreService {
       return _ffiService.getLanternAvailableServers();
     }
     return _platformService.getLanternAvailableServers();
+  }
+
+  Future<Either<Failure, String>> deviceRemove({required String deviceId}) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.deviceRemove(deviceId: deviceId);
+    }
+    return _platformService.deviceRemove(deviceId: deviceId);
+  }
+
+  @override
+  Future<Either<Failure, String>> completeChangeEmail(
+      {required String newEmail,
+      required String password,
+      required String code}) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.completeChangeEmail(
+          newEmail: newEmail, password: password, code: code);
+    }
+    return _platformService.completeChangeEmail(
+        newEmail: newEmail, password: password, code: code);
+  }
+
+  @override
+  Future<Either<Failure, String>> startChangeEmail(
+      String newEmail, String password) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.startChangeEmail(newEmail, password);
+    }
+    return _platformService.startChangeEmail(newEmail, password);
   }
 }

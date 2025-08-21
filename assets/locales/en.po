@@ -50,7 +50,7 @@ msgid "manage_subscription"
 msgstr "Manage Subscription"
 
 msgid "lantern_pro_devices"
-msgstr "Lantern Pro Devices (Up to 3)"
+msgstr "Lantern Pro Devices"
 
 msgid "remove"
 msgstr "Remove"
@@ -931,7 +931,6 @@ msgstr "Get Lantern Pro"
 msgid "connected_to_private_server"
 msgstr "Connected to Private Server"
 
-
 msgid "server_already_selected"
 msgstr "You are already connected to this server."
 
@@ -950,3 +949,30 @@ msgstr "You are already connected to this server."
 
 
 
+msgid "device_limit_reached"
+msgstr "Device Limit Reached"
+
+msgid "device_limit_reached_message"
+msgstr "You’ve reached your 5-device limit. Please remove a device to continue."
+
+msgid "remove_device_and_sign_in"
+msgstr "Remove Device and Sign In"
+
+msgid "cancel_sign_in"
+msgstr "Cancel Sign In"
+
+msgid "change_email"
+msgstr "Change Email"
+
+msgid "change_email_message"
+msgstr "This will become your new login email. You’ll need to verify it before the change takes effect."
+
+msgid "enter_new_email"
+msgstr "Enter your new Email"
+
+msgid "confirm_password_to_continue"
+msgstr "To continue, please confirm your password."
+
+
+msgid "email_updated"
+msgstr "Your email has been updated."

@@ -73,9 +73,9 @@ class MethodHandler {
         let data = call.arguments as? [String: Any]
         self.validateRecoveryCode(result: result, data: data!)
         break
-      case "completeChangeEmail":
+      case "completeRecoveryByEmail":
         let data = call.arguments as? [String: Any]
-        self.completeChangeEmail(result: result, data: data!)
+        self.completeRecoveryByEmail(result: result, data: data!)
         break
       case "login":
         let data = call.arguments as? [String: Any]
@@ -86,8 +86,7 @@ class MethodHandler {
         self.signUp(result: result, data: data!)
         break
       case "logout":
-        let data = call.arguments as? [String: Any]
-        let email = data?["email"] as? String ?? ""
+        let email = call.arguments as! String
         self.logout(result: result, email: email)
         break
       case "deleteAccount":
@@ -97,6 +96,12 @@ class MethodHandler {
       case "activationCode":
         let data = call.arguments as? [String: Any]
         self.activationCode(result: result, data: data!)
+        break
+      case "startChangeEmail":
+        self.startChangeEmail(result: result, data: call.arguments as? [String: Any] ?? [:])
+        break
+      case "completeChangeEmail":
+        self.completeChangeEmail(result: result, data: call.arguments as? [String: Any] ?? [:])
         break
       // Private server methods
       case "digitalOcean":
@@ -365,9 +370,7 @@ class MethodHandler {
               details: error!.debugDescription))
           return
         }
-        await MainActor.run {
-          result("success")
-        }
+        await self.replyOK(result)
       } catch {
         await MainActor.run {
           result(
@@ -420,13 +423,13 @@ class MethodHandler {
     }
   }
 
-  func completeChangeEmail(result: @escaping FlutterResult, data: [String: Any]) {
+  func completeRecoveryByEmail(result: @escaping FlutterResult, data: [String: Any]) {
     Task {
       let email = data["email"] as? String ?? ""
       let code = data["code"] as? String ?? ""
       let newPassword = data["newPassword"] as? String ?? ""
       var error: NSError?
-      var data = try await MobileCompleteChangeEmail(email, newPassword, code, &error)
+      var data = try await MobileCompleteRecoveryByEmail(email, newPassword, code, &error)
       if error != nil {
         result(
           FlutterError(
@@ -525,11 +528,11 @@ class MethodHandler {
       let email = data["email"] as? String ?? ""
       let resellerCode = data["resellerCode"] as? String ?? ""
       var error: NSError?
-      var data = try await MobileActivationCode(email, resellerCode, &error)
+      var data = MobileActivationCode(email, resellerCode, &error)
       if error != nil {
         result(
           FlutterError(
-            code: "DELETE_ACCOUNT_FAILED",
+            code: "ACTIVATION_CODE_FAILED",
             message: error!.localizedDescription,
             details: error!.localizedDescription))
         return
@@ -537,6 +540,48 @@ class MethodHandler {
       await MainActor.run {
         result("ok")
       }
+    }
+  }
+
+  func startChangeEmail(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      let email = data["newEmail"] as? String ?? ""
+      let password = data["password"] as? String ?? ""
+      var error: NSError?
+      MobileStartChangeEmail(email, password, &error)
+      if error != nil {
+        await self.handleFlutterError(
+          error,
+          result: result,
+          code: "START_CHANGE_EMAIL_FAILED"
+        )
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  func completeChangeEmail(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+
+      let newEmail = data["newEmail"] as? String ?? ""
+      let password = data["password"] as? String ?? ""
+      let code = data["code"] as? String ?? ""
+
+      var error: NSError?
+      MobileCompleteChangeEmail(newEmail, password, code, &error)
+      if let error {
+        await self.handleFlutterError(
+          error,
+          result: result,
+          code: "COMPLETE_CHANGE_EMAIL_FAILED"
+        )
+        return
+      }
+
+      await self.replyOK(result)
     }
   }
 
@@ -694,6 +739,11 @@ class MethodHandler {
         )
       )
     }
+  }
+
+  @MainActor
+  private func replyOK(_ result: FlutterResult) {
+    result("ok")
   }
 
 }

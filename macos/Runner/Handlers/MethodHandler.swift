@@ -133,20 +133,48 @@ class MethodHandler {
   }
 
   private func startVPN(result: @escaping FlutterResult) {
-    Task {
+    Task.detached { [weak self] in
+      guard let self = self else { return }
+      appLogger.info("Received start VPN call")
+
+      // Avoid duplicate starts based on current status
+      switch self.vpnManager.connectionStatus {
+      case .connected:
+        await MainActor.run { result("VPN already connected.") }
+        return
+      case .connecting, .reasserting:
+        await MainActor.run { result("VPN is already starting.") }
+        return
+      case .disconnecting:
+        await MainActor.run {
+          result(
+            FlutterError(
+              code: "START_IN_PROGRESS",
+              message: "VPN is currently disconnecting. Try again shortly.",
+              details: nil
+            )
+          )
+        }
+        return
+      default:
+        break
+      }
+
       do {
-        appLogger.info("Received start VPN call")
-        try await vpnManager.startTunnel()
+        try await self.vpnManager.startTunnel()
         await MainActor.run {
           result("VPN started successfully.")
         }
       } catch {
+        appLogger.error("Failed to start VPN: \(error.localizedDescription)")
         await MainActor.run {
           result(
             FlutterError(
               code: "START_FAILED",
               message: "Unable to start VPN tunnel.",
-              details: error.localizedDescription))
+              details: error.localizedDescription
+            )
+          )
         }
       }
     }
@@ -162,6 +190,7 @@ class MethodHandler {
           result("VPN connected successfully to \(serverName) at \(location).")
         }
       } catch {
+        appLogger.error("Failed to connect to VPN server: \(error.localizedDescription)")
         await MainActor.run {
           result(
             FlutterError(
@@ -181,6 +210,7 @@ class MethodHandler {
           result("VPN stopped successfully.")
         }
       } catch {
+        appLogger.error("Failed to stop VPN: \(error.localizedDescription)")
         await MainActor.run {
           result(
             FlutterError(

@@ -103,6 +103,7 @@ class VPNManager: VPNBase {
       "netEx.StartReason": NSString("Lantern"),
       "username": NSString(string: NSUserName()),
     ]
+    appLogger.log("Calling manager.connection.startVPNTunnel..")
     try self.manager.connection.startVPNTunnel(options: options)
 
     self.manager.isOnDemandEnabled = false
@@ -139,12 +140,13 @@ class VPNManager: VPNBase {
       return
     }
 
-    if manager.isOnDemandEnabled ?? false {
+    if manager.isOnDemandEnabled {
       appLogger.info("Turning off on demand..")
       manager.isOnDemandEnabled = false
       try await manager.saveToPreferences()
     }
     manager.connection.stopVPNTunnel()
+    appLogger.log("Tunnel stopped.")
   }
 
   /// Saves the current VPN configuration to preferences and reloads it.

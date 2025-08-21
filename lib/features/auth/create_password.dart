@@ -76,7 +76,7 @@ class CreatePassword extends HookConsumerWidget {
     context.showLoadingDialog();
     final result = await ref
         .read(authNotifierProvider.notifier)
-        .completeChangeEmail(email, password, code);
+        .completeRecoveryByEmail(email, password, code);
 
     result.fold(
       (failure) {
