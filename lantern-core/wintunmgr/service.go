@@ -238,7 +238,8 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 	case CmdIsVPNRunning:
 		return &Response{ID: r.ID, Result: map[string]any{"running": s.isRunning()}}
 	case CmdStatus:
-		running := s.isRunning()
+		running := vpn_tunnel.IsVPNRunning()
+		s.setIsRunning(running)
 		return &Response{ID: r.ID, Result: map[string]any{
 			"state": map[bool]string{true: "connected", false: "disconnected"}[running],
 			"ts":    time.Now().Unix(),
@@ -259,6 +260,7 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		}); err != nil {
 			return rpcErr(r.ID, "connect_error", err.Error())
 		}
+		s.setIsRunning(true)
 		return &Response{ID: r.ID, Result: "ok"}
 
 	case CmdAddSplitTunnelItem, CmdRemoveSplitTunnelItem:

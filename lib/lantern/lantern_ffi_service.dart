@@ -878,6 +878,9 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, String>> connectToServer(
       String location, String tag) async {
+    if (Platform.isWindows) {
+      return _windowsService.connectToServer(location, tag);
+    }
     final ffiPaths = await PlatformFfiUtils.getFfiPlatformPaths();
     try {
       final result = await runInBackground<String>(

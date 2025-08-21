@@ -18,7 +18,7 @@ class LanternServiceWindows {
     _pollTimer = Timer.periodic(const Duration(seconds: 2), (_) async {
       try {
         final res = await _pipe.call(ServiceCommand.status.wire);
-        final s = (res['state'] as String?) ?? 'disconnected';
+        final s = ((res['state'] as String?) ?? 'disconnected').toLowerCase();
         _statusCtrl.add(LanternStatus.fromJson({'status': s}));
       } catch (_) {}
     });
@@ -32,7 +32,7 @@ class LanternServiceWindows {
 
   Future<Either<Failure, String>> connect() async {
     try {
-      await _pipe.call(ServiceCommand.setupAdapter.wire);
+      //await _pipe.call(ServiceCommand.setupAdapter.wire);
       await _pipe.call(ServiceCommand.startTunnel.wire);
       return right('ok');
     } catch (e) {
