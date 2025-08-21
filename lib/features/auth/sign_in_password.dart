@@ -90,7 +90,8 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
     hideKeyboard();
     if (widget.fromChangeEmail) {
       /// If the user is changing email, we need to verify the password
-      context.pushRoute(AddEmail(authFlow: AuthFlow.changeEmail,password: password));
+      context.pushRoute(
+          AddEmail(authFlow: AuthFlow.changeEmail, password: password));
       return;
     }
     context.showLoadingDialog();

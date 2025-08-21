@@ -58,7 +58,8 @@ class Account extends HookConsumerWidget {
             trailing: AppTextButton(
               label: 'change_email'.i18n,
               onPressed: () {
-                appRouter.push(SignInPassword(email:appSettings.email ,fromChangeEmail: true));
+                appRouter.push(SignInPassword(
+                    email: appSettings.email, fromChangeEmail: true));
               },
             ),
           ),

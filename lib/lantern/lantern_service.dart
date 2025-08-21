@@ -460,15 +460,21 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> completeChangeEmail({required String newEmail, required String password, required String code}) {
+  Future<Either<Failure, String>> completeChangeEmail(
+      {required String newEmail,
+      required String password,
+      required String code}) {
     if (PlatformUtils.isFFISupported) {
-      return _ffiService.completeChangeEmail(newEmail: newEmail, password: password, code: code);
+      return _ffiService.completeChangeEmail(
+          newEmail: newEmail, password: password, code: code);
     }
-    return _platformService.completeChangeEmail(newEmail: newEmail, password: password, code: code);
+    return _platformService.completeChangeEmail(
+        newEmail: newEmail, password: password, code: code);
   }
 
   @override
-  Future<Either<Failure, String>> startChangeEmail(String newEmail, String password) {
+  Future<Either<Failure, String>> startChangeEmail(
+      String newEmail, String password) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.startChangeEmail(newEmail, password);
     }

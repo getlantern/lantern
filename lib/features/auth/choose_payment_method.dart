@@ -230,7 +230,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
         // TODO: Handle this case.
         throw UnimplementedError('reset password flow should not reach here');
       case AuthFlow.changeEmail:
-      // TODO: Handle this case.
+        // TODO: Handle this case.
         throw UnimplementedError('change email flow should not reach here');
     }
   }

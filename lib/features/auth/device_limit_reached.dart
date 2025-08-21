@@ -86,7 +86,8 @@ class DeviceLimitReached extends HookConsumerWidget {
   Future<void> removeDeviceAndLogin(
       WidgetRef ref, String deviceId, BuildContext context) async {
     context.showLoadingDialog();
-    final result = await ref.read(lanternServiceProvider).deviceRemove(deviceId: deviceId);
+    final result =
+        await ref.read(lanternServiceProvider).deviceRemove(deviceId: deviceId);
     result.fold(
       (failure) {
         context.hideLoadingDialog();

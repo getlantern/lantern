@@ -175,7 +175,5 @@ class AppRouter extends RootStackRouter {
       path: '/qr-scanner',
       page: QrCodeScanner.page,
     ),
-
-
   ];
 }

@@ -943,13 +943,17 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> completeChangeEmail({required String newEmail, required String password, required String code}) {
+  Future<Either<Failure, String>> completeChangeEmail(
+      {required String newEmail,
+      required String password,
+      required String code}) {
     // TODO: implement completeChangeEmail
     throw UnimplementedError();
   }
 
   @override
-  Future<Either<Failure, String>> startChangeEmail(String newEmail, String password) {
+  Future<Either<Failure, String>> startChangeEmail(
+      String newEmail, String password) {
     // TODO: implement startChangeEmail
     throw UnimplementedError();
   }

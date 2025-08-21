@@ -368,7 +368,7 @@ class MethodHandler {
               details: error!.debugDescription))
           return
         }
-          await self.replyOK(result)
+        await self.replyOK(result)
       } catch {
         await MainActor.run {
           result(
@@ -548,7 +548,7 @@ class MethodHandler {
       var error: NSError?
       MobileStartChangeEmail(email, password, &error)
       if error != nil {
-          await self.handleFlutterError(
+        await self.handleFlutterError(
           error,
           result: result,
           code: "START_CHANGE_EMAIL_FAILED"
@@ -570,16 +570,16 @@ class MethodHandler {
 
       var error: NSError?
       MobileCompleteChangeEmail(newEmail, password, code, &error)
-        if let error {
-            await self.handleFlutterError(
-               error,
-               result: result,
-               code: "COMPLETE_CHANGE_EMAIL_FAILED"
-             )
-             return
-        }
-      
-        await self.replyOK(result)
+      if let error {
+        await self.handleFlutterError(
+          error,
+          result: result,
+          code: "COMPLETE_CHANGE_EMAIL_FAILED"
+        )
+        return
+      }
+
+      await self.replyOK(result)
     }
   }
 
@@ -725,11 +725,10 @@ class MethodHandler {
       )
     }
   }
-    
-    
-    @MainActor
-    private func replyOK(_ result: FlutterResult) {
-      result("ok")
-    }
+
+  @MainActor
+  private func replyOK(_ result: FlutterResult) {
+    result("ok")
+  }
 
 }

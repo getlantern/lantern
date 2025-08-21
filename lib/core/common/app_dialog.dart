@@ -183,9 +183,10 @@ class AppDialog {
           actions: [
             AppTextButton(
               label: action,
-              onPressed: onPressed??() {
-                appRouter.maybePop();
-              },
+              onPressed: onPressed ??
+                  () {
+                    appRouter.maybePop();
+                  },
             )
           ],
         );
