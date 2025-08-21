@@ -656,9 +656,11 @@ class LanternPlatformService implements LanternCoreService {
     } catch (e, stackTrace) {
       appLogger.error(
           'Error fetching Lantern available servers', e, stackTrace);
+      return Left(e.toFailure());
     }
   }
 
+  @override
   Future<Either<Failure, String>> deviceRemove(
       {required String deviceId}) async {
     try {
