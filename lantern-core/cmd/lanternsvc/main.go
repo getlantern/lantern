@@ -4,6 +4,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"os"
 	"os/signal"
 	"syscall"
@@ -25,6 +26,15 @@ const (
 var log = golog.LoggerFor("lantern-core.wintunmgr")
 
 func main() {
+
+	consoleMode := flag.Bool("console", false, "Run in console mode instead of Windows service")
+	flag.Parse()
+
+	if *consoleMode {
+		runConsole()
+		return
+	}
+
 	isService, _ := svc.IsWindowsService()
 	if isService {
 		if err := svc.Run(svcName, &lanternHandler{}); err != nil {
