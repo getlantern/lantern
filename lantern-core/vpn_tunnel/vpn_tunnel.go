@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/getlantern/lantern-outline/lantern-core/utils"
 	radianceCommon "github.com/getlantern/radiance/common"
 	"github.com/getlantern/radiance/servers"
 	"github.com/getlantern/radiance/vpn"
 	"github.com/sagernet/sing-box/experimental/libbox"
+
+	"github.com/getlantern/lantern-outline/lantern-core/utils"
 )
 
 type InternalTag string
@@ -33,26 +34,20 @@ func StartVPN(platform libbox.PlatformInterface, options *utils.Opts) error {
 
 // StopVPN will stop the VPN tunnel.
 func StopVPN() error {
-	defer func() {
-		if r := recover(); r != nil {
-			slog.Error("recovered from panic in StopVPN:", "r", r)
-		}
-	}()
 	return vpn.Disconnect()
 }
 
-// ConnectToServer will connect to a specific VPN server group and tag.
-// this will select server and start the VPN tunnel.
-// Valid location types are: [auto],[privateServer],[lanternLocation]
+// ConnectToServer will connect to a specific VPN server identified by the group and tag. If tag is
+// empty, it will connect to the best server available in that group. ConnectToServer will start the
+// VPN tunnel if it's not already running.
 func ConnectToServer(group, tag string, platIfce libbox.PlatformInterface, options *utils.Opts) error {
-	var internalTag string
 	switch group {
-	case "auto":
-		internalTag = string(InternalTagAutoAll)
+	case string(InternalTagAutoAll), "auto":
+		group = "all"
 	case "privateServer":
-		internalTag = string(InternalTagUser)
+		group = string(InternalTagUser)
 	case "lanternLocation":
-		internalTag = string(InternalTagLantern)
+		group = string(InternalTagLantern)
 	}
 	if radianceCommon.IsIOS() || radianceCommon.IsMacOS() {
 		err := initializeCommonForApplePlatforms(options)
@@ -60,18 +55,16 @@ func ConnectToServer(group, tag string, platIfce libbox.PlatformInterface, optio
 			return err
 		}
 	}
-	return vpn.ConnectToServer(internalTag, tag, platIfce)
+	if tag == "" {
+		return vpn.QuickConnect(group, platIfce)
+	}
+	return vpn.ConnectToServer(group, tag, platIfce)
 }
 
 func IsVPNRunning() bool {
 	slog.Debug("Checking if VPN is running...")
 	status, err := vpn.GetStatus()
 	slog.Debug("VPN status:", "status", status, "Error:", err)
-	// if err != nil {
-	// 	fmt.Errorf("failed to get VPN status: %w", err)
-	// 	return false
-	// }
-	slog.Debug("VPN status is tunnel:", "tunnelOpen", status.TunnelOpen)
 	return status.TunnelOpen
 }
 

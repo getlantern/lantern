@@ -31,7 +31,7 @@ class ExtensionProvider: NEPacketTunnelProvider {
     }
     let tunnelType = options?["netEx.Type"] as? String
     switch tunnelType {
-    case "User":
+    case "Lantern":
       startVPN()
     case "PrivateServer":
       let serverName = options?["netEx.ServerName"] as? String
@@ -97,8 +97,8 @@ class ExtensionProvider: NEPacketTunnelProvider {
 
   func opts() -> UtilsOpts {
     let opts = UtilsOpts()
-    opts.dataDir = FilePath.sharedDirectory.absoluteString
-    opts.logDir = FilePath.logsDirectory.absoluteString
+    opts.dataDir = FilePath.sharedDirectory.relativePath
+    opts.logDir = FilePath.logsDirectory.relativePath
     opts.deviceid = DeviceIdentifier.getUDID()
     opts.logLevel = "debug"
     opts.locale = Locale.current.identifier

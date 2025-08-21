@@ -15,13 +15,14 @@ import (
 	"sync/atomic"
 	"unsafe"
 
+	"github.com/getlantern/radiance/api"
+
 	lanterncore "github.com/getlantern/lantern-outline/lantern-core"
 	"github.com/getlantern/lantern-outline/lantern-core/apps"
 	"github.com/getlantern/lantern-outline/lantern-core/dart_api_dl"
 	privateserver "github.com/getlantern/lantern-outline/lantern-core/private-server"
 	"github.com/getlantern/lantern-outline/lantern-core/utils"
 	"github.com/getlantern/lantern-outline/lantern-core/vpn_tunnel"
-	"github.com/getlantern/radiance/api"
 )
 
 type VPNStatus string
@@ -171,7 +172,8 @@ func stopVPN() *C.char {
 	return C.CString("ok")
 }
 
-// connectToServer sets the private server with the given tag.
+// connectToServer connects to a specific VPN server identified by the location type and tag.
+// connectToServer will open and start the VPN tunnel if it is not already running.
 //
 //export connectToServer
 func connectToServer(_location, _tag, _logDir, _dataDir, _locale *C.char) *C.char {

@@ -34,7 +34,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     }
     let tunnelType = options?["netEx.Type"] as? String
     switch tunnelType {
-    case "User":
+    case "Lantern":
       appLogger.info("(lantern-tunnel) user initiated connection")
       startVPN()
     case "PrivateServer":
@@ -88,7 +88,9 @@ public class ExtensionProvider: NEPacketTunnelProvider {
       appLogger.error("error while stopping tunnel \(error?.localizedDescription ?? "")")
       return
     }
+    appLogger.log("(lantern-tunnel) Finished calling stop on mobile.go")
     platformInterface.reset()
+    appLogger.info("Finished resetting")
   }
 
   override open func stopTunnel(with reason: NEProviderStopReason) async {
