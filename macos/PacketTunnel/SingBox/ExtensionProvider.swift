@@ -82,15 +82,8 @@ public class ExtensionProvider: NEPacketTunnelProvider {
   }
 
   private func stopService() {
-    var error: NSError?
-    MobileStopVPN(&error)
-    if error != nil {
-      appLogger.error("error while stopping tunnel \(error?.localizedDescription ?? "")")
-      return
-    }
-    appLogger.log("(lantern-tunnel) Finished calling stop on mobile.go")
+    appLogger.info("ExtensionProvider stopService")
     platformInterface.reset()
-    appLogger.info("Finished resetting")
   }
 
   override open func stopTunnel(with reason: NEProviderStopReason) async {
