@@ -208,7 +208,6 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		// if err := s.setupAdapter(ctx); err != nil {
 		// 	return rpcErr(r.ID, "adapter_error", err.Error())
 		// }
-		// runs Radiance (vpn_tunnel) inside the service
 		if err := vpn_tunnel.StartVPN(nil, &utils.Opts{
 			DataDir: s.opts.DataDir, Locale: s.opts.Locale,
 		}); err != nil {
