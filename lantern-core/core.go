@@ -482,7 +482,7 @@ func (lc *LanternCore) DeleteAccount(email, password string) ([]byte, error) {
 }
 
 func (lc *LanternCore) RemoveDevice(deviceID string) (*api.LinkResponse, error) {
-	slog.Debug("Removing device: %s", deviceID)
+	slog.Debug("Removing device: ", "deviceID", deviceID)
 	return lc.apiClient.RemoveDevice(context.Background(), deviceID)
 }
 
