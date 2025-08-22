@@ -321,7 +321,7 @@ class MethodHandler {
   func startRecoveryByEmail(result: @escaping FlutterResult, email: String) {
     Task {
       var error: NSError?
-      let data = MobileStartRecoveryByEmail(email, &error)
+      MobileStartRecoveryByEmail(email, &error)
       if error != nil {
         result(
           FlutterError(
@@ -341,7 +341,7 @@ class MethodHandler {
       let email = data["email"] as? String ?? ""
       let code = data["code"] as? String ?? ""
       var error: NSError?
-      let data = MobileValidateChangeEmailCode(email, code, &error)
+      MobileValidateChangeEmailCode(email, code, &error)
       if error != nil {
         result(
           FlutterError(
@@ -362,7 +362,7 @@ class MethodHandler {
       let code = data["code"] as? String ?? ""
       let newPassword = data["newPassword"] as? String ?? ""
       var error: NSError?
-      let data = MobileCompleteChangeEmail(email, newPassword, code, &error)
+      MobileCompleteChangeEmail(email, newPassword, code, &error)
       if error != nil {
         result(
           FlutterError(
@@ -401,7 +401,7 @@ class MethodHandler {
       let email = data["email"] as? String ?? ""
       let password = data["password"] as? String ?? ""
       var error: NSError?
-      let data = MobileSignUp(email, password, &error)
+      MobileSignUp(email, password, &error)
       if error != nil {
         result(
           FlutterError(
@@ -459,7 +459,7 @@ class MethodHandler {
       let email = data["email"] as? String ?? ""
       let resellerCode = data["resellerCode"] as? String ?? ""
       var error: NSError?
-      let data = MobileActivationCode(email, resellerCode, &error)
+      MobileActivationCode(email, resellerCode, &error)
       if error != nil {
         result(
           FlutterError(
@@ -572,12 +572,7 @@ class MethodHandler {
 
   func selectCertFingerprint(result: @escaping FlutterResult, fingerprint: String) {
     Task.detached {
-      var error: NSError?
       MobileSelectedCertFingerprint(fingerprint)
-      if let err = error {
-        await self.handleFlutterError(err, result: result, code: "SELECT_CERT_FINGERPRINT_ERROR")
-        return
-      }
       await MainActor.run {
         result("ok")
       }
