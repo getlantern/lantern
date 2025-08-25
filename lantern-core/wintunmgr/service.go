@@ -292,15 +292,11 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 
 	switch r.Cmd {
 	case CmdSetupAdapter:
-		// if _, err := s.wtmgr.OpenOrCreateTunAdapter(ctx); err != nil {
-		// 	return rpcErr(r.ID, "adapter_error", err.Error())
-		// }
+		if _, err := s.wtmgr.OpenOrCreateTunAdapter(ctx); err != nil {
+			return rpcErr(r.ID, "adapter_error", err.Error())
+		}
 		return &Response{ID: r.ID, Result: map[string]any{"ok": true}}
 	case CmdStartTunnel:
-		// Make sure adapter exists first
-		// if err := s.setupAdapter(ctx); err != nil {
-		// 	return rpcErr(r.ID, "adapter_error", err.Error())
-		// }
 		if err := vpn_tunnel.StartVPN(nil, &utils.Opts{
 			DataDir: s.opts.DataDir, Locale: s.opts.Locale,
 		}); err != nil {
@@ -317,17 +313,6 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		return &Response{ID: r.ID, Result: map[string]any{"stopped": true}}
 	case CmdIsVPNRunning:
 		return &Response{ID: r.ID, Result: map[string]any{"running": s.isRunning()}}
-	// case CmdStatus:
-	// 	running := vpn_tunnel.IsVPNRunning()
-	// 	status := "disconnected"
-	// 	if s.isRunning() || vpn_tunnel.IsVPNRunning() {
-	// 		s.setIsRunning(running)
-	// 		status = "connected"
-	// 	}
-	// 	return &Response{ID: r.ID, Result: map[string]any{
-	// 		"state": status,
-	// 		"ts":    time.Now().Unix(),
-	// 	}}
 	case CmdConnectToServer:
 		var p struct {
 			Location string `json:"location"`
