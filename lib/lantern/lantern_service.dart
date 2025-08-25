@@ -488,4 +488,12 @@ class LanternService implements LanternCoreService {
     }
     return _platformService.startChangeEmail(newEmail, password);
   }
+
+  @override
+  Future<Either<Failure, String>> getAutoServerLocation() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.getAutoServerLocation();
+    }
+    return _platformService.getAutoServerLocation();
+  }
 }

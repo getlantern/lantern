@@ -1,3 +1,4 @@
+import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/server_location_entity.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
@@ -41,5 +42,12 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
             "Fetched Lantern servers for location", servers.toJson());
       },
     );
+  }
+
+  Future<Either<Failure, String>> getAutoServerLocation() async {
+    final result =
+        await ref.read(lanternServiceProvider).getAutoServerLocation();
+
+    return result;
   }
 }

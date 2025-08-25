@@ -47,11 +47,9 @@ enum class Methods(val method: String) {
     Login("login"),
     SignUp("signUp"),
 
-
     //Change Email
     StartChangeEmail("startChangeEmail"),
     CompleteChangeEmail("completeChangeEmail"),
-
 
     Logout("logout"),
     DeleteAccount("deleteAccount"),
@@ -73,6 +71,7 @@ enum class Methods(val method: String) {
 
     //custom/lantern servers
     GetLanternAvailableServers("getLanternAvailableServers"),
+    GetAutoServerLocationz("getAutoServerLocation"),
 
 }
 
@@ -793,6 +792,22 @@ class MethodHandler : FlutterPlugin,
                         result.error(
                             "GetAvailableServers",
                             e.localizedMessage ?: "Error while fetching available servers",
+                            e
+                        )
+                    }
+                }
+            }
+            Methods.GetAutoServerLocationz.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val data = Mobile.getSelectedServer()
+                        withContext(Dispatchers.Main) {
+                            success(data)
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "GetAutoServerLocation",
+                            e.localizedMessage ?: "Error while fetching auto server location",
                             e
                         )
                     }

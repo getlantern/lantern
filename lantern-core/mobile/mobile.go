@@ -81,6 +81,10 @@ func IsVPNConnected() bool {
 	return vpn_tunnel.IsVPNRunning()
 }
 
+func GetSelectedServer() string {
+	return vpn_tunnel.GetSelectedServer()
+}
+
 func AddSplitTunnelItem(filterType, item string) error {
 	return core().AddSplitTunnelItem(filterType, item)
 }

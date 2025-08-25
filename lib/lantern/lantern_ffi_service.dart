@@ -964,6 +964,12 @@ class LanternFFIService implements LanternCoreService {
     // TODO: implement startChangeEmail
     throw UnimplementedError();
   }
+
+  @override
+  Future<Either<Failure, String>> getAutoServerLocation() {
+    // TODO: implement getAutoServerLocation
+    throw UnimplementedError();
+  }
 }
 
 void checkAPIError(dynamic result) {

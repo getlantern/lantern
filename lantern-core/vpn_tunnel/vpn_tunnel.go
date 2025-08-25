@@ -70,6 +70,13 @@ func IsVPNRunning() bool {
 	return status.TunnelOpen
 }
 
+func GetSelectedServer() string {
+	slog.Debug("Getting selected VPN server...")
+	status, err := vpn.GetStatus()
+	slog.Debug("VPN status:", "status", status, "Error:", err)
+	return status.SelectedServer
+}
+
 func initializeCommonForApplePlatforms(options *utils.Opts) error {
 	// Since this will start as a new process, we need to ask for path and logger.
 	// This ensures options are correctly set for the new process.

@@ -25,6 +25,8 @@ abstract class LanternCoreService {
 
   Stream<List<String>> watchLogs(String path);
 
+  Future<Either<Failure, String>> getAutoServerLocation();
+
   ///Payments methods
   Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
       {required BillingType type,

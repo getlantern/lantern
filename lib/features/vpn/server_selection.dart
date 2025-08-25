@@ -300,9 +300,7 @@ class _ServerLocationListViewState
           ),
         ),
         if (!widget.userPro)
-          Container(
-            color: AppColors.white.withValues(alpha: 0.7),
-          )
+          Container(color: AppColors.white.withValues(alpha: 0.7))
       ],
     );
   }
