@@ -1,9 +1,9 @@
 package mobile
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
-	"reflect"
 	"runtime"
 	"sync/atomic"
 
@@ -16,17 +16,34 @@ import (
 	"github.com/getlantern/lantern-outline/lantern-core/vpn_tunnel"
 )
 
-var lanternCore atomic.Pointer[lanterncore.Core]
+var (
+	lanternCore        atomic.Value
+	errLanternNotReady = errors.New("radiance not initialized")
+)
 
-func init() {
-	stub := lanterncore.Stub()
-	lanternCore.Store(&stub)
+func getCore() (lanterncore.Core, error) {
+	v := lanternCore.Load()
+	if v == nil {
+		return nil, errLanternNotReady
+	}
+	return v.(lanterncore.Core), nil
 }
 
-func core() lanterncore.Core {
-	c := lanternCore.Load()
-	slog.Debug("Using LanternCore instance", "instance", reflect.TypeOf(c).String())
-	return *c
+func withCore(fn func(c lanterncore.Core) error) error {
+	c, err := getCore()
+	if err != nil {
+		return err
+	}
+	return fn(c)
+}
+
+func withCoreR[T any](fn func(c lanterncore.Core) (T, error)) (T, error) {
+	var zero T
+	c, err := getCore()
+	if err != nil {
+		return zero, err
+	}
+	return fn(c)
 }
 
 func enableSplitTunneling() bool {
@@ -44,16 +61,24 @@ func SetupRadiance(opts *utils.Opts) error {
 	if err != nil {
 		return fmt.Errorf("unable to create LanternCore: %v", err)
 	}
-	lanternCore.Store(&c)
+	lanternCore.Store(c)
 	return nil
 }
 
 func AvailableFeatures() []byte {
-	return core().AvailableFeatures()
+	b, err := withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.AvailableFeatures(), nil })
+	if err != nil {
+		return []byte(`{}`)
+	}
+	return b
 }
 
 func IsRadianceConnected() bool {
-	return true
+	ok, err := withCoreR(func(c lanterncore.Core) (bool, error) { return c.IsRadianceConnected(), nil })
+	if err != nil {
+		return false
+	}
+	return ok
 }
 
 func StartVPN(platform libbox.PlatformInterface, opts *utils.Opts) error {
@@ -76,163 +101,173 @@ func IsVPNConnected() bool {
 }
 
 func AddSplitTunnelItem(filterType, item string) error {
-	return core().AddSplitTunnelItem(filterType, item)
+	return withCore(func(c lanterncore.Core) error { return c.AddSplitTunnelItem(filterType, item) })
 }
 
 func RemoveSplitTunnelItem(filterType, item string) error {
-	return core().RemoveSplitTunnelItem(filterType, item)
+	return withCore(func(c lanterncore.Core) error { return c.RemoveSplitTunnelItem(filterType, item) })
 }
 
 func ReportIssue(email, issueType, description, device, model, logFilePath string) error {
-	return core().ReportIssue(email, issueType, description, device, model, logFilePath)
+	return withCore(func(c lanterncore.Core) error {
+		return c.ReportIssue(email, issueType, description, device, model, logFilePath)
+	})
 }
 
 // User Methods
 // Todo make sure to add retry logic
 // we need to make sure that the user is created before we can use the radiance server
 func CreateUser() (*api.UserDataResponse, error) {
-	return core().CreateUser()
+	return withCoreR(func(c lanterncore.Core) (*api.UserDataResponse, error) { return c.CreateUser() })
 }
 
 // this will return the user data from the user config
 func UserData() ([]byte, error) {
 	slog.Debug("User data")
-	return core().UserData()
+	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.UserData() })
 }
 
 // GetUserData will get the user data from the server
 func FetchUserData() ([]byte, error) {
 	slog.Debug("Fetching user data")
-	return core().FetchUserData()
+	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.FetchUserData() })
 }
 
 // OAuth Methods
 func OAuthLoginUrl(provider string) (string, error) {
-	return core().OAuthLoginUrl(provider)
+	return withCoreR(func(c lanterncore.Core) (string, error) { return c.OAuthLoginUrl(provider) })
 }
 
 func OAuthLoginCallback(oAuthToken string) ([]byte, error) {
-	return core().OAuthLoginCallback(oAuthToken)
+	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.OAuthLoginCallback(oAuthToken) })
 }
 
 func StripeSubscription(email, planID string) (string, error) {
-	return core().StripeSubscription(email, planID)
+	return withCoreR(func(c lanterncore.Core) (string, error) { return c.StripeSubscription(email, planID) })
 }
 
 func Plans(channel string) (string, error) {
-	return core().Plans(channel)
+	return withCoreR(func(c lanterncore.Core) (string, error) { return c.Plans(channel) })
 }
 func StripeBillingPortalUrl() (string, error) {
-	return core().StripeBillingPortalUrl()
+	return withCoreR(func(c lanterncore.Core) (string, error) { return c.StripeBillingPortalUrl() })
 }
 
 func AcknowledgeGooglePurchase(purchaseToken, planId string) error {
-	return core().AcknowledgeGooglePurchase(purchaseToken, planId)
+	return withCore(func(c lanterncore.Core) error { return c.AcknowledgeGooglePurchase(purchaseToken, planId) })
 }
 
 func AcknowledgeApplePurchase(receipt, planII string) error {
-	return core().AcknowledgeApplePurchase(receipt, planII)
+	return withCore(func(c lanterncore.Core) error { return c.AcknowledgeApplePurchase(receipt, planII) })
 }
 
 func PaymentRedirect(provider, planId, email string) (string, error) {
-	return core().PaymentRedirect(provider, planId, email)
+	return withCoreR(func(c lanterncore.Core) (string, error) { return c.PaymentRedirect(provider, planId, email) })
+
 }
 
 /// User management apis
 
 func Login(email, password string) ([]byte, error) {
-	return core().Login(email, password)
+	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.Login(email, password) })
 }
 
 func StartChangeEmail(newEmail, password string) error {
-	return core().StartChangeEmail(newEmail, password)
+	return withCore(func(c lanterncore.Core) error { return c.StartChangeEmail(newEmail, password) })
 }
 
 func CompleteChangeEmail(email, password, code string) error {
-	return core().CompleteChangeEmail(email, password, code)
+	return withCore(func(c lanterncore.Core) error { return c.CompleteChangeEmail(email, password, code) })
 }
 
 func SignUp(email, password string) error {
-	return core().SignUp(email, password)
+	return withCore(func(c lanterncore.Core) error { return c.SignUp(email, password) })
 }
 
 func Logout(email string) ([]byte, error) {
-	return core().Logout(email)
+	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.Logout(email) })
 }
 
 // Email Recovery Methods
 // This will start the email recovery process by sending a recovery code to the user's email
 func StartRecoveryByEmail(email string) error {
-	return core().StartRecoveryByEmail(email)
+	return withCore(func(c lanterncore.Core) error { return c.StartRecoveryByEmail(email) })
 }
 
 // This will validate the recovery code sent to the user's email
 func ValidateChangeEmailCode(email, code string) error {
-	return core().ValidateChangeEmailCode(email, code)
+	return withCore(func(c lanterncore.Core) error { return c.ValidateChangeEmailCode(email, code) })
 }
 
 func CompleteRecoveryByEmail(email, newPassword, code string) error {
-	return core().CompleteRecoveryByEmail(email, newPassword, code)
+	return withCore(func(c lanterncore.Core) error { return c.CompleteRecoveryByEmail(email, newPassword, code) })
 }
 
 func RemoveDevice(deviceId string) error {
-	linkresp, err := core().RemoveDevice(deviceId)
-	if err != nil {
-		return err
-	}
-	slog.Debug("Device removed successfully", "deviceId", deviceId, "response", linkresp)
-	return nil
+	return withCore(func(c lanterncore.Core) error {
+		linkresp, err := c.RemoveDevice(deviceId)
+		if err != nil {
+			return err
+		}
+		slog.Debug("Device removed successfully", "deviceId", deviceId, "response", linkresp)
+		return nil
+	})
 }
 
 // // This will complete the email recovery by setting the new password
 // func CompleteChangeEmail(email, password, code string) error {
-// 	return core().CompleteChangeEmail(email, password, code)
+// 	return c.CompleteChangeEmail(email, password, code)
 // }
 
 func DeleteAccount(email, password string) ([]byte, error) {
-	return core().DeleteAccount(email, password)
+	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.DeleteAccount(email, password) })
 }
 
 func ActivationCode(email, resellerCode string) error {
-	return core().ActivationCode(email, resellerCode)
+	return withCore(func(c lanterncore.Core) error { return c.ActivationCode(email, resellerCode) })
 }
 
 func DigitalOceanPrivateServer(events utils.PrivateServerEventListener) error {
-	return core().DigitalOceanPrivateServer(events)
+	return withCore(func(c lanterncore.Core) error { return c.DigitalOceanPrivateServer(events) })
 }
 
 func GoogleCloudPrivateServer(events utils.PrivateServerEventListener) error {
-	return core().GoogleCloudPrivateServer(events)
+	return withCore(func(c lanterncore.Core) error { return c.GoogleCloudPrivateServer(events) })
 }
 
 func SelectAccount(account string) error {
-	return core().SelectAccount(account)
+	return withCore(func(c lanterncore.Core) error { return c.SelectAccount(account) })
 }
 
 func SelectProject(project string) error {
-	return core().SelectProject(project)
+	return withCore(func(c lanterncore.Core) error { return c.SelectProject(project) })
 }
 
-func StartDepolyment(location, serverName string) error {
-	return core().StartDeployment(location, serverName)
+func StartDeployment(location, serverName string) error {
+	return withCore(func(c lanterncore.Core) error { return c.StartDeployment(location, serverName) })
 }
 
-func CancelDepolyment() error {
-	return core().CancelDeployment()
+func CancelDeployment() error {
+	return withCore(func(c lanterncore.Core) error { return c.CancelDeployment() })
 }
 
 func SelectedCertFingerprint(fp string) {
-	core().SelectedCertFingerprint(fp)
+	withCore(func(c lanterncore.Core) error {
+		c.SelectedCertFingerprint(fp)
+		return nil
+	})
 }
 
 func AddServerManagerInstance(ip, port, accessToken, tag string, events utils.PrivateServerEventListener) error {
-	return core().AddServerManagerInstance(ip, port, accessToken, tag, events)
+	return withCore(func(c lanterncore.Core) error { return c.AddServerManagerInstance(ip, port, accessToken, tag, events) })
 }
 
 func InviteToServerManagerInstance(ip string, port string, accessToken string, inviteName string) (string, error) {
-	return core().InviteToServerManagerInstance(ip, port, accessToken, inviteName)
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		return c.InviteToServerManagerInstance(ip, port, accessToken, inviteName)
+	})
 }
 
 func RevokeServerManagerInvite(ip string, port string, accessToken string, inviteName string) error {
-	return core().RevokeServerManagerInvite(ip, port, accessToken, inviteName)
+	return withCore(func(c lanterncore.Core) error { return c.RevokeServerManagerInvite(ip, port, accessToken, inviteName) })
 }
