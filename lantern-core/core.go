@@ -162,7 +162,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts) error {
 }
 
 func (lc *LanternCore) IsRadianceConnected() bool {
-	return true
+	return lc.rad != nil
 }
 
 func (lc *LanternCore) AvailableFeatures() []byte {
