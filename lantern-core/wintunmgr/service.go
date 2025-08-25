@@ -84,10 +84,7 @@ func (s *Service) statusSnapshot() statusEvent {
 
 func (s *Service) connectionState() string {
 	running := s.isRunning()
-	if running {
-		return "Connected"
-	}
-	return "Disconnected"
+	return map[bool]string{true: "Connected", false: "Disconnected"}[running]
 }
 
 func (s *Service) broadcastStatus() {
