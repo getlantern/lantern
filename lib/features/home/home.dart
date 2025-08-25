@@ -191,7 +191,7 @@ class Home extends HookConsumerWidget {
       case ServerLocationType.auto:
         return 'Fastest Country';
       case ServerLocationType.lanternLocation:
-        return serverLocation.serverLocation;
+         return serverLocation.serverLocation.split('[')[0].trim();
       case ServerLocationType.privateServer:
         return serverLocation.serverLocation.locationName;
     }

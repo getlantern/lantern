@@ -21,7 +21,7 @@ class Lantern {
   });
 
   factory Lantern.fromJson(Map<String, dynamic> json) => Lantern(
-        endpoints: List<Endpoint>.from(
+        endpoints: json["endpoints"]==null? []:List<Endpoint>.from(
             json["endpoints"].map((x) => Endpoint.fromJson(x))),
         locations: (Map<String, Location_>.from(json["locations"].map(
           (k, v) => MapEntry(k, Location_.fromJson(v)..tag = k),
@@ -76,7 +76,7 @@ class Location_ {
 
   factory Location_.fromJson(Map<String, dynamic> json) => Location_(
         country: json["country"],
-        countryCode: json["country_code"],
+        countryCode: json["country_code"]??'',
         city: json["city"],
         latitude: json["latitude"]?.toDouble(),
         longitude: json["longitude"]?.toDouble(),

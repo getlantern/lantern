@@ -319,7 +319,7 @@ class _ServerLocationListViewState
         context.showSnackBar(failure.localizedErrorMessage);
       },
       (success) async {
-        ref.listen<AsyncValue<LanternStatus>>(
+        ref.listenManual<AsyncValue<LanternStatus>>(
           vPNStatusNotifierProvider,
           (previous, next) async {
             if (next is AsyncData<LanternStatus> &&

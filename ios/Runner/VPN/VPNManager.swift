@@ -142,6 +142,7 @@ class VPNManager: VPNBase {
     try manager.connection.startVPNTunnel(options: options)
     //    self.manager.isOnDemandEnabled = true
     //    try await self.saveThenLoadProvider()
+    
 
   }
 
