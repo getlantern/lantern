@@ -7,6 +7,7 @@ import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/private_server_entity.dart';
 import 'package:lantern/core/models/server_location_entity.dart';
 import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/utils/country_utils.dart';
 import 'package:lantern/core/widgets/spinner.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
@@ -282,10 +283,6 @@ class _ServerLocationListViewState
                         itemBuilder: (context, index) {
                           final serverData =
                               data.lantern.locations.values.elementAt(index);
-                          // if (PlatformUtils.isDesktop) {
-                          //   return ServerDesktopView(
-                          //       onServerSelected: onServerSelected);
-                          // }
                           return ServerMobileView(
                             onServerSelected: onServerSelected,
                             location: serverData,
@@ -329,11 +326,12 @@ class _ServerLocationListViewState
                 serverName: selectedServer.tag,
                 autoSelect: false,
                 serverLocation:
-                    '${selectedServer.city} [${selectedServer.countryCode}]',
+                    '${selectedServer.city} [${CountryUtils.getCountryCode(selectedServer.country)}]',
               );
               await ref
                   .read(serverLocationNotifierProvider.notifier)
                   .updateServerLocation(serverLocation);
+              appRouter.popUntilRoot();
             }
           },
         );
