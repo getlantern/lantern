@@ -652,7 +652,7 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> completeChangeEmail({
+  Future<Either<Failure, Unit>> completeRecoveryByEmail({
     required String email,
     required String code,
     required String newPassword,
@@ -951,6 +951,28 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, String>> featureFlag() {
     // TODO: implement featureFlag
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, String>> deviceRemove({required String deviceId}) {
+    // TODO: implement deviceRemove
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, String>> completeChangeEmail(
+      {required String newEmail,
+      required String password,
+      required String code}) {
+    // TODO: implement completeChangeEmail
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, String>> startChangeEmail(
+      String newEmail, String password) {
+    // TODO: implement startChangeEmail
     throw UnimplementedError();
   }
 }

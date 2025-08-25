@@ -51,12 +51,25 @@ class AuthNotifier extends _$AuthNotifier {
         );
   }
 
-  Future<Either<Failure, Unit>> completeChangeEmail(
+  Future<Either<Failure, Unit>> completeRecoveryByEmail(
       String email, String newPassword, String code) async {
-    return ref.read(lanternServiceProvider).completeChangeEmail(
+    return ref.read(lanternServiceProvider).completeRecoveryByEmail(
           email: email,
           newPassword: newPassword,
           code: code,
         );
+  }
+
+  Future<Either<Failure, String>> startChangeEmail(
+      String newEmail, String password) async {
+    return ref
+        .read(lanternServiceProvider)
+        .startChangeEmail(newEmail, password);
+  }
+
+  Future<Either<Failure, String>> completeChangeEmail(
+      String newEmail, String password, String code) async {
+    return ref.read(lanternServiceProvider).completeChangeEmail(
+        newEmail: newEmail, password: password, code: code);
   }
 }

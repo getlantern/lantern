@@ -20,47 +20,47 @@ class ServerLocationsModal extends StatelessWidget {
     final providerName = provider.value;
     return SafeArea(
       child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.9,
-        ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            leadingIcon,
-            const SizedBox(height: defaultSize),
-            Text(
-              'server_locations'.i18n,
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: defaultSize),
-            Text(
-              '${providerName}_allows'.i18n,
-              style: AppTestStyles.bodyMedium,
-            ),
-            const SizedBox(height: defaultSize),
-            Expanded(
-              child: SingleChildScrollView(
-                child: BulletList(items: locations),
-              ),
-            ),
-            const SizedBox(height: defaultSize),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text(
-                  'got_it'.i18n,
-                  style: AppTestStyles.titleMedium.copyWith(
-                    color: AppColors.blue6,
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.9,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                leadingIcon,
+                const SizedBox(height: defaultSize),
+                Text(
+                  'server_locations'.i18n,
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: defaultSize),
+                Text(
+                  '${providerName}_allows'.i18n,
+                  style: AppTestStyles.bodyMedium,
+                ),
+                const SizedBox(height: defaultSize),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: BulletList(items: locations),
                   ),
                 ),
-              ),
+                const SizedBox(height: defaultSize),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text(
+                      'got_it'.i18n,
+                      style: AppTestStyles.titleMedium.copyWith(
+                        color: AppColors.blue6,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      )),
+          )),
     );
   }
 }

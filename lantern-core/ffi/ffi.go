@@ -12,9 +12,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
-	"runtime"
 	"sync/atomic"
 	"unsafe"
+
+	"github.com/getlantern/radiance/api"
 
 	lanterncore "github.com/getlantern/lantern-outline/lantern-core"
 	"github.com/getlantern/lantern-outline/lantern-core/apps"
@@ -22,7 +23,6 @@ import (
 	privateserver "github.com/getlantern/lantern-outline/lantern-core/private-server"
 	"github.com/getlantern/lantern-outline/lantern-core/utils"
 	"github.com/getlantern/lantern-outline/lantern-core/vpn_tunnel"
-	"github.com/getlantern/radiance/api"
 )
 
 type VPNStatus string
@@ -56,7 +56,7 @@ func core() lanterncore.Core {
 }
 
 func enableSplitTunneling() bool {
-	return runtime.GOOS == "darwin"
+	return false
 }
 
 func sendApps(port int64) func(apps ...*apps.AppData) error {
@@ -186,7 +186,8 @@ func stopVPN() *C.char {
 	return C.CString("ok")
 }
 
-// connectToServer sets the private server with the given tag.
+// connectToServer connects to a specific VPN server identified by the location type and tag.
+// connectToServer will open and start the VPN tunnel if it is not already running.
 //
 //export connectToServer
 func connectToServer(_location, _tag, _logDir, _dataDir, _locale *C.char) *C.char {
@@ -437,6 +438,33 @@ func completeRecoveryByEmail(_email, _newPassword, _code *C.char) *C.char {
 		return SendError(fmt.Errorf("%v", err))
 	}
 	slog.Debug("Recovery by email completed successfully")
+	return C.CString("ok")
+}
+
+// startChangeEmail initiates the process of changing the user's email address.
+//
+//export startChangeEmail
+func startChangeEmail(_newEmail, _password *C.char) *C.char {
+	newEmail := C.GoString(_newEmail)
+	password := C.GoString(_password)
+	err := core().StartChangeEmail(newEmail, password)
+	if err != nil {
+		return SendError(fmt.Errorf("error starting email change: %v", err))
+	}
+	return C.CString("ok")
+}
+
+// completeChangeEmail completes the process of changing the user's email address.
+//
+//export completeChangeEmail
+func completeChangeEmail(_newEmail, _password, _code *C.char) *C.char {
+	newEmail := C.GoString(_newEmail)
+	password := C.GoString(_password)
+	code := C.GoString(_code)
+	err := core().CompleteChangeEmail(newEmail, password, code)
+	if err != nil {
+		return SendError(fmt.Errorf("error completing email change: %v", err))
+	}
 	return C.CString("ok")
 }
 

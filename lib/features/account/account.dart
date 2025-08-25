@@ -44,15 +44,25 @@ class Account extends HookConsumerWidget {
             ),
           ),
         ),
-        Card(
+        AppCard(
+          padding: EdgeInsets.zero,
           child: AppTile(
-              label: appSettings.email,
-              icon: AppImagePaths.email,
-              onPressed: kDebugMode
-                  ? () {
-                      copyToClipboard(appSettings.email);
-                    }
-                  : null),
+            label: appSettings.email,
+            icon: AppImagePaths.email,
+            contentPadding: EdgeInsets.only(left: 16),
+            onPressed: kDebugMode
+                ? () {
+                    copyToClipboard(appSettings.email);
+                  }
+                : null,
+            trailing: AppTextButton(
+              label: 'change_email'.i18n,
+              onPressed: () {
+                appRouter.push(SignInPassword(
+                    email: appSettings.email, fromChangeEmail: true));
+              },
+            ),
+          ),
         ),
         SizedBox(height: defaultSize),
         Padding(
@@ -66,7 +76,8 @@ class Account extends HookConsumerWidget {
             ),
           ),
         ),
-        Card(
+        AppCard(
+          padding: EdgeInsets.zero,
           child: AppTile(
             label: user.legacyUserData.toDate(),
             contentPadding: EdgeInsets.only(left: 16),

@@ -56,7 +56,8 @@ class CardDropdown<T> extends StatelessWidget {
       validator: validator,
       decoration: InputDecoration(
         prefixIcon: _buildPrefix(prefixIcon),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         filled: true,
         fillColor: enabled ? AppColors.white : AppColors.gray3.withOpacity(0.3),
         hintText: hintText,
@@ -79,13 +80,15 @@ class CardDropdown<T> extends StatelessWidget {
         ),
         disabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: AppColors.gray3.withOpacity(0.5), width: 1),
+          borderSide:
+              BorderSide(color: AppColors.gray3.withOpacity(0.5), width: 1),
         ),
       ),
       style: AppTestStyles.bodyMedium.copyWith(
         color: enabled ? AppColors.black1 : AppColors.gray4,
       ),
-      icon: const Icon(Icons.keyboard_arrow_down_rounded, color: null), // uses default IconTheme
+      icon: const Icon(Icons.keyboard_arrow_down_rounded,
+          color: null), // uses default IconTheme
       isExpanded: true,
     );
   }

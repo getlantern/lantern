@@ -26,7 +26,7 @@ class LanternPlatformService implements LanternCoreService {
 
   static const channelPrefix = 'org.getlantern.lantern';
   static const MethodChannel _methodChannel =
-      MethodChannel('org.getlantern.lantern/method');
+      MethodChannel('$channelPrefix/method');
   static const logsChannel = EventChannel("$channelPrefix/logs");
   static const EventChannel statusChannel =
       EventChannel("$channelPrefix/status", JSONMethodCodec());
@@ -423,13 +423,13 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> completeChangeEmail({
+  Future<Either<Failure, Unit>> completeRecoveryByEmail({
     required String email,
     required String code,
     required String newPassword,
   }) async {
     try {
-      await _methodChannel.invokeMethod('completeChangeEmail', {
+      await _methodChannel.invokeMethod('completeRecoveryByEmail', {
         'email': email,
         'code': code,
         'newPassword': newPassword,
@@ -653,6 +653,55 @@ class LanternPlatformService implements LanternCoreService {
       return Right(featureFlag!);
     } catch (e, stackTrace) {
       appLogger.error('Error fetching feature flag', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> deviceRemove(
+      {required String deviceId}) async {
+    try {
+      final result = await _methodChannel.invokeMethod<String>('removeDevice', {
+        'deviceId': deviceId,
+      });
+      return Right(result!);
+    } catch (e, stackTrace) {
+      appLogger.error('Error removing device', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> startChangeEmail(
+      String newEmail, String password) async {
+    try {
+      final result =
+          await _methodChannel.invokeMethod<String>('startChangeEmail', {
+        'newEmail': newEmail,
+        'password': password,
+      });
+      return Right(result!);
+    } catch (e, stackTrace) {
+      appLogger.error('Error starting change email', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> completeChangeEmail(
+      {required String newEmail,
+      required String password,
+      required String code}) async {
+    try {
+      final result =
+          await _methodChannel.invokeMethod<String>('completeChangeEmail', {
+        'newEmail': newEmail,
+        'password': password,
+        'code': code,
+      });
+      return right(result!);
+    } catch (e, stackTrace) {
+      appLogger.error('Error completing change email', e, stackTrace);
       return Left(e.toFailure());
     }
   }

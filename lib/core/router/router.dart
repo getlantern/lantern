@@ -106,6 +106,10 @@ class AppRouter extends RootStackRouter {
       page: ActivationCode.page,
     ),
     AutoRoute(
+      path: '/device-limit-reached',
+      page: DeviceLimitReached.page,
+    ),
+    AutoRoute(
       path: '/app-webview',
       page: AppWebview.page,
       fullscreenDialog: true,

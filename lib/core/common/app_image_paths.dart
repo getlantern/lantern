@@ -94,4 +94,5 @@ class AppImagePaths {
   static const joinServer = 'assets/images/join_server.svg';
   static const warning = 'assets/images/warning.svg';
   static const account = 'assets/images/account.svg';
+  static const accountSetting = 'assets/images/account_setting.svg';
 }

@@ -11,14 +11,12 @@ import (
 
 	privateserver "github.com/getlantern/lantern-outline/lantern-core/private-server"
 	"github.com/getlantern/lantern-outline/lantern-core/utils"
-	"github.com/getlantern/lantern-outline/lantern-core/vpn_tunnel"
 	"github.com/getlantern/radiance"
 	"github.com/getlantern/radiance/api"
 	"github.com/getlantern/radiance/api/protos"
 	"github.com/getlantern/radiance/common"
 	"github.com/getlantern/radiance/servers"
 	"github.com/getlantern/radiance/vpn"
-	"github.com/sagernet/sing-box/experimental/libbox"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -56,8 +54,12 @@ type User interface {
 	Logout(email string) ([]byte, error)
 	StartRecoveryByEmail(email string) error
 	ValidateChangeEmailCode(email, code string) error
-	CompleteChangeEmail(email, password, code string) error
+	CompleteRecoveryByEmail(email, password, code string) error
 	DeleteAccount(email, password string) ([]byte, error)
+	RemoveDevice(deviceId string) (*api.LinkResponse, error)
+	//Change email
+	StartChangeEmail(newEmail, password string) error
+	CompleteChangeEmail(email, password, code string) error
 }
 
 type PrivateServer interface {
@@ -85,11 +87,7 @@ type Payment interface {
 	StripeSubscriptionPaymentRedirect(subscriptionType, planID, email string) (string, error)
 }
 
-type VPN interface {
-	StartVPN(platform libbox.PlatformInterface, opts *utils.Opts) error
-	StopVPN() error
-	ConnectToServer(locationType, tag string, platIfce libbox.PlatformInterface, options *utils.Opts) error
-	IsVPNConnected() bool
+type SplitTunnel interface {
 	AddSplitTunnelItem(filterType, item string) error
 	RemoveSplitTunnelItem(filterType, item string) error
 }
@@ -97,9 +95,9 @@ type VPN interface {
 type Core interface {
 	App
 	User
-	VPN
 	Payment
 	PrivateServer
+	SplitTunnel
 }
 
 // Make sure LanternCore implements the Core interface
@@ -177,27 +175,6 @@ func (lc *LanternCore) AvailableFeatures() []byte {
 		return nil
 	}
 	return jsonBytes
-}
-
-func (lc *LanternCore) StartVPN(platform libbox.PlatformInterface, opts *utils.Opts) error {
-	slog.Debug("Starting VPN")
-	return vpn_tunnel.StartVPN(platform, opts)
-}
-
-func (lc *LanternCore) StopVPN() error {
-	slog.Debug("Stopping VPN")
-	return vpn_tunnel.StopVPN()
-}
-
-// ConnectToServer connects to a server using the provided location type and tag.
-// It works with private servers and lantern location servers.
-func (lc *LanternCore) ConnectToServer(locationType, tag string, platIfce libbox.PlatformInterface, options *utils.Opts) error {
-	slog.Debug("Setting private server with tag: ", "tag", tag)
-	return vpn_tunnel.ConnectToServer(locationType, tag, platIfce, options)
-}
-
-func (lc *LanternCore) IsVPNConnected() bool {
-	return vpn_tunnel.IsVPNRunning()
 }
 
 func (lc *LanternCore) AddSplitTunnelItem(filterType, item string) error {
@@ -481,8 +458,8 @@ func (lc *LanternCore) ValidateChangeEmailCode(email, code string) error {
 }
 
 // This will complete the email recovery by setting the new password
-func (lc *LanternCore) CompleteChangeEmail(email, password, code string) error {
-	slog.Debug("Completing change email")
+func (lc *LanternCore) CompleteRecoveryByEmail(email, password, code string) error {
+	slog.Debug("Completing email recovery")
 	return lc.apiClient.CompleteRecoveryByEmail(context.Background(), email, password, code)
 }
 
@@ -508,6 +485,22 @@ func (lc *LanternCore) DeleteAccount(email, password string) ([]byte, error) {
 
 	lc.userInfo.SetData(login)
 	return protoUserData, nil
+}
+
+func (lc *LanternCore) RemoveDevice(deviceID string) (*api.LinkResponse, error) {
+	slog.Debug("Removing device: ", "deviceID", deviceID)
+	return lc.apiClient.RemoveDevice(context.Background(), deviceID)
+}
+
+// Change email
+func (lc *LanternCore) StartChangeEmail(newEmail, password string) error {
+	slog.Debug("Starting change email")
+	return lc.apiClient.StartChangeEmail(context.Background(), newEmail, password)
+}
+
+func (lc *LanternCore) CompleteChangeEmail(email, password, code string) error {
+	slog.Debug("Completing change email")
+	return lc.apiClient.CompleteChangeEmail(context.Background(), email, password, code)
 }
 
 func (lc *LanternCore) ActivationCode(email, resellerCode string) error {
@@ -587,127 +580,129 @@ func (cs *CoreStub) ReportIssue(email, issueType, description, device, model, lo
 	return nil
 }
 func (cs *CoreStub) CreateUser() (*api.UserDataResponse, error) {
-	return nil, fmt.Errorf("not initialized")
+	return nil, fmt.Errorf("radiance not initialized")
 }
 func (cs *CoreStub) UserData() ([]byte, error) {
-	return nil, fmt.Errorf("not initialized")
+	return nil, fmt.Errorf("radiance not initialized")
 }
 func (cs *CoreStub) DataCapInfo() (*api.DataCapInfo, error) {
 	return nil, fmt.Errorf("not initialized")
 }
 func (cs *CoreStub) FetchUserData() ([]byte, error) {
-	return nil, fmt.Errorf("not initialized")
+	return nil, fmt.Errorf("radiance not initialized")
 }
 func (cs *CoreStub) OAuthLoginUrl(provider string) (string, error) {
-	return "", fmt.Errorf("not initialized")
+	return "", fmt.Errorf("radiance not initialized")
 }
 func (cs *CoreStub) OAuthLoginCallback(oAuthToken string) ([]byte, error) {
-	return nil, fmt.Errorf("not initialized")
+	return nil, fmt.Errorf("radiance not initialized")
 }
 func (cs *CoreStub) Login(email, password string) ([]byte, error) {
-	return nil, fmt.Errorf("not initialized")
+	return nil, fmt.Errorf("radiance not initialized")
 }
 func (cs *CoreStub) SignUp(email, password string) error {
-	return fmt.Errorf("not initialized")
+	return fmt.Errorf("radiance not initialized")
 }
 func (cs *CoreStub) Logout(email string) ([]byte, error) {
-	return nil, fmt.Errorf("not initialized")
+	return nil, fmt.Errorf("radiance not initialized")
 }
 func (cs *CoreStub) StartRecoveryByEmail(email string) error {
-	return fmt.Errorf("not initialized")
+	return fmt.Errorf("radiance not initialized")
 }
 func (cs *CoreStub) ValidateChangeEmailCode(email, code string) error {
-	return fmt.Errorf("not initialized")
+	return fmt.Errorf("radiance not initialized")
 }
-func (cs *CoreStub) CompleteChangeEmail(email, password, code string) error {
-	return fmt.Errorf("not initialized")
+func (cs *CoreStub) CompleteRecoveryByEmail(email, password, code string) error {
+	return fmt.Errorf("radiance not initialized")
 }
 func (cs *CoreStub) DeleteAccount(email, password string) ([]byte, error) {
-	return nil, fmt.Errorf("not initialized")
+	return nil, fmt.Errorf("radiance not initialized")
 }
+
+func (cs *CoreStub) RemoveDevice(deviceId string) (*api.LinkResponse, error) {
+	return nil, fmt.Errorf("radiance not initialized")
+}
+
+func (cs *CoreStub) StartChangeEmail(newEmail, password string) error {
+	return fmt.Errorf("radiance not initialized")
+}
+
+func (cs *CoreStub) CompleteChangeEmail(email, password, code string) error {
+	return fmt.Errorf("radiance not initialized")
+}
+
 func (cs *CoreStub) ActivationCode(email, resellerCode string) error {
-	return fmt.Errorf("not initialized")
+	return fmt.Errorf("radiance not initialized")
 }
 func (cs *CoreStub) StripeSubscription(email, planID string) (string, error) {
-	return "", fmt.Errorf("not initialized")
+	return "", fmt.Errorf("radiance not initialized")
 }
 func (cs *CoreStub) Plans(channel string) (string, error) {
-	return "", fmt.Errorf("not initialized")
+	return "", fmt.Errorf("radiance not initialized")
 }
 func (cs *CoreStub) StripeBillingPortalUrl() (string, error) {
-	return "", fmt.Errorf("not initialized")
+	return "", fmt.Errorf("radiance not initialized")
 }
 func (cs *CoreStub) AcknowledgeGooglePurchase(purchaseToken, planId string) error {
-	return fmt.Errorf("not initialized")
+	return fmt.Errorf("radiance not initialized")
 }
 func (cs *CoreStub) AcknowledgeApplePurchase(receipt, planII string) error {
-	return fmt.Errorf("not initialized")
+	return fmt.Errorf("radiance not initialized")
 }
 func (cs *CoreStub) PaymentRedirect(provider, planId, email string) (string, error) {
-	return "", fmt.Errorf("not initialized")
+	return "", fmt.Errorf("radiance not initialized")
 }
-func (cs *CoreStub) StartVPN(platform libbox.PlatformInterface, opts *utils.Opts) error {
-	return fmt.Errorf("not initialized")
-}
-func (cs *CoreStub) StopVPN() error {
-	return fmt.Errorf("not initialized")
-}
-func (cs *CoreStub) ConnectToServer(locationType, tag string, platIfce libbox.PlatformInterface, options *utils.Opts) error {
-	return fmt.Errorf("not initialized")
-}
-func (cs *CoreStub) IsVPNConnected() bool {
-	return false
-}
+
 func (cs *CoreStub) AddSplitTunnelItem(filterType, item string) error {
-	return fmt.Errorf("not initialized")
+	return fmt.Errorf("radiance not initialized")
 }
 func (cs *CoreStub) RemoveSplitTunnelItem(filterType, item string) error {
-	return fmt.Errorf("not initialized")
+	return fmt.Errorf("radiance not initialized")
 }
 func (cs *CoreStub) DigitalOceanPrivateServer(events utils.PrivateServerEventListener) error {
-	return fmt.Errorf("not initialized")
+	return fmt.Errorf("radiance not initialized")
 }
 func (cs *CoreStub) GoogleCloudPrivateServer(events utils.PrivateServerEventListener) error {
-	return fmt.Errorf("not initialized")
+	return fmt.Errorf("radiance not initialized")
 }
 func (cs *CoreStub) SelectAccount(account string) error {
-	return fmt.Errorf("not initialized")
+	return fmt.Errorf("radiance not initialized")
 }
 func (cs *CoreStub) SelectProject(project string) error {
-	return fmt.Errorf("not initialized")
+	return fmt.Errorf("radiance not initialized")
 }
 func (cs *CoreStub) StartDepolyment(location, serverName string) error {
-	return fmt.Errorf("not initialized")
+	return fmt.Errorf("radiance not initialized")
 }
 func (cs *CoreStub) CancelDepolyment() error {
-	return fmt.Errorf("not initialized")
+	return fmt.Errorf("radiance not initialized")
 }
 func (cs *CoreStub) SelectedCertFingerprint(fp string) {
 	// No-op for stub
 }
 func (cs *CoreStub) AddServerManagerInstance(ip, port, accessToken, tag string, events utils.PrivateServerEventListener) error {
-	return fmt.Errorf("not initialized")
+	return fmt.Errorf("radiance not initialized")
 }
 func (cs *CoreStub) InviteToServerManagerInstance(ip string, port string, accessToken string, inviteName string) (string, error) {
-	return "", fmt.Errorf("not initialized")
+	return "", fmt.Errorf("radiance not initialized")
 }
 func (cs *CoreStub) RevokeServerManagerInvite(ip string, port string, accessToken string, inviteName string) error {
-	return fmt.Errorf("not initialized")
+	return fmt.Errorf("radiance not initialized")
 }
 
 func (cs *CoreStub) StartDeployment(location, serverName string) error {
-	return fmt.Errorf("not initialized")
+	return fmt.Errorf("radiance not initialized")
 }
 func (cs *CoreStub) CancelDeployment() error {
-	return fmt.Errorf("not initialized")
+	return fmt.Errorf("radiance not initialized")
 }
 
 func (cs *CoreStub) SubscriptionPaymentRedirectURL(redirectBody api.PaymentRedirectData) (string, error) {
-	return "", fmt.Errorf("not initialized")
+	return "", fmt.Errorf("radiance not initialized")
 }
 
 func (cs *CoreStub) StripeSubscriptionPaymentRedirect(subscriptionType, planID, email string) (string, error) {
-	return "", fmt.Errorf("not initialized")
+	return "", fmt.Errorf("radiance not initialized")
 }
 
 func (cs *CoreStub) IsRadianceConnected() bool {

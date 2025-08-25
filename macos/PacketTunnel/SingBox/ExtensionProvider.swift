@@ -34,7 +34,8 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     }
     let tunnelType = options?["netEx.Type"] as? String
     switch tunnelType {
-    case "User":
+    case "Lantern":
+      appLogger.info("(lantern-tunnel) user initiated connection")
       startVPN()
     case "PrivateServer":
       let serverName = options?["netEx.ServerName"] as? String
@@ -42,6 +43,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
       connectToServer(location: location!, serverName: serverName!)
     default:
       // Fallback or unknown type
+      appLogger.info("(lantern-tunnel) unknown tunnel type \(String(describing: tunnelType))")
       startVPN()
     }
   }
@@ -80,12 +82,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
   }
 
   private func stopService() {
-    var error: NSError?
-    MobileStopVPN(&error)
-    if error != nil {
-      appLogger.error("error while stopping tunnel \(error?.localizedDescription ?? "")")
-      return
-    }
+    appLogger.info("ExtensionProvider stopService")
     platformInterface.reset()
   }
 

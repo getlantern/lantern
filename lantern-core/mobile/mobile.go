@@ -3,14 +3,17 @@ package mobile
 import (
 	"fmt"
 	"log/slog"
+	"reflect"
 	"runtime"
 	"sync/atomic"
 
-	lanterncore "github.com/getlantern/lantern-outline/lantern-core"
-	"github.com/getlantern/lantern-outline/lantern-core/utils"
 	"github.com/getlantern/radiance/api"
 	"github.com/sagernet/sing-box/experimental/libbox"
 	_ "golang.org/x/mobile/bind"
+
+	lanterncore "github.com/getlantern/lantern-outline/lantern-core"
+	"github.com/getlantern/lantern-outline/lantern-core/utils"
+	"github.com/getlantern/lantern-outline/lantern-core/vpn_tunnel"
 )
 
 var lanternCore atomic.Pointer[lanterncore.Core]
@@ -22,6 +25,7 @@ func init() {
 
 func core() lanterncore.Core {
 	c := lanternCore.Load()
+	slog.Debug("Using LanternCore instance", "instance", reflect.TypeOf(c).String())
 	return *c
 }
 
@@ -49,26 +53,26 @@ func AvailableFeatures() []byte {
 }
 
 func IsRadianceConnected() bool {
-	//return core.Load().IsRadianceConnected()
 	return true
 }
 
 func StartVPN(platform libbox.PlatformInterface, opts *utils.Opts) error {
-	return core().StartVPN(platform, opts)
+	slog.Info("Starting VPN")
+	return vpn_tunnel.StartVPN(platform, opts)
 }
 
 func StopVPN() error {
-	return core().StopVPN()
+	return vpn_tunnel.StopVPN()
 }
 
 // ConnectToServer connects to a server using the provided location type and tag.
 // It works with private servers and lantern location servers.
 func ConnectToServer(locationType, tag string, platIfce libbox.PlatformInterface, options *utils.Opts) error {
-	return core().ConnectToServer(locationType, tag, platIfce, options)
+	return vpn_tunnel.ConnectToServer(locationType, tag, platIfce, options)
 }
 
 func IsVPNConnected() bool {
-	return core().IsVPNConnected()
+	return vpn_tunnel.IsVPNRunning()
 }
 
 func AddSplitTunnelItem(filterType, item string) error {
@@ -92,11 +96,13 @@ func CreateUser() (*api.UserDataResponse, error) {
 
 // this will return the user data from the user config
 func UserData() ([]byte, error) {
+	slog.Debug("User data")
 	return core().UserData()
 }
 
 // GetUserData will get the user data from the server
 func FetchUserData() ([]byte, error) {
+	slog.Debug("Fetching user data")
 	return core().FetchUserData()
 }
 
@@ -138,6 +144,14 @@ func Login(email, password string) ([]byte, error) {
 	return core().Login(email, password)
 }
 
+func StartChangeEmail(newEmail, password string) error {
+	return core().StartChangeEmail(newEmail, password)
+}
+
+func CompleteChangeEmail(email, password, code string) error {
+	return core().CompleteChangeEmail(email, password, code)
+}
+
 func SignUp(email, password string) error {
 	return core().SignUp(email, password)
 }
@@ -157,10 +171,23 @@ func ValidateChangeEmailCode(email, code string) error {
 	return core().ValidateChangeEmailCode(email, code)
 }
 
-// This will complete the email recovery by setting the new password
-func CompleteChangeEmail(email, password, code string) error {
-	return core().CompleteChangeEmail(email, password, code)
+func CompleteRecoveryByEmail(email, newPassword, code string) error {
+	return core().CompleteRecoveryByEmail(email, newPassword, code)
 }
+
+func RemoveDevice(deviceId string) error {
+	linkresp, err := core().RemoveDevice(deviceId)
+	if err != nil {
+		return err
+	}
+	slog.Debug("Device removed successfully", "deviceId", deviceId, "response", linkresp)
+	return nil
+}
+
+// // This will complete the email recovery by setting the new password
+// func CompleteChangeEmail(email, password, code string) error {
+// 	return core().CompleteChangeEmail(email, password, code)
+// }
 
 func DeleteAccount(email, password string) ([]byte, error) {
 	return core().DeleteAccount(email, password)
