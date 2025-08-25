@@ -117,6 +117,20 @@ func removeSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
 	return nil
 }
 
+//export getDataCapInfo
+func getDataCapInfo() *C.char {
+	info, err := core().DataCapInfo()
+	if err != nil {
+		return SendError(err)
+	}
+
+	data, err := json.Marshal(info)
+	if err != nil {
+		return SendError(err)
+	}
+	return C.CString(string(data))
+}
+
 //export reportIssue
 func reportIssue(emailC, typeC, descC, deviceC, modelC, logPathC *C.char) *C.char {
 	email := C.GoString(emailC)

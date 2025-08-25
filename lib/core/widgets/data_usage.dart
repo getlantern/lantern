@@ -1,15 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fpdart/fpdart.dart';
+import 'package:lantern/core/models/datacap_info.dart';
+import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 import '../common/common.dart';
 
-class DataUsage extends StatelessWidget {
+final dataCapInfoProvider =
+    FutureProvider.autoDispose<Either<Failure, DataCapInfo>>((ref) async {
+  final service = ref.watch(lanternServiceProvider);
+  return await service.fetchDataCapInfo();
+});
+
+class DataUsage extends ConsumerWidget {
   const DataUsage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
-    final remainingData = 300;
-    final totalData = 500;
+    final dataCapAsync = ref.watch(dataCapInfoProvider);
+
+    int remainingData = 300;
+    int totalData = 500;
+    dataCapAsync.whenData((either) {
+      either.match(
+        (failure) {},
+        (dataCap) {
+          remainingData = (dataCap.bytesRemaining / (1024 * 1024)).round();
+          totalData = (dataCap.bytesAllotted / (1024 * 1024)).round();
+        },
+      );
+    });
+
     final usageString = '$remainingData/$totalData';
 
     return Container(
@@ -38,7 +60,7 @@ class DataUsage extends StatelessWidget {
                     ),
                   ),
                   Spacer(),
-                  Text(usageString + ('mb'.i18n),
+                  Text('$usageString${'mb'.i18n}',
                       style: textTheme.titleSmall!.copyWith(
                         color: AppColors.gray9,
                       )),
@@ -53,7 +75,9 @@ class DataUsage extends StatelessWidget {
                   ),
                 ),
                 child: LinearProgressIndicator(
-                  value: (50.0 / 100).toDouble(),
+                  value: totalData == 0
+                      ? 0
+                      : (1 - remainingData / totalData).clamp(0, 1).toDouble(),
                   minHeight: 8,
                   borderRadius:
                       const BorderRadius.all(Radius.circular(defaultSize)),

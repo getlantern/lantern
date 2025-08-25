@@ -49,6 +49,8 @@ class MethodHandler {
         self.getUserData(result: result)
       case "fetchUserData":
         self.fetchUserData(result: result)
+      case "fetchDataCapInfo":
+        self.fetchDataCapInfo(result: result)
       case "showManageSubscriptions":
         self.showManageSubscriptions(result: result)
       case "acknowledgeInAppPurchase":
@@ -304,6 +306,20 @@ class MethodHandler {
               message: "error while getting user data.",
               details: error.localizedDescription))
         }
+      }
+    }
+  }
+
+  private func fetchDataCapInfo(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      if let bytes = MobileGetDataCapInfo(&error) {
+        let json = String(data: bytes as Data, encoding: .utf8) ?? "{}"
+        await MainActor.run { result(json) }
+      } else if let error {
+        await self.handleFlutterError(error, result: result, code: "FETCH_DATA_CAP_INFO_FAILED")
+      } else {
+        await MainActor.run { result("{}") }
       }
     }
   }
