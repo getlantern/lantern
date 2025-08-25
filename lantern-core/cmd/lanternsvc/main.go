@@ -52,9 +52,8 @@ func main() {
 	isService, _ := svc.IsWindowsService()
 	if isService {
 		if err := svc.Run(svcName, &lanternHandler{}); err != nil {
-			runConsole()
+			log.Error(err)
 		}
-		return
 	}
 	runConsole()
 }
@@ -89,7 +88,7 @@ func (h *lanternHandler) Execute(args []string, r <-chan svc.ChangeRequest, chan
 
 	changes <- svc.Status{
 		State:    svc.StartPending,
-		WaitHint: 10 * 1000, // milliseconds; optional
+		WaitHint: 10 * 1000,
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
