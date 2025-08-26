@@ -44,6 +44,7 @@ type App interface {
 type User interface {
 	CreateUser() (*api.UserDataResponse, error)
 	UserData() ([]byte, error)
+	DataCapInfo() (*api.DataCapInfo, error)
 	FetchUserData() ([]byte, error)
 	OAuthLoginUrl(provider string) (string, error)
 	OAuthLoginCallback(oAuthToken string) ([]byte, error)
@@ -200,6 +201,11 @@ func (lc *LanternCore) ReportIssue(email, issueType, description, device, model,
 
 	slog.Debug("Reported issue: %s – %s on %s/%s", email, issueType, device, model)
 	return nil
+}
+
+// GetDataCapInfo returns information about this user's data cap. Only valid for free accounts
+func (lc *LanternCore) DataCapInfo() (*api.DataCapInfo, error) {
+	return lc.apiClient.DataCapInfo()
 }
 
 // User Methods

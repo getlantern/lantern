@@ -6,6 +6,7 @@ import 'package:fpdart/fpdart.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/mapper/plan_mapper.dart';
 import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/models/private_server_status.dart';
@@ -334,6 +335,20 @@ class LanternPlatformService implements LanternCoreService {
       return Right(unit);
     } catch (e, stackTrace) {
       appLogger.error('Error acknowledging in-app purchase', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, DataCapInfo>> fetchDataCapInfo() async {
+    try {
+      final json =
+          await _methodChannel.invokeMethod<String>('fetchDataCapInfo');
+      final map = jsonDecode(jsonEncode(json));
+      final dataCap = DataCapInfo.fromJson(map);
+      return Right(dataCap);
+    } catch (e, st) {
+      appLogger.error('fetchDataCapInfo failed', e, st);
       return Left(e.toFailure());
     }
   }

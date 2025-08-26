@@ -188,6 +188,10 @@ func Logout(email string) ([]byte, error) {
 	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.Logout(email) })
 }
 
+func GetDataCapInfo() (*api.DataCapInfo, error) {
+	return core().DataCapInfo()
+}
+
 // Email Recovery Methods
 // This will start the email recovery process by sending a recovery code to the user's email
 func StartRecoveryByEmail(email string) error {

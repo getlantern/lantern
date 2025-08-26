@@ -33,6 +33,8 @@ class VPNManager: VPNBase {
         appLogger.info("VPN disconnected")
       case .invalid:
         appLogger.info("VPN invalid")
+      case .connected:
+        appLogger.info("VPN connected")
       case .connecting:
         appLogger.info("VPN connecting")
       case .disconnecting:
