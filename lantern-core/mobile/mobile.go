@@ -189,7 +189,7 @@ func Logout(email string) ([]byte, error) {
 }
 
 func GetDataCapInfo() (*api.DataCapInfo, error) {
-	return core().DataCapInfo()
+	return withCoreR(func(c lanterncore.Core) (*api.DataCapInfo, error) { return c.DataCapInfo() })
 }
 
 // Email Recovery Methods
