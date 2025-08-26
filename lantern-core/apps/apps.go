@@ -147,7 +147,8 @@ func defaultAppDirs() []string {
 	}
 }
 
-// LoadInstalledAppsWithDirs is just like LoadInstalledApps but lets callers inject scan roots
+// LoadInstalledAppsWithDirs scans the provided appDirs for installed applications, using dataDir for caching.
+// It invokes the Callback cb for each discovered app. Returns the number of apps found and an error, if any.
 func LoadInstalledAppsWithDirs(dataDir string, appDirs []string, cb Callback) (int, error) {
 	seen := make(map[string]bool)
 
