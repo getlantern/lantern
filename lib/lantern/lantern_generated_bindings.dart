@@ -2353,20 +2353,20 @@ class LanternBindings {
     ffi.Pointer<ffi.Char> _logDir,
     ffi.Pointer<ffi.Char> _dataDir,
     ffi.Pointer<ffi.Char> _locale,
-    int logPort,
-    int appsPort,
-    int statusPort,
-    int privateServerPort,
+    int logP,
+    int appsP,
+    int statusP,
+    int privateServerP,
     ffi.Pointer<ffi.Void> api,
   ) {
     return _setup(
       _logDir,
       _dataDir,
       _locale,
-      logPort,
-      appsPort,
-      statusPort,
-      privateServerPort,
+      logP,
+      appsP,
+      statusP,
+      privateServerP,
       api,
     );
   }
@@ -2428,6 +2428,16 @@ class LanternBindings {
   late final _removeSplitTunnelItem = _removeSplitTunnelItemPtr.asFunction<
       ffi.Pointer<ffi.Char> Function(
           ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> getDataCapInfo() {
+    return _getDataCapInfo();
+  }
+
+  late final _getDataCapInfoPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+          'getDataCapInfo');
+  late final _getDataCapInfo =
+      _getDataCapInfoPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
 
   ffi.Pointer<ffi.Char> reportIssue(
     ffi.Pointer<ffi.Char> emailC,
@@ -2752,6 +2762,46 @@ class LanternBindings {
               ffi.Pointer<ffi.Char>,
               ffi.Pointer<ffi.Char>)>>('completeRecoveryByEmail');
   late final _completeRecoveryByEmail = _completeRecoveryByEmailPtr.asFunction<
+      ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> startChangeEmail(
+    ffi.Pointer<ffi.Char> _newEmail,
+    ffi.Pointer<ffi.Char> _password,
+  ) {
+    return _startChangeEmail(
+      _newEmail,
+      _password,
+    );
+  }
+
+  late final _startChangeEmailPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>)>>('startChangeEmail');
+  late final _startChangeEmail = _startChangeEmailPtr.asFunction<
+      ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> completeChangeEmail(
+    ffi.Pointer<ffi.Char> _newEmail,
+    ffi.Pointer<ffi.Char> _password,
+    ffi.Pointer<ffi.Char> _code,
+  ) {
+    return _completeChangeEmail(
+      _newEmail,
+      _password,
+      _code,
+    );
+  }
+
+  late final _completeChangeEmailPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>)>>('completeChangeEmail');
+  late final _completeChangeEmail = _completeChangeEmailPtr.asFunction<
       ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>,
           ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
 

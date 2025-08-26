@@ -28,6 +28,22 @@ class VPNManager: VPNBase {
     ) { [weak self] notification in
       guard let connection = notification.object as? NEVPNConnection else { return }
       self?.connectionStatus = connection.status
+      switch connection.status {
+      case .disconnected:
+        appLogger.info("VPN disconnected")
+      case .invalid:
+        appLogger.info("VPN invalid")
+      case .connected:
+        appLogger.info("VPN connected")
+      case .connecting:
+        appLogger.info("VPN connecting")
+      case .disconnecting:
+        appLogger.info("VPN disconnecting")
+      case .reasserting:
+        appLogger.info("VPN reasserting")
+      default:
+        appLogger.info("Unknown VPN status: \(connection.status)")
+      }
     }
 
     appLogger.log("VPNManager initialized")

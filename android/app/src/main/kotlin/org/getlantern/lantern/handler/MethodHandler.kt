@@ -33,6 +33,7 @@ enum class Methods(val method: String) {
     ReportIssue("reportIssue"),
     FeatureFlag("featureFlag"),
 
+    FetchDataCapInfo("fetchDataCapInfo"),
 
     //Oauth
     OAuthLoginUrl("oauthLoginUrl"),
@@ -391,6 +392,19 @@ class MethodHandler : FlutterPlugin,
                     }
                 }
             }
+
+            Methods.FetchDataCapInfo.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val data = Mobile.getDataCapInfo()
+                        val json = String(data, Charsets.UTF_8)
+                        withContext(Dispatchers.Main) { success(json) }
+                    }.onFailure { e ->
+                        result.error("FetchDataCapInfo", e.localizedMessage ?: "Please try again", e)
+                    }
+                }
+            }
+
             ///User management methods
 
             Methods.StartRecoveryByEmail.method -> {

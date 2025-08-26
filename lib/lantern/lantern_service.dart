@@ -1,6 +1,7 @@
 import 'package:fpdart/src/either.dart';
 import 'package:fpdart/src/unit.dart';
 import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/models/private_server_status.dart';
@@ -98,6 +99,14 @@ class LanternService implements LanternCoreService {
       onSuccess: onSuccess,
       onError: onError,
     );
+  }
+
+  @override
+  Future<Either<Failure, DataCapInfo>> fetchDataCapInfo() async {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.fetchDataCapInfo();
+    }
+    return _platformService.fetchDataCapInfo();
   }
 
   @override
