@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 
 	"github.com/getlantern/golog"
 	"howett.net/plist"
@@ -15,9 +14,6 @@ import (
 
 var (
 	log = golog.LoggerFor("lantern.apps")
-
-	cacheMux sync.RWMutex
-	loaded   bool
 )
 
 const cacheFilename = "apps_cache.json"

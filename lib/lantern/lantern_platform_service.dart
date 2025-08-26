@@ -94,6 +94,19 @@ class LanternPlatformService implements LanternCoreService {
 
   @override
   Stream<List<AppData>> appsDataStream() async* {
+    if (!Platform.isAndroid && !Platform.isMacOS) {
+      throw UnimplementedError();
+    }
+    if (Platform.isAndroid) {
+      yield* androidAppsDataStream();
+      return;
+    }
+    if (Platform.isMacOS) {
+      yield* macAppsDataStream();
+    }
+  }
+
+  Stream<List<AppData>> androidAppsDataStream() async* {
     if (!Platform.isAndroid) {
       throw UnimplementedError();
     }
@@ -117,6 +130,40 @@ class LanternPlatformService implements LanternCoreService {
       }).toList();
     } catch (e, st) {
       appLogger.error("Failed to fetch installed apps", e, st);
+      yield [];
+    }
+  }
+
+  Stream<List<AppData>> macAppsDataStream() async* {
+    try {
+      final String? json =
+          await _methodChannel.invokeMethod<String>("installedApps");
+      if (json == null) {
+        yield [];
+        return;
+      }
+      final List<dynamic> decoded = jsonDecode(json);
+      final LocalStorageService db = sl<LocalStorageService>();
+      final savedApps = db.getAllApps();
+      final enabledAppNames = savedApps
+          .where((app) => app.isEnabled)
+          .map((app) => app.name)
+          .toSet();
+
+      final apps = decoded.map((raw) {
+        final isEnabled = enabledAppNames.contains(raw["name"]);
+        return AppData(
+          name: raw["name"] as String,
+          bundleId: raw["bundleId"] as String,
+          iconPath: raw["iconPath"] as String,
+          appPath: raw["appPath"] as String,
+          isEnabled: isEnabled,
+        );
+      }).toList();
+
+      yield apps;
+    } catch (e, st) {
+      appLogger.error("Failed to fetch installed apps on macOS", e, st);
       yield [];
     }
   }
