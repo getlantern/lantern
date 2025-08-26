@@ -3,6 +3,7 @@ package apps
 import (
 	"encoding/json"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -19,6 +20,8 @@ var (
 	loaded   bool
 )
 
+const cacheFilename = "apps_cache.json"
+
 type AppData struct {
 	Name     string `json:"name"`
 	BundleID string `json:"bundleId"`
@@ -29,7 +32,7 @@ type AppData struct {
 type Callback func(...*AppData) error
 
 func loadCacheFromFile(dataDir string) ([]*AppData, error) {
-	path := filepath.Join(dataDir, "apps_cache.json")
+	path := filepath.Join(dataDir, cacheFilename)
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -41,14 +44,24 @@ func loadCacheFromFile(dataDir string) ([]*AppData, error) {
 	return cached, nil
 }
 
-func saveCacheToFile(dataDir string, apps ...*AppData) {
-	path := filepath.Join(dataDir, "apps_cache.json")
-	data, _ := json.Marshal(apps)
-	if err := os.WriteFile(path, data, 0644); err != nil {
-		log.Errorf("Unable to save apps cache: %v", err)
-		return
+func saveCacheToFile(dataDir string, apps ...*AppData) error {
+	if err := os.MkdirAll(dataDir, 0o755); err != nil {
+		return fmt.Errorf("creating data dir: %w", err)
+	}
+	path := filepath.Join(dataDir, cacheFilename)
+	b, err := json.Marshal(apps)
+	if err != nil {
+		return fmt.Errorf("marshal cache: %w", err)
+	}
+	tmp := path + ".tmp"
+	if err := os.WriteFile(tmp, b, 0o644); err != nil {
+		return fmt.Errorf("write tmp cache: %w", err)
+	}
+	if err := os.Rename(tmp, path); err != nil {
+		return fmt.Errorf("rename cache: %w", err)
 	}
 	log.Debugf("Saved apps cache to %s", path)
+	return nil
 }
 
 func getBundleID(appPath string) (string, error) {
@@ -61,8 +74,7 @@ func getBundleID(appPath string) (string, error) {
 
 	var parsed map[string]interface{}
 	decoder := plist.NewDecoder(file)
-	err = decoder.Decode(&parsed)
-	if err != nil {
+	if err := decoder.Decode(&parsed); err != nil {
 		return "", fmt.Errorf("failed to decode plist: %w", err)
 	}
 
@@ -77,11 +89,19 @@ func getBundleID(appPath string) (string, error) {
 func scanAppDirs(appDirs []string, seen map[string]bool, cb Callback) []*AppData {
 	apps := []*AppData{}
 	for _, dir := range appDirs {
-		if _, err := os.Stat(dir); os.IsNotExist(err) {
+		info, err := os.Stat(dir)
+		if err != nil || !info.IsDir() {
 			continue
 		}
-		filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
-			if err != nil || !info.IsDir() || !strings.HasSuffix(info.Name(), ".app") {
+		_ = filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				log.Errorf("walk error under %s: %v", dir, err)
+				return nil
+			}
+			if !d.IsDir() {
+				return nil
+			}
+			if !strings.HasSuffix(d.Name(), ".app") {
 				return nil
 			}
 			bundleID, err := getBundleID(path)
@@ -94,10 +114,8 @@ func scanAppDirs(appDirs []string, seen map[string]bool, cb Callback) []*AppData
 				key = path
 			}
 
-			if _, exists := seen[bundleID]; exists {
-				return nil
-			} else if _, exists := seen[path]; exists {
-				return nil
+			if seen[bundleID] || seen[path] || seen[key] {
+				return filepath.SkipDir
 			}
 
 			iconPath, _ := getIconPath(path)
@@ -108,56 +126,76 @@ func scanAppDirs(appDirs []string, seen map[string]bool, cb Callback) []*AppData
 				IconPath: iconPath,
 			}
 
-			cb(app)
+			if cb != nil {
+				if err := cb(app); err != nil {
+					log.Debugf("callback error for %s: %v", app.Name, err)
+				}
+			}
 			apps = append(apps, app)
+			seen[bundleID] = true
+			seen[path] = true
 			seen[key] = true
-			return nil
+			return filepath.SkipDir
 		})
 	}
 	return apps
 }
 
-// LoadInstalledApps fetches the app list or rescans if needed
-func LoadInstalledApps(dataDir string, cb Callback) {
-	// Directories to scan for installed apps
-	appDirs := []string{"/Applications"}
+func defaultAppDirs() []string {
+	home, _ := os.UserHomeDir()
+	return []string{
+		"/Applications",
+		"/System/Applications",
+		filepath.Join(home, "Applications"),
+	}
+}
+
+func LoadInstalledAppsWithDirs(dataDir string, appDirs []string, cb Callback) (int, error) {
 	seen := make(map[string]bool)
+
 	if cached, err := loadCacheFromFile(dataDir); err == nil {
 		for _, app := range cached {
-			seen[app.BundleID] = true
-			cb(app)
+			if app == nil {
+				continue
+			}
+			if cb != nil {
+				_ = cb(app)
+			}
+			if app.BundleID != "" {
+				seen[app.BundleID] = true
+			}
+			if app.AppPath != "" {
+				seen[app.AppPath] = true
+			}
 		}
 	}
+
 	apps := scanAppDirs(appDirs, seen, cb)
-
-	cacheMux.Lock()
-	loaded = true
-	saveCacheToFile(dataDir, apps...)
-	cacheMux.Unlock()
-
+	if err := saveCacheToFile(dataDir, apps...); err != nil {
+		log.Errorf("Unable to save apps cache: %v", err)
+		return len(apps), err
+	}
 	log.Debugf("App scan completed. %d apps found.", len(apps))
+	return len(apps), nil
+}
+
+// LoadInstalledApps fetches the app list or rescans if needed
+func LoadInstalledApps(dataDir string, cb Callback) {
+	dirs := defaultAppDirs()
+	_, _ = LoadInstalledAppsWithDirs(dataDir, dirs, cb)
 }
 
 // getIconPath finds the .icns file inside the app bundle
 func getIconPath(appPath string) (string, error) {
-	iconPath := ""
 	resourcesPath := filepath.Join(appPath, "Contents", "Resources")
-	err := filepath.Walk(resourcesPath, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if strings.HasSuffix(info.Name(), ".icns") {
-			// Found icon file
-			iconPath = path
-			return nil
-		}
-		return nil
-	})
+	matches, err := filepath.Glob(filepath.Join(resourcesPath, "*.icns"))
 	if err != nil {
-		err = fmt.Errorf("error finding icon for %s:%v", appPath, err)
-		log.Error(err)
-		return "", err
+		wrapped := fmt.Errorf("error globbing icons for %s: %w", appPath, err)
+		log.Error(wrapped)
+		return "", wrapped
 	}
-	return iconPath, nil
+	if len(matches) == 0 {
+		return "", nil
+	}
+	return matches[0], nil
 }
