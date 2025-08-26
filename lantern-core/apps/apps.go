@@ -86,6 +86,7 @@ func getBundleID(appPath string) (string, error) {
 	return bundleID, nil
 }
 
+// scanAppDirs walks the provided app directories and emits AppData for any *.app bundles
 func scanAppDirs(appDirs []string, seen map[string]bool, cb Callback) []*AppData {
 	apps := []*AppData{}
 	for _, dir := range appDirs {
@@ -94,14 +95,14 @@ func scanAppDirs(appDirs []string, seen map[string]bool, cb Callback) []*AppData
 			continue
 		}
 		_ = filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
-			if err != nil {
-				log.Errorf("walk error under %s: %v", dir, err)
+			if err != nil || info == nil {
 				return nil
 			}
 			if !d.IsDir() {
 				return nil
 			}
-			if !strings.HasSuffix(d.Name(), ".app") {
+			base := filepath.Base(path)
+			if !strings.HasSuffix(base, ".app") {
 				return nil
 			}
 			bundleID, err := getBundleID(path)
@@ -121,7 +122,7 @@ func scanAppDirs(appDirs []string, seen map[string]bool, cb Callback) []*AppData
 			iconPath, _ := getIconPath(path)
 			app := &AppData{
 				BundleID: bundleID,
-				Name:     strings.TrimSuffix(info.Name(), ".app"),
+				Name:     strings.TrimSuffix(base, ".app"),
 				AppPath:  path,
 				IconPath: iconPath,
 			}
@@ -150,6 +151,7 @@ func defaultAppDirs() []string {
 	}
 }
 
+// LoadInstalledAppsWithDirs is just like LoadInstalledApps but lets callers inject scan roots
 func LoadInstalledAppsWithDirs(dataDir string, appDirs []string, cb Callback) (int, error) {
 	seen := make(map[string]bool)
 
