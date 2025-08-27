@@ -123,7 +123,6 @@ func getDataCapInfo() *C.char {
 	if err != nil {
 		return SendError(err)
 	}
-
 	data, err := json.Marshal(info)
 	if err != nil {
 		return SendError(err)

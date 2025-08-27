@@ -170,7 +170,7 @@ func Logout(email string) ([]byte, error) {
 	return core().Logout(email)
 }
 
-func GetDataCapInfo() (*api.DataCapInfo, error) {
+func GetDataCapInfo() ([]byte, error) {
 	return core().DataCapInfo()
 }
 
