@@ -32,7 +32,7 @@ class MethodHandler {
         self.startVPN(result: result)
         break
       case "connectToServer":
-  let map = call.arguments as? [String: Any]
+        let map = call.arguments as? [String: Any]
         self.connectToServer(result: result, data: map!)
         break
       case "stopVPN":
