@@ -957,11 +957,11 @@ class LanternFFIService implements LanternCoreService {
 
   @override
   Future<Either<Failure, AvailableServers>> getLanternAvailableServers() {
-    // TODO: implement deviceRemove
+    // TODO: implement getLanternAvailableServers
     throw UnimplementedError();
   }
 
-  // TODO: implement getLanternAvailableServers
+  @override
   Future<Either<Failure, String>> deviceRemove({required String deviceId}) {
     // TODO: implement deviceRemove
     throw UnimplementedError();

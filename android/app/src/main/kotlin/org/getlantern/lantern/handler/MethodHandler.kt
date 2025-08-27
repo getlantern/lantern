@@ -72,7 +72,7 @@ enum class Methods(val method: String) {
 
     //custom/lantern servers
     GetLanternAvailableServers("getLanternAvailableServers"),
-    GetAutoServerLocationz("getAutoServerLocation"),
+    GetAutoServerLocation("getAutoServerLocation"),
 
 }
 
@@ -811,7 +811,7 @@ class MethodHandler : FlutterPlugin,
                     }
                 }
             }
-            Methods.GetAutoServerLocationz.method -> {
+            Methods.GetAutoServerLocation.method -> {
                 scope.launch {
                     result.runCatching {
                         val data = Mobile.getSelectedServer()

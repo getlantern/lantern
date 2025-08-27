@@ -161,7 +161,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
           ),
         ),
         DividerSpace(
-          padding: EdgeInsetsGeometry.symmetric(vertical: 8),
+          padding: EdgeInsets.symmetric(vertical: 8),
         ),
       ],
     );

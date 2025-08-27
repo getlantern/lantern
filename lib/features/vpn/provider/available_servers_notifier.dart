@@ -15,7 +15,7 @@ class AvailableServersNotifier extends _$AvailableServersNotifier {
       (failure) {
         appLogger.error(
             'Error getting available servers: ${failure.localizedErrorMessage}');
-        throw Exception('Failed to get user data');
+        throw Exception('Failed to available servers');
       },
       (servers) {
         appLogger.debug('Available servers: ${servers.toJson()}');

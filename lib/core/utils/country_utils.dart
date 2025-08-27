@@ -196,6 +196,6 @@ class CountryUtils {
   };
 
   static String getCountryCode(String countryName) {
-    return _countryNameToCode[countryName]!;
+    return _countryNameToCode[countryName]??'';
   }
 }
