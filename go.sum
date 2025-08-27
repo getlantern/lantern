@@ -225,6 +225,8 @@ github.com/getlantern/radiance v0.0.0-20250826200634-30fa49b3e5aa h1:04UOCYFOGzo
 github.com/getlantern/radiance v0.0.0-20250826200634-30fa49b3e5aa/go.mod h1:4fEdLjqVwP8GjkPJUGf3NGHi6yp2o6uVHBUuTwtXOg0=
 github.com/getlantern/sing-box-extensions v0.0.5-0.20250620193835-ad2cc4d65801 h1:ZKft2oFjQjWQ761fEQjb5nO7GLzx+XgH9vhy7HMyJ5s=
 github.com/getlantern/sing-box-extensions v0.0.5-0.20250620193835-ad2cc4d65801/go.mod h1:Nmgtdh/kMroU/RDACurQCNB+FiB2fEq2EkhoXhW6U5k=
+github.com/getlantern/sing-box-minimal v1.11.12-0.20250716231657-20b15178474a h1:aiM0ypjXIjdSiLevb14hNnVmWA9eXRDqpzdHhbxkzzY=
+github.com/getlantern/sing-box-minimal v1.11.12-0.20250716231657-20b15178474a/go.mod h1:UMwVTK6uaUZ9WV+TM2fGuLpeQphysQ5dwK2r/Wp4xBE=
 github.com/getlantern/timezone v0.0.0-20210901200113-3f9de9d360c9 h1:VTNjZxSuAHUzu13lYpEVB8gc3xz5hZePGNHG5enHYLY=
 github.com/getlantern/timezone v0.0.0-20210901200113-3f9de9d360c9/go.mod h1:7uvbzuoOr3uYGHZx5QWlI8/C52XEf/aTb/tJFEe41Ak=
 github.com/getlantern/tlsdialer/v3 v3.0.3 h1:OXzzAqO8YojBOu2Kk8wquX2zbFmgJjji41RpaT6knLg=

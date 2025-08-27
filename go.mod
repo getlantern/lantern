@@ -8,9 +8,9 @@ toolchain go1.24.1
 
 // replace github.com/getlantern/lantern-server-provisioner => ../lantern-server-provisioner
 
-//replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v1.11.12-0.20250716231657-20b15178474a
+// replace github.com/sagernet/sing-box => ../sing-box-minimal
 
-replace github.com/sagernet/sing-box => ../sing-box-minimal
+replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v1.11.12-0.20250716231657-20b15178474a
 
 replace github.com/sagernet/wireguard-go => github.com/getlantern/wireguard-go v0.0.1-beta.5.0.20250310145906-45220d8aec77
 
