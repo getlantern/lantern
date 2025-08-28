@@ -278,9 +278,12 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
   public func startDefaultInterfaceMonitor(_ listener: LibboxInterfaceUpdateListenerProtocol?)
     throws
   {
+    appLogger.info("startDefaultInterfaceMonitor")
     guard let listener else {
+      appLogger.error("startDefaultInterfaceMonitor: listener is nil")
       return
     }
+    appLogger.debug("startDefaultInterfaceMonitor: monitoring default interface")
     let monitor = NWPathMonitor()
     nwMonitor = monitor
     let semaphore = DispatchSemaphore(value: 0)
@@ -310,6 +313,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
   }
 
   public func closeDefaultInterfaceMonitor(_: LibboxInterfaceUpdateListenerProtocol?) throws {
+    appLogger.info("Close default interface monitor")
     nwMonitor?.cancel()
     nwMonitor = nil
   }

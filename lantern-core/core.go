@@ -44,6 +44,7 @@ type App interface {
 type User interface {
 	CreateUser() (*api.UserDataResponse, error)
 	UserData() ([]byte, error)
+	DataCapInfo() (*api.DataCapInfo, error)
 	FetchUserData() ([]byte, error)
 	OAuthLoginUrl(provider string) (string, error)
 	OAuthLoginCallback(oAuthToken string) ([]byte, error)
@@ -53,8 +54,12 @@ type User interface {
 	Logout(email string) ([]byte, error)
 	StartRecoveryByEmail(email string) error
 	ValidateChangeEmailCode(email, code string) error
-	CompleteChangeEmail(email, password, code string) error
+	CompleteRecoveryByEmail(email, password, code string) error
 	DeleteAccount(email, password string) ([]byte, error)
+	RemoveDevice(deviceId string) (*api.LinkResponse, error)
+	//Change email
+	StartChangeEmail(newEmail, password string) error
+	CompleteChangeEmail(email, password, code string) error
 }
 
 type PrivateServer interface {
@@ -196,6 +201,11 @@ func (lc *LanternCore) ReportIssue(email, issueType, description, device, model,
 
 	slog.Debug("Reported issue: %s – %s on %s/%s", email, issueType, device, model)
 	return nil
+}
+
+// GetDataCapInfo returns information about this user's data cap. Only valid for free accounts
+func (lc *LanternCore) DataCapInfo() (*api.DataCapInfo, error) {
+	return lc.apiClient.DataCapInfo()
 }
 
 // User Methods
@@ -448,8 +458,8 @@ func (lc *LanternCore) ValidateChangeEmailCode(email, code string) error {
 }
 
 // This will complete the email recovery by setting the new password
-func (lc *LanternCore) CompleteChangeEmail(email, password, code string) error {
-	slog.Debug("Completing change email")
+func (lc *LanternCore) CompleteRecoveryByEmail(email, password, code string) error {
+	slog.Debug("Completing email recovery")
 	return lc.apiClient.CompleteRecoveryByEmail(context.Background(), email, password, code)
 }
 
@@ -475,6 +485,22 @@ func (lc *LanternCore) DeleteAccount(email, password string) ([]byte, error) {
 
 	lc.userInfo.SetData(login)
 	return protoUserData, nil
+}
+
+func (lc *LanternCore) RemoveDevice(deviceID string) (*api.LinkResponse, error) {
+	slog.Debug("Removing device: ", "deviceID", deviceID)
+	return lc.apiClient.RemoveDevice(context.Background(), deviceID)
+}
+
+// Change email
+func (lc *LanternCore) StartChangeEmail(newEmail, password string) error {
+	slog.Debug("Starting change email")
+	return lc.apiClient.StartChangeEmail(context.Background(), newEmail, password)
+}
+
+func (lc *LanternCore) CompleteChangeEmail(email, password, code string) error {
+	slog.Debug("Completing change email")
+	return lc.apiClient.CompleteChangeEmail(context.Background(), email, password, code)
 }
 
 func (lc *LanternCore) ActivationCode(email, resellerCode string) error {
@@ -559,6 +585,9 @@ func (cs *CoreStub) CreateUser() (*api.UserDataResponse, error) {
 func (cs *CoreStub) UserData() ([]byte, error) {
 	return nil, fmt.Errorf("radiance not initialized")
 }
+func (cs *CoreStub) DataCapInfo() (*api.DataCapInfo, error) {
+	return nil, fmt.Errorf("not initialized")
+}
 func (cs *CoreStub) FetchUserData() ([]byte, error) {
 	return nil, fmt.Errorf("radiance not initialized")
 }
@@ -583,12 +612,25 @@ func (cs *CoreStub) StartRecoveryByEmail(email string) error {
 func (cs *CoreStub) ValidateChangeEmailCode(email, code string) error {
 	return fmt.Errorf("radiance not initialized")
 }
-func (cs *CoreStub) CompleteChangeEmail(email, password, code string) error {
+func (cs *CoreStub) CompleteRecoveryByEmail(email, password, code string) error {
 	return fmt.Errorf("radiance not initialized")
 }
 func (cs *CoreStub) DeleteAccount(email, password string) ([]byte, error) {
 	return nil, fmt.Errorf("radiance not initialized")
 }
+
+func (cs *CoreStub) RemoveDevice(deviceId string) (*api.LinkResponse, error) {
+	return nil, fmt.Errorf("radiance not initialized")
+}
+
+func (cs *CoreStub) StartChangeEmail(newEmail, password string) error {
+	return fmt.Errorf("radiance not initialized")
+}
+
+func (cs *CoreStub) CompleteChangeEmail(email, password, code string) error {
+	return fmt.Errorf("radiance not initialized")
+}
+
 func (cs *CoreStub) ActivationCode(email, resellerCode string) error {
 	return fmt.Errorf("radiance not initialized")
 }

@@ -32,6 +32,7 @@ enum class Methods(val method: String) {
     AcknowledgeInAppPurchase("acknowledgeInAppPurchase"),
     PaymentRedirect("paymentRedirect"),
     ReportIssue("reportIssue"),
+    FetchDataCapInfo("fetchDataCapInfo"),
 
     //Oauth
     OAuthLoginUrl("oauthLoginUrl"),
@@ -40,15 +41,24 @@ enum class Methods(val method: String) {
     //Forgot password
     StartRecoveryByEmail("startRecoveryByEmail"),
     ValidateRecoveryCode("validateRecoveryCode"),
-    CompleteChangeEmail("completeChangeEmail"),
+    CompleteRecoveryByEmail("completeRecoveryByEmail"),
 
     //Login
     Login("login"),
     SignUp("signUp"),
 
+
+    //Change Email
+    StartChangeEmail("startChangeEmail"),
+    CompleteChangeEmail("completeChangeEmail"),
+
+
     Logout("logout"),
     DeleteAccount("deleteAccount"),
     ActivationCode("activationCode"),
+
+    //Device
+    RemoveDevice("removeDevice"),
 
     //private server methods
     DigitalOcean("digitalOcean"),
@@ -205,7 +215,14 @@ class MethodHandler : FlutterPlugin,
                         val device = map["device"] as String? ?: ""
                         val model = map["model"] as String? ?: ""
                         val logFilePath = map["logFilePath"] as String? ?: ""
-                        Mobile.reportIssue(email, issueType, description, device, model, logFilePath)
+                        Mobile.reportIssue(
+                            email,
+                            issueType,
+                            description,
+                            device,
+                            model,
+                            logFilePath
+                        )
                         withContext(Dispatchers.Main) {
                             success("ok")
                         }
@@ -376,6 +393,19 @@ class MethodHandler : FlutterPlugin,
                     }
                 }
             }
+
+            Methods.FetchDataCapInfo.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val data = Mobile.getDataCapInfo()
+                        val json = String(data, Charsets.UTF_8)
+                        withContext(Dispatchers.Main) { success(json) }
+                    }.onFailure { e ->
+                        result.error("FetchDataCapInfo", e.localizedMessage ?: "Please try again", e)
+                    }
+                }
+            }
+
             ///User management methods
 
             Methods.StartRecoveryByEmail.method -> {
@@ -417,7 +447,7 @@ class MethodHandler : FlutterPlugin,
                 }
             }
 
-            Methods.CompleteChangeEmail.method -> {
+            Methods.CompleteRecoveryByEmail.method -> {
                 scope.launch {
                     result.runCatching {
                         val map = call.arguments as Map<*, *>
@@ -425,7 +455,7 @@ class MethodHandler : FlutterPlugin,
                         val code = call.argument<String>("code") ?: error("Missing code")
                         val newPassword =
                             map["newPassword"] as String? ?: error("Missing newPassword")
-                        Mobile.completeChangeEmail(email, newPassword, code)
+                        Mobile.completeRecoveryByEmail(email, newPassword, code)
                         withContext(Dispatchers.Main) {
                             success("email changed successfully")
                         }
@@ -482,13 +512,15 @@ class MethodHandler : FlutterPlugin,
             Methods.Logout.method -> {
                 scope.launch {
                     result.runCatching {
-                        val bytes = Mobile.logout(call.arguments<String>() as String)
+                        val email = call.arguments<String>();
+                        Log.d(TAG, "Logout email: $email")
+                        val bytes = Mobile.logout(email)
                         withContext(Dispatchers.Main) {
                             success(bytes)
                         }
                     }.onFailure { e ->
                         result.error(
-                            "OAuthLoginCallback",
+                            "Logout",
                             e.localizedMessage ?: "Please try again",
                             e
                         )
@@ -537,6 +569,25 @@ class MethodHandler : FlutterPlugin,
                 }
             }
 
+            Methods.RemoveDevice.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val map = call.arguments as Map<*, *>
+                        val deviceId = map["deviceId"] as String? ?: error("Missing device ID")
+                        Mobile.removeDevice(deviceId)
+                        withContext(Dispatchers.Main) {
+                            success("ok")
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "OAuthLoginCallback",
+                            e.localizedMessage ?: "Please try again",
+                            e
+                        )
+                    }
+                }
+            }
+
             //Private server methods
             Methods.DigitalOcean.method -> {
                 scope.handleResult(
@@ -555,7 +606,6 @@ class MethodHandler : FlutterPlugin,
                     val userInput = call.arguments<String>()
                     Mobile.selectAccount(userInput)
                 }
-
             }
 
             Methods.SelectProject.method -> {
@@ -568,7 +618,6 @@ class MethodHandler : FlutterPlugin,
                     val userInput = call.arguments<String>()
                     Mobile.selectProject(userInput)
                 }
-
             }
 
             Methods.StartDeployment.method -> {
@@ -688,6 +737,7 @@ class MethodHandler : FlutterPlugin,
                     }
                 }
             }
+
             Methods.FeatureFlag.method -> {
                 scope.launch {
                     result.runCatching {
@@ -699,6 +749,47 @@ class MethodHandler : FlutterPlugin,
                         result.error(
                             "DigitalOcean",
                             e.localizedMessage ?: "Error while activating Digital Ocean",
+                            e
+                        )
+                    }
+                }
+            }
+            //Change Email
+            Methods.StartChangeEmail.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val map = call.arguments as Map<*, *>
+                        val newEmail = map["newEmail"] as String? ?: error("Missing newEmail")
+                        val password = map["password"] as String? ?: error("Missing password")
+                        Mobile.startChangeEmail(newEmail, password)
+                        withContext(Dispatchers.Main) {
+                            success("ok")
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "StartChangeEmail",
+                            e.localizedMessage ?: "Error while starting change email",
+                            e
+                        )
+                    }
+                }
+            }
+
+            Methods.CompleteChangeEmail.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val map = call.arguments as Map<*, *>
+                        val newEmail = map["newEmail"] as String? ?: error("Missing newEmail")
+                        val password = map["password"] as String? ?: error("Missing password")
+                        val code = map["code"] as String? ?: error("Missing code")
+                        Mobile.completeChangeEmail(newEmail, password, code)
+                        withContext(Dispatchers.Main) {
+                            success("ok")
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "StartChangeEmail",
+                            e.localizedMessage ?: "Error while starting change email",
                             e
                         )
                     }

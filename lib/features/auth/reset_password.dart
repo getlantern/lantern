@@ -92,7 +92,7 @@ class ResetPassword extends HookConsumerWidget {
 
     final result = await ref
         .read(authNotifierProvider.notifier)
-        .completeChangeEmail(email, password, code);
+        .completeRecoveryByEmail(email, password, code);
 
     result.fold(
       (failure) {

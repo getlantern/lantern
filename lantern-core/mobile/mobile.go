@@ -144,12 +144,24 @@ func Login(email, password string) ([]byte, error) {
 	return core().Login(email, password)
 }
 
+func StartChangeEmail(newEmail, password string) error {
+	return core().StartChangeEmail(newEmail, password)
+}
+
+func CompleteChangeEmail(email, password, code string) error {
+	return core().CompleteChangeEmail(email, password, code)
+}
+
 func SignUp(email, password string) error {
 	return core().SignUp(email, password)
 }
 
 func Logout(email string) ([]byte, error) {
 	return core().Logout(email)
+}
+
+func GetDataCapInfo() (*api.DataCapInfo, error) {
+	return core().DataCapInfo()
 }
 
 // Email Recovery Methods
@@ -163,10 +175,23 @@ func ValidateChangeEmailCode(email, code string) error {
 	return core().ValidateChangeEmailCode(email, code)
 }
 
-// This will complete the email recovery by setting the new password
-func CompleteChangeEmail(email, password, code string) error {
-	return core().CompleteChangeEmail(email, password, code)
+func CompleteRecoveryByEmail(email, newPassword, code string) error {
+	return core().CompleteRecoveryByEmail(email, newPassword, code)
 }
+
+func RemoveDevice(deviceId string) error {
+	linkresp, err := core().RemoveDevice(deviceId)
+	if err != nil {
+		return err
+	}
+	slog.Debug("Device removed successfully", "deviceId", deviceId, "response", linkresp)
+	return nil
+}
+
+// // This will complete the email recovery by setting the new password
+// func CompleteChangeEmail(email, password, code string) error {
+// 	return core().CompleteChangeEmail(email, password, code)
+// }
 
 func DeleteAccount(email, password string) ([]byte, error) {
 	return core().DeleteAccount(email, password)

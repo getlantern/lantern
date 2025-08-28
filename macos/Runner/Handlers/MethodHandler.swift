@@ -133,20 +133,48 @@ class MethodHandler {
   }
 
   private func startVPN(result: @escaping FlutterResult) {
-    Task {
+    Task.detached { [weak self] in
+      guard let self = self else { return }
+      appLogger.info("Received start VPN call")
+
+      // Avoid duplicate starts based on current status
+      switch self.vpnManager.connectionStatus {
+      case .connected:
+        await MainActor.run { result("VPN already connected.") }
+        return
+      case .connecting, .reasserting:
+        await MainActor.run { result("VPN is already starting.") }
+        return
+      case .disconnecting:
+        await MainActor.run {
+          result(
+            FlutterError(
+              code: "START_IN_PROGRESS",
+              message: "VPN is currently disconnecting. Try again shortly.",
+              details: nil
+            )
+          )
+        }
+        return
+      default:
+        break
+      }
+
       do {
-        appLogger.info("Received start VPN call")
-        try await vpnManager.startTunnel()
+        try await self.vpnManager.startTunnel()
         await MainActor.run {
           result("VPN started successfully.")
         }
       } catch {
+        appLogger.error("Failed to start VPN: \(error.localizedDescription)")
         await MainActor.run {
           result(
             FlutterError(
               code: "START_FAILED",
               message: "Unable to start VPN tunnel.",
-              details: error.localizedDescription))
+              details: error.localizedDescription
+            )
+          )
         }
       }
     }
@@ -162,6 +190,7 @@ class MethodHandler {
           result("VPN connected successfully to \(serverName) at \(location).")
         }
       } catch {
+        appLogger.error("Failed to connect to VPN server: \(error.localizedDescription)")
         await MainActor.run {
           result(
             FlutterError(
@@ -181,6 +210,7 @@ class MethodHandler {
           result("VPN stopped successfully.")
         }
       } catch {
+        appLogger.error("Failed to stop VPN: \(error.localizedDescription)")
         await MainActor.run {
           result(
             FlutterError(
@@ -291,7 +321,7 @@ class MethodHandler {
   func startRecoveryByEmail(result: @escaping FlutterResult, email: String) {
     Task {
       var error: NSError?
-      let data = MobileStartRecoveryByEmail(email, &error)
+      MobileStartRecoveryByEmail(email, &error)
       if error != nil {
         result(
           FlutterError(
@@ -311,7 +341,7 @@ class MethodHandler {
       let email = data["email"] as? String ?? ""
       let code = data["code"] as? String ?? ""
       var error: NSError?
-      let data = MobileValidateChangeEmailCode(email, code, &error)
+      MobileValidateChangeEmailCode(email, code, &error)
       if error != nil {
         result(
           FlutterError(
@@ -332,7 +362,7 @@ class MethodHandler {
       let code = data["code"] as? String ?? ""
       let newPassword = data["newPassword"] as? String ?? ""
       var error: NSError?
-      let data = MobileCompleteChangeEmail(email, newPassword, code, &error)
+      MobileCompleteChangeEmail(email, newPassword, code, &error)
       if error != nil {
         result(
           FlutterError(
@@ -371,7 +401,7 @@ class MethodHandler {
       let email = data["email"] as? String ?? ""
       let password = data["password"] as? String ?? ""
       var error: NSError?
-      let data = MobileSignUp(email, password, &error)
+      MobileSignUp(email, password, &error)
       if error != nil {
         result(
           FlutterError(
@@ -429,7 +459,7 @@ class MethodHandler {
       let email = data["email"] as? String ?? ""
       let resellerCode = data["resellerCode"] as? String ?? ""
       var error: NSError?
-      let data = MobileActivationCode(email, resellerCode, &error)
+      MobileActivationCode(email, resellerCode, &error)
       if error != nil {
         result(
           FlutterError(
@@ -542,12 +572,7 @@ class MethodHandler {
 
   func selectCertFingerprint(result: @escaping FlutterResult, fingerprint: String) {
     Task.detached {
-      var error: NSError?
       MobileSelectedCertFingerprint(fingerprint)
-      if let err = error {
-        await self.handleFlutterError(err, result: result, code: "SELECT_CERT_FINGERPRINT_ERROR")
-        return
-      }
       await MainActor.run {
         result("ok")
       }

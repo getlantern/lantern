@@ -82,12 +82,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
   }
 
   private func stopService() {
-    var error: NSError?
-    MobileStopVPN(&error)
-    if error != nil {
-      appLogger.error("error while stopping tunnel \(error?.localizedDescription ?? "")")
-      return
-    }
+    appLogger.info("ExtensionProvider stopService")
     platformInterface.reset()
   }
 

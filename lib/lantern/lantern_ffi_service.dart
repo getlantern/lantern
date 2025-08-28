@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/mapper/plan_mapper.dart';
 import 'package:lantern/core/models/private_server_status.dart';
@@ -236,6 +237,23 @@ class LanternFFIService implements LanternCoreService {
       value,
       SplitTunnelActionType.remove,
     );
+  }
+
+  Future<Either<Failure, DataCapInfo>> fetchDataCapInfo() async {
+    try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService.getDataCapInfo().toDartString();
+        },
+      );
+      checkAPIError(result);
+      final map = jsonDecode(jsonEncode(result));
+      final dataCap = DataCapInfo.fromJson(map);
+      return right(dataCap);
+    } catch (e, st) {
+      appLogger.error('Failed to get data cap info: $e', e, st);
+      return Left(e.toFailure());
+    }
   }
 
   static Future<Either<Failure, Unit>> _runSplitTunnelCall(
@@ -654,7 +672,7 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> completeChangeEmail({
+  Future<Either<Failure, Unit>> completeRecoveryByEmail({
     required String email,
     required String code,
     required String newPassword,
@@ -956,6 +974,28 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, String>> featureFlag() {
     // TODO: implement featureFlag
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, String>> deviceRemove({required String deviceId}) {
+    // TODO: implement deviceRemove
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, String>> completeChangeEmail(
+      {required String newEmail,
+      required String password,
+      required String code}) {
+    // TODO: implement completeChangeEmail
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, String>> startChangeEmail(
+      String newEmail, String password) {
+    // TODO: implement startChangeEmail
     throw UnimplementedError();
   }
 }

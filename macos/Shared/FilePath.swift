@@ -1,10 +1,3 @@
-//
-//  FilePath.swift
-//  Shared
-//
-//  Created by GFWFighter on 7/25/1402 AP.
-//
-
 import Foundation
 
 public enum FilePath {
@@ -25,7 +18,7 @@ extension FilePath {
     sharedDirectory
     .appendingPathComponent("Library", isDirectory: true)
 
-  public static var dataDirectory = sharedDirectory
+  public static var dataDirectory = URL(filePath: "/Users/Shared/Lantern")
   public static var logsDirectory =
     sharedDirectory
     .appendingPathComponent("Logs", isDirectory: true)
