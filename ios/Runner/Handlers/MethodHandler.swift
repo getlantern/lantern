@@ -144,6 +144,8 @@ class MethodHandler {
         self.addServerManually(result: result, data: data!)
       case "featureFlag":
         self.featureFlags(result: result)
+      case "getLanternAvailableServers":
+        self.getLanternAvailableServers(result: result)
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -730,6 +732,20 @@ class MethodHandler {
       let flags = MobileAvailableFeatures()
       await MainActor.run {
         result(String(data: flags!, encoding: .utf8))
+      }
+    }
+  }
+
+  func getLanternAvailableServers(result: @escaping FlutterResult) {
+    Task.detached {
+      var error: NSError?
+      let servers = MobileGetAvailableServers(&error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "GET_LANTERN_SERVERS_ERROR")
+        return
+      }
+      await MainActor.run {
+          result(String( data: servers!, encoding: .utf8))
       }
     }
   }

@@ -10,6 +10,10 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import lantern.io.mobile.Mobile
 import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.handler.EventHandler
 import org.getlantern.lantern.handler.MethodHandler
@@ -32,7 +36,7 @@ class MainActivity : FlutterFragmentActivity() {
 
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
-        super.configureFlutterEngine(flutterEngine)
+        super.configureFlutterEngine( flutterEngine)
 
         instance = this
         Log.d(TAG, "Configuring FlutterEngine ${DeviceUtil.deviceId()}")
@@ -82,6 +86,42 @@ class MainActivity : FlutterFragmentActivity() {
             throw e
         }
     }
+
+    fun connectToServer(location: String, tag: String) {
+        if (!NotificationHelper.hasPermission()) {
+            askNotificationPermission()
+            return
+        }
+        if (!isVPNServiceReady()) {
+            Log.d(TAG, "VPN service not ready")
+            return
+        }
+        // Check if VPN is already connected
+        // if so then user already have vpn on now wish to switch server
+        // Do not need to create server again just switch server
+        if (Mobile.isVPNConnected()) {
+            Log.d(TAG, "VPN is already connected, switching server")
+            CoroutineScope(Dispatchers.Main).launch {
+                LanternVpnService.instance.connectToServer(location, tag)
+            }
+            return
+        }
+
+        try {
+            val vpnIntent = Intent(this, LanternVpnService::class.java).apply {
+                action = LanternVpnService.ACTION_START_VPN
+                putExtra("tag", tag)
+                putExtra("location", location)
+            }
+            ContextCompat.startForegroundService(this, vpnIntent)
+            Log.d(TAG, "VPN service started")
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.e(TAG, "Error starting VPN service", e)
+            throw e
+        }
+    }
+
 
     fun stopVPN() {
         LanternApp.application.sendBroadcast(

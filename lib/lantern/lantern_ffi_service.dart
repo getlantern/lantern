@@ -22,6 +22,7 @@ import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 import 'package:path/path.dart' as p;
 
+import '../core/models/available_servers.dart';
 import '../core/models/plan_data.dart';
 import '../core/services/injection_container.dart' show sl;
 import '../core/utils/compute_worker.dart';
@@ -955,6 +956,12 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, AvailableServers>> getLanternAvailableServers() {
+    // TODO: implement getLanternAvailableServers
+    throw UnimplementedError();
+  }
+
+  @override
   Future<Either<Failure, String>> deviceRemove({required String deviceId}) {
     // TODO: implement deviceRemove
     throw UnimplementedError();
@@ -973,6 +980,12 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, String>> startChangeEmail(
       String newEmail, String password) {
     // TODO: implement startChangeEmail
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, String>> getAutoServerLocation() {
+    // TODO: implement getAutoServerLocation
     throw UnimplementedError();
   }
 }

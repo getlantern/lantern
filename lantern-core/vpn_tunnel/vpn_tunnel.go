@@ -29,6 +29,8 @@ func StartVPN(platform libbox.PlatformInterface, options *utils.Opts) error {
 			return err
 		}
 	}
+	/// it should use InternalTagLantern so it will connect to best lantern server by default.
+	// if you want to connect to user server, use ConnectToServer with InternalTagUser
 	return vpn.QuickConnect("", platform)
 }
 
@@ -66,6 +68,13 @@ func IsVPNRunning() bool {
 	status, err := vpn.GetStatus()
 	slog.Debug("VPN status:", "status", status, "Error:", err)
 	return status.TunnelOpen
+}
+
+func GetSelectedServer() string {
+	slog.Debug("Getting selected VPN server...")
+	status, err := vpn.GetStatus()
+	slog.Debug("VPN status:", "status", status, "Error:", err)
+	return status.SelectedServer
 }
 
 func initializeCommonForApplePlatforms(options *utils.Opts) error {

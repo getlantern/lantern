@@ -6,6 +6,7 @@ import 'package:fpdart/fpdart.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/mapper/plan_mapper.dart';
 import 'package:lantern/core/models/plan_data.dart';
@@ -43,14 +44,9 @@ class LanternPlatformService implements LanternCoreService {
     _status = statusChannel
         .receiveBroadcastStream()
         .map((event) => LanternStatus.fromJson(event));
-    _privateServerStatus =
-        privateServerStatusChannel.receiveBroadcastStream().map(
-      (event) {
-        appLogger.info('Received private server status: $event');
-        final map = jsonDecode(event);
-        return PrivateServerStatus.fromJson(map);
-      },
-    );
+    _privateServerStatus = privateServerStatusChannel
+        .receiveBroadcastStream()
+        .map((event) => PrivateServerStatus.fromJson(jsonDecode(event)));
   }
 
   @override
@@ -667,6 +663,19 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, AvailableServers>> getLanternAvailableServers() async {
+    try {
+      final result =
+          await _methodChannel.invokeMethod('getLanternAvailableServers');
+      return Right(AvailableServers.fromJson(jsonDecode(result)));
+    } catch (e, stackTrace) {
+      appLogger.error(
+          'Error fetching Lantern available servers', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, String>> deviceRemove(
       {required String deviceId}) async {
     try {
@@ -711,6 +720,18 @@ class LanternPlatformService implements LanternCoreService {
       return right(result!);
     } catch (e, stackTrace) {
       appLogger.error('Error completing change email', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> getAutoServerLocation() async {
+    try {
+      final result =
+          await _methodChannel.invokeMethod<String>('getAutoServerLocation');
+      return right(result!);
+    } catch (e, stackTrace) {
+      appLogger.error('Error fetching auto server location', e, stackTrace);
       return Left(e.toFailure());
     }
   }

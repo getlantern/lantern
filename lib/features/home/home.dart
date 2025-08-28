@@ -2,11 +2,11 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:lantern/core/models/server_location_entity.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
+import 'package:lantern/features/vpn/location_setting.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/vpn_status.dart';
 import 'package:lantern/features/vpn/vpn_switch.dart';
@@ -88,11 +88,6 @@ class Home extends HookConsumerWidget {
     final splitTunnelingEnabled = preferences.isSplitTunnelingOn;
     final serverLocation = ref.watch(serverLocationNotifierProvider);
     final serverType = serverLocation.serverType.toServerLocationType;
-    switch (serverType) {
-      case ServerLocationType.auto:
-      case ServerLocationType.lanternLocation:
-      case ServerLocationType.privateServer:
-    }
 
     return Container(
       decoration: BoxDecoration(boxShadow: [
@@ -110,33 +105,7 @@ class Home extends HookConsumerWidget {
           children: [
             VpnStatus(),
             DividerSpace(),
-            SettingTile(
-              label: getServerTitle(serverLocation),
-              value: getServerValue(serverLocation),
-              icon: serverType == ServerLocationType.auto
-                  ? AppImagePaths.location
-                  : Flag(
-                      countryCode: serverLocation.serverLocation.countryCode),
-              actions: [
-                if (serverType == ServerLocationType.auto)
-                  AppImage(path: AppImagePaths.blot),
-                SizedBox(width: 8),
-                IconButton(
-                  onPressed: () {
-                    appRouter.push(const ServerSelection());
-                  },
-                  style: ElevatedButton.styleFrom(
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  icon: AppImage(path: AppImagePaths.verticalDots),
-                  padding: EdgeInsets.zero,
-                  // iconSize: 10,
-                  constraints: BoxConstraints(),
-                  visualDensity: VisualDensity.compact,
-                )
-              ],
-              onTap: () => onSettingTileTap(_SettingTileType.smartLocation),
-            ),
+            LocationSetting(),
             if (PlatformUtils.isAndroid || PlatformUtils.isMacOS) ...{
               DividerSpace(),
               SettingTile(
@@ -172,28 +141,6 @@ class Home extends HookConsumerWidget {
       case _SettingTileType.splitTunneling:
         appRouter.push(const SplitTunneling());
         break;
-    }
-  }
-
-  String getServerTitle(ServerLocationEntity serverLocation) {
-    switch (serverLocation.serverType.toServerLocationType) {
-      case ServerLocationType.auto:
-        return 'Smart Location';
-      case ServerLocationType.lanternLocation:
-        return 'Selected Location';
-      case ServerLocationType.privateServer:
-        return serverLocation.serverName;
-    }
-  }
-
-  String getServerValue(ServerLocationEntity serverLocation) {
-    switch (serverLocation.serverType.toServerLocationType) {
-      case ServerLocationType.auto:
-        return 'Fastest Country';
-      case ServerLocationType.lanternLocation:
-        return serverLocation.serverLocation;
-      case ServerLocationType.privateServer:
-        return serverLocation.serverLocation.locationName;
     }
   }
 }

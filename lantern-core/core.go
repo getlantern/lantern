@@ -39,6 +39,7 @@ type App interface {
 	AvailableFeatures() []byte
 	ReportIssue(email, issueType, description, device, model, logFilePath string) error
 	IsRadianceConnected() bool
+	GetAvailableServers() []byte
 }
 
 type User interface {
@@ -174,6 +175,18 @@ func (lc *LanternCore) AvailableFeatures() []byte {
 		slog.Error("Error marshalling features", "error", err)
 		return nil
 	}
+	return jsonBytes
+}
+
+func (lc *LanternCore) GetAvailableServers() []byte {
+	servers := lc.rad.ServerManager().Servers()
+	slog.Debug("Available servers", "servers", servers)
+	jsonBytes, err := json.Marshal(servers)
+	if err != nil {
+		slog.Error("Error marshalling servers", "error", err)
+		return nil
+	}
+	slog.Debug("Available servers JSON", "json", string(jsonBytes))
 	return jsonBytes
 }
 
@@ -584,6 +597,11 @@ var _ Core = (*CoreStub)(nil)
 func (cs *CoreStub) AvailableFeatures() []byte {
 	return []byte(`{}`)
 }
+
+func (cs *CoreStub) GetAvailableServers() []byte {
+	return []byte(`{}`)
+}
+
 func (cs *CoreStub) ReportIssue(email, issueType, description, device, model, logFilePath string) error {
 	return nil
 }
