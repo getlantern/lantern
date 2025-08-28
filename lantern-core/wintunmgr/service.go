@@ -154,7 +154,7 @@ func (s *Service) Start(ctx context.Context) error {
 	ctx, s.cancel = context.WithCancel(ctx)
 
 	cfg := &winio.PipeConfig{
-		SecurityDescriptor: `D:P(A;;GA;;;SY)(A;;GA;;;BA)`,
+		SecurityDescriptor: `D:P(A;;GA;;;SY)(A;;GA;;;BA)(A;;GRGW;;;AU)`,
 		MessageMode:        true,
 		InputBufferSize:    128 * 1024,
 		OutputBufferSize:   128 * 1024,

@@ -51,7 +51,7 @@ func main() {
 
 	isService, _ := svc.IsWindowsService()
 	if isService {
-		if err := svc.Run(svcName, &lanternHandler{}); err != nil {
+		if err := svc.Run("", &lanternHandler{}); err != nil {
 			log.Error(err)
 		}
 	}
@@ -100,8 +100,6 @@ func (h *lanternHandler) Execute(args []string, r <-chan svc.ChangeRequest, chan
 		wt := wintunmgr.New(adapterName, poolName, nil)
 		s := wintunmgr.NewService(wintunmgr.ServiceOptions{
 			PipeName: servicePipeName,
-			DataDir:  utils.DefaultDataDir(),
-			LogDir:   utils.DefaultLogDir(),
 			Locale:   "en_US",
 		}, wt)
 		err := s.Start(ctx)

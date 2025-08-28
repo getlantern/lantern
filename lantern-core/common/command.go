@@ -1,4 +1,4 @@
-package wintunmgr
+package common
 
 type Command string
 

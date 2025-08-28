@@ -1,3 +1,9 @@
+#define SourceDirMacro   "{{SOURCE_DIR}}"
+#define SvcName          "LanternSvc"
+#define SvcDisplayName   "Lantern Service"
+#define ProgramDataDir   "{commonappdata}\Lantern"
+#define TokenFile        "{commonappdata}\Lantern\ipc-token"
+
 [Setup]
 AppId={{APP_ID}}
 AppVersion={{APP_VERSION}}
@@ -13,8 +19,9 @@ OutputBaseFilename={{OUTPUT_BASE_FILENAME}}
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
-; VPNs services/drivers require elevation at install time
+; VPN service/driver install needs elevation
 PrivilegesRequired=admin
+PrivilegesRequiredOverridesAllowed=dialog
 ArchitecturesAllowed=x64
 ArchitecturesInstallIn64BitMode=x64
 
@@ -29,11 +36,13 @@ ArchitecturesInstallIn64BitMode=x64
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: {% if CREATE_DESKTOP_ICON != true %}unchecked{% else %}checkedonce{% endif %}
 
 [Files]
+Source: "{{SOURCE_DIR}}\\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+
 Source: "{{SOURCE_DIR}}\\wintun.dll"; DestDir: "{app}"; Flags: ignoreversion
+
 ; Windows service binary
 Source: "{{SOURCE_DIR}}\\lanternsvc.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{{SOURCE_DIR}}\\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-; NOTE: Don't use "Flags: ignoreversion" on any shared system files
+
 [Icons]
 Name: "{autoprograms}\\{{DISPLAY_NAME}}"; Filename: "{app}\\{{EXECUTABLE_NAME}}"
 Name: "{autodesktop}\\{{DISPLAY_NAME}}"; Filename: "{app}\\{{EXECUTABLE_NAME}}"; Tasks: desktopicon
@@ -50,7 +59,7 @@ Filename: "{tmp}\vc_redist.x64.exe"; Parameters: "/install /quiet /norestart"; \
   Check: NeedsVCRedist and FileExists(ExpandConstant('{tmp}\vc_redist.x64.exe')); \
   Flags: runhidden
 
-; Install WebView2 Evergreen if needed
+; Install WebView2 Evergreen for Flutter
 Filename: "{tmp}\MicrosoftEdgeWebView2Setup.exe"; Parameters: "/silent /install"; \
   StatusMsg: "Installing WebView2 Runtime..."; \
   Check: NeedsWebView2Runtime and FileExists(ExpandConstant('{tmp}\MicrosoftEdgeWebView2Setup.exe'))
@@ -58,10 +67,13 @@ Filename: "{tmp}\MicrosoftEdgeWebView2Setup.exe"; Parameters: "/silent /install"
 ; Stop and delete any existing Lantern service, then create & start the new one
 Filename: "{cmd}"; Parameters: "/C sc.exe stop ""LanternService"" 2>nul & sc.exe delete ""LanternService"" 2>nul"; \
   Flags: runhidden
+
 Filename: "{cmd}"; Parameters: "/C sc.exe create ""LanternService"" binPath= ""\""{app}\lanternsvc.exe\"""" start= auto DisplayName= ""Lantern Service"""; \
   Flags: runhidden
+
 Filename: "{cmd}"; Parameters: "/C sc.exe start ""LanternService"""; \
   Flags: runhidden
+
 ; Launch Lantern app UI
 Filename: "{app}\{{EXECUTABLE_NAME}}"; Description: "{cm:LaunchProgram,{{DISPLAY_NAME}}}"; \
   Flags: runasoriginaluser nowait postinstall skipifsilent
@@ -70,6 +82,9 @@ Filename: "{app}\{{EXECUTABLE_NAME}}"; Description: "{cm:LaunchProgram,{{DISPLAY
 ; Stop and remove the service on uninstall
 Filename: "{cmd}"; Parameters: "/C sc.exe stop ""LanternService"" 2>nul & sc.exe delete ""LanternService"" 2>nul"; \
   Flags: runhidden
+
+[UninstallDelete]
+Type: filesandordirs; Name: "{#ProgramDataDir}"
 
 [Code]
 function NeedsWebView2Runtime(): Boolean;
@@ -90,15 +105,15 @@ function NeedsVCRedist(): Boolean;
 var
   Installed: Cardinal;
 begin
-  // Check VC++ runtime registry flag
-  // HKLM\SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64 Installed = 1
-  if RegQueryDWordValue(HKLM64, 'Software\Microsoft\VisualStudio\14.0\VC\Runtimes\x64', 'Installed', Installed) then
+  { VS 2015–2022 x64 runtime flag }
+  if RegQueryDWordValue(HKLM64,
+    'Software\Microsoft\VisualStudio\14.0\VC\Runtimes\x64',
+    'Installed', Installed) then
   begin
     Result := (Installed <> 1);
   end
   else
   begin
-    // if the DLL is already present in System32, skip install
     Result := not FileExists(ExpandConstant('{sys}\MSVCP140.dll'));
   end;
 end;

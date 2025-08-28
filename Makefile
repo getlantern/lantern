@@ -352,7 +352,7 @@ build-windows-release:
 	flutter build windows --release
 
 .PHONY: windows-release
-windows-release: clean windows pubget gen build-windows-release
+windows-release: clean windows pubget gen build-windows-release copy-lanternsvc-release copy-wintun-release
 	$(MAKE) prepare-windows-release
 	flutter_distributor package --build-dart-define=BUILD_TYPE=$(BUILD_TYPE) --platform windows --targets "exe"
 
