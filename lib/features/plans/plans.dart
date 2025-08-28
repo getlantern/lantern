@@ -88,36 +88,38 @@ class _PlansState extends ConsumerState<Plans> {
                 Padding(
                   padding:
                       EdgeInsets.only(left: context.isSmallDevice ? 16 : 0),
-                  child: plansState.when(
-                    data: (data) {
-                      return PlansListView(
-                        data: data,
-                        onPlanSelected: (plans) {},
-                      );
-                    },
-                    loading: () {
-                      return Center(
-                        child: LoadingIndicator(),
-                      );
-                    },
-                    error: (error, stackTrace) {
-                      return Column(
-                        children: [
-                          Text(
-                            'plans_fetch_error'.i18n,
-                            style: textTheme.labelLarge,
-                          ),
-                          AppTextButton(
-                            label: 'Try again',
-                            onPressed: () {
-                              ref
-                                  .read(plansNotifierProvider.notifier)
-                                  .fetchPlans();
-                            },
-                          ),
-                        ],
-                      );
-                    },
+                  child: Expanded(
+                    child: plansState.when(
+                      data: (data) {
+                        return PlansListView(
+                          data: data,
+                          onPlanSelected: (plans) {},
+                        );
+                      },
+                      loading: () {
+                        return Center(
+                          child: LoadingIndicator(),
+                        );
+                      },
+                      error: (error, stackTrace) {
+                        return Column(
+                          children: [
+                            Text(
+                              'plans_fetch_error'.i18n,
+                              style: textTheme.labelLarge,
+                            ),
+                            AppTextButton(
+                              label: 'Try again',
+                              onPressed: () {
+                                ref
+                                    .read(plansNotifierProvider.notifier)
+                                    .fetchPlans();
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    ),
                   ),
                 ),
                 SizedBox(height: 24),
