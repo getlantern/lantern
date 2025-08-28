@@ -227,18 +227,18 @@ func sendStatusToPort(status VPNStatus) {
 	}()
 }
 
-// // isVPNConnected checks if the VPN server is running and connected.
-// //
-// //export isVPNConnected
-// func isVPNConnected() *C.char {
-// 	connected := vpn_tunnel.IsVPNRunning()
-// 	if connected {
-// 		sendStatusToPort(Connected)
-// 	} else {
-// 		sendStatusToPort(Disconnected)
-// 	}
-// 	return C.CString("ok")
-// }
+// isVPNConnected checks if the VPN server is running and connected.
+//
+//export isVPNConnected
+func isVPNConnected() *C.char {
+	connected := vpn_tunnel.IsVPNRunning()
+	if connected {
+		sendStatusToPort(Connected)
+	} else {
+		sendStatusToPort(Disconnected)
+	}
+	return C.CString("ok")
+}
 
 // APIS
 func createUser() (*api.UserDataResponse, error) {
