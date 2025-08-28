@@ -1,11 +1,15 @@
 package wintunmgr
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/getlantern/lantern-outline/lantern-core/common"
+)
 
 // IPC structs
 type Request struct {
 	ID     string          `json:"id"`
-	Cmd    Command         `json:"cmd"`
+	Cmd    common.Command  `json:"cmd"`
 	Params json.RawMessage `json:"params,omitempty"`
 	Token  string          `json:"token,omitempty"`
 }

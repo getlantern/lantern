@@ -19,6 +19,7 @@ import (
 
 	"github.com/Microsoft/go-winio"
 	lanterncore "github.com/getlantern/lantern-outline/lantern-core"
+	"github.com/getlantern/lantern-outline/lantern-core/common"
 	"github.com/getlantern/lantern-outline/lantern-core/utils"
 	"github.com/getlantern/lantern-outline/lantern-core/vpn_tunnel"
 )
@@ -243,7 +244,7 @@ func (s *Service) handleConn(ctx context.Context, c net.Conn, token, connID stri
 			_ = enc.Encode(rpcErr(req.ID, "unauthorized", "bad token"))
 			continue
 		}
-		if req.Cmd == CmdWatchStatus {
+		if req.Cmd == common.CmdWatchStatus {
 			s.handleWatchStatus(ctx, connID, enc, done)
 			return
 		}
@@ -291,12 +292,12 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 	}()
 
 	switch r.Cmd {
-	case CmdSetupAdapter:
+	case common.CmdSetupAdapter:
 		if _, err := s.wtmgr.OpenOrCreateTunAdapter(ctx); err != nil {
 			return rpcErr(r.ID, "adapter_error", err.Error())
 		}
 		return &Response{ID: r.ID, Result: map[string]any{"ok": true}}
-	case CmdStartTunnel:
+	case common.CmdStartTunnel:
 		if err := vpn_tunnel.StartVPN(nil, &utils.Opts{
 			DataDir: s.opts.DataDir, Locale: s.opts.Locale,
 		}); err != nil {
@@ -305,15 +306,15 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		s.setIsRunning(true)
 		return &Response{ID: r.ID, Result: map[string]any{"started": true}}
 
-	case CmdStopTunnel:
+	case common.CmdStopTunnel:
 		if err := vpn_tunnel.StopVPN(); err != nil {
 			return rpcErr(r.ID, "stop_error", err.Error())
 		}
 		s.setIsRunning(false)
 		return &Response{ID: r.ID, Result: map[string]any{"stopped": true}}
-	case CmdIsVPNRunning:
+	case common.CmdIsVPNRunning:
 		return &Response{ID: r.ID, Result: map[string]any{"running": s.isRunning()}}
-	case CmdConnectToServer:
+	case common.CmdConnectToServer:
 		var p struct {
 			Location string `json:"location"`
 			Tag      string `json:"tag"`
@@ -332,7 +333,7 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		s.setIsRunning(true)
 		return &Response{ID: r.ID, Result: "ok"}
 
-	case CmdAddSplitTunnelItem, CmdRemoveSplitTunnelItem:
+	case common.CmdAddSplitTunnelItem, common.CmdRemoveSplitTunnelItem:
 		var p struct {
 			Filter string `json:"filterType"`
 			Value  string `json:"value"`
@@ -341,7 +342,7 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 			return rpcErr(r.ID, "bad_params", err.Error())
 		}
 		var err error
-		if r.Cmd == CmdAddSplitTunnelItem {
+		if r.Cmd == common.CmdAddSplitTunnelItem {
 			err = s.core.AddSplitTunnelItem(p.Filter, p.Value)
 		} else {
 			err = s.core.RemoveSplitTunnelItem(p.Filter, p.Value)
@@ -351,14 +352,14 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		}
 		return &Response{ID: r.ID, Result: "ok"}
 
-	case CmdGetUserData:
+	case common.CmdGetUserData:
 		b, err := s.core.UserData()
 		if err != nil {
 			return rpcErr(r.ID, "user_data_error", err.Error())
 		}
 		return &Response{ID: r.ID, Result: base64.StdEncoding.EncodeToString(b)}
 
-	case CmdFetchUserData:
+	case common.CmdFetchUserData:
 		b, err := s.core.FetchUserData()
 		if err != nil {
 			return rpcErr(r.ID, "fetch_user_data_error", err.Error())
