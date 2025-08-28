@@ -63,6 +63,7 @@ WINDOWS_LIB_BUILD    := $(BIN_DIR)/windows/$(WINDOWS_LIB)
 WINDOWS_DEBUG_DIR    := $(BUILD_DIR)/windows/x64/runner/Debug
 WINDOWS_RELEASE_DIR  := $(BUILD_DIR)/windows/x64/runner/Release
 WINTUN_ARCH ?= amd64
+WINTUN_VERSION ?= 0.14.1
 WINTUN_BASE_URL := https://wwW.wintun.net
 WINTUN_BUILDS_URL  := $(WINTUN_BASE_URL)/builds
 WINTUN_OUT_DIR     ?= windows/third_party/wintun/bin/$(WINTUN_ARCH)
@@ -304,33 +305,17 @@ clean-wintun:
 
 $(WINTUN_DLL):
 	$(call MKDIR_P,$(WINTUN_OUT_DIR))
-ifeq ($(OS),Windows_NT)
-	@$(PS) "$$ErrorActionPreference='Stop'; \
-	  $${u}='$(WINTUN_BASE_URL)'; \
-	  $${h}=(Invoke-WebRequest -UseBasicParsing $${u}).Content; \
-	  $${m}=[regex]::Match($${h}, 'wintun-([0-9\.]+)\.zip'); \
-	  if(-not $${m}.Success){ throw 'Could not find Wintun version'; } \
-	  $${ver}=$${m}.Groups[1].Value; \
-	  $${zip}='$(WINTUN_OUT_DIR)/wintun-'+$${ver}+'.zip'; \
-	  $${url}='$(WINTUN_BUILDS_URL)/wintun-'+$${ver}+'.zip'; \
-	  Write-Host 'Latest Wintun version:' $${ver}; \
-	  Invoke-WebRequest -UseBasicParsing -Uri $${url} -OutFile $${zip}; \
-	  Expand-Archive -Force -Path $${zip} -DestinationPath '$(WINTUN_OUT_DIR)/_unz'; \
-	  Copy-Item -Force '$(WINTUN_OUT_DIR)/_unz/wintun/bin/$(WINTUN_ARCH)/wintun.dll' '$(WINTUN_DLL)'; \
-	  Remove-Item -Recurse -Force '$(WINTUN_OUT_DIR)/_unz'; \
-	  Write-Host 'Installed:' '$(WINTUN_DLL)';"
-else
-	@ver=$$(curl -fsSL $(WINTUN_BASE_URL) | sed -nE 's/.*wintun-([0-9.]+)\.zip.*/\1/p' | head -n1); \
+	@ver='$(WINTUN_VERSION)'; \
 	  zip='$(WINTUN_OUT_DIR)/wintun-'$$ver'.zip'; \
 	  url='$(WINTUN_BUILDS_URL)/wintun-'$$ver'.zip'; \
-	  echo "Latest Wintun version: $$ver"; \
+	  echo "Using Wintun $$ver"; \
 	  curl -fsSL -o "$$zip" "$$url"; \
 	  mkdir -p '$(WINTUN_OUT_DIR)/_unz'; \
-	  unzip -q -o "$$zip" "wintun/bin/$(WINTUN_ARCH)/wintun.dll" -d "$(WINTUN_OUT_DIR)/_unz"; \
+	  tar -xf "$$zip" -C "$(WINTUN_OUT_DIR)/_unz" "wintun/bin/$(WINTUN_ARCH)/wintun.dll" \
+	    || powershell -NoProfile -Command "Expand-Archive -Force -LiteralPath '$$zip' -DestinationPath '$(WINTUN_OUT_DIR)/_unz'"; \
 	  cp -f "$(WINTUN_OUT_DIR)/_unz/wintun/bin/$(WINTUN_ARCH)/wintun.dll" "$(WINTUN_DLL)"; \
 	  rm -rf "$(WINTUN_OUT_DIR)/_unz"; \
 	  echo "Installed: $(WINTUN_DLL)";
-endif
 
 .PHONY: copy-wintun-release copy-wintun-debug
 copy-wintun-release: $(WINTUN_DLL)
