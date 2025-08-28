@@ -9,6 +9,7 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"github.com/getlantern/lantern-outline/lantern-core/apps"
 	privateserver "github.com/getlantern/lantern-outline/lantern-core/private-server"
 	"github.com/getlantern/lantern-outline/lantern-core/utils"
 	"github.com/getlantern/radiance"
@@ -161,6 +162,22 @@ func (lc *LanternCore) initialize(opts *utils.Opts) error {
 
 	slog.Debug("LanternCore initialized successfully")
 	return nil
+}
+
+// LoadInstalledApps fetches the app list or rescans if needed using common macOS locations
+// currently only works on/enabled for macOS
+func LoadInstalledApps(dataDir string) (string, error) {
+	appsList := []*apps.AppData{}
+	apps.LoadInstalledApps(dataDir, func(a ...*apps.AppData) error {
+		appsList = append(appsList, a...)
+		return nil
+	})
+
+	b, err := json.Marshal(appsList)
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
 }
 
 func (lc *LanternCore) IsRadianceConnected() bool {

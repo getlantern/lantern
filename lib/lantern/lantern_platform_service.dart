@@ -90,27 +90,73 @@ class LanternPlatformService implements LanternCoreService {
 
   @override
   Stream<List<AppData>> appsDataStream() async* {
+    if (Platform.isAndroid) {
+      yield* androidAppsDataStream();
+    } else if (Platform.isMacOS) {
+      yield* macAppsDataStream();
+    } else {
+      throw UnimplementedError();
+    }
+  }
+
+  List<AppData> _mapToAppData(
+    Iterable<Map<String, dynamic>> rawApps,
+    Set<String> enabledAppNames,
+  ) {
+    return rawApps.map((raw) {
+      final isEnabled = enabledAppNames.contains(raw["name"]);
+      return AppData(
+        name: raw["name"] as String,
+        bundleId: raw["bundleId"] as String,
+        appPath: raw["appPath"] as String? ?? '',
+        iconPath: raw["iconPath"] as String? ?? '',
+        iconBytes: raw["icon"] as Uint8List?,
+        isEnabled: isEnabled,
+      );
+    }).toList();
+  }
+
+  Set<String> _getEnabledAppNames() {
+    final LocalStorageService db = sl<LocalStorageService>();
+    final savedApps = db.getAllApps();
+    return savedApps
+        .where((app) => app.isEnabled)
+        .map((app) => app.name)
+        .toSet();
+  }
+
+  Stream<List<AppData>> androidAppsDataStream() async* {
     if (!Platform.isAndroid) {
       throw UnimplementedError();
     }
     try {
       final apps = await InstalledApps.getInstalledApps(true, true);
-      final LocalStorageService db = sl<LocalStorageService>();
-      final savedApps = db.getAllApps();
-      final enabledAppNames = savedApps
-          .where((app) => app.isEnabled)
-          .map((app) => app.name)
-          .toSet();
-      yield apps.map((appInfo) {
-        final isEnabled = enabledAppNames.contains(appInfo.name);
-        return AppData(
-          name: appInfo.name,
-          bundleId: appInfo.packageName,
-          iconBytes: appInfo.icon,
-          appPath: '',
-          isEnabled: isEnabled,
-        );
-      }).toList();
+      final enabledAppNames = _getEnabledAppNames();
+      final rawApps = apps.map((app) => {
+            "name": app.name,
+            "bundleId": app.packageName,
+            "appPath": "",
+            "icon": app.icon,
+          });
+      yield _mapToAppData(rawApps, enabledAppNames);
+    } catch (e, st) {
+      appLogger.error("Failed to fetch installed apps", e, st);
+      yield [];
+    }
+  }
+
+  Stream<List<AppData>> macAppsDataStream() async* {
+    try {
+      final String? json =
+          await _methodChannel.invokeMethod<String>("installedApps");
+      if (json == null) {
+        yield [];
+        return;
+      }
+      final decoded = jsonDecode(json) as List<dynamic>;
+      final enabledAppNames = _getEnabledAppNames();
+      final rawApps = decoded.cast<Map<String, dynamic>>();
+      yield _mapToAppData(rawApps, enabledAppNames);
     } catch (e, st) {
       appLogger.error("Failed to fetch installed apps", e, st);
       yield [];

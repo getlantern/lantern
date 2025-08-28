@@ -97,6 +97,10 @@ func ReportIssue(email, issueType, description, device, model, logFilePath strin
 	return core().ReportIssue(email, issueType, description, device, model, logFilePath)
 }
 
+func LoadInstalledApps(dataDir string) (string, error) {
+	return lanterncore.LoadInstalledApps(dataDir)
+}
+
 // User Methods
 // Todo make sure to add retry logic
 // we need to make sure that the user is created before we can use the radiance server
