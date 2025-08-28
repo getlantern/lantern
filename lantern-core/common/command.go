@@ -16,3 +16,7 @@ const (
 	CmdStopService           Command = "Stop"
 	CmdWatchStatus           Command = "WatchStatus"
 )
+
+const (
+	WindowsServiceName = "LanternSvc"
+)

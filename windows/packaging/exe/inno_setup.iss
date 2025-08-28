@@ -65,13 +65,13 @@ Filename: "{tmp}\MicrosoftEdgeWebView2Setup.exe"; Parameters: "/silent /install"
   Check: NeedsWebView2Runtime and FileExists(ExpandConstant('{tmp}\MicrosoftEdgeWebView2Setup.exe'))
 
 ; Stop and delete any existing Lantern service, then create & start the new one
-Filename: "{cmd}"; Parameters: "/C sc.exe stop ""LanternService"" 2>nul & sc.exe delete ""LanternService"" 2>nul"; \
+Filename: "{cmd}"; Parameters: "/C sc.exe stop ""{#SvcName}"" 2>nul & sc.exe delete ""{#SvcName}"" 2>nul"; \
   Flags: runhidden
 
-Filename: "{cmd}"; Parameters: "/C sc.exe create ""LanternService"" binPath= ""\""{app}\lanternsvc.exe\"""" start= auto DisplayName= ""Lantern Service"""; \
+Filename: "{cmd}"; Parameters: "/C sc.exe create ""{#SvcName}"" binPath= ""\""{app}\lanternsvc.exe\"""" start= delayed-auto DisplayName= ""{#SvcDisplayName}"""; \
   Flags: runhidden
 
-Filename: "{cmd}"; Parameters: "/C sc.exe start ""LanternService"""; \
+Filename: "{cmd}"; Parameters: "/C sc.exe start ""{#SvcName}"""; \
   Flags: runhidden
 
 ; Launch Lantern app UI
@@ -80,7 +80,7 @@ Filename: "{app}\{{EXECUTABLE_NAME}}"; Description: "{cm:LaunchProgram,{{DISPLAY
 
 [UninstallRun]
 ; Stop and remove the service on uninstall
-Filename: "{cmd}"; Parameters: "/C sc.exe stop ""LanternService"" 2>nul & sc.exe delete ""LanternService"" 2>nul"; \
+Filename: "{cmd}"; Parameters: "/C sc.exe stop ""{#SvcName}"" 2>nul & sc.exe delete ""{#SvcName}"" 2>nul"; \
   Flags: runhidden
 
 [UninstallDelete]

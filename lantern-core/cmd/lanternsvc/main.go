@@ -12,13 +12,13 @@ import (
 	"syscall"
 
 	"github.com/getlantern/golog"
+	"github.com/getlantern/lantern-outline/lantern-core/common"
 	"github.com/getlantern/lantern-outline/lantern-core/utils"
 	"github.com/getlantern/lantern-outline/lantern-core/wintunmgr"
 	"golang.org/x/sys/windows/svc"
 )
 
 const (
-	svcName         = "LanternSvc"
 	adapterName     = "Lantern"
 	poolName        = "Lantern"
 	servicePipeName = `\\.\pipe\LanternService`
@@ -51,21 +51,14 @@ func main() {
 
 	isService, _ := svc.IsWindowsService()
 	if isService {
-		if err := svc.Run("", &lanternHandler{}); err != nil {
+		if err := svc.Run(common.WindowsServiceName, &lanternHandler{}); err != nil {
 			log.Error(err)
 		}
 	}
 	runConsole()
 }
 
-func runConsole() {
-	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer cancel()
-
-	log.Debugf("Starting %s in console mode (pid=%d)", svcName, os.Getpid())
-
-	defer guard("runConsole")
-
+func newWindowsService() (*wintunmgr.Manager, *wintunmgr.Service) {
 	wt := wintunmgr.New(adapterName, poolName, nil)
 	s := wintunmgr.NewService(wintunmgr.ServiceOptions{
 		PipeName: servicePipeName,
@@ -73,6 +66,18 @@ func runConsole() {
 		LogDir:   utils.DefaultLogDir(),
 		Locale:   "en_US",
 	}, wt)
+	return wt, s
+}
+
+func runConsole() {
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
+
+	log.Debugf("Starting %s in console mode (pid=%d)", common.WindowsServiceName, os.Getpid())
+
+	defer guard("runConsole")
+
+	_, s := newWindowsService()
 
 	if err := s.Start(ctx); err != nil {
 		os.Exit(1)
@@ -92,16 +97,13 @@ func (h *lanternHandler) Execute(args []string, r <-chan svc.ChangeRequest, chan
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	// Start service
 	started := make(chan error, 1)
 	go func() {
 		defer guard("service worker")
-		wt := wintunmgr.New(adapterName, poolName, nil)
-		s := wintunmgr.NewService(wintunmgr.ServiceOptions{
-			PipeName: servicePipeName,
-			Locale:   "en_US",
-		}, wt)
+		_, s := newWindowsService()
 		err := s.Start(ctx)
 		if err != nil {
 			log.Errorf("Service worker returned error: %v", err)
@@ -118,7 +120,6 @@ func (h *lanternHandler) Execute(args []string, r <-chan svc.ChangeRequest, chan
 		select {
 		case c, ok := <-r:
 			if !ok {
-				cancel()
 				if err := <-started; err != nil {
 					log.Errorf("service worker exited after SCM channel close: %v", err)
 					return false, 1
@@ -131,7 +132,6 @@ func (h *lanternHandler) Execute(args []string, r <-chan svc.ChangeRequest, chan
 
 			case svc.Stop, svc.Shutdown:
 				changes <- svc.Status{State: svc.StopPending}
-				cancel()
 				if err := <-started; err != nil {
 					log.Errorf("service worker exited with error on stop: %v", err)
 					changes <- svc.Status{State: svc.Stopped}
