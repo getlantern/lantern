@@ -17,8 +17,8 @@
 	<false/>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.ACZRKC3LQ9.objectbx</string>
-		<string>group.ACZRKC3LQ9.org.getlantern.lantern</string>
+		<string>group.$(TeamIdentifierPrefix)objectbx</string>
+		<string>group.$(TeamIdentifierPrefix)org.getlantern.lantern</string>
 	</array>
 	<key>com.apple.security.automation.apple-events</key>
 	<true/>
