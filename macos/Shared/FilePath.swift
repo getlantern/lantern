@@ -7,7 +7,10 @@ public enum FilePath {
 }
 
 extension FilePath {
-  public static let groupName = "group.getlantern.lantern"
+  //static let teamIdPrefix = Bundle.main.object(forInfoDictionaryKey: "TeamIdentifierPrefix") as! String
+  //static let sharedUrl = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.\(teamIdPrefix)org.getlantern.lantern")!
+        
+  static let groupName = "group.ACZRKC3LQ9.org.getlantern.lantern"
 
   private static let containerSharedDirectory: URL! = FileManager.default.containerURL(
     forSecurityApplicationGroupIdentifier: FilePath.groupName)

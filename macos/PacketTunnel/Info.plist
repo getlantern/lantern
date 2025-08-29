@@ -5,7 +5,7 @@
 	<key>NetworkExtension</key>
 	<dict>
 		<key>NEMachServiceName</key>
-		<string>group.getlantern.lantern.packet</string>
+		<string>group.$(TeamIdentifierPrefix)org.getlantern.lantern</string>
 		<key>NEProviderClasses</key>
 		<dict>
 			<key>com.apple.networkextension.packet-tunnel</key>

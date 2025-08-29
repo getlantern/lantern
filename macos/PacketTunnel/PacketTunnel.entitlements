@@ -10,7 +10,7 @@
 	<false/>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.getlantern.lantern</string>
+		<string>group.$(TeamIdentifierPrefix)org.getlantern.lantern</string>
 	</array>
 	<key>com.apple.security.files.system.read-write</key>
 	<true/>
