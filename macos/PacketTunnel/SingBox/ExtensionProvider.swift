@@ -94,11 +94,10 @@ public class ExtensionProvider: NEPacketTunnelProvider {
   func opts() -> UtilsOpts {
     let opts = UtilsOpts()
     opts.dataDir = FilePath.dataDirectory.relativePath
-    // opts.deviceid = DeviceIdentifier.getUDID()
-    opts.locale = Locale.current.identifier
-    opts.logLevel = "debug"
     opts.logDir = FilePath.logsDirectory.relativePath
-    appLogger.info("logging to \(opts.logDir)")
+    opts.locale = Locale.current.identifier
+    opts.deviceid = ""
+    opts.logLevel = "debug"
     return opts
   }
 

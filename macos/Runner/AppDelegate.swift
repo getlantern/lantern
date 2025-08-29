@@ -37,8 +37,8 @@ class AppDelegate: FlutterAppDelegate {
       print(exception.reason ?? "Unknown exception reason")
       print(exception.callStackSymbols)
     }
-    
-      SystemExtensionManager.shared.activateExtension()
+
+    SystemExtensionManager.shared.activateExtension()
   }
 
   public override func application(
@@ -119,8 +119,6 @@ class AppDelegate: FlutterAppDelegate {
       appLogger.info("Log directory: " + opts.logDir)
       opts.deviceid = ""
       opts.logLevel = "debug"
-      appLogger.info("Log level: " + opts.logLevel)
-
       opts.locale = Locale.current.identifier
       var error: NSError?
       MobileSetupRadiance(opts, &error)
