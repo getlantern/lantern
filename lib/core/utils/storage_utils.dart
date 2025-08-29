@@ -44,9 +44,6 @@ class AppStorageUtils {
       appDir = Directory("${baseDir.path}/.lantern");
     } else if (Platform.isWindows) {
       appDir = await getApplicationSupportDirectory();
-    } else if (Platform.isMacOS) {
-      appDir = Directory(
-          '/Users/jigarfumakiya/Library/Group Containers/group.getlantern.lantern');
     } else {
       // Note this is the application support directory *with*
       // the fully qualified name of our app.

@@ -9,7 +9,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/services/injection_container.dart';
-import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/lantern_app.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
@@ -22,13 +21,9 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   print("[Flutter] WidgetsFlutterBinding initialized.");
   try {
-    final flutterLogFile = await AppStorageUtils.flutterLogFile();
-    print("[Flutter] Log file path: ${flutterLogFile.path}");
-    initLogger(flutterLogFile.path);
-    print("[Flutter] Logger initialized.");
+    initLogger();
     appLogger.debug('Starting app initialization...');
     await _configureAutoUpdate();
-    print("[Flutter] Auto-update configured.");
     await _configureLocalTimeZone();
     appLogger.debug('Loading app secrets...');
     await _loadAppSecrets();
@@ -41,7 +36,6 @@ Future<void> main() async {
   }
 
   appLogger.info("Setting up Sentry...");
-
   await _setupSentry(
     runner: () {
       runApp(

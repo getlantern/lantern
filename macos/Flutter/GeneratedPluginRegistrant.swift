@@ -21,7 +21,6 @@ import screen_retriever_macos
 import sentry_flutter
 import share_plus
 import shared_preferences_foundation
-import simple_native_logger
 import store_checker
 import tray_manager
 import url_launcher_macos
@@ -44,7 +43,6 @@ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   SentryFlutterPlugin.register(with: registry.registrar(forPlugin: "SentryFlutterPlugin"))
   SharePlusMacosPlugin.register(with: registry.registrar(forPlugin: "SharePlusMacosPlugin"))
   SharedPreferencesPlugin.register(with: registry.registrar(forPlugin: "SharedPreferencesPlugin"))
-  SimpleNativeLoggerPlugin.register(with: registry.registrar(forPlugin: "SimpleNativeLoggerPlugin"))
   StoreCheckerPlugin.register(with: registry.registrar(forPlugin: "StoreCheckerPlugin"))
   TrayManagerPlugin.register(with: registry.registrar(forPlugin: "TrayManagerPlugin"))
   UrlLauncherPlugin.register(with: registry.registrar(forPlugin: "UrlLauncherPlugin"))

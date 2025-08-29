@@ -44,9 +44,6 @@ PODS:
   - shared_preferences_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
-  - simple_native_logger (0.2.0):
-    - Flutter
-    - FlutterMacOS
   - Sparkle (2.7.1)
   - store_checker (0.0.1):
     - FlutterMacOS
@@ -75,7 +72,6 @@ DEPENDENCIES:
   - sentry_flutter (from `Flutter/ephemeral/.symlinks/plugins/sentry_flutter/macos`)
   - share_plus (from `Flutter/ephemeral/.symlinks/plugins/share_plus/macos`)
   - shared_preferences_foundation (from `Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin`)
-  - simple_native_logger (from `Flutter/ephemeral/.symlinks/plugins/simple_native_logger/darwin`)
   - Sparkle
   - store_checker (from `Flutter/ephemeral/.symlinks/plugins/store_checker/macos`)
   - tray_manager (from `Flutter/ephemeral/.symlinks/plugins/tray_manager/macos`)
@@ -124,8 +120,6 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/share_plus/macos
   shared_preferences_foundation:
     :path: Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin
-  simple_native_logger:
-    :path: Flutter/ephemeral/.symlinks/plugins/simple_native_logger/darwin
   store_checker:
     :path: Flutter/ephemeral/.symlinks/plugins/store_checker/macos
   tray_manager:
@@ -156,7 +150,6 @@ SPEC CHECKSUMS:
   sentry_flutter: feb376a4d8fd37387898b94e00da2060eeab2a41
   share_plus: 1fa619de8392a4398bfaf176d441853922614e89
   shared_preferences_foundation: fcdcbc04712aee1108ac7fda236f363274528f78
-  simple_native_logger: c91108b657f1594f0be113f59bd57a393e674448
   Sparkle: 5f93557176b762f712e8cd80680778bf23c7348c
   store_checker: 387169de0dffe57b6370d54cc027e9f95051b57f
   tray_manager: 9064e219c56d75c476e46b9a21182087930baf90

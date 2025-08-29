@@ -21,6 +21,8 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		0349AFDC2E61C9D300F5E245 /* ExtensionProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0349AFDB2E61C9D200F5E245 /* ExtensionProfile.swift */; };
+		0349AFDE2E61CD1100F5E245 /* SystemExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0349AFDD2E61CD1000F5E245 /* SystemExtension.swift */; };
 		039A061F2E24DB6000B64255 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B402DE7A5F300640E7F /* KeychainService.swift */; };
 		293C305A2DEF649500691115 /* MethodHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C30552DEF649500691115 /* MethodHandler.swift */; };
 		293C305E2DEF67EB00691115 /* VPNManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C305C2DEF67EB00691115 /* VPNManager.swift */; };
@@ -129,6 +131,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0349AFDB2E61C9D200F5E245 /* ExtensionProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionProfile.swift; sourceTree = "<group>"; };
+		0349AFDD2E61CD1000F5E245 /* SystemExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemExtension.swift; sourceTree = "<group>"; };
 		039C12B22E60475400FD5CBE /* RunnerDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = RunnerDebug.entitlements; sourceTree = "<group>"; };
 		1E9A6FC86FA886DA6665EC6D /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
 		293C302F2DEF247F00691115 /* Liblantern.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Liblantern.xcframework; path = Frameworks/Liblantern.xcframework; sourceTree = "<group>"; };
@@ -246,6 +250,7 @@
 		293C305D2DEF67EB00691115 /* VPN */ = {
 			isa = PBXGroup;
 			children = (
+				0349AFDB2E61C9D200F5E245 /* ExtensionProfile.swift */,
 				293C305B2DEF67EB00691115 /* VPNBase.swift */,
 				293C305C2DEF67EB00691115 /* VPNManager.swift */,
 			);
@@ -255,6 +260,7 @@
 		29952B422DE7A5F300640E7F /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				0349AFDD2E61CD1000F5E245 /* SystemExtension.swift */,
 				293C30602DEF68B300691115 /* Logger.swift */,
 				29952B402DE7A5F300640E7F /* KeychainService.swift */,
 				5F53D03F2E4414A100740586 /* FilePath.swift */,
@@ -682,6 +688,7 @@
 			files = (
 				5F53D0322E4410F100740586 /* StatusEventHandler.swift in Sources */,
 				5F53D0332E4410F100740586 /* PrivateServerEventHandler.swift in Sources */,
+				0349AFDE2E61CD1100F5E245 /* SystemExtension.swift in Sources */,
 				5F53D03A2E44112E00740586 /* SystemExtensionManager.swift in Sources */,
 				33CC11132044BFA00003C045 /* MainFlutterWindow.swift in Sources */,
 				293C305E2DEF67EB00691115 /* VPNManager.swift in Sources */,
@@ -692,6 +699,7 @@
 				33CC10F12044A3C60003C045 /* AppDelegate.swift in Sources */,
 				5F53D0402E4414A100740586 /* FilePath.swift in Sources */,
 				335BBD1B22A9A15E00E9071D /* GeneratedPluginRegistrant.swift in Sources */,
+				0349AFDC2E61C9D300F5E245 /* ExtensionProfile.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

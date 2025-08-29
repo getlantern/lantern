@@ -26,16 +26,16 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
 
   let logger = Logger(subsystem: "org.getlantern.lantern", category: "SystemExtensionManager")
   private var currentRequest: OSSystemExtensionRequest?
-  static let tunnelBundleID = "org.getlantern.lantern.PacketTunnel"
+//  static let tunnelBundleID = "org.getlantern.lantern.PacketTunnel"
 
   // MARK: - Public Methods
 
   /// Initiates the activation of a system extension.
   public func activateExtension() {
     logger.log(
-      "Attempting to activate system extension with ID: \(SystemExtensionManager.tunnelBundleID)")
+      "Attempting to activate system extension with ID: \(FilePath.systemExtensionName)")
     let request = OSSystemExtensionRequest.activationRequest(
-      forExtensionWithIdentifier: SystemExtensionManager.tunnelBundleID,
+      forExtensionWithIdentifier: FilePath.systemExtensionName,
       queue: .main  // Ensure delegate methods are called on the main queue for UI updates
     )
     request.delegate = self

@@ -4,20 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_loggy/flutter_loggy.dart';
 import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:loggy/loggy.dart';
-import 'package:simple_native_logger/simple_native_logger.dart' hide LogLevel;
 
 final dbLogger = Loggy("DB-Logger");
 final appLogger = Loggy("app-Logger");
 
 
-void initLogger(String path) {
-  SimpleNativeLogger.init();
+void initLogger([String? path]) {
+
   final logPrinter = PlatformUtils.isDesktop
       ? DebugPrintLoggyPrinter()
       : PrettyDeveloperPrinter();
 
   Loggy.initLoggy(
-    logPrinter: FileLogPrinter(path),
+    logPrinter:logPrinter,
     logOptions: const LogOptions(LogLevel.all),
     hierarchicalLogging: true,
   );
