@@ -38,15 +38,24 @@ class LocalStorageService {
     final start = DateTime.now();
     dbLogger.debug("Initializing LocalStorageService");
     final docsDir = await AppStorageUtils.getAppDirectory();
-
     final dbPath = p.join(docsDir.path, "objectbox-db");
+    dbLogger.debug("Using ObjectBox DB path: $dbPath");
 
     try {
+      dbLogger.debug("Checking if DB directory exists...");
+      if (!await Directory(dbPath).exists()) {
+        dbLogger.debug("DB directory does not exist. Creating...");
+        await Directory(dbPath).create(recursive: true);
+      }
+
+      dbLogger.debug("Opening ObjectBox store...");
       _store = await openStore(
         directory: dbPath,
         macosApplicationGroup: macosApplicationGroup,
       );
-    } on ObjectBoxException catch (e) {
+      dbLogger.debug("ObjectBox store opened successfully.");
+    } on ObjectBoxException catch (e, s) {
+      dbLogger.error("Error opening ObjectBox store", e, s);
       final error = e.message;
       //Ex
       //failed to create store: DB's last property ID XX is higher than the incoming one XX in entity XXX
