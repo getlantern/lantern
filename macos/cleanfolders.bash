@@ -1,14 +1,22 @@
 #!/usr/bin/env bash
 
+set -e
+
 groups=("group.getlantern.lantern" "group.ACZRKC3LQ9.org.getlantern.lantern")
 
 for group in "${groups[@]}"; do
-  rm -rf "/private/var/root/Library/GroupContainersAlias$group"
-  rm -rf "$HOME/Library/GroupContainersAlias/$group"
+  rm -rfv /private/var/root/Library/Group\ Containers/$group
+  rm -rfv $HOME/Library/Group\ Containers/$group
 done
 
-rm -rf "/Users/Shared/Lantern"
-rm -rf "$HOME/Library/Application Support/Lantern"
-rm -rf "$HOME/Library/Application Support/org.getlantern.lantern"
-rm -rf "$HOME/Library/Logs/Lantern"
-rm -rf "$HOME/Library/Containers/org.getlantern.*"
+paths=(
+  /Users/Shared/Lantern
+  $HOME/Library/Application Support/Lantern
+  $HOME/Library/Application Support/org.getlantern.lantern
+  $HOME/Library/Logs/Lantern
+)
+
+for path in "${paths[@]}"; do
+  rm -rfv "$path"
+done
+rm -rfv $HOME/Library/Containers/org.getlantern.*
