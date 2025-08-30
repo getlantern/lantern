@@ -24,8 +24,6 @@ import OSLog
 #endif
 
 public class ExtensionProvider: NEPacketTunnelProvider {
-  let appLogger = Logger(
-    subsystem: "org.getlantern.lantern", category: "ExtensionProvider")
   private var platformInterface: ExtensionPlatformInterface!
 
   override open func startTunnel(options: [String: NSObject]?) async throws {
@@ -57,6 +55,8 @@ public class ExtensionProvider: NEPacketTunnelProvider {
 
   func startVPN() {
     appLogger.log("(lantern-tunnel) quick connect")
+      appLogger.log("Data directory: \(FilePath.dataDirectory.relativePath)")
+      
     var error: NSError?
 
     MobileStartVPN(platformInterface, opts(), &error)
@@ -92,12 +92,15 @@ public class ExtensionProvider: NEPacketTunnelProvider {
   }
 
   func opts() -> UtilsOpts {
+    appLogger.log("Generating opts for lantern tunnel")
+    appLogger.log("Data directory: \(FilePath.dataDirectory.relativePath)")
     let opts = UtilsOpts()
     opts.dataDir = FilePath.dataDirectory.relativePath
     opts.logDir = FilePath.logsDirectory.relativePath
     opts.locale = Locale.current.identifier
     opts.deviceid = ""
     opts.logLevel = "debug"
+      appLogger.info("Opts dataDir: \(opts.dataDir), logDir: \(opts.logDir), locale: \(opts.locale), deviceid: \(opts.deviceid), logLevel: \(opts.logLevel)")
     return opts
   }
 

@@ -14,7 +14,7 @@
 	<key>com.apple.developer.system-extension.install</key>
 	<true/>
 	<key>com.apple.security.app-sandbox</key>
-	<true/>
+	<false/>
 	<key>com.apple.security.application-groups</key>
 	<array>
 		<string>ACZRKC3LQ9.objectbx</string>

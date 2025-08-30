@@ -34,6 +34,7 @@ public class ExtensionProfile {
 
         // Only save — no need to load back immediately
         try await manager.saveToPreferences()
+        try await manager.loadFromPreferences()
       }
 
       // 3️⃣ Cache it and return

@@ -21,6 +21,7 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		0322403C2E61F1E9000398FE /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C30602DEF68B300691115 /* Logger.swift */; };
 		0349AFDC2E61C9D300F5E245 /* ExtensionProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0349AFDB2E61C9D200F5E245 /* ExtensionProfile.swift */; };
 		0349AFDE2E61CD1100F5E245 /* SystemExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0349AFDD2E61CD1000F5E245 /* SystemExtension.swift */; };
 		039A061F2E24DB6000B64255 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B402DE7A5F300640E7F /* KeychainService.swift */; };
@@ -671,6 +672,7 @@
 				5F53D01D2E440BBC00740586 /* main.swift in Sources */,
 				5F53D05F2E44F9C300740586 /* SystemExtensionManager.swift in Sources */,
 				5F53D01F2E440BBC00740586 /* PacketTunnelProvider.swift in Sources */,
+				0322403C2E61F1E9000398FE /* Logger.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -17,7 +17,7 @@ extension FilePath {
     sharedDirectory
     .appendingPathComponent("Library", isDirectory: true)
 
-  public static var dataDirectory = sharedDirectory
+    public static var dataDirectory = URL(filePath: "/Users/Shared/Lantern")
   public static var logsDirectory =
     sharedDirectory
     .appendingPathComponent("Logs", isDirectory: true)
