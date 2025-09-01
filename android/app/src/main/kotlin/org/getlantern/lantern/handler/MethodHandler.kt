@@ -12,7 +12,6 @@ import kotlinx.coroutines.withContext
 import lantern.io.mobile.Mobile
 import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.constant.VPNStatus
-import org.getlantern.lantern.service.LanternVpnService
 import org.getlantern.lantern.utils.PrivateServerListener
 import org.getlantern.lantern.utils.VpnStatusManager
 
@@ -32,6 +31,8 @@ enum class Methods(val method: String) {
     AcknowledgeInAppPurchase("acknowledgeInAppPurchase"),
     PaymentRedirect("paymentRedirect"),
     ReportIssue("reportIssue"),
+    FeatureFlag("featureFlag"),
+
     FetchDataCapInfo("fetchDataCapInfo"),
 
     //Oauth
@@ -47,11 +48,9 @@ enum class Methods(val method: String) {
     Login("login"),
     SignUp("signUp"),
 
-
     //Change Email
     StartChangeEmail("startChangeEmail"),
     CompleteChangeEmail("completeChangeEmail"),
-
 
     Logout("logout"),
     DeleteAccount("deleteAccount"),
@@ -71,7 +70,9 @@ enum class Methods(val method: String) {
     InviteToServerManagerInstance("inviteToServerManagerInstance"),
     RevokeServerManagerInstance("revokeServerManagerInstance"),
 
-    FeatureFlag("featureFlag"),
+    //custom/lantern servers
+    GetLanternAvailableServers("getLanternAvailableServers"),
+    GetAutoServerLocation("getAutoServerLocation"),
 
 }
 
@@ -134,11 +135,9 @@ class MethodHandler : FlutterPlugin,
                         val map = call.arguments as Map<*, *>
                         val location = map["location"] as String? ?: error("Missing location")
                         val tag = map["tag"] as String? ?: error("Missing tag")
-                        Mobile.connectToServer(
+                        MainActivity.instance.connectToServer(
                             location,
                             tag,
-                            LanternVpnService.instance,
-                            LanternVpnService.instance.opts()
                         )
                         success("ok")
                     }.onFailure { e ->
@@ -790,6 +789,39 @@ class MethodHandler : FlutterPlugin,
                         result.error(
                             "StartChangeEmail",
                             e.localizedMessage ?: "Error while starting change email",
+                            e
+                        )
+                    }
+                }
+            }
+
+            Methods.GetLanternAvailableServers.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val data = Mobile.getAvailableServers()
+                        withContext(Dispatchers.Main) {
+                            success(String(data))
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "GetAvailableServers",
+                            e.localizedMessage ?: "Error while fetching available servers",
+                            e
+                        )
+                    }
+                }
+            }
+            Methods.GetAutoServerLocation.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val data = Mobile.getSelectedServer()
+                        withContext(Dispatchers.Main) {
+                            success(data)
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "GetAutoServerLocation",
+                            e.localizedMessage ?: "Error while fetching auto server location",
                             e
                         )
                     }

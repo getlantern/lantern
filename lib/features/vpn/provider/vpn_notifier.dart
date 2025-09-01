@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/notification_event.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/notification_service.dart';
@@ -55,6 +56,13 @@ class VpnNotifier extends _$VpnNotifier {
     return VPNStatus.disconnected;
   }
 
+  void onVPNConnected(OnPressed onConnected) {
+    if (state == VPNStatus.connected) {
+      onConnected();
+    }
+
+  }
+
   Future<Either<Failure, String>> onVPNStateChange(BuildContext context) async {
     if (state == VPNStatus.connecting || state == VPNStatus.disconnecting) {
       return Right("");
@@ -63,27 +71,35 @@ class VpnNotifier extends _$VpnNotifier {
   }
 
   /// Starts the VPN connection.
+  /// force parameter, if true it will always connect to auto tag
   /// If the server location is set to auto, it will connect to the best available server.
   /// If a specific server location is set, it will connect to that server
   /// valid server location types are: auto,lanternLocation,privateServer
-  Future<Either<Failure, String>> startVPN() async {
-    final serverLocation = sl<LocalStorageService>().getServerLocations();
-    if (serverLocation.serverLocation.toServerLocationType ==
-        ServerLocationType.auto) {
+
+  Future<Either<Failure, String>> startVPN({bool force = false}) async {
+    final serverLocation = sl<LocalStorageService>().getSavedServerLocations();
+    if (serverLocation.serverType.toServerLocationType ==
+            ServerLocationType.auto ||
+        force) {
+      appLogger.debug("Starting VPN with auto server location");
       return ref.read(lanternServiceProvider).startVPN();
     } else {
-      final location = serverLocation.serverLocation;
+      final serverType = serverLocation.serverType;
       final tag = serverLocation.serverName;
-      return connectToServer(location, tag);
+      return connectToServer(serverType.toServerLocationType, tag);
     }
   }
 
   /// Connects to a specific server location.
   /// it supports lantern locations and private servers.
   Future<Either<Failure, String>> connectToServer(
-      String location, String tag) async {
-    final result =
-        await ref.read(lanternServiceProvider).connectToServer(location, tag);
+      ServerLocationType location, String tag) async {
+    appLogger.debug(
+      "Connecting to server: $location with tag: $tag",
+    );
+    final result = await ref
+        .read(lanternServiceProvider)
+        .connectToServer(location.name, tag);
     return result;
   }
 

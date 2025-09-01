@@ -123,7 +123,6 @@ func getDataCapInfo() *C.char {
 	if err != nil {
 		return SendError(err)
 	}
-
 	data, err := json.Marshal(info)
 	if err != nil {
 		return SendError(err)
@@ -186,6 +185,14 @@ func stopVPN() *C.char {
 	return C.CString("ok")
 }
 
+// GetAvailableServers returns the available servers in JSON format.
+//
+//export getAvailableServers
+func getAvailableServers() *C.char {
+	return C.CString(string(core().GetAvailableServers()))
+}
+
+// connectToServer sets the private server with the given tag.
 // connectToServer connects to a specific VPN server identified by the location type and tag.
 // connectToServer will open and start the VPN tunnel if it is not already running.
 //

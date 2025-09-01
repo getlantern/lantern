@@ -6,9 +6,9 @@ toolchain go1.24.1
 
 // replace github.com/getlantern/radiance => ../radiance
 
-// replace github.com/getlantern/sing-box-minimal => ../sing-box-minimal
-
 // replace github.com/getlantern/lantern-server-provisioner => ../lantern-server-provisioner
+
+// replace github.com/sagernet/sing-box => ../sing-box-minimal
 
 replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v1.11.12-0.20250716231657-20b15178474a
 
@@ -22,7 +22,7 @@ require (
 	github.com/Microsoft/go-winio v0.6.2
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20250617134205-a652cb0cef27
-	github.com/getlantern/radiance v0.0.0-20250821112753-d5f65efaedbb
+	github.com/getlantern/radiance v0.0.0-20250826200634-30fa49b3e5aa
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/sagernet/sing-box v1.11.5

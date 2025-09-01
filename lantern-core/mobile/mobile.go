@@ -65,6 +65,12 @@ func StopVPN() error {
 	return vpn_tunnel.StopVPN()
 }
 
+// // GetAvailableServers returns the available servers in JSON format.
+// // This function retrieves the servers from lantern
+func GetAvailableServers() ([]byte, error) {
+	return core().GetAvailableServers(), nil
+}
+
 // ConnectToServer connects to a server using the provided location type and tag.
 // It works with private servers and lantern location servers.
 func ConnectToServer(locationType, tag string, platIfce libbox.PlatformInterface, options *utils.Opts) error {
@@ -73,6 +79,10 @@ func ConnectToServer(locationType, tag string, platIfce libbox.PlatformInterface
 
 func IsVPNConnected() bool {
 	return vpn_tunnel.IsVPNRunning()
+}
+
+func GetSelectedServer() string {
+	return vpn_tunnel.GetSelectedServer()
 }
 
 func AddSplitTunnelItem(filterType, item string) error {
@@ -85,6 +95,10 @@ func RemoveSplitTunnelItem(filterType, item string) error {
 
 func ReportIssue(email, issueType, description, device, model, logFilePath string) error {
 	return core().ReportIssue(email, issueType, description, device, model, logFilePath)
+}
+
+func LoadInstalledApps(dataDir string) (string, error) {
+	return lanterncore.LoadInstalledApps(dataDir)
 }
 
 // User Methods
@@ -160,7 +174,7 @@ func Logout(email string) ([]byte, error) {
 	return core().Logout(email)
 }
 
-func GetDataCapInfo() (*api.DataCapInfo, error) {
+func GetDataCapInfo() ([]byte, error) {
 	return core().DataCapInfo()
 }
 

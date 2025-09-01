@@ -35,6 +35,7 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
         private const val sessionName = "LanternVpn"
         const val ACTION_START_RADIANCE = "com.getlantern.START_RADIANCE"
         const val ACTION_START_VPN = "org.getlantern.START_VPN"
+        const val ACTION_CONNECT_TO_SERVER = "org.getlantern.CONNECT_TO_SERVER"
         const val ACTION_STOP_VPN = "org.getlantern.START_STOP"
         const val ACTION_TILE_START = "org.getlantern.TILE_START"
         lateinit var instance: LanternVpnService
@@ -67,6 +68,15 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
             ACTION_START_VPN -> {
                 serviceScope.launch {
                     startVPN()
+                }
+                START_STICKY
+            }
+            ACTION_START_VPN -> {
+                serviceScope.launch {
+                    connectToServer(
+                        intent.getStringExtra("location") ?: "",
+                        intent.getStringExtra("tag") ?: ""
+                    )
                 }
                 START_STICKY
             }
@@ -155,6 +165,30 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
             VpnStatusManager.postVPNError(
                 errorCode = "start_vpn",
                 errorMessage = "Error starting VPN service",
+                error = e,
+            )
+        }
+    }
+
+    suspend fun connectToServer(location:String,tag:String) = withContext(Dispatchers.IO) {
+        if (prepare(this@LanternVpnService) != null) {
+            VpnStatusManager.postVPNStatus(VPNStatus.MissingPermission)
+            return@withContext
+        }
+        runCatching {
+            DefaultNetworkMonitor.start()
+            Mobile.connectToServer(location,tag,this@LanternVpnService, opts())
+            Log.d(TAG, "Connected to server")
+            VpnStatusManager.postVPNStatus(VPNStatus.Connected)
+            notificationHelper.showVPNConnectedNotification(this@LanternVpnService)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                QuickTileService.triggerUpdateTileState(this@LanternVpnService, true)
+            }
+        }.onFailure { e ->
+            Log.e(TAG, "error while connectToServer ", e)
+            VpnStatusManager.postVPNError(
+                errorCode = "connect_to_server",
+                errorMessage = "Error connecting to server",
                 error = e,
             )
         }

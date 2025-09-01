@@ -58,7 +58,7 @@ class ExtensionProvider: NEPacketTunnelProvider {
     if error != nil {
       appLogger.log("error while starting tunnel \(error?.localizedDescription ?? "")")
       // Inform system and close tunnel
-      cancelTunnelWithError(error)
+        cancelTunnelWithError(error)
       return
     }
     appLogger.log("(lantern-tunnel) tunnel started successfully")

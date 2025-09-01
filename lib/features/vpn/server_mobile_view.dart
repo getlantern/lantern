@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:lantern/core/models/available_servers.dart';
+import 'package:lantern/core/utils/country_utils.dart';
 import 'package:lantern/features/vpn/server_selection.dart';
 
 import '../../core/common/common.dart';
 
 class ServerMobileView extends StatefulWidget {
+  final Location_ location;
   final OnSeverSelected onServerSelected;
+  final bool isSelected;
 
   const ServerMobileView({
     super.key,
     required this.onServerSelected,
+    required this.location,
+    this.isSelected = false,
   });
 
   @override
@@ -22,14 +28,14 @@ class _ServerMobileViewState extends State<ServerMobileView> {
       mainAxisSize: MainAxisSize.min,
       children: [
         AppTile(
-          label: 'Korea',
-          icon: AppImagePaths.location,
-          trailing: Icon(
-            Icons.arrow_forward_ios,
-            color: AppColors.gray9,
-            size: 20,
+          label: widget.location.city,
+          selected: widget.isSelected,
+          icon: Flag(
+            countryCode: CountryUtils.getCountryCode(widget.location.country),
           ),
-          onPressed: onItemTap,
+          onPressed: () {
+            widget.onServerSelected(widget.location);
+          },
         ),
         DividerSpace(),
       ],
