@@ -17,6 +17,7 @@ class LanternLogger {
     logger.debug("\(message, privacy: .public)")
   }
 
+  // if you want to see logs in console use info
   func info(_ message: String) {
     logger.info("\(message, privacy: .public)")
   }

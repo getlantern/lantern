@@ -11,17 +11,11 @@
 //  Copyright (c) SagerNet. Licensed under GPLv3.
 //
 
+import CoreLocation
 import Foundation
 import Liblantern
 import NetworkExtension
 import OSLog
-
-#if os(iOS)
-  import WidgetKit
-#endif
-#if os(macOS)
-  import CoreLocation
-#endif
 
 public class ExtensionProvider: NEPacketTunnelProvider {
   private var platformInterface: ExtensionPlatformInterface!
@@ -55,8 +49,8 @@ public class ExtensionProvider: NEPacketTunnelProvider {
 
   func startVPN() {
     appLogger.log("(lantern-tunnel) quick connect")
-      appLogger.log("Data directory: \(FilePath.dataDirectory.relativePath)")
-      
+    appLogger.log("Data directory: \(FilePath.dataDirectory.relativePath)")
+
     var error: NSError?
 
     MobileStartVPN(platformInterface, opts(), &error)
@@ -87,48 +81,23 @@ public class ExtensionProvider: NEPacketTunnelProvider {
   }
 
   override open func stopTunnel(with reason: NEProviderStopReason) async {
-    appLogger.log("(lantern-tunnel) stopping, reason:\(String(describing: reason))")
+    appLogger.info("(lantern-tunnel) stopping, reason:\(String(describing: reason))")
     stopService()
   }
 
   func opts() -> UtilsOpts {
-    appLogger.log("Generating opts for lantern tunnel")
-    appLogger.log("Data directory: \(FilePath.dataDirectory.relativePath)")
+    appLogger.info("Generating opts for lantern tunnel")
+    appLogger.info("Data directory: \(FilePath.dataDirectory.relativePath)")
     let opts = UtilsOpts()
     opts.dataDir = FilePath.dataDirectory.relativePath
     opts.logDir = FilePath.logsDirectory.relativePath
     opts.locale = Locale.current.identifier
     opts.deviceid = ""
     opts.logLevel = "debug"
-      appLogger.info("Opts dataDir: \(opts.dataDir), logDir: \(opts.logDir), locale: \(opts.locale), deviceid: \(opts.deviceid), logLevel: \(opts.logLevel)")
+    appLogger.info(
+      "Opts dataDir: \(opts.dataDir), logDir: \(opts.logDir), locale: \(opts.locale), deviceid: \(opts.deviceid), logLevel: \(opts.logLevel)"
+    )
     return opts
-  }
-
-  override open func sleep() async {
-    // if let boxService {
-    //     boxService.pause()
-    // }
-  }
-
-  override open func wake() {
-    // if let boxService {
-    //     boxService.wake()
-    // }
-  }
-
-  func reloadService() {
-    appLogger.log("(lantern-tunnel) reloading service")
-    reasserting = true
-    defer {
-      reasserting = false
-    }
-    stopService()
-    startVPN()
-  }
-
-  func postServiceClose() {
-    //    radiance = nil
-    platformInterface.reset()
   }
 
 }

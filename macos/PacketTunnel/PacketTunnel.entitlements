@@ -11,7 +11,6 @@
 	<key>com.apple.security.application-groups</key>
 	<array>
 		<string>group.getlantern.lantern</string>
-        <string>ACZRKC3LQ9.objectbx</string>
 	</array>
 	<key>com.apple.security.files.system.read-write</key>
 	<true/>
