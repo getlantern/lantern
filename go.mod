@@ -6,9 +6,9 @@ toolchain go1.24.1
 
 // replace github.com/getlantern/radiance => ../radiance
 
-// replace github.com/getlantern/sing-box-minimal => ../sing-box-minimal
-
 // replace github.com/getlantern/lantern-server-provisioner => ../lantern-server-provisioner
+
+// replace github.com/sagernet/sing-box => ../sing-box-minimal
 
 replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v1.11.12-0.20250716231657-20b15178474a
 
@@ -21,7 +21,7 @@ replace github.com/tetratelabs/wazero => github.com/refraction-networking/wazero
 require (
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20250617134205-a652cb0cef27
-	github.com/getlantern/radiance v0.0.0-20250821052603-2c5ecc08f8d6
+	github.com/getlantern/radiance v0.0.0-20250826200634-30fa49b3e5aa
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/sagernet/sing-box v1.11.5
 	golang.org/x/mobile v0.0.0-20250711185624-d5bb5ecc55c0

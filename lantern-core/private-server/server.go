@@ -256,7 +256,6 @@ func SelectProject(selectedProject string) error {
 
 // StartDepolyment starts the deployment process for the selected project and location.
 func StartDepolyment(selectedLocation, serverName string) error {
-
 	ps, err := getSession()
 	if err != nil {
 		return err
@@ -399,7 +398,8 @@ func getGeoInfo(ip string) string {
 
 	var info geoInfo
 	if err := json.NewDecoder(resp.Body).Decode(&info); err != nil {
-		panic(err)
+		log.Errorf("Error decoding geo info response: %v", err)
+		return ""
 	}
 	log.Debugf("Geo info for IP %s: %+v", ip, info)
 	return fmt.Sprintf("%s - %s [%s]", info.Region, info.Country, info.CountryCode)

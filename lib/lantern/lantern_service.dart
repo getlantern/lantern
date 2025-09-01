@@ -12,6 +12,7 @@ import 'package:lantern/lantern/lantern_platform_service.dart';
 import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 
 import '../core/common/common.dart';
+import '../core/models/available_servers.dart';
 
 ///LanternService is wrapper around native and ffi services
 /// all communication happens here
@@ -461,6 +462,13 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, AvailableServers>> getLanternAvailableServers() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.getLanternAvailableServers();
+    }
+    return _platformService.getLanternAvailableServers();
+  }
+
   Future<Either<Failure, String>> deviceRemove({required String deviceId}) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.deviceRemove(deviceId: deviceId);
@@ -488,5 +496,13 @@ class LanternService implements LanternCoreService {
       return _ffiService.startChangeEmail(newEmail, password);
     }
     return _platformService.startChangeEmail(newEmail, password);
+  }
+
+  @override
+  Future<Either<Failure, String>> getAutoServerLocation() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.getAutoServerLocation();
+    }
+    return _platformService.getAutoServerLocation();
   }
 }

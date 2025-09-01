@@ -30,29 +30,40 @@ class MethodHandler {
       switch call.method {
       case "startVPN":
         self.startVPN(result: result)
+        break
       case "connectToServer":
         let map = call.arguments as? [String: Any]
         self.connectToServer(result: result, data: map!)
+        break
       case "stopVPN":
         self.stopVPN(result: result)
+        break
       case "isVPNConnected":
         self.isVPNConnected(result: result)
+        break
       case "plans":
         self.plans(result: result)
+        break
       case "oauthLoginUrl":
         var provider = call.arguments as! String
         self.oauthLoginUrl(result: result, provider: provider)
+        break
       case "oauthLoginCallback":
         var token = call.arguments as! String
         self.oauthLoginCallback(result: result, token: token)
+        break
       case "getUserData":
         self.getUserData(result: result)
+        break
       case "fetchUserData":
         self.fetchUserData(result: result)
+        break
       case "fetchDataCapInfo":
         self.fetchDataCapInfo(result: result)
+        break
       case "showManageSubscriptions":
         self.showManageSubscriptions(result: result)
+        break
       case "acknowledgeInAppPurchase":
         if let map = call.arguments as? [String: Any],
           let token = map["purchaseToken"] as? String,
@@ -65,6 +76,7 @@ class MethodHandler {
               code: "INVALID_ARGUMENTS", message: "Missing or invalid purchaseToken or planId",
               details: nil))
         }
+        break
       // user management
       case "startRecoveryByEmail":
         let map = call.arguments as? [String: Any]
@@ -132,6 +144,8 @@ class MethodHandler {
         self.addServerManually(result: result, data: data!)
       case "featureFlag":
         self.featureFlags(result: result)
+      case "getLanternAvailableServers":
+        self.getLanternAvailableServers(result: result)
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -311,7 +325,7 @@ class MethodHandler {
   }
 
   private func fetchDataCapInfo(result: @escaping FlutterResult) {
-    Task {
+    Task.detached {
       var error: NSError?
       if let bytes = MobileGetDataCapInfo(&error) {
         let json = String(data: bytes as Data, encoding: .utf8) ?? "{}"
@@ -718,6 +732,20 @@ class MethodHandler {
       let flags = MobileAvailableFeatures()
       await MainActor.run {
         result(String(data: flags!, encoding: .utf8))
+      }
+    }
+  }
+
+  func getLanternAvailableServers(result: @escaping FlutterResult) {
+    Task.detached {
+      var error: NSError?
+      let servers = MobileGetAvailableServers(&error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "GET_LANTERN_SERVERS_ERROR")
+        return
+      }
+      await MainActor.run {
+          result(String( data: servers!, encoding: .utf8))
       }
     }
   }

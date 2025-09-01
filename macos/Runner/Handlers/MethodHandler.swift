@@ -37,6 +37,16 @@ class MethodHandler {
         self.isVPNConnected(result: result)
       case "plans":
         self.plans(result: result)
+      case "installedApps":
+        self.installedApps(result: result)
+      case "addSplitTunnelItem":
+        withFilterArgs(call: call, result: result) { filterType, value in
+          self.addSplitTunnelItem(result: result, filterType: filterType, value: value)
+        }
+      case "removeSplitTunnelItem":
+        withFilterArgs(call: call, result: result) { filterType, value in
+          self.removeSplitTunnelItem(result: result, filterType: filterType, value: value)
+        }
       case "connectToServer":
         let map = call.arguments as? [String: Any]
         self.connectToServer(result: result, data: map!)
@@ -228,6 +238,54 @@ class MethodHandler {
     result(isConnected)
   }
 
+  func addSplitTunnelItem(
+    result: @escaping FlutterResult,
+    filterType: String,
+    value: String
+  ) {
+    Task {
+      var error: NSError?
+      MobileAddSplitTunnelItem(filterType, value, &error)
+      if let err = error {
+        await MainActor.run {
+          result(
+            FlutterError(
+              code: "ADD_SPLIT_TUNNEL_ITEM_FAILED",
+              message: err.localizedDescription,
+              details: err.debugDescription))
+        }
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  func removeSplitTunnelItem(
+    result: @escaping FlutterResult,
+    filterType: String,
+    value: String
+  ) {
+    Task {
+      var error: NSError?
+      MobileRemoveSplitTunnelItem(filterType, value, &error)
+      if let err = error {
+        await MainActor.run {
+          result(
+            FlutterError(
+              code: "REMOVE_SPLIT_TUNNEL_ITEM_FAILED",
+              message: err.localizedDescription,
+              details: err.debugDescription))
+        }
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
   private func plans(result: @escaping FlutterResult) {
     Task {
       do {
@@ -244,6 +302,25 @@ class MethodHandler {
           result(data)
         }
       }
+    }
+  }
+
+  private func installedApps(result: @escaping FlutterResult) {
+    Task {
+      let dataDir = FilePath.dataDirectory
+
+      var error: NSError?
+      let json = MobileLoadInstalledApps(dataDir.path, &error)
+
+      if let err = error {
+        result(
+          FlutterError(
+            code: "INSTALLED_APPS_ERROR",
+            message: err.localizedDescription,
+            details: err.debugDescription))
+        return
+      }
+      result(json ?? "[]")
     }
   }
 
@@ -622,6 +699,27 @@ class MethodHandler {
           code: code,
           message: nsError.localizedDescription,
           details: nsError.debugDescription
+        )
+      )
+    }
+  }
+
+  private func withFilterArgs(
+    call: FlutterMethodCall,
+    result: @escaping FlutterResult,
+    perform: (_ filterType: String, _ value: String) -> Void
+  ) {
+    if let map = call.arguments as? [String: Any],
+      let filterType = map["filterType"] as? String,
+      let value = map["value"] as? String
+    {
+      perform(filterType, value)
+    } else {
+      result(
+        FlutterError(
+          code: "INVALID_ARGUMENTS",
+          message: "Missing filterType or value",
+          details: nil
         )
       )
     }

@@ -9,6 +9,7 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"github.com/getlantern/lantern-outline/lantern-core/apps"
 	privateserver "github.com/getlantern/lantern-outline/lantern-core/private-server"
 	"github.com/getlantern/lantern-outline/lantern-core/utils"
 	"github.com/getlantern/radiance"
@@ -39,12 +40,13 @@ type App interface {
 	AvailableFeatures() []byte
 	ReportIssue(email, issueType, description, device, model, logFilePath string) error
 	IsRadianceConnected() bool
+	GetAvailableServers() []byte
 }
 
 type User interface {
 	CreateUser() (*api.UserDataResponse, error)
 	UserData() ([]byte, error)
-	DataCapInfo() (*api.DataCapInfo, error)
+	DataCapInfo() ([]byte, error)
 	FetchUserData() ([]byte, error)
 	OAuthLoginUrl(provider string) (string, error)
 	OAuthLoginCallback(oAuthToken string) ([]byte, error)
@@ -162,6 +164,22 @@ func (lc *LanternCore) initialize(opts *utils.Opts) error {
 	return nil
 }
 
+// LoadInstalledApps fetches the app list or rescans if needed using common macOS locations
+// currently only works on/enabled for macOS
+func LoadInstalledApps(dataDir string) (string, error) {
+	appsList := []*apps.AppData{}
+	apps.LoadInstalledApps(dataDir, func(a ...*apps.AppData) error {
+		appsList = append(appsList, a...)
+		return nil
+	})
+
+	b, err := json.Marshal(appsList)
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
+}
+
 func (lc *LanternCore) IsRadianceConnected() bool {
 	return lc.rad != nil
 }
@@ -174,6 +192,18 @@ func (lc *LanternCore) AvailableFeatures() []byte {
 		slog.Error("Error marshalling features", "error", err)
 		return nil
 	}
+	return jsonBytes
+}
+
+func (lc *LanternCore) GetAvailableServers() []byte {
+	servers := lc.rad.ServerManager().Servers()
+	slog.Debug("Available servers", "servers", servers)
+	jsonBytes, err := json.Marshal(servers)
+	if err != nil {
+		slog.Error("Error marshalling servers", "error", err)
+		return nil
+	}
+	slog.Debug("Available servers JSON", "json", string(jsonBytes))
 	return jsonBytes
 }
 
@@ -204,8 +234,16 @@ func (lc *LanternCore) ReportIssue(email, issueType, description, device, model,
 }
 
 // GetDataCapInfo returns information about this user's data cap. Only valid for free accounts
-func (lc *LanternCore) DataCapInfo() (*api.DataCapInfo, error) {
-	return lc.apiClient.DataCapInfo()
+func (lc *LanternCore) DataCapInfo() ([]byte, error) {
+	dataCap, err := lc.apiClient.DataCapInfo()
+	if err != nil {
+		return nil, fmt.Errorf("error getting data cap info: %w", err)
+	}
+	jsonBytes, err := json.Marshal(dataCap)
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling data cap info: %w", err)
+	}
+	return jsonBytes, nil
 }
 
 // User Methods
