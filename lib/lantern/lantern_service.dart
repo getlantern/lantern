@@ -469,6 +469,7 @@ class LanternService implements LanternCoreService {
     return _platformService.getLanternAvailableServers();
   }
 
+  @override
   Future<Either<Failure, String>> deviceRemove({required String deviceId}) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.deviceRemove(deviceId: deviceId);

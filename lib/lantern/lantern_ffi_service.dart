@@ -433,8 +433,7 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, Map<String, dynamic>>> stipeSubscription(
       {required String planId, required String email}) {
-    // TODO: implement stipeSubscription
-    throw UnimplementedError();
+    throw Exception("Desktop flow should not be here, this is just for mobile");
   }
 
   @override
@@ -522,8 +521,7 @@ class LanternFFIService implements LanternCoreService {
 
   @override
   Future<Either<Failure, Unit>> showManageSubscriptions() {
-    // TODO: implement showManageSubscriptions
-    throw UnimplementedError();
+    throw Exception("This not supported on desktop, this is only for mobile");
   }
 
   @override
@@ -546,8 +544,7 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, Unit>> acknowledgeInAppPurchase(
       {required String purchaseToken, required String planId}) {
-    // TODO: implement acknowledgeInAppPurchase
-    throw UnimplementedError();
+    throw Exception("This not supported on desktop, this is only for mobile");
   }
 
   @override
@@ -950,37 +947,97 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> featureFlag() {
-    // TODO: implement featureFlag
-    throw UnimplementedError();
+  Future<Either<Failure, String>> featureFlag() async {
+    try {
+      final result = await runInBackground<String>(
+            () async {
+          return _ffiService
+              .availableFeatures()
+              .toDartString();
+        },
+      );
+      checkAPIError(result);
+      return Right('ok');
+    } catch (e, stackTrace) {
+      appLogger.error('Error setting private server', e, stackTrace);
+      return Left(e.toFailure());
+    }
   }
 
   @override
-  Future<Either<Failure, AvailableServers>> getLanternAvailableServers() {
-    // TODO: implement getLanternAvailableServers
-    throw UnimplementedError();
+  Future<Either<Failure, AvailableServers>> getLanternAvailableServers() async {
+    try {
+      final result = await runInBackground<String>(
+            () async {
+          return _ffiService
+              .getAvailableServers()
+              .toDartString();
+        },
+      );
+      checkAPIError(result);
+      return Right(AvailableServers.fromJson(jsonDecode(result)));
+    } catch (e, stackTrace) {
+      appLogger.error('Error setting private server', e, stackTrace);
+      return Left(e.toFailure());
+    }
   }
 
   @override
-  Future<Either<Failure, String>> deviceRemove({required String deviceId}) {
-    // TODO: implement deviceRemove
-    throw UnimplementedError();
+  Future<Either<Failure, String>> deviceRemove({required String deviceId}) async {
+    try {
+      final result = await runInBackground<String>(
+            () async {
+          return _ffiService
+              .removeDevice(deviceId.toCharPtr)
+              .toDartString();
+        },
+      );
+      checkAPIError(result);
+      return Right('ok');
+    } catch (e, stackTrace) {
+      appLogger.error('Error setting private server', e, stackTrace);
+      return Left(e.toFailure());
+    }
   }
 
   @override
   Future<Either<Failure, String>> completeChangeEmail(
       {required String newEmail,
       required String password,
-      required String code}) {
-    // TODO: implement completeChangeEmail
-    throw UnimplementedError();
+      required String code}) async {
+    try {
+      final result = await runInBackground<String>(
+            () async {
+          return _ffiService
+              .completeChangeEmail(newEmail.toCharPtr, password.toCharPtr, code.toCharPtr)
+              .toDartString();
+        },
+      );
+      checkAPIError(result);
+      return Right('ok');
+    } catch (e, stackTrace) {
+      appLogger.error('Error setting private server', e, stackTrace);
+      return Left(e.toFailure());
+    }
   }
 
   @override
   Future<Either<Failure, String>> startChangeEmail(
-      String newEmail, String password) {
-    // TODO: implement startChangeEmail
-    throw UnimplementedError();
+      String newEmail, String password) async {
+    try {
+      final result = await runInBackground<String>(
+            () async {
+          return _ffiService.
+              startChangeEmail(newEmail.toCharPtr, password.toCharPtr)
+              .toDartString();
+        },
+      );
+      checkAPIError(result);
+      return Right('ok');
+    } catch (e, stackTrace) {
+      appLogger.error('Error setting private server', e, stackTrace);
+      return Left(e.toFailure());
+    }
   }
 
   @override

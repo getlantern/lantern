@@ -23,11 +23,11 @@ Future<void> injectServices() async {
   await sl<NotificationService>().init();
 
   sl.registerLazySingleton(() => LanternPlatformService(sl<AppPurchase>()));
-  await sl<LanternPlatformService>().init();
   if (PlatformUtils.isFFISupported) {
     sl.registerLazySingleton(() => LanternFFIService());
     await sl<LanternFFIService>().init();
   } else {
+    await sl<LanternPlatformService>().init();
     sl.registerLazySingleton<LanternFFIService>(() => MockLanternFFIService());
   }
   sl.registerLazySingleton(() => LocalStorageService());

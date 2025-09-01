@@ -34,13 +34,7 @@ func enableSplitTunneling() bool {
 }
 
 func SetupRadiance(opts *utils.Opts) error {
-	defer func() {
-		if r := recover(); r != nil {
-			slog.Error("Recovered from panic in SetupRadiance:", "error", r)
-		}
-	}()
-
-	c, err := lanterncore.New(opts)
+c, err := lanterncore.New(opts)
 	if err != nil {
 		return fmt.Errorf("unable to create LanternCore: %v", err)
 	}
