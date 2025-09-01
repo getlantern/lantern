@@ -64,10 +64,14 @@ class PrivateServerSetup extends HookConsumerWidget {
           provider: CloudProvider.googleCloud,
           cta: 'continue_with_${CloudProvider.googleCloud.value}'.i18n,
           card: ProviderCard(
+            buttonTitle:
+                'continue_with_${CloudProvider.googleCloud.value}'.i18n,
             title: 'server_setup_gcp'.i18n,
             price: 'server_setup_gcp_price'.i18n.fill(['\$8']),
             provider: CloudProvider.googleCloud,
             icon: AppImagePaths.googleCloud,
+            onContinueClicked: () => _continue(
+                CloudProvider.googleCloud, ref, context),
             onShowLocations: () {
               showModalBottomSheet(
                 context: context,
@@ -89,93 +93,17 @@ class PrivateServerSetup extends HookConsumerWidget {
         provider: CloudProvider.digitalOcean,
         cta: 'continue_with_${CloudProvider.digitalOcean.value}'.i18n,
         card: ProviderCard(
+          buttonTitle: 'continue_with_${CloudProvider.digitalOcean.value}'.i18n,
           title: 'server_setup_do'.i18n,
           price: 'server_setup_do_price'.i18n.fill(['\$8']),
           provider: CloudProvider.digitalOcean,
           icon: AppImagePaths.digitalOceanIcon,
-          onShowLocations: () {
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              useSafeArea: true,
-              backgroundColor: Theme.of(context).canvasColor,
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-              ),
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.9,
-              ),
-              builder: (_) => const DigitalOceanLocations(),
-            );
-          },
+          onShowLocations: () {},
+          onContinueClicked: () => _continue(
+              CloudProvider.digitalOcean, ref, context),
         ),
       ),
     ];
-
-    Future<void> _continue() async {
-      final selected = cards[selectedIdx.value].provider;
-      final Either<Failure, Unit> result;
-      if (selected == CloudProvider.googleCloud) {
-        result = await ref
-            .read(privateServerNotifierProvider.notifier)
-            .googleCloud();
-      } else {
-        result = await ref
-            .read(privateServerNotifierProvider.notifier)
-            .digitalOcean();
-      }
-      result.fold(
-        (f) => context.showSnackBar(f.localizedErrorMessage),
-        (_) {},
-      );
-    }
-
-    final continueButton = SizedBox(
-      width: double.infinity,
-      height: 56,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF012D2D),
-          foregroundColor: AppColors.gray1,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
-          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
-        ),
-        onPressed: _continue,
-        child: Text(
-          cards[selectedIdx.value].cta,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: AppColors.gray1,
-                fontWeight: FontWeight.w600,
-                height: 1.25,
-              ),
-        ),
-      ),
-    );
-
-    // Manual button (after continue)
-    final manualButton = SizedBox(
-      width: double.infinity,
-      height: 56,
-      child: OutlinedButton(
-        style: OutlinedButton.styleFrom(
-          side: BorderSide(color: AppColors.gray5, width: 1),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
-          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
-          foregroundColor: AppColors.black1,
-        ),
-        onPressed: () => appRouter.push(ManuallyServerSetup()),
-        child: Text(
-          'Set Up Manually',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: AppColors.black1,
-                fontWeight: FontWeight.w600,
-                height: 1.25,
-              ),
-        ),
-      ),
-    );
 
     return BaseScreen(
       title: 'setup_private_server'.i18n,
@@ -207,9 +135,13 @@ class PrivateServerSetup extends HookConsumerWidget {
                     onPageChanged: (i) => selectedIdx.value = i,
                   ),
                   const SizedBox(height: 8),
-                  continueButton,
-                  const SizedBox(height: 8),
-                  manualButton,
+                  SecondaryButton(
+                    label: 'server_setup_manual'.i18n,
+                    isTaller: true,
+                    onPressed: () {
+                      appRouter.push(ManuallyServerSetup());
+                    },
+                  ),
                   const SizedBox(height: 8),
                 ],
               ),
@@ -217,6 +149,22 @@ class PrivateServerSetup extends HookConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Future<void> _continue(
+      CloudProvider provider, WidgetRef ref, BuildContext context) async {
+    final Either<Failure, Unit> result;
+    if (provider == CloudProvider.googleCloud) {
+      result =
+          await ref.read(privateServerNotifierProvider.notifier).googleCloud();
+    } else {
+      result =
+          await ref.read(privateServerNotifierProvider.notifier).digitalOcean();
+    }
+    result.fold(
+      (f) => context.showSnackBar(f.localizedErrorMessage),
+      (_) {},
     );
   }
 }
