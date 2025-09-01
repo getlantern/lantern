@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/lantern_app.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
@@ -21,7 +22,8 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   print("[Flutter] WidgetsFlutterBinding initialized.");
   try {
-    initLogger();
+    final flutterLog = await AppStorageUtils.flutterLogFile();
+    initLogger(flutterLog.path);
     appLogger.debug('Starting app initialization...');
     await _configureAutoUpdate();
     await _configureLocalTimeZone();

@@ -8,15 +8,28 @@ import 'package:loggy/loggy.dart';
 final dbLogger = Loggy("DB-Logger");
 final appLogger = Loggy("app-Logger");
 
+/// Pick the right console printer per platform
+LoggyPrinter _defaultConsolePrinter() {
+  if (PlatformUtils.isDesktop) {
+    return DebugPrintLoggyPrinter();
+  } else {
+    return PrettyDeveloperPrinter();
+  }
+}
 
 void initLogger([String? path]) {
-
-  final logPrinter = PlatformUtils.isDesktop
-      ? DebugPrintLoggyPrinter()
-      : PrettyDeveloperPrinter();
+  LoggyPrinter logPrinter;
+  if (path != null) {
+    logPrinter = MultiLogPrinter([
+      _defaultConsolePrinter(),
+      FileLogPrinter(path),
+    ]);
+  } else {
+    logPrinter = _defaultConsolePrinter();
+  }
 
   Loggy.initLoggy(
-    logPrinter:logPrinter,
+    logPrinter: logPrinter,
     logOptions: const LogOptions(LogLevel.all),
     hierarchicalLogging: true,
   );
@@ -40,6 +53,20 @@ class DebugPrintLoggyPrinter extends LoggyPrinter {
   }
 }
 
+/// A printer that forwards logs to multiple printers
+class MultiLogPrinter extends LoggyPrinter {
+  final List<LoggyPrinter> _printers;
+
+  MultiLogPrinter(this._printers);
+
+  @override
+  void onLog(LogRecord record) {
+    for (final printer in _printers) {
+      printer.onLog(record);
+    }
+  }
+}
+
 class FileLogPrinter extends LoggyPrinter {
   final IOSink _sink;
 
@@ -51,6 +78,13 @@ class FileLogPrinter extends LoggyPrinter {
     final logLine = "[${record.time.toIso8601String()}] [${record.level.name}] "
         "[${record.loggerName}] ${record.message}";
     _sink.writeln(logLine);
+
+    if (record.error != null) {
+      _sink.writeln("Error: ${record.error}");
+    }
+    if (record.stackTrace != null) {
+      _sink.writeln("Stack: ${record.stackTrace}");
+    }
   }
 
   Future<void> close() async {
