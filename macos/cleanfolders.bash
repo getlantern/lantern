@@ -11,8 +11,8 @@ done
 
 paths=(
   /Users/Shared/Lantern
-  $HOME/Library/Application Support/Lantern
-  $HOME/Library/Application Support/org.getlantern.lantern
+  $HOME/Library/Application\ Support/Lantern
+  $HOME/Library/Application\ Support/org.getlantern.lantern
   $HOME/Library/Logs/Lantern
 )
 
