@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:lantern/core/windows/wait_named_pipe.dart';
 import 'package:win32/win32.dart';
 import 'package:ffi/ffi.dart';
 
@@ -55,7 +56,7 @@ class PipeClient {
     final deadline = DateTime.now().add(Duration(milliseconds: totalTimeoutMs));
     final lpName = TEXT(pipeName);
     try {
-      while (DateTime.now().isBefore(deadline)) {
+      while (true) {
         _hPipe = CreateFile(
           lpName,
           GENERIC_READ | GENERIC_WRITE,
@@ -66,26 +67,31 @@ class PipeClient {
           0,
         );
         if (_hPipe != INVALID_HANDLE_VALUE) {
-          return; // connected
+          final mode = calloc<Uint32>()..value = PIPE_READMODE_MESSAGE;
+          try {
+            SetNamedPipeHandleState(_hPipe, mode, nullptr, nullptr);
+          } finally {
+            calloc.free(mode);
+          }
+          return;
         }
 
         final err = GetLastError();
         // BUSY (231) and FILE_NOT_FOUND (2) are treated as "not ready yet"
         if (err == ERROR_PIPE_BUSY || err == ERROR_FILE_NOT_FOUND) {
           final remaining = deadline.difference(DateTime.now()).inMilliseconds;
-          final wait =
-              remaining > 1000 ? 1000 : (remaining > 0 ? remaining : 1);
-          WaitNamedPipe(lpName, wait);
-          continue;
-        }
+          if (remaining <= 0) throw Exception('Timed out waiting for pipe');
 
-        if (err == ERROR_ACCESS_DENIED) {
-          throw Exception('Access denied opening pipe (check pipe ACLs)');
+          // Wait for the pipe to be created and instance to become available
+          final ok = waitNamedPipe(pipeName, remaining);
+          if (!ok) {
+            await Future.delayed(const Duration(milliseconds: 100));
+          }
+          continue;
         }
 
         throw Exception('Failed to open pipe: error $err');
       }
-      throw Exception('Timed out waiting for pipe');
     } finally {
       free(lpName);
     }
