@@ -627,7 +627,7 @@ class MethodHandler : FlutterPlugin,
                     val map = call.arguments as Map<*, *>
                     val location = map["location"] as String? ?: error("Missing location")
                     val serverName = map["serverName"] as String? ?: error("Missing serverName")
-                    Mobile.startDepolyment(location, serverName)
+                    Mobile.startDeployment(location, serverName)
                 }
 
             }
@@ -637,7 +637,7 @@ class MethodHandler : FlutterPlugin,
                     result,
                     "DigitalOcean"
                 ) {
-                    Mobile.cancelDepolyment()
+                    Mobile.cancelDeployment()
                 }
 
             }

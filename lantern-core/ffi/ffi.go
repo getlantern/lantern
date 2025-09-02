@@ -45,11 +45,6 @@ var (
 	privateserverPort int64
 )
 
-func init() {
-	stub := lanterncore.Stub()
-	lanternCore.Store(&stub)
-}
-
 func core() lanterncore.Core {
 	c := lanternCore.Load()
 	return *c

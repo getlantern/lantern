@@ -667,7 +667,7 @@ class MethodHandler {
       let serverName = data["serverName"] as? String ?? ""
 
       var error: NSError?
-      let success = MobileStartDepolyment(location, serverName, &error)
+      let success = MobileStartDeployment(location, serverName, &error)
 
       if let err = error {
         await self.handleFlutterError(err, result: result, code: "START_DEPLOYMENT_ERROR")
@@ -683,7 +683,7 @@ class MethodHandler {
   func cancelDeployment(result: @escaping FlutterResult) {
     Task.detached {
       var error: NSError?
-      let success = MobileCancelDepolyment(&error)
+      let success = MobileCancelDeployment(&error)
       if let err = error {
         await self.handleFlutterError(err, result: result, code: "CANCEL_DEPLOYMENT_ERROR")
         return
