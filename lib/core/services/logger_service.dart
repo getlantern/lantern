@@ -33,7 +33,6 @@ void initLogger([String? path]) {
     logOptions: const LogOptions(LogLevel.all),
     hierarchicalLogging: true,
   );
-
   appLogger.debug("Logger initialized ✅");
 }
 
@@ -66,7 +65,7 @@ class MultiLogPrinter extends LoggyPrinter {
     }
   }
 }
-
+/// A printer that writes logs to a file
 class FileLogPrinter extends LoggyPrinter {
   final IOSink _sink;
 

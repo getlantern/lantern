@@ -18,9 +18,7 @@ import 'package:timezone/timezone.dart' as tz;
 import 'core/common/app_secrets.dart';
 
 Future<void> main() async {
-  print("[Flutter] Calling main...");
   WidgetsFlutterBinding.ensureInitialized();
-  print("[Flutter] WidgetsFlutterBinding initialized.");
   try {
     final flutterLog = await AppStorageUtils.flutterLogFile();
     initLogger(flutterLog.path);
@@ -36,7 +34,6 @@ Future<void> main() async {
   } catch (e, st) {
     appLogger.error("Error during app initialization", e, st);
   }
-
   appLogger.info("Setting up Sentry...");
   await _setupSentry(
     runner: () {

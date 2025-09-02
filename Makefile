@@ -32,7 +32,7 @@ MACOS_FRAMEWORK_DIR := macos/Frameworks
 MACOS_FRAMEWORK_BUILD := $(BIN_DIR)/macos/$(MACOS_FRAMEWORK)
 MACOS_DEBUG_BUILD := $(BUILD_DIR)/macos/Runner.app
 PACKET_TUNNEL_DIR := $(DARWIN_RELEASE_BUILD)/Contents/PlugIns/PacketTunnel.appex
-SYSTEM_EXTENSION_DIR := $(DARWIN_RELEASE_DIR)/$(DARWIN_APP_NAME)/Contents/Library/SystemExtensions/org.getlantern.lantern.packet.systemextension
+SYSTEM_EXTENSION_DIR := $(DARWIN_RELEASE_DIR)/$(DARWIN_APP_NAME)/Contents/Library/SystemExtensions/org.getlantern.lantern.PacketTunnel.systemextension
 PACKET_ENTITLEMENTS := macos/PacketTunnel/PacketTunnel.entitlements
 
 
@@ -177,6 +177,7 @@ $(DARWIN_RELEASE_BUILD):
 	@echo "Building Flutter app (release) for macOS..."
 	flutter build macos --release --dart-define=BUILD_TYPE=$(BUILD_TYPE)
 
+
 build-macos-release: $(DARWIN_RELEASE_BUILD)
 
 .PHONY: notarize-darwin
@@ -186,17 +187,28 @@ notarize-darwin: require-ac-username require-ac-password
 		--apple-id $$AC_USERNAME \
 		--team-id "ACZRKC3LQ9" \
 		--password $$AC_PASSWORD \
-		--wait
+		--wait \
+	    --output-format json > notary_output.json
 
 	@echo "Stapling notarization ticket..."
 	xcrun stapler staple $(MACOS_INSTALLER)
 	@echo "Notarization complete"
 
+
+.PHONY: notarize-log
+notarize-log:
+	xcrun notarytool log 3036c6b2-8f99-44d7-8c3e-6c9c007b2524 \
+		--apple-id $$AC_USERNAME \
+		--team-id "ACZRKC3LQ9" \
+		--password $$AC_PASSWORD \
+	  --output-format json > notary_log.json
+
 sign-app:
-	$(call osxcodesign, $(PACKET_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR)/Contents/Frameworks/Liblantern.framework)
-	$(call osxcodesign, $(PACKET_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR)/Contents/MacOS/org.getlantern.lantern.packet)
-	$(call osxcodesign, $(PACKET_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR))
 	$(call osxcodesign, $(MACOS_ENTITLEMENTS), $(DARWIN_RELEASE_BUILD))
+	$(call osxcodesign, $(PACKET_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR)/Contents/Frameworks/Liblantern.framework)
+	$(call osxcodesign, $(PACKET_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR)/Contents/MacOS/org.getlantern.lantern.PacketTunnel)
+	$(call osxcodesign, $(PACKET_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR))
+	$(call osxcodesign, $(MACOS_ENTITLEMENTS), $(DARWIN_RELEASE_BUILD)/Contents/MacOS/Lantern)
 
 package-macos: require-appdmg
 	appdmg appdmg.json $(MACOS_INSTALLER)
