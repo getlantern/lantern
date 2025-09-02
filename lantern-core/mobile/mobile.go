@@ -29,6 +29,7 @@ func getCore() (lanterncore.Core, error) {
 	return v.(lanterncore.Core), nil
 }
 
+// withCore is a helper function that provides access to the lanterncore.Core instance.
 func withCore(fn func(c lanterncore.Core) error) error {
 	c, err := getCore()
 	if err != nil {
@@ -37,6 +38,7 @@ func withCore(fn func(c lanterncore.Core) error) error {
 	return fn(c)
 }
 
+// withCoreR is a helper function that provides type-safe access to the lanterncore.Core instance.
 func withCoreR[T any](fn func(c lanterncore.Core) (T, error)) (T, error) {
 	var zero T
 	c, err := getCore()
@@ -50,13 +52,16 @@ func enableSplitTunneling() bool {
 	return runtime.GOOS == "android"
 }
 
-func SetupRadiance(opts *utils.Opts) error {
+// panicRecover is a helper function that recovers from panics and logs the error.
+func panicRecover() {
 	defer func() {
 		if r := recover(); r != nil {
-			slog.Error("Recovered from panic in SetupRadiance:", "error", r)
+			slog.Error("Recovered from panic:", "error", r)
 		}
 	}()
+}
 
+func SetupRadiance(opts *utils.Opts) error {
 	c, err := lanterncore.New(opts)
 	if err != nil {
 		return fmt.Errorf("unable to create LanternCore: %v", err)
@@ -93,7 +98,7 @@ func StopVPN() error {
 // // GetAvailableServers returns the available servers in JSON format.
 // // This function retrieves the servers from lantern
 func GetAvailableServers() ([]byte, error) {
-	return core().GetAvailableServers(), nil
+	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.GetAvailableServers(), nil })
 }
 
 // ConnectToServer connects to a server using the provided location type and tag.
@@ -202,8 +207,8 @@ func Logout(email string) ([]byte, error) {
 	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.Logout(email) })
 }
 
-func GetDataCapInfo() (*api.DataCapInfo, error) {
-	return withCoreR(func(c lanterncore.Core) (*api.DataCapInfo, error) { return c.DataCapInfo() })
+func GetDataCapInfo() ([]byte, error) {
+	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.DataCapInfo() })
 }
 
 // Email Recovery Methods
