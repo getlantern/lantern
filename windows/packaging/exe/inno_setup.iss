@@ -72,7 +72,6 @@ Filename: "{cmd}"; Parameters: "/C sc.exe stop ""{#SvcName}"" 2>nul & sc.exe del
   Flags: runhidden
 
 ; Create service (LocalSystem by default), delayed-auto start
-; NOTE: one set of quotes around binPath only
 Filename: "{cmd}"; Parameters: "/C sc.exe create ""{#SvcName}"" binPath= ""{app}\lanternsvc.exe"" start= delayed-auto DisplayName= ""{#SvcDisplayName}"""; \
   Flags: runhidden
 
@@ -130,5 +129,56 @@ begin
   else
   begin
     Result := not FileExists(ExpandConstant('{sys}\MSVCP140.dll'));
+  end;
+end;
+
+function GenerateToken(): string;
+var
+  g, s: string;
+begin
+  { Use a GUID + tick count, hashed to a compact hex token }
+  g := CreateGUID();
+  s := g + '|' + IntToStr(GetTickCount());
+  Result := GetSHA1OfString(s);  { 40 hex chars }
+end;
+
+procedure CreateTokenFile();
+var
+  path, dir, existing: string;
+begin
+  path := ExpandConstant('{#TokenFile}');
+  dir := ExtractFileDir(path);
+
+  if not DirExists(dir) then
+  begin
+    if ForceDirectories(dir) then
+      Log(Format('Created token directory: %s', [dir]))
+    else
+      RaiseException(Format('Failed to create token directory: %s', [dir]));
+  end;
+
+  if LoadStringFromFile(path, existing) and (Trim(existing) <> '') then
+  begin
+    Log('Token file already present; keeping existing value.');
+    exit;
+  end;
+
+  if not SaveStringToFile(path, GenerateToken(), False) then
+    RaiseException(Format('Failed to write token to %s', [path]))
+  else
+    Log(Format('Created token file at %s', [path]));
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  { Create the token }
+  if CurStep = ssInstall then
+  begin
+    try
+      CreateTokenFile();
+    except
+      { If we cannot create the token, abort install }
+      RaiseException('Failed to create IPC token');
+    end;
   end;
 end;
