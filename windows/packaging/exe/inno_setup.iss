@@ -89,13 +89,9 @@ Filename: "{cmd}"; Parameters: "/C sc.exe failureflag ""{#SvcName}"" 1"; \
 Filename: "{cmd}"; Parameters: "/C sc.exe start ""{#SvcName}"""; \
   Flags: runhidden
 
-; Wait for service to be running before launching UI
-Filename: "powershell.exe"; Flags: runhidden; \
-  Parameters: "-NoProfile -ExecutionPolicy Bypass -Command ""$svc=$null; for($i=0;$i -lt 30;$i++){ $svc=Get-Service -Name '{#SvcName}' -ErrorAction SilentlyContinue; if($svc -and $svc.Status -eq 'Running'){ exit 0 }; Start-Sleep -Seconds 1 }; exit 1"""
-
 ; Launch Lantern app UI
 Filename: "{app}\{{EXECUTABLE_NAME}}"; Description: "{cm:LaunchProgram,{{DISPLAY_NAME}}}"; \
-  Flags: runasoriginaluser nowait postinstall skipifsil
+  Flags: runasoriginaluser nowait postinstall skipifsilent
 
 [UninstallRun]
 ; Stop and remove the service on uninstall

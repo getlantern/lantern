@@ -25,23 +25,25 @@ class PipeClient {
   int _hPipe = INVALID_HANDLE_VALUE;
   bool get isConnected => _hPipe != INVALID_HANDLE_VALUE;
 
-  Future<void> _getToken() async {
+  Future<void> _getToken({int? maxWaitMs}) async {
     if (token != null && token!.isNotEmpty) return;
     final programData =
         Platform.environment['ProgramData'] ?? r'C:\ProgramData';
     final path = tokenPath ?? '$programData\\Lantern\\ipc-token';
 
-    final deadline = DateTime.now().add(Duration(milliseconds: timeoutMs));
+    final total = (maxWaitMs ?? timeoutMs);
+    final deadline = DateTime.now().add(Duration(milliseconds: total));
     while (true) {
       try {
         final s = await File(path).readAsString();
         token = s.trim();
-        if (token!.isEmpty) throw Exception('IPC token file is empty: $path');
+        if (token!.isEmpty) {
+          throw Exception('IPC token file is empty: $path');
+        }
         return;
       } catch (e) {
         if (DateTime.now().isAfter(deadline)) {
-          // quit after timeout
-          rethrow;
+          throw Exception('Timed out waiting for IPC token at $path');
         }
         await Future.delayed(const Duration(milliseconds: 200));
       }
@@ -49,23 +51,27 @@ class PipeClient {
   }
 
   Future<void> connect() async {
-    await _getToken();
-
-    final totalTimeoutMs = timeoutMs < 10000 ? 10000 : timeoutMs;
-
-    final deadline = DateTime.now().add(Duration(milliseconds: totalTimeoutMs));
+    final total = timeoutMs < 10000 ? 10000 : timeoutMs;
+    final deadline = DateTime.now().add(Duration(milliseconds: total));
     final lpName = TEXT(pipeName);
+
     try {
       while (true) {
-        _hPipe = CreateFile(
-          lpName,
-          GENERIC_READ | GENERIC_WRITE,
-          0,
-          nullptr,
-          OPEN_EXISTING,
-          FILE_ATTRIBUTE_NORMAL,
-          0,
-        );
+        final remaining = deadline.difference(DateTime.now()).inMilliseconds;
+        if (remaining <= 0) {
+          throw Exception('Timed out waiting for pipe "$pipeName"');
+        }
+        if (waitNamedPipe(pipeName, remaining)) break;
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+
+      final remainingForToken =
+          deadline.difference(DateTime.now()).inMilliseconds;
+      await _getToken(maxWaitMs: remainingForToken > 0 ? remainingForToken : 1);
+
+      while (true) {
+        _hPipe = CreateFile(lpName, GENERIC_READ | GENERIC_WRITE, 0, nullptr,
+            OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
         if (_hPipe != INVALID_HANDLE_VALUE) {
           final mode = calloc<Uint32>()..value = PIPE_READMODE_MESSAGE;
           try {
@@ -77,19 +83,14 @@ class PipeClient {
         }
 
         final err = GetLastError();
-        // BUSY (231) and FILE_NOT_FOUND (2) are treated as "not ready yet"
+        final remaining = deadline.difference(DateTime.now()).inMilliseconds;
+        if (remaining <= 0) {
+          throw Exception('Timed out opening pipe, last error=$err');
+        }
         if (err == ERROR_PIPE_BUSY || err == ERROR_FILE_NOT_FOUND) {
-          final remaining = deadline.difference(DateTime.now()).inMilliseconds;
-          if (remaining <= 0) throw Exception('Timed out waiting for pipe');
-
-          // Wait for the pipe to be created and instance to become available
-          final ok = waitNamedPipe(pipeName, remaining);
-          if (!ok) {
-            await Future.delayed(const Duration(milliseconds: 100));
-          }
+          waitNamedPipe(pipeName, remaining);
           continue;
         }
-
         throw Exception('Failed to open pipe: error $err');
       }
     } finally {

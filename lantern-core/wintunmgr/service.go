@@ -144,6 +144,11 @@ func (s *Service) Start(ctx context.Context) error {
 	slog.Debugf("Service.Start pipe=%q datadir=%q logdir=%q token_path=%q",
 		s.opts.PipeName, s.opts.DataDir, s.opts.LogDir, s.opts.TokenPath)
 
+	token, err := s.getToken()
+	if err != nil {
+		return fmt.Errorf("token: %w", err)
+	}
+
 	ctx, s.cancel = context.WithCancel(ctx)
 
 	cfg := &winio.PipeConfig{
@@ -164,17 +169,11 @@ func (s *Service) Start(ctx context.Context) error {
 		slog.Debugf("Service listener closed pipe=%q", s.opts.PipeName)
 	}()
 
-	// Start core init in the background
 	go func() {
 		if err := s.InitCore(); err != nil {
 			slog.Errorf("InitCore failed: %v", err)
 		}
 	}()
-
-	token, err := s.getToken()
-	if err != nil {
-		return fmt.Errorf("token: %w", err)
-	}
 
 	for {
 		conn, err := ln.Accept()
@@ -250,7 +249,7 @@ func (s *Service) handleConn(ctx context.Context, c net.Conn, token, connID stri
 		}
 		if req.Cmd == common.CmdWatchStatus {
 			s.handleWatchStatus(ctx, connID, enc, done)
-			return
+			continue
 		}
 		start := time.Now()
 		resp := s.dispatch(ctx, &req)
