@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -14,34 +15,28 @@ class FeatureFlagNotifier extends _$FeatureFlagNotifier {
     return {};
   }
 
-  void fetchFeatureFlags() async {
+  Future<void> fetchFeatureFlags() async {
     appLogger.debug('Fetching feature flags...');
     final result = await ref.read(lanternServiceProvider).featureFlag();
     result.fold(
       (failure) {
-        // Handle failure, maybe log it or show a message
         appLogger.error(
             'Error fetching feature flags: ${failure.localizedErrorMessage}');
       },
       (flags) {
-        state = json.decode(flags);
-        appLogger.debug('Feature flags fetched successfully: $flags');
+        try {
+          state = json.decode(flags) as Map<String, dynamic>;
+          appLogger.debug('Feature flags fetched successfully: $state');
+        } catch (e, st) {
+          appLogger.error('Failed to parse feature flags', e, st);
+        }
       },
     );
   }
 
-  bool isGCPFlag() {
-    final flags = state;
-    if (flags.isEmpty) {
-      appLogger.debug('Feature flags are empty, GCP is enable by default.');
+  bool get isSentryEnabled =>
+      state.getBool(FeatureFlag.sentry, defaultValue: false);
 
-      ///Since the flags are empty, we assume GCP is disable by default.
-      /// Majority of out user are in censorship regions, so we assume GCP is not enable.
-      /// This is a safe assumption to avoid breaking the app.
-      return false;
-    }
-    final gcpEnabled = flags['private.gcp'] ?? false;
-    appLogger.debug('GCP enabled: $gcpEnabled');
-    return gcpEnabled;
-  }
+  bool get isGCPEnabled =>
+      state.getBool(FeatureFlag.privateGcp, defaultValue: false);
 }
