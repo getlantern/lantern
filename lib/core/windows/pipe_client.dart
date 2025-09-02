@@ -22,7 +22,6 @@ class PipeClient {
   final int bufSize;
 
   int _hPipe = INVALID_HANDLE_VALUE;
-
   bool get isConnected => _hPipe != INVALID_HANDLE_VALUE;
 
   Future<void> _getToken() async {
@@ -30,20 +29,33 @@ class PipeClient {
     final programData =
         Platform.environment['ProgramData'] ?? r'C:\ProgramData';
     final path = tokenPath ?? '$programData\\Lantern\\ipc-token';
-    final s = await File(path).readAsString();
-    token = s.trim();
-    if (token!.isEmpty) {
-      throw Exception('IPC token file is empty: $path');
+
+    final deadline = DateTime.now().add(Duration(milliseconds: timeoutMs));
+    while (true) {
+      try {
+        final s = await File(path).readAsString();
+        token = s.trim();
+        if (token!.isEmpty) throw Exception('IPC token file is empty: $path');
+        return;
+      } catch (e) {
+        if (DateTime.now().isAfter(deadline)) {
+          // quit after timeout
+          rethrow;
+        }
+        await Future.delayed(const Duration(milliseconds: 200));
+      }
     }
   }
 
   Future<void> connect() async {
     await _getToken();
 
-    final start = DateTime.now();
+    final totalTimeoutMs = timeoutMs < 10000 ? 10000 : timeoutMs;
+
+    final deadline = DateTime.now().add(Duration(milliseconds: totalTimeoutMs));
     final lpName = TEXT(pipeName);
     try {
-      while (true) {
+      while (DateTime.now().isBefore(deadline)) {
         _hPipe = CreateFile(
           lpName,
           GENERIC_READ | GENERIC_WRITE,
@@ -53,18 +65,27 @@ class PipeClient {
           FILE_ATTRIBUTE_NORMAL,
           0,
         );
-        if (_hPipe != INVALID_HANDLE_VALUE) return;
+        if (_hPipe != INVALID_HANDLE_VALUE) {
+          return; // connected
+        }
 
-        if (GetLastError() == ERROR_PIPE_BUSY) {
-          if (DateTime.now().difference(start).inMilliseconds >= timeoutMs) {
-            throw Exception('Timed out waiting for pipe');
-          }
-          await Future.delayed(Duration(milliseconds: 100));
+        final err = GetLastError();
+        // BUSY (231) and FILE_NOT_FOUND (2) are treated as "not ready yet"
+        if (err == ERROR_PIPE_BUSY || err == ERROR_FILE_NOT_FOUND) {
+          final remaining = deadline.difference(DateTime.now()).inMilliseconds;
+          final wait =
+              remaining > 1000 ? 1000 : (remaining > 0 ? remaining : 1);
+          WaitNamedPipe(lpName, wait);
           continue;
         }
 
-        throw Exception('Failed to open pipe: error ${GetLastError()}');
+        if (err == ERROR_ACCESS_DENIED) {
+          throw Exception('Access denied opening pipe (check pipe ACLs)');
+        }
+
+        throw Exception('Failed to open pipe: error $err');
       }
+      throw Exception('Timed out waiting for pipe');
     } finally {
       free(lpName);
     }
