@@ -24,7 +24,6 @@ class AppDelegate: FlutterAppDelegate {
     guard let controller = mainFlutterWindow?.contentViewController as? FlutterViewController else {
       fatalError("contentViewController is not a FlutterViewController")
     }
-    RegisterGeneratedPlugins(registry: controller)
 
     registerEventHandlers(controller: controller)
 
