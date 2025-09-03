@@ -950,10 +950,8 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, String>> featureFlag() async {
     try {
       final result = await runInBackground<String>(
-            () async {
-          return _ffiService
-              .availableFeatures()
-              .toDartString();
+        () async {
+          return _ffiService.availableFeatures().toDartString();
         },
       );
       checkAPIError(result);
@@ -968,10 +966,8 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, AvailableServers>> getLanternAvailableServers() async {
     try {
       final result = await runInBackground<String>(
-            () async {
-          return _ffiService
-              .getAvailableServers()
-              .toDartString();
+        () async {
+          return _ffiService.getAvailableServers().toDartString();
         },
       );
       checkAPIError(result);
@@ -983,13 +979,12 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> deviceRemove({required String deviceId}) async {
+  Future<Either<Failure, String>> deviceRemove(
+      {required String deviceId}) async {
     try {
       final result = await runInBackground<String>(
-            () async {
-          return _ffiService
-              .removeDevice(deviceId.toCharPtr)
-              .toDartString();
+        () async {
+          return _ffiService.removeDevice(deviceId.toCharPtr).toDartString();
         },
       );
       checkAPIError(result);
@@ -1007,9 +1002,10 @@ class LanternFFIService implements LanternCoreService {
       required String code}) async {
     try {
       final result = await runInBackground<String>(
-            () async {
+        () async {
           return _ffiService
-              .completeChangeEmail(newEmail.toCharPtr, password.toCharPtr, code.toCharPtr)
+              .completeChangeEmail(
+                  newEmail.toCharPtr, password.toCharPtr, code.toCharPtr)
               .toDartString();
         },
       );
@@ -1026,9 +1022,9 @@ class LanternFFIService implements LanternCoreService {
       String newEmail, String password) async {
     try {
       final result = await runInBackground<String>(
-            () async {
-          return _ffiService.
-              startChangeEmail(newEmail.toCharPtr, password.toCharPtr)
+        () async {
+          return _ffiService
+              .startChangeEmail(newEmail.toCharPtr, password.toCharPtr)
               .toDartString();
         },
       );

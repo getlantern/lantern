@@ -70,8 +70,8 @@ class PrivateServerSetup extends HookConsumerWidget {
             price: 'server_setup_gcp_price'.i18n.fill(['\$8']),
             provider: CloudProvider.googleCloud,
             icon: AppImagePaths.googleCloud,
-            onContinueClicked: () => _continue(
-                CloudProvider.googleCloud, ref, context),
+            onContinueClicked: () =>
+                _continue(CloudProvider.googleCloud, ref, context),
             onShowLocations: () {
               showModalBottomSheet(
                 context: context,
@@ -99,8 +99,8 @@ class PrivateServerSetup extends HookConsumerWidget {
           provider: CloudProvider.digitalOcean,
           icon: AppImagePaths.digitalOceanIcon,
           onShowLocations: () {},
-          onContinueClicked: () => _continue(
-              CloudProvider.digitalOcean, ref, context),
+          onContinueClicked: () =>
+              _continue(CloudProvider.digitalOcean, ref, context),
         ),
       ),
     ];

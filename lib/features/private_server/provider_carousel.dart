@@ -33,8 +33,7 @@ class ProviderCarousel extends HookConsumerWidget {
     //     (isDesktop ? 0.98 : viewportFraction).clamp(0.82, 0.98).toDouble();
 
     final controller = useMemoized(
-      () => PageController(viewportFraction:0.98, keepPage: true)
-    );
+        () => PageController(viewportFraction: 0.98, keepPage: true));
     useEffect(() => controller.dispose, [controller]);
 
     void goTo(int page) {
@@ -72,7 +71,7 @@ class ProviderCarousel extends HookConsumerWidget {
                   },
                   itemBuilder: (context, idx) => Padding(
                     padding: itemPadding,
-                    child:cards[idx],
+                    child: cards[idx],
                   ),
                 ),
               ],

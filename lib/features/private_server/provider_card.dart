@@ -18,7 +18,7 @@ class ProviderCard extends StatelessWidget {
     required this.price,
     required this.icon,
     this.onShowLocations,
-    required  this.onContinueClicked,
+    required this.onContinueClicked,
   });
 
   @override
@@ -26,7 +26,7 @@ class ProviderCard extends StatelessWidget {
     final t = Theme.of(context).textTheme;
 
     return AppCard(
-     child: Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(height: defaultSize),
@@ -88,11 +88,8 @@ class ProviderCard extends StatelessWidget {
 
           SizedBox(height: defaultSize),
           PrimaryButton(
-            label: buttonTitle,
-            isTaller: true,
-            onPressed:onContinueClicked ),
+              label: buttonTitle, isTaller: true, onPressed: onContinueClicked),
           SizedBox(height: defaultSize),
-
         ],
       ),
     );

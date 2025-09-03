@@ -52,7 +52,6 @@ func enableSplitTunneling() bool {
 	return runtime.GOOS == "android"
 }
 
-
 // panicRecover is a helper function that recovers from panics and logs the error.
 func panicRecover() {
 	defer func() {
