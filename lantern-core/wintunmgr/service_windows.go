@@ -67,8 +67,6 @@ func NewService(opts ServiceOptions, wt *Manager) *Service {
 	}
 }
 
-// --- lifecycle / init ---
-
 func (s *Service) InitCore() error {
 	core, err := lanterncore.New(&utils.Opts{
 		LogDir:   s.opts.LogDir,
@@ -203,14 +201,12 @@ func (s *Service) Start(ctx context.Context) error {
 
 func (s *Service) handleWatchStatus(ctx context.Context, connID string, enc *json.Encoder, done chan struct{}) {
 	ch := make(chan statusEvent, 8)
-
 	s.subsMu.Lock()
 	s.statusSubs[connID] = ch
 	s.subsMu.Unlock()
-
 	_ = enc.Encode(s.statusSnapshot())
 
-	// Poll IPC status and broadcast deltas
+	// poll Radiance status and send deltas
 	go func() {
 		defer func() {
 			s.subsMu.Lock()
@@ -228,17 +224,13 @@ func (s *Service) handleWatchStatus(ctx context.Context, connID string, enc *jso
 				return
 			case <-t.C:
 				st, err := ripc.GetStatus()
-				if err != nil {
-					st = ripc.StatusClosed
-				}
 				state := "Disconnected"
-				if st == ripc.StatusRunning {
+				if err == nil && st == ripc.StatusRunning {
 					state = "Connected"
 				}
 				if state != prev {
 					prev = state
-					evt := statusEvent{Event: "Status", State: state, Ts: time.Now().Unix()}
-					_ = enc.Encode(evt)
+					_ = enc.Encode(statusEvent{Event: "Status", State: state, Ts: time.Now().Unix()})
 				}
 			}
 		}
@@ -372,12 +364,10 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		if err := s.checkIPCUp(); err != nil {
 			return rpcErr(r.ID, "connect_error", err.Error())
 		}
-
 		loc := strings.TrimSpace(p.Location)
 		if loc == "" {
 			loc = "lantern"
 		}
-
 		if p.Tag == "" {
 			if err := ripc.SetClashMode(loc); err != nil {
 				return rpcErr(r.ID, "connect_error", err.Error())
