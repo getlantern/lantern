@@ -89,7 +89,7 @@ class VPNManager: VPNBase {
   private func createNewProfile() {
     let manager = NETunnelProviderManager()
     let tunnelProtocol = NETunnelProviderProtocol()
-    tunnelProtocol.providerBundleIdentifier = "org.getlantern.lantern.packet"
+    tunnelProtocol.providerBundleIdentifier = "org.getlantern.lantern.PacketTunnel"
     tunnelProtocol.serverAddress = "0.0.0.0"
 
     manager.protocolConfiguration = tunnelProtocol

@@ -26,7 +26,7 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
 
   let logger = Logger(subsystem: "org.getlantern.lantern", category: "SystemExtensionManager")
   private var currentRequest: OSSystemExtensionRequest?
-  static let tunnelBundleID = "org.getlantern.lantern.packet"
+  static let tunnelBundleID = "org.getlantern.lantern.PacketTunnel"
 
   // MARK: - Public Methods
 
