@@ -892,7 +892,7 @@ class LanternFFIService implements LanternCoreService {
       checkAPIError(result);
       return Right('ok');
     } catch (e, stackTrace) {
-      appLogger.error('Error setting private server', e, stackTrace);
+      appLogger.error('Error connecting to server', e, stackTrace);
       return Left(e.toFailure());
     } finally {
       ffiPaths.free();
@@ -941,7 +941,7 @@ class LanternFFIService implements LanternCoreService {
       checkAPIError(result);
       return Right('ok');
     } catch (e, stackTrace) {
-      appLogger.error('Error setting private server', e, stackTrace);
+      appLogger.error('Error revoking server manager instance', e, stackTrace);
       return Left(e.toFailure());
     }
   }
@@ -957,7 +957,7 @@ class LanternFFIService implements LanternCoreService {
       checkAPIError(result);
       return Right('ok');
     } catch (e, stackTrace) {
-      appLogger.error('Error setting private server', e, stackTrace);
+      appLogger.error('Error getting feature flag', e, stackTrace);
       return Left(e.toFailure());
     }
   }
@@ -973,7 +973,7 @@ class LanternFFIService implements LanternCoreService {
       checkAPIError(result);
       return Right(AvailableServers.fromJson(jsonDecode(result)));
     } catch (e, stackTrace) {
-      appLogger.error('Error setting private server', e, stackTrace);
+      appLogger.error('Error getting available servers', e, stackTrace);
       return Left(e.toFailure());
     }
   }
@@ -990,7 +990,7 @@ class LanternFFIService implements LanternCoreService {
       checkAPIError(result);
       return Right('ok');
     } catch (e, stackTrace) {
-      appLogger.error('Error setting private server', e, stackTrace);
+      appLogger.error('Error removing device', e, stackTrace);
       return Left(e.toFailure());
     }
   }
@@ -1012,7 +1012,7 @@ class LanternFFIService implements LanternCoreService {
       checkAPIError(result);
       return Right('ok');
     } catch (e, stackTrace) {
-      appLogger.error('Error setting private server', e, stackTrace);
+      appLogger.error('Error completing change email', e, stackTrace);
       return Left(e.toFailure());
     }
   }
@@ -1031,7 +1031,7 @@ class LanternFFIService implements LanternCoreService {
       checkAPIError(result);
       return Right('ok');
     } catch (e, stackTrace) {
-      appLogger.error('Error setting private server', e, stackTrace);
+      appLogger.error('Error starting change email', e, stackTrace);
       return Left(e.toFailure());
     }
   }
