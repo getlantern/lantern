@@ -16,6 +16,7 @@ import 'package:lantern/core/models/mapper/plan_mapper.dart';
 import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
+import 'package:lantern/core/windows/radiance_ipc_client.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_generated_bindings.dart';
 import 'package:lantern/lantern/lantern_service.dart';
@@ -51,6 +52,7 @@ class LanternFFIService implements LanternCoreService {
   static final privateServerReceivePort = ReceivePort();
   static final appsReceivePort = ReceivePort();
   static final loggingReceivePort = ReceivePort();
+  final _ipc = RadianceIPC();
 
   static LanternBindings _gen() {
     String fullPath = "";
@@ -102,12 +104,18 @@ class LanternFFIService implements LanternCoreService {
       await _initializeCommandIsolate();
       final nativePort = statusReceivePort.sendPort.nativePort;
       // setup receive port to receive connection status updates
-      _status = statusReceivePort.map(
-        (event) {
-          Map<String, dynamic> result = jsonDecode(event);
-          return LanternStatus.fromJson(result);
-        },
-      );
+      if (Platform.isWindows) {
+        _status = _ipc
+            .watchStatus()
+            .map((state) => LanternStatus.fromJson({'status': state}));
+      } else {
+        _status = statusReceivePort.map(
+          (event) {
+            Map<String, dynamic> result = jsonDecode(event);
+            return LanternStatus.fromJson(result);
+          },
+        );
+      }
 
       _privateServerStatus = privateServerReceivePort.map((event) {
         Map<String, dynamic> result = jsonDecode(event);
@@ -390,7 +398,7 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, Unit>> isVPNConnected() async {
     try {
-      final result = _ffiService.isVPNConnected();
+      final s = await _ipc.status();
       return right(unit);
     } catch (e) {
       return Left(e.toFailure());
@@ -879,20 +887,12 @@ class LanternFFIService implements LanternCoreService {
       String location, String tag) async {
     final ffiPaths = await PlatformFfiUtils.getFfiPlatformPaths();
     try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService
-              .connectToServer(
-                location.toCharPtr,
-                tag.toCharPtr,
-                ffiPaths.logFilePathPtr.cast<Char>(),
-                ffiPaths.dataDirPtr.cast<Char>(),
-                ffiPaths.localePtr.cast<Char>(),
-              )
-              .toDartString();
-        },
-      );
-      checkAPIError(result);
+      if (tag.isEmpty) {
+        await _ipc.setMode(location.isEmpty ? 'lantern' : location);
+      } else {
+        final group = location.isEmpty ? 'lantern' : location;
+        await _ipc.select(group, tag);
+      }
       return Right('ok');
     } catch (e, stackTrace) {
       appLogger.error('Error setting private server', e, stackTrace);
