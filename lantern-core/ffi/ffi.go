@@ -223,13 +223,7 @@ func sendStatusToPort(status VPNStatus) {
 		slog.Error("Status port is not set, cannot send status")
 		return
 	}
-	defer func() {
-		if r := recover(); r != nil {
-			slog.Error("Recovered from panic in IsVPNRunning:", "error", r)
-		}
-	}()
-
-	msg := map[string]any{"status": status}
+    msg := map[string]any{"status": status}
 	slog.Debug("Sending status to port", "port", statusPort)
 	data, _ := json.Marshal(msg)
 	slog.Debug("Marshalled status data", "data", string(data))
