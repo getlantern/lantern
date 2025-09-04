@@ -18,7 +18,6 @@ import (
 	"github.com/getlantern/radiance/common"
 	"github.com/getlantern/radiance/servers"
 	"github.com/getlantern/radiance/vpn"
-	ripc "github.com/getlantern/radiance/vpn/ipc"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -43,6 +42,14 @@ type App interface {
 	IsRadianceConnected() bool
 	IsVPNRunning() (bool, error)
 	GetAvailableServers() []byte
+}
+
+type VPNControl interface {
+	StartTunnel(group string) error
+	StopTunnel() error
+	ConnectToServer(group, tag string) error
+	VPNStatus() (vpn.Status, error)
+	IsVPNRunning() (bool, error)
 }
 
 type User interface {
@@ -102,6 +109,7 @@ type Core interface {
 	Payment
 	PrivateServer
 	SplitTunnel
+	VPNControl
 }
 
 // Make sure LanternCore implements the Core interface
@@ -166,32 +174,39 @@ func (lc *LanternCore) initialize(opts *utils.Opts) error {
 	return nil
 }
 
-// LoadInstalledApps fetches the app list or rescans if needed using common macOS locations
-// currently only works on/enabled for macOS
-func LoadInstalledApps(dataDir string) (string, error) {
-	appsList := []*apps.AppData{}
-	apps.LoadInstalledApps(dataDir, func(a ...*apps.AppData) error {
-		appsList = append(appsList, a...)
-		return nil
-	})
-
-	b, err := json.Marshal(appsList)
-	if err != nil {
-		return "", err
+func (lc *LanternCore) StartTunnel(group string) error {
+	if lc.splitTunnel == nil {
+		st, err := vpn.NewSplitTunnelHandler()
+		if err != nil {
+			return err
+		}
+		lc.splitTunnel = st
 	}
-	return string(b), nil
+	return vpn.QuickConnect(group /*platIfce*/, nil)
+}
+
+func (lc *LanternCore) StopTunnel() error {
+	return vpn.Disconnect()
+}
+
+func (lc *LanternCore) ConnectToServer(group, tag string) error {
+	return vpn.ConnectToServer(group, tag /*platIfce*/, nil)
+}
+
+func (lc *LanternCore) VPNStatus() (vpn.Status, error) {
+	return vpn.GetStatus()
+}
+
+func (lc *LanternCore) IsVPNRunning() (bool, error) {
+	st, err := vpn.GetStatus()
+	if err != nil {
+		return false, err
+	}
+	return st.TunnelOpen, nil
 }
 
 func (lc *LanternCore) IsRadianceConnected() bool {
 	return lc.rad != nil
-}
-
-func (lc *LanternCore) IsVPNRunning() (bool, error) {
-	st, err := ripc.GetStatus()
-	if err != nil {
-		return false, err
-	}
-	return st == ripc.StatusRunning, nil
 }
 
 func (lc *LanternCore) AvailableFeatures() []byte {
@@ -215,6 +230,22 @@ func (lc *LanternCore) GetAvailableServers() []byte {
 	}
 	slog.Debug("Available servers JSON", "json", string(jsonBytes))
 	return jsonBytes
+}
+
+// LoadInstalledApps fetches the app list or rescans if needed using common macOS locations
+// currently only works on/enabled for macOS
+func LoadInstalledApps(dataDir string) (string, error) {
+	appsList := []*apps.AppData{}
+	apps.LoadInstalledApps(dataDir, func(a ...*apps.AppData) error {
+		appsList = append(appsList, a...)
+		return nil
+	})
+
+	b, err := json.Marshal(appsList)
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
 }
 
 func (lc *LanternCore) AddSplitTunnelItem(filterType, item string) error {

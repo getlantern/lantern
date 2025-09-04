@@ -53,7 +53,6 @@ func core() lanterncore.Core {
 func requireCore() (lanterncore.Core, *C.char) {
 	c := lanternCore.Load()
 	if c == nil {
-		// consistent error payload so Dart can surface it
 		return nil, C.CString(`{"error":"not_initialized"}`)
 	}
 	return *c, nil
