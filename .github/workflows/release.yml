@@ -77,15 +77,15 @@ jobs:
           name: pubspec
           path: pubspec.yaml
 
-  build-macos:
-    needs: set-release-metadata
-    uses: ./.github/workflows/build-macos.yml
-    secrets: inherit
-    if: ${{ needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'macos' }}
-    with:
-      version: ${{ needs.set-release-metadata.outputs.version }}
-      build_type: ${{ needs.set-release-metadata.outputs.build_type }}
-      installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
+  # build-macos:
+  #   needs: set-release-metadata
+  #   uses: ./.github/workflows/build-macos.yml
+  #   secrets: inherit
+  #   if: ${{ needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'macos' }}
+  #   with:
+  #     version: ${{ needs.set-release-metadata.outputs.version }}
+  #     build_type: ${{ needs.set-release-metadata.outputs.build_type }}
+  #     installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
 
   build-windows:
     needs: set-release-metadata
@@ -97,125 +97,117 @@ jobs:
       build_type: ${{ needs.set-release-metadata.outputs.build_type }}
       installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
 
-  build-linux:
-    needs: set-release-metadata
-    uses: ./.github/workflows/build-linux.yml
-    secrets: inherit
-    if: ${{ needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'linux' }}
-    with:
-      version: ${{ needs.set-release-metadata.outputs.version }}
-      build_type: ${{ needs.set-release-metadata.outputs.build_type }}
-      installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
+  # # build-linux:
+  # #   needs: set-release-metadata
+  # #   uses: ./.github/workflows/build-linux.yml
+  # #   secrets: inherit
+  # #   if: ${{ needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'linux' }}
+  # #   with:
+  # #     version: ${{ needs.set-release-metadata.outputs.version }}
+  # #     build_type: ${{ needs.set-release-metadata.outputs.build_type }}
+  # #     installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
 
-  build-ios:
-    needs: set-release-metadata
-    uses: ./.github/workflows/build-ios.yml
-    secrets: inherit
-    if: ${{ needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'ios' }}
-    with:
-      version: ${{ needs.set-release-metadata.outputs.version }}
-      build_type: ${{ needs.set-release-metadata.outputs.build_type }}
-      installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
+  # # build-ios:
+  # #   needs: set-release-metadata
+  # #   uses: ./.github/workflows/build-ios.yml
+  # #   secrets: inherit
+  # #   if: ${{ needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'ios' }}
+  # #   with:
+  # #     version: ${{ needs.set-release-metadata.outputs.version }}
+  # #     build_type: ${{ needs.set-release-metadata.outputs.build_type }}
+  # #     installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
 
-  build-android:
-    needs: set-release-metadata
-    uses: ./.github/workflows/build-android.yml
-    secrets: inherit
-    if: ${{ needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'android' }}
-    with:
-      version: ${{ needs.set-release-metadata.outputs.version }}
-      build_type: ${{ needs.set-release-metadata.outputs.build_type }}
-      installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
+  # # build-android:
+  # #   needs: set-release-metadata
+  # #   uses: ./.github/workflows/build-android.yml
+  # #   secrets: inherit
+  # #   if: ${{ needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'android' }}
+  # #   with:
+  # #     version: ${{ needs.set-release-metadata.outputs.version }}
+  # #     build_type: ${{ needs.set-release-metadata.outputs.build_type }}
+  # #     installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
 
-  release:
-    needs:
-      [
-        build-macos,
-        build-linux,
-        build-windows,
-        build-android,
-        build-ios,
-        set-release-metadata,
-      ]
-    if: ${{ needs.set-release-metadata.outputs.platform == 'all' }}
-    runs-on: ubuntu-latest
-    env:
-      BUILD_TYPE: ${{ needs.set-release-metadata.outputs.build_type }}
-      INSTALLER_NAME: ${{ needs.set-release-metadata.outputs.installer_name }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  # release:
+  #   needs: [build-windows, set-release-metadata]
+  #   if: ${{ needs.set-release-metadata.outputs.platform == 'all' }}
+  #   runs-on: ubuntu-latest
+  #   env:
+  #     BUILD_TYPE: ${{ needs.set-release-metadata.outputs.build_type }}
+  #     INSTALLER_NAME: ${{ needs.set-release-metadata.outputs.installer_name }}
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-      - name: Install Flutter
-        uses: subosito/flutter-action@v2.19.0
-        with:
-          channel: stable
-          flutter-version-file: pubspec.yaml
+  #     - name: Install Flutter
+  #       uses: subosito/flutter-action@v2.19.0
+  #       with:
+  #         channel: stable
+  #         flutter-version-file: pubspec.yaml
 
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
+  #     - name: Download all artifacts
+  #       uses: actions/download-artifact@v4
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ github.ref_name }}
-          name: "Lantern ${{ env.BUILD_TYPE }} ${{ github.ref_name }}"
-          generate_release_notes: true
-          files: |
-            lantern-installer-dmg/${{ env.INSTALLER_NAME }}.dmg
-            lantern-installer-exe/${{ env.INSTALLER_NAME }}.exe
-            lantern-installer-apk/${{ env.INSTALLER_NAME }}.apk
-            lantern-installer-deb/${{ env.INSTALLER_NAME }}.deb
-            lantern-installer-rpm/${{ env.INSTALLER_NAME }}.rpm
-        env:
-          GITHUB_TOKEN: ${{ secrets.CI_PRIVATE_REPOS_GH_TOKEN }}
+  #     - name: Create GitHub Release
+  #       uses: softprops/action-gh-release@v2
+  #       with:
+  #         tag_name: ${{ github.ref_name }}
+  #         name: "Lantern ${{ env.BUILD_TYPE }} ${{ github.ref_name }}"
+  #         generate_release_notes: true
+  #         files: |
+  #           lantern-installer-dmg/${{ env.INSTALLER_NAME }}.dmg
+  #           lantern-installer-exe/${{ env.INSTALLER_NAME }}.exe
+  #           lantern-installer-apk/${{ env.INSTALLER_NAME }}.apk
+  #           lantern-installer-deb/${{ env.INSTALLER_NAME }}.deb
+  #           lantern-installer-rpm/${{ env.INSTALLER_NAME }}.rpm
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.CI_PRIVATE_REPOS_GH_TOKEN }}
 
-      - name: Install Python dependencies
-        run: python3 -m pip install -r scripts/requirements.txt
+  #     - name: Install Python dependencies
+  #       run: python3 -m pip install -r scripts/requirements.txt
 
-      - name: Install Python dependencies
-        run: python3 -m pip install -r scripts/requirements.txt
+  #     - name: Install Python dependencies
+  #       run: python3 -m pip install -r scripts/requirements.txt
 
-      - name: Update appcast.xml
-        run: |
-          python3 scripts/generate_appcast.py
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git add appcast.xml
-          git commit -m "Update appcast.xml"
-          git push
-          aws s3 cp appcast.xml "s3://${{ secrets.S3_RELEASES_BUCKET }}/releases/"
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          GITHUB_TOKEN: ${{ secrets.CI_PRIVATE_REPOS_GH_TOKEN }}
+  #     - name: Update appcast.xml
+  #       run: |
+  #         python3 scripts/generate_appcast.py
+  #         git config user.name github-actions
+  #         git config user.email github-actions@github.com
+  #         git add appcast.xml
+  #         git commit -m "Update appcast.xml"
+  #         git push
+  #         aws s3 cp appcast.xml "s3://${{ secrets.S3_RELEASES_BUCKET }}/releases/"
+  #       env:
+  #         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         GITHUB_TOKEN: ${{ secrets.CI_PRIVATE_REPOS_GH_TOKEN }}
 
-      - name: Notify Slack
-        uses: slackapi/slack-github-action@v2.0.0
-        with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
-          webhook-type: webhook-trigger
-          payload: |
-            {
-              "text": "Lantern ${{ env.BUILD_TYPE }} ${{ github.ref_name }} released!*\n*Downloads:*\n• <https://lantern-vpn.s3.amazonaws.com/releases/${{ env.INSTALLER_NAME }}.dmg|macOS>\n• <https://lantern-vpn.s3.amazonaws.com/releases/${{ env.INSTALLER_NAME }}.exe|Windows>\n• <https://lantern-vpn.s3.amazonaws.com/releases/${{ env.INSTALLER_NAME }}.apk|Android>\n• <https://lantern-vpn.s3.amazonaws.com/releases/${{ env.INSTALLER_NAME }}.deb|Linux (.deb)>\n• <https://lantern-vpn.s3.amazonaws.com/releases/${{ env.INSTALLER_NAME }}.rpm|Linux (.rpm)>"
-            }
-        env:
-          INSTALLER_NAME: ${{ needs.set-release-metadata.outputs.installer_name }}
+  #     - name: Notify Slack
+  #       uses: slackapi/slack-github-action@v2.0.0
+  #       with:
+  #         webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+  #         webhook-type: webhook-trigger
+  #         payload: |
+  #           {
+  #             "text": "Lantern ${{ env.BUILD_TYPE }} ${{ github.ref_name }} released!*\n*Downloads:*\n• <https://lantern-vpn.s3.amazonaws.com/releases/${{ env.INSTALLER_NAME }}.dmg|macOS>\n• <https://lantern-vpn.s3.amazonaws.com/releases/${{ env.INSTALLER_NAME }}.exe|Windows>\n• <https://lantern-vpn.s3.amazonaws.com/releases/${{ env.INSTALLER_NAME }}.apk|Android>\n• <https://lantern-vpn.s3.amazonaws.com/releases/${{ env.INSTALLER_NAME }}.deb|Linux (.deb)>\n• <https://lantern-vpn.s3.amazonaws.com/releases/${{ env.INSTALLER_NAME }}.rpm|Linux (.rpm)>"
+  #           }
+  #       env:
+  #         INSTALLER_NAME: ${{ needs.set-release-metadata.outputs.installer_name }}
 
-  upload-testflight:
-    needs: [release, build-ios, set-release-metadata]
-    if: ${{ needs.set-release-metadata.outputs.platform == 'all' }}
-    runs-on: macos-15
-    steps:
-      - name: Download iOS Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: lantern-ios
+  # upload-testflight:
+  #   needs: [release, build-ios, set-release-metadata]
+  #   if: ${{ needs.set-release-metadata.outputs.platform == 'all' }}
+  #   runs-on: macos-15
+  #   steps:
+  #     - name: Download iOS Artifact
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: lantern-ios
 
-      - name: Upload to TestFlight
-        uses: apple-actions/upload-testflight-build@v3.0.0
-        with:
-          app-path: ${{ needs.set-release-metadata.outputs.installer_name }}.ipa
-          issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
-          api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
-          api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
+  #     - name: Upload to TestFlight
+  #       uses: apple-actions/upload-testflight-build@v3.0.0
+  #       with:
+  #         app-path: ${{ needs.set-release-metadata.outputs.installer_name }}.ipa
+  #         issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
+  #         api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
+  #         api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
