@@ -175,6 +175,7 @@ $(DARWIN_DEBUG_BUILD): $(DARWIN_LIB_BUILD)
 
 $(DARWIN_RELEASE_BUILD):
 	@echo "Building Flutter app (release) for macOS..."
+	rm -v $(MACOS_INSTALLER)
 	flutter build macos --release --dart-define=BUILD_TYPE=$(BUILD_TYPE)
 
 build-macos-release: $(DARWIN_RELEASE_BUILD)
