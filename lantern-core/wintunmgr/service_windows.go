@@ -265,7 +265,7 @@ func (s *Service) handleConn(ctx context.Context, c net.Conn, token, connID stri
 		}
 		if req.Cmd == common.CmdWatchStatus {
 			s.handleWatchStatus(ctx, connID, enc, done)
-			return
+			continue
 		}
 		start := time.Now()
 		resp := s.dispatch(ctx, &req)
