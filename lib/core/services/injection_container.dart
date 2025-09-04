@@ -10,31 +10,37 @@ import 'package:lantern/lantern/lantern_ffi_service.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
 
 import '../router/router.dart';
+import 'logger_service.dart';
 
 final GetIt sl = GetIt.instance;
 
 Future<void> injectServices() async {
-  sl.registerLazySingleton(() => StoreUtils());
-  sl<StoreUtils>().init();
-  sl.registerLazySingleton(() => AppPurchase());
-  sl<AppPurchase>().init();
+  try {
+    sl.registerLazySingleton(() => StoreUtils());
+    sl<StoreUtils>().init();
+    sl.registerLazySingleton(() => AppPurchase());
+    sl<AppPurchase>().init();
 
-  sl.registerLazySingleton(() => NotificationService());
-  await sl<NotificationService>().init();
+    sl.registerLazySingleton(() => NotificationService());
+    await sl<NotificationService>().init();
 
-  sl.registerLazySingleton(() => LanternPlatformService(sl<AppPurchase>()));
-  await sl<LanternPlatformService>().init();
-  if (PlatformUtils.isFFISupported) {
-    sl.registerLazySingleton(() => LanternFFIService());
-    await sl<LanternFFIService>().init();
-  } else {
-    sl.registerLazySingleton<LanternFFIService>(() => MockLanternFFIService());
+    sl.registerLazySingleton(() => LanternPlatformService(sl<AppPurchase>()));
+    await sl<LanternPlatformService>().init();
+    if (PlatformUtils.isFFISupported) {
+      sl.registerLazySingleton(() => LanternFFIService());
+      await sl<LanternFFIService>().init();
+    } else {
+      sl.registerLazySingleton<LanternFFIService>(
+          () => MockLanternFFIService());
+    }
+    sl.registerLazySingleton(() => LocalStorageService());
+    await sl<LocalStorageService>().init();
+    sl.registerLazySingleton(() => AppRouter());
+    sl.registerLazySingleton(() => StripeService());
+    await sl<StripeService>().initialize();
+
+    sl.registerLazySingleton(() => DeepLinkCallbackManager());
+  } catch (e, st) {
+    appLogger.error("Error during service injection", e, st);
   }
-  sl.registerLazySingleton(() => LocalStorageService());
-  await sl<LocalStorageService>().init();
-  sl.registerLazySingleton(() => AppRouter());
-  sl.registerLazySingleton(() => StripeService());
-  await sl<StripeService>().initialize();
-
-  sl.registerLazySingleton(() => DeepLinkCallbackManager());
 }

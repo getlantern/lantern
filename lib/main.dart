@@ -11,6 +11,7 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern_app.dart';
 import 'package:auto_updater/auto_updater.dart';
@@ -21,13 +22,21 @@ import 'core/common/app_secrets.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  initLogger();
-  await _configureAutoUpdate();
-  await _configureLocalTimeZone();
-  await _loadAppSecrets();
-  await injectServices();
-  await Future.microtask(Localization.loadTranslations);
-
+  try {
+    final flutterLog = await AppStorageUtils.flutterLogFile();
+    initLogger(flutterLog.path);
+    appLogger.debug('Starting app initialization...');
+    await _configureAutoUpdate();
+    await _configureLocalTimeZone();
+    appLogger.debug('Loading app secrets...');
+    await _loadAppSecrets();
+    appLogger.debug('Injecting services...');
+    await injectServices();
+    appLogger.debug('Loading translations...');
+    await Future.microtask(Localization.loadTranslations);
+  } catch (e, st) {
+    appLogger.error("Error during app initialization", e, st);
+  }
   final flags = await _loadFeatureFlags();
 
   final sentryEnabled = flags.getBool(FeatureFlag.sentry) && kReleaseMode;
