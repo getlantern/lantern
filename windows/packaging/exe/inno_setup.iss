@@ -86,8 +86,7 @@ Filename: "{sys}\sc.exe"; Parameters: "start ""{#SvcName}"""; Flags: runhidden
 
 ; Launch Lantern app UI
 Filename: "{app}\{{EXECUTABLE_NAME}}"; Description: "{cm:LaunchProgram,{{DISPLAY_NAME}}}"; \
-  Flags: runasoriginaluser nowait postinstall skipifsilent; \
-  Check: CheckTokenReady
+  Flags: runasoriginaluser nowait postinstall skipifsilent
 
 [UninstallRun]
 ; Stop and remove service on uninstall
@@ -127,32 +126,4 @@ begin
   begin
     Result := not FileExists(ExpandConstant('{sys}\MSVCP140.dll'));
   end;
-end;
-
-function WaitForFileExistence(const APath: string; const MaxMs: Integer): Boolean;
-var
-  T0: Cardinal;
-begin
-  T0 := GetTickCount();
-  while Integer(GetTickCount() - T0) < MaxMs do
-  begin
-    if FileExists(APath) then
-    begin
-      Result := True;
-      Exit;
-    end;
-    Sleep(250);
-  end;
-  Result := False;
-end;
-
-function CheckTokenReady(): Boolean;
-var
-  P: string;
-begin
-  P := ExpandConstant('{#TokenFile}');
-  Log(Format('Waiting for token file: %s', [P]));
-  if not WaitForFileExistence(P, 10000) then
-    Log('Token file not found');
-  Result := True;
 end;
