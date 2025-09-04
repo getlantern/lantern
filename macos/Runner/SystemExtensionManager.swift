@@ -177,6 +177,18 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
       case .unsupportedParentBundleLocation:
         logger.log(
           "Error: App is in an unsupported location (e.g., /tmp, /var). Move to /Applications.")
+      case codeSignatureInvalid:
+          logger.log("Error: Code signature is invalid.")
+      case .missingEntitlement:
+          logger.log("Error: Missing entitlement for system extension operations.")
+      case .forbiddenBySystemPolicy:
+          logger.log("Error: System policy forbids system extension activation.")
+      case .requestCanceled:
+          logger.log("Error: System extension activation request was canceled.")
+      case .authorizationRequired:
+          logger.log("Error: Authorization is required to activate system extension.")
+      case .validationFailed:
+          logger.log("Error: System extension validation failed.")
       // Add other specific OSSystemExtensionError.Code cases as needed
       default:
         logger.log("System extension error code: \(sysexError.code.rawValue)")
