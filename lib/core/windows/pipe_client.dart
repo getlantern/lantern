@@ -30,10 +30,18 @@ class PipeClient {
     final programData =
         Platform.environment['ProgramData'] ?? r'C:\ProgramData';
     final path = tokenPath ?? '$programData\\Lantern\\ipc-token';
-    final s = await File(path).readAsString();
-    token = s.trim();
-    if (token!.isEmpty) {
-      throw Exception('IPC token file is empty: $path');
+    final start = DateTime.now();
+    while (true) {
+      try {
+        final s = await File(path).readAsString();
+        token = s.trim();
+        if (token!.isEmpty) throw Exception('IPC token file is empty: $path');
+        return;
+      } catch (_) {/* file is still missing */}
+      if (DateTime.now().difference(start).inSeconds >= 5) {
+        throw Exception('IPC token not found at $path');
+      }
+      await Future.delayed(const Duration(milliseconds: 200));
     }
   }
 
@@ -154,7 +162,6 @@ class PipeClient {
     if (!isConnected) {
       await connect();
     }
-    await _getToken();
 
     final payload = '${jsonEncode({
           'id': DateTime.now().microsecondsSinceEpoch.toString(),
