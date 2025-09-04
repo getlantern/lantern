@@ -80,9 +80,11 @@ class FileLogPrinter extends LoggyPrinter {
 
     if (record.error != null) {
       _sink.writeln("Error: ${record.error}");
+      _sink.flush();
     }
     if (record.stackTrace != null) {
       _sink.writeln("Stack: ${record.stackTrace}");
+      _sink.flush();
     }
   }
 
