@@ -66,4 +66,14 @@ class AppStorageUtils {
     }
     return logFile;
   }
+
+  static Future<File> flutterLogFile() async {
+    final dir = await getApplicationSupportDirectory();
+    final logFile = File("${dir.path}/flutter.log");
+    if (!logFile.existsSync()) {
+      logFile.createSync(recursive: true);
+    }
+    print("Using flutter log file at: ${logFile.path}");
+    return logFile;
+  }
 }
