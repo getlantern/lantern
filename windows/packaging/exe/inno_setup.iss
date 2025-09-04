@@ -1,3 +1,9 @@
+#define SourceDirMacro   "{{SOURCE_DIR}}"
+#define SvcName          "LanternSvc"
+#define SvcDisplayName   "Lantern Service"
+#define ProgramDataDir   "{commonappdata}\Lantern"
+#define TokenFile        "{commonappdata}\Lantern\ipc-token"
+
 [Setup]
 AppId={{APP_ID}}
 AppVersion={{APP_VERSION}}
@@ -13,7 +19,9 @@ OutputBaseFilename={{OUTPUT_BASE_FILENAME}}
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
-PrivilegesRequired={{PRIVILEGES_REQUIRED}}
+; VPN service/driver install needs elevation
+PrivilegesRequired=admin
+PrivilegesRequiredOverridesAllowed=dialog
 ArchitecturesAllowed=x64
 ArchitecturesInstallIn64BitMode=x64
 
@@ -26,28 +34,57 @@ ArchitecturesInstallIn64BitMode=x64
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: {% if CREATE_DESKTOP_ICON != true %}unchecked{% else %}checkedonce{% endif %}
-Name: "launchAtStartup"; Description: "{cm:AutoStartProgram,{{DISPLAY_NAME}}}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: {% if LAUNCH_AT_STARTUP != true %}unchecked{% else %}checkedonce{% endif %}
 
 [Files]
 Source: "{{SOURCE_DIR}}\\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-; NOTE: Don't use "Flags: ignoreversion" on any shared system files
+
+Source: "{{SOURCE_DIR}}\\wintun.dll"; DestDir: "{app}"; Flags: ignoreversion
+
+; Windows service binary
+Source: "{{SOURCE_DIR}}\\lanternsvc.exe"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{autoprograms}\\{{APP_NAME}}"; Filename: "{app}\\{{EXECUTABLE_NAME}}"
-Name: "{autodesktop}\\{{APP_NAME}}"; Filename: "{app}\\{{EXECUTABLE_NAME}}"; Tasks: desktopicon
-Name: "{userstartup}\\{{APP_NAME}}"; Filename: "{app}\\{{EXECUTABLE_NAME}}"; WorkingDir: "{app}"; Tasks: launchAtStartup
-
-[Dirs]
-; Create WebView2 data directory in AppData
-Name: "{app}\{{APP_NAME}}\WebView2"; Permissions: everyone-modify
+Name: "{autoprograms}\\{{DISPLAY_NAME}}"; Filename: "{app}\\{{EXECUTABLE_NAME}}"
+Name: "{autodesktop}\\{{DISPLAY_NAME}}"; Filename: "{app}\\{{EXECUTABLE_NAME}}"; Tasks: desktopicon
 
 [Downloads]
 Source: "https://go.microsoft.com/fwlink/p/?LinkId=2124703"; DestFile: "{tmp}\MicrosoftEdgeWebView2Setup.exe"; Flags: external
+; This link always points to the latest supported Visual C++ Redistributable
+Source: "https://aka.ms/vs/17/release/vc_redist.x64.exe"; DestFile: "{tmp}\vc_redist.x64.exe"; Flags: external
 
 [Run]
-Filename: "{tmp}\MicrosoftEdgeWebView2Setup.exe"; Parameters: "/silent /install"; StatusMsg: "Installing WebView2 Runtime..."; Check: NeedsWebView2Runtime and FileExists(ExpandConstant('{tmp}\MicrosoftEdgeWebView2Setup.exe'))
-; Launch the app after WebView2 has been installed
-Filename: "{app}\\{{EXECUTABLE_NAME}}"; Description: "{cm:LaunchProgram,{{DISPLAY_NAME}}}"; Flags: {% if PRIVILEGES_REQUIRED == 'admin' %}runascurrentuser{% endif %} nowait postinstall skipifsilent
+; VC++ runtime (fixes MSVCP140/VCRUNTIME errors)
+Filename: "{tmp}\vc_redist.x64.exe"; Parameters: "/install /quiet /norestart"; \
+  StatusMsg: "Installing Microsoft Visual C++ 2015–2022 Runtime (x64)…"; \
+  Check: NeedsVCRedist and FileExists(ExpandConstant('{tmp}\vc_redist.x64.exe')); \
+  Flags: runhidden
+
+; Install WebView2 Evergreen for Flutter
+Filename: "{tmp}\MicrosoftEdgeWebView2Setup.exe"; Parameters: "/silent /install"; \
+  StatusMsg: "Installing WebView2 Runtime..."; \
+  Check: NeedsWebView2Runtime and FileExists(ExpandConstant('{tmp}\MicrosoftEdgeWebView2Setup.exe'))
+
+; Stop and delete any existing Lantern service, then create & start the new one
+Filename: "{cmd}"; Parameters: "/C sc.exe stop ""{#SvcName}"" 2>nul & sc.exe delete ""{#SvcName}"" 2>nul"; \
+  Flags: runhidden
+
+Filename: "{cmd}"; Parameters: "/C sc.exe create ""{#SvcName}"" binPath= ""\""{app}\lanternsvc.exe\"""" start= delayed-auto DisplayName= ""{#SvcDisplayName}"""; \
+  Flags: runhidden
+
+Filename: "{cmd}"; Parameters: "/C sc.exe start ""{#SvcName}"""; \
+  Flags: runhidden
+
+; Launch Lantern app UI
+Filename: "{app}\{{EXECUTABLE_NAME}}"; Description: "{cm:LaunchProgram,{{DISPLAY_NAME}}}"; \
+  Flags: runasoriginaluser nowait postinstall skipifsilent
+
+[UninstallRun]
+; Stop and remove the service on uninstall
+Filename: "{cmd}"; Parameters: "/C sc.exe stop ""{#SvcName}"" 2>nul & sc.exe delete ""{#SvcName}"" 2>nul"; \
+  Flags: runhidden
+
+[UninstallDelete]
+Type: filesandordirs; Name: "{#ProgramDataDir}"
 
 [Code]
 function NeedsWebView2Runtime(): Boolean;
@@ -61,5 +98,22 @@ begin
   else
   begin
     Result := True; // WebView2 is not installed
+  end;
+end;
+
+function NeedsVCRedist(): Boolean;
+var
+  Installed: Cardinal;
+begin
+  { VS 2015–2022 x64 runtime flag }
+  if RegQueryDWordValue(HKLM64,
+    'Software\Microsoft\VisualStudio\14.0\VC\Runtimes\x64',
+    'Installed', Installed) then
+  begin
+    Result := (Installed <> 1);
+  end
+  else
+  begin
+    Result := not FileExists(ExpandConstant('{sys}\MSVCP140.dll'));
   end;
 end;
