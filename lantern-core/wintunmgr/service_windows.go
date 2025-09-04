@@ -39,7 +39,7 @@ type ServiceOptions struct {
 }
 
 // Service hosts the command server and manages LanternCore
-// It proxies commands to Radiance through the new IPC layer
+// It proxies privileged commands and interacts with Radiance IPC when available
 type Service struct {
 	opts ServiceOptions
 
@@ -92,10 +92,10 @@ func (s *Service) statusSnapshot() statusEvent {
 }
 
 func (s *Service) connectionState() string {
-	state, err := ripc.GetStatus()
-	if err != nil {
-		return "Disconnected"
-	}
+	// ok, _ := s.core.IsVPNRunning()
+	// state := map[bool]string{true: "Connected", false: "Disconnected"}[ok]
+	// return state
+	state, _ := ripc.GetStatus()
 	if state == ripc.StatusRunning {
 		return "Connected"
 	}
@@ -222,8 +222,7 @@ func (s *Service) handleWatchStatus(ctx context.Context, connID string, enc *jso
 			case <-done:
 				return
 			case <-t.C:
-				ok, _ := s.core.IsVPNRunning()
-				state := map[bool]string{true: "Connected", false: "Disconnected"}[ok]
+				state := s.connectionState()
 				if state != prev {
 					prev = state
 					_ = enc.Encode(statusEvent{Event: "Status", State: state, Ts: time.Now().Unix()})
@@ -288,8 +287,8 @@ func (s *Service) setupAdapter(ctx context.Context) error {
 }
 
 // checkIPCUp checks if the Radiance IPC server is available
-func (s *Service) checkIPCUp() error {
-	deadline := time.Now().Add(5 * time.Second)
+func (s *Service) checkIPCUp(timeout time.Duration) error {
+	deadline := time.Now().Add(timeout)
 	var lastErr error
 	for time.Now().Before(deadline) {
 		if _, err := ripc.GetStatus(); err == nil {
@@ -303,6 +302,30 @@ func (s *Service) checkIPCUp() error {
 		lastErr = fmt.Errorf("radiance IPC not reachable")
 	}
 	return lastErr
+}
+
+// checkIPCUpOrStart: checks if IPC is down, otherwise starts via LanternCore (which brings up libbox+IPC)
+func (s *Service) checkIPCUpOrStart(ctx context.Context, group string) error {
+	if err := s.checkIPCUp(600 * time.Millisecond); err == nil {
+		return nil
+	}
+
+	if err := s.setupAdapter(ctx); err != nil {
+		return fmt.Errorf("adapter: %w", err)
+	}
+
+	// start the tunnel via core
+	if group == "" {
+		group = "lantern"
+	}
+	if err := s.core.StartTunnel(group); err != nil {
+		return fmt.Errorf("start tunnel: %w", err)
+	}
+
+	if err := s.checkIPCUp(5 * time.Second); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
@@ -321,19 +344,17 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		return &Response{ID: r.ID, Result: map[string]any{"ok": true}}
 
 	case common.CmdStartTunnel:
-		if err := s.checkIPCUp(); err != nil {
+		if err := s.checkIPCUpOrStart(ctx, "lantern"); err != nil {
 			return rpcErr(r.ID, "start_error", err.Error())
 		}
-		if err := ripc.SetClashMode("lantern"); err != nil {
-			if st, e := ripc.GetStatus(); e != nil || st != ripc.StatusRunning {
-				return rpcErr(r.ID, "start_error", err.Error())
-			}
+		if err := s.core.StartTunnel("lantern"); err != nil {
+			return rpcErr(r.ID, "start_error", err.Error())
 		}
 		go s.broadcastStatus()
 		return &Response{ID: r.ID, Result: map[string]any{"started": true}}
 
 	case common.CmdStopTunnel:
-		if err := ripc.CloseService(); err != nil {
+		if err := s.core.StopTunnel(); err != nil {
 			return rpcErr(r.ID, "stop_error", err.Error())
 		}
 		go s.broadcastStatus()
@@ -357,21 +378,21 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		if err := s.setupAdapter(ctx); err != nil {
 			return rpcErr(r.ID, "adapter_error", err.Error())
 		}
-		if err := s.checkIPCUp(); err != nil {
-			return rpcErr(r.ID, "connect_error", err.Error())
-		}
 		loc := strings.TrimSpace(p.Location)
 		if loc == "" {
 			loc = "lantern"
 		}
+		if err := s.checkIPCUpOrStart(ctx, loc); err != nil {
+			return rpcErr(r.ID, "connect_error", err.Error())
+		}
+		var err error
 		if p.Tag == "" {
-			if err := ripc.SetClashMode(loc); err != nil {
-				return rpcErr(r.ID, "connect_error", err.Error())
-			}
+			err = s.core.StartTunnel(loc)
 		} else {
-			if err := ripc.SelectOutbound(loc, p.Tag); err != nil {
-				return rpcErr(r.ID, "connect_error", err.Error())
-			}
+			err = s.core.ConnectToServer(loc, p.Tag)
+		}
+		if err != nil {
+			return rpcErr(r.ID, "connect_error", err.Error())
 		}
 		go s.broadcastStatus()
 		return &Response{ID: r.ID, Result: "ok"}
