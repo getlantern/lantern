@@ -18,6 +18,7 @@ import (
 	"github.com/getlantern/radiance/common"
 	"github.com/getlantern/radiance/servers"
 	"github.com/getlantern/radiance/vpn"
+	ripc "github.com/getlantern/radiance/vpn/ipc"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -40,6 +41,7 @@ type App interface {
 	AvailableFeatures() []byte
 	ReportIssue(email, issueType, description, device, model, logFilePath string) error
 	IsRadianceConnected() bool
+	IsVPNRunning() (bool, error)
 	GetAvailableServers() []byte
 }
 
@@ -182,6 +184,14 @@ func LoadInstalledApps(dataDir string) (string, error) {
 
 func (lc *LanternCore) IsRadianceConnected() bool {
 	return lc.rad != nil
+}
+
+func (lc *LanternCore) IsVPNRunning() (bool, error) {
+	st, err := ripc.GetStatus()
+	if err != nil {
+		return false, err
+	}
+	return st == ripc.StatusRunning, nil
 }
 
 func (lc *LanternCore) AvailableFeatures() []byte {

@@ -35,6 +35,10 @@ ArchitecturesInstallIn64BitMode=x64
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: {% if CREATE_DESKTOP_ICON != true %}unchecked{% else %}checkedonce{% endif %}
 
+[Dirs]
+; Make sure ProgramData\Lantern exists and is readable by user sessions
+Name: "{#ProgramDataDir}"; Permissions: users-modify
+
 [Files]
 Source: "{{SOURCE_DIR}}\\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
@@ -65,23 +69,30 @@ Filename: "{tmp}\MicrosoftEdgeWebView2Setup.exe"; Parameters: "/silent /install"
   Check: NeedsWebView2Runtime and FileExists(ExpandConstant('{tmp}\MicrosoftEdgeWebView2Setup.exe'))
 
 ; Stop and delete any existing Lantern service, then create & start the new one
-Filename: "{cmd}"; Parameters: "/C sc.exe stop ""{#SvcName}"" 2>nul & sc.exe delete ""{#SvcName}"" 2>nul"; \
-  Flags: runhidden
+Filename: "{sys}\sc.exe"; Parameters: "stop ""{#SvcName}"""; Flags: runhidden ignoreerrors
+Filename: "{sys}\sc.exe"; Parameters: "delete ""{#SvcName}"""; Flags: runhidden ignoreerrors
 
-Filename: "{cmd}"; Parameters: "/C sc.exe create ""{#SvcName}"" binPath= ""\""{app}\lanternsvc.exe\"""" start= delayed-auto DisplayName= ""{#SvcDisplayName}"""; \
+; Create service
+Filename: "{sys}\sc.exe"; \
+  Parameters: "create ""{#SvcName}"" binPath= """"{app}\lanternsvc.exe"""" start= delayed-auto DisplayName= ""{#SvcDisplayName}"""; \
   Flags: runhidden
+  
+Filename: "{sys}\sc.exe"; Parameters: "failure ""{#SvcName}"" reset= 60 actions= restart/5000/restart/5000/""""/5000"; Flags: runhidden ignoreerrors
+Filename: "{sys}\sc.exe"; Parameters: "failureflag ""{#SvcName}"" 1"; Flags: runhidden ignoreerrors
+Filename: "{sys}\sc.exe"; Parameters: "description ""{#SvcName}"" ""Lantern Windows service"""; Flags: runhidden ignoreerrors
 
-Filename: "{cmd}"; Parameters: "/C sc.exe start ""{#SvcName}"""; \
-  Flags: runhidden
+; Start service
+Filename: "{sys}\sc.exe"; Parameters: "start ""{#SvcName}"""; Flags: runhidden
 
 ; Launch Lantern app UI
 Filename: "{app}\{{EXECUTABLE_NAME}}"; Description: "{cm:LaunchProgram,{{DISPLAY_NAME}}}"; \
-  Flags: runasoriginaluser nowait postinstall skipifsilent
+  Flags: runasoriginaluser nowait postinstall skipifsilent; \
+  Check: CheckTokenReady
 
 [UninstallRun]
-; Stop and remove the service on uninstall
-Filename: "{cmd}"; Parameters: "/C sc.exe stop ""{#SvcName}"" 2>nul & sc.exe delete ""{#SvcName}"" 2>nul"; \
-  Flags: runhidden
+; Stop and remove service on uninstall
+Filename: "{sys}\sc.exe"; Parameters: "stop ""{#SvcName}"""; Flags: runhidden ignoreerrors
+Filename: "{sys}\sc.exe"; Parameters: "delete ""{#SvcName}"""; Flags: runhidden ignoreerrors
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{#ProgramDataDir}"
@@ -116,4 +127,32 @@ begin
   begin
     Result := not FileExists(ExpandConstant('{sys}\MSVCP140.dll'));
   end;
+end;
+
+function WaitForFileExistence(const APath: string; const MaxMs: Integer): Boolean;
+var
+  T0: Cardinal;
+begin
+  T0 := GetTickCount();
+  while Integer(GetTickCount() - T0) < MaxMs do
+  begin
+    if FileExists(APath) then
+    begin
+      Result := True;
+      Exit;
+    end;
+    Sleep(250);
+  end;
+  Result := False;
+end;
+
+function CheckTokenReady(): Boolean;
+var
+  P: string;
+begin
+  P := ExpandConstant('{#TokenFile}');
+  Log(Format('Waiting for token file: %s', [P]));
+  if not WaitForFileExistence(P, 10000) then
+    Log('Token file not found');
+  Result := True;
 end;

@@ -204,9 +204,8 @@ func (s *Service) handleWatchStatus(ctx context.Context, connID string, enc *jso
 	s.subsMu.Lock()
 	s.statusSubs[connID] = ch
 	s.subsMu.Unlock()
-	_ = enc.Encode(s.statusSnapshot())
+	enc.Encode(s.statusSnapshot())
 
-	// poll Radiance status and send deltas
 	go func() {
 		defer func() {
 			s.subsMu.Lock()
@@ -223,11 +222,8 @@ func (s *Service) handleWatchStatus(ctx context.Context, connID string, enc *jso
 			case <-done:
 				return
 			case <-t.C:
-				st, err := ripc.GetStatus()
-				state := "Disconnected"
-				if err == nil && st == ripc.StatusRunning {
-					state = "Connected"
-				}
+				ok, _ := s.core.IsVPNRunning()
+				state := map[bool]string{true: "Connected", false: "Disconnected"}[ok]
 				if state != prev {
 					prev = state
 					_ = enc.Encode(statusEvent{Event: "Status", State: state, Ts: time.Now().Unix()})
