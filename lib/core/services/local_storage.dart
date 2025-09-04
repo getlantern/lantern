@@ -49,9 +49,8 @@ class LocalStorageService {
       final error = e.message;
       //Ex
       //failed to create store: DB's last property ID XX is higher than the incoming one XX in entity XXX
-      if (kDebugMode &&
-          (error.contains("failed to create store") ||
-              error.contains("DB's last property ID"))) {
+      if (error.contains("failed to create store") ||
+              error.contains("DB's last property ID")) {
         dbLogger.warning(
             "ObjectBox schema mismatch detected – wiping old DB…", e);
 
