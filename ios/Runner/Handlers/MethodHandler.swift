@@ -745,7 +745,7 @@ class MethodHandler {
         return
       }
       await MainActor.run {
-          result(String( data: servers!, encoding: .utf8))
+        result(String(data: servers!, encoding: .utf8))
       }
     }
   }

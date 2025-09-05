@@ -12,15 +12,14 @@ extension FilePath {
   private static let containerSharedDirectory: URL! = FileManager.default.containerURL(
     forSecurityApplicationGroupIdentifier: FilePath.groupName)
 
-    public static  let sharedDirectory = URL(filePath: "/Users/Shared/Lantern")
-
+  public static let sharedDirectory = URL(filePath: "/Users/Shared/Lantern")
 
   public static let libraryDirectory =
     sharedDirectory
     .appendingPathComponent("Library", isDirectory: true)
   public static var dataDirectory = sharedDirectory
- //Centeralize log directory
-   public static var logsDirectory =
+  //Centeralize log directory
+  public static var logsDirectory =
     sharedDirectory
     .appendingPathComponent("Logs", isDirectory: true)
 

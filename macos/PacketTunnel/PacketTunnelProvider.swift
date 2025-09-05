@@ -16,10 +16,10 @@ public class PacketTunnelProvider: ExtensionProvider {
     logger.log("PacketTunnelProvider starting tunnel")
     try await super.startTunnel(options: options)
   }
-    
-    public override func stopTunnel(with reason: NEProviderStopReason) async {
-        logger.log("PacketTunnelProvider stopping tunnel with reason: \(reason.rawValue)")
-        await super.stopTunnel(with: reason)
-    }
-    
+
+  public override func stopTunnel(with reason: NEProviderStopReason) async {
+    logger.log("PacketTunnelProvider stopping tunnel with reason: \(reason.rawValue)")
+    await super.stopTunnel(with: reason)
+  }
+
 }

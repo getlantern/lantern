@@ -11,7 +11,7 @@ class AppDelegate: FlutterAppDelegate {
   private let vpnManager = VPNManager.shared
 
   override func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
-      return false
+    return false
   }
 
   override func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {

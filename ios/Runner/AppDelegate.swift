@@ -121,7 +121,7 @@ import flutter_local_notifications
   private func setupRadiance() {
     appLogger.info("absoluteString Paths... \(FilePath.sharedDirectory.absoluteString)")
     appLogger.info("relativePath Paths... \(FilePath.sharedDirectory.relativePath)")
-      Task {
+    Task {
       // Set up the base directory and options
       let baseDir = FilePath.sharedDirectory.relativePath
       let opts = UtilsOpts()
