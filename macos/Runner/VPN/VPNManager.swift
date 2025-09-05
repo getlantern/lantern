@@ -116,8 +116,7 @@ class VPNManager: VPNBase {
     //await removeExistingVPNProfiles()
     await self.setupVPN()
     let options = [
-      "netEx.StartReason": NSString("Lantern"),
-      "username": NSString(string: NSUserName()),
+      "netEx.StartReason": NSString("Lantern")
     ]
     appLogger.log("Calling manager.connection.startVPNTunnel..")
     try self.manager.connection.startVPNTunnel(options: options)

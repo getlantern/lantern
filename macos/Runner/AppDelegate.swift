@@ -100,13 +100,6 @@ class AppDelegate: FlutterAppDelegate {
       appLogger.error("Failed to create data directory: \(error.localizedDescription)")
     }
 
-    guard FileManager.default.changeCurrentDirectoryPath(FilePath.sharedDirectory.path) else {
-      appLogger.error("Failed to change current directory to: \(FilePath.sharedDirectory.path)")
-      return
-    }
-
-    appLogger.info("Current directory changed to: \(FilePath.sharedDirectory.path)")
-
   }
 
   /// Calls API handler setup

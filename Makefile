@@ -187,12 +187,20 @@ notarize-darwin: require-ac-username require-ac-password
 		--apple-id $$AC_USERNAME \
 		--team-id "ACZRKC3LQ9" \
 		--password $$AC_PASSWORD \
-		--wait
-
+		--wait \
+		--output-format json > notary_output.json
 	@echo "Stapling notarization ticket..."
 	xcrun stapler staple $(MACOS_INSTALLER)
 	@echo "Notarization complete"
 
+
+.PHONY: notarize-log
+notarize-log:
+	xcrun notarytool log 3036c6b2-8f99-44d7-8c3e-6c9c007b2524 \
+		--apple-id $$AC_USERNAME \
+		--team-id "ACZRKC3LQ9" \
+		--password $$AC_PASSWORD
+	  --output-format json > notary_log.json
 sign-app:
 	$(call osxcodesign, $(PACKET_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR)/Contents/Frameworks/Liblantern.framework)
 	$(call osxcodesign, $(PACKET_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR)/Contents/MacOS/org.getlantern.lantern.PacketTunnel)
