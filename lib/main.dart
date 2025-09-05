@@ -26,7 +26,6 @@ Future<void> main() async {
     final flutterLog = await AppStorageUtils.flutterLogFile();
     initLogger(flutterLog.path);
     appLogger.debug('Starting app initialization...');
-    await _configureAutoUpdate();
     await _configureLocalTimeZone();
     appLogger.debug('Loading app secrets...');
     await _loadAppSecrets();
@@ -40,6 +39,8 @@ Future<void> main() async {
   final flags = await _loadFeatureFlags();
 
   final sentryEnabled = flags.getBool(FeatureFlag.sentry) && kReleaseMode;
+
+  await _configureAutoUpdate(flags: flags);
 
   FutureOr<void> runner() {
     runApp(
@@ -68,13 +69,26 @@ Future<Map<String, dynamic>> _loadFeatureFlags() async {
   }
 }
 
-Future<void> _configureAutoUpdate() async {
+Future<void> _configureAutoUpdate({required Map<String, dynamic> flags}) async {
   if (kDebugMode) return;
   if (!Platform.isMacOS && !Platform.isWindows) return;
   if (AppSecrets.buildType != 'production') return;
+
+  final enabled = flags.getBool(FeatureFlag.autoUpdateEnabled);
+  if (!enabled) return;
+
   await autoUpdater.setFeedURL(AppUrls.appcastURL);
-  await autoUpdater.checkForUpdates();
   await autoUpdater.setScheduledCheckInterval(3600);
+
+  // Add delay to avoid showing modal immediately on startup
+  const firstPromptDelay = Duration(seconds: 45);
+  unawaited(Future<void>.delayed(firstPromptDelay, () async {
+    try {
+      await autoUpdater.checkForUpdates(inBackground: true);
+    } catch (e, st) {
+      appLogger.error(e, st);
+    }
+  }));
 }
 
 Future<void> _setupSentry(
