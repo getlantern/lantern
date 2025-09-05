@@ -1,6 +1,7 @@
 enum FeatureFlag {
   sentry('sentry'),
-  privateGcp('private.gcp');
+  privateGcp('private.gcp'),
+  autoUpdateEnabled('autoUpdateEnabled');
 
   final String key;
   const FeatureFlag(this.key);
