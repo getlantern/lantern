@@ -44,16 +44,11 @@ class _WindowWrapperState extends ConsumerState<WindowWrapper>
   Future<void> _setupDesktopWindow() async {
     await windowManager.setPreventClose(true);
     await windowManager.setResizable(false);
-
-    // macOS only: customize title bar and window
     if (Platform.isMacOS) {
       await windowManager.setTitle('');
-      // Hide system titlebar
-      await windowManager.setTitleBarStyle(TitleBarStyle.hidden,
-          windowButtonVisibility: false);
-      await windowManager.setBackgroundColor(AppColors.white);
+      await windowManager.setTitleBarStyle(TitleBarStyle.normal,
+          windowButtonVisibility: true);
     }
-
     await windowManager.show();
     await windowManager.focus();
   }
@@ -66,6 +61,8 @@ class _WindowWrapperState extends ConsumerState<WindowWrapper>
     super.dispose();
   }
 
+  /// Register custom protocol for Windows
+  /// See more: https://pub.dev/packages/windows_protocol_registrar
   void _setupProtocol() {
     if (Platform.isWindows) {
       ProtocolRegistrar.instance.register('lantern');
@@ -79,29 +76,16 @@ class _WindowWrapperState extends ConsumerState<WindowWrapper>
     if (!context.mounted) {
       return;
     }
+    if (!PlatformUtils.isDesktop) {
+      return;
+    }
     bool isPreventClose = await windowManager.isPreventClose();
-    if (!isPreventClose) return;
-    await showDialog(
-      context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: Text('confirm_close_window'.i18n),
-        actions: [
-          TextButton(
-            child: Text('No'.i18n),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          TextButton(
-            child: Text('Yes'.i18n),
-            onPressed: () async {
-              await windowManager.hide();
-              await windowManager.setSkipTaskbar(true);
-            },
-          ),
-        ],
-      ),
-    );
+    if (isPreventClose) {
+      // Instead of closing, just hide (minimize to dock)
+      windowManager.hide();
+    } else {
+      windowManager.destroy();
+    }
   }
 
   @override
