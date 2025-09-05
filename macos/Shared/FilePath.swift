@@ -17,8 +17,10 @@ extension FilePath {
   public static let libraryDirectory =
     sharedDirectory
     .appendingPathComponent("Library", isDirectory: true)
+  
   public static var dataDirectory = sharedDirectory
-  //Centeralize log directory
+  
+    //Centralize log directory
   public static var logsDirectory =
     sharedDirectory
     .appendingPathComponent("Logs", isDirectory: true)

@@ -200,7 +200,7 @@ notarize-log:
 		--apple-id $$AC_USERNAME \
 		--team-id "ACZRKC3LQ9" \
 		--password $$AC_PASSWORD
-	  --output-format json > notary_log.json
+	    --output-format json > notary_log.json
 sign-app:
 	$(call osxcodesign, $(PACKET_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR)/Contents/Frameworks/Liblantern.framework)
 	$(call osxcodesign, $(PACKET_ENTITLEMENTS), $(SYSTEM_EXTENSION_DIR)/Contents/MacOS/org.getlantern.lantern.PacketTunnel)
