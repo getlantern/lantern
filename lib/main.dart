@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:device_preview_plus/device_preview_plus.dart';
@@ -7,7 +9,10 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/utils/storage_utils.dart';
+import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern_app.dart';
 import 'package:auto_updater/auto_updater.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -17,24 +22,50 @@ import 'core/common/app_secrets.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  initLogger();
-  await _configureAutoUpdate();
-  await _configureLocalTimeZone();
-  await _loadAppSecrets();
-  await injectServices();
-  await Future.microtask(Localization.loadTranslations);
-  await _setupSentry(
-    runner: () {
-      runApp(
-        DevicePreview(
-          enabled: false,
-          builder: (context) => const ProviderScope(
-            child: LanternApp(),
-          ),
+  try {
+    final flutterLog = await AppStorageUtils.flutterLogFile();
+    initLogger(flutterLog.path);
+    appLogger.debug('Starting app initialization...');
+    await _configureAutoUpdate();
+    await _configureLocalTimeZone();
+    appLogger.debug('Loading app secrets...');
+    await _loadAppSecrets();
+    appLogger.debug('Injecting services...');
+    await injectServices();
+    appLogger.debug('Loading translations...');
+    await Future.microtask(Localization.loadTranslations);
+  } catch (e, st) {
+    appLogger.error("Error during app initialization", e, st);
+  }
+  final flags = await _loadFeatureFlags();
+
+  final sentryEnabled = flags.getBool(FeatureFlag.sentry) && kReleaseMode;
+
+  FutureOr<void> runner() {
+    runApp(
+      DevicePreview(
+        enabled: false,
+        builder: (context) => ProviderScope(
+          child: const LanternApp(),
         ),
-      );
-    },
-  );
+      ),
+    );
+  }
+
+  if (sentryEnabled) {
+    await _setupSentry(runner: runner, flags: flags);
+  } else {
+    runner();
+  }
+}
+
+Future<Map<String, dynamic>> _loadFeatureFlags() async {
+  try {
+    final either = await sl<LanternCoreService>().featureFlag();
+    return either.fold((_) => <String, dynamic>{}, (s) => json.decode(s));
+  } catch (_) {
+    return <String, dynamic>{};
+  }
 }
 
 Future<void> _configureAutoUpdate() async {
@@ -46,7 +77,8 @@ Future<void> _configureAutoUpdate() async {
   await autoUpdater.setScheduledCheckInterval(3600);
 }
 
-Future<void> _setupSentry({required AppRunner runner}) async {
+Future<void> _setupSentry(
+    {required AppRunner runner, required Map<String, dynamic> flags}) async {
   await SentryFlutter.init(
     (options) {
       options.tracesSampleRate = .8;
@@ -59,6 +91,8 @@ Future<void> _setupSentry({required AppRunner runner}) async {
       options.attachStacktrace = true;
       options.enableAutoNativeBreadcrumbs = true;
       options.enableNdkScopeSync = true;
+
+      options.dist = Platform.operatingSystem;
     },
     appRunner: runner,
   );

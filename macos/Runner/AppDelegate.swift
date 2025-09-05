@@ -11,7 +11,7 @@ class AppDelegate: FlutterAppDelegate {
   private let vpnManager = VPNManager.shared
 
   override func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
-    return true
+      return false
   }
 
   override func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
@@ -24,7 +24,6 @@ class AppDelegate: FlutterAppDelegate {
     guard let controller = mainFlutterWindow?.contentViewController as? FlutterViewController else {
       fatalError("contentViewController is not a FlutterViewController")
     }
-    RegisterGeneratedPlugins(registry: controller)
 
     registerEventHandlers(controller: controller)
 

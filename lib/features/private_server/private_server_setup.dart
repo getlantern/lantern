@@ -59,7 +59,7 @@ class PrivateServerSetup extends HookConsumerWidget {
 
     // Cards
     final cards = <({CloudProvider provider, Widget card, String cta})>[
-      if (flags.isGCPFlag())
+      if (flags.isGCPEnabled)
         (
           provider: CloudProvider.googleCloud,
           cta: 'continue_with_${CloudProvider.googleCloud.value}'.i18n,
