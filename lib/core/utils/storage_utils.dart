@@ -15,8 +15,7 @@ class AppStorageUtils {
       }
       logDir = Directory("${baseDir.path}/logs");
     } else if (Platform.isMacOS) {
-      final baseDir = await getLibraryDirectory();
-      logDir = Directory("${baseDir.path}/Logs/Lantern");
+      logDir = Directory('/Users/Shared/Lantern/Logs');
     } else if (Platform.isLinux) {
       final baseDir = await getApplicationSupportDirectory();
       logDir = Directory("${baseDir.path}/logs");
@@ -68,8 +67,8 @@ class AppStorageUtils {
   }
 
   static Future<File> flutterLogFile() async {
-    final dir = await getApplicationSupportDirectory();
-    final logFile = File("${dir.path}/flutter.log");
+    final dir = await getAppLogDirectory();
+    final logFile = File("$dir/flutter.log");
     if (!logFile.existsSync()) {
       logFile.createSync(recursive: true);
     }
