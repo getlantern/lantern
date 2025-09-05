@@ -86,7 +86,7 @@ Future<void> _configureAutoUpdate({required Map<String, dynamic> flags}) async {
     try {
       await autoUpdater.checkForUpdates(inBackground: true);
     } catch (e, st) {
-      appLogger.error(e, st);
+      appLogger.error('Failed to check for auto-updates: $e', st);
     }
   }));
 }
