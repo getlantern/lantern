@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -65,31 +66,47 @@ class MultiLogPrinter extends LoggyPrinter {
     }
   }
 }
+
 /// A printer that writes logs to a file
 class FileLogPrinter extends LoggyPrinter {
   final IOSink _sink;
+  final StreamController<String> _controller;
 
   FileLogPrinter(String path)
-      : _sink = File(path).openWrite(mode: FileMode.append);
+      : _sink = File(path).openWrite(mode: FileMode.append),
+        _controller = StreamController<String>() {
+    _controller.stream.asyncMap(
+      (event) async {
+        _sink.writeln(event);
+        await _sink.flush();
+      },
+    ).listen((_) {}, onError: (e, st) {
+      // If writing to the file fails, print to console as a fallback.
+      debugPrint("Failed to write log to file: $e\n$st");
+    });
+  }
 
   @override
   void onLog(LogRecord record) {
-    final logLine = "[${record.time.toIso8601String()}] [${record.level.name}] "
-        "[${record.loggerName}] ${record.message}";
-    _sink.writeln(logLine);
+    final buffer = StringBuffer()
+      ..write("[${record.time.toIso8601String()}] ")
+      ..write("[${record.level.name}] ")
+      ..write("[${record.loggerName}] ")
+      ..writeln(record.message);
 
-    if (record.error != null) {
-      _sink.writeln("Error: ${record.error}");
-      _sink.flush();
-    }
+    if (record.error != null) buffer.writeln("Error: ${record.error}");
     if (record.stackTrace != null) {
-      _sink.writeln("Stack: ${record.stackTrace}");
-      _sink.flush();
+      buffer.writeln("Stack: ${record.stackTrace}");
+    }
+
+    try {
+      _controller.add(buffer.toString());
+    } catch (_) {
+      // If add throws (controller closed between check and add), ignore silently.
     }
   }
 
   Future<void> close() async {
-    await _sink.flush();
-    await _sink.close();
+    await _controller.close();
   }
 }
