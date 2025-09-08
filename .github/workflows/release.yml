@@ -155,16 +155,31 @@ jobs:
       - name: Download build artifacts
         uses: actions/download-artifact@v4
 
-      - name: Upload to S3
+      - name: Upload to S3 (latest)
         run: |
-          aws s3 cp "lantern-installer-dmg/${INSTALLER_NAME}.dmg" "s3://${BUCKET}/latest/${INSTALLER_NAME}.dmg" --acl public-read
-          aws s3 cp "lantern-installer-exe/${INSTALLER_NAME}.exe" "s3://${BUCKET}/latest/${INSTALLER_NAME}.exe" --acl public-read
-          aws s3 cp "lantern-installer-apk/${INSTALLER_NAME}.apk" "s3://${BUCKET}/latest/${INSTALLER_NAME}.apk" --acl public-read
-          aws s3 cp "lantern-installer-deb/${INSTALLER_NAME}.deb" "s3://${BUCKET}/latest/${INSTALLER_NAME}.deb" --acl public-read || true
-          aws s3 cp "lantern-installer-rpm/${INSTALLER_NAME}.rpm" "s3://${BUCKET}/latest/${INSTALLER_NAME}.rpm" --acl public-read || true
+          sha="$(git rev-parse --short HEAD)"
+          aws s3 cp "lantern-installer-dmg/${INSTALLER_NAME}.dmg" "s3://${BUCKET}/nightly/latest/${INSTALLER_NAME}.dmg" --acl public-read
+          aws s3 cp "lantern-installer-exe/${INSTALLER_NAME}.exe" "s3://${BUCKET}/nightly/latest/${INSTALLER_NAME}.exe" --acl public-read
+          aws s3 cp "lantern-installer-apk/${INSTALLER_NAME}.apk" "s3://${BUCKET}/nightly/latest/${INSTALLER_NAME}.apk" --acl public-read
+          aws s3 cp "lantern-installer-deb/${INSTALLER_NAME}.deb" "s3://${BUCKET}/nightly/latest/${INSTALLER_NAME}.deb" --acl public-read || true
+          aws s3 cp "lantern-installer-rpm/${INSTALLER_NAME}.rpm" "s3://${BUCKET}/nightly/latest/${INSTALLER_NAME}.rpm" --acl public-read || true
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Write links to job summary
+        run: |
+          sha="$(git rev-parse --short HEAD)"
+          {
+            echo "## Internal build links (commit \`$sha\`)"
+            echo ""
+            echo "**Latest aliases**"
+            echo "- macOS:   https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.dmg"
+            echo "- Windows: https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.exe"
+            echo "- Android: https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.apk"
+            echo "- Linux (.deb): https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.deb"
+            echo "- Linux (.rpm): https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.rpm"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
