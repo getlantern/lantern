@@ -111,7 +111,7 @@ jobs:
     needs: set-release-metadata
     uses: ./.github/workflows/build-ios.yml
     secrets: inherit
-    if: ${{ needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'ios' }}
+    if: ${{ needs.set-release-metadata.outputs.platform == 'all' && needs.set-release-metadata.outputs.build_type != 'internal' }}
     with:
       version: ${{ needs.set-release-metadata.outputs.version }}
       build_type: ${{ needs.set-release-metadata.outputs.build_type }}
@@ -127,21 +127,21 @@ jobs:
       build_type: ${{ needs.set-release-metadata.outputs.build_type }}
       installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
 
-  release:
+  publish:
     needs:
       [
-        build-macos,
-        build-linux,
-        build-windows,
-        build-android,
-        build-ios,
         set-release-metadata,
+        build-macos,
+        build-windows,
+        build-linux,
+        build-android,
       ]
     if: ${{ needs.set-release-metadata.outputs.platform == 'all' }}
     runs-on: ubuntu-latest
     env:
       BUILD_TYPE: ${{ needs.set-release-metadata.outputs.build_type }}
       INSTALLER_NAME: ${{ needs.set-release-metadata.outputs.installer_name }}
+      BUCKET: ${{ secrets.S3_RELEASES_BUCKET }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -152,15 +152,51 @@ jobs:
           channel: stable
           flutter-version-file: pubspec.yaml
 
-      - name: Download all artifacts
+      - name: Download build artifacts
         uses: actions/download-artifact@v4
+
+      - name: Upload to S3 (latest)
+        run: |
+          sha="$(git rev-parse --short HEAD)"
+
+          # Nightly paths
+          aws s3 cp "lantern-installer-dmg/${INSTALLER_NAME}.dmg" "s3://${BUCKET}/nightly/${sha}/${INSTALLER_NAME}.dmg" --acl public-read
+          aws s3 cp "lantern-installer-exe/${INSTALLER_NAME}.exe" "s3://${BUCKET}/nightly/${sha}/${INSTALLER_NAME}.exe" --acl public-read
+          aws s3 cp "lantern-installer-apk/${INSTALLER_NAME}.apk" "s3://${BUCKET}/nightly/${sha}/${INSTALLER_NAME}.apk" --acl public-read
+          aws s3 cp "lantern-installer-deb/${INSTALLER_NAME}.deb" "s3://${BUCKET}/nightly/${sha}/${INSTALLER_NAME}.deb" --acl public-read || true
+          aws s3 cp "lantern-installer-rpm/${INSTALLER_NAME}.rpm" "s3://${BUCKET}/nightly/${sha}/${INSTALLER_NAME}.rpm" --acl public-read || true
+
+          # Latest aliases
+          aws s3 cp "lantern-installer-dmg/${INSTALLER_NAME}.dmg" "s3://${BUCKET}/nightly/latest/${INSTALLER_NAME}.dmg" --acl public-read
+          aws s3 cp "lantern-installer-exe/${INSTALLER_NAME}.exe" "s3://${BUCKET}/nightly/latest/${INSTALLER_NAME}.exe" --acl public-read
+          aws s3 cp "lantern-installer-apk/${INSTALLER_NAME}.apk" "s3://${BUCKET}/nightly/latest/${INSTALLER_NAME}.apk" --acl public-read
+          aws s3 cp "lantern-installer-deb/${INSTALLER_NAME}.deb" "s3://${BUCKET}/nightly/latest/${INSTALLER_NAME}.deb" --acl public-read || true
+          aws s3 cp "lantern-installer-rpm/${INSTALLER_NAME}.rpm" "s3://${BUCKET}/nightly/latest/${INSTALLER_NAME}.rpm" --acl public-read || true
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Write links to job summary
+        run: |
+          sha="$(git rev-parse --short HEAD)"
+          {
+            echo "## Internal build links (commit \`$sha\`)"
+            echo ""
+            echo "**Latest aliases**"
+            echo "- macOS:   https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.dmg"
+            echo "- Windows: https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.exe"
+            echo "- Android: https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.apk"
+            echo "- Linux (.deb): https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.deb"
+            echo "- Linux (.rpm): https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.rpm"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: "Lantern ${{ env.BUILD_TYPE }} ${{ github.ref_name }}"
-          generate_release_notes: true
+          prerelease: true
+          generate_release_notes: false
           files: |
             lantern-installer-dmg/${{ env.INSTALLER_NAME }}.dmg
             lantern-installer-exe/${{ env.INSTALLER_NAME }}.exe
@@ -171,24 +207,23 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.CI_PRIVATE_REPOS_GH_TOKEN }}
 
       - name: Install Python dependencies
-        run: python3 -m pip install -r scripts/requirements.txt
-
-      - name: Install Python dependencies
+        if: ${{ needs.set-release-metadata.outputs.build_type != 'internal' }}
         run: python3 -m pip install -r scripts/requirements.txt
 
       - name: Update appcast.xml
+        if: ${{ needs.set-release-metadata.outputs.build_type != 'internal' }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          GITHUB_TOKEN: ${{ secrets.CI_PRIVATE_REPOS_GH_TOKEN }}
         run: |
           python3 scripts/generate_appcast.py
           git config user.name github-actions
           git config user.email github-actions@github.com
           git add appcast.xml
-          git commit -m "Update appcast.xml"
+          git commit -m "Update appcast.xml" || echo "No changes to commit"
           git push
           aws s3 cp appcast.xml "s3://${{ secrets.S3_RELEASES_BUCKET }}/releases/"
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          GITHUB_TOKEN: ${{ secrets.CI_PRIVATE_REPOS_GH_TOKEN }}
 
       - name: Notify Slack
         uses: slackapi/slack-github-action@v2.0.0
@@ -203,8 +238,8 @@ jobs:
           INSTALLER_NAME: ${{ needs.set-release-metadata.outputs.installer_name }}
 
   upload-testflight:
-    needs: [release, build-ios, set-release-metadata]
-    if: ${{ needs.set-release-metadata.outputs.platform == 'all' }}
+    needs: [publish, build-ios, set-release-metadata]
+    if: ${{ needs.set-release-metadata.outputs.platform == 'all' && needs.set-release-metadata.outputs.build_type != 'internal' }}
     runs-on: macos-15
     steps:
       - name: Download iOS Artifact
