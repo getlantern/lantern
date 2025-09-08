@@ -158,6 +158,15 @@ jobs:
       - name: Upload to S3 (latest)
         run: |
           sha="$(git rev-parse --short HEAD)"
+
+          # Nightly paths
+          aws s3 cp "lantern-installer-dmg/${INSTALLER_NAME}.dmg" "s3://${BUCKET}/nightly/${sha}/${INSTALLER_NAME}.dmg" --acl public-read
+          aws s3 cp "lantern-installer-exe/${INSTALLER_NAME}.exe" "s3://${BUCKET}/nightly/${sha}/${INSTALLER_NAME}.exe" --acl public-read
+          aws s3 cp "lantern-installer-apk/${INSTALLER_NAME}.apk" "s3://${BUCKET}/nightly/${sha}/${INSTALLER_NAME}.apk" --acl public-read
+          aws s3 cp "lantern-installer-deb/${INSTALLER_NAME}.deb" "s3://${BUCKET}/nightly/${sha}/${INSTALLER_NAME}.deb" --acl public-read || true
+          aws s3 cp "lantern-installer-rpm/${INSTALLER_NAME}.rpm" "s3://${BUCKET}/nightly/${sha}/${INSTALLER_NAME}.rpm" --acl public-read || true
+
+          # Latest aliases
           aws s3 cp "lantern-installer-dmg/${INSTALLER_NAME}.dmg" "s3://${BUCKET}/nightly/latest/${INSTALLER_NAME}.dmg" --acl public-read
           aws s3 cp "lantern-installer-exe/${INSTALLER_NAME}.exe" "s3://${BUCKET}/nightly/latest/${INSTALLER_NAME}.exe" --acl public-read
           aws s3 cp "lantern-installer-apk/${INSTALLER_NAME}.apk" "s3://${BUCKET}/nightly/latest/${INSTALLER_NAME}.apk" --acl public-read
