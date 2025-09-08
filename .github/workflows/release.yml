@@ -107,15 +107,15 @@ jobs:
       build_type: ${{ needs.set-release-metadata.outputs.build_type }}
       installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
 
-  # build-ios:
-  #   needs: set-release-metadata
-  #   uses: ./.github/workflows/build-ios.yml
-  #   secrets: inherit
-  #   if: ${{ needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'ios' }}
-  #   with:
-  #     version: ${{ needs.set-release-metadata.outputs.version }}
-  #     build_type: ${{ needs.set-release-metadata.outputs.build_type }}
-  #     installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
+  build-ios:
+    needs: set-release-metadata
+    uses: ./.github/workflows/build-ios.yml
+    secrets: inherit
+    if: ${{ needs.set-release-metadata.outputs.platform == 'all' && needs.set-release-metadata.outputs.build_type != 'internal' }}
+    with:
+      version: ${{ needs.set-release-metadata.outputs.version }}
+      build_type: ${{ needs.set-release-metadata.outputs.build_type }}
+      installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
 
   build-android:
     needs: set-release-metadata
@@ -198,7 +198,23 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.CI_PRIVATE_REPOS_GH_TOKEN }}
 
       - name: Install Python dependencies
+        if: ${{ needs.set-release-metadata.outputs.build_type != 'internal' }}
         run: python3 -m pip install -r scripts/requirements.txt
+
+      - name: Update appcast.xml
+        if: ${{ needs.set-release-metadata.outputs.build_type != 'internal' }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          GITHUB_TOKEN: ${{ secrets.CI_PRIVATE_REPOS_GH_TOKEN }}
+        run: |
+          python3 scripts/generate_appcast.py
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add appcast.xml
+          git commit -m "Update appcast.xml" || echo "No changes to commit"
+          git push
+          aws s3 cp appcast.xml "s3://${{ secrets.S3_RELEASES_BUCKET }}/releases/"
 
       - name: Notify Slack
         uses: slackapi/slack-github-action@v2.0.0
@@ -211,3 +227,21 @@ jobs:
             }
         env:
           INSTALLER_NAME: ${{ needs.set-release-metadata.outputs.installer_name }}
+
+  upload-testflight:
+    needs: [release, build-ios, set-release-metadata]
+    if: ${{ needs.set-release-metadata.outputs.platform == 'all' && needs.set-release-metadata.outputs.build_type != 'internal' }}
+    runs-on: macos-15
+    steps:
+      - name: Download iOS Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: lantern-ios
+
+      - name: Upload to TestFlight
+        uses: apple-actions/upload-testflight-build@v3.0.0
+        with:
+          app-path: ${{ needs.set-release-metadata.outputs.installer_name }}.ipa
+          issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
+          api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
+          api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
