@@ -65,12 +65,11 @@ class _PlansState extends ConsumerState<Plans> {
     final size = MediaQuery.of(context).size;
     return Column(
       children: [
-        SizedBox(height: 24.0),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: defaultSize),
           child: SizedBox(
             height:
-                context.isSmallDevice ? size.height * 0.4 : size.height * 0.36,
+                context.isSmallDevice ? size.height * 0.4 : size.height * 0.35,
             child: SingleChildScrollView(child: FeatureList()),
           ),
         ),
