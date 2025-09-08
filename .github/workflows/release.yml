@@ -229,7 +229,7 @@ jobs:
           INSTALLER_NAME: ${{ needs.set-release-metadata.outputs.installer_name }}
 
   upload-testflight:
-    needs: [release, build-ios, set-release-metadata]
+    needs: [publish, build-ios, set-release-metadata]
     if: ${{ needs.set-release-metadata.outputs.platform == 'all' && needs.set-release-metadata.outputs.build_type != 'internal' }}
     runs-on: macos-15
     steps:
