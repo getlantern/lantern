@@ -1,16 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fpdart/fpdart.dart';
-import 'package:lantern/core/models/datacap_info.dart';
-import 'package:lantern/lantern/lantern_service_notifier.dart';
+import 'package:lantern/features/home/provider/data_cap_info_provider.dart';
 
 import '../common/common.dart';
-
-final dataCapInfoProvider =
-    FutureProvider.autoDispose<Either<Failure, DataCapInfo>>((ref) async {
-  final service = ref.watch(lanternServiceProvider);
-  return await service.fetchDataCapInfo();
-});
 
 class DataUsage extends ConsumerWidget {
   const DataUsage({super.key});

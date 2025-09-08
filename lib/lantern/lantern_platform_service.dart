@@ -382,10 +382,9 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, DataCapInfo>> fetchDataCapInfo() async {
+  Future<Either<Failure, DataCapInfo>> getDataCapInfo() async {
     try {
-      final json =
-          await _methodChannel.invokeMethod<String>('fetchDataCapInfo');
+      final json = await _methodChannel.invokeMethod<String>('getDataCapInfo');
       final map = jsonDecode(jsonEncode(json));
       final dataCap = DataCapInfo.fromJson(map);
       return Right(dataCap);
