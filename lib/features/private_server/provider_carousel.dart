@@ -1,7 +1,5 @@
-import 'dart:ui' show PointerDeviceKind;
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 
@@ -27,15 +25,13 @@ class ProviderCarousel extends HookConsumerWidget {
 
     final current = useState(0);
 
-    final w = MediaQuery.sizeOf(context).width;
-    final isDesktop = w >= 900;
+    // final w = MediaQuery.sizeOf(context).width;
+    final isDesktop = PlatformUtils.isDesktop;
     final fraction =
         (isDesktop ? 0.98 : viewportFraction).clamp(0.82, 0.98).toDouble();
 
     final controller = useMemoized(
-      () => PageController(viewportFraction: fraction, keepPage: true),
-      [fraction],
-    );
+        () => PageController(viewportFraction: fraction, keepPage: true));
     useEffect(() => controller.dispose, [controller]);
 
     void goTo(int page) {
@@ -47,7 +43,7 @@ class ProviderCarousel extends HookConsumerWidget {
       );
     }
 
-    final defaultHeight = isDesktop ? 260.0 : 320.0;
+    final defaultHeight = isDesktop ? 340.0 : 320.0;
     final resolvedHeight = height ?? defaultHeight;
     final showControls = cards.length > 1;
 
@@ -73,22 +69,7 @@ class ProviderCarousel extends HookConsumerWidget {
                   },
                   itemBuilder: (context, idx) => Padding(
                     padding: itemPadding,
-                    child: LayoutBuilder(
-                      builder: (context, cons) {
-                        return ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: SingleChildScrollView(
-                            primary: false,
-                            physics: const ClampingScrollPhysics(),
-                            child: ConstrainedBox(
-                              constraints:
-                                  BoxConstraints(minHeight: cons.maxHeight),
-                              child: cards[idx],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+                    child: cards[idx],
                   ),
                 ),
               ],

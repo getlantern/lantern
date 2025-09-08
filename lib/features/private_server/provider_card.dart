@@ -7,38 +7,29 @@ class ProviderCard extends StatelessWidget {
   final String price;
   final String icon;
   final VoidCallback? onShowLocations;
+  final VoidCallback onContinueClicked;
+  final String buttonTitle;
 
   const ProviderCard({
     super.key,
     required this.title,
+    required this.buttonTitle,
     required this.provider,
     required this.price,
     required this.icon,
     this.onShowLocations,
+    required this.onContinueClicked,
   });
 
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
 
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        border: Border.all(color: AppColors.gray2, width: 1),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.shadowColor,
-            blurRadius: 32,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+    return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Title row
+          SizedBox(height: defaultSize),
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -63,38 +54,42 @@ class ProviderCard extends StatelessWidget {
               ),
             ],
           ),
-
+          DividerSpace(padding: EdgeInsets.symmetric(vertical: 8)),
           const SizedBox(height: 16),
-          Divider(height: 1, color: AppColors.gray2),
           CheckmarkTile(
             text: 'handle_configuration'.i18n,
-            showDivider: true,
+            showDivider: false,
           ),
           CheckmarkTile(
             text: price,
-            showDivider: true,
+            showDivider: false,
           ),
           CheckmarkTile(
             text: 'seamless_integration'.i18n,
-            showDivider: true,
-          ),
-          CheckmarkTile(
-            text: 'choose_location'.i18n,
-            trailing: Semantics(
-              button: true,
-              label: 'choose_location'.i18n,
-              child: AppIconButton(
-                path: AppImagePaths.info,
-                onPressed: onShowLocations,
-              ),
-            ),
             showDivider: false,
           ),
+          // CheckmarkTile(
+          //   text: 'choose_location'.i18n,
+          //   trailing: Semantics(
+          //     button: true,
+          //     label: 'choose_location'.i18n,
+          //     child: AppIconButton(
+          //       path: AppImagePaths.info,
+          //       onPressed: onShowLocations,
+          //     ),
+          //   ),
+          //   showDivider: false,
+          // ),
           CheckmarkTile(
             text: 'one_month_included'.i18n.fill([1]),
             showDivider: false,
             topPadding: 8,
           ),
+
+          SizedBox(height: defaultSize),
+          PrimaryButton(
+              label: buttonTitle, isTaller: true, onPressed: onContinueClicked),
+          SizedBox(height: defaultSize),
         ],
       ),
     );

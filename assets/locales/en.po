@@ -566,7 +566,7 @@ msgid "server_setup_aws_price"
 msgstr "Only %s month through AWS"
 
 msgid "server_setup_manual"
-msgstr "Set Up Manuallly"
+msgstr "Set Up Manually"
 
 msgid "seamless_integration"
 msgstr "Seamless integration with Lantern"
