@@ -81,14 +81,20 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     appLogger.log("(lantern-tunnel) connected to server successfully")
   }
 
-  private func stopService() {
-    appLogger.info("ExtensionProvider stopService")
+  override open func stopTunnel(with reason: NEProviderStopReason) async {
+    appLogger.log("(lantern-tunnel) stopping, reason:\(String(describing: reason))")
+    var error: NSError?
+    MobileStopVPN(&error)
+    if error != nil {
+      appLogger.log("error while stopping tunnel \(error?.localizedDescription ?? "")")
+      return
+    }
     platformInterface.reset()
   }
 
-  override open func stopTunnel(with reason: NEProviderStopReason) async {
-    appLogger.log("(lantern-tunnel) stopping, reason:\(String(describing: reason))")
-    stopService()
+  private func stopService() {
+    appLogger.info("ExtensionProvider stopService")
+    platformInterface.reset()
   }
 
   func opts() -> UtilsOpts {
@@ -125,7 +131,6 @@ public class ExtensionProvider: NEPacketTunnelProvider {
   }
 
   func postServiceClose() {
-    //    radiance = nil
     platformInterface.reset()
   }
 

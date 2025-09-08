@@ -15,8 +15,7 @@ class AppStorageUtils {
       }
       logDir = Directory("${baseDir.path}/logs");
     } else if (Platform.isMacOS) {
-      final baseDir = await getLibraryDirectory();
-      logDir = Directory("${baseDir.path}/Logs/Lantern");
+      logDir = Directory('/Users/Shared/Lantern/Logs');
     } else if (Platform.isLinux) {
       final baseDir = await getApplicationSupportDirectory();
       logDir = Directory("${baseDir.path}/logs");
@@ -64,6 +63,16 @@ class AppStorageUtils {
     if (!logFile.existsSync()) {
       throw Exception("Log file does not exist.");
     }
+    return logFile;
+  }
+
+  static Future<File> flutterLogFile() async {
+    final dir = await getAppLogDirectory();
+    final logFile = File("$dir/flutter.log");
+    if (!logFile.existsSync()) {
+      logFile.createSync(recursive: true);
+    }
+    print("Using flutter log file at: ${logFile.path}");
     return logFile;
   }
 }

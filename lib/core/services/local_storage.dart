@@ -38,21 +38,19 @@ class LocalStorageService {
     final start = DateTime.now();
     dbLogger.debug("Initializing LocalStorageService");
     final docsDir = await AppStorageUtils.getAppDirectory();
-
     final dbPath = p.join(docsDir.path, "objectbox-db");
+    dbLogger.debug("Using ObjectBox DB path: $dbPath");
 
     try {
-      _store = await openStore(
-        directory: dbPath,
-        macosApplicationGroup: macosApplicationGroup,
-      );
-    } on ObjectBoxException catch (e) {
+      dbLogger.debug("Checking if DB directory exists...");
+      await openCleanStore(dbPath);
+    } on ObjectBoxException catch (e, s) {
+      dbLogger.error("Error opening ObjectBox store", e, s);
       final error = e.message;
       //Ex
       //failed to create store: DB's last property ID XX is higher than the incoming one XX in entity XXX
-      if (kDebugMode &&
-          (error.contains("failed to create store") ||
-              error.contains("DB's last property ID"))) {
+      if (error.contains("failed to create store") ||
+              error.contains("DB's last property ID")) {
         dbLogger.warning(
             "ObjectBox schema mismatch detected – wiping old DB…", e);
 
@@ -61,12 +59,7 @@ class LocalStorageService {
         if (await dir.exists()) {
           await dir.delete(recursive: true);
         }
-
-        // Retry after wiping the old schema-mismatched DB
-        _store = await openStore(
-          directory: dbPath,
-          macosApplicationGroup: macosApplicationGroup,
-        );
+        await openCleanStore(dbPath);
       } else {
         rethrow;
       }
@@ -83,6 +76,20 @@ class LocalStorageService {
 
     dbLogger.info(
         "LocalStorageService initialized in ${DateTime.now().difference(start).inMilliseconds}ms");
+  }
+
+  Future<void> openCleanStore(String dbPath) async {
+    if (!await Directory(dbPath).exists()) {
+      dbLogger.debug("DB directory does not exist. Creating...");
+      await Directory(dbPath).create(recursive: true);
+    }
+
+      dbLogger.debug("Opening ObjectBox store...");
+      _store = await openStore(
+        directory: dbPath,
+        macosApplicationGroup: macosApplicationGroup,
+      );
+      dbLogger.debug("ObjectBox store opened successfully.");
   }
 
   void close() {

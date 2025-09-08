@@ -60,7 +60,6 @@ class VpnNotifier extends _$VpnNotifier {
     if (state == VPNStatus.connected) {
       onConnected();
     }
-
   }
 
   Future<Either<Failure, String>> onVPNStateChange(BuildContext context) async {

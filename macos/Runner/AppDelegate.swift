@@ -11,7 +11,7 @@ class AppDelegate: FlutterAppDelegate {
   private let vpnManager = VPNManager.shared
 
   override func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
-    return true
+    return false
   }
 
   override func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
@@ -99,13 +99,6 @@ class AppDelegate: FlutterAppDelegate {
     } catch {
       appLogger.error("Failed to create data directory: \(error.localizedDescription)")
     }
-
-    guard FileManager.default.changeCurrentDirectoryPath(FilePath.sharedDirectory.path) else {
-      appLogger.error("Failed to change current directory to: \(FilePath.sharedDirectory.path)")
-      return
-    }
-
-    appLogger.info("Current directory changed to: \(FilePath.sharedDirectory.path)")
 
   }
 
