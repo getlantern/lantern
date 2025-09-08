@@ -127,14 +127,14 @@ jobs:
       build_type: ${{ needs.set-release-metadata.outputs.build_type }}
       installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
 
-  release:
-    needs: [
-        build-macos,
-        build-linux,
-        build-windows,
-        build-android,
-        #build-ios,
+  publish:
+    needs:
+      [
         set-release-metadata,
+        build-macos,
+        build-windows,
+        build-linux,
+        build-android,
       ]
     if: ${{ needs.set-release-metadata.outputs.platform == 'all' }}
     runs-on: ubuntu-latest
