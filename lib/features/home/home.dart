@@ -19,17 +19,36 @@ enum _SettingTileType {
 }
 
 @RoutePage(name: 'Home')
-class Home extends HookConsumerWidget {
+class Home extends StatefulHookConsumerWidget {
   Home({super.key});
 
+  @override
+  ConsumerState<Home> createState() => _HomeState();
+}
+
+class _HomeState extends ConsumerState<Home> {
   TextTheme? textTheme;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  void initState() {
+    super.initState();
+    if (PlatformUtils.isMacOS) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final appSetting = ref.read(appSettingNotifierProvider);
+        if (appSetting.showSplashScreen) {
+          appRouter.push(const SystemExtensionDialog());
+          //User has seen dialog, do not show again
+          ref.read(appSettingNotifierProvider.notifier).setSplashScreen(false);
+        }
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final isUserPro = ref.isUserPro;
     ref.read(featureFlagNotifierProvider.notifier);
     textTheme = Theme.of(context).textTheme;
-
     return Scaffold(
       appBar: AppBar(
           backgroundColor: AppColors.white,

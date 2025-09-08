@@ -15,6 +15,7 @@ class AppSetting {
   bool userLoggedIn;
   bool blockAds;
   String email;
+  bool showSplashScreen;
 
   AppSetting({
     this.id = 0,
@@ -27,6 +28,7 @@ class AppSetting {
     this.bypassList = BypassListOption.global,
     this.email = '',
     this.locale = 'en_US',
+    this.showSplashScreen = true,
   });
 
   AppSetting copyWith({
@@ -39,6 +41,7 @@ class AppSetting {
     String? email,
     SplitTunnelingMode? newSplitTunnelingMode,
     BypassListOption? newBypassList,
+    bool? showSplashScreen,
   }) {
     return AppSetting(
       id: id,
@@ -51,6 +54,7 @@ class AppSetting {
       userLoggedIn: userLoggedIn ?? this.userLoggedIn,
       oAuthToken: oAuthToken ?? this.oAuthToken,
       email: email ?? this.email,
+      showSplashScreen: showSplashScreen ?? this.showSplashScreen,
     );
   }
 }
