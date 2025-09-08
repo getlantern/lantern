@@ -158,3 +158,10 @@ enum CloudProvider {
     }
   }
 }
+
+
+enum SystemExtensionStatus {
+  notInstalled,
+  installed,
+  unknown;
+}

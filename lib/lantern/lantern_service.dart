@@ -505,4 +505,20 @@ class LanternService implements LanternCoreService {
     }
     return _platformService.getAutoServerLocation();
   }
+
+  @override
+  Future<Either<Failure, Unit>> triggerSystemExtension() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.triggerSystemExtension();
+    }
+    return _platformService.triggerSystemExtension();
+  }
+
+  @override
+  Future<Either<Failure, bool>> isSystemExtensionInstalled() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.isSystemExtensionInstalled();
+    }
+    return _platformService.isSystemExtensionInstalled();
+  }
 }

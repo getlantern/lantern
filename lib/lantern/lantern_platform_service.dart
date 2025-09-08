@@ -781,4 +781,34 @@ class LanternPlatformService implements LanternCoreService {
       return Left(e.toFailure());
     }
   }
+
+  @override
+  Future<Either<Failure, Unit>> triggerSystemExtension() async {
+    if (!PlatformUtils.isMacOS) {
+      return left(Failure(
+          error: 'Not supported',
+          localizedErrorMessage: 'This is not supported only on macOS'));
+    }
+    try {
+      final result =
+          await _methodChannel.invokeMethod('triggerSystemExtension');
+      return right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error triggering system extension', e, stackTrace);
+      return Future.value(Left(e.toFailure()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isSystemExtensionInstalled() async {
+    try {
+      final result =
+          await _methodChannel.invokeMethod('isSystemExtensionInstalled');
+      return right(result as bool);
+    } catch (e, stackTrace) {
+      appLogger.error(
+          'Error checking system extension installation', e, stackTrace);
+      return Future.value(Left(e.toFailure()));
+    }
+  }
 }

@@ -21,6 +21,7 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		03893F0D2E6F168E0058A5EC /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C30602DEF68B300691115 /* Logger.swift */; };
 		039A061F2E24DB6000B64255 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B402DE7A5F300640E7F /* KeychainService.swift */; };
 		293C305A2DEF649500691115 /* MethodHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C30552DEF649500691115 /* MethodHandler.swift */; };
 		293C305E2DEF67EB00691115 /* VPNManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C305C2DEF67EB00691115 /* VPNManager.swift */; };
@@ -245,6 +246,7 @@
 		293C305D2DEF67EB00691115 /* VPN */ = {
 			isa = PBXGroup;
 			children = (
+				5F53D0392E44112E00740586 /* SystemExtensionManager.swift */,
 				293C305B2DEF67EB00691115 /* VPNBase.swift */,
 				293C305C2DEF67EB00691115 /* VPNManager.swift */,
 			);
@@ -360,7 +362,6 @@
 				33CC11242044D66E0003C045 /* Resources */,
 				33BA886A226E78AF003329D5 /* Configs */,
 				5F53D0132E42440F00740586 /* Utils */,
-				5F53D0392E44112E00740586 /* SystemExtensionManager.swift */,
 			);
 			path = Runner;
 			sourceTree = "<group>";
@@ -663,6 +664,7 @@
 				5F53D01D2E440BBC00740586 /* main.swift in Sources */,
 				5F53D05F2E44F9C300740586 /* SystemExtensionManager.swift in Sources */,
 				5F53D01F2E440BBC00740586 /* PacketTunnelProvider.swift in Sources */,
+				03893F0D2E6F168E0058A5EC /* Logger.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

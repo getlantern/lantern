@@ -1,27 +1,27 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'app_setting_notifier.dart';
+part of 'system_extension_notifier.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$appSettingNotifierHash() =>
-    r'40c220fcf9b05207e1acbf591de8a61b01afa149';
+String _$systemExtensionNotifierHash() =>
+    r'a5bdddb414f910c3ed9b05e4e8a70786cba8773e';
 
-/// See also [AppSettingNotifier].
-@ProviderFor(AppSettingNotifier)
-final appSettingNotifierProvider =
-    NotifierProvider<AppSettingNotifier, AppSetting>.internal(
-  AppSettingNotifier.new,
-  name: r'appSettingNotifierProvider',
+/// See also [SystemExtensionNotifier].
+@ProviderFor(SystemExtensionNotifier)
+final systemExtensionNotifierProvider = AutoDisposeNotifierProvider<
+    SystemExtensionNotifier, SystemExtensionStatus>.internal(
+  SystemExtensionNotifier.new,
+  name: r'systemExtensionNotifierProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
       ? null
-      : _$appSettingNotifierHash,
+      : _$systemExtensionNotifierHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
-typedef _$AppSettingNotifier = Notifier<AppSetting>;
+typedef _$SystemExtensionNotifier = AutoDisposeNotifier<SystemExtensionStatus>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

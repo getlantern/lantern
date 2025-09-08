@@ -988,6 +988,16 @@ class LanternFFIService implements LanternCoreService {
     // TODO: implement getAutoServerLocation
     throw UnimplementedError();
   }
+
+  @override
+  Future<Either<Failure, Unit>> triggerSystemExtension() {
+    throw Exception("This is not supported on desktop");
+  }
+
+  @override
+  Future<Either<Failure, bool>> isSystemExtensionInstalled() {
+    throw Exception("This is not supported on desktop");
+  }
 }
 
 void checkAPIError(dynamic result) {

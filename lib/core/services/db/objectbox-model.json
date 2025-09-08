@@ -49,7 +49,7 @@
     },
     {
       "id": "2:687217704776011576",
-      "lastPropertyId": "8:2584154697741095523",
+      "lastPropertyId": "9:4176228116314272090",
       "name": "AppSetting",
       "properties": [
         {
@@ -92,6 +92,11 @@
           "id": "8:2584154697741095523",
           "name": "email",
           "type": 9
+        },
+        {
+          "id": "9:4176228116314272090",
+          "name": "showSplashScreen",
+          "type": 1
         }
       ],
       "relations": []

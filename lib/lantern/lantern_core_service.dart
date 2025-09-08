@@ -176,4 +176,10 @@ abstract class LanternCoreService {
 
   ///Custom/lantern server methods
   Future<Either<Failure, AvailableServers>> getLanternAvailableServers();
+
+  //triggerSystemExtension will uses to trigger system extension flow on macos
+  // only on macos
+  Future<Either<Failure, Unit>> triggerSystemExtension();
+
+  Future<Either<Failure, bool>> isSystemExtensionInstalled();
 }

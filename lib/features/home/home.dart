@@ -105,8 +105,6 @@ class _HomeState extends ConsumerState<Home> {
   Widget _buildSetting(WidgetRef ref) {
     final preferences = ref.watch(appSettingNotifierProvider);
     final splitTunnelingEnabled = preferences.isSplitTunnelingOn;
-    final serverLocation = ref.watch(serverLocationNotifierProvider);
-    final serverType = serverLocation.serverType.toServerLocationType;
 
     return Container(
       decoration: BoxDecoration(boxShadow: [

@@ -136,6 +136,9 @@ class MethodHandler {
       //Utils methods
       case "featureFlag":
         self.featureFlags(result: result)
+      case "isSystemExtensionInstalled":
+          self.isSystemExtensionInstalled(result: result)
+
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -680,6 +683,18 @@ class MethodHandler {
       let flags = MobileAvailableFeatures()
       await MainActor.run {
         result(String(data: flags!, encoding: .utf8))
+      }
+    }
+  }
+
+  func isSystemExtensionInstalled(result: @escaping FlutterResult) {
+    Task.detached {
+        let start = Date()
+      let installed = SystemExtensionManager.shared.isInstalled()
+        appLogger.info("System extension installed: \(installed)")
+        appLogger.info("isSystemExtensionInstalled took \(Date().timeIntervalSince(start)) seconds")
+      await MainActor.run {
+        result(installed)
       }
     }
   }

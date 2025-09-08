@@ -987,3 +987,6 @@ msgstr "Install Now"
 
 msgid "learn_more"
 msgstr "Learn More"
+
+msgid "network_extension_required"
+msgstr "Network extension required"
