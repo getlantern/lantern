@@ -990,3 +990,12 @@ msgstr "Learn More"
 
 msgid "network_extension_required"
 msgstr "Network extension required"
+
+msgid "click"
+msgstr "Click"
+
+msgid "open_system_settings"
+msgstr "open system settings."
+
+msgid "when_prompted"
+msgstr "When prompted,"

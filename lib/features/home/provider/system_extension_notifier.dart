@@ -12,6 +12,22 @@ class SystemExtensionNotifier extends _$SystemExtensionNotifier {
     return SystemExtensionStatus.unknown;
   }
 
+
+  Future<void> triggerSystemExtensionInstallation() async {
+    final result =
+        await ref.read(lanternServiceProvider).triggerSystemExtension();
+
+    result.fold(
+      (failure) {
+        appLogger.error("Failure: ${failure.localizedErrorMessage}");
+      },
+      (result) {
+        appLogger.info("System Extension Installation Triggered: $result");
+      },
+    );
+  }
+
+
   Future<void> isSystemExtensionInstalled() async {
     final result =
         await ref.read(lanternServiceProvider).isSystemExtensionInstalled();

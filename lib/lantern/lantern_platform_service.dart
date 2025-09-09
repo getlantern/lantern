@@ -783,7 +783,7 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> triggerSystemExtension() async {
+  Future<Either<Failure, String>> triggerSystemExtension() async {
     if (!PlatformUtils.isMacOS) {
       return left(Failure(
           error: 'Not supported',
@@ -792,7 +792,7 @@ class LanternPlatformService implements LanternCoreService {
     try {
       final result =
           await _methodChannel.invokeMethod('triggerSystemExtension');
-      return right(unit);
+      return right(result);
     } catch (e, stackTrace) {
       appLogger.error('Error triggering system extension', e, stackTrace);
       return Future.value(Left(e.toFailure()));

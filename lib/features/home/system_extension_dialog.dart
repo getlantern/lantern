@@ -42,16 +42,16 @@ class SystemExtensionDialog extends StatelessWidget {
             text: TextSpan(
               style: textTheme.bodyLarge!.copyWith(color: AppColors.gray7),
               children: [
-                TextSpan(text: 'Click'),
+                TextSpan(text: 'click'.i18n),
                 WidgetSpan(child: SizedBox(width: 4.0)),
                 TextSpan(
-                  text: 'Open System Settings',
+                  text: 'open_system_settings'.i18n,
                   style: AppTestStyles.bodyLargeBold!.copyWith(
                     color: AppColors.gray8,
                   ),
                 ),
                 WidgetSpan(child: SizedBox(width: 4.0)),
-                TextSpan(text: 'when prompted'),
+                TextSpan(text: 'when_prompted'.i18n),
               ],
             ),
           ),
@@ -59,16 +59,24 @@ class SystemExtensionDialog extends StatelessWidget {
           PrimaryButton(
             label: 'install_now'.i18n,
             isTaller: true,
-            onPressed: () {},
+            onPressed: onInstall,
           ),
           const SizedBox(height: 16.0),
           SecondaryButton(
             label: 'learn_more'.i18n,
             isTaller: true,
-            onPressed: () {},
+            onPressed: onLearnMore,
           )
         ],
       ),
     );
+  }
+
+  void onInstall() {
+
+  }
+
+  void onLearnMore() {
+
   }
 }

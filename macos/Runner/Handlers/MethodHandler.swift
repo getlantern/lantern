@@ -136,6 +136,8 @@ class MethodHandler {
       //Utils methods
       case "featureFlag":
         self.featureFlags(result: result)
+      case "triggerSystemExtensionFlow":
+          self.triggerSystemExtensionFlow(result: result)
       case "isSystemExtensionInstalled":
           self.isSystemExtensionInstalled(result: result)
 
@@ -687,6 +689,18 @@ class MethodHandler {
     }
   }
 
+    func triggerSystemExtensionFlow(result: @escaping FlutterResult) {
+      Task.detached {
+          let start = Date()
+        let systemStatus = SystemExtensionManager.shared.activateExtensionAndWait()
+          appLogger.info("System extension activation result: \(result) took \(Date().timeIntervalSince(start)) seconds")
+        await MainActor.run {
+            result(systemStatus!.rawValue)
+        }
+      }
+    }
+    
+    //Check if system extension is installed or not
   func isSystemExtensionInstalled(result: @escaping FlutterResult) {
     Task.detached {
         let start = Date()
