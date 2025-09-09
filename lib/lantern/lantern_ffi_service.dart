@@ -228,7 +228,7 @@ class LanternFFIService implements LanternCoreService {
     );
   }
 
-  Future<Either<Failure, DataCapInfo>> fetchDataCapInfo() async {
+  Future<Either<Failure, DataCapInfo>> getDataCapInfo() async {
     try {
       final result = await runInBackground<String>(
         () async {

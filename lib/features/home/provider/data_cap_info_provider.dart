@@ -1,13 +1,26 @@
-import 'package:lantern/core/utils/failure.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'data_cap_info_provider.g.dart';
 
-@riverpod
-Future<Either<Failure, DataCapInfo>> dataCapInfo(Ref ref) async {
-  final service = ref.watch(lanternServiceProvider);
-  return service.getDataCapInfo();
+@Riverpod(keepAlive: true)
+class DataCapInfoNotifier extends _$DataCapInfoNotifier {
+  @override
+  Future<DataCapInfo> build() async {
+    state = AsyncLoading();
+
+    final lanternService = ref.watch(lanternServiceProvider);
+    final result = await lanternService.getDataCapInfo();
+    return result.fold(
+      (failure) {
+        state = AsyncError(failure, StackTrace.current);
+        throw Exception('Failed to fetch data cap info: $failure');
+      },
+      (dataCapInfo) {
+        state = AsyncData(dataCapInfo);
+        return dataCapInfo;
+      },
+    );
+  }
 }
