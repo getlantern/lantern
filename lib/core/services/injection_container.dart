@@ -17,6 +17,7 @@ final GetIt sl = GetIt.instance;
 Future<void> injectServices() async {
   try {
     sl.registerLazySingleton<AppPurchase>(() {
+      appLogger.info("Initializing AppPurchase");
       final ap = AppPurchase();
       ap.init();
       return ap;
@@ -42,23 +43,27 @@ Future<void> injectServices() async {
     sl.registerLazySingleton<AppRouter>(() => AppRouter());
 
 
-    sl.registerLazySingletonAsync<StoreUtils>(() async {
+    sl.registerSingletonAsync<StoreUtils>(() async {
+      appLogger.info("Initializing StoreUtils");
       final storeUtils = StoreUtils();
       await storeUtils.init();
       return storeUtils;
     });
 
-    sl.registerLazySingletonAsync<StripeService>(() async {
+    sl.registerSingletonAsync<StripeService>(() async {
+      appLogger.info("Initializing StripeService");
       final stripeService = StripeService();
       await stripeService.initialize();
       return stripeService;
     });
     sl.registerLazySingleton<DeepLinkCallbackManager>(() => DeepLinkCallbackManager());
-    sl.registerLazySingletonAsync<NotificationService>(() async {
+    sl.registerSingletonAsync<NotificationService>(() async {
+      appLogger.info("Initializing NotificationService");
       final notificationService = NotificationService();
       await notificationService.init();
       return notificationService;
     });
+    appLogger.info("All services injected ✅");
   } catch (e, st) {
     appLogger.error("Error during service injection", e, st);
   }
