@@ -41,6 +41,7 @@ type App interface {
 	ReportIssue(email, issueType, description, device, model, logFilePath string) error
 	IsRadianceConnected() bool
 	GetAvailableServers() []byte
+	LoadInstalledApps(dataDir string) (string, error)
 }
 
 type User interface {
@@ -58,7 +59,7 @@ type User interface {
 	ValidateChangeEmailCode(email, code string) error
 	CompleteRecoveryByEmail(email, password, code string) error
 	DeleteAccount(email, password string) ([]byte, error)
-	RemoveDevice(deviceId string) (*api.LinkResponse, error)
+	RemoveDevice(deviceID string) (*api.LinkResponse, error)
 	//Change email
 	StartChangeEmail(newEmail, password string) error
 	CompleteChangeEmail(email, password, code string) error
@@ -81,8 +82,8 @@ type Payment interface {
 	StripeSubscription(email, planID string) (string, error)
 	Plans(channel string) (string, error)
 	StripeBillingPortalUrl() (string, error)
-	AcknowledgeGooglePurchase(purchaseToken, planId string) error
-	AcknowledgeApplePurchase(receipt, planII string) error
+	AcknowledgeGooglePurchase(purchaseToken, planID string) error
+	AcknowledgeApplePurchase(receipt, planID string) error
 	PaymentRedirect(provider, planID, email string) (string, error)
 	ActivationCode(email, resellerCode string) error
 	SubscriptionPaymentRedirectURL(redirectBody api.PaymentRedirectData) (string, error)
@@ -105,9 +106,9 @@ type Core interface {
 // Make sure LanternCore implements the Core interface
 var _ Core = (*LanternCore)(nil)
 
-func New(opts *utils.Opts) (Core, error) {
+func New(opts *utils.Opts) Core {
 	if opts == nil {
-		return nil, fmt.Errorf("opts cannot be nil")
+		return nil
 	}
 
 	// This isn't ideal, but currently on Android and maybe other platforms
@@ -115,18 +116,13 @@ func New(opts *utils.Opts) (Core, error) {
 	// need to ensure it's only done once.
 	core.initOnce.Do(func() {
 		slog.Debug("Initializing LanternCore with opts: ", "opts", opts)
-		if err := core.initialize(opts); err != nil {
-			initError.Store(&err)
-		}
+		core.initialize(opts)
 	})
-	if initError.Load() != nil {
-		return nil, *initError.Load()
-	}
 
-	return core, nil
+	return core
 }
 
-func (lc *LanternCore) initialize(opts *utils.Opts) error {
+func (lc *LanternCore) initialize(opts *utils.Opts) {
 	slog.Debug("Starting LanternCore initialization")
 
 	var radErr error
@@ -137,13 +133,13 @@ func (lc *LanternCore) initialize(opts *utils.Opts) error {
 		LogLevel: opts.LogLevel,
 		Locale:   opts.Locale,
 	}); radErr != nil {
-		return fmt.Errorf("failed to create Radiance: %w", radErr)
+		slog.Error("failed to create Radiance", "error", radErr)
 	}
 	slog.Debug("Paths:", "logs", common.LogPath(), "data", common.DataPath())
 
 	var sthErr error
 	if lc.splitTunnel, sthErr = vpn.NewSplitTunnelHandler(); sthErr != nil {
-		return fmt.Errorf("unable to create split tunnel handler: %v", sthErr)
+		slog.Error("unable to create split tunnel handler", "error", sthErr)
 	}
 
 	lc.serverManager = lc.rad.ServerManager()
@@ -161,12 +157,11 @@ func (lc *LanternCore) initialize(opts *utils.Opts) error {
 	}()
 
 	slog.Debug("LanternCore initialized successfully")
-	return nil
 }
 
 // LoadInstalledApps fetches the app list or rescans if needed using common macOS locations
 // currently only works on/enabled for macOS
-func LoadInstalledApps(dataDir string) (string, error) {
+func (lc *LanternCore) LoadInstalledApps(dataDir string) (string, error) {
 	appsList := []*apps.AppData{}
 	apps.LoadInstalledApps(dataDir, func(a ...*apps.AppData) error {
 		appsList = append(appsList, a...)
@@ -175,7 +170,7 @@ func LoadInstalledApps(dataDir string) (string, error) {
 
 	b, err := json.Marshal(appsList)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error marshalling installed apps: %w", err)
 	}
 	return string(b), nil
 }
@@ -254,7 +249,7 @@ func (lc *LanternCore) CreateUser() (*api.UserDataResponse, error) {
 	return lc.apiClient.NewUser(context.Background())
 }
 
-// this will return the user data from the user config
+// UserData will return the user data from the user config
 func (lc *LanternCore) UserData() ([]byte, error) {
 	slog.Debug("Getting user data from user config")
 	user, err := lc.userInfo.GetData()
@@ -269,7 +264,7 @@ func (lc *LanternCore) UserData() ([]byte, error) {
 	return bytes, nil
 }
 
-// GetUserData will get the user data from the server
+// FetchUserData will get the user data from the server
 func (lc *LanternCore) FetchUserData() ([]byte, error) {
 	slog.Debug("Getting user data")
 	// this call will also save the user data in the user config
@@ -387,11 +382,11 @@ func (lc *LanternCore) StripeBillingPortalUrl() (string, error) {
 	return billingPortal, nil
 }
 
-func (lc *LanternCore) AcknowledgeGooglePurchase(purchaseToken, planId string) error {
-	slog.Debug("Purchase token: ", "token", purchaseToken, "planId", planId)
+func (lc *LanternCore) AcknowledgeGooglePurchase(purchaseToken, planID string) error {
+	slog.Debug("Purchase token: ", "token", purchaseToken, "planID", planID)
 	params := map[string]string{
 		"purchaseToken": purchaseToken,
-		"planId":        planId,
+		"planId":        planID,
 	}
 	status, _, err := lc.apiClient.VerifySubscription(context.Background(), api.GoogleService, params)
 	if err != nil {
@@ -401,11 +396,11 @@ func (lc *LanternCore) AcknowledgeGooglePurchase(purchaseToken, planId string) e
 	return nil
 }
 
-func (lc *LanternCore) AcknowledgeApplePurchase(receipt, planII string) error {
-	slog.Debug("Apple receipt:", "receipt", receipt, "planId", planII)
+func (lc *LanternCore) AcknowledgeApplePurchase(receipt, planID string) error {
+	slog.Debug("Apple receipt:", "receipt", receipt, "planID", planID)
 	params := map[string]string{
 		"receipt": receipt,
-		"planId":  planII,
+		"planId":  planID,
 	}
 	status, _, err := lc.apiClient.VerifySubscription(context.Background(), api.AppleService, params)
 	if err != nil {
@@ -420,12 +415,12 @@ func (lc *LanternCore) SubscriptionPaymentRedirectURL(redirectBody api.PaymentRe
 	return lc.apiClient.SubscriptionPaymentRedirectURL(context.Background(), redirectBody)
 }
 
-func (lc *LanternCore) PaymentRedirect(provider, planId, email string) (string, error) {
+func (lc *LanternCore) PaymentRedirect(provider, planID, email string) (string, error) {
 	slog.Debug("Payment redirect")
 	deviceName := lc.userInfo.DeviceID()
 	body := api.PaymentRedirectData{
 		Provider:   provider,
-		Plan:       planId,
+		Plan:       planID,
 		DeviceName: deviceName,
 		Email:      email,
 	}

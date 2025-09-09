@@ -2,7 +2,6 @@ package mobile
 
 import (
 	"errors"
-	"fmt"
 	"log/slog"
 	"runtime"
 	"sync/atomic"
@@ -62,10 +61,7 @@ func panicRecover() {
 }
 
 func SetupRadiance(opts *utils.Opts) error {
-	c, err := lanterncore.New(opts)
-	if err != nil {
-		return fmt.Errorf("unable to create LanternCore: %v", err)
-	}
+	c := lanterncore.New(opts)
 	lanternCore.Store(c)
 	return nil
 }
@@ -130,7 +126,9 @@ func ReportIssue(email, issueType, description, device, model, logFilePath strin
 }
 
 func LoadInstalledApps(dataDir string) (string, error) {
-	return lanterncore.LoadInstalledApps(dataDir)
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		return c.LoadInstalledApps(dataDir)
+	})
 }
 
 // User Methods

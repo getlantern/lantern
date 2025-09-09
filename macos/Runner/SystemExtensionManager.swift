@@ -21,10 +21,13 @@ extension Notification.Name {
 class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
 
   static let shared = SystemExtensionManager()
-
-  private override init() { super.init() }
-
   let logger = Logger(subsystem: "org.getlantern.lantern", category: "SystemExtensionManager")
+
+  private override init() {
+    logger.info("SystemExtensionManager initialized")
+    super.init()
+  }
+
   private var currentRequest: OSSystemExtensionRequest?
   static let tunnelBundleID = "org.getlantern.lantern.PacketTunnel"
 

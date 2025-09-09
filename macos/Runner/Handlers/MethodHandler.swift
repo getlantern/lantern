@@ -16,9 +16,12 @@ class MethodHandler {
 
   private var vpnManager: VPNManager
 
-  init(channel: FlutterMethodChannel, vpnManager: VPNManager) {
+  private var core: LanterncoreCore
+
+  init(channel: FlutterMethodChannel, vpnManager: VPNManager, core: LanterncoreCore) {
     self.channel = channel
     self.vpnManager = vpnManager
+    self.core = core
     setupMethodCallHandler()
   }
 
@@ -26,7 +29,6 @@ class MethodHandler {
   private func setupMethodCallHandler() {
     appLogger.info("Setting up method call handler")
     channel.setMethodCallHandler { [self] (call, result) -> Void in
-
       appLogger.info(String(describing: call.method))
       switch call.method {
       case "startVPN":
@@ -63,7 +65,7 @@ class MethodHandler {
           let token = map["purchaseToken"] as? String,
           let planId = map["planId"] as? String
         {
-          self.acknowledgeInAppPurchase(token: token, planId: planId, result: result)
+          self.acknowledgeInAppPurchase(token: token, planID: planId, result: result)
         } else {
           result(
             FlutterError(
@@ -137,6 +139,7 @@ class MethodHandler {
       case "featureFlag":
         self.featureFlags(result: result)
       default:
+        appLogger.error("Unsupported method: \(call.method)")
         result(FlutterMethodNotImplemented)
       }
     }
@@ -244,20 +247,21 @@ class MethodHandler {
     value: String
   ) {
     Task {
-      var error: NSError?
-      MobileAddSplitTunnelItem(filterType, value, &error)
-      if let err = error {
+      do {
+        try self.core.addSplitTunnelItem(filterType, item: value)
         await MainActor.run {
-          result(
-            FlutterError(
-              code: "ADD_SPLIT_TUNNEL_ITEM_FAILED",
-              message: err.localizedDescription,
-              details: err.debugDescription))
+          result("ok")
         }
+      } catch let error as NSError {
+        await self.handleFlutterError(
+          error, result: result, code: "ADD_SPLIT_TUNNEL_ITEM_FAILED")
         return
-      }
-      await MainActor.run {
-        result("ok")
+      } catch {
+        appLogger.error("An unexpected error occurred: \(error)")
+        result(
+          FlutterError(
+            code: "UNEXPECTED_ERROR", message: "An unexpected error occurred.", details: "\(error)")
+        )
       }
     }
   }
@@ -268,20 +272,21 @@ class MethodHandler {
     value: String
   ) {
     Task {
-      var error: NSError?
-      MobileRemoveSplitTunnelItem(filterType, value, &error)
-      if let err = error {
+      do {
+        try self.core.removeSplitTunnelItem(filterType, item: value)
         await MainActor.run {
-          result(
-            FlutterError(
-              code: "REMOVE_SPLIT_TUNNEL_ITEM_FAILED",
-              message: err.localizedDescription,
-              details: err.debugDescription))
+          result("ok")
         }
+      } catch let error as NSError {
+        await self.handleFlutterError(
+          error, result: result, code: "REMOVE_SPLIT_TUNNEL_ITEM_FAILED")
         return
-      }
-      await MainActor.run {
-        result("ok")
+      } catch {
+        appLogger.error("An unexpected error occurred: \(error)")
+        result(
+          FlutterError(
+            code: "UNEXPECTED_ERROR", message: "An unexpected error occurred.", details: "\(error)")
+        )
       }
     }
   }
@@ -290,7 +295,7 @@ class MethodHandler {
     Task {
       do {
         var error: NSError?
-        let data = MobilePlans("", &error)
+        let data = self.core.plans("", error: &error)
         if error != nil {
           result(
             FlutterError(
@@ -310,7 +315,7 @@ class MethodHandler {
       let dataDir = FilePath.dataDirectory
 
       var error: NSError?
-      let json = MobileLoadInstalledApps(dataDir.path, &error)
+      let json = self.core.loadInstalledApps(dataDir.path, error: &error)
 
       if let err = error {
         result(
@@ -320,7 +325,13 @@ class MethodHandler {
             details: err.debugDescription))
         return
       }
-      result(json ?? "[]")
+      // If json is an empty string, return "[]", otherwise return
+      // json
+      if json == "" {
+        result("[]")
+      } else {
+        result(json)
+      }
     }
   }
 
@@ -328,7 +339,7 @@ class MethodHandler {
     Task {
       do {
         var error: NSError?
-        let data = MobileOAuthLoginUrl(provider, &error)
+        let data = self.core.oAuthLoginUrl(provider, error: &error)
         if error != nil {
           result(
             FlutterError(
@@ -346,18 +357,19 @@ class MethodHandler {
   private func oauthLoginCallback(result: @escaping FlutterResult, token: String) {
     Task {
       do {
-        var error: NSError?
-        let data = MobileOAuthLoginCallback(token, &error)
-        if error != nil {
-          result(
-            FlutterError(
-              code: "OAUTH_LOGIN_CALLBACK",
-              message: error?.description,
-              details: error?.localizedDescription))
-        }
+        let data = try self.core.oAuthLoginCallback(token)
         await MainActor.run {
           result(data)
         }
+      } catch let error as NSError {
+        await self.handleFlutterError(error, result: result, code: "OAUTH_LOGIN_CALLBACK")
+        return
+      } catch {
+        appLogger.error("An unexpected error occurred: \(error)")
+        result(
+          FlutterError(
+            code: "UNEXPECTED_ERROR", message: "An unexpected error occurred.", details: "\(error)")
+        )
       }
     }
   }
@@ -365,30 +377,40 @@ class MethodHandler {
   private func getUserData(result: @escaping FlutterResult) {
     Task {
       do {
-        var error: NSError?
-        let data = MobileUserData(&error)
-        if error != nil {
-          result(
-            FlutterError(
-              code: "USER_DATA_ERROR",
-              message: error?.description,
-              details: error?.localizedDescription))
-        }
+        let data = try self.core.userData()
         await MainActor.run {
           result(data)
         }
+      } catch let error as NSError {
+        await self.handleFlutterError(error, result: result, code: "USER_DATA_ERROR")
+        return
+      } catch {
+        appLogger.error("An unexpected error occurred: \(error)")
+        result(
+          FlutterError(
+            code: "UNEXPECTED_ERROR", message: "An unexpected error occurred.", details: "\(error)")
+        )
       }
     }
   }
 
-  func acknowledgeInAppPurchase(token: String, planId: String, result: @escaping FlutterResult) {
+  func acknowledgeInAppPurchase(token: String, planID: String, result: @escaping FlutterResult) {
     Task {
       do {
-        var error: NSError?
-        MobileAcknowledgeApplePurchase(token, planId, &error)
+        try self.core.acknowledgeApplePurchase(token, planID: planID)
         await MainActor.run {
           result("success")
         }
+      } catch let error as NSError {
+        await self.handleFlutterError(
+          error, result: result, code: "ACKNOWLEDGE_IN_APP_PURCHASE_FAILED")
+        return
+      } catch {
+        appLogger.error("An unexpected error occurred: \(error)")
+        result(
+          FlutterError(
+            code: "UNEXPECTED_ERROR", message: "An unexpected error occurred.", details: "\(error)")
+        )
       }
     }
   }
@@ -397,156 +419,173 @@ class MethodHandler {
 
   func startRecoveryByEmail(result: @escaping FlutterResult, email: String) {
     Task {
-      var error: NSError?
-      MobileStartRecoveryByEmail(email, &error)
-      if error != nil {
+      do {
+        try self.core.startRecovery(byEmail: email)
+        await MainActor.run {
+          result("Recovery email sent successfully.")
+        }
+      } catch let error as NSError {
+        await self.handleFlutterError(error, result: result, code: "RECOVERY_FAILED")
+        return
+      } catch {
+        appLogger.error("An unexpected error occurred: \(error)")
         result(
           FlutterError(
-            code: "RECOVERY_FAILED",
-            message: error!.localizedDescription,
-            details: error!.debugDescription))
-        return
-      }
-      await MainActor.run {
-        result("Recovery email sent successfully.")
+            code: "UNEXPECTED_ERROR", message: "An unexpected error occurred.", details: "\(error)")
+        )
       }
     }
   }
 
   func validateRecoveryCode(result: @escaping FlutterResult, data: [String: Any]) {
     Task {
-      let email = data["email"] as? String ?? ""
-      let code = data["code"] as? String ?? ""
-      var error: NSError?
-      MobileValidateChangeEmailCode(email, code, &error)
-      if error != nil {
+      do {
+        let email = data["email"] as? String ?? ""
+        let code = data["code"] as? String ?? ""
+        try self.core.validateChangeEmailCode(email, code: code)
+        await MainActor.run {
+          result("Recovery code validated successfully.")
+        }
+      } catch let error as NSError {
+        await self.handleFlutterError(error, result: result, code: "VALIDATE_RECOVERY_CODE_FAILED")
+        return
+      } catch {
+        appLogger.error("An unexpected error occurred: \(error)")
         result(
           FlutterError(
-            code: error!.localizedDescription,
-            message: error!.localizedDescription,
-            details: error?.localizedDescription))
-        return
-      }
-      await MainActor.run {
-        result("Recovery code validated successfully.")
+            code: "UNEXPECTED_ERROR", message: "An unexpected error occurred.", details: "\(error)")
+        )
       }
     }
   }
 
   func completeChangeEmail(result: @escaping FlutterResult, data: [String: Any]) {
     Task {
-      let email = data["email"] as? String ?? ""
-      let code = data["code"] as? String ?? ""
-      let newPassword = data["newPassword"] as? String ?? ""
-      var error: NSError?
-      MobileCompleteChangeEmail(email, newPassword, code, &error)
-      if error != nil {
+      do {
+        let email = data["email"] as? String ?? ""
+        let code = data["code"] as? String ?? ""
+        let newPassword = data["newPassword"] as? String ?? ""
+        try self.core.completeChangeEmail(email, password: newPassword, code: code)
+        await MainActor.run {
+          result("ok")
+        }
+      } catch let error as NSError {
+        await self.handleFlutterError(error, result: result, code: "COMPLETE_CHANGE_EMAIL_FAILED")
+        return
+      } catch {
+        appLogger.error("An unexpected error occurred: \(error)")
         result(
           FlutterError(
-            code: "COMPLETE_CHANGE_EMAIL_FAILED",
-            message: error!.localizedDescription,
-            details: error!.localizedDescription))
-        return
-      }
-      await MainActor.run {
-        result("Change email completed successfully.")
+            code: "UNEXPECTED_ERROR", message: "An unexpected error occurred.", details: "\(error)")
+        )
       }
     }
   }
 
   func login(result: @escaping FlutterResult, data: [String: Any]) {
     Task {
-      let email = data["email"] as? String ?? ""
-      let password = data["password"] as? String ?? ""
-      var error: NSError?
-      let data = MobileLogin(email, password, &error)
-      if error != nil {
+      do {
+        let email = data["email"] as? String ?? ""
+        let password = data["password"] as? String ?? ""
+        let data = try self.core.login(email, password: password)
+        await MainActor.run {
+          result(data)
+        }
+      } catch let error as NSError {
+        await self.handleFlutterError(error, result: result, code: "LOGIN_FAILED")
+        return
+      } catch {
+        appLogger.error("An unexpected error occurred: \(error)")
         result(
           FlutterError(
-            code: "LOGIN_FAILED",
-            message: error!.localizedDescription,
-            details: error!.localizedDescription))
-        return
-      }
-      await MainActor.run {
-        result(data)
+            code: "UNEXPECTED_ERROR", message: "An unexpected error occurred.", details: "\(error)")
+        )
       }
     }
   }
   func signUp(result: @escaping FlutterResult, data: [String: Any]) {
     Task {
-      let email = data["email"] as? String ?? ""
-      let password = data["password"] as? String ?? ""
-      var error: NSError?
-      MobileSignUp(email, password, &error)
-      if error != nil {
+      do {
+        let email = data["email"] as? String ?? ""
+        let password = data["password"] as? String ?? ""
+        try self.core.signUp(email, password: password)
+        await MainActor.run {
+          result("ok")
+        }
+      } catch let error as NSError {
+        await self.handleFlutterError(error, result: result, code: "SIGNUP_FAILED")
+        return
+      } catch {
+        appLogger.error("An unexpected error occurred: \(error)")
         result(
           FlutterError(
-            code: "SIGNUP_FAILED",
-            message: error!.localizedDescription,
-            details: error!.localizedDescription))
-        return
-      }
-      await MainActor.run {
-        result("ok")
+            code: "UNEXPECTED_ERROR", message: "An unexpected error occurred.", details: "\(error)")
+        )
       }
     }
   }
 
   func logout(result: @escaping FlutterResult, email: String) {
     Task {
-      var error: NSError?
-      let data = MobileLogout(email, &error)
-      if error != nil {
+      do {
+        let data = try self.core.logout(email)
+        await MainActor.run {
+          result(data)
+        }
+      } catch let error as NSError {
+        await self.handleFlutterError(error, result: result, code: "LOGOUT_FAILED")
+        return
+      } catch {
+        appLogger.error("An unexpected error occurred: \(error)")
         result(
           FlutterError(
-            code: "LOGOUT_FAILED",
-            message: error!.localizedDescription,
-            details: error!.localizedDescription))
-        return
-      }
-      await MainActor.run {
-        result(data)
+            code: "UNEXPECTED_ERROR", message: "An unexpected error occurred.", details: "\(error)")
+        )
       }
     }
+
   }
 
   func deleteAccount(result: @escaping FlutterResult, data: [String: Any]) {
     Task {
-      let email = data["email"] as? String ?? ""
-      let password = data["password"] as? String ?? ""
-      var error: NSError?
-      let data = MobileDeleteAccount(email, password, &error)
-      if error != nil {
+      do {
+        let email = data["email"] as? String ?? ""
+        let password = data["password"] as? String ?? ""
+        let data = try self.core.deleteAccount(email, password: password)
+        await MainActor.run {
+          result(data)
+        }
+      } catch let error as NSError {
+        await self.handleFlutterError(error, result: result, code: "DELETE_ACCOUNT_FAILED")
+        return
+      } catch {
+        appLogger.error("An unexpected error occurred: \(error)")
         result(
           FlutterError(
-            code: "DELETE_ACCOUNT_FAILED",
-            message: error!.localizedDescription,
-            details: error!.localizedDescription))
-        return
-      }
-      await MainActor.run {
-        result(data)
+            code: "UNEXPECTED_ERROR", message: "An unexpected error occurred.", details: "\(error)")
+        )
       }
     }
   }
 
   func activationCode(result: @escaping FlutterResult, data: [String: Any]) {
     Task {
-      let email = data["email"] as? String ?? ""
-      let resellerCode = data["resellerCode"] as? String ?? ""
-      var error: NSError?
-      MobileActivationCode(email, resellerCode, &error)
-      if error != nil {
+      do {
+        let email = data["email"] as? String ?? ""
+        let resellerCode = data["resellerCode"] as? String ?? ""
+        try self.core.activationCode(email, resellerCode: resellerCode)
+        await MainActor.run {
+          result("ok")
+        }
+      } catch let error as NSError {
+        await self.handleFlutterError(error, result: result, code: "ACTIVATION_CODE_FAILED")
+        return
+      } catch {
+        appLogger.error("An unexpected error occurred: \(error)")
         result(
           FlutterError(
-            code: "ACTIVATION_CODE_FAILED",
-            message: error!.localizedDescription,
-            details: error!.localizedDescription))
-        return
-      }
-      await MainActor.run {
-        result("ok")
+            code: "UNEXPECTED_ERROR", message: "An unexpected error occurred.", details: "\(error)")
+        )
       }
     }
   }
@@ -555,101 +594,129 @@ class MethodHandler {
   /// Starts the Digital Ocean private server flow.
   func digitalOcean(result: @escaping FlutterResult) {
     Task.detached {
-      var error: NSError?
-      MobileDigitalOceanPrivateServer(PrivateServerListener.shared, &error)
-      if let err = error {
-        await self.handleFlutterError(err, result: result, code: "DIGITAL_OCEAN_ERROR")
+      do {
+        try self.core.digitalOceanPrivateServer(PrivateServerListener.shared)
+        await MainActor.run {
+          result("ok")
+        }
+      } catch let error as NSError {
+        await self.handleFlutterError(error, result: result, code: "DIGITAL_OCEAN_ERROR")
         return
+      } catch {
+        appLogger.error("An unexpected error occurred: \(error)")
+        result(
+          FlutterError(
+            code: "UNEXPECTED_ERROR", message: "An unexpected error occurred.", details: "\(error)")
+        )
       }
-      await MainActor.run {
-        result("ok")
-      }
-
     }
   }
 
   func googleCloud(result: @escaping FlutterResult) {
     Task.detached {
-      var error: NSError?
-      MobileGoogleCloudPrivateServer(PrivateServerListener.shared, &error)
-      if let err = error {
-        await self.handleFlutterError(err, result: result, code: "GOOGLE_CLOUD_ERROR")
+      do {
+        try self.core.googleCloudPrivateServer(PrivateServerListener.shared)
+        await MainActor.run {
+          result("ok")
+        }
+      } catch let error as NSError {
+        await self.handleFlutterError(error, result: result, code: "GOOGLE_CLOUD_ERROR")
         return
+      } catch {
+        appLogger.error("An unexpected error occurred: \(error)")
+        result(
+          FlutterError(
+            code: "UNEXPECTED_ERROR", message: "An unexpected error occurred.", details: "\(error)")
+        )
       }
-      await MainActor.run {
-        result("ok")
-      }
-
     }
   }
 
   func selectAccount(result: @escaping FlutterResult, account: String) {
     Task.detached {
-      var error: NSError?
-      MobileSelectAccount(account, &error)
-      if let err = error {
-        await self.handleFlutterError(err, result: result, code: "SELECT_ACCOUNT_ERROR")
+      do {
+        try self.core.selectAccount(account)
+        await MainActor.run {
+          result("ok")
+        }
+      } catch let error as NSError {
+        await self.handleFlutterError(error, result: result, code: "SELECT_ACCOUNT_ERROR")
         return
+      } catch {
+        appLogger.error("An unexpected error occurred: \(error)")
+        result(
+          FlutterError(
+            code: "UNEXPECTED_ERROR", message: "An unexpected error occurred.", details: "\(error)")
+        )
       }
-      await MainActor.run {
-        result("ok")
-      }
-
     }
   }
 
   func selectProject(result: @escaping FlutterResult, project: String) {
     Task.detached {
-
-      var error: NSError?
-      MobileSelectProject(project, &error)
-      if let err = error {
-        await self.handleFlutterError(err, result: result, code: "SELECT_PROJECT_ERROR")
+      do {
+        try self.core.selectProject(project)
+        await MainActor.run {
+          result("ok")
+        }
+      } catch let error as NSError {
+        await self.handleFlutterError(error, result: result, code: "SELECT_PROJECT_ERROR")
         return
+      } catch {
+        appLogger.error("An unexpected error occurred: \(error)")
+        result(
+          FlutterError(
+            code: "UNEXPECTED_ERROR", message: "An unexpected error occurred.", details: "\(error)")
+        )
       }
-      await MainActor.run {
-        result("ok")
-      }
-
     }
   }
 
   func startDeployment(result: @escaping FlutterResult, data: [String: Any]) {
     Task.detached {
-      let location = data["location"] as? String ?? ""
-      let serverName = data["serverName"] as? String ?? ""
-
-      var error: NSError?
-      let success = MobileStartDeployment(location, serverName, &error)
-
-      if let err = error {
-        await self.handleFlutterError(err, result: result, code: "START_DEPLOYMENT_ERROR")
+      do {
+        let location = data["location"] as? String ?? ""
+        let serverName = data["serverName"] as? String ?? ""
+        try self.core.startDeployment(location, serverName: serverName)
+        await MainActor.run {
+          result("ok")
+        }
+      } catch let error as NSError {
+        await self.handleFlutterError(error, result: result, code: "START_DEPLOYMENT_ERROR")
         return
-      }
-
-      await MainActor.run {
-        result(success ? "ok" : "failed")
+      } catch {  // Catch any other error
+        appLogger.error("An unexpected error occurred: \(error)")
+        result(
+          FlutterError(
+            code: "UNEXPECTED_ERROR", message: "An unexpected error occurred.", details: "\(error)")
+        )
       }
     }
   }
 
   func cancelDeployment(result: @escaping FlutterResult) {
     Task.detached {
-      var error: NSError?
-      let success = MobileCancelDeployment(&error)
-      if let err = error {
-        await self.handleFlutterError(err, result: result, code: "CANCEL_DEPLOYMENT_ERROR")
+      do {
+        try self.core.cancelDeployment()
+        await MainActor.run {
+          result("ok")
+        }
+      } catch let error as NSError {
+        await self.handleFlutterError(error, result: result, code: "CANCEL_DEPLOYMENT_ERROR")
         return
-      }
-      await MainActor.run {
-        result(success ? "ok" : "failed")
+      } catch {
+        appLogger.error("An unexpected error occurred: \(error)")
+        result(
+          FlutterError(
+            code: "UNEXPECTED_ERROR", message: "An unexpected error occurred.", details: "\(error)")
+        )
       }
     }
   }
 
   func selectCertFingerprint(result: @escaping FlutterResult, fingerprint: String) {
     Task.detached {
-      MobileSelectedCertFingerprint(fingerprint)
+      self.core.selectedCertFingerprint(fingerprint)
       await MainActor.run {
         result("ok")
       }
@@ -662,30 +729,37 @@ class MethodHandler {
       let port = data["port"] as? String
       let accessToken = data["accessToken"] as? String
       let serverName = data["serverName"] as? String
-      var error: NSError?
-      MobileAddServerManagerInstance(
-        ip, port, accessToken, serverName, PrivateServerListener.shared, &error)
-      if let err = error {
-        await self.handleFlutterError(err, result: result, code: "ADD_SERVER_MANUALLY_ERROR")
+      do {
+        try self.core.addServerManagerInstance(
+          ip, port: port, accessToken: accessToken, tag: serverName,
+          events: PrivateServerListener.shared)
+        await MainActor.run {
+          result("ok")
+        }
+      } catch let error as NSError {
+        await self.handleFlutterError(error, result: result, code: "ADD_SERVER_MANUALLY_ERROR")
         return
-      }
-      await MainActor.run {
-        result("ok")
+      } catch {
+        appLogger.error("An unexpected error occurred: \(error)")
+        result(
+          FlutterError(
+            code: "UNEXPECTED_ERROR", message: "An unexpected error occurred.", details: "\(error)")
+        )
       }
     }
   }
 
   func featureFlags(result: @escaping FlutterResult) {
     Task.detached {
-      let flags = MobileAvailableFeatures()
+      let flags = self.core.availableFeatures()
       await MainActor.run {
         result(String(data: flags!, encoding: .utf8))
       }
     }
   }
 
-  //Utils method for hanlding Flutter errors
-  private func handleFlutterError(
+  // Utils method for handling Flutter errors
+  func handleFlutterError(
     _ error: Error?,
     result: @escaping FlutterResult,
     code: String = "UNKNOWN_ERROR"
@@ -704,7 +778,7 @@ class MethodHandler {
     }
   }
 
-  private func withFilterArgs(
+  func withFilterArgs(
     call: FlutterMethodCall,
     result: @escaping FlutterResult,
     perform: (_ filterType: String, _ value: String) -> Void

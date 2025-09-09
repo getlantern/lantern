@@ -18,27 +18,25 @@ class AppDelegate: FlutterAppDelegate {
     return true
   }
 
-  override func applicationDidFinishLaunching(_ aNotification: Notification) {
-    systemExtensionManager.activateExtension()
-
+  override func applicationWillFinishLaunching(_ notification: Notification) {
     guard let controller = mainFlutterWindow?.contentViewController as? FlutterViewController else {
       fatalError("contentViewController is not a FlutterViewController")
     }
 
     registerEventHandlers(controller: controller)
-
     // Initialize directories and working paths
     setupFileSystem()
 
-    setupRadiance()
-
-    // Setup native method channel
-    setupMethodHandler(controller: controller)
+    setupRadiance(controller: controller)
 
     NSSetUncaughtExceptionHandler { exception in
       print(exception.reason ?? "Unknown exception reason")
       print(exception.callStackSymbols)
     }
+  }
+
+  override func applicationDidFinishLaunching(_ aNotification: Notification) {
+    systemExtensionManager.activateExtension()
   }
 
   public override func application(
@@ -70,15 +68,6 @@ class AppDelegate: FlutterAppDelegate {
 
   }
 
-  /// Initializes the native method channel handler
-  private func setupMethodHandler(controller: FlutterViewController) {
-    let nativeChannel = FlutterMethodChannel(
-      name: "org.getlantern.lantern/method",
-      binaryMessenger: controller.engine.binaryMessenger
-    )
-    MethodHandler(channel: nativeChannel, vpnManager: vpnManager)
-  }
-
   /// Prepares the file system directories for use
   private func setupFileSystem() {
     do {
@@ -103,7 +92,8 @@ class AppDelegate: FlutterAppDelegate {
   }
 
   /// Calls API handler setup
-  private func setupRadiance() {
+  private func setupRadiance(controller: FlutterViewController) {
+    appLogger.info("Setting up radiance")
     Task {
       let opts = UtilsOpts()
       opts.dataDir = FilePath.dataDirectory.relativePath
@@ -115,15 +105,14 @@ class AppDelegate: FlutterAppDelegate {
       appLogger.info("Log level: " + opts.logLevel)
 
       opts.locale = Locale.current.identifier
-      var error: NSError?
-      MobileSetupRadiance(opts, &error)
-      // Handle any error returned by the setup
-      if let error {
-        appLogger.error("Error while setting up radiance: \(error)")
-      } else {
-        appLogger.info("Radiance setup complete")
-      }
+      let core = LanterncoreNew(opts)
+      // Setup native method channel
+      let nativeChannel = await FlutterMethodChannel(
+        name: "org.getlantern.lantern/method",
+        binaryMessenger: controller.engine.binaryMessenger
+      )
+      _ = MethodHandler(
+        channel: nativeChannel, vpnManager: vpnManager, core: core as! LanterncoreCore)
     }
   }
-
 }

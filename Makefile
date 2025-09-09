@@ -84,7 +84,8 @@ GOMOBILE_REPOS = \
 	github.com/sagernet/sing-box/experimental/libbox \
 	github.com/getlantern/sing-box-extensions/ruleset \
 	./lantern-core/mobile \
-	./lantern-core/utils
+	./lantern-core/utils \
+	./lantern-core
 
 SIGN_ID="Developer ID Application: Brave New Software Project, Inc (ACZRKC3LQ9)"
 
