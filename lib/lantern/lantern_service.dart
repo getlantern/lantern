@@ -507,7 +507,7 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> triggerSystemExtension() {
+  Future<Either<Failure, SystemExtensionStatus>> triggerSystemExtension() {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.triggerSystemExtension();
     }
@@ -515,7 +515,7 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, bool>> isSystemExtensionInstalled() {
+  Future<Either<Failure, SystemExtensionStatus>> isSystemExtensionInstalled() {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.isSystemExtensionInstalled();
     }

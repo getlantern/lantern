@@ -35,9 +35,12 @@ class _HomeState extends ConsumerState<Home> {
     if (PlatformUtils.isMacOS) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final appSetting = ref.read(appSettingNotifierProvider);
+        appLogger.info("App Setting - showSplashScreen: ${appSetting.showSplashScreen}");
         if (appSetting.showSplashScreen) {
+          appLogger.info("Showing System Extension Dialog");
           appRouter.push(const SystemExtensionDialog());
           //User has seen dialog, do not show again
+          appLogger.info("Setting showSplashScreen to false");
           ref.read(appSettingNotifierProvider.notifier).setSplashScreen(false);
         }
       });

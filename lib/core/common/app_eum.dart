@@ -163,5 +163,31 @@ enum CloudProvider {
 enum SystemExtensionStatus {
   notInstalled,
   installed,
+  requiresApproval,
+  timedOut,
+  activated,
+  deactivated,
   unknown;
+}
+
+
+extension SystemExtensionStatusExtension on String {
+  SystemExtensionStatus get toSystemExtensionStatus {
+    switch (this) {
+      case 'notInstalled':
+        return SystemExtensionStatus.notInstalled;
+      case 'installed':
+        return SystemExtensionStatus.installed;
+      case 'requiresApproval':
+        return SystemExtensionStatus.requiresApproval;
+      case 'timedOut':
+        return SystemExtensionStatus.timedOut;
+      case 'activated':
+        return SystemExtensionStatus.activated;
+      case 'deactivated':
+        return SystemExtensionStatus.deactivated;
+      default:
+        return SystemExtensionStatus.unknown;
+    }
+  }
 }

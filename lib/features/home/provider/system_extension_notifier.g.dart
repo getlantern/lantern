@@ -7,7 +7,7 @@ part of 'system_extension_notifier.dart';
 // **************************************************************************
 
 String _$systemExtensionNotifierHash() =>
-    r'a5bdddb414f910c3ed9b05e4e8a70786cba8773e';
+    r'b00108e6c545060eb9492f0abe22c27d83eb109c';
 
 /// See also [SystemExtensionNotifier].
 @ProviderFor(SystemExtensionNotifier)

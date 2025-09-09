@@ -783,7 +783,8 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> triggerSystemExtension() async {
+  Future<Either<Failure, SystemExtensionStatus>>
+      triggerSystemExtension() async {
     if (!PlatformUtils.isMacOS) {
       return left(Failure(
           error: 'Not supported',
@@ -792,23 +793,25 @@ class LanternPlatformService implements LanternCoreService {
     try {
       final result =
           await _methodChannel.invokeMethod('triggerSystemExtension');
-      return right(result);
+      return right(result.toSystemExtensionStatus);
     } catch (e, stackTrace) {
       appLogger.error('Error triggering system extension', e, stackTrace);
-      return Future.value(Left(e.toFailure()));
+      return Left(e.toFailure());
     }
   }
 
   @override
-  Future<Either<Failure, bool>> isSystemExtensionInstalled() async {
+  Future<Either<Failure, SystemExtensionStatus>>
+      isSystemExtensionInstalled() async {
     try {
-      final result =
-          await _methodChannel.invokeMethod('isSystemExtensionInstalled');
-      return right(result as bool);
+      final result = await _methodChannel
+          .invokeMethod<String>('isSystemExtensionInstalled');
+      appLogger.info('System Extension Installed: $result');
+      return right(result!.toSystemExtensionStatus);
     } catch (e, stackTrace) {
       appLogger.error(
           'Error checking system extension installation', e, stackTrace);
-      return Future.value(Left(e.toFailure()));
+      return Left(e.toFailure());
     }
   }
 }

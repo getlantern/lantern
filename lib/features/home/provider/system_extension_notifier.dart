@@ -1,3 +1,4 @@
+import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -12,21 +13,9 @@ class SystemExtensionNotifier extends _$SystemExtensionNotifier {
     return SystemExtensionStatus.unknown;
   }
 
-
-  Future<void> triggerSystemExtensionInstallation() async {
-    final result =
-        await ref.read(lanternServiceProvider).triggerSystemExtension();
-
-    result.fold(
-      (failure) {
-        appLogger.error("Failure: ${failure.localizedErrorMessage}");
-      },
-      (result) {
-        appLogger.info("System Extension Installation Triggered: $result");
-      },
-    );
+  Future<Either<Failure, SystemExtensionStatus>> triggerSystemExtensionInstallation() async {
+    return ref.read(lanternServiceProvider).triggerSystemExtension();
   }
-
 
   Future<void> isSystemExtensionInstalled() async {
     final result =
@@ -38,9 +27,7 @@ class SystemExtensionNotifier extends _$SystemExtensionNotifier {
         appLogger.error("Failure: ${failure.localizedErrorMessage}");
       },
       (result) {
-        state = result
-            ? SystemExtensionStatus.installed
-            : SystemExtensionStatus.notInstalled;
+        state = result;
         appLogger.info("System Extension Installed: $result");
       },
     );

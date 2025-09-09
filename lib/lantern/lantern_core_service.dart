@@ -179,7 +179,7 @@ abstract class LanternCoreService {
 
   //triggerSystemExtension will uses to trigger system extension flow on macos
   // only on macos
-  Future<Either<Failure, String>> triggerSystemExtension();
+  Future<Either<Failure, SystemExtensionStatus>> triggerSystemExtension();
 
-  Future<Either<Failure, bool>> isSystemExtensionInstalled();
+  Future<Either<Failure, SystemExtensionStatus>> isSystemExtensionInstalled();
 }

@@ -136,11 +136,10 @@ class MethodHandler {
       //Utils methods
       case "featureFlag":
         self.featureFlags(result: result)
-      case "triggerSystemExtensionFlow":
-          self.triggerSystemExtensionFlow(result: result)
+      case "triggerSystemExtension":
+        self.triggerSystemExtensionFlow(result: result)
       case "isSystemExtensionInstalled":
-          self.isSystemExtensionInstalled(result: result)
-
+        self.isSystemExtensionInstalled(result: result)
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -689,26 +688,48 @@ class MethodHandler {
     }
   }
 
-    func triggerSystemExtensionFlow(result: @escaping FlutterResult) {
-      Task.detached {
-          let start = Date()
-        let systemStatus = SystemExtensionManager.shared.activateExtensionAndWait()
-          appLogger.info("System extension activation result: \(result) took \(Date().timeIntervalSince(start)) seconds")
+  func triggerSystemExtensionFlow(result: @escaping FlutterResult) {
+    Task.detached {
+      let start = Date()
+      do {
+        let systemStatus = try SystemExtensionManager.shared.activateExtensionAndWait()
+        appLogger.info(
+          "System extension activation result: \(systemStatus) took \(Date().timeIntervalSince(start)) seconds"
+        )
         await MainActor.run {
-            result(systemStatus!.rawValue)
+          result(systemStatus)
+        }
+      } catch {
+        appLogger.error("System extension activation failed: \(error.localizedDescription)")
+        await MainActor.run {
+          result(
+            FlutterError(
+              code: "SYSTEM_EXTENSION_ACTIVATION_FAILED",
+              message: error.localizedDescription,
+              details: nil
+            )
+          )
         }
       }
     }
-    
-    //Check if system extension is installed or not
+  }
+
+  //Check if system extension is installed or not
   func isSystemExtensionInstalled(result: @escaping FlutterResult) {
     Task.detached {
+      do {
         let start = Date()
-      let installed = SystemExtensionManager.shared.isInstalled()
-        appLogger.info("System extension installed: \(installed)")
-        appLogger.info("isSystemExtensionInstalled took \(Date().timeIntervalSince(start)) seconds")
-      await MainActor.run {
-        result(installed)
+        let installed = try SystemExtensionManager.shared.checkInstallationStatus()
+        appLogger.info(
+          "System extension installation status: \(installed) took \(Date().timeIntervalSince(start)) seconds"
+        )
+        await MainActor.run {
+          result(installed)
+        }
+      } catch {
+        await self.handleFlutterError(
+          error, result: result, code: "CHECK_SYSTEM_EXTENSION_STATUS_FAILED")
+
       }
     }
   }

@@ -1,14 +1,16 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/features/home/provider/system_extension_notifier.dart';
 
 @RoutePage(name: 'SystemExtensionDialog')
-class SystemExtensionDialog extends StatelessWidget {
+class SystemExtensionDialog extends HookConsumerWidget {
   const SystemExtensionDialog({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
     return BaseScreen(
       title: '',
@@ -59,7 +61,7 @@ class SystemExtensionDialog extends StatelessWidget {
           PrimaryButton(
             label: 'install_now'.i18n,
             isTaller: true,
-            onPressed: onInstall,
+            onPressed: () => onInstall(ref, context),
           ),
           const SizedBox(height: 16.0),
           SecondaryButton(
@@ -72,11 +74,25 @@ class SystemExtensionDialog extends StatelessWidget {
     );
   }
 
-  void onInstall() {
+  Future<void> onInstall(WidgetRef ref, BuildContext context) async {
+    final result = await ref
+        .read(systemExtensionNotifierProvider.notifier)
+        .triggerSystemExtensionInstallation();
 
+    result.fold(
+      (failure) {
+        appLogger.error("Failure: ${failure.localizedErrorMessage}");
+        AppDialog.errorDialog(
+            context: context,
+            title: 'error'.i18n,
+            content: failure.localizedErrorMessage);
+      },
+      (result) {
+        appLogger.info("System Extension Installation Triggered: $result");
+        appRouter.maybePop();
+      },
+    );
   }
 
-  void onLearnMore() {
-
-  }
+  void onLearnMore() {}
 }

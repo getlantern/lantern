@@ -990,12 +990,12 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> triggerSystemExtension() {
+  Future<Either<Failure, SystemExtensionStatus>> triggerSystemExtension() {
     throw Exception("This is not supported on desktop");
   }
 
   @override
-  Future<Either<Failure, bool>> isSystemExtensionInstalled() {
+  Future<Either<Failure, SystemExtensionStatus>> isSystemExtensionInstalled() {
     throw Exception("This is not supported on desktop");
   }
 }
