@@ -700,7 +700,7 @@ class MethodHandler {
     }
   }
 
-  //Utils method for hanlding Flutter errors
+  //Utils method for handling Flutter errors
   private func handleFlutterError(
     _ error: Error?,
     result: @escaping FlutterResult,
