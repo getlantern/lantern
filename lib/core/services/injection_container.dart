@@ -38,7 +38,7 @@ Future<void> injectServices() async {
     sl.registerSingleton<LanternFFIService>(ffiService);
     final localStorage = LocalStorageService();
     await localStorage.init();
-    sl.registerLazySingleton<LocalStorageService>(() => localStorage);
+    sl.registerSingleton<LocalStorageService>(localStorage);
     sl.registerLazySingleton<AppRouter>(() => AppRouter());
 
 
