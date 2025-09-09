@@ -47,11 +47,9 @@ Future<void> injectServices() async {
       storeUtils.init();
       return storeUtils;
     });
-    sl.registerLazySingleton<StripeService>(() {
-      final stripeService = StripeService();
-      stripeService.initialize();
-      return stripeService;
-    });
+    final stripeService = StripeService();
+    await stripeService.initialize();
+    sl.registerSingleton<StripeService>(stripeService);
     sl.registerLazySingleton<DeepLinkCallbackManager>(() => DeepLinkCallbackManager());
     sl.registerLazySingleton<NotificationService>(() {
       final notificationService = NotificationService();
