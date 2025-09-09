@@ -21,9 +21,8 @@ import '../core/models/lantern_status.dart';
 import '../core/services/injection_container.dart' show sl;
 
 class LanternPlatformService implements LanternCoreService {
-  final AppPurchase appPurchase;
 
-  LanternPlatformService(this.appPurchase);
+  LanternPlatformService();
 
   static const channelPrefix = 'org.getlantern.lantern';
   static const MethodChannel _methodChannel =
@@ -233,7 +232,7 @@ class LanternPlatformService implements LanternCoreService {
       required PaymentSuccessCallback onSuccess,
       required PaymentErrorCallback onError}) async {
     try {
-      await appPurchase.startSubscription(
+      await sl<AppPurchase>().startSubscription(
         plan: planId,
         onSuccess: onSuccess,
         onError: onError,
