@@ -42,18 +42,21 @@ Future<void> injectServices() async {
     sl.registerLazySingleton<AppRouter>(() => AppRouter());
 
 
-    sl.registerLazySingleton<StoreUtils>(() {
+    sl.registerLazySingletonAsync<StoreUtils>(() async {
       final storeUtils = StoreUtils();
-      storeUtils.init();
+      await storeUtils.init();
       return storeUtils;
     });
-    final stripeService = StripeService();
-    await stripeService.initialize();
-    sl.registerSingleton<StripeService>(stripeService);
+
+    sl.registerLazySingletonAsync<StripeService>(() async {
+      final stripeService = StripeService();
+      await stripeService.initialize();
+      return stripeService;
+    });
     sl.registerLazySingleton<DeepLinkCallbackManager>(() => DeepLinkCallbackManager());
-    sl.registerLazySingleton<NotificationService>(() {
+    sl.registerLazySingletonAsync<NotificationService>(() async {
       final notificationService = NotificationService();
-      notificationService.init();
+      await notificationService.init();
       return notificationService;
     });
   } catch (e, st) {
