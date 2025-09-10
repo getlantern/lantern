@@ -68,16 +68,13 @@ func sendApps(port int64) func(apps ...*apps.AppData) error {
 
 //export setup
 func setup(_logDir, _dataDir, _locale *C.char, logP, appsP, statusP, privateServerP C.int64_t, api unsafe.Pointer) *C.char {
-	core, err := lanterncore.New(&utils.Opts{
+	core := lanterncore.New(&utils.Opts{
 		LogDir:   C.GoString(_logDir),
 		DataDir:  C.GoString(_dataDir),
 		Locale:   C.GoString(_locale),
 		Deviceid: "",
 		LogLevel: "debug",
 	})
-	if err != nil {
-		return C.CString(fmt.Sprintf("unable to create LanternCore: %v", err))
-	}
 	dart_api_dl.Init(api)
 	lanternCore.Store(&core)
 	logsPort = int64(logP)
