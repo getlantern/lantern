@@ -8,12 +8,15 @@ import 'package:ffi/ffi.dart';
 
 class PipeClient {
   PipeClient({
-    this.pipeName = r'\\.\pipe\LanternService',
+    String? pipeName,
     this.token,
-    this.tokenPath,
+    String? tokenPath,
     this.timeoutMs = 3000,
     this.bufSize = 64 * 1024,
-  });
+  })  : pipeName = pipeName ??
+            Platform.environment['LANTERN_PIPE_NAME'] ??
+            r'\\.\pipe\LanternService',
+        tokenPath = tokenPath ?? Platform.environment['LANTERN_TOKEN_PATH'];
 
   final String pipeName;
   String? token;
@@ -29,7 +32,15 @@ class PipeClient {
     if (token != null && token!.isNotEmpty) return;
     final programData =
         Platform.environment['ProgramData'] ?? r'C:\ProgramData';
-    final path = tokenPath ?? '$programData\\Lantern\\ipc-token';
+    // Default “installed service” token
+    final defaultToken = '$programData\\Lantern\\ipc-token';
+    // Dev token under user profile
+    final localAppData = Platform.environment['LOCALAPPDATA'] ?? programData;
+    final devToken = '$localAppData\\Lantern\\ipc-token.dev';
+    final path = tokenPath ??
+        Platform.environment['LANTERN_TOKEN_PATH'] ??
+        (await File(defaultToken).exists() ? defaultToken : devToken);
+
     final start = DateTime.now();
     while (true) {
       try {
@@ -49,9 +60,16 @@ class PipeClient {
     await _getToken();
 
     final start = DateTime.now();
-    final lpName = TEXT(pipeName);
-    try {
-      while (true) {
+    // Try primary pipe, then dev pipe
+    final candidates = <String>[
+      pipeName,
+      Platform.environment['LANTERN_PIPE_NAME'] ??
+          r'\\.\pipe\LanternService.dev',
+    ].toSet().toList();
+
+    for (final candidate in candidates) {
+      final lpName = TEXT(candidate);
+      try {
         _hPipe = CreateFile(
           lpName,
           GENERIC_READ | GENERIC_WRITE,
@@ -70,12 +88,14 @@ class PipeClient {
           await Future.delayed(Duration(milliseconds: 100));
           continue;
         }
-
-        throw Exception('Failed to open pipe: error ${GetLastError()}');
+        // Move on to next candidate
+        free(lpName);
+        continue;
+      } finally {
+        free(lpName);
       }
-    } finally {
-      free(lpName);
     }
+    throw Exception('Failed to open any pipe candidate.');
   }
 
   Future<Map<String, dynamic>> call(String cmd,

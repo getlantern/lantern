@@ -5,6 +5,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"os"
 	"os/signal"
 	"runtime"
@@ -41,29 +42,36 @@ func init() {
 func main() {
 
 	consoleMode := flag.Bool("console", false, "Run in console mode instead of Windows service")
+	pipeFlag := flag.String("pipe", "", "Named pipe to listen on (overrides env LANTERN_PIPE_NAME)")
+	dataFlag := flag.String("data", "", "Data dir (overrides env LANTERN_DATA_DIR)")
+	logFlag := flag.String("log", "", "Log dir (overrides env LANTERN_LOG_DIR)")
+	localeFlag := flag.String("locale", "", "Locale")
+	tokenFlag := flag.String("token", "", "IPC token path (overrides env LANTERN_TOKEN_PATH)")
 	flag.Parse()
 
+	opts := resolveOpts(*pipeFlag, *dataFlag, *logFlag, *localeFlag, *tokenFlag)
+
 	if *consoleMode {
-		runConsole()
+		runConsole(opts)
 		return
 	}
 
 	isService, _ := svc.IsWindowsService()
 	if isService {
-		if err := svc.Run(common.WindowsServiceName, &lanternHandler{}); err != nil {
+		if err := svc.Run(common.WindowsServiceName, &lanternHandler{opts: opts}); err != nil {
 			log.Error(err)
 		}
 	}
-	runConsole()
+	runConsole(opts)
 }
 
-func newWindowsService() (*wintunmgr.Manager, *wintunmgr.Service) {
+func newWindowsService(opts wintunmgr.ServiceOptions) (*wintunmgr.Manager, *wintunmgr.Service) {
 	wt := wintunmgr.New(adapterName, poolName, nil)
-	s := wintunmgr.NewService(servicePipeName, wt)
+	s := wintunmgr.NewService(opts, wt)
 	return wt, s
 }
 
-func runConsole() {
+func runConsole(opts wintunmgr.ServiceOptions) {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
@@ -71,14 +79,14 @@ func runConsole() {
 
 	defer guard("runConsole")
 
-	_, s := newWindowsService()
+	_, s := newWindowsService(opts)
 
 	if err := s.Start(ctx); err != nil {
 		os.Exit(1)
 	}
 }
 
-type lanternHandler struct{}
+type lanternHandler struct{ opts wintunmgr.ServiceOptions }
 
 func (h *lanternHandler) Execute(args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Status) (svcSpecificEC bool, exitCode uint32) {
 	const accepts = svc.AcceptStop | svc.AcceptShutdown
@@ -97,7 +105,7 @@ func (h *lanternHandler) Execute(args []string, r <-chan svc.ChangeRequest, chan
 	started := make(chan error, 1)
 	go func() {
 		defer guard("service worker")
-		_, s := newWindowsService()
+		_, s := newWindowsService(h.opts)
 		err := s.Start(ctx)
 		if err != nil {
 			log.Errorf("Service worker returned error: %v", err)
@@ -144,4 +152,41 @@ func (h *lanternHandler) Execute(args []string, r <-chan svc.ChangeRequest, chan
 			return false, 0
 		}
 	}
+}
+
+func resolveOpts(pipeArg, dataArg, logArg, localeArg, tokenArg string) wintunmgr.ServiceOptions {
+	env := func(k, def string) string {
+		if v := os.Getenv(k); v != "" {
+			return v
+		}
+		return def
+	}
+	// Defaults
+	progData := env("ProgramData", `C:\ProgramData`)
+	localApp := env("LOCALAPPDATA", progData)
+
+	pipe := first(pipeArg, env("LANTERN_PIPE_NAME", `\\.\pipe\LanternService`))
+	data := first(dataArg, env("LANTERN_DATA_DIR", fmt.Sprintf(`%s\Lantern`, localApp)))
+	logs := first(logArg, env("LANTERN_LOG_DIR", fmt.Sprintf(`%s\Lantern\logs`, localApp)))
+	locale := first(localeArg, env("LANTERN_LOCALE", "en-US"))
+	token := first(tokenArg, env("LANTERN_TOKEN_PATH", fmt.Sprintf(`%s\Lantern\ipc-token`, progData)))
+	if _, err := os.Stat(token); err != nil && os.Getenv("LANTERN_PIPE_NAME") == "" && pipe == `\\.\pipe\LanternService` {
+		pipe = `\\.\pipe\LanternService.dev`
+		token = fmt.Sprintf(`%s\Lantern\ipc-token.dev`, localApp)
+	}
+
+	return wintunmgr.ServiceOptions{
+		PipeName:  pipe,
+		DataDir:   data,
+		LogDir:    logs,
+		Locale:    locale,
+		TokenPath: token,
+	}
+}
+
+func first(a, b string) string {
+	if a != "" {
+		return a
+	}
+	return b
 }
