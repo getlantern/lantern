@@ -57,6 +57,7 @@ class LanternPlatformService implements LanternCoreService {
         case 'channelReady':
           appLogger.info('Channel is ready');
           _readyCompleter.complete();
+          break;
         default:
           throw MissingPluginException('No handler for method ${call.method}');
       }
