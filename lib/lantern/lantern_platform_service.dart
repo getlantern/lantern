@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
@@ -19,7 +20,6 @@ import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 
 import '../core/models/lantern_status.dart';
 import '../core/services/injection_container.dart' show sl;
-import 'dart:async';
 
 class LanternPlatformService implements LanternCoreService {
 
