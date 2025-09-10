@@ -18,9 +18,7 @@ class AppDelegate: FlutterAppDelegate {
     return true
   }
 
-  override func applicationDidFinishLaunching(_ aNotification: Notification) {
-    systemExtensionManager.activateExtension()
-
+  override func applicationWillFinishLaunching(_ aNotification: Notification) {
     guard let controller = mainFlutterWindow?.contentViewController as? FlutterViewController else {
       fatalError("contentViewController is not a FlutterViewController")
     }
@@ -39,6 +37,10 @@ class AppDelegate: FlutterAppDelegate {
       print(exception.reason ?? "Unknown exception reason")
       print(exception.callStackSymbols)
     }
+  }
+
+  override func applicationDidFinishLaunching(_ aNotification: Notification) {
+    systemExtensionManager.activateExtension()
   }
 
   public override func application(
@@ -77,6 +79,7 @@ class AppDelegate: FlutterAppDelegate {
       binaryMessenger: controller.engine.binaryMessenger
     )
     MethodHandler(channel: nativeChannel, vpnManager: vpnManager)
+    nativeChannel.invokeMethod("channelReady", arguments: nil)
   }
 
   /// Prepares the file system directories for use

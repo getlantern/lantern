@@ -96,6 +96,7 @@ class MethodHandler : FlutterPlugin,
             channelName,
         )
         channel!!.setMethodCallHandler(this)
+        channel!!.invokeMethod("channelReady", null)
     }
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
