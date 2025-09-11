@@ -79,6 +79,7 @@ class AppDelegate: FlutterAppDelegate {
       binaryMessenger: controller.engine.binaryMessenger
     )
     MethodHandler(channel: nativeChannel, vpnManager: vpnManager)
+    appLogger.info("Signalling channelReady")
     nativeChannel.invokeMethod("channelReady", arguments: nil)
   }
 
@@ -107,26 +108,23 @@ class AppDelegate: FlutterAppDelegate {
 
   /// Calls API handler setup
   private func setupRadiance() {
-    Task {
-      let opts = UtilsOpts()
-      opts.dataDir = FilePath.dataDirectory.relativePath
-      opts.logDir = FilePath.logsDirectory.relativePath
-      appLogger.info("Data directory: " + opts.dataDir)
-      appLogger.info("Log directory: " + opts.logDir)
-      opts.deviceid = ""
-      opts.logLevel = "debug"
-      appLogger.info("Log level: " + opts.logLevel)
+    let opts = UtilsOpts()
+    opts.dataDir = FilePath.dataDirectory.relativePath
+    opts.logDir = FilePath.logsDirectory.relativePath
+    appLogger.info("Data directory: " + opts.dataDir)
+    appLogger.info("Log directory: " + opts.logDir)
+    opts.deviceid = ""
+    opts.logLevel = "debug"
+    appLogger.info("Log level: " + opts.logLevel)
 
-      opts.locale = Locale.current.identifier
-      var error: NSError?
-      MobileSetupRadiance(opts, &error)
-      // Handle any error returned by the setup
-      if let error {
-        appLogger.error("Error while setting up radiance: \(error)")
-      } else {
-        appLogger.info("Radiance setup complete")
-      }
+    opts.locale = Locale.current.identifier
+    var error: NSError?
+    MobileSetupRadiance(opts, &error)
+    // Handle any error returned by the setup
+    if let error {
+      appLogger.error("Error while setting up radiance: \(error)")
+    } else {
+      appLogger.info("Radiance setup complete")
     }
   }
-
 }
