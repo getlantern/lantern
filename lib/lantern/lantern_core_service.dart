@@ -26,6 +26,8 @@ abstract class LanternCoreService {
 
   Stream<List<String>> watchLogs(String path);
 
+
+
   Future<Either<Failure, String>> getAutoServerLocation();
 
   ///Payments methods
@@ -177,9 +179,13 @@ abstract class LanternCoreService {
   ///Custom/lantern server methods
   Future<Either<Failure, AvailableServers>> getLanternAvailableServers();
 
+  ///MacOS System Extension methods
+  ///
   //triggerSystemExtension will uses to trigger system extension flow on macos
   // only on macos
   Future<Either<Failure, SystemExtensionStatus>> triggerSystemExtension();
 
-  Future<Either<Failure, SystemExtensionStatus>> isSystemExtensionInstalled();
+  Stream<SystemExtensionStatus> watchSystemExtensionStatus();
+
+  Future<Either<Failure, Unit>> openSystemExtension();
 }

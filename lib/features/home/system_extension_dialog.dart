@@ -12,6 +12,10 @@ class SystemExtensionDialog extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
+    final systemExtensionStatus = ref.watch(systemExtensionNotifierProvider);
+
+
+
     return BaseScreen(
       title: '',
       appBar: CustomAppBar(
@@ -59,9 +63,12 @@ class SystemExtensionDialog extends HookConsumerWidget {
           ),
           SizedBox(height: 48.0),
           PrimaryButton(
-            label: 'install_now'.i18n,
+            label:
+                systemExtensionStatus == SystemExtensionStatus.requiresApproval
+                    ? 'activate_extension'.i18n
+                    : 'install_now'.i18n,
             isTaller: true,
-            onPressed: () => onInstall(ref, context),
+            onPressed: () => onInstall(ref, context, systemExtensionStatus),
           ),
           const SizedBox(height: 16.0),
           SecondaryButton(
@@ -74,7 +81,16 @@ class SystemExtensionDialog extends HookConsumerWidget {
     );
   }
 
-  Future<void> onInstall(WidgetRef ref, BuildContext context) async {
+  Future<void> onInstall(WidgetRef ref, BuildContext context,
+      SystemExtensionStatus systemExtensionStatus) async {
+    appLogger.info("Current System Extension Status: $systemExtensionStatus");
+    if (systemExtensionStatus == SystemExtensionStatus.requiresApproval) {
+      ref.read(systemExtensionNotifierProvider.notifier).openSystemExtension();
+      appLogger.info("Opening System Settings for Approval");
+      return;
+    }
+
+    appLogger.info("Triggering System Extension Installation");
     final result = await ref
         .read(systemExtensionNotifierProvider.notifier)
         .triggerSystemExtensionInstallation();
@@ -89,7 +105,9 @@ class SystemExtensionDialog extends HookConsumerWidget {
       },
       (result) {
         appLogger.info("System Extension Installation Triggered: $result");
-        appRouter.maybePop();
+        Future.delayed(const Duration(seconds: 1), () {
+          appRouter.maybePop();
+        });
       },
     );
   }

@@ -469,6 +469,7 @@ class LanternService implements LanternCoreService {
     return _platformService.getLanternAvailableServers();
   }
 
+  @override
   Future<Either<Failure, String>> deviceRemove({required String deviceId}) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.deviceRemove(deviceId: deviceId);
@@ -515,10 +516,18 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, SystemExtensionStatus>> isSystemExtensionInstalled() {
+  Stream<SystemExtensionStatus> watchSystemExtensionStatus() {
     if (PlatformUtils.isFFISupported) {
-      return _ffiService.isSystemExtensionInstalled();
+      return _ffiService.watchSystemExtensionStatus();
     }
-    return _platformService.isSystemExtensionInstalled();
+    return _platformService.watchSystemExtensionStatus();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> openSystemExtension() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.openSystemExtension();
+    }
+    return _platformService.openSystemExtension();
   }
 }

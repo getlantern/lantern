@@ -5,31 +5,39 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'system_extension_notifier.g.dart';
 
-@Riverpod()
+@Riverpod(keepAlive: true)
 class SystemExtensionNotifier extends _$SystemExtensionNotifier {
   @override
   SystemExtensionStatus build() {
-    isSystemExtensionInstalled();
     return SystemExtensionStatus.unknown;
   }
 
-  Future<Either<Failure, SystemExtensionStatus>> triggerSystemExtensionInstallation() async {
-    return ref.read(lanternServiceProvider).triggerSystemExtension();
+  void watchSystemExtensionStatus() {
+    ref
+        .read(lanternServiceProvider)
+        .watchSystemExtensionStatus()
+        .listen((status) {
+      state = status;
+      appLogger.info("System Extension Status Updated: $status");
+    });
   }
 
-  Future<void> isSystemExtensionInstalled() async {
+  Future<Either<Failure, SystemExtensionStatus>>
+      triggerSystemExtensionInstallation() async {
     final result =
-        await ref.read(lanternServiceProvider).isSystemExtensionInstalled();
-
+        await ref.read(lanternServiceProvider).triggerSystemExtension();
     result.fold(
       (failure) {
-        state = SystemExtensionStatus.notInstalled;
         appLogger.error("Failure: ${failure.localizedErrorMessage}");
       },
-      (result) {
-        state = result;
-        appLogger.info("System Extension Installed: $result");
+      (status) {
+        appLogger.info("System Extension Status: $status");
       },
     );
+    return result;
+  }
+
+  Future<Either<Failure, Unit>> openSystemExtension() async {
+    return ref.read(lanternServiceProvider).openSystemExtension();
   }
 }

@@ -24,14 +24,14 @@ class VpnStatus extends HookConsumerWidget {
       label: 'vpn_status'.i18n,
       value: vpnStatus.name.capitalize,
       icon: AppImagePaths.glob,
-      onTap: systemExtensionStatus ==
-              SystemExtensionStatus.notInstalled
+      onTap: systemExtensionStatus !=
+              SystemExtensionStatus.installed
           ? () {
               appRouter.push(const SystemExtensionDialog());
             }
           : null,
       actions: [
-        if (systemExtensionStatus != SystemExtensionStatus.installed)
+        if (systemExtensionStatus !=  SystemExtensionStatus.installed)
           AppImage(path: AppImagePaths.warning, color: AppColors.red6)
         else
           VPNStatusIndicator(status: vpnStatus),
@@ -39,7 +39,7 @@ class VpnStatus extends HookConsumerWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          if (systemExtensionStatus == SystemExtensionStatus.notInstalled)
+          if (systemExtensionStatus != SystemExtensionStatus.installed)
             Text(
               'network_extension_required'.i18n,
               style: textTheme.titleMedium!.copyWith(color: AppColors.gray9),

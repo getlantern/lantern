@@ -994,9 +994,18 @@ class LanternFFIService implements LanternCoreService {
     throw Exception("This is not supported on desktop");
   }
 
+
+
   @override
-  Future<Either<Failure, SystemExtensionStatus>> isSystemExtensionInstalled() {
-    throw Exception("This is not supported on desktop");
+  Future<Either<Failure, Unit>> openSystemExtension() {
+    // TODO: implement openSystemExtension
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<SystemExtensionStatus> watchSystemExtensionStatus() {
+    // TODO: implement watchSystemExtensionStatus
+    throw UnimplementedError();
   }
 }
 

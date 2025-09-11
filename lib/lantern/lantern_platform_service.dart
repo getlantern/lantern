@@ -31,11 +31,14 @@ class LanternPlatformService implements LanternCoreService {
   static const logsChannel = EventChannel("$channelPrefix/logs");
   static const EventChannel statusChannel =
       EventChannel("$channelPrefix/status", JSONMethodCodec());
+  static const EventChannel systemExtensionStatusChannel =
+  EventChannel("$channelPrefix/system_extension_status", JSONMethodCodec());
 
   static const privateServerStatusChannel =
       EventChannel("$channelPrefix/private_server_status", JSONMethodCodec());
   late final Stream<LanternStatus> _status;
   late final Stream<PrivateServerStatus> _privateServerStatus;
+  late final Stream<SystemExtensionStatus> _systemExtensionStatus;
 
   @override
   Future<void> init() async {
@@ -47,6 +50,11 @@ class LanternPlatformService implements LanternCoreService {
     _privateServerStatus = privateServerStatusChannel
         .receiveBroadcastStream()
         .map((event) => PrivateServerStatus.fromJson(jsonDecode(event)));
+    if (PlatformUtils.isMacOS) {
+      _systemExtensionStatus = systemExtensionStatusChannel
+          .receiveBroadcastStream()
+          .map((event) => (event as Map)['status'].toSystemExtensionStatus);
+    }
   }
 
   @override
@@ -791,27 +799,35 @@ class LanternPlatformService implements LanternCoreService {
           localizedErrorMessage: 'This is not supported only on macOS'));
     }
     try {
-      final result =
-          await _methodChannel.invokeMethod('triggerSystemExtension');
-      return right(result.toSystemExtensionStatus);
+      final result = await _methodChannel.invokeMethod<String>('triggerSystemExtension');
+      appLogger.info('Trigger system extension result: $result');
+      return right(result!.toSystemExtensionStatus);
     } catch (e, stackTrace) {
       appLogger.error('Error triggering system extension', e, stackTrace);
       return Left(e.toFailure());
     }
   }
 
+
+
   @override
-  Future<Either<Failure, SystemExtensionStatus>>
-      isSystemExtensionInstalled() async {
+  Future<Either<Failure, Unit>> openSystemExtension() async {
     try {
       final result = await _methodChannel
-          .invokeMethod<String>('isSystemExtensionInstalled');
-      appLogger.info('System Extension Installed: $result');
-      return right(result!.toSystemExtensionStatus);
+          .invokeMethod<String>('openSystemExtensionSetting');
+      appLogger.info('Open System Extension Setting');
+      return right(unit);
     } catch (e, stackTrace) {
-      appLogger.error(
-          'Error checking system extension installation', e, stackTrace);
+      appLogger.error('Error opening system extension setting', e, stackTrace);
       return Left(e.toFailure());
     }
+  }
+
+  @override
+  Stream<SystemExtensionStatus> watchSystemExtensionStatus() {
+    if (!PlatformUtils.isMacOS) {
+      throw UnimplementedError("This is only supported on macOS");
+    }
+    return _systemExtensionStatus;
   }
 }

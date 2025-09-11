@@ -140,6 +140,8 @@ class MethodHandler {
         self.triggerSystemExtensionFlow(result: result)
       case "isSystemExtensionInstalled":
         self.isSystemExtensionInstalled(result: result)
+      case "openSystemExtensionSetting":
+        self.openSystemExtensionSetting(result: result)
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -729,9 +731,13 @@ class MethodHandler {
       } catch {
         await self.handleFlutterError(
           error, result: result, code: "CHECK_SYSTEM_EXTENSION_STATUS_FAILED")
-
       }
     }
+  }
+
+  func openSystemExtensionSetting(result: @escaping FlutterResult) {
+    SystemExtensionManager.shared.openPrivacyAndSecuritySettings()
+    result("ok")
   }
 
   //Utils method for hanlding Flutter errors

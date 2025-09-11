@@ -998,4 +998,7 @@ msgid "open_system_settings"
 msgstr "open system settings."
 
 msgid "when_prompted"
-msgstr "When prompted,"
+msgstr "When prompted"
+
+msgid "activate_extension"
+msgstr "Activate Lantern extension."

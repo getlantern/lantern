@@ -159,7 +159,6 @@ enum CloudProvider {
   }
 }
 
-
 enum SystemExtensionStatus {
   notInstalled,
   installed,
@@ -167,9 +166,9 @@ enum SystemExtensionStatus {
   timedOut,
   activated,
   deactivated,
+  uninstalling,
   unknown;
 }
-
 
 extension SystemExtensionStatusExtension on String {
   SystemExtensionStatus get toSystemExtensionStatus {
@@ -186,6 +185,8 @@ extension SystemExtensionStatusExtension on String {
         return SystemExtensionStatus.activated;
       case 'deactivated':
         return SystemExtensionStatus.deactivated;
+      case 'uninstalling':
+        return SystemExtensionStatus.uninstalling;
       default:
         return SystemExtensionStatus.unknown;
     }

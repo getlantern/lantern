@@ -59,9 +59,9 @@ class AppDelegate: FlutterAppDelegate {
     let statusRegistrar = registry.registrar(forPlugin: "StatusEventHandler")
     StatusEventHandler.register(with: statusRegistrar)
 
-    //      if let registrar = self.registrar(forPlugin: "LogsEventHandler") {
-    //        LogsEventHandler.register(with: registrar)
-    //      }
+    let systemExtensionStatusRegistrar = registry.registrar(
+      forPlugin: "SystemExtensionStatusEventHandler")
+    SystemExtnesionStatusEventHandler.register(with: systemExtensionStatusRegistrar)
 
     let privateStatusRegistrar = registry.registrar(forPlugin: "PrivateServerEventHandler")
     PrivateServerEventHandler.register(with: privateStatusRegistrar)
