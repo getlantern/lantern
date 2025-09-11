@@ -15,7 +15,7 @@ class LanternLogger {
   private var fileHandle: FileHandle?
 
   init() {
-      fileHandle = try? FileHandle(forWritingTo: FilePath.macOsLogDirectory)
+    fileHandle = try? FileHandle(forWritingTo: FilePath.macOSLogDirectory)
     fileHandle?.seekToEndOfFile()
   }
 
