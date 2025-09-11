@@ -142,6 +142,8 @@ class MethodHandler {
         self.isSystemExtensionInstalled(result: result)
       case "openSystemExtensionSetting":
         self.openSystemExtensionSetting(result: result)
+      case "getDataCapInfo":
+        self.getDataCapInfo(result: result)
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -715,6 +717,21 @@ class MethodHandler {
   }
 
   //Utils method for hanlding Flutter errors
+  private func getDataCapInfo(result: @escaping FlutterResult) {
+    Task.detached {
+      var error: NSError?
+      let json = MobileGetDataCapInfo(&error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "FETCH_DATA_CAP_INFO_ERROR")
+        return
+      }
+      await MainActor.run {
+        result(json ?? "{}")
+      }
+    }
+  }
+
+  //Utils method for handling Flutter errors
   private func handleFlutterError(
     _ error: Error?,
     result: @escaping FlutterResult,

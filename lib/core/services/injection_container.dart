@@ -16,30 +16,54 @@ final GetIt sl = GetIt.instance;
 
 Future<void> injectServices() async {
   try {
-    sl.registerLazySingleton(() => StoreUtils());
-    sl<StoreUtils>().init();
-    sl.registerLazySingleton(() => AppPurchase());
-    sl<AppPurchase>().init();
+    sl.registerLazySingleton<AppPurchase>(() {
+      appLogger.info("Initializing AppPurchase");
+      final ap = AppPurchase();
+      ap.init();
+      return ap;
+    });
 
-    sl.registerLazySingleton(() => NotificationService());
-    await sl<NotificationService>().init();
-
-    sl.registerLazySingleton(() => LanternPlatformService(sl<AppPurchase>()));
-    await sl<LanternPlatformService>().init();
+    // We want to make sure the platform service and FFI service are
+    // initialized as early as possible so we can communicate with 
+    // native code on different platforms.
+    final ps = LanternPlatformService();
+    await ps.init();
+    sl.registerSingleton<LanternPlatformService>(ps);
+    final LanternFFIService ffiService;
     if (PlatformUtils.isFFISupported) {
-      sl.registerLazySingleton(() => LanternFFIService());
-      await sl<LanternFFIService>().init();
+      ffiService = LanternFFIService();
+      await ffiService.init();
     } else {
-      sl.registerLazySingleton<LanternFFIService>(
-          () => MockLanternFFIService());
+      ffiService = MockLanternFFIService();
     }
-    sl.registerLazySingleton(() => LocalStorageService());
-    await sl<LocalStorageService>().init();
-    sl.registerLazySingleton(() => AppRouter());
-    sl.registerLazySingleton(() => StripeService());
-    await sl<StripeService>().initialize();
+    sl.registerSingleton<LanternFFIService>(ffiService);
+    final localStorage = LocalStorageService();
+    await localStorage.init();
+    sl.registerSingleton<LocalStorageService>(localStorage);
+    sl.registerLazySingleton<AppRouter>(() => AppRouter());
 
-    sl.registerLazySingleton(() => DeepLinkCallbackManager());
+
+    sl.registerSingletonAsync<StoreUtils>(() async {
+      appLogger.info("Initializing StoreUtils");
+      final storeUtils = StoreUtils();
+      await storeUtils.init();
+      return storeUtils;
+    });
+
+    sl.registerSingletonAsync<StripeService>(() async {
+      appLogger.info("Initializing StripeService");
+      final stripeService = StripeService();
+      await stripeService.initialize();
+      return stripeService;
+    });
+    sl.registerLazySingleton<DeepLinkCallbackManager>(() => DeepLinkCallbackManager());
+    sl.registerSingletonAsync<NotificationService>(() async {
+      appLogger.info("Initializing NotificationService");
+      final notificationService = NotificationService();
+      await notificationService.init();
+      return notificationService;
+    });
+    appLogger.info("All services injected ✅");
   } catch (e, st) {
     appLogger.error("Error during service injection", e, st);
   }

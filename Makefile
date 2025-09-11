@@ -367,10 +367,10 @@ swift-format:
 format:
 	@echo "Formatting Dart code..."
 	@dart format .
-	@echo "Formatting Swift code..."
-	$(MAKE) swift-format
 	@echo "Formatting go code"
 	@cd lantern-core && go fmt ./...
+	@echo "Formatting Swift code..."
+	$(MAKE) swift-format
 
 ios-release: clean pubget
 	flutter build ipa --flavor prod --release --export-options-plist ./ExportOptions.plist

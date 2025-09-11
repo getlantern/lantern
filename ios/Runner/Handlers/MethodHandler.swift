@@ -58,8 +58,8 @@ class MethodHandler {
       case "fetchUserData":
         self.fetchUserData(result: result)
         break
-      case "fetchDataCapInfo":
-        self.fetchDataCapInfo(result: result)
+      case "getDataCapInfo":
+        self.getDataCapInfo(result: result)
         break
       case "showManageSubscriptions":
         self.showManageSubscriptions(result: result)
@@ -324,7 +324,7 @@ class MethodHandler {
     }
   }
 
-  private func fetchDataCapInfo(result: @escaping FlutterResult) {
+  private func getDataCapInfo(result: @escaping FlutterResult) {
     Task.detached {
       var error: NSError?
       if let bytes = MobileGetDataCapInfo(&error) {

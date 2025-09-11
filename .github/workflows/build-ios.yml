@@ -50,7 +50,6 @@ jobs:
           node-version: 18
 
       - name: Install the Apple certificate and provisioning profile IOS
-        if: matrix.platform == 'ios'
         env:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.IOS_CERTIFICATE_P12_BASE64 }}
           P12_PASSWORD: ${{ secrets.IOS_CERTIFICATE_P12_PASS }}

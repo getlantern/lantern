@@ -78,14 +78,21 @@ func setup(_logDir, _dataDir, _locale *C.char, logP, appsP, statusP, privateServ
 	if err != nil {
 		return C.CString(fmt.Sprintf("unable to create LanternCore: %v", err))
 	}
+	dart_api_dl.Init(api)
 	lanternCore.Store(&core)
 	logsPort = int64(logP)
 	appsPort = int64(appsP)
 	statusPort = int64(statusP)
 	privateserverPort = int64(privateServerP)
-
 	slog.Debug("Radiance setup successfully")
 	return C.CString("ok")
+}
+
+// availableFeatures returns a list of available features in JSON format.
+//
+//export availableFeatures
+func availableFeatures() *C.char {
+	return C.CString(string(core().AvailableFeatures()))
 }
 
 //export addSplitTunnelItem
@@ -211,15 +218,18 @@ func connectToServer(_location, _tag, _logDir, _dataDir, _locale *C.char) *C.cha
 }
 
 func sendStatusToPort(status VPNStatus) {
+	slog.Debug("sendStatusToPort called", "status", status)
 	if statusPort == 0 {
 		slog.Error("Status port is not set, cannot send status")
 		return
 	}
-	go func() {
-		msg := map[string]any{"status": status}
-		data, _ := json.Marshal(msg)
-		dart_api_dl.SendToPort(statusPort, string(data))
-	}()
+	msg := map[string]any{"status": status}
+	slog.Debug("Sending status to port", "port", statusPort)
+	data, _ := json.Marshal(msg)
+	slog.Debug("Marshalled status data", "data", string(data))
+	dart_api_dl.SendToPort(statusPort, string(data))
+	slog.Debug("Status sent to port successfully", "status", status)
+
 }
 
 // isVPNConnected checks if the VPN server is running and connected.
@@ -227,11 +237,13 @@ func sendStatusToPort(status VPNStatus) {
 //export isVPNConnected
 func isVPNConnected() *C.char {
 	connected := vpn_tunnel.IsVPNRunning()
+	slog.Debug("isVPNConnected called, connected:", "connected", connected)
 	if connected {
 		sendStatusToPort(Connected)
 	} else {
 		sendStatusToPort(Disconnected)
 	}
+	slog.Debug("isVPNConnected returning", "connected", connected)
 	return C.CString("ok")
 }
 
@@ -440,6 +452,18 @@ func completeRecoveryByEmail(_email, _newPassword, _code *C.char) *C.char {
 		return SendError(fmt.Errorf("%v", err))
 	}
 	slog.Debug("Recovery by email completed successfully")
+	return C.CString("ok")
+}
+
+// removeDevice removes a device by its ID.
+//
+//export removeDevice
+func removeDevice(deviceId *C.char) *C.char {
+	linkresp, err := core().RemoveDevice(C.GoString(deviceId))
+	if err != nil {
+		return SendError(err)
+	}
+	slog.Debug("Device removed successfully", "deviceId", deviceId, "response", linkresp)
 	return C.CString("ok")
 }
 

@@ -21,7 +21,7 @@ class LocationSetting extends HookConsumerWidget {
         break;
       case ServerLocationType.lanternLocation:
         title = 'selected_location'.i18n;
-        value =serverLocation.serverLocation.split('[')[0].trim();
+        value = serverLocation.serverLocation.split('[')[0].trim();
         break;
       case ServerLocationType.privateServer:
         title = serverLocation.serverName;

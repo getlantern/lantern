@@ -22,9 +22,7 @@ import '../core/models/lantern_status.dart';
 import '../core/services/injection_container.dart' show sl;
 
 class LanternPlatformService implements LanternCoreService {
-  final AppPurchase appPurchase;
-
-  LanternPlatformService(this.appPurchase);
+  LanternPlatformService();
 
   static const channelPrefix = 'org.getlantern.lantern';
   static const MethodChannel _methodChannel =
@@ -33,7 +31,7 @@ class LanternPlatformService implements LanternCoreService {
   static const EventChannel statusChannel =
       EventChannel("$channelPrefix/status", JSONMethodCodec());
   static const EventChannel systemExtensionStatusChannel =
-  EventChannel("$channelPrefix/system_extension_status", JSONMethodCodec());
+      EventChannel("$channelPrefix/system_extension_status", JSONMethodCodec());
   static const privateServerStatusChannel =
       EventChannel("$channelPrefix/private_server_status", JSONMethodCodec());
 
@@ -54,7 +52,8 @@ class LanternPlatformService implements LanternCoreService {
     if (PlatformUtils.isMacOS) {
       _systemExtensionStatus = systemExtensionStatusChannel
           .receiveBroadcastStream()
-          .map((event) => MacOSExtensionState.fromString(event['status'].toString()));
+          .map((event) =>
+              MacOSExtensionState.fromString(event['status'].toString()));
     }
   }
 
@@ -242,7 +241,7 @@ class LanternPlatformService implements LanternCoreService {
       required PaymentSuccessCallback onSuccess,
       required PaymentErrorCallback onError}) async {
     try {
-      await appPurchase.startSubscription(
+      await sl<AppPurchase>().startSubscription(
         plan: planId,
         onSuccess: onSuccess,
         onError: onError,
@@ -391,10 +390,9 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, DataCapInfo>> fetchDataCapInfo() async {
+  Future<Either<Failure, DataCapInfo>> getDataCapInfo() async {
     try {
-      final json =
-          await _methodChannel.invokeMethod<String>('fetchDataCapInfo');
+      final json = await _methodChannel.invokeMethod<String>('getDataCapInfo');
       final map = jsonDecode(jsonEncode(json));
       final dataCap = DataCapInfo.fromJson(map);
       return Right(dataCap);
@@ -792,15 +790,15 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>>
-      triggerSystemExtension() async {
+  Future<Either<Failure, String>> triggerSystemExtension() async {
     if (!PlatformUtils.isMacOS) {
       return left(Failure(
           error: 'Not supported',
           localizedErrorMessage: 'This is not supported only on macOS'));
     }
     try {
-      final result = await _methodChannel.invokeMethod<String>('triggerSystemExtension');
+      final result =
+          await _methodChannel.invokeMethod<String>('triggerSystemExtension');
       appLogger.info('Trigger system extension result: $result');
       return right(result!);
     } catch (e, stackTrace) {
@@ -808,8 +806,6 @@ class LanternPlatformService implements LanternCoreService {
       return Left(e.toFailure());
     }
   }
-
-
 
   @override
   Future<Either<Failure, Unit>> openSystemExtension() async {
@@ -835,12 +831,13 @@ class LanternPlatformService implements LanternCoreService {
   @override
   Future<Either<Failure, Unit>> isSystemExtensionInstalled() async {
     try {
-      final result =
-         await _methodChannel.invokeMethod<String>('isSystemExtensionInstalled');
+      final result = await _methodChannel
+          .invokeMethod<String>('isSystemExtensionInstalled');
       appLogger.info('Check if system extension is installed');
       return right(unit);
     } catch (e, stackTrace) {
-      appLogger.error('Error checking if system extension is installed', e, stackTrace);
+      appLogger.error(
+          'Error checking if system extension is installed', e, stackTrace);
       return Left(e.toFailure());
     }
   }
