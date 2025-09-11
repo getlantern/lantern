@@ -79,19 +79,19 @@ class AppDelegate: FlutterAppDelegate {
 
   /// Prepares the file system directories for use
   private func setupFileSystem() {
-      
-      // Setup shared directory
-      do {
-        try FileManager.default.createDirectory(
-          at: FilePath.dataDirectory,
-          withIntermediateDirectories: true
-        )
-        appLogger.info("data directory created at: \(FilePath.dataDirectory.path)")
-      } catch {
-        appLogger.error("Failed to create data directory: \(error.localizedDescription)")
-      }
-      
-      //Setup log directory
+
+    // Setup shared directory
+    do {
+      try FileManager.default.createDirectory(
+        at: FilePath.dataDirectory,
+        withIntermediateDirectories: true
+      )
+      appLogger.info("data directory created at: \(FilePath.dataDirectory.path)")
+    } catch {
+      appLogger.error("Failed to create data directory: \(error.localizedDescription)")
+    }
+
+    //Setup log directory
     do {
       try FileManager.default.createDirectory(
         at: FilePath.logsDirectory,
@@ -101,19 +101,18 @@ class AppDelegate: FlutterAppDelegate {
     } catch {
       appLogger.error("Failed to create logs directory: \(error.localizedDescription)")
     }
-      
-      //Setup macos native log file directory
-      // this is just for testing
-      do {
-        try FileManager.default.createDirectory(
-          at: FilePath.macOSLogDirectory,
-          withIntermediateDirectories: true
-        )
-        appLogger.info("macos directory created at: \(FilePath.macOsLogDirectory.path)")
-      } catch {
-        appLogger.error("Failed to macos logs directory: \(error.localizedDescription)")
-      }
- 
+
+    //Setup macos native log file directory
+    // this is just for testing
+    do {
+      try FileManager.default.createDirectory(
+        at: FilePath.macOSLogDirectory,
+        withIntermediateDirectories: true
+      )
+      appLogger.info("macos directory created at: \(FilePath.macOSLogDirectory.path)")
+    } catch {
+      appLogger.error("Failed to macos logs directory: \(error.localizedDescription)")
+    }
 
   }
 
