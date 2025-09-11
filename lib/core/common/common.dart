@@ -49,7 +49,7 @@ export 'package:lantern/core/widgets/app_tile.dart';
 export 'package:lantern/core/widgets/base_screen.dart';
 export 'package:lantern/core/widgets/bottomsheet.dart';
 export 'package:lantern/core/widgets/custom_app_bar.dart';
-export 'package:lantern/core/widgets/data_usage.dart';
+export 'package:lantern/features/home/data_usage.dart';
 export 'package:lantern/core/widgets/flag.dart';
 // UI
 export 'package:lantern/core/widgets/lantern_logo.dart';

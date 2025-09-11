@@ -1,27 +1,27 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'server_location_notifier.dart';
+part of 'data_cap_info_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$serverLocationNotifierHash() =>
-    r'691788e3819f59f5e754e1b89db92ece70923246';
+String _$dataCapInfoNotifierHash() =>
+    r'a756460d16343eb2386d59f07def46be77f500c3';
 
-/// See also [ServerLocationNotifier].
-@ProviderFor(ServerLocationNotifier)
-final serverLocationNotifierProvider = AutoDisposeNotifierProvider<
-    ServerLocationNotifier, ServerLocationEntity>.internal(
-  ServerLocationNotifier.new,
-  name: r'serverLocationNotifierProvider',
+/// See also [DataCapInfoNotifier].
+@ProviderFor(DataCapInfoNotifier)
+final dataCapInfoNotifierProvider =
+    AsyncNotifierProvider<DataCapInfoNotifier, DataCapInfo>.internal(
+  DataCapInfoNotifier.new,
+  name: r'dataCapInfoNotifierProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
       ? null
-      : _$serverLocationNotifierHash,
+      : _$dataCapInfoNotifierHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
-typedef _$ServerLocationNotifier = AutoDisposeNotifier<ServerLocationEntity>;
+typedef _$DataCapInfoNotifier = AsyncNotifier<DataCapInfo>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
