@@ -14,9 +14,8 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
   private var approvalRequired = false
   @Published private(set) var status: String = ExtensionStatus.notInstalled.asString
 
-  // MARK: - Replacement decision
-  /// Called when an existing installed extension is detected and the system asks what to do.
-  /// Returns `.replace` to replace installed extension with the bundled one, `.cancel` to skip.
+  //Called when an existing installed extension is detected and the system asks what to do.
+  // Returns `.replace` to replace installed extension with the bundled one, `.cancel` to skip.
   public func request(
     _ request: OSSystemExtensionRequest,
     actionForReplacingExtension existing: OSSystemExtensionProperties,
@@ -43,7 +42,7 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     }
   }
 
-  // Called when system extension request completes successfully.
+  // Called when the extension request completes successfully.
   public func request(
     _ request: OSSystemExtensionRequest,
     didFinishWithResult result: OSSystemExtensionRequest.Result
@@ -53,23 +52,24 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     updateStatus(mapResult(result))
   }
 
-  // Called when system extension request fails with an error.
+  // Called when the extension request fails.
   public func request(
     _ request: OSSystemExtensionRequest,
     didFailWithError error: Error
   ) {
-    appLogger.error("System extension request failed with error: \(error.localizedDescription)")
+    appLogger.error("System extension request failed: \(error.localizedDescription)")
     self.error = error
     updateStatus(.error(error.localizedDescription))
   }
 
-  // Called when user approval is required for the system extension.
-  // this has to be handled by prompting the user to approve in System Settings.
+  // Called when user approval is required in System Settings.
   public func requestNeedsUserApproval(_ request: OSSystemExtensionRequest) {
     approvalRequired = true
-    appLogger.info("System extension request needs user approval.")
+    appLogger.info("System extension requires user approval.")
+    updateStatus(.requiresApproval)
   }
 
+  // Called when extension properties are returned.
   public func request(
     _ request: OSSystemExtensionRequest,
     foundProperties properties: [OSSystemExtensionProperties]
@@ -79,9 +79,9 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     updateStatus(mapProperties(properties))
   }
 
-  /// Deactivate (uninstall) the extension by bundle identifier. Submits the request and returns immediately.
+  // Deactivate the extension by bundle ID.
   public func deactivateExtension(bundleID: String) {
-    appLogger.log("Attempting to deactivate system extension with ID: \(bundleID)")
+    appLogger.log("Deactivating system extension with ID: \(bundleID)")
     let request = OSSystemExtensionRequest.deactivationRequest(
       forExtensionWithIdentifier: bundleID,
       queue: .main
@@ -91,8 +91,9 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     OSSystemExtensionManager.shared.submitRequest(request)
   }
 
-  public func activateExtensionAndWait() {
-    appLogger.info("Attempting to activate system extension with ID: \(tunnelBundleID)")
+  // Activate the extension by bundle ID (status updates via [status]).
+  public func activateExtension() {
+    appLogger.info("Activating system extension with ID: \(tunnelBundleID)")
     resetState()
     let request = OSSystemExtensionRequest.activationRequest(
       forExtensionWithIdentifier: tunnelBundleID,
@@ -101,11 +102,11 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     request.delegate = self
     currentRequest = request
     OSSystemExtensionManager.shared.submitRequest(request)
-
   }
 
-  public func deactivateExtensionAndWait() {
-    appLogger.info("Attempting to deactivate system extension with ID: \(tunnelBundleID)")
+  // Deactivate the extension by bundle ID (status updates via [status]).
+  public func deactivateExtension() {
+    appLogger.info("Deactivating system extension with ID: \(tunnelBundleID)")
     resetState()
     let request = OSSystemExtensionRequest.deactivationRequest(
       forExtensionWithIdentifier: tunnelBundleID,
@@ -116,8 +117,10 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     OSSystemExtensionManager.shared.submitRequest(request)
   }
 
+  // Check if the extension is installed and approved.
+  // Updates will be sent via [status].
   public func checkInstallationStatus() {
-    appLogger.info("Checking installation status for system extension with ID: \(tunnelBundleID)")
+    appLogger.info("Checking installation status for ID: \(tunnelBundleID)")
     resetState()
     let request = OSSystemExtensionRequest.propertiesRequest(
       forExtensionWithIdentifier: tunnelBundleID,
@@ -126,50 +129,6 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     request.delegate = self
     currentRequest = request
     OSSystemExtensionManager.shared.submitRequest(request)
-
-  }
-
-  // MARK: - Common Helpers
-
-  private func resetState() {
-    appLogger.info("Resetting internal state for new operation.")
-    result = nil
-    error = nil
-    properties = nil
-    semaphore = DispatchSemaphore(value: 0)
-  }
-
-  private func waitAndMap(timeout: TimeInterval) throws -> String {
-    appLogger.info("Waiting for operation to complete with timeout: \(timeout) seconds.")
-    guard let semaphore = semaphore else { return ExtensionStatus.error("Internal state").asString }
-
-    let waitResult = semaphore.wait(timeout: .now() + timeout)
-    if waitResult == .timedOut {
-      appLogger.error("System Extension timed out after \(timeout) seconds.")
-      return ExtensionStatus.timedOut.asString
-    }
-
-    if approvalRequired {
-      appLogger.info("System Extension requires user approval.")
-      return ExtensionStatus.requiresApproval.asString
-    }
-
-    if let error = error {
-      appLogger.error("error: \(error.localizedDescription)")
-      throw error
-    }
-
-    if let props = properties {
-      appLogger.info("Checked properties of system extension.")
-      return mapProperties(props).asString
-    }
-
-    if let result = result {
-      appLogger.info("Mapping operation result")
-      return mapResult(result).asString
-    }
-
-    return ExtensionStatus.error("Unknown state").asString
   }
 
   private func mapProperties(_ props: [OSSystemExtensionProperties]) -> ExtensionStatus {
@@ -192,6 +151,16 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     case .willCompleteAfterReboot: return .activated
     @unknown default: return .error("Unknown result")
     }
+  }
+
+  // MARK: - Common Helpers
+
+  private func resetState() {
+    appLogger.info("Resetting internal state for new operation.")
+    result = nil
+    error = nil
+    properties = nil
+    semaphore = DispatchSemaphore(value: 0)
   }
 
   private func updateStatus(_ newStatus: ExtensionStatus, details: String? = nil) {

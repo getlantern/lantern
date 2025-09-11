@@ -177,7 +177,7 @@ class AppRouter extends RootStackRouter {
     ),
     AutoRoute(
       path: '/system-extension-dialog',
-      page: SystemExtensionDialog.page,
+      page: MacOSExtensionDialog.page,
       fullscreenDialog: true,
     ),
 

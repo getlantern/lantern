@@ -6,6 +6,7 @@ import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/models/private_server_status.dart';
+import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 
 import '../core/services/app_purchase.dart';
@@ -25,8 +26,6 @@ abstract class LanternCoreService {
   Stream<LanternStatus> watchVPNStatus();
 
   Stream<List<String>> watchLogs(String path);
-
-
 
   Future<Either<Failure, String>> getAutoServerLocation();
 
@@ -180,12 +179,12 @@ abstract class LanternCoreService {
   Future<Either<Failure, AvailableServers>> getLanternAvailableServers();
 
   ///MacOS System Extension methods
-  ///
-  //triggerSystemExtension will uses to trigger system extension flow on macos
-  // only on macos
-  Future<Either<Failure, SystemExtensionStatus>> triggerSystemExtension();
 
-  Stream<SystemExtensionStatus> watchSystemExtensionStatus();
+  Future<Either<Failure, String>> triggerSystemExtension();
 
   Future<Either<Failure, Unit>> openSystemExtension();
+
+  Future<Either<Failure, Unit>> isSystemExtensionInstalled();
+
+  Stream<MacOSExtensionState> watchSystemExtensionStatus();
 }

@@ -1,12 +1,13 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
 import 'package:lantern/core/widgets/vpn_status_indicator.dart';
-import 'package:lantern/features/home/provider/system_extension_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 
 import '../../core/common/common.dart';
+import '../macos_extension/provider/macos_extension_notifier.dart';
 
 class VpnStatus extends HookConsumerWidget {
   const VpnStatus({super.key});
@@ -15,23 +16,23 @@ class VpnStatus extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final vpnStatus = ref.watch(vpnNotifierProvider);
     final textTheme = Theme.of(context).textTheme;
-    SystemExtensionStatus systemExtensionStatus = SystemExtensionStatus.unknown;
+    MacOSExtensionState systemExtensionStatus =
+        MacOSExtensionState(SystemExtensionStatus.notInstalled);
     if (PlatformUtils.isMacOS) {
-      systemExtensionStatus = ref.watch(systemExtensionNotifierProvider);
+      systemExtensionStatus = ref.watch(macosExtensionNotifierProvider);
     }
 
     return SettingTile(
       label: 'vpn_status'.i18n,
       value: vpnStatus.name.capitalize,
       icon: AppImagePaths.glob,
-      onTap: systemExtensionStatus !=
-              SystemExtensionStatus.installed
+      onTap: systemExtensionStatus.status != SystemExtensionStatus.installed
           ? () {
-              appRouter.push(const SystemExtensionDialog());
+              appRouter.push(const MacOSExtensionDialog());
             }
           : null,
       actions: [
-        if (systemExtensionStatus !=  SystemExtensionStatus.installed)
+        if (systemExtensionStatus.status != SystemExtensionStatus.installed)
           AppImage(path: AppImagePaths.warning, color: AppColors.red6)
         else
           VPNStatusIndicator(status: vpnStatus),
@@ -39,7 +40,7 @@ class VpnStatus extends HookConsumerWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          if (systemExtensionStatus != SystemExtensionStatus.installed)
+          if (systemExtensionStatus.status != SystemExtensionStatus.installed)
             Text(
               'network_extension_required'.i18n,
               style: textTheme.titleMedium!.copyWith(color: AppColors.gray9),

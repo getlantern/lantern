@@ -1,20 +1,48 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/features/home/provider/system_extension_notifier.dart';
+import 'package:lantern/core/models/macos_extension_state.dart';
+import 'package:lantern/features/macos_extension/provider/macos_extension_notifier.dart';
 
-@RoutePage(name: 'SystemExtensionDialog')
-class SystemExtensionDialog extends HookConsumerWidget {
-  const SystemExtensionDialog({super.key});
+@RoutePage(name: 'MacOSExtensionDialog')
+class MacOSExtensionDialog extends StatefulHookConsumerWidget {
+  const MacOSExtensionDialog({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MacOSExtensionDialog> createState() =>
+      _MacOSExtensionDialogState();
+}
+
+class _MacOSExtensionDialogState extends ConsumerState<MacOSExtensionDialog> {
+  @override
+  Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final systemExtensionStatus = ref.watch(systemExtensionNotifierProvider);
-
-
+    final systemExtensionStatus = ref.watch(macosExtensionNotifierProvider);
+    appLogger.info(
+        "Current System Extension Status: ${systemExtensionStatus.status}");
+    useEffect(() {
+      if (systemExtensionStatus.status == SystemExtensionStatus.error) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          appLogger.error(
+              "Error fetching System Extension Status: ${systemExtensionStatus.message}");
+          AppDialog.errorDialog(
+              context: context,
+              title: 'error'.i18n,
+              content: systemExtensionStatus.message ??
+                  'unknown_error_occurred'.i18n);
+        });
+      }
+      if (systemExtensionStatus.status == SystemExtensionStatus.installed ||
+          systemExtensionStatus.status == SystemExtensionStatus.activated) {
+        appLogger.info(
+            "System Extension is installed and activated. Closing dialog.");
+        appRouter.pop();
+      }
+      return null;
+    }, [systemExtensionStatus.status]);
 
     return BaseScreen(
       title: '',
@@ -63,10 +91,10 @@ class SystemExtensionDialog extends HookConsumerWidget {
           ),
           SizedBox(height: 48.0),
           PrimaryButton(
-            label:
-                systemExtensionStatus == SystemExtensionStatus.requiresApproval
-                    ? 'activate_extension'.i18n
-                    : 'install_now'.i18n,
+            label: systemExtensionStatus.status ==
+                    SystemExtensionStatus.requiresApproval
+                ? 'activate_extension'.i18n
+                : 'install_now'.i18n,
             isTaller: true,
             onPressed: () => onInstall(ref, context, systemExtensionStatus),
           ),
@@ -82,18 +110,18 @@ class SystemExtensionDialog extends HookConsumerWidget {
   }
 
   Future<void> onInstall(WidgetRef ref, BuildContext context,
-      SystemExtensionStatus systemExtensionStatus) async {
+      MacOSExtensionState systemExtensionStatus) async {
     appLogger.info("Current System Extension Status: $systemExtensionStatus");
-    if (systemExtensionStatus == SystemExtensionStatus.requiresApproval) {
-      ref.read(systemExtensionNotifierProvider.notifier).openSystemExtension();
+    if (systemExtensionStatus.status ==
+        SystemExtensionStatus.requiresApproval) {
+      ref.read(macosExtensionNotifierProvider.notifier).openSystemExtension();
       appLogger.info("Opening System Settings for Approval");
       return;
     }
 
     appLogger.info("Triggering System Extension Installation");
-    final result = await ref
-        .read(systemExtensionNotifierProvider.notifier)
-        .triggerSystemExtensionInstallation();
+    final result =
+        await ref.read(macosExtensionNotifierProvider.notifier).triggerSystemExtensionInstallation();
 
     result.fold(
       (failure) {
@@ -105,9 +133,6 @@ class SystemExtensionDialog extends HookConsumerWidget {
       },
       (result) {
         appLogger.info("System Extension Installation Triggered: $result");
-        Future.delayed(const Duration(seconds: 1), () {
-          appRouter.maybePop();
-        });
       },
     );
   }

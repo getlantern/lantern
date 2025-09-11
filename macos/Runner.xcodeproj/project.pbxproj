@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 70;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXAggregateTarget section */
@@ -23,7 +23,7 @@
 /* Begin PBXBuildFile section */
 		03893F0D2E6F168E0058A5EC /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C30602DEF68B300691115 /* Logger.swift */; };
 		039A061F2E24DB6000B64255 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B402DE7A5F300640E7F /* KeychainService.swift */; };
-		03A255852E71B27A0054C0D7 /* SystemExtensionStatusHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03A255842E71B26A0054C0D7 /* SystemExtensionStatusHandler.swift */; };
+		03A255852E71B27A0054C0D7 /* SystemExtensionStatusEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03A255842E71B26A0054C0D7 /* SystemExtensionStatusEventHandler.swift */; };
 		293C305A2DEF649500691115 /* MethodHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C30552DEF649500691115 /* MethodHandler.swift */; };
 		293C305E2DEF67EB00691115 /* VPNManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C305C2DEF67EB00691115 /* VPNManager.swift */; };
 		293C305F2DEF67EB00691115 /* VPNBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C305B2DEF67EB00691115 /* VPNBase.swift */; };
@@ -131,7 +131,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		03A255842E71B26A0054C0D7 /* SystemExtensionStatusHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemExtensionStatusHandler.swift; sourceTree = "<group>"; };
+		03A255842E71B26A0054C0D7 /* SystemExtensionStatusEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemExtensionStatusEventHandler.swift; sourceTree = "<group>"; };
 		1E9A6FC86FA886DA6665EC6D /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
 		293C302F2DEF247F00691115 /* Liblantern.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Liblantern.xcframework; path = Frameworks/Liblantern.xcframework; sourceTree = "<group>"; };
 		293C30552DEF649500691115 /* MethodHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MethodHandler.swift; sourceTree = "<group>"; };
@@ -180,7 +180,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		5F53D0342E4410F100740586 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		5F53D0342E4410F100740586 /* Exceptions for "Utils" folder in "Runner" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				PrivateServerListener.swift,
@@ -190,7 +190,18 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		03D236712E3A06E20004EC53 /* Utils */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (5F53D0342E4410F100740586 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = Utils; sourceTree = "<group>"; };
+		03D236712E3A06E20004EC53 /* Utils */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				5F53D0342E4410F100740586 /* Exceptions for "Utils" folder in "Runner" target */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -227,7 +238,7 @@
 		293C30572DEF649500691115 /* Handlers */ = {
 			isa = PBXGroup;
 			children = (
-				03A255842E71B26A0054C0D7 /* SystemExtensionStatusHandler.swift */,
+				03A255842E71B26A0054C0D7 /* SystemExtensionStatusEventHandler.swift */,
 				2974E0C72E3D35E400EF7DB3 /* StatusEventHandler.swift */,
 				293C30552DEF649500691115 /* MethodHandler.swift */,
 				5F53D0152E42442000740586 /* PrivateServerEventHandler.swift */,
@@ -502,7 +513,7 @@
 			);
 			mainGroup = 33CC10E42044A3C60003C045;
 			packageReferences = (
-				781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage" */,
+				781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "FlutterGeneratedPluginSwiftPackage" */,
 			);
 			productRefGroup = 33CC10EE2044A3C60003C045 /* Products */;
 			projectDirPath = "";
@@ -589,13 +600,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -678,7 +685,7 @@
 			files = (
 				5F53D0322E4410F100740586 /* StatusEventHandler.swift in Sources */,
 				5F53D0332E4410F100740586 /* PrivateServerEventHandler.swift in Sources */,
-				03A255852E71B27A0054C0D7 /* SystemExtensionStatusHandler.swift in Sources */,
+				03A255852E71B27A0054C0D7 /* SystemExtensionStatusEventHandler.swift in Sources */,
 				5F53D03A2E44112E00740586 /* SystemExtensionManager.swift in Sources */,
 				33CC11132044BFA00003C045 /* MainFlutterWindow.swift in Sources */,
 				293C305E2DEF67EB00691115 /* VPNManager.swift in Sources */,
@@ -1273,7 +1280,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage" */ = {
+		781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "FlutterGeneratedPluginSwiftPackage" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage;
 		};

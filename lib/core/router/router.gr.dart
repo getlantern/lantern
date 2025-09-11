@@ -23,49 +23,49 @@ import 'package:lantern/features/auth/choose_payment_method.dart' as _i6;
 import 'package:lantern/features/auth/confirm_email.dart' as _i7;
 import 'package:lantern/features/auth/create_password.dart' as _i8;
 import 'package:lantern/features/auth/device_limit_reached.dart' as _i12;
-import 'package:lantern/features/auth/reset_password.dart' as _i29;
-import 'package:lantern/features/auth/reset_password_email.dart' as _i30;
-import 'package:lantern/features/auth/sign_in_email.dart' as _i34;
-import 'package:lantern/features/auth/sign_in_password.dart' as _i35;
+import 'package:lantern/features/auth/reset_password.dart' as _i30;
+import 'package:lantern/features/auth/reset_password_email.dart' as _i31;
+import 'package:lantern/features/auth/sign_in_email.dart' as _i35;
+import 'package:lantern/features/auth/sign_in_password.dart' as _i36;
 import 'package:lantern/features/home/home.dart' as _i15;
-import 'package:lantern/features/home/system_extension_dialog.dart' as _i39;
+import 'package:lantern/features/macos_extension/macos_extension_dialog.dart' as _i20;
 import 'package:lantern/features/language/language.dart' as _i18;
 import 'package:lantern/features/logs/logs.dart' as _i19;
-import 'package:lantern/features/plans/plans.dart' as _i22;
+import 'package:lantern/features/plans/plans.dart' as _i23;
 import 'package:lantern/features/private_server/deploying_server.dart' as _i11;
 import 'package:lantern/features/private_server/join_private_server.dart'
     as _i17;
 import 'package:lantern/features/private_server/manage_private_server.dart'
-    as _i20;
-import 'package:lantern/features/private_server/manually_server_setup.dart'
     as _i21;
+import 'package:lantern/features/private_server/manually_server_setup.dart'
+    as _i22;
 import 'package:lantern/features/private_server/private_server_deploy.dart'
-    as _i23;
-import 'package:lantern/features/private_server/private_server_locations.dart'
     as _i24;
-import 'package:lantern/features/private_server/private_server_setup.dart'
+import 'package:lantern/features/private_server/private_server_locations.dart'
     as _i25;
-import 'package:lantern/features/private_server/private_sever_details.dart'
+import 'package:lantern/features/private_server/private_server_setup.dart'
     as _i26;
-import 'package:lantern/features/private_server/server_locations.dart' as _i31;
-import 'package:lantern/features/qr_scanner/qr_code_scanner.dart' as _i27;
-import 'package:lantern/features/report_Issue/report_issue.dart' as _i28;
+import 'package:lantern/features/private_server/private_sever_details.dart'
+    as _i27;
+import 'package:lantern/features/private_server/server_locations.dart' as _i32;
+import 'package:lantern/features/qr_scanner/qr_code_scanner.dart' as _i28;
+import 'package:lantern/features/report_Issue/report_issue.dart' as _i29;
 import 'package:lantern/features/setting/download_links.dart' as _i13;
 import 'package:lantern/features/setting/follow_us.dart' as _i14;
 import 'package:lantern/features/setting/invite_friends.dart' as _i16;
-import 'package:lantern/features/setting/setting.dart' as _i33;
+import 'package:lantern/features/setting/setting.dart' as _i34;
 import 'package:lantern/features/setting/vpn_setting.dart' as _i40;
 import 'package:lantern/features/split_tunneling/apps_split_tunneling.dart'
     as _i5;
 import 'package:lantern/features/split_tunneling/default_bypass_list.dart'
     as _i9;
-import 'package:lantern/features/split_tunneling/split_tunneling.dart' as _i36;
+import 'package:lantern/features/split_tunneling/split_tunneling.dart' as _i37;
 import 'package:lantern/features/split_tunneling/split_tunneling_info.dart'
-    as _i37;
+    as _i38;
 import 'package:lantern/features/split_tunneling/website_split_tunneling.dart'
     as _i41;
-import 'package:lantern/features/support/support.dart' as _i38;
-import 'package:lantern/features/vpn/server_selection.dart' as _i32;
+import 'package:lantern/features/support/support.dart' as _i39;
+import 'package:lantern/features/vpn/server_selection.dart' as _i33;
 import 'package:lantern/lantern/protos/protos/auth.pb.dart' as _i45;
 
 /// generated route for
@@ -783,7 +783,23 @@ class Logs extends _i42.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i20.ManagePrivateServer]
+/// [_i20.MacOSExtensionDialog]
+class MacOSExtensionDialog extends _i42.PageRouteInfo<void> {
+  const MacOSExtensionDialog({List<_i42.PageRouteInfo>? children})
+      : super(MacOSExtensionDialog.name, initialChildren: children);
+
+  static const String name = 'MacOSExtensionDialog';
+
+  static _i42.PageInfo page = _i42.PageInfo(
+    name,
+    builder: (data) {
+      return const _i20.MacOSExtensionDialog();
+    },
+  );
+}
+
+/// generated route for
+/// [_i21.ManagePrivateServer]
 class ManagePrivateServer extends _i42.PageRouteInfo<void> {
   const ManagePrivateServer({List<_i42.PageRouteInfo>? children})
       : super(ManagePrivateServer.name, initialChildren: children);
@@ -793,13 +809,13 @@ class ManagePrivateServer extends _i42.PageRouteInfo<void> {
   static _i42.PageInfo page = _i42.PageInfo(
     name,
     builder: (data) {
-      return const _i20.ManagePrivateServer();
+      return const _i21.ManagePrivateServer();
     },
   );
 }
 
 /// generated route for
-/// [_i21.ManuallyServerSetup]
+/// [_i22.ManuallyServerSetup]
 class ManuallyServerSetup extends _i42.PageRouteInfo<void> {
   const ManuallyServerSetup({List<_i42.PageRouteInfo>? children})
       : super(ManuallyServerSetup.name, initialChildren: children);
@@ -809,13 +825,13 @@ class ManuallyServerSetup extends _i42.PageRouteInfo<void> {
   static _i42.PageInfo page = _i42.PageInfo(
     name,
     builder: (data) {
-      return const _i21.ManuallyServerSetup();
+      return const _i22.ManuallyServerSetup();
     },
   );
 }
 
 /// generated route for
-/// [_i22.Plans]
+/// [_i23.Plans]
 class Plans extends _i42.PageRouteInfo<void> {
   const Plans({List<_i42.PageRouteInfo>? children})
       : super(Plans.name, initialChildren: children);
@@ -825,13 +841,13 @@ class Plans extends _i42.PageRouteInfo<void> {
   static _i42.PageInfo page = _i42.PageInfo(
     name,
     builder: (data) {
-      return const _i22.Plans();
+      return const _i23.Plans();
     },
   );
 }
 
 /// generated route for
-/// [_i23.PrivateServerDeploy]
+/// [_i24.PrivateServerDeploy]
 class PrivateServerDeploy extends _i42.PageRouteInfo<PrivateServerDeployArgs> {
   PrivateServerDeploy({
     _i43.Key? key,
@@ -849,7 +865,7 @@ class PrivateServerDeploy extends _i42.PageRouteInfo<PrivateServerDeployArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<PrivateServerDeployArgs>();
-      return _i23.PrivateServerDeploy(
+      return _i24.PrivateServerDeploy(
         key: args.key,
         serverName: args.serverName,
       );
@@ -881,7 +897,7 @@ class PrivateServerDeployArgs {
 }
 
 /// generated route for
-/// [_i24.PrivateServerLocation]
+/// [_i25.PrivateServerLocation]
 class PrivateServerLocation
     extends _i42.PageRouteInfo<PrivateServerLocationArgs> {
   PrivateServerLocation({
@@ -907,7 +923,7 @@ class PrivateServerLocation
     name,
     builder: (data) {
       final args = data.argsAs<PrivateServerLocationArgs>();
-      return _i24.PrivateServerLocation(
+      return _i25.PrivateServerLocation(
         key: args.key,
         location: args.location,
         selectedLocation: args.selectedLocation,
@@ -955,7 +971,7 @@ class PrivateServerLocationArgs {
 }
 
 /// generated route for
-/// [_i25.PrivateServerSetup]
+/// [_i26.PrivateServerSetup]
 class PrivateServerSetup extends _i42.PageRouteInfo<void> {
   const PrivateServerSetup({List<_i42.PageRouteInfo>? children})
       : super(PrivateServerSetup.name, initialChildren: children);
@@ -965,13 +981,13 @@ class PrivateServerSetup extends _i42.PageRouteInfo<void> {
   static _i42.PageInfo page = _i42.PageInfo(
     name,
     builder: (data) {
-      return const _i25.PrivateServerSetup();
+      return const _i26.PrivateServerSetup();
     },
   );
 }
 
 /// generated route for
-/// [_i26.PrivateSeverDetails]
+/// [_i27.PrivateSeverDetails]
 class PrivateServerDetails
     extends _i42.PageRouteInfo<PrivateServerDetailsArgs> {
   PrivateServerDetails({
@@ -990,7 +1006,7 @@ class PrivateServerDetails
     name,
     builder: (data) {
       final args = data.argsAs<PrivateServerDetailsArgs>();
-      return _i26.PrivateSeverDetails(key: args.key, accounts: args.accounts);
+      return _i27.PrivateSeverDetails(key: args.key, accounts: args.accounts);
     },
   );
 }
@@ -1020,7 +1036,7 @@ class PrivateServerDetailsArgs {
 }
 
 /// generated route for
-/// [_i27.QrCodeScanner]
+/// [_i28.QrCodeScanner]
 class QrCodeScanner extends _i42.PageRouteInfo<QrCodeScannerArgs> {
   QrCodeScanner({_i43.Key? key, List<_i42.PageRouteInfo>? children})
       : super(
@@ -1037,7 +1053,7 @@ class QrCodeScanner extends _i42.PageRouteInfo<QrCodeScannerArgs> {
       final args = data.argsAs<QrCodeScannerArgs>(
         orElse: () => const QrCodeScannerArgs(),
       );
-      return _i27.QrCodeScanner(key: args.key);
+      return _i28.QrCodeScanner(key: args.key);
     },
   );
 }
@@ -1064,7 +1080,7 @@ class QrCodeScannerArgs {
 }
 
 /// generated route for
-/// [_i28.ReportIssue]
+/// [_i29.ReportIssue]
 class ReportIssue extends _i42.PageRouteInfo<ReportIssueArgs> {
   ReportIssue({
     _i43.Key? key,
@@ -1084,7 +1100,7 @@ class ReportIssue extends _i42.PageRouteInfo<ReportIssueArgs> {
       final args = data.argsAs<ReportIssueArgs>(
         orElse: () => const ReportIssueArgs(),
       );
-      return _i28.ReportIssue(key: args.key, description: args.description);
+      return _i29.ReportIssue(key: args.key, description: args.description);
     },
   );
 }
@@ -1113,7 +1129,7 @@ class ReportIssueArgs {
 }
 
 /// generated route for
-/// [_i29.ResetPassword]
+/// [_i30.ResetPassword]
 class ResetPassword extends _i42.PageRouteInfo<ResetPasswordArgs> {
   ResetPassword({
     _i43.Key? key,
@@ -1132,7 +1148,7 @@ class ResetPassword extends _i42.PageRouteInfo<ResetPasswordArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<ResetPasswordArgs>();
-      return _i29.ResetPassword(
+      return _i30.ResetPassword(
         key: args.key,
         email: args.email,
         code: args.code,
@@ -1167,7 +1183,7 @@ class ResetPasswordArgs {
 }
 
 /// generated route for
-/// [_i30.ResetPasswordEmail]
+/// [_i31.ResetPasswordEmail]
 class ResetPasswordEmail extends _i42.PageRouteInfo<ResetPasswordEmailArgs> {
   ResetPasswordEmail({
     _i43.Key? key,
@@ -1187,7 +1203,7 @@ class ResetPasswordEmail extends _i42.PageRouteInfo<ResetPasswordEmailArgs> {
       final args = data.argsAs<ResetPasswordEmailArgs>(
         orElse: () => const ResetPasswordEmailArgs(),
       );
-      return _i30.ResetPasswordEmail(key: args.key, email: args.email);
+      return _i31.ResetPasswordEmail(key: args.key, email: args.email);
     },
   );
 }
@@ -1216,7 +1232,7 @@ class ResetPasswordEmailArgs {
 }
 
 /// generated route for
-/// [_i31.ServerLocations]
+/// [_i32.ServerLocations]
 class ServerLocations extends _i42.PageRouteInfo<ServerLocationsArgs> {
   ServerLocations({
     _i43.Key? key,
@@ -1243,7 +1259,7 @@ class ServerLocations extends _i42.PageRouteInfo<ServerLocationsArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<ServerLocationsArgs>();
-      return _i31.ServerLocations(
+      return _i32.ServerLocations(
         key: args.key,
         selectedCode: args.selectedCode,
         provider: args.provider,
@@ -1294,7 +1310,7 @@ class ServerLocationsArgs {
 }
 
 /// generated route for
-/// [_i32.ServerSelection]
+/// [_i33.ServerSelection]
 class ServerSelection extends _i42.PageRouteInfo<void> {
   const ServerSelection({List<_i42.PageRouteInfo>? children})
       : super(ServerSelection.name, initialChildren: children);
@@ -1304,13 +1320,13 @@ class ServerSelection extends _i42.PageRouteInfo<void> {
   static _i42.PageInfo page = _i42.PageInfo(
     name,
     builder: (data) {
-      return const _i32.ServerSelection();
+      return const _i33.ServerSelection();
     },
   );
 }
 
 /// generated route for
-/// [_i33.Setting]
+/// [_i34.Setting]
 class Setting extends _i42.PageRouteInfo<void> {
   const Setting({List<_i42.PageRouteInfo>? children})
       : super(Setting.name, initialChildren: children);
@@ -1320,13 +1336,13 @@ class Setting extends _i42.PageRouteInfo<void> {
   static _i42.PageInfo page = _i42.PageInfo(
     name,
     builder: (data) {
-      return const _i33.Setting();
+      return const _i34.Setting();
     },
   );
 }
 
 /// generated route for
-/// [_i34.SignInEmail]
+/// [_i35.SignInEmail]
 class SignInEmail extends _i42.PageRouteInfo<void> {
   const SignInEmail({List<_i42.PageRouteInfo>? children})
       : super(SignInEmail.name, initialChildren: children);
@@ -1336,13 +1352,13 @@ class SignInEmail extends _i42.PageRouteInfo<void> {
   static _i42.PageInfo page = _i42.PageInfo(
     name,
     builder: (data) {
-      return const _i34.SignInEmail();
+      return const _i35.SignInEmail();
     },
   );
 }
 
 /// generated route for
-/// [_i35.SignInPassword]
+/// [_i36.SignInPassword]
 class SignInPassword extends _i42.PageRouteInfo<SignInPasswordArgs> {
   SignInPassword({
     _i43.Key? key,
@@ -1365,7 +1381,7 @@ class SignInPassword extends _i42.PageRouteInfo<SignInPasswordArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<SignInPasswordArgs>();
-      return _i35.SignInPassword(
+      return _i36.SignInPassword(
         key: args.key,
         email: args.email,
         fromChangeEmail: args.fromChangeEmail,
@@ -1406,7 +1422,7 @@ class SignInPasswordArgs {
 }
 
 /// generated route for
-/// [_i36.SplitTunneling]
+/// [_i37.SplitTunneling]
 class SplitTunneling extends _i42.PageRouteInfo<void> {
   const SplitTunneling({List<_i42.PageRouteInfo>? children})
       : super(SplitTunneling.name, initialChildren: children);
@@ -1416,13 +1432,13 @@ class SplitTunneling extends _i42.PageRouteInfo<void> {
   static _i42.PageInfo page = _i42.PageInfo(
     name,
     builder: (data) {
-      return const _i36.SplitTunneling();
+      return const _i37.SplitTunneling();
     },
   );
 }
 
 /// generated route for
-/// [_i37.SplitTunnelingInfo]
+/// [_i38.SplitTunnelingInfo]
 class SplitTunnelingInfo extends _i42.PageRouteInfo<void> {
   const SplitTunnelingInfo({List<_i42.PageRouteInfo>? children})
       : super(SplitTunnelingInfo.name, initialChildren: children);
@@ -1432,13 +1448,13 @@ class SplitTunnelingInfo extends _i42.PageRouteInfo<void> {
   static _i42.PageInfo page = _i42.PageInfo(
     name,
     builder: (data) {
-      return const _i37.SplitTunnelingInfo();
+      return const _i38.SplitTunnelingInfo();
     },
   );
 }
 
 /// generated route for
-/// [_i38.Support]
+/// [_i39.Support]
 class Support extends _i42.PageRouteInfo<void> {
   const Support({List<_i42.PageRouteInfo>? children})
       : super(Support.name, initialChildren: children);
@@ -1448,23 +1464,7 @@ class Support extends _i42.PageRouteInfo<void> {
   static _i42.PageInfo page = _i42.PageInfo(
     name,
     builder: (data) {
-      return const _i38.Support();
-    },
-  );
-}
-
-/// generated route for
-/// [_i39.SystemExtensionDialog]
-class SystemExtensionDialog extends _i42.PageRouteInfo<void> {
-  const SystemExtensionDialog({List<_i42.PageRouteInfo>? children})
-      : super(SystemExtensionDialog.name, initialChildren: children);
-
-  static const String name = 'SystemExtensionDialog';
-
-  static _i42.PageInfo page = _i42.PageInfo(
-    name,
-    builder: (data) {
-      return const _i39.SystemExtensionDialog();
+      return const _i39.Support();
     },
   );
 }

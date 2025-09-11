@@ -1,27 +1,27 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'system_extension_notifier.dart';
+part of 'macos_extension_notifier.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$systemExtensionNotifierHash() =>
-    r'f7a20eff59d04347aff400da13e856d90a238d10';
+String _$macosExtensionNotifierHash() =>
+    r'7dea03cc738d2fce2f895a0508a87b3f29de1416';
 
-/// See also [SystemExtensionNotifier].
-@ProviderFor(SystemExtensionNotifier)
-final systemExtensionNotifierProvider =
-    NotifierProvider<SystemExtensionNotifier, SystemExtensionStatus>.internal(
-  SystemExtensionNotifier.new,
-  name: r'systemExtensionNotifierProvider',
+/// See also [MacosExtensionNotifier].
+@ProviderFor(MacosExtensionNotifier)
+final macosExtensionNotifierProvider =
+    NotifierProvider<MacosExtensionNotifier, MacOSExtensionState>.internal(
+  MacosExtensionNotifier.new,
+  name: r'macosExtensionNotifierProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
       ? null
-      : _$systemExtensionNotifierHash,
+      : _$macosExtensionNotifierHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
-typedef _$SystemExtensionNotifier = Notifier<SystemExtensionStatus>;
+typedef _$MacosExtensionNotifier = Notifier<MacOSExtensionState>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

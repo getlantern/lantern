@@ -326,7 +326,7 @@ class MethodHandler {
             details: err.debugDescription))
         return
       }
-      result(json ?? "[]")
+        result(json)
     }
   }
 
@@ -692,46 +692,20 @@ class MethodHandler {
 
   func triggerSystemExtensionFlow(result: @escaping FlutterResult) {
     Task.detached {
-      let start = Date()
-      do {
-        let systemStatus = try SystemExtensionManager.shared.activateExtensionAndWait()
-        appLogger.info(
-          "System extension activation result: \(systemStatus) took \(Date().timeIntervalSince(start)) seconds"
-        )
+        SystemExtensionManager.shared.activateExtension()
         await MainActor.run {
-          result(systemStatus)
+          result("ok")
         }
-      } catch {
-        appLogger.error("System extension activation failed: \(error.localizedDescription)")
-        await MainActor.run {
-          result(
-            FlutterError(
-              code: "SYSTEM_EXTENSION_ACTIVATION_FAILED",
-              message: error.localizedDescription,
-              details: nil
-            )
-          )
-        }
-      }
     }
   }
 
   //Check if system extension is installed or not
   func isSystemExtensionInstalled(result: @escaping FlutterResult) {
     Task.detached {
-      do {
-        let start = Date()
-        let installed = try SystemExtensionManager.shared.checkInstallationStatus()
-        appLogger.info(
-          "System extension installation status: \(installed) took \(Date().timeIntervalSince(start)) seconds"
-        )
+         SystemExtensionManager.shared.checkInstallationStatus()
         await MainActor.run {
-          result(installed)
+          result("ok")
         }
-      } catch {
-        await self.handleFlutterError(
-          error, result: result, code: "CHECK_SYSTEM_EXTENSION_STATUS_FAILED")
-      }
     }
   }
 

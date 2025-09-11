@@ -12,20 +12,23 @@ public class SystemExtnesionStatusEventHandler: NSObject, FlutterPlugin, Flutter
   static let name = "org.getlantern.lantern/system_extension_status"
   private var channel: FlutterEventChannel?
   private var cancellable: AnyCancellable?
+
   public static func register(with registrar: FlutterPluginRegistrar) {
     let instance = SystemExtnesionStatusEventHandler()
     instance.channel = FlutterEventChannel(
-      name: Self.name, binaryMessenger: registrar.messenger, codec: FlutterJSONMethodCodec())
+      name: self.name, binaryMessenger: registrar.messenger, codec: FlutterJSONMethodCodec())
     instance.channel?.setStreamHandler(instance)
   }
 
   public func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink)
     -> FlutterError?
   {
-    cancellable =  SystemExtensionManager.shared.$status
-          .sink { status in
-              events(["status": status])
-          }
+
+    cancellable = SystemExtensionManager.shared.$status
+      .sink { sysStatus in
+        appLogger.info("SystemExtensionStatusEvent received status: \(sysStatus)")
+        events(["status": sysStatus])
+      }
     return nil
   }
 

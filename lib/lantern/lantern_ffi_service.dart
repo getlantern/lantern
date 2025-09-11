@@ -24,6 +24,7 @@ import 'package:path/path.dart' as p;
 
 import '../core/models/available_servers.dart';
 import '../core/models/plan_data.dart';
+import '../core/models/macos_extension_state.dart';
 import '../core/services/injection_container.dart' show sl;
 import '../core/utils/compute_worker.dart';
 
@@ -990,7 +991,7 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, SystemExtensionStatus>> triggerSystemExtension() {
+  Future<Either<Failure, String>> triggerSystemExtension() {
     throw Exception("This is not supported on desktop");
   }
 
@@ -1003,8 +1004,14 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Stream<SystemExtensionStatus> watchSystemExtensionStatus() {
+  Stream<MacOSExtensionState> watchSystemExtensionStatus() {
     // TODO: implement watchSystemExtensionStatus
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> isSystemExtensionInstalled() {
+    // TODO: implement isSystemExtensionInstalled
     throw UnimplementedError();
   }
 }
