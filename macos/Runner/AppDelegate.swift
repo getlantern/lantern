@@ -79,6 +79,19 @@ class AppDelegate: FlutterAppDelegate {
 
   /// Prepares the file system directories for use
   private func setupFileSystem() {
+      
+      // Setup shared directory
+      do {
+        try FileManager.default.createDirectory(
+          at: FilePath.dataDirectory,
+          withIntermediateDirectories: true
+        )
+        appLogger.info("data directory created at: \(FilePath.dataDirectory.path)")
+      } catch {
+        appLogger.error("Failed to create data directory: \(error.localizedDescription)")
+      }
+      
+      //Setup log directory
     do {
       try FileManager.default.createDirectory(
         at: FilePath.logsDirectory,
@@ -88,39 +101,39 @@ class AppDelegate: FlutterAppDelegate {
     } catch {
       appLogger.error("Failed to create logs directory: \(error.localizedDescription)")
     }
-    do {
-      try FileManager.default.createDirectory(
-        at: FilePath.dataDirectory,
-        withIntermediateDirectories: true
-      )
-      appLogger.info("data directory created at: \(FilePath.dataDirectory.path)")
-    } catch {
-      appLogger.error("Failed to create data directory: \(error.localizedDescription)")
-    }
+      
+      //Setup macos native log file directory
+      // this is just for testing
+      do {
+        try FileManager.default.createDirectory(
+          at: FilePath.macOSLogDirectory,
+          withIntermediateDirectories: true
+        )
+        appLogger.info("macos directory created at: \(FilePath.macOsLogDirectory.path)")
+      } catch {
+        appLogger.error("Failed to macos logs directory: \(error.localizedDescription)")
+      }
+ 
 
   }
 
   /// Calls API handler setup
   private func setupRadiance() {
-    Task {
-      let opts = UtilsOpts()
-      opts.dataDir = FilePath.dataDirectory.relativePath
-      opts.logDir = FilePath.logsDirectory.relativePath
-      appLogger.info("Data directory: " + opts.dataDir)
-      appLogger.info("Log directory: " + opts.logDir)
-      opts.deviceid = ""
-      opts.logLevel = "debug"
-      appLogger.info("Log level: " + opts.logLevel)
-
-      opts.locale = Locale.current.identifier
-      var error: NSError?
-      MobileSetupRadiance(opts, &error)
-      // Handle any error returned by the setup
-      if let error {
-        appLogger.error("Error while setting up radiance: \(error)")
-      } else {
-        appLogger.info("Radiance setup complete")
-      }
+    let startupTime = Date()
+    let opts = UtilsOpts()
+    opts.dataDir = FilePath.dataDirectory.relativePath
+    opts.logDir = FilePath.logsDirectory.relativePath
+    opts.deviceid = ""
+    opts.logLevel = "debug"
+    opts.locale = Locale.current.identifier
+    appLogger.info("logging to \(opts.logDir) dataDir: \(opts.dataDir) logLevel: \(opts.logLevel)")
+    var error: NSError?
+    MobileSetupRadiance(opts, &error)
+    // Handle any error returned by the setup
+    if let error {
+      appLogger.error("Error while setting up radiance: \(error)")
+    } else {
+      appLogger.info("Radiance setup took \(Date().timeIntervalSince(startupTime)) seconds")
     }
   }
 

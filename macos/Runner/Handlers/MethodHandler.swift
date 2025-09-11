@@ -328,7 +328,7 @@ class MethodHandler {
             details: err.debugDescription))
         return
       }
-        result(json)
+      result(json)
     }
   }
 
@@ -694,20 +694,20 @@ class MethodHandler {
 
   func triggerSystemExtensionFlow(result: @escaping FlutterResult) {
     Task.detached {
-        SystemExtensionManager.shared.activateExtension()
-        await MainActor.run {
-          result("ok")
-        }
+      SystemExtensionManager.shared.activateExtension()
+      await MainActor.run {
+        result("ok")
+      }
     }
   }
 
   //Check if system extension is installed or not
   func isSystemExtensionInstalled(result: @escaping FlutterResult) {
     Task.detached {
-         SystemExtensionManager.shared.checkInstallationStatus()
-        await MainActor.run {
-          result("ok")
-        }
+      SystemExtensionManager.shared.checkInstallationStatus()
+      await MainActor.run {
+        result("ok")
+      }
     }
   }
 
