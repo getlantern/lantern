@@ -71,7 +71,7 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
                 }
                 START_STICKY
             }
-            ACTION_START_VPN -> {
+            ACTION_CONNECT_TO_SERVER -> {
                 serviceScope.launch {
                     connectToServer(
                         intent.getStringExtra("location") ?: "",
