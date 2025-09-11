@@ -150,7 +150,6 @@ class MethodHandler {
         result(FlutterMethodNotImplemented)
       }
     }
-    channel.invokeMethod("channelReady", arguments: nil)
   }
 
   private func startVPN(result: @escaping FlutterResult) {

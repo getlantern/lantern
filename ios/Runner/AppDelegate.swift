@@ -74,6 +74,7 @@ import flutter_local_notifications
       binaryMessenger: controller.binaryMessenger
     )
     methodHandler = MethodHandler(channel: nativeChannel, vpnManager: vpnManager)
+    nativeChannel.invokeMethod("channelReady", arguments: nil)
   }
 
   /// Prepares the file system directories for use
@@ -121,22 +122,19 @@ import flutter_local_notifications
   private func setupRadiance() {
     appLogger.info("absoluteString Paths... \(FilePath.sharedDirectory.absoluteString)")
     appLogger.info("relativePath Paths... \(FilePath.sharedDirectory.relativePath)")
-    Task {
-      // Set up the base directory and options
-      let baseDir = FilePath.sharedDirectory.relativePath
-      let opts = UtilsOpts()
-      opts.dataDir = baseDir
-      opts.logDir = FilePath.logsDirectory.relativePath
-      opts.deviceid = DeviceIdentifier.getUDID()
-      opts.logLevel = "debug"
-      opts.locale = Locale.current.identifier
-      var error: NSError?
-      await MobileSetupRadiance(opts, &error)
-      // Handle any error returned by the setup
-      if let error {
-        appLogger.error("Error while setting up radiance: \(error)")
-      }
+    // Set up the base directory and options
+    let baseDir = FilePath.sharedDirectory.relativePath
+    let opts = UtilsOpts()
+    opts.dataDir = baseDir
+    opts.logDir = FilePath.logsDirectory.relativePath
+    opts.deviceid = DeviceIdentifier.getUDID()
+    opts.logLevel = "debug"
+    opts.locale = Locale.current.identifier
+    var error: NSError?
+    await MobileSetupRadiance(opts, &error)
+    // Handle any error returned by the setup
+    if let error {
+      appLogger.error("Error while setting up radiance: \(error)")
     }
   }
-
 }
