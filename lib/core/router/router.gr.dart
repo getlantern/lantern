@@ -28,9 +28,10 @@ import 'package:lantern/features/auth/reset_password_email.dart' as _i31;
 import 'package:lantern/features/auth/sign_in_email.dart' as _i35;
 import 'package:lantern/features/auth/sign_in_password.dart' as _i36;
 import 'package:lantern/features/home/home.dart' as _i15;
-import 'package:lantern/features/macos_extension/macos_extension_dialog.dart' as _i20;
 import 'package:lantern/features/language/language.dart' as _i18;
 import 'package:lantern/features/logs/logs.dart' as _i19;
+import 'package:lantern/features/macos_extension/macos_extension_dialog.dart'
+    as _i20;
 import 'package:lantern/features/plans/plans.dart' as _i23;
 import 'package:lantern/features/private_server/deploying_server.dart' as _i11;
 import 'package:lantern/features/private_server/join_private_server.dart'
