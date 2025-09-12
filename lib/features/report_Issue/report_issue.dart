@@ -18,17 +18,29 @@ class ReportIssue extends HookConsumerWidget {
     this.description,
   });
 
-  final issueOptions = <String>[
-    'cannot_access_blocked_sites'.i18n,
-    'cannot_complete_purchase'.i18n,
-    'cannot_sign_in'.i18n,
-    'discover_not_working'.i18n,
-    'spinner_loads_endlessly'.i18n,
-    'slow'.i18n,
-    'cannot_link_devices'.i18n,
-    'application_crashes'.i18n,
-    'other'.i18n
+  final issueKeys = const [
+    'cannot_access_blocked_sites',
+    'cannot_complete_purchase',
+    'cannot_sign_in',
+    'spinner_loads_endlessly',
+    'slow',
+    'cannot_link_device',
+    'application_crashes',
+    'other',
   ];
+
+  String issueLabel(String key) => key.i18n;
+
+  final Map<String, String> _radianceCanon = {
+    'cannot_access_blocked_sites': 'Cannot access blocked sites',
+    'cannot_complete_purchase': 'Cannot complete purchase',
+    'cannot_sign_in': 'Cannot sign in',
+    'spinner_loads_endlessly': 'Spinner loads endlessly',
+    'slow': 'Slow',
+    'cannot_link_device': 'Cannot link device',
+    'application_crashes': 'Application crashes',
+    'other': 'Other',
+  };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -37,6 +49,7 @@ class ReportIssue extends HookConsumerWidget {
     final descriptionController = useTextEditingController();
     final selectedIssueController = useTextEditingController();
     final isLoading = useState(false);
+    final selectedIssueKey = useTextEditingController();
 
     Future<void> openIssueSelection(BuildContext context) async {
       showAppBottomSheet(
@@ -46,12 +59,17 @@ class ReportIssue extends HookConsumerWidget {
           return Expanded(
             child: RadioListView(
               scrollController: scrollController,
-              items: issueOptions,
-              onChanged: (String issueType) {
-                selectedIssueController.text = issueType;
-                Navigator.of(context).pop(issueType);
+              items: issueKeys.map(issueLabel).toList(),
+              onChanged: (String label) {
+                final idx = issueKeys.indexWhere((k) => issueLabel(k) == label);
+                if (idx >= 0) {
+                  selectedIssueKey.text = issueKeys[idx];
+                }
+                Navigator.of(context).pop();
               },
-              groupValue: '',
+              groupValue: selectedIssueKey.text.isEmpty
+                  ? ''
+                  : issueLabel(selectedIssueKey.text),
             ),
           );
         },
@@ -59,14 +77,15 @@ class ReportIssue extends HookConsumerWidget {
     }
 
     Future<void> submitReport() async {
-      final email = emailController.text.trim();
       final issueType = selectedIssueController.text.trim();
       final description = descriptionController.text.trim();
 
-      if (!EmailValidator.validate(email)) {
+      final email = emailController.text.trim();
+      if (email.isNotEmpty && !EmailValidator.validate(email)) {
         context.showSnackBar('Please enter a valid email address');
         return;
       }
+
       if (issueType.isEmpty) {
         context.showSnackBar('Please select an issue type');
         return;
