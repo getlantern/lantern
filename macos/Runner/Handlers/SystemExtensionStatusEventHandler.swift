@@ -8,13 +8,13 @@ import Combine
 import FlutterMacOS
 import Foundation
 
-public class SystemExtnesionStatusEventHandler: NSObject, FlutterPlugin, FlutterStreamHandler {
+public class SystemExtensionStatusEventHandler: NSObject, FlutterPlugin, FlutterStreamHandler {
   static let name = "org.getlantern.lantern/system_extension_status"
   private var channel: FlutterEventChannel?
   private var cancellable: AnyCancellable?
 
   public static func register(with registrar: FlutterPluginRegistrar) {
-    let instance = SystemExtnesionStatusEventHandler()
+    let instance = SystemExtensionStatusEventHandler()
     instance.channel = FlutterEventChannel(
       name: self.name, binaryMessenger: registrar.messenger, codec: FlutterJSONMethodCodec())
     instance.channel?.setStreamHandler(instance)

@@ -61,7 +61,7 @@ class AppDelegate: FlutterAppDelegate {
 
     let systemExtensionStatusRegistrar = registry.registrar(
       forPlugin: "SystemExtensionStatusEventHandler")
-    SystemExtnesionStatusEventHandler.register(with: systemExtensionStatusRegistrar)
+    SystemExtensionStatusEventHandler.register(with: systemExtensionStatusRegistrar)
 
     let privateStatusRegistrar = registry.registrar(forPlugin: "PrivateServerEventHandler")
     PrivateServerEventHandler.register(with: privateStatusRegistrar)
@@ -111,7 +111,7 @@ class AppDelegate: FlutterAppDelegate {
       )
       appLogger.info("macos directory created at: \(FilePath.macOSLogDirectory.path)")
     } catch {
-      appLogger.error("Failed to macos logs directory: \(error.localizedDescription)")
+      appLogger.error("Failed to create macos logs directory: \(error.localizedDescription)")
     }
 
   }
