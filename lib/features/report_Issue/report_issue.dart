@@ -114,12 +114,19 @@ class ReportIssue extends HookConsumerWidget {
       isLoading.value = false;
 
       result.fold(
-        (failure) =>
-            context.showSnackBar('Failed: ${failure.localizedErrorMessage}'),
+        (failure) async {
+          AppDialog.errorDialog(
+            context: context,
+            title: 'error_reporting_issue'.i18n,
+            content: failure.localizedErrorMessage.isNotEmpty
+                ? failure.localizedErrorMessage
+                : 'unknown_error_occurred'.i18n,
+          );
+        },
         (_) {
           context.showSnackBar('Thanks for your feedback!');
           emailController.clear();
-          selectedIssueController.clear();
+          selectedIssueKey.clear();
           descriptionController.clear();
         },
       );
