@@ -180,6 +180,5 @@ class AppRouter extends RootStackRouter {
       page: MacOSExtensionDialog.page,
       fullscreenDialog: true,
     ),
-
   ];
 }

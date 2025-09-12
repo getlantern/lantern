@@ -21,14 +21,14 @@ class MacOSExtensionState {
       return MacOSExtensionState(SystemExtensionStatus.error, raw.substring(6));
     }
 
-
     switch (raw) {
       case 'notInstalled':
         return const MacOSExtensionState(SystemExtensionStatus.notInstalled);
       case 'installed':
         return const MacOSExtensionState(SystemExtensionStatus.installed);
       case 'requiresApproval':
-        return const MacOSExtensionState(SystemExtensionStatus.requiresApproval);
+        return const MacOSExtensionState(
+            SystemExtensionStatus.requiresApproval);
       case 'timedOut':
         return const MacOSExtensionState(SystemExtensionStatus.timedOut);
       case 'activated':

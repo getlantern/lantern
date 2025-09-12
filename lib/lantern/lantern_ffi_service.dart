@@ -1048,8 +1048,6 @@ class LanternFFIService implements LanternCoreService {
     throw Exception("This is not supported on desktop");
   }
 
-
-
   @override
   Future<Either<Failure, Unit>> openSystemExtension() {
     // TODO: implement openSystemExtension

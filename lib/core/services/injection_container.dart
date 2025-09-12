@@ -24,7 +24,7 @@ Future<void> injectServices() async {
     });
 
     // We want to make sure the platform service and FFI service are
-    // initialized as early as possible so we can communicate with 
+    // initialized as early as possible so we can communicate with
     // native code on different platforms.
     final ps = LanternPlatformService();
     await ps.init();
@@ -42,7 +42,6 @@ Future<void> injectServices() async {
     sl.registerSingleton<LocalStorageService>(localStorage);
     sl.registerLazySingleton<AppRouter>(() => AppRouter());
 
-
     sl.registerSingletonAsync<StoreUtils>(() async {
       appLogger.info("Initializing StoreUtils");
       final storeUtils = StoreUtils();
@@ -56,7 +55,8 @@ Future<void> injectServices() async {
       await stripeService.initialize();
       return stripeService;
     });
-    sl.registerLazySingleton<DeepLinkCallbackManager>(() => DeepLinkCallbackManager());
+    sl.registerLazySingleton<DeepLinkCallbackManager>(
+        () => DeepLinkCallbackManager());
     sl.registerSingletonAsync<NotificationService>(() async {
       appLogger.info("Initializing NotificationService");
       final notificationService = NotificationService();

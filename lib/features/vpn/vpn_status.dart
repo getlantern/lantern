@@ -34,8 +34,7 @@ class VpnStatus extends HookConsumerWidget {
           : null,
       actions: [
         if (PlatformUtils.isMacOS &&
-            (systemExtensionStatus.status !=
-                SystemExtensionStatus.installed &&
+            (systemExtensionStatus.status != SystemExtensionStatus.installed &&
                 systemExtensionStatus.status !=
                     SystemExtensionStatus.activated))
           AppImage(path: AppImagePaths.warning, color: AppColors.red6)

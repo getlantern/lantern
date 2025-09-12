@@ -3,7 +3,7 @@ import Foundation
 import SystemExtensions
 
 class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
-    
+
   static let shared = SystemExtensionManager()
   private var tunnelBundleID = "org.getlantern.lantern.PacketTunnel"
   private var semaphore: DispatchSemaphore?

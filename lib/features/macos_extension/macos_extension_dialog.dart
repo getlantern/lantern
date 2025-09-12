@@ -120,8 +120,9 @@ class _MacOSExtensionDialogState extends ConsumerState<MacOSExtensionDialog> {
     }
 
     appLogger.info("Triggering System Extension Installation");
-    final result =
-        await ref.read(macosExtensionNotifierProvider.notifier).triggerSystemExtensionInstallation();
+    final result = await ref
+        .read(macosExtensionNotifierProvider.notifier)
+        .triggerSystemExtensionInstallation();
 
     result.fold(
       (failure) {
