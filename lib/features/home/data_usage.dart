@@ -1,16 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fpdart/fpdart.dart';
-import 'package:lantern/core/models/datacap_info.dart';
-import 'package:lantern/lantern/lantern_service_notifier.dart';
+import 'package:lantern/features/home/provider/data_cap_info_provider.dart';
 
-import '../common/common.dart';
-
-final dataCapInfoProvider =
-    FutureProvider.autoDispose<Either<Failure, DataCapInfo>>((ref) async {
-  final service = ref.watch(lanternServiceProvider);
-  return await service.fetchDataCapInfo();
-});
+import '../../core/common/common.dart';
 
 class DataUsage extends ConsumerWidget {
   const DataUsage({super.key});
@@ -18,18 +10,13 @@ class DataUsage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
-    final dataCapAsync = ref.watch(dataCapInfoProvider);
+    final dataCapAsync = ref.watch(dataCapInfoNotifierProvider);
 
     int remainingData = 300;
     int totalData = 500;
-    dataCapAsync.whenData((either) {
-      either.match(
-        (failure) {},
-        (dataCap) {
-          remainingData = (dataCap.bytesRemaining / (1024 * 1024)).round();
-          totalData = (dataCap.bytesAllotted / (1024 * 1024)).round();
-        },
-      );
+    dataCapAsync.whenData((dataCap) {
+      remainingData = (dataCap.bytesRemaining / (1024 * 1024)).round();
+      totalData = (dataCap.bytesAllotted / (1024 * 1024)).round();
     });
 
     final usageString = '$remainingData/$totalData';

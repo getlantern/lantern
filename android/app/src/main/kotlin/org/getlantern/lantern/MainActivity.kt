@@ -109,7 +109,7 @@ class MainActivity : FlutterFragmentActivity() {
 
         try {
             val vpnIntent = Intent(this, LanternVpnService::class.java).apply {
-                action = LanternVpnService.ACTION_START_VPN
+                action = LanternVpnService.ACTION_CONNECT_TO_SERVER
                 putExtra("tag", tag)
                 putExtra("location", location)
             }
