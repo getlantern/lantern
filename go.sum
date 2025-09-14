@@ -227,10 +227,12 @@ github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 h1:JWH5BB2o0e
 github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175/go.mod h1:h3S9LBmmzN/xM+lwYZHE4abzTtCTtidKtG+nxZcCZX0=
 github.com/getlantern/radiance v0.0.0-20250912211840-ff9aae762e8a h1:ewFN0L4jwQjeLb7aOO0pGhodbpYVetOluK59Dg3cm04=
 github.com/getlantern/radiance v0.0.0-20250912211840-ff9aae762e8a/go.mod h1:VgetiqyEJa+zyroxyC+ADLCXgyKVmqWgqhcueH4p3SQ=
+github.com/getlantern/sing v0.6.13-0.20250806192132-5d1129b5c1cb h1:YAPfg460pSKsVSRpwzri0Yxn6SY7xiMJSUM60FrEbBo=
+github.com/getlantern/sing v0.6.13-0.20250806192132-5d1129b5c1cb/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
 github.com/getlantern/sing-box-extensions v0.0.6-0.20250912211228-f05099d8db0a h1:mObxMGwTfXl6CYmIiq+XTm2yKvO+0zy5Khn0XQeT8Kw=
 github.com/getlantern/sing-box-extensions v0.0.6-0.20250912211228-f05099d8db0a/go.mod h1:wcEF5dUGe/B1DxGOlGHwvdyjsn2BMaNdFtMjX7Vq9L4=
-github.com/getlantern/sing-box-minimal v1.11.12-0.20250716231657-20b15178474a h1:aiM0ypjXIjdSiLevb14hNnVmWA9eXRDqpzdHhbxkzzY=
-github.com/getlantern/sing-box-minimal v1.11.12-0.20250716231657-20b15178474a/go.mod h1:UMwVTK6uaUZ9WV+TM2fGuLpeQphysQ5dwK2r/Wp4xBE=
+github.com/getlantern/sing-box-minimal v1.11.15-lantern.0.20250820161012-d4dd96e95ed6 h1:bvrvUwn96iUIkQl1HmvCETP6mtHGA0Ke3YCtxDj5jhM=
+github.com/getlantern/sing-box-minimal v1.11.15-lantern.0.20250820161012-d4dd96e95ed6/go.mod h1:E/V6629+bJOeU3HvW0IUCjF0x4UFyq+82jMZoHxxozw=
 github.com/getlantern/timezone v0.0.0-20210901200113-3f9de9d360c9 h1:VTNjZxSuAHUzu13lYpEVB8gc3xz5hZePGNHG5enHYLY=
 github.com/getlantern/timezone v0.0.0-20210901200113-3f9de9d360c9/go.mod h1:7uvbzuoOr3uYGHZx5QWlI8/C52XEf/aTb/tJFEe41Ak=
 github.com/getlantern/tlsdialer/v3 v3.0.3 h1:OXzzAqO8YojBOu2Kk8wquX2zbFmgJjji41RpaT6knLg=
@@ -568,9 +570,6 @@ github.com/sagernet/quic-go v0.49.0-beta.1 h1:3LdoCzVVfYRibZns1tYWSIoB65fpTmrwy+
 github.com/sagernet/quic-go v0.49.0-beta.1/go.mod h1:uesWD1Ihrldq1M3XtjuEvIUqi8WHNsRs71b3Lt1+p/U=
 github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691 h1:5Th31OC6yj8byLGkEnIYp6grlXfo1QYUfiYFGjewIdc=
 github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691/go.mod h1:B8lp4WkQ1PwNnrVMM6KyuFR20pU8jYBD+A4EhJovEXU=
-github.com/sagernet/sing v0.6.9/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
-github.com/sagernet/sing v0.6.10 h1:Jey1tePgH9bjFuK1fQI3D9T+bPOQ4SdHMjuS4sYjDv4=
-github.com/sagernet/sing v0.6.10/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
 github.com/sagernet/sing-dns v0.4.6 h1:mjZC0o6d5sQ1sraoOBbK3G3apCbuL8wWYwu2RNu5rbM=
 github.com/sagernet/sing-dns v0.4.6/go.mod h1:dweQs54ng2YGzoJfz+F9dGuDNdP5pJ3PLeggnK5VWc8=
 github.com/sagernet/sing-mux v0.3.2 h1:meZVFiiStvHThb/trcpAkCrmtJOuItG5Dzl1RRP5/NE=
