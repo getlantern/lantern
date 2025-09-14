@@ -64,10 +64,8 @@ class PipeClient {
         if (_hPipe != INVALID_HANDLE_VALUE) return;
 
         if (GetLastError() == ERROR_PIPE_BUSY) {
-          if (DateTime.now().difference(start).inMilliseconds >= timeoutMs) {
-            throw Exception('Timed out waiting for pipe');
-          }
-          await Future.delayed(Duration(milliseconds: 100));
+          final waited = WaitNamedPipe(lpName, timeoutMs);
+          if (waited == 0) throw Exception('Timed out waiting for pipe');
           continue;
         }
 

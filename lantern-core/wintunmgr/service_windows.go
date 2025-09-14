@@ -347,9 +347,6 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		if err := s.checkIPCUpOrStart(ctx, "lantern"); err != nil {
 			return rpcErr(r.ID, "start_error", err.Error())
 		}
-		if err := s.core.StartTunnel("lantern"); err != nil {
-			return rpcErr(r.ID, "start_error", err.Error())
-		}
 		go s.broadcastStatus()
 		return &Response{ID: r.ID, Result: map[string]any{"started": true}}
 
@@ -386,9 +383,7 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 			return rpcErr(r.ID, "connect_error", err.Error())
 		}
 		var err error
-		if p.Tag == "" {
-			err = s.core.StartTunnel(loc)
-		} else {
+		if p.Tag != "" {
 			err = s.core.ConnectToServer(loc, p.Tag)
 		}
 		if err != nil {

@@ -248,7 +248,7 @@ class LanternFFIService implements LanternCoreService {
         },
       );
       checkAPIError(result);
-      final map = jsonDecode(jsonEncode(result));
+      final map = jsonDecode(result);
       final dataCap = DataCapInfo.fromJson(map);
       return right(dataCap);
     } catch (e, st) {

@@ -120,6 +120,7 @@ dependencies:
   flutter_local_notifications: ^19.4.0
   timezone: ^0.10.1
   flutter_timezone: ^4.1.1
+  win32: ^5.14.0
 
 dev_dependencies:
   flutter_test:
