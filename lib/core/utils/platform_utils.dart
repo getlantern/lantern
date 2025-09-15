@@ -21,6 +21,6 @@ class PlatformUtils {
   }
 
   static bool get isFFISupported {
-    return Platform.isWindows || Platform.isLinux;
+    return Platform.isLinux;
   }
 }
