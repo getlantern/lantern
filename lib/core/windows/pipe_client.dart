@@ -6,16 +6,6 @@ import 'dart:typed_data';
 import 'package:ffi/ffi.dart';
 import 'package:win32/win32.dart';
 
-typedef _WaitNamedPipeWNative = Int32 Function(
-    Pointer<Utf16> lpName, Uint32 timeoutMs);
-typedef _WaitNamedPipeWDart = int Function(
-    Pointer<Utf16> lpName, int timeoutMs);
-
-final DynamicLibrary _kernel32 = DynamicLibrary.open('kernel32.dll');
-final _WaitNamedPipeWDart _WaitNamedPipeW =
-    _kernel32.lookupFunction<_WaitNamedPipeWNative, _WaitNamedPipeWDart>(
-        'WaitNamedPipeW');
-
 class PipeClient {
   PipeClient({
     this.pipeName = r'\\.\pipe\LanternService',
@@ -78,11 +68,11 @@ class PipeClient {
         }
 
         final err = GetLastError();
-        if (err == ERROR_PIPE_BUSY) {
-          final waited = _WaitNamedPipeW(lpName, timeoutMs);
-          if (waited == 0) {
+        if (GetLastError() == ERROR_PIPE_BUSY) {
+          if (DateTime.now().difference(start).inMilliseconds >= timeoutMs) {
             throw Exception('Timed out waiting for pipe');
           }
+          await Future.delayed(const Duration(milliseconds: 100));
           continue;
         }
 
