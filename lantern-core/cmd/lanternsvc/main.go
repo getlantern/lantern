@@ -102,8 +102,12 @@ func (h *lanternHandler) Execute(args []string, r <-chan svc.ChangeRequest, chan
 	started := make(chan error, 1)
 	go func() {
 		defer guard("service worker")
-		_, s := newWindowsService()
-		err := s.Start(ctx)
+		_, s, err := newWindowsService()
+		if err != nil {
+			log.Error(err)
+			return
+		}
+		err = s.Start(ctx)
 		if err != nil {
 			log.Errorf("Service worker returned error: %v", err)
 		} else {
