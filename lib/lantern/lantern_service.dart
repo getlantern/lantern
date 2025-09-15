@@ -229,14 +229,6 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> fetchUserData() {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.fetchUserData();
-    }
-    return _platformService.fetchUserData();
-  }
-
-  @override
   Future<Either<Failure, Unit>> acknowledgeInAppPurchase(
       {required String purchaseToken, required String planId}) {
     if (PlatformUtils.isFFISupported) {

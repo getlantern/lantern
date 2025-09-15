@@ -5,6 +5,8 @@ enum ServiceCommand {
   connectToServer,
   isVPNRunning,
   status,
+  getUserData,
+  fetchUserData,
 }
 
 extension ServiceCommandWire on ServiceCommand {
@@ -15,5 +17,7 @@ extension ServiceCommandWire on ServiceCommand {
         ServiceCommand.connectToServer => 'ConnectToServer',
         ServiceCommand.isVPNRunning => 'IsVPNRunning',
         ServiceCommand.status => 'Status',
+        ServiceCommand.getUserData => 'GetUserData',
+        ServiceCommand.fetchUserData => 'FetchUserData',
       };
 }

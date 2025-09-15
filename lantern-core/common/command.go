@@ -12,7 +12,6 @@ const (
 	CmdAddSplitTunnelItem    Command = "AddSplitTunnelItem"
 	CmdRemoveSplitTunnelItem Command = "RemoveSplitTunnelItem"
 	CmdGetUserData           Command = "GetUserData"
-	CmdFetchUserData         Command = "FetchUserData"
 	CmdStopService           Command = "Stop"
 	CmdWatchStatus           Command = "WatchStatus"
 )

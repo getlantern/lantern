@@ -545,23 +545,6 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, UserResponse>> fetchUserData() async {
-    try {
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService.fetchUserData().toDartString();
-        },
-      );
-      final decodedResult = base64Decode(result);
-      final user = UserResponse.fromBuffer(decodedResult);
-      return Right(user);
-    } catch (e, stackTrace) {
-      appLogger.error('error fetchUser data', e, stackTrace);
-      return Left(e.toFailure());
-    }
-  }
-
-  @override
   Future<Either<Failure, Unit>> acknowledgeInAppPurchase(
       {required String purchaseToken, required String planId}) {
     throw Exception("This not supported on desktop, this is only for mobile");

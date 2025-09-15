@@ -418,13 +418,6 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		}
 		return &Response{ID: r.ID, Result: base64.StdEncoding.EncodeToString(b)}
 
-	case common.CmdFetchUserData:
-		b, err := s.core.FetchUserData()
-		if err != nil {
-			return rpcErr(r.ID, "fetch_user_data_error", err.Error())
-		}
-		return &Response{ID: r.ID, Result: base64.StdEncoding.EncodeToString(b)}
-
 	default:
 		return rpcErr(r.ID, "unknown_cmd", string(r.Cmd))
 	}
