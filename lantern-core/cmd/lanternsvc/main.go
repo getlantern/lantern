@@ -13,6 +13,7 @@ import (
 
 	"github.com/getlantern/golog"
 	"github.com/getlantern/lantern-outline/lantern-core/common"
+	"github.com/getlantern/lantern-outline/lantern-core/utils"
 	"github.com/getlantern/lantern-outline/lantern-core/wintunmgr"
 	"golang.org/x/sys/windows/svc"
 )
@@ -61,6 +62,8 @@ func newWindowsService() (*wintunmgr.Manager, *wintunmgr.Service, error) {
 	wt := wintunmgr.New(adapterName, poolName, nil)
 	s := wintunmgr.NewService(wintunmgr.ServiceOptions{
 		PipeName: servicePipeName,
+		DataDir:  utils.DefaultDataDir(),
+		LogDir:   utils.DefaultLogDir(),
 	}, wt)
 	return wt, s, nil
 }
