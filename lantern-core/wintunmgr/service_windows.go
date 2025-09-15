@@ -310,9 +310,9 @@ func (s *Service) checkIPCUpOrStart(ctx context.Context, group string) error {
 		return nil
 	}
 
-	if err := s.setupAdapter(ctx); err != nil {
-		return fmt.Errorf("adapter: %w", err)
-	}
+	// if err := s.setupAdapter(ctx); err != nil {
+	// 	return fmt.Errorf("adapter: %w", err)
+	// }
 
 	// start the tunnel via core
 	if group == "" {
@@ -372,9 +372,9 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		if err := json.Unmarshal(r.Params, &p); err != nil {
 			return rpcErr(r.ID, "bad_params", err.Error())
 		}
-		if err := s.setupAdapter(ctx); err != nil {
-			return rpcErr(r.ID, "adapter_error", err.Error())
-		}
+		// if err := s.setupAdapter(ctx); err != nil {
+		// 	return rpcErr(r.ID, "adapter_error", err.Error())
+		// }
 		loc := strings.TrimSpace(p.Location)
 		if loc == "" {
 			loc = "lantern"
