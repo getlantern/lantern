@@ -88,7 +88,7 @@ jobs:
         run: |
           dart pub global activate flutter_distributor
           make windows-release
-          flutter_distributor package --flutter-build-args=verbose --platform windows --targets "exe" --skip-clean
+          flutter_distributor package --flutter-build-args=verbose --platform windows --targets "msix,exe" --skip-clean
           mv "dist/${{ env.APP_VERSION }}/lantern-${{ env.APP_VERSION }}-windows-setup.exe" ${{ inputs.installer_name }}.exe
 
       - name: Sign EXE with Azure Code Signing
@@ -112,9 +112,3 @@ jobs:
           name: lantern-installer-exe
           path: ${{ inputs.installer_name }}.exe
           retention-days: 2
-
-      - name: Upload to S3
-        run: aws s3 cp ${{ inputs.installer_name }}.exe "s3://${{ secrets.S3_RELEASES_BUCKET }}/releases/" --acl public-read
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

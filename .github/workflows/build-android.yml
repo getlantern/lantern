@@ -21,7 +21,7 @@ jobs:
     env:
       BUILD_TYPE: ${{ inputs.build_type || '' }}
       VERSION: ${{ inputs.version }}
-    runs-on: macos-15
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -36,34 +36,37 @@ jobs:
         with:
           go-version-file: "go.mod"
 
-      - uses: maxim-lobanov/setup-xcode@v1
+      - name: Set up Java 17 (Gradle cache)
+        uses: actions/setup-java@v4
         with:
-          xcode-version: latest-stable
+          distribution: temurin
+          java-version: 17
+          cache: "gradle"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK components
+        shell: bash
+        run: |
+          yes | sdkmanager --sdk_root="${ANDROID_SDK_ROOT}" --licenses
+          sdkmanager --sdk_root="${ANDROID_SDK_ROOT}" \
+            "platform-tools" \
+            "platforms;android-35" \
+            "build-tools;35.0.0" \
+            "ndk;27.0.12077973" \
+            "cmake;3.22.1"
+
+          echo "ANDROID_HOME=${ANDROID_SDK_ROOT}" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_HOME=${ANDROID_SDK_ROOT}/ndk/27.0.12077973" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_ROOT=${ANDROID_SDK_ROOT}/ndk/27.0.12077973" >> "$GITHUB_ENV"
+          echo "NDK_HOME=${ANDROID_SDK_ROOT}/ndk/27.0.12077973" >> "$GITHUB_ENV"
 
       - name: Install Flutter
         uses: subosito/flutter-action@v2.19.0
         with:
           channel: stable
           flutter-version-file: pubspec.yaml
-
-      - name: Decode APP_ENV
-        uses: timheuer/base64-to-file@v1.2
-        with:
-          fileName: "app.env"
-          fileDir: ${{ github.workspace }}
-          encodedString: ${{ secrets.APP_ENV }}
-
-      - name: Install node on macOS
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-
-      - name: Setup JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 17
-          cache: "gradle"
 
       - name: Set gradle properties
         env:
@@ -72,6 +75,13 @@ jobs:
           mkdir -p ~/.gradle/
           echo "GRADLE_USER_HOME=${HOME}/.gradle" >> $GITHUB_ENV
           echo "${GRADLE_PROPERTIES}" > ~/.gradle/gradle.properties
+
+      - name: Decode APP_ENV
+        uses: timheuer/base64-to-file@v1.2
+        with:
+          fileName: "app.env"
+          fileDir: ${{ github.workspace }}
+          encodedString: ${{ secrets.APP_ENV }}
 
       - name: Decode Keystore
         id: write_file
@@ -95,9 +105,3 @@ jobs:
           name: lantern-installer-apk
           path: ${{ inputs.installer_name }}.apk
           retention-days: 2
-
-      - name: Upload to S3
-        run: aws s3 cp ${{ inputs.installer_name }}.apk "s3://${{ secrets.S3_RELEASES_BUCKET }}/releases/" --acl public-read
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
