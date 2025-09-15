@@ -57,10 +57,12 @@ func main() {
 	runConsole()
 }
 
-func newWindowsService() (*wintunmgr.Manager, *wintunmgr.Service) {
+func newWindowsService() (*wintunmgr.Manager, *wintunmgr.Service, error) {
 	wt := wintunmgr.New(adapterName, poolName, nil)
-	s := wintunmgr.NewService(servicePipeName, wt)
-	return wt, s
+	s := wintunmgr.NewService(wintunmgr.ServiceOptions{
+		PipeName: servicePipeName,
+	}, wt)
+	return wt, s, nil
 }
 
 func runConsole() {
