@@ -100,7 +100,11 @@ func setup(_logDir, _dataDir, _locale *C.char, logP, appsP, statusP, privateServ
 //
 //export availableFeatures
 func availableFeatures() *C.char {
-	return C.CString(string(core().AvailableFeatures()))
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	return C.CString(string(c.AvailableFeatures()))
 }
 
 //export addSplitTunnelItem
