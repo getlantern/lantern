@@ -73,10 +73,13 @@ func runConsole() {
 
 	defer guard("runConsole")
 
-	_, s := newWindowsService()
+	_, s, err := newWindowsService()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	if err := s.Start(ctx); err != nil {
-		os.Exit(1)
+		log.Fatal(err)
 	}
 }
 
