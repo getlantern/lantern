@@ -30,6 +30,33 @@ make ffigen
 flutter run -d macos
 ```
 
+# Build and run the app on Windows
+
+Quick dev loop (run backend in a console)
+
+1. Build the Windows service binary
+
+```
+# In an elevated PowerShell
+make windows-service-build
+```
+
+2. Start the backend
+
+```
+.\bin\windows-amd64\lanternsvc.exe --console
+```
+
+3. Run the Flutter desktop app
+
+```
+flutter run -d windows
+```
+
+That's it! The Flutter app will talk to the service via the named pipe.
+
+If you prefer running the backend as a real Windows Service during development, use the [helper scripts](scripts/windows) from an elevated PowerShell
+
 # Build and run the app on iOS
 
 1. Install Go and gomobile
