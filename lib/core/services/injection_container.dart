@@ -21,8 +21,8 @@ Future<void> injectServices() async {
     sl.registerLazySingleton(() => AppPurchase());
     sl<AppPurchase>().init();
 
-    sl.registerLazySingleton(() => NotificationService());
-    await sl<NotificationService>().init();
+    // sl.registerLazySingleton(() => NotificationService());
+    // await sl<NotificationService>().init();
 
     sl.registerLazySingleton(() => LanternPlatformService(sl<AppPurchase>()));
     await sl<LanternPlatformService>().init();
