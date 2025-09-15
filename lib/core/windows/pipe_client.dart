@@ -3,8 +3,18 @@ import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:ffi/ffi.dart';
 import 'package:win32/win32.dart';
+import 'package:ffi/ffi.dart';
+
+typedef _WaitNamedPipeWNative = Int32 Function(
+    Pointer<Utf16> lpName, Uint32 timeoutMs);
+typedef _WaitNamedPipeWDart = int Function(
+    Pointer<Utf16> lpName, int timeoutMs);
+
+final DynamicLibrary _kernel32 = DynamicLibrary.open('kernel32.dll');
+final _WaitNamedPipeWDart _WaitNamedPipeW =
+    _kernel32.lookupFunction<_WaitNamedPipeWNative, _WaitNamedPipeWDart>(
+        'WaitNamedPipeW');
 
 class PipeClient {
   PipeClient({
@@ -52,31 +62,27 @@ class PipeClient {
     final lpName = TEXT(pipeName);
     try {
       while (true) {
-        _hPipe = CreateFile(lpName, GENERIC_READ | GENERIC_WRITE, 0, nullptr,
-            OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
-        if (_hPipe != INVALID_HANDLE_VALUE) {
-          final mode = calloc<Uint32>()..value = PIPE_READMODE_MESSAGE;
-          final ok = SetNamedPipeHandleState(_hPipe, mode, nullptr, nullptr);
-          calloc.free(mode);
-          if (ok == 0) {
-            final err = GetLastError();
-            CloseHandle(_hPipe);
-            _hPipe = INVALID_HANDLE_VALUE;
-            throw Exception('SetNamedPipeHandleState failed: $err');
-          }
-          return;
-        }
+        _hPipe = CreateFile(
+          lpName,
+          GENERIC_READ | GENERIC_WRITE,
+          0,
+          nullptr,
+          OPEN_EXISTING,
+          FILE_ATTRIBUTE_NORMAL,
+          0,
+        );
+        if (_hPipe != INVALID_HANDLE_VALUE) return;
 
         final err = GetLastError();
-        if (GetLastError() == ERROR_PIPE_BUSY) {
-          if (DateTime.now().difference(start).inMilliseconds >= timeoutMs) {
+        if (err == ERROR_PIPE_BUSY) {
+          final waited = _WaitNamedPipeW(lpName, timeoutMs);
+          if (waited == 0) {
             throw Exception('Timed out waiting for pipe');
           }
-          await Future.delayed(const Duration(milliseconds: 100));
           continue;
         }
 
-        throw Exception('Failed to open pipe: error $err');
+        throw Exception('Failed to open pipe: error ${GetLastError()}');
       }
     } finally {
       free(lpName);
@@ -113,7 +119,7 @@ class PipeClient {
       free(pBuf);
     }
 
-    return _readOneJsonMessage();
+    return _readOneJsonLine();
   }
 
   Map<String, dynamic> _parse(Map<String, dynamic> resp) {
@@ -131,34 +137,29 @@ class PipeClient {
   Map<String, dynamic> _decode(String s) =>
       _parse(jsonDecode(s) as Map<String, dynamic>);
 
-  Future<Uint8List> _readMessage() async {
+  Future<Map<String, dynamic>> _readOneJsonLine() async {
     final pBuf = calloc<Uint8>(bufSize);
     final pRead = calloc<Uint32>();
-    final out = BytesBuilder();
+    final bldr = BytesBuilder();
     try {
       while (true) {
         final ok = ReadFile(_hPipe, pBuf, bufSize, pRead, nullptr);
+        if (ok == 0) throw Exception('ReadFile failed: ${GetLastError()}');
         final n = pRead.value;
-        if (ok == 0) {
-          final err = GetLastError();
-          if (err == ERROR_MORE_DATA) {
-            if (n > 0) out.add(pBuf.asTypedList(n));
-            continue;
-          }
-          throw Exception('ReadFile failed: $err');
+        if (n == 0) continue;
+        final chunk = Uint8List.sublistView(pBuf.asTypedList(n));
+        final nl = chunk.indexOf(0x0A);
+        if (nl >= 0) {
+          bldr.add(chunk.sublist(0, nl));
+          break;
         }
-        if (n > 0) out.add(pBuf.asTypedList(n));
-        return out.takeBytes();
+        bldr.add(chunk);
       }
+      return _decode(utf8.decode(bldr.takeBytes()));
     } finally {
-      calloc.free(pBuf);
-      calloc.free(pRead);
+      free(pBuf);
+      free(pRead);
     }
-  }
-
-  Future<Map<String, dynamic>> _readOneJsonMessage() async {
-    final bytes = await _readMessage();
-    return _decode(utf8.decode(bytes));
   }
 
   Future<void> close() async {
