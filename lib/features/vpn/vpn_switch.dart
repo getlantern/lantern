@@ -4,6 +4,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/lantern_status.dart';
+import 'package:lantern/core/models/macos_extension_state.dart';
+import 'package:lantern/features/macos_extension/provider/macos_extension_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_status_notifier.dart';
 
@@ -73,6 +75,14 @@ class VPNSwitch extends HookConsumerWidget {
   }
 
   Future<void> onVPNStateChange(WidgetRef ref, BuildContext context) async {
+    if (PlatformUtils.isMacOS) {
+      final systemExtensionStatus = ref.read(macosExtensionNotifierProvider);
+      if (systemExtensionStatus.status != SystemExtensionStatus.installed &&
+          systemExtensionStatus.status != SystemExtensionStatus.activated) {
+        appRouter.push(const MacOSExtensionDialog());
+        return;
+      }
+    }
     final result =
         await ref.read(vpnNotifierProvider.notifier).onVPNStateChange(context);
 

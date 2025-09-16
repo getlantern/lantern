@@ -95,4 +95,5 @@ class AppImagePaths {
   static const warning = 'assets/images/warning.svg';
   static const account = 'assets/images/account.svg';
   static const accountSetting = 'assets/images/account_setting.svg';
+  static const sysDialog = 'assets/images/sys_dialog.svg';
 }

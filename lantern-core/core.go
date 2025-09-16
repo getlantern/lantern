@@ -259,9 +259,8 @@ func (lc *LanternCore) UserData() ([]byte, error) {
 	slog.Debug("Getting user data from user config")
 	user, err := lc.userInfo.GetData()
 	if err != nil {
-		return nil, fmt.Errorf("error getting user data: %w", err)
+		return nil, fmt.Errorf("error getting user data: %w [This is fine for first time user this is expected]", err)
 	}
-	slog.Debug("UserData:", "user", user)
 	bytes, err := proto.Marshal(user)
 	if err != nil {
 		return nil, fmt.Errorf("error marshalling user data: %w", err)

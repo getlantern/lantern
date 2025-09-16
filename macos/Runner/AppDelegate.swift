@@ -19,8 +19,6 @@ class AppDelegate: FlutterAppDelegate {
   }
 
   override func applicationDidFinishLaunching(_ aNotification: Notification) {
-    systemExtensionManager.activateExtension()
-
     guard let controller = mainFlutterWindow?.contentViewController as? FlutterViewController else {
       fatalError("contentViewController is not a FlutterViewController")
     }
@@ -61,9 +59,9 @@ class AppDelegate: FlutterAppDelegate {
     let statusRegistrar = registry.registrar(forPlugin: "StatusEventHandler")
     StatusEventHandler.register(with: statusRegistrar)
 
-    //      if let registrar = self.registrar(forPlugin: "LogsEventHandler") {
-    //        LogsEventHandler.register(with: registrar)
-    //      }
+    let systemExtensionStatusRegistrar = registry.registrar(
+      forPlugin: "SystemExtensionStatusEventHandler")
+    SystemExtensionStatusEventHandler.register(with: systemExtensionStatusRegistrar)
 
     let privateStatusRegistrar = registry.registrar(forPlugin: "PrivateServerEventHandler")
     PrivateServerEventHandler.register(with: privateStatusRegistrar)
@@ -81,15 +79,8 @@ class AppDelegate: FlutterAppDelegate {
 
   /// Prepares the file system directories for use
   private func setupFileSystem() {
-    do {
-      try FileManager.default.createDirectory(
-        at: FilePath.logsDirectory,
-        withIntermediateDirectories: true
-      )
-      appLogger.info("logs directory created at: \(FilePath.logsDirectory.path)")
-    } catch {
-      appLogger.error("Failed to create logs directory: \(error.localizedDescription)")
-    }
+
+    // Setup shared directory
     do {
       try FileManager.default.createDirectory(
         at: FilePath.dataDirectory,
@@ -100,29 +91,36 @@ class AppDelegate: FlutterAppDelegate {
       appLogger.error("Failed to create data directory: \(error.localizedDescription)")
     }
 
+    //Setup log directory
+    do {
+      try FileManager.default.createDirectory(
+        at: FilePath.logsDirectory,
+        withIntermediateDirectories: true
+      )
+      appLogger.info("logs directory created at: \(FilePath.logsDirectory.path)")
+    } catch {
+      appLogger.error("Failed to create logs directory: \(error.localizedDescription)")
+    }
+
   }
 
   /// Calls API handler setup
   private func setupRadiance() {
-    Task {
-      let opts = UtilsOpts()
-      opts.dataDir = FilePath.dataDirectory.relativePath
-      opts.logDir = FilePath.logsDirectory.relativePath
-      appLogger.info("Data directory: " + opts.dataDir)
-      appLogger.info("Log directory: " + opts.logDir)
-      opts.deviceid = ""
-      opts.logLevel = "debug"
-      appLogger.info("Log level: " + opts.logLevel)
-
-      opts.locale = Locale.current.identifier
-      var error: NSError?
-      MobileSetupRadiance(opts, &error)
-      // Handle any error returned by the setup
-      if let error {
-        appLogger.error("Error while setting up radiance: \(error)")
-      } else {
-        appLogger.info("Radiance setup complete")
-      }
+    let startupTime = Date()
+    let opts = UtilsOpts()
+    opts.dataDir = FilePath.dataDirectory.relativePath
+    opts.logDir = FilePath.logsDirectory.relativePath
+    opts.deviceid = ""
+    opts.logLevel = "debug"
+    opts.locale = Locale.current.identifier
+    appLogger.info("logging to \(opts.logDir) dataDir: \(opts.dataDir) logLevel: \(opts.logLevel)")
+    var error: NSError?
+    MobileSetupRadiance(opts, &error)
+    // Handle any error returned by the setup
+    if let error {
+      appLogger.error("Error while setting up radiance: \(error)")
+    } else {
+      appLogger.info("Radiance setup took \(Date().timeIntervalSince(startupTime)) seconds")
     }
   }
 

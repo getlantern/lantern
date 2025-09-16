@@ -65,6 +65,10 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     update(state.copyWith(blockAds: value));
   }
 
+  void setSplashScreen(bool value) {
+    update(state.copyWith(showSplashScreen: value));
+  }
+
   Locale _detectDeviceLocale() {
     final deviceLocale = PlatformDispatcher.instance.locale;
     return deviceLocale.languageCode == 'en'

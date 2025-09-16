@@ -136,6 +136,12 @@ class MethodHandler {
       //Utils methods
       case "featureFlag":
         self.featureFlags(result: result)
+      case "triggerSystemExtension":
+        self.triggerSystemExtensionFlow(result: result)
+      case "isSystemExtensionInstalled":
+        self.isSystemExtensionInstalled(result: result)
+      case "openSystemExtensionSetting":
+        self.openSystemExtensionSetting(result: result)
       case "getDataCapInfo":
         self.getDataCapInfo(result: result)
       default:
@@ -322,7 +328,7 @@ class MethodHandler {
             details: err.debugDescription))
         return
       }
-      result(json ?? "[]")
+      result(json)
     }
   }
 
@@ -686,6 +692,31 @@ class MethodHandler {
     }
   }
 
+  func triggerSystemExtensionFlow(result: @escaping FlutterResult) {
+    Task.detached {
+      SystemExtensionManager.shared.activateExtension()
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  //Check if system extension is installed or not
+  func isSystemExtensionInstalled(result: @escaping FlutterResult) {
+    Task.detached {
+      SystemExtensionManager.shared.checkInstallationStatus()
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  func openSystemExtensionSetting(result: @escaping FlutterResult) {
+    SystemExtensionManager.shared.openPrivacyAndSecuritySettings()
+    result("ok")
+  }
+
+  //Utils method for hanlding Flutter errors
   private func getDataCapInfo(result: @escaping FlutterResult) {
     Task.detached {
       var error: NSError?

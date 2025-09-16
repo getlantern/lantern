@@ -973,6 +973,32 @@ msgstr "Enter your new Email"
 msgid "confirm_password_to_continue"
 msgstr "To continue, please confirm your password."
 
-
 msgid "email_updated"
 msgstr "Your email has been updated."
+
+msgid "enable_network_extension"
+msgstr "Enable Network extension."
+
+msgid "enable_network_extension_message"
+msgstr "To use Lantern, we need to install a network extension for your Mac."
+
+msgid "install_now"
+msgstr "Install Now"
+
+msgid "learn_more"
+msgstr "Learn More"
+
+msgid "network_extension_required"
+msgstr "Network extension required"
+
+msgid "click"
+msgstr "Click"
+
+msgid "open_system_settings"
+msgstr "open system settings."
+
+msgid "when_prompted"
+msgstr "When prompted"
+
+msgid "activate_extension"
+msgstr "Activate Lantern extension."

@@ -5,6 +5,7 @@ import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/models/private_server_status.dart';
+import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_ffi_service.dart';
@@ -505,5 +506,37 @@ class LanternService implements LanternCoreService {
       return _ffiService.getAutoServerLocation();
     }
     return _platformService.getAutoServerLocation();
+  }
+
+  @override
+  Future<Either<Failure, String>> triggerSystemExtension() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.triggerSystemExtension();
+    }
+    return _platformService.triggerSystemExtension();
+  }
+
+  @override
+  Stream<MacOSExtensionState> watchSystemExtensionStatus() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.watchSystemExtensionStatus();
+    }
+    return _platformService.watchSystemExtensionStatus();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> openSystemExtension() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.openSystemExtension();
+    }
+    return _platformService.openSystemExtension();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> isSystemExtensionInstalled() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.isSystemExtensionInstalled();
+    }
+    return _platformService.isSystemExtensionInstalled();
   }
 }
