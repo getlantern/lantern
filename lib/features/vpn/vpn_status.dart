@@ -26,17 +26,13 @@ class VpnStatus extends HookConsumerWidget {
       label: 'vpn_status'.i18n,
       value: vpnStatus.name.capitalize,
       icon: AppImagePaths.glob,
-      onTap: (PlatformUtils.isMacOS &&
-              systemExtensionStatus.status != SystemExtensionStatus.installed)
+      onTap: isExtensionNeeded(systemExtensionStatus)
           ? () {
               appRouter.push(const MacOSExtensionDialog());
             }
           : null,
       actions: [
-        if (PlatformUtils.isMacOS &&
-            (systemExtensionStatus.status != SystemExtensionStatus.installed &&
-                systemExtensionStatus.status !=
-                    SystemExtensionStatus.activated))
+        if (isExtensionNeeded(systemExtensionStatus))
           AppImage(path: AppImagePaths.warning, color: AppColors.red6)
         else
           VPNStatusIndicator(status: vpnStatus),
@@ -44,11 +40,7 @@ class VpnStatus extends HookConsumerWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          if (PlatformUtils.isMacOS &&
-              (systemExtensionStatus.status !=
-                      SystemExtensionStatus.installed &&
-                  systemExtensionStatus.status !=
-                      SystemExtensionStatus.activated))
+          if (isExtensionNeeded(systemExtensionStatus))
             Text(
               'network_extension_required'.i18n,
               style: textTheme.titleMedium!.copyWith(color: AppColors.gray9),
@@ -75,6 +67,14 @@ class VpnStatus extends HookConsumerWidget {
         ],
       ),
     );
+  }
+
+  bool isExtensionNeeded(MacOSExtensionState systemExtensionStatus) {
+    if (!PlatformUtils.isMacOS) {
+      return false;
+    }
+    return (PlatformUtils.isMacOS &&
+        systemExtensionStatus.status != SystemExtensionStatus.installed && systemExtensionStatus.status != SystemExtensionStatus.activated);
   }
 
   Color getStatusColor(VPNStatus vpnStatus) {

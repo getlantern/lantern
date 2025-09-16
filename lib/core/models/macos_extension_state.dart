@@ -7,6 +7,7 @@ enum SystemExtensionStatus {
   deactivated,
   uninstalling,
   error,
+  needsRestart,
   unknown,
 }
 
@@ -37,6 +38,8 @@ class MacOSExtensionState {
         return const MacOSExtensionState(SystemExtensionStatus.deactivated);
       case 'uninstalling':
         return const MacOSExtensionState(SystemExtensionStatus.uninstalling);
+      case 'needsRestart':
+        return const MacOSExtensionState(SystemExtensionStatus.needsRestart);
       default:
         return const MacOSExtensionState(SystemExtensionStatus.unknown);
     }

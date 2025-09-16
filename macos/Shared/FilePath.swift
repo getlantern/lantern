@@ -25,9 +25,6 @@ extension FilePath {
     sharedDirectory
     .appendingPathComponent("Logs", isDirectory: true)
 
-  public static var macOSLogDirectory =
-    logsDirectory
-    .appendingPathComponent("macos.log")
 
 }
 

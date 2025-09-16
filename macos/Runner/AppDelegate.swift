@@ -102,18 +102,6 @@ class AppDelegate: FlutterAppDelegate {
       appLogger.error("Failed to create logs directory: \(error.localizedDescription)")
     }
 
-    //Setup macos native log file directory
-    // this is just for testing
-    do {
-      try FileManager.default.createDirectory(
-        at: FilePath.macOSLogDirectory,
-        withIntermediateDirectories: true
-      )
-      appLogger.info("macos directory created at: \(FilePath.macOSLogDirectory.path)")
-    } catch {
-      appLogger.error("Failed to create macos logs directory: \(error.localizedDescription)")
-    }
-
   }
 
   /// Calls API handler setup
