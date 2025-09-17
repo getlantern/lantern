@@ -13,6 +13,7 @@ class LanternServiceWindows {
   final PipeClient _rpcPipe;
   // dedicated streaming pipe
   PipeClient? _statusPipe;
+  StreamSubscription<Map<String, dynamic>>? _statusSub;
   final _statusCtrl = StreamController<LanternStatus>.broadcast();
 
   Future<void> init() async {
@@ -24,36 +25,19 @@ class LanternServiceWindows {
       appLogger.error('[WS] RPC connect() failed', e, st);
       rethrow;
     }
-
     try {
       _statusPipe = PipeClient(token: _rpcPipe.token);
-      appLogger.info('[WS] STATUS connect()…');
-      await _statusPipe!.connect().timeout(const Duration(seconds: 5));
-      appLogger.info('[WS] STATUS connected.');
-    } catch (e, st) {
-      appLogger.error('[WS] STATUS connect() failed', e, st);
-      rethrow;
-    }
+      final stream = _statusPipe!.watchStatus();
+      appLogger.info('[WS] watchStatus() stream created');
 
-    try {
-      final stream = await _statusPipe!.watchStatus();
-      appLogger.info('[WS] watchStatus() returned stream: $stream');
-
-      stream.listen((evt) {
-        try {
-          appLogger.info('[WS] Raw status evt: $evt');
-          final m = evt;
-          final state = (m['state'] as String?) ??
-              (m['data'] is Map ? (m['data']['state'] as String?) : null) ??
-              'Disconnected';
-
-          _statusCtrl
-              .add(LanternStatus.fromJson({'status': state.toLowerCase()}));
-        } catch (e, st) {
-          appLogger.error('[WS] Failed to parse status event', e, st);
-        }
+      _statusSub = stream.listen((evt) {
+        final raw = (evt['state'] as String?) ?? 'Disconnected';
+        final state = raw.toLowerCase();
+        _statusCtrl.add(LanternStatus.fromJson({'status': state}));
       }, onError: (err, st) {
-        appLogger.error('[WS] Error from status stream', err, st);
+        appLogger.error('[WS] Status stream error', err, st);
+      }, onDone: () {
+        appLogger.info('[WS] Status stream completed');
       });
     } catch (e, st) {
       appLogger.error('[WS] watchStatus() setup failed', e, st);
@@ -62,6 +46,7 @@ class LanternServiceWindows {
   }
 
   Future<void> dispose() async {
+    await _statusSub?.cancel();
     await _statusPipe?.close();
     await _rpcPipe.close();
     await _statusCtrl.close();

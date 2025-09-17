@@ -2,9 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:typed_data';
 import 'package:win32/win32.dart';
 import 'package:ffi/ffi.dart';
+import 'package:win32/winsock2.dart';
 
 typedef _WaitNamedPipeWNative = Int32 Function(
     Pointer<Utf16> lpName, Uint32 timeoutMs);
@@ -40,24 +42,23 @@ class PipeClient {
     final programData =
         Platform.environment['ProgramData'] ?? r'C:\ProgramData';
     final path = tokenPath ?? '$programData\\Lantern\\ipc-token';
-    final start = DateTime.now();
+    final deadline = DateTime.now().add(const Duration(seconds: 5));
     while (true) {
       try {
-        final s = await File(path).readAsString();
-        token = s.trim();
+        token = (await File(path).readAsString()).trim();
         if (token!.isEmpty) throw Exception('IPC token file is empty: $path');
         return;
-      } catch (_) {/* file is still missing */}
-      if (DateTime.now().difference(start).inSeconds >= 5) {
-        throw Exception('IPC token not found at $path');
+      } catch (_) {
+        if (DateTime.now().isAfter(deadline)) {
+          throw Exception('IPC token not found at $path');
+        }
+        await Future.delayed(const Duration(milliseconds: 200));
       }
-      await Future.delayed(const Duration(milliseconds: 200));
     }
   }
 
   Future<void> connect() async {
     await _getToken();
-
     final start = DateTime.now();
     final lpName = TEXT(pipeName);
     try {
@@ -73,15 +74,15 @@ class PipeClient {
         );
         if (_hPipe != INVALID_HANDLE_VALUE) return;
 
-        if (GetLastError() == ERROR_PIPE_BUSY) {
+        final code = GetLastError();
+        if (code == ERROR_PIPE_BUSY) {
           if (DateTime.now().difference(start).inMilliseconds >= timeoutMs) {
             throw Exception('Timed out waiting for pipe');
           }
-          await Future.delayed(Duration(milliseconds: 100));
+          await Future.delayed(const Duration(milliseconds: 100));
           continue;
         }
-
-        throw Exception('Failed to open pipe: error ${GetLastError()}');
+        throw Exception('Failed to open pipe: error $code');
       }
     } finally {
       free(lpName);
@@ -91,30 +92,24 @@ class PipeClient {
   Future<Map<String, dynamic>> call(String cmd,
       [Map<String, dynamic>? params]) async {
     if (!isConnected) throw StateError('Pipe not connected');
-
     await _getToken();
-
-    final payload = '${jsonEncode({
+    final payload = jsonEncode({
           'id': DateTime.now().microsecondsSinceEpoch.toString(),
           'cmd': cmd,
           'token': token,
           if (params != null) 'params': params,
-        })}\n';
+        }) +
+        '\n';
 
     final bytes = utf8.encode(payload);
     final pBuf = calloc<Uint8>(bytes.length);
+    final pWritten = calloc<Uint32>();
     try {
-      final asList = pBuf.asTypedList(bytes.length);
-      asList.setAll(0, bytes);
-
-      final written = calloc<Uint32>();
-      try {
-        final ok = WriteFile(_hPipe, pBuf, bytes.length, written, nullptr);
-        if (ok == 0) throw Exception('WriteFile failed: ${GetLastError()}');
-      } finally {
-        free(written);
-      }
+      pBuf.asTypedList(bytes.length).setAll(0, bytes);
+      final ok = WriteFile(_hPipe, pBuf, bytes.length, pWritten, nullptr);
+      if (ok == 0) throw Exception('WriteFile failed: ${GetLastError()}');
     } finally {
+      free(pWritten);
       free(pBuf);
     }
 
@@ -168,73 +163,163 @@ class PipeClient {
     }
   }
 
-  Future<Stream<Map<String, dynamic>>> watchStatus() async {
-    if (!isConnected) {
-      await connect();
-    }
+  Stream<Map<String, dynamic>> watchStatus() {
+    final controller = StreamController<Map<String, dynamic>>.broadcast();
+    final events = ReceivePort();
+    Isolate? iso;
+    SendPort? stopSend;
 
-    final payload = '${jsonEncode({
-          'id': DateTime.now().microsecondsSinceEpoch.toString(),
-          'cmd': 'WatchStatus',
-          'token': token,
-        })}\n';
+    controller.onListen = () async {
+      iso = await Isolate.spawn<_WatchArgs>(
+        _watchIsolateMain,
+        _WatchArgs(
+          pipeName: pipeName,
+          token: token ?? '',
+          bufSize: bufSize,
+          events: events.sendPort,
+        ),
+        debugName: 'pipe-watch',
+      );
 
-    final bytes = utf8.encode(payload);
-    final pBuf = calloc<Uint8>(bytes.length);
-    final written = calloc<Uint32>();
-    try {
-      pBuf.asTypedList(bytes.length).setAll(0, bytes);
-      final ok = WriteFile(_hPipe, pBuf, bytes.length, written, nullptr);
-      if (ok == 0) {
-        throw Exception('WriteFile failed: ${GetLastError()}');
-      }
-    } finally {
-      free(written);
-      free(pBuf);
-    }
-
-    final controller =
-        StreamController<Map<String, dynamic>>(onCancel: () async {
-      await close();
-    });
-
-    // Reader loop
-    () async {
-      final pBuf = calloc<Uint8>(bufSize);
-      final pRead = calloc<Uint32>();
-      final bldr = BytesBuilder();
-      try {
-        while (true) {
-          final ok = ReadFile(_hPipe, pBuf, bufSize, pRead, nullptr);
-          if (ok == 0) {
-            controller
-                .addError(Exception('ReadFile failed: ${GetLastError()}'));
-            break;
-          }
-          final n = pRead.value;
-          if (n == 0) continue;
-          final chunk = Uint8List.sublistView(pBuf.asTypedList(n));
-          final nl = chunk.indexOf(0x0A);
-          if (nl >= 0) {
-            bldr.add(chunk.sublist(0, nl));
-            final line = utf8.decode(bldr.takeBytes());
-            controller.add(jsonDecode(line) as Map<String, dynamic>);
-            if (nl + 1 < chunk.length) {
-              bldr.add(chunk.sublist(nl + 1));
-            }
-          } else {
-            bldr.add(chunk);
-          }
+      events.listen((msg) {
+        if (msg is SendPort) {
+          stopSend = msg;
+          return;
         }
-      } catch (e, _) {
-        controller.addError(e);
-      } finally {
-        free(pBuf);
-        free(pRead);
-        await controller.close();
-      }
-    }();
+        if (msg == null) {
+          controller.close();
+          return;
+        }
+        if (msg is String) {
+          try {
+            controller.add(jsonDecode(msg) as Map<String, dynamic>);
+          } catch (e, st) {
+            controller.addError(e, st);
+          }
+          return;
+        }
+        if (msg is Map) {
+          final err = msg['error'];
+          if (err is String) controller.addError(Exception(err));
+        }
+      });
+    };
+
+    controller.onCancel = () async {
+      stopSend?.send(true);
+      iso?.kill(priority: Isolate.beforeNextEvent);
+      events.close();
+    };
 
     return controller.stream;
+  }
+}
+
+class _WatchArgs {
+  const _WatchArgs({
+    required this.pipeName,
+    required this.token,
+    required this.bufSize,
+    required this.events,
+  });
+  final String pipeName;
+  final String token;
+  final int bufSize;
+  final SendPort events;
+}
+
+void _watchIsolateMain(_WatchArgs args) async {
+  final stopPort = ReceivePort();
+  args.events.send(stopPort.sendPort);
+
+  int hPipe = INVALID_HANDLE_VALUE;
+
+  String _watchReq(String token) =>
+      jsonEncode({
+        'id': DateTime.now().microsecondsSinceEpoch.toString(),
+        'cmd': 'WatchStatus',
+        'token': token,
+      }) +
+      '\n';
+
+  try {
+    final name = TEXT(args.pipeName);
+    try {
+      hPipe = CreateFile(
+        name,
+        GENERIC_READ | GENERIC_WRITE,
+        0,
+        nullptr,
+        OPEN_EXISTING,
+        FILE_ATTRIBUTE_NORMAL,
+        0,
+      );
+    } finally {
+      free(name);
+    }
+    if (hPipe == INVALID_HANDLE_VALUE) {
+      args.events.send({'error': 'open pipe failed: ${GetLastError()}'});
+      args.events.send(null);
+      return;
+    }
+
+    final req = utf8.encode(_watchReq(args.token));
+    final p = calloc<Uint8>(req.length);
+    final w = calloc<Uint32>();
+    try {
+      p.asTypedList(req.length).setAll(0, req);
+      final ok = WriteFile(hPipe, p, req.length, w, nullptr);
+      if (ok == 0) {
+        args.events.send({'error': 'WriteFile failed: ${GetLastError()}'});
+        args.events.send(null);
+        return;
+      }
+    } finally {
+      free(w);
+      free(p);
+    }
+
+    bool stopping = false;
+    final stopSub = stopPort.listen((_) {
+      stopping = true;
+      if (hPipe != INVALID_HANDLE_VALUE) {
+        CloseHandle(hPipe);
+        hPipe = INVALID_HANDLE_VALUE;
+      }
+      stopPort.close();
+    });
+
+    final buf = calloc<Uint8>(args.bufSize);
+    final r = calloc<Uint32>();
+    String carry = '';
+    try {
+      while (!stopping) {
+        final ok = ReadFile(hPipe, buf, args.bufSize, r, nullptr);
+        if (ok == 0) break;
+        final n = r.value;
+        if (n == 0) continue;
+
+        final s = utf8.decode(Uint8List.sublistView(buf.asTypedList(n)));
+        final combined = carry + s;
+        final parts = combined.split('\n');
+        for (var i = 0; i < parts.length - 1; i++) {
+          final line = parts[i];
+          if (line.isEmpty) continue;
+          args.events.send(line);
+        }
+        carry = parts.isNotEmpty ? parts.last : '';
+      }
+    } finally {
+      stopSub.cancel();
+      free(buf);
+      free(r);
+    }
+  } catch (e) {
+    args.events.send({'error': e.toString()});
+  } finally {
+    if (hPipe != INVALID_HANDLE_VALUE) {
+      CloseHandle(hPipe);
+    }
+    args.events.send(null);
   }
 }
