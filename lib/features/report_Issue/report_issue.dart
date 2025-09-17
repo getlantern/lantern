@@ -12,7 +12,7 @@ import 'package:lantern/lantern/lantern_service_notifier.dart';
 class ReportIssue extends StatefulHookConsumerWidget {
   final String? description;
 
-  ReportIssue({
+  const ReportIssue({
     super.key,
     this.description,
   });
