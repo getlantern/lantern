@@ -219,12 +219,9 @@ func (lc *LanternCore) ReportIssue(email, issueType, description, device, model,
 	report := radiance.IssueReport{
 		Type:        issueType,
 		Description: description,
-		// Try to read the log file as an attachment
-		Attachments: utils.CreateLogAttachment(logFilePath),
 		Device:      device,
 		Model:       model,
 	}
-
 	if err := lc.rad.ReportIssue(email, report); err != nil {
 		return fmt.Errorf("error reporting issue: %w", err)
 	}

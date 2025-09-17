@@ -1002,3 +1002,21 @@ msgstr "When prompted"
 
 msgid "activate_extension"
 msgstr "Activate Lantern extension."
+
+msgid "email_optional"
+msgstr "Email (optional)"
+
+
+msgid "please_enter_valid_email"
+msgstr "Please enter a valid email"
+
+msgid "please_select_an_issue"
+msgstr "Please select an issue"
+
+
+msgid "please_enter_issue_description"
+msgstr "Please enter an issue description"
+
+
+msgid "thanks_for_feedback"
+msgstr "Thanks for your feedback!"

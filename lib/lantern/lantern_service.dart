@@ -161,7 +161,7 @@ class LanternService implements LanternCoreService {
     String model,
     String logFilePath,
   ) async {
-    if (PlatformUtils.isDesktop) {
+    if (PlatformUtils.isFFISupported) {
       return _ffiService.reportIssue(
         email,
         issueType,
