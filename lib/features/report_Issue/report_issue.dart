@@ -143,7 +143,7 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
       String issueType, String description, Function() reset) async {
     if (!formKey.currentState!.validate()) return;
 
-    hideKeyboard();
+    //hideKeyboard();
     context.showLoadingDialog();
     appLogger
         .debug("Submitting issue report: $email, $issueType, $description");

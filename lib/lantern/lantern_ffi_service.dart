@@ -23,8 +23,8 @@ import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 import 'package:path/path.dart' as p;
 
 import '../core/models/available_servers.dart';
-import '../core/models/plan_data.dart';
 import '../core/models/macos_extension_state.dart';
+import '../core/models/plan_data.dart';
 import '../core/services/injection_container.dart' show sl;
 import '../core/utils/compute_worker.dart';
 
@@ -72,29 +72,29 @@ class LanternFFIService implements LanternCoreService {
       appLogger.debug('Setting up radiance');
       final dataDir = await AppStorageUtils.getAppDirectory();
       final logDir = await AppStorageUtils.getAppLogDirectory();
-      appLogger.debug('Data dir: ${dataDir.path}');
-      appLogger.debug('Log dir: $logDir');
-      final dataDirPtr = dataDir.path.toNativeUtf8();
-      final logDirPtr = logDir.toNativeUtf8();
-
-      _ffiService.setup(
-        logDirPtr.cast(),
-        dataDirPtr.cast(),
-        Localization.defaultLocale.toCharPtr,
-        loggingReceivePort.sendPort.nativePort,
-        appsReceivePort.sendPort.nativePort,
-        statusReceivePort.sendPort.nativePort,
-        privateServerReceivePort.sendPort.nativePort,
-        NativeApi.initializeApiDLData,
+       appLogger.debug("Data dir: ${dataDir.path}, Log dir: $logDir");
+      final dataDirPtr = dataDir.path.toCharPtr;
+      final logDirPtr = logDir.toCharPtr;
+      final result = await runInBackground<String>(
+            () async {
+          return  _ffiService.setup(
+            logDirPtr,
+            dataDirPtr,
+            Localization.defaultLocale.toCharPtr,
+            loggingReceivePort.sendPort.nativePort,
+            appsReceivePort.sendPort.nativePort,
+            statusReceivePort.sendPort.nativePort,
+            privateServerReceivePort.sendPort.nativePort,
+            NativeApi.initializeApiDLData,
+          ).toDartString();
+        },
       );
-
-      malloc.free(dataDirPtr);
-      malloc.free(logDirPtr);
+      checkAPIError(result);
       return right(unit);
-    } catch (e) {
-      appLogger.error('Error while setting up radiance: $e');
-      return left('Error while setting up radiance');
-    }
+    } catch (e, st) {
+      appLogger.error('Failed to get data cap info: $e', e, st);
+      return Left(e.toFailure().localizedErrorMessage);
+    } 
   }
 
   @override
@@ -229,6 +229,7 @@ class LanternFFIService implements LanternCoreService {
     );
   }
 
+  @override
   Future<Either<Failure, DataCapInfo>> getDataCapInfo() async {
     try {
       final result = await runInBackground<String>(
@@ -294,45 +295,19 @@ class LanternFFIService implements LanternCoreService {
     String model,
     String logFilePath,
   ) async {
-    final emailPtr = email.toNativeUtf8();
-    final typePtr = issueType.toNativeUtf8();
-    final descPtr = description.toNativeUtf8();
-    final devicePtr = device.toNativeUtf8();
-    final modelPtr = model.toNativeUtf8();
-    final logFilePathPtr = logFilePath.toNativeUtf8();
     try {
-      final resultPtr = _ffiService.reportIssue(
-        emailPtr.cast<Char>(),
-        typePtr.cast<Char>(),
-        descPtr.cast<Char>(),
-        devicePtr.cast<Char>(),
-        modelPtr.cast<Char>(),
-        logFilePathPtr.cast<Char>(),
+      final result = await runInBackground<String>(
+            () async {
+          return _ffiService.reportIssue(email.toCharPtr, issueType.toCharPtr, description.toCharPtr, device.toCharPtr, model.toCharPtr, "".toCharPtr).toDartString();
+        },
       );
-      final result = resultPtr.toDartString();
-      malloc.free(resultPtr);
-      if (result == 'ok') {
-        return right(unit);
-      } else {
-        return left(Failure(
-          error: result,
-          localizedErrorMessage: result,
-        ));
-      }
-    } catch (e) {
-      return left(Failure(
-        error: e.toString(),
-        localizedErrorMessage:
-            (e is Exception) ? e.localizedDescription : e.toString(),
-      ));
-    } finally {
-      malloc.free(emailPtr);
-      malloc.free(typePtr);
-      malloc.free(descPtr);
-      malloc.free(devicePtr);
-      malloc.free(modelPtr);
-      malloc.free(logFilePathPtr);
+      checkAPIError(result);
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('Failed to get data cap info: $e', e, st);
+      return Left(e.toFailure());
     }
+
   }
 
   @override
@@ -956,7 +931,7 @@ class LanternFFIService implements LanternCoreService {
         },
       );
       checkAPIError(result);
-      return Right('ok');
+      return Right(result);
     } catch (e, stackTrace) {
       appLogger.error('Error getting feature flag', e, stackTrace);
       return Left(e.toFailure());

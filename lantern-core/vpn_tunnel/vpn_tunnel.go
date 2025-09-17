@@ -82,7 +82,7 @@ func initializeCommonForApplePlatforms(options *utils.Opts) error {
 	// This ensures options are correctly set for the new process.
 	slog.Debug("Initializing common for Apple platforms", "dataDir", options.DataDir, "logDir:",
 		options.LogDir, "logLevel:", options.LogLevel)
-	if err := radianceCommon.Init(options.DataDir, options.LogDir, options.LogLevel,options.Deviceid); err != nil {
+	if err := radianceCommon.Init(options.DataDir, options.LogDir, options.LogLevel); err != nil {
 		return fmt.Errorf("failed to initialize common: %w", err)
 	}
 	return nil
