@@ -54,7 +54,7 @@ func main() {
 	}
 
 	// let SCM specify the service name
-	if err := svc.Run("", &lanternHandler{}); err != nil {
+	if err := svc.Run(common.WindowsServiceName, &lanternHandler{}); err != nil {
 		log.Error(err)
 	}
 }
