@@ -96,6 +96,9 @@ func (h *lanternHandler) Execute(args []string, r <-chan svc.ChangeRequest, chan
 
 	changes <- svc.Status{State: svc.StartPending, WaitHint: 30 * 1000}
 
+	// Report Running to SCM
+	changes <- svc.Status{State: svc.Running, Accepts: accepts}
+
 	ctx, cancel := context.WithCancel(context.Background())
 
 	started := make(chan error, 1)
@@ -108,19 +111,9 @@ func (h *lanternHandler) Execute(args []string, r <-chan svc.ChangeRequest, chan
 		started <- err
 	}()
 
-	// Report Running to SCM
-	changes <- svc.Status{State: svc.Running, Accepts: accepts}
-
 	for {
 		select {
-		case c, ok := <-r:
-			if !ok {
-				if err := <-started; err != nil {
-					log.Errorf("service worker exited after SCM channel close: %v", err)
-					return false, 1
-				}
-				return false, 0
-			}
+		case c := <-r:
 			switch c.Cmd {
 			case svc.Interrogate:
 				changes <- c.CurrentStatus
@@ -141,8 +134,6 @@ func (h *lanternHandler) Execute(args []string, r <-chan svc.ChangeRequest, chan
 				changes <- svc.Status{State: svc.Stopped}
 				return false, 1
 			}
-			changes <- svc.Status{State: svc.Stopped}
-			return false, 0
 		}
 	}
 }
