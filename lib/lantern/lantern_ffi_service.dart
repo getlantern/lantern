@@ -110,7 +110,12 @@ class LanternFFIService implements LanternCoreService {
         final token = (await tokenFile.readAsString()).trim();
         final pipe = PipeClient(token: token);
         _windowsService = LanternServiceWindows(pipe);
-        await _windowsService.init();
+        try {
+          await _windowsService.init();
+        } catch (e, st) {
+          appLogger.error('LanternServiceWindows.init() threw', e, st);
+          rethrow;
+        }
         _status = _windowsService.watchVPNStatus();
       } else {
         await _initializeCommandIsolate();

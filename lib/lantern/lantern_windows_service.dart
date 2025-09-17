@@ -16,22 +16,49 @@ class LanternServiceWindows {
   final _statusCtrl = StreamController<LanternStatus>.broadcast();
 
   Future<void> init() async {
-    await _rpcPipe.connect();
-    // start status streaming
-    _statusPipe = PipeClient(token: _rpcPipe.token);
-    await _statusPipe!.connect();
+    try {
+      appLogger.info('[WS] RPC connect()…');
+      await _rpcPipe.connect().timeout(const Duration(seconds: 5));
+      appLogger.info('[WS] RPC connected. token=${_rpcPipe.token}');
+    } catch (e, st) {
+      appLogger.error('[WS] RPC connect() failed', e, st);
+      rethrow;
+    }
 
-    final stream = await _statusPipe!.watchStatus();
-    stream.listen((evt) {
-      print('[LanternServiceWindows] Received raw status event: $evt');
-      final state = (evt['state'] as String? ??
-              (evt['data'] is Map ? (evt['data']['state'] as String?) : null) ??
-              'Disconnected')
-          .toLowerCase();
-      _statusCtrl.add(LanternStatus.fromJson({'status': state}));
-    }, onError: (err) {
-      print('[LanternServiceWindows] Error in status stream: $err');
-    });
+    try {
+      _statusPipe = PipeClient(token: _rpcPipe.token);
+      appLogger.info('[WS] STATUS connect()…');
+      await _statusPipe!.connect().timeout(const Duration(seconds: 5));
+      appLogger.info('[WS] STATUS connected.');
+    } catch (e, st) {
+      appLogger.error('[WS] STATUS connect() failed', e, st);
+      rethrow;
+    }
+
+    try {
+      final stream = await _statusPipe!.watchStatus();
+      appLogger.info('[WS] watchStatus() returned stream: $stream');
+
+      stream.listen((evt) {
+        try {
+          appLogger.info('[WS] Raw status evt: $evt');
+          final m = evt;
+          final state = (m['state'] as String?) ??
+              (m['data'] is Map ? (m['data']['state'] as String?) : null) ??
+              'Disconnected';
+
+          _statusCtrl
+              .add(LanternStatus.fromJson({'status': state.toLowerCase()}));
+        } catch (e, st) {
+          appLogger.error('[WS] Failed to parse status event', e, st);
+        }
+      }, onError: (err, st) {
+        appLogger.error('[WS] Error from status stream', err, st);
+      });
+    } catch (e, st) {
+      appLogger.error('[WS] watchStatus() setup failed', e, st);
+      rethrow;
+    }
   }
 
   Future<void> dispose() async {
