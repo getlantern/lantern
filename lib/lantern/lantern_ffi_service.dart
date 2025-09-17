@@ -72,21 +72,23 @@ class LanternFFIService implements LanternCoreService {
       appLogger.debug('Setting up radiance');
       final dataDir = await AppStorageUtils.getAppDirectory();
       final logDir = await AppStorageUtils.getAppLogDirectory();
-       appLogger.debug("Data dir: ${dataDir.path}, Log dir: $logDir");
+      appLogger.debug("Data dir: ${dataDir.path}, Log dir: $logDir");
       final dataDirPtr = dataDir.path.toCharPtr;
       final logDirPtr = logDir.toCharPtr;
       final result = await runInBackground<String>(
-            () async {
-          return  _ffiService.setup(
-            logDirPtr,
-            dataDirPtr,
-            Localization.defaultLocale.toCharPtr,
-            loggingReceivePort.sendPort.nativePort,
-            appsReceivePort.sendPort.nativePort,
-            statusReceivePort.sendPort.nativePort,
-            privateServerReceivePort.sendPort.nativePort,
-            NativeApi.initializeApiDLData,
-          ).toDartString();
+        () async {
+          return _ffiService
+              .setup(
+                logDirPtr,
+                dataDirPtr,
+                Localization.defaultLocale.toCharPtr,
+                loggingReceivePort.sendPort.nativePort,
+                appsReceivePort.sendPort.nativePort,
+                statusReceivePort.sendPort.nativePort,
+                privateServerReceivePort.sendPort.nativePort,
+                NativeApi.initializeApiDLData,
+              )
+              .toDartString();
         },
       );
       checkAPIError(result);
@@ -94,7 +96,7 @@ class LanternFFIService implements LanternCoreService {
     } catch (e, st) {
       appLogger.error('Failed to get data cap info: $e', e, st);
       return Left(e.toFailure().localizedErrorMessage);
-    } 
+    }
   }
 
   @override
@@ -297,8 +299,16 @@ class LanternFFIService implements LanternCoreService {
   ) async {
     try {
       final result = await runInBackground<String>(
-            () async {
-          return _ffiService.reportIssue(email.toCharPtr, issueType.toCharPtr, description.toCharPtr, device.toCharPtr, model.toCharPtr, "".toCharPtr).toDartString();
+        () async {
+          return _ffiService
+              .reportIssue(
+                  email.toCharPtr,
+                  issueType.toCharPtr,
+                  description.toCharPtr,
+                  device.toCharPtr,
+                  model.toCharPtr,
+                  "".toCharPtr)
+              .toDartString();
         },
       );
       checkAPIError(result);
@@ -307,7 +317,6 @@ class LanternFFIService implements LanternCoreService {
       appLogger.error('Failed to get data cap info: $e', e, st);
       return Left(e.toFailure());
     }
-
   }
 
   @override
