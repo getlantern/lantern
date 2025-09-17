@@ -40,22 +40,23 @@ func init() {
 }
 
 func main() {
-
 	consoleMode := flag.Bool("console", false, "Run in console mode instead of Windows service")
 	flag.Parse()
 
-	if *consoleMode {
+	isService, err := svc.IsWindowsService()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if *consoleMode || !isService {
 		runConsole()
 		return
 	}
 
-	isService, _ := svc.IsWindowsService()
-	if isService {
-		if err := svc.Run(common.WindowsServiceName, &lanternHandler{}); err != nil {
-			log.Error(err)
-		}
+	// let SCM specify the service name
+	if err := svc.Run("", &lanternHandler{}); err != nil {
+		log.Error(err)
 	}
-	runConsole()
 }
 
 func newWindowsService() (*wintunmgr.Manager, *wintunmgr.Service, error) {
@@ -93,28 +94,16 @@ func (h *lanternHandler) Execute(args []string, r <-chan svc.ChangeRequest, chan
 
 	defer guard("lanternHandler.Execute")
 
-	changes <- svc.Status{
-		State:    svc.StartPending,
-		WaitHint: 10 * 1000,
-	}
+	changes <- svc.Status{State: svc.StartPending, WaitHint: 30 * 1000}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
-	// Start service
 	started := make(chan error, 1)
 	go func() {
 		defer guard("service worker")
 		_, s, err := newWindowsService()
-		if err != nil {
-			log.Error(err)
-			return
-		}
-		err = s.Start(ctx)
-		if err != nil {
-			log.Errorf("Service worker returned error: %v", err)
-		} else {
-			log.Debugf("Service worker exited normally")
+		if err == nil {
+			err = s.Start(ctx)
 		}
 		started <- err
 	}()
@@ -135,9 +124,9 @@ func (h *lanternHandler) Execute(args []string, r <-chan svc.ChangeRequest, chan
 			switch c.Cmd {
 			case svc.Interrogate:
 				changes <- c.CurrentStatus
-
 			case svc.Stop, svc.Shutdown:
 				changes <- svc.Status{State: svc.StopPending}
+				cancel()
 				if err := <-started; err != nil {
 					log.Errorf("service worker exited with error on stop: %v", err)
 					changes <- svc.Status{State: svc.Stopped}
