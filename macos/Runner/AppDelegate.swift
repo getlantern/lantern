@@ -66,6 +66,8 @@ class AppDelegate: FlutterAppDelegate {
     let privateStatusRegistrar = registry.registrar(forPlugin: "PrivateServerEventHandler")
     PrivateServerEventHandler.register(with: privateStatusRegistrar)
 
+    let logsRegistrar = registry.registrar(forPlugin: "LogsEventHandler")
+    LogsEventHandler.register(with: logsRegistrar)
   }
 
   /// Initializes the native method channel handler
