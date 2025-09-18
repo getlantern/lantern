@@ -17,7 +17,7 @@ class Flag extends StatelessWidget {
       countryCode,
       height: size?.height ?? 20,
       width: size?.width ?? 30,
-      shape: RoundedRectangle(5.0),
+      shape: RoundedRectangle(5.0,),
     );
   }
 }

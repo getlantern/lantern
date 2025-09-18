@@ -80,9 +80,9 @@ class MethodHandler {
         let data = call.arguments as? [String: Any]
         self.validateRecoveryCode(result: result, data: data!)
         break
-      case "completeChangeEmail":
+      case "completeRecoveryByEmail":
         let data = call.arguments as? [String: Any]
-        self.completeChangeEmail(result: result, data: data!)
+        self.completeRecoveryByEmail(result: result, data: data!)
         break
       case "login":
         let data = call.arguments as? [String: Any]
@@ -93,8 +93,7 @@ class MethodHandler {
         self.signUp(result: result, data: data!)
         break
       case "logout":
-        let data = call.arguments as? [String: Any]
-        let email = data?["email"] as? String ?? ""
+        let email = call.arguments as! String
         self.logout(result: result, email: email)
         break
       case "deleteAccount":
@@ -104,6 +103,12 @@ class MethodHandler {
       case "activationCode":
         let data = call.arguments as? [String: Any]
         self.activationCode(result: result, data: data!)
+        break
+      case "startChangeEmail":
+        self.startChangeEmail(result: result, data: call.arguments as? [String: Any] ?? [:])
+        break
+      case "completeChangeEmail":
+        self.completeChangeEmail(result: result, data: call.arguments as? [String: Any] ?? [:])
         break
       // Private server methods
       case "digitalOcean":
@@ -144,8 +149,18 @@ class MethodHandler {
         self.openSystemExtensionSetting(result: result)
       case "getDataCapInfo":
         self.getDataCapInfo(result: result)
+        break
       case "getLanternAvailableServers":
         self.getLanternAvailableServers(result: result)
+        break
+      case "stipeSubscriptionPaymentRedirect":
+        let data = call.arguments as? [String: Any]
+        self.stipeSubscriptionPaymentRedirect(result: result, data: data!)
+        break
+      case "paymentRedirect":
+        let data = call.arguments as? [String: Any]
+        self.paymentRedirect(result: result, data: data!)
+        break
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -464,6 +479,27 @@ class MethodHandler {
     }
   }
 
+  func completeRecoveryByEmail(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      let email = data["email"] as? String ?? ""
+      let code = data["code"] as? String ?? ""
+      let newPassword = data["newPassword"] as? String ?? ""
+      var error: NSError?
+      var data = try await MobileCompleteRecoveryByEmail(email, newPassword, code, &error)
+      if error != nil {
+        result(
+          FlutterError(
+            code: "COMPLETE_CHANGE_EMAIL_FAILED",
+            message: error!.localizedDescription,
+            details: error!.localizedDescription))
+        return
+      }
+      await MainActor.run {
+        result("Change email completed successfully.")
+      }
+    }
+  }
+
   func login(result: @escaping FlutterResult, data: [String: Any]) {
     Task {
       let email = data["email"] as? String ?? ""
@@ -732,20 +768,54 @@ class MethodHandler {
       }
     }
   }
-    func getLanternAvailableServers(result: @escaping FlutterResult) {
-      Task.detached {
-        var error: NSError?
-        let servers = MobileGetAvailableServers(&error)
-        if let err = error {
-          await self.handleFlutterError(err, result: result, code: "GET_LANTERN_SERVERS_ERROR")
-          return
-        }
-        await MainActor.run {
-          result(String(data: servers!, encoding: .utf8))
-        }
+  func getLanternAvailableServers(result: @escaping FlutterResult) {
+    Task.detached {
+      var error: NSError?
+      let servers = MobileGetAvailableServers(&error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "GET_LANTERN_SERVERS_ERROR")
+        return
+      }
+      await MainActor.run {
+        result(String(data: servers!, encoding: .utf8))
       }
     }
-    
+  }
+
+  func stipeSubscriptionPaymentRedirect(result: @escaping FlutterResult, data: [String: Any]) {
+    Task.detached {
+      let email = data["email"] as? String ?? ""
+      let planId = data["planId"] as? String ?? ""
+      let type = data["type"] as? String ?? ""
+      var error: NSError?
+      let url = MobileStripeSubscriptionPaymentRedirect(type, planId, email, &error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "STRIPE_PAYMENT_REDIRECT_ERROR")
+        return
+      }
+      await MainActor.run {
+        result(url)
+      }
+    }
+  }
+
+  func paymentRedirect(result: @escaping FlutterResult, data: [String: Any]) {
+    Task.detached {
+      let provider = data["provider"] as? String ?? ""
+      let planId = data["planId"] as? String ?? ""
+      let email = data["email"] as? String ?? ""
+      var error: NSError?
+      let url = MobilePaymentRedirect(provider, planId, email, &error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "PAYMENT_REDIRECT_ERROR")
+        return
+      }
+      await MainActor.run {
+        result(url)
+      }
+    }
+
+  }
 
   //Utils method for handling Flutter errors
   private func handleFlutterError(

@@ -109,8 +109,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
   Future<void> desktopPurchaseFlow(
       Android provider, WidgetRef ref, BuildContext context) async {
     try {
-      final userPlan =
-          ref.read(plansNotifierProvider.notifier).getSelectedPlan();
+      final userPlan = ref.read(plansNotifierProvider.notifier).getSelectedPlan();
       context.showLoadingDialog();
 
       ///Start stipe subscription flow
@@ -283,7 +282,8 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
                 horizontal: defaultSize, vertical: defaultSize),
             title: Row(
               children: [
-                Text(method.method, style: theme.titleMedium),
+                Text(method.method.toTitleCase().replaceAll('-', " "),
+                    style: theme.titleMedium),
                 SizedBox(width: defaultSize),
                 LogsPath(
                   logoPaths: method.providers.icons,
@@ -324,7 +324,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
               Text(
                 method.providers.supportSubscription
                     ? "Billed every ${userPlan.getDurationText()}. Cancel anytime."
-                    : 'billed_once'.i18n,
+                    : 'billed_once'.i18n.toLowerCase(),
                 style: theme.bodySmall!.copyWith(
                   color: AppColors.gray6,
                 ),

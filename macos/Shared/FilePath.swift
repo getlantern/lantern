@@ -25,7 +25,6 @@ extension FilePath {
     sharedDirectory
     .appendingPathComponent("Logs", isDirectory: true)
 
-
 }
 
 extension URL {
