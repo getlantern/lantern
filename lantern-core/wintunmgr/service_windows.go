@@ -245,12 +245,13 @@ func (s *Service) handleWatchLogs(ctx context.Context, enc *json.Encoder, done c
 		_ = os.WriteFile(logFile, nil, 0o644)
 	}
 
-	// send last N lines
+	// Start by sending the most recent chunk of the log
 	const maxTail = 200
 	if last, err := readLastLines(logFile, maxTail); err == nil && len(last) > 0 {
 		_ = enc.Encode(logsEvent{Event: "Logs", Lines: last, Ts: time.Now().Unix()})
 	}
 
+	// Then keep watching the file to stream new lines as they’re written
 	go func() {
 		var f *os.File
 		var err error
@@ -281,6 +282,7 @@ func (s *Service) handleWatchLogs(ctx context.Context, enc *json.Encoder, done c
 			}
 		}()
 
+		// Poll for changes
 		ticker := time.NewTicker(600 * time.Millisecond)
 		defer ticker.Stop()
 
@@ -301,8 +303,10 @@ func (s *Service) handleWatchLogs(ctx context.Context, enc *json.Encoder, done c
 					continue
 				}
 				if fi.Size() == off {
+					// Nothing new to read
 					continue
 				}
+				// Read only new bytes that were just appended
 				n := fi.Size() - off
 				buf := make([]byte, n)
 				_, err = io.ReadFull(f, buf)
@@ -321,6 +325,7 @@ func (s *Service) handleWatchLogs(ctx context.Context, enc *json.Encoder, done c
 					}
 					lines = append(lines, ln)
 				}
+				// Send new lines to client
 				if len(lines) > 0 {
 					_ = enc.Encode(logsEvent{Event: "Logs", Lines: lines, Ts: time.Now().Unix()})
 				}
