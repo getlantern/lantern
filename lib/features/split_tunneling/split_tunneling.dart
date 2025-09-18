@@ -223,9 +223,7 @@ class SplitTunneling extends HookConsumerWidget {
           InfoRow(
             onPressed: () {
               if (isAutomaticMode) {
-                appRouter.push(
-                  SplitTunnelingInfo(),
-                );
+                appRouter.push(SplitTunnelingInfo());
               }
             },
             text: splitTunnelingEnabled

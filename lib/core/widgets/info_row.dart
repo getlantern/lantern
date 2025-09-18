@@ -30,37 +30,21 @@ class InfoRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    return Material(
-      color: backgroundColor ?? AppColors.gray1,
-      borderRadius: BorderRadius.circular(borderRadius),
-      child: InkWell(
+    return ListTile(
         onTap: onPressed,
-        borderRadius: BorderRadius.circular(borderRadius),
-        child: Padding(
-          padding: padding ??
-              const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-          child: child ??
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(right: 12),
-                    child: AppImage(
-                      path: imagePath ?? AppImagePaths.info,
-                      width: 24,
-                      height: 24,
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      text,
-                      style: textTheme.bodyMedium,
-                    ),
-                  ),
-                ],
-              ),
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(borderRadius),
+          side: BorderSide(color: AppColors.gray2),
         ),
-      ),
-    );
+        leading: AppImage(
+          path: imagePath ?? AppImagePaths.info,
+          width: 24,
+          height: 24,
+        ),
+        title: Text(
+          text,
+          style: textStyle ?? textTheme.bodyMedium,
+        ));
   }
 }
