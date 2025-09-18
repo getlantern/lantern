@@ -11,8 +11,10 @@ class LanternServiceWindows {
   LanternServiceWindows(this._rpcPipe);
 
   final PipeClient _rpcPipe;
-  // dedicated streaming pipe
+  // dedicated streaming pipes
   PipeClient? _statusPipe;
+  PipeClient? _logsPipe;
+
   StreamSubscription<Map<String, dynamic>>? _statusSub;
   final _statusCtrl = StreamController<LanternStatus>.broadcast();
 
@@ -96,6 +98,11 @@ class LanternServiceWindows {
   }
 
   Stream<LanternStatus> watchVPNStatus() => _statusCtrl.stream;
+
+  Stream<List<String>> watchLogs(String _ignoredPath) {
+    _logsPipe ??= PipeClient(token: _rpcPipe.token);
+    return _logsPipe!.watchLogs();
+  }
 
   Future<Either<Failure, UserResponse>> getUserData() async {
     try {

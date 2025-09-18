@@ -59,6 +59,12 @@ type statusEvent struct {
 	Ts    int64  `json:"ts"`
 }
 
+type logsEvent struct {
+	Event string   `json:"event"`
+	Lines []string `json:"lines"`
+	Ts    int64    `json:"ts"`
+}
+
 func NewService(opts ServiceOptions, wt *Manager) *Service {
 	return &Service{
 		opts:       opts,
@@ -232,6 +238,97 @@ func (s *Service) handleWatchStatus(ctx context.Context, connID string, enc *jso
 	}()
 }
 
+func (s *Service) handleWatchLogs(ctx context.Context, enc *json.Encoder, done chan struct{}) {
+	logFile := filepath.Join(s.opts.LogDir, "lantern.log")
+	_ = os.MkdirAll(s.opts.LogDir, 0o755)
+	if _, err := os.Stat(logFile); errors.Is(err, os.ErrNotExist) {
+		_ = os.WriteFile(logFile, nil, 0o644)
+	}
+
+	// send last N lines
+	const maxTail = 200
+	if last, err := readLastLines(logFile, maxTail); err == nil && len(last) > 0 {
+		_ = enc.Encode(logsEvent{Event: "Logs", Lines: last, Ts: time.Now().Unix()})
+	}
+
+	go func() {
+		var f *os.File
+		var err error
+		var off int64 = 0
+
+		open := func(reset bool) error {
+			if f != nil {
+				_ = f.Close()
+			}
+			f, err = os.Open(logFile)
+			if err != nil {
+				return err
+			}
+			fi, _ := f.Stat()
+			if reset || fi == nil {
+				off = 0
+			} else {
+				off = fi.Size()
+			}
+			_, _ = f.Seek(off, io.SeekStart)
+			return nil
+		}
+
+		_ = open(false)
+		defer func() {
+			if f != nil {
+				_ = f.Close()
+			}
+		}()
+
+		ticker := time.NewTicker(600 * time.Millisecond)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-done:
+				return
+			case <-ticker.C:
+				fi, err := os.Stat(logFile)
+				if err != nil {
+					_ = open(true)
+					continue
+				}
+				if fi.Size() < off {
+					_ = open(true)
+					continue
+				}
+				if fi.Size() == off {
+					continue
+				}
+				n := fi.Size() - off
+				buf := make([]byte, n)
+				_, err = io.ReadFull(f, buf)
+				if err != nil {
+					_ = open(false)
+					continue
+				}
+				off = fi.Size()
+
+				chunk := string(buf)
+				raw := strings.Split(chunk, "\n")
+				var lines []string
+				for _, ln := range raw {
+					if ln == "" {
+						continue
+					}
+					lines = append(lines, ln)
+				}
+				if len(lines) > 0 {
+					_ = enc.Encode(logsEvent{Event: "Logs", Lines: lines, Ts: time.Now().Unix()})
+				}
+			}
+		}
+	}()
+}
+
 func (s *Service) handleConn(ctx context.Context, c net.Conn, token, connID string) {
 	dec := json.NewDecoder(c)
 	enc := json.NewEncoder(c)
@@ -260,6 +357,10 @@ func (s *Service) handleConn(ctx context.Context, c net.Conn, token, connID stri
 		}
 		if req.Cmd == common.CmdWatchStatus {
 			s.handleWatchStatus(ctx, connID, enc, done)
+			continue
+		}
+		if req.Cmd == common.CmdWatchLogs {
+			s.handleWatchLogs(ctx, enc, done)
 			continue
 		}
 		start := time.Now()
@@ -421,4 +522,22 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 	default:
 		return rpcErr(r.ID, "unknown_cmd", string(r.Cmd))
 	}
+}
+
+func readLastLines(path string, max int) ([]string, error) {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	if len(b) > 64*1024 {
+		b = b[len(b)-64*1024:]
+	}
+	lines := strings.Split(string(b), "\n")
+	if len(lines) > 0 && lines[len(lines)-1] == "" {
+		lines = lines[:len(lines)-1]
+	}
+	if len(lines) > max {
+		lines = lines[len(lines)-max:]
+	}
+	return lines, nil
 }
