@@ -152,7 +152,7 @@ class _PlansState extends ConsumerState<Plans> {
           children: [
             AppTile(
               icon: AppImagePaths.keypad,
-              label: 'Enter an Activation Code',
+              label: 'enter_activation_code'.i18n,
               onPressed: () {
                 appRouter
                     .popAndPush(AddEmail(authFlow: AuthFlow.activationCode));
@@ -161,7 +161,7 @@ class _PlansState extends ConsumerState<Plans> {
             DividerSpace(),
             AppTile(
               icon: AppImagePaths.restorePurchase,
-              label: 'Restore purchase',
+              label: 'restore_purchase'.i18n,
               onPressed: () {
                 appRouter.popAndPush(SignInEmail());
               },

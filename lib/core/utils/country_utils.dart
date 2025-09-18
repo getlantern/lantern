@@ -185,6 +185,7 @@ class CountryUtils {
     "United Arab Emirates": "AE",
     "United Kingdom": "GB",
     "United States": "US",
+    "United States of America": "US",
     "Uruguay": "UY",
     "Uzbekistan": "UZ",
     "Vanuatu": "VU",

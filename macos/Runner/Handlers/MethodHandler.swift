@@ -144,6 +144,8 @@ class MethodHandler {
         self.openSystemExtensionSetting(result: result)
       case "getDataCapInfo":
         self.getDataCapInfo(result: result)
+      case "getLanternAvailableServers":
+        self.getLanternAvailableServers(result: result)
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -730,6 +732,20 @@ class MethodHandler {
       }
     }
   }
+    func getLanternAvailableServers(result: @escaping FlutterResult) {
+      Task.detached {
+        var error: NSError?
+        let servers = MobileGetAvailableServers(&error)
+        if let err = error {
+          await self.handleFlutterError(err, result: result, code: "GET_LANTERN_SERVERS_ERROR")
+          return
+        }
+        await MainActor.run {
+          result(String(data: servers!, encoding: .utf8))
+        }
+      }
+    }
+    
 
   //Utils method for handling Flutter errors
   private func handleFlutterError(

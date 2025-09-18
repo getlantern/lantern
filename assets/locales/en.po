@@ -1003,7 +1003,6 @@ msgstr "When prompted"
 msgid "activate_extension"
 msgstr "Activate Lantern extension"
 
-
 msgid "no_apps_selected"
 msgstr "No apps selected"
 
@@ -1013,6 +1012,12 @@ msgstr "Deselect All"
 msgid "select_all"
 msgstr "Select All"
 
-
 msgid "no_websites_selected"
 msgstr "No websites selected"
+
+msgid "enter_activation_code"
+msgstr "Enter an Activation Code"
+
+msgid "restore_purchase"
+msgstr "Restore Purchase"
+
