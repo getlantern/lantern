@@ -19,11 +19,22 @@ class Logs extends HookConsumerWidget {
     final logAsyncValue = ref.watch(diagnosticLogStreamProvider);
 
     final scrollController = useScrollController();
+    final shouldStickToBottom = useState(true);
 
-    // Scroll to bottom when new logs arrive
+    useEffect(() {
+      void listener() {
+        if (!scrollController.hasClients) return;
+        final pos = scrollController.position;
+        shouldStickToBottom.value = (pos.maxScrollExtent - pos.pixels) < 24.0;
+      }
+
+      scrollController.addListener(listener);
+      return () => scrollController.removeListener(listener);
+    }, [scrollController]);
+
     void scrollToBottom() {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (scrollController.hasClients) {
+        if (shouldStickToBottom.value && scrollController.hasClients) {
           scrollController.jumpTo(scrollController.position.maxScrollExtent);
         }
       });
@@ -32,10 +43,10 @@ class Logs extends HookConsumerWidget {
     Future<void> shareLogFile() async {
       try {
         final logFile = await AppStorageUtils.appLogFile();
-        await Share.shareXFiles(
-          [XFile(logFile.path)],
+        await SharePlus.instance.share(ShareParams(
+          files: [XFile(logFile.path)],
           text: 'logs_share_message'.i18n,
-        );
+        ));
       } catch (e) {
         appLogger.error("Error sharing log file: $e");
       }
@@ -76,9 +87,10 @@ class Logs extends HookConsumerWidget {
                     controller: scrollController,
                     padding: const EdgeInsets.all(8.0),
                     itemCount: logs.length,
-                    itemBuilder: (context, index) {
-                      return LogLineWidget(line: logs[index]);
-                    },
+                    addAutomaticKeepAlives: false,
+                    addRepaintBoundaries: true,
+                    cacheExtent: 800,
+                    itemBuilder: (context, i) => LogLineWidget(line: logs[i]),
                   );
                 },
                 loading: () => const Center(
