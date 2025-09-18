@@ -760,9 +760,10 @@ class MethodHandler {
         let description = data["description"] as? String ?? ""
         let device = data["device"] as? String ?? ""
         let model = data["model"] as? String ?? ""
+          let logFilePath = data["logFilePath"] as? String ?? ""
 
         var error: NSError?
-        MobileReportIssue(email, issueType, description, device, model, "", &error)
+        MobileReportIssue(email, issueType, description, device, model, logFilePath, &error)
         if let err = error {
           await self.handleFlutterError(err, result: result, code: "REPORT_ISSUE_ERROR")
           return

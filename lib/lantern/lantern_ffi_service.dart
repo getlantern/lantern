@@ -57,8 +57,6 @@ class LanternFFIService implements LanternCoreService {
     String fullPath = "";
     if (Platform.isWindows) {
       fullPath = p.join(fullPath, "bin/windows", "$_libName.dll");
-    } else if (Platform.isMacOS) {
-      fullPath = p.join(fullPath, "$_libName.dylib");
     } else {
       fullPath = p.join(fullPath, "$_libName.so");
     }

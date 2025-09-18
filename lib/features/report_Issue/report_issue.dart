@@ -4,9 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/utils/device_utils.dart';
 import 'package:lantern/core/widgets/radio_listview.dart';
-import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 @RoutePage(name: 'ReportIssue')
 class ReportIssue extends StatefulHookConsumerWidget {
@@ -44,11 +42,11 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
     final groupValue = useState('');
 
     reset() {
+      appLogger.debug("Resetting form");
+      formKey.currentState!.reset();
       emailController.clear();
       descriptionController.clear();
       selectedIssueController.clear();
-      groupValue.value = '';
-      formKey.currentState?.reset();
     }
 
     useEffect(() {
@@ -143,27 +141,34 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
       String issueType, String description, Function() reset) async {
     if (!formKey.currentState!.validate()) return;
 
-    //hideKeyboard();
-    context.showLoadingDialog();
-    appLogger
-        .debug("Submitting issue report: $email, $issueType, $description");
-    final deviceInfo = await DeviceUtils.getDeviceAndModel();
-    final device = deviceInfo.$1;
-    final model = deviceInfo.$2;
+    hideKeyboard();
 
-    final result = await ref
-        .read(lanternServiceProvider)
-        .reportIssue(email, issueType, description, device, model, "");
-    result.fold(
-      (failure) {
-        context.hideLoadingDialog();
-        context.showSnackBar(failure.localizedErrorMessage);
-      },
-      (_) {
-        context.hideLoadingDialog();
-        context.showSnackBar('thanks_for_feedback'.i18n);
-        reset.call();
-      },
-    );
+    reset.call();
+    // context.showLoadingDialog();
+    // appLogger
+    //     .debug("Submitting issue report: $email, $issueType, $description");
+    // final deviceInfo = await DeviceUtils.getDeviceAndModel();
+    // final device = deviceInfo.$1;
+    // final model = deviceInfo.$2;
+    // String logFilePath = "";
+    // if (PlatformUtils.isIOS) {
+    //   /// this should be passed only on IOS since we are usign app groups
+    //   /// and we don't have app group path on flutter end
+    //   logFilePath = (await AppStorageUtils.flutterLogFile()).path;
+    // }
+    // final result = await ref
+    //     .read(lanternServiceProvider)
+    //     .reportIssue(email, issueType, description, device, model, logFilePath);
+    // result.fold(
+    //   (failure) {
+    //     context.hideLoadingDialog();
+    //     context.showSnackBar(failure.localizedErrorMessage);
+    //   },
+    //   (_) {
+    //     context.hideLoadingDialog();
+    //     context.showSnackBar('thanks_for_feedback'.i18n);
+    //     reset.call();
+    //   },
+    // );
   }
 }

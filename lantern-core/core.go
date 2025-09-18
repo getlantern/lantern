@@ -222,6 +222,12 @@ func (lc *LanternCore) ReportIssue(email, issueType, description, device, model,
 		Device:      device,
 		Model:       model,
 	}
+	// Attach log file if provided
+	// Path must be available on iOS
+	if logFilePath != "" {
+		report.Attachments = utils.CreateLogAttachment(logFilePath)
+
+	}
 	if err := lc.rad.ReportIssue(email, report); err != nil {
 		return fmt.Errorf("error reporting issue: %w", err)
 	}
