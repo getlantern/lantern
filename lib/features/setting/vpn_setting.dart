@@ -35,7 +35,7 @@ class VPNSetting extends HookConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (PlatformUtils.isAndroid) ...{
+              if (PlatformUtils.isAndroid || PlatformUtils.isMacOS) ...{
                 SplitTunnelingTile(
                   label: 'split_tunneling'.i18n,
                   icon: AppImagePaths.callSpilt,
@@ -48,30 +48,38 @@ class VPNSetting extends HookConsumerWidget {
               AppTile(
                 label: 'server_locations'.i18n,
                 icon: AppImagePaths.location,
+                trailing: AppImage(
+                  path: AppImagePaths.arrowForward,
+                  height: 20,
+                ),
                 onPressed: () {},
               ),
-              AppTile(
-                label: 'block_ads'.i18n,
-                subtitle: Text(
-                  'only_active'.i18n,
-                  style: textTheme.labelMedium!.copyWith(
-                    color: AppColors.gray7,
-                  ),
-                ),
-                icon: AppImagePaths.blockAds,
-                trailing: SwitchButton(
-                  value: preferences.blockAds,
-                  onChanged: (bool? value) {
-                    if (!isUserPro) {
-                      appRouter.push(Plans());
-                      return;
-                    }
-                    var newValue = value ?? false;
-                    notifier.setBlockAds(newValue);
-                  },
-                ),
-              ),
             ],
+          ),
+        ),
+        SizedBox(height: 16),
+        AppCard(
+          padding: EdgeInsets.zero,
+          child: AppTile(
+            label: 'block_ads'.i18n,
+            subtitle: Text(
+              'only_active'.i18n,
+              style: textTheme.labelMedium!.copyWith(
+                color: AppColors.gray7,
+              ),
+            ),
+            icon: AppImagePaths.blockAds,
+            trailing: SwitchButton(
+              value: preferences.blockAds,
+              onChanged: (bool? value) {
+                if (!isUserPro) {
+                  appRouter.push(Plans());
+                  return;
+                }
+                var newValue = value ?? false;
+                notifier.setBlockAds(newValue);
+              },
+            ),
           ),
         ),
         SizedBox(height: 16),
@@ -83,18 +91,30 @@ class VPNSetting extends HookConsumerWidget {
               AppTile(
                 label: 'setup_private_server'.i18n,
                 icon: AppImagePaths.server,
+                trailing: AppImage(
+                  path: AppImagePaths.arrowForward,
+                  height: 20,
+                ),
                 onPressed: () => appRouter.push(const PrivateServerSetup()),
               ),
               DividerSpace(),
               AppTile(
                 label: 'join_private_server'.i18n,
                 icon: AppImagePaths.joinServer,
+                trailing: AppImage(
+                  path: AppImagePaths.arrowForward,
+                  height: 20,
+                ),
                 onPressed: () => appRouter.push(JoinPrivateServer()),
               ),
               DividerSpace(),
               AppTile(
                 label: 'manage_private_servers'.i18n,
                 icon: AppImagePaths.settingServer,
+                trailing: AppImage(
+                  path: AppImagePaths.arrowForward,
+                  height: 20,
+                ),
                 onPressed: () => appRouter.push(const ManagePrivateServer()),
               ),
             ],

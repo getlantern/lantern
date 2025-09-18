@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/widgets/app_rich_text.dart';
+import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 
 final selectedBypassListProvider =
@@ -21,6 +23,9 @@ class DefaultBypassLists extends HookConsumerWidget {
 
     Future<void> onBypassTap(BypassListOption option) async {
       notifier.setByassList(option);
+      Future.delayed(const Duration(milliseconds: 500), () {
+        appRouter.pop();
+      });
     }
 
     final bypassListOptions = [
@@ -45,7 +50,7 @@ class DefaultBypassLists extends HookConsumerWidget {
                     height: 1.33,
                   ),
                 ),
-                trailing: Radio<BypassListOption>(
+                trailing: AppRadioButton<BypassListOption>(
                   value: bypassList,
                   groupValue: preferences.bypassList,
                   onChanged: (value) => onBypassTap(bypassList),
@@ -53,28 +58,41 @@ class DefaultBypassLists extends HookConsumerWidget {
                 onPressed: () => onBypassTap(bypassList),
               ),
             ),
-            AppTile.link(
-              icon: AppImagePaths.info,
-              label: 'see_sites_included'.i18n,
-              url: 'https://getlantern.org/bypass-lists',
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              subtitle: Text.rich(
-                TextSpan(
-                  children: [
-                    TextSpan(
-                      text: 'default_lists_here'.i18n,
-                      style: AppTestStyles.titleSmall.copyWith(
-                        color: AppColors.linkColor,
-                        fontWeight: FontWeight.w500,
-                        decoration: TextDecoration.underline,
-                        height: 1.43,
-                      ),
-                    ),
-                  ],
-                ),
+            InfoRow(
+              text: '',
+              child: AppRichText(
+                texts: 'see_sites_included'.i18n,
+                boldTexts: 'default_lists_here'.i18n,
+                boldColor: AppColors.blue7,
+                boldUnderline: true,
+                boldOnPressed: () {
+                  UrlUtils.openWithSystemBrowser(
+                      'https://getlantern.org/bypass-lists');
+                },
               ),
             )
+            // AppTile.link(
+            //   icon: AppImagePaths.info,
+            //   label: 'see_sites_included'.i18n,
+            //   url: 'https://getlantern.org/bypass-lists',
+            //   contentPadding:
+            //   const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            //   subtitle: Text.rich(
+            //     TextSpan(
+            //       children: [
+            //         TextSpan(
+            //           text: 'default_lists_here'.i18n,
+            //           style: AppTestStyles.titleSmall.copyWith(
+            //             color: AppColors.linkColor,
+            //             fontWeight: FontWeight.w500,
+            //             decoration: TextDecoration.underline,
+            //             height: 1.43,
+            //           ),
+            //         ),
+            //       ],
+            //     ),
+            //   ),
+            // )
           ],
         ),
       ),

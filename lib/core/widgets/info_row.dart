@@ -32,19 +32,21 @@ class InfoRow extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     return ListTile(
         onTap: onPressed,
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        contentPadding:
+            padding ?? EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(borderRadius),
           side: BorderSide(color: AppColors.gray2),
         ),
         leading: AppImage(
           path: imagePath ?? AppImagePaths.info,
-          width: 24,
-          height: 24,
         ),
-        title: Text(
-          text,
-          style: textStyle ?? textTheme.bodyMedium,
-        ));
+        title: child ??
+            Text(
+              text,
+              style: (textStyle ?? textTheme.bodyMedium)!.copyWith(
+                color: AppColors.gray8,
+              ),
+            ));
   }
 }

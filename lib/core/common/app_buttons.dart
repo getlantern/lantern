@@ -174,6 +174,7 @@ class AppTextButton extends StatelessWidget {
 
   final Color? textColor;
   final EdgeInsets? padding;
+  final double? fontSize;
 
   const AppTextButton({
     super.key,
@@ -181,6 +182,7 @@ class AppTextButton extends StatelessWidget {
     required this.onPressed,
     this.textColor,
     this.padding,
+    this.fontSize,
   });
 
   @override
@@ -193,6 +195,8 @@ class AppTextButton extends StatelessWidget {
         textStyle: AppTestStyles.titleMedium.copyWith(
           overflow: TextOverflow.ellipsis,
           decoration: TextDecoration.underline,
+          fontSize: fontSize
+
         ),
         foregroundColor: textColor ?? AppColors.blue7,
       ),

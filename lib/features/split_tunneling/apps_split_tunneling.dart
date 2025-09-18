@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
@@ -21,6 +22,7 @@ class AppsSplitTunneling extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final textTheme = Theme.of(context).textTheme;
     final searchQuery = ref.watch(searchQueryProvider);
     final notifier = ref.read(splitTunnelingAppsProvider.notifier);
     final enabledApps = ref.watch(splitTunnelingAppsProvider);
@@ -53,49 +55,48 @@ class AppsSplitTunneling extends HookConsumerWidget {
       body: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                children: [
-                  SectionLabel(
-                    'apps_bypassing_vpn'.i18n.fill([enabledApps.length]),
-                  ),
-                  const Spacer(),
-                ],
-              ),
+            child: Row(
+              children: [
+                SectionLabel(
+                  'apps_bypassing_vpn'.i18n.fill([enabledApps.length]),
+                ),
+                const Spacer(),
+              ],
             ),
           ),
           if (enabledApps.isEmpty)
-            // empty-state: "No apps selected"
             SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: ListTile(
-                  title: Text(
-                    'no_apps_selected'.i18n,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  leading: Icon(Icons.info_outline, color: AppColors.gray7),
+              child: AppCard(
+                padding: EdgeInsets.all(0),
+                child: AppTile(
+                  label: 'no_apps_selected'.i18n,
                 ),
               ),
             )
           else
-            // real list
             SliverToBoxAdapter(
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.gray1,
-                  borderRadius: BorderRadius.circular(12),
-                ),
+              child: AppCard(
                 child: ListView.separated(
+                  padding: EdgeInsets.all(0),
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: filteredEnabled.length,
+                  itemCount: filteredEnabled.length + 1,
                   separatorBuilder: (_, __) =>
-                      Divider(height: 1, color: AppColors.gray3),
+                      DividerSpace(padding: EdgeInsets.zero),
                   itemBuilder: (ctx, i) {
-                    final app = filteredEnabled[i];
+                    if (i == 0) {
+                      return AppTile(
+                        minHeight: 40,
+                        contentPadding: EdgeInsets.zero,
+                        label: '',
+                        trailing: AppTextButton(
+                          label: 'deselect_all'.i18n,
+                          fontSize: 14,
+                          onPressed: () {},
+                        ),
+                      );
+                    }
+                    final app = filteredEnabled[i - 1];
                     return AppRow(
                       app: app.copyWith(isEnabled: true),
                       onToggle: () => notifier.toggleApp(app),
@@ -104,27 +105,32 @@ class AppsSplitTunneling extends HookConsumerWidget {
                 ),
               ),
             ),
+          SliverToBoxAdapter(child: SizedBox(height: 20)),
+          SliverToBoxAdapter(child: SectionLabel('installed_apps'.i18n)),
           SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: SectionLabel('installed_apps'.i18n),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppColors.gray1,
-                borderRadius: BorderRadius.circular(12),
-              ),
+            child: AppCard(
               child: ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: filteredDisabled.length,
+                itemCount: filteredDisabled.length+1,
                 separatorBuilder: (_, __) =>
-                    Divider(height: 1, color: AppColors.gray3),
+                    DividerSpace(padding: EdgeInsets.zero),
                 itemBuilder: (ctx, i) {
-                  final app = filteredDisabled[i];
+                  if (i == 0) {
+                    return AppTile(
+                      minHeight: 40,
+                      contentPadding: EdgeInsets.zero,
+                      label: '',
+                      trailing: AppTextButton(
+                        label: 'select_all'.i18n,
+                        fontSize: 14,
+                        onPressed: () {
+
+                        },
+                      ),
+                    );
+                  }
+                  final app = filteredDisabled[i-1];
                   return AppRow(
                     app: app,
                     onToggle: () => notifier.toggleApp(app),
@@ -169,37 +175,34 @@ class AppRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 56,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Row(
-          children: [
-            Expanded(
-              child: Row(
-                children: [
-                  buildAppIcon(app),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      app.name.replaceAll(".app", ""),
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTestStyles.bodyMedium.copyWith(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.gray9,
-                      ),
+      height: 54.h,
+      child: Row(
+        children: [
+          Expanded(
+            child: Row(
+              children: [
+                buildAppIcon(app),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    app.name.replaceAll(".app", ""),
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTestStyles.bodyMedium.copyWith(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                      color: AppColors.gray9,
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            if (onToggle != null)
-              AppIconButton(
-                path: app.isEnabled ? AppImagePaths.minus : AppImagePaths.plus,
-                onPressed: onToggle!,
-              ),
-          ],
-        ),
+          ),
+          if (onToggle != null)
+            AppIconButton(
+              path: app.isEnabled ? AppImagePaths.minus : AppImagePaths.plus,
+              onPressed: onToggle!,
+            ),
+        ],
       ),
     );
   }

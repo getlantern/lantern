@@ -10,6 +10,7 @@ class AppRichText extends StatelessWidget {
 
   final bool boldUnderline;
   final OnPressed? boldOnPressed;
+  final Color? boldColor;
 
   const AppRichText({
     super.key,
@@ -17,6 +18,7 @@ class AppRichText extends StatelessWidget {
     required this.boldTexts,
     this.boldOnPressed,
     this.boldUnderline = false,
+    this.boldColor,
   });
 
   @override
@@ -31,7 +33,7 @@ class AppRichText extends StatelessWidget {
             text: boldTexts,
             style: textTheme.bodyMedium!.copyWith(
               fontWeight: FontWeight.bold,
-              color: AppColors.gray9,
+              color: boldColor ?? AppColors.gray9,
               decoration: boldUnderline
                   ? TextDecoration.underline
                   : TextDecoration.none,

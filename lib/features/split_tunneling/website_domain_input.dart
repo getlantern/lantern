@@ -74,85 +74,50 @@ class WebsiteDomainInput extends HookConsumerWidget {
       ref.read(splitTunnelingWebsitesProvider.notifier).addWebsites(added);
     }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.0),
-            child: Text(
-              'enter_url_or_ip'.i18n,
-              style: AppTestStyles.bodySmall.copyWith(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.0),
+          child: Text(
+            'enter_url_or_ip'.i18n,
+            style: AppTestStyles.bodySmall.copyWith(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: AppTextField(
+                prefixIcon: AppImagePaths.web,
+                controller: textController,
+                hintText: '',
               ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(color: const Color(0xFFDEDFDF)),
-              borderRadius: BorderRadius.circular(16),
+            AppTextButton(
+              label: 'add'.i18n,
+              textColor: AppColors.black,
+              onPressed: validateAndExtractDomain,
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              //crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Icon(Icons.link, color: Color(0xFFBFBFBF), size: 20),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                    controller: textController,
-                    style: AppTestStyles.bodyMedium,
-                    onSubmitted: (_) => validateAndExtractDomain(),
-                    decoration: InputDecoration(
-                      hintText: 'enter_url'.i18n,
-                      hintStyle: AppTestStyles.bodySmall.copyWith(
-                        color: const Color(0xFFBFBFBF),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      border: InputBorder.none,
-                    ),
-                  ),
-                ),
-                TextButton(
-                  onPressed: validateAndExtractDomain,
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.black,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    minimumSize: Size.zero,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  ),
-                  child: Text(
-                    'add'.i18n,
-                    style: AppTestStyles.titleSmall.copyWith(
-                      decoration: TextDecoration.underline,
-                    ),
-                  ),
-                ),
-              ],
+          ],
+        ),
+        const SizedBox(height: 4),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text(
+            'use_commas'.i18n,
+            style: AppTestStyles.bodyMedium.copyWith(
+              color: AppColors.gray7,
+              height: 1.6,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 4),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.0),
-            child: Text(
-              'use_commas'.i18n,
-              style: AppTestStyles.bodyMedium.copyWith(
-                color: AppColors.gray7,
-                height: 1.6,
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

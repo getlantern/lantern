@@ -109,6 +109,23 @@ class LocalStorageService {
   Set<AppData> getAllApps() {
     return _appsBox.getAll().toSet();
   }
+  // Select all apps (set isEnabled = true)
+  Future<void> selectAllApps() async {
+    final apps = _appsBox.getAll();
+    for (var app in apps) {
+      app.isEnabled = true;
+    }
+    await _appsBox.putManyAsync(apps);
+  }
+
+// Deselect all apps (set isEnabled = false)
+  Future<void> deselectAllApps() async {
+    final apps = _appsBox.getAll();
+    for (var app in apps) {
+      app.isEnabled = false;
+    }
+    await _appsBox.putManyAsync(apps);
+  }
 
   void toggleApp(AppData app) {
     final existing =
