@@ -312,7 +312,7 @@ class LanternFFIService implements LanternCoreService {
       checkAPIError(result);
       return right(unit);
     } catch (e, st) {
-      appLogger.error('Failed to get data cap info: $e', e, st);
+      appLogger.error('Error reporting issue: $e', e, st);
       return Left(e.toFailure());
     }
   }
