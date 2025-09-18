@@ -56,7 +56,7 @@ func (p *libboxProvider) Start(ctx context.Context, h Handler) error {
 	handler := &lbHandler{h: h}
 	p.client = libbox.NewCommandClient(handler, &libbox.CommandClientOptions{
 		Command:        libbox.CommandLog,
-		StatusInterval: int64(p.opts.Interval / time.Millisecond), // ms
+		StatusInterval: int64(p.opts.Interval / time.Millisecond),
 	})
 	if err := p.client.Connect(); err != nil {
 		p.client = nil

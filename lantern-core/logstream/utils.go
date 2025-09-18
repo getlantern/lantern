@@ -28,6 +28,7 @@ func readLastLines(filePath string, n int) ([]string, error) {
 		buf   []byte
 	)
 
+	//  // grow the window until we have enough newlines
 	for window := int64(chunk); ; window += int64(chunk) {
 		if window > size {
 			window = size
@@ -50,6 +51,7 @@ func readLastLines(filePath string, n int) ([]string, error) {
 		}
 	}
 
+	// split to lines n and take the tail
 	s := bufio.NewScanner(bytes.NewReader(buf))
 	s.Buffer(make([]byte, 0, 64*1024), 1<<20)
 	lines := make([]string, 0, n)
