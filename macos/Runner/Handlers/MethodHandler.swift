@@ -458,6 +458,28 @@ class MethodHandler {
     }
   }
 
+    
+    
+    func startChangeEmail(result: @escaping FlutterResult, data: [String: Any]) {
+      Task {
+        let email = data["newEmail"] as? String ?? ""
+        let password = data["password"] as? String ?? ""
+        var error: NSError?
+        MobileStartChangeEmail(email, password, &error)
+        if error != nil {
+          await self.handleFlutterError(
+            error,
+            result: result,
+            code: "START_CHANGE_EMAIL_FAILED"
+          )
+          return
+        }
+        await MainActor.run {
+          result("ok")
+        }
+      }
+    }
+    
   func completeChangeEmail(result: @escaping FlutterResult, data: [String: Any]) {
     Task {
       let email = data["email"] as? String ?? ""
