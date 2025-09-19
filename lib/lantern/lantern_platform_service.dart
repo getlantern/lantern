@@ -264,7 +264,7 @@ class LanternPlatformService implements LanternCoreService {
     }
     try {
       final redirectUrl = await _methodChannel
-          .invokeMethod<String>('stipeSubscriptionPaymentRedirect', {
+          .invokeMethod<String>('stripeSubscriptionPaymentRedirect', {
         "type": type.name,
         "planId": planId,
         "email": email,

@@ -153,9 +153,9 @@ class MethodHandler {
       case "getLanternAvailableServers":
         self.getLanternAvailableServers(result: result)
         break
-      case "stipeSubscriptionPaymentRedirect":
+      case "stripeSubscriptionPaymentRedirect":
         let data = call.arguments as? [String: Any]
-        self.stipeSubscriptionPaymentRedirect(result: result, data: data!)
+        self.stripeSubscriptionPaymentRedirect(result: result, data: data!)
         break
       case "paymentRedirect":
         let data = call.arguments as? [String: Any]
@@ -804,7 +804,7 @@ class MethodHandler {
     }
   }
 
-  func stipeSubscriptionPaymentRedirect(result: @escaping FlutterResult, data: [String: Any]) {
+  func stripeSubscriptionPaymentRedirect(result: @escaping FlutterResult, data: [String: Any]) {
     Task.detached {
       let email = data["email"] as? String ?? ""
       let planId = data["planId"] as? String ?? ""
