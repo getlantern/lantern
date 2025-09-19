@@ -193,11 +193,9 @@ class AppTextButton extends StatelessWidget {
         padding: padding ?? EdgeInsets.symmetric(horizontal: 16.0),
         visualDensity: VisualDensity.compact,
         textStyle: AppTestStyles.titleMedium.copyWith(
-          overflow: TextOverflow.ellipsis,
-          decoration: TextDecoration.underline,
-          fontSize: fontSize
-
-        ),
+            overflow: TextOverflow.ellipsis,
+            decoration: TextDecoration.underline,
+            fontSize: fontSize),
         foregroundColor: textColor ?? AppColors.blue7,
       ),
       child: Text(label),

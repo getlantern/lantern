@@ -109,7 +109,8 @@ class ChoosePaymentMethod extends HookConsumerWidget {
   Future<void> desktopPurchaseFlow(
       Android provider, WidgetRef ref, BuildContext context) async {
     try {
-      final userPlan = ref.read(plansNotifierProvider.notifier).getSelectedPlan();
+      final userPlan =
+          ref.read(plansNotifierProvider.notifier).getSelectedPlan();
       context.showLoadingDialog();
 
       ///Start stipe subscription flow

@@ -112,7 +112,7 @@ class AppsSplitTunneling extends HookConsumerWidget {
               child: ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: filteredDisabled.length+1,
+                itemCount: filteredDisabled.length + 1,
                 separatorBuilder: (_, __) =>
                     DividerSpace(padding: EdgeInsets.zero),
                 itemBuilder: (ctx, i) {
@@ -124,13 +124,11 @@ class AppsSplitTunneling extends HookConsumerWidget {
                       trailing: AppTextButton(
                         label: 'select_all'.i18n,
                         fontSize: 14,
-                        onPressed: () {
-
-                        },
+                        onPressed: () {},
                       ),
                     );
                   }
-                  final app = filteredDisabled[i-1];
+                  final app = filteredDisabled[i - 1];
                   return AppRow(
                     app: app,
                     onToggle: () => notifier.toggleApp(app),

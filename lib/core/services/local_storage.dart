@@ -109,6 +109,7 @@ class LocalStorageService {
   Set<AppData> getAllApps() {
     return _appsBox.getAll().toSet();
   }
+
   // Select all apps (set isEnabled = true)
   Future<void> selectAllApps() async {
     final apps = _appsBox.getAll();

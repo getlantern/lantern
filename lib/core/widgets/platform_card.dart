@@ -13,7 +13,7 @@ class PlatformCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      hoverColor: AppColors.blue1,
+        hoverColor: AppColors.blue1,
         onPressed: onPressed,
         style: IconButton.styleFrom(
           padding: EdgeInsets.all(15.r),

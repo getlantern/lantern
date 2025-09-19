@@ -215,11 +215,13 @@ class SplitTunneling extends HookConsumerWidget {
           ),
           SizedBox(height: defaultSize),
           InfoRow(
-            onPressed: isAutomaticMode?() {
-              if (isAutomaticMode) {
-                appRouter.push(SplitTunnelingInfo());
-              }
-            }:null,
+            onPressed: isAutomaticMode
+                ? () {
+                    if (isAutomaticMode) {
+                      appRouter.push(SplitTunnelingInfo());
+                    }
+                  }
+                : null,
             text: splitTunnelingEnabled
                 ? (isAutomaticMode
                     ? 'lantern_automatic'.i18n
@@ -231,7 +233,7 @@ class SplitTunneling extends HookConsumerWidget {
             DividerSpace(),
             SizedBox(height: defaultSize),
             AppCard(
-              padding:  EdgeInsets.zero,
+              padding: EdgeInsets.zero,
               child: Column(
                 children: [
                   SplitTunnelingTile(

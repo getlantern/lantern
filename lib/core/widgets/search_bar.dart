@@ -57,27 +57,27 @@ class _SearchBarContent extends HookConsumerWidget {
         Expanded(
           child: isSearching.value
               ? TextField(
-                controller: controller,
-                autofocus: true,
-                onChanged: (value) =>
-                    ref.read(searchQueryProvider.notifier).setQuery(value),
-                decoration: InputDecoration(
-                  hintText: hintText,
-                  hintStyle: TextStyle(
-                    color: AppColors.gray7,
+                  controller: controller,
+                  autofocus: true,
+                  onChanged: (value) =>
+                      ref.read(searchQueryProvider.notifier).setQuery(value),
+                  decoration: InputDecoration(
+                    hintText: hintText,
+                    hintStyle: TextStyle(
+                      color: AppColors.gray7,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                  ),
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w400,
+                    color: AppColors.gray9,
                   ),
-                  border: InputBorder.none,
-                  isDense: true,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                ),
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w400,
-                  color: AppColors.gray9,
-                ),
-              )
+                )
               : Text(
                   title,
                   style: TextStyle(
