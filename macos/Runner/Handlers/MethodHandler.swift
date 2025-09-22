@@ -58,6 +58,9 @@ class MethodHandler {
         self.oauthLoginCallback(result: result, token: token)
       case "getUserData":
         self.getUserData(result: result)
+      case "fetchUserData":
+        self.fetchUserData(result: result)
+        break
       case "acknowledgeInAppPurchase":
         if let map = call.arguments as? [String: Any],
           let token = map["purchaseToken"] as? String,
@@ -410,6 +413,21 @@ class MethodHandler {
       }
     }
   }
+    
+    private func fetchUserData(result: @escaping FlutterResult) {
+      Task.detached {
+        var error: NSError?
+        let bytes = MobileFetchUserData(&error)
+        if let err = error {
+          await self.handleFlutterError(err, result: result, code: "FETCH_USER_DATA_ERROR")
+          return
+        }
+        await MainActor.run {
+          result(bytes)
+        }
+      }
+    }
+    
 
   func acknowledgeInAppPurchase(token: String, planId: String, result: @escaping FlutterResult) {
     Task {

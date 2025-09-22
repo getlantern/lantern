@@ -85,8 +85,10 @@ class _AddEmailState extends ConsumerState<AddEmail> {
               PrimaryButton(
                 label: 'continue'.i18n,
                 enabled: emailController.text.isValidEmail(),
-                onPressed: () =>
-                    onContinueTap(SignUpMethodType.email, emailController.text),
+                onPressed: () => onContinueTap(
+                  SignUpMethodType.email,
+                  emailController.text,
+                ),
               ),
               SizedBox(height: defaultSize),
               DividerSpace(),
@@ -224,7 +226,10 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     result.fold(
       (failure) {
         context.hideLoadingDialog();
-        context.showSnackBar(failure.localizedErrorMessage);
+        AppDialog.errorDialog(
+            context: context,
+            title: 'error'.i18n,
+            content: failure.localizedErrorMessage);
       },
       (newEmail) {
         context.hideLoadingDialog();

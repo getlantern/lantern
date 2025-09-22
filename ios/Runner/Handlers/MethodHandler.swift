@@ -355,7 +355,6 @@ class MethodHandler {
         result(bytes)
       }
     }
-
   }
 
   private func showManageSubscriptions(result: @escaping FlutterResult) {

@@ -277,7 +277,7 @@ func (lc *LanternCore) FetchUserData() ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error getting user data: %w", err)
 	}
-	slog.Debug("UserData response:", "user", user)
+	slog.Debug("UserId: ", "userId", user.UserId, "legacyToken", user.Token)
 	login := &protos.LoginResponse{
 		LegacyID:       user.UserId,
 		LegacyToken:    user.Token,
