@@ -77,11 +77,11 @@ class Location_ {
   });
 
   factory Location_.fromJson(Map<String, dynamic> json) => Location_(
-        country: json["country"],
+        country: json["country"] ?? '',
         countryCode: json["country_code"] ?? '',
-        city: json["city"],
-        latitude: json["latitude"]?.toDouble(),
-        longitude: json["longitude"]?.toDouble(),
+        city: json["city"] ?? '',
+        latitude: json["latitude"]?.toDouble() ?? 0.0,
+        longitude: json["longitude"]?.toDouble() ?? 0.0,
         tag: "",
       );
 

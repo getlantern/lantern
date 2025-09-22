@@ -8,10 +8,10 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/datacap_info.dart';
+import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/mapper/plan_mapper.dart';
 import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/models/private_server_status.dart';
-import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
@@ -257,7 +257,24 @@ class LanternPlatformService implements LanternCoreService {
       {required BillingType type,
       required String planId,
       required String email}) async {
-    throw UnimplementedError("This not supported on mobile");
+    if (!PlatformUtils.isMacOS) {
+      return left(Failure(
+          error: 'Not supported',
+          localizedErrorMessage: 'This is only supported on macOS'));
+    }
+    try {
+      final redirectUrl = await _methodChannel
+          .invokeMethod<String>('stripeSubscriptionPaymentRedirect', {
+        "type": type.name,
+        "planId": planId,
+        "email": email,
+      });
+      return Right(redirectUrl!);
+    } catch (e) {
+      return Left(Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription));
+    }
   }
 
   @override

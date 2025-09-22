@@ -107,8 +107,7 @@ class _HomeState extends ConsumerState<Home> {
   }
 
   Widget _buildSetting(WidgetRef ref) {
-    final preferences = ref.watch(appSettingNotifierProvider);
-    final splitTunnelingEnabled = preferences.isSplitTunnelingOn;
+    final setting = ref.watch(appSettingNotifierProvider);
 
     return Container(
       decoration: BoxDecoration(boxShadow: [
@@ -132,7 +131,9 @@ class _HomeState extends ConsumerState<Home> {
               SettingTile(
                 label: 'split_tunneling'.i18n,
                 icon: AppImagePaths.callSpilt,
-                value: splitTunnelingEnabled ? 'Enabled' : 'Disabled',
+                value: setting.isSplitTunnelingOn
+                    ? setting.splitTunnelingMode.value.capitalize
+                    : 'disabled'.i18n,
                 actions: [
                   IconButton(
                     onPressed: () => appRouter.push(SplitTunneling()),

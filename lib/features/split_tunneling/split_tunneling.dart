@@ -1,13 +1,11 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/utils/ip_utils.dart';
-import 'package:lantern/core/utils/screen_utils.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/split_tunneling_tile.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
@@ -30,39 +28,39 @@ class SplitTunneling extends HookConsumerWidget {
     final enabledWebsites = ref.watch(splitTunnelingWebsitesProvider).toList();
     final expansionTileController = useExpansionTileController();
 
-    void showBottomSheet() {
-      showAppBottomSheet(
-        context: context,
-        title: 'split_tunneling_mode'.i18n,
-        scrollControlDisabledMaxHeightRatio:
-            context.isSmallDevice ? 0.39.h : 0.3.h,
-        builder: (context, scrollController) {
-          return Expanded(
-            child: ListView(
-              controller: scrollController,
-              padding: EdgeInsets.zero,
-              shrinkWrap: true,
-              children: [
-                ...SplitTunnelingMode.values.map((mode) {
-                  return SplitTunnelingModeTile(
-                    mode: mode,
-                    selectedMode: splitTunnelingMode,
-                    onChanged: (newValue) {
-                      if (newValue != null) {
-                        ref
-                            .read(appSettingNotifierProvider.notifier)
-                            .setSplitTunnelingMode(newValue);
-                        Navigator.pop(context);
-                      }
-                    },
-                  );
-                }),
-              ],
-            ),
-          );
-        },
-      );
-    }
+    // void showBottomSheet() {
+    //   showAppBottomSheet(
+    //     context: context,
+    //     title: 'split_tunneling_mode'.i18n,
+    //     scrollControlDisabledMaxHeightRatio:
+    //         context.isSmallDevice ? 0.39.h : 0.3.h,
+    //     builder: (context, scrollController) {
+    //       return Expanded(
+    //         child: ListView(
+    //           controller: scrollController,
+    //           padding: EdgeInsets.zero,
+    //           shrinkWrap: true,
+    //           children: [
+    //             ...SplitTunnelingMode.values.map((mode) {
+    //               return SplitTunnelingModeTile(
+    //                 mode: mode,
+    //                 selectedMode: splitTunnelingMode,
+    //                 onChanged: (newValue) {
+    //                   if (newValue != null) {
+    //                     ref
+    //                         .read(appSettingNotifierProvider.notifier)
+    //                         .setSplitTunnelingMode(newValue);
+    //                     Navigator.pop(context);
+    //                   }
+    //                 },
+    //               );
+    //             }),
+    //           ],
+    //         ),
+    //       );
+    //     },
+    //   );
+    // }
 
     final locationSubtitle = useState<String>('global_optimized'.i18n);
 
@@ -121,113 +119,109 @@ class SplitTunneling extends HookConsumerWidget {
                     data: Theme.of(context)
                         .copyWith(dividerColor: Colors.transparent),
                     child: ExpansionTile(
-                      controller: expansionTileController,
-                      backgroundColor: Colors.transparent,
-                      title: Text(
-                        'mode'.i18n,
-                        style: textTheme.bodyLarge!
-                            .copyWith(color: AppColors.gray9),
-                      ),
-                      initiallyExpanded: false,
-                      trailing: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          AppTextButton(
-                            label: toBeginningOfSentenceCase(isAutomaticMode
-                                ? 'automatic'.i18n
-                                : 'manual'.i18n),
-                            onPressed: () => expansionTileController.isExpanded
-                                ? expansionTileController.collapse()
-                                : expansionTileController.expand(),
-                          ),
-                          // Animate arrow direction
-                          AnimatedBuilder(
-                            animation: expansionTileController,
-                            builder: (context, child) {
-                              return AnimatedRotation(
-                                turns: expansionTileController.isExpanded
-                                    ? 0.25
-                                    : 0.0,
-                                duration: const Duration(milliseconds: 180),
-                                child: child,
-                              );
-                            },
-                            child: AppImage(
-                              path: AppImagePaths.arrowForward,
-                              height: 20,
+                        enableFeedback: true,
+                        controller: expansionTileController,
+                        backgroundColor: Colors.transparent,
+                        title: Text(
+                          'mode'.i18n,
+                          style: textTheme.bodyLarge!
+                              .copyWith(color: AppColors.gray9),
+                        ),
+                        initiallyExpanded: false,
+                        trailing: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            AppTextButton(
+                              label: toBeginningOfSentenceCase(isAutomaticMode
+                                  ? 'automatic'.i18n
+                                  : 'manual'.i18n),
+                              onPressed: () =>
+                                  expansionTileController.isExpanded
+                                      ? expansionTileController.collapse()
+                                      : expansionTileController.expand(),
                             ),
-                          ),
-                        ],
-                      ),
-                      subtitle: isAutomaticMode
-                          ? Text(
-                              locationSubtitle.value,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: textTheme.labelMedium!.copyWith(
-                                color: AppColors.gray7,
-                                letterSpacing: 0.0,
+                            AnimatedBuilder(
+                              animation: expansionTileController,
+                              builder: (context, child) {
+                                return AnimatedRotation(
+                                  turns: expansionTileController.isExpanded
+                                      ? 0.25
+                                      : 0.0,
+                                  duration: const Duration(milliseconds: 180),
+                                  child: child,
+                                );
+                              },
+                              child: AppImage(
+                                path: AppImagePaths.arrowForward,
+                                height: 20,
                               ),
-                            )
-                          : null,
-                      children: [
-                        Column(
-                          children: SplitTunnelingMode.values.map((mode) {
-                            final isSelected = splitTunnelingMode == mode;
-                            return InkWell(
-                              onTap: () {
+                            ),
+                          ],
+                        ),
+                        subtitle: isAutomaticMode
+                            ? Text(
+                                locationSubtitle.value,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: textTheme.labelMedium!.copyWith(
+                                  color: AppColors.gray7,
+                                  letterSpacing: 0.0,
+                                ),
+                              )
+                            : null,
+                        children: [
+                          AppTile(
+                            minHeight: 50,
+                            label: toBeginningOfSentenceCase(
+                                SplitTunnelingMode.automatic.value)!,
+                            tileTextStyle: textTheme.bodyMedium!
+                                .copyWith(color: AppColors.gray9),
+                            trailing: AppRadioButton<SplitTunnelingMode>(
+                              value: SplitTunnelingMode.automatic,
+                              groupValue: splitTunnelingMode,
+                              onChanged: (value) {
                                 ref
                                     .read(appSettingNotifierProvider.notifier)
-                                    .setSplitTunnelingMode(mode);
+                                    .setSplitTunnelingMode(value!);
                                 expansionTileController.collapse();
                               },
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 12, horizontal: 24),
-                                child: Row(
-                                  children: [
-                                    Text(
-                                      toBeginningOfSentenceCase(mode.value),
-                                      style: AppTestStyles.bodyMedium.copyWith(
-                                        color: isSelected
-                                            ? AppColors.green5
-                                            : AppColors.gray9,
-                                        fontWeight: isSelected
-                                            ? FontWeight.w700
-                                            : FontWeight.w400,
-                                      ),
-                                    ),
-                                    const Spacer(),
-                                    if (isSelected)
-                                      Icon(Icons.radio_button_checked,
-                                          color: AppColors.green5, size: 20)
-                                    else
-                                      Icon(Icons.radio_button_off,
-                                          color: AppColors.gray3, size: 20),
-                                  ],
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ],
-                    ),
-                  ),
+                            ),
+                          ),
+                          DividerSpace(),
+                          AppTile(
+                            minHeight: 50,
+                            label: toBeginningOfSentenceCase(
+                                SplitTunnelingMode.manual.value)!,
+                            tileTextStyle: textTheme.bodyMedium!
+                                .copyWith(color: AppColors.gray9),
+                            trailing: AppRadioButton<SplitTunnelingMode>(
+                              value: SplitTunnelingMode.manual,
+                              groupValue: splitTunnelingMode,
+                              onChanged: (value) {
+                                ref
+                                    .read(appSettingNotifierProvider.notifier)
+                                    .setSplitTunnelingMode(value!);
+                                expansionTileController.collapse();
+                              },
+                            ),
+                          ),
+                        ]),
+                  )
                 },
               ],
             ),
           ),
           SizedBox(height: defaultSize),
           InfoRow(
-            onPressed: () {
-              if (isAutomaticMode) {
-                appRouter.push(
-                  SplitTunnelingInfo(),
-                );
-              }
-            },
+            onPressed: isAutomaticMode
+                ? () {
+                    if (isAutomaticMode) {
+                      appRouter.push(SplitTunnelingInfo());
+                    }
+                  }
+                : null,
             text: splitTunnelingEnabled
                 ? (isAutomaticMode
                     ? 'lantern_automatic'.i18n
@@ -236,16 +230,25 @@ class SplitTunneling extends HookConsumerWidget {
           ),
           if (splitTunnelingEnabled && !isAutomaticMode) ...{
             SizedBox(height: defaultSize),
-            SplitTunnelingTile(
-              label: 'Websites',
-              actionText: '${enabledWebsites.length} Added',
-              onPressed: () => appRouter.push(WebsiteSplitTunneling()),
-            ),
             DividerSpace(),
-            SplitTunnelingTile(
-              label: 'Apps',
-              actionText: '${enabledApps.length} Added',
-              onPressed: () => appRouter.push(AppsSplitTunneling()),
+            SizedBox(height: defaultSize),
+            AppCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  SplitTunnelingTile(
+                    label: 'Websites',
+                    actionText: '${enabledWebsites.length} Added',
+                    onPressed: () => appRouter.push(WebsiteSplitTunneling()),
+                  ),
+                  DividerSpace(),
+                  SplitTunnelingTile(
+                    label: 'Apps',
+                    actionText: '${enabledApps.length} Added',
+                    onPressed: () => appRouter.push(AppsSplitTunneling()),
+                  ),
+                ],
+              ),
             ),
           }
         ],

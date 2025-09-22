@@ -52,15 +52,17 @@ class VpnStatus extends HookConsumerWidget {
           if (vpnStatus == VPNStatus.connecting)
             AnimatedTextKit(
               animatedTexts: [
-                TyperAnimatedText('.  ',
-                    textStyle: textTheme.titleMedium!
-                        .copyWith(color: AppColors.gray9, fontSize: 20)),
+                TyperAnimatedText(
+                  '.  ',
+                  textStyle:
+                      textTheme.titleMedium!.copyWith(color: AppColors.gray9),
+                ),
                 TyperAnimatedText('.. ',
                     textStyle: textTheme.titleMedium!
-                        .copyWith(color: AppColors.gray9, fontSize: 20)),
+                        .copyWith(color: AppColors.gray9)),
                 TyperAnimatedText('...',
                     textStyle: textTheme.titleMedium!
-                        .copyWith(color: AppColors.gray9, fontSize: 20)),
+                        .copyWith(color: AppColors.gray9)),
               ],
               repeatForever: true,
             )
@@ -74,7 +76,8 @@ class VpnStatus extends HookConsumerWidget {
       return false;
     }
     return (PlatformUtils.isMacOS &&
-        systemExtensionStatus.status != SystemExtensionStatus.installed && systemExtensionStatus.status != SystemExtensionStatus.activated);
+        systemExtensionStatus.status != SystemExtensionStatus.installed &&
+        systemExtensionStatus.status != SystemExtensionStatus.activated);
   }
 
   Color getStatusColor(VPNStatus vpnStatus) {
