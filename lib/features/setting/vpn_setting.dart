@@ -52,7 +52,9 @@ class VPNSetting extends HookConsumerWidget {
                   path: AppImagePaths.arrowForward,
                   height: 20,
                 ),
-                onPressed: () {},
+                onPressed: () {
+                  appRouter.push(const ServerSelection());
+                },
               ),
             ],
           ),

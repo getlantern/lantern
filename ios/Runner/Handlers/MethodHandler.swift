@@ -117,6 +117,11 @@ class MethodHandler {
       case "completeChangeEmail":
         self.completeChangeEmail(result: result, data: call.arguments as? [String: Any] ?? [:])
         break
+      case "removeDevice":
+        let data = call.arguments as? [String: Any]
+        let deviceId = data?["deviceId"] as? String ?? ""
+        self.deviceRemove(result: result, deviceId: deviceId)
+        break
       // Private server methods
       case "digitalOcean":
         self.digitalOcean(result: result)
@@ -471,6 +476,8 @@ class MethodHandler {
       }
     }
   }
+    
+    
 
   func login(result: @escaping FlutterResult, data: [String: Any]) {
     Task {
@@ -612,6 +619,20 @@ class MethodHandler {
       await self.replyOK(result)
     }
   }
+    func deviceRemove(result: @escaping FlutterResult, deviceId: String) {
+      Task.detached {
+        var error: NSError?
+        MobileRemoveDevice(deviceId, &error)
+        if error != nil {
+          appLogger.error("Failed to remove device: \(error!.localizedDescription)")
+          return
+        }
+        await MainActor.run {
+          appLogger.info("Device removed successfully.")
+        }
+      }
+    }
+    
 
   /// Private server methods
   /// Starts the Digital Ocean private server flow.
