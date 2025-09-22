@@ -413,21 +413,20 @@ class MethodHandler {
       }
     }
   }
-    
-    private func fetchUserData(result: @escaping FlutterResult) {
-      Task.detached {
-        var error: NSError?
-        let bytes = MobileFetchUserData(&error)
-        if let err = error {
-          await self.handleFlutterError(err, result: result, code: "FETCH_USER_DATA_ERROR")
-          return
-        }
-        await MainActor.run {
-          result(bytes)
-        }
+
+  private func fetchUserData(result: @escaping FlutterResult) {
+    Task.detached {
+      var error: NSError?
+      let bytes = MobileFetchUserData(&error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "FETCH_USER_DATA_ERROR")
+        return
+      }
+      await MainActor.run {
+        result(bytes)
       }
     }
-    
+  }
 
   func acknowledgeInAppPurchase(token: String, planId: String, result: @escaping FlutterResult) {
     Task {
@@ -528,10 +527,15 @@ class MethodHandler {
       MobileRemoveDevice(deviceId, &error)
       if error != nil {
         appLogger.error("Failed to remove device: \(error!.localizedDescription)")
+      await self.handleFlutterError(
+          error,
+          result: result,
+          code: "REMOVE_DEVICE_FAILED")
         return
       }
       await MainActor.run {
         appLogger.info("Device removed successfully.")
+        self.replyOK(result)
       }
     }
   }
@@ -914,5 +918,10 @@ class MethodHandler {
       )
     }
   }
+    
+    @MainActor
+    private func replyOK(_ result: FlutterResult) {
+      result("ok")
+    }
 
 }

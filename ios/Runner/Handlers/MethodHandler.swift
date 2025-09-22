@@ -475,8 +475,6 @@ class MethodHandler {
       }
     }
   }
-    
-    
 
   func login(result: @escaping FlutterResult, data: [String: Any]) {
     Task {
@@ -618,20 +616,24 @@ class MethodHandler {
       await self.replyOK(result)
     }
   }
-    func deviceRemove(result: @escaping FlutterResult, deviceId: String) {
-      Task.detached {
-        var error: NSError?
-        MobileRemoveDevice(deviceId, &error)
-        if error != nil {
-          appLogger.error("Failed to remove device: \(error!.localizedDescription)")
-          return
-        }
-        await MainActor.run {
-          appLogger.info("Device removed successfully.")
-        }
+  func deviceRemove(result: @escaping FlutterResult, deviceId: String) {
+    Task.detached {
+      var error: NSError?
+      MobileRemoveDevice(deviceId, &error)
+      if error != nil {
+        appLogger.error("Failed to remove device: \(error!.localizedDescription)")
+        self.handleFlutterError(
+          error,
+          result: result,
+          code: "REMOVE_DEVICE_FAILED")
+        return
+      }
+      await MainActor.run {
+        appLogger.info("Device removed successfully.")
+        self.replyOK(result)
       }
     }
-    
+  }
 
   /// Private server methods
   /// Starts the Digital Ocean private server flow.
