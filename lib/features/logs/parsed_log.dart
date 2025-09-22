@@ -10,16 +10,22 @@ class ParsedLog {
 }
 
 ParsedLog? parseLogLine(String line) {
-  final levelMatch =
-      RegExp(r'^(\w+)\[\d+\] \[(\d+)\s+([^\]]+)\] (.*)').firstMatch(line);
-  if (levelMatch == null) return null;
+  final regex = RegExp(r'(\w+)=(".*?"|\S+)');
+  final fields = {
+    for (final m in regex.allMatches(line))
+      m.group(1)!: m.group(2)!.replaceAll('"', '')
+  };
 
-  final level = levelMatch.group(1)!;
-  final id = levelMatch.group(2)!;
-  final duration = levelMatch.group(3)!;
-  final message = levelMatch.group(4)!;
+  final level = fields['level'];
+  final service = fields['service'];
+  final duration = fields['duration'];
+  final msg = fields['msg'];
 
-  return ParsedLog(level, id, duration, message);
+  if ([level, service, duration, msg].any((e) => e == null)) {
+    return null;
+  }
+
+  return ParsedLog(level!, service!, duration!, msg!);
 }
 
 Color getLevelColor(String level) {
