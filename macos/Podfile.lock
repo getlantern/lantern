@@ -137,7 +137,7 @@ SPEC CHECKSUMS:
   flutter_inappwebview_macos: bdf207b8f4ebd58e86ae06cd96b147de99a67c9b
   flutter_local_notifications: 4ccab5b7a22835214a6672e3f9c5e8ae207dab36
   flutter_timezone: 62400baa441155f2a4144188648f2ff861649747
-  FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
+  FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
   in_app_purchase_storekit: a1ce04056e23eecc666b086040239da7619cd783
   mobile_scanner: 77265f3dc8d580810e91849d4a0811a90467ed5e
   ObjectBox: 7760fa9072adcffe102a6adf4646ca84ba70ab6b

@@ -107,45 +107,30 @@ class PrivateServerSetup extends HookConsumerWidget {
 
     return BaseScreen(
       title: 'setup_private_server'.i18n,
-      padded: false,
       body: SingleChildScrollView(
         child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 900),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                children: [
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    width: 140,
-                    height: 140,
-                    child: Center(
-                      child: AppImage(
-                        path: AppImagePaths.serverRack,
-                        type: AssetType.svg,
-                        width: 140,
-                        height: 140,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  ProviderCarousel(
-                    cards: cards.map((e) => e.card).toList(),
-                    onPageChanged: (i) => selectedIdx.value = i,
-                  ),
-                  const SizedBox(height: 8),
-                  SecondaryButton(
-                    label: 'server_setup_manual'.i18n,
-                    isTaller: true,
-                    onPressed: () {
-                      appRouter.push(ManuallyServerSetup());
-                    },
-                  ),
-                  const SizedBox(height: 8),
-                ],
+          child: Column(
+            children: [
+              AppImage(
+                path: AppImagePaths.serverRack,
+                type: AssetType.svg,
+                height: 190.h,
               ),
-            ),
+              const SizedBox(height: defaultSize),
+              ProviderCarousel(
+                cards: cards.map((e) => e.card).toList(),
+                onPageChanged: (i) => selectedIdx.value = i,
+              ),
+              const SizedBox(height: defaultSize),
+              SecondaryButton(
+                label: 'server_setup_manual'.i18n,
+                isTaller: true,
+                onPressed: () {
+                  appRouter.push(ManuallyServerSetup());
+                },
+              ),
+              const SizedBox(height: 8),
+            ],
           ),
         ),
       ),

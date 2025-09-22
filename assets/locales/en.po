@@ -547,11 +547,8 @@ msgstr "Continue with Digital Ocean"
 msgid "do_allows"
 msgstr "Digital Ocean allows you to pick one server location from the %d options below"
 
-msgid "server_setup_gcp"
-msgstr "Set up a private server on Google Cloud Platform"
-
 msgid "server_setup_gcp_price"
-msgstr "Only %s month through Google Cloud Platform"
+msgstr "Only %s month through GCP"
 
 msgid "continue_with_gcp"
 msgstr "Continue with Google"
@@ -574,8 +571,8 @@ msgstr "Seamless integration with Lantern"
 msgid "easiest_setup"
 msgstr "Easiest setup process"
 
-msgid "choose_location"
-msgstr "Choose your server's location"
+msgid "multiple_location_options"
+msgstr "Multiple server location options"
 
 msgid "one_month_included"
 msgstr "%d TB/month data included"

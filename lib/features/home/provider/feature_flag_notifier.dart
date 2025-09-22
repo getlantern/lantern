@@ -37,6 +37,6 @@ class FeatureFlagNotifier extends _$FeatureFlagNotifier {
   bool get isSentryEnabled =>
       state.getBool(FeatureFlag.sentry, defaultValue: false);
 
-  bool get isGCPEnabled =>
-      state.getBool(FeatureFlag.privateGcp, defaultValue: false);
+  // bool get isGCPEnabled => state.getBool(FeatureFlag.privateGcp, defaultValue: false);
+  bool get isGCPEnabled => true;
 }
