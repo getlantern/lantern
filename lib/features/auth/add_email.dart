@@ -129,8 +129,10 @@ class _AddEmailState extends ConsumerState<AddEmail> {
       }
       if (widget.authFlow == AuthFlow.changeEmail) {
         //Change email flow
+        appLogger.debug('Starting change email flow');
         startChangeEmailFlow(email);
       } else {
+        appLogger.debug('Starting signup flow');
         await signupFlow(email);
         return;
       }
@@ -142,6 +144,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
 
   Future<void> signupFlow(String email) async {
     context.showLoadingDialog();
+
     final result = await ref
         .read(authNotifierProvider.notifier)
         .signUpWithEmail(email, generatePassword());
