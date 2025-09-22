@@ -37,7 +37,7 @@ var (
 )
 
 type App interface {
-	AvailableFeatures() []byte
+	AvailableFeatures() ([]byte, error)
 	ReportIssue(email, issueType, description, device, model, logFilePath string) error
 	IsRadianceConnected() bool
 	GetAvailableServers() []byte
@@ -184,15 +184,10 @@ func (lc *LanternCore) IsRadianceConnected() bool {
 	return lc.rad != nil
 }
 
-func (lc *LanternCore) AvailableFeatures() []byte {
+func (lc *LanternCore) AvailableFeatures() ([]byte, error) {
 	features := lc.rad.Features()
 	slog.Debug("Available features", "features", features)
-	jsonBytes, err := json.Marshal(features)
-	if err != nil {
-		slog.Error("Error marshalling features", "error", err)
-		return nil
-	}
-	return jsonBytes
+	return json.Marshal(features)
 }
 
 func (lc *LanternCore) GetAvailableServers() []byte {

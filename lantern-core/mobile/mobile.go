@@ -70,12 +70,12 @@ func SetupRadiance(opts *utils.Opts) error {
 	return nil
 }
 
-func AvailableFeatures() []byte {
-	b, err := withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.AvailableFeatures(), nil })
+func AvailableFeatures() ([]byte, error) {
+	b, err := withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.AvailableFeatures() })
 	if err != nil {
-		return []byte(`{}`)
+		return nil, err
 	}
-	return b
+	return b, nil
 }
 
 func IsRadianceConnected() bool {
