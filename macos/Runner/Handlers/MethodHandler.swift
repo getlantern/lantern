@@ -157,6 +157,9 @@ class MethodHandler {
         self.openSystemExtensionSetting(result: result)
       case "getDataCapInfo":
         self.getDataCapInfo(result: result)
+      case "reportIssue":
+        let map = call.arguments as? [String: Any]
+          self.reportIssue(result: result, data: map!)
         break
       case "getLanternAvailableServers":
         self.getLanternAvailableServers(result: result)
@@ -876,6 +879,27 @@ class MethodHandler {
       }
     }
 
+  }
+
+  func reportIssue(result: @escaping FlutterResult, data: [String: Any]) {
+    Task.detached {
+      let email = data["email"] as? String ?? ""
+      let issueType = data["issueType"] as? String ?? ""
+      let description = data["description"] as? String ?? ""
+      let device = data["device"] as? String ?? ""
+      let model = data["model"] as? String ?? ""
+
+      var error: NSError?
+      MobileReportIssue(email, issueType, description, device, model, "", &error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "REPORT_ISSUE_ERROR")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+
+    }
   }
 
   //Utils method for handling Flutter errors

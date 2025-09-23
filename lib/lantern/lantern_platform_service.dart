@@ -664,7 +664,7 @@ class LanternPlatformService implements LanternCoreService {
     try {
       await _methodChannel.invokeMethod('connectToServer', {
         'location': location,
-        'tag': tag,
+        'serverName': tag,
       });
       return Right("ok");
     } catch (e) {
