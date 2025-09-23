@@ -146,10 +146,10 @@ class _AddEmailState extends ConsumerState<AddEmail> {
 
   Future<void> signupFlow(String email) async {
     context.showLoadingDialog();
-
+    final tempPassword = generatePassword();
     final result = await ref
         .read(authNotifierProvider.notifier)
-        .signUpWithEmail(email, generatePassword());
+        .signUpWithEmail(email, tempPassword);
 
     result.fold(
       (failure) {
@@ -163,12 +163,13 @@ class _AddEmailState extends ConsumerState<AddEmail> {
         ref.read(appSettingNotifierProvider.notifier)
           ..setEmail(email)
           ..setUserLoggedIn(true);
-        startForgotPasswordFlow(email);
+        startForgotPasswordFlow(email, tempPassword);
       },
     );
   }
 
-  Future<void> startForgotPasswordFlow(String email) async {
+  Future<void> startForgotPasswordFlow(String email,
+      [String? tempPassword]) async {
     context.showLoadingDialog();
     final result = await ref
         .read(authNotifierProvider.notifier)
@@ -180,7 +181,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
       },
       (_) {
         context.hideLoadingDialog();
-        navigateRoute(SignUpMethodType.email, email);
+        navigateRoute(SignUpMethodType.email, email, tempPassword);
       },
     );
   }
@@ -239,7 +240,8 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     );
   }
 
-  void navigateRoute(SignUpMethodType type, String email) {
+  void navigateRoute(SignUpMethodType type, String email,
+      [String? tempPassword]) {
     switch (type) {
       case SignUpMethodType.apple:
       case SignUpMethodType.google:
@@ -259,7 +261,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
         appRouter.push(ConfirmEmail(
             email: email,
             authFlow: widget.authFlow,
-            password: widget.password));
+            password: widget.password ?? tempPassword));
         break;
       case SignUpMethodType.withoutEmail:
         continueWithoutEmail();
