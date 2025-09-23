@@ -97,4 +97,5 @@ class AppImagePaths {
   static const accountSetting = 'assets/images/account_setting.svg';
   static const sysDialog = 'assets/images/sys_dialog.svg';
   static const web = 'assets/images/web.svg';
+  static const greenCheck = 'assets/images/green_check.svg';
 }

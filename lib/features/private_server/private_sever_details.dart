@@ -9,10 +9,12 @@ import 'package:lantern/features/private_server/provider/private_server_notifier
 @RoutePage(name: 'PrivateServerDetails')
 class PrivateSeverDetails extends StatefulHookConsumerWidget {
   final List<String> accounts;
+  final CloudProvider provider;
 
   const PrivateSeverDetails({
     super.key,
     required this.accounts,
+    required this.provider,
   });
 
   @override
@@ -24,7 +26,7 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
   @override
   Widget build(BuildContext context) {
     return BaseScreen(
-        title: 'do_private_server_setup'.i18n, body: _buildBody(context, ref));
+        title:widget.provider == CloudProvider.digitalOcean? 'do_private_server_setup'.i18n:'gcp_private_server_setup'.i18n, body: _buildBody(context, ref));
   }
 
   Widget _buildBody(BuildContext context, WidgetRef ref) {
@@ -120,14 +122,16 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
               SizedBox(height: 8),
               if (selectedLocation.value != null)
                 AppTile(
-                  minHeight: 40,
+                    minHeight: 40,
                     contentPadding: EdgeInsets.zero,
-                    icon: Flag(countryCode: selectedLocation.value!.countryCode),
+                    icon:
+                        Flag(countryCode: selectedLocation.value!.countryCode),
                     label: selectedLocation.value!.locationName,
                     onPressed: () {
                       appRouter.push(PrivateServerLocation(
                         location: locationList.value,
                         selectedLocation: selectedLocation.value,
+                        provider: widget.provider,
                         onLocationSelected: (p0) {
                           selectedLocation.value = p0;
                         },
@@ -138,6 +142,7 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
                         appRouter.push(PrivateServerLocation(
                           location: locationList.value,
                           selectedLocation: selectedLocation.value,
+                          provider: widget.provider,
                           onLocationSelected: (p0) {
                             selectedLocation.value = p0;
                           },
@@ -149,11 +154,11 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
                 Center(
                     child: AppTextButton(
                         label: 'choose_location'.i18n,
-
                         onPressed: () {
                           appRouter.push(
                             PrivateServerLocation(
                               location: locationList.value,
+                              provider: widget.provider,
                               selectedLocation: selectedLocation.value,
                               onLocationSelected: (p0) {
                                 selectedLocation.value = p0;
@@ -190,7 +195,8 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
               Center(
                 child: Text(
                   'server_name_description'.i18n,
-                  style: textTheme.labelMedium!.copyWith(color: AppColors.gray6),
+                  style:
+                      textTheme.labelMedium!.copyWith(color: AppColors.gray6),
                 ),
               ),
               SizedBox(height: 4),
@@ -209,6 +215,8 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
       ],
     );
   }
+
+
 
   Future<void> onUserInput(PrivateServerInput input, String account) async {
     context.showLoadingDialog();

@@ -906,6 +906,7 @@ class PrivateServerLocation
     required List<String> location,
     required String? selectedLocation,
     required dynamic Function(String) onLocationSelected,
+    required _i44.CloudProvider provider,
     List<_i42.PageRouteInfo>? children,
   }) : super(
           PrivateServerLocation.name,
@@ -914,6 +915,7 @@ class PrivateServerLocation
             location: location,
             selectedLocation: selectedLocation,
             onLocationSelected: onLocationSelected,
+            provider: provider,
           ),
           initialChildren: children,
         );
@@ -929,6 +931,7 @@ class PrivateServerLocation
         location: args.location,
         selectedLocation: args.selectedLocation,
         onLocationSelected: args.onLocationSelected,
+        provider: args.provider,
       );
     },
   );
@@ -940,6 +943,7 @@ class PrivateServerLocationArgs {
     required this.location,
     required this.selectedLocation,
     required this.onLocationSelected,
+    required this.provider,
   });
 
   final _i43.Key? key;
@@ -950,9 +954,11 @@ class PrivateServerLocationArgs {
 
   final dynamic Function(String) onLocationSelected;
 
+  final _i44.CloudProvider provider;
+
   @override
   String toString() {
-    return 'PrivateServerLocationArgs{key: $key, location: $location, selectedLocation: $selectedLocation, onLocationSelected: $onLocationSelected}';
+    return 'PrivateServerLocationArgs{key: $key, location: $location, selectedLocation: $selectedLocation, onLocationSelected: $onLocationSelected, provider: $provider}';
   }
 
   @override
@@ -961,14 +967,16 @@ class PrivateServerLocationArgs {
     if (other is! PrivateServerLocationArgs) return false;
     return key == other.key &&
         const _i46.ListEquality().equals(location, other.location) &&
-        selectedLocation == other.selectedLocation;
+        selectedLocation == other.selectedLocation &&
+        provider == other.provider;
   }
 
   @override
   int get hashCode =>
       key.hashCode ^
       const _i46.ListEquality().hash(location) ^
-      selectedLocation.hashCode;
+      selectedLocation.hashCode ^
+      provider.hashCode;
 }
 
 /// generated route for
@@ -994,10 +1002,15 @@ class PrivateServerDetails
   PrivateServerDetails({
     _i43.Key? key,
     required List<String> accounts,
+    required _i44.CloudProvider provider,
     List<_i42.PageRouteInfo>? children,
   }) : super(
           PrivateServerDetails.name,
-          args: PrivateServerDetailsArgs(key: key, accounts: accounts),
+          args: PrivateServerDetailsArgs(
+            key: key,
+            accounts: accounts,
+            provider: provider,
+          ),
           initialChildren: children,
         );
 
@@ -1007,21 +1020,31 @@ class PrivateServerDetails
     name,
     builder: (data) {
       final args = data.argsAs<PrivateServerDetailsArgs>();
-      return _i27.PrivateSeverDetails(key: args.key, accounts: args.accounts);
+      return _i27.PrivateSeverDetails(
+        key: args.key,
+        accounts: args.accounts,
+        provider: args.provider,
+      );
     },
   );
 }
 
 class PrivateServerDetailsArgs {
-  const PrivateServerDetailsArgs({this.key, required this.accounts});
+  const PrivateServerDetailsArgs({
+    this.key,
+    required this.accounts,
+    required this.provider,
+  });
 
   final _i43.Key? key;
 
   final List<String> accounts;
 
+  final _i44.CloudProvider provider;
+
   @override
   String toString() {
-    return 'PrivateServerDetailsArgs{key: $key, accounts: $accounts}';
+    return 'PrivateServerDetailsArgs{key: $key, accounts: $accounts, provider: $provider}';
   }
 
   @override
@@ -1029,11 +1052,15 @@ class PrivateServerDetailsArgs {
     if (identical(this, other)) return true;
     if (other is! PrivateServerDetailsArgs) return false;
     return key == other.key &&
-        const _i46.ListEquality().equals(accounts, other.accounts);
+        const _i46.ListEquality().equals(accounts, other.accounts) &&
+        provider == other.provider;
   }
 
   @override
-  int get hashCode => key.hashCode ^ const _i46.ListEquality().hash(accounts);
+  int get hashCode =>
+      key.hashCode ^
+      const _i46.ListEquality().hash(accounts) ^
+      provider.hashCode;
 }
 
 /// generated route for

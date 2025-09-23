@@ -11,12 +11,14 @@ class PrivateServerLocation extends StatefulHookConsumerWidget {
   final List<String> location;
   final String? selectedLocation;
   final Function(String) onLocationSelected;
+  final CloudProvider provider;
 
   const PrivateServerLocation({
     super.key,
     required this.location,
     required this.selectedLocation,
     required this.onLocationSelected,
+    required this.provider,
   });
 
   @override
@@ -28,7 +30,9 @@ class _PrivateServerLocationState extends ConsumerState<PrivateServerLocation> {
   @override
   Widget build(BuildContext context) {
     return BaseScreen(
-      title: 'private_server_location'.i18n,
+      title: widget.provider == CloudProvider.digitalOcean
+          ? 'do_private_server_location'.i18n
+          : 'gcp_private_server_location'.i18n,
       body: _buildBody(),
     );
   }
@@ -51,7 +55,7 @@ class _PrivateServerLocationState extends ConsumerState<PrivateServerLocation> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
-            'Digital Ocean Location Options (${widget.location.length}) ',
+            '${widget.provider.displayName} Location Options (${widget.location.length}) ',
             style: textTheme.labelLarge!.copyWith(
               color: AppColors.gray8,
             ),

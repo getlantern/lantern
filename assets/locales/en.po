@@ -766,7 +766,7 @@ msgid "all_required_fields"
 msgstr "Please fill out all required fields."
 
 msgid "private_server_ready"
-msgstr "Your Private Server is Ready!"
+msgstr "Private Server is Ready!"
 
 msgid "private_server_ready_message"
 msgstr "Your Server has been set up and added to your server list. You're ready to connect!"
@@ -1032,3 +1032,17 @@ msgstr "DO Private Server Setup"
 
 msgid "private_server_note"
 msgstr "Select a region for your Private Server. Closer locations may improve speed and latency."
+
+msgid "gcp_private_server_setup"
+msgstr "GCP Private Server Setup"
+
+msgid "gcp_private_server_location"
+msgstr "GCP Private Server Location"
+
+msgid "do_private_server_location"
+msgstr "DO Private Server Location"
+
+
+msgid "confirm"
+msgstr "Confirm"
+

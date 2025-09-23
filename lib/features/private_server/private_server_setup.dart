@@ -20,6 +20,11 @@ class PrivateServerSetup extends HookConsumerWidget {
     final serverState = ref.watch(privateServerNotifierProvider);
     final flags = ref.read(featureFlagNotifierProvider.notifier);
     final selectedIdx = useState(0);
+    final CloudProvider selectedProvider = flags.isGCPEnabled
+        ? (selectedIdx.value == 0
+            ? CloudProvider.googleCloud
+            : CloudProvider.digitalOcean)
+        : CloudProvider.digitalOcean;
 
     useEffect(() {
       if (serverState.status == 'openBrowser') {
@@ -36,7 +41,8 @@ class PrivateServerSetup extends HookConsumerWidget {
       if (serverState.status == 'EventTypeAccounts') {
         context.hideLoadingDialog();
         final accounts = serverState.data!;
-        appRouter.push(PrivateServerDetails(accounts: [accounts]));
+        appRouter.push(PrivateServerDetails(
+            accounts: [accounts], provider: selectedProvider!));
       }
       if (serverState.status == 'EventTypeValidationError') {
         WidgetsBinding.instance.addPostFrameCallback((_) {
