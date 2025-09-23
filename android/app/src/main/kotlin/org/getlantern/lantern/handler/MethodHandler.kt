@@ -133,7 +133,7 @@ class MethodHandler : FlutterPlugin,
                     result.runCatching {
                         val map = call.arguments as Map<*, *>
                         val location = map["location"] as String? ?: error("Missing location")
-                        val tag = map["tag"] as String? ?: error("Missing tag")
+                        val tag = map["serverName"] as String? ?: error("Missing serverName")
                         MainActivity.instance.connectToServer(
                             location,
                             tag,
