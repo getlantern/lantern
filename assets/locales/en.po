@@ -634,6 +634,14 @@ msgstr "Server Location"
 msgid "choose"
 msgstr "Choose"
 
+msgid "choose_your_account"
+msgstr "Choose Your Account"
+
+
+msgid "choose_your_project"
+msgstr "Choose your project"
+
+
 msgid "name_your_google_cloud_project"
 msgstr "Name your Google Cloud Project"
 
@@ -1018,3 +1026,9 @@ msgstr "Enter an Activation Code"
 msgid "restore_purchase"
 msgstr "Restore Purchase"
 
+
+msgid "do_private_server_setup"
+msgstr "DO Private Server Setup"
+
+msgid "private_server_note"
+msgstr "Select a region for your Private Server. Closer locations may improve speed and latency."

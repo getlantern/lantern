@@ -19,18 +19,14 @@ class PrivateServerSetup extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final serverState = ref.watch(privateServerNotifierProvider);
     final flags = ref.read(featureFlagNotifierProvider.notifier);
-
-    final browserOpened = useRef(false);
     final selectedIdx = useState(0);
 
     useEffect(() {
-      if (serverState.status == 'openBrowser' && !browserOpened.value) {
-        browserOpened.value = true;
+      if (serverState.status == 'openBrowser') {
         UrlUtils.openWebview<bool>(
           serverState.data!,
           onWebviewResult: (ok) {
             if (ok) context.showLoadingDialog();
-            browserOpened.value = false;
           },
         );
       }
