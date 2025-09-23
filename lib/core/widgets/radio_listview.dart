@@ -38,12 +38,10 @@ class RadioListView<T> extends StatelessWidget {
         return AppTile(
           label: value.toString(),
           onPressed: () => onChanged(value),
-          trailing: Radio<T>(
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          trailing: AppRadioButton<T>(
             value: value,
             groupValue: groupValue,
             onChanged: (v) => onChanged(value),
-            activeColor: Theme.of(context).colorScheme.primary,
           ),
         );
       },

@@ -13,7 +13,7 @@ class AppStorageUtils {
       if (path.endsWith("/app_flutter")) {
         baseDir = Directory(path.replaceFirst("/app_flutter", ""));
       }
-      logDir = Directory("${baseDir.path}/logs");
+      logDir = Directory("${baseDir.path}/.lantern/logs");
     } else if (Platform.isMacOS) {
       logDir = Directory('/Users/Shared/Lantern/Logs');
     } else if (Platform.isLinux) {
