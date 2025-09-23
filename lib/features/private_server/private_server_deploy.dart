@@ -102,7 +102,7 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
           Center(child: Icon(Icons.fingerprint, size: 40)),
           SizedBox(height: 16),
           Text(
-            'confirm'.i18n,
+            'confirm_fingerprint'.i18n,
             style: textTheme!.titleLarge,
           ),
           SizedBox(height: 16),
@@ -126,7 +126,7 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
           textColor: AppColors.gray6,
         ),
         AppTextButton(
-          label: "confirm_fingerprint".i18n,
+          label: "confirm".i18n,
           textColor: AppColors.blue6,
           onPressed: () {
             onConfirmFingerprint(cert.first);
@@ -150,14 +150,16 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
             path: AppImagePaths.greenCheck,
           )),
           SizedBox(height: 16),
-          Text(
-            'private_server_ready'.i18n,
-            style: textTheme!.titleLarge,
-            textAlign: TextAlign.center,
+          Center(
+            child: Text(
+              'private_server_ready'.i18n,
+              style: textTheme!.titleLarge,
+              textAlign: TextAlign.center,
+            ),
           ),
           SizedBox(height: 16),
           Text(
-            'private_server_ready_message'.i18n,
+            'private_server_ready_message'.i18n.fill([widget.serverName]),
             style: textTheme!.bodyMedium!.copyWith(color: AppColors.gray8),
           ),
         ],

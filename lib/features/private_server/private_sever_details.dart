@@ -197,9 +197,10 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
               SizedBox(height: 4),
               Center(
                 child: Text(
-                  'server_name_description'.i18n,
-                  style:
-                      textTheme.labelMedium!.copyWith(color: AppColors.gray6),
+                  "how_server_appears".i18n,
+                  style: textTheme.labelMedium!.copyWith(
+                    color: AppColors.gray6,
+                  ),
                 ),
               ),
               SizedBox(height: 4),
