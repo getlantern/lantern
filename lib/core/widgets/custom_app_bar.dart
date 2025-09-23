@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'package:lantern/core/common/app_asset.dart';
 
 class CustomAppBar extends AppBar {
@@ -16,9 +15,7 @@ class CustomAppBar extends AppBar {
     super.actionsPadding,
     super.backgroundColor,
   }) : super(
-          title: title.runtimeType == String
-              ? Text(title as String)
-              : title as Widget,
+          title: title,
           leading: leading ?? const BackButton(),
           elevation: 0,
         );

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/common/common.dart' hide BackButton;
 import 'package:lantern/core/models/mapper/user_mapper.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/widgets/app_pin_field.dart';
@@ -33,7 +33,13 @@ class ConfirmEmail extends HookConsumerWidget {
     final codeController = useTextEditingController();
 
     return BaseScreen(
-      title: 'confirm_email'.i18n,
+      title: '',
+      appBar: CustomAppBar(
+        title: Text('confirm_email'.i18n),
+        leading: BackButton(
+          onPressed: () => onBackPresses(ref, context),
+        ),
+      ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -83,6 +89,32 @@ class ConfirmEmail extends HookConsumerWidget {
           )
         ],
       ),
+    );
+  }
+
+  Future<void> onBackPresses(WidgetRef ref, BuildContext context) async {
+    appLogger
+        .info('Back button pressed in ConfirmEmail screen Deleting account');
+    assert(password != null,
+        'Password must be provided to delete account on back press');
+    context.showLoadingDialog();
+    final result = await ref
+        .read(authNotifierProvider.notifier)
+        .deleteAccount(email, password!);
+
+    result.fold(
+      (failure) {
+        context.hideLoadingDialog();
+        context.showSnackBar(failure.localizedErrorMessage);
+      },
+      (_) {
+        ///reset login status
+        ref.read(appSettingNotifierProvider.notifier)
+          ..setEmail('')
+          ..setUserLoggedIn(false);
+        context.hideLoadingDialog();
+        appRouter.pop();
+      },
     );
   }
 
