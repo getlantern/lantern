@@ -58,6 +58,9 @@ class MethodHandler {
         self.oauthLoginCallback(result: result, token: token)
       case "getUserData":
         self.getUserData(result: result)
+      case "fetchUserData":
+        self.fetchUserData(result: result)
+        break
       case "acknowledgeInAppPurchase":
         if let map = call.arguments as? [String: Any],
           let token = map["purchaseToken"] as? String,
@@ -109,6 +112,11 @@ class MethodHandler {
         break
       case "completeChangeEmail":
         self.completeChangeEmail(result: result, data: call.arguments as? [String: Any] ?? [:])
+        break
+      case "removeDevice":
+        let data = call.arguments as? [String: Any]
+        let deviceId = data?["deviceId"] as? String ?? ""
+        self.deviceRemove(result: result, deviceId: deviceId)
         break
       // Private server methods
       case "digitalOcean":
@@ -409,6 +417,20 @@ class MethodHandler {
     }
   }
 
+  private func fetchUserData(result: @escaping FlutterResult) {
+    Task.detached {
+      var error: NSError?
+      let bytes = MobileFetchUserData(&error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "FETCH_USER_DATA_ERROR")
+        return
+      }
+      await MainActor.run {
+        result(bytes)
+      }
+    }
+  }
+
   func acknowledgeInAppPurchase(token: String, planId: String, result: @escaping FlutterResult) {
     Task {
       do {
@@ -498,6 +520,25 @@ class MethodHandler {
       }
       await MainActor.run {
         result("Change email completed successfully.")
+      }
+    }
+  }
+
+  func deviceRemove(result: @escaping FlutterResult, deviceId: String) {
+    Task.detached {
+      var error: NSError?
+      MobileRemoveDevice(deviceId, &error)
+      if error != nil {
+        appLogger.error("Failed to remove device: \(error!.localizedDescription)")
+      await self.handleFlutterError(
+          error,
+          result: result,
+          code: "REMOVE_DEVICE_FAILED")
+        return
+      }
+      await MainActor.run {
+        appLogger.info("Device removed successfully.")
+        self.replyOK(result)
       }
     }
   }
@@ -901,5 +942,10 @@ class MethodHandler {
       )
     }
   }
+    
+    @MainActor
+    private func replyOK(_ result: FlutterResult) {
+      result("ok")
+    }
 
 }

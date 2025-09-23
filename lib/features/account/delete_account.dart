@@ -4,10 +4,10 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
-import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 import '../../core/common/common.dart';
 import '../../core/services/injection_container.dart';
+import '../auth/provider/auth_notifier.dart';
 
 @RoutePage(name: 'DeleteAccount')
 class DeleteAccount extends StatefulHookConsumerWidget {
@@ -97,8 +97,8 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
     final String email =
         sl<LocalStorageService>().getUser()!.legacyUserData.email;
     final result = await ref
-        .read(lanternServiceProvider)
-        .deleteAccount(email: email, password: password);
+        .read(authNotifierProvider.notifier)
+        .deleteAccount(email, password);
 
     result.fold(
       (failure) {
