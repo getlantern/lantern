@@ -21,12 +21,12 @@ class LabeledCardDropdownWithFlag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final _cardColor = cardColor ?? Colors.white;
+    final finalizeCardColor = cardColor ?? Colors.white;
 
     return Container(
       padding: const EdgeInsets.only(top: 16, left: 16, right: 16),
       decoration: BoxDecoration(
-        color: _cardColor,
+        color: finalizeCardColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.gray2, width: 1),
       ),

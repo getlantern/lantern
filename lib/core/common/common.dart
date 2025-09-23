@@ -9,7 +9,6 @@ import 'package:lantern/core/localization/i18n.dart';
 import 'package:lantern/core/models/private_server_entity.dart';
 import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/services/logger_service.dart';
-import 'package:lantern/core/utils/country_utils.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../features/home/provider/home_notifier.dart';

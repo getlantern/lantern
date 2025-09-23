@@ -1,4 +1,3 @@
-import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
@@ -33,14 +32,11 @@ class LabeledCardInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final _cardColor = cardColor ?? Colors.white;
-
     return Container(
       width: width ?? double.infinity,
       padding: cardPadding,
       decoration: BoxDecoration(
-        color: _cardColor,
+        color: cardColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: AppColors.gray2,

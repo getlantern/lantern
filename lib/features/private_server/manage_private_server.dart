@@ -242,7 +242,6 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
   }
 
   void showDeleteDialog(String serverName) {
-    final textController = TextEditingController();
     AppDialog.customDialog(
       context: context,
       content: Column(

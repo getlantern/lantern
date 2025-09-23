@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/models/app_data.dart';

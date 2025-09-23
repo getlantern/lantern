@@ -229,6 +229,7 @@ class LanternFFIService implements LanternCoreService {
     );
   }
 
+  @override
   Future<Either<Failure, DataCapInfo>> getDataCapInfo() async {
     try {
       final result = await runInBackground<String>(
@@ -391,7 +392,7 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, Unit>> isVPNConnected() async {
     try {
-      final result = _ffiService.isVPNConnected();
+      final _ = _ffiService.isVPNConnected();
       return right(unit);
     } catch (e) {
       return Left(e.toFailure());

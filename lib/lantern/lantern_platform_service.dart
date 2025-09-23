@@ -75,7 +75,7 @@ class LanternPlatformService implements LanternCoreService {
   @override
   Future<Either<Failure, String>> stopVPN() async {
     try {
-      final message = await _methodChannel.invokeMethod<String>('stopVPN');
+      final _ = await _methodChannel.invokeMethod<String>('stopVPN');
       return Right('VPN stopped');
     } on PlatformException catch (ple) {
       return Left(ple.toFailure());
@@ -704,7 +704,7 @@ class LanternPlatformService implements LanternCoreService {
       required String accessToken,
       required String inviteName}) async {
     try {
-      final result = await _methodChannel.invokeMethod<String>(
+      final _ = await _methodChannel.invokeMethod<String>(
         'revokeServerManagerInstance',
         {
           'ip': ip,
@@ -827,7 +827,7 @@ class LanternPlatformService implements LanternCoreService {
   @override
   Future<Either<Failure, Unit>> openSystemExtension() async {
     try {
-      final result = await _methodChannel
+      final _ = await _methodChannel
           .invokeMethod<String>('openSystemExtensionSetting');
       appLogger.info('Open System Extension Setting');
       return right(unit);

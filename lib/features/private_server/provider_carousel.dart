@@ -27,9 +27,7 @@ class ProviderCarousel extends HookConsumerWidget {
 
     // final w = MediaQuery.sizeOf(context).width;
     final isDesktop = PlatformUtils.isDesktop;
-    final fraction =
-        (isDesktop ? 0.98 : viewportFraction).clamp(0.82, 0.98).toDouble();
-
+    
     final controller = useMemoized(
         () => PageController(viewportFraction: .98, keepPage: true));
     useEffect(() => controller.dispose, [controller]);

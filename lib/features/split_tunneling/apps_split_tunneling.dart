@@ -22,7 +22,6 @@ class AppsSplitTunneling extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final textTheme = Theme.of(context).textTheme;
     final searchQuery = ref.watch(searchQueryProvider);
     final notifier = ref.read(splitTunnelingAppsProvider.notifier);
     final enabledApps = ref.watch(splitTunnelingAppsProvider);
