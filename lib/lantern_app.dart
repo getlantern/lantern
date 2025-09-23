@@ -1,4 +1,3 @@
-import 'package:animated_loading_border/animated_loading_border.dart';
 import 'package:app_links/app_links.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:i18n_extension/i18n_extension.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
 import 'package:lantern/core/router/router.dart';
+import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/window/window_wrapper.dart';
 import 'package:loader_overlay/loader_overlay.dart';
@@ -100,15 +100,7 @@ class _LanternAppState extends ConsumerState<LanternApp> {
     return GlobalLoaderOverlay(
       overlayColor: Colors.black.withOpacity(0.5),
       overlayWidgetBuilder: (_) => Center(
-        child: AnimatedLoadingBorder(
-          borderWidth: 5,
-          borderColor: AppColors.yellow3,
-          cornerRadius: 100,
-          child: AppImage(
-            path: AppImagePaths.lanternLogoRounded,
-            height: 50,
-          ),
-        ),
+        child: LoadingIndicator(),
       ),
       child: WindowWrapper(
         child: SystemTrayWrapper(

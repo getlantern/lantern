@@ -47,7 +47,7 @@ class Account extends HookConsumerWidget {
         AppCard(
           padding: EdgeInsets.zero,
           child: AppTile(
-            label: appSettings.email,
+            label: appSettings.email.toLowerCase(),
             icon: AppImagePaths.email,
             contentPadding: EdgeInsets.only(left: 16),
             onPressed: kDebugMode
