@@ -21,7 +21,7 @@ jobs:
     env:
       BUILD_TYPE: ${{ inputs.build_type || '' }}
       VERSION: ${{ inputs.version }}
-    runs-on: ubuntu-latest
+    runs-on: macos-15
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -35,6 +35,10 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version-file: "go.mod"
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
 
       - name: Set up Java 17 (Gradle cache)
         uses: actions/setup-java@v4
