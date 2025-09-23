@@ -43,7 +43,6 @@ class AppDropdown<T> extends StatelessWidget {
               style: textTheme.bodyMedium!.copyWith(
                 color: AppColors.gray9,
               ),
-
               value: value,
               borderRadius: BorderRadius.circular(16),
               underline: const SizedBox.shrink(),

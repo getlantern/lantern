@@ -70,7 +70,6 @@ class ProviderCard extends StatelessWidget {
             showDivider: false,
             topPadding: 8,
           ),
-
           Spacer(),
           PrimaryButton(
               label: buttonTitle, isTaller: true, onPressed: onContinueClicked),

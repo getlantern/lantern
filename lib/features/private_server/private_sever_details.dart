@@ -26,7 +26,10 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
   @override
   Widget build(BuildContext context) {
     return BaseScreen(
-        title:widget.provider == CloudProvider.digitalOcean? 'do_private_server_setup'.i18n:'gcp_private_server_setup'.i18n, body: _buildBody(context, ref));
+        title: widget.provider == CloudProvider.digitalOcean
+            ? 'do_private_server_setup'.i18n
+            : 'gcp_private_server_setup'.i18n,
+        body: _buildBody(context, ref));
   }
 
   Widget _buildBody(BuildContext context, WidgetRef ref) {
@@ -215,8 +218,6 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
       ],
     );
   }
-
-
 
   Future<void> onUserInput(PrivateServerInput input, String account) async {
     context.showLoadingDialog();
