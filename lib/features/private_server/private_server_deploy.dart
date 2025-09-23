@@ -173,9 +173,14 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
           textColor: AppColors.gray6,
         ),
         AppTextButton(
-          label: "connect_now".i18n,
+          label: "go_to_server_locations".i18n,
           textColor: AppColors.blue6,
-          onPressed: () {},
+          onPressed: () {
+            appRouter.pushAndPopUntil(
+              ServerSelection(),
+              predicate: (route) => route.isFirst,
+            );
+          },
         ),
       ],
     );

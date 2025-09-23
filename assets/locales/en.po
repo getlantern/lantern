@@ -940,20 +940,6 @@ msgid "server_already_selected"
 msgstr "You are already connected to this server."
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 msgid "device_limit_reached"
 msgstr "Device Limit Reached"
 
@@ -1042,7 +1028,11 @@ msgstr "GCP Private Server Location"
 msgid "do_private_server_location"
 msgstr "DO Private Server Location"
 
-
 msgid "confirm"
 msgstr "Confirm"
 
+msgid "private_server_warning"
+msgstr "Only add servers run by people you trust "
+
+msgid "go_to_server_locations"
+msgstr "Go To Server Locations"
