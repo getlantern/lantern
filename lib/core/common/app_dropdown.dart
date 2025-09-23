@@ -25,7 +25,7 @@ class AppDropdown<T> extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final dropDown = Container(
       padding: EdgeInsets.symmetric(horizontal: 8),
-      height: 48,
+      height: 56,
       decoration: BoxDecoration(
         border: Border.all(
           color: AppColors.gray3,
