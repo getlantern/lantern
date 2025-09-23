@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 
 import 'app_colors.dart';
@@ -18,7 +19,7 @@ class AppTheme {
         selectionColor: AppColors.blue6,
         selectionHandleColor: AppColors.blue7,
       ),
-      textTheme: TextTheme(
+      textTheme: GoogleFonts.urbanistTextTheme().copyWith(
         bodyLarge: AppTestStyles.bodyLarge,
         bodyMedium: AppTestStyles.bodyMedium,
         bodySmall: AppTestStyles.bodySmall,

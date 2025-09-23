@@ -86,9 +86,21 @@ class AppTestStyles {
         color: AppColors.black,
       );
 
+  static TextStyle get bodyLargeBold => GoogleFonts.urbanist(
+        fontSize: 16,
+        fontWeight: FontWeight.bold,
+        color: AppColors.black,
+      );
+
   static TextStyle get bodyMedium => GoogleFonts.urbanist(
         fontSize: 14,
         fontWeight: FontWeight.w400,
+        color: AppColors.black,
+      );
+
+  static TextStyle get bodyMediumBold => GoogleFonts.urbanist(
+        fontSize: 14,
+        fontWeight: FontWeight.bold,
         color: AppColors.black,
       );
 

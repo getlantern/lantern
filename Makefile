@@ -495,6 +495,7 @@ delete-data:
 	@rm -rf "$(HOME)/Library/Application Support/org.getlantern.lantern"
 	@rm -rf "$(HOME)/Library/Logs/Lantern"
 	@rm -rf "$(HOME)/.lanternsecrets"
+	@rm -rf "/Users/Shared/Lantern/"
 	@echo "Lantern data deleted."
 
 .PHONY: protos

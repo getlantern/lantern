@@ -21,11 +21,14 @@ Future<void> injectServices() async {
     sl.registerLazySingleton(() => AppPurchase());
     sl<AppPurchase>().init();
 
-    // sl.registerLazySingleton(() => NotificationService());
-    // await sl<NotificationService>().init();
+    // We want to make sure the platform service and FFI service are
+    // initialized as early as possible so we can communicate with
+    // native code on different platforms.
+    final ps = LanternPlatformService();
+    await ps.init();
+    sl.registerSingleton<LanternPlatformService>(ps);
+    final LanternFFIService ffiService;
 
-    sl.registerLazySingleton(() => LanternPlatformService(sl<AppPurchase>()));
-    await sl<LanternPlatformService>().init();
     if (PlatformUtils.isFFISupported) {
       sl.registerLazySingleton(() => LanternFFIService());
       await sl<LanternFFIService>().init();
@@ -39,7 +42,28 @@ Future<void> injectServices() async {
     sl.registerLazySingleton(() => StripeService());
     await sl<StripeService>().initialize();
 
-    sl.registerLazySingleton(() => DeepLinkCallbackManager());
+    sl.registerSingletonAsync<StoreUtils>(() async {
+      appLogger.info("Initializing StoreUtils");
+      final storeUtils = StoreUtils();
+      await storeUtils.init();
+      return storeUtils;
+    });
+
+    sl.registerSingletonAsync<StripeService>(() async {
+      appLogger.info("Initializing StripeService");
+      final stripeService = StripeService();
+      await stripeService.initialize();
+      return stripeService;
+    });
+    sl.registerLazySingleton<DeepLinkCallbackManager>(
+        () => DeepLinkCallbackManager());
+    sl.registerSingletonAsync<NotificationService>(() async {
+      appLogger.info("Initializing NotificationService");
+      final notificationService = NotificationService();
+      await notificationService.init();
+      return notificationService;
+    });
+    appLogger.info("All services injected ✅");
   } catch (e, st) {
     appLogger.error("Error during service injection", e, st);
   }

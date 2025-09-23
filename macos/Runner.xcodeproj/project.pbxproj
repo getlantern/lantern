@@ -21,7 +21,9 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		03893F0D2E6F168E0058A5EC /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C30602DEF68B300691115 /* Logger.swift */; };
 		039A061F2E24DB6000B64255 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B402DE7A5F300640E7F /* KeychainService.swift */; };
+		03A255852E71B27A0054C0D7 /* SystemExtensionStatusEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03A255842E71B26A0054C0D7 /* SystemExtensionStatusEventHandler.swift */; };
 		293C305A2DEF649500691115 /* MethodHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C30552DEF649500691115 /* MethodHandler.swift */; };
 		293C305E2DEF67EB00691115 /* VPNManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C305C2DEF67EB00691115 /* VPNManager.swift */; };
 		293C305F2DEF67EB00691115 /* VPNBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C305B2DEF67EB00691115 /* VPNBase.swift */; };
@@ -50,6 +52,7 @@
 		5F53D0642E4502A700740586 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 29952B052DE79CB200640E7F /* NetworkExtension.framework */; };
 		5F53D0692E45078400740586 /* Liblantern.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 293C302F2DEF247F00691115 /* Liblantern.xcframework */; };
 		5F53D06A2E45078400740586 /* Liblantern.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 293C302F2DEF247F00691115 /* Liblantern.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		5F7422212E7C1FB000FC72BE /* LogsEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F7422202E7C1FB000FC72BE /* LogsEventHandler.swift */; };
 		6F8419314D5C43EF38859D72 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 831CC47A1A5EE5E9DF45C2BC /* Pods_RunnerTests.framework */; };
 		78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */; };
 /* End PBXBuildFile section */
@@ -129,6 +132,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		03A255842E71B26A0054C0D7 /* SystemExtensionStatusEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemExtensionStatusEventHandler.swift; sourceTree = "<group>"; };
 		1E9A6FC86FA886DA6665EC6D /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
 		293C302F2DEF247F00691115 /* Liblantern.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Liblantern.xcframework; path = Frameworks/Liblantern.xcframework; sourceTree = "<group>"; };
 		293C30552DEF649500691115 /* MethodHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MethodHandler.swift; sourceTree = "<group>"; };
@@ -167,6 +171,7 @@
 		5F53D0152E42442000740586 /* PrivateServerEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivateServerEventHandler.swift; sourceTree = "<group>"; };
 		5F53D0392E44112E00740586 /* SystemExtensionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemExtensionManager.swift; sourceTree = "<group>"; };
 		5F53D03F2E4414A100740586 /* FilePath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilePath.swift; sourceTree = "<group>"; };
+		5F7422202E7C1FB000FC72BE /* LogsEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogsEventHandler.swift; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 		831CC47A1A5EE5E9DF45C2BC /* Pods_RunnerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_RunnerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		967C821650324F795ACA825A /* Pods-RunnerTests.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.profile.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.profile.xcconfig"; sourceTree = "<group>"; };
@@ -235,9 +240,11 @@
 		293C30572DEF649500691115 /* Handlers */ = {
 			isa = PBXGroup;
 			children = (
+				03A255842E71B26A0054C0D7 /* SystemExtensionStatusEventHandler.swift */,
 				2974E0C72E3D35E400EF7DB3 /* StatusEventHandler.swift */,
 				293C30552DEF649500691115 /* MethodHandler.swift */,
 				5F53D0152E42442000740586 /* PrivateServerEventHandler.swift */,
+				5F7422202E7C1FB000FC72BE /* LogsEventHandler.swift */,
 			);
 			path = Handlers;
 			sourceTree = "<group>";
@@ -245,6 +252,7 @@
 		293C305D2DEF67EB00691115 /* VPN */ = {
 			isa = PBXGroup;
 			children = (
+				5F53D0392E44112E00740586 /* SystemExtensionManager.swift */,
 				293C305B2DEF67EB00691115 /* VPNBase.swift */,
 				293C305C2DEF67EB00691115 /* VPNManager.swift */,
 			);
@@ -360,7 +368,6 @@
 				33CC11242044D66E0003C045 /* Resources */,
 				33BA886A226E78AF003329D5 /* Configs */,
 				5F53D0132E42440F00740586 /* Utils */,
-				5F53D0392E44112E00740586 /* SystemExtensionManager.swift */,
 			);
 			path = Runner;
 			sourceTree = "<group>";
@@ -663,6 +670,7 @@
 				5F53D01D2E440BBC00740586 /* main.swift in Sources */,
 				5F53D05F2E44F9C300740586 /* SystemExtensionManager.swift in Sources */,
 				5F53D01F2E440BBC00740586 /* PacketTunnelProvider.swift in Sources */,
+				03893F0D2E6F168E0058A5EC /* Logger.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -680,6 +688,7 @@
 			files = (
 				5F53D0322E4410F100740586 /* StatusEventHandler.swift in Sources */,
 				5F53D0332E4410F100740586 /* PrivateServerEventHandler.swift in Sources */,
+				03A255852E71B27A0054C0D7 /* SystemExtensionStatusEventHandler.swift in Sources */,
 				5F53D03A2E44112E00740586 /* SystemExtensionManager.swift in Sources */,
 				33CC11132044BFA00003C045 /* MainFlutterWindow.swift in Sources */,
 				293C305E2DEF67EB00691115 /* VPNManager.swift in Sources */,
@@ -687,6 +696,7 @@
 				293C305A2DEF649500691115 /* MethodHandler.swift in Sources */,
 				293C30612DEF68B300691115 /* Logger.swift in Sources */,
 				039A061F2E24DB6000B64255 /* KeychainService.swift in Sources */,
+				5F7422212E7C1FB000FC72BE /* LogsEventHandler.swift in Sources */,
 				33CC10F12044A3C60003C045 /* AppDelegate.swift in Sources */,
 				5F53D0402E4414A100740586 /* FilePath.swift in Sources */,
 				335BBD1B22A9A15E00E9071D /* GeneratedPluginRegistrant.swift in Sources */,
@@ -1160,7 +1170,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "Macos Development Profile";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = Lantern;
 				REGISTER_APP_GROUPS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -1175,7 +1185,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Runner/Release.entitlements;
 				CODE_SIGN_IDENTITY = "Developer ID Application";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = "";

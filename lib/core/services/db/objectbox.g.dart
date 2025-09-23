@@ -80,7 +80,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(2, 687217704776011576),
     name: 'AppSetting',
-    lastPropertyId: const obx_int.IdUid(8, 2584154697741095523),
+    lastPropertyId: const obx_int.IdUid(9, 4176228116314272090),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -129,6 +129,12 @@ final _entities = <obx_int.ModelEntity>[
         id: const obx_int.IdUid(8, 2584154697741095523),
         name: 'email',
         type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(9, 4176228116314272090),
+        name: 'showSplashScreen',
+        type: 1,
         flags: 0,
       ),
     ],
@@ -827,7 +833,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final localeOffset = fbb.writeString(object.locale);
         final oAuthTokenOffset = fbb.writeString(object.oAuthToken);
         final emailOffset = fbb.writeString(object.email);
-        fbb.startTable(9);
+        fbb.startTable(10);
         fbb.addInt64(0, object.id);
         fbb.addBool(1, object.isPro);
         fbb.addBool(2, object.isSplitTunnelingOn);
@@ -836,6 +842,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addBool(5, object.userLoggedIn);
         fbb.addBool(6, object.blockAds);
         fbb.addOffset(7, emailOffset);
+        fbb.addBool(8, object.showSplashScreen);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -881,6 +888,12 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final localeParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 10, '');
+        final showSplashScreenParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          20,
+          false,
+        );
         final object = AppSetting(
           id: idParam,
           isPro: isProParam,
@@ -890,6 +903,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           blockAds: blockAdsParam,
           email: emailParam,
           locale: localeParam,
+          showSplashScreen: showSplashScreenParam,
         );
 
         return object;
@@ -1674,6 +1688,11 @@ class AppSetting_ {
   /// See [AppSetting.email].
   static final email = obx.QueryStringProperty<AppSetting>(
     _entities[1].properties[7],
+  );
+
+  /// See [AppSetting.showSplashScreen].
+  static final showSplashScreen = obx.QueryBooleanProperty<AppSetting>(
+    _entities[1].properties[8],
   );
 }
 

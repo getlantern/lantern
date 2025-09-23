@@ -50,7 +50,7 @@ class LocalStorageService {
       //Ex
       //failed to create store: DB's last property ID XX is higher than the incoming one XX in entity XXX
       if (error.contains("failed to create store") ||
-              error.contains("DB's last property ID")) {
+          error.contains("DB's last property ID")) {
         dbLogger.warning(
             "ObjectBox schema mismatch detected – wiping old DB…", e);
 
@@ -84,12 +84,12 @@ class LocalStorageService {
       await Directory(dbPath).create(recursive: true);
     }
 
-      dbLogger.debug("Opening ObjectBox store...");
-      _store = await openStore(
-        directory: dbPath,
-        macosApplicationGroup: macosApplicationGroup,
-      );
-      dbLogger.debug("ObjectBox store opened successfully.");
+    dbLogger.debug("Opening ObjectBox store...");
+    _store = await openStore(
+      directory: dbPath,
+      macosApplicationGroup: macosApplicationGroup,
+    );
+    dbLogger.debug("ObjectBox store opened successfully.");
   }
 
   void close() {
@@ -108,6 +108,24 @@ class LocalStorageService {
 
   Set<AppData> getAllApps() {
     return _appsBox.getAll().toSet();
+  }
+
+  // Select all apps (set isEnabled = true)
+  Future<void> selectAllApps() async {
+    final apps = _appsBox.getAll();
+    for (var app in apps) {
+      app.isEnabled = true;
+    }
+    await _appsBox.putManyAsync(apps);
+  }
+
+// Deselect all apps (set isEnabled = false)
+  Future<void> deselectAllApps() async {
+    final apps = _appsBox.getAll();
+    for (var app in apps) {
+      app.isEnabled = false;
+    }
+    await _appsBox.putManyAsync(apps);
   }
 
   void toggleApp(AppData app) {

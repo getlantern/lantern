@@ -35,7 +35,7 @@ func CreateLogAttachment(logFilePath string) []*issue.Attachment {
 		return nil
 	}
 	return []*issue.Attachment{{
-		Name: "lantern.log",
+		Name: "flutter.log",
 		Data: data,
 	}}
 }

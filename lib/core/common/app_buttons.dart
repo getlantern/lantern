@@ -79,12 +79,11 @@ class PrimaryButton extends StatelessWidget {
           EdgeInsets.symmetric(vertical: 12.0.h, horizontal: 40.0)),
       textStyle: WidgetStatePropertyAll<TextStyle>(
         AppTestStyles.primaryButtonTextStyle.copyWith(
-            fontSize: expanded ? 16.0.sp : 16.0,
-            color: textColor ?? AppColors.gray1,
-            fontWeight: FontWeight.w500),
+            fontSize: expanded ? 16.0.sp : 16.0, fontWeight: FontWeight.w500),
       ),
-      foregroundColor:
-          WidgetStatePropertyAll<Color>(textColor ?? AppColors.gray1),
+      foregroundColor: WidgetStatePropertyAll<Color>(
+        enabled == false ? AppColors.gray5 : textColor ?? AppColors.gray1,
+      ),
       minimumSize: WidgetStatePropertyAll<Size>(expanded
           ? Size(double.infinity, isTaller == true ? 56.0 : 48.0)
           : const Size(0, 52.0)),
@@ -175,6 +174,7 @@ class AppTextButton extends StatelessWidget {
 
   final Color? textColor;
   final EdgeInsets? padding;
+  final double? fontSize;
 
   const AppTextButton({
     super.key,
@@ -182,6 +182,7 @@ class AppTextButton extends StatelessWidget {
     required this.onPressed,
     this.textColor,
     this.padding,
+    this.fontSize,
   });
 
   @override
@@ -192,9 +193,9 @@ class AppTextButton extends StatelessWidget {
         padding: padding ?? EdgeInsets.symmetric(horizontal: 16.0),
         visualDensity: VisualDensity.compact,
         textStyle: AppTestStyles.titleMedium.copyWith(
-          overflow: TextOverflow.ellipsis,
-          decoration: TextDecoration.underline,
-        ),
+            overflow: TextOverflow.ellipsis,
+            decoration: TextDecoration.underline,
+            fontSize: fontSize),
         foregroundColor: textColor ?? AppColors.blue7,
       ),
       child: Text(label),

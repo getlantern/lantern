@@ -175,5 +175,10 @@ class AppRouter extends RootStackRouter {
       path: '/qr-scanner',
       page: QrCodeScanner.page,
     ),
+    AutoRoute(
+      path: '/system-extension-dialog',
+      page: MacOSExtensionDialog.page,
+      fullscreenDialog: true,
+    ),
   ];
 }

@@ -19,17 +19,40 @@ enum _SettingTileType {
 }
 
 @RoutePage(name: 'Home')
-class Home extends HookConsumerWidget {
+class Home extends StatefulHookConsumerWidget {
   Home({super.key});
 
+  @override
+  ConsumerState<Home> createState() => _HomeState();
+}
+
+class _HomeState extends ConsumerState<Home> {
   TextTheme? textTheme;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  void initState() {
+    super.initState();
+    if (PlatformUtils.isMacOS) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final appSetting = ref.read(appSettingNotifierProvider);
+        appLogger.info(
+            "App Setting - showSplashScreen: ${appSetting.showSplashScreen}");
+        if (appSetting.showSplashScreen) {
+          appLogger.info("Showing System Extension Dialog");
+          appRouter.push(const MacOSExtensionDialog());
+          //User has seen dialog, do not show again
+          appLogger.info("Setting showSplashScreen to false");
+          ref.read(appSettingNotifierProvider.notifier).setSplashScreen(false);
+        }
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final isUserPro = ref.isUserPro;
     ref.read(featureFlagNotifierProvider.notifier);
     textTheme = Theme.of(context).textTheme;
-
     return Scaffold(
       appBar: AppBar(
           backgroundColor: AppColors.white,
@@ -84,10 +107,7 @@ class Home extends HookConsumerWidget {
   }
 
   Widget _buildSetting(WidgetRef ref) {
-    final preferences = ref.watch(appSettingNotifierProvider);
-    final splitTunnelingEnabled = preferences.isSplitTunnelingOn;
-    final serverLocation = ref.watch(serverLocationNotifierProvider);
-    final serverType = serverLocation.serverType.toServerLocationType;
+    final setting = ref.watch(appSettingNotifierProvider);
 
     return Container(
       decoration: BoxDecoration(boxShadow: [
@@ -111,7 +131,9 @@ class Home extends HookConsumerWidget {
               SettingTile(
                 label: 'split_tunneling'.i18n,
                 icon: AppImagePaths.callSpilt,
-                value: splitTunnelingEnabled ? 'Enabled' : 'Disabled',
+                value: setting.isSplitTunnelingOn
+                    ? setting.splitTunnelingMode.value.capitalize
+                    : 'disabled'.i18n,
                 actions: [
                   IconButton(
                     onPressed: () => appRouter.push(SplitTunneling()),

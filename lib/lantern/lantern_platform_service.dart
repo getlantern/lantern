@@ -8,6 +8,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/datacap_info.dart';
+import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/mapper/plan_mapper.dart';
 import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/models/private_server_status.dart';
@@ -21,9 +22,7 @@ import '../core/models/lantern_status.dart';
 import '../core/services/injection_container.dart' show sl;
 
 class LanternPlatformService implements LanternCoreService {
-  final AppPurchase appPurchase;
-
-  LanternPlatformService(this.appPurchase);
+  LanternPlatformService();
 
   static const channelPrefix = 'org.getlantern.lantern';
   static const MethodChannel _methodChannel =
@@ -31,11 +30,14 @@ class LanternPlatformService implements LanternCoreService {
   static const logsChannel = EventChannel("$channelPrefix/logs");
   static const EventChannel statusChannel =
       EventChannel("$channelPrefix/status", JSONMethodCodec());
-
+  static const EventChannel systemExtensionStatusChannel =
+      EventChannel("$channelPrefix/system_extension_status", JSONMethodCodec());
   static const privateServerStatusChannel =
       EventChannel("$channelPrefix/private_server_status", JSONMethodCodec());
+
   late final Stream<LanternStatus> _status;
   late final Stream<PrivateServerStatus> _privateServerStatus;
+  late final Stream<MacOSExtensionState> _systemExtensionStatus;
 
   @override
   Future<void> init() async {
@@ -47,6 +49,12 @@ class LanternPlatformService implements LanternCoreService {
     _privateServerStatus = privateServerStatusChannel
         .receiveBroadcastStream()
         .map((event) => PrivateServerStatus.fromJson(jsonDecode(event)));
+    if (PlatformUtils.isMacOS) {
+      _systemExtensionStatus = systemExtensionStatusChannel
+          .receiveBroadcastStream()
+          .map((event) =>
+              MacOSExtensionState.fromString(event['status'].toString()));
+    }
   }
 
   @override
@@ -233,7 +241,7 @@ class LanternPlatformService implements LanternCoreService {
       required PaymentSuccessCallback onSuccess,
       required PaymentErrorCallback onError}) async {
     try {
-      await appPurchase.startSubscription(
+      await sl<AppPurchase>().startSubscription(
         plan: planId,
         onSuccess: onSuccess,
         onError: onError,
@@ -249,7 +257,24 @@ class LanternPlatformService implements LanternCoreService {
       {required BillingType type,
       required String planId,
       required String email}) async {
-    throw UnimplementedError("This not supported on mobile");
+    if (!PlatformUtils.isMacOS) {
+      return left(Failure(
+          error: 'Not supported',
+          localizedErrorMessage: 'This is only supported on macOS'));
+    }
+    try {
+      final redirectUrl = await _methodChannel
+          .invokeMethod<String>('stripeSubscriptionPaymentRedirect', {
+        "type": type.name,
+        "planId": planId,
+        "email": email,
+      });
+      return Right(redirectUrl!);
+    } catch (e) {
+      return Left(Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription));
+    }
   }
 
   @override
@@ -639,7 +664,7 @@ class LanternPlatformService implements LanternCoreService {
     try {
       await _methodChannel.invokeMethod('connectToServer', {
         'location': location,
-        'tag': tag,
+        'serverName': tag,
       });
       return Right("ok");
     } catch (e) {
@@ -777,6 +802,59 @@ class LanternPlatformService implements LanternCoreService {
       return right(result!);
     } catch (e, stackTrace) {
       appLogger.error('Error fetching auto server location', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> triggerSystemExtension() async {
+    if (!PlatformUtils.isMacOS) {
+      return left(Failure(
+          error: 'Not supported',
+          localizedErrorMessage: 'This is not supported only on macOS'));
+    }
+    try {
+      final result =
+          await _methodChannel.invokeMethod<String>('triggerSystemExtension');
+      appLogger.info('Trigger system extension result: $result');
+      return right(result!);
+    } catch (e, stackTrace) {
+      appLogger.error('Error triggering system extension', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> openSystemExtension() async {
+    try {
+      final result = await _methodChannel
+          .invokeMethod<String>('openSystemExtensionSetting');
+      appLogger.info('Open System Extension Setting');
+      return right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error opening system extension setting', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Stream<MacOSExtensionState> watchSystemExtensionStatus() {
+    if (!PlatformUtils.isMacOS) {
+      throw UnimplementedError("This is only supported on macOS");
+    }
+    return _systemExtensionStatus;
+  }
+
+  @override
+  Future<Either<Failure, Unit>> isSystemExtensionInstalled() async {
+    try {
+      final result = await _methodChannel
+          .invokeMethod<String>('isSystemExtensionInstalled');
+      appLogger.info('Check if system extension is installed');
+      return right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error(
+          'Error checking if system extension is installed', e, stackTrace);
       return Left(e.toFailure());
     }
   }
