@@ -93,13 +93,12 @@ class PipeClient {
       [Map<String, dynamic>? params]) async {
     if (!isConnected) throw StateError('Pipe not connected');
     await _getToken();
-    final payload = jsonEncode({
+    final payload = '${jsonEncode({
           'id': DateTime.now().microsecondsSinceEpoch.toString(),
           'cmd': cmd,
           'token': token,
           if (params != null) 'params': params,
-        }) +
-        '\n';
+        })}\n';
 
     final bytes = utf8.encode(payload);
     final pBuf = calloc<Uint8>(bytes.length);
@@ -163,22 +162,25 @@ class PipeClient {
     }
   }
 
-  Stream<Map<String, dynamic>> watchStatus() {
-    final controller = StreamController<Map<String, dynamic>>.broadcast();
+  Stream<String> _watchRaw(String cmd) {
+    final controller = StreamController<String>.broadcast();
     final events = ReceivePort();
     Isolate? iso;
     SendPort? stopSend;
 
     controller.onListen = () async {
+      await _getToken();
+
       iso = await Isolate.spawn<_WatchArgs>(
         _watchIsolateMain,
         _WatchArgs(
           pipeName: pipeName,
-          token: token ?? '',
+          token: token!,
           bufSize: bufSize,
+          cmd: cmd,
           events: events.sendPort,
         ),
-        debugName: 'pipe-watch',
+        debugName: 'pipe-watch-$cmd',
       );
 
       events.listen((msg) {
@@ -191,11 +193,7 @@ class PipeClient {
           return;
         }
         if (msg is String) {
-          try {
-            controller.add(jsonDecode(msg) as Map<String, dynamic>);
-          } catch (e, st) {
-            controller.addError(e, st);
-          }
+          controller.add(msg);
           return;
         }
         if (msg is Map) {
@@ -213,6 +211,33 @@ class PipeClient {
 
     return controller.stream;
   }
+
+  Stream<Map<String, dynamic>> watchStatus() {
+    return _watchRaw('WatchStatus').transform(
+      StreamTransformer.fromHandlers(handleData: (line, sink) {
+        try {
+          sink.add(jsonDecode(line) as Map<String, dynamic>);
+        } catch (e, st) {
+          sink.addError(e, st);
+        }
+      }),
+    );
+  }
+
+  Stream<List<String>> watchLogs() {
+    return _watchRaw('WatchLogs').transform(
+      StreamTransformer.fromHandlers(handleData: (line, sink) {
+        try {
+          final obj = jsonDecode(line);
+          if (obj is Map && obj['event'] == 'Logs') {
+            final lines =
+                (obj['lines'] as List?)?.cast<String>() ?? const <String>[];
+            if (lines.isNotEmpty) sink.add(lines);
+          }
+        } catch (_) {}
+      }),
+    );
+  }
 }
 
 class _WatchArgs {
@@ -220,11 +245,13 @@ class _WatchArgs {
     required this.pipeName,
     required this.token,
     required this.bufSize,
+    required this.cmd,
     required this.events,
   });
   final String pipeName;
   final String token;
   final int bufSize;
+  final String cmd;
   final SendPort events;
 }
 
@@ -234,13 +261,11 @@ void _watchIsolateMain(_WatchArgs args) async {
 
   int hPipe = INVALID_HANDLE_VALUE;
 
-  String _watchReq(String token) =>
-      jsonEncode({
-        'id': DateTime.now().microsecondsSinceEpoch.toString(),
-        'cmd': 'WatchStatus',
-        'token': token,
-      }) +
-      '\n';
+  String _watchReq(String token, String cmd) => '${jsonEncode({
+            'id': DateTime.now().microsecondsSinceEpoch.toString(),
+            'cmd': cmd,
+            'token': token,
+          })}\n';
 
   try {
     final name = TEXT(args.pipeName);
@@ -263,7 +288,7 @@ void _watchIsolateMain(_WatchArgs args) async {
       return;
     }
 
-    final req = utf8.encode(_watchReq(args.token));
+    final req = utf8.encode(_watchReq(args.token, args.cmd));
     final p = calloc<Uint8>(req.length);
     final w = calloc<Uint32>();
     try {
@@ -305,6 +330,7 @@ void _watchIsolateMain(_WatchArgs args) async {
         for (var i = 0; i < parts.length - 1; i++) {
           final line = parts[i];
           if (line.isEmpty) continue;
+          // send raw JSON line back
           args.events.send(line);
         }
         carry = parts.isNotEmpty ? parts.last : '';

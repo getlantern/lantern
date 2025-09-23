@@ -14,6 +14,7 @@ const (
 	CmdGetUserData           Command = "GetUserData"
 	CmdStopService           Command = "Stop"
 	CmdWatchStatus           Command = "WatchStatus"
+	CmdWatchLogs             Command = "WatchLogs"
 )
 
 const (
