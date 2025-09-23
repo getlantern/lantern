@@ -52,15 +52,17 @@ class VpnStatus extends HookConsumerWidget {
           if (vpnStatus == VPNStatus.connecting)
             AnimatedTextKit(
               animatedTexts: [
-                TyperAnimatedText('.  ',
-                    textStyle: textTheme.titleMedium!
-                        .copyWith(color: AppColors.gray9, fontSize: 20)),
+                TyperAnimatedText(
+                  '.  ',
+                  textStyle:
+                      textTheme.titleMedium!.copyWith(color: AppColors.gray9),
+                ),
                 TyperAnimatedText('.. ',
                     textStyle: textTheme.titleMedium!
-                        .copyWith(color: AppColors.gray9, fontSize: 20)),
+                        .copyWith(color: AppColors.gray9)),
                 TyperAnimatedText('...',
                     textStyle: textTheme.titleMedium!
-                        .copyWith(color: AppColors.gray9, fontSize: 20)),
+                        .copyWith(color: AppColors.gray9)),
               ],
               repeatForever: true,
             )

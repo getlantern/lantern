@@ -122,7 +122,11 @@ class LanternService implements LanternCoreService {
         email: email,
       );
     }
-    return throw UnimplementedError();
+    return _platformService.stipeSubscriptionPaymentRedirect(
+      type: type,
+      planId: planId,
+      email: email,
+    );
   }
 
   @override

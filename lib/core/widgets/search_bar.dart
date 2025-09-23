@@ -15,7 +15,6 @@ class AppSearchBar extends AppBar {
     VoidCallback? onBack,
   }) : super(
           automaticallyImplyLeading: false,
-          backgroundColor: Colors.white,
           elevation: 0,
           title: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -57,36 +56,26 @@ class _SearchBarContent extends HookConsumerWidget {
         // Search input or title
         Expanded(
           child: isSearching.value
-              ? Container(
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: AppColors.gray1,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.gray3, width: 1),
-                  ),
-                  alignment: Alignment.center,
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: TextField(
-                    controller: controller,
-                    autofocus: true,
-                    onChanged: (value) =>
-                        ref.read(searchQueryProvider.notifier).setQuery(value),
-                    decoration: InputDecoration(
-                      hintText: hintText,
-                      hintStyle: TextStyle(
-                        color: AppColors.gray7,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                      ),
-                      border: InputBorder.none,
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                    ),
-                    style: TextStyle(
+              ? TextField(
+                  controller: controller,
+                  autofocus: true,
+                  onChanged: (value) =>
+                      ref.read(searchQueryProvider.notifier).setQuery(value),
+                  decoration: InputDecoration(
+                    hintText: hintText,
+                    hintStyle: TextStyle(
+                      color: AppColors.gray7,
                       fontSize: 16,
                       fontWeight: FontWeight.w400,
-                      color: AppColors.gray9,
                     ),
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                  ),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w400,
+                    color: AppColors.gray9,
                   ),
                 )
               : Text(

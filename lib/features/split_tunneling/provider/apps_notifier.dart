@@ -45,4 +45,14 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
       await _db.saveApps(state);
     }
   }
+
+  void selectAllApps() async {
+    await _db.selectAllApps();
+    state = _db.getEnabledApps();
+  }
+
+  void deselectAllApps() async {
+    await _db.deselectAllApps();
+    state = _db.getEnabledApps();
+  }
 }

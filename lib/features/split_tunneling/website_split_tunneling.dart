@@ -16,6 +16,7 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final textTheme = Theme.of(context).textTheme;
     final searchQuery = ref.watch(searchQueryProvider);
 
     final enabledWebsites = ref.watch(splitTunnelingWebsitesProvider);
@@ -36,39 +37,62 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
       body: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
-            child: Focus(
-              autofocus: true,
-              child: WebsiteDomainInput(),
+            child: Focus(autofocus: true, child: WebsiteDomainInput()),
+          ),
+          SliverToBoxAdapter(child: SizedBox(height: defaultSize)),
+          SliverToBoxAdapter(
+            child: AppCard(
+              padding: EdgeInsets.zero,
+              child: AppTile(
+                onPressed: () {
+                  appRouter.push(DefaultBypassLists());
+                },
+                contentPadding: EdgeInsets.only(left: 16),
+                icon: AppImagePaths.bypassList,
+                label: 'default_bypass'.i18n,
+                trailing: AppIconButton(
+                  path: AppImagePaths.arrowForward,
+                  onPressed: () => appRouter.push(DefaultBypassLists()),
+                ),
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(child: SizedBox(height: defaultSize)),
+          SliverToBoxAdapter(child: DividerSpace()),
+          SliverToBoxAdapter(child: SizedBox(height: defaultSize)),
+          SliverToBoxAdapter(
+            child: SectionLabel(
+              'websites_bypassing_vpn'.i18n.fill([enabledWebsites.length]),
             ),
           ),
           SliverToBoxAdapter(
-            child: AppTile(
-              icon: AppImagePaths.bypassList,
-              label: 'default_bypass'.i18n,
-              trailing: AppIconButton(
-                path: AppImagePaths.arrowForward,
-                onPressed: () => appRouter.push(DefaultBypassLists()),
-              ),
-            ),
-          ),
-          // Websites bypassing the VPN
-          if (enabledWebsites.isNotEmpty)
-            SliverToBoxAdapter(
-              child: SectionLabel(
-                'websites_bypassing_vpn'.i18n.fill([enabledWebsites.length]),
-              ),
-            ),
-
-          // List of enabled websites
-          SliverList.list(
-            children: enabledList
-                .map((website) => WebsiteRow(
-                      website: website,
-                      onToggle: () => ref
-                          .read(splitTunnelingWebsitesProvider.notifier)
-                          .removeWebsite(website),
-                    ))
-                .toList(),
+            child: AppCard(
+                padding: EdgeInsets.zero,
+                child: enabledList.isEmpty
+                    ? Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Text(
+                          'no_websites_selected'.i18n,
+                          style: textTheme.bodyLarge!.copyWith(
+                            color: AppColors.gray9,
+                          ),
+                        ),
+                      )
+                    : ListView.separated(
+                        shrinkWrap: true,
+                        separatorBuilder: (context, index) =>
+                            DividerSpace(padding: EdgeInsets.zero),
+                        itemCount: enabledList.length,
+                        itemBuilder: (context, index) {
+                          final website = enabledList[index];
+                          return WebsiteRow(
+                            website: website,
+                            onToggle: () => ref
+                                .read(splitTunnelingWebsitesProvider.notifier)
+                                .removeWebsite(website),
+                          );
+                        },
+                      )),
           ),
         ],
       ),
@@ -89,6 +113,8 @@ class WebsiteRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppTile(
+      minHeight: 45,
+      contentPadding: EdgeInsets.only(left: 16),
       label: website.domain,
       tileTextStyle: AppTestStyles.labelLarge.copyWith(
         color: AppColors.gray8,

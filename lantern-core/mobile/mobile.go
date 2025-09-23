@@ -185,6 +185,15 @@ func PaymentRedirect(provider, planId, email string) (string, error) {
 
 }
 
+// /This is specifically for stripe subscriptions that require a redirect to complete the payment
+// This is only used for macos
+func StripeSubscriptionPaymentRedirect(subType, planId, email string) (string, error) {
+	slog.Debug("stripeSubscriptionPaymentRedirect called")
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		return c.StripeSubscriptionPaymentRedirect(subType, planId, email)
+	})
+}
+
 /// User management apis
 
 func Login(email, password string) ([]byte, error) {
