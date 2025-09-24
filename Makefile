@@ -246,7 +246,9 @@ linux-release: clean linux pubget gen
 	@echo "Building Flutter app (release) for Linux..."
 	flutter build linux --release $(DART_DEFINES)
 	cp $(LINUX_LIB_BUILD) build/linux/x64/release/bundle
-	flutter_distributor package $(DART_DEFINES) --platform linux --targets "deb,rpm" --skip-clean
+	flutter_distributor package --build-dart-define=BUILD_TYPE=$(BUILD_TYPE) \
+  	--build-dart-define=VERSION=$(VERSION) --platform windows --targets "exe" \
+	--platform linux --targets "deb,rpm" --skip-clean
 	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-linux.rpm $(LINUX_INSTALLER_RPM)
 	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-linux.deb $(LINUX_INSTALLER_DEB)
 
@@ -277,7 +279,8 @@ windows-debug: windows
 
 .PHONY: windows-release
 windows-release: clean windows pubget gen
-	flutter_distributor package --build-dart-define=BUILD_TYPE=$(BUILD_TYPE) --platform windows --targets "exe"
+	flutter_distributor package --build-dart-define=BUILD_TYPE=$(BUILD_TYPE) \
+  	--build-dart-define=BUILD_VERSION=$(BUILD_VERSION) --platform windows --targets "exe"
 
 .PHONY: install-gomobile
 install-gomobile:
