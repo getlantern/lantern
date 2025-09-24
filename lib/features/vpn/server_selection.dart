@@ -281,10 +281,8 @@ class _ServerLocationListViewState
                         shrinkWrap: true,
                         padding: EdgeInsets.zero,
                         itemCount: locations.length,
-
                         separatorBuilder: (_, __) => const DividerSpace(
                           padding: EdgeInsets.zero,
-
                         ),
                         itemBuilder: (context, index) {
                           final serverData = locations[index];

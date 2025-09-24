@@ -159,7 +159,7 @@ class MethodHandler {
         self.getDataCapInfo(result: result)
       case "reportIssue":
         let map = call.arguments as? [String: Any]
-          self.reportIssue(result: result, data: map!)
+        self.reportIssue(result: result, data: map!)
         break
       case "getLanternAvailableServers":
         self.getLanternAvailableServers(result: result)
@@ -530,7 +530,7 @@ class MethodHandler {
       MobileRemoveDevice(deviceId, &error)
       if error != nil {
         appLogger.error("Failed to remove device: \(error!.localizedDescription)")
-      await self.handleFlutterError(
+        await self.handleFlutterError(
           error,
           result: result,
           code: "REMOVE_DEVICE_FAILED")
@@ -942,10 +942,10 @@ class MethodHandler {
       )
     }
   }
-    
-    @MainActor
-    private func replyOK(_ result: FlutterResult) {
-      result("ok")
-    }
+
+  @MainActor
+  private func replyOK(_ result: FlutterResult) {
+    result("ok")
+  }
 
 }

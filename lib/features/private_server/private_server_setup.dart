@@ -116,7 +116,7 @@ class PrivateServerSetup extends HookConsumerWidget {
               AppImage(
                 path: AppImagePaths.serverRack,
                 type: AssetType.svg,
-                height: PlatformUtils.isDesktop?190.h: 160.h,
+                height: PlatformUtils.isDesktop ? 190.h : 160.h,
               ),
               const SizedBox(height: defaultSize),
               ProviderCarousel(

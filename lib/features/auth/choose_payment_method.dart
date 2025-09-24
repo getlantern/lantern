@@ -183,9 +183,9 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     context.showLoadingDialog();
     final isPro = await checkUserAccountStatus(ref, context);
     context.hideLoadingDialog();
-    if(isPro){
+    if (isPro) {
       resolveRoute(context);
-    }else{
+    } else {
       context.showSnackBar('purchase_not_completed'.i18n);
     }
   }

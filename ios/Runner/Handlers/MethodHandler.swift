@@ -153,7 +153,7 @@ class MethodHandler {
         self.getLanternAvailableServers(result: result)
       case "reportIssue":
         let map = call.arguments as? [String: Any]
-          self.reportIssue(result: result, data: map!)
+        self.reportIssue(result: result, data: map!)
         break
       default:
         result(FlutterMethodNotImplemented)
@@ -626,7 +626,7 @@ class MethodHandler {
       MobileRemoveDevice(deviceId, &error)
       if error != nil {
         appLogger.error("Failed to remove device: \(error!.localizedDescription)")
-       await self.handleFlutterError(
+        await self.handleFlutterError(
           error,
           result: result,
           code: "REMOVE_DEVICE_FAILED")
@@ -775,28 +775,27 @@ class MethodHandler {
       }
     }
   }
-    func reportIssue(result: @escaping FlutterResult, data: [String: Any]) {
-      Task.detached {
-        let email = data["email"] as? String ?? ""
-        let issueType = data["issueType"] as? String ?? ""
-        let description = data["description"] as? String ?? ""
-        let device = data["device"] as? String ?? ""
-        let model = data["model"] as? String ?? ""
-          let logFilePath = data["logFilePath"] as? String ?? ""
+  func reportIssue(result: @escaping FlutterResult, data: [String: Any]) {
+    Task.detached {
+      let email = data["email"] as? String ?? ""
+      let issueType = data["issueType"] as? String ?? ""
+      let description = data["description"] as? String ?? ""
+      let device = data["device"] as? String ?? ""
+      let model = data["model"] as? String ?? ""
+      let logFilePath = data["logFilePath"] as? String ?? ""
 
-        var error: NSError?
-        MobileReportIssue(email, issueType, description, device, model, logFilePath, &error)
-        if let err = error {
-          await self.handleFlutterError(err, result: result, code: "REPORT_ISSUE_ERROR")
-          return
-        }
-        await MainActor.run {
-          result("ok")
-        }
-
+      var error: NSError?
+      MobileReportIssue(email, issueType, description, device, model, logFilePath, &error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "REPORT_ISSUE_ERROR")
+        return
       }
+      await MainActor.run {
+        result("ok")
+      }
+
     }
-    
+  }
 
   //Utils method for hanlding Flutter errors
   private func handleFlutterError(

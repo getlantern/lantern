@@ -3,7 +3,6 @@ import 'package:lantern/core/common/app_asset.dart';
 import 'package:lantern/core/common/app_colors.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 
-
 class CardDropdown<T> extends StatelessWidget {
   final T value;
   final List<DropdownMenuItem<T>> items;
