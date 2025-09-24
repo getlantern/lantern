@@ -152,7 +152,7 @@ macos: $(MACOS_FRAMEWORK_BUILD)
 $(MACOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 	@echo "Building macOS Framework.."
 	rm -rf $(MACOS_FRAMEWORK_BUILD) && mkdir -p $(MACOS_FRAMEWORK_DIR)
-	GOOS=darwin gomobile bind -v \
+	GOTOOLCHAIN=go1.24.1 GOOS=darwin gomobile bind -v \
 		-tags=$(TAGS),netgo -trimpath \
 		-target=macos \
 		-o $(MACOS_FRAMEWORK_BUILD) \
@@ -281,9 +281,9 @@ windows-release: clean windows pubget gen
 
 .PHONY: install-gomobile
 install-gomobile:
-	go install -v golang.org/x/mobile/cmd/gomobile@$(GOMOBILE_VERSION)
-	go install -v golang.org/x/mobile/cmd/gobind@$(GOMOBILE_VERSION)
-	gomobile init
+	GOTOOLCHAIN=go1.24.1 go install -v golang.org/x/mobile/cmd/gomobile@$(GOMOBILE_VERSION)
+	GOTOOLCHAIN=go1.24.1 go install -v golang.org/x/mobile/cmd/gobind@$(GOMOBILE_VERSION)
+	GOTOOLCHAIN=go1.24.1 gomobile init
 
 
 # Android Build
