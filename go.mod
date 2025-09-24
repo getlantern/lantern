@@ -1,8 +1,6 @@
 module github.com/getlantern/lantern-outline
 
-go 1.24
-
-toolchain go1.24.1
+go 1.25.1
 
 //replace github.com/getlantern/radiance => ../radiance
 
@@ -112,7 +110,7 @@ require (
 	golang.org/x/net v0.42.0 // indirect
 	golang.org/x/sync v0.16.0 // indirect
 	golang.org/x/text v0.27.0 // indirect
-	golang.org/x/time v0.11.0 // indirect
+	golang.org/x/time v0.12.0 // indirect
 	golang.org/x/tools v0.35.0 // indirect
 	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250715232539-7130f93afb79 // indirect
@@ -123,12 +121,14 @@ require (
 require (
 	cloud.google.com/go/compute/metadata v0.8.0 // indirect
 	dario.cat/mergo v1.0.1 // indirect
+	filippo.io/edwards25519 v1.0.0 // indirect
 	github.com/1Password/srp v0.2.0 // indirect
 	github.com/Jigsaw-Code/outline-sdk v0.0.19 // indirect
 	github.com/Jigsaw-Code/outline-sdk/x v0.0.2 // indirect
 	github.com/RoaringBitmap/roaring v1.2.3 // indirect
 	github.com/Xuanwo/go-locale v1.1.3 // indirect
 	github.com/ajwerner/btree v0.0.0-20211221152037-f427b3e689c0 // indirect
+	github.com/alecthomas/assert/v2 v2.3.0 // indirect
 	github.com/alecthomas/atomic v0.1.0-alpha2 // indirect
 	github.com/alitto/pond/v2 v2.1.5 // indirect
 	github.com/anacrolix/chansync v0.3.0 // indirect
@@ -156,9 +156,9 @@ require (
 	github.com/cenkalti/backoff/v5 v5.0.2 // indirect
 	github.com/cretz/bine v0.2.0 // indirect
 	github.com/dsnet/compress v0.0.2-0.20210315054119-f66993602bf5 // indirect
-	github.com/dustin/go-humanize v1.0.0 // indirect
+	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/edsrzf/mmap-go v1.1.0 // indirect
-	github.com/felixge/httpsnoop v1.0.4 // indirect
+	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
 	github.com/gaukas/wazerofs v0.1.0 // indirect
 	github.com/getlantern/algeneva v0.0.0-20250307163401-1824e7b54f52 // indirect
 	github.com/getlantern/appdir v0.0.0-20250324200952-507a0625eb01 // indirect
@@ -176,7 +176,7 @@ require (
 	github.com/getlantern/mtime v0.0.0-20200417132445-23682092d1f7 // indirect
 	github.com/getlantern/netx v0.0.0-20240830183145-c257516187f0 // indirect
 	github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 // indirect
-	github.com/getlantern/sing-box-extensions v0.0.5 // indirect
+	github.com/getlantern/sing-box-extensions v0.0.6-0.20250924125506-7f567d83e811 // indirect
 	github.com/getlantern/timezone v0.0.0-20210901200113-3f9de9d360c9 // indirect
 	github.com/getlantern/tlsdialer/v3 v3.0.3 // indirect
 	github.com/getsentry/sentry-go v0.31.1 // indirect
@@ -232,7 +232,6 @@ require (
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	github.com/zeebo/assert v1.3.0 // indirect
 	go.etcd.io/bbolt v1.3.6 // indirect
-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.62.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.37.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.37.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.37.0 // indirect
@@ -245,9 +244,9 @@ require (
 	golang.zx2c4.com/wireguard/wgctrl v0.0.0-20241231184526-a9ab2273dd10 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250715232539-7130f93afb79 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	modernc.org/libc v1.22.3 // indirect
+	modernc.org/libc v1.22.4 // indirect
 	modernc.org/mathutil v1.5.0 // indirect
 	modernc.org/memory v1.5.0 // indirect
-	modernc.org/sqlite v1.21.1 // indirect
+	modernc.org/sqlite v1.21.2 // indirect
 	zombiezen.com/go/sqlite v0.13.1 // indirect
 )
