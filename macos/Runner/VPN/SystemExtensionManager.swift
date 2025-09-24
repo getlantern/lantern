@@ -125,7 +125,7 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     if #available(macOS 12.0, *) {
       // Process the array of system extensions. The device may have old extensions
       // that are in the process of uninstalling, for example. If any of them is
-      // active, however, we should consider the extension to be active.
+      // enabled, however, we should consider the extension to be activated.
       for (i, p) in props.enumerated() {
         if p.isEnabled {
           appLogger.info("System extension \(i) is enabled.")
@@ -133,7 +133,6 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
         }
       }
       for (i, p) in props.enumerated() {
-
         if p.isAwaitingUserApproval {
           appLogger.info("System extension \(i) requires user approval.")
           return .requiresApproval
@@ -144,7 +143,7 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
         }
       }
       appLogger.info("No enabled system extensions found.")
-      return .installed
+      return .notInstalled
     } else {
       appLogger.info("macOS version does not support isAwaitingUserApproval check.")
       return p.isUninstalling ? .uninstalling : .installed
