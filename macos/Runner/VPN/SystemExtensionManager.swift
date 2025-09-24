@@ -6,11 +6,6 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
 
   static let shared = SystemExtensionManager()
   private var tunnelBundleID = "org.getlantern.lantern.PacketTunnel"
-  private var semaphore: DispatchSemaphore?
-  private var currentRequest: OSSystemExtensionRequest?
-  private var error: Error?
-  private var result: OSSystemExtensionRequest.Result?
-  private var properties: [OSSystemExtensionProperties]?
   private var approvalRequired = false
   @Published private(set) var status: String = ExtensionStatus.notInstalled.asString
 
@@ -48,7 +43,6 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     didFinishWithResult result: OSSystemExtensionRequest.Result
   ) {
     appLogger.log("System extension request finished with result: \(result)")
-    self.result = result
     updateStatus(mapResult(result))
   }
 
@@ -58,7 +52,6 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     didFailWithError error: Error
   ) {
     appLogger.error("System extension request failed: \(error.localizedDescription)")
-    self.error = error
     updateStatus(.error(error.localizedDescription))
   }
 
@@ -74,8 +67,7 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     _ request: OSSystemExtensionRequest,
     foundProperties properties: [OSSystemExtensionProperties]
   ) {
-    appLogger.info("System extension properties found.")
-    self.properties = properties
+    appLogger.info("System extension properties found")
     updateStatus(mapProperties(properties))
   }
 
@@ -87,33 +79,28 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
       queue: .main
     )
     request.delegate = self
-    self.currentRequest = request
     OSSystemExtensionManager.shared.submitRequest(request)
   }
 
   // Activate the extension by bundle ID (status updates via [status]).
   public func activateExtension() {
     appLogger.info("Activating system extension with ID: \(tunnelBundleID)")
-    resetState()
     let request = OSSystemExtensionRequest.activationRequest(
       forExtensionWithIdentifier: tunnelBundleID,
       queue: .main
     )
     request.delegate = self
-    currentRequest = request
     OSSystemExtensionManager.shared.submitRequest(request)
   }
 
   // Deactivate the extension by bundle ID (status updates via [status]).
   public func deactivateExtension() {
     appLogger.info("Deactivating system extension with ID: \(tunnelBundleID)")
-    resetState()
     let request = OSSystemExtensionRequest.deactivationRequest(
       forExtensionWithIdentifier: tunnelBundleID,
       queue: .main
     )
     request.delegate = self
-    currentRequest = request
     OSSystemExtensionManager.shared.submitRequest(request)
   }
 
@@ -121,23 +108,42 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
   // Updates will be sent via [status].
   public func checkInstallationStatus() {
     appLogger.info("Checking installation status for ID: \(tunnelBundleID)")
-    resetState()
     let request = OSSystemExtensionRequest.propertiesRequest(
       forExtensionWithIdentifier: tunnelBundleID,
       queue: .main
     )
     request.delegate = self
-    currentRequest = request
     OSSystemExtensionManager.shared.submitRequest(request)
   }
 
   private func mapProperties(_ props: [OSSystemExtensionProperties]) -> ExtensionStatus {
     appLogger.info("Mapping system extension properties to status.")
-    guard let p = props.first else { return .notInstalled }
+    guard !props.isEmpty else {
+      appLogger.info("Array of extension properties is empty - returning not installed")
+      return .notInstalled
+    }
     if #available(macOS 12.0, *) {
-      if p.isAwaitingUserApproval { return .requiresApproval }
-      if p.isUninstalling { return .uninstalling }
-      return .installed
+      // Process the array of system extensions. The device may have old extensions
+      // that are in the process of uninstalling, for example. If any of them is
+      // enabled, however, we should consider the extension to be activated.
+      for (i, p) in props.enumerated() {
+        if p.isEnabled {
+          appLogger.info("System extension \(i) is enabled.")
+          return .activated
+        }
+      }
+      for (i, p) in props.enumerated() {
+        if p.isAwaitingUserApproval {
+          appLogger.info("System extension \(i) requires user approval.")
+          return .requiresApproval
+        }
+        if p.isUninstalling {
+          appLogger.info("System extension \(i) is uninstalling.")
+          return .uninstalling
+        }
+      }
+      appLogger.info("No enabled system extensions found.")
+      return .notInstalled
     } else {
       appLogger.info("macOS version does not support isAwaitingUserApproval check.")
       return p.isUninstalling ? .uninstalling : .installed
@@ -154,14 +160,6 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
   }
 
   // MARK: - Common Helpers
-
-  private func resetState() {
-    appLogger.info("Resetting internal state for new operation.")
-    result = nil
-    error = nil
-    properties = nil
-    semaphore = DispatchSemaphore(value: 0)
-  }
 
   private func updateStatus(_ newStatus: ExtensionStatus, details: String? = nil) {
     let statusString = newStatus.asString
