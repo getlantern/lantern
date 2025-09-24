@@ -107,6 +107,7 @@ jobs:
         run: make android-release
         env:
           BUILD_TYPE: ${{ inputs.build_type }}
+          VERSION: ${{ inputs.version }}
 
       - name: Upload Android APK
         uses: actions/upload-artifact@v4
