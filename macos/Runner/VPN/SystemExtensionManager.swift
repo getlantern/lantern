@@ -118,7 +118,7 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
 
   private func mapProperties(_ props: [OSSystemExtensionProperties]) -> ExtensionStatus {
     appLogger.info("Mapping system extension properties to status.")
-    guard let p = props.first else {
+    guard !props.isEmpty else {
       appLogger.info("Array of extension properties is empty - returning not installed")
       return .notInstalled
     }
