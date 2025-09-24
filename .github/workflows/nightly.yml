@@ -1,0 +1,140 @@
+name: Nightly
+
+on:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+    inputs:
+      platforms:
+        description: "Space-separated list of platforms to build"
+        required: false
+        default: "linux"
+      dry_run:
+        description: "Echo steps instead of building (quick test)"
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: nightly
+  cancel-in-progress: true
+
+env:
+  BUILD_TYPE: nightly
+  FLUTTER_VERSION: "3.24.x"
+  GO_VERSION: "1.24.x"
+
+jobs:
+  set-nightly-metadata:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+      installer_name: ${{ steps.meta.outputs.installer_name }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: meta
+        shell: bash
+        run: |
+          DATE=$(date -u +%Y%m%d)
+          SHA=$(git rev-parse --short HEAD)
+          VER="0.0.0-nightly.${DATE}+${SHA}"
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
+          echo "installer_name=lantern-installer-nightly" >> "$GITHUB_OUTPUT"
+
+      - name: Update pubspec.yaml
+        shell: bash
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          sed -i.bak -E "s/^version: .*/version: ${VERSION}/" pubspec.yaml
+          cat pubspec.yaml
+
+      - name: Upload pubspec.yaml
+        uses: actions/upload-artifact@v4
+        with:
+          name: pubspec
+          path: pubspec.yaml
+
+  build-macos:
+    needs: set-nightly-metadata
+    uses: ./.github/workflows/build-macos.yml
+    secrets: inherit
+    with:
+      version: ${{ needs.set-nightly-metadata.outputs.version }}
+      build_type: nightly
+      installer_name: ${{ needs.set-nightly-metadata.outputs.installer_name }}
+
+  build-windows:
+    needs: set-nightly-metadata
+    uses: ./.github/workflows/build-windows.yml
+    secrets: inherit
+    with:
+      version: ${{ needs.set-nightly-metadata.outputs.version }}
+      build_type: nightly
+      installer_name: ${{ needs.set-nightly-metadata.outputs.installer_name }}
+
+  build-linux:
+    needs: set-nightly-metadata
+    uses: ./.github/workflows/build-linux.yml
+    secrets: inherit
+    with:
+      version: ${{ needs.set-nightly-metadata.outputs.version }}
+      build_type: nightly
+      installer_name: ${{ needs.set-nightly-metadata.outputs.installer_name }}
+
+  build-android:
+    needs: set-nightly-metadata
+    uses: ./.github/workflows/build-android.yml
+    secrets: inherit
+    with:
+      version: ${{ needs.set-nightly-metadata.outputs.version }}
+      build_type: nightly
+      installer_name: ${{ needs.set-nightly-metadata.outputs.installer_name }}
+
+  publish:
+    needs:
+      [
+        set-nightly-metadata,
+        build-macos,
+        build-windows,
+        build-linux,
+        build-android,
+      ]
+    runs-on: ubuntu-latest
+    env:
+      INSTALLER_NAME: ${{ needs.set-nightly-metadata.outputs.installer_name }}
+      BUCKET: ${{ secrets.S3_RELEASES_BUCKET }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+
+      - name: Upload to S3 (nightly + latest)
+        run: |
+          sha="$(git rev-parse --short HEAD)"
+          aws s3 cp "lantern-installer-dmg/${INSTALLER_NAME}.dmg" "s3://${BUCKET}/nightly/${sha}/${INSTALLER_NAME}.dmg" --acl public-read || true
+          aws s3 cp "lantern-installer-exe/${INSTALLER_NAME}.exe" "s3://${BUCKET}/nightly/${sha}/${INSTALLER_NAME}.exe" --acl public-read || true
+          aws s3 cp "lantern-installer-apk/${INSTALLER_NAME}.apk" "s3://${BUCKET}/nightly/${sha}/${INSTALLER_NAME}.apk" --acl public-read || true
+          aws s3 cp "lantern-installer-deb/${INSTALLER_NAME}.deb" "s3://${BUCKET}/nightly/${sha}/${INSTALLER_NAME}.deb" --acl public-read || true
+          aws s3 cp "lantern-installer-rpm/${INSTALLER_NAME}.rpm" "s3://${BUCKET}/nightly/${sha}/${INSTALLER_NAME}.rpm" --acl public-read || true
+
+          aws s3 cp "lantern-installer-dmg/${INSTALLER_NAME}.dmg" "s3://${BUCKET}/nightly/latest/${INSTALLER_NAME}.dmg" --acl public-read || true
+          aws s3 cp "lantern-installer-exe/${INSTALLER_NAME}.exe" "s3://${BUCKET}/nightly/latest/${INSTALLER_NAME}.exe" --acl public-read || true
+          aws s3 cp "lantern-installer-apk/${INSTALLER_NAME}.apk" "s3://${BUCKET}/nightly/latest/${INSTALLER_NAME}.apk" --acl public-read || true
+          aws s3 cp "lantern-installer-deb/${INSTALLER_NAME}.deb" "s3://${BUCKET}/nightly/latest/${INSTALLER_NAME}.deb" --acl public-read || true
+          aws s3 cp "lantern-installer-rpm/${INSTALLER_NAME}.rpm" "s3://${BUCKET}/nightly/latest/${INSTALLER_NAME}.rpm" --acl public-read || true
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Links
+        run: |
+          sha="$(git rev-parse --short HEAD)"
+          {
+            echo "## Nightly links (commit \`$sha\`)"
+            echo "- macOS:   https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.dmg"
+            echo "- Windows: https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.exe"
+            echo "- Android: https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.apk"
+            echo "- Linux DEB: https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.deb"
+            echo "- Linux RPM: https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.rpm"
+          } >> "$GITHUB_STEP_SUMMARY"
