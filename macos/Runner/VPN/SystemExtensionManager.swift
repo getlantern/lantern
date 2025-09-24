@@ -146,7 +146,7 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
       return .notInstalled
     } else {
       appLogger.info("macOS version does not support isAwaitingUserApproval check.")
-      return p.isUninstalling ? .uninstalling : .installed
+      return .notInstalled
     }
   }
 
