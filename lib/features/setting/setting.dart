@@ -207,8 +207,6 @@ class _SettingState extends ConsumerState<Setting> {
       case _SettingType.language:
         appRouter.push(Language());
         return;
-
-        break;
       case _SettingType.appearance:
         // TODO: Handle this case.
         throw UnimplementedError();

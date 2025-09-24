@@ -20,7 +20,7 @@ enum _SettingTileType {
 
 @RoutePage(name: 'Home')
 class Home extends StatefulHookConsumerWidget {
-  Home({super.key});
+  const Home({super.key});
 
   @override
   ConsumerState<Home> createState() => _HomeState();

@@ -626,7 +626,7 @@ class MethodHandler {
       MobileRemoveDevice(deviceId, &error)
       if error != nil {
         appLogger.error("Failed to remove device: \(error!.localizedDescription)")
-        self.handleFlutterError(
+       await self.handleFlutterError(
           error,
           result: result,
           code: "REMOVE_DEVICE_FAILED")

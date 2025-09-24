@@ -86,6 +86,13 @@ class PrivateServerNotifier extends _$PrivateServerNotifier {
           return;
         }
         state = status;
+
+        ///Send dummy status to reset once browser is open
+        /// so user can close and open it again if needed
+        Future.delayed(const Duration(milliseconds: 500), () {
+          state =
+              PrivateServerStatus(status: 'initial', data: null, error: null);
+        });
         break;
       case 'EventTypeAccounts':
         final accounts = status.data;

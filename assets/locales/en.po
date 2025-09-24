@@ -547,11 +547,8 @@ msgstr "Continue with Digital Ocean"
 msgid "do_allows"
 msgstr "Digital Ocean allows you to pick one server location from the %d options below"
 
-msgid "server_setup_gcp"
-msgstr "Set up a private server on Google Cloud Platform"
-
 msgid "server_setup_gcp_price"
-msgstr "Only %s month through Google Cloud Platform"
+msgstr "Only %s month through GCP"
 
 msgid "continue_with_gcp"
 msgstr "Continue with Google"
@@ -574,8 +571,8 @@ msgstr "Seamless integration with Lantern"
 msgid "easiest_setup"
 msgstr "Easiest setup process"
 
-msgid "choose_location"
-msgstr "Choose your server's location"
+msgid "multiple_location_options"
+msgstr "Multiple server location options"
 
 msgid "one_month_included"
 msgstr "%d TB/month data included"
@@ -636,6 +633,14 @@ msgstr "Server Location"
 
 msgid "choose"
 msgstr "Choose"
+
+msgid "choose_your_account"
+msgstr "Choose Your Account"
+
+
+msgid "choose_your_project"
+msgstr "Choose your project"
+
 
 msgid "name_your_google_cloud_project"
 msgstr "Name your Google Cloud Project"
@@ -761,10 +766,10 @@ msgid "all_required_fields"
 msgstr "Please fill out all required fields."
 
 msgid "private_server_ready"
-msgstr "Your Private Server is Ready!"
+msgstr "Private Server is Ready!"
 
 msgid "private_server_ready_message"
-msgstr "Your Server has been set up and added to your server list. You're ready to connect!"
+msgstr "(%d) Server has been set up and added to your server list. You're ready to connect!"
 
 msgid "close"
 msgstr "Close"
@@ -935,20 +940,6 @@ msgid "server_already_selected"
 msgstr "You are already connected to this server."
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 msgid "device_limit_reached"
 msgstr "Device Limit Reached"
 
@@ -1040,3 +1031,27 @@ msgstr "Enter an Activation Code"
 msgid "restore_purchase"
 msgstr "Restore Purchase"
 
+
+msgid "do_private_server_setup"
+msgstr "DO Private Server Setup"
+
+msgid "private_server_note"
+msgstr "Select a region for your Private Server. Closer locations may improve speed and latency."
+
+msgid "gcp_private_server_setup"
+msgstr "GCP Private Server Setup"
+
+msgid "gcp_private_server_location"
+msgstr "GCP Private Server Location"
+
+msgid "do_private_server_location"
+msgstr "DO Private Server Location"
+
+msgid "confirm"
+msgstr "Confirm"
+
+msgid "private_server_warning"
+msgstr "Only add servers run by people you trust "
+
+msgid "go_to_server_locations"
+msgstr "Go To Server Locations"

@@ -60,11 +60,10 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
       title: 'join_private_server'.i18n,
       body: SingleChildScrollView(
         child: Column(children: <Widget>[
-          SizedBox(height: 16),
+          // SizedBox(height: 16),
           InfoRow(
             backgroundColor: AppColors.yellow1,
             text: '',
-            onPressed: () {},
             child: Row(
               children: <Widget>[
                 Padding(
@@ -78,8 +77,8 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
                 Expanded(
                   child: AppRichText(
                     boldUnderline: true,
-                    texts: 'Only add servers run by people you trust ',
-                    boldTexts: 'Learn More.',
+                    texts: 'private_server_warning'.i18n,
+                    boldTexts: 'learn_more'.i18n,
                     boldOnPressed: showTrustDialog,
                   ),
                 )
@@ -235,7 +234,7 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
       },
       (success) {
         context.hideLoadingDialog();
-        appLogger.info("Successfully strated joining private server.");
+        appLogger.info("Successfully started joining private server.");
       },
     );
   }

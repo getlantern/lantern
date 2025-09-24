@@ -3,7 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lantern/core/common/app_colors.dart';
 
 class Spinner extends StatelessWidget {
-  const Spinner({Key? key}) : super(key: key);
+  const Spinner({super.key});
   @override
   Widget build(BuildContext context) {
     return Center(

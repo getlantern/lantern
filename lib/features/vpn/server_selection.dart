@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/available_servers.dart';
@@ -45,7 +46,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
         children: <Widget>[
           _buildSelectedLocation(serverLocation),
           _buildSmartLocation(serverLocation),
-          SizedBox(height: 12),
+          SizedBox(height: 8),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Text('automatically_chooses_fastest_location'.i18n,
@@ -53,36 +54,34 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
                   color: AppColors.gray8,
                 )),
           ),
-          SizedBox(height: 12),
-          DividerSpace(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 0)),
-          SizedBox(height: 12),
-          if (!isUserPro)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16.0),
-              child: ProBanner(),
+          SizedBox(height: size24),
+          SizedBox(
+            height: 40.h,
+            child: TabBar(
+              indicatorSize: TabBarIndicatorSize.tab,
+              labelColor: Colors.teal.shade900,
+              indicatorColor: Colors.transparent,
+              dividerHeight: 0,
+              padding: EdgeInsets.zero,
+              unselectedLabelColor: Colors.grey,
+              labelStyle: _textTheme!.titleSmall,
+              labelPadding: EdgeInsets.zero,
+              indicatorPadding: EdgeInsets.symmetric(horizontal: defaultSize),
+              indicatorWeight: .1,
+              indicator: BoxDecoration(
+                color: AppColors.blue2,
+                borderRadius: BorderRadius.circular(40),
+                shape: BoxShape.rectangle,
+                border: Border.all(color: AppColors.blue3, width: 1),
+              ),
+              tabs: [
+                Tab(child: Text('lantern_server'.i18n)),
+                Tab(child: Text('private_server'.i18n))
+              ],
             ),
-          TabBar(
-            indicatorSize: TabBarIndicatorSize.tab,
-            labelColor: Colors.teal.shade900,
-            indicatorColor: Colors.transparent,
-            dividerHeight: 0,
-            unselectedLabelColor: Colors.grey,
-            labelStyle: _textTheme!.titleSmall,
-            indicator: BoxDecoration(
-              color: AppColors.blue2,
-              borderRadius: BorderRadius.circular(40),
-              shape: BoxShape.rectangle,
-              border: Border.all(color: AppColors.blue3, width: 1),
-            ),
-            tabs: [
-              Tab(child: Text('lantern_server'.i18n)),
-              Tab(child: Text('private_server'.i18n))
-            ],
           ),
-          SizedBox(height: 16),
-          DividerSpace(),
-          SizedBox(height: 16),
+          SizedBox(height: defaultSize),
+          DividerSpace(padding: EdgeInsets.zero),
           Expanded(
             child: TabBarView(
               children: [
@@ -147,9 +146,8 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
               )),
         ),
         AppCard(
-          // padding: EdgeInsets.zero,
+          padding: EdgeInsets.zero,
           child: AppTile(
-            contentPadding: EdgeInsets.symmetric(vertical: 5),
             icon: Flag(countryCode: serverLocation.serverLocation.countryCode),
             label: getServerName(serverLocation),
             subtitle: getServerLocation(serverLocation),
@@ -160,9 +158,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
             ),
           ),
         ),
-        DividerSpace(
-          padding: EdgeInsets.symmetric(vertical: 8),
-        ),
+        SizedBox(height: defaultSize),
       ],
     );
   }
@@ -250,58 +246,78 @@ class _ServerLocationListViewState
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final availableServers = ref.watch(availableServersNotifierProvider);
-    var serverLocation = ref.watch(serverLocationNotifierProvider);
+    final serverLocation = ref.watch(serverLocationNotifierProvider);
+    const verticalSpacing = 12.0;
 
-    return Stack(
-      children: [
-        Positioned(
-          left: 0,
-          top: 0,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Text('pro_locations'.i18n,
-                style: textTheme.labelLarge!.copyWith(
-                  color: AppColors.gray8,
-                )),
+    return SafeArea(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (!widget.userPro) ...[
+            ProBanner(topMargin: 0),
+            const SizedBox(height: verticalSpacing),
+          ],
+          Padding(
+            padding: const EdgeInsets.only(top: 4.0), // small top offset
+            child: Text(
+              'pro_locations'.i18n,
+              style: textTheme.labelLarge?.copyWith(color: AppColors.gray8),
+            ),
           ),
-        ),
-        Positioned(
-          top: 26,
-          bottom: 0,
-          right: 0,
-          left: 0,
-          child: Column(
-            children: [
-              AppCard(
-                padding: EdgeInsets.zero,
-                child: availableServers.when(
-                    data: (data) {
-                      return ListView.builder(
-                        padding: EdgeInsets.zero,
+          const SizedBox(height: 8),
+          Flexible(
+            child: AppCard(
+              padding: EdgeInsets.zero,
+              child: availableServers.when(
+                data: (data) {
+                  final locations = data.lantern.locations.values.toList();
+
+                  if (locations.isEmpty) {
+                    return const Center(child: Text("No locations available"));
+                  }
+                  return Stack(
+                    children: [
+                      ListView.separated(
                         shrinkWrap: true,
-                        itemCount: data.lantern.locations.keys.length,
+                        padding: EdgeInsets.zero,
+                        itemCount: locations.length,
+
+                        separatorBuilder: (_, __) => const DividerSpace(
+                          padding: EdgeInsets.zero,
+
+                        ),
                         itemBuilder: (context, index) {
-                          final serverData =
-                              data.lantern.locations.values.elementAt(index);
+                          final serverData = locations[index];
                           return ServerMobileView(
+                            key: ValueKey(serverData.tag),
                             onServerSelected: onServerSelected,
                             location: serverData,
                             isSelected:
                                 serverLocation.serverName == serverData.tag,
                           );
                         },
-                      );
-                    },
-                    error: (error, stackTrace) =>
-                        Text(error.localizedDescription),
-                    loading: () => const Spinner()),
+                      ),
+                      if (!widget.userPro)
+                        Positioned.fill(
+                          child: Container(
+                              color: AppColors.white.withValues(alpha: 0.72),
+                              alignment: Alignment.center),
+                        ),
+                    ],
+                  );
+                },
+                loading: () => const Center(child: Spinner()),
+                error: (error, stackTrace) => Center(
+                  child: Text(
+                    error.localizedDescription,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
               ),
-            ],
+            ),
           ),
-        ),
-        if (!widget.userPro)
-          Container(color: AppColors.white.withValues(alpha: 0.7))
-      ],
+        ],
+      ),
     );
   }
 
@@ -389,6 +405,7 @@ class _PrivateServerLocationListViewState
             )),
         SizedBox(height: 8),
         AppCard(
+          padding: EdgeInsets.zero,
           child: ListView(
             padding: EdgeInsets.zero,
             shrinkWrap: true,
@@ -407,7 +424,6 @@ class _PrivateServerLocationListViewState
                         }
                         onPrivateServerSelected(server);
                       },
-                      contentPadding: EdgeInsets.symmetric(vertical: 5),
                       icon: Flag(
                         countryCode: server.serverLocation.countryCode,
                         size: Size(40, 28),
@@ -454,6 +470,7 @@ class _PrivateServerLocationListViewState
             )),
         SizedBox(height: 8),
         AppCard(
+          padding: EdgeInsets.zero,
           child: ListView(
             padding: EdgeInsets.zero,
             shrinkWrap: true,
@@ -466,7 +483,6 @@ class _PrivateServerLocationListViewState
                       onPressed: () {
                         onPrivateServerSelected(server);
                       },
-                      contentPadding: EdgeInsets.symmetric(vertical: 5),
                       icon: Flag(
                         countryCode: server.serverLocation.countryCode,
                         size: Size(40, 28),

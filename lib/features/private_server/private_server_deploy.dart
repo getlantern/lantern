@@ -102,7 +102,7 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
           Center(child: Icon(Icons.fingerprint, size: 40)),
           SizedBox(height: 16),
           Text(
-            'confirm_server_fingerprint'.i18n,
+            'confirm_fingerprint'.i18n,
             style: textTheme!.titleLarge,
           ),
           SizedBox(height: 16),
@@ -126,7 +126,7 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
           textColor: AppColors.gray6,
         ),
         AppTextButton(
-          label: "confirm_fingerprint".i18n,
+          label: "confirm".i18n,
           textColor: AppColors.blue6,
           onPressed: () {
             onConfirmFingerprint(cert.first);
@@ -147,18 +147,20 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
           SizedBox(height: 24),
           Center(
               child: AppImage(
-            path: AppImagePaths.roundCorrect,
-            height: 36,
+            path: AppImagePaths.greenCheck,
           )),
           SizedBox(height: 16),
-          Text(
-            'private_server_ready'.i18n,
-            style: textTheme!.titleLarge,
+          Center(
+            child: Text(
+              'private_server_ready'.i18n,
+              style: textTheme!.titleLarge,
+              textAlign: TextAlign.center,
+            ),
           ),
           SizedBox(height: 16),
           Text(
-            'private_server_ready_message'.i18n,
-            style: textTheme!.bodyLarge,
+            'private_server_ready_message'.i18n.fill([widget.serverName]),
+            style: textTheme!.bodyMedium!.copyWith(color: AppColors.gray8),
           ),
         ],
       ),
@@ -171,9 +173,14 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
           textColor: AppColors.gray6,
         ),
         AppTextButton(
-          label: "connect_now".i18n,
+          label: "go_to_server_locations".i18n,
           textColor: AppColors.blue6,
-          onPressed: () {},
+          onPressed: () {
+            appRouter.pushAndPopUntil(
+              ServerSelection(),
+              predicate: (route) => route.isFirst,
+            );
+          },
         ),
       ],
     );
@@ -196,7 +203,7 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
           SizedBox(height: 16),
           Text(
             'server_setup_failed_message'.i18n,
-            style: textTheme!.bodyLarge,
+            style: textTheme!.bodyMedium!.copyWith(color: AppColors.gray8),
           ),
         ],
       ),

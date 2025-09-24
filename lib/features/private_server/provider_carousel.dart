@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 
@@ -14,7 +15,7 @@ class ProviderCarousel extends HookConsumerWidget {
     super.key,
     required this.cards,
     this.height,
-    this.itemPadding = const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+    this.itemPadding = const EdgeInsets.symmetric(horizontal: 4),
     this.viewportFraction = 1.0,
     this.onPageChanged,
   });
@@ -25,13 +26,8 @@ class ProviderCarousel extends HookConsumerWidget {
 
     final current = useState(0);
 
-    // final w = MediaQuery.sizeOf(context).width;
-    final isDesktop = PlatformUtils.isDesktop;
-    final fraction =
-        (isDesktop ? 0.98 : viewportFraction).clamp(0.82, 0.98).toDouble();
-
     final controller = useMemoized(
-        () => PageController(viewportFraction: fraction, keepPage: true));
+        () => PageController(viewportFraction: .98, keepPage: true));
     useEffect(() => controller.dispose, [controller]);
 
     void goTo(int page) {
@@ -43,7 +39,14 @@ class ProviderCarousel extends HookConsumerWidget {
       );
     }
 
-    final defaultHeight = isDesktop ? 340.0 : 320.0;
+    final size = MediaQuery.sizeOf(context);
+    appLogger.info('Carousel size: ${size}');
+    final isDesktop = PlatformUtils.isDesktop;
+    final defaultHeight = isDesktop
+        ? 340.0
+        : isSmallScreen(context)
+            ? 390.0
+            : 345.0;
     final resolvedHeight = height ?? defaultHeight;
     final showControls = cards.length > 1;
 
@@ -52,34 +55,24 @@ class ProviderCarousel extends HookConsumerWidget {
       children: [
         SizedBox(
           height: resolvedHeight,
-          child: ScrollConfiguration(
-            behavior:
-                ScrollConfiguration.of(context).copyWith(scrollbars: false),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                PageView.builder(
-                  controller: controller,
-                  itemCount: cards.length,
-                  padEnds: !isDesktop,
-                  physics: const PageScrollPhysics(),
-                  onPageChanged: (i) {
-                    current.value = i;
-                    onPageChanged?.call(i);
-                  },
-                  itemBuilder: (context, idx) => Padding(
-                    padding: itemPadding,
-                    child: cards[idx],
-                  ),
-                ),
-              ],
+          child: PageView.builder(
+            controller: controller,
+            itemCount: cards.length,
+            padEnds: false,
+            physics: const PageScrollPhysics(),
+            onPageChanged: (i) {
+              current.value = i;
+              onPageChanged?.call(i);
+            },
+            itemBuilder: (context, idx) => Padding(
+              padding: itemPadding,
+              child: cards[idx],
             ),
           ),
         ),
-
         // Dots
         if (showControls) ...[
-          const SizedBox(height: 8),
+          const SizedBox(height: defaultSize),
           _CarouselControls(
             count: cards.length,
             current: current.value,

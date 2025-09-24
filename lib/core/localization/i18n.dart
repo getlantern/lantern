@@ -20,7 +20,7 @@ extension Localization on String {
   String get i18n =>
       localize(this, translations, languageTag: defaultLocale.toBCP47());
 
-  String plural(value) => localizePlural(value, this, translations);
+  String plural(String value) => localizePlural(value, this, translations);
 
   String fill(List<Object> params) => localizeFill(this, params);
 

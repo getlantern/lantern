@@ -9,10 +9,12 @@ import 'package:lantern/features/private_server/provider/private_server_notifier
 @RoutePage(name: 'PrivateServerDetails')
 class PrivateSeverDetails extends StatefulHookConsumerWidget {
   final List<String> accounts;
+  final CloudProvider provider;
 
   const PrivateSeverDetails({
     super.key,
     required this.accounts,
+    required this.provider,
   });
 
   @override
@@ -24,13 +26,16 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
   @override
   Widget build(BuildContext context) {
     return BaseScreen(
-        title: 'do_private_server_setup'.i18n, body: _buildBody(context, ref));
+        title: widget.provider == CloudProvider.digitalOcean
+            ? 'do_private_server_setup'.i18n
+            : 'gcp_private_server_setup'.i18n,
+        body: _buildBody(context, ref));
   }
 
   Widget _buildBody(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
     final selectedAccount = useState<String?>(null);
-    final projectList = useState<List<String>>([]);
+    final projectList = useState<List<String>>(['Select account']);
     final selectedProject = useState<String?>(null);
     final locationList = useState<List<String>>([]);
     final selectedLocation = useState<String?>(null);
@@ -50,20 +55,21 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
     }
     return ListView(
       children: <Widget>[
-        SizedBox(height: 16),
         AppCard(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "1. Choose your account",
+                "1. ${'choose_your_account'.i18n}",
                 style: textTheme.titleMedium,
               ),
               SizedBox(height: 8),
               DividerSpace(padding: EdgeInsets.zero),
               SizedBox(height: 8),
               AppDropdown(
+                label: 'account'.i18n,
+                prefixIconPath: AppImagePaths.accountSetting,
                 value: selectedAccount.value,
                 items: widget.accounts
                     .map((e) => DropdownMenuItem(value: e, child: Text(e)))
@@ -83,13 +89,15 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "2. Choose your project",
+                "2. ${'choose_your_project'.i18n}",
                 style: textTheme.titleMedium,
               ),
               SizedBox(height: 8),
               DividerSpace(padding: EdgeInsets.zero),
               SizedBox(height: 8),
               AppDropdown(
+                label: 'billing_account'.i18n,
+                prefixIconPath: AppImagePaths.creditCard,
                 value: selectedProject.value,
                 items: projectList.value
                     .map((e) => DropdownMenuItem(value: e, child: Text(e)))
@@ -112,11 +120,13 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
                 "3. ${'choose_your_location'.i18n}",
                 style: textTheme.titleMedium,
               ),
-              SizedBox(height: 16),
+              SizedBox(height: 8),
+              DividerSpace(padding: EdgeInsets.zero),
+              SizedBox(height: 8),
               if (selectedLocation.value != null)
                 AppTile(
-                    contentPadding:
-                        EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                    minHeight: 40,
+                    contentPadding: EdgeInsets.zero,
                     icon:
                         Flag(countryCode: selectedLocation.value!.countryCode),
                     label: selectedLocation.value!.locationName,
@@ -124,6 +134,7 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
                       appRouter.push(PrivateServerLocation(
                         location: locationList.value,
                         selectedLocation: selectedLocation.value,
+                        provider: widget.provider,
                         onLocationSelected: (p0) {
                           selectedLocation.value = p0;
                         },
@@ -134,6 +145,7 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
                         appRouter.push(PrivateServerLocation(
                           location: locationList.value,
                           selectedLocation: selectedLocation.value,
+                          provider: widget.provider,
                           onLocationSelected: (p0) {
                             selectedLocation.value = p0;
                           },
@@ -149,6 +161,7 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
                           appRouter.push(
                             PrivateServerLocation(
                               location: locationList.value,
+                              provider: widget.provider,
                               selectedLocation: selectedLocation.value,
                               onLocationSelected: (p0) {
                                 selectedLocation.value = p0;
@@ -156,7 +169,6 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
                             ),
                           );
                         })),
-              SizedBox(height: 8),
             ],
           ),
         ),
@@ -167,25 +179,38 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "4. Name your server",
+                "4. ${'name_your_server'.i18n}",
                 style: textTheme.titleMedium,
               ),
-              SizedBox(height: 16),
+              SizedBox(height: 8),
+              DividerSpace(padding: EdgeInsets.zero),
+              SizedBox(height: 8),
               AppTextField(
                 hintText: "server_name".i18n,
+                label: "server_name".i18n,
                 controller: serverNameController,
                 prefixIcon: AppImage(path: AppImagePaths.server),
                 onChanged: (value) {
                   setState(() {});
                 },
               ),
-              SizedBox(height: 8),
+              SizedBox(height: 4),
+              Center(
+                child: Text(
+                  "how_server_appears".i18n,
+                  style: textTheme.labelMedium!.copyWith(
+                    color: AppColors.gray6,
+                  ),
+                ),
+              ),
+              SizedBox(height: 4),
             ],
           ),
         ),
         SizedBox(height: 36),
         PrimaryButton(
           label: 'start_deployment'.i18n,
+          isTaller: true,
           enabled: selectedProject.value != null &&
               serverNameController.text.isNotEmpty,
           onPressed: () => onStartDeployment(
