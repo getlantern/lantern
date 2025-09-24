@@ -31,7 +31,7 @@ class AppRichText extends StatelessWidget {
         children: [
           TextSpan(
             text: boldTexts,
-            style: textTheme.bodyMedium!.copyWith(
+            style:  textTheme.bodyMedium!.copyWith(
               fontWeight: FontWeight.bold,
               color: boldColor ?? AppColors.gray9,
               decoration: boldUnderline

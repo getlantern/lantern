@@ -39,11 +39,9 @@ class InfoRow extends StatelessWidget {
           borderRadius: BorderRadius.circular(borderRadius),
           side: BorderSide(color: AppColors.gray2),
         ),
-        leading: imagePath == null
-            ? null
-            : AppImage(
-                path: imagePath ?? AppImagePaths.info,
-              ),
+        leading: AppImage(
+          path: imagePath ?? AppImagePaths.info,
+        ),
         title: child ??
             Text(
               text,

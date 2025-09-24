@@ -56,8 +56,9 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
           ),
           SizedBox(height: size24),
           SizedBox(
-            height: 40.h,
+            height: 35.h,
             child: TabBar(
+              splashBorderRadius: BorderRadius.circular(40),
               indicatorSize: TabBarIndicatorSize.tab,
               labelColor: Colors.teal.shade900,
               indicatorColor: Colors.transparent,
@@ -66,8 +67,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
               unselectedLabelColor: Colors.grey,
               labelStyle: _textTheme!.titleSmall,
               labelPadding: EdgeInsets.zero,
-              indicatorPadding: EdgeInsets.symmetric(horizontal: defaultSize),
-              indicatorWeight: .1,
+              indicatorPadding: EdgeInsets.symmetric(horizontal: size24),
               indicator: BoxDecoration(
                 color: AppColors.blue2,
                 borderRadius: BorderRadius.circular(40),

@@ -296,7 +296,7 @@ msgid "when_connected"
 msgstr "When connected, the websites you select will bypass the VPN."
 
 msgid "lantern_automatic"
-msgstr "Lantern automatically chooses which apps and websites bypass the VPN based on your location for best performance. Learn more."
+msgstr "Lantern automatically chooses which apps and websites bypass the VPN based on your location for best performance. "
 
 msgid "apps_bypassing_vpn"
 msgstr "Apps bypassing the VPN (%d)"

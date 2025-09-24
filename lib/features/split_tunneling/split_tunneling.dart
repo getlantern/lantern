@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/utils/ip_utils.dart';
+import 'package:lantern/core/widgets/app_rich_text.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/split_tunneling_tile.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
@@ -27,41 +28,6 @@ class SplitTunneling extends HookConsumerWidget {
     final enabledApps = ref.watch(splitTunnelingAppsProvider).toList();
     final enabledWebsites = ref.watch(splitTunnelingWebsitesProvider).toList();
     final expansionTileController = useExpansionTileController();
-
-    // void showBottomSheet() {
-    //   showAppBottomSheet(
-    //     context: context,
-    //     title: 'split_tunneling_mode'.i18n,
-    //     scrollControlDisabledMaxHeightRatio:
-    //         context.isSmallDevice ? 0.39.h : 0.3.h,
-    //     builder: (context, scrollController) {
-    //       return Expanded(
-    //         child: ListView(
-    //           controller: scrollController,
-    //           padding: EdgeInsets.zero,
-    //           shrinkWrap: true,
-    //           children: [
-    //             ...SplitTunnelingMode.values.map((mode) {
-    //               return SplitTunnelingModeTile(
-    //                 mode: mode,
-    //                 selectedMode: splitTunnelingMode,
-    //                 onChanged: (newValue) {
-    //                   if (newValue != null) {
-    //                     ref
-    //                         .read(appSettingNotifierProvider.notifier)
-    //                         .setSplitTunnelingMode(newValue);
-    //                     Navigator.pop(context);
-    //                   }
-    //                 },
-    //               );
-    //             }),
-    //           ],
-    //         ),
-    //       );
-    //     },
-    //   );
-    // }
-
     final locationSubtitle = useState<String>('global_optimized'.i18n);
 
     useEffect(() {
@@ -134,6 +100,7 @@ class SplitTunneling extends HookConsumerWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             AppTextButton(
+                              underLine: false,
                               label: toBeginningOfSentenceCase(isAutomaticMode
                                   ? 'automatic'.i18n
                                   : 'manual'.i18n),
@@ -215,7 +182,7 @@ class SplitTunneling extends HookConsumerWidget {
           ),
           SizedBox(height: defaultSize),
           InfoRow(
-            onPressed: isAutomaticMode
+            onPressed: splitTunnelingEnabled && isAutomaticMode
                 ? () {
                     if (isAutomaticMode) {
                       appRouter.push(SplitTunnelingInfo());
@@ -227,6 +194,18 @@ class SplitTunneling extends HookConsumerWidget {
                     ? 'lantern_automatic'.i18n
                     : 'when_connected'.i18n)
                 : 'turn_on_split_tunneling'.i18n,
+            child: AppRichText(
+              texts: splitTunnelingEnabled
+                  ? (isAutomaticMode
+                      ? 'lantern_automatic'.i18n
+                      : 'when_connected'.i18n)
+                  : 'turn_on_split_tunneling'.i18n,
+              boldTexts: (splitTunnelingEnabled && isAutomaticMode)
+                  ? 'learn_more'.i18n
+                  : '',
+              boldUnderline: true,
+              boldColor: AppColors.blue7,
+            ),
           ),
           if (splitTunnelingEnabled && !isAutomaticMode) ...{
             SizedBox(height: defaultSize),

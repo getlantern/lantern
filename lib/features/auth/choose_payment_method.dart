@@ -38,7 +38,6 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           InfoRow(
             imagePath: AppImagePaths.security,
             text: 'payment_information_encrypted'.i18n,
-            onPressed: () {},
           ),
           SizedBox(height: defaultSize),
           PaymentCheckoutMethods(

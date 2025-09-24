@@ -40,12 +40,12 @@ class AppTestStyles {
         fontSize: 24,
         fontWeight: FontWeight.w600,
         color: AppColors.black,
+        letterSpacing: 0,
       );
 
   static TextStyle get labelLarge => GoogleFonts.urbanist(
-        fontSize: 16,
+        fontSize: 14,
         fontWeight: FontWeight.w400,
-        height: 26 / 16,
         letterSpacing: 0,
         color: AppColors.black,
       );
@@ -81,10 +81,10 @@ class AppTestStyles {
       );
 
   static TextStyle get bodyLarge => GoogleFonts.urbanist(
-        fontSize: 16,
-        fontWeight: FontWeight.w400,
-        color: AppColors.black,
-      );
+      fontSize: 16,
+      fontWeight: FontWeight.w400,
+      color: AppColors.black,
+      letterSpacing: 0);
 
   static TextStyle get bodyLargeBold => GoogleFonts.urbanist(
         fontSize: 16,

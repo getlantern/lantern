@@ -62,6 +62,12 @@ class PrimaryButton extends StatelessWidget {
           if (states.contains(WidgetState.disabled)) {
             return AppColors.gray2; // Disabled background color
           }
+          if(states.contains(WidgetState.hovered) && bgColor==AppColors.blue1) {
+            return AppColors.blue2; // Pressed background color
+          }
+          if (states.contains(WidgetState.hovered)) {
+            return AppColors.blue8; // Hovered background color
+          }
           return bgColor ?? AppColors.blue10; // Default background color
         },
       ),
@@ -81,6 +87,7 @@ class PrimaryButton extends StatelessWidget {
         AppTestStyles.primaryButtonTextStyle.copyWith(
             fontSize: expanded ? 16.0.sp : 16.0, fontWeight: FontWeight.w500),
       ),
+
       foregroundColor: WidgetStatePropertyAll<Color>(
         enabled == false ? AppColors.gray5 : textColor ?? AppColors.gray1,
       ),
@@ -177,6 +184,7 @@ class AppTextButton extends StatelessWidget {
   final Color? textColor;
   final EdgeInsets? padding;
   final double? fontSize;
+  final bool underLine;
 
   const AppTextButton({
     super.key,
@@ -184,6 +192,7 @@ class AppTextButton extends StatelessWidget {
     required this.onPressed,
     this.textColor,
     this.padding,
+    this.underLine = true,
     this.fontSize,
   });
 
@@ -196,7 +205,8 @@ class AppTextButton extends StatelessWidget {
         visualDensity: VisualDensity.compact,
         textStyle: AppTestStyles.titleMedium.copyWith(
             overflow: TextOverflow.ellipsis,
-            decoration: TextDecoration.underline,
+            decoration:
+                underLine ? TextDecoration.underline : TextDecoration.none,
             fontSize: fontSize),
         foregroundColor: textColor ?? AppColors.blue7,
       ),

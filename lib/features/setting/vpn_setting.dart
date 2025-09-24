@@ -73,6 +73,7 @@ class VPNSetting extends HookConsumerWidget {
             icon: AppImagePaths.blockAds,
             trailing: SwitchButton(
               value: preferences.blockAds,
+
               onChanged: (bool? value) {
                 if (!isUserPro) {
                   appRouter.push(Plans());
