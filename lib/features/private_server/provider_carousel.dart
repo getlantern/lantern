@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 
@@ -25,9 +26,6 @@ class ProviderCarousel extends HookConsumerWidget {
 
     final current = useState(0);
 
-    // final w = MediaQuery.sizeOf(context).width;
-    final isDesktop = PlatformUtils.isDesktop;
-    
     final controller = useMemoized(
         () => PageController(viewportFraction: .98, keepPage: true));
     useEffect(() => controller.dispose, [controller]);
@@ -41,7 +39,14 @@ class ProviderCarousel extends HookConsumerWidget {
       );
     }
 
-    final defaultHeight = isDesktop ? 340.0 : 345.0;
+    final size = MediaQuery.sizeOf(context);
+    appLogger.info('Carousel size: ${size}');
+    final isDesktop = PlatformUtils.isDesktop;
+    final defaultHeight = isDesktop
+        ? 340.0
+        : isSmallScreen(context)
+            ? 390.0
+            : 345.0;
     final resolvedHeight = height ?? defaultHeight;
     final showControls = cards.length > 1;
 

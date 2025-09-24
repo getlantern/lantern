@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:auto_updater/auto_updater.dart';
 import 'package:device_preview_plus/device_preview_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -14,10 +15,10 @@ import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern_app.dart';
-import 'package:auto_updater/auto_updater.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+
 import 'core/common/app_secrets.dart';
 
 Future<void> main() async {

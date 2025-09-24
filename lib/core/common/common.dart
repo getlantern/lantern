@@ -123,3 +123,9 @@ void sharePrivateAccessKey(
         '/private-server?ip=${server.externalIp}&port=${server.port}&token=${server.accessToken}&name=${server.serverName}&exp=$expirationDate');
   SharePlus.instance.share(ShareParams(text: buffer.toString()));
 }
+
+bool isSmallScreen(BuildContext context) {
+  //Iphone 12 mini Size(375.0, 812.0)
+  //Iphone 13      Size(390.0, 844.0)
+  return MediaQuery.of(context).size.width <= 380;
+}
