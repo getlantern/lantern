@@ -58,6 +58,9 @@ class MethodHandler {
         self.oauthLoginCallback(result: result, token: token)
       case "getUserData":
         self.getUserData(result: result)
+      case "fetchUserData":
+        self.fetchUserData(result: result)
+        break
       case "acknowledgeInAppPurchase":
         if let map = call.arguments as? [String: Any],
           let token = map["purchaseToken"] as? String,
@@ -110,6 +113,11 @@ class MethodHandler {
       case "completeChangeEmail":
         self.completeChangeEmail(result: result, data: call.arguments as? [String: Any] ?? [:])
         break
+      case "removeDevice":
+        let data = call.arguments as? [String: Any]
+        let deviceId = data?["deviceId"] as? String ?? ""
+        self.deviceRemove(result: result, deviceId: deviceId)
+        break
       // Private server methods
       case "digitalOcean":
         self.digitalOcean(result: result)
@@ -149,6 +157,9 @@ class MethodHandler {
         self.openSystemExtensionSetting(result: result)
       case "getDataCapInfo":
         self.getDataCapInfo(result: result)
+      case "reportIssue":
+        let map = call.arguments as? [String: Any]
+          self.reportIssue(result: result, data: map!)
         break
       case "getLanternAvailableServers":
         self.getLanternAvailableServers(result: result)
@@ -406,6 +417,20 @@ class MethodHandler {
     }
   }
 
+  private func fetchUserData(result: @escaping FlutterResult) {
+    Task.detached {
+      var error: NSError?
+      let bytes = MobileFetchUserData(&error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "FETCH_USER_DATA_ERROR")
+        return
+      }
+      await MainActor.run {
+        result(bytes)
+      }
+    }
+  }
+
   func acknowledgeInAppPurchase(token: String, planId: String, result: @escaping FlutterResult) {
     Task {
       do {
@@ -495,6 +520,25 @@ class MethodHandler {
       }
       await MainActor.run {
         result("Change email completed successfully.")
+      }
+    }
+  }
+
+  func deviceRemove(result: @escaping FlutterResult, deviceId: String) {
+    Task.detached {
+      var error: NSError?
+      MobileRemoveDevice(deviceId, &error)
+      if error != nil {
+        appLogger.error("Failed to remove device: \(error!.localizedDescription)")
+      await self.handleFlutterError(
+          error,
+          result: result,
+          code: "REMOVE_DEVICE_FAILED")
+        return
+      }
+      await MainActor.run {
+        appLogger.info("Device removed successfully.")
+        self.replyOK(result)
       }
     }
   }
@@ -837,6 +881,27 @@ class MethodHandler {
 
   }
 
+  func reportIssue(result: @escaping FlutterResult, data: [String: Any]) {
+    Task.detached {
+      let email = data["email"] as? String ?? ""
+      let issueType = data["issueType"] as? String ?? ""
+      let description = data["description"] as? String ?? ""
+      let device = data["device"] as? String ?? ""
+      let model = data["model"] as? String ?? ""
+
+      var error: NSError?
+      MobileReportIssue(email, issueType, description, device, model, "", &error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "REPORT_ISSUE_ERROR")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+
+    }
+  }
+
   //Utils method for handling Flutter errors
   private func handleFlutterError(
     _ error: Error?,
@@ -877,5 +942,10 @@ class MethodHandler {
       )
     }
   }
+    
+    @MainActor
+    private func replyOK(_ result: FlutterResult) {
+      result("ok")
+    }
 
 }

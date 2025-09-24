@@ -173,18 +173,22 @@ class _PlansState extends ConsumerState<Plans> {
   }
 
   void onGetLanternProTap() {
+    appLogger.info('Get Lantern Pro button tapped');
     final userSelectedPlan =
         ref.read(plansNotifierProvider.notifier).getSelectedPlan();
     switch (Platform.operatingSystem) {
       case 'android':
         if (isStoreVersion()) {
           /// user is using play store version
+          appLogger.info('Starting in app purchase flow');
           startInAppPurchaseFlow(userSelectedPlan);
           return;
         }
+        appLogger.info('Starting sign up flow for android');
         signUpFlow();
         break;
       case 'ios':
+        appLogger.info('Starting in app purchase flow IOS');
         startInAppPurchaseFlow(userSelectedPlan);
         break;
       default:
@@ -230,6 +234,7 @@ class _PlansState extends ConsumerState<Plans> {
 
   Future<void> acknowledgeInAppPurchase(
       String purchaseToken, String planId) async {
+    appLogger.debug("Acknowledging purchase");
     context.showLoadingDialog();
     final result = await ref
         .read(paymentNotifierProvider.notifier)
@@ -255,9 +260,11 @@ class _PlansState extends ConsumerState<Plans> {
   void signUpFlow() {
     final appSetting = ref.read(appSettingNotifierProvider);
     if (appSetting.userLoggedIn) {
+      appLogger.info('User already logged in, checking account status');
       useProFlow();
       return;
     }
+    appLogger.debug('Sending user to AddEmail screen for sign up');
     appRouter.push(AddEmail(authFlow: AuthFlow.signUp));
   }
 
@@ -267,13 +274,20 @@ class _PlansState extends ConsumerState<Plans> {
       return;
     }
     context.showLoadingDialog();
+    appLogger.debug("Checking user account status");
     final isPro = await checkUserAccountStatus(ref, context);
     context.hideLoadingDialog();
-    AppDialog.showLanternProDialog(
-      context: context,
-      onPressed: () {
-        appRouter.popUntilRoot();
-      },
-    );
+    if (isPro) {
+      appLogger.debug("User is Pro, showing Lantern Pro dialog");
+      AppDialog.showLanternProDialog(
+        context: context,
+        onPressed: () {
+          appRouter.popUntilRoot();
+        },
+      );
+    } else {
+      appLogger.debug("User is not Pro, sending to AddEmail screen");
+      appRouter.push(AddEmail(authFlow: AuthFlow.signUp));
+    }
   }
 }

@@ -219,12 +219,15 @@ func (lc *LanternCore) ReportIssue(email, issueType, description, device, model,
 	report := radiance.IssueReport{
 		Type:        issueType,
 		Description: description,
-		// Try to read the log file as an attachment
-		Attachments: utils.CreateLogAttachment(logFilePath),
 		Device:      device,
 		Model:       model,
 	}
+	// Attach log file if provided
+	// Path must be available on iOS
+	if logFilePath != "" {
+		report.Attachments = utils.CreateLogAttachment(logFilePath)
 
+	}
 	if err := lc.rad.ReportIssue(email, report); err != nil {
 		return fmt.Errorf("error reporting issue: %w", err)
 	}
@@ -277,7 +280,7 @@ func (lc *LanternCore) FetchUserData() ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error getting user data: %w", err)
 	}
-	slog.Debug("UserData response:", "user", user)
+	slog.Debug("UserId: ", "userId", user.UserId, "legacyToken", user.Token)
 	login := &protos.LoginResponse{
 		LegacyID:       user.UserId,
 		LegacyToken:    user.Token,

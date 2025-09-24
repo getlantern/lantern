@@ -10,10 +10,7 @@ import 'package:lantern/core/services/stripe_service.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/logs_path.dart';
 import 'package:lantern/features/auth/provider/payment_notifier.dart';
-import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
-
-import '../../lantern/lantern_service_notifier.dart';
 
 @RoutePage(name: 'ChoosePaymentMethod')
 class ChoosePaymentMethod extends HookConsumerWidget {
@@ -184,30 +181,13 @@ class ChoosePaymentMethod extends HookConsumerWidget {
       return;
     }
     context.showLoadingDialog();
-    final delays = [Duration(seconds: 1), Duration(seconds: 2)];
-    for (final delay in delays) {
-      appLogger.info('Checking subscription with delay: $delay');
-      if (delay != Duration.zero) Future.delayed(delay);
-
-      final result = await ref.read(lanternServiceProvider).fetchUserData();
-      result.fold(
-        (failure) {
-          appLogger.error('Subscription check error', failure);
-          return false;
-        },
-        (newUser) {
-          final isPro = newUser.legacyUserData.userLevel == 'pro';
-          if (isPro) {
-            // User has bought a plan
-            ref.read(homeNotifierProvider.notifier).updateUserData(newUser);
-            return true;
-          }
-          return true;
-        },
-      );
-    }
+    final isPro = await checkUserAccountStatus(ref, context);
     context.hideLoadingDialog();
-    resolveRoute(context);
+    if(isPro){
+      resolveRoute(context);
+    }else{
+      context.showSnackBar('purchase_not_completed'.i18n);
+    }
   }
 
   void resolveRoute(BuildContext context) {
