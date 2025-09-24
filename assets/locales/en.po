@@ -752,7 +752,7 @@ msgid "private_server_ready"
 msgstr "Private Server is Ready!"
 
 msgid "private_server_ready_message"
-msgstr "(%d) Server has been set up and added to your server list. You're ready to connect!"
+msgstr "(%s) Server has been set up and added to your server list. You're ready to connect!"
 
 msgid "set_up_your_server"
 msgstr "Set Up Your Server"

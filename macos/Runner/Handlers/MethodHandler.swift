@@ -146,6 +146,15 @@ class MethodHandler {
       case "addServerManually":
         let data = call.arguments as? [String: Any]
         self.addServerManually(result: result, data: data!)
+      case "inviteToServerManagerInstance":
+        let data = call.arguments as? [String: Any]
+        self.inviteToServerManagerInstance(result: result, data: data!)
+        break
+
+      case "revokeServerManagerInstance":
+        let data = call.arguments as? [String: Any]
+        self.inviteToServerManagerInstance(result: result, data: data!)
+        break
       //Utils methods
       case "featureFlag":
         self.featureFlags(result: result)
@@ -782,6 +791,43 @@ class MethodHandler {
       await MainActor.run {
         result("ok")
       }
+    }
+  }
+
+  func inviteToServerManagerInstance(result: @escaping FlutterResult, data: [String: Any]) {
+    Task.detached {
+      let ip = data["ip"] as? String ?? ""
+      let port = data["port"] as? String ?? ""
+      let accessToken = data["accessToken"] as? String ?? ""
+      let inviteName = data["inviteName"] as? String ?? ""
+      var error: NSError?
+      let successKey = MobileInviteToServerManagerInstance(
+        ip, port, accessToken, inviteName, &error)
+      if let err = error {
+        await self.handleFlutterError(
+          err, result: result, code: "INVITE_TO_SERVER_MANAGER_INSTANCE_ERROR")
+        return
+      }
+      await MainActor.run {
+        result(successKey)
+      }
+    }
+  }
+
+  func revokeServerManagerInstance(result: @escaping FlutterResult, data: [String: Any]) {
+    Task.detached {
+      let ip = data["ip"] as? String ?? ""
+      let port = data["port"] as? String ?? ""
+      let accessToken = data["accessToken"] as? String ?? ""
+      let inviteName = data["inviteName"] as? String ?? ""
+      var error: NSError?
+      let successKey = MobileRevokeServerManagerInvite(ip, port, accessToken, inviteName, &error)
+      if let err = error {
+        await self.handleFlutterError(
+          err, result: result, code: "REVOKE_SERVER_MANAGER_INSTANCE_ERROR")
+        return
+      }
+        await self.replyOK(result)
     }
   }
 
