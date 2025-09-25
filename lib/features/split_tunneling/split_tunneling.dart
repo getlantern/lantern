@@ -139,6 +139,7 @@ class SplitTunneling extends HookConsumerWidget {
                               )
                             : null,
                         children: [
+                          DividerSpace(padding: EdgeInsets.zero),
                           AppTile(
                             minHeight: 50,
                             label: toBeginningOfSentenceCase(
@@ -156,7 +157,6 @@ class SplitTunneling extends HookConsumerWidget {
                               },
                             ),
                           ),
-                          DividerSpace(),
                           AppTile(
                             minHeight: 50,
                             label: toBeginningOfSentenceCase(

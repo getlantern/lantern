@@ -14,6 +14,7 @@ class InfoRow extends StatelessWidget {
   final EdgeInsetsGeometry? padding;
   final VoidCallback? onPressed;
   final double? minTileHeight ;
+  final bool showLeadingIcon;
 
   const InfoRow({
     super.key,
@@ -27,6 +28,7 @@ class InfoRow extends StatelessWidget {
     this.onPressed,
     this.child,
     this.minTileHeight,
+    this.showLeadingIcon=true,
   });
 
   @override
@@ -42,9 +44,9 @@ class InfoRow extends StatelessWidget {
           borderRadius: BorderRadius.circular(borderRadius),
           side: BorderSide(color: AppColors.gray2),
         ),
-        leading: AppImage(
+        leading: showLeadingIcon? AppImage(
           path: imagePath ?? AppImagePaths.info,
-        ),
+        ):null,
         title: child ??
             Text(
               text,
