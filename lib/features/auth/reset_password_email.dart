@@ -49,6 +49,7 @@ class ResetPasswordEmail extends HookConsumerWidget {
           SizedBox(height: 32),
           PrimaryButton(
             label: 'next'.i18n,
+              isTaller: true,
             onPressed: () => onNext(context, emailController.text, ref),
           ),
         ],

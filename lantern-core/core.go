@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 
@@ -100,7 +101,9 @@ type Payment interface {
 
 type SplitTunnel interface {
 	AddSplitTunnelItem(filterType, item string) error
+	AddSplitTunnelItems(items string) error
 	RemoveSplitTunnelItem(filterType, item string) error
+	RemoveSplitTunnelItems(items string) error
 }
 
 type Core interface {
@@ -252,6 +255,22 @@ func (lc *LanternCore) AddSplitTunnelItem(filterType, item string) error {
 	return lc.splitTunnel.AddItem(filterType, item)
 }
 
+func (lc *LanternCore) AddSplitTunnelItems(items string) error {
+	split := strings.Split(items, ",")
+	packages := vpn.Filter{
+		PackageName: split,
+	}
+	return lc.splitTunnel.AddItems(packages)
+}
+
+func (lc *LanternCore) RemoveSplitTunnelItems(items string) error {
+	split := strings.Split(items, ",")
+	packages := vpn.Filter{
+		PackageName: split,
+	}
+	return lc.splitTunnel.RemoveItems(packages)
+}
+
 func (lc *LanternCore) RemoveSplitTunnelItem(filterType, item string) error {
 	return lc.splitTunnel.RemoveItem(filterType, item)
 }
@@ -287,6 +306,7 @@ func (lc *LanternCore) DataCapInfo() ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error marshalling data cap info: %w", err)
 	}
+	slog.Debug("Data cap info: ", "info", string(jsonBytes))
 	return jsonBytes, nil
 }
 

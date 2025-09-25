@@ -54,11 +54,14 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
 
     useEffect(() {
       groupValue.value = update.text;
+      if (groupValue.value.isNotEmpty) {
+        formKey.currentState?.validate();
+      }
       return null;
     }, [update]);
 
     return BaseScreen(
-      title: 'report_issue'.i18n,
+      title: 'report_an_issue'.i18n,
       body: SingleChildScrollView(
         child: Form(
           key: formKey,
@@ -81,6 +84,7 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
               ),
               const SizedBox(height: 16),
               AppTextField(
+                autovalidateMode: AutovalidateMode.disabled,
                 controller: selectedIssueController,
                 label: 'select_an_issue'.i18n,
                 hintText: '',
@@ -96,7 +100,7 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
               AppTextField(
                 controller: descriptionController,
                 hintText: '',
-                label: 'please_enter_issue_description'.i18n,
+                label: 'issue_description'.i18n,
                 prefixIcon: Icons.description_outlined,
                 maxLines: 10,
               ),
@@ -106,7 +110,7 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
                 onPressed: () => submitReport(
                   formKey,
                   emailController.text.trim(),
-                  groupValue.value,
+                  selectedIssueController.text,
                   descriptionController.text.trim(),
                   reset,
                 ),

@@ -8,8 +8,8 @@ class AppSetting {
 
   bool isPro;
   bool isSplitTunnelingOn;
-  BypassListOption bypassList;
-  SplitTunnelingMode splitTunnelingMode;
+  String bypassListRaw;
+  String splitTunnelingModeRaw;
   String locale;
   String oAuthToken;
   bool userLoggedIn;
@@ -22,10 +22,10 @@ class AppSetting {
     this.isPro = false,
     this.isSplitTunnelingOn = false,
     this.userLoggedIn = false,
-    this.splitTunnelingMode = SplitTunnelingMode.automatic,
+    this.splitTunnelingModeRaw ='automatic',
     this.oAuthToken = '',
     this.blockAds = false,
-    this.bypassList = BypassListOption.global,
+    this.bypassListRaw = 'none',
     this.email = '',
     this.locale = 'en_US',
     this.showSplashScreen = true,
@@ -46,15 +46,24 @@ class AppSetting {
     return AppSetting(
       id: id,
       isPro: newPro ?? isPro,
-      bypassList: newBypassList ?? bypassList,
+      bypassListRaw: newBypassList?.value ?? bypassListRaw,
       isSplitTunnelingOn: newIsSpiltTunnelingOn ?? isSplitTunnelingOn,
       locale: newLocale ?? locale,
       blockAds: blockAds ?? this.blockAds,
-      splitTunnelingMode: newSplitTunnelingMode ?? splitTunnelingMode,
+      splitTunnelingModeRaw: newSplitTunnelingMode?.value ?? splitTunnelingModeRaw,
       userLoggedIn: userLoggedIn ?? this.userLoggedIn,
       oAuthToken: oAuthToken ?? this.oAuthToken,
       email: email ?? this.email,
       showSplashScreen: showSplashScreen ?? this.showSplashScreen,
     );
   }
+
+  SplitTunnelingMode get splitTunnelingMode => splitTunnelingModeRaw.toSplitTunnelingMode;
+
+  set splitTunnelingMode(SplitTunnelingMode mode) =>
+      splitTunnelingModeRaw = mode.value;
+
+  BypassListOption get bypassList => bypassListRaw.toBypassList;
+  set bypassList(BypassListOption list) => bypassListRaw = list.value;
+
 }

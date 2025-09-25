@@ -1,6 +1,8 @@
 import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
 
+import '../common/app_colors.dart';
+
 class Flag extends StatelessWidget {
   final String countryCode;
   final Size? size;
@@ -13,12 +15,16 @@ class Flag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CountryFlag.fromCountryCode(
-      countryCode,
-      height: size?.height ?? 20,
-      width: size?.width ?? 30,
-      shape: RoundedRectangle(
-        5.0,
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: AppColors.gray3, width: 1),
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: CountryFlag.fromCountryCode(
+        countryCode,
+        height: size?.height ?? 20,
+        width: size?.width ?? 30,
+        shape: RoundedRectangle(5.0),
       ),
     );
   }

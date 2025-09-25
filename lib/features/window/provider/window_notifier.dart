@@ -13,8 +13,19 @@ class WindowNotifier extends _$WindowNotifier {
   Future<void> build() async {
     if (!PlatformUtils.isDesktop) return;
     await windowManager.ensureInitialized();
-    await windowManager.setSize(desktopWindowSize);
+    WindowOptions windowOptions = WindowOptions(
+      size: desktopWindowSize,
+      skipTaskbar: false,
+    );
     windowManager.setResizable(false);
+    windowManager.waitUntilReadyToShow(
+      windowOptions,
+      () async {
+        await windowManager.setSize(desktopWindowSize);
+        windowManager.show();
+        windowManager.focus();
+      },
+    );
   }
 
   Future<void> open({bool focus = true}) async {
@@ -30,5 +41,7 @@ class WindowNotifier extends _$WindowNotifier {
     if (Platform.isMacOS) {
       await windowManager.setSkipTaskbar(true);
     }
+    await windowManager.destroy();
+    await Future.microtask(() => exit(0));
   }
 }

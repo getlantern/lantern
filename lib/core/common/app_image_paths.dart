@@ -98,4 +98,6 @@ class AppImagePaths {
   static const sysDialog = 'assets/images/sys_dialog.svg';
   static const web = 'assets/images/web.svg';
   static const greenCheck = 'assets/images/green_check.svg';
+  static const shareV2 = 'assets/images/share_v2.svg';
+  static const autoRenew = 'assets/images/auto_renew.svg';
 }

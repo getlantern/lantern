@@ -20,7 +20,6 @@ class SwitchButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomAnimatedToggleSwitch<bool>(
       current: value,
-      onTap: (_) => onChanged(!value),
       values: [false, true],
       animationDuration: const Duration(milliseconds: 200),
       onChanged: onChanged,

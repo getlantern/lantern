@@ -52,6 +52,7 @@ class SignInEmail extends HookConsumerWidget {
             PrimaryButton(
               label: 'sign_in_with_email'.i18n,
               onPressed: () => signInWithEmail(emailController.text, context),
+              isTaller: true,
             ),
             SizedBox(height: defaultSize),
             DividerSpace(),

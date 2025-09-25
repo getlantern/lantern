@@ -42,7 +42,7 @@ class UserDevices extends StatelessWidget {
     return AppTile(
       label: e.name,
       contentPadding: EdgeInsets.only(left: 16),
-      icon: AppImagePaths.email,
+      // icon: AppImagePaths.email,
       // trailing: AppTextButton(label: 'remove'.i18n, onPressed: () {}),
       // onPressed: () {},
     );

@@ -91,7 +91,6 @@ class _HomeState extends ConsumerState<Home> {
                 if (serverType == ServerLocationType.privateServer)
                   InfoRow(
                     text: 'private_server_usage_message'.i18n,
-                    onPressed: () {},
                   )
                 else
                   DataUsage(),

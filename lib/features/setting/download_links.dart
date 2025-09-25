@@ -39,7 +39,7 @@ class DownloadLinks extends StatelessWidget {
             child: AppTile(
               icon: AppImagePaths.lanternLogoRounded,
               trailing: AppImage(path: AppImagePaths.outsideBrowser),
-              label: 'Lantern.io',
+              label: 'lantern_io'.i18n,
               onPressed: () {},
             ),
           ),
@@ -47,7 +47,7 @@ class DownloadLinks extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(left: 16),
             child: Text(
-              'Alternative Download Links',
+              'alternative_download_links'.i18n,
               style: theme.labelLarge!.copyWith(
                 color: AppColors.gray8,
               ),
@@ -60,13 +60,13 @@ class DownloadLinks extends StatelessWidget {
                 AppTile.link(
                   url: AppUrls.lanternGithub,
                   icon: AppImagePaths.github,
-                  label: 'Github Download Page',
+                  label: 'github_download_page'.i18n,
                 ),
                 DividerSpace(),
                 AppTile.link(
                   url: AppUrls.telegramBot,
                   icon: AppImagePaths.telegram,
-                  label: 'Telegram Bot',
+                  label: 'telegram_bot'.i18n,
                 ),
               ],
             ),
@@ -75,7 +75,7 @@ class DownloadLinks extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
-              'If you encounter any issues accessing our website, you can download Lantern from the links above.',
+              'if_you_cannot_access_website'.i18n,
               style: theme.bodyMedium!.copyWith(
                 color: AppColors.gray8,
               ),
@@ -87,7 +87,7 @@ class DownloadLinks extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(left: 16),
             child: Text(
-              'Available on:',
+              'available_on'.i18n,
               style: theme.labelLarge!.copyWith(
                 color: AppColors.gray8,
               ),

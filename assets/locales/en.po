@@ -7,8 +7,8 @@ msgstr "Upgrade to Pro"
 msgid "settings"
 msgstr "Settings"
 
-msgid "report_issue"
-msgstr "Report Issue"
+msgid "report_an_issue"
+msgstr "Report an Issue"
 
 msgid "lantern_projects"
 msgstr "Lantern Projects:"
@@ -296,7 +296,7 @@ msgid "when_connected"
 msgstr "When connected, the websites you select will bypass the VPN."
 
 msgid "lantern_automatic"
-msgstr "Lantern automatically chooses which apps and websites bypass the VPN based on your location for best performance. Learn more."
+msgstr "Lantern automatically chooses which apps and websites bypass the VPN based on your location for best performance. "
 
 msgid "apps_bypassing_vpn"
 msgstr "Apps bypassing the VPN (%d)"
@@ -455,7 +455,7 @@ msgid "choose_payment_method"
 msgstr "Choose Payment Method"
 
 msgid "payment_information_encrypted"
-msgstr "Your payment information is fully encrypted"
+msgstr "Your payment information is fully encrypted."
 
 msgid "purchase_not_completed"
 msgstr "Purchase was not completed. You can try again anytime, or contact support if you need help"
@@ -522,7 +522,7 @@ msgid "turn_on_vpn"
 msgstr "Turn on VPN"
 
 msgid "server_setup_do"
-msgstr "Set up using  Digital Ocean"
+msgstr "Set up using  DigitalOcean"
 
 msgid "server_setup_do_price"
 msgstr "Only %s month through Digital Ocean"
@@ -566,8 +566,12 @@ msgstr "Multiple server location options"
 msgid "one_month_included"
 msgstr "%d TB/month data included"
 
-msgid "handle_configuration"
-msgstr "We handle the configuration, just sign up."
+msgid "easiest_setup_process"
+msgstr "Easiest setup process"
+
+msgid "setup_a_private_server"
+msgstr "Set Up a Private Server"
+
 
 msgid "setup_private_server"
 msgstr "Set Up Private Server"
@@ -752,7 +756,7 @@ msgid "private_server_ready"
 msgstr "Private Server is Ready!"
 
 msgid "private_server_ready_message"
-msgstr "(%d) Server has been set up and added to your server list. You're ready to connect!"
+msgstr "(%s) Server has been set up and added to your server list. You're ready to connect!"
 
 msgid "set_up_your_server"
 msgstr "Set Up Your Server"
@@ -786,7 +790,6 @@ msgstr "Continue with"
 
 msgid "join_a_private_server"
 msgstr "Join a Private Server"
-
 
 msgid "join_private_server"
 msgstr "Join Private Server"
@@ -850,14 +853,14 @@ msgstr "If you're unsure who runs the server or how it's configured, we recommen
 msgid "invalid_server_details"
 msgstr "Invalid server details. Please check the access key and try again."
 
-msgid "lantern_server"
-msgstr "Lantern Server"
+msgid "lantern_servers"
+msgstr "Lantern Servers"
 
-msgid "private_server"
-msgstr "Private Server"
+msgid "private_servers"
+msgstr "Private Servers"
 
-msgid "fastest_country"
-msgstr "Fastest Country"
+msgid "fastest_server"
+msgstr "Fastest Server"
 
 msgid "join_my_private_server"
 msgstr "Join My Lantern Private Server"
@@ -884,23 +887,25 @@ msgid "status_off"
 msgstr "Disconnected"
 
 msgid "select_your_server_location"
-msgstr "Select Your Server Location"
+msgstr "Select your server location"
 
 msgid "faster_speeds_unlimited_bandwidth"
 msgstr "Faster speeds & unlimited bandwidth"
-
 
 msgid "premium_servers_less_congestion"
 msgstr "Premium servers with less congestion"
 
 msgid "advanced_anti_censorship"
-msgstr "Advanced Anti-Censorship Technology"
+msgstr "Advanced anti-censorship technology"
+
+msgid "exclusive_access_new_features"
+msgstr "Exclusive access to new features"
 
 msgid "connect_up_to_five_devices"
 msgstr "Connect up to 5 devices"
 
 msgid "built_in_ad_blocking"
-msgstr "Built-in Ad Blocking"
+msgstr "Built in ad blocking"
 
 msgid "get_lantern_pro"
 msgstr "Get Lantern Pro"
@@ -940,7 +945,7 @@ msgid "email_updated"
 msgstr "Your email has been updated."
 
 msgid "enable_network_extension"
-msgstr "Enable Network extension."
+msgstr "Enable Network Extension"
 
 msgid "enable_network_extension_message"
 msgstr "To use Lantern, we need to install a network extension for your Mac."
@@ -958,13 +963,13 @@ msgid "click"
 msgstr "Click"
 
 msgid "open_system_settings"
-msgstr "open system settings"
+msgstr "Open System Settings"
 
 msgid "when_prompted"
-msgstr "When prompted"
+msgstr "when prompted"
 
 msgid "activate_extension"
-msgstr "Activate Lantern extension."
+msgstr "Install Now"
 
 msgid "email_optional"
 msgstr "Email (optional)"
@@ -1024,3 +1029,55 @@ msgstr "Only add servers run by people you trust "
 
 msgid "go_to_server_locations"
 msgstr "Go To Server Locations"
+
+msgid "lantern_io"
+msgstr "Lantern.io"
+
+msgid "alternative_download_links"
+msgstr "Alternative Download Links"
+
+msgid "github_download_page"
+msgstr "GitHub Download Page"
+
+msgid "telegram_bot"
+msgstr "Telegram Bot"
+
+msgid "if_you_cannot_access_website"
+msgstr "If you encounter any issues accessing our website, you can download Lantern from the links above."
+
+msgid "available_on"
+msgstr "Available on:"
+
+msgid "subscription_renewal_date"
+msgstr "Subscription Renewal Date"
+
+msgid "enabled_bypass_lists"
+msgstr "Enabled bypass lists:"
+
+
+msgid "diagnostic_logs"
+msgstr "Diagnostic Logs"
+
+
+msgid "lantern_user_forum"
+msgstr "Lantern User Forum"
+
+msgid "frequently_asked_questions"
+msgstr "Frequently Asked Questions"
+
+msgid "privacy_policy"
+msgstr "Privacy Policy"
+
+msgid "terms_of_service"
+msgstr "Terms of Service"
+
+msgid "issue_description"
+msgstr "Issue Description"
+
+msgid "get_unlimited_data"
+msgstr "Get unlimited data, and faster speeds!"
+
+msgid "private_server_options"
+msgstr "Private Server Options"
+
+

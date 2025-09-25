@@ -13,6 +13,8 @@ class InfoRow extends StatelessWidget {
   final String? imagePath;
   final EdgeInsetsGeometry? padding;
   final VoidCallback? onPressed;
+  final double? minTileHeight ;
+  final bool showLeadingIcon;
 
   const InfoRow({
     super.key,
@@ -25,12 +27,15 @@ class InfoRow extends StatelessWidget {
     this.padding,
     this.onPressed,
     this.child,
+    this.minTileHeight,
+    this.showLeadingIcon=true,
   });
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return ListTile(
+        minTileHeight:minTileHeight ,
         tileColor: backgroundColor,
         onTap: onPressed,
         contentPadding:
@@ -39,11 +44,9 @@ class InfoRow extends StatelessWidget {
           borderRadius: BorderRadius.circular(borderRadius),
           side: BorderSide(color: AppColors.gray2),
         ),
-        leading: imagePath == null
-            ? null
-            : AppImage(
-                path: imagePath ?? AppImagePaths.info,
-              ),
+        leading: showLeadingIcon? AppImage(
+          path: imagePath ?? AppImagePaths.info,
+        ):null,
         title: child ??
             Text(
               text,

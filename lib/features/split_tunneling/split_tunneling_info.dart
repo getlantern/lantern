@@ -19,7 +19,6 @@ class SplitTunnelingInfo extends HookConsumerWidget {
         centerTitle: false,
         titleSpacing: 16,
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.white,
         title: Padding(
           padding: EdgeInsets.only(left: 16.0),
           child: Text(
@@ -40,7 +39,7 @@ class SplitTunnelingInfo extends HookConsumerWidget {
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -138,8 +137,9 @@ class SubsectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     final textStyle = isLarge
         ? Theme.of(context).textTheme.titleLarge!
-        : AppTestStyles.labelLarge.copyWith(
+        : AppTestStyles.labelMedium.copyWith(
             fontSize: 16,
+            color: AppColors.gray9,
             fontWeight: FontWeight.w600,
           );
 

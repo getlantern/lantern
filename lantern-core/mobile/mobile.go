@@ -115,12 +115,21 @@ func GetSelectedServer() string {
 	return vpn_tunnel.GetSelectedServer()
 }
 
+// Split Tunnel Methods
 func AddSplitTunnelItem(filterType, item string) error {
 	return withCore(func(c lanterncore.Core) error { return c.AddSplitTunnelItem(filterType, item) })
 }
 
 func RemoveSplitTunnelItem(filterType, item string) error {
 	return withCore(func(c lanterncore.Core) error { return c.RemoveSplitTunnelItem(filterType, item) })
+}
+
+func AddSplitTunnelItems(items string) error {
+	return withCore(func(c lanterncore.Core) error { return c.AddSplitTunnelItems(items) })
+}
+
+func RemoveSplitTunnelItems(items string) error {
+	return withCore(func(c lanterncore.Core) error { return c.RemoveSplitTunnelItems(items) })
 }
 
 func ReportIssue(email, issueType, description, device, model, logFilePath string) error {
