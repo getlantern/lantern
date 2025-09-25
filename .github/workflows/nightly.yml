@@ -3,8 +3,6 @@ name: Nightly
 on:
   schedule:
     - cron: "0 3 * * *"
-  push:
-    branches: [atavism/nightly-ci-builds]
   workflow_dispatch:
     inputs:
       platforms:
