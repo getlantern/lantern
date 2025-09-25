@@ -80,17 +80,7 @@ class Support extends StatelessWidget {
             ),
             // Spacer(),
             SizedBox(height: defaultSize),
-            FutureBuilder(
-                future: PackageInfo.fromPlatform(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    final info = snapshot.data as PackageInfo;
-                    return AppVersion(
-                        version: '${info.version} (${info.buildNumber})');
-                  }
-                  return SizedBox();
-                }),
-
+            AppVersion(),
             SizedBox(height: size24),
           ],
         ),

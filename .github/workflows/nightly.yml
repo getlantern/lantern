@@ -67,14 +67,14 @@ jobs:
       build_type: nightly
       installer_name: ${{ needs.set-nightly-metadata.outputs.installer_name }}
 
-  # build-windows:
-  #   needs: set-nightly-metadata
-  #   uses: ./.github/workflows/build-windows.yml
-  #   secrets: inherit
-  #   with:
-  #     version: ${{ needs.set-nightly-metadata.outputs.version }}
-  #     build_type: nightly
-  #     installer_name: ${{ needs.set-nightly-metadata.outputs.installer_name }}
+  build-windows:
+    needs: set-nightly-metadata
+    uses: ./.github/workflows/build-windows.yml
+    secrets: inherit
+    with:
+      version: ${{ needs.set-nightly-metadata.outputs.version }}
+      build_type: nightly
+      installer_name: ${{ needs.set-nightly-metadata.outputs.installer_name }}
 
   build-linux:
     needs: set-nightly-metadata
@@ -95,10 +95,11 @@ jobs:
       installer_name: ${{ needs.set-nightly-metadata.outputs.installer_name }}
 
   publish:
-    needs: [
+    needs:
+      [
         set-nightly-metadata,
         build-macos,
-        #build-windows,
+        build-windows,
         build-linux,
         build-android,
       ]
