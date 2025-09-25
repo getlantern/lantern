@@ -1044,3 +1044,6 @@ msgstr "Available on:"
 
 msgid "subscription_renewal_date"
 msgstr "Subscription Renewal Date"
+
+msgid "enabled_bypass_lists"
+msgstr "Enabled bypass lists:"
