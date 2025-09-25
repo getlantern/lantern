@@ -44,14 +44,15 @@ jobs:
           echo "version=$VER" >> "$GITHUB_OUTPUT"
           echo "installer_name=lantern-installer-nightly" >> "$GITHUB_OUTPUT"
 
-      - name: Update pubspec.yaml
-        if: ${{ !contains(steps.meta.outputs.version, '+') }}
+      - name: Update pubspec.yaml (build number only)
         shell: bash
-        env:
-          VERSION: ${{ steps.meta.outputs.version }}
         run: |
-          sed -i.bak -E "s/^version: .*/version: ${VERSION}/" pubspec.yaml
-          cat pubspec.yaml
+          # Extract everything before '+' (keeps pre-release if present)
+          BASE=$(sed -nE 's/^version:[[:space:]]*([^+]+).*/\1/p' pubspec.yaml)
+          NEW_VERSION="${BASE}+${GITHUB_RUN_NUMBER}"
+          echo "Setting version: ${NEW_VERSION}"
+          sed -i.bak -E "s/^version:.*/version: ${NEW_VERSION}/" pubspec.yaml
+          grep '^version:' pubspec.yaml
 
       - name: Upload pubspec.yaml
         uses: actions/upload-artifact@v4
@@ -68,14 +69,14 @@ jobs:
       build_type: nightly
       installer_name: ${{ needs.set-nightly-metadata.outputs.installer_name }}
 
-  build-windows:
-    needs: set-nightly-metadata
-    uses: ./.github/workflows/build-windows.yml
-    secrets: inherit
-    with:
-      version: ${{ needs.set-nightly-metadata.outputs.version }}
-      build_type: nightly
-      installer_name: ${{ needs.set-nightly-metadata.outputs.installer_name }}
+  # build-windows:
+  #   needs: set-nightly-metadata
+  #   uses: ./.github/workflows/build-windows.yml
+  #   secrets: inherit
+  #   with:
+  #     version: ${{ needs.set-nightly-metadata.outputs.version }}
+  #     build_type: nightly
+  #     installer_name: ${{ needs.set-nightly-metadata.outputs.installer_name }}
 
   build-linux:
     needs: set-nightly-metadata
@@ -141,3 +142,13 @@ jobs:
             echo "- Linux DEB: https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.deb"
             echo "- Linux RPM: https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.rpm"
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Notify Slack
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: webhook-trigger
+          payload: |
+            {
+              "text": "Lantern nightly ${{ github.ref_name }} released!*\n*Downloads:*\n• <https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.dmg|macOS>\n• <https://$BUCKET.s3.amazonaws.com/releases/${INSTALLER_NAME}.exe|Windows>\n• <https://$BUCKET.s3.amazonaws.com/nightly/latest/${{ env.INSTALLER_NAME }}.apk|Android>\n• <https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.deb|Linux (.deb)>\n• <https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.rpm|Linux (.rpm)>"
+            }
