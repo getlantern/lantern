@@ -40,7 +40,7 @@ jobs:
         run: |
           DATE=$(date -u +%Y%m%d)
           SHA=$(git rev-parse --short HEAD)
-          VER="0.0.0-nightly.${DATE}+${SHA}"
+          VER="0.0.0-nightly.${DATE}.${SHA}+${GITHUB_RUN_NUMBER}"
           echo "version=$VER" >> "$GITHUB_OUTPUT"
           echo "installer_name=lantern-installer-nightly" >> "$GITHUB_OUTPUT"
 
