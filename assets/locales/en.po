@@ -963,10 +963,10 @@ msgid "click"
 msgstr "Click"
 
 msgid "open_system_settings"
-msgstr "open system settings"
+msgstr "Open System Settings"
 
 msgid "when_prompted"
-msgstr "When prompted"
+msgstr "when prompted"
 
 msgid "activate_extension"
 msgstr "Activate Lantern extension."
