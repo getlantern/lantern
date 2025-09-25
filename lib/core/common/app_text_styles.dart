@@ -54,6 +54,7 @@ class AppTestStyles {
         fontSize: 12,
         fontWeight: FontWeight.w500,
         color: AppColors.black,
+        letterSpacing: 0.0,
       );
 
   static TextStyle get labelSmall => GoogleFonts.urbanist(

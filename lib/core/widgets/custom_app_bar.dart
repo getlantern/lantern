@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lantern/core/common/app_asset.dart';
+import 'package:lantern/core/common/app_image_paths.dart';
 
 class CustomAppBar extends AppBar {
   @override
@@ -34,7 +35,7 @@ class BackButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return IconButton(
       icon: AppImage(
-        path: 'assets/icons/arrow_back.svg',
+        path: AppImagePaths.arrowBack,
         width: size,
         height: size,
         color: color ?? Theme.of(context).iconTheme.color,

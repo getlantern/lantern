@@ -143,7 +143,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     } catch (e) {
       appLogger.error('Error subscribing to plan: $e');
       context.hideLoadingDialog();
-      context.showSnackBar('error_subscribing_plan'.i18n);
+      context.showSnackBar(e.localizedDescription);
     }
   }
 

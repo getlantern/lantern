@@ -170,6 +170,7 @@ class _SettingState extends ConsumerState<Setting> {
               ),
             ),
           ),
+          const SizedBox(height: 4),
           Card(
             child: AppTile(
               minHeight: 72,
