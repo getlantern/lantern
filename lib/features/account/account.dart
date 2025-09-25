@@ -69,7 +69,7 @@ class Account extends HookConsumerWidget {
           padding: const EdgeInsets.only(left: 16),
           child: Text(
             user!.legacyUserData.subscriptionData.autoRenew
-                ? 'next_billing_date'.i18n
+                ? 'subscription_renewal_date'.i18n
                 : 'pro_account_expiration'.i18n,
             style: theme.labelLarge!.copyWith(
               color: AppColors.gray8,
@@ -81,7 +81,7 @@ class Account extends HookConsumerWidget {
           child: AppTile(
             label: user.legacyUserData.toDate(),
             contentPadding: EdgeInsets.only(left: 16),
-            icon: AppImagePaths.email,
+            icon: AppImagePaths.autoRenew,
             trailing: AppTextButton(
               label: 'manage_subscription'.i18n,
               onPressed: () => onManageSubscriptionTap(ref, buildContext),

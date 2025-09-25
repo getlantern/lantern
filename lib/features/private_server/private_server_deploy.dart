@@ -101,9 +101,11 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
           SizedBox(height: 24),
           Center(child: Icon(Icons.fingerprint, size: 40)),
           SizedBox(height: 16),
-          Text(
-            'confirm_fingerprint'.i18n,
-            style: textTheme!.titleLarge,
+          Center(
+            child: Text(
+              'confirm_fingerprint'.i18n,
+              style: textTheme!.titleLarge,
+            ),
           ),
           SizedBox(height: 16),
           Text(

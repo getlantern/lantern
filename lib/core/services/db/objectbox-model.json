@@ -49,7 +49,7 @@
     },
     {
       "id": "2:687217704776011576",
-      "lastPropertyId": "9:4176228116314272090",
+      "lastPropertyId": "11:8153428725932858000",
       "name": "AppSetting",
       "properties": [
         {
@@ -97,6 +97,16 @@
           "id": "9:4176228116314272090",
           "name": "showSplashScreen",
           "type": 1
+        },
+        {
+          "id": "10:6825758662513353714",
+          "name": "bypassListRaw",
+          "type": 9
+        },
+        {
+          "id": "11:8153428725932858000",
+          "name": "splitTunnelingModeRaw",
+          "type": 9
         }
       ],
       "relations": []

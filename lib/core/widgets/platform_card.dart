@@ -16,11 +16,12 @@ class PlatformCard extends StatelessWidget {
         hoverColor: AppColors.blue1,
         onPressed: onPressed,
         style: IconButton.styleFrom(
-          padding: EdgeInsets.all(15.r),
-          backgroundColor: AppColors.white,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        ),
+            padding: EdgeInsets.all(15.r),
+            backgroundColor: AppColors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: BorderSide(color: AppColors.gray3, width: .5),
+            )),
         icon: AppImage(
           fit: BoxFit.contain,
           path: imagePath,

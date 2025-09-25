@@ -6,6 +6,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/website.dart';
 import 'package:lantern/core/widgets/search_bar.dart';
 import 'package:lantern/core/widgets/section_label.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/split_tunneling/provider/search_query.dart';
 import 'package:lantern/features/split_tunneling/provider/website_notifier.dart';
 import 'package:lantern/features/split_tunneling/website_domain_input.dart';
@@ -18,6 +19,7 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
     final searchQuery = ref.watch(searchQueryProvider);
+    final appSetting = ref.watch(appSettingNotifierProvider);
 
     final enabledWebsites = ref.watch(splitTunnelingWebsitesProvider);
     matchesSearch(website) =>
@@ -57,6 +59,29 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
               ),
             ),
           ),
+          if (appSetting.bypassList != BypassListOption.none) ...{
+            SliverToBoxAdapter(child: SizedBox(height: defaultSize)),
+            SliverToBoxAdapter(
+                child: SectionLabel('enabled_bypass_lists'.i18n)),
+            SliverToBoxAdapter(
+              child: AppCard(
+                padding: EdgeInsets.zero,
+                child: AppTile(
+                  contentPadding: EdgeInsets.only(left: 16),
+                  label: '${appSetting.bypassList.value}_bypass_list'.i18n,
+                  subtitle: Text(
+                    '${appSetting.bypassList.value}_bypass_desc'.i18n,
+                    style:
+                        textTheme.labelMedium!.copyWith(color: AppColors.gray7),
+                  ),
+                  trailing: AppIconButton(
+                    path: AppImagePaths.close,
+                    onPressed: () => removeBypassList(ref),
+                  ),
+                ),
+              ),
+            )
+          },
           SliverToBoxAdapter(child: SizedBox(height: defaultSize)),
           SliverToBoxAdapter(child: DividerSpace()),
           SliverToBoxAdapter(child: SizedBox(height: defaultSize)),
@@ -97,6 +122,12 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
         ],
       ),
     );
+  }
+
+  void removeBypassList(WidgetRef ref) {
+    ref
+        .read(appSettingNotifierProvider.notifier)
+        .setBypassList(BypassListOption.none);
   }
 }
 

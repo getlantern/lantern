@@ -108,7 +108,7 @@ class PrivateServerSetup extends HookConsumerWidget {
     ];
 
     return BaseScreen(
-      title: 'setup_private_server'.i18n,
+      title: 'setup_a_private_server'.i18n,
       body: SingleChildScrollView(
         child: Center(
           child: Column(
@@ -126,6 +126,7 @@ class PrivateServerSetup extends HookConsumerWidget {
               const SizedBox(height: size24),
               SecondaryButton(
                 label: 'server_setup_manual'.i18n,
+                isTaller: true,
                 onPressed: () {
                   appRouter.push(ManuallyServerSetup());
                 },

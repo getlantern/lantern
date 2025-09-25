@@ -1,11 +1,11 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/app_rich_text.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/split_tunneling/provider/website_notifier.dart';
 
 final selectedBypassListProvider =
     StateProvider<BypassListOption>((ref) => BypassListOption.global);
@@ -19,10 +19,10 @@ class DefaultBypassLists extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final preferences = ref.watch(appSettingNotifierProvider);
-    final notifier = ref.read(appSettingNotifierProvider.notifier);
-
+    final websiteNr = ref.read(splitTunnelingWebsitesProvider.notifier);
+    final textTheme = Theme.of(context).textTheme;
     Future<void> onBypassTap(BypassListOption option) async {
-      notifier.setByassList(option);
+      websiteNr.updateByPassList(option);
       Future.delayed(const Duration(milliseconds: 500), () {
         appRouter.pop();
       });
@@ -40,25 +40,38 @@ class DefaultBypassLists extends HookConsumerWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            ...bypassListOptions.map(
-              (bypassList) => AppTile(
-                label: '${bypassList.value}_bypass_list'.i18n,
-                subtitle: Text(
-                  '${bypassList.value}_bypass_desc'.i18n,
-                  style: AppTestStyles.labelMedium.copyWith(
-                    color: AppColors.gray7,
-                    height: 1.33,
-                  ),
-                ),
-                trailing: AppRadioButton<BypassListOption>(
-                  value: bypassList,
-                  groupValue: preferences.bypassList,
-                  onChanged: (value) => onBypassTap(bypassList),
-                ),
-                onPressed: () => onBypassTap(bypassList),
-              ),
-            ),
+            AppCard(
+                padding: EdgeInsets.zero,
+                child: ListView(
+                  padding: EdgeInsets.zero,
+                  shrinkWrap: true,
+                  children: bypassListOptions
+                      .map(
+                        (bypassList) => Column(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            AppTile(
+                              label: '${bypassList.value}_bypass_list'.i18n,
+                              subtitle: Text(
+                                '${bypassList.value}_bypass_desc'.i18n,
+                                style: textTheme.labelMedium!
+                                    .copyWith(color: AppColors.gray7),
+                              ),
+                              trailing: preferences.bypassList == bypassList
+                                  ? Icon(Icons.check_circle)
+                                  : Icon(Icons.radio_button_off),
+                              onPressed: () => onBypassTap(bypassList),
+                            ),
+                            DividerSpace(padding: EdgeInsets.zero),
+                          ],
+                        ),
+                      )
+                      .toList(),
+                )),
+            SizedBox(height: defaultSize),
             InfoRow(
+              minTileHeight: 35,
               text: '',
               child: AppRichText(
                 texts: 'see_sites_included'.i18n,
@@ -71,28 +84,6 @@ class DefaultBypassLists extends HookConsumerWidget {
                 },
               ),
             )
-            // AppTile.link(
-            //   icon: AppImagePaths.info,
-            //   label: 'see_sites_included'.i18n,
-            //   url: 'https://getlantern.org/bypass-lists',
-            //   contentPadding:
-            //   const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            //   subtitle: Text.rich(
-            //     TextSpan(
-            //       children: [
-            //         TextSpan(
-            //           text: 'default_lists_here'.i18n,
-            //           style: AppTestStyles.titleSmall.copyWith(
-            //             color: AppColors.linkColor,
-            //             fontWeight: FontWeight.w500,
-            //             decoration: TextDecoration.underline,
-            //             height: 1.43,
-            //           ),
-            //         ),
-            //       ],
-            //     ),
-            //   ),
-            // )
           ],
         ),
       ),

@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:lantern/core/common/common.dart';
@@ -34,28 +35,34 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
         length: 2,
         child: Column(
           children: [
-            TabBar(
-              indicatorSize: TabBarIndicatorSize.tab,
-              labelColor: Colors.teal.shade900,
-              indicatorColor: Colors.transparent,
-              dividerHeight: 0,
-              unselectedLabelColor: Colors.grey,
-              labelStyle: textTheme!.titleSmall,
-              indicator: BoxDecoration(
-                color: AppColors.blue2,
-                borderRadius: BorderRadius.circular(40),
-                shape: BoxShape.rectangle,
-                border: Border.all(color: AppColors.blue3, width: 1),
+            SizedBox(
+              height: 35.h,
+              child: TabBar(
+                indicatorSize: TabBarIndicatorSize.tab,
+                indicatorPadding: EdgeInsets.symmetric(horizontal: size24),
+                splashBorderRadius: BorderRadius.circular(40),
+                labelColor: Colors.teal.shade900,
+                indicatorColor: Colors.transparent,
+                dividerHeight: 0,
+                unselectedLabelColor: Colors.grey,
+                labelStyle: textTheme!.titleSmall,
+                indicator: BoxDecoration(
+                  color: AppColors.blue2,
+                  borderRadius: BorderRadius.circular(40),
+                  shape: BoxShape.rectangle,
+                  border: Border.all(color: AppColors.blue3, width: 1),
+                ),
+                tabs: [
+                  Tab(child: Text('my_servers'.i18n)),
+                  Tab(child: Text('joined_servers'.i18n))
+                ],
               ),
-              tabs: [
-                Tab(child: Text('my_servers'.i18n)),
-                Tab(child: Text('joined_servers'.i18n))
-              ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
+            DividerSpace(padding: EdgeInsets.zero),
+            const SizedBox(height: defaultSize),
             InfoRow(
               text: 'access_key_expiration'.i18n,
-              onPressed: () {},
             ),
             const SizedBox(height: 16),
             Expanded(
@@ -91,11 +98,6 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    // IconButton(
-                    //   icon: Icon(Icons.edit_outlined, color: AppColors.gray9),
-                    //   iconSize: 24,
-                    //   onPressed: () => showRenameDialog(item.serverName),
-                    // ),
                     IconButton(
                       icon: Icon(Icons.delete_outline, color: AppColors.gray9),
                       iconSize: 24,
@@ -109,8 +111,9 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                 PrimaryButton(
                     label: 'share_access_key'.i18n,
                     bgColor: AppColors.blue1,
-                    icon: AppImagePaths.share,
+                    icon: AppImagePaths.shareV2,
                     iconColor: AppColors.gray9,
+                    showBorder: true,
                     textColor: AppColors.gray9,
                     onPressed: () => onTapShareAccessKey(item)),
               SizedBox(height: 16),

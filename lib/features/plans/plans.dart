@@ -69,11 +69,12 @@ class _PlansState extends ConsumerState<Plans> {
           padding: EdgeInsets.symmetric(horizontal: defaultSize),
           child: SizedBox(
             height:
-                context.isSmallDevice ? size.height * 0.4 : size.height * 0.35,
+                context.isSmallDevice ? size.height * 0.4 : size.height * 0.4,
             child: SingleChildScrollView(child: FeatureList()),
           ),
         ),
         SizedBox(height: defaultSize),
+        DividerSpace(padding: EdgeInsets.zero),
         Expanded(
           child: Container(
             color: AppColors.gray1,

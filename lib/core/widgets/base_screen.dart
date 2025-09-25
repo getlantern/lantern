@@ -9,6 +9,7 @@ class BaseScreen extends StatelessWidget {
   final AppBar? appBar;
   final Widget? bottomNavigationBar;
   final Color? backgroundColor;
+  final bool extendBody;
 
   const BaseScreen({
     super.key,
@@ -18,6 +19,7 @@ class BaseScreen extends StatelessWidget {
     this.bottomNavigationBar,
     this.appBar,
     this.backgroundColor,
+    this.extendBody=false,
   });
 
   @override
@@ -33,6 +35,7 @@ class BaseScreen extends StatelessWidget {
         child: body,
       ),
       bottomNavigationBar: bottomNavigationBar,
+      extendBody: extendBody,
     );
   }
 }

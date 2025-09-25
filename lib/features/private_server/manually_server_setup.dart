@@ -72,6 +72,7 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
                 PrimaryButton(
                   icon: AppImagePaths.github,
                   iconColor: AppColors.white,
+                  isTaller: true,
                   label: 'view_instructions_github'.i18n,
                   onPressed: () {
                     UrlUtils.openWithSystemBrowser(
@@ -145,6 +146,7 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
                 PrimaryButton(
                   enabled: accessKeyController.text.isNotEmpty,
                   label: 'verify_server'.i18n,
+                  isTaller: true,
                   onPressed: () => onVerifyServer(
                       accessKeyController.text, nameController.text),
                 ),

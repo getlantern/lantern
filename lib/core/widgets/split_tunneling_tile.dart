@@ -38,6 +38,7 @@ class SplitTunnelingTile extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           AppTextButton(
+            underLine: false,
             label: actionText,
             onPressed: onPressed,
           ),

@@ -63,6 +63,7 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
           // SizedBox(height: 16),
           InfoRow(
             backgroundColor: AppColors.yellow1,
+            showLeadingIcon: false,
             text: '',
             child: Row(
               children: <Widget>[

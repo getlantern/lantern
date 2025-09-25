@@ -105,7 +105,8 @@ enum BypassListOption {
   global,
   russia,
   china,
-  iran;
+  iran,
+  none;
 
   String get value {
     switch (this) {
@@ -117,6 +118,8 @@ enum BypassListOption {
         return 'iran';
       case BypassListOption.global:
         return 'global';
+      case BypassListOption.none:
+        return 'none';
     }
   }
 }
@@ -130,8 +133,12 @@ extension BypassListOptionString on String {
         return BypassListOption.china;
       case 'iran':
         return BypassListOption.iran;
-      default:
+      case 'none':
+        return BypassListOption.none;
+      case 'global':
         return BypassListOption.global;
+      default:
+        return BypassListOption.none;
     }
   }
 }
