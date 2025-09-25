@@ -247,8 +247,7 @@ linux-release: clean linux pubget gen
 	flutter build linux --release $(DART_DEFINES)
 	cp $(LINUX_LIB_BUILD) build/linux/x64/release/bundle
 	flutter_distributor package --build-dart-define=BUILD_TYPE=$(BUILD_TYPE) \
-  	--build-dart-define=VERSION=$(VERSION) --platform windows --targets "exe" \
-	--platform linux --targets "deb,rpm" --skip-clean
+  	--build-dart-define=VERSION=$(VERSION) --platform linux --targets "deb,rpm" --skip-clean
 	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-linux.rpm $(LINUX_INSTALLER_RPM)
 	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-linux.deb $(LINUX_INSTALLER_DEB)
 
