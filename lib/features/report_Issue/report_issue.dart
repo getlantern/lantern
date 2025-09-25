@@ -86,7 +86,7 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
               AppTextField(
                 autovalidateMode: AutovalidateMode.disabled,
                 controller: selectedIssueController,
-                label: 'issue_description'.i18n,
+                label: 'select_an_issue'.i18n,
                 hintText: '',
                 onTap: () => openIssueSelection(
                     selectedIssueController, groupValue.value),
@@ -100,7 +100,7 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
               AppTextField(
                 controller: descriptionController,
                 hintText: '',
-                label: 'please_enter_issue_description'.i18n,
+                label: 'issue_description'.i18n,
                 prefixIcon: Icons.description_outlined,
                 maxLines: 10,
               ),

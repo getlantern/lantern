@@ -59,7 +59,7 @@ class ProviderCard extends StatelessWidget {
             DividerSpace(padding: EdgeInsets.symmetric(vertical: 8)),
             const SizedBox(height: 8),
             CheckmarkTile(
-              text: 'handle_configuration'.i18n,
+              text: 'easiest_setup_process'.i18n,
               showDivider: false,
             ),
             CheckmarkTile(

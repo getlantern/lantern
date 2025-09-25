@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/features/support/app_version.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 @RoutePage(name: 'Support')
 class Support extends StatelessWidget {
@@ -78,9 +79,18 @@ class Support extends StatelessWidget {
               ),
             ),
             // Spacer(),
-            SizedBox(height: 16),
+            SizedBox(height: defaultSize),
+            FutureBuilder(
+                future: PackageInfo.fromPlatform(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    final info = snapshot.data as PackageInfo;
+                    return AppVersion(
+                        version: '${info.version} (${info.buildNumber})');
+                  }
+                  return SizedBox();
+                }),
 
-            AppVersion(version: '8.1.4 (20250213.213443)'),
             SizedBox(height: size24),
           ],
         ),

@@ -295,7 +295,7 @@ class _SettingState extends ConsumerState<Setting> {
           SizedBox(height: defaultSize),
           Text(
             'logout_message'.i18n,
-            style: theme.bodySmall!.copyWith(
+            style: theme.bodyMedium!.copyWith(
               color: AppColors.gray8,
             ),
           ),

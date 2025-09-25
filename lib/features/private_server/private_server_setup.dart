@@ -108,7 +108,7 @@ class PrivateServerSetup extends HookConsumerWidget {
     ];
 
     return BaseScreen(
-      title: 'setup_private_server'.i18n,
+      title: 'setup_a_private_server'.i18n,
       body: SingleChildScrollView(
         child: Center(
           child: Column(

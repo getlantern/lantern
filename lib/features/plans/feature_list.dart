@@ -25,6 +25,9 @@ class FeatureList extends StatelessWidget {
             image: AppImagePaths.eyeHide,
             title: 'advanced_anti_censorship'.i18n),
         _FeatureTile(
+            image: AppImagePaths.roundCorrect,
+            title: 'exclusive_access_new_features'.i18n),
+        _FeatureTile(
             image: AppImagePaths.connectDevice,
             title: 'connect_up_to_five_devices'.i18n),
         _FeatureTile(

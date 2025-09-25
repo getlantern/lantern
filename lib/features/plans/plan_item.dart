@@ -56,7 +56,7 @@ class PlanItem extends StatelessWidget {
           child: Row(
             children: <Widget>[
               Text(
-                plan.description,
+                plan.description.toTitleCase(),
                 style: textTheme.titleMedium,
               ),
               Spacer(),

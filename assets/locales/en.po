@@ -522,7 +522,7 @@ msgid "turn_on_vpn"
 msgstr "Turn on VPN"
 
 msgid "server_setup_do"
-msgstr "Set up using  Digital Ocean"
+msgstr "Set up using  DigitalOcean"
 
 msgid "server_setup_do_price"
 msgstr "Only %s month through Digital Ocean"
@@ -566,8 +566,12 @@ msgstr "Multiple server location options"
 msgid "one_month_included"
 msgstr "%d TB/month data included"
 
-msgid "handle_configuration"
-msgstr "We handle the configuration, just sign up."
+msgid "easiest_setup_process"
+msgstr "Easiest setup process"
+
+msgid "setup_a_private_server"
+msgstr "Set Up a Private Server"
+
 
 msgid "setup_private_server"
 msgstr "Set Up Private Server"
@@ -883,23 +887,25 @@ msgid "status_off"
 msgstr "Disconnected"
 
 msgid "select_your_server_location"
-msgstr "Select Your Server Location"
+msgstr "Select your server location"
 
 msgid "faster_speeds_unlimited_bandwidth"
 msgstr "Faster speeds & unlimited bandwidth"
-
 
 msgid "premium_servers_less_congestion"
 msgstr "Premium servers with less congestion"
 
 msgid "advanced_anti_censorship"
-msgstr "Advanced Anti-Censorship Technology"
+msgstr "Advanced anti-censorship technology"
+
+msgid "exclusive_access_new_features"
+msgstr "Exclusive access to new features"
 
 msgid "connect_up_to_five_devices"
 msgstr "Connect up to 5 devices"
 
 msgid "built_in_ad_blocking"
-msgstr "Built-in Ad Blocking"
+msgstr "Built in ad blocking"
 
 msgid "get_lantern_pro"
 msgstr "Get Lantern Pro"
@@ -1067,6 +1073,10 @@ msgstr "Terms of Service"
 
 msgid "issue_description"
 msgstr "Issue Description"
+
+
+msgid "get_unlimited_data"
+msgstr "Get unlimited data, and faster speeds!"
 
 
 
