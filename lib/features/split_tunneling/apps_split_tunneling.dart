@@ -91,7 +91,9 @@ class AppsSplitTunneling extends HookConsumerWidget {
                         trailing: AppTextButton(
                           label: 'deselect_all'.i18n,
                           fontSize: 14,
-                          onPressed: () {},
+                          onPressed: () {
+                            notifier.deselectAllApps();
+                          },
                         ),
                       );
                     }
@@ -123,7 +125,9 @@ class AppsSplitTunneling extends HookConsumerWidget {
                       trailing: AppTextButton(
                         label: 'select_all'.i18n,
                         fontSize: 14,
-                        onPressed: () {},
+                        onPressed: () {
+                          notifier.selectAllApps();
+                        },
                       ),
                     );
                   }

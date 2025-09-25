@@ -47,7 +47,18 @@ class MethodHandler {
         withFilterArgs(call: call, result: result) { filterType, value in
           self.removeSplitTunnelItem(result: result, filterType: filterType, value: value)
         }
-      case "connectToServer":
+
+      case "addAllItems":
+        withFilterArgs(call: call, result: result) { filterType, value in
+          self.addAllItemsToSplitTunnel(result: result, filterType: filterType, value: value)
+        }
+
+      case "removeAllItems":
+        withFilterArgs(call: call, result: result) { filterType, value in
+          self.removeItemsToSplitTunnel(result: result, filterType: filterType, value: value)
+        }
+          break
+case "connectToServer":
         let map = call.arguments as? [String: Any]
         self.connectToServer(result: result, data: map!)
       case "oauthLoginUrl":
@@ -327,6 +338,38 @@ class MethodHandler {
               message: err.localizedDescription,
               details: err.debugDescription))
         }
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  func addAllItemsToSplitTunnel(result: @escaping FlutterResult, filterType: String, value: String)
+  {
+    Task {
+      var error: NSError?
+      MobileAddSplitTunnelItems( value, &error)
+      if let err = error {
+        await self.handleFlutterError(
+          err, result: result, code: "ADD_ALL_SPLIT_TUNNEL_ITEMS_FAILED")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  func removeItemsToSplitTunnel(result: @escaping FlutterResult, filterType: String, value: String)
+  {
+    Task {
+      var error: NSError?
+      MobileRemoveSplitTunnelItems(value, &error)
+      if let err = error {
+        await self.handleFlutterError(
+          err, result: result, code: "REMOVE_ALL_SPLIT_TUNNEL_ITEMS_FAILED")
         return
       }
       await MainActor.run {

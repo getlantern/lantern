@@ -1,4 +1,5 @@
 import 'package:lantern/core/common/app_eum.dart';
+import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage.dart';
@@ -6,6 +7,8 @@ import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+import 'apps_data_provider.dart';
 
 part 'apps_notifier.g.dart';
 
@@ -47,12 +50,42 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
   }
 
   void selectAllApps() async {
-    await _db.selectAllApps();
-    state = _db.getEnabledApps();
+    final allApps = (ref.read(appsDataProvider).value ?? [])
+        .where((a) => a.iconPath.isNotEmpty || a.iconBytes != null)
+        .where((a) => a.name != AppSecrets.lanternPackageName)
+        .toList()
+      ..sort((a, b) => a.name.compareTo(b.name));
+    final all = allApps.map((a) => a.bundleId).toList();
+    final result = await _lanternService.addAllItems(
+        SplitTunnelFilterType.packageName, all);
+    result.fold(
+      (l) => appLogger.error('Failed to add all apps: ${l.error}'),
+      (r) async {
+        state = allApps.map((a) => a.copyWith(isEnabled: true)).toSet();
+        await _db.saveApps(state);
+      },
+    );
   }
 
   void deselectAllApps() async {
-    await _db.deselectAllApps();
-    state = _db.getEnabledApps();
+    final allApps = state.toList();
+    // final allApps = (ref.read(appsDataProvider).value ?? [])
+    //     .where((a) => a.iconPath.isNotEmpty || a.iconBytes != null)
+    //     .where((a) => a.name != AppSecrets.lanternPackageName)
+    //     .toList()
+    //   ..sort((a, b) => a.name.compareTo(b.name));
+    final stringsList = allApps.map((a) => a.bundleId).toList();
+    final result = await _lanternService.removeAllItems(
+        SplitTunnelFilterType.packageName, stringsList);
+    result.fold(
+      (l) => appLogger.error('Failed to remove all apps: ${l.error}'),
+      (r) async {
+        final newApps =
+            allApps.map((a) => a.copyWith(isEnabled: false)).toSet();
+
+        await _db.saveApps(newApps);
+        state = _db.getEnabledApps();
+      },
+    );
   }
 }

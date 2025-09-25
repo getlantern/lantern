@@ -543,4 +543,20 @@ class LanternService implements LanternCoreService {
     }
     return _platformService.isSystemExtensionInstalled();
   }
+
+  @override
+  Future<Either<Failure, Unit>> addAllItems(SplitTunnelFilterType type, List<String> value) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.addAllItems(type, value);
+    }
+    return _platformService.addAllItems(type, value);
+  }
+
+  @override
+  Future<Either<Failure, Unit>> removeAllItems(SplitTunnelFilterType type, List<String> value) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.removeAllItems(type, value);
+    }
+    return _platformService.removeAllItems(type, value);
+  }
 }
