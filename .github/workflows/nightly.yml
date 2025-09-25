@@ -149,5 +149,5 @@ jobs:
           webhook-type: webhook-trigger
           payload: |
             {
-              "text": "Lantern nightly ${{ github.ref_name }} released!*\n*Downloads:*\n• <https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.dmg|macOS>\n• <https://$BUCKET.s3.amazonaws.com/releases/${INSTALLER_NAME}.exe|Windows>\n• <https://$BUCKET.s3.amazonaws.com/nightly/latest/${{ env.INSTALLER_NAME }}.apk|Android>\n• <https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.deb|Linux (.deb)>\n• <https://$BUCKET.s3.amazonaws.com/nightly/latest/${INSTALLER_NAME}.rpm|Linux (.rpm)>"
+              "text": "Lantern nightly `${{ needs.set-nightly-metadata.outputs.version }}` is ready.\n*Downloads:*\n• <https://${{ env.BUCKET }}.s3.amazonaws.com/nightly/latest/${{ env.INSTALLER_NAME }}.dmg|macOS>\n• <https://${{ env.BUCKET }}.s3.amazonaws.com/nightly/latest/${{ env.INSTALLER_NAME }}.exe|Windows>\n• <https://${{ env.BUCKET }}.s3.amazonaws.com/nightly/latest/${{ env.INSTALLER_NAME }}.apk|Android>\n• <https://${{ env.BUCKET }}.s3.amazonaws.com/nightly/latest/${{ env.INSTALLER_NAME }}.deb|Linux (.deb)>\n• <https://${{ env.BUCKET }}.s3.amazonaws.com/nightly/latest/${{ env.INSTALLER_NAME }}.rpm|Linux (.rpm)>"
             }
