@@ -461,7 +461,7 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		return &Response{ID: r.ID, Result: map[string]any{"stopped": true}}
 
 	case common.CmdIsVPNRunning:
-		st, err := ripc.GetStatus()
+		st, err := ripc.GetStatus(ctx)
 		if err != nil {
 			return rpcErr(r.ID, "status_error", err.Error())
 		}
