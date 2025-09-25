@@ -27,7 +27,7 @@ class ProBanner extends StatelessWidget {
       child: Column(
         children: [
           AutoSizeText(
-            title ?? "Get unlimited data, no ads, and faster speeds!",
+            title ?? "get_unlimited_data".i18n,
             maxLines: 1,
             minFontSize: 14,
             maxFontSize: 16,

@@ -64,6 +64,7 @@ class DeviceLimitReached extends HookConsumerWidget {
           SizedBox(height: 32.0),
           PrimaryButton(
             label: 'remove_device_and_sign_in'.i18n,
+            isTaller: true,
             enabled: selectedDevice.value != null,
             onPressed: () =>
                 removeDeviceAndLogin(ref, selectedDevice.value!.id, context),

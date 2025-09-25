@@ -1047,6 +1047,18 @@ class LanternFFIService implements LanternCoreService {
     // TODO: implement isSystemExtensionInstalled
     throw UnimplementedError();
   }
+
+  @override
+  Future<Either<Failure, Unit>> addAllItems(SplitTunnelFilterType type, List<String> value) {
+    // TODO: implement addAllItems
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> removeAllItems(SplitTunnelFilterType type, List<String> value) {
+    // TODO: implement removeAllItems
+    throw UnimplementedError();
+  }
 }
 
 void checkAPIError(dynamic result) {

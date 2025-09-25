@@ -47,7 +47,18 @@ class MethodHandler {
         withFilterArgs(call: call, result: result) { filterType, value in
           self.removeSplitTunnelItem(result: result, filterType: filterType, value: value)
         }
-      case "connectToServer":
+
+      case "addAllItems":
+        withFilterArgs(call: call, result: result) { filterType, value in
+          self.addAllItemsToSplitTunnel(result: result, filterType: filterType, value: value)
+        }
+
+      case "removeAllItems":
+        withFilterArgs(call: call, result: result) { filterType, value in
+          self.removeItemsToSplitTunnel(result: result, filterType: filterType, value: value)
+        }
+          break
+case "connectToServer":
         let map = call.arguments as? [String: Any]
         self.connectToServer(result: result, data: map!)
       case "oauthLoginUrl":
@@ -146,6 +157,15 @@ class MethodHandler {
       case "addServerManually":
         let data = call.arguments as? [String: Any]
         self.addServerManually(result: result, data: data!)
+      case "inviteToServerManagerInstance":
+        let data = call.arguments as? [String: Any]
+        self.inviteToServerManagerInstance(result: result, data: data!)
+        break
+
+      case "revokeServerManagerInstance":
+        let data = call.arguments as? [String: Any]
+        self.revokeServerManagerInstance(result: result, data: data!)
+        break
       //Utils methods
       case "featureFlag":
         self.featureFlags(result: result)
@@ -172,6 +192,10 @@ class MethodHandler {
         let data = call.arguments as? [String: Any]
         self.paymentRedirect(result: result, data: data!)
         break
+      case "stripeBillingPortal":
+        self.stripeBillingPortal(result: result)
+        break
+
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -314,6 +338,38 @@ class MethodHandler {
               message: err.localizedDescription,
               details: err.debugDescription))
         }
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  func addAllItemsToSplitTunnel(result: @escaping FlutterResult, filterType: String, value: String)
+  {
+    Task {
+      var error: NSError?
+      MobileAddSplitTunnelItems( value, &error)
+      if let err = error {
+        await self.handleFlutterError(
+          err, result: result, code: "ADD_ALL_SPLIT_TUNNEL_ITEMS_FAILED")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  func removeItemsToSplitTunnel(result: @escaping FlutterResult, filterType: String, value: String)
+  {
+    Task {
+      var error: NSError?
+      MobileRemoveSplitTunnelItems(value, &error)
+      if let err = error {
+        await self.handleFlutterError(
+          err, result: result, code: "REMOVE_ALL_SPLIT_TUNNEL_ITEMS_FAILED")
         return
       }
       await MainActor.run {
@@ -785,6 +841,43 @@ class MethodHandler {
     }
   }
 
+  func inviteToServerManagerInstance(result: @escaping FlutterResult, data: [String: Any]) {
+    Task.detached {
+      let ip = data["ip"] as? String ?? ""
+      let port = data["port"] as? String ?? ""
+      let accessToken = data["accessToken"] as? String ?? ""
+      let inviteName = data["inviteName"] as? String ?? ""
+      var error: NSError?
+      let successKey = MobileInviteToServerManagerInstance(
+        ip, port, accessToken, inviteName, &error)
+      if let err = error {
+        await self.handleFlutterError(
+          err, result: result, code: "INVITE_TO_SERVER_MANAGER_INSTANCE_ERROR")
+        return
+      }
+      await MainActor.run {
+        result(successKey)
+      }
+    }
+  }
+
+  func revokeServerManagerInstance(result: @escaping FlutterResult, data: [String: Any]) {
+    Task.detached {
+      let ip = data["ip"] as? String ?? ""
+      let port = data["port"] as? String ?? ""
+      let accessToken = data["accessToken"] as? String ?? ""
+      let inviteName = data["inviteName"] as? String ?? ""
+      var error: NSError?
+      let successKey = MobileRevokeServerManagerInvite(ip, port, accessToken, inviteName, &error)
+      if let err = error {
+        await self.handleFlutterError(
+          err, result: result, code: "REVOKE_SERVER_MANAGER_INSTANCE_ERROR")
+        return
+      }
+      await self.replyOK(result)
+    }
+  }
+
   func featureFlags(result: @escaping FlutterResult) {
     Task.detached {
       let flags = MobileAvailableFeatures()
@@ -878,7 +971,20 @@ class MethodHandler {
         result(url)
       }
     }
+  }
 
+  func stripeBillingPortal(result: @escaping FlutterResult) {
+    Task.detached {
+      var error: NSError?
+      let url = MobileStripeBillingPortalUrl(&error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "STRIPE_BILLING_PORTAL_ERROR")
+        return
+      }
+      await MainActor.run {
+        result(url)
+      }
+    }
   }
 
   func reportIssue(result: @escaping FlutterResult, data: [String: Any]) {

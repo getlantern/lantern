@@ -12,8 +12,7 @@ class MacOSExtensionDialog extends StatefulHookConsumerWidget {
   const MacOSExtensionDialog({super.key});
 
   @override
-  ConsumerState<MacOSExtensionDialog> createState() =>
-      _MacOSExtensionDialogState();
+  ConsumerState<MacOSExtensionDialog> createState() => _MacOSExtensionDialogState();
 }
 
 class _MacOSExtensionDialogState extends ConsumerState<MacOSExtensionDialog> {

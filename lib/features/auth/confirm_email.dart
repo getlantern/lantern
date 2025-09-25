@@ -77,6 +77,7 @@ class ConfirmEmail extends HookConsumerWidget {
           PrimaryButton(
             label: 'continue'.i18n,
             enabled: isPinCodeValid.value,
+            isTaller: true,
             onPressed: () => onContinueTap(context, ref, codeController.text),
           ),
           SizedBox(height: 24),

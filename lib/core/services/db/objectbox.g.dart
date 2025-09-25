@@ -80,7 +80,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(2, 687217704776011576),
     name: 'AppSetting',
-    lastPropertyId: const obx_int.IdUid(9, 4176228116314272090),
+    lastPropertyId: const obx_int.IdUid(11, 8153428725932858000),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -135,6 +135,18 @@ final _entities = <obx_int.ModelEntity>[
         id: const obx_int.IdUid(9, 4176228116314272090),
         name: 'showSplashScreen',
         type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(10, 6825758662513353714),
+        name: 'bypassListRaw',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(11, 8153428725932858000),
+        name: 'splitTunnelingModeRaw',
+        type: 9,
         flags: 0,
       ),
     ],
@@ -791,9 +803,11 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final bundleIdParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 8, '');
-        final iconBytesParam = const fb.Uint8ListReader(
-          lazy: false,
-        ).vTableGetNullable(buffer, rootOffset, 10) as Uint8List?;
+        final iconBytesParam =
+            const fb.Uint8ListReader(
+                  lazy: false,
+                ).vTableGetNullable(buffer, rootOffset, 10)
+                as Uint8List?;
         final iconPathParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 12, '');
@@ -831,7 +845,11 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final localeOffset = fbb.writeString(object.locale);
         final oAuthTokenOffset = fbb.writeString(object.oAuthToken);
         final emailOffset = fbb.writeString(object.email);
-        fbb.startTable(10);
+        final bypassListRawOffset = fbb.writeString(object.bypassListRaw);
+        final splitTunnelingModeRawOffset = fbb.writeString(
+          object.splitTunnelingModeRaw,
+        );
+        fbb.startTable(12);
         fbb.addInt64(0, object.id);
         fbb.addBool(1, object.isPro);
         fbb.addBool(2, object.isSplitTunnelingOn);
@@ -841,6 +859,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addBool(6, object.blockAds);
         fbb.addOffset(7, emailOffset);
         fbb.addBool(8, object.showSplashScreen);
+        fbb.addOffset(9, bypassListRawOffset);
+        fbb.addOffset(10, splitTunnelingModeRawOffset);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -871,6 +891,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
           14,
           false,
         );
+        final splitTunnelingModeRawParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 24, '');
         final oAuthTokenParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 12, '');
@@ -880,6 +903,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
           16,
           false,
         );
+        final bypassListRawParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 22, '');
         final emailParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 18, '');
@@ -897,8 +923,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
           isPro: isProParam,
           isSplitTunnelingOn: isSplitTunnelingOnParam,
           userLoggedIn: userLoggedInParam,
+          splitTunnelingModeRaw: splitTunnelingModeRawParam,
           oAuthToken: oAuthTokenParam,
           blockAds: blockAdsParam,
+          bypassListRaw: bypassListRawParam,
           email: emailParam,
           locale: localeParam,
           showSplashScreen: showSplashScreenParam,
@@ -1692,6 +1720,16 @@ class AppSetting_ {
   static final showSplashScreen = obx.QueryBooleanProperty<AppSetting>(
     _entities[1].properties[8],
   );
+
+  /// See [AppSetting.bypassListRaw].
+  static final bypassListRaw = obx.QueryStringProperty<AppSetting>(
+    _entities[1].properties[9],
+  );
+
+  /// See [AppSetting.splitTunnelingModeRaw].
+  static final splitTunnelingModeRaw = obx.QueryStringProperty<AppSetting>(
+    _entities[1].properties[10],
+  );
 }
 
 /// [DeviceEntity] entity fields to define ObjectBox queries.
@@ -1765,8 +1803,8 @@ class PlansDataEntity_ {
   /// See [PlansDataEntity.providers].
   static final providers =
       obx.QueryRelationToOne<PlansDataEntity, ProvidersEntity>(
-    _entities[4].properties[1],
-  );
+        _entities[4].properties[1],
+      );
 
   /// see [PlansDataEntity.plans]
   static final plans = obx.QueryRelationToMany<PlansDataEntity, PlanEntity>(
@@ -1891,8 +1929,8 @@ class SubscriptionDataEntity_ {
   /// See [SubscriptionDataEntity.stripeCustomerID].
   static final stripeCustomerID =
       obx.QueryStringProperty<SubscriptionDataEntity>(
-    _entities[9].properties[2],
-  );
+        _entities[9].properties[2],
+      );
 
   /// See [SubscriptionDataEntity.startAt].
   static final startAt = obx.QueryStringProperty<SubscriptionDataEntity>(
@@ -2035,8 +2073,8 @@ class UserDataEntity_ {
   /// See [UserDataEntity.subscriptionData].
   static final subscriptionData =
       obx.QueryRelationToOne<UserDataEntity, SubscriptionDataEntity>(
-    _entities[10].properties[19],
-  );
+        _entities[10].properties[19],
+      );
 
   /// see [UserDataEntity.devices]
   static final devices = obx.QueryRelationToMany<UserDataEntity, DeviceEntity>(
@@ -2074,14 +2112,14 @@ class UserResponseEntity_ {
   /// See [UserResponseEntity.legacyUserData].
   static final legacyUserData =
       obx.QueryRelationToOne<UserResponseEntity, UserDataEntity>(
-    _entities[11].properties[5],
-  );
+        _entities[11].properties[5],
+      );
 
   /// see [UserResponseEntity.devices]
   static final devices =
       obx.QueryRelationToMany<UserResponseEntity, DeviceEntity>(
-    _entities[11].relations[0],
-  );
+        _entities[11].relations[0],
+      );
 }
 
 /// [Website] entity fields to define ObjectBox queries.

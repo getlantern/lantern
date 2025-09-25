@@ -3,6 +3,7 @@ import 'package:lantern/core/models/website.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage.dart';
 import 'package:lantern/core/services/logger_service.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -56,5 +57,9 @@ class SplitTunnelingWebsites extends _$SplitTunnelingWebsites {
         await _db.saveWebsites(state);
       },
     );
+  }
+
+  void updateByPassList(BypassListOption bypass) {
+    ref.read(appSettingNotifierProvider.notifier).setBypassList(bypass);
   }
 }

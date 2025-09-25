@@ -85,6 +85,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
               PrimaryButton(
                 label: 'continue'.i18n,
                 enabled: emailController.text.isValidEmail(),
+                isTaller: true,
                 onPressed: () => onContinueTap(
                   SignUpMethodType.email,
                   emailController.text,

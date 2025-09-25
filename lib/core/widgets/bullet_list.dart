@@ -25,11 +25,12 @@ class BulletList extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 8),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
                     margin: const EdgeInsets.only(top: 7, left: 16.0),
-                    width: 6,
-                    height: 6,
+                    width: 4,
+                    height: 4,
                     decoration: BoxDecoration(
                       color: bulletColor ?? AppColors.gray8,
                       shape: BoxShape.circle,

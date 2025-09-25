@@ -62,6 +62,7 @@ class ResetPassword extends HookConsumerWidget {
             SizedBox(height: 32),
             PrimaryButton(
                 label: 'reset_password'.i18n,
+                isTaller: true,
                 enabled: (passwordController.text.isNotEmpty &&
                     confirmPasswordController.text.isNotEmpty &&
                     passwordController.text == confirmPasswordController.text &&

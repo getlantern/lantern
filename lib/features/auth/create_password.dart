@@ -47,6 +47,7 @@ class CreatePassword extends HookConsumerWidget {
             SizedBox(height: 32),
             PrimaryButton(
               label: 'continue'.i18n,
+              isTaller: true,
               enabled: passwordTextController.text.isPasswordValid(),
               onPressed: () =>
                   onContinue(ref, passwordTextController.text, context),

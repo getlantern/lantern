@@ -57,6 +57,7 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
             PrimaryButton(
               label: 'continue'.i18n,
               enabled: passwordController.text.isNotEmpty,
+              isTaller: true,
               onPressed: () =>
                   signInWithPassword(passwordController.text.trim()),
             ),

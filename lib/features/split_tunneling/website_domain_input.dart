@@ -104,7 +104,6 @@ class WebsiteDomainInput extends HookConsumerWidget {
             ),
           ],
         ),
-        const SizedBox(height: 4),
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: Text(
