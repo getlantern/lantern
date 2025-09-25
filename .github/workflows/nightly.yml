@@ -45,6 +45,7 @@ jobs:
           echo "installer_name=lantern-installer-nightly" >> "$GITHUB_OUTPUT"
 
       - name: Update pubspec.yaml
+        if: ${{ !contains(steps.meta.outputs.version, '+') }}
         shell: bash
         env:
           VERSION: ${{ steps.meta.outputs.version }}
