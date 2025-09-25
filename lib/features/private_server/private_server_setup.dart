@@ -126,6 +126,7 @@ class PrivateServerSetup extends HookConsumerWidget {
               const SizedBox(height: size24),
               SecondaryButton(
                 label: 'server_setup_manual'.i18n,
+                isTaller: true,
                 onPressed: () {
                   appRouter.push(ManuallyServerSetup());
                 },

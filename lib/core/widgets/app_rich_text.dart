@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:lantern/core/common/app_buttons.dart';
 
 import '../common/app_colors.dart';
+import '../common/app_text_styles.dart';
 
 class AppRichText extends StatelessWidget {
   final String texts;
@@ -31,9 +32,9 @@ class AppRichText extends StatelessWidget {
         children: [
           TextSpan(
             text: boldTexts,
-            style:  textTheme.bodyMedium!.copyWith(
+            style:  AppTestStyles.bodyMediumBold.copyWith(
               fontWeight: FontWeight.bold,
-              color: boldColor ?? AppColors.gray9,
+              color: boldColor ?? AppColors.gray8,
               decoration: boldUnderline
                   ? TextDecoration.underline
                   : TextDecoration.none,

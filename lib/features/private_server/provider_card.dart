@@ -25,56 +25,68 @@ class ProviderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
 
-    return AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(height: defaultSize),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              AppImage(path: icon, width: 20, height: 20),
-              const SizedBox(width: defaultSize),
-              Expanded(
-                child: Text(
-                  title,
-                  style: t.titleMedium?.copyWith(
-                    color: AppColors.black1,
-                    fontWeight: FontWeight.w600,
-                    // height: 1.50,
+    return Container(
+      decoration: BoxDecoration(boxShadow: [
+        BoxShadow(
+          color: AppColors.shadowColor,
+          blurRadius: 32,
+          offset: Offset(0, 4),
+          spreadRadius: 0,
+        )
+      ]),
+      child: AppCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(height: defaultSize),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                AppImage(path: icon, width: 20, height: 20),
+                const SizedBox(width: defaultSize),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: t.titleMedium?.copyWith(
+                      color: AppColors.black1,
+                      fontWeight: FontWeight.w600,
+                      // height: 1.50,
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          DividerSpace(padding: EdgeInsets.symmetric(vertical: 8)),
-          const SizedBox(height: 8),
-          CheckmarkTile(
-            text: 'handle_configuration'.i18n,
-            showDivider: false,
-          ),
-          CheckmarkTile(
-            text: price,
-            showDivider: false,
-          ),
-          CheckmarkTile(
-            text: 'seamless_integration'.i18n,
-            showDivider: false,
-          ),
-          CheckmarkTile(
-            text: 'multiple_location_options'.i18n,
-            showDivider: false,
-          ),
-          CheckmarkTile(
-            text: 'one_month_included'.i18n.fill([1]),
-            showDivider: false,
-            topPadding: 8,
-          ),
-          Spacer(),
-          PrimaryButton(
-              label: buttonTitle, isTaller: true, onPressed: onContinueClicked),
-          SizedBox(height: defaultSize),
-        ],
+              ],
+            ),
+            DividerSpace(padding: EdgeInsets.symmetric(vertical: 8)),
+            const SizedBox(height: 8),
+            CheckmarkTile(
+              text: 'handle_configuration'.i18n,
+              showDivider: false,
+            ),
+            CheckmarkTile(
+              text: price,
+              showDivider: false,
+            ),
+            CheckmarkTile(
+              text: 'seamless_integration'.i18n,
+              showDivider: false,
+            ),
+            CheckmarkTile(
+              text: 'multiple_location_options'.i18n,
+              showDivider: false,
+            ),
+            CheckmarkTile(
+              text: 'one_month_included'.i18n.fill([1]),
+              showDivider: false,
+              topPadding: 8,
+            ),
+            Spacer(),
+            PrimaryButton(
+                label: buttonTitle,
+                isTaller: true,
+                onPressed: onContinueClicked),
+            SizedBox(height: defaultSize),
+          ],
+        ),
       ),
     );
   }

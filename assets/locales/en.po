@@ -455,7 +455,7 @@ msgid "choose_payment_method"
 msgstr "Choose Payment Method"
 
 msgid "payment_information_encrypted"
-msgstr "Your payment information is fully encrypted"
+msgstr "Your payment information is fully encrypted."
 
 msgid "purchase_not_completed"
 msgstr "Purchase was not completed. You can try again anytime, or contact support if you need help"
@@ -1041,3 +1041,6 @@ msgstr "If you encounter any issues accessing our website, you can download Lant
 
 msgid "available_on"
 msgstr "Available on:"
+
+msgid "subscription_renewal_date"
+msgstr "Subscription Renewal Date"

@@ -181,6 +181,10 @@ class MethodHandler {
         let data = call.arguments as? [String: Any]
         self.paymentRedirect(result: result, data: data!)
         break
+      case "stripeBillingPortal":
+        self.stripeBillingPortal(result: result)
+        break
+
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -827,7 +831,7 @@ class MethodHandler {
           err, result: result, code: "REVOKE_SERVER_MANAGER_INSTANCE_ERROR")
         return
       }
-        await self.replyOK(result)
+      await self.replyOK(result)
     }
   }
 
@@ -924,7 +928,20 @@ class MethodHandler {
         result(url)
       }
     }
+  }
 
+  func stripeBillingPortal(result: @escaping FlutterResult) {
+    Task.detached {
+      var error: NSError?
+      let url = MobileStripeBillingPortalUrl(&error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "STRIPE_BILLING_PORTAL_ERROR")
+        return
+      }
+      await MainActor.run {
+        result(url)
+      }
+    }
   }
 
   func reportIssue(result: @escaping FlutterResult, data: [String: Any]) {

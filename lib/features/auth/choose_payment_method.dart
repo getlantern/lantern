@@ -36,6 +36,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
         children: <Widget>[
           SizedBox(height: defaultSize),
           InfoRow(
+            minTileHeight: 40,
             imagePath: AppImagePaths.security,
             text: 'payment_information_encrypted'.i18n,
           ),
@@ -262,7 +263,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
                 horizontal: defaultSize, vertical: defaultSize),
             title: Row(
               children: [
-                Text(method.method.toTitleCase().replaceAll('-', " "),
+                Text(method.method.replaceAll('-', " ").toTitleCase(),
                     style: theme.titleMedium),
                 SizedBox(width: defaultSize),
                 LogsPath(
@@ -304,7 +305,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
               Text(
                 method.providers.supportSubscription
                     ? "Billed every ${userPlan.getDurationText()}. Cancel anytime."
-                    : 'billed_once'.i18n.toLowerCase(),
+                    : 'billed_once'.i18n.capitalize,
                 style: theme.bodySmall!.copyWith(
                   color: AppColors.gray6,
                 ),

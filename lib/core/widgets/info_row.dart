@@ -13,6 +13,7 @@ class InfoRow extends StatelessWidget {
   final String? imagePath;
   final EdgeInsetsGeometry? padding;
   final VoidCallback? onPressed;
+  final double? minTileHeight ;
 
   const InfoRow({
     super.key,
@@ -25,12 +26,14 @@ class InfoRow extends StatelessWidget {
     this.padding,
     this.onPressed,
     this.child,
+    this.minTileHeight,
   });
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return ListTile(
+        minTileHeight:minTileHeight ,
         tileColor: backgroundColor,
         onTap: onPressed,
         contentPadding:

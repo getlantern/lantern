@@ -10,6 +10,7 @@ class PrimaryButton extends StatelessWidget {
   final String label;
 
   final bool enabled;
+  final bool showBorder;
 
   final bool expanded;
   final VoidCallback onPressed;
@@ -30,6 +31,7 @@ class PrimaryButton extends StatelessWidget {
     this.enabled = true,
     this.expanded = true,
     this.isTaller = false,
+    this.showBorder = false,
     this.icon,
     super.key,
   });
@@ -75,6 +77,9 @@ class PrimaryButton extends StatelessWidget {
         (Set<WidgetState> states) {
           if (states.contains(WidgetState.disabled)) {
             return BorderSide(color: AppColors.gray4, width: 1);
+          }
+          if(showBorder){
+            return BorderSide(color: AppColors.gray2, width: 1);
           }
           return BorderSide.none;
         },

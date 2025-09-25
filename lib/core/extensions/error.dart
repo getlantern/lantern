@@ -67,6 +67,9 @@ extension ErrorExetension on Object {
     if (this is StateError) {
       return (this as StateError).message;
     }
+    if (this is Exception) {
+      return (this as Exception).toString();
+    }
 
     return "error_occurred".i18n;
   }

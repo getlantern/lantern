@@ -98,11 +98,6 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    // IconButton(
-                    //   icon: Icon(Icons.edit_outlined, color: AppColors.gray9),
-                    //   iconSize: 24,
-                    //   onPressed: () => showRenameDialog(item.serverName),
-                    // ),
                     IconButton(
                       icon: Icon(Icons.delete_outline, color: AppColors.gray9),
                       iconSize: 24,
@@ -116,8 +111,9 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                 PrimaryButton(
                     label: 'share_access_key'.i18n,
                     bgColor: AppColors.blue1,
-                    icon: AppImagePaths.share,
+                    icon: AppImagePaths.shareV2,
                     iconColor: AppColors.gray9,
+                    showBorder: true,
                     textColor: AppColors.gray9,
                     onPressed: () => onTapShareAccessKey(item)),
               SizedBox(height: 16),
