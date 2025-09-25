@@ -17,7 +17,7 @@ class Flag extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: AppColors.gray8, width: 0.5),
+        border: Border.all(color: AppColors.gray3, width: 1),
         borderRadius: BorderRadius.circular(5),
       ),
       child: CountryFlag.fromCountryCode(

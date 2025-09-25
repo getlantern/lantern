@@ -60,9 +60,10 @@ class _SettingState extends ConsumerState<Setting> {
                 },
               ),
             ),
-          const SizedBox(height: 16),
+          const SizedBox(height: defaultSize),
           if (isUserPro)
-            Card(
+            AppCard(
+              padding: EdgeInsets.zero,
               margin: EdgeInsets.zero,
               child: AppTile(
                 label: 'account'.i18n,
@@ -70,19 +71,19 @@ class _SettingState extends ConsumerState<Setting> {
                 onPressed: () => settingMenuTap(_SettingType.account),
               ),
             ),
-          const SizedBox(height: 16),
+          const SizedBox(height: defaultSize),
           if (!appSetting.userLoggedIn)
-            Card(
-              margin: EdgeInsets.zero,
+            AppCard(
+              padding: EdgeInsets.zero,
               child: AppTile(
                 label: 'sign_in'.i18n,
                 icon: AppImagePaths.signIn,
                 onPressed: () => settingMenuTap(_SettingType.signIn),
               ),
             ),
-          const SizedBox(height: 16),
-          Card(
-            margin: EdgeInsets.zero,
+          const SizedBox(height: defaultSize),
+          AppCard(
+            padding: EdgeInsets.zero,
             child: Column(
               children: [
                 AppTile(
@@ -112,9 +113,9 @@ class _SettingState extends ConsumerState<Setting> {
               ],
             ),
           ),
-          const SizedBox(height: 16),
-          Card(
-            margin: EdgeInsets.zero,
+          const SizedBox(height: defaultSize),
+          AppCard(
+            padding: EdgeInsets.zero,
             child: Column(
               children: [
                 AppTile(
@@ -144,9 +145,9 @@ class _SettingState extends ConsumerState<Setting> {
             ),
           ),
           if (appSetting.userLoggedIn) ...{
-            const SizedBox(height: 16),
-            Card(
-              margin: EdgeInsets.zero,
+            const SizedBox(height: defaultSize),
+            AppCard(
+              padding: EdgeInsets.zero,
               child: Column(
                 children: [
                   AppTile(
@@ -158,7 +159,7 @@ class _SettingState extends ConsumerState<Setting> {
               ),
             ),
           },
-          const SizedBox(height: 16),
+          const SizedBox(height: defaultSize),
           Padding(
             padding: const EdgeInsets.only(
               left: 16,

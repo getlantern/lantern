@@ -11,6 +11,7 @@ class FeatureList extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        SizedBox(height: size24),
         _FeatureTile(
             image: AppImagePaths.location,
             title: 'select_your_server_location'.i18n),

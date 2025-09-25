@@ -787,7 +787,6 @@ msgstr "Continue with"
 msgid "join_a_private_server"
 msgstr "Join a Private Server"
 
-
 msgid "join_private_server"
 msgstr "Join Private Server"
 
@@ -856,8 +855,8 @@ msgstr "Lantern Server"
 msgid "private_server"
 msgstr "Private Server"
 
-msgid "fastest_country"
-msgstr "Fastest Country"
+msgid "fastest_server"
+msgstr "Fastest Server"
 
 msgid "join_my_private_server"
 msgstr "Join My Lantern Private Server"
@@ -1024,3 +1023,21 @@ msgstr "Only add servers run by people you trust "
 
 msgid "go_to_server_locations"
 msgstr "Go To Server Locations"
+
+msgid "lantern_io"
+msgstr "Lantern.io"
+
+msgid "alternative_download_links"
+msgstr "Alternative Download Links"
+
+msgid "github_download_page"
+msgstr "GitHub Download Page"
+
+msgid "telegram_bot"
+msgstr "Telegram Bot"
+
+msgid "if_you_cannot_access_website"
+msgstr "If you encounter any issues accessing our website, you can download Lantern from the links above."
+
+msgid "available_on"
+msgstr "Available on:"

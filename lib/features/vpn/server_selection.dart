@@ -9,6 +9,7 @@ import 'package:lantern/core/models/private_server_entity.dart';
 import 'package:lantern/core/models/server_location_entity.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/utils/country_utils.dart';
+import 'package:lantern/core/widgets/app_text.dart';
 import 'package:lantern/core/widgets/spinner.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
@@ -28,17 +29,50 @@ class ServerSelection extends StatefulHookConsumerWidget {
 
 class _ServerSelectionState extends ConsumerState<ServerSelection> {
   TextTheme? _textTheme;
+  final storage = sl<LocalStorageService>();
 
   @override
   Widget build(BuildContext context) {
     var serverLocation = ref.watch(serverLocationNotifierProvider);
+    final isUserPro = ref.isUserPro;
     _textTheme = Theme.of(context).textTheme;
+    final isPrivateServerFound = storage.getPrivateServer().isNotEmpty;
     return BaseScreen(
-        title: 'server_selection'.i18n, body: _buildBody(serverLocation));
+      title: '',
+      appBar: CustomAppBar(
+        title: Text(
+          'server_selection'.i18n,
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.more_vert),
+            onPressed: onOpenMoreOptions,
+          ),
+        ],
+      ),
+      body: isPrivateServerFound
+          ? _buildBody(serverLocation, isUserPro)
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildSelectedLocation(serverLocation),
+                _buildSmartLocation(serverLocation),
+                SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Text('automatically_chooses_fastest_location'.i18n,
+                      style: _textTheme?.bodyMedium!.copyWith(
+                        color: AppColors.gray8,
+                      )),
+                ),
+                SizedBox(height: size24),
+                Flexible(child: ServerLocationListView(userPro: isUserPro)),
+              ],
+            ),
+    );
   }
 
-  Widget _buildBody(ServerLocationEntity serverLocation) {
-    final isUserPro = ref.isUserPro;
+  Widget _buildBody(ServerLocationEntity serverLocation, bool isUserPro) {
     return DefaultTabController(
       length: 2,
       child: Column(
@@ -80,8 +114,9 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
               ],
             ),
           ),
-          SizedBox(height: defaultSize),
+          SizedBox(height: 8),
           DividerSpace(padding: EdgeInsets.zero),
+          SizedBox(height: defaultSize),
           Expanded(
             child: TabBarView(
               children: [
@@ -110,7 +145,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
           padding: EdgeInsets.zero,
           child: AppTile(
             icon: AppImagePaths.location,
-            label: 'fastest_country'.i18n,
+            label: 'fastest_server'.i18n,
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -225,6 +260,42 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
       },
     );
   }
+
+  void onOpenMoreOptions() {
+    showAppBottomSheet(
+      context: context,
+      title: '',
+      scrollControlDisabledMaxHeightRatio: .4,
+      builder: (context, scrollController) {
+        return ListView(
+          padding: EdgeInsets.zero,
+          shrinkWrap: true,
+          children: [
+            AppTile(
+              label: 'setup_private_server'.i18n,
+              onPressed: () {
+                context.pushRoute(PrivateServerSetup());
+              },
+            ),
+            DividerSpace(padding: EdgeInsets.zero),
+            AppTile(
+              label: 'join_a_private_server'.i18n,
+              onPressed: () {
+                context.pushRoute(JoinPrivateServer());
+              },
+            ),
+            DividerSpace(padding: EdgeInsets.zero),
+            AppTile(
+              label: 'manage_private_servers'.i18n,
+              onPressed: () {
+                context.pushRoute(ManagePrivateServer());
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
 
 class ServerLocationListView extends StatefulHookConsumerWidget {
@@ -244,7 +315,6 @@ class _ServerLocationListViewState
     extends ConsumerState<ServerLocationListView> {
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
     final availableServers = ref.watch(availableServersNotifierProvider);
     final serverLocation = ref.watch(serverLocationNotifierProvider);
     const verticalSpacing = 12.0;
@@ -258,12 +328,8 @@ class _ServerLocationListViewState
             const SizedBox(height: verticalSpacing),
           ],
           Padding(
-            padding: const EdgeInsets.only(top: 4.0), // small top offset
-            child: Text(
-              'pro_locations'.i18n,
-              style: textTheme.labelLarge?.copyWith(color: AppColors.gray8),
-            ),
-          ),
+              padding: const EdgeInsets.only(top: 4.0), // small top offset
+              child: HeaderText('pro_locations'.i18n)),
           const SizedBox(height: 8),
           Flexible(
             child: AppCard(
@@ -397,10 +463,7 @@ class _PrivateServerLocationListViewState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         SizedBox(height: 16),
-        Text('your_server'.i18n,
-            style: _textTheme!.titleSmall!.copyWith(
-              color: AppColors.gray4,
-            )),
+        HeaderText('your_server'.i18n),
         SizedBox(height: 8),
         AppCard(
           padding: EdgeInsets.zero,
@@ -462,10 +525,7 @@ class _PrivateServerLocationListViewState
           ),
         ),
         SizedBox(height: 16),
-        Text('joined_servers'.i18n,
-            style: _textTheme!.titleSmall!.copyWith(
-              color: AppColors.gray4,
-            )),
+        HeaderText('joined_servers'.i18n),
         SizedBox(height: 8),
         AppCard(
           padding: EdgeInsets.zero,

@@ -60,6 +60,7 @@ class ActivationCode extends HookConsumerWidget {
           PrimaryButton(
             label: 'activate_lantern_pro'.i18n,
             enabled: validCode.value,
+            isTaller: true,
             onPressed: () => onActivatePro(codeController.text, ref, context),
           ),
           SizedBox(height: defaultSize),

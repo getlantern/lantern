@@ -54,6 +54,9 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
 
     useEffect(() {
       groupValue.value = update.text;
+      if (groupValue.value.isNotEmpty) {
+        formKey.currentState?.validate();
+      }
       return null;
     }, [update]);
 
@@ -81,6 +84,7 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
               ),
               const SizedBox(height: 16),
               AppTextField(
+                autovalidateMode: AutovalidateMode.disabled,
                 controller: selectedIssueController,
                 label: 'select_an_issue'.i18n,
                 hintText: '',
@@ -106,7 +110,7 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
                 onPressed: () => submitReport(
                   formKey,
                   emailController.text.trim(),
-                  groupValue.value,
+                  selectedIssueController.text,
                   descriptionController.text.trim(),
                   reset,
                 ),
