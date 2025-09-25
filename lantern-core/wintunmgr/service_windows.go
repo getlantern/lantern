@@ -98,10 +98,7 @@ func (s *Service) statusSnapshot() statusEvent {
 }
 
 func (s *Service) connectionState() string {
-	// ok, _ := s.core.IsVPNRunning()
-	// state := map[bool]string{true: "Connected", false: "Disconnected"}[ok]
-	// return state
-	state, _ := ripc.GetStatus()
+	state, _ := ripc.GetStatus(context.Background())
 	if state == ripc.StatusRunning {
 		return "Connected"
 	}
@@ -393,11 +390,11 @@ func (s *Service) setupAdapter(ctx context.Context) error {
 }
 
 // checkIPCUp checks if the Radiance IPC server is available
-func (s *Service) checkIPCUp(timeout time.Duration) error {
+func (s *Service) checkIPCUp(ctx context.Context, timeout time.Duration) error {
 	deadline := time.Now().Add(timeout)
 	var lastErr error
 	for time.Now().Before(deadline) {
-		if _, err := ripc.GetStatus(); err == nil {
+		if _, err := ripc.GetStatus(ctx); err == nil {
 			return nil
 		} else {
 			lastErr = err
@@ -412,7 +409,7 @@ func (s *Service) checkIPCUp(timeout time.Duration) error {
 
 // checkIPCUpOrStart: checks if IPC is down, otherwise starts via LanternCore (which brings up libbox+IPC)
 func (s *Service) checkIPCUpOrStart(ctx context.Context, group string) error {
-	if err := s.checkIPCUp(600 * time.Millisecond); err == nil {
+	if err := s.checkIPCUp(ctx, 600*time.Millisecond); err == nil {
 		return nil
 	}
 
@@ -428,7 +425,7 @@ func (s *Service) checkIPCUpOrStart(ctx context.Context, group string) error {
 		return fmt.Errorf("start tunnel: %w", err)
 	}
 
-	if err := s.checkIPCUp(5 * time.Second); err != nil {
+	if err := s.checkIPCUp(ctx, 5*time.Second); err != nil {
 		return err
 	}
 	return nil
