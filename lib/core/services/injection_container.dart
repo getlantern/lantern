@@ -16,12 +16,10 @@ final GetIt sl = GetIt.instance;
 
 Future<void> injectServices() async {
   try {
-    sl.registerLazySingleton<AppPurchase>(() {
-      appLogger.info("Initializing AppPurchase");
-      final ap = AppPurchase();
-      ap.init();
-      return ap;
-    });
+    sl.registerLazySingleton(() => StoreUtils());
+    sl<StoreUtils>().init();
+    sl.registerLazySingleton(() => AppPurchase());
+    sl<AppPurchase>().init();
 
     // We want to make sure the platform service and FFI service are
     // initialized as early as possible so we can communicate with
@@ -30,17 +28,19 @@ Future<void> injectServices() async {
     await ps.init();
     sl.registerSingleton<LanternPlatformService>(ps);
     final LanternFFIService ffiService;
+
     if (PlatformUtils.isFFISupported) {
-      ffiService = LanternFFIService();
-      await ffiService.init();
+      sl.registerLazySingleton(() => LanternFFIService());
+      await sl<LanternFFIService>().init();
     } else {
-      ffiService = MockLanternFFIService();
+      sl.registerLazySingleton<LanternFFIService>(
+          () => MockLanternFFIService());
     }
-    sl.registerSingleton<LanternFFIService>(ffiService);
-    final localStorage = LocalStorageService();
-    await localStorage.init();
-    sl.registerSingleton<LocalStorageService>(localStorage);
-    sl.registerLazySingleton<AppRouter>(() => AppRouter());
+    sl.registerLazySingleton(() => LocalStorageService());
+    await sl<LocalStorageService>().init();
+    sl.registerLazySingleton(() => AppRouter());
+    sl.registerLazySingleton(() => StripeService());
+    await sl<StripeService>().initialize();
 
     sl.registerSingletonAsync<StoreUtils>(() async {
       appLogger.info("Initializing StoreUtils");

@@ -41,7 +41,16 @@ type App interface {
 	AvailableFeatures() []byte
 	ReportIssue(email, issueType, description, device, model, logFilePath string) error
 	IsRadianceConnected() bool
+	IsVPNRunning() (bool, error)
 	GetAvailableServers() []byte
+}
+
+type VPNControl interface {
+	StartTunnel(group string) error
+	StopTunnel() error
+	ConnectToServer(group, tag string) error
+	VPNStatus() (vpn.Status, error)
+	IsVPNRunning() (bool, error)
 }
 
 type User interface {
@@ -167,20 +176,16 @@ func (lc *LanternCore) initialize(opts *utils.Opts) error {
 	return nil
 }
 
-// LoadInstalledApps fetches the app list or rescans if needed using common macOS locations
-// currently only works on/enabled for macOS
-func LoadInstalledApps(dataDir string) (string, error) {
-	appsList := []*apps.AppData{}
-	apps.LoadInstalledApps(dataDir, func(a ...*apps.AppData) error {
-		appsList = append(appsList, a...)
-		return nil
-	})
+func (lc *LanternCore) VPNStatus() (vpn.Status, error) {
+	return vpn.GetStatus()
+}
 
-	b, err := json.Marshal(appsList)
+func (lc *LanternCore) IsVPNRunning() (bool, error) {
+	st, err := vpn.GetStatus()
 	if err != nil {
-		return "", err
+		return false, err
 	}
-	return string(b), nil
+	return st.TunnelOpen, nil
 }
 
 func (lc *LanternCore) IsRadianceConnected() bool {
@@ -208,6 +213,22 @@ func (lc *LanternCore) GetAvailableServers() []byte {
 	}
 	slog.Debug("Available servers JSON", "json", string(jsonBytes))
 	return jsonBytes
+}
+
+// LoadInstalledApps fetches the app list or rescans if needed using common macOS locations
+// currently only works on/enabled for macOS
+func LoadInstalledApps(dataDir string) (string, error) {
+	appsList := []*apps.AppData{}
+	apps.LoadInstalledApps(dataDir, func(a ...*apps.AppData) error {
+		appsList = append(appsList, a...)
+		return nil
+	})
+
+	b, err := json.Marshal(appsList)
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
 }
 
 func (lc *LanternCore) AddSplitTunnelItem(filterType, item string) error {

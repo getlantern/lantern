@@ -442,7 +442,7 @@ class LanternPlatformService implements LanternCoreService {
   Future<Either<Failure, DataCapInfo>> getDataCapInfo() async {
     try {
       final json = await _methodChannel.invokeMethod<String>('getDataCapInfo');
-      final map = jsonDecode(jsonEncode(json));
+      final map = jsonDecode(json!);
       final dataCap = DataCapInfo.fromJson(map);
       return Right(dataCap);
     } catch (e, st) {

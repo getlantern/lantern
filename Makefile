@@ -14,7 +14,6 @@ LANTERN_CORE := lantern-core
 RADIANCE_REPO := github.com/getlantern/radiance
 FFI_DIR := $(LANTERN_CORE)/ffi
 EXTRA_LDFLAGS ?=
-BUILD_TAGS ?=
 
 DARWIN_APP_NAME := $(CAPITALIZED_APP).app
 DARWIN_LIB := $(LANTERN_LIB_NAME).dylib
@@ -35,7 +34,6 @@ PACKET_TUNNEL_DIR := $(DARWIN_RELEASE_BUILD)/Contents/PlugIns/PacketTunnel.appex
 SYSTEM_EXTENSION_DIR := $(DARWIN_RELEASE_DIR)/$(DARWIN_APP_NAME)/Contents/Library/SystemExtensions/org.getlantern.lantern.PacketTunnel.systemextension
 PACKET_ENTITLEMENTS := macos/PacketTunnel/PacketTunnel.entitlements
 
-
 LINUX_LIB := $(LANTERN_LIB_NAME).so
 LINUX_LIB_AMD64 := $(BIN_DIR)/linux-amd64/$(LANTERN_LIB_NAME).so
 LINUX_LIB_ARM64 := $(BIN_DIR)/linux-arm64/$(LANTERN_LIB_NAME).so
@@ -44,20 +42,35 @@ LINUX_INSTALLER_DEB := $(INSTALLER_NAME)$(if $(BUILD_TYPE),-$(BUILD_TYPE)).deb
 LINUX_INSTALLER_RPM := $(INSTALLER_NAME)$(if $(BUILD_TYPE),-$(BUILD_TYPE)).rpm
 
 ifeq ($(OS),Windows_NT)
-	PATH_SEP := \\
+  PS := powershell -NoProfile -ExecutionPolicy Bypass -Command
+  MKDIR_P = $(PS) "New-Item -ItemType Directory -Force -Path '$(1)' | Out-Null"
+  COPY_FILE = $(PS) "Copy-Item -Force -LiteralPath '$(1)' -Destination '$(2)'"
+  RM_RF = $(PS) "Remove-Item -Recurse -Force -LiteralPath '$(1)'"
 else
-	PATH_SEP := /
+  MKDIR_P = mkdir -p -- '$(1)'
+  COPY_FILE = cp -f -- '$(1)' '$(2)'
+  RM_RF = rm -rf -- '$(1)'
 endif
 
-define join_path
-$(subst /,$(PATH_SEP),$1)
-endef
+WINDOWS_SERVICE_NAME := lanternsvc.exe
+WINDOWS_SERVICE_SRC  := ./$(LANTERN_CORE)/cmd/lanternsvc
+WINDOWS_SERVICE_BUILD := $(BIN_DIR)/windows-amd64/$(WINDOWS_SERVICE_NAME)
 
-WINDOWS_LIB := $(LANTERN_LIB_NAME).dll
-WINDOWS_LIB_AMD64 := $(BIN_DIR)/windows-amd64/$(WINDOWS_LIB)
-WINDOWS_LIB_ARM64 := $(BIN_DIR)/windows-arm64/$(WINDOWS_LIB)
-WINDOWS_LIB_BUILD := $(call join_path,$(BIN_DIR)/windows/$(WINDOWS_LIB))
-WINDOWS_RELEASE_DIR := $(call join_path,$(BUILD_DIR)/windows/x64/runner/Release)
+WINDOWS_LIB          := $(LANTERN_LIB_NAME).dll
+WINDOWS_LIB_AMD64    := $(BIN_DIR)/windows-amd64/$(WINDOWS_LIB)
+WINDOWS_LIB_ARM64    := $(BIN_DIR)/windows-arm64/$(WINDOWS_LIB)
+WINDOWS_LIB_BUILD    := $(BIN_DIR)/windows/$(WINDOWS_LIB)
+WINDOWS_DEBUG_DIR    := $(BUILD_DIR)/windows/x64/runner/Debug
+WINDOWS_RELEASE_DIR  := $(BUILD_DIR)/windows/x64/runner/Release
+WINTUN_ARCH ?= amd64
+WINTUN_VERSION ?= 0.14.1
+WINTUN_BASE_URL := https://wwW.wintun.net
+WINTUN_BUILDS_URL  := $(WINTUN_BASE_URL)/builds
+WINTUN_OUT_DIR     ?= windows/third_party/wintun/bin/$(WINTUN_ARCH)
+WINTUN_DLL         := $(WINTUN_OUT_DIR)/wintun.dll
+WINTUN_DLL_RELEASE := $(WINDOWS_RELEASE_DIR)/wintun.dll
+WINTUN_DLL_DEBUG   := $(WINDOWS_DEBUG_DIR)/wintun.dll
+
 
 ANDROID_LIB := $(LANTERN_LIB_NAME).aar
 ANDROID_LIBS_DIR := android/app/libs
@@ -252,29 +265,86 @@ linux-release: clean linux pubget gen
 	mv $(DIST_OUT)/$(APP_VERSION)/lantern-$(APP_VERSION)-linux.deb $(LINUX_INSTALLER_DEB)
 
 # Windows Build
+.PHONY: build-lanternsvc-windows windows-service-build \
+        copy-lanternsvc-release copy-lanternsvc-debug \
+        wintun clean-wintun copy-wintun-release copy-wintun-debug
+
 .PHONY: install-windows-deps
 install-windows-deps:
 	dart pub global activate flutter_distributor
 
 windows: windows-amd64
-	mkdir -p $(dir $(WINDOWS_LIB_BUILD))
-	cp $(WINDOWS_LIB_AMD64) $(WINDOWS_LIB_BUILD)
+	$(call MKDIR_P,$(dir $(WINDOWS_LIB_BUILD)))
+	$(call COPY_FILE,$(WINDOWS_LIB_AMD64),$(WINDOWS_LIB_BUILD))
 
 windows-amd64: WINDOWS_GOOS := windows
 windows-amd64: WINDOWS_GOARCH := amd64
 windows-amd64:
-	mkdir -p $(dir $(WINDOWS_LIB_AMD64))
+	$(call MKDIR_P,$(dir $(WINDOWS_LIB_AMD64)))
 	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_AMD64)
 
 windows-arm64: WINDOWS_GOOS := windows
 windows-arm64: WINDOWS_GOARCH := arm64
 windows-arm64:
+	$(call MKDIR_P,$(dir $(WINDOWS_LIB_ARM64)))
 	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_ARM64)
+
+.PHONY: build-lanternsvc-windows
+build-lanternsvc-windows: $(WINDOWS_SERVICE_BUILD)
+
+$(WINDOWS_SERVICE_BUILD): windows-service-build
+
+windows-service-build:
+	$(call MKDIR_P,$(dir $(WINDOWS_SERVICE_BUILD)))
+	go build -trimpath -tags '$(TAGS)' \
+		-ldflags '$(EXTRA_LDFLAGS)' \
+		-o $(WINDOWS_SERVICE_BUILD) $(WINDOWS_SERVICE_SRC)
+
+copy-lanternsvc-release: $(WINDOWS_SERVICE_BUILD)
+	$(call MKDIR_P,$(WINDOWS_RELEASE_DIR))
+	$(call COPY_FILE,$(WINDOWS_SERVICE_BUILD),$(WINDOWS_RELEASE_DIR)/$(WINDOWS_SERVICE_NAME))
+
+copy-lanternsvc-debug: $(WINDOWS_SERVICE_BUILD)
+	$(call MKDIR_P,$(WINDOWS_DEBUG_DIR))
+	$(call COPY_FILE,$(WINDOWS_SERVICE_BUILD),$(WINDOWS_DEBUG_DIR)/$(WINDOWS_SERVICE_NAME))
+
+wintun: $(WINTUN_DLL)
+
+clean-wintun:
+	@$(call RM_RF,$(WINTUN_OUT_DIR))
+
+$(WINTUN_DLL):
+	$(call MKDIR_P,$(WINTUN_OUT_DIR))
+	@ver='$(WINTUN_VERSION)'; \
+	  zip='$(WINTUN_OUT_DIR)/wintun-'$$ver'.zip'; \
+	  url='$(WINTUN_BUILDS_URL)/wintun-'$$ver'.zip'; \
+	  echo "Using Wintun $$ver"; \
+	  curl -fsSL -o "$$zip" "$$url"; \
+	  mkdir -p '$(WINTUN_OUT_DIR)/_unz'; \
+	  tar -xf "$$zip" -C "$(WINTUN_OUT_DIR)/_unz" "wintun/bin/$(WINTUN_ARCH)/wintun.dll" \
+	    || powershell -NoProfile -Command "Expand-Archive -Force -LiteralPath '$$zip' -DestinationPath '$(WINTUN_OUT_DIR)/_unz'"; \
+	  cp -f "$(WINTUN_OUT_DIR)/_unz/wintun/bin/$(WINTUN_ARCH)/wintun.dll" "$(WINTUN_DLL)"; \
+	  rm -rf "$(WINTUN_OUT_DIR)/_unz"; \
+	  echo "Installed: $(WINTUN_DLL)";
+
+.PHONY: copy-wintun-release copy-wintun-debug
+copy-wintun-release: $(WINTUN_DLL)
+	$(call MKDIR_P,$(WINDOWS_RELEASE_DIR))
+	$(call COPY_FILE,$(WINTUN_DLL),$(WINTUN_DLL_RELEASE))
+
+copy-wintun-debug: $(WINTUN_DLL)
+	$(call MKDIR_P,$(WINDOWS_DEBUG_DIR))
+	$(call COPY_FILE,$(WINTUN_DLL),$(WINTUN_DLL_DEBUG))
 
 .PHONY: windows-debug
 windows-debug: windows
 	@echo "Building Flutter app (debug) for Windows..."
 	flutter build windows --debug
+
+.PHONY: build-windows-release
+build-windows-release:
+	@echo "Building Flutter app (release) for Windows..."
+	flutter build windows --release
 
 .PHONY: windows-release
 windows-release: clean windows pubget gen

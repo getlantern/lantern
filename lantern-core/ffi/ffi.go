@@ -50,6 +50,14 @@ func core() lanterncore.Core {
 	return *c
 }
 
+func requireCore() (lanterncore.Core, *C.char) {
+	c := lanternCore.Load()
+	if c == nil {
+		return nil, C.CString(`{"error":"not_initialized"}`)
+	}
+	return *c, nil
+}
+
 func enableSplitTunneling() bool {
 	return false
 }
@@ -92,15 +100,24 @@ func setup(_logDir, _dataDir, _locale *C.char, logP, appsP, statusP, privateServ
 //
 //export availableFeatures
 func availableFeatures() *C.char {
-	return C.CString(string(core().AvailableFeatures()))
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	return C.CString(string(c.AvailableFeatures()))
 }
 
 //export addSplitTunnelItem
 func addSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+
 	filterType := C.GoString(filterTypeC)
 	item := C.GoString(itemC)
 
-	if err := core().AddSplitTunnelItem(filterType, item); err != nil {
+	if err := c.AddSplitTunnelItem(filterType, item); err != nil {
 		return C.CString(fmt.Sprintf("error adding item: %v", err))
 	}
 	slog.Debug("added %s split tunneling item %s", filterType, item)
@@ -109,10 +126,14 @@ func addSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
 
 //export removeSplitTunnelItem
 func removeSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
 	filterType := C.GoString(filterTypeC)
 	item := C.GoString(itemC)
 
-	if err := core().RemoveSplitTunnelItem(filterType, item); err != nil {
+	if err := c.RemoveSplitTunnelItem(filterType, item); err != nil {
 		return C.CString(fmt.Sprintf("error removing item: %v", err))
 	}
 	slog.Debug("removed %s split tunneling item %s", filterType, item)
@@ -121,7 +142,11 @@ func removeSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
 
 //export getDataCapInfo
 func getDataCapInfo() *C.char {
-	info, err := core().DataCapInfo()
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	info, err := c.DataCapInfo()
 	if err != nil {
 		return SendError(err)
 	}
@@ -257,8 +282,12 @@ func createUser() (*api.UserDataResponse, error) {
 //
 //export getUserData
 func getUserData() *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
 	slog.Debug("Getting user data locally")
-	bytes, err := core().UserData()
+	bytes, err := c.UserData()
 	if err != nil {
 		return SendError(err)
 	}
