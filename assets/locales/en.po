@@ -198,8 +198,6 @@ msgstr "Enter password to confirm"
 msgid "cannot_view_logs"
 msgstr "Lantern cannot view your diagnostic logs unless you send them to us."
 
-msgid "split_tunneling"
-msgstr "Split Tunneling"
 
 msgid "split_tunneling_mode"
 msgstr "Split Tunneling Mode"
@@ -358,8 +356,6 @@ msgstr "Enter your Lantern Pro Account details."
 msgid "email"
 msgstr "Email"
 
-msgid "welcome_to_lantern_pro"
-msgstr "Welcome to Lantern Pro"
 
 msgid "enter_password"
 msgstr "Enter Password"
@@ -373,8 +369,6 @@ msgstr "Reset Your Password"
 msgid "enter_your_lantern_pro_account_email"
 msgstr "Enter your Lantern Pro Account Email."
 
-msgid "next"
-msgstr "Next"
 
 msgid "reset_password"
 msgstr "Reset Password"
@@ -517,8 +511,6 @@ msgstr "Next Billing Date"
 msgid "vpn_may_be_needed"
 msgstr "VPN may be needed"
 
-msgid "google_and_apple_sign_in_blocked"
-msgstr "Google and Apple sign-in may be blocked in this region. To finish setting up your account, please turn on the VPN first."
 
 msgid "google_and_apple_sign_in_blocked"
 msgstr "Google and Apple sign-in may be blocked in this region. To finish setting up your account, please turn on the VPN first."
@@ -538,20 +530,14 @@ msgstr "Only %s month through Digital Ocean"
 msgid "server_setup_gcp"
 msgstr "Set up using Google Cloud Platform"
 
-msgid "server_setup_do_price"
-msgstr "Only %s month through Digital Ocean"
-
 msgid "continue_with_do"
 msgstr "Continue with Digital Ocean"
 
 msgid "do_allows"
 msgstr "Digital Ocean allows you to pick one server location from the %d options below"
 
-msgid "server_setup_gcp"
-msgstr "Set up a private server on Google Cloud Platform"
-
 msgid "server_setup_gcp_price"
-msgstr "Only %s month through Google Cloud Platform"
+msgstr "Only %s month through GCP"
 
 msgid "continue_with_gcp"
 msgstr "Continue with Google"
@@ -574,8 +560,8 @@ msgstr "Seamless integration with Lantern"
 msgid "easiest_setup"
 msgstr "Easiest setup process"
 
-msgid "choose_location"
-msgstr "Choose your server's location"
+msgid "multiple_location_options"
+msgstr "Multiple server location options"
 
 msgid "one_month_included"
 msgstr "%d TB/month data included"
@@ -637,6 +623,14 @@ msgstr "Server Location"
 msgid "choose"
 msgstr "Choose"
 
+msgid "choose_your_account"
+msgstr "Choose Your Account"
+
+
+msgid "choose_your_project"
+msgstr "Choose your project"
+
+
 msgid "name_your_google_cloud_project"
 msgstr "Name your Google Cloud Project"
 
@@ -646,8 +640,6 @@ msgstr "Billing Account"
 msgid "billing_account_placeholder"
 msgstr "Billing account for %s"
 
-msgid "name_your_server"
-msgstr "Name your server"
 
 msgid "server_name"
 msgstr "Server Name"
@@ -685,8 +677,6 @@ msgstr "Select a region for your Private Server. Closer locations may improve sp
 msgid "gcp_location_options"
 msgstr "Google Cloud Platform Location Options (%d):"
 
-msgid "gcp_private_server_location"
-msgstr "GCP Private Server Locations"
 
 msgid "australia_sydney"
 msgstr "Australia - Sydney"
@@ -730,8 +720,6 @@ msgstr "Private Server is Ready"
 msgid "server_ready_message"
 msgstr "Your Private Server has been set up and added to your server list. You're ready to connect!"
 
-msgid "server_setup_failed"
-msgstr "Server Setup Failed"
 
 msgid "server_failed_message"
 msgstr "Something went wrong while setting up your Private Server. You can retry or try again later."
@@ -761,16 +749,10 @@ msgid "all_required_fields"
 msgstr "Please fill out all required fields."
 
 msgid "private_server_ready"
-msgstr "Your Private Server is Ready!"
+msgstr "Private Server is Ready!"
 
 msgid "private_server_ready_message"
-msgstr "Your Server has been set up and added to your server list. You're ready to connect!"
-
-msgid "close"
-msgstr "Close"
-
-msgid "connect_now"
-msgstr "Connect Now"
+msgstr "(%d) Server has been set up and added to your server list. You're ready to connect!"
 
 msgid "set_up_your_server"
 msgstr "Set Up Your Server"
@@ -805,8 +787,6 @@ msgstr "Continue with"
 msgid "join_a_private_server"
 msgstr "Join a Private Server"
 
-msgid "manage_private_servers"
-msgstr "Manage Private Servers"
 
 msgid "join_private_server"
 msgstr "Join Private Server"
@@ -885,9 +865,6 @@ msgstr "Join My Lantern Private Server"
 msgid "your_server"
 msgstr "Your Servers:"
 
-msgid "joined_servers"
-msgstr "Joined Servers:"
-
 msgid "no_private_server_setup_yet"
 msgstr "You haven't set up a private server yet. Click the button below to get started."
 
@@ -933,20 +910,6 @@ msgstr "Connected to Private Server"
 
 msgid "server_already_selected"
 msgstr "You are already connected to this server."
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 msgid "device_limit_reached"
@@ -1013,14 +976,11 @@ msgstr "Please enter a valid email"
 msgid "please_select_an_issue"
 msgstr "Please select an issue"
 
-
 msgid "please_enter_issue_description"
 msgstr "Please enter an issue description"
 
-
 msgid "thanks_for_feedback"
 msgstr "Thanks for your feedback!"
-msgstr "Activate Lantern extension"
 
 msgid "no_apps_selected"
 msgstr "No apps selected"
@@ -1040,3 +1000,27 @@ msgstr "Enter an Activation Code"
 msgid "restore_purchase"
 msgstr "Restore Purchase"
 
+
+msgid "do_private_server_setup"
+msgstr "DO Private Server Setup"
+
+msgid "private_server_note"
+msgstr "Select a region for your Private Server. Closer locations may improve speed and latency."
+
+msgid "gcp_private_server_setup"
+msgstr "GCP Private Server Setup"
+
+msgid "gcp_private_server_location"
+msgstr "GCP Private Server Location"
+
+msgid "do_private_server_location"
+msgstr "DO Private Server Location"
+
+msgid "confirm"
+msgstr "Confirm"
+
+msgid "private_server_warning"
+msgstr "Only add servers run by people you trust "
+
+msgid "go_to_server_locations"
+msgstr "Go To Server Locations"

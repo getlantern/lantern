@@ -19,18 +19,19 @@ class PrivateServerSetup extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final serverState = ref.watch(privateServerNotifierProvider);
     final flags = ref.read(featureFlagNotifierProvider.notifier);
-
-    final browserOpened = useRef(false);
     final selectedIdx = useState(0);
+    final CloudProvider selectedProvider = flags.isGCPEnabled
+        ? (selectedIdx.value == 0
+            ? CloudProvider.googleCloud
+            : CloudProvider.digitalOcean)
+        : CloudProvider.digitalOcean;
 
     useEffect(() {
-      if (serverState.status == 'openBrowser' && !browserOpened.value) {
-        browserOpened.value = true;
+      if (serverState.status == 'openBrowser') {
         UrlUtils.openWebview<bool>(
           serverState.data!,
           onWebviewResult: (ok) {
             if (ok) context.showLoadingDialog();
-            browserOpened.value = false;
           },
         );
       }
@@ -40,7 +41,8 @@ class PrivateServerSetup extends HookConsumerWidget {
       if (serverState.status == 'EventTypeAccounts') {
         context.hideLoadingDialog();
         final accounts = serverState.data!;
-        appRouter.push(PrivateServerDetails(accounts: [accounts]));
+        appRouter.push(PrivateServerDetails(
+            accounts: [accounts], provider: selectedProvider));
       }
       if (serverState.status == 'EventTypeValidationError') {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -107,45 +109,29 @@ class PrivateServerSetup extends HookConsumerWidget {
 
     return BaseScreen(
       title: 'setup_private_server'.i18n,
-      padded: false,
       body: SingleChildScrollView(
         child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 900),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                children: [
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    width: 140,
-                    height: 140,
-                    child: Center(
-                      child: AppImage(
-                        path: AppImagePaths.serverRack,
-                        type: AssetType.svg,
-                        width: 140,
-                        height: 140,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  ProviderCarousel(
-                    cards: cards.map((e) => e.card).toList(),
-                    onPageChanged: (i) => selectedIdx.value = i,
-                  ),
-                  const SizedBox(height: 8),
-                  SecondaryButton(
-                    label: 'server_setup_manual'.i18n,
-                    isTaller: true,
-                    onPressed: () {
-                      appRouter.push(ManuallyServerSetup());
-                    },
-                  ),
-                  const SizedBox(height: 8),
-                ],
+          child: Column(
+            children: [
+              AppImage(
+                path: AppImagePaths.serverRack,
+                type: AssetType.svg,
+                height: PlatformUtils.isDesktop ? 190.h : 160.h,
               ),
-            ),
+              const SizedBox(height: defaultSize),
+              ProviderCarousel(
+                cards: cards.map((e) => e.card).toList(),
+                onPageChanged: (i) => selectedIdx.value = i,
+              ),
+              const SizedBox(height: size24),
+              SecondaryButton(
+                label: 'server_setup_manual'.i18n,
+                onPressed: () {
+                  appRouter.push(ManuallyServerSetup());
+                },
+              ),
+              const SizedBox(height: 8),
+            ],
           ),
         ),
       ),

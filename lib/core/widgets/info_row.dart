@@ -31,6 +31,7 @@ class InfoRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return ListTile(
+        tileColor: backgroundColor,
         onTap: onPressed,
         contentPadding:
             padding ?? EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -38,9 +39,11 @@ class InfoRow extends StatelessWidget {
           borderRadius: BorderRadius.circular(borderRadius),
           side: BorderSide(color: AppColors.gray2),
         ),
-        leading: AppImage(
-          path: imagePath ?? AppImagePaths.info,
-        ),
+        leading: imagePath == null
+            ? null
+            : AppImage(
+                path: imagePath ?? AppImagePaths.info,
+              ),
         title: child ??
             Text(
               text,

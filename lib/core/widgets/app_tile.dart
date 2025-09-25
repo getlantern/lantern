@@ -83,6 +83,9 @@ class AppTile extends StatelessWidget {
       selected: selected,
       selectedTileColor: AppColors.blue1,
       minTileHeight: effectiveMinHeight,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
       contentPadding:
           contentPadding ?? const EdgeInsets.symmetric(horizontal: 16),
       title: Text(label,

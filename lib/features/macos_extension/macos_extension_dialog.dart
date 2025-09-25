@@ -80,7 +80,7 @@ class _MacOSExtensionDialogState extends ConsumerState<MacOSExtensionDialog> {
                 WidgetSpan(child: SizedBox(width: 4.0)),
                 TextSpan(
                   text: 'open_system_settings'.i18n,
-                  style: AppTestStyles.bodyLargeBold!.copyWith(
+                  style: AppTestStyles.bodyLargeBold.copyWith(
                     color: AppColors.gray8,
                   ),
                 ),

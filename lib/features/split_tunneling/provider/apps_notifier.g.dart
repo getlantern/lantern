@@ -7,7 +7,7 @@ part of 'apps_notifier.dart';
 // **************************************************************************
 
 String _$splitTunnelingAppsHash() =>
-    r'6296582cc1f33d87dab5c3c31fb2dbcece726e3c';
+    r'59a3ba4bd706a90971f41f1f249fd9e5c623646d';
 
 /// See also [SplitTunnelingApps].
 @ProviderFor(SplitTunnelingApps)

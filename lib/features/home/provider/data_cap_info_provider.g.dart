@@ -7,7 +7,7 @@ part of 'data_cap_info_provider.dart';
 // **************************************************************************
 
 String _$dataCapInfoNotifierHash() =>
-    r'a756460d16343eb2386d59f07def46be77f500c3';
+    r'f07bd5b136d3898f890b6e23a809b67556904784';
 
 /// See also [DataCapInfoNotifier].
 @ProviderFor(DataCapInfoNotifier)
