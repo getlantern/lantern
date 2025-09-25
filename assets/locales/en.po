@@ -969,7 +969,7 @@ msgid "when_prompted"
 msgstr "when prompted"
 
 msgid "activate_extension"
-msgstr "Activate Lantern extension."
+msgstr "Install Now"
 
 msgid "email_optional"
 msgstr "Email (optional)"
