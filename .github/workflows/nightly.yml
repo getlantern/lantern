@@ -97,11 +97,10 @@ jobs:
       installer_name: ${{ needs.set-nightly-metadata.outputs.installer_name }}
 
   publish:
-    needs:
-      [
+    needs: [
         set-nightly-metadata,
         build-macos,
-        build-windows,
+        #build-windows,
         build-linux,
         build-android,
       ]
