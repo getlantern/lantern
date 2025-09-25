@@ -61,7 +61,7 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
     }, [update]);
 
     return BaseScreen(
-      title: 'report_issue'.i18n,
+      title: 'report_an_issue'.i18n,
       body: SingleChildScrollView(
         child: Form(
           key: formKey,
@@ -86,7 +86,7 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
               AppTextField(
                 autovalidateMode: AutovalidateMode.disabled,
                 controller: selectedIssueController,
-                label: 'select_an_issue'.i18n,
+                label: 'issue_description'.i18n,
                 hintText: '',
                 onTap: () => openIssueSelection(
                     selectedIssueController, groupValue.value),

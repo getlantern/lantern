@@ -109,8 +109,8 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
                 border: Border.all(color: AppColors.blue3, width: 1),
               ),
               tabs: [
-                Tab(child: Text('lantern_server'.i18n)),
-                Tab(child: Text('private_server'.i18n))
+                Tab(child: Text('lantern_servers'.i18n)),
+                Tab(child: Text('private_servers'.i18n))
               ],
             ),
           ),

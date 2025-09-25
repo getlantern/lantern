@@ -7,8 +7,8 @@ msgstr "Upgrade to Pro"
 msgid "settings"
 msgstr "Settings"
 
-msgid "report_issue"
-msgstr "Report Issue"
+msgid "report_an_issue"
+msgstr "Report an Issue"
 
 msgid "lantern_projects"
 msgstr "Lantern Projects:"
@@ -849,11 +849,11 @@ msgstr "If you're unsure who runs the server or how it's configured, we recommen
 msgid "invalid_server_details"
 msgstr "Invalid server details. Please check the access key and try again."
 
-msgid "lantern_server"
-msgstr "Lantern Server"
+msgid "lantern_servers"
+msgstr "Lantern Servers"
 
-msgid "private_server"
-msgstr "Private Server"
+msgid "private_servers"
+msgstr "Private Servers"
 
 msgid "fastest_server"
 msgstr "Fastest Server"
@@ -1047,3 +1047,26 @@ msgstr "Subscription Renewal Date"
 
 msgid "enabled_bypass_lists"
 msgstr "Enabled bypass lists:"
+
+
+msgid "diagnostic_logs"
+msgstr "Diagnostic Logs"
+
+
+msgid "lantern_user_forum"
+msgstr "Lantern User Forum"
+
+msgid "frequently_asked_questions"
+msgstr "Frequently Asked Questions"
+
+msgid "privacy_policy"
+msgstr "Privacy Policy"
+
+msgid "terms_of_service"
+msgstr "Terms of Service"
+
+msgid "issue_description"
+msgstr "Issue Description"
+
+
+
