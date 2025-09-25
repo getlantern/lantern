@@ -153,7 +153,7 @@ class MethodHandler {
 
       case "revokeServerManagerInstance":
         let data = call.arguments as? [String: Any]
-        self.inviteToServerManagerInstance(result: result, data: data!)
+        self.revokeServerManagerInstance(result: result, data: data!)
         break
       //Utils methods
       case "featureFlag":

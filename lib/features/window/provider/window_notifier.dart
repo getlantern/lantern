@@ -42,6 +42,6 @@ class WindowNotifier extends _$WindowNotifier {
       await windowManager.setSkipTaskbar(true);
     }
     await windowManager.destroy();
-    exit(0);
+    await Future.microtask(() => exit(0));
   }
 }
