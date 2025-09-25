@@ -945,7 +945,7 @@ msgid "email_updated"
 msgstr "Your email has been updated."
 
 msgid "enable_network_extension"
-msgstr "Enable Network Extension."
+msgstr "Enable Network Extension"
 
 msgid "enable_network_extension_message"
 msgstr "To use Lantern, we need to install a network extension for your Mac."
