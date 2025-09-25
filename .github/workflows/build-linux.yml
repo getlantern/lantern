@@ -17,6 +17,7 @@ jobs:
   build-linux:
     env:
       BUILD_TYPE: ${{ inputs.build_type || '' }}
+      VERSION: ${{ inputs.version }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
