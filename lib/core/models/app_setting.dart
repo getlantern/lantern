@@ -25,7 +25,7 @@ class AppSetting {
     this.splitTunnelingModeRaw ='automatic',
     this.oAuthToken = '',
     this.blockAds = false,
-    this.bypassListRaw = 'global',
+    this.bypassListRaw = 'none',
     this.email = '',
     this.locale = 'en_US',
     this.showSplashScreen = true,

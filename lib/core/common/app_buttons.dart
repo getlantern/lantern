@@ -64,7 +64,8 @@ class PrimaryButton extends StatelessWidget {
           if (states.contains(WidgetState.disabled)) {
             return AppColors.gray2; // Disabled background color
           }
-          if(states.contains(WidgetState.hovered) && bgColor==AppColors.blue1) {
+          if (states.contains(WidgetState.hovered) &&
+              bgColor == AppColors.blue1) {
             return AppColors.blue2; // Pressed background color
           }
           if (states.contains(WidgetState.hovered)) {
@@ -78,7 +79,7 @@ class PrimaryButton extends StatelessWidget {
           if (states.contains(WidgetState.disabled)) {
             return BorderSide(color: AppColors.gray4, width: 1);
           }
-          if(showBorder){
+          if (showBorder) {
             return BorderSide(color: AppColors.gray2, width: 1);
           }
           return BorderSide.none;

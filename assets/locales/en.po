@@ -1074,9 +1074,10 @@ msgstr "Terms of Service"
 msgid "issue_description"
 msgstr "Issue Description"
 
-
 msgid "get_unlimited_data"
 msgstr "Get unlimited data, and faster speeds!"
 
+msgid "private_server_options"
+msgstr "Private Server Options"
 
 

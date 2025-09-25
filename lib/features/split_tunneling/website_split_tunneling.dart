@@ -59,26 +59,29 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
               ),
             ),
           ),
-          SliverToBoxAdapter(child: SizedBox(height: defaultSize)),
-          SliverToBoxAdapter(child: SectionLabel('enabled_bypass_lists'.i18n)),
-          SliverToBoxAdapter(
-            child: AppCard(
-              padding: EdgeInsets.zero,
-              child: AppTile(
-                contentPadding: EdgeInsets.only(left: 16),
-                label: '${appSetting.bypassList.value}_bypass_list'.i18n,
-                subtitle: Text(
-                  '${appSetting.bypassList.value}_bypass_desc'.i18n,
-                  style:
-                      textTheme.labelMedium!.copyWith(color: AppColors.gray7),
-                ),
-                trailing: AppIconButton(
-                  path: AppImagePaths.close,
-                  onPressed: () {},
+          if (appSetting.bypassList != BypassListOption.none) ...{
+            SliverToBoxAdapter(child: SizedBox(height: defaultSize)),
+            SliverToBoxAdapter(
+                child: SectionLabel('enabled_bypass_lists'.i18n)),
+            SliverToBoxAdapter(
+              child: AppCard(
+                padding: EdgeInsets.zero,
+                child: AppTile(
+                  contentPadding: EdgeInsets.only(left: 16),
+                  label: '${appSetting.bypassList.value}_bypass_list'.i18n,
+                  subtitle: Text(
+                    '${appSetting.bypassList.value}_bypass_desc'.i18n,
+                    style:
+                        textTheme.labelMedium!.copyWith(color: AppColors.gray7),
+                  ),
+                  trailing: AppIconButton(
+                    path: AppImagePaths.close,
+                    onPressed: () => removeBypassList(ref),
+                  ),
                 ),
               ),
-            ),
-          ),
+            )
+          },
           SliverToBoxAdapter(child: SizedBox(height: defaultSize)),
           SliverToBoxAdapter(child: DividerSpace()),
           SliverToBoxAdapter(child: SizedBox(height: defaultSize)),
@@ -119,6 +122,12 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
         ],
       ),
     );
+  }
+
+  void removeBypassList(WidgetRef ref) {
+    ref
+        .read(appSettingNotifierProvider.notifier)
+        .setBypassList(BypassListOption.none);
   }
 }
 

@@ -246,6 +246,7 @@ func (lc *LanternCore) DataCapInfo() ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error marshalling data cap info: %w", err)
 	}
+	slog.Debug("Data cap info: ", "info", string(jsonBytes))
 	return jsonBytes, nil
 }
 

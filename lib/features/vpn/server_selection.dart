@@ -264,7 +264,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
   void onOpenMoreOptions() {
     showAppBottomSheet(
       context: context,
-      title: '',
+      title: 'private_server_options'.i18n,
       scrollControlDisabledMaxHeightRatio: .4,
       builder: (context, scrollController) {
         return ListView(

@@ -5,6 +5,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/app_rich_text.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/split_tunneling/provider/website_notifier.dart';
 
 final selectedBypassListProvider =
     StateProvider<BypassListOption>((ref) => BypassListOption.global);
@@ -18,10 +19,10 @@ class DefaultBypassLists extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final preferences = ref.watch(appSettingNotifierProvider);
-    final notifier = ref.read(appSettingNotifierProvider.notifier);
+    final websiteNr = ref.read(splitTunnelingWebsitesProvider.notifier);
     final textTheme = Theme.of(context).textTheme;
     Future<void> onBypassTap(BypassListOption option) async {
-      notifier.setByassList(option);
+      websiteNr.updateByPassList(option);
       Future.delayed(const Duration(milliseconds: 500), () {
         appRouter.pop();
       });
@@ -57,11 +58,9 @@ class DefaultBypassLists extends HookConsumerWidget {
                                 style: textTheme.labelMedium!
                                     .copyWith(color: AppColors.gray7),
                               ),
-                              trailing: AppRadioButton<BypassListOption>(
-                                value: bypassList,
-                                groupValue: preferences.bypassList,
-                                onChanged: (value) => onBypassTap(bypassList),
-                              ),
+                              trailing: preferences.bypassList == bypassList
+                                  ? Icon(Icons.check_circle)
+                                  : Icon(Icons.radio_button_off),
                               onPressed: () => onBypassTap(bypassList),
                             ),
                             DividerSpace(padding: EdgeInsets.zero),
@@ -72,7 +71,7 @@ class DefaultBypassLists extends HookConsumerWidget {
                 )),
             SizedBox(height: defaultSize),
             InfoRow(
-              minTileHeight: 40,
+              minTileHeight: 35,
               text: '',
               child: AppRichText(
                 texts: 'see_sites_included'.i18n,

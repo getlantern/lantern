@@ -64,7 +64,9 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
     applicationNameForUserAgent: 'Lantern',
     useShouldOverrideUrlLoading: true,
     hardwareAcceleration: true,
-    
+    // userAgent: _getUserAgent(),
+    supportZoom: true,
+    preferredContentMode: UserPreferredContentMode.DESKTOP,
   );
   late final URLRequest _initialRequest;
 
