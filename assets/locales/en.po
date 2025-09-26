@@ -829,7 +829,7 @@ msgid "remove_server"
 msgstr "Remove Server?"
 
 msgid "remove_server_message"
-msgstr "Remove %s? This can’t be undone."
+msgstr "Remove %s? This will only remove it from your app, it won’t delete the server from your cloud provider."
 
 
 msgid "generate_access_key"
@@ -1089,3 +1089,11 @@ msgstr "Quit"
 msgid "device_removed"
 msgstr "Device removed"
 
+msgid "set_server_alias"
+msgstr "Set Server Alias"
+
+msgid "this_name_pre_filled"
+msgstr "This name will be pre-filled for the invited user to help them identify the server. They can change it later."
+
+msgid "server_alias"
+msgstr "Server Alias"

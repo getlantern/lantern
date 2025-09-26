@@ -328,7 +328,8 @@ class _ServerLocationListViewState
             const SizedBox(height: verticalSpacing),
           ],
           Padding(
-              padding: const EdgeInsets.only(top: 4.0,left: defaultSize), // small top offset
+              padding: const EdgeInsets.only(top: 4.0, left: defaultSize),
+              // small top offset
               child: HeaderText('pro_locations'.i18n)),
           const SizedBox(height: 8),
           Flexible(
@@ -394,6 +395,23 @@ class _ServerLocationListViewState
         context.showSnackBar(failure.localizedErrorMessage);
       },
       (success) async {
+        final vpnStatus = ref.read(vpnNotifierProvider);
+        if (vpnStatus == VPNStatus.connected) {
+          ///User is already connected, just update the server location
+          final serverLocation = ServerLocationEntity(
+            serverType: ServerLocationType.lanternLocation.name,
+            serverName: selectedServer.tag,
+            autoSelect: false,
+            serverLocation:
+                '${selectedServer.city} [${CountryUtils.getCountryCode(selectedServer.country)}]',
+          );
+          await ref
+              .read(serverLocationNotifierProvider.notifier)
+              .updateServerLocation(serverLocation);
+          appRouter.popUntilRoot();
+          return;
+        }
+
         ref.listenManual<AsyncValue<LanternStatus>>(
           vPNStatusNotifierProvider,
           (previous, next) async {

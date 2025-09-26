@@ -27,6 +27,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
   Widget build(BuildContext context) {
     textTheme = Theme.of(context).textTheme;
     final servers = _localStorage.getPrivateServer();
+    appLogger.debug("Servers: $servers");
     final myServer = servers.where((element) => !element.isJoined).toList();
     final joinedServer = servers.where((element) => element.isJoined).toList();
     return BaseScreen(
@@ -144,15 +145,23 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
     AppDialog.customDialog(
         context: context,
         content: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             SizedBox(height: 16),
             Text(
-              'Invite name',
+              'set_server_alias'.i18n,
               style: textTheme!.headlineMedium,
             ),
+            SizedBox(height: defaultSize),
+            Text(
+              'this_name_pre_filled'.i18n,
+              style: textTheme!.bodyMedium,
+            ),
+            SizedBox(height: size24),
             AppTextField(
-              label: 'invite_name'.i18n,
+              label: 'server_alias'.i18n,
+              prefixIcon: AppImagePaths.server,
               controller: inviteNameController,
               hintText: '',
             )
@@ -266,14 +275,14 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
       ),
       action: [
         AppTextButton(
-          label: 'cancel',
+          label: 'cancel'.i18n,
           textColor: AppColors.gray6,
           onPressed: () {
             appRouter.pop();
           },
         ),
         AppTextButton(
-          label: 'remove',
+          label: 'remove'.i18n,
           textColor: AppColors.red7,
           onPressed: () {
             appRouter.pop();
@@ -290,6 +299,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
   }
 
   void onDelete(String serverName) {
-    _localStorage.deletePrivateServer(serverName);
+    // _localStorage.deletePrivateServer(serverName);
+    setState(() {});
   }
 }

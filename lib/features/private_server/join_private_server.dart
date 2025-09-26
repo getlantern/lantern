@@ -28,8 +28,10 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
     final textTheme = Theme.of(context).textTheme;
     final accessKeyController =
         useTextEditingController(text: widget.deepLinkData?['accessKey'] ?? '');
-    final nameController = useTextEditingController();
-    final buttonValid = useState(false);
+    final name = (widget.deepLinkData?['alias'] ?? '').replaceAll('-', ' ');
+    final nameController = useTextEditingController(text: name);
+    final buttonValid = useState(
+        accessKeyController.text.isNotEmpty && nameController.text.isNotEmpty);
     final serverState = ref.watch(privateServerNotifierProvider);
 
     useEffect(() {
@@ -50,7 +52,7 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
           final serverData = PrivateServerEntity.fromJson(data);
           sl<LocalStorageService>()
               .savePrivateServer(serverData.copyWith(isJoined: true));
-          showSuccessDialog();
+          showSuccessDialog(nameController.text);
         });
       }
 
@@ -232,6 +234,10 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
       (error) {
         appLogger.error("Failed to join private server: $error");
         context.hideLoadingDialog();
+        AppDialog.errorDialog(
+            context: context,
+            title: 'error'.i18n,
+            content: error.localizedErrorMessage);
       },
       (success) {
         context.hideLoadingDialog();
@@ -300,7 +306,7 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
     );
   }
 
-  void showSuccessDialog() {
+  void showSuccessDialog(String name) {
     final textTheme = Theme.of(context).textTheme;
     AppDialog.customDialog(
       context: context,
@@ -321,7 +327,7 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
           ),
           SizedBox(height: 16),
           Text(
-            'private_server_ready_message'.i18n,
+            'private_server_ready_message'.i18n.fill([name]),
             style: textTheme.bodyLarge,
           ),
         ],
@@ -335,9 +341,14 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
           textColor: AppColors.gray6,
         ),
         AppTextButton(
-          label: "connect_now".i18n,
+          label: "go_to_server_locations".i18n,
           textColor: AppColors.blue6,
-          onPressed: () {},
+          onPressed: () {
+            appRouter.pushAndPopUntil(
+              ServerSelection(),
+              predicate: (route) => route.isFirst,
+            );
+          },
         ),
       ],
     );

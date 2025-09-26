@@ -82,12 +82,15 @@ class SplitTunneling extends HookConsumerWidget {
                 DividerSpace(),
                 if (splitTunnelingEnabled) ...{
                   Theme(
-                    data: Theme.of(context)
-                        .copyWith(dividerColor: Colors.transparent),
+                    data: Theme.of(context).copyWith(
+                        dividerColor: Colors.transparent,
+                        hoverColor: AppColors.blue1),
                     child: ExpansionTile(
                         enableFeedback: true,
                         controller: expansionTileController,
                         backgroundColor: Colors.transparent,
+                        childrenPadding:
+                            const EdgeInsets.symmetric(horizontal: 16),
                         title: Text(
                           'mode'.i18n,
                           style: textTheme.bodyLarge!
@@ -141,6 +144,7 @@ class SplitTunneling extends HookConsumerWidget {
                         children: [
                           DividerSpace(padding: EdgeInsets.zero),
                           AppTile(
+                            contentPadding: EdgeInsets.zero,
                             minHeight: 50,
                             label: toBeginningOfSentenceCase(
                                 SplitTunnelingMode.automatic.value)!,
@@ -159,6 +163,7 @@ class SplitTunneling extends HookConsumerWidget {
                           ),
                           AppTile(
                             minHeight: 50,
+                            contentPadding: EdgeInsets.zero,
                             label: toBeginningOfSentenceCase(
                                 SplitTunnelingMode.manual.value)!,
                             tileTextStyle: textTheme.bodyMedium!

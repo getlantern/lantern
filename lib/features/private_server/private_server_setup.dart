@@ -131,7 +131,7 @@ class PrivateServerSetup extends HookConsumerWidget {
                   appRouter.push(ManuallyServerSetup());
                 },
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: kBottomNavigationBarHeight),
             ],
           ),
         ),
