@@ -966,7 +966,7 @@ msgid "open_system_settings"
 msgstr "Open System Settings"
 
 msgid "when_prompted"
-msgstr "when prompted"
+msgstr "when prompted."
 
 msgid "activate_extension"
 msgstr "Install Now"
