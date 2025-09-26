@@ -1,13 +1,15 @@
 import 'dart:io';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
 class AppSecrets {
   static String get macosAppGroupId => dotenv.env['MACOS_APP_GROUP'] ?? '';
+
   static String get stripePublishable => dotenv.env['STRIPE_PUBLISHABLE'] ?? '';
+
   static String get windowsAppUserModelId =>
       dotenv.env['WINDOWS_APP_USER_MODEL_ID'] ?? '';
+
   static String get windowsGuid => dotenv.env['WINDOWS_GUID'] ?? '';
 
   static String get lanternPackageName => "org.getlantern.lantern";

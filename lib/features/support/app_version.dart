@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lantern/core/common/app_build_info.dart';
-import 'package:lantern/core/common/app_colors.dart';
+import 'package:lantern/core/common/common.dart';
 
 class AppVersion extends StatelessWidget {
   const AppVersion({super.key});
@@ -26,7 +26,7 @@ class AppVersion extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Lantern Version', style: theme.bodyMedium),
+              Text('lantern_version'.i18n, style: theme.bodyMedium),
               Text(label,
                   style: theme.titleSmall!.copyWith(color: AppColors.blue7)),
             ],

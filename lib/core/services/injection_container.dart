@@ -16,11 +16,17 @@ final GetIt sl = GetIt.instance;
 
 Future<void> injectServices() async {
   try {
-    sl.registerLazySingleton(() => StoreUtils());
-    sl<StoreUtils>().init();
+    sl.registerSingletonAsync<StoreUtils>(() async {
+      appLogger.info("Initializing StoreUtils");
+      final storeUtils = StoreUtils();
+      await storeUtils.init();
+      return storeUtils;
+    });
+
     sl.registerLazySingleton(() => AppPurchase());
     sl<AppPurchase>().init();
-
+    sl.registerLazySingleton<DeepLinkCallbackManager>(
+        () => DeepLinkCallbackManager());
     // We want to make sure the platform service and FFI service are
     // initialized as early as possible so we can communicate with
     // native code on different platforms.
@@ -39,15 +45,6 @@ Future<void> injectServices() async {
     sl.registerLazySingleton(() => LocalStorageService());
     await sl<LocalStorageService>().init();
     sl.registerLazySingleton(() => AppRouter());
-    sl.registerLazySingleton(() => StripeService());
-    await sl<StripeService>().initialize();
-
-    sl.registerSingletonAsync<StoreUtils>(() async {
-      appLogger.info("Initializing StoreUtils");
-      final storeUtils = StoreUtils();
-      await storeUtils.init();
-      return storeUtils;
-    });
 
     sl.registerSingletonAsync<StripeService>(() async {
       appLogger.info("Initializing StripeService");
@@ -55,8 +52,7 @@ Future<void> injectServices() async {
       await stripeService.initialize();
       return stripeService;
     });
-    sl.registerLazySingleton<DeepLinkCallbackManager>(
-        () => DeepLinkCallbackManager());
+
     sl.registerSingletonAsync<NotificationService>(() async {
       appLogger.info("Initializing NotificationService");
       final notificationService = NotificationService();
