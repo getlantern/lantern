@@ -73,8 +73,6 @@ Future<Map<String, dynamic>> _loadFeatureFlags() async {
 Future<void> _configureAutoUpdate({required Map<String, dynamic> flags}) async {
   if (kDebugMode) return;
   if (!Platform.isMacOS && !Platform.isWindows) return;
-  if (AppSecrets.buildType != 'production') return;
-
   final enabled = flags.getBool(FeatureFlag.autoUpdateEnabled);
   if (!enabled) return;
 
