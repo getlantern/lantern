@@ -1097,3 +1097,12 @@ msgstr "This name will be pre-filled for the invited user to help them identify 
 
 msgid "server_alias"
 msgstr "Server Alias"
+
+msgid "payment_options"
+msgstr "Payment Options"
+
+msgid "add_referral_code"
+msgstr "Add a Referral Code"
+
+msgid "referral_code"
+msgstr "Referral Code"
