@@ -1081,5 +1081,11 @@ msgid "private_server_options"
 msgstr "Private Server Options"
 
 msgid "lantern_version"
-msgstr "Lantern Version"
+msgstr "Lantern Version"quit
+
+msgid "quit"
+msgstr "Quit"
+
+msgid "device_removed"
+msgstr "Device removed"
 

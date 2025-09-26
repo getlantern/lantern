@@ -16,7 +16,7 @@ message UserResponse {
     string code = 2;
     string token = 3;
     string referral = 4;
-    string phone = 5;
+    string phone = 5 [deprecated = true]; // not used anymore
     string email = 6;
     string userStatus = 7;
     string userLevel = 8;
@@ -32,18 +32,20 @@ message UserResponse {
     repeated Device devices = 18;
     bool yinbiEnabled = 19;
     message SubscriptionData {
-      string              planID = 1;
-      string              stripeCustomerID = 2;
-      string              startAt = 3;
-      string              cancelledAt = 4;
-      bool                autoRenew = 5;
-      string              subscriptionID = 6;
-      string              status = 7;
-      string              provider = 8;
-      string              createdAt = 9;
-      string              endAt = 10;
+      string planID = 1;
+      string stripeCustomerID = 2;
+      string startAt = 3;
+      string cancelledAt = 4;
+      bool autoRenew = 5;
+      string subscriptionID = 6;
+      string status = 7;
+      string provider = 8;
+      string createdAt = 9;
+      string endAt = 10;
     }
+
     SubscriptionData subscriptionData = 20;
+    string deviceID = 21;
   }
   bool Success = 5;
   // this maps to /user-data call in pro-server and is returned only on successful login

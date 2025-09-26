@@ -57,9 +57,11 @@ func ConnectToServer(group, tag string, platIfce libbox.PlatformInterface, optio
 			return err
 		}
 	}
+	slog.Debug("Connecting to VPN server", "group", group, "tag", tag)
 	if tag == "" {
 		return vpn.QuickConnect(group, platIfce)
 	}
+	slog.Debug("Connecting to specific VPN server", "group", group, "tag", tag)
 	return vpn.ConnectToServer(group, tag, platIfce)
 }
 

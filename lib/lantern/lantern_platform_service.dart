@@ -384,6 +384,7 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
+  /// Get user data from local storage
   @override
   Future<Either<Failure, UserResponse>> getUserData() async {
     try {
@@ -396,6 +397,22 @@ class LanternPlatformService implements LanternCoreService {
           localizedErrorMessage: (e as Exception).localizedDescription));
     }
   }
+
+  /// Fetch user data from server
+  @override
+  Future<Either<Failure, UserResponse>> fetchUserData() async {
+    try {
+      final userBytes = await _methodChannel.invokeMethod('fetchUserData');
+      return Right(UserResponse.fromBuffer(userBytes));
+    } catch (e, stackTrace) {
+      appLogger.error("error fetching user data", e, stackTrace);
+      return Left(Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription));
+    }
+  }
+
+
 
 // Only supported in IOS
   @override
@@ -410,18 +427,7 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
-  @override
-  Future<Either<Failure, UserResponse>> fetchUserData() async {
-    try {
-      final userBytes = await _methodChannel.invokeMethod('fetchUserData');
-      return Right(UserResponse.fromBuffer(userBytes));
-    } catch (e, stackTrace) {
-      appLogger.error("error fetching user data", e, stackTrace);
-      return Left(Failure(
-          error: e.toString(),
-          localizedErrorMessage: (e as Exception).localizedDescription));
-    }
-  }
+
 
   @override
   Future<Either<Failure, Unit>> acknowledgeInAppPurchase(

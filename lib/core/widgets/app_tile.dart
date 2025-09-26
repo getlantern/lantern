@@ -81,7 +81,7 @@ class AppTile extends StatelessWidget {
       enableFeedback: true,
       minVerticalPadding: 0,
       selected: selected,
-      hoverColor: AppColors.blue2,
+      hoverColor: AppColors.blue1,
       selectedTileColor: AppColors.blue1,
       minTileHeight: effectiveMinHeight,
       shape: RoundedRectangleBorder(

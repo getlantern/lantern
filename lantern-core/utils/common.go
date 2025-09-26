@@ -21,6 +21,7 @@ type PrivateServerEventListener interface {
 	OnError(err string)
 }
 
+
 // CreateLogAttachment tries to read the log file at logFilePath and returns
 // an []*issue.Attachment with the log (if found)
 func CreateLogAttachment(logFilePath string) []*issue.Attachment {

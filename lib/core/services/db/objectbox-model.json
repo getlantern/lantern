@@ -404,7 +404,7 @@
     },
     {
       "id": "11:4557824412096950738",
-      "lastPropertyId": "20:1498461655287117981",
+      "lastPropertyId": "21:6487851609758792533",
       "name": "UserDataEntity",
       "properties": [
         {
@@ -510,6 +510,11 @@
           "flags": 520,
           "indexId": "2:3153991439170111111",
           "relationTarget": "SubscriptionDataEntity"
+        },
+        {
+          "id": "21:6487851609758792533",
+          "name": "deviceID",
+          "type": 9
         }
       ],
       "relations": [

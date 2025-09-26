@@ -328,7 +328,7 @@ class _ServerLocationListViewState
             const SizedBox(height: verticalSpacing),
           ],
           Padding(
-              padding: const EdgeInsets.only(top: 4.0), // small top offset
+              padding: const EdgeInsets.only(top: 4.0,left: defaultSize), // small top offset
               child: HeaderText('pro_locations'.i18n)),
           const SizedBox(height: 8),
           Flexible(
@@ -463,7 +463,10 @@ class _PrivateServerLocationListViewState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         SizedBox(height: 16),
-        HeaderText('your_server'.i18n),
+        Padding(
+          padding: const EdgeInsets.only(left: 16.0),
+          child: HeaderText('your_server'.i18n),
+        ),
         SizedBox(height: 8),
         AppCard(
           padding: EdgeInsets.zero,
