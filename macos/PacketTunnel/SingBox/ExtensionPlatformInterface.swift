@@ -24,8 +24,6 @@ import UserNotifications
 public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtocol,
   LibboxCommandServerHandlerProtocol
 {
-  let appLogger = Logger(
-    subsystem: "org.getlantern.lantern", category: "ExtensionPlatformInterface")
   private let tunnel: ExtensionProvider
   private var networkSettings: NEPacketTunnelNetworkSettings?
 
@@ -283,7 +281,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
       appLogger.error("startDefaultInterfaceMonitor: listener is nil")
       return
     }
-    appLogger.debug("startDefaultInterfaceMonitor: monitoring default interface")
+    appLogger.info("startDefaultInterfaceMonitor: monitoring default interface")
     let monitor = NWPathMonitor()
     nwMonitor = monitor
     let semaphore = DispatchSemaphore(value: 0)
