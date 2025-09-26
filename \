@@ -3,18 +3,19 @@
 set -euo pipefail
 
 RELEASE_LATEST=$(gh release list --json tagName -q=".[0].tagName")
-echo "version release (latest): ${RELEASE_LATEST}"
+echo "version release (latest): $RELEASE_LATEST"
 
 RELEASE_BASE=$(echo "$RELEASE_LATEST" | awk -F'-' '{print $1}')
-echo "version base (currnet): ${RELEASE_BASE}"
+echo "version base (currnet): $RELEASE_BASE"
 
 # increment the patch of the latest release by 1 
 RELEASE_BASE_NEXT=$(echo "$RELEASE_BASE" | awk -F'\\.' -v OFS='.' '{ $NF = $NF + 1; print }')
-echo "version base (next): ${RELEASE_BASE_NEXT}"
+echo "version base (next): $RELEASE_BASE_NEXT"
 
 # hardcoded for now so that the 9.0.0 release does not appear to be behind a nightly
-RELEASE_BASE_NEXT="v9.0.0" # TODO: remove after v9 release and allow to increment naturally
+RELEASE_BASE_NEXT="v9.0.0" # TODO: remove after "v9.0.0" release and allow to increment naturally
 
-DATE=$(date -u +%FT%TZ)
+DATE=$(date -u +%Y%m%dT%H%M%SZ) # ISO 8601 without colons or dashes
 REF=$(git rev-parse --short HEAD)
-VERSION="${RELEASE_BASE_NEXT}-${REF}.${DATE}"
+VER="${RELEASE_BASE_NEXT}-${REF}-${DATE}"
+echo "version (next): $VER"
