@@ -77,7 +77,7 @@ jobs:
         run: |
           dart pub global activate flutter_distributor
           make windows-release
-          flutter_distributor package --flutter-build-args=verbose --platform windows --targets "msix,exe" --skip-clean
+          flutter_distributor package --flutter-build-args=verbose --platform windows --targets "exe" --skip-clean
           mv "dist/${{ env.APP_VERSION }}/lantern-${{ env.APP_VERSION }}-windows-setup.exe" ${{ inputs.installer_name }}.exe
 
       - name: Sign EXE with Azure Code Signing
