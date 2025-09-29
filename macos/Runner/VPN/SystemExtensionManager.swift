@@ -8,7 +8,6 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
   private var tunnelBundleID = "org.getlantern.lantern.PacketTunnel"
   private var approvalRequired = false
   @Published private(set) var status: String = ExtensionStatus.notInstalled.asString
-
   //Called when an existing installed extension is detected and the system asks what to do.
   // Returns `.replace` to replace installed extension with the bundled one, `.cancel` to skip.
   public func request(

@@ -9,7 +9,8 @@ import NetworkExtension
 
 class VPNManager: VPNBase {
   private var observer: NSObjectProtocol?
-  private var manager: NEVPNManager = NEVPNManager.shared()
+  //Do not switch to NEVPNManager.shared() that is only for class app extension
+  private var manager: NEVPNManager = NETunnelProviderManager()
   static let shared: VPNManager = VPNManager()
 
   @Published private(set) var connectionStatus: NEVPNStatus = .disconnected {
@@ -113,16 +114,27 @@ class VPNManager: VPNBase {
       return
     }
     appLogger.log("Starting tunnel..")
-    //await removeExistingVPNProfiles()
+
     await self.setupVPN()
-    let options = [
-      "netEx.StartReason": NSString("Lantern")
-    ]
+    let options = ["netEx.StartReason": NSString("Lantern")]
     appLogger.log("Calling manager.connection.startVPNTunnel..")
+
+    if manager.connection.status == .connected || manager.connection.status == .connecting {
+      appLogger.info("VPN is already connected, sending command to extension")
+      do {
+        let result = try await triggerExtensionMethod(
+          methodName: "connectServer",
+          params: ["server": serverName, "location": location]
+        )
+        return
+      } catch {
+        // Rethrow so caller can handle it
+        throw error
+      }
+    }
+
     try self.manager.connection.startVPNTunnel(options: options)
-
     self.manager.isOnDemandEnabled = false
-
     try await self.saveThenLoadProvider()
   }
 
@@ -139,7 +151,7 @@ class VPNManager: VPNBase {
     ]
 
     if manager.connection.status == .connected || manager.connection.status == .connecting {
-      // Tunnel active → send message to provider
+      appLogger.info("VPN is already connected, sending command to extension")
       do {
         let result = try await triggerExtensionMethod(
           methodName: "connectServer",

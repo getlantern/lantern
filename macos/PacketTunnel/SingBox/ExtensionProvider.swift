@@ -25,7 +25,8 @@ import OSLog
 
 public class ExtensionProvider: NEPacketTunnelProvider {
   private var platformInterface: ExtensionPlatformInterface!
-
+  //    let appLogger = Logger(
+  //      subsystem: "org.getlantern.lantern", category: "ExtensionProvider")
   override open func startTunnel(options: [String: NSObject]?) async throws {
     if platformInterface == nil {
       platformInterface = ExtensionPlatformInterface(self)
@@ -53,7 +54,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     cancelTunnelWithError(nil)
   }
 
-  func startVPN() {
+  func startVPN(completion: ((Bool, String?) -> Void)? = nil) {
     appLogger.log("(lantern-tunnel) quick connect")
     var error: NSError?
 
@@ -62,9 +63,13 @@ public class ExtensionProvider: NEPacketTunnelProvider {
       appLogger.error("error while starting tunnel \(error?.localizedDescription ?? "")")
       // Inform system and close tunnel
       cancelTunnelWithError(error)
+      completion?(false, error?.localizedDescription)
+
       return
     }
     appLogger.log("(lantern-tunnel) tunnel started successfully")
+    completion?(true, nil)  // optional call
+
   }
 
   func connectToServer(
