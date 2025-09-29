@@ -797,7 +797,7 @@ class MethodHandler {
           err, result: result, code: "REVOKE_SERVER_MANAGER_INSTANCE_ERROR")
         return
       }
-        await self.replyOK(result)
+      await self.replyOK(result)
     }
   }
 

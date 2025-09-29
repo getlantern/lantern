@@ -1077,13 +1077,15 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> addAllItems(SplitTunnelFilterType type, List<String> value) {
+  Future<Either<Failure, Unit>> addAllItems(
+      SplitTunnelFilterType type, List<String> value) {
     // TODO: implement addAllItems
     throw UnimplementedError();
   }
 
   @override
-  Future<Either<Failure, Unit>> removeAllItems(SplitTunnelFilterType type, List<String> value) {
+  Future<Either<Failure, Unit>> removeAllItems(
+      SplitTunnelFilterType type, List<String> value) {
     // TODO: implement removeAllItems
     throw UnimplementedError();
   }

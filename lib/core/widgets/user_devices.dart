@@ -34,13 +34,14 @@ class UserDevices extends HookConsumerWidget {
         separatorBuilder: (context, index) => const DividerSpace(),
         itemBuilder: (context, index) {
           final e = userDevices[index];
-          return _buildRow(e, ref, context,myDeviceId != e.name);
+          return _buildRow(e, ref, context, myDeviceId != e.name);
         },
       ),
     );
   }
 
-  Widget _buildRow(UserResponse_Device e, WidgetRef ref, BuildContext context,bool isMyDevice) {
+  Widget _buildRow(UserResponse_Device e, WidgetRef ref, BuildContext context,
+      bool isMyDevice) {
     return AppTile(
       label: e.name,
       contentPadding: EdgeInsets.only(left: 16),

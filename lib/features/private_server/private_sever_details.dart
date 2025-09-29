@@ -52,7 +52,7 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
             : 'gcp_private_server_setup'.i18n,
         extendBody: true,
         bottomNavigationBar: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16,vertical: 24),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
           child: PrimaryButton(
             label: 'start_deployment'.i18n,
             isTaller: true,

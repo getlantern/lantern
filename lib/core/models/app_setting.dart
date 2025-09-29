@@ -22,7 +22,7 @@ class AppSetting {
     this.isPro = false,
     this.isSplitTunnelingOn = false,
     this.userLoggedIn = false,
-    this.splitTunnelingModeRaw ='automatic',
+    this.splitTunnelingModeRaw = 'automatic',
     this.oAuthToken = '',
     this.blockAds = false,
     this.bypassListRaw = 'none',
@@ -50,7 +50,8 @@ class AppSetting {
       isSplitTunnelingOn: newIsSpiltTunnelingOn ?? isSplitTunnelingOn,
       locale: newLocale ?? locale,
       blockAds: blockAds ?? this.blockAds,
-      splitTunnelingModeRaw: newSplitTunnelingMode?.value ?? splitTunnelingModeRaw,
+      splitTunnelingModeRaw:
+          newSplitTunnelingMode?.value ?? splitTunnelingModeRaw,
       userLoggedIn: userLoggedIn ?? this.userLoggedIn,
       oAuthToken: oAuthToken ?? this.oAuthToken,
       email: email ?? this.email,
@@ -58,12 +59,12 @@ class AppSetting {
     );
   }
 
-  SplitTunnelingMode get splitTunnelingMode => splitTunnelingModeRaw.toSplitTunnelingMode;
+  SplitTunnelingMode get splitTunnelingMode =>
+      splitTunnelingModeRaw.toSplitTunnelingMode;
 
   set splitTunnelingMode(SplitTunnelingMode mode) =>
       splitTunnelingModeRaw = mode.value;
 
   BypassListOption get bypassList => bypassListRaw.toBypassList;
   set bypassList(BypassListOption list) => bypassListRaw = list.value;
-
 }

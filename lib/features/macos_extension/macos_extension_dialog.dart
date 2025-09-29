@@ -12,7 +12,8 @@ class MacOSExtensionDialog extends StatefulHookConsumerWidget {
   const MacOSExtensionDialog({super.key});
 
   @override
-  ConsumerState<MacOSExtensionDialog> createState() => _MacOSExtensionDialogState();
+  ConsumerState<MacOSExtensionDialog> createState() =>
+      _MacOSExtensionDialogState();
 }
 
 class _MacOSExtensionDialogState extends ConsumerState<MacOSExtensionDialog> {
@@ -59,9 +60,8 @@ class _MacOSExtensionDialogState extends ConsumerState<MacOSExtensionDialog> {
           AppImage(path: AppImagePaths.sysDialog),
           const SizedBox(height: 48.0),
           Text('enable_network_extension'.i18n,
-              style: textTheme.headlineSmall!.copyWith(
-                  color: AppColors.gray8
-              ), textAlign: TextAlign.center),
+              style: textTheme.headlineSmall!.copyWith(color: AppColors.gray8),
+              textAlign: TextAlign.center),
           const SizedBox(height: 16.0),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 6),

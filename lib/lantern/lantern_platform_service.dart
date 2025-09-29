@@ -26,14 +26,14 @@ class LanternPlatformService implements LanternCoreService {
 
   static const channelPrefix = 'org.getlantern.lantern';
   static const MethodChannel _methodChannel =
-  MethodChannel('$channelPrefix/method');
+      MethodChannel('$channelPrefix/method');
   static const logsChannel = EventChannel("$channelPrefix/logs");
   static const EventChannel statusChannel =
-  EventChannel("$channelPrefix/status", JSONMethodCodec());
+      EventChannel("$channelPrefix/status", JSONMethodCodec());
   static const EventChannel systemExtensionStatusChannel =
-  EventChannel("$channelPrefix/system_extension_status", JSONMethodCodec());
+      EventChannel("$channelPrefix/system_extension_status", JSONMethodCodec());
   static const privateServerStatusChannel =
-  EventChannel("$channelPrefix/private_server_status", JSONMethodCodec());
+      EventChannel("$channelPrefix/private_server_status", JSONMethodCodec());
 
   late final Stream<LanternStatus> _status;
   late final Stream<PrivateServerStatus> _privateServerStatus;
@@ -53,7 +53,7 @@ class LanternPlatformService implements LanternCoreService {
       _systemExtensionStatus = systemExtensionStatusChannel
           .receiveBroadcastStream()
           .map((event) =>
-          MacOSExtensionState.fromString(event['status'].toString()));
+              MacOSExtensionState.fromString(event['status'].toString()));
     }
   }
 
@@ -107,8 +107,10 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
-  List<AppData> _mapToAppData(Iterable<Map<String, dynamic>> rawApps,
-      Set<String> enabledAppNames,) {
+  List<AppData> _mapToAppData(
+    Iterable<Map<String, dynamic>> rawApps,
+    Set<String> enabledAppNames,
+  ) {
     return rawApps.map((raw) {
       final isEnabled = enabledAppNames.contains(raw["name"]);
       return AppData(
@@ -138,13 +140,12 @@ class LanternPlatformService implements LanternCoreService {
     try {
       final apps = await InstalledApps.getInstalledApps(true, true);
       final enabledAppNames = _getEnabledAppNames();
-      final rawApps = apps.map((app) =>
-      {
-        "name": app.name,
-        "bundleId": app.packageName,
-        "appPath": "",
-        "icon": app.icon,
-      });
+      final rawApps = apps.map((app) => {
+            "name": app.name,
+            "bundleId": app.packageName,
+            "appPath": "",
+            "icon": app.icon,
+          });
       yield _mapToAppData(rawApps, enabledAppNames);
     } catch (e, st) {
       appLogger.error("Failed to fetch installed apps", e, st);
@@ -155,7 +156,7 @@ class LanternPlatformService implements LanternCoreService {
   Stream<List<AppData>> macAppsDataStream() async* {
     try {
       final String? json =
-      await _methodChannel.invokeMethod<String>("installedApps");
+          await _methodChannel.invokeMethod<String>("installedApps");
       if (json == null) {
         yield [];
         return;
@@ -171,8 +172,8 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> addSplitTunnelItem(SplitTunnelFilterType type,
-      String value) async {
+  Future<Either<Failure, Unit>> addSplitTunnelItem(
+      SplitTunnelFilterType type, String value) async {
     try {
       await _methodChannel.invokeMethod('addSplitTunnelItem', {
         'filterType': type.value,
@@ -199,8 +200,8 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> addAllItems(SplitTunnelFilterType type,
-      List<String> value) async {
+  Future<Either<Failure, Unit>> addAllItems(
+      SplitTunnelFilterType type, List<String> value) async {
     try {
       appLogger.debug('Adding all items: ${value.length} items');
       await _methodChannel.invokeMethod('addAllItems', {
@@ -215,10 +216,9 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
-
   @override
-  Future<Either<Failure, Unit>> removeAllItems(SplitTunnelFilterType type,
-      List<String> value) async {
+  Future<Either<Failure, Unit>> removeAllItems(
+      SplitTunnelFilterType type, List<String> value) async {
     try {
       appLogger.debug('Removing all items: ${value.length} items');
       await _methodChannel.invokeMethod('removeAllItems', {
@@ -233,14 +233,15 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
-
   @override
-  Future<Either<Failure, Unit>> reportIssue(String email,
-      String issueType,
-      String description,
-      String device,
-      String model,
-      String logFilePath,) async {
+  Future<Either<Failure, Unit>> reportIssue(
+    String email,
+    String issueType,
+    String description,
+    String device,
+    String model,
+    String logFilePath,
+  ) async {
     try {
       await _methodChannel.invokeMethod('reportIssue', {
         'email': email,
@@ -269,9 +270,10 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> startInAppPurchaseFlow({required String planId,
-    required PaymentSuccessCallback onSuccess,
-    required PaymentErrorCallback onError}) async {
+  Future<Either<Failure, Unit>> startInAppPurchaseFlow(
+      {required String planId,
+      required PaymentSuccessCallback onSuccess,
+      required PaymentErrorCallback onError}) async {
     try {
       await sl<AppPurchase>().startSubscription(
         plan: planId,
@@ -287,8 +289,8 @@ class LanternPlatformService implements LanternCoreService {
   @override
   Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
       {required BillingType type,
-        required String planId,
-        required String email}) async {
+      required String planId,
+      required String email}) async {
     if (!PlatformUtils.isMacOS) {
       return left(Failure(
           error: 'Not supported',
@@ -314,7 +316,7 @@ class LanternPlatformService implements LanternCoreService {
       {required String planId, required String email}) async {
     try {
       final subData =
-      await _methodChannel.invokeMethod<String>('stripeSubscription', {
+          await _methodChannel.invokeMethod<String>('stripeSubscription', {
         "planId": planId,
         "email": email,
       });
@@ -331,7 +333,7 @@ class LanternPlatformService implements LanternCoreService {
   Future<Either<Failure, String>> stripeBillingPortal() async {
     try {
       final url =
-      await _methodChannel.invokeMethod<String>('stripeBillingPortal');
+          await _methodChannel.invokeMethod<String>('stripeBillingPortal');
       return Right(url!);
     } catch (e) {
       return Left(e.toFailure());
@@ -343,7 +345,7 @@ class LanternPlatformService implements LanternCoreService {
     try {
       final channel = isStoreVersion() ? 'store' : 'non-store';
       final subData =
-      await _methodChannel.invokeMethod<String>('plans', channel);
+          await _methodChannel.invokeMethod<String>('plans', channel);
       final map = jsonDecode(subData!);
       final plans = PlansData.fromJson(map);
       sl<LocalStorageService>().savePlans(plans.toEntity());
@@ -361,7 +363,7 @@ class LanternPlatformService implements LanternCoreService {
   Future<Either<Failure, String>> getOAuthLoginUrl(String provider) async {
     try {
       final loginUrl =
-      await _methodChannel.invokeMethod<String>('oauthLoginUrl', provider);
+          await _methodChannel.invokeMethod<String>('oauthLoginUrl', provider);
       return Right(loginUrl!);
     } catch (e) {
       return Left(Failure(
@@ -374,7 +376,7 @@ class LanternPlatformService implements LanternCoreService {
   Future<Either<Failure, UserResponse>> oAuthLoginCallback(String token) async {
     try {
       final bytes =
-      await _methodChannel.invokeMethod('oauthLoginCallback', token);
+          await _methodChannel.invokeMethod('oauthLoginCallback', token);
       return Right(UserResponse.fromBuffer(bytes));
     } catch (e, stackTrace) {
       appLogger.error('Error handling OAuth login callback', e, stackTrace);
@@ -412,8 +414,6 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
-
-
 // Only supported in IOS
   @override
   Future<Either<Failure, Unit>> showManageSubscriptions() async {
@@ -426,8 +426,6 @@ class LanternPlatformService implements LanternCoreService {
           localizedErrorMessage: (e as Exception).localizedDescription));
     }
   }
-
-
 
   @override
   Future<Either<Failure, Unit>> acknowledgeInAppPurchase(
@@ -458,15 +456,16 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> paymentRedirect({required String provider,
-    required String planId,
-    required String email}) async {
+  Future<Either<Failure, String>> paymentRedirect(
+      {required String provider,
+      required String planId,
+      required String email}) async {
     if (PlatformUtils.isIOS) {
       throw UnimplementedError("This not supported on IOS");
     }
     try {
       final redirectUrl =
-      await _methodChannel.invokeMethod<String>('paymentRedirect', {
+          await _methodChannel.invokeMethod<String>('paymentRedirect', {
         'provider': provider,
         'planId': planId,
         'email': email,
@@ -676,10 +675,11 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> addServerManually({required String ip,
-    required String port,
-    required String accessToken,
-    required String serverName}) async {
+  Future<Either<Failure, Unit>> addServerManually(
+      {required String ip,
+      required String port,
+      required String accessToken,
+      required String serverName}) async {
     try {
       await _methodChannel.invokeMethod('addServerManually', {
         'ip': ip,
@@ -695,8 +695,8 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> connectToServer(String location,
-      String tag) async {
+  Future<Either<Failure, String>> connectToServer(
+      String location, String tag) async {
     try {
       await _methodChannel.invokeMethod('connectToServer', {
         'location': location,
@@ -712,9 +712,9 @@ class LanternPlatformService implements LanternCoreService {
   @override
   Future<Either<Failure, String>> inviteToServerManagerInstance(
       {required String ip,
-        required String port,
-        required String accessToken,
-        required String inviteName}) async {
+      required String port,
+      required String accessToken,
+      required String inviteName}) async {
     try {
       final inviteCode = await _methodChannel.invokeMethod<String>(
         'inviteToServerManagerInstance',
@@ -736,9 +736,9 @@ class LanternPlatformService implements LanternCoreService {
   @override
   Future<Either<Failure, String>> revokeServerManagerInstance(
       {required String ip,
-        required String port,
-        required String accessToken,
-        required String inviteName}) async {
+      required String port,
+      required String accessToken,
+      required String inviteName}) async {
     try {
       final _ = await _methodChannel.invokeMethod<String>(
         'revokeServerManagerInstance',
@@ -760,7 +760,7 @@ class LanternPlatformService implements LanternCoreService {
   Future<Either<Failure, String>> featureFlag() async {
     try {
       final featureFlag =
-      await _methodChannel.invokeMethod<String>('featureFlag');
+          await _methodChannel.invokeMethod<String>('featureFlag');
       return Right(featureFlag!);
     } catch (e, stackTrace) {
       appLogger.error('Error fetching feature flag', e, stackTrace);
@@ -772,7 +772,7 @@ class LanternPlatformService implements LanternCoreService {
   Future<Either<Failure, AvailableServers>> getLanternAvailableServers() async {
     try {
       final result =
-      await _methodChannel.invokeMethod('getLanternAvailableServers');
+          await _methodChannel.invokeMethod('getLanternAvailableServers');
       return Right(AvailableServers.fromJson(jsonDecode(result)));
     } catch (e, stackTrace) {
       appLogger.error(
@@ -796,11 +796,11 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> startChangeEmail(String newEmail,
-      String password) async {
+  Future<Either<Failure, String>> startChangeEmail(
+      String newEmail, String password) async {
     try {
       final result =
-      await _methodChannel.invokeMethod<String>('startChangeEmail', {
+          await _methodChannel.invokeMethod<String>('startChangeEmail', {
         'newEmail': newEmail,
         'password': password,
       });
@@ -812,12 +812,13 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> completeChangeEmail({required String newEmail,
-    required String password,
-    required String code}) async {
+  Future<Either<Failure, String>> completeChangeEmail(
+      {required String newEmail,
+      required String password,
+      required String code}) async {
     try {
       final result =
-      await _methodChannel.invokeMethod<String>('completeChangeEmail', {
+          await _methodChannel.invokeMethod<String>('completeChangeEmail', {
         'newEmail': newEmail,
         'password': password,
         'code': code,
@@ -833,7 +834,7 @@ class LanternPlatformService implements LanternCoreService {
   Future<Either<Failure, String>> getAutoServerLocation() async {
     try {
       final result =
-      await _methodChannel.invokeMethod<String>('getAutoServerLocation');
+          await _methodChannel.invokeMethod<String>('getAutoServerLocation');
       return right(result!);
     } catch (e, stackTrace) {
       appLogger.error('Error fetching auto server location', e, stackTrace);
@@ -850,7 +851,7 @@ class LanternPlatformService implements LanternCoreService {
     }
     try {
       final result =
-      await _methodChannel.invokeMethod<String>('triggerSystemExtension');
+          await _methodChannel.invokeMethod<String>('triggerSystemExtension');
       appLogger.info('Trigger system extension result: $result');
       return right(result!);
     } catch (e, stackTrace) {
@@ -893,6 +894,4 @@ class LanternPlatformService implements LanternCoreService {
       return Left(e.toFailure());
     }
   }
-
-
 }

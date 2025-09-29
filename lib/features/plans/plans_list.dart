@@ -40,7 +40,6 @@ class PlansListView extends HookConsumerWidget {
             onPressed: (plans) {
               plan.value = plans;
               ref.read(plansNotifierProvider.notifier).setSelectedPlan(plans);
-
             },
           );
         },

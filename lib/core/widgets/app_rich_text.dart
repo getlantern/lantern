@@ -30,12 +30,11 @@ class AppRichText extends StatelessWidget {
         text: texts,
         style: textTheme.labelLarge!.copyWith(
           color: AppColors.gray8,
-
         ),
         children: [
           TextSpan(
             text: boldTexts,
-            style:  textTheme.labelLarge!.copyWith(
+            style: textTheme.labelLarge!.copyWith(
               fontWeight: FontWeight.bold,
               color: boldColor ?? AppColors.gray8,
               decoration: boldUnderline

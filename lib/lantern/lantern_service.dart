@@ -545,7 +545,8 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> addAllItems(SplitTunnelFilterType type, List<String> value) {
+  Future<Either<Failure, Unit>> addAllItems(
+      SplitTunnelFilterType type, List<String> value) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.addAllItems(type, value);
     }
@@ -553,7 +554,8 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> removeAllItems(SplitTunnelFilterType type, List<String> value) {
+  Future<Either<Failure, Unit>> removeAllItems(
+      SplitTunnelFilterType type, List<String> value) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.removeAllItems(type, value);
     }
