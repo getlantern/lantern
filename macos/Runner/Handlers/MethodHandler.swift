@@ -57,8 +57,8 @@ class MethodHandler {
         withFilterArgs(call: call, result: result) { filterType, value in
           self.removeItemsToSplitTunnel(result: result, filterType: filterType, value: value)
         }
-          break
-case "connectToServer":
+        break
+      case "connectToServer":
         let map = call.arguments as? [String: Any]
         self.connectToServer(result: result, data: map!)
       case "oauthLoginUrl":
@@ -350,7 +350,7 @@ case "connectToServer":
   {
     Task {
       var error: NSError?
-      MobileAddSplitTunnelItems( value, &error)
+      MobileAddSplitTunnelItems(value, &error)
       if let err = error {
         await self.handleFlutterError(
           err, result: result, code: "ADD_ALL_SPLIT_TUNNEL_ITEMS_FAILED")

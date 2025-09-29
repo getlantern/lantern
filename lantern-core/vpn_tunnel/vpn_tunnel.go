@@ -43,6 +43,7 @@ func StopVPN() error {
 // empty, it will connect to the best server available in that group. ConnectToServer will start the
 // VPN tunnel if it's not already running.
 func ConnectToServer(group, tag string, platIfce libbox.PlatformInterface, options *utils.Opts) error {
+	slog.Debug("ConnectToServer called", "group", group, "tag", tag)
 	switch group {
 	case string(InternalTagAutoAll), "auto":
 		group = "all"

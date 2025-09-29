@@ -69,16 +69,22 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     appLogger.log("(lantern-tunnel) tunnel started successfully")
   }
 
-  func connectToServer(location: String, serverName: String) {
+  func connectToServer(
+    location: String, serverName: String, completion: ((Bool, String?) -> Void)? = nil
+  ) {
     appLogger.log("(lantern-tunnel) connecting to server")
     var error: NSError?
     MobileConnectToServer(location, serverName, platformInterface, opts(), &error)
     if error != nil {
       appLogger.error("error while connecting to server \(error?.localizedDescription ?? "")")
       cancelTunnelWithError(error)
+      completion?(false, error?.localizedDescription)
+
       return
     }
     appLogger.log("(lantern-tunnel) connected to server successfully")
+    completion?(true, nil)  // optional call
+
   }
 
   override open func stopTunnel(with reason: NEProviderStopReason) async {
