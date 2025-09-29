@@ -114,15 +114,23 @@ void hideKeyboard() {
 
 void sharePrivateAccessKey(
     PrivateServerEntity server, Map<String, dynamic> tokenPayload) {
-  final expirationDate = tokenPayload['exp'];
+  final expirationDate = tokenPayload['exp'].toString();
   final aliasName = tokenPayload['sub'];
-  final buffer = StringBuffer()
-    ..write('join_my_private_server'.i18n)
-    ..write(' ')
-    ..write(AppUrls.baseUrl)
-    ..write(
-        '/private-server?ip=${server.externalIp}&port=${server.port}&token=${server.accessToken}&name=${server.serverName.replaceAll(' ', '_')}&exp=$expirationDate&alias=${aliasName.replaceAll(' ', '_')}');
-  SharePlus.instance.share(ShareParams(text: buffer.toString()));
+  final uri = Uri(
+    scheme: 'https',
+    host: Uri.parse(AppUrls.baseUrl).host, // ensures host is parsed correctly
+    path: '/private-server',
+    queryParameters: {
+      'ip': server.externalIp,
+      'port': server.port.toString(),
+      'token': server.accessToken,
+      'name': server.serverName,
+      'exp': expirationDate,
+      'alias': aliasName,
+    },
+  );
+  final urlString = '${'join_my_private_server'.i18n} $uri';
+  SharePlus.instance.share(ShareParams(text: urlString));
 }
 
 bool isSmallScreen(BuildContext context) {
