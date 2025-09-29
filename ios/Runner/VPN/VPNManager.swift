@@ -58,6 +58,18 @@ class VPNManager: VPNBase {
       "netEx.Type": "Lantern" as NSString,
       "netEx.StartReason": "User Initiated" as NSString,
     ]
+
+    if manager.connection.status == .connected || manager.connection.status == .connecting {
+      appLogger.info("VPN is already connected, sending command to extension")
+      do {
+        let result = try await triggerExtensionMethod(methodName: "Lantern")
+        return
+      } catch {
+        // Rethrow so caller can handle it
+        throw error
+      }
+    }
+
     try manager.connection.startVPNTunnel(options: options)
     /// Enable on-demand to allow automatic reconnections
     /// this getting stuck in infinite loop
@@ -84,6 +96,20 @@ class VPNManager: VPNBase {
       "netEx.ServerName": serverName as NSString,
       "netEx.Location": location as NSString,
     ]
+
+    if manager.connection.status == .connected || manager.connection.status == .connecting {
+      appLogger.info("VPN is already connected, sending command to extension")
+      do {
+        let result = try await triggerExtensionMethod(
+          methodName: "PrivateServer",
+          params: ["server": serverName, "location": location]
+        )
+        return
+      } catch {
+        // Rethrow so caller can handle it
+        throw error
+      }
+    }
 
     try manager.connection.startVPNTunnel(options: options)
     //    self.manager.isOnDemandEnabled = true
@@ -118,86 +144,55 @@ class VPNManager: VPNBase {
   /// Triggers a method in the VPN extension and handles the response.
   func triggerExtensionMethod(
     methodName: String,
-    onSuccess: ((String) -> Void)? = nil,
-    onError: ((Error) -> Void)? = nil
-  ) async {
+    params: [String: Any] = [:]
+  ) async throws -> String {
 
     guard let manager = await Profile.shared.getManager() else {
       let msg = "Unable to load or create VPN manager."
       appLogger.error(msg)
-      onError?(
-        NSError(
-          domain: "VPNManagerError",
-          code: 1003,
-          userInfo: [NSLocalizedDescriptionKey: msg]
-        ))
-      return
+      throw NSError(
+        domain: "VPNManagerError",
+        code: 1003,
+        userInfo: [NSLocalizedDescriptionKey: msg]
+      )
     }
     guard let session = manager.connection as? NETunnelProviderSession else {
-      let error = NSError(
+      throw NSError(
         domain: "VPNManager", code: -1,
         userInfo: [NSLocalizedDescriptionKey: "Could not get tunnel session"])
-      appLogger.error("triggerExtensionMethod failed: \(error.localizedDescription)")
-      onError?(error)
-      return
     }
 
-    guard let messageData = methodName.data(using: .utf8) else {
-      let error = NSError(
-        domain: "VPNManager", code: 1,
-        userInfo: [NSLocalizedDescriptionKey: "Invalid method name encoding"])
-      appLogger.error("Invalid method name encoding")
-      onError?(error)
-      return
-    }
+    let messageDict: [String: Any] = ["method": methodName, "params": params]
+    let messageData = try JSONSerialization.data(withJSONObject: messageDict)
 
-    do {
-      try session.sendProviderMessage(messageData) { responseData in
-        guard let data = responseData else {
-          let error = NSError(
-            domain: "VPNManager", code: -2,
-            userInfo: [NSLocalizedDescriptionKey: "No response from provider"])
-          appLogger.error("triggerExtensionMethod failed: \(error.localizedDescription)")
-          onError?(error)
-          return
-        }
-
-        // Try to parse the response as JSON
-        do {
-          if let responseDict = try JSONSerialization.jsonObject(with: data, options: [])
-            as? [String: Any],
-            let errorMessage = responseDict["error"] as? String
-          {
-            // If there's an "error" key, trigger the error callback
-            let error = NSError(
-              domain: "VPNManager", code: -3, userInfo: [NSLocalizedDescriptionKey: errorMessage])
-            appLogger.error("Error from provider: \(errorMessage)")
-            onError?(error)
-          } else {
-            // If no "error" key, it's a success
-            if let result = String(data: data, encoding: .utf8) {
-              appLogger.log("Extension replied: \(result)")
-              onSuccess?(result)
-            } else {
-              let error = NSError(
-                domain: "VPNManager", code: -4,
-                userInfo: [NSLocalizedDescriptionKey: "Invalid response format"])
-              appLogger.error("Invalid response format")
-              onError?(error)
-            }
+    return try await withCheckedThrowingContinuation { continuation in
+      do {
+        try session.sendProviderMessage(messageData) { responseData in
+          guard let data = responseData else {
+            return continuation.resume(
+              throwing: NSError(
+                domain: "VPNManager", code: -2,
+                userInfo: [NSLocalizedDescriptionKey: "No response from provider"]))
           }
-        } catch {
-          // If the response isn't a valid JSON, it's an error
-          let parseError = NSError(
-            domain: "VPNManager", code: -5,
-            userInfo: [NSLocalizedDescriptionKey: "Failed to parse response as JSON"])
-          appLogger.error("Failed to parse response: \(error.localizedDescription)")
-          onError?(parseError)
+
+          if let dict = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+            let errorMsg = dict["error"] as? String
+          {
+            continuation.resume(
+              throwing: NSError(
+                domain: "VPNManager", code: -3, userInfo: [NSLocalizedDescriptionKey: errorMsg]))
+          } else if let result = String(data: data, encoding: .utf8) {
+            continuation.resume(returning: result)
+          } else {
+            continuation.resume(
+              throwing: NSError(
+                domain: "VPNManager", code: -4,
+                userInfo: [NSLocalizedDescriptionKey: "Invalid response format"]))
+          }
         }
+      } catch {
+        continuation.resume(throwing: error)
       }
-    } catch {
-      appLogger.error("triggerExtensionMethod exception: \(error.localizedDescription)")
-      onError?(error)
     }
   }
 

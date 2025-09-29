@@ -33,7 +33,7 @@ public class PacketTunnelProvider: ExtensionProvider {
     appLogger.info("PacketTunnelProvider handling method: \(method) with params: \(params)")
 
     switch method {
-    case "connectServer":
+    case "PrivateServer":
       appLogger.info("Received connectServer command with params: \(params)")
       guard let server = params["server"] as? String,
         let location = params["location"] as? String

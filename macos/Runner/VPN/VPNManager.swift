@@ -123,8 +123,7 @@ class VPNManager: VPNBase {
       appLogger.info("VPN is already connected, sending command to extension")
       do {
         let result = try await triggerExtensionMethod(
-          methodName: "connectServer",
-          params: ["server": serverName, "location": location]
+          methodName: "Lantern"
         )
         return
       } catch {
@@ -154,7 +153,7 @@ class VPNManager: VPNBase {
       appLogger.info("VPN is already connected, sending command to extension")
       do {
         let result = try await triggerExtensionMethod(
-          methodName: "connectServer",
+          methodName: "PrivateServer",
           params: ["server": serverName, "location": location]
         )
         return
