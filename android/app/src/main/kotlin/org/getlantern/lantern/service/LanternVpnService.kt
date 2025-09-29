@@ -22,6 +22,7 @@ import org.getlantern.lantern.utils.VpnStatusManager
 import org.getlantern.lantern.utils.initConfigDir
 import org.getlantern.lantern.utils.logDir
 import org.getlantern.lantern.utils.toIpPrefix
+import org.getlantern.lantern.BuildConfig
 
 /**
  * Service to manage VPN connection and Radiance setup, and other VPN-related tasks.
@@ -246,6 +247,9 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
             val address = inet6Address.next()
             builder.addAddress(address.address(), address.prefix())
         }
+
+        // Disallow traffic from our own app to the VPN.
+        builder.addDisallowedApplication(BuildConfig.APPLICATION_ID)
 
         if (options.autoRoute) {
             builder.addDnsServer(options.dnsServerAddress.value)
