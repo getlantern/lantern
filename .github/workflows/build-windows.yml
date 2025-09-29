@@ -72,18 +72,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-dart-pub-cache-
 
-      - name: Update app version in pubspec.yaml
-        shell: bash
-        env:
-          RUN_NUMBER: ${{ github.run_number }}
-        run: |
-          NEW_VERSION="${{ inputs.version }}+${RUN_NUMBER}"
-          echo "Updating pubspec.yaml to version: $NEW_VERSION"
-          sed -i.bak -E "s/^version: .*/version: $NEW_VERSION/" pubspec.yaml
-          cat pubspec.yaml
-          APP_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //')
-          echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
-
       - name: Build Windows release
         shell: pwsh
         run: |
