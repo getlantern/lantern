@@ -240,7 +240,8 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
   }
 
   public func usePlatformAutoDetectControl() -> Bool {
-    false
+    appLogger.info("ExtensionPlatformInterface::usePlatformAutoDetectControl")
+    return false
   }
 
   public func autoDetectControl(_: Int32) throws {}
@@ -249,19 +250,23 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
     _: Int32, sourceAddress _: String?, sourcePort _: Int32, destinationAddress _: String?,
     destinationPort _: Int32, ret0_ _: UnsafeMutablePointer<Int32>?
   ) throws {
+    appLogger.error("ExtensionPlatformInterface::findConnectionOwner not implemented")
     throw NSError(domain: "not implemented", code: 0)
   }
 
   public func packageName(byUid _: Int32, error _: NSErrorPointer) -> String {
-    ""
+    appLogger.info("ExtensionPlatformInterface::packageName not implemented")
+    return ""
   }
 
   public func uid(byPackageName _: String?, ret0_ _: UnsafeMutablePointer<Int32>?) throws {
+    appLogger.error("ExtensionPlatformInterface::findConnectionOwner not implemented")
     throw NSError(domain: "not implemented", code: 0)
   }
 
   public func useProcFS() -> Bool {
-    false
+    appLogger.info("ExtensionPlatformInterface::packageName not implemented")
+    return false
   }
 
   public func writeLog(_ message: String?) {
