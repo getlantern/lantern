@@ -52,6 +52,8 @@ class AppTheme {
           statusBarBrightness: Brightness.light,
           statusBarIconBrightness: Brightness.dark,
           systemNavigationBarColor: AppColors.gray1,
+          systemNavigationBarIconBrightness: Brightness.dark,
+
         ),
         iconTheme: IconThemeData(
           color: AppColors.blue10,
