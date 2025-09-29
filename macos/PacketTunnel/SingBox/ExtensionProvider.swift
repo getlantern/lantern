@@ -24,8 +24,6 @@ import OSLog
 #endif
 
 public class ExtensionProvider: NEPacketTunnelProvider {
-  let appLogger = Logger(
-    subsystem: "org.getlantern.lantern", category: "ExtensionProvider")
   private var platformInterface: ExtensionPlatformInterface!
 
   override open func startTunnel(options: [String: NSObject]?) async throws {
@@ -108,7 +106,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     opts.dataDir = FilePath.dataDirectory.relativePath
     // opts.deviceid = DeviceIdentifier.getUDID()
     opts.locale = Locale.current.identifier
-    opts.logLevel = "debug"
+    opts.logLevel = "trace"
     opts.logDir = FilePath.logsDirectory.relativePath
     appLogger.info("logging to \(opts.logDir)")
     return opts
