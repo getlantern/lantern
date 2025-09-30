@@ -30,6 +30,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
     appLogger.debug("Servers: $servers");
     final myServer = servers.where((element) => !element.isJoined).toList();
     final joinedServer = servers.where((element) => element.isJoined).toList();
+
     return BaseScreen(
       title: 'manage_private_servers'.i18n,
       body: DefaultTabController(
@@ -61,15 +62,10 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
             ),
             const SizedBox(height: 8),
             DividerSpace(padding: EdgeInsets.zero),
-            const SizedBox(height: defaultSize),
-            InfoRow(
-              text: 'access_key_expiration'.i18n,
-            ),
-            const SizedBox(height: 16),
             Expanded(
               child: TabBarView(
                 children: [
-                  _buildListView(myServer),
+                  buildMyServer(myServer),
                   _buildListView(joinedServer),
                 ],
               ),
@@ -77,6 +73,18 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget buildMyServer(List<PrivateServerEntity> privateServers) {
+    return Column(
+      children: <Widget>[
+        const SizedBox(height: defaultSize),
+        InfoRow(
+          text: 'access_key_expiration'.i18n,
+        ),
+        Expanded(child: _buildListView(privateServers)),
+      ],
     );
   }
 
@@ -107,8 +115,8 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                   ],
                 ),
               ),
-              SizedBox(height: 16),
-              if (!item.isJoined)
+              if (!item.isJoined) ...{
+                SizedBox(height: 16),
                 PrimaryButton(
                     label: 'share_access_key'.i18n,
                     bgColor: AppColors.blue1,
@@ -117,7 +125,8 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                     showBorder: true,
                     textColor: AppColors.gray9,
                     onPressed: () => onTapShareAccessKey(item)),
-              SizedBox(height: 16),
+                SizedBox(height: 16),
+              }
             ],
           ),
         );

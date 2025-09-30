@@ -331,7 +331,6 @@ class _ServerLocationListViewState
               padding: const EdgeInsets.only(top: 4.0, left: defaultSize),
               // small top offset
               child: HeaderText('pro_locations'.i18n)),
-          const SizedBox(height: 8),
           Flexible(
             child: AppCard(
               padding: EdgeInsets.zero,

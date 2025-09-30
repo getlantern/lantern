@@ -86,6 +86,7 @@ class ProviderCarousel extends HookConsumerWidget {
                 child: Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
+                      color: AppColors.white,
                       shape: BoxShape.circle,
                       border: Border.all(color: AppColors.gray4, width: 1),
                     ),
@@ -106,6 +107,7 @@ class ProviderCarousel extends HookConsumerWidget {
                 child: Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
+                      color: AppColors.white,
                       shape: BoxShape.circle,
                       border: Border.all(color: AppColors.gray4, width: 1),
                     ),
