@@ -35,6 +35,8 @@ jobs:
 
       - id: meta
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           RELEASE_LATEST=$(gh release list --json tagName -q=".[0].tagName")
           echo "version release (latest): $RELEASE_LATEST"
