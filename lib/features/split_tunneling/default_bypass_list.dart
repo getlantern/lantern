@@ -7,9 +7,6 @@ import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/split_tunneling/provider/website_notifier.dart';
 
-final selectedBypassListProvider =
-    StateProvider<BypassListOption>((ref) => BypassListOption.global);
-
 @RoutePage(name: 'DefaultBypassLists')
 class DefaultBypassLists extends HookConsumerWidget {
   const DefaultBypassLists({
@@ -19,10 +16,16 @@ class DefaultBypassLists extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final preferences = ref.watch(appSettingNotifierProvider);
+    final selectedBypassList = preferences.bypassList;
     final websiteNr = ref.read(splitTunnelingWebsitesProvider.notifier);
     final textTheme = Theme.of(context).textTheme;
     Future<void> onBypassTap(BypassListOption option) async {
-      websiteNr.updateByPassList(option);
+      final currentList = selectedBypassList;
+      final updatedList = currentList.contains(option)
+          ? (currentList..remove(option)) // remove if already selected
+          : (currentList..add(option)); // add if not selected
+
+      websiteNr.updateByPassList(updatedList);
       Future.delayed(const Duration(milliseconds: 500), () {
         appRouter.pop();
       });
@@ -58,9 +61,10 @@ class DefaultBypassLists extends HookConsumerWidget {
                                 style: textTheme.labelMedium!
                                     .copyWith(color: AppColors.gray7),
                               ),
-                              trailing: preferences.bypassList == bypassList
-                                  ? Icon(Icons.check_circle)
-                                  : Icon(Icons.radio_button_off),
+                              trailing:
+                                  preferences.bypassList.contains(bypassList)
+                                      ? Icon(Icons.check_circle)
+                                      : Icon(Icons.radio_button_off),
                               onPressed: () => onBypassTap(bypassList),
                             ),
                             DividerSpace(padding: EdgeInsets.zero),

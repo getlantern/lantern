@@ -25,7 +25,7 @@ class AppSetting {
     this.splitTunnelingModeRaw = 'automatic',
     this.oAuthToken = '',
     this.blockAds = false,
-    this.bypassListRaw = 'none',
+    this.bypassListRaw = '',
     this.email = '',
     this.locale = 'en_US',
     this.showSplashScreen = true,
@@ -40,13 +40,13 @@ class AppSetting {
     String? oAuthToken,
     String? email,
     SplitTunnelingMode? newSplitTunnelingMode,
-    BypassListOption? newBypassList,
+    List<BypassListOption>? newBypassList,
     bool? showSplashScreen,
   }) {
     return AppSetting(
       id: id,
       isPro: newPro ?? isPro,
-      bypassListRaw: newBypassList?.value ?? bypassListRaw,
+      bypassListRaw: newBypassList?.map((e) => e.value).join(',') ?? bypassListRaw,
       isSplitTunnelingOn: newIsSpiltTunnelingOn ?? isSplitTunnelingOn,
       locale: newLocale ?? locale,
       blockAds: blockAds ?? this.blockAds,
@@ -65,6 +65,14 @@ class AppSetting {
   set splitTunnelingMode(SplitTunnelingMode mode) =>
       splitTunnelingModeRaw = mode.value;
 
-  BypassListOption get bypassList => bypassListRaw.toBypassList;
-  set bypassList(BypassListOption list) => bypassListRaw = list.value;
+  List<BypassListOption> get bypassList {
+    if (bypassListRaw.isEmpty) return [];
+    return bypassListRaw
+        .split(',')
+        .map((e) => e.toBypassList)
+        .toList();
+  }
+  set bypassList(List<BypassListOption> list) {
+    bypassListRaw = list.map((e) => e.value).join(',');
+  }
 }
