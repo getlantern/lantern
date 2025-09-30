@@ -1048,9 +1048,21 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> getAutoServerLocation() {
-    // TODO: implement getAutoServerLocation
-    throw UnimplementedError();
+  Future<Either<Failure, String>> getAutoServerLocation() async {
+    try {
+      final result = await runInBackground<String>(
+            () async {
+          return _ffiService
+              .getAutoLocation()
+              .toDartString();
+        },
+      );
+      checkAPIError(result);
+      return Right(result);
+    } catch (e, stackTrace) {
+      appLogger.error('Error starting change email', e, stackTrace);
+      return Left(e.toFailure());
+    }
   }
 
   @override
