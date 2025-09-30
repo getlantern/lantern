@@ -57,19 +57,4 @@ class LocationSetting extends HookConsumerWidget {
       },
     );
   }
-
-  Future<void> getAutoServerLocation(WidgetRef ref) async {
-    final result = await ref
-        .read(serverLocationNotifierProvider.notifier)
-        .getAutoServerLocation();
-
-    result.fold(
-      (error) {
-        appLogger.error("Failed to fetch auto server location: $error");
-      },
-      (servers) {
-        appLogger.debug("Fetched auto server location: $servers");
-      },
-    );
-  }
 }

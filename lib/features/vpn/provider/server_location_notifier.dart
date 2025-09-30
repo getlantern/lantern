@@ -1,6 +1,7 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/server_location_entity.dart';
+import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -44,10 +45,31 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
     );
   }
 
+  Future<void> ifNeededGetAutoServerLocation() async {
+    final status = ref.read(vpnNotifierProvider);
+    if (status == VPNStatus.connected &&
+        state.serverType.toServerLocationType == ServerLocationType.auto) {
+      appLogger.debug(
+          "Current server location is 'auto'. Fetching auto server location.");
+      final result = await getAutoServerLocation();
+      result.fold(
+        (error) {
+          // Handle error case, possibly logging or showing a message.
+          appLogger.error("Failed to fetch auto server location: $error");
+        },
+        (autoLocation) {
+          appLogger.debug("Fetched auto server location: $autoLocation");
+        },
+      );
+    } else {
+      appLogger.debug(
+          "Current server location is not 'auto' or connected . No need to fetch auto server location.");
+    }
+  }
+
   Future<Either<Failure, String>> getAutoServerLocation() async {
     final result =
         await ref.read(lanternServiceProvider).getAutoServerLocation();
-
     return result;
   }
 }

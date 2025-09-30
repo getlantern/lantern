@@ -10,6 +10,7 @@ import 'package:lantern/features/vpn/location_setting.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/vpn_status.dart';
 import 'package:lantern/features/vpn/vpn_switch.dart';
+import 'package:lantern/lantern_app.dart';
 
 import '../../core/common/common.dart';
 
@@ -26,7 +27,7 @@ class Home extends StatefulHookConsumerWidget {
   ConsumerState<Home> createState() => _HomeState();
 }
 
-class _HomeState extends ConsumerState<Home> {
+class _HomeState extends ConsumerState<Home> with RouteAware {
   TextTheme? textTheme;
 
   @override
@@ -46,6 +47,37 @@ class _HomeState extends ConsumerState<Home> {
         }
       });
     }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route != null) {
+      routeObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    /// User comes back to home screen
+    ref.read(serverLocationNotifierProvider.notifier)
+        .ifNeededGetAutoServerLocation();
+    super.didPopNext();
+  }
+
+  @override
+  void didPush() {
+    /// First time screen is pushed
+    ref.read(serverLocationNotifierProvider.notifier)
+        .ifNeededGetAutoServerLocation();
+    super.didPush();
   }
 
   @override

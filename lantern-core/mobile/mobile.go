@@ -123,6 +123,10 @@ func GetSelectedServer() string {
 	return vpn_tunnel.GetSelectedServer()
 }
 
+func GetAutoLocation() (string, error) {
+	return vpn_tunnel.GetAutoLocation()
+}
+
 // Split Tunnel Methods
 func AddSplitTunnelItem(filterType, item string) error {
 	return withCore(func(c lanterncore.Core) error { return c.AddSplitTunnelItem(filterType, item) })

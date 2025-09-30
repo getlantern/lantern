@@ -181,9 +181,14 @@ class MethodHandler {
         let map = call.arguments as? [String: Any]
         self.reportIssue(result: result, data: map!)
         break
+      //Server Selection
       case "getLanternAvailableServers":
         self.getLanternAvailableServers(result: result)
         break
+      case "getAutoServerLocation":
+        self.getAutoServerLocation(result: result)
+
+      // Payment methods
       case "stripeSubscriptionPaymentRedirect":
         let data = call.arguments as? [String: Any]
         self.stripeSubscriptionPaymentRedirect(result: result, data: data!)
@@ -925,6 +930,7 @@ class MethodHandler {
       }
     }
   }
+
   func getLanternAvailableServers(result: @escaping FlutterResult) {
     Task.detached {
       var error: NSError?
@@ -935,6 +941,20 @@ class MethodHandler {
       }
       await MainActor.run {
         result(String(data: servers!, encoding: .utf8))
+      }
+    }
+  }
+
+  func getAutoServerLocation(result: @escaping FlutterResult) {
+    Task.detached {
+      var error: NSError?
+      let location = MobileGetAutoLocation(&error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "GET_AUTO_LOCATION_ERROR")
+        return
+      }
+      await MainActor.run {
+        result(location)
       }
     }
   }
