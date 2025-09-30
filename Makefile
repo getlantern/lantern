@@ -336,6 +336,11 @@ copy-wintun-debug: $(WINTUN_DLL)
 	$(call MKDIR_P,$(WINDOWS_DEBUG_DIR))
 	$(call COPY_FILE,$(WINTUN_DLL),$(WINTUN_DLL_DEBUG))
 
+.PHONY: prepare-windows-release
+prepare-windows-release: build-lanternsvc-windows wintun
+	$(MAKE) copy-lanternsvc-release
+	$(MAKE) copy-wintun-release
+
 .PHONY: windows-debug
 windows-debug: windows
 	@echo "Building Flutter app (debug) for Windows..."
@@ -347,9 +352,7 @@ build-windows-release:
 	flutter build windows --release
 
 .PHONY: windows-release
-windows-release: clean windows pubget gen
-	flutter_distributor package --build-dart-define=BUILD_TYPE=$(BUILD_TYPE) \
-  	--build-dart-define=BUILD_VERSION=$(BUILD_VERSION) --platform windows --targets "exe"
+windows-release: clean windows pubget gen build-windows-release prepare-windows-release
 
 .PHONY: install-gomobile
 install-gomobile:

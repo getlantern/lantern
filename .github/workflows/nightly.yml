@@ -42,7 +42,7 @@ jobs:
           RELEASE_BASE=$(echo "$RELEASE_LATEST" | awk -F'-' '{print $1}')
           echo "version base (current): $RELEASE_BASE"
 
-          # increment the patch of the latest release by 1 
+          # increment the patch of the latest release by 1
           RELEASE_BASE_NEXT=$(echo "$RELEASE_BASE" | awk -F'\\.' -v OFS='.' '{ $NF = $NF + 1; print }')
           echo "version base (next): $RELEASE_BASE_NEXT"
 
