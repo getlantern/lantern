@@ -5,7 +5,7 @@ import 'package:lantern/core/common/app_colors.dart';
 ///All Text styles based on figma design
 ///https://www.figma.com/design/JTguURC2QTtsi904f6mACo/Lantern-VPN-Design-System?node-id=2097-43525&t=QzbvtF1t2XIgQs7k-0
 
-class AppTestStyles {
+class AppTextStyles {
   static TextStyle get displayLarge => GoogleFonts.urbanist(
         fontSize: 56,
         fontWeight: FontWeight.w700,

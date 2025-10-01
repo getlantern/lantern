@@ -158,7 +158,7 @@ class WebsiteRow extends StatelessWidget {
       minHeight: 45,
       contentPadding: EdgeInsets.only(left: 16),
       label: website.domain,
-      tileTextStyle: AppTestStyles.labelLarge.copyWith(
+      tileTextStyle: AppTextStyles.labelLarge.copyWith(
         color: AppColors.gray8,
         fontSize: 14,
         fontWeight: FontWeight.w500,

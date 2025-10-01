@@ -188,7 +188,7 @@ class AppRow extends StatelessWidget {
                   child: Text(
                     app.name.replaceAll(".app", ""),
                     overflow: TextOverflow.ellipsis,
-                    style: AppTestStyles.bodyMedium.copyWith(
+                    style: AppTextStyles.bodyMedium.copyWith(
                       fontSize: 16,
                       fontWeight: FontWeight.w400,
                       color: AppColors.gray9,

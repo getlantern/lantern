@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/private_server_entity.dart';
 import 'package:lantern/core/services/injection_container.dart';
@@ -197,6 +198,11 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
 
   Future<void> generateAccessKey(
       PrivateServerEntity server, String inviteName) async {
+    if (inviteName.isEmpty) {
+      context.showSnackBar('server_alias_cannot_be_empty'.i18n);
+
+      return;
+    }
     context.showLoadingDialog();
     final result = await ref
         .read(privateServerNotifierProvider.notifier)
@@ -206,6 +212,11 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
     result.fold(
       (failure) {
         context.hideLoadingDialog();
+        if (failure.localizedErrorMessage
+            .contains('failed to get trusted server fingerprint')) {
+          showFingerprintChangedDialog(server);
+          return;
+        }
         AppDialog.errorDialog(
           context: context,
           title: 'error'.i18n,
@@ -219,6 +230,62 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
         sharePrivateAccessKey(server, tokenData);
       },
     );
+  }
+
+  void showFingerprintChangedDialog(PrivateServerEntity server) {
+    AppDialog.customDialog(
+        context: context,
+        content: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            SizedBox(height: 16),
+            Center(
+              child: AppImage(
+                  path: AppImagePaths.warning,
+                  height: 40,
+                  color: AppColors.yellow4),
+            ),
+            SizedBox(height: defaultSize),
+            Text('identity_changed'.i18n.fill([server.serverName]),
+                style:
+                    textTheme!.headlineSmall!.copyWith(color: AppColors.gray7),
+                textAlign: TextAlign.center),
+            SizedBox(height: defaultSize),
+            Text(
+              'identity_changed_message'.i18n.fill([server.serverName]),
+              style: textTheme!.bodyMedium!.copyWith(color: AppColors.gray7),
+            ),
+            SizedBox(height: defaultSize),
+            Text(
+              'recommendation'.i18n,
+              style: AppTextStyles.bodyMediumBold!
+                  .copyWith(color: AppColors.gray7),
+            ),
+            Text(
+              'recommendation_message'.i18n.fill([server.serverName]),
+              style: textTheme!.bodyMedium!.copyWith(color: AppColors.gray7),
+            )
+          ],
+        ),
+        action: [
+          AppTextButton(
+            label: 'cancel'.i18n,
+            textColor: AppColors.gray6,
+            underLine: false,
+            onPressed: () {
+              appRouter.pop();
+            },
+          ),
+          AppTextButton(
+            label: 'remove_server'.i18n,
+            textColor: AppColors.red7,
+            onPressed: () {
+              onDelete(server.serverName);
+              appRouter.pop();
+            },
+          )
+        ]);
   }
 
   void showRenameDialog(String serverName) {
@@ -275,7 +342,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
             height: 40,
           ),
           Text(
-            'remove_server'.i18n,
+            'remove_server_?'.i18n,
             style: textTheme!.titleLarge,
           ),
           SizedBox(height: 16),

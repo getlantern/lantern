@@ -14,7 +14,7 @@ class LogLineWidget extends StatelessWidget {
     if (parsed == null) {
       return Text(
         line,
-        style: AppTestStyles.monospace(
+        style: AppTextStyles.monospace(
           color: Colors.white,
         ),
       );
@@ -25,7 +25,7 @@ class LogLineWidget extends StatelessWidget {
 
     return RichText(
       text: TextSpan(
-        style: AppTestStyles.monospace(
+        style: AppTextStyles.monospace(
           fontSize: 13,
         ),
         children: [
