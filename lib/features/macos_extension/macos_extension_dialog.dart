@@ -64,7 +64,7 @@ class _MacOSExtensionDialogState extends ConsumerState<MacOSExtensionDialog> {
               textAlign: TextAlign.center),
           const SizedBox(height: 16.0),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
               'enable_network_extension_message'.i18n,
               style: textTheme.bodyLarge!.copyWith(
