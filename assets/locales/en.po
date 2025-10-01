@@ -1109,3 +1109,14 @@ msgstr "Referral Code"
 
 msgid "scan_qr_code"
 msgstr "Scan QR Code"
+
+msgid "choose_your_server_location"
+msgstr "Choose your server’s location"
+
+msgid "we_handle_configuration"
+msgstr "We handle the configuration, just sign up."
+
+msgid "90_day_free_trial"
+msgstr "90-day free trial"
+
+

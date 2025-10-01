@@ -4,20 +4,19 @@ import 'package:lantern/core/common/common.dart';
 class ProviderCard extends StatelessWidget {
   final String title;
   final CloudProvider provider;
-  final String price;
   final String icon;
-  final VoidCallback? onShowLocations;
   final VoidCallback onContinueClicked;
   final String buttonTitle;
+  final List<String> features;
 
   const ProviderCard({
     super.key,
     required this.title,
     required this.buttonTitle,
+    required this.features,
     required this.provider,
-    required this.price,
+
     required this.icon,
-    this.onShowLocations,
     required this.onContinueClicked,
   });
 
@@ -58,27 +57,10 @@ class ProviderCard extends StatelessWidget {
             ),
             DividerSpace(padding: EdgeInsets.symmetric(vertical: 8)),
             const SizedBox(height: 8),
-            CheckmarkTile(
-              text: 'easiest_setup_process'.i18n,
-              showDivider: false,
-            ),
-            CheckmarkTile(
-              text: price,
-              showDivider: false,
-            ),
-            CheckmarkTile(
-              text: 'seamless_integration'.i18n,
-              showDivider: false,
-            ),
-            CheckmarkTile(
-              text: 'multiple_location_options'.i18n,
-              showDivider: false,
-            ),
-            CheckmarkTile(
-              text: 'one_month_included'.i18n.fill([1]),
-              showDivider: false,
-              topPadding: 8,
-            ),
+            ...features.map((e) => CheckmarkTile(
+                  text: e,
+                  showDivider: false,
+                )),
             Spacer(),
             PrimaryButton(
                 label: buttonTitle,
