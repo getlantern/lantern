@@ -27,8 +27,10 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
   Widget build(BuildContext context) {
     textTheme = Theme.of(context).textTheme;
     final servers = _localStorage.getPrivateServer();
+    appLogger.debug("Servers: $servers");
     final myServer = servers.where((element) => !element.isJoined).toList();
     final joinedServer = servers.where((element) => element.isJoined).toList();
+
     return BaseScreen(
       title: 'manage_private_servers'.i18n,
       body: DefaultTabController(
@@ -60,15 +62,10 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
             ),
             const SizedBox(height: 8),
             DividerSpace(padding: EdgeInsets.zero),
-            const SizedBox(height: defaultSize),
-            InfoRow(
-              text: 'access_key_expiration'.i18n,
-            ),
-            const SizedBox(height: 16),
             Expanded(
               child: TabBarView(
                 children: [
-                  _buildListView(myServer),
+                  buildMyServer(myServer),
                   _buildListView(joinedServer),
                 ],
               ),
@@ -76,6 +73,18 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget buildMyServer(List<PrivateServerEntity> privateServers) {
+    return Column(
+      children: <Widget>[
+        const SizedBox(height: defaultSize),
+        InfoRow(
+          text: 'access_key_expiration'.i18n,
+        ),
+        Expanded(child: _buildListView(privateServers)),
+      ],
     );
   }
 
@@ -106,8 +115,8 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                   ],
                 ),
               ),
-              SizedBox(height: 16),
-              if (!item.isJoined)
+              if (!item.isJoined) ...{
+                SizedBox(height: 16),
                 PrimaryButton(
                     label: 'share_access_key'.i18n,
                     bgColor: AppColors.blue1,
@@ -116,7 +125,8 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                     showBorder: true,
                     textColor: AppColors.gray9,
                     onPressed: () => onTapShareAccessKey(item)),
-              SizedBox(height: 16),
+                SizedBox(height: 16),
+              }
             ],
           ),
         );
@@ -144,15 +154,23 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
     AppDialog.customDialog(
         context: context,
         content: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             SizedBox(height: 16),
             Text(
-              'Invite name',
+              'set_server_alias'.i18n,
               style: textTheme!.headlineMedium,
             ),
+            SizedBox(height: defaultSize),
+            Text(
+              'this_name_pre_filled'.i18n,
+              style: textTheme!.bodyMedium,
+            ),
+            SizedBox(height: size24),
             AppTextField(
-              label: 'invite_name'.i18n,
+              label: 'server_alias'.i18n,
+              prefixIcon: AppImagePaths.server,
               controller: inviteNameController,
               hintText: '',
             )
@@ -266,14 +284,14 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
       ),
       action: [
         AppTextButton(
-          label: 'cancel',
+          label: 'cancel'.i18n,
           textColor: AppColors.gray6,
           onPressed: () {
             appRouter.pop();
           },
         ),
         AppTextButton(
-          label: 'remove',
+          label: 'remove'.i18n,
           textColor: AppColors.red7,
           onPressed: () {
             appRouter.pop();
@@ -290,6 +308,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
   }
 
   void onDelete(String serverName) {
-    _localStorage.deletePrivateServer(serverName);
+    // _localStorage.deletePrivateServer(serverName);
+    setState(() {});
   }
 }

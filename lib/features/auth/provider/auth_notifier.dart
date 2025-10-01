@@ -79,4 +79,8 @@ class AuthNotifier extends _$AuthNotifier {
         .read(lanternServiceProvider)
         .deleteAccount(password: password, email: email);
   }
+
+  Future<Either<Failure, String>> deviceRemove(String deviceID) async {
+    return ref.read(lanternServiceProvider).deviceRemove(deviceId: deviceID);
+  }
 }

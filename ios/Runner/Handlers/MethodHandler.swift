@@ -157,11 +157,17 @@ class MethodHandler {
         self.revokeServerManagerInstance(result: result, data: data!)
         break
 
+      //Server Selection
+      case "getLanternAvailableServers":
+        self.getLanternAvailableServers(result: result)
+        break
+      case "getAutoServerLocation":
+        self.getAutoServerLocation(result: result)
+
       //Utils
       case "featureFlag":
         self.featureFlags(result: result)
-      case "getLanternAvailableServers":
-        self.getLanternAvailableServers(result: result)
+
       case "reportIssue":
         let map = call.arguments as? [String: Any]
         self.reportIssue(result: result, data: map!)
@@ -797,7 +803,7 @@ class MethodHandler {
           err, result: result, code: "REVOKE_SERVER_MANAGER_INSTANCE_ERROR")
         return
       }
-      await replyOK(result)
+      await self.replyOK(result)
     }
   }
 
@@ -823,6 +829,21 @@ class MethodHandler {
       }
     }
   }
+
+  func getAutoServerLocation(result: @escaping FlutterResult) {
+    Task.detached {
+      var error: NSError?
+      let location = MobileGetAutoLocation(&error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "GET_AUTO_LOCATION_ERROR")
+        return
+      }
+      await MainActor.run {
+        result(location)
+      }
+    }
+  }
+
   func reportIssue(result: @escaping FlutterResult, data: [String: Any]) {
     Task.detached {
       let email = data["email"] as? String ?? ""

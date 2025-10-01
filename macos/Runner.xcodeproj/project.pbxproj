@@ -21,7 +21,7 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
-		03893F0D2E6F168E0058A5EC /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C30602DEF68B300691115 /* Logger.swift */; };
+		03545F012E8ABA7B0051E2F5 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C30602DEF68B300691115 /* Logger.swift */; };
 		039A061F2E24DB6000B64255 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B402DE7A5F300640E7F /* KeychainService.swift */; };
 		03A255852E71B27A0054C0D7 /* SystemExtensionStatusEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03A255842E71B26A0054C0D7 /* SystemExtensionStatusEventHandler.swift */; };
 		293C305A2DEF649500691115 /* MethodHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C30552DEF649500691115 /* MethodHandler.swift */; };
@@ -48,7 +48,6 @@
 		5F53D0402E4414A100740586 /* FilePath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F53D03F2E4414A100740586 /* FilePath.swift */; };
 		5F53D0452E4414D000740586 /* FilePath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F53D03F2E4414A100740586 /* FilePath.swift */; };
 		5F53D0512E44EBB700740586 /* org.getlantern.lantern.PacketTunnel.systemextension in Embed System Extensions */ = {isa = PBXBuildFile; fileRef = 29952B042DE79CB200640E7F /* org.getlantern.lantern.PacketTunnel.systemextension */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		5F53D05F2E44F9C300740586 /* SystemExtensionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F53D0392E44112E00740586 /* SystemExtensionManager.swift */; };
 		5F53D0642E4502A700740586 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 29952B052DE79CB200640E7F /* NetworkExtension.framework */; };
 		5F53D0692E45078400740586 /* Liblantern.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 293C302F2DEF247F00691115 /* Liblantern.xcframework */; };
 		5F53D06A2E45078400740586 /* Liblantern.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 293C302F2DEF247F00691115 /* Liblantern.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -667,10 +666,9 @@
 				5F53D01A2E440BBC00740586 /* Extension+RunBlocking.swift in Sources */,
 				5F53D01B2E440BBC00740586 /* ExtensionPlatformInterface.swift in Sources */,
 				5F53D01C2E440BBC00740586 /* ExtensionProvider.swift in Sources */,
+				03545F012E8ABA7B0051E2F5 /* Logger.swift in Sources */,
 				5F53D01D2E440BBC00740586 /* main.swift in Sources */,
-				5F53D05F2E44F9C300740586 /* SystemExtensionManager.swift in Sources */,
 				5F53D01F2E440BBC00740586 /* PacketTunnelProvider.swift in Sources */,
-				03893F0D2E6F168E0058A5EC /* Logger.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

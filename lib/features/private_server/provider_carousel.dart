@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 
@@ -48,43 +47,75 @@ class ProviderCarousel extends HookConsumerWidget {
             ? 390.0
             : 345.0;
     final resolvedHeight = height ?? defaultHeight;
-    final showControls = cards.length > 1;
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
+    return Stack(
+      clipBehavior: Clip.antiAlias,
+      fit: StackFit.passthrough,
       children: [
-        SizedBox(
-          height: resolvedHeight,
-          child: PageView.builder(
-            controller: controller,
-            itemCount: cards.length,
-            padEnds: false,
-            physics: const PageScrollPhysics(),
-            onPageChanged: (i) {
-              current.value = i;
-              onPageChanged?.call(i);
-            },
-            itemBuilder: (context, idx) => Padding(
-              padding: itemPadding,
-              child: cards[idx],
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: SizedBox(
+            height: resolvedHeight,
+            child: PageView.builder(
+              controller: controller,
+              itemCount: cards.length,
+              padEnds: false,
+              physics: const PageScrollPhysics(),
+              onPageChanged: (i) {
+                current.value = i;
+                onPageChanged?.call(i);
+              },
+              itemBuilder: (context, idx) => Padding(
+                padding: itemPadding,
+                child: cards[idx],
+              ),
             ),
           ),
         ),
-        // Dots
-        if (showControls) ...[
-          const SizedBox(height: defaultSize),
-          _CarouselControls(
-            count: cards.length,
-            current: current.value,
-            onDotTap: (i) => goTo(i),
-            onPrev: current.value > 0 ? () => goTo(current.value - 1) : null,
-            onNext: current.value < cards.length - 1
-                ? () => goTo(current.value + 1)
-                : null,
-            leftAsset: AppImagePaths.arrowBack,
-            rightAsset: AppImagePaths.arrowForward,
-          ),
-        ],
+        if (current.value != 0)
+          Positioned(
+              top: 40,
+              left: 15,
+              child: InkWell(
+                hoverColor: AppColors.blue1,
+                onTap: () {
+                  if (current.value > 0) {
+                    goTo(current.value - 1);
+                  }
+                },
+                child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.gray4, width: 1),
+                    ),
+                    child: AppImage(
+                      path: AppImagePaths.arrowBack,
+                      height: 15,
+                    )),
+              )),
+        if (current.value != cards.length - 1)
+          Positioned(
+              top: 40,
+              right: 15,
+              child: InkWell(
+                hoverColor: AppColors.blue1,
+                onTap: () {
+                  goTo(current.value + 1);
+                },
+                child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.gray4, width: 1),
+                    ),
+                    child: AppImage(
+                      path: AppImagePaths.arrowForward,
+                      height: 15,
+                    )),
+              ))
       ],
     );
   }

@@ -109,10 +109,12 @@ class PrivateServerSetup extends HookConsumerWidget {
 
     return BaseScreen(
       title: 'setup_a_private_server'.i18n,
+      padded: false,
       body: SingleChildScrollView(
         child: Center(
           child: Column(
             children: [
+              const SizedBox(height: defaultSize),
               AppImage(
                 path: AppImagePaths.serverRack,
                 type: AssetType.svg,
@@ -124,14 +126,17 @@ class PrivateServerSetup extends HookConsumerWidget {
                 onPageChanged: (i) => selectedIdx.value = i,
               ),
               const SizedBox(height: size24),
-              SecondaryButton(
-                label: 'server_setup_manual'.i18n,
-                isTaller: true,
-                onPressed: () {
-                  appRouter.push(ManuallyServerSetup());
-                },
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: SecondaryButton(
+                  label: 'server_setup_manual'.i18n,
+                  isTaller: true,
+                  onPressed: () {
+                    appRouter.push(ManuallyServerSetup());
+                  },
+                ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: kBottomNavigationBarHeight),
             ],
           ),
         ),

@@ -78,6 +78,14 @@ func AvailableFeatures() []byte {
 	return b
 }
 
+func MyDeviceId() (string, error) {
+	id, err := withCoreR(func(c lanterncore.Core) (string, error) { return c.MyDeviceId(), nil })
+	if err != nil {
+		return "", err
+	}
+	return id, nil
+}
+
 func IsRadianceConnected() bool {
 	ok, err := withCoreR(func(c lanterncore.Core) (bool, error) { return c.IsRadianceConnected(), nil })
 	if err != nil {
@@ -113,6 +121,10 @@ func IsVPNConnected() bool {
 
 func GetSelectedServer() string {
 	return vpn_tunnel.GetSelectedServer()
+}
+
+func GetAutoLocation() (string, error) {
+	return vpn_tunnel.GetAutoLocation()
 }
 
 // Split Tunnel Methods

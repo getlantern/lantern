@@ -328,9 +328,9 @@ class _ServerLocationListViewState
             const SizedBox(height: verticalSpacing),
           ],
           Padding(
-              padding: const EdgeInsets.only(top: 4.0), // small top offset
+              padding: const EdgeInsets.only(top: 4.0, left: defaultSize),
+              // small top offset
               child: HeaderText('pro_locations'.i18n)),
-          const SizedBox(height: 8),
           Flexible(
             child: AppCard(
               padding: EdgeInsets.zero,
@@ -394,6 +394,23 @@ class _ServerLocationListViewState
         context.showSnackBar(failure.localizedErrorMessage);
       },
       (success) async {
+        final vpnStatus = ref.read(vpnNotifierProvider);
+        if (vpnStatus == VPNStatus.connected) {
+          ///User is already connected, just update the server location
+          final serverLocation = ServerLocationEntity(
+            serverType: ServerLocationType.lanternLocation.name,
+            serverName: selectedServer.tag,
+            autoSelect: false,
+            serverLocation:
+                '${selectedServer.city} [${CountryUtils.getCountryCode(selectedServer.country)}]',
+          );
+          await ref
+              .read(serverLocationNotifierProvider.notifier)
+              .updateServerLocation(serverLocation);
+          appRouter.popUntilRoot();
+          return;
+        }
+
         ref.listenManual<AsyncValue<LanternStatus>>(
           vPNStatusNotifierProvider,
           (previous, next) async {
@@ -463,7 +480,10 @@ class _PrivateServerLocationListViewState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         SizedBox(height: 16),
-        HeaderText('your_server'.i18n),
+        Padding(
+          padding: const EdgeInsets.only(left: 16.0),
+          child: HeaderText('your_server'.i18n),
+        ),
         SizedBox(height: 8),
         AppCard(
           padding: EdgeInsets.zero,

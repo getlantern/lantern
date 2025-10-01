@@ -9,6 +9,7 @@ class AppTheme {
   static ThemeData appTheme() {
     return ThemeData(
       useMaterial3: true,
+      hoverColor: AppColors.blue1,
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
           TargetPlatform.android: FadeForwardsPageTransitionsBuilder(),
@@ -50,6 +51,7 @@ class AppTheme {
           statusBarBrightness: Brightness.light,
           statusBarIconBrightness: Brightness.dark,
           systemNavigationBarColor: AppColors.gray1,
+          systemNavigationBarIconBrightness: Brightness.dark,
         ),
         iconTheme: IconThemeData(
           color: AppColors.blue10,

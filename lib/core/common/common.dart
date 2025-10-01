@@ -48,13 +48,13 @@ export 'package:lantern/core/widgets/app_tile.dart';
 export 'package:lantern/core/widgets/base_screen.dart';
 export 'package:lantern/core/widgets/bottomsheet.dart';
 export 'package:lantern/core/widgets/custom_app_bar.dart';
-export 'package:lantern/features/home/data_usage.dart';
 export 'package:lantern/core/widgets/flag.dart';
 // UI
 export 'package:lantern/core/widgets/lantern_logo.dart';
 export 'package:lantern/core/widgets/platform_card.dart';
 export 'package:lantern/core/widgets/pro_banner.dart';
 export 'package:lantern/core/widgets/pro_button.dart';
+export 'package:lantern/features/home/data_usage.dart';
 
 export '../../core/widgets/divider_space.dart';
 
@@ -114,14 +114,23 @@ void hideKeyboard() {
 
 void sharePrivateAccessKey(
     PrivateServerEntity server, Map<String, dynamic> tokenPayload) {
-  final expirationDate = tokenPayload['exp'];
-  final buffer = StringBuffer()
-    ..write('join_my_private_server'.i18n)
-    ..write(' ')
-    ..write(AppUrls.baseUrl)
-    ..write(
-        '/private-server?ip=${server.externalIp}&port=${server.port}&token=${server.accessToken}&name=${server.serverName}&exp=$expirationDate');
-  SharePlus.instance.share(ShareParams(text: buffer.toString()));
+  final expirationDate = tokenPayload['exp'].toString();
+  final aliasName = tokenPayload['sub'];
+  final uri = Uri(
+    scheme: 'https',
+    host: Uri.parse(AppUrls.baseUrl).host, // ensures host is parsed correctly
+    path: '/private-server',
+    queryParameters: {
+      'ip': server.externalIp,
+      'port': server.port.toString(),
+      'token': server.accessToken,
+      'name': server.serverName,
+      'exp': expirationDate,
+      'alias': aliasName,
+    },
+  );
+  final urlString = '${'join_my_private_server'.i18n} $uri';
+  SharePlus.instance.share(ShareParams(text: urlString));
 }
 
 bool isSmallScreen(BuildContext context) {

@@ -18,6 +18,7 @@ import 'core/utils/deeplink_utils.dart' show DeepLinkCallbackManager;
 import 'features/system_tray/system_tray_wrapper.dart';
 
 final globalRouter = sl<AppRouter>();
+final routeObserver = RouteObserver<ModalRoute<void>>();
 
 class LanternApp extends StatefulHookConsumerWidget {
   const LanternApp({super.key});
@@ -127,6 +128,7 @@ class _LanternAppState extends ConsumerState<LanternApp> {
                 // List of supported languages
                 routerConfig: globalRouter.config(
                   deepLinkBuilder: navigateToDeepLink,
+                  navigatorObservers: () => [routeObserver],
                 ),
                 localizationsDelegates: const [
                   GlobalMaterialLocalizations.delegate,

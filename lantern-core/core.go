@@ -43,14 +43,7 @@ type App interface {
 	IsRadianceConnected() bool
 	IsVPNRunning() (bool, error)
 	GetAvailableServers() []byte
-}
-
-type VPNControl interface {
-	StartTunnel(group string) error
-	StopTunnel() error
-	ConnectToServer(group, tag string) error
-	VPNStatus() (vpn.Status, error)
-	IsVPNRunning() (bool, error)
+	MyDeviceId() string
 }
 
 type User interface {
@@ -192,6 +185,10 @@ func (lc *LanternCore) IsRadianceConnected() bool {
 	return lc.rad != nil
 }
 
+func (lc *LanternCore) MyDeviceId() string {
+	return lc.userInfo.DeviceID()
+}
+
 func (lc *LanternCore) AvailableFeatures() []byte {
 	features := lc.rad.Features()
 	slog.Debug("Available features", "features", features)
@@ -331,6 +328,7 @@ func (lc *LanternCore) FetchUserData() ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error marshalling user data: %w", err)
 	}
+	slog.Debug("Fetched user data: ", "data", string(protoUserData))
 	return protoUserData, nil
 }
 

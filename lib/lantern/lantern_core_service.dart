@@ -76,7 +76,6 @@ abstract class LanternCoreService {
   Future<Either<Failure, Unit>> removeAllItems(
       SplitTunnelFilterType type, List<String> value);
 
-
   Future<Either<Failure, Unit>> reportIssue(
     String email,
     String issueType,
@@ -104,6 +103,8 @@ abstract class LanternCoreService {
       {required String email, required String password});
 
   Future<Either<Failure, UserResponse>> getUserData();
+
+  Future<Either<Failure, UserResponse>> fetchUserData();
 
   Future<Either<Failure, DataCapInfo>> getDataCapInfo();
 

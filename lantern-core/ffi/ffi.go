@@ -212,6 +212,17 @@ func stopVPN() *C.char {
 	return C.CString("ok")
 }
 
+// getAutoLocation returns the auto location in JSON format.
+//
+//export getAutoLocation
+func getAutoLocation() *C.char {
+	json, err := vpn_tunnel.GetAutoLocation()
+	if err != nil {
+		return SendError(err)
+	}
+	return C.CString(string(json))
+}
+
 // GetAvailableServers returns the available servers in JSON format.
 //
 //export getAvailableServers

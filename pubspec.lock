@@ -1077,21 +1077,21 @@ packages:
     source: hosted
     version: "2.2.0"
   package_info_plus:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: package_info_plus
-      sha256: "7976bfe4c583170d6cdc7077e3237560b364149fcd268b5f53d95a991963b191"
+      sha256: "7e76fad405b3e4016cd39d08f455a4eb5199723cf594cd1b8916d47140d93017"
       url: "https://pub.dev"
     source: hosted
-    version: "8.3.0"
+    version: "4.2.0"
   package_info_plus_platform_interface:
     dependency: transitive
     description:
       name: package_info_plus_platform_interface
-      sha256: "6c935fb612dff8e3cc9632c2b301720c77450a126114126ffaafe28d2e87956c"
+      sha256: "9bc8ba46813a4cc42c66ab781470711781940780fd8beddd0c3da62506d3a6c6"
       url: "https://pub.dev"
     source: hosted
-    version: "3.2.0"
+    version: "2.0.1"
   path:
     dependency: "direct main"
     description:
@@ -1605,10 +1605,10 @@ packages:
     dependency: "direct main"
     description:
       name: tray_manager
-      sha256: ad18c4cd73003097d182884bacb0578ad2865f3ab842a0ad00f6d043ed49eaf0
+      sha256: "537e539f48cd82d8ee2240d4330158c7b44c7e043e8e18b5811f2f8f6b7df25a"
       url: "https://pub.dev"
     source: hosted
-    version: "0.5.0"
+    version: "0.5.1"
   typed_data:
     dependency: transitive
     description:
@@ -1778,7 +1778,7 @@ packages:
     source: hosted
     version: "3.1.0"
   win32:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: win32
       sha256: "66814138c3562338d05613a6e368ed8cfb237ad6d64a9e9334be3f309acfca03"

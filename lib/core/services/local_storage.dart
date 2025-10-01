@@ -206,7 +206,7 @@ class LocalStorageService {
 
   Future<void> deletePrivateServer(String serverName) async {
     final existing = _privateServerBox
-        .query(PrivateServerEntity_.serverName.equals(serverName.toLowerCase()))
+        .query(PrivateServerEntity_.serverName.equals(serverName))
         .build()
         .findFirst();
     if (existing != null) {

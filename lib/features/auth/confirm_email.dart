@@ -32,63 +32,70 @@ class ConfirmEmail extends HookConsumerWidget {
     final isPinCodeValid = useState(false);
     final codeController = useTextEditingController();
 
-    return BaseScreen(
-      title: '',
-      appBar: CustomAppBar(
-        title: Text('confirm_email'.i18n),
-        leading: BackButton(
-          onPressed: () => onBackPresses(ref, context),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        onBackPresses(ref, context);
+      },
+      child: BaseScreen(
+        title: '',
+        appBar: CustomAppBar(
+          title: Text('confirm_email'.i18n),
+          leading: BackButton(
+            onPressed: () => onBackPresses(ref, context),
+          ),
         ),
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.only(left: 16),
-            child: Text(
-              'confirm_email_code'.i18n,
-              style: textTheme.labelLarge?.copyWith(
-                color: AppColors.gray8,
-                fontSize: 14.sp,
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.only(left: 16),
+              child: Text(
+                'confirm_email_code'.i18n,
+                style: textTheme.labelLarge?.copyWith(
+                  color: AppColors.gray8,
+                  fontSize: 14.sp,
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 8),
-          AppPinField(
-            controller: codeController,
-            onChanged: (String value) {
-              isPinCodeValid.value = value.length == 6;
-              appLogger.info('PIN code entered: $value');
-            },
-            onCompleted: (String value) {
-              isPinCodeValid.value = value.length == 6;
-              appLogger.info('PIN code completed: $value');
-            },
-          ),
-          SizedBox(height: defaultSize),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: AppRichText(
-              texts: 'confirm_email_code_message'.i18n,
-              boldTexts: email,
+            const SizedBox(height: 8),
+            AppPinField(
+              controller: codeController,
+              onChanged: (String value) {
+                isPinCodeValid.value = value.length == 6;
+                appLogger.info('PIN code entered: $value');
+              },
+              onCompleted: (String value) {
+                isPinCodeValid.value = value.length == 6;
+                appLogger.info('PIN code completed: $value');
+              },
             ),
-          ),
-          SizedBox(height: 32),
-          PrimaryButton(
-            label: 'continue'.i18n,
-            enabled: isPinCodeValid.value,
-            isTaller: true,
-            onPressed: () => onContinueTap(context, ref, codeController.text),
-          ),
-          SizedBox(height: 24),
-          Center(
-            child: AppTextButton(
-              label: 'resend_email'.i18n,
-              textColor: AppColors.black,
-              onPressed: () => onResendEmail(context, ref),
+            SizedBox(height: defaultSize),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: AppRichText(
+                texts: 'confirm_email_code_message'.i18n,
+                boldTexts: email,
+              ),
             ),
-          )
-        ],
+            SizedBox(height: 32),
+            PrimaryButton(
+              label: 'continue'.i18n,
+              enabled: isPinCodeValid.value,
+              isTaller: true,
+              onPressed: () => onContinueTap(context, ref, codeController.text),
+            ),
+            SizedBox(height: 24),
+            Center(
+              child: AppTextButton(
+                label: 'resend_email'.i18n,
+                textColor: AppColors.black,
+                onPressed: () => onResendEmail(context, ref),
+              ),
+            )
+          ],
+        ),
       ),
     );
   }

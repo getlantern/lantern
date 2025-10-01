@@ -22,10 +22,10 @@ class AppSetting {
     this.isPro = false,
     this.isSplitTunnelingOn = false,
     this.userLoggedIn = false,
-    this.splitTunnelingModeRaw ='automatic',
+    this.splitTunnelingModeRaw = 'automatic',
     this.oAuthToken = '',
     this.blockAds = false,
-    this.bypassListRaw = 'none',
+    this.bypassListRaw = '',
     this.email = '',
     this.locale = 'en_US',
     this.showSplashScreen = true,
@@ -40,17 +40,18 @@ class AppSetting {
     String? oAuthToken,
     String? email,
     SplitTunnelingMode? newSplitTunnelingMode,
-    BypassListOption? newBypassList,
+    List<BypassListOption>? newBypassList,
     bool? showSplashScreen,
   }) {
     return AppSetting(
       id: id,
       isPro: newPro ?? isPro,
-      bypassListRaw: newBypassList?.value ?? bypassListRaw,
+      bypassListRaw: newBypassList?.map((e) => e.value).join(',') ?? bypassListRaw,
       isSplitTunnelingOn: newIsSpiltTunnelingOn ?? isSplitTunnelingOn,
       locale: newLocale ?? locale,
       blockAds: blockAds ?? this.blockAds,
-      splitTunnelingModeRaw: newSplitTunnelingMode?.value ?? splitTunnelingModeRaw,
+      splitTunnelingModeRaw:
+          newSplitTunnelingMode?.value ?? splitTunnelingModeRaw,
       userLoggedIn: userLoggedIn ?? this.userLoggedIn,
       oAuthToken: oAuthToken ?? this.oAuthToken,
       email: email ?? this.email,
@@ -58,12 +59,20 @@ class AppSetting {
     );
   }
 
-  SplitTunnelingMode get splitTunnelingMode => splitTunnelingModeRaw.toSplitTunnelingMode;
+  SplitTunnelingMode get splitTunnelingMode =>
+      splitTunnelingModeRaw.toSplitTunnelingMode;
 
   set splitTunnelingMode(SplitTunnelingMode mode) =>
       splitTunnelingModeRaw = mode.value;
 
-  BypassListOption get bypassList => bypassListRaw.toBypassList;
-  set bypassList(BypassListOption list) => bypassListRaw = list.value;
-
+  List<BypassListOption> get bypassList {
+    if (bypassListRaw.isEmpty) return [];
+    return bypassListRaw
+        .split(',')
+        .map((e) => e.toBypassList)
+        .toList();
+  }
+  set bypassList(List<BypassListOption> list) {
+    bypassListRaw = list.map((e) => e.value).join(',');
+  }
 }

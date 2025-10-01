@@ -74,8 +74,8 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
         ),
         MenuItem.separator(),
         MenuItem(
-          key: 'exit',
-          label: 'exit'.i18n,
+          key: 'quit',
+          label: 'quit'.i18n,
           onClick: (_) async {
             await trayManager.destroy();
             await ref.read(windowNotifierProvider.notifier).close();

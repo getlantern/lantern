@@ -276,6 +276,7 @@ class UserResponse_UserData extends $pb.GeneratedMessage {
     $core.String? code,
     $core.String? token,
     $core.String? referral,
+  @$core.Deprecated('This field is deprecated.')
     $core.String? phone,
     $core.String? email,
     $core.String? userStatus,
@@ -292,6 +293,7 @@ class UserResponse_UserData extends $pb.GeneratedMessage {
     $core.Iterable<UserResponse_Device>? devices,
     $core.bool? yinbiEnabled,
     UserResponse_UserData_SubscriptionData? subscriptionData,
+    $core.String? deviceID,
   }) {
     final $result = create();
     if (userId != null) {
@@ -307,6 +309,7 @@ class UserResponse_UserData extends $pb.GeneratedMessage {
       $result.referral = referral;
     }
     if (phone != null) {
+      // ignore: deprecated_member_use_from_same_package
       $result.phone = phone;
     }
     if (email != null) {
@@ -354,6 +357,9 @@ class UserResponse_UserData extends $pb.GeneratedMessage {
     if (subscriptionData != null) {
       $result.subscriptionData = subscriptionData;
     }
+    if (deviceID != null) {
+      $result.deviceID = deviceID;
+    }
     return $result;
   }
   UserResponse_UserData._() : super();
@@ -381,6 +387,7 @@ class UserResponse_UserData extends $pb.GeneratedMessage {
     ..pc<UserResponse_Device>(18, _omitFieldNames ? '' : 'devices', $pb.PbFieldType.PM, subBuilder: UserResponse_Device.create)
     ..aOB(19, _omitFieldNames ? '' : 'yinbiEnabled', protoName: 'yinbiEnabled')
     ..aOM<UserResponse_UserData_SubscriptionData>(20, _omitFieldNames ? '' : 'subscriptionData', protoName: 'subscriptionData', subBuilder: UserResponse_UserData_SubscriptionData.create)
+    ..aOS(21, _omitFieldNames ? '' : 'deviceID', protoName: 'deviceID')
     ..hasRequiredFields = false
   ;
 
@@ -441,12 +448,16 @@ class UserResponse_UserData extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   void clearReferral() => $_clearField(4);
 
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(5)
   $core.String get phone => $_getSZ(4);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(5)
   set phone($core.String v) { $_setString(4, v); }
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(5)
   $core.bool hasPhone() => $_has(4);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(5)
   void clearPhone() => $_clearField(5);
 
@@ -556,6 +567,15 @@ class UserResponse_UserData extends $pb.GeneratedMessage {
   void clearSubscriptionData() => $_clearField(20);
   @$pb.TagNumber(20)
   UserResponse_UserData_SubscriptionData ensureSubscriptionData() => $_ensure(19);
+
+  @$pb.TagNumber(21)
+  $core.String get deviceID => $_getSZ(20);
+  @$pb.TagNumber(21)
+  set deviceID($core.String v) { $_setString(20, v); }
+  @$pb.TagNumber(21)
+  $core.bool hasDeviceID() => $_has(20);
+  @$pb.TagNumber(21)
+  void clearDeviceID() => $_clearField(21);
 }
 
 class UserResponse extends $pb.GeneratedMessage {

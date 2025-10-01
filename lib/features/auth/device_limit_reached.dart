@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/lantern/lantern_service_notifier.dart';
+import 'package:lantern/features/auth/provider/auth_notifier.dart';
 
 import '../../lantern/protos/protos/auth.pb.dart';
 
@@ -26,9 +26,12 @@ class DeviceLimitReached extends HookConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           SizedBox(height: defaultSize),
-          Text(
-            'device_limit_reached_message'.i18n,
-            style: textTheme.bodyMedium,
+          Padding(
+            padding: const EdgeInsets.only(left: 16),
+            child: Text(
+              'device_limit_reached_message'.i18n,
+              style: textTheme.bodyMedium,
+            ),
           ),
           SizedBox(height: 24.0),
           Text("lantern_pro_devices".i18n,
@@ -88,7 +91,7 @@ class DeviceLimitReached extends HookConsumerWidget {
       WidgetRef ref, String deviceId, BuildContext context) async {
     context.showLoadingDialog();
     final result =
-        await ref.read(lanternServiceProvider).deviceRemove(deviceId: deviceId);
+        await ref.read(authNotifierProvider.notifier).deviceRemove(deviceId);
     result.fold(
       (failure) {
         context.hideLoadingDialog();

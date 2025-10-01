@@ -18,7 +18,6 @@ class AppCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: margin ?? EdgeInsets.zero,
-
       child: Padding(
         padding: padding,
         child: child,

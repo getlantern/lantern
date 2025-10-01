@@ -43,6 +43,7 @@ extension UserDataMapper on UserResponse_UserData {
       inviters: inviters.toList().join(','),
       invitees: invitees.toList().join(','),
       purchases: purchases.toList().join(','),
+      deviceID: deviceID,
     );
     user.devices.addAll(devices.map((e) => e.toEntity()));
 
@@ -130,6 +131,7 @@ extension UserData on UserDataEntity {
       devices: devices.map((e) => e.toDevice()).toList(),
       purchases: purchases.split(',').toList(),
       subscriptionData: subscriptionData.target!.toSubscriptionData(),
+      deviceID: deviceID,
     );
   }
 }

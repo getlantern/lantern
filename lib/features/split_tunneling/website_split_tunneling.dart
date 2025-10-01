@@ -59,26 +59,35 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
               ),
             ),
           ),
-          if (appSetting.bypassList != BypassListOption.none) ...{
+          if (appSetting.bypassList.isNotEmpty) ...{
             SliverToBoxAdapter(child: SizedBox(height: defaultSize)),
             SliverToBoxAdapter(
-                child: SectionLabel('enabled_bypass_lists'.i18n)),
+                child: SectionLabel('enabled_bypass_lists'.i18n.fill([
+                  appSetting.bypassList.length]))),
             SliverToBoxAdapter(
               child: AppCard(
                 padding: EdgeInsets.zero,
-                child: AppTile(
-                  contentPadding: EdgeInsets.only(left: 16),
-                  label: '${appSetting.bypassList.value}_bypass_list'.i18n,
-                  subtitle: Text(
-                    '${appSetting.bypassList.value}_bypass_desc'.i18n,
-                    style:
-                        textTheme.labelMedium!.copyWith(color: AppColors.gray7),
-                  ),
-                  trailing: AppIconButton(
-                    path: AppImagePaths.close,
-                    onPressed: () => removeBypassList(ref),
-                  ),
-                ),
+                child: ListView.separated(
+                    itemCount: appSetting.bypassList.length,
+                    shrinkWrap: true,
+                    separatorBuilder: (context, index) =>
+                        DividerSpace(padding: EdgeInsets.zero),
+                    itemBuilder: (context, index) {
+                      final bypassList = appSetting.bypassList[index];
+                      return AppTile(
+                        contentPadding: EdgeInsets.only(left: 16),
+                        label: '${bypassList.value}_bypass_list'.i18n,
+                        subtitle: Text(
+                          '${bypassList.value}_bypass_desc'.i18n,
+                          style: textTheme.labelMedium!
+                              .copyWith(color: AppColors.gray7),
+                        ),
+                        trailing: AppIconButton(
+                          path: AppImagePaths.close,
+                          onPressed: () => removeBypassList(ref, bypassList),
+                        ),
+                      );
+                    }),
               ),
             )
           },
@@ -124,10 +133,12 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
     );
   }
 
-  void removeBypassList(WidgetRef ref) {
-    ref
-        .read(appSettingNotifierProvider.notifier)
-        .setBypassList(BypassListOption.none);
+  void removeBypassList(WidgetRef ref, BypassListOption bypassList) {
+    final appSetting = ref.read(appSettingNotifierProvider);
+    final websiteNr = ref.read(splitTunnelingWebsitesProvider.notifier);
+    final selectedBypassList = appSetting.bypassList;
+    selectedBypassList.remove(bypassList);
+    websiteNr.updateByPassList(selectedBypassList);
   }
 }
 

@@ -813,7 +813,7 @@ class MethodHandler : FlutterPlugin,
             Methods.GetAutoServerLocation.method -> {
                 scope.launch {
                     result.runCatching {
-                        val data = Mobile.getSelectedServer()
+                        val data = Mobile.getAutoLocation()
                         withContext(Dispatchers.Main) {
                             success(data)
                         }

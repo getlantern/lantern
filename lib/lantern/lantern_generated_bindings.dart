@@ -5310,6 +5310,16 @@ class LanternBindings {
   late final _stopVPN =
       _stopVPNPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
 
+  ffi.Pointer<ffi.Char> getAutoLocation() {
+    return _getAutoLocation();
+  }
+
+  late final _getAutoLocationPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+          'getAutoLocation');
+  late final _getAutoLocation =
+      _getAutoLocationPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
+
   ffi.Pointer<ffi.Char> getAvailableServers() {
     return _getAvailableServers();
   }

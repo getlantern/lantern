@@ -31,7 +31,16 @@ class ChoosePaymentMethod extends HookConsumerWidget {
         ref.watch(plansNotifierProvider.notifier).getSelectedPlan();
     final planData = ref.watch(plansNotifierProvider.notifier).getPlanData();
     return BaseScreen(
-      title: 'choose_payment_method'.i18n,
+      title: '',
+      appBar: CustomAppBar(
+        title: Text('choose_payment_method'.i18n),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.more_vert),
+            onPressed: () => onMoreOptionsPressed(context),
+          ),
+        ],
+      ),
       body: Column(
         children: <Widget>[
           SizedBox(height: defaultSize),
@@ -51,6 +60,68 @@ class ChoosePaymentMethod extends HookConsumerWidget {
         ],
       ),
     );
+  }
+
+  void onMoreOptionsPressed(BuildContext context) {
+    showAppBottomSheet(
+      context: context,
+      title: 'payment_options'.i18n,
+      scrollControlDisabledMaxHeightRatio: .25,
+      builder: (context, scrollController) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            AppTile(
+              label: 'add_referral_code'.i18n,
+              icon: AppImagePaths.star,
+              onPressed: () {
+                appRouter.pop();
+                showRferralCodeDialog(context);
+              },
+            ),
+            DividerSpace(),
+          ],
+        );
+      },
+    );
+  }
+
+  void showRferralCodeDialog(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    AppDialog.customDialog(
+        context: context,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            SizedBox(height: size24),
+            AppImage(path: AppImagePaths.star, height: 40),
+            SizedBox(height: defaultSize),
+            Text(
+              'referral_code'.i18n,
+              style: textTheme.headlineSmall,
+            ),
+            SizedBox(height: defaultSize),
+            AppTextField(
+              label: 'referral_code'.i18n,
+              hintText: 'XXXXXX',
+              prefixIcon: AppImagePaths.star,
+            ),
+          ],
+        ),
+        action: [
+          AppTextButton(
+            label: 'cancel'.i18n,
+            textColor: AppColors.gray8,
+            underLine: false,
+            onPressed: () {
+              appRouter.pop();
+            },
+          ),
+          AppTextButton(
+            label: 'continue'.i18n,
+            onPressed: () {},
+          ),
+        ]);
   }
 
   Future<void> onSubscribe(

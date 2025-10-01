@@ -27,6 +27,20 @@ class HomeNotifier extends _$HomeNotifier {
     );
   }
 
+  Future<void> fetchUserData() async {
+    final result = await ref.read(lanternServiceProvider).fetchUserData();
+    result.fold(
+      (failure) {
+        appLogger.error(
+            'Error fetching user data: ${failure.localizedErrorMessage}');
+      },
+      (userData) {
+        appLogger.debug('Fetched user data: $userData');
+        updateUserData(userData);
+      },
+    );
+  }
+
   void updateUserData(UserResponse userData) {
     state = AsyncValue.data(userData);
     sl<LocalStorageService>().saveUser(userData.toEntity());

@@ -24,7 +24,7 @@ class ServerMobileView extends StatefulWidget {
 class _ServerMobileViewState extends State<ServerMobileView> {
   @override
   Widget build(BuildContext context) {
-    return  AppTile(
+    return AppTile(
       label: widget.location.city,
       selected: widget.isSelected,
       icon: Flag(

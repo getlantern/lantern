@@ -57,8 +57,8 @@ class MethodHandler {
         withFilterArgs(call: call, result: result) { filterType, value in
           self.removeItemsToSplitTunnel(result: result, filterType: filterType, value: value)
         }
-          break
-case "connectToServer":
+        break
+      case "connectToServer":
         let map = call.arguments as? [String: Any]
         self.connectToServer(result: result, data: map!)
       case "oauthLoginUrl":
@@ -181,9 +181,14 @@ case "connectToServer":
         let map = call.arguments as? [String: Any]
         self.reportIssue(result: result, data: map!)
         break
+      //Server Selection
       case "getLanternAvailableServers":
         self.getLanternAvailableServers(result: result)
         break
+      case "getAutoServerLocation":
+        self.getAutoServerLocation(result: result)
+
+      // Payment methods
       case "stripeSubscriptionPaymentRedirect":
         let data = call.arguments as? [String: Any]
         self.stripeSubscriptionPaymentRedirect(result: result, data: data!)
@@ -350,7 +355,7 @@ case "connectToServer":
   {
     Task {
       var error: NSError?
-      MobileAddSplitTunnelItems( value, &error)
+      MobileAddSplitTunnelItems(value, &error)
       if let err = error {
         await self.handleFlutterError(
           err, result: result, code: "ADD_ALL_SPLIT_TUNNEL_ITEMS_FAILED")
@@ -925,6 +930,7 @@ case "connectToServer":
       }
     }
   }
+
   func getLanternAvailableServers(result: @escaping FlutterResult) {
     Task.detached {
       var error: NSError?
@@ -935,6 +941,20 @@ case "connectToServer":
       }
       await MainActor.run {
         result(String(data: servers!, encoding: .utf8))
+      }
+    }
+  }
+
+  func getAutoServerLocation(result: @escaping FlutterResult) {
+    Task.detached {
+      var error: NSError?
+      let location = MobileGetAutoLocation(&error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "GET_AUTO_LOCATION_ERROR")
+        return
+      }
+      await MainActor.run {
+        result(location)
       }
     }
   }

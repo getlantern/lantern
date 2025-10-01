@@ -19,7 +19,7 @@ class BaseScreen extends StatelessWidget {
     this.bottomNavigationBar,
     this.appBar,
     this.backgroundColor,
-    this.extendBody=false,
+    this.extendBody = false,
   });
 
   @override

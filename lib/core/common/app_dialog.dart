@@ -80,7 +80,7 @@ class AppDialog {
       barrierDismissible: false,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: AppColors.gray3,
+          backgroundColor: AppColors.gray1,
           contentPadding: EdgeInsets.symmetric(horizontal: defaultSize),
           actionsPadding: EdgeInsets.only(
               top: defaultSize,

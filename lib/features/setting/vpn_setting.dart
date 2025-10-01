@@ -74,7 +74,6 @@ class VPNSetting extends HookConsumerWidget {
             icon: AppImagePaths.blockAds,
             trailing: SwitchButton(
               value: preferences.blockAds,
-
               onChanged: (bool? value) {
                 if (!isUserPro) {
                   appRouter.push(Plans());
@@ -84,6 +83,14 @@ class VPNSetting extends HookConsumerWidget {
                 notifier.setBlockAds(newValue);
               },
             ),
+            onPressed: () {
+              if (!isUserPro) {
+                appRouter.push(Plans());
+                return;
+              }
+              var newValue = !preferences.blockAds;
+              notifier.setBlockAds(newValue);
+            },
           ),
         ),
         SizedBox(height: 16),

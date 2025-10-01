@@ -829,7 +829,7 @@ msgid "remove_server"
 msgstr "Remove Server?"
 
 msgid "remove_server_message"
-msgstr "Remove %s? This can’t be undone."
+msgstr "Remove %s? This will only remove it from your app, it won’t delete the server from your cloud provider."
 
 
 msgid "generate_access_key"
@@ -1052,7 +1052,7 @@ msgid "subscription_renewal_date"
 msgstr "Subscription Renewal Date"
 
 msgid "enabled_bypass_lists"
-msgstr "Enabled bypass lists:"
+msgstr "Enabled bypass lists (%d):"
 
 
 msgid "diagnostic_logs"
@@ -1081,5 +1081,28 @@ msgid "private_server_options"
 msgstr "Private Server Options"
 
 msgid "lantern_version"
-msgstr "Lantern Version"
+msgstr "Lantern Version"quit
 
+msgid "quit"
+msgstr "Quit"
+
+msgid "device_removed"
+msgstr "Device removed"
+
+msgid "set_server_alias"
+msgstr "Set Server Alias"
+
+msgid "this_name_pre_filled"
+msgstr "This name will be pre-filled for the invited user to help them identify the server. They can change it later."
+
+msgid "server_alias"
+msgstr "Server Alias"
+
+msgid "payment_options"
+msgstr "Payment Options"
+
+msgid "add_referral_code"
+msgstr "Add a Referral Code"
+
+msgid "referral_code"
+msgstr "Referral Code"

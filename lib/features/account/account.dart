@@ -29,6 +29,7 @@ class Account extends HookConsumerWidget {
 
   Widget _buildBody(BuildContext buildContext, WidgetRef ref) {
     final user = sl<LocalStorageService>().getUser();
+
     final appSettings = ref.read(appSettingNotifierProvider);
     final theme = Theme.of(buildContext).textTheme;
     return Column(
@@ -98,7 +99,7 @@ class Account extends HookConsumerWidget {
             ),
           ),
         ),
-        UserDevices(userDevices: user.legacyUserData.devices.toList()),
+        UserDevices(),
         Spacer(),
         Padding(
           padding: const EdgeInsets.only(left: 16),

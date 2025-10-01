@@ -76,7 +76,7 @@ class AppSettingNotifier extends _$AppSettingNotifier {
         : deviceLocale;
   }
 
-  void setBypassList(BypassListOption list) {
+  void setBypassList(List<BypassListOption> list) {
     update(state.copyWith(newBypassList: list));
   }
 }

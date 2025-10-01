@@ -28,7 +28,7 @@ class OAuthLogin extends HookConsumerWidget {
       return SecondaryButton(
         label: 'continue_with_apple'.i18n,
         icon: AppImagePaths.apple,
-          isTaller: true,
+        isTaller: true,
         onPressed: () => _handleSignIn(SignUpMethodType.apple, ref, context),
       );
     }
