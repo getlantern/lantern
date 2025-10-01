@@ -45,7 +45,7 @@ class _LanternAppState extends ConsumerState<LanternApp> {
     _lifecycle = AppLifecycleListener(
       onExitRequested: () async {
         appLogger.info("Exit requested");
-        await ref.read(lanternServiceProvider).stopVPN();
+        await ref.read(lanternServiceProvider).stopVPN().timeout(const Duration(seconds: 5));
         return AppExitResponse.exit;
       },
     );
