@@ -7,6 +7,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/private_server_entity.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/widgets/info_row.dart';
+import 'package:lantern/features/private_server/provider/manage_server_notifier.dart';
 import 'package:lantern/features/private_server/provider/private_server_notifier.dart';
 
 @RoutePage(name: 'ManagePrivateServer')
@@ -26,7 +27,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
   @override
   Widget build(BuildContext context) {
     textTheme = Theme.of(context).textTheme;
-    final servers = _localStorage.getPrivateServer();
+    final servers = ref.watch(manageServerNotifierProvider);
     appLogger.debug("Servers: $servers");
     final myServer = servers.where((element) => !element.isJoined).toList();
     final joinedServer = servers.where((element) => element.isJoined).toList();
@@ -308,7 +309,6 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
   }
 
   void onDelete(String serverName) {
-    // _localStorage.deletePrivateServer(serverName);
-    setState(() {});
+    ref.read(manageServerNotifierProvider.notifier).deleteServer(serverName);
   }
 }

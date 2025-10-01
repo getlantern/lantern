@@ -78,6 +78,15 @@ void copyToClipboard(String text) {
   Clipboard.setData(ClipboardData(text: text));
 }
 
+Future<String> pasteFromClipboard() async {
+  final data = await Clipboard.getData(Clipboard.kTextPlain);
+  if (data != null && data.text != null) {
+    return data.text!;
+  } else {
+    return '';
+  }
+}
+
 /// Check user account status and updates user data if the user has a pro plan
 Future<bool> checkUserAccountStatus(WidgetRef ref, BuildContext context) async {
   final delays = [Duration(seconds: 1), Duration(seconds: 2)];

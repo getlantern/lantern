@@ -1106,3 +1106,6 @@ msgstr "Add a Referral Code"
 
 msgid "referral_code"
 msgstr "Referral Code"
+
+msgid "scan_qr_code"
+msgstr "Scan QR Code"
