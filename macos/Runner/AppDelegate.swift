@@ -26,7 +26,7 @@ class AppDelegate: FlutterAppDelegate {
     registerEventHandlers(controller: controller)
 
     // Initialize directories and working paths
-    setupFileSystem()
+    FilePath.setupFileSystem()
 
     setupRadiance()
 
@@ -77,33 +77,6 @@ class AppDelegate: FlutterAppDelegate {
       binaryMessenger: controller.engine.binaryMessenger
     )
     MethodHandler(channel: nativeChannel, vpnManager: vpnManager)
-  }
-
-  /// Prepares the file system directories for use
-  private func setupFileSystem() {
-
-    // Setup shared directory
-    do {
-      try FileManager.default.createDirectory(
-        at: FilePath.dataDirectory,
-        withIntermediateDirectories: true
-      )
-      appLogger.info("data directory created at: \(FilePath.dataDirectory.path)")
-    } catch {
-      appLogger.error("Failed to create data directory: \(error.localizedDescription)")
-    }
-
-    //Setup log directory
-    do {
-      try FileManager.default.createDirectory(
-        at: FilePath.logsDirectory,
-        withIntermediateDirectories: true
-      )
-      appLogger.info("logs directory created at: \(FilePath.logsDirectory.path)")
-    } catch {
-      appLogger.error("Failed to create logs directory: \(error.localizedDescription)")
-    }
-
   }
 
   /// Calls API handler setup
