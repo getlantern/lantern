@@ -304,12 +304,13 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
     }
 
     fun opts(): Opts {
-        val opts = Opts()
-        opts.dataDir = initConfigDir()
-        opts.logDir = logDir()
-        opts.logLevel = "debug"
-        opts.deviceid = DeviceUtil.deviceId()
-        opts.locale = DeviceUtil.getLanguageCode(this@LanternVpnService)
+        val opts = Opts().apply {
+            dataDir = initConfigDir()
+            logDir = logDir()
+            logLevel = if (BuildConfig.DEBUG) "debug" else "warn"
+            deviceid = DeviceUtil.deviceId()
+            locale = DeviceUtil.getLanguageCode(this@LanternVpnService)
+        }
         return opts
     }
 
