@@ -349,7 +349,7 @@ func (lc *LanternCore) OAuthLoginCallback(oAuthToken string) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error decoding JWT: %w", err)
 	}
-	
+
 	// Temporary  set user data to so api can read it
 	login := &protos.LoginResponse{
 		LegacyID:    jwtUserInfo.LegacyUserId,

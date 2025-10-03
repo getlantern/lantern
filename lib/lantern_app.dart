@@ -31,9 +31,8 @@ class LanternApp extends StatefulHookConsumerWidget {
 }
 
 class _LanternAppState extends ConsumerState<LanternApp> {
-
   late final AppLifecycleListener _lifecycle;
-  
+
   @override
   void initState() {
     super.initState();
@@ -45,7 +44,10 @@ class _LanternAppState extends ConsumerState<LanternApp> {
     _lifecycle = AppLifecycleListener(
       onExitRequested: () async {
         appLogger.info("Exit requested");
-        await ref.read(lanternServiceProvider).stopVPN().timeout(const Duration(seconds: 5));
+        await ref
+            .read(lanternServiceProvider)
+            .stopVPN()
+            .timeout(const Duration(seconds: 5));
         return AppExitResponse.exit;
       },
     );

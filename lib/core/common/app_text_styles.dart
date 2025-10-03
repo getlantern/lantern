@@ -51,11 +51,11 @@ class AppTextStyles {
       );
 
   static TextStyle get labelLargeBold => GoogleFonts.urbanist(
-    fontSize: 14,
-    fontWeight: FontWeight.bold,
-    letterSpacing: 0,
-    color: AppColors.black,
-  );
+        fontSize: 14,
+        fontWeight: FontWeight.bold,
+        letterSpacing: 0,
+        color: AppColors.black,
+      );
 
   static TextStyle get labelMedium => GoogleFonts.urbanist(
         fontSize: 12,

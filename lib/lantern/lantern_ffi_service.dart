@@ -1051,10 +1051,8 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, String>> getAutoServerLocation() async {
     try {
       final result = await runInBackground<String>(
-            () async {
-          return _ffiService
-              .getAutoLocation()
-              .toDartString();
+        () async {
+          return _ffiService.getAutoLocation().toDartString();
         },
       );
       checkAPIError(result);

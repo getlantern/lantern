@@ -62,8 +62,9 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
           if (appSetting.bypassList.isNotEmpty) ...{
             SliverToBoxAdapter(child: SizedBox(height: defaultSize)),
             SliverToBoxAdapter(
-                child: SectionLabel('enabled_bypass_lists'.i18n.fill([
-                  appSetting.bypassList.length]))),
+                child: SectionLabel('enabled_bypass_lists'
+                    .i18n
+                    .fill([appSetting.bypassList.length]))),
             SliverToBoxAdapter(
               child: AppCard(
                 padding: EdgeInsets.zero,

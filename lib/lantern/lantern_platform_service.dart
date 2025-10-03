@@ -183,7 +183,6 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
-
   ///Split tunneling methods
   @override
   Future<Either<Failure, Unit>> addSplitTunnelItem(
@@ -246,7 +245,6 @@ class LanternPlatformService implements LanternCoreService {
       return Left(e.toFailure());
     }
   }
-
 
   /// In-App Purchase and Subscription methods
   @override
@@ -342,14 +340,14 @@ class LanternPlatformService implements LanternCoreService {
   @override
   Future<Either<Failure, String>> paymentRedirect(
       {required String provider,
-        required String planId,
-        required String email}) async {
+      required String planId,
+      required String email}) async {
     if (PlatformUtils.isIOS) {
       throw UnimplementedError("This not supported on IOS");
     }
     try {
       final redirectUrl =
-      await _methodChannel.invokeMethod<String>('paymentRedirect', {
+          await _methodChannel.invokeMethod<String>('paymentRedirect', {
         'provider': provider,
         'planId': planId,
         'email': email,
@@ -418,7 +416,6 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
-
   ///App related methods
   ///
   /// Get user data from local storage
@@ -466,7 +463,7 @@ class LanternPlatformService implements LanternCoreService {
   Future<Either<Failure, String>> featureFlag() async {
     try {
       final featureFlag =
-      await _methodChannel.invokeMethod<String>('featureFlag');
+          await _methodChannel.invokeMethod<String>('featureFlag');
       return Right(featureFlag!);
     } catch (e, stackTrace) {
       appLogger.error('Error fetching feature flag', e, stackTrace);
@@ -490,13 +487,13 @@ class LanternPlatformService implements LanternCoreService {
 
   @override
   Future<Either<Failure, Unit>> reportIssue(
-      String email,
-      String issueType,
-      String description,
-      String device,
-      String model,
-      String logFilePath,
-      ) async {
+    String email,
+    String issueType,
+    String description,
+    String device,
+    String model,
+    String logFilePath,
+  ) async {
     try {
       await _methodChannel.invokeMethod('reportIssue', {
         'email': email,
@@ -512,8 +509,6 @@ class LanternPlatformService implements LanternCoreService {
       return left(e.toFailure());
     }
   }
-
-
 
   /// Authentication methods
   @override
@@ -640,7 +635,7 @@ class LanternPlatformService implements LanternCoreService {
       String newEmail, String password) async {
     try {
       final result =
-      await _methodChannel.invokeMethod<String>('startChangeEmail', {
+          await _methodChannel.invokeMethod<String>('startChangeEmail', {
         'newEmail': newEmail,
         'password': password,
       });
@@ -654,11 +649,11 @@ class LanternPlatformService implements LanternCoreService {
   @override
   Future<Either<Failure, String>> completeChangeEmail(
       {required String newEmail,
-        required String password,
-        required String code}) async {
+      required String password,
+      required String code}) async {
     try {
       final result =
-      await _methodChannel.invokeMethod<String>('completeChangeEmail', {
+          await _methodChannel.invokeMethod<String>('completeChangeEmail', {
         'newEmail': newEmail,
         'password': password,
         'code': code,
@@ -669,7 +664,6 @@ class LanternPlatformService implements LanternCoreService {
       return Left(e.toFailure());
     }
   }
-
 
   /// Private server methods
   @override
@@ -830,7 +824,6 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
-
   ///Server location methods
   @override
   Future<Either<Failure, String>> getAutoServerLocation() async {
@@ -848,7 +841,7 @@ class LanternPlatformService implements LanternCoreService {
   Future<Either<Failure, AvailableServers>> getLanternAvailableServers() async {
     try {
       final result =
-      await _methodChannel.invokeMethod('getLanternAvailableServers');
+          await _methodChannel.invokeMethod('getLanternAvailableServers');
       return Right(AvailableServers.fromJson(jsonDecode(result)));
     } catch (e, stackTrace) {
       appLogger.error(
@@ -856,7 +849,6 @@ class LanternPlatformService implements LanternCoreService {
       return Left(e.toFailure());
     }
   }
-
 
   /// macOS System Extension methods
   @override

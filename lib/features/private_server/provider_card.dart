@@ -15,7 +15,6 @@ class ProviderCard extends StatelessWidget {
     required this.buttonTitle,
     required this.features,
     required this.provider,
-
     required this.icon,
     required this.onContinueClicked,
   });
