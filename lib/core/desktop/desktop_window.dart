@@ -3,7 +3,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:window_manager/window_manager.dart';
 
 Future<void> configureDesktopWindow() async {
-  if (!Platform.isWindows && !Platform.isLinux && !Platform.isMacOS) return;
+  if (!PlatformUtils.isDesktop) return;
 
   await windowManager.ensureInitialized();
 
