@@ -23,6 +23,7 @@ class WindowNotifier extends _$WindowNotifier {
     );
 
     // Lock size (390x760)
+    await windowManager.setSize(initialWindowSize);
     await windowManager.setResizable(!lockWindowSize);
 
     await windowManager.setPreventClose(true);
