@@ -33,7 +33,6 @@ class WindowNotifier extends _$WindowNotifier {
     }
 
     windowManager.waitUntilReadyToShow(options, () async {
-      await windowManager.setSize(initialWindowSize);
       await windowManager.show();
       await windowManager.focus();
     });
