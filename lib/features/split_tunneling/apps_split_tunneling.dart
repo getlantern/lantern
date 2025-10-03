@@ -110,34 +110,36 @@ class AppsSplitTunneling extends HookConsumerWidget {
           SliverToBoxAdapter(child: SectionLabel('installed_apps'.i18n)),
           SliverToBoxAdapter(
             child: AppCard(
-              child: ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: filteredDisabled.length + 1,
-                separatorBuilder: (_, __) =>
-                    DividerSpace(padding: EdgeInsets.zero),
-                itemBuilder: (ctx, i) {
-                  if (i == 0) {
-                    return AppTile(
-                      minHeight: 40,
-                      contentPadding: EdgeInsets.zero,
-                      label: '',
-                      trailing: AppTextButton(
-                        label: 'select_all'.i18n,
-                        fontSize: 14,
-                        onPressed: () {
-                          notifier.selectAllApps();
-                        },
-                      ),
-                    );
-                  }
-                  final app = filteredDisabled[i - 1];
-                  return AppRow(
-                    app: app,
-                    onToggle: () => notifier.toggleApp(app),
-                  );
-                },
-              ),
+              child: filteredDisabled.isEmpty
+                  ? AppTile(minHeight: 40, label: 'no_apps_selected'.i18n)
+                  : ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: filteredDisabled.length + 1,
+                      separatorBuilder: (_, __) =>
+                          DividerSpace(padding: EdgeInsets.zero),
+                      itemBuilder: (ctx, i) {
+                        if (i == 0) {
+                          return AppTile(
+                            minHeight: 40,
+                            contentPadding: EdgeInsets.zero,
+                            label: '',
+                            trailing: AppTextButton(
+                              label: 'select_all'.i18n,
+                              fontSize: 14,
+                              onPressed: () {
+                                notifier.selectAllApps();
+                              },
+                            ),
+                          );
+                        }
+                        final app = filteredDisabled[i - 1];
+                        return AppRow(
+                          app: app,
+                          onToggle: () => notifier.toggleApp(app),
+                        );
+                      },
+                    ),
             ),
           ),
         ],

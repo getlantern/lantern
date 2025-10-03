@@ -21,8 +21,7 @@ enum class Methods(val method: String) {
     Stop("stopVPN"),
     ConnectToServer("connectToServer"),
     IsVpnConnected("isVPNConnected"),
-    AddSplitTunnelItem("addSplitTunnelItem"),
-    RemoveSplitTunnelItem("removeSplitTunnelItem"),
+
     StripeSubscription("stripeSubscription"),
     StripeBillingPortal("stripeBillingPortal"),
     Plans("plans"),
@@ -73,6 +72,11 @@ enum class Methods(val method: String) {
     GetLanternAvailableServers("getLanternAvailableServers"),
     GetAutoServerLocation("getAutoServerLocation"),
 
+    //Split Tunnel methods
+    AddSplitTunnelItem("addSplitTunnelItem"),
+    RemoveSplitTunnelItem("removeSplitTunnelItem"),
+    AddAllItems("addAllItems"),
+    RemoveAllItems("removeAllItems"),
 }
 
 class MethodHandler : FlutterPlugin,
@@ -202,6 +206,39 @@ class MethodHandler : FlutterPlugin,
                     }
                 }
             }
+            Methods.AddAllItems.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val items = call.argument<String>("value")
+                        Mobile.addSplitTunnelItems(items)
+                        success("All items added")
+                    }.onFailure { e ->
+                        result.error(
+                            "add_all_split_tunnel_items",
+                            e.localizedMessage ?: "Failed to add all split tunnel items",
+                            e
+                        )
+                    }
+                }
+            }
+
+            Methods.RemoveAllItems.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val items = call.argument<String>("value")
+                        Mobile.removeSplitTunnelItems(items)
+                        success("All items removed")
+                    }.onFailure { e ->
+                        result.error(
+                            "remove_all_split_tunnel_items",
+                            e.localizedMessage ?: "Failed to remove all split tunnel items",
+                            e
+                        )
+                    }
+                }
+            }
+
+
 
             Methods.ReportIssue.method -> {
                 scope.launch {
