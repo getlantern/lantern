@@ -2,8 +2,7 @@ import 'dart:io';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:window_manager/window_manager.dart';
-
-import '../../../core/common/common.dart';
+import 'package:lantern/core/common/common.dart';
 
 part 'window_notifier.g.dart';
 
@@ -12,20 +11,32 @@ class WindowNotifier extends _$WindowNotifier {
   @override
   Future<void> build() async {
     if (!PlatformUtils.isDesktop) return;
+
     await windowManager.ensureInitialized();
-    WindowOptions windowOptions = WindowOptions(
-      size: desktopWindowSize,
+
+    final options = WindowOptions(
+      size: initialWindowSize,
+      minimumSize: lockWindowSize ? initialWindowSize : minimumWindowSize,
+      center: true,
+      titleBarStyle: TitleBarStyle.normal,
       skipTaskbar: false,
     );
-    windowManager.setResizable(false);
-    windowManager.waitUntilReadyToShow(
-      windowOptions,
-      () async {
-        await windowManager.setSize(desktopWindowSize);
-        windowManager.show();
-        windowManager.focus();
-      },
-    );
+
+    await windowManager.setResizable(!lockWindowSize);
+
+    if (Platform.isMacOS) {
+      await windowManager.setTitle('');
+      await windowManager.setTitleBarStyle(
+        TitleBarStyle.normal,
+        windowButtonVisibility: true,
+      );
+    }
+
+    windowManager.waitUntilReadyToShow(options, () async {
+      await windowManager.setSize(initialWindowSize);
+      await windowManager.show();
+      await windowManager.focus();
+    });
   }
 
   Future<void> open({bool focus = true}) async {

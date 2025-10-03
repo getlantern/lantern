@@ -23,6 +23,7 @@ import 'core/common/app_secrets.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   try {
     final flutterLog = await AppStorageUtils.flutterLogFile();
     initLogger(flutterLog.path);

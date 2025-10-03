@@ -31,26 +31,14 @@ class _WindowWrapperState extends ConsumerState<WindowWrapper>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback(
-      (timeStamp) {
+      (_) async {
         if (PlatformUtils.isDesktop) {
           windowManager.addListener(this);
-          _setupDesktopWindow();
+          await windowManager.setPreventClose(true);
         }
       },
     );
     _setupProtocol();
-  }
-
-  Future<void> _setupDesktopWindow() async {
-    await windowManager.setPreventClose(true);
-    await windowManager.setResizable(false);
-    if (Platform.isMacOS) {
-      await windowManager.setTitle('');
-      await windowManager.setTitleBarStyle(TitleBarStyle.normal,
-          windowButtonVisibility: true);
-    }
-    await windowManager.show();
-    await windowManager.focus();
   }
 
   @override
@@ -61,8 +49,6 @@ class _WindowWrapperState extends ConsumerState<WindowWrapper>
     super.dispose();
   }
 
-  /// Register custom protocol for Windows
-  /// See more: https://pub.dev/packages/windows_protocol_registrar
   void _setupProtocol() {
     if (Platform.isWindows) {
       ProtocolRegistrar.instance.register('lantern');
@@ -70,18 +56,14 @@ class _WindowWrapperState extends ConsumerState<WindowWrapper>
     }
   }
 
-  // WindowListener
   @override
   void onWindowClose() async {
-    if (!context.mounted) {
-      return;
-    }
-    if (!PlatformUtils.isDesktop) {
+    if (!context.mounted || !PlatformUtils.isDesktop) {
       return;
     }
     bool isPreventClose = await windowManager.isPreventClose();
     if (isPreventClose) {
-      // Instead of closing, just hide (minimize to dock)
+      // minimize-to-tray/dock
       windowManager.hide();
     } else {
       windowManager.destroy();
@@ -89,7 +71,5 @@ class _WindowWrapperState extends ConsumerState<WindowWrapper>
   }
 
   @override
-  void onWindowFocus() {
-    setState(() {});
-  }
+  void onWindowFocus() => setState(() {});
 }
