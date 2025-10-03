@@ -39,9 +39,9 @@ class PrivateServerSetup extends HookConsumerWidget {
       }
       if (serverState.status == 'EventTypeAccounts') {
         context.hideLoadingDialog();
-        final accounts = serverState.data!;
+        final accounts = serverState.data!.split(', ');
         appRouter.push(PrivateServerDetails(
-            accounts: [accounts], provider: selectedProvider));
+            accounts:accounts, provider: selectedProvider));
       }
       if (serverState.status == 'EventTypeValidationError') {
         WidgetsBinding.instance.addPostFrameCallback((_) {

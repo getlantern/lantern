@@ -7,7 +7,7 @@ part of 'manage_server_notifier.dart';
 // **************************************************************************
 
 String _$manageServerNotifierHash() =>
-    r'6c27211f831b9e2d39f7b7b172066374af7d81bd';
+    r'11446da8bad20fd0baf911d238a74b29c4645407';
 
 /// See also [ManageServerNotifier].
 @ProviderFor(ManageServerNotifier)
