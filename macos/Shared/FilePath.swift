@@ -4,6 +4,33 @@ public enum FilePath {
   public static let packageName = {
     Bundle.main.infoDictionary?["BASE_BUNDLE_IDENTIFIER"] as? String ?? "unknown"
   }()
+
+  /// Prepares the file system directories for use
+  public static func setupFileSystem() {
+
+    // Setup shared directory
+    do {
+      try FileManager.default.createDirectory(
+        at: FilePath.dataDirectory,
+        withIntermediateDirectories: true
+      )
+      print("data directory created at: \(FilePath.dataDirectory.path)")
+    } catch {
+      print("Failed to create data directory: \(error.localizedDescription)")
+    }
+
+    //Setup log directory
+    do {
+      try FileManager.default.createDirectory(
+        at: FilePath.logsDirectory,
+        withIntermediateDirectories: true
+      )
+      print("logs directory created at: \(FilePath.logsDirectory.path)")
+    } catch {
+      print("Failed to create logs directory: \(error.localizedDescription)")
+    }
+
+  }
 }
 
 extension FilePath {
