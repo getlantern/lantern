@@ -34,7 +34,6 @@ class _WindowWrapperState extends ConsumerState<WindowWrapper>
       (_) async {
         if (PlatformUtils.isDesktop) {
           windowManager.addListener(this);
-          await windowManager.setPreventClose(true);
         }
       },
     );

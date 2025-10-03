@@ -22,7 +22,10 @@ class WindowNotifier extends _$WindowNotifier {
       skipTaskbar: false,
     );
 
+    // Lock size (390x760)
     await windowManager.setResizable(!lockWindowSize);
+
+    await windowManager.setPreventClose(true);
 
     if (Platform.isMacOS) {
       await windowManager.setTitle('');
