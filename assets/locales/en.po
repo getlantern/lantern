@@ -1081,7 +1081,7 @@ msgid "private_server_options"
 msgstr "Private Server Options"
 
 msgid "lantern_version"
-msgstr "Lantern Version"quit
+msgstr "Lantern Version"
 
 msgid "quit"
 msgstr "Quit"

@@ -606,10 +606,12 @@ func (lc *LanternCore) GoogleCloudPrivateServer(events utils.PrivateServerEventL
 }
 
 func (lc *LanternCore) SelectAccount(account string) error {
+	slog.Debug("Selecting account: ", "account", account)
 	return privateserver.SelectAccount(account)
 }
 
 func (lc *LanternCore) SelectProject(project string) error {
+	slog.Debug("Selecting project: ", "project", project)
 	return privateserver.SelectProject(project)
 }
 
