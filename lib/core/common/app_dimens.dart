@@ -13,6 +13,3 @@ const double size24 = 24.0;
 // Window settings
 const desktopWindowSize = Size(390, 760);
 const mobileSize = Size(360, 690);
-const initialWindowSize = desktopWindowSize;
-const minimumWindowSize = desktopWindowSize;
-const lockWindowSize = true;
