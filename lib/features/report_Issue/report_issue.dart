@@ -35,7 +35,7 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
     'slow'.i18n,
     'cannot_link_devices'.i18n,
     'application_crashes'.i18n,
-    'other'.i18n
+    'other'.i18n,
   ];
 
   @override
