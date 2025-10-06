@@ -1,6 +1,6 @@
 import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/common/app_secrets.dart';
-import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/entity/app_data.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage.dart';
 import 'package:lantern/core/services/logger_service.dart';

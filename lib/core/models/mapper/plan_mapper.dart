@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:lantern/core/models/plan_data.dart';
-import 'package:lantern/core/models/plan_entity.dart';
+import 'package:lantern/core/models/entity/plan_entity.dart';
 
 extension PlansDataMapper on PlansData {
   PlansDataEntity toEntity() {

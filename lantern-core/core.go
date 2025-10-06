@@ -22,6 +22,12 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+type EventType = string
+
+const (
+	EventTypeConfig EventType = "config"
+)
+
 // LanternCore is the main structure accessing the Lantern backend.
 type LanternCore struct {
 	rad           *radiance.Radiance
@@ -30,6 +36,7 @@ type LanternCore struct {
 	userInfo      common.UserInfo
 	apiClient     *api.APIClient
 	initOnce      sync.Once
+	eventEmitter  utils.FlutterEventEmitter
 }
 
 var (
@@ -110,9 +117,9 @@ type Core interface {
 // Make sure LanternCore implements the Core interface
 var _ Core = (*LanternCore)(nil)
 
-func New(opts *utils.Opts) (Core, error) {
-	if opts == nil {
-		return nil, fmt.Errorf("opts cannot be nil")
+func New(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) (Core, error) {
+	if opts == nil || eventEmitter == nil {
+		return nil, fmt.Errorf("opts and eventEmitter cannot be nil")
 	}
 
 	// This isn't ideal, but currently on Android and maybe other platforms
@@ -120,7 +127,7 @@ func New(opts *utils.Opts) (Core, error) {
 	// need to ensure it's only done once.
 	core.initOnce.Do(func() {
 		slog.Debug("Initializing LanternCore with opts: ", "opts", opts)
-		if err := core.initialize(opts); err != nil {
+		if err := core.initialize(opts, eventEmitter); err != nil {
 			initError.Store(&err)
 		}
 	})
@@ -131,9 +138,14 @@ func New(opts *utils.Opts) (Core, error) {
 	return core, nil
 }
 
-func (lc *LanternCore) initialize(opts *utils.Opts) error {
+func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) error {
 	slog.Debug("Starting LanternCore initialization")
 
+	defer func() {
+		if r := recover(); r != nil {
+			slog.Error("Recovered from panic:", "error", r)
+		}
+	}()
 	var radErr error
 	if lc.rad, radErr = radiance.NewRadiance(radiance.Options{
 		LogDir:   opts.LogDir,
@@ -154,6 +166,12 @@ func (lc *LanternCore) initialize(opts *utils.Opts) error {
 	lc.serverManager = lc.rad.ServerManager()
 	lc.userInfo = lc.rad.UserInfo()
 	lc.apiClient = lc.rad.APIHandler()
+	lc.eventEmitter = eventEmitter
+
+	// Listen for config updates and notify Flutter
+	lc.rad.AddConfigListener(func() {
+		core.notifyFlutter(EventTypeConfig, "Config is fetched/updated")
+	})
 
 	// TODO: This should all be handled by the single call to get the user config -
 	// i.e. CreateUser and FetchUserData should not exist as separate calls.
@@ -167,6 +185,18 @@ func (lc *LanternCore) initialize(opts *utils.Opts) error {
 
 	slog.Debug("LanternCore initialized successfully")
 	return nil
+}
+
+// Internal methods
+// notifyFlutter sends an event to the Flutter frontend via the event emitter.
+// For mobile it will use EventChannel to send events.
+// For desktop it will use FFI
+func (lc *LanternCore) notifyFlutter(event EventType, message string) {
+	slog.Debug("Notifying Flutter")
+	lc.eventEmitter.SendEvent(&utils.FlutterEvent{
+		Type:    string(event),
+		Message: message,
+	})
 }
 
 func (lc *LanternCore) VPNStatus() (vpn.Status, error) {

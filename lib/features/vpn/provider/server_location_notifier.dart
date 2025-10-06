@@ -1,6 +1,6 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/server_location_entity.dart';
+import 'package:lantern/core/models/entity/server_location_entity.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

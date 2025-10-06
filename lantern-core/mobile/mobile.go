@@ -61,8 +61,12 @@ func panicRecover() {
 	}()
 }
 
-func SetupRadiance(opts *utils.Opts) error {
-	c, err := lanterncore.New(opts)
+func SetupRadiance(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) error {
+	defer panicRecover()
+	slog.Info("Setting up Radiance", "opts", opts)
+
+	// Initialize lantern core
+	c, err := lanterncore.New(opts, eventEmitter)
 	if err != nil {
 		return fmt.Errorf("unable to create LanternCore: %v", err)
 	}

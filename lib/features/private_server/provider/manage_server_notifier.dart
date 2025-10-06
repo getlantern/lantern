@@ -1,6 +1,6 @@
 import 'package:lantern/core/common/app_eum.dart' show ServerLocationType;
-import 'package:lantern/core/models/private_server_entity.dart';
-import 'package:lantern/core/models/server_location_entity.dart';
+import 'package:lantern/core/models/entity/private_server_entity.dart';
+import 'package:lantern/core/models/entity/server_location_entity.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 

@@ -8,7 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/entity/app_data.dart';
 import 'package:lantern/core/widgets/search_bar.dart';
 import 'package:lantern/core/widgets/section_label.dart';
 import 'package:lantern/features/split_tunneling/provider/apps_data_provider.dart';
