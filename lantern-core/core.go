@@ -140,12 +140,6 @@ func New(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) (Core, error)
 
 func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) error {
 	slog.Debug("Starting LanternCore initialization")
-
-	defer func() {
-		if r := recover(); r != nil {
-			slog.Error("Recovered from panic:", "error", r)
-		}
-	}()
 	var radErr error
 	if lc.rad, radErr = radiance.NewRadiance(radiance.Options{
 		LogDir:   opts.LogDir,

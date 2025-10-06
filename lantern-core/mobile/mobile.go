@@ -62,7 +62,6 @@ func panicRecover() {
 }
 
 func SetupRadiance(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) error {
-	defer panicRecover()
 	slog.Info("Setting up Radiance", "opts", opts)
 
 	// Initialize lantern core
@@ -293,12 +292,11 @@ func GoogleCloudPrivateServer(events utils.PrivateServerEventListener) error {
 }
 
 func SelectAccount(account string) error {
-	panicRecover()
 	return withCore(func(c lanterncore.Core) error { return c.SelectAccount(account) })
 }
 
 func SelectProject(project string) error {
-	panicRecover()
+
 	return withCore(func(c lanterncore.Core) error { return c.SelectProject(project) })
 }
 

@@ -43,6 +43,7 @@ var (
 	logsPort          int64
 	statusPort        int64
 	privateserverPort int64
+	appEventPort      int64
 )
 
 func core() lanterncore.Core {
@@ -74,15 +75,27 @@ func sendApps(port int64) func(apps ...*apps.AppData) error {
 	}
 }
 
+// / Flutter event emitter implementation for FFI
+type ffiFlutterEventEmitter struct{}
+
+func (e *ffiFlutterEventEmitter) SendEvent(event *utils.FlutterEvent) {
+	slog.Debug("Sending event to Flutter:", "event", event)
+	if appEventPort == 0 {
+		slog.Error("Apps port is not set, cannot send event")
+		return
+	}
+	go dart_api_dl.SendToPort(appEventPort, fmt.Sprintf(`{"type":"%s","message":"%s"}`, event.Type, event.Message))
+}
+
 //export setup
-func setup(_logDir, _dataDir, _locale *C.char, logP, appsP, statusP, privateServerP C.int64_t, api unsafe.Pointer) *C.char {
+func setup(_logDir, _dataDir, _locale *C.char, logP, appsP, statusP, privateServerP, appEventP C.int64_t, api unsafe.Pointer) *C.char {
 	core, err := lanterncore.New(&utils.Opts{
 		LogDir:   C.GoString(_logDir),
 		DataDir:  C.GoString(_dataDir),
 		Locale:   C.GoString(_locale),
 		Deviceid: "",
 		LogLevel: "debug",
-	})
+	}, &ffiFlutterEventEmitter{})
 	if err != nil {
 		return C.CString(fmt.Sprintf("unable to create LanternCore: %v", err))
 	}
@@ -92,6 +105,8 @@ func setup(_logDir, _dataDir, _locale *C.char, logP, appsP, statusP, privateServ
 	appsPort = int64(appsP)
 	statusPort = int64(statusP)
 	privateserverPort = int64(privateServerP)
+	appEventPort = int64(appEventP)
+
 	slog.Debug("Radiance setup successfully")
 	return C.CString("ok")
 }
