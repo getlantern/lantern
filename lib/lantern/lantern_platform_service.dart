@@ -54,7 +54,7 @@ class LanternPlatformService implements LanternCoreService {
         .receiveBroadcastStream()
         .map((event) => PrivateServerStatus.fromJson(jsonDecode(event)));
 
-    appEventStatusChannel
+    _appEventStatus = appEventStatusChannel
         .receiveBroadcastStream()
         .map((event) => AppEvent.fromJson(event));
 
@@ -64,6 +64,11 @@ class LanternPlatformService implements LanternCoreService {
           .map((event) =>
               MacOSExtensionState.fromString(event['status'].toString()));
     }
+  }
+
+  @override
+  Stream<AppEvent> watchAppEvents() {
+    return _appEventStatus;
   }
 
   /// VPN methods

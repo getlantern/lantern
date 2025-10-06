@@ -9,6 +9,7 @@ import 'package:ffi/ffi.dart';
 import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/entity/app_data.dart';
 import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/lantern_status.dart';
@@ -1097,6 +1098,12 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, Unit>> removeAllItems(
       SplitTunnelFilterType type, List<String> value) {
     // TODO: implement removeAllItems
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<AppEvent> watchAppEvents() {
+    // TODO: implement watchAppEvents
     throw UnimplementedError();
   }
 }

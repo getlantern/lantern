@@ -1,5 +1,6 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/entity/app_data.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/datacap_info.dart';
@@ -16,7 +17,7 @@ abstract class LanternCoreService {
   ///App Methods
   Future<void> init();
 
-
+  Stream<AppEvent> watchAppEvents();
 
   Future<Either<Failure, Unit>> isVPNConnected();
 

@@ -54,8 +54,7 @@ class EventHandler : FlutterPlugin {
 
         statusChannelListeners()
         privateServerStatus()
-//        appEventStatus()
-
+        appEventStatus()
     }
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {

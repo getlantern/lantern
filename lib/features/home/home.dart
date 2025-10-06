@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
+import 'package:lantern/features/home/provider/app_event_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/features/vpn/location_setting.dart';
@@ -87,6 +88,7 @@ class _HomeState extends ConsumerState<Home> with RouteAware {
     final isUserPro = ref.isUserPro;
     ref.read(featureFlagNotifierProvider.notifier);
     textTheme = Theme.of(context).textTheme;
+    final appEvent = ref.watch(appEventNotifierProvider);
     return Scaffold(
       appBar: AppBar(
           backgroundColor: AppColors.white,

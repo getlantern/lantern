@@ -6,7 +6,7 @@ class AppEvent {
 
   factory AppEvent.fromJson(Map<String, dynamic> json) {
     return AppEvent(
-      eventType: json['eventType'],
+      eventType: json['type'],
       message: json['message'],
     );
   }
