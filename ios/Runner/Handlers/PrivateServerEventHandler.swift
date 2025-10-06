@@ -15,7 +15,7 @@ class PrivateServerEventHandler: NSObject, FlutterPlugin, FlutterStreamHandler {
   public static func register(with registrar: FlutterPluginRegistrar) {
     let instance = PrivateServerEventHandler()
     instance.channel = FlutterEventChannel(
-      name: Self.name, binaryMessenger: registrar.messenger(), codec: FlutterJSONMethodCodec())
+      name: self.name, binaryMessenger: registrar.messenger(), codec: FlutterJSONMethodCodec())
     instance.channel?.setStreamHandler(instance)
   }
 

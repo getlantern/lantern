@@ -188,7 +188,7 @@ SPEC CHECKSUMS:
   ObjectBox: 7760fa9072adcffe102a6adf4646ca84ba70ab6b
   objectbox_flutter_libs: 8fa96fe3ffeb448a48e8cacbbe3ec4be7a6564d8
   OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
-  package_info_plus: c0502532a26c7662a62a356cebe2692ec5fe4ec4
+  package_info_plus: 115f4ad11e0698c8c1c5d8a689390df880f47e85
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
   Sentry: 2cbbe3592f30050c60e916c63c7f5a2fa584005e
   sentry_flutter: feb376a4d8fd37387898b94e00da2060eeab2a41

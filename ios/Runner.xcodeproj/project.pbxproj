@@ -12,6 +12,7 @@
 		032CB5242DBA8A55002331EB /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032CB5232DBA8A55002331EB /* Logger.swift */; };
 		032CB5292DBA90ED002331EB /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032CB5232DBA8A55002331EB /* Logger.swift */; };
 		032CB52A2DBA9109002331EB /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032CB5102DBA86FF002331EB /* KeychainService.swift */; };
+		03CC8B342E93EFC500EC8D51 /* FlutterEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03CC8B332E93EFB500EC8D51 /* FlutterEventHandler.swift */; };
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
 		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
@@ -95,6 +96,7 @@
 		0307936E2E09466100EA2B3C /* PrivateServerEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivateServerEventHandler.swift; sourceTree = "<group>"; };
 		032CB5102DBA86FF002331EB /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
 		032CB5232DBA8A55002331EB /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
+		03CC8B332E93EFB500EC8D51 /* FlutterEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlutterEventHandler.swift; sourceTree = "<group>"; };
 		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
 		15CDFA9CF7BE34C46C496D17 /* Pods-RunnerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release.xcconfig"; sourceTree = "<group>"; };
@@ -227,6 +229,7 @@
 		5FEB872F2D9F45EB000AE0DB /* Handlers */ = {
 			isa = PBXGroup;
 			children = (
+				03CC8B332E93EFB500EC8D51 /* FlutterEventHandler.swift */,
 				0307936E2E09466100EA2B3C /* PrivateServerEventHandler.swift */,
 				5F3FD9A22D9F6A32009480A7 /* LogsEventHandler.swift */,
 				5FEB872D2D9F45EB000AE0DB /* MethodHandler.swift */,
@@ -586,6 +589,7 @@
 				032CB5242DBA8A55002331EB /* Logger.swift in Sources */,
 				5F4C38512D9155BC0053105F /* FilePath.swift in Sources */,
 				5F3FD9A62D9F6ADD009480A7 /* CommandClient.swift in Sources */,
+				03CC8B342E93EFC500EC8D51 /* FlutterEventHandler.swift in Sources */,
 				032CB52A2DBA9109002331EB /* KeychainService.swift in Sources */,
 				5FEB87302D9F45EB000AE0DB /* MethodHandler.swift in Sources */,
 				5FEB87312D9F45EB000AE0DB /* StatusEventHandler.swift in Sources */,

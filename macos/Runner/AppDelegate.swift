@@ -56,6 +56,11 @@ class AppDelegate: FlutterAppDelegate {
   /// Registers Flutter event channel handlers
   private func registerEventHandlers(controller: FlutterViewController) {
     let registry = controller as FlutterPluginRegistry
+
+    if let flutterEventRegistrar = registry.registrar(forPlugin: "FlutterEventHandler") {
+      FlutterEventHandler.register(with: flutterEventRegistrar)
+    }
+
     let statusRegistrar = registry.registrar(forPlugin: "StatusEventHandler")
     StatusEventHandler.register(with: statusRegistrar)
 
