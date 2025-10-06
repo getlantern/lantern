@@ -10,8 +10,8 @@ import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_event.dart';
-import 'package:lantern/core/models/entity/app_data.dart';
 import 'package:lantern/core/models/datacap_info.dart';
+import 'package:lantern/core/models/entity/app_data.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/mapper/plan_mapper.dart';
 import 'package:lantern/core/models/private_server_status.dart';
@@ -45,6 +45,7 @@ class LanternFFIService implements LanternCoreService {
 
   late final Stream<LanternStatus> _status;
   late Stream<PrivateServerStatus> _privateServerStatus;
+  late Stream<AppEvent> _appEvents;
   late final LanternServiceWindows _windowsService;
 
   static SendPort? _commandSendPort;
@@ -56,6 +57,7 @@ class LanternFFIService implements LanternCoreService {
   static final privateServerReceivePort = ReceivePort();
   static final appsReceivePort = ReceivePort();
   static final loggingReceivePort = ReceivePort();
+  static final flutterEventReceivePort = ReceivePort();
 
   static LanternBindings _gen() {
     String fullPath = "";
@@ -88,6 +90,7 @@ class LanternFFIService implements LanternCoreService {
                 appsReceivePort.sendPort.nativePort,
                 statusReceivePort.sendPort.nativePort,
                 privateServerReceivePort.sendPort.nativePort,
+                flutterEventReceivePort.sendPort.nativePort,
                 NativeApi.initializeApiDLData,
               )
               .toDartString();
@@ -133,10 +136,20 @@ class LanternFFIService implements LanternCoreService {
         Map<String, dynamic> result = jsonDecode(event);
         return PrivateServerStatus.fromJson(result);
       });
+      _appEvents = flutterEventReceivePort.map((event) {
+        Map<String, dynamic> result = jsonDecode(event);
+        return AppEvent.fromJson(result);
+      });
+
       if (!Platform.isWindows) await _setupRadiance();
     } catch (e) {
       appLogger.error('Error while setting up radiance: $e');
     }
+  }
+
+  @override
+  Stream<AppEvent> watchAppEvents() {
+    return _appEvents;
   }
 
   @override
@@ -1101,11 +1114,7 @@ class LanternFFIService implements LanternCoreService {
     throw UnimplementedError();
   }
 
-  @override
-  Stream<AppEvent> watchAppEvents() {
-    // TODO: implement watchAppEvents
-    throw UnimplementedError();
-  }
+
 }
 
 void checkAPIError(dynamic result) {
