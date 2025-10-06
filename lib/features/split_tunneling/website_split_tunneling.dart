@@ -62,8 +62,9 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
           if (appSetting.bypassList.isNotEmpty) ...{
             SliverToBoxAdapter(child: SizedBox(height: defaultSize)),
             SliverToBoxAdapter(
-                child: SectionLabel('enabled_bypass_lists'.i18n.fill([
-                  appSetting.bypassList.length]))),
+                child: SectionLabel('enabled_bypass_lists'
+                    .i18n
+                    .fill([appSetting.bypassList.length]))),
             SliverToBoxAdapter(
               child: AppCard(
                 padding: EdgeInsets.zero,
@@ -158,7 +159,7 @@ class WebsiteRow extends StatelessWidget {
       minHeight: 45,
       contentPadding: EdgeInsets.only(left: 16),
       label: website.domain,
-      tileTextStyle: AppTestStyles.labelLarge.copyWith(
+      tileTextStyle: AppTextStyles.labelLarge.copyWith(
         color: AppColors.gray8,
         fontSize: 14,
         fontWeight: FontWeight.w500,

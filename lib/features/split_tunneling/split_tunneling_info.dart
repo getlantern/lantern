@@ -23,7 +23,7 @@ class SplitTunnelingInfo extends HookConsumerWidget {
           padding: EdgeInsets.only(left: 16.0),
           child: Text(
             'automatic_mode'.i18n,
-            style: AppTestStyles.headingSmall.copyWith(
+            style: AppTextStyles.headingSmall.copyWith(
               color: Colors.black,
             ),
           ),
@@ -48,7 +48,7 @@ class SplitTunnelingInfo extends HookConsumerWidget {
                   padding: const EdgeInsets.only(bottom: 16),
                   child: Text(
                     'split_tunneling_description'.i18n,
-                    style: AppTestStyles.bodyLarge.copyWith(
+                    style: AppTextStyles.bodyLarge.copyWith(
                       height: 1.625,
                       color: AppColors.gray9,
                     ),
@@ -60,7 +60,7 @@ class SplitTunnelingInfo extends HookConsumerWidget {
                   padding: const EdgeInsets.only(bottom: 16),
                   child: Text(
                     'location_based_rules'.i18n,
-                    style: AppTestStyles.bodyLarge.copyWith(
+                    style: AppTextStyles.bodyLarge.copyWith(
                       height: 1.625,
                       color: AppColors.gray9,
                     ),
@@ -72,7 +72,7 @@ class SplitTunnelingInfo extends HookConsumerWidget {
                     'blocked_sites_proxied'.i18n,
                     'unblocked_sites_bypass'.i18n,
                   ],
-                  textStyle: AppTestStyles.bodyMedium.copyWith(
+                  textStyle: AppTextStyles.bodyMedium.copyWith(
                     color: AppColors.gray8,
                     height: 1.5,
                   ),
@@ -85,7 +85,7 @@ class SplitTunnelingInfo extends HookConsumerWidget {
                     'trusted_sites_bypass'.i18n,
                     'examples_of_bypassed_sites'.i18n,
                   ],
-                  textStyle: AppTestStyles.bodyMedium.copyWith(
+                  textStyle: AppTextStyles.bodyMedium.copyWith(
                     color: AppColors.gray8,
                     height: 1.5,
                   ),
@@ -115,7 +115,7 @@ class SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
-      child: Text(text, style: AppTestStyles.headingSmall),
+      child: Text(text, style: AppTextStyles.headingSmall),
     );
   }
 }
@@ -137,7 +137,7 @@ class SubsectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     final textStyle = isLarge
         ? Theme.of(context).textTheme.titleLarge!
-        : AppTestStyles.labelMedium.copyWith(
+        : AppTextStyles.labelMedium.copyWith(
             fontSize: 16,
             color: AppColors.gray9,
             fontWeight: FontWeight.w600,
@@ -184,18 +184,18 @@ class LinkText extends StatelessWidget {
   Widget build(BuildContext context) {
     return RichText(
       text: TextSpan(
-        style: AppTestStyles.bodyMedium,
+        style: AppTextStyles.bodyMedium,
         children: [
           TextSpan(
             text: prefix,
-            style: AppTestStyles.bodyMedium.copyWith(
+            style: AppTextStyles.bodyMedium.copyWith(
               fontSize: 16,
               fontWeight: FontWeight.w400,
             ),
           ),
           TextSpan(
             text: linkLabel,
-            style: AppTestStyles.bodyMedium.copyWith(
+            style: AppTextStyles.bodyMedium.copyWith(
               color: AppColors.green11,
               fontSize: 16,
               fontWeight: FontWeight.w700,

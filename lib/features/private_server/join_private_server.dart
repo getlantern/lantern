@@ -141,7 +141,31 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
                     buttonValid.value =
                         (value.isNotEmpty && nameController.text.isNotEmpty);
                   },
-                  suffixIcon: AppImagePaths.copy,
+                  suffixIcon: PlatformUtils.isMobile
+                      ? GestureDetector(
+                          onTap: () {
+                            appRouter.push(QrCodeScanner()).then((value) {
+                              if (value != null && value is String) {
+                                accessKeyController.text = value;
+                                buttonValid.value = (value.isNotEmpty &&
+                                    nameController.text.isNotEmpty);
+                              }
+                            });
+                          },
+                          child: AppImage(path: AppImagePaths.qrCodeScanner),
+                        )
+                      : GestureDetector(
+                          onTap: () {
+                            pasteFromClipboard().then((value) {
+                              if (value.isNotEmpty) {
+                                accessKeyController.text = value;
+                                buttonValid.value = (value.isNotEmpty &&
+                                    nameController.text.isNotEmpty);
+                              }
+                            });
+                          },
+                          child: AppImage(path: AppImagePaths.copy),
+                        ),
                 ),
                 SizedBox(height: 16),
                 PrimaryButton(

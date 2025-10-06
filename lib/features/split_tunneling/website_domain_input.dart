@@ -81,7 +81,7 @@ class WebsiteDomainInput extends HookConsumerWidget {
           padding: EdgeInsets.symmetric(horizontal: 16.0),
           child: Text(
             'enter_url_or_ip'.i18n,
-            style: AppTestStyles.bodySmall.copyWith(
+            style: AppTextStyles.bodySmall.copyWith(
               fontSize: 14,
               fontWeight: FontWeight.w500,
             ),
@@ -108,7 +108,7 @@ class WebsiteDomainInput extends HookConsumerWidget {
           padding: const EdgeInsets.all(8.0),
           child: Text(
             'use_commas'.i18n,
-            style: AppTestStyles.bodyMedium.copyWith(
+            style: AppTextStyles.bodyMedium.copyWith(
               color: AppColors.gray7,
               height: 1.6,
               fontSize: 12,

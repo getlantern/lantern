@@ -226,10 +226,14 @@ github.com/getlantern/radiance v0.0.0-20250927023348-5afbb3a36ecf h1:jLjKWWQs+8f
 github.com/getlantern/radiance v0.0.0-20250927023348-5afbb3a36ecf/go.mod h1:nKmbBXOkLE033zoRQi/Lz1tDkR6cgtPKuOfooNvgh9U=
 github.com/getlantern/radiance v0.0.0-20250929175155-70dc1d3e4316 h1:Iv+nJpBrtrW4Bgvv6GwYrftExW7CD7MStjH1bGDaBpA=
 github.com/getlantern/radiance v0.0.0-20250929175155-70dc1d3e4316/go.mod h1:nKmbBXOkLE033zoRQi/Lz1tDkR6cgtPKuOfooNvgh9U=
+github.com/getlantern/radiance v0.0.0-20251003200932-39b0f3617873 h1:4iC3/f1GpPn19aWg/v2AO+yg8GWGjlW1cLsdPZy0m+k=
+github.com/getlantern/radiance v0.0.0-20251003200932-39b0f3617873/go.mod h1:/9W3id29nfs8+jrhVpqn2cMsdgAs72mVxwXXhQnwNHM=
 github.com/getlantern/sing v0.6.13-0.20250812195008-c4468d0c7c42 h1:9mmkEsa5TlIheUyI4DfaW3+m4W01hMQprraSQzVg6mg=
 github.com/getlantern/sing v0.6.13-0.20250812195008-c4468d0c7c42/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
 github.com/getlantern/sing-box-extensions v0.0.6-0.20250927022149-37f8a374c805 h1:93jvG9jlZuF+SVSKWkZvVEf1wHLUzagPR9ltFBhsD1A=
 github.com/getlantern/sing-box-extensions v0.0.6-0.20250927022149-37f8a374c805/go.mod h1:j0FToxEE8WJ9nPCOsYKbyJCoZcTUMPvGbAdU9wf4vFs=
+github.com/getlantern/sing-box-extensions v0.0.6-0.20251003000811-d446ace2b4f6 h1:gu+jNCQH+9/UrMrE82NF7GPDn9N2OsQ5Kdh78uh5ucw=
+github.com/getlantern/sing-box-extensions v0.0.6-0.20251003000811-d446ace2b4f6/go.mod h1:j0FToxEE8WJ9nPCOsYKbyJCoZcTUMPvGbAdU9wf4vFs=
 github.com/getlantern/sing-box-minimal v1.11.12-0.20250716231657-20b15178474a h1:aiM0ypjXIjdSiLevb14hNnVmWA9eXRDqpzdHhbxkzzY=
 github.com/getlantern/sing-box-minimal v1.11.12-0.20250716231657-20b15178474a/go.mod h1:UMwVTK6uaUZ9WV+TM2fGuLpeQphysQ5dwK2r/Wp4xBE=
 github.com/getlantern/timezone v0.0.0-20210901200113-3f9de9d360c9 h1:VTNjZxSuAHUzu13lYpEVB8gc3xz5hZePGNHG5enHYLY=

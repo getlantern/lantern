@@ -9,7 +9,6 @@ import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/features/private_server/provider/private_server_notifier.dart';
 import 'package:lantern/features/private_server/provider_card.dart';
 import 'package:lantern/features/private_server/provider_carousel.dart';
-import 'package:lantern/features/private_server/server_locations_modal.dart';
 
 @RoutePage(name: 'PrivateServerSetup')
 class PrivateServerSetup extends HookConsumerWidget {
@@ -40,9 +39,9 @@ class PrivateServerSetup extends HookConsumerWidget {
       }
       if (serverState.status == 'EventTypeAccounts') {
         context.hideLoadingDialog();
-        final accounts = serverState.data!;
+        final accounts = serverState.data!.split(', ');
         appRouter.push(PrivateServerDetails(
-            accounts: [accounts], provider: selectedProvider));
+            accounts:accounts, provider: selectedProvider));
       }
       if (serverState.status == 'EventTypeValidationError') {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -66,41 +65,37 @@ class PrivateServerSetup extends HookConsumerWidget {
           provider: CloudProvider.googleCloud,
           cta: 'continue_with_${CloudProvider.googleCloud.value}'.i18n,
           card: ProviderCard(
+            features: [
+              'we_handle_configuration'.i18n,
+              'server_setup_gcp_price'.i18n.fill(['\$8']),
+              'choose_your_server_location'.i18n,
+              '90_day_free_trial'.i18n,
+              'one_month_included'.i18n.fill([1]),
+            ],
             buttonTitle:
                 'continue_with_${CloudProvider.googleCloud.value}'.i18n,
             title: 'server_setup_gcp'.i18n,
-            price: 'server_setup_gcp_price'.i18n.fill(['\$8']),
             provider: CloudProvider.googleCloud,
             icon: AppImagePaths.googleCloud,
             onContinueClicked: () =>
                 _continue(CloudProvider.googleCloud, ref, context),
-            onShowLocations: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                useSafeArea: true,
-                backgroundColor: Theme.of(context).canvasColor,
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                ),
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.9,
-                ),
-                builder: (_) => const GoogleCloudLocations(),
-              );
-            },
           ),
         ),
       (
         provider: CloudProvider.digitalOcean,
         cta: 'continue_with_${CloudProvider.digitalOcean.value}'.i18n,
         card: ProviderCard(
+          features: [
+            'easiest_setup_process'.i18n,
+            'server_setup_do_price'.i18n.fill(['\$8']),
+            'seamless_integration'.i18n,
+            'choose_your_server_location'.i18n,
+            'one_month_included'.i18n.fill([1]),
+          ],
           buttonTitle: 'continue_with_${CloudProvider.digitalOcean.value}'.i18n,
           title: 'server_setup_do'.i18n,
-          price: 'server_setup_do_price'.i18n.fill(['\$8']),
           provider: CloudProvider.digitalOcean,
           icon: AppImagePaths.digitalOceanIcon,
-          onShowLocations: () {},
           onContinueClicked: () =>
               _continue(CloudProvider.digitalOcean, ref, context),
         ),

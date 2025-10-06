@@ -67,7 +67,8 @@ class _HomeState extends ConsumerState<Home> with RouteAware {
   @override
   void didPopNext() {
     /// User comes back to home screen
-    ref.read(serverLocationNotifierProvider.notifier)
+    ref
+        .read(serverLocationNotifierProvider.notifier)
         .ifNeededGetAutoServerLocation();
     super.didPopNext();
   }
@@ -75,7 +76,8 @@ class _HomeState extends ConsumerState<Home> with RouteAware {
   @override
   void didPush() {
     /// First time screen is pushed
-    ref.read(serverLocationNotifierProvider.notifier)
+    ref
+        .read(serverLocationNotifierProvider.notifier)
         .ifNeededGetAutoServerLocation();
     super.didPush();
   }

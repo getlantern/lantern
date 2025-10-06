@@ -87,6 +87,4 @@ class VpnStatus extends HookConsumerWidget {
     }
     return AppColors.gray9;
   }
-
-
 }
