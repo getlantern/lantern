@@ -9,5 +9,7 @@ BorderRadius defaultBorderRadius = BorderRadius.circular(16.0.r);
 EdgeInsets defaultPadding = EdgeInsets.symmetric(horizontal: 16, vertical: 16);
 const double defaultSize = 16.0;
 const double size24 = 24.0;
+
+// Window settings
 const desktopWindowSize = Size(390, 760);
 const mobileSize = Size(360, 690);
