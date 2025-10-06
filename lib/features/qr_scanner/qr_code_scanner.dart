@@ -18,8 +18,7 @@ class QrCodeScanner extends StatelessWidget {
       height: 250,
     );
     return BaseScreen(
-      title: 'qr_code_scanner'.i18n,
-      appBar: AppBar(backgroundColor: Colors.transparent),
+      title: 'scan_qr_code'.i18n,
       padded: false,
       body: Stack(
         children: [

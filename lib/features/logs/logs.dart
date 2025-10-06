@@ -87,7 +87,7 @@ class Logs extends HookConsumerWidget {
                 error: (error, stack) => Center(
                   child: Text(
                     "Error: $error",
-                    style: AppTestStyles.logTextStyle,
+                    style: AppTextStyles.logTextStyle,
                   ),
                 ),
               ),
@@ -100,7 +100,7 @@ class Logs extends HookConsumerWidget {
 }
 
 TextStyle getLogStyle(String logLine) {
-  final base = AppTestStyles.logTextStyle;
+  final base = AppTextStyles.logTextStyle;
   if (logLine.startsWith('DEBUG[')) return base.copyWith(color: Colors.teal);
   if (logLine.startsWith('INFO[')) return base.copyWith(color: Colors.blue);
   if (logLine.startsWith('WARN[')) return base.copyWith(color: Colors.orange);

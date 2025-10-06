@@ -34,10 +34,13 @@ class DeviceLimitReached extends HookConsumerWidget {
             ),
           ),
           SizedBox(height: 24.0),
-          Text("lantern_pro_devices".i18n,
-              style: textTheme.labelLarge!.copyWith(
-                color: AppColors.gray8,
-              )),
+          Padding(
+            padding: const EdgeInsets.only(left: 16.0),
+            child: Text("lantern_pro_devices".i18n,
+                style: textTheme.labelLarge!.copyWith(
+                  color: AppColors.gray8,
+                )),
+          ),
           AppCard(
               child: ListView(
             shrinkWrap: true,

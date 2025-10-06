@@ -46,7 +46,8 @@ class AppSetting {
     return AppSetting(
       id: id,
       isPro: newPro ?? isPro,
-      bypassListRaw: newBypassList?.map((e) => e.value).join(',') ?? bypassListRaw,
+      bypassListRaw:
+          newBypassList?.map((e) => e.value).join(',') ?? bypassListRaw,
       isSplitTunnelingOn: newIsSpiltTunnelingOn ?? isSplitTunnelingOn,
       locale: newLocale ?? locale,
       blockAds: blockAds ?? this.blockAds,
@@ -67,11 +68,9 @@ class AppSetting {
 
   List<BypassListOption> get bypassList {
     if (bypassListRaw.isEmpty) return [];
-    return bypassListRaw
-        .split(',')
-        .map((e) => e.toBypassList)
-        .toList();
+    return bypassListRaw.split(',').map((e) => e.toBypassList).toList();
   }
+
   set bypassList(List<BypassListOption> list) {
     bypassListRaw = list.map((e) => e.value).join(',');
   }

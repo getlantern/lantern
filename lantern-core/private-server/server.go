@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
@@ -222,7 +223,7 @@ func listenToServerEvents(ps provisionSession) {
 // SelectAccount selects a billing account for the user.
 // It updates the session with the selected account and sends the project list to the event sink.
 func SelectAccount(name string) error {
-	log.Debugf("Selecting account: %s", name)
+	slog.Debug("Selecting account: ", "account", name)
 	ps, err := getSession()
 	if err != nil {
 		return err
