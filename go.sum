@@ -226,6 +226,8 @@ github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 h1:JWH5BB2o0e
 github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175/go.mod h1:h3S9LBmmzN/xM+lwYZHE4abzTtCTtidKtG+nxZcCZX0=
 github.com/getlantern/radiance v0.0.0-20251003200932-39b0f3617873 h1:4iC3/f1GpPn19aWg/v2AO+yg8GWGjlW1cLsdPZy0m+k=
 github.com/getlantern/radiance v0.0.0-20251003200932-39b0f3617873/go.mod h1:/9W3id29nfs8+jrhVpqn2cMsdgAs72mVxwXXhQnwNHM=
+github.com/getlantern/radiance v0.0.0-20251006120012-b7ccaecf5909 h1:luyUMuzC//jRIChj442k6omodhAlmUNTOihfdhrbNOM=
+github.com/getlantern/radiance v0.0.0-20251006120012-b7ccaecf5909/go.mod h1:nKmbBXOkLE033zoRQi/Lz1tDkR6cgtPKuOfooNvgh9U=
 github.com/getlantern/sing v0.6.13-0.20250812195008-c4468d0c7c42 h1:9mmkEsa5TlIheUyI4DfaW3+m4W01hMQprraSQzVg6mg=
 github.com/getlantern/sing v0.6.13-0.20250812195008-c4468d0c7c42/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
 github.com/getlantern/sing-box-extensions v0.0.6-0.20251003000811-d446ace2b4f6 h1:gu+jNCQH+9/UrMrE82NF7GPDn9N2OsQ5Kdh78uh5ucw=
