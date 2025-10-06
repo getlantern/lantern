@@ -87,7 +87,7 @@ func (s *Service) InitCore() error {
 	core, err := lanterncore.New(&utils.Opts{
 		Locale:   s.opts.Locale,
 		LogLevel: "debug",
-	})
+	},nil)
 	if err != nil {
 		slog.Errorf("Service.InitCore error err=%v", err)
 		return fmt.Errorf("init LanternCore: %w", err)
