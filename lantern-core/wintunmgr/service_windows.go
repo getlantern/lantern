@@ -25,6 +25,7 @@ import (
 	"github.com/getlantern/lantern-outline/lantern-core/common"
 	"github.com/getlantern/lantern-outline/lantern-core/utils"
 
+	rvpn "github.com/getlantern/radiance/vpn"
 	ripc "github.com/getlantern/radiance/vpn/ipc"
 )
 
@@ -173,6 +174,11 @@ func (s *Service) Start(ctx context.Context) error {
 	token, err := s.getToken()
 	if err != nil {
 		return fmt.Errorf("token: %w", err)
+	}
+
+	// Start the Radiance IPC control plane
+	if err := rvpn.InitIPC("", nil); err != nil {
+		return fmt.Errorf("init radiance IPC: %w", err)
 	}
 
 	ctx, s.cancel = context.WithCancel(ctx)
