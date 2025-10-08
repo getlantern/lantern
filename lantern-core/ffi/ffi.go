@@ -237,11 +237,24 @@ func stopVPN() *C.char {
 //
 //export getAutoLocation
 func getAutoLocation() *C.char {
-	json, err := vpn_tunnel.GetAutoLocation()
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	location, err := vpn_tunnel.GetAutoLocation()
 	if err != nil {
 		return SendError(err)
 	}
-	return C.CString(string(json))
+
+	servers, ok := c.GetServerByTag(location.Lantern)
+	if !ok {
+		return SendError(fmt.Errorf("error finding server with tag: %s", location.Lantern))
+	}
+	jsonBytes, err := json.Marshal(servers)
+	if err != nil {
+		return SendError(fmt.Errorf("error marshalling server: %v", err))
+	}
+	return C.CString(string(jsonBytes))
 }
 
 // GetAvailableServers returns the available servers in JSON format.
