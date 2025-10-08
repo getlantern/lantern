@@ -95,7 +95,7 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
         final url = webUri;
 
         ///User has completed that private server setup
-        if (url?.host == 'localhost' ||url?.host == '127.0.0.1') {
+        if (url?.host == 'localhost' || url?.host == '127.0.0.1') {
           appRouter.maybePop(true);
         }
       },

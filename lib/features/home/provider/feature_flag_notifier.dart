@@ -39,6 +39,7 @@ class FeatureFlagNotifier extends _$FeatureFlagNotifier {
       );
     }
   }
+
   bool get isSentryEnabled =>
       state.getBool(FeatureFlag.sentry, defaultValue: false);
 
