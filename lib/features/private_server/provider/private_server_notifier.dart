@@ -116,6 +116,16 @@ class PrivateServerNotifier extends _$PrivateServerNotifier {
         appLogger.info("Received location: $locations");
         state = status;
         break;
+      case 'EventTypeProvisioningCompleted':
+        appLogger.info("Provisioning completed");
+        state = status;
+
+        ///reset state to initial once server is added
+        Future.delayed(const Duration(seconds: 1), () {
+          state =
+              PrivateServerStatus(status: 'initial', data: null, error: null);
+        });
+        break;
       default:
         state = status;
     }
