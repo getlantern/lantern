@@ -81,7 +81,7 @@ func setup(_logDir, _dataDir, _locale *C.char, logP, appsP, statusP, privateServ
 		DataDir:  C.GoString(_dataDir),
 		Locale:   C.GoString(_locale),
 		Deviceid: "",
-		LogLevel: "debug",
+		LogLevel: lanterncore.DefaultLogLevel,
 	})
 	if err != nil {
 		return C.CString(fmt.Sprintf("unable to create LanternCore: %v", err))

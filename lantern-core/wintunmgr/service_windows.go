@@ -79,14 +79,14 @@ func (s *Service) vpnOpts() *utils.Opts {
 		Locale:   s.opts.Locale,
 		DataDir:  s.opts.DataDir,
 		LogDir:   s.opts.LogDir,
-		LogLevel: "debug",
+		LogLevel: lanterncore.DefaultLogLevel,
 	}
 }
 
 func (s *Service) InitCore() error {
 	core, err := lanterncore.New(&utils.Opts{
 		Locale:   s.opts.Locale,
-		LogLevel: "debug",
+		LogLevel: lanterncore.DefaultLogLevel,
 	})
 	if err != nil {
 		slog.Errorf("Service.InitCore error err=%v", err)
