@@ -40,7 +40,9 @@ class DownloadLinks extends StatelessWidget {
               icon: AppImagePaths.lanternLogoRounded,
               trailing: AppImage(path: AppImagePaths.outsideBrowser),
               label: 'lantern_io'.i18n,
-              onPressed: () {},
+              onPressed: () {
+                UrlUtils.openUrl(AppUrls.lanternOfficial);
+              },
             ),
           ),
           SizedBox(height: defaultSize),
@@ -61,6 +63,7 @@ class DownloadLinks extends StatelessWidget {
                   url: AppUrls.lanternGithub,
                   icon: AppImagePaths.github,
                   label: 'github_download_page'.i18n,
+
                 ),
                 DividerSpace(),
                 AppTile.link(
