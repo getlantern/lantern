@@ -23,8 +23,8 @@ type PrivateServerEventListener interface {
 
 // FlutterEvent represents the structure sent to Flutter.
 type FlutterEvent struct {
-	Type    string
-	Message string
+	Type    string `json:"type"`
+	Message string `json:"message"`
 }
 
 type FlutterEventEmitter interface {

@@ -10,12 +10,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'vpn_notifier.g.dart';
 
-var isDisconnectingState = (status) =>
-    status == VPNStatus.connecting || status == VPNStatus.disconnecting;
-
-// This should be called only once
-// when app is in memory after radiance will track it
-bool isServerLocationSet = false;
 
 @Riverpod(keepAlive: true)
 class VpnNotifier extends _$VpnNotifier {

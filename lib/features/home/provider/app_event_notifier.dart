@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
@@ -10,16 +12,24 @@ part 'app_event_notifier.g.dart';
 /// in one place.
 @Riverpod(keepAlive: true)
 class AppEventNotifier extends _$AppEventNotifier {
+  StreamSubscription? _appEventSub;
+
   @override
   Future<void> build() async {
     watchAppEvents();
+    ref.onDispose(() {
+      appLogger
+          .debug('Disposing AppEventNotifier and cancelling subscriptions.');
+      _appEventSub?.cancel();
+    });
   }
 
   /// Watches for application events and triggers appropriate actions.
   /// Currently, it listens for 'config' events to refresh feature flags.
   void watchAppEvents() {
     appLogger.debug('Setting up app event listener...');
-    ref.read(lanternServiceProvider).watchAppEvents().listen((event) {
+    _appEventSub =
+        ref.read(lanternServiceProvider).watchAppEvents().listen((event) {
       final eventType = event.eventType;
       switch (eventType) {
         case 'config':

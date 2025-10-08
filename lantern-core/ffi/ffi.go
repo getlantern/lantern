@@ -84,7 +84,13 @@ func (e *ffiFlutterEventEmitter) SendEvent(event *utils.FlutterEvent) {
 		slog.Error("Apps port is not set, cannot send event")
 		return
 	}
-	go dart_api_dl.SendToPort(appEventPort, fmt.Sprintf(`{"type":"%s","message":"%s"}`, event.Type, event.Message))
+	eventData, err := json.Marshal(event)
+	if err != nil {
+		slog.Error("Error marshalling event:", "error", err)
+		return
+	}
+	slog.Debug("Marshalled event data:", "data", string(eventData))
+	go dart_api_dl.SendToPort(appEventPort, string(eventData))
 }
 
 //export setup
