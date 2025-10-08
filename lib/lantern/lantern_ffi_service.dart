@@ -1062,7 +1062,7 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> getAutoServerLocation() async {
+  Future<Either<Failure, Server>> getAutoServerLocation() async {
     try {
       final result = await runInBackground<String>(
         () async {
@@ -1070,7 +1070,7 @@ class LanternFFIService implements LanternCoreService {
         },
       );
       checkAPIError(result);
-      return Right(result);
+      return Right(Server.fromJson(jsonDecode(result)));
     } catch (e, stackTrace) {
       appLogger.error('Error starting change email', e, stackTrace);
       return Left(e.toFailure());

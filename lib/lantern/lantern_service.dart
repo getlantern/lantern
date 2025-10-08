@@ -515,7 +515,7 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> getAutoServerLocation() {
+  Future<Either<Failure, Server>> getAutoServerLocation() {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.getAutoServerLocation();
     }

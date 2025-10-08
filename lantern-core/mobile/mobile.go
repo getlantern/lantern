@@ -1,6 +1,7 @@
 package mobile
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -127,7 +128,22 @@ func GetSelectedServer() string {
 }
 
 func GetAutoLocation() (string, error) {
-	return vpn_tunnel.GetAutoLocation()
+	location, err := vpn_tunnel.GetAutoLocation()
+	if err != nil {
+		return "", err
+	}
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		servers, ok := c.GetServerByTag(location.Lantern)
+		if !ok {
+			return "", fmt.Errorf("no server found with tag: %s", location.Lantern)
+		}
+		jsonBytes, err := json.Marshal(servers)
+		if err != nil {
+			return "", fmt.Errorf("error marshalling server: %v", err)
+		}
+		slog.Debug("Auto location server:", "server", string(jsonBytes))
+		return string(jsonBytes), nil
+	})
 }
 
 // Split Tunnel Methods

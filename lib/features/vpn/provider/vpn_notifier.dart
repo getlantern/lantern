@@ -10,7 +10,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'vpn_notifier.g.dart';
 
-
 @Riverpod(keepAlive: true)
 class VpnNotifier extends _$VpnNotifier {
   @override
@@ -86,9 +85,7 @@ class VpnNotifier extends _$VpnNotifier {
   /// it supports lantern locations and private servers.
   Future<Either<Failure, String>> connectToServer(
       ServerLocationType location, String tag) async {
-    appLogger.debug(
-      "Connecting to server: $location with tag: $tag",
-    );
+    appLogger.debug("Connecting to server: $location with tag: $tag");
     final result = await ref
         .read(lanternServiceProvider)
         .connectToServer(location.name, tag);

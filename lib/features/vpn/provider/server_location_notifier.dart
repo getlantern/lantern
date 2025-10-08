@@ -1,10 +1,12 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/entity/server_location_entity.dart';
+import 'package:lantern/core/utils/country_utils.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../core/models/available_servers.dart';
 import '../../../core/services/injection_container.dart';
 
 part 'server_location_notifier.g.dart';
@@ -58,6 +60,15 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
           appLogger.error("Failed to fetch auto server location: $error");
         },
         (autoLocation) {
+          final autoServer = ServerLocationEntity(
+            serverType: ServerLocationType.auto.name,
+            serverName: '',
+            autoSelect: true,
+            serverLocation:
+                '${autoLocation.location!.city} [${CountryUtils.getCountryCode(autoLocation.location!.country)}]',
+          );
+
+          updateServerLocation(autoServer);
           appLogger.debug("Fetched auto server location: $autoLocation");
         },
       );
@@ -67,7 +78,7 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
     }
   }
 
-  Future<Either<Failure, String>> getAutoServerLocation() async {
+  Future<Either<Failure, Server>> getAutoServerLocation() async {
     final result =
         await ref.read(lanternServiceProvider).getAutoServerLocation();
     return result;

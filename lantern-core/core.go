@@ -51,6 +51,7 @@ type App interface {
 	IsVPNRunning() (bool, error)
 	GetAvailableServers() []byte
 	MyDeviceId() string
+	GetServerByTag(tag string) (servers.Server, bool)
 }
 
 type User interface {
@@ -191,6 +192,10 @@ func (lc *LanternCore) notifyFlutter(event EventType, message string) {
 		Type:    string(event),
 		Message: message,
 	})
+}
+func (lc *LanternCore) GetServerByTag(tag string) (servers.Server, bool) {
+	return lc.serverManager.GetServerByTag(tag)
+
 }
 
 func (lc *LanternCore) VPNStatus() (vpn.Status, error) {

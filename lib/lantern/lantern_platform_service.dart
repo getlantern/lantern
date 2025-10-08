@@ -840,11 +840,11 @@ class LanternPlatformService implements LanternCoreService {
 
   ///Server location methods
   @override
-  Future<Either<Failure, String>> getAutoServerLocation() async {
+  Future<Either<Failure, Server>> getAutoServerLocation() async {
     try {
       final result =
           await _methodChannel.invokeMethod<String>('getAutoServerLocation');
-      return right(result!);
+      return right(Server.fromJson(jsonDecode(result!)));
     } catch (e, stackTrace) {
       appLogger.error('Error fetching auto server location', e, stackTrace);
       return Left(e.toFailure());

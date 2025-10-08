@@ -1,7 +1,6 @@
 package vpn_tunnel
 
 import (
-	"encoding/json"
 	"fmt"
 	"log/slog"
 
@@ -93,17 +92,12 @@ func initializeCommonForApplePlatforms(options *utils.Opts) error {
 }
 
 // GetAutoLocation returns the current auto location as a JSON string.
-func GetAutoLocation() (string, error) {
+func GetAutoLocation() (*vpn.AutoSelections, error) {
 	slog.Debug("Getting auto location...")
 	location, err := vpn.AutoServerSelections()
 	slog.Debug("Auto location:", "location", location, "Error:", err)
 	if err != nil {
-		return "", fmt.Errorf("failed to get auto location: %w", err)
+		return nil, fmt.Errorf("failed to get auto location: %w", err)
 	}
-	jsonData, err := json.Marshal(location)
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal auto location: %w", err)
-	}
-	slog.Debug("Auto location JSON:", "jsonData", string(jsonData))
-	return string(jsonData), nil
+	return &location, nil
 }

@@ -16,7 +16,8 @@ import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_status_notifier.dart';
 import 'package:lantern/features/vpn/server_mobile_view.dart';
 
-import '../../core/models/entity/server_location_entity.dart' show ServerLocationEntity;
+import '../../core/models/entity/server_location_entity.dart'
+    show ServerLocationEntity;
 
 typedef OnSeverSelected = Function(Location_ selectedServer);
 
@@ -132,6 +133,8 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
   }
 
   Widget _buildSmartLocation(ServerLocationEntity serverLocation) {
+    final value = serverLocation.serverLocation.split('[')[0].trim();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -145,8 +148,10 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
         AppCard(
           padding: EdgeInsets.zero,
           child: AppTile(
-            icon: AppImagePaths.location,
-            label: 'fastest_server'.i18n,
+            icon: serverLocation.serverLocation.countryCode.isEmpty
+                ? AppImagePaths.location
+                : Flag(countryCode: serverLocation.serverLocation.countryCode),
+            label: value,
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
