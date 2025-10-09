@@ -1,5 +1,5 @@
 import 'package:lantern/core/common/app_eum.dart';
-import 'package:lantern/core/models/website.dart';
+import 'package:lantern/core/models/entity/website.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage.dart';
 import 'package:lantern/core/services/logger_service.dart';

@@ -5,9 +5,10 @@ import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/datacap_info.dart';
+import 'package:lantern/core/models/entity/app_data.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/mapper/plan_mapper.dart';
 import 'package:lantern/core/models/plan_data.dart';
@@ -34,10 +35,13 @@ class LanternPlatformService implements LanternCoreService {
       EventChannel("$channelPrefix/system_extension_status", JSONMethodCodec());
   static const privateServerStatusChannel =
       EventChannel("$channelPrefix/private_server_status", JSONMethodCodec());
+  static const appEventStatusChannel =
+      EventChannel("$channelPrefix/app_events", JSONMethodCodec());
 
   late final Stream<LanternStatus> _status;
   late final Stream<PrivateServerStatus> _privateServerStatus;
   late final Stream<MacOSExtensionState> _systemExtensionStatus;
+  late final Stream<AppEvent> _appEventStatus;
 
   @override
   Future<void> init() async {
@@ -49,12 +53,22 @@ class LanternPlatformService implements LanternCoreService {
     _privateServerStatus = privateServerStatusChannel
         .receiveBroadcastStream()
         .map((event) => PrivateServerStatus.fromJson(jsonDecode(event)));
+
+    _appEventStatus = appEventStatusChannel
+        .receiveBroadcastStream()
+        .map((event) => AppEvent.fromJson(event));
+
     if (PlatformUtils.isMacOS) {
       _systemExtensionStatus = systemExtensionStatusChannel
           .receiveBroadcastStream()
           .map((event) =>
               MacOSExtensionState.fromString(event['status'].toString()));
     }
+  }
+
+  @override
+  Stream<AppEvent> watchAppEvents() {
+    return _appEventStatus;
   }
 
   /// VPN methods
@@ -826,11 +840,11 @@ class LanternPlatformService implements LanternCoreService {
 
   ///Server location methods
   @override
-  Future<Either<Failure, String>> getAutoServerLocation() async {
+  Future<Either<Failure, Server>> getAutoServerLocation() async {
     try {
       final result =
           await _methodChannel.invokeMethod<String>('getAutoServerLocation');
-      return right(result!);
+      return right(Server.fromJson(jsonDecode(result!)));
     } catch (e, stackTrace) {
       appLogger.error('Error fetching auto server location', e, stackTrace);
       return Left(e.toFailure());

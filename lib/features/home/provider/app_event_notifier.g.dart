@@ -1,27 +1,26 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'feature_flag_notifier.dart';
+part of 'app_event_notifier.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$featureFlagNotifierHash() =>
-    r'99fa884c218ba4b56864bdbbc659401ac5347382';
+String _$appEventNotifierHash() => r'98e17c706cfd654e9f403f098837dea929373615';
 
-/// See also [FeatureFlagNotifier].
-@ProviderFor(FeatureFlagNotifier)
-final featureFlagNotifierProvider =
-    NotifierProvider<FeatureFlagNotifier, Map<String, dynamic>>.internal(
-  FeatureFlagNotifier.new,
-  name: r'featureFlagNotifierProvider',
+/// See also [AppEventNotifier].
+@ProviderFor(AppEventNotifier)
+final appEventNotifierProvider =
+    AsyncNotifierProvider<AppEventNotifier, void>.internal(
+  AppEventNotifier.new,
+  name: r'appEventNotifierProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
       ? null
-      : _$featureFlagNotifierHash,
+      : _$appEventNotifierHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
-typedef _$FeatureFlagNotifier = Notifier<Map<String, dynamic>>;
+typedef _$AppEventNotifier = AsyncNotifier<void>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
