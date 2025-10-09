@@ -9,8 +9,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import lantern.io.utils.FlutterEvent
 import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.utils.Event
+import org.getlantern.lantern.utils.FlutterEventStream
 import org.getlantern.lantern.utils.PrivateServerEventStream
 import org.getlantern.lantern.utils.VpnStatusManager
 
@@ -21,13 +23,17 @@ class EventHandler : FlutterPlugin {
         const val TAG = "A/EventHandler"
         const val SERVICE_STATUS = "org.getlantern.lantern/status"
         const val PRIVATE_SERVER_STATUS = "org.getlantern.lantern/private_server_status"
+        const val APP_EVENTS = "org.getlantern.lantern/app_events"
     }
 
     private var statusChannel: EventChannel? = null
     private var privateServerStatusChannel: EventChannel? = null
+    private var appEventStatusChannel: EventChannel? = null
 
     private var statusObserver: Observer<Event<VPNStatus>>? = null
+    private var flutterEventObserver: Observer<Event<FlutterEvent>>? = null
     var job: Job? = null
+
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         Log.d(TAG, "Event handler Attaching to engine")
         statusChannel = EventChannel(
@@ -40,10 +46,15 @@ class EventHandler : FlutterPlugin {
             PRIVATE_SERVER_STATUS,
             JSONMethodCodec.INSTANCE
         )
+        appEventStatusChannel = EventChannel(
+            flutterPluginBinding.binaryMessenger,
+            APP_EVENTS,
+            JSONMethodCodec.INSTANCE
+        )
 
         statusChannelListeners()
         privateServerStatus()
-
+        appEventStatus()
     }
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
@@ -53,6 +64,16 @@ class EventHandler : FlutterPlugin {
         if (statusObserver != null) {
             VpnStatusManager.vpnStatus.removeObserver(statusObserver!!)
             statusObserver = null
+        }
+        if (privateServerStatusChannel != null) {
+            privateServerStatusChannel!!.setStreamHandler(null)
+        }
+        if (appEventStatusChannel != null) {
+            appEventStatusChannel!!.setStreamHandler(null)
+        }
+        if (flutterEventObserver != null) {
+            FlutterEventStream.events.removeObserver(flutterEventObserver!!)
+            flutterEventObserver = null
         }
     }
 
@@ -117,7 +138,33 @@ class EventHandler : FlutterPlugin {
                 }
             },
         )
-
     }
 
+    private fun appEventStatus() {
+        appEventStatusChannel?.setStreamHandler(
+            object : EventChannel.StreamHandler {
+                override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+                    Log.d(TAG, "App event status channel listening")
+                    // Observe the LiveData
+                    flutterEventObserver = Observer { wrappedEvent ->
+                        wrappedEvent.contentIfNotHandled?.let { event ->
+                            val map = mutableMapOf<String, Any?>()
+                            map["type"] = event.type
+                            map["message"] = event.message
+                            events?.success(map)
+                        }
+                    }
+
+                    FlutterEventStream.events.observeForever(flutterEventObserver!!)
+                }
+
+                override fun onCancel(arguments: Any?) {
+                    Log.d(TAG, "App event status channel cancelled")
+                    if (flutterEventObserver != null) {
+                        FlutterEventStream.events.removeObserver(flutterEventObserver!!)
+                    }
+                }
+            })
+
+    }
 }

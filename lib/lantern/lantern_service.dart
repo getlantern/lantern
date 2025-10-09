@@ -1,6 +1,7 @@
 import 'package:fpdart/src/either.dart';
 import 'package:fpdart/src/unit.dart';
-import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/app_event.dart';
+import 'package:lantern/core/models/entity/app_data.dart';
 import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/plan_data.dart';
@@ -61,6 +62,15 @@ class LanternService implements LanternCoreService {
     }
     return _platformService.init();
   }
+
+  @override
+  Stream<AppEvent> watchAppEvents() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.watchAppEvents();
+    }
+    return _platformService.watchAppEvents();
+  }
+
 
   @override
   Stream<LanternStatus> watchVPNStatus() {
@@ -505,7 +515,7 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> getAutoServerLocation() {
+  Future<Either<Failure, Server>> getAutoServerLocation() {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.getAutoServerLocation();
     }
@@ -561,4 +571,6 @@ class LanternService implements LanternCoreService {
     }
     return _platformService.removeAllItems(type, value);
   }
+
+
 }
