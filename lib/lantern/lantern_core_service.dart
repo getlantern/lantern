@@ -1,6 +1,7 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/app_event.dart';
+import 'package:lantern/core/models/entity/app_data.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/lantern_status.dart';
@@ -13,7 +14,10 @@ import '../core/services/app_purchase.dart';
 
 /// LanternCoreService has all method that interact with lantern-core services
 abstract class LanternCoreService {
+  ///App Methods
   Future<void> init();
+
+  Stream<AppEvent> watchAppEvents();
 
   Future<Either<Failure, Unit>> isVPNConnected();
 
@@ -27,7 +31,7 @@ abstract class LanternCoreService {
 
   Stream<List<String>> watchLogs(String path);
 
-  Future<Either<Failure, String>> getAutoServerLocation();
+  Future<Either<Failure, Server>> getAutoServerLocation();
 
   ///Payments methods
   Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
@@ -185,7 +189,6 @@ abstract class LanternCoreService {
   Future<Either<Failure, AvailableServers>> getLanternAvailableServers();
 
   ///MacOS System Extension methods
-
   Future<Either<Failure, String>> triggerSystemExtension();
 
   Future<Either<Failure, Unit>> openSystemExtension();

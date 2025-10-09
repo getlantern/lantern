@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/services/logger_service.dart';
@@ -9,15 +11,22 @@ part 'macos_extension_notifier.g.dart';
 
 @Riverpod(keepAlive: true)
 class MacosExtensionNotifier extends _$MacosExtensionNotifier {
+  StreamSubscription? _extensionStatusSub;
+
   @override
   MacOSExtensionState build() {
     isSystemExtensionInstalled();
     watchExtensionStatus();
+    ref.onDispose(() {
+      appLogger.debug(
+          'Disposing MacosExtensionNotifier and cancelling subscriptions.');
+      _extensionStatusSub?.cancel();
+    });
     return MacOSExtensionState(SystemExtensionStatus.notInstalled);
   }
 
   void watchExtensionStatus() {
-    ref
+    _extensionStatusSub = ref
         .read(lanternServiceProvider)
         .watchSystemExtensionStatus()
         .listen((event) {

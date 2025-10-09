@@ -2,19 +2,19 @@ import 'dart:io';
 
 import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/common/app_secrets.dart';
-import 'package:lantern/core/models/app_data.dart';
-import 'package:lantern/core/models/app_setting.dart';
+import 'package:lantern/core/models/entity/app_data.dart';
+import 'package:lantern/core/models/entity/app_setting_entity.dart';
+import 'package:lantern/core/models/entity/private_server_entity.dart';
+import 'package:lantern/core/models/entity/server_location_entity.dart';
+import 'package:lantern/core/models/entity/user_entity.dart';
 import 'package:lantern/core/models/mapper/user_mapper.dart';
-import 'package:lantern/core/models/plan_entity.dart';
-import 'package:lantern/core/models/private_server_entity.dart';
-import 'package:lantern/core/models/server_location_entity.dart';
-import 'package:lantern/core/models/website.dart';
+import 'package:lantern/core/models/entity/plan_entity.dart';
+import 'package:lantern/core/models/entity/website.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:path/path.dart' as p;
 
 import '../../lantern/protos/protos/auth.pb.dart';
-import '../models/user_entity.dart';
 import 'db/objectbox.g.dart';
 
 /// LocalStorageService is responsible for managing local storage operations

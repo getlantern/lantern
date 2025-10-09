@@ -79,15 +79,24 @@ func (s *Service) vpnOpts() *utils.Opts {
 		Locale:   s.opts.Locale,
 		DataDir:  s.opts.DataDir,
 		LogDir:   s.opts.LogDir,
-		LogLevel: "debug",
+		LogLevel: lanterncore.DefaultLogLevel,
 	}
+}
+
+// / Flutter event emitter implementation for Windows
+type windowsFlutterEventEmitter struct{}
+
+func (e *windowsFlutterEventEmitter) SendEvent(event *utils.FlutterEvent) {
+	// todo implement windows flutter event emitter
+	// send back to flutter via IPC or other means
+
 }
 
 func (s *Service) InitCore() error {
 	core, err := lanterncore.New(&utils.Opts{
 		Locale:   s.opts.Locale,
-		LogLevel: "debug",
-	})
+		LogLevel: lanterncore.DefaultLogLevel,
+	}, &windowsFlutterEventEmitter{})
 	if err != nil {
 		slog.Errorf("Service.InitCore error err=%v", err)
 		return fmt.Errorf("init LanternCore: %w", err)

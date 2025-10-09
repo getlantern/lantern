@@ -14,15 +14,16 @@ import lantern.io.libbox.Notification
 import lantern.io.libbox.TunOptions
 import lantern.io.mobile.Mobile
 import lantern.io.utils.Opts
+import org.getlantern.lantern.BuildConfig
 import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.notification.NotificationHelper
 import org.getlantern.lantern.utils.DeviceUtil
+import org.getlantern.lantern.utils.FlutterEventListener
 import org.getlantern.lantern.utils.VpnStatusManager
 import org.getlantern.lantern.utils.initConfigDir
 import org.getlantern.lantern.utils.logDir
 import org.getlantern.lantern.utils.toIpPrefix
-import org.getlantern.lantern.BuildConfig
 
 /**
  * Service to manage VPN connection and Radiance setup, and other VPN-related tasks.
@@ -43,6 +44,8 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
     }
 
     private val notificationHelper = NotificationHelper()
+
+    private val flutterEventListener = FlutterEventListener()
 
     private var mInterface: ParcelFileDescriptor? = null
 
@@ -72,6 +75,7 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
                 }
                 START_STICKY
             }
+
             ACTION_CONNECT_TO_SERVER -> {
                 serviceScope.launch {
                     connectToServer(
@@ -138,7 +142,7 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
     private suspend fun startRadiance() {
         try {
             withContext(Dispatchers.IO) {
-                Mobile.setupRadiance(opts())
+                Mobile.setupRadiance(opts(), flutterEventListener)
             }
             Log.d(TAG, "Radiance setup completed ${DeviceUtil.deviceId()}")
         } catch (e: Exception) {
@@ -171,14 +175,14 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
         }
     }
 
-    suspend fun connectToServer(location:String,tag:String) = withContext(Dispatchers.IO) {
+    suspend fun connectToServer(location: String, tag: String) = withContext(Dispatchers.IO) {
         if (prepare(this@LanternVpnService) != null) {
             VpnStatusManager.postVPNStatus(VPNStatus.MissingPermission)
             return@withContext
         }
         runCatching {
             DefaultNetworkMonitor.start()
-            Mobile.connectToServer(location,tag,this@LanternVpnService, opts())
+            Mobile.connectToServer(location, tag, this@LanternVpnService, opts())
             Log.d(TAG, "Connected to server")
             VpnStatusManager.postVPNStatus(VPNStatus.Connected)
             notificationHelper.showVPNConnectedNotification(this@LanternVpnService)
@@ -307,7 +311,7 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
         val opts = Opts()
         opts.dataDir = initConfigDir()
         opts.logDir = logDir()
-        opts.logLevel = "debug"
+        opts.logLevel = "trace"
         opts.deviceid = DeviceUtil.deviceId()
         opts.locale = DeviceUtil.getLanguageCode(this@LanternVpnService)
         return opts
