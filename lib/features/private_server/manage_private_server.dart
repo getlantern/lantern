@@ -5,7 +5,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/private_server_entity.dart';
+import 'package:lantern/core/models/entity/private_server_entity.dart';
+
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/features/private_server/provider/manage_server_notifier.dart';

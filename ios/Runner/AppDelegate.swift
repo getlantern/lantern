@@ -54,6 +54,11 @@ import flutter_local_notifications
 
   /// Registers Flutter event channel handlers
   private func registerEventHandlers() {
+
+    if let registrar = self.registrar(forPlugin: "FlutterEventHandler") {
+      FlutterEventHandler.register(with: registrar)
+    }
+
     if let registrar = self.registrar(forPlugin: "StatusEventHandler") {
       StatusEventHandler.register(with: registrar)
     }
@@ -65,6 +70,7 @@ import flutter_local_notifications
     if let registrar = self.registrar(forPlugin: "PrivateServerEventHandler") {
       PrivateServerEventHandler.register(with: registrar)
     }
+
   }
 
   /// Initializes the native method channel handler
@@ -131,7 +137,7 @@ import flutter_local_notifications
       opts.logLevel = "trace"
       opts.locale = Locale.current.identifier
       var error: NSError?
-      await MobileSetupRadiance(opts, &error)
+      MobileSetupRadiance(opts, FlutterEventListener.shared, &error)
       // Handle any error returned by the setup
       if let error {
         appLogger.error("Error while setting up radiance: \(error)")

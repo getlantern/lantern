@@ -93,3 +93,35 @@ class Location_ {
         "country_code": countryCode,
       };
 }
+
+class Server {
+  String group;
+  String tag;
+  String type;
+  Endpoint? options;
+  Location_? location;
+
+  Server({
+    required this.group,
+    required this.tag,
+    required this.type,
+    required this.options,
+    required this.location,
+  });
+
+  factory Server.fromJson(Map<String, dynamic> json) => Server(
+    group: json["Group"],
+    tag: json["Tag"],
+    type: json["Type"],
+    options: Endpoint.fromJson(json["Options"]),
+    location: Location_.fromJson(json["Location"]),
+  );
+
+  Map<String, dynamic> toJson() => {
+    "Group": group,
+    "Tag": tag,
+    "Type": type,
+    "Options": options?.toJson(),
+    "Location": location?.toJson(),
+  };
+}

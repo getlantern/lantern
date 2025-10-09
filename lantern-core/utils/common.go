@@ -21,6 +21,16 @@ type PrivateServerEventListener interface {
 	OnError(err string)
 }
 
+// FlutterEvent represents the structure sent to Flutter.
+type FlutterEvent struct {
+	Type    string `json:"type"`
+	Message string `json:"message"`
+}
+
+type FlutterEventEmitter interface {
+	SendEvent(event *FlutterEvent)
+}
+
 // CreateLogAttachment tries to read the log file at logFilePath and returns
 // an []*issue.Attachment with the log (if found)
 func CreateLogAttachment(logFilePath string) []*issue.Attachment {

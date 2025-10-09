@@ -56,6 +56,11 @@ class AppDelegate: FlutterAppDelegate {
   /// Registers Flutter event channel handlers
   private func registerEventHandlers(controller: FlutterViewController) {
     let registry = controller as FlutterPluginRegistry
+
+     let flutterEventRegistrar = registry.registrar(forPlugin: "FlutterEventHandler")
+      FlutterEventHandler.register(with: flutterEventRegistrar)
+    
+
     let statusRegistrar = registry.registrar(forPlugin: "StatusEventHandler")
     StatusEventHandler.register(with: statusRegistrar)
 
@@ -90,7 +95,7 @@ class AppDelegate: FlutterAppDelegate {
     opts.locale = Locale.current.identifier
     appLogger.info("logging to \(opts.logDir) dataDir: \(opts.dataDir) logLevel: \(opts.logLevel)")
     var error: NSError?
-    MobileSetupRadiance(opts, &error)
+      MobileSetupRadiance(opts,FlutterEventListener.shared, &error)
     // Handle any error returned by the setup
     if let error {
       appLogger.error("Error while setting up radiance: \(error)")
