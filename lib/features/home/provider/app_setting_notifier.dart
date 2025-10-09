@@ -4,6 +4,8 @@ import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/models/entity/app_setting_entity.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage.dart';
+import 'package:lantern/core/services/logger_service.dart';
+import 'package:lantern/lantern/lantern_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'app_setting_notifier.g.dart';
@@ -78,5 +80,21 @@ class AppSettingNotifier extends _$AppSettingNotifier {
 
   void setBypassList(List<BypassListOption> list) {
     update(state.copyWith(newBypassList: list));
+  }
+
+  Future<void> setSplitTunnelingEnabled(bool enabled) async {
+    final svc = sl<LanternService>();
+    final previous = state.isSplitTunnelingOn;
+
+    update(state.copyWith(newIsSpiltTunnelingOn: enabled));
+
+    final res = await svc.setSplitTunnelingEnabled(enabled);
+    res.match(
+      (err) {
+        appLogger.error('setSplitTunnelingEnabled failed: ${err.error}');
+        update(state.copyWith(newIsSpiltTunnelingOn: previous));
+      },
+      (_) {},
+    );
   }
 }

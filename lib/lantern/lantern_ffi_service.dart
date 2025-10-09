@@ -83,15 +83,14 @@ class LanternFFIService implements LanternCoreService {
         });
         await _setupRadiance();
       }
-      _privateServerStatus =privateServerReceivePort.map((event) {
+      _privateServerStatus = privateServerReceivePort.map((event) {
         Map<String, dynamic> result = jsonDecode(event);
         return PrivateServerStatus.fromJson(result);
       });
-      _appEvents =  flutterEventReceivePort.map((event) {
+      _appEvents = flutterEventReceivePort.map((event) {
         Map<String, dynamic> result = jsonDecode(event);
         return AppEvent.fromJson(result);
       });
-
     } catch (e) {
       appLogger.error('Error while setting up radiance: $e');
     }
@@ -106,19 +105,19 @@ class LanternFFIService implements LanternCoreService {
       final dataDirPtr = dataDir.path.toCharPtr;
       final logDirPtr = logDir.toCharPtr;
       final result = await runInBackground<String>(
-            () async {
+        () async {
           return _ffiService
               .setup(
-            logDirPtr,
-            dataDirPtr,
-            Localization.defaultLocale.toCharPtr,
-            loggingReceivePort.sendPort.nativePort,
-            appsReceivePort.sendPort.nativePort,
-            statusReceivePort.sendPort.nativePort,
-            privateServerReceivePort.sendPort.nativePort,
-            flutterEventReceivePort.sendPort.nativePort,
-            NativeApi.initializeApiDLData,
-          )
+                logDirPtr,
+                dataDirPtr,
+                Localization.defaultLocale.toCharPtr,
+                loggingReceivePort.sendPort.nativePort,
+                appsReceivePort.sendPort.nativePort,
+                statusReceivePort.sendPort.nativePort,
+                privateServerReceivePort.sendPort.nativePort,
+                flutterEventReceivePort.sendPort.nativePort,
+                NativeApi.initializeApiDLData,
+              )
               .toDartString();
         },
       );
@@ -132,7 +131,8 @@ class LanternFFIService implements LanternCoreService {
 
   Future<void> _initializeWindowsService() async {
     final tokenFile = File(
-      p.join(Platform.environment['ProgramData'] ?? r'C:\ProgramData', 'Lantern', 'ipc-token'),
+      p.join(Platform.environment['ProgramData'] ?? r'C:\ProgramData',
+          'Lantern', 'ipc-token'),
     );
     final token = (await tokenFile.readAsString()).trim();
     final pipe = PipeClient(token: token);
@@ -145,7 +145,6 @@ class LanternFFIService implements LanternCoreService {
     }
     _status = _windowsService.watchVPNStatus();
   }
-
 
   @override
   Stream<AppEvent> watchAppEvents() {
@@ -258,6 +257,18 @@ class LanternFFIService implements LanternCoreService {
       value,
       SplitTunnelActionType.remove,
     );
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setSplitTunnelingEnabled(bool enabled) {
+    // unimplemented
+    throw 'Unimplemented';
+  }
+
+  @override
+  Future<Either<Failure, bool>> isSplitTunnelingEnabled() {
+    // unimplemented
+    throw 'Unimplemented';
   }
 
   @override
@@ -1113,8 +1124,6 @@ class LanternFFIService implements LanternCoreService {
     // TODO: implement removeAllItems
     throw UnimplementedError();
   }
-
-
 }
 
 void checkAPIError(dynamic result) {
