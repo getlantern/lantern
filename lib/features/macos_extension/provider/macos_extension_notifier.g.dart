@@ -7,7 +7,7 @@ part of 'macos_extension_notifier.dart';
 // **************************************************************************
 
 String _$macosExtensionNotifierHash() =>
-    r'7dea03cc738d2fce2f895a0508a87b3f29de1416';
+    r'842302433894032ee9670f1910f52ffef193b2b4';
 
 /// See also [MacosExtensionNotifier].
 @ProviderFor(MacosExtensionNotifier)

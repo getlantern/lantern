@@ -6,9 +6,13 @@ part of 'app_event_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$appEventNotifierHash() => r'98e17c706cfd654e9f403f098837dea929373615';
+String _$appEventNotifierHash() => r'851c13e9d99662f57373454b3dab43e41da4d379';
 
-/// See also [AppEventNotifier].
+/// Listens for application-wide events and triggers corresponding actions.
+/// This can be used for all listening to events that go sends and handling them
+/// in one place.
+///
+/// Copied from [AppEventNotifier].
 @ProviderFor(AppEventNotifier)
 final appEventNotifierProvider =
     AsyncNotifierProvider<AppEventNotifier, void>.internal(

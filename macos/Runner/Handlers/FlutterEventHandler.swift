@@ -16,7 +16,7 @@ class FlutterEventHandler: NSObject, FlutterPlugin, FlutterStreamHandler {
   public static func register(with registrar: FlutterPluginRegistrar) {
     let instance = FlutterEventHandler()
     instance.channel = FlutterEventChannel(
-        name: self.name, binaryMessenger: registrar.messenger, codec: FlutterJSONMethodCodec())
+      name: self.name, binaryMessenger: registrar.messenger, codec: FlutterJSONMethodCodec())
     instance.channel?.setStreamHandler(instance)
     appLogger.info("FlutterEventHandler registered")
   }

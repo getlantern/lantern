@@ -148,10 +148,11 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
         AppCard(
           padding: EdgeInsets.zero,
           child: AppTile(
-            icon: serverLocation.serverLocation.countryCode.isEmpty
+            icon: serverLocation.serverType.toServerLocationType ==
+                    ServerLocationType.auto
                 ? AppImagePaths.location
                 : Flag(countryCode: serverLocation.serverLocation.countryCode),
-            label: value,
+            label: 'fastest_server'.i18n,
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
