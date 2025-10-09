@@ -1,11 +1,13 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/utils/screen_utils.dart';
 
+import '../../core/utils/ip_utils.dart' show IPUtils;
+
 enum _Social {
-  facebook,
   x,
   instagram,
   telegram,
@@ -14,62 +16,6 @@ enum _Social {
 @RoutePage(name: 'FollowUs')
 class FollowUs extends StatelessWidget {
   FollowUs({super.key});
-
-  final countryMap = {
-    //Russia
-    'ru': {
-      _Social.facebook:
-          'https://www.facebook.com/profile.php?id=61555417626781',
-      _Social.x: 'https://twitter.com/Lantern_Russia',
-      _Social.instagram: 'https://www.instagram.com/lantern.io_ru',
-      _Social.telegram: 'https://t.me/lantern_russia',
-    },
-    //iran
-    'ir': {
-      _Social.facebook: 'https://www.facebook.com/getlanternpersian',
-      _Social.x: 'https://twitter.com/getlantern_fa',
-      _Social.instagram: 'https://www.instagram.com/getlantern_fa/',
-      _Social.telegram: 'https://t.me/LanternFarsi',
-    },
-    //Ukraine
-    'ua': {
-      _Social.facebook:
-          'https://www.facebook.com/profile.php?id=61554740875416',
-      _Social.x: 'https://twitter.com/LanternUA',
-      _Social.instagram: 'https://www.instagram.com/getlantern_ua/',
-      _Social.telegram: 'https://t.me/lanternukraine',
-    },
-    //Belarus
-    'by': {
-      _Social.facebook:
-          'https://www.facebook.com/profile.php?id=61554406268221',
-      _Social.x: 'https://twitter.com/LanternBelarus',
-      _Social.instagram: 'https://www.instagram.com/getlantern_belarus/',
-      _Social.telegram: 'https://t.me/lantern_belarus',
-    },
-    //United Arab Emirates
-    'uae': {
-      _Social.facebook:
-          'https://www.facebook.com/profile.php?id=61554655199439',
-      _Social.x: 'https://twitter.com/getlantern_UAE',
-      _Social.instagram: 'https://www.instagram.com/lanternio_uae/',
-      _Social.telegram: 'https://t.me/lantern_uae',
-    },
-    //Guinea
-    'gn': {
-      _Social.facebook:
-          'https://www.facebook.com/profile.php?id=61554620251833',
-      _Social.x: 'https://twitter.com/getlantern_gu',
-      _Social.instagram: 'https://www.instagram.com/lanternio_guinea/',
-      _Social.telegram: 'https://t.me/LanternGuinea',
-    },
-    'all': {
-      _Social.facebook: 'https://www.facebook.com/getlantern',
-      _Social.x: 'https://twitter.com/getlantern',
-      _Social.instagram: 'https://www.instagram.com/getlantern/',
-      _Social.telegram: '',
-    },
-  };
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +29,7 @@ class FollowUs extends StatelessWidget {
   }
 }
 
-class FollowUsListView extends StatelessWidget {
+class FollowUsListView extends HookWidget {
   final ScrollController? scrollController;
 
   const FollowUsListView({
@@ -93,34 +39,78 @@ class FollowUsListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final selectedCountry = useState<String>('ALL');
+    useEffect(() {
+      IPUtils.getUserCountry().then((country) {
+        appLogger.debug('User country: $country');
+        if (IPUtils.censoredRegion.contains(country)) {
+          selectedCountry.value = country ?? 'ALL';
+        } else {
+          selectedCountry.value = 'ALL';
+        }
+      });
+      return null;
+    }, []);
+
+    final countryMap = {
+      //Russia
+      'RU': {
+        _Social.x: 'https://twitter.com/Lantern_Russia',
+        _Social.instagram: 'https://www.instagram.com/lantern.io_ru',
+        _Social.telegram: 'https://t.me/lantern_russia',
+      },
+      //iran
+      'IR': {
+        _Social.x: 'https://twitter.com/getlantern_fa',
+        _Social.instagram: 'https://www.instagram.com/getlantern_fa/',
+        _Social.telegram: 'https://t.me/LanternFarsi',
+      },
+      'CN': {
+        _Social.x: 'https://twitter.com/getlantern_CN',
+        _Social.instagram: '',
+        _Social.telegram: 'https://t.me/lantern_china',
+      },
+
+      'ALL': {
+        _Social.x: 'https://twitter.com/getlantern',
+        _Social.instagram: 'https://www.instagram.com/getlantern/',
+        _Social.telegram: '',
+      },
+    };
+
     return ListView(
       controller: scrollController,
       padding: EdgeInsets.zero,
       shrinkWrap: true,
       children: [
-        AppTile(
-          label: 'telegram'.i18n,
-          icon: AppImagePaths.telegram,
-          trailing: AppImage(path: AppImagePaths.outsideBrowser),
-        ),
+        if (countryMap[selectedCountry.value]![_Social.telegram]!.isNotEmpty &&
+            IPUtils.censoredRegion.contains(selectedCountry.value))
+          AppTile.link(
+            label: 'telegram'.i18n,
+            icon: AppImagePaths.telegram,
+            url: countryMap[selectedCountry.value]![_Social.telegram]!,
+          ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: DividerSpace(),
         ),
-        AppTile(
-          label: 'instagram'.i18n,
-          icon: AppImagePaths.instagram,
-          trailing: AppImage(path: AppImagePaths.outsideBrowser),
-        ),
+        if (countryMap[selectedCountry.value]![_Social.instagram]!.isNotEmpty &&
+            selectedCountry.value != 'CN')
+          AppTile.link(
+            label: 'instagram'.i18n,
+            icon: AppImagePaths.instagram,
+            url: countryMap[selectedCountry.value]![_Social.instagram]!,
+          ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: DividerSpace(),
         ),
-        AppTile(
-          label: 'x'.i18n,
-          icon: AppImagePaths.x,
-          trailing: AppImage(path: AppImagePaths.outsideBrowser),
-        ),
+        if (countryMap[selectedCountry.value]![_Social.x]!.isNotEmpty)
+          AppTile.link(
+            label: 'x'.i18n,
+            icon: AppImagePaths.x,
+            url: countryMap[selectedCountry.value]![_Social.x]!,
+          ),
       ],
     );
   }
