@@ -91,7 +91,7 @@ class AppDelegate: FlutterAppDelegate {
     opts.dataDir = FilePath.dataDirectory.relativePath
     opts.logDir = FilePath.logsDirectory.relativePath
     opts.deviceid = ""
-    opts.logLevel = "debug"
+    opts.logLevel = "trace"
     opts.locale = Locale.current.identifier
     appLogger.info("logging to \(opts.logDir) dataDir: \(opts.dataDir) logLevel: \(opts.logLevel)")
     var error: NSError?

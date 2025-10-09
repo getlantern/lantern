@@ -10,9 +10,6 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/getlantern/lantern-outline/lantern-core/apps"
-	privateserver "github.com/getlantern/lantern-outline/lantern-core/private-server"
-	"github.com/getlantern/lantern-outline/lantern-core/utils"
 	"github.com/getlantern/radiance"
 	"github.com/getlantern/radiance/api"
 	"github.com/getlantern/radiance/api/protos"
@@ -20,6 +17,10 @@ import (
 	"github.com/getlantern/radiance/servers"
 	"github.com/getlantern/radiance/vpn"
 	"google.golang.org/protobuf/proto"
+
+	"github.com/getlantern/lantern-outline/lantern-core/apps"
+	privateserver "github.com/getlantern/lantern-outline/lantern-core/private-server"
+	"github.com/getlantern/lantern-outline/lantern-core/utils"
 )
 
 type EventType = string
@@ -27,6 +28,7 @@ type EventType = string
 const (
 	EventTypeConfig EventType = "config"
 )
+const DefaultLogLevel = "trace"
 
 // LanternCore is the main structure accessing the Lantern backend.
 type LanternCore struct {
@@ -127,6 +129,9 @@ func New(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) (Core, error)
 	// there are multiple places that try to initialize the backend, so we
 	// need to ensure it's only done once.
 	core.initOnce.Do(func() {
+		if opts.LogLevel == "" {
+			opts.LogLevel = DefaultLogLevel
+		}
 		slog.Debug("Initializing LanternCore with opts: ", "opts", opts)
 		if err := core.initialize(opts, eventEmitter); err != nil {
 			initError.Store(&err)

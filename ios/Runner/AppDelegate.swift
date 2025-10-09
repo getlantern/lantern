@@ -134,7 +134,7 @@ import flutter_local_notifications
       opts.dataDir = baseDir
       opts.logDir = FilePath.logsDirectory.relativePath
       opts.deviceid = DeviceIdentifier.getUDID()
-      opts.logLevel = "debug"
+      opts.logLevel = "trace"
       opts.locale = Locale.current.identifier
       var error: NSError?
       MobileSetupRadiance(opts, FlutterEventListener.shared, &error)
