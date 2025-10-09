@@ -250,22 +250,18 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
     _: Int32, sourceAddress _: String?, sourcePort _: Int32, destinationAddress _: String?,
     destinationPort _: Int32, ret0_ _: UnsafeMutablePointer<Int32>?
   ) throws {
-    appLogger.error("ExtensionPlatformInterface::findConnectionOwner not implemented")
     throw NSError(domain: "not implemented", code: 0)
   }
 
   public func packageName(byUid _: Int32, error _: NSErrorPointer) -> String {
-    appLogger.info("ExtensionPlatformInterface::packageName not implemented")
     return ""
   }
 
   public func uid(byPackageName _: String?, ret0_ _: UnsafeMutablePointer<Int32>?) throws {
-    appLogger.error("ExtensionPlatformInterface::findConnectionOwner not implemented")
     throw NSError(domain: "not implemented", code: 0)
   }
 
   public func useProcFS() -> Bool {
-    appLogger.info("ExtensionPlatformInterface::packageName not implemented")
     return false
   }
 
