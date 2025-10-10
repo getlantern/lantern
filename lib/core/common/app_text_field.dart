@@ -19,11 +19,12 @@ class AppTextField extends StatelessWidget {
   final AutovalidateMode autovalidateMode;
   final TextInputType? keyboardType;
   final TextInputAction? textInputAction;
-  final bool? enableSuggestions;
+  final bool enableSuggestions;
   final bool obscureText;
   final List<TextInputFormatter> inputFormatters;
   final VoidCallback? onTap;
   final int? maxLength;
+  final bool? autocorrect;
 
   const AppTextField({
     super.key,
@@ -45,6 +46,7 @@ class AppTextField extends StatelessWidget {
     this.initialValue,
     this.onTap,
     this.maxLength,
+    this.autocorrect,
   });
 
   @override
@@ -54,7 +56,8 @@ class AppTextField extends StatelessWidget {
       textAlign: TextAlign.start,
       textAlignVertical: TextAlignVertical.top,
       keyboardType: keyboardType,
-      enableSuggestions: true,
+      autocorrect: autocorrect ?? !obscureText,
+      enableSuggestions: enableSuggestions ?? false,
       controller: controller,
       maxLength: maxLength,
       enabled: enable,

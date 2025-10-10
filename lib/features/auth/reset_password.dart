@@ -22,7 +22,8 @@ class ResetPassword extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final passwordController = useTextEditingController();
     final confirmPasswordController = useTextEditingController();
-    final obscureText = useState(false);
+    final obscureText = useState(true);
+    useListenable(passwordController);
     useListenable(confirmPasswordController);
     return BaseScreen(
       title: 'reset_your_password'.i18n,
@@ -35,6 +36,9 @@ class ResetPassword extends HookConsumerWidget {
             AppTextField(
               hintText: '',
               label: 'create_new_password'.i18n,
+              keyboardType: TextInputType.visiblePassword,
+              enableSuggestions: false,
+              autocorrect: false,
               obscureText: obscureText.value,
               controller: passwordController,
               prefixIcon: AppImagePaths.lock,
@@ -43,22 +47,26 @@ class ResetPassword extends HookConsumerWidget {
             ),
             SizedBox(height: 20),
             AppTextField(
-                hintText: '',
-                label: 'confirm_new_password'.i18n,
-                obscureText: obscureText.value,
-                controller: confirmPasswordController,
-                prefixIcon: AppImagePaths.lock,
-                onChanged: (value) {},
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return "confirm_password_required".i18n;
-                  }
-                  if (value != passwordController.text) {
-                    return "passwords_do_not_match".i18n;
-                  }
-                  return null;
-                },
-                suffixIcon: _buildSuffix(obscureText)),
+              hintText: '',
+              label: 'confirm_new_password'.i18n,
+              keyboardType: TextInputType.visiblePassword,
+              obscureText: obscureText.value,
+              enableSuggestions: false,
+              autocorrect: false,
+              controller: confirmPasswordController,
+              prefixIcon: AppImagePaths.lock,
+              onChanged: (value) {},
+              validator: (value) {
+                if (value!.isEmpty) {
+                  return "confirm_password_required".i18n;
+                }
+                if (value != passwordController.text) {
+                  return "passwords_do_not_match".i18n;
+                }
+                return null;
+              },
+              suffixIcon: _buildSuffix(obscureText),
+            ),
             SizedBox(height: 32),
             PrimaryButton(
                 label: 'reset_password'.i18n,
