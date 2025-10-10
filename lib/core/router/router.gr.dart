@@ -1068,10 +1068,11 @@ class ReportIssue extends _i40.PageRouteInfo<ReportIssueArgs> {
   ReportIssue({
     _i41.Key? key,
     String? description,
+    String? type,
     List<_i40.PageRouteInfo>? children,
   }) : super(
           ReportIssue.name,
-          args: ReportIssueArgs(key: key, description: description),
+          args: ReportIssueArgs(key: key, description: description, type: type),
           initialChildren: children,
         );
 
@@ -1083,32 +1084,40 @@ class ReportIssue extends _i40.PageRouteInfo<ReportIssueArgs> {
       final args = data.argsAs<ReportIssueArgs>(
         orElse: () => const ReportIssueArgs(),
       );
-      return _i28.ReportIssue(key: args.key, description: args.description);
+      return _i28.ReportIssue(
+        key: args.key,
+        description: args.description,
+        type: args.type,
+      );
     },
   );
 }
 
 class ReportIssueArgs {
-  const ReportIssueArgs({this.key, this.description});
+  const ReportIssueArgs({this.key, this.description, this.type});
 
   final _i41.Key? key;
 
   final String? description;
 
+  final String? type;
+
   @override
   String toString() {
-    return 'ReportIssueArgs{key: $key, description: $description}';
+    return 'ReportIssueArgs{key: $key, description: $description, type: $type}';
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! ReportIssueArgs) return false;
-    return key == other.key && description == other.description;
+    return key == other.key &&
+        description == other.description &&
+        type == other.type;
   }
 
   @override
-  int get hashCode => key.hashCode ^ description.hashCode;
+  int get hashCode => key.hashCode ^ description.hashCode ^ type.hashCode;
 }
 
 /// generated route for
