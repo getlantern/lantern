@@ -127,7 +127,7 @@ void sharePrivateAccessKey(
   final aliasName = tokenPayload['sub'];
   final uri = Uri(
     scheme: 'https',
-    host: Uri.parse(AppUrls.baseUrl).host, // ensures host is parsed correctly
+    host: Uri.parse(AppUrls.lanternOfficial).host, // ensures host is parsed correctly
     path: '/private-server',
     queryParameters: {
       'ip': server.externalIp,

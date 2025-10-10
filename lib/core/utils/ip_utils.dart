@@ -15,7 +15,7 @@ class IPUtils {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         cacheCountry = data['country'] ?? '';
-        return data['country'];
+        return data['country'].toString().toUpperCase();
       }
     } catch (e) {
       print('Failed to get user location: $e');
