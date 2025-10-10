@@ -90,7 +90,7 @@ class PrimaryButton extends StatelessWidget {
       padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(
           EdgeInsets.symmetric(vertical: 12.0.h, horizontal: 40.0)),
       textStyle: WidgetStatePropertyAll<TextStyle>(
-        AppTestStyles.primaryButtonTextStyle.copyWith(
+        AppTextStyles.primaryButtonTextStyle.copyWith(
             fontSize: expanded ? 16.0.sp : 16.0, fontWeight: FontWeight.w500),
       ),
 
@@ -170,7 +170,7 @@ class SecondaryButton extends StatelessWidget {
       padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(
           EdgeInsets.symmetric(vertical: 12.0.h, horizontal: 40.0)),
       textStyle: WidgetStatePropertyAll<TextStyle>(
-          AppTestStyles.primaryButtonTextStyle.copyWith(
+          AppTextStyles.primaryButtonTextStyle.copyWith(
               fontSize: expanded ? 16.0.sp : 16.0,
               color: AppColors.gray9,
               fontWeight: FontWeight.w600)),
@@ -209,7 +209,7 @@ class AppTextButton extends StatelessWidget {
       style: TextButton.styleFrom(
         padding: padding ?? EdgeInsets.symmetric(horizontal: 16.0),
         visualDensity: VisualDensity.compact,
-        textStyle: AppTestStyles.titleMedium.copyWith(
+        textStyle: AppTextStyles.titleMedium.copyWith(
             overflow: TextOverflow.ellipsis,
             decoration:
                 underLine ? TextDecoration.underline : TextDecoration.none,

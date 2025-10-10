@@ -24,8 +24,8 @@ import (
 	lanterncore "github.com/getlantern/lantern-outline/lantern-core"
 	"github.com/getlantern/lantern-outline/lantern-core/common"
 	"github.com/getlantern/lantern-outline/lantern-core/utils"
-	vpn "github.com/getlantern/lantern-outline/lantern-core/vpn_tunnel"
 
+	rvpn "github.com/getlantern/radiance/vpn"
 	ripc "github.com/getlantern/radiance/vpn/ipc"
 )
 
@@ -79,15 +79,24 @@ func (s *Service) vpnOpts() *utils.Opts {
 		Locale:   s.opts.Locale,
 		DataDir:  s.opts.DataDir,
 		LogDir:   s.opts.LogDir,
-		LogLevel: "debug",
+		LogLevel: lanterncore.DefaultLogLevel,
 	}
+}
+
+// / Flutter event emitter implementation for Windows
+type windowsFlutterEventEmitter struct{}
+
+func (e *windowsFlutterEventEmitter) SendEvent(event *utils.FlutterEvent) {
+	// todo implement windows flutter event emitter
+	// send back to flutter via IPC or other means
+
 }
 
 func (s *Service) InitCore() error {
 	core, err := lanterncore.New(&utils.Opts{
 		Locale:   s.opts.Locale,
-		LogLevel: "debug",
-	})
+		LogLevel: lanterncore.DefaultLogLevel,
+	}, &windowsFlutterEventEmitter{})
 	if err != nil {
 		slog.Errorf("Service.InitCore error err=%v", err)
 		return fmt.Errorf("init LanternCore: %w", err)
@@ -174,6 +183,11 @@ func (s *Service) Start(ctx context.Context) error {
 	token, err := s.getToken()
 	if err != nil {
 		return fmt.Errorf("token: %w", err)
+	}
+
+	// Start the Radiance IPC control plane
+	if err := rvpn.InitIPC("", nil); err != nil {
+		return fmt.Errorf("init radiance IPC: %w", err)
 	}
 
 	ctx, s.cancel = context.WithCancel(ctx)
@@ -415,24 +429,6 @@ func (s *Service) checkIPCUp(ctx context.Context, timeout time.Duration) error {
 	return lastErr
 }
 
-// checkIPCUpOrStart: checks if IPC is down, otherwise starts via LanternCore (which brings up libbox+IPC)
-func (s *Service) checkIPCUpOrStart(ctx context.Context, group string) error {
-	if err := s.checkIPCUp(ctx, 600*time.Millisecond); err == nil {
-		return nil
-	}
-	if group == "" {
-		group = "lantern"
-	}
-	if err := vpn.StartVPN(nil, s.vpnOpts()); err != nil {
-		return fmt.Errorf("start tunnel: %w", err)
-	}
-
-	if err := s.checkIPCUp(ctx, 5*time.Second); err != nil {
-		return err
-	}
-	return nil
-}
-
 func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 	defer func() {
 		if rec := recover(); rec != nil {
@@ -449,14 +445,14 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		return &Response{ID: r.ID, Result: map[string]any{"ok": true}}
 
 	case common.CmdStartTunnel:
-		if err := s.checkIPCUpOrStart(ctx, "lantern"); err != nil {
+		if err := ripc.StartService(ctx, "lantern", ""); err != nil {
 			return rpcErr(r.ID, "start_error", err.Error())
 		}
 		go s.broadcastStatus()
 		return &Response{ID: r.ID, Result: map[string]any{"started": true}}
 
 	case common.CmdStopTunnel:
-		if err := vpn.StopVPN(); err != nil {
+		if err := ripc.StopService(ctx); err != nil {
 			return rpcErr(r.ID, "stop_error", err.Error())
 		}
 		go s.broadcastStatus()
@@ -481,14 +477,7 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		if group == "" {
 			group = "lantern"
 		}
-		if err := s.checkIPCUpOrStart(ctx, group); err != nil {
-			return rpcErr(r.ID, "connect_error", err.Error())
-		}
-		var err error
-		if p.Tag != "" {
-			err = vpn.ConnectToServer(group, p.Tag, nil, s.vpnOpts())
-		}
-		if err != nil {
+		if err := ripc.StartService(ctx, group, p.Tag); err != nil {
 			return rpcErr(r.ID, "connect_error", err.Error())
 		}
 		go s.broadcastStatus()

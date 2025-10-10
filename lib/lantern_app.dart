@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:app_links/app_links.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +12,7 @@ import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/window/window_wrapper.dart';
+import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 
 import 'core/common/common.dart';
@@ -28,10 +31,32 @@ class LanternApp extends StatefulHookConsumerWidget {
 }
 
 class _LanternAppState extends ConsumerState<LanternApp> {
+  late final AppLifecycleListener _lifecycle;
+
   @override
   void initState() {
     super.initState();
     initDeepLinks();
+    initLifecycleListener();
+  }
+
+  void initLifecycleListener() {
+    _lifecycle = AppLifecycleListener(
+      onExitRequested: () async {
+        appLogger.info("Exit requested");
+        await ref
+            .read(lanternServiceProvider)
+            .stopVPN()
+            .timeout(const Duration(seconds: 5));
+        return AppExitResponse.exit;
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _lifecycle.dispose();
+    super.dispose();
   }
 
   Future<void> initDeepLinks() async {
@@ -41,9 +66,13 @@ class _LanternAppState extends ConsumerState<LanternApp> {
       if (context.mounted) {
         if (uri.path.startsWith('/report-issue')) {
           final pathUrl = uri.toString();
+          final queryParams = uri.queryParameters;
           final segment = pathUrl.split('#');
           if (segment.length >= 2) {
-            globalRouter.push(ReportIssue(description: '#${segment[1]}'));
+            globalRouter.push(ReportIssue(
+                description: '#${segment[1]}', type: queryParams['type']));
+          } else if (queryParams.isNotEmpty) {
+            globalRouter.push(ReportIssue(type: queryParams['type']));
           } else {
             globalRouter.push(ReportIssue());
           }

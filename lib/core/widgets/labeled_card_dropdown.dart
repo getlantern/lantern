@@ -35,7 +35,7 @@ class LabeledCardDropdownWithFlag extends StatelessWidget {
         children: [
           Text(
             titleKey.i18n,
-            style: AppTestStyles.titleMedium.copyWith(
+            style: AppTextStyles.titleMedium.copyWith(
               color: Colors.black,
               height: 1.5,
             ),
@@ -65,7 +65,7 @@ class LabeledCardDropdownWithFlag extends StatelessWidget {
                     const SizedBox(width: 12),
                     Text(
                       countryLabelKey.i18n,
-                      style: AppTestStyles.bodyLarge.copyWith(
+                      style: AppTextStyles.bodyLarge.copyWith(
                         color: AppColors.black1,
                         height: 1.62,
                       ),

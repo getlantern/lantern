@@ -26,7 +26,7 @@ class AppDelegate: FlutterAppDelegate {
     registerEventHandlers(controller: controller)
 
     // Initialize directories and working paths
-    setupFileSystem()
+    FilePath.setupFileSystem()
 
     setupRadiance()
 
@@ -56,6 +56,11 @@ class AppDelegate: FlutterAppDelegate {
   /// Registers Flutter event channel handlers
   private func registerEventHandlers(controller: FlutterViewController) {
     let registry = controller as FlutterPluginRegistry
+
+     let flutterEventRegistrar = registry.registrar(forPlugin: "FlutterEventHandler")
+      FlutterEventHandler.register(with: flutterEventRegistrar)
+    
+
     let statusRegistrar = registry.registrar(forPlugin: "StatusEventHandler")
     StatusEventHandler.register(with: statusRegistrar)
 
@@ -79,33 +84,6 @@ class AppDelegate: FlutterAppDelegate {
     MethodHandler(channel: nativeChannel, vpnManager: vpnManager)
   }
 
-  /// Prepares the file system directories for use
-  private func setupFileSystem() {
-
-    // Setup shared directory
-    do {
-      try FileManager.default.createDirectory(
-        at: FilePath.dataDirectory,
-        withIntermediateDirectories: true
-      )
-      appLogger.info("data directory created at: \(FilePath.dataDirectory.path)")
-    } catch {
-      appLogger.error("Failed to create data directory: \(error.localizedDescription)")
-    }
-
-    //Setup log directory
-    do {
-      try FileManager.default.createDirectory(
-        at: FilePath.logsDirectory,
-        withIntermediateDirectories: true
-      )
-      appLogger.info("logs directory created at: \(FilePath.logsDirectory.path)")
-    } catch {
-      appLogger.error("Failed to create logs directory: \(error.localizedDescription)")
-    }
-
-  }
-
   /// Calls API handler setup
   private func setupRadiance() {
     let startupTime = Date()
@@ -113,11 +91,11 @@ class AppDelegate: FlutterAppDelegate {
     opts.dataDir = FilePath.dataDirectory.relativePath
     opts.logDir = FilePath.logsDirectory.relativePath
     opts.deviceid = ""
-    opts.logLevel = "debug"
+    opts.logLevel = "trace"
     opts.locale = Locale.current.identifier
     appLogger.info("logging to \(opts.logDir) dataDir: \(opts.dataDir) logLevel: \(opts.logLevel)")
     var error: NSError?
-    MobileSetupRadiance(opts, &error)
+      MobileSetupRadiance(opts,FlutterEventListener.shared, &error)
     // Handle any error returned by the setup
     if let error {
       appLogger.error("Error while setting up radiance: \(error)")

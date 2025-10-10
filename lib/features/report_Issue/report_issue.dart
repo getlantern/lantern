@@ -12,10 +12,12 @@ import 'package:lantern/lantern/lantern_service_notifier.dart';
 @RoutePage(name: 'ReportIssue')
 class ReportIssue extends StatefulHookConsumerWidget {
   final String? description;
+  final String? type;
 
   const ReportIssue({
     super.key,
     this.description,
+    this.type,
   });
 
   @override
@@ -33,14 +35,25 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
     'slow'.i18n,
     'cannot_link_devices'.i18n,
     'application_crashes'.i18n,
-    'other'.i18n
+    'other'.i18n,
   ];
 
   @override
   Widget build(BuildContext context) {
     final emailController = useTextEditingController();
-    final descriptionController = useTextEditingController();
-    final selectedIssueController = useTextEditingController();
+    final descriptionController =
+        useTextEditingController(text: widget.description);
+    String type = '';
+    try {
+      if (widget.type != null) {
+        type = issueOptions[int.parse(widget.type.toString())];
+      }
+    } catch (e) {
+      appLogger.error("Error parsing issue type: $e");
+      type = '';
+    }
+
+    final selectedIssueController = useTextEditingController(text: type);
     final update = useValueListenable(selectedIssueController);
     final groupValue = useState('');
 

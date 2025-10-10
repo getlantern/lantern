@@ -22,9 +22,7 @@ class ProviderCarousel extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (cards.isEmpty) return const SizedBox.shrink();
-
     final current = useState(0);
-
     final controller = useMemoized(
         () => PageController(viewportFraction: .98, keepPage: true));
     useEffect(() => controller.dispose, [controller]);
@@ -38,14 +36,12 @@ class ProviderCarousel extends HookConsumerWidget {
       );
     }
 
-    final size = MediaQuery.sizeOf(context);
-    appLogger.info('Carousel size: ${size}');
     final isDesktop = PlatformUtils.isDesktop;
     final defaultHeight = isDesktop
         ? 340.0
         : isSmallScreen(context)
             ? 390.0
-            : 345.0;
+            : 350.0;
     final resolvedHeight = height ?? defaultHeight;
 
     return Stack(

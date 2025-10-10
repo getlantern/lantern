@@ -62,7 +62,7 @@ class SplitTunneling extends HookConsumerWidget {
                 AppTile(
                   icon: AppImagePaths.callSpilt,
                   label: 'split_tunneling'.i18n,
-                  tileTextStyle: AppTestStyles.bodyMedium.copyWith(
+                  tileTextStyle: AppTextStyles.bodyMedium.copyWith(
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
                     color: AppColors.gray9,
@@ -275,7 +275,7 @@ class SplitTunnelingModeTile extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
                 mode.value,
-                style: AppTestStyles.bodyMedium.copyWith(
+                style: AppTextStyles.bodyMedium.copyWith(
                   color: AppColors.black1,
                 ),
               ),

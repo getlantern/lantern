@@ -55,7 +55,7 @@ class Support extends StatelessWidget {
                   AppTile.link(
                     icon: Icons.forum_outlined,
                     label: 'lantern_user_forum'.i18n,
-                    url: AppUrls.support,
+                    url: AppUrls.lanternForums,
                   ),
                   DividerSpace(padding: EdgeInsets.symmetric(horizontal: 16)),
                   AppTile.link(

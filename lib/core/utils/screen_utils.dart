@@ -24,7 +24,7 @@ void showSnackbar({
           child: content is String
               ? Text(
                   content,
-                  style: AppTestStyles.bodyMedium,
+                  style: AppTextStyles.bodyMedium,
                   textAlign: TextAlign.start,
                 )
               : content,

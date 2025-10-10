@@ -48,7 +48,7 @@ class LabeledCardInput extends StatelessWidget {
         children: [
           Text(
             header,
-            style: AppTestStyles.titleMedium.copyWith(
+            style: AppTextStyles.titleMedium.copyWith(
               height: 1.5,
             ),
           ),
@@ -68,7 +68,7 @@ class LabeledCardInput extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 4.0),
               child: Text(
                 hint!,
-                style: AppTestStyles.labelMedium.copyWith(
+                style: AppTextStyles.labelMedium.copyWith(
                   color: AppColors.lightGray,
                   fontWeight: FontWeight.w500,
                   height: 1.33,

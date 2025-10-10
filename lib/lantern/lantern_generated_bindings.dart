@@ -5153,6 +5153,7 @@ class LanternBindings {
     int appsP,
     int statusP,
     int privateServerP,
+    int appEventP,
     ffi.Pointer<ffi.Void> api,
   ) {
     return _setup(
@@ -5163,6 +5164,7 @@ class LanternBindings {
       appsP,
       statusP,
       privateServerP,
+      appEventP,
       api,
     );
   }
@@ -5177,12 +5179,14 @@ class LanternBindings {
               ffi.Int64,
               ffi.Int64,
               ffi.Int64,
+              ffi.Int64,
               ffi.Pointer<ffi.Void>)>>('setup');
   late final _setup = _setupPtr.asFunction<
       ffi.Pointer<ffi.Char> Function(
           ffi.Pointer<ffi.Char>,
           ffi.Pointer<ffi.Char>,
           ffi.Pointer<ffi.Char>,
+          int,
           int,
           int,
           int,

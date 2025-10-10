@@ -5,9 +5,10 @@ import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/datacap_info.dart';
+import 'package:lantern/core/models/entity/app_data.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/mapper/plan_mapper.dart';
 import 'package:lantern/core/models/plan_data.dart';
@@ -34,10 +35,13 @@ class LanternPlatformService implements LanternCoreService {
       EventChannel("$channelPrefix/system_extension_status", JSONMethodCodec());
   static const privateServerStatusChannel =
       EventChannel("$channelPrefix/private_server_status", JSONMethodCodec());
+  static const appEventStatusChannel =
+      EventChannel("$channelPrefix/app_events", JSONMethodCodec());
 
   late final Stream<LanternStatus> _status;
   late final Stream<PrivateServerStatus> _privateServerStatus;
   late final Stream<MacOSExtensionState> _systemExtensionStatus;
+  late final Stream<AppEvent> _appEventStatus;
 
   @override
   Future<void> init() async {
@@ -49,6 +53,11 @@ class LanternPlatformService implements LanternCoreService {
     _privateServerStatus = privateServerStatusChannel
         .receiveBroadcastStream()
         .map((event) => PrivateServerStatus.fromJson(jsonDecode(event)));
+
+    _appEventStatus = appEventStatusChannel
+        .receiveBroadcastStream()
+        .map((event) => AppEvent.fromJson(event));
+
     if (PlatformUtils.isMacOS) {
       _systemExtensionStatus = systemExtensionStatusChannel
           .receiveBroadcastStream()
@@ -57,6 +66,12 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
+  @override
+  Stream<AppEvent> watchAppEvents() {
+    return _appEventStatus;
+  }
+
+  /// VPN methods
   @override
   Future<Either<Failure, String>> startVPN() async {
     try {
@@ -104,6 +119,17 @@ class LanternPlatformService implements LanternCoreService {
       yield* macAppsDataStream();
     } else {
       throw UnimplementedError();
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> isVPNConnected() async {
+    try {
+      await _methodChannel.invokeMethod('isVPNConnected');
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(e.toFailure());
     }
   }
 
@@ -171,6 +197,7 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
+  ///Split tunneling methods
   @override
   Future<Either<Failure, Unit>> addSplitTunnelItem(
       SplitTunnelFilterType type, String value) async {
@@ -233,42 +260,7 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
-  @override
-  Future<Either<Failure, Unit>> reportIssue(
-    String email,
-    String issueType,
-    String description,
-    String device,
-    String model,
-    String logFilePath,
-  ) async {
-    try {
-      await _methodChannel.invokeMethod('reportIssue', {
-        'email': email,
-        'issueType': issueType,
-        'description': description,
-        'device': device,
-        'model': model,
-        'logFilePath': logFilePath,
-      });
-      return right(unit);
-    } catch (e, stackTrace) {
-      appLogger.error('Error reporting issue', e, stackTrace);
-      return left(e.toFailure());
-    }
-  }
-
-  @override
-  Future<Either<Failure, Unit>> isVPNConnected() async {
-    try {
-      await _methodChannel.invokeMethod('isVPNConnected');
-      return Right(unit);
-    } catch (e, stackTrace) {
-      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
-      return Left(e.toFailure());
-    }
-  }
-
+  /// In-App Purchase and Subscription methods
   @override
   Future<Either<Failure, Unit>> startInAppPurchaseFlow(
       {required String planId,
@@ -360,61 +352,30 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> getOAuthLoginUrl(String provider) async {
-    try {
-      final loginUrl =
-          await _methodChannel.invokeMethod<String>('oauthLoginUrl', provider);
-      return Right(loginUrl!);
-    } catch (e) {
-      return Left(Failure(
-          error: e.toString(),
-          localizedErrorMessage: (e as Exception).localizedDescription));
+  Future<Either<Failure, String>> paymentRedirect(
+      {required String provider,
+      required String planId,
+      required String email}) async {
+    if (PlatformUtils.isIOS) {
+      throw UnimplementedError("This not supported on IOS");
     }
-  }
-
-  @override
-  Future<Either<Failure, UserResponse>> oAuthLoginCallback(String token) async {
     try {
-      final bytes =
-          await _methodChannel.invokeMethod('oauthLoginCallback', token);
-      return Right(UserResponse.fromBuffer(bytes));
+      final redirectUrl =
+          await _methodChannel.invokeMethod<String>('paymentRedirect', {
+        'provider': provider,
+        'planId': planId,
+        'email': email,
+      });
+      return Right(redirectUrl!);
     } catch (e, stackTrace) {
-      appLogger.error('Error handling OAuth login callback', e, stackTrace);
+      appLogger.error('Error getting payment redirect URL', e, stackTrace);
       return Left(Failure(
           error: e.toString(),
           localizedErrorMessage: (e as Exception).localizedDescription));
     }
   }
 
-  /// Get user data from local storage
-  @override
-  Future<Either<Failure, UserResponse>> getUserData() async {
-    try {
-      final bytes = await _methodChannel.invokeMethod('getUserData');
-      return Right(UserResponse.fromBuffer(bytes));
-    } catch (e, stackTrace) {
-      appLogger.error('Error fetching user data', e, stackTrace);
-      return Left(Failure(
-          error: e.toString(),
-          localizedErrorMessage: (e as Exception).localizedDescription));
-    }
-  }
-
-  /// Fetch user data from server
-  @override
-  Future<Either<Failure, UserResponse>> fetchUserData() async {
-    try {
-      final userBytes = await _methodChannel.invokeMethod('fetchUserData');
-      return Right(UserResponse.fromBuffer(userBytes));
-    } catch (e, stackTrace) {
-      appLogger.error("error fetching user data", e, stackTrace);
-      return Left(Failure(
-          error: e.toString(),
-          localizedErrorMessage: (e as Exception).localizedDescription));
-    }
-  }
-
-// Only supported in IOS
+  /// Only supported in IOS
   @override
   Future<Either<Failure, Unit>> showManageSubscriptions() async {
     try {
@@ -443,6 +404,63 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, String>> getOAuthLoginUrl(String provider) async {
+    try {
+      final loginUrl =
+          await _methodChannel.invokeMethod<String>('oauthLoginUrl', provider);
+      return Right(loginUrl!);
+    } catch (e) {
+      return Left(Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription));
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserResponse>> oAuthLoginCallback(String token) async {
+    try {
+      final bytes =
+          await _methodChannel.invokeMethod('oauthLoginCallback', token);
+      return Right(UserResponse.fromBuffer(bytes));
+    } catch (e, stackTrace) {
+      appLogger.error('Error handling OAuth login callback', e, stackTrace);
+      return Left(Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription));
+    }
+  }
+
+  ///App related methods
+  ///
+  /// Get user data from local storage
+  @override
+  Future<Either<Failure, UserResponse>> getUserData() async {
+    try {
+      final bytes = await _methodChannel.invokeMethod('getUserData');
+      return Right(UserResponse.fromBuffer(bytes));
+    } catch (e, stackTrace) {
+      appLogger.error('Error fetching user data', e, stackTrace);
+      return Left(Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription));
+    }
+  }
+
+  /// Fetch user data from server
+  @override
+  Future<Either<Failure, UserResponse>> fetchUserData() async {
+    try {
+      final userBytes = await _methodChannel.invokeMethod('fetchUserData');
+      return Right(UserResponse.fromBuffer(userBytes));
+    } catch (e, stackTrace) {
+      appLogger.error("error fetching user data", e, stackTrace);
+      return Left(Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription));
+    }
+  }
+
+  @override
   Future<Either<Failure, DataCapInfo>> getDataCapInfo() async {
     try {
       final json = await _methodChannel.invokeMethod<String>('getDataCapInfo');
@@ -456,29 +474,57 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> paymentRedirect(
-      {required String provider,
-      required String planId,
-      required String email}) async {
-    if (PlatformUtils.isIOS) {
-      throw UnimplementedError("This not supported on IOS");
-    }
+  Future<Either<Failure, String>> featureFlag() async {
     try {
-      final redirectUrl =
-          await _methodChannel.invokeMethod<String>('paymentRedirect', {
-        'provider': provider,
-        'planId': planId,
-        'email': email,
-      });
-      return Right(redirectUrl!);
+      final featureFlag =
+          await _methodChannel.invokeMethod<String>('featureFlag');
+      return Right(featureFlag!);
     } catch (e, stackTrace) {
-      appLogger.error('Error getting payment redirect URL', e, stackTrace);
-      return Left(Failure(
-          error: e.toString(),
-          localizedErrorMessage: (e as Exception).localizedDescription));
+      appLogger.error('Error fetching feature flag', e, stackTrace);
+      return Left(e.toFailure());
     }
   }
 
+  @override
+  Future<Either<Failure, String>> deviceRemove(
+      {required String deviceId}) async {
+    try {
+      final result = await _methodChannel.invokeMethod<String>('removeDevice', {
+        'deviceId': deviceId,
+      });
+      return Right(result!);
+    } catch (e, stackTrace) {
+      appLogger.error('Error removing device', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> reportIssue(
+    String email,
+    String issueType,
+    String description,
+    String device,
+    String model,
+    String logFilePath,
+  ) async {
+    try {
+      await _methodChannel.invokeMethod('reportIssue', {
+        'email': email,
+        'issueType': issueType,
+        'description': description,
+        'device': device,
+        'model': model,
+        'logFilePath': logFilePath,
+      });
+      return right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error reporting issue', e, stackTrace);
+      return left(e.toFailure());
+    }
+  }
+
+  /// Authentication methods
   @override
   Future<Either<Failure, UserResponse>> login(
       {required String email, required String password}) async {
@@ -598,6 +644,42 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
+  @override
+  Future<Either<Failure, String>> startChangeEmail(
+      String newEmail, String password) async {
+    try {
+      final result =
+          await _methodChannel.invokeMethod<String>('startChangeEmail', {
+        'newEmail': newEmail,
+        'password': password,
+      });
+      return Right(result!);
+    } catch (e, stackTrace) {
+      appLogger.error('Error starting change email', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> completeChangeEmail(
+      {required String newEmail,
+      required String password,
+      required String code}) async {
+    try {
+      final result =
+          await _methodChannel.invokeMethod<String>('completeChangeEmail', {
+        'newEmail': newEmail,
+        'password': password,
+        'code': code,
+      });
+      return right(result!);
+    } catch (e, stackTrace) {
+      appLogger.error('Error completing change email', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  /// Private server methods
   @override
   Future<Either<Failure, Unit>> digitalOceanPrivateServer() async {
     try {
@@ -756,14 +838,15 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
+  ///Server location methods
   @override
-  Future<Either<Failure, String>> featureFlag() async {
+  Future<Either<Failure, Server>> getAutoServerLocation() async {
     try {
-      final featureFlag =
-          await _methodChannel.invokeMethod<String>('featureFlag');
-      return Right(featureFlag!);
+      final result =
+          await _methodChannel.invokeMethod<String>('getAutoServerLocation');
+      return right(Server.fromJson(jsonDecode(result!)));
     } catch (e, stackTrace) {
-      appLogger.error('Error fetching feature flag', e, stackTrace);
+      appLogger.error('Error fetching auto server location', e, stackTrace);
       return Left(e.toFailure());
     }
   }
@@ -781,67 +864,7 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
-  @override
-  Future<Either<Failure, String>> deviceRemove(
-      {required String deviceId}) async {
-    try {
-      final result = await _methodChannel.invokeMethod<String>('removeDevice', {
-        'deviceId': deviceId,
-      });
-      return Right(result!);
-    } catch (e, stackTrace) {
-      appLogger.error('Error removing device', e, stackTrace);
-      return Left(e.toFailure());
-    }
-  }
-
-  @override
-  Future<Either<Failure, String>> startChangeEmail(
-      String newEmail, String password) async {
-    try {
-      final result =
-          await _methodChannel.invokeMethod<String>('startChangeEmail', {
-        'newEmail': newEmail,
-        'password': password,
-      });
-      return Right(result!);
-    } catch (e, stackTrace) {
-      appLogger.error('Error starting change email', e, stackTrace);
-      return Left(e.toFailure());
-    }
-  }
-
-  @override
-  Future<Either<Failure, String>> completeChangeEmail(
-      {required String newEmail,
-      required String password,
-      required String code}) async {
-    try {
-      final result =
-          await _methodChannel.invokeMethod<String>('completeChangeEmail', {
-        'newEmail': newEmail,
-        'password': password,
-        'code': code,
-      });
-      return right(result!);
-    } catch (e, stackTrace) {
-      appLogger.error('Error completing change email', e, stackTrace);
-      return Left(e.toFailure());
-    }
-  }
-
-  @override
-  Future<Either<Failure, String>> getAutoServerLocation() async {
-    try {
-      final result =
-          await _methodChannel.invokeMethod<String>('getAutoServerLocation');
-      return right(result!);
-    } catch (e, stackTrace) {
-      appLogger.error('Error fetching auto server location', e, stackTrace);
-      return Left(e.toFailure());
-    }
-  }
-
+  /// macOS System Extension methods
   @override
   Future<Either<Failure, String>> triggerSystemExtension() async {
     if (!PlatformUtils.isMacOS) {

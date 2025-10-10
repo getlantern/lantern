@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/private_server_entity.dart';
+import 'package:lantern/core/models/entity/private_server_entity.dart';
+
 import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/widgets/app_rich_text.dart';
@@ -141,7 +142,31 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
                     buttonValid.value =
                         (value.isNotEmpty && nameController.text.isNotEmpty);
                   },
-                  suffixIcon: AppImagePaths.copy,
+                  suffixIcon: PlatformUtils.isMobile
+                      ? GestureDetector(
+                          onTap: () {
+                            appRouter.push(QrCodeScanner()).then((value) {
+                              if (value != null && value is String) {
+                                accessKeyController.text = value;
+                                buttonValid.value = (value.isNotEmpty &&
+                                    nameController.text.isNotEmpty);
+                              }
+                            });
+                          },
+                          child: AppImage(path: AppImagePaths.qrCodeScanner),
+                        )
+                      : GestureDetector(
+                          onTap: () {
+                            pasteFromClipboard().then((value) {
+                              if (value.isNotEmpty) {
+                                accessKeyController.text = value;
+                                buttonValid.value = (value.isNotEmpty &&
+                                    nameController.text.isNotEmpty);
+                              }
+                            });
+                          },
+                          child: AppImage(path: AppImagePaths.copy),
+                        ),
                 ),
                 SizedBox(height: 16),
                 PrimaryButton(

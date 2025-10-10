@@ -24,6 +24,7 @@
 		03545F012E8ABA7B0051E2F5 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C30602DEF68B300691115 /* Logger.swift */; };
 		039A061F2E24DB6000B64255 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29952B402DE7A5F300640E7F /* KeychainService.swift */; };
 		03A255852E71B27A0054C0D7 /* SystemExtensionStatusEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03A255842E71B26A0054C0D7 /* SystemExtensionStatusEventHandler.swift */; };
+		03CC8B862E9408BC00EC8D51 /* FlutterEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03CC8B852E9408BC00EC8D51 /* FlutterEventHandler.swift */; };
 		293C305A2DEF649500691115 /* MethodHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C30552DEF649500691115 /* MethodHandler.swift */; };
 		293C305E2DEF67EB00691115 /* VPNManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C305C2DEF67EB00691115 /* VPNManager.swift */; };
 		293C305F2DEF67EB00691115 /* VPNBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C305B2DEF67EB00691115 /* VPNBase.swift */; };
@@ -132,6 +133,7 @@
 
 /* Begin PBXFileReference section */
 		03A255842E71B26A0054C0D7 /* SystemExtensionStatusEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemExtensionStatusEventHandler.swift; sourceTree = "<group>"; };
+		03CC8B852E9408BC00EC8D51 /* FlutterEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlutterEventHandler.swift; sourceTree = "<group>"; };
 		1E9A6FC86FA886DA6665EC6D /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
 		293C302F2DEF247F00691115 /* Liblantern.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Liblantern.xcframework; path = Frameworks/Liblantern.xcframework; sourceTree = "<group>"; };
 		293C30552DEF649500691115 /* MethodHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MethodHandler.swift; sourceTree = "<group>"; };
@@ -184,6 +186,7 @@
 		5F53D0342E4410F100740586 /* Exceptions for "Utils" folder in "Runner" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				FlutterEventListener.swift,
 				PrivateServerListener.swift,
 			);
 			target = 33CC10EC2044A3C60003C045 /* Runner */;
@@ -239,6 +242,7 @@
 		293C30572DEF649500691115 /* Handlers */ = {
 			isa = PBXGroup;
 			children = (
+				03CC8B852E9408BC00EC8D51 /* FlutterEventHandler.swift */,
 				03A255842E71B26A0054C0D7 /* SystemExtensionStatusEventHandler.swift */,
 				2974E0C72E3D35E400EF7DB3 /* StatusEventHandler.swift */,
 				293C30552DEF649500691115 /* MethodHandler.swift */,
@@ -693,6 +697,7 @@
 				293C305F2DEF67EB00691115 /* VPNBase.swift in Sources */,
 				293C305A2DEF649500691115 /* MethodHandler.swift in Sources */,
 				293C30612DEF68B300691115 /* Logger.swift in Sources */,
+				03CC8B862E9408BC00EC8D51 /* FlutterEventHandler.swift in Sources */,
 				039A061F2E24DB6000B64255 /* KeychainService.swift in Sources */,
 				5F7422212E7C1FB000FC72BE /* LogsEventHandler.swift in Sources */,
 				33CC10F12044A3C60003C045 /* AppDelegate.swift in Sources */,
@@ -1001,7 +1006,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = Runner/DebugProfile.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Runner/Release.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -1147,7 +1152,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = Runner/RunnerDebug.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Runner/Release.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;

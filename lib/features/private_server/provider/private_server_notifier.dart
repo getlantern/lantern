@@ -13,10 +13,17 @@ part 'private_server_notifier.g.dart';
 
 @Riverpod(keepAlive: true)
 class PrivateServerNotifier extends _$PrivateServerNotifier {
+  StreamSubscription? _privateServerStatusSub;
+
   @override
   PrivateServerStatus build() {
     // Only once
     watchPrivateServerLogs();
+    ref.onDispose(() {
+      appLogger.debug(
+          'Disposing PrivateServerNotifier and cancelling subscriptions.');
+      _privateServerStatusSub?.cancel();
+    });
     return PrivateServerStatus(status: 'initial', data: null, error: null);
   }
 
@@ -63,7 +70,7 @@ class PrivateServerNotifier extends _$PrivateServerNotifier {
   }
 
   void watchPrivateServerLogs() {
-    ref
+    _privateServerStatusSub = ref
         .read(lanternServiceProvider)
         .watchPrivateServerStatus()
         .listen(_handleStatus);
@@ -108,6 +115,16 @@ class PrivateServerNotifier extends _$PrivateServerNotifier {
         final locations = status.data;
         appLogger.info("Received location: $locations");
         state = status;
+        break;
+      case 'EventTypeProvisioningCompleted':
+        appLogger.info("Provisioning completed");
+        state = status;
+
+        ///reset state to initial once server is added
+        Future.delayed(const Duration(seconds: 1), () {
+          state =
+              PrivateServerStatus(status: 'initial', data: null, error: null);
+        });
         break;
       default:
         state = status;

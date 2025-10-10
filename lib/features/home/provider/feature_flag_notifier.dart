@@ -11,7 +11,6 @@ part 'feature_flag_notifier.g.dart';
 class FeatureFlagNotifier extends _$FeatureFlagNotifier {
   @override
   Map<String, dynamic> build() {
-    fetchFeatureFlags();
     return {};
   }
 

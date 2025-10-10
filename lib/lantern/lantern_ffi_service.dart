@@ -9,8 +9,9 @@ import 'package:ffi/ffi.dart';
 import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/datacap_info.dart';
+import 'package:lantern/core/models/entity/app_data.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/mapper/plan_mapper.dart';
 import 'package:lantern/core/models/private_server_status.dart';
@@ -44,6 +45,7 @@ class LanternFFIService implements LanternCoreService {
 
   late final Stream<LanternStatus> _status;
   late Stream<PrivateServerStatus> _privateServerStatus;
+  late Stream<AppEvent> _appEvents;
   late final LanternServiceWindows _windowsService;
 
   static SendPort? _commandSendPort;
@@ -55,6 +57,7 @@ class LanternFFIService implements LanternCoreService {
   static final privateServerReceivePort = ReceivePort();
   static final appsReceivePort = ReceivePort();
   static final loggingReceivePort = ReceivePort();
+  static final flutterEventReceivePort = ReceivePort();
 
   static LanternBindings _gen() {
     String fullPath = "";
@@ -68,6 +71,32 @@ class LanternFFIService implements LanternCoreService {
     return LanternBindings(lib);
   }
 
+  @override
+  Future<void> init() async {
+    try {
+      if (Platform.isWindows) {
+        await _initializeWindowsService();
+      } else {
+        _status = statusReceivePort.map((event) {
+          Map<String, dynamic> result = jsonDecode(event);
+          return LanternStatus.fromJson(result);
+        });
+        await _setupRadiance();
+      }
+      _privateServerStatus =privateServerReceivePort.map((event) {
+        Map<String, dynamic> result = jsonDecode(event);
+        return PrivateServerStatus.fromJson(result);
+      });
+      _appEvents =  flutterEventReceivePort.map((event) {
+        Map<String, dynamic> result = jsonDecode(event);
+        return AppEvent.fromJson(result);
+      });
+
+    } catch (e) {
+      appLogger.error('Error while setting up radiance: $e');
+    }
+  }
+
   Future<Either<String, Unit>> _setupRadiance() async {
     try {
       appLogger.debug('Setting up radiance');
@@ -77,18 +106,19 @@ class LanternFFIService implements LanternCoreService {
       final dataDirPtr = dataDir.path.toCharPtr;
       final logDirPtr = logDir.toCharPtr;
       final result = await runInBackground<String>(
-        () async {
+            () async {
           return _ffiService
               .setup(
-                logDirPtr,
-                dataDirPtr,
-                Localization.defaultLocale.toCharPtr,
-                loggingReceivePort.sendPort.nativePort,
-                appsReceivePort.sendPort.nativePort,
-                statusReceivePort.sendPort.nativePort,
-                privateServerReceivePort.sendPort.nativePort,
-                NativeApi.initializeApiDLData,
-              )
+            logDirPtr,
+            dataDirPtr,
+            Localization.defaultLocale.toCharPtr,
+            loggingReceivePort.sendPort.nativePort,
+            appsReceivePort.sendPort.nativePort,
+            statusReceivePort.sendPort.nativePort,
+            privateServerReceivePort.sendPort.nativePort,
+            flutterEventReceivePort.sendPort.nativePort,
+            NativeApi.initializeApiDLData,
+          )
               .toDartString();
         },
       );
@@ -100,42 +130,26 @@ class LanternFFIService implements LanternCoreService {
     }
   }
 
-  @override
-  Future<void> init() async {
+  Future<void> _initializeWindowsService() async {
+    final tokenFile = File(
+      p.join(Platform.environment['ProgramData'] ?? r'C:\ProgramData', 'Lantern', 'ipc-token'),
+    );
+    final token = (await tokenFile.readAsString()).trim();
+    final pipe = PipeClient(token: token);
+    _windowsService = LanternServiceWindows(pipe);
     try {
-      if (Platform.isWindows) {
-        final tokenFile = File(
-          p.join(Platform.environment['ProgramData'] ?? r'C:\ProgramData',
-              'Lantern', 'ipc-token'),
-        );
-        final token = (await tokenFile.readAsString()).trim();
-        final pipe = PipeClient(token: token);
-        _windowsService = LanternServiceWindows(pipe);
-        try {
-          await _windowsService.init();
-        } catch (e, st) {
-          appLogger.error('LanternServiceWindows.init() threw', e, st);
-          rethrow;
-        }
-        _status = _windowsService.watchVPNStatus();
-      } else {
-        await _initializeCommandIsolate();
-        // setup receive port to receive connection status updates
-        _status = statusReceivePort.map(
-          (event) {
-            Map<String, dynamic> result = jsonDecode(event);
-            return LanternStatus.fromJson(result);
-          },
-        );
-      }
-      _privateServerStatus = privateServerReceivePort.map((event) {
-        Map<String, dynamic> result = jsonDecode(event);
-        return PrivateServerStatus.fromJson(result);
-      });
-      if (!Platform.isWindows) await _setupRadiance();
-    } catch (e) {
-      appLogger.error('Error while setting up radiance: $e');
+      await _windowsService.init();
+    } catch (e, st) {
+      appLogger.error('LanternServiceWindows.init() threw', e, st);
+      rethrow;
     }
+    _status = _windowsService.watchVPNStatus();
+  }
+
+
+  @override
+  Stream<AppEvent> watchAppEvents() {
+    return _appEvents;
   }
 
   @override
@@ -1048,17 +1062,15 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, String>> getAutoServerLocation() async {
+  Future<Either<Failure, Server>> getAutoServerLocation() async {
     try {
       final result = await runInBackground<String>(
-            () async {
-          return _ffiService
-              .getAutoLocation()
-              .toDartString();
+        () async {
+          return _ffiService.getAutoLocation().toDartString();
         },
       );
       checkAPIError(result);
-      return Right(result);
+      return Right(Server.fromJson(jsonDecode(result)));
     } catch (e, stackTrace) {
       appLogger.error('Error starting change email', e, stackTrace);
       return Left(e.toFailure());
@@ -1101,6 +1113,8 @@ class LanternFFIService implements LanternCoreService {
     // TODO: implement removeAllItems
     throw UnimplementedError();
   }
+
+
 }
 
 void checkAPIError(dynamic result) {

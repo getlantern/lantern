@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/website.dart';
+import 'package:lantern/core/models/entity/website.dart';
 import 'package:lantern/core/widgets/search_bar.dart';
 import 'package:lantern/core/widgets/section_label.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
@@ -62,8 +62,9 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
           if (appSetting.bypassList.isNotEmpty) ...{
             SliverToBoxAdapter(child: SizedBox(height: defaultSize)),
             SliverToBoxAdapter(
-                child: SectionLabel('enabled_bypass_lists'.i18n.fill([
-                  appSetting.bypassList.length]))),
+                child: SectionLabel('enabled_bypass_lists'
+                    .i18n
+                    .fill([appSetting.bypassList.length]))),
             SliverToBoxAdapter(
               child: AppCard(
                 padding: EdgeInsets.zero,
@@ -158,7 +159,7 @@ class WebsiteRow extends StatelessWidget {
       minHeight: 45,
       contentPadding: EdgeInsets.only(left: 16),
       label: website.domain,
-      tileTextStyle: AppTestStyles.labelLarge.copyWith(
+      tileTextStyle: AppTextStyles.labelLarge.copyWith(
         color: AppColors.gray8,
         fontSize: 14,
         fontWeight: FontWeight.w500,

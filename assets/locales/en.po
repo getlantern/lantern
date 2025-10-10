@@ -74,7 +74,7 @@ msgid "delete_account_?"
 msgstr "Delete your Account?"
 
 msgid "delete_account_message"
-msgstr "Account deletion is permanent. You will lose access on all devices, and any remaining Pro subscription time will be forfeited without a refund.
+msgstr "Account deletion is permanent. You will lose access on all devices, and any remaining Pro subscription time will be forfeited without a refund."
 
 msgid "delete_account_message_two"
 msgstr "To confirm deletion please enter your password below"
@@ -825,7 +825,7 @@ msgstr "Rename"
 msgid "selected_location"
 msgstr "Selected Location"
 
-msgid "remove_server"
+msgid "remove_server_?"
 msgstr "Remove Server?"
 
 msgid "remove_server_message"
@@ -1071,9 +1071,6 @@ msgstr "Privacy Policy"
 msgid "terms_of_service"
 msgstr "Terms of Service"
 
-msgid "issue_description"
-msgstr "Issue Description"
-
 msgid "get_unlimited_data"
 msgstr "Get unlimited data, and faster speeds!"
 
@@ -1081,7 +1078,7 @@ msgid "private_server_options"
 msgstr "Private Server Options"
 
 msgid "lantern_version"
-msgstr "Lantern Version"quit
+msgstr "Lantern Version"
 
 msgid "quit"
 msgstr "Quit"
@@ -1098,11 +1095,44 @@ msgstr "This name will be pre-filled for the invited user to help them identify 
 msgid "server_alias"
 msgstr "Server Alias"
 
-msgid "payment_options"
-msgstr "Payment Options"
-
 msgid "add_referral_code"
 msgstr "Add a Referral Code"
 
 msgid "referral_code"
 msgstr "Referral Code"
+
+msgid "update_fails"
+msgstr "Update fails"
+
+msgid "scan_qr_code"
+msgstr "Scan QR Code"
+
+msgid "choose_your_server_location"
+msgstr "Choose your server’s location"
+
+msgid "we_handle_configuration"
+msgstr "We handle the configuration, just sign up."
+
+msgid "90_day_free_trial"
+msgstr "90-day free trial"
+
+msgid "identity_changed"
+msgstr "Identity Changed for %s"
+
+msgid "identity_changed_message"
+msgstr "The security fingerprint of %s has changed. This may indicate tampering or misconfiguration."
+
+msgid "recommendation"
+msgstr "Recommendation:"
+
+msgid "recommendation_message"
+msgstr "We recommend removing %s from Lantern and deleting it from your cloud provider account, then setting up a new server to ensure your connection stays secure."
+
+msgid "remove_server"
+msgstr "Remove Server"
+
+
+msgid "server_alias_cannot_be_empty"
+msgstr  "Server alias cannot be empty"
+
+

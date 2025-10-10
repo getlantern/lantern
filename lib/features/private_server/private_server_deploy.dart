@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/private_server_entity.dart';
+import 'package:lantern/core/models/entity/private_server_entity.dart';
 import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/features/private_server/provider/private_server_notifier.dart';
@@ -61,7 +61,7 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
           final List<dynamic> data = jsonDecode(serverState.data!);
           final certList =
               data.map((item) => CertSummary.fromJson(item)).toList();
-          showFingerprintDialog(certList);
+          onConfirmFingerprint(certList.first);
         });
       }
       return null;
@@ -88,54 +88,6 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
           ),
         ],
       ),
-    );
-  }
-
-  void showFingerprintDialog(List<CertSummary> cert) {
-    AppDialog.customDialog(
-      context: context,
-      content: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          SizedBox(height: 24),
-          Center(child: Icon(Icons.fingerprint, size: 40)),
-          SizedBox(height: 16),
-          Center(
-            child: Text(
-              'confirm_fingerprint'.i18n,
-              style: textTheme!.titleLarge,
-            ),
-          ),
-          SizedBox(height: 16),
-          Text(
-            'server_fingerprint'.i18n,
-            style: Theme.of(context).textTheme.bodyLarge,
-          ),
-          Text(
-            cert.first.fingerprint,
-            style: textTheme!.bodyMedium,
-          ),
-        ],
-      ),
-      action: [
-        AppTextButton(
-          label: "cancel_deployment".i18n,
-          onPressed: () {
-            appRouter.pop();
-            cancelDeployment();
-          },
-          textColor: AppColors.gray6,
-        ),
-        AppTextButton(
-          label: "confirm".i18n,
-          textColor: AppColors.blue6,
-          onPressed: () {
-            onConfirmFingerprint(cert.first);
-            appRouter.pop();
-          },
-        ),
-      ],
     );
   }
 
