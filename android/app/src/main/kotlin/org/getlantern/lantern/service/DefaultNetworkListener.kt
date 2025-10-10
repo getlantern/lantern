@@ -153,43 +153,31 @@ object DefaultNetworkListener {
     private val mainHandler = Handler(Looper.getMainLooper())
 
     /**
-     * Unfortunately registerDefaultNetworkCallback is going to return VPN interface since Android P DP1:
-     * https://android.googlesource.com/platform/frameworks/base/+/dda156ab0c5d66ad82bdcf76cda07cbc0a9c8a2e
+     * On API 28+ registerDefaultNetworkCallback() may report the VPN as the default.
+     *   We do NOT call requestNetwork() here just to discover the underlying transport,
+     *   because that can keep radios awake and costs battery.
      *
-     * This makes doing a requestNetwork with REQUEST necessary so that we don't get ALL possible networks that
-     * satisfies default network capabilities but only THE default network. Unfortunately, we need to have
-     * android.permission.CHANGE_NETWORK_STATE to be able to call requestNetwork.
-     *
-     * Source: https://android.googlesource.com/platform/frameworks/base/+/2df4c7d/services/core/java/com/android/server/ConnectivityService.java#887
-     */
+     *   Instead we passively listen and translate the default
+     *   to the physical network via: ConnectivityManager.getLinkProperties(default).underlyingNetworks
+    */
     private fun register() {
         when (Build.VERSION.SDK_INT) {
-            in 31..Int.MAX_VALUE -> @TargetApi(31) {
+            in 31..Int.MAX_VALUE -> {
                 LanternApp.connectivity.registerBestMatchingNetworkCallback(
                     request,
                     Callback,
                     mainHandler
                 )
             }
-
-            in 28 until 31 -> @TargetApi(28) {  // we want REQUEST here instead of LISTEN
-                LanternApp.connectivity.requestNetwork(request, Callback, mainHandler)
-            }
-
-            in 26 until 28 -> @TargetApi(26) {
+            in 24..30 -> {
                 LanternApp.connectivity.registerDefaultNetworkCallback(Callback, mainHandler)
             }
-
-            in 24 until 26 -> @TargetApi(24) {
-                LanternApp.connectivity.registerDefaultNetworkCallback(Callback)
-            }
-
             else -> try {
                 fallback = false
-                LanternApp.connectivity.requestNetwork(request, Callback)
+                LanternApp.connectivity.registerDefaultNetworkCallback(Callback)
             } catch (e: RuntimeException) {
-                fallback =
-                    true     // known bug on API 23: https://stackoverflow.com/a/33509180/2245107
+                // known bug on API 23: https://stackoverflow.com/a/33509180/2245107
+                fallback = true
             }
         }
     }
