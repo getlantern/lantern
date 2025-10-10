@@ -59,10 +59,6 @@ func requireCore() (lanterncore.Core, *C.char) {
 	return *c, nil
 }
 
-func enableSplitTunneling() bool {
-	return false
-}
-
 func sendApps(port int64) func(apps ...*apps.AppData) error {
 	return func(apps ...*apps.AppData) error {
 		data, err := json.Marshal(apps)
@@ -160,6 +156,29 @@ func removeSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
 	}
 	slog.Debug("removed %s split tunneling item %s", filterType, item)
 	return nil
+}
+
+//export setSplitTunnelingEnabled
+func setSplitTunnelingEnabled(enabled C.int) *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	if enabled != 0 {
+		c.SetSplitTunnelingEnabled(true)
+	} else {
+		c.SetSplitTunnelingEnabled(false)
+	}
+	return C.CString("ok")
+}
+
+//export isSplitTunnelingEnabled
+func isSplitTunnelingEnabled() C.int {
+	c, _ := requireCore()
+	if c != nil && c.IsSplitTunnelingEnabled() {
+		return 1
+	}
+	return 0
 }
 
 //export getDataCapInfo

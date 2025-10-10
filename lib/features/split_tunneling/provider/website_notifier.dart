@@ -28,7 +28,7 @@ class SplitTunnelingWebsites extends _$SplitTunnelingWebsites {
 
     for (final website in newWebsites) {
       final result = await _lanternService.addSplitTunnelItem(
-        SplitTunnelFilterType.domain,
+        SplitTunnelFilterType.domainSuffix,
         website.domain,
       );
 
@@ -46,7 +46,7 @@ class SplitTunnelingWebsites extends _$SplitTunnelingWebsites {
     if (!state.any((a) => a.domain == website.domain)) return;
 
     final result = await _lanternService.removeSplitTunnelItem(
-      SplitTunnelFilterType.domain,
+      SplitTunnelFilterType.domainSuffix,
       website.domain,
     );
 

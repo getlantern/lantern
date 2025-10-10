@@ -103,6 +103,8 @@ type Payment interface {
 }
 
 type SplitTunnel interface {
+	IsSplitTunnelingEnabled() bool
+	SetSplitTunnelingEnabled(bool)
 	AddSplitTunnelItem(filterType, item string) error
 	AddSplitTunnelItems(items string) error
 	RemoveSplitTunnelItem(filterType, item string) error
@@ -260,6 +262,18 @@ func LoadInstalledApps(dataDir string) (string, error) {
 		return "", err
 	}
 	return string(b), nil
+}
+
+// Split Tunneling
+func (lc *LanternCore) SetSplitTunnelingEnabled(enabled bool) {
+	if enabled {
+		lc.splitTunnel.Enable()
+	} else {
+		lc.splitTunnel.Disable()
+	}
+}
+func (lc *LanternCore) IsSplitTunnelingEnabled() bool {
+	return lc.splitTunnel.IsEnabled()
 }
 
 func (lc *LanternCore) AddSplitTunnelItem(filterType, item string) error {
