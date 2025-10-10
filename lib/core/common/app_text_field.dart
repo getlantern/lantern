@@ -57,7 +57,7 @@ class AppTextField extends StatelessWidget {
       textAlignVertical: TextAlignVertical.top,
       keyboardType: keyboardType,
       autocorrect: autocorrect ?? !obscureText,
-      enableSuggestions: enableSuggestions ?? false,
+      enableSuggestions: enableSuggestions,
       controller: controller,
       maxLength: maxLength,
       enabled: enable,
