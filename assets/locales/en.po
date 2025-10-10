@@ -74,7 +74,7 @@ msgid "delete_account_?"
 msgstr "Delete your Account?"
 
 msgid "delete_account_message"
-msgstr "Account deletion is permanent. You will lose access on all devices, and any remaining Pro subscription time will be forfeited without a refund.
+msgstr "Account deletion is permanent. You will lose access on all devices, and any remaining Pro subscription time will be forfeited without a refund."
 
 msgid "delete_account_message_two"
 msgstr "To confirm deletion please enter your password below"
@@ -1071,9 +1071,6 @@ msgstr "Privacy Policy"
 msgid "terms_of_service"
 msgstr "Terms of Service"
 
-msgid "issue_description"
-msgstr "Issue Description"
-
 msgid "get_unlimited_data"
 msgstr "Get unlimited data, and faster speeds!"
 
@@ -1097,9 +1094,6 @@ msgstr "This name will be pre-filled for the invited user to help them identify 
 
 msgid "server_alias"
 msgstr "Server Alias"
-
-msgid "payment_options"
-msgstr "Payment Options"
 
 msgid "add_referral_code"
 msgstr "Add a Referral Code"
