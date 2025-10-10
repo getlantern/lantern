@@ -1101,6 +1101,9 @@ msgstr "Add a Referral Code"
 msgid "referral_code"
 msgstr "Referral Code"
 
+msgid "update_fails"
+msgstr "Update fails"
+
 msgid "scan_qr_code"
 msgstr "Scan QR Code"
 
