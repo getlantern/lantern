@@ -41,17 +41,10 @@ class VpnNotifier extends _$VpnNotifier {
             );
           }
         }
-
         state = nextStatus;
       },
     );
     return VPNStatus.disconnected;
-  }
-
-  void onVPNConnected(OnPressed onConnected) {
-    if (state == VPNStatus.connected) {
-      onConnected();
-    }
   }
 
   Future<Either<Failure, String>> onVPNStateChange(BuildContext context) async {
