@@ -101,6 +101,10 @@ class ConfirmEmail extends HookConsumerWidget {
   }
 
   Future<void> onBackPresses(WidgetRef ref, BuildContext context) async {
+    if(authFlow != AuthFlow.signUp){
+      appRouter.pop();
+      return;
+    }
     appLogger
         .info('Back button pressed in ConfirmEmail screen Deleting account');
     assert(password != null,
