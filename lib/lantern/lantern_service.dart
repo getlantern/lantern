@@ -71,7 +71,6 @@ class LanternService implements LanternCoreService {
     return _platformService.watchAppEvents();
   }
 
-
   @override
   Stream<LanternStatus> watchVPNStatus() {
     if (PlatformUtils.isFFISupported) {
@@ -164,6 +163,22 @@ class LanternService implements LanternCoreService {
       return _ffiService.removeSplitTunnelItem(type, value);
     }
     return _platformService.removeSplitTunnelItem(type, value);
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setSplitTunnelingEnabled(bool enabled) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.setSplitTunnelingEnabled(enabled);
+    }
+    return _platformService.setSplitTunnelingEnabled(enabled);
+  }
+
+  @override
+  Future<Either<Failure, bool>> isSplitTunnelingEnabled() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.isSplitTunnelingEnabled();
+    }
+    return _platformService.isSplitTunnelingEnabled();
   }
 
   @override
@@ -571,6 +586,4 @@ class LanternService implements LanternCoreService {
     }
     return _platformService.removeAllItems(type, value);
   }
-
-
 }

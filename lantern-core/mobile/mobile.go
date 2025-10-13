@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"runtime"
 	"sync/atomic"
 
 	"github.com/getlantern/radiance/api"
@@ -47,10 +46,6 @@ func withCoreR[T any](fn func(c lanterncore.Core) (T, error)) (T, error) {
 		return zero, err
 	}
 	return fn(c)
-}
-
-func enableSplitTunneling() bool {
-	return runtime.GOOS == "android"
 }
 
 // panicRecover is a helper function that recovers from panics and logs the error.

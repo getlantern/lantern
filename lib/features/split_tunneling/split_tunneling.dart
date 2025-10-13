@@ -71,10 +71,10 @@ class SplitTunneling extends HookConsumerWidget {
                   trailing: SwitchButton(
                     value: splitTunnelingEnabled,
                     onChanged: (bool? value) {
-                      var newValue = value ?? false;
+                      final v = value ?? false;
                       ref
                           .read(appSettingNotifierProvider.notifier)
-                          .toggleSplitTunneling(newValue);
+                          .setSplitTunnelingEnabled(v);
                     },
                     activeColor: AppColors.green5,
                   ),

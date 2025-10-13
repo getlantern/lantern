@@ -227,6 +227,27 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> setSplitTunnelingEnabled(bool enabled) async {
+    try {
+      await _methodChannel.invokeMethod('setSplitTunnelingEnabled', enabled);
+      return right(unit);
+    } catch (e) {
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isSplitTunnelingEnabled() async {
+    try {
+      final enabled =
+          await _methodChannel.invokeMethod<bool>('isSplitTunnelingEnabled');
+      return Right(enabled ?? false);
+    } catch (e) {
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, Unit>> addAllItems(
       SplitTunnelFilterType type, List<String> value) async {
     try {
