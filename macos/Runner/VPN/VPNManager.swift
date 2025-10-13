@@ -109,12 +109,7 @@ class VPNManager: VPNBase {
   /// Starts the VPN tunnel.
   /// Loads VPN preferences and initiates the VPN connection.
   func startTunnel() async throws {
-    guard connectionStatus == .disconnected else {
-      appLogger.log("In unexpected state: \(connectionStatus)")
-      return
-    }
     appLogger.log("Starting tunnel..")
-
     await self.setupVPN()
     let options = ["netEx.StartReason": NSString("Lantern")]
     appLogger.log("Calling manager.connection.startVPNTunnel..")

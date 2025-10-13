@@ -212,29 +212,6 @@ class MethodHandler {
       guard let self = self else { return }
       appLogger.info("Received start VPN call")
 
-      // Avoid duplicate starts based on current status
-      switch self.vpnManager.connectionStatus {
-      case .connected:
-        await MainActor.run { result("VPN already connected.") }
-        return
-      case .connecting, .reasserting:
-        await MainActor.run { result("VPN is already starting.") }
-        return
-      case .disconnecting:
-        await MainActor.run {
-          result(
-            FlutterError(
-              code: "START_IN_PROGRESS",
-              message: "VPN is currently disconnecting. Try again shortly.",
-              details: nil
-            )
-          )
-        }
-        return
-      default:
-        break
-      }
-
       do {
         try await self.vpnManager.startTunnel()
         await MainActor.run {

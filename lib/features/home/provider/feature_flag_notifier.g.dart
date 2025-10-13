@@ -7,7 +7,7 @@ part of 'feature_flag_notifier.dart';
 // **************************************************************************
 
 String _$featureFlagNotifierHash() =>
-    r'99fa884c218ba4b56864bdbbc659401ac5347382';
+    r'fb9b17b6d71951364cbbbb09c1633e70dca46f24';
 
 /// See also [FeatureFlagNotifier].
 @ProviderFor(FeatureFlagNotifier)

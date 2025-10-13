@@ -133,7 +133,8 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
   }
 
   Widget _buildSmartLocation(ServerLocationEntity serverLocation) {
-    final value = serverLocation.serverLocation.split('[')[0].trim();
+    final value =
+        serverLocation.autoLocation.serverLocation.split('[')[0].trim();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -148,7 +149,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
         AppCard(
           padding: EdgeInsets.zero,
           child: AppTile(
-            icon: serverLocation.serverLocation.countryCode.isEmpty
+            icon: serverLocation.autoLocation.serverLocation.countryCode.isEmpty
                 ? AppImagePaths.location
                 : Flag(countryCode: serverLocation.serverLocation.countryCode),
             label: value,

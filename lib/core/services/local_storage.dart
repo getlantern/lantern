@@ -1,15 +1,16 @@
 import 'dart:io';
 
+import 'package:i18n_extension/default.i18n.dart';
 import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/models/entity/app_data.dart';
 import 'package:lantern/core/models/entity/app_setting_entity.dart';
+import 'package:lantern/core/models/entity/plan_entity.dart';
 import 'package:lantern/core/models/entity/private_server_entity.dart';
 import 'package:lantern/core/models/entity/server_location_entity.dart';
 import 'package:lantern/core/models/entity/user_entity.dart';
-import 'package:lantern/core/models/mapper/user_mapper.dart';
-import 'package:lantern/core/models/entity/plan_entity.dart';
 import 'package:lantern/core/models/entity/website.dart';
+import 'package:lantern/core/models/mapper/user_mapper.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:path/path.dart' as p;
@@ -223,9 +224,13 @@ class LocalStorageService {
     if (server.isEmpty) {
       final initialServer = ServerLocationEntity(
         autoSelect: true,
-        serverLocation: 'Fastest Country',
+        serverLocation: '',
         serverName: '',
         serverType: ServerLocationType.auto.name,
+        autoLocation: AutoLocationEntity(
+          serverLocation: 'fastest_server'.i18n,
+          serverName: '',
+        ),
       );
       _serverLocationBox.put(initialServer);
     }

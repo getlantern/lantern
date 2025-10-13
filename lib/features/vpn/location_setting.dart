@@ -17,7 +17,7 @@ class LocationSetting extends HookConsumerWidget {
     switch (serverType) {
       case ServerLocationType.auto:
         title = 'smart_location'.i18n;
-        value = serverLocation.serverLocation.split('[')[0].trim();
+        value = serverLocation.autoLocation.serverLocation.split('[')[0].trim();
         break;
       case ServerLocationType.lanternLocation:
         title = 'selected_location'.i18n;

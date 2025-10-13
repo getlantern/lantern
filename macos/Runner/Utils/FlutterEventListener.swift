@@ -1,3 +1,4 @@
+import FlutterMacOS
 //
 //  FlutterEventListener.swift
 //  Runner
@@ -5,7 +6,6 @@
 //  Created by jigar fumakiya on 06/10/25.
 //
 import Liblantern
-import FlutterMacOS
 
 class FlutterEventListener: NSObject, UtilsFlutterEventEmitterProtocol {
   static let shared = FlutterEventListener()
