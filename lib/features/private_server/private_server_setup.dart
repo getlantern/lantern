@@ -17,9 +17,11 @@ class PrivateServerSetup extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final serverState = ref.watch(privateServerNotifierProvider);
-    final flags = ref.read(featureFlagNotifierProvider.notifier);
+    final isGCPEnabled = ref.watch(
+      featureFlagNotifierProvider.notifier.select((s) => s.isGCPEnabled),
+    );
     final selectedIdx = useState(0);
-    final CloudProvider selectedProvider = flags.isGCPEnabled
+    final CloudProvider selectedProvider = isGCPEnabled
         ? (selectedIdx.value == 0
             ? CloudProvider.googleCloud
             : CloudProvider.digitalOcean)
@@ -60,7 +62,7 @@ class PrivateServerSetup extends HookConsumerWidget {
 
     // Cards
     final cards = <({CloudProvider provider, Widget card, String cta})>[
-      if (flags.isGCPEnabled)
+      if (isGCPEnabled)
         (
           provider: CloudProvider.googleCloud,
           cta: 'continue_with_${CloudProvider.googleCloud.value}'.i18n,

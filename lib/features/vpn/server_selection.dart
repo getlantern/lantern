@@ -615,10 +615,11 @@ class _PrivateServerLocationListViewState
 
     ///Save the selected private server location
     final serverLocation = ServerLocationEntity(
-        serverType: ServerLocationType.privateServer.name,
-        serverName: privateServer.serverName,
-        autoSelect: false,
-        serverLocation: privateServer.serverLocation);
+      serverType: ServerLocationType.privateServer.name,
+      serverName: privateServer.serverName,
+      autoSelect: false,
+      serverLocation: privateServer.serverLocation.locationName,
+    );
 
     ref
         .read(serverLocationNotifierProvider.notifier)

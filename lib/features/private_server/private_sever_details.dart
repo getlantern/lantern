@@ -33,18 +33,40 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
     final selectedLocation = useState<String?>(null);
     final serverState = ref.watch(privateServerNotifierProvider);
     final serverNameController = useTextEditingController();
+    final navigatedToDeploy = useRef(false);
 
-    if (serverState.status == 'EventTypeProjects') {
-      projectList.value = serverState.data!.split(', ');
-    } else if (serverState.status == 'EventTypeLocations') {
-      locationList.value = serverState.data!.split(', ');
-    } else if (serverState.status == 'EventTypeProvisioningStarted') {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        appLogger.info("Private server deployment started successfully.");
-        appRouter
-            .push(PrivateServerDeploy(serverName: serverNameController.text));
-      });
-    }
+    useEffect(() {
+      if (serverState.status == 'EventTypeProjects' &&
+          (serverState.data?.isNotEmpty ?? false)) {
+        projectList.value = serverState.data!
+            .split(', ')
+            .map((e) => e.trim())
+            .where((e) => e.isNotEmpty)
+            .toList();
+      }
+
+      if (serverState.status == 'EventTypeLocations' &&
+          (serverState.data?.isNotEmpty ?? false)) {
+        locationList.value = serverState.data!
+            .split(', ')
+            .map((e) => e.trim())
+            .where((e) => e.isNotEmpty)
+            .toList();
+      }
+
+      if (serverState.status == 'EventTypeProvisioningStarted' &&
+          !navigatedToDeploy.value) {
+        navigatedToDeploy.value = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          appLogger.info("Private server deployment started successfully.");
+          appRouter.push(
+            PrivateServerDeploy(serverName: serverNameController.text),
+          );
+        });
+      }
+
+      return null;
+    }, [serverState.status, serverState.data]);
 
     return BaseScreen(
         title: widget.provider == CloudProvider.digitalOcean
@@ -54,12 +76,17 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
         bottomNavigationBar: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
           child: PrimaryButton(
+            key: const Key('psd.startDeployment'),
             label: 'start_deployment'.i18n,
             isTaller: true,
-            enabled: selectedProject.value != null &&
-                serverNameController.text.isNotEmpty,
+            enabled: (selectedProject.value != null &&
+                (selectedLocation.value != null &&
+                    selectedLocation.value!.isNotEmpty) &&
+                serverNameController.text.trim().isNotEmpty),
             onPressed: () => onStartDeployment(
-                selectedLocation.value!, serverNameController.text.trim()),
+              selectedLocation.value!,
+              serverNameController.text.trim(),
+            ),
           ),
         ),
         body: ListView(
@@ -77,6 +104,7 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
                   DividerSpace(padding: EdgeInsets.zero),
                   SizedBox(height: 8),
                   AppDropdown(
+                    key: const Key('psd.accountDropdown'),
                     label: 'account'.i18n,
                     prefixIconPath: AppImagePaths.accountSetting,
                     value: selectedAccount.value,
@@ -85,7 +113,15 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
                         .toList(),
                     onChanged: (value) {
                       selectedAccount.value = value;
-                      onUserInput(PrivateServerInput.selectAccount, value);
+                      // reset dependents
+                      selectedProject.value = null;
+                      projectList.value = <String>[];
+                      selectedLocation.value = null;
+                      locationList.value = <String>[];
+
+                      if (value.isNotEmpty) {
+                        onUserInput(PrivateServerInput.selectAccount, value);
+                      }
                     },
                   ),
                 ],
@@ -105,6 +141,7 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
                   DividerSpace(padding: EdgeInsets.zero),
                   SizedBox(height: 8),
                   AppDropdown(
+                    key: const Key('psd.projectDropdown'),
                     label: 'billing_account'.i18n,
                     prefixIconPath: AppImagePaths.creditCard,
                     value: selectedProject.value,
@@ -113,7 +150,12 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
                         .toList(),
                     onChanged: (value) {
                       selectedProject.value = value;
-                      onUserInput(PrivateServerInput.selectProject, value);
+                      selectedLocation.value = null;
+                      locationList.value = <String>[];
+
+                      if (value.isNotEmpty) {
+                        onUserInput(PrivateServerInput.selectProject, value);
+                      }
                     },
                   ),
                 ],
@@ -134,37 +176,28 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
                   SizedBox(height: 8),
                   if (selectedLocation.value != null)
                     AppTile(
+                        key: const Key('psd.locationTile'),
                         minHeight: 40,
                         contentPadding: EdgeInsets.zero,
-                        icon: Flag(
-                            countryCode: selectedLocation.value!.countryCode),
+                        icon: AppImage(path: AppImagePaths.location),
                         label: selectedLocation.value!.locationName,
-                        onPressed: () {
-                          appRouter.push(PrivateServerLocation(
-                            location: locationList.value,
-                            selectedLocation: selectedLocation.value,
-                            provider: widget.provider,
-                            onLocationSelected: (p0) {
-                              selectedLocation.value = p0;
-                            },
-                          ));
-                        },
+                        onPressed: () => _openLocationPicker(
+                              current: selectedLocation.value,
+                              locations: locationList.value,
+                              onPicked: (p0) => selectedLocation.value = p0,
+                            ),
                         trailing: AppTextButton(
-                          onPressed: () {
-                            appRouter.push(PrivateServerLocation(
-                              location: locationList.value,
-                              selectedLocation: selectedLocation.value,
-                              provider: widget.provider,
-                              onLocationSelected: (p0) {
-                                selectedLocation.value = p0;
-                              },
-                            ));
-                          },
+                          onPressed: () => _openLocationPicker(
+                            current: selectedLocation.value,
+                            locations: locationList.value,
+                            onPicked: (p0) => selectedLocation.value = p0,
+                          ),
                           label: 'change'.i18n,
                         ))
                   else
                     Center(
                         child: AppTextButton(
+                            key: const Key('psd.chooseLocation'),
                             label: 'choose_location'.i18n,
                             onPressed: () {
                               appRouter.push(
@@ -195,6 +228,7 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
                   DividerSpace(padding: EdgeInsets.zero),
                   SizedBox(height: 8),
                   AppTextField(
+                    key: const Key('psd.serverName'),
                     hintText: "server_name".i18n,
                     label: "server_name".i18n,
                     controller: serverNameController,
@@ -236,6 +270,21 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
         context.hideLoadingDialog();
         appLogger.info("${input.name} set successfully: $account");
       },
+    );
+  }
+
+  void _openLocationPicker({
+    required String? current,
+    required List<String> locations,
+    required ValueChanged<String> onPicked,
+  }) {
+    appRouter.push(
+      PrivateServerLocation(
+        location: locations,
+        selectedLocation: current,
+        provider: widget.provider,
+        onLocationSelected: onPicked,
+      ),
     );
   }
 
