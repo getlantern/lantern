@@ -1,6 +1,6 @@
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/models/mapper/plan_mapper.dart';
+import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

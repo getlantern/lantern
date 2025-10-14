@@ -37,6 +37,7 @@ class Plan {
   Map<String, dynamic> expectedMonthlyPrice;
   bool bestValue;
   List<String>? logoPaths;
+  String referralMessage = '';
 
   Plan({
     required this.id,

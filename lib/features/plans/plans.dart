@@ -12,6 +12,7 @@ import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/plans/feature_list.dart';
 import 'package:lantern/features/plans/plans_list.dart';
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
+import 'package:lantern/features/plans/provider/referral_notifier.dart';
 
 import '../../core/models/plan_data.dart';
 
@@ -225,13 +226,33 @@ class _PlansState extends ConsumerState<Plans> {
     );
   }
 
-  void onReferralCodeContinue(String code) {
+  Future<void> onReferralCodeContinue(String code) async {
     if (code.isEmpty) {
       context.showSnackBar('please_enter_referral_code'.i18n);
       return;
     }
     appRouter.pop();
-    appRouter.push(ReferralCode(referralCode: code));
+    context.showLoadingDialog();
+    final result = await  ref.read(referralNotifierProvider.notifier).applyReferralCode(code);
+
+    result.fold(
+      (error) {
+        if (!mounted) {
+          return;
+        }
+        context.hideLoadingDialog();
+        context.showSnackBar(error.localizedErrorMessage);
+        appLogger.error('Error applying referral code: $error');
+      },
+      (success) {
+        if (!mounted) {
+          return;
+        }
+        context.hideLoadingDialog();
+        context.showSnackBar('referral_code_applied'.i18n);
+        appLogger.info('Successfully applied referral code');
+      },
+    );
   }
 
   void onGetLanternProTap() {

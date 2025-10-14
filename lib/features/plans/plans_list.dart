@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/utils/screen_utils.dart';
 import 'package:lantern/features/plans/plan_item.dart';
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
+import 'package:lantern/features/plans/provider/referral_notifier.dart';
 
 class PlansListView extends HookConsumerWidget {
   final PlansData data;
@@ -18,6 +20,7 @@ class PlansListView extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final referralEnable = ref.watch(referralNotifierProvider);
     final size = MediaQuery.of(context).size;
     final plan = useState<Plan>(
         data.plans.firstWhere((Plan plan) => plan.bestValue == true));
@@ -37,6 +40,7 @@ class PlansListView extends HookConsumerWidget {
           return PlanItem(
             plan: item,
             planSelected: plan.value.id == item.id,
+            referralMessage: referralEnable ? getReferralMessage(item.id) : '',
             onPressed: (plans) {
               plan.value = plans;
               ref.read(plansNotifierProvider.notifier).setSelectedPlan(plans);
@@ -45,5 +49,17 @@ class PlansListView extends HookConsumerWidget {
         },
       ),
     );
+  }
+
+  String getReferralMessage(String planId) {
+    final id = planId.split('-').first;
+    if (id == '1m') {
+      return 'referral_message_1m'.i18n;
+    } else if (id == '1y') {
+      return 'referral_message_6m'.i18n;
+    } else if (id == '2y') {
+      return 'referral_message_12m'.i18n;
+    }
+    return '';
   }
 }
