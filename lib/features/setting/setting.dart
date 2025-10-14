@@ -51,7 +51,7 @@ class _SettingState extends ConsumerState<Setting> {
       body: ListView(
         padding: EdgeInsets.symmetric(horizontal: defaultSize),
         children: <Widget>[
-          if (!isUserPro)
+          if (isUserPro)
             Padding(
               padding: const EdgeInsets.only(top: 16),
               child: ProButton(

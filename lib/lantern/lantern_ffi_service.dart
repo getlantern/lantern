@@ -1124,6 +1124,12 @@ class LanternFFIService implements LanternCoreService {
     // TODO: implement removeAllItems
     throw UnimplementedError();
   }
+
+  @override
+  Future<Either<Failure, String>> attachReferralCode(String code) {
+    // TODO: implement attachReferralCode
+    throw UnimplementedError();
+  }
 }
 
 void checkAPIError(dynamic result) {

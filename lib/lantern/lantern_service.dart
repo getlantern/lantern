@@ -586,4 +586,12 @@ class LanternService implements LanternCoreService {
     }
     return _platformService.removeAllItems(type, value);
   }
+
+  @override
+  Future<Either<Failure, String>> attachReferralCode(String code) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.attachReferralCode(code);
+    }
+    return _platformService.attachReferralCode(code);
+  }
 }

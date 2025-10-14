@@ -129,6 +129,10 @@ class MethodHandler {
         let deviceId = data?["deviceId"] as? String ?? ""
         self.deviceRemove(result: result, deviceId: deviceId)
         break
+      case "attachReferralCode":
+        let code = call.arguments as? String ?? ""
+        self.referralAttach(result: result, code: code)
+        break
       // Private server methods
       case "digitalOcean":
         self.digitalOcean(result: result)
@@ -604,6 +608,25 @@ class MethodHandler {
       }
       await MainActor.run {
         appLogger.info("Device removed successfully.")
+        self.replyOK(result)
+      }
+    }
+  }
+
+  func referralAttach(result: @escaping FlutterResult, code: String) {
+    Task.detached {
+      var error: NSError?
+      MobileAttachReferralCode(code, &error)
+      if error != nil {
+        appLogger.error("Failed to attach referral code: \(error!.localizedDescription)")
+        await self.handleFlutterError(
+          error,
+          result: result,
+          code: "ATTACH_REFERRAL_CODE_FAILED")
+        return
+      }
+      await MainActor.run {
+        appLogger.info("Referral code attached successfully.")
         self.replyOK(result)
       }
     }

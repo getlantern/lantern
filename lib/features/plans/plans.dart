@@ -144,13 +144,24 @@ class _PlansState extends ConsumerState<Plans> {
     showAppBottomSheet(
       context: context,
       title: 'payment_options'.i18n,
-      scrollControlDisabledMaxHeightRatio: context.isSmallDevice ? 0.4 : 0.3,
+      scrollControlDisabledMaxHeightRatio: context.isSmallDevice ? 0.5 : 0.4,
       builder: (context, scrollController) {
         return ListView(
           shrinkWrap: true,
           padding: EdgeInsets.zero,
           controller: scrollController,
           children: [
+            if (!isStoreVersion()) ...{
+              AppTile(
+                icon: AppImagePaths.star,
+                label: 'referral_code'.i18n,
+                onPressed: () {
+                  context.pop();
+                  showReferralCodeDialog();
+                },
+              ),
+              DividerSpace(),
+            },
             AppTile(
               icon: AppImagePaths.keypad,
               label: 'enter_activation_code'.i18n,
@@ -171,6 +182,56 @@ class _PlansState extends ConsumerState<Plans> {
         );
       },
     );
+  }
+
+  void showReferralCodeDialog() {
+    final referralCodeController = TextEditingController();
+    AppDialog.customDialog(
+      context: context,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          SizedBox(height: 24),
+          AppImage(path: AppImagePaths.star, height: 48),
+          SizedBox(height: defaultSize),
+          Text('referral_code'.i18n,
+              style: textTheme.headlineSmall!.copyWith(
+                color: AppColors.gray9,
+              )),
+          SizedBox(height: 24),
+          AppTextField(
+            label: 'referral_code'.i18n,
+            controller: referralCodeController,
+            hintText: 'XXXXXX',
+            prefixIcon: AppImagePaths.star,
+          )
+        ],
+      ),
+      action: [
+        AppTextButton(
+          label: 'cancel'.i18n,
+          underLine: false,
+          textColor: AppColors.gray6,
+          onPressed: () {
+            appRouter.pop();
+          },
+        ),
+        AppTextButton(
+          label: 'continue'.i18n,
+          onPressed: () =>
+              onReferralCodeContinue(referralCodeController.text.trim()),
+        )
+      ],
+    );
+  }
+
+  void onReferralCodeContinue(String code) {
+    if (code.isEmpty) {
+      context.showSnackBar('please_enter_referral_code'.i18n);
+      return;
+    }
+    appRouter.pop();
+    appRouter.push(ReferralCode(referralCode: code));
   }
 
   void onGetLanternProTap() {
