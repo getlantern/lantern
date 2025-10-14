@@ -87,30 +87,32 @@ class PrivateServerEntity {
 
   static PrivateServerEntity fromJson(Map<String, dynamic> e) {
     final dynamic locRaw = e['location'] ?? e['server_location'];
-    String locName = '';
-    String locCC = '';
+    String locationName = '';
+    String countryCode = '';
 
     if (locRaw is Map<String, dynamic>) {
       final sl = ServerLocation.fromJson(locRaw);
-      locName = sl.locationName;
-      locCC = sl.countryCode;
+      locationName = sl.locationName;
+      countryCode = sl.countryCode;
     } else if (locRaw is String) {
-      locName = locRaw;
-      locCC = (e['country_code'] ?? e['countryCode'] ?? '').toString();
+      locationName = locRaw;
+      countryCode = (e['country_code'] ?? e['countryCode'] ?? '').toString();
     } else {
       // try explicit fields
-      locName = (e['location_name'] ?? e['locationName'] ?? '').toString();
-      locCC = (e['country_code'] ?? e['countryCode'] ?? '').toString();
+      locationName = (e['location_name'] ?? e['locationName'] ?? '').toString();
+      countryCode = (e['country_code'] ?? e['countryCode'] ?? '').toString();
     }
 
-    return PrivateServerEntity(
+    return PrivateServerEntity.withLocation(
       serverName:
           (e['tag'] ?? e['server_name'] ?? e['serverName'] ?? '').toString(),
       externalIp: (e['external_ip'] ?? e['externalIp'] ?? '').toString(),
       port: (e['port'] ?? '').toString(),
       accessToken: (e['access_token'] ?? e['accessToken'] ?? '').toString(),
-      serverLocationName: locName,
-      serverCountryCode: locCC,
+      serverLocation: ServerLocation(
+        locationName: locationName,
+        countryCode: countryCode,
+      ),
       isJoined: (e['is_joined'] ?? e['isJoined'] ?? false) == true,
       userSelected: (e['user_selected'] ?? e['userSelected'] ?? false) == true,
     );

@@ -179,7 +179,9 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
                         key: const Key('psd.locationTile'),
                         minHeight: 40,
                         contentPadding: EdgeInsets.zero,
-                        icon: AppImage(path: AppImagePaths.location),
+                        icon: Flag(
+                          countryCode: selectedLocation.value!.countryCode,
+                        ),
                         label: selectedLocation.value!.locationName,
                         onPressed: () => _openLocationPicker(
                               current: selectedLocation.value,
