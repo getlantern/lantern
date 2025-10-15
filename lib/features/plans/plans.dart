@@ -221,7 +221,7 @@ class _PlansState extends ConsumerState<Plans> {
         AppTextButton(
           label: 'continue'.i18n,
           onPressed: () =>
-              onReferralCodeContinue(referralCodeController.text.trim()),
+              onReferralCodeContinue(referralCodeController.text.toUpperCase().trim()),
         )
       ],
     );

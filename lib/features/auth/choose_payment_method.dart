@@ -11,6 +11,7 @@ import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/logs_path.dart';
 import 'package:lantern/features/auth/provider/payment_notifier.dart';
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
+import 'package:lantern/features/plans/provider/referral_notifier.dart';
 
 @RoutePage(name: 'ChoosePaymentMethod')
 class ChoosePaymentMethod extends HookConsumerWidget {
@@ -50,12 +51,14 @@ class ChoosePaymentMethod extends HookConsumerWidget {
             text: 'payment_information_encrypted'.i18n,
           ),
           SizedBox(height: defaultSize),
-          PaymentCheckoutMethods(
-            providers: PlatformUtils.isAndroid
-                ? planData.providers.android
-                : planData.providers.desktop,
-            userPlan: userPlan,
-            onSubscribe: (provider) => onSubscribe(provider, ref, context),
+          Expanded(
+            child: PaymentCheckoutMethods(
+              providers: PlatformUtils.isAndroid
+                  ? planData.providers.android
+                  : planData.providers.desktop,
+              userPlan: userPlan,
+              onSubscribe: (provider) => onSubscribe(provider, ref, context),
+            ),
           )
         ],
       ),
@@ -301,6 +304,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final referralEnable = ref.watch(referralNotifierProvider);
     final theme = Theme.of(context).textTheme;
     return ListView.builder(
       shrinkWrap: true,
@@ -355,6 +359,22 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
                   ),
                 ],
               ),
+              DividerSpace(padding: EdgeInsets.symmetric(vertical: 10)),
+              if (referralEnable) ...[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(getReferralMessage(userPlan.id).replaceAll('free', '').toTitleCase(),
+                        style: theme.bodyMedium),
+                    Text(
+                      'free'.i18n,
+                      style: theme.bodyMedium!.copyWith(
+                        color: AppColors.gray6,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
               DividerSpace(padding: EdgeInsets.symmetric(vertical: 10)),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

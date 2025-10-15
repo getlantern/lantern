@@ -1151,3 +1151,6 @@ msgstr "The referral code you entered is invalid. Please check the code and try 
 
 msgid "referral_code_own_invalid"
 msgstr "You cannot use your own referral code. Please enter a different code."
+
+msgid "free"
+msgstr "Free"
