@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:ffi';
+import 'dart:typed_data';
 import 'package:win32/win32.dart';
 import 'package:ffi/ffi.dart';
 
@@ -27,8 +29,13 @@ int openPipeBlocking(String fullName, int timeoutMs) {
       );
       if (h != INVALID_HANDLE_VALUE) {
         final mode = calloc<Uint32>()..value = PIPE_READMODE_MESSAGE;
-        SetNamedPipeHandleState(h, mode, nullptr, nullptr);
+        final ok = SetNamedPipeHandleState(h, mode, nullptr, nullptr);
         free(mode);
+        if (ok == 0) {
+          final code = GetLastError();
+          CloseHandle(h);
+          throw Exception('SetNamedPipeHandleState failed: $code');
+        }
         return h;
       }
 

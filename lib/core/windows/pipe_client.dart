@@ -99,19 +99,39 @@ class PipeClient {
     final bldr = BytesBuilder();
     try {
       while (true) {
-        final ok = ReadFile(_hPipe, pBuf, bufSize, pRead, nullptr);
-        if (ok == 0) throw Exception('ReadFile failed: ${GetLastError()}');
-        final n = pRead.value;
-        if (n == 0) continue;
-        final chunk = Uint8List.sublistView(pBuf.asTypedList(n));
-        final nl = chunk.indexOf(0x0A);
-        if (nl >= 0) {
-          bldr.add(chunk.sublist(0, nl));
+        int lastErr = 0;
+        do {
+          final ok = ReadFile(_hPipe, pBuf, bufSize, pRead, nullptr);
+          final n = pRead.value;
+
+          if (n > 0) {
+            final chunk = Uint8List.sublistView(pBuf.asTypedList(n));
+            final nl = chunk.indexOf(0x0A);
+            if (nl >= 0) {
+              bldr.add(chunk.sublist(0, nl));
+              lastErr = 0;
+              break;
+            }
+            bldr.add(chunk);
+          }
+
+          if (ok != 0) {
+            lastErr = 0;
+          } else {
+            lastErr = GetLastError();
+            if (lastErr == ERROR_MORE_DATA) {
+              continue;
+            }
+          }
           break;
+        } while (true);
+
+        if (lastErr != 0) {
+          throw Exception('ReadFile failed: $lastErr');
         }
-        bldr.add(chunk);
+
+        return _decode(utf8.decode(bldr.takeBytes()));
       }
-      return _decode(utf8.decode(bldr.takeBytes()));
     } finally {
       free(pBuf);
       free(pRead);
@@ -268,20 +288,37 @@ void _watchIsolateMain(_WatchArgs args) async {
     String carry = '';
     try {
       while (!stopping) {
-        final ok = ReadFile(hPipe, buf, args.bufSize, r, nullptr);
-        if (ok == 0) break;
-        final n = r.value;
-        if (n == 0) continue;
+        int lastErr = 0;
+        do {
+          final ok = ReadFile(hPipe, buf, args.bufSize, r, nullptr);
+          final n = r.value;
 
-        final s = utf8.decode(Uint8List.sublistView(buf.asTypedList(n)));
-        final combined = carry + s;
-        final parts = combined.split('\n');
-        for (var i = 0; i < parts.length - 1; i++) {
-          final line = parts[i];
-          if (line.isEmpty) continue;
-          args.events.send(line);
+          if (n > 0) {
+            final s = utf8.decode(Uint8List.sublistView(buf.asTypedList(n)));
+            final combined = carry + s;
+            final parts = combined.split('\n');
+            for (var i = 0; i < parts.length - 1; i++) {
+              final line = parts[i];
+              if (line.isEmpty) continue;
+              args.events.send(line);
+            }
+            carry = parts.isNotEmpty ? parts.last : '';
+          }
+
+          if (ok != 0) {
+            lastErr = 0;
+          } else {
+            lastErr = GetLastError();
+            if (lastErr == ERROR_MORE_DATA) {
+              continue;
+            }
+          }
+          break;
+        } while (true);
+
+        if (lastErr != 0) {
+          break;
         }
-        carry = parts.isNotEmpty ? parts.last : '';
       }
     } finally {
       stopSub.cancel();
