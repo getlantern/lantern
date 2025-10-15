@@ -1,8 +1,8 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:share_plus/share_plus.dart';
@@ -15,7 +15,8 @@ class InviteFriends extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(homeNotifierProvider).value;
     final referralCode = user!.legacyUserData.referral.toUpperCase();
-    return BaseScreen(title: 'invite_friends'.i18n, body: _buildBody(referralCode));
+    return BaseScreen(
+        title: 'invite_friends'.i18n, body: _buildBody(referralCode));
   }
 
   Widget _buildBody(String referralCode) {
@@ -59,14 +60,101 @@ class InviteFriends extends HookConsumerWidget {
           SizedBox(height: defaultSize),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Text(
-              'invite_friends_message'.i18n,
-              style: textTheme.bodyMedium!.copyWith(
-                color: AppColors.gray8,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'invite_friends_message'.i18n,
+                  style: textTheme.bodyMedium!.copyWith(
+                    color: AppColors.gray8,
+                  ),
+                ),
+                SizedBox(height: defaultSize),
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: '- ',
+                        style: textTheme.bodyMedium!.copyWith(
+                          color: AppColors.gray8,
+                        ),
+                      ),
+                      TextSpan(
+                        text: 'monthly_plan'.i18n,
+                        style: AppTextStyles.bodyMediumBold!.copyWith(
+                          color: AppColors.gray8,
+                        ),
+                      ),
+                      TextSpan(
+                        text: ' ${'15_days_each'.i18n}',
+                        style: textTheme.bodyMedium!.copyWith(
+                          color: AppColors.gray8,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 4.0),
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: '- ',
+                        style: textTheme.bodyMedium!.copyWith(
+                          color: AppColors.gray8,
+                        ),
+                      ),
+                      TextSpan(
+                        text: 'annual_plan'.i18n,
+                        style: AppTextStyles.bodyMediumBold!.copyWith(
+                          color: AppColors.gray8,
+                        ),
+                      ),
+                      TextSpan(
+                        text: ' ${'1_month_each'.i18n}',
+                        style: textTheme.bodyMedium!.copyWith(
+                          color: AppColors.gray8,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 4.0),
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: '- ',
+                        style: textTheme.bodyMedium!.copyWith(
+                          color: AppColors.gray8,
+                        ),
+                      ),
+                      TextSpan(
+                        text: 'two_year_plan'.i18n,
+                        style: AppTextStyles.bodyMediumBold!.copyWith(
+                          color: AppColors.gray8,
+                        ),
+                      ),
+                      TextSpan(
+                        text: ' ${'2_month_each'.i18n}',
+                        style: textTheme.bodyMedium!.copyWith(
+                          color: AppColors.gray8,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: size24),
+                Text(
+                  'referral_code_info'.i18n,
+                  style: textTheme.bodyMedium!.copyWith(
+                    color: AppColors.gray8,
+                  ),
+                ),
+              ],
             ),
           ),
-          SizedBox(height: 48.0.h),
+          SizedBox(height: 48.0),
           PrimaryButton(
             label: 'share_referral_code'.i18n,
             icon: AppImagePaths.share,

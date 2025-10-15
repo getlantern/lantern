@@ -20,7 +20,7 @@ msgid "your_referral_code"
 msgstr "Your Referral Code"
 
 msgid "invite_friends_message"
-msgstr "Share your referral code with a friend. When they use it to purchase Lantern Pro, both of you will receive 30 days of Lantern Pro for free!"
+msgstr "Share your referral code with a friend. When they purchase Lantern Pro, you both get bonus time: "
 
 msgid "share_referral_code"
 msgstr "Share Referral Code"
@@ -1154,3 +1154,24 @@ msgstr "You cannot use your own referral code. Please enter a different code."
 
 msgid "free"
 msgstr "Free"
+
+msgid "monthly_plan"
+msgstr "Monthly Plan:"
+
+msgid "15_days_each"
+msgstr "+15 days each
+
+msgid "annual_plan"
+msgstr "Annual plan:"
+
+msgid "1_month_each"
+msgstr "+1 month each
+
+msgid "two_year_plan"
+msgstr "Two-year plan:"
+
+msgid "2_month_each"
+msgstr "+2 months each
+
+msgid "referral_code_info"
+msgstr "Not a Lantern Pro user yet? You'll become one when your first referral subscribes
