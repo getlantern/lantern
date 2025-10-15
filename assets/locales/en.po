@@ -1156,7 +1156,7 @@ msgid "free"
 msgstr "Free"
 
 msgid "monthly_plan"
-msgstr "Monthly Plan:"
+msgstr "Monthly plan:"
 
 msgid "15_days_each"
 msgstr "+15 days each
