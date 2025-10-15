@@ -23,4 +23,8 @@ class ReferralNotifier extends _$ReferralNotifier {
 
     return result;
   }
+
+  void resetReferral() {
+    state = false;
+  }
 }
