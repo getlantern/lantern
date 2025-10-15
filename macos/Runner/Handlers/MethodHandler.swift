@@ -47,17 +47,18 @@ class MethodHandler {
         withFilterArgs(call: call, result: result) { filterType, value in
           self.removeSplitTunnelItem(result: result, filterType: filterType, value: value)
         }
-
       case "addAllItems":
         withFilterArgs(call: call, result: result) { filterType, value in
           self.addAllItemsToSplitTunnel(result: result, filterType: filterType, value: value)
         }
-
       case "removeAllItems":
         withFilterArgs(call: call, result: result) { filterType, value in
           self.removeItemsToSplitTunnel(result: result, filterType: filterType, value: value)
         }
-        break
+      case "enableSplitTunneling":
+        self.enableSplitTunneling(result: result)
+      case "disableSplitTunneling":
+        self.disableSplitTunneling(result: result)
       case "connectToServer":
         let map = call.arguments as? [String: Any]
         self.connectToServer(result: result, data: map!)
@@ -200,7 +201,6 @@ class MethodHandler {
       case "stripeBillingPortal":
         self.stripeBillingPortal(result: result)
         break
-
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -385,6 +385,34 @@ class MethodHandler {
         return
       }
       await MainActor.run { result("ok") }
+    }
+  }
+
+  func disableSplitTunneling(result: @escaping FlutterResult) {
+    Task.detached {
+      var error: NSError?
+      MobileSetSplitTunnelingEnabled(false, &error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "REPORT_ISSUE_ERROR")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  func enableSplitTunneling(result: @escaping FlutterResult) {
+    Task.detached {
+      var error: NSError?
+      MobileSetSplitTunnelingEnabled(true, &error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "REPORT_ISSUE_ERROR")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
     }
   }
 
@@ -1029,7 +1057,6 @@ class MethodHandler {
       await MainActor.run {
         result("ok")
       }
-
     }
   }
 

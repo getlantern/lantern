@@ -158,6 +158,18 @@ func RemoveSplitTunnelItems(items string) error {
 	return withCore(func(c lanterncore.Core) error { return c.RemoveSplitTunnelItems(items) })
 }
 
+func SetSplitTunnelingEnabled(enabled bool) error {
+	return withCore(func(c lanterncore.Core) error { c.SetSplitTunnelingEnabled(enabled); return nil })
+}
+
+func IsSplitTunnelingEnabled() bool {
+	ok, err := withCoreR(func(c lanterncore.Core) (bool, error) { return c.IsSplitTunnelingEnabled(), nil })
+	if err != nil {
+		return false
+	}
+	return ok
+}
+
 func ReportIssue(email, issueType, description, device, model, logFilePath string) error {
 	return withCore(func(c lanterncore.Core) error {
 		return c.ReportIssue(email, issueType, description, device, model, logFilePath)
