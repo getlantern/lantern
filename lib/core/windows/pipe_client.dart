@@ -120,7 +120,8 @@ class PipeClient {
 
   Future<void> close() async {
     if (_hPipe != INVALID_HANDLE_VALUE) {
-      CloseHandle(_hPipe);
+      cancelAndClose(_hPipe);
+      _hPipe = INVALID_HANDLE_VALUE;
     }
   }
 
@@ -254,8 +255,11 @@ void _watchIsolateMain(_WatchArgs args) async {
     bool stopping = false;
     final stopSub = stopPort.listen((_) {
       stopping = true;
-      closeHandleIfOpen(hPipe);
-      hPipe = INVALID_HANDLE_VALUE;
+      CancelIoEx(hPipe, nullptr);
+      if (hPipe != INVALID_HANDLE_VALUE) {
+        CloseHandle(hPipe);
+        hPipe = INVALID_HANDLE_VALUE;
+      }
       stopPort.close();
     });
 
@@ -287,7 +291,9 @@ void _watchIsolateMain(_WatchArgs args) async {
   } catch (e) {
     args.events.send({'error': e.toString()});
   } finally {
-    closeHandleIfOpen(hPipe);
+    if (hPipe != INVALID_HANDLE_VALUE) {
+      CloseHandle(hPipe);
+    }
     args.events.send(null);
   }
 }

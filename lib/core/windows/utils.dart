@@ -51,8 +51,9 @@ int openPipeBlocking(String fullName, int timeoutMs) {
   }
 }
 
-void closeHandleIfOpen(int h) {
+void cancelAndClose(int h) {
   if (h != INVALID_HANDLE_VALUE) {
+    CancelIoEx(h, nullptr);
     CloseHandle(h);
   }
 }
