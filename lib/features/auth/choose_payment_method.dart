@@ -364,7 +364,10 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(getReferralMessage(userPlan.id).replaceAll('free', '').toTitleCase(),
+                    Text(
+                        getReferralMessage(userPlan.id)
+                            .replaceAll('free', '')
+                            .toTitleCase(),
                         style: theme.bodyMedium),
                     Text(
                       'free'.i18n,
@@ -374,8 +377,8 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
                     ),
                   ],
                 ),
+                DividerSpace(padding: EdgeInsets.symmetric(vertical: 10)),
               ],
-              DividerSpace(padding: EdgeInsets.symmetric(vertical: 10)),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [

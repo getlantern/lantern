@@ -70,7 +70,7 @@ class InviteFriends extends HookConsumerWidget {
           PrimaryButton(
             label: 'share_referral_code'.i18n,
             icon: AppImagePaths.share,
-            onPressed: () => _onShareTap('BSDKALE'),
+            onPressed: () => _onShareTap(referralCode),
           ),
         ],
       ),

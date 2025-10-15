@@ -24,6 +24,7 @@ class PlansNotifier extends _$PlansNotifier {
     // No local — fetch from API
     final plans = await fetchPlans();
     state = AsyncData(plans);
+    await _storePlansLocally(plans);
     return plans;
   }
 
@@ -86,6 +87,23 @@ class PlansNotifier extends _$PlansNotifier {
   }
 
   PlansData getPlanData() {
-    return _getPlansFromLocalStorage()!;
+    final plansData = _getPlansFromLocalStorage()!;
+    if (PlatformUtils.isAndroid) {
+      plansData.providers.android.sort((a, b) =>
+          a.providers.supportSubscription == b.providers.supportSubscription
+              ? 0
+              : a.providers.supportSubscription
+                  ? 1
+                  : -1);
+    return plansData;
+    } else {
+      plansData.providers.desktop.sort((a, b) =>
+          a.providers.supportSubscription == b.providers.supportSubscription
+              ? 0
+              : a.providers.supportSubscription
+                  ? 1
+                  : -1);
+      return plansData;
+    }
   }
 }
