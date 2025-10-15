@@ -166,7 +166,7 @@ class _PlansState extends ConsumerState<Plans> {
             },
             AppTile(
               icon: AppImagePaths.keypad,
-              label: 'enter_activation_code'.i18n,
+              label: 'lantern_pro_license'.i18n,
               onPressed: () {
                 appRouter
                     .popAndPush(AddEmail(authFlow: AuthFlow.activationCode));
