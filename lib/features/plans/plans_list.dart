@@ -56,9 +56,9 @@ class PlansListView extends HookConsumerWidget {
     if (id == '1m') {
       return 'referral_message_1m'.i18n;
     } else if (id == '1y') {
-      return 'referral_message_6m'.i18n;
+      return 'referral_message_1y'.i18n;
     } else if (id == '2y') {
-      return 'referral_message_12m'.i18n;
+      return 'referral_message_2y'.i18n;
     }
     return '';
   }

@@ -230,7 +230,7 @@ func (lc *LanternCore) ReferralAttachment(ctx context.Context, referralCode stri
 	slog.Debug("Attaching referral code", "code", referralCode)
 	success, err := lc.apiClient.ReferralAttach(ctx, referralCode)
 	if err != nil {
-		return false, fmt.Errorf("error attaching referral code: %w", err)
+		return false, err
 	}
 	slog.Debug("ReferralAttachment response: ", "success", success)
 	return success, nil

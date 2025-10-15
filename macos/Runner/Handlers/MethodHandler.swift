@@ -616,7 +616,7 @@ class MethodHandler {
   func referralAttach(result: @escaping FlutterResult, code: String) {
     Task.detached {
       var error: NSError?
-      MobileAttachReferralCode(code, &error)
+      MobileReferralAttachment(code, &error)
       if error != nil {
         appLogger.error("Failed to attach referral code: \(error!.localizedDescription)")
         await self.handleFlutterError(

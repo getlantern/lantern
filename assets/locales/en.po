@@ -1137,7 +1137,6 @@ msgstr  "Server alias cannot be empty"
 msgid "referral_code_applied"
 msgstr "Your referral code has been applied!"
 
-
 msgid "referral_message_1m"
 msgstr "+ 15 additional days free"
 
@@ -1147,5 +1146,8 @@ msgstr "+ 1 additional month free"
 msgid "referral_message_2y"
 msgstr "+ 2 additional month free"
 
+msgid "referral_code_invalid"
+msgstr "The referral code you entered is invalid. Please check the code and try again."
 
-
+msgid "referral_code_own_invalid"
+msgstr "You cannot use your own referral code. Please enter a different code."

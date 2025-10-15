@@ -5,6 +5,7 @@ extension ErrorExetension on Object {
   String get localizedDescription {
     // Check if the error is a PlatformException
     if (this is PlatformException) {
+
       // Extract the message from the PlatformException
       String description = (this as PlatformException).message ?? '';
       if (description.contains("proxy_error")) {
@@ -60,6 +61,12 @@ extension ErrorExetension on Object {
 
       if (description.contains("error restoring purchase")) {
         return "purchase_restored_error".i18n;
+      }
+      if(description.contains('Invalid referral')){
+        return "referral_code_invalid".i18n;
+      }
+      if(description.contains('Cannot use your own code for promotion')){
+        return "referral_code_own_invalid".i18n;
       }
       return description;
     }

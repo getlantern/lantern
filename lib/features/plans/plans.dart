@@ -203,6 +203,7 @@ class _PlansState extends ConsumerState<Plans> {
           AppTextField(
             label: 'referral_code'.i18n,
             controller: referralCodeController,
+            maxLength: 6,
             hintText: 'XXXXXX',
             prefixIcon: AppImagePaths.star,
           )
@@ -233,16 +234,21 @@ class _PlansState extends ConsumerState<Plans> {
     }
     appRouter.pop();
     context.showLoadingDialog();
-    final result = await  ref.read(referralNotifierProvider.notifier).applyReferralCode(code);
+    final result = await ref
+        .read(referralNotifierProvider.notifier)
+        .applyReferralCode(code);
 
     result.fold(
       (error) {
         if (!mounted) {
           return;
         }
-        context.hideLoadingDialog();
-        context.showSnackBar(error.localizedErrorMessage);
         appLogger.error('Error applying referral code: $error');
+        context.hideLoadingDialog();
+        AppDialog.errorDialog(
+            context: context,
+            title: 'error'.i18n,
+            content: error.localizedErrorMessage);
       },
       (success) {
         if (!mounted) {
