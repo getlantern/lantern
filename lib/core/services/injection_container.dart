@@ -53,12 +53,12 @@ Future<void> injectServices() async {
       return stripeService;
     });
 
-    sl.registerSingletonAsync<NotificationService>(() async {
-      appLogger.info("Initializing NotificationService");
-      final notificationService = NotificationService();
-      await notificationService.init();
-      return notificationService;
-    });
+    // sl.registerSingletonAsync<NotificationService>(() async {
+    //   appLogger.info("Initializing NotificationService");
+    //   final notificationService = NotificationService();
+    //   await notificationService.init();
+    //   return notificationService;
+    // });
     appLogger.info("All services injected ✅");
   } catch (e, st) {
     appLogger.error("Error during service injection", e, st);
