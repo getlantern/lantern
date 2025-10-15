@@ -4,19 +4,9 @@ import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
+import 'package:lantern/core/windows/utils.dart';
 import 'package:win32/win32.dart';
 import 'package:ffi/ffi.dart';
-import 'package:win32/winsock2.dart';
-
-typedef _WaitNamedPipeWNative = Int32 Function(
-    Pointer<Utf16> lpName, Uint32 timeoutMs);
-typedef _WaitNamedPipeWDart = int Function(
-    Pointer<Utf16> lpName, int timeoutMs);
-
-final DynamicLibrary _kernel32 = DynamicLibrary.open('kernel32.dll');
-final _WaitNamedPipeWDart _WaitNamedPipeW =
-    _kernel32.lookupFunction<_WaitNamedPipeWNative, _WaitNamedPipeWDart>(
-        'WaitNamedPipeW');
 
 class PipeClient {
   PipeClient({
@@ -59,34 +49,7 @@ class PipeClient {
 
   Future<void> connect() async {
     await _getToken();
-    final start = DateTime.now();
-    final lpName = TEXT(pipeName);
-    try {
-      while (true) {
-        _hPipe = CreateFile(
-          lpName,
-          GENERIC_READ | GENERIC_WRITE,
-          0,
-          nullptr,
-          OPEN_EXISTING,
-          FILE_ATTRIBUTE_NORMAL,
-          0,
-        );
-        if (_hPipe != INVALID_HANDLE_VALUE) return;
-
-        final code = GetLastError();
-        if (code == ERROR_PIPE_BUSY) {
-          if (DateTime.now().difference(start).inMilliseconds >= timeoutMs) {
-            throw Exception('Timed out waiting for pipe');
-          }
-          await Future.delayed(const Duration(milliseconds: 100));
-          continue;
-        }
-        throw Exception('Failed to open pipe: error $code');
-      }
-    } finally {
-      free(lpName);
-    }
+    _hPipe = openPipeBlocking(pipeName, timeoutMs);
   }
 
   Future<Map<String, dynamic>> call(String cmd,
@@ -158,7 +121,6 @@ class PipeClient {
   Future<void> close() async {
     if (_hPipe != INVALID_HANDLE_VALUE) {
       CloseHandle(_hPipe);
-      _hPipe = INVALID_HANDLE_VALUE;
     }
   }
 
@@ -178,6 +140,7 @@ class PipeClient {
           token: token!,
           bufSize: bufSize,
           cmd: cmd,
+          timeoutMs: timeoutMs,
           events: events.sendPort,
         ),
         debugName: 'pipe-watch-$cmd',
@@ -246,12 +209,14 @@ class _WatchArgs {
     required this.token,
     required this.bufSize,
     required this.cmd,
+    required this.timeoutMs,
     required this.events,
   });
   final String pipeName;
   final String token;
   final int bufSize;
   final String cmd;
+  final int timeoutMs;
   final SendPort events;
 }
 
@@ -268,25 +233,7 @@ void _watchIsolateMain(_WatchArgs args) async {
           })}\n';
 
   try {
-    final name = TEXT(args.pipeName);
-    try {
-      hPipe = CreateFile(
-        name,
-        GENERIC_READ | GENERIC_WRITE,
-        0,
-        nullptr,
-        OPEN_EXISTING,
-        FILE_ATTRIBUTE_NORMAL,
-        0,
-      );
-    } finally {
-      free(name);
-    }
-    if (hPipe == INVALID_HANDLE_VALUE) {
-      args.events.send({'error': 'open pipe failed: ${GetLastError()}'});
-      args.events.send(null);
-      return;
-    }
+    hPipe = openPipeBlocking(args.pipeName, args.timeoutMs);
 
     final req = utf8.encode(_watchReq(args.token, args.cmd));
     final p = calloc<Uint8>(req.length);
@@ -307,10 +254,8 @@ void _watchIsolateMain(_WatchArgs args) async {
     bool stopping = false;
     final stopSub = stopPort.listen((_) {
       stopping = true;
-      if (hPipe != INVALID_HANDLE_VALUE) {
-        CloseHandle(hPipe);
-        hPipe = INVALID_HANDLE_VALUE;
-      }
+      closeHandleIfOpen(hPipe);
+      hPipe = INVALID_HANDLE_VALUE;
       stopPort.close();
     });
 
@@ -330,7 +275,6 @@ void _watchIsolateMain(_WatchArgs args) async {
         for (var i = 0; i < parts.length - 1; i++) {
           final line = parts[i];
           if (line.isEmpty) continue;
-          // send raw JSON line back
           args.events.send(line);
         }
         carry = parts.isNotEmpty ? parts.last : '';
@@ -343,9 +287,7 @@ void _watchIsolateMain(_WatchArgs args) async {
   } catch (e) {
     args.events.send({'error': e.toString()});
   } finally {
-    if (hPipe != INVALID_HANDLE_VALUE) {
-      CloseHandle(hPipe);
-    }
+    closeHandleIfOpen(hPipe);
     args.events.send(null);
   }
 }

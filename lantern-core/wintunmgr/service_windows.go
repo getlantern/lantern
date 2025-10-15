@@ -193,10 +193,15 @@ func (s *Service) Start(ctx context.Context) error {
 	ctx, s.cancel = context.WithCancel(ctx)
 
 	cfg := &winio.PipeConfig{
-		SecurityDescriptor: `D:P(A;;GA;;;SY)(A;;GRGW;;;IU)(A;;GRGW;;;BA)`,
-		MessageMode:        true,
-		InputBufferSize:    128 * 1024,
-		OutputBufferSize:   128 * 1024,
+		SecurityDescriptor: `D:P` +
+			`(A;;GA;;;SY)` +
+			`(A;;GRGW;;;IU)` +
+			`(A;;GRGW;;;BA)` +
+			`(A;;GRGW;;;S-1-15-2-1)` +
+			`(A;;GRGW;;;S-1-15-2-2)`,
+		MessageMode:      true,
+		InputBufferSize:  128 * 1024,
+		OutputBufferSize: 128 * 1024,
 	}
 	ln, err := winio.ListenPipe(s.opts.PipeName, cfg)
 	if err != nil {
