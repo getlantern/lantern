@@ -7,6 +7,7 @@ import 'package:lantern/core/services/local_storage.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 part 'app_setting_notifier.g.dart';
 
@@ -83,11 +84,11 @@ class AppSettingNotifier extends _$AppSettingNotifier {
   }
 
   Future<void> setSplitTunnelingEnabled(bool enabled) async {
-    final svc = sl<LanternService>();
+    final LanternService svc = ref.read(lanternServiceProvider);
     final previous = state.isSplitTunnelingOn;
 
     update(state.copyWith(newIsSpiltTunnelingOn: enabled));
-
+    appLogger.info('Setting split tunneling: $enabled');
     final res = await svc.setSplitTunnelingEnabled(enabled);
     res.match(
       (err) {
