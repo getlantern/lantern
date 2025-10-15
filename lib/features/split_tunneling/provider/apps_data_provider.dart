@@ -7,8 +7,8 @@ part 'apps_data_provider.g.dart';
 
 @Riverpod(keepAlive: true)
 Stream<List<AppData>> appsData(Ref ref) async* {
-  final ffiClient = ref.watch(lanternServiceProvider);
-  await for (final apps in ffiClient.appsDataStream()) {
+  final lanternService = ref.watch(lanternServiceProvider);
+  await for (final apps in lanternService.appsDataStream()) {
     yield apps;
   }
 }
