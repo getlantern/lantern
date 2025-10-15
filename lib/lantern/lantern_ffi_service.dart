@@ -537,6 +537,9 @@ class LanternFFIService implements LanternCoreService {
 
   @override
   Future<Either<Failure, UserResponse>> getUserData() async {
+    if (Platform.isWindows) {
+      return _windowsService.getUserData();
+    }
     try {
       final result = await runInBackground<String>(
         () async {
