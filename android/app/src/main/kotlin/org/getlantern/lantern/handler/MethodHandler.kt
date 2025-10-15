@@ -56,6 +56,7 @@ enum class Methods(val method: String) {
 
     //Device
     RemoveDevice("removeDevice"),
+    AttachReferralCode("attachReferralCode"),
 
     //private server methods
     DigitalOcean("digitalOcean"),
@@ -206,6 +207,7 @@ class MethodHandler : FlutterPlugin,
                     }
                 }
             }
+
             Methods.AddAllItems.method -> {
                 scope.launch {
                     result.runCatching {
@@ -237,7 +239,6 @@ class MethodHandler : FlutterPlugin,
                     }
                 }
             }
-
 
 
             Methods.ReportIssue.method -> {
@@ -516,7 +517,7 @@ class MethodHandler : FlutterPlugin,
                         }
                     }.onFailure { e ->
                         result.error(
-                            "OAuthLoginCallback",
+                            "Login",
                             e.localizedMessage ?: "Please try again",
                             e
                         )
@@ -536,7 +537,7 @@ class MethodHandler : FlutterPlugin,
                         }
                     }.onFailure { e ->
                         result.error(
-                            "OAuthLoginCallback",
+                            "SignUp",
                             e.localizedMessage ?: "Please try again",
                             e
                         )
@@ -575,7 +576,7 @@ class MethodHandler : FlutterPlugin,
                         }
                     }.onFailure { e ->
                         result.error(
-                            "OAuthLoginCallback",
+                            "DeleteAccount",
                             e.localizedMessage ?: "Please try again",
                             e
                         )
@@ -596,7 +597,7 @@ class MethodHandler : FlutterPlugin,
                         }
                     }.onFailure { e ->
                         result.error(
-                            "OAuthLoginCallback",
+                            "ActivationCode",
                             e.localizedMessage ?: "Please try again",
                             e
                         )
@@ -615,7 +616,25 @@ class MethodHandler : FlutterPlugin,
                         }
                     }.onFailure { e ->
                         result.error(
-                            "OAuthLoginCallback",
+                            "RemoveDevice",
+                            e.localizedMessage ?: "Please try again",
+                            e
+                        )
+                    }
+                }
+            }
+
+            Methods.AttachReferralCode.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val code = call.arguments as String
+                        Mobile.referralAttachment(code)
+                        withContext(Dispatchers.Main) {
+                            success("ok")
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "AttachReferralCode",
                             e.localizedMessage ?: "Please try again",
                             e
                         )
@@ -847,6 +866,7 @@ class MethodHandler : FlutterPlugin,
                     }
                 }
             }
+
             Methods.GetAutoServerLocation.method -> {
                 scope.launch {
                     result.runCatching {
