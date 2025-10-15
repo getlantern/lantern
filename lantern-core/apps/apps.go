@@ -4,16 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/fs"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/getlantern/golog"
 	"howett.net/plist"
-)
-
-var (
-	log = golog.LoggerFor("lantern.apps")
 )
 
 const cacheFilename = "apps_cache.json"
@@ -56,7 +52,7 @@ func saveCacheToFile(dataDir string, apps ...*AppData) error {
 	if err := os.Rename(tmp, path); err != nil {
 		return fmt.Errorf("rename cache: %w", err)
 	}
-	log.Debugf("Saved apps cache to %s", path)
+	slog.Debug("Saved apps cache to", "path", path)
 	return nil
 }
 
@@ -103,7 +99,8 @@ func scanAppDirs(appDirs []string, seen map[string]bool, cb Callback) []*AppData
 			}
 			bundleID, err := getBundleID(path)
 			if err != nil {
-				return err
+				slog.Info("Could not find bundle ID for app", "path", path, "error", err)
+				return filepath.SkipDir
 			}
 			key := bundleID
 
@@ -125,7 +122,7 @@ func scanAppDirs(appDirs []string, seen map[string]bool, cb Callback) []*AppData
 
 			if cb != nil {
 				if err := cb(app); err != nil {
-					log.Debugf("callback error for %s: %v", app.Name, err)
+					slog.Debug("callback error for", "app", app.Name, "error", err)
 				}
 			}
 			apps = append(apps, app)
@@ -171,10 +168,10 @@ func LoadInstalledAppsWithDirs(dataDir string, appDirs []string, cb Callback) (i
 
 	apps := scanAppDirs(appDirs, seen, cb)
 	if err := saveCacheToFile(dataDir, apps...); err != nil {
-		log.Errorf("Unable to save apps cache: %v", err)
+		slog.Error("Unable to save apps cache:", "error", err)
 		return len(apps), err
 	}
-	log.Debugf("App scan completed. %d apps found.", len(apps))
+	slog.Debug("App scan completed.", "count", len(apps))
 	return len(apps), nil
 }
 
@@ -190,7 +187,7 @@ func getIconPath(appPath string) (string, error) {
 	matches, err := filepath.Glob(filepath.Join(resourcesPath, "*.icns"))
 	if err != nil {
 		wrapped := fmt.Errorf("error globbing icons for %s: %w", appPath, err)
-		log.Error(wrapped)
+		slog.Error("glob error:", "error", wrapped)
 		return "", wrapped
 	}
 	if len(matches) == 0 {

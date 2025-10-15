@@ -29,9 +29,9 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
 
     final result = isEnabled
         ? await _lanternService.removeSplitTunnelItem(
-            SplitTunnelFilterType.packageName, app.bundleId)
+            SplitTunnelFilterType.processPathRegex, '${app.appPath}/Contents/MacOS/.*')
         : await _lanternService.addSplitTunnelItem(
-            SplitTunnelFilterType.packageName, app.bundleId);
+            SplitTunnelFilterType.processPathRegex, '${app.appPath}/Contents/MacOS/.*');
 
     if (result.isLeft()) {
       final failure = result.fold((l) => l, (r) => null);
