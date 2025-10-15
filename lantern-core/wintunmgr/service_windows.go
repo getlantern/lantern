@@ -125,6 +125,7 @@ func (s *Service) connectionState() string {
 func (s *Service) broadcastStatus() {
 	evt := s.statusSnapshot()
 	s.subsMu.RLock()
+	defer s.subsMu.RUnlock()
 	for id, ch := range s.statusSubs {
 		select {
 		case ch <- evt:
@@ -136,7 +137,6 @@ func (s *Service) broadcastStatus() {
 			}(id)
 		}
 	}
-	s.subsMu.RUnlock()
 }
 
 // token file is created at install time (we also generate if missing)
@@ -193,7 +193,7 @@ func (s *Service) Start(ctx context.Context) error {
 	ctx, s.cancel = context.WithCancel(ctx)
 
 	cfg := &winio.PipeConfig{
-		SecurityDescriptor: `D:P(A;;GA;;;SY)(A;;GA;;;BA)(A;;GRGW;;;AU)`,
+		SecurityDescriptor: `D:P(A;;GA;;;SY)(A;;GRGW;;;IU)(A;;GRGW;;;BA)`,
 		MessageMode:        true,
 		InputBufferSize:    128 * 1024,
 		OutputBufferSize:   128 * 1024,
@@ -224,12 +224,30 @@ func (s *Service) Start(ctx context.Context) error {
 	}
 }
 
-func (s *Service) handleWatchStatus(ctx context.Context, connID string, enc *json.Encoder, done chan struct{}) {
+type connWriter struct {
+	enc *json.Encoder
+	mu  sync.Mutex
+}
+
+func (w *connWriter) Send(v any) error {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	return w.enc.Encode(v)
+}
+
+func (s *Service) handleWatchStatus(ctx context.Context, connID string, w *connWriter, done <-chan struct{}, closeDone func()) {
 	ch := make(chan statusEvent, 8)
 	s.subsMu.Lock()
 	s.statusSubs[connID] = ch
 	s.subsMu.Unlock()
-	enc.Encode(s.statusSnapshot())
+
+	first := s.statusSnapshot()
+	if err := w.Send(first); err != nil {
+		slog.Debugf("status write error (initial) conn_id=%s: %v", connID, err)
+		closeDone()
+		return
+	}
+	prev := first.State
 
 	go func() {
 		defer func() {
@@ -237,40 +255,54 @@ func (s *Service) handleWatchStatus(ctx context.Context, connID string, enc *jso
 			delete(s.statusSubs, connID)
 			s.subsMu.Unlock()
 		}()
-		prev := ""
 		t := time.NewTicker(800 * time.Millisecond)
 		defer t.Stop()
+
 		for {
 			select {
 			case <-ctx.Done():
 				return
 			case <-done:
 				return
+			case evt := <-ch:
+				if err := w.Send(evt); err != nil {
+					slog.Debugf("status write error (broadcast) conn_id=%s: %v", connID, err)
+					closeDone()
+					return
+				}
+				prev = evt.State
 			case <-t.C:
 				state := s.connectionState()
 				if state != prev {
 					prev = state
-					_ = enc.Encode(statusEvent{Event: "Status", State: state, Ts: time.Now().Unix()})
+					if err := w.Send(statusEvent{Event: "Status", State: state, Ts: time.Now().Unix()}); err != nil {
+						slog.Debugf("status write error (tick) conn_id=%s: %v", connID, err)
+						closeDone()
+						return
+					}
 				}
 			}
 		}
 	}()
 }
 
-func (s *Service) handleWatchLogs(ctx context.Context, enc *json.Encoder, done chan struct{}) {
+func (s *Service) handleWatchLogs(ctx context.Context, connID string, w *connWriter, done <-chan struct{}, closeDone func()) {
 	logFile := filepath.Join(s.opts.LogDir, "lantern.log")
 	_ = os.MkdirAll(s.opts.LogDir, 0o755)
 	if _, err := os.Stat(logFile); errors.Is(err, os.ErrNotExist) {
 		_ = os.WriteFile(logFile, nil, 0o644)
 	}
 
-	// Start by sending the most recent chunk of the log
+	// Send recent tail
 	const maxTail = 200
 	if last, err := readLastLines(logFile, maxTail); err == nil && len(last) > 0 {
-		_ = enc.Encode(logsEvent{Event: "Logs", Lines: last, Ts: time.Now().Unix()})
+		if err := w.Send(logsEvent{Event: "Logs", Lines: last, Ts: time.Now().Unix()}); err != nil {
+			slog.Debugf("logs write error (tail) conn_id=%s: %v", connID, err)
+			closeDone()
+			return
+		}
 	}
 
-	// Then keep watching the file to stream new lines as they’re written
 	go func() {
 		var f *os.File
 		var err error
@@ -301,7 +333,6 @@ func (s *Service) handleWatchLogs(ctx context.Context, enc *json.Encoder, done c
 			}
 		}()
 
-		// Poll for changes
 		ticker := time.NewTicker(600 * time.Millisecond)
 		defer ticker.Stop()
 
@@ -322,10 +353,8 @@ func (s *Service) handleWatchLogs(ctx context.Context, enc *json.Encoder, done c
 					continue
 				}
 				if fi.Size() == off {
-					// Nothing new to read
 					continue
 				}
-				// Read only new bytes that were just appended
 				n := fi.Size() - off
 				buf := make([]byte, n)
 				_, err = io.ReadFull(f, buf)
@@ -335,8 +364,7 @@ func (s *Service) handleWatchLogs(ctx context.Context, enc *json.Encoder, done c
 				}
 				off = fi.Size()
 
-				chunk := string(buf)
-				raw := strings.Split(chunk, "\n")
+				raw := strings.Split(string(buf), "\n")
 				var lines []string
 				for _, ln := range raw {
 					if ln == "" {
@@ -346,7 +374,11 @@ func (s *Service) handleWatchLogs(ctx context.Context, enc *json.Encoder, done c
 				}
 				// Send new lines to client
 				if len(lines) > 0 {
-					_ = enc.Encode(logsEvent{Event: "Logs", Lines: lines, Ts: time.Now().Unix()})
+					if err := w.Send(logsEvent{Event: "Logs", Lines: lines, Ts: time.Now().Unix()}); err != nil {
+						slog.Debugf("logs write error (stream) conn_id=%s: %v", connID, err)
+						closeDone()
+						return
+					}
 				}
 			}
 		}
@@ -355,11 +387,14 @@ func (s *Service) handleWatchLogs(ctx context.Context, enc *json.Encoder, done c
 
 func (s *Service) handleConn(ctx context.Context, c net.Conn, token, connID string) {
 	dec := json.NewDecoder(c)
-	enc := json.NewEncoder(c)
+	w := &connWriter{enc: json.NewEncoder(c)}
 
 	done := make(chan struct{})
+	var doneOnce sync.Once
+	closeDone := func() { doneOnce.Do(func() { close(done) }) }
+
 	defer func() {
-		close(done)
+		closeDone()
 		_ = c.Close()
 		slog.Debugf("conn closed conn_id=%s", connID)
 	}()
@@ -376,17 +411,19 @@ func (s *Service) handleConn(ctx context.Context, c net.Conn, token, connID stri
 		cmd := string(req.Cmd)
 
 		if req.Token != token {
-			_ = enc.Encode(rpcErr(req.ID, "unauthorized", "bad token"))
+			_ = w.Send(rpcErr(req.ID, "unauthorized", "bad token"))
 			continue
 		}
-		if req.Cmd == common.CmdWatchStatus {
-			s.handleWatchStatus(ctx, connID, enc, done)
+
+		switch req.Cmd {
+		case common.CmdWatchStatus:
+			s.handleWatchStatus(ctx, connID, w, done, closeDone)
+			continue
+		case common.CmdWatchLogs:
+			s.handleWatchLogs(ctx, connID, w, done, closeDone)
 			continue
 		}
-		if req.Cmd == common.CmdWatchLogs {
-			s.handleWatchLogs(ctx, enc, done)
-			continue
-		}
+
 		start := time.Now()
 		resp := s.dispatch(ctx, &req)
 		elapsed := sinceMs(start)
@@ -396,10 +433,14 @@ func (s *Service) handleConn(ctx context.Context, c net.Conn, token, connID stri
 		} else {
 			slog.Debugf("cmd ok conn_id=%s req_id=%s cmd=%s elapsed_ms=%d", connID, reqID, cmd, elapsed)
 		}
-		_ = enc.Encode(resp)
+		if err := w.Send(resp); err != nil {
+			slog.Debugf("encode error conn_id=%s: %v", connID, err)
+			return
+		}
 	}
 }
 
+// ---- Adapter / IPC helpers ----
 func (s *Service) setupAdapter(ctx context.Context) error {
 	if s.wtmgr == nil {
 		return nil
@@ -411,7 +452,6 @@ func (s *Service) setupAdapter(ctx context.Context) error {
 	return ad.Close()
 }
 
-// checkIPCUp checks if the Radiance IPC server is available
 func (s *Service) checkIPCUp(ctx context.Context, timeout time.Duration) error {
 	deadline := time.Now().Add(timeout)
 	var lastErr error
