@@ -5239,6 +5239,30 @@ class LanternBindings {
       ffi.Pointer<ffi.Char> Function(
           ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
 
+  ffi.Pointer<ffi.Char> setSplitTunnelingEnabled(
+    int enabled,
+  ) {
+    return _setSplitTunnelingEnabled(
+      enabled,
+    );
+  }
+
+  late final _setSplitTunnelingEnabledPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function(ffi.Int)>>(
+          'setSplitTunnelingEnabled');
+  late final _setSplitTunnelingEnabled = _setSplitTunnelingEnabledPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(int)>();
+
+  int isSplitTunnelingEnabled() {
+    return _isSplitTunnelingEnabled();
+  }
+
+  late final _isSplitTunnelingEnabledPtr =
+      _lookup<ffi.NativeFunction<ffi.Int Function()>>(
+          'isSplitTunnelingEnabled');
+  late final _isSplitTunnelingEnabled =
+      _isSplitTunnelingEnabledPtr.asFunction<int Function()>();
+
   ffi.Pointer<ffi.Char> getDataCapInfo() {
     return _getDataCapInfo();
   }
@@ -5608,6 +5632,21 @@ class LanternBindings {
           ffi.Pointer<ffi.Char> Function(
               ffi.Pointer<ffi.Char>)>>('removeDevice');
   late final _removeDevice = _removeDevicePtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> referralAttachment(
+    ffi.Pointer<ffi.Char> _referralCode,
+  ) {
+    return _referralAttachment(
+      _referralCode,
+    );
+  }
+
+  late final _referralAttachmentPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>)>>('referralAttachment');
+  late final _referralAttachment = _referralAttachmentPtr
       .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
 
   ffi.Pointer<ffi.Char> startChangeEmail(

@@ -1032,6 +1032,22 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, String>> attachReferralCode(String code) async {
+    try {
+      final result = await runInBackground<String>(
+            () async {
+          return _ffiService.referralAttachment(code.toCharPtr).toDartString();
+        },
+      );
+      checkAPIError(result);
+      return Right('ok');
+    } catch (e, stackTrace) {
+      appLogger.error('Error removing device', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, String>> completeChangeEmail(
       {required String newEmail,
       required String password,
@@ -1125,11 +1141,6 @@ class LanternFFIService implements LanternCoreService {
     throw UnimplementedError();
   }
 
-  @override
-  Future<Either<Failure, String>> attachReferralCode(String code) {
-    // TODO: implement attachReferralCode
-    throw UnimplementedError();
-  }
 }
 
 void checkAPIError(dynamic result) {

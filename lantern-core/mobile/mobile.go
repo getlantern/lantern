@@ -1,7 +1,6 @@
 package mobile
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -284,7 +283,7 @@ func RemoveDevice(deviceId string) error {
 
 func ReferralAttachment(referralCode string) error {
 	return withCore(func(c lanterncore.Core) error {
-		ok, err := c.ReferralAttachment(context.Background(), referralCode)
+		ok, err := c.ReferralAttachment(referralCode)
 		if !ok {
 			return err
 		}
