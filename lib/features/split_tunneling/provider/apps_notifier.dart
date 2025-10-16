@@ -4,6 +4,7 @@ import 'package:lantern/core/models/entity/app_data.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage.dart';
 import 'package:lantern/core/services/logger_service.dart';
+import 'package:lantern/core/utils/platform_utils.dart' show PlatformUtils;
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -29,9 +30,9 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
 
     final result = isEnabled
         ? await _lanternService.removeSplitTunnelItem(
-            SplitTunnelFilterType.processPathRegex, '${app.appPath}/Contents/MacOS/.*')
+            getFilterType(), appPath(app))
         : await _lanternService.addSplitTunnelItem(
-            SplitTunnelFilterType.processPathRegex, '${app.appPath}/Contents/MacOS/.*');
+            getFilterType(), appPath(app));
 
     if (result.isLeft()) {
       final failure = result.fold((l) => l, (r) => null);
@@ -49,15 +50,33 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
     }
   }
 
+  ///This should be called only for macOS & Android
+  SplitTunnelFilterType getFilterType() {
+    if (PlatformUtils.isMacOS) {
+      return SplitTunnelFilterType.processName;
+    }
+    return SplitTunnelFilterType.packageName;
+  }
+
+  ///For macOS, we need to use regex to match the app path
+  ///For other platforms, we can use the bundleId/packageName
+  String appPath(AppData appData) {
+    if (PlatformUtils.isMacOS) {
+      return '${appData.appPath}/Contents/MacOS/.*';
+    }
+    return appData.bundleId;
+  }
+
   void selectAllApps() async {
     final allApps = (ref.read(appsDataProvider).value ?? [])
         .where((a) => a.iconPath.isNotEmpty || a.iconBytes != null)
         .where((a) => a.name != AppSecrets.lanternPackageName)
         .toList()
       ..sort((a, b) => a.name.compareTo(b.name));
-    final all = allApps.map((a) => a.bundleId).toList();
-    final result = await _lanternService.addAllItems(
-        SplitTunnelFilterType.packageName, all);
+
+    final all = allApps.map((a) => appPath(a)).toList();
+
+    final result = await _lanternService.addAllItems(getFilterType(), all);
     result.fold(
       (l) => appLogger.error('Failed to add all apps: ${l.error}'),
       (r) async {
@@ -69,14 +88,9 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
 
   void deselectAllApps() async {
     final allApps = state.toList();
-    // final allApps = (ref.read(appsDataProvider).value ?? [])
-    //     .where((a) => a.iconPath.isNotEmpty || a.iconBytes != null)
-    //     .where((a) => a.name != AppSecrets.lanternPackageName)
-    //     .toList()
-    //   ..sort((a, b) => a.name.compareTo(b.name));
-    final stringsList = allApps.map((a) => a.bundleId).toList();
-    final result = await _lanternService.removeAllItems(
-        SplitTunnelFilterType.packageName, stringsList);
+    final stringsList = allApps.map((a) => appPath(a)).toList();
+    final result =
+        await _lanternService.removeAllItems(getFilterType(), stringsList);
     result.fold(
       (l) => appLogger.error('Failed to remove all apps: ${l.error}'),
       (r) async {
