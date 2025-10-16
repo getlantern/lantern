@@ -34,8 +34,6 @@ import '../core/utils/compute_worker.dart';
 export 'dart:convert';
 export 'dart:ffi'; // For FFI
 
-export 'package:ffi/src/utf8.dart';
-
 const String _libName = 'liblantern';
 
 ///this service should communicate with library using ffi
