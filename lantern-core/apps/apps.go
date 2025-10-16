@@ -79,7 +79,7 @@ func getBundleID(appPath string) (string, error) {
 }
 
 // scanAppDirs walks the provided app directories and emits AppData for any *.app bundles
-func scanAppDirs(appDirs []string, seen map[string]bool, cb Callback) []*AppData {
+func scanAppDirs(appDirs []string, seen map[string]bool, excludeDirs []string, cb Callback) []*AppData {
 	apps := []*AppData{}
 	for _, dir := range appDirs {
 		info, err := os.Stat(dir)
@@ -87,12 +87,21 @@ func scanAppDirs(appDirs []string, seen map[string]bool, cb Callback) []*AppData
 			continue
 		}
 		_ = filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+			slog.Info("Visiting", "path", path)
 			if err != nil || d == nil {
 				return nil
 			}
 			if !d.IsDir() {
 				return nil
 			}
+
+			for _, ex := range excludeDirs {
+				if strings.HasPrefix(path, ex) {
+					slog.Info("Excluding path", "path", path)
+					return filepath.SkipDir
+				}
+			}
+
 			base := filepath.Base(path)
 			if !strings.HasSuffix(base, ".app") {
 				return nil
@@ -109,10 +118,13 @@ func scanAppDirs(appDirs []string, seen map[string]bool, cb Callback) []*AppData
 			}
 
 			if seen[bundleID] || seen[path] || seen[key] {
+				slog.Info("Skipping duplicate app", "name", strings.TrimSuffix(base, ".app"), "bundleID", bundleID, "path", path)
 				return filepath.SkipDir
 			}
 
 			iconPath, _ := getIconPath(path)
+
+			slog.Info("Found app", "name", strings.TrimSuffix(base, ".app"), "bundleID", bundleID, "path", path, "icon", iconPath)
 			app := &AppData{
 				BundleID: bundleID,
 				Name:     strings.TrimSuffix(base, ".app"),
@@ -146,7 +158,7 @@ func defaultAppDirs() []string {
 
 // LoadInstalledAppsWithDirs scans the provided appDirs for installed applications, using dataDir for caching.
 // It invokes the Callback cb for each discovered app. Returns the number of apps found and an error, if any.
-func LoadInstalledAppsWithDirs(dataDir string, appDirs []string, cb Callback) (int, error) {
+func LoadInstalledAppsWithDirs(dataDir string, appDirs []string, excludeDirs []string, cb Callback) (int, error) {
 	seen := make(map[string]bool)
 
 	if cached, err := loadCacheFromFile(dataDir); err == nil {
@@ -166,7 +178,7 @@ func LoadInstalledAppsWithDirs(dataDir string, appDirs []string, cb Callback) (i
 		}
 	}
 
-	apps := scanAppDirs(appDirs, seen, cb)
+	apps := scanAppDirs(appDirs, seen, excludeDirs, cb)
 	if err := saveCacheToFile(dataDir, apps...); err != nil {
 		slog.Error("Unable to save apps cache:", "error", err)
 		return len(apps), err
@@ -175,10 +187,16 @@ func LoadInstalledAppsWithDirs(dataDir string, appDirs []string, cb Callback) (i
 	return len(apps), nil
 }
 
+var macOSExcludeDirs = []string{
+	"/Applications/Contents",
+	"/Applications/Library",
+	"/Applications/Utilities",
+}
+
 // LoadInstalledApps fetches the app list or rescans if needed
 func LoadInstalledApps(dataDir string, cb Callback) {
 	dirs := defaultAppDirs()
-	_, _ = LoadInstalledAppsWithDirs(dataDir, dirs, cb)
+	_, _ = LoadInstalledAppsWithDirs(dataDir, dirs, macOSExcludeDirs, cb)
 }
 
 // getIconPath finds the .icns file inside the app bundle
