@@ -282,18 +282,33 @@ func (lc *LanternCore) AddSplitTunnelItem(filterType, item string) error {
 
 func (lc *LanternCore) AddSplitTunnelItems(items string) error {
 	split := strings.Split(items, ",")
-	packages := vpn.Filter{
-		PackageName: split,
+	var vpnFilter vpn.Filter
+	if common.IsMacOS() {
+		vpnFilter = vpn.Filter{
+			ProcessPathRegex: split,
+		}
+	} else {
+		vpnFilter = vpn.Filter{
+			PackageName: split,
+		}
 	}
-	return lc.splitTunnel.AddItems(packages)
+
+	return lc.splitTunnel.AddItems(vpnFilter)
 }
 
 func (lc *LanternCore) RemoveSplitTunnelItems(items string) error {
 	split := strings.Split(items, ",")
-	packages := vpn.Filter{
-		PackageName: split,
+	var vpnFilter vpn.Filter
+	if common.IsMacOS() {
+		vpnFilter = vpn.Filter{
+			ProcessPathRegex: split,
+		}
+	} else {
+		vpnFilter = vpn.Filter{
+			PackageName: split,
+		}
 	}
-	return lc.splitTunnel.RemoveItems(packages)
+	return lc.splitTunnel.RemoveItems(vpnFilter)
 }
 
 func (lc *LanternCore) RemoveSplitTunnelItem(filterType, item string) error {

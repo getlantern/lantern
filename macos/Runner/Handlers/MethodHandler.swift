@@ -330,55 +330,24 @@ class MethodHandler {
 
   func addAllItemsToSplitTunnel(result: @escaping FlutterResult, filterType: String, value: String)
   {
-    Task {
+    Task.detached {
       var error: NSError?
-
-      if filterType == "packageName" {
-        // Keep using the fast path for apps
-        MobileAddSplitTunnelItems(value, &error)
-      } else {
-        // For domains, call per entry
-        let items =
-          value
-          .split(separator: ",")
-          .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-          .filter { !$0.isEmpty }
-
-        for item in items {
-          MobileAddSplitTunnelItem(filterType, item, &error)
-          if error != nil { break }
-        }
-      }
-
+      MobileAddSplitTunnelItems(value, &error)
       if let err = error {
         await self.handleFlutterError(
           err, result: result, code: "ADD_ALL_SPLIT_TUNNEL_ITEMS_FAILED")
         return
       }
       await MainActor.run { result("ok") }
+
     }
   }
 
   func removeItemsToSplitTunnel(result: @escaping FlutterResult, filterType: String, value: String)
   {
-    Task {
+    Task.detached {
       var error: NSError?
-
-      if filterType == "packageName" {
-        MobileRemoveSplitTunnelItems(value, &error)
-      } else {
-        let items =
-          value
-          .split(separator: ",")
-          .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-          .filter { !$0.isEmpty }
-
-        for item in items {
-          MobileRemoveSplitTunnelItem(filterType, item, &error)
-          if error != nil { break }
-        }
-      }
-
+      MobileRemoveSplitTunnelItems(value, &error)
       if let err = error {
         await self.handleFlutterError(
           err, result: result, code: "REMOVE_ALL_SPLIT_TUNNEL_ITEMS_FAILED")
