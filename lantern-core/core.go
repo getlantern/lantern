@@ -285,7 +285,7 @@ func (lc *LanternCore) AddSplitTunnelItems(items string) error {
 	var vpnFilter vpn.Filter
 	if common.IsMacOS() {
 		vpnFilter = vpn.Filter{
-			ProcessName: split,
+			ProcessPathRegex: split,
 		}
 	} else {
 		vpnFilter = vpn.Filter{
@@ -301,7 +301,7 @@ func (lc *LanternCore) RemoveSplitTunnelItems(items string) error {
 	var vpnFilter vpn.Filter
 	if common.IsMacOS() {
 		vpnFilter = vpn.Filter{
-			ProcessName: split,
+			ProcessPathRegex: split,
 		}
 	} else {
 		vpnFilter = vpn.Filter{

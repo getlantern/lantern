@@ -53,7 +53,7 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
   ///This should be called only for macOS & Android
   SplitTunnelFilterType getFilterType() {
     if (PlatformUtils.isMacOS) {
-      return SplitTunnelFilterType.processName;
+        return SplitTunnelFilterType.processPathRegex;
     }
     return SplitTunnelFilterType.packageName;
   }
