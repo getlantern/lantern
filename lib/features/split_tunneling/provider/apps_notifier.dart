@@ -62,7 +62,12 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
   ///For other platforms, we can use the bundleId/packageName
   String appPath(AppData appData) {
     if (PlatformUtils.isMacOS) {
-      return '${appData.appPath}/Contents/MacOS/.*';
+      // Note that typically MacOS apps use the binary inside the .app bundle
+      // at, for example, /Applications/Firefox.app/Contents/MacOS/firefox.
+      // Some apps, however, use a helper binary inside the Frameworks folder
+      // at, for example:
+      // /Applications/Slack.app/Contents/Frameworks/ArcCore.framework/Versions/A/Helpers/Browser Helper.app/Contents/MacOS/Browser Helper
+      return '${appData.appPath}/Contents/.*';
     }
     return appData.bundleId;
   }
