@@ -127,6 +127,37 @@ jobs:
       build_type: ${{ needs.set-release-metadata.outputs.build_type }}
       installer_name: ${{ needs.set-release-metadata.outputs.installer_name }}
 
+  upload-google-play:
+    needs: [set-release-metadata, build-android]
+    if:
+      ${{ (needs.set-release-metadata.outputs.platform == 'all' || needs.set-release-metadata.outputs.platform == 'android')
+      && (needs.set-release-metadata.outputs.build_type == 'beta' || needs.set-release-metadata.outputs.build_type == 'production') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download AAB artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: lantern-installer-aab
+          path: aab
+
+      - name: Pick Play track
+        id: track
+        run: |
+          if [ "${{ needs.set-release-metadata.outputs.build_type }}" = "beta" ]; then
+            echo "track=beta" >> "$GITHUB_OUTPUT"
+          else
+            echo "track=production" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload to Google Play
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
+          packageName: org.getlantern.lantern
+          releaseFiles: aab/*.aab
+          track: ${{ steps.track.outputs.track }}
+          status: completed
+
   publish:
     needs:
       [

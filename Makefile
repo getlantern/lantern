@@ -82,6 +82,8 @@ ANDROID_AAB_RELEASE_BUILD := $(BUILD_DIR)/app/outputs/bundle/release/app-release
 ANDROID_TARGET_PLATFORMS := android-arm,android-arm64,android-x64
 ANDROID_RELEASE_APK := $(INSTALLER_NAME)$(if $(BUILD_TYPE),-$(BUILD_TYPE)).apk
 ANDROID_RELEASE_AAB := $(INSTALLER_NAME)$(if $(BUILD_TYPE),-$(BUILD_TYPE)).aab
+ANDROID_MAPPING_SRC := build/app/outputs/mapping/release/mapping.txt
+ANDROID_SYMBOLS_SRC := build/app/outputs/native-debug-symbols/release/native-debug-symbols.zip
 
 IOS_DIR := ios/
 IOS_FRAMEWORK := Liblantern.xcframework
@@ -402,6 +404,17 @@ android-apk-release:
 android-aab-release:
 	flutter build appbundle --target-platform $(ANDROID_TARGET_PLATFORMS) --verbose --release $(DART_DEFINES)
 	cp $(ANDROID_AAB_RELEASE_BUILD) $(ANDROID_RELEASE_AAB)
+	# Copy Play console artifacts
+	@if [ -f "$(ANDROID_MAPPING_SRC)" ]; then \
+	  cp "$(ANDROID_MAPPING_SRC)" mapping.txt; \
+	fi
+
+	@if [ -f "$(ANDROID_SYMBOLS_SRC)" ]; then \
+	  cp "$(ANDROID_SYMBOLS_SRC)" debug-symbols.zip; \
+	elif [ -d "build/app/intermediates/merged_native_libs/release/out/lib" ]; then \
+	  (cd build/app/intermediates/merged_native_libs/release/out && zip -r ../../../../../../debug-symbols.zip lib >/dev/null); \
+	fi
+
 
 .PHONY: android-release
 android-release: clean android pubget gen android-apk-release

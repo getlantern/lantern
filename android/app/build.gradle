@@ -66,6 +66,17 @@ android {
         }
     }
 
+    signingConfigs {
+        release {
+            if (project.hasProperty("KEYSTORE_FILE")) {
+                storeFile file(KEYSTORE_FILE)
+                keyAlias "Lantern Release Key"
+                storePassword KEYSTORE_PWD
+                keyPassword KEY_PWD
+            }
+        }
+    }
+
     buildTypes {
         debug {
             minifyEnabled false
@@ -76,9 +87,9 @@ android {
 
         }
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.debug
+            minifyEnabled true
+            shrinkResources true
+            signingConfig = signingConfigs.release
             buildConfigField "boolean", "DEVELOPMENT_MODE", "false"
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
 
