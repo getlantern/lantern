@@ -459,17 +459,19 @@ class LanternFFIService implements LanternCoreService {
   @override
   Stream<LanternStatus> watchVPNStatus() => _status;
 
-  Future<Either<Failure, Unit>> _isVpnConnectedFfi() async {
+  Future<Either<Failure, bool>> _isVpnConnectedFfi() async {
     try {
-      final result = _ffiService.isVPNConnected();
-      return right(unit);
-    } catch (e) {
+      final int raw = _ffiService.isVPNConnected();
+      final connected = raw != 0;
+      return right(connected);
+    } catch (e, st) {
+      appLogger.error('isVPNConnected (FFI) failed', e, st);
       return Left(e.toFailure());
     }
   }
 
   @override
-  Future<Either<Failure, Unit>> isVPNConnected() =>
+  Future<Either<Failure, bool>> isVPNConnected() =>
       _winOr<Unit>(win: (s) => s.isVPNConnected(), other: _isVpnConnectedFfi);
 
   @override
