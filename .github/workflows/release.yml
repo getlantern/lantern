@@ -140,6 +140,18 @@ jobs:
           name: lantern-installer-aab
           path: aab
 
+      - name: Download mapping.txt
+        uses: actions/download-artifact@v4
+        with:
+          name: play-mapping
+          path: play
+
+      - name: Download native debug symbols
+        uses: actions/download-artifact@v4
+        with:
+          name: play-debug-symbols
+          path: play
+
       - name: Pick Play track
         id: track
         run: |
@@ -157,6 +169,8 @@ jobs:
           releaseFiles: aab/*.aab
           track: ${{ steps.track.outputs.track }}
           status: completed
+          mappingFile: play/mapping.txt
+          debugSymbols: play/debug-symbols.zip
 
   publish:
     needs:
