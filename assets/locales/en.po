@@ -1159,7 +1159,7 @@ msgid "monthly_plan"
 msgstr "Monthly plan:"
 
 msgid "15_days_each"
-msgstr "+15 days each
+msgstr "+15 days each"
 
 msgid "annual_plan"
 msgstr "Annual plan:"
@@ -1174,7 +1174,7 @@ msgid "2_month_each"
 msgstr "+2 months each
 
 msgid "referral_code_info"
-msgstr "Not a Lantern Pro user yet? You'll become one when your first referral subscribes
+msgstr "Not a Lantern Pro user yet? You'll become one when your first referral subscribes"
 
 msgid "lantern_pro_license"
 msgstr "Lantern Pro License"

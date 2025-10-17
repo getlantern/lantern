@@ -1042,7 +1042,7 @@ class LanternFFIService implements LanternCoreService {
       checkAPIError(result);
       return Right('ok');
     } catch (e, stackTrace) {
-      appLogger.error('Error removing device', e, stackTrace);
+      appLogger.error('Error attaching referral code', e, stackTrace);
       return Left(e.toFailure());
     }
   }
