@@ -40,6 +40,8 @@ enum SplitTunnelFilterType {
   domainKeyword,
   domainRegex,
   processName,
+  processPath,
+  processPathRegex,
   packageName;
 
   String get value {
@@ -54,6 +56,10 @@ enum SplitTunnelFilterType {
         return 'domainRegex';
       case SplitTunnelFilterType.processName:
         return 'processName';
+      case SplitTunnelFilterType.processPath:
+        return 'processPath';
+      case SplitTunnelFilterType.processPathRegex:
+        return 'processPathRegex';
       case SplitTunnelFilterType.packageName:
         return 'packageName';
     }

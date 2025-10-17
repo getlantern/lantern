@@ -229,7 +229,11 @@ class LanternPlatformService implements LanternCoreService {
   @override
   Future<Either<Failure, Unit>> setSplitTunnelingEnabled(bool enabled) async {
     try {
-      await _methodChannel.invokeMethod('setSplitTunnelingEnabled', enabled);
+      if (enabled) {
+        await _methodChannel.invokeMethod('enableSplitTunneling');
+      } else {
+        await _methodChannel.invokeMethod('disableSplitTunneling');
+      }
       return right(unit);
     } catch (e) {
       return Left(e.toFailure());

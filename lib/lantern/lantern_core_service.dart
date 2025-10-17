@@ -80,6 +80,10 @@ abstract class LanternCoreService {
   Future<Either<Failure, Unit>> removeAllItems(
       SplitTunnelFilterType type, List<String> value);
 
+  Future<Either<Failure, Unit>> setSplitTunnelingEnabled(bool enabled);
+
+  Future<Either<Failure, bool>> isSplitTunnelingEnabled();
+
   Future<Either<Failure, Unit>> reportIssue(
     String email,
     String issueType,
