@@ -72,13 +72,15 @@ android {
         }
     }
 
-    if (hasReleaseKeystore) {
-      release {
-        storeFile file(project.property('RELEASE_STORE_FILE'))
-        storePassword project.property('RELEASE_STORE_PASSWORD')
-        keyAlias project.property('RELEASE_KEY_ALIAS')
-        keyPassword project.property('RELEASE_KEY_PASSWORD')
-      }
+    signingConfigs {
+        if (hasReleaseKeystore) {
+            release {
+                storeFile file(project.property('RELEASE_STORE_FILE'))
+                storePassword project.property('RELEASE_STORE_PASSWORD')
+                keyAlias project.property('RELEASE_KEY_ALIAS')
+                keyPassword project.property('RELEASE_KEY_PASSWORD')
+            }
+        }
     }
 
     buildTypes {
