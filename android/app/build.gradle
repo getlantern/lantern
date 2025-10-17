@@ -3,8 +3,14 @@ plugins {
     id "kotlin-android"
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id "dev.flutter.flutter-gradle-plugin"
-
 }
+
+def hasRelProp = { name -> project.hasProperty(name) && project.property(name)?.toString()?.trim() }
+def hasReleaseKeystore =
+        hasRelProp('RELEASE_STORE_FILE') &&
+        hasRelProp('RELEASE_STORE_PASSWORD') &&
+        hasRelProp('RELEASE_KEY_ALIAS') &&
+        hasRelProp('RELEASE_KEY_PASSWORD')
 
 android {
     namespace = "org.getlantern.lantern"
@@ -66,15 +72,13 @@ android {
         }
     }
 
-    signingConfigs {
-        release {
-            if (project.hasProperty("KEYSTORE_FILE")) {
-                storeFile file(KEYSTORE_FILE)
-                keyAlias "Lantern Release Key"
-                storePassword KEYSTORE_PWD
-                keyPassword KEY_PWD
-            }
-        }
+    if (hasReleaseKeystore) {
+      release {
+        storeFile file(project.property('RELEASE_STORE_FILE'))
+        storePassword project.property('RELEASE_STORE_PASSWORD')
+        keyAlias project.property('RELEASE_KEY_ALIAS')
+        keyPassword project.property('RELEASE_KEY_PASSWORD')
+      }
     }
 
     buildTypes {
@@ -84,15 +88,16 @@ android {
             debuggable true
             signingConfig signingConfigs.debug
             buildConfigField "boolean", "DEVELOPMENT_MODE", "true"
-
         }
+
         release {
             minifyEnabled true
             shrinkResources true
-            signingConfig signingConfigs.release
+            if (hasReleaseKeystore) {
+                signingConfig signingConfigs.release
+            }
             buildConfigField "boolean", "DEVELOPMENT_MODE", "false"
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-
         }
     }
 
