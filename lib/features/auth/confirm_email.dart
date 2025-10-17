@@ -105,7 +105,7 @@ class ConfirmEmail extends HookConsumerWidget {
     final isLoggedIn = appSettings.userLoggedIn;
 
     /// In case of logged in user just pop the screen
-    /// we do not want to delete user since account is created but user do not pro
+    /// we do not want to delete user since account is created but user do not have pro
     if (isLoggedIn) {
       appRouter.pop();
       return;
