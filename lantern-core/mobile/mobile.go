@@ -7,7 +7,6 @@ import (
 	"log/slog"
 	"sync/atomic"
 
-	"github.com/getlantern/radiance/api"
 	"github.com/sagernet/sing-box/experimental/libbox"
 	_ "golang.org/x/mobile/bind"
 
@@ -181,12 +180,6 @@ func LoadInstalledApps(dataDir string) (string, error) {
 }
 
 // User Methods
-// Todo make sure to add retry logic
-// we need to make sure that the user is created before we can use the radiance server
-func CreateUser() (*api.UserDataResponse, error) {
-	return withCoreR(func(c lanterncore.Core) (*api.UserDataResponse, error) { return c.CreateUser() })
-}
-
 // this will return the user data from the user config
 func UserData() ([]byte, error) {
 	slog.Debug("User data")

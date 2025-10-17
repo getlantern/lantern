@@ -10,10 +10,11 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"github.com/getlantern/common"
 	"github.com/getlantern/radiance"
 	"github.com/getlantern/radiance/api"
 	"github.com/getlantern/radiance/api/protos"
-	"github.com/getlantern/radiance/common"
+	rcommon "github.com/getlantern/radiance/common"
 	"github.com/getlantern/radiance/servers"
 	"github.com/getlantern/radiance/vpn"
 	"google.golang.org/protobuf/proto"
@@ -35,7 +36,7 @@ type LanternCore struct {
 	rad           *radiance.Radiance
 	splitTunnel   *vpn.SplitTunnel
 	serverManager *servers.Manager
-	userInfo      common.UserInfo
+	userInfo      rcommon.UserInfo
 	apiClient     *api.APIClient
 	initOnce      sync.Once
 	eventEmitter  utils.FlutterEventEmitter
@@ -57,7 +58,7 @@ type App interface {
 }
 
 type User interface {
-	CreateUser() (*api.UserDataResponse, error)
+	//CreateUser() (*api.UserDataResponse, error)
 	UserData() ([]byte, error)
 	DataCapInfo() ([]byte, error)
 	FetchUserData() ([]byte, error)
@@ -158,7 +159,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	}); radErr != nil {
 		return fmt.Errorf("failed to create Radiance: %w", radErr)
 	}
-	slog.Debug("Paths:", "logs", common.LogPath(), "data", common.DataPath())
+	slog.Debug("Paths:", "logs", rcommon.LogPath(), "data", rcommon.DataPath())
 
 	var sthErr error
 	if lc.splitTunnel, sthErr = vpn.NewSplitTunnelHandler(); sthErr != nil {
@@ -174,16 +175,6 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	lc.rad.AddConfigListener(func() {
 		core.notifyFlutter(EventTypeConfig, "Config is fetched/updated")
 	})
-
-	// TODO: This should all be handled by the single call to get the user config -
-	// i.e. CreateUser and FetchUserData should not exist as separate calls.
-	go func() {
-		if lc.userInfo.LegacyID() == 0 {
-			slog.Debug("Creating user")
-			lc.CreateUser()
-		}
-		lc.FetchUserData()
-	}()
 
 	slog.Debug("LanternCore initialized successfully")
 	return nil
@@ -283,7 +274,7 @@ func (lc *LanternCore) AddSplitTunnelItem(filterType, item string) error {
 func (lc *LanternCore) AddSplitTunnelItems(items string) error {
 	split := strings.Split(items, ",")
 	var vpnFilter vpn.Filter
-	if common.IsMacOS() {
+	if rcommon.IsMacOS() {
 		vpnFilter = vpn.Filter{
 			ProcessPathRegex: split,
 		}
@@ -299,7 +290,7 @@ func (lc *LanternCore) AddSplitTunnelItems(items string) error {
 func (lc *LanternCore) RemoveSplitTunnelItems(items string) error {
 	split := strings.Split(items, ",")
 	var vpnFilter vpn.Filter
-	if common.IsMacOS() {
+	if rcommon.IsMacOS() {
 		vpnFilter = vpn.Filter{
 			ProcessPathRegex: split,
 		}
@@ -350,14 +341,6 @@ func (lc *LanternCore) DataCapInfo() ([]byte, error) {
 	return jsonBytes, nil
 }
 
-// User Methods
-// Todo make sure to add retry logic
-// we need to make sure that the user is created before we can use the radiance server
-func (lc *LanternCore) CreateUser() (*api.UserDataResponse, error) {
-	slog.Debug("Creating user")
-	return lc.apiClient.NewUser(context.Background())
-}
-
 // this will return the user data from the user config
 func (lc *LanternCore) UserData() ([]byte, error) {
 	slog.Debug("Getting user data from user config")
@@ -365,7 +348,7 @@ func (lc *LanternCore) UserData() ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error getting user data: %w [This is fine for first time user this is expected]", err)
 	}
-	bytes, err := proto.Marshal(user)
+	bytes, err := json.Marshal(user)
 	if err != nil {
 		return nil, fmt.Errorf("error marshalling user data: %w", err)
 	}
@@ -377,7 +360,7 @@ func (lc *LanternCore) FetchUserData() ([]byte, error) {
 	slog.Debug("Getting user data")
 	// this call will also save the user data in the user config
 	// so we can use it later
-	user, err := lc.apiClient.UserData(context.Background())
+	user, err := lc.apiClient.FetchUserData(context.Background())
 	if err != nil {
 		return nil, fmt.Errorf("error getting user data: %w", err)
 	}
@@ -385,14 +368,27 @@ func (lc *LanternCore) FetchUserData() ([]byte, error) {
 	login := &protos.LoginResponse{
 		LegacyID:       user.UserId,
 		LegacyToken:    user.Token,
-		LegacyUserData: user.LoginResponse_UserData,
+		LegacyUserData: toLegacyUserData(user),
 	}
 	protoUserData, err := proto.Marshal(login)
-	if err != nil {
-		return nil, fmt.Errorf("error marshalling user data: %w", err)
-	}
+
+	/*
+		userJson, err := json.Marshal(user)
+		if err != nil {
+			return nil, fmt.Errorf("error marshalling user data: %w", err)
+		}
+	*/
 	slog.Debug("Fetched user data: ", "data", string(protoUserData))
 	return protoUserData, nil
+}
+
+func toLegacyUserData(userData *common.UserData) *protos.LoginResponse_UserData {
+	return &protos.LoginResponse_UserData{
+		UserId: userData.UserId,
+		Token:  userData.Token,
+		Code:   userData.Code,
+		Email:  userData.Email,
+	}
 }
 
 // OAuth Methods
@@ -414,26 +410,24 @@ func (lc *LanternCore) OAuthLoginCallback(oAuthToken string) ([]byte, error) {
 	}
 
 	// Temporary  set user data to so api can read it
-	login := &protos.LoginResponse{
-		LegacyID:    jwtUserInfo.LegacyUserId,
-		LegacyToken: jwtUserInfo.LegacyToken,
+	login := &common.UserData{
+		UserId: jwtUserInfo.LegacyUserId,
+		Token:  jwtUserInfo.LegacyToken,
 	}
 	lc.userInfo.SetData(login)
 	///Get user data from api this will also save data in user config
-	user, err := lc.apiClient.UserData(context.Background())
+	user, err := lc.apiClient.FetchUserData(context.Background())
 	if err != nil {
 		return nil, fmt.Errorf("error getting user data: %w", err)
 	}
 	slog.Debug("UserData response:", "user", user)
-	userResponse := &protos.LoginResponse{
-		Id:             jwtUserInfo.Email,
-		EmailConfirmed: true,
-		LegacyID:       user.UserId,
-		LegacyToken:    user.Token,
-		LegacyUserData: user.LoginResponse_UserData,
-	}
-	lc.userInfo.SetData(userResponse)
-	bytes, err := proto.Marshal(userResponse)
+
+	// TODO: Do we really need to set these, or can they be set on the server side?
+	user.EmailConfirmed = true
+	user.JWTID = jwtUserInfo.Email
+
+	lc.userInfo.SetData(user)
+	bytes, err := json.Marshal(user)
 	if err != nil {
 		return nil, fmt.Errorf("error marshalling user data: %w", err)
 	}
@@ -566,25 +560,7 @@ func (lc *LanternCore) SignUp(email, password string) error {
 
 func (lc *LanternCore) Logout(email string) ([]byte, error) {
 	slog.Debug("Logging out")
-	err := lc.apiClient.Logout(context.Background(), email)
-	if err != nil {
-		return nil, fmt.Errorf("error logging out: %w", err)
-	}
-	// this call will save data
-	user, err := lc.CreateUser()
-	if err != nil {
-		return nil, fmt.Errorf("error creating user: %w", err)
-	}
-	login := &protos.LoginResponse{
-		LegacyID:       user.UserId,
-		LegacyToken:    user.Token,
-		LegacyUserData: user.LoginResponse_UserData,
-	}
-	protoUserData, err := proto.Marshal(login)
-	if err != nil {
-		return nil, fmt.Errorf("error marshalling user data: %w", err)
-	}
-	return protoUserData, nil
+	return lc.apiClient.Logout(context.Background(), email)
 }
 
 // Email Recovery Methods
@@ -608,26 +584,11 @@ func (lc *LanternCore) CompleteRecoveryByEmail(email, password, code string) err
 
 func (lc *LanternCore) DeleteAccount(email, password string) ([]byte, error) {
 	slog.Debug("Deleting account")
-	err := lc.apiClient.DeleteAccount(context.Background(), email, password)
+	jsonBytes, err := lc.apiClient.DeleteAccount(context.Background(), email, password)
 	if err != nil {
 		return nil, fmt.Errorf("error deleting account: %w", err)
 	}
-	user, err := lc.CreateUser()
-	if err != nil {
-		return nil, fmt.Errorf("error creating user: %w", err)
-	}
-	login := &protos.LoginResponse{
-		LegacyID:       user.UserId,
-		LegacyToken:    user.Token,
-		LegacyUserData: user.LoginResponse_UserData,
-	}
-	protoUserData, err := proto.Marshal(login)
-	if err != nil {
-		return nil, fmt.Errorf("error marshalling user data: %w", err)
-	}
-
-	lc.userInfo.SetData(login)
-	return protoUserData, nil
+	return jsonBytes, err
 }
 
 func (lc *LanternCore) RemoveDevice(deviceID string) (*api.LinkResponse, error) {
