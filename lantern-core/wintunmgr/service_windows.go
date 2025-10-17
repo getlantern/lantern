@@ -20,11 +20,7 @@ import (
 
 	"github.com/Microsoft/go-winio"
 	"github.com/getlantern/golog"
-
-	lanterncore "github.com/getlantern/lantern-outline/lantern-core"
 	"github.com/getlantern/lantern-outline/lantern-core/common"
-	"github.com/getlantern/lantern-outline/lantern-core/utils"
-
 	rvpn "github.com/getlantern/radiance/vpn"
 	ripc "github.com/getlantern/radiance/vpn/ipc"
 )
@@ -42,14 +38,9 @@ type ServiceOptions struct {
 // Service hosts the command server and manages LanternCore
 // It proxies privileged commands and interacts with Radiance IPC when available
 type Service struct {
-	opts ServiceOptions
-
-	core lanterncore.Core
-
-	wtmgr *Manager
-
-	cancel context.CancelFunc
-
+	opts       ServiceOptions
+	wtmgr      *Manager
+	cancel     context.CancelFunc
 	subsMu     sync.RWMutex
 	statusSubs map[string]chan statusEvent
 }
@@ -72,38 +63,6 @@ func NewService(opts ServiceOptions, wt *Manager) *Service {
 		wtmgr:      wt,
 		statusSubs: make(map[string]chan statusEvent),
 	}
-}
-
-func (s *Service) vpnOpts() *utils.Opts {
-	return &utils.Opts{
-		Locale:   s.opts.Locale,
-		DataDir:  s.opts.DataDir,
-		LogDir:   s.opts.LogDir,
-		LogLevel: lanterncore.DefaultLogLevel,
-	}
-}
-
-// / Flutter event emitter implementation for Windows
-type windowsFlutterEventEmitter struct{}
-
-func (e *windowsFlutterEventEmitter) SendEvent(event *utils.FlutterEvent) {
-	// todo implement windows flutter event emitter
-	// send back to flutter via IPC or other means
-
-}
-
-func (s *Service) InitCore() error {
-	core, err := lanterncore.New(&utils.Opts{
-		Locale:   s.opts.Locale,
-		LogLevel: lanterncore.DefaultLogLevel,
-	}, &windowsFlutterEventEmitter{})
-	if err != nil {
-		slog.Errorf("Service.InitCore error err=%v", err)
-		return fmt.Errorf("init LanternCore: %w", err)
-	}
-	s.core = core
-	slog.Debugf("Service.InitCore ok")
-	return nil
 }
 
 func (s *Service) statusSnapshot() statusEvent {
@@ -163,9 +122,6 @@ func (s *Service) Start(ctx context.Context) error {
 	var err error
 	defer recoverErr("Service.Start", &err)
 
-	if err = s.InitCore(); err != nil {
-		return err
-	}
 	if s.opts.PipeName == "" {
 		s.opts.PipeName = `\\.\pipe\LanternService`
 	}
@@ -483,31 +439,37 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		go s.broadcastStatus()
 		return &Response{ID: r.ID, Result: "ok"}
 
-	case common.CmdAddSplitTunnelItem, common.CmdRemoveSplitTunnelItem:
-		var p struct {
-			Filter string `json:"filterType"`
-			Value  string `json:"value"`
-		}
-		if err := json.Unmarshal(r.Params, &p); err != nil {
-			return rpcErr(r.ID, "bad_params", err.Error())
-		}
-		var err error
-		if r.Cmd == common.CmdAddSplitTunnelItem {
-			err = s.core.AddSplitTunnelItem(p.Filter, p.Value)
-		} else {
-			err = s.core.RemoveSplitTunnelItem(p.Filter, p.Value)
-		}
-		if err != nil {
-			return rpcErr(r.ID, "split_tunnel_error", err.Error())
-		}
-		return &Response{ID: r.ID, Result: "ok"}
+	// case common.CmdAddSplitTunnelItem, common.CmdRemoveSplitTunnelItem:
+	// 	var p struct {
+	// 		Filter string `json:"filterType"`
+	// 		Value  string `json:"value"`
+	// 	}
+	// 	if err := json.Unmarshal(r.Params, &p); err != nil {
+	// 		return rpcErr(r.ID, "bad_params", err.Error())
+	// 	}
+	// 	var err error
+	// 	if r.Cmd == common.CmdAddSplitTunnelItem {
+	// 		err = s.core.AddSplitTunnelItem(p.Filter, p.Value)
+	// 	} else {
+	// 		err = s.core.RemoveSplitTunnelItem(p.Filter, p.Value)
+	// 	}
+	// 	if err != nil {
+	// 		return rpcErr(r.ID, "split_tunnel_error", err.Error())
+	// 	}
+	// 	return &Response{ID: r.ID, Result: "ok"}
 
-	case common.CmdGetUserData:
-		b, err := s.core.UserData()
-		if err != nil {
-			return rpcErr(r.ID, "user_data_error", err.Error())
-		}
-		return &Response{ID: r.ID, Result: base64.StdEncoding.EncodeToString(b)}
+	// case common.CmdGetUserData:
+	// 	b, err := s.core.UserData()
+	// 	if err != nil {
+	// 		return rpcErr(r.ID, "user_data_error", err.Error())
+	// 	}
+	// 	return &Response{ID: r.ID, Result: base64.StdEncoding.EncodeToString(b)}
+	// case common.CmdFetchUserData:
+	// 	b, err := s.core.FetchUserData()
+	// 	if err != nil {
+	// 		return rpcErr(r.ID, "fetch_user_data_error", err.Error())
+	// 	}
+	// 	return &Response{ID: r.ID, Result: base64.StdEncoding.EncodeToString(b)}
 
 	default:
 		return rpcErr(r.ID, "unknown_cmd", string(r.Cmd))
