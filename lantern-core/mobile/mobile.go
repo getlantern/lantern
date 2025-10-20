@@ -70,6 +70,7 @@ func SetupRadiance(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) err
 }
 
 func SetBlockAdsEnabled(enabled bool) error {
+	slog.Info("adblock: SetBlockAdsEnabled", "enabled", enabled)
 	return withCore(func(c lanterncore.Core) error {
 		return c.SetBlockAdsEnabled(enabled)
 	})

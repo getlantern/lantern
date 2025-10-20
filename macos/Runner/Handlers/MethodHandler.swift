@@ -202,7 +202,8 @@ class MethodHandler {
         self.stripeBillingPortal(result: result)
         break
       case "setBlockAdsEnabled":
-        let enabled = (call.arguments as? Bool) ?? false
+        let map = call.arguments as? [String: Any]
+        let enabled = (map?["enabled"] as? Bool) ?? false
         Task.detached {
           var error: NSError?
           MobileSetBlockAdsEnabled(enabled, &error)
