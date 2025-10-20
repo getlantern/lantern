@@ -1,11 +1,10 @@
 import 'dart:async';
-import 'dart:convert';
+
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/windows/pipe_client.dart';
 import 'package:lantern/core/windows/pipe_commands.dart';
-import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 
 class LanternServiceWindows {
   LanternServiceWindows(this._rpcPipe);
@@ -99,24 +98,8 @@ class LanternServiceWindows {
 
   Stream<LanternStatus> watchVPNStatus() => _statusCtrl.stream;
 
-  Stream<List<String>> watchLogs(String _ignoredPath) {
+  Stream<List<String>> watchLogs() {
     _logsPipe ??= PipeClient(token: _rpcPipe.token);
     return _logsPipe!.watchLogs();
-  }
-
-  Future<Either<Failure, UserResponse>> getUserData() async {
-    try {
-      final res = await _rpcPipe.call(ServiceCommand.getUserData.wire);
-      final b64 = (res['value'] as String?) ?? (res['result'] as String?);
-      if (b64 == null || b64.isEmpty) {
-        return Left(
-            Failure(error: 'empty user data', localizedErrorMessage: ''));
-      }
-      final bytes = base64Decode(b64);
-      return Right(UserResponse.fromBuffer(bytes));
-    } catch (e, st) {
-      appLogger.error('getUserData via pipe failed', e, st);
-      return Left(e.toFailure());
-    }
   }
 }

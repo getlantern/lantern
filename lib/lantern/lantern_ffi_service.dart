@@ -34,6 +34,8 @@ import '../core/utils/compute_worker.dart';
 export 'dart:convert';
 export 'dart:ffi'; // For FFI
 
+export 'package:ffi/src/utf8.dart';
+
 const String _libName = 'liblantern';
 
 ///this service should communicate with library using ffi
@@ -44,7 +46,7 @@ class LanternFFIService implements LanternCoreService {
   late final Stream<LanternStatus> _status;
   late Stream<PrivateServerStatus> _privateServerStatus;
   late Stream<AppEvent> _appEvents;
-  LanternServiceWindows? _windowsService;
+  late final LanternServiceWindows _windowsService;
 
   static SendPort? _commandSendPort;
   static final Completer<void> _isolateInitialized = Completer<void>();
@@ -72,17 +74,20 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<void> init() async {
     try {
-      _status = statusReceivePort.map((event) {
-        Map<String, dynamic> result = jsonDecode(event);
-        return LanternStatus.fromJson(result);
-      });
       await _setupRadiance();
+
       if (Platform.isWindows) {
-        await _initWindowsService();
-        if (_windowsService != null) {
-          _status = _windowsService!.watchVPNStatus();
-        }
+        /// Start windows IPC service
+        /// keep it alive but we wil use only for VPN calls
+        await _initializeWindowsService();
+        _status = _windowsService.watchVPNStatus();
+      } else {
+        _status = statusReceivePort.map((event) {
+          Map<String, dynamic> result = jsonDecode(event);
+          return LanternStatus.fromJson(result);
+        });
       }
+
       _privateServerStatus = privateServerReceivePort.map((event) {
         Map<String, dynamic> result = jsonDecode(event);
         return PrivateServerStatus.fromJson(result);
@@ -94,12 +99,6 @@ class LanternFFIService implements LanternCoreService {
     } catch (e) {
       appLogger.error('Error while setting up radiance: $e');
     }
-  }
-
-  Future<void> _initWindowsService() async {
-    if (!Platform.isWindows) return;
-    if (_windowsService != null) return;
-    await _initializeWindowsService();
   }
 
   Future<Either<String, Unit>> _setupRadiance() async {
@@ -136,27 +135,15 @@ class LanternFFIService implements LanternCoreService {
   }
 
   Future<void> _initializeWindowsService() async {
-    final tokenPath = p.join(
-      Platform.environment['ProgramData'] ?? r'C:\ProgramData',
-      'Lantern',
-      'ipc-token',
+    final tokenFile = File(
+      p.join(Platform.environment['ProgramData'] ?? r'C:\ProgramData',
+          'Lantern', 'ipc-token'),
     );
-    final tokenFile = File(tokenPath);
-
-    if (!await tokenFile.exists()) {
-      throw FileSystemException('IPC token not found', tokenPath);
-    }
-
     final token = (await tokenFile.readAsString()).trim();
-    if (token.isEmpty) {
-      throw const FormatException('IPC token is empty');
-    }
-
     final pipe = PipeClient(token: token);
-    final svc = LanternServiceWindows(pipe);
-    _windowsService = svc;
+    _windowsService = LanternServiceWindows(pipe);
     try {
-      await svc.init();
+      await _windowsService.init();
     } catch (e, st) {
       appLogger.error('LanternServiceWindows.init() threw', e, st);
       rethrow;
@@ -376,34 +363,10 @@ class LanternFFIService implements LanternCoreService {
     }
   }
 
-  Failure get _svcUnavailable => Failure(
-      error: 'service_unavailable',
-      localizedErrorMessage: 'Windows service is unavailable');
-
-  // Init the Windows service and run an action against it (or return Left)
-  Future<Either<Failure, R>> _withWinSvc<R>(
-    Future<Either<Failure, R>> Function(LanternServiceWindows svc) run,
-  ) async {
-    try {
-      await _initWindowsService();
-      final svc = _windowsService;
-      if (svc == null) return left(_svcUnavailable);
-      return await run(svc);
-    } catch (e) {
-      return Left(e.toFailure());
-    }
-  }
-
-  Future<Either<Failure, R>> _winOr<R>({
-    required Future<Either<Failure, R>> Function(LanternServiceWindows) win,
-    required Future<Either<Failure, R>> Function() other,
-  }) =>
-      Platform.isWindows ? _withWinSvc<R>(win) : other();
-
   @override
   Future<Either<Failure, String>> startVPN() async {
     if (Platform.isWindows) {
-      return _withWinSvc((s) => s.connect());
+      return _windowsService.connect();
     }
     final ffiPaths = await PlatformFfiUtils.getFfiPlatformPaths();
     try {
@@ -434,6 +397,9 @@ class LanternFFIService implements LanternCoreService {
 
   @override
   Stream<List<String>> watchLogs(String path) {
+    if (PlatformUtils.isWindows) {
+      return _windowsService.watchLogs();
+    }
     throw UnimplementedError();
   }
 
@@ -442,7 +408,7 @@ class LanternFFIService implements LanternCoreService {
     try {
       appLogger.debug('Stopping VPN');
       if (Platform.isWindows) {
-        return _withWinSvc((s) => s.disconnect());
+        return _windowsService.disconnect();
       }
       final result = _ffiService.stopVPN().cast<Utf8>().toDartString();
       if (result.isNotEmpty) {
@@ -459,20 +425,17 @@ class LanternFFIService implements LanternCoreService {
   @override
   Stream<LanternStatus> watchVPNStatus() => _status;
 
-  Future<Either<Failure, bool>> _isVpnConnectedFfi() async {
+  @override
+  Future<Either<Failure, Unit>> isVPNConnected() async {
     try {
-      final int raw = _ffiService.isVPNConnected();
-      final connected = raw != 0;
-      return right(connected);
-    } catch (e, st) {
-      appLogger.error('isVPNConnected (FFI) failed', e, st);
+      final result = Platform.isWindows
+          ? _windowsService.isVPNConnected()
+          : _ffiService.isVPNConnected();
+      return right(unit);
+    } catch (e) {
       return Left(e.toFailure());
     }
   }
-
-  @override
-  Future<Either<Failure, bool>> isVPNConnected() =>
-      _winOr<Unit>(win: (s) => s.isVPNConnected(), other: _isVpnConnectedFfi);
 
   @override
   Future<Either<Failure, Unit>> startInAppPurchaseFlow(
@@ -581,6 +544,9 @@ class LanternFFIService implements LanternCoreService {
 
   @override
   Future<Either<Failure, UserResponse>> getUserData() async {
+    // if (Platform.isWindows) {
+    //   return _windowsService.getUserData();
+    // }
     try {
       final result = await runInBackground<String>(
         () async {
@@ -952,7 +918,7 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, String>> connectToServer(
       String location, String tag) async {
     if (Platform.isWindows) {
-      return _withWinSvc((s) => s.connectToServer(location, tag));
+      return _windowsService.connectToServer(location, tag);
     }
     final ffiPaths = await PlatformFfiUtils.getFfiPlatformPaths();
     try {
