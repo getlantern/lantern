@@ -123,10 +123,12 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> isVPNConnected() async {
+  Future<Either<Failure, bool>> isVPNConnected() async {
     try {
-      await _methodChannel.invokeMethod('isVPNConnected');
-      return Right(unit);
+      final connected =
+          await _methodChannel.invokeMethod<bool>('isVPNConnected');
+      final isConnected = connected ?? false;
+      return Right(isConnected);
     } catch (e, stackTrace) {
       appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
       return Left(e.toFailure());

@@ -84,13 +84,15 @@ class LanternServiceWindows {
     }
   }
 
-  Future<Either<Failure, Unit>> isVPNConnected() async {
+  Future<Either<Failure, bool>> isVPNConnected() async {
     try {
       final res = await _rpcPipe.call(ServiceCommand.isVPNRunning.wire);
       final running = (res['running'] as bool?) ?? false;
-      _statusCtrl.add(LanternStatus.fromJson(
-          {'status': running ? 'Connected' : 'Disconnected'}));
-      return right(unit);
+      _statusCtrl.add(
+        LanternStatus.fromJson(
+            {'status': running ? 'Connected' : 'Disconnected'}),
+      );
+      return right(running);
     } catch (e) {
       return Left(e.toFailure());
     }
