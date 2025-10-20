@@ -586,4 +586,20 @@ class LanternService implements LanternCoreService {
     }
     return _platformService.removeAllItems(type, value);
   }
+
+  @override
+  Future<Either<Failure, bool>> isBlockAdsEnabled() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.isBlockAdsEnabled();
+    }
+    return _platformService.isBlockAdsEnabled();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setBlockAdsEnabled(bool enabled) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.setBlockAdsEnabled(enabled);
+    }
+    return _platformService.setBlockAdsEnabled(enabled);
+  }
 }

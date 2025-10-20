@@ -3132,6 +3132,29 @@ class LanternBindings {
               ffi.Pointer<ffi.Char>,
               ffi.Pointer<ffi.Char>,
               ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> setBlockAdsEnabled(
+    int enabled,
+  ) {
+    return _setBlockAdsEnabled(
+      enabled,
+    );
+  }
+
+  late final _setBlockAdsEnabledPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function(ffi.Int)>>(
+          'setBlockAdsEnabled');
+  late final _setBlockAdsEnabled =
+      _setBlockAdsEnabledPtr.asFunction<ffi.Pointer<ffi.Char> Function(int)>();
+
+  int isBlockAdsEnabled() {
+    return _isBlockAdsEnabled();
+  }
+
+  late final _isBlockAdsEnabledPtr =
+      _lookup<ffi.NativeFunction<ffi.Int Function()>>('isBlockAdsEnabled');
+  late final _isBlockAdsEnabled =
+      _isBlockAdsEnabledPtr.asFunction<int Function()>();
 }
 
 typedef __int8_t = ffi.SignedChar;
