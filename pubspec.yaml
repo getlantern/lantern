@@ -167,5 +167,5 @@ ffigen:
   headers:
     entry-points:
       - "bin/**/liblantern.h"
-      - "bin/macos-amd64/liblantern.h"
-      - "bin/macos-arm64/liblantern.h"
+      - "bin/windows-amd64/liblantern.h"
+      - "bin/windows-arm64/liblantern.h"
