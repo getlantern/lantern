@@ -33,6 +33,9 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, Server>> getAutoServerLocation();
 
+  Future<Either<Failure, Unit>> setBlockAdsEnabled(bool enabled);
+  Future<Either<Failure, bool>> isBlockAdsEnabled();
+
   ///Payments methods
   Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
       {required BillingType type,

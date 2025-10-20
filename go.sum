@@ -168,6 +168,8 @@ github.com/getlantern/byteexec v0.0.0-20220903142956-e6ed20032cfd h1:0xt9OTbV50a
 github.com/getlantern/byteexec v0.0.0-20220903142956-e6ed20032cfd/go.mod h1:oD9q9NB1LNBLHk3WAwza4tivxV7tm7jKFlCNCAv3+M8=
 github.com/getlantern/common v1.2.1-0.20250711182004-51a659011c7a h1:YJW5VEyZIps75GIqlkXnrLG3T8tgOk2J2mVLzrMVUSA=
 github.com/getlantern/common v1.2.1-0.20250711182004-51a659011c7a/go.mod h1:6Qp4U5E/u2yYcGNgWszuiijh10kt39XcG1CDxT3uF7g=
+github.com/getlantern/common v1.2.1-0.20251018001637-27d0934c2ef0 h1:1peBgzkgaA3ghCyrNZi7RkmKNw34kdN0Qqb+YsZtAvU=
+github.com/getlantern/common v1.2.1-0.20251018001637-27d0934c2ef0/go.mod h1:6Qp4U5E/u2yYcGNgWszuiijh10kt39XcG1CDxT3uF7g=
 github.com/getlantern/context v0.0.0-20190109183933-c447772a6520/go.mod h1:L+mq6/vvYHKjCX2oez0CgEAJmbq1fbb/oNJIWQkBybY=
 github.com/getlantern/context v0.0.0-20220418194847-3d5e7a086201 h1:oEZYEpZo28Wdx+5FZo4aU7JFXu0WG/4wJWese5reQSA=
 github.com/getlantern/context v0.0.0-20220418194847-3d5e7a086201/go.mod h1:Y9WZUHEb+mpra02CbQ/QczLUe6f0Dezxaw5DCJlJQGo=
@@ -226,6 +228,10 @@ github.com/getlantern/radiance v0.0.0-20251010150413-83fccb1f43c1 h1:gqa2uaTsefb
 github.com/getlantern/radiance v0.0.0-20251010150413-83fccb1f43c1/go.mod h1:HnDfwPm+S10V2/XgPlXa16VULHYQmVOYyq6WmP0hAEI=
 github.com/getlantern/radiance v0.0.0-20251014071522-e4eea7252546 h1:REKFW+0Wh7I0/NCxOxp1K/mL4PH5QZxI7L6Xxx10MPA=
 github.com/getlantern/radiance v0.0.0-20251014071522-e4eea7252546/go.mod h1:HnDfwPm+S10V2/XgPlXa16VULHYQmVOYyq6WmP0hAEI=
+github.com/getlantern/radiance v0.0.0-20251020074212-3ec01429d9d9 h1:hyZ/MArSuKmg97FR6BnwbdhO0PTfLfduEKxkQQY3lLU=
+github.com/getlantern/radiance v0.0.0-20251020074212-3ec01429d9d9/go.mod h1:mDjc/bRgBR72kNNyuPPtn2F3sTu+KCcYPwE8ct1BPjQ=
+github.com/getlantern/radiance v0.0.0-20251020081324-39d66379fcdc h1:2L+m+wdVi0+7ysj+O+D9O1oVPl0gmZXpgfZ1mmqWD9Q=
+github.com/getlantern/radiance v0.0.0-20251020081324-39d66379fcdc/go.mod h1:mDjc/bRgBR72kNNyuPPtn2F3sTu+KCcYPwE8ct1BPjQ=
 github.com/getlantern/sing v0.6.13-0.20250812195008-c4468d0c7c42 h1:9mmkEsa5TlIheUyI4DfaW3+m4W01hMQprraSQzVg6mg=
 github.com/getlantern/sing v0.6.13-0.20250812195008-c4468d0c7c42/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
 github.com/getlantern/sing-box-extensions v0.0.6-0.20251009215920-c16fd17c3f99 h1:oKBfh5YWizQ4xcl3wcg/csSDlDO43N+caMCB/PTVY/A=

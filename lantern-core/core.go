@@ -39,6 +39,7 @@ type LanternCore struct {
 	apiClient     *api.APIClient
 	initOnce      sync.Once
 	eventEmitter  utils.FlutterEventEmitter
+	adBlocker     *vpn.AdBlocker
 }
 
 var (
@@ -111,12 +112,18 @@ type SplitTunnel interface {
 	RemoveSplitTunnelItems(items string) error
 }
 
+type Ads interface {
+	SetBlockAdsEnabled(bool) error
+	IsBlockAdsEnabled() bool
+}
+
 type Core interface {
 	App
 	User
 	Payment
 	PrivateServer
 	SplitTunnel
+	Ads
 }
 
 // Make sure LanternCore implements the Core interface
@@ -163,6 +170,11 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	var sthErr error
 	if lc.splitTunnel, sthErr = vpn.NewSplitTunnelHandler(); sthErr != nil {
 		return fmt.Errorf("unable to create split tunnel handler: %v", sthErr)
+	}
+
+	var abErr error
+	if lc.adBlocker, abErr = vpn.NewAdBlockerHandler(); abErr != nil {
+		return fmt.Errorf("unable to create ad-block handler: %v", abErr)
 	}
 
 	lc.serverManager = lc.rad.ServerManager()
@@ -692,4 +704,11 @@ func (lc *LanternCore) RevokeServerManagerInvite(ip, port, accessToken, inviteNa
 	portInt, _ := strconv.Atoi(port)
 	slog.Debug("Revoking invite:", "name", inviteName, "ip", ip, "port", port)
 	return privateserver.RevokeServerManagerInvite(ip, portInt, accessToken, inviteName, lc.serverManager)
+}
+
+func (lc *LanternCore) SetBlockAdsEnabled(enabled bool) error {
+	return lc.adBlocker.SetEnabled(enabled)
+}
+func (lc *LanternCore) IsBlockAdsEnabled() bool {
+	return lc.adBlocker.IsEnabled()
 }

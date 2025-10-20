@@ -15,8 +15,9 @@ import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.utils.PrivateServerListener
 import org.getlantern.lantern.utils.VpnStatusManager
 
-
-enum class Methods(val method: String) {
+enum class Methods(
+    val method: String,
+) {
     Start("startVPN"),
     Stop("stopVPN"),
     ConnectToServer("connectToServer"),
@@ -33,20 +34,20 @@ enum class Methods(val method: String) {
     FeatureFlag("featureFlag"),
     GetDataCapInfo("getDataCapInfo"),
 
-    //Oauth
+    // Oauth
     OAuthLoginUrl("oauthLoginUrl"),
     OAuthLoginCallback("oauthLoginCallback"),
 
-    //Forgot password
+    // Forgot password
     StartRecoveryByEmail("startRecoveryByEmail"),
     ValidateRecoveryCode("validateRecoveryCode"),
     CompleteRecoveryByEmail("completeRecoveryByEmail"),
 
-    //Login
+    // Login
     Login("login"),
     SignUp("signUp"),
 
-    //Change Email
+    // Change Email
     StartChangeEmail("startChangeEmail"),
     CompleteChangeEmail("completeChangeEmail"),
 
@@ -54,10 +55,14 @@ enum class Methods(val method: String) {
     DeleteAccount("deleteAccount"),
     ActivationCode("activationCode"),
 
-    //Device
+    // Device
     RemoveDevice("removeDevice"),
 
-    //private server methods
+    // Ad blocking
+    IsBlockAdsEnabled("isBlockAdsEnabled"),
+    SetBlockAdsEnabled("setBlockAdsEnabled"),
+
+    // private server methods
     DigitalOcean("digitalOcean"),
     SelectAccount("selectAccount"),
     SelectProject("selectProject"),
@@ -68,20 +73,20 @@ enum class Methods(val method: String) {
     InviteToServerManagerInstance("inviteToServerManagerInstance"),
     RevokeServerManagerInstance("revokeServerManagerInstance"),
 
-    //custom/lantern servers
+    // custom/lantern servers
     GetLanternAvailableServers("getLanternAvailableServers"),
     GetAutoServerLocation("getAutoServerLocation"),
 
-    //Split Tunnel methods
+    // Split Tunnel methods
     AddSplitTunnelItem("addSplitTunnelItem"),
     RemoveSplitTunnelItem("removeSplitTunnelItem"),
     AddAllItems("addAllItems"),
     RemoveAllItems("removeAllItems"),
 }
 
-class MethodHandler : FlutterPlugin,
+class MethodHandler :
+    FlutterPlugin,
     MethodChannel.MethodCallHandler {
-
     private var channel: MethodChannel? = null
 
     companion object {
@@ -94,10 +99,11 @@ class MethodHandler : FlutterPlugin,
     private val privateServerListener = PrivateServerListener()
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-        channel = MethodChannel(
-            binding.binaryMessenger,
-            channelName,
-        )
+        channel =
+            MethodChannel(
+                binding.binaryMessenger,
+                channelName,
+            )
         channel!!.setMethodCallHandler(this)
     }
 
@@ -106,528 +112,557 @@ class MethodHandler : FlutterPlugin,
         channel = null
     }
 
-    override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
+    override fun onMethodCall(
+        call: MethodCall,
+        result: MethodChannel.Result,
+    ) {
         when (call.method) {
             Methods.Start.method -> {
                 scope.launch {
-                    result.runCatching {
-                        VpnStatusManager.postVPNStatus(VPNStatus.Connecting)
-                        MainActivity.instance.startVPN()
-                        success("VPN started")
-                    }.onFailure { e ->
-                        VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
-                        result.error("start_vpn", e.localizedMessage ?: "Please try again", e)
-                    }
+                    result
+                        .runCatching {
+                            VpnStatusManager.postVPNStatus(VPNStatus.Connecting)
+                            MainActivity.instance.startVPN()
+                            success("VPN started")
+                        }.onFailure { e ->
+                            VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
+                            result.error("start_vpn", e.localizedMessage ?: "Please try again", e)
+                        }
                 }
             }
 
             Methods.Stop.method -> {
                 scope.launch {
-                    result.runCatching {
-                        MainActivity.instance.stopVPN()
-                        success("VPN stopped")
-                    }.onFailure { e ->
-                        result.error("stop_vpn", e.localizedMessage ?: "Please try again", e)
-                    }
+                    result
+                        .runCatching {
+                            MainActivity.instance.stopVPN()
+                            success("VPN stopped")
+                        }.onFailure { e ->
+                            result.error("stop_vpn", e.localizedMessage ?: "Please try again", e)
+                        }
                 }
             }
 
             Methods.ConnectToServer.method -> {
                 scope.launch {
-                    result.runCatching {
-                        val map = call.arguments as Map<*, *>
-                        val location = map["location"] as String? ?: error("Missing location")
-                        val tag = map["serverName"] as String? ?: error("Missing serverName")
-                        MainActivity.instance.connectToServer(
-                            location,
-                            tag,
-                        )
-                        success("ok")
-                    }.onFailure { e ->
-                        result.error(
-                            "set_private_server",
-                            e.localizedMessage ?: "Please try again",
-                            e
-                        )
-                    }
+                    result
+                        .runCatching {
+                            val map = call.arguments as Map<*, *>
+                            val location = map["location"] as String? ?: error("Missing location")
+                            val tag = map["serverName"] as String? ?: error("Missing serverName")
+                            MainActivity.instance.connectToServer(
+                                location,
+                                tag,
+                            )
+                            success("ok")
+                        }.onFailure { e ->
+                            result.error(
+                                "set_private_server",
+                                e.localizedMessage ?: "Please try again",
+                                e,
+                            )
+                        }
                 }
             }
 
             Methods.IsVpnConnected.method -> {
                 scope.launch {
-                    result.runCatching {
-                        val conncted = Mobile.isVPNConnected()
-                        Log.d(TAG, "IsVpnConnected connected: $conncted")
-                        if (conncted) {
-                            VpnStatusManager.postVPNStatus(VPNStatus.Connected)
-                        } else {
-                            VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
+                    result
+                        .runCatching {
+                            val conncted = Mobile.isVPNConnected()
+                            Log.d(TAG, "IsVpnConnected connected: $conncted")
+                            if (conncted) {
+                                VpnStatusManager.postVPNStatus(VPNStatus.Connected)
+                            } else {
+                                VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
+                            }
+                            success("")
+                        }.onFailure { e ->
+                            result.error("vpn_status", e.localizedMessage ?: "Please try again", e)
                         }
-                        success("")
-
-                    }.onFailure { e ->
-                        result.error("vpn_status", e.localizedMessage ?: "Please try again", e)
-                    }
                 }
             }
 
             Methods.AddSplitTunnelItem.method -> {
                 scope.launch {
-                    result.runCatching {
-                        val filterType =
-                            call.argument<String>("filterType") ?: error("Missing filterType")
-                        val value = call.argument<String>("value") ?: error("Missing value")
-                        Mobile.addSplitTunnelItem(filterType, value)
-                        success("Item added")
-                    }.onFailure { e ->
-                        result.error(
-                            "add_split_tunnel_item",
-                            e.localizedMessage ?: "Failed to add split tunnel item",
-                            e
-                        )
-                    }
+                    result
+                        .runCatching {
+                            val filterType =
+                                call.argument<String>("filterType") ?: error("Missing filterType")
+                            val value = call.argument<String>("value") ?: error("Missing value")
+                            Mobile.addSplitTunnelItem(filterType, value)
+                            success("Item added")
+                        }.onFailure { e ->
+                            result.error(
+                                "add_split_tunnel_item",
+                                e.localizedMessage ?: "Failed to add split tunnel item",
+                                e,
+                            )
+                        }
                 }
             }
 
             Methods.RemoveSplitTunnelItem.method -> {
                 scope.launch {
-                    result.runCatching {
-                        val filterType =
-                            call.argument<String>("filterType") ?: error("Missing filterType")
-                        val value = call.argument<String>("value") ?: error("Missing value")
-                        Mobile.removeSplitTunnelItem(filterType, value)
-                        success("Item removed")
-                    }.onFailure { e ->
-                        result.error(
-                            "remove_split_tunnel_item",
-                            e.localizedMessage ?: "Failed to remove split tunnel item",
-                            e
-                        )
-                    }
+                    result
+                        .runCatching {
+                            val filterType =
+                                call.argument<String>("filterType") ?: error("Missing filterType")
+                            val value = call.argument<String>("value") ?: error("Missing value")
+                            Mobile.removeSplitTunnelItem(filterType, value)
+                            success("Item removed")
+                        }.onFailure { e ->
+                            result.error(
+                                "remove_split_tunnel_item",
+                                e.localizedMessage ?: "Failed to remove split tunnel item",
+                                e,
+                            )
+                        }
                 }
             }
             Methods.AddAllItems.method -> {
                 scope.launch {
-                    result.runCatching {
-                        val items = call.argument<String>("value")
-                        Mobile.addSplitTunnelItems(items)
-                        success("All items added")
-                    }.onFailure { e ->
-                        result.error(
-                            "add_all_split_tunnel_items",
-                            e.localizedMessage ?: "Failed to add all split tunnel items",
-                            e
-                        )
-                    }
+                    result
+                        .runCatching {
+                            val items = call.argument<String>("value")
+                            Mobile.addSplitTunnelItems(items)
+                            success("All items added")
+                        }.onFailure { e ->
+                            result.error(
+                                "add_all_split_tunnel_items",
+                                e.localizedMessage ?: "Failed to add all split tunnel items",
+                                e,
+                            )
+                        }
                 }
             }
 
             Methods.RemoveAllItems.method -> {
                 scope.launch {
-                    result.runCatching {
-                        val items = call.argument<String>("value")
-                        Mobile.removeSplitTunnelItems(items)
-                        success("All items removed")
-                    }.onFailure { e ->
-                        result.error(
-                            "remove_all_split_tunnel_items",
-                            e.localizedMessage ?: "Failed to remove all split tunnel items",
-                            e
-                        )
-                    }
+                    result
+                        .runCatching {
+                            val items = call.argument<String>("value")
+                            Mobile.removeSplitTunnelItems(items)
+                            success("All items removed")
+                        }.onFailure { e ->
+                            result.error(
+                                "remove_all_split_tunnel_items",
+                                e.localizedMessage ?: "Failed to remove all split tunnel items",
+                                e,
+                            )
+                        }
                 }
             }
 
-
-
             Methods.ReportIssue.method -> {
                 scope.launch {
-                    result.runCatching {
-                        val map = call.arguments as Map<*, *>
-                        val email = map["email"] as String? ?: ""
-                        val issueType = map["issueType"] as String? ?: ""
-                        val description = map["description"] as String? ?: ""
-                        val device = map["device"] as String? ?: ""
-                        val model = map["model"] as String? ?: ""
-                        val logFilePath = map["logFilePath"] as String? ?: ""
-                        Mobile.reportIssue(
-                            email,
-                            issueType,
-                            description,
-                            device,
-                            model,
-                            logFilePath
-                        )
-                        withContext(Dispatchers.Main) {
-                            success("ok")
+                    result
+                        .runCatching {
+                            val map = call.arguments as Map<*, *>
+                            val email = map["email"] as String? ?: ""
+                            val issueType = map["issueType"] as String? ?: ""
+                            val description = map["description"] as String? ?: ""
+                            val device = map["device"] as String? ?: ""
+                            val model = map["model"] as String? ?: ""
+                            val logFilePath = map["logFilePath"] as String? ?: ""
+                            Mobile.reportIssue(
+                                email,
+                                issueType,
+                                description,
+                                device,
+                                model,
+                                logFilePath,
+                            )
+                            withContext(Dispatchers.Main) {
+                                success("ok")
+                            }
+                        }.onFailure { e ->
+                            result.error(
+                                "report_issue",
+                                e.localizedMessage ?: "Failed to report issue",
+                                e,
+                            )
                         }
-                    }.onFailure { e ->
-                        result.error(
-                            "report_issue",
-                            e.localizedMessage ?: "Failed to report issue",
-                            e
-                        )
-                    }
                 }
             }
 
             Methods.StripeBillingPortal.method -> {
                 scope.launch {
-                    result.runCatching {
-                        val url = Mobile.stripeBillingPortalUrl()
-                        withContext(Dispatchers.Main) {
-                            success(url)
+                    result
+                        .runCatching {
+                            val url = Mobile.stripeBillingPortalUrl()
+                            withContext(Dispatchers.Main) {
+                                success(url)
+                            }
+                        }.onFailure { e ->
+                            result.error("vpn_status", e.localizedMessage ?: "Please try again", e)
                         }
-                    }.onFailure { e ->
-                        result.error("vpn_status", e.localizedMessage ?: "Please try again", e)
-                    }
                 }
             }
 
             Methods.StripeSubscription.method -> {
                 scope.launch {
-                    result.runCatching {
-                        val map = call.arguments as Map<*, *>
-                        val subscriptionData = Mobile.stripeSubscription(
-                            map["email"] as String,
-                            map["planId"] as String
-                        )
-                        withContext(Dispatchers.Main) {
-                            success(subscriptionData)
+                    result
+                        .runCatching {
+                            val map = call.arguments as Map<*, *>
+                            val subscriptionData =
+                                Mobile.stripeSubscription(
+                                    map["email"] as String,
+                                    map["planId"] as String,
+                                )
+                            withContext(Dispatchers.Main) {
+                                success(subscriptionData)
+                            }
+                        }.onFailure { e ->
+                            result.error(
+                                "stripe_subscription",
+                                e.localizedMessage ?: "Please try again",
+                                e,
+                            )
                         }
-                    }.onFailure { e ->
-                        result.error(
-                            "stripe_subscription",
-                            e.localizedMessage ?: "Please try again",
-                            e
-                        )
-                    }
                 }
             }
 
             Methods.AcknowledgeInAppPurchase.method -> {
                 scope.launch {
-                    result.runCatching {
-                        val map = call.arguments as Map<*, *>
-                        val subscriptionData = Mobile.acknowledgeGooglePurchase(
-                            map["purchaseToken"] as String,
-                            map["planId"] as String
-                        )
-                        withContext(Dispatchers.Main) {
-                            success("success")
+                    result
+                        .runCatching {
+                            val map = call.arguments as Map<*, *>
+                            val subscriptionData =
+                                Mobile.acknowledgeGooglePurchase(
+                                    map["purchaseToken"] as String,
+                                    map["planId"] as String,
+                                )
+                            withContext(Dispatchers.Main) {
+                                success("success")
+                            }
+                        }.onFailure { e ->
+                            result.error(
+                                "stripe_subscription",
+                                e.localizedMessage ?: "Please try again",
+                                e,
+                            )
                         }
-                    }.onFailure { e ->
-                        result.error(
-                            "stripe_subscription",
-                            e.localizedMessage ?: "Please try again",
-                            e
-                        )
-                    }
                 }
             }
 
             Methods.PaymentRedirect.method -> {
                 scope.launch {
-                    result.runCatching {
-                        val map = call.arguments as Map<*, *>
-                        val url = Mobile.paymentRedirect(
-                            map["provider"] as String,
-                            map["planId"] as String,
-                            map["email"] as String
-                        )
-                        withContext(Dispatchers.Main) {
-                            success(url)
+                    result
+                        .runCatching {
+                            val map = call.arguments as Map<*, *>
+                            val url =
+                                Mobile.paymentRedirect(
+                                    map["provider"] as String,
+                                    map["planId"] as String,
+                                    map["email"] as String,
+                                )
+                            withContext(Dispatchers.Main) {
+                                success(url)
+                            }
+                        }.onFailure { e ->
+                            result.error(
+                                "payment_redirect",
+                                e.localizedMessage ?: "Please try again",
+                                e,
+                            )
                         }
-                    }.onFailure { e ->
-                        result.error(
-                            "payment_redirect",
-                            e.localizedMessage ?: "Please try again",
-                            e
-                        )
-                    }
                 }
             }
 
             Methods.Plans.method -> {
                 scope.launch {
-                    result.runCatching {
-                        val plansData = Mobile.plans(call.arguments<String>())
-                        withContext(Dispatchers.Main) {
-                            success(plansData)
+                    result
+                        .runCatching {
+                            val plansData = Mobile.plans(call.arguments<String>())
+                            withContext(Dispatchers.Main) {
+                                success(plansData)
+                            }
+                        }.onFailure { e ->
+                            result.error("plans", e.localizedMessage ?: "Please try again", e)
                         }
-                    }.onFailure { e ->
-                        result.error("plans", e.localizedMessage ?: "Please try again", e)
-                    }
                 }
             }
 
             Methods.OAuthLoginUrl.method -> {
                 scope.launch {
-                    result.runCatching {
-                        val provider = call.arguments<String>()
-                        val loginUrl = Mobile.oAuthLoginUrl(provider)
-                        withContext(Dispatchers.Main) {
-                            success(loginUrl)
+                    result
+                        .runCatching {
+                            val provider = call.arguments<String>()
+                            val loginUrl = Mobile.oAuthLoginUrl(provider)
+                            withContext(Dispatchers.Main) {
+                                success(loginUrl)
+                            }
+                        }.onFailure { e ->
+                            result.error("OAuthLoginUrl", e.localizedMessage ?: "Please try again", e)
                         }
-                    }.onFailure { e ->
-                        result.error("OAuthLoginUrl", e.localizedMessage ?: "Please try again", e)
-                    }
                 }
             }
 
             Methods.OAuthLoginCallback.method -> {
                 scope.launch {
-                    result.runCatching {
-                        val token = call.arguments<String>()
-                        val bytes = Mobile.oAuthLoginCallback(token)
-                        withContext(Dispatchers.Main) {
-                            success(bytes)
+                    result
+                        .runCatching {
+                            val token = call.arguments<String>()
+                            val bytes = Mobile.oAuthLoginCallback(token)
+                            withContext(Dispatchers.Main) {
+                                success(bytes)
+                            }
+                        }.onFailure { e ->
+                            result.error(
+                                "OAuthLoginCallback",
+                                e.localizedMessage ?: "Please try again",
+                                e,
+                            )
                         }
-                    }.onFailure { e ->
-                        result.error(
-                            "OAuthLoginCallback",
-                            e.localizedMessage ?: "Please try again",
-                            e
-                        )
-                    }
                 }
             }
 
             Methods.GetUserData.method -> {
                 scope.launch {
-                    result.runCatching {
-                        val bytes = Mobile.userData()
-                        withContext(Dispatchers.Main) {
-                            success(bytes)
+                    result
+                        .runCatching {
+                            val bytes = Mobile.userData()
+                            withContext(Dispatchers.Main) {
+                                success(bytes)
+                            }
+                        }.onFailure { e ->
+                            result.error(
+                                "OAuthLoginCallback",
+                                e.localizedMessage ?: "Please try again",
+                                e,
+                            )
                         }
-                    }.onFailure { e ->
-                        result.error(
-                            "OAuthLoginCallback",
-                            e.localizedMessage ?: "Please try again",
-                            e
-                        )
-                    }
                 }
             }
 
             Methods.FetchUserData.method -> {
                 scope.launch {
-                    result.runCatching {
-                        val bytes = Mobile.fetchUserData()
-                        withContext(Dispatchers.Main) {
-                            success(bytes)
+                    result
+                        .runCatching {
+                            val bytes = Mobile.fetchUserData()
+                            withContext(Dispatchers.Main) {
+                                success(bytes)
+                            }
+                        }.onFailure { e ->
+                            result.error(
+                                "OAuthLoginCallback",
+                                e.localizedMessage ?: "Please try again",
+                                e,
+                            )
                         }
-
-
-                    }.onFailure { e ->
-                        result.error(
-                            "OAuthLoginCallback",
-                            e.localizedMessage ?: "Please try again",
-                            e
-                        )
-                    }
                 }
             }
 
             Methods.GetDataCapInfo.method -> {
                 scope.launch {
-                    result.runCatching {
-                        val data = Mobile.getDataCapInfo()
-                        val json = String(data, Charsets.UTF_8)
-                        withContext(Dispatchers.Main) { success(json) }
-                    }.onFailure { e ->
-                        result.error("GetDataCapInfo", e.localizedMessage ?: "Please try again", e)
-                    }
+                    result
+                        .runCatching {
+                            val data = Mobile.getDataCapInfo()
+                            val json = String(data, Charsets.UTF_8)
+                            withContext(Dispatchers.Main) { success(json) }
+                        }.onFailure { e ->
+                            result.error("GetDataCapInfo", e.localizedMessage ?: "Please try again", e)
+                        }
                 }
             }
 
-            ///User management methods
+            // /User management methods
 
             Methods.StartRecoveryByEmail.method -> {
                 scope.launch {
-                    result.runCatching {
-                        val map = call.arguments as Map<*, *>
-                        val email = map["email"] as String? ?: error("Missing email")
-                        Mobile.startRecoveryByEmail(email)
-                        withContext(Dispatchers.Main) {
-                            success("recovery mail sent")
+                    result
+                        .runCatching {
+                            val map = call.arguments as Map<*, *>
+                            val email = map["email"] as String? ?: error("Missing email")
+                            Mobile.startRecoveryByEmail(email)
+                            withContext(Dispatchers.Main) {
+                                success("recovery mail sent")
+                            }
+                        }.onFailure { e ->
+                            result.error(
+                                "StartRecoveryByEmail",
+                                e.localizedMessage ?: "Please try again",
+                                e,
+                            )
                         }
-                    }.onFailure { e ->
-                        result.error(
-                            "StartRecoveryByEmail",
-                            e.localizedMessage ?: "Please try again",
-                            e
-                        )
-                    }
                 }
             }
 
             Methods.ValidateRecoveryCode.method -> {
                 scope.launch {
-                    result.runCatching {
-                        val map = call.arguments as Map<*, *>
-                        val email = map["email"] as String? ?: error("Missing email")
-                        val code = call.argument<String>("code") ?: error("Missing code")
-                        Mobile.validateChangeEmailCode(email, code)
-                        withContext(Dispatchers.Main) {
-                            success("recovery code validated")
+                    result
+                        .runCatching {
+                            val map = call.arguments as Map<*, *>
+                            val email = map["email"] as String? ?: error("Missing email")
+                            val code = call.argument<String>("code") ?: error("Missing code")
+                            Mobile.validateChangeEmailCode(email, code)
+                            withContext(Dispatchers.Main) {
+                                success("recovery code validated")
+                            }
+                        }.onFailure { e ->
+                            result.error(
+                                "ValidateRecoveryCode",
+                                e.localizedMessage ?: "Please try again",
+                                e,
+                            )
                         }
-                    }.onFailure { e ->
-                        result.error(
-                            "ValidateRecoveryCode",
-                            e.localizedMessage ?: "Please try again",
-                            e
-                        )
-                    }
                 }
             }
 
             Methods.CompleteRecoveryByEmail.method -> {
                 scope.launch {
-                    result.runCatching {
-                        val map = call.arguments as Map<*, *>
-                        val email = map["email"] as String? ?: error("Missing email")
-                        val code = call.argument<String>("code") ?: error("Missing code")
-                        val newPassword =
-                            map["newPassword"] as String? ?: error("Missing newPassword")
-                        Mobile.completeRecoveryByEmail(email, newPassword, code)
-                        withContext(Dispatchers.Main) {
-                            success("email changed successfully")
+                    result
+                        .runCatching {
+                            val map = call.arguments as Map<*, *>
+                            val email = map["email"] as String? ?: error("Missing email")
+                            val code = call.argument<String>("code") ?: error("Missing code")
+                            val newPassword =
+                                map["newPassword"] as String? ?: error("Missing newPassword")
+                            Mobile.completeRecoveryByEmail(email, newPassword, code)
+                            withContext(Dispatchers.Main) {
+                                success("email changed successfully")
+                            }
+                        }.onFailure { e ->
+                            result.error(
+                                "CompleteChangeEmail",
+                                e.localizedMessage ?: "Please try again",
+                                e,
+                            )
                         }
-                    }.onFailure { e ->
-                        result.error(
-                            "CompleteChangeEmail",
-                            e.localizedMessage ?: "Please try again",
-                            e
-                        )
-                    }
                 }
             }
 
             Methods.Login.method -> {
                 scope.launch {
-                    result.runCatching {
-                        val map = call.arguments as Map<*, *>
-                        val email = map["email"] as String? ?: error("Missing email")
-                        val password = map["password"] as String? ?: error("Missing password")
-                        val bytes = Mobile.login(email, password)
-                        withContext(Dispatchers.Main) {
-                            success(bytes)
+                    result
+                        .runCatching {
+                            val map = call.arguments as Map<*, *>
+                            val email = map["email"] as String? ?: error("Missing email")
+                            val password = map["password"] as String? ?: error("Missing password")
+                            val bytes = Mobile.login(email, password)
+                            withContext(Dispatchers.Main) {
+                                success(bytes)
+                            }
+                        }.onFailure { e ->
+                            result.error(
+                                "OAuthLoginCallback",
+                                e.localizedMessage ?: "Please try again",
+                                e,
+                            )
                         }
-                    }.onFailure { e ->
-                        result.error(
-                            "OAuthLoginCallback",
-                            e.localizedMessage ?: "Please try again",
-                            e
-                        )
-                    }
                 }
             }
 
             Methods.SignUp.method -> {
                 scope.launch {
-                    result.runCatching {
-                        val map = call.arguments as Map<*, *>
-                        val email = map["email"] as String? ?: error("Missing email")
-                        val password = map["password"] as String? ?: error("Missing password")
-                        Mobile.signUp(email, password)
-                        withContext(Dispatchers.Main) {
-                            success("ok")
+                    result
+                        .runCatching {
+                            val map = call.arguments as Map<*, *>
+                            val email = map["email"] as String? ?: error("Missing email")
+                            val password = map["password"] as String? ?: error("Missing password")
+                            Mobile.signUp(email, password)
+                            withContext(Dispatchers.Main) {
+                                success("ok")
+                            }
+                        }.onFailure { e ->
+                            result.error(
+                                "OAuthLoginCallback",
+                                e.localizedMessage ?: "Please try again",
+                                e,
+                            )
                         }
-                    }.onFailure { e ->
-                        result.error(
-                            "OAuthLoginCallback",
-                            e.localizedMessage ?: "Please try again",
-                            e
-                        )
-                    }
                 }
             }
 
             Methods.Logout.method -> {
                 scope.launch {
-                    result.runCatching {
-                        val email = call.arguments<String>();
-                        Log.d(TAG, "Logout email: $email")
-                        val bytes = Mobile.logout(email)
-                        withContext(Dispatchers.Main) {
-                            success(bytes)
+                    result
+                        .runCatching {
+                            val email = call.arguments<String>()
+                            Log.d(TAG, "Logout email: $email")
+                            val bytes = Mobile.logout(email)
+                            withContext(Dispatchers.Main) {
+                                success(bytes)
+                            }
+                        }.onFailure { e ->
+                            result.error(
+                                "Logout",
+                                e.localizedMessage ?: "Please try again",
+                                e,
+                            )
                         }
-                    }.onFailure { e ->
-                        result.error(
-                            "Logout",
-                            e.localizedMessage ?: "Please try again",
-                            e
-                        )
-                    }
                 }
             }
 
             Methods.DeleteAccount.method -> {
                 scope.launch {
-                    result.runCatching {
-                        val map = call.arguments as Map<*, *>
-                        val email = map["email"] as String? ?: error("Missing email")
-                        val password = map["password"] as String? ?: error("Missing password")
-                        val bytes = Mobile.deleteAccount(email, password)
-                        withContext(Dispatchers.Main) {
-                            success(bytes)
+                    result
+                        .runCatching {
+                            val map = call.arguments as Map<*, *>
+                            val email = map["email"] as String? ?: error("Missing email")
+                            val password = map["password"] as String? ?: error("Missing password")
+                            val bytes = Mobile.deleteAccount(email, password)
+                            withContext(Dispatchers.Main) {
+                                success(bytes)
+                            }
+                        }.onFailure { e ->
+                            result.error(
+                                "OAuthLoginCallback",
+                                e.localizedMessage ?: "Please try again",
+                                e,
+                            )
                         }
-                    }.onFailure { e ->
-                        result.error(
-                            "OAuthLoginCallback",
-                            e.localizedMessage ?: "Please try again",
-                            e
-                        )
-                    }
                 }
             }
 
             Methods.ActivationCode.method -> {
                 scope.launch {
-                    result.runCatching {
-                        val map = call.arguments as Map<*, *>
-                        val email = map["email"] as String? ?: error("Missing email")
-                        val resellerCode =
-                            map["resellerCode"] as String? ?: error("Missing resellerCode")
-                        Mobile.activationCode(email, resellerCode)
-                        withContext(Dispatchers.Main) {
-                            success("ok")
+                    result
+                        .runCatching {
+                            val map = call.arguments as Map<*, *>
+                            val email = map["email"] as String? ?: error("Missing email")
+                            val resellerCode =
+                                map["resellerCode"] as String? ?: error("Missing resellerCode")
+                            Mobile.activationCode(email, resellerCode)
+                            withContext(Dispatchers.Main) {
+                                success("ok")
+                            }
+                        }.onFailure { e ->
+                            result.error(
+                                "OAuthLoginCallback",
+                                e.localizedMessage ?: "Please try again",
+                                e,
+                            )
                         }
-                    }.onFailure { e ->
-                        result.error(
-                            "OAuthLoginCallback",
-                            e.localizedMessage ?: "Please try again",
-                            e
-                        )
-                    }
                 }
             }
 
             Methods.RemoveDevice.method -> {
                 scope.launch {
-                    result.runCatching {
-                        val map = call.arguments as Map<*, *>
-                        val deviceId = map["deviceId"] as String? ?: error("Missing device ID")
-                        Mobile.removeDevice(deviceId)
-                        withContext(Dispatchers.Main) {
-                            success("ok")
+                    result
+                        .runCatching {
+                            val map = call.arguments as Map<*, *>
+                            val deviceId = map["deviceId"] as String? ?: error("Missing device ID")
+                            Mobile.removeDevice(deviceId)
+                            withContext(Dispatchers.Main) {
+                                success("ok")
+                            }
+                        }.onFailure { e ->
+                            result.error(
+                                "OAuthLoginCallback",
+                                e.localizedMessage ?: "Please try again",
+                                e,
+                            )
                         }
-                    }.onFailure { e ->
-                        result.error(
-                            "OAuthLoginCallback",
-                            e.localizedMessage ?: "Please try again",
-                            e
-                        )
-                    }
                 }
             }
 
-            //Private server methods
+            // Private server methods
             Methods.DigitalOcean.method -> {
                 scope.handleResult(
                     result,
-                    "DigitalOcean"
+                    "DigitalOcean",
                 ) {
                     Mobile.digitalOceanPrivateServer(privateServerListener)
                 }
@@ -636,7 +671,7 @@ class MethodHandler : FlutterPlugin,
             Methods.SelectAccount.method -> {
                 scope.handleResult(
                     result,
-                    "SelectAccount"
+                    "SelectAccount",
                 ) {
                     val userInput = call.arguments<String>()
                     Mobile.selectAccount(userInput)
@@ -646,7 +681,7 @@ class MethodHandler : FlutterPlugin,
             Methods.SelectProject.method -> {
                 scope.handleResult(
                     result,
-                    "SelectProject"
+                    "SelectProject",
                 ) {
                     // This method is called when the user selects a project from the list
                     // The project name is passed as an argument
@@ -658,209 +693,241 @@ class MethodHandler : FlutterPlugin,
             Methods.StartDeployment.method -> {
                 scope.handleResult(
                     result,
-                    "StartDeployment"
+                    "StartDeployment",
                 ) {
                     val map = call.arguments as Map<*, *>
                     val location = map["location"] as String? ?: error("Missing location")
                     val serverName = map["serverName"] as String? ?: error("Missing serverName")
                     Mobile.startDeployment(location, serverName)
                 }
-
             }
 
             Methods.CancelDeployment.method -> {
                 scope.handleResult(
                     result,
-                    "DigitalOcean"
+                    "DigitalOcean",
                 ) {
                     Mobile.cancelDeployment()
                 }
-
             }
 
             Methods.SelectCertFingerprint.method -> {
                 scope.handleResult(
                     result,
-                    "SelectCertFingerprint"
+                    "SelectCertFingerprint",
                 ) {
                     Mobile.selectedCertFingerprint(call.arguments as String)
                 }
-
             }
 
             Methods.AddServerManually.method -> {
                 scope.launch {
-                    result.runCatching {
-                        val map = call.arguments as Map<*, *>
-                        val ip = map["ip"] as String? ?: error("Missing ip")
-                        val port = map["port"] as String? ?: error("Missing port")
-                        val accessToken =
-                            map["accessToken"] as String? ?: error("Missing accessToken")
-                        val serverName = map["serverName"] as String? ?: error("Missing serverName")
-                        Mobile.addServerManagerInstance(
-                            ip,
-                            port,
-                            accessToken,
-                            serverName,
-                            privateServerListener
-                        )
-                        withContext(Dispatchers.Main) {
-                            success("ok")
+                    result
+                        .runCatching {
+                            val map = call.arguments as Map<*, *>
+                            val ip = map["ip"] as String? ?: error("Missing ip")
+                            val port = map["port"] as String? ?: error("Missing port")
+                            val accessToken =
+                                map["accessToken"] as String? ?: error("Missing accessToken")
+                            val serverName = map["serverName"] as String? ?: error("Missing serverName")
+                            Mobile.addServerManagerInstance(
+                                ip,
+                                port,
+                                accessToken,
+                                serverName,
+                                privateServerListener,
+                            )
+                            withContext(Dispatchers.Main) {
+                                success("ok")
+                            }
+                        }.onFailure { e ->
+                            result.error(
+                                "DigitalOcean",
+                                e.localizedMessage ?: "Error while activating Digital Ocean",
+                                e,
+                            )
                         }
-                    }.onFailure { e ->
-                        result.error(
-                            "DigitalOcean",
-                            e.localizedMessage ?: "Error while activating Digital Ocean",
-                            e
-                        )
-                    }
                 }
             }
 
             Methods.InviteToServerManagerInstance.method -> {
                 scope.launch {
-                    result.runCatching {
-                        val map = call.arguments as Map<*, *>
-                        val ip = map["ip"] as String? ?: error("Missing ip")
-                        val port = map["port"] as String? ?: error("Missing port")
-                        val accessToken =
-                            map["accessToken"] as String? ?: error("Missing accessToken")
-                        val inviteName = map["inviteName"] as String? ?: error("Missing inviteName")
-                        val accessKey = Mobile.inviteToServerManagerInstance(
-                            ip,
-                            port,
-                            accessToken,
-                            inviteName
-                        )
-                        withContext(Dispatchers.Main) {
-                            success(accessKey)
+                    result
+                        .runCatching {
+                            val map = call.arguments as Map<*, *>
+                            val ip = map["ip"] as String? ?: error("Missing ip")
+                            val port = map["port"] as String? ?: error("Missing port")
+                            val accessToken =
+                                map["accessToken"] as String? ?: error("Missing accessToken")
+                            val inviteName = map["inviteName"] as String? ?: error("Missing inviteName")
+                            val accessKey =
+                                Mobile.inviteToServerManagerInstance(
+                                    ip,
+                                    port,
+                                    accessToken,
+                                    inviteName,
+                                )
+                            withContext(Dispatchers.Main) {
+                                success(accessKey)
+                            }
+                        }.onFailure { e ->
+                            result.error(
+                                "DigitalOcean",
+                                e.localizedMessage ?: "Error while activating Digital Ocean",
+                                e,
+                            )
                         }
-                    }.onFailure { e ->
-                        result.error(
-                            "DigitalOcean",
-                            e.localizedMessage ?: "Error while activating Digital Ocean",
-                            e
-                        )
-                    }
                 }
             }
 
             Methods.RevokeServerManagerInstance.method -> {
                 scope.launch {
-                    result.runCatching {
-                        val map = call.arguments as Map<*, *>
-                        val ip = map["ip"] as String? ?: error("Missing ip")
-                        val port = map["port"] as String? ?: error("Missing port")
-                        val accessToken =
-                            map["accessToken"] as String? ?: error("Missing accessToken")
-                        val inviteName = map["inviteName"] as String? ?: error("Missing inviteName")
-                        Mobile.revokeServerManagerInvite(
-                            ip,
-                            port,
-                            accessToken,
-                            inviteName
-                        )
-                        withContext(Dispatchers.Main) {
-                            success("ok")
+                    result
+                        .runCatching {
+                            val map = call.arguments as Map<*, *>
+                            val ip = map["ip"] as String? ?: error("Missing ip")
+                            val port = map["port"] as String? ?: error("Missing port")
+                            val accessToken =
+                                map["accessToken"] as String? ?: error("Missing accessToken")
+                            val inviteName = map["inviteName"] as String? ?: error("Missing inviteName")
+                            Mobile.revokeServerManagerInvite(
+                                ip,
+                                port,
+                                accessToken,
+                                inviteName,
+                            )
+                            withContext(Dispatchers.Main) {
+                                success("ok")
+                            }
+                        }.onFailure { e ->
+                            result.error(
+                                "DigitalOcean",
+                                e.localizedMessage ?: "Error while activating Digital Ocean",
+                                e,
+                            )
                         }
-                    }.onFailure { e ->
-                        result.error(
-                            "DigitalOcean",
-                            e.localizedMessage ?: "Error while activating Digital Ocean",
-                            e
-                        )
-                    }
                 }
             }
 
             Methods.FeatureFlag.method -> {
                 scope.launch {
-                    result.runCatching {
-                        val map = Mobile.availableFeatures()
-                        withContext(Dispatchers.Main) {
-                            success(String(map))
+                    result
+                        .runCatching {
+                            val map = Mobile.availableFeatures()
+                            withContext(Dispatchers.Main) {
+                                success(String(map))
+                            }
+                        }.onFailure { e ->
+                            result.error(
+                                "DigitalOcean",
+                                e.localizedMessage ?: "Error while activating Digital Ocean",
+                                e,
+                            )
                         }
-                    }.onFailure { e ->
-                        result.error(
-                            "DigitalOcean",
-                            e.localizedMessage ?: "Error while activating Digital Ocean",
-                            e
-                        )
-                    }
                 }
             }
-            //Change Email
+            // Change Email
             Methods.StartChangeEmail.method -> {
                 scope.launch {
-                    result.runCatching {
-                        val map = call.arguments as Map<*, *>
-                        val newEmail = map["newEmail"] as String? ?: error("Missing newEmail")
-                        val password = map["password"] as String? ?: error("Missing password")
-                        Mobile.startChangeEmail(newEmail, password)
-                        withContext(Dispatchers.Main) {
-                            success("ok")
+                    result
+                        .runCatching {
+                            val map = call.arguments as Map<*, *>
+                            val newEmail = map["newEmail"] as String? ?: error("Missing newEmail")
+                            val password = map["password"] as String? ?: error("Missing password")
+                            Mobile.startChangeEmail(newEmail, password)
+                            withContext(Dispatchers.Main) {
+                                success("ok")
+                            }
+                        }.onFailure { e ->
+                            result.error(
+                                "StartChangeEmail",
+                                e.localizedMessage ?: "Error while starting change email",
+                                e,
+                            )
                         }
-                    }.onFailure { e ->
-                        result.error(
-                            "StartChangeEmail",
-                            e.localizedMessage ?: "Error while starting change email",
-                            e
-                        )
-                    }
                 }
             }
 
             Methods.CompleteChangeEmail.method -> {
                 scope.launch {
-                    result.runCatching {
-                        val map = call.arguments as Map<*, *>
-                        val newEmail = map["newEmail"] as String? ?: error("Missing newEmail")
-                        val password = map["password"] as String? ?: error("Missing password")
-                        val code = map["code"] as String? ?: error("Missing code")
-                        Mobile.completeChangeEmail(newEmail, password, code)
-                        withContext(Dispatchers.Main) {
-                            success("ok")
+                    result
+                        .runCatching {
+                            val map = call.arguments as Map<*, *>
+                            val newEmail = map["newEmail"] as String? ?: error("Missing newEmail")
+                            val password = map["password"] as String? ?: error("Missing password")
+                            val code = map["code"] as String? ?: error("Missing code")
+                            Mobile.completeChangeEmail(newEmail, password, code)
+                            withContext(Dispatchers.Main) {
+                                success("ok")
+                            }
+                        }.onFailure { e ->
+                            result.error(
+                                "StartChangeEmail",
+                                e.localizedMessage ?: "Error while starting change email",
+                                e,
+                            )
                         }
-                    }.onFailure { e ->
-                        result.error(
-                            "StartChangeEmail",
-                            e.localizedMessage ?: "Error while starting change email",
-                            e
-                        )
-                    }
                 }
             }
 
             Methods.GetLanternAvailableServers.method -> {
                 scope.launch {
-                    result.runCatching {
-                        val data = Mobile.getAvailableServers()
-                        withContext(Dispatchers.Main) {
-                            success(String(data))
+                    result
+                        .runCatching {
+                            val data = Mobile.getAvailableServers()
+                            withContext(Dispatchers.Main) {
+                                success(String(data))
+                            }
+                        }.onFailure { e ->
+                            result.error(
+                                "GetAvailableServers",
+                                e.localizedMessage ?: "Error while fetching available servers",
+                                e,
+                            )
                         }
-                    }.onFailure { e ->
-                        result.error(
-                            "GetAvailableServers",
-                            e.localizedMessage ?: "Error while fetching available servers",
-                            e
-                        )
-                    }
                 }
             }
             Methods.GetAutoServerLocation.method -> {
                 scope.launch {
-                    result.runCatching {
-                        val data = Mobile.getAutoLocation()
-                        withContext(Dispatchers.Main) {
-                            success(data)
+                    result
+                        .runCatching {
+                            val data = Mobile.getAutoLocation()
+                            withContext(Dispatchers.Main) {
+                                success(data)
+                            }
+                        }.onFailure { e ->
+                            result.error(
+                                "GetAutoServerLocation",
+                                e.localizedMessage ?: "Error while fetching auto server location",
+                                e,
+                            )
                         }
-                    }.onFailure { e ->
-                        result.error(
-                            "GetAutoServerLocation",
-                            e.localizedMessage ?: "Error while fetching auto server location",
-                            e
-                        )
-                    }
+                }
+            }
+
+            // Ad blocking
+            Methods.IsBlockAdsEnabled.method -> {
+                scope.launch {
+                    result
+                        .runCatching {
+                            val enabled = Mobile.isBlockAdsEnabled()
+                            withContext(Dispatchers.Main) { result.success(enabled) }
+                        }.onFailure { e ->
+                            result.error("is_block_ads_enabled", e.localizedMessage ?: "Please try again", e)
+                        }
+                }
+            }
+
+            Methods.SetBlockAdsEnabled.method -> {
+                scope.launch {
+                    result
+                        .runCatching {
+                            val enabled = call.argument<Boolean>("enabled") ?: error("Missing enabled")
+                            Mobile.setBlockAdsEnabled(enabled)
+                            withContext(Dispatchers.Main) { result.success("ok") }
+                        }.onFailure { e ->
+                            result.error("set_block_ads_enabled", e.localizedMessage ?: "Please try again", e)
+                        }
                 }
             }
 
@@ -868,14 +935,13 @@ class MethodHandler : FlutterPlugin,
                 result.notImplemented()
             }
         }
-
     }
 }
 
 inline fun CoroutineScope.handleResult(
     result: MethodChannel.Result,
     errorTitle: String = "DigitalOcean",
-    crossinline block: suspend () -> Unit
+    crossinline block: suspend () -> Unit,
 ) {
     this.launch {
         runCatching {
@@ -887,7 +953,7 @@ inline fun CoroutineScope.handleResult(
             result.error(
                 errorTitle,
                 e.localizedMessage ?: "Unknown error",
-                e
+                e,
             )
         }
     }
