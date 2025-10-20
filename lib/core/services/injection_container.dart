@@ -33,7 +33,6 @@ Future<void> injectServices() async {
     final ps = LanternPlatformService();
     await ps.init();
     sl.registerSingleton<LanternPlatformService>(ps);
-    final LanternFFIService ffiService;
 
     if (PlatformUtils.isFFISupported) {
       sl.registerLazySingleton(() => LanternFFIService());

@@ -12,7 +12,7 @@ toolchain go1.24.1
 
 replace github.com/sagernet/sing => github.com/getlantern/sing v0.6.13-0.20250812195008-c4468d0c7c42
 
-replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v1.11.12-0.20250716231657-20b15178474a
+replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v1.11.16-lantern
 
 replace github.com/sagernet/wireguard-go => github.com/getlantern/wireguard-go v0.0.1-beta.5.0.20250310145906-45220d8aec77
 
@@ -24,7 +24,7 @@ require (
 	github.com/Microsoft/go-winio v0.6.2
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20250617134205-a652cb0cef27
-	github.com/getlantern/radiance v0.0.0-20251010150413-83fccb1f43c1
+	github.com/getlantern/radiance v0.0.0-20251018000109-17f546e65345
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/sagernet/sing-box v1.11.5
 	golang.org/x/mobile v0.0.0-20250711185624-d5bb5ecc55c0
@@ -165,7 +165,7 @@ require (
 	github.com/getlantern/algeneva v0.0.0-20250307163401-1824e7b54f52 // indirect
 	github.com/getlantern/appdir v0.0.0-20250324200952-507a0625eb01 // indirect
 	github.com/getlantern/byteexec v0.0.0-20220903142956-e6ed20032cfd // indirect
-	github.com/getlantern/common v1.2.1-0.20250711182004-51a659011c7a // indirect
+	github.com/getlantern/common v1.2.1-0.20251017235534-0d2a4bbe22b9 // indirect
 	github.com/getlantern/elevate v0.0.0-20220903142053-479ab992b264 // indirect
 	github.com/getlantern/filepersist v0.0.0-20210901195658-ed29a1cb0b7c // indirect
 	github.com/getlantern/fronted v0.0.0-20250619212426-1120fc75a5e4 // indirect

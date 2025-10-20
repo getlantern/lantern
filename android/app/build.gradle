@@ -3,8 +3,14 @@ plugins {
     id "kotlin-android"
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id "dev.flutter.flutter-gradle-plugin"
-
 }
+
+def hasRelProp = { name -> project.hasProperty(name) && project.property(name)?.toString()?.trim() }
+def hasReleaseKeystore =
+        hasRelProp('RELEASE_STORE_FILE') &&
+        hasRelProp('RELEASE_STORE_PASSWORD') &&
+        hasRelProp('RELEASE_KEY_ALIAS') &&
+        hasRelProp('RELEASE_KEY_PASSWORD')
 
 android {
     namespace = "org.getlantern.lantern"
@@ -66,22 +72,36 @@ android {
         }
     }
 
+    signingConfigs {
+        if (hasReleaseKeystore) {
+            release {
+                storeFile file(project.property('RELEASE_STORE_FILE'))
+                storePassword project.property('RELEASE_STORE_PASSWORD')
+                keyAlias project.property('RELEASE_KEY_ALIAS')
+                keyPassword project.property('RELEASE_KEY_PASSWORD')
+            }
+        }
+    }
+
     buildTypes {
         debug {
             minifyEnabled false
             shrinkResources false
             debuggable true
-            signingConfig = signingConfigs.debug
+            signingConfig signingConfigs.debug
             buildConfigField "boolean", "DEVELOPMENT_MODE", "true"
-
         }
+
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.debug
+            minifyEnabled true
+            shrinkResources true
+            if (hasReleaseKeystore) {
+                signingConfig signingConfigs.release
+            } else {
+                signingConfig signingConfigs.debug
+            }
             buildConfigField "boolean", "DEVELOPMENT_MODE", "false"
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-
         }
     }
 

@@ -115,3 +115,30 @@ jobs:
           name: lantern-installer-apk
           path: ${{ inputs.installer_name }}.apk
           retention-days: 2
+
+      - name: Build Android bundle (AAB)
+        run: make android-aab-release
+        env:
+          BUILD_TYPE: ${{ inputs.build_type }}
+          VERSION: ${{ inputs.version }}
+
+      - name: Upload Android AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: lantern-installer-aab
+          path: ${{ inputs.installer_name }}.aab
+          retention-days: 2
+
+      - name: Upload mapping.txt
+        uses: actions/upload-artifact@v4
+        with:
+          name: play-mapping
+          path: mapping.txt
+          retention-days: 7
+
+      - name: Upload native debug symbols
+        uses: actions/upload-artifact@v4
+        with:
+          name: play-debug-symbols
+          path: debug-symbols.zip
+          retention-days: 7

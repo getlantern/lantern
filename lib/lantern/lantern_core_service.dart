@@ -19,7 +19,7 @@ abstract class LanternCoreService {
 
   Stream<AppEvent> watchAppEvents();
 
-  Future<Either<Failure, Unit>> isVPNConnected();
+  Future<Either<Failure, bool>> isVPNConnected();
 
   Future<Either<Failure, String>> startVPN();
 
@@ -79,6 +79,10 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, Unit>> removeAllItems(
       SplitTunnelFilterType type, List<String> value);
+
+  Future<Either<Failure, Unit>> setSplitTunnelingEnabled(bool enabled);
+
+  Future<Either<Failure, bool>> isSplitTunnelingEnabled();
 
   Future<Either<Failure, Unit>> reportIssue(
     String email,

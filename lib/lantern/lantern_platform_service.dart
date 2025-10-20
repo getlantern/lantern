@@ -123,10 +123,12 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> isVPNConnected() async {
+  Future<Either<Failure, bool>> isVPNConnected() async {
     try {
-      await _methodChannel.invokeMethod('isVPNConnected');
-      return Right(unit);
+      final connected =
+          await _methodChannel.invokeMethod<bool>('isVPNConnected');
+      final isConnected = connected ?? false;
+      return Right(isConnected);
     } catch (e, stackTrace) {
       appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
       return Left(e.toFailure());
@@ -229,7 +231,11 @@ class LanternPlatformService implements LanternCoreService {
   @override
   Future<Either<Failure, Unit>> setSplitTunnelingEnabled(bool enabled) async {
     try {
-      await _methodChannel.invokeMethod('setSplitTunnelingEnabled', enabled);
+      if (enabled) {
+        await _methodChannel.invokeMethod('enableSplitTunneling');
+      } else {
+        await _methodChannel.invokeMethod('disableSplitTunneling');
+      }
       return right(unit);
     } catch (e) {
       return Left(e.toFailure());
