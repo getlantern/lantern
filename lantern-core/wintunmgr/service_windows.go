@@ -439,38 +439,6 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		go s.broadcastStatus()
 		return &Response{ID: r.ID, Result: "ok"}
 
-	// case common.CmdAddSplitTunnelItem, common.CmdRemoveSplitTunnelItem:
-	// 	var p struct {
-	// 		Filter string `json:"filterType"`
-	// 		Value  string `json:"value"`
-	// 	}
-	// 	if err := json.Unmarshal(r.Params, &p); err != nil {
-	// 		return rpcErr(r.ID, "bad_params", err.Error())
-	// 	}
-	// 	var err error
-	// 	if r.Cmd == common.CmdAddSplitTunnelItem {
-	// 		err = s.core.AddSplitTunnelItem(p.Filter, p.Value)
-	// 	} else {
-	// 		err = s.core.RemoveSplitTunnelItem(p.Filter, p.Value)
-	// 	}
-	// 	if err != nil {
-	// 		return rpcErr(r.ID, "split_tunnel_error", err.Error())
-	// 	}
-	// 	return &Response{ID: r.ID, Result: "ok"}
-
-	// case common.CmdGetUserData:
-	// 	b, err := s.core.UserData()
-	// 	if err != nil {
-	// 		return rpcErr(r.ID, "user_data_error", err.Error())
-	// 	}
-	// 	return &Response{ID: r.ID, Result: base64.StdEncoding.EncodeToString(b)}
-	// case common.CmdFetchUserData:
-	// 	b, err := s.core.FetchUserData()
-	// 	if err != nil {
-	// 		return rpcErr(r.ID, "fetch_user_data_error", err.Error())
-	// 	}
-	// 	return &Response{ID: r.ID, Result: base64.StdEncoding.EncodeToString(b)}
-
 	default:
 		return rpcErr(r.ID, "unknown_cmd", string(r.Cmd))
 	}
