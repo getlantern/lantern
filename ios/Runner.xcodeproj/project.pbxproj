@@ -3,10 +3,11 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0301253D2EA23CFA00DCA8DD /* Liblantern.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F0515BC2D20B58600E704BE /* Liblantern.xcframework */; };
 		0307936F2E09466D00EA2B3C /* PrivateServerEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0307936E2E09466100EA2B3C /* PrivateServerEventHandler.swift */; };
 		032CB5192DBA86FF002331EB /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032CB5102DBA86FF002331EB /* KeychainService.swift */; };
 		032CB5242DBA8A55002331EB /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032CB5232DBA8A55002331EB /* Logger.swift */; };
@@ -27,9 +28,6 @@
 		5F7A35462D23504000AF1761 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F0515CF2D20DB5100E704BE /* NetworkExtension.framework */; };
 		5FEB87302D9F45EB000AE0DB /* MethodHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FEB872D2D9F45EB000AE0DB /* MethodHandler.swift */; };
 		5FEB87312D9F45EB000AE0DB /* StatusEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FEB872E2D9F45EB000AE0DB /* StatusEventHandler.swift */; };
-		5FEBBBC82D90F55400F0AC54 /* Liblantern.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5FEBBBBB2D90F45F00F0AC54 /* Liblantern.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		5FECA3422D9A227E003E8327 /* Liblantern.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F0515BC2D20B58600E704BE /* Liblantern.xcframework */; };
-		5FECA3432D9A227E003E8327 /* Liblantern.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5F0515BC2D20B58600E704BE /* Liblantern.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		5FECA36E2D9A23FD003E8327 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 5FECA36D2D9A23FD003E8327 /* libresolv.tbd */; };
 		5FECA3982D9A2487003E8327 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 5FECA36D2D9A23FD003E8327 /* libresolv.tbd */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
@@ -68,24 +66,12 @@
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		5FECA3442D9A227E003E8327 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				5FECA3432D9A227E003E8327 /* Liblantern.xcframework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		9705A1C41CF9048500538489 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 8;
 			dstPath = "";
 			dstSubfolderSpec = 7;
 			files = (
-				5FEBBBC82D90F55400F0AC54 /* Liblantern.xcframework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 1;
@@ -115,7 +101,6 @@
 		5F4C384F2D9155BC0053105F /* FilePath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilePath.swift; sourceTree = "<group>"; };
 		5FEB872D2D9F45EB000AE0DB /* MethodHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MethodHandler.swift; sourceTree = "<group>"; };
 		5FEB872E2D9F45EB000AE0DB /* StatusEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusEventHandler.swift; sourceTree = "<group>"; };
-		5FEBBBBB2D90F45F00F0AC54 /* Liblantern.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Liblantern.xcframework; path = Frameworks/Liblantern.xcframework; sourceTree = "<group>"; };
 		5FECA36D2D9A23FD003E8327 /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = usr/lib/libresolv.tbd; sourceTree = SDKROOT; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -146,22 +131,16 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		030793842E0980FC00EA2B3C /* Utils */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = Utils;
 			sourceTree = "<group>";
 		};
 		0366A7752DBBC1CA0016E3F9 /* Constants */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = Constants;
 			sourceTree = "<group>";
 		};
 		0366A7762DBBC20D0016E3F9 /* VPN */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = VPN;
 			sourceTree = "<group>";
 		};
@@ -189,8 +168,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				5FECA36E2D9A23FD003E8327 /* libresolv.tbd in Frameworks */,
-				5FECA3422D9A227E003E8327 /* Liblantern.xcframework in Frameworks */,
 				5F0515D02D20DB5100E704BE /* NetworkExtension.framework in Frameworks */,
+				0301253D2EA23CFA00DCA8DD /* Liblantern.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -265,7 +244,6 @@
 		97C146E51CF9000F007C117D = {
 			isa = PBXGroup;
 			children = (
-				5FEBBBBB2D90F45F00F0AC54 /* Liblantern.xcframework */,
 				9740EEB11CF90186004384FC /* Flutter */,
 				97C146F01CF9000F007C117D /* Runner */,
 				5F0515D12D20DB5200E704BE /* Tunnel */,
@@ -348,7 +326,6 @@
 				5F0515CA2D20DB5100E704BE /* Sources */,
 				5F0515CB2D20DB5100E704BE /* Frameworks */,
 				5F0515CC2D20DB5100E704BE /* Resources */,
-				5FECA3442D9A227E003E8327 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -526,9 +503,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -853,7 +834,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_ENTITLEMENTS = Tunnel/Tunnel.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
@@ -880,7 +861,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.getlantern.lantern.Tunnel;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "IOS Tunnel Development";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "IOS Tunnel Distribution";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "Tunnel/Tunnel-Bridging-Header.h";
@@ -902,7 +883,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_ENTITLEMENTS = Tunnel/Tunnel.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
@@ -929,7 +910,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.getlantern.lantern.Tunnel;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "IOS Tunnel Development";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "IOS Tunnel Distribution";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "Tunnel/Tunnel-Bridging-Header.h";

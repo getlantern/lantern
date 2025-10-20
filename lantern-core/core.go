@@ -26,9 +26,10 @@ import (
 type EventType = string
 
 const (
-	EventTypeConfig EventType = "config"
+	EventTypeConfig   EventType = "config"
+	DefaultLogLevel             = "trace"
+	defaultAdBlockURL           = "https://raw.githubusercontent.com/REIJI007/AdBlock_Rule_For_Sing-box/main/adblock_reject.json"
 )
-const DefaultLogLevel = "trace"
 
 // LanternCore is the main structure accessing the Lantern backend.
 type LanternCore struct {
@@ -173,9 +174,10 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	}
 
 	var abErr error
-	if lc.adBlocker, abErr = vpn.NewAdBlockerHandler(); abErr != nil {
+	if lc.adBlocker, abErr = vpn.NewAdBlockerHandler(nil, defaultAdBlockURL, 0); abErr != nil {
 		return fmt.Errorf("unable to create ad-block handler: %v", abErr)
 	}
+	lc.adBlocker.Start(context.Background())
 
 	lc.serverManager = lc.rad.ServerManager()
 	lc.userInfo = lc.rad.UserInfo()
@@ -294,18 +296,33 @@ func (lc *LanternCore) AddSplitTunnelItem(filterType, item string) error {
 
 func (lc *LanternCore) AddSplitTunnelItems(items string) error {
 	split := strings.Split(items, ",")
-	packages := vpn.Filter{
-		PackageName: split,
+	var vpnFilter vpn.Filter
+	if common.IsMacOS() {
+		vpnFilter = vpn.Filter{
+			ProcessPathRegex: split,
+		}
+	} else {
+		vpnFilter = vpn.Filter{
+			PackageName: split,
+		}
 	}
-	return lc.splitTunnel.AddItems(packages)
+
+	return lc.splitTunnel.AddItems(vpnFilter)
 }
 
 func (lc *LanternCore) RemoveSplitTunnelItems(items string) error {
 	split := strings.Split(items, ",")
-	packages := vpn.Filter{
-		PackageName: split,
+	var vpnFilter vpn.Filter
+	if common.IsMacOS() {
+		vpnFilter = vpn.Filter{
+			ProcessPathRegex: split,
+		}
+	} else {
+		vpnFilter = vpn.Filter{
+			PackageName: split,
+		}
 	}
-	return lc.splitTunnel.RemoveItems(packages)
+	return lc.splitTunnel.RemoveItems(vpnFilter)
 }
 
 func (lc *LanternCore) RemoveSplitTunnelItem(filterType, item string) error {

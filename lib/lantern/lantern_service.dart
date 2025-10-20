@@ -88,7 +88,7 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> isVPNConnected() {
+  Future<Either<Failure, bool>> isVPNConnected() {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.isVPNConnected();
     }

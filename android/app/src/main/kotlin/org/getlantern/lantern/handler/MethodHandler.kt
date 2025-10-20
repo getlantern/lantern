@@ -167,19 +167,21 @@ class MethodHandler :
 
             Methods.IsVpnConnected.method -> {
                 scope.launch {
-                    result
-                        .runCatching {
-                            val conncted = Mobile.isVPNConnected()
-                            Log.d(TAG, "IsVpnConnected connected: $conncted")
-                            if (conncted) {
-                                VpnStatusManager.postVPNStatus(VPNStatus.Connected)
-                            } else {
-                                VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
-                            }
-                            success("")
-                        }.onFailure { e ->
-                            result.error("vpn_status", e.localizedMessage ?: "Please try again", e)
+                    runCatching {
+                        val connected = Mobile.isVPNConnected()
+
+                        if (connected) {
+                            VpnStatusManager.postVPNStatus(VPNStatus.Connected)
+                        } else {
+                            VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
                         }
+
+                        withContext(Dispatchers.Main) {
+                            result.success(connected)
+                        }
+                    }.onFailure { e ->
+                        result.error("vpn_status", e.localizedMessage ?: "Please try again", e)
+                    }
                 }
             }
 

@@ -325,16 +325,16 @@ func sendStatusToPort(status VPNStatus) {
 // isVPNConnected checks if the VPN server is running and connected.
 //
 //export isVPNConnected
-func isVPNConnected() *C.char {
+func isVPNConnected() C.int {
 	connected := vpn_tunnel.IsVPNRunning()
 	slog.Debug("isVPNConnected called, connected:", "connected", connected)
 	if connected {
 		sendStatusToPort(Connected)
+		return 1
 	} else {
 		sendStatusToPort(Disconnected)
+		return 0
 	}
-	slog.Debug("isVPNConnected returning", "connected", connected)
-	return C.CString("ok")
 }
 
 // APIS
