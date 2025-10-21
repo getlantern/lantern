@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/notification_event.dart';
@@ -33,6 +34,10 @@ class VpnNotifier extends _$VpnNotifier {
               delay: Duration(seconds: 1),
             );
           } else if (nextStatus == VPNStatus.connected) {
+            if (PlatformUtils.isMobile) {
+              HapticFeedback.mediumImpact();
+            }
+
             sl<NotificationService>().showNotification(
               NotificationEvent.vpnConnected.id,
               title: 'app_name'.i18n,
