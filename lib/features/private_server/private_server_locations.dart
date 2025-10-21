@@ -68,16 +68,19 @@ class _PrivateServerLocationState extends ConsumerState<PrivateServerLocation> {
             itemCount: widget.location.length,
             itemBuilder: (context, index) {
               final item = widget.location[index];
-              return LocationListItem(
-                selectedLocation: selectedLocation.value,
-                location: item,
-                onLocationSelected: (p0) {
-                  selectedLocation.value = p0;
-                  Future.delayed(Duration(milliseconds: 300), () {
-                    widget.onLocationSelected(p0);
-                    appRouter.maybePop(p0);
-                  });
-                },
+              return KeyedSubtree(
+                key: Key('psl.location.$index'),
+                child: LocationListItem(
+                  selectedLocation: selectedLocation.value,
+                  location: item,
+                  onLocationSelected: (p0) {
+                    selectedLocation.value = p0;
+                    Future.delayed(Duration(milliseconds: 300), () {
+                      widget.onLocationSelected(p0);
+                      appRouter.maybePop(p0);
+                    });
+                  },
+                ),
               );
             },
           ),

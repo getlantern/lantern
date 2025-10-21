@@ -1,17 +1,59 @@
 class PrivateServerStatus {
   final String status;
-  String? data;
-  String? error;
+  final String? data;
+  final String? error;
+
+  const PrivateServerStatus({
+    required this.status,
+    this.data,
+    this.error,
+  });
 
   factory PrivateServerStatus.fromJson(Map<String, dynamic> json) {
     return PrivateServerStatus(
-      status: json['status'] ?? 'unknown',
-      data: json['data'],
-      error: json['error'],
+      status: (json['status'] as String?) ?? 'unknown',
+      data: json['data'] as String?,
+      error: json['error'] as String?,
     );
   }
 
-  PrivateServerStatus({required this.status, this.data, this.error});
+  Map<String, dynamic> toJson() => {
+        'status': status,
+        'data': data,
+        'error': error,
+      };
+
+  PrivateServerStatus copyWith({
+    String? status,
+    String? data,
+    String? error,
+    bool clearData = false,
+    bool clearError = false,
+  }) {
+    return PrivateServerStatus(
+      status: status ?? this.status,
+      data: clearData ? null : (data ?? this.data),
+      error: clearError ? null : (error ?? this.error),
+    );
+  }
+
+  bool get hasError => (error != null && error!.isNotEmpty);
+
+  @override
+  String toString() =>
+      'PrivateServerStatus(status: $status, data: $data, error: $error)';
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PrivateServerStatus &&
+          runtimeType == other.runtimeType &&
+          status == other.status &&
+          data == other.data &&
+          error == other.error;
+
+  @override
+  int get hashCode => Object.hash(status, data, error);
 }
 
 class CertSummary {

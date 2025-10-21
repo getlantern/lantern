@@ -230,15 +230,25 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
   }
 
   Future<void> onJoinServer(String uri, String name) async {
-    final url = Uri.parse(uri);
+    final Uri url;
+    try {
+      url = Uri.parse(uri);
+    } catch (_) {
+      context.showSnackBar('invalid_server_details'.i18n);
+      return;
+    }
     appLogger.info("Verifying server with URL: $url");
     final data = url.queryParameters;
-    final ip = data['ip']!;
-    final port = data['port']!;
-    final accessToken = data['token']!;
-    final expiration = int.parse(data['exp'].toString());
+    final ip = data['ip'] ?? '';
+    final port = data['port'] ?? '';
+    final accessToken = data['token'] ?? '';
+    final expStr = data['exp'];
+    final expiration = int.tryParse(expStr ?? '');
 
-    if (ip.isEmpty || port.isEmpty || accessToken.isEmpty) {
+    if (ip.isEmpty ||
+        port.isEmpty ||
+        accessToken.isEmpty ||
+        expiration == null) {
       context.showSnackBar('invalid_server_details'.i18n);
       return;
     }
