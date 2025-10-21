@@ -120,7 +120,9 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
     NavigationAction navigationAction,
   ) async {
     final uri = navigationAction.request.url;
-
+    if (uri?.rawValue == "https://lantern.io/") {
+      return NavigationActionPolicy.CANCEL;
+    }
     if (uri?.fragment.contains('purchaseResult=') ?? false) {
       final normalized = uri.toString().replaceFirst(RegExp(r'#\/\?'), '?');
       final uri2 = Uri.parse(normalized);
