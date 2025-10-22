@@ -341,6 +341,8 @@ func (lc *LanternCore) DataCapInfo() ([]byte, error) {
 
 // User Methods
 // UserData returns user data that has already been fetched.
+// If user data has not been fetched yet (e.g., for a first-time user), this method will return an error.
+// This is expected behavior and not necessarily a problem.
 func (lc *LanternCore) UserData() ([]byte, error) {
 	slog.Debug("Getting user data")
 	user, err := lc.userInfo.GetData()
