@@ -15,8 +15,6 @@ import (
 	"sync/atomic"
 	"unsafe"
 
-	"github.com/getlantern/radiance/api"
-
 	lanterncore "github.com/getlantern/lantern-outline/lantern-core"
 	"github.com/getlantern/lantern-outline/lantern-core/apps"
 	"github.com/getlantern/lantern-outline/lantern-core/dart_api_dl"
@@ -338,11 +336,6 @@ func isVPNConnected() C.int {
 }
 
 // APIS
-func createUser() (*api.UserDataResponse, error) {
-	slog.Debug("Creating user")
-	return core().CreateUser()
-}
-
 // Get user data from the local config
 //
 //export getUserData
