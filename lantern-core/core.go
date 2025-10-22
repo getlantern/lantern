@@ -175,16 +175,6 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 		core.notifyFlutter(EventTypeConfig, "Config is fetched/updated")
 	})
 
-	// TODO: This should all be handled by the single call to get the user config -
-	// i.e. CreateUser and FetchUserData should not exist as separate calls.
-	go func() {
-		if lc.userInfo.LegacyID() == 0 {
-			slog.Debug("Creating user")
-			lc.CreateUser()
-		}
-		lc.FetchUserData()
-	}()
-
 	slog.Debug("LanternCore initialized successfully")
 	return nil
 }
