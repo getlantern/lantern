@@ -809,6 +809,12 @@ msgstr "My Servers"
 msgid "joined_servers"
 msgstr "Joined Servers"
 
+msgid "still_getting_servers"
+msgstr "We are still getting your server list. Please try again."
+
+msgid "try_again"
+msgstr "Try again"
+
 msgid "access_key_expiration"
 msgstr "Each access key is unique and expires after 1 day. You can generate a new one anytime."
 

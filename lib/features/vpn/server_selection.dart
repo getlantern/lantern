@@ -379,9 +379,20 @@ class _ServerLocationListViewState
                 },
                 loading: () => const Center(child: Spinner()),
                 error: (error, stackTrace) => Center(
-                  child: Text(
-                    error.localizedDescription,
-                    textAlign: TextAlign.center,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'still_getting_servers'.i18n,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 12),
+                      PrimaryButton(
+                        label: 'try_again'.i18n,
+                        onPressed: () =>
+                            ref.invalidate(availableServersNotifierProvider),
+                      ),
+                    ],
                   ),
                 ),
               ),

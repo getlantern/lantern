@@ -7,7 +7,7 @@ part of 'available_servers_notifier.dart';
 // **************************************************************************
 
 String _$availableServersNotifierHash() =>
-    r'f4d6816b4c78cc352aae956e765360c933e83164';
+    r'3fbf02ee28cd7c25f2117f4a2e16bfaa520ebc7c';
 
 /// See also [AvailableServersNotifier].
 @ProviderFor(AvailableServersNotifier)
