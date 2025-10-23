@@ -49,7 +49,7 @@ func TestScanAppDirs_FindsAppsAndIcon(t *testing.T) {
 		return nil
 	}
 
-	apps := scanAppDirs([]string{root}, map[string]bool{}, macOSExcludeDirs, cb)
+	apps := scanAppDirs([]string{root}, map[string]bool{}, excludeDirs, cb)
 	if len(apps) != 1 {
 		t.Fatalf("expected 1 app, got %d", len(apps))
 	}
@@ -84,7 +84,7 @@ func TestScanAppDirs_DedupByBundleID(t *testing.T) {
 	var got []*AppData
 	cb := func(a ...*AppData) error { got = append(got, a...); return nil }
 
-	apps := scanAppDirs([]string{root}, map[string]bool{}, macOSExcludeDirs, cb)
+	apps := scanAppDirs([]string{root}, map[string]bool{}, excludeDirs, cb)
 	if len(apps) != 1 {
 		t.Fatalf("expected 1 app due to de-dup, got %d", len(apps))
 	}
@@ -132,7 +132,7 @@ func TestLoadInstalledAppsWithDirs_EmitsCachedThenNew(t *testing.T) {
 		return nil
 	}
 
-	n, err := LoadInstalledAppsWithDirs(tmp, []string{root}, macOSExcludeDirs, cb)
+	n, err := LoadInstalledAppsWithDirs(tmp, []string{root}, excludeDirs, cb)
 	if err != nil {
 		t.Fatalf("got error: %v", err)
 	}
