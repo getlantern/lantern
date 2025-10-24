@@ -31,7 +31,9 @@ import org.getlantern.lantern.utils.toIpPrefix
  * it should not include any logic that needs to be connected with any activity.
  * everything should be done in independent
  */
-class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
+class LanternVpnService :
+    VpnService(),
+    PlatformInterfaceWrapper {
     companion object {
         private const val TAG = "VpnService"
         private const val sessionName = "LanternVpn"
@@ -53,7 +55,11 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
     // SupervisorJob ensures that failure in one child doesn't cancel the whole scope.
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+    override fun onStartCommand(
+        intent: Intent?,
+        flags: Int,
+        startId: Int,
+    ): Int {
         instance = this
         val action = intent?.action ?: return START_NOT_STICKY
         if (!MainActivity.receiverRegistered) {
@@ -73,17 +79,17 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
                 serviceScope.launch {
                     startVPN()
                 }
-                START_STICKY
+                START_NOT_STICKY
             }
 
             ACTION_CONNECT_TO_SERVER -> {
                 serviceScope.launch {
                     connectToServer(
                         intent.getStringExtra("location") ?: "",
-                        intent.getStringExtra("tag") ?: ""
+                        intent.getStringExtra("tag") ?: "",
                     )
                 }
-                START_STICKY
+                START_NOT_STICKY
             }
 
             ACTION_TILE_START -> {
@@ -108,15 +114,14 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
         }
     }
 
-
     override fun onRevoke() {
         super.onRevoke()
         destroy()
     }
 
     override fun onDestroy() {
+        VpnStatusManager.unregisterVPNStatusReceiver(this)
         super.onDestroy()
-        destroy()
     }
 
     override fun autoDetectInterfaceControl(p0: Int) {
@@ -125,8 +130,9 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
 
     override fun openTun(tunOptions: TunOptions): Int {
         val vpnBuilder = createVPNBuilder(tunOptions)
-        val pfd = vpnBuilder.establish()
-            ?: error("android: the application is not prepared or is revoked")
+        val pfd =
+            vpnBuilder.establish()
+                ?: error("android: the application is not prepared or is revoked")
         mInterface = pfd
         return pfd.fd
     }
@@ -150,32 +156,35 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
         }
     }
 
-
-    private suspend fun startVPN() = withContext(Dispatchers.IO) {
-        if (prepare(this@LanternVpnService) != null) {
-            VpnStatusManager.postVPNStatus(VPNStatus.MissingPermission)
-            return@withContext
-        }
-        runCatching {
-            DefaultNetworkMonitor.start()
-            Mobile.startVPN(this@LanternVpnService, opts())
-            Log.d(TAG, "VPN service started")
-            VpnStatusManager.postVPNStatus(VPNStatus.Connected)
-            notificationHelper.showVPNConnectedNotification(this@LanternVpnService)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                QuickTileService.triggerUpdateTileState(this@LanternVpnService, true)
+    private suspend fun startVPN() =
+        withContext(Dispatchers.IO) {
+            if (prepare(this@LanternVpnService) != null) {
+                VpnStatusManager.postVPNStatus(VPNStatus.MissingPermission)
+                return@withContext
             }
-        }.onFailure { e ->
-            Log.e(TAG, "Error starting VPN service", e)
-            VpnStatusManager.postVPNError(
-                errorCode = "start_vpn",
-                errorMessage = "Error starting VPN service",
-                error = e,
-            )
+            runCatching {
+                DefaultNetworkMonitor.start()
+                Mobile.startVPN(this@LanternVpnService, opts())
+                Log.d(TAG, "VPN service started")
+                VpnStatusManager.postVPNStatus(VPNStatus.Connected)
+                notificationHelper.showVPNConnectedNotification(this@LanternVpnService)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    QuickTileService.triggerUpdateTileState(this@LanternVpnService, true)
+                }
+            }.onFailure { e ->
+                Log.e(TAG, "Error starting VPN service", e)
+                VpnStatusManager.postVPNError(
+                    errorCode = "start_vpn",
+                    errorMessage = "Error starting VPN service",
+                    error = e,
+                )
+            }
         }
-    }
 
-    suspend fun connectToServer(location: String, tag: String) = withContext(Dispatchers.IO) {
+    suspend fun connectToServer(
+        location: String,
+        tag: String,
+    ) = withContext(Dispatchers.IO) {
         if (prepare(this@LanternVpnService) != null) {
             VpnStatusManager.postVPNStatus(VPNStatus.MissingPermission)
             return@withContext
@@ -199,31 +208,38 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
         }
     }
 
-
     fun doStopVPN() {
         Log.d("LanternVpnService", "doStopVPN")
-        try {
-            VpnStatusManager.postVPNStatus(VPNStatus.Disconnecting)
-            serviceScope.launch {
-                mInterface?.close();
-                mInterface = null
-                if (Mobile.isVPNConnected()) {
-                    Mobile.stopVPN()
-                }
+        VpnStatusManager.postVPNStatus(VPNStatus.Disconnecting)
 
-                DefaultNetworkMonitor.stop()
-                VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
+        serviceScope.launch {
+            try {
+                mInterface?.close()
+                mInterface = null
+                runCatching { Mobile.stopVPN() }
+                runCatching { DefaultNetworkMonitor.stop() }
+
                 notificationHelper.stopVPNConnectedNotification(this@LanternVpnService)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     QuickTileService.triggerUpdateTileState(this@LanternVpnService, false)
                 }
 
+                VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    stopForeground(STOP_FOREGROUND_REMOVE)
+                } else {
+                    @Suppress("DEPRECATION")
+                    stopForeground(true)
+                }
+                stopSelf()
+            } catch (e: Exception) {
+                Log.e(TAG, "Error stopping VPN service", e)
+                VpnStatusManager.postVPNError(
+                    error = e,
+                    errorCode = "stop_vpn",
+                    errorMessage = "Error stopping VPN service",
+                )
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error stopping VPN service", e)
-            VpnStatusManager.postVPNError(
-                error = e, errorCode = "stop_vpn", errorMessage = "Error stopping VPN service"
-            )
         }
     }
 
@@ -308,13 +324,14 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
     }
 
     fun opts(): Opts {
-        val opts = Opts().apply {
-            dataDir = initConfigDir()
-            logDir = logDir()
-            logLevel = if (BuildConfig.DEBUG) "debug" else "warn"
-            deviceid = DeviceUtil.deviceId()
-            locale = DeviceUtil.getLanguageCode(this@LanternVpnService)
-        }
+        val opts =
+            Opts().apply {
+                dataDir = initConfigDir()
+                logDir = logDir()
+                logLevel = if (BuildConfig.DEBUG) "debug" else "warn"
+                deviceid = DeviceUtil.deviceId()
+                locale = DeviceUtil.getLanguageCode(this@LanternVpnService)
+            }
         return opts
     }
 }

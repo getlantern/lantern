@@ -20,6 +20,7 @@ import org.getlantern.lantern.handler.MethodHandler
 import org.getlantern.lantern.notification.NotificationHelper
 import org.getlantern.lantern.service.LanternVpnService
 import org.getlantern.lantern.service.LanternVpnService.Companion.ACTION_STOP_VPN
+import org.getlantern.lantern.service.QuickTileService
 import org.getlantern.lantern.utils.DeviceUtil
 import org.getlantern.lantern.utils.VpnStatusManager
 import org.getlantern.lantern.utils.isServiceRunning
@@ -124,11 +125,27 @@ class MainActivity : FlutterFragmentActivity() {
 
 
     fun stopVPN() {
-        LanternApp.application.sendBroadcast(
-            Intent(ACTION_STOP_VPN).setPackage(
-                LanternApp.application.packageName
+        if (isServiceRunning(this, LanternVpnService::class.java)) {
+            LanternApp.application.sendBroadcast(
+                Intent(LanternVpnService.ACTION_STOP_VPN)
+                    .setPackage(LanternApp.application.packageName)
             )
-        )
+            return
+        }
+
+        // service isn’t up.. stop core directly and publish status
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                runCatching { Mobile.stopVPN() }
+                // notify quick tile and update UI state
+                VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                    QuickTileService.triggerUpdateTileState(this@stopVPN, false)
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "stopVPN failed", e)
+            }
+        }
     }
 
     private fun isVPNServiceReady(): Boolean {
