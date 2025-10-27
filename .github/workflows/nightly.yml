@@ -30,6 +30,10 @@ jobs:
     outputs:
       version: ${{ steps.meta.outputs.version }}
       installer_name: ${{ steps.meta.outputs.installer_name }}
+      run_linux: ${{ steps.platforms.outputs.run_linux }}
+      run_macos: ${{ steps.platforms.outputs.run_macos }}
+      run_windows: ${{ steps.platforms.outputs.run_windows }}
+      run_android: ${{ steps.platforms.outputs.run_android }}
     steps:
       - uses: actions/checkout@v4
 
@@ -58,6 +62,35 @@ jobs:
           echo "version=$VER" >> "$GITHUB_OUTPUT"
           echo "installer_name=lantern-installer-nightly" >> "$GITHUB_OUTPUT"
 
+      - id: platforms
+        shell: bash
+        env:
+          RAW_INPUT: ${{ github.event_name == 'schedule' && 'all' || github.event.inputs.platforms }}
+        run: |
+          RAW="${RAW_INPUT:-all}"
+          # normalize input
+          PLAT="$(echo "$RAW" \
+            | tr '[:upper:]' '[:lower:]' \
+            | tr ',;/' ' ' \
+            | xargs)"
+          echo "Building platforms: '$PLAT'"
+
+          want() {
+            local p="$1"
+            if [[ "$PLAT" == "all" ]]; then
+              echo true
+            elif [[ " $PLAT " == *" $p "* ]]; then
+              echo true
+            else
+              echo false
+            fi
+          }
+
+          echo "run_linux=$(want linux)"     >> "$GITHUB_OUTPUT"
+          echo "run_macos=$(want macos)"     >> "$GITHUB_OUTPUT"
+          echo "run_windows=$(want windows)" >> "$GITHUB_OUTPUT"
+          echo "run_android=$(want android)" >> "$GITHUB_OUTPUT"
+
       - name: Update pubspec.yaml (build number only)
         shell: bash
         run: |
@@ -76,6 +109,7 @@ jobs:
 
   build-macos:
     needs: set-nightly-metadata
+    if: ${{ needs.set-nightly-metadata.outputs.run_macos == 'true' }}
     uses: ./.github/workflows/build-macos.yml
     secrets: inherit
     with:
@@ -85,6 +119,7 @@ jobs:
 
   build-windows:
     needs: set-nightly-metadata
+    if: ${{ needs.set-nightly-metadata.outputs.run_windows == 'true' }}
     uses: ./.github/workflows/build-windows.yml
     secrets: inherit
     with:
@@ -94,6 +129,7 @@ jobs:
 
   build-linux:
     needs: set-nightly-metadata
+    if: ${{ needs.set-nightly-metadata.outputs.run_linux == 'true' }}
     uses: ./.github/workflows/build-linux.yml
     secrets: inherit
     with:
@@ -103,6 +139,7 @@ jobs:
 
   build-android:
     needs: set-nightly-metadata
+    if: ${{ needs.set-nightly-metadata.outputs.run_android == 'true' }}
     uses: ./.github/workflows/build-android.yml
     secrets: inherit
     with:
@@ -119,6 +156,7 @@ jobs:
         build-linux,
         build-android,
       ]
+    if: ${{ always() }}
     runs-on: ubuntu-latest
     env:
       INSTALLER_NAME: ${{ needs.set-nightly-metadata.outputs.installer_name }}
@@ -126,7 +164,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
-
       - name: Upload to S3 (nightly + latest)
         run: |
           sha="$(git rev-parse --short HEAD)"
