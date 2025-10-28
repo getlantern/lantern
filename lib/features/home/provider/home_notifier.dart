@@ -61,7 +61,7 @@ class HomeNotifier extends _$HomeNotifier {
           "User is not Pro. Resetting server location to default (Fastest Country).");
       ref
           .read(serverLocationNotifierProvider.notifier)
-          .updateServerLocation(initalServerLocation());
+          .updateServerLocation(initialServerLocation());
     }
   }
 }

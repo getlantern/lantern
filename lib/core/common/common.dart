@@ -163,7 +163,7 @@ String getReferralMessage(String planId) {
 }
 
 /// Initial server location set to auto (fastest server)
-ServerLocationEntity initalServerLocation() {
+ServerLocationEntity initialServerLocation() {
   return ServerLocationEntity(
     autoSelect: true,
     serverLocation: ''.i18n,
