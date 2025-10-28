@@ -156,16 +156,18 @@ class MethodHandler : FlutterPlugin,
 
             Methods.IsVpnConnected.method -> {
                 scope.launch {
-                    result.runCatching {
-                        val conncted = Mobile.isVPNConnected()
-                        Log.d(TAG, "IsVpnConnected connected: $conncted")
-                        if (conncted) {
+                    runCatching {
+                        val connected = Mobile.isVPNConnected()
+
+                        if (connected) {
                             VpnStatusManager.postVPNStatus(VPNStatus.Connected)
                         } else {
                             VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
                         }
-                        success("")
 
+                        withContext(Dispatchers.Main) {
+                            result.success(connected)
+                        }
                     }.onFailure { e ->
                         result.error("vpn_status", e.localizedMessage ?: "Please try again", e)
                     }

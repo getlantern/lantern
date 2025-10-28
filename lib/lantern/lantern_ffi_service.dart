@@ -74,15 +74,20 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<void> init() async {
     try {
+      await _setupRadiance();
+
       if (Platform.isWindows) {
+        /// Start windows IPC service
+        /// keep it alive but we wil use only for VPN calls
         await _initializeWindowsService();
+        _status = _windowsService.watchVPNStatus();
       } else {
         _status = statusReceivePort.map((event) {
           Map<String, dynamic> result = jsonDecode(event);
           return LanternStatus.fromJson(result);
         });
-        await _setupRadiance();
       }
+
       _privateServerStatus = privateServerReceivePort.map((event) {
         Map<String, dynamic> result = jsonDecode(event);
         return PrivateServerStatus.fromJson(result);
@@ -143,7 +148,6 @@ class LanternFFIService implements LanternCoreService {
       appLogger.error('LanternServiceWindows.init() threw', e, st);
       rethrow;
     }
-    _status = _windowsService.watchVPNStatus();
   }
 
   @override
@@ -362,7 +366,7 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, String>> startVPN() async {
     if (Platform.isWindows) {
-      return await _windowsService.connect();
+      return _windowsService.connect();
     }
     final ffiPaths = await PlatformFfiUtils.getFfiPlatformPaths();
     try {
@@ -393,6 +397,9 @@ class LanternFFIService implements LanternCoreService {
 
   @override
   Stream<List<String>> watchLogs(String path) {
+    if (PlatformUtils.isWindows) {
+      return _windowsService.watchLogs();
+    }
     throw UnimplementedError();
   }
 
@@ -401,7 +408,7 @@ class LanternFFIService implements LanternCoreService {
     try {
       appLogger.debug('Stopping VPN');
       if (Platform.isWindows) {
-        return await _windowsService.disconnect();
+        return _windowsService.disconnect();
       }
       final result = _ffiService.stopVPN().cast<Utf8>().toDartString();
       if (result.isNotEmpty) {
@@ -419,12 +426,14 @@ class LanternFFIService implements LanternCoreService {
   Stream<LanternStatus> watchVPNStatus() => _status;
 
   @override
-  Future<Either<Failure, Unit>> isVPNConnected() async {
+  Future<Either<Failure, bool>> isVPNConnected() async {
     try {
-      final result = Platform.isWindows
-          ? _windowsService.isVPNConnected()
-          : _ffiService.isVPNConnected();
-      return right(unit);
+      if (Platform.isWindows) {
+        return _windowsService.isVPNConnected();
+      }
+      final connectedInt = _ffiService.isVPNConnected();
+      final connected = connectedInt != 0;
+      return right(connected);
     } catch (e) {
       return Left(e.toFailure());
     }
@@ -537,6 +546,9 @@ class LanternFFIService implements LanternCoreService {
 
   @override
   Future<Either<Failure, UserResponse>> getUserData() async {
+    // if (Platform.isWindows) {
+    //   return _windowsService.getUserData();
+    // }
     try {
       final result = await runInBackground<String>(
         () async {

@@ -101,6 +101,22 @@ After running `make android-debug`, you’ll find the APK here:
 build/app/outputs/flutter-apk/app-debug.apk
 ```
 
+## Running integration tests
+
+We use `integration_test` with headless widget tests and in-memory fakes
+
+### Run all integration tests (headless)
+
+```bash
+flutter test integration_test
+```
+
+### Run a single test
+
+```
+flutter test integration_test/private_server_flow_test.dart
+```
+
 # Auto-Updater Integration
 
 The app supports automatic updates on macOS and Windows, using the [auto_updater](https://pub.dev/packages/auto_updater) package, which is a Flutter-friendly wrapper around the Sparkle update framework.

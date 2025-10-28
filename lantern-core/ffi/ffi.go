@@ -15,8 +15,6 @@ import (
 	"sync/atomic"
 	"unsafe"
 
-	"github.com/getlantern/radiance/api"
-
 	lanterncore "github.com/getlantern/lantern-outline/lantern-core"
 	"github.com/getlantern/lantern-outline/lantern-core/apps"
 	"github.com/getlantern/lantern-outline/lantern-core/dart_api_dl"
@@ -325,24 +323,19 @@ func sendStatusToPort(status VPNStatus) {
 // isVPNConnected checks if the VPN server is running and connected.
 //
 //export isVPNConnected
-func isVPNConnected() *C.char {
+func isVPNConnected() C.int {
 	connected := vpn_tunnel.IsVPNRunning()
 	slog.Debug("isVPNConnected called, connected:", "connected", connected)
 	if connected {
 		sendStatusToPort(Connected)
+		return 1
 	} else {
 		sendStatusToPort(Disconnected)
+		return 0
 	}
-	slog.Debug("isVPNConnected returning", "connected", connected)
-	return C.CString("ok")
 }
 
 // APIS
-func createUser() (*api.UserDataResponse, error) {
-	slog.Debug("Creating user")
-	return core().CreateUser()
-}
-
 // Get user data from the local config
 //
 //export getUserData
