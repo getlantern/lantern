@@ -361,6 +361,7 @@ class _SettingState extends ConsumerState<Setting> {
         ref.read(referralNotifierProvider.notifier).resetReferral();
         ref.read(appSettingNotifierProvider.notifier).setUserLoggedIn(false);
         ref.read(homeNotifierProvider.notifier).updateUserData(user);
+
         appLogger.info('Logout success: $user');
       },
     );
