@@ -69,7 +69,6 @@ String generatePassword() {
 }
 
 bool isStoreVersion() {
-  // return true;
   return (sl<StoreUtils>().isSideLoaded() == false);
 }
 
@@ -146,4 +145,17 @@ bool isSmallScreen(BuildContext context) {
   //Iphone 12 mini Size(375.0, 812.0)
   //Iphone 13      Size(390.0, 844.0)
   return MediaQuery.of(context).size.width <= 380;
+}
+
+
+String getReferralMessage(String planId) {
+  final id = planId.split('-').first;
+  if (id == '1m') {
+    return 'referral_message_1m'.i18n;
+  } else if (id == '1y') {
+    return 'referral_message_1y'.i18n;
+  } else if (id == '2y') {
+    return 'referral_message_2y'.i18n;
+  }
+  return '';
 }

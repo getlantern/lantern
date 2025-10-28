@@ -54,6 +54,7 @@ type App interface {
 	GetAvailableServers() []byte
 	MyDeviceId() string
 	GetServerByTag(tag string) (servers.Server, bool)
+	ReferralAttachment(referralCode string) (bool, error)
 }
 
 type User interface {
@@ -212,6 +213,16 @@ func (lc *LanternCore) IsRadianceConnected() bool {
 
 func (lc *LanternCore) MyDeviceId() string {
 	return lc.userInfo.DeviceID()
+}
+
+func (lc *LanternCore) ReferralAttachment(referralCode string) (bool, error) {
+	slog.Debug("Attaching referral code", "code", referralCode)
+	success, err := lc.apiClient.ReferralAttach(context.Background(), referralCode)
+	if err != nil {
+		return false, err
+	}
+	slog.Debug("ReferralAttachment response: ", "success", success)
+	return success, nil
 }
 
 func (lc *LanternCore) AvailableFeatures() []byte {

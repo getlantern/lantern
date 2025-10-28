@@ -554,6 +554,22 @@ func removeDevice(deviceId *C.char) *C.char {
 	return C.CString("ok")
 }
 
+// referralAttachment attaches a referral code to the user's account.
+//
+//export referralAttachment
+func referralAttachment(_referralCode *C.char) *C.char {
+	referralCode := C.GoString(_referralCode)
+	slog.Debug("Getting referral attachment")
+	ok, err := core().ReferralAttachment(referralCode)
+	if err != nil {
+		return SendError(err)
+	}
+	if !ok {
+		return SendError(fmt.Errorf("failed to get referral attachment"))
+	}
+	return C.CString("ok")
+}
+
 // startChangeEmail initiates the process of changing the user's email address.
 //
 //export startChangeEmail

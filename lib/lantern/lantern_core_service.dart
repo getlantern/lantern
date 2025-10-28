@@ -149,6 +149,10 @@ abstract class LanternCoreService {
     required String deviceId,
   });
 
+  //Referral attachment
+  Future<Either<Failure, String>> attachReferralCode(String code);
+
+
   /// Private server methods
   Future<Either<Failure, Unit>> digitalOceanPrivateServer();
 
