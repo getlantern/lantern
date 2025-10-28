@@ -15,12 +15,9 @@ class ReferralNotifier extends _$ReferralNotifier {
   Future<Either<Failure, String>> applyReferralCode(String code) async {
     final result =
         await ref.read(lanternServiceProvider).attachReferralCode(code);
-
-    result.fold(
-      (_) => null,
-      (r) => state = true,
-    );
-
+    if (result.isRight()) {
+      state = true;
+    }
     return result;
   }
 

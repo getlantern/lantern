@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/utils/formatter.dart';
 import 'package:lantern/core/utils/screen_utils.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
@@ -143,6 +144,7 @@ class _PlansState extends ConsumerState<Plans> {
   }
 
   void onMenuTap() {
+    final isReferralApplied = ref.read(referralNotifierProvider);
     showAppBottomSheet(
       context: context,
       title: 'payment_options'.i18n,
@@ -153,7 +155,7 @@ class _PlansState extends ConsumerState<Plans> {
           padding: EdgeInsets.zero,
           controller: scrollController,
           children: [
-            if (!isStoreVersion()) ...{
+            if (!isStoreVersion() && !isReferralApplied) ...{
               AppTile(
                 icon: AppImagePaths.star,
                 label: 'referral_code'.i18n,
@@ -204,6 +206,9 @@ class _PlansState extends ConsumerState<Plans> {
           AppTextField(
             label: 'referral_code'.i18n,
             controller: referralCodeController,
+            inputFormatters: [
+              UpperCaseTextFormatter(),
+            ],
             maxLength: 6,
             hintText: 'XXXXXX',
             prefixIcon: AppImagePaths.star,
