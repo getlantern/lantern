@@ -79,7 +79,7 @@ class LanternVpnService :
                 serviceScope.launch {
                     startVPN()
                 }
-                START_NOT_STICKY
+                START_STICKY
             }
 
             ACTION_CONNECT_TO_SERVER -> {
@@ -89,7 +89,7 @@ class LanternVpnService :
                         intent.getStringExtra("tag") ?: "",
                     )
                 }
-                START_NOT_STICKY
+                START_STICKY
             }
 
             ACTION_TILE_START -> {
@@ -120,8 +120,10 @@ class LanternVpnService :
     }
 
     override fun onDestroy() {
-        VpnStatusManager.unregisterVPNStatusReceiver(this)
-        super.onDestroy()
+        try { destroy() } finally {
+            serviceScope.cancel()
+            super.onDestroy()
+        }
     }
 
     override fun autoDetectInterfaceControl(p0: Int) {
@@ -217,20 +219,22 @@ class LanternVpnService :
                 mInterface?.close()
                 mInterface = null
                 runCatching { Mobile.stopVPN() }
+                    .onFailure { e -> Log.e(TAG, "Mobile.stopVPN() failed", e) }
+
                 runCatching { DefaultNetworkMonitor.stop() }
+                    .onFailure { e -> Log.e(TAG, "DefaultNetworkMonitor.stop() failed", e) }
 
-                notificationHelper.stopVPNConnectedNotification(this@LanternVpnService)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    QuickTileService.triggerUpdateTileState(this@LanternVpnService, false)
-                }
-
-                VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     stopForeground(STOP_FOREGROUND_REMOVE)
                 } else {
-                    @Suppress("DEPRECATION")
-                    stopForeground(true)
+                    @Suppress("DEPRECATION") stopForeground(true)
                 }
+                notificationHelper.stopVPNConnectedNotification(this@LanternVpnService)
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    QuickTileService.triggerUpdateTileState(this@LanternVpnService, false)
+                }
+                VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
                 stopSelf()
             } catch (e: Exception) {
                 Log.e(TAG, "Error stopping VPN service", e)
