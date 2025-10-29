@@ -1,7 +1,5 @@
 package org.getlantern.lantern.handler
 
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
@@ -663,7 +661,6 @@ class MethodHandler : FlutterPlugin,
                     Mobile.isBlockAdsEnabled()
                 }
             }
-
             //Private server methods
             Methods.DigitalOcean.method -> {
                 scope.handleResult(
@@ -923,6 +920,7 @@ private suspend fun MethodChannel.Result.mainError(
     details: Any? = null
 ) = withContext(Dispatchers.Main.immediate) { error(code, message, details) }
 
+
 inline fun <T> CoroutineScope.handleValue(
     result: MethodChannel.Result,
     errorCode: String,
@@ -935,21 +933,10 @@ inline fun <T> CoroutineScope.handleValue(
 
 inline fun CoroutineScope.handleResult(
     result: MethodChannel.Result,
-    errorTitle: String = "DigitalOcean",
+    errorCode: String,
     crossinline block: suspend () -> Unit
-) {
-    this.launch {
-        runCatching {
-            block()
-            withContext(Dispatchers.Main) {
-                result.success("ok")
-            }
-        }.onFailure { e ->
-            result.error(
-                errorTitle,
-                e.localizedMessage ?: "Unknown error",
-                e
-            )
-        }
-    }
+) = launch {
+    runCatching { block() }
+        .onSuccess { result.mainSuccess() }
+        .onFailure { e -> result.mainError(errorCode, e.localizedMessage ?: "Please try again", e) }
 }
