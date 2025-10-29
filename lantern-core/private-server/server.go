@@ -130,6 +130,7 @@ func listenToServerEvents(ps provisionSession) {
 			case pcommon.EventTypeOAuthStarted:
 				log.Debug("OAuth started, waiting for user to complete")
 				events.OnPrivateServerEvent(convertStatusToJSON("EventTypeOAuthStarted", "OAuth started, waiting for user to complete"))
+				continue
 			case pcommon.EventTypeOAuthCancelled:
 				log.Debug("OAuth cancelled by user")
 				events.OnError(convertErrorToJSON("EventTypeOAuthCancelled", fmt.Errorf("OAuth cancelled by user")))
@@ -142,12 +143,12 @@ func listenToServerEvents(ps provisionSession) {
 				// Validation events
 			case pcommon.EventTypeOAuthCompleted:
 				log.Debug("OAuth completed; starting validation")
-				events.OnPrivateServerEvent(convertStatusToJSON("EventTypeOAuthCompleted", "OAuth completed, starting validation"))
+				// events.OnPrivateServerEvent(convertStatusToJSON("EventTypeOAuthCompleted", "OAuth completed, starting validation"))
 				ps.provisioner.Validate(context.Background(), e.Message)
 				continue
 			case pcommon.EventTypeValidationStarted:
 				log.Debug("Validation started")
-				events.OnPrivateServerEvent(convertStatusToJSON("EventTypeValidationStarted", "Validation started, please wait..."))
+				// events.OnPrivateServerEvent(convertStatusToJSON("EventTypeValidationStarted", "Validation started, please wait..."))
 			case pcommon.EventTypeValidationError:
 				log.Errorf("Validation failed", e.Error)
 				events.OnError(convertErrorToJSON("EventTypeValidationError", e.Error))
@@ -162,17 +163,43 @@ func listenToServerEvents(ps provisionSession) {
 					events.OnError("No valid projects found, please check your billing account and permissions")
 					return
 				}
-				ps.CurrentCompartments = compartments
+				// if only one compartment, select it by default
+				if len(compartments) == 1 {
+					//select account
+					ps.eventSink.OnPrivateServerEvent(convertStatusToJSON("EventTypeOnlyCompartment", "Found only one compartment, selecting by default"))
 
-				// update map
-				storeSession(&ps)
-				log.Debug("Validation completed, ready to create resources")
-				//Accounts
-				//send account to the client
-				accountNames := pcommon.CompartmentNames(compartments)
-				log.Debugf("Available accounts: %v", strings.Join(accountNames, ", "))
-				events.OnPrivateServerEvent(convertStatusToJSON("EventTypeAccounts", strings.Join(accountNames, ", ")))
+					log.Debug("Only one compartment found, selecting by default account")
+					accountNames := pcommon.CompartmentNames(compartments)
+					name := accountNames[0]
+					userCompartment := pcommon.CompartmentByName(compartments, name)
+					ps.userCompartment = userCompartment
+					//Store the user selected project
+					projectList := pcommon.CompartmentEntryIDs(userCompartment.Entries)
+					selectedProject := projectList[0]
+					project := pcommon.CompartmentEntryByID(userCompartment.Entries, selectedProject)
+					ps.userProject = project
+					ps.userProjectString = selectedProject
 
+					//Send location list to the event sink
+					locationList := pcommon.CompartmentEntryLocations(project)
+					// add delay
+					time.Sleep(1 * time.Second)
+					ps.eventSink.OnPrivateServerEvent(convertStatusToJSON("EventTypeLocations", strings.Join(locationList, ", ")))
+					//store session
+					storeSession(&ps)
+
+				} else {
+					ps.CurrentCompartments = compartments
+					// update map
+					storeSession(&ps)
+					log.Debug("Validation completed, ready to create resources")
+					//Accounts
+					//send account to the client
+					accountNames := pcommon.CompartmentNames(compartments)
+					log.Debugf("Available accounts: %v", strings.Join(accountNames, ", "))
+					events.OnPrivateServerEvent(convertStatusToJSON("EventTypeAccounts", strings.Join(accountNames, ", ")))
+				}
+				continue
 			case pcommon.EventTypeProvisioningStarted:
 				log.Debug("Provisioning started")
 				events.OnPrivateServerEvent(convertStatusToJSON("EventTypeProvisioningStarted", "Provisioning started, please wait..."))
