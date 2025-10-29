@@ -18,12 +18,12 @@ class Flag extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: AppColors.gray3, width: 1),
-        borderRadius: BorderRadius.circular(5),
+        borderRadius: BorderRadius.circular(2),
       ),
       child: CountryFlag.fromCountryCode(
         countryCode,
-        height: size?.height ?? 20,
-        width: size?.width ?? 30,
+        height: size?.height ?? 24,
+        width: size?.width ?? 17,
         shape: RoundedRectangle(5.0),
       ),
     );
