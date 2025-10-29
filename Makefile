@@ -15,6 +15,11 @@ RADIANCE_REPO := github.com/getlantern/radiance
 FFI_DIR := $(LANTERN_CORE)/ffi
 EXTRA_LDFLAGS ?=
 
+
+MACOS_MIN_VERSION ?= 11.0
+DARWIN_SDKPATH := $(shell xcrun --sdk macosx --show-sdk-path)
+DARWIN_CC_ARM64 := clang -isysroot $(DARWIN_SDKPATH) -mmacosx-version-min=$(MACOS_MIN_VERSION) -target arm64-apple-macos$(MACOS_MIN_VERSION)
+DARWIN_CC_AMD64 := clang -isysroot $(DARWIN_SDKPATH) -mmacosx-version-min=$(MACOS_MIN_VERSION) -target x86_64-apple-macos$(MACOS_MIN_VERSION)
 DARWIN_APP_NAME := $(CAPITALIZED_APP).app
 DARWIN_LIB := $(LANTERN_LIB_NAME).dylib
 DARWIN_LIB_AMD64 := $(BIN_DIR)/macos-amd64/$(LANTERN_LIB_NAME).dylib
@@ -177,6 +182,20 @@ $(MACOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 	rm -rf $(MACOS_FRAMEWORK_DIR)/$(MACOS_FRAMEWORK)
 	mv $(MACOS_FRAMEWORK_BUILD) $(MACOS_FRAMEWORK_DIR)
 
+.PHONY: macos-ffi macos-ffi-arm64 macos-ffi-amd64
+
+macos-ffi: macos-ffi-arm64 macos-ffi-amd64
+	@mkdir -p $(dir $(DARWIN_LIB_BUILD))
+	lipo -create -output $(DARWIN_LIB_BUILD) $(DARWIN_LIB_ARM64) $(DARWIN_LIB_AMD64)
+	@echo "Built macOS FFI dylib: $(DARWIN_LIB_BUILD)"
+
+macos-ffi-arm64: $(DARWIN_LIB_ARM64)
+$(DARWIN_LIB_ARM64): $(GO_SOURCES)
+	CC='$(DARWIN_CC_ARM64)' GOOS=darwin GOARCH=arm64 LIB_NAME=$@ $(MAKE) desktop-lib
+
+macos-ffi-amd64: $(DARWIN_LIB_AMD64)
+$(DARWIN_LIB_AMD64): $(GO_SOURCES)
+	CC='$(DARWIN_CC_AMD64)' GOOS=darwin GOARCH=amd64 LIB_NAME=$@ $(MAKE) desktop-lib
 
 .PHONY: macos-framework
 macos-framework: $(MACOS_FRAMEWORK_BUILD)
