@@ -29,23 +29,7 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
     _localStorage.saveServerLocation(serverLocation);
   }
 
-  /// Fetches the list of Lantern servers for the user
-  Future<void> getLanternServers() async {
-    // Fetch the list of Lantern servers for the given location.
-    final result =
-        await ref.read(lanternServiceProvider).getLanternAvailableServers();
 
-    result.fold(
-      (error) {
-        // Handle error case, possibly logging or showing a message.
-        dbLogger.error("Failed to fetch Lantern servers: $error");
-      },
-      (servers) {
-        appLogger.debug(
-            "Fetched Lantern servers for location", servers.toJson());
-      },
-    );
-  }
 
   Future<void> ifNeededGetAutoServerLocation() async {
     final status = ref.read(vpnNotifierProvider);
