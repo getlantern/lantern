@@ -167,7 +167,6 @@ func listenToServerEvents(ps provisionSession) {
 				if len(compartments) == 1 {
 					// Select account by default
 					ps.eventSink.OnPrivateServerEvent(convertStatusToJSON("EventTypeOnlyCompartment", "Found only one compartment, selecting by default"))
-
 					log.Debug("Only one compartment found, selecting by default account")
 					accountNames := pcommon.CompartmentNames(compartments)
 					name := accountNames[0]
