@@ -95,9 +95,9 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
         ),
         body: ListView(
           children: <Widget>[
-            ///if digital ocean is true
-            /// it mean there are default values coming
-            /// do we need to setup only server location and name
+            /// If isPreFilled is false, there are no default values provided.
+            /// This means the user needs to set up account, project, location, and server name.
+            /// If isPreFilled is true, only server location and name need to be set up.
             if (!widget.isPreFilled) ...{
               AppCard(
                 padding: const EdgeInsets.all(16.0),
@@ -271,11 +271,11 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
   bool isStartDeploymentEnabled(
       String? project, String? location, String serverName) {
     if (widget.isPreFilled) {
-      return location != null && serverName.trim().isNotEmpty;
+      return location != null && serverName.isNotEmpty;
     }
     return (project != null &&
         (location != null && location.isNotEmpty) &&
-        serverName.trim().isNotEmpty);
+        serverName.isNotEmpty);
   }
 
   Future<void> onUserInput(PrivateServerInput input, String account) async {
