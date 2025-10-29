@@ -56,10 +56,10 @@ type App interface {
 	GetAvailableServers() []byte
 	MyDeviceId() string
 	GetServerByTag(tag string) (servers.Server, bool)
+	ReferralAttachment(referralCode string) (bool, error)
 }
 
 type User interface {
-	CreateUser() (*api.UserDataResponse, error)
 	UserData() ([]byte, error)
 	DataCapInfo() ([]byte, error)
 	FetchUserData() ([]byte, error)
@@ -229,6 +229,16 @@ func (lc *LanternCore) MyDeviceId() string {
 	return lc.userInfo.DeviceID()
 }
 
+func (lc *LanternCore) ReferralAttachment(referralCode string) (bool, error) {
+	slog.Debug("Attaching referral code", "code", referralCode)
+	success, err := lc.apiClient.ReferralAttach(context.Background(), referralCode)
+	if err != nil {
+		return false, err
+	}
+	slog.Debug("ReferralAttachment response: ", "success", success)
+	return success, nil
+}
+
 func (lc *LanternCore) AvailableFeatures() []byte {
 	features := lc.rad.Features()
 	slog.Debug("Available features", "features", features)
@@ -355,16 +365,11 @@ func (lc *LanternCore) DataCapInfo() ([]byte, error) {
 }
 
 // User Methods
-// Todo make sure to add retry logic
-// we need to make sure that the user is created before we can use the radiance server
-func (lc *LanternCore) CreateUser() (*api.UserDataResponse, error) {
-	slog.Debug("Creating user")
-	return lc.apiClient.NewUser(context.Background())
-}
-
-// this will return the user data from the user config
+// UserData returns user data that has already been fetched.
+// If user data has not been fetched yet (e.g., for a first-time user), this method will return an error.
+// This is expected behavior and not necessarily a problem.
 func (lc *LanternCore) UserData() ([]byte, error) {
-	slog.Debug("Getting user data from user config")
+	slog.Debug("Getting user data")
 	user, err := lc.userInfo.GetData()
 	if err != nil {
 		return nil, fmt.Errorf("error getting user data: %w [This is fine for first time user this is expected]", err)
@@ -575,7 +580,7 @@ func (lc *LanternCore) Logout(email string) ([]byte, error) {
 		return nil, fmt.Errorf("error logging out: %w", err)
 	}
 	// this call will save data
-	user, err := lc.CreateUser()
+	user, err := lc.apiClient.NewUser(context.Background())
 	if err != nil {
 		return nil, fmt.Errorf("error creating user: %w", err)
 	}
@@ -616,7 +621,7 @@ func (lc *LanternCore) DeleteAccount(email, password string) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error deleting account: %w", err)
 	}
-	user, err := lc.CreateUser()
+	user, err := lc.apiClient.NewUser(context.Background())
 	if err != nil {
 		return nil, fmt.Errorf("error creating user: %w", err)
 	}

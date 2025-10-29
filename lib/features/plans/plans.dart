@@ -5,13 +5,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/utils/formatter.dart';
 import 'package:lantern/core/utils/screen_utils.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
+import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/auth/provider/payment_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/plans/feature_list.dart';
 import 'package:lantern/features/plans/plans_list.dart';
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
+import 'package:lantern/features/plans/provider/referral_notifier.dart';
 
 import '../../core/models/plan_data.dart';
 
@@ -140,19 +143,31 @@ class _PlansState extends ConsumerState<Plans> {
   }
 
   void onMenuTap() {
+    final isReferralApplied = ref.read(referralNotifierProvider);
     showAppBottomSheet(
       context: context,
       title: 'payment_options'.i18n,
-      scrollControlDisabledMaxHeightRatio: context.isSmallDevice ? 0.4 : 0.3,
+      scrollControlDisabledMaxHeightRatio: context.isSmallDevice ? 0.5 : 0.4,
       builder: (context, scrollController) {
         return ListView(
           shrinkWrap: true,
           padding: EdgeInsets.zero,
           controller: scrollController,
           children: [
+            if (!isStoreVersion() && !isReferralApplied) ...{
+              AppTile(
+                icon: AppImagePaths.star,
+                label: 'referral_code'.i18n,
+                onPressed: () {
+                  context.pop();
+                  showReferralCodeDialog();
+                },
+              ),
+              DividerSpace(),
+            },
             AppTile(
               icon: AppImagePaths.keypad,
-              label: 'enter_activation_code'.i18n,
+              label: 'lantern_pro_license'.i18n,
               onPressed: () {
                 appRouter
                     .popAndPush(AddEmail(authFlow: AuthFlow.activationCode));
@@ -168,6 +183,85 @@ class _PlansState extends ConsumerState<Plans> {
             )
           ],
         );
+      },
+    );
+  }
+
+  void showReferralCodeDialog() {
+    final referralCodeController = TextEditingController();
+    AppDialog.customDialog(
+      context: context,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          SizedBox(height: 24),
+          AppImage(path: AppImagePaths.star, height: 48),
+          SizedBox(height: defaultSize),
+          Text('referral_code'.i18n,
+              style: textTheme.headlineSmall!.copyWith(
+                color: AppColors.gray9,
+              )),
+          SizedBox(height: 24),
+          AppTextField(
+            label: 'referral_code'.i18n,
+            controller: referralCodeController,
+            inputFormatters: [
+              UpperCaseTextFormatter(),
+            ],
+            maxLength: 6,
+            hintText: 'XXXXXX',
+            prefixIcon: AppImagePaths.star,
+          )
+        ],
+      ),
+      action: [
+        AppTextButton(
+          label: 'cancel'.i18n,
+          underLine: false,
+          textColor: AppColors.gray6,
+          onPressed: () {
+            appRouter.pop();
+          },
+        ),
+        AppTextButton(
+          label: 'continue'.i18n,
+          onPressed: () => onReferralCodeContinue(
+              referralCodeController.text.toUpperCase().trim()),
+        )
+      ],
+    );
+  }
+
+  Future<void> onReferralCodeContinue(String code) async {
+    if (code.isEmpty) {
+      context.showSnackBar('please_enter_referral_code'.i18n);
+      return;
+    }
+    appRouter.pop();
+    context.showLoadingDialog();
+    final result = await ref
+        .read(referralNotifierProvider.notifier)
+        .applyReferralCode(code);
+
+    result.fold(
+      (error) {
+        if (!mounted) {
+          return;
+        }
+        appLogger.error('Error applying referral code: $error');
+        context.hideLoadingDialog();
+        AppDialog.errorDialog(
+            context: context,
+            title: 'error'.i18n,
+            content: error.localizedErrorMessage);
+      },
+      (success) {
+        if (!mounted) {
+          return;
+        }
+        context.hideLoadingDialog();
+        context.showSnackBar('referral_code_applied'.i18n);
+        appLogger.info('Successfully applied referral code');
       },
     );
   }
@@ -279,6 +373,9 @@ class _PlansState extends ConsumerState<Plans> {
     final isPro = await checkUserAccountStatus(ref, context);
     context.hideLoadingDialog();
     if (isPro) {
+      /// User should not reach here if they are pro, but just in case show them the dialog
+      /// This just to avoid confusion
+      /// BUT USER SHOULD NOT REACH HERE IF THEY ARE PRO
       appLogger.debug("User is Pro, showing Lantern Pro dialog");
       AppDialog.showLanternProDialog(
         context: context,
@@ -287,8 +384,34 @@ class _PlansState extends ConsumerState<Plans> {
         },
       );
     } else {
-      appLogger.debug("User is not Pro, sending to AddEmail screen");
-      appRouter.push(AddEmail(authFlow: AuthFlow.signUp));
+      /// User is here because they are not pro but user has created an account
+      /// There can be few reason for this
+      /// 1. App crashed before completing the purchase flow
+      /// 2. User cancelled the purchase flow while signing up
+
+      /// In both case send user to confirm email screen
+      /// Once done send user to subscription screen
+      /// THIS IS JUST TO AVOID USER FROM BLOCKING FLOW
+      context.showLoadingDialog();
+      final appSetting = ref.read(appSettingNotifierProvider);
+      final email = appSetting.email;
+      final result = await ref
+          .read(authNotifierProvider.notifier)
+          .startRecoveryByEmail(email);
+      result.fold(
+        (failure) {
+          context.hideLoadingDialog();
+          context.showSnackBar(failure.localizedErrorMessage);
+        },
+        (_) {
+          context.hideLoadingDialog();
+          appLogger.debug(
+              'User has created account but is not Pro. Sending to Confirm Email screen to verification '
+              'this is just avoid user from blocking flow.');
+
+          appRouter.push(ConfirmEmail(email: email, authFlow: AuthFlow.signUp));
+        },
+      );
     }
   }
 }

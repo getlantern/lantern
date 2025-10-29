@@ -15,8 +15,6 @@ import (
 	"sync/atomic"
 	"unsafe"
 
-	"github.com/getlantern/radiance/api"
-
 	lanterncore "github.com/getlantern/lantern-outline/lantern-core"
 	"github.com/getlantern/lantern-outline/lantern-core/apps"
 	"github.com/getlantern/lantern-outline/lantern-core/dart_api_dl"
@@ -338,11 +336,6 @@ func isVPNConnected() C.int {
 }
 
 // APIS
-func createUser() (*api.UserDataResponse, error) {
-	slog.Debug("Creating user")
-	return core().CreateUser()
-}
-
 // Get user data from the local config
 //
 //export getUserData
@@ -558,6 +551,22 @@ func removeDevice(deviceId *C.char) *C.char {
 		return SendError(err)
 	}
 	slog.Debug("Device removed successfully", "deviceId", deviceId, "response", linkresp)
+	return C.CString("ok")
+}
+
+// referralAttachment attaches a referral code to the user's account.
+//
+//export referralAttachment
+func referralAttachment(_referralCode *C.char) *C.char {
+	referralCode := C.GoString(_referralCode)
+	slog.Debug("Getting referral attachment")
+	ok, err := core().ReferralAttachment(referralCode)
+	if err != nil {
+		return SendError(err)
+	}
+	if !ok {
+		return SendError(fmt.Errorf("failed to get referral attachment"))
+	}
 	return C.CString("ok")
 }
 

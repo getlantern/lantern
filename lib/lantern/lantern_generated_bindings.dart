@@ -2864,6 +2864,21 @@ class LanternBindings {
   late final _removeDevice = _removeDevicePtr
       .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
 
+  ffi.Pointer<ffi.Char> referralAttachment(
+    ffi.Pointer<ffi.Char> _referralCode,
+  ) {
+    return _referralAttachment(
+      _referralCode,
+    );
+  }
+
+  late final _referralAttachmentPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>)>>('referralAttachment');
+  late final _referralAttachment = _referralAttachmentPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
+
   ffi.Pointer<ffi.Char> startChangeEmail(
     ffi.Pointer<ffi.Char> _newEmail,
     ffi.Pointer<ffi.Char> _password,

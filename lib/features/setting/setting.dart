@@ -7,6 +7,7 @@ import 'package:lantern/core/localization/localization_constants.dart';
 import 'package:lantern/core/models/mapper/user_mapper.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
+import 'package:lantern/features/plans/provider/referral_notifier.dart';
 import 'package:lantern/features/setting/follow_us.dart'
     show showFollowUsBottomSheet;
 import 'package:lantern/lantern/lantern_service_notifier.dart';
@@ -357,8 +358,10 @@ class _SettingState extends ConsumerState<Setting> {
       (user) {
         context.hideLoadingDialog();
         appRouter.popUntilRoot();
+        ref.read(referralNotifierProvider.notifier).resetReferral();
         ref.read(appSettingNotifierProvider.notifier).setUserLoggedIn(false);
         ref.read(homeNotifierProvider.notifier).updateUserData(user);
+
         appLogger.info('Logout success: $user');
       },
     );

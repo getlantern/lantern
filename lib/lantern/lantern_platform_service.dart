@@ -967,4 +967,16 @@ class LanternPlatformService implements LanternCoreService {
       return Left(e.toFailure());
     }
   }
+
+  @override
+  Future<Either<Failure, String>> attachReferralCode(String code) async {
+    try {
+      final result =
+          await _methodChannel.invokeMethod<String>('attachReferralCode', code);
+      return right(result!);
+    } catch (e, stackTrace) {
+      appLogger.error('Error attaching referral code', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
 }

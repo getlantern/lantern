@@ -101,7 +101,16 @@ class ConfirmEmail extends HookConsumerWidget {
   }
 
   Future<void> onBackPresses(WidgetRef ref, BuildContext context) async {
-    if(authFlow != AuthFlow.signUp){
+    final appSettings = ref.read(appSettingNotifierProvider);
+    final isLoggedIn = appSettings.userLoggedIn;
+
+    /// In case of logged in user just pop the screen
+    /// we do not want to delete user since account is created but user do not have pro
+    if (isLoggedIn) {
+      appRouter.pop();
+      return;
+    }
+    if (authFlow != AuthFlow.signUp) {
       appRouter.pop();
       return;
     }

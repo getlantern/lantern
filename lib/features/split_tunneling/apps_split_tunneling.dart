@@ -99,7 +99,8 @@ class AppsSplitTunneling extends HookConsumerWidget {
                     }
                     final app = filteredEnabled[i - 1];
                     return AppRow(
-                      app: app.copyWith(isEnabled: true),
+                      app: app,
+                      enabled: true,
                       onToggle: () => notifier.toggleApp(app),
                     );
                   },
@@ -136,6 +137,7 @@ class AppsSplitTunneling extends HookConsumerWidget {
                         final app = filteredDisabled[i - 1];
                         return AppRow(
                           app: app,
+                          enabled: false,
                           onToggle: () => notifier.toggleApp(app),
                         );
                       },
@@ -150,10 +152,12 @@ class AppsSplitTunneling extends HookConsumerWidget {
 
 class AppRow extends StatelessWidget {
   final AppData app;
+  final bool enabled;
   final VoidCallback? onToggle;
 
   const AppRow({
     super.key,
+    required this.enabled,
     required this.app,
     this.onToggle,
   });
@@ -202,7 +206,7 @@ class AppRow extends StatelessWidget {
           ),
           if (onToggle != null)
             AppIconButton(
-              path: app.isEnabled ? AppImagePaths.minus : AppImagePaths.plus,
+              path: enabled ? AppImagePaths.minus : AppImagePaths.plus,
               onPressed: onToggle!,
             ),
         ],

@@ -7,7 +7,6 @@ import (
 	"log/slog"
 	"sync/atomic"
 
-	"github.com/getlantern/radiance/api"
 	"github.com/sagernet/sing-box/experimental/libbox"
 	_ "golang.org/x/mobile/bind"
 
@@ -198,19 +197,13 @@ func LoadInstalledApps(dataDir string) (string, error) {
 }
 
 // User Methods
-// Todo make sure to add retry logic
-// we need to make sure that the user is created before we can use the radiance server
-func CreateUser() (*api.UserDataResponse, error) {
-	return withCoreR(func(c lanterncore.Core) (*api.UserDataResponse, error) { return c.CreateUser() })
-}
-
-// this will return the user data from the user config
+// UserData returns pre-fetched user data.
 func UserData() ([]byte, error) {
 	slog.Debug("User data")
 	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.UserData() })
 }
 
-// GetUserData will get the user data from the server
+// FetchUserData will get the user data from the server
 func FetchUserData() ([]byte, error) {
 	slog.Debug("Fetching user data")
 	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.FetchUserData() })
@@ -310,10 +303,15 @@ func RemoveDevice(deviceId string) error {
 	})
 }
 
-// // This will complete the email recovery by setting the new password
-// func CompleteChangeEmail(email, password, code string) error {
-// 	return c.CompleteChangeEmail(email, password, code)
-// }
+func ReferralAttachment(referralCode string) error {
+	return withCore(func(c lanterncore.Core) error {
+		ok, err := c.ReferralAttachment(referralCode)
+		if !ok {
+			return err
+		}
+		return nil
+	})
+}
 
 func DeleteAccount(email, password string) ([]byte, error) {
 	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.DeleteAccount(email, password) })

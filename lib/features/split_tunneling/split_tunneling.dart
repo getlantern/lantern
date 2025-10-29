@@ -29,6 +29,11 @@ class SplitTunneling extends HookConsumerWidget {
     final enabledWebsites = ref.watch(splitTunnelingWebsitesProvider).toList();
     final expansionTileController = useExpansionTileController();
     final locationSubtitle = useState<String>('global_optimized'.i18n);
+    final notifier = ref.read(appSettingNotifierProvider.notifier);
+
+    void toggleSplitTunneling() {
+      notifier.setSplitTunnelingEnabled(!splitTunnelingEnabled);
+    }
 
     useEffect(() {
       IPUtils.getUserCountry().then((country) {
@@ -67,6 +72,7 @@ class SplitTunneling extends HookConsumerWidget {
                     fontSize: 16,
                     color: AppColors.gray9,
                   ),
+                  onPressed: toggleSplitTunneling,
                   minHeight: 56,
                   trailing: SwitchButton(
                     value: splitTunnelingEnabled,

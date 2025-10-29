@@ -602,4 +602,11 @@ class LanternService implements LanternCoreService {
     }
     return _platformService.setBlockAdsEnabled(enabled);
   }
+
+  Future<Either<Failure, String>> attachReferralCode(String code) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.attachReferralCode(code);
+    }
+    return _platformService.attachReferralCode(code);
+  }
 }
