@@ -17,14 +17,14 @@ class Flag extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: AppColors.gray3, width: .5),
-        borderRadius: BorderRadius.circular(3),
+        border: Border.all(color: AppColors.gray3, width: 1),
+        borderRadius: BorderRadius.circular(2),
       ),
       child: CountryFlag.fromCountryCode(
         countryCode,
-        height: size?.height ?? 17,
-        width: size?.width ?? 24,
-        shape: RoundedRectangle(3.0),
+        height: size?.height ?? 24,
+        width: size?.width ?? 17,
+        shape: RoundedRectangle(5.0),
       ),
     );
   }
