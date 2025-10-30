@@ -60,7 +60,7 @@ class LanternFFIService implements LanternCoreService {
   static final flutterEventReceivePort = ReceivePort();
 
   static LanternBindings _gen() {
-    String fullPath = "";
+    String fullPath = p.dirname(Platform.resolvedExecutable);
     if (Platform.isWindows) {
       fullPath = p.join(fullPath, "bin", "$_libName.dll");
       // Check if the file at fullPath exists; if not, adjust the path. This can 
