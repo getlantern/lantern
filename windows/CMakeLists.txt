@@ -75,7 +75,7 @@ if(EXISTS "${WINTUN_DLL}")
           DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
           COMPONENT Runtime)
 else()
-  message(WARNING "wintun.dll not found at ${WINTUN_DLL}; run `make wintun` or vendor it.")
+  message(WARNING "wintun.dll not found at ${WINTUN_DLL}; run `make wintun`")
 endif()
 
 # Generated plugin build rules, which manage building the plugins and adding
