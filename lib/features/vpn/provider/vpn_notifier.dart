@@ -56,6 +56,7 @@ class VpnNotifier extends _$VpnNotifier {
     if (state == VPNStatus.connecting || state == VPNStatus.disconnecting) {
       return Right("");
     }
+    appLogger.info("VPN State Change requested. Current state: $state");
     return state == VPNStatus.disconnected ? startVPN() : stopVPN();
   }
 

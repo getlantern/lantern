@@ -8,6 +8,7 @@ import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import lantern.io.libbox.Notification
@@ -120,7 +121,9 @@ class LanternVpnService :
     }
 
     override fun onDestroy() {
-        try { destroy() } finally {
+        try {
+            destroy()
+        } finally {
             serviceScope.cancel()
             super.onDestroy()
         }
@@ -223,14 +226,7 @@ class LanternVpnService :
 
                 runCatching { DefaultNetworkMonitor.stop() }
                     .onFailure { e -> Log.e(TAG, "DefaultNetworkMonitor.stop() failed", e) }
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    stopForeground(STOP_FOREGROUND_REMOVE)
-                } else {
-                    @Suppress("DEPRECATION") stopForeground(true)
-                }
                 notificationHelper.stopVPNConnectedNotification(this@LanternVpnService)
-
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     QuickTileService.triggerUpdateTileState(this@LanternVpnService, false)
                 }
@@ -250,7 +246,9 @@ class LanternVpnService :
     private fun destroy() {
         doStopVPN()
         VpnStatusManager.unregisterVPNStatusReceiver(this)
+        MainActivity.receiverRegistered = false
         stopSelf()
+
     }
 
     private fun createVPNBuilder(options: TunOptions): VpnService.Builder {

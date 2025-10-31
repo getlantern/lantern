@@ -420,7 +420,6 @@ class MethodHandler : FlutterPlugin,
                             success(bytes)
                         }
 
-
                     }.onFailure { e ->
                         result.error(
                             "OAuthLoginCallback",
