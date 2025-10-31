@@ -55,9 +55,11 @@ add_subdirectory("runner")
 #
 ## Copy liblantern.dll for local development
 set(LANTERN_DIR "..")
+set(LIBLANTERN_DLL "${LANTERN_DIR}/bin/windows/liblantern.dll")
 
-install(FILES "${LANTERN_DIR}/bin/windows/liblantern.dll"
-        DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
+install(FILES "${LIBLANTERN_DLL}"
+        DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+        COMPONENT Runtime)
 
 # Generated plugin build rules, which manage building the plugins and adding
 # them to the application.
