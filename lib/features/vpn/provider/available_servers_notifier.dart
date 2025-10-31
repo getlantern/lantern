@@ -1,4 +1,4 @@
-import 'package:fpdart/src/either.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/utils/failure.dart';

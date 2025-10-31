@@ -69,8 +69,8 @@ class HomeNotifier extends _$HomeNotifier {
   }
 
   /// Clear any user-specific data upon logout.
-  /// Updates server location to default.
-  /// Updates servers list
+  /// Updates server location to fastest.
+  /// Fetches available servers again.
   void clearLogoutData() {
     ref.read(referralNotifierProvider.notifier).resetReferral();
     ref.read(appSettingNotifierProvider.notifier).setUserLoggedIn(false);
