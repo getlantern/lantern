@@ -12,9 +12,7 @@ toolchain go1.24.1
 
 replace github.com/sagernet/sing => github.com/getlantern/sing v0.6.13-0.20250812195008-c4468d0c7c42
 
-replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v1.11.16-lantern.0.20251020163249-4723d6513bf2
-
-replace github.com/sagernet/wireguard-go => github.com/getlantern/wireguard-go v0.0.1-beta.5-amnezia
+replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v1.11.16-lantern.0.20251103164629-13fd9318fa6f
 
 replace google.golang.org/genproto v0.0.0-20211118181313-81c1377c94b1 => google.golang.org/genproto v0.0.0-20250715232539-7130f93afb79
 
@@ -24,7 +22,7 @@ require (
 	github.com/Microsoft/go-winio v0.6.2
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20250617134205-a652cb0cef27
-	github.com/getlantern/radiance v0.0.0-20251027220541-99e57685f4e8
+	github.com/getlantern/radiance v0.0.0-20251103165733-dd5767c11c11
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/sagernet/sing-box v1.11.5
 	golang.org/x/mobile v0.0.0-20250711185624-d5bb5ecc55c0
@@ -177,7 +175,7 @@ require (
 	github.com/getlantern/mtime v0.0.0-20200417132445-23682092d1f7 // indirect
 	github.com/getlantern/netx v0.0.0-20240830183145-c257516187f0 // indirect
 	github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 // indirect
-	github.com/getlantern/sing-box-extensions v0.0.6-0.20251020164316-b478245ebfa5 // indirect
+	github.com/getlantern/sing-box-extensions v0.0.6-0.20251103164448-2fc19f5f1b7a // indirect
 	github.com/getlantern/timezone v0.0.0-20210901200113-3f9de9d360c9 // indirect
 	github.com/getlantern/tlsdialer/v3 v3.0.3 // indirect
 	github.com/getsentry/sentry-go v0.31.1 // indirect
@@ -222,7 +220,6 @@ require (
 	github.com/sagernet/sing-tun v0.6.9 // indirect
 	github.com/shadowsocks/go-shadowsocks2 v0.1.5 // indirect
 	github.com/tetratelabs/wazero v1.7.3 // indirect
-	github.com/tevino/abool/v2 v2.1.0 // indirect
 	github.com/tidwall/btree v1.6.0 // indirect
 	github.com/tkuchiki/go-timezone v0.2.0 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
