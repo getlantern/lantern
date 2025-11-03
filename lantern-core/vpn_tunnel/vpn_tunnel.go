@@ -24,7 +24,9 @@ const (
 // It passes the empty string so it will connect to best server available.
 func StartVPN(platform libbox.PlatformInterface, opts *utils.Opts) error {
 	slog.Info("StartVPN called")
-	initCommon(opts)
+	if err := initCommon(opts); err != nil {
+		return fmt.Errorf("failed to initialize common: %w", err)
+	}
 	/// it should use InternalTagLantern so it will connect to best lantern server by default.
 	// if you want to connect to user server, use ConnectToServer with InternalTagUser
 	return vpn.QuickConnect("", platform)
@@ -40,7 +42,9 @@ func StopVPN() error {
 // VPN tunnel if it's not already running.
 func ConnectToServer(group, tag string, platIfce libbox.PlatformInterface, opts *utils.Opts) error {
 	slog.Debug("ConnectToServer called", "group", group, "tag", tag)
-	initCommon(opts)
+	if err := initCommon(opts); err != nil {
+		return fmt.Errorf("failed to initialize common: %w", err)
+	}
 	switch group {
 	case string(InternalTagAutoAll), "auto":
 		group = "all"
