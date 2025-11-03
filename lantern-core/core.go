@@ -176,6 +176,11 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	})
 
 	slog.Debug("LanternCore initialized successfully")
+
+	// If we have a legacy user ID, fetch user data
+	if lc.rad.UserInfo().LegacyID() != 0 {
+		core.FetchUserData()
+	}
 	return nil
 }
 
