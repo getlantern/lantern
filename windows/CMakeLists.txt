@@ -55,9 +55,28 @@ add_subdirectory("runner")
 #
 ## Copy liblantern.dll for local development
 set(LANTERN_DIR "..")
+set(LIBLANTERN_DLL "${LANTERN_DIR}/bin/windows/liblantern.dll")
 
-install(FILES "${LANTERN_DIR}/bin/windows/liblantern.dll"
-        DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
+install(FILES "${LIBLANTERN_DLL}"
+        DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+        COMPONENT Runtime)
+
+
+if(CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64")
+  set(WINTUN_ARCH "arm64")
+else()
+  set(WINTUN_ARCH "amd64")
+endif()
+
+set(WINTUN_DLL "${CMAKE_SOURCE_DIR}/third_party/wintun/bin/${WINTUN_ARCH}/wintun.dll")
+
+if(EXISTS "${WINTUN_DLL}")
+  install(FILES "${WINTUN_DLL}"
+          DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+          COMPONENT Runtime)
+else()
+  message(WARNING "wintun.dll not found at ${WINTUN_DLL}; run `make wintun`")
+endif()
 
 # Generated plugin build rules, which manage building the plugins and adding
 # them to the application.
