@@ -167,6 +167,13 @@ class LanternVpnService :
                 VpnStatusManager.postVPNStatus(VPNStatus.MissingPermission)
                 return@withContext
             }
+
+            /** As soon user tries to start VPN, we show a notification that VPN is starting
+             * This is required by OS to have foreground notification as soon as VPN service starts
+             * This notification will be replaced by connected notification once VPN is connected
+             * This is to prevent crashing if case vpn is failed to start
+             */
+            notificationHelper.showStartingVPNConnectedNotification(this@LanternVpnService)
             runCatching {
                 DefaultNetworkMonitor.start()
                 Mobile.startVPN(this@LanternVpnService, opts())
@@ -183,6 +190,9 @@ class LanternVpnService :
                     errorMessage = "Error starting VPN service",
                     error = e,
                 )
+                //For some reasons, if VPN fails to start, the we need to kill the service
+                // if we don't kill OS will remove it after 5 seconds
+                notificationHelper.stopVPNConnectedNotification(this@LanternVpnService)
             }
         }
 
