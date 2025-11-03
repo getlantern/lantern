@@ -26,7 +26,6 @@ class AppsSplitTunneling extends HookConsumerWidget {
     final notifier = ref.read(splitTunnelingAppsProvider.notifier);
     final enabledApps = ref.watch(splitTunnelingAppsProvider);
     final allApps = (ref.watch(appsDataProvider).value ?? [])
-        .where((a) => a.iconPath.isNotEmpty || a.iconBytes != null)
         .where((a) => a.bundleId != AppSecrets.lanternPackageName)
         .toList()
       ..sort((a, b) => a.name.compareTo(b.name));
@@ -38,8 +37,8 @@ class AppsSplitTunneling extends HookConsumerWidget {
 
     final filteredEnabled = enabledApps.where(matchesSearch).toList()
       ..sort((a, b) => a.name.compareTo(b.name));
-    final filteredDisabled = installedApps
-        .where((a) => !enabledApps.any((e) => e.name == a.name))
+    final filteredDisabled = allApps
+        .where((a) => !enabledApps.any((e) => e.bundleId == a.bundleId))
         .where(matchesSearch)
         .toList()
       ..sort((a, b) => a.name.compareTo(b.name));
