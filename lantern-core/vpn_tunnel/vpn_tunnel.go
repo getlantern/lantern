@@ -21,14 +21,10 @@ const (
 )
 
 // StartVPN will start the VPN tunnel using the provided platform interface.
-// it pass empty string so it will connect to best server available.
-func StartVPN(platform libbox.PlatformInterface, options *utils.Opts) error {
-	if radianceCommon.IsIOS() || radianceCommon.IsMacOS() {
-		err := initializeCommonForApplePlatforms(options)
-		if err != nil {
-			return err
-		}
-	}
+// It passes the empty string so it will connect to best server available.
+func StartVPN(platform libbox.PlatformInterface, opts *utils.Opts) error {
+	slog.Info("StartVPN called")
+	initCommon(opts)
 	/// it should use InternalTagLantern so it will connect to best lantern server by default.
 	// if you want to connect to user server, use ConnectToServer with InternalTagUser
 	return vpn.QuickConnect("", platform)
@@ -42,8 +38,9 @@ func StopVPN() error {
 // ConnectToServer will connect to a specific VPN server identified by the group and tag. If tag is
 // empty, it will connect to the best server available in that group. ConnectToServer will start the
 // VPN tunnel if it's not already running.
-func ConnectToServer(group, tag string, platIfce libbox.PlatformInterface, options *utils.Opts) error {
+func ConnectToServer(group, tag string, platIfce libbox.PlatformInterface, opts *utils.Opts) error {
 	slog.Debug("ConnectToServer called", "group", group, "tag", tag)
+	initCommon(opts)
 	switch group {
 	case string(InternalTagAutoAll), "auto":
 		group = "all"
@@ -51,12 +48,6 @@ func ConnectToServer(group, tag string, platIfce libbox.PlatformInterface, optio
 		group = string(InternalTagUser)
 	case "lanternLocation":
 		group = string(InternalTagLantern)
-	}
-	if radianceCommon.IsIOS() || radianceCommon.IsMacOS() {
-		err := initializeCommonForApplePlatforms(options)
-		if err != nil {
-			return err
-		}
 	}
 	slog.Debug("Connecting to VPN server", "group", group, "tag", tag)
 	if tag == "" {
@@ -80,14 +71,21 @@ func GetSelectedServer() string {
 	return status.SelectedServer
 }
 
-func initializeCommonForApplePlatforms(options *utils.Opts) error {
+func initCommon(opts *utils.Opts) error {
 	// Since this will start as a new process, we need to ask for path and logger.
 	// This ensures options are correctly set for the new process.
-	slog.Debug("Initializing common for Apple platforms", "dataDir", options.DataDir, "logDir:",
-		options.LogDir, "logLevel:", options.LogLevel)
-	if err := radianceCommon.Init(options.DataDir, options.LogDir, options.LogLevel, options.Deviceid); err != nil {
-		return fmt.Errorf("failed to initialize common: %w", err)
+	if radianceCommon.IsIOS() || radianceCommon.IsMacOS() {
+		slog.Debug("Initializing common for Apple platforms", "dataDir", opts.DataDir, "logDir:",
+			opts.LogDir, "logLevel:", opts.LogLevel)
+		if err := radianceCommon.Init(opts.DataDir, opts.LogDir, opts.LogLevel); err != nil {
+			return fmt.Errorf("failed to initialize common: %w", err)
+		}
+	} else if radianceCommon.IsWindows() {
+		if err := radianceCommon.Init("", "", "debug"); err != nil {
+			return fmt.Errorf("failed to initialize common: %w", err)
+		}
 	}
+
 	return nil
 }
 
