@@ -156,12 +156,10 @@ class NotificationHelper {
     /**
      * Shows the starting VPN notification as a foreground notification.
      * Also starts the service in the foreground and promotes it to a foreground service.
-     * Show s the notification as a foreground notification.
      */
     fun showStartingVPNConnectedNotification(vpnService: LanternVpnService) {
         showForegroundNotification(vpnService, VPN_CONNECTED, buildStartingVpnNotification())
     }
-
 
     /**
      * Shows the notification as a foreground notification.

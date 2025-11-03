@@ -171,7 +171,7 @@ class LanternVpnService :
             /** As soon user tries to start VPN, we show a notification that VPN is starting
              * This is required by OS to have foreground notification as soon as VPN service starts
              * This notification will be replaced by connected notification once VPN is connected
-             * This is to prevent crashing if case vpn is failed to start
+             * This is to prevent crashing in case vpn is failed to start
              */
             notificationHelper.showStartingVPNConnectedNotification(this@LanternVpnService)
             runCatching {
@@ -190,9 +190,8 @@ class LanternVpnService :
                     errorMessage = "Error starting VPN service",
                     error = e,
                 )
-                //For some reasons, if VPN fails to start, the we need to kill the service
-                // if we don't kill OS will remove it after 5 seconds
-                notificationHelper.stopVPNConnectedNotification(this@LanternVpnService)
+                /// if starting VPN fails, we need to clean up the service
+                serviceCleanUp()
             }
         }
 
@@ -241,7 +240,7 @@ class LanternVpnService :
                     QuickTileService.triggerUpdateTileState(this@LanternVpnService, false)
                 }
                 VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
-                stopSelf()
+                serviceCleanUp()
             } catch (e: Exception) {
                 Log.e(TAG, "Error stopping VPN service", e)
                 VpnStatusManager.postVPNError(
@@ -255,10 +254,13 @@ class LanternVpnService :
 
     private fun destroy() {
         doStopVPN()
+        serviceCleanUp()
+    }
+
+    private fun serviceCleanUp() {
         VpnStatusManager.unregisterVPNStatusReceiver(this)
         MainActivity.receiverRegistered = false
         stopSelf()
-
     }
 
     private fun createVPNBuilder(options: TunOptions): VpnService.Builder {
@@ -267,7 +269,6 @@ class LanternVpnService :
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             builder.setMetered(false)
         }
-
         val inet4Address = options.inet4Address
         while (inet4Address.hasNext()) {
             val address = inet4Address.next()
