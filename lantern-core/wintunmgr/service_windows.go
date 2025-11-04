@@ -392,6 +392,7 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		}
 	}()
 
+	slog.Debugf("Service dispatch: %v", r.Cmd)
 	switch r.Cmd {
 
 	case common.CmdSetupAdapter:

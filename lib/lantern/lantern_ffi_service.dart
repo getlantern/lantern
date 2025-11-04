@@ -60,16 +60,18 @@ class LanternFFIService implements LanternCoreService {
   static final flutterEventReceivePort = ReceivePort();
 
   static LanternBindings _gen() {
-    String fullPath = p.dirname(Platform.resolvedExecutable);
+    String basePath = p.dirname(Platform.resolvedExecutable);
+    String fullPath = "";
     if (Platform.isWindows) {
-      fullPath = p.join(fullPath, "bin", "$_libName.dll");
-      // Check if the file at fullPath exists; if not, adjust the path. This can 
-      // vary in dev vs prod.
+      fullPath = p.join(basePath, "$_libName.dll");
       if (!File(fullPath).existsSync()) {
-        fullPath = p.join(fullPath, "bin", "windows", "$_libName.dll");
+        fullPath = p.join(basePath, "bin", "$_libName.dll");
+      }
+      if (!File(fullPath).existsSync()) {
+        fullPath = p.join(basePath, "bin", "windows", "$_libName.dll");
       }
     } else {
-      fullPath = p.join(fullPath, "$_libName.so");
+      fullPath = p.join(basePath, "$_libName.so");
     }
     appLogger.debug('singbox native libs path: "$fullPath"');
     final lib = DynamicLibrary.open(fullPath);
@@ -109,10 +111,10 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<String, Unit>> _setupRadiance() async {
     try {
       appLogger.debug('Setting up radiance');
-      final dataDir = await AppStorageUtils.getAppDirectory();
-      final logDir = await AppStorageUtils.getAppLogDirectory();
-      appLogger.debug("Data dir: ${dataDir.path}, Log dir: $logDir");
-      final dataDirPtr = dataDir.path.toCharPtr;
+      // Let the Go backend handle data and log directories.
+      final dataDir = "";
+      final logDir = "";
+      final dataDirPtr = dataDir.toCharPtr;
       final logDirPtr = logDir.toCharPtr;
       final result = await runInBackground<String>(
         () async {
