@@ -161,9 +161,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
         //sign up successful
         //start forgot password flow
         context.hideLoadingDialog();
-        ref.read(appSettingNotifierProvider.notifier)
-          ..setEmail(email)
-          ..setUserLoggedIn(true);
+        ref.read(appSettingNotifierProvider.notifier).setEmail(email);
         startForgotPasswordFlow(email, tempPassword);
       },
     );
@@ -218,7 +216,6 @@ class _AddEmailState extends ConsumerState<AddEmail> {
   }
 
   //Change Email flow
-
   void startChangeEmailFlow(String email) async {
     context.showLoadingDialog();
     final result = await ref
