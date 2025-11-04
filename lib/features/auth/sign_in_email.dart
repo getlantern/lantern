@@ -70,8 +70,8 @@ class SignInEmail extends HookConsumerWidget {
             DividerSpace(),
             SizedBox(height: 32),
             AppRichText(
-              texts: 'New to Lantern? ',
-              boldTexts: 'Create an account',
+              texts: '${'new_to_lantern_pro'.i18n} ',
+              boldTexts: 'create_an_account'.i18n,
               boldUnderline: true,
               boldOnPressed: () {
                 appRouter.push(Plans());

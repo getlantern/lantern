@@ -1178,3 +1178,9 @@ msgstr "Not a Lantern Pro user yet? You'll become one when your first referral s
 
 msgid "lantern_pro_license"
 msgstr "Lantern Pro License"
+
+msgid "new_to_lantern"
+msgstr "New to Lantern?"
+
+msgid "create_an_account"
+msgstr "Create an account"
