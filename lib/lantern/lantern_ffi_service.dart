@@ -111,10 +111,10 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<String, Unit>> _setupRadiance() async {
     try {
       appLogger.debug('Setting up radiance');
-      // Let the Go backend handle data and log directories.
-      final dataDir = "";
-      final logDir = "";
-      final dataDirPtr = dataDir.toCharPtr;
+      final dataDir = await AppStorageUtils.getAppDirectory();
+      final logDir = await AppStorageUtils.getAppLogDirectory();
+      appLogger.debug("Data dir: ${dataDir.path}, Log dir: $logDir");
+      final dataDirPtr = dataDir.path.toCharPtr;
       final logDirPtr = logDir.toCharPtr;
       final result = await runInBackground<String>(
         () async {
