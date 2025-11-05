@@ -133,7 +133,7 @@ procedure InstallSilentlyIfNeeded(const Title, InstallerPath, Args: string);
 var
   Code: Integer;
 begin
-  if InstallerPath = '' then exit;
+  if InstallerPath = '' then Exit;
   Log(Format('Running %s: %s %s', [Title, InstallerPath, Args]));
   if not Exec(InstallerPath, Args, '', SW_HIDE, ewWaitUntilTerminated, Code) then
     Log(Format('%s Exec failed. Code=%d', [Title, Code]))
