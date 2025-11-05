@@ -126,6 +126,16 @@ class PrivateServerNotifier extends _$PrivateServerNotifier {
               PrivateServerStatus(status: 'initial', data: null, error: null);
         });
         break;
+      case 'EventTypeValidationError':
+        appLogger.error("Validation error: ${status.error}");
+        state = status;
+
+        ///reset state to initial once server is added
+        Future.delayed(const Duration(seconds: 1), () {
+          state =
+              PrivateServerStatus(status: 'initial', data: null, error: null);
+        });
+        break;
       default:
         state = status;
     }

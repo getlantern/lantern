@@ -88,7 +88,9 @@ class PrivateServerAddBilling extends StatelessWidget {
             icon: AppImagePaths.outsideBrowser,
             iconColor: AppColors.white,
             label: 'open_system_settings'.i18n,
-            onPressed: () {},
+            onPressed: () {
+              UrlUtils.openUrl(AppUrls.digitalOceanBillingUrl);
+            },
           ),
           SizedBox(height: defaultSize),
           SecondaryButton(

@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
@@ -50,6 +51,14 @@ class PrivateServerSetup extends HookConsumerWidget {
             accounts: accounts, provider: selectedProvider));
       }
       if (serverState.status == 'EventTypeValidationError') {
+        /// User has created new account but it does not have billing set up yet
+        if (serverState.error?.contains('account is not active') ?? false) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            context.hideLoadingDialog();
+            appRouter.push(PrivateServerAddBilling());
+          });
+          return;
+        }
         WidgetsBinding.instance.addPostFrameCallback((_) {
           context.hideLoadingDialog();
           appLogger.error(
@@ -147,18 +156,17 @@ class PrivateServerSetup extends HookConsumerWidget {
 
   Future<void> _continue(
       CloudProvider provider, WidgetRef ref, BuildContext context) async {
-    appRouter.push(PrivateServerAddBilling());
-    // final Either<Failure, Unit> result;
-    // if (provider == CloudProvider.googleCloud) {
-    //   result =
-    //       await ref.read(privateServerNotifierProvider.notifier).googleCloud();
-    // } else {
-    //   result =
-    //       await ref.read(privateServerNotifierProvider.notifier).digitalOcean();
-    // }
-    // result.fold(
-    //   (f) => context.showSnackBar(f.localizedErrorMessage),
-    //   (_) {},
-    // );
+    final Either<Failure, Unit> result;
+    if (provider == CloudProvider.googleCloud) {
+      result =
+          await ref.read(privateServerNotifierProvider.notifier).googleCloud();
+    } else {
+      result =
+          await ref.read(privateServerNotifierProvider.notifier).digitalOcean();
+    }
+    result.fold(
+      (f) => context.showSnackBar(f.localizedErrorMessage),
+      (_) {},
+    );
   }
 }

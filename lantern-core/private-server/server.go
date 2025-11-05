@@ -150,7 +150,7 @@ func listenToServerEvents(ps provisionSession) {
 				log.Debug("Validation started")
 				// events.OnPrivateServerEvent(convertStatusToJSON("EventTypeValidationStarted", "Validation started, please wait..."))
 			case pcommon.EventTypeValidationError:
-				log.Errorf("Validation failed", e.Error)
+				log.Errorf("Validation failed: %v %v", e.Error.Error(), e.Message)
 				events.OnError(convertErrorToJSON("EventTypeValidationError", e.Error))
 				return
 			case pcommon.EventTypeValidationCompleted:
