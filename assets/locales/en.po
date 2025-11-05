@@ -1182,3 +1182,8 @@ msgstr "Lantern Pro License"
 msgid "select_account"
 msgstr "Select Account"
 
+msgid "new_to_lantern"
+msgstr "New to Lantern?"
+
+msgid "create_an_account"
+msgstr "Create an account"

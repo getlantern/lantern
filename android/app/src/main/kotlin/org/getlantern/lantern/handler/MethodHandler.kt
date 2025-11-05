@@ -74,6 +74,8 @@ enum class Methods(val method: String) {
     GetAutoServerLocation("getAutoServerLocation"),
 
     //Split Tunnel methods
+    SetSplitTunnelingEnabled("setSplitTunnelingEnabled"),
+    IsSplitTunnelingEnabled("isSplitTunnelingEnabled"),
     AddSplitTunnelItem("addSplitTunnelItem"),
     RemoveSplitTunnelItem("removeSplitTunnelItem"),
     AddAllItems("addAllItems"),
@@ -170,6 +172,29 @@ class MethodHandler : FlutterPlugin,
                         }
                     }.onFailure { e ->
                         result.error("vpn_status", e.localizedMessage ?: "Please try again", e)
+                    }
+                }
+            }
+
+            Methods.SetSplitTunnelingEnabled.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val enabled = call.argument<Boolean>("enabled") ?: error("Missing enabled")
+                        Mobile.setSplitTunnelingEnabled(enabled)
+                        withContext(Dispatchers.Main) { success("ok") }
+                    }.onFailure { e ->
+                        result.error("set_split_tunneling_enabled", e.localizedMessage ?: "Failed", e)
+                    }
+                }
+            }
+
+            Methods.IsSplitTunnelingEnabled.method -> {
+                scope.launch {
+                    runCatching {
+                        val on = Mobile.isSplitTunnelingEnabled()
+                        withContext(Dispatchers.Main) { result.success(on) }
+                    }.onFailure { e ->
+                        result.error("is_split_tunneling_enabled", e.localizedMessage ?: "Failed", e)
                     }
                 }
             }
@@ -420,7 +445,6 @@ class MethodHandler : FlutterPlugin,
                         withContext(Dispatchers.Main) {
                             success(bytes)
                         }
-
 
                     }.onFailure { e ->
                         result.error(
