@@ -58,7 +58,7 @@ set(LANTERN_DIR "..")
 set(LIBLANTERN_DLL "${LANTERN_DIR}/bin/windows/liblantern.dll")
 
 install(FILES "${LIBLANTERN_DLL}"
-        DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+        DESTINATION ${CMAKE_INSTALL_PREFIX}
         COMPONENT Runtime)
 
 # Generated plugin build rules, which manage building the plugins and adding
