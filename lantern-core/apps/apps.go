@@ -65,11 +65,13 @@ func scanAppDirs(appDirs []string, seen map[string]bool, excludeDirs []string, c
 		_ = filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
 			slog.Info("Visiting", "path", path)
 			if err != nil || d == nil {
+				slog.Info("Error accessing path", "path", path, "error", err)
 				return nil
 			}
-			if !d.IsDir() {
-				return nil
-			}
+			//if !d.IsDir() {
+			//	slog.Info("Not a directory")
+			//	return nil
+			//}
 
 			for _, ex := range excludeDirs {
 				if strings.HasPrefix(path, ex) {
@@ -80,29 +82,31 @@ func scanAppDirs(appDirs []string, seen map[string]bool, excludeDirs []string, c
 
 			base := filepath.Base(path)
 			if !strings.HasSuffix(base, appExtension) {
+				slog.Info("Not a potential app", "path", path)
 				return nil
 			}
-			bundleID, err := getAppID(path)
+			slog.Info("Found potential app", "path", path)
+			appID, err := getAppID(path)
 			if err != nil {
 				slog.Info("Could not find bundle ID for app", "path", path, "error", err)
 				return filepath.SkipDir
 			}
-			key := bundleID
+			key := appID
 
 			if key == "" {
 				key = path
 			}
 
-			if seen[bundleID] || seen[path] || seen[key] {
-				slog.Info("Skipping duplicate app", "name", strings.TrimSuffix(base, appExtension), "bundleID", bundleID, "path", path)
+			if seen[appID] || seen[path] || seen[key] {
+				slog.Info("Skipping duplicate app", "name", strings.TrimSuffix(base, appExtension), "bundleID", appID, "path", path)
 				return filepath.SkipDir
 			}
 
 			iconPath, _ := getIconPath(path)
 
-			slog.Info("Found app", "name", strings.TrimSuffix(base, appExtension), "bundleID", bundleID, "path", path, "icon", iconPath)
+			slog.Info("Found app", "name", strings.TrimSuffix(base, appExtension), "bundleID", appID, "path", path, "icon", iconPath)
 			app := &AppData{
-				BundleID: bundleID,
+				BundleID: appID,
 				Name:     strings.TrimSuffix(base, appExtension),
 				AppPath:  path,
 				IconPath: iconPath,
@@ -114,7 +118,7 @@ func scanAppDirs(appDirs []string, seen map[string]bool, excludeDirs []string, c
 				}
 			}
 			apps = append(apps, app)
-			seen[bundleID] = true
+			seen[appID] = true
 			seen[path] = true
 			seen[key] = true
 			return filepath.SkipDir

@@ -9,6 +9,7 @@ import (
 
 const appExtension = ".exe"
 
+// msg="found process path: C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
 func defaultAppDirs() []string {
 	return []string{
 		"C:\\Program Files",
@@ -34,7 +35,7 @@ func getIconPath(appPath string) (string, error) {
 
 	executablePath, err := syscall.UTF16PtrFromString("C:\\Windows\\System32\\notepad.exe")
 	if err != nil {
-		return "", fmt.Errorf("Could not get executable path %w", err)
+		return "", fmt.Errorf("could not get executable path %w", err)
 	}
 
 	// Example of calling ExtractIconExW (simplified)
@@ -53,8 +54,11 @@ func getIconPath(appPath string) (string, error) {
 	} else {
 		fmt.Println("ExtractIconExW called (check for icon handles)")
 	}
+
+	return "", errors.New("not implemented")
 }
 
 func getAppID(appPath string) (string, error) {
-	return "", errors.New("Not implemented")
+	return appPath, nil
+	//return "", errors.New("not implemented")
 }

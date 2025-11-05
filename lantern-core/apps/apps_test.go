@@ -3,8 +3,11 @@ package apps
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
+
+	"github.com/alecthomas/assert/v2"
 )
 
 func writeFile(t *testing.T, path, content string, mode os.FileMode) {
@@ -15,6 +18,21 @@ func writeFile(t *testing.T, path, content string, mode os.FileMode) {
 	if err := os.WriteFile(path, []byte(content), mode); err != nil {
 		t.Fatalf("write %s: %v", path, err)
 	}
+}
+
+func makeExe(t *testing.T, root string) string {
+	t.Helper()
+	// Copy notepad.exe as a dummy executable to root/name.exe
+	src := filepath.Join(os.Getenv("WINDIR"), "System32", "notepad.exe")
+	dest := filepath.Join(root, "notepad.exe")
+	data, err := os.ReadFile(src)
+	if err != nil {
+		t.Fatalf("read %s: %v", src, err)
+	}
+	if err := os.WriteFile(dest, data, 0o755); err != nil {
+		t.Fatalf("write %s: %v", dest, err)
+	}
+	return dest
 }
 
 func makeAppBundle(t *testing.T, root, name, bundleID string, withIcon bool) string {
@@ -33,6 +51,46 @@ func makeAppBundle(t *testing.T, root, name, bundleID string, withIcon bool) str
 		writeFile(t, filepath.Join(app, "Contents", "Resources", "AppIcon.icns"), "notreal", 0o644)
 	}
 	return app
+}
+
+func TestScanAppDirs_FindsAppsAndIconWindows(t *testing.T) {
+	tmp := t.TempDir()
+	root := filepath.Join(tmp, "Program Files")
+	if err := os.MkdirAll(root, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	appPath := makeExe(t, root)
+
+	var got []*AppData
+	cb := func(a ...*AppData) error {
+		got = append(got, a...)
+		return nil
+	}
+
+	apps := scanAppDirs([]string{root}, map[string]bool{}, excludeDirs, cb)
+	if len(apps) != 1 {
+		t.Fatalf("expected 1 app, got %d", len(apps))
+	}
+	if runtime.GOOS == "darwin" {
+		if apps[0].BundleID != "org.getlantern.lantern" {
+			t.Fatalf("app ID mismatch: %s", apps[0].BundleID)
+		}
+	} else if runtime.GOOS == "windows" {
+		assert.Equal(t, apps[0].BundleID, appPath, "app ID should match app path on Windows")
+	}
+	if apps[0].AppPath != appPath {
+		t.Fatalf("app path mismatch: %s", apps[0].AppPath)
+	}
+	if apps[0].Name != "Lantern" {
+		t.Fatalf("app name mismatch: %s", apps[0].Name)
+	}
+	if !strings.HasSuffix(apps[0].IconPath, ".icns") {
+		t.Fatalf("expected an .icns icon, got %q", apps[0].IconPath)
+	}
+	// Callback received the same item
+	if len(got) != 1 || got[0].BundleID != "org.getlantern.lantern" {
+		t.Fatalf("callback did not receive app data")
+	}
 }
 
 func TestScanAppDirs_FindsAppsAndIcon(t *testing.T) {
