@@ -174,18 +174,23 @@ func listenToServerEvents(ps provisionSession) {
 					ps.userCompartment = userCompartment
 					//Store the user selected project
 					projectList := pcommon.CompartmentEntryIDs(userCompartment.Entries)
+					if len(projectList) == 0 {
+						err := errors.New("no projects found in the selected compartment")
+						log.Error(err)
+						events.OnError(convertErrorToJSON("EventTypeNoProjects", err))
+						return
+					}
 					selectedProject := projectList[0]
 					project := pcommon.CompartmentEntryByID(userCompartment.Entries, selectedProject)
 					ps.userProject = project
 					ps.userProjectString = selectedProject
-
+					//store session
+					storeSession(&ps)
 					//Send location list to the event sink
 					locationList := pcommon.CompartmentEntryLocations(project)
 					// add delay
 					time.Sleep(1 * time.Second)
 					ps.eventSink.OnPrivateServerEvent(convertStatusToJSON("EventTypeLocations", strings.Join(locationList, ", ")))
-					//store session
-					storeSession(&ps)
 
 				} else {
 					ps.CurrentCompartments = compartments
