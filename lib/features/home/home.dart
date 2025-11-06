@@ -159,7 +159,7 @@ class _HomeState extends ConsumerState<Home> with RouteAware {
             VpnStatus(),
             DividerSpace(),
             LocationSetting(),
-            if (PlatformUtils.isAndroid || PlatformUtils.isMacOS) ...{
+            if (PlatformUtils.isAndroid || PlatformUtils.isMacOS || PlatformUtils.isWindows) ...{
               DividerSpace(),
               SettingTile(
                 label: 'split_tunneling'.i18n,
