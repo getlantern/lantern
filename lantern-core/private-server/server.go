@@ -177,7 +177,7 @@ func listenToServerEvents(ps provisionSession) {
 					if len(projectList) == 0 {
 						err := errors.New("no projects found in the selected compartment")
 						log.Error(err)
-						events.OnError(convertErrorToJSON("EventTypeNoProjects", err))
+						events.OnPrivateServerEvent(convertStatusToJSON("EventTypeNoProjects", "No projects found in the selected compartment"))
 						return
 					}
 					selectedProject := projectList[0]
