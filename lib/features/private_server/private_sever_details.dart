@@ -71,6 +71,17 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
         });
       }
 
+      if (serverState.status == 'EventTypeNoProjects') {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          appLogger.info("No projects found for the selected account.");
+          AppDialog.errorDialog(
+            context: context,
+            title: 'no_projects_found'.i18n,
+            content: serverState.error ?? 'no_projects_found_desc'.i18n,
+          );
+        });
+      }
+
       return null;
     }, [serverState.status, serverState.data]);
 

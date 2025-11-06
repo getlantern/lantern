@@ -1187,3 +1187,10 @@ msgstr "New to Lantern?"
 
 msgid "create_an_account"
 msgstr "Create an account"
+
+msgid "no_projects_found"
+msgstr "No Projects Found"
+
+msgid "no_projects_found_desc"
+msgstr "No projects found. Please create a project in your cloud provider account first."
+
