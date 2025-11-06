@@ -3,7 +3,6 @@ import 'package:lantern/core/models/mapper/user_mapper.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/plans/provider/referral_notifier.dart';
-import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:lantern/lantern/protos/protos/auth.pbserver.dart';
@@ -74,8 +73,5 @@ class HomeNotifier extends _$HomeNotifier {
   void clearLogoutData() {
     ref.read(referralNotifierProvider.notifier).resetReferral();
     ref.read(appSettingNotifierProvider.notifier).setUserLoggedIn(false);
-    ref
-        .read(availableServersNotifierProvider.notifier)
-        .forceFetchAvailableServers();
   }
 }

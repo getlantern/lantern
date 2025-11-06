@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:lantern/core/services/logger_service.dart';
-import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
+import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -33,8 +33,10 @@ class AppEventNotifier extends _$AppEventNotifier {
       final eventType = event.eventType;
       switch (eventType) {
         case 'config':
-          appLogger.debug('Received config event, refreshing feature flags.');
-          ref.read(featureFlagNotifierProvider.notifier).fetchFeatureFlags();
+          appLogger.debug('Received new config event.');
+          ref
+              .read(availableServersNotifierProvider.notifier)
+              .forceFetchAvailableServers();
           break;
         default:
           break;
