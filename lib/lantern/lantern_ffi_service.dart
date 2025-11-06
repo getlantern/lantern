@@ -60,11 +60,18 @@ class LanternFFIService implements LanternCoreService {
   static final flutterEventReceivePort = ReceivePort();
 
   static LanternBindings _gen() {
+    String basePath = p.dirname(Platform.resolvedExecutable);
     String fullPath = "";
     if (Platform.isWindows) {
-      fullPath = p.join(fullPath, "bin/windows", "$_libName.dll");
+      fullPath = p.join(basePath, "$_libName.dll");
+      if (!File(fullPath).existsSync()) {
+        fullPath = p.join(basePath, "bin", "$_libName.dll");
+      }
+      if (!File(fullPath).existsSync()) {
+        fullPath = p.join(basePath, "bin", "windows", "$_libName.dll");
+      }
     } else {
-      fullPath = p.join(fullPath, "$_libName.so");
+      fullPath = p.join(basePath, "$_libName.so");
     }
     appLogger.debug('singbox native libs path: "$fullPath"');
     final lib = DynamicLibrary.open(fullPath);

@@ -8,6 +8,7 @@ import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import lantern.io.libbox.Notification
@@ -31,7 +32,9 @@ import org.getlantern.lantern.utils.toIpPrefix
  * it should not include any logic that needs to be connected with any activity.
  * everything should be done in independent
  */
-class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
+class LanternVpnService :
+    VpnService(),
+    PlatformInterfaceWrapper {
     companion object {
         private const val TAG = "VpnService"
         private const val sessionName = "LanternVpn"
@@ -53,7 +56,11 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
     // SupervisorJob ensures that failure in one child doesn't cancel the whole scope.
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+    override fun onStartCommand(
+        intent: Intent?,
+        flags: Int,
+        startId: Int,
+    ): Int {
         instance = this
         val action = intent?.action ?: return START_NOT_STICKY
         if (!MainActivity.receiverRegistered) {
@@ -80,7 +87,7 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
                 serviceScope.launch {
                     connectToServer(
                         intent.getStringExtra("location") ?: "",
-                        intent.getStringExtra("tag") ?: ""
+                        intent.getStringExtra("tag") ?: "",
                     )
                 }
                 START_STICKY
@@ -108,15 +115,18 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
         }
     }
 
-
     override fun onRevoke() {
         super.onRevoke()
         destroy()
     }
 
     override fun onDestroy() {
-        super.onDestroy()
-        destroy()
+        try {
+            destroy()
+        } finally {
+            serviceScope.cancel()
+            super.onDestroy()
+        }
     }
 
     override fun autoDetectInterfaceControl(p0: Int) {
@@ -125,8 +135,9 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
 
     override fun openTun(tunOptions: TunOptions): Int {
         val vpnBuilder = createVPNBuilder(tunOptions)
-        val pfd = vpnBuilder.establish()
-            ?: error("android: the application is not prepared or is revoked")
+        val pfd =
+            vpnBuilder.establish()
+                ?: error("android: the application is not prepared or is revoked")
         mInterface = pfd
         return pfd.fd
     }
@@ -150,32 +161,44 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
         }
     }
 
-
-    private suspend fun startVPN() = withContext(Dispatchers.IO) {
-        if (prepare(this@LanternVpnService) != null) {
-            VpnStatusManager.postVPNStatus(VPNStatus.MissingPermission)
-            return@withContext
-        }
-        runCatching {
-            DefaultNetworkMonitor.start()
-            Mobile.startVPN(this@LanternVpnService, opts())
-            Log.d(TAG, "VPN service started")
-            VpnStatusManager.postVPNStatus(VPNStatus.Connected)
-            notificationHelper.showVPNConnectedNotification(this@LanternVpnService)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                QuickTileService.triggerUpdateTileState(this@LanternVpnService, true)
+    private suspend fun startVPN() =
+        withContext(Dispatchers.IO) {
+            if (prepare(this@LanternVpnService) != null) {
+                VpnStatusManager.postVPNStatus(VPNStatus.MissingPermission)
+                return@withContext
             }
-        }.onFailure { e ->
-            Log.e(TAG, "Error starting VPN service", e)
-            VpnStatusManager.postVPNError(
-                errorCode = "start_vpn",
-                errorMessage = "Error starting VPN service",
-                error = e,
-            )
-        }
-    }
 
-    suspend fun connectToServer(location: String, tag: String) = withContext(Dispatchers.IO) {
+            /** As soon user tries to start VPN, we show a notification that VPN is starting
+             * This is required by OS to have foreground notification as soon as VPN service starts
+             * This notification will be replaced by connected notification once VPN is connected
+             * This is to prevent crashing in case vpn is failed to start
+             */
+            notificationHelper.showStartingVPNConnectedNotification(this@LanternVpnService)
+            runCatching {
+                DefaultNetworkMonitor.start()
+                Mobile.startVPN(this@LanternVpnService, opts())
+                Log.d(TAG, "VPN service started")
+                VpnStatusManager.postVPNStatus(VPNStatus.Connected)
+                notificationHelper.showVPNConnectedNotification(this@LanternVpnService)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    QuickTileService.triggerUpdateTileState(this@LanternVpnService, true)
+                }
+            }.onFailure { e ->
+                Log.e(TAG, "Error starting VPN service", e)
+                VpnStatusManager.postVPNError(
+                    errorCode = "start_vpn",
+                    errorMessage = "Error starting VPN service",
+                    error = e,
+                )
+                /// if starting VPN fails, we need to clean up the service
+                serviceCleanUp()
+            }
+        }
+
+    suspend fun connectToServer(
+        location: String,
+        tag: String,
+    ) = withContext(Dispatchers.IO) {
         if (prepare(this@LanternVpnService) != null) {
             VpnStatusManager.postVPNStatus(VPNStatus.MissingPermission)
             return@withContext
@@ -199,37 +222,44 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
         }
     }
 
-
     fun doStopVPN() {
         Log.d("LanternVpnService", "doStopVPN")
-        try {
-            VpnStatusManager.postVPNStatus(VPNStatus.Disconnecting)
-            serviceScope.launch {
-                mInterface?.close();
-                mInterface = null
-                if (Mobile.isVPNConnected()) {
-                    Mobile.stopVPN()
-                }
+        VpnStatusManager.postVPNStatus(VPNStatus.Disconnecting)
 
-                DefaultNetworkMonitor.stop()
-                VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
+        serviceScope.launch {
+            try {
+                mInterface?.close()
+                mInterface = null
+                runCatching { Mobile.stopVPN() }
+                    .onFailure { e -> Log.e(TAG, "Mobile.stopVPN() failed", e) }
+
+                runCatching { DefaultNetworkMonitor.stop() }
+                    .onFailure { e -> Log.e(TAG, "DefaultNetworkMonitor.stop() failed", e) }
                 notificationHelper.stopVPNConnectedNotification(this@LanternVpnService)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     QuickTileService.triggerUpdateTileState(this@LanternVpnService, false)
                 }
-
+                VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
+                serviceCleanUp()
+            } catch (e: Exception) {
+                Log.e(TAG, "Error stopping VPN service", e)
+                VpnStatusManager.postVPNError(
+                    error = e,
+                    errorCode = "stop_vpn",
+                    errorMessage = "Error stopping VPN service",
+                )
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error stopping VPN service", e)
-            VpnStatusManager.postVPNError(
-                error = e, errorCode = "stop_vpn", errorMessage = "Error stopping VPN service"
-            )
         }
     }
 
     private fun destroy() {
         doStopVPN()
+        serviceCleanUp()
+    }
+
+    private fun serviceCleanUp() {
         VpnStatusManager.unregisterVPNStatusReceiver(this)
+        MainActivity.receiverRegistered = false
         stopSelf()
     }
 
@@ -239,7 +269,6 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             builder.setMetered(false)
         }
-
         val inet4Address = options.inet4Address
         while (inet4Address.hasNext()) {
             val address = inet4Address.next()
@@ -308,13 +337,14 @@ class LanternVpnService : VpnService(), PlatformInterfaceWrapper {
     }
 
     fun opts(): Opts {
-        val opts = Opts().apply {
-            dataDir = initConfigDir()
-            logDir = logDir()
-            logLevel = if (BuildConfig.DEBUG) "debug" else "warn"
-            deviceid = DeviceUtil.deviceId()
-            locale = DeviceUtil.getLanguageCode(this@LanternVpnService)
-        }
+        val opts =
+            Opts().apply {
+                dataDir = initConfigDir()
+                logDir = logDir()
+                logLevel = if (BuildConfig.DEBUG) "debug" else "warn"
+                deviceid = DeviceUtil.deviceId()
+                locale = DeviceUtil.getLanguageCode(this@LanternVpnService)
+            }
         return opts
     }
 }

@@ -20,8 +20,8 @@ class AppStorageUtils {
       final baseDir = await getApplicationSupportDirectory();
       logDir = Directory("${baseDir.path}/logs");
     } else if (Platform.isWindows) {
-      final baseDir = await getApplicationSupportDirectory();
-      logDir = Directory("${baseDir.path}/Lantern/logs");
+      final baseDir = await getWindowsAppDataDirectory();
+      logDir = Directory("${baseDir.path}/logs");
     } else {
       throw UnsupportedError("Unsupported platform for log directory");
     }
@@ -42,7 +42,7 @@ class AppStorageUtils {
       }
       appDir = Directory("${baseDir.path}/.lantern");
     } else if (Platform.isWindows) {
-      appDir = await getApplicationSupportDirectory();
+      appDir = await getWindowsAppDataDirectory();
     } else {
       // Note this is the application support directory *with*
       // the fully qualified name of our app.
@@ -74,5 +74,17 @@ class AppStorageUtils {
     }
     print("Using flutter log file at: ${logFile.path}");
     return logFile;
+  }
+
+  static Future<Directory> getWindowsAppDataDirectory() async {
+    if (!Platform.isWindows) {
+      throw UnsupportedError("Not running on Windows");
+    }
+    final appDataPath = Platform.environment['APPDATA'];
+    final appDir = Directory("$appDataPath/Lantern");
+    if (!appDir.existsSync()) {
+      appDir.createSync(recursive: true);
+    }
+    return appDir;
   }
 }
