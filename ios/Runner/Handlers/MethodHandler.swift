@@ -160,7 +160,9 @@ class MethodHandler {
         let data = call.arguments as? [String: Any]
         self.revokeServerManagerInstance(result: result, data: data!)
         break
-
+      case "validateSession":
+        self.validateSession(result: result)
+        break
       //Server Selection
       case "getLanternAvailableServers":
         self.getLanternAvailableServers(result: result)
@@ -829,6 +831,19 @@ class MethodHandler {
       await self.replyOK(result)
     }
   }
+    
+    func validateSession(result: @escaping FlutterResult) {
+      Task.detached {
+        var error: NSError?
+        let isValid = MobileValidateSession(&error)
+        if let err = error {
+          await self.handleFlutterError(
+            err, result: result, code: "VALIDATE_SESSION_ERROR")
+          return
+        }
+        await self.replyOK(result)
+      }
+    }
 
   func featureFlags(result: @escaping FlutterResult) {
     Task.detached {

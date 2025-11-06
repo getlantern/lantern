@@ -65,9 +65,12 @@ enum class Methods(val method: String) {
     StartDeployment("startDeployment"),
     CancelDeployment("cancelDeployment"),
     SelectCertFingerprint("selectCertFingerprint"),
+
+    ValidateSession("validateSession"),
     AddServerManually("addServerManually"),
     InviteToServerManagerInstance("inviteToServerManagerInstance"),
     RevokeServerManagerInstance("revokeServerManagerInstance"),
+
 
     //custom/lantern servers
     GetLanternAvailableServers("getLanternAvailableServers"),
@@ -183,7 +186,11 @@ class MethodHandler : FlutterPlugin,
                         Mobile.setSplitTunnelingEnabled(enabled)
                         withContext(Dispatchers.Main) { success("ok") }
                     }.onFailure { e ->
-                        result.error("set_split_tunneling_enabled", e.localizedMessage ?: "Failed", e)
+                        result.error(
+                            "set_split_tunneling_enabled",
+                            e.localizedMessage ?: "Failed",
+                            e
+                        )
                     }
                 }
             }
@@ -194,7 +201,11 @@ class MethodHandler : FlutterPlugin,
                         val on = Mobile.isSplitTunnelingEnabled()
                         withContext(Dispatchers.Main) { result.success(on) }
                     }.onFailure { e ->
-                        result.error("is_split_tunneling_enabled", e.localizedMessage ?: "Failed", e)
+                        result.error(
+                            "is_split_tunneling_enabled",
+                            e.localizedMessage ?: "Failed",
+                            e
+                        )
                     }
                 }
             }
@@ -730,8 +741,17 @@ class MethodHandler : FlutterPlugin,
                 ) {
                     Mobile.selectedCertFingerprint(call.arguments as String)
                 }
-
             }
+            Methods.ValidateSession.method -> {
+                scope.handleResult(
+                    result,
+                    "ValidateSession"
+                ) {
+                    Mobile.validateSession()
+                }
+            }
+
+
 
             Methods.AddServerManually.method -> {
                 scope.launch {
