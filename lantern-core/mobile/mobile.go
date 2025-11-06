@@ -288,10 +288,15 @@ func RemoveDevice(deviceId string) error {
 	})
 }
 
-// // This will complete the email recovery by setting the new password
-// func CompleteChangeEmail(email, password, code string) error {
-// 	return c.CompleteChangeEmail(email, password, code)
-// }
+func ReferralAttachment(referralCode string) error {
+	return withCore(func(c lanterncore.Core) error {
+		ok, err := c.ReferralAttachment(referralCode)
+		if !ok {
+			return err
+		}
+		return nil
+	})
+}
 
 func DeleteAccount(email, password string) ([]byte, error) {
 	return withCoreR(func(c lanterncore.Core) ([]byte, error) { return c.DeleteAccount(email, password) })

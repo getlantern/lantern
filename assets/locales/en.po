@@ -20,7 +20,7 @@ msgid "your_referral_code"
 msgstr "Your Referral Code"
 
 msgid "invite_friends_message"
-msgstr "Share your referral code with a friend. When they use it to purchase Lantern Pro, both of you will receive 30 days of Lantern Pro for free!"
+msgstr "Share your referral code with a friend. When they purchase Lantern Pro, you both get bonus time: "
 
 msgid "share_referral_code"
 msgstr "Share Referral Code"
@@ -1131,8 +1131,56 @@ msgstr "We recommend removing %s from Lantern and deleting it from your cloud pr
 msgid "remove_server"
 msgstr "Remove Server"
 
-
 msgid "server_alias_cannot_be_empty"
 msgstr  "Server alias cannot be empty"
 
+msgid "referral_code_applied"
+msgstr "Your referral code has been applied!"
 
+msgid "referral_message_1m"
+msgstr "+ 15 additional days free"
+
+msgid "referral_message_1y"
+msgstr "+ 1 additional month free"
+
+msgid "referral_message_2y"
+msgstr "+ 2 additional month free"
+
+msgid "referral_code_invalid"
+msgstr "The referral code you entered is invalid. Please check the code and try again."
+
+msgid "referral_code_own_invalid"
+msgstr "You cannot use your own referral code. Please enter a different code."
+
+msgid "free"
+msgstr "Free"
+
+msgid "monthly_plan"
+msgstr "Monthly plan:"
+
+msgid "15_days_each"
+msgstr "+15 days each"
+
+msgid "annual_plan"
+msgstr "Annual plan:"
+
+msgid "1_month_each"
+msgstr "+1 month each
+
+msgid "two_year_plan"
+msgstr "Two-year plan:"
+
+msgid "2_month_each"
+msgstr "+2 months each
+
+msgid "referral_code_info"
+msgstr "Not a Lantern Pro user yet? You'll become one when your first referral subscribes"
+
+msgid "lantern_pro_license"
+msgstr "Lantern Pro License"
+
+msgid "new_to_lantern"
+msgstr "New to Lantern?"
+
+msgid "create_an_account"
+msgstr "Create an account"

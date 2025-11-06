@@ -56,6 +56,7 @@ enum class Methods(val method: String) {
 
     //Device
     RemoveDevice("removeDevice"),
+    AttachReferralCode("attachReferralCode"),
 
     //private server methods
     DigitalOcean("digitalOcean"),
@@ -73,6 +74,8 @@ enum class Methods(val method: String) {
     GetAutoServerLocation("getAutoServerLocation"),
 
     //Split Tunnel methods
+    SetSplitTunnelingEnabled("setSplitTunnelingEnabled"),
+    IsSplitTunnelingEnabled("isSplitTunnelingEnabled"),
     AddSplitTunnelItem("addSplitTunnelItem"),
     RemoveSplitTunnelItem("removeSplitTunnelItem"),
     AddAllItems("addAllItems"),
@@ -173,6 +176,29 @@ class MethodHandler : FlutterPlugin,
                 }
             }
 
+            Methods.SetSplitTunnelingEnabled.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val enabled = call.argument<Boolean>("enabled") ?: error("Missing enabled")
+                        Mobile.setSplitTunnelingEnabled(enabled)
+                        withContext(Dispatchers.Main) { success("ok") }
+                    }.onFailure { e ->
+                        result.error("set_split_tunneling_enabled", e.localizedMessage ?: "Failed", e)
+                    }
+                }
+            }
+
+            Methods.IsSplitTunnelingEnabled.method -> {
+                scope.launch {
+                    runCatching {
+                        val on = Mobile.isSplitTunnelingEnabled()
+                        withContext(Dispatchers.Main) { result.success(on) }
+                    }.onFailure { e ->
+                        result.error("is_split_tunneling_enabled", e.localizedMessage ?: "Failed", e)
+                    }
+                }
+            }
+
             Methods.AddSplitTunnelItem.method -> {
                 scope.launch {
                     result.runCatching {
@@ -208,6 +234,7 @@ class MethodHandler : FlutterPlugin,
                     }
                 }
             }
+
             Methods.AddAllItems.method -> {
                 scope.launch {
                     result.runCatching {
@@ -239,7 +266,6 @@ class MethodHandler : FlutterPlugin,
                     }
                 }
             }
-
 
 
             Methods.ReportIssue.method -> {
@@ -420,7 +446,6 @@ class MethodHandler : FlutterPlugin,
                             success(bytes)
                         }
 
-
                     }.onFailure { e ->
                         result.error(
                             "OAuthLoginCallback",
@@ -518,7 +543,7 @@ class MethodHandler : FlutterPlugin,
                         }
                     }.onFailure { e ->
                         result.error(
-                            "OAuthLoginCallback",
+                            "Login",
                             e.localizedMessage ?: "Please try again",
                             e
                         )
@@ -538,7 +563,7 @@ class MethodHandler : FlutterPlugin,
                         }
                     }.onFailure { e ->
                         result.error(
-                            "OAuthLoginCallback",
+                            "SignUp",
                             e.localizedMessage ?: "Please try again",
                             e
                         )
@@ -577,7 +602,7 @@ class MethodHandler : FlutterPlugin,
                         }
                     }.onFailure { e ->
                         result.error(
-                            "OAuthLoginCallback",
+                            "DeleteAccount",
                             e.localizedMessage ?: "Please try again",
                             e
                         )
@@ -598,7 +623,7 @@ class MethodHandler : FlutterPlugin,
                         }
                     }.onFailure { e ->
                         result.error(
-                            "OAuthLoginCallback",
+                            "ActivationCode",
                             e.localizedMessage ?: "Please try again",
                             e
                         )
@@ -617,7 +642,25 @@ class MethodHandler : FlutterPlugin,
                         }
                     }.onFailure { e ->
                         result.error(
-                            "OAuthLoginCallback",
+                            "RemoveDevice",
+                            e.localizedMessage ?: "Please try again",
+                            e
+                        )
+                    }
+                }
+            }
+
+            Methods.AttachReferralCode.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val code = call.arguments as String
+                        Mobile.referralAttachment(code)
+                        withContext(Dispatchers.Main) {
+                            success("ok")
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "AttachReferralCode",
                             e.localizedMessage ?: "Please try again",
                             e
                         )
@@ -849,6 +892,7 @@ class MethodHandler : FlutterPlugin,
                     }
                 }
             }
+
             Methods.GetAutoServerLocation.method -> {
                 scope.launch {
                     result.runCatching {

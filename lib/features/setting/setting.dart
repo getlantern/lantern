@@ -357,8 +357,9 @@ class _SettingState extends ConsumerState<Setting> {
       (user) {
         context.hideLoadingDialog();
         appRouter.popUntilRoot();
-        ref.read(appSettingNotifierProvider.notifier).setUserLoggedIn(false);
+        ref.read(homeNotifierProvider.notifier).clearLogoutData();
         ref.read(homeNotifierProvider.notifier).updateUserData(user);
+
         appLogger.info('Logout success: $user');
       },
     );

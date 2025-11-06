@@ -10,12 +10,14 @@ class PlanItem extends StatelessWidget {
   final Plan plan;
   final bool planSelected;
   final Function(Plan plans) onPressed;
+  final String referralMessage;
 
   const PlanItem({
     super.key,
     required this.plan,
     required this.planSelected,
     required this.onPressed,
+    this.referralMessage = '',
   });
 
   @override
@@ -55,9 +57,19 @@ class PlanItem extends StatelessWidget {
           decoration: planSelected ? selectedDecoration : unselectedDecoration,
           child: Row(
             children: <Widget>[
-              Text(
-                plan.description.toTitleCase(),
-                style: textTheme.titleMedium,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    plan.description.toTitleCase(),
+                    style: textTheme.titleMedium,
+                  ),
+                  if (referralMessage.isNotEmpty)
+                    Text(
+                      referralMessage,
+                      style: textTheme.labelMedium,
+                    ),
+                ],
               ),
               Spacer(),
               Column(

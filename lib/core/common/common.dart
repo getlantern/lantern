@@ -4,9 +4,11 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/common/app_urls.dart';
 import 'package:lantern/core/localization/i18n.dart';
 import 'package:lantern/core/models/entity/private_server_entity.dart';
+import 'package:lantern/core/models/entity/server_location_entity.dart';
 import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:share_plus/share_plus.dart';
@@ -69,7 +71,6 @@ String generatePassword() {
 }
 
 bool isStoreVersion() {
-  // return true;
   return (sl<StoreUtils>().isSideLoaded() == false);
 }
 
@@ -127,7 +128,8 @@ void sharePrivateAccessKey(
   final aliasName = tokenPayload['sub'];
   final uri = Uri(
     scheme: 'https',
-    host: Uri.parse(AppUrls.lanternOfficial).host, // ensures host is parsed correctly
+    host: Uri.parse(AppUrls.lanternOfficial)
+        .host, // ensures host is parsed correctly
     path: '/private-server',
     queryParameters: {
       'ip': server.externalIp,
@@ -146,4 +148,30 @@ bool isSmallScreen(BuildContext context) {
   //Iphone 12 mini Size(375.0, 812.0)
   //Iphone 13      Size(390.0, 844.0)
   return MediaQuery.of(context).size.width <= 380;
+}
+
+String getReferralMessage(String planId) {
+  final id = planId.split('-').first;
+  if (id == '1m') {
+    return 'referral_message_1m'.i18n;
+  } else if (id == '1y') {
+    return 'referral_message_1y'.i18n;
+  } else if (id == '2y') {
+    return 'referral_message_2y'.i18n;
+  }
+  return '';
+}
+
+/// Initial server location set to auto (fastest server)
+ServerLocationEntity initialServerLocation() {
+  return ServerLocationEntity(
+    autoSelect: true,
+    serverLocation: ''.i18n,
+    serverName: '',
+    serverType: ServerLocationType.auto.name,
+    autoLocation: AutoLocationEntity(
+      serverLocation: 'fastest_server'.i18n,
+      serverName: '',
+    ),
+  );
 }

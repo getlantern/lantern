@@ -60,11 +60,18 @@ class LanternFFIService implements LanternCoreService {
   static final flutterEventReceivePort = ReceivePort();
 
   static LanternBindings _gen() {
+    String basePath = p.dirname(Platform.resolvedExecutable);
     String fullPath = "";
     if (Platform.isWindows) {
-      fullPath = p.join(fullPath, "bin/windows", "$_libName.dll");
+      fullPath = p.join(basePath, "$_libName.dll");
+      if (!File(fullPath).existsSync()) {
+        fullPath = p.join(basePath, "bin", "$_libName.dll");
+      }
+      if (!File(fullPath).existsSync()) {
+        fullPath = p.join(basePath, "bin", "windows", "$_libName.dll");
+      }
     } else {
-      fullPath = p.join(fullPath, "$_libName.so");
+      fullPath = p.join(basePath, "$_libName.so");
     }
     appLogger.debug('singbox native libs path: "$fullPath"');
     final lib = DynamicLibrary.open(fullPath);
@@ -1088,6 +1095,22 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, String>> attachReferralCode(String code) async {
+    try {
+      final result = await runInBackground<String>(
+            () async {
+          return _ffiService.referralAttachment(code.toCharPtr).toDartString();
+        },
+      );
+      checkAPIError(result);
+      return Right('ok');
+    } catch (e, stackTrace) {
+      appLogger.error('Error attaching referral code', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, String>> completeChangeEmail(
       {required String newEmail,
       required String password,
@@ -1180,6 +1203,7 @@ class LanternFFIService implements LanternCoreService {
     // TODO: implement removeAllItems
     throw UnimplementedError();
   }
+
 }
 
 void checkAPIError(dynamic result) {

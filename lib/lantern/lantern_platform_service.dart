@@ -231,13 +231,11 @@ class LanternPlatformService implements LanternCoreService {
   @override
   Future<Either<Failure, Unit>> setSplitTunnelingEnabled(bool enabled) async {
     try {
-      if (enabled) {
-        await _methodChannel.invokeMethod('enableSplitTunneling');
-      } else {
-        await _methodChannel.invokeMethod('disableSplitTunneling');
-      }
-      return right(unit);
-    } catch (e) {
+      await _methodChannel
+          .invokeMethod('setSplitTunnelingEnabled', {'enabled': enabled});
+      return Right(unit);
+    } catch (e, st) {
+      appLogger.error('setSplitTunnelingEnabled failed', e, st);
       return Left(e.toFailure());
     }
   }
@@ -255,12 +253,12 @@ class LanternPlatformService implements LanternCoreService {
 
   @override
   Future<Either<Failure, Unit>> addAllItems(
-      SplitTunnelFilterType type, List<String> value) async {
+      SplitTunnelFilterType type, List<String> items) async {
     try {
-      appLogger.debug('Adding all items: ${value.length} items');
+      appLogger.debug('Adding all items: ${items.length} items');
       await _methodChannel.invokeMethod('addAllItems', {
         'filterType': type.value,
-        'value': value.join(','),
+        'value': items.join(','),
       });
       appLogger.debug('Added all items');
       return right(unit);
@@ -941,6 +939,18 @@ class LanternPlatformService implements LanternCoreService {
     } catch (e, stackTrace) {
       appLogger.error(
           'Error checking if system extension is installed', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> attachReferralCode(String code) async {
+    try {
+      final result =
+          await _methodChannel.invokeMethod<String>('attachReferralCode', code);
+      return right(result!);
+    } catch (e, stackTrace) {
+      appLogger.error('Error attaching referral code', e, stackTrace);
       return Left(e.toFailure());
     }
   }

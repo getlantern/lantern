@@ -69,7 +69,6 @@ class NotificationHelper {
                 NotificationManager.IMPORTANCE_HIGH,
             )
             notificationManager.createNotificationChannel(dataUsageNotificationChannel)
-
         }
     }
 
@@ -112,6 +111,27 @@ class NotificationHelper {
 
     }
 
+    private fun buildStartingVpnNotification(): Notification {
+        val contentIntent = PendingIntent.getActivity(
+            LanternApp.application,
+            0,
+            Intent(LanternApp.application, MainActivity::class.java),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+
+        return NotificationCompat.Builder(LanternApp.application, CHANNEL_VPN)
+            .setShowWhen(false)
+            .setOngoing(true)
+            .setContentTitle("Lantern")
+            .setContentText("Starting Lantern VPN...")
+            .setOnlyAlertOnce(true)
+            .setSmallIcon(R.drawable.lantern_notification_icon)
+            .setContentIntent(contentIntent)
+            .setSilent(true)
+            .build()
+
+    }
+
     private fun disconnectVPN(): PendingIntent {
         val intent = Intent(ACTION_STOP_VPN).setPackage(
             LanternApp.application.packageName
@@ -126,13 +146,20 @@ class NotificationHelper {
 
 
     fun showVPNConnectedNotification(vpnService: LanternVpnService) {
-        showForegroundNotification(vpnService, VPN_CONNECTED, buildVpnNotification())
+        updateForegroundNotification()
     }
 
     fun stopVPNConnectedNotification(vpnService: LanternVpnService) {
         stopForegroundNotification(vpnService)
     }
 
+    /**
+     * Shows the starting VPN notification as a foreground notification.
+     * Also starts the service in the foreground and promotes it to a foreground service.
+     */
+    fun showStartingVPNConnectedNotification(vpnService: LanternVpnService) {
+        showForegroundNotification(vpnService, VPN_CONNECTED, buildStartingVpnNotification())
+    }
 
     /**
      * Shows the notification as a foreground notification.
@@ -163,6 +190,16 @@ class NotificationHelper {
             service.stopForeground(true)
         }
     }
+
+
+    /**
+     * Updates the existing foreground notification.
+     */
+    private fun updateForegroundNotification() {
+        val notification = buildVpnNotification()
+        notificationManager.notify(VPN_CONNECTED, notification)
+    }
+
 
     fun sendNotification(notification: lantern.io.libbox.Notification?) {
         createNotificationChannel(notification!!.identifier, notification!!.typeName)
