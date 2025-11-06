@@ -180,18 +180,16 @@ func isSplitTunnelingEnabled() C.int {
 }
 
 //export loadInstalledApps
-func loadInstalledApps(dataDir *C.char) (*C.char, error) {
-	appsList := []*apps.AppData{}
-	apps.LoadInstalledApps(C.GoString(dataDir), func(a ...*apps.AppData) error {
-		appsList = append(appsList, a...)
-		return nil
-	})
-
-	b, err := json.Marshal(appsList)
-	if err != nil {
-		return C.CString(""), err
+func loadInstalledApps(dataDir *C.char) *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
 	}
-	return C.CString(string(b)), nil
+	appsJson, err := c.LoadInstalledApps(C.GoString(dataDir))
+	if err != nil {
+		return C.CString(fmt.Sprintf("error loading installed apps: %v", err))
+	}
+	return C.CString(appsJson)
 }
 
 //export getDataCapInfo

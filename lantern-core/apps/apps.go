@@ -8,6 +8,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 )
 
 const cacheFilename = "apps_cache.json"
@@ -63,7 +65,7 @@ func scanAppDirs(appDirs []string, seen map[string]bool, excludeDirs []string, c
 			continue
 		}
 		_ = filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
-			slog.Info("Visiting", "path", path)
+			//slog.Info("Visiting", "path", path)
 			if err != nil || d == nil {
 				slog.Info("Error accessing path", "path", path, "error", err)
 				return nil
@@ -82,13 +84,13 @@ func scanAppDirs(appDirs []string, seen map[string]bool, excludeDirs []string, c
 
 			base := filepath.Base(path)
 			if !strings.HasSuffix(base, appExtension) {
-				slog.Info("Not a potential app", "path", path)
+				//slog.Info("Not a potential app", "path", path)
 				return nil
 			}
-			slog.Info("Found potential app", "path", path)
+			//slog.Info("Found potential app", "path", path)
 			appID, err := getAppID(path)
 			if err != nil {
-				slog.Info("Could not find bundle ID for app", "path", path, "error", err)
+				//slog.Info("Could not find bundle ID for app", "path", path, "error", err)
 				return filepath.SkipDir
 			}
 			key := appID
@@ -98,16 +100,16 @@ func scanAppDirs(appDirs []string, seen map[string]bool, excludeDirs []string, c
 			}
 
 			if seen[appID] || seen[path] || seen[key] {
-				slog.Info("Skipping duplicate app", "name", strings.TrimSuffix(base, appExtension), "bundleID", appID, "path", path)
+				slog.Info("Skipping duplicate app", "name", strings.TrimSuffix(base, appExtension), "appID", appID, "path", path)
 				return filepath.SkipDir
 			}
 
 			iconPath, _ := getIconPath(path)
 
-			slog.Info("Found app", "name", strings.TrimSuffix(base, appExtension), "bundleID", appID, "path", path, "icon", iconPath)
+			slog.Info("Found app", "name", strings.TrimSuffix(base, appExtension), "appID", appID, "path", path, "icon", iconPath)
 			app := &AppData{
 				BundleID: appID,
-				Name:     strings.TrimSuffix(base, appExtension),
+				Name:     capitalizeFirstLetter(strings.TrimSuffix(base, appExtension)),
 				AppPath:  path,
 				IconPath: iconPath,
 			}
@@ -125,6 +127,23 @@ func scanAppDirs(appDirs []string, seen map[string]bool, excludeDirs []string, c
 		})
 	}
 	return apps
+}
+
+func capitalizeFirstLetter(s string) string {
+	if s == "" {
+		return "" // Handle empty string case
+	}
+
+	// Decode the first rune and its size
+	r, size := utf8.DecodeRuneInString(s)
+
+	// If the rune is an error (e.g., invalid UTF-8), return the original string
+	if r == utf8.RuneError {
+		return s
+	}
+
+	// Capitalize the first rune and concatenate with the rest of the string
+	return string(unicode.ToUpper(r)) + s[size:]
 }
 
 // LoadInstalledAppsWithDirs scans the provided appDirs for installed applications, using dataDir for caching.

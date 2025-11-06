@@ -102,6 +102,7 @@ type Payment interface {
 }
 
 type SplitTunnel interface {
+	LoadInstalledApps(dataDir string) (string, error)
 	IsSplitTunnelingEnabled() bool
 	SetSplitTunnelingEnabled(bool)
 	AddSplitTunnelItem(filterType, item string) error
@@ -239,7 +240,7 @@ func (lc *LanternCore) GetAvailableServers() []byte {
 
 // LoadInstalledApps fetches the app list or rescans if needed using common macOS locations
 // currently only works on/enabled for macOS
-func LoadInstalledApps(dataDir string) (string, error) {
+func (lc *LanternCore) LoadInstalledApps(dataDir string) (string, error) {
 	appsList := []*apps.AppData{}
 	apps.LoadInstalledApps(dataDir, func(a ...*apps.AppData) error {
 		appsList = append(appsList, a...)
