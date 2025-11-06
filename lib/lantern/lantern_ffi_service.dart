@@ -823,6 +823,12 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> validateSession() {
+    // TODO: implement validateSession
+    throw UnimplementedError();
+  }
+
+  @override
   Future<Either<Failure, Unit>> setUserInput(
       {required PrivateServerInput methodType, required String input}) async {
     try {
@@ -1159,6 +1165,8 @@ class LanternFFIService implements LanternCoreService {
     // TODO: implement removeAllItems
     throw UnimplementedError();
   }
+
+
 
 }
 

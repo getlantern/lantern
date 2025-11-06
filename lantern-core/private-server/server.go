@@ -33,6 +33,7 @@ type provisionSession struct {
 	CurrentCompartments []pcommon.Compartment
 	userCompartment     *pcommon.Compartment
 	userProject         *pcommon.CompartmentEntry
+	authToken           string
 	userProjectString   string
 	serverName          string
 	serverLocation      string
@@ -139,20 +140,19 @@ func listenToServerEvents(ps provisionSession) {
 				log.Errorf("OAuth failed: %v", e.Error)
 				events.OnError(convertErrorToJSON("EventTypeOAuthError", e.Error))
 				return
-
-				// Validation events
+			// Validation events
 			case pcommon.EventTypeOAuthCompleted:
 				log.Debug("OAuth completed; starting validation")
-				// events.OnPrivateServerEvent(convertStatusToJSON("EventTypeOAuthCompleted", "OAuth completed, starting validation"))
+				ps.authToken = e.Message
 				ps.provisioner.Validate(context.Background(), e.Message)
 				continue
 			case pcommon.EventTypeValidationStarted:
 				log.Debug("Validation started")
-				// events.OnPrivateServerEvent(convertStatusToJSON("EventTypeValidationStarted", "Validation started, please wait..."))
 			case pcommon.EventTypeValidationError:
 				log.Errorf("Validation failed: %v %v", e.Error.Error(), e.Message)
+				storeSession(&ps)
 				events.OnError(convertErrorToJSON("EventTypeValidationError", e.Error))
-				return
+				continue
 			case pcommon.EventTypeValidationCompleted:
 				// at this point we have a list of projects and billing accounts
 				// present them to the user
@@ -249,6 +249,15 @@ func listenToServerEvents(ps provisionSession) {
 			time.Sleep(1 * time.Second)
 		}
 	}
+}
+func ValidateSession(ctx context.Context) error {
+	ps, err := getSession()
+	if err != nil {
+		return err
+	}
+	log.Debug("Validating session")
+	ps.provisioner.Validate(ctx, ps.authToken)
+	return nil
 }
 
 // SelectAccount selects a billing account for the user.

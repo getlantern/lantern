@@ -312,6 +312,12 @@ func GoogleCloudPrivateServer(events utils.PrivateServerEventListener) error {
 	return withCore(func(c lanterncore.Core) error { return c.GoogleCloudPrivateServer(events) })
 }
 
+// ValidateSession validates the current private server session.
+// this will re-trigger validation events and make sure user has added billing info etc.
+func ValidateSession() error {
+	return withCore(func(c lanterncore.Core) error { return c.ValidateSession() })
+}
+
 func SelectAccount(account string) error {
 	return withCore(func(c lanterncore.Core) error { return c.SelectAccount(account) })
 }

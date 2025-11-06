@@ -33,6 +33,9 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, Server>> getAutoServerLocation();
 
+  Future<Either<Failure, String>> featureFlag();
+
+
   ///Payments methods
   Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
       {required BillingType type,
@@ -163,6 +166,8 @@ abstract class LanternCoreService {
   Future<Either<Failure, Unit>> setUserInput(
       {required PrivateServerInput methodType, required String input});
 
+  Future<Either<Failure, Unit>> validateSession();
+
   Future<Either<Failure, Unit>> startDeployment(
       {required String location, required String serverName});
 
@@ -191,7 +196,7 @@ abstract class LanternCoreService {
     required String inviteName,
   });
 
-  Future<Either<Failure, String>> featureFlag();
+
 
   ///Custom/lantern server methods
   Future<Either<Failure, AvailableServers>> getLanternAvailableServers();
