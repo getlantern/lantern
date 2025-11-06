@@ -26,6 +26,8 @@ var excludeDirs = []string{
 	"/Applications/Utilities",
 }
 
+var excludeNames = map[string]bool{}
+
 // getIconPath finds the .icns file inside the app bundle
 func getIconPath(appPath string) (string, error) {
 	resourcesPath := filepath.Join(appPath, "Contents", "Resources")

@@ -64,6 +64,7 @@ func scanAppDirs(appDirs []string, seen map[string]bool, excludeDirs []string, c
 		if err != nil || !info.IsDir() {
 			continue
 		}
+
 		_ = filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
 			//slog.Info("Visiting", "path", path)
 			if err != nil || d == nil {
@@ -93,23 +94,23 @@ func scanAppDirs(appDirs []string, seen map[string]bool, excludeDirs []string, c
 				//slog.Info("Could not find bundle ID for app", "path", path, "error", err)
 				return filepath.SkipDir
 			}
-			key := appID
 
-			if key == "" {
-				key = path
+			name := capitalizeFirstLetter(strings.TrimSuffix(base, appExtension))
+			if excludeNames[name] {
+				slog.Info("Excluding app by name", "name", name, "path", path)
+				return filepath.SkipDir
 			}
 
-			if seen[appID] || seen[path] || seen[key] {
+			if seen[appID] || seen[path] || seen[name] {
 				slog.Info("Skipping duplicate app", "name", strings.TrimSuffix(base, appExtension), "appID", appID, "path", path)
 				return filepath.SkipDir
 			}
 
 			iconPath, _ := getIconPath(path)
-
-			slog.Info("Found app", "name", strings.TrimSuffix(base, appExtension), "appID", appID, "path", path, "icon", iconPath)
+			slog.Info("Found app", "name", name, "appID", appID, "path", path, "icon", iconPath)
 			app := &AppData{
 				BundleID: appID,
-				Name:     capitalizeFirstLetter(strings.TrimSuffix(base, appExtension)),
+				Name:     name,
 				AppPath:  path,
 				IconPath: iconPath,
 			}
@@ -122,7 +123,7 @@ func scanAppDirs(appDirs []string, seen map[string]bool, excludeDirs []string, c
 			apps = append(apps, app)
 			seen[appID] = true
 			seen[path] = true
-			seen[key] = true
+			seen[name] = true
 			return filepath.SkipDir
 		})
 	}
@@ -164,6 +165,9 @@ func LoadInstalledAppsWithDirs(dataDir string, appDirs []string, excludeDirs []s
 			}
 			if app.AppPath != "" {
 				seen[app.AppPath] = true
+			}
+			if app.Name != "" {
+				seen[app.Name] = true
 			}
 		}
 	}
