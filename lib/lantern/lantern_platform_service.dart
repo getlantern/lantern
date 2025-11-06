@@ -166,7 +166,11 @@ class LanternPlatformService implements LanternCoreService {
     if (!Platform.isAndroid) throw UnimplementedError();
     try {
       // exclude system apps and do NOT fetch icons up-front
-      final apps = await InstalledApps.getInstalledApps(false, false);
+      final apps = await InstalledApps.getInstalledApps(
+        excludeSystemApps: true,
+        excludeNonLaunchableApps: true,
+        withIcon: true,
+      );
 
       final enabledAppNames = _getEnabledAppNames();
 
