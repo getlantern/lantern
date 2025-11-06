@@ -7,6 +7,7 @@ import 'package:lantern/core/widgets/email_tag.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
+import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 
 @RoutePage(name: 'SignInPassword')
@@ -111,18 +112,25 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
       (user) {
         context.hideLoadingDialog();
         if (!user.success) {
-          // Login has failed reason being user has reached device limit
-          // start device flow
+          /// Login has failed reason being user has reached device limit
+          /// start device flow
           appLogger.warning(
               "Login failed for user: ${widget.email}, starting device flow");
           startDeviceFlow(user.devices.toList(), password, context);
           return;
         }
-        //login successfully
+
+        ///login successfully
+        /// save login state and user email
+        /// update user data in home notifier
+        /// fetch available servers
         ref.read(appSettingNotifierProvider.notifier)
           ..setUserLoggedIn(true)
           ..setEmail(widget.email);
         ref.read(homeNotifierProvider.notifier).updateUserData(user);
+        ref
+            .read(availableServersNotifierProvider.notifier)
+            .forceFetchAvailableServers();
         appRouter.popUntilRoot();
       },
     );
