@@ -26,7 +26,7 @@ class AppsSplitTunneling extends HookConsumerWidget {
     final notifier = ref.read(splitTunnelingAppsProvider.notifier);
     final enabledApps = ref.watch(splitTunnelingAppsProvider);
     final allApps = (ref.watch(appsDataProvider).value ?? [])
-        .where((a) => a.iconPath.isNotEmpty || a.iconBytes != null)
+        //.where((a) => a.iconPath.isNotEmpty || a.iconBytes != null)
         .where((a) => a.bundleId != AppSecrets.lanternPackageName)
         .toList()
       ..sort((a, b) => a.name.compareTo(b.name));
