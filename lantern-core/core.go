@@ -293,6 +293,10 @@ func (lc *LanternCore) AddSplitTunnelItems(items string) error {
 		vpnFilter = vpn.Filter{
 			ProcessPathRegex: split,
 		}
+	} else if common.IsWindows() {
+		vpnFilter = vpn.Filter{
+			ProcessPath: split,
+		}
 	} else {
 		vpnFilter = vpn.Filter{
 			PackageName: split,

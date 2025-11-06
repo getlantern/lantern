@@ -136,7 +136,7 @@ func addSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
 	if err := c.AddSplitTunnelItem(filterType, item); err != nil {
 		return C.CString(fmt.Sprintf("error adding item: %v", err))
 	}
-	slog.Debug("added %s split tunneling item %s", filterType, item)
+	slog.Debug("added split tunneling item", "filterType", filterType, "item", item)
 	return nil
 }
 
@@ -152,7 +152,7 @@ func removeSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
 	if err := c.RemoveSplitTunnelItem(filterType, item); err != nil {
 		return C.CString(fmt.Sprintf("error removing item: %v", err))
 	}
-	slog.Debug("removed %s split tunneling item %s", filterType, item)
+	slog.Debug("removed split tunneling item", "filterType", filterType, "item", item)
 	return nil
 }
 

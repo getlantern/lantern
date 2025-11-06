@@ -88,6 +88,7 @@ class LanternFFIService implements LanternCoreService {
         /// keep it alive but we wil use only for VPN calls
         await _initializeWindowsService();
         _status = _windowsService.watchVPNStatus();
+        await _initializeCommandIsolate();
       } else {
         _status = statusReceivePort.map((event) {
           Map<String, dynamic> result = jsonDecode(event);
