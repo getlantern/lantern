@@ -11,10 +11,15 @@ class PrivateSeverDetails extends StatefulHookConsumerWidget {
   final List<String> accounts;
   final CloudProvider provider;
 
+  /// if true, it means some values are pre filled
+  /// and user only need to setup location and server name
+  final bool isPreFilled;
+
   const PrivateSeverDetails({
     super.key,
     required this.accounts,
     required this.provider,
+    this.isPreFilled = false,
   });
 
   @override
@@ -26,8 +31,9 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+
     final selectedAccount = useState<String?>(null);
-    final projectList = useState<List<String>>(['Select account']);
+    final projectList = useState<List<String>>([]);
     final selectedProject = useState<String?>(null);
     final locationList = useState<List<String>>([]);
     final selectedLocation = useState<String?>(null);
@@ -65,6 +71,17 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
         });
       }
 
+      if (serverState.status == 'EventTypeNoProjects') {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          appLogger.info("No projects found for the selected account.");
+          AppDialog.errorDialog(
+            context: context,
+            title: 'no_projects_found'.i18n,
+            content: serverState.error ?? 'no_projects_found_desc'.i18n,
+          );
+        });
+      }
+
       return null;
     }, [serverState.status, serverState.data]);
 
@@ -79,10 +96,8 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
             key: const Key('psd.startDeployment'),
             label: 'start_deployment'.i18n,
             isTaller: true,
-            enabled: (selectedProject.value != null &&
-                (selectedLocation.value != null &&
-                    selectedLocation.value!.isNotEmpty) &&
-                serverNameController.text.trim().isNotEmpty),
+            enabled: isStartDeploymentEnabled(selectedProject.value,
+                selectedLocation.value, serverNameController.text.trim()),
             onPressed: () => onStartDeployment(
               selectedLocation.value!,
               serverNameController.text.trim(),
@@ -91,42 +106,83 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
         ),
         body: ListView(
           children: <Widget>[
-            AppCard(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "1. ${'choose_your_account'.i18n}",
-                    style: textTheme.titleMedium,
-                  ),
-                  SizedBox(height: 8),
-                  DividerSpace(padding: EdgeInsets.zero),
-                  SizedBox(height: 8),
-                  AppDropdown(
-                    key: const Key('psd.accountDropdown'),
-                    label: 'account'.i18n,
-                    prefixIconPath: AppImagePaths.accountSetting,
-                    value: selectedAccount.value,
-                    items: widget.accounts
-                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                        .toList(),
-                    onChanged: (value) {
-                      selectedAccount.value = value;
-                      // reset dependents
-                      selectedProject.value = null;
-                      projectList.value = <String>[];
-                      selectedLocation.value = null;
-                      locationList.value = <String>[];
+            /// If isPreFilled is false, there are no default values provided.
+            /// This means the user needs to set up account, project, location, and server name.
+            /// If isPreFilled is true, only server location and name need to be set up.
+            if (!widget.isPreFilled) ...{
+              AppCard(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "1. ${'choose_your_account'.i18n}",
+                      style: textTheme.titleMedium,
+                    ),
+                    SizedBox(height: 8),
+                    DividerSpace(padding: EdgeInsets.zero),
+                    SizedBox(height: 8),
+                    AppDropdown(
+                      key: const Key('psd.accountDropdown'),
+                      label: 'account'.i18n,
+                      prefixIconPath: AppImagePaths.accountSetting,
+                      value: selectedAccount.value,
+                      items: widget.accounts
+                          .map(
+                              (e) => DropdownMenuItem(value: e, child: Text(e)))
+                          .toList(),
+                      onChanged: (value) {
+                        selectedAccount.value = value;
+                        // reset dependents
+                        selectedProject.value = null;
+                        projectList.value = <String>[];
+                        selectedLocation.value = null;
+                        locationList.value = <String>[];
 
-                      if (value.isNotEmpty) {
-                        onUserInput(PrivateServerInput.selectAccount, value);
-                      }
-                    },
-                  ),
-                ],
+                        if (value.isNotEmpty) {
+                          onUserInput(PrivateServerInput.selectAccount, value);
+                        }
+                      },
+                    ),
+                  ],
+                ),
               ),
-            ),
+              SizedBox(height: 16),
+              AppCard(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "2. ${'choose_your_project'.i18n}",
+                      style: textTheme.titleMedium,
+                    ),
+                    SizedBox(height: 8),
+                    DividerSpace(padding: EdgeInsets.zero),
+                    SizedBox(height: 8),
+                    AppDropdown(
+                      key: const Key('psd.projectDropdown'),
+                      label: 'billing_account'.i18n,
+                      prefixIconPath: AppImagePaths.creditCard,
+                      value: selectedProject.value,
+                      items: projectList.value
+                          .map(
+                              (e) => DropdownMenuItem(value: e, child: Text(e)))
+                          .toList(),
+                      onChanged: (value) {
+                        selectedProject.value = value;
+                        selectedLocation.value = null;
+                        locationList.value = <String>[];
+
+                        if (value.isNotEmpty) {
+                          onUserInput(PrivateServerInput.selectProject, value);
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            },
             SizedBox(height: 16),
             AppCard(
               padding: const EdgeInsets.all(16.0),
@@ -134,41 +190,7 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "2. ${'choose_your_project'.i18n}",
-                    style: textTheme.titleMedium,
-                  ),
-                  SizedBox(height: 8),
-                  DividerSpace(padding: EdgeInsets.zero),
-                  SizedBox(height: 8),
-                  AppDropdown(
-                    key: const Key('psd.projectDropdown'),
-                    label: 'billing_account'.i18n,
-                    prefixIconPath: AppImagePaths.creditCard,
-                    value: selectedProject.value,
-                    items: projectList.value
-                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                        .toList(),
-                    onChanged: (value) {
-                      selectedProject.value = value;
-                      selectedLocation.value = null;
-                      locationList.value = <String>[];
-
-                      if (value.isNotEmpty) {
-                        onUserInput(PrivateServerInput.selectProject, value);
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 16),
-            AppCard(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "3. ${'choose_your_location'.i18n}",
+                    "${widget.isPreFilled ? '1' : '3'}. ${'choose_your_location'.i18n}",
                     style: textTheme.titleMedium,
                   ),
                   SizedBox(height: 8),
@@ -223,7 +245,7 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "4. ${'name_your_server'.i18n}",
+                    "${widget.isPreFilled ? '2' : '4'}. ${'name_your_server'.i18n}",
                     style: textTheme.titleMedium,
                   ),
                   SizedBox(height: 8),
@@ -255,6 +277,16 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
             SizedBox(height: 36),
           ],
         ));
+  }
+
+  bool isStartDeploymentEnabled(
+      String? project, String? location, String serverName) {
+    if (widget.isPreFilled) {
+      return location != null && serverName.isNotEmpty;
+    }
+    return (project != null &&
+        (location != null && location.isNotEmpty) &&
+        serverName.isNotEmpty);
   }
 
   Future<void> onUserInput(PrivateServerInput input, String account) async {
