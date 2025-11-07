@@ -179,26 +179,30 @@ class LanternBindings {
   int _GoStringLen(
     _GoString_ s,
   ) {
-    return ___va_start(
-      arg0,
+    return __GoStringLen(
+      s,
     );
   }
 
-  late final ___va_startPtr =
-      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<va_list>)>>(
-          '__va_start');
-  late final ___va_start =
-      ___va_startPtr.asFunction<void Function(ffi.Pointer<va_list>)>();
+  late final __GoStringLenPtr =
+      _lookup<ffi.NativeFunction<ffi.Size Function(_GoString_)>>(
+          '_GoStringLen');
+  late final __GoStringLen =
+      __GoStringLenPtr.asFunction<int Function(_GoString_)>();
 
-  void __security_init_cookie() {
-    return ___security_init_cookie();
+  ffi.Pointer<ffi.Char> _GoStringPtr(
+    _GoString_ s,
+  ) {
+    return __GoStringPtr(
+      s,
+    );
   }
 
-  late final ___security_init_cookiePtr =
-      _lookup<ffi.NativeFunction<ffi.Void Function()>>(
-          '__security_init_cookie');
-  late final ___security_init_cookie =
-      ___security_init_cookiePtr.asFunction<void Function()>();
+  late final __GoStringPtrPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function(_GoString_)>>(
+          '_GoStringPtr');
+  late final __GoStringPtr =
+      __GoStringPtrPtr.asFunction<ffi.Pointer<ffi.Char> Function(_GoString_)>();
 
   ffi.Pointer<ffi.Void> _calloc_base(
     int _Count,
