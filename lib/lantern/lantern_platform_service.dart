@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:installed_apps/installed_apps.dart';
+import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/available_servers.dart';
@@ -162,18 +163,31 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   Stream<List<AppData>> androidAppsDataStream() async* {
-    if (!Platform.isAndroid) {
-      throw UnimplementedError();
-    }
+    if (!Platform.isAndroid) throw UnimplementedError();
     try {
-      final apps = await InstalledApps.getInstalledApps(true, true);
+      // exclude system apps and do NOT fetch icons up-front
+      final apps = await InstalledApps.getInstalledApps(
+        excludeSystemApps: true,
+        excludeNonLaunchableApps: true,
+        withIcon: true,
+      );
+
       final enabledAppNames = _getEnabledAppNames();
-      final rawApps = apps.map((app) => {
+
+      final filtered = apps.where((app) {
+        if (app.packageName == AppSecrets.lanternPackageName) return false;
+        return true;
+      });
+
+      final rawApps = filtered.map((app) => {
             "name": app.name,
             "bundleId": app.packageName,
             "appPath": "",
-            "icon": app.icon,
+            //  lazy-load the icon
+            "iconPath": "",
+            "icon": null,
           });
+
       yield _mapToAppData(rawApps, enabledAppNames);
     } catch (e, st) {
       appLogger.error("Failed to fetch installed apps", e, st);

@@ -14,7 +14,7 @@ def hasReleaseKeystore =
 
 android {
     namespace = "org.getlantern.lantern"
-    compileSdk = 35
+    compileSdk = 36
     ndkVersion "27.0.12077973"
 
     sourceSets {
@@ -50,8 +50,8 @@ android {
 
     defaultConfig {
         applicationId = "org.getlantern.lantern"
-        minSdk = 23
-        targetSdk = 35
+        minSdkVersion = 23
+        targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
 
