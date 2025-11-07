@@ -727,6 +727,19 @@ func selectProject(_project *C.char) *C.char {
 	return C.CString("ok")
 }
 
+// validateSession validates the session for the private server.
+//
+//export validateSession
+func validateSession() *C.char {
+	slog.Debug("Validating session")
+	err := core().ValidateSession()
+	if err != nil {
+		return SendError(fmt.Errorf("Error validating session: %v", err))
+	}
+	slog.Debug("Session validated successfully")
+	return C.CString("ok")
+}
+
 // startDepolyment starts the deployment for the private server.
 //
 //export startDepolyment

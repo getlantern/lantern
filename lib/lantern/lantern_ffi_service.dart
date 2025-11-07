@@ -116,23 +116,23 @@ class LanternFFIService implements LanternCoreService {
       appLogger.debug("Data dir: ${dataDir.path}, Log dir: $logDir");
       final dataDirPtr = dataDir.path.toCharPtr;
       final logDirPtr = logDir.toCharPtr;
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService
-              .setup(
-                logDirPtr,
-                dataDirPtr,
-                Localization.defaultLocale.toCharPtr,
-                loggingReceivePort.sendPort.nativePort,
-                appsReceivePort.sendPort.nativePort,
-                statusReceivePort.sendPort.nativePort,
-                privateServerReceivePort.sendPort.nativePort,
-                flutterEventReceivePort.sendPort.nativePort,
-                NativeApi.initializeApiDLData,
-              )
-              .toDartString();
-        },
-      );
+
+      /// ⚠️ IMPORTANT: Call setup() ONLY on the main isolate.
+      /// This function initializes the Dart → Go bridge (Dart DL API) using NativeApi.initializeApiDLData.
+      /// If executed from a background isolate, the Dart DL bridge will break,
+      final result = _ffiService
+          .setup(
+            logDirPtr,
+            dataDirPtr,
+            Localization.defaultLocale.toCharPtr,
+            loggingReceivePort.sendPort.nativePort,
+            appsReceivePort.sendPort.nativePort,
+            statusReceivePort.sendPort.nativePort,
+            privateServerReceivePort.sendPort.nativePort,
+            flutterEventReceivePort.sendPort.nativePort,
+            NativeApi.initializeApiDLData,
+          )
+          .toDartString();
       checkAPIError(result);
       return right(unit);
     } catch (e, st) {
@@ -823,9 +823,20 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> validateSession() {
-    // TODO: implement validateSession
-    throw UnimplementedError();
+  Future<Either<Failure, Unit>> validateSession() async {
+    try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService.validateSession().toDartString();
+        },
+      );
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.info(
+          'Error starting Digital Ocean private server', e, stackTrace);
+      return Left(e.toFailure());
+    }
   }
 
   @override
@@ -1060,7 +1071,7 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, String>> attachReferralCode(String code) async {
     try {
       final result = await runInBackground<String>(
-            () async {
+        () async {
           return _ffiService.referralAttachment(code.toCharPtr).toDartString();
         },
       );
@@ -1165,9 +1176,6 @@ class LanternFFIService implements LanternCoreService {
     // TODO: implement removeAllItems
     throw UnimplementedError();
   }
-
-
-
 }
 
 void checkAPIError(dynamic result) {
