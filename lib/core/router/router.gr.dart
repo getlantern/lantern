@@ -958,6 +958,7 @@ class PrivateServerDetails
     _i41.Key? key,
     required List<String> accounts,
     required _i42.CloudProvider provider,
+    bool isPreFilled = false,
     List<_i40.PageRouteInfo>? children,
   }) : super(
           PrivateServerDetails.name,
@@ -965,6 +966,7 @@ class PrivateServerDetails
             key: key,
             accounts: accounts,
             provider: provider,
+            isPreFilled: isPreFilled,
           ),
           initialChildren: children,
         );
@@ -979,6 +981,7 @@ class PrivateServerDetails
         key: args.key,
         accounts: args.accounts,
         provider: args.provider,
+        isPreFilled: args.isPreFilled,
       );
     },
   );
@@ -989,6 +992,7 @@ class PrivateServerDetailsArgs {
     this.key,
     required this.accounts,
     required this.provider,
+    this.isPreFilled = false,
   });
 
   final _i41.Key? key;
@@ -997,9 +1001,11 @@ class PrivateServerDetailsArgs {
 
   final _i42.CloudProvider provider;
 
+  final bool isPreFilled;
+
   @override
   String toString() {
-    return 'PrivateServerDetailsArgs{key: $key, accounts: $accounts, provider: $provider}';
+    return 'PrivateServerDetailsArgs{key: $key, accounts: $accounts, provider: $provider, isPreFilled: $isPreFilled}';
   }
 
   @override
@@ -1008,14 +1014,16 @@ class PrivateServerDetailsArgs {
     if (other is! PrivateServerDetailsArgs) return false;
     return key == other.key &&
         const _i44.ListEquality().equals(accounts, other.accounts) &&
-        provider == other.provider;
+        provider == other.provider &&
+        isPreFilled == other.isPreFilled;
   }
 
   @override
   int get hashCode =>
       key.hashCode ^
       const _i44.ListEquality().hash(accounts) ^
-      provider.hashCode;
+      provider.hashCode ^
+      isPreFilled.hashCode;
 }
 
 /// generated route for

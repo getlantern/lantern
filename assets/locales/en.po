@@ -1179,8 +1179,18 @@ msgstr "Not a Lantern Pro user yet? You'll become one when your first referral s
 msgid "lantern_pro_license"
 msgstr "Lantern Pro License"
 
+msgid "select_account"
+msgstr "Select Account"
+
 msgid "new_to_lantern"
 msgstr "New to Lantern?"
 
 msgid "create_an_account"
 msgstr "Create an account"
+
+msgid "no_projects_found"
+msgstr "No Projects Found"
+
+msgid "no_projects_found_desc"
+msgstr "No projects found. Please create a project in your cloud provider account first."
+
