@@ -75,7 +75,7 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
   void selectAllApps() async {
     final allApps = (ref.read(appsDataProvider).value ?? [])
         .where((a) => a.iconPath.isNotEmpty || a.iconBytes != null)
-        .where((a) => a.name != AppSecrets.lanternPackageName)
+        .where((a) => a.bundleId != AppSecrets.lanternPackageName)
         .toList()
       ..sort((a, b) => a.name.compareTo(b.name));
 
