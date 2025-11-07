@@ -834,7 +834,7 @@ class LanternFFIService implements LanternCoreService {
       return Right(unit);
     } catch (e, stackTrace) {
       appLogger.info(
-          'Error starting Digital Ocean private server', e, stackTrace);
+          'Error validating session', e, stackTrace);
       return Left(e.toFailure());
     }
   }

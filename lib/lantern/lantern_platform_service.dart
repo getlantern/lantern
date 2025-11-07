@@ -738,7 +738,7 @@ class LanternPlatformService implements LanternCoreService {
       await _methodChannel.invokeMethod("validateSession");
       return Right(unit);
     } catch (e, stackTrace) {
-      appLogger.error('Error setting user input', e, stackTrace);
+      appLogger.error('Error validating session', e, stackTrace);
       return Left(e.toFailure());
     }
   }

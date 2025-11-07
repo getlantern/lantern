@@ -1209,6 +1209,13 @@ msgstr "below to go to DigitalOcean"
 msgid "1"
 msgstr "1"
 
+msgid "2"
+msgstr "2"
+
+msgid "3"
+msgstr "3"
+
+
 msgid "add_payment_method"
 msgstr "Add a payment method (credit card or PayPal)"
 
@@ -1218,11 +1225,6 @@ msgstr "Return to Lantern and tap \"Continue\" to proceed with setup"
 msgid "how_to_add_billing_details"
 msgstr "How to add billing details:"
 
-msgid "no_projects_found"
-msgstr "No Projects Found"
-
-msgid "no_projects_found_desc"
-msgstr "No projects found. Please create a project in your cloud provider account first."
 
 msgid "add_payment_method_message"
 msgstr "Please add a payment method to your DigitalOcean account. If you already have, wait a few minutes and try again."

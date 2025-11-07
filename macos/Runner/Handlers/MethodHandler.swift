@@ -915,7 +915,7 @@ class MethodHandler {
   func validateSession(result: @escaping FlutterResult) {
     Task.detached {
       var error: NSError?
-      let isValid = MobileValidateSession(&error)
+       MobileValidateSession(&error)
       if let err = error {
         await self.handleFlutterError(
           err, result: result, code: "VALIDATE_SESSION_ERROR")
