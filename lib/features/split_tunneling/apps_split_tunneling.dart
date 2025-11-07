@@ -41,8 +41,8 @@ class AppsSplitTunneling extends HookConsumerWidget {
 
     final filteredEnabled = enabledApps.where(matchesSearch).toList()
       ..sort((a, b) => a.name.compareTo(b.name));
-    final filteredDisabled = installedApps
-        .where((a) => !enabledApps.any((e) => e.name == a.name))
+    final filteredDisabled = allApps
+        .where((a) => !enabledApps.any((e) => e.bundleId == a.bundleId))
         .where(matchesSearch)
         .toList()
       ..sort((a, b) => a.name.compareTo(b.name));

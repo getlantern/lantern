@@ -103,7 +103,7 @@ dependencies:
   jwt_decoder: ^2.0.1
   country_flags: ^3.3.0
   mobile_scanner: ^7.0.1
-  installed_apps: ^1.6.0
+  installed_apps: ^2.0.0
   device_info_plus: ^11.5.0
 
   flutter_inappwebview: ^6.1.5
@@ -168,4 +168,4 @@ ffigen:
     entry-points:
       - "bin/**/liblantern.h"
       - "bin/windows-amd64/liblantern.h"
-      - "bin/windows-arm64/liblantern.h"
+
