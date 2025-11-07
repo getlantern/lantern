@@ -68,7 +68,7 @@ func scanAppDirs(appDirs []string, seen map[string]bool, excludeDirs []string, c
 		_ = filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
 			//slog.Info("Visiting", "path", path)
 			if err != nil || d == nil {
-				slog.Info("Error accessing path", "path", path, "error", err)
+				slog.Warn("Error accessing path", "path", path, "error", err)
 				return nil
 			}
 			//if !d.IsDir() {
