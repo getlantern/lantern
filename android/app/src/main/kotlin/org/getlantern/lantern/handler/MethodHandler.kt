@@ -1,5 +1,12 @@
 package org.getlantern.lantern.handler
 
+import android.content.Context
+import android.content.Intent
+import android.content.pm.ApplicationInfo
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.util.Log
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
@@ -14,6 +21,8 @@ import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.utils.PrivateServerListener
 import org.getlantern.lantern.utils.VpnStatusManager
+import java.io.File
+import java.io.FileOutputStream
 
 
 enum class Methods(val method: String) {
@@ -80,12 +89,15 @@ enum class Methods(val method: String) {
     RemoveSplitTunnelItem("removeSplitTunnelItem"),
     AddAllItems("addAllItems"),
     RemoveAllItems("removeAllItems"),
+    InstalledApps("installedApps"),
+    GetAppIcon("getAppIcon"),
 }
 
 class MethodHandler : FlutterPlugin,
     MethodChannel.MethodCallHandler {
 
     private var channel: MethodChannel? = null
+    private lateinit var appContext: Context
 
     companion object {
         const val TAG = "A/MethodHandler"
@@ -97,6 +109,7 @@ class MethodHandler : FlutterPlugin,
     private val privateServerListener = PrivateServerListener()
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+        appContext = binding.applicationContext
         channel = MethodChannel(
             binding.binaryMessenger,
             channelName,
@@ -267,6 +280,32 @@ class MethodHandler : FlutterPlugin,
                 }
             }
 
+            Methods.InstalledApps.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val json = getLaunchableUserAppsJson(appContext)
+                        withContext(Dispatchers.Main) { result.success(json) }
+                    }.onFailure { e ->
+                        result.error(
+                            "installed_apps",
+                            e.localizedMessage ?: "Failed to load apps",
+                            e
+                        )
+                    }
+                }
+            }
+
+            Methods.GetAppIcon.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val pkg = call.argument<String>("package") ?: error("Missing package")
+                        val path = writeAppIconToCache(appContext, pkg)
+                        withContext(Dispatchers.Main) { result.success(path) }
+                    }.onFailure { e ->
+                        result.error("get_app_icon", e.localizedMessage ?: "Failed to load icon", e)
+                    }
+                }
+            }
 
             Methods.ReportIssue.method -> {
                 scope.launch {
@@ -936,5 +975,70 @@ inline fun CoroutineScope.handleResult(
                 e
             )
         }
+    }
+}
+
+private data class AppEntry(val label: String, val packageName: String)
+
+private fun getLaunchableUserAppsJson(ctx: Context): String {
+    val pm = ctx.packageManager
+    val intent = Intent(Intent.ACTION_MAIN, null).addCategory(Intent.CATEGORY_LAUNCHER)
+
+    val resolveInfos = pm.queryIntentActivities(intent, PackageManager.MATCH_ALL)
+
+    val ownPkg = ctx.packageName
+    val entries = resolveInfos.mapNotNull { ri ->
+        val pkg = ri.activityInfo?.packageName ?: return@mapNotNull null
+        val label = try { ri.loadLabel(pm).toString() } catch (_: Exception) { pkg }
+
+        // filter system apps and ourselves
+        if (pkg == ownPkg || isSystemApp(pm, pkg)) return@mapNotNull null
+
+        AppEntry(label, pkg)
+    }
+        .distinctBy { it.packageName }
+        .sortedBy { it.label.lowercase(Locale.getDefault()) }
+
+    val arr = JSONArray()
+    entries.forEach { a ->
+        arr.put(JSONObject().apply {
+            put("name", a.label)
+            put("bundleId", a.packageName)
+            put("appPath", "")
+            put("iconPath", "")
+        })
+    }
+    return arr.toString()
+}
+
+private fun writeAppIconToCache(ctx: Context, packageName: String): String {
+    val pm = ctx.packageManager
+    val drawable = pm.getApplicationIcon(packageName)
+    val bmp = drawableToBitmap(drawable)
+    val file = File(ctx.cacheDir, "appicon_$packageName.png")
+    FileOutputStream(file).use { out ->
+        bmp.compress(Bitmap.CompressFormat.PNG, 100, out)
+    }
+    return file.absolutePath
+}
+
+private fun drawableToBitmap(drawable: Drawable): Bitmap {
+    if (drawable is BitmapDrawable && drawable.bitmap != null) return drawable.bitmap
+    val w = drawable.intrinsicWidth.coerceAtLeast(1)
+    val h = drawable.intrinsicHeight.coerceAtLeast(1)
+    val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+    val canvas = android.graphics.Canvas(bmp)
+    drawable.setBounds(0, 0, canvas.width, canvas.height)
+    drawable.draw(canvas)
+    return bmp
+}
+
+private fun isSystemApp(pm: PackageManager, packageName: String): Boolean {
+    return try {
+        val ai = pm.getApplicationInfo(packageName, 0)
+        (ai.flags and ApplicationInfo.FLAG_SYSTEM) != 0 ||
+        (ai.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0
+    } catch (_: Exception) {
+        false
     }
 }

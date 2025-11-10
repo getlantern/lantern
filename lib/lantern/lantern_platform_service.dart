@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
-import 'package:installed_apps/installed_apps.dart';
 import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_event.dart';
@@ -165,28 +164,18 @@ class LanternPlatformService implements LanternCoreService {
   Stream<List<AppData>> androidAppsDataStream() async* {
     if (!Platform.isAndroid) throw UnimplementedError();
     try {
-      // exclude system apps and do NOT fetch icons up-front
-      final apps = await InstalledApps.getInstalledApps(
-        excludeSystemApps: true,
-        excludeNonLaunchableApps: true,
-        withIcon: true,
-      );
+      final String? json =
+          await _methodChannel.invokeMethod<String>('installedApps');
+
+      if (json == null) {
+        yield [];
+        return;
+      }
 
       final enabledAppNames = _getEnabledAppNames();
 
-      final filtered = apps.where((app) {
-        if (app.packageName == AppSecrets.lanternPackageName) return false;
-        return true;
-      });
-
-      final rawApps = filtered.map((app) => {
-            "name": app.name,
-            "bundleId": app.packageName,
-            "appPath": "",
-            //  lazy-load the icon
-            "iconPath": "",
-            "icon": null,
-          });
+      final decoded = jsonDecode(json) as List<dynamic>;
+      final rawApps = decoded.cast<Map<String, dynamic>>();
 
       yield _mapToAppData(rawApps, enabledAppNames);
     } catch (e, st) {
