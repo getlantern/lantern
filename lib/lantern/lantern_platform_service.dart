@@ -5,10 +5,11 @@ import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/datacap_info.dart';
-import 'package:lantern/core/models/entity/app_data.dart';
+import 'package:lantern/core/models/entity/app_data.dart' hide AppData;
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/mapper/plan_mapper.dart';
 import 'package:lantern/core/models/plan_data.dart';
@@ -37,11 +38,15 @@ class LanternPlatformService implements LanternCoreService {
       EventChannel("$channelPrefix/private_server_status", JSONMethodCodec());
   static const appEventStatusChannel =
       EventChannel("$channelPrefix/app_events", JSONMethodCodec());
+  static const EventChannel appStreamChannel =
+      EventChannel("$channelPrefix/app_stream", JSONMethodCodec());
 
   late final Stream<LanternStatus> _status;
   late final Stream<PrivateServerStatus> _privateServerStatus;
   late final Stream<MacOSExtensionState> _systemExtensionStatus;
   late final Stream<AppEvent> _appEventStatus;
+
+  final Map<String, AppData> _androidAppCache = <String, AppData>{};
 
   @override
   Future<void> init() async {
@@ -163,25 +168,56 @@ class LanternPlatformService implements LanternCoreService {
 
   Stream<List<AppData>> androidAppsDataStream() async* {
     if (!Platform.isAndroid) throw UnimplementedError();
+
+    final enabledAppNames = _getEnabledAppNames();
+
+    Stream<dynamic>? nativeStream;
     try {
-      final String? json =
-          await _methodChannel.invokeMethod<String>('installedApps');
-
-      if (json == null) {
-        yield [];
-        return;
-      }
-
-      final enabledAppNames = _getEnabledAppNames();
-
-      final decoded = jsonDecode(json) as List<dynamic>;
-      final rawApps = decoded.cast<Map<String, dynamic>>();
-
-      yield _mapToAppData(rawApps, enabledAppNames);
-    } catch (e, st) {
-      appLogger.error("Failed to fetch installed apps", e, st);
-      yield [];
+      nativeStream = appStreamChannel.receiveBroadcastStream({"sizePx": 96});
+    } on MissingPluginException {
+      nativeStream = null;
+    } catch (_) {
+      nativeStream = null;
     }
+
+    if (nativeStream == null) {
+      try {
+        final String? json =
+            await _methodChannel.invokeMethod<String>('installedApps');
+        if (json == null) {
+          yield [];
+          return;
+        }
+        final decoded = jsonDecode(json) as List<dynamic>;
+        final rawApps = decoded.cast<Map<String, dynamic>>();
+        for (final a in _mapToAppData(rawApps, enabledAppNames)) {
+          _androidAppCache[a.bundleId] = a;
+        }
+        yield _sortedCache();
+      } catch (e, st) {
+        appLogger.error("Failed to fetch installed apps", e, st);
+        yield [];
+      }
+      return;
+    }
+
+    try {
+      await for (final ev in nativeStream) {
+        if (ev is! Map) continue;
+        final parsed = AppDataEvent.fromMap(ev);
+        _applyAppDataEvent(parsed, enabledAppNames);
+        yield _sortedCache();
+      }
+    } catch (e, st) {
+      appLogger.error("App stream failed", e, st);
+      yield _sortedCache();
+    }
+  }
+
+  List<AppData> _sortedCache() {
+    final list = _androidAppCache.values.toList()
+      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    return list;
   }
 
   Stream<List<AppData>> macAppsDataStream() async* {

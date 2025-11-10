@@ -24,11 +24,14 @@ class EventHandler : FlutterPlugin {
         const val SERVICE_STATUS = "org.getlantern.lantern/status"
         const val PRIVATE_SERVER_STATUS = "org.getlantern.lantern/private_server_status"
         const val APP_EVENTS = "org.getlantern.lantern/app_events"
+        const val APP_DATA = "org.getlantern.lantern/app_stream"
     }
 
     private var statusChannel: EventChannel? = null
     private var privateServerStatusChannel: EventChannel? = null
     private var appEventStatusChannel: EventChannel? = null
+    private var appDataChannel: EventChannel? = null
+    private var appDataHandler: AppDataHandler? = null
 
     private var statusObserver: Observer<Event<VPNStatus>>? = null
     private var flutterEventObserver: Observer<Event<FlutterEvent>>? = null
@@ -51,6 +54,13 @@ class EventHandler : FlutterPlugin {
             APP_EVENTS,
             JSONMethodCodec.INSTANCE
         )
+        appDataChannel = EventChannel(
+            binding.binaryMessenger, 
+            APP_STREAM, 
+            JSONMethodCodec.INSTANCE
+        )
+        appDataChannel = AppDataHandler(binding.applicationContext)
+        appDataChannel?.setStreamHandler(appStreamHandler)
 
         statusChannelListeners()
         privateServerStatus()
@@ -75,6 +85,10 @@ class EventHandler : FlutterPlugin {
             FlutterEventStream.events.removeObserver(flutterEventObserver!!)
             flutterEventObserver = null
         }
+
+        appDataChannel?.setStreamHandler(null)
+        appDataHandler?.dispose()
+        appDataHandler = null
     }
 
 
