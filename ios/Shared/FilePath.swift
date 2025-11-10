@@ -24,6 +24,7 @@ extension FilePath {
   public static let logsDirectory =
     sharedDirectory
     .appendingPathComponent("Logs", isDirectory: true)
+    
 
 }
 
