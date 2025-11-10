@@ -46,10 +46,10 @@ dependencies:
   path: ^1.9.1
   path_provider: ^2.1.5
   #Routing
-  auto_route: ^10.1.0+1
+  auto_route: ^10.2.0
   #UI Utils
   animated_toggle_switch: ^0.8.5
-  animated_text_kit: ^4.2.3
+  animated_text_kit: ^4.3.0
   flutter_screenutil: ^5.9.3
   auto_size_text: ^3.0.0
   device_preview_plus: ^2.3.2
