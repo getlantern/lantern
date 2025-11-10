@@ -1,3 +1,4 @@
+import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:objectbox/objectbox.dart';
 
@@ -119,7 +120,7 @@ class PrivateServerEntity {
   }
 
   ServerLocation get serverLocation => ServerLocation(
-        locationName: serverLocationName,
-        countryCode: serverCountryCode,
+        locationName: serverLocationName.locationName,
+        countryCode: serverLocationName.countryCode,
       );
 }

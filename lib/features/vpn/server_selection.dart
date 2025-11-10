@@ -618,7 +618,7 @@ class _PrivateServerLocationListViewState
       serverType: ServerLocationType.privateServer.name,
       serverName: privateServer.serverName,
       autoSelect: false,
-      serverLocation: privateServer.serverLocation.locationName,
+      serverLocation: privateServer.serverLocationName,
     );
 
     ref

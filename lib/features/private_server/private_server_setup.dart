@@ -39,6 +39,11 @@ class PrivateServerSetup extends HookConsumerWidget {
       if (serverState.status == 'EventTypeOAuthError') {
         context.showSnackBar('private_server_setup_error'.i18n);
       }
+      if (serverState.status == 'EventTypeOnlyCompartment') {
+        context.hideLoadingDialog();
+        appRouter.push(PrivateServerDetails(
+            accounts: [], provider: selectedProvider, isPreFilled: true));
+      }
       if (serverState.status == 'EventTypeAccounts') {
         context.hideLoadingDialog();
         final accounts = serverState.data!.split(', ');
