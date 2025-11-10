@@ -25,7 +25,7 @@ class AppEventNotifier extends _$AppEventNotifier {
   }
 
   /// Watches for application events and triggers appropriate actions.
-  /// Currently, it listens for 'config' events to refresh feature flags.
+  /// Currently, it listens for 'config' events.
   void watchAppEvents() {
     appLogger.debug('Setting up app event listener...');
     _appEventSub =
