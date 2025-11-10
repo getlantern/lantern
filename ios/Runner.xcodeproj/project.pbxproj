@@ -136,13 +136,6 @@
 			path = Utils;
 			sourceTree = "<group>";
 		};
-		0366A7752DBBC1CA0016E3F9 /* Constants */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
-			path = Constants;
-			sourceTree = "<group>";
-		};
 		0366A7762DBBC20D0016E3F9 /* VPN */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -275,7 +268,6 @@
 			isa = PBXGroup;
 			children = (
 				0366A7762DBBC20D0016E3F9 /* VPN */,
-				0366A7752DBBC1CA0016E3F9 /* Constants */,
 				5FEB872F2D9F45EB000AE0DB /* Handlers */,
 				030793842E0980FC00EA2B3C /* Utils */,
 				97C146FD1CF9000F007C117D /* Assets.xcassets */,
@@ -366,7 +358,6 @@
 			);
 			fileSystemSynchronizedGroups = (
 				030793842E0980FC00EA2B3C /* Utils */,
-				0366A7752DBBC1CA0016E3F9 /* Constants */,
 				0366A7762DBBC20D0016E3F9 /* VPN */,
 			);
 			name = Runner;
