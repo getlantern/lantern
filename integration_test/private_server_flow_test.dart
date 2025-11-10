@@ -6,7 +6,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/services/injection_container.dart';
-import 'package:lantern/features/private_server/private_sever_details.dart';
 import 'package:lantern/features/private_server/provider/private_server_notifier.dart';
 
 import '../test/fakes/fake_private_server_notifier.dart';

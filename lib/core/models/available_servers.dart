@@ -110,18 +110,18 @@ class Server {
   });
 
   factory Server.fromJson(Map<String, dynamic> json) => Server(
-    group: json["Group"],
-    tag: json["Tag"],
-    type: json["Type"],
-    options: Endpoint.fromJson(json["Options"]),
-    location: Location_.fromJson(json["Location"]),
-  );
+        group: json["Group"],
+        tag: json["Tag"],
+        type: json["Type"],
+        options: Endpoint.fromJson(json["Options"]),
+        location: Location_.fromJson(json["Location"]),
+      );
 
   Map<String, dynamic> toJson() => {
-    "Group": group,
-    "Tag": tag,
-    "Type": type,
-    "Options": options?.toJson(),
-    "Location": location?.toJson(),
-  };
+        "Group": group,
+        "Tag": tag,
+        "Type": type,
+        "Options": options?.toJson(),
+        "Location": location?.toJson(),
+      };
 }

@@ -45,7 +45,7 @@ class AppStorageUtils {
       Directory appDataDir = await getWindowsAppDataDirectory();
 
       // On Windows, the Windows service starts without any knowledge of
-      // the app directory. It passes the empty string to the radiance 
+      // the app directory. It passes the empty string to the radiance
       // common.Init function, which creates the app data directory as
       // a subdirectory of the Lantern app data directory at
       // C:\Users\<User>\AppData\Roaming\Lantern\data

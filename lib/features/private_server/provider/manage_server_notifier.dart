@@ -20,7 +20,6 @@ class ManageServerNotifier extends _$ManageServerNotifier {
     await sl<LocalStorageService>().deletePrivateServer(serverName);
     state = sl<LocalStorageService>().getPrivateServer();
     if (state.isEmpty) {
-
       final initalServer = ServerLocationEntity(
         autoSelect: true,
         serverLocation: 'Fastest Country',

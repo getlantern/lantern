@@ -29,8 +29,6 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
     _localStorage.saveServerLocation(serverLocation);
   }
 
-
-
   Future<void> ifNeededGetAutoServerLocation() async {
     final status = ref.read(vpnNotifierProvider);
     if (status == VPNStatus.connected &&

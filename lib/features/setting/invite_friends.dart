@@ -81,7 +81,7 @@ class InviteFriends extends HookConsumerWidget {
                       ),
                       TextSpan(
                         text: 'monthly_plan'.i18n,
-                        style: AppTextStyles.bodyMediumBold!.copyWith(
+                        style: AppTextStyles.bodyMediumBold.copyWith(
                           color: AppColors.gray8,
                         ),
                       ),
@@ -106,7 +106,7 @@ class InviteFriends extends HookConsumerWidget {
                       ),
                       TextSpan(
                         text: 'annual_plan'.i18n,
-                        style: AppTextStyles.bodyMediumBold!.copyWith(
+                        style: AppTextStyles.bodyMediumBold.copyWith(
                           color: AppColors.gray8,
                         ),
                       ),
@@ -131,7 +131,7 @@ class InviteFriends extends HookConsumerWidget {
                       ),
                       TextSpan(
                         text: 'two_year_plan'.i18n,
-                        style: AppTextStyles.bodyMediumBold!.copyWith(
+                        style: AppTextStyles.bodyMediumBold.copyWith(
                           color: AppColors.gray8,
                         ),
                       ),
