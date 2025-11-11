@@ -28,7 +28,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(1, 8109438054083727979),
     name: 'AppData',
-    lastPropertyId: const obx_int.IdUid(7, 961998165971833378),
+    lastPropertyId: const obx_int.IdUid(9, 6529008235197556438),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -70,6 +70,18 @@ final _entities = <obx_int.ModelEntity>[
       obx_int.ModelProperty(
         id: const obx_int.IdUid(7, 961998165971833378),
         name: 'isEnabled',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(8, 3070023067299481568),
+        name: 'lastUpdateTime',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(9, 6529008235197556438),
+        name: 'removed',
         type: 1,
         flags: 0,
       ),
@@ -824,7 +836,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
             : fbb.writeListInt8(object.iconBytes!);
         final iconPathOffset = fbb.writeString(object.iconPath);
         final appPathOffset = fbb.writeString(object.appPath);
-        fbb.startTable(8);
+        fbb.startTable(10);
         fbb.addInt64(0, object.id);
         fbb.addOffset(1, nameOffset);
         fbb.addOffset(2, bundleIdOffset);
@@ -832,6 +844,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addOffset(4, iconPathOffset);
         fbb.addOffset(5, appPathOffset);
         fbb.addBool(6, object.isEnabled);
+        fbb.addInt64(7, object.lastUpdateTime);
+        fbb.addBool(8, object.removed);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -867,6 +881,18 @@ obx_int.ModelDefinition getObjectBoxModel() {
           16,
           false,
         );
+        final lastUpdateTimeParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          18,
+          0,
+        );
+        final removedParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          20,
+          false,
+        );
         final object = AppData(
           id: idParam,
           name: nameParam,
@@ -875,6 +901,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
           iconPath: iconPathParam,
           appPath: appPathParam,
           isEnabled: isEnabledParam,
+          lastUpdateTime: lastUpdateTimeParam,
+          removed: removedParam,
         );
 
         return object;
@@ -1769,6 +1797,16 @@ class AppData_ {
   /// See [AppData.isEnabled].
   static final isEnabled = obx.QueryBooleanProperty<AppData>(
     _entities[0].properties[6],
+  );
+
+  /// See [AppData.lastUpdateTime].
+  static final lastUpdateTime = obx.QueryIntegerProperty<AppData>(
+    _entities[0].properties[7],
+  );
+
+  /// See [AppData.removed].
+  static final removed = obx.QueryBooleanProperty<AppData>(
+    _entities[0].properties[8],
   );
 }
 

@@ -5,11 +5,12 @@ import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/app_data.dart'
+    show AppDataEventType, AppDataEvent;
+import 'package:lantern/core/models/entity/app_data.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/datacap_info.dart';
-import 'package:lantern/core/models/entity/app_data.dart' hide AppData;
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/mapper/plan_mapper.dart';
 import 'package:lantern/core/models/plan_data.dart';
@@ -145,14 +146,20 @@ class LanternPlatformService implements LanternCoreService {
     Set<String> enabledAppNames,
   ) {
     return rawApps.map((raw) {
-      final isEnabled = enabledAppNames.contains(raw["name"]);
+      final bundleId = (raw["bundleId"] ?? raw["package"] ?? "") as String;
+      final name = (raw["name"] ?? raw["label"] ?? bundleId).toString();
+      final lastUpdateTime = (raw["lastUpdateTime"] as num?)?.toInt() ?? 0;
+      final removed = raw["removed"] == true || raw["isRemoved"] == true;
+
       return AppData(
-        name: raw["name"] as String,
-        bundleId: raw["bundleId"] as String,
+        bundleId: bundleId,
+        name: name,
         appPath: raw["appPath"] as String? ?? '',
         iconPath: raw["iconPath"] as String? ?? '',
         iconBytes: raw["icon"] as Uint8List?,
-        isEnabled: isEnabled,
+        lastUpdateTime: lastUpdateTime,
+        removed: removed,
+        isEnabled: enabledAppNames.contains(name),
       );
     }).toList();
   }
@@ -204,14 +211,57 @@ class LanternPlatformService implements LanternCoreService {
     try {
       await for (final ev in nativeStream) {
         if (ev is! Map) continue;
-        final parsed = AppDataEvent.fromMap(ev);
-        _applyAppDataEvent(parsed, enabledAppNames);
+        final e = AppDataEvent.fromMap(ev);
+
+        _applyAppDataEvent(
+          type: e.type,
+          items: e.items
+              .map((a) => a.copyWith(
+                    isEnabled: enabledAppNames.contains(a.name),
+                  ))
+              .toList(),
+          removed: e.removed,
+        );
+
         yield _sortedCache();
       }
     } catch (e, st) {
       appLogger.error("App stream failed", e, st);
       yield _sortedCache();
     }
+  }
+
+  List<AppData> _applyAppDataEvent({
+    required AppDataEventType type,
+    required List<AppData> items,
+    required List<String> removed,
+  }) {
+    // remove
+    for (final id in removed) {
+      _androidAppCache.remove(id);
+    }
+    // upsert
+    if (type == AppDataEventType.iconReady) {
+      for (final a in items) {
+        final prev = _androidAppCache[a.bundleId];
+        if (prev != null) {
+          _androidAppCache[a.bundleId] = prev.copyWith(
+            iconPath: a.iconPath,
+            iconBytes: a.iconBytes,
+          );
+        } else {
+          _androidAppCache[a.bundleId] = a;
+        }
+      }
+    } else {
+      for (final a in items) {
+        _androidAppCache[a.bundleId] = a;
+      }
+    }
+
+    final list = _androidAppCache.values.toList();
+    list.sort((a, b) => a.name.compareTo(b.name));
+    return list;
   }
 
   List<AppData> _sortedCache() {
