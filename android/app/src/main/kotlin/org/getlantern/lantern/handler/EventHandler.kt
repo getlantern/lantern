@@ -10,6 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import lantern.io.utils.FlutterEvent
+import org.getlantern.lantern.apps.AppDataHandler
 import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.utils.Event
 import org.getlantern.lantern.utils.FlutterEventStream
@@ -24,7 +25,7 @@ class EventHandler : FlutterPlugin {
         const val SERVICE_STATUS = "org.getlantern.lantern/status"
         const val PRIVATE_SERVER_STATUS = "org.getlantern.lantern/private_server_status"
         const val APP_EVENTS = "org.getlantern.lantern/app_events"
-        const val APP_DATA = "org.getlantern.lantern/app_stream"
+        const val APP_STREAM = "org.getlantern.lantern/app_stream"
     }
 
     private var statusChannel: EventChannel? = null
@@ -55,12 +56,12 @@ class EventHandler : FlutterPlugin {
             JSONMethodCodec.INSTANCE
         )
         appDataChannel = EventChannel(
-            binding.binaryMessenger, 
-            APP_STREAM, 
+            flutterPluginBinding.binaryMessenger,
+            APP_STREAM,
             JSONMethodCodec.INSTANCE
         )
-        appDataChannel = AppDataHandler(binding.applicationContext)
-        appDataChannel?.setStreamHandler(appStreamHandler)
+        appDataHandler = AppDataHandler(flutterPluginBinding.applicationContext)
+        appDataChannel?.setStreamHandler(appDataHandler)
 
         statusChannelListeners()
         privateServerStatus()

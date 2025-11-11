@@ -23,6 +23,9 @@ import org.getlantern.lantern.utils.PrivateServerListener
 import org.getlantern.lantern.utils.VpnStatusManager
 import java.io.File
 import java.io.FileOutputStream
+import java.util.Locale
+import org.json.JSONArray
+import org.json.JSONObject
 
 
 enum class Methods(val method: String) {
