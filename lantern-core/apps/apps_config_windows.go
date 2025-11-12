@@ -18,18 +18,18 @@ func defaultAppDirs() []string {
 var excludeDirs = []string{}
 
 var excludeNames = map[string]bool{
-	"Uninstall": true,
-	"Update":    true,
-	"Updater":   true,
-	"Install":   true,
-	"Setup":     true,
-	"Driver":    true,
+	"uninstall": true,
+	"update":    true,
+	"updater":   true,
+	"install":   true,
+	"setup":     true,
+	"driver":    true,
 }
 
 // getIconPath finds the .icns file inside the app bundle
 func getIconPath(appPath string) (string, error) {
 	// TODO: implement for Windows
-	return "", nil // errors.New("not implemented")
+	return "", nil
 }
 
 func getAppID(appPath string) (string, error) {
