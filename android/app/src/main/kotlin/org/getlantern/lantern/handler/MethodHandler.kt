@@ -32,6 +32,7 @@ enum class Methods(val method: String) {
     ReportIssue("reportIssue"),
     FeatureFlag("featureFlag"),
     GetDataCapInfo("getDataCapInfo"),
+    UpdateLocale("updateLocale"),
 
     //Oauth
     OAuthLoginUrl("oauthLoginUrl"),
@@ -187,7 +188,11 @@ class MethodHandler : FlutterPlugin,
                         Mobile.setSplitTunnelingEnabled(enabled)
                         withContext(Dispatchers.Main) { success("ok") }
                     }.onFailure { e ->
-                        result.error("set_split_tunneling_enabled", e.localizedMessage ?: "Failed", e)
+                        result.error(
+                            "set_split_tunneling_enabled",
+                            e.localizedMessage ?: "Failed",
+                            e
+                        )
                     }
                 }
             }
@@ -198,7 +203,11 @@ class MethodHandler : FlutterPlugin,
                         val on = Mobile.isSplitTunnelingEnabled()
                         withContext(Dispatchers.Main) { result.success(on) }
                     }.onFailure { e ->
-                        result.error("is_split_tunneling_enabled", e.localizedMessage ?: "Failed", e)
+                        result.error(
+                            "is_split_tunneling_enabled",
+                            e.localizedMessage ?: "Failed",
+                            e
+                        )
                     }
                 }
             }
@@ -472,8 +481,14 @@ class MethodHandler : FlutterPlugin,
                 }
             }
 
-            ///User management methods
+            Methods.UpdateLocale.method -> {
+                scope.handleResult(result, "UpdateLocale") {
+                    val locale = call.arguments<String>()
+                    Mobile.updateLocale(locale)
+                }
+            }
 
+            ///User management methods
             Methods.StartRecoveryByEmail.method -> {
                 scope.launch {
                     result.runCatching {

@@ -1186,6 +1186,12 @@ class LanternFFIService implements LanternCoreService {
     throw UnimplementedError();
   }
 
+  @override
+  Future<Either<Failure, Unit>> updateLocal(String locale) {
+    // TODO: implement updateLocal
+    throw UnimplementedError();
+  }
+
 }
 
 void checkAPIError(dynamic result) {

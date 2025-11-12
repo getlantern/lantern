@@ -16,17 +16,18 @@ class LanternStatus {
   factory LanternStatus.fromJson(Map<String, dynamic> json) {
     appLogger.info('LanternStatus.fromJson $json');
     VPNStatus status = VPNStatus.disconnected;
-    if (json['status'] == 'Connected') {
+    final String statusStr = json['status'].toLowerCase(); 
+    if (statusStr == 'connected') {
       status = VPNStatus.connected;
-    } else if (json['status'] == 'Disconnected') {
+    } else if (statusStr == 'disconnected') {
       status = VPNStatus.disconnected;
-    } else if (json['status'] == 'Connecting') {
+    } else if (statusStr == 'connecting') {
       status = VPNStatus.connecting;
-    } else if (json['status'] == 'Disconnecting') {
+    } else if (statusStr == 'disconnecting') {
       status = VPNStatus.disconnecting;
-    } else if (json['status'] == 'MissingPermission') {
+    } else if (statusStr == 'missingpermission') {
       status = VPNStatus.disconnected;
-    } else if (json['status'] == 'Error') {
+    } else if (statusStr == 'error') {
       status = VPNStatus.error;
     }
     return LanternStatus(

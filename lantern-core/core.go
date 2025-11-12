@@ -57,6 +57,7 @@ type App interface {
 	MyDeviceId() string
 	GetServerByTag(tag string) (servers.Server, bool)
 	ReferralAttachment(referralCode string) (bool, error)
+	UpdateLocale(locale string) error
 }
 
 type User interface {
@@ -232,6 +233,12 @@ func (lc *LanternCore) IsRadianceConnected() bool {
 
 func (lc *LanternCore) MyDeviceId() string {
 	return lc.userInfo.DeviceID()
+}
+
+func (lc *LanternCore) UpdateLocale(locale string) error {
+	slog.Debug("Updating locale", "locale", locale)
+	lc.rad.UserInfo().SetLocale(locale)
+	return nil
 }
 
 func (lc *LanternCore) ReferralAttachment(referralCode string) (bool, error) {

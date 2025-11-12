@@ -17,6 +17,8 @@ abstract class LanternCoreService {
   ///App Methods
   Future<void> init();
 
+  Future<Either<Failure, Unit>> updateLocal(String locale);
+
   Stream<AppEvent> watchAppEvents();
 
   Future<Either<Failure, bool>> isVPNConnected();
