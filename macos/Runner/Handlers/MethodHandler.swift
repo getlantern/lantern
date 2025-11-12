@@ -209,6 +209,23 @@ class MethodHandler {
       case "stripeBillingPortal":
         self.stripeBillingPortal(result: result)
         break
+      case "setBlockAdsEnabled":
+        let map = call.arguments as? [String: Any]
+        let enabled = (map?["enabled"] as? Bool) ?? false
+        Task.detached {
+          var error: NSError?
+          MobileSetBlockAdsEnabled(enabled, &error)
+          if let err = error {
+            await self.handleFlutterError(err, result: result, code: "SET_BLOCK_ADS_ENABLED_FAILED")
+            return
+          }
+          await MainActor.run { result("ok") }
+        }
+      case "isBlockAdsEnabled":
+        Task.detached {
+          let enabled = MobileIsBlockAdsEnabled()
+          result(enabled)
+        }
       default:
         result(FlutterMethodNotImplemented)
       }

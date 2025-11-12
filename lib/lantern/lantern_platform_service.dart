@@ -146,6 +146,29 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
+  @override
+  Future<Either<Failure, Unit>> setBlockAdsEnabled(bool enabled) async {
+    try {
+      await _methodChannel
+          .invokeMethod('setBlockAdsEnabled', {'enabled': enabled});
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('setBlockAdsEnabled failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isBlockAdsEnabled() async {
+    try {
+      final res = await _methodChannel.invokeMethod<bool>('isBlockAdsEnabled');
+      return right(res ?? false);
+    } catch (e, st) {
+      appLogger.error('isBlockAdsEnabled failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
   List<AppData> _mapToAppData(
     Iterable<Map<String, dynamic>> rawApps,
     Set<String> enabledAppNames,

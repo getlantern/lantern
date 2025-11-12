@@ -596,6 +596,21 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, bool>> isBlockAdsEnabled() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.isBlockAdsEnabled();
+    }
+    return _platformService.isBlockAdsEnabled();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setBlockAdsEnabled(bool enabled) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.setBlockAdsEnabled(enabled);
+    }
+    return _platformService.setBlockAdsEnabled(enabled);
+  }
+
   Future<Either<Failure, String>> attachReferralCode(String code) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.attachReferralCode(code);
