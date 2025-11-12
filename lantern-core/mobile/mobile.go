@@ -84,6 +84,10 @@ func MyDeviceId() (string, error) {
 	return id, nil
 }
 
+func UpdateLocale(locale string) error {
+	return withCore(func(c lanterncore.Core) error { return c.UpdateLocale(locale) })
+}
+
 func IsRadianceConnected() bool {
 	ok, err := withCoreR(func(c lanterncore.Core) (bool, error) { return c.IsRadianceConnected(), nil })
 	if err != nil {

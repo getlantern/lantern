@@ -182,6 +182,10 @@ class MethodHandler {
         self.openSystemExtensionSetting(result: result)
       case "getDataCapInfo":
         self.getDataCapInfo(result: result)
+      case "updateLocale":
+          let locale = call.arguments as? String ?? ""
+          self.updateLocale(result: result,locale:locale)
+        break
       case "reportIssue":
         let map = call.arguments as? [String: Any]
         self.reportIssue(result: result, data: map!)
@@ -796,7 +800,6 @@ class MethodHandler {
 
   func selectProject(result: @escaping FlutterResult, project: String) {
     Task.detached {
-
       var error: NSError?
       MobileSelectProject(project, &error)
       if let err = error {
@@ -953,6 +956,18 @@ class MethodHandler {
       await MainActor.run {
         result(json ?? "{}")
       }
+    }
+  }
+
+    func updateLocale(result: @escaping FlutterResult,locale:String) {
+    Task.detached {
+      var error: NSError?
+      MobileUpdateLocale(locale,&error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "UPDATE_LOCALE_ERROR")
+        return
+      }
+      await self.replyOK(result)
     }
   }
 
