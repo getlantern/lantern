@@ -35,8 +35,7 @@ class VPNManager: VPNBase {
 
   }
 
-  // Restores the VPN connection status from the system.
-  // this needed when user closes app without disconnecting VPN
+  //    Restores the VPN connection status from the system when the user closes the app without disconnecting VPN.
   func restoreVPNStatus() async {
     appLogger.log("Restoring VPN status...")
     do {

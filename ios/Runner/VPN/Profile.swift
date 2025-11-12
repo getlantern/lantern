@@ -42,6 +42,7 @@ public class Profile {
         }
 
         appLogger.log("Found existing VPN profile; using it.")
+        self.manager = existingManager
         return existingManager
       }
 
