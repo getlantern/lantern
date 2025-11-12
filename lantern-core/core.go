@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -26,9 +28,10 @@ import (
 type EventType = string
 
 const (
-	EventTypeConfig   EventType = "config"
-	DefaultLogLevel             = "trace"
-	defaultAdBlockURL           = "https://raw.githubusercontent.com/REIJI007/AdBlock_Rule_For_Sing-box/main/adblock_reject.json"
+	EventTypeConfig     EventType = "config"
+	DefaultLogLevel               = "trace"
+	defaultAdBlockURL             = "https://raw.githubusercontent.com/REIJI007/AdBlock_Rule_For_Sing-box/main/adblock_reject.json"
+	adBlockSettingsFile           = "adblock.json"
 )
 
 // LanternCore is the main structure accessing the Lantern backend.
@@ -40,7 +43,7 @@ type LanternCore struct {
 	apiClient     *api.APIClient
 	initOnce      sync.Once
 	eventEmitter  utils.FlutterEventEmitter
-	adBlocker     *vpn.AdBlocker
+	adBlocker     *adBlockerStub
 }
 
 var (
@@ -174,16 +177,11 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 		return fmt.Errorf("unable to create split tunnel handler: %v", sthErr)
 	}
 
-	var abErr error
-	if lc.adBlocker, abErr = vpn.NewAdBlockerHandler(nil, defaultAdBlockURL, 0); abErr != nil {
-		return fmt.Errorf("unable to create ad-block handler: %v", abErr)
-	}
-	lc.adBlocker.Start(context.Background())
-
 	lc.serverManager = lc.rad.ServerManager()
 	lc.userInfo = lc.rad.UserInfo()
 	lc.apiClient = lc.rad.APIHandler()
 	lc.eventEmitter = eventEmitter
+	lc.adBlocker = newAdBlockerStub(common.DataPath(), defaultAdBlockURL)
 
 	// Listen for config updates and notify Flutter
 	lc.rad.AddConfigListener(func() {
@@ -731,8 +729,81 @@ func (lc *LanternCore) RevokeServerManagerInvite(ip, port, accessToken, inviteNa
 }
 
 func (lc *LanternCore) SetBlockAdsEnabled(enabled bool) error {
-	return lc.adBlocker.SetEnabled(enabled)
+	if lc.adBlocker == nil {
+		lc.adBlocker = newAdBlockerStub(common.DataPath(), defaultAdBlockURL)
+	}
+	if err := lc.adBlocker.SetEnabled(enabled); err != nil {
+		return err
+	}
+	return nil
 }
+
 func (lc *LanternCore) IsBlockAdsEnabled() bool {
+	if lc.adBlocker == nil {
+		return false
+	}
 	return lc.adBlocker.IsEnabled()
+}
+
+type adBlockerStub struct {
+	mu      sync.RWMutex
+	path    string
+	enabled bool
+	url     string
+}
+
+type adBlockSettings struct {
+	Enabled bool   `json:"enabled"`
+	URL     string `json:"url,omitempty"`
+}
+
+func newAdBlockerStub(basePath, defaultURL string) *adBlockerStub {
+	ab := &adBlockerStub{
+		path: filepath.Join(basePath, adBlockSettingsFile),
+		url:  defaultURL,
+	}
+	ab.load()
+	return ab
+}
+
+func (a *adBlockerStub) load() {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	data, err := os.ReadFile(a.path)
+	if err != nil || len(data) == 0 {
+		return
+	}
+	var s adBlockSettings
+	if err := json.Unmarshal(data, &s); err == nil {
+		a.enabled = s.Enabled
+		if s.URL != "" {
+			a.url = s.URL
+		}
+	}
+}
+
+func (a *adBlockerStub) save() error {
+	a.mu.RLock()
+	defer a.mu.RUnlock()
+	b, err := json.Marshal(adBlockSettings{
+		Enabled: a.enabled,
+		URL:     a.url,
+	})
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(a.path, b, 0644)
+}
+
+func (a *adBlockerStub) SetEnabled(v bool) error {
+	a.mu.Lock()
+	a.enabled = v
+	a.mu.Unlock()
+	return a.save()
+}
+
+func (a *adBlockerStub) IsEnabled() bool {
+	a.mu.RLock()
+	defer a.mu.RUnlock()
+	return a.enabled
 }
