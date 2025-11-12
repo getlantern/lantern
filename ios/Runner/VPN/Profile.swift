@@ -25,23 +25,34 @@ public class Profile {
       // 2️⃣ Hit the preferences store just once
       let all = try await NETunnelProviderManager.loadAllFromPreferences()
 
-      let manager: NETunnelProviderManager
-      if let existing = all.first {
-        appLogger.log("Found existing VPN manager.")
-        manager = existing
-      } else {
-        appLogger.log("No VPN profiles found; creating new profile.")
-        manager = createNewProfile()
+      if let existingManager = all.first(where: {
+        $0.localizedDescription == "LanternVPN"
+      }) {
+        // Reload existing manager this needed when user switch from any other VPN app
+        try await existingManager.loadFromPreferences()
+        // ⚙️ Ensure it's enabled (user might have switched to another VPN)
+        if !existingManager.isEnabled {
+          appLogger.log("Manager found but disabled — re-enabling.")
+          existingManager.isEnabled = true
+          try await existingManager.saveToPreferences()
+          try await existingManager.loadFromPreferences()
+          appLogger.log("Enabled existing VPN profile.")
+        } else {
+          appLogger.log("Found and loaded enabled VPN profile.")
+        }
 
-        // Only save — no need to load back immediately
-        try await manager.saveToPreferences()
-        try await manager.loadFromPreferences()
+        appLogger.log("Found existing VPN profile; using it.")
+        return existingManager
       }
 
+      let manager: NETunnelProviderManager
+      appLogger.log("No VPN profiles found; creating new profile.")
+      manager = createNewProfile()
+      try await manager.saveToPreferences()
+      try await manager.loadFromPreferences()
       // 3️⃣ Cache it and return
       self.manager = manager
       return manager
-
     } catch {
       appLogger.error("Failed to load or create VPN manager: \(error.localizedDescription)")
       return nil
