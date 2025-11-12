@@ -1,3 +1,5 @@
+import 'package:fpdart/src/either.dart';
+import 'package:fpdart/src/unit.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/mapper/user_mapper.dart';
 import 'package:lantern/core/services/injection_container.dart';
@@ -50,6 +52,11 @@ class HomeNotifier extends _$HomeNotifier {
       resetServerLocation();
     }
     sl<LocalStorageService>().saveUser(userData.toEntity());
+  }
+
+  Future<Either<Failure, Unit>> updateLocale(String locale) {
+    final result = ref.read(lanternServiceProvider).updateLocal(locale);
+    return result;
   }
 
   /// Resets the server location to default.
