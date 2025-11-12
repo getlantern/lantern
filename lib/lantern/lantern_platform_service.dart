@@ -77,6 +77,16 @@ class LanternPlatformService implements LanternCoreService {
     return _appEventStatus;
   }
 
+  @override
+  Future<Either<Failure, Unit>> updateLocal(String locale) async {
+    try {
+      final _ = await _methodChannel.invokeMethod('updateLocale', locale);
+      return Right(unit);
+    } catch (e) {
+      return Left(e.toFailure());
+    }
+  }
+
   /// VPN methods
   @override
   Future<Either<Failure, String>> startVPN() async {

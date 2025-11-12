@@ -128,9 +128,9 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
           ..setUserLoggedIn(true)
           ..setEmail(widget.email);
         ref.read(homeNotifierProvider.notifier).updateUserData(user);
-        ref
-            .read(availableServersNotifierProvider.notifier)
-            .forceFetchAvailableServers();
+        // ref
+        //     .read(availableServersNotifierProvider.notifier)
+        //     .forceFetchAvailableServers();
         appRouter.popUntilRoot();
       },
     );

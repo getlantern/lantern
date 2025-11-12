@@ -64,6 +64,14 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> updateLocal(String locale) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.updateLocal(locale);
+    }
+    return _platformService.updateLocal(locale);
+  }
+
+  @override
   Stream<AppEvent> watchAppEvents() {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.watchAppEvents();
@@ -594,4 +602,6 @@ class LanternService implements LanternCoreService {
     }
     return _platformService.attachReferralCode(code);
   }
+
+
 }

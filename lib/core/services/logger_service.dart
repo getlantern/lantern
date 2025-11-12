@@ -77,7 +77,7 @@ class FileLogPrinter extends LoggyPrinter {
         _controller = StreamController<String>() {
     _controller.stream.asyncMap(
       (event) async {
-        _sink.writeln(event);
+        _sink.write(event);
         await _sink.flush();
       },
     ).listen((_) {}, onError: (e, st) {

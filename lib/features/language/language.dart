@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/home_notifier.dart';
 
 @RoutePage(name: 'Language')
 class Language extends StatelessWidget {
@@ -97,9 +98,26 @@ class LanguageListView extends HookConsumerWidget {
     final newLocale =
         Locale(language.split('_').first, language.split('_').last);
 
+    final result = ref
+        .read(homeNotifierProvider.notifier)
+        .updateLocale(newLocale.toString());
+
+    result.then((either) {
+      either.fold(
+        (failure) {
+          appLogger
+              .error('Error updating locale: ${failure.localizedErrorMessage}');
+        },
+        (r) {
+          appLogger.debug('Locale updated to: $newLocale');
+        },
+      );
+    });
+
     ref
         .read(appSettingNotifierProvider.notifier)
         .setLocale(newLocale.toString());
+
     appRouter.maybePop();
   }
 }
