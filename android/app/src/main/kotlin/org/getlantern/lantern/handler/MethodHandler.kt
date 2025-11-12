@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import lantern.io.mobile.Mobile
 import org.getlantern.lantern.MainActivity
-import org.getlantern.lantern.apps.AppFilters.SYSTEM_APPS_ALLOWLIST
+import org.getlantern.lantern.apps.AppFilters
 import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.utils.PrivateServerListener
 import org.getlantern.lantern.utils.VpnStatusManager
@@ -996,7 +996,7 @@ private fun getLaunchableUserAppsJson(ctx: Context): String {
         val label = try { ri.loadLabel(pm).toString() } catch (_: Exception) { pkg }
 
         // filter ourselves, and system apps except allowlisted ones
-        if (pkg == ownPkg || (isSystemApp(pm, pkg) && pkg !in SYSTEM_APPS_ALLOWLIST)) {
+        if (AppFilters.shouldSkip(pkg, ownPkg)) {
             return@mapNotNull null
         }
 
