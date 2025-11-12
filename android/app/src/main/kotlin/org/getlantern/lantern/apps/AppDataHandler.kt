@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.onEach
 import java.io.File
 import java.io.FileOutputStream
 import java.util.Locale
+import org.getlantern.lantern.apps.AppFilters.SYSTEM_APPS_ALLOWLIST
 
 internal class AppDataHandler(
     private val appCtx: Context
@@ -78,7 +79,9 @@ internal class AppDataHandler(
 
                 val entries = launchables.mapNotNull { ri ->
                     val pkg = ri.activityInfo?.packageName ?: return@mapNotNull null
-                    if (pkg == lanternPkg || isSystemApp(pm, pkg)) return@mapNotNull null
+                    if (pkg == lanternPkg || (isSystemApp(pm, pkg) && pkg !in SYSTEM_APPS_ALLOWLIST)) {
+                        return@mapNotNull null
+                    }
                     val label = runCatching { ri.loadLabel(pm).toString() }.getOrDefault(pkg)
                     val lastUpdate = runCatching { pm.getPackageInfoCompat(pkg).lastUpdateTime }.getOrDefault(0L)
                     AppData(pkg, label, lastUpdate, appPath = "")
@@ -186,7 +189,9 @@ internal class AppDataHandler(
     }
 
     private fun buildIfLaunchable(pm: PackageManager, pkg: String): AppData? {
-        if (pkg == appCtx.packageName || isSystemApp(pm, pkg)) return null
+        if (pkg == appCtx.packageName || (isSystemApp(pm, pkg) && pkg !in SYSTEM_APPS_ALLOWLIST)) {
+            return null
+        }
         val launchIntent = pm.getLaunchIntentForPackage(pkg) ?: return null
         val label = runCatching {
             pm.getApplicationLabel(pm.getApplicationInfo(pkg, 0)).toString()

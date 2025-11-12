@@ -20,6 +20,7 @@ class AppDataEvent {
       'snapshot' => AppDataEventType.snapshot,
       'delta' => AppDataEventType.delta,
       'icon_ready' => AppDataEventType.iconReady,
+      'iconReady' => AppDataEventType.iconReady,
       _ => AppDataEventType.unknown,
     };
     final rawItems = (e['items'] as List?) ?? const [];
