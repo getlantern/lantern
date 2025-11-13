@@ -17,6 +17,8 @@ abstract class LanternCoreService {
   ///App Methods
   Future<void> init();
 
+  Future<Either<Failure, Unit>> updateLocal(String locale);
+
   Stream<AppEvent> watchAppEvents();
 
   Future<Either<Failure, bool>> isVPNConnected();
@@ -32,6 +34,9 @@ abstract class LanternCoreService {
   Stream<List<String>> watchLogs(String path);
 
   Future<Either<Failure, Server>> getAutoServerLocation();
+
+  Future<Either<Failure, Unit>> setBlockAdsEnabled(bool enabled);
+  Future<Either<Failure, bool>> isBlockAdsEnabled();
 
   ///Payments methods
   Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(

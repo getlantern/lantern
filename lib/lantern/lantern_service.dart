@@ -64,6 +64,14 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> updateLocal(String locale) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.updateLocal(locale);
+    }
+    return _platformService.updateLocal(locale);
+  }
+
+  @override
   Stream<AppEvent> watchAppEvents() {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.watchAppEvents();
@@ -588,10 +596,27 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, bool>> isBlockAdsEnabled() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.isBlockAdsEnabled();
+    }
+    return _platformService.isBlockAdsEnabled();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setBlockAdsEnabled(bool enabled) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.setBlockAdsEnabled(enabled);
+    }
+    return _platformService.setBlockAdsEnabled(enabled);
+  }
+
   Future<Either<Failure, String>> attachReferralCode(String code) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.attachReferralCode(code);
     }
     return _platformService.attachReferralCode(code);
   }
+
+
 }

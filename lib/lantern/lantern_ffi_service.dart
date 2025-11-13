@@ -1124,6 +1124,32 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> setBlockAdsEnabled(bool enabled) async {
+    try {
+      final result = _ffiService
+          .setBlockAdsEnabled(enabled ? 1 : 0)
+          .cast<Utf8>()
+          .toDartString();
+      checkAPIError(result);
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('setBlockAdsEnabled error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isBlockAdsEnabled() async {
+    try {
+      final res = _ffiService.isBlockAdsEnabled();
+      return right(res != 0);
+    } catch (e, st) {
+      appLogger.error('isBlockAdsEnabled error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, String>> triggerSystemExtension() {
     throw Exception("This is not supported on desktop");
   }
@@ -1157,6 +1183,12 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, Unit>> removeAllItems(
       SplitTunnelFilterType type, List<String> value) {
     // TODO: implement removeAllItems
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> updateLocal(String locale) {
+    // TODO: implement updateLocal
     throw UnimplementedError();
   }
 }
