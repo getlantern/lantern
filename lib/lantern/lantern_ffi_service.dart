@@ -1203,9 +1203,19 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> updateLocal(String locale) {
-    // TODO: implement updateLocal
-    throw UnimplementedError();
+  Future<Either<Failure, Unit>> updateLocal(String locale) async {
+    try {
+      final result = await runInBackground<String>(
+            () async {
+          return _ffiService.updateLocale(locale.toCharPtr).toDartString();
+        },
+      );
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error starting change email', e, stackTrace);
+      return Left(e.toFailure());
+    }
   }
 }
 

@@ -123,6 +123,16 @@ func availableFeatures() *C.char {
 	return C.CString(string(c.AvailableFeatures()))
 }
 
+//export updateLocale
+func updateLocale(_locale *C.char) *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	c.UpdateLocale(C.GoString(_locale))
+	return C.CString("ok")
+}
+
 //export addSplitTunnelItem
 func addSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
 	c, errStr := requireCore()
