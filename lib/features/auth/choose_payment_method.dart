@@ -28,8 +28,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userPlan =
-        ref.watch(plansProvider.notifier).getSelectedPlan();
+    final userPlan = ref.watch(plansProvider.notifier).getSelectedPlan();
     final planData = ref.watch(plansProvider.notifier).getPlanData();
     return BaseScreen(
       title: '',
@@ -147,11 +146,11 @@ class ChoosePaymentMethod extends HookConsumerWidget {
   Future<void> androidStripeSubscription(
       Android provider, WidgetRef ref, BuildContext context) async {
     final userPlan = ref.read(plansProvider.notifier).getSelectedPlan();
-    final paymentProvider = ref.read(paymentProvider.notifier);
+    final payments = ref.read(paymentProvider.notifier);
     context.showLoadingDialog();
 
     ///get stripe details
-    final result = await paymentProvider.stripeSubscription(userPlan.id, email);
+    final result = await payments.stripeSubscription(userPlan.id, email);
     result.fold(
       (error) {
         context.showSnackBar(error.localizedErrorMessage);
@@ -180,13 +179,12 @@ class ChoosePaymentMethod extends HookConsumerWidget {
   Future<void> desktopPurchaseFlow(
       Android provider, WidgetRef ref, BuildContext context) async {
     try {
-      final userPlan =
-          ref.read(plansProvider.notifier).getSelectedPlan();
+      final userPlan = ref.read(plansProvider.notifier).getSelectedPlan();
       context.showLoadingDialog();
 
       ///Start stipe subscription flow
-      final paymentProvider = ref.read(paymentProvider.notifier);
-      final result = await paymentProvider.stripeSubscriptionLink(
+      final payments = ref.read(paymentProvider.notifier);
+      final result = await payments.stripeSubscriptionLink(
         BillingType.subscription,
         userPlan.id,
         email,
@@ -225,14 +223,12 @@ class ChoosePaymentMethod extends HookConsumerWidget {
   Future<void> paymentRedirectFlow(
       String provider, WidgetRef ref, BuildContext context) async {
     context.showLoadingDialog();
-    final userPlan =
-        ref.watch(plansProvider.notifier).getSelectedPlan();
-    final result =
-        await ref.read(paymentProvider.notifier).paymentRedirect(
-              provider: provider,
-              planId: userPlan.id,
-              email: email,
-            );
+    final userPlan = ref.watch(plansProvider.notifier).getSelectedPlan();
+    final result = await ref.read(paymentProvider.notifier).paymentRedirect(
+          provider: provider,
+          planId: userPlan.id,
+          email: email,
+        );
 
     result.fold(
       (failure) {

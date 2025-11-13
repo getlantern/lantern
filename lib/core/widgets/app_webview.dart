@@ -5,7 +5,16 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 
-final webViewLoadingProvider = StateProvider.autoDispose<bool>((ref) => false);
+final webViewLoadingProvider =
+    NotifierProvider<WebViewLoading, bool>(WebViewLoading.new);
+
+class WebViewLoading extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void start() => state = true;
+  void stop() => state = false;
+}
 
 @RoutePage(name: 'AppWebview')
 class AppWebView extends HookConsumerWidget {
