@@ -22,9 +22,11 @@ class Flag extends StatelessWidget {
       ),
       child: CountryFlag.fromCountryCode(
         countryCode,
-        height: size?.height ?? 17,
-        width: size?.width ?? 24,
-        shape: RoundedRectangle(3.0),
+        theme: ImageTheme(
+          shape: RoundedRectangle(3),
+          height: size?.height ?? 17,
+          width: size?.width ?? 24,
+        ),
       ),
     );
   }
