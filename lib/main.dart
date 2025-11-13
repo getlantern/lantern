@@ -123,7 +123,7 @@ Future<void> _configureLocalTimeZone() async {
     return;
   }
   final timeZoneName = await FlutterTimezone.getLocalTimezone();
-  tz.setLocalLocation(tz.getLocation(timeZoneName));
+  tz.setLocalLocation(tz.getLocation(timeZoneName.identifier));
 }
 
 Future<void> _loadAppSecrets() async {

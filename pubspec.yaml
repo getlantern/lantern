@@ -82,14 +82,14 @@ dependencies:
   flutter_hooks: ^0.21.2
   riverpod_annotation: ^2.6.1
   # dependency injection
-  get_it: ^8.2.0
+  get_it: ^9.0.5
   #fonts
   google_fonts: ^6.3.0
   #env
-  flutter_dotenv: ^5.2.1
+  flutter_dotenv: ^6.0.0
   url_launcher: ^6.3.2
   # share
-  share_plus: ^11.0.0
+  share_plus: ^12.0.1
   #native
   sentry_flutter: ^9.6.0
   # Deeplink handling
@@ -101,28 +101,28 @@ dependencies:
   # Utils
   fpdart: ^1.1.1
   jwt_decoder: ^2.0.1
-  country_flags: ^3.3.0
+  country_flags: ^4.1.0
   mobile_scanner: ^7.0.1
   installed_apps: ^2.0.0
-  device_info_plus: ^11.5.0
+  device_info_plus: ^12.2.0
 
   flutter_inappwebview: ^6.1.5
   desktop_webview_window: ^0.2.3
   store_checker: ^1.8.0
   # payment
   in_app_purchase: ^3.2.3
-  flutter_stripe: ^11.5.0
+  flutter_stripe: ^12.1.0
   # protobuf
-  protobuf: ^4.1.1
+  protobuf: ^5.1.0
   # auto updates
   auto_updater: ^1.0.0
   # notifications
   flutter_local_notifications: ^19.4.0
   timezone: ^0.10.1
-  flutter_timezone: ^4.1.1
+  flutter_timezone: ^5.0.1
   win32: ^5.14.0
   fixnum: ^1.1.1
-  package_info_plus: ^4.0.2
+  package_info_plus: ^9.0.0
 
 dev_dependencies:
   flutter_test:
@@ -136,7 +136,7 @@ dev_dependencies:
   riverpod_generator: ^2.6.4
 
   riverpod_lint: ^2.6.4
-  ffigen: ^19.1.0
+  ffigen: ^20.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

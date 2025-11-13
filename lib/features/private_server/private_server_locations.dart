@@ -115,9 +115,11 @@ class LocationListItem extends StatelessWidget {
           contentPadding: EdgeInsets.zero,
           icon: CountryFlag.fromCountryCode(
             location.countryCode,
-            height: 20,
-            width: 30,
-            shape: RoundedRectangle(5.0),
+            theme: const ImageTheme(
+              shape: RoundedRectangle(5),
+              width: 30,
+              height: 20,
+            ),
           ),
           label: location.locationName,
           trailing: AppRadioButton<String>(
