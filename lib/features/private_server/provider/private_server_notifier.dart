@@ -36,6 +36,10 @@ class PrivateServerNotifier extends _$PrivateServerNotifier {
     return ref.read(lanternServiceProvider).googleCloudPrivateServer();
   }
 
+  Future<Either<Failure, Unit>> validateSession() async {
+    return ref.read(lanternServiceProvider).validateSession();
+  }
+
   Future<Either<Failure, Unit>> setUserInput(
       PrivateServerInput method, String input) async {
     return ref.read(lanternServiceProvider).setUserInput(
@@ -76,16 +80,12 @@ class PrivateServerNotifier extends _$PrivateServerNotifier {
         .listen(_handleStatus);
   }
 
-  void _handleStatus(PrivateServerStatus status) {
+  Future<void> _handleStatus(PrivateServerStatus status) async {
     appLogger.info("Private server status changed: ${status.status}");
     switch (status.status) {
       case 'openBrowser':
         final url = status.data ?? '';
         if (url.isEmpty) {
-          // you could also expose this as part of your state
-          // e.g. state = AsyncValue.error('…');
-          // but here we’ll just show a snackbar
-          // you’ll need a BuildContext – see note below
           state = PrivateServerStatus(
             status: 'error',
             error: 'private_server_setup_error',
@@ -122,13 +122,26 @@ class PrivateServerNotifier extends _$PrivateServerNotifier {
 
         ///reset state to initial once server is added
         Future.delayed(const Duration(seconds: 1), () {
-          state =
-              PrivateServerStatus(status: 'initial', data: null, error: null);
+          resetPrivateServerState();
+        });
+        break;
+      case 'EventTypeValidationError':
+        appLogger.error("Validation error: ${status.error}");
+        state = status;
+
+        ///reset state to initial once server is added
+       await Future.delayed(const Duration(milliseconds: 500), () {
+           resetPrivateServerState();
         });
         break;
       default:
         state = status;
     }
+  }
+
+  void resetPrivateServerState() {
+    appLogger.info("Resetting PrivateServerNotifier state to initial.");
+    state = PrivateServerStatus(status: 'initial', data: null, error: null);
   }
 
   Future<Either<Failure, String>> inviteToServerManagerInstance(

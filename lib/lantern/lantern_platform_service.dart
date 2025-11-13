@@ -780,6 +780,17 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> validateSession() async {
+    try {
+      await _methodChannel.invokeMethod("validateSession");
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error validating session', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, Unit>> setUserInput(
       {required PrivateServerInput methodType, required String input}) async {
     try {

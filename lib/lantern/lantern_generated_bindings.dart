@@ -5845,6 +5845,16 @@ class LanternBindings {
   late final _selectProject = _selectProjectPtr
       .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
 
+  ffi.Pointer<ffi.Char> validateSession() {
+    return _validateSession();
+  }
+
+  late final _validateSessionPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+          'validateSession');
+  late final _validateSession =
+      _validateSessionPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
+
   ffi.Pointer<ffi.Char> startDepolyment(
     ffi.Pointer<ffi.Char> _selectedLocation,
     ffi.Pointer<ffi.Char> _serverName,

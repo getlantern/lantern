@@ -117,23 +117,23 @@ class LanternFFIService implements LanternCoreService {
       appLogger.debug("Data dir: ${dataDir.path}, Log dir: $logDir");
       final dataDirPtr = dataDir.path.toCharPtr;
       final logDirPtr = logDir.toCharPtr;
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService
-              .setup(
-                logDirPtr,
-                dataDirPtr,
-                Localization.defaultLocale.toCharPtr,
-                loggingReceivePort.sendPort.nativePort,
-                appsReceivePort.sendPort.nativePort,
-                statusReceivePort.sendPort.nativePort,
-                privateServerReceivePort.sendPort.nativePort,
-                flutterEventReceivePort.sendPort.nativePort,
-                NativeApi.initializeApiDLData,
-              )
-              .toDartString();
-        },
-      );
+
+      /// ⚠️ IMPORTANT: Call setup() ONLY on the main isolate.
+      /// This function initializes the Dart → Go bridge (Dart DL API) using NativeApi.initializeApiDLData.
+      /// If executed from a background isolate, the Dart DL bridge will break,
+      final result = _ffiService
+          .setup(
+            logDirPtr,
+            dataDirPtr,
+            Localization.defaultLocale.toCharPtr,
+            loggingReceivePort.sendPort.nativePort,
+            appsReceivePort.sendPort.nativePort,
+            statusReceivePort.sendPort.nativePort,
+            privateServerReceivePort.sendPort.nativePort,
+            flutterEventReceivePort.sendPort.nativePort,
+            NativeApi.initializeApiDLData,
+          )
+          .toDartString();
       checkAPIError(result);
       return right(unit);
     } catch (e, st) {
@@ -865,6 +865,22 @@ class LanternFFIService implements LanternCoreService {
   @override
   Stream<PrivateServerStatus> watchPrivateServerStatus() {
     return _privateServerStatus;
+  }
+
+  @override
+  Future<Either<Failure, Unit>> validateSession() async {
+    try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService.validateSession().toDartString();
+        },
+      );
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.info('Error validating session', e, stackTrace);
+      return Left(e.toFailure());
+    }
   }
 
   @override
