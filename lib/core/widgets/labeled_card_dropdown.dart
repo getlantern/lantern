@@ -57,10 +57,13 @@ class LabeledCardDropdownWithFlag extends StatelessWidget {
                 // Country flag and location name
                 Row(
                   children: [
-                    CountryFlag.fromCountryCode(
-                      countryCode,
+                    SizedBox(
                       width: 24,
                       height: 16,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(5),
+                        child: CountryFlag.fromCountryCode(countryCode),
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Text(

@@ -113,9 +113,7 @@ class _PlansState extends ConsumerState<Plans> {
                           AppTextButton(
                             label: 'Try again',
                             onPressed: () {
-                              ref
-                                  .read(plansProvider.notifier)
-                                  .fetchPlans();
+                              ref.read(plansProvider.notifier).fetchPlans();
                             },
                           ),
                         ],
@@ -239,9 +237,8 @@ class _PlansState extends ConsumerState<Plans> {
     }
     appRouter.pop();
     context.showLoadingDialog();
-    final result = await ref
-        .read(referralProvider.notifier)
-        .applyReferralCode(code);
+    final result =
+        await ref.read(referralProvider.notifier).applyReferralCode(code);
 
     result.fold(
       (error) {
@@ -269,8 +266,7 @@ class _PlansState extends ConsumerState<Plans> {
   void onGetLanternProTap() {
     appLogger.info('Get Lantern Pro button tapped');
 
-    final userSelectedPlan =
-        ref.read(plansProvider.notifier).getSelectedPlan();
+    final userSelectedPlan = ref.read(plansProvider.notifier).getSelectedPlan();
     switch (Platform.operatingSystem) {
       case 'android':
         if (isStoreVersion()) {
@@ -293,8 +289,8 @@ class _PlansState extends ConsumerState<Plans> {
 
   Future<void> startInAppPurchaseFlow(Plan plan) async {
     context.showLoadingDialog();
-    final paymentProvider = ref.read(paymentProvider.notifier);
-    final result = await paymentProvider.startInAppPurchaseFlow(
+    final payments = ref.read(paymentProvider.notifier);
+    final result = await payments.startInAppPurchaseFlow(
       planId: plan.id,
       onSuccess: (purchase) {
         /// Subscription successful
@@ -331,12 +327,11 @@ class _PlansState extends ConsumerState<Plans> {
       String purchaseToken, String planId) async {
     appLogger.debug("Acknowledging purchase");
     context.showLoadingDialog();
-    final result = await ref
-        .read(paymentProvider.notifier)
-        .acknowledgeInAppPurchase(
-          purchaseToken: purchaseToken,
-          planId: planId,
-        );
+    final result =
+        await ref.read(paymentProvider.notifier).acknowledgeInAppPurchase(
+              purchaseToken: purchaseToken,
+              planId: planId,
+            );
     result.fold(
       (error) {
         context.hideLoadingDialog();
@@ -395,9 +390,8 @@ class _PlansState extends ConsumerState<Plans> {
       context.showLoadingDialog();
       final appSetting = ref.read(appSettingProvider);
       final email = appSetting.email;
-      final result = await ref
-          .read(authProvider.notifier)
-          .startRecoveryByEmail(email);
+      final result =
+          await ref.read(authProvider.notifier).startRecoveryByEmail(email);
       result.fold(
         (failure) {
           context.hideLoadingDialog();
