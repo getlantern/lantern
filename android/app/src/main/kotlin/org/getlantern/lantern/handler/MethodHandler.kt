@@ -32,6 +32,7 @@ enum class Methods(val method: String) {
     ReportIssue("reportIssue"),
     FeatureFlag("featureFlag"),
     GetDataCapInfo("getDataCapInfo"),
+    UpdateLocale("updateLocale"),
 
     //Oauth
     OAuthLoginUrl("oauthLoginUrl"),
@@ -57,6 +58,10 @@ enum class Methods(val method: String) {
     //Device
     RemoveDevice("removeDevice"),
     AttachReferralCode("attachReferralCode"),
+
+    // Ad blocking
+    IsBlockAdsEnabled("isBlockAdsEnabled"),
+    SetBlockAdsEnabled("setBlockAdsEnabled"),
 
     //private server methods
     DigitalOcean("digitalOcean"),
@@ -479,8 +484,14 @@ class MethodHandler : FlutterPlugin,
                 }
             }
 
-            ///User management methods
+            Methods.UpdateLocale.method -> {
+                scope.handleResult(result, "UpdateLocale") {
+                    val locale = call.arguments<String>()
+                    Mobile.updateLocale(locale)
+                }
+            }
 
+            ///User management methods
             Methods.StartRecoveryByEmail.method -> {
                 scope.launch {
                     result.runCatching {
@@ -679,6 +690,19 @@ class MethodHandler : FlutterPlugin,
                 }
             }
 
+            // Ad blocking
+            Methods.SetBlockAdsEnabled.method -> {
+                scope.handleResult(result, "set_block_ads_enabled") {
+                    val enabled = call.argument<Boolean>("enabled") ?: error("Missing enabled")
+                    Mobile.setBlockAdsEnabled(enabled)
+                }
+            }
+
+            Methods.IsBlockAdsEnabled.method -> {
+                scope.handleValue(result, "is_block_ads_enabled") {
+                    Mobile.isBlockAdsEnabled()
+                }
+            }
             //Private server methods
             Methods.DigitalOcean.method -> {
                 scope.handleResult(
@@ -938,23 +962,32 @@ class MethodHandler : FlutterPlugin,
     }
 }
 
+private suspend fun MethodChannel.Result.mainSuccess(value: Any? = "ok") =
+    withContext(Dispatchers.Main.immediate) { success(value) }
+
+private suspend fun MethodChannel.Result.mainError(
+    code: String,
+    message: String?,
+    details: Any? = null
+) = withContext(Dispatchers.Main.immediate) { error(code, message, details) }
+
+
+inline fun <T> CoroutineScope.handleValue(
+    result: MethodChannel.Result,
+    errorCode: String,
+    crossinline block: suspend () -> T
+) = launch {
+    runCatching { block() }
+        .onSuccess { v -> result.mainSuccess(v) }
+        .onFailure { e -> result.mainError(errorCode, e.localizedMessage ?: "Please try again", e) }
+}
+
 inline fun CoroutineScope.handleResult(
     result: MethodChannel.Result,
-    errorTitle: String = "DigitalOcean",
+    errorCode: String,
     crossinline block: suspend () -> Unit
-) {
-    this.launch {
-        runCatching {
-            block()
-            withContext(Dispatchers.Main) {
-                result.success("ok")
-            }
-        }.onFailure { e ->
-            result.error(
-                errorTitle,
-                e.localizedMessage ?: "Unknown error",
-                e
-            )
-        }
-    }
+) = launch {
+    runCatching { block() }
+        .onSuccess { result.mainSuccess() }
+        .onFailure { e -> result.mainError(errorCode, e.localizedMessage ?: "Please try again", e) }
 }

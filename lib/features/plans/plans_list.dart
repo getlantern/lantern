@@ -50,6 +50,4 @@ class PlansListView extends HookConsumerWidget {
       ),
     );
   }
-
-
 }

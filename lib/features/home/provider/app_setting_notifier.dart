@@ -65,7 +65,19 @@ class AppSettingNotifier extends _$AppSettingNotifier {
   }
 
   void setBlockAds(bool value) {
+    final prev = state.blockAds;
     update(state.copyWith(blockAds: value));
+
+    final LanternService svc = ref.read(lanternServiceProvider);
+    svc.setBlockAdsEnabled(value).then((res) {
+      res.match(
+        (err) {
+          appLogger.error('setBlockAdsEnabled failed: ${err.error}');
+          update(state.copyWith(blockAds: prev));
+        },
+        (_) {},
+      );
+    });
   }
 
   void setSplashScreen(bool value) {

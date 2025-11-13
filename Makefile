@@ -93,6 +93,8 @@ IOS_DEBUG_BUILD := $(BUILD_DIR)/ios/iphoneos/Runner.app
 
 TAGS=with_gvisor,with_quic,with_wireguard,with_ech,with_utls,with_clash_api,with_grpc,with_conntrack
 
+GO_VERSION ?= go1.24.1
+
 GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go')
 GOMOBILE_VERSION ?= latest
 GOMOBILE_REPOS = \
@@ -167,7 +169,7 @@ macos: $(MACOS_FRAMEWORK_BUILD)
 $(MACOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 	@echo "Building macOS Framework.."
 	rm -rf $(MACOS_FRAMEWORK_BUILD) && mkdir -p $(MACOS_FRAMEWORK_DIR)
-	GOTOOLCHAIN=go1.24.1 GOOS=darwin gomobile bind -v \
+	GOTOOLCHAIN=$(GO_VERSION) GOOS=darwin gomobile bind -v \
 		-tags=$(TAGS),netgo -trimpath \
 		-target=macos \
 		-o $(MACOS_FRAMEWORK_BUILD) \
@@ -358,10 +360,9 @@ windows-release: clean windows pubget gen build-windows-release prepare-windows-
 
 .PHONY: install-gomobile
 install-gomobile:
-	GOTOOLCHAIN=go1.24.1 go install -v golang.org/x/mobile/cmd/gomobile@$(GOMOBILE_VERSION)
-	GOTOOLCHAIN=go1.24.1 go install -v golang.org/x/mobile/cmd/gobind@$(GOMOBILE_VERSION)
-	GOTOOLCHAIN=go1.24.1 gomobile init
-
+	GOTOOLCHAIN=$(GO_VERSION) go install -v golang.org/x/mobile/cmd/gomobile@$(GOMOBILE_VERSION)
+	GOTOOLCHAIN=$(GO_VERSION) go install -v golang.org/x/mobile/cmd/gobind@$(GOMOBILE_VERSION)
+	GOTOOLCHAIN=$(GO_VERSION) gomobile init
 
 # Android Build
 .PHONY: install-android-deps
@@ -378,7 +379,7 @@ build-android: check-gomobile
 	rm -rf $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)
 	mkdir -p $(dir $(ANDROID_LIB_BUILD)) $(ANDROID_LIBS_DIR)
 
-	GOOS=android gomobile bind -v \
+	GOTOOLCHAIN=$(GO_VERSION) GOOS=android gomobile bind -v \
 		-androidapi=23 \
 		-javapkg=lantern.io \
 		-tags=$(TAGS) -trimpath \

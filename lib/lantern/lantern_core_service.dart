@@ -17,6 +17,8 @@ abstract class LanternCoreService {
   ///App Methods
   Future<void> init();
 
+  Future<Either<Failure, Unit>> updateLocal(String locale);
+
   Stream<AppEvent> watchAppEvents();
 
   Future<Either<Failure, bool>> isVPNConnected();
@@ -35,6 +37,9 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, String>> featureFlag();
 
+  Future<Either<Failure, Unit>> setBlockAdsEnabled(bool enabled);
+  
+  Future<Either<Failure, bool>> isBlockAdsEnabled();
 
   ///Payments methods
   Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect(
@@ -155,7 +160,6 @@ abstract class LanternCoreService {
   //Referral attachment
   Future<Either<Failure, String>> attachReferralCode(String code);
 
-
   /// Private server methods
   Future<Either<Failure, Unit>> digitalOceanPrivateServer();
 
@@ -195,8 +199,6 @@ abstract class LanternCoreService {
     required String accessToken,
     required String inviteName,
   });
-
-
 
   ///Custom/lantern server methods
   Future<Either<Failure, AvailableServers>> getLanternAvailableServers();

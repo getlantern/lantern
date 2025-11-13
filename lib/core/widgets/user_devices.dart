@@ -5,7 +5,6 @@ import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/lantern/protos/protos/auth.pb.dart';
 
 import '../common/common.dart';
-import '../services/injection_container.dart';
 
 class UserDevices extends HookConsumerWidget {
   // final List<UserResponse_Device> userDevices;

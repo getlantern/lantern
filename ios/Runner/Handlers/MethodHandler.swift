@@ -173,7 +173,10 @@ class MethodHandler {
       //Utils
       case "featureFlag":
         self.featureFlags(result: result)
-
+      case "updateLocale":
+          let locale = call.arguments as? String ?? ""
+          self.updateLocale(result: result,locale:locale)
+        break
       case "reportIssue":
         let map = call.arguments as? [String: Any]
         self.reportIssue(result: result, data: map!)
@@ -250,109 +253,77 @@ class MethodHandler {
 
   private func plans(result: @escaping FlutterResult) {
     Task {
-      do {
-        var error: NSError?
-        var data = try await MobilePlans("store", &error)
-        if error != nil {
-          result(
-            FlutterError(
-              code: "PLANS_ERROR",
-              message: error?.description,
-              details: error?.localizedDescription))
-        }
-        await MainActor.run {
-          result(data)
-        }
-      } catch {
-        await MainActor.run {
-          result(
-            FlutterError(
-              code: "PLANS_ERROR",
-              message: "Unable to fetch plans.",
-              details: error.localizedDescription))
-        }
+
+      var error: NSError?
+      var data = try MobilePlans("store", &error)
+      if error != nil {
+        result(
+          FlutterError(
+            code: "PLANS_ERROR",
+            message: error?.description,
+            details: error?.localizedDescription))
       }
+      await MainActor.run {
+        result(data)
+      }
+
     }
   }
 
   private func oauthLoginUrl(result: @escaping FlutterResult, provider: String) {
     Task {
-      do {
-        var error: NSError?
-        var data = try await MobileOAuthLoginUrl(provider, &error)
-        if error != nil {
-          result(
-            FlutterError(
-              code: "OAUTH_LOGIN",
-              message: error?.description,
-              details: error?.localizedDescription))
-        }
-        await MainActor.run {
-          result(data)
-        }
-      } catch {
-        await MainActor.run {
-          result(
-            FlutterError(
-              code: "OAUTH_LOGIN",
-              message: "Unable to login url.",
-              details: error.localizedDescription))
-        }
+
+      var error: NSError?
+      var data = try MobileOAuthLoginUrl(provider, &error)
+      if error != nil {
+        result(
+          FlutterError(
+            code: "OAUTH_LOGIN",
+            message: error?.description,
+            details: error?.localizedDescription))
       }
+      await MainActor.run {
+        result(data)
+      }
+
     }
   }
 
   private func oauthLoginCallback(result: @escaping FlutterResult, token: String) {
     Task {
-      do {
-        var error: NSError?
-        var data = try await MobileOAuthLoginCallback(token, &error)
-        if error != nil {
-          result(
-            FlutterError(
-              code: "OAUTH_LOGIN_CALLBACK",
-              message: error!.description,
-              details: error!.localizedDescription))
-        }
-        await MainActor.run {
-          result(data)
-        }
-      } catch {
-        await MainActor.run {
-          result(
-            FlutterError(
-              code: "OAUTH_LOGIN_CALLBACK",
-              message: "error while login callback.",
-              details: error.localizedDescription))
-        }
+
+      var error: NSError?
+      var data = try MobileOAuthLoginCallback(token, &error)
+      if error != nil {
+        result(
+          FlutterError(
+            code: "OAUTH_LOGIN_CALLBACK",
+            message: error!.description,
+            details: error!.localizedDescription))
       }
+      await MainActor.run {
+        result(data)
+      }
+
     }
   }
 
   private func getUserData(result: @escaping FlutterResult) {
     Task {
-      do {
-        var error: NSError?
-        var data = try await MobileUserData(&error)
-        if error != nil {
-          result(
-            FlutterError(
-              code: "USER_DATA_ERROR",
-              message: error!.description,
-              details: error.debugDescription))
-        }
-        await MainActor.run {
-          result(data)
-        }
-      } catch {
-        await MainActor.run {
-          result(
-            FlutterError(
-              code: "USER_DATA_ERROR",
-              message: "error while getting user data.",
-              details: error.localizedDescription))
-        }
+
+      var error: NSError?
+      var data = try MobileUserData(&error)
+      if error != nil {
+        result(
+          FlutterError(
+            code: "USER_DATA_ERROR",
+            message: error!.description,
+            details: error.debugDescription))
       }
+      await MainActor.run {
+        result(data)
+      }
+
     }
   }
 
@@ -418,27 +389,19 @@ class MethodHandler {
 
   func acknowledgeInAppPurchase(token: String, planId: String, result: @escaping FlutterResult) {
     Task {
-      do {
-        var error: NSError?
-        MobileAcknowledgeApplePurchase(token, planId, &error)
-        if error != nil {
-          result(
-            FlutterError(
-              code: "ACKNOWLEDGE_FAILED",
-              message: error!.localizedDescription,
-              details: error!.debugDescription))
-          return
-        }
-        await self.replyOK(result)
-      } catch {
-        await MainActor.run {
-          result(
-            FlutterError(
-              code: "ACKNOWLEDGE_FAILED",
-              message: "Unable to acknowledge purchase.",
-              details: error.localizedDescription))
-        }
+
+      var error: NSError?
+      MobileAcknowledgeApplePurchase(token, planId, &error)
+      if error != nil {
+        result(
+          FlutterError(
+            code: "ACKNOWLEDGE_FAILED",
+            message: error!.localizedDescription,
+            details: error!.debugDescription))
+        return
       }
+      await self.replyOK(result)
+
     }
   }
 
@@ -447,7 +410,7 @@ class MethodHandler {
   func startRecoveryByEmail(result: @escaping FlutterResult, email: String) {
     Task {
       var error: NSError?
-      var data = try await MobileStartRecoveryByEmail(email, &error)
+      try MobileStartRecoveryByEmail(email, &error)
       if error != nil {
         result(
           FlutterError(
@@ -467,7 +430,7 @@ class MethodHandler {
       let email = data["email"] as? String ?? ""
       let code = data["code"] as? String ?? ""
       var error: NSError?
-      var data = try await MobileValidateChangeEmailCode(email, code, &error)
+      try MobileValidateChangeEmailCode(email, code, &error)
       if error != nil {
         result(
           FlutterError(
@@ -488,7 +451,7 @@ class MethodHandler {
       let code = data["code"] as? String ?? ""
       let newPassword = data["newPassword"] as? String ?? ""
       var error: NSError?
-      var data = try await MobileCompleteRecoveryByEmail(email, newPassword, code, &error)
+      try MobileCompleteRecoveryByEmail(email, newPassword, code, &error)
       if error != nil {
         result(
           FlutterError(
@@ -508,7 +471,7 @@ class MethodHandler {
       let email = data["email"] as? String ?? ""
       let password = data["password"] as? String ?? ""
       var error: NSError?
-      var data = try await MobileLogin(email, password, &error)
+      var data = try MobileLogin(email, password, &error)
       if error != nil {
         result(
           FlutterError(
@@ -527,7 +490,7 @@ class MethodHandler {
       let email = data["email"] as? String ?? ""
       let password = data["password"] as? String ?? ""
       var error: NSError?
-      var data = try await MobileSignUp(email, password, &error)
+      try await MobileSignUp(email, password, &error)
       if error != nil {
         result(
           FlutterError(
@@ -536,29 +499,25 @@ class MethodHandler {
             details: error!.localizedDescription))
         return
       }
-      await MainActor.run {
-        result("ok")
-      }
+      await self.replyOK(result)
     }
   }
 
   func logout(result: @escaping FlutterResult, email: String) {
     Task {
-      do {
-        var error: NSError?
-        var data = try await MobileLogout(email, &error)
-        await MainActor.run {
-          result(data)
-        }
-      } catch {
-        await MainActor.run {
-          result(
-            FlutterError(
-              code: "LOGOUT_FAILED",
-              message: error.localizedDescription,
-              details: error.localizedDescription))
-        }
+      var error: NSError?
+      var data = try MobileLogout(email, &error)
+      if error != nil {
+        await self.handleFlutterError(
+          error,
+          result: result,
+          code: "LOGOUT_FAILED"
+        )
       }
+      await MainActor.run {
+        result(data)
+      }
+
     }
   }
 
@@ -587,7 +546,7 @@ class MethodHandler {
       let email = data["email"] as? String ?? ""
       let resellerCode = data["resellerCode"] as? String ?? ""
       var error: NSError?
-      var data = MobileActivationCode(email, resellerCode, &error)
+      MobileActivationCode(email, resellerCode, &error)
       if error != nil {
         result(
           FlutterError(
@@ -853,6 +812,19 @@ class MethodHandler {
       }
     }
   }
+    
+    func updateLocale(result: @escaping FlutterResult,locale:String) {
+    Task.detached {
+      var error: NSError?
+      MobileUpdateLocale(locale,&error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "UPDATE_LOCALE_ERROR")
+        return
+      }
+      await self.replyOK(result)
+    }
+  }
+    
 
   func getLanternAvailableServers(result: @escaping FlutterResult) {
     Task.detached {

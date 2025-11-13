@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -131,16 +131,15 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		030793842E0980FC00EA2B3C /* Utils */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = Utils;
-			sourceTree = "<group>";
-		};
-		0366A7752DBBC1CA0016E3F9 /* Constants */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Constants;
 			sourceTree = "<group>";
 		};
 		0366A7762DBBC20D0016E3F9 /* VPN */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = VPN;
 			sourceTree = "<group>";
 		};
@@ -269,7 +268,6 @@
 			isa = PBXGroup;
 			children = (
 				0366A7762DBBC20D0016E3F9 /* VPN */,
-				0366A7752DBBC1CA0016E3F9 /* Constants */,
 				5FEB872F2D9F45EB000AE0DB /* Handlers */,
 				030793842E0980FC00EA2B3C /* Utils */,
 				97C146FD1CF9000F007C117D /* Assets.xcassets */,
@@ -360,7 +358,6 @@
 			);
 			fileSystemSynchronizedGroups = (
 				030793842E0980FC00EA2B3C /* Utils */,
-				0366A7752DBBC1CA0016E3F9 /* Constants */,
 				0366A7762DBBC20D0016E3F9 /* VPN */,
 			);
 			name = Runner;
@@ -503,13 +500,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;

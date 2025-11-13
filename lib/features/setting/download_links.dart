@@ -63,7 +63,6 @@ class DownloadLinks extends StatelessWidget {
                   url: AppUrls.lanternGithub,
                   icon: AppImagePaths.github,
                   label: 'github_download_page'.i18n,
-
                 ),
                 DividerSpace(),
                 AppTile.link(
