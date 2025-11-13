@@ -267,10 +267,10 @@ class _PlansState extends ConsumerState<Plans> {
   }
 
   void onGetLanternProTap() {
-    appLogger.info('Get Lantern Pro button tapped');
-
     final userSelectedPlan =
         ref.read(plansNotifierProvider.notifier).getSelectedPlan();
+    appLogger.info(
+        'Get Lantern Pro button tapped with plan: ${userSelectedPlan.id}');
     switch (Platform.operatingSystem) {
       case 'android':
         if (isStoreVersion()) {

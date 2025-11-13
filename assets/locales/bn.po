@@ -1,14 +1,12 @@
 # 
 # Translators:
-# Lantern, 2023
-# Al Shahrior Hasan Sagor <shahrior3814@gmail.com>, 2024
-# Derek F <derek@getlantern.org>, 2024
-# tx_e2f_bn c3 <tx_e2f_bn_c3@ate2f.com>, 2024
-# code smite <codesmite@gmail.com>, 2024
+# code smite <codesmite@gmail.com>, 2025
+# tx_e2f_bn c3 <tx_e2f_bn_c3@ate2f.com>, 2025
+# Derek F <derek@getlantern.org>, 2025
 # 
 msgid ""
 msgstr ""
-"Last-Translator: code smite <codesmite@gmail.com>, 2024\n"
+"Last-Translator: Derek F <derek@getlantern.org>, 2025\n"
 "Language-Team: Bengali (https://app.transifex.com/lantern-1/teams/94371/bn/)\n"
 "Language: bn\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
@@ -16,1984 +14,1271 @@ msgstr ""
 msgid "app_name"
 msgstr "Lantern"
 
-msgid "introducing"
-msgstr "চ্যাট পেশ করা হচ্ছে"
-
-msgid "introducing_des"
-msgstr ""
-"নতুন ব্লকিং-প্রতিরোধী এবং এনক্রিপ্ট করা চ্যাট - এখন আপনি বন্ধুদের সাথে "
-"নিরাপদে চ্যাট করতে ল্যান্টার্ন অ্যাপ ব্যবহার করতে পারেন।"
-
-msgid "maybe_later"
-msgstr "সম্ভবত পরে"
-
-msgid "try"
-msgstr "এটি ব্যবহার করে দেখুন"
-
-msgid "sign_in"
-msgstr "সাইন ইন করুন"
-
-msgid "enter_email"
-msgstr "ইমেল লিখুন"
-
-msgid "enter_password"
-msgstr "পাসওয়ার্ড লিখুন "
-
-msgid "forgot_password"
-msgstr "পাসওয়ার্ড ভুলে গেছেন "
-
-msgid "forgot_your_password"
-msgstr "আপনি কি আপনার পাসওয়ার্ড ভুলে গেছেন? "
-
-msgid "click_here"
-msgstr "এখানে ক্লিক করুন "
-
-msgid "reset_password"
-msgstr "পাসওয়ার্ড রিসেট করুন"
-
-msgid "lantern_pro_email"
-msgstr "ল্যান্টার্ন প্রো ইমেইল "
-
-msgid "return_to_sign_in"
-msgstr "প্রবেশে ফিরে যান "
-
-msgid "enter_confirmation_code"
-msgstr "নিশ্চিতকরণ কোড লিখুন "
-
-msgid "confirmation_code_msg"
-msgstr ""
-"একটি নিশ্চিতকরণ কোড XX এ পাঠানো হয়েছে। এটি এখানে লিখুন আপনার অ্যাকাউন্ট "
-"নিরাপদ করতে এবং পাসওয়ার্ড পুনরুদ্ধার সক্ষম করতে। "
-
-msgid "resend_confirmation_code"
-msgstr "নিশ্চিতকরণ ইমেইল পুনরায় পাঠান "
-
-msgid "email_already_exists"
-msgstr "ইমেইল ইতিমধ্যে বিদ্যমান "
-
-msgid "email_already_exists_msg"
-msgstr ""
-"এই ইমেইলটি নেওয়া হয়েছে, যদি আপনার এই ইমেইল সহ একটি অ্যাকাউন্ট থাকে আপনি "
-"এটি পুনরুদ্ধার করতে পারেন। যদি না হয়, অনুগ্রহ করে ফিরে যান এবং একটি ভিন্ন "
-"ইমেইল ঠিকানা নির্বাচন করুন। "
-
-msgid "recover_account"
-msgstr "অ্যাকাউন্ট পুনরুদ্ধার করুন "
-
-msgid "back"
-msgstr "ফিরে যান "
-
-msgid "change_email"
-msgstr "ইমেইল পরিবর্তন করুন "
-
-msgid "new_password"
-msgstr "নতুন পাসওয়ার্ড"
-
-msgid "confirm_new_password"
-msgstr "নতুন পাসওয়ার্ড নিশ্চিত করুন"
-
-msgid "already_have_an_account"
-msgstr "ইতিমধ্যে একটি অ্যাকাউন্ট আছে? "
-
-msgid "create_account"
-msgstr "অ্যাকাউন্ট তৈরি করুন"
-
-msgid "create_password"
-msgstr "পাসওয়ার্ড তৈরি করুন "
-
-msgid "by_creating_an_account"
-msgstr "একটি অ্যাকাউন্ট তৈরি করে, আপনি আমাদের সাথে সম্মত হন "
-
-msgid "confirm_email"
-msgstr "ইমেইল নিশ্চিত করুন"
-
-msgid "update_pro_account"
-msgstr "প্রো অ্যাকাউন্ট আপডেট করুন "
-
-msgid "update_pro_account_message"
-msgstr ""
-"ল্যান্টার্ন প্রোতে পরিবর্তন আসছে! এখন, আপনি সমস্ত ডিভাইসে লগ ইন করতে এবং "
-"অ্যাকাউন্ট ব্যবস্থাপনায় অ্যাক্সেস করতে একটি ইমেইল এবং পাসওয়ার্ড প্রয়োজন "
-"হবে। অনুগ্রহ করে এই প্রমাণপত্রগুলি আপনার অ্যাকাউন্টে যোগ করার জন্য কয়েক "
-"মুহূর্ত নিন। "
-
-msgid "not_now"
-msgstr "এখন নয় "
-
-msgid "update_account"
-msgstr "অ্যাকাউন্ট আপডেট করুন "
-
-msgid "new"
-msgstr "নতুন"
-
-msgid "Daily Data Usage"
-msgstr "প্রাত্যহিক ডেটা ব্যবহারের "
-
-msgid "is"
-msgstr "সংযোগ"
-
-msgid "connect"
-msgstr "সংযোগ"
-
-msgid "disconnect"
-msgstr "বিচ্ছিন্ন"
-
-msgid "connected"
-msgstr "সংযুক্ত"
-
-msgid "Disconnected"
-msgstr "বিচ্ছিন্ন"
-
-msgid "Disconnecting"
-msgstr "বিচ্ছিন্ন করা হচ্ছে..."
-
-msgid "Connecting"
-msgstr "সংযুক্ত হচ্ছে ..."
-
-msgid "no_network_connection"
-msgstr "কোনও নেটওয়ার্ক সংযোগ নেই"
-
-msgid "connection_error"
-msgstr "সংযোগে ত্রুটি"
-
-msgid "connection_error_des"
-msgstr ""
-"Lantern-এর আমাদের সার্ভারগুলিতে সংযোগ করতে সমস্যা হচ্ছে।  অনুগ্রহ করে "
-"অ্যাপটি রিস্টার্ট করুন। এই সমস্যাটি চলতে থাকলে অনুগ্রহ করে সহায়্তার সাথে "
-"যোগাযোগ করুন।"
-
-msgid "connection_error_button"
-msgstr "সহায়্তার সাথে যোগাযোগ করুন"
-
-msgid "Calling"
-msgstr "কল করা হচ্ছে..."
-
-msgid "Go Pro Title"
-msgstr "প্রো-তে যান!"
-
-msgid "Go Pro Description"
-msgstr "আরও দ্রুত গতি, বিজ্ঞাপনমুক্ত অভিজ্ঞতা, এবং সীমাহীন ডেটা আনলক করুন! "
-
-msgid "Server Location"
-msgstr "সার্ভারের অবস্থান"
-
-msgid "Server Location Info"
-msgstr ""
-"Lantern আমাদের সেরা ডেটা সেন্টারগুলির সাথে আপনাকে স্বয়ংক্রিয়ভাবে সংযোগ করে "
-"দিতে স্মার্ট সার্ভার নির্বাচন ব্যবহার করে।"
-
-msgid "OK"
-msgstr "ঠিক আছে"
-
-msgid "Done"
-msgstr "সম্পন্ন"
-
-msgid "backup_recovery_key"
-msgstr "ব্যাকআপ পুনরুদ্ধার কী"
-
-msgid "delete_chat_data"
-msgstr "সমস্ত চ্যাট ডেটা মুছুন"
-
-msgid "delete_chat_data_description"
-msgstr ""
-"এটি এই ডিভাইস থেকে আপনার চ্যাট নম্বর, পরিচিতিগুলি এবং বার্তাগুলি আপনার "
-"ব্যাকআপ পুনরুদ্ধার কী ছাড়াই মুছে দেবে, আপনি আপনার চ্যাট নম্বরে অ্যাক্সেস "
-"হারাবেন।"
-
-msgid "delete_chat_data_confirmation"
-msgstr "আমি নিশ্চিত করছি যে আমি আমার চ্যাট ডেটা মুছতে চাই"
-
-msgid "Pro Account Management"
-msgstr "Pro একাউন্ট ব্যবস্থাপনা"
-
-msgid "link_device"
-msgstr "ডিভাইস লিঙ্ক করুন"
-
-msgid "Upgrade to Lantern Pro"
-msgstr "Lantern প্রো তে আপগ্রেড করুন"
-
-msgid "Invite Friends"
-msgstr "বন্ধুদের আমন্ত্রন করুন"
-
-msgid "share_lantern_pro"
-msgstr ""
-"কোনও বন্ধুর সাথে Lantern Pro শেয়ার করুন! আপনার বন্ধু তার Lantern Pro কেনার "
-"সময় আপনার রেফারেল কোড ব্যবহার করলে, আপনারা দুজনেই একমাসের Lantern Pro "
-"পরিষেবা বিনামূল্যে পাবেন!"
-
-msgid "privacy_disclosure_title"
-msgstr "Lantern গোপনীয়্তা প্রকাশ"
-
-msgid "privacy_disclosure_body"
-msgstr ""
-"আপনার গোপনীয়তা রক্ষা করার জন্য Lantern অঙ্গীকারবদ্ধ। আমরা কী তথ্য সংগ্রহ "
-"করি, কী তথ্য সংগ্রহ করি না এবং কীভাবে আমরা সংগ্রহ ও ব্যবহার করি এবং তথ্য "
-"সংরক্ষণ করি তা আমরা আপনাকে বোঝাতে চাই। আমরা আপনার Lantern Pro অ্যাকাউন্টের "
-"সাথে আপনার পেমেন্টের তথ্য সংযোগ বিচ্ছিন্ন করি। ব্রাউজ করার ইতিহাস লগ না করা,"
-" ট্রাফিকের গন্তব্যস্থল, ডেটার বিষয়বস্তু বা DNS জিজ্ঞাস্যগুলি মতো আপনার "
-"কার্যকলাপের লগগুলি আমরা সংগ্রহ করি না। উপরন্তু আমরা কখনও সংযোগের লগগুলি, "
-"অর্থাৎ, আপনার IP ঠিকানার কোনও লগ, সংযোগের টাইমস্ট্যাম্পের সাথে সংযুক্ত "
-"আউটগোয়িং Lantern সার্ভারের IP ঠিকানা, বা সেশনের সময়কালও আমরা সংরক্ষণ করি না।"
-" একটি নির্দিষ্ট Lantern Pro অ্যাকাউন্টে, Lantern অ্যাকাউন্টের সাথে "
-"ব্যবহারকারীর প্রকৃত পরিচয় সংযুক্ত করতে Lantern প্রযুক্তিগতভাবে অপারগ। একটি "
-"নির্দিষ্ট Lantern IP ঠিকানা এবং একটি সুনির্দিষ্ট টাইম স্ট্যাম্পে, এই IP "
-"ঠিকানার বৈশিষ্ট্যটি একজন Lantern ব্যবহারকারী বা একটি Lantern ব্যবহারকারীর IP"
-" ঠিকানার সাথে সংযুক্ত করতে Lantern প্রযুক্তিগতভাবে অপারগ।"
-
-msgid "privacy_disclosure_accept"
-msgstr "আমি স্বীকার করি"
-
-msgid "desktop_version"
-msgstr "ডেক্সটপ সংস্করণ"
+msgid "upgrade_to_pro"
+msgstr "প্রো-তে আপগ্রেড করুন"
 
 msgid "settings"
 msgstr "সেটিংস"
 
-msgid "general"
-msgstr "সাধারণ"
+msgid "report_an_issue"
+msgstr "সমস্যা রিপোর্ট করুন"
 
-msgid "about"
-msgstr "সম্পর্কে"
+msgid "lantern_projects"
+msgstr "Lantern প্রজেক্টস:"
 
-msgid "proxy_all"
-msgstr "সমস্ত কিছু প্রক্সি করুন"
+msgid "invite_friends"
+msgstr "বন্ধুদের আমন্ত্রণ জানান"
 
-msgid "proxy_everything_is"
-msgstr "সমস্ত কিছু প্রক্সি করুন হ'ল %s"
+msgid "your_referral_code"
+msgstr "আপনার রেফারেল কোড"
 
-msgid "version_number"
-msgstr "সংস্করণ %s"
+msgid "invite_friends_message"
+msgstr ""
+"আপনার রেফারেল কোডটি একটি বন্ধুর সাথে শেয়ার করুন। যখন তারা Lantern Pro "
+"কিনবে, তখন আপনি দুজনেই অতিরিক্ত সময় পাবেন: "
 
-msgid "build_number"
-msgstr "বিল্ড %s"
+msgid "share_referral_code"
+msgstr "রেফারেল কোড শেয়ার করুন"
 
-msgid "sdk_version"
-msgstr "SDK %s"
+msgid "unbounded"
+msgstr "Unbounded"
+
+msgid "help_fight_global_internet_censorship"
+msgstr "বিশ্বব্যাপী ইন্টারনেট সেন্সরশিপের বিরুদ্ধে লড়াইয়ে সাহায্য করুন"
+
+msgid "vpn_settings"
+msgstr "ভিপিএন সেটিংস"
+
+msgid "split_tunneling"
+msgstr "স্প্লিট টানেলিং"
+
+msgid "server_locations"
+msgstr "সার্ভার লোকেশন"
+
+msgid "lantern_pro_email"
+msgstr "Lantern Pro ইমেইল:"
+
+msgid "pro_account_expiration"
+msgstr "প্রো অ্যাকাউন্ট মেয়াদ শেষ"
+
+msgid "manage_subscription"
+msgstr "সাবস্ক্রিপশন পরিচালনা করুন"
+
+msgid "lantern_pro_devices"
+msgstr "Lantern Pro ডিভাইস"
+
+msgid "remove"
+msgstr "সরান"
+
+msgid "add_device"
+msgstr "ডিভাইস যোগ করুন"
+
+msgid "danger_zone"
+msgstr "ঝুঁকিপূর্ণ এলাকা:"
+
+msgid "delete_account"
+msgstr "অ্যাকাউন্ট মুছে দিন"
+
+msgid "delete"
+msgstr "মুছুন"
+
+msgid "account"
+msgstr "অ্যাকাউন্ট"
+
+msgid "delete_account_?"
+msgstr "আপনার অ্যাকাউন্ট মুছে দিতে চান?"
+
+msgid "delete_account_message"
+msgstr ""
+"অ্যাকাউন্ট মুছে ফেলা স্থায়ী। আপনি সমস্ত ডিভাইসে অ্যাক্সেস হারাবেন এবং "
+"অবশিষ্ট প্রো সাবস্ক্রিপশনের সময় কোনো রিফান্ড ছাড়াই বাতিল হয়ে যাবে।"
+
+msgid "delete_account_message_two"
+msgstr "মুছে ফেলা নিশ্চিত করতে অনুগ্রহ করে নিচে আপনার পাসওয়ার্ড লিখুন"
+
+msgid "Submit Issue Report"
+msgstr "সমস্যা রিপোর্ট জমা দিন"
+
+msgid "confirm_deletion"
+msgstr "মুছে ফেলা নিশ্চিত করুন"
+
+msgid "cancel"
+msgstr "বাতিল করুন"
+
+msgid "daily_data_usage"
+msgstr "দৈনিক ডেটা ব্যবহার"
+
+msgid "mb"
+msgstr "MB"
+
+msgid "vpn_status"
+msgstr "ভিপিএন স্ট্যাটাস"
+
+msgid "telegram"
+msgstr "Telegram"
+
+msgid "instagram"
+msgstr "Instagram"
+
+msgid "x"
+msgstr "X"
+
+msgid "follow_us"
+msgstr "আমাদের ফলো করুন"
+
+msgid "server_selection"
+msgstr "সার্ভার নির্বাচন"
+
+msgid "smart_location"
+msgstr "স্মার্ট লোকেশন"
+
+msgid "automatically_chooses_fastest_location"
+msgstr "স্বয়ংক্রিয়ভাবে দ্রুততম লোকেশন বেছে নেয়"
+
+msgid "pro_locations"
+msgstr "প্রো লোকেশনস:"
+
+msgid "choose_your_location_with_lantern_pro"
+msgstr "Lantern Pro দিয়ে আপনার লোকেশন বেছে নিন:"
 
 msgid "language"
 msgstr "ভাষা"
 
+msgid "sign_in"
+msgstr "সাইন ইন করুন"
+
+msgid "sign_out"
+msgstr "সাইন আউট করুন"
+
+msgid "check_for_updates"
+msgstr "আপডেট চেক করুন"
+
+msgid "support"
+msgstr "সহায়তা"
+
+msgid "download_links"
+msgstr "ডাউনলোড লিংক"
+
+msgid "get_30_days_of_pro_free"
+msgstr "৩০ দিন প্রো বিনামূল্যে পান"
+
+msgid "share_message_referral_code"
+msgstr ""
+"Lantern Pro এর এক মাস বিনামূল্যে পেতে এই রেফারেল কোড ব্যবহার করুন: %s ; আপনি"
+" এটি এখান থেকে ডাউনলোড করতে পারেন: https://lantern.io/download"
+
+msgid "submit_issue_report"
+msgstr "সমস্যা রিপোর্ট জমা দিন"
+
 msgid "select_an_issue"
 msgstr "একটি সমস্যা নির্বাচন করুন"
 
-msgid "enter_description"
-msgstr "আপনার সমস্যাটি বর্ণনা করুন "
-
 msgid "cannot_access_blocked_sites"
-msgstr "ব্লক সাইটগুলোতে যেতে পারছিনা"
+msgstr "ব্লক করা সাইটে প্রবেশ করতে পারছি না"
 
 msgid "cannot_complete_purchase"
-msgstr "কেনা সম্পূর্ণ করা যাচ্ছে না"
+msgstr "ক্রয় সম্পূর্ণ করতে পারছি না"
 
 msgid "discover_not_working"
 msgstr "ডিসকভার কাজ করছে না"
 
 msgid "cannot_sign_in"
-msgstr "সাইন ইন করা যাচ্ছে না"
+msgstr "সাইন ইন করতে পারছি না"
 
 msgid "spinner_loads_endlessly"
-msgstr "স্পিনার অবিরাম লোড হয়"
+msgstr "স্পিনার অনবরত লোড হচ্ছে"
 
 msgid "slow"
-msgstr "ধীরগতি"
+msgstr "ধীর গতি"
 
 msgid "cannot_link_devices"
-msgstr "ডিভাইস লিংক করতে পারছিনা"
+msgstr "ডিভাইস লিংক করতে পারছি না"
 
 msgid "wrong_device_linking_code"
-msgstr "ভুল বা অবৈধ ডিভাইস লিঙ্কিং কোড"
+msgstr "ভুল বা অবৈধ ডিভাইস লিংকিং কোড"
 
 msgid "cannot_remove_device"
-msgstr "ডিভাইসটি সরানো যাচ্ছে না "
+msgstr "ডিভাইস সরাতে পারছি না"
 
 msgid "application_crashes"
-msgstr "অ্যাপ্লিকেশন ক্র্যাশ করেছে"
+msgstr "অ্যাপ্লিকেশন ক্র্যাশ হচ্ছে"
 
 msgid "other"
 msgstr "অন্যান্য"
 
 msgid "issue_description"
-msgstr "আপনার সমস্যাটি বর্ণনা করুন "
+msgstr "আপনার সমস্যা বর্ণনা করুন"
 
-msgid "check_for_updates"
-msgstr "নতুন আপডেটের জন্য চেক করুন."
+msgid "enter_password_to_confirm"
+msgstr "নিশ্চিত করতে পাসওয়ার্ড লিখুন"
 
-msgid "blocked_users"
-msgstr "অবরুদ্ধ ব্যবহারকারীরা"
-
-msgid "description_proxy_all_dialog"
+msgid "cannot_view_logs"
 msgstr ""
-"সক্ষম করা থাকলে সমস্ত ট্র্যাফিক Lantern-এর মাধ্যমে পাঠানো হবে (আরও "
-"সুরক্ষিত)। অক্ষম করা থাকলে শুধুমাত্র অবরুদ্ধ ট্র্যাফিক Lantern-এর মাধ্যমে "
-"পাঠানো হবে (আরও দ্রুত)।"
+"আপনি আমাদের কাছে না পাঠালে Lantern আপনার ডায়াগনস্টিক লগ দেখতে পারে না।"
 
-msgid "Account"
-msgstr "একাউন্ট"
+msgid "split_tunneling_mode"
+msgstr "স্প্লিট টানেলিং মোড"
 
-msgid "VPN Status"
-msgstr "VPN-এর স্থিতি"
+msgid "apps_split_tunneling"
+msgstr "অ্যাপস স্প্লিট টানেলিং"
 
-msgid "VPN"
-msgstr "VPN"
+msgid "website_split_tunneling"
+msgstr "ওয়েবসাইট স্প্লিট টানেলিং"
 
-msgid "Authorize Device for Pro"
-msgstr "প্রো এর জন্য ডিভাইসটিকে অনুমোদন দিন"
+msgid "iran_optimized"
+msgstr "ইরান-অপটিমাইজড স্প্লিট টানেলিং"
 
-msgid "Authorize with Device Linking Pin"
-msgstr "ডিভাইস লিঙ্ক করার পিনের সাহায্যে এটির অনুমোদন দিন"
+msgid "china_optimized"
+msgstr "চীন-অপটিমাইজড স্প্লিট টানেলিং"
 
-msgid "Requires physical access to a Lantern Pro Device"
-msgstr "একটি Lantern প্রো ডিভাইসে ফিজিক্যাল অ্যাক্সেস আবশ্যক"
+msgid "russia_optimized"
+msgstr "রাশিয়া-অপটিমাইজড স্প্লিট টানেলিং"
 
-msgid "Link with PIN"
-msgstr "PIN দিয়ে লিঙ্ক করুন"
+msgid "global_optimized"
+msgstr "গ্লোবাল-অপটিমাইজড স্প্লিট টানেলিং"
 
-msgid "OR"
-msgstr "অথবা"
+msgid "enter_url"
+msgstr "URL লিখুন"
 
-msgid "device_linking_pin"
-msgstr "ডিভাইস লিঙ্ক করার পিন"
+msgid "add"
+msgstr "যোগ করুন"
 
-msgid "link_device_step_one"
-msgstr "আপনার প্রো ডিভাইসে 'ডিভাইস যোগ করুন' মেনু আইটেমটি খুলুন। "
+msgid "enabled"
+msgstr "চালু আছে"
 
-msgid "link_device_step_two"
-msgstr "ডিভাইস লিঙ্কিং পিন প্রবেশ করান এবং জমা দিন "
+msgid "disabled"
+msgstr "বন্ধ আছে"
 
-msgid "ensure_most_recent_version_lantern"
+msgid "automatic"
+msgstr "স্বয়ংক্রিয়"
+
+msgid "automatic_mode"
+msgstr "স্বয়ংক্রিয় মোড"
+
+msgid "manual"
+msgstr "ম্যানুয়াল"
+
+msgid "enter_url_or_ip"
+msgstr "URL বা IP ঠিকানা লিখুন"
+
+msgid "installed_apps"
+msgstr "ইনস্টল করা অ্যাপস"
+
+msgid "search_apps"
+msgstr "অ্যাপস খুঁজুন"
+
+msgid "search_websites"
+msgstr "ওয়েবসাইট খুঁজুন"
+
+msgid "mode"
+msgstr "মোড"
+
+msgid "use_commas"
+msgstr "একাধিক URL আলাদা করতে কমা ব্যবহার করুন"
+
+msgid "default_bypass"
+msgstr "ডিফল্ট বাইপাস লিস্ট"
+
+msgid "global_bypass_list"
+msgstr "গ্লোবাল বাইপাস লিস্ট"
+
+msgid "global_bypass_desc"
+msgstr "বিশ্বস্ত সাইট (HTTPS) যেগুলোতে সংবেদনশীল কন্টেন্ট নেই।"
+
+msgid "china_bypass_list"
+msgstr "চীন বাইপাস লিস্ট"
+
+msgid "china_bypass_desc"
+msgstr "চীনে অবাধে অ্যাক্সেস করা যায় এমন সাইট। নিয়মিত আপডেট করা হয়।"
+
+msgid "iran_bypass_list"
+msgstr "ইরান বাইপাস লিস্ট"
+
+msgid "iran_bypass_desc"
+msgstr "ইরানে অবাধে অ্যাক্সেস করা যায় এমন সাইট। নিয়মিত আপডেট করা হয়।"
+
+msgid "russia_bypass_list"
+msgstr "রাশিয়া বাইপাস লিস্ট"
+
+msgid "russia_bypass_desc"
+msgstr "রাশিয়ায় অবাধে অ্যাক্সেস করা যায় এমন সাইট। নিয়মিত আপডেট করা হয়।"
+
+msgid "see_sites_included"
+msgstr "অন্তর্ভুক্ত সাইট দেখুন "
+
+msgid "default_lists_here"
+msgstr "ডিফল্ট লিস্ট এখানে"
+
+msgid "when_connected"
+msgstr "সংযুক্ত থাকলে, আপনার নির্বাচিত ওয়েবসাইটগুলো ভিপিএন বাইপাস করবে।"
+
+msgid "lantern_automatic"
 msgstr ""
-"* দুটি ডিভাইসেই Lantern এর অতিসাম্প্রতিক সংস্করণটি চলছে কিনা সুনিশ্চিত করুন"
+"Lantern স্বয়ংক্রিয়ভাবে নির্ধারণ করে কোন অ্যাপস এবং ওয়েবসাইট সেরা "
+"পারফরম্যান্সের জন্য আপনার লোকেশনের ভিত্তিতে ভিপিএন বাইপাস করবে। "
 
-msgid "Authorize Device via Email"
-msgstr "ইমেলের মাধ্যমে ডিভাইসে অনুমোদন দিন"
+msgid "apps_bypassing_vpn"
+msgstr "ভিপিএন বাইপাস করছে এমন অ্যাপস (%d)"
 
-msgid "auth_email_helper_text"
-msgstr "আপনার প্রো অ্যাকাউন্টের সাথে সম্পর্কিত ইমেলটি লিখুন"
+msgid "websites_bypassing_vpn"
+msgstr "ভিপিএন বাইপাস করছে এমন ওয়েবসাইট (%d)"
 
-msgid "Requires access to the email you used to buy Lantern Pro"
+msgid "logs_share_message"
+msgstr "এগুলো Lantern থেকে আমার ডায়াগনস্টিক লগ।"
+
+msgid "payment_options"
+msgstr "পেমেন্ট অপশন"
+
+msgid "add_your_email"
+msgstr "আপনার ইমেইল যোগ করুন"
+
+msgid "continue"
+msgstr "চালিয়ে যান"
+
+msgid "continue_with_google"
+msgstr "Google দিয়ে চালিয়ে যান"
+
+msgid "continue_with_apple"
+msgstr "Apple দিয়ে চালিয়ে যান"
+
+msgid "continue_without_email"
+msgstr "ইমেইল ছাড়াই চালিয়ে যান"
+
+msgid "confirm_email"
+msgstr "ইমেইল নিশ্চিত করুন"
+
+msgid "add_your_email_message"
 msgstr ""
-"আপনি Lantern প্রো কিনতে যে ইমেলটি ব্যবহার করেছিলেন সেটিতে অ্যাক্সেস প্রয়োজন"
+"যেকোনো ডিভাইসে আপনার সাবস্ক্রিপশন অ্যাক্সেস করতে আপনার ইমেইল যোগ করুন।"
 
-msgid "Link via Email"
-msgstr "ইমেলের মাধ্যমে লিঙ্ক করুন"
+msgid "confirm_email_code"
+msgstr "নিশ্চিতকরণ কোড"
 
-msgid "lantern_desktop"
-msgstr "Lantern Desktop"
-
-msgid "report_description"
-msgstr "সমস্যার বিবরণ"
-
-msgid "report_issue"
-msgstr "সমস্যা রিপোর্ট করুন "
-
-msgid "report_an_issue"
-msgstr "একটি সমস্যা রিপোর্ট করুন"
-
-msgid "report_sent"
-msgstr "রিপোর্ট পাঠানো হয়েছে"
-
-msgid "thank_you_for_reporting_your_issue"
+msgid "confirm_email_code_message"
 msgstr ""
-"আপনার সমস্যাটি জানানোর জন্য ধন্যবাদ। রিপোর্টের পরিমাণ বেশি হওয়ার কারণে, আমরা"
-" বেশিরভাগ সমস্যার উত্তর দিতে পারিনি, কিন্তু এই বিষয়ে আপনাকে নিশ্চিত করি যে "
-"আপনার রিপোর্টের উপর নির্ভর করে Lantern উন্নত করার জন্য আমরা কঠোর পরিশ্রম "
-"করছি।"
+"নিশ্চিত করুন যে এই ইমেইল ঠিকানাটি আপনার, যে কোড পাঠানো হয়েছে সেটি লিখুন: "
 
-msgid "send_report"
-msgstr "রিপোর্ট পাঠান"
+msgid "resend_email"
+msgstr "ইমেইল আবার পাঠান"
 
-msgid "most_recent_lantern_apps"
-msgstr ""
-"ডেস্কটপ এবং অন্যান্য প্ল্যাটফর্মগুলির জন্য সর্ব সাম্প্রতিক Lantern অ্যাপ "
-"উপরের লিঙ্কটিতে দেখা যেতে পারে।"
+msgid "create_password"
+msgstr "পাসওয়ার্ড তৈরি করুন"
 
-msgid "share_link"
-msgstr "লিঙ্ক শেয়ার করুন "
+msgid "sign_in_to_lantern_pro"
+msgstr "Lantern Pro তে সাইন ইন করুন"
 
-msgid "share_title"
-msgstr "Lantern ডাউনলোড লিঙ্ক শেয়ার করুন"
+msgid "sign_in_with_email"
+msgstr "ইমেইল দিয়ে সাইন ইন করুন"
+
+msgid "enter_your_lantern_pro_account_details"
+msgstr "আপনার Lantern Pro অ্যাকাউন্টের বিস্তারিত তথ্য লিখুন।"
 
 msgid "email"
 msgstr "ইমেইল"
 
-msgid "Submit"
-msgstr "সাবমিট"
+msgid "enter_password"
+msgstr "পাসওয়ার্ড লিখুন"
 
-msgid "save"
-msgstr "সংরক্ষণ করুন"
+msgid "forgot_password"
+msgstr "পাসওয়ার্ড ভুলে গেছেন?"
 
-msgid "please_enter_a_valid_email_address"
-msgstr "অনুগ্রহ করে একটি বৈধ ইমেল ঠিকানা লিখুন"
+msgid "reset_your_password"
+msgstr "আপনার পাসওয়ার্ড রিসেট করুন"
 
-msgid "bonus"
-msgstr "বোনাস"
+msgid "enter_your_lantern_pro_account_email"
+msgstr "আপনার Lantern Pro অ্যাকাউন্টের ইমেইল লিখুন।"
 
-msgid "referral_bonus"
-msgstr "রেফারেল বোনাস"
+msgid "reset_password"
+msgstr "পাসওয়ার্ড রিসেট করুন"
 
-msgid "total"
-msgstr "মোট"
+msgid "confirm_new_password"
+msgstr "নতুন পাসওয়ার্ড নিশ্চিত করুন"
 
-msgid "month"
-msgstr "মাস"
+msgid "create_new_password"
+msgstr "নতুন পাসওয়ার্ড তৈরি করুন"
 
-msgid "months"
-msgstr "মাস"
+msgid "confirm_password"
+msgstr "পাসওয়ার্ড নিশ্চিত করুন"
 
-msgid "enter_email_to_complete_purchase"
-msgstr "ক্রয় সম্পূর্ণ করতে ইমেইল প্রবেশ করুন "
+msgid "confirm_password_required"
+msgstr "পাসওয়ার্ড নিশ্চিতকরণ প্রয়োজন"
 
-msgid "error_fetching_plans"
-msgstr ""
-"প্ল্যানগুলো আনার সময় ত্রুটি ঘটেছে, অনুগ্রহ করে Lantern আবার শুরু করে পুনরায় "
-"চেষ্টা করুন।"
+msgid "passwords_do_not_match"
+msgstr "পাসওয়ার্ড মিলছে না"
 
-msgid "apply"
-msgstr "প্রয়োগ করুন"
+msgid "activation_code"
+msgstr "অ্যাক্টিভেশন কোড"
 
-msgid "choose_payment_method"
-msgstr "পেমেন্ট পদ্ধতি বেছে নিন"
-
-msgid "pro_plan"
-msgstr "প্রো প্ল্যান"
-
-msgid "one_month_plan"
-msgstr "১ মাসের প্লান"
-
-msgid "one_year_plan"
-msgstr "1-বছরর প্ল্যান"
-
-msgid "two_year_plan"
-msgstr "2-বছরর প্ল্যান"
-
-msgid "plan_discount"
-msgstr "সাশ্রয় করুন %d%%"
-
-msgid "enter_email_and_activation_code"
-msgstr "ইমেল এবং সক্রিয়করণ কোড লিখুন"
-
-msgid "referral_code"
-msgstr "রেফারেল কোড"
-
-msgid "share_referral_code"
-msgstr "রেফারেল কোড শেয়ার করুন "
-
-msgid "share_message_referral_code"
-msgstr ""
-"এক মাসের জন্য বিনামূল্যে Lantern Pro পেতে, এই রেফারেল কোডটি ব্যবহার করুন: %s"
-" ; এটি এখান থেকে ডাউনলোড করতে পারেন: https://lantern.io/download "
-
-msgid "add_referral_code"
-msgstr "রেফারেল কোড যোগ করুন"
-
-msgid "Activation Code"
-msgstr "এক্টিভেশন কোড"
-
-msgid "invalid_or_incomplete_referral_code"
-msgstr "রেফারেল কোড অবৈধ বা অসম্পূর্ণ"
-
-msgid "register_for_pro"
-msgstr "প্রো-এর জন্য রেজিস্টার করুন"
-
-msgid "Something went wrong while applying your referral code."
-msgstr "আপনার রেফারেল কোড প্রয়োগ করার সময় কিছু সমস্যা হয়েছে।"
-
-msgid "your_activation_code_is_invalid"
-msgstr "আপনার সক্রিয়করণ কোড অবৈধ"
-
-msgid "update_cache_plans_timeout"
-msgstr "উপলভ্য প্ল্যানগুলো আনার সময় কিছু সমস্যা হয়েছে।"
-
-msgid "bitcoin_timeout"
-msgstr "BTCPay অনুরোধের সময় পেরিয়ে গেছে।"
-
-msgid "BTCPay is unavailable"
-msgstr "BTCPay অনুপলভ্য"
-
-msgid "update_cache_user_timeout"
-msgstr "আপনার অ্যাকাউন্ট আনার সময় কিছু সমস্যা হয়েছে।"
-
-msgid "reseller_timeout"
-msgstr "আপনার সক্রিয়করণ কোড যাচাই করার সময় কিছু সমস্যা হয়েছে।"
-
-msgid "wrong_reseller_code"
-msgstr "এক্টিভেশন কোড সঠিক নয়"
-
-msgid "reseller_success"
-msgstr "সক্রিয়করণ কোড সফলভাবে রিডিম করা হয়েছে।"
-
-msgid "stripe_timeout"
-msgstr ""
-"আপনার স্ট্রাইপ পেমেন্টের সময় পেরিয়ে গেছে। অনুগ্রহ করে Lantern আবার চালু করে "
-"আবার চেষ্টা করুন।"
-
-msgid "stripe_success"
-msgstr "সফলভাবে স্ট্রাইপ কেনা সম্পন্ন হয়েছে।"
-
-msgid "renewal_success"
-msgstr "রিনিউ সফল হয়েছে"
-
-msgid "pro_renewal_success_description"
-msgstr ""
-"আপনার Lantern Pro অ্যাকাউন্ট রিনিউ করানোর জন্য ধন্যবাদ।আপনার কাছে এখন আমাদের"
-" দ্রুততম ডেটা সেন্টারগুলো ব্যবহার করার অপরিমিত অ্যাক্সেস আছে।  আপনার "
-"অ্যাকাউন্টের সাথে সর্বাধিক তিনটি ডিভাইস সংযুক্ত করা যেতে পারে।"
-
-msgid "pro_purchase_success"
-msgstr "Lantern Pro-এ আপনাকে স্বগাত"
-
-msgid "platinum_purchase_success_descripion"
-msgstr ""
-"আপনার কাছে এখন আমাদের দ্রুততম ডেটা সেন্টারগুলো এবং অবিচল লাইন ব্যবহার করার "
-"অপরিমিত অ্যাক্সেস আছে।  আপনার অ্যাকাউন্টের সাথে সর্বাধিক তিনটি ডিভাইস "
-"সংযুক্ত করা যেতে পারে।"
-
-msgid "pro_purchase_success_descripion"
-msgstr ""
-"আপনার কাছে এখন আমাদের দ্রুততম ডেটা সেন্টারগুলো ব্যবহার করার অপরিমিত "
-"অ্যাক্সেস আছে। আপনার অ্যাকাউন্টের সাথে সর্বাধিক তিনটি ডিভাইস সংযুক্ত করা "
-"যেতে পারে।"
-
-msgid "by_clicking_tos"
-msgstr "%s এ ক্লিক করে, আপনি আমাদের সাথে সম্মত হন "
-
-msgid "tos"
-msgstr "সেবা পাবার শর্ত"
-
-msgid "step_1"
-msgstr "ধাপ 1"
-
-msgid "step_2"
-msgstr "ধাপ 2"
-
-msgid "step_3"
-msgstr "ধাপ 3"
+msgid "activate_lantern_pro"
+msgstr "Lantern Pro সক্রিয় করুন"
 
 msgid "invalid_email"
-msgstr "ইমেল ঠিকানা অবৈধ"
+msgstr "অবৈধ ইমেইল ঠিকানা"
 
-msgid "invalid_card"
-msgstr "ক্রেডিট কার্ড নম্বর অবৈধ"
+msgid "purchase_already_owned"
+msgstr "আপনি ইতিমধ্যে এই ক্রয়ের মালিক, রিস্টোর পারচেজ করার চেষ্টা করুন"
 
-msgid "invalid_expiration"
-msgstr "মেয়াদ শেষের তারিখ সঠিক নয়"
+msgid "stripe_payment"
+msgstr "Stripe পেমেন্ট"
 
-msgid "cc_number"
-msgstr "ক্রেডিট কার্ড"
+msgid "split_tunneling_description"
+msgstr ""
+"Lantern আপনার লোকেশনের উপর ভিত্তি করে বুদ্ধিমত্তার সাথে ইন্টারনেট ট্রাফিক "
+"রাউট করে, শুধুমাত্র প্রয়োজনে ভিপিএন ব্যবহার করে আপনার সংযোগ দ্রুত রেখে "
+"নিরাপদ অ্যাক্সেস নিশ্চিত করে।"
 
-msgid "card_number"
-msgstr "কার্ড নাম্বার"
+msgid "region_specific_rules"
+msgstr "অঞ্চল-নির্দিষ্ট নিয়ম"
 
-msgid "card_expiration"
-msgstr "মাস/বছর"
+msgid "location_based_rules"
+msgstr ""
+"Lantern আপনার লোকেশনের উপর নির্ভর করে বিভিন্ন রাউটিং নিয়ম ব্যবহার করে:"
 
-msgid "invalid_cvc"
-msgstr "সিভিসি সঠিক নয়"
+msgid "censored_regions"
+msgstr "সেন্সর করা অঞ্চলে:"
 
-msgid "complete_purchase"
-msgstr "কেনা সম্পূর্ণ করুন"
+msgid "blocked_sites_proxied"
+msgstr ""
+"ব্লক করা ওয়েবসাইট এবং অ্যাপস (নিউজ, মেসেজিং, সীমাবদ্ধ সেবা) প্রক্সি করা "
+"হয়।"
 
-msgid "Re-send Email"
-msgstr "আবার ইমেইল পাঠান"
+msgid "unblocked_sites_bypass"
+msgstr ""
+"বেশিরভাগ আনব্লক করা ওয়েবসাইট দ্রুত ব্রাউজিংয়ের জন্য ভিপিএন বাইপাস করে।"
 
-msgid "Paste from clipboard?"
-msgstr "ক্লিপবোর্ড থেকে পেস্ট করবেন?"
+msgid "uncensored_regions"
+msgstr "অ-সেন্সর করা অঞ্চলে:"
 
-msgid "Yes"
-msgstr "হ্যা"
+msgid "trusted_sites_bypass"
+msgstr ""
+"শুধুমাত্র বিশ্বস্ত ওয়েবসাইট এবং সেবাগুলি ডিফল্টভাবে ভিপিএন বাইপাস করে।"
 
-msgid "No"
-msgstr "না"
+msgid "examples_of_bypassed_sites"
+msgstr ""
+"এর মধ্যে রয়েছে HTTPS-এনক্রিপ্টেড সাইট যেগুলোতে পাবলিক বা অ-সংবেদনশীল "
+"কন্টেন্ট আছে যেমন শপিং, আবহাওয়া এবং সফটওয়্যার আপডেট।"
+
+msgid "routing_rules_vary"
+msgstr "এই নিয়মগুলি দেশ অনুযায়ী পরিবর্তিত হয় এবং নিয়মিত আপডেট করা হয়।"
+
+msgid "view_the_full_list"
+msgstr "রাউটিং নিয়মের সম্পূর্ণ তালিকা দেখুন।"
+
+msgid "turn_on_split_tunneling"
+msgstr ""
+"কোন ওয়েবসাইট ভিপিএন ব্যবহার করবে তা কাস্টমাইজ করতে স্প্লিট টানেলিং চালু "
+"করুন।"
+
+msgid "welcome_to_lantern_pro"
+msgstr "Lantern Pro তে স্বাগতম!"
+
+msgid "lantern_pro_description"
+msgstr ""
+"আপনার প্রো ফিচারগুলি আনলক হয়েছে—আনলিমিটেড ডেটা, দ্রুত গতি এবং প্রিমিয়াম "
+"সার্ভার উপভোগ করুন।"
+
+msgid "plans_fetch_error"
+msgstr "প্ল্যান আনতে ত্রুটি। পরে আবার চেষ্টা করুন।"
+
+msgid "best_value"
+msgstr "সেরা মূল্য!"
+
+msgid "choose_payment_method"
+msgstr "পেমেন্ট মেথড বেছে নিন"
+
+msgid "payment_information_encrypted"
+msgstr "আপনার পেমেন্ট তথ্য সম্পূর্ণরূপে এনক্রিপ্টেড।"
+
+msgid "purchase_not_completed"
+msgstr ""
+"ক্রয় সম্পূর্ণ হয়নি। আপনি যেকোনো সময় আবার চেষ্টা করতে পারেন, বা সাহায্যের "
+"প্রয়োজন হলে সাপোর্টের সাথে যোগাযোগ করুন"
+
+msgid "are_you_sure"
+msgstr "আপনি কি নিশ্চিত?"
+
+msgid "continue_without_email_message"
+msgstr ""
+"অন্য ডিভাইসে আপনার সাবস্ক্রিপশন ব্যবহার করতে একটি বৈধ ইমেইল ঠিকানা প্রয়োজন।"
+
+msgid "add_email"
+msgstr "ইমেইল যোগ করুন"
+
+msgid "block_ads"
+msgstr "বিজ্ঞাপন ব্লক করুন"
+
+msgid "only_active"
+msgstr "শুধুমাত্র ভিপিএন সংযুক্ত থাকলে সক্রিয়"
+
+msgid "vpn_connected"
+msgstr "Lantern এখন সংযুক্ত।"
+
+msgid "vpn_disconnected"
+msgstr "Lantern এখন সংযোগ বিচ্ছিন্ন।"
+
+msgid "open_notification"
+msgstr "নোটিফিকেশন খুলুন"
+
+msgid "logout"
+msgstr "লগ আউট"
+
+msgid "logout_message"
+msgstr ""
+"লগ আউট করলে Lantern ফ্রি ভার্সনে পরিবর্তিত হবে। আবার আপনার অ্যাকাউন্ট "
+"অ্যাক্সেস করতে আপনাকে সাইন ইন করতে হবে।"
+
+msgid "not_now"
+msgstr "এখন নয়"
+
+msgid "billed_once"
+msgstr "একবার বিল করা হয়"
+
+msgid "subscription"
+msgstr "সাবস্ক্রিপশন"
+
+msgid "subscribe"
+msgstr "সাবস্ক্রাইব করুন"
+
+msgid "checkout"
+msgstr "চেকআউট"
+
+msgid "next_billing_date"
+msgstr "পরবর্তী বিলিং তারিখ"
+
+msgid "vpn_may_be_needed"
+msgstr "ভিপিএন প্রয়োজন হতে পারে"
+
+msgid "google_and_apple_sign_in_blocked"
+msgstr ""
+"Google এবং Apple সাইন-ইন এই অঞ্চলে ব্লক করা থাকতে পারে। আপনার অ্যাকাউন্ট "
+"সেটআপ সম্পূর্ণ করতে, প্রথমে ভিপিএন চালু করুন।"
+
+msgid "continue_without_vpn"
+msgstr "ভিপিএন ছাড়া চালিয়ে যান"
+
+msgid "turn_on_vpn"
+msgstr "ভিপিএন চালু করুন"
+
+msgid "server_setup_do"
+msgstr "DigitalOcean ব্যবহার করে সেটআপ করুন"
+
+msgid "server_setup_do_price"
+msgstr "DigitalOcean এর মাধ্যমে মাসে মাত্র %s"
+
+msgid "server_setup_gcp"
+msgstr "Google Cloud Platform ব্যবহার করে সেটআপ করুন"
+
+msgid "continue_with_do"
+msgstr "DigitalOcean দিয়ে চালিয়ে যান"
+
+msgid "do_allows"
+msgstr ""
+"DigitalOcean আপনাকে নিচের %d অপশন থেকে একটি সার্ভার লোকেশন বেছে নিতে দেয়"
+
+msgid "server_setup_gcp_price"
+msgstr "GCP এর মাধ্যমে মাত্র %s মাস"
+
+msgid "continue_with_gcp"
+msgstr "Google দিয়ে চালিয়ে যান"
+
+msgid "gcp_allows"
+msgstr ""
+"Google Cloud Platform আপনাকে নিচের %d অপশন থেকে একটি সার্ভার লোকেশন বেছে "
+"নিতে দেয়:"
+
+msgid "server_setup_aws"
+msgstr "AWS-এ একটি প্রাইভেট সার্ভার সেটআপ করুন"
+
+msgid "server_setup_aws_price"
+msgstr "AWS এর মাধ্যমে মাত্র %s মাস"
+
+msgid "server_setup_manual"
+msgstr "ম্যানুয়ালি সেটআপ করুন"
+
+msgid "seamless_integration"
+msgstr "Lantern এর সাথে নিরবচ্ছিন্ন ইন্টিগ্রেশন"
+
+msgid "easiest_setup"
+msgstr "সবচেয়ে সহজ সেটআপ প্রক্রিয়া"
+
+msgid "multiple_location_options"
+msgstr "একাধিক সার্ভার লোকেশন অপশন"
+
+msgid "one_month_included"
+msgstr "%d TB/মাস ডেটা অন্তর্ভুক্ত"
+
+msgid "easiest_setup_process"
+msgstr "সবচেয়ে সহজ সেটআপ প্রক্রিয়া"
+
+msgid "setup_a_private_server"
+msgstr "একটি প্রাইভেট সার্ভার সেটআপ করুন"
+
+msgid "setup_private_server"
+msgstr "প্রাইভেট সার্ভার সেটআপ করুন"
+
+msgid "previous"
+msgstr "পূর্ববর্তী"
+
+msgid "next"
+msgstr "পরবর্তী"
+
+msgid "error"
+msgstr "ত্রুটি"
+
+msgid "signup_error_user_exists"
+msgstr ""
+"সাইন-আপে সমস্যা হয়েছে। পাসওয়ার্ড রিসেট করুন, প্রয়োজনে সাপোর্টের সাথে "
+"যোগাযোগ করুন।"
+
+msgid "user_not_found"
+msgstr ""
+"ব্যবহারকারী চেনা যাচ্ছে না। আপনার লগইন তথ্য চেক করুন এবং আবার চেষ্টা করুন। "
+"সমস্যা অব্যাহত থাকলে, সহায়তার জন্য আমাদের সাপোর্ট টিমের সাথে যোগাযোগ করুন।"
+
+msgid "invalid_code"
+msgstr "কোড ভুল বা মেয়াদ শেষ হয়ে গেছে। আবার পাঠানোর চেষ্টা করুন"
+
+msgid "email_resend_message"
+msgstr "আপনার নতুন নিশ্চিতকরণ কোড পাঠানো হয়েছে"
+
+msgid "password_has_been_updated"
+msgstr "পাসওয়ার্ড আপডেট করা হয়েছে"
+
+msgid "password_has_been_updated_message"
+msgstr "আপনার পাসওয়ার্ড সফলভাবে রিসেট করা হয়েছে"
+
+msgid "update_pro_account"
+msgstr "প্রো অ্যাকাউন্ট আপডেট করুন"
+
+msgid "update_pro_account_message"
+msgstr ""
+"আপনার অ্যাকাউন্ট পরিচালনা করতে বা অন্য ডিভাইসে সাইন ইন করতে, প্রথমে আপনার "
+"অ্যাকাউন্টে একটি ইমেইল এবং পাসওয়ার্ড যোগ করুন।"
+
+msgid "subscription_cancelled"
+msgstr "আপনার সাবস্ক্রিপশন বাতিল করা হয়েছে।"
+
+msgid "subscription_updated"
+msgstr "আপনার সাবস্ক্রিপশন আপডেট করা হয়েছে।"
+
+msgid "subscription_renewed"
+msgstr "আপনার সাবস্ক্রিপশন পুনর্নবীকরণ করা হয়েছে।"
+
+msgid "got_it"
+msgstr "বুঝেছি"
+
+msgid "server_location"
+msgstr "সার্ভার লোকেশন"
+
+msgid "choose"
+msgstr "বেছে নিন"
+
+msgid "choose_your_account"
+msgstr "আপনার অ্যাকাউন্ট বেছে নিন"
+
+msgid "choose_your_project"
+msgstr "আপনার প্রজেক্ট বেছে নিন"
+
+msgid "name_your_google_cloud_project"
+msgstr "আপনার Google Cloud প্রজেক্টের নাম দিন"
+
+msgid "billing_account"
+msgstr "বিলিং অ্যাকাউন্ট"
+
+msgid "billing_account_placeholder"
+msgstr "%s এর জন্য বিলিং অ্যাকাউন্ট"
+
+msgid "server_name"
+msgstr "সার্ভারের নাম"
+
+msgid "google_project"
+msgstr "Google প্রজেক্ট"
+
+msgid "field_name_required"
+msgstr "নাম প্রয়োজন"
+
+msgid "choose_google_account"
+msgstr "Google বিলিং অ্যাকাউন্ট বেছে নিন"
+
+msgid "server_name_placeholder"
+msgstr "ডেরেকের সার্ভার"
+
+msgid "change"
+msgstr "পরিবর্তন করুন"
+
+msgid "choose_location"
+msgstr "লোকেশন বেছে নিন"
+
+msgid "choose_your_location"
+msgstr "আপনার লোকেশন বেছে নিন"
+
+msgid "start_deployment"
+msgstr "ডিপ্লয়মেন্ট শুরু করুন"
+
+msgid "server_name_description"
+msgstr "সার্ভার নির্বাচন তালিকায় সার্ভারটি যেভাবে প্রদর্শিত হবে।"
+
+msgid "select_private_server_region"
+msgstr ""
+"আপনার প্রাইভেট সার্ভারের জন্য একটি অঞ্চল নির্বাচন করুন। কাছাকাছি লোকেশন গতি "
+"এবং লেটেন্সি উন্নত করতে পারে।"
+
+msgid "gcp_location_options"
+msgstr "Google Cloud Platform লোকেশন অপশন (%d):"
+
+msgid "australia_sydney"
+msgstr "অস্ট্রেলিয়া - সিডনি"
+
+msgid "belgium_stghislain"
+msgstr "বেলজিয়াম - সেন্ট গিসলেন"
+
+msgid "brazil_saopaulo"
+msgstr "সাও পাওলো"
+
+msgid "us_los_angeles"
+msgstr "US - লস অ্যাঞ্জেলেস"
+
+msgid "japan_tokyo"
+msgstr "জাপান - টোকিও"
+
+msgid "deploying_private_server"
+msgstr "প্রাইভেট সার্ভার ডিপ্লয় করা হচ্ছে"
+
+msgid "deploying_server_status"
+msgstr ""
+"অপেক্ষা করুন! আপনার প্রাইভেট সার্ভার সেটআপ করা হচ্ছে। এতে কয়েক মিনিট সময় "
+"লাগতে পারে।"
+
+msgid "confirm_server_fingerprint"
+msgstr "সার্ভার ফিঙ্গারপ্রিন্ট নিশ্চিত করুন"
+
+msgid "server_fingerprint"
+msgstr "সার্ভার ফিঙ্গারপ্রিন্ট"
+
+msgid "confirm_fingerprint"
+msgstr "ফিঙ্গারপ্রিন্ট নিশ্চিত করুন"
+
+msgid "private_server_setup_in_progress"
+msgstr ""
+"অপেক্ষা করুন! আপনার প্রাইভেট সার্ভার সেটআপ করা হচ্ছে। এতে কয়েক মিনিট সময় "
+"লাগতে পারে, এই স্ক্রিন খোলা রাখুন।"
+
+msgid "cancel_server_deployment"
+msgstr "সার্ভার ডিপ্লয়মেন্ট বাতিল করুন"
+
+msgid "server_ready_title"
+msgstr "প্রাইভেট সার্ভার প্রস্তুত"
+
+msgid "server_ready_message"
+msgstr ""
+"আপনার প্রাইভেট সার্ভার সেটআপ করা হয়েছে এবং আপনার সার্ভার তালিকায় যোগ করা "
+"হয়েছে। আপনি সংযোগ করতে প্রস্তুত!"
+
+msgid "server_failed_message"
+msgstr ""
+"আপনার প্রাইভেট সার্ভার সেটআপ করার সময় কিছু ভুল হয়েছে। আপনি পুনরায় চেষ্টা "
+"করতে পারেন বা পরে আবার চেষ্টা করতে পারেন।"
+
+msgid "close"
+msgstr "বন্ধ করুন"
+
+msgid "connect_now"
+msgstr "এখনই সংযোগ করুন"
+
+msgid "server_setup_failed"
+msgstr "সার্ভার সেটআপ ব্যর্থ হয়েছে"
+
+msgid "cancel_deployment"
+msgstr "ডিপ্লয়মেন্ট বাতিল করুন"
+
+msgid "server_setup_failed_message"
+msgstr ""
+"আপনার প্রাইভেট সার্ভার সেটআপ করার সময় কিছু ভুল হয়েছে। আপনি পুনরায় চেষ্টা "
+"করতে পারেন বা পরে আবার চেষ্টা করতে পারেন।"
 
 msgid "exit"
-msgstr "প্রস্থান করুন "
+msgstr "প্রস্থান করুন"
+
+msgid "retry"
+msgstr "পুনরায় চেষ্টা করুন"
+
+msgid "all_required_fields"
+msgstr "অনুগ্রহ করে সমস্ত প্রয়োজনীয় ফিল্ড পূরণ করুন।"
+
+msgid "private_server_ready"
+msgstr "প্রাইভেট সার্ভার প্রস্তুত!"
+
+msgid "private_server_ready_message"
+msgstr ""
+"(%s) সার্ভার সেটআপ করা হয়েছে এবং আপনার সার্ভার তালিকায় যোগ করা হয়েছে। "
+"আপনি সংযোগ করতে প্রস্তুত!"
+
+msgid "set_up_your_server"
+msgstr "আপনার সার্ভার সেটআপ করুন"
+
+msgid "view_instructions_github"
+msgstr "GitHub এ নির্দেশাবলী দেখুন"
+
+msgid "server_access_key"
+msgstr "সার্ভার অ্যাক্সেস কী"
+
+msgid "access_key"
+msgstr "অ্যাক্সেস কী"
+
+msgid "name_your_server"
+msgstr "আপনার সার্ভারের নাম দিন"
+
+msgid "how_server_appears"
+msgstr "সার্ভার নির্বাচন তালিকায় সার্ভারটি যেভাবে প্রদর্শিত হবে"
+
+msgid "server_nickname"
+msgstr "সার্ভার নিকনেম"
+
+msgid "verify_server"
+msgstr "সার্ভার যাচাই করুন"
+
+msgid "vpn_client_not_setup"
+msgstr "অনুগ্রহ করে ভিপিএন ক্লায়েন্ট চালু করুন।"
+
+msgid "continue_with"
+msgstr "এর সাথে চালিয়ে যান"
+
+msgid "join_a_private_server"
+msgstr "একটি প্রাইভেট সার্ভারে যোগ দিন"
+
+msgid "join_private_server"
+msgstr "প্রাইভেট সার্ভারে যোগ দিন"
+
+msgid "join_server"
+msgstr "সার্ভারে যোগ দিন"
+
+msgid "private_server_usage_message"
+msgstr ""
+"প্রাইভেট সার্ভার ব্যবহার আপনার Lantern দৈনিক ডেটা ক্যাপে গণনা করা হয় না।"
+
+msgid "manage_private_servers"
+msgstr "প্রাইভেট সার্ভার পরিচালনা করুন"
+
+msgid "my_servers"
+msgstr "আমার সার্ভার"
+
+msgid "joined_servers"
+msgstr "যোগদান করা সার্ভার"
+
+msgid "access_key_expiration"
+msgstr ""
+"প্রতিটি অ্যাক্সেস কী অনন্য এবং ১ দিন পর মেয়াদ শেষ হয়। আপনি যেকোনো সময় "
+"একটি নতুন তৈরি করতে পারেন।"
+
+msgid "share_access_key"
+msgstr "অ্যাক্সেস কী শেয়ার করুন"
+
+msgid "rename_server"
+msgstr "সার্ভারের নাম পরিবর্তন করুন"
+
+msgid "rename"
+msgstr "নাম পরিবর্তন করুন"
+
+msgid "selected_location"
+msgstr "নির্বাচিত লোকেশন"
+
+msgid "remove_server_?"
+msgstr "সার্ভার সরাতে চান?"
+
+msgid "remove_server_message"
+msgstr ""
+"%s সরাতে চান? এটি শুধুমাত্র আপনার অ্যাপ থেকে সরবে, এটি আপনার ক্লাউড "
+"প্রোভাইডার থেকে সার্ভার মুছবে না।"
+
+msgid "generate_access_key"
+msgstr "অ্যাক্সেস কী তৈরি করুন"
+
+msgid "invite_name"
+msgstr "আমন্ত্রণের নাম"
+
+msgid "trust_server_operator"
+msgstr "সার্ভার অপারেটরকে বিশ্বাস করুন"
+
+msgid "trust_server_operator_message_one"
+msgstr ""
+"প্রাইভেট সার্ভারগুলি Lantern এর বাইরের ব্যক্তি বা সংস্থা দ্বারা হোস্ট এবং "
+"পরিচালিত হয়। যখন আপনি একটিতে সংযোগ করেন, আপনি যে ব্যক্তি এটি চালাচ্ছেন তাকে"
+" বিশ্বাস করছেন যে তারা এটি নিরাপদে পরিচালনা করবে এবং দায়িত্বশীলভাবে ব্যবহার"
+" করবে।"
+
+msgid "trust_server_operator_message_two"
+msgstr ""
+"Lantern প্রাইভেট সার্ভার পরিচালনা বা নজরদারি করে না। একটিতে যোগদান করার আগে "
+"নিশ্চিত করুন যে আপনি সার্ভার অপারেটরকে জানেন এবং বিশ্বাস করেন।"
+
+msgid "trust_server_operator_message_three"
+msgstr ""
+"আপনি যদি নিশ্চিত না হন কে সার্ভার চালায় বা এটি কীভাবে কনফিগার করা হয়েছে, "
+"আমরা আপনার সার্ভার তালিকায় উপলব্ধ ডিফল্ট Lantern সার্ভার ব্যবহার করার "
+"পরামর্শ দিই"
+
+msgid "invalid_server_details"
+msgstr ""
+"অবৈধ সার্ভার বিস্তারিত। অনুগ্রহ করে অ্যাক্সেস কী চেক করুন এবং আবার চেষ্টা "
+"করুন।"
+
+msgid "lantern_servers"
+msgstr "Lantern সার্ভার"
+
+msgid "private_servers"
+msgstr "প্রাইভেট সার্ভার"
+
+msgid "fastest_server"
+msgstr "দ্রুততম সার্ভার"
+
+msgid "join_my_private_server"
+msgstr "আমার Lantern প্রাইভেট সার্ভারে যোগ দিন"
+
+msgid "your_server"
+msgstr "আপনার সার্ভার:"
+
+msgid "no_private_server_setup_yet"
+msgstr ""
+"আপনি এখনও একটি প্রাইভেট সার্ভার সেটআপ করেননি। শুরু করতে নিচের বাটনে ক্লিক "
+"করুন।"
+
+msgid "connect"
+msgstr "সংযোগ করুন"
+
+msgid "disconnect"
+msgstr "সংযোগ বিচ্ছিন্ন করুন"
 
 msgid "show"
 msgstr "দেখান"
 
 msgid "status_on"
-msgstr "স্থিতি: চালু "
+msgstr "সংযুক্ত"
 
 msgid "status_off"
-msgstr "স্থিতি: বন্ধ "
+msgstr "সংযোগ বিচ্ছিন্ন"
 
-msgid "Enter or paste linking code"
-msgstr "লিঙ্ক করার কোডটি লিখুন বা পেস্ট করুন"
+msgid "select_your_server_location"
+msgstr "আপনার সার্ভার লোকেশন নির্বাচন করুন"
 
-msgid "recovery_email_sent"
-msgstr ""
-"এই অ্যাকাউন্টটি বিদ্যমান থেকে থাকলে লিঙ্ক করার PINটি %s-এ পাঠানো হয়েছে। "
-"উপরের সেই ইমেল থেকে PINটি ইনপুট করুন। ইমেলটি আসতে বেশ কয়েক ঘন্টা সময় নিতে "
-"পারে।"
+msgid "faster_speeds_unlimited_bandwidth"
+msgstr "দ্রুত গতি এবং আনলিমিটেড ব্যান্ডউইথ"
 
-msgid "Add Device"
-msgstr "ডিভাইস যোগ করুন"
+msgid "premium_servers_less_congestion"
+msgstr "কম যানজট সহ প্রিমিয়াম সার্ভার"
 
-msgid "approve_device_step_1"
-msgstr ""
-"আপনি যে ডিভাইসটি লিঙ্ক করতে চান সেটিতে অ্যাকাউন্ট মেনুটি থেকে 'প্রো-এর জন্য "
-"ডিভাইসের অনুমোদন দিন' খুলুন তারপর 'PIN দিয়ে লিঙ্ক করুন' নির্বাচন করুন।"
+msgid "advanced_anti_censorship"
+msgstr "উন্নত অ্যান্টি-সেন্সরশিপ প্রযুক্তি"
 
-msgid "approve_device_step_2"
-msgstr "পদক্ষেপ 1 থেকে প্রাপ্ত লিঙ্ক করার কোডটি লিখুন"
+msgid "exclusive_access_new_features"
+msgstr "নতুন ফিচারে এক্সক্লুসিভ অ্যাক্সেস"
 
-msgid "Pro Account Expiration"
-msgstr "প্রো অ্যাকাউন্টের মেয়াদ পূর্তি"
+msgid "connect_up_to_five_devices"
+msgstr "সর্বোচ্চ ৫টি ডিভাইস সংযোগ করুন"
 
-msgid "Renew"
-msgstr "হালনাগাদ"
-
-msgid "pro_devices_header"
-msgstr "Lantern প্রো ডিভাইসগুলি (3টি অবধি)"
-
-msgid "Remove"
-msgstr "অপসারন"
-
-msgid "Log Out"
-msgstr "লগ আউট করুন"
-
-msgid "confirm_remove_device"
-msgstr "আপনি কি আপনার Pro অ্যাকাউন্ট থেকে এই ডিভাইসটি অপসারন করতে চান?"
-
-msgid "confirm_close_window"
-msgstr "আপনি কি নিশ্চিত যে আপনি Lantern বন্ধ করতে চান? "
-
-msgid "unlimited_data"
-msgstr "অসীম ডাটা"
-
-msgid "no_logs"
-msgstr "কোনও লগ নয়"
-
-msgid "no_ads"
-msgstr "কোন বিজ্ঞাপণ নেই"
-
-msgid "choose_plan"
-msgstr "প্ল্যান বাছুন"
-
-msgid "billed_one_time"
-msgstr "একবার বিল করা হয়েছে "
-
-msgid "connect_up_to_3_devices"
-msgstr "সর্বাধিক 3টি ডিভাইসে সংযোগ করুন"
-
-msgid "faster_data_centers"
-msgstr "দ্রুততর ডেটা সেন্টার"
-
-msgid "dedicated_line"
-msgstr "অবিচল লাইন"
-
-msgid "increased_reliability"
-msgstr "ক্রমবর্ধমান নির্ভরযোগ্যতা"
-
-msgid "checkout"
-msgstr "চেকআউট"
-
-msgid "credit_card"
-msgstr "ক্রেডিট কার্ড"
-
-msgid "lantern_pro_checkout"
-msgstr "Lantern Pro চেকআউট"
-
-msgid "1y_pricing"
-msgstr "1 বছরের মূল্যনির্ধারণ"
-
-msgid "2y_pricing"
-msgstr "2 বছরের মূল্যনির্ধারণ"
-
-msgid "plan_type"
-msgstr "প্ল্যানের ধরন"
-
-msgid "most_popular"
-msgstr "সবচেয়ে জনপ্রিয়"
-
-msgid "free"
-msgstr "বিনামূল্যে"
-
-msgid "n/a"
-msgstr "উপলব্ধ নেই"
-
-msgid "Developer Settings"
-msgstr "ডেভেলপার সেটিংস"
-
-msgid "Developer"
-msgstr "ডেভেলপার"
-
-msgid "dev_settings"
-msgstr ""
-"এই সেটিং শুধুমাত্র ডেভেলপমেন্টের ব্যবহারের জন্য। যে কোনও সেটিংয়ের পরিবর্তন "
-"স্বয়ংক্রিয়ভাবে অ্যাপ্লিকেশনটি থামাবে এবং রিস্টার্ট করবে।"
-
-msgid "dev_payment_mode"
-msgstr ""
-"পেমেন্ট পরীক্ষামূলক মোড সক্ষম থেকে থাকলে অ্যাপটি একটি একক হার্ডকোডযুক্ত "
-"ব্যবহারকারী ব্যবহার করে। আপনি 4242 4242 4242 4242 নম্বর, মেয়াদ শেষের একটি "
-"ভবিষ্যতের তারিখ এবং একটি CVV ব্যবহার করে স্ট্রাইপ কেনাকাটা করতে পারেন।"
-
-msgid "Payment Test Mode"
-msgstr "পেমেন্ট পরীক্ষামূলক মোড"
-
-msgid "Play Version"
-msgstr "প্লে সংস্করণ"
-
-msgid "Force Country"
-msgstr "ফোর্স দেশ"
-
-msgid "Error"
-msgstr "ত্রুটি"
-
-msgid "accept"
-msgstr "স্বীকার করুন"
-
-msgid "cancel"
-msgstr "বাতিল"
-
-msgid "reject"
-msgstr "প্রত্যাখান করুন"
-
-msgid "copied"
-msgstr "অনুলিপি করা হয়েছে!"
-
-msgid "saved"
-msgstr "সংরক্ষণ করা হয়েছে!"
-
-msgid "new_chat"
-msgstr "নতুন চ্যাট"
-
-msgid "your_contact_info"
-msgstr "আপনার যোগাযোগের তথ্য"
-
-msgid "display_name"
-msgstr "নাম প্রদর্শন করুন"
-
-msgid "edit"
-msgstr "সম্পাদনা করুন"
-
-msgid "save_error"
-msgstr "সংরক্ষণ করার সময় কিছু ত্রুটি ঘটেছে।"
-
-msgid "fewer_options"
-msgstr "আরও কম বিকল্প"
-
-msgid "more_options"
-msgstr "আরও বিকল্প"
-
-msgid "block_user"
-msgstr "ব্যবহারকারীকে অবরুদ্ধ করুন"
-
-msgid "unblock_user"
-msgstr "ব্যবহারকারীকে অবরোধ মুক্ত করুন"
-
-msgid "block"
-msgstr "অবরুদ্ধ করুন"
-
-msgid "unblock"
-msgstr "অবরোধ মুক্ত করুন"
-
-msgid "block_info_title"
-msgstr "%s কে অবরোধ করবেন?"
-
-msgid "no_blocked_users"
-msgstr "কোনও অবরোধ থাকা ব্যবহারকারী নেই।"
-
-msgid "unblock_info_title"
-msgstr "%s অবরোধ মুক্ত করবেন?"
-
-msgid "block_info_description"
-msgstr ""
-"এই ব্যবহারকারীকে অবরুদ্ধ করা চ্যাটের ইতিহাস মুছে দেবে এবং ভবিষ্যতে তাদের "
-"সাথে আপনাকে যোগাযোগ করতে বাধা দেবে।  আপনি সেটিংস মেনুটি থেকে ব্যবহারকারীদের "
-"অবরোধমুক্ত করতে পারবেন।"
-
-msgid "unblock_info_description"
-msgstr ""
-"%s এখন আপনাকে বার্তা পাঠাতে পারবে।  আপনি যে তাদের অবরোধ মুক্ত করেছেন সে "
-"বিজ্ঞপ্তি তারা পাবে না।"
-
-msgid "block_info_checkbox"
-msgstr "আমি নিশ্চিত করছি যে এটি চ্যাটের সম্পূর্ণ ইতিহাস মুছে দেবে।"
-
-msgid "unblock_info_checkbox"
-msgstr "আমি নিশ্চিত করছি যে আমি এই পরিচিতিটি অবরোধমুক্ত করতে চাই।"
-
-msgid "delete_permanently"
-msgstr "ব্যবহারকারীকে স্থায়ীভাবে মুছে দিন"
-
-msgid "delete_info_description"
-msgstr ""
-"একবার মুছে দেওয়া হলে আপনি তাদের সাথে আবার চ্যাট করতে চাইলে আপনাকে তাদের "
-"যোগাযোগের তথ্য যোগ করতে হবে।"
-
-msgid "add_new_contact"
-msgstr "নতুন পরিচিতি যোগ করুন"
-
-msgid "add_contact"
-msgstr "পরিচিতি যোগ করুন"
-
-msgid "share_your_chat_number"
-msgstr "আপনার চ্যাট নম্বর শেয়ার করুন"
-
-msgid "scan_qr_code"
-msgstr "QR কোড স্ক্যান করুন"
-
-msgid "add_contact_in_person"
-msgstr "ব্যক্তিগতভাবে পরিচিতি যোগ করুন"
-
-msgid "start_chat"
-msgstr "চ্যাট শুরু করুন"
-
-msgid "your_installed_apps"
-msgstr "আপনার ইনস্টল করা অ্যাপসমূহ"
-
-msgid "apps_routed_through_lantern"
-msgstr "Lantern-এর মাধ্যমে চালিত অ্যাপসমূহ"
-
-msgid "apps_to_unblock"
-msgstr ""
-"আপনি যে অ্যাপগুলো আনলক করতে চান সেগুলো বাছুন। সংযুক্ত থাকাকালীন, একমাত্র "
-"নীচে নির্বাচিত অ্যাপগুলোই Lantern-এর মাধ্যমে চালিত হবে।"
-
-msgid "split_tunneling"
-msgstr "বিভক্ত টানেলিং"
-
-msgid "split_tunneling_info"
-msgstr ""
-"বিভক্ত টানেলিং সক্রিয় থাকলে, নির্বাচিত অ্যাপগুলো Lantern-এর মাধ্যমে চালিত "
-"হবে। এটি পারফরম্যান্স উন্নত করতে পারে এবং শুধুমাত্র নির্দিষ্ট অ্যাপগুলো "
-"আনব্লক করে ব্যান্ডউইথ বাঁচাতে পারে।"
-
-msgid "applied_next_time"
-msgstr ""
-"পরেরবার আপনি যখন আবার সংযোগ করবেন তখন নতুন বিভক্ত টানেলিংয়ের সেটিংস প্রযোজ্য"
-" হবে।"
-
-msgid "message_disappearing"
-msgstr "আপনার এবং %s এর জন্য সমস্ত বার্তা অদৃশ্য হবে না।"
-
-msgid "message_disappearing_description"
-msgstr "আপনার এবং %s-এর জন্য %s-এর পরে সমস্ত বার্তা অদৃশ্য হয়ে যাবে।"
-
-msgid "view_contact_info"
-msgstr "যোগাযোগের তথ্য দেখুন"
-
-msgid "off"
-msgstr "বন্ধ করুন"
-
-msgid "on"
-msgstr "চালু করুন"
-
-msgid "continue"
-msgstr "চালিয়ে যান"
-
-msgid "continue_to_pro"
-msgstr "প্রো তে চালুন"
-
-msgid "are_you_sure_you_want_to_open"
-msgstr "আপনি কি %s খুলতে চাওয়ার বিষয়ে নিশ্চিত?"
-
-msgid "set"
-msgstr "সেট"
-
-msgid "menu"
-msgstr "মেনু"
-
-msgid "send_error"
-msgstr "আপনার বার্তা পাঠানোর সময় কিছু ত্রুটি ঘটেছে"
-
-msgid "share_media_error"
-msgstr "একটি মিডিয়া ফাইল শেয়ার করার সময় কিছু ত্রুটি ঘটেছে"
-
-msgid "no_recents"
-msgstr "সাম্প্রতিক কিছু নেই"
-
-msgid "set_display_name"
-msgstr "ডিসপ্লে নাম সেট করুন"
-
-msgid "introduce_contact"
-msgstr "পরিচিতি উপস্থাপন করুন"
-
-msgid "introduce_contacts"
-msgstr "পরিচিতিগুলি উপস্থাপন করুন"
-
-msgid "introduce_contacts_with_count"
-msgstr "পরিচিতিগুলিকে পরিচয় করান (%s)"
-
-msgid "need_two_contacts_to_introduce"
-msgstr ""
-"একবার আপনার দুই বা ততোধিক পরিচিতি থাকলে আপনি পরিচয় তৈরি করতে সক্ষম হবেন।"
-
-msgid "introduce_contacts_select"
-msgstr ""
-"পরিচয় করিয়ে দিতে দুই বা ততোধিক পরিচিতি নির্বাচন করুন। একে অপরকে বার্তা "
-"পাঠানো শুরু করার জন্য তাদের পরিচয় পাঠানো হবে।"
-
-msgid "introduce_single_contact"
-msgstr ""
-"%s এর সাথে পরিচয় করিয়ে দিতে একটি পরিচিতি নির্বাচন করুন।  একবার তারা "
-"পরিচয়টির অনুমোদন করলে, তারা একে অপরকে বার্তা পাঠাতে সক্ষম হবে।"
-
-msgid "send_introductions"
-msgstr "পরিচয় পাঠান"
-
-msgid "introductions_sent"
-msgstr "পরিচয় পাঠানো হয়েছে!"
-
-msgid "no_contacts_yet"
-msgstr "এখনও কোনও পরিচিতি নেই"
-
-msgid "contact_verification"
-msgstr "যোগাযোগ যাচাইকরণ"
-
-msgid "verification"
-msgstr "যাচাইকরণ"
-
-msgid "contact_verification_description"
-msgstr "উপরের শীর্ষে বার্তা মেনুটি থেকে পরিচয় যাচাইকরণ সর্বদা উপলব্ধ থাকে।"
-
-msgid "qr_error_description"
-msgstr "এই QR কোডটি স্ক্যান করার সময় কিছু ত্রুটি ঘটেছে।"
-
-msgid "qr_info_verification_title"
-msgstr "ব্যক্তিগতভাবে পরিচিতি যাচাইকরণ"
-
-msgid "qr_info_f2f_title"
-msgstr "QR কোড স্ক্যানিং"
-
-msgid "qr_info_verification_des"
-msgstr ""
-"আপনার পরিচিতিটি যাচাই করতে একে অন্যের QR কোডগুলি স্ক্যান করুন।\n"
-"\n"
-"এই প্রক্রিয়াটি আপনার কথোপকথনের গোপনীয়্তা এবং এন্ড-টু-এন্ড এনক্রিপশন সুনিশ্চিত করে।"
-
-msgid "qr_info_f2f_des"
-msgstr ""
-"আপনার বন্ধুকে একজন পরিচিতি হিসাবে যোগ করতে একে অন্যের QR কোড স্ক্যান করুন।\n"
-"\n"
-"এই প্রক্রিয়াটি আপনার কথোপকথনের গোপনীয়্তা এবং এন্ড-টু-এন্ড এনক্রিপশন সুনিশ্চিত করে।"
-
-msgid "qr_info_verification_scan"
-msgstr "যাচাই করতে একে অন্যের QR কোডগুলি স্ক্যান করুন।"
-
-msgid "qr_info_f2f_scan"
-msgstr "কোনও পরিচিতি যোগ করতে একে অন্যের QR কোডগুলি স্ক্যান করুন।"
-
-msgid "qr_success_snackbar"
-msgstr "%s হল একটি পরিচিতি"
-
-msgid "qr_info_waiting_qr"
-msgstr "আপনার বন্ধুর পক্ষ থেকে আপনার QR কোডটি স্ক্যান করার জন্য অপেক্ষারত..."
-
-msgid "scan_complete"
-msgstr "স্ক্যান সম্পূর্ণ"
-
-msgid "qr_for_your_contact"
-msgstr "আপনার QR কোড"
-
-msgid "add_via_chat_number"
-msgstr "চ্যাট নম্বরের মাধ্যমে যোগ করুন"
-
-msgid "qr_info_waiting_id"
-msgstr ""
-"আপনার বন্ধুর পক্ষ থেকে আপনার মেসেঞ্জার ID প্রবেশ করানো বা আপনার QR কোড "
-"স্ক্যান করার জন্য অপেক্ষারত..."
-
-msgid "chat_number_not_found"
-msgstr ""
-"চ্যাট নম্বর পাওয়া যায়নি।\n"
-"অনুগ্রহ করে আপনার দেওয়া নম্বরটি পরীক্ষা করুন এবং আবার চেষ্টা করুন।"
-
-msgid "unable_to_add_contact"
-msgstr ""
-"যোগাযোগ খুঁজে পাওয়া যায়নি।\n"
-"আপনি যে নম্বরটি লিখেছেন তা পরীক্ষা করুন এবং আবার চেষ্টা করুন।"
-
-msgid "self_adding"
-msgstr "আপনার লেখা চ্যাটের নম্বরটি আপনার"
-
-msgid "chat_number_type"
-msgstr "একটি চ্যাট নম্বর টাইপ করুন"
-
-msgid "letter_and_numbers_only"
-msgstr "শুধুমাত্র অক্ষর এবং সংখ্যা"
-
-msgid "name_your_contact"
-msgstr "আপনার পরিচিতিকে নাম দিন"
-
-msgid "messenger_id_invalid"
-msgstr "অবৈধ মেসেঞ্জার ID"
-
-msgid "username_not_found"
-msgstr "ব্যবহারকারীর নাম পাওয়া যায়নি"
-
-msgid "contact_id_your_id"
-msgstr "আপনার মেসেঞ্জার ID"
-
-msgid "introductions"
-msgstr "পরিচয়গুলি"
-
-msgid "introduced"
-msgstr "%s পরিচয় করিয়েছে"
-
-msgid "introductions_title"
-msgstr "%s-এ পরিচয় স্বীকার করুন"
-
-msgid "introductions_info"
-msgstr ""
-"উভয় পক্ষেরই একে অন্যের সাথে চ্যাট করতে অবশ্যই পরিচয়টি স্বীকার করতে হবে। কোনও"
-" পদক্ষেপ নেওয়া না হলে পরিচয়গুলি 7 দিন পরে অদৃশ্য হবে।"
-
-msgid "introduction_reject_title"
-msgstr "পরিচয় প্রত্যাখ্যান করুন"
-
-msgid "introduction_reject_content"
-msgstr ""
-"আপনি পরিচয়টি প্রত্যাখান করলে আপনি এই পরিচিতিটিকে বার্তা পাঠাতে পারবেন না।"
-
-msgid "introductions_error_description_rejecting"
-msgstr "এই সংযোগের অনুরোধটি প্রত্যাখান করার সময় কিছু ত্রুটি ঘটেছে।"
-
-msgid "introductions_error_description_accepting"
-msgstr "এই সংযোগের অনুরোধটি স্বীকার করার সময় কিছু ত্রুটি ঘটেছে।"
-
-msgid "no_introductions"
-msgstr "কোনও মুলতুবি থাকা পরিচিতি নেই।"
-
-msgid "introduction_approved"
-msgstr "%s-এ পরিচয় অনুমোদিত!"
-
-msgid "delete_contact_name"
-msgstr "%s মুছুন"
-
-msgid "delete_contact"
-msgstr "পরিচিতি মুছুন"
-
-msgid "error"
-msgstr "ত্রুটি"
-
-msgid "error_delete_contact"
-msgstr "এই পরিচিতি মোছার সময় কিছু ত্রুটি হয়েছে।"
-
-msgid "unnamed_contact"
-msgstr "নামহীন যোগাযোগ"
-
-msgid "me"
-msgstr "আমাকে"
-
-msgid "disappearing_messages"
-msgstr "অদৃশ্য হওয়া বার্তাগুলি"
-
-msgid "start_of_your_history"
-msgstr ""
-"%s এর সাথে আপনার চ্যাট এবং ভয়েস কলগুলি এন্ড-টু-এন্ড এনক্রিপ্ট করা হয়েছে"
-
-msgid "banner_unaccepted"
-msgstr "%s আপনার পরিচিতি তালিকায় নেই। আপনি কি চ্যাটের অনুরোধ গ্রহণ করতে চান?"
-
-msgid "banner_messages_persist"
-msgstr "নতুন বার্তা অদৃশ্য হয় না।"
-
-msgid "banner_message_retention"
-msgstr "বার্তা ধারণ %s এ সেট করা আছে"
-
-msgid "longform_seconds"
-msgstr "%s সেকেন্ড"
-
-msgid "shortform_seconds"
-msgstr "%sসে"
-
-msgid "longform_minute"
-msgstr "%s মিনিট"
-
-msgid "shortform_minutes"
-msgstr "%sমি"
-
-msgid "longform_minutes"
-msgstr "%s মিনিট"
-
-msgid "longform_hour"
-msgstr "%s ঘন্টা"
-
-msgid "shortform_hours"
-msgstr "%sঘ"
-
-msgid "longform_hours"
-msgstr "%s ঘন্টা"
-
-msgid "longform_day"
-msgstr "%s দিন"
-
-msgid "shortform_days"
-msgstr "%sস"
-
-msgid "longform_days"
-msgstr "%s দিন"
-
-msgid "longform_week"
-msgstr "%s সপ্তাহ"
-
-msgid "shortform_weeks"
-msgstr "%sদি"
-
-msgid "longform_weeks"
-msgstr "%s সপ্তাহ"
-
-msgid "unknown"
-msgstr "অজানা"
-
-msgid "banner_source_qr"
-msgstr "QR কোড"
-
-msgid "banner_source_id"
-msgstr "মেসেঞ্জার ID"
-
-msgid "banner_source_intro"
-msgstr "ভূমিকা"
-
-msgid "message_will_disappear_at"
-msgstr "%s অদৃশ্য হয়ে যায়"
-
-msgid "change_display_name"
-msgstr "প্রদর্শনের নাম পরিবর্তন করুন"
-
-msgid "yesterday"
-msgstr "গতকাল"
-
-msgid "tomorrow"
-msgstr "আগামীকাল"
-
-msgid "just_now"
-msgstr "এখনই"
-
-msgid "within_one_minute"
-msgstr "এক মিনিটের মধ্যে"
-
-msgid "on_date"
-msgstr "%s-এ"
-
-msgid "at_date"
-msgstr "%s এ"
-
-msgid "error_fetching_message_preview"
-msgstr "বার্তা প্রিভিউ আনার সময় ত্রুটি"
-
-msgid "message_was_deleted"
-msgstr "বার্তা মুছে ফেলা হয়েছে"
-
-msgid "contact_was_deleted"
-msgstr "আপনার পরিচিতিগুলি থেকে %sকে মুছে ফেলা হয়েছে।"
-
-msgid "contact_was_blocked"
-msgstr "%sকে অবরুদ্ধ করা হয়েছে।"
-
-msgid "contact_was_unblocked"
-msgstr "%sকে অবরোধ মুক্ত করা হয়েছে।"
-
-msgid "dismiss"
-msgstr "খারিজ করুন"
-
-msgid "copy_text"
-msgstr "টেক্সট কপি করুন"
-
-msgid "message"
-msgstr "বার্তা"
-
-msgid "messages"
-msgstr "বার্তাগুলি"
-
-msgid "chats"
-msgstr "চ্যাট"
-
-msgid "new_requests"
-msgstr "নতুন অনুরোধ %s"
-
-msgid "chat"
-msgstr "চ্যাট করুন"
-
-msgid "lantern_chat"
-msgstr "Lantern চ্যাট"
-
-msgid "welcome_title"
-msgstr "Lantern চ্যাট-এ স্বাগত জানাই!"
-
-msgid "welcome_text"
-msgstr ""
-"সর্বোত্তম অবরোধ প্রতিরোধকের সাথে জুটি বেঁধে আপনার গোপনীয়্তা সুরক্ষিত করতে "
-"একটি এনক্রিপ্ট থাকা চ্যাট।"
-
-msgid "get_started"
-msgstr "শুরু করা"
-
-msgid "want_to_recover"
-msgstr "কোনও চ্যাট নম্বর রয়েছে?"
-
-msgid "recover"
-msgstr "পুনরুদ্ধার করুন"
-
-msgid "chat_number"
-msgstr "চ্যাট নম্বর"
-
-msgid "your_chat_number"
-msgstr "আপনার চ্যাট নম্বর"
-
-msgid "chat_number_recovery"
-msgstr "চ্যাট নম্বর পুনরুদ্ধার"
-
-msgid "recovery_helper_text"
-msgstr "অনুগ্রহ করে একটি বৈধ পুনরুদ্ধার কোড লিখুন"
-
-msgid "recovery_button"
-msgstr "আপনার চ্যাট নম্বর পুনরুদ্ধার করতে আপনার পুনরুদ্ধার কী লিখুন।"
-
-msgid "recovery_label"
-msgstr "আপনার পুনরুদ্ধার কী লিখুন"
-
-msgid "recovery_key"
-msgstr "পুনরুদ্ধার কী"
-
-msgid "secure_text_explanation"
-msgstr ""
-"আপনার চ্যাট নম্বরটি এমন একটি ফোন নম্বরের মতো কাজ করে যেটি আপনাকে Lantern-এ "
-"আপনার সাথে যোগাযোগ করতে ব্যবহার করতে পারে।"
-
-msgid "secure_text_explanation_account"
-msgstr ""
-"এটি হ'ল আপনার চ্যাট নম্বরের সম্পূর্ণ সংস্করণ; এই দীর্ঘতর নম্বরটি শেয়ার করা বিশেষত আপনি যেটিতে শেয়ার করতে পারেন এমন একটি এন্ড-টু-এন্ড চ্যানেল থেকে থাকলে আরও বেশি সুরক্ষিত হতে পারে।\n"
-"\n"
-"পরিচিতির তথ্য শেয়ার করা আরও সহজ করে তুলতে Lantern একটি সংক্ষিপ্ত চ্যাট নম্বর সরবরাহ করে। "
-
-msgid "recovery_key_account_explanation"
-msgstr ""
-"এই কীটি একটি নিরাপদ স্থানে রেখে দিন, অন্য কারও সাথে শেয়ার করবেন না। আপনি "
-"আপনার ফোন নম্বরটি হারিয়ে ফেললে, ডিভাইস স্যুইচ করলে বা অপারেটিং সিস্টেম রিসেট"
-" করলে আপনার চ্যাট নম্বরটি পুনরুদ্ধার করার এটিই একমাত্র বিকল্প।"
-
-msgid "recovery_error"
-msgstr "আপনার অ্যাকাউন্ট পুনরুদ্ধার করতে অক্ষম।"
-
-msgid "recovery_input_error"
-msgstr "আপনি একটি বৈধ কী লিখেছেন তা নিশ্চিত করুন"
-
-msgid "recovery_retrieval_error"
-msgstr "আপনার অ্যাকাউন্ট পুনরুদ্ধার করার সময় কিছু ত্রুটি ঘটেছে"
-
-msgid "recovery_success"
-msgstr "আপনি সফলভাবে আপনার চ্যাট নম্বর পুনরুদ্ধার করেছেন"
-
-msgid "empty_chats_text"
-msgstr "আপনার চ্যাট নম্বরটি শেয়ার করুন অথবা এখানে একটি পরিচিতি যোগ করুন!"
-
-msgid "next"
-msgstr "পরবর্তী"
-
-msgid "automated_backup"
-msgstr "স্বচালিত ব্যাকআপ"
-
-msgid "backup_explanation"
-msgstr ""
-"Lantern আমাদের সুরক্ষিত সার্ভারগুলিতে আপনার পরিচিতিগুলি এনক্রিপ্ট করার ও এগুলির ব্যাকআপ নেওয়ার বিকল্প সরবরাহ করে। আপনি ব্যাকআপ নিতে ভুলে গিয়ে থাকলে আপনি আপনার পুনরুদ্ধার কীটি ব্যবহার করে আপনার পরিচিতিগুলি পুনরুদ্ধার করতে পারবেন না।\n"
-"\n"
-" আপনি পরিচিতিগুলি ব্যাক আপ নেওয়া বেছে নেওয়ার সময় Lantern সেগুলি পড়তে পারে না।"
-
-msgid "backup_contacts"
-msgstr "পরিচিতিগুলির ব্যাক আপ নিন"
-
-msgid "copy_recovery_key"
-msgstr "পুনরুদ্ধার কী কপি করুন"
-
-msgid "search"
-msgstr "অনুসন্ধান করুন"
-
-msgid "account_management"
-msgstr "একাউন্ট ব্যবস্থাপনা"
-
-msgid "add_via_username"
-msgstr "ব্যবহারকারী নামের মাধ্যমে যোগ করুন"
-
-msgid "username"
-msgstr "ব্যবহারকারীর নাম"
-
-msgid "enter_a_username_to_start_a_conversation"
-msgstr "একটি বার্তা কথোপকথন শুরু করতে একটি ব্যবহারকারীর নাম লিখুন৷"
-
-msgid "start_message"
-msgstr "বার্তা শুরু করুন"
-
-msgid "please_enter_a_valid_username"
-msgstr "অনুগ্রহ করে একটি বৈধ ব্যবহারকারীর নাম লিখুন"
-
-msgid "open_url"
-msgstr "URL খুলুন"
-
-msgid "message_deleted"
-msgstr "%s এই বার্তাটি মুছে দিয়েছে"
-
-msgid "never"
-msgstr "কখনই না"
-
-msgid "delete_for_me"
-msgstr "আমার জন্য মুছুন"
-
-msgid "delete_for_me_explanation"
-msgstr ""
-"এটি শুধুমাত্র আপনার জন্য বার্তা মুছে ফেলবে। অন্য সবাই এখনও এটি দেখতে সক্ষম "
-"হবে।"
-
-msgid "delete_for_everyone"
-msgstr "প্রত্যেকের জন্য মুছুন"
-
-msgid "delete_for_everyone_explanation"
-msgstr "এটি সবার জন্য বার্তাটি মুছে ফেলবে।"
-
-msgid "reply"
-msgstr "উত্তর দিন"
-
-msgid "replying_to"
-msgstr "%s-এর উত্তর দেওয়া হচ্ছে"
-
-msgid "attachment"
-msgstr "সংযুক্তি"
-
-msgid "error_rendering_message"
-msgstr "বার্তা রেন্ডার করার সময় ত্রুটি"
-
-msgid "error_fetching_preview"
-msgstr "বার্তা প্রিভিউ আনার সময় ত্রুটি"
-
-msgid "audio"
-msgstr "অডিও"
-
-msgid "image"
-msgstr "চিত্র"
-
-msgid "images"
-msgstr "চিত্রগুলি"
-
-msgid "video"
-msgstr "ভিডিও"
-
-msgid "videos"
-msgstr "ভিডিওগুলি"
-
-msgid "app"
-msgstr "অ্যাপস"
-
-msgid "document"
-msgstr "ডকুমেন্টগুলি"
-
-msgid "search_chars_min"
-msgstr "কমপক্ষে তিনটি অক্ষর টাইপ করুন"
-
-msgid "search_no_results"
-msgstr "দুঃখিত, আমরা এই অনুসন্ধানের সাথে মেলে এমন কিছু খুঁজে পাইনি।"
-
-msgid "search_error"
-msgstr "দুঃখিত, অনুসন্ধান ফলাফল পুনরুদ্ধার করার সময় একটি ত্রুটি ছিল।"
-
-msgid "search_contacts"
-msgstr "পরিচিতি (%s)"
-
-msgid "search_chats"
-msgstr "চ্যাট (%s)"
-
-msgid "search_in_contacts"
-msgstr "পরিচিতিগুলিতে অনুসন্ধান করুন"
-
-msgid "search_in_chats"
-msgstr "চ্যাট এবং পরিচিতিগুলি অনুসন্ধান করুন"
-
-msgid "could_not_render_title"
-msgstr "ফাইলের শিরোনাম রেন্ডার করা যায়নি"
-
-msgid "could_not_render_type"
-msgstr "ফাইলের ধরন রেন্ডার করা যায়নি"
-
-msgid "speaker"
-msgstr "স্পিকার"
-
-msgid "speaker_on"
-msgstr "স্পিকার চালু"
-
-msgid "mute"
-msgstr "নিঃশব্দ"
-
-msgid "muted"
-msgstr "নিঃশব্দ করা হয়েছে"
-
-msgid "end_call"
-msgstr "কল শেষ করুন"
-
-msgid "verify_contact"
-msgstr "%s যাচাই করুন"
-
-msgid "verified"
-msgstr "যাচাই করা হয়েছে"
-
-msgid "pending_verification"
-msgstr "মুলতুবি থাকা যাচাই"
-
-msgid "verify_description"
-msgstr ""
-"নিরাপত্তার সর্বোত্তম অনুশীলন হিসাবে, আমরা %s এর যাচাইকরণ নম্বরটি আপনার সাথে মেলে কিনা তা পরীক্ষা করার পরামর্শ দিই।\n"
-"\n"
-"আপনি কি ব্যক্তিগতভাবে বা ফোন কলের মাধ্যমে যাচাই করতে চান?"
-
-msgid "verify_in_person"
-msgstr "ব্যক্তিগতভাবে যাচাই করুন"
-
-msgid "verify_via_call"
-msgstr "ভয়েস কলের মাধ্যমে যাচাই করুন"
-
-msgid "dismiss_notification"
-msgstr "বিজ্ঞপ্তি খারিজ"
-
-msgid "call_contact"
-msgstr "%s কে কল করবেন?"
-
-msgid "call"
-msgstr "কল"
-
-msgid "incoming_call"
-msgstr "ইনকামিং কল"
-
-msgid "call_from"
-msgstr "%s থেকে"
-
-msgid "in_call"
-msgstr "চলমান কল"
-
-msgid "in_call_des"
-msgstr "চলমান কলের বিজ্ঞপ্তি"
-
-msgid "incoming_call_from"
-msgstr "%s থেকে ইনকামিং কল"
-
-msgid "touch_here_to_open_call"
-msgstr "কল খুলতে এখানে স্পর্শ করুন"
-
-msgid "in_call_with"
-msgstr "%s-এর সাথে কলে"
-
-msgid "undo_verification"
-msgstr "যাচাইকরণের আগের অবস্থায় ফেরান"
-
-msgid "mark_as_verified"
-msgstr "যাচাইকৃত হিসাবে চিহ্নিত করুন"
-
-msgid "verification_panel_success"
-msgstr "যাচাইকরণ সফল! %s এর সাথে আপনার বার্তাগুলি সুরক্ষিত।"
-
-msgid "verification_panel_pending"
-msgstr ""
-"এটি আপনার যাচাইকরণ নম্বর। যাচাইকৃত চিহ্নিত করার আগে আপনার নম্বরটি %s-এর সাথে"
-" ঠিক মেলে কিনা তা পরীক্ষা করুন।"
-
-msgid "replica_upload_confirmation_title"
-msgstr "গুরুত্বপূর্ণ!"
-
-msgid "replica_upload_confirmation_body"
-msgstr ""
-"ল্যাটার্ন নেটওয়ার্কে আপলোড করা ফাইল জনসাধারণের জন্য উপলব্ধ। তাই কেউ মুছে "
-"ফেলতে পারবে না। অনুগ্রহ করে আপনার ফাইল বা ফাইলের নামে ব্যক্তিগত বা "
-"সনাক্তকারী তথ্য অন্তর্ভুক্ত করবেন না।"
-
-msgid "replica_upload_confirmation_agree"
-msgstr "আপলোড পুনরায় শুরু করুন"
-
-msgid "dont_show_me_this_again"
-msgstr "আমাকে এটি আর দেখাবেন না"
-
-msgid "download"
-msgstr "ডাউনলোড করুন"
-
-msgid "download_started"
-msgstr "ডাউনলোড শুরু হয়েছে"
-
-msgid "uploader"
-msgstr "আপলোডকারী"
-
-msgid "upload_started"
-msgstr "আপলোড শুরু হয়েছে"
-
-msgid "upload_in_progress"
-msgstr "আপলোড চলছে"
-
-msgid "upload_complete"
-msgstr "আপনার ফাইল সফলভাবে প্রকাশিত হয়েছে."
-
-msgid "upload_failed"
-msgstr "আপলোড ব্যর্থ হয়েছে"
-
-msgid "upload_cancelled"
-msgstr "আপলোড বাতিল করা হয়েছে"
-
-msgid "upload_unknown_error"
-msgstr "আমরা দুঃখিত, ফাইলটি প্রকাশ করার চেষ্টা করার সময় কিছু ভুল হয়েছে৷"
-
-msgid "download_unknown_error"
-msgstr "আমরা দুঃখিত, ফাইল ডাউনলোড করার চেষ্টা করার সময় কিছু ভুল হয়েছে৷"
-
-msgid "replica_link_fetcher"
-msgstr "রেপ্লিকা লিঙ্ক আনয়নকারী"
-
-msgid "no_preview_for_this_type_of_file"
-msgstr "এই ধরনের ফাইলের জন্য কোনো প্রিভিউ নেই"
-
-msgid "app_unknown"
-msgstr "অ্যাপ/অজানা"
-
-msgid "audio_unknown"
-msgstr "অডিও/অজানা"
-
-msgid "document_unknown"
-msgstr "ডকুমেন্ট/অজানা"
-
-msgid "no_search_result_found"
-msgstr "দুঃখিত, আমরা সেই অনুসন্ধানের সাথে মেলে এমন কিছু খুঁজে পাইনি"
-
-msgid "search_result_error"
-msgstr "ফলাফল আনার সময় ত্রুটি, অনুগ্রহ করে পরে আবার চেষ্টা করুন"
-
-msgid "video_stream_error"
-msgstr "ভিডিও রেন্ডার করার সময় ত্রুটি, অনুগ্রহ করে পরে আবার চেষ্টা করুন"
-
-msgid "untitled"
-msgstr "শিরোনামহীন"
-
-msgid "preview_not_available"
-msgstr "পূর্বরূপ উপলব্ধ নেই."
-
-msgid "download_to_view"
-msgstr "এটি দেখার জন্য আপনাকে ফাইলটি ডাউনলোড করতে হবে।"
-
-msgid "failed_to_init_replica"
-msgstr "ত্রুটি: প্রতিলিপি আরম্ভ করতে ব্যর্থ হয়েছে"
-
-msgid "awaiting_result"
-msgstr "ফলাফলের অপেক্ষায়..."
-
-msgid "discover"
-msgstr "আবিষ্কার করুন"
-
-msgid "replica_search_intro"
-msgstr ""
-"Lantern নেটওয়ার্কে ব্যবহারকারীর আপলোড করা বিষয়বস্তু অনুসন্ধান করুন, বা "
-"অন্যদের আবিষ্কারের জন্য আপনার নিজের বিষয়বস্তু আপলোড করুন।"
-
-msgid "replica_new_discover"
-msgstr "নতুন খোঁজার ক্যাটাগরি"
-
-msgid "replica_new_discover_news"
-msgstr "এখনই খুঁজুন ফিচারটির মাধ্যমে খবরের আর্টিকেল খুঁজতে পারবেন!"
-
-msgid "replica_check_it_out"
-msgstr "এখনই দেখুন"
-
-msgid "news"
-msgstr "খবর"
-
-msgid "share"
-msgstr "শেয়ার"
-
-msgid "upload_file_screen"
-msgstr "ফাইল আপলোড করুন"
-
-msgid "edit_title"
-msgstr "নামপত্র পরিবর্তন করুন।"
-
-msgid "filenames_cannot_be_edited"
-msgstr "একবার প্রকাশিত হলে ফাইলের নাম পরিবর্তন করা যাবে না।"
-
-msgid "add_description"
-msgstr "বিবরণ যোগ করুন"
-
-msgid "no_description"
-msgstr "বর্ণনা লেখা হয়নি।"
-
-msgid "read_details"
-msgstr "পিডিএফ ফাইল পড়ুন"
-
-msgid "description_initial_value"
-msgstr "বর্ণনা একবার প্রকাশিত হলে পরিবর্তন করা যাবে না।"
-
-msgid "name_your_file"
-msgstr "আপনার ফাইলের নাম দিন"
-
-msgid "upload"
-msgstr "আপলোড করুন"
-
-msgid "review"
-msgstr "এটা চেক করুন."
-
-msgid "skip"
-msgstr "পরবর্তী"
-
-msgid "replica_layout_filetype"
-msgstr "ফাইলের ধরন"
-
-msgid "replica_layout_creation_date"
-msgstr "যে তারিখে এটি তৈরি করা হয়েছিল"
-
-msgid "empty_description"
-msgstr "বর্ণনা লেখা হয়নি।"
-
-msgid "publish"
-msgstr "হ্যাঁ, প্রকাশ করুন।"
-
-msgid "important"
-msgstr "গুরুত্বপূর্ণ!"
-
-msgid "upload_tos_agree"
-msgstr "আমি এটা বুঝতে পেরেছি."
-
-msgid "test_text"
-msgstr "আমি পিত্জা খেতে চাই 🍕 😊"
-
-msgid "test_hello"
-msgstr "হাই, আপনি কেমন আছেন?"
-
-msgid "test_reply"
-msgstr "আসলে তা নয়, আজ আমার সুশি খেতে ইচ্ছা হচ্ছে!"
-
-msgid "test_disappearing_messages_1"
-msgstr "প্রাথমিকভাবে সমস্ত বার্তা 24 ঘন্টা পরে অদৃশ্য হয়ে যায়।"
-
-msgid "test_disappearing_messages_2"
-msgstr "এখন এই বার্তা খুব তাড়াতাড়ি অদৃশ্য হওয়া উচিত!"
-
-msgid "test_replica_search"
-msgstr "বিড়াল"
-
-msgid "discover_disclaimer"
-msgstr ""
-"Lantern আপনার অনুসন্ধানগুলিকে বেনামী করে এবং তৃতীয় পক্ষগুলির হাত থেকে রক্ষা"
-" করে।"
-
-msgid "support"
-msgstr "সাপোর্ট"
-
-msgid "lantern_user_forum"
-msgstr "Lantern ব্যবহারকারীর ফোরাম"
-
-msgid "faq"
-msgstr "FAQ"
-
-msgid "add_device"
-msgstr "ডিভাইস যোগ করুন"
-
-msgid "search_apps"
-msgstr "অ্যাপ অনুসন্ধান করুন "
-
-msgid "user_not_found"
-msgstr ""
-"ব্যবহারকারী স্বীকৃত নয়। অনুগ্রহ করে আপনার প্রমাণপত্রগুলি পরীক্ষা করুন এবং "
-"আবার চেষ্টা করুন। আপনি যদি সমস্যাগুলি অব্যাহত রাখেন, অনুগ্রহ করে সহায়তার "
-"জন্য আমাদের সহায়তা দলকে যোগাযোগ করুন। "
-
-msgid "email_resend_message"
-msgstr "আপনার নতুন নিশ্চিতকরণ কোড পাঠানো হয়েছে "
-
-msgid "signup_error"
-msgstr ""
-"দেখা যাচ্ছে সাইন-আপের সাথে কিছু ভুল হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন, "
-"এবং যদি সমস্যা অব্যাহত থাকে, আমাদের সহায়তা দলকে যোগাযোগ করুন। "
-
-msgid "signup_error_user_exists"
-msgstr ""
-"দেখা যাচ্ছে সাইন-আপের সাথে কিছু ভুল হয়েছে। অনুগ্রহ করে আপনার পাসওয়ার্ড "
-"পুনরায় সেট করার চেষ্টা করুন, এবং যদি সমস্যা অব্যাহত থাকে, আমাদের সহায়তা "
-"দলকে যোগাযোগ করুন। "
-
-msgid "confirm_email_error"
-msgstr "অনুগ্রহ করে আপনার ইমেইল নিশ্চিত করুন "
-
-msgid "password_cannot_be_empty"
-msgstr "পাসওয়ার্ড খালি থাকতে পারবে না "
-
-msgid "password_must_be_at_least_8_characters"
-msgstr "পাসওয়ার্ড অন্তত ৮ বা তার বেশি অক্ষরের হতে হবে "
-
-msgid "sign_out"
-msgstr "সাইন আউট "
-
-msgid "sign_out_message"
-msgstr ""
-"লগ আউট করা ল্যান্টার্নকে বিনামূল্যের সংস্করণে পরিবর্তন করবে। আপনার "
-"অ্যাকাউন্টে পুনরায় অ্যাক্সেস করতে, আপনাকে পুনরায় সাইন ইন করতে হবে। "
-
-msgid "change_password"
-msgstr "পাসওয়ার্ড পরিবর্তন করুন"
-
-msgid "password"
-msgstr "পাসওয়ার্ড"
-
-msgid "new_email"
-msgstr "নতুন ইমেইল ঠিকানা "
-
-msgid "new_email_same_as_old_email"
-msgstr "নতুন ইমেইল ঠিকানা আপনার পুরানো ইমেইল ঠিকানার মতো হতে পারে না "
-
-msgid "danger_zone"
-msgstr "বিপদ অঞ্চল "
-
-msgid "delete_account"
-msgstr "অ্যাকাউন্ট মুছুন "
-
-msgid "delete"
-msgstr "মুছে ফেলুন"
-
-msgid "delete_account_message"
-msgstr ""
-"আপনার অ্যাকাউন্ট মুছে ফেলা পূর্বাবস্থায় ফেরানো যাবে না। আপনি সমস্ত ডিভাইস "
-"অ্যাক্সেস হারাবেন এবং কোনও ফেরতের ছাড়াই প্রো অ্যাকাউন্টের সময় পরিত্যাগ "
-"করবেন। "
-
-msgid "delete_your_account"
-msgstr "আপনার অ্যাকাউন্ট মুছবেন? "
-
-msgid "confirm_deletion"
-msgstr "মুছে ফেলা নিশ্চিত করুন "
-
-msgid "account_deleted"
-msgstr "অ্যাকাউন্ট মুছে ফেলা হয়েছে "
-
-msgid "account_deleted_message"
-msgstr "আপনার অ্যাকাউন্ট স্থায়ীভাবে মুছে ফেলা হয়েছে। "
-
-msgid "password_has_been_updated"
-msgstr "পাসওয়ার্ড আপডেট করা হয়েছে "
-
-msgid "password_has_been_updated_message"
-msgstr "আপনার পাসওয়ার্ড সফলভাবে পুনরায় সেট করা হয়েছে "
-
-msgid "invalid_code"
-msgstr ""
-"ভুল কোড বা এটি মেয়াদোত্তীর্ণ হতে পারে। অনুগ্রহ করে পুনরায় পাঠানোর চেষ্টা "
-"করুন "
+msgid "built_in_ad_blocking"
+msgstr "বিল্ট-ইন বিজ্ঞাপন ব্লকিং"
 
 msgid "get_lantern_pro"
-msgstr "Lantern Pro নিন"
+msgstr "Lantern Pro পান"
 
-msgid "try_lantern_pro"
-msgstr "ল্যান্টার্ন বিনামূল্যে চেষ্টা করুন! "
+msgid "connected_to_private_server"
+msgstr "প্রাইভেট সার্ভারে সংযুক্ত"
 
-msgid "continue_for_free"
-msgstr "বিনামূল্যে চালিয়ে যান "
-
-msgid "recovery_not_found"
-msgstr "ডিভাইসটি এই ব্যবহারকারী সাথে যুক্ত না"
-
-msgid "device_added"
-msgstr "ডিভাইস যোগ করা হয়েছে"
-
-msgid "device_added_message"
-msgstr ""
-"আপনার ডিভাইস সফলভাবে যোগ করা হয়েছে। যদি আপনি ডিভাইসটি সংযুক্ত না দেখেন, তবে"
-" উভয় ডিভাইসে অ্যাপটি পুনরায় চালু করুন "
-
-msgid "wrong_link_code"
-msgstr ""
-"আপনি যে কোডটি প্রবেশ করেছেন তা ভুল। অনুগ্রহ করে পরীক্ষা করুন এবং আবার চেষ্টা"
-" করুন। "
-
-msgid "recovery_code_sent"
-msgstr "পুনরুদ্ধার কোড পাঠানো হয়েছে "
-
-msgid "device_added_msg"
-msgstr "এই ডিভাইসটি %s এর সাথে লিঙ্ক করা হয়েছে "
-
-msgid "new_to_lantern"
-msgstr "ল্যান্টার্নে নতুন? "
-
-msgid "email_has_been_updated"
-msgstr "ইমেইল আপডেট করা হয়েছে "
-
-msgid "email_has_been_updated_message"
-msgstr "আপনার ইমেইল সফলভাবে পরিবর্তন করা হয়েছে "
-
-msgid "email_has_been_verified"
-msgstr "ইমেইল যাচাই করা হয়েছে "
-
-msgid "email_has_been_verified_message"
-msgstr "আপনার ইমেইল সফলভাবে যাচাই করা হয়েছে "
+msgid "server_already_selected"
+msgstr "আপনি ইতিমধ্যে এই সার্ভারে সংযুক্ত আছেন।"
 
 msgid "device_limit_reached"
-msgstr "ডিভাইস সীমা পৌঁছেছে "
+msgstr "ডিভাইস সীমা পৌঁছেছে"
 
 msgid "device_limit_reached_message"
+msgstr "আপনি আপনার ৫-ডিভাইস সীমায় পৌঁছেছেন। চালিয়ে যেতে একটি ডিভাইস সরান।"
+
+msgid "remove_device_and_sign_in"
+msgstr "ডিভাইস সরান এবং সাইন ইন করুন"
+
+msgid "cancel_sign_in"
+msgstr "সাইন ইন বাতিল করুন"
+
+msgid "change_email"
+msgstr "ইমেইল পরিবর্তন করুন"
+
+msgid "change_email_message"
 msgstr ""
-"আপনি বর্তমানে সর্বাধিক সংখ্যক ডিভাইসে (৩) সাইন ইন করেছেন। এই ডিভাইসে সাইন ইন"
-" করতে, অনুগ্রহ করে নিচের আপনার অন্য ডিভাইসগুলির একটি নির্বাচন করুন এবং সরান।"
-" "
+"এটি আপনার নতুন লগইন ইমেইল হবে। পরিবর্তন কার্যকর হওয়ার আগে আপনাকে এটি যাচাই "
+"করতে হবে।"
+
+msgid "enter_new_email"
+msgstr "আপনার নতুন ইমেইল লিখুন"
+
+msgid "confirm_password_to_continue"
+msgstr "চালিয়ে যেতে, অনুগ্রহ করে আপনার পাসওয়ার্ড নিশ্চিত করুন।"
+
+msgid "email_updated"
+msgstr "আপনার ইমেইল আপডেট করা হয়েছে।"
+
+msgid "enable_network_extension"
+msgstr "নেটওয়ার্ক এক্সটেনশন সক্ষম করুন"
+
+msgid "enable_network_extension_message"
+msgstr ""
+"Lantern ব্যবহার করতে, আমাদের আপনার Mac এর জন্য একটি নেটওয়ার্ক এক্সটেনশন "
+"ইনস্টল করতে হবে।"
+
+msgid "install_now"
+msgstr "এখনই ইনস্টল করুন"
+
+msgid "learn_more"
+msgstr "আরও জানুন"
+
+msgid "network_extension_required"
+msgstr "নেটওয়ার্ক এক্সটেনশন প্রয়োজন"
+
+msgid "click"
+msgstr "ক্লিক করুন"
+
+msgid "open_system_settings"
+msgstr "সিস্টেম সেটিংস খুলুন"
+
+msgid "when_prompted"
+msgstr "যখন অনুরোধ করা হয়।"
+
+msgid "activate_extension"
+msgstr "এক্সটেনশন সক্রিয় করুন"
+
+msgid "email_optional"
+msgstr "ইমেইল (ঐচ্ছিক)"
+
+msgid "please_enter_valid_email"
+msgstr "অনুগ্রহ করে একটি বৈধ ইমেইল লিখুন"
+
+msgid "please_select_an_issue"
+msgstr "অনুগ্রহ করে একটি সমস্যা নির্বাচন করুন"
+
+msgid "please_enter_issue_description"
+msgstr "অনুগ্রহ করে সমস্যার বর্ণনা লিখুন"
+
+msgid "thanks_for_feedback"
+msgstr "আপনার মতামতের জন্য ধন্যবাদ!"
+
+msgid "no_apps_selected"
+msgstr "কোনো অ্যাপ নির্বাচন করা হয়নি"
+
+msgid "deselect_all"
+msgstr "সব বাতিল করুন"
+
+msgid "select_all"
+msgstr "সব নির্বাচন করুন"
+
+msgid "no_websites_selected"
+msgstr "কোনো ওয়েবসাইট নির্বাচন করা হয়নি"
 
 msgid "enter_activation_code"
-msgstr "সক্রিয়করণ কোড লিখুন "
+msgstr "একটি অ্যাক্টিভেশন কোড লিখুন"
 
-msgid "check_your_email"
-msgstr "আপনার ইমেইল ঠিকানা পরীক্ষা করুন "
+msgid "restore_purchase"
+msgstr "ক্রয় পুনরুদ্ধার করুন"
 
-msgid "please_verify_email"
+msgid "do_private_server_setup"
+msgstr "DO প্রাইভেট সার্ভার সেটআপ"
+
+msgid "private_server_note"
 msgstr ""
-"অনুগ্রহ করে নিশ্চিত করুন যে আপনি যে ইমেইল ঠিকানাটি প্রবেশ করেছেন তা সঠিক। "
+"আপনার প্রাইভেট সার্ভারের জন্য একটি অঞ্চল নির্বাচন করুন। কাছাকাছি লোকেশন গতি "
+"এবং লেটেন্সি উন্নত করতে পারে।"
 
-msgid "verify"
-msgstr "যাচাই করুন"
+msgid "gcp_private_server_setup"
+msgstr "GCP প্রাইভেট সার্ভার সেটআপ"
 
-msgid "cannot_login"
-msgstr "প্রবেশ করতে পারছেন না "
+msgid "gcp_private_server_location"
+msgstr "GCP প্রাইভেট সার্ভার লোকেশন"
+
+msgid "do_private_server_location"
+msgstr "DO প্রাইভেট সার্ভার লোকেশন"
+
+msgid "confirm"
+msgstr "নিশ্চিত করুন"
+
+msgid "private_server_warning"
+msgstr "শুধুমাত্র যাদের আপনি বিশ্বাস করেন, তাদের পরিচালিত সার্ভার যোগ করুন"
+
+msgid "go_to_server_locations"
+msgstr "সার্ভার লোকেশনে যান"
+
+msgid "lantern_io"
+msgstr "Lantern.io"
+
+msgid "alternative_download_links"
+msgstr "বিকল্প ডাউনলোড লিংক"
+
+msgid "github_download_page"
+msgstr "GitHub ডাউনলোড পেজ"
+
+msgid "telegram_bot"
+msgstr "Telegram বট"
+
+msgid "if_you_cannot_access_website"
+msgstr ""
+"আপনি যদি আমাদের ওয়েবসাইট অ্যাক্সেস করতে কোনো সমস্যার সম্মুখীন হন, তাহলে "
+"উপরের লিংক থেকে Lantern ডাউনলোড করতে পারেন।"
+
+msgid "available_on"
+msgstr "এখানে উপলব্ধ:"
+
+msgid "subscription_renewal_date"
+msgstr "সাবস্ক্রিপশন পুনর্নবীকরণের তারিখ"
+
+msgid "enabled_bypass_lists"
+msgstr "সক্রিয় বাইপাস লিস্ট (%d):"
+
+msgid "diagnostic_logs"
+msgstr "ডায়াগনস্টিক লগ"
+
+msgid "lantern_user_forum"
+msgstr "Lantern ব্যবহারকারী ফোরাম"
+
+msgid "frequently_asked_questions"
+msgstr "প্রায়শই জিজ্ঞাসিত প্রশ্নাবলী"
 
 msgid "privacy_policy"
 msgstr "গোপনীয়তা নীতি"
 
 msgid "terms_of_service"
-msgstr "সেবা পাবার শর্ত"
+msgstr "সেবার শর্তাবলী"
 
-msgid "invalid_verification_code"
-msgstr "অবৈধ যাচাই কোড"
+msgid "get_unlimited_data"
+msgstr "আনলিমিটেড ডেটা এবং দ্রুত গতি পান!"
 
-msgid "wrong_seller_code"
-msgstr "ভুল রিসেলার কোড। দয়া করে যাচাই করুন এবং আবার চেষ্টা করুন। "
+msgid "private_server_options"
+msgstr "প্রাইভেট সার্ভার অপশন"
 
-msgid "follow_us"
-msgstr "আমাদের অনুসরণ করুন "
+msgid "lantern_version"
+msgstr "Lantern ভার্সন"
 
-msgid "follow_us_telegram"
+msgid "quit"
+msgstr "প্রস্থান করুন"
+
+msgid "device_removed"
+msgstr "ডিভাইস সরানো হয়েছে"
+
+msgid "set_server_alias"
+msgstr "সার্ভার এলিয়াস সেট করুন"
+
+msgid "this_name_pre_filled"
 msgstr ""
+"আমন্ত্রিত ব্যবহারকারীকে সার্ভার চিনতে সাহায্য করতে এই নাম প্রি-ফিল করা হবে। "
+"তারা পরে এটি পরিবর্তন করতে পারে।"
 
-msgid "follow_us_instagram"
+msgid "server_alias"
+msgstr "সার্ভার এলিয়াস"
+
+msgid "add_referral_code"
+msgstr "একটি রেফারেল কোড যোগ করুন"
+
+msgid "referral_code"
+msgstr "রেফারেল কোড"
+
+msgid "update_fails"
+msgstr "আপডেট ব্যর্থ হয়"
+
+msgid "scan_qr_code"
+msgstr "QR কোড স্ক্যান করুন"
+
+msgid "choose_your_server_location"
+msgstr "আপনার সার্ভারের লোকেশন বেছে নিন"
+
+msgid "we_handle_configuration"
+msgstr "আমরা কনফিগারেশন পরিচালনা করি, শুধু সাইন আপ করুন।"
+
+msgid "90_day_free_trial"
+msgstr "৯০-দিনের বিনামূল্যে ট্রায়াল"
+
+msgid "identity_changed"
+msgstr "%s এর জন্য পরিচয় পরিবর্তিত হয়েছে"
+
+msgid "identity_changed_message"
 msgstr ""
+"%s এর নিরাপত্তা ফিঙ্গারপ্রিন্ট পরিবর্তিত হয়েছে। এটি টেম্পারিং বা ভুল "
+"কনফিগারেশন নির্দেশ করতে পারে।"
 
-msgid "follow_us_facebook"
+msgid "recommendation"
+msgstr "সুপারিশ:"
+
+msgid "recommendation_message"
 msgstr ""
+"আমরা Lantern থেকে %s সরানো এবং আপনার ক্লাউড প্রোভাইডার অ্যাকাউন্ট থেকে মুছে "
+"ফেলার পরামর্শ দিই, তারপর আপনার সংযোগ নিরাপদ রাখতে একটি নতুন সার্ভার সেটআপ "
+"করুন।"
 
-msgid "follow_us_x"
+msgid "remove_server"
+msgstr "সার্ভার সরান"
+
+msgid "server_alias_cannot_be_empty"
+msgstr "সার্ভার এলিয়াস খালি রাখা যাবে না"
+
+msgid "referral_code_applied"
+msgstr "আপনার রেফারেল কোড প্রয়োগ করা হয়েছে!"
+
+msgid "referral_message_1m"
+msgstr "+ ১৫ অতিরিক্ত দিন বিনামূল্যে"
+
+msgid "referral_message_1y"
+msgstr "+ ১ অতিরিক্ত মাস বিনামূল্যে"
+
+msgid "referral_message_2y"
+msgstr "+ 2 অতিরিক্ত মাস বিনামূল্যে"
+
+msgid "referral_code_invalid"
 msgstr ""
+"আপনি যে রেফারেল কোডটি প্রবেশ করিয়েছেন তা অবৈধ। অনুগ্রহ করে কোডটি পরীক্ষা "
+"করুন এবং আবার চেষ্টা করুন।"
 
-msgid "report_issue_error"
-msgstr "আমরা প্রযুক্তিগত সমস্যার সম্মুখীন হচ্ছি। পরে আবার চেষ্টা করুন। "
-
-msgid "we_are_experiencing_technical_difficulties"
-msgstr "আমরা প্রযুক্তিগত সমস্যার সম্মুখীন হচ্ছি। পরে আবার চেষ্টা করুন। "
-
-msgid "a_temporary_error_occurred"
-msgstr "একটি সাময়িক ত্রুটি ঘটেছে "
-
-msgid "sorry_we_are_unable_to_load_that_page"
+msgid "referral_code_own_invalid"
 msgstr ""
-"দুঃখিত, আমরা এই মুহূর্তে সেই পৃষ্ঠাটি লোড করতে অক্ষম, দয়া করে আবার চেষ্টা "
-"করতে 'রিফ্রেশ' টিপুন। "
+"আপনি আপনার নিজস্ব রেফারেল কোড ব্যবহার করতে পারবেন না। অনুগ্রহ করে একটি ভিন্ন"
+" কোড প্রবেশ করুন।"
 
-msgid "refresh"
-msgstr "রিফ্রেশ"
+msgid "free"
+msgstr "বিনামূল্যে"
 
-msgid "check_your_internet_connection"
-msgstr "আপনার ইন্টারনেট সংযোগ পরীক্ষা করুন "
+msgid "monthly_plan"
+msgstr "মাসিক পরিকল্পনা:"
 
-msgid "please_try"
-msgstr "দয়া করে চেষ্টা করুন "
+msgid "15_days_each"
+msgstr "+১৫ দিন করে"
 
-msgid "turning_off_airplane_mode"
-msgstr "এয়ারপ্লেন মোড বন্ধ করুন "
+msgid "annual_plan"
+msgstr "বার্ষিক পরিকল্পনা:"
 
-msgid "turning_on_mobile_data_or_wifi"
-msgstr "মোবাইল ডেটা বা ওয়াইফাই চালু করুন "
+msgid "1_month_each"
+msgstr "+1 মাস eac"
 
-msgid "check_the_signal_in_your_area"
-msgstr "আপনার এলাকায় সিগন্যাল পরীক্ষা করুন "
+msgid "two_year_plan"
+msgstr "দুই বছরের পরিকল্পনা:"
 
-msgid "got_it"
-msgstr "পেয়েছি"
+msgid "2_month_each"
+msgstr "+2 মাস eac"
 
-msgid "fetching_configuration"
-msgstr "কনফিগারেশন আনছে "
-
-msgid "establish_connection_to_server"
-msgstr "সার্ভারের সাথে সংযোগ স্থাপন করুন "
-
-msgid "file_size_limit_title"
-msgstr "সীমা পৌঁছেছে "
-
-msgid "file_size_limit_description"
-msgstr "সংযুক্তি আকার 100 এমবি-এর নিচে হওয়া উচিত"
-
-msgid "lantern_pro_one_year"
+msgid "referral_code_info"
 msgstr ""
+"আপনি কি এখনও Lantern Pro ব্যবহারকারী নন? আপনার প্রথম রেফারেল সাবস্ক্রাইব "
+"করলে আপনি একজন হয়ে যাবেন।"
 
-msgid "lantern_pro_two_year"
+msgid "lantern_pro_license"
+msgstr "ল্যান্টার্ন প্রো লাইসেন্স"
+
+msgid "select_account"
+msgstr "অ্যাকাউন্ট নির্বাচন করুন"
+
+msgid "new_to_lantern"
+msgstr "ল্যান্টার্নে নতুন?"
+
+msgid "create_an_account"
+msgstr "অ্যাকাউন্ট তৈরি করুন"
+
+msgid "no_projects_found"
+msgstr "কোনো প্রকল্প পাওয়া যায়নি"
+
+msgid "no_projects_found_desc"
 msgstr ""
-
-msgid "lantern_pro_one_month"
-msgstr ""
-
-msgid "non_renewing_subscription"
-msgstr ""
-
-msgid "restore_purchase"
-msgstr ""
-
-msgid "skip_for_now"
-msgstr ""
-
-msgid "purchase_not_found"
-msgstr ""
-
-msgid "no_previous_purchase"
-msgstr ""
-
-msgid "warning_restore_purchase"
-msgstr ""
-
-msgid "purchase_restored"
-msgstr ""
-
-msgid "purchase_restored_message"
-msgstr ""
-
-msgid "purchase_restored_error"
-msgstr ""
-
-msgid "err_while_sending_code"
-msgstr ""
-
-msgid "email_hint"
-msgstr ""
-
-msgid "email_hint_pro"
-msgstr ""
-
-msgid "continue_without_email"
-msgstr ""
-
-msgid "no_new_update"
-msgstr "আপনি আপ টু ডেট!"
-
-msgid "error_referral"
-msgstr "আপনার রেফারেল কোড প্রয়োগ করার সময় কিছু সমস্যা হয়েছে।"
-
-msgid "proxy_error"
-msgstr ""
-
-msgid "proxy_settings"
-msgstr ""
-
-msgid "http_proxy"
-msgstr ""
-
-msgid "socks_proxy"
-msgstr ""
-
-msgid "http_proxy_copied"
-msgstr ""
-
-msgid "socks_proxy_copied"
-msgstr ""
-
-msgid "proxy_everything"
-msgstr ""
-
-msgid "errorSubmittingToGooglePlay"
-msgstr ""
-
-msgid "no_internet_connection"
-msgstr ""
-
-msgid "domain_fronting_error"
-msgstr ""
+"কোনো প্রকল্প পাওয়া যায়নি। প্রথমে আপনার ক্লাউড প্রদানকারী অ্যাকাউন্টে একটি "
+"প্রকল্প তৈরি করুন।"
