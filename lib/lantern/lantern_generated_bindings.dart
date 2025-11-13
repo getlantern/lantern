@@ -5203,6 +5203,21 @@ class LanternBindings {
   late final _availableFeatures =
       _availableFeaturesPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
 
+  ffi.Pointer<ffi.Char> updateLocale(
+    ffi.Pointer<ffi.Char> _locale,
+  ) {
+    return _updateLocale(
+      _locale,
+    );
+  }
+
+  late final _updateLocalePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>)>>('updateLocale');
+  late final _updateLocale = _updateLocalePtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
+
   ffi.Pointer<ffi.Char> addSplitTunnelItem(
     ffi.Pointer<ffi.Char> filterTypeC,
     ffi.Pointer<ffi.Char> itemC,

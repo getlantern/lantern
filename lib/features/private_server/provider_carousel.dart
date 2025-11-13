@@ -133,6 +133,8 @@ class _CarouselControls extends StatelessWidget {
     required this.onDotTap,
     required this.onPrev,
     required this.onNext,
+    this.leftAsset,
+    this.rightAsset,
   });
 
   @override
