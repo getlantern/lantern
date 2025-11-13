@@ -183,8 +183,8 @@ class MethodHandler {
       case "getDataCapInfo":
         self.getDataCapInfo(result: result)
       case "updateLocale":
-          let locale = call.arguments as? String ?? ""
-          self.updateLocale(result: result,locale:locale)
+        let locale = call.arguments as? String ?? ""
+        self.updateLocale(result: result, locale: locale)
         break
       case "reportIssue":
         let map = call.arguments as? [String: Any]
@@ -422,7 +422,7 @@ class MethodHandler {
               message: error?.description,
               details: error?.localizedDescription))
         }
-        await MainActor.run {
+          await MainActor.run {
           result(data)
         }
       }
@@ -976,10 +976,10 @@ class MethodHandler {
     }
   }
 
-    func updateLocale(result: @escaping FlutterResult,locale:String) {
+  func updateLocale(result: @escaping FlutterResult, locale: String) {
     Task.detached {
       var error: NSError?
-      MobileUpdateLocale(locale,&error)
+      MobileUpdateLocale(locale, &error)
       if let err = error {
         await self.handleFlutterError(err, result: result, code: "UPDATE_LOCALE_ERROR")
         return
