@@ -113,11 +113,13 @@ class LocationListItem extends StatelessWidget {
             onLocationSelected(location);
           },
           contentPadding: EdgeInsets.zero,
-          icon: CountryFlag.fromCountryCode(
-            location.countryCode,
-            height: 20,
+          icon: SizedBox(
             width: 30,
-            shape: RoundedRectangle(5.0),
+            height: 20,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(5),
+              child: CountryFlag.fromCountryCode(location.countryCode),
+            ),
           ),
           label: location.locationName,
           trailing: AppRadioButton<String>(
