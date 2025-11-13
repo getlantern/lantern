@@ -1,9 +1,10 @@
 import 'package:i18n_extension/i18n_extension.dart';
 import 'package:i18n_extension_importer/i18n_extension_importer.dart';
+import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/utils/once.dart';
 
 extension Localization on String {
-  static String defaultLocale = 'en_US';
+  static String defaultLocale = 'en-US';
 
   static Translations translations =
       Translations.byLocale(defaultLocale.toBCP47());
@@ -13,6 +14,7 @@ extension Localization on String {
   ) loadTranslationsOnce = once<Future<Translations>>();
 
   static Future<void> loadTranslations() async {
+    appLogger.info("Loading translations...");
     translations +=
         await GettextImporter().fromAssetDirectory("assets/locales");
   }

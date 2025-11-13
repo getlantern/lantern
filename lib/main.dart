@@ -36,7 +36,7 @@ Future<void> main() async {
     appLogger.debug('Injecting services...');
     await injectServices();
     appLogger.debug('Loading translations...');
-    await Future.microtask(Localization.loadTranslations);
+    await Localization.loadTranslations();
   } catch (e, st) {
     appLogger.error("Error during app initialization", e, st);
   }

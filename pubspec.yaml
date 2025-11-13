@@ -60,7 +60,7 @@ dependencies:
   loader_overlay: ^5.0.0
 
   #Localization
-  i18n_extension: ^15.1.0
+  i18n_extension: ^15.0.5
   i18n_extension_importer: ^0.0.6
   intl: ^0.20.2
 

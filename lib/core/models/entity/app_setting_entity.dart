@@ -27,7 +27,7 @@ class AppSetting {
     this.blockAds = false,
     this.bypassListRaw = '',
     this.email = '',
-    this.locale = 'en_US',
+    this.locale = 'en-US',
     this.showSplashScreen = true,
   });
 
