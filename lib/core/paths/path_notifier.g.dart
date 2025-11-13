@@ -6,20 +6,47 @@ part of 'path_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+
+@ProviderFor(PathNotifier)
+const pathProvider = PathNotifierProvider._();
+
+final class PathNotifierProvider
+    extends $AsyncNotifierProvider<PathNotifier, PathManager> {
+  const PathNotifierProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'pathProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$pathNotifierHash();
+
+  @$internal
+  @override
+  PathNotifier create() => PathNotifier();
+}
+
 String _$pathNotifierHash() => r'9d420644aca408a07326addad0bf856e1eada31c';
 
-/// See also [PathNotifier].
-@ProviderFor(PathNotifier)
-final pathNotifierProvider =
-    AutoDisposeAsyncNotifierProvider<PathNotifier, PathManager>.internal(
-  PathNotifier.new,
-  name: r'pathNotifierProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$pathNotifierHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-typedef _$PathNotifier = AutoDisposeAsyncNotifier<PathManager>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+abstract class _$PathNotifier extends $AsyncNotifier<PathManager> {
+  FutureOr<PathManager> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<AsyncValue<PathManager>, PathManager>;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<AsyncValue<PathManager>, PathManager>,
+        AsyncValue<PathManager>,
+        Object?,
+        Object?>;
+    element.handleValue(ref, created);
+  }
+}

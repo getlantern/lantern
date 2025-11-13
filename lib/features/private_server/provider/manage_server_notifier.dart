@@ -27,7 +27,7 @@ class ManageServerNotifier extends _$ManageServerNotifier {
         serverType: ServerLocationType.auto.name,
       );
       ref
-          .read(serverLocationNotifierProvider.notifier)
+          .read(serverLocationProvider.notifier)
           .updateServerLocation(initalServer);
     }
   }

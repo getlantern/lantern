@@ -18,10 +18,9 @@ class PrivateServerSetup extends StatefulHookConsumerWidget {
 }
 
 class _PrivateServerSetupState extends ConsumerState<PrivateServerSetup> {
-
   @override
   Widget build(BuildContext context) {
-    final serverState = ref.watch(privateServerNotifierProvider);
+    final serverState = ref.watch(privateServerProvider);
     final isGCPEnabled = false;
 
     final selectedIdx = useState(0);
@@ -164,11 +163,9 @@ class _PrivateServerSetupState extends ConsumerState<PrivateServerSetup> {
       CloudProvider provider, WidgetRef ref, BuildContext context) async {
     final Either<Failure, Unit> result;
     if (provider == CloudProvider.googleCloud) {
-      result =
-          await ref.read(privateServerNotifierProvider.notifier).googleCloud();
+      result = await ref.read(privateServerProvider.notifier).googleCloud();
     } else {
-      result =
-          await ref.read(privateServerNotifierProvider.notifier).digitalOcean();
+      result = await ref.read(privateServerProvider.notifier).digitalOcean();
     }
     result.fold(
       (f) => context.showSnackBar(f.localizedErrorMessage),

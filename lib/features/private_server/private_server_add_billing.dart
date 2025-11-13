@@ -13,7 +13,7 @@ class PrivateServerAddBilling extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final serverState = ref.watch(privateServerNotifierProvider);
+    final serverState = ref.watch(privateServerProvider);
     final isContinueClicked = useState(false);
 
     useEffect(() {
@@ -152,9 +152,8 @@ class PrivateServerAddBilling extends HookConsumerWidget {
   Future<void> onContinueClicked(WidgetRef ref, BuildContext context) async {
     try {
       context.showLoadingDialog();
-      final result = await ref
-          .read(privateServerNotifierProvider.notifier)
-          .validateSession();
+      final result =
+          await ref.read(privateServerProvider.notifier).validateSession();
       result.fold(
         (f) {
           context.hideLoadingDialog();

@@ -17,7 +17,7 @@ class VpnNotifier extends _$VpnNotifier {
   VPNStatus build() {
     ref.read(lanternServiceProvider).isVPNConnected();
     ref.listen(
-      vPNStatusNotifierProvider,
+      vPNStatusProvider,
       (previous, next) {
         final previousStatus = previous?.value?.status;
         final nextStatus = next.value!.status;

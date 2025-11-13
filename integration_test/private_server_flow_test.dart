@@ -32,7 +32,7 @@ WINDOWS_GUID=
       'Private server flow: GCP -> account -> project -> location -> name -> deploy',
       (WidgetTester tester) async {
     final container = ProviderContainer(overrides: [
-      privateServerNotifierProvider
+      privateServerProvider
           .overrideWith(() => FakePrivateServerNotifier()),
     ]);
 

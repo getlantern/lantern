@@ -6,22 +6,53 @@ part of 'app_setting_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$appSettingNotifierHash() =>
-    r'68fb683818a8e01afe7765e7df7cd0a05412493a';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [AppSettingNotifier].
 @ProviderFor(AppSettingNotifier)
-final appSettingNotifierProvider =
-    NotifierProvider<AppSettingNotifier, AppSetting>.internal(
-  AppSettingNotifier.new,
-  name: r'appSettingNotifierProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$appSettingNotifierHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+const appSettingProvider = AppSettingNotifierProvider._();
 
-typedef _$AppSettingNotifier = Notifier<AppSetting>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class AppSettingNotifierProvider
+    extends $NotifierProvider<AppSettingNotifier, AppSetting> {
+  const AppSettingNotifierProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'appSettingProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$appSettingNotifierHash();
+
+  @$internal
+  @override
+  AppSettingNotifier create() => AppSettingNotifier();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AppSetting value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AppSetting>(value),
+    );
+  }
+}
+
+String _$appSettingNotifierHash() =>
+    r'f3f3d9a004ec2a78197f225cf8e29ee1a8cfa3a7';
+
+abstract class _$AppSettingNotifier extends $Notifier<AppSetting> {
+  AppSetting build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<AppSetting, AppSetting>;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<AppSetting, AppSetting>, AppSetting, Object?, Object?>;
+    element.handleValue(ref, created);
+  }
+}

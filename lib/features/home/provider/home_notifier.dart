@@ -63,13 +63,13 @@ class HomeNotifier extends _$HomeNotifier {
   /// if user logs out or downgrade to free plan
   /// we need to reset the server location set to smart location
   void resetServerLocation() {
-    final serverLocation = ref.read(serverLocationNotifierProvider);
+    final serverLocation = ref.read(serverLocationProvider);
     if (serverLocation.serverType.toServerLocationType ==
         ServerLocationType.lanternLocation) {
       appLogger.debug(
           "User is not Pro. Resetting server location to default (Fastest Country).");
       ref
-          .read(serverLocationNotifierProvider.notifier)
+          .read(serverLocationProvider.notifier)
           .updateServerLocation(initialServerLocation());
     }
   }
@@ -78,7 +78,7 @@ class HomeNotifier extends _$HomeNotifier {
   /// Updates server location to fastest.
   /// Fetches available servers again.
   void clearLogoutData() {
-    ref.read(referralNotifierProvider.notifier).resetReferral();
-    ref.read(appSettingNotifierProvider.notifier).setUserLoggedIn(false);
+    ref.read(referralProvider.notifier).resetReferral();
+    ref.read(appSettingProvider.notifier).setUserLoggedIn(false);
   }
 }

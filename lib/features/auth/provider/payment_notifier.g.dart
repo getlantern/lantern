@@ -6,21 +6,52 @@ part of 'payment_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+
+@ProviderFor(PaymentNotifier)
+const paymentProvider = PaymentNotifierProvider._();
+
+final class PaymentNotifierProvider
+    extends $NotifierProvider<PaymentNotifier, void> {
+  const PaymentNotifierProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'paymentProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$paymentNotifierHash();
+
+  @$internal
+  @override
+  PaymentNotifier create() => PaymentNotifier();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(void value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<void>(value),
+    );
+  }
+}
+
 String _$paymentNotifierHash() => r'3d7ad82794a174b926d36072deb09c171ee79205';
 
-/// See also [PaymentNotifier].
-@ProviderFor(PaymentNotifier)
-final paymentNotifierProvider =
-    AutoDisposeNotifierProvider<PaymentNotifier, void>.internal(
-  PaymentNotifier.new,
-  name: r'paymentNotifierProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$paymentNotifierHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-typedef _$PaymentNotifier = AutoDisposeNotifier<void>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+abstract class _$PaymentNotifier extends $Notifier<void> {
+  void build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    build();
+    final ref = this.ref as $Ref<void, void>;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<void, void>, void, Object?, Object?>;
+    element.handleValue(ref, null);
+  }
+}

@@ -64,7 +64,7 @@ class _PlansState extends ConsumerState<Plans> {
   }
 
   Widget _buildBody() {
-    final plansState = ref.watch(plansNotifierProvider);
+    final plansState = ref.watch(plansProvider);
     final size = MediaQuery.of(context).size;
     return Column(
       children: [
@@ -113,9 +113,7 @@ class _PlansState extends ConsumerState<Plans> {
                           AppTextButton(
                             label: 'Try again',
                             onPressed: () {
-                              ref
-                                  .read(plansNotifierProvider.notifier)
-                                  .fetchPlans();
+                              ref.read(plansProvider.notifier).fetchPlans();
                             },
                           ),
                         ],
@@ -143,7 +141,7 @@ class _PlansState extends ConsumerState<Plans> {
   }
 
   void onMenuTap() {
-    final isReferralApplied = ref.read(referralNotifierProvider);
+    final isReferralApplied = ref.read(referralProvider);
     showAppBottomSheet(
       context: context,
       title: 'payment_options'.i18n,
@@ -239,9 +237,8 @@ class _PlansState extends ConsumerState<Plans> {
     }
     appRouter.pop();
     context.showLoadingDialog();
-    final result = await ref
-        .read(referralNotifierProvider.notifier)
-        .applyReferralCode(code);
+    final result =
+        await ref.read(referralProvider.notifier).applyReferralCode(code);
 
     result.fold(
       (error) {
@@ -267,8 +264,7 @@ class _PlansState extends ConsumerState<Plans> {
   }
 
   void onGetLanternProTap() {
-    final userSelectedPlan =
-        ref.read(plansNotifierProvider.notifier).getSelectedPlan();
+    final userSelectedPlan = ref.read(plansProvider.notifier).getSelectedPlan();
     appLogger.info(
         'Get Lantern Pro button tapped with plan: ${userSelectedPlan.id}');
     switch (Platform.operatingSystem) {
@@ -293,8 +289,8 @@ class _PlansState extends ConsumerState<Plans> {
 
   Future<void> startInAppPurchaseFlow(Plan plan) async {
     context.showLoadingDialog();
-    final paymentProvider = ref.read(paymentNotifierProvider.notifier);
-    final result = await paymentProvider.startInAppPurchaseFlow(
+    final payments = ref.read(paymentProvider.notifier);
+    final result = await payments.startInAppPurchaseFlow(
       planId: plan.id,
       onSuccess: (purchase) {
         /// Subscription successful
@@ -331,12 +327,11 @@ class _PlansState extends ConsumerState<Plans> {
       String purchaseToken, String planId) async {
     appLogger.debug("Acknowledging purchase");
     context.showLoadingDialog();
-    final result = await ref
-        .read(paymentNotifierProvider.notifier)
-        .acknowledgeInAppPurchase(
-          purchaseToken: purchaseToken,
-          planId: planId,
-        );
+    final result =
+        await ref.read(paymentProvider.notifier).acknowledgeInAppPurchase(
+              purchaseToken: purchaseToken,
+              planId: planId,
+            );
     result.fold(
       (error) {
         context.hideLoadingDialog();
@@ -353,7 +348,7 @@ class _PlansState extends ConsumerState<Plans> {
   }
 
   void signUpFlow() {
-    final appSetting = ref.read(appSettingNotifierProvider);
+    final appSetting = ref.read(appSettingProvider);
     if (appSetting.userLoggedIn) {
       appLogger.info('User already logged in, checking account status');
       useProFlow();
@@ -393,11 +388,10 @@ class _PlansState extends ConsumerState<Plans> {
       /// Once done send user to subscription screen
       /// THIS IS JUST TO AVOID USER FROM BLOCKING FLOW
       context.showLoadingDialog();
-      final appSetting = ref.read(appSettingNotifierProvider);
+      final appSetting = ref.read(appSettingProvider);
       final email = appSetting.email;
-      final result = await ref
-          .read(authNotifierProvider.notifier)
-          .startRecoveryByEmail(email);
+      final result =
+          await ref.read(authProvider.notifier).startRecoveryByEmail(email);
       result.fold(
         (failure) {
           context.hideLoadingDialog();

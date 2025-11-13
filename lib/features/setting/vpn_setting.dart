@@ -22,10 +22,10 @@ class VPNSetting extends HookConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
     final isUserPro = ref.isUserPro;
 
-    final preferences = ref.read(appSettingNotifierProvider);
-    final notifier = ref.watch(appSettingNotifierProvider.notifier);
+    final preferences = ref.read(appSettingProvider);
+    final notifier = ref.watch(appSettingProvider.notifier);
     final splitTunnelingEnabled =
-        ref.read(appSettingNotifierProvider).isSplitTunnelingOn;
+        ref.read(appSettingProvider).isSplitTunnelingOn;
     return ListView(
       padding: const EdgeInsets.all(0),
       shrinkWrap: true,

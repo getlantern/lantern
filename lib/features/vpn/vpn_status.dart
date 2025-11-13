@@ -14,12 +14,12 @@ class VpnStatus extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final vpnStatus = ref.watch(vpnNotifierProvider);
+    final vpnStatus = ref.watch(vpnProvider);
     final textTheme = Theme.of(context).textTheme;
     MacOSExtensionState systemExtensionStatus =
         MacOSExtensionState(SystemExtensionStatus.notInstalled);
     if (PlatformUtils.isMacOS) {
-      systemExtensionStatus = ref.watch(macosExtensionNotifierProvider);
+      systemExtensionStatus = ref.watch(macosExtensionProvider);
     }
 
     return SettingTile(

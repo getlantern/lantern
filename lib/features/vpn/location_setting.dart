@@ -10,7 +10,7 @@ class LocationSetting extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final serverLocation = ref.watch(serverLocationNotifierProvider);
+    final serverLocation = ref.watch(serverLocationProvider);
     final serverType = serverLocation.serverType.toServerLocationType;
     String? title, value = '';
 

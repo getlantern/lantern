@@ -6,21 +6,52 @@ part of 'referral_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+
+@ProviderFor(ReferralNotifier)
+const referralProvider = ReferralNotifierProvider._();
+
+final class ReferralNotifierProvider
+    extends $NotifierProvider<ReferralNotifier, bool> {
+  const ReferralNotifierProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'referralProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$referralNotifierHash();
+
+  @$internal
+  @override
+  ReferralNotifier create() => ReferralNotifier();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(bool value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<bool>(value),
+    );
+  }
+}
+
 String _$referralNotifierHash() => r'6b028ac616c6b663b1e38d2769ca69f063924721';
 
-/// See also [ReferralNotifier].
-@ProviderFor(ReferralNotifier)
-final referralNotifierProvider =
-    NotifierProvider<ReferralNotifier, bool>.internal(
-  ReferralNotifier.new,
-  name: r'referralNotifierProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$referralNotifierHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-typedef _$ReferralNotifier = Notifier<bool>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+abstract class _$ReferralNotifier extends $Notifier<bool> {
+  bool build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<bool, bool>;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<bool, bool>, bool, Object?, Object?>;
+    element.handleValue(ref, created);
+  }
+}

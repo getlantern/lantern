@@ -13,7 +13,7 @@ class InviteFriends extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(homeNotifierProvider).value;
+    final user = ref.watch(homeProvider).value;
     final referralCode = user!.legacyUserData.referral.toUpperCase();
     return BaseScreen(
         title: 'invite_friends'.i18n, body: _buildBody(referralCode));

@@ -555,11 +555,16 @@ class DeviceLimitReachedArgs {
     if (identical(this, other)) return true;
     if (other is! DeviceLimitReachedArgs) return false;
     return key == other.key &&
-        const _i45.ListEquality().equals(devices, other.devices);
+        const _i45.ListEquality<_i44.UserResponse_Device>().equals(
+          devices,
+          other.devices,
+        );
   }
 
   @override
-  int get hashCode => key.hashCode ^ const _i45.ListEquality().hash(devices);
+  int get hashCode =>
+      key.hashCode ^
+      const _i45.ListEquality<_i44.UserResponse_Device>().hash(devices);
 }
 
 /// generated route for
@@ -580,46 +585,18 @@ class DownloadLinks extends _i41.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i13.FollowUs]
-class FollowUs extends _i41.PageRouteInfo<FollowUsArgs> {
-  FollowUs({_i42.Key? key, List<_i41.PageRouteInfo>? children})
-      : super(
-          FollowUs.name,
-          args: FollowUsArgs(key: key),
-          initialChildren: children,
-        );
+class FollowUs extends _i41.PageRouteInfo<void> {
+  const FollowUs({List<_i41.PageRouteInfo>? children})
+      : super(FollowUs.name, initialChildren: children);
 
   static const String name = 'FollowUs';
 
   static _i41.PageInfo page = _i41.PageInfo(
     name,
     builder: (data) {
-      final args = data.argsAs<FollowUsArgs>(
-        orElse: () => const FollowUsArgs(),
-      );
-      return _i13.FollowUs(key: args.key);
+      return const _i13.FollowUs();
     },
   );
-}
-
-class FollowUsArgs {
-  const FollowUsArgs({this.key});
-
-  final _i42.Key? key;
-
-  @override
-  String toString() {
-    return 'FollowUsArgs{key: $key}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! FollowUsArgs) return false;
-    return key == other.key;
-  }
-
-  @override
-  int get hashCode => key.hashCode;
 }
 
 /// generated route for
@@ -700,12 +677,16 @@ class JoinPrivateServerArgs {
     if (identical(this, other)) return true;
     if (other is! JoinPrivateServerArgs) return false;
     return key == other.key &&
-        const _i45.MapEquality().equals(deepLinkData, other.deepLinkData);
+        const _i45.MapEquality<String, String>().equals(
+          deepLinkData,
+          other.deepLinkData,
+        );
   }
 
   @override
   int get hashCode =>
-      key.hashCode ^ const _i45.MapEquality().hash(deepLinkData);
+      key.hashCode ^
+      const _i45.MapEquality<String, String>().hash(deepLinkData);
 }
 
 /// generated route for
@@ -939,7 +920,7 @@ class PrivateServerLocationArgs {
     if (identical(this, other)) return true;
     if (other is! PrivateServerLocationArgs) return false;
     return key == other.key &&
-        const _i45.ListEquality().equals(location, other.location) &&
+        const _i45.ListEquality<String>().equals(location, other.location) &&
         selectedLocation == other.selectedLocation &&
         provider == other.provider;
   }
@@ -947,7 +928,7 @@ class PrivateServerLocationArgs {
   @override
   int get hashCode =>
       key.hashCode ^
-      const _i45.ListEquality().hash(location) ^
+      const _i45.ListEquality<String>().hash(location) ^
       selectedLocation.hashCode ^
       provider.hashCode;
 }
@@ -1031,7 +1012,7 @@ class PrivateServerDetailsArgs {
     if (identical(this, other)) return true;
     if (other is! PrivateServerDetailsArgs) return false;
     return key == other.key &&
-        const _i45.ListEquality().equals(accounts, other.accounts) &&
+        const _i45.ListEquality<String>().equals(accounts, other.accounts) &&
         provider == other.provider &&
         isPreFilled == other.isPreFilled;
   }
@@ -1039,7 +1020,7 @@ class PrivateServerDetailsArgs {
   @override
   int get hashCode =>
       key.hashCode ^
-      const _i45.ListEquality().hash(accounts) ^
+      const _i45.ListEquality<String>().hash(accounts) ^
       provider.hashCode ^
       isPreFilled.hashCode;
 }

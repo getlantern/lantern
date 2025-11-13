@@ -6,19 +6,52 @@ part of 'vpn_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$vpnNotifierHash() => r'6c8420bc5e466079587fe21860b6f4e54f5e0f3a';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [VpnNotifier].
 @ProviderFor(VpnNotifier)
-final vpnNotifierProvider = NotifierProvider<VpnNotifier, VPNStatus>.internal(
-  VpnNotifier.new,
-  name: r'vpnNotifierProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$vpnNotifierHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+const vpnProvider = VpnNotifierProvider._();
 
-typedef _$VpnNotifier = Notifier<VPNStatus>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class VpnNotifierProvider
+    extends $NotifierProvider<VpnNotifier, VPNStatus> {
+  const VpnNotifierProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'vpnProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$vpnNotifierHash();
+
+  @$internal
+  @override
+  VpnNotifier create() => VpnNotifier();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(VPNStatus value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<VPNStatus>(value),
+    );
+  }
+}
+
+String _$vpnNotifierHash() => r'429d00a030c1f2e022a950ac6e631b5029051cf2';
+
+abstract class _$VpnNotifier extends $Notifier<VPNStatus> {
+  VPNStatus build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<VPNStatus, VPNStatus>;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<VPNStatus, VPNStatus>, VPNStatus, Object?, Object?>;
+    element.handleValue(ref, created);
+  }
+}
