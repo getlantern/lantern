@@ -86,6 +86,7 @@ type User interface {
 type PrivateServer interface {
 	DigitalOceanPrivateServer(events utils.PrivateServerEventListener) error
 	GoogleCloudPrivateServer(events utils.PrivateServerEventListener) error
+	ValidateSession() error
 	SelectAccount(account string) error
 	SelectProject(project string) error
 	CancelDeployment() error
@@ -690,6 +691,11 @@ func (lc *LanternCore) DigitalOceanPrivateServer(events utils.PrivateServerEvent
 
 func (lc *LanternCore) GoogleCloudPrivateServer(events utils.PrivateServerEventListener) error {
 	return privateserver.StartGoogleCloudPrivateServerFlow(events, lc.serverManager)
+}
+
+func (lc *LanternCore) ValidateSession() error {
+	slog.Debug("Validating private server session")
+	return privateserver.ValidateSession(context.Background())
 }
 
 func (lc *LanternCore) SelectAccount(account string) error {

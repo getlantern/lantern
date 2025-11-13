@@ -1,11 +1,8 @@
 # 
 # Translators:
-# tx_e2f_bu r4 <tx_e2f_bu_r4@ate2f.com>, 2022
-# Lantern, 2023
-# tx_e2f_my t1 <divinahramaroson@gmail.com>, 2024
-# tx_e2f_bu r2 <tx_e2f_bu_r2@ate2f.com>, 2024
-# Tun Tun Aung <tuntunaung@codingclassroom.org>, 2024
-# e2f <projects@e2f.com>, 2024
+# tx_e2f_my t1 <divinahramaroson@gmail.com>, 2025
+# tx_e2f_bu r2 <tx_e2f_bu_r2@ate2f.com>, 2025
+# e2f <projects@e2f.com>, 2025
 # Derek F <derek@getlantern.org>, 2025
 # 
 msgid ""
@@ -18,2029 +15,1294 @@ msgstr ""
 msgid "app_name"
 msgstr "Lantern"
 
-msgid "introducing"
-msgstr "ချက်ပြောဆိုမှုအကြောင်း မိတ်ဆက်"
-
-msgid "introducing_des"
-msgstr ""
-"Lantern တွင် တိုက်ရိုက်ထည့်သွင်းထားသည့် ပိတ်ဆို့မှုအတွက် ခုခံနိုင်ပြီး "
-"လျှို့ဝှက်ကုဒ်သွင်းစနစ်ပါဝင်သည့် ကျွန်ုပ်တို့၏ ချက်စနစ်အသစ်ကို အသုံးပြု၍ "
-"မိတ်ဆွေများနှင့်အတူ စိတ်ချလုံခြုံစွာ ချက်ပြောဆိုလိုက်ပါ။"
-
-msgid "maybe_later"
-msgstr "နောက်မှ ပြုလုပ်မည်"
-
-msgid "try"
-msgstr "ကြိုးစားကြည့်ပါ"
-
-msgid "sign_in"
-msgstr "ဆိုင်းအင်လုပ်ခြင်း"
-
-msgid "enter_email"
-msgstr "အီးမေးလ်ထည့်ပါ"
-
-msgid "enter_password"
-msgstr "စကားဝှက် ထည့်ပါ"
-
-msgid "forgot_password"
-msgstr "စကားဝှက် မေ့သွားသည်"
-
-msgid "forgot_your_password"
-msgstr "သင့်စကားဝှက်ကို မေ့သွားပါသလား။"
-
-msgid "click_here"
-msgstr "ဤနေရာတွင် နှိပ်ပါ"
-
-msgid "reset_password"
-msgstr "စကားဝှက်အား မူလအတိုင်းပြန်ထားပါ"
-
-msgid "lantern_pro_email"
-msgstr "Lantern Pro အီးမေးလ် "
-
-msgid "return_to_sign_in"
-msgstr "ဝင်ရောက်ရန် နောက်သို့ပြန်သွားပါ"
-
-msgid "enter_confirmation_code"
-msgstr "အတည်ပြုကုဒ် ထည့်ပါ"
-
-msgid "confirmation_code_msg"
-msgstr ""
-"အတည်ပြုကုဒ်ကို XX သို့ ပို့ပြီးပါပြီ။ သင့်အကောင့်ကို လုံခြုံအောင်ထားရန်နှင့်"
-" စကားဝှက် ပြန်လည်ရယူခြင်းကို ဖွင့်ရန် ၎င်းကို ဤနေရာတွင် ထည့်ပါ။"
-
-msgid "resend_confirmation_code"
-msgstr "အတည်ပြုအီးမေးလ် ပြန်ပို့ရန်"
-
-msgid "email_already_exists"
-msgstr "အီးမေးလ် ရှိပြီးသားဖြစ်သည်"
-
-msgid "email_already_exists_msg"
-msgstr ""
-"ဤအီးမေးလ်ကို ယူထားသည်၊ သင့်တွင် ဤအီးမေးလ်ဖြင့် အကောင့်တစ်ခု "
-"ရှိပြီးသားဖြစ်ပါက ပြန်လည်ရယူနိုင်သည်။  မရှိလျှင် ပြန်သွားပြီး "
-"အခြားအီးမေးလ်လိပ်စာကို ရွေးချယ်ပါ။"
-
-msgid "recover_account"
-msgstr "အကောင့် ပြန်လည်ရယူရန်"
-
-msgid "back"
-msgstr "‌နောက်သို့"
-
-msgid "change_email"
-msgstr "အီးမေးလ် ပြောင်းရန်"
-
-msgid "new_password"
-msgstr "စကားဝှက်အသစ်"
-
-msgid "confirm_new_password"
-msgstr "စကားဝှက်အသစ်ကိုအတည်ပြုပါ"
-
-msgid "already_have_an_account"
-msgstr "အကောင့်ရှိပြီးသားလား။ "
-
-msgid "create_account"
-msgstr "အကောင့်ပြုလုပ်ပါ"
-
-msgid "create_password"
-msgstr "စကားဝှက် ဖန်တီးရန်"
-
-msgid "by_creating_an_account"
-msgstr ""
-"အကောင့်တစ်ခုဖွင့်ခြင်းဖြင့် သင်သည် ကျွန်ုပ်တို့၏ ဖော်ပြပါကို "
-"သဘောတူရာရောက်ပါသည်"
-
-msgid "confirm_email"
-msgstr "အီးမေးကိုအတည်ပြုပါ"
-
-msgid "update_pro_account"
-msgstr "Pro အကောင့်ကို အပ်ဒိတ်လုပ်ရန်"
-
-msgid "update_pro_account_message"
-msgstr ""
-"Lantern Pro တွင် ပြောင်းလဲမှုများ ရောက်လာပါပြီ။ ယခု သင်သည် စက်အားလုံးတွင် "
-"လော့ဂ်အင်ဝင်ရန်နှင့် အကောင့် စီမံခန့်ခွဲမှုကို ဝင်ရောက်သုံးစွဲရန် "
-"အီးမေးလ်နှင့် စကားဝှက် လိုအပ်ပါမည်။  အချိန်အနည်းငယ်ယူပြီး ဤအထောက်အထားများကို"
-" သင့်အကောင့်တွင်ထည့်ပါ။ "
-
-msgid "not_now"
-msgstr "ယခုမဟုတ်ပါ"
-
-msgid "update_account"
-msgstr "အကောင့် အပ်ဒိတ်လုပ်ရန်"
-
-msgid "new"
-msgstr "အသစ်"
-
-msgid "Daily Data Usage"
-msgstr "နေ့စဉ် ဒေတာသုံးစွဲမှု"
-
-msgid "is"
-msgstr "သည်"
-
-msgid "connect"
-msgstr "ချိတ်ဆက်ပါ"
-
-msgid "disconnect"
-msgstr "ချိတ်ဆက်မှုဖြတ်ပါ"
-
-msgid "connected"
-msgstr "ချိတ်ဆက်ထားသည်"
-
-msgid "Disconnected"
-msgstr "အဆက်ပြတ်"
-
-msgid "Disconnecting"
-msgstr "ချိတ်ဆက်မှု ဖြုတ်နေသည်..."
-
-msgid "Connecting"
-msgstr "ချိတ်ဆက်နေသည် ..."
-
-msgid "no_network_connection"
-msgstr "ကွန်ရက်ဆက်သွယ်မှု မရှိပါ"
-
-msgid "connection_error"
-msgstr "ချိတ်ဆက်မှု ချို့ယွင်းချက်"
-
-msgid "connection_error_des"
-msgstr ""
-"Lantern သည် ကျွန်ုပ်တို့၏ ဆာဗာများကို ဆက်သွယ်ရာတွင် ပြဿနာများရှိနေသည်။ "
-"အက်ပ်ကို ပြန်လည်စတင်ပါ။ ပြဿနာဆက်ရှိနေပါက ကူညီပံ့ပိုးမှုဌာနကို ဆက်သွယ်ပါ။"
-
-msgid "connection_error_button"
-msgstr "ပံ့ပိုးမှုဌာနအား ဆက်သွယ်ရန်"
-
-msgid "Calling"
-msgstr "ခေါ်ဆိုနေပါသည်..."
-
-msgid "Go Pro Title"
-msgstr "Pro သို့ သွားပါ။"
-
-msgid "Go Pro Description"
-msgstr ""
-"ပိုမိုမြန်ဆန်သောနှုန်း, ကြော်ငြာမပါဘဲ အတွေ့အကြုံ၊ နှင့် "
-"အကန့်အသတ်မရှိသောဒေတာကို ဖွင့်ပါ! "
-
-msgid "Server Location"
-msgstr "ဆာဗာတည်နေရာ"
-
-msgid "Server Location Info"
-msgstr ""
-"Lantern သည် ကျွန်ုပ်တို့၏ အကောင်းဆုံး ဒေတာစင်တာများနှင့် အလိုအလျောက် "
-"ချိတ်ဆက်ရန်အတွက် စမတ် ဆာဗာ ရွေးချယ်ရေးကို အသုံးပြုသည်။"
-
-msgid "OK"
-msgstr "အိုကေ"
-
-msgid "Done"
-msgstr "ပြီးပါပြီ"
-
-msgid "backup_recovery_key"
-msgstr "အရန်သိမ်းဆည်းမှုအတွက် ပြန်လည်ရယူမှုကီး"
-
-msgid "delete_chat_data"
-msgstr "ချက်ဒေတာအားလုံး ဖျက်မည်"
-
-msgid "delete_chat_data_description"
-msgstr ""
-"ဤသို့ပြုလုပ်ခြင်းက ဤကိရိယာမှ သင်၏ ချက်နံပါတ်၊ အဆက်အသွယ်များနှင့် "
-"မက်ဆေ့ချ်များကို ဖျက်ပစ်မည်ဖြစ်သည်။ သင်၏ အရန်သိမ်းဆည်းမှုအတွက် "
-"ပြန်လည်ရယူမှုကီး မရှိပါက သင်၏ ချက်နံပါတ်သို့ ဝင်ရောက်သုံးစွဲခွင့် "
-"ဆုံးရှုံးသွားမည်ဖြစ်သည်။"
-
-msgid "delete_chat_data_confirmation"
-msgstr "ကျွန်ုပ်၏ ချက်ဒေတာကို ဖျက်ပစ်လိုသည်ဟု ကျွန်ုပ် အတည်ပြုပါသည်"
-
-msgid "Pro Account Management"
-msgstr "Pro အကောင့်စီမံခန့်ခွဲမှု"
-
-msgid "link_device"
-msgstr "ချိတ်ဆက်မှုကိရိယာ"
-
-msgid "Upgrade to Lantern Pro"
-msgstr "Lantern Pro ကိုအဆင့်မြှင့်တင်ပါ"
-
-msgid "Invite Friends"
-msgstr "သူငယ်ချင်းများကိုဖိတ်ကြားသည်"
-
-msgid "share_lantern_pro"
-msgstr ""
-"Lantern Pro ကိုမိတ်ဆွေတစ်ယောက်နှင့်မျှဝေပါ! သင့်မိတ်ဆွေသည်၎င်းတို့၏ Lantern "
-"Pro ဝယ်ယူမှုအတွင်း သင့်ရဲ့ ဖော်ပြချက်ကုဒ်ကိုအသုံးပြုပါက, သင်နှင့်သင့်မိတ်ဆွေ"
-" နှစ်ယောက်စလုံး Lantern Pro ဝန်ဆောင်မှုကို တစ်လအခမဲ့ရရှိပါမည်! "
-
-msgid "privacy_disclosure_title"
-msgstr "Lantern Privacy ထုတ်ဖော်"
-
-msgid "privacy_disclosure_body"
-msgstr ""
-"Lantern သည် သင်၏ ကိုယ်ရေးလုံခြုံမှုကို ကာကွယ်ရန် ကတိကဝတ်ပြုထားသည်။ "
-"ကျွန်ုပ်တို့မည်သည့်သတင်းအချက်အလက်များကိုကျွန်ုပ်တို့စုဆောင်းသည်၊ "
-"ကျွန်ုပ်တို့မစုဆောင်းမိသောအရာများနှင့်ကျွန်ုပ်တို့မည်သို့စုဆောင်းအသုံးပြုသည်၊"
-" သိုလှောင်ထားသည့်သတင်းအချက်အလက်များကိုသင့်အားနားလည်စေလိုသည်။ "
-"သင်၏ငွေပေးချေမှုဆိုင်ရာသတင်းအချက်အလက်များကိုသင်၏ Lantern Pro "
-"အကောင့်နှင့်ဆက်သွယ်ခြင်းမပြုပါ။ သင်၏လုပ်ဆောင်မှုမှတ်တမ်းများ၊ browsing "
-"history၊ traffic များ၊ အချက်အလက်အကြောင်းအရာများ (သို့) DNS "
-"မေးမြန်းခြင်းများမပါဝင်ပါ။ "
-"ဆက်သွယ်မှုမှတ်တမ်းများကိုလည်းမည်သည့်အခါမျှသိမ်းဆည်းမည်မဟုတ်ပါ။ "
-"ဆိုလိုသည်မှာသင်၏ IP လိပ်စာ၊ log outan Lantern server IP connection "
-"connection timestamp နှင့် session session ကြာလိမ့်မည်မဟုတ်ပါ။ တိကျတဲ့ "
-"Lantern Pro အကောင့်တစ်ခုအရ Lantern သည် Lantern "
-"အကောင့်ကိုအသုံးပြုသူ၏မည်သူမည်ဝါဖြစ်ကြောင်းနှင့်နည်းပညာပိုင်းအရမချိတ်ဆက်နိုင်ပါ။"
-" Lantern အိုင်ပီလိပ်စာတစ်ခုနှင့် တိကျသောအချိန်တံဆိပ်ခေါင်းများအရ Lantern သည်"
-" ဤ IP လိပ်စာကို Lantern အသုံးပြုသူသို့မဟုတ် Lantern "
-"အသုံးပြုသူအိုင်ပီလိပ်စာအားသတ်မှတ်ရန် နည်းပညာပိုင်းအရမစွမ်းဆောင်နိုင်ပါ။"
-
-msgid "privacy_disclosure_accept"
-msgstr "ကျွန်တော်လက်ခံသည်"
-
-msgid "desktop_version"
-msgstr "Desktop ဗားရှင်း"
+msgid "upgrade_to_pro"
+msgstr "Pro သို့ အဆင့်မြှင့်ရန်"
 
 msgid "settings"
-msgstr "ချိန်ညှိချက်များ"
+msgstr "ဆက်တင်များ"
 
-msgid "general"
-msgstr "အထွေထွေ"
+msgid "report_an_issue"
+msgstr "ပြဿနာ တင်ပြပါ"
 
-msgid "about"
-msgstr "အကြောင်း"
+msgid "lantern_projects"
+msgstr "Lantern ပရောဂျက်များ"
 
-msgid "proxy_all"
-msgstr "အရာအားလုံး ကိုယ်စား"
+msgid "invite_friends"
+msgstr "သူငယ်ချင်းများ ဖိတ်ခေါ်ရန်"
 
-msgid "proxy_everything_is"
-msgstr "အားလုံးအတွက် ပရောက်ဇီမှာ %s ဖြစ်သည်"
+msgid "your_referral_code"
+msgstr "သင့်ရဲ့ ရည်ညွှန်းကုဒ်"
 
-msgid "version_number"
-msgstr "ဗားရှင်း %s"
+msgid "invite_friends_message"
+msgstr ""
+"သင့်ရဲ့ ရည်ညွှန်းကုဒ်ကို သူငယ်ချင်းတစ်ဦးနှင့် မျှဝေပါ။ သူတို့က Lantern Pro "
+"ကို ဝယ်ယူတဲ့အခါ၊ သင်နှင့် သူတို့နှစ်ဦးစလုံး အပိုအချိန်ရရှိပါသည်။ "
 
-msgid "build_number"
-msgstr "တည်ဆောက်မှုနံပါတ် %s"
+msgid "share_referral_code"
+msgstr "ရည်ညွှန်းကုဒ် မျှဝေရန်"
 
-msgid "sdk_version"
-msgstr "SDK %s"
+msgid "unbounded"
+msgstr "Unbounded"
+
+msgid "help_fight_global_internet_censorship"
+msgstr "ကမ္ဘာလုံးဆိုင်ရာ အင်တာနက် ဆင်ဆာဖြတ်ခြင်းကို တိုက်ဖျက်ရန် ကူညီပါ"
+
+msgid "vpn_settings"
+msgstr "VPN ဆက်တင်များ"
+
+msgid "split_tunneling"
+msgstr "ခွဲခြားချိတ်ဆက်ခြင်း"
+
+msgid "server_locations"
+msgstr "ဆာဗာ တည်နေရာများ"
+
+msgid "lantern_pro_email"
+msgstr "Lantern Pro အီးမေးလ်-"
+
+msgid "pro_account_expiration"
+msgstr "Pro အကောင့် သက်တမ်းကုန်ဆုံးမှု"
+
+msgid "manage_subscription"
+msgstr "စာရင်းသွင်းမှု စီမံခန့်ခွဲရန်"
+
+msgid "lantern_pro_devices"
+msgstr "Lantern Pro စက်ပစ္စည်းများ"
+
+msgid "remove"
+msgstr "ဖယ်ရှားရန်"
+
+msgid "add_device"
+msgstr "စက်ပစ္စည်း ထည့်ရန်"
+
+msgid "danger_zone"
+msgstr "အန္တရာယ် ဇုန်-"
+
+msgid "delete_account"
+msgstr "အကောင့် ဖျက်ရန်"
+
+msgid "delete"
+msgstr "ဖျက်ရန်"
+
+msgid "account"
+msgstr "အကောင့်"
+
+msgid "delete_account_?"
+msgstr "သင့်အကောင့်ကို ဖျက်မလား?"
+
+msgid "delete_account_message"
+msgstr ""
+"အကောင့် ဖျက်ခြင်းသည် အပြီးသတ်ဖြစ်သည်။ သင်သည် စက်ပစ္စည်းအားလုံးတွင် "
+"အသုံးပြုခွင့် ဆုံးရှုံးမည်ဖြစ်ပြီး၊ ကျန်ရှိသော Pro စာရင်းသွင်းမှု "
+"အချိန်မှန်သမျှကို ပြန်အမ်းငွေမရှိဘဲ စွန့်လွှတ်ရပါမည်။"
+
+msgid "delete_account_message_two"
+msgstr "ဖျက်ခြင်းကို အတည်ပြုရန် အောက်တွင် သင့်စကားဝှက်ကို ထည့်ပါ"
+
+msgid "Submit Issue Report"
+msgstr "အတည်ပြုရန် စကားဝှက် ထည့်ပါ"
+
+msgid "confirm_deletion"
+msgstr "ဖျက်ပါ"
+
+msgid "cancel"
+msgstr "ပယ်ဖျက်ရန်"
+
+msgid "daily_data_usage"
+msgstr "နေ့စဉ် ဒေတာ အသုံးပြုမှု"
+
+msgid "mb"
+msgstr "MB"
+
+msgid "vpn_status"
+msgstr "VPN အခြေအနေ"
+
+msgid "telegram"
+msgstr "Telegram"
+
+msgid "instagram"
+msgstr "Instagram"
+
+msgid "x"
+msgstr "X"
+
+msgid "follow_us"
+msgstr "ကျွန်ုပ်တို့ကို လိုက်ပါ"
+
+msgid "server_selection"
+msgstr "ဆာဗာ ရွေးချယ်မှု"
+
+msgid "smart_location"
+msgstr "စမတ် တည်နေရာ"
+
+msgid "automatically_chooses_fastest_location"
+msgstr "အမြန်ဆုံး တည်နေရာကို အလိုအလျောက် ရွေးချယ်သည်"
+
+msgid "pro_locations"
+msgstr "Pro တည်နေရာများ"
+
+msgid "choose_your_location_with_lantern_pro"
+msgstr "Lantern Pro ဖြင့် သင့်တည်နေရာကို ရွေးချယ်ပါ"
 
 msgid "language"
 msgstr "ဘာသာစကား"
 
-msgid "select_an_issue"
-msgstr "ပြဿနာကိုရွေးချယ်ပါ"
+msgid "sign_in"
+msgstr "ဝင်ရောက်ရန်"
 
-msgid "enter_description"
-msgstr "ကျေးဇူးပြု၍ သင့်ပြဿနာကိုဖော်ပြပါ "
+msgid "sign_out"
+msgstr "ထွက်ရန်"
+
+msgid "check_for_updates"
+msgstr "အပ်ဒိတ်များ စစ်ဆေးရန်"
+
+msgid "support"
+msgstr "ပံ့ပိုးမှု"
+
+msgid "download_links"
+msgstr "ဒေါင်းလုဒ် လင့်များ"
+
+msgid "get_30_days_of_pro_free"
+msgstr "Pro ကို ရက် 30 အခမဲ့ရယူပါ"
+
+msgid "share_message_referral_code"
+msgstr ""
+"Lantern Pro တစ်လအခမဲ့အတွက်၊ ဒီရည်ညွှန်းကုဒ်ကို အသုံးပြုပါ- %s ; သင် ဒီမှာ "
+"ဒေါင်းလုဒ်လုပ်နိုင်ပါတယ်- https://lantern.io/download"
+
+msgid "submit_issue_report"
+msgstr "ပြဿနာ အစီရင်ခံစာ တင်သွင်းပါ"
+
+msgid "select_an_issue"
+msgstr "ပြဿနာတစ်ခု ရွေးပါ"
 
 msgid "cannot_access_blocked_sites"
-msgstr "ပိတ်ထားသောဆိုဒ်များကို ကြည့်၍မရပါ"
+msgstr "ပိတ်ဆို့ထားသော ဆိုက်များကို ဝင်ရောက်၍မရပါ"
 
 msgid "cannot_complete_purchase"
-msgstr "ဝယ်ယူမှုကိုပြီးမြောက်စေမရနိုင် "
+msgstr "ဝယ်ယူမှု ပြီးစီး၍မရပါ"
 
 msgid "discover_not_working"
-msgstr ""
+msgstr "ရှာဖွေတွေ့ရှိမှု အလုပ်မလုပ်ပါ"
 
 msgid "cannot_sign_in"
-msgstr "လက်မှတ်ထိုးမရနိုင် "
+msgstr "ဝင်ရောက်၍မရပါ"
 
 msgid "spinner_loads_endlessly"
-msgstr "အဆုံးမရှိသော လည်ပတ်ခြင်း "
+msgstr "လည်ပတ်နေသည့်အရာ အဆုံးမရှိ တင်နေသည်"
 
 msgid "slow"
-msgstr "နှေးနှေး"
+msgstr "နှေးသည်"
 
 msgid "cannot_link_devices"
-msgstr "ကိရိယာများကို ချိတ်ဆက်၍ မရပါ"
+msgstr "စက်ပစ္စည်းများ ချိတ်ဆက်၍မရပါ"
 
 msgid "wrong_device_linking_code"
-msgstr "မှားယွင်းသော သို့မဟုတ် မမှန်ကန်သော လင့်ခ်ချိတ်သည့်ကုဒ်"
+msgstr "မှားသော သို့မဟုတ် မမှန်ကန်သော စက်ပစ္စည်း ချိတ်ဆက်ကုဒ်"
 
 msgid "cannot_remove_device"
-msgstr "စက်ကိရိယာကိုဖယ်ရှားမရနိုင် "
+msgstr "စက်ပစ္စည်းကို ဖယ်ရှား၍မရပါ"
 
 msgid "application_crashes"
-msgstr "အပလီကေးရှင်းမကြာခဏကျွေး "
+msgstr "အပလီကေးရှင်း ပျက်ကျသည်"
 
 msgid "other"
 msgstr "အခြား"
 
 msgid "issue_description"
-msgstr "သင့်ပြဿနာကိုဖော်ပြပါ "
+msgstr "သင့်ပြဿနာကို ဖော်ပြပါ"
 
-msgid "check_for_updates"
-msgstr "အပ်ဒိတ်များကိုစစ်ဆေးပါ"
+msgid "enter_password_to_confirm"
+msgstr "အတည်ပြုရန် စကားဝှက် ထည့်ပါ"
 
-msgid "blocked_users"
-msgstr "ပိတ်ဆို့ထားသည့် အသုံးပြုသူများ"
-
-msgid "description_proxy_all_dialog"
+msgid "cannot_view_logs"
 msgstr ""
-"ဖွင့်ထားပါက traffic အားလုံးကို Lantern မှတစ်ဆင့် ပေးပို့ပါလိမ့်မည် (ပို၍ "
-"လုံခြုံစိတ်ချ)။ ပိတ်ထားပါက ပိတ်ပင်ထားသော traffic ကိုသာ Lantern မှတစ်ဆင့် "
-"ပေးပို့ပါလိမ့်မည် (ပို၍ မြန်ဆန်)။"
+"သင် ကျွန်ုပ်တို့ထံ မပို့လျှင် Lantern သည် သင့် စစ်ဆေးခြင်း မှတ်တမ်းများကို "
+"မတွေ့ရနိုင်ပါ။"
 
-msgid "Account"
-msgstr "အကောင့်"
+msgid "split_tunneling_mode"
+msgstr "ခွဲခြားချိတ်ဆက်ခြင်း မုဒ်"
 
-msgid "VPN Status"
-msgstr "VPN အခြေအနေ"
+msgid "apps_split_tunneling"
+msgstr "အက်ပ်များ ခွဲခြားချိတ်ဆက်ခြင်း"
 
-msgid "VPN"
-msgstr "VPN"
+msgid "website_split_tunneling"
+msgstr "ဝက်ဘ်ဆိုက် ခွဲခြားချိတ်ဆက်ခြင်း"
 
-msgid "Authorize Device for Pro"
-msgstr "Pro အတွက် ကိရိယာကို ခွင့်ပြုပါ"
+msgid "iran_optimized"
+msgstr "အီရန် အကောင်းဆုံး ခွဲခြားချိတ်ဆက်ခြင်း"
 
-msgid "Authorize with Device Linking Pin"
-msgstr "ကိရိယာချိတ်ဆက်မှု ပင်နံပါတ်ဖြင့် ခွင့်ပြုပါ"
+msgid "china_optimized"
+msgstr "တရုတ် အကောင်းဆုံး ခွဲခြားချိတ်ဆက်ခြင်း"
 
-msgid "Requires physical access to a Lantern Pro Device"
-msgstr "Lantern Pro ကိရိယာသို့ ဝင်ရောက်အသုံးပြုရန် လိုအပ်သည်"
+msgid "russia_optimized"
+msgstr "ရုရှား အကောင်းဆုံး ခွဲခြားချိတ်ဆက်ခြင်း"
 
-msgid "Link with PIN"
-msgstr "PIN ဖြင့်လင့်ခ်ချိတ်ပါ"
+msgid "global_optimized"
+msgstr "ကမ္ဘာလုံးဆိုင်ရာ အကောင်းဆုံး ခွဲခြားချိတ်ဆက်ခြင်း"
 
-msgid "OR"
-msgstr "သို့မဟုတ်"
+msgid "enter_url"
+msgstr "URL ထည့်ပါ"
 
-msgid "device_linking_pin"
-msgstr "ကိရိယာချိတ်ဆက်မှု ပင်နံပါတ်"
+msgid "add"
+msgstr "ထည့်ရန်"
 
-msgid "link_device_step_one"
-msgstr "သင့် Pro စက်ကိရိယာတွင် 'စက်ကိရိယာထည့်ရန်' မီနူးအချက်အလက်ကိုဖွင့်ပါ။ "
+msgid "enabled"
+msgstr "ဖွင့်ထားသည်"
 
-msgid "link_device_step_two"
-msgstr "စက်ကိရိယာဆက်စပ် PIN ကိုထည့်ပြီးတင်ပါ "
+msgid "disabled"
+msgstr "ပိတ်ထားသည်"
 
-msgid "ensure_most_recent_version_lantern"
+msgid "automatic"
+msgstr "အလိုအလျောက်"
+
+msgid "automatic_mode"
+msgstr "အလိုအလျောက် မုဒ်"
+
+msgid "manual"
+msgstr "လက်ဖြင့်"
+
+msgid "enter_url_or_ip"
+msgstr "URL သို့မဟုတ် IP လိပ်စာ ထည့်ပါ"
+
+msgid "installed_apps"
+msgstr "ထည့်သွင်းပြီး အက်ပ်များ"
+
+msgid "search_apps"
+msgstr "အက်ပ်များ ရှာပါ"
+
+msgid "search_websites"
+msgstr "ဝက်ဘ်ဆိုက်များ ရှာပါ"
+
+msgid "mode"
+msgstr "မုဒ်"
+
+msgid "use_commas"
+msgstr "URL များစွာကို ခွဲခြားရန် ကော်မာ အသုံးပြုပါ"
+
+msgid "default_bypass"
+msgstr "မူလ ကျော်သွားမည့် စာရင်းများ"
+
+msgid "global_bypass_list"
+msgstr "ကမ္ဘာလုံးဆိုင်ရာ ကျော်သွားမည့် စာရင်း"
+
+msgid "global_bypass_desc"
 msgstr ""
-"* ကိရိယာနှစ်ခုစလုံးသည် Lantern ၏ နောက်ဆုံးထွက်ဗားရှင်းကို "
-"အသုံးပြုထားကြောင်းသေချာပါစေ"
+"ယုံကြည်စိတ်ချရသော ဆိုက်များ (HTTPS) အကြောင်းအရာ ထိခိုက်မှုမရှိသည်များ။"
 
-msgid "Authorize Device via Email"
-msgstr "ကိရိယာကို အီးမေးလ်မှတစ်ဆင့် ခွင့်ပြုပါ"
+msgid "china_bypass_list"
+msgstr "တရုတ် ကျော်သွားမည့် စာရင်း"
 
-msgid "auth_email_helper_text"
-msgstr "သင့် Pro အကောင့်နှင့်ဆိုင်သည့် အီးမေးလ်ကို ရိုက်ထည့်ပါ"
-
-msgid "Requires access to the email you used to buy Lantern Pro"
+msgid "china_bypass_desc"
 msgstr ""
-"Lantern Pro ကို ဝယ်ယူခဲ့သည့် အီးမေးလ်ကို ဝင်ရောက်အသုံးပြုရန် လိုအပ်သည် "
+"တရုတ်တွင် လွတ်လပ်စွာ ဝင်ရောက်နိုင်သော ဆိုက်များ။ ပုံမှန် အပ်ဒိတ်လုပ်သည်။"
 
-msgid "Link via Email"
-msgstr "အီးမေးလ်မှတဆင့်လင့်ခ်ချိတ်ပါ"
+msgid "iran_bypass_list"
+msgstr "အီရန် ကျော်သွားမည့် စာရင်း"
 
-msgid "lantern_desktop"
-msgstr "Lantern Desktop"
-
-msgid "report_description"
-msgstr "ပြဿနာရှင်းလင်းဖော်ပြချက်"
-
-msgid "report_issue"
-msgstr "ပြဿနာကိုအကြောင်းပြန်ကြားပါ "
-
-msgid "report_an_issue"
-msgstr "ပြဿနာတစ်ခုသတင်းပို့ပါ"
-
-msgid "report_sent"
-msgstr "ပို့ပြီးပါပြီ"
-
-msgid "thank_you_for_reporting_your_issue"
+msgid "iran_bypass_desc"
 msgstr ""
-"သင်၏ပြဿနာကို တင်ပြသည့်အတွက် ကျေးဇူးတင်ပါသည်။ "
-"ကျွန်ုပ်တို့တတ်နိုင်သမျှအမြန်ဆုံး အီးမေးလ်ဖြင့်ပြန်ပို့ပါမည်"
+"အီရန်တွင် လွတ်လပ်စွာ ဝင်ရောက်နိုင်သော ဆိုက်များ။ ပုံမှန် အပ်ဒိတ်လုပ်သည်။"
 
-msgid "send_report"
-msgstr "အစီရင်ခံစာပို့ရန်"
+msgid "russia_bypass_list"
+msgstr "ရုရှား ကျော်သွားမည့် စာရင်း"
 
-msgid "most_recent_lantern_apps"
+msgid "russia_bypass_desc"
 msgstr ""
-"ဒပ်စတော့နှင့် အခြားပလက်ဖောင်းများအားလုံးအတွက် လတ်တလော Lantern အက်ပ်များကို "
-"အပေါ်က လင့်ခ်တွင် တွေ့နိုင်ပါသည်။"
+"ရုရှားတွင် လွတ်လပ်စွာ ဝင်ရောက်နိုင်သော ဆိုက်များ။ ပုံမှန် အပ်ဒိတ်လုပ်သည်။"
 
-msgid "share_link"
-msgstr "လင့်ခ်မျှဝေပါ "
+msgid "see_sites_included"
+msgstr "ပါဝင်သော ဆိုက်များကို ကြည့်ပါ "
 
-msgid "share_title"
-msgstr "Lantern ဒေါင်းလုဒ်လင့်ခ်ကို မျှဝေပါ"
+msgid "default_lists_here"
+msgstr "ဒီမှာ မူလ စာရင်းများ"
+
+msgid "when_connected"
+msgstr ""
+"ချိတ်ဆက်ထားလျှင်၊ သင်ရွေးချယ်သော ဝက်ဘ်ဆိုက်များသည် VPN ကို ကျော်သွားပါမည်။"
+
+msgid "lantern_automatic"
+msgstr ""
+"Lantern သည် အကောင်းဆုံး စွမ်းဆောင်ရည်အတွက် သင့်တည်နေရာပေါ်မူတည်၍ VPN ကို "
+"ကျော်သွားမည့် အက်ပ်နှင့် ဝက်ဘ်ဆိုက်များကို အလိုအလျောက် ရွေးချယ်သည်။ "
+
+msgid "apps_bypassing_vpn"
+msgstr "VPN ကို ကျော်သွားသည့် အက်ပ်များ (%d)"
+
+msgid "websites_bypassing_vpn"
+msgstr "VPN ကို ကျော်သွားသည့် ဝက်ဘ်ဆိုက်များ (%d)"
+
+msgid "logs_share_message"
+msgstr "ဒါတွေက Lantern ကနေ ကျွန်တော့်ရဲ့ စစ်ဆေးခြင်း မှတ်တမ်းများ ဖြစ်ပါတယ်။"
+
+msgid "payment_options"
+msgstr "ငွေပေးချေမှု ရွေးချယ်စရာများ"
+
+msgid "add_your_email"
+msgstr "သင့်အီးမေးလ် ထည့်ပါ"
+
+msgid "continue"
+msgstr "ဆက်လုပ်ပါ"
+
+msgid "continue_with_google"
+msgstr "Google ဖြင့် ဆက်လုပ်ပါ"
+
+msgid "continue_with_apple"
+msgstr "Apple ဖြင့် ဆက်လုပ်ပါ"
+
+msgid "continue_without_email"
+msgstr "အီးမေးလ်မပါဘဲ ဆက်ပါ"
+
+msgid "confirm_email"
+msgstr "အီးမေးလ် အတည်ပြုပါ"
+
+msgid "add_your_email_message"
+msgstr ""
+"မည်သည့်စက်ပစ္စည်းတွင်မဆို သင့် စာရင်းသွင်းမှုကို ဝင်ရောက်ရန် သင့်အီးမေးလ်ကို"
+" ထည့်ပါ။"
+
+msgid "confirm_email_code"
+msgstr "အတည်ပြုကုဒ်"
+
+msgid "confirm_email_code_message"
+msgstr ""
+"ဒီအီးမေးလ်လိပ်စာသည် သင့်ပိုင် ဖြစ်ကြောင်း အတည်ပြုပါ၊ ပို့လိုက်သော ကုဒ်ကို "
+"ထည့်ပါ- "
+
+msgid "resend_email"
+msgstr "အီးမေးလ် ပြန်ပို့ပါ"
+
+msgid "create_password"
+msgstr "စကားဝှက် ဖန်တီးပါ"
+
+msgid "sign_in_to_lantern_pro"
+msgstr "Lantern Pro သို့ ဝင်ရောက်ပါ"
+
+msgid "sign_in_with_email"
+msgstr "အီးမေးလ် ဖြင့် ဝင်ရောက်ပါ"
+
+msgid "enter_your_lantern_pro_account_details"
+msgstr "သင့် Lantern Pro အကောင့် အသေးစိတ်များကို ထည့်ပါ။"
 
 msgid "email"
 msgstr "အီးမေးလ်"
 
-msgid "Submit"
-msgstr "တင်သွင်းပါ"
+msgid "enter_password"
+msgstr "စကားဝှက် ထည့်ပါ"
 
-msgid "save"
-msgstr "သိမ်းဆည်းမည်"
+msgid "forgot_password"
+msgstr "သင့်စကားဝှက်ကို မေ့နေပါသလား?"
 
-msgid "please_enter_a_valid_email_address"
-msgstr "မှန်ကန်သော အီးမေးလ်လိပ်စာထည့်ပါ"
+msgid "reset_your_password"
+msgstr "သင့်စကားဝှက်ကို ပြန်လည်သတ်မှတ်ပါ"
 
-msgid "bonus"
-msgstr "အပိုဆု "
+msgid "enter_your_lantern_pro_account_email"
+msgstr "သင့် Lantern Pro အကောင့် အီးမေးလ်ကို ထည့်ပါ။"
 
-msgid "referral_bonus"
-msgstr "ရည်ညွှန်းအပိုဆု "
+msgid "reset_password"
+msgstr "စကားဝှက် ပြန်လည်သတ်မှတ်ပါ"
 
-msgid "total"
-msgstr "စုစုပေါင်း "
+msgid "confirm_new_password"
+msgstr "စကားဝှက်အသစ် အတည်ပြုပါ"
 
-msgid "month"
-msgstr "လ"
+msgid "create_new_password"
+msgstr "စကားဝှက်အသစ် ဖန်တီးပါ"
 
-msgid "months"
-msgstr "လများ "
+msgid "confirm_password"
+msgstr "စကားဝှက် အတည်ပြုပါ"
 
-msgid "enter_email_to_complete_purchase"
-msgstr "ဝယ်ယူမှုကိုပြီးမြောက်စေရန် အီးမေးလ်ထည့်ပါ "
+msgid "confirm_password_required"
+msgstr "စကားဝှက် အတည်ပြုရန် လိုအပ်သည်"
 
-msgid "error_fetching_plans"
-msgstr ""
-"အစီအစဉ်များကိုရယူရာတွင်အမှားအယွင်းတစ်ခုဖြစ်ပွားခဲ့သည်၊ ကျေးဇူးပြု၍ Lantern "
-"ကိုပြန်လည်စတင်ပြီး ထပ်မံကြိုးစားပါ။ "
+msgid "passwords_do_not_match"
+msgstr "စကားဝှက်များ မကိုက်ညီပါ"
 
-msgid "apply"
-msgstr "လျှောက်ထားပါ"
+msgid "activation_code"
+msgstr "အသက်ဝင်စေမည့်ကုဒ်"
 
-msgid "choose_payment_method"
-msgstr "ငွေပေးချေမှုနည်းလမ်းရွေးပါ "
-
-msgid "pro_plan"
-msgstr "Pro အစီအစဉ် "
-
-msgid "one_month_plan"
-msgstr "၁-လ အစီအစဉ်"
-
-msgid "one_year_plan"
-msgstr "၁ နှစ်အစီအစဉ် "
-
-msgid "two_year_plan"
-msgstr "၂ နှစ်အစီအစဉ် "
-
-msgid "plan_discount"
-msgstr "%d%% လွတ်မြောက် "
-
-msgid "enter_email_and_activation_code"
-msgstr "အီးမေးလ်နှင့်အတည်ပြုကုဒ်ထည့်ပါ "
-
-msgid "referral_code"
-msgstr "ရည်ညွှန်းကုဒ်"
-
-msgid "share_referral_code"
-msgstr "ရည်ညွှန်းကုဒ်မျှဝေပါ "
-
-msgid "share_message_referral_code"
-msgstr ""
-"တစ်လအခမဲ့သော Lantern Pro ရရန်, ဤရည်ညွှန်းကုဒ်ကိုအသုံးပြုပါ: %s; သင်ဤနေရာမှ "
-"ဒေါင်းလုပ်လုပ်နိုင်သည်: https://lantern.io/download "
-
-msgid "add_referral_code"
-msgstr "ရည်ညွှန်းကုဒ်ထည့်ပါ "
-
-msgid "Activation Code"
-msgstr "Activation ကုဒ်"
-
-msgid "invalid_or_incomplete_referral_code"
-msgstr "မမှန်ကန်သော သို့မဟုတ် မပြည့်စုံသော ရည်ညွှန်းကုဒ် "
-
-msgid "register_for_pro"
-msgstr "Pro အတွက်မှတ်ပုံတင်ပါ"
-
-msgid "Something went wrong while applying your referral code."
-msgstr "သင့်ရဲ့ရည်ညွှန်းကုဒ်ကိုအသုံးပြုရာတွင် အမှားတစ်ခုဖြစ်ပွားခဲ့သည်။ "
-
-msgid "your_activation_code_is_invalid"
-msgstr "သင့်အတည်ပြုကုဒ်သည်မမှန်ကန်ပါ။ "
-
-msgid "update_cache_plans_timeout"
-msgstr "ရရှိနိုင်သောအစီအစဉ်များကိုရယူရာတွင် အမှားတစ်ခုဖြစ်ပွားခဲ့သည်။ "
-
-msgid "bitcoin_timeout"
-msgstr "BTCPay တောင်းဆိုမှုသည်အချိန်ကုန်ဆုံးခဲ့သည်။ "
-
-msgid "BTCPay is unavailable"
-msgstr "BTCPay မရရှိနိုင်ပါ "
-
-msgid "update_cache_user_timeout"
-msgstr "သင့်အကောင့်ဒေတာကိုရယူရာတွင် အမှားတစ်ခုဖြစ်ပွားခဲ့သည်။ "
-
-msgid "reseller_timeout"
-msgstr "သင်၏ စဖွင့်သုံးကုဒ်ကို အတည်ပြုနေစဉ် တစ်ခုခုမှားယွင်းသွားသည်။"
-
-msgid "wrong_reseller_code"
-msgstr "မမှန်ကန်သော activation ကုဒ်"
-
-msgid "reseller_success"
-msgstr "အောင်မြင်စွာအတည်ပြုကုဒ်ကိုရရှိပါပြီ။ "
-
-msgid "stripe_timeout"
-msgstr ""
-"သင့် Stripe ငွေပေးချေမှုသည်အချိန်ကုန်ဆုံးခဲ့သည်။ ကျေးဇူးပြု၍ Lantern "
-"ကိုပြန်လည်စတင်ပြီး ထပ်မံကြိုးစားပါ။ "
-
-msgid "stripe_success"
-msgstr "Stripe ဝယ်ယူမှုအောင်မြင်သည်။ "
-
-msgid "renewal_success"
-msgstr "အသက်ဆက် အောင်မြင်သည်။ "
-
-msgid "pro_renewal_success_description"
-msgstr ""
-"သင့်ရဲ့ 蓝灯 Pro အကောင့်အားအသက်ဆက်ပေးသည့်အတွက် ကျေးဇူးတင်ပါတယ်။ သင်အခုမှ "
-"မြန်ဆန်ဆုံးဒေတာစင်တာများကို အသုံးပြုပြီး အကန့်အသတ်မရှိသုံးနိုင်သည်။ "
-"အကောင့်နှင့်ဆက်သွယ်ပြီး တက်ဘလက် အပါအဝင် သုံးခုအထိ တည်ဆက်ထားနိုင်သည်။ "
-
-msgid "pro_purchase_success"
-msgstr "Lantern Pro မှ ကြိုဆိုပါသည် "
-
-msgid "platinum_purchase_success_descripion"
-msgstr ""
-"သင်သည် ယခု အမြန်ဆုံးဒေတာစင်တာများနှင့် အထူးလိုင်းကို အသုံးပြု၍ အကန့်အသတ်မရှိ"
-" ဝင်ရောက်အသုံးပြုနိုင်ပါသည်။ သင်၏အကောင့်တွင် အထိ သုံးခုထိကိရိယာများကို "
-"ချိတ်ဆက်နိုင်ပါသည်။ "
-
-msgid "pro_purchase_success_descripion"
-msgstr ""
-"သင်သည် ယခု အမြန်ဆုံးဒေတာစင်တာများကို အသုံးပြု၍ အကန့်အသတ်မရှိ "
-"ဝင်ရောက်အသုံးပြုနိုင်ပါသည်။ သင်၏အကောင့်တွင် အထိ သုံးခုထိကိရိယာများကို "
-"ချိတ်ဆက်နိုင်ပါသည်။ "
-
-msgid "by_clicking_tos"
-msgstr ""
-"%s ကိုနှိပ်ခြင်းဖြင့် သင်သည် ကျွန်ုပ်တို့၏ ဖော်ပြပါကို သဘောတူရာရောက်ပါသည် "
-
-msgid "tos"
-msgstr "ဝန်ဆောင်မှု၏စည်းကမ်းချက်များ"
-
-msgid "step_1"
-msgstr "အဆင့် 1"
-
-msgid "step_2"
-msgstr "အဆင့် ၂"
-
-msgid "step_3"
-msgstr "အဆင့် 3"
+msgid "activate_lantern_pro"
+msgstr "Lantern Pro ကို အသက်ဝင်စေပါ"
 
 msgid "invalid_email"
-msgstr "မှန်ကန်သော အီးမေးလ်လိပ်စာမဟုတ်ပါ။ "
+msgstr "မမှန်ကန်သော အီးမေးလ်လိပ်စာ"
 
-msgid "invalid_card"
-msgstr "မှန်ကန်သော ခရက်ဒစ်ကတ်နံပါတ်မဟုတ်ပါ။ "
-
-msgid "invalid_expiration"
-msgstr "မမှန်ကန်သော သက်တမ်းကုန်ဆုံးရက်"
-
-msgid "cc_number"
-msgstr "အကြွေးဝယ်ကဒ်"
-
-msgid "card_number"
-msgstr "ကတ်နံပါတ်"
-
-msgid "card_expiration"
-msgstr "လ / နှစ်"
-
-msgid "invalid_cvc"
-msgstr "မမှန်ကန်သော CVC"
-
-msgid "complete_purchase"
-msgstr "ဝယ်ယူမှုအပြီး"
-
-msgid "Re-send Email"
-msgstr "အီးမေးလ်ပြန်ပို့ပါ"
-
-msgid "Paste from clipboard?"
-msgstr "ကလစ်ဘုတ်မှ ကူးယူမလား။"
-
-msgid "Yes"
-msgstr "ဟုတ်တယ်"
-
-msgid "No"
-msgstr "မဟုတ်ဘူး"
-
-msgid "exit"
-msgstr "ထွက်ရန် "
-
-msgid "show"
-msgstr "ပြရန် "
-
-msgid "status_on"
-msgstr "အခြေအနေ: အဖွင့် "
-
-msgid "status_off"
-msgstr "အခြေအနေ: အဖွင့် "
-
-msgid "Enter or paste linking code"
-msgstr "လင့်ခ်ကုဒ်ကို ထည့်သွင်းပါ သို့မဟုတ် ကူးယူပါ"
-
-msgid "recovery_email_sent"
+msgid "purchase_already_owned"
 msgstr ""
-"ဤအကောင့်ရှိပါက လင့်ခ်ချိတ်ထားသည့် PIN ကို %s သို့ပို့ပြီးပါပြီ။ "
-"အထက်ပါအီးမေးလ်မှ PIN ကိုရိုက်ထည့်ပါ။ အီးမေးလ်ရောက်ရှိရန် "
-"နာရီပေါင်းများစွာကြာနိုင်သည်။"
+"သင်သည် ဒီဝယ်ယူမှုကို ပိုင်ဆိုင်ပြီးဖြစ်သည်၊ ဝယ်ယူမှု ပြန်လည်ရယူခြင်း "
+"လုပ်ကြည့်ပါ"
 
-msgid "Add Device"
-msgstr "ကိရိယာထည့်ပါ"
+msgid "stripe_payment"
+msgstr "Stripe ငွေပေးချေမှု"
 
-msgid "approve_device_step_1"
+msgid "split_tunneling_description"
 msgstr ""
-"သင်ချိတ်ဆက်လိုသည့်ကိရိယာရှိ အကောင့်မီနူးမှ 'ပရိုအတွက် ကိရိယာကို "
-"သုံးခွင့်ပြုပါ' ကိုဖွင့်ပါ၊ ထို့နောက် 'ပင်နံပါတ်ဖြင့် ချိတ်ပါ' "
-"ကိုရွေးချယ်ပါ။"
+"Lantern သည် သင့်တည်နေရာအပေါ် မူတည်၍ အင်တာနက် ဒေတာကို ဉာဏ်ရည်ထက်မြက်စွာ "
+"လမ်းညွှန်ပြီး လိုအပ်လျှင်သာ VPN အသုံးပြုပါသည်။"
 
-msgid "approve_device_step_2"
-msgstr "အဆင့် 1 မှရရှိသော လင့်ခ်ချိတ်သည့်ကုဒ်ကို ထည့်သွင်းပါ"
+msgid "region_specific_rules"
+msgstr "ဒေသဆိုင်ရာ သီးခြား စည်းမျဉ်းများ"
 
-msgid "Pro Account Expiration"
-msgstr "Pro အကောင့်သက်တမ်းကုန်ဆုံးခြင်း"
+msgid "location_based_rules"
+msgstr ""
+"Lantern သည် သင့်တည်နေရာပေါ်မူတည်၍ မတူညီသော လမ်းညွှန်စည်းမျဉ်းများ "
+"အသုံးပြုသည်-"
 
-msgid "Renew"
-msgstr "သက်တမ်းတိုး"
+msgid "censored_regions"
+msgstr "ဆင်ဆာဖြတ်သော ဒေသများတွင်-"
 
-msgid "pro_devices_header"
-msgstr "Lantern Pro ကိရိယာများ (3 အထိ)"
+msgid "blocked_sites_proxied"
+msgstr ""
+"ပိတ်ဆို့ထားသော ဝက်ဘ်ဆိုက်များနှင့် အက်ပ်များ (သတင်းများ၊ မက်ဆေ့ခ်ျ၊ "
+"ကန့်သတ်ထားသော ဝန်ဆောင်မှုများ) ကို ပရောက်ဆီလုပ်သည်။"
 
-msgid "Remove"
-msgstr "ဖယ်ရှားပါ"
+msgid "unblocked_sites_bypass"
+msgstr ""
+"ပိတ်ဆို့မထားသော ဝက်ဘ်ဆိုက်များသည် ပိုမြန်စွာ ရှာဖွေနိုင်ရန် VPN ကို "
+"ကျော်သွားသည်။"
 
-msgid "Log Out"
-msgstr "လော့အောက်ထွက်ပါ"
+msgid "uncensored_regions"
+msgstr "ဆင်ဆာမဖြတ်သော ဒေသများတွင်-"
 
-msgid "confirm_remove_device"
-msgstr "ဤပစ္စည်းအားသင်၏ Pro အကောင့်မှသင်ပြန်ဖွင့်လိုသည်မှာသေချာပါသလား။"
+msgid "trusted_sites_bypass"
+msgstr ""
+"ယုံကြည်စိတ်ချရသော ဝက်ဘ်ဆိုက်များနှင့် ဝန်ဆောင်မှုများသာ မူလအတိုင်း VPN ကို "
+"ကျော်သွားသည်။"
 
-msgid "confirm_close_window"
-msgstr "သင်သည် Lantern ကိုပိတ်ရန် အတည်ပြုပါသလား? "
+msgid "examples_of_bypassed_sites"
+msgstr ""
+"ယင်းတို့တွင် HTTPS-encrypted ဆိုက်များ အများသူငှာ သို့မဟုတ် အကြောင်းအရာ "
+"ထိခိုက်မှုမရှိသည့် ဈေးဝယ်ခြင်း၊ ရာသီဥတု၊ နှင့် ဆော့ဖ်ဝဲလ် အပ်ဒိတ်များ "
+"ပါဝင်သည်။"
 
-msgid "unlimited_data"
-msgstr "Unlimited Data"
+msgid "routing_rules_vary"
+msgstr "ဒီစည်းမျဉ်းများသည် နိုင်ငံအလိုက် ကွဲပြားပြီး ပုံမှန် အပ်ဒိတ်လုပ်သည်။"
 
-msgid "no_logs"
-msgstr "မှတ်တမ်းများ မရှိပါ"
+msgid "view_the_full_list"
+msgstr "လမ်းညွှန်စည်းမျဉ်းများ၏ အပြည့်အစုံ စာရင်းကို ကြည့်ပါ။"
 
-msgid "no_ads"
-msgstr "ကြော်ငြာမရှိပါ"
+msgid "turn_on_split_tunneling"
+msgstr ""
+"VPN အသုံးပြုမည့် ဝက်ဘ်ဆိုက်များကို စိတ်ကြိုက်ပြင်ဆင်ရန် "
+"ခွဲခြားချိတ်ဆက်ခြင်းကို ဖွင့်ပါ။"
 
-msgid "choose_plan"
-msgstr "Plan ကိုရွေးချယ်ပါ"
+msgid "welcome_to_lantern_pro"
+msgstr "Lantern Pro သို့ ကြိုဆိုပါသည်!"
 
-msgid "billed_one_time"
-msgstr "တစ်ကြိမ်ပေးဆောင်သည်။ "
+msgid "lantern_pro_description"
+msgstr ""
+"သင့် Pro အင်္ဂါရပ်များကို သော့ဖွင့်ပြီးပါပြီ—ကန့်သတ်မရှိသော ဒေတာ၊ ပိုမြန်သော"
+" အမြန်နှုန်းနှင့် ပရီမီယံ ဆာဗာများကို ပျော်မွေ့ပါ။"
 
-msgid "connect_up_to_3_devices"
-msgstr "ကိရိယာ ၃ ခုအထိချိတ်ဆက်ပါ"
+msgid "plans_fetch_error"
+msgstr "အစီအစဉ်များကို ရယူရာတွင် အမှားအယွင်း။ နောက်မှ ထပ်စမ်းကြည့်ပါ။"
 
-msgid "faster_data_centers"
-msgstr "ပိုမိုမြန်ဆန်သော ဒေတာစင်တာများ"
+msgid "best_value"
+msgstr "အကောင်းဆုံး တန်ဖိုး!"
 
-msgid "dedicated_line"
-msgstr "အထူးလိုင်း "
+msgid "choose_payment_method"
+msgstr "ငွေပေးချေမှု နည်းလမ်းကို ရွေးချယ်ပါ"
 
-msgid "increased_reliability"
-msgstr "ယုံကြည်စိတ်ချရမှု မြင့်မားခြင်း "
+msgid "payment_information_encrypted"
+msgstr "သင့် ငွေပေးချေမှု အချက်အလက်များကို အပြည့်အဝ ကုဒ်ဝှက်ထားသည်။"
+
+msgid "purchase_not_completed"
+msgstr ""
+"ဝယ်ယူမှု မပြီးစီးပါ။ သင် အချိန်မရွေး ထပ်စမ်းနိုင်သည်၊ သို့မဟုတ် "
+"အကူအညီလိုအပ်လျှင် ပံ့ပိုးမှုကို ဆက်သွယ်ပါ"
+
+msgid "are_you_sure"
+msgstr "သေချာပါသလား?"
+
+msgid "continue_without_email_message"
+msgstr ""
+"မှန်ကန်သော အီးမေးလ်လိပ်စာသည် အခြားစက်ပစ္စည်းများတွင် သင့်စာရင်းသွင်းမှုကို "
+"အသုံးပြုရန် လိုအပ်သည်။"
+
+msgid "add_email"
+msgstr "အီးမေးလ် ထည့်ပါ"
+
+msgid "block_ads"
+msgstr "ကြော်ငြာများကို ပိတ်ဆို့ပါ"
+
+msgid "only_active"
+msgstr "VPN ချိတ်ဆက်ထားမှသာ အသက်ဝင်သည်"
+
+msgid "vpn_connected"
+msgstr "Lantern သည် ယခု ချိတ်ဆက်ပြီးပါပြီ။"
+
+msgid "vpn_disconnected"
+msgstr "Lantern သည် ယခု ချိတ်ဆက်မှု ဖြုတ်ပြီးပါပြီ။"
+
+msgid "open_notification"
+msgstr "အကြောင်းကြားချက် ဖွင့်ပါ"
+
+msgid "logout"
+msgstr "ထွက်ရန်"
+
+msgid "logout_message"
+msgstr ""
+"ထွက်ခြင်းသည် Lantern ကို အခမဲ့ ဗားရှင်းသို့ ပြောင်းပါမည်။ သင့်အကောင့်ကို "
+"ထပ်မံဝင်ရောက်ရန်၊ သင် ပြန်ဝင်ရောက်ရန် လိုအပ်ပါမည်။"
+
+msgid "not_now"
+msgstr "ယခုမဟုတ်ပါ"
+
+msgid "billed_once"
+msgstr "တစ်ကြိမ် ငွေတောင်းခံသည်"
+
+msgid "subscription"
+msgstr "စာရင်းသွင်းမှု"
+
+msgid "subscribe"
+msgstr "စာရင်းသွင်းပါ"
 
 msgid "checkout"
-msgstr "ထွက်ခွာသည်"
+msgstr "ငွေရှင်းရန်"
 
-msgid "credit_card"
-msgstr "အကြွေးဝယ်ကဒ်"
+msgid "next_billing_date"
+msgstr "နောက်ထပ် ငွေတောင်းခံမည့်ရက်"
 
-msgid "lantern_pro_checkout"
-msgstr "Lantern Pro Checkout"
+msgid "vpn_may_be_needed"
+msgstr "VPN လိုအပ်နိုင်သည်"
 
-msgid "1y_pricing"
-msgstr "၁ နှစ်စျေးနှုန်း "
-
-msgid "2y_pricing"
-msgstr "၂ နှစ်စျေးနှုန်း "
-
-msgid "plan_type"
-msgstr "အစီအစဉ်အမျိုးအစား "
-
-msgid "most_popular"
-msgstr "အများဆုံး နှစ်သက်သည်။ "
-
-msgid "free"
-msgstr "အခမဲ့"
-
-msgid "n/a"
-msgstr "n/a"
-
-msgid "Developer Settings"
-msgstr "ဆော့ဖ်ဝဲအင်ဂျင်နီယာစနစ် ချိန်ညှိချက်များ"
-
-msgid "Developer"
-msgstr "ဆော့ဖ်ဝဲအင်ဂျင်နီယာစနစ်"
-
-msgid "dev_settings"
+msgid "google_and_apple_sign_in_blocked"
 msgstr ""
-"ဤချိန်ညှိချက်များသည် အမှားရှာပြုပြင်မှုအတွက် အသုံးပြုရန်သာဖြစ်သည်။ "
-"ချိန်ညှိချက်တစ်ခုခုကို ပြောင်းလဲခြင်းဖြင့် အပလီကေးရှင်းကို အလိုအလျောက် "
-"ရပ်တန့်စေပြီး ပြန်လည်စတင်စေမည်ဖြစ်သည်။"
+"Google နှင့် Apple ဝင်ရောက်မှုကို ဤဒေသတွင် ပိတ်ဆို့ထားနိုင်သည်။ "
+"သင့်အကောင့်ကို အပြီးပြင်ဆင်ရန်၊ ကျေးဇူးပြု၍ ပထမဦးစွာ VPN ကို ဖွင့်ပါ။"
 
-msgid "dev_payment_mode"
+msgid "continue_without_vpn"
+msgstr "VPN မပါဘဲ ဆက်လုပ်ပါ"
+
+msgid "turn_on_vpn"
+msgstr "VPN ကို ဖွင့်ပါ"
+
+msgid "server_setup_do"
+msgstr "DigitalOcean အသုံးပြု၍ စနစ်ထည့်ပါ"
+
+msgid "server_setup_do_price"
+msgstr "Digital Ocean မှတဆင့် တစ်လ %s သာ"
+
+msgid "server_setup_gcp"
+msgstr "Google Cloud Platform အသုံးပြု၍ စနစ်ထည့်ပါ"
+
+msgid "continue_with_do"
+msgstr "Digital Ocean နှင့် ဆက်လုပ်ပါ"
+
+msgid "do_allows"
 msgstr ""
-"ပေးချေမှုစမ်းသပ်မုဒ်ကို ဖွင့်ထားသည့်အခါ အက်ပ်သည် ရင်းမြစ်ကုဒ်အတွင်း "
-"ထည့်သွင်းထားသည့် စကားဝှက်သုံး အသုံးပြုသူစနစ်ကိုသာ အသုံးပြုမည်ဖြစ်သည်။ သင်သည်"
-" Stripe ဝယ်ယူမှုများအား နံပါတ် 4242 4242 4242 4242 ကို အသုံးပြုပြီး "
-"သက်တမ်းကုန်ဆုံးရက်မတိုင်မီ မည်သည့် CVV ကိုမဆို အသုံးပြု၍ ပြုလုပ်နိုင်သည်။"
+"Digital Ocean သည် အောက်ပါ ရွေးချယ်စရာ %d မှ ဆာဗာတည်နေရာတစ်ခုကို ရွေးချယ်ရန် "
+"ခွင့်ပြုသည်"
 
-msgid "Payment Test Mode"
-msgstr "ပေးချေမှုစမ်းသပ်မုဒ်"
+msgid "server_setup_gcp_price"
+msgstr "GCP မှတဆင့် တစ်လ %s သာ"
 
-msgid "Play Version"
-msgstr "Play ဗားရှင်း"
+msgid "continue_with_gcp"
+msgstr "Google နှင့် ဆက်လုပ်ပါ"
 
-msgid "Force Country"
-msgstr "လုပ်သားအင်အား နိုင်ငံ"
-
-msgid "Error"
-msgstr "အမှား"
-
-msgid "accept"
-msgstr "လက်ခံမည်"
-
-msgid "cancel"
-msgstr "ပယ်ဖျက်ပါ"
-
-msgid "reject"
-msgstr "ငြင်းပယ်မည်"
-
-msgid "copied"
-msgstr "ကူးယူပြီးပြီ။"
-
-msgid "saved"
-msgstr "သိမ်းဆည်းပြီးပြီ။"
-
-msgid "new_chat"
-msgstr "ချက်အသစ်"
-
-msgid "your_contact_info"
-msgstr "သင့်အား ဆက်သွယ်ရန် အချက်အလက်"
-
-msgid "display_name"
-msgstr "ပြသလိုသည့် အမည်"
-
-msgid "edit"
-msgstr "ပြင်ဆင်မည်"
-
-msgid "save_error"
-msgstr "သိမ်းဆည်းနေစဉ် တစ်စုံတစ်ခု မှားသွားသည်။"
-
-msgid "fewer_options"
-msgstr "ရွေးချယ်မှုများနည်းသည် "
-
-msgid "more_options"
-msgstr "ရွေးချယ်မှုများပိုမိုရှိသည် "
-
-msgid "block_user"
-msgstr "အသုံးပြုသူကို ပိတ်ဆို့မည်"
-
-msgid "unblock_user"
-msgstr "အသုံးပြုသူကို ပြန်ဖွင့်ပေးမည်"
-
-msgid "block"
-msgstr "ပိတ်ဆို့မည်"
-
-msgid "unblock"
-msgstr "ပြန်ဖွင့်ပေးမည်"
-
-msgid "block_info_title"
-msgstr "%s ကို ပိတ်ဆို့မလား။"
-
-msgid "no_blocked_users"
-msgstr "ပိတ်ဆို့ထားသည့် အသုံးပြုသူများမရှိပါ။"
-
-msgid "unblock_info_title"
-msgstr "%sကို ပြန်ဖွင့်ပေးမလား။"
-
-msgid "block_info_description"
+msgid "gcp_allows"
 msgstr ""
-"ဤအသုံးပြုသူကို ပိတ်ဆို့ခြင်းက ချက်မှတ်တမ်းကို ဖျက်ပစ်ပြီး ၎င်းတို့က "
-"နောက်နောင် သင့်အား ဆက်သွယ်ခြင်းမှ တားဆီးပေးပါလိမ့်မည်။ သင်သည် "
-"ချိန်ညှိချက်များ မီနူးမှနေ၍ အသုံးပြုသူများကို ပြန်ဖွင့်ပေးနိုင်သည်။"
+"Google Cloud Platform သည် အောက်ပါ ရွေးချယ်စရာ %d မှ ဆာဗာတည်နေရာတစ်ခုကို "
+"ရွေးချယ်ရန် ခွင့်ပြုသည်-"
 
-msgid "unblock_info_description"
-msgstr ""
-"%s သည် ယခုအခါ သင့်ကို မက်ဆေ့ချ် ပို့နိုင်ပါတော့မည်။ ၎င်းတို့အား သင်က "
-"ပြန်ဖွင့်ပေးသည်ကို ၎င်းတို့ထံ အသိပေးမည်မဟုတ်ပါ။"
+msgid "server_setup_aws"
+msgstr "Digital Ocean တွင် ကိုယ်ပိုင်ဆာဗာ စနစ်ထည့်ပါ"
 
-msgid "block_info_checkbox"
-msgstr ""
-"ဤသို့ပြုလုပ်ခြင်းက ချက်မှတ်တမ်းတစ်ခုလုံးအား ဖျက်ပစ်မည်ကို ကျွန်ုပ် "
-"နားလည်သဘောပေါက်ပါသည်။"
+msgid "server_setup_aws_price"
+msgstr "AWS မှတဆင့် တစ်လ %s သာ"
 
-msgid "unblock_info_checkbox"
-msgstr "ဤအဆက်အသွယ်ကို ကျွန်ုပ် ပြန်ဖွင့်ပေးလိုကြောင်း ကျွန်ုပ် အတည်ပြုပါသည်။"
+msgid "server_setup_manual"
+msgstr "လက်ဖြင့် စနစ်ထည့်ပါ"
 
-msgid "delete_permanently"
-msgstr "အသုံးပြုသူကို အမြဲတမ်း ဖျက်ပစ်မည်"
+msgid "seamless_integration"
+msgstr "Lantern နှင့် ချောမွေ့စွာ ပေါင်းစပ်ခြင်း"
 
-msgid "delete_info_description"
-msgstr ""
-"ဖျက်လိုက်သည်နှင့် သင်သည် ၎င်းတို့ကို တဖန် ချက်ပြောဆိုလိုပါက ၎င်းတို့၏ "
-"ဆက်သွယ်ရန် အချက်အလက်ကို ထည့်သွင်းရန် လိုအပ်ပါလိမ့်မည်။"
+msgid "easiest_setup"
+msgstr "အလွယ်ဆုံး စနစ်ထည့်ခြင်း လုပ်ငန်းစဉ်"
 
-msgid "add_new_contact"
-msgstr "အဆက်အသွယ်အသစ်ကို ထည့်သွင်းမည်"
+msgid "multiple_location_options"
+msgstr "များစွာသော ဆာဗာတည်နေရာ ရွေးချယ်စရာများ"
 
-msgid "add_contact"
-msgstr "အဆက်အသွယ်ကို ထည့်သွင်းမည်"
+msgid "one_month_included"
+msgstr "%d TB/လ ဒေတာ ပါဝင်သည်"
 
-msgid "share_your_chat_number"
-msgstr "သင်၏ ချက်နံပါတ်ကို မျှဝေမည်"
+msgid "easiest_setup_process"
+msgstr "အလွယ်ဆုံး စနစ်ထည့်ခြင်း လုပ်ငန်းစဉ်"
 
-msgid "scan_qr_code"
-msgstr "QR ကုဒ်ကို စကန်ဖတ်မည်"
+msgid "setup_a_private_server"
+msgstr "ကိုယ်ပိုင်ဆာဗာ စနစ်ထည့်ပါ"
 
-msgid "add_contact_in_person"
-msgstr "အဆက်အသွယ်များကို လူကိုယ်တိုင် ထည့်သွင်းမည်"
+msgid "setup_private_server"
+msgstr "ကိုယ်ပိုင်ဆာဗာ စနစ်ထည့်ပါ"
 
-msgid "start_chat"
-msgstr "ချက် စတင်မည်"
-
-msgid "your_installed_apps"
-msgstr "သင့်တပ်ဆင်ထားသော အက်ပ်များ "
-
-msgid "apps_routed_through_lantern"
-msgstr "Lantern ဖြင့် လမ်းကြောင်းသွားသော အက်ပ်များ "
-
-msgid "apps_to_unblock"
-msgstr ""
-"သင်ဖွင့်လိုသော အက်ပ်များကို ရွေးချယ်ပါ။ ဆက်သွယ်ပါက အောက်ပါ အက်ပ်များသာ "
-"Lantern ဖြင့် လမ်းကြောင်းသွားပါမည်။ "
-
-msgid "split_tunneling"
-msgstr "အပိုတန်းနယ်လမ်းကြောင်းခွဲခြားခြင်း "
-
-msgid "split_tunneling_info"
-msgstr ""
-"အပိုတန်းနယ်လမ်းကြောင်းခွဲခြားခြင်းကို ဖွင့်ထားပါက ရွေးချယ်ထားသော "
-"အက်ပ်များသည် Lantern ဖြင့် လမ်းကြောင်းသွားပါမည်။ ဒါက "
-"တိုးတက်မှုမြင့်မားစေပြီး သတ်မှတ်ထားသော အက်ပ်များကိုသာ အခက်အခဲကင်းစွာ "
-"ဖြေရှင်းပေးနိုင်သည်။ "
-
-msgid "applied_next_time"
-msgstr ""
-"အပိုတန်းနယ်လမ်းကြောင်းခွဲခြားခြင်း အသစ်ကို နောက်တစ်ကြိမ်ဆက်သွယ်ပါက "
-"ဆက်သွယ်မှုတွင် အသုံးပြုမည်။ "
-
-msgid "message_disappearing"
-msgstr "မက်ဆေ့ချ်အားလုံးသည် သင်နှင့် %s အတွက် ပျောက်သွားမည်မဟုတ်ပါ။"
-
-msgid "message_disappearing_description"
-msgstr "မက်ဆေ့ချ်အားလုံးသည် သင်နှင့် %s အတွက် %s အကြာတွင် ပျောက်သွားပါမည်။"
-
-msgid "view_contact_info"
-msgstr "အဆက်အသွယ် အချက်အလက်ကို ကြည့်မည်"
-
-msgid "off"
-msgstr "ပိတ်"
-
-msgid "on"
-msgstr "ဖွင့်"
-
-msgid "continue"
-msgstr "ဆက်သွားပါ"
-
-msgid "continue_to_pro"
-msgstr "Pro ကိုဆက်သွားပါ"
-
-msgid "are_you_sure_you_want_to_open"
-msgstr "%s ကို သင်ဖွင့်လိုသည်မှာ သေချာပါသလား။"
-
-msgid "set"
-msgstr "သတ်မှတ်မည်"
-
-msgid "menu"
-msgstr "မီနူး"
-
-msgid "send_error"
-msgstr "သင့်မက်ဆေ့ချ်ကို ပေးပို့နေစဉ် တစ်စုံတစ်ခု မှားသွားသည်။"
-
-msgid "share_media_error"
-msgstr "မီဒီယာဖိုင်ကို မျှဝေနေစဉ် တစ်စုံတစ်ခု မှားသွားသည်။"
-
-msgid "no_recents"
-msgstr "မကြာသေးမီက ပြုလုပ်ထားသည်များ မရှိပါ"
-
-msgid "set_display_name"
-msgstr "ပြသလိုသည့် အမည်ကို သတ်မှတ်မည်"
-
-msgid "introduce_contact"
-msgstr "အဆက်အသွယ်ကို မိတ်ဆက်မည်"
-
-msgid "introduce_contacts"
-msgstr "အဆက်အသွယ်များကို မိတ်ဆက်မည်"
-
-msgid "introduce_contacts_with_count"
-msgstr "အဆက်အသွယ်များ (%s) ကို မိတ်ဆက်မည်"
-
-msgid "need_two_contacts_to_introduce"
-msgstr ""
-"သင့်တွင် အဆက်အသွယ် နှစ်ခု သို့မဟုတ် အထက် ရှိသည်နှင့် မိတ်ဆက်စကားများကို "
-"ဖန်တီးနိုင်မည်ဖြစ်သည်။"
-
-msgid "introduce_contacts_select"
-msgstr ""
-"မိတ်ဆက်ရန်အတွက် အဆက်အသွယ် နှစ်ခု သို့မဟုတ် အထက်ကို ရွေးချယ်ပါ။ "
-"တစ်ဦးနှင့်တစ်ဦး မက်ဆေ့ချ်ပေးပို့မှုကို စတင်ရန်အတွက် ၎င်းတို့ထံသို့ "
-"မိတ်ဆက်စကားများကို ပေးပို့ပါမည်။"
-
-msgid "introduce_single_contact"
-msgstr ""
-"%s ထံသို့ မိတ်ဆက်ရန် အဆက်အသွယ်ကို ရွေးချယ်ပါ။ မိတ်ဆက်စကားကို ၎င်းတို့က "
-"ခွင့်ပြုသည်နှင့် ၎င်းတို့ တစ်ဦးနှင့်တစ်ဦး မက်ဆေ့ချ်ပေးပို့နိုင်ပါလိမ့်မည်။"
-
-msgid "send_introductions"
-msgstr "မိတ်ဆက်စကားများ ပေးပို့မည်"
-
-msgid "introductions_sent"
-msgstr "မိတ်ဆက်စကားများ ပေးပို့ပြီးပြီ။"
-
-msgid "no_contacts_yet"
-msgstr "အဆက်အသွယ်များ မရှိသေးပါ"
-
-msgid "contact_verification"
-msgstr "အဆက်အသွယ် စိစစ်အတည်ပြုမှု"
-
-msgid "verification"
-msgstr "စိစစ်အတည်ပြုမှု"
-
-msgid "contact_verification_description"
-msgstr ""
-"အဆက်အသွယ် စိစစ်အတည်ပြုမှုကို အထက်ညာဘက်ရှိ မက်ဆေ့ချ်မီနူးမှ "
-"အမြဲပြုလုပ်နိုင်သည်။"
-
-msgid "qr_error_description"
-msgstr "ဤ QR ကုဒ်ကို စကန်ဖတ်စဉ် တစ်စုံတစ်ခု မှားသွားသည်။"
-
-msgid "qr_info_verification_title"
-msgstr "လူကိုယ်တိုင် စိစစ်အတည်ပြုမှုဖြင့်"
-
-msgid "qr_info_f2f_title"
-msgstr "QR ကုဒ်ကို စကန်ဖတ်နေသည်"
-
-msgid "qr_info_verification_des"
-msgstr ""
-"သင့်အဆက်အသွယ်ကို စိစစ်အတည်ပြုရန် တစ်ဦးနှင့်တစ်ဦး၏ QR ကုဒ်များကို စကန်ဖတ်ပါ။\n"
-"\n"
-"ဤလုပ်ငန်းစဉ်သည် ကိုယ်ရေးလုံခြုံမှုနှင့် သင့်စကားပြောဆိုမှုများအတွက် နှစ်ဖက်လုံးအတွက် လျှို့ဝှက်ကုဒ်သွင်းမှုကို သေချာစေသည်။"
-
-msgid "qr_info_f2f_des"
-msgstr ""
-"သင့်မိတ်ဆွေကို အဆက်အသွယ်အဖြစ် ထည့်သွင်းရန် တစ်ဦးနှင့်တစ်ဦး၏ QR ကုဒ်များကို စကန်ဖတ်ပါ။\n"
-"ဤလုပ်ငန်းစဉ်သည် ကိုယ်ရေးလုံခြုံမှုနှင့် သင့်စကားပြောဆိုမှုများအတွက် နှစ်ဖက်လုံးအတွက် လျှို့ဝှက်ကုဒ်သွင်းမှုကို သေချာစေသည်။"
-
-msgid "qr_info_verification_scan"
-msgstr "စိစစ်အတည်ပြုရန် တစ်ဦးနှင့်တစ်ဦး၏ QR ကုဒ်များကို စကန်ဖတ်ပါ။"
-
-msgid "qr_info_f2f_scan"
-msgstr "အဆက်အသွယ်ကို ထည့်သွင်းရန် တစ်ဦးနှင့်တစ်ဦး၏ QR ကုဒ်များကို စကန်ဖတ်ပါ။"
-
-msgid "qr_success_snackbar"
-msgstr "%s သည် အဆက်အသွယ်ဖြစ်သည်။"
-
-msgid "qr_info_waiting_qr"
-msgstr "သင့် QR ကုဒ်ကို စကန်ဖတ်ပေးမည့် သင့်မိတ်ဆွေကို စောင့်ဆိုင်းနေသည်..."
-
-msgid "scan_complete"
-msgstr "စကန်ဖတ်ခြင်း ပြီးဆုံးပါပြီ"
-
-msgid "qr_for_your_contact"
-msgstr "သင့် QR ကုဒ်"
-
-msgid "add_via_chat_number"
-msgstr "ချက်နံပါတ်မှတဆင့် ထည့်သွင်းမည်"
-
-msgid "qr_info_waiting_id"
-msgstr ""
-"သင့် မက်ဆင်ဂျာအိုင်ဒီကို ရိုက်ထည့်ပေးမည့် သို့မဟုတ် သင့် QR ကုဒ်ကို "
-"စကန်ဖတ်ပေးမည့် သင့်မိတ်ဆွေကို စောင့်ဆိုင်းနေသည်..."
-
-msgid "chat_number_not_found"
-msgstr ""
-"ချတ် နံပါတ်ကို ရှာမတွေ့ပါ။\n"
-"သင်ထည့်သွင်းသော နံပါတ်ကို စစ်ဆေးပြီး ထပ်မံကြိုးစားပါ။"
-
-msgid "unable_to_add_contact"
-msgstr ""
-"အဆက်အသွယ်ကို ရှာမတွေ့ပါ။\n"
-"သင်ထည့်သွင်းသော နံပါတ်ကို စစ်ဆေးပြီး ထပ်မံကြိုးစားပါ။"
-
-msgid "self_adding"
-msgstr "သင်ရိုက်ထည့်ထားသည့် ချက်နံပါတ်သည် သင့်နံပါတ်ဖြစ်သည်"
-
-msgid "chat_number_type"
-msgstr "ချက်နံပါတ်ကို ရိုက်ထည့်ပါ"
-
-msgid "letter_and_numbers_only"
-msgstr "အက္ခရာများနှင့် ဂဏန်းများသာ"
-
-msgid "name_your_contact"
-msgstr "သင့်အဆက်အသွယ်ကို အမည်ပေးမည်"
-
-msgid "messenger_id_invalid"
-msgstr "မက်ဆင်ဂျာအိုင်ဒီ မမှန်ကန်ပါ"
-
-msgid "username_not_found"
-msgstr "အသုံးပြုသူအမည်ကို မတွေ့ရှိပါ"
-
-msgid "contact_id_your_id"
-msgstr "သင့်မက်ဆင်ဂျာအိုင်ဒီ"
-
-msgid "introductions"
-msgstr "မိတ်ဆက်စကားများ"
-
-msgid "introduced"
-msgstr "%s က မိတ်ဆက်ထားသည်"
-
-msgid "introductions_title"
-msgstr "%s အတွက် မိတ်ဆက်စကားကို လက်ခံမည်"
-
-msgid "introductions_info"
-msgstr ""
-"နှစ်ဖက်စလုံးသည် တစ်ဦးနှင့်တစ်ဦး ချက်ပြောဆိုရန် မိတ်ဆက်စကားကို "
-"လက်ခံရမည်ဖြစ်သည်။ မိတ်ဆက်စကားများသည် မည်သည့်လုပ်ဆောင်ချက်မရှိပါက 7 "
-"ရက်အကြာတွင် ပျောက်သွားပါမည်။"
-
-msgid "introduction_reject_title"
-msgstr "မိတ်ဆက်စကားကို ငြင်းပယ်မည်"
-
-msgid "introduction_reject_content"
-msgstr ""
-"သင်က မိတ်ဆက်စကားကို ငြင်းပယ်ပါက ဤအဆက်အသွယ်ကို မက်ဆေ့ချ်ပေးပို့ရန် "
-"တတ်နိုင်မည်မဟုတ်ပါ။"
-
-msgid "introductions_error_description_rejecting"
-msgstr "ဤဆက်သွယ်မှုတောင်းဆိုချက်ကို ငြင်းပယ်စဉ် တစ်စုံတစ်ခု မှားသွားသည်။"
-
-msgid "introductions_error_description_accepting"
-msgstr "ဤဆက်သွယ်မှုတောင်းဆိုချက်ကို လက်ခံစဉ် တစ်စုံတစ်ခု မှားသွားသည်။"
-
-msgid "no_introductions"
-msgstr "ဆိုင်းငံ့ထားသည့် မိတ်ဆက်စကားများ မရှိပါ။"
-
-msgid "introduction_approved"
-msgstr "%s အတွက် မိတ်ဆက်စကားကို ခွင့်ပြုပြီးပါပြီ။"
-
-msgid "delete_contact_name"
-msgstr "%s ကို ဖျက်မည်"
-
-msgid "delete_contact"
-msgstr "အဆက်အသွယ်ကို ဖျက်ပစ်မည်"
-
-msgid "error"
-msgstr "အမှား"
-
-msgid "error_delete_contact"
-msgstr "ဤအဆက်အသွယ်ကို ဖျက်နေစဉ် တစ်စုံတစ်ခု မှားသွားသည်။"
-
-msgid "unnamed_contact"
-msgstr "အမည်တပ်မထားသည့် အဆက်အသွယ်"
-
-msgid "me"
-msgstr "ကျွန်ုပ်ထံသို့"
-
-msgid "disappearing_messages"
-msgstr "ပျောက်နေသည့် မက်ဆေ့ချ်များ"
-
-msgid "start_of_your_history"
-msgstr ""
-"%s နှင့်ပြုလုပ်ထားသည့် သင့်ချက်များနှင့် အသံခေါ်ဆိုမှုများကို "
-"နှစ်ဖက်လုံးအတွက် လျှို့ဝှက်ကုဒ်သွင်းထားသည်"
-
-msgid "banner_unaccepted"
-msgstr ""
-"%s သည် သင့်အဆက်အသွယ်များ၏ စာရင်းတွင် ရှိမနေပါ။ ချက်တောင်းဆိုမှုကို "
-"လက်ခံလိုပါသလား။"
-
-msgid "banner_messages_persist"
-msgstr "မက်ဆေ့ချ်အသစ်များသည် ပျောက်မသွားပါ။"
-
-msgid "banner_message_retention"
-msgstr "မက်ဆေ့ချ် ထိန်းသိမ်းမှုကို %s အထိ သတ်မှတ်ထားသည်"
-
-msgid "longform_seconds"
-msgstr "%s စက္ကန့်"
-
-msgid "shortform_seconds"
-msgstr "%s စက္ကန့်"
-
-msgid "longform_minute"
-msgstr "%s မိနစ်"
-
-msgid "shortform_minutes"
-msgstr "%s မိနစ်"
-
-msgid "longform_minutes"
-msgstr "%s မိနစ်"
-
-msgid "longform_hour"
-msgstr "%s နာရီ"
-
-msgid "shortform_hours"
-msgstr "%s နာရီ"
-
-msgid "longform_hours"
-msgstr "%s နာရီ"
-
-msgid "longform_day"
-msgstr "%s ရက်"
-
-msgid "shortform_days"
-msgstr "%s ရက်"
-
-msgid "longform_days"
-msgstr "%s ရက်"
-
-msgid "longform_week"
-msgstr "%s ရက်သတ္တပတ်"
-
-msgid "shortform_weeks"
-msgstr "%s ရက်သတ္တပတ်"
-
-msgid "longform_weeks"
-msgstr "%s ရက်သတ္တပတ်"
-
-msgid "unknown"
-msgstr "မသိဘူး"
-
-msgid "banner_source_qr"
-msgstr "QR ကုဒ်"
-
-msgid "banner_source_id"
-msgstr "မက်ဆင်ဂျာ အိုင်ဒီ"
-
-msgid "banner_source_intro"
-msgstr "မိတ်ဆက်စကား"
-
-msgid "message_will_disappear_at"
-msgstr "%s ပျောက်သွားသည်"
-
-msgid "change_display_name"
-msgstr "ပြသလိုသည့်အမည်ကို ပြောင်းမည်"
-
-msgid "yesterday"
-msgstr "မနေ့က"
-
-msgid "tomorrow"
-msgstr "မနက်ဖန်"
-
-msgid "just_now"
-msgstr "ယခုပင်"
-
-msgid "within_one_minute"
-msgstr "တစ်မိနစ်အတွင်း"
-
-msgid "on_date"
-msgstr "%s ၌"
-
-msgid "at_date"
-msgstr "%s တွင်"
-
-msgid "error_fetching_message_preview"
-msgstr "မက်ဆေ့ချ် အကြိုကြည့်ရှုမှုကို ရယူနေစဉ် ချွတ်ယွင်းချက်ဖြစ်ပေါ်သည်"
-
-msgid "message_was_deleted"
-msgstr "မက်ဆေ့ချ်ကို ဖျက်ထားသည်"
-
-msgid "contact_was_deleted"
-msgstr "%s ကို သင့်အဆက်အသွယ်များမှ ဖျက်ထားပြီးပြီ။"
-
-msgid "contact_was_blocked"
-msgstr "%s ကို ပိတ်ဆို့ပြီးပြီ။"
-
-msgid "contact_was_unblocked"
-msgstr "%s ကို ပြန်ဖွင့်ပြီးပြီ။"
-
-msgid "dismiss"
-msgstr "ဖယ်ထုတ်မည်"
-
-msgid "copy_text"
-msgstr "စာသားကို ကူးယူမည်"
-
-msgid "message"
-msgstr "မက်ဆေ့ချ်"
-
-msgid "messages"
-msgstr "မက်ဆေ့ချ်များ"
-
-msgid "chats"
-msgstr "ချက်များ"
-
-msgid "new_requests"
-msgstr "တောင်းဆိုမှုအသစ်များ %s"
-
-msgid "chat"
-msgstr "ချက်"
-
-msgid "lantern_chat"
-msgstr "Lantern Chat"
-
-msgid "welcome_title"
-msgstr "Lantern Chat မှ ကြိုဆိုပါတယ်။"
-
-msgid "welcome_text"
-msgstr ""
-"အဆင့်အမြင့်ဆုံး ပိတ်ဆို့မှုခုခံရေးနည်းပညာနှင့် ချိတ်ဆက်ထားပြီး "
-"သင့်ကိုယ်ရေးလုံခြုံမှုကို ကာကွယ်ပေးမည့် လျှို့ဝှက်ကုဒ်စနစ်သုံး "
-"ချက်ဖြစ်ပါသည်။"
-
-msgid "get_started"
-msgstr "စတင်ကြပါစို့"
-
-msgid "want_to_recover"
-msgstr "ချက်နံပါတ်ကို ရယူမလား။"
-
-msgid "recover"
-msgstr "ပြန်လည်ရယူမည်"
-
-msgid "chat_number"
-msgstr "ချက်နံပါတ်"
-
-msgid "your_chat_number"
-msgstr "သင်၏ ချက်နံပါတ်"
-
-msgid "chat_number_recovery"
-msgstr "ချက်နံပါတ် ပြန်လည်ရယူမှု"
-
-msgid "recovery_helper_text"
-msgstr "မှန်ကန်သည့် ပြန်လည်ရယူမှုကီးကို ရိုက်ထည့်ပါ"
-
-msgid "recovery_button"
-msgstr ""
-"သင့်ချက်နံပါတ်ကို မူလအတိုင်းပြန်ထားရန် သင့် ပြန်လည်ရယူမှုကီးကို ရိုက်ထည့်ပါ။"
-
-msgid "recovery_label"
-msgstr "သင့် ပြန်လည်ရယူမှုကီးကို ရိုက်ထည့်ပါ"
-
-msgid "recovery_key"
-msgstr "ပြန်လည်ရယူမှုကီး"
-
-msgid "secure_text_explanation"
-msgstr ""
-"သင့်ချက်နံပါတ်သည် ဖုန်းနံပါတ်ကဲ့သို့ အသုံးပြုနိုင်ပြီး သင့်မိတ်ဆွေများက "
-"Lantern တွင် သင့်ကို ဆက်သွယ်ရာတွင် အသုံးပြုနိုင်သည်။"
-
-msgid "secure_text_explanation_account"
-msgstr ""
-"၎င်းသည် သင့်ချက်နံပါတ်၏ အပြည့်အစုံဗားရှင်းဖြစ်ပြီး အထူးသဖြင့် သင့်တွင် နှစ်ဖက်လျှို့ဝှက်ကုဒ်သွင်းထားသည့် ချန်နယ်ရှိပြီး ဤနံပါတ်အရှည်ကို ၎င်းတွင် မျှဝေခြင်းသည် ပိုမိုလုံခြုံနိုင်သည်။\n"
-"\n"
-"Lantern သည် ဆက်သွယ်ရန် အချက်အလက် မျှဝေမှုကို ပိုမိုလွယ်ကူစေရန်အတွက် အတိုကောက်ပြုလုပ်ထားသည့် ချက်နံပါတ်ကို ပံ့ပိုးပေးသည်။"
-
-msgid "recovery_key_account_explanation"
-msgstr ""
-"ဤကီးကို လုံခြုံသည့်နေရာတွင် သိမ်းဆည်းထားပြီး မည်သူ့ကိုမှ မမျှဝေပါနှင့်။ "
-"သင့်ဖုန်းပျောက်သွားလျှင်၊ ကိရိယာများ ပြောင်းလဲသွားလျှင် သို့မဟုတ် "
-"စက်လည်ပတ်စနစ်ကို မူလအတိုင်းပြန်ထားလျှင် ၎င်းသည် သင့်ချက်နံပါတ်ကို "
-"ပြန်လည်ရယူနိုင်သည့် တစ်ခုတည်းသောနည်းဖြစ်သည်။"
-
-msgid "recovery_error"
-msgstr "သင့်အကောင့်ကို ပြန်လည်မရယူနိုင်ပါ။"
-
-msgid "recovery_input_error"
-msgstr "မှန်ကန်သော ပြန်လည်ရယူရေးကီးကို ထည့်သွင်းထားကြောင်း သေချာပါစေ"
-
-msgid "recovery_retrieval_error"
-msgstr "သင့်အကောင့်ကို ပြန်လည်ရယူနေစဉ် တစ်စုံတစ်ခု မှားယွင်းသွားသည်"
-
-msgid "recovery_success"
-msgstr "သင့်ချက်နံပါတ်ကို အောင်မြင်စွာ ပြန်လည်ရယူပြီးပြီ"
-
-msgid "empty_chats_text"
-msgstr ""
-"သင့်ချက်နံပါတ်ကို မျှဝေပါ သို့မဟုတ် အဆက်အသွယ်ကို ဤနေရာတွင် ပေါင်းထည့်ပါ။"
+msgid "previous"
+msgstr "ယခင်"
 
 msgid "next"
 msgstr "နောက်တစ်ခု"
 
-msgid "automated_backup"
-msgstr "အလိုအလျောက်လုပ်ဆောင်သည့် အရန်သိမ်းဆည်းမှု"
-
-msgid "backup_explanation"
-msgstr ""
-"Lantern သည် သင့်အဆက်အသွယ်များအား ကျွန်ုပ်တို့၏ လုံခြုံသော ဆာဗာများတွင် လျှို့ဝှက်ကုဒ်သွင်းပြီး အရန်သိမ်းဆည်းရန် ရွေးချယ်စရာကို ပံ့ပိုးပါသည်။ သင့်အရန်သိမ်းဆည်းမှုကို မေ့လျော့သွားပါက သင့် ပြန်လည်ရယူမှုကီးကို အသုံးပြု၍ သင့်အဆက်အသွယ်များကို ပြန်လည်ရယူနိုင်တော့မည်မဟုတ်ပါ။\n"
-"\n"
-"သင့်အဆက်အသွယ်ကို အရန်သိမ်းဆည်းရန် သင်ရွေးချယ်သည့်အခါ  Lantern သည် ၎င်းတို့ကို ဖတ်ရှုမရနိုင်ပါ။"
-
-msgid "backup_contacts"
-msgstr "အဆက်အသွယ်များကို အရန်သိမ်းဆည်းမည်"
-
-msgid "copy_recovery_key"
-msgstr "ပြန်လည်ရယူမှုကီးကို ကူးယူမည်"
-
-msgid "search"
-msgstr "ရှာပါ"
-
-msgid "account_management"
-msgstr "အကောင့်စီမံခန့်ခွဲမှု"
-
-msgid "add_via_username"
-msgstr "အသုံးပြုသူအမည်မှတစ်ဆင့် ပေါင်းထည့်မည်"
-
-msgid "username"
-msgstr "အသုံးပြုသူအမည်"
-
-msgid "enter_a_username_to_start_a_conversation"
-msgstr "မက်ဆေ့ချ် စကားဝိုင်းကို စတင်ရန် အသုံးပြုသူအမည်ကို ရိုက်ထည့်ပါ"
-
-msgid "start_message"
-msgstr "မက်ဆေ့ချ်ကို စတင်မည်"
-
-msgid "please_enter_a_valid_username"
-msgstr "မှန်ကန်သည့် အသုံးပြုသူအမည်ကို ရိုက်ထည့်ပါ"
-
-msgid "open_url"
-msgstr "URL ဖွင့်မည်"
-
-msgid "message_deleted"
-msgstr "%s သည် ဤမက်ဆေ့ချ်ကို ဖျက်ထားသည်"
-
-msgid "never"
-msgstr "မည်သည့်အခါမှ မဟုတ်"
-
-msgid "delete_for_me"
-msgstr "ကျွန်ုပ်အတွက် ဖျက်မည်"
-
-msgid "delete_for_me_explanation"
-msgstr ""
-"ဤသို့ပြုလုပ်ခြင်းက မက်ဆေ့ချ်ကို သင့်အတွက်သာ ဖျက်ပစ်မည်ဖြစ်သည်။ "
-"အခြားသူတိုင်းက ၎င်းကို တွေ့မြင်နိုင်ဦးမည်ဖြစ်သည်။"
-
-msgid "delete_for_everyone"
-msgstr "လူတိုင်းအတွက် ဖျက်မည်"
-
-msgid "delete_for_everyone_explanation"
-msgstr "ဤသို့ပြုလုပ်ခြင်းက မက်ဆေ့ချ်ကို လူတိုင်းအတွက် ဖျက်ပစ်မည်ဖြစ်သည်။"
-
-msgid "reply"
-msgstr "အကြောင်းပြန်မည်"
-
-msgid "replying_to"
-msgstr "%s ထံသို့ အကြောင်းပြန်နေသည်"
-
-msgid "attachment"
-msgstr "ပူးတွဲဖိုင်"
-
-msgid "error_rendering_message"
-msgstr "မက်ဆေ့ချ်ကို ပြသနေစဉ် ချွတ်ယွင်းချက် ဖြစ်ပေါ်သည်"
-
-msgid "error_fetching_preview"
-msgstr "မက်ဆေ့ချ် အကြိုကြည့်ရှုမှုကို ရယူနေစဉ် ချွတ်ယွင်းချက်ရှိနေသည်"
-
-msgid "audio"
-msgstr "အော်ဒီယို"
-
-msgid "image"
-msgstr "ပုံ"
-
-msgid "images"
-msgstr "ပုံများ"
-
-msgid "video"
-msgstr "ဗီဒီယို"
-
-msgid "videos"
-msgstr "ဗွီဒီယိုများ"
-
-msgid "app"
-msgstr "အက်ပလီကေးရှင်းများ"
-
-msgid "document"
-msgstr "စာရွက်စာတမ်းများ"
-
-msgid "search_chars_min"
-msgstr "စာလုံးအနည်းဆုံး သုံးလုံးရိုက်ထည့်ပါ"
-
-msgid "search_no_results"
-msgstr "ဝမ်းနည်းပါတယ်၊ ဒီရှာဖွေမှုအတွက် ကိုက်ညီတဲ့အရာကို ရှာဖွေမပေးနိုင်ပါ။"
-
-msgid "search_error"
-msgstr ""
-"ဝမ်းနည်းပါတယ်၊ ရှာဖွေမှုရလာဒ်တွေကို ပြန်လည်ရယူနေစဉ် ချွတ်ယွင်းချက် "
-"ဖြစ်ပေါ်ခဲ့ပါတယ်။"
-
-msgid "search_contacts"
-msgstr "အဆက်အသွယ်များ (%s)"
-
-msgid "search_chats"
-msgstr "ချက်များ (%s)"
-
-msgid "search_in_contacts"
-msgstr "အဆက်အသွယ်များအတွင်း ရှာဖွေမည်"
-
-msgid "search_in_chats"
-msgstr "ချက်များနှင့် အဆက်အသွယ်များအတွင်း ရှာဖွေမည်"
-
-msgid "could_not_render_title"
-msgstr "ဖိုင်ခေါင်းစဉ်ကို ပြသမရနိုင်ပါ"
-
-msgid "could_not_render_type"
-msgstr "ဖိုင်အမျိုးအစားကို ပြသမရနိုင်ပါ"
-
-msgid "speaker"
-msgstr "စပီကာ"
-
-msgid "speaker_on"
-msgstr "စပီကာဖွင့်ထားသည်"
-
-msgid "mute"
-msgstr "အသံပိတ်မည်"
-
-msgid "muted"
-msgstr "အသံပိတ်ထားသည်"
-
-msgid "end_call"
-msgstr "ခေါ်ဆိုမှု အဆုံးသတ်မည်"
-
-msgid "verify_contact"
-msgstr "%s ကို စိစစ်အတည်ပြုမည်"
-
-msgid "verified"
-msgstr "စိစစ်အတည်ပြုပြီး"
-
-msgid "pending_verification"
-msgstr "ဆိုင်းငံ့ထားသည့် စိစစ်အတည်ပြုမှု "
-
-msgid "verify_description"
-msgstr ""
-"လုံခြုံရေးလုပ်ထုံးလုပ်နည်းအဖြစ် ကျွန်ုပ်တို့က %s ၏ စိစစ်အတည်ပြုမှုနံပါတ်သည် သင့်နံပါတ်နှင့် ကိုက်ညီမှုရှိမရှိ စစ်ဆေးပေးရန် အကြံပြုပါသည်။ \n"
-"\n"
-"လူကိုယ်တိုင် သို့မဟုတ် ဖုန်းခေါ်ဆိုမှုမှတစ်ဆင့် စိစစ်အတည်ပြုလိုသလား။"
-
-msgid "verify_in_person"
-msgstr "လူကိုယ်တိုင် စိစစ်အတည်ပြုမည်"
-
-msgid "verify_via_call"
-msgstr "အသံခေါ်ဆိုမှုမှတစ်ဆင့် စိစစ်အတည်ပြုမည်"
-
-msgid "dismiss_notification"
-msgstr "အသိပေးချက်ကို ဖယ်ထုတ်မည်"
-
-msgid "call_contact"
-msgstr "%s ကို ခေါ်ဆိုမလား။"
-
-msgid "call"
-msgstr "ခေါ်ဆိုမှု"
-
-msgid "incoming_call"
-msgstr "အဝင်ခေါ်ဆိုမှု"
-
-msgid "call_from"
-msgstr "%s ထံမှ"
-
-msgid "in_call"
-msgstr "အထွက်ခေါ်ဆိုမှုများ"
-
-msgid "in_call_des"
-msgstr "လုပ်ဆောင်ဆဲ ခေါ်ဆိုမှုအတွက် အသိပေးချက်"
-
-msgid "incoming_call_from"
-msgstr "%s ထံမှ အဝင်ခေါ်ဆိုမှု"
-
-msgid "touch_here_to_open_call"
-msgstr "ခေါ်ဆိုမှုကို ဖွင့်ရန် ဤနေရာကို နှိပ်ပါ"
-
-msgid "in_call_with"
-msgstr "%s ဖြင့် အဝင်ခေါ်ဆိုမှု"
-
-msgid "undo_verification"
-msgstr "စိစစ်အတည်ပြုမှုကို ပျက်ပြယ်စေမည်"
-
-msgid "mark_as_verified"
-msgstr "စိစစ်အတည်ပြုပြီးအဖြစ် မှတ်သားမည်"
-
-msgid "verification_panel_success"
-msgstr ""
-"စိစစ်အတည်ပြုမှု အောင်မြင်သည်။ %s နှင့် ပြုလုပ်ထားသည့် သင့်မက်ဆေ့ချ်များ "
-"လုံခြုံပါသည်။"
-
-msgid "verification_panel_pending"
-msgstr ""
-"၎င်းသည် သင့် စိစစ်အတည်ပြုမှုနံပါတ်ဖြစ်သည်။ နံပါတ်များကို "
-"စိစစ်အတည်ပြုပြီးအဖြစ် မမှတ်သားမီ သင့်နံပါတ်သည် %s ၏ နံပါတ်နှင့် "
-"လုံးဝကိုက်ညီမှုရှိမရှိ စစ်ဆေးပါ။"
-
-msgid "replica_upload_confirmation_title"
-msgstr "အရေးကြီးသည်။"
-
-msgid "replica_upload_confirmation_body"
-msgstr ""
-"Lantern ကွန်ရက်သို့ အပ်လုဒ်လုပ်ထားသည့် ဖိုင်များကို မည်သူမဆို ရယူနိုင်သည်။ "
-"၎င်းကို မည်သူမှ ဖျက်ပစ်၍မရပါ။ သင်၏ ဖိုင်ပါအကြောင်းအရာ သို့မဟုတ် "
-"ဖိုင်အမည်တွင် ပုဂ္ဂိုလ်ရေး အချက်အလက်များ သို့မဟုတ် အမျိုးအမည်ဖော်ထုတ်သည့် "
-"အချက်အလက်များ မထည့်ပါနှင့်။"
-
-msgid "replica_upload_confirmation_agree"
-msgstr "တင်နေသည်ကို ဆက်လုပ်ပါ"
-
-msgid "dont_show_me_this_again"
-msgstr "ဤအရာကို ထပ်မံ မပြသပါနှင့်"
-
-msgid "download"
-msgstr "ဒေါင်းလုပ်"
-
-msgid "download_started"
-msgstr "ဒေါင်းလုဒ် စတင်ထားသည်"
-
-msgid "uploader"
-msgstr "အပ်လုဒ်လုပ်သူ"
-
-msgid "upload_started"
-msgstr "အပ်လုဒ် စတင်ထားသည်"
-
-msgid "upload_in_progress"
-msgstr "အပ်လုဒ် လုပ်နေဆဲ"
-
-msgid "upload_complete"
-msgstr "သင့်ဖိုင်ကို အောင်မြင်စွာ တင်လိုက်သည်"
-
-msgid "upload_failed"
-msgstr "အပ်လုဒ် မအောင်မြင်ပါ"
-
-msgid "upload_cancelled"
-msgstr "အပ်လုဒ် ပယ်ဖျက်ထားသည်"
-
-msgid "upload_unknown_error"
-msgstr "တင်ရန် ကြိုးစားနေစဉ် တစ်စုံတစ်ရာ မှားယွင်းသွားသည်"
-
-msgid "download_unknown_error"
-msgstr "%s ကို ဒေါင်းလုဒ်လုပ်ရန် ကြိုးစားနေစဉ် တစ်စုံတစ်ရာ မှားယွင်းသွားသည်"
-
-msgid "replica_link_fetcher"
-msgstr "ပုံတူပွားလင့်ခ်ရယူသည့်ကိရိယာ"
-
-msgid "no_preview_for_this_type_of_file"
-msgstr "ဤဖိုင်အမျိုးအစားအတွက် အကြိုကြည့်ရှုမှုမရှိပါ"
-
-msgid "app_unknown"
-msgstr "အက်ပ်/မသိရှိရ"
-
-msgid "audio_unknown"
-msgstr "အော်ဒီယို/မသိရှိရ"
-
-msgid "document_unknown"
-msgstr "စာရွက်စာတမ်း/မသိရှိရ"
-
-msgid "no_search_result_found"
-msgstr "ဝမ်းနည်းပါတယ်၊ ထိုရှာဖွေမှုအတွက် ကိုက်ညီတဲ့အရာကို ရှာဖွေမပေးနိုင်ပါ"
-
-msgid "search_result_error"
-msgstr "ရလဒ်များ ရယူရာတွင် အမှားအယွင်းဖြစ်သွားသည်၊ နောက်မှ ထပ်မံကြိုးစားပါ"
-
-msgid "video_stream_error"
-msgstr ""
-"ဗီဒီယိုကို အချောသတ်ရာတွင် အမှားအယွင်းဖြစ်သွားသည်၊ နောက်မှ ထပ်မံကြိုးစားပါ"
-
-msgid "untitled"
-msgstr "ခေါင်းစဉ်မဲ့"
-
-msgid "preview_not_available"
-msgstr "အစမ်းကြည့်ရှုမှု မရနိုင်ပါ"
-
-msgid "download_to_view"
-msgstr "၎င်းကိုကြည့်ရန် ဖိုင်ကို ဒေါင်းလုဒ်လုပ်ပါ"
-
-msgid "failed_to_init_replica"
-msgstr "ချွတ်ယွင်းချက်- ပုံတူပွားမှုကို အစပြုလုပ်ဆောင်မရနိုင်ပါ"
-
-msgid "awaiting_result"
-msgstr "ရလာဒ်ကို စောင့်ဆိုင်းနေသည်..."
-
-msgid "discover"
-msgstr "ရှာဖွေပါ"
-
-msgid "replica_search_intro"
-msgstr ""
-"အသုံးပြုသူ အပ်လုဒ်လုပ်ထားသည့် အကြောင်းအရာကို Lantern Network တွင် ရှာပါ "
-"သို့မဟုတ် အခြားသူများရှာတွေ့စေရန် သင့်ကိုယ်ပိုင်အကြောင်းအရာ အပ်လုဒ်လုပ်ပါ။"
-
-msgid "replica_new_discover"
-msgstr "ရှာဖွေလေ့လာရေး အမျိုးအစားအသစ်"
-
-msgid "replica_new_discover_news"
-msgstr "ယခု ရှာဖွေလေ့လာရေးသည် ဆောင်းပါးအသစ်များကို ရှာဖွေနိုင်စေပါသည်။"
-
-msgid "replica_check_it_out"
-msgstr "စစ်ဆေးကြည့်ရှုပါ"
-
-msgid "news"
-msgstr "သတင်း"
-
-msgid "share"
-msgstr "မျှဝေပါ"
-
-msgid "upload_file_screen"
-msgstr "ဖိုင်ကို အပ်လုဒ်လုပ်ပါ"
-
-msgid "edit_title"
-msgstr "ခေါင်းစဉ်ကို တည်းဖြတ်ပါ"
-
-msgid "filenames_cannot_be_edited"
-msgstr "တင်လိုက်သည်နှင့် ဖိုင်အမည်များကို တည်းဖြတ်၍မရတော့ပါ။"
-
-msgid "add_description"
-msgstr "ဖော်ပြချက် ထည့်ပါ"
-
-msgid "no_description"
-msgstr "ဖော်ပြချက်များ ပေးမထားပါ"
-
-msgid "read_details"
-msgstr "PDF ကို ဖတ်ပါ"
-
-msgid "description_initial_value"
-msgstr "တင်လိုက်သည်နှင့် ဖော်ပြချက်ကို မွမ်းမံပြင်ဆင်၍မရတော့ပါ"
-
-msgid "name_your_file"
-msgstr "သင့်ဖိုင်ကို အမည်ပေးပါ"
-
-msgid "upload"
-msgstr "တင်ပါ"
-
-msgid "review"
-msgstr "သုံးသပ်မှု"
-
-msgid "skip"
-msgstr "ကျော်မည်"
-
-msgid "replica_layout_filetype"
-msgstr "ဖိုင်အမျိုးအစား- %s"
-
-msgid "replica_layout_creation_date"
-msgstr "%s တွင် ဖန်တီးထားသည်"
-
-msgid "empty_description"
-msgstr "ဖော်ပြချက်များ ပေးမထားပါ။"
-
-msgid "publish"
-msgstr "ဟုတ်ကဲ့၊ တင်ပါမည်"
-
-msgid "important"
-msgstr "အရေးကြီးသည်။"
-
-msgid "upload_tos_agree"
-msgstr "ကျွန်ုပ် နားလည်ပါသည်"
-
-msgid "test_text"
-msgstr "ပီဇာ 🍕 😊 စားချင်တယ်"
-
-msgid "test_hello"
-msgstr "ဟိုင်း နေကောင်းလား။"
-
-msgid "test_reply"
-msgstr "သိပ်တော့မကောင်းဘူး၊ ဒီနေ့ ဆူရှီစားချင်နေသလိုပဲ။"
-
-msgid "test_disappearing_messages_1"
-msgstr "အစပိုင်းတွင် မက်ဆေ့ချ်အားလုံးသည် 24 နာရီကြာပြီးနောက် ပျောက်သွားသည်။"
-
-msgid "test_disappearing_messages_2"
-msgstr "အခု ဤမက်ဆေ့ချ်သည် သိပ်မကြာခင် ပျောက်သွားတော့မည်။"
-
-msgid "test_replica_search"
-msgstr "ကြောင်"
-
-msgid "discover_disclaimer"
-msgstr ""
-"Lantern သည် သင်၏ ရှာဖွေမှုများကို အမည်မဖော်ပြဘဲ ယင်းတို့ကို "
-"ပြင်ပအဖွဲ့အစည်းများထံ မရောက်ရှိစေရန် ကာကွယ်ပေးသည်။"
-
-msgid "support"
-msgstr "အထောက်အပံ့ "
-
-msgid "lantern_user_forum"
-msgstr "Lantern အသုံးပြုသူဖိုရမ် "
-
-msgid "faq"
-msgstr "အမြဲမေးလေ့ရှိသောမေးခွန်းများ "
-
-msgid "add_device"
-msgstr "ကိရိယာထည့်ပါ"
-
-msgid "search_apps"
-msgstr "အက်ပ်များကိုရှာဖွေပါ "
-
-msgid "user_not_found"
-msgstr ""
-"သုံးစွဲသူကို မသိရှိပါ။ သင့်အထောက်အထားများကို စစ်ဆေးပြီး ထပ်မံကြိုးစားပါ။ "
-"ပြဿနာများကို ဆက်လက်တွေ့ကြုံပါက ကျွန်ုပ်တို့၏ ကူညီပံ့ပိုးရေးအဖွဲ့ကို ဆက်သွယ်၍"
-" အကူအညီရယူပါ။"
-
-msgid "email_resend_message"
-msgstr "သင်၏ အတည်ပြုကုဒ်အသစ်ကို ပို့ပြီးပါပြီ"
-
-msgid "signup_error"
-msgstr ""
-"အကောင့်ဖွင့်ရာတွင် တစ်ခုခုမှားယွင်းသွားပုံရသည်။ ထပ်မံကြိုးစားပါ၊ ပြဿနာ "
-"ဆက်ဖြစ်နေပါက ကျွန်ုပ်တို့၏ ကူညီပံ့ပိုးရေးအဖွဲ့ကို ဆက်သွယ်ပါ"
+msgid "error"
+msgstr "အမှားအယွင်း"
 
 msgid "signup_error_user_exists"
 msgstr ""
-"အကောင့်ဖွင့်ရာတွင် တစ်ခုခုမှားယွင်းသွားပုံရသည်။ သင့်စကားဝှက်ကို "
-"ပြန်သတ်မှတ်ကြည့်ပြီး ပြဿနာ ဆက်ရှိနေပါက ကျွန်ုပ်တို့၏ ကူညီပံ့ပိုးရေးအဖွဲ့ကို "
-"ဆက်သွယ်ပါ"
+"စာရင်းသွင်းမှုနှင့် တစ်ခုခု မှားယွင်းနေသည်ဟု ထင်ပါသည်။ ကျေးဇူးပြု၍ "
+"သင့်စကားဝှက်ကို ပြန်လည်သတ်မှတ်ကြည့်ပါ၊ ပြဿနာ ဆက်ရှိနေလျှင်၊ ကျွန်ုပ်တို့၏ "
+"ပံ့ပိုးမှုအဖွဲ့ကို ဆက်သွယ်ပါ"
 
-msgid "confirm_email_error"
-msgstr "သင့်အီးမေးလ်ကို အတည်ပြုပါ"
-
-msgid "password_cannot_be_empty"
-msgstr "စကားဝှက်ကို ကွက်လပ်မထားရပါ"
-
-msgid "password_must_be_at_least_8_characters"
-msgstr "စကားဝှက်သည် အနည်းဆုံးအက္ခရာ 8 လုံးနှင့်အထက် ဖြစ်ရမည်"
-
-msgid "sign_out"
-msgstr "ထွက်ရန်"
-
-msgid "sign_out_message"
+msgid "user_not_found"
 msgstr ""
-"ထွက်ပါက Lantern ကို အခမဲ့ဗားရှင်းသို့ ပြောင်းပါမည်။ သင့်အကောင့်ကို "
-"ထပ်မံဝင်ရောက်သုံးစွဲရန် သင့်အနေဖြင့် ပြန်လည်ဝင်ရောက်ရပါမည်။"
+"အသုံးပြုသူကို အသိအမှတ်မပြုပါ။ ကျေးဇူးပြု၍ သင့် အထောက်အထားများကို စစ်ဆေးပြီး "
+"ထပ်စမ်းကြည့်ပါ။ ပြဿနာများ ဆက်လက်တွေ့ကြုံနေလျှင်၊ ကျေးဇူးပြု၍ အကူအညီအတွက် "
+"ကျွန်ုပ်တို့၏ ပံ့ပိုးမှုအဖွဲ့ကို ဆက်သွယ်ပါ။"
 
-msgid "change_password"
-msgstr "စကားဝှက်ကိုပြောင်းရန်"
-
-msgid "password"
-msgstr "စကားဝှက်"
-
-msgid "new_email"
-msgstr "အီးမေးလ်လိပ်စာအသစ်"
-
-msgid "new_email_same_as_old_email"
-msgstr "အီးမေးလ်လိပ်စာအသစ်သည် အီးမေးလ်လိပ်စာအဟောင်းနှင့် မတူရပါ"
-
-msgid "danger_zone"
-msgstr "အန္တရာယ်ဇုန်"
-
-msgid "delete_account"
-msgstr "အကောင့်ဖျက်ရန်"
-
-msgid "delete"
-msgstr "ဖျက်ပါ"
-
-msgid "delete_account_message"
+msgid "invalid_code"
 msgstr ""
-"သင့်အကောင့်ကို ဖျက်ပြီးသွားလျှင် ပြန်ပြင်၍မရပါ။ သင်သည် "
-"စက်ဝင်သုံးခွင့်အားလုံးကို ဆုံးရှုံးမည့်အပြင် Pro "
-"အကောင့်သုံးခွင့်ကျန်ချိန်မှန်သမျှကို ပြန်အမ်းငွေမရရှိဘဲ လက်လွှတ်ရမည်။"
+"မှားယွင်းသော ကုဒ် သို့မဟုတ် သက်တမ်းကုန်ဆုံးသွားနိုင်သည်။ ကျေးဇူးပြု၍ "
+"ထပ်မံပို့ကြည့်ပါ"
 
-msgid "delete_your_account"
-msgstr "သင့်အကောင့်ကို ဖျက်မလား။"
-
-msgid "confirm_deletion"
-msgstr "ဖျက်ခြင်းကို အတည်ပြုရန်"
-
-msgid "account_deleted"
-msgstr "အကောင့် ဖျက်လိုက်ပြီ"
-
-msgid "account_deleted_message"
-msgstr "သင့်အကောင့်ကို အပြီးတိုင်ဖျက်လိုက်ပါပြီ။"
+msgid "email_resend_message"
+msgstr "သင့် အတည်ပြုကုဒ်အသစ်ကို ပေးပို့ပြီးပါပြီ"
 
 msgid "password_has_been_updated"
 msgstr "စကားဝှက်ကို အပ်ဒိတ်လုပ်ပြီးပါပြီ"
 
 msgid "password_has_been_updated_message"
-msgstr "သင့်စကားဝှက်ကို အောင်မြင်စွာ ပြန်သတ်မှတ်ပြီးပါပြီ"
+msgstr "သင့်စကားဝှက်ကို အောင်မြင်စွာ ပြန်လည်သတ်မှတ်ပြီးပါပြီ"
 
-msgid "invalid_code"
+msgid "update_pro_account"
+msgstr "Pro အကောင့် အပ်ဒိတ်လုပ်ပါ"
+
+msgid "update_pro_account_message"
 msgstr ""
-"ကုဒ် မှားနေသည် သို့မဟုတ် သက်တမ်းကုန်သွားခြင်း ဖြစ်နိုင်သည်။ ထပ်ပြီး "
-"ပြန်ပို့ကြည့်ပါ"
+"သင့်အကောင့်ကို စီမံခန့်ခွဲရန် သို့မဟုတ် အခြားစက်ပစ္စည်းသို့ ဝင်ရောက်ရန်၊ "
+"ကျေးဇူးပြု၍ ပထမဦးစွာ သင့်အကောင့်သို့ အီးမေးလ်နှင့် စကားဝှက် ထည့်ပါ။"
+
+msgid "subscription_cancelled"
+msgstr "သင့် စာရင်းသွင်းမှုကို ပယ်ဖျက်ပြီးပါပြီ။"
+
+msgid "subscription_updated"
+msgstr "သင့် စာရင်းသွင်းမှုကို အပ်ဒိတ်လုပ်ပြီးပါပြီ။"
+
+msgid "subscription_renewed"
+msgstr "သင့် စာရင်းသွင်းမှုကို အသစ်ပြန်လည်ပြုလုပ်ပြီးပါပြီ။"
+
+msgid "got_it"
+msgstr "နားလည်ပါပြီ"
+
+msgid "server_location"
+msgstr "ဆာဗာ တည်နေရာ"
+
+msgid "choose"
+msgstr "ရွေးပါ"
+
+msgid "choose_your_account"
+msgstr "သင့်အကောင့်ကို ရွေးပါ"
+
+msgid "choose_your_project"
+msgstr "သင့်ပရောဂျက်ကို ရွေးပါ"
+
+msgid "name_your_google_cloud_project"
+msgstr "သင့် Google Cloud ပရောဂျက်ကို အမည်ပေးပါ"
+
+msgid "billing_account"
+msgstr "ငွေတောင်းခံမှု အကောင့်"
+
+msgid "billing_account_placeholder"
+msgstr "%s အတွက် ငွေတောင်းခံမှု အကောင့်"
+
+msgid "server_name"
+msgstr "ဆာဗာ အမည်"
+
+msgid "google_project"
+msgstr "Google ပရောဂျက်"
+
+msgid "field_name_required"
+msgstr "အမည် လိုအပ်သည်"
+
+msgid "choose_google_account"
+msgstr "Google ငွေတောင်းခံမှု အကောင့် ရွေးပါ"
+
+msgid "server_name_placeholder"
+msgstr "Derek ရဲ့ ဆာဗာ"
+
+msgid "change"
+msgstr "ပြောင်းရန်"
+
+msgid "choose_location"
+msgstr "တည်နေရာ ရွေးပါ"
+
+msgid "choose_your_location"
+msgstr "သင့်တည်နေရာကို ရွေးပါ"
+
+msgid "start_deployment"
+msgstr "ဖြန့်ကျက်မှု စတင်ပါ"
+
+msgid "server_name_description"
+msgstr "ဆာဗာရွေးချယ်မှု စာရင်းတွင် ဆာဗာ ပေါ်လာမည့်ပုံစံ။"
+
+msgid "select_private_server_region"
+msgstr ""
+"သင့် ကိုယ်ပိုင်ဆာဗာ အတွက် ဒေသတစ်ခု ရွေးချယ်ပါ။ ပိုနီးသော တည်နေရာများက "
+"အမြန်နှုန်းနှင့် နှောင့်နှေးမှုကို တိုးတက်စေနိုင်သည်။"
+
+msgid "gcp_location_options"
+msgstr "Google Cloud Platform တည်နေရာ ရွေးချယ်စရာများ (%d)-"
+
+msgid "australia_sydney"
+msgstr "ဩစတြေးလျ - ဆစ်ဒနီ"
+
+msgid "belgium_stghislain"
+msgstr "ဘယ်လ်ဂျီယမ် - စိန့်ကစလိန်း"
+
+msgid "brazil_saopaulo"
+msgstr "ဆောင်ပေါလို"
+
+msgid "us_los_angeles"
+msgstr "အမေရိကန် - လော့စ်အိန်ဂျလိစ်"
+
+msgid "japan_tokyo"
+msgstr "ဂျပန် - တိုကျို"
+
+msgid "deploying_private_server"
+msgstr "ကိုယ်ပိုင်ဆာဗာကို ဖြန့်ကျက်နေသည်"
+
+msgid "deploying_server_status"
+msgstr ""
+"စိတ်ရှည်ပါ! သင့် ကိုယ်ပိုင်ဆာဗာကို စနစ်ထည့်နေပါသည်။ မိနစ်အနည်းငယ် "
+"ကြာနိုင်ပါသည်။"
+
+msgid "confirm_server_fingerprint"
+msgstr "ဆာဗာ လက်ဗွေရာ အတည်ပြုပါ"
+
+msgid "server_fingerprint"
+msgstr "ဆာဗာ လက်ဗွေရာ"
+
+msgid "confirm_fingerprint"
+msgstr "လက်ဗွေရာ အတည်ပြုပါ"
+
+msgid "private_server_setup_in_progress"
+msgstr ""
+"စိတ်ရှည်ပါ! သင့် ကိုယ်ပိုင်ဆာဗာကို စနစ်ထည့်နေပါသည်။ မိနစ်အနည်းငယ် "
+"ကြာနိုင်ပါသည်၊ ကျေးဇူးပြု၍ ဒီမျက်နှာကို ဖွင့်ထားပါ။"
+
+msgid "cancel_server_deployment"
+msgstr "ဆာဗာ ဖြန့်ကျက်မှု ပယ်ဖျက်ပါ"
+
+msgid "server_ready_title"
+msgstr "ကိုယ်ပိုင်ဆာဗာ အဆင်သင့်ဖြစ်ပါပြီ"
+
+msgid "server_ready_message"
+msgstr ""
+"သင့် ကိုယ်ပိုင်ဆာဗာကို စနစ်ထည့်ပြီး သင့်ဆာဗာစာရင်းသို့ ထည့်ပြီးပါပြီ။ "
+"ချိတ်ဆက်ရန် အဆင်သင့်ဖြစ်ပါပြီ!"
+
+msgid "server_failed_message"
+msgstr ""
+"သင့် ကိုယ်ပိုင်ဆာဗာကို စနစ်ထည့်ရာတွင် တစ်ခုခု မှားယွင်းသွားပါသည်။ သင် "
+"ထပ်စမ်းနိုင်သည် သို့မဟုတ် နောက်မှ ထပ်စမ်းကြည့်ပါ။"
+
+msgid "close"
+msgstr "ပိတ်ပါ"
+
+msgid "connect_now"
+msgstr "ယခု ချိတ်ဆက်ပါ"
+
+msgid "server_setup_failed"
+msgstr "ဆာဗာ စနစ်ထည့်မှု မအောင်မြင်ပါ"
+
+msgid "cancel_deployment"
+msgstr "ဖြန့်ကျက်မှု ပယ်ဖျက်ပါ"
+
+msgid "server_setup_failed_message"
+msgstr ""
+"သင့် ကိုယ်ပိုင်ဆာဗာကို စနစ်ထည့်ရာတွင် တစ်ခုခု မှားယွင်းသွားပါသည်။ သင် "
+"ထပ်စမ်းနိုင်သည် သို့မဟုတ် နောက်မှ ထပ်စမ်းကြည့်ပါ။"
+
+msgid "exit"
+msgstr "ထွက်ရန်"
+
+msgid "retry"
+msgstr "ထပ်စမ်းပါ"
+
+msgid "all_required_fields"
+msgstr "ကျေးဇူးပြု၍ လိုအပ်သော နေရာများအားလုံးကို ဖြည့်ပါ။"
+
+msgid "private_server_ready"
+msgstr "ကိုယ်ပိုင်ဆာဗာ အဆင်သင့်ဖြစ်ပါပြီ!"
+
+msgid "private_server_ready_message"
+msgstr ""
+"(%s) ဆာဗာကို စနစ်ထည့်ပြီး သင့်ဆာဗာစာရင်းသို့ ထည့်ပြီးပါပြီ။ ချိတ်ဆက်ရန် "
+"အဆင်သင့်ဖြစ်ပါပြီ!"
+
+msgid "set_up_your_server"
+msgstr "သင့်ဆာဗာကို စနစ်ထည့်ပါ"
+
+msgid "view_instructions_github"
+msgstr "GitHub တွင် လမ်းညွှန်ချက်များ ကြည့်ပါ"
+
+msgid "server_access_key"
+msgstr "ဆာဗာ အသုံးပြုခွင့်ကုဒ်"
+
+msgid "access_key"
+msgstr "အသုံးပြုခွင့်ကုဒ်"
+
+msgid "name_your_server"
+msgstr "သင့်ဆာဗာကို အမည်ပေးပါ"
+
+msgid "how_server_appears"
+msgstr "ဆာဗာရွေးချယ်မှု စာရင်းတွင် ဆာဗာ ပေါ်လာမည့်ပုံစံ"
+
+msgid "server_nickname"
+msgstr "ဆာဗာ အမည်ပြောင်"
+
+msgid "verify_server"
+msgstr "ဆာဗာကို အတည်ပြုပါ"
+
+msgid "vpn_client_not_setup"
+msgstr "ကျေးဇူးပြု၍ VPN ကလိုင်းယင့်ကို ဖွင့်ပါ။"
+
+msgid "continue_with"
+msgstr "ဆက်လုပ်ပါ"
+
+msgid "join_a_private_server"
+msgstr "ကိုယ်ပိုင်ဆာဗာတစ်ခု ပူးပေါင်းပါ"
+
+msgid "join_private_server"
+msgstr "ကိုယ်ပိုင်ဆာဗာ ပူးပေါင်းပါ"
+
+msgid "join_server"
+msgstr "ဆာဗာ ပူးပေါင်းပါ"
+
+msgid "private_server_usage_message"
+msgstr ""
+"ကိုယ်ပိုင်ဆာဗာ အသုံးပြုမှုကို သင့် Lantern နေ့စဉ် ဒေတာ ကန့်သတ်ချက်တွင် "
+"မပါဝင်ပါ။"
+
+msgid "manage_private_servers"
+msgstr "ကိုယ်ပိုင်ဆာဗာများ စီမံခန့်ခွဲပါ"
+
+msgid "my_servers"
+msgstr "ကျွန်တော့်ဆာဗာများ"
+
+msgid "joined_servers"
+msgstr "ပူးပေါင်းထားသော ဆာဗာများ"
+
+msgid "access_key_expiration"
+msgstr ""
+"အသုံးပြုခွင့်ကုဒ် တစ်ခုစီသည် ထူးခြားပြီး ရက် 1 အကြာ သက်တမ်းကုန်ဆုံးသည်။ သင် "
+"အချိန်မရွေး အသစ်တစ်ခု ထုတ်ယူနိုင်သည်။"
+
+msgid "share_access_key"
+msgstr "အသုံးပြုခွင့်ကုဒ် မျှဝေပါ"
+
+msgid "rename_server"
+msgstr "ဆာဗာ အမည်ပြောင်းပါ"
+
+msgid "rename"
+msgstr "အမည်ပြောင်းပါ"
+
+msgid "selected_location"
+msgstr "ရွေးချယ်ထားသော တည်နေရာ"
+
+msgid "remove_server_?"
+msgstr "ဆာဗာကို ဖယ်ရှားမလား?"
+
+msgid "remove_server_message"
+msgstr ""
+"%s ကို ဖယ်ရှားမလား? ဒါက သင့်အက်ပ်မှသာ ဖယ်ရှားမည်ဖြစ်ပြီး၊ သင့် cloud "
+"provider မှ ဆာဗာကို ဖျက်မည်မဟုတ်ပါ။"
+
+msgid "generate_access_key"
+msgstr "အသုံးပြုခွင့်ကုဒ် ထုတ်ပါ"
+
+msgid "invite_name"
+msgstr "ဖိတ်ခေါ်မှု အမည်"
+
+msgid "trust_server_operator"
+msgstr "ဆာဗာ အော်ပရေတာကို ယုံကြည်ပါ"
+
+msgid "trust_server_operator_message_one"
+msgstr ""
+"ကိုယ်ပိုင်ဆာဗာများကို Lantern ပြင်ပရှိ တစ်ဦးချင်း သို့မဟုတ် အဖွဲ့အစည်းများက "
+"လက်ခံကျင်းပပြီး လည်ပတ်သည်။ သင် တစ်ခုကို ချိတ်ဆက်လျှင်၊ သင်သည် ၎င်းကို "
+"လည်ပတ်နေသူကို လုံခြုံစွာ စီမံခန့်ခွဲရန်နှင့် တာဝန်ရှိစွာ အသုံးပြုရန် "
+"ယုံကြည်နေခြင်းဖြစ်သည်။"
+
+msgid "trust_server_operator_message_two"
+msgstr ""
+"Lantern သည် ကိုယ်ပိုင်ဆာဗာများကို စီမံခန့်ခွဲ သို့မဟုတ် "
+"စောင့်ကြည့်မှုမပြုပါ။ တစ်ခုကို ပူးပေါင်းမီ ဆာဗာ အော်ပရေတာကို သင်သိပြီး "
+"ယုံကြည်ကြောင်း သေချာပါစေ။"
+
+msgid "trust_server_operator_message_three"
+msgstr ""
+"ဆာဗာကို မည်သူလည်ပတ်သည် သို့မဟုတ် ဘယ်လို စီစဉ်ထားသည်ကို မသေချာလျှင်၊ "
+"သင့်ဆာဗာစာရင်းတွင် ရနိုင်သော မူလ Lantern ဆာဗာများကို အသုံးပြုရန် "
+"ကျွန်ုပ်တို့ အကြံပြုပါသည်"
+
+msgid "invalid_server_details"
+msgstr ""
+"မမှန်ကန်သော ဆာဗာ အသေးစိတ်များ။ ကျေးဇူးပြု၍ အသုံးပြုခွင့်ကုဒ်ကို စစ်ဆေးပြီး "
+"ထပ်စမ်းကြည့်ပါ။"
+
+msgid "lantern_servers"
+msgstr "Lantern ဆာဗာများ"
+
+msgid "private_servers"
+msgstr "ကိုယ်ပိုင်ဆာဗာများ"
+
+msgid "fastest_server"
+msgstr "အမြန်ဆုံး ဆာဗာ"
+
+msgid "join_my_private_server"
+msgstr "ကျွန်တော့် Lantern ကိုယ်ပိုင်ဆာဗာ ပူးပေါင်းပါ"
+
+msgid "your_server"
+msgstr "သင့်ဆာဗာများ-"
+
+msgid "no_private_server_setup_yet"
+msgstr ""
+"သင်သည် ကိုယ်ပိုင်ဆာဗာတစ်ခု မစနစ်ထည့်ရသေးပါ။ စတင်ရန် အောက်ရှိခလုတ်ကို "
+"နှိပ်ပါ။"
+
+msgid "connect"
+msgstr "ချိတ်ဆက်ပါ"
+
+msgid "disconnect"
+msgstr "ချိတ်ဆက်မှု ဖြုတ်ပါ"
+
+msgid "show"
+msgstr "ပြပါ"
+
+msgid "status_on"
+msgstr "ချိတ်ဆက်ထားသည်"
+
+msgid "status_off"
+msgstr "ချိတ်ဆက်မှု ဖြုတ်ထားသည်"
+
+msgid "select_your_server_location"
+msgstr "သင့်ဆာဗာ တည်နေရာကို ရွေးချယ်ပါ"
+
+msgid "faster_speeds_unlimited_bandwidth"
+msgstr "ပိုမြန်သော အမြန်နှုန်းနှင့် ကန့်သတ်မရှိ bandwidth"
+
+msgid "premium_servers_less_congestion"
+msgstr "ပရီမီယံ ဆာဗာများ လူစည်ကားမှု နည်းသည်"
+
+msgid "advanced_anti_censorship"
+msgstr "အဆင့်မြင့် ဆင်ဆာ ဆန့်ကျင်ရေး နည်းပညာ"
+
+msgid "exclusive_access_new_features"
+msgstr "အင်္ဂါရပ်အသစ်များကို သီးသန့် အသုံးပြုခွင့်"
+
+msgid "connect_up_to_five_devices"
+msgstr "စက်ပစ္စည်း 5 လုံးအထိ ချိတ်ဆက်ပါ"
+
+msgid "built_in_ad_blocking"
+msgstr "ပါဝင်သော ကြော်ငြာ ပိတ်ဆို့မှု"
 
 msgid "get_lantern_pro"
-msgstr "Lantern Pro ကိုရယူပါ"
+msgstr "Lantern Pro ရယူပါ"
 
-msgid "try_lantern_pro"
-msgstr "Lantern ကို အခမဲ့စမ်းသုံးကြည့်ပါ။ "
+msgid "connected_to_private_server"
+msgstr "ကိုယ်ပိုင်ဆာဗာသို့ ချိတ်ဆက်ထားသည်"
 
-msgid "continue_for_free"
-msgstr "အခမဲ့ ဆက်သုံးရန် "
-
-msgid "recovery_not_found"
-msgstr "စက်ကို ဤအသုံးပြုသူနှင့် တွဲဖက်ထားခြင်းမရှိပါ"
-
-msgid "device_added"
-msgstr "စက်ပစ္စည်းကို ထည့်ထားသည်"
-
-msgid "device_added_message"
-msgstr "ပြန်လည်ရယူရန်ကုဒ် ပေးပို့ပြီးပြီ "
-
-msgid "wrong_link_code"
-msgstr "သင်ထည့်ထားသည့်ကုဒ်သည် မှားနေသည်။ စစ်ဆေးပြီး ထပ်မံကြိုးစားပါ။"
-
-msgid "recovery_code_sent"
-msgstr "ပြန်လည်ရယူကုဒ်ကို ပို့ပြီးပါပြီ"
-
-msgid "device_added_msg"
-msgstr "ဤစက်ကို %s နှင့် ချိတ်ဆက်ထားသည်"
-
-msgid "new_to_lantern"
-msgstr "Lantern ကို ယခုမှစသုံးဖူးတာလား။ "
-
-msgid "email_has_been_updated"
-msgstr "အီးမေးလ်ကို အပ်ဒိတ်လုပ်ပြီးပြီ"
-
-msgid "email_has_been_updated_message"
-msgstr "သင့်အီးမေးလ်ကို အောင်မြင်စွာပြောင်းပြီးပါပြီ"
-
-msgid "email_has_been_verified"
-msgstr "အီးမေးလ်ကို အတည်ပြုပြီးပြီ"
-
-msgid "email_has_been_verified_message"
-msgstr "သင့်အီးမေးလ်ကို အောင်မြင်စွာအတည်ပြုပြီးပါပြီ"
+msgid "server_already_selected"
+msgstr "သင်သည် ဤဆာဗာကို ချိတ်ဆက်ထားပြီးဖြစ်သည်။"
 
 msgid "device_limit_reached"
-msgstr "စက်ကန့်သတ်ချက်သို့ ရောက်ပါပြီ"
+msgstr "စက်ပစ္စည်း ကန့်သတ်ချက် ရောက်ပြီ"
 
 msgid "device_limit_reached_message"
 msgstr ""
-"အများဆုံးစက်အရေအတွက် (3) လုံးတွင် သင် လက်ရှိ ဝင်ရောက်ထားသည်။ ဤစက်တွင် "
-"ဝင်ရောက်ရန် အောက်ရှိသင်၏အခြားစက်များမှ တစ်ခုကို ရွေးချယ်ပြီး ဖယ်ရှားပါ။"
+"သင်သည် 5-စက်ပစ္စည်း ကန့်သတ်ချက်ကို ရောက်ပြီးပါပြီ။ ဆက်လက်လုပ်ဆောင်ရန် "
+"စက်ပစ္စည်းတစ်ခုကို ဖယ်ရှားပါ။"
+
+msgid "remove_device_and_sign_in"
+msgstr "စက်ပစ္စည်းကို ဖယ်ရှားပြီး ဝင်ရောက်ပါ"
+
+msgid "cancel_sign_in"
+msgstr "ဝင်ရောက်ခြင်းကို ပယ်ဖျက်ပါ"
+
+msgid "change_email"
+msgstr "အီးမေးလ် ပြောင်းပါ"
+
+msgid "change_email_message"
+msgstr ""
+"ဒါက သင့်အကောင့်ဝင်ရန် အီးမေးလ်အသစ် ဖြစ်လာမည်။ ပြောင်းလဲမှု အသက်ဝင်မီ သင် "
+"၎င်းကို အတည်ပြုရန် လိုအပ်သည်။"
+
+msgid "enter_new_email"
+msgstr "သင့်အီးမေးလ်အသစ်ကို ထည့်ပါ"
+
+msgid "confirm_password_to_continue"
+msgstr "ဆက်လုပ်ရန်၊ ကျေးဇူးပြု၍ သင့်စကားဝှက်ကို အတည်ပြုပါ။"
+
+msgid "email_updated"
+msgstr "သင့်အီးမေးလ်ကို အပ်ဒိတ်လုပ်ပြီးပါပြီ။"
+
+msgid "enable_network_extension"
+msgstr "ကွန်ရက် တိုးချဲ့မှု ဖွင့်ပါ"
+
+msgid "enable_network_extension_message"
+msgstr ""
+"Lantern ကို အသုံးပြုရန်၊ ကျွန်ုပ်တို့သည် သင့် Mac အတွက် ကွန်ရက် "
+"တိုးချဲ့မှုကို ထည့်သွင်းရန် လိုအပ်သည်။"
+
+msgid "install_now"
+msgstr "ယခု ထည့်သွင်းပါ"
+
+msgid "learn_more"
+msgstr "နောက်ထပ် လေ့လာပါ"
+
+msgid "network_extension_required"
+msgstr "ကွန်ရက် တိုးချဲ့မှု လိုအပ်သည်"
+
+msgid "click"
+msgstr "နှိပ်ပါ"
+
+msgid "open_system_settings"
+msgstr "စနစ် ဆက်တင်များကို ဖွင့်ပါ"
+
+msgid "when_prompted"
+msgstr "မေးမြန်းလျှင်။"
+
+msgid "activate_extension"
+msgstr "ယခု ထည့်သွင်းပါ"
+
+msgid "email_optional"
+msgstr "အီးမေးလ် (ရွေးချယ်နိုင်သော)"
+
+msgid "please_enter_valid_email"
+msgstr "ကျေးဇူးပြု၍ မှန်ကန်သော အီးမေးလ် ထည့်ပါ"
+
+msgid "please_select_an_issue"
+msgstr "ကျေးဇူးပြု၍ ပြဿနာတစ်ခု ရွေးပါ"
+
+msgid "please_enter_issue_description"
+msgstr "ကျေးဇူးပြု၍ ပြဿနာ ဖော်ပြချက် ထည့်ပါ"
+
+msgid "thanks_for_feedback"
+msgstr "သင့်အကြံပြုချက်အတွက် ကျေးဇူးတင်ပါသည်!"
+
+msgid "no_apps_selected"
+msgstr "အက်ပ်များ မရွေးထားပါ"
+
+msgid "deselect_all"
+msgstr "အားလုံး ဖယ်ထုတ်ပါ"
+
+msgid "select_all"
+msgstr "အားလုံး ရွေးပါ"
+
+msgid "no_websites_selected"
+msgstr "ဝက်ဘ်ဆိုက်များ မရွေးထားပါ"
 
 msgid "enter_activation_code"
-msgstr "စဖွင့်သုံးကုဒ် ထည့်ရန်"
-
-msgid "check_your_email"
-msgstr "သင့်အီးမေးလ်လိပ်စာကို စစ်ဆေးပါ"
-
-msgid "please_verify_email"
-msgstr "သင်ထည့်ထားသည့် အီးမေးလ်လိပ်စာသည် မှန်ကန်ကြောင်း အတည်ပြုပါ။"
-
-msgid "verify"
-msgstr "အတည်ပြုရန်"
-
-msgid "cannot_login"
-msgstr "လော့ဂ်အင်ဝင်လို့မရပါ "
-
-msgid "privacy_policy"
-msgstr "ကိုယ်ရေးအချက်အလက်မူဝါဒ"
-
-msgid "terms_of_service"
-msgstr "ဝန်ဆောင်မှု၏စည်းကမ်းချက်များ"
-
-msgid "invalid_verification_code"
-msgstr "မှန်ကန်မှုမရှိသောအတည်ပြုနံပါတ်"
-
-msgid "wrong_seller_code"
-msgstr ""
-"အရောင်းကိုယ်စားလှယ်ကုဒ်မှားနေသည်။ ကျေးဇူးပြု၍ စစ်ဆေးပြီး ထပ်မံကြိုးစားပါ။ "
-
-msgid "follow_us"
-msgstr "ကျွန်ုပ်တို့ကိုလိုက်နာပါ "
-
-msgid "follow_us_telegram"
-msgstr "ကျွန်ုပ်တို့ကို Telegram ပေါ်တွင်လိုက်နာပါ"
-
-msgid "follow_us_instagram"
-msgstr "ကျွန်ုပ်တို့ကို Instagram ပေါ်တွင်လိုက်နာပါ"
-
-msgid "follow_us_facebook"
-msgstr "ကျွန်ုပ်တို့ကို Facebook ပေါ်တွင်လိုက်နာပါ"
-
-msgid "follow_us_x"
-msgstr "ကျွန်ုပ်တို့ကို X တွင်လိုက်နာပါ"
-
-msgid "report_issue_error"
-msgstr ""
-"ကျွန်ုပ်တို့သည် နည်းပညာပိုင်းဆိုင်ရာ အခက်အခဲများနှင့် ကြုံနေရပါသည်။ နောက်မှ "
-"ထပ်ကြိုးစားပါ။ "
-
-msgid "we_are_experiencing_technical_difficulties"
-msgstr ""
-"ကျွန်ုပ်တို့သည် နည်းပညာပိုင်းဆိုင်ရာ အခက်အခဲများနှင့် ကြုံနေရပါသည်။ နောက်မှ "
-"ထပ်ကြိုးစားပါ။ "
-
-msgid "a_temporary_error_occurred"
-msgstr "ယာယီအမှားတစ်ခု ဖြစ်ပွားခဲ့သည် "
-
-msgid "sorry_we_are_unable_to_load_that_page"
-msgstr ""
-"ဝမ်းနည်းပါသည်၊ ကျွန်ုပ်တို့သည် ယခုအချိန်တွင် အဲဒီစာမျက်နှာကို "
-"ပြန်လည်သတ်မှတ်၍ မရပါ၊ ထပ်ကြိုးစားရန် ‘Refresh’ ကိုနှိပ်ပါ။ "
-
-msgid "refresh"
-msgstr "Refresh"
-
-msgid "check_your_internet_connection"
-msgstr "သင့်အင်တာနက်ဆက်သွယ်မှုကို စစ်ဆေးပါ "
-
-msgid "please_try"
-msgstr "ကျေးဇူးပြု၍ ထပ်မံကြိုးစားပါ "
-
-msgid "turning_off_airplane_mode"
-msgstr "လေယာဉ်ပြေးလမ်းအချိန်ကို ပိတ်ပါ "
-
-msgid "turning_on_mobile_data_or_wifi"
-msgstr "မိုဘိုင်းဒေတာ သို့မဟုတ် wifi ကိုဖွင့်ပါ "
-
-msgid "check_the_signal_in_your_area"
-msgstr "သင့်နေရာအတွက် အချက်ပြချက်ကိုစစ်ဆေးပါ "
-
-msgid "got_it"
-msgstr "နားလည်ပြီ"
-
-msgid "fetching_configuration"
-msgstr "ဖွဲ့စည်းမှုကိုရယူနေသည် "
-
-msgid "establish_connection_to_server"
-msgstr "ဆာဗာနှင့် ချိတ်ဆက်မှုကို အတည်ပြုသည် "
-
-msgid "file_size_limit_title"
-msgstr "ကန့်သတ်ချက်ရောက်ရှိပြီးပြီ "
-
-msgid "file_size_limit_description"
-msgstr "ပူးတွဲထားသောဖိုင်အရွယ်အစားသည် 100 MB ထက်ငယ်သင့်သည်"
-
-msgid "lantern_pro_one_year"
-msgstr "လန်တန် ပရို - တစ်နှစ်စာအစီအစဉ်"
-
-msgid "lantern_pro_two_year"
-msgstr "လန်တန် ပရို - နှစ်နှစ်စာအစီအစဉ်"
-
-msgid "lantern_pro_one_month"
-msgstr "လန်တန် ပရို: တစ်လ စီမံကိန်း"
-
-msgid "non_renewing_subscription"
-msgstr "စာရင်းသွင်းမှုကို ပြန်မသက်တမ်းတိုးခြင်း"
+msgstr "အသက်ဝင်စေမည့်ကုဒ် ထည့်ပါ"
 
 msgid "restore_purchase"
-msgstr "ဝယ်ယူမှုကိုပြန်လည်ထူထောင်ပါ"
+msgstr "ဝယ်ယူမှု ပြန်လည်ရယူပါ"
 
-msgid "skip_for_now"
-msgstr "အခုတော့ မလုပ်ပါနဲ့"
+msgid "do_private_server_setup"
+msgstr "DO ကိုယ်ပိုင်ဆာဗာ စနစ်ထည့်မှု"
 
-msgid "purchase_not_found"
-msgstr "ပေးထားသော အီးမေးလ်ဖြင့် ဝယ်ယူမှု မတွေ့ပါ။"
-
-msgid "no_previous_purchase"
-msgstr "ယခင်ဝယ်ယူမှုမတွေ့ရှိပါ။"
-
-msgid "warning_restore_purchase"
+msgid "private_server_note"
 msgstr ""
-"စျေးဝယ်ပြီးချိန်တွင် ထည့်သွင်းခဲ့သော အီးမေးလ်ကို ထည့်သွင်းပြီး "
-"သင့်ဝယ်ယူမှုကို ပြန်လည်ရယူပါ။."
+"သင့် ကိုယ်ပိုင်ဆာဗာ အတွက် ဒေသတစ်ခု ရွေးချယ်ပါ။ ပိုနီးသော တည်နေရာများက "
+"အမြန်နှုန်းနှင့် နှောင့်နှေးမှုကို တိုးတက်စေနိုင်သည်။"
 
-msgid "purchase_restored"
-msgstr "ဝယ်ယူမှု ပြန်လည်ရရှိပါပြီ"
+msgid "gcp_private_server_setup"
+msgstr "GCP ကိုယ်ပိုင်ဆာဗာ စနစ်ထည့်မှု"
 
-msgid "purchase_restored_message"
-msgstr "သင့်ဝယ်ယူမှုကို အောင်မြင်စွာ ပြန်လည်ရရှိပါပြီ။"
+msgid "gcp_private_server_location"
+msgstr "GCP ကိုယ်ပိုင်ဆာဗာ တည်နေရာ"
 
-msgid "purchase_restored_error"
+msgid "do_private_server_location"
+msgstr "DO ကိုယ်ပိုင်ဆာဗာ တည်နေရာ"
+
+msgid "confirm"
+msgstr "အတည်ပြုပါ"
+
+msgid "private_server_warning"
+msgstr "သင်ယုံကြည်သော လူများ လည်ပတ်သော ဆာဗာများကိုသာ ထည့်ပါ "
+
+msgid "go_to_server_locations"
+msgstr "ဆာဗာ တည်နေရာများသို့ သွားပါ"
+
+msgid "lantern_io"
+msgstr "Lantern.io"
+
+msgid "alternative_download_links"
+msgstr "အခြား ဒေါင်းလုဒ် လင့်များ"
+
+msgid "github_download_page"
+msgstr "GitHub ဒေါင်းလုဒ် စာမျက်နှာ"
+
+msgid "telegram_bot"
+msgstr "Telegram ဘော့"
+
+msgid "if_you_cannot_access_website"
 msgstr ""
-"ပြန်လည်ဝယ်ယူမှုတွင် တစ်စုံတစ်ရာမှားယွင်းနေသလိုဖြစ်နေသည်။ သင်မှန်ကန်သော "
-"အီးမေးလ် သို့မဟုတ် ကုဒ်ကို ထည့်သွင်းထားကြောင်း ထပ်မံစစ်ဆေးပါ။."
+"ကျွန်ုပ်တို့၏ ဝက်ဘ်ဆိုက်ကို ဝင်ရောက်ရာတွင် မည်သည့်ပြဿနာ တွေ့ကြုံလျှင်၊ သင် "
+"အထက်ပါ လင့်များမှ Lantern ကို ဒေါင်းလုဒ်လုပ်နိုင်ပါသည်။"
 
-msgid "err_while_sending_code"
+msgid "available_on"
+msgstr "ရနိုင်သည် အပေါ်-"
+
+msgid "subscription_renewal_date"
+msgstr "စာရင်းသွင်းမှု ပြန်လည်ပြုလုပ်မည့်ရက်"
+
+msgid "enabled_bypass_lists"
+msgstr "ဖွင့်ထားသော ကျော်သွားမည့် စာရင်းများ (%d)-"
+
+msgid "diagnostic_logs"
+msgstr "စစ်ဆေးခြင်း မှတ်တမ်းများ"
+
+msgid "lantern_user_forum"
+msgstr "Lantern အသုံးပြုသူ ဖိုရမ်"
+
+msgid "frequently_asked_questions"
+msgstr "မကြာခဏ မေးလေ့ရှိသော မေးခွန်းများ"
+
+msgid "privacy_policy"
+msgstr "ကိုယ်ရေးကိုယ်တာ မူဝါဒ"
+
+msgid "terms_of_service"
+msgstr "ဝန်ဆောင်မှု စည်းကမ်းချက်များ"
+
+msgid "get_unlimited_data"
+msgstr "ကန့်သတ်မရှိ ဒေတာနှင့် ပိုမြန်သော အမြန်နှုန်း ရယူပါ!"
+
+msgid "private_server_options"
+msgstr "ကိုယ်ပိုင်ဆာဗာ ရွေးချယ်စရာများ"
+
+msgid "lantern_version"
+msgstr "Lantern ဗားရှင်း"
+
+msgid "quit"
+msgstr "ထွက်ရန်"
+
+msgid "device_removed"
+msgstr "စက်ပစ္စည်း ဖယ်ရှားလိုက်ပြီ"
+
+msgid "set_server_alias"
+msgstr "ဆာဗာ အမည်ခွဲ သတ်မှတ်ပါ"
+
+msgid "this_name_pre_filled"
 msgstr ""
-"ကုဒ်ကို ပို့နေစဉ် တစ်ခုခုမှားယွင်းသွားပါသည်၊ ကျေးဇူးပြု၍ ထပ်မံကြိုးစားပါ။"
+"ဒီအမည်သည် ဖိတ်ခေါ်ခံရသူ အတွက် ဆာဗာကို အမှတ်အသားပြုရန် ကူညီရန် "
+"ကြိုတင်ဖြည့်ထားပေးမည်ဖြစ်သည်။ သူတို့က နောက်မှ ပြောင်းနိုင်သည်။"
 
-msgid "email_hint"
-msgstr "အီးမေးလ်ထည့်ရန် မလိုအပ်ပါဘူး၊ သို့သော် ထည့်သွင်းရန် အကြံပြုပါသည်။"
+msgid "server_alias"
+msgstr "ဆာဗာ အမည်ခွဲ"
 
-msgid "email_hint_pro"
+msgid "add_referral_code"
+msgstr "ရည်ညွှန်းကုဒ် ထည့်ပါ"
+
+msgid "referral_code"
+msgstr "ရည်ညွှန်းကုဒ်"
+
+msgid "update_fails"
+msgstr "အပ်ဒိတ် မအောင်မြင်ပါ"
+
+msgid "scan_qr_code"
+msgstr "QR ကုဒ် စကင်န်ဖတ်ပါ"
+
+msgid "choose_your_server_location"
+msgstr "သင့်ဆာဗာ၏ တည်နေရာကို ရွေးပါ"
+
+msgid "we_handle_configuration"
+msgstr "ကျွန်ုပ်တို့က စီစဉ်မှုကို ကိုင်တွယ်ပေးသည်၊ စာရင်းသွင်းရုံသာ လုပ်ပါ။"
+
+msgid "90_day_free_trial"
+msgstr "90 ရက် အခမဲ့ စမ်းသုံးမှု"
+
+msgid "identity_changed"
+msgstr "%s အတွက် လက်ထောက်မှတ်သား ပြောင်းသွားပြီ"
+
+msgid "identity_changed_message"
 msgstr ""
-"သင်၏ဝယ်ယူမှုများကို မည်သည့်စက်ပစ္စည်းတွင်မဆို ဝင်ရောက်အသုံးပြုနိုင်ရန် "
-"အီးမေးလ်ထည့်ပါ။ အီးမေးလ်မပါဘဲ ဝယ်ယူမှုများသည် ဤစက်ပစ္စည်းနှင့်သာ "
-"ဆက်စပ်နေပြီး ပျောက်ဆုံးနိုင်ပါသည်။. "
+"%s ၏ လုံခြုံရေး လက်ဗွေရာ ပြောင်းသွားပါပြီ။ ဒါက ဖောက်ဖျက်ခြင်း သို့မဟုတ် "
+"မှားယွင်းစွာ စီစဉ်ခြင်းကို ညွှန်ပြနိုင်သည်။"
 
-msgid "continue_without_email"
-msgstr "အီးမေးလ်မလိုဘဲ ဆက်လက်လုပ်ဆောင်ပါ"
+msgid "recommendation"
+msgstr "အကြံပြုချက်"
 
-msgid "no_new_update"
-msgstr "သင်နောက်ဆုံးပေါ်အဆင့်ရောက်နေပါပြီ"
-
-msgid "error_referral"
-msgstr "သင့်ရဲ့ရည်ညွှန်းကုဒ်ကိုအသုံးပြုရာတွင် အမှားတစ်ခုဖြစ်ပွားခဲ့သည်။ "
-
-msgid "proxy_error"
+msgid "recommendation_message"
 msgstr ""
-"လန်တန်ကို စတင်ရန် ပြဿနာရှိနေပါသည်။ ကျေးဇူးပြု၍ နောက်မှ ထပ်ကြိုးစားပါ။."
+"ကျွန်ုပ်တို့သည် Lantern မှ %s ကို ဖယ်ရှားပြီး သင့် cloud provider အကောင့်မှ "
+"ဖျက်ရန်၊ ထို့နောက် သင့်ချိတ်ဆက်မှု လုံခြုံစွာ ရှိနေစေရန် ဆာဗာအသစ် "
+"စနစ်ထည့်ရန် အကြံပြုပါသည်။"
 
-msgid "proxy_settings"
-msgstr "ပရော့စီဆက်တင်များ"
+msgid "remove_server"
+msgstr "ဆာဗာ ဖယ်ရှားပါ"
 
-msgid "http_proxy"
-msgstr "HTTPS proxy"
+msgid "server_alias_cannot_be_empty"
+msgstr "ဆာဗာ အမည်ခွဲ ကွက်လပ်ရှိ၍မရပါ"
 
-msgid "socks_proxy"
-msgstr "Socks ပရောက်ဆီ"
+msgid "referral_code_applied"
+msgstr "သင့်ရဲ့ ဖိတ်ကြားကုဒ်ကို အသုံးပြုပြီးပါပြီ!"
 
-msgid "http_proxy_copied"
-msgstr "HTTP Proxy ကိုကူးယူပြီးပါပြီ"
+msgid "referral_message_1m"
+msgstr "+ ၁၅ ရက် အပို အခမဲ့"
 
-msgid "socks_proxy_copied"
-msgstr "Socks Proxy ကိုကူးယူပြီးပါပြီ"
+msgid "referral_message_1y"
+msgstr "+ 1 လ အပို အခမဲ့"
 
-msgid "proxy_everything"
-msgstr "အရာအားလုံး ကိုယ်စား"
+msgid "referral_message_2y"
+msgstr "+ ၂ လ အပို အခမဲ့"
 
-msgid "errorSubmittingToGooglePlay"
+msgid "referral_code_invalid"
 msgstr ""
-"Google Play အတွက် သင့်တောင်းဆိုမှုကို ဆောင်ရွက်ရာတွင် လက်ရှိ အခက်အခဲများ "
-"ကြုံတွေ့နေပါသည်။ ကျေးဇူးပြု၍ နောက်မှ ထပ်မံကြိုးစားပါ။."
+"သင်ထည့်သွင်းသော ရည်ညွှန်းကုဒ်သည် မမှန်ကန်ပါ။ ကုဒ်ကို စစ်ဆေးပြီး "
+"ထပ်မံကြိုးစားပါ။"
 
-msgid "no_internet_connection"
-msgstr "အင်တာနက် ချိတ်ဆက်မှု မတွေ့ရှိပါ။"
-
-msgid "domain_fronting_error"
+msgid "referral_code_own_invalid"
 msgstr ""
-"ကျွန်ုပ်တို့၏ server များနှင့် ချိတ်ဆက်ရာတွင် အခက်အခဲရှိနေပါသည်။ ခဏစောင့်ပါ "
-"သို့မဟုတ် အပိတ်နှင့် ဖွင့်ကြည့်ပါ။."
+"သင်၏ကိုယ်ပိုင် အကြံပြုကုဒ်ကို အသုံးပြု၍ မရပါ။ ကွဲပြားသောကုဒ်တစ်ခုကို ထည့်ပါ။"
+
+msgid "free"
+msgstr "အခမဲ့"
+
+msgid "monthly_plan"
+msgstr "လစဉ်အစီအစဉ်:"
+
+msgid "15_days_each"
+msgstr "+၁၅ ရက်စီ"
+
+msgid "annual_plan"
+msgstr "နှစ်ရှည်အစီအစဉ်:"
+
+msgid "1_month_each"
+msgstr "+1 month eac"
+
+msgid "two_year_plan"
+msgstr "နှစ်နှစ်ကြာ အစီအစဉ်:"
+
+msgid "2_month_each"
+msgstr "+2 လ eac"
+
+msgid "referral_code_info"
+msgstr ""
+"သင့်မှာ Lantern Pro အသုံးပြုခွင့်မရှိသေးဘူးလား? သင့်ရဲ့ ပထမဆုံးအကြံပြုသူ "
+"စာရင်းသွင်းတဲ့အခါ သင့်မှာ ရှိလာပါလိမ့်မယ်။"
+
+msgid "lantern_pro_license"
+msgstr "လန်တန် ပရိုလိုင်စင်"
+
+msgid "select_account"
+msgstr "အကောင့်ရွေးပါ"
+
+msgid "new_to_lantern"
+msgstr "Lantern ကို ယခုမှစသုံးဖူးတာလား။"
+
+msgid "create_an_account"
+msgstr "အကောင့်ဖွင့်ပါ"
+
+msgid "no_projects_found"
+msgstr "ပရောဂျက်များ မတွေ့ပါ။"
+
+msgid "no_projects_found_desc"
+msgstr ""
+"ပရောဂျက်များ မတွေ့ပါ။ ကျေးဇူးပြု၍ သင့် cloud ပံ့ပိုးသူ အကောင့်တွင် "
+"ပရောဂျက်တစ်ခုကို အရင်ဆုံး ဖန်တီးပါ။"

@@ -5,29 +5,30 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/features/private_server/provider/private_server_notifier.dart';
 import 'package:lantern/features/private_server/provider_card.dart';
 import 'package:lantern/features/private_server/provider_carousel.dart';
 
 @RoutePage(name: 'PrivateServerSetup')
-class PrivateServerSetup extends HookConsumerWidget {
+class PrivateServerSetup extends StatefulHookConsumerWidget {
   const PrivateServerSetup({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final serverState = ref.watch(privateServerProvider);
-    final isGCPEnabled = ref.watch(
-      featureFlagProvider.notifier.select((s) => s.isGCPEnabled),
-    );
-    final selectedIdx = useState(0);
-    final CloudProvider selectedProvider = isGCPEnabled
-        ? (selectedIdx.value == 0
-            ? CloudProvider.googleCloud
-            : CloudProvider.digitalOcean)
-        : CloudProvider.digitalOcean;
+  ConsumerState<PrivateServerSetup> createState() => _PrivateServerSetupState();
+}
 
+class _PrivateServerSetupState extends ConsumerState<PrivateServerSetup> {
+  @override
+  Widget build(BuildContext context) {
+    final serverState = ref.watch(privateServerProvider);
+    final isGCPEnabled = false;
+
+    final selectedIdx = useState(0);
+    final CloudProvider selectedProvider = CloudProvider.digitalOcean;
+    final route = ModalRoute.of(context);
     useEffect(() {
+      if (route == null || !route.isCurrent) return null;
+
       if (serverState.status == 'openBrowser') {
         UrlUtils.openWebview<bool>(
           serverState.data!,
@@ -51,6 +52,18 @@ class PrivateServerSetup extends HookConsumerWidget {
             accounts: accounts, provider: selectedProvider));
       }
       if (serverState.status == 'EventTypeValidationError') {
+        if (!context.mounted) {
+          return;
+        }
+
+        /// User has created new account but it does not have billing set up yet
+        if (serverState.error?.contains('account is not active') ?? false) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            context.hideLoadingDialog();
+            appRouter.push(PrivateServerAddBilling());
+          });
+          return;
+        }
         WidgetsBinding.instance.addPostFrameCallback((_) {
           context.hideLoadingDialog();
           appLogger.error(
@@ -150,11 +163,9 @@ class PrivateServerSetup extends HookConsumerWidget {
       CloudProvider provider, WidgetRef ref, BuildContext context) async {
     final Either<Failure, Unit> result;
     if (provider == CloudProvider.googleCloud) {
-      result =
-          await ref.read(privateServerProvider.notifier).googleCloud();
+      result = await ref.read(privateServerProvider.notifier).googleCloud();
     } else {
-      result =
-          await ref.read(privateServerProvider.notifier).digitalOcean();
+      result = await ref.read(privateServerProvider.notifier).digitalOcean();
     }
     result.fold(
       (f) => context.showSnackBar(f.localizedErrorMessage),

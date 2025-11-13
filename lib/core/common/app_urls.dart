@@ -17,4 +17,5 @@ class AppUrls {
       'https://lantern-vpn.s3.amazonaws.com/releases/appcast.xml';
   static String manuallyServerSetupURL =
       'https://github.com/getlantern/lantern-server-manager';
+  static String digitalOceanBillingUrl = 'https://cloud.digitalocean.com/account/billing';
 }
