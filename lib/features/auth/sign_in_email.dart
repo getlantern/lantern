@@ -101,7 +101,7 @@ class SignInEmail extends HookConsumerWidget {
     if (token != null) {
       context.showLoadingDialog();
       final result = await ref
-          .read(authNotifierProvider.notifier)
+          .read(authProvider.notifier)
           .oAuthLoginCallback(token);
       result.fold(
         (failure) {
@@ -110,10 +110,10 @@ class SignInEmail extends HookConsumerWidget {
         },
         (response) {
           context.hideLoadingDialog();
-          ref.read(homeNotifierProvider.notifier).updateUserData(response);
+          ref.read(homeProvider.notifier).updateUserData(response);
           appLogger.debug('Login Response: ${response.toString()}');
           Map<String, dynamic> tokenData = JwtDecoder.decode(token);
-          ref.read(appSettingNotifierProvider.notifier)
+          ref.read(appSettingProvider.notifier)
             ..setOAuthToken(token)
             ..setEmail(tokenData['email'] ?? '')
             ..setUserLoggedIn(true);

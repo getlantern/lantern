@@ -37,7 +37,7 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
     final selectedProject = useState<String?>(null);
     final locationList = useState<List<String>>([]);
     final selectedLocation = useState<String?>(null);
-    final serverState = ref.watch(privateServerNotifierProvider);
+    final serverState = ref.watch(privateServerProvider);
     final serverNameController = useTextEditingController();
     final navigatedToDeploy = useRef(false);
 
@@ -293,7 +293,7 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
     context.showLoadingDialog();
     appLogger.info("Setting user input: $input with value: $account");
     final result = await ref
-        .read(privateServerNotifierProvider.notifier)
+        .read(privateServerProvider.notifier)
         .setUserInput(input, account);
     result.fold(
       (failure) {
@@ -327,7 +327,7 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
         "Starting deployment for location: $location with name: $serverName");
     context.showLoadingDialog();
     final result = await ref
-        .read(privateServerNotifierProvider.notifier)
+        .read(privateServerProvider.notifier)
         .startDeployment(location, serverName);
 
     result.fold(

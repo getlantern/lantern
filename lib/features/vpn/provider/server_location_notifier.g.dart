@@ -6,22 +6,57 @@ part of 'server_location_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$serverLocationNotifierHash() =>
-    r'b6e29969cc0330d512915a156d4b22ee655a68f4';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [ServerLocationNotifier].
 @ProviderFor(ServerLocationNotifier)
-final serverLocationNotifierProvider = AutoDisposeNotifierProvider<
-    ServerLocationNotifier, ServerLocationEntity>.internal(
-  ServerLocationNotifier.new,
-  name: r'serverLocationNotifierProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$serverLocationNotifierHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+const serverLocationProvider = ServerLocationNotifierProvider._();
 
-typedef _$ServerLocationNotifier = AutoDisposeNotifier<ServerLocationEntity>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class ServerLocationNotifierProvider
+    extends $NotifierProvider<ServerLocationNotifier, ServerLocationEntity> {
+  const ServerLocationNotifierProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'serverLocationProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$serverLocationNotifierHash();
+
+  @$internal
+  @override
+  ServerLocationNotifier create() => ServerLocationNotifier();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ServerLocationEntity value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ServerLocationEntity>(value),
+    );
+  }
+}
+
+String _$serverLocationNotifierHash() =>
+    r'2a05280c8c13d35cb53ca1616488f648475c3a0e';
+
+abstract class _$ServerLocationNotifier
+    extends $Notifier<ServerLocationEntity> {
+  ServerLocationEntity build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<ServerLocationEntity, ServerLocationEntity>;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<ServerLocationEntity, ServerLocationEntity>,
+        ServerLocationEntity,
+        Object?,
+        Object?>;
+    element.handleValue(ref, created);
+  }
+}

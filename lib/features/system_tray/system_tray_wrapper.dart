@@ -12,7 +12,7 @@ class SystemTrayWrapper extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.watch(systemTrayNotifierProvider);
+    ref.watch(systemTrayProvider);
     return child;
   }
 }

@@ -16,7 +16,7 @@ class UserDevices extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(homeNotifierProvider).value;
+    final user = ref.watch(homeProvider).value;
     if (user == null) {
       return const SizedBox();
     }
@@ -57,14 +57,14 @@ class UserDevices extends HookConsumerWidget {
       UserResponse_Device device, WidgetRef ref, BuildContext context) async {
     context.showLoadingDialog();
     final result =
-        await ref.read(authNotifierProvider.notifier).deviceRemove(device.id);
+        await ref.read(authProvider.notifier).deviceRemove(device.id);
 
     result.fold((failure) {
       context.showSnackBar(failure.localizedErrorMessage);
     }, (success) async {
       context.showSnackBar('device_removed'.i18n);
       final innerResult =
-          await ref.read(homeNotifierProvider.notifier).fetchUserData();
+          await ref.read(homeProvider.notifier).fetchUserData();
       context.hideLoadingDialog();
     });
   }

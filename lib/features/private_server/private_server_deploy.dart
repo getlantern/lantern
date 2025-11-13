@@ -33,7 +33,7 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
   @override
   Widget build(BuildContext context) {
     textTheme = Theme.of(context).textTheme;
-    final serverState = ref.watch(privateServerNotifierProvider);
+    final serverState = ref.watch(privateServerProvider);
     useEffect(() {
       if (serverState.status == 'EventTypeProvisioningCompleted') {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -183,7 +183,7 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
 
   Future<void> onConfirmFingerprint(CertSummary cert) async {
     final result = await ref
-        .read(privateServerNotifierProvider.notifier)
+        .read(privateServerProvider.notifier)
         .setCert(cert.fingerprint);
 
     result.fold(
@@ -202,7 +202,7 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
   Future<void> cancelDeployment() async {
     context.showLoadingDialog();
     final result = await ref
-        .read(privateServerNotifierProvider.notifier)
+        .read(privateServerProvider.notifier)
         .cancelDeployment();
 
     result.fold(

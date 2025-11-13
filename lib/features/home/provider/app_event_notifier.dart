@@ -35,7 +35,7 @@ class AppEventNotifier extends _$AppEventNotifier {
         case 'config':
           appLogger.debug('Received new config event.');
           ref
-              .read(availableServersNotifierProvider.notifier)
+              .read(availableServersProvider.notifier)
               .forceFetchAvailableServers();
           break;
         default:

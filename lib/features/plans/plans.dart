@@ -64,7 +64,7 @@ class _PlansState extends ConsumerState<Plans> {
   }
 
   Widget _buildBody() {
-    final plansState = ref.watch(plansNotifierProvider);
+    final plansState = ref.watch(plansProvider);
     final size = MediaQuery.of(context).size;
     return Column(
       children: [
@@ -114,7 +114,7 @@ class _PlansState extends ConsumerState<Plans> {
                             label: 'Try again',
                             onPressed: () {
                               ref
-                                  .read(plansNotifierProvider.notifier)
+                                  .read(plansProvider.notifier)
                                   .fetchPlans();
                             },
                           ),
@@ -143,7 +143,7 @@ class _PlansState extends ConsumerState<Plans> {
   }
 
   void onMenuTap() {
-    final isReferralApplied = ref.read(referralNotifierProvider);
+    final isReferralApplied = ref.read(referralProvider);
     showAppBottomSheet(
       context: context,
       title: 'payment_options'.i18n,
@@ -240,7 +240,7 @@ class _PlansState extends ConsumerState<Plans> {
     appRouter.pop();
     context.showLoadingDialog();
     final result = await ref
-        .read(referralNotifierProvider.notifier)
+        .read(referralProvider.notifier)
         .applyReferralCode(code);
 
     result.fold(
@@ -270,7 +270,7 @@ class _PlansState extends ConsumerState<Plans> {
     appLogger.info('Get Lantern Pro button tapped');
 
     final userSelectedPlan =
-        ref.read(plansNotifierProvider.notifier).getSelectedPlan();
+        ref.read(plansProvider.notifier).getSelectedPlan();
     switch (Platform.operatingSystem) {
       case 'android':
         if (isStoreVersion()) {
@@ -293,7 +293,7 @@ class _PlansState extends ConsumerState<Plans> {
 
   Future<void> startInAppPurchaseFlow(Plan plan) async {
     context.showLoadingDialog();
-    final paymentProvider = ref.read(paymentNotifierProvider.notifier);
+    final paymentProvider = ref.read(paymentProvider.notifier);
     final result = await paymentProvider.startInAppPurchaseFlow(
       planId: plan.id,
       onSuccess: (purchase) {
@@ -332,7 +332,7 @@ class _PlansState extends ConsumerState<Plans> {
     appLogger.debug("Acknowledging purchase");
     context.showLoadingDialog();
     final result = await ref
-        .read(paymentNotifierProvider.notifier)
+        .read(paymentProvider.notifier)
         .acknowledgeInAppPurchase(
           purchaseToken: purchaseToken,
           planId: planId,
@@ -353,7 +353,7 @@ class _PlansState extends ConsumerState<Plans> {
   }
 
   void signUpFlow() {
-    final appSetting = ref.read(appSettingNotifierProvider);
+    final appSetting = ref.read(appSettingProvider);
     if (appSetting.userLoggedIn) {
       appLogger.info('User already logged in, checking account status');
       useProFlow();
@@ -393,10 +393,10 @@ class _PlansState extends ConsumerState<Plans> {
       /// Once done send user to subscription screen
       /// THIS IS JUST TO AVOID USER FROM BLOCKING FLOW
       context.showLoadingDialog();
-      final appSetting = ref.read(appSettingNotifierProvider);
+      final appSetting = ref.read(appSettingProvider);
       final email = appSetting.email;
       final result = await ref
-          .read(authNotifierProvider.notifier)
+          .read(authProvider.notifier)
           .startRecoveryByEmail(email);
       result.fold(
         (failure) {

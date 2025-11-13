@@ -97,7 +97,7 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
     final String email =
         sl<LocalStorageService>().getUser()!.legacyUserData.email;
     final result = await ref
-        .read(authNotifierProvider.notifier)
+        .read(authProvider.notifier)
         .deleteAccount(email, password);
 
     result.fold(
@@ -107,12 +107,12 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
       },
       (userResponse) async {
         context.hideLoadingDialog();
-        ref.read(appSettingNotifierProvider.notifier)
+        ref.read(appSettingProvider.notifier)
           ..setEmail("")
           ..setOAuthToken("")
           ..setUserLoggedIn(false);
 
-        ref.read(homeNotifierProvider.notifier).updateUserData(userResponse);
+        ref.read(homeProvider.notifier).updateUserData(userResponse);
         appRouter.popUntilRoot();
       },
     );

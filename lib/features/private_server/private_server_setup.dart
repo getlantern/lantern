@@ -16,9 +16,9 @@ class PrivateServerSetup extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final serverState = ref.watch(privateServerNotifierProvider);
+    final serverState = ref.watch(privateServerProvider);
     final isGCPEnabled = ref.watch(
-      featureFlagNotifierProvider.notifier.select((s) => s.isGCPEnabled),
+      featureFlagProvider.notifier.select((s) => s.isGCPEnabled),
     );
     final selectedIdx = useState(0);
     final CloudProvider selectedProvider = isGCPEnabled
@@ -151,10 +151,10 @@ class PrivateServerSetup extends HookConsumerWidget {
     final Either<Failure, Unit> result;
     if (provider == CloudProvider.googleCloud) {
       result =
-          await ref.read(privateServerNotifierProvider.notifier).googleCloud();
+          await ref.read(privateServerProvider.notifier).googleCloud();
     } else {
       result =
-          await ref.read(privateServerNotifierProvider.notifier).digitalOcean();
+          await ref.read(privateServerProvider.notifier).digitalOcean();
     }
     result.fold(
       (f) => context.showSnackBar(f.localizedErrorMessage),

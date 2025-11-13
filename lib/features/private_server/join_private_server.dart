@@ -33,7 +33,7 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
     final nameController = useTextEditingController(text: name);
     final buttonValid = useState(
         accessKeyController.text.isNotEmpty && nameController.text.isNotEmpty);
-    final serverState = ref.watch(privateServerNotifierProvider);
+    final serverState = ref.watch(privateServerProvider);
 
     useEffect(() {
       if (serverState.status == 'EventTypeServerTofuPermission') {
@@ -262,7 +262,7 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
 
     context.showLoadingDialog();
     final result = await ref
-        .read(privateServerNotifierProvider.notifier)
+        .read(privateServerProvider.notifier)
         .addServerManually(ip, port, accessToken, name);
 
     result.fold(
@@ -323,7 +323,7 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
   Future<void> onConfirmFingerprint(CertSummary cert) async {
     context.showLoadingDialog();
     final result = await ref
-        .read(privateServerNotifierProvider.notifier)
+        .read(privateServerProvider.notifier)
         .setCert(cert.fingerprint);
 
     result.fold(

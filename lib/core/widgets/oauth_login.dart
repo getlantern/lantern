@@ -51,7 +51,7 @@ class OAuthLogin extends HookConsumerWidget {
   }
 
   Future<bool> _isRegionAllowed(WidgetRef ref, BuildContext context) async {
-    final vpnStatus = ref.read(vpnNotifierProvider);
+    final vpnStatus = ref.read(vpnProvider);
     if (vpnStatus == VPNStatus.connected) return true;
 
     try {
@@ -89,7 +89,7 @@ class OAuthLogin extends HookConsumerWidget {
       SignUpMethodType type, WidgetRef ref, BuildContext context) async {
     context.showLoadingDialog();
     final result =
-        await ref.read(authNotifierProvider.notifier).oAuthLogin(type.name);
+        await ref.read(authProvider.notifier).oAuthLogin(type.name);
     result.fold(
       (failure) {
         context.hideLoadingDialog();

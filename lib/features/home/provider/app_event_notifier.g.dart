@@ -6,25 +6,60 @@ part of 'app_event_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$appEventNotifierHash() => r'851c13e9d99662f57373454b3dab43e41da4d379';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+/// Listens for application-wide events and triggers corresponding actions.
+/// This can be used for all listening to events that go sends and handling them
+/// in one place.
+
+@ProviderFor(AppEventNotifier)
+const appEventProvider = AppEventNotifierProvider._();
 
 /// Listens for application-wide events and triggers corresponding actions.
 /// This can be used for all listening to events that go sends and handling them
 /// in one place.
-///
-/// Copied from [AppEventNotifier].
-@ProviderFor(AppEventNotifier)
-final appEventNotifierProvider =
-    AsyncNotifierProvider<AppEventNotifier, void>.internal(
-  AppEventNotifier.new,
-  name: r'appEventNotifierProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$appEventNotifierHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+final class AppEventNotifierProvider
+    extends $AsyncNotifierProvider<AppEventNotifier, void> {
+  /// Listens for application-wide events and triggers corresponding actions.
+  /// This can be used for all listening to events that go sends and handling them
+  /// in one place.
+  const AppEventNotifierProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'appEventProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
 
-typedef _$AppEventNotifier = AsyncNotifier<void>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+  @override
+  String debugGetCreateSourceHash() => _$appEventNotifierHash();
+
+  @$internal
+  @override
+  AppEventNotifier create() => AppEventNotifier();
+}
+
+String _$appEventNotifierHash() => r'4e860c407edbb1498cb4a630b2362c4770824586';
+
+/// Listens for application-wide events and triggers corresponding actions.
+/// This can be used for all listening to events that go sends and handling them
+/// in one place.
+
+abstract class _$AppEventNotifier extends $AsyncNotifier<void> {
+  FutureOr<void> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    build();
+    final ref = this.ref as $Ref<AsyncValue<void>, void>;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<AsyncValue<void>, void>,
+        AsyncValue<void>,
+        Object?,
+        Object?>;
+    element.handleValue(ref, null);
+  }
+}

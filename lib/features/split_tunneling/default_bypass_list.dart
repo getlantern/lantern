@@ -15,7 +15,7 @@ class DefaultBypassLists extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final preferences = ref.watch(appSettingNotifierProvider);
+    final preferences = ref.watch(appSettingProvider);
     final selectedBypassList = preferences.bypassList;
     final websiteNr = ref.read(splitTunnelingWebsitesProvider.notifier);
     final textTheme = Theme.of(context).textTheme;

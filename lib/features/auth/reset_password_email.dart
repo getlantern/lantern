@@ -64,7 +64,7 @@ class ResetPasswordEmail extends HookConsumerWidget {
     }
     context.showLoadingDialog();
     final result = await ref
-        .read(authNotifierProvider.notifier)
+        .read(authProvider.notifier)
         .startRecoveryByEmail(email);
     result.fold(
       (failure) {

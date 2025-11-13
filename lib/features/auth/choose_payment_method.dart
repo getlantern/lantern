@@ -29,8 +29,8 @@ class ChoosePaymentMethod extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userPlan =
-        ref.watch(plansNotifierProvider.notifier).getSelectedPlan();
-    final planData = ref.watch(plansNotifierProvider.notifier).getPlanData();
+        ref.watch(plansProvider.notifier).getSelectedPlan();
+    final planData = ref.watch(plansProvider.notifier).getPlanData();
     return BaseScreen(
       title: '',
       appBar: CustomAppBar(
@@ -146,8 +146,8 @@ class ChoosePaymentMethod extends HookConsumerWidget {
 
   Future<void> androidStripeSubscription(
       Android provider, WidgetRef ref, BuildContext context) async {
-    final userPlan = ref.read(plansNotifierProvider.notifier).getSelectedPlan();
-    final paymentProvider = ref.read(paymentNotifierProvider.notifier);
+    final userPlan = ref.read(plansProvider.notifier).getSelectedPlan();
+    final paymentProvider = ref.read(paymentProvider.notifier);
     context.showLoadingDialog();
 
     ///get stripe details
@@ -181,11 +181,11 @@ class ChoosePaymentMethod extends HookConsumerWidget {
       Android provider, WidgetRef ref, BuildContext context) async {
     try {
       final userPlan =
-          ref.read(plansNotifierProvider.notifier).getSelectedPlan();
+          ref.read(plansProvider.notifier).getSelectedPlan();
       context.showLoadingDialog();
 
       ///Start stipe subscription flow
-      final paymentProvider = ref.read(paymentNotifierProvider.notifier);
+      final paymentProvider = ref.read(paymentProvider.notifier);
       final result = await paymentProvider.stripeSubscriptionLink(
         BillingType.subscription,
         userPlan.id,
@@ -226,9 +226,9 @@ class ChoosePaymentMethod extends HookConsumerWidget {
       String provider, WidgetRef ref, BuildContext context) async {
     context.showLoadingDialog();
     final userPlan =
-        ref.watch(plansNotifierProvider.notifier).getSelectedPlan();
+        ref.watch(plansProvider.notifier).getSelectedPlan();
     final result =
-        await ref.read(paymentNotifierProvider.notifier).paymentRedirect(
+        await ref.read(paymentProvider.notifier).paymentRedirect(
               provider: provider,
               planId: userPlan.id,
               email: email,
@@ -304,7 +304,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final referralEnable = ref.watch(referralNotifierProvider);
+    final referralEnable = ref.watch(referralProvider);
     final theme = Theme.of(context).textTheme;
     return ListView.builder(
       shrinkWrap: true,

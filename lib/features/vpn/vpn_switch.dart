@@ -15,7 +15,7 @@ class VPNSwitch extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.listen<AsyncValue<LanternStatus>>(
-      vPNStatusNotifierProvider,
+      vPNStatusProvider,
       (previous, next) {
         if (next is AsyncData<LanternStatus> &&
             next.value.status == VPNStatus.error) {
@@ -23,7 +23,7 @@ class VPNSwitch extends HookConsumerWidget {
         }
       },
     );
-    final vpnStatus = ref.watch(vpnNotifierProvider);
+    final vpnStatus = ref.watch(vpnProvider);
     final isVPNOn = (vpnStatus == VPNStatus.connected);
     return CustomAnimatedToggleSwitch<bool>(
       current: isVPNOn,
@@ -76,7 +76,7 @@ class VPNSwitch extends HookConsumerWidget {
 
   Future<void> onVPNStateChange(WidgetRef ref, BuildContext context) async {
     if (PlatformUtils.isMacOS) {
-      final systemExtensionStatus = ref.read(macosExtensionNotifierProvider);
+      final systemExtensionStatus = ref.read(macosExtensionProvider);
       if (systemExtensionStatus.status != SystemExtensionStatus.installed &&
           systemExtensionStatus.status != SystemExtensionStatus.activated) {
         appRouter.push(const MacOSExtensionDialog());
@@ -84,7 +84,7 @@ class VPNSwitch extends HookConsumerWidget {
       }
     }
     final result =
-        await ref.read(vpnNotifierProvider.notifier).onVPNStateChange(context);
+        await ref.read(vpnProvider.notifier).onVPNStateChange(context);
 
     result.fold(
       (failure) => context.showSnackBar(failure.localizedErrorMessage),

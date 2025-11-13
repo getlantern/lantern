@@ -198,9 +198,9 @@
         {
           "id": "2:1177257349040850931",
           "name": "providersId",
+          "indexId": "1:3698291161957906507",
           "type": 11,
           "flags": 520,
-          "indexId": "1:3698291161957906507",
           "relationTarget": "ProvidersEntity"
         }
       ],
@@ -477,9 +477,9 @@
         {
           "id": "20:1498461655287117981",
           "name": "subscriptionDataId",
+          "indexId": "2:3153991439170111111",
           "type": 11,
           "flags": 520,
-          "indexId": "2:3153991439170111111",
           "relationTarget": "SubscriptionDataEntity"
         },
         {
@@ -530,9 +530,9 @@
         {
           "id": "6:7755562986946953188",
           "name": "legacyUserDataId",
+          "indexId": "3:1452151582306513699",
           "type": 11,
           "flags": 520,
-          "indexId": "3:1452151582306513699",
           "relationTarget": "UserDataEntity"
         }
       ],

@@ -16,9 +16,9 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
   @override
   Future<void> build() async {
     if (!PlatformUtils.isDesktop) return;
-    _currentStatus = ref.read(vpnNotifierProvider);
+    _currentStatus = ref.read(vpnProvider);
     ref.listen<VPNStatus>(
-      vpnNotifierProvider,
+      vpnProvider,
       (previous, next) async {
         _currentStatus = next;
         // Refresh menu on change
@@ -37,7 +37,7 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
   bool get isConnected => _currentStatus == VPNStatus.connected;
 
   Future<void> toggleVPN() async {
-    final notifier = ref.read(vpnNotifierProvider.notifier);
+    final notifier = ref.read(vpnProvider.notifier);
     if (_currentStatus == VPNStatus.connected) {
       await notifier.stopVPN();
     } else if (_currentStatus == VPNStatus.disconnected) {
@@ -69,7 +69,7 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
           key: 'show_window',
           label: 'show'.i18n,
           onClick: (_) {
-            ref.read(windowNotifierProvider.notifier).open(focus: true);
+            ref.read(windowProvider.notifier).open(focus: true);
           },
         ),
         MenuItem.separator(),
@@ -77,9 +77,9 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
           key: 'quit',
           label: 'quit'.i18n,
           onClick: (_) async {
-            await ref.read(vpnNotifierProvider.notifier).stopVPN();
+            await ref.read(vpnProvider.notifier).stopVPN();
             await trayManager.destroy();
-            await ref.read(windowNotifierProvider.notifier).close();
+            await ref.read(windowProvider.notifier).close();
           },
         ),
       ],
@@ -110,7 +110,7 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
     if (Platform.isMacOS) {
       await trayManager.popUpContextMenu();
     } else {
-      ref.read(windowNotifierProvider.notifier).open();
+      ref.read(windowProvider.notifier).open();
     }
   }
 

@@ -101,7 +101,7 @@ class ConfirmEmail extends HookConsumerWidget {
   }
 
   Future<void> onBackPresses(WidgetRef ref, BuildContext context) async {
-    final appSettings = ref.read(appSettingNotifierProvider);
+    final appSettings = ref.read(appSettingProvider);
     final isLoggedIn = appSettings.userLoggedIn;
 
     /// In case of logged in user just pop the screen
@@ -120,7 +120,7 @@ class ConfirmEmail extends HookConsumerWidget {
         'Password must be provided to delete account on back press');
     context.showLoadingDialog();
     final result = await ref
-        .read(authNotifierProvider.notifier)
+        .read(authProvider.notifier)
         .deleteAccount(email, password!);
 
     result.fold(
@@ -130,7 +130,7 @@ class ConfirmEmail extends HookConsumerWidget {
       },
       (_) {
         ///reset login status
-        ref.read(appSettingNotifierProvider.notifier)
+        ref.read(appSettingProvider.notifier)
           ..setEmail('')
           ..setUserLoggedIn(false);
         context.hideLoadingDialog();
@@ -161,7 +161,7 @@ class ConfirmEmail extends HookConsumerWidget {
       BuildContext context, WidgetRef ref, String code) async {
     context.showLoadingDialog();
     final result = await ref
-        .read(authNotifierProvider.notifier)
+        .read(authProvider.notifier)
         .completeChangeEmail(email, password!, code);
     result.fold(
       (failure) {
@@ -171,7 +171,7 @@ class ConfirmEmail extends HookConsumerWidget {
       (_) {
         context.hideLoadingDialog();
         //update email in app settings
-        ref.read(appSettingNotifierProvider.notifier).setEmail(email);
+        ref.read(appSettingProvider.notifier).setEmail(email);
         AppDialog.dialog(
           context: context,
           title: 'change_email'.i18n,
@@ -189,7 +189,7 @@ class ConfirmEmail extends HookConsumerWidget {
       BuildContext context, WidgetRef ref, String code) async {
     context.showLoadingDialog();
     final result = await ref
-        .read(authNotifierProvider.notifier)
+        .read(authProvider.notifier)
         .validateRecoveryCode(email, code);
 
     result.fold(
@@ -256,7 +256,7 @@ class ConfirmEmail extends HookConsumerWidget {
   Future<void> resendChangeEmail(BuildContext context, WidgetRef ref) async {
     context.showLoadingDialog();
     final result = await ref
-        .read(authNotifierProvider.notifier)
+        .read(authProvider.notifier)
         .startChangeEmail(email, password!);
     result.fold(
       (failure) {
@@ -273,7 +273,7 @@ class ConfirmEmail extends HookConsumerWidget {
   void onResendCode(BuildContext context, WidgetRef ref) async {
     context.showLoadingDialog();
     final result = await ref
-        .read(authNotifierProvider.notifier)
+        .read(authProvider.notifier)
         .startRecoveryByEmail(email);
     result.fold(
       (failure) {

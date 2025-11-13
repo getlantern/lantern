@@ -149,7 +149,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     context.showLoadingDialog();
     final tempPassword = generatePassword();
     final result = await ref
-        .read(authNotifierProvider.notifier)
+        .read(authProvider.notifier)
         .signUpWithEmail(email, tempPassword);
 
     result.fold(
@@ -161,7 +161,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
         //sign up successful
         //start forgot password flow
         context.hideLoadingDialog();
-        ref.read(appSettingNotifierProvider.notifier).setEmail(email);
+        ref.read(appSettingProvider.notifier).setEmail(email);
         startForgotPasswordFlow(email, tempPassword);
       },
     );
@@ -171,7 +171,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
       [String? tempPassword]) async {
     context.showLoadingDialog();
     final result = await ref
-        .read(authNotifierProvider.notifier)
+        .read(authProvider.notifier)
         .startRecoveryByEmail(email);
     result.fold(
       (failure) {
@@ -191,7 +191,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     if (token != null) {
       context.showLoadingDialog();
       final result = await ref
-          .read(authNotifierProvider.notifier)
+          .read(authProvider.notifier)
           .oAuthLoginCallback(token);
       result.fold(
         (failure) {
@@ -200,10 +200,10 @@ class _AddEmailState extends ConsumerState<AddEmail> {
         },
         (response) {
           context.hideLoadingDialog();
-          ref.read(homeNotifierProvider.notifier).updateUserData(response);
+          ref.read(homeProvider.notifier).updateUserData(response);
           appLogger.debug('Login Response: ${response.toString()}');
           Map<String, dynamic> tokenData = JwtDecoder.decode(token);
-          ref.read(appSettingNotifierProvider.notifier)
+          ref.read(appSettingProvider.notifier)
             ..setOAuthToken(token)
             ..setEmail(tokenData['email'] ?? '')
             ..setUserLoggedIn(true);
@@ -219,7 +219,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
   void startChangeEmailFlow(String email) async {
     context.showLoadingDialog();
     final result = await ref
-        .read(authNotifierProvider.notifier)
+        .read(authProvider.notifier)
         .startChangeEmail(email, widget.password!);
 
     result.fold(

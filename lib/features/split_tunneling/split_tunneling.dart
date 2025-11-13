@@ -20,7 +20,7 @@ class SplitTunneling extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final preferences = ref.watch(appSettingNotifierProvider);
+    final preferences = ref.watch(appSettingProvider);
     final textTheme = Theme.of(context).textTheme;
     final splitTunnelingEnabled = preferences.isSplitTunnelingOn;
     final splitTunnelingMode = preferences.splitTunnelingMode;
@@ -29,7 +29,7 @@ class SplitTunneling extends HookConsumerWidget {
     final enabledWebsites = ref.watch(splitTunnelingWebsitesProvider).toList();
     final expansionTileController = useExpansionTileController();
     final locationSubtitle = useState<String>('global_optimized'.i18n);
-    final notifier = ref.read(appSettingNotifierProvider.notifier);
+    final notifier = ref.read(appSettingProvider.notifier);
 
     void toggleSplitTunneling() {
       notifier.setSplitTunnelingEnabled(!splitTunnelingEnabled);
@@ -79,7 +79,7 @@ class SplitTunneling extends HookConsumerWidget {
                     onChanged: (bool? value) {
                       final v = value ?? false;
                       ref
-                          .read(appSettingNotifierProvider.notifier)
+                          .read(appSettingProvider.notifier)
                           .setSplitTunnelingEnabled(v);
                     },
                     activeColor: AppColors.green5,
@@ -161,7 +161,7 @@ class SplitTunneling extends HookConsumerWidget {
                               groupValue: splitTunnelingMode,
                               onChanged: (value) {
                                 ref
-                                    .read(appSettingNotifierProvider.notifier)
+                                    .read(appSettingProvider.notifier)
                                     .setSplitTunnelingMode(value!);
                                 expansionTileController.collapse();
                               },
@@ -179,7 +179,7 @@ class SplitTunneling extends HookConsumerWidget {
                               groupValue: splitTunnelingMode,
                               onChanged: (value) {
                                 ref
-                                    .read(appSettingNotifierProvider.notifier)
+                                    .read(appSettingProvider.notifier)
                                     .setSplitTunnelingMode(value!);
                                 expansionTileController.collapse();
                               },

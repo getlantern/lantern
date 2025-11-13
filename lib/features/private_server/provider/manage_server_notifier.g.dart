@@ -6,22 +6,58 @@ part of 'manage_server_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$manageServerNotifierHash() =>
-    r'262a99980aa74d81c684156d664053e5ebfbd49f';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [ManageServerNotifier].
 @ProviderFor(ManageServerNotifier)
-final manageServerNotifierProvider =
-    NotifierProvider<ManageServerNotifier, List<PrivateServerEntity>>.internal(
-  ManageServerNotifier.new,
-  name: r'manageServerNotifierProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$manageServerNotifierHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+const manageServerProvider = ManageServerNotifierProvider._();
 
-typedef _$ManageServerNotifier = Notifier<List<PrivateServerEntity>>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class ManageServerNotifierProvider
+    extends $NotifierProvider<ManageServerNotifier, List<PrivateServerEntity>> {
+  const ManageServerNotifierProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'manageServerProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$manageServerNotifierHash();
+
+  @$internal
+  @override
+  ManageServerNotifier create() => ManageServerNotifier();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(List<PrivateServerEntity> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<List<PrivateServerEntity>>(value),
+    );
+  }
+}
+
+String _$manageServerNotifierHash() =>
+    r'b87b605c74a1ee5df52609df98dc26d78115e8c5';
+
+abstract class _$ManageServerNotifier
+    extends $Notifier<List<PrivateServerEntity>> {
+  List<PrivateServerEntity> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref =
+        this.ref as $Ref<List<PrivateServerEntity>, List<PrivateServerEntity>>;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<List<PrivateServerEntity>, List<PrivateServerEntity>>,
+        List<PrivateServerEntity>,
+        Object?,
+        Object?>;
+    element.handleValue(ref, created);
+  }
+}

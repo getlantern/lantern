@@ -19,7 +19,7 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
     final searchQuery = ref.watch(searchQueryProvider);
-    final appSetting = ref.watch(appSettingNotifierProvider);
+    final appSetting = ref.watch(appSettingProvider);
 
     final enabledWebsites = ref.watch(splitTunnelingWebsitesProvider);
     matchesSearch(website) =>
@@ -135,7 +135,7 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
   }
 
   void removeBypassList(WidgetRef ref, BypassListOption bypassList) {
-    final appSetting = ref.read(appSettingNotifierProvider);
+    final appSetting = ref.read(appSettingProvider);
     final websiteNr = ref.read(splitTunnelingWebsitesProvider.notifier);
     final selectedBypassList = appSetting.bypassList;
     selectedBypassList.remove(bypassList);

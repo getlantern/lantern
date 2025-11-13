@@ -20,7 +20,7 @@ class _MacOSExtensionDialogState extends ConsumerState<MacOSExtensionDialog> {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final systemExtensionStatus = ref.watch(macosExtensionNotifierProvider);
+    final systemExtensionStatus = ref.watch(macosExtensionProvider);
     appLogger.info(
         "Current System Extension Status: ${systemExtensionStatus.status}");
     useEffect(() {
@@ -115,14 +115,14 @@ class _MacOSExtensionDialogState extends ConsumerState<MacOSExtensionDialog> {
     appLogger.info("Current System Extension Status: $systemExtensionStatus");
     if (systemExtensionStatus.status ==
         SystemExtensionStatus.requiresApproval) {
-      ref.read(macosExtensionNotifierProvider.notifier).openSystemExtension();
+      ref.read(macosExtensionProvider.notifier).openSystemExtension();
       appLogger.info("Opening System Settings for Approval");
       return;
     }
 
     appLogger.info("Triggering System Extension Installation");
     final result = await ref
-        .read(macosExtensionNotifierProvider.notifier)
+        .read(macosExtensionProvider.notifier)
         .triggerSystemExtensionInstallation();
 
     result.fold(

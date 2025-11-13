@@ -6,22 +6,46 @@ part of 'lantern_service_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$lanternServiceHash() => r'3adf724e5fa29199106b8e0999b9fc21c0c9f721';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [lanternService].
 @ProviderFor(lanternService)
-final lanternServiceProvider = Provider<LanternService>.internal(
-  lanternService,
-  name: r'lanternServiceProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$lanternServiceHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+const lanternServiceProvider = LanternServiceProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef LanternServiceRef = ProviderRef<LanternService>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class LanternServiceProvider
+    extends $FunctionalProvider<LanternService, LanternService, LanternService>
+    with $Provider<LanternService> {
+  const LanternServiceProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'lanternServiceProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$lanternServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<LanternService> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  LanternService create(Ref ref) {
+    return lanternService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(LanternService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<LanternService>(value),
+    );
+  }
+}
+
+String _$lanternServiceHash() => r'3adf724e5fa29199106b8e0999b9fc21c0c9f721';
