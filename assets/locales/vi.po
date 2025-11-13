@@ -1,17 +1,17 @@
 # 
 # Translators:
-# Lantern, 2023
-# Yen Le Van <yenlevanbk@gmail.com>, 2024
-# Ngoc Hoang <ngocit09@gmail.com>, 2024
-# Anh Phan <vietnamesel10n@gmail.com>, 2024
-# e2f <projects@e2f.com>, 2024
-# Derek F <derek@getlantern.org>, 2024
-# Nathan Tran, 2024
-# e2f_vi r1 <tx_e2f_vi_r1@ate2f.com>, 2024
+# Lantern, 2025
+# Ngoc Hoang <ngocit09@gmail.com>, 2025
+# Nathan Tran, 2025
+# e2f <projects@e2f.com>, 2025
+# Yen Le Van <yenlevanbk@gmail.com>, 2025
+# Anh Phan <vietnamesel10n@gmail.com>, 2025
+# e2f_vi r1 <tx_e2f_vi_r1@ate2f.com>, 2025
+# Derek F <derek@getlantern.org>, 2025
 # 
 msgid ""
 msgstr ""
-"Last-Translator: e2f_vi r1 <tx_e2f_vi_r1@ate2f.com>, 2024\n"
+"Last-Translator: Derek F <derek@getlantern.org>, 2025\n"
 "Language-Team: Vietnamese (https://app.transifex.com/lantern-1/teams/94371/vi/)\n"
 "Language: vi\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
@@ -19,120 +19,936 @@ msgstr ""
 msgid "app_name"
 msgstr "Lantern"
 
-msgid "introducing"
-msgstr "Giới thiệu Trò chuyện"
+msgid "upgrade_to_pro"
+msgstr "Nâng cấp lên Pro"
 
-msgid "introducing_des"
+msgid "settings"
+msgstr "Cài đặt"
+
+msgid "report_an_issue"
+msgstr "Báo cáo sự cố"
+
+msgid "lantern_projects"
+msgstr "Dự án Lantern:"
+
+msgid "invite_friends"
+msgstr "Mời bạn bè"
+
+msgid "your_referral_code"
+msgstr "Mã giới thiệu của bạn"
+
+msgid "invite_friends_message"
 msgstr ""
-"Trò chuyện an toàn với bạn bè bằng cách sử dụng trò chuyện mã hóa & chống "
-"chặn mới được tích hợp trực tiếp vào Lantern!"
+"Chia sẻ mã giới thiệu của bạn với bạn bè. Khi họ mua Lantern Pro, cả hai sẽ "
+"nhận được thời gian thưởng:"
 
-msgid "maybe_later"
-msgstr "Có lẽ để sau"
+msgid "share_referral_code"
+msgstr "Chia sẻ mã giới thiệu"
 
-msgid "try"
-msgstr "Dùng thử"
+msgid "unbounded"
+msgstr "Unbounded"
+
+msgid "help_fight_global_internet_censorship"
+msgstr "Chung tay chống kiểm duyệt Internet toàn cầu"
+
+msgid "vpn_settings"
+msgstr "Cài đặt VPN"
+
+msgid "split_tunneling"
+msgstr "Định tuyến phân tách"
+
+msgid "server_locations"
+msgstr "Vị trí máy chủ"
+
+msgid "lantern_pro_email"
+msgstr "Email Lantern Pro:"
+
+msgid "pro_account_expiration"
+msgstr "Ngày hết hạn tài khoản Pro"
+
+msgid "manage_subscription"
+msgstr "Quản lý gói đăng ký"
+
+msgid "lantern_pro_devices"
+msgstr "Thiết bị Lantern Pro"
+
+msgid "remove"
+msgstr "Xóa"
+
+msgid "add_device"
+msgstr "Thêm thiết bị"
+
+msgid "danger_zone"
+msgstr "Vùng nguy hiểm:"
+
+msgid "delete_account"
+msgstr "Xóa tài khoản"
+
+msgid "delete"
+msgstr "Xóa"
+
+msgid "account"
+msgstr "Tài khoản"
+
+msgid "delete_account_?"
+msgstr "Xóa tài khoản của bạn?"
+
+msgid "delete_account_message"
+msgstr ""
+"Việc xóa tài khoản là vĩnh viễn. Bạn sẽ mất quyền truy cập trên tất cả các "
+"thiết bị, và thời gian đăng ký Pro còn lại sẽ bị hủy mà không được hoàn "
+"tiền."
+
+msgid "delete_account_message_two"
+msgstr "Để xác nhận xóa, vui lòng nhập mật khẩu của bạn bên dưới"
+
+msgid "Submit Issue Report"
+msgstr "Gửi báo cáo sự cố"
+
+msgid "confirm_deletion"
+msgstr "Xác nhận xóa"
+
+msgid "cancel"
+msgstr "Hủy"
+
+msgid "daily_data_usage"
+msgstr "Lưu lượng dữ liệu hàng ngày"
+
+msgid "mb"
+msgstr "MB"
+
+msgid "vpn_status"
+msgstr "Trạng thái VPN"
+
+msgid "telegram"
+msgstr "Telegram"
+
+msgid "instagram"
+msgstr "Instagram"
+
+msgid "x"
+msgstr "X"
+
+msgid "follow_us"
+msgstr "Theo dõi chúng tôi"
+
+msgid "server_selection"
+msgstr "Chọn máy chủ"
+
+msgid "smart_location"
+msgstr "Vị trí thông minh"
+
+msgid "automatically_chooses_fastest_location"
+msgstr "Tự động chọn vị trí nhanh nhất"
+
+msgid "pro_locations"
+msgstr "Vị trí Pro:"
+
+msgid "choose_your_location_with_lantern_pro"
+msgstr "Chọn vị trí của bạn với Lantern Pro:"
+
+msgid "language"
+msgstr "Ngôn ngữ"
 
 msgid "sign_in"
 msgstr "Đăng nhập"
 
-msgid "enter_email"
-msgstr "Nhập Email"
+msgid "sign_out"
+msgstr "Đăng xuất"
 
-msgid "enter_password"
-msgstr "Nhập mật khẩu "
+msgid "check_for_updates"
+msgstr "Kiểm tra cập nhật"
 
-msgid "forgot_password"
-msgstr "Quên mật khẩu "
+msgid "support"
+msgstr "Hỗ trợ"
 
-msgid "forgot_your_password"
-msgstr "Bạn quên mật khẩu? "
+msgid "download_links"
+msgstr "Liên kết tải xuống"
 
-msgid "click_here"
-msgstr "Bạn quên mật khẩu? "
+msgid "get_30_days_of_pro_free"
+msgstr "Nhận 30 ngày Pro miễn phí"
 
-msgid "reset_password"
-msgstr "Đặt lại mật khẩu"
-
-msgid "lantern_pro_email"
-msgstr "Email Lantern Pro "
-
-msgid "return_to_sign_in"
-msgstr "Quay lại Đăng nhập "
-
-msgid "enter_confirmation_code"
-msgstr "Nhập mã xác nhận "
-
-msgid "confirmation_code_msg"
+msgid "share_message_referral_code"
 msgstr ""
-"Một mã xác nhận đã được gửi đến XX. Nhập nó ở đây để bảo vệ tài khoản của "
-"bạn và kích hoạt khôi phục mật khẩu. "
+"Để nhận một tháng Lantern Pro miễn phí, hãy sử dụng mã giới thiệu này: %s ; "
+"Bạn có thể tải xuống từ đây: https://lantern.io/download"
 
-msgid "resend_confirmation_code"
-msgstr "Gửi lại Email Xác nhận "
+msgid "submit_issue_report"
+msgstr "Gửi báo cáo sự cố"
 
-msgid "email_already_exists"
-msgstr "Email đã tồn tại "
+msgid "select_an_issue"
+msgstr "Chọn một sự cố"
 
-msgid "email_already_exists_msg"
+msgid "cannot_access_blocked_sites"
+msgstr "Không thể truy cập các trang web bị chặn"
+
+msgid "cannot_complete_purchase"
+msgstr "Không thể hoàn tất thanh toán"
+
+msgid "discover_not_working"
+msgstr "Discover không hoạt động"
+
+msgid "cannot_sign_in"
+msgstr "Không thể đăng nhập"
+
+msgid "spinner_loads_endlessly"
+msgstr "Biểu tượng tải quay mãi không dừng"
+
+msgid "slow"
+msgstr "Chậm"
+
+msgid "cannot_link_devices"
+msgstr "Không thể liên kết thiết bị"
+
+msgid "wrong_device_linking_code"
+msgstr "Mã liên kết thiết bị sai hoặc không hợp lệ"
+
+msgid "cannot_remove_device"
+msgstr "Không thể xóa thiết bị"
+
+msgid "application_crashes"
+msgstr "Ứng dụng bị lỗi"
+
+msgid "other"
+msgstr "Khác"
+
+msgid "issue_description"
+msgstr "Mô tả sự cố của bạn"
+
+msgid "enter_password_to_confirm"
+msgstr "Nhập mật khẩu để xác nhận"
+
+msgid "cannot_view_logs"
 msgstr ""
-"Email này đã được sử dụng, nếu bạn đã có tài khoản với email này, bạn có thể"
-" khôi phục. Nếu không, vui lòng quay lại và chọn một địa chỉ email khác. "
+"Lantern không thể xem nhật ký chẩn đoán của bạn trừ khi bạn gửi cho chúng "
+"tôi."
 
-msgid "recover_account"
-msgstr "Khôi phục Tài khoản "
+msgid "split_tunneling_mode"
+msgstr "Chế độ định tuyến phân tách"
 
-msgid "back"
-msgstr "trở lại "
+msgid "apps_split_tunneling"
+msgstr "Định tuyến phân tách ứng dụng"
 
-msgid "change_email"
-msgstr "Thay đổi Email "
+msgid "website_split_tunneling"
+msgstr "Định tuyến phân tách trang web"
 
-msgid "new_password"
-msgstr "Mật khẩu mới"
+msgid "iran_optimized"
+msgstr "Định tuyến phân tách tối ưu cho Iran"
 
-msgid "confirm_new_password"
-msgstr "Xác nhận mật khẩu mới"
+msgid "china_optimized"
+msgstr "Định tuyến phân tách tối ưu cho Trung Quốc"
 
-msgid "already_have_an_account"
-msgstr "Đã có tài khoản? "
+msgid "russia_optimized"
+msgstr "Định tuyến phân tách tối ưu cho Nga"
 
-msgid "create_account"
-msgstr "Tạo tài khoản"
+msgid "global_optimized"
+msgstr "Định tuyến phân tách tối ưu toàn cầu"
+
+msgid "enter_url"
+msgstr "Nhập URL"
+
+msgid "add"
+msgstr "Thêm"
+
+msgid "enabled"
+msgstr "Đã bật"
+
+msgid "disabled"
+msgstr "Đã tắt"
+
+msgid "automatic"
+msgstr "Tự động"
+
+msgid "automatic_mode"
+msgstr "Chế độ tự động"
+
+msgid "manual"
+msgstr "Thủ công"
+
+msgid "enter_url_or_ip"
+msgstr "Nhập URL hoặc địa chỉ IP"
+
+msgid "installed_apps"
+msgstr "Ứng dụng đã cài đặt"
+
+msgid "search_apps"
+msgstr "Tìm kiếm ứng dụng"
+
+msgid "search_websites"
+msgstr "Tìm kiếm trang web"
+
+msgid "mode"
+msgstr "Chế độ"
+
+msgid "use_commas"
+msgstr "Sử dụng dấu phẩy để phân tách nhiều URL"
+
+msgid "default_bypass"
+msgstr "Danh sách bỏ qua mặc định"
+
+msgid "global_bypass_list"
+msgstr "Danh sách bỏ qua toàn cầu"
+
+msgid "global_bypass_desc"
+msgstr "Các trang web đáng tin cậy (HTTPS) với nội dung không nhạy cảm."
+
+msgid "china_bypass_list"
+msgstr "Danh sách bỏ qua Trung Quốc"
+
+msgid "china_bypass_desc"
+msgstr ""
+"Các trang web có thể truy cập tự do ở Trung Quốc. Được cập nhật thường "
+"xuyên."
+
+msgid "iran_bypass_list"
+msgstr "Danh sách bỏ qua Iran"
+
+msgid "iran_bypass_desc"
+msgstr ""
+"Các trang web có thể truy cập tự do ở Iran. Được cập nhật thường xuyên."
+
+msgid "russia_bypass_list"
+msgstr "Danh sách bỏ qua Nga"
+
+msgid "russia_bypass_desc"
+msgstr ""
+"Các trang web có thể truy cập tự do ở Nga. Được cập nhật thường xuyên."
+
+msgid "see_sites_included"
+msgstr "Xem các trang web trong "
+
+msgid "default_lists_here"
+msgstr "danh sách mặc định tại đây"
+
+msgid "when_connected"
+msgstr "Khi được kết nối, các trang web bạn chọn sẽ bỏ qua VPN."
+
+msgid "lantern_automatic"
+msgstr ""
+"Lantern tự động chọn ứng dụng và trang web nào bỏ qua VPN dựa trên vị trí "
+"của bạn để có hiệu suất tốt nhất. "
+
+msgid "apps_bypassing_vpn"
+msgstr "Ứng dụng bỏ qua VPN (%d)"
+
+msgid "websites_bypassing_vpn"
+msgstr "Trang web bỏ qua VPN (%d)"
+
+msgid "logs_share_message"
+msgstr "Đây là nhật ký chẩn đoán của tôi từ Lantern."
+
+msgid "payment_options"
+msgstr "Phương thức thanh toán"
+
+msgid "add_your_email"
+msgstr "Thêm email của bạn"
+
+msgid "continue"
+msgstr "Tiếp tục"
+
+msgid "continue_with_google"
+msgstr "Tiếp tục với Google"
+
+msgid "continue_with_apple"
+msgstr "Tiếp tục với Apple"
+
+msgid "continue_without_email"
+msgstr "Tiếp tục mà không cần email"
+
+msgid "confirm_email"
+msgstr "Xác nhận email"
+
+msgid "add_your_email_message"
+msgstr "Thêm email để truy cập gói đăng ký trên bất kỳ thiết bị nào."
+
+msgid "confirm_email_code"
+msgstr "Mã xác nhận"
+
+msgid "confirm_email_code_message"
+msgstr ""
+"Xác nhận địa chỉ email này thuộc về bạn bằng cách nhập mã được gửi đến: "
+
+msgid "resend_email"
+msgstr "Gửi lại email"
 
 msgid "create_password"
 msgstr "Tạo mật khẩu"
 
-msgid "by_creating_an_account"
-msgstr "Bằng cách Tạo tài khoản, bạn đồng ý với "
+msgid "sign_in_to_lantern_pro"
+msgstr "Đăng nhập vào Lantern Pro"
 
-msgid "confirm_email"
-msgstr "Xác Nhận Email"
+msgid "sign_in_with_email"
+msgstr "Đăng nhập bằng email"
+
+msgid "enter_your_lantern_pro_account_details"
+msgstr "Nhập thông tin tài khoản Lantern Pro của bạn."
+
+msgid "email"
+msgstr "Email"
+
+msgid "enter_password"
+msgstr "Nhập mật khẩu"
+
+msgid "forgot_password"
+msgstr "Quên mật khẩu?"
+
+msgid "reset_your_password"
+msgstr "Đặt lại mật khẩu"
+
+msgid "enter_your_lantern_pro_account_email"
+msgstr "Nhập email tài khoản Lantern Pro của bạn."
+
+msgid "reset_password"
+msgstr "Đặt lại mật khẩu"
+
+msgid "confirm_new_password"
+msgstr "Xác nhận mật khẩu mới"
+
+msgid "create_new_password"
+msgstr "Tạo mật khẩu mới"
+
+msgid "confirm_password"
+msgstr "Xác nhận mật khẩu"
+
+msgid "confirm_password_required"
+msgstr "Yêu cầu xác nhận mật khẩu"
+
+msgid "passwords_do_not_match"
+msgstr "Mật khẩu không khớp"
+
+msgid "activation_code"
+msgstr "Mã kích hoạt"
+
+msgid "activate_lantern_pro"
+msgstr "Kích hoạt Lantern Pro"
+
+msgid "invalid_email"
+msgstr "Địa chỉ email không hợp lệ"
+
+msgid "purchase_already_owned"
+msgstr "Bạn đã sở hữu gói mua này, hãy thử khôi phục gói mua"
+
+msgid "stripe_payment"
+msgstr "Thanh toán Stripe"
+
+msgid "split_tunneling_description"
+msgstr ""
+"Lantern định tuyến lưu lượng internet một cách thông minh dựa trên vị trí "
+"của bạn, đảm bảo truy cập an toàn đồng thời giữ kết nối nhanh chóng bằng "
+"cách chỉ sử dụng VPN khi cần thiết."
+
+msgid "region_specific_rules"
+msgstr "Quy tắc theo khu vực"
+
+msgid "location_based_rules"
+msgstr ""
+"Lantern sử dụng các quy tắc định tuyến khác nhau tùy theo vị trí của bạn:"
+
+msgid "censored_regions"
+msgstr "Ở các khu vực bị kiểm duyệt:"
+
+msgid "blocked_sites_proxied"
+msgstr ""
+"Các trang web và ứng dụng bị chặn (tin tức, nhắn tin, dịch vụ bị hạn chế) "
+"được định tuyến qua proxy."
+
+msgid "unblocked_sites_bypass"
+msgstr ""
+"Hầu hết các trang web không bị chặn sẽ bỏ qua VPN để duyệt web nhanh hơn."
+
+msgid "uncensored_regions"
+msgstr "Ở các khu vực không bị kiểm duyệt:"
+
+msgid "trusted_sites_bypass"
+msgstr ""
+"Chỉ các trang web và dịch vụ đáng tin cậy mới bỏ qua VPN theo mặc định."
+
+msgid "examples_of_bypassed_sites"
+msgstr ""
+"Bao gồm các trang web được mã hóa HTTPS với nội dung công khai hoặc không "
+"nhạy cảm như mua sắm, thời tiết và cập nhật phần mềm."
+
+msgid "routing_rules_vary"
+msgstr ""
+"Các quy tắc này khác nhau theo quốc gia và được cập nhật thường xuyên."
+
+msgid "view_the_full_list"
+msgstr "Xem danh sách đầy đủ các quy tắc định tuyến."
+
+msgid "turn_on_split_tunneling"
+msgstr "Bật định tuyến phân tách để tùy chỉnh các trang web sử dụng VPN."
+
+msgid "welcome_to_lantern_pro"
+msgstr "Chào mừng đến với Lantern Pro!"
+
+msgid "lantern_pro_description"
+msgstr ""
+"Các tính năng Pro của bạn đã được mở khóa—tận hưởng dữ liệu không giới hạn, "
+"tốc độ nhanh hơn và máy chủ cao cấp."
+
+msgid "plans_fetch_error"
+msgstr "Lỗi khi tải gói dịch vụ. Vui lòng thử lại sau."
+
+msgid "best_value"
+msgstr "Giá trị tốt nhất!"
+
+msgid "choose_payment_method"
+msgstr "Chọn phương thức thanh toán"
+
+msgid "payment_information_encrypted"
+msgstr "Thông tin thanh toán của bạn được mã hóa hoàn toàn."
+
+msgid "purchase_not_completed"
+msgstr ""
+"Giao dịch mua chưa hoàn tất. Bạn có thể thử lại bất kỳ lúc nào hoặc liên hệ "
+"bộ phận hỗ trợ nếu cần giúp đỡ"
+
+msgid "are_you_sure"
+msgstr "Bạn có chắc chắn?"
+
+msgid "continue_without_email_message"
+msgstr ""
+"Nếu bạn chọn tiếp tục mà không thêm email, bạn sẽ không thể dùng gói đăng ký"
+" trên thiết bị khác."
+
+msgid "add_email"
+msgstr "Thêm email"
+
+msgid "block_ads"
+msgstr "Chặn quảng cáo"
+
+msgid "only_active"
+msgstr "Chỉ hoạt động khi VPN được kết nối"
+
+msgid "vpn_connected"
+msgstr "Lantern đã được kết nối."
+
+msgid "vpn_disconnected"
+msgstr "Lantern đã ngắt kết nối."
+
+msgid "open_notification"
+msgstr "Mở thông báo"
+
+msgid "logout"
+msgstr "Đăng xuất"
+
+msgid "logout_message"
+msgstr ""
+"Đăng xuất sẽ chuyển Lantern về phiên bản miễn phí. Để truy cập tài khoản của"
+" bạn lại, bạn sẽ cần đăng nhập lại."
+
+msgid "not_now"
+msgstr "Để sau"
+
+msgid "billed_once"
+msgstr "Thanh toán một lần"
+
+msgid "subscription"
+msgstr "Gói đăng ký"
+
+msgid "subscribe"
+msgstr "Đăng ký"
+
+msgid "checkout"
+msgstr "Thanh toán"
+
+msgid "next_billing_date"
+msgstr "Ngày thanh toán tiếp theo"
+
+msgid "vpn_may_be_needed"
+msgstr "Có thể cần VPN"
+
+msgid "google_and_apple_sign_in_blocked"
+msgstr ""
+"Đăng nhập bằng Google và Apple có thể bị chặn ở khu vực này. Để hoàn tất "
+"thiết lập tài khoản, vui lòng bật VPN trước."
+
+msgid "continue_without_vpn"
+msgstr "Tiếp tục mà không có VPN"
+
+msgid "turn_on_vpn"
+msgstr "Bật VPN"
+
+msgid "server_setup_do"
+msgstr "Thiết lập sử dụng DigitalOcean"
+
+msgid "server_setup_do_price"
+msgstr "Chỉ %s/tháng thông qua DigitalOcean"
+
+msgid "server_setup_gcp"
+msgstr "Thiết lập sử dụng Google Cloud Platform"
+
+msgid "continue_with_do"
+msgstr "Tiếp tục với DigitalOcean"
+
+msgid "do_allows"
+msgstr ""
+"DigitalOcean cho phép bạn chọn một vị trí máy chủ từ %d tùy chọn dưới đây."
+
+msgid "server_setup_gcp_price"
+msgstr "Chỉ %s/tháng thông qua GCP"
+
+msgid "continue_with_gcp"
+msgstr "Tiếp tục với Google"
+
+msgid "gcp_allows"
+msgstr ""
+"Google Cloud Platform cho phép bạn chọn một vị trí máy chủ từ %d tùy chọn "
+"dưới đây:"
+
+msgid "server_setup_aws"
+msgstr "Thiết lập máy chủ riêng trên AWS"
+
+msgid "server_setup_aws_price"
+msgstr "Chỉ %s/tháng thông qua AWS"
+
+msgid "server_setup_manual"
+msgstr "Thiết lập thủ công"
+
+msgid "seamless_integration"
+msgstr "Tích hợp liền mạch với Lantern"
+
+msgid "easiest_setup"
+msgstr "Quy trình thiết lập dễ nhất"
+
+msgid "multiple_location_options"
+msgstr "Nhiều tùy chọn vị trí máy chủ"
+
+msgid "one_month_included"
+msgstr "%d TB/tháng dữ liệu đi kèm"
+
+msgid "easiest_setup_process"
+msgstr "Quy trình thiết lập dễ nhất"
+
+msgid "setup_a_private_server"
+msgstr "Thiết lập máy chủ riêng"
+
+msgid "setup_private_server"
+msgstr "Thiết lập máy chủ riêng"
+
+msgid "previous"
+msgstr "Quay lại"
+
+msgid "next"
+msgstr "Tiếp theo"
+
+msgid "error"
+msgstr "Lỗi"
+
+msgid "signup_error_user_exists"
+msgstr ""
+"Có vẻ như có lỗi xảy ra khi đăng ký. Vui lòng thử đặt lại mật khẩu và nếu "
+"vấn đề vẫn tiếp tục, hãy liên hệ nhóm hỗ trợ của chúng tôi"
+
+msgid "user_not_found"
+msgstr ""
+"Không nhận diện được người dùng. Vui lòng kiểm tra thông tin đăng nhập và "
+"thử lại. Nếu bạn tiếp tục gặp vấn đề, vui lòng liên hệ nhóm hỗ trợ của chúng"
+" tôi để được trợ giúp."
+
+msgid "invalid_code"
+msgstr "Mã không đúng hoặc có thể đã hết hạn. Vui lòng thử gửi lại"
+
+msgid "email_resend_message"
+msgstr "Mã xác nhận mới của bạn đã được gửi"
+
+msgid "password_has_been_updated"
+msgstr "Mật khẩu đã được cập nhật"
+
+msgid "password_has_been_updated_message"
+msgstr "Mật khẩu của bạn đã được đặt lại thành công"
 
 msgid "update_pro_account"
-msgstr "Cập nhật Tài khoản Pro "
+msgstr "Cập nhật tài khoản Pro"
 
 msgid "update_pro_account_message"
 msgstr ""
-"Những thay đổi sắp đến với Lantern Pro! Bây giờ, bạn sẽ cần một email và mật"
-" khẩu để đăng nhập trên tất cả các thiết bị và để truy cập Quản lý Tài "
-"khoản. Vui lòng dành vài phút để thêm những thông tin này vào tài khoản của "
-"bạn. "
+"Để quản lý tài khoản hoặc đăng nhập vào thiết bị khác, vui lòng thêm email "
+"và mật khẩu vào tài khoản của bạn trước."
 
-msgid "not_now"
-msgstr "Không phải bây giờ "
+msgid "subscription_cancelled"
+msgstr "Gói đăng ký của bạn đã bị hủy."
 
-msgid "update_account"
-msgstr "Cập nhật Tài khoản "
+msgid "subscription_updated"
+msgstr "Gói đăng ký của bạn đã được cập nhật."
 
-msgid "new"
-msgstr "Mới"
+msgid "subscription_renewed"
+msgstr "Gói đăng ký của bạn đã được gia hạn."
 
-msgid "Daily Data Usage"
-msgstr "Sử dụng dữ liệu hàng ngày"
+msgid "got_it"
+msgstr "Đã hiểu"
 
-msgid "is"
-msgstr "là"
+msgid "server_location"
+msgstr "Vị trí máy chủ"
+
+msgid "choose"
+msgstr "Chọn"
+
+msgid "choose_your_account"
+msgstr "Chọn tài khoản của bạn"
+
+msgid "choose_your_project"
+msgstr "Chọn dự án của bạn"
+
+msgid "name_your_google_cloud_project"
+msgstr "Đặt tên cho dự án Google Cloud của bạn"
+
+msgid "billing_account"
+msgstr "Tài khoản thanh toán"
+
+msgid "billing_account_placeholder"
+msgstr "Tài khoản thanh toán cho %s"
+
+msgid "server_name"
+msgstr "Tên máy chủ"
+
+msgid "google_project"
+msgstr "Dự án Google"
+
+msgid "field_name_required"
+msgstr "Yêu cầu nhập tên"
+
+msgid "choose_google_account"
+msgstr "Chọn tài khoản thanh toán Google"
+
+msgid "server_name_placeholder"
+msgstr "Máy chủ của Derek"
+
+msgid "change"
+msgstr "Thay đổi"
+
+msgid "choose_location"
+msgstr "Chọn vị trí"
+
+msgid "choose_your_location"
+msgstr "Chọn vị trí của bạn"
+
+msgid "start_deployment"
+msgstr "Bắt đầu triển khai"
+
+msgid "server_name_description"
+msgstr "Cách máy chủ sẽ xuất hiện trong danh sách chọn máy chủ."
+
+msgid "select_private_server_region"
+msgstr ""
+"Chọn khu vực cho máy chủ riêng của bạn. Vị trí gần hơn có thể cải thiện tốc "
+"độ và độ trễ."
+
+msgid "gcp_location_options"
+msgstr "Tùy chọn vị trí Google Cloud Platform (%d):"
+
+msgid "australia_sydney"
+msgstr "Úc - Sydney"
+
+msgid "belgium_stghislain"
+msgstr "Bỉ - St. Ghislain"
+
+msgid "brazil_saopaulo"
+msgstr "São Paulo"
+
+msgid "us_los_angeles"
+msgstr "Mỹ - Los Angeles"
+
+msgid "japan_tokyo"
+msgstr "Nhật Bản - Tokyo"
+
+msgid "deploying_private_server"
+msgstr "Đang triển khai máy chủ riêng"
+
+msgid "deploying_server_status"
+msgstr ""
+"Vui lòng đợi! Máy chủ riêng của bạn đang được thiết lập. Quá trình này có "
+"thể mất vài phút."
+
+msgid "confirm_server_fingerprint"
+msgstr "Xác nhận dấu vân tay máy chủ"
+
+msgid "server_fingerprint"
+msgstr "Dấu vân tay máy chủ"
+
+msgid "confirm_fingerprint"
+msgstr "Xác nhận dấu vân tay"
+
+msgid "private_server_setup_in_progress"
+msgstr ""
+"Vui lòng đợi! Máy chủ riêng của bạn đang được thiết lập. Quá trình này có "
+"thể mất vài phút, vui lòng giữ màn hình này mở."
+
+msgid "cancel_server_deployment"
+msgstr "Hủy triển khai máy chủ"
+
+msgid "server_ready_title"
+msgstr "Máy chủ riêng đã sẵn sàng"
+
+msgid "server_ready_message"
+msgstr ""
+"Máy chủ riêng của bạn đã được thiết lập và thêm vào danh sách máy chủ. Bạn "
+"đã sẵn sàng để kết nối!"
+
+msgid "server_failed_message"
+msgstr ""
+"Đã xảy ra lỗi khi thiết lập máy chủ riêng của bạn. Bạn có thể thử lại hoặc "
+"thử lại sau."
+
+msgid "close"
+msgstr "Đóng"
+
+msgid "connect_now"
+msgstr "Kết nối ngay"
+
+msgid "server_setup_failed"
+msgstr "Thiết lập máy chủ thất bại"
+
+msgid "cancel_deployment"
+msgstr "Hủy triển khai"
+
+msgid "server_setup_failed_message"
+msgstr ""
+"Đã xảy ra lỗi khi thiết lập máy chủ riêng của bạn. Bạn có thể thử lại hoặc "
+"thử lại sau."
+
+msgid "exit"
+msgstr "Thoát"
+
+msgid "retry"
+msgstr "Thử lại"
+
+msgid "all_required_fields"
+msgstr "Vui lòng điền đầy đủ tất cả các trường bắt buộc."
+
+msgid "private_server_ready"
+msgstr "Máy chủ riêng đã sẵn sàng!"
+
+msgid "private_server_ready_message"
+msgstr ""
+"Máy chủ (%s) đã được thiết lập và thêm vào danh sách máy chủ của bạn. Bạn đã"
+" sẵn sàng để kết nối!"
+
+msgid "set_up_your_server"
+msgstr "Thiết lập máy chủ của bạn"
+
+msgid "view_instructions_github"
+msgstr "Xem hướng dẫn trên GitHub"
+
+msgid "server_access_key"
+msgstr "Khóa truy cập máy chủ"
+
+msgid "access_key"
+msgstr "Khóa truy cập"
+
+msgid "name_your_server"
+msgstr "Đặt tên cho máy chủ"
+
+msgid "how_server_appears"
+msgstr "Cách máy chủ sẽ xuất hiện trong danh sách chọn máy chủ"
+
+msgid "server_nickname"
+msgstr "Biệt danh máy chủ"
+
+msgid "verify_server"
+msgstr "Xác minh máy chủ"
+
+msgid "vpn_client_not_setup"
+msgstr "Vui lòng bật ứng dụng VPN."
+
+msgid "continue_with"
+msgstr "Tiếp tục với"
+
+msgid "join_a_private_server"
+msgstr "Tham gia máy chủ riêng"
+
+msgid "join_private_server"
+msgstr "Tham gia máy chủ riêng"
+
+msgid "join_server"
+msgstr "Tham gia máy chủ"
+
+msgid "private_server_usage_message"
+msgstr ""
+"Lưu lượng sử dụng máy chủ riêng không được tính vào hạn mức dữ liệu hàng "
+"ngày của Lantern."
+
+msgid "manage_private_servers"
+msgstr "Quản lý máy chủ riêng"
+
+msgid "my_servers"
+msgstr "Máy chủ của tôi"
+
+msgid "joined_servers"
+msgstr "Máy chủ đã tham gia"
+
+msgid "access_key_expiration"
+msgstr ""
+"Mỗi khóa truy cập là duy nhất và hết hạn sau 1 ngày. Bạn có thể tạo khóa mới"
+" bất kỳ lúc nào."
+
+msgid "share_access_key"
+msgstr "Chia sẻ khóa truy cập"
+
+msgid "rename_server"
+msgstr "Đổi tên máy chủ"
+
+msgid "rename"
+msgstr "Đổi tên"
+
+msgid "selected_location"
+msgstr "Vị trí đã chọn"
+
+msgid "remove_server_?"
+msgstr "Xóa máy chủ?"
+
+msgid "remove_server_message"
+msgstr ""
+"Xóa %s? Việc này chỉ xóa nó khỏi ứng dụng của bạn, nó sẽ không xóa máy chủ "
+"khỏi nhà cung cấp dịch vụ đám mây của bạn."
+
+msgid "generate_access_key"
+msgstr "Tạo khóa truy cập"
+
+msgid "invite_name"
+msgstr "Tên lời mời"
+
+msgid "trust_server_operator"
+msgstr "Tin tưởng người vận hành máy chủ"
+
+msgid "trust_server_operator_message_one"
+msgstr ""
+"Máy chủ riêng được lưu trữ và vận hành bởi cá nhân hoặc tổ chức bên ngoài "
+"Lantern. Khi bạn kết nối với một máy chủ, bạn đang tin tưởng người vận hành "
+"nó để quản lý an toàn và sử dụng có trách nhiệm."
+
+msgid "trust_server_operator_message_two"
+msgstr ""
+"Lantern không quản lý hoặc giám sát máy chủ riêng. Hãy chắc chắn bạn biết và"
+" tin tưởng người vận hành máy chủ trước khi tham gia."
+
+msgid "trust_server_operator_message_three"
+msgstr ""
+"Nếu bạn không chắc chắn ai vận hành máy chủ hoặc nó được cấu hình như thế "
+"nào, chúng tôi khuyên bạn nên sử dụng một trong các máy chủ Lantern mặc định"
+" có sẵn trong danh sách máy chủ của bạn"
+
+msgid "invalid_server_details"
+msgstr ""
+"Thông tin máy chủ không hợp lệ. Vui lòng kiểm tra khóa truy cập và thử lại."
+
+msgid "lantern_servers"
+msgstr "Máy chủ Lantern"
+
+msgid "private_servers"
+msgstr "Máy chủ riêng"
+
+msgid "fastest_server"
+msgstr "Máy chủ nhanh nhất"
+
+msgid "join_my_private_server"
+msgstr "Tham gia máy chủ riêng Lantern của tôi"
+
+msgid "your_server"
+msgstr "Máy chủ của bạn:"
+
+msgid "no_private_server_setup_yet"
+msgstr "Bạn chưa thiết lập máy chủ riêng. Nhấn vào nút bên dưới để bắt đầu."
 
 msgid "connect"
 msgstr "Kết nối"
@@ -140,1848 +956,335 @@ msgstr "Kết nối"
 msgid "disconnect"
 msgstr "Ngắt kết nối"
 
-msgid "connected"
-msgstr "Đã kết nối"
-
-msgid "Disconnected"
-msgstr "Đã ngắt kết nối"
-
-msgid "Disconnecting"
-msgstr "Đang ngắt kết nối..."
-
-msgid "Connecting"
-msgstr "Đang kết nối..."
-
-msgid "no_network_connection"
-msgstr "Không có kết nối mạng"
-
-msgid "connection_error"
-msgstr "Lỗi kết nối"
-
-msgid "connection_error_des"
-msgstr ""
-"Lantern đang gặp sự cố khi kết nối với máy chủ của chúng tôi. Vui lòng khởi "
-"động lại ứng dụng. Nếu sự cố này vẫn tiếp diễn, vui lòng liên hệ với bộ phận"
-" hỗ trợ."
-
-msgid "connection_error_button"
-msgstr "Liên hệ hỗ trợ"
-
-msgid "Calling"
-msgstr "Đang gọi..."
-
-msgid "Go Pro Title"
-msgstr "Lên Pro!"
-
-msgid "Go Pro Description"
-msgstr ""
-"Mở khóa tốc độ nhanh hơn, trải nghiệm không quảng cáo và dữ liệu không giới "
-"hạn! "
-
-msgid "Server Location"
-msgstr "Địa chỉ Server"
-
-msgid "Server Location Info"
-msgstr ""
-"Lantern sử dụng lựa chọn máy chủ thông minh để tự động kết nối bạn với các "
-"trung tâm dữ liệu tốt nhất của chúng tôi."
-
-msgid "OK"
-msgstr "ĐỒNG Ý"
-
-msgid "Done"
-msgstr "Xong"
-
-msgid "backup_recovery_key"
-msgstr "Khóa khôi phục sao lưu"
-
-msgid "delete_chat_data"
-msgstr "Xóa tất cả dữ liệu trò chuyện"
-
-msgid "delete_chat_data_description"
-msgstr ""
-"Thao tác này sẽ xóa Số trò chuyện, danh bạ và tin nhắn của bạn khỏi thiết bị"
-" này nhưng không xóa Khóa khôi phục sao lưu, bạn sẽ mất quyền truy cập vào "
-"Số trò chuyện của mình."
-
-msgid "delete_chat_data_confirmation"
-msgstr "Tôi xác nhận rằng tôi muốn xóa dữ liệu trò chuyện của mình"
-
-msgid "Pro Account Management"
-msgstr "Quản Trị Tài Khoản Pro"
-
-msgid "link_device"
-msgstr "Liên kết thiết bị"
-
-msgid "Upgrade to Lantern Pro"
-msgstr "Nâng Cấp lên Lantern Pro"
-
-msgid "Invite Friends"
-msgstr "Mời Bạn Bè"
-
-msgid "share_lantern_pro"
-msgstr ""
-"Chia sẻ Lantern Pro với bạn bè! Khi bạn của bạn sử dụng mã giới thiệu của "
-"bạn trong quá trình mua Lantern Pro, cả hai bạn sẽ nhận được một tháng dịch "
-"vụ Lantern Pro miễn phí!"
-
-msgid "privacy_disclosure_title"
-msgstr "Tiết lộ quyền riêng tư của Lantern"
-
-msgid "privacy_disclosure_body"
-msgstr ""
-"Lantern cam kết bảo vệ sự riêng tư của bạn. Chúng tôi muốn bạn hiểu thông "
-"tin nào chúng tôi thu thập, thông tin nào chúng tôi không thu thập và cách "
-"chúng tôi thu thập, sử dụng và lưu trữ thông tin. Chúng tôi tách thông tin "
-"thanh toán của bạn với tài khoản Lantern Pro của bạn. Chúng tôi không thu "
-"thập nhật ký hoạt động của bạn, bao gồm không ghi nhật ký lịch sử duyệt web,"
-" điểm đến của lưu lượng truy cập, nội dung dữ liệu hoặc truy vấn DNS. Chúng "
-"tôi cũng không bao giờ lưu trữ nhật ký kết nối, nghĩa là không có nhật ký "
-"nào về địa chỉ IP của bạn, địa chỉ IP máy chủ Lantern gửi đi của bạn được "
-"liên kết với dấu thời gian kết nối hoặc thời lượng mỗi phiên. Với tài khoản "
-"Lantern Pro cụ thể, về mặt kỹ thuật, Lantern không thể liên kết tài khoản "
-"Lantern với danh tính thực của người dùng. Với địa chỉ IP của Lantern và dấu"
-" thời gian chính xác, về mặt kỹ thuật, Lantern không thể gán địa chỉ IP này "
-"cho người dùng Lantern hoặc địa chỉ IP của người dùng Lantern."
-
-msgid "privacy_disclosure_accept"
-msgstr "Tôi đồng ý"
-
-msgid "desktop_version"
-msgstr "Phiên bản Để Bàn"
-
-msgid "settings"
-msgstr "Cài đặt"
-
-msgid "general"
-msgstr "Chung"
-
-msgid "about"
-msgstr "Thông tin"
-
-msgid "proxy_all"
-msgstr "Proxy tất cả"
-
-msgid "proxy_everything_is"
-msgstr "Proxy tất cả là  %s"
-
-msgid "version_number"
-msgstr "Phiên bản %s"
-
-msgid "build_number"
-msgstr "Xây dựng %s"
-
-msgid "sdk_version"
-msgstr "SDK %s"
-
-msgid "language"
-msgstr "Ngôn ngữ"
-
-msgid "select_an_issue"
-msgstr "Hãy chọn 1 vấn đề"
-
-msgid "enter_description"
-msgstr "Vui lòng mô tả vấn đề của bạn "
-
-msgid "cannot_access_blocked_sites"
-msgstr "Không thể truy cập các trang bị chặn"
-
-msgid "cannot_complete_purchase"
-msgstr "Không thể hoàn tất việc mua"
-
-msgid "discover_not_working"
-msgstr "Khám phá không hoạt động"
-
-msgid "cannot_sign_in"
-msgstr "Không thể đăng nhập"
-
-msgid "spinner_loads_endlessly"
-msgstr "Spinner tải vô tận"
-
-msgid "slow"
-msgstr "chậm"
-
-msgid "cannot_link_devices"
-msgstr "Không thể liên kết các thiết bị"
-
-msgid "wrong_device_linking_code"
-msgstr "Mã số kết nối máy sai hoặc không hợp lệ"
-
-msgid "cannot_remove_device"
-msgstr "Không thể gỡ bỏ thiết bị "
-
-msgid "application_crashes"
-msgstr "Ứng dụng bị treo"
-
-msgid "other"
-msgstr "Khác"
-
-msgid "issue_description"
-msgstr "Mô tả vấn đề của bạn "
-
-msgid "check_for_updates"
-msgstr "Kiểm tra bản cập nhật"
-
-msgid "blocked_users"
-msgstr "Người dùng bị chặn"
-
-msgid "description_proxy_all_dialog"
-msgstr ""
-"Nếu được bật, tất cả lưu lượng sẽ được gửi qua Lantern (an toàn hơn). Nếu bị"
-" tắt, chỉ lưu lượng bị chặn mới được gửi qua Lantern (nhanh hơn)."
-
-msgid "Account"
-msgstr "Tài khoản"
-
-msgid "VPN Status"
-msgstr "Trạng thái VPN"
-
-msgid "VPN"
-msgstr "VPN"
-
-msgid "Authorize Device for Pro"
-msgstr "Cho Phép Máy dùng bản Pro"
-
-msgid "Authorize with Device Linking Pin"
-msgstr "Ủy quyền bằng Mã pin liên kết thiết bị"
-
-msgid "Requires physical access to a Lantern Pro Device"
-msgstr "Yêu cầu quyền truy cập vật lý vào Thiết bị Lantern Pro"
-
-msgid "Link with PIN"
-msgstr "Liên kết bằng mã PIN"
-
-msgid "OR"
-msgstr "HOẶC"
-
-msgid "device_linking_pin"
-msgstr "Ghim liên kết thiết bị"
-
-msgid "link_device_step_one"
-msgstr "Mở mục menu 'Thêm thiết bị' trên thiết bị Pro của bạn. "
-
-msgid "link_device_step_two"
-msgstr "Nhập mã PIN liên kết thiết bị và nhấp vào gửi "
-
-msgid "ensure_most_recent_version_lantern"
-msgstr "* Đảm bảo cả hai thiết bị đang chạy phiên bản Lantern mới nhất"
-
-msgid "Authorize Device via Email"
-msgstr "Cấp phép thiết bị qua email"
-
-msgid "auth_email_helper_text"
-msgstr "Nhập email được liên kết với tài khoản Pro của bạn"
-
-msgid "Requires access to the email you used to buy Lantern Pro"
-msgstr "Yêu cầu quyền truy cập vào email bạn đã sử dụng để mua Lantern Pro"
-
-msgid "Link via Email"
-msgstr "Liên kết qua Email"
-
-msgid "lantern_desktop"
-msgstr "Lantern Để Bàn"
-
-msgid "report_description"
-msgstr "Mô tả vấn đề"
-
-msgid "report_issue"
-msgstr "Báo cáo vấn đề "
-
-msgid "report_an_issue"
-msgstr "Báo cáo vấn đề"
-
-msgid "report_sent"
-msgstr "Đã gửi báo cáo"
-
-msgid "thank_you_for_reporting_your_issue"
-msgstr ""
-"Cảm ơn bạn đã báo cáo sự cố của mình, chúng tôi sẽ liên hệ lại với bạn qua "
-"Email ngay khi có thể"
-
-msgid "send_report"
-msgstr "Gửi báo cáo"
-
-msgid "most_recent_lantern_apps"
-msgstr ""
-"Bạn có thể tìm thấy các ứng dụng Lantern mới nhất dành cho máy tính để bàn "
-"và tất cả các nền tảng khác tại liên kết ở trên."
-
-msgid "share_link"
-msgstr "Chia sẻ liên kết "
-
-msgid "share_title"
-msgstr "Chia sẻ liên kết tải xuống Lantern"
-
-msgid "email"
-msgstr "Email"
-
-msgid "Submit"
-msgstr "Nộp"
-
-msgid "save"
-msgstr "Lưu"
-
-msgid "please_enter_a_valid_email_address"
-msgstr "Vui lòng nhập địa chỉ email hợp lệ"
-
-msgid "bonus"
-msgstr "Thưởng"
-
-msgid "referral_bonus"
-msgstr "thưởng giới thiệu"
-
-msgid "total"
-msgstr "Tổng"
-
-msgid "month"
-msgstr "tháng"
-
-msgid "months"
-msgstr "tháng"
-
-msgid "enter_email_to_complete_purchase"
-msgstr "Nhập email để hoàn tất mua hàng "
-
-msgid "error_fetching_plans"
-msgstr "Lỗi khi tìm nạp gói, vui lòng khởi động lại Lantern và thử lại."
-
-msgid "apply"
-msgstr "Áp dụng"
-
-msgid "choose_payment_method"
-msgstr "Chọn phương thức thanh toán"
-
-msgid "pro_plan"
-msgstr "Gói Pro"
-
-msgid "one_month_plan"
-msgstr ""
-
-msgid "one_year_plan"
-msgstr "Gói 1 năm"
-
-msgid "two_year_plan"
-msgstr "Gói 2 năm"
-
-msgid "plan_discount"
-msgstr "Tiết kiệm %d%%"
-
-msgid "enter_email_and_activation_code"
-msgstr "Nhập Email và Mã kích hoạt"
-
-msgid "referral_code"
-msgstr "Mã giới thiệu"
-
-msgid "share_referral_code"
-msgstr "Chia sẻ mã giới thiệu "
-
-msgid "share_message_referral_code"
-msgstr ""
-"Để có một tháng miễn phí Lantern Pro, sử dụng mã giới thiệu này: %s; Bạn có "
-"thể tải xuống từ đây: https://lantern.io/download "
-
-msgid "add_referral_code"
-msgstr "Thêm mã giới thiệu"
-
-msgid "Activation Code"
-msgstr "Mã kích hoạt"
-
-msgid "invalid_or_incomplete_referral_code"
-msgstr "Mã giới thiệu không hợp lệ hoặc không đầy đủ"
-
-msgid "register_for_pro"
-msgstr "Đăng ký Pro"
-
-msgid "Something went wrong while applying your referral code."
-msgstr "Đã xảy ra lỗi khi áp dụng mã giới thiệu của bạn."
-
-msgid "your_activation_code_is_invalid"
-msgstr "Mã kích hoạt của bạn không hợp lệ"
-
-msgid "update_cache_plans_timeout"
-msgstr "Đã xảy ra lỗi khi tìm nạp các gói có sẵn."
-
-msgid "bitcoin_timeout"
-msgstr "Yêu cầu BTCPay đã hết thời gian."
-
-msgid "BTCPay is unavailable"
-msgstr "BTCPay không khả dụng"
-
-msgid "update_cache_user_timeout"
-msgstr "Đã xảy ra lỗi khi tìm nạp dữ liệu tài khoản của bạn."
-
-msgid "reseller_timeout"
-msgstr "Đã xảy ra lỗi khi xác thực mã kích hoạt của bạn."
-
-msgid "wrong_reseller_code"
-msgstr "Mã kích hoạt không hợp lệ"
-
-msgid "reseller_success"
-msgstr "Đổi thành công mã kích hoạt."
-
-msgid "stripe_timeout"
-msgstr ""
-"Thanh toán Stripe của bạn đã hết hạn. Vui lòng khởi động lại Lantern và thử "
-"lại."
-
-msgid "stripe_success"
-msgstr "Mua Stripe thành công."
-
-msgid "renewal_success"
-msgstr "Gia hạn thành công"
-
-msgid "pro_renewal_success_description"
-msgstr ""
-"Cảm ơn bạn đã gia hạn tài khoản Lantern Pro của mình. Giờ đây, bạn có quyền "
-"truy cập không giới hạn bằng cách sử dụng các trung tâm dữ liệu nhanh nhất "
-"của chúng tôi. Có thể kết nối tối đa ba thiết bị với tài khoản của bạn."
-
-msgid "pro_purchase_success"
-msgstr "Chào mừng đến với Lantern Pro"
-
-msgid "platinum_purchase_success_descripion"
-msgstr ""
-"Giờ đây, bạn có quyền truy cập không giới hạn bằng cách sử dụng các trung "
-"tâm dữ liệu nhanh nhất và đường truyền chuyên dụng của chúng tôi. Có thể kết"
-" nối tối đa ba thiết bị với tài khoản của bạn."
-
-msgid "pro_purchase_success_descripion"
-msgstr ""
-"Bây giờ bạn có quyền truy cập không giới hạn bằng cách sử dụng các trung tâm"
-" dữ liệu nhanh nhất của chúng tôi. Có thể kết nối tối đa ba thiết bị với tài"
-" khoản của bạn."
-
-msgid "by_clicking_tos"
-msgstr "Bằng cách nhấp vào %s, bạn đồng ý với "
-
-msgid "tos"
-msgstr "Điều khoản Dịch vụ"
-
-msgid "step_1"
-msgstr "Bước 1"
-
-msgid "step_2"
-msgstr "Bước 2"
-
-msgid "step_3"
-msgstr "Bước 3"
-
-msgid "invalid_email"
-msgstr "Điạ chỉ email không hợp lệ"
-
-msgid "invalid_card"
-msgstr "Số thẻ tín dụng không hợp lệ"
-
-msgid "invalid_expiration"
-msgstr "Ngày hết hạn không hợp lệ"
-
-msgid "cc_number"
-msgstr "Thẻ Tín Dụng"
-
-msgid "card_number"
-msgstr "Số Thẻ Tín Dụng"
-
-msgid "card_expiration"
-msgstr "THÁNG/NĂM"
-
-msgid "invalid_cvc"
-msgstr "Mã xác minh không hợp lệ"
-
-msgid "complete_purchase"
-msgstr "Hoàn tất mua hàng"
-
-msgid "Re-send Email"
-msgstr "Gửi lại Email"
-
-msgid "Paste from clipboard?"
-msgstr "Dán từ khay nhớ tạm?"
-
-msgid "Yes"
-msgstr "Có"
-
-msgid "No"
-msgstr "Không"
-
-msgid "exit"
-msgstr "Thoát"
-
 msgid "show"
-msgstr "Hiển thị "
+msgstr "Hiển thị"
 
 msgid "status_on"
-msgstr "Trạng thái: Bật "
+msgstr "Đã kết nối"
 
 msgid "status_off"
-msgstr "Trạng thái: Tắt "
+msgstr "Đã ngắt kết nối"
 
-msgid "Enter or paste linking code"
-msgstr "Nhập hoặc dán mã liên kết"
+msgid "select_your_server_location"
+msgstr "Chọn vị trí máy chủ của bạn"
 
-msgid "recovery_email_sent"
+msgid "faster_speeds_unlimited_bandwidth"
+msgstr "Tốc độ nhanh hơn & băng thông không giới hạn"
+
+msgid "premium_servers_less_congestion"
+msgstr "Máy chủ cao cấp ít tắc nghẽn hơn"
+
+msgid "advanced_anti_censorship"
+msgstr "Công nghệ chống kiểm duyệt tiên tiến"
+
+msgid "exclusive_access_new_features"
+msgstr "Truy cập độc quyền các tính năng mới"
+
+msgid "connect_up_to_five_devices"
+msgstr "Kết nối tối đa 5 thiết bị"
+
+msgid "built_in_ad_blocking"
+msgstr "Chặn quảng cáo tích hợp sẵn"
+
+msgid "get_lantern_pro"
+msgstr "Nhận Lantern Pro"
+
+msgid "connected_to_private_server"
+msgstr "Đã kết nối với máy chủ riêng"
+
+msgid "server_already_selected"
+msgstr "Bạn đã kết nối với máy chủ này rồi."
+
+msgid "device_limit_reached"
+msgstr "Đã đạt giới hạn thiết bị"
+
+msgid "device_limit_reached_message"
 msgstr ""
-"Mã PIN Liên kết đã được gửi đến %s nếu tài khoản này tồn tại. Nhập mã PIN từ"
-" email đó ở trên. Có thể mất vài giờ để nhận được email."
+"Bạn đã đạt giới hạn 5 thiết bị. Vui lòng xóa một thiết bị để tiếp tục."
 
-msgid "Add Device"
-msgstr "Thêm Máy"
+msgid "remove_device_and_sign_in"
+msgstr "Xóa thiết bị và đăng nhập"
 
-msgid "approve_device_step_1"
+msgid "cancel_sign_in"
+msgstr "Hủy đăng nhập"
+
+msgid "change_email"
+msgstr "Đổi email"
+
+msgid "change_email_message"
 msgstr ""
-"Mở 'Cho phép thiết bị dùng bản Pro' từ menu tài khoản trên thiết bị bạn muốn"
-" liên kết, sau đó chọn 'Liên kết bằng mã PIN'."
+"Đây sẽ trở thành email đăng nhập mới của bạn. Bạn sẽ cần xác minh nó trước "
+"khi thay đổi có hiệu lực."
 
-msgid "approve_device_step_2"
-msgstr "Nhập mã liên kết có được từ bước 1"
+msgid "enter_new_email"
+msgstr "Nhập email mới của bạn"
 
-msgid "Pro Account Expiration"
-msgstr "Tài khoản Pro hết hạn"
+msgid "confirm_password_to_continue"
+msgstr "Để tiếp tục, vui lòng xác nhận mật khẩu của bạn."
 
-msgid "Renew"
-msgstr "Làm mới"
+msgid "email_updated"
+msgstr "Email của bạn đã được cập nhật."
 
-msgid "pro_devices_header"
-msgstr "Thiết bị Lantern Pro (tối đa 3)"
+msgid "enable_network_extension"
+msgstr "Bật tiện ích mở rộng mạng"
 
-msgid "Remove"
-msgstr "Xóa bỏ"
-
-msgid "Log Out"
-msgstr "Đăng xuất"
-
-msgid "confirm_remove_device"
-msgstr "Bạn có chắc là muốn gỡ kết nối máy này ra khỏi tài khoản Pro?"
-
-msgid "confirm_close_window"
-msgstr "Bạn có chắc chắn muốn đóng Lantern không? "
-
-msgid "unlimited_data"
-msgstr "Dung Lượng Không Giới Hạn"
-
-msgid "no_logs"
-msgstr "Không có nhật ký"
-
-msgid "no_ads"
-msgstr "Không có quảng cáo"
-
-msgid "choose_plan"
-msgstr "Chọn gói"
-
-msgid "billed_one_time"
-msgstr "tính phí một lần "
-
-msgid "connect_up_to_3_devices"
-msgstr "Kết nối tối đa 3 thiết bị"
-
-msgid "faster_data_centers"
-msgstr "Trung tâm dữ liệu nhanh hơn"
-
-msgid "dedicated_line"
-msgstr "Đường truyền chuyên dụng"
-
-msgid "increased_reliability"
-msgstr "Tăng độ tin cậy"
-
-msgid "checkout"
-msgstr "Trả tiền"
-
-msgid "credit_card"
-msgstr "Thẻ Tín Dụng"
-
-msgid "lantern_pro_checkout"
-msgstr "Tính Tiền Lantern Pro"
-
-msgid "1y_pricing"
-msgstr "Báo giá 1 năm"
-
-msgid "2y_pricing"
-msgstr "Báo giá 2 năm"
-
-msgid "plan_type"
-msgstr "Loại gói"
-
-msgid "most_popular"
-msgstr "Phổ biến nhất"
-
-msgid "free"
-msgstr "Miễn phí"
-
-msgid "n/a"
-msgstr "không có"
-
-msgid "Developer Settings"
-msgstr "Thiết lập nhà phát triển"
-
-msgid "Developer"
-msgstr "Nhà phát triển"
-
-msgid "dev_settings"
+msgid "enable_network_extension_message"
 msgstr ""
-"Các cài đặt này chỉ dành cho mục đích phát triển. Thay đổi bất kỳ cài đặt "
-"nào sẽ tự động dừng và khởi động lại ứng dụng."
+"Để sử dụng Lantern, chúng tôi cần cài đặt tiện ích mở rộng mạng cho Mac của "
+"bạn."
 
-msgid "dev_payment_mode"
+msgid "install_now"
+msgstr "Cài đặt ngay"
+
+msgid "learn_more"
+msgstr "Tìm hiểu thêm"
+
+msgid "network_extension_required"
+msgstr "Yêu cầu tiện ích mở rộng mạng"
+
+msgid "click"
+msgstr "Nhấn"
+
+msgid "open_system_settings"
+msgstr "Mở cài đặt hệ thống"
+
+msgid "when_prompted"
+msgstr "khi được nhắc."
+
+msgid "activate_extension"
+msgstr "Kích hoạt tiện ích mở rộng"
+
+msgid "email_optional"
+msgstr "Email (tùy chọn)"
+
+msgid "please_enter_valid_email"
+msgstr "Vui lòng nhập email hợp lệ"
+
+msgid "please_select_an_issue"
+msgstr "Vui lòng chọn một sự cố"
+
+msgid "please_enter_issue_description"
+msgstr "Vui lòng nhập mô tả sự cố"
+
+msgid "thanks_for_feedback"
+msgstr "Cảm ơn phản hồi của bạn!"
+
+msgid "no_apps_selected"
+msgstr "Chưa chọn ứng dụng nào"
+
+msgid "deselect_all"
+msgstr "Bỏ chọn tất cả"
+
+msgid "select_all"
+msgstr "Chọn tất cả"
+
+msgid "no_websites_selected"
+msgstr "Chưa chọn trang web nào"
+
+msgid "enter_activation_code"
+msgstr "Nhập mã kích hoạt"
+
+msgid "restore_purchase"
+msgstr "Khôi phục gói mua"
+
+msgid "do_private_server_setup"
+msgstr "Thiết lập máy chủ riêng DO"
+
+msgid "private_server_note"
 msgstr ""
-"Khi Chế độ kiểm tra thanh toán được bật, ứng dụng sử dụng một người dùng "
-"được mã cứng. Bạn có thể mua Stripe bằng số 4242 4242 4242 4242, ngày hết "
-"hạn trong tương lai và bất kỳ CVV nào."
+"Chọn khu vực cho máy chủ riêng của bạn. Vị trí gần hơn có thể cải thiện tốc "
+"độ và độ trễ."
 
-msgid "Payment Test Mode"
-msgstr "Chế độ kiểm tra thanh toán"
+msgid "gcp_private_server_setup"
+msgstr "Thiết lập máy chủ riêng GCP"
 
-msgid "Play Version"
-msgstr "Phiên bản Play"
+msgid "gcp_private_server_location"
+msgstr "Vị trí máy chủ riêng GCP"
 
-msgid "Force Country"
-msgstr "Lực lượng quốc gia"
+msgid "do_private_server_location"
+msgstr "Vị trí máy chủ riêng DO"
 
-msgid "Error"
-msgstr "Lỗi"
+msgid "confirm"
+msgstr "Xác nhận"
 
-msgid "accept"
-msgstr "Đồng ý"
+msgid "private_server_warning"
+msgstr "Chỉ thêm máy chủ do người bạn tin tưởng vận hành "
 
-msgid "cancel"
-msgstr "Hủy bỏ"
+msgid "go_to_server_locations"
+msgstr "Đi tới vị trí máy chủ"
 
-msgid "reject"
-msgstr "Từ chối"
+msgid "lantern_io"
+msgstr "Lantern.io"
 
-msgid "copied"
-msgstr "Đã sao chép!"
+msgid "alternative_download_links"
+msgstr "Liên kết tải xuống thay thế"
 
-msgid "saved"
-msgstr "Đã lưu!"
+msgid "github_download_page"
+msgstr "Trang tải xuống GitHub"
 
-msgid "new_chat"
-msgstr "Trò chuyện mới"
+msgid "telegram_bot"
+msgstr "Bot Telegram"
 
-msgid "your_contact_info"
-msgstr "Thông tin liên lạc của bạn"
-
-msgid "display_name"
-msgstr "Tên hiển thị"
-
-msgid "edit"
-msgstr "Chỉnh sửa"
-
-msgid "save_error"
-msgstr "Đã xảy ra lỗi khi lưu."
-
-msgid "fewer_options"
-msgstr "Ít tùy chọn hơn"
-
-msgid "more_options"
-msgstr "Thêm tùy chọn"
-
-msgid "block_user"
-msgstr "Chặn người dùng"
-
-msgid "unblock_user"
-msgstr "Bỏ chặn người dùng"
-
-msgid "block"
-msgstr "Chặn"
-
-msgid "unblock"
-msgstr "Bỏ chặn"
-
-msgid "block_info_title"
-msgstr "Chặn %s ?"
-
-msgid "no_blocked_users"
-msgstr "Không có người dùng bị chặn."
-
-msgid "unblock_info_title"
-msgstr "Bỏ chặn %s ?"
-
-msgid "block_info_description"
+msgid "if_you_cannot_access_website"
 msgstr ""
-"Việc chặn người dùng này sẽ xóa lịch sử trò chuyện và ngăn họ liên hệ với "
-"bạn trong tương lai. Bạn có thể bỏ chặn người dùng từ menu cài đặt."
+"Nếu bạn gặp bất kỳ vấn đề nào khi truy cập trang web của chúng tôi, bạn có "
+"thể tải xuống Lantern từ các liên kết ở trên."
 
-msgid "unblock_info_description"
-msgstr ""
-"%s bây giờ sẽ có thể nhắn tin cho bạn. Họ sẽ không được thông báo rằng bạn "
-"đã bỏ chặn họ. "
+msgid "available_on"
+msgstr "Có sẵn trên:"
 
-msgid "block_info_checkbox"
-msgstr "Tôi hiểu rằng điều này sẽ xóa tất cả lịch sử trò chuyện."
+msgid "subscription_renewal_date"
+msgstr "Ngày gia hạn gói đăng ký"
 
-msgid "unblock_info_checkbox"
-msgstr "Tôi xác nhận rằng tôi muốn bỏ chặn liên hệ này."
+msgid "enabled_bypass_lists"
+msgstr "Danh sách bỏ qua đã bật (%d):"
 
-msgid "delete_permanently"
-msgstr "Xóa người dùng vĩnh viễn"
-
-msgid "delete_info_description"
-msgstr ""
-"Sau khi xóa, bạn sẽ cần thêm thông tin liên hệ của họ nếu muốn trò chuyện "
-"lại với họ."
-
-msgid "add_new_contact"
-msgstr "Thêm liên hệ mới"
-
-msgid "add_contact"
-msgstr "Thêm liên hệ"
-
-msgid "share_your_chat_number"
-msgstr "Chia sẻ Số trò chuyện của bạn"
-
-msgid "scan_qr_code"
-msgstr "Quét mã QR"
-
-msgid "add_contact_in_person"
-msgstr "Thêm liên hệ trực tiếp"
-
-msgid "start_chat"
-msgstr "Bắt đầu trò chuyện"
-
-msgid "your_installed_apps"
-msgstr "Các ứng dụng đã cài đặt của bạn"
-
-msgid "apps_routed_through_lantern"
-msgstr "Ứng dụng được định tuyến qua Lantern"
-
-msgid "apps_to_unblock"
-msgstr ""
-"Chọn ứng dụng bạn muốn bỏ chặn. Khi được kết nối, chỉ những ứng dụng được "
-"chọn bên dưới mới được định tuyến qua Lantern."
-
-msgid "split_tunneling"
-msgstr "Chia lưu lượng"
-
-msgid "split_tunneling_info"
-msgstr ""
-"Khi bật chia lưu lượng, các ứng dụng đã chọn sẽ được định tuyến thông qua "
-"Lantern. Điều này có thể cải thiện hiệu suất và tiết kiệm băng thông bằng "
-"cách chỉ bỏ chặn các ứng dụng được chỉ định."
-
-msgid "applied_next_time"
-msgstr ""
-"Cài đặt chia lưu lượng mới sẽ được áp dụng vào lần tiếp theo bạn kết nối "
-"lại."
-
-msgid "message_disappearing"
-msgstr "Tất cả tin nhắn sẽ không biến mất đối với bạn và %s."
-
-msgid "message_disappearing_description"
-msgstr "Tất cả tin nhắn sẽ biến mất sau %s đối với bạn và %s."
-
-msgid "view_contact_info"
-msgstr "Xem thông tin liên hệ"
-
-msgid "off"
-msgstr "Tắt"
-
-msgid "on"
-msgstr "Bật"
-
-msgid "continue"
-msgstr "Tiếp tục"
-
-msgid "continue_to_pro"
-msgstr "Tiếp tục qua bản Pro"
-
-msgid "are_you_sure_you_want_to_open"
-msgstr "Bạn có chắc chắn muốn mở %s không?"
-
-msgid "set"
-msgstr "Đặt"
-
-msgid "menu"
-msgstr "Menu"
-
-msgid "send_error"
-msgstr "Đã xảy ra lỗi khi gửi tin nhắn của bạn"
-
-msgid "share_media_error"
-msgstr "Đã xảy ra lỗi khi chia sẻ tệp phương tiện"
-
-msgid "no_recents"
-msgstr "Không có Gần đây"
-
-msgid "set_display_name"
-msgstr "Đặt tên hiển thị"
-
-msgid "introduce_contact"
-msgstr "Giới thiệu Liên hệ"
-
-msgid "introduce_contacts"
-msgstr "Giới thiệu Liên hệ"
-
-msgid "introduce_contacts_with_count"
-msgstr "Giới thiệu Liên hệ (%s)"
-
-msgid "need_two_contacts_to_introduce"
-msgstr "Khi bạn có từ hai liên hệ trở lên, bạn sẽ có thể tạo giới thiệu."
-
-msgid "introduce_contacts_select"
-msgstr ""
-"Chọn hai hoặc nhiều liên hệ để giới thiệu. Họ sẽ được gửi lời giới thiệu để "
-"bắt đầu nhắn tin cho nhau."
-
-msgid "introduce_single_contact"
-msgstr ""
-"Chọn một liên hệ để giới thiệu với %s. Sau khi chấp thuận lời giới thiệu, họ"
-" sẽ có thể nhắn tin cho nhau."
-
-msgid "send_introductions"
-msgstr "Gửi giới thiệu"
-
-msgid "introductions_sent"
-msgstr "Đã gửi giới thiệu!"
-
-msgid "no_contacts_yet"
-msgstr "Chưa có liên hệ"
-
-msgid "contact_verification"
-msgstr "Xác minh liên hệ"
-
-msgid "verification"
-msgstr "Xác minh"
-
-msgid "contact_verification_description"
-msgstr "Xác minh liên hệ luôn có sẵn từ menu tin nhắn ở trên cùng bên phải."
-
-msgid "qr_error_description"
-msgstr "Đã xảy ra lỗi khi quét mã QR này."
-
-msgid "qr_info_verification_title"
-msgstr "Xác minh liên hệ trực tiếp"
-
-msgid "qr_info_f2f_title"
-msgstr "Đang quét mã QR"
-
-msgid "qr_info_verification_des"
-msgstr ""
-"Để xác minh liên hệ của bạn, hãy quét mã QR của nhau.\n"
-"\n"
-"Quá trình này đảm bảo tính riêng tư và mã hóa đầu cuối cho các cuộc trò chuyện của bạn."
-
-msgid "qr_info_f2f_des"
-msgstr ""
-"Để thêm bạn bè của bạn thành liên hệ, hãy quét mã QR của nhau.\n"
-"\n"
-"Quá trình này đảm bảo tính riêng tư và mã hóa đầu cuối cho các cuộc trò chuyện của bạn."
-
-msgid "qr_info_verification_scan"
-msgstr "Quét mã QR của nhau để xác minh."
-
-msgid "qr_info_f2f_scan"
-msgstr "Quét mã QR của nhau để thêm liên hệ."
-
-msgid "qr_success_snackbar"
-msgstr "%s là Liên hệ"
-
-msgid "qr_info_waiting_qr"
-msgstr "Đang đợi bạn bè quét mã QR của bạn..."
-
-msgid "scan_complete"
-msgstr "Quét hoàn tất"
-
-msgid "qr_for_your_contact"
-msgstr "Mã QR của bạn"
-
-msgid "add_via_chat_number"
-msgstr "Thêm qua Số trò chuyện"
-
-msgid "qr_info_waiting_id"
-msgstr "Đang đợi bạn bè của bạn nhập mã Messenger hoặc quét mã QR của bạn..."
-
-msgid "chat_number_not_found"
-msgstr ""
-"Không tìm thấy Số trò chuyện.\n"
-"Vui lòng kiểm tra số bạn đã nhập và thử lại."
-
-msgid "unable_to_add_contact"
-msgstr ""
-"Không tìm thấy liên hệ.\n"
-"Vui lòng kiểm tra số bạn đã nhập và thử lại."
-
-msgid "self_adding"
-msgstr "Số trò chuyện bạn đã nhập thuộc về bạn"
-
-msgid "chat_number_type"
-msgstr "Nhập Số trò chuyện"
-
-msgid "letter_and_numbers_only"
-msgstr "Chỉ chữ và số"
-
-msgid "name_your_contact"
-msgstr "Đặt tên liên hệ của bạn"
-
-msgid "messenger_id_invalid"
-msgstr "Mã Messenger không hợp lệ"
-
-msgid "username_not_found"
-msgstr "Không tìm thấy tên người dùng"
-
-msgid "contact_id_your_id"
-msgstr "Mã Messenger của bạn"
-
-msgid "introductions"
-msgstr "Giới thiệu"
-
-msgid "introduced"
-msgstr "Được giới thiệu bởi %s"
-
-msgid "introductions_title"
-msgstr "Chấp nhận Giới thiệu với %s"
-
-msgid "introductions_info"
-msgstr ""
-"Cả hai bên phải chấp nhận giới thiệu mới có thể trò chuyện với nhau. Giới "
-"thiệu sẽ biến mất sau 7 ngày nếu không có hành động nào được thực hiện."
-
-msgid "introduction_reject_title"
-msgstr "Từ chối Giới thiệu"
-
-msgid "introduction_reject_content"
-msgstr ""
-"Bạn sẽ không thể nhắn tin cho liên hệ này nếu bạn từ chối lời giới thiệu."
-
-msgid "introductions_error_description_rejecting"
-msgstr "Đã xảy ra lỗi khi từ chối yêu cầu kết nối này."
-
-msgid "introductions_error_description_accepting"
-msgstr "Đã xảy ra lỗi khi chấp nhận yêu cầu kết nối này."
-
-msgid "no_introductions"
-msgstr "Không có giới thiệu đang chờ xử lý."
-
-msgid "introduction_approved"
-msgstr "Giới thiệu với %s đã được duyệt!"
-
-msgid "delete_contact_name"
-msgstr "Xóa %s"
-
-msgid "delete_contact"
-msgstr "Xóa liên hệ"
-
-msgid "error"
-msgstr "Lỗi"
-
-msgid "error_delete_contact"
-msgstr "Đã xảy ra lỗi khi xóa liên hệ này."
-
-msgid "unnamed_contact"
-msgstr "Liên hệ không tên"
-
-msgid "me"
-msgstr "Tôi"
-
-msgid "disappearing_messages"
-msgstr "Tin nhắn biến mất"
-
-msgid "start_of_your_history"
-msgstr ""
-"Các cuộc trò chuyện và cuộc gọi thoại của bạn với %s đã được mã hóa đầu cuối"
-
-msgid "banner_unaccepted"
-msgstr ""
-"%s không có trong danh sách liên hệ của bạn. Bạn có muốn chấp nhận yêu cầu "
-"trò chuyện không?"
-
-msgid "banner_messages_persist"
-msgstr "Các tin nhắn mới không biến mất."
-
-msgid "banner_message_retention"
-msgstr "Lưu giữ tin nhắn được đặt thành %s"
-
-msgid "longform_seconds"
-msgstr "%s giây"
-
-msgid "shortform_seconds"
-msgstr "%ss"
-
-msgid "longform_minute"
-msgstr "%s phút"
-
-msgid "shortform_minutes"
-msgstr "%sp"
-
-msgid "longform_minutes"
-msgstr "%s phút"
-
-msgid "longform_hour"
-msgstr "%s giờ"
-
-msgid "shortform_hours"
-msgstr "%sh"
-
-msgid "longform_hours"
-msgstr "%s giờ"
-
-msgid "longform_day"
-msgstr "%s ngày"
-
-msgid "shortform_days"
-msgstr "%sn"
-
-msgid "longform_days"
-msgstr "%s ngày"
-
-msgid "longform_week"
-msgstr "%s tuần"
-
-msgid "shortform_weeks"
-msgstr "%st"
-
-msgid "longform_weeks"
-msgstr "%s tuần"
-
-msgid "unknown"
-msgstr "Không rõ"
-
-msgid "banner_source_qr"
-msgstr "Mã QR"
-
-msgid "banner_source_id"
-msgstr "Mã Messenger"
-
-msgid "banner_source_intro"
-msgstr "Giới thiệu"
-
-msgid "message_will_disappear_at"
-msgstr "Biến mất %s"
-
-msgid "change_display_name"
-msgstr "Thay đổi tên hiển thị"
-
-msgid "yesterday"
-msgstr "hôm qua"
-
-msgid "tomorrow"
-msgstr "ngày mai"
-
-msgid "just_now"
-msgstr "bây giờ"
-
-msgid "within_one_minute"
-msgstr "trong một phút"
-
-msgid "on_date"
-msgstr "vào %s"
-
-msgid "at_date"
-msgstr "lúc %s"
-
-msgid "error_fetching_message_preview"
-msgstr "Lỗi khi tìm nạp Xem trước tin nhắn"
-
-msgid "message_was_deleted"
-msgstr "Tin nhắn đã bị xóa"
-
-msgid "contact_was_deleted"
-msgstr "%s đã bị xóa khỏi liên hệ của bạn."
-
-msgid "contact_was_blocked"
-msgstr "%s đã bị chặn. "
-
-msgid "contact_was_unblocked"
-msgstr "%s đã được bỏ chặn. "
-
-msgid "dismiss"
-msgstr "Dismiss"
-
-msgid "copy_text"
-msgstr "Sao chép văn bản"
-
-msgid "message"
-msgstr "Tin nhắn"
-
-msgid "messages"
-msgstr "Tin nhắn"
-
-msgid "chats"
-msgstr "Trò chuyện"
-
-msgid "new_requests"
-msgstr "Yêu cầu mới %s"
-
-msgid "chat"
-msgstr "Trò chuyện"
-
-msgid "lantern_chat"
-msgstr "Trò chuyện Lantern"
-
-msgid "welcome_title"
-msgstr "Chào mừng đến với Trò chuyện Lantern!"
-
-msgid "welcome_text"
-msgstr ""
-"Cuộc trò chuyện được mã hóa để bảo vệ quyền riêng tư của bạn được kết hợp "
-"với công nghệ chống chặn tốt nhất."
-
-msgid "get_started"
-msgstr "Bắt đầu"
-
-msgid "want_to_recover"
-msgstr "Có Số trò chuyện?"
-
-msgid "recover"
-msgstr "Khôi phục"
-
-msgid "chat_number"
-msgstr "Số trò chuyện"
-
-msgid "your_chat_number"
-msgstr "Số trò chuyện của bạn"
-
-msgid "chat_number_recovery"
-msgstr "Khôi phục Số trò chuyện"
-
-msgid "recovery_helper_text"
-msgstr "Vui lòng nhập Khóa khôi phục hợp lệ"
-
-msgid "recovery_button"
-msgstr "Nhập Khóa khôi phục để khôi phục Số trò chuyện của bạn."
-
-msgid "recovery_label"
-msgstr "Nhập khóa khôi phục của bạn"
-
-msgid "recovery_key"
-msgstr "Khóa khôi phục"
-
-msgid "secure_text_explanation"
-msgstr ""
-"Số trò chuyện của bạn hoạt động giống như một số điện thoại mà bạn bè của "
-"bạn có thể sử dụng để liên hệ với bạn trên Lantern."
-
-msgid "secure_text_explanation_account"
-msgstr ""
-"Đây là phiên bản đầy đủ của Số trò chuyện của bạn; chia sẻ số dài hơn này có thể an toàn hơn, đặc biệt nếu bạn có một kênh được mã hóa đầu cuối khác để chia sẻ.\n"
-"\n"
-"Lantern cung cấp Số trò chuyện rút gọn để giúp việc chia sẻ thông tin liên hệ trở nên thuận tiện hơn."
-
-msgid "recovery_key_account_explanation"
-msgstr ""
-"Cất giữ khóa này ở nơi an toàn và không chia sẻ với bất kỳ ai. Đây là cách "
-"duy nhất để khôi phục Số trò chuyện của bạn nếu bạn bị mất điện thoại, "
-"chuyển đổi thiết bị hoặc đặt lại hệ điều hành."
-
-msgid "recovery_error"
-msgstr "Không thể khôi phục tài khoản của bạn."
-
-msgid "recovery_input_error"
-msgstr "Đảm bảo rằng bạn đã nhập khóa khôi phục hợp lệ"
-
-msgid "recovery_retrieval_error"
-msgstr "Đã xảy ra lỗi khi khôi phục tài khoản của bạn"
-
-msgid "recovery_success"
-msgstr "Bạn đã khôi phục thành công Số trò chuyện của mình"
-
-msgid "empty_chats_text"
-msgstr "Chia sẻ Số trò chuyện của bạn hoặc thêm liên hệ tại đây!"
-
-msgid "next"
-msgstr "Tiếp theo"
-
-msgid "automated_backup"
-msgstr "Sao lưu tự động"
-
-msgid "backup_explanation"
-msgstr ""
-"Lantern cung cấp tùy chọn mã hóa và sao lưu danh bạ của bạn vào các máy chủ an toàn của chúng tôi. Nếu bạn bỏ qua bản sao lưu, bạn sẽ không thể khôi phục danh bạ của mình bằng khóa khôi phục.\n"
-"\n"
-"Lantern không thể đọc danh sách liên hệ của bạn khi bạn chọn sao lưu chúng."
-
-msgid "backup_contacts"
-msgstr "Sao lưu liên hệ"
-
-msgid "copy_recovery_key"
-msgstr "Sao chép Khóa khôi phục"
-
-msgid "search"
-msgstr "Tìm kiếm"
-
-msgid "account_management"
-msgstr "Quản Trị Tài Khoản"
-
-msgid "add_via_username"
-msgstr "Thêm qua tên người dùng"
-
-msgid "username"
-msgstr "Tên người dùng"
-
-msgid "enter_a_username_to_start_a_conversation"
-msgstr "Nhập tên người dùng để bắt đầu cuộc trò chuyện bằng tin nhắn"
-
-msgid "start_message"
-msgstr "Bắt đầu nhắn tin"
-
-msgid "please_enter_a_valid_username"
-msgstr "Vui lòng nhập tên người dùng hợp lệ"
-
-msgid "open_url"
-msgstr "Mở URL"
-
-msgid "message_deleted"
-msgstr "%s đã xóa tin nhắn này "
-
-msgid "never"
-msgstr "Không bao giờ"
-
-msgid "delete_for_me"
-msgstr "Xóa cho tôi"
-
-msgid "delete_for_me_explanation"
-msgstr ""
-"Thao tác này sẽ xóa tin nhắn chỉ dành cho bạn. Những người khác sẽ vẫn có "
-"thể xem nó."
-
-msgid "delete_for_everyone"
-msgstr "Xóa cho mọi người"
-
-msgid "delete_for_everyone_explanation"
-msgstr "Thao tác này sẽ xóa tin nhắn cho tất cả mọi người."
-
-msgid "reply"
-msgstr "Trả lời"
-
-msgid "replying_to"
-msgstr "Đang trả lời %s"
-
-msgid "attachment"
-msgstr "Tệp đính kèm"
-
-msgid "error_rendering_message"
-msgstr "Lỗi hiển thị thông báo"
-
-msgid "error_fetching_preview"
-msgstr "Lỗi khi tìm nạp xem trước tin nhắn"
-
-msgid "audio"
-msgstr "Âm thanh"
-
-msgid "image"
-msgstr "Ảnh"
-
-msgid "images"
-msgstr "Hình ảnh"
-
-msgid "video"
-msgstr "Video"
-
-msgid "videos"
-msgstr "Video"
-
-msgid "app"
-msgstr "Ứng dụng"
-
-msgid "document"
-msgstr "Tài liệu"
-
-msgid "search_chars_min"
-msgstr "Nhập ít nhất ba ký tự"
-
-msgid "search_no_results"
-msgstr ""
-"Rất tiếc, chúng tôi không thể tìm thấy bất kỳ điều gì phù hợp với tìm kiếm "
-"này."
-
-msgid "search_error"
-msgstr "Rất tiếc, đã xảy ra lỗi khi truy xuất kết quả tìm kiếm."
-
-msgid "search_contacts"
-msgstr "Liên hệ (%s)"
-
-msgid "search_chats"
-msgstr "Trò chuyện (%s)"
-
-msgid "search_in_contacts"
-msgstr "Tìm kiếm trong Liên hệ"
-
-msgid "search_in_chats"
-msgstr "Tìm kiếm trong Trò chuyện và Liên hệ"
-
-msgid "could_not_render_title"
-msgstr "Không thể kết xuất tiêu đề tệp"
-
-msgid "could_not_render_type"
-msgstr "Không thể kết xuất loại tệp"
-
-msgid "speaker"
-msgstr "Loa"
-
-msgid "speaker_on"
-msgstr "Bật loa"
-
-msgid "mute"
-msgstr "Tắt tiếng"
-
-msgid "muted"
-msgstr "Đã tắt tiếng"
-
-msgid "end_call"
-msgstr "Kết thúc cuộc gọi"
-
-msgid "verify_contact"
-msgstr "Xác minh %s"
-
-msgid "verified"
-msgstr "Đã xác minh"
-
-msgid "pending_verification"
-msgstr "Đang chờ xác minh"
-
-msgid "verify_description"
-msgstr ""
-"Như một phương pháp bảo mật tốt nhất, chúng tôi khuyên bạn nên kiểm tra xem số xác minh của %s có khớp với số của bạn hay không.\n"
-"\n"
-"Bạn muốn xác minh trực tiếp hay qua cuộc gọi điện thoại?"
-
-msgid "verify_in_person"
-msgstr "Xác minh trực tiếp"
-
-msgid "verify_via_call"
-msgstr "Xác minh qua cuộc gọi thoại"
-
-msgid "dismiss_notification"
-msgstr "Loại bỏ thông báo"
-
-msgid "call_contact"
-msgstr "Gọi %s ?"
-
-msgid "call"
-msgstr "Gọi"
-
-msgid "incoming_call"
-msgstr "Cuộc gọi đến"
-
-msgid "call_from"
-msgstr "Từ %s"
-
-msgid "in_call"
-msgstr "Cuộc gọi đang diễn ra"
-
-msgid "in_call_des"
-msgstr "Thông báo cuộc gọi đang diễn ra"
-
-msgid "incoming_call_from"
-msgstr "Cuộc gọi đến từ %s"
-
-msgid "touch_here_to_open_call"
-msgstr "Chạm vào đây để mở cuộc gọi"
-
-msgid "in_call_with"
-msgstr "Trong cuộc gọi với %s"
-
-msgid "undo_verification"
-msgstr "Hoàn tác xác minh"
-
-msgid "mark_as_verified"
-msgstr "Đánh dấu là đã xác minh"
-
-msgid "verification_panel_success"
-msgstr "Xác minh thành công! Tin nhắn của bạn với %s được bảo mật."
-
-msgid "verification_panel_pending"
-msgstr ""
-"Đây là số xác minh của bạn. Kiểm tra xem số của bạn có khớp chính xác với số"
-" của %s không trước khi đánh dấu chúng đã được xác minh."
-
-msgid "replica_upload_confirmation_title"
-msgstr "Quan trọng!"
-
-msgid "replica_upload_confirmation_body"
-msgstr ""
-"Các tệp được tải lên Mạng Lantern có thể truy cập công khai. Không ai có thể"
-" xóa các tệp này. Vui lòng không bao gồm thông tin cá nhân hoặc thông tin "
-"nhận dạng trong nội dung tệp hoặc tên tệp của bạn."
-
-msgid "replica_upload_confirmation_agree"
-msgstr "Tiếp tục Tải lên"
-
-msgid "dont_show_me_this_again"
-msgstr "Không hiển thị lại cho tôi nữa"
-
-msgid "download"
-msgstr "Tải xuống"
-
-msgid "download_started"
-msgstr "Đã bắt đầu tải xuống"
-
-msgid "uploader"
-msgstr "Công cụ tải lên"
-
-msgid "upload_started"
-msgstr "Đã bắt đầu tải lên"
-
-msgid "upload_in_progress"
-msgstr "Đang tải lên"
-
-msgid "upload_complete"
-msgstr "Tệp của bạn đã được xuất bản thành công"
-
-msgid "upload_failed"
-msgstr "Tải lên thất bại"
-
-msgid "upload_cancelled"
-msgstr "Tải lên bị hủy"
-
-msgid "upload_unknown_error"
-msgstr "Đã xảy ra lỗi khi cố gắng xuất bản"
-
-msgid "download_unknown_error"
-msgstr "Đã xảy ra lỗi khi cố gắng tải xuống %s"
-
-msgid "replica_link_fetcher"
-msgstr "Trình tìm nạp liên kết bản sao"
-
-msgid "no_preview_for_this_type_of_file"
-msgstr "Không có bản xem trước cho loại tệp này"
-
-msgid "app_unknown"
-msgstr "ứng dụng/không xác định"
-
-msgid "audio_unknown"
-msgstr "âm thanh/không xác định"
-
-msgid "document_unknown"
-msgstr "tài liệu/không xác định"
-
-msgid "no_search_result_found"
-msgstr ""
-"Rất tiếc, chúng tôi không thể tìm thấy bất cứ điều gì phù hợp với tìm kiếm"
-
-msgid "search_result_error"
-msgstr "Lỗi khi tìm nạp kết quả, vui lòng thử lại sau"
-
-msgid "video_stream_error"
-msgstr "Lỗi hiển thị video, vui lòng thử lại sau"
-
-msgid "untitled"
-msgstr "Không có tiêu đề"
-
-msgid "preview_not_available"
-msgstr "Tính năng xem trước không khả dụng"
-
-msgid "download_to_view"
-msgstr "Tải xuống tệp để xem"
-
-msgid "failed_to_init_replica"
-msgstr "Lỗi: Không thể khởi tạo Bản sao"
-
-msgid "awaiting_result"
-msgstr "Đang chờ kết quả..."
-
-msgid "discover"
-msgstr "Khám phá"
-
-msgid "replica_search_intro"
-msgstr ""
-"Tìm kiếm nội dung do người dùng tải lên trên Mạng Lantern hoặc tải lên nội "
-"dung của riêng bạn để người khác khám phá."
-
-msgid "replica_new_discover"
-msgstr "Danh mục khám phá mới"
-
-msgid "replica_new_discover_news"
-msgstr "Khám phá ngay cho phép bạn tìm kiếm các bài báo tin tức!"
-
-msgid "replica_check_it_out"
-msgstr "Xem ngay"
-
-msgid "news"
-msgstr "Tin tức"
-
-msgid "share"
-msgstr "Chia sẻ"
-
-msgid "upload_file_screen"
-msgstr "Tải tệp lên"
-
-msgid "edit_title"
-msgstr "Sửa tiêu đề"
-
-msgid "filenames_cannot_be_edited"
-msgstr "Tên tệp không thể chỉnh sửa sau khi xuất bản."
-
-msgid "add_description"
-msgstr "Thêm mô tả"
-
-msgid "no_description"
-msgstr "Không có mô tả nào được cung cấp"
-
-msgid "read_details"
-msgstr "Đọc PDF"
-
-msgid "description_initial_value"
-msgstr "Không thể sửa đổi mô tả sau khi đã xuất bản"
-
-msgid "name_your_file"
-msgstr "Đặt tên tệp của bạn"
-
-msgid "upload"
-msgstr "Tải lên"
-
-msgid "review"
-msgstr "Kiểm tra"
-
-msgid "skip"
-msgstr "Bỏ qua"
-
-msgid "replica_layout_filetype"
-msgstr "loại tệp: %s"
-
-msgid "replica_layout_creation_date"
-msgstr "Đã tạo vào %s"
-
-msgid "empty_description"
-msgstr "Không có mô tả nào được cung cấp."
-
-msgid "publish"
-msgstr "Có, Xuất bản"
-
-msgid "important"
-msgstr "Quan trọng!"
-
-msgid "upload_tos_agree"
-msgstr "Tôi hiểu"
-
-msgid "test_text"
-msgstr "Tôi muốn ăn một chút pizza 🍕 😊"
-
-msgid "test_hello"
-msgstr "Xin chào, bạn khỏe không?"
-
-msgid "test_reply"
-msgstr "Thực ra là không, tôi nghĩ hôm nay tôi muốn ăn sushi!"
-
-msgid "test_disappearing_messages_1"
-msgstr "Ban đầu tất cả các tin nhắn biến mất sau 24 giờ."
-
-msgid "test_disappearing_messages_2"
-msgstr "Bây giờ tin nhắn này sẽ sớm biến mất!"
-
-msgid "test_replica_search"
-msgstr "mèo"
-
-msgid "discover_disclaimer"
-msgstr ""
-"Lantern ẩn danh các tìm kiếm của bạn và bảo vệ chúng khỏi các bên thứ ba."
-
-msgid "support"
-msgstr "Hỗ trợ"
+msgid "diagnostic_logs"
+msgstr "Nhật ký chẩn đoán"
 
 msgid "lantern_user_forum"
 msgstr "Diễn đàn người dùng Lantern"
 
-msgid "faq"
-msgstr "FAQ"
-
-msgid "add_device"
-msgstr "Thêm Máy"
-
-msgid "search_apps"
-msgstr "Tìm kiếm ứng dụng "
-
-msgid "user_not_found"
-msgstr ""
-"Không nhận diện được người dùng. Vui lòng kiểm tra thông tin đăng nhập của "
-"bạn và thử lại. Nếu bạn tiếp tục gặp vấn đề, vui lòng liên hệ đội hỗ trợ của"
-" chúng tôi để được trợ giúp. "
-
-msgid "email_resend_message"
-msgstr "Mã xác nhận mới của bạn đã được gửi "
-
-msgid "signup_error"
-msgstr ""
-"Có vẻ như có sự cố với việc đăng ký. Vui lòng thử lại, và nếu vấn đề tiếp "
-"tục, liên hệ đội hỗ trợ của chúng tôi. "
-
-msgid "signup_error_user_exists"
-msgstr ""
-"Có vẻ như có sự cố với việc đăng ký. Vui lòng thử đặt lại mật khẩu của bạn, "
-"và nếu vấn đề tiếp tục, liên hệ đội hỗ trợ của chúng tôi. "
-
-msgid "confirm_email_error"
-msgstr "Vui lòng xác nhận email của bạn "
-
-msgid "password_cannot_be_empty"
-msgstr "Mật khẩu không được để trống "
-
-msgid "password_must_be_at_least_8_characters"
-msgstr "Mật khẩu phải có ít nhất 8 ký tự trở lên "
-
-msgid "sign_out"
-msgstr "Đăng xuất "
-
-msgid "sign_out_message"
-msgstr ""
-"Đăng xuất sẽ chuyển Lantern sang phiên bản miễn phí. Để truy cập lại tài "
-"khoản của bạn, bạn sẽ cần đăng nhập lại. "
-
-msgid "change_password"
-msgstr "Đổi mật khẩu"
-
-msgid "password"
-msgstr "Mật khẩu"
-
-msgid "new_email"
-msgstr "Địa chỉ Email mới "
-
-msgid "new_email_same_as_old_email"
-msgstr "Địa chỉ email mới không thể giống địa chỉ email cũ của bạn "
-
-msgid "danger_zone"
-msgstr "Khu vực nguy hiểm "
-
-msgid "delete_account"
-msgstr "Xóa Tài khoản "
-
-msgid "delete"
-msgstr "Xóa"
-
-msgid "delete_account_message"
-msgstr ""
-"Việc xóa tài khoản của bạn không thể hoàn tác. Bạn sẽ mất tất cả quyền truy "
-"cập thiết bị và từ bỏ bất kỳ thời gian tài khoản Pro nào mà không được hoàn "
-"lại tiền. "
-
-msgid "delete_your_account"
-msgstr "Xóa tài khoản của bạn? "
-
-msgid "confirm_deletion"
-msgstr "Xác nhận Xóa "
-
-msgid "account_deleted"
-msgstr "Tài khoản đã Xóa "
-
-msgid "account_deleted_message"
-msgstr "Tài khoản của bạn đã bị xóa vĩnh viễn. "
-
-msgid "password_has_been_updated"
-msgstr "Mật khẩu đã được cập nhật "
-
-msgid "password_has_been_updated_message"
-msgstr "Mật khẩu của bạn đã được đặt lại thành công "
-
-msgid "invalid_code"
-msgstr "Mã không đúng hoặc có thể đã hết hạn. Vui lòng thử gửi lại "
-
-msgid "get_lantern_pro"
-msgstr "Lấy Lantern Pro"
-
-msgid "try_lantern_pro"
-msgstr "Dùng thử Lantern miễn phí! "
-
-msgid "continue_for_free"
-msgstr "Tiếp tục miễn phí "
-
-msgid "recovery_not_found"
-msgstr "Máy không liên đới với người dùng này"
-
-msgid "device_added"
-msgstr ""
-
-msgid "device_added_message"
-msgstr ""
-"Thiết bị của bạn đã được thêm thành công. Nếu bạn không thấy thiết bị được "
-"kết nối, vui lòng khởi động lại ứng dụng trên cả hai thiết bị "
-
-msgid "wrong_link_code"
-msgstr "Mã bạn nhập không đúng. Vui lòng kiểm tra và thử lại. "
-
-msgid "recovery_code_sent"
-msgstr "Mã khôi phục đã được gửi "
-
-msgid "device_added_msg"
-msgstr "Thiết bị này đã được liên kết với %s "
-
-msgid "new_to_lantern"
-msgstr "Mới sử dụng Lantern? "
-
-msgid "email_has_been_updated"
-msgstr "Email đã được cập nhật "
-
-msgid "email_has_been_updated_message"
-msgstr "Email của bạn đã được thay đổi thành công "
-
-msgid "email_has_been_verified"
-msgstr "Email đã được xác minh "
-
-msgid "email_has_been_verified_message"
-msgstr "Email của bạn đã được xác minh thành công "
-
-msgid "device_limit_reached"
-msgstr "Đã đạt Giới hạn Thiết bị "
-
-msgid "device_limit_reached_message"
-msgstr ""
-"Hiện tại bạn đã đăng nhập trên số lượng thiết bị tối đa (3). Để đăng nhập "
-"trên thiết bị này, vui lòng chọn và xóa một trong các thiết bị khác của bạn "
-"dưới đây. "
-
-msgid "enter_activation_code"
-msgstr "Nhập Mã Kích hoạt "
-
-msgid "check_your_email"
-msgstr "Kiểm tra Địa chỉ Email của Bạn "
-
-msgid "please_verify_email"
-msgstr "Vui lòng xác nhận rằng địa chỉ email bạn đã nhập là chính xác. "
-
-msgid "verify"
-msgstr "Xác minh"
-
-msgid "cannot_login"
-msgstr "Không thể đăng nhập "
+msgid "frequently_asked_questions"
+msgstr "Câu hỏi thường gặp"
 
 msgid "privacy_policy"
-msgstr "Chính sách Bảo mật"
+msgstr "Chính sách bảo mật"
 
 msgid "terms_of_service"
-msgstr "Điều khoản Dịch vụ"
+msgstr "Điều khoản dịch vụ"
 
-msgid "invalid_verification_code"
-msgstr "Mã số kiểm chứng không hợp lệ"
+msgid "get_unlimited_data"
+msgstr "Nhận dữ liệu không giới hạn và tốc độ nhanh hơn!"
 
-msgid "wrong_seller_code"
-msgstr "Mã người bán lại không chính xác. Vui lòng kiểm tra và thử lại. "
+msgid "private_server_options"
+msgstr "Tùy chọn máy chủ riêng"
 
-msgid "follow_us"
-msgstr "Theo dõi chúng tôi "
+msgid "lantern_version"
+msgstr "Phiên bản Lantern"
 
-msgid "follow_us_telegram"
+msgid "quit"
+msgstr "Thoát"
+
+msgid "device_removed"
+msgstr "Đã xóa thiết bị"
+
+msgid "set_server_alias"
+msgstr "Đặt biệt danh máy chủ"
+
+msgid "this_name_pre_filled"
 msgstr ""
+"Tên này sẽ được điền sẵn cho người dùng được mời để giúp họ xác định máy "
+"chủ. Họ có thể thay đổi sau này."
 
-msgid "follow_us_instagram"
+msgid "server_alias"
+msgstr "Biệt danh máy chủ"
+
+msgid "add_referral_code"
+msgstr "Thêm mã giới thiệu"
+
+msgid "referral_code"
+msgstr "Mã giới thiệu"
+
+msgid "update_fails"
+msgstr "Cập nhật thất bại"
+
+msgid "scan_qr_code"
+msgstr "Quét mã QR"
+
+msgid "choose_your_server_location"
+msgstr "Chọn vị trí máy chủ của bạn"
+
+msgid "we_handle_configuration"
+msgstr "Chúng tôi xử lý cấu hình, bạn chỉ cần đăng ký."
+
+msgid "90_day_free_trial"
+msgstr "Dùng thử miễn phí 90 ngày"
+
+msgid "identity_changed"
+msgstr "Danh tính đã thay đổi cho %s"
+
+msgid "identity_changed_message"
 msgstr ""
+"Dấu vân tay bảo mật của %s đã thay đổi. Điều này có thể cho thấy sự can "
+"thiệp hoặc cấu hình sai."
 
-msgid "follow_us_facebook"
+msgid "recommendation"
+msgstr "Khuyến nghị:"
+
+msgid "recommendation_message"
 msgstr ""
+"Chúng tôi khuyên bạn nên xóa %s khỏi Lantern và xóa nó khỏi tài khoản nhà "
+"cung cấp dịch vụ đám mây của bạn, sau đó thiết lập máy chủ mới để đảm bảo "
+"kết nối của bạn vẫn an toàn."
 
-msgid "follow_us_x"
+msgid "remove_server"
+msgstr "Xóa máy chủ"
+
+msgid "server_alias_cannot_be_empty"
+msgstr "Biệt danh máy chủ không được để trống"
+
+msgid "referral_code_applied"
+msgstr "Mã giới thiệu của bạn đã được áp dụng!"
+
+msgid "referral_message_1m"
+msgstr "+ 15 ngày bổ sung miễn phí"
+
+msgid "referral_message_1y"
+msgstr "+ 15 ngày bổ sung miễn phí"
+
+msgid "referral_message_2y"
+msgstr "+ 2 tháng bổ sung miễn phí"
+
+msgid "referral_code_invalid"
+msgstr "Mã giới thiệu bạn nhập không hợp lệ. Vui lòng kiểm tra mã và thử lại."
+
+msgid "referral_code_own_invalid"
 msgstr ""
+"Bạn không thể sử dụng mã giới thiệu của chính mình. Vui lòng nhập mã khác."
 
-msgid "report_issue_error"
-msgstr "Chúng tôi đang gặp sự cố kỹ thuật. Vui lòng thử lại sau. "
+msgid "free"
+msgstr "Miễn phí"
 
-msgid "we_are_experiencing_technical_difficulties"
-msgstr "Chúng tôi đang gặp sự cố kỹ thuật. Vui lòng thử lại sau. "
+msgid "monthly_plan"
+msgstr " Gói tháng:"
 
-msgid "a_temporary_error_occurred"
-msgstr "Đã xảy ra lỗi tạm thời "
+msgid "15_days_each"
+msgstr " +15 ngày cho mỗi người"
 
-msgid "sorry_we_are_unable_to_load_that_page"
-msgstr "Đã xảy ra lỗi tạm thời "
+msgid "annual_plan"
+msgstr "Gói năm:"
 
-msgid "refresh"
-msgstr "Làm mới"
+msgid "1_month_each"
+msgstr " +1 tháng cho mỗi người"
 
-msgid "check_your_internet_connection"
-msgstr "Kiểm tra kết nối internet của bạn "
+msgid "two_year_plan"
+msgstr " Gói hai năm:"
 
-msgid "please_try"
-msgstr "Kiểm tra kết nối internet của bạn "
+msgid "2_month_each"
+msgstr " +2 tháng cho mỗi người"
 
-msgid "turning_off_airplane_mode"
-msgstr "Tắt chế độ máy bay "
-
-msgid "turning_on_mobile_data_or_wifi"
-msgstr "Bật dữ liệu di động hoặc wifi "
-
-msgid "check_the_signal_in_your_area"
-msgstr "Kiểm tra tín hiệu trong khu vực của bạn "
-
-msgid "got_it"
-msgstr "Đã nhận được"
-
-msgid "fetching_configuration"
-msgstr "Đang lấy cấu hình "
-
-msgid "establish_connection_to_server"
-msgstr "Thiết lập kết nối với máy chủ "
-
-msgid "file_size_limit_title"
-msgstr "Đã đạt giới hạn "
-
-msgid "file_size_limit_description"
-msgstr "Kích thước tệp đính kèm phải dưới 100 MB"
-
-msgid "lantern_pro_one_year"
+msgid "referral_code_info"
 msgstr ""
+"Chưa phải người dùng Lantern Pro? Bạn sẽ trở thành một khi người giới thiệu "
+"đầu tiên của bạn đăng ký"
 
-msgid "lantern_pro_two_year"
+msgid "lantern_pro_license"
+msgstr " Giấy phép Lantern Pro"
+
+msgid "select_account"
+msgstr " Chọn tài khoản"
+
+msgid "new_to_lantern"
+msgstr "Mới với Lantern?"
+
+msgid "create_an_account"
+msgstr "Tạo tài khoản"
+
+msgid "no_projects_found"
+msgstr " Không tìm thấy dự án"
+
+msgid "no_projects_found_desc"
 msgstr ""
-
-msgid "lantern_pro_one_month"
-msgstr ""
-
-msgid "non_renewing_subscription"
-msgstr ""
-
-msgid "restore_purchase"
-msgstr ""
-
-msgid "skip_for_now"
-msgstr ""
-
-msgid "purchase_not_found"
-msgstr ""
-
-msgid "no_previous_purchase"
-msgstr ""
-
-msgid "warning_restore_purchase"
-msgstr ""
-
-msgid "purchase_restored"
-msgstr ""
-
-msgid "purchase_restored_message"
-msgstr ""
-
-msgid "purchase_restored_error"
-msgstr ""
-
-msgid "err_while_sending_code"
-msgstr ""
-
-msgid "email_hint"
-msgstr ""
-
-msgid "email_hint_pro"
-msgstr ""
-
-msgid "continue_without_email"
-msgstr ""
-
-msgid "no_new_update"
-msgstr "Bạn có phiên bản mới nhất!"
-
-msgid "error_referral"
-msgstr "Đã xảy ra lỗi khi áp dụng mã giới thiệu của bạn."
-
-msgid "proxy_error"
-msgstr ""
-
-msgid "proxy_settings"
-msgstr ""
-
-msgid "http_proxy"
-msgstr ""
-
-msgid "socks_proxy"
-msgstr ""
-
-msgid "http_proxy_copied"
-msgstr ""
-
-msgid "socks_proxy_copied"
-msgstr ""
-
-msgid "proxy_everything"
-msgstr ""
-
-msgid "errorSubmittingToGooglePlay"
-msgstr ""
-
-msgid "no_internet_connection"
-msgstr ""
-
-msgid "domain_fronting_error"
-msgstr ""
+"Không tìm thấy dự án. Vui lòng tạo dự án trong tài khoản nhà cung cấp đám "
+"mây của bạn trước."

@@ -1,22 +1,15 @@
 # 
 # Translators:
-# Vitaliy Grishenko, 2022
-# Lowrider <pams@imail.ru>, 2022
-# Helen R <helen.russel88@gmail.com>, 2022
-# e2f_ru r4 <tx_e2f_ru_r4@ate2f.com>, 2023
-# Serg <sergkoshkin@yandex.ru>, 2023
-# e2f_ru r3 <tx_e2f_ru_r3@ate2f.com>, 2023
-# e2f_ru r1 <tx_e2f_ru_r1@ate2f.com>, 2023
-# Anna Evdokimova <anna.evdokimova@yahoo.com>, 2024
-# Helen Russel <coo@workogram.com>, 2024
-# Tina T, 2024
-# sayanvd <sayanvd@yandex.ru>, 2024
-# IvanLykov <chabib@list.ru>, 2024
-# tx_e2f_ru c4 <tx_e2f_ru_c4@ate2f.com>, 2024
-# e2f_ru c1 <tx_e2f_ru_c1@ate2f.com>, 2024
-# Deanna D, 2024
-# Николай Кочкин <urfiner@gmail.com>, 2024
-# e2f <projects@e2f.com>, 2024
+# tx_e2f_ru c4 <tx_e2f_ru_c4@ate2f.com>, 2025
+# Helen Russel <coo@workogram.com>, 2025
+# Anna Evdokimova <anna.evdokimova@yahoo.com>, 2025
+# Tina T, 2025
+# krivtsovvasily <krivtsov.vasily@gmail.com>, 2025
+# e2f_ru c1 <tx_e2f_ru_c1@ate2f.com>, 2025
+# Lowrider <pams@imail.ru>, 2025
+# sayanvd <sayanvd@yandex.ru>, 2025
+# e2f_ru r3 <tx_e2f_ru_r3@ate2f.com>, 2025
+# Lantern, 2025
 # Derek F <derek@getlantern.org>, 2025
 # 
 msgid ""
@@ -29,25 +22,368 @@ msgstr ""
 msgid "app_name"
 msgstr "Lantern"
 
-msgid "introducing"
-msgstr "Представляем чат"
+msgid "upgrade_to_pro"
+msgstr "Перейти на Про"
 
-msgid "introducing_des"
+msgid "settings"
+msgstr "Настройки"
+
+msgid "report_an_issue"
+msgstr "Сообщить о проблеме"
+
+msgid "lantern_projects"
+msgstr "Проекты Lantern:"
+
+msgid "invite_friends"
+msgstr "Пригласить друзей"
+
+msgid "your_referral_code"
+msgstr "Ваш реферальный код"
+
+msgid "invite_friends_message"
 msgstr ""
-"Теперь в Lantern есть встроенный чат, в котором можно безопасно общаться с "
-"друзьями благодаря шифрованию и защите от блокировки!"
+"Поделитесь реферальным кодом с другом. Когда он купит Lantern Pro, вы оба "
+"получите бонусное время:"
 
-msgid "maybe_later"
-msgstr "Позже"
+msgid "share_referral_code"
+msgstr "Поделиться реферальным кодом"
 
-msgid "try"
-msgstr "Попробовать"
+msgid "unbounded"
+msgstr "Unbounded"
+
+msgid "help_fight_global_internet_censorship"
+msgstr "Помогите бороться с интернет-цензурой по всему миру"
+
+msgid "vpn_settings"
+msgstr "Настройки VPN"
+
+msgid "split_tunneling"
+msgstr "Раздельное туннелирование"
+
+msgid "server_locations"
+msgstr "Выбор региона сервера"
+
+msgid "lantern_pro_email"
+msgstr "Email Lantern Про:"
+
+msgid "pro_account_expiration"
+msgstr "Истечение срока действия Про аккаунта"
+
+msgid "manage_subscription"
+msgstr "Управление подпиской"
+
+msgid "lantern_pro_devices"
+msgstr "Lantern Про устройства"
+
+msgid "remove"
+msgstr "Удалить"
+
+msgid "add_device"
+msgstr "Добавить устройство"
+
+msgid "danger_zone"
+msgstr "Опасная зона:"
+
+msgid "delete_account"
+msgstr "Удалить аккаунт"
+
+msgid "delete"
+msgstr "Удалить"
+
+msgid "account"
+msgstr "Аккаунт"
+
+msgid "delete_account_?"
+msgstr "Удалить ваш аккаунт?"
+
+msgid "delete_account_message"
+msgstr ""
+"Удаление аккаунта необратимо. Вы потеряете доступ на всех устройствах, а "
+"оставшееся время подписки Про будет утрачено без возврата средств."
+
+msgid "delete_account_message_two"
+msgstr "Для подтверждения удаления введите свой пароль ниже"
+
+msgid "Submit Issue Report"
+msgstr "Введите пароль для подтверждения"
+
+msgid "confirm_deletion"
+msgstr "Подтвердить удаление"
+
+msgid "cancel"
+msgstr "Отмена"
+
+msgid "daily_data_usage"
+msgstr "Использованные данные задень"
+
+msgid "mb"
+msgstr "МБ"
+
+msgid "vpn_status"
+msgstr "Статус VPN"
+
+msgid "telegram"
+msgstr "Telegram"
+
+msgid "instagram"
+msgstr "Instagram"
+
+msgid "x"
+msgstr "X"
+
+msgid "follow_us"
+msgstr "Следите за нами"
+
+msgid "server_selection"
+msgstr "Выбор сервера"
+
+msgid "smart_location"
+msgstr "Умное расположение"
+
+msgid "automatically_chooses_fastest_location"
+msgstr "Автоматически выбирает самое быстрое расположение"
+
+msgid "pro_locations"
+msgstr "Расположения Про:"
+
+msgid "choose_your_location_with_lantern_pro"
+msgstr "Выберите расположение с Lantern Про:"
+
+msgid "language"
+msgstr "Язык"
 
 msgid "sign_in"
-msgstr "Вход"
+msgstr "Войти"
 
-msgid "enter_email"
-msgstr "Введите электронную почту"
+msgid "sign_out"
+msgstr "Выйти"
+
+msgid "check_for_updates"
+msgstr "Проверить обновления"
+
+msgid "support"
+msgstr "Поддержка"
+
+msgid "download_links"
+msgstr "Ссылки для скачивания"
+
+msgid "get_30_days_of_pro_free"
+msgstr "Получите 30 дней Про бесплатно"
+
+msgid "share_message_referral_code"
+msgstr ""
+"Чтобы получить один бесплатный месяц подписки на Lantern Про, используйте "
+"этот реферальный код: %s ; Можете скачать приложение здесь: "
+"https://lantern.io/download"
+
+msgid "submit_issue_report"
+msgstr "Отправить отчет о проблеме"
+
+msgid "select_an_issue"
+msgstr "Выберите проблему"
+
+msgid "cannot_access_blocked_sites"
+msgstr "Не могу получить доступ к заблокированным сайтам"
+
+msgid "cannot_complete_purchase"
+msgstr "Не могу завершить покупку"
+
+msgid "discover_not_working"
+msgstr "Discover не работает"
+
+msgid "cannot_sign_in"
+msgstr "Не могу войти"
+
+msgid "spinner_loads_endlessly"
+msgstr "Бесконечная загрузка"
+
+msgid "slow"
+msgstr "Медленно"
+
+msgid "cannot_link_devices"
+msgstr "Не могу связать устройства"
+
+msgid "wrong_device_linking_code"
+msgstr "Неправильный или недействительный код связывания устройства"
+
+msgid "cannot_remove_device"
+msgstr "Не могу удалить устройство"
+
+msgid "application_crashes"
+msgstr "Приложение вылетает"
+
+msgid "other"
+msgstr "Другое"
+
+msgid "issue_description"
+msgstr "Опишите вашу проблему"
+
+msgid "enter_password_to_confirm"
+msgstr "Введите пароль для подтверждения"
+
+msgid "cannot_view_logs"
+msgstr ""
+"Lantern не может просмотреть ваши диагностические логи, пока вы не отправите"
+" их нам."
+
+msgid "split_tunneling_mode"
+msgstr "Режим раздельного туннелирования"
+
+msgid "apps_split_tunneling"
+msgstr "Раздельное туннелирование приложений"
+
+msgid "website_split_tunneling"
+msgstr "Раздельное туннелирование сайтов"
+
+msgid "iran_optimized"
+msgstr "Раздельное туннелирование, оптимизированное для Ирана"
+
+msgid "china_optimized"
+msgstr "Раздельное туннелирование, оптимизированное для Китая"
+
+msgid "russia_optimized"
+msgstr "Раздельное туннелирование, оптимизированное для России"
+
+msgid "global_optimized"
+msgstr "Глобально оптимизированное раздельное туннелирование"
+
+msgid "enter_url"
+msgstr "Введите URL"
+
+msgid "add"
+msgstr "Добавить"
+
+msgid "enabled"
+msgstr "Включено"
+
+msgid "disabled"
+msgstr "Отключено"
+
+msgid "automatic"
+msgstr "Автоматически"
+
+msgid "automatic_mode"
+msgstr "Автоматический режим"
+
+msgid "manual"
+msgstr "Вручную"
+
+msgid "enter_url_or_ip"
+msgstr "Введите URL или IP-адрес"
+
+msgid "installed_apps"
+msgstr "Установленные приложения"
+
+msgid "search_apps"
+msgstr "Поиск приложений"
+
+msgid "search_websites"
+msgstr "Поиск сайтов"
+
+msgid "mode"
+msgstr "Режим"
+
+msgid "use_commas"
+msgstr "Используйте запятые для разделения нескольких URL"
+
+msgid "default_bypass"
+msgstr "Списки обхода по умолчанию"
+
+msgid "global_bypass_list"
+msgstr "Глобальный список обхода"
+
+msgid "global_bypass_desc"
+msgstr "Доверенные сайты (HTTPS) с неконфиденциальным контентом."
+
+msgid "china_bypass_list"
+msgstr "Список обхода для Китая"
+
+msgid "china_bypass_desc"
+msgstr "Сайты, свободно доступные в Китае. Регулярно обновляется."
+
+msgid "iran_bypass_list"
+msgstr "Список обхода для Ирана"
+
+msgid "iran_bypass_desc"
+msgstr "Сайты, свободно доступные в Иране. Регулярно обновляется."
+
+msgid "russia_bypass_list"
+msgstr "Список обхода для России"
+
+msgid "russia_bypass_desc"
+msgstr "Сайты, свободно доступные в России. Регулярно обновляется."
+
+msgid "see_sites_included"
+msgstr "Посмотреть сайты, включенные в "
+
+msgid "default_lists_here"
+msgstr "списки по умолчанию здесь"
+
+msgid "when_connected"
+msgstr "При подключении выбранные вами сайты будут обходить VPN."
+
+msgid "lantern_automatic"
+msgstr ""
+"Lantern автоматически выбирает, какие приложения и сайты обходят VPN, исходя"
+" из вашего местоположения для лучшей производительности. "
+
+msgid "apps_bypassing_vpn"
+msgstr "Приложения, обходящие VPN (%d)"
+
+msgid "websites_bypassing_vpn"
+msgstr "Сайты, обходящие VPN (%d)"
+
+msgid "logs_share_message"
+msgstr "Вот мои диагностические логи из Lantern."
+
+msgid "payment_options"
+msgstr "Способы оплаты"
+
+msgid "add_your_email"
+msgstr "Добавить ваш email"
+
+msgid "continue"
+msgstr "Продолжить"
+
+msgid "continue_with_google"
+msgstr "Продолжить с Google"
+
+msgid "continue_with_apple"
+msgstr "Продолжить с Apple"
+
+msgid "continue_without_email"
+msgstr "Продолжить без email"
+
+msgid "confirm_email"
+msgstr "Подтвердить email"
+
+msgid "add_your_email_message"
+msgstr "Добавьте email для доступа к подписке на любом устройстве."
+
+msgid "confirm_email_code"
+msgstr "Код подтверждения"
+
+msgid "confirm_email_code_message"
+msgstr ""
+"Подтвердите, что этот email принадлежит вам, введите код, отправленный на: "
+
+msgid "resend_email"
+msgstr "Отправить email повторно"
+
+msgid "create_password"
+msgstr "Создать пароль"
+
+msgid "sign_in_to_lantern_pro"
+msgstr "Войти в Lantern Про"
+
+msgid "sign_in_with_email"
+msgstr "Войти через email"
+
+msgid "enter_your_lantern_pro_account_details"
+msgstr "Введите данные вашего аккаунта Lantern Про."
+
+msgid "email"
+msgstr "Email"
 
 msgid "enter_password"
 msgstr "Введите пароль"
@@ -55,93 +391,565 @@ msgstr "Введите пароль"
 msgid "forgot_password"
 msgstr "Забыли пароль?"
 
-msgid "forgot_your_password"
-msgstr "Забыли пароль?"
+msgid "reset_your_password"
+msgstr "Сбросить пароль"
 
-msgid "click_here"
-msgstr "Нажмите здесь"
+msgid "enter_your_lantern_pro_account_email"
+msgstr "Введите email вашего аккаунта Lantern Про."
 
 msgid "reset_password"
-msgstr "Сброс пароля"
-
-msgid "lantern_pro_email"
-msgstr "Адрес электронной почты Lantern Pro"
-
-msgid "return_to_sign_in"
-msgstr "Назад на страницу входа"
-
-msgid "enter_confirmation_code"
-msgstr "Введите код подтверждения"
-
-msgid "confirmation_code_msg"
-msgstr ""
-"Укажите код, отправленный на адрес XX. Это поможет защитить аккаунт и при "
-"необходимости восстановить пароль."
-
-msgid "resend_confirmation_code"
-msgstr "Отправить код повторно"
-
-msgid "email_already_exists"
-msgstr "Адрес электронной почты уже зарегистрирован."
-
-msgid "email_already_exists_msg"
-msgstr ""
-"Этот адрес электронной почты уже используется. Восстановите доступ к "
-"привязанному аккаунту или создайте новый, указав другой адрес."
-
-msgid "recover_account"
-msgstr "Восстановить аккаунт"
-
-msgid "back"
-msgstr "назад"
-
-msgid "change_email"
-msgstr "Изменить адрес электронной почты"
-
-msgid "new_password"
-msgstr "Новый пароль"
+msgstr "Сбросить пароль"
 
 msgid "confirm_new_password"
 msgstr "Подтвердите новый пароль"
 
-msgid "already_have_an_account"
-msgstr "Уже есть аккаунт?"
+msgid "create_new_password"
+msgstr "Создать новый пароль"
 
-msgid "create_account"
-msgstr "Создать аккаунт"
+msgid "confirm_password"
+msgstr "Подтвердить пароль"
 
-msgid "create_password"
-msgstr "Создать пароль"
+msgid "confirm_password_required"
+msgstr "Необходимо подтвердить пароль"
 
-msgid "by_creating_an_account"
-msgstr "Создавая аккаунт, вы принимаете наши"
+msgid "passwords_do_not_match"
+msgstr "Пароли не совпадают"
 
-msgid "confirm_email"
-msgstr "Подтвердите адрес электронный адрес"
+msgid "activation_code"
+msgstr "Код активации"
 
-msgid "update_pro_account"
-msgstr "Обновление аккаунта Pro"
+msgid "activate_lantern_pro"
+msgstr "Активировать Lantern Про"
 
-msgid "update_pro_account_message"
+msgid "invalid_email"
+msgstr "Неверный адрес email"
+
+msgid "purchase_already_owned"
+msgstr "Вы уже владеете этой покупкой. Попробуйте восстановить покупку"
+
+msgid "stripe_payment"
+msgstr "Оплата через Stripe"
+
+msgid "split_tunneling_description"
 msgstr ""
-"Теперь, чтобы входить в аккаунт Lantern Pro и управлять им с любого "
-"устройства, необходимо добавить и подтвердить адрес электронной почты и "
-"пароль."
+"Lantern интеллектуально маршрутизирует интернет-трафик на основе вашего "
+"местоположения, обеспечивая безопасный доступ и сохраняя высокую скорость "
+"соединения, используя VPN только при необходимости."
+
+msgid "region_specific_rules"
+msgstr "Правила для конкретных регионов"
+
+msgid "location_based_rules"
+msgstr ""
+"Lantern использует различные правила маршрутизации в зависимости от вашего "
+"местоположения:"
+
+msgid "censored_regions"
+msgstr "В регионах с цензурой:"
+
+msgid "blocked_sites_proxied"
+msgstr ""
+"Заблокированные сайты и приложения (новости, мессенджеры, ограниченные "
+"сервисы) проксируются."
+
+msgid "unblocked_sites_bypass"
+msgstr ""
+"Большинство незаблокированных сайтов обходят VPN для более быстрого "
+"просмотра."
+
+msgid "uncensored_regions"
+msgstr "В регионах без цензуры:"
+
+msgid "trusted_sites_bypass"
+msgstr "Только доверенные сайты и сервисы обходят VPN по умолчанию."
+
+msgid "examples_of_bypassed_sites"
+msgstr ""
+"Это включает сайты с HTTPS-шифрованием с публичным или неконфиденциальным "
+"контентом, такие как магазины, погода и обновления программного обеспечения."
+
+msgid "routing_rules_vary"
+msgstr "Эти правила различаются по странам и регулярно обновляются."
+
+msgid "view_the_full_list"
+msgstr "Посмотреть полный список правил маршрутизации."
+
+msgid "turn_on_split_tunneling"
+msgstr ""
+"Включите раздельное туннелирование, чтобы настроить, какие сайты используют "
+"VPN."
+
+msgid "welcome_to_lantern_pro"
+msgstr "Добро пожаловать в Lantern Про!"
+
+msgid "lantern_pro_description"
+msgstr ""
+"Ваши функции Про разблокированы — наслаждайтесь безлимитным трафиком, "
+"высокой скоростью и премиум-серверами."
+
+msgid "plans_fetch_error"
+msgstr "Ошибка загрузки планов. Пожалуйста, попробуйте позже."
+
+msgid "best_value"
+msgstr "Лучшее предложение!"
+
+msgid "choose_payment_method"
+msgstr "Выберите способ оплаты"
+
+msgid "payment_information_encrypted"
+msgstr "Ваша платежная информация полностью зашифрована."
+
+msgid "purchase_not_completed"
+msgstr ""
+"Покупка не была завершена. Вы можете попробовать снова в любое время или "
+"обратиться в поддержку, если нужна помощь"
+
+msgid "are_you_sure"
+msgstr "Вы уверены?"
+
+msgid "continue_without_email_message"
+msgstr ""
+"Действующий адрес email необходим для использования подписки на других "
+"устройствах."
+
+msgid "add_email"
+msgstr "Добавить email"
+
+msgid "block_ads"
+msgstr "Блокировка рекламы"
+
+msgid "only_active"
+msgstr "Активна только при подключении к VPN"
+
+msgid "vpn_connected"
+msgstr "Lantern подключен."
+
+msgid "vpn_disconnected"
+msgstr "Lantern отключен."
+
+msgid "open_notification"
+msgstr "Открыть уведомление"
+
+msgid "logout"
+msgstr "Выйти"
+
+msgid "logout_message"
+msgstr ""
+"Выход переключит Lantern на бесплатную версию. Для доступа к вашему аккаунту"
+" снова потребуется повторный вход."
 
 msgid "not_now"
 msgstr "Не сейчас"
 
-msgid "update_account"
-msgstr "Обновить аккаунт"
+msgid "billed_once"
+msgstr "Одноразовый платеж"
 
-msgid "new"
-msgstr "Создать"
+msgid "subscription"
+msgstr "Подписка"
 
-msgid "Daily Data Usage"
-msgstr "Дневные данные"
+msgid "subscribe"
+msgstr "Подписаться"
 
-msgid "is"
-msgstr "это"
+msgid "checkout"
+msgstr "Оформить заказ"
+
+msgid "next_billing_date"
+msgstr "Следующая дата платежа"
+
+msgid "vpn_may_be_needed"
+msgstr "Может потребоваться VPN"
+
+msgid "google_and_apple_sign_in_blocked"
+msgstr ""
+"Вход через Google и Apple может быть заблокирован в этом регионе. Чтобы "
+"завершить настройку аккаунта, сначала включите VPN."
+
+msgid "continue_without_vpn"
+msgstr "Продолжить без VPN"
+
+msgid "turn_on_vpn"
+msgstr "Включить VPN"
+
+msgid "server_setup_do"
+msgstr "Настроить через DigitalOcean"
+
+msgid "server_setup_do_price"
+msgstr "Только %s в месяц через Digital Ocean"
+
+msgid "server_setup_gcp"
+msgstr "Настроить через Google Cloud Platform"
+
+msgid "continue_with_do"
+msgstr "Продолжить с Digital Ocean"
+
+msgid "do_allows"
+msgstr ""
+"Digital Ocean позволяет выбрать одно расположение сервера из %d доступных "
+"вариантов ниже"
+
+msgid "server_setup_gcp_price"
+msgstr "Только %s в месяц через GCP"
+
+msgid "continue_with_gcp"
+msgstr "Продолжить с Google"
+
+msgid "gcp_allows"
+msgstr ""
+"Google Cloud Platform позволяет выбрать одно расположение сервера из %d "
+"доступных вариантов ниже:"
+
+msgid "server_setup_aws"
+msgstr "Настроить через AWS"
+
+msgid "server_setup_aws_price"
+msgstr "Только %s в месяц через AWS"
+
+msgid "server_setup_manual"
+msgstr "Настроить вручную"
+
+msgid "seamless_integration"
+msgstr "Бесшовная интеграция с Lantern"
+
+msgid "easiest_setup"
+msgstr "Самая простая настройка"
+
+msgid "multiple_location_options"
+msgstr "Несколько вариантов расположения сервера"
+
+msgid "one_month_included"
+msgstr "%d ТБ/месяц трафика включено"
+
+msgid "easiest_setup_process"
+msgstr "Самый простой процесс настройки"
+
+msgid "setup_a_private_server"
+msgstr "Настроить частный сервер"
+
+msgid "setup_private_server"
+msgstr "Настроить частный сервер"
+
+msgid "previous"
+msgstr "Назад"
+
+msgid "next"
+msgstr "Далее"
+
+msgid "error"
+msgstr "Ошибка"
+
+msgid "signup_error_user_exists"
+msgstr ""
+"Похоже, что-то пошло не так при регистрации. Попробуйте сбросить пароль, и "
+"если проблема не исчезнет, обратитесь в нашу службу поддержки"
+
+msgid "user_not_found"
+msgstr ""
+"Пользователь не найден. Проверьте свои данные и попробуйте снова. Если "
+"проблема продолжается, обратитесь в нашу службу поддержки."
+
+msgid "invalid_code"
+msgstr "Неверный код или срок действия истек. Попробуйте отправить повторно"
+
+msgid "email_resend_message"
+msgstr "Ваш новый код подтверждения отправлен"
+
+msgid "password_has_been_updated"
+msgstr "Пароль обновлен"
+
+msgid "password_has_been_updated_message"
+msgstr "Ваш пароль успешно сброшен"
+
+msgid "update_pro_account"
+msgstr "Обновить аккаунт Про"
+
+msgid "update_pro_account_message"
+msgstr ""
+"Для управления аккаунтом или входа на другом устройстве сначала добавьте "
+"email и пароль к вашему аккаунту."
+
+msgid "subscription_cancelled"
+msgstr "Ваша подписка отменена."
+
+msgid "subscription_updated"
+msgstr "Ваша подписка обновлена."
+
+msgid "subscription_renewed"
+msgstr "Ваша подписка продлена."
+
+msgid "got_it"
+msgstr "Понятно"
+
+msgid "server_location"
+msgstr "Расположение сервера"
+
+msgid "choose"
+msgstr "Выбрать"
+
+msgid "choose_your_account"
+msgstr "Выберите ваш аккаунт"
+
+msgid "choose_your_project"
+msgstr "Выберите ваш проект"
+
+msgid "name_your_google_cloud_project"
+msgstr "Назовите ваш проект Google Cloud"
+
+msgid "billing_account"
+msgstr "Платежный аккаунт"
+
+msgid "billing_account_placeholder"
+msgstr "Платежный аккаунт для %s"
+
+msgid "server_name"
+msgstr "Имя сервера"
+
+msgid "google_project"
+msgstr "Проект Google"
+
+msgid "field_name_required"
+msgstr "Требуется имя"
+
+msgid "choose_google_account"
+msgstr "Выберите платежный аккаунт Google"
+
+msgid "server_name_placeholder"
+msgstr "Сервер Дмитрия"
+
+msgid "change"
+msgstr "Изменить"
+
+msgid "choose_location"
+msgstr "Выбрать расположение"
+
+msgid "choose_your_location"
+msgstr "Выберите ваше расположение"
+
+msgid "start_deployment"
+msgstr "Начать развертывание"
+
+msgid "server_name_description"
+msgstr "Как сервер будет отображаться в списке выбора серверов."
+
+msgid "select_private_server_region"
+msgstr ""
+"Выберите регион для вашего частного сервера. Более близкие расположения "
+"могут улучшить скорость и задержку."
+
+msgid "gcp_location_options"
+msgstr "Варианты расположения Google Cloud Platform (%d):"
+
+msgid "australia_sydney"
+msgstr "Австралия - Сидней"
+
+msgid "belgium_stghislain"
+msgstr "Бельгия - Сент-Гислен"
+
+msgid "brazil_saopaulo"
+msgstr "Сан-Паулу"
+
+msgid "us_los_angeles"
+msgstr "США - Лос-Анджелес"
+
+msgid "japan_tokyo"
+msgstr "Япония - Токио"
+
+msgid "deploying_private_server"
+msgstr "Развертывание частного сервера"
+
+msgid "deploying_server_status"
+msgstr ""
+"Подождите немного! Ваш частный сервер настраивается. Это может занять "
+"несколько минут."
+
+msgid "confirm_server_fingerprint"
+msgstr "Подтвердить отпечаток сервера"
+
+msgid "server_fingerprint"
+msgstr "Отпечаток сервера"
+
+msgid "confirm_fingerprint"
+msgstr "Подтвердить отпечаток"
+
+msgid "private_server_setup_in_progress"
+msgstr ""
+"Подождите немного! Ваш частный сервер настраивается. Это может занять "
+"несколько минут, пожалуйста, не закрывайте этот экран."
+
+msgid "cancel_server_deployment"
+msgstr "Отменить развертывание сервера"
+
+msgid "server_ready_title"
+msgstr "Частный сервер готов"
+
+msgid "server_ready_message"
+msgstr ""
+"Ваш частный сервер настроен и добавлен в список серверов. Вы готовы "
+"подключиться!"
+
+msgid "server_failed_message"
+msgstr ""
+"Что-то пошло не так при настройке вашего частного сервера. Вы можете "
+"попробовать снова или попробовать позже."
+
+msgid "close"
+msgstr "Закрыть"
+
+msgid "connect_now"
+msgstr "Подключиться сейчас"
+
+msgid "server_setup_failed"
+msgstr "Ошибка настройки сервера"
+
+msgid "cancel_deployment"
+msgstr "Отменить развертывание"
+
+msgid "server_setup_failed_message"
+msgstr ""
+"Что-то пошло не так при настройке вашего частного сервера. Вы можете "
+"попробовать снова или попробовать позже."
+
+msgid "exit"
+msgstr "Выход"
+
+msgid "retry"
+msgstr "Повторить"
+
+msgid "all_required_fields"
+msgstr "Пожалуйста, заполните все обязательные поля."
+
+msgid "private_server_ready"
+msgstr "Частный сервер готов!"
+
+msgid "private_server_ready_message"
+msgstr ""
+"Сервер (%s) настроен и добавлен в список серверов. Вы готовы подключиться!"
+
+msgid "set_up_your_server"
+msgstr "Настроить ваш сервер"
+
+msgid "view_instructions_github"
+msgstr "Посмотреть инструкции на GitHub"
+
+msgid "server_access_key"
+msgstr "Ключ доступа к серверу"
+
+msgid "access_key"
+msgstr "Ключ доступа"
+
+msgid "name_your_server"
+msgstr "Назовите ваш сервер"
+
+msgid "how_server_appears"
+msgstr "Как сервер будет отображаться в списке выбора серверов"
+
+msgid "server_nickname"
+msgstr "Псевдоним сервера"
+
+msgid "verify_server"
+msgstr "Проверить сервер"
+
+msgid "vpn_client_not_setup"
+msgstr "Пожалуйста, включите VPN-клиент."
+
+msgid "continue_with"
+msgstr "Продолжить с"
+
+msgid "join_a_private_server"
+msgstr "Присоединиться к частному серверу"
+
+msgid "join_private_server"
+msgstr "Присоединиться к частному серверу"
+
+msgid "join_server"
+msgstr "Присоединиться к серверу"
+
+msgid "private_server_usage_message"
+msgstr ""
+"Использование частного сервера не учитывается в вашем ежедневном лимите "
+"данных Lantern."
+
+msgid "manage_private_servers"
+msgstr "Управление частными серверами"
+
+msgid "my_servers"
+msgstr "Мои серверы"
+
+msgid "joined_servers"
+msgstr "Присоединенные серверы"
+
+msgid "access_key_expiration"
+msgstr ""
+"Каждый ключ доступа уникален и истекает через 1 день. Вы можете создать "
+"новый в любое время."
+
+msgid "share_access_key"
+msgstr "Поделиться ключом доступа"
+
+msgid "rename_server"
+msgstr "Переименовать сервер"
+
+msgid "rename"
+msgstr "Переименовать"
+
+msgid "selected_location"
+msgstr "Выбранное расположение"
+
+msgid "remove_server_?"
+msgstr "Удалить сервер?"
+
+msgid "remove_server_message"
+msgstr ""
+"Удалить %s? Это удалит его только из вашего приложения, но не удалит сервер "
+"у вашего облачного провайдера."
+
+msgid "generate_access_key"
+msgstr "Создать ключ доступа"
+
+msgid "invite_name"
+msgstr "Имя приглашения"
+
+msgid "trust_server_operator"
+msgstr "Доверяйте оператору сервера"
+
+msgid "trust_server_operator_message_one"
+msgstr ""
+"Частные серверы размещаются и управляются отдельными лицами или "
+"организациями вне Lantern. Когда вы подключаетесь к одному из них, вы "
+"доверяете человеку, который им управляет, обеспечивать его безопасность и "
+"использовать ответственно."
+
+msgid "trust_server_operator_message_two"
+msgstr ""
+"Lantern не управляет и не контролирует частные серверы. Убедитесь, что вы "
+"знаете и доверяете оператору сервера, прежде чем присоединиться к нему."
+
+msgid "trust_server_operator_message_three"
+msgstr ""
+"Если вы не уверены, кто управляет сервером или как он настроен, мы "
+"рекомендуем использовать один из стандартных серверов Lantern, доступных в "
+"вашем списке серверов"
+
+msgid "invalid_server_details"
+msgstr "Неверные данные сервера. Проверьте ключ доступа и попробуйте снова."
+
+msgid "lantern_servers"
+msgstr "Серверы Lantern"
+
+msgid "private_servers"
+msgstr "Частные серверы"
+
+msgid "fastest_server"
+msgstr "Самый быстрый сервер"
+
+msgid "join_my_private_server"
+msgstr "Присоединиться к моему частному серверу Lantern"
+
+msgid "your_server"
+msgstr "Ваши серверы:"
+
+msgid "no_private_server_setup_yet"
+msgstr ""
+"Вы еще не настроили частный сервер. Нажмите кнопку ниже, чтобы начать."
 
 msgid "connect"
 msgstr "Подключиться"
@@ -149,1863 +957,340 @@ msgstr "Подключиться"
 msgid "disconnect"
 msgstr "Отключиться"
 
-msgid "connected"
-msgstr "Подключён"
-
-msgid "Disconnected"
-msgstr "Отключен"
-
-msgid "Disconnecting"
-msgstr "Отключение…"
-
-msgid "Connecting"
-msgstr "Подключение..."
-
-msgid "no_network_connection"
-msgstr "Нет подключения к Интернету"
-
-msgid "connection_error"
-msgstr "Ошибка подключения"
-
-msgid "connection_error_des"
-msgstr ""
-"Lantern не удается подключиться к серверам. Перезагрузите приложение. Если "
-"проблема не исчезнет, свяжитесь со службой поддержки."
-
-msgid "connection_error_button"
-msgstr "Получить помощь"
-
-msgid "Calling"
-msgstr "Вызов…"
-
-msgid "Go Pro Title"
-msgstr "Перейдите на версию Pro!"
-
-msgid "Go Pro Description"
-msgstr "Разблокируйте высокие скорости, без рекламы и безлимитные данные!"
-
-msgid "Server Location"
-msgstr "Локация сервера"
-
-msgid "Server Location Info"
-msgstr ""
-"Lantern использует технологию умного выбора серверов, чтобы автоматически "
-"подключать вас к нашим лучшим дата-центрам."
-
-msgid "OK"
-msgstr "Ок"
-
-msgid "Done"
-msgstr "Готово"
-
-msgid "backup_recovery_key"
-msgstr "Ключ резервного восстановления"
-
-msgid "delete_chat_data"
-msgstr "Удалить все данные чата"
-
-msgid "delete_chat_data_description"
-msgstr ""
-"Мы удалим номер чата, контакты и сообщения с этого устройства. Без кода "
-"резервного восстановления вы не сможете получить доступ к номеру чата."
-
-msgid "delete_chat_data_confirmation"
-msgstr "Я хочу удалить данные чата"
-
-msgid "Pro Account Management"
-msgstr "Управление аккаунтом Pro"
-
-msgid "link_device"
-msgstr "Привязать устройство"
-
-msgid "Upgrade to Lantern Pro"
-msgstr "Обновление до Lantern Pro"
-
-msgid "Invite Friends"
-msgstr "Пригласи друзей "
-
-msgid "share_lantern_pro"
-msgstr ""
-"Поделитесь кодом с друзьями - если они купят версию Pro, вы оба получите "
-"бесплатный месяц подписки на Lantern Pro!"
-
-msgid "privacy_disclosure_title"
-msgstr "Политика конфиденциальности Lantern"
-
-msgid "privacy_disclosure_body"
-msgstr ""
-"Lantern серьезно относится к защите вашей конфиденциальности. Для нас важно,"
-" чтобы вы понимали, какую информацию мы собираем (и не собираем), как мы ее "
-"используем и храним. Ваши платежные данные не связаны с аккаунтом Lantern "
-"Pro. Мы не собираем логи о вашей активности (в том числе историю браузера, "
-"сведения об адресатах трафика, содержание данных или DNS-запросы). Мы "
-"никогда не храним логи соединений, то есть ваши зарегистрированные IP-"
-"адреса, IP-адрес исходящего сервера Lantern, связанный с временной меткой "
-"подключения, а также продолжительность сеансов. У нас нет технической "
-"возможности связать аккаунт Lantern Pro с реальной идентифицирующей "
-"информацией пользователя. Кроме того, имея IP-адрес Lantern и точную "
-"временную метку, мы не можем связать этот адрес с пользователем Lantern или "
-"IP-адресом этого пользователя."
-
-msgid "privacy_disclosure_accept"
-msgstr "Я принимаю"
-
-msgid "desktop_version"
-msgstr "Версия для ПК"
-
-msgid "settings"
-msgstr "Настройки"
-
-msgid "general"
-msgstr "Основное"
-
-msgid "about"
-msgstr "О программе"
-
-msgid "proxy_all"
-msgstr "Проксировать весь трафик"
-
-msgid "proxy_everything_is"
-msgstr "Использование прокси везде %s"
-
-msgid "version_number"
-msgstr "Версия: %s"
-
-msgid "build_number"
-msgstr "Сборка: %s"
-
-msgid "sdk_version"
-msgstr "SDK %s"
-
-msgid "language"
-msgstr "Язык"
-
-msgid "select_an_issue"
-msgstr "Выберите проблему"
-
-msgid "enter_description"
-msgstr "Пожалуйста, опишите вашу проблему "
-
-msgid "cannot_access_blocked_sites"
-msgstr "Не удается получить доступ к заблокированным сайтам"
-
-msgid "cannot_complete_purchase"
-msgstr "Ваша покупка не может быть завершена"
-
-msgid "discover_not_working"
-msgstr "Не удается запустить Обзор "
-
-msgid "cannot_sign_in"
-msgstr "Не удается войти в аккаунт"
-
-msgid "spinner_loads_endlessly"
-msgstr "Невозможно загрузить страницу "
-
-msgid "slow"
-msgstr "Медленный"
-
-msgid "cannot_link_devices"
-msgstr "Не удается привязать устройства"
-
-msgid "wrong_device_linking_code"
-msgstr "Неправильный или недействительный код привязки устройства"
-
-msgid "cannot_remove_device"
-msgstr "Невозможно удалить устройство "
-
-msgid "application_crashes"
-msgstr "Сбой работы приложения"
-
-msgid "other"
-msgstr "Другое"
-
-msgid "issue_description"
-msgstr "Опишите вашу проблему "
-
-msgid "check_for_updates"
-msgstr "Проверить обновления"
-
-msgid "blocked_users"
-msgstr "Заблокированные пользователи"
-
-msgid "description_proxy_all_dialog"
-msgstr ""
-"Если этот параметр включен, весь трафик будет отправляться через Lantern "
-"(более безопасный вариант). Если этот параметр отключен, через Lantern будет"
-" отправляться только заблокированный трафик (более быстрый вариант)."
-
-msgid "Account"
-msgstr "Аккаунт"
-
-msgid "VPN Status"
-msgstr "Статус VPN"
-
-msgid "VPN"
-msgstr "VPN"
-
-msgid "Authorize Device for Pro"
-msgstr "Авторизовать устр. для Pro"
-
-msgid "Authorize with Device Linking Pin"
-msgstr "Авторизация с помощью кода привязки устройства"
-
-msgid "Requires physical access to a Lantern Pro Device"
-msgstr "Необходим физический доступ к устройству Lantern Pro"
-
-msgid "Link with PIN"
-msgstr "Авторизация для Lantern Pro"
-
-msgid "OR"
-msgstr "ИЛИ"
-
-msgid "device_linking_pin"
-msgstr "Код привязки устройства"
-
-msgid "link_device_step_one"
-msgstr "Откройте пункт меню «Добавить устройство» на вашем Pro-устройстве. "
-
-msgid "link_device_step_two"
-msgstr "Введите PIN-код привязки устройства и нажмите «Отправить» "
-
-msgid "ensure_most_recent_version_lantern"
-msgstr ""
-"* Убедитесь, что на обоих устройствах установлена последняя версия Lantern."
-
-msgid "Authorize Device via Email"
-msgstr "Авторизация с помощью электронной почты"
-
-msgid "auth_email_helper_text"
-msgstr "Введите адрес электронной почты, связанный с вашим аккаунтом Pro."
-
-msgid "Requires access to the email you used to buy Lantern Pro"
-msgstr ""
-"Необходим доступ к адресу электронной почты, который использовался для "
-"покупки Lantern Pro"
-
-msgid "Link via Email"
-msgstr "Ссылка по электронной почте"
-
-msgid "lantern_desktop"
-msgstr "Версия Lantern для ПК"
-
-msgid "report_description"
-msgstr "Описание проблемы"
-
-msgid "report_issue"
-msgstr "Сообщить о проблеме "
-
-msgid "report_an_issue"
-msgstr "Сообщить о проблеме"
-
-msgid "report_sent"
-msgstr "Отчет отправлен"
-
-msgid "thank_you_for_reporting_your_issue"
-msgstr ""
-"Спасибо, что сообщили о своей проблеме. Из-за большого потока обращений мы "
-"не можем отвечать на большинство из них, однако будьте уверены, мы прилагаем"
-" все усилия, чтобы совершенствовать Lantern на основании ваших отзывов."
-
-msgid "send_report"
-msgstr "Отправить отчет"
-
-msgid "most_recent_lantern_apps"
-msgstr ""
-"По ссылке выше доступны актуальные версии приложений Lantern для ПК и других"
-" платформ."
-
-msgid "share_link"
-msgstr "Поделиться ссылкой "
-
-msgid "share_title"
-msgstr "Поделитесь ссылкой на скачивание Lantern"
-
-msgid "email"
-msgstr "Электронная почта"
-
-msgid "Submit"
-msgstr "Отправить"
-
-msgid "save"
-msgstr "Сохранить"
-
-msgid "please_enter_a_valid_email_address"
-msgstr "Введите действительный адрес электронной почты"
-
-msgid "bonus"
-msgstr "Бонус "
-
-msgid "referral_bonus"
-msgstr "Реферальный бонус"
-
-msgid "total"
-msgstr "Всего "
-
-msgid "month"
-msgstr "месяц"
-
-msgid "months"
-msgstr "месяцы"
-
-msgid "enter_email_to_complete_purchase"
-msgstr "Введите адрес электронной почты для завершения покупки "
-
-msgid "error_fetching_plans"
-msgstr "Ошибка загрузки. Перезапустите Lantern и повторите попытку."
-
-msgid "apply"
-msgstr "Применить"
-
-msgid "choose_payment_method"
-msgstr "Выберете способ оплаты "
-
-msgid "pro_plan"
-msgstr "Подписка Pro "
-
-msgid "one_month_plan"
-msgstr "Тариф на 1 месяц"
-
-msgid "one_year_plan"
-msgstr "Подписка на 1 год "
-
-msgid "two_year_plan"
-msgstr "Подписка на 2 года "
-
-msgid "plan_discount"
-msgstr ""
-"Сэкономьте %d%%\n"
-" "
-
-msgid "enter_email_and_activation_code"
-msgstr "Введите email и код активации "
-
-msgid "referral_code"
-msgstr "Реферальный код"
-
-msgid "share_referral_code"
-msgstr "Поделиться реферальным кодом "
-
-msgid "share_message_referral_code"
-msgstr ""
-"Чтобы получить месяц бесплатного доступа к Lantern Pro, используйте этот "
-"реферальный код: %s ; Вы можете скачать его здесь: "
-"https://lantern.io/download "
-
-msgid "add_referral_code"
-msgstr "Ввести реферальный код "
-
-msgid "Activation Code"
-msgstr "Код активации"
-
-msgid "invalid_or_incomplete_referral_code"
-msgstr "Неверный или неполный реферальный код"
-
-msgid "register_for_pro"
-msgstr "Зарегистрироваться в Pro"
-
-msgid "Something went wrong while applying your referral code."
-msgstr "Что-то пошло не так, попробуйте ещё раз. "
-
-msgid "your_activation_code_is_invalid"
-msgstr "Неверный код активации"
-
-msgid "update_cache_plans_timeout"
-msgstr "Что-то пошло не так, попробуйте еще раз. "
-
-msgid "bitcoin_timeout"
-msgstr "Время ожидания запроса BTCPay истекло."
-
-msgid "BTCPay is unavailable"
-msgstr "BTCPay недоступен"
-
-msgid "update_cache_user_timeout"
-msgstr "Что-то пошло не так с загрузкой данных аккаунта. "
-
-msgid "reseller_timeout"
-msgstr "Что-то пошло не так с подтверждением кода активации. "
-
-msgid "wrong_reseller_code"
-msgstr "Неверный код активации"
-
-msgid "reseller_success"
-msgstr "Код активации добавлен успешно."
-
-msgid "stripe_timeout"
-msgstr ""
-"Время ожидания вашей оплаты Stripe истекло. Перезапустите Lantern и "
-"повторите попытку."
-
-msgid "stripe_success"
-msgstr "Успешная покупка Stripe."
-
-msgid "renewal_success"
-msgstr "Успешное обновление"
-
-msgid "pro_renewal_success_description"
-msgstr ""
-"Благодарим за обновление вашей учетной записи Lantern Pro. Вы получили "
-"неограниченный доступ, используя самые быстрые центры обработки данных. Вы "
-"можете подключить до трех устройств к вашему аккаунту."
-
-msgid "pro_purchase_success"
-msgstr "Добро пожаловать в Lantern Pro"
-
-msgid "platinum_purchase_success_descripion"
-msgstr ""
-"Теперь у вас есть неограниченный доступ благодаря использованию самых "
-"быстрых центров обработки данных и выделенной линии. К вашему аккаунту можно"
-" подключить до трех устройств."
-
-msgid "pro_purchase_success_descripion"
-msgstr ""
-"Вы получили неограниченный доступ благодаря самым быстрым центрам обработки "
-"данных. Вы можете подключить до трех устройств к вашему аккаунту."
-
-msgid "by_clicking_tos"
-msgstr "Нажимая %s, вы принимаете наши "
-
-msgid "tos"
-msgstr "Условия использования"
-
-msgid "step_1"
-msgstr "Шаг 1"
-
-msgid "step_2"
-msgstr "Шаг 2"
-
-msgid "step_3"
-msgstr "Шаг 3"
-
-msgid "invalid_email"
-msgstr "Неверный адрес электронной почты"
-
-msgid "invalid_card"
-msgstr "Неверный номер кредитной карты"
-
-msgid "invalid_expiration"
-msgstr "Недействительный срок действия"
-
-msgid "cc_number"
-msgstr "Кредитная карта"
-
-msgid "card_number"
-msgstr "Номер карты"
-
-msgid "card_expiration"
-msgstr "ММ/ГГ"
-
-msgid "invalid_cvc"
-msgstr "Неверный CVC"
-
-msgid "complete_purchase"
-msgstr "Завершить покупку"
-
-msgid "Re-send Email"
-msgstr "Повторная отправка e-mail"
-
-msgid "Paste from clipboard?"
-msgstr "Вставить из буфера обмена?"
-
-msgid "Yes"
-msgstr "Да"
-
-msgid "No"
-msgstr "Нет"
-
-msgid "exit"
-msgstr "Выйти "
-
 msgid "show"
 msgstr "Показать"
 
 msgid "status_on"
-msgstr "Статус: Включено "
+msgstr "Подключено"
 
 msgid "status_off"
-msgstr "Статус: Выключено "
+msgstr "Отключено"
 
-msgid "Enter or paste linking code"
-msgstr "Введите или вставьте код привязки"
+msgid "select_your_server_location"
+msgstr "Выберите расположение вашего сервера"
 
-msgid "recovery_email_sent"
-msgstr ""
-"Код привязки отправлен на адрес %s (если этот аккаунт существует). Письмо "
-"придет в течение нескольких часов. Скопируйте код и вставьте в поле выше."
+msgid "faster_speeds_unlimited_bandwidth"
+msgstr "Более высокие скорости и безлимитный трафик"
 
-msgid "Add Device"
-msgstr "Добавить устройство"
+msgid "premium_servers_less_congestion"
+msgstr "Премиум-серверы с меньшей нагрузкой"
 
-msgid "approve_device_step_1"
-msgstr ""
-"На устройстве, с которым вы хотите установить связь, откройте меню "
-"«Авторизовать устр. для Pro» и нажмите «Привязать с помощью ПИН-кода»."
+msgid "advanced_anti_censorship"
+msgstr "Продвинутая технология обхода цензуры"
 
-msgid "approve_device_step_2"
-msgstr "Введите код привязки, полученный на шаге 1"
+msgid "exclusive_access_new_features"
+msgstr "Эксклюзивный доступ к новым функциям"
 
-msgid "Pro Account Expiration"
-msgstr "Срок действия учетной записи Pro"
+msgid "connect_up_to_five_devices"
+msgstr "Подключите до 5 устройств"
 
-msgid "Renew"
-msgstr "Возобновить"
-
-msgid "pro_devices_header"
-msgstr "Устройства с Lantern Pro (до 3 шт.)"
-
-msgid "Remove"
-msgstr "Удалить"
-
-msgid "Log Out"
-msgstr "Выйти"
-
-msgid "confirm_remove_device"
-msgstr "Вы уверены, что хотите отвязать это устройство от аккаунта Pro?"
-
-msgid "confirm_close_window"
-msgstr "Вы уверены, что хотите закрыть Lantern? "
-
-msgid "unlimited_data"
-msgstr "Безлимитный трафик"
-
-msgid "no_logs"
-msgstr "Нет логов"
-
-msgid "no_ads"
-msgstr "Без рекламы"
-
-msgid "choose_plan"
-msgstr "Выбрать план"
-
-msgid "billed_one_time"
-msgstr "одноразовая оплата "
-
-msgid "connect_up_to_3_devices"
-msgstr "Подключение до трех устройств"
-
-msgid "faster_data_centers"
-msgstr "Более быстрые центры обработки данных"
-
-msgid "dedicated_line"
-msgstr "Выделенная линия"
-
-msgid "increased_reliability"
-msgstr "Повышенная надежность"
-
-msgid "checkout"
-msgstr "Заказ"
-
-msgid "credit_card"
-msgstr "Кредитная карта"
-
-msgid "lantern_pro_checkout"
-msgstr "Приобрести Lantern Pro"
-
-msgid "1y_pricing"
-msgstr "Цены на 1 год"
-
-msgid "2y_pricing"
-msgstr "Цены на 2 года"
-
-msgid "plan_type"
-msgstr "Тип плана"
-
-msgid "most_popular"
-msgstr "Наиболее популярный"
-
-msgid "free"
-msgstr "Бесплатно"
-
-msgid "n/a"
-msgstr "Не применимо"
-
-msgid "Developer Settings"
-msgstr "Настройки разработчика"
-
-msgid "Developer"
-msgstr "Разработчик"
-
-msgid "dev_settings"
-msgstr ""
-"Эти настройки применяются для разработки. Если вы измените их, приложение "
-"остановит работу и будет перезапущено."
-
-msgid "dev_payment_mode"
-msgstr ""
-"Когда режим тестирования оплаты включен, приложение работает от имени "
-"прописанного в коде пользователя. Вы можете совершать покупки через Stripe, "
-"указывая номер карты 4242 4242 4242 4242, любую дату в будущем и любой CVV-"
-"код."
-
-msgid "Payment Test Mode"
-msgstr "Режим тестирования оплаты"
-
-msgid "Play Version"
-msgstr "Версия для Google Play"
-
-msgid "Force Country"
-msgstr "Принудительно указать страну"
-
-msgid "Error"
-msgstr "Ошибка"
-
-msgid "accept"
-msgstr "Принять"
-
-msgid "cancel"
-msgstr "Отмена"
-
-msgid "reject"
-msgstr "Отклонить"
-
-msgid "copied"
-msgstr "Скопировано!"
-
-msgid "saved"
-msgstr "Сохранено!"
-
-msgid "new_chat"
-msgstr "Создать чат"
-
-msgid "your_contact_info"
-msgstr "Ваши контактные данные"
-
-msgid "display_name"
-msgstr "Отображаемое имя"
-
-msgid "edit"
-msgstr "Редактировать"
-
-msgid "save_error"
-msgstr "Ошибка сохранения."
-
-msgid "fewer_options"
-msgstr "Меньше опций"
-
-msgid "more_options"
-msgstr "Больше опций"
-
-msgid "block_user"
-msgstr "Заблокировать пользователя"
-
-msgid "unblock_user"
-msgstr "Разблокировать пользователя"
-
-msgid "block"
-msgstr "Заблокировать "
-
-msgid "unblock"
-msgstr "Разблокировать "
-
-msgid "block_info_title"
-msgstr "Заблокировать пользователя %s?"
-
-msgid "no_blocked_users"
-msgstr "Нет заблокированных пользователей."
-
-msgid "unblock_info_title"
-msgstr "Разблокировать пользователя %s?"
-
-msgid "block_info_description"
-msgstr ""
-"Если вы заблокируете этого пользователя, он больше не сможет связаться с "
-"вами, а история чата будет удалена. Разблокировать его можно в настройках."
-
-msgid "unblock_info_description"
-msgstr ""
-"Теперь %s может вам писать. Этот пользователь не получит уведомление о том, "
-"что вы его разблокировали."
-
-msgid "block_info_checkbox"
-msgstr "Я понимаю, что история чата будет удалена"
-
-msgid "unblock_info_checkbox"
-msgstr "Я хочу разблокировать этого пользователя"
-
-msgid "delete_permanently"
-msgstr "Удалить пользователя навсегда"
-
-msgid "delete_info_description"
-msgstr ""
-"Если вы захотите снова написать этому пользователю, нужно будет добавить его"
-" контактную информацию."
-
-msgid "add_new_contact"
-msgstr "Добавить новый контакт"
-
-msgid "add_contact"
-msgstr "Добавить контакт"
-
-msgid "share_your_chat_number"
-msgstr "Поделитесь номером чата"
-
-msgid "scan_qr_code"
-msgstr "Отсканировать QR-код"
-
-msgid "add_contact_in_person"
-msgstr "Добавить контакты лично"
-
-msgid "start_chat"
-msgstr "Начать чат"
-
-msgid "your_installed_apps"
-msgstr "Ваши установленные приложения"
-
-msgid "apps_routed_through_lantern"
-msgstr "Приложения, маршрутизируемые через Lantern"
-
-msgid "apps_to_unblock"
-msgstr ""
-"Выберите приложения, которые вы хотите разблокировать. При подключении "
-"только выбранные ниже приложения будут маршрутизироваться через Lantern."
-
-msgid "split_tunneling"
-msgstr "Сплит-туннель"
-
-msgid "split_tunneling_info"
-msgstr ""
-"При включении раздельного туннелирования маршрутизация выбранных приложений будет осуществляться через Lantern. Это сможет повысить производительность и сэкономить трафик, поскольку разблокируются только определенные приложения.\n"
-"\n"
-" "
-
-msgid "applied_next_time"
-msgstr ""
-"При повторном подключении будут применены новые настройки раздельного "
-"туннелирования."
-
-msgid "message_disappearing"
-msgstr "Для вас и пользователя %s сообщения не будут пропадать."
-
-msgid "message_disappearing_description"
-msgstr "Для вас и пользователя %s все сообщения будут пропадать через %s."
-
-msgid "view_contact_info"
-msgstr "Посмотреть контактную информацию"
-
-msgid "off"
-msgstr "Выкл."
-
-msgid "on"
-msgstr "Вкл."
-
-msgid "continue"
-msgstr "Продолжить"
-
-msgid "continue_to_pro"
-msgstr "Продолжить с версией Pro"
-
-msgid "are_you_sure_you_want_to_open"
-msgstr "Открыть %s?"
-
-msgid "set"
-msgstr "Настроить"
-
-msgid "menu"
-msgstr "Меню"
-
-msgid "send_error"
-msgstr "Ошибка отправки сообщения"
-
-msgid "share_media_error"
-msgstr "Ошибка отправки медиафайла"
-
-msgid "no_recents"
-msgstr "Нет недавних"
-
-msgid "set_display_name"
-msgstr "Установить отображаемое имя"
-
-msgid "introduce_contact"
-msgstr "Познакомить с контактом"
-
-msgid "introduce_contacts"
-msgstr "Познакомить контакты"
-
-msgid "introduce_contacts_with_count"
-msgstr "Познакомить контакты (%s)"
-
-msgid "need_two_contacts_to_introduce"
-msgstr ""
-"Если у вас есть хотя бы два контакта, вы можете познакомить их друг с "
-"другом."
-
-msgid "introduce_contacts_select"
-msgstr ""
-"Выберите хотя бы два контакта, которых хотите познакомить. Они смогут начать"
-" общение, когда подтвердят запрос на знакомство."
-
-msgid "introduce_single_contact"
-msgstr ""
-"Выберите контакт, который хотите познакомить с пользователем %s. Они смогут "
-"начать общаться, как только подтвердят знакомство."
-
-msgid "send_introductions"
-msgstr "Познакомить"
-
-msgid "introductions_sent"
-msgstr "Вы отправили запрос на знакомство!"
-
-msgid "no_contacts_yet"
-msgstr "Контактов нет"
-
-msgid "contact_verification"
-msgstr "Подтверждение контакта"
-
-msgid "verification"
-msgstr "Подтверждение"
-
-msgid "contact_verification_description"
-msgstr ""
-"Кнопка подтверждения контакта расположена справа вверху в меню сообщений."
-
-msgid "qr_error_description"
-msgstr "Ошибка сканирования QR-кода."
-
-msgid "qr_info_verification_title"
-msgstr "Личное подтверждение контакта"
-
-msgid "qr_info_f2f_title"
-msgstr "Сканирование QR-кода"
-
-msgid "qr_info_verification_des"
-msgstr ""
-"Чтобы подтвердить контакт, отсканируйте QR-коды друг друга.\n"
-"\n"
-"Так мы сможем применять сквозное шифрование и защищать вашу конфиденциальность."
-
-msgid "qr_info_f2f_des"
-msgstr ""
-"Чтобы добавить пользователя в контакты, отсканируйте QR-коды друг друга.\n"
-"\n"
-"Так мы сможем применять сквозное шифрование и защищать вашу конфиденциальность."
-
-msgid "qr_info_verification_scan"
-msgstr "Чтобы подтвердить, отсканируйте QR-коды друг друга."
-
-msgid "qr_info_f2f_scan"
-msgstr "Чтобы добавить контакт, отсканируйте QR-коды друг друга."
-
-msgid "qr_success_snackbar"
-msgstr "%s у вас в контактах"
-
-msgid "qr_info_waiting_qr"
-msgstr "Подождите, когда друг отсканирует ваш QR-код…"
-
-msgid "scan_complete"
-msgstr "Отсканировано"
-
-msgid "qr_for_your_contact"
-msgstr "Ваш QR-код"
-
-msgid "add_via_chat_number"
-msgstr "Добавить с помощью номера чата"
-
-msgid "qr_info_waiting_id"
-msgstr ""
-"Подождите, когда друг введет идентификатор мессенджера или отсканирует QR-"
-"код…"
-
-msgid "chat_number_not_found"
-msgstr ""
-"Номер чата не найден.\n"
-"Проверьте его и повторите попытку."
-
-msgid "unable_to_add_contact"
-msgstr ""
-"Контакт не найден.\n"
-"Проверьте номер и повторите попытку."
-
-msgid "self_adding"
-msgstr "Введенный номер чата принадлежит вам"
-
-msgid "chat_number_type"
-msgstr "Введите номер чата"
-
-msgid "letter_and_numbers_only"
-msgstr "Только буквы и цифры"
-
-msgid "name_your_contact"
-msgstr "Назовите контакт"
-
-msgid "messenger_id_invalid"
-msgstr "Недействительный идентификатор мессенджера"
-
-msgid "username_not_found"
-msgstr "Имя пользователя не найдено"
-
-msgid "contact_id_your_id"
-msgstr "Ваш идентификатор мессенджера"
-
-msgid "introductions"
-msgstr "Знакомства"
-
-msgid "introduced"
-msgstr "Кто познакомил: %s"
-
-msgid "introductions_title"
-msgstr "Подтвердите знакомство с пользователем %s"
-
-msgid "introductions_info"
-msgstr ""
-"Чтобы начать общение, обе стороны должны подтвердить знакомство. Запросы "
-"удаляются через семь дней после отправки."
-
-msgid "introduction_reject_title"
-msgstr "Отклонить знакомство"
-
-msgid "introduction_reject_content"
-msgstr ""
-"Если вы отклоните знакомство, то не сможете общаться с этим контактом."
-
-msgid "introductions_error_description_rejecting"
-msgstr "Не удалось отклонить запрос."
-
-msgid "introductions_error_description_accepting"
-msgstr "Не удалось принять запрос."
-
-msgid "no_introductions"
-msgstr "Запросов на знакомство нет."
-
-msgid "introduction_approved"
-msgstr "Знакомство с пользователем %s подтверждено!"
-
-msgid "delete_contact_name"
-msgstr "Удалить контакт %s"
-
-msgid "delete_contact"
-msgstr "Удалить контакт"
-
-msgid "error"
-msgstr "Ошибка"
-
-msgid "error_delete_contact"
-msgstr "Не удалось удалить контакт."
-
-msgid "unnamed_contact"
-msgstr "Безымянный контакт"
-
-msgid "me"
-msgstr "Вы"
-
-msgid "disappearing_messages"
-msgstr "Исчезающие сообщения"
-
-msgid "start_of_your_history"
-msgstr ""
-"Сообщения и звонки между вами и контактом %s защищены сквозным шифрованием."
-
-msgid "banner_unaccepted"
-msgstr "Пользователя %s нет в вашем списке контактов. Принять запрос на чат?"
-
-msgid "banner_messages_persist"
-msgstr "Новые сообщения не пропадают."
-
-msgid "banner_message_retention"
-msgstr "Срок демонстрации сообщений: %s"
-
-msgid "longform_seconds"
-msgstr "%s сек."
-
-msgid "shortform_seconds"
-msgstr "%s сек."
-
-msgid "longform_minute"
-msgstr "%s мин."
-
-msgid "shortform_minutes"
-msgstr "%s мин."
-
-msgid "longform_minutes"
-msgstr "%s мин."
-
-msgid "longform_hour"
-msgstr "%s ч."
-
-msgid "shortform_hours"
-msgstr "%s ч."
-
-msgid "longform_hours"
-msgstr "%s ч."
-
-msgid "longform_day"
-msgstr "%s дн."
-
-msgid "shortform_days"
-msgstr "%s​ дн."
-
-msgid "longform_days"
-msgstr "%s дн."
-
-msgid "longform_week"
-msgstr "%s нед."
-
-msgid "shortform_weeks"
-msgstr "%s нед."
-
-msgid "longform_weeks"
-msgstr "%s нед."
-
-msgid "unknown"
-msgstr "Неизвестно"
-
-msgid "banner_source_qr"
-msgstr "QR-код"
-
-msgid "banner_source_id"
-msgstr "Идентификатор мессенджера"
-
-msgid "banner_source_intro"
-msgstr "Введение"
-
-msgid "message_will_disappear_at"
-msgstr "Исчезнет %s"
-
-msgid "change_display_name"
-msgstr "Изменить отображаемое имя"
-
-msgid "yesterday"
-msgstr "вчера"
-
-msgid "tomorrow"
-msgstr "завтра"
-
-msgid "just_now"
-msgstr "только что"
-
-msgid "within_one_minute"
-msgstr "в течение минуты"
-
-msgid "on_date"
-msgstr "%s"
-
-msgid "at_date"
-msgstr "%s"
-
-msgid "error_fetching_message_preview"
-msgstr "Не удалось выполнить предпросмотр сообщения"
-
-msgid "message_was_deleted"
-msgstr "Сообщение удалено"
-
-msgid "contact_was_deleted"
-msgstr "Пользователь %s удален из ваших контактов."
-
-msgid "contact_was_blocked"
-msgstr "Контакт %s заблокирован."
-
-msgid "contact_was_unblocked"
-msgstr "Контакт %s разблокирован."
-
-msgid "dismiss"
-msgstr "Отключить"
-
-msgid "copy_text"
-msgstr "Скопировать текст"
-
-msgid "message"
-msgstr "Сообщение"
-
-msgid "messages"
-msgstr "Сообщения"
-
-msgid "chats"
-msgstr "Чаты"
-
-msgid "new_requests"
-msgstr "Новых запросов: %s"
-
-msgid "chat"
-msgstr "Чат"
-
-msgid "lantern_chat"
-msgstr "Чат Lantern"
-
-msgid "welcome_title"
-msgstr "Добро пожаловать в чат Lantern!"
-
-msgid "welcome_text"
-msgstr ""
-"Мы обеспечиваем вашу конфиденциальность благодаря шифрованию и лучшей в "
-"своем классе технологии защиты от блокировки."
-
-msgid "get_started"
-msgstr "Начать"
-
-msgid "want_to_recover"
-msgstr "У вас есть номер чата?"
-
-msgid "recover"
-msgstr "Восстановить"
-
-msgid "chat_number"
-msgstr "Номер чата"
-
-msgid "your_chat_number"
-msgstr "Ваш номер чата"
-
-msgid "chat_number_recovery"
-msgstr "Восстановление номера чата"
-
-msgid "recovery_helper_text"
-msgstr "Введите действительный ключ восстановления"
-
-msgid "recovery_button"
-msgstr "Чтобы восстановить номер чата, введите действительный ключ."
-
-msgid "recovery_label"
-msgstr "Введите ключ восстановления"
-
-msgid "recovery_key"
-msgstr "Ключ восстановления"
-
-msgid "secure_text_explanation"
-msgstr ""
-"Номер чата — это своего рода номер телефона, по которому друзья могут "
-"связываться с вами в Lantern."
-
-msgid "secure_text_explanation_account"
-msgstr ""
-"Это полная версия вашего номера чата. Безопаснее делиться с пользователями именно ей. Лучше всего делать это через другой канал со сквозным шифрованием.\n"
-"\n"
-"Lantern предлагает укороченную версию номера чата, которой проще обмениваться."
-
-msgid "recovery_key_account_explanation"
-msgstr ""
-"Никому не сообщайте этот ключ и храните его в безопасном месте. Если вы "
-"потеряете телефон, смените устройство или сбросите настройки операционной "
-"системы, то сможете восстановить номер чата только с помощью этого ключа."
-
-msgid "recovery_error"
-msgstr "Не удалось восстановить аккаунт."
-
-msgid "recovery_input_error"
-msgstr "Проверьте, правильный ли ключ восстановления вы ввели."
-
-msgid "recovery_retrieval_error"
-msgstr "Ошибка восстановления аккаунта."
-
-msgid "recovery_success"
-msgstr "Вы восстановили номер чата"
-
-msgid "empty_chats_text"
-msgstr "Поделитесь своим номером чата с другими и добавьте контакты!"
-
-msgid "next"
-msgstr "Далее"
-
-msgid "automated_backup"
-msgstr "Автоматическое резервное копирование"
-
-msgid "backup_explanation"
-msgstr ""
-"Lantern может выполнять резервное копирование ваших контактов и хранить их в зашифрованном виде на защищенных серверах. Без этой функции вы не сможете восстановить контакты с помощью ключа.\n"
-"\n"
-"Если вы включите функцию резервного копирования, Lantern не получит информацию о ваших контактах."
-
-msgid "backup_contacts"
-msgstr "Резервное копирование контактов"
-
-msgid "copy_recovery_key"
-msgstr "Скопировать ключ восстановления"
-
-msgid "search"
-msgstr "Поиск"
-
-msgid "account_management"
-msgstr "Управление аккаунтом"
-
-msgid "add_via_username"
-msgstr "Добавить с помощью имени пользователя"
-
-msgid "username"
-msgstr "Имя пользователя"
-
-msgid "enter_a_username_to_start_a_conversation"
-msgstr "Чтобы начать общение, введите имя пользователя"
-
-msgid "start_message"
-msgstr "Написать сообщение"
-
-msgid "please_enter_a_valid_username"
-msgstr "Введите действительное имя пользователя"
-
-msgid "open_url"
-msgstr "Открыть URL"
-
-msgid "message_deleted"
-msgstr "Пользователь %s удалил сообщение"
-
-msgid "never"
-msgstr "Никогда"
-
-msgid "delete_for_me"
-msgstr "Удалить у меня"
-
-msgid "delete_for_me_explanation"
-msgstr ""
-"Сообщение будет удалено только у вас. Остальные будут его по-прежнему "
-"видеть."
-
-msgid "delete_for_everyone"
-msgstr "Удалить у всех"
-
-msgid "delete_for_everyone_explanation"
-msgstr "Сообщение будет удалено у всех."
-
-msgid "reply"
-msgstr "Ответить"
-
-msgid "replying_to"
-msgstr "Ответ пользователю %s"
-
-msgid "attachment"
-msgstr "Вложение"
-
-msgid "error_rendering_message"
-msgstr "Не удалось отобразить сообщение"
-
-msgid "error_fetching_preview"
-msgstr "Не удалось выполнить предпросмотр сообщения"
-
-msgid "audio"
-msgstr "Аудио"
-
-msgid "image"
-msgstr "Изображение"
-
-msgid "images"
-msgstr "Изображения"
-
-msgid "video"
-msgstr "Видео"
-
-msgid "videos"
-msgstr "Видео"
-
-msgid "app"
-msgstr "Приложения"
-
-msgid "document"
-msgstr "Документы"
-
-msgid "search_chars_min"
-msgstr "Введите не менее трех символов"
-
-msgid "search_no_results"
-msgstr "Нет результатов, соответствующих этому запросу."
-
-msgid "search_error"
-msgstr "Не удалось получить результаты поиска."
-
-msgid "search_contacts"
-msgstr "Контакты (%s)"
-
-msgid "search_chats"
-msgstr "Чаты (%s)"
-
-msgid "search_in_contacts"
-msgstr "Поиск в контактах"
-
-msgid "search_in_chats"
-msgstr "Поиск в чатах и контактах"
-
-msgid "could_not_render_title"
-msgstr "Не удалось отобразить название файла"
-
-msgid "could_not_render_type"
-msgstr "Не удалось отобразить тип файла"
-
-msgid "speaker"
-msgstr "Динамик"
-
-msgid "speaker_on"
-msgstr "Динамик включен"
-
-msgid "mute"
-msgstr "Игнорировать"
-
-msgid "muted"
-msgstr "Звук выключен"
-
-msgid "end_call"
-msgstr "Завершить звонок"
-
-msgid "verify_contact"
-msgstr "Подтвердить контакт %s"
-
-msgid "verified"
-msgstr "Верифицировано"
-
-msgid "pending_verification"
-msgstr "Ожидает подтверждения"
-
-msgid "verify_description"
-msgstr ""
-"В целях безопасности рекомендуем проверить, соответствует ли номер подтверждения контакта %s вашему.\n"
-"\n"
-"Подтвердить лично или по звонку?"
-
-msgid "verify_in_person"
-msgstr "Подтвердить лично"
-
-msgid "verify_via_call"
-msgstr "Подтвердить по звонку"
-
-msgid "dismiss_notification"
-msgstr "Убрать уведомление"
-
-msgid "call_contact"
-msgstr "Позвонить контакту %s?"
-
-msgid "call"
-msgstr "Позвонить"
-
-msgid "incoming_call"
-msgstr "Входящий звонок"
-
-msgid "call_from"
-msgstr "От кого: %s"
-
-msgid "in_call"
-msgstr "Текущие звонки"
-
-msgid "in_call_des"
-msgstr "Уведомление о текущем звонке"
-
-msgid "incoming_call_from"
-msgstr "Входящий звонок от контакта %s"
-
-msgid "touch_here_to_open_call"
-msgstr "Коснитесь, чтобы ответить на звонок"
-
-msgid "in_call_with"
-msgstr "Звонок с контактом %s…"
-
-msgid "undo_verification"
-msgstr "Отменить подтверждение"
-
-msgid "mark_as_verified"
-msgstr "Отметить как подтвержденный"
-
-msgid "verification_panel_success"
-msgstr "Подтверждение выполнено! Теперь ваше общение с контактом %s защищено."
-
-msgid "verification_panel_pending"
-msgstr ""
-"Это ваш номер подтверждения. Прежде чем подтвердить контакт %s, проверьте, "
-"совпадают ли ваши номера."
-
-msgid "replica_upload_confirmation_title"
-msgstr "Важно!"
-
-msgid "replica_upload_confirmation_body"
-msgstr ""
-"Файлы, загруженные в децентрализованную сеть Lantern, становятся "
-"общедоступными. Их никто не сможет удалить. Во время загрузки материалов "
-"убедитесь, что в их содержимом и названии файлов нет персональной или "
-"идентифицирующей вас информации."
-
-msgid "replica_upload_confirmation_agree"
-msgstr "Возобновить отправку"
-
-msgid "dont_show_me_this_again"
-msgstr "Не показывать"
-
-msgid "download"
-msgstr "Скачать"
-
-msgid "download_started"
-msgstr "Скачивание началось"
-
-msgid "uploader"
-msgstr "Загрузчик"
-
-msgid "upload_started"
-msgstr "Загрузка началась"
-
-msgid "upload_in_progress"
-msgstr "Загрузка…"
-
-msgid "upload_complete"
-msgstr "Загрузка выполнена успешно"
-
-msgid "upload_failed"
-msgstr "Ошибка загрузки"
-
-msgid "upload_cancelled"
-msgstr "Загрузка отменена"
-
-msgid "upload_unknown_error"
-msgstr "Ошибка отправки материала"
-
-msgid "download_unknown_error"
-msgstr "Ошибка при скачивании"
-
-msgid "replica_link_fetcher"
-msgstr "Поставщик ссылок на копии"
-
-msgid "no_preview_for_this_type_of_file"
-msgstr "Для этого типа файлов предпросмотр недоступен"
-
-msgid "app_unknown"
-msgstr "Неизвестное приложение"
-
-msgid "audio_unknown"
-msgstr "Неизвестное аудио"
-
-msgid "document_unknown"
-msgstr "Неизвестный документ"
-
-msgid "no_search_result_found"
-msgstr "Мы ничего не нашли"
-
-msgid "search_result_error"
-msgstr "Не удалось предоставить результаты. Повторите попытку."
-
-msgid "video_stream_error"
-msgstr "Не удалось отобразить видео. Повторите попытку."
-
-msgid "untitled"
-msgstr "Без названия"
-
-msgid "preview_not_available"
-msgstr "Предварительный просмотр недоступен"
-
-msgid "download_to_view"
-msgstr "Скачайте файл для просмотра"
-
-msgid "failed_to_init_replica"
-msgstr "Ошибка. Не удалось выполнить инициализацию реплики."
-
-msgid "awaiting_result"
-msgstr "Ожидание результата…"
-
-msgid "discover"
-msgstr "Обзор"
-
-msgid "replica_search_intro"
-msgstr ""
-"Находите загруженные пользователями материалы в сети Lantern и загружайте "
-"свои файлы для других."
-
-msgid "replica_new_discover"
-msgstr "Новая категория обзора"
-
-msgid "replica_new_discover_news"
-msgstr "В обзоре теперь можно искать новостные статьи!"
-
-msgid "replica_check_it_out"
-msgstr "Ознакомиться"
-
-msgid "news"
-msgstr "Новости"
-
-msgid "share"
-msgstr "Поделиться"
-
-msgid "upload_file_screen"
-msgstr "Отправить файл"
-
-msgid "edit_title"
-msgstr "Изменить название"
-
-msgid "filenames_cannot_be_edited"
-msgstr "Имена файлов нельзя редактировать после загрузки."
-
-msgid "add_description"
-msgstr "Добавить описание"
-
-msgid "no_description"
-msgstr "Без описания"
-
-msgid "read_details"
-msgstr "Читать PDF"
-
-msgid "description_initial_value"
-msgstr "Описание нельзя редактировать после загрузки"
-
-msgid "name_your_file"
-msgstr "Присвойте файлу имя"
-
-msgid "upload"
-msgstr "Отправить"
-
-msgid "review"
-msgstr "Проверить"
-
-msgid "skip"
-msgstr "Пропустить"
-
-msgid "replica_layout_filetype"
-msgstr "тип файла"
-
-msgid "replica_layout_creation_date"
-msgstr "Создан"
-
-msgid "empty_description"
-msgstr "Описание не предоставлено."
-
-msgid "publish"
-msgstr "Да, опубликовать"
-
-msgid "important"
-msgstr "Важно!"
-
-msgid "upload_tos_agree"
-msgstr "Я понимаю"
-
-msgid "test_text"
-msgstr "Съесть бы пару кусочков пиццы 🍕 😊"
-
-msgid "test_hello"
-msgstr "Привет! А ты что думаешь?"
-
-msgid "test_reply"
-msgstr "Нет, сегодня мне хочется суши."
-
-msgid "test_disappearing_messages_1"
-msgstr "Все сообщения исчезают через 24 часа."
-
-msgid "test_disappearing_messages_2"
-msgstr "Это сообщение должно исчезнуть в ближайшее время."
-
-msgid "test_replica_search"
-msgstr "кот"
-
-msgid "discover_disclaimer"
-msgstr ""
-"Lantern делает поисковые запросы анонимными и защищает их от третьих лиц."
-
-msgid "support"
-msgstr "Поддержка"
-
-msgid "lantern_user_forum"
-msgstr "Форум пользователей Lantern"
-
-msgid "faq"
-msgstr "ЧаВо"
-
-msgid "add_device"
-msgstr "Добавить устройство"
-
-msgid "search_apps"
-msgstr "Поиск приложений "
-
-msgid "user_not_found"
-msgstr ""
-"Пользователь не найден. Проверьте учетные данные и повторите попытку. Если "
-"проблема не решится, свяжитесь с нашей службой поддержки."
-
-msgid "email_resend_message"
-msgstr "Код подтверждения отправлен повторно"
-
-msgid "signup_error"
-msgstr ""
-"Не удалось зарегистрироваться. Повторите попытку. Если проблема не решится, "
-"свяжитесь с нашей службой поддержки."
-
-msgid "signup_error_user_exists"
-msgstr ""
-"Не удалось войти в аккаунт. Попробуйте сбросить пароль. Если это не поможет,"
-" свяжитесь с нашей службой поддержки."
-
-msgid "confirm_email_error"
-msgstr "Подтвердите адрес электронной почты."
-
-msgid "password_cannot_be_empty"
-msgstr "Укажите пароль."
-
-msgid "password_must_be_at_least_8_characters"
-msgstr "Пароль должен содержать минимум 8 символов."
-
-msgid "sign_out"
-msgstr "Выход из аккаунта"
-
-msgid "sign_out_message"
-msgstr ""
-"Если вы выйдете из аккаунта, функции Lantern Pro будут недоступны. Чтобы "
-"использовать их, вам потребуется войти снова."
-
-msgid "change_password"
-msgstr "Изменить пароль"
-
-msgid "password"
-msgstr "Пароль"
-
-msgid "new_email"
-msgstr "Новый адрес электронной почты"
-
-msgid "new_email_same_as_old_email"
-msgstr "Новый адрес электронной почты не может совпадать со старым."
-
-msgid "danger_zone"
-msgstr "Зона опасности"
-
-msgid "delete_account"
-msgstr "Удаление аккаунта"
-
-msgid "delete"
-msgstr "Удалить"
-
-msgid "delete_account_message"
-msgstr ""
-"Это действие нельзя отменить. Доступ ко всем устройствам будет закрыт, а "
-"оставшееся время подписки Pro аннулировано без возврата средств."
-
-msgid "delete_your_account"
-msgstr "Удалить аккаунт?"
-
-msgid "confirm_deletion"
-msgstr "Удалить"
-
-msgid "account_deleted"
-msgstr "Аккаунт удален"
-
-msgid "account_deleted_message"
-msgstr "Вы не сможете его восстановить."
-
-msgid "password_has_been_updated"
-msgstr "Изменение пароля"
-
-msgid "password_has_been_updated_message"
-msgstr "Пароль сброшен."
-
-msgid "invalid_code"
-msgstr "Вы указали неверный или недействительный код. Повторите попытку."
+msgid "built_in_ad_blocking"
+msgstr "Встроенная блокировка рекламы"
 
 msgid "get_lantern_pro"
-msgstr "Получить Lantern Pro"
+msgstr "Получить Lantern Про"
 
-msgid "try_lantern_pro"
-msgstr "Попробуйте Lantern бесплатно"
+msgid "connected_to_private_server"
+msgstr "Подключено к частному серверу"
 
-msgid "continue_for_free"
-msgstr "Продолжить бесплатно"
-
-msgid "recovery_not_found"
-msgstr "Устройство не связано с этим пользователем"
-
-msgid "device_added"
-msgstr "Устройство добавлено"
-
-msgid "device_added_message"
-msgstr ""
-"Ваше устройство успешно добавлено. Если вы не видите подключенное "
-"устройство, пожалуйста, перезапустите приложение на обоих устройствах "
-
-msgid "wrong_link_code"
-msgstr "Вы указали неверный код. Проверьте его и повторите попытку."
-
-msgid "recovery_code_sent"
-msgstr "Код восстановления отправлен"
-
-msgid "device_added_msg"
-msgstr "Устройство подключено к %s."
-
-msgid "new_to_lantern"
-msgstr "Нужна помощь?"
-
-msgid "email_has_been_updated"
-msgstr "Обновление адреса электронной почты"
-
-msgid "email_has_been_updated_message"
-msgstr "Адрес электронной почты изменен."
-
-msgid "email_has_been_verified"
-msgstr "Подтверждение адреса электронной почты"
-
-msgid "email_has_been_verified_message"
-msgstr "Адрес электронной почты подтвержден."
+msgid "server_already_selected"
+msgstr "Вы уже подключены к этому серверу."
 
 msgid "device_limit_reached"
 msgstr "Достигнут лимит устройств"
 
 msgid "device_limit_reached_message"
 msgstr ""
-"Вы не можете войти в аккаунт, так как подключили максимальное количество "
-"устройств (3). Удалите хотя бы одно из списка ниже."
+"Вы достигли лимита в 5 устройств. Пожалуйста, удалите устройство, чтобы "
+"продолжить."
+
+msgid "remove_device_and_sign_in"
+msgstr "Удалить устройство и войти"
+
+msgid "cancel_sign_in"
+msgstr "Отменить вход"
+
+msgid "change_email"
+msgstr "Изменить email"
+
+msgid "change_email_message"
+msgstr ""
+"Это станет вашим новым email для входа. Вам нужно будет подтвердить его, "
+"прежде чем изменение вступит в силу."
+
+msgid "enter_new_email"
+msgstr "Введите ваш новый email"
+
+msgid "confirm_password_to_continue"
+msgstr "Для продолжения подтвердите ваш пароль."
+
+msgid "email_updated"
+msgstr "Ваш email обновлен."
+
+msgid "enable_network_extension"
+msgstr "Включить сетевое расширение"
+
+msgid "enable_network_extension_message"
+msgstr ""
+"Для использования Lantern нам нужно установить сетевое расширение для вашего"
+" Mac."
+
+msgid "install_now"
+msgstr "Установить сейчас"
+
+msgid "learn_more"
+msgstr "Узнать больше"
+
+msgid "network_extension_required"
+msgstr "Требуется сетевое расширение"
+
+msgid "click"
+msgstr "Нажмите"
+
+msgid "open_system_settings"
+msgstr "Открыть системные настройки"
+
+msgid "when_prompted"
+msgstr "при появлении запроса."
+
+msgid "activate_extension"
+msgstr "Активировать расширение"
+
+msgid "email_optional"
+msgstr "Email (необязательно)"
+
+msgid "please_enter_valid_email"
+msgstr "Пожалуйста, введите действительный email"
+
+msgid "please_select_an_issue"
+msgstr "Пожалуйста, выберите проблему"
+
+msgid "please_enter_issue_description"
+msgstr "Пожалуйста, опишите проблему"
+
+msgid "thanks_for_feedback"
+msgstr "Спасибо за отзыв!"
+
+msgid "no_apps_selected"
+msgstr "Приложения не выбраны"
+
+msgid "deselect_all"
+msgstr "Снять все"
+
+msgid "select_all"
+msgstr "Выбрать все"
+
+msgid "no_websites_selected"
+msgstr "Сайты не выбраны"
 
 msgid "enter_activation_code"
-msgstr "Ввести код активации"
-
-msgid "check_your_email"
-msgstr "Проверьте электронную почту"
-
-msgid "please_verify_email"
-msgstr "Убедитесь, что ее адрес указан верно."
-
-msgid "verify"
-msgstr "Подтвердить"
-
-msgid "cannot_login"
-msgstr "Не удается войти в систему "
-
-msgid "privacy_policy"
-msgstr "Политика конфиденциальности "
-
-msgid "terms_of_service"
-msgstr "Условия использования"
-
-msgid "invalid_verification_code"
-msgstr "Неверный код подтверждения"
-
-msgid "wrong_seller_code"
-msgstr ""
-"Неправильный код реселлера. Пожалуйста, проверьте и попробуйте снова. "
-
-msgid "follow_us"
-msgstr "Подпишитесь на нас "
-
-msgid "follow_us_telegram"
-msgstr "Следуйте за нами в Telegram"
-
-msgid "follow_us_instagram"
-msgstr "Следуйте за нами в Instagram"
-
-msgid "follow_us_facebook"
-msgstr "Следуйте за нами в Facebook"
-
-msgid "follow_us_x"
-msgstr "Подписывайтесь на X"
-
-msgid "report_issue_error"
-msgstr "Мы испытываем технические трудности. Попробуйте позже. "
-
-msgid "we_are_experiencing_technical_difficulties"
-msgstr "Мы испытываем технические трудности. Попробуйте позже. "
-
-msgid "a_temporary_error_occurred"
-msgstr "Произошла временная ошибка "
-
-msgid "sorry_we_are_unable_to_load_that_page"
-msgstr ""
-"Извините, не удается загрузить эту страницу в данный момент, пожалуйста, "
-"нажмите «Обновить», чтобы попробовать снова. "
-
-msgid "refresh"
-msgstr "Обновить"
-
-msgid "check_your_internet_connection"
-msgstr "Проверьте подключение к Интернету "
-
-msgid "please_try"
-msgstr "Пожалуйста, попробуйте "
-
-msgid "turning_off_airplane_mode"
-msgstr "Отключите режим полета "
-
-msgid "turning_on_mobile_data_or_wifi"
-msgstr "Включите мобильные данные или Wi-Fi "
-
-msgid "check_the_signal_in_your_area"
-msgstr "Проверьте сигнал в вашем районе "
-
-msgid "got_it"
-msgstr "Понятно"
-
-msgid "fetching_configuration"
-msgstr "Загрузка конфигурации "
-
-msgid "establish_connection_to_server"
-msgstr "Установление соединения с сервером "
-
-msgid "file_size_limit_title"
-msgstr "Лимит достигнут "
-
-msgid "file_size_limit_description"
-msgstr "Размер вложений должен быть менее 100 МБ"
-
-msgid "lantern_pro_one_year"
-msgstr "Тарифный план Lantern Pro: на один год"
-
-msgid "lantern_pro_two_year"
-msgstr "Тариф Lantern Pro: Двухлетний план"
-
-msgid "lantern_pro_one_month"
-msgstr "Тариф Lantern Pro: Один месяц"
-
-msgid "non_renewing_subscription"
-msgstr "Подписка без автоматического продления"
+msgstr "Введите код активации"
 
 msgid "restore_purchase"
 msgstr "Восстановить покупку"
 
-msgid "skip_for_now"
-msgstr "Пропустить пока"
+msgid "do_private_server_setup"
+msgstr "Настройка частного сервера DO"
 
-msgid "purchase_not_found"
-msgstr "Покупка с указанным адресом электронной почты не найдена"
-
-msgid "no_previous_purchase"
-msgstr "Предыдущие покупки не найдены"
-
-msgid "warning_restore_purchase"
+msgid "private_server_note"
 msgstr ""
-"Введите адрес электронной почты, который вы указали при оформлении заказа, "
-"чтобы восстановить покупку."
+"Выберите регион для вашего частного сервера. Более близкие расположения "
+"могут улучшить скорость и задержку."
 
-msgid "purchase_restored"
-msgstr "Покупка восстановлена"
+msgid "gcp_private_server_setup"
+msgstr "Настройка частного сервера GCP"
 
-msgid "purchase_restored_message"
-msgstr "Ваша покупка успешно восстановлена"
+msgid "gcp_private_server_location"
+msgstr "Расположение частного сервера GCP"
 
-msgid "purchase_restored_error"
+msgid "do_private_server_location"
+msgstr "Расположение частного сервера DO"
+
+msgid "confirm"
+msgstr "Подтвердить"
+
+msgid "private_server_warning"
 msgstr ""
-"Похоже, что-то пошло не так с восстановлением покупки. Пожалуйста, "
-"проверьте, что вы ввели правильный адрес электронной почты или код."
+"Добавляйте только серверы, которыми управляют люди, которым вы доверяете "
 
-msgid "err_while_sending_code"
-msgstr "Что-то пошло не так при отправке кода, пожалуйста, попробуйте еще раз"
+msgid "go_to_server_locations"
+msgstr "Перейти к расположениям серверов"
 
-msgid "email_hint"
-msgstr "*Электронная почта не обязательна, но рекомендуется"
+msgid "lantern_io"
+msgstr "Lantern.io"
 
-msgid "email_hint_pro"
+msgid "alternative_download_links"
+msgstr "Альтернативные ссылки для скачивания"
+
+msgid "github_download_page"
+msgstr "Страница скачивания на GitHub"
+
+msgid "telegram_bot"
+msgstr "Telegram-бот"
+
+msgid "if_you_cannot_access_website"
 msgstr ""
-"Добавьте адрес электронной почты, чтобы получить доступ к вашим покупкам на "
-"любом устройстве. Без электронной почты покупки привязаны к этому устройству"
-" и могут быть утеряны."
+"Если у вас возникли проблемы с доступом к нашему сайту, вы можете скачать "
+"Lantern по ссылкам выше."
 
-msgid "continue_without_email"
-msgstr "Продолжить без электронной почты"
+msgid "available_on"
+msgstr "Доступно на:"
 
-msgid "no_new_update"
-msgstr "Нет новых обновлений!"
+msgid "subscription_renewal_date"
+msgstr "Дата продления подписки"
 
-msgid "error_referral"
-msgstr "Что-то пошло не так, попробуйте ещё раз. "
+msgid "enabled_bypass_lists"
+msgstr "Включенные списки обхода (%d):"
 
-msgid "proxy_error"
+msgid "diagnostic_logs"
+msgstr "Диагностические логи"
+
+msgid "lantern_user_forum"
+msgstr "Форум пользователей Lantern"
+
+msgid "frequently_asked_questions"
+msgstr "Часто задаваемые вопросы"
+
+msgid "privacy_policy"
+msgstr "Политика конфиденциальности"
+
+msgid "terms_of_service"
+msgstr "Условия использования"
+
+msgid "get_unlimited_data"
+msgstr "Получите безлимитный трафик и высокие скорости!"
+
+msgid "private_server_options"
+msgstr "Опции частного сервера"
+
+msgid "lantern_version"
+msgstr "Версия Lantern"
+
+msgid "quit"
+msgstr "Выход"
+
+msgid "device_removed"
+msgstr "Устройство удалено"
+
+msgid "set_server_alias"
+msgstr "Установить псевдоним сервера"
+
+msgid "this_name_pre_filled"
 msgstr ""
-"У нас возникла проблема с запуском Lantern. Пожалуйста, попробуйте позже."
+"Это имя будет автоматически заполнено для приглашенного пользователя, чтобы "
+"помочь ему идентифицировать сервер. Он сможет изменить его позже."
 
-msgid "proxy_settings"
-msgstr "Настройки прокси"
+msgid "server_alias"
+msgstr "Псевдоним сервера"
 
-msgid "http_proxy"
-msgstr "HTTPS прокси"
+msgid "add_referral_code"
+msgstr "Добавить реферальный код"
 
-msgid "socks_proxy"
-msgstr "Прокси Socks"
+msgid "referral_code"
+msgstr "Реферальный код"
 
-msgid "http_proxy_copied"
-msgstr "HTTP Proxy скопирован"
+msgid "update_fails"
+msgstr "Обновление не удалось"
 
-msgid "socks_proxy_copied"
-msgstr "Прокси Socks скопирован"
+msgid "scan_qr_code"
+msgstr "Сканировать QR-код"
 
-msgid "proxy_everything"
-msgstr "Проксировать весь трафик"
+msgid "choose_your_server_location"
+msgstr "Выберите расположение вашего сервера"
 
-msgid "errorSubmittingToGooglePlay"
+msgid "we_handle_configuration"
+msgstr "Мы позаботимся о настройке, просто зарегистрируйтесь."
+
+msgid "90_day_free_trial"
+msgstr "90-дневная бесплатная пробная версия"
+
+msgid "identity_changed"
+msgstr "Изменена идентификация %s"
+
+msgid "identity_changed_message"
 msgstr ""
-"В настоящее время мы испытываем трудности с обработкой вашего запроса для "
-"Google Play. Пожалуйста, попробуйте позже."
+"Отпечаток безопасности %s изменился. Это может указывать на вмешательство "
+"или неправильную конфигурацию."
 
-msgid "no_internet_connection"
-msgstr "Обнаружено отсутствие подключения к интернету"
+msgid "recommendation"
+msgstr "Рекомендация:"
 
-msgid "domain_fronting_error"
+msgid "recommendation_message"
 msgstr ""
-"У нас возникли проблемы с подключением к нашим серверам. Пожалуйста, "
-"подождите немного или попробуйте выключить и включить снова."
+"Мы рекомендуем удалить %s из Lantern и удалить его из вашего аккаунта "
+"облачного провайдера, затем настроить новый сервер, чтобы ваше соединение "
+"оставалось безопасным."
+
+msgid "remove_server"
+msgstr "Удалить сервер"
+
+msgid "server_alias_cannot_be_empty"
+msgstr "Псевдоним сервера не может быть пустым"
+
+msgid "referral_code_applied"
+msgstr " Ваш реферальный код применен!"
+
+msgid "referral_message_1m"
+msgstr " + 15 дополнительных дней бесплатно"
+
+msgid "referral_message_1y"
+msgstr " + 1 дополнительный месяц бесплатно"
+
+msgid "referral_message_2y"
+msgstr " + 2 дополнительных месяца бесплатно"
+
+msgid "referral_code_invalid"
+msgstr ""
+"Введенный вами реферальный код недействителен. Пожалуйста, проверьте код и "
+"попробуйте снова."
+
+msgid "referral_code_own_invalid"
+msgstr ""
+"Вы не можете использовать свой собственный реферальный код. Пожалуйста, "
+"введите другой код."
+
+msgid "free"
+msgstr "Бесплатно"
+
+msgid "monthly_plan"
+msgstr "Месячный план:"
+
+msgid "15_days_each"
+msgstr " +15 дней каждому"
+
+msgid "annual_plan"
+msgstr "Годовой план:"
+
+msgid "1_month_each"
+msgstr "+1 месяц каждому"
+
+msgid "two_year_plan"
+msgstr "+1 месяц каждому"
+
+msgid "2_month_each"
+msgstr "+2 месяца каждому"
+
+msgid "referral_code_info"
+msgstr ""
+"Еще не пользователь Lantern Pro? Вы станете им, когда подпишется ваш первый "
+"реферал"
+
+msgid "lantern_pro_license"
+msgstr " Лицензия Lantern Pro"
+
+msgid "select_account"
+msgstr " Выберите аккаунт"
+
+msgid "new_to_lantern"
+msgstr "Впервые в Lantern?"
+
+msgid "create_an_account"
+msgstr "Создать аккаунт"
+
+msgid "no_projects_found"
+msgstr "Проекты не найдены"
+
+msgid "no_projects_found_desc"
+msgstr ""
+"Проекты не найдены. Пожалуйста, сначала создайте проект в своем аккаунте "
+"облачного провайдера."

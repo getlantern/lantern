@@ -1,24 +1,17 @@
 # 
 # Translators:
-# Kudret <kudretemre@hotmail.com.tr>, 2022
-# Zeynel Cebeci <cebeciz@gmail.com>, 2022
-# M. Utkun Uyar, 2023
-# Emre Deniz, 2023
-# Alexander B. <road2monstercat@gmail.com>, 2023
-# fffw <fffw@getlantern.org>, 2023
-# Gökhan Kalayci <gkmediagokhan@gmail.com>, 2023
-# Lantern, 2023
-# Teo Westbrook, 2024
-# Volkan Gezer <volkangezer@gmail.com>, 2024
-# Aşkın Özgür <askin@askin.ws>, 2024
-# Derek F <derek@getlantern.org>, 2024
-# e2f <projects@e2f.com>, 2024
-# efe kerem sözeri <eksozeri@hotmail.com>, 2024
-# e2f_tr c1 <tx_e2f_tr_c1@ate2f.com>, 2024
+# e2f <projects@e2f.com>, 2025
+# Aşkın Özgür <askin@askin.ws>, 2025
+# efe kerem sözeri <eksozeri@hotmail.com>, 2025
+# Volkan Gezer <volkangezer@gmail.com>, 2025
+# Teo Westbrook, 2025
+# Emre Deniz, 2025
+# e2f_tr c1 <tx_e2f_tr_c1@ate2f.com>, 2025
+# Derek F <derek@getlantern.org>, 2025
 # 
 msgid ""
 msgstr ""
-"Last-Translator: e2f_tr c1 <tx_e2f_tr_c1@ate2f.com>, 2024\n"
+"Last-Translator: Derek F <derek@getlantern.org>, 2025\n"
 "Language-Team: Turkish (https://app.transifex.com/lantern-1/teams/94371/tr/)\n"
 "Language: tr\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
@@ -26,271 +19,167 @@ msgstr ""
 msgid "app_name"
 msgstr "Lantern"
 
-msgid "introducing"
-msgstr "Sohbet ile Tanışın"
-
-msgid "introducing_des"
-msgstr ""
-"Doğrudan Lantern içerisinde oluşturulmuş yeni, engellemeye karşı dirençli ve"
-" şifrelenmiş sohbet özelliğimizi kullanarak arkadaşlarınızla güvenli bir "
-"şekilde sohbet edin!"
-
-msgid "maybe_later"
-msgstr "Belki Daha Sonra"
-
-msgid "try"
-msgstr "Bunu deneyin"
-
-msgid "sign_in"
-msgstr "Giriş"
-
-msgid "enter_email"
-msgstr "E-posta Gir"
-
-msgid "enter_password"
-msgstr "Parolayı Girin"
-
-msgid "forgot_password"
-msgstr "Parolamı Unuttum"
-
-msgid "forgot_your_password"
-msgstr "Parolanızı mı unuttunuz?"
-
-msgid "click_here"
-msgstr "Buraya tıklayın"
-
-msgid "reset_password"
-msgstr "Parolayı Sıfırla"
-
-msgid "lantern_pro_email"
-msgstr "Lantern Pro E-postası "
-
-msgid "return_to_sign_in"
-msgstr "Girişe Geri Dön"
-
-msgid "enter_confirmation_code"
-msgstr "Onay Kodunu Girin"
-
-msgid "confirmation_code_msg"
-msgstr ""
-"XX adresine onay kodu gönderildi. Hesabınızın güvenliğini sağlamak ve parola"
-" kurtarma işlevini etkinleştirmek için kodu buraya girin."
-
-msgid "resend_confirmation_code"
-msgstr "Onay E-postasını Yeniden Gönder"
-
-msgid "email_already_exists"
-msgstr "E-posta Zaten Kullanılıyor"
-
-msgid "email_already_exists_msg"
-msgstr ""
-"Bu e-posta zaten alınmış, bu e-postayla önceden hesap açmışsanız bu hesabı "
-"kurtarabilirsiniz. Bu e-postayla hesap açmadıysanız lütfen geri dönüp farklı"
-" bir e-posta adresi seçin."
-
-msgid "recover_account"
-msgstr "Hesabı Kurtar"
-
-msgid "back"
-msgstr "geri"
-
-msgid "change_email"
-msgstr "E-postayı Değiştir"
-
-msgid "new_password"
-msgstr "Yeni Parola"
-
-msgid "confirm_new_password"
-msgstr "Yeni Parolayı Onayla"
-
-msgid "already_have_an_account"
-msgstr "Zaten hesabınız var mı?"
-
-msgid "create_account"
-msgstr "Hesap Oluştur"
-
-msgid "create_password"
-msgstr "Parola Oluştur"
-
-msgid "by_creating_an_account"
-msgstr "Hesap Oluşturduğunuzda şunu kabul etmiş olursunuz:"
-
-msgid "confirm_email"
-msgstr "E-posta Adresini Doğrulayın"
-
-msgid "update_pro_account"
-msgstr "Pro Hesabını Güncelle"
-
-msgid "update_pro_account_message"
-msgstr ""
-"Lantern Pro'da değişiklikler yapıyoruz! Artık tüm cihazlardan giriş yapmak "
-"ve Hesap Yönetimine erişmek için bir e-posta ve parolaya ihtiyacınız olacak."
-" Lütfen biraz zaman ayırıp bu kimlik bilgilerini hesabınıza ekleyin. "
-
-msgid "not_now"
-msgstr "Şimdi değil"
-
-msgid "update_account"
-msgstr "Hesabı Güncelle"
-
-msgid "new"
-msgstr "Yeni"
-
-msgid "Daily Data Usage"
-msgstr "Günlük Veri Kullanımı"
-
-msgid "is"
-msgstr ":"
-
-msgid "connect"
-msgstr "Bağlan"
-
-msgid "disconnect"
-msgstr "Bağlantıyı kes"
-
-msgid "connected"
-msgstr "Bağlandı"
-
-msgid "Disconnected"
-msgstr "Bağlantıyı kes"
-
-msgid "Disconnecting"
-msgstr "Bağlantı kesiliyor..."
-
-msgid "Connecting"
-msgstr "Bağlanılıyor..."
-
-msgid "no_network_connection"
-msgstr "Ağ bağlantısı yok"
-
-msgid "connection_error"
-msgstr "Bağlantı Hatası"
-
-msgid "connection_error_des"
-msgstr ""
-"Lantern sunucularımıza bağlanmakta sorun yaşıyor. Lütfen uygulamayı yeniden "
-"başlatın. Bu sorun devam ederse lütfen destek birimiyle iletişime geçin."
-
-msgid "connection_error_button"
-msgstr "Destek birimine ulaşın"
-
-msgid "Calling"
-msgstr "Aranıyor..."
-
-msgid "Go Pro Title"
-msgstr "Pro'ya Yükseltin!"
-
-msgid "Go Pro Description"
-msgstr ""
-"Daha hızlı hızların, reklamsız deneyimin ve sınırsız verinin kilidini açın! "
-
-msgid "Server Location"
-msgstr "Sunucu Konumu"
-
-msgid "Server Location Info"
-msgstr ""
-"Lantern, sizi en iyi veri merkezlerimize otomatik olarak bağlamak için "
-"akıllı sunucu seçimini kullanır."
-
-msgid "OK"
-msgstr "TAMAM"
-
-msgid "Done"
-msgstr "Bitti"
-
-msgid "backup_recovery_key"
-msgstr "Yedek Kurtarma Anahtarı"
-
-msgid "delete_chat_data"
-msgstr "Tüm Sohbet Verilerini sil"
-
-msgid "delete_chat_data_description"
-msgstr ""
-"Bu işlem Sohbet Numaranızı, kişilerinizi ve mesajlarınızı bu cihazdan siler."
-" Yedek Kurtarma Anahtarınız olmadığında Sohbet Numaranıza erişimi "
-"kaybedersiniz."
-
-msgid "delete_chat_data_confirmation"
-msgstr "Sohbet verilerimi silmek istediğimi onaylıyorum"
-
-msgid "Pro Account Management"
-msgstr "Pro Hesap Yönetimi"
-
-msgid "link_device"
-msgstr "Cihaz Bağla"
-
-msgid "Upgrade to Lantern Pro"
-msgstr "Lantern Pro'ya Yükseltin"
-
-msgid "Invite Friends"
-msgstr "Arkadaşlarını Davet Et"
-
-msgid "share_lantern_pro"
-msgstr ""
-"Lantern Pro'yu bir arkadaşınızla paylaşın! Arkadaşınız Lantern Pro satın "
-"alırken referans kodunuzu kullanırsa ikiniz de bir ay ücretsiz Lantern Pro "
-"hizmeti kazanırsınız!"
-
-msgid "privacy_disclosure_title"
-msgstr "Lantern Gizlilik Anlaşması"
-
-msgid "privacy_disclosure_body"
-msgstr ""
-"Lantern gizliliğinizi korumayı taahhüt eder. Hangi bilgileri topladığımızı, "
-"hangilerini toplamadığımızı, bilgileri nasıl topladığımızı, kullandığımızı "
-"ve depoladığımızı anlamanızı istiyoruz. Ödeme bilgilerinizi Lantern Pro "
-"hesabınızla ilişkilendirmiyoruz. Aktivitenizin günlüklerini toplamıyoruz; "
-"örneğin tarama geçmişinizin, trafik hedefinizin, veri içeriğinizin veya DNS "
-"sorgularınızın günlüğünü tutmuyoruz. Ayrıca bağlantı günlüklerini hiçbir "
-"zaman depolamıyoruz; yani IP adresinizin, bağlantı zaman damgasıyla ilişkili"
-" giden Lantern sunucu IP adresinizin veya oturum sürenizin günlüğünü "
-"tutmuyoruz. Belirli bir Lantern Pro hesabı bakımından, Lantern'ın bir "
-"Lantern hesabını kullanıcının gerçek kimliğiyle ilişkilendirmesi teknik "
-"olarak mümkün değildir. Lantern IP adresi ve kesin zaman damgası bakımından,"
-" Lantern'ın bu IP adresini bir Lantern kullanıcısına veya Lantern kullanıcı "
-"IP adresine dayandırması teknik olarak mümkün değildir."
-
-msgid "privacy_disclosure_accept"
-msgstr "Kabul Ediyorum"
-
-msgid "desktop_version"
-msgstr "Masaüstü Versiyonu"
+msgid "upgrade_to_pro"
+msgstr "Pro'ya Yükselt"
 
 msgid "settings"
 msgstr "Ayarlar"
 
-msgid "general"
-msgstr "Genel"
+msgid "report_an_issue"
+msgstr "Sorun Bildir"
 
-msgid "about"
-msgstr "Hakkında"
+msgid "lantern_projects"
+msgstr "Lantern Projeleri:"
 
-msgid "proxy_all"
-msgstr "Her şeyi proxy'le"
+msgid "invite_friends"
+msgstr "Arkadaşlarını Davet Et"
 
-msgid "proxy_everything_is"
-msgstr "Her şeyi proxy'leme %s"
+msgid "your_referral_code"
+msgstr "Tavsiye Kodun"
 
-msgid "version_number"
-msgstr "Sürüm %s"
+msgid "invite_friends_message"
+msgstr ""
+"Referans kodunuzu bir arkadaşınızla paylaşın. Lantern Pro satın "
+"aldıklarında, ikiniz de bonus süre kazanırsınız:"
 
-msgid "build_number"
-msgstr "%s adet oluştur"
+msgid "share_referral_code"
+msgstr "Tavsiye Kodunu Paylaş"
 
-msgid "sdk_version"
-msgstr "SDK %s"
+msgid "unbounded"
+msgstr "Unbounded"
+
+msgid "help_fight_global_internet_censorship"
+msgstr "Küresel İnternet Sansürüne Karşı Mücadeleye Yardım Et"
+
+msgid "vpn_settings"
+msgstr "VPN Ayarları"
+
+msgid "split_tunneling"
+msgstr "Bölünmüş Tünelleme"
+
+msgid "server_locations"
+msgstr "Sunucu Konumları"
+
+msgid "lantern_pro_email"
+msgstr "Lantern Pro E-postası:"
+
+msgid "pro_account_expiration"
+msgstr "Pro Hesap Bitiş Tarihi"
+
+msgid "manage_subscription"
+msgstr "Aboneliği Yönet"
+
+msgid "lantern_pro_devices"
+msgstr "Lantern Pro Cihazları"
+
+msgid "remove"
+msgstr "Kaldır"
+
+msgid "add_device"
+msgstr "Cihaz Ekle"
+
+msgid "danger_zone"
+msgstr "Tehlike Bölgesi:"
+
+msgid "delete_account"
+msgstr "Hesabı Sil"
+
+msgid "delete"
+msgstr "Sil"
+
+msgid "account"
+msgstr "Hesap"
+
+msgid "delete_account_?"
+msgstr "Hesabını Sil?"
+
+msgid "delete_account_message"
+msgstr ""
+"Hesap silme işlemi kalıcıdır. Tüm cihazlarda erişiminizi kaybedeceksiniz ve "
+"kalan Pro abonelik süreniz iade yapılmadan kaybedilecektir."
+
+msgid "delete_account_message_two"
+msgstr "Silme işlemini onaylamak için lütfen aşağıya şifrenizi girin"
+
+msgid "Submit Issue Report"
+msgstr "Sorun Raporu Gönder"
+
+msgid "confirm_deletion"
+msgstr "Silmeyi Onayla"
+
+msgid "cancel"
+msgstr "İptal"
+
+msgid "daily_data_usage"
+msgstr "Günlük Veri Kullanımı"
+
+msgid "mb"
+msgstr "MB"
+
+msgid "vpn_status"
+msgstr "VPN Durumu"
+
+msgid "telegram"
+msgstr "Telegram"
+
+msgid "instagram"
+msgstr "Instagram"
+
+msgid "x"
+msgstr "X"
+
+msgid "follow_us"
+msgstr "Bizi Takip Et"
+
+msgid "server_selection"
+msgstr "Sunucu Seçimi"
+
+msgid "smart_location"
+msgstr "Akıllı Konum"
+
+msgid "automatically_chooses_fastest_location"
+msgstr "En hızlı konumu otomatik seçer"
+
+msgid "pro_locations"
+msgstr "Pro konumları:"
+
+msgid "choose_your_location_with_lantern_pro"
+msgstr "Lantern Pro ile konumunu seç:"
 
 msgid "language"
 msgstr "Dil"
 
-msgid "select_an_issue"
-msgstr "Bir hata seçiniz"
+msgid "sign_in"
+msgstr "Giriş Yap"
 
-msgid "enter_description"
-msgstr "Lütfen sorununuzu açıklayın "
+msgid "sign_out"
+msgstr "Çıkış Yap"
+
+msgid "check_for_updates"
+msgstr "Güncellemeleri Kontrol Et"
+
+msgid "support"
+msgstr "Destek"
+
+msgid "download_links"
+msgstr "İndirme Linkleri"
+
+msgid "get_30_days_of_pro_free"
+msgstr "30 gün ücretsiz Pro kazan"
+
+msgid "share_message_referral_code"
+msgstr ""
+"Bir ay ücretsiz Lantern Pro için bu tavsiye kodunu kullan: %s ; Buradan "
+"indirebilirsin: https://lantern.io/download"
+
+msgid "submit_issue_report"
+msgstr "Sorun Raporu Gönder"
+
+msgid "select_an_issue"
+msgstr "Bir Sorun Seç"
 
 msgid "cannot_access_blocked_sites"
-msgstr "Engellenen sitelere erişilemiyor"
+msgstr "Engelli sitelere erişilemiyor"
 
 msgid "cannot_complete_purchase"
 msgstr "Satın alma tamamlanamıyor"
@@ -299,1543 +188,957 @@ msgid "discover_not_working"
 msgstr "Keşfet çalışmıyor"
 
 msgid "cannot_sign_in"
-msgstr "Giriş yapılamadı"
+msgstr "Giriş yapılamıyor"
 
 msgid "spinner_loads_endlessly"
-msgstr "Yükleme ekranı sürekli dönüyor"
+msgstr "Yükleme sonsuz devam ediyor"
 
 msgid "slow"
 msgstr "Yavaş"
 
 msgid "cannot_link_devices"
-msgstr "Cihazlar ilişkilendirilemiyor"
+msgstr "Cihazlar bağlanamıyor"
 
 msgid "wrong_device_linking_code"
 msgstr "Yanlış veya geçersiz cihaz bağlama kodu"
 
 msgid "cannot_remove_device"
-msgstr "Cihaz kaldırılamıyor "
+msgstr "Cihaz kaldırılamıyor"
 
 msgid "application_crashes"
-msgstr "Uygulama çökmeleri"
+msgstr "Uygulama çöküyor"
 
 msgid "other"
 msgstr "Diğer"
 
 msgid "issue_description"
-msgstr "Sorununuzu açıklayın "
+msgstr "Sorununuzu açıklayın"
 
-msgid "check_for_updates"
-msgstr "Güncellemeleri Kontrol Et"
+msgid "enter_password_to_confirm"
+msgstr "Onaylamak için şifre girin"
 
-msgid "blocked_users"
-msgstr "Engellenmiş Kullanıcılar"
+msgid "cannot_view_logs"
+msgstr "Lantern, siz bize göndermedikçe tanı günlüklerinizi görüntüleyemez."
 
-msgid "description_proxy_all_dialog"
+msgid "split_tunneling_mode"
+msgstr "Bölünmüş Tünelleme Modu"
+
+msgid "apps_split_tunneling"
+msgstr "Uygulamalar için Bölünmüş Tünelleme"
+
+msgid "website_split_tunneling"
+msgstr "Web Siteleri için Bölünmüş Tünelleme"
+
+msgid "iran_optimized"
+msgstr "İran için optimize edilmiş bölünmüş tünelleme"
+
+msgid "china_optimized"
+msgstr "Çin için optimize edilmiş bölünmüş tünelleme"
+
+msgid "russia_optimized"
+msgstr "Rusya için optimize edilmiş bölünmüş tünelleme"
+
+msgid "global_optimized"
+msgstr "Global optimize edilmiş bölünmüş tünelleme"
+
+msgid "enter_url"
+msgstr "URL Girin"
+
+msgid "add"
+msgstr "Ekle"
+
+msgid "enabled"
+msgstr "Etkin"
+
+msgid "disabled"
+msgstr "Devre Dışı"
+
+msgid "automatic"
+msgstr "Otomatik"
+
+msgid "automatic_mode"
+msgstr "Otomatik Mod"
+
+msgid "manual"
+msgstr "Manuel"
+
+msgid "enter_url_or_ip"
+msgstr "URL veya IP Adresi Girin"
+
+msgid "installed_apps"
+msgstr "Yüklü Uygulamalar"
+
+msgid "search_apps"
+msgstr "Uygulamalarda Ara"
+
+msgid "search_websites"
+msgstr "Web Sitelerinde Ara"
+
+msgid "mode"
+msgstr "Mod"
+
+msgid "use_commas"
+msgstr "Birden fazla URL'yi ayırmak için virgül kullanın"
+
+msgid "default_bypass"
+msgstr "Varsayılan Atlama Listeleri"
+
+msgid "global_bypass_list"
+msgstr "Global Atlama Listesi"
+
+msgid "global_bypass_desc"
+msgstr "Hassas olmayan içeriğe sahip güvenilir siteler (HTTPS)."
+
+msgid "china_bypass_list"
+msgstr "Çin Atlama Listesi"
+
+msgid "china_bypass_desc"
+msgstr "Çin'de serbestçe erişilebilen siteler. Düzenli güncellenir."
+
+msgid "iran_bypass_list"
+msgstr "İran Atlama Listesi"
+
+msgid "iran_bypass_desc"
+msgstr "İran'da serbestçe erişilebilen siteler. Düzenli güncellenir."
+
+msgid "russia_bypass_list"
+msgstr "Rusya Atlama Listesi"
+
+msgid "russia_bypass_desc"
+msgstr "Rusya'da serbestçe erişilebilen siteler. Düzenli güncellenir."
+
+msgid "see_sites_included"
+msgstr "Dahil edilen siteleri görün "
+
+msgid "default_lists_here"
+msgstr "varsayılan listeler burada"
+
+msgid "when_connected"
+msgstr "Bağlandığında, seçtiğiniz web siteleri VPN'i atlayacaktır."
+
+msgid "lantern_automatic"
 msgstr ""
-"Etkinleştirilirse, bütün trafik Lantern üzerinden gönderilecektir (daha "
-"güvenli). Devre dışı bırakılırsa, yalnızca engellenen trafik Lantern "
-"üzerinden gönderilecektir (daha hızlı)."
+"Lantern, konumunuza göre en iyi performans için hangi uygulama ve web "
+"sitelerinin VPN'i atlayacağını otomatik olarak seçer. "
 
-msgid "Account"
-msgstr "Hesap"
+msgid "apps_bypassing_vpn"
+msgstr "VPN'i atlayan uygulamalar (%d)"
 
-msgid "VPN Status"
-msgstr "VPN Durumu"
+msgid "websites_bypassing_vpn"
+msgstr "VPN'i atlayan web siteleri (%d)"
 
-msgid "VPN"
-msgstr "VPN"
+msgid "logs_share_message"
+msgstr "İşte Lantern'den tanı günlüklerim."
 
-msgid "Authorize Device for Pro"
-msgstr "Cihazı Pro Hesabına Dahil Et"
+msgid "payment_options"
+msgstr "Ödeme Seçenekleri"
 
-msgid "Authorize with Device Linking Pin"
-msgstr "Cihaz Bağlama Pini İle Yetkilendir"
+msgid "add_your_email"
+msgstr "E-postanı Ekle"
 
-msgid "Requires physical access to a Lantern Pro Device"
-msgstr "Lantern Pro Cihazına fiziksel erişim gereklidir"
+msgid "continue"
+msgstr "Devam Et"
 
-msgid "Link with PIN"
-msgstr "PIN ile Bağla"
+msgid "continue_with_google"
+msgstr "Google ile Devam Et"
 
-msgid "OR"
-msgstr "VEYA"
+msgid "continue_with_apple"
+msgstr "Apple ile Devam Et"
 
-msgid "device_linking_pin"
-msgstr "Cihaz bağlama pini"
+msgid "continue_without_email"
+msgstr "E-posta Olmadan Devam Et"
 
-msgid "link_device_step_one"
-msgstr "Pro cihazınızda 'Cihaz Ekle' menü öğesini açın. "
+msgid "confirm_email"
+msgstr "E-postayı Onayla"
 
-msgid "link_device_step_two"
-msgstr "Cihaz bağlantı PIN kodunu girin ve gönder'e tıklayın "
+msgid "add_your_email_message"
+msgstr "Aboneliğinize herhangi bir cihazdan erişmek için e-postanızı ekleyin."
 
-msgid "ensure_most_recent_version_lantern"
+msgid "confirm_email_code"
+msgstr "Onay Kodu"
+
+msgid "confirm_email_code_message"
 msgstr ""
-"* Her iki cihazın da Lantern'ın en son sürümünü çalıştırdığından emin olun"
+"Bu e-posta adresinin size ait olduğunu onaylayın, şu adrese gönderilen kodu "
+"girin: "
 
-msgid "Authorize Device via Email"
-msgstr "Cihazı E-Posta Üzerinden Yetkilendir"
+msgid "resend_email"
+msgstr "E-postayı Yeniden Gönder"
 
-msgid "auth_email_helper_text"
-msgstr "Pro hesabınızla ilişkili e-posta adresini girin"
+msgid "create_password"
+msgstr "Şifre Oluştur"
 
-msgid "Requires access to the email you used to buy Lantern Pro"
-msgstr ""
-"Lantern Pro satın almak için kullandığınız e-postaya erişim gereklidir"
+msgid "sign_in_to_lantern_pro"
+msgstr "Lantern Pro'ya Giriş Yap"
 
-msgid "Link via Email"
-msgstr "E-Posta Aracılığıyla Bağla"
+msgid "sign_in_with_email"
+msgstr "E-posta ile Giriş Yap"
 
-msgid "lantern_desktop"
-msgstr "Lantern Masaüstü"
-
-msgid "report_description"
-msgstr "Sorun Açıklaması"
-
-msgid "report_issue"
-msgstr "Sorunu Bildir "
-
-msgid "report_an_issue"
-msgstr "Hata Bildir"
-
-msgid "report_sent"
-msgstr "Rapor Gönderildi"
-
-msgid "thank_you_for_reporting_your_issue"
-msgstr ""
-"Sorununuzu bildirdiğiniz için teşekkür ederiz, mümkün olan en kısa sürede "
-"e-posta yoluyla size geri dönüş yapacağız"
-
-msgid "send_report"
-msgstr "Rapor Gönder"
-
-msgid "most_recent_lantern_apps"
-msgstr ""
-"Masaüstü ve diğer tüm platformlar için en son Lantern uygulamaları "
-"yukarıdaki bağlantıda bulunabilir."
-
-msgid "share_link"
-msgstr "Bağlantıyı Paylaş "
-
-msgid "share_title"
-msgstr "Lantern indirme bağlantısı paylaş"
+msgid "enter_your_lantern_pro_account_details"
+msgstr "Lantern Pro Hesap bilgilerinizi girin."
 
 msgid "email"
 msgstr "E-posta"
 
-msgid "Submit"
-msgstr "Gönder"
+msgid "enter_password"
+msgstr "Şifre Girin"
 
-msgid "save"
-msgstr "Kaydet"
+msgid "forgot_password"
+msgstr "Şifrenizi mi unuttunuz?"
 
-msgid "please_enter_a_valid_email_address"
-msgstr "Lütfen geçerli bir e-posta adresi girin"
+msgid "reset_your_password"
+msgstr "Şifrenizi Sıfırlayın"
 
-msgid "bonus"
-msgstr "Bonus"
+msgid "enter_your_lantern_pro_account_email"
+msgstr "Lantern Pro Hesap E-postanızı girin."
 
-msgid "referral_bonus"
-msgstr "referans bonusu"
+msgid "reset_password"
+msgstr "Şifreyi Sıfırla"
 
-msgid "total"
-msgstr "Toplam"
+msgid "confirm_new_password"
+msgstr "Yeni Şifreyi Onayla"
 
-msgid "month"
-msgstr "ay"
+msgid "create_new_password"
+msgstr "Yeni Şifre Oluştur"
 
-msgid "months"
-msgstr "ay"
+msgid "confirm_password"
+msgstr "Şifreyi Onayla"
 
-msgid "enter_email_to_complete_purchase"
-msgstr "Satın almayı tamamlamak için e-posta girin "
+msgid "confirm_password_required"
+msgstr "Şifre onayı gerekli"
 
-msgid "error_fetching_plans"
-msgstr ""
-"Planlar alınırken hata oluştu, lütfen Lantern'ı yeniden başlatın ve tekrar "
-"deneyin."
+msgid "passwords_do_not_match"
+msgstr "Şifreler eşleşmiyor"
 
-msgid "apply"
-msgstr "Uygula"
-
-msgid "choose_payment_method"
-msgstr "Ödeme Yöntemi Seç"
-
-msgid "pro_plan"
-msgstr "Pro Plan"
-
-msgid "one_month_plan"
-msgstr ""
-
-msgid "one_year_plan"
-msgstr "1 Yıllık Plan"
-
-msgid "two_year_plan"
-msgstr "2 Yıllık Plan"
-
-msgid "plan_discount"
-msgstr "%%d% tasarruf edin"
-
-msgid "enter_email_and_activation_code"
-msgstr "E-posta ve Aktivasyon kodu girin"
-
-msgid "referral_code"
-msgstr "Referans kodu"
-
-msgid "share_referral_code"
-msgstr "Referans Kodunu Paylaş "
-
-msgid "share_message_referral_code"
-msgstr ""
-"Bir ay ücretsiz Lantern Pro için, bu referans kodunu kullanın: %s ; Buradan "
-"indirebilirsiniz: https://lantern.io/download "
-
-msgid "add_referral_code"
-msgstr "Referans kodu ekleyin"
-
-msgid "Activation Code"
+msgid "activation_code"
 msgstr "Aktivasyon Kodu"
 
-msgid "invalid_or_incomplete_referral_code"
-msgstr "Geçersiz veya eksik referans kodu"
-
-msgid "register_for_pro"
-msgstr "Pro için kaydolun"
-
-msgid "Something went wrong while applying your referral code."
-msgstr "Referans kodu uygulanırken bir sorun oluştu."
-
-msgid "your_activation_code_is_invalid"
-msgstr "Aktivasyon kodunuz geçersiz"
-
-msgid "update_cache_plans_timeout"
-msgstr "Mevcut planlar alınırken bir sorun oluştu."
-
-msgid "bitcoin_timeout"
-msgstr "BTCPay isteğinin süresi doldu."
-
-msgid "BTCPay is unavailable"
-msgstr "BTCPay kullanılamıyor"
-
-msgid "update_cache_user_timeout"
-msgstr "Hesap verileriniz alınırken bir sorun oluştu."
-
-msgid "reseller_timeout"
-msgstr "Aktivasyon kodunuz doğrulanırken bir sorun oluştu."
-
-msgid "wrong_reseller_code"
-msgstr "Geçersiz aktivasyon kodu"
-
-msgid "reseller_success"
-msgstr "Aktivasyon kodu başarıyla kullanıldı."
-
-msgid "stripe_timeout"
-msgstr ""
-"Stripe ödemeniz zaman aşımına uğradı. Lütfen Lantern'ı yeniden başlatın ve "
-"tekrar deneyin."
-
-msgid "stripe_success"
-msgstr "Başarılı Stripe satın alımı."
-
-msgid "renewal_success"
-msgstr "Yenileme Başarılı"
-
-msgid "pro_renewal_success_description"
-msgstr ""
-"Lantern Pro hesabınızı yenilediğiniz için teşekkürler. Artık en hızlı veri "
-"merkezlerimizi kullanmak için sınırsız erişime sahipsiniz. Hesabınıza en "
-"fazla üç cihaz bağlanabilir."
-
-msgid "pro_purchase_success"
-msgstr "Lantern Pro'ya hoş geldiniz"
-
-msgid "platinum_purchase_success_descripion"
-msgstr ""
-"Artık en hızlı veri merkezlerimizi ve özel hattımızı kullanmak için sınırsız"
-" erişime sahipsiniz. Hesabınıza en fazla üç cihaz bağlanabilir."
-
-msgid "pro_purchase_success_descripion"
-msgstr ""
-"Artık en hızlı veri merkezlerimizi kullanmak için sınırsız erişime "
-"sahipsiniz. Hesabınıza en fazla üç cihaz bağlanabilir."
-
-msgid "by_clicking_tos"
-msgstr "%s ögesine tıklayarak şunu kabul etmiş olursunuz: "
-
-msgid "tos"
-msgstr "Hizmet Şartları"
-
-msgid "step_1"
-msgstr "Adım 1"
-
-msgid "step_2"
-msgstr "Adım 2"
-
-msgid "step_3"
-msgstr "Adım 3"
+msgid "activate_lantern_pro"
+msgstr "Lantern Pro'yu Etkinleştir"
 
 msgid "invalid_email"
 msgstr "Geçersiz e-posta adresi"
 
-msgid "invalid_card"
-msgstr "Geçersiz kredi kartı numarası"
+msgid "purchase_already_owned"
+msgstr "Bu satın almaya zaten sahipsiniz, Satın almayı geri yüklemeyi deneyin"
 
-msgid "invalid_expiration"
-msgstr "Geçersiz son kullanma tarihi"
+msgid "stripe_payment"
+msgstr "Stripe Ödeme"
 
-msgid "cc_number"
-msgstr "Kredi Kartı"
-
-msgid "card_number"
-msgstr "Kart Numarası"
-
-msgid "card_expiration"
-msgstr "AA/YY"
-
-msgid "invalid_cvc"
-msgstr "Geçersiz CVC"
-
-msgid "complete_purchase"
-msgstr "Satın Almayı Tamamla"
-
-msgid "Re-send Email"
-msgstr "E-postayı Tekrar Gönder"
-
-msgid "Paste from clipboard?"
-msgstr "Panodan yapıştırılsın mı?"
-
-msgid "Yes"
-msgstr "Evet"
-
-msgid "No"
-msgstr "Hayır"
-
-msgid "exit"
-msgstr "Çıkış "
-
-msgid "show"
-msgstr "Göster "
-
-msgid "status_on"
-msgstr "Durum: Açık "
-
-msgid "status_off"
-msgstr "Durum: Kapalı "
-
-msgid "Enter or paste linking code"
-msgstr "Bağlama kodunu girin veya yapıştırın"
-
-msgid "recovery_email_sent"
+msgid "split_tunneling_description"
 msgstr ""
-"Bu hesap mevcutsa %s adresine bir Bağlama PIN'i gönderildi. Yukarıdaki alana"
-" e-postadaki PIN'i girin. Bu e-postanın ulaşması birkaç saat alabilir."
+"Lantern, konumunuza göre internet trafiğini akıllıca yönlendirir, yalnızca "
+"gerektiğinde VPN kullanarak güvenli erişimi sağlarken bağlantınızı hızlı "
+"tutar."
 
-msgid "Add Device"
-msgstr "Hesap Ekle"
+msgid "region_specific_rules"
+msgstr "Bölgeye Özel Kurallar"
 
-msgid "approve_device_step_1"
+msgid "location_based_rules"
 msgstr ""
-"Bağlamak istediğiniz cihazda hesap menüsünden \"Cihazı Pro İçin "
-"Yetkilendir\"i açın ve ardından \"PIN ile Bağla\" seçeneğini belirleyin."
+"Lantern, konumunuza bağlı olarak farklı yönlendirme kuralları kullanır:"
 
-msgid "approve_device_step_2"
-msgstr "1. adımdan elde edilen bağlama kodunu girin"
+msgid "censored_regions"
+msgstr "Sansürlü bölgelerde:"
 
-msgid "Pro Account Expiration"
-msgstr "Pro Hesap Süre Dolumu"
+msgid "blocked_sites_proxied"
+msgstr ""
+"Engellenmiş web siteleri ve uygulamalar (haber, mesajlaşma, kısıtlı "
+"hizmetler) proxy üzerinden bağlanır."
 
-msgid "Renew"
-msgstr "Yenile"
+msgid "unblocked_sites_bypass"
+msgstr "Çoğu engellenmemiş web sitesi daha hızlı tarama için VPN'i atlar."
 
-msgid "pro_devices_header"
-msgstr "Lantern Pro Cihazları (En fazla 3)"
+msgid "uncensored_regions"
+msgstr "Sansürsüz bölgelerde:"
 
-msgid "Remove"
-msgstr "Kaldır"
+msgid "trusted_sites_bypass"
+msgstr ""
+"Yalnızca güvenilir web siteleri ve hizmetler varsayılan olarak VPN'i atlar."
 
-msgid "Log Out"
-msgstr "Oturumu Kapat"
+msgid "examples_of_bypassed_sites"
+msgstr ""
+"Bunlar, alışveriş, hava durumu ve yazılım güncellemeleri gibi kamuya açık "
+"veya hassas olmayan içeriğe sahip HTTPS şifreli siteleri içerir."
 
-msgid "confirm_remove_device"
-msgstr "Bu cihazı Pro hesabınızdan çıkartmak istediğinize emin misiniz?"
+msgid "routing_rules_vary"
+msgstr "Bu kurallar ülkeye göre değişir ve düzenli olarak güncellenir."
 
-msgid "confirm_close_window"
-msgstr "Lantern'ı kapatmak istediğinizden emin misiniz? "
+msgid "view_the_full_list"
+msgstr "Yönlendirme kurallarının tam listesini görüntüleyin."
 
-msgid "unlimited_data"
-msgstr "Sınırsız Veri"
+msgid "turn_on_split_tunneling"
+msgstr ""
+"Hangi web sitelerinin VPN kullanacağını özelleştirmek için bölünmüş "
+"tünellemeyi açın."
 
-msgid "no_logs"
-msgstr "Günlük yok"
+msgid "welcome_to_lantern_pro"
+msgstr "Lantern Pro'ya Hoş Geldin!"
 
-msgid "no_ads"
-msgstr "Reklamsız"
+msgid "lantern_pro_description"
+msgstr ""
+"Pro özellikleriniz açıldı—sınırsız veri, daha hızlı hız ve premium "
+"sunucuların keyfini çıkarın."
 
-msgid "choose_plan"
-msgstr "Plan Seç"
+msgid "plans_fetch_error"
+msgstr "Planlar alınırken hata oluştu. Lütfen daha sonra tekrar deneyin."
 
-msgid "billed_one_time"
-msgstr "bir kerelik faturalandırma "
+msgid "best_value"
+msgstr "En İyi Değer!"
 
-msgid "connect_up_to_3_devices"
-msgstr "3 cihaza kadar bağlayın"
+msgid "choose_payment_method"
+msgstr "Ödeme Yöntemi Seç"
 
-msgid "faster_data_centers"
-msgstr "Daha Hızlı Veri Merkezleri"
+msgid "payment_information_encrypted"
+msgstr "Ödeme bilgileriniz tamamen şifrelenmiştir."
 
-msgid "dedicated_line"
-msgstr "Özel Hat"
+msgid "purchase_not_completed"
+msgstr ""
+"Satın alma tamamlanmadı. İstediğiniz zaman tekrar deneyebilir veya yardıma "
+"ihtiyacınız varsa desteğe başvurabilirsiniz"
 
-msgid "increased_reliability"
-msgstr "Artmış Güvenilirlik"
+msgid "are_you_sure"
+msgstr "Emin misiniz?"
+
+msgid "continue_without_email_message"
+msgstr ""
+"Aboneliğinizi diğer cihazlarda kullanmak için geçerli bir e-posta adresi "
+"gereklidir."
+
+msgid "add_email"
+msgstr "E-posta Ekle"
+
+msgid "block_ads"
+msgstr "Reklamları Engelle"
+
+msgid "only_active"
+msgstr "Yalnızca VPN bağlıyken aktif"
+
+msgid "vpn_connected"
+msgstr "Lantern şimdi bağlı."
+
+msgid "vpn_disconnected"
+msgstr "Lantern şimdi bağlantısı kesildi."
+
+msgid "open_notification"
+msgstr "Bildirimi Aç"
+
+msgid "logout"
+msgstr "Çıkış"
+
+msgid "logout_message"
+msgstr ""
+"Çıkış yapmak Lantern'i ücretsiz sürüme geçirecektir. Hesabınıza tekrar "
+"erişmek için yeniden giriş yapmanız gerekecektir."
+
+msgid "not_now"
+msgstr "Şimdi Değil"
+
+msgid "billed_once"
+msgstr "Bir Kez Faturalandırılır"
+
+msgid "subscription"
+msgstr "Abonelik"
+
+msgid "subscribe"
+msgstr "Abone Ol"
 
 msgid "checkout"
 msgstr "Ödeme"
 
-msgid "credit_card"
-msgstr "Kredi Kartı"
+msgid "next_billing_date"
+msgstr "Sonraki Fatura Tarihi"
 
-msgid "lantern_pro_checkout"
-msgstr "Lantern Pro Ödeme"
+msgid "vpn_may_be_needed"
+msgstr "VPN gerekli olabilir"
 
-msgid "1y_pricing"
-msgstr "1 yıllık fiyatlandırma"
-
-msgid "2y_pricing"
-msgstr "2 yıllık fiyatlandırma"
-
-msgid "plan_type"
-msgstr "Plan türü"
-
-msgid "most_popular"
-msgstr "En Popüler"
-
-msgid "free"
-msgstr "Ücretsiz"
-
-msgid "n/a"
-msgstr "uygulanamaz"
-
-msgid "Developer Settings"
-msgstr "Geliştirici Ayarları"
-
-msgid "Developer"
-msgstr "Geliştirici"
-
-msgid "dev_settings"
+msgid "google_and_apple_sign_in_blocked"
 msgstr ""
-"Bu testler yalnızca geliştirme kullanımı içindir. Herhangi bir ayarı "
-"değiştirmek uygulamayı otomatik olarak durdurur ve yeniden başlatır."
+"Google ve Apple ile giriş bu bölgede engellenmiş olabilir. Hesap kurulumunu "
+"tamamlamak için lütfen önce VPN'i açın."
 
-msgid "dev_payment_mode"
+msgid "continue_without_vpn"
+msgstr "VPN Olmadan Devam Et"
+
+msgid "turn_on_vpn"
+msgstr "VPN'i Aç"
+
+msgid "server_setup_do"
+msgstr "DigitalOcean kullanarak kur"
+
+msgid "server_setup_do_price"
+msgstr "Digital Ocean üzerinden ayda sadece %s"
+
+msgid "server_setup_gcp"
+msgstr "Google Cloud Platform kullanarak kur"
+
+msgid "continue_with_do"
+msgstr "Digital Ocean ile Devam Et"
+
+msgid "do_allows"
 msgstr ""
-"Ödeme Test Modu etkinleştirildiğinde uygulama tek bir sabit kodlanmış "
-"kullanıcıdan yararlanır. 4242 4242 4242 4242 numarasını, gelecekteki bir son"
-" kullanma tarihini ve herhangi bir CVV'yi kullanarak Stripe satın alma "
-"işlemleri gerçekleştirebilirsiniz."
+"Digital Ocean, aşağıdaki %d seçenekten bir sunucu konumu seçmenize olanak "
+"tanır"
 
-msgid "Payment Test Mode"
-msgstr "Ödeme Test Modu"
+msgid "server_setup_gcp_price"
+msgstr "GCP üzerinden ayda sadece %s"
 
-msgid "Play Version"
-msgstr "Play Sürümü"
+msgid "continue_with_gcp"
+msgstr "Google ile Devam Et"
 
-msgid "Force Country"
-msgstr "Ülkeyi Zorunlu Tut"
-
-msgid "Error"
-msgstr "Hata"
-
-msgid "accept"
-msgstr "Kabul Et"
-
-msgid "cancel"
-msgstr "İptal"
-
-msgid "reject"
-msgstr "Reddet"
-
-msgid "copied"
-msgstr "Kopyalandı!"
-
-msgid "saved"
-msgstr "Kaydedildi!"
-
-msgid "new_chat"
-msgstr "Yeni Sohbet"
-
-msgid "your_contact_info"
-msgstr "İletişim Bilgileriniz"
-
-msgid "display_name"
-msgstr "Görünen Ad"
-
-msgid "edit"
-msgstr "Düzenle"
-
-msgid "save_error"
-msgstr "Kaydetme esnasında bir sorun oluştu."
-
-msgid "fewer_options"
-msgstr "Daha Az Seçenek"
-
-msgid "more_options"
-msgstr "Daha Fazla Seçenek"
-
-msgid "block_user"
-msgstr "Kullanıcı engelle"
-
-msgid "unblock_user"
-msgstr "Kullanıcının engelini kaldır"
-
-msgid "block"
-msgstr "Engelle"
-
-msgid "unblock"
-msgstr "Engeli kaldır"
-
-msgid "block_info_title"
-msgstr "%s engellensin mi?"
-
-msgid "no_blocked_users"
-msgstr "Engellenmiş kullanıcı yok."
-
-msgid "unblock_info_title"
-msgstr "%s kişisinin engeli kaldırılsın mı?"
-
-msgid "block_info_description"
+msgid "gcp_allows"
 msgstr ""
-"Bu kullanıcıyı engellemek sohbet geçmişini siler ve kullanıcının gelecekte "
-"sizinle iletişime geçmesini önler. Kullanıcıların engelini ayarlar "
-"menüsünden kaldırabilirsiniz."
+"Google Cloud Platform, aşağıdaki %d seçenekten bir sunucu konumu seçmenize "
+"olanak tanır:"
 
-msgid "unblock_info_description"
-msgstr ""
-"%s artık size mesaj gönderebilecektir. Bu kişiye engelini kaldırdığınıza "
-"dair bir bildirim gönderilmeyecektir."
+msgid "server_setup_aws"
+msgstr "AWS'de özel sunucu kur"
 
-msgid "block_info_checkbox"
-msgstr "Bunun tüm sohbet geçmişini sileceğini anlıyorum."
+msgid "server_setup_aws_price"
+msgstr "AWS üzerinden ayda sadece %s"
 
-msgid "unblock_info_checkbox"
-msgstr "Bu kişinin engelini kaldırmak istediğimi onaylıyorum."
+msgid "server_setup_manual"
+msgstr "Manuel Olarak Kur"
 
-msgid "delete_permanently"
-msgstr "Kullanıcıyı kalıcı olarak sil"
+msgid "seamless_integration"
+msgstr "Lantern ile sorunsuz entegrasyon"
 
-msgid "delete_info_description"
-msgstr ""
-"Bir kez silindikten sonra bu kişiyle tekrar sohbet etmek istemeniz durumunda"
-" kendisinin iletişim bilgilerini eklemeniz gerekecektir."
+msgid "easiest_setup"
+msgstr "En kolay kurulum süreci"
 
-msgid "add_new_contact"
-msgstr "Yeni kişi ekle"
+msgid "multiple_location_options"
+msgstr "Birden fazla sunucu konumu seçeneği"
 
-msgid "add_contact"
-msgstr "Kişi Ekle"
+msgid "one_month_included"
+msgstr "Ayda %d TB veri dahil"
 
-msgid "share_your_chat_number"
-msgstr "Sohbet Numaranızı paylaşı"
+msgid "easiest_setup_process"
+msgstr "En kolay kurulum süreci"
 
-msgid "scan_qr_code"
-msgstr "QR Kodunu Tara"
+msgid "setup_a_private_server"
+msgstr "Özel Sunucu Kur"
 
-msgid "add_contact_in_person"
-msgstr "Şahsen kişi ekle"
+msgid "setup_private_server"
+msgstr "Özel Sunucu Kur"
 
-msgid "start_chat"
-msgstr "Sohbet başlat"
+msgid "previous"
+msgstr "Önceki"
 
-msgid "your_installed_apps"
-msgstr "Yüklü Uygulamalarınız"
-
-msgid "apps_routed_through_lantern"
-msgstr "Lantern Aracılığıyla Yönlendirilen Uygulamalar"
-
-msgid "apps_to_unblock"
-msgstr ""
-"Engelini kaldırmak istediğiniz uygulamaları seçin. Bağlanıldığında yalnızca "
-"aşağıda seçili uygulamalar Lantern aracılığıyla yönlendirilecek."
-
-msgid "split_tunneling"
-msgstr "Bölünmüş Tünelleme"
-
-msgid "split_tunneling_info"
-msgstr ""
-"Bölünmüş Tünelleme etkinleştirildiğinde seçili uygulamalar Lantern "
-"aracılığıyla yönlendirilecek. Bu, yalnızca belirli uygulamaların engelini "
-"kaldırarak performansı artırabilir ve bant genişliğinden tasarruf etmenizi "
-"sağlayabilir. "
-
-msgid "applied_next_time"
-msgstr "Tekrar bağlandığınızda yeni bölünmüş tünelleme ayarları uygulanacak."
-
-msgid "message_disappearing"
-msgstr "Siz ve %s için tüm mesajlar kaybolmayacaktır."
-
-msgid "message_disappearing_description"
-msgstr "%s sonrasında siz ve %s için tüm mesajlar kaybolacaktır."
-
-msgid "view_contact_info"
-msgstr "İletişim Bilgilerini Görüntüle"
-
-msgid "off"
-msgstr "Kapalı"
-
-msgid "on"
-msgstr "Açık"
-
-msgid "continue"
-msgstr "Devam et"
-
-msgid "continue_to_pro"
-msgstr "Pro'ya Devam Et"
-
-msgid "are_you_sure_you_want_to_open"
-msgstr "%s öğesini açmak istediğinizden emin misiniz?"
-
-msgid "set"
-msgstr "Ayarla"
-
-msgid "menu"
-msgstr "Menü"
-
-msgid "send_error"
-msgstr "Mesajınız gönderilirken bir sorun oluştu"
-
-msgid "share_media_error"
-msgstr "Bir medya dosyası paylaşılırken bir sorun oluştu"
-
-msgid "no_recents"
-msgstr "Yakın Dönemde Yok"
-
-msgid "set_display_name"
-msgstr "Görünen Adı Ayarla"
-
-msgid "introduce_contact"
-msgstr "Kişiyi Tanıt"
-
-msgid "introduce_contacts"
-msgstr "Kişileri Tanıt"
-
-msgid "introduce_contacts_with_count"
-msgstr "Kişileri Tanıt (%s)"
-
-msgid "need_two_contacts_to_introduce"
-msgstr ""
-"İki veya daha fazla kişiniz olduğunda tanıtımlar oluşturabileceksiniz."
-
-msgid "introduce_contacts_select"
-msgstr ""
-"Tanıtmak için iki veya daha fazla kişi seçin. Bu kişilere birbirleriyle "
-"mesajlaşmaya başlamaları için tanıtımlar gönderilecektir."
-
-msgid "introduce_single_contact"
-msgstr ""
-"%s kişisine tanıtılacak bir kişi seçin. Bu kişiler tanıtımı onayladıktan "
-"sonra birbirleriyle mesajlaşabilecektir."
-
-msgid "send_introductions"
-msgstr "Tanıtımlar Gönder"
-
-msgid "introductions_sent"
-msgstr "Tanıtımlar Gönderildi!"
-
-msgid "no_contacts_yet"
-msgstr "Henüz kişi yok"
-
-msgid "contact_verification"
-msgstr "Kişi Doğrulaması"
-
-msgid "verification"
-msgstr "Doğrulama"
-
-msgid "contact_verification_description"
-msgstr "Kişi doğrulaması daima üst sağ kısımdaki mesaj menüsünde mevcut olur."
-
-msgid "qr_error_description"
-msgstr "Bu QR kodu taranırken bir sorun oluştu."
-
-msgid "qr_info_verification_title"
-msgstr "Şahsen Kişi Doğrulaması"
-
-msgid "qr_info_f2f_title"
-msgstr "QR Kod Taraması"
-
-msgid "qr_info_verification_des"
-msgstr ""
-"Kişinizi doğrulamak için birbirinizin QR kodlarını tarayın.\n"
-"\n"
-"Bu işlem görüşmelerinizin gizliliğini ve uçtan uca şifrelenmesini sağlar."
-
-msgid "qr_info_f2f_des"
-msgstr ""
-"Arkadaşınızı bir kişi olarak eklemek için birbirinizin QR kodlarını tarayın.\n"
-"\n"
-"Bu işlem görüşmelerinizin gizliliğini ve uçtan uca şifrelenmesini sağlar."
-
-msgid "qr_info_verification_scan"
-msgstr "Doğrulamak için birbirinizin QR kodlarını tarayın."
-
-msgid "qr_info_f2f_scan"
-msgstr "Bir kişi eklemek için birbirinizin QR kodlarını tarayın."
-
-msgid "qr_success_snackbar"
-msgstr "%s bir Kişi"
-
-msgid "qr_info_waiting_qr"
-msgstr "Arkadaşınızın QR kodunuzu taraması bekleniyor..."
-
-msgid "scan_complete"
-msgstr "Tarama tamamlandı"
-
-msgid "qr_for_your_contact"
-msgstr "QR Kodunuz"
-
-msgid "add_via_chat_number"
-msgstr "Sohbet Numarası Aracılığıyla Ekle"
-
-msgid "qr_info_waiting_id"
-msgstr ""
-"Arkadaşınızın messenger kimliğinizi girmesi veya QR kodunuzu taraması "
-"bekleniyor..."
-
-msgid "chat_number_not_found"
-msgstr ""
-"Sohbet numarası bulunamadı.\n"
-"Lütfen girdiğiniz numarayı kontrol edin ve tekrar deneyin."
-
-msgid "unable_to_add_contact"
-msgstr ""
-"Kişi bulunamadı.\n"
-"Girdiğiniz numarayı kontrol edin ve tekrar deneyin."
-
-msgid "self_adding"
-msgstr "Girdiğiniz Sohbet Numarası size ait"
-
-msgid "chat_number_type"
-msgstr "Bir Sohbet Numarası yazın"
-
-msgid "letter_and_numbers_only"
-msgstr "Yalnızca harf ve rakam"
-
-msgid "name_your_contact"
-msgstr "Kişinizi adlandırın"
-
-msgid "messenger_id_invalid"
-msgstr "Geçersiz Messenger Kimliği"
-
-msgid "username_not_found"
-msgstr "Kullanıcı adı bulunamadı"
-
-msgid "contact_id_your_id"
-msgstr "Messenger Kimliğiniz"
-
-msgid "introductions"
-msgstr "Tanıtımlar"
-
-msgid "introduced"
-msgstr "%s tarafından tanıtıldı"
-
-msgid "introductions_title"
-msgstr "%s Kişisine Tanıtımı Kabul Et"
-
-msgid "introductions_info"
-msgstr ""
-"Birbirleriyle sohbet edebilmeleri için her iki tarafın da tanıtımı kabul "
-"etmesi gerekir. Hiçbir eylemde bulunulmaması durumunda tanıtımlar 7 gün "
-"sonra kaybolur."
-
-msgid "introduction_reject_title"
-msgstr "Tanıtımı Reddet"
-
-msgid "introduction_reject_content"
-msgstr "Tanıtımı reddederseniz bu kişiye mesaj gönderemeyeceksiniz."
-
-msgid "introductions_error_description_rejecting"
-msgstr "Bu bağlantı isteği reddedilirken bir sorun oluştu."
-
-msgid "introductions_error_description_accepting"
-msgstr "Bu bağlantı isteği kabul edilirken bir sorun oluştu."
-
-msgid "no_introductions"
-msgstr "Bekleyen tanıtım yok."
-
-msgid "introduction_approved"
-msgstr "%s kişisine tanıtım onaylandı!"
-
-msgid "delete_contact_name"
-msgstr "%s Kişisini Sil"
-
-msgid "delete_contact"
-msgstr "Kişiyi Sil"
+msgid "next"
+msgstr "Sonraki"
 
 msgid "error"
 msgstr "Hata"
 
-msgid "error_delete_contact"
-msgstr "Bu kişi silinirken bir sorun oluştu."
-
-msgid "unnamed_contact"
-msgstr "Adsız Kişi"
-
-msgid "me"
-msgstr "Ben"
-
-msgid "disappearing_messages"
-msgstr "Kaybolan Mesajlar"
-
-msgid "start_of_your_history"
-msgstr "%s ile sohbetleriniz ve sesli aramalarınız uçtan uca şifrelidir"
-
-msgid "banner_unaccepted"
+msgid "signup_error_user_exists"
 msgstr ""
-"%s kişiler listenizde bulunmuyor. Sohbet isteğini kabul etmek ister misiniz?"
-
-msgid "banner_messages_persist"
-msgstr "Yeni mesajlar kaybolmaz."
-
-msgid "banner_message_retention"
-msgstr "Mesaj saklama %s olarak ayarlandı"
-
-msgid "longform_seconds"
-msgstr "%s saniye"
-
-msgid "shortform_seconds"
-msgstr "%s sn"
-
-msgid "longform_minute"
-msgstr "%s dakika"
-
-msgid "shortform_minutes"
-msgstr "%s dk"
-
-msgid "longform_minutes"
-msgstr "%s dakika"
-
-msgid "longform_hour"
-msgstr "%s saat"
-
-msgid "shortform_hours"
-msgstr "%s sa"
-
-msgid "longform_hours"
-msgstr "%s saat"
-
-msgid "longform_day"
-msgstr "%s gün"
-
-msgid "shortform_days"
-msgstr "%s g"
-
-msgid "longform_days"
-msgstr "%s gün"
-
-msgid "longform_week"
-msgstr "%s hafta"
-
-msgid "shortform_weeks"
-msgstr "%s h"
-
-msgid "longform_weeks"
-msgstr "%s hafta"
-
-msgid "unknown"
-msgstr "Bilinmeyen"
-
-msgid "banner_source_qr"
-msgstr "QR Kodu"
-
-msgid "banner_source_id"
-msgstr "Messenger Kimliği"
-
-msgid "banner_source_intro"
-msgstr "Giriş"
-
-msgid "message_will_disappear_at"
-msgstr "Kaybolma zamanı: %s"
-
-msgid "change_display_name"
-msgstr "Görünen Adı Değiştir"
-
-msgid "yesterday"
-msgstr "dün"
-
-msgid "tomorrow"
-msgstr "yarın"
-
-msgid "just_now"
-msgstr "biraz önce"
-
-msgid "within_one_minute"
-msgstr "bir dakika içinde"
-
-msgid "on_date"
-msgstr "%s tarihinde"
-
-msgid "at_date"
-msgstr "şu saatte: %s"
-
-msgid "error_fetching_message_preview"
-msgstr "Mesaj Önizlemesi getirilirken hata"
-
-msgid "message_was_deleted"
-msgstr "Mesaj silindi"
-
-msgid "contact_was_deleted"
-msgstr "%s kişileriniz arasından silindi."
-
-msgid "contact_was_blocked"
-msgstr "%s engellendi."
-
-msgid "contact_was_unblocked"
-msgstr "%s kişisinin engeli kaldırıldı."
-
-msgid "dismiss"
-msgstr "Bırak"
-
-msgid "copy_text"
-msgstr "Metni Kopyala"
-
-msgid "message"
-msgstr "Mesaj"
-
-msgid "messages"
-msgstr "Mesajlar"
-
-msgid "chats"
-msgstr "Sohbetler"
-
-msgid "new_requests"
-msgstr "Yeni İstekler: %s"
-
-msgid "chat"
-msgstr "Sohbet"
-
-msgid "lantern_chat"
-msgstr "Lantern Sohbet"
-
-msgid "welcome_title"
-msgstr "Lantern Sohbet'e hoş geldiniz!"
-
-msgid "welcome_text"
-msgstr ""
-"Sınıfının en iyisi engellemeye karşı direnç teknolojisi ile birlikte "
-"gizliliğinizi korumak için şifrelenmiş bir sohbet."
-
-msgid "get_started"
-msgstr "Başlayın"
-
-msgid "want_to_recover"
-msgstr "Bir Sohbet Numaranız var mı?"
-
-msgid "recover"
-msgstr "Kurtar"
-
-msgid "chat_number"
-msgstr "Sohbet Numarası"
-
-msgid "your_chat_number"
-msgstr "Sohbet Numaranız"
-
-msgid "chat_number_recovery"
-msgstr "Sohbet Numarası Kurtarma"
-
-msgid "recovery_helper_text"
-msgstr "Lütfen geçerli bir Kurtarma Anahtarı girin"
-
-msgid "recovery_button"
-msgstr "Sohbet Numaranızı geri yüklemek için Kurtarma Anahtarınızı girin."
-
-msgid "recovery_label"
-msgstr "Kurtarma Anahtarınızı girin"
-
-msgid "recovery_key"
-msgstr "Kurtarma Anahtarı"
-
-msgid "secure_text_explanation"
-msgstr ""
-"Sohbet Numaranız Lantern üzerinde arkadaşlarınızın sizinle iletişime geçmek "
-"için kullanabileceği bir telefon numarası gibi işler."
-
-msgid "secure_text_explanation_account"
-msgstr ""
-"Bu, Sohbet Numaranızın tam versiyonudur; bu uzun numarayı paylaşmak özellikle de bunu paylaşabileceğiniz başka bir uçtan uca şifreli kanalınız olması durumunda daha güvenli olabilir.\n"
-"\n"
-"Lantern iletişim bilgisi paylaşımını kolaylaştırmak için kısaltılmış bir Sohbet Numarası sunar."
-
-msgid "recovery_key_account_explanation"
-msgstr ""
-"Bu anahtarı güvenli bir yerde saklayın ve kimseyle paylaşmayın. Bu anahtar "
-"telefonunuzu kaybetmeniz, cihaz değiştirmeniz veya işletim sistemini "
-"sıfırlamanız durumunda Sohbet Numaranızı kurtarmanın tek yoludur."
-
-msgid "recovery_error"
-msgstr "Hesabınız kurtarılamıyor."
-
-msgid "recovery_input_error"
-msgstr "Geçerli bir kurtarma anahtarı girdiğinizden emin olun"
-
-msgid "recovery_retrieval_error"
-msgstr "Hesabınız kurtarılırken bir sorun oluştu"
-
-msgid "recovery_success"
-msgstr "Sohbet Numaranızı başarıyla kurtardınız"
-
-msgid "empty_chats_text"
-msgstr "Sohbet Numaranızı paylaşın veya buraya bir kişi ekleyin!"
-
-msgid "next"
-msgstr "İleri"
-
-msgid "automated_backup"
-msgstr "Otomatik Yedekleme"
-
-msgid "backup_explanation"
-msgstr ""
-"Lantern kişilerinizi şifreleme ve güvenli sunucularımıza yedekleme seçeneği sunar. Yedeklemeden  vazgeçerseniz kurtarma anahtarınızı kullanarak kişilerinizi kurtaramayacaksınız.\n"
-"\n"
-"Lantern yedeklemeyi seçtiğinizde kişi listelerinizi okuyamaz."
-
-msgid "backup_contacts"
-msgstr "Kişileri yedekle"
-
-msgid "copy_recovery_key"
-msgstr "Kurtarma Anahtarını Kopyala"
-
-msgid "search"
-msgstr "Ara"
-
-msgid "account_management"
-msgstr "Hesap Yönetimi"
-
-msgid "add_via_username"
-msgstr "Kullanıcı adı aracılığıyla ekle"
-
-msgid "username"
-msgstr "Kullanıcı adı"
-
-msgid "enter_a_username_to_start_a_conversation"
-msgstr "Bir mesaj görüşmesi başlatmak için bir kullanıcı adı girin"
-
-msgid "start_message"
-msgstr "Mesaj Başlat"
-
-msgid "please_enter_a_valid_username"
-msgstr "Lütfen geçerli bir kullanıcı adı girin\""
-
-msgid "open_url"
-msgstr "URL'yi aç"
-
-msgid "message_deleted"
-msgstr "%s bu mesajı sildi"
-
-msgid "never"
-msgstr "Hiçbir Zaman"
-
-msgid "delete_for_me"
-msgstr "Benim için sil"
-
-msgid "delete_for_me_explanation"
-msgstr ""
-"Bu işlem mesajı yalnızca sizin için siler. Diğer herkes yine bunu "
-"görebilecektir."
-
-msgid "delete_for_everyone"
-msgstr "Herkes için sil"
-
-msgid "delete_for_everyone_explanation"
-msgstr "Bu işlem mesajı herkes için siler"
-
-msgid "reply"
-msgstr "Cevapla"
-
-msgid "replying_to"
-msgstr "%s kişisine yanıt veriliyor"
-
-msgid "attachment"
-msgstr "Ek"
-
-msgid "error_rendering_message"
-msgstr "Mesaj işlenirken hata"
-
-msgid "error_fetching_preview"
-msgstr "Mesaj önizlemesi getirilirken hata"
-
-msgid "audio"
-msgstr "Ses"
-
-msgid "image"
-msgstr "Resim"
-
-msgid "images"
-msgstr "Görüntüler"
-
-msgid "video"
-msgstr "Video"
-
-msgid "videos"
-msgstr "Videolar"
-
-msgid "app"
-msgstr "Uygulamalar"
-
-msgid "document"
-msgstr "Belgeler"
-
-msgid "search_chars_min"
-msgstr "En az üç karakter yazın"
-
-msgid "search_no_results"
-msgstr "Üzgünüz, bu aramayla eşleşen hiçbir şey bulamadık."
-
-msgid "search_error"
-msgstr "Üzgünüz, arama sonuçları getirilirken bir hata oluştu."
-
-msgid "search_contacts"
-msgstr "Kişiler (%s)"
-
-msgid "search_chats"
-msgstr "Sohbetler (%s)"
-
-msgid "search_in_contacts"
-msgstr "Kişilerde Ara"
-
-msgid "search_in_chats"
-msgstr "Sohbetlerde ve Kişilerde Ara"
-
-msgid "could_not_render_title"
-msgstr "Dosya başlığı işlenemedi"
-
-msgid "could_not_render_type"
-msgstr "Dosya türü işlenemedi"
-
-msgid "speaker"
-msgstr "Hoparlör"
-
-msgid "speaker_on"
-msgstr "Hoparlör Açık"
-
-msgid "mute"
-msgstr "Sessize al"
-
-msgid "muted"
-msgstr "Ses Kısıldı"
-
-msgid "end_call"
-msgstr "Aramayı Sonlandır"
-
-msgid "verify_contact"
-msgstr "%s öğesini doğrula"
-
-msgid "verified"
-msgstr "Doğrulanmış"
-
-msgid "pending_verification"
-msgstr "Doğrulama bekleniyor"
-
-msgid "verify_description"
-msgstr ""
-"En iyi güvenlik uygulamalarından biri olarak %s doğrulama numarasının sizinkiyle eşleşip eşleşmediğini kontrol etmenizi öneririz.\n"
-"\n"
-"Şahsen veya bir telefon araması vasıtasıyla doğrulamak ister misiniz?"
-
-msgid "verify_in_person"
-msgstr "Şahsen doğrula"
-
-msgid "verify_via_call"
-msgstr "Sesli aramayla doğrula"
-
-msgid "dismiss_notification"
-msgstr "Bildirimi Kapat"
-
-msgid "call_contact"
-msgstr "%s aransın mı?"
-
-msgid "call"
-msgstr "Arama"
-
-msgid "incoming_call"
-msgstr "Gelen Arama"
-
-msgid "call_from"
-msgstr "Kaynak: %s"
-
-msgid "in_call"
-msgstr "Devam Eden Aramalar"
-
-msgid "in_call_des"
-msgstr "Devam eden arama bildirimi"
-
-msgid "incoming_call_from"
-msgstr "Gelen arama kaynağı: %s"
-
-msgid "touch_here_to_open_call"
-msgstr "Aramayı açmak için buraya dokunun"
-
-msgid "in_call_with"
-msgstr "%s ile aramada"
-
-msgid "undo_verification"
-msgstr "Doğrulamayı geri al"
-
-msgid "mark_as_verified"
-msgstr "Doğrulanmış olarak işaretle"
-
-msgid "verification_panel_success"
-msgstr "Doğrulama başarılı! %s ile mesajlarınız güvende."
-
-msgid "verification_panel_pending"
-msgstr ""
-"Bu, doğrulama numaranızdır. Doğrulanmış olarak işaretlemeden önce "
-"numaranızın %s numarasıyla eşleşip eşleşmediğini kontrol edin."
-
-msgid "replica_upload_confirmation_title"
-msgstr "Önemli!"
-
-msgid "replica_upload_confirmation_body"
-msgstr ""
-"Lantern Ağına yüklenen dosyalara herkes erişebilir. Kimse dosyaları silemez."
-" Lütfen dosya içeriğinize veya dosya adına kişisel bilgi veya tanımlama "
-"bilgisi dahil etmeyin."
-
-msgid "replica_upload_confirmation_agree"
-msgstr "Yüklemeye Devam Et"
-
-msgid "dont_show_me_this_again"
-msgstr "Bunu bana tekrar gösterme"
-
-msgid "download"
-msgstr "İndir"
-
-msgid "download_started"
-msgstr "İndirme Başlatıldı"
-
-msgid "uploader"
-msgstr "Yükleyici"
-
-msgid "upload_started"
-msgstr "Yükleme Başlatıldı"
-
-msgid "upload_in_progress"
-msgstr "Yükleme Devam Ediyor"
-
-msgid "upload_complete"
-msgstr "Dosyanız başarılı bir şekilde yayımlandı"
-
-msgid "upload_failed"
-msgstr "Yükleme Başarısız Oldu"
-
-msgid "upload_cancelled"
-msgstr "Yükleme İptal Edildi"
-
-msgid "upload_unknown_error"
-msgstr "Yayımlamaya çalışırken bir sorun oluştu"
-
-msgid "download_unknown_error"
-msgstr "İndirmeye çalışırken bir sorun oluştu %s"
-
-msgid "replica_link_fetcher"
-msgstr "Çoğaltma Bağlantısı Getirici"
-
-msgid "no_preview_for_this_type_of_file"
-msgstr "Bu dosya türü için önizleme yok"
-
-msgid "app_unknown"
-msgstr "uygulama/bilinmiyor"
-
-msgid "audio_unknown"
-msgstr "ses/bilinmiyor"
-
-msgid "document_unknown"
-msgstr "belge/bilinmiyor"
-
-msgid "no_search_result_found"
-msgstr "Üzgünüz, bu aramayla eşleşen hiçbir şey bulamadık"
-
-msgid "search_result_error"
-msgstr "Sonuçlar getirilirken hata, lütfen daha sonra tekrar deneyin"
-
-msgid "video_stream_error"
-msgstr "Video işlenirken hata, lütfen daha sonra tekrar deneyin"
-
-msgid "untitled"
-msgstr "Başlıksız"
-
-msgid "preview_not_available"
-msgstr "Önizleme kullanılamıyor"
-
-msgid "download_to_view"
-msgstr "Görüntülemek için dosyayı indirin"
-
-msgid "failed_to_init_replica"
-msgstr "Hata: Çoğaltma başlatılamadı"
-
-msgid "awaiting_result"
-msgstr "Sonuç bekleniyor..."
-
-msgid "discover"
-msgstr "Keşfet"
-
-msgid "replica_search_intro"
-msgstr ""
-"Lantern Ağı'nda kullanıcılar tarafından yüklenmiş içerikler arayın veya "
-"başkalarının keşfetmesi için kendi içeriklerinizi yükleyin."
-
-msgid "replica_new_discover"
-msgstr "Yeni Keşif Kategorisi"
-
-msgid "replica_new_discover_news"
-msgstr "Hemen keşfet, yeni makaleler aramanızı sağlar!"
-
-msgid "replica_check_it_out"
-msgstr "Göz atın"
-
-msgid "news"
-msgstr "Haberler"
-
-msgid "share"
-msgstr "Paylaş"
-
-msgid "upload_file_screen"
-msgstr "Dosya Yükle"
-
-msgid "edit_title"
-msgstr "Başlığı Düzenle"
-
-msgid "filenames_cannot_be_edited"
-msgstr "Dosya adları yayımlandıktan sonra değiştirilemez"
-
-msgid "add_description"
-msgstr "Tanım Ekle"
-
-msgid "no_description"
-msgstr "Sağlanan tanım yok"
-
-msgid "read_details"
-msgstr "PDF'yi Oku"
-
-msgid "description_initial_value"
-msgstr "Yayımlandıktan sonra tanım değiştirilemez"
-
-msgid "name_your_file"
-msgstr "Dosyanızı Adlandırın"
-
-msgid "upload"
-msgstr "Yükle"
-
-msgid "review"
-msgstr "Gözden geçir"
-
-msgid "skip"
-msgstr "Atla"
-
-msgid "replica_layout_filetype"
-msgstr "dosya türü: %s"
-
-msgid "replica_layout_creation_date"
-msgstr "%s tarihinde oluşturuldu"
-
-msgid "empty_description"
-msgstr "Sağlanan tanım yok."
-
-msgid "publish"
-msgstr "Evet, Yayımla"
-
-msgid "important"
-msgstr "Önemli!"
-
-msgid "upload_tos_agree"
-msgstr "Anlıyorum"
-
-msgid "test_text"
-msgstr "Pizza yemek istiyorum 🍕 😊"
-
-msgid "test_hello"
-msgstr "Merhaba, nasılsınız?"
-
-msgid "test_reply"
-msgstr "Aslında hayır, sanırım bugün suşi yiyesim var!"
-
-msgid "test_disappearing_messages_1"
-msgstr "Başlangıçta tüm mesajlar 24 saat sonra kaybolur."
-
-msgid "test_disappearing_messages_2"
-msgstr "Bu mesaj çok yakında kaybolacaktır!"
-
-msgid "test_replica_search"
-msgstr "kedi"
-
-msgid "discover_disclaimer"
-msgstr "Lantern aramalarınızı anonimleştirir ve üçüncü taraflardan korur."
-
-msgid "support"
-msgstr "Destek"
-
-msgid "lantern_user_forum"
-msgstr "Lantern Kullanıcı Forumu"
-
-msgid "faq"
-msgstr "SSS"
-
-msgid "add_device"
-msgstr "Hesap Ekle"
-
-msgid "search_apps"
-msgstr "Uygulamaları Ara "
+"Kayıt sırasında bir sorun oluştu gibi görünüyor. Lütfen şifrenizi "
+"sıfırlamayı deneyin ve sorun devam ederse destek ekibimizle iletişime geçin"
 
 msgid "user_not_found"
 msgstr ""
-"Kullanıcı tanınmıyor. Lütfen kimlik bilgilerinizi kontrol edip tekrar "
-"deneyin. Sorun yaşamaya devam ederseniz yardım için lütfen destek ekibimize "
-"ulaşın."
+"Kullanıcı tanınmadı. Lütfen kimlik bilgilerinizi kontrol edip tekrar "
+"deneyin. Sorun devam ederse, yardım için destek ekibimizle iletişime geçin."
+
+msgid "invalid_code"
+msgstr ""
+"Yanlış kod veya süresi dolmuş olabilir. Lütfen tekrar göndermeyi deneyin"
 
 msgid "email_resend_message"
 msgstr "Yeni onay kodunuz gönderildi"
 
-msgid "signup_error"
-msgstr ""
-"Kayıt sırasında bir sorun oluşmuş gibi görünüyor. Lütfen tekrar deneyin ve "
-"sorun devam ederse destek ekibimize ulaşın"
-
-msgid "signup_error_user_exists"
-msgstr ""
-"Kayıt sırasında bir sorun oluşmuş gibi görünüyor. Lütfen parolanızı "
-"sıfırlamayı deneyin ve sorun devam ederse destek ekibimize ulaşın"
-
-msgid "confirm_email_error"
-msgstr "Lütfen e-postanızı onaylayın"
-
-msgid "password_cannot_be_empty"
-msgstr "Parola boş bırakılamaz"
-
-msgid "password_must_be_at_least_8_characters"
-msgstr "Parola en az 8 karakter uzunluğunda olmalıdır"
-
-msgid "sign_out"
-msgstr "Çıkış yap"
-
-msgid "sign_out_message"
-msgstr ""
-"Oturumunuzu kapattığınızda Lantern ücretsiz sürüme geçer. Hesabınıza tekrar "
-"erişmek için yeniden giriş yapmanız gerekir."
-
-msgid "change_password"
-msgstr "Parolayı Değiştir"
-
-msgid "password"
-msgstr "Şifre"
-
-msgid "new_email"
-msgstr "Yeni E-posta Adresi"
-
-msgid "new_email_same_as_old_email"
-msgstr "Yeni e-posta adresi, eski e-posta adresinizin aynısı olamaz"
-
-msgid "danger_zone"
-msgstr "Tehlikeli bölge"
-
-msgid "delete_account"
-msgstr "Hesabı Sil"
-
-msgid "delete"
-msgstr "Sil"
-
-msgid "delete_account_message"
-msgstr ""
-"Hesabı silme işlemi geri alınamaz. Tüm cihazlarınızdaki erişimi kaybeder ve "
-"Pro hesabınızın daha kullanım süresi varsa herhangi bir ücret iadesi olmadan"
-" bu süreden feragat etmiş olursunuz."
-
-msgid "delete_your_account"
-msgstr "Hesabınız silinsin mi?"
-
-msgid "confirm_deletion"
-msgstr "Silme İşlemini Onayla"
-
-msgid "account_deleted"
-msgstr "Hesap Silindi"
-
-msgid "account_deleted_message"
-msgstr "Hesabınız kalıcı olarak silindi."
-
 msgid "password_has_been_updated"
-msgstr "Parola güncellendi"
+msgstr "Şifre güncellendi"
 
 msgid "password_has_been_updated_message"
-msgstr "Parolanız başarıyla sıfırlandı"
+msgstr "Şifreniz başarıyla sıfırlandı"
 
-msgid "invalid_code"
-msgstr "Kod yanlış ya da süresi geçmiş. Lütfen yeniden göndermeyi deneyin"
+msgid "update_pro_account"
+msgstr "Pro Hesabı Güncelle"
+
+msgid "update_pro_account_message"
+msgstr ""
+"Hesabınızı yönetmek veya başka bir cihazda oturum açmak için lütfen önce "
+"hesabınıza bir e-posta ve şifre ekleyin."
+
+msgid "subscription_cancelled"
+msgstr "Aboneliğiniz iptal edildi."
+
+msgid "subscription_updated"
+msgstr "Aboneliğiniz güncellendi."
+
+msgid "subscription_renewed"
+msgstr "Aboneliğiniz yenilendi."
+
+msgid "got_it"
+msgstr "Anladım"
+
+msgid "server_location"
+msgstr "Sunucu Konumu"
+
+msgid "choose"
+msgstr "Seç"
+
+msgid "choose_your_account"
+msgstr "Hesabını Seç"
+
+msgid "choose_your_project"
+msgstr "Projeni seç"
+
+msgid "name_your_google_cloud_project"
+msgstr "Google Cloud Projene isim ver"
+
+msgid "billing_account"
+msgstr "Fatura Hesabı"
+
+msgid "billing_account_placeholder"
+msgstr "%s için fatura hesabı"
+
+msgid "server_name"
+msgstr "Sunucu Adı"
+
+msgid "google_project"
+msgstr "Google Projesi"
+
+msgid "field_name_required"
+msgstr "İsim gerekli"
+
+msgid "choose_google_account"
+msgstr "Google fatura hesabı seç"
+
+msgid "server_name_placeholder"
+msgstr "Mehmet'in Sunucusu"
+
+msgid "change"
+msgstr "Değiştir"
+
+msgid "choose_location"
+msgstr "Konum Seç"
+
+msgid "choose_your_location"
+msgstr "Konumunu Seç"
+
+msgid "start_deployment"
+msgstr "Dağıtımı Başlat"
+
+msgid "server_name_description"
+msgstr "Sunucunun sunucu seçim listesinde nasıl görüneceği."
+
+msgid "select_private_server_region"
+msgstr ""
+"Özel Sunucunuz için bir bölge seçin. Daha yakın konumlar hız ve gecikmeyi "
+"iyileştirebilir."
+
+msgid "gcp_location_options"
+msgstr "Google Cloud Platform Konum Seçenekleri (%d):"
+
+msgid "australia_sydney"
+msgstr "Avustralya - Sidney"
+
+msgid "belgium_stghislain"
+msgstr "Belçika - St. Ghislain"
+
+msgid "brazil_saopaulo"
+msgstr "São Paulo"
+
+msgid "us_los_angeles"
+msgstr "ABD - Los Angeles"
+
+msgid "japan_tokyo"
+msgstr "Japonya - Tokyo"
+
+msgid "deploying_private_server"
+msgstr "Özel Sunucu Dağıtılıyor"
+
+msgid "deploying_server_status"
+msgstr "Sabırlı ol! Özel Sunucun kuruluyor. Bu birkaç dakika sürebilir."
+
+msgid "confirm_server_fingerprint"
+msgstr "Sunucu Parmak İzini Onayla"
+
+msgid "server_fingerprint"
+msgstr "Sunucu Parmak İzi"
+
+msgid "confirm_fingerprint"
+msgstr "Parmak İzini Onayla"
+
+msgid "private_server_setup_in_progress"
+msgstr ""
+"Sabırlı ol! Özel Sunucun kuruluyor. Bu birkaç dakika sürebilir, lütfen bu "
+"ekranı açık tutun."
+
+msgid "cancel_server_deployment"
+msgstr "Sunucu Dağıtımını İptal Et"
+
+msgid "server_ready_title"
+msgstr "Özel Sunucu Hazır"
+
+msgid "server_ready_message"
+msgstr ""
+"Özel Sunucunuz kuruldu ve sunucu listenize eklendi. Bağlanmaya hazırsınız!"
+
+msgid "server_failed_message"
+msgstr ""
+"Özel Sunucunuzu kurarken bir sorun oluştu. Yeniden deneyebilir veya daha "
+"sonra tekrar deneyebilirsiniz."
+
+msgid "close"
+msgstr "Kapat"
+
+msgid "connect_now"
+msgstr "Şimdi Bağlan"
+
+msgid "server_setup_failed"
+msgstr "Sunucu Kurulumu Başarısız"
+
+msgid "cancel_deployment"
+msgstr "Dağıtımı İptal Et"
+
+msgid "server_setup_failed_message"
+msgstr ""
+"Özel Sunucunuzu kurarken bir sorun oluştu. Yeniden deneyebilir veya daha "
+"sonra tekrar deneyebilirsiniz."
+
+msgid "exit"
+msgstr "Çıkış"
+
+msgid "retry"
+msgstr "Yeniden Dene"
+
+msgid "all_required_fields"
+msgstr "Lütfen tüm gerekli alanları doldurun."
+
+msgid "private_server_ready"
+msgstr "Özel Sunucu Hazır!"
+
+msgid "private_server_ready_message"
+msgstr ""
+"(%s) Sunucu kuruldu ve sunucu listenize eklendi. Bağlanmaya hazırsınız!"
+
+msgid "set_up_your_server"
+msgstr "Sunucunu Kur"
+
+msgid "view_instructions_github"
+msgstr "GitHub'da Talimatları Görüntüle"
+
+msgid "server_access_key"
+msgstr "Sunucu Erişim Anahtarı"
+
+msgid "access_key"
+msgstr "Erişim Anahtarı"
+
+msgid "name_your_server"
+msgstr "Sunucuna İsim Ver"
+
+msgid "how_server_appears"
+msgstr "Sunucunun sunucu seçim listesinde nasıl görüneceği"
+
+msgid "server_nickname"
+msgstr "Sunucu Takma Adı"
+
+msgid "verify_server"
+msgstr "Sunucuyu Doğrula"
+
+msgid "vpn_client_not_setup"
+msgstr "Lütfen VPN istemcisini açın."
+
+msgid "continue_with"
+msgstr "Şununla devam et"
+
+msgid "join_a_private_server"
+msgstr "Özel Bir Sunucuya Katıl"
+
+msgid "join_private_server"
+msgstr "Özel Sunucuya Katıl"
+
+msgid "join_server"
+msgstr "Sunucuya Katıl"
+
+msgid "private_server_usage_message"
+msgstr "Özel sunucu kullanımı Lantern günlük veri limitinize sayılmaz."
+
+msgid "manage_private_servers"
+msgstr "Özel Sunucuları Yönet"
+
+msgid "my_servers"
+msgstr "Sunucularım"
+
+msgid "joined_servers"
+msgstr "Katıldığım Sunucular"
+
+msgid "access_key_expiration"
+msgstr ""
+"Her erişim anahtarı benzersizdir ve 1 gün sonra sona erer. İstediğiniz zaman"
+" yeni bir tane oluşturabilirsiniz."
+
+msgid "share_access_key"
+msgstr "Erişim Anahtarını Paylaş"
+
+msgid "rename_server"
+msgstr "Sunucuyu Yeniden Adlandır"
+
+msgid "rename"
+msgstr "Yeniden Adlandır"
+
+msgid "selected_location"
+msgstr "Seçili Konum"
+
+msgid "remove_server_?"
+msgstr "Sunucu Kaldırılsın mı?"
+
+msgid "remove_server_message"
+msgstr ""
+"%s kaldırılsın mı? Bu sadece uygulamanızdan kaldıracaktır, bulut "
+"sağlayıcınızdan sunucuyu silmeyecektir."
+
+msgid "generate_access_key"
+msgstr "Erişim anahtarı oluştur"
+
+msgid "invite_name"
+msgstr "Davet Adı"
+
+msgid "trust_server_operator"
+msgstr "Sunucu Operatörüne Güvenin"
+
+msgid "trust_server_operator_message_one"
+msgstr ""
+"Özel sunucular, Lantern dışındaki bireyler veya kuruluşlar tarafından "
+"barındırılır ve işletilir. Birine bağlandığınızda, onu çalıştıran kişiye "
+"güvenli bir şekilde yönetmesi ve sorumlu bir şekilde kullanması için "
+"güveniyorsunuz."
+
+msgid "trust_server_operator_message_two"
+msgstr ""
+"Lantern özel sunucuları yönetmez veya izlemez. Bir sunucuya katılmadan önce "
+"sunucu operatörünü tanıdığınızdan ve güvendiğinizden emin olun."
+
+msgid "trust_server_operator_message_three"
+msgstr ""
+"Sunucuyu kimin çalıştırdığından veya nasıl yapılandırıldığından emin "
+"değilseniz, sunucu listenizde bulunan varsayılan Lantern sunucularından "
+"birini kullanmanızı öneririz"
+
+msgid "invalid_server_details"
+msgstr ""
+"Geçersiz sunucu detayları. Lütfen erişim anahtarını kontrol edip tekrar "
+"deneyin."
+
+msgid "lantern_servers"
+msgstr "Lantern Sunucuları"
+
+msgid "private_servers"
+msgstr "Özel Sunucular"
+
+msgid "fastest_server"
+msgstr "En Hızlı Sunucu"
+
+msgid "join_my_private_server"
+msgstr "Lantern Özel Sunucuma Katıl"
+
+msgid "your_server"
+msgstr "Sunucularınız:"
+
+msgid "no_private_server_setup_yet"
+msgstr ""
+"Henüz bir özel sunucu kurmadınız. Başlamak için aşağıdaki düğmeye tıklayın."
+
+msgid "connect"
+msgstr "Bağlan"
+
+msgid "disconnect"
+msgstr "Bağlantıyı Kes"
+
+msgid "show"
+msgstr "Göster"
+
+msgid "status_on"
+msgstr "Bağlı"
+
+msgid "status_off"
+msgstr "Bağlantı Kesildi"
+
+msgid "select_your_server_location"
+msgstr "Sunucu konumunu seçin"
+
+msgid "faster_speeds_unlimited_bandwidth"
+msgstr "Daha hızlı hız ve sınırsız bant genişliği"
+
+msgid "premium_servers_less_congestion"
+msgstr "Daha az yoğunluğa sahip premium sunucular"
+
+msgid "advanced_anti_censorship"
+msgstr "Gelişmiş sansür önleme teknolojisi"
+
+msgid "exclusive_access_new_features"
+msgstr "Yeni özelliklere özel erişim"
+
+msgid "connect_up_to_five_devices"
+msgstr "5 cihaza kadar bağlayın"
+
+msgid "built_in_ad_blocking"
+msgstr "Yerleşik reklam engelleme"
 
 msgid "get_lantern_pro"
-msgstr "Lantern Pro'ya Geçin"
+msgstr "Lantern Pro Edin"
 
-msgid "try_lantern_pro"
-msgstr "Lantern'i ücretsiz deneyin! "
+msgid "connected_to_private_server"
+msgstr "Özel Sunucuya Bağlandı"
 
-msgid "continue_for_free"
-msgstr "Ücretsiz Olarak Devam Et"
-
-msgid "recovery_not_found"
-msgstr "Cihaz bu kullancı ile ilişkilendirilmemiş"
-
-msgid "device_added"
-msgstr ""
-
-msgid "device_added_message"
-msgstr ""
-"Cihazınız başarıyla eklendi. Bağlı cihazı görmüyorsanız, lütfen her iki "
-"cihazda uygulamayı yeniden başlatın "
-
-msgid "wrong_link_code"
-msgstr "Girdiğiniz kod yanlış. Lütfen kontrol edip tekrar deneyin."
-
-msgid "recovery_code_sent"
-msgstr "Kurtarma kodu gönderildi"
-
-msgid "device_added_msg"
-msgstr "Bu cihaz şuna Bağlandı: %s"
-
-msgid "new_to_lantern"
-msgstr "Lantern'de yeni misiniz? "
-
-msgid "email_has_been_updated"
-msgstr "E-posta güncellendi"
-
-msgid "email_has_been_updated_message"
-msgstr "E-postanız başarıyla değiştirildi"
-
-msgid "email_has_been_verified"
-msgstr "E-posta doğrulandı"
-
-msgid "email_has_been_verified_message"
-msgstr "E-postanız başarıyla doğrulandı"
+msgid "server_already_selected"
+msgstr "Bu sunucuya zaten bağlısınız."
 
 msgid "device_limit_reached"
-msgstr "Cihaz Sınırına Ulaşıldı"
+msgstr "Cihaz Limitine Ulaşıldı"
 
 msgid "device_limit_reached_message"
 msgstr ""
-"Şu anda mümkün olan en fazla sayıda cihazdan (3) giriş yapmış durumdasınız. "
-"Bu cihazdan giriş yapmak için lütfen aşağıda görülen diğer cihazlarınızdan "
-"birini seçip kaldırın."
+"5 cihaz limitinize ulaştınız. Devam etmek için lütfen bir cihazı kaldırın."
+
+msgid "remove_device_and_sign_in"
+msgstr "Cihazı Kaldır ve Giriş Yap"
+
+msgid "cancel_sign_in"
+msgstr "Girişi İptal Et"
+
+msgid "change_email"
+msgstr "E-posta Değiştir"
+
+msgid "change_email_message"
+msgstr ""
+"Bu, yeni giriş e-postanız olacaktır. Değişiklik yürürlüğe girmeden önce "
+"doğrulamanız gerekecektir."
+
+msgid "enter_new_email"
+msgstr "Yeni e-postanı girin"
+
+msgid "confirm_password_to_continue"
+msgstr "Devam etmek için lütfen şifrenizi onaylayın."
+
+msgid "email_updated"
+msgstr "E-postanız güncellendi."
+
+msgid "enable_network_extension"
+msgstr "Ağ Uzantısını Etkinleştir"
+
+msgid "enable_network_extension_message"
+msgstr ""
+"Lantern'i kullanmak için Mac'iniz için bir ağ uzantısı yüklememiz gerekiyor."
+
+msgid "install_now"
+msgstr "Şimdi Yükle"
+
+msgid "learn_more"
+msgstr "Daha Fazla Bilgi"
+
+msgid "network_extension_required"
+msgstr "Ağ uzantısı gerekli"
+
+msgid "click"
+msgstr "Tıkla"
+
+msgid "open_system_settings"
+msgstr "Sistem Ayarlarını Aç"
+
+msgid "when_prompted"
+msgstr "istendiğinde."
+
+msgid "activate_extension"
+msgstr "Uzantıyı Etkinleştir"
+
+msgid "email_optional"
+msgstr "E-posta (isteğe bağlı)"
+
+msgid "please_enter_valid_email"
+msgstr "Lütfen geçerli bir e-posta girin"
+
+msgid "please_select_an_issue"
+msgstr "Lütfen bir sorun seçin"
+
+msgid "please_enter_issue_description"
+msgstr "Lütfen bir sorun açıklaması girin"
+
+msgid "thanks_for_feedback"
+msgstr "Geri bildiriminiz için teşekkürler!"
+
+msgid "no_apps_selected"
+msgstr "Hiç uygulama seçilmedi"
+
+msgid "deselect_all"
+msgstr "Tümünün Seçimini Kaldır"
+
+msgid "select_all"
+msgstr "Tümünü Seç"
+
+msgid "no_websites_selected"
+msgstr "Hiç web sitesi seçilmedi"
 
 msgid "enter_activation_code"
-msgstr "Aktivasyon Kodunu Girin"
+msgstr "Aktivasyon Kodu Girin"
 
-msgid "check_your_email"
-msgstr "E-posta Adresinizi Kontrol Edin"
+msgid "restore_purchase"
+msgstr "Satın Almayı Geri Yükle"
 
-msgid "please_verify_email"
-msgstr "Girdiğiniz e-posta adresinin doğru olduğunu lütfen onaylayın."
+msgid "do_private_server_setup"
+msgstr "DO Özel Sunucu Kurulumu"
 
-msgid "verify"
-msgstr "Doğrula"
+msgid "private_server_note"
+msgstr ""
+"Özel Sunucunuz için bir bölge seçin. Daha yakın konumlar hız ve gecikmeyi "
+"iyileştirebilir."
 
-msgid "cannot_login"
-msgstr "Giriş yapılamıyor "
+msgid "gcp_private_server_setup"
+msgstr "GCP Özel Sunucu Kurulumu"
+
+msgid "gcp_private_server_location"
+msgstr "GCP Özel Sunucu Konumu"
+
+msgid "do_private_server_location"
+msgstr "DO Özel Sunucu Konumu"
+
+msgid "confirm"
+msgstr "Onayla"
+
+msgid "private_server_warning"
+msgstr ""
+"Yalnızca güvendiğiniz kişiler tarafından çalıştırılan sunucuları ekleyin "
+
+msgid "go_to_server_locations"
+msgstr "Sunucu Konumlarına Git"
+
+msgid "lantern_io"
+msgstr "Lantern.io"
+
+msgid "alternative_download_links"
+msgstr "Alternatif İndirme Linkleri"
+
+msgid "github_download_page"
+msgstr "GitHub İndirme Sayfası"
+
+msgid "telegram_bot"
+msgstr "Telegram Botu"
+
+msgid "if_you_cannot_access_website"
+msgstr ""
+"Web sitemize erişirken herhangi bir sorunla karşılaşırsanız, Lantern'i "
+"yukarıdaki linklerden indirebilirsiniz."
+
+msgid "available_on"
+msgstr "Şunlarda mevcut:"
+
+msgid "subscription_renewal_date"
+msgstr "Abonelik Yenileme Tarihi"
+
+msgid "enabled_bypass_lists"
+msgstr "Etkin atlama listeleri (%d):"
+
+msgid "diagnostic_logs"
+msgstr "Tanı Günlükleri"
+
+msgid "lantern_user_forum"
+msgstr "Lantern Kullanıcı Forumu"
+
+msgid "frequently_asked_questions"
+msgstr "Sıkça Sorulan Sorular"
 
 msgid "privacy_policy"
 msgstr "Gizlilik Politikası"
@@ -1843,158 +1146,138 @@ msgstr "Gizlilik Politikası"
 msgid "terms_of_service"
 msgstr "Hizmet Şartları"
 
-msgid "invalid_verification_code"
-msgstr "Geçersiz doğrulama kodu"
+msgid "get_unlimited_data"
+msgstr "Sınırsız veri ve daha hızlı hız elde edin!"
 
-msgid "wrong_seller_code"
-msgstr "Yanlış satıcı kodu. Lütfen doğrulayın ve tekrar deneyin. "
+msgid "private_server_options"
+msgstr "Özel Sunucu Seçenekleri"
 
-msgid "follow_us"
-msgstr "Bizi Takip Edin "
+msgid "lantern_version"
+msgstr "Lantern Sürümü"
 
-msgid "follow_us_telegram"
+msgid "quit"
+msgstr "Çık"
+
+msgid "device_removed"
+msgstr "Cihaz kaldırıldı"
+
+msgid "set_server_alias"
+msgstr "Sunucu Takma Adı Belirle"
+
+msgid "this_name_pre_filled"
 msgstr ""
+"Bu isim, davetli kullanıcı için sunucuyu tanımlamalarına yardımcı olmak için"
+" önceden doldurulacaktır. Daha sonra değiştirebilirler."
 
-msgid "follow_us_instagram"
+msgid "server_alias"
+msgstr "Sunucu Takma Adı"
+
+msgid "add_referral_code"
+msgstr "Tavsiye Kodu Ekle"
+
+msgid "referral_code"
+msgstr "Tavsiye Kodu"
+
+msgid "update_fails"
+msgstr "Güncelleme başarısız"
+
+msgid "scan_qr_code"
+msgstr "QR Kodu Tara"
+
+msgid "choose_your_server_location"
+msgstr "Sunucunun konumunu seç"
+
+msgid "we_handle_configuration"
+msgstr "Yapılandırmayı biz hallederiz, sadece kaydolun."
+
+msgid "90_day_free_trial"
+msgstr "90 günlük ücretsiz deneme"
+
+msgid "identity_changed"
+msgstr "%s için Kimlik Değişti"
+
+msgid "identity_changed_message"
 msgstr ""
+"%s sunucusunun güvenlik parmak izi değişti. Bu, kurcalama veya yanlış "
+"yapılandırmayı gösterebilir."
 
-msgid "follow_us_facebook"
+msgid "recommendation"
+msgstr "Öneri:"
+
+msgid "recommendation_message"
 msgstr ""
+"Bağlantınızın güvenli kalmasını sağlamak için %s'i Lantern'den kaldırmanızı "
+"ve bulut sağlayıcı hesabınızdan silmenizi, ardından yeni bir sunucu "
+"kurmanızı öneririz."
 
-msgid "follow_us_x"
+msgid "remove_server"
+msgstr "Sunucuyu Kaldır"
+
+msgid "server_alias_cannot_be_empty"
+msgstr "Sunucu takma adı boş olamaz"
+
+msgid "referral_code_applied"
+msgstr "Referans kodunuz uygulandı!"
+
+msgid "referral_message_1m"
+msgstr "+ 15 ek gün ücretsiz"
+
+msgid "referral_message_1y"
+msgstr "+ 1 ek ay ücretsiz"
+
+msgid "referral_message_2y"
+msgstr "+ 2 ek ay ücretsiz"
+
+msgid "referral_code_invalid"
 msgstr ""
+"Girdiğiniz referans kodu geçersiz. Lütfen kodu kontrol edin ve tekrar "
+"deneyin."
 
-msgid "report_issue_error"
-msgstr "Teknik zorluklar yaşıyoruz. Daha sonra tekrar deneyin. "
+msgid "referral_code_own_invalid"
+msgstr "Kendi referans kodunuzu kullanamazsınız. Lütfen farklı bir kod girin."
 
-msgid "we_are_experiencing_technical_difficulties"
-msgstr "Teknik zorluklar yaşıyoruz. Daha sonra tekrar deneyin. "
+msgid "free"
+msgstr "Ücretsiz"
 
-msgid "a_temporary_error_occurred"
-msgstr "Geçici bir hata oluştu "
+msgid "monthly_plan"
+msgstr "Aylık plan:"
 
-msgid "sorry_we_are_unable_to_load_that_page"
+msgid "15_days_each"
+msgstr " Her birine +15 gün"
+
+msgid "annual_plan"
+msgstr " Yıllık plan:"
+
+msgid "1_month_each"
+msgstr " Her birine +1 ay"
+
+msgid "two_year_plan"
+msgstr "İki yıllık plan:"
+
+msgid "2_month_each"
+msgstr " Her birine +2 ay"
+
+msgid "referral_code_info"
 msgstr ""
-"Üzgünüz, şu anda o sayfayı yükleyemiyoruz, lütfen tekrar denemek için "
-"'Yenile'ye dokunun. "
+"Henüz Lantern Pro kullanıcısı değil misiniz? İlk referansınız abone "
+"olduğunda kullanıcı olacaksınız"
 
-msgid "refresh"
-msgstr "Yenile"
+msgid "lantern_pro_license"
+msgstr " Lantern Pro Lisansı"
 
-msgid "check_your_internet_connection"
-msgstr "İnternet bağlantınızı kontrol edin "
+msgid "select_account"
+msgstr "Hesap Seçin"
 
-msgid "please_try"
-msgstr "Lütfen deneyin "
+msgid "new_to_lantern"
+msgstr " Lantern'de yeni misiniz?"
 
-msgid "turning_off_airplane_mode"
-msgstr "Uçak modunu kapatma "
+msgid "create_an_account"
+msgstr " Hesap oluşturun"
 
-msgid "turning_on_mobile_data_or_wifi"
-msgstr "Mobil veri veya wifi açma "
+msgid "no_projects_found"
+msgstr "Proje Bulunamadı"
 
-msgid "check_the_signal_in_your_area"
-msgstr "Bölgenizdeki sinyali kontrol etme "
-
-msgid "got_it"
-msgstr "Tamam"
-
-msgid "fetching_configuration"
-msgstr "Yapılandırma Alınıyor "
-
-msgid "establish_connection_to_server"
-msgstr "Sunucuya bağlantı kuruluyor "
-
-msgid "file_size_limit_title"
-msgstr "Limit Aşıldı "
-
-msgid "file_size_limit_description"
+msgid "no_projects_found_desc"
 msgstr ""
-"Ek boyutları 100 MB'dan küçük olmalıdır\n"
-"\n"
-" \n"
-" "
-
-msgid "lantern_pro_one_year"
-msgstr ""
-
-msgid "lantern_pro_two_year"
-msgstr ""
-
-msgid "lantern_pro_one_month"
-msgstr ""
-
-msgid "non_renewing_subscription"
-msgstr ""
-
-msgid "restore_purchase"
-msgstr ""
-
-msgid "skip_for_now"
-msgstr ""
-
-msgid "purchase_not_found"
-msgstr ""
-
-msgid "no_previous_purchase"
-msgstr ""
-
-msgid "warning_restore_purchase"
-msgstr ""
-
-msgid "purchase_restored"
-msgstr ""
-
-msgid "purchase_restored_message"
-msgstr ""
-
-msgid "purchase_restored_error"
-msgstr ""
-
-msgid "err_while_sending_code"
-msgstr ""
-
-msgid "email_hint"
-msgstr ""
-
-msgid "email_hint_pro"
-msgstr ""
-
-msgid "continue_without_email"
-msgstr ""
-
-msgid "no_new_update"
-msgstr "En güncel sürümü kullanıyorsunuz!"
-
-msgid "error_referral"
-msgstr "Referans kodu uygulanırken bir sorun oluştu."
-
-msgid "proxy_error"
-msgstr ""
-
-msgid "proxy_settings"
-msgstr ""
-
-msgid "http_proxy"
-msgstr ""
-
-msgid "socks_proxy"
-msgstr ""
-
-msgid "http_proxy_copied"
-msgstr ""
-
-msgid "socks_proxy_copied"
-msgstr ""
-
-msgid "proxy_everything"
-msgstr ""
-
-msgid "errorSubmittingToGooglePlay"
-msgstr ""
-
-msgid "no_internet_connection"
-msgstr ""
-
-msgid "domain_fronting_error"
-msgstr ""
+"Proje bulunamadı. Lütfen önce bulut sağlayıcı hesabınızda bir proje "
+"oluşturun."
