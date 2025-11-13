@@ -1054,7 +1054,7 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, String>> attachReferralCode(String code) async {
     try {
       final result = await runInBackground<String>(
-            () async {
+        () async {
           return _ffiService.referralAttachment(code.toCharPtr).toDartString();
         },
       );
@@ -1191,7 +1191,6 @@ class LanternFFIService implements LanternCoreService {
     // TODO: implement updateLocal
     throw UnimplementedError();
   }
-
 }
 
 void checkAPIError(dynamic result) {

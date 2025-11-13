@@ -6,7 +6,6 @@ import 'dart:isolate';
 import 'dart:typed_data';
 import 'package:win32/win32.dart';
 import 'package:ffi/ffi.dart';
-import 'package:win32/winsock2.dart';
 
 typedef _WaitNamedPipeWNative = Int32 Function(
     Pointer<Utf16> lpName, Uint32 timeoutMs);
@@ -261,7 +260,7 @@ void _watchIsolateMain(_WatchArgs args) async {
 
   int hPipe = INVALID_HANDLE_VALUE;
 
-  String _watchReq(String token, String cmd) => '${jsonEncode({
+  String watchReq(String token, String cmd) => '${jsonEncode({
             'id': DateTime.now().microsecondsSinceEpoch.toString(),
             'cmd': cmd,
             'token': token,
@@ -288,7 +287,7 @@ void _watchIsolateMain(_WatchArgs args) async {
       return;
     }
 
-    final req = utf8.encode(_watchReq(args.token, args.cmd));
+    final req = utf8.encode(watchReq(args.token, args.cmd));
     final p = calloc<Uint8>(req.length);
     final w = calloc<Uint32>();
     try {

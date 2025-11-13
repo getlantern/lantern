@@ -95,7 +95,7 @@ class PlansNotifier extends _$PlansNotifier {
               : a.providers.supportSubscription
                   ? 1
                   : -1);
-    return plansData;
+      return plansData;
     } else {
       plansData.providers.desktop.sort((a, b) =>
           a.providers.supportSubscription == b.providers.supportSubscription
