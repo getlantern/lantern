@@ -15,7 +15,7 @@ enum _Social {
 
 @RoutePage(name: 'FollowUs')
 class FollowUs extends StatelessWidget {
-  FollowUs({super.key});
+  const FollowUs({super.key});
 
   @override
   Widget build(BuildContext context) {

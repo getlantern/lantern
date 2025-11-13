@@ -816,3 +816,24 @@ func revokeServerManagerInvite(_ip, _port, _accessToken, _inviteName *C.char) *C
 	slog.Debug("Invite revoked successfully:", "inviteName", inviteName, "ip", ip, "port", port)
 	return C.CString("ok")
 }
+
+//export setBlockAdsEnabled
+func setBlockAdsEnabled(enabled C.int) *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	if err := c.SetBlockAdsEnabled(enabled != 0); err != nil {
+		return SendError(err)
+	}
+	return C.CString("ok")
+}
+
+//export isBlockAdsEnabled
+func isBlockAdsEnabled() C.int {
+	c, _ := requireCore()
+	if c != nil && c.IsBlockAdsEnabled() {
+		return 1
+	}
+	return 0
+}

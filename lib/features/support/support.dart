@@ -4,7 +4,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/features/support/app_version.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
 @RoutePage(name: 'Support')
 class Support extends StatelessWidget {

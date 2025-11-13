@@ -37,7 +37,6 @@ class Plan {
   Map<String, dynamic> expectedMonthlyPrice;
   bool bestValue;
 
-
   Plan({
     required this.id,
     required this.description,
@@ -45,7 +44,6 @@ class Plan {
     required this.price,
     required this.expectedMonthlyPrice,
     this.bestValue = false,
-
   });
 
   factory Plan.fromJson(Map<String, dynamic> json) => Plan(

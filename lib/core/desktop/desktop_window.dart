@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:lantern/core/common/common.dart';
 import 'package:window_manager/window_manager.dart';
 

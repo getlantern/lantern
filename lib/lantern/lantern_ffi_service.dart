@@ -1054,7 +1054,7 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, String>> attachReferralCode(String code) async {
     try {
       final result = await runInBackground<String>(
-            () async {
+        () async {
           return _ffiService.referralAttachment(code.toCharPtr).toDartString();
         },
       );
@@ -1124,6 +1124,32 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> setBlockAdsEnabled(bool enabled) async {
+    try {
+      final result = _ffiService
+          .setBlockAdsEnabled(enabled ? 1 : 0)
+          .cast<Utf8>()
+          .toDartString();
+      checkAPIError(result);
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('setBlockAdsEnabled error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isBlockAdsEnabled() async {
+    try {
+      final res = _ffiService.isBlockAdsEnabled();
+      return right(res != 0);
+    } catch (e, st) {
+      appLogger.error('isBlockAdsEnabled error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, String>> triggerSystemExtension() {
     throw Exception("This is not supported on desktop");
   }
@@ -1160,6 +1186,11 @@ class LanternFFIService implements LanternCoreService {
     throw UnimplementedError();
   }
 
+  @override
+  Future<Either<Failure, Unit>> updateLocal(String locale) {
+    // TODO: implement updateLocal
+    throw UnimplementedError();
+  }
 }
 
 void checkAPIError(dynamic result) {

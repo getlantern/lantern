@@ -118,10 +118,19 @@ begin
   end;
 end;
 
+function OnDownloadProgress(const Url, Filename: String; const Progress, ProgressMax: Int64): Boolean;
+begin
+  if ProgressMax <> 0 then
+    Log(Format('  %d of %d bytes done.', [Progress, ProgressMax]))
+  else
+    Log(Format('  %d bytes done.', [Progress]));
+  Result := True;
+end;
+
 function DownloadToTemp(const Url, FileName: string): string;
 begin
   try
-    Result := DownloadTemporaryFile(Url, FileName);
+    Result := DownloadTemporaryFile(Url, FileName, '', @OnDownloadProgress);
     Log(Format('Downloaded %s to %s', [Url, Result]));
   except
     Log('Download failed for ' + Url + ': ' + GetExceptionMessage);

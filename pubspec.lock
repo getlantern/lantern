@@ -859,10 +859,10 @@ packages:
     dependency: "direct main"
     description:
       name: installed_apps
-      sha256: "19dbde9377f89cf816379d59ba413cf0cea382e63e8d31bebec0f157b967f7c8"
+      sha256: dd2b7c531f91114cd6df447c56567593c9799ca83f057137ae719324ae0afd06
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.0"
+    version: "1.6.0"
   integration_test:
     dependency: "direct dev"
     description: flutter

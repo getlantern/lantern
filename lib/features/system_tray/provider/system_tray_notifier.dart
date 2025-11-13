@@ -77,6 +77,7 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
           key: 'quit',
           label: 'quit'.i18n,
           onClick: (_) async {
+            await ref.read(vpnNotifierProvider.notifier).stopVPN();
             await trayManager.destroy();
             await ref.read(windowNotifierProvider.notifier).close();
           },
