@@ -197,7 +197,9 @@ func ReportIssue(email, issueType, description, device, model, logFilePath strin
 }
 
 func LoadInstalledApps(dataDir string) (string, error) {
-	return lanterncore.LoadInstalledApps(dataDir)
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		return c.LoadInstalledApps(dataDir)
+	})
 }
 
 // User Methods

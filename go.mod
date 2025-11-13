@@ -20,6 +20,7 @@ replace github.com/tetratelabs/wazero => github.com/refraction-networking/wazero
 
 require (
 	github.com/Microsoft/go-winio v0.6.2
+	github.com/alecthomas/assert/v2 v2.3.0
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20250617134205-a652cb0cef27
 	github.com/getlantern/radiance v0.0.0-20251111231527-93acbf433eee
@@ -128,8 +129,8 @@ require (
 	github.com/RoaringBitmap/roaring v1.2.3 // indirect
 	github.com/Xuanwo/go-locale v1.1.3 // indirect
 	github.com/ajwerner/btree v0.0.0-20211221152037-f427b3e689c0 // indirect
-	github.com/alecthomas/assert/v2 v2.3.0 // indirect
 	github.com/alecthomas/atomic v0.1.0-alpha2 // indirect
+	github.com/alecthomas/repr v0.2.0 // indirect
 	github.com/alitto/pond/v2 v2.1.5 // indirect
 	github.com/anacrolix/chansync v0.3.0 // indirect
 	github.com/anacrolix/dht/v2 v2.19.2-0.20221121215055-066ad8494444 // indirect
@@ -191,6 +192,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.1 // indirect
+	github.com/hexops/gotextdiff v1.0.3 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/klauspost/pgzip v1.2.5 // indirect
 	github.com/klauspost/reedsolomon v1.12.0 // indirect

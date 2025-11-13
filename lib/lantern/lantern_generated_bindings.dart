@@ -176,6 +176,34 @@ class LanternBindings {
       _lookup<ffi.NativeFunction<ffi.UintPtr Function()>>('__threadhandle');
   late final ___threadhandle = ___threadhandlePtr.asFunction<int Function()>();
 
+  int _GoStringLen(
+    _GoString_ s,
+  ) {
+    return __GoStringLen(
+      s,
+    );
+  }
+
+  late final __GoStringLenPtr =
+      _lookup<ffi.NativeFunction<ffi.Size Function(_GoString_)>>(
+          '_GoStringLen');
+  late final __GoStringLen =
+      __GoStringLenPtr.asFunction<int Function(_GoString_)>();
+
+  ffi.Pointer<ffi.Char> _GoStringPtr(
+    _GoString_ s,
+  ) {
+    return __GoStringPtr(
+      s,
+    );
+  }
+
+  late final __GoStringPtrPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function(_GoString_)>>(
+          '_GoStringPtr');
+  late final __GoStringPtr =
+      __GoStringPtrPtr.asFunction<ffi.Pointer<ffi.Char> Function(_GoString_)>();
+
   ffi.Pointer<ffi.Void> _calloc_base(
     int _Count,
     int _Size,
@@ -5278,6 +5306,21 @@ class LanternBindings {
   late final _isSplitTunnelingEnabled =
       _isSplitTunnelingEnabledPtr.asFunction<int Function()>();
 
+  ffi.Pointer<ffi.Char> loadInstalledApps(
+    ffi.Pointer<ffi.Char> dataDir,
+  ) {
+    return _loadInstalledApps(
+      dataDir,
+    );
+  }
+
+  late final _loadInstalledAppsPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>)>>('loadInstalledApps');
+  late final _loadInstalledApps = _loadInstalledAppsPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
+
   ffi.Pointer<ffi.Char> getDataCapInfo() {
     return _getDataCapInfo();
   }
@@ -6223,6 +6266,8 @@ const int _HAS_CXX17 = 0;
 const int _HAS_CXX20 = 0;
 
 const int _HAS_CXX23 = 0;
+
+const int _HAS_CXX26 = 0;
 
 const int _HAS_NODISCARD = 1;
 

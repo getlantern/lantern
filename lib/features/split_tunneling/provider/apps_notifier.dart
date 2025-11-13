@@ -54,6 +54,8 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
   SplitTunnelFilterType getFilterType() {
     if (PlatformUtils.isMacOS) {
       return SplitTunnelFilterType.processPathRegex;
+    } else if (PlatformUtils.isWindows) {
+      return SplitTunnelFilterType.processPath;
     }
     return SplitTunnelFilterType.packageName;
   }
@@ -68,6 +70,9 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
       // at, for example:
       // /Applications/Slack.app/Contents/Frameworks/ArcCore.framework/Versions/A/Helpers/Browser Helper.app/Contents/MacOS/Browser Helper
       return '${appData.appPath}/Contents/.*';
+    }
+    if (PlatformUtils.isWindows) {
+      return appData.appPath;
     }
     return appData.bundleId;
   }
