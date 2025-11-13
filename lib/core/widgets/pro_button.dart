@@ -12,7 +12,7 @@ class ProButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PrimaryButton(
-      label: 'Upgrade to Pro',
+      label: 'Upgrade to Pro'.i18n,
       icon: AppImagePaths.crown,
       expanded: true,
       isTaller: true,
