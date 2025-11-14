@@ -1,26 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:integration_test/integration_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:integration_test/integration_test.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/features/private_server/provider/private_server_notifier.dart';
 
-import '../test/fakes/fake_private_server_notifier.dart';
 import '../test/fakes/fake_local_storage_service.dart';
+import '../test/fakes/fake_private_server_notifier.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
+  final dotenvContent = '''
+                      MACOS_APP_GROUP=lantern.test.group
+                      STRIPE_PUBLISHABLE=
+                      WINDOWS_APP_USER_MODEL_ID=
+                      WINDOWS_GUID=
+                      ''';
   setUpAll(() async {
-    dotenv.testLoad(fileInput: '''
-MACOS_APP_GROUP=lantern.test.group
-STRIPE_PUBLISHABLE=
-WINDOWS_APP_USER_MODEL_ID=
-WINDOWS_GUID=
-''');
+    dotenv.loadFromString(envString: dotenvContent);
 
     await sl.reset();
     final appRouter = AppRouter();
@@ -32,8 +33,7 @@ WINDOWS_GUID=
       'Private server flow: GCP -> account -> project -> location -> name -> deploy',
       (WidgetTester tester) async {
     final container = ProviderContainer(overrides: [
-      privateServerProvider
-          .overrideWith(() => FakePrivateServerNotifier()),
+      privateServerProvider.overrideWith(() => FakePrivateServerNotifier()),
     ]);
 
     final appRouter = sl<AppRouter>();

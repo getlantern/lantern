@@ -972,7 +972,7 @@ private suspend fun MethodChannel.Result.mainError(
 ) = withContext(Dispatchers.Main.immediate) { error(code, message, details) }
 
 
-inline fun <T> CoroutineScope.handleValue(
+private inline fun <T> CoroutineScope.handleValue(
     result: MethodChannel.Result,
     errorCode: String,
     crossinline block: suspend () -> T
@@ -982,7 +982,7 @@ inline fun <T> CoroutineScope.handleValue(
         .onFailure { e -> result.mainError(errorCode, e.localizedMessage ?: "Please try again", e) }
 }
 
-inline fun CoroutineScope.handleResult(
+private inline fun CoroutineScope.handleResult(
     result: MethodChannel.Result,
     errorCode: String,
     crossinline block: suspend () -> Unit
