@@ -119,10 +119,14 @@ begin
 end;
 
 function DownloadToTemp(const Url, FileName: string): string;
+var
+  TmpPath: String;
 begin
   try
-    Result := DownloadTemporaryFile(Url, FileName, '', nil);
-    Log(Format('Downloaded %s to %s', [Url, Result]));
+    DownloadTemporaryFile(Url, FileName, '', nil);
+    Log(Format('Downloaded %s', [Url]));
+    TmpPath := ExpandConstant('{tmp}');
+    Result := AddBackslash(TmpPath) + FileName;
   except
     Log('Download failed for ' + Url + ': ' + GetExceptionMessage);
     Result := '';
