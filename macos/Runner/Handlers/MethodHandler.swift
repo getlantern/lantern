@@ -65,7 +65,7 @@ class MethodHandler {
           result(
             FlutterError(
               code: "INVALID_ARGUMENTS",
-              message: "Missing 'enabled' boolean",
+              message: "Missing enabled argument",
               details: nil))
         }
 
@@ -430,6 +430,18 @@ class MethodHandler {
       await MainActor.run {
         result("ok")
       }
+    }
+  }
+
+  private func setSplitTunnelingEnabled(enabled: Bool, result: @escaping FlutterResult) {
+    Task.detached {
+      var error: NSError?
+      MobileSetSplitTunnelingEnabled(enabled, &error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "SET_SPLIT_TUNNELING_FAILED")
+        return
+      }
+      await MainActor.run { result("ok") }
     }
   }
 
