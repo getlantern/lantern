@@ -24,9 +24,11 @@ class ServerMobileView extends StatefulWidget {
 class _ServerMobileViewState extends State<ServerMobileView> {
   @override
   Widget build(BuildContext context) {
+    appLogger.debug("Building ServerMobileView for ${widget.location.city} country ${widget.location.country}");
     return AppTile(
       label: widget.location.city,
       selected: widget.isSelected,
+
       icon: Flag(
         countryCode: CountryUtils.getCountryCode(widget.location.country),
       ),
@@ -36,28 +38,4 @@ class _ServerMobileViewState extends State<ServerMobileView> {
     );
   }
 
-  void onItemTap() {
-    showAppBottomSheet(
-      context: context,
-      title: 'Korea',
-      scrollControlDisabledMaxHeightRatio: .4,
-      builder: (context, scrollController) {
-        return ListView(
-          padding: EdgeInsets.zero,
-          shrinkWrap: true,
-          children: [
-            AppTile(
-              label: 'USA - New Jersey',
-              trailing: Radio<bool>(
-                activeColor: AppColors.gray9,
-                value: true,
-                groupValue: true,
-                onChanged: (value) {},
-              ),
-            )
-          ],
-        );
-      },
-    );
-  }
 }

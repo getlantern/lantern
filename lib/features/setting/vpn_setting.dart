@@ -6,6 +6,8 @@ import 'package:lantern/core/widgets/split_tunneling_tile.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 
+import '../home/provider/local_storage_notifier.dart';
+
 @RoutePage(name: 'VPNSetting')
 class VPNSetting extends HookConsumerWidget {
   const VPNSetting({super.key});
@@ -21,7 +23,8 @@ class VPNSetting extends HookConsumerWidget {
   Widget _buildBody(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
     final isUserPro = ref.isUserPro;
-
+    final isPrivateServerFound =
+        ref.read(localStorageProvider).getPrivateServer().isNotEmpty;
     final preferences = ref.read(appSettingProvider);
     final notifier = ref.watch(appSettingProvider.notifier);
     final splitTunnelingEnabled =
@@ -119,15 +122,16 @@ class VPNSetting extends HookConsumerWidget {
                 onPressed: () => appRouter.push(JoinPrivateServer()),
               ),
               DividerSpace(),
-              AppTile(
-                label: 'manage_private_servers'.i18n,
-                icon: AppImagePaths.settingServer,
-                trailing: AppImage(
-                  path: AppImagePaths.arrowForward,
-                  height: 20,
+              if (isPrivateServerFound)
+                AppTile(
+                  label: 'manage_private_servers'.i18n,
+                  icon: AppImagePaths.settingServer,
+                  trailing: AppImage(
+                    path: AppImagePaths.arrowForward,
+                    height: 20,
+                  ),
+                  onPressed: () => appRouter.push(const ManagePrivateServer()),
                 ),
-                onPressed: () => appRouter.push(const ManagePrivateServer()),
-              ),
             ],
           ),
         ),
