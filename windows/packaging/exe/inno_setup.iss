@@ -55,7 +55,7 @@ Filename: "{sys}\sc.exe"; Parameters: "delete ""{#SvcName}"""; Flags: runhidden
 
 ; Create service
 Filename: "{sys}\sc.exe"; \
-  Parameters: "create ""{#SvcName}"" binPath= """"{app}\lanternsvc.exe"""" start= delayed-auto DisplayName= ""{#SvcDisplayName}"""; \
+  Parameters: "create ""{#SvcName}"" binPath= ""{app}\lanternsvc.exe"" start= delayed-auto DisplayName= ""{#SvcDisplayName}"""; \
   Flags: runhidden
 Filename: "{sys}\sc.exe"; Parameters: "failure ""{#SvcName}"" reset= 60 actions= restart/5000/restart/5000/""""/5000"; Flags: runhidden
 Filename: "{sys}\sc.exe"; Parameters: "failureflag ""{#SvcName}"" 1"; Flags: runhidden
