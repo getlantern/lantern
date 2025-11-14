@@ -55,6 +55,25 @@ class MethodHandler {
         withFilterArgs(call: call, result: result) { filterType, value in
           self.removeItemsToSplitTunnel(result: result, filterType: filterType, value: value)
         }
+
+      case "setSplitTunnelingEnabled":
+        if let map = call.arguments as? [String: Any],
+          let enabled = map["enabled"] as? Bool
+        {
+          self.setSplitTunnelingEnabled(enabled: enabled, result: result)
+        } else {
+          result(
+            FlutterError(
+              code: "INVALID_ARGUMENTS",
+              message: "Missing enabled argument",
+              details: nil))
+        }
+
+      case "isSplitTunnelingEnabled":
+        Task.detached {
+          let enabled = MobileIsSplitTunnelingEnabled()
+          await MainActor.run { result(enabled) }
+        }
       case "enableSplitTunneling":
         self.enableSplitTunneling(result: result)
       case "disableSplitTunneling":
@@ -414,6 +433,18 @@ class MethodHandler {
     }
   }
 
+  private func setSplitTunnelingEnabled(enabled: Bool, result: @escaping FlutterResult) {
+    Task.detached {
+      var error: NSError?
+      MobileSetSplitTunnelingEnabled(enabled, &error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "SET_SPLIT_TUNNELING_FAILED")
+        return
+      }
+      await MainActor.run { result("ok") }
+    }
+  }
+
   private func plans(result: @escaping FlutterResult) {
     Task {
       do {
@@ -426,7 +457,7 @@ class MethodHandler {
               message: error?.description,
               details: error?.localizedDescription))
         }
-          await MainActor.run {
+        await MainActor.run {
           result(data)
         }
       }
@@ -935,7 +966,7 @@ class MethodHandler {
   func validateSession(result: @escaping FlutterResult) {
     Task.detached {
       var error: NSError?
-       MobileValidateSession(&error)
+      MobileValidateSession(&error)
       if let err = error {
         await self.handleFlutterError(
           err, result: result, code: "VALIDATE_SESSION_ERROR")
