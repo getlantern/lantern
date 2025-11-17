@@ -8,17 +8,12 @@ part 'data_cap_info_provider.g.dart';
 class DataCapInfoNotifier extends _$DataCapInfoNotifier {
   @override
   Future<DataCapInfo> build() async {
-    state = AsyncLoading();
-
-    final lanternService = ref.watch(lanternServiceProvider);
-    final result = await lanternService.getDataCapInfo();
+    final result = await ref.read(lanternServiceProvider).getDataCapInfo();
     return result.fold(
       (failure) {
-        state = AsyncError(failure, StackTrace.current);
         throw Exception('Failed to fetch data cap info: $failure');
       },
       (dataCapInfo) {
-        state = AsyncData(dataCapInfo);
         return dataCapInfo;
       },
     );
