@@ -26,7 +26,7 @@ public class Profile {
       let all = try await NETunnelProviderManager.loadAllFromPreferences()
 
       if let existingManager = all.first(where: {
-        $0.localizedDescription == "LanternVPN"
+        $0.localizedDescription == FilePath.vpnProfileName
       }) {
         // Reload existing manager this needed when user switch from any other VPN app
         try await existingManager.loadFromPreferences()
@@ -68,7 +68,7 @@ public class Profile {
     proto.serverAddress = "0.0.0.0"
 
     manager.protocolConfiguration = proto
-    manager.localizedDescription = "LanternVPN"
+    manager.localizedDescription = FilePath.vpnProfileName
     manager.isEnabled = true
 
     // Keep on-demand rules defined, but disabled by default
