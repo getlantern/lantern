@@ -25,12 +25,11 @@ extension FilePath {
     sharedDirectory
     .appendingPathComponent("Logs", isDirectory: true)
 
-    
-    // DO NOT CHANGE THIS
-    // This is used to identify the VPN profile created by Lantern in iOS VPN settings
-    // if this is changed, existing installations of Lantern will not be able to find profile
-    // if needed to change this, a migration path must be implemented
-    public static let vpnProfileName = "LanternVPN"
+  // DO NOT CHANGE THIS
+  // This is used to identify the VPN profile created by Lantern in iOS VPN settings
+  // if this is changed, existing installations of Lantern will not be able to find profile
+  // if needed to change this, a migration path must be implemented
+  public static let vpnProfileName = "LanternVPN"
 }
 
 extension URL {

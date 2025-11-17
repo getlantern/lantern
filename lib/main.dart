@@ -48,11 +48,8 @@ Future<void> main() async {
 
   FutureOr<void> runner() {
     runApp(
-      DevicePreview(
-        enabled: false,
-        builder: (context) => ProviderScope(
-          child: const LanternApp(),
-        ),
+      ProviderScope(
+        child: const LanternApp(),
       ),
     );
   }

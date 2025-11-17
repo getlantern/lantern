@@ -38,7 +38,14 @@ class VPNManager: VPNBase {
   //    Restores the VPN connection status from the system when the user closes the app without disconnecting VPN.
   func restoreVPNStatus() async {
     appLogger.log("Restoring VPN status...")
+    
     do {
+        let vpnManagerFound = await Profile.shared.vpnManagerExists()
+        if( !vpnManagerFound) {
+            appLogger.log("No existing VPN profile found during restore. must be first run.")
+            return
+        }
+            
       guard let manager = await Profile.shared.getManager() else {
         let msg = "Unable to load or create VPN manager."
         appLogger.error(msg)
