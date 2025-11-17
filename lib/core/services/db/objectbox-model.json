@@ -5,7 +5,7 @@
   "entities": [
     {
       "id": "1:8109438054083727979",
-      "lastPropertyId": "7:961998165971833378",
+      "lastPropertyId": "9:6529008235197556438",
       "name": "AppData",
       "properties": [
         {
@@ -42,6 +42,16 @@
         {
           "id": "7:961998165971833378",
           "name": "isEnabled",
+          "type": 1
+        },
+        {
+          "id": "8:3070023067299481568",
+          "name": "lastUpdateTime",
+          "type": 6
+        },
+        {
+          "id": "9:6529008235197556438",
+          "name": "removed",
           "type": 1
         }
       ],

@@ -11,6 +11,8 @@ class AppData {
   String iconPath;
   String appPath;
   bool isEnabled;
+  final int lastUpdateTime;
+  final bool removed;
 
   AppData({
     this.id = 0,
@@ -20,6 +22,8 @@ class AppData {
     this.iconPath = '',
     this.appPath = '',
     this.isEnabled = false,
+    this.lastUpdateTime = 0,
+    this.removed = false,
   });
 
   AppData copyWith({
@@ -30,6 +34,8 @@ class AppData {
     Uint8List? iconBytes,
     String? appPath,
     bool? isEnabled,
+    int? lastUpdateTime,
+    bool? removed,
   }) {
     return AppData(
       id: id ?? this.id,
@@ -39,6 +45,24 @@ class AppData {
       iconBytes: iconBytes ?? this.iconBytes,
       appPath: appPath ?? this.appPath,
       isEnabled: isEnabled ?? this.isEnabled,
+      lastUpdateTime: lastUpdateTime ?? this.lastUpdateTime,
+      removed: removed ?? this.removed,
+    );
+  }
+
+  String cacheKey(int sizePx, int dpi) => '$bundleId@$sizePx@$dpi';
+
+  factory AppData.fromMap(Map<dynamic, dynamic> raw) {
+    final m = Map<String, dynamic>.from(raw);
+    final bundleId = (m['package'] ?? m['bundleId'] ?? '') as String;
+    final name = (m['label'] ?? m['name'] ?? bundleId).toString();
+    return AppData(
+      bundleId: bundleId,
+      name: name,
+      iconPath: (m['iconPath'] as String?) ?? '',
+      appPath: (m['appPath'] as String?) ?? '',
+      lastUpdateTime: (m['lastUpdateTime'] as num?)?.toInt() ?? 0,
+      removed: m['removed'] == true || m['isRemoved'] == true,
     );
   }
 
