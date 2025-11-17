@@ -30,7 +30,7 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
   }
 
   Future<void> ifNeededGetAutoServerLocation() async {
-    final status = ref.read(vpnNotifierProvider);
+    final status = ref.read(vpnProvider);
     if (status == VPNStatus.connected &&
         state.serverType.toServerLocationType == ServerLocationType.auto) {
       appLogger.debug(

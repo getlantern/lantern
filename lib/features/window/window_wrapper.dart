@@ -23,7 +23,7 @@ class _WindowWrapperState extends ConsumerState<WindowWrapper>
     with WindowListener {
   @override
   Widget build(BuildContext context) {
-    ref.watch(windowNotifierProvider);
+    ref.watch(windowProvider);
     return widget.child;
   }
 

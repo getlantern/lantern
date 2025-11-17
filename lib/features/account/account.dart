@@ -30,7 +30,7 @@ class Account extends HookConsumerWidget {
   Widget _buildBody(BuildContext buildContext, WidgetRef ref) {
     final user = sl<LocalStorageService>().getUser();
 
-    final appSettings = ref.read(appSettingNotifierProvider);
+    final appSettings = ref.read(appSettingProvider);
     final theme = Theme.of(buildContext).textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -143,7 +143,7 @@ class Account extends HookConsumerWidget {
         stripeBillingPortal(ref, buildContext);
         break;
       case "ios":
-        ref.read(accountNotifierProvider.notifier).openAppleSubscriptions();
+        ref.read(accountProvider.notifier).openAppleSubscriptions();
         break;
       case "macos":
       case "linux":
@@ -195,7 +195,7 @@ class Account extends HookConsumerWidget {
       appLogger.info('Checking subscription after stripe portal');
       final oldUser = sl<LocalStorageService>().getUser()!;
       final lanternService = ref.read(lanternServiceProvider);
-      final notifier = ref.read(homeNotifierProvider.notifier);
+      final notifier = ref.read(homeProvider.notifier);
 
       await _handleSubscriptionChange(
         oldUser: oldUser,

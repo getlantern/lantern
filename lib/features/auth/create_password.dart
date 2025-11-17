@@ -77,7 +77,7 @@ class CreatePassword extends HookConsumerWidget {
     hideKeyboard();
     context.showLoadingDialog();
     final result = await ref
-        .read(authNotifierProvider.notifier)
+        .read(authProvider.notifier)
         .completeRecoveryByEmail(email, password, code);
 
     result.fold(
@@ -90,7 +90,7 @@ class CreatePassword extends HookConsumerWidget {
       (success) {
         context.hideLoadingDialog();
         appLogger.info('Password created successfully');
-        ref.read(appSettingNotifierProvider.notifier).setUserLoggedIn(true);
+        ref.read(appSettingProvider.notifier).setUserLoggedIn(true);
         resolveRoutes(context, ref);
       },
     );

@@ -1,6 +1,9 @@
+import 'dart:collection';
+import 'dart:convert';
 import 'package:i18n_extension/i18n_extension.dart';
 import 'package:i18n_extension_importer/i18n_extension_importer.dart';
 import 'package:lantern/core/utils/once.dart';
+import 'package:flutter/services.dart';
 
 extension Localization on String {
   static String defaultLocale = 'en_US';
@@ -13,8 +16,7 @@ extension Localization on String {
   ) loadTranslationsOnce = once<Future<Translations>>();
 
   static Future<void> loadTranslations() async {
-    translations +=
-        await GettextImporter().fromAssetDirectory("assets/locales");
+    translations += await fromAssetDirectory("assets/locales");
   }
 
   String get i18n =>
@@ -26,6 +28,23 @@ extension Localization on String {
 
   String args(Map<Object, Object> params) =>
       localizeArgs(this, translations, params);
+}
+
+Future<Map<String, Map<String, String>>> fromAssetDirectory(String dir) async {
+  final manifestContent = await AssetManifest.loadFromAssetBundle(rootBundle);
+  Map<String, Map<String, String>> translations = HashMap();
+
+  for (String path in manifestContent.listAssets()) {
+    if (!path.startsWith(dir)) continue;
+    var fileName = path.split("/").last;
+    if (!fileName.endsWith(".po")) {
+      continue;
+    }
+    var languageCode = fileName.split(".")[0];
+    translations.addAll(await  GettextImporter().fromAssetFile(languageCode, path));
+  }
+
+  return translations;
 }
 
 extension StringExtensions on String {

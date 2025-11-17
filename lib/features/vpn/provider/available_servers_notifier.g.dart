@@ -6,22 +6,50 @@ part of 'available_servers_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$availableServersNotifierHash() =>
-    r'f4d6816b4c78cc352aae956e765360c933e83164';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [AvailableServersNotifier].
 @ProviderFor(AvailableServersNotifier)
-final availableServersNotifierProvider =
-    AsyncNotifierProvider<AvailableServersNotifier, AvailableServers>.internal(
-  AvailableServersNotifier.new,
-  name: r'availableServersNotifierProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$availableServersNotifierHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+const availableServersProvider = AvailableServersNotifierProvider._();
 
-typedef _$AvailableServersNotifier = AsyncNotifier<AvailableServers>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class AvailableServersNotifierProvider
+    extends $AsyncNotifierProvider<AvailableServersNotifier, AvailableServers> {
+  const AvailableServersNotifierProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'availableServersProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$availableServersNotifierHash();
+
+  @$internal
+  @override
+  AvailableServersNotifier create() => AvailableServersNotifier();
+}
+
+String _$availableServersNotifierHash() =>
+    r'dadbf7c0688a380dfd6611d342c47e4f3b0b2b8e';
+
+abstract class _$AvailableServersNotifier
+    extends $AsyncNotifier<AvailableServers> {
+  FutureOr<AvailableServers> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref =
+        this.ref as $Ref<AsyncValue<AvailableServers>, AvailableServers>;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<AsyncValue<AvailableServers>, AvailableServers>,
+        AsyncValue<AvailableServers>,
+        Object?,
+        Object?>;
+    element.handleValue(ref, created);
+  }
+}

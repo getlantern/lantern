@@ -197,7 +197,9 @@ func ReportIssue(email, issueType, description, device, model, logFilePath strin
 }
 
 func LoadInstalledApps(dataDir string) (string, error) {
-	return lanterncore.LoadInstalledApps(dataDir)
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		return c.LoadInstalledApps(dataDir)
+	})
 }
 
 // User Methods
@@ -331,6 +333,12 @@ func DigitalOceanPrivateServer(events utils.PrivateServerEventListener) error {
 
 func GoogleCloudPrivateServer(events utils.PrivateServerEventListener) error {
 	return withCore(func(c lanterncore.Core) error { return c.GoogleCloudPrivateServer(events) })
+}
+
+// ValidateSession validates the current private server session.
+// this will re-trigger validation events and make sure user has added billing info etc.
+func ValidateSession() error {
+	return withCore(func(c lanterncore.Core) error { return c.ValidateSession() })
 }
 
 func SelectAccount(account string) error {

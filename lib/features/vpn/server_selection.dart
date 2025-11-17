@@ -35,7 +35,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
 
   @override
   Widget build(BuildContext context) {
-    var serverLocation = ref.watch(serverLocationNotifierProvider);
+    var serverLocation = ref.watch(serverLocationProvider);
     final isUserPro = ref.isUserPro;
     _textTheme = Theme.of(context).textTheme;
     final isPrivateServerFound = storage.getPrivateServer().isNotEmpty;
@@ -247,7 +247,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
 
   Future<void> onSmartLocation(ServerLocationType type) async {
     final result =
-        await ref.read(vpnNotifierProvider.notifier).startVPN(force: true);
+        await ref.read(vpnProvider.notifier).startVPN(force: true);
     result.fold(
       (failure) {
         context.showSnackBar(failure.localizedErrorMessage);
@@ -260,7 +260,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
           serverLocation: ServerLocationType.auto.name,
         );
         await ref
-            .read(serverLocationNotifierProvider.notifier)
+            .read(serverLocationProvider.notifier)
             .updateServerLocation(serverLocation);
 
         appRouter.popUntilRoot();
@@ -322,8 +322,8 @@ class _ServerLocationListViewState
     extends ConsumerState<ServerLocationListView> {
   @override
   Widget build(BuildContext context) {
-    final availableServers = ref.watch(availableServersNotifierProvider);
-    final serverLocation = ref.watch(serverLocationNotifierProvider);
+    final availableServers = ref.watch(availableServersProvider);
+    final serverLocation = ref.watch(serverLocationProvider);
     const verticalSpacing = 12.0;
 
     return SafeArea(
@@ -393,7 +393,7 @@ class _ServerLocationListViewState
   }
 
   Future<void> onServerSelected(Location_ selectedServer) async {
-    final result = await ref.read(vpnNotifierProvider.notifier).connectToServer(
+    final result = await ref.read(vpnProvider.notifier).connectToServer(
         ServerLocationType.lanternLocation, selectedServer.tag);
 
     result.fold(
@@ -401,7 +401,7 @@ class _ServerLocationListViewState
         context.showSnackBar(failure.localizedErrorMessage);
       },
       (success) async {
-        final vpnStatus = ref.read(vpnNotifierProvider);
+        final vpnStatus = ref.read(vpnProvider);
         if (vpnStatus == VPNStatus.connected) {
           ///User is already connected, just update the server location
           final serverLocation = ServerLocationEntity(
@@ -412,14 +412,14 @@ class _ServerLocationListViewState
                 '${selectedServer.city} [${CountryUtils.getCountryCode(selectedServer.country)}]',
           );
           await ref
-              .read(serverLocationNotifierProvider.notifier)
+              .read(serverLocationProvider.notifier)
               .updateServerLocation(serverLocation);
           appRouter.popUntilRoot();
           return;
         }
 
         ref.listenManual<AsyncValue<LanternStatus>>(
-          vPNStatusNotifierProvider,
+          vPNStatusProvider,
           (previous, next) async {
             if (next is AsyncData<LanternStatus> &&
                 next.value.status == VPNStatus.connected) {
@@ -431,7 +431,7 @@ class _ServerLocationListViewState
                     '${selectedServer.city} [${CountryUtils.getCountryCode(selectedServer.country)}]',
               );
               await ref
-                  .read(serverLocationNotifierProvider.notifier)
+                  .read(serverLocationProvider.notifier)
                   .updateServerLocation(serverLocation);
               appRouter.popUntilRoot();
             }
@@ -459,7 +459,7 @@ class _PrivateServerLocationListViewState
   Widget build(BuildContext context) {
     _textTheme = Theme.of(context).textTheme;
 
-    final userSelectedServer = ref.watch(serverLocationNotifierProvider);
+    final userSelectedServer = ref.watch(serverLocationProvider);
     final servers = _localStorage.getPrivateServer();
     final myServer = servers.where((element) => !element.isJoined).toList();
     final joinedServer = servers.where((element) => element.isJoined).toList();
@@ -622,11 +622,11 @@ class _PrivateServerLocationListViewState
     );
 
     ref
-        .read(serverLocationNotifierProvider.notifier)
+        .read(serverLocationProvider.notifier)
         .updateServerLocation(serverLocation);
 
     /// Connect to the private server
-    final result = await ref.read(vpnNotifierProvider.notifier).connectToServer(
+    final result = await ref.read(vpnProvider.notifier).connectToServer(
         ServerLocationType.privateServer, privateServer.serverName.trim());
 
     result.fold(

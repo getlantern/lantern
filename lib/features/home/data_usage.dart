@@ -10,7 +10,7 @@ class DataUsage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
-    final dataCapAsync = ref.watch(dataCapInfoNotifierProvider);
+    final dataCapAsync = ref.watch(dataCapInfoProvider);
 
     int remainingData = 300;
     int totalData = 500;

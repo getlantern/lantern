@@ -54,7 +54,7 @@ class LanguageListView extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     this.ref = ref;
-    final locale = ref.watch(appSettingNotifierProvider).locale;
+    final locale = ref.watch(appSettingProvider).locale;
     return ListView(
       shrinkWrap: true,
       physics: NeverScrollableScrollPhysics(),
@@ -99,7 +99,7 @@ class LanguageListView extends HookConsumerWidget {
         Locale(language.split('_').first, language.split('_').last);
 
     final result = ref
-        .read(homeNotifierProvider.notifier)
+        .read(homeProvider.notifier)
         .updateLocale(newLocale.toString());
 
     result.then((either) {
@@ -115,7 +115,7 @@ class LanguageListView extends HookConsumerWidget {
     });
 
     ref
-        .read(appSettingNotifierProvider.notifier)
+        .read(appSettingProvider.notifier)
         .setLocale(newLocale.toString());
 
     appRouter.maybePop();

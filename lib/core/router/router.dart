@@ -164,6 +164,10 @@ class AppRouter extends RootStackRouter {
       page: ManagePrivateServer.page,
     ),
     AutoRoute(
+      path: '/add-billing-private-server',
+      page: PrivateServerAddBilling.page,
+    ),
+    AutoRoute(
       path: '/qr-scanner',
       page: QrCodeScanner.page,
     ),

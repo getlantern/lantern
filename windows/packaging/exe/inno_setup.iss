@@ -55,7 +55,7 @@ Filename: "{sys}\sc.exe"; Parameters: "delete ""{#SvcName}"""; Flags: runhidden
 
 ; Create service
 Filename: "{sys}\sc.exe"; \
-  Parameters: "create ""{#SvcName}"" binPath= """"{app}\lanternsvc.exe"""" start= delayed-auto DisplayName= ""{#SvcDisplayName}"""; \
+  Parameters: "create ""{#SvcName}"" binPath= ""{app}\lanternsvc.exe"" start= delayed-auto DisplayName= ""{#SvcDisplayName}"""; \
   Flags: runhidden
 Filename: "{sys}\sc.exe"; Parameters: "failure ""{#SvcName}"" reset= 60 actions= restart/5000/restart/5000/""""/5000"; Flags: runhidden
 Filename: "{sys}\sc.exe"; Parameters: "failureflag ""{#SvcName}"" 1"; Flags: runhidden
@@ -118,20 +118,15 @@ begin
   end;
 end;
 
-function OnDownloadProgress(const Url, Filename: String; const Progress, ProgressMax: Int64): Boolean;
-begin
-  if ProgressMax <> 0 then
-    Log(Format('  %d of %d bytes done.', [Progress, ProgressMax]))
-  else
-    Log(Format('  %d bytes done.', [Progress]));
-  Result := True;
-end;
-
 function DownloadToTemp(const Url, FileName: string): string;
+var
+  TmpPath: String;
 begin
   try
-    Result := DownloadTemporaryFile(Url, FileName, '', @OnDownloadProgress);
-    Log(Format('Downloaded %s to %s', [Url, Result]));
+    DownloadTemporaryFile(Url, FileName, '', nil);
+    Log(Format('Downloaded %s', [Url]));
+    TmpPath := ExpandConstant('{tmp}');
+    Result := AddBackslash(TmpPath) + FileName;
   except
     Log('Download failed for ' + Url + ': ' + GetExceptionMessage);
     Result := '';

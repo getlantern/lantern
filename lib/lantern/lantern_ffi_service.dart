@@ -88,6 +88,7 @@ class LanternFFIService implements LanternCoreService {
         /// keep it alive but we wil use only for VPN calls
         await _initializeWindowsService();
         _status = _windowsService.watchVPNStatus();
+        await _initializeCommandIsolate();
       } else {
         _status = statusReceivePort.map((event) {
           Map<String, dynamic> result = jsonDecode(event);
@@ -116,23 +117,23 @@ class LanternFFIService implements LanternCoreService {
       appLogger.debug("Data dir: ${dataDir.path}, Log dir: $logDir");
       final dataDirPtr = dataDir.path.toCharPtr;
       final logDirPtr = logDir.toCharPtr;
-      final result = await runInBackground<String>(
-        () async {
-          return _ffiService
-              .setup(
-                logDirPtr,
-                dataDirPtr,
-                Localization.defaultLocale.toCharPtr,
-                loggingReceivePort.sendPort.nativePort,
-                appsReceivePort.sendPort.nativePort,
-                statusReceivePort.sendPort.nativePort,
-                privateServerReceivePort.sendPort.nativePort,
-                flutterEventReceivePort.sendPort.nativePort,
-                NativeApi.initializeApiDLData,
-              )
-              .toDartString();
-        },
-      );
+
+      /// ⚠️ IMPORTANT: Call setup() ONLY on the main isolate.
+      /// This function initializes the Dart → Go bridge (Dart DL API) using NativeApi.initializeApiDLData.
+      /// If executed from a background isolate, the Dart DL bridge will break,
+      final result = _ffiService
+          .setup(
+            logDirPtr,
+            dataDirPtr,
+            Localization.defaultLocale.toCharPtr,
+            loggingReceivePort.sendPort.nativePort,
+            appsReceivePort.sendPort.nativePort,
+            statusReceivePort.sendPort.nativePort,
+            privateServerReceivePort.sendPort.nativePort,
+            flutterEventReceivePort.sendPort.nativePort,
+            NativeApi.initializeApiDLData,
+          )
+          .toDartString();
       checkAPIError(result);
       return right(unit);
     } catch (e, st) {
@@ -164,22 +165,49 @@ class LanternFFIService implements LanternCoreService {
 
   @override
   Stream<List<AppData>> appsDataStream() async* {
-    final apps = <AppData>[];
-
-    await for (final message in appsReceivePort) {
-      try {
-        if (message is String) {
-          final List<dynamic> decoded = jsonDecode(message);
-          apps.addAll(decoded
-              .map((json) => AppData.fromJson(json as Map<String, dynamic>))
-              .toList());
-
-          yield [...apps];
-        }
-      } catch (e) {
-        appLogger.error("Failed to decode AppData: $e");
+    try {
+      final String dataDir = (await AppStorageUtils.getAppDirectory()).path;
+      final String json = _ffiService.loadInstalledApps(dataDir.toCharPtr).toDartString();
+      if (json.isEmpty) {
+        appLogger.debug("No installed apps found");
+        yield [];
+        return;
       }
+      appLogger.debug("Loaded installed apps");
+      final decoded = jsonDecode(json) as List<dynamic>;
+      final enabledAppNames = _getEnabledAppNames();
+      final rawApps = decoded.cast<Map<String, dynamic>>();
+      yield _mapToAppData(rawApps, enabledAppNames);
+    } catch (e, st) {
+      appLogger.error("Failed to fetch installed apps", e, st);
+      yield [];
     }
+  }
+
+  List<AppData> _mapToAppData(
+    Iterable<Map<String, dynamic>> rawApps,
+    Set<String> enabledAppNames,
+  ) {
+    return rawApps.map((raw) {
+      final isEnabled = enabledAppNames.contains(raw["name"]);
+      return AppData(
+        name: raw["name"] as String,
+        bundleId: raw["bundleId"] as String,
+        appPath: raw["appPath"] as String? ?? '',
+        iconPath: raw["iconPath"] as String? ?? '',
+        iconBytes: raw["icon"] as Uint8List?,
+        isEnabled: isEnabled,
+      );
+    }).toList();
+  }
+
+  Set<String> _getEnabledAppNames() {
+    final LocalStorageService db = sl<LocalStorageService>();
+    final savedApps = db.getAllApps();
+    return savedApps
+        .where((app) => app.isEnabled)
+        .map((app) => app.name)
+        .toSet();
   }
 
   // Split tunneling
@@ -271,17 +299,34 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> setSplitTunnelingEnabled(bool enabled) {
-    // unimplemented
-    throw 'Unimplemented';
+  Future<Either<Failure, Unit>> setSplitTunnelingEnabled(bool enabled) async {
+    try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService
+              .setSplitTunnelingEnabled(enabled ? 1 : 0)
+              .toDartString();
+        },
+      );
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error setting split tunneling', e, stackTrace);
+      return Left(e.toFailure());
+    }
   }
 
   @override
-  Future<Either<Failure, bool>> isSplitTunnelingEnabled() {
-    // unimplemented
-    throw 'Unimplemented';
+  Future<Either<Failure, bool>> isSplitTunnelingEnabled() async {
+    try {
+      final enabledInt = _ffiService.isSplitTunnelingEnabled();
+      final enabled = enabledInt != 0;
+      return right(enabled);
+    } catch (e) {
+      return Left(e.toFailure());
+    }
   }
-
+  
   @override
   Future<Either<Failure, DataCapInfo>> getDataCapInfo() async {
     try {
@@ -820,6 +865,22 @@ class LanternFFIService implements LanternCoreService {
   @override
   Stream<PrivateServerStatus> watchPrivateServerStatus() {
     return _privateServerStatus;
+  }
+
+  @override
+  Future<Either<Failure, Unit>> validateSession() async {
+    try {
+      final result = await runInBackground<String>(
+        () async {
+          return _ffiService.validateSession().toDartString();
+        },
+      );
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.info('Error validating session', e, stackTrace);
+      return Left(e.toFailure());
+    }
   }
 
   @override

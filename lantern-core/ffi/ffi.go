@@ -146,7 +146,7 @@ func addSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
 	if err := c.AddSplitTunnelItem(filterType, item); err != nil {
 		return C.CString(fmt.Sprintf("error adding item: %v", err))
 	}
-	slog.Debug("added %s split tunneling item %s", filterType, item)
+	slog.Debug("added split tunneling item", "filterType", filterType, "item", item)
 	return nil
 }
 
@@ -162,7 +162,7 @@ func removeSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
 	if err := c.RemoveSplitTunnelItem(filterType, item); err != nil {
 		return C.CString(fmt.Sprintf("error removing item: %v", err))
 	}
-	slog.Debug("removed %s split tunneling item %s", filterType, item)
+	slog.Debug("removed split tunneling item", "filterType", filterType, "item", item)
 	return nil
 }
 
@@ -187,6 +187,19 @@ func isSplitTunnelingEnabled() C.int {
 		return 1
 	}
 	return 0
+}
+
+//export loadInstalledApps
+func loadInstalledApps(dataDir *C.char) *C.char {
+	c, errStr := requireCore()
+	if errStr != nil {
+		return errStr
+	}
+	appsJson, err := c.LoadInstalledApps(C.GoString(dataDir))
+	if err != nil {
+		return C.CString(fmt.Sprintf("error loading installed apps: %v", err))
+	}
+	return C.CString(appsJson)
 }
 
 //export getDataCapInfo
@@ -734,6 +747,19 @@ func selectProject(_project *C.char) *C.char {
 		return SendError(fmt.Errorf("Error getting selected project: %v", err))
 	}
 	slog.Debug("Selected project:", "project", project)
+	return C.CString("ok")
+}
+
+// validateSession validates the session for the private server.
+//
+//export validateSession
+func validateSession() *C.char {
+	slog.Debug("Validating session")
+	err := core().ValidateSession()
+	if err != nil {
+		return SendError(fmt.Errorf("Error validating session: %v", err))
+	}
+	slog.Debug("Session validated successfully")
 	return C.CString("ok")
 }
 

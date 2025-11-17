@@ -29,7 +29,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
   @override
   Widget build(BuildContext context) {
     textTheme = Theme.of(context).textTheme;
-    final servers = ref.watch(manageServerNotifierProvider);
+    final servers = ref.watch(manageServerProvider);
     appLogger.debug("Servers: $servers");
     final myServer = servers.where((element) => !element.isJoined).toList();
     final joinedServer = servers.where((element) => element.isJoined).toList();
@@ -206,7 +206,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
     }
     context.showLoadingDialog();
     final result = await ref
-        .read(privateServerNotifierProvider.notifier)
+        .read(privateServerProvider.notifier)
         .inviteToServerManagerInstance(
             server.externalIp, server.port, server.accessToken, inviteName);
 
@@ -377,6 +377,6 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
   }
 
   void onDelete(String serverName) {
-    ref.read(manageServerNotifierProvider.notifier).deleteServer(serverName);
+    ref.read(manageServerProvider.notifier).deleteServer(serverName);
   }
 }

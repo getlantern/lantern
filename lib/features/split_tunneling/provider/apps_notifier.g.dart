@@ -6,22 +6,56 @@ part of 'apps_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$splitTunnelingAppsHash() =>
-    r'b205677d4183f8c3b58e2c6c1d45b9f48887cdfe';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [SplitTunnelingApps].
 @ProviderFor(SplitTunnelingApps)
-final splitTunnelingAppsProvider =
-    NotifierProvider<SplitTunnelingApps, Set<AppData>>.internal(
-  SplitTunnelingApps.new,
-  name: r'splitTunnelingAppsProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$splitTunnelingAppsHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+const splitTunnelingAppsProvider = SplitTunnelingAppsProvider._();
 
-typedef _$SplitTunnelingApps = Notifier<Set<AppData>>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class SplitTunnelingAppsProvider
+    extends $NotifierProvider<SplitTunnelingApps, Set<AppData>> {
+  const SplitTunnelingAppsProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'splitTunnelingAppsProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$splitTunnelingAppsHash();
+
+  @$internal
+  @override
+  SplitTunnelingApps create() => SplitTunnelingApps();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Set<AppData> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Set<AppData>>(value),
+    );
+  }
+}
+
+String _$splitTunnelingAppsHash() =>
+    r'17120dba1c32311cd62f64c5233007a2cf152f24';
+
+abstract class _$SplitTunnelingApps extends $Notifier<Set<AppData>> {
+  Set<AppData> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<Set<AppData>, Set<AppData>>;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<Set<AppData>, Set<AppData>>,
+        Set<AppData>,
+        Object?,
+        Object?>;
+    element.handleValue(ref, created);
+  }
+}

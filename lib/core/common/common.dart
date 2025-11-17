@@ -107,7 +107,7 @@ Future<bool> checkUserAccountStatus(WidgetRef ref, BuildContext context) async {
           // User has bought a plan
           // update user data
           appLogger.info("User is Pro: ${newUser.legacyUserData.email}");
-          ref.read(homeNotifierProvider.notifier).updateUserData(newUser);
+          ref.read(homeProvider.notifier).updateUserData(newUser);
         }
         return isPro;
       },

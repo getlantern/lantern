@@ -1,21 +1,14 @@
 # 
 # Translators:
-# Abdelaziz “Azhou” Houcini <azhouhou@gmail.com>, 2022
-# محيي الدين <tx99h4@hotmail.com>, 2022
-# Layla Taha <layla@asl19.org>, 2022
-# ouss <oussjarrouse@gmail.com>, 2023
-# Mhawesh, 2023
-# Abdulaziz AlObaili <dr.alobaili@gmail.com>, 2023
-# Lantern, 2023
-# dc64c51d94429ef6835e68b9062d8713_f0bbcb2 <c1f4e6afa4193d416d7a55f63ee75536_721142>, 2023
-# Rima Sghaier, 2024
-# lamine Kacimi <k_lamine27@yahoo.fr>, 2024
-# Abed Abedd <abderrahman.younis@gmail.com>, 2024
-# e2f <projects@e2f.com>, 2024
-# tx_e2f_ar_r5 tx_e2f_ar_r5, 2024
-# 6ad90dadbe5d08991a98500e1efbdbb4_9d79615 <7392e61add82b364ab0393a04573af48_721156>, 2024
-# Amin Jobran, 2024
-# 160565ee57b988ee904d03fec374ff93_4f79b8c <73ec7ace4de62e6bb6454cb54e990a4d_721149>, 2024
+# lamine Kacimi <k_lamine27@yahoo.fr>, 2025
+# Rima Sghaier, 2025
+# e2f <projects@e2f.com>, 2025
+# Abed Abedd <abderrahman.younis@gmail.com>, 2025
+# Amin Jobran, 2025
+# dc64c51d94429ef6835e68b9062d8713_f0bbcb2 <c1f4e6afa4193d416d7a55f63ee75536_721142>, 2025
+# tx_e2f_ar_r5 tx_e2f_ar_r5, 2025
+# Mhawesh, 2025
+# 6ad90dadbe5d08991a98500e1efbdbb4_9d79615 <7392e61add82b364ab0393a04573af48_721156>, 2025
 # Derek F <derek@getlantern.org>, 2025
 # 
 msgid ""
@@ -28,1703 +21,67 @@ msgstr ""
 msgid "app_name"
 msgstr "Lantern"
 
-msgid "introducing"
-msgstr "تقديم الدردشة"
-
-msgid "introducing_des"
-msgstr ""
-"يمكنك إجراء الدردشة بشكل آمن مع الأصدقاء باستخدام الدردشة الجديدة المشفرة "
-"المقاومة للحظر والمدمجة مباشرة في تطبيق Lantern!"
-
-msgid "maybe_later"
-msgstr "ربما لاحقًا"
-
-msgid "try"
-msgstr "جربه"
-
-msgid "sign_in"
-msgstr "تسجيل الدخول"
-
-msgid "enter_email"
-msgstr "أدخل البريد الإلكتروني"
-
-msgid "enter_password"
-msgstr "أدخل كلمة المرور"
-
-msgid "forgot_password"
-msgstr "نسيت كلمة المرور"
-
-msgid "forgot_your_password"
-msgstr "هل نسيت كلمة المرور؟"
-
-msgid "click_here"
-msgstr "انقر هنا"
-
-msgid "reset_password"
-msgstr "إعادة تعيين كلمة المرور"
-
-msgid "lantern_pro_email"
-msgstr "بريد إلكتروني Lantern Pro"
-
-msgid "return_to_sign_in"
-msgstr "العودة إلى تسجيل الدخول"
-
-msgid "enter_confirmation_code"
-msgstr "أدخل رمز التأكيد"
-
-msgid "confirmation_code_msg"
-msgstr ""
-"تم إرسال رمز تأكيد إلى XX. أدخله هنا لتأمين حسابك وتمكين استرداد كلمة "
-"المرور."
-
-msgid "resend_confirmation_code"
-msgstr "إعادة إرسال بريد إلكتروني بالتأكيد"
-
-msgid "email_already_exists"
-msgstr "البريد الإلكتروني موجود بالفعل"
-
-msgid "email_already_exists_msg"
-msgstr ""
-"هذا البريد الإلكتروني مسجّل بالفعل، إذا كان لديك حساب بهذا البريد "
-"الإلكتروني، يمكنك استرداده. إذا لم يكن لديك حساب، يرجى العودة واختيار عنوان "
-"بريد إلكتروني مختلف."
-
-msgid "recover_account"
-msgstr "استرداد الحساب"
-
-msgid "back"
-msgstr "الرجوع"
-
-msgid "change_email"
-msgstr "تغيير البريد الإلكتروني"
-
-msgid "new_password"
-msgstr "كلمة مرور جديدة"
-
-msgid "confirm_new_password"
-msgstr "تأكيد كلمة المرور الجديدة"
-
-msgid "already_have_an_account"
-msgstr "هل لديك حساب بالفعل؟"
-
-msgid "create_account"
-msgstr "إنشاء حساب"
-
-msgid "create_password"
-msgstr "إنشاء كلمة السر"
-
-msgid "by_creating_an_account"
-msgstr "عند إنشاء حساب، فإنك توافق على"
-
-msgid "confirm_email"
-msgstr "أكّد البريد الاكتروني"
-
-msgid "update_pro_account"
-msgstr "تحديث حساب Pro"
-
-msgid "update_pro_account_message"
-msgstr ""
-"تطرأ حاليًا تغييرات على Lantern Pro! الآن، ستحتاج إلى بريد إلكتروني وكلمة "
-"مرور لتسجيل الدخول على جميع الأجهزة، وللوصول إلى إدارة الحساب. يرجى تخصيص "
-"بضع لحظات لإضافة هذه البيانات إلى حسابك."
-
-msgid "not_now"
-msgstr "ليس الأن"
-
-msgid "update_account"
-msgstr "تحديث الحساب"
-
-msgid "new"
-msgstr "جديد"
-
-msgid "Daily Data Usage"
-msgstr "الاستخدام اليومي للبيانات"
-
-msgid "is"
-msgstr "يتم الآن"
-
-msgid "connect"
-msgstr "اتصال"
-
-msgid "disconnect"
-msgstr "قطع الاتصال"
-
-msgid "connected"
-msgstr "موصول"
-
-msgid "Disconnected"
-msgstr "مفصول"
-
-msgid "Disconnecting"
-msgstr "قطع الاتصال"
-
-msgid "Connecting"
-msgstr "ربط ..."
-
-msgid "no_network_connection"
-msgstr "لا يوجد اتصال بالشبكة"
-
-msgid "connection_error"
-msgstr "خطأ في الإتصال"
-
-msgid "connection_error_des"
-msgstr ""
-"يواجه تطبيق Lantern مشكلات في الاتصال بخوادمنا. يُرجى إعادة تشغيل التطبيق. "
-"أما إذا استمرت هذه المشكلة، فيُرجى الاتصال بالدعم."
-
-msgid "connection_error_button"
-msgstr "الاتصال بالدعم"
-
-msgid "Calling"
-msgstr "جارٍ الاتصال..."
-
-msgid "Go Pro Title"
-msgstr "الترقية إلى النسخة الاحترافية!"
-
-msgid "Go Pro Description"
-msgstr "افتح سرعات أسرع، تجربة خالية من الإعلانات، وبيانات غير محدودة! "
-
-msgid "Server Location"
-msgstr "موقع الخادم"
-
-msgid "Server Location Info"
-msgstr ""
-"تستخدم Lantern باقة خادم ذكي لربطك تلقائيًا بأفضل مراكز البيانات لدينا."
-
-msgid "OK"
-msgstr "حسناً"
-
-msgid "Done"
-msgstr "تم"
-
-msgid "backup_recovery_key"
-msgstr "مفتاح استرداد النسخة الاحتياطية"
-
-msgid "delete_chat_data"
-msgstr "حذف جميع بيانات الدردشة"
-
-msgid "delete_chat_data_description"
-msgstr ""
-"سيؤدي هذا الأمر إلى حذف رقم الدردشة وجهات الاتصال والرسائل من هذا الجهاز. "
-"بدون مفتاح استرداد النسخة الاحتياطية، ستفقد إمكانية الوصول إلى رقم الدردشة "
-"الخاص بك."
-
-msgid "delete_chat_data_confirmation"
-msgstr "أؤكد رغبتي في حذف بيانات الدردشة"
-
-msgid "Pro Account Management"
-msgstr "إدارة حساب برو"
-
-msgid "link_device"
-msgstr "ربط  الجهاز"
-
-msgid "Upgrade to Lantern Pro"
-msgstr "الترقية الى لاتيرن برو"
-
-msgid "Invite Friends"
-msgstr "ادعو أصدقائك"
-
-msgid "share_lantern_pro"
-msgstr ""
-"شارك حساب Lantern Pro مع أحد أصدقائك! عندما يستخدم صديقك رمز الإحالة المخصص "
-"لك أثناء شرائه حساب Lantern Pro، فسيحصل كلاكما على خدمة Lantern Pro مجانًا "
-"لمدة شهر واحد!"
-
-msgid "privacy_disclosure_title"
-msgstr "الكشف عن خصوصية لانترن"
-
-msgid "privacy_disclosure_body"
-msgstr ""
-"تلتزم لانترن بحماية خصوصيتك. نود أن تفهم نوع المعلومات التي نجمعها، ونوع "
-"المعلومات التي لا نجمعها، وكيف نستخدمها، وكيف نُخزنها. نحن لا نربط معلومات "
-"الدفع الخاصة بك بحسابك على لانترن برو. ولا نجمع سجلات نشاطك، بما في ذلك عدم "
-"تسجيل محفوظات التصفح، أو وجهة البيانات، أو محتوى البيانات، أو استعلامات نظام"
-" أسماء النطاقات (DNS). كما أننا لا نُخزن مطلقًا سجلات الاتصال، أي لا يتم "
-"إنشاء أي سجلات عن عنوان بروتوكول الإنترنت (IP)، أو عنوان بروتوكول الإنترنت "
-"لخادم لانترن الصادر الخاص بك المرتبط بالطابع الزمني للاتصال، أو مدة الجلسة. "
-"نظرًا لحساب لانترن برو المحدد، يتعذر على لانترن من الناحية التقنية ربط حساب "
-"لانترن بهوية المستخدم الحقيقية. ومع وجود عنوان بروتوكول الإنترنت (IP) وطابع "
-"زمني دقيق في لانترن، يتعذر على لانترن من الناحية التقنية منح عنوان بروتوكول "
-"الإنترنت هذا إلى مستخدم لانترن أو  عنوان بروتوكول الإنترنت الخاص بمستخدم "
-"لانترن."
-
-msgid "privacy_disclosure_accept"
-msgstr "موافق"
-
-msgid "desktop_version"
-msgstr "نسخة سطح المكتب"
+msgid "upgrade_to_pro"
+msgstr "الترقية إلى برو"
 
 msgid "settings"
-msgstr "الاعدادات"
-
-msgid "general"
-msgstr "عام"
-
-msgid "about"
-msgstr "حول"
-
-msgid "proxy_all"
-msgstr "كل شيء على البروكسي"
-
-msgid "proxy_everything_is"
-msgstr "كل شيء على الوكيل هو %s"
-
-msgid "version_number"
-msgstr "الإصدار %s"
-
-msgid "build_number"
-msgstr "البنية %s"
-
-msgid "sdk_version"
-msgstr "SDK %s"
-
-msgid "language"
-msgstr "لغة"
-
-msgid "select_an_issue"
-msgstr "يرجى اختيار مشكلة"
-
-msgid "enter_description"
-msgstr "يرجى وصف مشكلتك "
-
-msgid "cannot_access_blocked_sites"
-msgstr "لا يمكن الوصول الى المواقع المحظورة"
-
-msgid "cannot_complete_purchase"
-msgstr "لا يمكن إكمال عملية الشراء"
-
-msgid "discover_not_working"
-msgstr "خاصية Discover لا تعمل"
-
-msgid "cannot_sign_in"
-msgstr "لا يُمكن تسجيل الدخول"
-
-msgid "spinner_loads_endlessly"
-msgstr "العجلة تدور بلا نهاية"
-
-msgid "slow"
-msgstr "بطئ"
-
-msgid "cannot_link_devices"
-msgstr "لا يمكن ربط الأجهزة"
-
-msgid "wrong_device_linking_code"
-msgstr "رامز ربط الجهاز خاطئ أو غير صالح"
-
-msgid "cannot_remove_device"
-msgstr "لا يمكن إزالة الجهاز "
-
-msgid "application_crashes"
-msgstr "تعطل التطبيق"
-
-msgid "other"
-msgstr "أخرى"
-
-msgid "issue_description"
-msgstr "وصف مشكلتك "
-
-msgid "check_for_updates"
-msgstr "تحقق من وجود تحديثات"
-
-msgid "blocked_users"
-msgstr "المستخدمون المحظورون"
-
-msgid "description_proxy_all_dialog"
-msgstr ""
-"في حال التمكين، يُجرى إرسال نسبة استخدام الشبكة من قبل Lantern (أكثر "
-"أمانًا). في حال عدم التمكين، يُجرى إرسال نسبة استخدام الشبكة المحظورة من قبل"
-" Lantern (أسرع)."
-
-msgid "Account"
-msgstr "حساب"
-
-msgid "VPN Status"
-msgstr "حالة VPN"
-
-msgid "VPN"
-msgstr "VPN"
-
-msgid "Authorize Device for Pro"
-msgstr "منح إذن للجهاز لحساب برو"
-
-msgid "Authorize with Device Linking Pin"
-msgstr "المصادقة مع رقم التعريف الشخصي لربط الجهاز"
-
-msgid "Requires physical access to a Lantern Pro Device"
-msgstr "يحتاج إلى وصول فعلي إلى جهاز لانترن برو"
-
-msgid "Link with PIN"
-msgstr "ربط من خلال PIN"
-
-msgid "OR"
-msgstr "أو"
-
-msgid "device_linking_pin"
-msgstr "رقم التعريف الشخصي لربط الجهاز"
-
-msgid "link_device_step_one"
-msgstr "افتح عنصر القائمة \"إضافة جهاز\" على جهاز Pro الخاص بك. "
-
-msgid "link_device_step_two"
-msgstr "أدخل رقم PIN لربط الجهاز واضغط على إرسال "
-
-msgid "ensure_most_recent_version_lantern"
-msgstr "* تأكد من أن كلا الجهازين يعملان بأحدث إصدار من Lantern"
-
-msgid "Authorize Device via Email"
-msgstr "مصادقة الجهاز عبر البريد الإلكتروني"
-
-msgid "auth_email_helper_text"
-msgstr "أدخل البريد الإلكتروني المرتبط بحساب Pro الخاص بك"
-
-msgid "Requires access to the email you used to buy Lantern Pro"
-msgstr "يحتاج إلى الوصول إلى البريد الإلكتروني الذي تستخدمه لشراء لانترن برو"
-
-msgid "Link via Email"
-msgstr "ربط عبر البريد الإلكتروني"
-
-msgid "lantern_desktop"
-msgstr "لانترن للكمبيوتر المكتبي"
-
-msgid "report_description"
-msgstr "وصف المشكلة"
-
-msgid "report_issue"
-msgstr "الإبلاغ عن مشكلة "
+msgstr "الإعدادات"
 
 msgid "report_an_issue"
-msgstr "ابلاغ عن مشكلة"
+msgstr "الإبلاغ عن مشكلة"
 
-msgid "report_sent"
-msgstr "تم إرسال التقرير"
+msgid "lantern_projects"
+msgstr "مشاريع Lantern:"
 
-msgid "thank_you_for_reporting_your_issue"
+msgid "invite_friends"
+msgstr "دعوة الأصدقاء"
+
+msgid "your_referral_code"
+msgstr "رمز الإحالة الخاص بك"
+
+msgid "invite_friends_message"
 msgstr ""
-"نشكرك على الإبلاغ عن المشكلة، وسنوافيك برسالة إلكترونية في أقرب فرصة ممكنة"
-
-msgid "send_report"
-msgstr "إرسال تقرير"
-
-msgid "most_recent_lantern_apps"
-msgstr ""
-"يمكن العثور على أحدث تطبيقات لانترن لسطح المكتب وجميع المنصات الأخرى على "
-"الرابط أعلاه."
-
-msgid "share_link"
-msgstr "الإبلاغ عن مشكلة "
-
-msgid "share_title"
-msgstr "مشاركة رابط تنزيل لانترن"
-
-msgid "email"
-msgstr "البريد الاكتروني"
-
-msgid "Submit"
-msgstr "ارسال"
-
-msgid "save"
-msgstr "حفظ"
-
-msgid "please_enter_a_valid_email_address"
-msgstr "يرجى إدخال عنوان بريد إلكتروني صالح"
-
-msgid "bonus"
-msgstr "الإضافة"
-
-msgid "referral_bonus"
-msgstr "إضافة الإحالة"
-
-msgid "total"
-msgstr "المجموع"
-
-msgid "month"
-msgstr "الشهر"
-
-msgid "months"
-msgstr "الشهور"
-
-msgid "enter_email_to_complete_purchase"
-msgstr "أدخل البريد الإلكتروني لإكمال الشراء "
-
-msgid "error_fetching_plans"
-msgstr "حدث خطأ أثناء إحضار الخطط، تُرجى إعادة تشغيل Lantern وإعادة المحاولة."
-
-msgid "apply"
-msgstr "تطبيق"
-
-msgid "choose_payment_method"
-msgstr "اختر وسيلة الدفع"
-
-msgid "pro_plan"
-msgstr "خطة Pro"
-
-msgid "one_month_plan"
-msgstr "خطة لمدة 1 شهر"
-
-msgid "one_year_plan"
-msgstr "خطة لمدة عام واحد"
-
-msgid "two_year_plan"
-msgstr "خطة لمدة عامين"
-
-msgid "plan_discount"
-msgstr "وفر %d%%"
-
-msgid "enter_email_and_activation_code"
-msgstr "أدخِل البريد الإلكتروني ورمز التنشيط"
-
-msgid "referral_code"
-msgstr "رمز الإحالة"
+"شارك رمز الإحالة الخاص بك مع صديق. عندما يقومون بشراء Lantern Pro، ستحصلان "
+"كلاكما على وقت إضافي: "
 
 msgid "share_referral_code"
-msgstr "مشاركة كود الإحالة "
+msgstr "مشاركة رمز الإحالة"
 
-msgid "share_message_referral_code"
-msgstr ""
-"للحصول على شهر مجاني من Lantern Pro، استخدم كود الإحالة هذا: %s ; يمكنك "
-"تنزيله من هنا: https://lantern.io/download "
+msgid "unbounded"
+msgstr "Unbounded"
 
-msgid "add_referral_code"
-msgstr "أضف رمز الإحالة"
+msgid "help_fight_global_internet_censorship"
+msgstr "ساعد في مكافحة الرقابة العالمية على الإنترنت"
 
-msgid "Activation Code"
-msgstr "رمز التنشيط"
-
-msgid "invalid_or_incomplete_referral_code"
-msgstr "رمز الإحالة غير صالح أو غير كامل"
-
-msgid "register_for_pro"
-msgstr "التسجيل لـ Pro"
-
-msgid "Something went wrong while applying your referral code."
-msgstr "حدث خطأ ما أثناء تطبيق رمز الإحالة المخصص لك."
-
-msgid "your_activation_code_is_invalid"
-msgstr "إن رمز التنشيط الذي أدخلته غير صالح"
-
-msgid "update_cache_plans_timeout"
-msgstr "حدث خطأ ما أثناء إحضار الخطط المتاحة."
-
-msgid "bitcoin_timeout"
-msgstr "انتهى وقت طلب BTCPay."
-
-msgid "BTCPay is unavailable"
-msgstr "إن BTCPay غير متاح"
-
-msgid "update_cache_user_timeout"
-msgstr "حدث خطأ ما أثناء إحضار بيانات حسابك."
-
-msgid "reseller_timeout"
-msgstr "حدث خطأ ما أثناء التحقق من صحة رمز التنشيط الذي أدخلته."
-
-msgid "wrong_reseller_code"
-msgstr "رمز تنشيط غير صالح"
-
-msgid "reseller_success"
-msgstr "نجح استرداد رمز التنشيط."
-
-msgid "stripe_timeout"
-msgstr ""
-"انتهى وقتك المخصص للدفع عبر Stripe، تُرجى إعادة تشغيل Lantern وإعادة "
-"المحاولة."
-
-msgid "stripe_success"
-msgstr "نجحت عملية الشراء عبر Stripe."
-
-msgid "renewal_success"
-msgstr "نجحت إعادة التجديد"
-
-msgid "pro_renewal_success_description"
-msgstr ""
-"شكرًا لك من أجل تجديد حسابك على Lantern Pro. لديك الآن وصول غير محدود "
-"باستخدام أسرع مراكز البيانات لدينا. يمكنك ربط ما يصل إلى ثلاثة أجهزة بحسابك."
-" "
-
-msgid "pro_purchase_success"
-msgstr "مرحبًا بك في Lantern Pro"
-
-msgid "platinum_purchase_success_descripion"
-msgstr ""
-"لديك الآن وصول غير محدود باستخدام أسرع مراكز البيانات والخط المخصص لدينا. "
-"يمكنك ربط ما يصل إلى ثلاثة أجهزة بحسابك. "
-
-msgid "pro_purchase_success_descripion"
-msgstr ""
-"لديك الآن وصول غير محدود باستخدام أسرع مراكز البيانات لدينا. يمكنك ربط ما "
-"يصل إلى ثلاثة أجهزة بحسابك. "
-
-msgid "by_clicking_tos"
-msgstr "عند النقر على %s، فإنك توافق على"
-
-msgid "tos"
-msgstr "شروط الخدمة"
-
-msgid "step_1"
-msgstr "الخطوة 1"
-
-msgid "step_2"
-msgstr "الخطوة 2"
-
-msgid "step_3"
-msgstr "الخطوة 3"
-
-msgid "invalid_email"
-msgstr "عنوان البريد الإلكتروني غير صالح"
-
-msgid "invalid_card"
-msgstr "رقم بطاقة الإئتمان غير صالح"
-
-msgid "invalid_expiration"
-msgstr "تاريخ انتهاء صلاحية غير صالح"
-
-msgid "cc_number"
-msgstr "بطاقة ائتمانية"
-
-msgid "card_number"
-msgstr "رقم البطاقة"
-
-msgid "card_expiration"
-msgstr "شهر/سنة"
-
-msgid "invalid_cvc"
-msgstr "رمز CVC غير صالح"
-
-msgid "complete_purchase"
-msgstr "إكمال الشراء"
-
-msgid "Re-send Email"
-msgstr "إعادة إرسال البريد الإلكتروني"
-
-msgid "Paste from clipboard?"
-msgstr "لصق من الحافظة؟"
-
-msgid "Yes"
-msgstr "نعم"
-
-msgid "No"
-msgstr "لا"
-
-msgid "exit"
-msgstr "خروج "
-
-msgid "show"
-msgstr "عرض "
-
-msgid "status_on"
-msgstr "الحالة: تشغيل "
-
-msgid "status_off"
-msgstr "الحالة: إيقاف "
-
-msgid "Enter or paste linking code"
-msgstr "أدخل أو الصق رمز الربط"
-
-msgid "recovery_email_sent"
-msgstr ""
-"تم إرسال رمز PIN للربط إلى %s إذا كان هذا الحساب موجودًا. أدخل رقم التعريف "
-"الشخصي من هذا البريد الإلكتروني أعلاه. قد يستغرق البريد الإلكتروني عدة ساعات"
-" للوصول."
-
-msgid "Add Device"
-msgstr "أضف جهاز"
-
-msgid "approve_device_step_1"
-msgstr ""
-"افتح \"مصادقة الجهاز لحساب Pro\" من قائمة الحساب الموجودة على الجهاز الذي "
-"ترغب في ربطه، ثم حدد \"ربط برقم التعريف الشخصي PIN\"."
-
-msgid "approve_device_step_2"
-msgstr "أدخل رمز الربط الذي تم الحصول عليه من الخطوة 1"
-
-msgid "Pro Account Expiration"
-msgstr "انتهاء صلاحية حساب Pro"
-
-msgid "Renew"
-msgstr "اعادة التجديد"
-
-msgid "pro_devices_header"
-msgstr "أجهزة Lantern Pro (تصل إلى 3)"
-
-msgid "Remove"
-msgstr "ازالة"
-
-msgid "Log Out"
-msgstr "تسجيل الخروج"
-
-msgid "confirm_remove_device"
-msgstr "هل أنت متأكد من أنك تريد فك ربط هذا الجهاز مع حساب برو؟"
-
-msgid "confirm_close_window"
-msgstr "هل أنت متأكد أنك تريد إغلاق Lantern؟ "
-
-msgid "unlimited_data"
-msgstr "بيانات غير محدودة"
-
-msgid "no_logs"
-msgstr "لا توجد سجلات"
-
-msgid "no_ads"
-msgstr "بدون إعلانات"
-
-msgid "choose_plan"
-msgstr "اختر الخطة"
-
-msgid "billed_one_time"
-msgstr "تمت الفوترة مرة واحدة "
-
-msgid "connect_up_to_3_devices"
-msgstr "توصيل ما يصل إلى 3 أجهزة"
-
-msgid "faster_data_centers"
-msgstr "مراكز بيانات أكثر سرعة"
-
-msgid "dedicated_line"
-msgstr "الخط المخصص"
-
-msgid "increased_reliability"
-msgstr "الموثوقية الزائدة"
-
-msgid "checkout"
-msgstr "الدفع"
-
-msgid "credit_card"
-msgstr "بطاقة ائتمانية"
-
-msgid "lantern_pro_checkout"
-msgstr "الدفع لحساب لانترن برو"
-
-msgid "1y_pricing"
-msgstr "سعر شراء عام واحد"
-
-msgid "2y_pricing"
-msgstr "سعر شراء عامين"
-
-msgid "plan_type"
-msgstr "نوع الخطة"
-
-msgid "most_popular"
-msgstr "الأكثر شيوعًا"
-
-msgid "free"
-msgstr "مجانًا"
-
-msgid "n/a"
-msgstr "لا ينطبق"
-
-msgid "Developer Settings"
-msgstr "إعدادات المطور"
-
-msgid "Developer"
-msgstr "المطور"
-
-msgid "dev_settings"
-msgstr ""
-"هذه الإعدادات مُخصصة للاستخدام في التطوير فقط. سيؤدي تغيير أي إعدادات إلى "
-"إيقاف التطبيق وإعادة تشغيله تلقائيًا."
-
-msgid "dev_payment_mode"
-msgstr ""
-"عند تمكين \"وضع اختبار الدفع\"، عندئِذٍ يستخدم التطبيق مستخدمًا واحدًا "
-"مضمّنًا. يمكنك إجراء عمليات شراء Stripe باستخدام الرقم 4242 4242 4242 4242، "
-"وتاريخ انتهاء صلاحية مستقبلي، وأي CVV."
-
-msgid "Payment Test Mode"
-msgstr "وضع اختبار الدفع"
-
-msgid "Play Version"
-msgstr "تشغيل الإصدار"
-
-msgid "Force Country"
-msgstr "فرض البلد"
-
-msgid "Error"
-msgstr "خطأ"
-
-msgid "accept"
-msgstr "موافق"
-
-msgid "cancel"
-msgstr "إلغاء "
-
-msgid "reject"
-msgstr "رفض"
-
-msgid "copied"
-msgstr "تم النسخ!"
-
-msgid "saved"
-msgstr "تم الحفظ!"
-
-msgid "new_chat"
-msgstr "دردشة جديدة"
-
-msgid "your_contact_info"
-msgstr "معلومات الاتصال بك"
-
-msgid "display_name"
-msgstr "الاسم المعروض"
-
-msgid "edit"
-msgstr "تعديل"
-
-msgid "save_error"
-msgstr "حدث خطأ ما أثناء الحفظ."
-
-msgid "fewer_options"
-msgstr "خيارات أقل"
-
-msgid "more_options"
-msgstr "خيارات إضافية"
-
-msgid "block_user"
-msgstr "حظر المستخدم"
-
-msgid "unblock_user"
-msgstr "إلغاء حظر المستخدم"
-
-msgid "block"
-msgstr "حجب"
-
-msgid "unblock"
-msgstr "رفع الحجب"
-
-msgid "block_info_title"
-msgstr "هل تريد حظر %s؟"
-
-msgid "no_blocked_users"
-msgstr "لا يوجد مستخدمون محظورون."
-
-msgid "unblock_info_title"
-msgstr "هل تريد إلغاء حظر %s؟"
-
-msgid "block_info_description"
-msgstr ""
-"سيؤدي حظر هذا المستخدم إلى حذف محفوظات الدردشة، ومنعه من الاتصال بك في "
-"المستقبل. يمكنك إلغاء حظر المستخدمين من قائمة الإعدادات."
-
-msgid "unblock_info_description"
-msgstr "سيتمكن %s الآن من مراسلتك. لن يتم إخطاره بأنك ألغيت حظره."
-
-msgid "block_info_checkbox"
-msgstr "أفهم أن هذا سيؤدي إلى حذف جميع محفوظات الدردشة."
-
-msgid "unblock_info_checkbox"
-msgstr "أؤكد أنني أريد إلغاء حظر جهة الاتصال هذه."
-
-msgid "delete_permanently"
-msgstr "حذف المستخدم نهائيًا"
-
-msgid "delete_info_description"
-msgstr ""
-"بمجرد حذف المستخدم، سيتعين عليك إضافة معلومات الاتصال به إذا رغبت في الدردشة"
-" معه مرة أخرى."
-
-msgid "add_new_contact"
-msgstr "إضافة جهة اتصال جديدة"
-
-msgid "add_contact"
-msgstr "إضافة جهة اتصال"
-
-msgid "share_your_chat_number"
-msgstr "مشاركة رقم الدردشة الخاص بك"
-
-msgid "scan_qr_code"
-msgstr "مسح رمز الاستجابة السريعة"
-
-msgid "add_contact_in_person"
-msgstr "إضافة جهات اتصال شخصيًا"
-
-msgid "start_chat"
-msgstr "بدء الدردشة"
-
-msgid "your_installed_apps"
-msgstr "تطبيقاتك المثبتة"
-
-msgid "apps_routed_through_lantern"
-msgstr "التطبيقات الموجهة عن طريق Lantern"
-
-msgid "apps_to_unblock"
-msgstr ""
-"اختر التطبيقات التي ترغب بعدم حظرها. عند الاتصال، لن تُوجَّه عن طريق Lantern"
-" إلا التطبيقات المحددة بالأسفل."
+msgid "vpn_settings"
+msgstr "إعدادات VPN"
 
 msgid "split_tunneling"
-msgstr "الانقسام النفقي"
+msgstr "التوجيه المُقسّم"
 
-msgid "split_tunneling_info"
-msgstr ""
-"عند تفعيل الانقسام النفقي، ستُوجَّه التطبيقات المحددة عن طريق Lantern، مما "
-"يُحسن الأداء ويوفر النطاق الترددي من خلال عدم حظر التطبيقات المحددة."
+msgid "server_locations"
+msgstr "مواقع الخوادم"
 
-msgid "applied_next_time"
-msgstr ""
-"ستُطبق إعدادت الانقسام النفقي الجديدة في المرة القادمة التي تعيد فيها "
-"الاتصال."
+msgid "lantern_pro_email"
+msgstr "بريد Lantern برو الإلكتروني:"
 
-msgid "message_disappearing"
-msgstr "لن تختفي جميع الرسائل بالنسبة لك و%s."
+msgid "pro_account_expiration"
+msgstr "انتهاء صلاحية حساب برو"
 
-msgid "message_disappearing_description"
-msgstr "ستختفي جميع الرسائل بعد مرور  %s  بالنسبة لك و%s."
+msgid "manage_subscription"
+msgstr "إدارة الاشتراك"
 
-msgid "view_contact_info"
-msgstr "عرض معلومات جهة الاتصال"
+msgid "lantern_pro_devices"
+msgstr "أجهزة Lantern برو"
 
-msgid "off"
-msgstr "إيقاف التشغيل"
-
-msgid "on"
-msgstr "تشغيل"
-
-msgid "continue"
-msgstr "واصل"
-
-msgid "continue_to_pro"
-msgstr "المتابعة الى حساب برو"
-
-msgid "are_you_sure_you_want_to_open"
-msgstr "هل تريد بالتأكيد فتح %s؟"
-
-msgid "set"
-msgstr "تعيين"
-
-msgid "menu"
-msgstr "القائمة"
-
-msgid "send_error"
-msgstr "حدث خطأ ما أثناء إرسال رسالتك"
-
-msgid "share_media_error"
-msgstr "حدث خطأ ما أثناء مشاركة أحد ملفات الوسائط"
-
-msgid "no_recents"
-msgstr "لا توجد عناصر حديثة"
-
-msgid "set_display_name"
-msgstr "تعيين الاسم المعروض"
-
-msgid "introduce_contact"
-msgstr "تقديم جهة الاتصال"
-
-msgid "introduce_contacts"
-msgstr "تقديم جهات الاتصال"
-
-msgid "introduce_contacts_with_count"
-msgstr "تقديم جهات الاتصال (%s)"
-
-msgid "need_two_contacts_to_introduce"
-msgstr "بمجرد إضافة جهتي اتصال أو أكثر، ستتمكن من إنشاء تقديمات."
-
-msgid "introduce_contacts_select"
-msgstr ""
-"حدد جهتي اتصال أو أكثر للتقديم. ستُرسل تقديمات لهم لبدء مراسلة بعضهم البعض."
-
-msgid "introduce_single_contact"
-msgstr ""
-"حدد إحدى جهات الاتصال لتقديمها إلى%s. وبمجرد الموافقة على التقديم، سيتمكنان "
-"من مراسلة بعضهما البعض."
-
-msgid "send_introductions"
-msgstr "إرسال تقديمات"
-
-msgid "introductions_sent"
-msgstr "تم إرسال التقديمات!"
-
-msgid "no_contacts_yet"
-msgstr "لا توجد أي جهات اتصال حتى الآن"
-
-msgid "contact_verification"
-msgstr "التحقق من جهة الاتصال"
-
-msgid "verification"
-msgstr "التحقق"
-
-msgid "contact_verification_description"
-msgstr ""
-"التحقق من جهة الاتصال متاح دائمًا من قائمة الرسائل الوجودة أعلى اليمين."
-
-msgid "qr_error_description"
-msgstr "حدث خطأ ما أثناء مسح رمز الاستجابة السريعة هذا."
-
-msgid "qr_info_verification_title"
-msgstr "التحقق من الاتصال شخصيًا"
-
-msgid "qr_info_f2f_title"
-msgstr "مسح رمز الاستجابة السريعة"
-
-msgid "qr_info_verification_des"
-msgstr ""
-"للتحقق من جهات الاتصال، امسحا رمزي الاستجابة السريعة لبعضكما البعض.\n"
-"\n"
-"تضمن هذه العملية الخصوصية والتشفير الشامل لمحادثاتكما."
-
-msgid "qr_info_f2f_des"
-msgstr ""
-"لإضافة صديقك كجهة اتصال، امسحا رمزي الاستجابة السريعة لبعضكما البعض.\n"
-"\n"
-"تضمن هذه العملية الخصوصية والتشفير الشامل لمحادثاتكما."
-
-msgid "qr_info_verification_scan"
-msgstr "امسحا رمزي الاستجابة السريعة لبعضكما البعض للتحقق."
-
-msgid "qr_info_f2f_scan"
-msgstr "امسحا رمزي الاستجابة السريعة لبعضكما البعض لإضافة جهة اتصال."
-
-msgid "qr_success_snackbar"
-msgstr "لقد أصبح %s من جهات اتصالك"
-
-msgid "qr_info_waiting_qr"
-msgstr "في انتظار قيام صديقك بمسح رمز الاستجابة السريعة الخاص بك..."
-
-msgid "scan_complete"
-msgstr "اكتمل المسح"
-
-msgid "qr_for_your_contact"
-msgstr "رمز الاستجابة السريعة الخاص بك"
-
-msgid "add_via_chat_number"
-msgstr "إضافة عبر رقم الدردشة"
-
-msgid "qr_info_waiting_id"
-msgstr ""
-"في انتظار قيام صديقك بإدخال معرف المرسل الخاص بك أو مسح رمز الاستجابة "
-"السريعة الخاص بك..."
-
-msgid "chat_number_not_found"
-msgstr ""
-"رقم الدردشة غير موجود.\n"
-"يرجى التحقق من الرقم الذي أدخلته وحاول مرة أخرى."
-
-msgid "unable_to_add_contact"
-msgstr ""
-"جهة الاتصال غير موجودة.\n"
-"تحقق من الرقم الذي أدخلته وحاول مرة أخرى."
-
-msgid "self_adding"
-msgstr "رقم الدردشة الذي أدخلته يخصك"
-
-msgid "chat_number_type"
-msgstr "اكتب رقم دردشة"
-
-msgid "letter_and_numbers_only"
-msgstr "استخدم الحروف والأرقام فقط"
-
-msgid "name_your_contact"
-msgstr "تسمية جهة الاتصال"
-
-msgid "messenger_id_invalid"
-msgstr "معرّف المرسل غير صالح"
-
-msgid "username_not_found"
-msgstr "لم يتم العثور على اسم المستخدم"
-
-msgid "contact_id_your_id"
-msgstr "معرف المرسل الخاص بك"
-
-msgid "introductions"
-msgstr "التقديمات"
-
-msgid "introduced"
-msgstr "مُقدَّم من %s"
-
-msgid "introductions_title"
-msgstr "قبول التقديم لـ %s"
-
-msgid "introductions_info"
-msgstr ""
-"يجب أن يقبل كلا الطرفين التقديم للدردشة مع بعضهما البعض. تختفي التقديمات بعد"
-" 7 أيام إذا لم يُتخذ أي إجراء."
-
-msgid "introduction_reject_title"
-msgstr "رفض التقديم"
-
-msgid "introduction_reject_content"
-msgstr "لن تتمكن من إرسال رسالة إلى جهة الاتصال هذه إذا رفضت التقديم."
-
-msgid "introductions_error_description_rejecting"
-msgstr "حدث خطأ ما أثناء رفض طلب جهة الاتصال هذه."
-
-msgid "introductions_error_description_accepting"
-msgstr "حدث خطأ ما أثناء قبول طلب جهة الاتصال هذه."
-
-msgid "no_introductions"
-msgstr "لا توجد مقدمات معلقة."
-
-msgid "introduction_approved"
-msgstr "تمت الموافقة على التقديم لـ %s!"
-
-msgid "delete_contact_name"
-msgstr "حذف %s"
-
-msgid "delete_contact"
-msgstr "حذف جهة الاتصال"
-
-msgid "error"
-msgstr "خطأ"
-
-msgid "error_delete_contact"
-msgstr "حدث خطأ ما أثناء حذف جهة الاتصال هذه."
-
-msgid "unnamed_contact"
-msgstr "جهة اتصال بدون اسم"
-
-msgid "me"
-msgstr "أنا"
-
-msgid "disappearing_messages"
-msgstr "الرسائل المُختفية"
-
-msgid "start_of_your_history"
-msgstr "محادثاتك ومكالماتك الصوتية مع %s مُشفرة بشكل شامل"
-
-msgid "banner_unaccepted"
-msgstr "%s  غير موجود في قائمة جهات الاتصال لديك. هل تود قبول طلب الدردشة؟"
-
-msgid "banner_messages_persist"
-msgstr "لا تختفي الرسائل الجديدة."
-
-msgid "banner_message_retention"
-msgstr "تم تعيين استبقاء الرسائل على %s"
-
-msgid "longform_seconds"
-msgstr "%s ثوانٍ"
-
-msgid "shortform_seconds"
-msgstr "%s ث"
-
-msgid "longform_minute"
-msgstr "%s دقيقة"
-
-msgid "shortform_minutes"
-msgstr "%s د"
-
-msgid "longform_minutes"
-msgstr "%s دقائق"
-
-msgid "longform_hour"
-msgstr "%s ساعة"
-
-msgid "shortform_hours"
-msgstr "%s س"
-
-msgid "longform_hours"
-msgstr "%s ساعات"
-
-msgid "longform_day"
-msgstr "%s يوم"
-
-msgid "shortform_days"
-msgstr "%s يوم"
-
-msgid "longform_days"
-msgstr "%s أيام"
-
-msgid "longform_week"
-msgstr "%s أسبوع"
-
-msgid "shortform_weeks"
-msgstr "%s أسبوع"
-
-msgid "longform_weeks"
-msgstr "%s أسابيع"
-
-msgid "unknown"
-msgstr "غير معروف"
-
-msgid "banner_source_qr"
-msgstr "رمز الاستجابة السريعة"
-
-msgid "banner_source_id"
-msgstr "معرّف المرسل"
-
-msgid "banner_source_intro"
-msgstr "المقدمة"
-
-msgid "message_will_disappear_at"
-msgstr "يختفي %s"
-
-msgid "change_display_name"
-msgstr "تغيير الاسم المعروض"
-
-msgid "yesterday"
-msgstr "أمس"
-
-msgid "tomorrow"
-msgstr "غدًا"
-
-msgid "just_now"
-msgstr "حالاً"
-
-msgid "within_one_minute"
-msgstr "خلال دقيقة واحدة"
-
-msgid "on_date"
-msgstr "في %s"
-
-msgid "at_date"
-msgstr "عند %s"
-
-msgid "error_fetching_message_preview"
-msgstr "خطأ في إحضار معاينة الرسالة"
-
-msgid "message_was_deleted"
-msgstr "تم حذف الرسالة"
-
-msgid "contact_was_deleted"
-msgstr "تم حذف %s من جهات الاتصال لديك"
-
-msgid "contact_was_blocked"
-msgstr "تم حظر %s."
-
-msgid "contact_was_unblocked"
-msgstr "تم إلغاء حظر %s."
-
-msgid "dismiss"
-msgstr "أَبعدْ"
-
-msgid "copy_text"
-msgstr "نسخ النص"
-
-msgid "message"
-msgstr "رسالة"
-
-msgid "messages"
-msgstr "الرسائل"
-
-msgid "chats"
-msgstr "دردشات"
-
-msgid "new_requests"
-msgstr "طلبات جديدة %s"
-
-msgid "chat"
-msgstr "دردشة"
-
-msgid "lantern_chat"
-msgstr "Lantern Chat"
-
-msgid "welcome_title"
-msgstr "مرحبًا بك في Lantern Chat"
-
-msgid "welcome_text"
-msgstr ""
-"دردشة مشفرة لحماية خصوصيتك مقترنة بأفضل تكنولوجيا مقاومة للحظر في فئتها."
-
-msgid "get_started"
-msgstr "بدء الاستخدام"
-
-msgid "want_to_recover"
-msgstr "هل لديك رقم دردشة؟"
-
-msgid "recover"
-msgstr "استرداد"
-
-msgid "chat_number"
-msgstr "رقم الدردشة"
-
-msgid "your_chat_number"
-msgstr "رقم الدردشة الخاص بك"
-
-msgid "chat_number_recovery"
-msgstr "استرداد رقم الدردشة"
-
-msgid "recovery_helper_text"
-msgstr "يُرجى إدخال مفتاح استرداد صالح"
-
-msgid "recovery_button"
-msgstr "أدخل مفتاح الاسترداد الخاص بك لاستعادة رقم الدردشة الخاص بك."
-
-msgid "recovery_label"
-msgstr "أدخل مفتاح الاسترداد الخاص بك"
-
-msgid "recovery_key"
-msgstr "مفتاح الاسترداد"
-
-msgid "secure_text_explanation"
-msgstr ""
-"يُستخدم \"رقم الدردشة\" الخاص بك كرقم هاتف يمكن لأصدقائك استخدامه للاتصال بك"
-" على Lantern."
-
-msgid "secure_text_explanation_account"
-msgstr ""
-"هذا هو الإصدار الكامل من \"رقم الدردشة\" الخاص بك؛ قد تكون مشاركة هذا الرقم الطويل أكثر أمانًا، خاصةً إذا كان لديك قناة أخرى مشفرة بشكل شامل يمكنك مشاركته عليها.\n"
-"\n"
-"كما يوفر Lantern \"رقم دردشة\" مختصرًا لجعل مشاركة معلومات الاتصال أكثر ملاءمة."
-
-msgid "recovery_key_account_explanation"
-msgstr ""
-"خزّن هذا المفتاح في مكان آمن، ولا تشاركه مع أي شخص. وهذه هي الطريقة الوحيدة "
-"لاستراداد \"رقم الدردشة\" الخاص بك إذا فقدت هاتفك أو قمت بتبديل الأجهزة أو "
-"إعادة تعيين نظام التشغيل."
-
-msgid "recovery_error"
-msgstr "يتعذّر استرداد حسابك."
-
-msgid "recovery_input_error"
-msgstr "تأكد من إدخال مفتاح استعادة صالح"
-
-msgid "recovery_retrieval_error"
-msgstr "حدث خطأ ما أثناء استعادة حسابك"
-
-msgid "recovery_success"
-msgstr "لقد نجحت في استرداد \"رقم الدردشة\" الخاص بك"
-
-msgid "empty_chats_text"
-msgstr "شارك \"رقم الدردشة\" أو أضف جهة اتصال هنا!"
-
-msgid "next"
-msgstr "التالب"
-
-msgid "automated_backup"
-msgstr "نسخ احتياطي تلقائي"
-
-msgid "backup_explanation"
-msgstr ""
-"يوفر تطبيق Lantern خيار تشفير جهات الاتصال الخاصة بك ونسخها احتياطيًا على خوادمنا الآمنة. إذا نسيت النسخ الاحتياطي، فلن تتمكن من استرداد جهات الاتصال الخاصة بك باستخدام مفتاح الاسترداد.\n"
-"\n"
-"لن يتمكن Lantern من قراءة قوائم جهات الاتصال الخاصة بك عندما تختار نسخها احتياطيًا."
-
-msgid "backup_contacts"
-msgstr "نسخ جهات الاتصال احتياطيًا"
-
-msgid "copy_recovery_key"
-msgstr "نسخ مفتاح الاسترداد"
-
-msgid "search"
-msgstr "Search"
-
-msgid "account_management"
-msgstr "ادارة الحساب"
-
-msgid "add_via_username"
-msgstr "إضافة عبر اسم المستخدم"
-
-msgid "username"
-msgstr "إسم المستخدم"
-
-msgid "enter_a_username_to_start_a_conversation"
-msgstr "أدخل اسم مستخدم لبدء محادثة عبر الرسائل"
-
-msgid "start_message"
-msgstr "بدء الرسالة"
-
-msgid "please_enter_a_valid_username"
-msgstr "يُرجى إدخال اسم مستخدم صالح"
-
-msgid "open_url"
-msgstr "فتح عنوان URL"
-
-msgid "message_deleted"
-msgstr "حذف %s هذه الرسالة"
-
-msgid "never"
-msgstr "أبدًا"
-
-msgid "delete_for_me"
-msgstr "حذف بالنسبة لي"
-
-msgid "delete_for_me_explanation"
-msgstr ""
-"سيؤدي هذا الأمر إلى حذف الرسالة بالنسبة لك فقط. سيظل بإمكان أي شخص آخر "
-"رؤيتها."
-
-msgid "delete_for_everyone"
-msgstr "الحذف بالنسبة للجميع"
-
-msgid "delete_for_everyone_explanation"
-msgstr "سيؤدي هذا إلى حذف الرسالة للجميع."
-
-msgid "reply"
-msgstr "رد"
-
-msgid "replying_to"
-msgstr "الرد على %s"
-
-msgid "attachment"
-msgstr "مرفق"
-
-msgid "error_rendering_message"
-msgstr "خطأ في عرض الرسالة"
-
-msgid "error_fetching_preview"
-msgstr "خطأ في إحضار معاينة الرسالة"
-
-msgid "audio"
-msgstr "صوتي"
-
-msgid "image"
-msgstr "صورة"
-
-msgid "images"
-msgstr "الصور"
-
-msgid "video"
-msgstr "فيديو"
-
-msgid "videos"
-msgstr "مقاطع فيديو"
-
-msgid "app"
-msgstr "تطبيقات"
-
-msgid "document"
-msgstr "الوثائق"
-
-msgid "search_chars_min"
-msgstr "اكتب ثلاثة أحرف على الأقل"
-
-msgid "search_no_results"
-msgstr "عذرًا، لم نتمكن من العثور على أي شيء يطابق هذا البحث."
-
-msgid "search_error"
-msgstr "عذرًا، حدث خطأ في استرداد نتائج البحث."
-
-msgid "search_contacts"
-msgstr "جهات الاتصال (%s)"
-
-msgid "search_chats"
-msgstr "دردشات (%s)"
-
-msgid "search_in_contacts"
-msgstr "البحث في جهات الاتصال"
-
-msgid "search_in_chats"
-msgstr "البحث في جهات الاتصال والدردشات"
-
-msgid "could_not_render_title"
-msgstr "تعذّر عرض عنوان الملف"
-
-msgid "could_not_render_type"
-msgstr "تعذّر عرض نوع الملف"
-
-msgid "speaker"
-msgstr "مكبر الصوت"
-
-msgid "speaker_on"
-msgstr "مكبر الصوت قيد التشغيل"
-
-msgid "mute"
-msgstr "كتم الصوت"
-
-msgid "muted"
-msgstr "تم كتم الصوت"
-
-msgid "end_call"
-msgstr "إنهاء المكالمة"
-
-msgid "verify_contact"
-msgstr "التحقق من %s"
-
-msgid "verified"
-msgstr "تم التحقق منه"
-
-msgid "pending_verification"
-msgstr "في انتظار التحقق"
-
-msgid "verify_description"
-msgstr ""
-"لتحقيق أفضل درجات الأمان، نوصي بالتأكد من أن رقم تحقق %s يطابق رقمك.\n"
-"\n"
-"هل ترغب في التحقق شخصيًا أو عبر مكالمة هاتفية؟"
-
-msgid "verify_in_person"
-msgstr "التحقق شخصيًا"
-
-msgid "verify_via_call"
-msgstr "التحقق عبر الهاتف"
-
-msgid "dismiss_notification"
-msgstr "تجاهل الإشعار"
-
-msgid "call_contact"
-msgstr "هل تريد الاتصال بـ %s؟"
-
-msgid "call"
-msgstr "مكالمة"
-
-msgid "incoming_call"
-msgstr "مكالمة واردة"
-
-msgid "call_from"
-msgstr "من %s"
-
-msgid "in_call"
-msgstr "المكالمات الجارية"
-
-msgid "in_call_des"
-msgstr "إشعار مكالمة جارية"
-
-msgid "incoming_call_from"
-msgstr "مكالمة واردة من %s"
-
-msgid "touch_here_to_open_call"
-msgstr "المس هنا لفتح المكالمة"
-
-msgid "in_call_with"
-msgstr "في مكالمة مع %s"
-
-msgid "undo_verification"
-msgstr "التراجع عن التحقق"
-
-msgid "mark_as_verified"
-msgstr "تحديد كمُتحقق منه"
-
-msgid "verification_panel_success"
-msgstr "تم التحقق بنجاح! رسائلك مع %s آمنة."
-
-msgid "verification_panel_pending"
-msgstr ""
-"هذا هو رقم التحقق الخاص بك. تحقق من أن رقمك يطابق %s تمامًا قبل التحديد "
-"كمُتحقق منه."
-
-msgid "replica_upload_confirmation_title"
-msgstr "مهم!"
-
-msgid "replica_upload_confirmation_body"
-msgstr ""
-"الملفات التي تم تحميلها على Lantern Network متاحة للجمهور. لا أحد يستطيع "
-"حذفها. الرجاء عدم تضمين معلومات شخصية أو تعريفية في محتوى الملف أو اسم "
-"الملف."
-
-msgid "replica_upload_confirmation_agree"
-msgstr "استئناف التحميل"
-
-msgid "dont_show_me_this_again"
-msgstr "عدم إظهار هذا مرة أخرى"
-
-msgid "download"
-msgstr "تحميل"
-
-msgid "download_started"
-msgstr "بدأ التنزيل"
-
-msgid "uploader"
-msgstr "أداة التحميل"
-
-msgid "upload_started"
-msgstr "بدأ التحميل"
-
-msgid "upload_in_progress"
-msgstr "جارٍ التحميل"
-
-msgid "upload_complete"
-msgstr "تم نشر ملفك بنجاح"
-
-msgid "upload_failed"
-msgstr "فشل التحميل"
-
-msgid "upload_cancelled"
-msgstr "تم إلغاء التحميل"
-
-msgid "upload_unknown_error"
-msgstr "حدث خطأ ما في أثناء محاولة النشر"
-
-msgid "download_unknown_error"
-msgstr "حدث خطأ ما في أثناء محاولة تنزيل %s"
-
-msgid "replica_link_fetcher"
-msgstr "أداة إحضار رابط النسخة المتماثلة"
-
-msgid "no_preview_for_this_type_of_file"
-msgstr "لا توجد معاينة لهذا النوع من الملفات"
-
-msgid "app_unknown"
-msgstr "التطبيق/غير معروف"
-
-msgid "audio_unknown"
-msgstr "الصوت/غير معروف"
-
-msgid "document_unknown"
-msgstr "المستند/غير معروف"
-
-msgid "no_search_result_found"
-msgstr "عذرًا، تعذر العثور على أي شيء يطابق البحث"
-
-msgid "search_result_error"
-msgstr "خطأ في إظهار النتائج، يرجى المحاولة مرة أخرى في وقت لاحق"
-
-msgid "video_stream_error"
-msgstr "خطأ في توفير الفيديو، يرجى المحاولة مرة أخرى في وقت لاحق"
-
-msgid "untitled"
-msgstr "بدون عنوان"
-
-msgid "preview_not_available"
-msgstr "المعاينة غير متوفرة"
-
-msgid "download_to_view"
-msgstr "تنزيل الملف لرؤيته"
-
-msgid "failed_to_init_replica"
-msgstr "خطأ: فشلت تهيئة النسخة المتماثلة"
-
-msgid "awaiting_result"
-msgstr "في انتظار النتيجة..."
-
-msgid "discover"
-msgstr "اكتشف"
-
-msgid "replica_search_intro"
-msgstr ""
-"ابحث في المحتوى الذي تم تحميله من خلال المستخدم على Lantern Network ، أو "
-"حمّل محتواك الخاص ليكتشفه الآخرون."
-
-msgid "replica_new_discover"
-msgstr "فئة اكتشف جديد"
-
-msgid "replica_new_discover_news"
-msgstr "خاصية اكتشف الآن يتيح لك البحث عن المقالات الإخبارية!"
-
-msgid "replica_check_it_out"
-msgstr "تحقق من ذلك"
-
-msgid "news"
-msgstr "أخبار"
-
-msgid "share"
-msgstr "مشاركة"
-
-msgid "upload_file_screen"
-msgstr "تحميل ملف"
-
-msgid "edit_title"
-msgstr "تعديل العنوان"
-
-msgid "filenames_cannot_be_edited"
-msgstr "لا يمكن تعديل أسماء الملفات بعد نشرها."
-
-msgid "add_description"
-msgstr "إضافة وصف"
-
-msgid "no_description"
-msgstr "لم يتم توفير وصف"
-
-msgid "read_details"
-msgstr "قراءة PDF"
-
-msgid "description_initial_value"
-msgstr "لا يمكن تعديل الوصف بعد نشره."
-
-msgid "name_your_file"
-msgstr "قم بتسمية الملف الخاص بك"
-
-msgid "upload"
-msgstr "تحميل"
-
-msgid "review"
-msgstr "مراجعة"
-
-msgid "skip"
-msgstr "تخط"
-
-msgid "replica_layout_filetype"
-msgstr "نوع الملف: %s"
-
-msgid "replica_layout_creation_date"
-msgstr "تم الإنشاء في %s"
-
-msgid "empty_description"
-msgstr "لم يتم توفير وصف."
-
-msgid "publish"
-msgstr "نعم، نشر"
-
-msgid "important"
-msgstr "مهم!"
-
-msgid "upload_tos_agree"
-msgstr "فهمت"
-
-msgid "test_text"
-msgstr "أريد أن آكل بعض البيتزا 🍕 😊"
-
-msgid "test_hello"
-msgstr "مرحبا كيف حالك؟"
-
-msgid "test_reply"
-msgstr "في الواقع لا، أعتقد أنني في حالة مزاجية لتناول السوشي اليوم!"
-
-msgid "test_disappearing_messages_1"
-msgstr " تختفي جميع الرسائل بعد 24 ساعة."
-
-msgid "test_disappearing_messages_2"
-msgstr "الآن يجب أن تختفي هذه الرسالة قريبًا جدًا!"
-
-msgid "test_replica_search"
-msgstr "قطة"
-
-msgid "discover_disclaimer"
-msgstr ""
-"قام Lantern بإخفاء هوية عمليات البحث التي تجريها وحمايتها من الجهات "
-"الخارجية."
-
-msgid "support"
-msgstr "الدعم"
-
-msgid "lantern_user_forum"
-msgstr "منتدى مستخدمي Lantern"
-
-msgid "faq"
-msgstr "أسئلة متكررة"
+msgid "remove"
+msgstr "إزالة"
 
 msgid "add_device"
-msgstr "أضف جهاز"
-
-msgid "search_apps"
-msgstr "البحث عن التطبيقات "
-
-msgid "user_not_found"
-msgstr ""
-"المستخدم غير معروف. يرجى التحقق من بيانات اعتمادك وحاول مرة أخرى. إذا مازلت "
-"تواجه مشكلات، يرجى التواصل مع فريق الدعم للحصول على المساعدة."
-
-msgid "email_resend_message"
-msgstr "تم إرسال رمز التأكيد الجديد الخاص بك"
-
-msgid "signup_error"
-msgstr ""
-"يبدو أن هناك خطأ ما قد حدث أثناء التسجيل. يرجى المحاولة مرة أخرى، وفي حال "
-"استمرت المشكلة، يرجى التواصل مع فريق الدعم لدينا."
-
-msgid "signup_error_user_exists"
-msgstr ""
-"يبدو أن هناك خطأ ما قد حدث أثناء التسجيل. يرجى المحاولة مرة أخرى عن طريق "
-"إعادة تعيين كلمة المرور الخاصة بك، وفي حال استمرت المشكلة، يرجى التواصل مع "
-"فريق الدعم لدينا."
-
-msgid "confirm_email_error"
-msgstr "يرجى تأكيد بريدك الإلكتروني"
-
-msgid "password_cannot_be_empty"
-msgstr "لا يمكن أن يكون حقل كلمة المرور فارغًا"
-
-msgid "password_must_be_at_least_8_characters"
-msgstr "يجب ألا يقل طول كلمة المرور عن 8 أحرف أو أكثر"
-
-msgid "sign_out"
-msgstr "تسجيل الخروج"
-
-msgid "sign_out_message"
-msgstr ""
-"سيؤدي تسجيل الخروج إلى تحويل Lantern إلى الإصدار المجاني. للوصول إلى حسابك "
-"مرة أخرى، سيتعين عليك تسجيل الدخول مرة أخرى."
-
-msgid "change_password"
-msgstr "تغيير كلمة المرور"
-
-msgid "password"
-msgstr "كلمة المرور"
-
-msgid "new_email"
-msgstr "عنوان بريد إلكتروني جديد"
-
-msgid "new_email_same_as_old_email"
-msgstr ""
-"لا يمكن أن يكون عنوان البريد الإلكتروني الجديد مطابقًا لعنوان بريدك "
-"الإلكتروني القديم"
+msgstr "إضافة جهاز"
 
 msgid "danger_zone"
-msgstr "منطقة الخطر"
+msgstr "منطقة الخطر:"
 
 msgid "delete_account"
 msgstr "حذف الحساب"
@@ -1732,100 +89,1038 @@ msgstr "حذف الحساب"
 msgid "delete"
 msgstr "حذف"
 
+msgid "account"
+msgstr "الحساب"
+
+msgid "delete_account_?"
+msgstr "حذف حسابك؟"
+
 msgid "delete_account_message"
 msgstr ""
-"لا يمكن التراجع عن حذف الحساب. سوف تفقد إمكانية الوصول إلى جميع الأجهزة "
-"وتتنازل عن أي وقت متبقٍ في حساب Pro دون استرداد."
+"حذف الحساب نهائي. ستفقد الوصول على جميع الأجهزة، وسيتم فقدان أي وقت متبقي من"
+" اشتراك برو دون استرداد."
 
-msgid "delete_your_account"
-msgstr "هل تريد حذف حسابك؟"
+msgid "delete_account_message_two"
+msgstr "لتأكيد الحذف، يرجى إدخال كلمة المرور أدناه"
+
+msgid "Submit Issue Report"
+msgstr "إرسال تقرير المشكلة"
 
 msgid "confirm_deletion"
 msgstr "تأكيد الحذف"
 
-msgid "account_deleted"
-msgstr "تم حذف الحساب"
+msgid "cancel"
+msgstr "إلغاء"
 
-msgid "account_deleted_message"
-msgstr "تم حذف حسابك بشكل دائم."
+msgid "daily_data_usage"
+msgstr "استهلاك البيانات اليومي"
+
+msgid "mb"
+msgstr "ميجابايت"
+
+msgid "vpn_status"
+msgstr "حالة VPN"
+
+msgid "telegram"
+msgstr "تيليجرام"
+
+msgid "instagram"
+msgstr "إنستجرام"
+
+msgid "x"
+msgstr "X"
+
+msgid "follow_us"
+msgstr "تابعنا"
+
+msgid "server_selection"
+msgstr "اختيار الخادم"
+
+msgid "smart_location"
+msgstr "الموقع الذكي"
+
+msgid "automatically_chooses_fastest_location"
+msgstr "يختار تلقائيًا أسرع موقع"
+
+msgid "pro_locations"
+msgstr "مواقع برو:"
+
+msgid "choose_your_location_with_lantern_pro"
+msgstr "اختر موقعك مع Lantern برو:"
+
+msgid "language"
+msgstr "اللغة"
+
+msgid "sign_in"
+msgstr "تسجيل الدخول"
+
+msgid "sign_out"
+msgstr "تسجيل الخروج"
+
+msgid "check_for_updates"
+msgstr "التحقق من التحديثات"
+
+msgid "support"
+msgstr "الدعم"
+
+msgid "download_links"
+msgstr "روابط التنزيل"
+
+msgid "get_30_days_of_pro_free"
+msgstr "احصل على 30 يومًا من برو مجانًا"
+
+msgid "share_message_referral_code"
+msgstr ""
+"للحصول على شهر مجاني من Lantern برو، استخدم رمز الإحالة هذا: %s ؛ يمكنك "
+"تنزيله من هنا: https://lantern.io/download"
+
+msgid "submit_issue_report"
+msgstr "إرسال تقرير المشكلة"
+
+msgid "select_an_issue"
+msgstr "اختر مشكلة"
+
+msgid "cannot_access_blocked_sites"
+msgstr "لا يمكن الوصول إلى المواقع المحظورة"
+
+msgid "cannot_complete_purchase"
+msgstr "لا يمكن إكمال الشراء"
+
+msgid "discover_not_working"
+msgstr "الاكتشاف لا يعمل"
+
+msgid "cannot_sign_in"
+msgstr "لا يمكن تسجيل الدخول"
+
+msgid "spinner_loads_endlessly"
+msgstr "المؤشر يدور بلا نهاية"
+
+msgid "slow"
+msgstr "بطيء"
+
+msgid "cannot_link_devices"
+msgstr "لا يمكن ربط الأجهزة"
+
+msgid "wrong_device_linking_code"
+msgstr "رمز ربط الجهاز خاطئ أو غير صالح"
+
+msgid "cannot_remove_device"
+msgstr "لا يمكن إزالة الجهاز"
+
+msgid "application_crashes"
+msgstr "التطبيق يتعطل"
+
+msgid "other"
+msgstr "أخرى"
+
+msgid "issue_description"
+msgstr "صِف مشكلتك"
+
+msgid "enter_password_to_confirm"
+msgstr "أدخل كلمة المرور للتأكيد"
+
+msgid "cannot_view_logs"
+msgstr "لا يمكن لـ Lantern عرض سجلات التشخيص الخاصة بك ما لم ترسلها إلينا."
+
+msgid "split_tunneling_mode"
+msgstr "وضع التوجيه المُقسّم"
+
+msgid "apps_split_tunneling"
+msgstr "التوجيه المُقسّم للتطبيقات"
+
+msgid "website_split_tunneling"
+msgstr "التوجيه المُقسّم للمواقع"
+
+msgid "iran_optimized"
+msgstr "توجيه مُقسّم محسّن لإيران"
+
+msgid "china_optimized"
+msgstr "توجيه مُقسّم محسّن للصين"
+
+msgid "russia_optimized"
+msgstr "توجيه مُقسّم محسّن لروسيا"
+
+msgid "global_optimized"
+msgstr "توجيه مُقسّم محسّن عالميًا"
+
+msgid "enter_url"
+msgstr "أدخل الرابط"
+
+msgid "add"
+msgstr "إضافة"
+
+msgid "enabled"
+msgstr "مُفعّل"
+
+msgid "disabled"
+msgstr "مُعطّل"
+
+msgid "automatic"
+msgstr "تلقائي"
+
+msgid "automatic_mode"
+msgstr "الوضع التلقائي"
+
+msgid "manual"
+msgstr "يدوي"
+
+msgid "enter_url_or_ip"
+msgstr "أدخل الرابط أو عنوان IP"
+
+msgid "installed_apps"
+msgstr "التطبيقات المثبتة"
+
+msgid "search_apps"
+msgstr "البحث عن التطبيقات"
+
+msgid "search_websites"
+msgstr "البحث عن المواقع"
+
+msgid "mode"
+msgstr "الوضع"
+
+msgid "use_commas"
+msgstr "استخدم الفواصل لفصل روابط متعددة"
+
+msgid "default_bypass"
+msgstr "قوائم التجاوز الافتراضية"
+
+msgid "global_bypass_list"
+msgstr "قائمة التجاوز العالمية"
+
+msgid "global_bypass_desc"
+msgstr "مواقع موثوقة (HTTPS) بمحتوى غير حساس."
+
+msgid "china_bypass_list"
+msgstr "قائمة تجاوز الصين"
+
+msgid "china_bypass_desc"
+msgstr "مواقع يمكن الوصول إليها بحرية في الصين. يتم تحديثها بانتظام."
+
+msgid "iran_bypass_list"
+msgstr "قائمة تجاوز إيران"
+
+msgid "iran_bypass_desc"
+msgstr "مواقع يمكن الوصول إليها بحرية في إيران. يتم تحديثها بانتظام."
+
+msgid "russia_bypass_list"
+msgstr "قائمة تجاوز روسيا"
+
+msgid "russia_bypass_desc"
+msgstr "مواقع يمكن الوصول إليها بحرية في روسيا. يتم تحديثها بانتظام."
+
+msgid "see_sites_included"
+msgstr "شاهد المواقع المدرجة في "
+
+msgid "default_lists_here"
+msgstr "القوائم الافتراضية هنا"
+
+msgid "when_connected"
+msgstr "عند الاتصال، ستتجاوز المواقع التي تختارها VPN."
+
+msgid "lantern_automatic"
+msgstr ""
+"يختار Lantern تلقائيًا التطبيقات والمواقع التي تتجاوز VPN بناءً على موقعك "
+"للحصول على أفضل أداء. "
+
+msgid "apps_bypassing_vpn"
+msgstr "التطبيقات التي تتجاوز VPN (%d)"
+
+msgid "websites_bypassing_vpn"
+msgstr "المواقع التي تتجاوز VPN (%d)"
+
+msgid "logs_share_message"
+msgstr "هذه سجلات التشخيص الخاصة بي من Lantern."
+
+msgid "payment_options"
+msgstr "خيارات الدفع"
+
+msgid "add_your_email"
+msgstr "أضف بريدك الإلكتروني"
+
+msgid "continue"
+msgstr "متابعة"
+
+msgid "continue_with_google"
+msgstr "المتابعة باستخدام Google"
+
+msgid "continue_with_apple"
+msgstr "المتابعة باستخدام Apple"
+
+msgid "continue_without_email"
+msgstr "المتابعة بدون بريد إلكتروني"
+
+msgid "confirm_email"
+msgstr "تأكيد البريد الإلكتروني"
+
+msgid "add_your_email_message"
+msgstr "أضف بريدك الإلكتروني للوصول إلى اشتراكك على أي جهاز."
+
+msgid "confirm_email_code"
+msgstr "رمز التأكيد"
+
+msgid "confirm_email_code_message"
+msgstr "أكِّد أن عنوان البريد الإلكتروني هذا يخصك، أدخل الرمز المرسل إلى: "
+
+msgid "resend_email"
+msgstr "إعادة إرسال البريد الإلكتروني"
+
+msgid "create_password"
+msgstr "إنشاء كلمة مرور"
+
+msgid "sign_in_to_lantern_pro"
+msgstr "تسجيل الدخول إلى Lantern برو"
+
+msgid "sign_in_with_email"
+msgstr "تسجيل الدخول بالبريد الإلكتروني"
+
+msgid "enter_your_lantern_pro_account_details"
+msgstr "أدخل تفاصيل حساب Lantern برو الخاص بك."
+
+msgid "email"
+msgstr "البريد الإلكتروني"
+
+msgid "enter_password"
+msgstr "أدخل كلمة المرور"
+
+msgid "forgot_password"
+msgstr "هل نسيت كلمة المرور؟"
+
+msgid "reset_your_password"
+msgstr "إعادة تعيين كلمة المرور"
+
+msgid "enter_your_lantern_pro_account_email"
+msgstr "أدخل البريد الإلكتروني لحساب Lantern برو الخاص بك."
+
+msgid "reset_password"
+msgstr "إعادة تعيين كلمة المرور"
+
+msgid "confirm_new_password"
+msgstr "تأكيد كلمة المرور الجديدة"
+
+msgid "create_new_password"
+msgstr "إنشاء كلمة مرور جديدة"
+
+msgid "confirm_password"
+msgstr "تأكيد كلمة المرور"
+
+msgid "confirm_password_required"
+msgstr "تأكيد كلمة المرور مطلوب"
+
+msgid "passwords_do_not_match"
+msgstr "كلمتا المرور غير متطابقتين"
+
+msgid "activation_code"
+msgstr "رمز التفعيل"
+
+msgid "activate_lantern_pro"
+msgstr "تفعيل Lantern برو"
+
+msgid "invalid_email"
+msgstr "عنوان بريد إلكتروني غير صالح"
+
+msgid "purchase_already_owned"
+msgstr "لديك هذا الشراء بالفعل، جرّب استعادة الشراء"
+
+msgid "stripe_payment"
+msgstr "الدفع عبر Stripe"
+
+msgid "split_tunneling_description"
+msgstr ""
+"يوجّه Lantern بذكاء حركة الإنترنت بناءً على موقعك، مما يضمن وصولاً آمنًا مع "
+"الحفاظ على سرعة اتصالك من خلال استخدام VPN فقط عند الضرورة."
+
+msgid "region_specific_rules"
+msgstr "قواعد خاصة بالمنطقة"
+
+msgid "location_based_rules"
+msgstr "يستخدم Lantern قواعد توجيه مختلفة اعتمادًا على موقعك:"
+
+msgid "censored_regions"
+msgstr "في المناطق الخاضعة للرقابة:"
+
+msgid "blocked_sites_proxied"
+msgstr ""
+"المواقع والتطبيقات المحظورة (الأخبار والمراسلة والخدمات المقيدة) تمر عبر "
+"البروكسي."
+
+msgid "unblocked_sites_bypass"
+msgstr "معظم المواقع غير المحظورة تتجاوز VPN للتصفح الأسرع."
+
+msgid "uncensored_regions"
+msgstr "في المناطق غير الخاضعة للرقابة:"
+
+msgid "trusted_sites_bypass"
+msgstr "فقط المواقع والخدمات الموثوقة تتجاوز VPN بشكل افتراضي."
+
+msgid "examples_of_bypassed_sites"
+msgstr ""
+"تشمل هذه المواقع المشفرة بـ HTTPS ذات المحتوى العام أو غير الحساس مثل التسوق"
+" والطقس وتحديثات البرامج."
+
+msgid "routing_rules_vary"
+msgstr "تختلف هذه القواعد حسب الدولة ويتم تحديثها بانتظام."
+
+msgid "view_the_full_list"
+msgstr "عرض القائمة الكاملة لقواعد التوجيه."
+
+msgid "turn_on_split_tunneling"
+msgstr "قم بتشغيل التوجيه المُقسّم لتخصيص المواقع التي تستخدم VPN."
+
+msgid "welcome_to_lantern_pro"
+msgstr "مرحبًا بك في Lantern برو!"
+
+msgid "lantern_pro_description"
+msgstr ""
+"تم تفعيل ميزات برو الخاصة بك—استمتع ببيانات غير محدودة وسرعات أعلى وخوادم "
+"مميزة."
+
+msgid "plans_fetch_error"
+msgstr "خطأ في جلب الخطط. يرجى المحاولة مرة أخرى لاحقًا."
+
+msgid "best_value"
+msgstr "أفضل قيمة!"
+
+msgid "choose_payment_method"
+msgstr "اختر طريقة الدفع"
+
+msgid "payment_information_encrypted"
+msgstr "معلومات الدفع الخاصة بك مشفرة بالكامل."
+
+msgid "purchase_not_completed"
+msgstr ""
+"لم يكتمل الشراء. يمكنك المحاولة مرة أخرى في أي وقت، أو الاتصال بالدعم إذا "
+"كنت بحاجة إلى مساعدة"
+
+msgid "are_you_sure"
+msgstr "هل أنت متأكد؟"
+
+msgid "continue_without_email_message"
+msgstr "مطلوب عنوان بريد إلكتروني صالح لاستخدام اشتراكك على أجهزة أخرى."
+
+msgid "add_email"
+msgstr "إضافة بريد إلكتروني"
+
+msgid "block_ads"
+msgstr "حظر الإعلانات"
+
+msgid "only_active"
+msgstr "نشط فقط عند الاتصال بـ VPN"
+
+msgid "vpn_connected"
+msgstr "تم الاتصال بـ Lantern الآن."
+
+msgid "vpn_disconnected"
+msgstr "تم قطع الاتصال بـ Lantern الآن."
+
+msgid "open_notification"
+msgstr "فتح الإشعار"
+
+msgid "logout"
+msgstr "تسجيل الخروج"
+
+msgid "logout_message"
+msgstr ""
+"سيؤدي تسجيل الخروج إلى تحويل Lantern إلى الإصدار المجاني. للوصول إلى حسابك "
+"مرة أخرى، ستحتاج إلى تسجيل الدخول مجددًا."
+
+msgid "not_now"
+msgstr "ليس الآن"
+
+msgid "billed_once"
+msgstr "يُحاسب مرة واحدة"
+
+msgid "subscription"
+msgstr "الاشتراك"
+
+msgid "subscribe"
+msgstr "اشترك"
+
+msgid "checkout"
+msgstr "الدفع"
+
+msgid "next_billing_date"
+msgstr "تاريخ الفوترة التالي"
+
+msgid "vpn_may_be_needed"
+msgstr "قد تحتاج إلى VPN"
+
+msgid "google_and_apple_sign_in_blocked"
+msgstr ""
+"قد يكون تسجيل الدخول عبر Google و Apple محظورًا في هذه المنطقة. لإنهاء إعداد"
+" حسابك، يرجى تشغيل VPN أولاً."
+
+msgid "continue_without_vpn"
+msgstr "المتابعة بدون VPN"
+
+msgid "turn_on_vpn"
+msgstr "تشغيل VPN"
+
+msgid "server_setup_do"
+msgstr "الإعداد باستخدام DigitalOcean"
+
+msgid "server_setup_do_price"
+msgstr "فقط %s شهريًا عبر Digital Ocean"
+
+msgid "server_setup_gcp"
+msgstr "الإعداد باستخدام Google Cloud Platform"
+
+msgid "continue_with_do"
+msgstr "المتابعة مع Digital Ocean"
+
+msgid "do_allows"
+msgstr "يتيح لك Digital Ocean اختيار موقع خادم واحد من بين %d خيارات أدناه"
+
+msgid "server_setup_gcp_price"
+msgstr "فقط %s شهريًا عبر GCP"
+
+msgid "continue_with_gcp"
+msgstr "المتابعة مع Google"
+
+msgid "gcp_allows"
+msgstr ""
+"تتيح لك Google Cloud Platform اختيار موقع خادم واحد من بين %d خيارات أدناه:"
+
+msgid "server_setup_aws"
+msgstr "إعداد خادم خاص على Digital Ocean"
+
+msgid "server_setup_aws_price"
+msgstr "فقط %s شهريًا عبر AWS"
+
+msgid "server_setup_manual"
+msgstr "الإعداد يدويًا"
+
+msgid "seamless_integration"
+msgstr "تكامل سلس مع Lantern"
+
+msgid "easiest_setup"
+msgstr "أسهل عملية إعداد"
+
+msgid "multiple_location_options"
+msgstr "خيارات متعددة لمواقع الخوادم"
+
+msgid "one_month_included"
+msgstr "%d تيرابايت/شهر بيانات مضمنة"
+
+msgid "easiest_setup_process"
+msgstr "أسهل عملية إعداد"
+
+msgid "setup_a_private_server"
+msgstr "إعداد خادم خاص"
+
+msgid "setup_private_server"
+msgstr "إعداد خادم خاص"
+
+msgid "previous"
+msgstr "السابق"
+
+msgid "next"
+msgstr "التالي"
+
+msgid "error"
+msgstr "خطأ"
+
+msgid "signup_error_user_exists"
+msgstr ""
+"يبدو أن هناك خطأ ما في التسجيل. يرجى محاولة إعادة تعيين كلمة المرور، وإذا "
+"استمرت المشكلة، تواصل مع فريق الدعم لدينا"
+
+msgid "user_not_found"
+msgstr ""
+"المستخدم غير معروف. يرجى التحقق من بيانات الاعتماد والمحاولة مرة أخرى. إذا "
+"استمرت المشاكل، يرجى التواصل مع فريق الدعم للحصول على المساعدة."
+
+msgid "invalid_code"
+msgstr ""
+"رمز غير صحيح أو ربما انتهت صلاحيته. يرجى محاولة إعادة الإرسال مرة أخرى"
+
+msgid "email_resend_message"
+msgstr "تم إرسال رمز التأكيد الجديد الخاص بك"
 
 msgid "password_has_been_updated"
 msgstr "تم تحديث كلمة المرور"
 
 msgid "password_has_been_updated_message"
-msgstr "تم إعادة تعيين كلمة المرور الخاصة بك بنجاح"
+msgstr "تمت إعادة تعيين كلمة المرور بنجاح"
 
-msgid "invalid_code"
+msgid "update_pro_account"
+msgstr "تحديث حساب برو"
+
+msgid "update_pro_account_message"
 msgstr ""
-"رمز غير صحيح أو قد يكون منتهي الصلاحية. يرجى المحاولة مرة أخرى عن طريق إعادة"
-" الإرسال"
+"لإدارة حسابك أو تسجيل الدخول على جهاز آخر، يرجى إضافة بريد إلكتروني وكلمة "
+"مرور لحسابك أولاً."
+
+msgid "subscription_cancelled"
+msgstr "تم إلغاء اشتراكك."
+
+msgid "subscription_updated"
+msgstr "تم تحديث اشتراكك."
+
+msgid "subscription_renewed"
+msgstr "تم تجديد اشتراكك."
+
+msgid "got_it"
+msgstr "فهمت"
+
+msgid "server_location"
+msgstr "موقع الخادم"
+
+msgid "choose"
+msgstr "اختر"
+
+msgid "choose_your_account"
+msgstr "اختر حسابك"
+
+msgid "choose_your_project"
+msgstr "اختر مشروعك"
+
+msgid "name_your_google_cloud_project"
+msgstr "اسم مشروع Google Cloud الخاص بك"
+
+msgid "billing_account"
+msgstr "حساب الفوترة"
+
+msgid "billing_account_placeholder"
+msgstr "حساب فوترة لـ %s"
+
+msgid "server_name"
+msgstr "اسم الخادم"
+
+msgid "google_project"
+msgstr "مشروع Google"
+
+msgid "field_name_required"
+msgstr "الاسم مطلوب"
+
+msgid "choose_google_account"
+msgstr "اختر حساب فوترة Google"
+
+msgid "server_name_placeholder"
+msgstr "خادم ديريك"
+
+msgid "change"
+msgstr "تغيير"
+
+msgid "choose_location"
+msgstr "اختر الموقع"
+
+msgid "choose_your_location"
+msgstr "اختر موقعك"
+
+msgid "start_deployment"
+msgstr "بدء النشر"
+
+msgid "server_name_description"
+msgstr "كيف سيظهر الخادم في قائمة اختيار الخادم."
+
+msgid "select_private_server_region"
+msgstr ""
+"اختر منطقة لخادمك الخاص. قد تؤدي المواقع الأقرب إلى تحسين السرعة وتقليل زمن "
+"الاستجابة."
+
+msgid "gcp_location_options"
+msgstr "خيارات مواقع Google Cloud Platform ‏(%d):"
+
+msgid "australia_sydney"
+msgstr "أستراليا - سيدني"
+
+msgid "belgium_stghislain"
+msgstr "بلجيكا - سانت جيسلان"
+
+msgid "brazil_saopaulo"
+msgstr "ساو باولو"
+
+msgid "us_los_angeles"
+msgstr "الولايات المتحدة - لوس أنجلوس"
+
+msgid "japan_tokyo"
+msgstr "اليابان - طوكيو"
+
+msgid "deploying_private_server"
+msgstr "نشر الخادم الخاص"
+
+msgid "deploying_server_status"
+msgstr "يرجى الانتظار قليلاً! يتم إعداد خادمك الخاص. قد يستغرق هذا بضع دقائق."
+
+msgid "confirm_server_fingerprint"
+msgstr "تأكيد بصمة الخادم"
+
+msgid "server_fingerprint"
+msgstr "بصمة الخادم"
+
+msgid "confirm_fingerprint"
+msgstr "تأكيد البصمة"
+
+msgid "private_server_setup_in_progress"
+msgstr ""
+"يرجى الانتظار قليلاً! يتم إعداد خادمك الخاص. قد يستغرق هذا بضع دقائق، يرجى "
+"إبقاء هذه الشاشة مفتوحة."
+
+msgid "cancel_server_deployment"
+msgstr "إلغاء نشر الخادم"
+
+msgid "server_ready_title"
+msgstr "الخادم الخاص جاهز"
+
+msgid "server_ready_message"
+msgstr ""
+"تم إعداد خادمك الخاص وإضافته إلى قائمة الخوادم الخاصة بك. أنت جاهز للاتصال!"
+
+msgid "server_failed_message"
+msgstr ""
+"حدث خطأ ما أثناء إعداد خادمك الخاص. يمكنك المحاولة مرة أخرى أو المحاولة "
+"لاحقًا."
+
+msgid "close"
+msgstr "إغلاق"
+
+msgid "connect_now"
+msgstr "الاتصال الآن"
+
+msgid "server_setup_failed"
+msgstr "فشل إعداد الخادم"
+
+msgid "cancel_deployment"
+msgstr "إلغاء النشر"
+
+msgid "server_setup_failed_message"
+msgstr ""
+"حدث خطأ ما أثناء إعداد خادمك الخاص. يمكنك المحاولة مرة أخرى أو المحاولة "
+"لاحقًا."
+
+msgid "exit"
+msgstr "خروج"
+
+msgid "retry"
+msgstr "إعادة المحاولة"
+
+msgid "all_required_fields"
+msgstr "يرجى ملء جميع الحقول المطلوبة."
+
+msgid "private_server_ready"
+msgstr "الخادم الخاص جاهز!"
+
+msgid "private_server_ready_message"
+msgstr ""
+"تم إعداد خادم (%s) وإضافته إلى قائمة الخوادم الخاصة بك. أنت جاهز للاتصال!"
+
+msgid "set_up_your_server"
+msgstr "قم بإعداد خادمك"
+
+msgid "view_instructions_github"
+msgstr "عرض التعليمات على GitHub"
+
+msgid "server_access_key"
+msgstr "مفتاح الوصول إلى الخادم"
+
+msgid "access_key"
+msgstr "مفتاح الوصول"
+
+msgid "name_your_server"
+msgstr "اسم خادمك"
+
+msgid "how_server_appears"
+msgstr "كيف سيظهر الخادم في قائمة اختيار الخادم"
+
+msgid "server_nickname"
+msgstr "الاسم المستعار للخادم"
+
+msgid "verify_server"
+msgstr "التحقق من الخادم"
+
+msgid "vpn_client_not_setup"
+msgstr "يرجى تشغيل عميل VPN."
+
+msgid "continue_with"
+msgstr "المتابعة مع"
+
+msgid "join_a_private_server"
+msgstr "الانضمام إلى خادم خاص"
+
+msgid "join_private_server"
+msgstr "الانضمام إلى خادم خاص"
+
+msgid "join_server"
+msgstr "الانضمام إلى الخادم"
+
+msgid "private_server_usage_message"
+msgstr "استخدام الخادم الخاص لا يُحتسب ضمن حد البيانات اليومي لـ Lantern."
+
+msgid "manage_private_servers"
+msgstr "إدارة الخوادم الخاصة"
+
+msgid "my_servers"
+msgstr "خوادمي"
+
+msgid "joined_servers"
+msgstr "الخوادم المنضم إليها"
+
+msgid "access_key_expiration"
+msgstr ""
+"كل مفتاح وصول فريد وتنتهي صلاحيته بعد يوم واحد. يمكنك إنشاء مفتاح جديد في أي"
+" وقت."
+
+msgid "share_access_key"
+msgstr "مشاركة مفتاح الوصول"
+
+msgid "rename_server"
+msgstr "إعادة تسمية الخادم"
+
+msgid "rename"
+msgstr "إعادة تسمية"
+
+msgid "selected_location"
+msgstr "الموقع المحدد"
+
+msgid "remove_server_?"
+msgstr "إزالة الخادم؟"
+
+msgid "remove_server_message"
+msgstr ""
+"إزالة %s؟ سيؤدي هذا إلى إزالته من تطبيقك فقط، ولن يحذف الخادم من مزود الخدمة"
+" السحابية الخاص بك."
+
+msgid "generate_access_key"
+msgstr "إنشاء مفتاح وصول"
+
+msgid "invite_name"
+msgstr "اسم الدعوة"
+
+msgid "trust_server_operator"
+msgstr "ثق بمشغل الخادم"
+
+msgid "trust_server_operator_message_one"
+msgstr ""
+"الخوادم الخاصة تستضيفها وتديرها أفراد أو مؤسسات خارج Lantern. عندما تتصل "
+"بأحدها، فأنت تثق بالشخص الذي يديرها لإدارتها بأمان واستخدامها بمسؤولية."
+
+msgid "trust_server_operator_message_two"
+msgstr ""
+"لا تدير Lantern الخوادم الخاصة أو تراقبها. تأكد من أنك تعرف وتثق بمشغل "
+"الخادم قبل الانضمام إلى أحدها."
+
+msgid "trust_server_operator_message_three"
+msgstr ""
+"إذا لم تكن متأكدًا من يدير الخادم أو كيف تم تكوينه، نوصي باستخدام أحد خوادم "
+"Lantern الافتراضية المتاحة في قائمة الخوادم لديك"
+
+msgid "invalid_server_details"
+msgstr ""
+"تفاصيل خادم غير صالحة. يرجى التحقق من مفتاح الوصول والمحاولة مرة أخرى."
+
+msgid "lantern_servers"
+msgstr "خوادم Lantern"
+
+msgid "private_servers"
+msgstr "الخوادم الخاصة"
+
+msgid "fastest_server"
+msgstr "أسرع خادم"
+
+msgid "join_my_private_server"
+msgstr "انضم إلى خادم Lantern الخاص بي"
+
+msgid "your_server"
+msgstr "خوادمك:"
+
+msgid "no_private_server_setup_yet"
+msgstr "لم تقم بإعداد خادم خاص بعد. انقر على الزر أدناه للبدء."
+
+msgid "connect"
+msgstr "اتصال"
+
+msgid "disconnect"
+msgstr "قطع الاتصال"
+
+msgid "show"
+msgstr "إظهار"
+
+msgid "status_on"
+msgstr "متصل"
+
+msgid "status_off"
+msgstr "غير متصل"
+
+msgid "select_your_server_location"
+msgstr "اختر موقع خادمك"
+
+msgid "faster_speeds_unlimited_bandwidth"
+msgstr "سرعات أعلى ونطاق ترددي غير محدود"
+
+msgid "premium_servers_less_congestion"
+msgstr "خوادم مميزة مع ازدحام أقل"
+
+msgid "advanced_anti_censorship"
+msgstr "تقنية متقدمة لمكافحة الرقابة"
+
+msgid "exclusive_access_new_features"
+msgstr "وصول حصري للميزات الجديدة"
+
+msgid "connect_up_to_five_devices"
+msgstr "اتصل بما يصل إلى 5 أجهزة"
+
+msgid "built_in_ad_blocking"
+msgstr "حظر إعلانات مدمج"
 
 msgid "get_lantern_pro"
-msgstr "إحصل على لانترن برو"
+msgstr "احصل على Lantern برو"
 
-msgid "try_lantern_pro"
-msgstr "جرّب Lantern مجانًا!"
+msgid "connected_to_private_server"
+msgstr "متصل بخادم خاص"
 
-msgid "continue_for_free"
-msgstr "المتابعة مجانًا"
-
-msgid "recovery_not_found"
-msgstr "الجهاز غير مرتبط بهذا المستخدم"
-
-msgid "device_added"
-msgstr "تمت إضافة الجهاز"
-
-msgid "device_added_message"
-msgstr ""
-"تمت إضافة جهازك بنجاح. إذا لم تر الجهاز متصلاً، يرجى إعادة تشغيل التطبيق على"
-" كلا الجهازين "
-
-msgid "wrong_link_code"
-msgstr "الرمز الذي أدخلته غير صحيح. يرجى التحقق والمحاولة مرة أخرى."
-
-msgid "recovery_code_sent"
-msgstr "تم إرسال رمز الاسترداد"
-
-msgid "device_added_msg"
-msgstr "تم ربط هذا الجهاز بـ %s"
-
-msgid "new_to_lantern"
-msgstr "هل أنت جديد في Lantern؟"
-
-msgid "email_has_been_updated"
-msgstr "تم تحديث البريد الإلكتروني"
-
-msgid "email_has_been_updated_message"
-msgstr "لقد تم تغيير بريدك الإلكتروني بنجاح"
-
-msgid "email_has_been_verified"
-msgstr "تم التحقق من صحة البريد الإلكتروني"
-
-msgid "email_has_been_verified_message"
-msgstr "تم التحقق من صحة بريدك الإلكتروني بنجاح"
+msgid "server_already_selected"
+msgstr "أنت متصل بالفعل بهذا الخادم."
 
 msgid "device_limit_reached"
-msgstr "تم الوصول إلى الحد الأقصى للأجهزة"
+msgstr "تم الوصول إلى حد الأجهزة"
 
 msgid "device_limit_reached_message"
+msgstr "لقد وصلت إلى حد 5 أجهزة. يرجى إزالة جهاز للمتابعة."
+
+msgid "remove_device_and_sign_in"
+msgstr "إزالة جهاز وتسجيل الدخول"
+
+msgid "cancel_sign_in"
+msgstr "إلغاء تسجيل الدخول"
+
+msgid "change_email"
+msgstr "تغيير البريد الإلكتروني"
+
+msgid "change_email_message"
 msgstr ""
-"أنت مسجل الدخول حاليًا على العدد الأقصى من الأجهزة (3). لتسجيل الدخول على "
-"هذا الجهاز، يرجى اختيار وإزالة أحد أجهزتك الأخرى أدناه."
+"سيصبح هذا بريدك الإلكتروني الجديد لتسجيل الدخول. ستحتاج إلى التحقق منه قبل "
+"أن يدخل التغيير حيز التنفيذ."
+
+msgid "enter_new_email"
+msgstr "أدخل بريدك الإلكتروني الجديد"
+
+msgid "confirm_password_to_continue"
+msgstr "للمتابعة، يرجى تأكيد كلمة المرور."
+
+msgid "email_updated"
+msgstr "تم تحديث بريدك الإلكتروني."
+
+msgid "enable_network_extension"
+msgstr "تفعيل امتداد الشبكة"
+
+msgid "enable_network_extension_message"
+msgstr "لاستخدام Lantern، نحتاج إلى تثبيت امتداد شبكة لجهاز Mac الخاص بك."
+
+msgid "install_now"
+msgstr "التثبيت الآن"
+
+msgid "learn_more"
+msgstr "معرفة المزيد"
+
+msgid "network_extension_required"
+msgstr "مطلوب امتداد شبكة"
+
+msgid "click"
+msgstr "انقر"
+
+msgid "open_system_settings"
+msgstr "فتح إعدادات النظام"
+
+msgid "when_prompted"
+msgstr "عندما يُطلب منك ذلك."
+
+msgid "activate_extension"
+msgstr "التثبيت الآن"
+
+msgid "email_optional"
+msgstr "البريد الإلكتروني (اختياري)"
+
+msgid "please_enter_valid_email"
+msgstr "يرجى إدخال بريد إلكتروني صالح"
+
+msgid "please_select_an_issue"
+msgstr "يرجى تحديد مشكلة"
+
+msgid "please_enter_issue_description"
+msgstr "يرجى إدخال وصف للمشكلة"
+
+msgid "thanks_for_feedback"
+msgstr "شكرًا لملاحظاتك!"
+
+msgid "no_apps_selected"
+msgstr "لم يتم تحديد أي تطبيقات"
+
+msgid "deselect_all"
+msgstr "إلغاء تحديد الكل"
+
+msgid "select_all"
+msgstr "تحديد الكل"
+
+msgid "no_websites_selected"
+msgstr "لم يتم تحديد أي مواقع"
 
 msgid "enter_activation_code"
 msgstr "أدخل رمز التفعيل"
 
-msgid "check_your_email"
-msgstr "تحقق من عنوان بريدك الإلكتروني"
+msgid "restore_purchase"
+msgstr "استعادة الشراء"
 
-msgid "please_verify_email"
-msgstr "يرجى التحقق من أن عنوان البريد الإلكتروني الذي أدخلته صحيح."
+msgid "do_private_server_setup"
+msgstr "إعداد خادم DO الخاص"
 
-msgid "verify"
-msgstr "تحقق من الصحة"
+msgid "private_server_note"
+msgstr ""
+"اختر منطقة لخادمك الخاص. قد تؤدي المواقع الأقرب إلى تحسين السرعة وتقليل زمن "
+"الاستجابة."
 
-msgid "cannot_login"
-msgstr "لا يمكن تسجيل الدخول "
+msgid "gcp_private_server_setup"
+msgstr "إعداد خادم GCP الخاص"
+
+msgid "gcp_private_server_location"
+msgstr "موقع خادم GCP الخاص"
+
+msgid "do_private_server_location"
+msgstr "موقع خادم DO الخاص"
+
+msgid "confirm"
+msgstr "تأكيد"
+
+msgid "private_server_warning"
+msgstr "أضف فقط الخوادم التي يديرها أشخاص تثق بهم "
+
+msgid "go_to_server_locations"
+msgstr "الانتقال إلى مواقع الخوادم"
+
+msgid "lantern_io"
+msgstr "Lantern.io"
+
+msgid "alternative_download_links"
+msgstr "روابط تنزيل بديلة"
+
+msgid "github_download_page"
+msgstr "صفحة تنزيل GitHub"
+
+msgid "telegram_bot"
+msgstr "بوت تيليجرام"
+
+msgid "if_you_cannot_access_website"
+msgstr ""
+"إذا واجهت أي مشاكل في الوصول إلى موقعنا، يمكنك تنزيل Lantern من الروابط "
+"أعلاه."
+
+msgid "available_on"
+msgstr "متوفر على:"
+
+msgid "subscription_renewal_date"
+msgstr "تاريخ تجديد الاشتراك"
+
+msgid "enabled_bypass_lists"
+msgstr "قوائم التجاوز المفعّلة (%d):"
+
+msgid "diagnostic_logs"
+msgstr "سجلات التشخيص"
+
+msgid "lantern_user_forum"
+msgstr "منتدى مستخدمي Lantern"
+
+msgid "frequently_asked_questions"
+msgstr "الأسئلة الشائعة"
 
 msgid "privacy_policy"
 msgstr "سياسة الخصوصية"
@@ -1833,164 +1128,132 @@ msgstr "سياسة الخصوصية"
 msgid "terms_of_service"
 msgstr "شروط الخدمة"
 
-msgid "invalid_verification_code"
-msgstr "كود تحقق غير صحيح "
+msgid "get_unlimited_data"
+msgstr "احصل على بيانات غير محدودة وسرعات أعلى!"
 
-msgid "wrong_seller_code"
-msgstr "كود البائع غير صحيح. يرجى التحقق والمحاولة مرة أخرى. "
+msgid "private_server_options"
+msgstr "خيارات الخادم الخاص"
 
-msgid "follow_us"
-msgstr "تابعنا "
+msgid "lantern_version"
+msgstr "إصدار Lantern"
 
-msgid "follow_us_telegram"
-msgstr "تابعنا على Telegram"
+msgid "quit"
+msgstr "إنهاء"
 
-msgid "follow_us_instagram"
-msgstr "تابعنا على Instagram"
+msgid "device_removed"
+msgstr "تمت إزالة الجهاز"
 
-msgid "follow_us_facebook"
-msgstr "تابعنا على Facebook"
+msgid "set_server_alias"
+msgstr "تعيين اسم مستعار للخادم"
 
-msgid "follow_us_x"
-msgstr "تابعنا على X"
-
-msgid "report_issue_error"
-msgstr "نواجه صعوبات تقنية. حاول مرة أخرى لاحقًا. "
-
-msgid "we_are_experiencing_technical_difficulties"
-msgstr "نواجه صعوبات تقنية. حاول مرة أخرى لاحقًا. "
-
-msgid "a_temporary_error_occurred"
-msgstr "حدث خطأ مؤقت "
-
-msgid "sorry_we_are_unable_to_load_that_page"
+msgid "this_name_pre_filled"
 msgstr ""
-"عذرًا، لا يمكن تحميل هذه الصفحة في الوقت الحالي، يرجى الضغط على \"تحديث\" "
-"للمحاولة مرة أخرى. "
+"سيتم تعبئة هذا الاسم مسبقًا للمستخدم المدعو لمساعدته في تحديد الخادم. يمكنه "
+"تغييره لاحقًا."
 
-msgid "refresh"
-msgstr "تحديث"
+msgid "server_alias"
+msgstr "الاسم المستعار للخادم"
 
-msgid "check_your_internet_connection"
-msgstr "تحقق من اتصال الإنترنت لديك "
+msgid "add_referral_code"
+msgstr "إضافة رمز إحالة"
 
-msgid "please_try"
-msgstr "يرجى المحاولة مرة أخرى "
+msgid "referral_code"
+msgstr "رمز الإحالة"
 
-msgid "turning_off_airplane_mode"
-msgstr "إيقاف وضع الطيران "
+msgid "update_fails"
+msgstr "فشل التحديث"
 
-msgid "turning_on_mobile_data_or_wifi"
-msgstr "تشغيل البيانات المحمولة أو الواي فاي "
+msgid "scan_qr_code"
+msgstr "مسح رمز QR"
 
-msgid "check_the_signal_in_your_area"
-msgstr "تحقق من الإشارة في منطقتك "
+msgid "choose_your_server_location"
+msgstr "اختر موقع خادمك"
 
-msgid "got_it"
-msgstr "فهمت"
+msgid "we_handle_configuration"
+msgstr "نحن نتولى التكوين، ما عليك سوى التسجيل."
 
-msgid "fetching_configuration"
-msgstr "جلب التكوين "
+msgid "90_day_free_trial"
+msgstr "تجربة مجانية لمدة 90 يومًا"
 
-msgid "establish_connection_to_server"
-msgstr "إقامة اتصال بالخادم "
+msgid "identity_changed"
+msgstr "تغيرت الهوية لـ %s"
 
-msgid "file_size_limit_title"
-msgstr "تم الوصول إلى الحد "
+msgid "identity_changed_message"
+msgstr "تغيرت بصمة الأمان لـ %s. قد يشير هذا إلى عبث أو سوء تكوين."
 
-msgid "file_size_limit_description"
-msgstr "يجب أن تكون أحجام المرفقات أقل من 100 ميجابايت"
+msgid "recommendation"
+msgstr "التوصية:"
 
-msgid "lantern_pro_one_year"
-msgstr "خطة Lantern Pro: لمدة سنة"
-
-msgid "lantern_pro_two_year"
-msgstr "خطة Lantern Pro: لمدة سنتين"
-
-msgid "lantern_pro_one_month"
-msgstr "خطة فانوس برو: شهر واحد"
-
-msgid "non_renewing_subscription"
-msgstr "اشتراك غير متجدد"
-
-msgid "restore_purchase"
-msgstr "استعادة الشراء"
-
-msgid "skip_for_now"
-msgstr "تخطي الآن"
-
-msgid "purchase_not_found"
-msgstr "لم يتم العثور على عملية شراء بالبريد الإلكتروني المقدم"
-
-msgid "no_previous_purchase"
-msgstr "لم يتم العثور على عملية شراء سابقة"
-
-msgid "warning_restore_purchase"
+msgid "recommendation_message"
 msgstr ""
-"أدخل البريد الإلكتروني الذي أدخلته أثناء الدفع لاستعادة عملية الشراء الخاصة "
-"بك."
+"نوصي بإزالة %s من Lantern وحذفه من حساب مزود الخدمة السحابية الخاص بك، ثم "
+"إعداد خادم جديد لضمان بقاء اتصالك آمنًا."
 
-msgid "purchase_restored"
-msgstr "استعادة الشراء"
+msgid "remove_server"
+msgstr "إزالة الخادم"
 
-msgid "purchase_restored_message"
-msgstr "تمت استعادة عملية الشراء بنجاح"
+msgid "server_alias_cannot_be_empty"
+msgstr "لا يمكن أن يكون الاسم المستعار للخادم فارغًا"
 
-msgid "purchase_restored_error"
+msgid "referral_code_applied"
+msgstr "تم تطبيق رمز الإحالة الخاص بك!"
+
+msgid "referral_message_1m"
+msgstr "+ 15 يومًا إضافيًا مجانًا"
+
+msgid "referral_message_1y"
+msgstr "+ 1 شهر إضافي مجانًا"
+
+msgid "referral_message_2y"
+msgstr "+ 2 شهرين إضافيين مجانًا"
+
+msgid "referral_code_invalid"
 msgstr ""
-"يبدو أن هناك خطأ ما في استعادة الشراء. يرجى التحقق مرة أخرى من أنك قد أدخلت "
-"البريد الإلكتروني أو الرمز الصحيح."
+"رمز الإحالة الذي أدخلته غير صالح. يرجى التحقق من الرمز والمحاولة مرة أخرى."
 
-msgid "err_while_sending_code"
-msgstr "حدث خطأ أثناء إرسال الرمز، يرجى المحاولة مرة أخرى"
+msgid "referral_code_own_invalid"
+msgstr "لا يمكنك استخدام رمز الإحالة الخاص بك. يرجى إدخال رمز مختلف."
 
-msgid "email_hint"
-msgstr "*البريد الإلكتروني اختياري ولكنه مستحسن*"
+msgid "free"
+msgstr "مجانًا"
 
-msgid "email_hint_pro"
+msgid "monthly_plan"
+msgstr "الخطة الشهرية:"
+
+msgid "15_days_each"
+msgstr "+15 يومًا لكل منها"
+
+msgid "annual_plan"
+msgstr "الخطة السنوية:"
+
+msgid "1_month_each"
+msgstr "+1 شهر لكل"
+
+msgid "two_year_plan"
+msgstr "خطة لمدة عامين:"
+
+msgid "2_month_each"
+msgstr "+2 شهر لكل"
+
+msgid "referral_code_info"
+msgstr "لست مستخدمًا لـ Lantern Pro بعد؟ ستصبح كذلك عندما يشترك أول شخص تحيله"
+
+msgid "lantern_pro_license"
+msgstr "ترخيص لانترن برو"
+
+msgid "select_account"
+msgstr "اختيار حساب"
+
+msgid "new_to_lantern"
+msgstr "هل أنت جديد في Lantern؟"
+
+msgid "create_an_account"
+msgstr "إنشاء حساب"
+
+msgid "no_projects_found"
+msgstr "لم يتم العثور على مشاريع"
+
+msgid "no_projects_found_desc"
 msgstr ""
-"أضف بريدًا إلكترونيًا للوصول إلى مشترياتك على أي جهاز. بدون بريد إلكتروني، "
-"ستكون المشتريات مرتبطة بهذا الجهاز وقد تُفقد."
-
-msgid "continue_without_email"
-msgstr "المتابعة بدون بريد إلكتروني"
-
-msgid "no_new_update"
-msgstr "لديك آخر التحديثات! "
-
-msgid "error_referral"
-msgstr "حدث خطأ ما أثناء تطبيق رمز الإحالة المخصص لك."
-
-msgid "proxy_error"
-msgstr "نواجه مشكلة في تشغيل الفانوس. يرجى المحاولة مرة أخرى لاحقًا."
-
-msgid "proxy_settings"
-msgstr "إعدادات الوكيل"
-
-msgid "http_proxy"
-msgstr "بروكسي HTTPS"
-
-msgid "socks_proxy"
-msgstr "بروكسي الجوارب"
-
-msgid "http_proxy_copied"
-msgstr "تم نسخ وكيل HTTP"
-
-msgid "socks_proxy_copied"
-msgstr "تم نسخ وكيل الجوارب"
-
-msgid "proxy_everything"
-msgstr "كل شيء على البروكسي"
-
-msgid "errorSubmittingToGooglePlay"
-msgstr ""
-"نحن نواجه حاليًا صعوبات في معالجة طلبك لـ Google Play. يرجى المحاولة مرة "
-"أخرى لاحقًا."
-
-msgid "no_internet_connection"
-msgstr "لم يتم اكتشاف اتصال بالإنترنت"
-
-msgid "domain_fronting_error"
-msgstr ""
-"نواجه مشكلة في الاتصال بخوادمنا. يرجى الانتظار لحظة أو محاولة إيقاف تشغيله "
-"وتشغيله مرة أخرى."
+"لم يتم العثور على مشاريع. يرجى إنشاء مشروع في حساب مزود السحابة الخاص بك "
+"أولاً."

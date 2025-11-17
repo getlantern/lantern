@@ -27,7 +27,7 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
     final accessKeyController = useTextEditingController();
     final nameController = useTextEditingController();
     final buttonValid = useState(false);
-    final serverState = ref.watch(privateServerNotifierProvider);
+    final serverState = ref.watch(privateServerProvider);
 
     useEffect(() {
       if (serverState.status == 'EventTypeServerTofuPermission') {
@@ -190,7 +190,7 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
 
     context.showLoadingDialog();
     final result = await ref
-        .read(privateServerNotifierProvider.notifier)
+        .read(privateServerProvider.notifier)
         .addServerManually(ip, port, accessKey, tag);
     result.fold(
       (failure) {
@@ -248,7 +248,7 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
   Future<void> onConfirmFingerprint(CertSummary cert) async {
     context.showLoadingDialog();
     final result = await ref
-        .read(privateServerNotifierProvider.notifier)
+        .read(privateServerProvider.notifier)
         .setCert(cert.fingerprint);
 
     result.fold(

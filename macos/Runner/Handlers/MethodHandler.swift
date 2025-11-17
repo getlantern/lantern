@@ -55,6 +55,25 @@ class MethodHandler {
         withFilterArgs(call: call, result: result) { filterType, value in
           self.removeItemsToSplitTunnel(result: result, filterType: filterType, value: value)
         }
+
+      case "setSplitTunnelingEnabled":
+        if let map = call.arguments as? [String: Any],
+          let enabled = map["enabled"] as? Bool
+        {
+          self.setSplitTunnelingEnabled(enabled: enabled, result: result)
+        } else {
+          result(
+            FlutterError(
+              code: "INVALID_ARGUMENTS",
+              message: "Missing enabled argument",
+              details: nil))
+        }
+
+      case "isSplitTunnelingEnabled":
+        Task.detached {
+          let enabled = MobileIsSplitTunnelingEnabled()
+          await MainActor.run { result(enabled) }
+        }
       case "enableSplitTunneling":
         self.enableSplitTunneling(result: result)
       case "disableSplitTunneling":
@@ -171,6 +190,10 @@ class MethodHandler {
         let data = call.arguments as? [String: Any]
         self.revokeServerManagerInstance(result: result, data: data!)
         break
+
+      case "validateSession":
+        self.validateSession(result: result)
+        break
       //Utils methods
       case "featureFlag":
         self.featureFlags(result: result)
@@ -183,8 +206,8 @@ class MethodHandler {
       case "getDataCapInfo":
         self.getDataCapInfo(result: result)
       case "updateLocale":
-          let locale = call.arguments as? String ?? ""
-          self.updateLocale(result: result,locale:locale)
+        let locale = call.arguments as? String ?? ""
+        self.updateLocale(result: result, locale: locale)
         break
       case "reportIssue":
         let map = call.arguments as? [String: Any]
@@ -407,6 +430,18 @@ class MethodHandler {
       await MainActor.run {
         result("ok")
       }
+    }
+  }
+
+  private func setSplitTunnelingEnabled(enabled: Bool, result: @escaping FlutterResult) {
+    Task.detached {
+      var error: NSError?
+      MobileSetSplitTunnelingEnabled(enabled, &error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "SET_SPLIT_TUNNELING_FAILED")
+        return
+      }
+      await MainActor.run { result("ok") }
     }
   }
 
@@ -928,6 +963,19 @@ class MethodHandler {
     }
   }
 
+  func validateSession(result: @escaping FlutterResult) {
+    Task.detached {
+      var error: NSError?
+      MobileValidateSession(&error)
+      if let err = error {
+        await self.handleFlutterError(
+          err, result: result, code: "VALIDATE_SESSION_ERROR")
+        return
+      }
+      await self.replyOK(result)
+    }
+  }
+
   func featureFlags(result: @escaping FlutterResult) {
     Task.detached {
       let flags = MobileAvailableFeatures()
@@ -976,10 +1024,10 @@ class MethodHandler {
     }
   }
 
-    func updateLocale(result: @escaping FlutterResult,locale:String) {
+  func updateLocale(result: @escaping FlutterResult, locale: String) {
     Task.detached {
       var error: NSError?
-      MobileUpdateLocale(locale,&error)
+      MobileUpdateLocale(locale, &error)
       if let err = error {
         await self.handleFlutterError(err, result: result, code: "UPDATE_LOCALE_ERROR")
         return

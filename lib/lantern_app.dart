@@ -125,7 +125,7 @@ class _LanternAppState extends ConsumerState<LanternApp> {
 
   @override
   Widget build(BuildContext context) {
-    final locale = ref.watch(appSettingNotifierProvider).locale;
+    final locale = ref.watch(appSettingProvider).locale;
     Localization.defaultLocale = locale;
     return GlobalLoaderOverlay(
       overlayColor: Colors.black.withOpacity(0.5),

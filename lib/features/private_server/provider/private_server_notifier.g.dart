@@ -6,22 +6,56 @@ part of 'private_server_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$privateServerNotifierHash() =>
-    r'a7971af5417f773aaf0eb81a3cdbb19833094c73';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [PrivateServerNotifier].
 @ProviderFor(PrivateServerNotifier)
-final privateServerNotifierProvider =
-    NotifierProvider<PrivateServerNotifier, PrivateServerStatus>.internal(
-  PrivateServerNotifier.new,
-  name: r'privateServerNotifierProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$privateServerNotifierHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+const privateServerProvider = PrivateServerNotifierProvider._();
 
-typedef _$PrivateServerNotifier = Notifier<PrivateServerStatus>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class PrivateServerNotifierProvider
+    extends $NotifierProvider<PrivateServerNotifier, PrivateServerStatus> {
+  const PrivateServerNotifierProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'privateServerProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$privateServerNotifierHash();
+
+  @$internal
+  @override
+  PrivateServerNotifier create() => PrivateServerNotifier();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(PrivateServerStatus value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<PrivateServerStatus>(value),
+    );
+  }
+}
+
+String _$privateServerNotifierHash() =>
+    r'e1d477ef5c6b4d6d294361901c35bc46175d7cd6';
+
+abstract class _$PrivateServerNotifier extends $Notifier<PrivateServerStatus> {
+  PrivateServerStatus build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<PrivateServerStatus, PrivateServerStatus>;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<PrivateServerStatus, PrivateServerStatus>,
+        PrivateServerStatus,
+        Object?,
+        Object?>;
+    element.handleValue(ref, created);
+  }
+}

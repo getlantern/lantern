@@ -6,22 +6,56 @@ part of 'feature_flag_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+
+@ProviderFor(FeatureFlagNotifier)
+const featureFlagProvider = FeatureFlagNotifierProvider._();
+
+final class FeatureFlagNotifierProvider
+    extends $NotifierProvider<FeatureFlagNotifier, Map<String, dynamic>> {
+  const FeatureFlagNotifierProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'featureFlagProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$featureFlagNotifierHash();
+
+  @$internal
+  @override
+  FeatureFlagNotifier create() => FeatureFlagNotifier();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Map<String, dynamic> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Map<String, dynamic>>(value),
+    );
+  }
+}
+
 String _$featureFlagNotifierHash() =>
     r'fb9b17b6d71951364cbbbb09c1633e70dca46f24';
 
-/// See also [FeatureFlagNotifier].
-@ProviderFor(FeatureFlagNotifier)
-final featureFlagNotifierProvider =
-    NotifierProvider<FeatureFlagNotifier, Map<String, dynamic>>.internal(
-  FeatureFlagNotifier.new,
-  name: r'featureFlagNotifierProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$featureFlagNotifierHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-typedef _$FeatureFlagNotifier = Notifier<Map<String, dynamic>>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+abstract class _$FeatureFlagNotifier extends $Notifier<Map<String, dynamic>> {
+  Map<String, dynamic> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<Map<String, dynamic>, Map<String, dynamic>>;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<Map<String, dynamic>, Map<String, dynamic>>,
+        Map<String, dynamic>,
+        Object?,
+        Object?>;
+    element.handleValue(ref, created);
+  }
+}

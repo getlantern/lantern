@@ -70,9 +70,12 @@ enum class Methods(val method: String) {
     StartDeployment("startDeployment"),
     CancelDeployment("cancelDeployment"),
     SelectCertFingerprint("selectCertFingerprint"),
+
+    ValidateSession("validateSession"),
     AddServerManually("addServerManually"),
     InviteToServerManagerInstance("inviteToServerManagerInstance"),
     RevokeServerManagerInstance("revokeServerManagerInstance"),
+
 
     //custom/lantern servers
     GetLanternAvailableServers("getLanternAvailableServers"),
@@ -762,8 +765,17 @@ class MethodHandler : FlutterPlugin,
                 ) {
                     Mobile.selectedCertFingerprint(call.arguments as String)
                 }
-
             }
+            Methods.ValidateSession.method -> {
+                scope.handleResult(
+                    result,
+                    "ValidateSession"
+                ) {
+                    Mobile.validateSession()
+                }
+            }
+
+
 
             Methods.AddServerManually.method -> {
                 scope.launch {
@@ -960,7 +972,7 @@ private suspend fun MethodChannel.Result.mainError(
 ) = withContext(Dispatchers.Main.immediate) { error(code, message, details) }
 
 
-inline fun <T> CoroutineScope.handleValue(
+private inline fun <T> CoroutineScope.handleValue(
     result: MethodChannel.Result,
     errorCode: String,
     crossinline block: suspend () -> T
@@ -970,7 +982,7 @@ inline fun <T> CoroutineScope.handleValue(
         .onFailure { e -> result.mainError(errorCode, e.localizedMessage ?: "Please try again", e) }
 }
 
-inline fun CoroutineScope.handleResult(
+private inline fun CoroutineScope.handleResult(
     result: MethodChannel.Result,
     errorCode: String,
     crossinline block: suspend () -> Unit

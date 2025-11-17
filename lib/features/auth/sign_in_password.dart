@@ -98,7 +98,7 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
     }
     context.showLoadingDialog();
     final result = await ref
-        .read(authNotifierProvider.notifier)
+        .read(authProvider.notifier)
         .signInWithEmail(widget.email, password);
     result.fold(
       (error) {
@@ -124,12 +124,12 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
         /// save login state and user email
         /// update user data in home notifier
         /// fetch available servers
-        ref.read(appSettingNotifierProvider.notifier)
+        ref.read(appSettingProvider.notifier)
           ..setUserLoggedIn(true)
           ..setEmail(widget.email);
-        ref.read(homeNotifierProvider.notifier).updateUserData(user);
+        ref.read(homeProvider.notifier).updateUserData(user);
         // ref
-        //     .read(availableServersNotifierProvider.notifier)
+        //     .read(availableServersProvider.notifier)
         //     .forceFetchAvailableServers();
         appRouter.popUntilRoot();
       },

@@ -19,7 +19,7 @@ class _CensoredDialogState extends ConsumerState<CensoredDialog> {
   @override
   Widget build(BuildContext context) {
     ref.listen(
-      vPNStatusNotifierProvider,
+      vPNStatusProvider,
       (previous, next) {
         if (next.value?.status == VPNStatus.connected) {
           context.maybePop();
@@ -62,7 +62,7 @@ class _CensoredDialogState extends ConsumerState<CensoredDialog> {
           label: 'turn_on_vpn'.i18n,
           onPressed: () async {
             final result =
-                await ref.read(vpnNotifierProvider.notifier).startVPN();
+                await ref.read(vpnProvider.notifier).startVPN();
             result.fold(
               (failure) {
                 context.maybePop();

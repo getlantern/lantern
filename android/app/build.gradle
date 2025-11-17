@@ -50,7 +50,7 @@ android {
 
     defaultConfig {
         applicationId = "org.getlantern.lantern"
-        minSdkVersion = 23
+        minSdkVersion = flutter.minSdkVersion
         targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -115,7 +115,6 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
     implementation fileTree(dir: "libs", include: "liblantern.aar")
     implementation 'androidx.core:core-ktx:1.15.0'
-    implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.8.7'
     implementation 'androidx.work:work-runtime-ktx:2.10.0'
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'

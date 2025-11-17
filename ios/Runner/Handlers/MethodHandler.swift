@@ -160,7 +160,9 @@ class MethodHandler {
         let data = call.arguments as? [String: Any]
         self.revokeServerManagerInstance(result: result, data: data!)
         break
-
+      case "validateSession":
+        self.validateSession(result: result)
+        break
       //Server Selection
       case "getLanternAvailableServers":
         self.getLanternAvailableServers(result: result)
@@ -172,8 +174,8 @@ class MethodHandler {
       case "featureFlag":
         self.featureFlags(result: result)
       case "updateLocale":
-          let locale = call.arguments as? String ?? ""
-          self.updateLocale(result: result,locale:locale)
+        let locale = call.arguments as? String ?? ""
+        self.updateLocale(result: result, locale: locale)
         break
       case "reportIssue":
         let map = call.arguments as? [String: Any]
@@ -788,6 +790,19 @@ class MethodHandler {
       await self.replyOK(result)
     }
   }
+    
+    func validateSession(result: @escaping FlutterResult) {
+      Task.detached {
+        var error: NSError?
+         MobileValidateSession(&error)
+        if let err = error {
+          await self.handleFlutterError(
+            err, result: result, code: "VALIDATE_SESSION_ERROR")
+          return
+        }
+        await self.replyOK(result)
+      }
+    }
 
   func featureFlags(result: @escaping FlutterResult) {
     Task.detached {
@@ -797,11 +812,11 @@ class MethodHandler {
       }
     }
   }
-    
-    func updateLocale(result: @escaping FlutterResult,locale:String) {
+
+  func updateLocale(result: @escaping FlutterResult, locale: String) {
     Task.detached {
       var error: NSError?
-      MobileUpdateLocale(locale,&error)
+      MobileUpdateLocale(locale, &error)
       if let err = error {
         await self.handleFlutterError(err, result: result, code: "UPDATE_LOCALE_ERROR")
         return
@@ -809,7 +824,6 @@ class MethodHandler {
       await self.replyOK(result)
     }
   }
-    
 
   func getLanternAvailableServers(result: @escaping FlutterResult) {
     Task.detached {

@@ -41,7 +41,7 @@ class Setting extends StatefulHookConsumerWidget {
 class _SettingState extends ConsumerState<Setting> {
   @override
   Widget build(BuildContext context) {
-    final appSetting = ref.watch(appSettingNotifierProvider);
+    final appSetting = ref.watch(appSettingProvider);
     final locale = appSetting.locale;
     final textTheme = Theme.of(context).textTheme;
     final isUserPro = ref.isUserPro;
@@ -232,7 +232,7 @@ class _SettingState extends ConsumerState<Setting> {
         break;
       case _SettingType.account:
         final localUser = sl<LocalStorageService>().getUser()!;
-        final userSignedIn = ref.watch(appSettingNotifierProvider).userLoggedIn;
+        final userSignedIn = ref.watch(appSettingProvider).userLoggedIn;
         if (localUser.legacyUserData.isPro() && !userSignedIn) {
           // this mean user has pro account but not signed in
           updateProAccountFlow();
@@ -346,7 +346,7 @@ class _SettingState extends ConsumerState<Setting> {
 
   Future<void> onLogout() async {
     context.showLoadingDialog();
-    final appSetting = ref.read(appSettingNotifierProvider);
+    final appSetting = ref.read(appSettingProvider);
     final result =
         await ref.read(lanternServiceProvider).logout(appSetting.email);
     result.fold(
@@ -357,8 +357,8 @@ class _SettingState extends ConsumerState<Setting> {
       (user) {
         context.hideLoadingDialog();
         appRouter.popUntilRoot();
-        ref.read(homeNotifierProvider.notifier).clearLogoutData();
-        ref.read(homeNotifierProvider.notifier).updateUserData(user);
+        ref.read(homeProvider.notifier).clearLogoutData();
+        ref.read(homeProvider.notifier).updateUserData(user);
 
         appLogger.info('Logout success: $user');
       },

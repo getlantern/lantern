@@ -20,11 +20,11 @@ class PlansListView extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final referralEnable = ref.watch(referralNotifierProvider);
+    final referralEnable = ref.watch(referralProvider);
     final size = MediaQuery.of(context).size;
     final plan = useState<Plan>(
         data.plans.firstWhere((Plan plan) => plan.bestValue == true));
-    ref.read(plansNotifierProvider.notifier).setSelectedPlan(plan.value);
+    ref.read(plansProvider.notifier).setSelectedPlan(plan.value);
     return SizedBox(
       height: context.isSmallDevice ? size.height * 0.21 : null,
       child: ListView.builder(
@@ -43,7 +43,7 @@ class PlansListView extends HookConsumerWidget {
             referralMessage: referralEnable ? getReferralMessage(item.id) : '',
             onPressed: (plans) {
               plan.value = plans;
-              ref.read(plansNotifierProvider.notifier).setSelectedPlan(plans);
+              ref.read(plansProvider.notifier).setSelectedPlan(plans);
             },
           );
         },
