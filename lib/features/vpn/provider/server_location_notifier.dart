@@ -51,7 +51,7 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
           );
 
           updateServerLocation(autoServer);
-          appLogger.debug("Fetched auto server location: $autoLocation");
+          appLogger.debug("Fetched auto server location: ${autoLocation.location?.toJson()}");
         },
       );
     } else {

@@ -28,8 +28,39 @@ class VPNManager: VPNBase {
       guard let connection = notification.object as? NEVPNConnection else { return }
       self?.connectionStatus = connection.status
     }
-
     appLogger.log("VPNManager initialized")
+    Task {
+      await restoreVPNStatus()
+    }
+
+  }
+
+  //    Restores the VPN connection status from the system when the user closes the app without disconnecting VPN.
+  func restoreVPNStatus() async {
+    appLogger.log("Restoring VPN status...")
+    
+    do {
+        let vpnManagerFound = await Profile.shared.vpnManagerExists()
+        if( !vpnManagerFound) {
+            appLogger.log("No existing VPN profile found during restore. must be first run.")
+            return
+        }
+            
+      guard let manager = await Profile.shared.getManager() else {
+        let msg = "Unable to load or create VPN manager."
+        appLogger.error(msg)
+        throw NSError(
+          domain: "VPNManagerError",
+          code: 1003,
+          userInfo: [NSLocalizedDescriptionKey: msg]
+        )
+      }
+      let status = manager.connection.status
+      appLogger.log("Restored VPN status: \(status.rawValue)")
+      self.connectionStatus = status
+    } catch {
+      appLogger.error("Failed to restore VPN status: \(error.localizedDescription)")
+    }
   }
 
   deinit {

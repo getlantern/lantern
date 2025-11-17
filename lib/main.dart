@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:auto_updater/auto_updater.dart';
-import 'package:device_preview_plus/device_preview_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -48,11 +47,9 @@ Future<void> main() async {
 
   FutureOr<void> runner() {
     runApp(
-      DevicePreview(
-        enabled: false,
-        builder: (context) => ProviderScope(
-          child: const LanternApp(),
-        ),
+      ProviderScope(
+        retry: (retryCount, error) => null,
+        child: const LanternApp(),
       ),
     );
   }

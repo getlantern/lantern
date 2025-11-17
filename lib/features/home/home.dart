@@ -27,12 +27,15 @@ class Home extends StatefulHookConsumerWidget {
   ConsumerState<Home> createState() => _HomeState();
 }
 
-class _HomeState extends ConsumerState<Home> with RouteAware {
+class _HomeState extends ConsumerState<Home>
+    with RouteAware, WidgetsBindingObserver {
   TextTheme? textTheme;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
     if (PlatformUtils.isMacOS) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final appSetting = ref.read(appSettingProvider);
@@ -61,24 +64,33 @@ class _HomeState extends ConsumerState<Home> with RouteAware {
   @override
   void dispose() {
     routeObserver.unsubscribe(this);
+    WidgetsBinding.instance.removeObserver(this);
+
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      appLogger.debug("App resumed - checking auto server location");
+
+      /// User comes back to home screen
+      ref.read(serverLocationProvider.notifier).ifNeededGetAutoServerLocation();
+    }
   }
 
   @override
   void didPopNext() {
     /// User comes back to home screen
-    ref
-        .read(serverLocationProvider.notifier)
-        .ifNeededGetAutoServerLocation();
+    ref.read(serverLocationProvider.notifier).ifNeededGetAutoServerLocation();
     super.didPopNext();
   }
 
   @override
   void didPush() {
     /// First time screen is pushed
-    ref
-        .read(serverLocationProvider.notifier)
-        .ifNeededGetAutoServerLocation();
+    ref.read(serverLocationProvider.notifier).ifNeededGetAutoServerLocation();
     super.didPush();
   }
 
@@ -86,7 +98,7 @@ class _HomeState extends ConsumerState<Home> with RouteAware {
   Widget build(BuildContext context) {
     final isUserPro = ref.isUserPro;
     textTheme = Theme.of(context).textTheme;
-    ref.watch(appEventProvider);
+    ref.read(appEventProvider);
     return Scaffold(
       appBar: AppBar(
           backgroundColor: AppColors.white,
@@ -110,7 +122,7 @@ class _HomeState extends ConsumerState<Home> with RouteAware {
   Widget _buildBody(WidgetRef ref, bool isUserPro) {
     final serverLocation = ref.watch(serverLocationProvider);
     final serverType = serverLocation.serverType.toServerLocationType;
-
+  print("Building Home Body Widget");
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: defaultSize),
       child: Column(
@@ -127,7 +139,7 @@ class _HomeState extends ConsumerState<Home> with RouteAware {
                     text: 'private_server_usage_message'.i18n,
                   )
                 else
-                  DataUsage(),
+                  const DataUsage(),
               },
               SizedBox(height: 8),
               _buildSetting(ref),
@@ -159,7 +171,9 @@ class _HomeState extends ConsumerState<Home> with RouteAware {
             VpnStatus(),
             DividerSpace(),
             LocationSetting(),
-            if (PlatformUtils.isAndroid || PlatformUtils.isMacOS || PlatformUtils.isWindows) ...{
+            if (PlatformUtils.isAndroid ||
+                PlatformUtils.isMacOS ||
+                PlatformUtils.isWindows) ...{
               DividerSpace(),
               SettingTile(
                 label: 'split_tunneling'.i18n,

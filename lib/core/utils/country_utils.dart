@@ -89,7 +89,7 @@ class CountryUtils {
     "Kenya": "KE",
     "Kiribati": "KI",
     "Korea (Democratic People's Republic of)": "KP",
-    "Korea (Republic of)": "KR",
+    "South Korea": "KR",
     "Kuwait": "KW",
     "Kyrgyzstan": "KG",
     "Lao People's Democratic Republic": "LA",

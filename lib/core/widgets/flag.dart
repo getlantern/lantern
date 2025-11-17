@@ -1,5 +1,6 @@
 import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
+
 import '../common/app_colors.dart';
 
 class Flag extends StatelessWidget {
@@ -17,14 +18,16 @@ class Flag extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: AppColors.gray3, width: .5),
-        borderRadius: BorderRadius.circular(3),
       ),
-      child: CountryFlag.fromCountryCode(
-        countryCode,
-        theme: ImageTheme(
-          shape: RoundedRectangle(3),
-          height: size?.height ?? 17,
-          width: size?.width ?? 24,
+      child: SizedBox.fromSize(
+        size: Size(25, 18),
+        child: CountryFlag.fromCountryCode(
+          countryCode,
+          theme: ImageTheme(
+            shape: RoundedRectangle(3),
+            height: size.height,
+            width: size.width,
+          ),
         ),
       ),
     );
