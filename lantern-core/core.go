@@ -397,7 +397,7 @@ func (lc *LanternCore) UserData() ([]byte, error) {
 	return bytes, nil
 }
 
-// GetUserData will get the user data from the server
+// FetchUserData will get the user data from the server
 func (lc *LanternCore) FetchUserData() ([]byte, error) {
 	slog.Debug("Getting user data")
 	// this call will also save the user data in the user config

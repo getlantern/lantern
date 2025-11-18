@@ -6,6 +6,8 @@ import (
 	"context"
 	"errors"
 	"flag"
+	"fmt"
+	"log/slog"
 	"os"
 	"os/signal"
 	"runtime"
@@ -14,11 +16,12 @@ import (
 	"syscall"
 	"unsafe"
 
-	"github.com/getlantern/golog"
 	"github.com/getlantern/lantern-outline/lantern-core/common"
 	"github.com/getlantern/lantern-outline/lantern-core/wintunmgr"
 	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/svc"
+
+	rcommon "github.com/getlantern/radiance/common"
 )
 
 const (
@@ -27,13 +30,11 @@ const (
 	servicePipeName = `\\.\pipe\LanternService`
 )
 
-var log = golog.LoggerFor("lantern-core.wintunmgr")
-
 func guard(where string) {
 	if r := recover(); r != nil {
 		buf := make([]byte, 1<<20)
 		n := runtime.Stack(buf, true)
-		log.Errorf("PANIC in %s: %v\n%s", where, r, string(buf[:n]))
+		slog.Error("PANIC in "+where, "error", r, "stack", string(buf[:n]))
 	}
 }
 
@@ -43,12 +44,15 @@ func init() {
 }
 
 func main() {
+	// Initialize radiance to ensure our directories and logging are set up.
+	rcommon.Init("", "", "debug")
 	consoleMode := flag.Bool("console", false, "Run in console mode instead of Windows service")
 	flag.Parse()
 
 	isService, err := isWindowsService()
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("Failed to determine if running as Windows service", "error", err)
+		return
 	}
 
 	if *consoleMode || !isService {
@@ -58,7 +62,7 @@ func main() {
 
 	// let SCM specify the service name
 	if err := svc.Run(common.WindowsServiceName, &lanternHandler{}); err != nil {
-		log.Error(err)
+		slog.Error("Service failed", "error", err)
 	}
 }
 
@@ -74,17 +78,19 @@ func runConsole() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
-	log.Debugf("Starting %s in console mode (pid=%d)", common.WindowsServiceName, os.Getpid())
+	slog.Debug("Starting " + common.WindowsServiceName + " in console mode (pid=" + fmt.Sprint(os.Getpid()) + ")")
 
 	defer guard("runConsole")
 
 	_, s, err := newWindowsService()
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("Failed to create new Windows service", "error", err)
+		return
 	}
 
 	if err := s.Start(ctx); err != nil {
-		log.Fatal(err)
+		slog.Error("Failed to start Windows service", "error", err)
+		return
 	}
 }
 
@@ -122,7 +128,7 @@ func (h *lanternHandler) Execute(args []string, r <-chan svc.ChangeRequest, chan
 				changes <- svc.Status{State: svc.StopPending}
 				cancel()
 				if err := <-started; err != nil {
-					log.Errorf("service worker exited with error on stop: %v", err)
+					slog.Error("service worker exited with error on stop", "error", err)
 					changes <- svc.Status{State: svc.Stopped}
 					return false, 1
 				}
@@ -131,7 +137,7 @@ func (h *lanternHandler) Execute(args []string, r <-chan svc.ChangeRequest, chan
 			}
 		case err := <-started:
 			if err != nil {
-				log.Errorf("service worker exited unexpectedly: %v", err)
+				slog.Error("service worker exited unexpectedly", "error", err)
 				changes <- svc.Status{State: svc.Stopped}
 				return false, 1
 			}

@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net"
 	"os"
 	"path/filepath"
@@ -19,13 +20,10 @@ import (
 	"time"
 
 	"github.com/Microsoft/go-winio"
-	"github.com/getlantern/golog"
 	"github.com/getlantern/lantern-outline/lantern-core/common"
 	rvpn "github.com/getlantern/radiance/vpn"
 	ripc "github.com/getlantern/radiance/vpn/ipc"
 )
-
-var slog = golog.LoggerFor("lantern-core.wintunsvc")
 
 type ServiceOptions struct {
 	PipeName  string
@@ -133,8 +131,8 @@ func (s *Service) Start(ctx context.Context) error {
 		s.opts.TokenPath = filepath.Join(progData, "Lantern", "ipc-token")
 	}
 
-	slog.Debugf("Service.Start pipe=%q datadir=%q logdir=%q token_path=%q",
-		s.opts.PipeName, s.opts.DataDir, s.opts.LogDir, s.opts.TokenPath)
+	slog.Info("Starting Windows service", "pipe", s.opts.PipeName, "data_dir",
+		s.opts.DataDir, "log_dir", s.opts.LogDir, "token_path", s.opts.TokenPath)
 
 	token, err := s.getToken()
 	if err != nil {
@@ -158,12 +156,12 @@ func (s *Service) Start(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	slog.Debugf("Service listening on pipe %s", s.opts.PipeName)
+	slog.Debug("Service listening on pipe", "pipe", s.opts.PipeName)
 
 	go func() {
 		<-ctx.Done()
 		_ = ln.Close()
-		slog.Debugf("Service listener closed pipe=%q", s.opts.PipeName)
+		slog.Debug("Service listener closed pipe", "pipe", s.opts.PipeName)
 	}()
 
 	for {
@@ -175,7 +173,7 @@ func (s *Service) Start(ctx context.Context) error {
 			continue
 		}
 		connID := randID("c_", 6)
-		slog.Debugf("Service accept conn_id=%s", connID)
+		slog.Debug("Service accept", "conn_id", connID)
 		go s.handleConn(ctx, conn, token, connID)
 	}
 }
@@ -317,14 +315,14 @@ func (s *Service) handleConn(ctx context.Context, c net.Conn, token, connID stri
 	defer func() {
 		close(done)
 		_ = c.Close()
-		slog.Debugf("conn closed conn_id=%s", connID)
+		slog.Debug("conn closed", "conn_id", connID)
 	}()
 
 	for {
 		var req Request
 		if err := dec.Decode(&req); err != nil {
 			if !errors.Is(err, io.EOF) {
-				slog.Debugf("decode: %v", err)
+				slog.Debug("decode error", "error", err)
 			}
 			return
 		}
@@ -347,10 +345,10 @@ func (s *Service) handleConn(ctx context.Context, c net.Conn, token, connID stri
 		resp := s.dispatch(ctx, &req)
 		elapsed := sinceMs(start)
 		if resp.Error != nil {
-			slog.Errorf("cmd error conn_id=%s req_id=%s cmd=%s elapsed_ms=%d code=%s msg=%s",
-				connID, reqID, cmd, elapsed, resp.Error.Code, resp.Error.Message)
+			slog.Error("cmd error", "conn_id", connID, "req_id", reqID, "cmd", cmd, "elapsed_ms", elapsed,
+				"code", resp.Error.Code, "msg", resp.Error.Message)
 		} else {
-			slog.Debugf("cmd ok conn_id=%s req_id=%s cmd=%s elapsed_ms=%d", connID, reqID, cmd, elapsed)
+			slog.Debug("cmd ok", "conn_id", connID, "req_id", reqID, "cmd", cmd, "elapsed_ms", elapsed)
 		}
 		_ = enc.Encode(resp)
 	}
@@ -388,11 +386,11 @@ func (s *Service) checkIPCUp(ctx context.Context, timeout time.Duration) error {
 func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 	defer func() {
 		if rec := recover(); rec != nil {
-			slog.Errorf("panic in dispatch cmd=%s: %v\n%s", r.Cmd, rec, debug.Stack())
+			slog.Error("panic in dispatch", "cmd", r.Cmd, "error", rec, "stack", string(debug.Stack()))
 		}
 	}()
 
-	slog.Debugf("Service dispatch: %v", r.Cmd)
+	slog.Debug("Service dispatch", "cmd", r.Cmd)
 	switch r.Cmd {
 
 	case common.CmdSetupAdapter:

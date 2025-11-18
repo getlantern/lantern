@@ -5,6 +5,7 @@ package wintunmgr
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"golang.org/x/sys/windows"
@@ -37,20 +38,20 @@ func New(adapterName, poolName string, guid *windows.GUID) *Manager {
 // OpenOrCreateTunAdapter opens an existing adapter or creates it if missing
 func (m *Manager) OpenOrCreateTunAdapter(ctx context.Context) (*wintun.Adapter, error) {
 	if v, _ := wintun.RunningVersion(); v != 0 {
-		slog.Debugf("Wintun running version: %d", v)
+		slog.Debug("Wintun running version", "version", v)
 	}
 
 	start := time.Now()
 	if ad, err := wintun.OpenAdapter(m.AdapterName); err == nil {
-		slog.Debugf("wintun.OpenAdapter opened name=%q elapsed_ms=%d", m.AdapterName, sinceMs(start))
+		slog.Debug("wintun.OpenAdapter opened", "name", m.AdapterName, "elapsed_ms", sinceMs(start))
 		return ad, nil
 	} else {
-		slog.Debugf("wintun.OpenAdapter miss name=%q err=%v", m.AdapterName, err)
+		slog.Debug("wintun.OpenAdapter miss", "name", m.AdapterName, "err", err)
 	}
 
 	select {
 	case <-ctx.Done():
-		slog.Debugf("OpenOrCreateTunAdapter canceled adapter=%q err=%v", m.AdapterName, ctx.Err())
+		slog.Debug("OpenOrCreateTunAdapter canceled", "adapter", m.AdapterName, "err", ctx.Err())
 		return nil, ctx.Err()
 	default:
 	}
@@ -62,11 +63,10 @@ func (m *Manager) OpenOrCreateTunAdapter(ctx context.Context) (*wintun.Adapter, 
 		att := time.Now()
 		ad, err = wintun.CreateAdapter(m.AdapterName, m.PoolName, m.GUID)
 		if err == nil {
-			slog.Debugf("CreateAdapter created name=%q pool=%q guid=%v attempt=%d elapsed_ms=%d total_ms=%d",
-				m.AdapterName, m.PoolName, m.GUID, i, sinceMs(att), sinceMs(start))
+			slog.Debug("CreateAdapter created", "name", m.AdapterName, "pool", m.PoolName, "guid", m.GUID, "attempt", i, "elapsed_ms", sinceMs(att), "total_ms", sinceMs(start))
 			return ad, nil
 		}
-		slog.Errorf("wintun.CreateAdapter failed name=%q pool=%q attempt=%d err=%v", m.AdapterName, m.PoolName, i, err)
+		slog.Error("wintun.CreateAdapter failed", "name", m.AdapterName, "pool", m.PoolName, "attempt", i, "err", err)
 		select {
 		case <-ctx.Done():
 			return nil, ctx.Err()
@@ -83,7 +83,8 @@ func (m *Manager) Open() (*wintun.Adapter, error) {
 	if err != nil {
 		return nil, fmt.Errorf("open Wintun adapter %q: %w", m.AdapterName, err)
 	}
-	slog.Debugf("wintun.OpenAdapter ok name=%q elapsed_ms=%d", m.AdapterName, sinceMs(start))
+	slog.Debug("wintun.OpenAdapter ok", "name", m.AdapterName, "elapsed_ms", sinceMs(start))
+
 	return ad, nil
 }
 
@@ -94,7 +95,8 @@ func (m *Manager) Create() (*wintun.Adapter, error) {
 	if err != nil {
 		return nil, fmt.Errorf("create Wintun adapter %q: %w", m.AdapterName, err)
 	}
-	slog.Debugf("wintun.CreateAdapter ok name=%q pool=%q elapsed_ms=%d", m.AdapterName, m.PoolName, sinceMs(start))
+	slog.Debug("wintun.CreateAdapter ok", "name", m.AdapterName, "pool", m.PoolName, "elapsed_ms", sinceMs(start))
+
 	return ad, nil
 }
 
