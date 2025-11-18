@@ -18,6 +18,6 @@ Future<void> safePush(BuildContext context, PageRouteInfo route) async {
   try {
     await appRouter.push(route);
   } catch (e) {
-    print('Navigation error: $e');
+    appLogger.error('Navigation error', e);
   }
 }
