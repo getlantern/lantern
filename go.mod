@@ -4,7 +4,7 @@ go 1.24.0
 
 toolchain go1.24.1
 
-// replace github.com/getlantern/radiance => ../radiance
+replace github.com/getlantern/radiance => ../radiance
 
 // replace github.com/getlantern/lantern-server-provisioner => ../lantern-server-provisioner
 
@@ -170,11 +170,11 @@ require (
 	github.com/getlantern/dnstt v0.0.0-20250530230749-4d64f4edcf0f // indirect
 	github.com/getlantern/elevate v0.0.0-20220903142053-479ab992b264 // indirect
 	github.com/getlantern/filepersist v0.0.0-20210901195658-ed29a1cb0b7c // indirect
-	github.com/getlantern/fronted v0.0.0-20251107001409-e279bdc4b5fe // indirect
+	github.com/getlantern/fronted v0.0.0-20251118000818-058df28ec727 // indirect
 	github.com/getlantern/iptool v0.0.0-20230112135223-c00e863b2696 // indirect
 	github.com/getlantern/keepcurrent v0.0.0-20240126172110-2e0264ca385d // indirect
 	github.com/getlantern/keyman v0.0.0-20230503155501-4e864ca2175b // indirect
-	github.com/getlantern/kindling v0.0.0-20251107184409-8287fd38bb77 // indirect
+	github.com/getlantern/kindling v0.0.0-20251118001040-e62fa3a32e8b // indirect
 	github.com/getlantern/lantern-water v0.0.0-20250331153903-07abebe611e8 // indirect
 	github.com/getlantern/mtime v0.0.0-20200417132445-23682092d1f7 // indirect
 	github.com/getlantern/netx v0.0.0-20240830183145-c257516187f0 // indirect
