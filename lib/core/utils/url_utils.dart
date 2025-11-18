@@ -39,8 +39,11 @@ class UrlUtils {
         mode: LaunchMode.externalApplication,
       );
       if (!ok) throw 'Failed to open ${uri.toString()}';
-    } catch (e) {
-      print(e.toString());
+    } catch (e, st) {
+      appLogger.error('Unable to launch url', e, st);
+      if (context.mounted) {
+        context.showSnackBar('could_not_open_url'.i18n);
+      }
     }
   }
 
