@@ -1,4 +1,6 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:lantern/core/common/common.dart';
 
 Widget slideLeftToRight(BuildContext context, Animation<double> animation,
     Animation<double> secondaryAnimation, Widget child) {
@@ -10,4 +12,12 @@ Widget slideLeftToRight(BuildContext context, Animation<double> animation,
     position: animation.drive(tween),
     child: child,
   );
+}
+
+Future<void> safePush(BuildContext context, PageRouteInfo route) async {
+  try {
+    await appRouter.push(route);
+  } catch (e) {
+    print('Navigation error: $e');
+  }
 }
