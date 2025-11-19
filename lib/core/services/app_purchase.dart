@@ -72,9 +72,8 @@ class AppPurchase {
     }
     final purchaseParam = PurchaseParam(productDetails: product);
     try {
-      final started = await _inAppPurchase.buyNonConsumable(
-        purchaseParam: purchaseParam,
-      );
+      final started =
+          await _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
       if (!started) {
         _onError?.call("Failed to initiate purchase flow.");
       }

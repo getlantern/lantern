@@ -24,7 +24,6 @@ import 'core/common/app_secrets.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await configureDesktopWindow();
-
   try {
     final flutterLog = await AppStorageUtils.flutterLogFile();
     initLogger(flutterLog.path);
@@ -40,9 +39,7 @@ Future<void> main() async {
     appLogger.error("Error during app initialization", e, st);
   }
   final flags = await _loadFeatureFlags();
-
   final sentryEnabled = flags.getBool(FeatureFlag.sentry) && kReleaseMode;
-
   await _configureAutoUpdate(flags: flags);
 
   FutureOr<void> runner() {
@@ -55,7 +52,7 @@ Future<void> main() async {
   }
 
   if (sentryEnabled) {
-    await _setupSentry(runner: runner, flags: flags);
+    await _setupSentry(runner: runner);
   } else {
     runner();
   }
@@ -91,7 +88,7 @@ Future<void> _configureAutoUpdate({required Map<String, dynamic> flags}) async {
 }
 
 Future<void> _setupSentry(
-    {required AppRunner runner, required Map<String, dynamic> flags}) async {
+    {required AppRunner runner}) async {
   await SentryFlutter.init(
     (options) {
       options.tracesSampleRate = .8;
@@ -104,7 +101,6 @@ Future<void> _setupSentry(
       options.attachStacktrace = true;
       options.enableAutoNativeBreadcrumbs = true;
       options.enableNdkScopeSync = true;
-
       options.dist = Platform.operatingSystem;
     },
     appRunner: runner,

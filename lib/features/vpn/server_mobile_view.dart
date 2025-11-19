@@ -24,7 +24,6 @@ class ServerMobileView extends StatefulWidget {
 class _ServerMobileViewState extends State<ServerMobileView> {
   @override
   Widget build(BuildContext context) {
-    appLogger.debug("Building ServerMobileView for ${widget.location.city} country ${widget.location.country}");
     return AppTile(
       label: widget.location.city,
       selected: widget.isSelected,
