@@ -1,8 +1,6 @@
 module github.com/getlantern/lantern-outline
 
-go 1.24.0
-
-toolchain go1.24.1
+go 1.25.4
 
 // replace github.com/getlantern/radiance => ../radiance
 
