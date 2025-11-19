@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:auto_updater/auto_updater.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
@@ -25,6 +26,13 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await configureDesktopWindow();
   try {
+    if (PlatformUtils.isMobile) {
+      /// Locking orientation to portrait only for mobile devices
+      await SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]);
+    }
     final flutterLog = await AppStorageUtils.flutterLogFile();
     initLogger(flutterLog.path);
     appLogger.debug('Starting app initialization...');
@@ -87,8 +95,7 @@ Future<void> _configureAutoUpdate({required Map<String, dynamic> flags}) async {
   }));
 }
 
-Future<void> _setupSentry(
-    {required AppRunner runner}) async {
+Future<void> _setupSentry({required AppRunner runner}) async {
   await SentryFlutter.init(
     (options) {
       options.tracesSampleRate = .8;
