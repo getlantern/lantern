@@ -87,7 +87,7 @@ class AppStorageUtils {
     if (!Platform.isWindows) {
       throw UnsupportedError("Not running on Windows");
     }
-    final appDataPath = Platform.environment['APPDATA'];
+    final appDataPath = Platform.environment['PUBLIC'];
     final appDir = Directory("$appDataPath/Lantern");
     if (!appDir.existsSync()) {
       appDir.createSync(recursive: true);
