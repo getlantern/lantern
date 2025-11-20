@@ -412,6 +412,7 @@ func (lc *LanternCore) FetchUserData() ([]byte, error) {
 		LegacyToken:    user.Token,
 		LegacyUserData: user.LoginResponse_UserData,
 	}
+	slog.Debug("Fetched user data: Login ", "data", login)
 	protoUserData, err := proto.Marshal(login)
 	if err != nil {
 		return nil, fmt.Errorf("error marshalling user data: %w", err)

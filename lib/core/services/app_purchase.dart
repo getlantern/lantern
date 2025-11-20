@@ -72,8 +72,9 @@ class AppPurchase {
     }
     final purchaseParam = PurchaseParam(productDetails: product);
     try {
-      final started =
-          await _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
+      final started = await _inAppPurchase.buyNonConsumable(
+        purchaseParam: purchaseParam,
+      );
       if (!started) {
         _onError?.call("Failed to initiate purchase flow.");
       }
@@ -85,14 +86,16 @@ class AppPurchase {
   Future<void> _onPurchaseUpdates(List<PurchaseDetails> purchases) async {
     appLogger.info('Purchase updates: $purchases');
     for (final purchase in purchases) {
+      appLogger.info('Processing new purchase: $purchase');
       await _handlePurchase(purchase);
     }
   }
 
   Future<void> _handlePurchase(PurchaseDetails purchaseDetails) async {
-    appLogger.info('Handling purchase: ${purchaseDetails.status}');
+    appLogger.info('Handling purchase: ${purchaseDetails.toString()}');
     try {
       final status = purchaseDetails.status;
+
       if (status == PurchaseStatus.error) {
         /// Error occurred during purchase
         appLogger.error('Purchase error: ${purchaseDetails.error}');
@@ -116,14 +119,11 @@ class AppPurchase {
         return;
       }
       if (status == PurchaseStatus.purchased) {
-        ///Verify the purchase
-        await _inAppPurchase.completePurchase(purchaseDetails);
         _onSuccess?.call(purchaseDetails);
+        if (purchaseDetails.pendingCompletePurchase) {
+          await _inAppPurchase.completePurchase(purchaseDetails);
+        }
         return;
-      }
-
-      if (purchaseDetails.pendingCompletePurchase) {
-        await _inAppPurchase.completePurchase(purchaseDetails);
       }
     } catch (e) {
       appLogger.error('Error handling purchase: $e');
@@ -150,5 +150,10 @@ class AppPurchase {
       }
     }
     return null;
+  }
+
+  void clearCallbacks() {
+    _onSuccess = null;
+    _onError = null;
   }
 }
