@@ -210,7 +210,7 @@ class ConfirmEmail extends HookConsumerWidget {
       case AuthFlow.signUp:
         // Check if user is pro or not
         final isPro =
-            sl<LocalStorageService>().getUser()?.legacyUserData.isPro() ??
+            sl<LocalStorageService>().getUser()?.isPro() ??
                 false;
         if ((isStoreVersion() || isPro) && PlatformUtils.isMobile) {
           appRouter.push(

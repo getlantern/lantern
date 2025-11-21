@@ -41,12 +41,14 @@ class _AddEmailState extends ConsumerState<AddEmail> {
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               AppTextField(
                 controller: emailController,
                 label: 'email'.i18n,
+                keyboardType: TextInputType.emailAddress,
                 prefixIcon: AppImagePaths.email,
                 hintText: 'example@gmail.com',
                 onChanged: (value) {

@@ -52,6 +52,7 @@ extension UserDataMapper on UserResponse_UserData {
   }
 
   bool isPro() {
+
     return userLevel == 'pro';
   }
 }
@@ -130,7 +131,7 @@ extension UserData on UserDataEntity {
       invitees: invitees.split(',').toList(),
       devices: devices.map((e) => e.toDevice()).toList(),
       purchases: purchases.split(',').toList(),
-      subscriptionData: subscriptionData.target!.toSubscriptionData(),
+      subscriptionData: subscriptionData.target?.toSubscriptionData(),
       deviceID: deviceID,
     );
   }
