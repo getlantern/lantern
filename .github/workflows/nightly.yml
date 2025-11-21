@@ -22,7 +22,7 @@ concurrency:
 env:
   BUILD_TYPE: nightly
   FLUTTER_VERSION: "3.24.x"
-  GO_VERSION: "1.24.x"
+  GO_VERSION: "1.25.x"
 
 jobs:
   set-nightly-metadata:
