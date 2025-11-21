@@ -22,7 +22,7 @@ class ActivationCode extends HookConsumerWidget {
     final codeController = useTextEditingController();
     final validCode = useState(false);
     return BaseScreen(
-      title: 'Enter Activation Code',
+      title: 'lantern_pro_license'.i18n,
       body: Column(
         children: <Widget>[
           SizedBox(height: defaultSize),
