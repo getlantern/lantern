@@ -1,0 +1,46 @@
+name: Build Windows
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch_name:
+        description: 'Branch to run on'
+        required: true
+        default: 'main'
+
+jobs:
+  build-windows-dll:
+    permissions:
+      contents: "read"
+      id-token: "write"
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: "go.mod"
+
+      - name: Set up MinGW
+        run: choco install mingw -y
+      - name: Decode APP_ENV
+        uses: timheuer/base64-to-file@v1.2
+        with:
+          fileName: "app.env"
+          fileDir: ${{ github.workspace }}
+          encodedString: ${{ secrets.APP_ENV }}
+
+      - name: Build Windows dll
+        shell: pwsh
+        run: |
+          make windows
+          Move-Item "bin/windows/liblantern.dll" "liblantern.dll"
+
+      - name: Upload Windows dll
+        uses: actions/upload-artifact@v4
+        with:
+          name: lantern-dll
+          path: "liblantern.dll"
+          retention-days: 2
