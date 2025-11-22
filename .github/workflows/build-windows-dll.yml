@@ -2,6 +2,11 @@ name: Build Windows
 
 on:
   workflow_dispatch:
+    inputs:
+      branch_name:
+        description: 'Branch to run on'
+        required: true
+        default: 'main'
 
 jobs:
   build-windows-dll:
