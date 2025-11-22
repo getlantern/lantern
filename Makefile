@@ -285,12 +285,12 @@ windows-amd64: WINDOWS_GOOS := windows
 windows-amd64: WINDOWS_GOARCH := amd64
 windows-amd64:
 	$(call MKDIR_P,$(dir $(WINDOWS_LIB_AMD64)))
-	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_AMD64) CGO_LDFLAGS="-static-libgcc -static-libstdc++"
+	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_AMD64) CGO_LDFLAGS="-static-libgcc -static-libstdc++ -static -lwinpthread"
 windows-arm64: WINDOWS_GOOS := windows
 windows-arm64: WINDOWS_GOARCH := arm64
 windows-arm64:
 	$(call MKDIR_P,$(dir $(WINDOWS_LIB_ARM64)))
-	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_ARM64) CGO_LDFLAGS="-static-libgcc -static-libstdc++"
+	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_ARM64) CGO_LDFLAGS="-static-libgcc -static-libstdc++ -static -lwinpthread"
 
 .PHONY: build-lanternsvc-windows
 build-lanternsvc-windows: $(WINDOWS_SERVICE_BUILD)
