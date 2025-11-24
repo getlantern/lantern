@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../common/common.dart';
 
 typedef LinkOpener = Future<void> Function(String url);
@@ -8,7 +9,6 @@ class AppTile extends StatelessWidget {
   final Widget? subtitle;
 
   final Object? icon;
-  final Widget? leading;
   final Widget? trailing;
 
   // Actions
@@ -38,7 +38,6 @@ class AppTile extends StatelessWidget {
     this.onPressed,
     this.onLongPress,
     this.icon,
-    this.leading,
     this.subtitle,
     this.trailing,
     this.contentPadding,
@@ -88,19 +87,14 @@ class AppTile extends StatelessWidget {
     final effectiveMinHeight = isDoubleLine ? 72.0 : (minHeight ?? 56.0);
 
     final textStyle = tileTextStyle ??
-        theme.textTheme.labelLarge?.copyWith(
+        theme.textTheme.labelLarge!.copyWith(
           color: enabled ? AppColors.gray9 : AppColors.gray6,
           fontWeight: FontWeight.w400,
           fontSize: 16,
-        ) ??
-        TextStyle(
-          color: enabled ? AppColors.gray9 : AppColors.gray6,
-          fontSize: 16,
-          fontWeight: FontWeight.w400,
         );
 
-    Widget? computedLeading = leading;
-    if (computedLeading == null && icon != null) {
+    Widget? computedLeading;
+    if (icon != null) {
       if (icon is String) {
         computedLeading = SizedBox(
           width: 24,
