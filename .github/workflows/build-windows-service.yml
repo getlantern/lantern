@@ -1,0 +1,49 @@
+name: Build Windows Service
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+      build_type:
+        required: true
+        type: string
+      installer_name:
+        required: true
+        type: string
+
+jobs:
+  build-windows:
+    env:
+      AC_USERNAME: ${{ secrets.AC_USERNAME }}
+      AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
+      BUILD_TYPE: ${{ inputs.build_type || '' }}
+      VERSION: ${{ inputs.version }}
+    permissions:
+      contents: "read"
+      id-token: "write"
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: "go.mod"
+      - name: Set up MinGW
+        run: choco install mingw -y
+
+      - name: Build Windows service
+        shell: pwsh
+        run: |
+          make build-lanternsvc-windows
+          Move-Item "bin/windows/lanternsvc.exe" "lanternsvc.exe"
+
+      - name: Upload Windows service executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: lantern-service-exe
+          path: "lanternsvc.exe"
+          retention-days: 2

@@ -1,4 +1,4 @@
-name: Build Windows
+name: Build Windows DLL
 
 on:
   workflow_dispatch:
