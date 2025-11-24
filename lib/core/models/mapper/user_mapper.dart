@@ -52,6 +52,7 @@ extension UserDataMapper on UserResponse_UserData {
   }
 
   bool isPro() {
+
     return userLevel == 'pro';
   }
 }
@@ -73,12 +74,12 @@ extension SubscriptionDataMapper on UserResponse_UserData_SubscriptionData {
       id: 0,
       autoRenew: autoRenew,
       provider: provider,
-      endAt: endAt,
+      endAt: endAt.toString(),
       planID: planID,
       status: status,
-      startAt: startAt,
-      cancelledAt: cancelledAt,
-      createdAt: createdAt,
+      startAt: startAt.toString(),
+      cancelledAt: cancelledAt.toString(),
+      createdAt: createdAt.toString(),
       stripeCustomerID: stripeCustomerID,
       subscriptionID: subscriptionID,
     );
@@ -130,7 +131,7 @@ extension UserData on UserDataEntity {
       invitees: invitees.split(',').toList(),
       devices: devices.map((e) => e.toDevice()).toList(),
       purchases: purchases.split(',').toList(),
-      subscriptionData: subscriptionData.target!.toSubscriptionData(),
+      subscriptionData: subscriptionData.target?.toSubscriptionData(),
       deviceID: deviceID,
     );
   }
@@ -159,12 +160,12 @@ extension SubscriptionDataExtension on SubscriptionDataEntity {
     return UserResponse_UserData_SubscriptionData(
       autoRenew: autoRenew,
       provider: provider,
-      endAt: endAt,
+      endAt: Int64(int.parse(endAt)) ,
       planID: planID,
       status: status,
-      startAt: startAt,
-      cancelledAt: cancelledAt,
-      createdAt: createdAt,
+      startAt: Int64(int.parse(startAt)) ,
+      cancelledAt: Int64(int.parse(cancelledAt)) ,
+      createdAt: Int64(int.parse(createdAt)) ,
       stripeCustomerID: stripeCustomerID,
       subscriptionID: subscriptionID,
     );

@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/services/app_purchase.dart';
+import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/utils/formatter.dart';
 import 'package:lantern/core/utils/screen_utils.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
@@ -294,6 +296,7 @@ class _PlansState extends ConsumerState<Plans> {
       planId: plan.id,
       onSuccess: (purchase) {
         /// Subscription successful
+        appLogger.info('Subscription successful for plan: ${plan.id}');
         context.hideLoadingDialog();
         acknowledgeInAppPurchase(
             purchase.verificationData.serverVerificationData, plan.id);
@@ -338,10 +341,13 @@ class _PlansState extends ConsumerState<Plans> {
         context.showSnackBar(error.localizedErrorMessage);
         appLogger.error('Error acknowledging purchase: $error');
       },
-      (success) {
+      (success) async {
         // Handle success
         appLogger.info('Successfully acknowledged purchase');
         context.hideLoadingDialog();
+
+        /// IOS Send old purchases to stream
+        sl<AppPurchase>().clearCallbacks();
         signUpFlow();
       },
     );

@@ -1235,3 +1235,6 @@ msgstr "Could not open URL"
 
 msgid "new_to_lantern_pro"
 msgstr "New to Lantern Pro?"
+
+msgid "an_error_occurred"
+msgstr "An error occurred. Please try again later."

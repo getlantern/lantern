@@ -1282,3 +1282,42 @@ msgid "no_projects_found_desc"
 msgstr ""
 "কোনো প্রকল্প পাওয়া যায়নি। প্রথমে আপনার ক্লাউড প্রদানকারী অ্যাকাউন্টে একটি "
 "প্রকল্প তৈরি করুন।"
+
+msgid "add_billing_details"
+msgstr ""
+
+msgid "do_billing_details_message"
+msgstr ""
+
+msgid "tap"
+msgstr ""
+
+msgid "below_to_go_to_do"
+msgstr ""
+
+msgid "1"
+msgstr ""
+
+msgid "2"
+msgstr ""
+
+msgid "3"
+msgstr ""
+
+msgid "add_payment_method"
+msgstr ""
+
+msgid "return_to_lantern"
+msgstr ""
+
+msgid "how_to_add_billing_details"
+msgstr ""
+
+msgid "add_payment_method_message"
+msgstr ""
+
+msgid "ok"
+msgstr ""
+
+msgid "new_to_lantern_pro"
+msgstr ""

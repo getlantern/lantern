@@ -9,12 +9,12 @@
 # Lowrider <pams@imail.ru>, 2025
 # sayanvd <sayanvd@yandex.ru>, 2025
 # e2f_ru r3 <tx_e2f_ru_r3@ate2f.com>, 2025
-# Lantern, 2025
 # Derek F <derek@getlantern.org>, 2025
+# Lantern, 2025
 # 
 msgid ""
 msgstr ""
-"Last-Translator: Derek F <derek@getlantern.org>, 2025\n"
+"Last-Translator: Lantern, 2025\n"
 "Language-Team: Russian (Russia) (https://app.transifex.com/lantern-1/teams/94371/ru_RU/)\n"
 "Language: ru_RU\n"
 "Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);\n"
@@ -141,13 +141,13 @@ msgid "smart_location"
 msgstr "Умное расположение"
 
 msgid "automatically_chooses_fastest_location"
-msgstr "Автоматически выбирает самое быстрое расположение"
+msgstr "Автоматически выбирает расположение с самым быстрым сервером"
 
 msgid "pro_locations"
-msgstr "Расположения Про:"
+msgstr "Расположение Про серверов:"
 
 msgid "choose_your_location_with_lantern_pro"
-msgstr "Выберите расположение с Lantern Про:"
+msgstr "Выберите расположение Lantern Про серверов:"
 
 msgid "language"
 msgstr "Язык"
@@ -192,7 +192,7 @@ msgid "discover_not_working"
 msgstr "Discover не работает"
 
 msgid "cannot_sign_in"
-msgstr "Не могу войти"
+msgstr "Не могу зарегестрироваться"
 
 msgid "spinner_loads_endlessly"
 msgstr "Бесконечная загрузка"
@@ -320,18 +320,18 @@ msgid "default_lists_here"
 msgstr "списки по умолчанию здесь"
 
 msgid "when_connected"
-msgstr "При подключении выбранные вами сайты будут обходить VPN."
+msgstr "При подключении выбранные вами сайты обойдут VPN."
 
 msgid "lantern_automatic"
 msgstr ""
 "Lantern автоматически выбирает, какие приложения и сайты обходят VPN, исходя"
-" из вашего местоположения для лучшей производительности. "
+" из вашего местоположения, для улучшения производительности. "
 
 msgid "apps_bypassing_vpn"
 msgstr "Приложения, обходящие VPN (%d)"
 
 msgid "websites_bypassing_vpn"
-msgstr "Сайты, обходящие VPN (%d)"
+msgstr "Сайты обходящие VPN (%d)"
 
 msgid "logs_share_message"
 msgstr "Вот мои диагностические логи из Lantern."
@@ -340,7 +340,7 @@ msgid "payment_options"
 msgstr "Способы оплаты"
 
 msgid "add_your_email"
-msgstr "Добавить ваш email"
+msgstr "Добавьте ваш email"
 
 msgid "continue"
 msgstr "Продолжить"
@@ -358,7 +358,8 @@ msgid "confirm_email"
 msgstr "Подтвердить email"
 
 msgid "add_your_email_message"
-msgstr "Добавьте email для доступа к подписке на любом устройстве."
+msgstr ""
+"Добавьте ваш email, чтобы иметь доступ к вашей подписке на любом устройстве."
 
 msgid "confirm_email_code"
 msgstr "Код подтверждения"
@@ -380,7 +381,7 @@ msgid "sign_in_with_email"
 msgstr "Войти через email"
 
 msgid "enter_your_lantern_pro_account_details"
-msgstr "Введите данные вашего аккаунта Lantern Про."
+msgstr "Введите данные вашего Lantern Про аккаунта"
 
 msgid "email"
 msgstr "Email"
@@ -395,7 +396,7 @@ msgid "reset_your_password"
 msgstr "Сбросить пароль"
 
 msgid "enter_your_lantern_pro_account_email"
-msgstr "Введите email вашего аккаунта Lantern Про."
+msgstr "Введите email вашего Lantern Про аккаунта"
 
 msgid "reset_password"
 msgstr "Сбросить пароль"
@@ -1294,3 +1295,42 @@ msgid "no_projects_found_desc"
 msgstr ""
 "Проекты не найдены. Пожалуйста, сначала создайте проект в своем аккаунте "
 "облачного провайдера."
+
+msgid "add_billing_details"
+msgstr ""
+
+msgid "do_billing_details_message"
+msgstr ""
+
+msgid "tap"
+msgstr ""
+
+msgid "below_to_go_to_do"
+msgstr ""
+
+msgid "1"
+msgstr ""
+
+msgid "2"
+msgstr ""
+
+msgid "3"
+msgstr ""
+
+msgid "add_payment_method"
+msgstr ""
+
+msgid "return_to_lantern"
+msgstr ""
+
+msgid "how_to_add_billing_details"
+msgstr ""
+
+msgid "add_payment_method_message"
+msgstr ""
+
+msgid "ok"
+msgstr ""
+
+msgid "new_to_lantern_pro"
+msgstr ""

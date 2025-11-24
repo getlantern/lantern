@@ -29,7 +29,6 @@ class Account extends HookConsumerWidget {
 
   Widget _buildBody(BuildContext buildContext, WidgetRef ref) {
     final user = sl<LocalStorageService>().getUser();
-
     final appSettings = ref.read(appSettingProvider);
     final theme = Theme.of(buildContext).textTheme;
     return Column(

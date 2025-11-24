@@ -122,7 +122,6 @@ class _HomeState extends ConsumerState<Home>
   Widget _buildBody(WidgetRef ref, bool isUserPro) {
     final serverLocation = ref.watch(serverLocationProvider);
     final serverType = serverLocation.serverType.toServerLocationType;
-  print("Building Home Body Widget");
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: defaultSize),
       child: Column(
