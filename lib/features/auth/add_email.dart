@@ -172,9 +172,8 @@ class _AddEmailState extends ConsumerState<AddEmail> {
   Future<void> startForgotPasswordFlow(String email,
       [String? tempPassword]) async {
     context.showLoadingDialog();
-    final result = await ref
-        .read(authProvider.notifier)
-        .startRecoveryByEmail(email);
+    final result =
+        await ref.read(authProvider.notifier).startRecoveryByEmail(email);
     result.fold(
       (failure) {
         context.hideLoadingDialog();
@@ -192,9 +191,8 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     final token = result['token'];
     if (token != null) {
       context.showLoadingDialog();
-      final result = await ref
-          .read(authProvider.notifier)
-          .oAuthLoginCallback(token);
+      final result =
+          await ref.read(authProvider.notifier).oAuthLoginCallback(token);
       result.fold(
         (failure) {
           context.hideLoadingDialog();
@@ -252,6 +250,10 @@ class _AddEmailState extends ConsumerState<AddEmail> {
               appRouter.popUntilRoot();
             },
           );
+          return;
+        }
+        if (widget.authFlow == AuthFlow.activationCode) {
+          appRouter.push(ActivationCode(email: email, code: ''));
           return;
         }
         appRouter
