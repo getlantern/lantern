@@ -16,6 +16,7 @@ import (
 	"github.com/getlantern/radiance/api"
 	"github.com/getlantern/radiance/api/protos"
 	"github.com/getlantern/radiance/common"
+	"github.com/getlantern/radiance/issue"
 	"github.com/getlantern/radiance/servers"
 	"github.com/getlantern/radiance/vpn"
 	"google.golang.org/protobuf/proto"
@@ -345,24 +346,62 @@ func (lc *LanternCore) RemoveSplitTunnelItem(filterType, item string) error {
 	return lc.splitTunnel.RemoveItem(filterType, item)
 }
 
-func (lc *LanternCore) ReportIssue(email, issueType, description, device, model, logFilePath string) error {
+func (lc *LanternCore) ReportIssue(
+	email, issueType, description, device, model, logFilePath string,
+) error {
 	report := radiance.IssueReport{
 		Type:        issueType,
 		Description: description,
 		Device:      device,
 		Model:       model,
 	}
+
+	// Attach config files from the Lantern data directory
+	dataDir := common.DataPath()
+	configFiles := []string{
+		"config.json",
+		"servers.json",
+		"split-tunnel.json",
+	}
+
+	for _, name := range configFiles {
+		path := filepath.Join(dataDir, name)
+		b, err := os.ReadFile(path)
+		if err != nil {
+			if !os.IsNotExist(err) {
+				slog.Error("Failed to read file for issue report",
+					"file", name,
+					"path", path,
+					"error", err,
+				)
+			}
+			continue
+		}
+		if len(b) == 0 {
+			continue
+		}
+
+		report.Attachments = append(report.Attachments, &issue.Attachment{
+			Name: name,
+			Data: b,
+		})
+	}
+
 	// Attach log file if provided
 	// Path must be available on iOS
 	if logFilePath != "" {
-		report.Attachments = utils.CreateLogAttachment(logFilePath)
-
+		report.Attachments = append(
+			report.Attachments,
+			utils.CreateLogAttachment(logFilePath)...,
+		)
 	}
+
+	// Send issue report via Radiance
 	if err := lc.rad.ReportIssue(email, report); err != nil {
 		return fmt.Errorf("error reporting issue: %w", err)
 	}
 
-	slog.Debug("Reported issue: %s – %s on %s/%s", email, issueType, device, model)
+	slog.Debug("Reported issue", "email", email, "type", issueType, "device", device, "model", model)
 	return nil
 }
 

@@ -76,6 +76,7 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
     return BaseScreen(
       title: 'report_an_issue'.i18n,
       body: SingleChildScrollView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         child: Form(
           key: formKey,
           child: Column(
