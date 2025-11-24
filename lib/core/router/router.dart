@@ -176,5 +176,9 @@ class AppRouter extends RootStackRouter {
       page: MacOSExtensionDialog.page,
       fullscreenDialog: true,
     ),
+    AutoRoute(
+      path: '/developer-mode',
+      page: DeveloperMode.page,
+    ),
   ];
 }
