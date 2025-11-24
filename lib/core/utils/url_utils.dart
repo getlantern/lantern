@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:desktop_webview_window/desktop_webview_window.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -24,6 +25,25 @@ class UrlUtils {
         break;
       default:
         await InAppBrowser.openWithSystemBrowser(url: WebUri(url));
+    }
+  }
+
+  static Future<void> tryLaunchExternalUrl(
+      BuildContext context, Uri uri) async {
+    try {
+      if (!await canLaunchUrl(uri)) {
+        throw 'Cannot open ${uri.toString()}';
+      }
+      final ok = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+      if (!ok) throw 'Failed to open ${uri.toString()}';
+    } catch (e, st) {
+      appLogger.error('Unable to launch url', e, st);
+      if (context.mounted) {
+        context.showSnackBar('could_not_open_url'.i18n);
+      }
     }
   }
 
