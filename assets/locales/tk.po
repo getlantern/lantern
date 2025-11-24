@@ -1,0 +1,1307 @@
+# 
+# Translators:
+# Derek F <derek@getlantern.org>, 2025
+# 
+msgid ""
+msgstr ""
+"Last-Translator: Derek F <derek@getlantern.org>, 2025\n"
+"Language-Team: Turkmen (https://app.transifex.com/lantern-1/teams/94371/tk/)\n"
+"Language: tk\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "app_name"
+msgstr "Lantern"
+
+msgid "upgrade_to_pro"
+msgstr "Pro wersiýasyna geç"
+
+msgid "settings"
+msgstr "Sazlamalar"
+
+msgid "report_an_issue"
+msgstr "Mesele barada habar beriň"
+
+msgid "lantern_projects"
+msgstr "Lantern taslamalary:"
+
+msgid "invite_friends"
+msgstr "Dostlary çagyryň"
+
+msgid "your_referral_code"
+msgstr "Siziň taýşdyryş koduňyz"
+
+msgid "invite_friends_message"
+msgstr ""
+"Rekomendasiýa koduňyzy dostuňyz bilen paýlaşyň. Olar Lantern Pro satyn "
+"alanda, ikä siziň hem goşmaça wagt alarsyňyz:"
+
+msgid "share_referral_code"
+msgstr "Taýşdyryş kodyny paýlaş"
+
+msgid "unbounded"
+msgstr "Unbounded"
+
+msgid "help_fight_global_internet_censorship"
+msgstr "Global internet senzurasy bilen göreşmäge kömek ediň"
+
+msgid "vpn_settings"
+msgstr "VPN sazlamalary"
+
+msgid "split_tunneling"
+msgstr "Bölünişikli tunnelirleme"
+
+msgid "server_locations"
+msgstr "Serwer ýerleri"
+
+msgid "lantern_pro_email"
+msgstr "Lantern Pro e-poçtasy:"
+
+msgid "pro_account_expiration"
+msgstr "Pro hasabynyň möhleti"
+
+msgid "manage_subscription"
+msgstr "Abunalygyňyzy dolandyr"
+
+msgid "lantern_pro_devices"
+msgstr "Lantern Pro enjamlary"
+
+msgid "remove"
+msgstr "Aýyr"
+
+msgid "add_device"
+msgstr "Enjam goş"
+
+msgid "danger_zone"
+msgstr "Howply zona:"
+
+msgid "delete_account"
+msgstr "Hasaby poz"
+
+msgid "delete"
+msgstr "Poz"
+
+msgid "account"
+msgstr "Hasap"
+
+msgid "delete_account_?"
+msgstr "Hasabyňyzy pozmalymy?"
+
+msgid "delete_account_message"
+msgstr ""
+"Hasabyň pozulmagy hemişelik. Ähli enjamlarda elýeterliligi ýitirýärsiňiz we "
+"galan Pro abunalyk wagty yzyna gaýtarylman ýitirilýär."
+
+msgid "delete_account_message_two"
+msgstr "Pozulmagyny tassyklamak üçin parolyňyzy giriziň"
+
+msgid "Submit Issue Report"
+msgstr "Mesele hasabatyny iber"
+
+msgid "confirm_deletion"
+msgstr "Pozulmagyny tassykla"
+
+msgid "cancel"
+msgstr "Ýatyr"
+
+msgid "daily_data_usage"
+msgstr "Gündelik maglumat ulanyşy"
+
+msgid "mb"
+msgstr "MB"
+
+msgid "vpn_status"
+msgstr "VPN ýagdaýy"
+
+msgid "telegram"
+msgstr "Telegram"
+
+msgid "instagram"
+msgstr "Instagram"
+
+msgid "x"
+msgstr "X"
+
+msgid "follow_us"
+msgstr "Bizi yzarlaň"
+
+msgid "server_selection"
+msgstr "Serwer saýlamak"
+
+msgid "smart_location"
+msgstr "Akylly ýerleşiş"
+
+msgid "automatically_chooses_fastest_location"
+msgstr "Iň çalt ýerleşişi awtomatik saýlaýar"
+
+msgid "pro_locations"
+msgstr "Pro ýerleşişler:"
+
+msgid "choose_your_location_with_lantern_pro"
+msgstr "Lantern Pro bilen ýerleşişiňizi saýlaň:"
+
+msgid "language"
+msgstr "Dil"
+
+msgid "sign_in"
+msgstr "Içeri gir"
+
+msgid "sign_out"
+msgstr "Çyk"
+
+msgid "check_for_updates"
+msgstr "Täzelenmeler barla"
+
+msgid "support"
+msgstr "Goldaw"
+
+msgid "download_links"
+msgstr "Göçürip almak baglanyşyklary"
+
+msgid "get_30_days_of_pro_free"
+msgstr "30 gün mugt Pro alyň"
+
+msgid "share_message_referral_code"
+msgstr ""
+"Mugt bir aýlyk Lantern Pro almak üçin şu taýşdyryş kodyny ulanyň: %s ; Ony "
+"şu ýerden göçürip alyp bilersiňiz: https://lantern.io/download"
+
+msgid "submit_issue_report"
+msgstr "Mesele barada habar ber"
+
+msgid "select_an_issue"
+msgstr "Mesele saýlaň"
+
+msgid "cannot_access_blocked_sites"
+msgstr "Bloklanan saýtlara girip bilemok"
+
+msgid "cannot_complete_purchase"
+msgstr "Satyn almagy tamamlap bilemok"
+
+msgid "discover_not_working"
+msgstr "Açyş işlemeýär"
+
+msgid "cannot_sign_in"
+msgstr "Içeri girip bilemok"
+
+msgid "spinner_loads_endlessly"
+msgstr "Ýükleýji hemişe aýlanýar"
+
+msgid "slow"
+msgstr "Haýal"
+
+msgid "cannot_link_devices"
+msgstr "Enjamlary baglap bilemok"
+
+msgid "wrong_device_linking_code"
+msgstr "Enjam baglaýyş kody nädogry ýa-da nädogry"
+
+msgid "cannot_remove_device"
+msgstr "Enjamy aýryp bilemok"
+
+msgid "application_crashes"
+msgstr "Programma çökýär"
+
+msgid "other"
+msgstr "Başga"
+
+msgid "issue_description"
+msgstr "Meseläňizi düşündiriň"
+
+msgid "enter_password_to_confirm"
+msgstr "Tassyklamak üçin parol giriziň"
+
+msgid "cannot_view_logs"
+msgstr ""
+"Lantern diagnostika žurnallaryňyza seredip bilmeýär, eger bize ibermeseňiz."
+
+msgid "split_tunneling_mode"
+msgstr "Bölünişikli tunnelirleme tertibi"
+
+msgid "apps_split_tunneling"
+msgstr "Programmalar üçin bölünişikli tunnelirleme"
+
+msgid "website_split_tunneling"
+msgstr "Web saýtlar üçin bölünişikli tunnelirleme"
+
+msgid "iran_optimized"
+msgstr "Eýrana laýyk optimizasiýalanan bölünişikli tunnelirleme"
+
+msgid "china_optimized"
+msgstr "Hytaýa laýyk optimizasiýalanan bölünişikli tunnelirleme"
+
+msgid "russia_optimized"
+msgstr "Russiýa laýyk optimizasiýalanan bölünişikli tunnelirleme"
+
+msgid "global_optimized"
+msgstr "Global optimizasiýalanan bölünişikli tunnelirleme"
+
+msgid "enter_url"
+msgstr "URL giriziň"
+
+msgid "add"
+msgstr "Goş"
+
+msgid "enabled"
+msgstr "Açyk"
+
+msgid "disabled"
+msgstr "Ýapyk"
+
+msgid "automatic"
+msgstr "Awtomatik"
+
+msgid "automatic_mode"
+msgstr "Awtomatik tertip"
+
+msgid "manual"
+msgstr "El bilen"
+
+msgid "enter_url_or_ip"
+msgstr "URL ýa-da IP salgy giriziň"
+
+msgid "installed_apps"
+msgstr "Gurlan programmalar"
+
+msgid "search_apps"
+msgstr "Programmalary gözle"
+
+msgid "search_websites"
+msgstr "Web saýtlary gözle"
+
+msgid "mode"
+msgstr "Tertip"
+
+msgid "use_commas"
+msgstr "Birnäçe URL-leri bölmek üçin vergül ulanyň"
+
+msgid "default_bypass"
+msgstr "Deslapky geçme sanawlary"
+
+msgid "global_bypass_list"
+msgstr "Global geçme sanawy"
+
+msgid "global_bypass_desc"
+msgstr "Ygtybarly saýtlar (HTTPS) duýgur däl mazmun bilen."
+
+msgid "china_bypass_list"
+msgstr "Hytaý geçme sanawy"
+
+msgid "china_bypass_desc"
+msgstr "Hytaýda erkin elýeterli saýtlar. Yzygiderli täzelenýär."
+
+msgid "iran_bypass_list"
+msgstr "Eýran geçme sanawy"
+
+msgid "iran_bypass_desc"
+msgstr "Eýranda erkin elýeterli saýtlar. Yzygiderli täzelenýär."
+
+msgid "russia_bypass_list"
+msgstr "Russiýa geçme sanawy"
+
+msgid "russia_bypass_desc"
+msgstr "Russiýada erkin elýeterli saýtlar. Yzygiderli täzelenýär."
+
+msgid "see_sites_included"
+msgstr "Goşulan saýtlara göz aýlaň: "
+
+msgid "default_lists_here"
+msgstr "deslapky sanawlary şu ýerde"
+
+msgid "when_connected"
+msgstr "Birikdirilende, saýlan web saýtlaryňyz VPN-den geçer."
+
+msgid "lantern_automatic"
+msgstr ""
+"Lantern iň oňat öndürijilik üçin ýagdaýyňyza esaslanyp, haýsy programmalaryň"
+" we web saýtlaryň VPN-den geçmeli bolmalydygyny awtomatik saýlaýar. "
+
+msgid "apps_bypassing_vpn"
+msgstr "VPN arkaly ulanmaýan programmalar (%d)"
+
+msgid "websites_bypassing_vpn"
+msgstr "VPN arkaly ulanmaýan web saýtlar (%d)"
+
+msgid "logs_share_message"
+msgstr "Bu meniň Lantern-dan diagnostika žurnallarym."
+
+msgid "payment_options"
+msgstr "Töleg görnüşleri"
+
+msgid "add_your_email"
+msgstr "E-poçtaňyzy goşuň"
+
+msgid "continue"
+msgstr "Dowam et"
+
+msgid "continue_with_google"
+msgstr "Google bilen dowam et"
+
+msgid "continue_with_apple"
+msgstr "Apple bilen dowam et"
+
+msgid "continue_without_email"
+msgstr "E-poçtasyz dowam et"
+
+msgid "confirm_email"
+msgstr "E-poçtany tassykla"
+
+msgid "add_your_email_message"
+msgstr ""
+"Islendik enjamda abunalygyňyz elýeterli bolmagy üçin e-poçtaňyzy goşuň."
+
+msgid "confirm_email_code"
+msgstr "Tassyklama kody"
+
+msgid "confirm_email_code_message"
+msgstr ""
+"Bu e-poçta salgysynyň size degişlidigini tassyklaň, iberilen kody giriziň: "
+
+msgid "resend_email"
+msgstr "E-poçtany täzeden iber"
+
+msgid "create_password"
+msgstr "Parol dörediň"
+
+msgid "sign_in_to_lantern_pro"
+msgstr "Lantern Pro içeri gir"
+
+msgid "sign_in_with_email"
+msgstr "E-poçta bilen giriň"
+
+msgid "enter_your_lantern_pro_account_details"
+msgstr "Lantern Pro hasap maglumatlaryňyzy giriziň."
+
+msgid "email"
+msgstr "E-poçta"
+
+msgid "enter_password"
+msgstr "Parol giriziň"
+
+msgid "forgot_password"
+msgstr "Parolyňyzy ýatdan çykardyňyzmy?"
+
+msgid "reset_your_password"
+msgstr "Parolyňyzy täzeden dikleň"
+
+msgid "enter_your_lantern_pro_account_email"
+msgstr "Lantern Pro hasap e-poçtaňyzy giriziň."
+
+msgid "reset_password"
+msgstr "Paroly täzele"
+
+msgid "confirm_new_password"
+msgstr "Täze paroly tassykla"
+
+msgid "create_new_password"
+msgstr "Täze parol dörediň"
+
+msgid "confirm_password"
+msgstr "Paroly tassykla"
+
+msgid "confirm_password_required"
+msgstr "Parol tassyklanmasy zerur"
+
+msgid "passwords_do_not_match"
+msgstr "Parollar gabat gelenok"
+
+msgid "activation_code"
+msgstr "Işjeňleşdiriş kody"
+
+msgid "activate_lantern_pro"
+msgstr "Lantern Pro işjeňleşdir"
+
+msgid "invalid_email"
+msgstr "Nädogry e-poçta salgysy"
+
+msgid "purchase_already_owned"
+msgstr "Siziň eýýäm bu satyn alşyňyz bar, Dikeltmegi synanyň"
+
+msgid "stripe_payment"
+msgstr "Stripe töleg"
+
+msgid "split_tunneling_description"
+msgstr ""
+"Lantern internet traffigini ýagdaýyňyza esaslanyp akylly ugradýar, howpsuz "
+"girişi üpjün edýär we diňe zerur bolanda VPN ulanmak arkaly baglanyşygyňyzy "
+"çalt saklaýar."
+
+msgid "region_specific_rules"
+msgstr "Sebit boýunça düzgünler"
+
+msgid "location_based_rules"
+msgstr "Lantern ýagdaýyňyza görä dürli ugratma düzgünlerini ulanýar:"
+
+msgid "censored_regions"
+msgstr "Senzurlanan sebitlerd:"
+
+msgid "blocked_sites_proxied"
+msgstr ""
+"Bloklanan web saýtlar we programmalar (habarlar, habarlaşma, çäklendirilen "
+"hyzmatlar) proksi arkaly geçirilýär."
+
+msgid "unblocked_sites_bypass"
+msgstr "Köp bloklanan däl web saýtlar has çalt görmek üçin VPN-den geçýär."
+
+msgid "uncensored_regions"
+msgstr "Senzurlama bolmadyk sebitlerd:"
+
+msgid "trusted_sites_bypass"
+msgstr ""
+"Diňe ygtybarly web saýtlar we hyzmatlar deslapky boýunça VPN-den geçýär."
+
+msgid "examples_of_bypassed_sites"
+msgstr ""
+"Bulara HTTPS şifrlenen saýtlar, açyk ýa-da duýgur däl mazmunly saýtlar, "
+"söwda, howa we programma täzelenmeleri ýaly zatlary öz içine alýar."
+
+msgid "routing_rules_vary"
+msgstr "Bu düzgünler ýurt boýunça üýtgeýär we yzygiderli täzelenýär."
+
+msgid "view_the_full_list"
+msgstr "Ugratma düzgünleriniň doly sanawyna göz aýlaň."
+
+msgid "turn_on_split_tunneling"
+msgstr ""
+"Haýsy web saýtlaryň VPN ulanmalydygyny düzmek üçin bölünişikli tunnelirleme "
+"açyň."
+
+msgid "welcome_to_lantern_pro"
+msgstr "Lantern Pro hoş geldiňiz!"
+
+msgid "lantern_pro_description"
+msgstr ""
+"Pro aýratynlyklarňyz açyldy - çäksiz maglumatlardan, has çalt tizlikden we "
+"premium serwerlerden lezzet alyň."
+
+msgid "plans_fetch_error"
+msgstr "Planlar alyňanda ýalňyşlyk. Soňra täzeden synanyň."
+
+msgid "best_value"
+msgstr "Iň gowy bahasy!"
+
+msgid "choose_payment_method"
+msgstr "Töleg usulyny saýlaň"
+
+msgid "payment_information_encrypted"
+msgstr "Töleg maglumatlaryňyz doly şifrlenendir."
+
+msgid "purchase_not_completed"
+msgstr ""
+"Satyn alma tamamlanmady. Islendik wagta täzeden synanyp bilersiňiz ýa-da "
+"kömek gerek bolsa goldaw bilen habarlaşyň"
+
+msgid "are_you_sure"
+msgstr "Siz ynamyňyz barmy?"
+
+msgid "continue_without_email_message"
+msgstr ""
+"Başga enjamlarda abunalygyňyzy ulanmak üçin dogry e-poçta salgysy zerur."
+
+msgid "add_email"
+msgstr "E-poçta goş"
+
+msgid "block_ads"
+msgstr "Reklamalary blokla"
+
+msgid "only_active"
+msgstr "Diňe VPN birikdirilende işjeň"
+
+msgid "vpn_connected"
+msgstr "Lantern indi birikdirildi."
+
+msgid "vpn_disconnected"
+msgstr "Lantern indi birikdirilmedi."
+
+msgid "open_notification"
+msgstr "Habarnamany aç"
+
+msgid "logout"
+msgstr "Çykmak"
+
+msgid "logout_message"
+msgstr ""
+"Çykmak Lantern-i mugt wersiýasyna geçirer. Hasabyňyza täzeden girmek üçin "
+"täzeden girmeliňiz bolar."
+
+msgid "not_now"
+msgstr "Häzir däl"
+
+msgid "billed_once"
+msgstr "Bir gezek tölenilýär"
+
+msgid "subscription"
+msgstr "Abunalyk"
+
+msgid "subscribe"
+msgstr "Abuna bol"
+
+msgid "checkout"
+msgstr "Hasap"
+
+msgid "next_billing_date"
+msgstr "Indiki hasap senesi"
+
+msgid "vpn_may_be_needed"
+msgstr "VPN gerek bolup biler"
+
+msgid "google_and_apple_sign_in_blocked"
+msgstr ""
+"Bu sebitde Google we Apple giriş bloklanan bolup biler. Hasabyňyzy gutarmak "
+"üçin ilki bilen VPN-ni açyň."
+
+msgid "continue_without_vpn"
+msgstr "VPN-siz dowam et"
+
+msgid "turn_on_vpn"
+msgstr "VPN-ni aç"
+
+msgid "server_setup_do"
+msgstr "DigitalOcean arkaly guruň"
+
+msgid "server_setup_do_price"
+msgstr "Digital Ocean arkaly diňe %s aýda"
+
+msgid "server_setup_gcp"
+msgstr "Google Cloud Platform arkaly guruň"
+
+msgid "continue_with_do"
+msgstr "Digital Ocean bilen dowam et"
+
+msgid "do_allows"
+msgstr ""
+"Digital Ocean aşakdaky %d wariantdan bir serwer ýerleşişini saýlamaga "
+"mümkinçilik berýär"
+
+msgid "server_setup_gcp_price"
+msgstr "GCP arkaly diňe %s aýda"
+
+msgid "continue_with_gcp"
+msgstr "Google bilen dowam et"
+
+msgid "gcp_allows"
+msgstr ""
+"Google Cloud Platform aşakdaky %d wariantdan bir serwer ýerleşişini "
+"saýlamaga mümkinçilik berýär:"
+
+msgid "server_setup_aws"
+msgstr "Digital Ocean-da hususy serwer guruň"
+
+msgid "server_setup_aws_price"
+msgstr "AWS arkaly diňe %s aýda"
+
+msgid "server_setup_manual"
+msgstr "El bilen gur"
+
+msgid "seamless_integration"
+msgstr "Lantern bilen üznüksiz integrasiýa"
+
+msgid "easiest_setup"
+msgstr "Iň aňsat gurnama prosesi"
+
+msgid "multiple_location_options"
+msgstr "Köp serwer ýerleşiş wariantlary"
+
+msgid "one_month_included"
+msgstr "%d TB/aý maglumat goşuldy"
+
+msgid "easiest_setup_process"
+msgstr "Iň aňsat gurnama prosesi"
+
+msgid "setup_a_private_server"
+msgstr "Hususy serwer guruň"
+
+msgid "setup_private_server"
+msgstr "Hususy serwer gur"
+
+msgid "previous"
+msgstr "Öňki"
+
+msgid "next"
+msgstr "Indiki"
+
+msgid "error"
+msgstr "Ýalňyşlyk"
+
+msgid "signup_error_user_exists"
+msgstr ""
+"Hasaba ýazylmakda bir zat nädogry boldy. Parolyňyzy täzeden diklemäge "
+"synanyň we mesele dowam etse, goldaw toparymyz bilen habarlaşyň"
+
+msgid "user_not_found"
+msgstr ""
+"Ulanyjy tanalmaýar. Maglumatlaryňyzy barlaň we täzeden synanyň. Meseler "
+"dowam etse, kömek üçin goldaw toparymyz bilen habarlaşyň."
+
+msgid "invalid_code"
+msgstr "Nädogry kod ýa-da möhleti geçen bolmagy mümkin. Täzeden iberip görüň"
+
+msgid "email_resend_message"
+msgstr "Täze tassyklama kodyňyz iberildi"
+
+msgid "password_has_been_updated"
+msgstr "Parol täzelendi"
+
+msgid "password_has_been_updated_message"
+msgstr "Parolyňyz üstünlikli täzelendi"
+
+msgid "update_pro_account"
+msgstr "Pro hasabyny täzele"
+
+msgid "update_pro_account_message"
+msgstr ""
+"Hasabyňyzy dolandyrmak ýa-da başga enjamda girmek üçin ilki bilen hasabyňyza"
+" e-poçta we parol goşuň."
+
+msgid "subscription_cancelled"
+msgstr "Abunalygyňyz ýatyryldy."
+
+msgid "subscription_updated"
+msgstr "Abunalygyňyz täzelendi."
+
+msgid "subscription_renewed"
+msgstr "Abunalygyňyz täzelendi."
+
+msgid "got_it"
+msgstr "Düşündim"
+
+msgid "server_location"
+msgstr "Serwer ýerleşişi"
+
+msgid "choose"
+msgstr "Saýla"
+
+msgid "choose_your_account"
+msgstr "Hasabyňyzy saýlaň"
+
+msgid "choose_your_project"
+msgstr "Taslamaňyzy saýlaň"
+
+msgid "name_your_google_cloud_project"
+msgstr "Google Cloud taslamaňyza at beriň"
+
+msgid "billing_account"
+msgstr "Hasap hesaby"
+
+msgid "billing_account_placeholder"
+msgstr "%s üçin hasap hesaby"
+
+msgid "server_name"
+msgstr "Serwer ady"
+
+msgid "google_project"
+msgstr "Google taslama"
+
+msgid "field_name_required"
+msgstr "At zerur"
+
+msgid "choose_google_account"
+msgstr "Google hasap hesabyny saýlaň"
+
+msgid "server_name_placeholder"
+msgstr "Deregiň serweri"
+
+msgid "change"
+msgstr "Üýtget"
+
+msgid "choose_location"
+msgstr "Ýerleşiş saýla"
+
+msgid "choose_your_location"
+msgstr "Ýerleşişiňizi saýlaň"
+
+msgid "start_deployment"
+msgstr "Ýerleşdirişi başla"
+
+msgid "server_name_description"
+msgstr "Serwer saýlama sanawynda serwer nähili görner."
+
+msgid "select_private_server_region"
+msgstr ""
+"Hususy serweriňiz üçin sebiti saýlaň. Ýakyn ýerleşişler tizlik we gijikdirme"
+" gowulaşdyryp biler."
+
+msgid "gcp_location_options"
+msgstr "Google Cloud Platform ýerleşiş wariantlary (%d):"
+
+msgid "australia_sydney"
+msgstr "Awstraliýa - Sidneý"
+
+msgid "belgium_stghislain"
+msgstr "Belgiýa - St. Ghislain"
+
+msgid "brazil_saopaulo"
+msgstr "San-Paulu"
+
+msgid "us_los_angeles"
+msgstr "ABŞ - Los Anjeles"
+
+msgid "japan_tokyo"
+msgstr "Ýaponiýa - Tokio"
+
+msgid "deploying_private_server"
+msgstr "Hususy serwer ýerleşdirilýär"
+
+msgid "deploying_server_status"
+msgstr "Sabyr ediň! Hususy serweriňiz gurulýar. Bu birnäçe minut alyp biler."
+
+msgid "confirm_server_fingerprint"
+msgstr "Serwer barmak yzyny tassykla"
+
+msgid "server_fingerprint"
+msgstr "Serwer barmak yzy"
+
+msgid "confirm_fingerprint"
+msgstr "Barmak yzyny tassykla"
+
+msgid "private_server_setup_in_progress"
+msgstr ""
+"Sabyr ediň! Hususy serweriňiz gurulýar. Bu birnäçe minut alyp biler, şu "
+"ekrany açyk saklaň."
+
+msgid "cancel_server_deployment"
+msgstr "Serwer ýerleşdirmesini ýatyr"
+
+msgid "server_ready_title"
+msgstr "Hususy serwer taýýar"
+
+msgid "server_ready_message"
+msgstr ""
+"Hususy serweriňiz guruldy we serwer sanawyňyza goşuldy. Birikdirmäge "
+"taýýarsiňyz!"
+
+msgid "server_failed_message"
+msgstr ""
+"Hususy serweriňizi gurmakda bir zat nädogry boldy. Täzeden synanyp ýa-da "
+"soňra täzeden synanyp bilersiňiz."
+
+msgid "close"
+msgstr "Ýap"
+
+msgid "connect_now"
+msgstr "Häzir birikdir"
+
+msgid "server_setup_failed"
+msgstr "Serwer gurnama başartmady"
+
+msgid "cancel_deployment"
+msgstr "Ýerleşdirmäni ýatyr"
+
+msgid "server_setup_failed_message"
+msgstr ""
+"Hususy serweriňizi gurmakda bir zat nädogry boldy. Täzeden synanyp ýa-da "
+"soňra täzeden synanyp bilersiňiz."
+
+msgid "exit"
+msgstr "Çyk"
+
+msgid "retry"
+msgstr "Täzeden synanyş"
+
+msgid "all_required_fields"
+msgstr "Ähli zerur ýerleri dolduryň."
+
+msgid "private_server_ready"
+msgstr "Hususy serwer taýýar!"
+
+msgid "private_server_ready_message"
+msgstr ""
+"(%s) Serwer guruldy we serwer sanawyňyza goşuldy. Birikdirmäge taýýarsiňyz!"
+
+msgid "set_up_your_server"
+msgstr "Serweriňizi guruň"
+
+msgid "view_instructions_github"
+msgstr "GitHub-da görkezmelere göz aýlaň"
+
+msgid "server_access_key"
+msgstr "Serwer giriş açary"
+
+msgid "access_key"
+msgstr "Giriş açary"
+
+msgid "name_your_server"
+msgstr "Serweriňize at beriň"
+
+msgid "how_server_appears"
+msgstr "Serwer saýlama sanawynda serwer nähili görner"
+
+msgid "server_nickname"
+msgstr "Serwer lakamy"
+
+msgid "verify_server"
+msgstr "Serweri barla"
+
+msgid "vpn_client_not_setup"
+msgstr "VPN klient açyň."
+
+msgid "continue_with"
+msgstr "Bilen dowam et"
+
+msgid "join_a_private_server"
+msgstr "Hususy serwere goşul"
+
+msgid "join_private_server"
+msgstr "Hususy serwere goşul"
+
+msgid "join_server"
+msgstr "Serwere goşul"
+
+msgid "private_server_usage_message"
+msgstr "Hususy serwer ulanyşy Lantern gündelik maglumat çägine goşulmaýar."
+
+msgid "manage_private_servers"
+msgstr "Hususy serwerleri dolandyr"
+
+msgid "my_servers"
+msgstr "Meniň serwerlerim"
+
+msgid "joined_servers"
+msgstr "Goşulan serwerler"
+
+msgid "access_key_expiration"
+msgstr ""
+"Her giriş açary üýtgeşik we 1 günden soň möhleti geçýär. Islendik wagta "
+"täzesini döredip bilersiňiz."
+
+msgid "share_access_key"
+msgstr "Giriş açaryny paýlaş"
+
+msgid "rename_server"
+msgstr "Serweri täzeden atlandyr"
+
+msgid "rename"
+msgstr "Täzeden atlandyr"
+
+msgid "selected_location"
+msgstr "Saýlanan ýerleşiş"
+
+msgid "remove_server_?"
+msgstr "Serwer aýyrmalymy?"
+
+msgid "remove_server_message"
+msgstr ""
+"%s aýyrmaly? Bu ony diňe programmaňyzdan aýyrar, bulut üpjün edijiden "
+"serweri pozmaz."
+
+msgid "generate_access_key"
+msgstr "Giriş açar döret"
+
+msgid "invite_name"
+msgstr "Çagyryş ady"
+
+msgid "trust_server_operator"
+msgstr "Serwer operatoryna ynan"
+
+msgid "trust_server_operator_message_one"
+msgstr ""
+"Hususy serwerler Lantern-dan daşarda adamlar ýa-da guramalara eýelik edýär "
+"we dolandyrylýar. Birine birikdirilýänçäňizde, howpsuzlyk we jogapkärçilik "
+"bilen ony dolandyrýan adama ynanyp bilýärsiňiz."
+
+msgid "trust_server_operator_message_two"
+msgstr ""
+"Lantern hususy serwerleri dolandyrmaýar ýa-da gözegçilik etmeýär. "
+"Goşulmazdan öň serwer operatoryny bilýändigiňize we ynanýandygyňyza göz "
+"ýetiriň."
+
+msgid "trust_server_operator_message_three"
+msgstr ""
+"Serwer kim dolandyrýandygyny ýa-da nädip düzülendigini bilmeýän bolsaňyz, "
+"serwer sanawyňyzda elýeterli deslapky Lantern serwerlerini ulanmagyňyzy "
+"maslahat berýäris"
+
+msgid "invalid_server_details"
+msgstr "Nädogry serwer maglumatlary. Giriş açary barlaň we täzeden synanyň."
+
+msgid "lantern_servers"
+msgstr "Lantern serwerleri"
+
+msgid "private_servers"
+msgstr "Hususy serwerler"
+
+msgid "fastest_server"
+msgstr "Iň çalt serwer"
+
+msgid "join_my_private_server"
+msgstr "Meniň Lantern hususy serwerime goşul"
+
+msgid "your_server"
+msgstr "Siziň serwerleňiz:"
+
+msgid "no_private_server_setup_yet"
+msgstr "Entek hususy serwer gurmadyňyz. Başlamak üçin aşakdaky düwmä basyň."
+
+msgid "connect"
+msgstr "Birikdir"
+
+msgid "disconnect"
+msgstr "Aýyr"
+
+msgid "show"
+msgstr "Görkez"
+
+msgid "status_on"
+msgstr "Birikdirildi"
+
+msgid "status_off"
+msgstr "Aýryldy"
+
+msgid "select_your_server_location"
+msgstr "Serwer ýerleşişiňizi saýlaň"
+
+msgid "faster_speeds_unlimited_bandwidth"
+msgstr "Has çalt tizlik we çäksiz internet giňligi"
+
+msgid "premium_servers_less_congestion"
+msgstr "Az dykyz premium serwerler"
+
+msgid "advanced_anti_censorship"
+msgstr "Öňdebaryjy anti-senzura tehnologiýasy"
+
+msgid "exclusive_access_new_features"
+msgstr "Täze aýratynlyklara aýratyn giriş"
+
+msgid "connect_up_to_five_devices"
+msgstr "5 enjama çenli birikdiriň"
+
+msgid "built_in_ad_blocking"
+msgstr "Içerki reklama bloklaýyş"
+
+msgid "get_lantern_pro"
+msgstr "Lantern Pro alyň"
+
+msgid "connected_to_private_server"
+msgstr "Hususy serwere birikdirildi"
+
+msgid "server_already_selected"
+msgstr "Siz eýýäm bu serwere birikdirildiňiz."
+
+msgid "device_limit_reached"
+msgstr "Enjam çägi ýetildi"
+
+msgid "device_limit_reached_message"
+msgstr "5 enjam çägiňize ýetdiňiz. Dowam etmek üçin enjam aýyryň."
+
+msgid "remove_device_and_sign_in"
+msgstr "Enjam aýyr we gir"
+
+msgid "cancel_sign_in"
+msgstr "Girişi ýatyr"
+
+msgid "change_email"
+msgstr "E-poçta üýtget"
+
+msgid "change_email_message"
+msgstr ""
+"Bu siziň täze giriş e-poçtaňyz bolar. Üýtgeşme güýje girmezden ozal "
+"tassyklamaly bolarňyz."
+
+msgid "enter_new_email"
+msgstr "Täze e-poçtaňyzy giriziň"
+
+msgid "confirm_password_to_continue"
+msgstr "Dowam etmek üçin parolyňyzy tassyklaň."
+
+msgid "email_updated"
+msgstr "E-poçtaňyz täzelendi."
+
+msgid "enable_network_extension"
+msgstr "Tor giňeltmesini aç"
+
+msgid "enable_network_extension_message"
+msgstr "Lantern ulanmak üçin Mac üçin tor giňeltmesini gurmalydyrys."
+
+msgid "install_now"
+msgstr "Häzir gur"
+
+msgid "learn_more"
+msgstr "Has köp öwren"
+
+msgid "network_extension_required"
+msgstr "Tor giňeltmesi zerur"
+
+msgid "click"
+msgstr "Basyň"
+
+msgid "open_system_settings"
+msgstr "Ulgam sazlamalaryny aç"
+
+msgid "when_prompted"
+msgstr "haýyş edilende."
+
+msgid "activate_extension"
+msgstr "Häzir gur"
+
+msgid "email_optional"
+msgstr "E-poçta (meýletin)"
+
+msgid "please_enter_valid_email"
+msgstr "Dogry e-poçta giriziň"
+
+msgid "please_select_an_issue"
+msgstr "Mesele saýlaň"
+
+msgid "please_enter_issue_description"
+msgstr "Mesele düşündirişini giriziň"
+
+msgid "thanks_for_feedback"
+msgstr "Pikirleriňiz üçin sag boluň!"
+
+msgid "no_apps_selected"
+msgstr "Hiç bir programma saýlanmady"
+
+msgid "deselect_all"
+msgstr "Hemmesini saýlama"
+
+msgid "select_all"
+msgstr "Hemmesini saýla"
+
+msgid "no_websites_selected"
+msgstr "Hiç bir web saýt saýlanmady"
+
+msgid "enter_activation_code"
+msgstr "Işjeňleşdiriş kody giriziň"
+
+msgid "restore_purchase"
+msgstr "Satyn almagy dikelt"
+
+msgid "do_private_server_setup"
+msgstr "DO hususy serwer gurnama"
+
+msgid "private_server_note"
+msgstr ""
+"Hususy serweriňiz üçin sebiti saýlaň. Ýakyn ýerleşişler tizlik we gijikdirme"
+" gowulaşdyryp biler."
+
+msgid "gcp_private_server_setup"
+msgstr "GCP hususy serwer gurnama"
+
+msgid "gcp_private_server_location"
+msgstr "GCP hususy serwer ýerleşişi"
+
+msgid "do_private_server_location"
+msgstr "DO hususy serwer ýerleşişi"
+
+msgid "confirm"
+msgstr "Tassykla"
+
+msgid "private_server_warning"
+msgstr "Diňe ynanýan adamlar tarapyndan dolandyrylýan serwerleri goşuň "
+
+msgid "go_to_server_locations"
+msgstr "Serwer ýerleşişlerine git"
+
+msgid "lantern_io"
+msgstr "Lantern.io"
+
+msgid "alternative_download_links"
+msgstr "Alternatiw göçürip almak baglanyşyklary"
+
+msgid "github_download_page"
+msgstr "GitHub göçürip almak sahypasy"
+
+msgid "telegram_bot"
+msgstr "Telegram bot"
+
+msgid "if_you_cannot_access_website"
+msgstr ""
+"Web saýtymyza girmekde mesele ýüze çykarýan bolsaňyz, Lantern-i ýokardaky "
+"baglanyşyklardan göçürip alyp bilersiňiz."
+
+msgid "available_on"
+msgstr "Elýeterli:"
+
+msgid "subscription_renewal_date"
+msgstr "Abunalyk täzeleme senesi"
+
+msgid "enabled_bypass_lists"
+msgstr "Açyk geçme sanawlary (%d):"
+
+msgid "diagnostic_logs"
+msgstr "Diagnostika žurnallary"
+
+msgid "lantern_user_forum"
+msgstr "Lantern ulanyjy formy"
+
+msgid "frequently_asked_questions"
+msgstr "Yzygiderli soralýan soraglar"
+
+msgid "privacy_policy"
+msgstr "Gizlinlik syýasaty"
+
+msgid "terms_of_service"
+msgstr "Hyzmat şertleri"
+
+msgid "get_unlimited_data"
+msgstr "Çäksiz maglumat we has çalt tizlik alyň!"
+
+msgid "private_server_options"
+msgstr "Hususy serwer wariantlary"
+
+msgid "lantern_version"
+msgstr "Lantern wersiýasy"
+
+msgid "quit"
+msgstr "Çyk"
+
+msgid "device_removed"
+msgstr "Enjam aýryldy"
+
+msgid "set_server_alias"
+msgstr "Serwer lakamyny düz"
+
+msgid "this_name_pre_filled"
+msgstr ""
+"Bu at çagyrylan ulanyjy üçin serwer kesgitlemäge kömek etmek üçin öňünden "
+"doldurylar. Olar soňra üýtgedip bilerler."
+
+msgid "server_alias"
+msgstr "Serwer lakamy"
+
+msgid "add_referral_code"
+msgstr "Taýşdyryş kody goş"
+
+msgid "referral_code"
+msgstr "Taýşdyryş kody"
+
+msgid "update_fails"
+msgstr "Täzeleme başartmady"
+
+msgid "scan_qr_code"
+msgstr "QR kod skaner et"
+
+msgid "choose_your_server_location"
+msgstr "Serwer ýerleşişiňizi saýlaň"
+
+msgid "we_handle_configuration"
+msgstr "Biz konfigurasiýany dolandyrýarys, diňe ýazylýaň."
+
+msgid "90_day_free_trial"
+msgstr "90 günlük mugt synag"
+
+msgid "identity_changed"
+msgstr "%s üçin şahsyýet üýtgedi"
+
+msgid "identity_changed_message"
+msgstr ""
+"%s howpsuzlyk barmak yzy üýtgedi. Bu näsazlyk ýa-da nädogry konfigurasiýany "
+"görkezýän bolmagy mümkin."
+
+msgid "recommendation"
+msgstr "Maslahat:"
+
+msgid "recommendation_message"
+msgstr ""
+"Lantern-dan %s aýyrmagy we bulut üpjün ediji hasabyňyzdan pozmagy maslahat "
+"berýäris, soňra baglanyşygyňyzyň howpsuz bolmagyny üpjün etmek üçin täze "
+"serwer guruň."
+
+msgid "remove_server"
+msgstr "Serwer aýyr"
+
+msgid "server_alias_cannot_be_empty"
+msgstr "Serwer lakamy boş bolup bilmez"
+
+msgid "referral_code_applied"
+msgstr " Rekomendasiýa koduňyz ulanyldy!"
+
+msgid "referral_message_1m"
+msgstr "+ 15 goşmaça gün mugt"
+
+msgid "referral_message_1y"
+msgstr " + 1 goşmaça aý mugt"
+
+msgid "referral_message_2y"
+msgstr " + 2 goşmaça aý mugt"
+
+msgid "referral_code_invalid"
+msgstr ""
+" Girizilen rekomendasiýa koduňyz nädogry. Kody barlaň we täzeden synanyşyň."
+
+msgid "referral_code_own_invalid"
+msgstr "Öz rekomendasiýa koduňyzy ulanyp bilmersiňiz. Başga kod giriziň."
+
+msgid "free"
+msgstr " Mugt"
+
+msgid "monthly_plan"
+msgstr "Aýlyk plan:"
+
+msgid "15_days_each"
+msgstr " +15 gün hersine"
+
+msgid "annual_plan"
+msgstr " Ýyllyk plan:"
+
+msgid "1_month_each"
+msgstr " +1 aý hersine"
+
+msgid "two_year_plan"
+msgstr " Iki ýyllyk plan:"
+
+msgid "2_month_each"
+msgstr "+2 aý hersine"
+
+msgid "referral_code_info"
+msgstr ""
+"Entek Lantern Pro ulanyjysy dälmi? Ilkinji rekomendaşiýaňyz ýazylandan soň "
+"bolarsyňyz"
+
+msgid "lantern_pro_license"
+msgstr " Lantern Pro Ygtyýarnamasy"
+
+msgid "select_account"
+msgstr "Hasaby saýlaň"
+
+msgid "new_to_lantern"
+msgstr "Lantern-da täzemi?"
+
+msgid "create_an_account"
+msgstr " Hasap döretmek"
+
+msgid "no_projects_found"
+msgstr " Hiç hili taslama tapylmady"
+
+msgid "no_projects_found_desc"
+msgstr ""
+"Hiç hili taslama tapylmady. Ilki bilen bulut üpjün edijiniň hasabynda "
+"taslama dörediň."
+
+msgid "add_billing_details"
+msgstr ""
+
+msgid "do_billing_details_message"
+msgstr ""
+
+msgid "tap"
+msgstr ""
+
+msgid "below_to_go_to_do"
+msgstr ""
+
+msgid "1"
+msgstr ""
+
+msgid "2"
+msgstr ""
+
+msgid "3"
+msgstr ""
+
+msgid "add_payment_method"
+msgstr ""
+
+msgid "return_to_lantern"
+msgstr ""
+
+msgid "how_to_add_billing_details"
+msgstr ""
+
+msgid "add_payment_method_message"
+msgstr ""
+
+msgid "ok"
+msgstr ""
+
+msgid "new_to_lantern_pro"
+msgstr ""

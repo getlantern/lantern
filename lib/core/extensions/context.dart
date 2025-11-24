@@ -47,7 +47,7 @@ extension SnackBarExtensions on BuildContext {
             color: AppColors.white,
           ),
         ),
-        duration: Duration(seconds: 10),
+        duration: Duration(seconds: 5),
       ),
     );
   }

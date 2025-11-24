@@ -141,8 +141,8 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
     } else if (uri?.host == 'www.lantern.io' &&
         uri?.path == '/auth' &&
         uri!.queryParameters.containsKey('token')) {
-      appRouter.navigatorKey.currentContext
-          ?.showSnackBar("Successfully logged in");
+      // appRouter.navigatorKey.currentContext
+      //     ?.showSnackBar("Successfully logged in");
       // User has successfully logged in to google or apple
       await appRouter.maybePop(uri.queryParameters);
 

@@ -1,273 +1,173 @@
 # 
 # Translators:
-# Tony T <tony@tonytan.io>, 2021
-# 77b9f6bcdc842b5b17effe4ccdba1839, 2022
-# Tony Lin, 2022
-# Ox Cart <ox@getlantern.org>, 2022
-# Li Ma <i@sagiri.pw>, 2022
-# e2f <projects@e2f.com>, 2023
-# Chi-Hsun Tsai, 2023
-# 刘位, 2023
-# e2f_tw c1 <tx_e2f_tw_c1@ate2f.com>, 2024
-# CN R10 <tx_e2f_cn_r10@ate2f.com>, 2024
-# Mingye Wang <arthur200126@gmail.com>, 2024
-# todd <todd@getlantern.org>, 2024
-# Lafrenze Laurant, 2024
-# fffw <fffw@getlantern.org>, 2024
-# 474874f569f96a33809d02f1de71479e_77020aa, 2024
-# Rockman Lau <im@rockman.us>, 2024
-# 苏培 喻 <ysp90@hotmail.com>, 2024
-# 5ffb0e30c16f79bca37af5baff50ee52_58bd05a <18e9486319e95596cee4e2007f6eede0_4750>, 2024
-# Lantern, 2024
-# e2f_cn c3 <tx_e2f_cn_c3@ate2f.com>, 2024
-# TW C2 <tx_e2f_tw_c2@ate2f.com>, 2024
-# Aki, 2024
-# YFdyh000 <yfdyh000@gmail.com>, 2024
-# wwj402 <wwj402@gmail.com>, 2024
+# Aki, 2025
 # Derek F <derek@getlantern.org>, 2025
 # 
 msgid ""
 msgstr ""
 "Last-Translator: Derek F <derek@getlantern.org>, 2025\n"
-"Language-Team: Chinese (China) (https://app.transifex.com/lantern-1/teams/94371/zh_CN/)\n"
-"Language: zh_CN\n"
+"Language-Team: Chinese Simplified (https://app.transifex.com/lantern-1/teams/94371/zh-Hans/)\n"
+"Language: zh-Hans\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 msgid "app_name"
 msgstr "蓝灯"
 
-msgid "introducing"
-msgstr "交談功能簡介"
-
-msgid "introducing_des"
-msgstr "使用蓝灯内置的全新抗屏蔽和加密聊天功能，与朋友们安全聊天！"
-
-msgid "maybe_later"
-msgstr "以後再說"
-
-msgid "try"
-msgstr "试试"
-
-msgid "sign_in"
-msgstr "登录"
-
-msgid "enter_email"
-msgstr "输入邮箱"
-
-msgid "enter_password"
-msgstr "输入密码"
-
-msgid "forgot_password"
-msgstr "忘记密码"
-
-msgid "forgot_your_password"
-msgstr "忘记密码？"
-
-msgid "click_here"
-msgstr "点击此处"
-
-msgid "reset_password"
-msgstr "重设密码"
-
-msgid "lantern_pro_email"
-msgstr "蓝灯专业版电子邮件"
-
-msgid "return_to_sign_in"
-msgstr "返回登录"
-
-msgid "enter_confirmation_code"
-msgstr "输入确认码"
-
-msgid "confirmation_code_msg"
-msgstr "確認碼已傳送至 XX。在此輸入以保護您的帳戶並啟用重設密碼。"
-
-msgid "resend_confirmation_code"
-msgstr "重新傳送確認碼"
-
-msgid "email_already_exists"
-msgstr "電子郵件已存在"
-
-msgid "email_already_exists_msg"
-msgstr "此电子邮件已被占用，如果您已经拥有使用此电子邮件的帐户，则可以恢复。如果没有，请返回并选择不同的电子邮件地址。"
-
-msgid "recover_account"
-msgstr "回复账户"
-
-msgid "back"
-msgstr "返回"
-
-msgid "change_email"
-msgstr "更改电子邮件"
-
-msgid "new_password"
-msgstr "新密码"
-
-msgid "confirm_new_password"
-msgstr "确认新密码"
-
-msgid "already_have_an_account"
-msgstr "已经有账户？"
-
-msgid "create_account"
-msgstr "创建账号"
-
-msgid "create_password"
-msgstr "创建密码"
-
-msgid "by_creating_an_account"
-msgstr "创建账户即表示您同意我们的"
-
-msgid "confirm_email"
-msgstr "确认电子邮箱"
-
-msgid "update_pro_account"
-msgstr "更新专业版账户"
-
-msgid "update_pro_account_message"
-msgstr "蓝灯专业版即将发生变化！现在，您需要使用电子邮件和密码登录所有设备，并访问账户管理。 请花一点时间将这些证书添加到您的账户中。"
-
-msgid "not_now"
-msgstr "暂时不"
-
-msgid "update_account"
-msgstr "更新账户"
-
-msgid "new"
-msgstr "全新"
-
-msgid "Daily Data Usage"
-msgstr "每日數據使用量"
-
-msgid "is"
-msgstr "是"
-
-msgid "connect"
-msgstr "连接"
-
-msgid "disconnect"
-msgstr "断开"
-
-msgid "connected"
-msgstr "已连接"
-
-msgid "Disconnected"
-msgstr "已断开"
-
-msgid "Disconnecting"
-msgstr "斷線中..."
-
-msgid "Connecting"
-msgstr "连接中…"
-
-msgid "no_network_connection"
-msgstr "無網路連線"
-
-msgid "connection_error"
-msgstr "連接錯誤"
-
-msgid "connection_error_des"
-msgstr "蓝灯无法连接到服务器。请重启应用。如果问题仍然存在，请联系支持团队。"
-
-msgid "connection_error_button"
-msgstr "聯絡支援人員"
-
-msgid "Calling"
-msgstr "正在接通中..."
-
-msgid "Go Pro Title"
-msgstr "升級至 Pro 版！"
-
-msgid "Go Pro Description"
-msgstr "解锁更快的速度、无广告体验和无限数据！ "
-
-msgid "Server Location"
-msgstr "服务器位置"
-
-msgid "Server Location Info"
-msgstr "Lantern 採取智慧型伺服器選取機制，將您自動連線至最適合的資料中心。"
-
-msgid "OK"
-msgstr "OK"
-
-msgid "Done"
-msgstr "完成"
-
-msgid "backup_recovery_key"
-msgstr "備份復原金鑰"
-
-msgid "delete_chat_data"
-msgstr "刪除所有交談資料"
-
-msgid "delete_chat_data_description"
-msgstr "這麼做會從這部裝置上刪除您的交談號碼、聯絡人和訊息。沒有備份復原金鑰的話，您將無法存取交談號碼。"
-
-msgid "delete_chat_data_confirmation"
-msgstr "我確認要刪除交談資料"
-
-msgid "Pro Account Management"
-msgstr "专业版账户管理"
-
-msgid "link_device"
-msgstr "授权设备"
-
-msgid "Upgrade to Lantern Pro"
-msgstr "升级到蓝灯专业版"
-
-msgid "Invite Friends"
-msgstr "邀请好友"
-
-msgid "share_lantern_pro"
-msgstr "与朋友分享蓝灯专业版账户！您的朋友在购买蓝灯专业版时，只需顺手填入您的推荐码，您和朋友两人都将额外获赠一个月专业版时长！"
-
-msgid "privacy_disclosure_title"
-msgstr "蓝灯隐私政策"
-
-msgid "privacy_disclosure_body"
-msgstr ""
-"Lantern致力于保护您的隐私。我们希望您了解我们收集的信息，不收集的信息以及我们如何收集，使用和存储信息。我们将您的付款信息和蓝灯专业版账号解除绑定。我们不收集您的活动日志，包括不记录浏览历史记录，流量目的地，数据内容或DNS查询。我们也从不存储连接日志，这意味着我们不记录您的IP地址，与连接时间戳或会话持续时间相关的Lantern服务器的IP地址。给定某一个蓝灯专业版账号，技术上蓝灯也无法将此账号和实名信息相对应。"
-" 即便给定某个Lantern IP地址和精确的时间戳，Lantern从技术上讲无法将此IP地址映射到Lantern用户或Lantern用户IP地址。"
-
-msgid "privacy_disclosure_accept"
-msgstr "我同意"
-
-msgid "desktop_version"
-msgstr "桌面版"
+msgid "upgrade_to_pro"
+msgstr "升级至专业版"
 
 msgid "settings"
 msgstr "设置"
 
-msgid "general"
-msgstr "通用"
+msgid "report_an_issue"
+msgstr "报告问题"
 
-msgid "about"
-msgstr "关于"
+msgid "lantern_projects"
+msgstr "蓝灯项目:"
 
-msgid "proxy_all"
-msgstr "全部代理"
+msgid "invite_friends"
+msgstr "邀请好友"
 
-msgid "proxy_everything_is"
-msgstr "全流量代理已%s"
+msgid "your_referral_code"
+msgstr "您的邀请码"
 
-msgid "version_number"
-msgstr "版本 %s"
+msgid "invite_friends_message"
+msgstr "将您的推荐码分享给朋友。当他们购买蓝灯 Pro时，您和朋友都将获得额外时间： "
 
-msgid "build_number"
-msgstr "构建版本 %s"
+msgid "share_referral_code"
+msgstr "分享邀请码"
 
-msgid "sdk_version"
-msgstr "SDK %s"
+msgid "unbounded"
+msgstr "Unbounded"
+
+msgid "help_fight_global_internet_censorship"
+msgstr "共同对抗全球互联网审查"
+
+msgid "vpn_settings"
+msgstr "VPN 设置"
+
+msgid "split_tunneling"
+msgstr "分流"
+
+msgid "server_locations"
+msgstr "服务器位置"
+
+msgid "lantern_pro_email"
+msgstr "蓝灯专业版电子邮箱:"
+
+msgid "pro_account_expiration"
+msgstr "专业版账户到期时间"
+
+msgid "manage_subscription"
+msgstr "管理订阅"
+
+msgid "lantern_pro_devices"
+msgstr "蓝灯专业版设备"
+
+msgid "remove"
+msgstr "移除"
+
+msgid "add_device"
+msgstr "添加设备"
+
+msgid "danger_zone"
+msgstr "危险操作:"
+
+msgid "delete_account"
+msgstr "删除账户"
+
+msgid "delete"
+msgstr "删除"
+
+msgid "account"
+msgstr "账户"
+
+msgid "delete_account_?"
+msgstr "删除您的账户?"
+
+msgid "delete_account_message"
+msgstr "账户删除是永久性的。您将在所有设备上失去访问权限,任何剩余的专业版订阅时间将被没收且不予退款。"
+
+msgid "delete_account_message_two"
+msgstr "请在下方输入您的密码以确认删除"
+
+msgid "Submit Issue Report"
+msgstr "提交问题报告"
+
+msgid "confirm_deletion"
+msgstr "确认删除"
+
+msgid "cancel"
+msgstr "取消"
+
+msgid "daily_data_usage"
+msgstr "每日数据用量"
+
+msgid "mb"
+msgstr "MB"
+
+msgid "vpn_status"
+msgstr "VPN 状态"
+
+msgid "telegram"
+msgstr "Telegram"
+
+msgid "instagram"
+msgstr "Instagram"
+
+msgid "x"
+msgstr "X"
+
+msgid "follow_us"
+msgstr "关注我们"
+
+msgid "server_selection"
+msgstr "服务器选择"
+
+msgid "smart_location"
+msgstr "智能位置"
+
+msgid "automatically_chooses_fastest_location"
+msgstr "自动选择最快的位置"
+
+msgid "pro_locations"
+msgstr "专业版位置:"
+
+msgid "choose_your_location_with_lantern_pro"
+msgstr "使用蓝灯专业版选择您的位置:"
 
 msgid "language"
 msgstr "语言"
 
-msgid "select_an_issue"
-msgstr "请选择问题类型"
+msgid "sign_in"
+msgstr "登录"
 
-msgid "enter_description"
-msgstr "请描述您的问题 "
+msgid "sign_out"
+msgstr "退出登录"
+
+msgid "check_for_updates"
+msgstr "检查更新"
+
+msgid "support"
+msgstr "支持"
+
+msgid "download_links"
+msgstr "下载链接"
+
+msgid "get_30_days_of_pro_free"
+msgstr "免费获得 30 天专业版"
+
+msgid "share_message_referral_code"
+msgstr "免费获得一个月的蓝灯专业版,请使用此邀请码:%s;您可以从这里下载:https://lantern.io/download"
+
+msgid "submit_issue_report"
+msgstr "提交问题报告"
+
+msgid "select_an_issue"
+msgstr "选择问题类型"
 
 msgid "cannot_access_blocked_sites"
-msgstr "无法访问被屏蔽网站"
+msgstr "无法访问被屏蔽的网站"
 
 msgid "cannot_complete_purchase"
 msgstr "无法完成购买"
@@ -279,1610 +179,1048 @@ msgid "cannot_sign_in"
 msgstr "无法登录"
 
 msgid "spinner_loads_endlessly"
-msgstr "始终在加载中"
+msgstr "加载图标一直转动"
 
 msgid "slow"
-msgstr "很慢"
+msgstr "速度慢"
 
 msgid "cannot_link_devices"
-msgstr "无法链接设备"
+msgstr "无法关联设备"
 
 msgid "wrong_device_linking_code"
-msgstr "错误或者无效的设备关联码"
+msgstr "设备关联码错误或无效"
 
 msgid "cannot_remove_device"
-msgstr "无法删除设备 "
+msgstr "无法移除设备"
 
 msgid "application_crashes"
-msgstr "蓝灯软件崩溃"
+msgstr "应用崩溃"
 
 msgid "other"
 msgstr "其他"
 
 msgid "issue_description"
-msgstr "描述您的问题 "
+msgstr "描述您的问题"
 
-msgid "check_for_updates"
-msgstr "检查更新"
+msgid "enter_password_to_confirm"
+msgstr "输入密码以确认"
 
-msgid "blocked_users"
-msgstr "屏蔽的用户"
+msgid "cannot_view_logs"
+msgstr "除非您将诊断日志发送给我们,否则蓝灯无法查看您的诊断日志。"
 
-msgid "description_proxy_all_dialog"
-msgstr "啟用後，所有流量都將透過 Lantern 傳輸 (更安全)。一旦停用，只有遭封鎖的流量會透過 Lantern 傳輸 (速度更快)。"
+msgid "split_tunneling_mode"
+msgstr "分流模式"
 
-msgid "Account"
-msgstr "帐号"
+msgid "apps_split_tunneling"
+msgstr "应用分流"
 
-msgid "VPN Status"
-msgstr "VPN 狀態"
+msgid "website_split_tunneling"
+msgstr "网站分流"
 
-msgid "VPN"
-msgstr "VPN"
+msgid "iran_optimized"
+msgstr "伊朗优化分流规则"
 
-msgid "Authorize Device for Pro"
-msgstr "授权设备使用专业版"
+msgid "china_optimized"
+msgstr "中国优化分流规则"
 
-msgid "Authorize with Device Linking Pin"
-msgstr "授权设备使用专业版"
+msgid "russia_optimized"
+msgstr "俄罗斯优化分流规则"
 
-msgid "Requires physical access to a Lantern Pro Device"
-msgstr "需要实际访问蓝灯专业版设备。"
+msgid "global_optimized"
+msgstr "全球优化分流规则"
 
-msgid "Link with PIN"
-msgstr "使用連結碼來連結"
+msgid "enter_url"
+msgstr "输入 URL"
 
-msgid "OR"
-msgstr "或者"
+msgid "add"
+msgstr "添加"
 
-msgid "device_linking_pin"
-msgstr "动态授权码"
+msgid "enabled"
+msgstr "已启用"
 
-msgid "link_device_step_one"
-msgstr "在您的Pro设备上打开“添加设备”菜单项。 "
+msgid "disabled"
+msgstr "已禁用"
 
-msgid "link_device_step_two"
-msgstr "输入设备链接PIN并点击提交 "
+msgid "automatic"
+msgstr "自动"
 
-msgid "ensure_most_recent_version_lantern"
-msgstr "*请确保两台设备都使用最新版本"
+msgid "automatic_mode"
+msgstr "自动模式"
 
-msgid "Authorize Device via Email"
-msgstr "使用Email登陆"
+msgid "manual"
+msgstr "手动"
 
-msgid "auth_email_helper_text"
-msgstr "输入与 Pro 账户关联的电子邮件"
+msgid "enter_url_or_ip"
+msgstr "输入 URL 或 IP 地址"
 
-msgid "Requires access to the email you used to buy Lantern Pro"
-msgstr "需要您有注册蓝灯的email"
+msgid "installed_apps"
+msgstr "已安装的应用"
 
-msgid "Link via Email"
-msgstr "透過電子郵件來連結"
+msgid "search_apps"
+msgstr "搜索应用"
 
-msgid "lantern_desktop"
-msgstr "蓝灯桌面版"
+msgid "search_websites"
+msgstr "搜索网站"
 
-msgid "report_description"
-msgstr "问题描述"
+msgid "mode"
+msgstr "模式"
 
-msgid "report_issue"
-msgstr "报告问题 "
+msgid "use_commas"
+msgstr "使用逗号分隔多个 URL"
 
-msgid "report_an_issue"
-msgstr "报告问题"
+msgid "default_bypass"
+msgstr "默认直连列表"
 
-msgid "report_sent"
-msgstr "报告已发送"
+msgid "global_bypass_list"
+msgstr "全球直连列表"
 
-msgid "thank_you_for_reporting_your_issue"
-msgstr "感谢报告问题，我们会尽快通过邮件反馈。"
+msgid "global_bypass_desc"
+msgstr "包含非敏感内容的可信网站(HTTPS)。"
 
-msgid "send_report"
-msgstr "发送报告"
+msgid "china_bypass_list"
+msgstr "中国直连列表"
 
-msgid "most_recent_lantern_apps"
-msgstr "最新版蓝灯下载地址见下"
+msgid "china_bypass_desc"
+msgstr "在中国可以自由访问的网站。定期更新。"
 
-msgid "share_link"
-msgstr "分享链接 "
+msgid "iran_bypass_list"
+msgstr "伊朗直连列表"
 
-msgid "share_title"
-msgstr "分享蓝灯下载地址"
+msgid "iran_bypass_desc"
+msgstr "在伊朗可以自由访问的网站。定期更新。"
 
-msgid "email"
-msgstr "电子邮件"
+msgid "russia_bypass_list"
+msgstr "俄罗斯直连列表"
 
-msgid "Submit"
-msgstr "提交"
+msgid "russia_bypass_desc"
+msgstr "在俄罗斯可以自由访问的网站。定期更新。"
 
-msgid "save"
-msgstr "保存"
+msgid "see_sites_included"
+msgstr "查看包含在"
 
-msgid "please_enter_a_valid_email_address"
-msgstr "請輸入有效的電子郵件地址"
+msgid "default_lists_here"
+msgstr "默认列表中的网站"
 
-msgid "bonus"
-msgstr "奖励"
+msgid "when_connected"
+msgstr "连接时,您选择的网站将直连而不经过 VPN。"
 
-msgid "referral_bonus"
-msgstr "推荐奖励"
+msgid "lantern_automatic"
+msgstr "蓝灯会根据您的位置自动选择哪些应用和网站绕过 VPN 直连互联网,以获得最佳性能。"
 
-msgid "total"
-msgstr "总计"
+msgid "apps_bypassing_vpn"
+msgstr "直连的应用 (%d)"
 
-msgid "month"
-msgstr "月"
+msgid "websites_bypassing_vpn"
+msgstr "直连的网站 (%d)"
 
-msgid "months"
-msgstr "月"
+msgid "logs_share_message"
+msgstr "这是我的蓝灯诊断日志。"
 
-msgid "enter_email_to_complete_purchase"
-msgstr "输入电子邮件以完成购买 "
+msgid "payment_options"
+msgstr "支付选项"
 
-msgid "error_fetching_plans"
-msgstr "获取计划信息出错，请重启蓝灯后，再次尝试。"
-
-msgid "apply"
-msgstr "应用"
-
-msgid "choose_payment_method"
-msgstr "选择付款方式"
-
-msgid "pro_plan"
-msgstr "专业版计划"
-
-msgid "one_month_plan"
-msgstr "1个月计划"
-
-msgid "one_year_plan"
-msgstr "一年专业版"
-
-msgid "two_year_plan"
-msgstr "2 年专业版"
-
-msgid "plan_discount"
-msgstr "保存 %d%%"
-
-msgid "enter_email_and_activation_code"
-msgstr "填写电子邮箱地址和激活码"
-
-msgid "referral_code"
-msgstr "邀请码"
-
-msgid "share_referral_code"
-msgstr "分享推荐码 "
-
-msgid "share_message_referral_code"
-msgstr "要获得一个月的免费蓝灯，请使用此推荐码：%s；您可以从这里下载：https://lantern.io/download "
-
-msgid "add_referral_code"
-msgstr "填入推荐码"
-
-msgid "Activation Code"
-msgstr "激活码"
-
-msgid "invalid_or_incomplete_referral_code"
-msgstr "推荐码无效或不全"
-
-msgid "register_for_pro"
-msgstr "注册专业版账户"
-
-msgid "Something went wrong while applying your referral code."
-msgstr "使用您的推荐码时报错"
-
-msgid "your_activation_code_is_invalid"
-msgstr "您的激活码无效"
-
-msgid "update_cache_plans_timeout"
-msgstr "获取可选计划时报错"
-
-msgid "bitcoin_timeout"
-msgstr "BTCPay请求已超时"
-
-msgid "BTCPay is unavailable"
-msgstr "暂不支持BTCPay"
-
-msgid "update_cache_user_timeout"
-msgstr "获取您的账户数据时报错"
-
-msgid "reseller_timeout"
-msgstr "验证您的激活码时报错"
-
-msgid "wrong_reseller_code"
-msgstr "激活码无效"
-
-msgid "reseller_success"
-msgstr "激活码兑换成功！"
-
-msgid "stripe_timeout"
-msgstr "您的Stripe支付请求已超时，请重启蓝灯后，再次尝试。"
-
-msgid "stripe_success"
-msgstr "Stripe支付成功！"
-
-msgid "renewal_success"
-msgstr "续费成功！"
-
-msgid "pro_renewal_success_description"
-msgstr "感谢您续费蓝灯专业版！在蓝灯最高速的数据中心支持下，您可尽享无限量高速上网，最高可同时支持三台设备！"
-
-msgid "pro_purchase_success"
-msgstr "欢迎使用蓝灯专业版！"
-
-msgid "platinum_purchase_success_descripion"
-msgstr "现在起，蓝灯最高速的数据中心和专线将开始为您提供无限量上网服务。您最多可同时接入三台设备。"
-
-msgid "pro_purchase_success_descripion"
-msgstr "现在起，蓝灯最高速的数据中心和专线将开始为您提供无限量上网服务。您最多可同时接入三台设备。"
-
-msgid "by_clicking_tos"
-msgstr "点击 %s，即表示您已同意我们的"
-
-msgid "tos"
-msgstr "服務條款"
-
-msgid "step_1"
-msgstr "步骤1"
-
-msgid "step_2"
-msgstr "步骤2"
-
-msgid "step_3"
-msgstr "步骤3"
-
-msgid "invalid_email"
-msgstr "电子邮件地址无效"
-
-msgid "invalid_card"
-msgstr "信用卡卡号无效"
-
-msgid "invalid_expiration"
-msgstr "到期时间无效"
-
-msgid "cc_number"
-msgstr "信用卡"
-
-msgid "card_number"
-msgstr "卡号"
-
-msgid "card_expiration"
-msgstr "MM/YY"
-
-msgid "invalid_cvc"
-msgstr "CVC码无效"
-
-msgid "complete_purchase"
-msgstr "购买完成"
-
-msgid "Re-send Email"
-msgstr "重发Email"
-
-msgid "Paste from clipboard?"
-msgstr "要從剪貼簿貼上嗎？"
-
-msgid "Yes"
-msgstr "是的"
-
-msgid "No"
-msgstr "否"
-
-msgid "exit"
-msgstr "退出 "
-
-msgid "show"
-msgstr "显示 "
-
-msgid "status_on"
-msgstr "状态：开启 "
-
-msgid "status_off"
-msgstr "状态：关闭 "
-
-msgid "Enter or paste linking code"
-msgstr "輸入或貼上連結碼"
-
-msgid "recovery_email_sent"
-msgstr "系統已將連結碼傳送給 %s (如果這個帳號仍在使用中)。電子郵件可能需要幾個小時才會寄達，屆時請輸入電子郵件中提供的連結碼。"
-
-msgid "Add Device"
-msgstr "授权其他设备使用专业版"
-
-msgid "approve_device_step_1"
-msgstr "从要连接的设备上的账户菜单打开“授权设备使用专业版”，然后选择“使用 PIN 码连接”。"
-
-msgid "approve_device_step_2"
-msgstr "請輸入您在步驟 1 取得的連結碼 "
-
-msgid "Pro Account Expiration"
-msgstr "专业版到期日"
-
-msgid "Renew"
-msgstr "续期"
-
-msgid "pro_devices_header"
-msgstr "Lantern Pro 裝置 (最多 3 部)"
-
-msgid "Remove"
-msgstr "移除"
-
-msgid "Log Out"
-msgstr "登出"
-
-msgid "confirm_remove_device"
-msgstr "您确定要取消此设备与 Pro 账户的链接吗？"
-
-msgid "confirm_close_window"
-msgstr "您确定要关闭蓝灯吗？ "
-
-msgid "unlimited_data"
-msgstr "無流量限制"
-
-msgid "no_logs"
-msgstr "无服务器记录"
-
-msgid "no_ads"
-msgstr "No Ads"
-
-msgid "choose_plan"
-msgstr "选择套餐"
-
-msgid "billed_one_time"
-msgstr "一次性收费 "
-
-msgid "connect_up_to_3_devices"
-msgstr "支持3个设备"
-
-msgid "faster_data_centers"
-msgstr "速度更快"
-
-msgid "dedicated_line"
-msgstr "专线"
-
-msgid "increased_reliability"
-msgstr "更可靠"
-
-msgid "checkout"
-msgstr "支付"
-
-msgid "credit_card"
-msgstr "信用卡"
-
-msgid "lantern_pro_checkout"
-msgstr "蓝灯专业版购买"
-
-msgid "1y_pricing"
-msgstr "1 年价格"
-
-msgid "2y_pricing"
-msgstr "2 年价格"
-
-msgid "plan_type"
-msgstr "计划选项"
-
-msgid "most_popular"
-msgstr "最多人购买"
-
-msgid "free"
-msgstr "免费"
-
-msgid "n/a"
-msgstr "n/a"
-
-msgid "Developer Settings"
-msgstr "开发者设置"
-
-msgid "Developer"
-msgstr "开发者"
-
-msgid "dev_settings"
-msgstr "这些设置仅供开发使用。更改任意设置都会自动停止并重新启动该应用程序。"
-
-msgid "dev_payment_mode"
-msgstr ""
-"启用“付费测试模式”后，该应用使用单个硬编码用户。您可以使用账号 4242 4242 4242 4242 完成银行卡购买，过期日期需要设置为未来，CVV"
-" 可随意设置。"
-
-msgid "Payment Test Mode"
-msgstr "付费测试模式"
-
-msgid "Play Version"
-msgstr "Play 版本"
-
-msgid "Force Country"
-msgstr "模擬特定國家/地區"
-
-msgid "Error"
-msgstr "错误"
-
-msgid "accept"
-msgstr "接受"
-
-msgid "cancel"
-msgstr "取消"
-
-msgid "reject"
-msgstr "拒绝"
-
-msgid "copied"
-msgstr "已复制！"
-
-msgid "saved"
-msgstr "已保存！"
-
-msgid "new_chat"
-msgstr "新交談"
-
-msgid "your_contact_info"
-msgstr "您的合同信息"
-
-msgid "display_name"
-msgstr "显示名称"
-
-msgid "edit"
-msgstr "编辑"
-
-msgid "save_error"
-msgstr "保存时出现问题。"
-
-msgid "fewer_options"
-msgstr "更少选项"
-
-msgid "more_options"
-msgstr "更多选项"
-
-msgid "block_user"
-msgstr "屏蔽用户"
-
-msgid "unblock_user"
-msgstr "未屏蔽的用户"
-
-msgid "block"
-msgstr "屏蔽"
-
-msgid "unblock"
-msgstr "取消屏蔽"
-
-msgid "block_info_title"
-msgstr "屏蔽 %s？"
-
-msgid "no_blocked_users"
-msgstr "没有屏蔽任何用户。"
-
-msgid "unblock_info_title"
-msgstr "屏蔽 %s？"
-
-msgid "block_info_description"
-msgstr "如果您封鎖這名使用者，系統會刪除交談記錄，並禁止對方日後與您聯絡。如要將使用者解除封鎖，請前往設定選單。"
-
-msgid "unblock_info_description"
-msgstr "%s 現在已可傳送訊息給您。系統不會通知對方您已將其解除封鎖。"
-
-msgid "block_info_checkbox"
-msgstr "我瞭解這麼做會刪除所有交談記錄。"
-
-msgid "unblock_info_checkbox"
-msgstr "我確定要將這個聯絡人解除封鎖。"
-
-msgid "delete_permanently"
-msgstr "永久删除用户"
-
-msgid "delete_info_description"
-msgstr "一旦刪除，日後想再與對方交談時，便需重新新增對方的聯絡資訊。"
-
-msgid "add_new_contact"
-msgstr "新增联系人"
-
-msgid "add_contact"
-msgstr "添加联系人"
-
-msgid "share_your_chat_number"
-msgstr "分享交談號碼"
-
-msgid "scan_qr_code"
-msgstr "扫描二维码"
-
-msgid "add_contact_in_person"
-msgstr "當面新增聯絡人"
-
-msgid "start_chat"
-msgstr "開始交談"
-
-msgid "your_installed_apps"
-msgstr "您已安装的应用"
-
-msgid "apps_routed_through_lantern"
-msgstr "通过蓝灯访问的应用"
-
-msgid "apps_to_unblock"
-msgstr "请选择您要翻墙访问的应用。在您连接蓝灯后，只有这些应用才会通过蓝灯访问。"
-
-msgid "split_tunneling"
-msgstr "隧道分流"
-
-msgid "split_tunneling_info"
-msgstr "开启隧道分流模式后，只有您选定的应用才会通过蓝灯翻墙访问。这会有效提升您的上网体验，并节省带宽。"
-
-msgid "applied_next_time"
-msgstr "隧道分流的更新设置，将在您重启蓝灯后生效。"
-
-msgid "message_disappearing"
-msgstr "您和 %s 之間傳送的所有訊息都不會消失。"
-
-msgid "message_disappearing_description"
-msgstr "%s後，您和 %s 之間傳送的所有訊息就會消失。"
-
-msgid "view_contact_info"
-msgstr "查看聯絡資訊"
-
-msgid "off"
-msgstr "已断开"
-
-msgid "on"
-msgstr "已连接"
+msgid "add_your_email"
+msgstr "添加您的电子邮箱"
 
 msgid "continue"
 msgstr "继续"
 
-msgid "continue_to_pro"
-msgstr "下一步"
+msgid "continue_with_google"
+msgstr "使用 Google 继续"
 
-msgid "are_you_sure_you_want_to_open"
-msgstr "确定要打开%s吗？"
+msgid "continue_with_apple"
+msgstr "使用 Apple 继续"
 
-msgid "set"
-msgstr "设置"
+msgid "continue_without_email"
+msgstr "不使用电子邮箱继续"
 
-msgid "menu"
-msgstr "菜单"
+msgid "confirm_email"
+msgstr "确认电子邮箱"
 
-msgid "send_error"
-msgstr "发送消息时出错了"
+msgid "add_your_email_message"
+msgstr "添加您的电子邮箱以在任何设备上访问您的订阅。"
 
-msgid "share_media_error"
-msgstr "分享媒体文件时出错了"
+msgid "confirm_email_code"
+msgstr "确认码"
 
-msgid "no_recents"
-msgstr "無近期活動"
+msgid "confirm_email_code_message"
+msgstr "请确认此电子邮箱地址属于您,输入发送至以下地址的验证码:"
 
-msgid "set_display_name"
-msgstr "设置显示名"
+msgid "resend_email"
+msgstr "重新发送邮件"
 
-msgid "introduce_contact"
-msgstr "介绍联系人"
+msgid "create_password"
+msgstr "创建密码"
 
-msgid "introduce_contacts"
-msgstr "介绍联系人"
+msgid "sign_in_to_lantern_pro"
+msgstr "登录蓝灯专业版"
 
-msgid "introduce_contacts_with_count"
-msgstr "介绍联系人 (%s)"
+msgid "sign_in_with_email"
+msgstr "使用电子邮箱登录"
 
-msgid "need_two_contacts_to_introduce"
-msgstr "只要擁有兩位以上聯絡人，您就能介紹他們彼此認識。"
+msgid "enter_your_lantern_pro_account_details"
+msgstr "输入您的蓝灯专业版账户详情。"
 
-msgid "introduce_contacts_select"
-msgstr "選取兩位以上聯絡人即可加以介紹。系統會將介紹函傳送給他們，接著他們就能開始與對方傳送訊息。"
+msgid "email"
+msgstr "电子邮箱"
 
-msgid "introduce_single_contact"
-msgstr "選取您要介紹給 %s 的聯絡人。一旦雙方核准，他們就能傳送訊息給對方。"
+msgid "enter_password"
+msgstr "输入密码"
 
-msgid "send_introductions"
-msgstr "傳送介紹函"
+msgid "forgot_password"
+msgstr "忘记密码?"
 
-msgid "introductions_sent"
-msgstr "介紹函已送出！"
+msgid "reset_your_password"
+msgstr "重置您的密码"
 
-msgid "no_contacts_yet"
-msgstr "无联系人"
+msgid "enter_your_lantern_pro_account_email"
+msgstr "输入您的蓝灯专业版账户电子邮箱。"
 
-msgid "contact_verification"
-msgstr "聯絡人驗證"
+msgid "reset_password"
+msgstr "重置密码"
 
-msgid "verification"
-msgstr "驗證"
+msgid "confirm_new_password"
+msgstr "确认新密码"
 
-msgid "contact_verification_description"
-msgstr "您隨時可以前往右上角的訊息選單，執行聯絡人驗證作業。"
+msgid "create_new_password"
+msgstr "创建新密码"
 
-msgid "qr_error_description"
-msgstr "掃描這個 QR 碼時發生了點問題。"
+msgid "confirm_password"
+msgstr "确认密码"
 
-msgid "qr_info_verification_title"
-msgstr "當面驗證聯絡人"
+msgid "confirm_password_required"
+msgstr "必须确认密码"
 
-msgid "qr_info_f2f_title"
-msgstr "二维码扫描"
+msgid "passwords_do_not_match"
+msgstr "密码不匹配"
 
-msgid "qr_info_verification_des"
-msgstr ""
-"如要驗證聯絡人，請掃描對方的 QR 碼。\n"
-"\n"
-"此程序能保障隱私，確保對話內容確實完成端對端加密。"
+msgid "activation_code"
+msgstr "激活码"
 
-msgid "qr_info_f2f_des"
-msgstr ""
-"若要將好友新增為聯絡人，請掃描對方的 QR 碼。\n"
-"\n"
-"此程序能保障隱私，確保對話內容確實完成端對端加密。"
+msgid "activate_lantern_pro"
+msgstr "激活蓝灯专业版"
 
-msgid "qr_info_verification_scan"
-msgstr "扫描对方的二维码以进行验证。"
+msgid "invalid_email"
+msgstr "无效的电子邮箱地址"
 
-msgid "qr_info_f2f_scan"
-msgstr "扫描对方的二维码以添加联系人。"
+msgid "purchase_already_owned"
+msgstr "您已经拥有此购买,请尝试恢复购买"
 
-msgid "qr_success_snackbar"
-msgstr "%s 是联系人"
+msgid "stripe_payment"
+msgstr "Stripe 支付"
 
-msgid "qr_info_waiting_qr"
-msgstr "正在等待好友扫描您的二维码..."
+msgid "split_tunneling_description"
+msgstr "蓝灯根据您的位置智能路由互联网流量,确保安全访问的同时,仅在必要时使用 VPN 来保持连接速度快。"
 
-msgid "scan_complete"
-msgstr "扫描完成"
+msgid "region_specific_rules"
+msgstr "地区特定规则"
 
-msgid "qr_for_your_contact"
-msgstr "您的二维码"
+msgid "location_based_rules"
+msgstr "蓝灯根据您的位置使用不同的路由规则:"
 
-msgid "add_via_chat_number"
-msgstr "透過交談號碼新增"
+msgid "censored_regions"
+msgstr "在受审查地区:"
 
-msgid "qr_info_waiting_id"
-msgstr "正在等候好友輸入您的通訊 ID 或掃描您的 QR 碼..."
+msgid "blocked_sites_proxied"
+msgstr "被屏蔽的网站和应用(新闻、消息、受限服务)将通过代理访问。"
 
-msgid "chat_number_not_found"
-msgstr ""
-"找不到這組交談號碼。\n"
-"請檢查您所輸入的號碼，並再試一次。"
+msgid "unblocked_sites_bypass"
+msgstr "大多数未被屏蔽的网站将直连以加快浏览速度。"
 
-msgid "unable_to_add_contact"
-msgstr ""
-"找不到這名聯絡人。\n"
-"請檢查您所輸入的號碼，並再試一次。"
+msgid "uncensored_regions"
+msgstr "在非审查地区:"
 
-msgid "self_adding"
-msgstr "您輸入的是您的交談號碼"
+msgid "trusted_sites_bypass"
+msgstr "默认情况下,仅可信的网站和服务会直连。"
 
-msgid "chat_number_type"
-msgstr "輸入交談號碼"
+msgid "examples_of_bypassed_sites"
+msgstr "这些网站包括 HTTPS 加密的公开或非敏感内容网站,如购物、天气和软件更新。"
 
-msgid "letter_and_numbers_only"
-msgstr "僅限輸入英文字母和數字"
+msgid "routing_rules_vary"
+msgstr "这些规则因国家而异,并定期更新。"
 
-msgid "name_your_contact"
-msgstr "為聯絡人命名"
+msgid "view_the_full_list"
+msgstr "查看完整的路由规则列表。"
 
-msgid "messenger_id_invalid"
-msgstr "通訊 ID 無效"
+msgid "turn_on_split_tunneling"
+msgstr "开启分流以自定义哪些网站使用 VPN。"
 
-msgid "username_not_found"
-msgstr "找不到使用者名稱"
+msgid "welcome_to_lantern_pro"
+msgstr "欢迎使用蓝灯专业版!"
 
-msgid "contact_id_your_id"
-msgstr "您的通訊 ID"
+msgid "lantern_pro_description"
+msgstr "您的专业版功能已解锁——享受无限数据、更快速度和高级服务器。"
 
-msgid "introductions"
-msgstr "介紹"
+msgid "plans_fetch_error"
+msgstr "获取套餐时出错。请稍后重试。"
 
-msgid "introduced"
-msgstr "介紹人：%s"
+msgid "best_value"
+msgstr "最超值!"
 
-msgid "introductions_title"
-msgstr "接受 %s 的介紹函"
+msgid "choose_payment_method"
+msgstr "选择支付方式"
 
-msgid "introductions_info"
-msgstr "雙方都必須接受對方的介紹函，才能開始交談。如果未採取任何動作，介紹函會在 7 天後消失。"
+msgid "payment_information_encrypted"
+msgstr "您的支付信息已完全加密。"
 
-msgid "introduction_reject_title"
-msgstr "拒絕介紹函"
+msgid "purchase_not_completed"
+msgstr "购买未完成。您可以随时重试,如需帮助请联系支持团队"
 
-msgid "introduction_reject_content"
-msgstr "如果您拒絕介紹函，您將無法傳送訊息給這名聯絡人。"
+msgid "are_you_sure"
+msgstr "确定吗?"
 
-msgid "introductions_error_description_rejecting"
-msgstr "拒絕這個聯繫請求時發生了點問題。"
+msgid "continue_without_email_message"
+msgstr "需要有效的电子邮箱地址才能在其他设备上使用您的订阅。"
 
-msgid "introductions_error_description_accepting"
-msgstr "接受這個聯繫請求時發生了點問題。"
+msgid "add_email"
+msgstr "添加电子邮箱"
 
-msgid "no_introductions"
-msgstr "沒有任何介紹函需要處理。"
+msgid "block_ads"
+msgstr "屏蔽广告"
 
-msgid "introduction_approved"
-msgstr "%s 的介紹函已獲核准！"
+msgid "only_active"
+msgstr "仅在 VPN 连接时生效"
 
-msgid "delete_contact_name"
-msgstr "刪除 %s"
+msgid "vpn_connected"
+msgstr "蓝灯已连接。"
 
-msgid "delete_contact"
-msgstr "刪除聯絡人"
+msgid "vpn_disconnected"
+msgstr "蓝灯已断开连接。"
 
-msgid "error"
-msgstr "错误"
+msgid "open_notification"
+msgstr "打开通知"
 
-msgid "error_delete_contact"
-msgstr "刪除這名聯絡人時發生了點問題。"
+msgid "logout"
+msgstr "退出登录"
 
-msgid "unnamed_contact"
-msgstr "未命名聯絡人"
+msgid "logout_message"
+msgstr "退出登录将使蓝灯切换到免费版本。要再次访问您的账户,您需要重新登录。"
 
-msgid "me"
-msgstr "我"
+msgid "not_now"
+msgstr "暂不"
 
-msgid "disappearing_messages"
-msgstr "消失的訊息"
+msgid "billed_once"
+msgstr "一次性付款"
 
-msgid "start_of_your_history"
-msgstr "您與 %s 的交談和語音通話皆經過端對端加密"
+msgid "subscription"
+msgstr "订阅"
 
-msgid "banner_unaccepted"
-msgstr "%s 不在您的聯絡人清單上，您要接受交談請求嗎？"
+msgid "subscribe"
+msgstr "订阅"
 
-msgid "banner_messages_persist"
-msgstr "新訊息不會消失。"
+msgid "checkout"
+msgstr "结账"
 
-msgid "banner_message_retention"
-msgstr "訊息保留期限已設為 %s"
+msgid "next_billing_date"
+msgstr "下次扣费日期"
 
-msgid "longform_seconds"
-msgstr "%s 秒"
+msgid "vpn_may_be_needed"
+msgstr "可能需要 VPN"
 
-msgid "shortform_seconds"
-msgstr "%s 秒"
+msgid "google_and_apple_sign_in_blocked"
+msgstr "在此地区 Google 和 Apple 登录可能被屏蔽。要完成账户设置,请先开启 VPN。"
 
-msgid "longform_minute"
-msgstr "%s 分鐘"
+msgid "continue_without_vpn"
+msgstr "不使用 VPN 继续"
 
-msgid "shortform_minutes"
-msgstr "%s 分鐘"
+msgid "turn_on_vpn"
+msgstr "开启 VPN"
 
-msgid "longform_minutes"
-msgstr "%s 分鐘"
+msgid "server_setup_do"
+msgstr "使用 DigitalOcean 设置"
 
-msgid "longform_hour"
-msgstr "%s 小時"
+msgid "server_setup_do_price"
+msgstr "通过 Digital Ocean 每月仅需 %s"
 
-msgid "shortform_hours"
-msgstr "%s 小時"
+msgid "server_setup_gcp"
+msgstr "使用 Google Cloud Platform 设置"
 
-msgid "longform_hours"
-msgstr "%s 小時"
+msgid "continue_with_do"
+msgstr "使用 Digital Ocean 继续"
 
-msgid "longform_day"
-msgstr "%s 天"
+msgid "do_allows"
+msgstr "Digital Ocean 允许您从以下 %d 个选项中选择一个服务器位置"
 
-msgid "shortform_days"
-msgstr "%s 天"
+msgid "server_setup_gcp_price"
+msgstr "通过 GCP 每月仅需 %s"
 
-msgid "longform_days"
-msgstr "%s 天"
+msgid "continue_with_gcp"
+msgstr "使用 Google 继续"
 
-msgid "longform_week"
-msgstr "%s 週"
+msgid "gcp_allows"
+msgstr "Google Cloud Platform 允许您从以下 %d 个选项中选择一个服务器位置:"
 
-msgid "shortform_weeks"
-msgstr "%s 週"
+msgid "server_setup_aws"
+msgstr "在 AWS 上设置私有服务器"
 
-msgid "longform_weeks"
-msgstr "%s 週"
+msgid "server_setup_aws_price"
+msgstr "通过 AWS 每月仅需 %s"
 
-msgid "unknown"
-msgstr "未知"
+msgid "server_setup_manual"
+msgstr "手动设置"
 
-msgid "banner_source_qr"
-msgstr "QR 碼"
+msgid "seamless_integration"
+msgstr "与蓝灯无缝集成"
 
-msgid "banner_source_id"
-msgstr "通訊 ID"
+msgid "easiest_setup"
+msgstr "最简单的设置流程"
 
-msgid "banner_source_intro"
-msgstr "引言"
+msgid "multiple_location_options"
+msgstr "多个服务器位置选项"
 
-msgid "message_will_disappear_at"
-msgstr "消失 (%s)"
+msgid "one_month_included"
+msgstr "包含 %d TB/月 数据"
 
-msgid "change_display_name"
-msgstr "變更顯示名稱"
+msgid "easiest_setup_process"
+msgstr "最简单的设置流程"
 
-msgid "yesterday"
-msgstr "昨天"
+msgid "setup_a_private_server"
+msgstr "设置私有服务器"
 
-msgid "tomorrow"
-msgstr "明天"
+msgid "setup_private_server"
+msgstr "设置私有服务器"
 
-msgid "just_now"
-msgstr "剛剛"
-
-msgid "within_one_minute"
-msgstr "一分鐘內"
-
-msgid "on_date"
-msgstr "於 %s"
-
-msgid "at_date"
-msgstr "於 %s"
-
-msgid "error_fetching_message_preview"
-msgstr "擷取訊息預覽時發生錯誤"
-
-msgid "message_was_deleted"
-msgstr "訊息已刪除"
-
-msgid "contact_was_deleted"
-msgstr "%s 已從您的聯絡人中刪除。"
-
-msgid "contact_was_blocked"
-msgstr "您已將 %s 封鎖。"
-
-msgid "contact_was_unblocked"
-msgstr "您已將 %s 解除封鎖。 "
-
-msgid "dismiss"
-msgstr "撤销"
-
-msgid "copy_text"
-msgstr "複製文字"
-
-msgid "message"
-msgstr "訊息"
-
-msgid "messages"
-msgstr "私信"
-
-msgid "chats"
-msgstr "交談"
-
-msgid "new_requests"
-msgstr "新請求 %s"
-
-msgid "chat"
-msgstr "交談"
-
-msgid "lantern_chat"
-msgstr "蓝灯聊天"
-
-msgid "welcome_title"
-msgstr "欢迎使用蓝灯聊天！"
-
-msgid "welcome_text"
-msgstr "將交談內容加密，以保護您的隱私，並搭配採用同級最佳的抗封鎖技術。"
-
-msgid "get_started"
-msgstr "開始使用"
-
-msgid "want_to_recover"
-msgstr "有交談號碼嗎？"
-
-msgid "recover"
-msgstr "復原"
-
-msgid "chat_number"
-msgstr "交談號碼"
-
-msgid "your_chat_number"
-msgstr "您的交談號碼"
-
-msgid "chat_number_recovery"
-msgstr "交談號碼復原"
-
-msgid "recovery_helper_text"
-msgstr "請輸入有效的復原金鑰"
-
-msgid "recovery_button"
-msgstr "輸入復原金鑰即可還原交談號碼。"
-
-msgid "recovery_label"
-msgstr "输入您的还原密钥"
-
-msgid "recovery_key"
-msgstr "还原密钥"
-
-msgid "secure_text_explanation"
-msgstr "您的聊天号码就像一个电话号码，好友可以用它在蓝灯上联系您。"
-
-msgid "secure_text_explanation_account"
-msgstr ""
-"这是完整的聊天号；分享这个较长版本的号码会更加安全，尤其是如果您需要在端到端渠道分享。\n"
-"\n"
-"蓝灯提供了一个缩短的聊天号码，使分享联系信息更加方便。"
-
-msgid "recovery_key_account_explanation"
-msgstr "請妥善保管此金鑰，並千萬別與他人分享。如果您遺失手機、換新裝置或重設作業系統，這是復原交談號碼的唯一方法。"
-
-msgid "recovery_error"
-msgstr "無法復原您的帳戶。"
-
-msgid "recovery_input_error"
-msgstr "請務必輸入有效的復原金鑰"
-
-msgid "recovery_retrieval_error"
-msgstr "復原帳戶時發生問題"
-
-msgid "recovery_success"
-msgstr "您已成功復原交談號碼。"
-
-msgid "empty_chats_text"
-msgstr "您可在此分享交談號碼或新增聯絡人！"
+msgid "previous"
+msgstr "上一步"
 
 msgid "next"
 msgstr "下一步"
 
-msgid "automated_backup"
-msgstr "自動化備份"
+msgid "error"
+msgstr "错误"
 
-msgid "backup_explanation"
-msgstr ""
-"蓝灯提供了将您的联系人加密和备份到我们安全服务器的选项。如果您放弃备份，您将无法使用恢复密钥恢复您的联系人。 \n"
-"\n"
-"当您选择备份时，蓝灯无法读取您的联系人列表。"
+msgid "signup_error_user_exists"
+msgstr "注册时似乎出了问题。请尝试重置密码,如果问题仍然存在,请联系我们的支持团队"
 
-msgid "backup_contacts"
-msgstr "備份聯絡人"
+msgid "user_not_found"
+msgstr "无法识别用户。请检查您的凭据并重试。如果您继续遇到问题,请联系我们的支持团队寻求帮助。"
 
-msgid "copy_recovery_key"
-msgstr "複製復原金鑰"
+msgid "invalid_code"
+msgstr "验证码错误或已过期。请尝试重新发送"
 
-msgid "search"
-msgstr "搜索"
+msgid "email_resend_message"
+msgstr "您的新确认码已发送"
 
-msgid "account_management"
-msgstr "账号管理"
+msgid "password_has_been_updated"
+msgstr "密码已更新"
 
-msgid "add_via_username"
-msgstr "透過使用者名稱新增"
+msgid "password_has_been_updated_message"
+msgstr "您的密码已成功重置"
 
-msgid "username"
-msgstr "用户名"
+msgid "update_pro_account"
+msgstr "更新专业版账户"
 
-msgid "enter_a_username_to_start_a_conversation"
-msgstr "輸入使用者名稱即可透過訊息展開對話"
+msgid "update_pro_account_message"
+msgstr "要管理您的账户或登录到其他设备,请先为您的账户添加电子邮箱和密码。"
 
-msgid "start_message"
-msgstr "開始傳送訊息"
+msgid "subscription_cancelled"
+msgstr "您的订阅已取消。"
 
-msgid "please_enter_a_valid_username"
-msgstr "請輸入有效的使用者名稱"
+msgid "subscription_updated"
+msgstr "您的订阅已更新。"
 
-msgid "open_url"
-msgstr "開啟 URL"
+msgid "subscription_renewed"
+msgstr "您的订阅已续订。"
 
-msgid "message_deleted"
-msgstr "%s 已刪除這則訊息"
+msgid "got_it"
+msgstr "知道了"
 
-msgid "never"
-msgstr "永遠不要"
+msgid "server_location"
+msgstr "服务器位置"
 
-msgid "delete_for_me"
-msgstr "幫我刪除"
+msgid "choose"
+msgstr "选择"
 
-msgid "delete_for_me_explanation"
-msgstr "這只會單方面為您刪除，其他人還是可以看見訊息。"
+msgid "choose_your_account"
+msgstr "选择您的账户"
 
-msgid "delete_for_everyone"
-msgstr "幫所有人刪除"
+msgid "choose_your_project"
+msgstr "选择您的项目"
 
-msgid "delete_for_everyone_explanation"
-msgstr "這會為所有人刪除訊息。"
+msgid "name_your_google_cloud_project"
+msgstr "为您的 Google Cloud 项目命名"
 
-msgid "reply"
-msgstr "回复"
+msgid "billing_account"
+msgstr "账单账户"
 
-msgid "replying_to"
-msgstr "回覆 %s"
+msgid "billing_account_placeholder"
+msgstr "%s 的账单账户"
 
-msgid "attachment"
-msgstr "附件"
+msgid "server_name"
+msgstr "服务器名称"
 
-msgid "error_rendering_message"
-msgstr "顯示訊息時發生錯誤"
+msgid "google_project"
+msgstr "Google 项目"
 
-msgid "error_fetching_preview"
-msgstr "擷取訊息預覽時發生錯誤"
+msgid "field_name_required"
+msgstr "需要填写名称"
 
-msgid "audio"
-msgstr "音频"
+msgid "choose_google_account"
+msgstr "选择 Google 账单账户"
 
-msgid "image"
-msgstr "图像"
+msgid "server_name_placeholder"
+msgstr "Derek 的服务器"
 
-msgid "images"
-msgstr "图片"
+msgid "change"
+msgstr "更改"
 
-msgid "video"
-msgstr "影片"
+msgid "choose_location"
+msgstr "选择位置"
 
-msgid "videos"
-msgstr "视频"
+msgid "choose_your_location"
+msgstr "选择您的位置"
 
-msgid "app"
-msgstr "应用"
+msgid "start_deployment"
+msgstr "开始部署"
 
-msgid "document"
-msgstr "文件"
+msgid "server_name_description"
+msgstr "服务器在服务器选择列表中的显示名称。"
 
-msgid "search_chars_min"
-msgstr "請輸入至少三個字元"
+msgid "select_private_server_region"
+msgstr "为您的私有服务器选择区域。距离较近的位置可能会提高速度并降低延迟。"
 
-msgid "search_no_results"
-msgstr "很抱歉，找不到符合此搜尋條件的任何結果。"
+msgid "gcp_location_options"
+msgstr "Google Cloud Platform 位置选项 (%d):"
 
-msgid "search_error"
-msgstr "很抱歉，擷取搜尋結果時發生錯誤。"
+msgid "australia_sydney"
+msgstr "澳大利亚 - 悉尼"
 
-msgid "search_contacts"
-msgstr "聯絡人 (%s)"
+msgid "belgium_stghislain"
+msgstr "比利时 - 圣吉斯兰"
 
-msgid "search_chats"
-msgstr "交談 (%s)"
+msgid "brazil_saopaulo"
+msgstr "圣保罗"
 
-msgid "search_in_contacts"
-msgstr "在聯絡人中搜尋"
+msgid "us_los_angeles"
+msgstr "美国 - 洛杉矶"
 
-msgid "search_in_chats"
-msgstr "在交談和聯絡人中搜尋"
+msgid "japan_tokyo"
+msgstr "日本 - 东京"
 
-msgid "could_not_render_title"
-msgstr "無法顯示檔案標題"
+msgid "deploying_private_server"
+msgstr "正在部署私有服务器"
 
-msgid "could_not_render_type"
-msgstr "無法顯示檔案類型"
+msgid "deploying_server_status"
+msgstr "请稍候!您的私有服务器正在设置中。这可能需要几分钟。"
 
-msgid "speaker"
-msgstr "喇叭"
+msgid "confirm_server_fingerprint"
+msgstr "确认服务器指纹"
 
-msgid "speaker_on"
-msgstr "喇叭已開啟"
+msgid "server_fingerprint"
+msgstr "服务器指纹"
 
-msgid "mute"
-msgstr "禁言"
+msgid "confirm_fingerprint"
+msgstr "确认指纹"
 
-msgid "muted"
-msgstr "靜音中"
+msgid "private_server_setup_in_progress"
+msgstr "请稍候!您的私有服务器正在设置中。这可能需要几分钟,请保持此屏幕打开。"
 
-msgid "end_call"
-msgstr "結束通話"
+msgid "cancel_server_deployment"
+msgstr "取消服务器部署"
 
-msgid "verify_contact"
-msgstr "驗證 %s"
+msgid "server_ready_title"
+msgstr "私有服务器已就绪"
 
-msgid "verified"
-msgstr "验证通过"
+msgid "server_ready_message"
+msgstr "您的私有服务器已设置完成并添加到服务器列表中。您可以开始连接了!"
 
-msgid "pending_verification"
-msgstr "待驗證"
+msgid "server_failed_message"
+msgstr "设置私有服务器时出现问题。您可以重试或稍后再试。"
 
-msgid "verify_description"
-msgstr ""
-"基於安全考量，建議您最好檢查 %s 的驗證編號是否與您相符。\n"
-"\n"
-"您要當面驗證，還是透過電話驗證？"
+msgid "close"
+msgstr "关闭"
 
-msgid "verify_in_person"
-msgstr "當面驗證"
+msgid "connect_now"
+msgstr "立即连接"
 
-msgid "verify_via_call"
-msgstr "透過語音通話驗證"
+msgid "server_setup_failed"
+msgstr "服务器设置失败"
 
-msgid "dismiss_notification"
-msgstr "關閉通知"
+msgid "cancel_deployment"
+msgstr "取消部署"
 
-msgid "call_contact"
-msgstr "要打電話給 %s？"
+msgid "server_setup_failed_message"
+msgstr "设置私有服务器时出现问题。您可以重试或稍后再试。"
 
-msgid "call"
-msgstr "通話"
+msgid "exit"
+msgstr "退出"
 
-msgid "incoming_call"
-msgstr "來電"
+msgid "retry"
+msgstr "重试"
 
-msgid "call_from"
-msgstr "%s 來電"
+msgid "all_required_fields"
+msgstr "请填写所有必填字段。"
 
-msgid "in_call"
-msgstr "進行中通話"
+msgid "private_server_ready"
+msgstr "私有服务器已就绪!"
 
-msgid "in_call_des"
-msgstr "進行中通話通知"
+msgid "private_server_ready_message"
+msgstr "(%s) 服务器已设置完成并添加到服务器列表中。您可以开始连接了!"
 
-msgid "incoming_call_from"
-msgstr "%s 的來電"
+msgid "set_up_your_server"
+msgstr "设置您的服务器"
 
-msgid "touch_here_to_open_call"
-msgstr "輕觸這裡即可接聽通話"
+msgid "view_instructions_github"
+msgstr "在 GitHub 上查看说明"
 
-msgid "in_call_with"
-msgstr "正在與 %s 通話"
+msgid "server_access_key"
+msgstr "服务器访问密钥"
 
-msgid "undo_verification"
-msgstr "恢復成未驗證狀態"
+msgid "access_key"
+msgstr "访问密钥"
 
-msgid "mark_as_verified"
-msgstr "標示為已驗證"
+msgid "name_your_server"
+msgstr "为您的服务器命名"
 
-msgid "verification_panel_success"
-msgstr "驗證成功！您與 %s 傳送的訊息安全無虞。"
+msgid "how_server_appears"
+msgstr "服务器在服务器选择列表中的显示方式"
 
-msgid "verification_panel_pending"
-msgstr "這是您的驗證編號。請確認這組編號與 %s 的編號完全相符，再將對方標示為已驗證。"
+msgid "server_nickname"
+msgstr "服务器昵称"
 
-msgid "replica_upload_confirmation_title"
-msgstr "重要！"
+msgid "verify_server"
+msgstr "验证服务器"
 
-msgid "replica_upload_confirmation_body"
-msgstr "上传到 Lantern Network 的文件可供所有人公开访问。任何人都无法删除它。请勿在您的文件内容或文件名中加入个人或识别信息。"
+msgid "vpn_client_not_setup"
+msgstr "请开启 VPN 客户端。"
 
-msgid "replica_upload_confirmation_agree"
-msgstr "继续上传"
+msgid "continue_with"
+msgstr "继续使用"
 
-msgid "dont_show_me_this_again"
-msgstr "別再顯示"
+msgid "join_a_private_server"
+msgstr "加入私有服务器"
 
-msgid "download"
-msgstr "下载"
+msgid "join_private_server"
+msgstr "加入私有服务器"
 
-msgid "download_started"
-msgstr "已開始下載"
+msgid "join_server"
+msgstr "加入服务器"
 
-msgid "uploader"
-msgstr "上傳工具"
+msgid "private_server_usage_message"
+msgstr "私有服务器使用量不计入您的蓝灯每日数据上限。"
 
-msgid "upload_started"
-msgstr "已開始上傳"
+msgid "manage_private_servers"
+msgstr "管理私有服务器"
 
-msgid "upload_in_progress"
-msgstr "上傳中"
+msgid "my_servers"
+msgstr "我的服务器"
 
-msgid "upload_complete"
-msgstr "您的文件已成功发布"
+msgid "joined_servers"
+msgstr "已加入的服务器"
 
-msgid "upload_failed"
-msgstr "上傳失敗"
+msgid "access_key_expiration"
+msgstr "每个访问密钥都是唯一的,1 天后过期。您可以随时生成新的访问密钥。"
 
-msgid "upload_cancelled"
-msgstr "已取消上傳"
+msgid "share_access_key"
+msgstr "分享访问密钥"
 
-msgid "upload_unknown_error"
-msgstr "尝试发布时出现问题"
+msgid "rename_server"
+msgstr "重命名服务器"
 
-msgid "download_unknown_error"
-msgstr "尝试下载时出现问题 %s"
+msgid "rename"
+msgstr "重命名"
 
-msgid "replica_link_fetcher"
-msgstr "複本連結擷取工具"
+msgid "selected_location"
+msgstr "已选择的位置"
 
-msgid "no_preview_for_this_type_of_file"
-msgstr "這種檔案類型無法預覽"
+msgid "remove_server_?"
+msgstr "移除服务器?"
 
-msgid "app_unknown"
-msgstr "應用程式/不明"
+msgid "remove_server_message"
+msgstr "移除 %s?这只会将其从您的应用中移除,不会从您的云服务商处删除服务器。"
 
-msgid "audio_unknown"
-msgstr "音訊/不明"
+msgid "generate_access_key"
+msgstr "生成访问密钥"
 
-msgid "document_unknown"
-msgstr "文件/不明"
+msgid "invite_name"
+msgstr "邀请名称"
 
-msgid "no_search_result_found"
-msgstr "很抱歉，找不到任何符合該搜尋條件的結果"
+msgid "trust_server_operator"
+msgstr "信任服务器运营者"
 
-msgid "search_result_error"
-msgstr "擷取結果時發生錯誤，請稍後再試"
+msgid "trust_server_operator_message_one"
+msgstr "私有服务器由蓝灯以外的个人或组织托管和运营。当您连接到私有服务器时,您需要信任运行它的人会安全管理并负责任地使用它。"
 
-msgid "video_stream_error"
-msgstr "顯示影片時發生錯誤，請稍後再試"
+msgid "trust_server_operator_message_two"
+msgstr "蓝灯不管理或监控私有服务器。在加入之前,请确保您了解并信任服务器运营者。"
 
-msgid "untitled"
-msgstr "無標題"
+msgid "trust_server_operator_message_three"
+msgstr "如果您不确定谁在运行服务器或服务器是如何配置的,我们建议使用服务器列表中的默认蓝灯服务器"
 
-msgid "preview_not_available"
-msgstr "预览不可用"
+msgid "invalid_server_details"
+msgstr "无效的服务器详情。请检查访问密钥并重试。"
 
-msgid "download_to_view"
-msgstr "下载文件以查看"
+msgid "lantern_servers"
+msgstr "蓝灯服务器"
 
-msgid "failed_to_init_replica"
-msgstr "錯誤：無法初始化複本"
+msgid "private_servers"
+msgstr "私有服务器"
 
-msgid "awaiting_result"
-msgstr "等候結果中..."
+msgid "fastest_server"
+msgstr "最快服务器"
 
-msgid "discover"
-msgstr "发现"
+msgid "join_my_private_server"
+msgstr "加入我的蓝灯私有服务器"
 
-msgid "replica_search_intro"
-msgstr "在蓝灯网络上搜索用户上传的内容，或自行上传以供他人发现。"
+msgid "your_server"
+msgstr "您的服务器:"
 
-msgid "replica_new_discover"
-msgstr "新发现类别"
+msgid "no_private_server_setup_yet"
+msgstr "您还没有设置私有服务器。点击下方按钮开始设置。"
 
-msgid "replica_new_discover_news"
-msgstr "“发现”现在可供您搜索新闻文章！"
+msgid "connect"
+msgstr "连接"
 
-msgid "replica_check_it_out"
-msgstr "立即查看"
+msgid "disconnect"
+msgstr "断开连接"
 
-msgid "news"
-msgstr "新闻"
+msgid "show"
+msgstr "显示"
 
-msgid "share"
-msgstr "分享"
+msgid "status_on"
+msgstr "已连接"
 
-msgid "upload_file_screen"
-msgstr "上传文件"
+msgid "status_off"
+msgstr "已断开"
 
-msgid "edit_title"
-msgstr "编辑标题"
+msgid "select_your_server_location"
+msgstr "选择您的服务器位置"
 
-msgid "filenames_cannot_be_edited"
-msgstr "發佈後無法編輯檔案名稱。"
+msgid "faster_speeds_unlimited_bandwidth"
+msgstr "更快的速度和无限带宽"
 
-msgid "add_description"
-msgstr "新增說明"
+msgid "premium_servers_less_congestion"
+msgstr "高级服务器,拥堵更少"
 
-msgid "no_description"
-msgstr "未提供說明"
+msgid "advanced_anti_censorship"
+msgstr "先进的反审查技术"
 
-msgid "read_details"
-msgstr "阅读 PDF"
+msgid "exclusive_access_new_features"
+msgstr "独享新功能访问权"
 
-msgid "description_initial_value"
-msgstr "说明一经发布不可修改"
+msgid "connect_up_to_five_devices"
+msgstr "最多连接 5 台设备"
 
-msgid "name_your_file"
-msgstr "命名文件"
+msgid "built_in_ad_blocking"
+msgstr "内置广告屏蔽"
 
-msgid "upload"
-msgstr "上传"
+msgid "get_lantern_pro"
+msgstr "获取蓝灯专业版"
 
-msgid "review"
-msgstr "審閱"
+msgid "connected_to_private_server"
+msgstr "已连接到私有服务器"
 
-msgid "skip"
-msgstr "跳过"
+msgid "server_already_selected"
+msgstr "您已经连接到此服务器。"
 
-msgid "replica_layout_filetype"
-msgstr "文件类型：%s"
+msgid "device_limit_reached"
+msgstr "已达到设备数量上限"
 
-msgid "replica_layout_creation_date"
-msgstr "创建于 %s"
+msgid "device_limit_reached_message"
+msgstr "您已达到 5 台设备的上限。请移除一台设备以继续。"
 
-msgid "empty_description"
-msgstr "没有提供说明。"
+msgid "remove_device_and_sign_in"
+msgstr "移除设备并登录"
 
-msgid "publish"
-msgstr "是，請發佈"
+msgid "cancel_sign_in"
+msgstr "取消登录"
 
-msgid "important"
-msgstr "重要！"
+msgid "change_email"
+msgstr "更改电子邮箱"
 
-msgid "upload_tos_agree"
-msgstr "我明白"
+msgid "change_email_message"
+msgstr "这将成为您的新登录电子邮箱。您需要先验证它,更改才会生效。"
 
-msgid "test_text"
-msgstr "好想吃披薩 🍕 😊"
+msgid "enter_new_email"
+msgstr "输入您的新电子邮箱"
 
-msgid "test_hello"
-msgstr "嗨，你好嗎？"
+msgid "confirm_password_to_continue"
+msgstr "要继续,请确认您的密码。"
 
-msgid "test_reply"
-msgstr "其實我還好，今天比較想吃壽司！"
+msgid "email_updated"
+msgstr "您的电子邮箱已更新。"
 
-msgid "test_disappearing_messages_1"
-msgstr "起初，所有訊息都會在 24 小時後消失。"
+msgid "enable_network_extension"
+msgstr "启用网络扩展"
 
-msgid "test_disappearing_messages_2"
-msgstr "現在，訊息應該很快就會消失！"
+msgid "enable_network_extension_message"
+msgstr "要使用蓝灯,我们需要为您的 Mac 安装网络扩展。"
 
-msgid "test_replica_search"
-msgstr "貓"
+msgid "install_now"
+msgstr "立即安装"
 
-msgid "discover_disclaimer"
-msgstr "Lantern 會將您的搜尋內容匿名處理，以免第三方取得相關資料。"
+msgid "learn_more"
+msgstr "了解更多"
 
-msgid "support"
-msgstr "支持"
+msgid "network_extension_required"
+msgstr "需要网络扩展"
+
+msgid "click"
+msgstr "点击"
+
+msgid "open_system_settings"
+msgstr "打开系统设置"
+
+msgid "when_prompted"
+msgstr "在提示时。"
+
+msgid "activate_extension"
+msgstr "立即安装"
+
+msgid "email_optional"
+msgstr "电子邮箱(可选)"
+
+msgid "please_enter_valid_email"
+msgstr "请输入有效的电子邮箱"
+
+msgid "please_select_an_issue"
+msgstr "请选择问题类型"
+
+msgid "please_enter_issue_description"
+msgstr "请输入问题描述"
+
+msgid "thanks_for_feedback"
+msgstr "感谢您的反馈!"
+
+msgid "no_apps_selected"
+msgstr "未选择应用"
+
+msgid "deselect_all"
+msgstr "取消全选"
+
+msgid "select_all"
+msgstr "全选"
+
+msgid "no_websites_selected"
+msgstr "未选择网站"
+
+msgid "enter_activation_code"
+msgstr "输入激活码"
+
+msgid "restore_purchase"
+msgstr "恢复购买"
+
+msgid "do_private_server_setup"
+msgstr "DO 私有服务器设置"
+
+msgid "private_server_note"
+msgstr "为您的私有服务器选择区域。距离较近的位置可能会提高速度并降低延迟。"
+
+msgid "gcp_private_server_setup"
+msgstr "GCP 私有服务器设置"
+
+msgid "gcp_private_server_location"
+msgstr "GCP 私有服务器位置"
+
+msgid "do_private_server_location"
+msgstr "DO 私有服务器位置"
+
+msgid "confirm"
+msgstr "确认"
+
+msgid "private_server_warning"
+msgstr "仅添加您信任的人运行的服务器"
+
+msgid "go_to_server_locations"
+msgstr "前往服务器位置"
+
+msgid "lantern_io"
+msgstr "Lantern.io"
+
+msgid "alternative_download_links"
+msgstr "备用下载链接"
+
+msgid "github_download_page"
+msgstr "GitHub 下载页面"
+
+msgid "telegram_bot"
+msgstr "Telegram 机器人"
+
+msgid "if_you_cannot_access_website"
+msgstr "如果您在访问我们的网站时遇到任何问题,您可以从上面的链接下载蓝灯。"
+
+msgid "available_on"
+msgstr "可用于:"
+
+msgid "subscription_renewal_date"
+msgstr "订阅续订日期"
+
+msgid "enabled_bypass_lists"
+msgstr "已启用的直连列表 (%d):"
+
+msgid "diagnostic_logs"
+msgstr "诊断日志"
 
 msgid "lantern_user_forum"
 msgstr "蓝灯用户论坛"
 
-msgid "faq"
-msgstr "蓝灯论坛"
-
-msgid "add_device"
-msgstr "授权其他设备使用专业版"
-
-msgid "search_apps"
-msgstr "搜索应用程序 "
-
-msgid "user_not_found"
-msgstr "無法辨識使用者。請檢查您的憑證並重試。如果問題仍持續發生，請聯絡我們的支援團隊尋求協助。"
-
-msgid "email_resend_message"
-msgstr "您的新確認碼已傳送"
-
-msgid "signup_error"
-msgstr "註冊似乎出現問題。請重試，如果問題持續存在，請聯絡我們的支援團隊"
-
-msgid "signup_error_user_exists"
-msgstr "註冊時似乎出現問題。請嘗試重設您的密碼，如果問題持續存在，請聯絡我們的支援團隊"
-
-msgid "confirm_email_error"
-msgstr "請確認您的電子郵件"
-
-msgid "password_cannot_be_empty"
-msgstr "密碼不可為空"
-
-msgid "password_must_be_at_least_8_characters"
-msgstr "密碼必須為至少 8 個或以上的字元"
-
-msgid "sign_out"
-msgstr "登出"
-
-msgid "sign_out_message"
-msgstr "登出會將藍燈切換到免費版本。需要重新登入才能再次存取您的帳戶。"
-
-msgid "change_password"
-msgstr "修改密码"
-
-msgid "password"
-msgstr "密码"
-
-msgid "new_email"
-msgstr "新電子郵件地址"
-
-msgid "new_email_same_as_old_email"
-msgstr "您的新電子郵件地址不能與舊電子郵件地址相同"
-
-msgid "danger_zone"
-msgstr "危險區"
-
-msgid "delete_account"
-msgstr "刪除帳戶"
-
-msgid "delete"
-msgstr "删除"
-
-msgid "delete_account_message"
-msgstr "刪除帳戶後無法復原。您將失去所有裝置的存取權限，並且將不退還任何專業帳戶的剩餘時間。"
-
-msgid "delete_your_account"
-msgstr "要刪除您的帳戶嗎？"
-
-msgid "confirm_deletion"
-msgstr "確認刪除"
-
-msgid "account_deleted"
-msgstr "帳戶已刪除"
-
-msgid "account_deleted_message"
-msgstr "您的帳戶已永久刪除。"
-
-msgid "password_has_been_updated"
-msgstr "密碼已更新"
-
-msgid "password_has_been_updated_message"
-msgstr "您的密碼已成功重設"
-
-msgid "invalid_code"
-msgstr "代碼不正確或可能已過期。請嘗試再次傳送"
-
-msgid "get_lantern_pro"
-msgstr "购买蓝灯专业版"
-
-msgid "try_lantern_pro"
-msgstr "免費試用藍燈！"
-
-msgid "continue_for_free"
-msgstr "繼續免費使用"
-
-msgid "recovery_not_found"
-msgstr "设备未关联此用户"
-
-msgid "device_added"
-msgstr "设备已授权"
-
-msgid "device_added_message"
-msgstr "您的设备已成功添加。如果您没有看到设备连接，请重新启动两个设备上的应用程序 "
-
-msgid "wrong_link_code"
-msgstr "您輸入的代碼不正確。請檢查並重試。"
-
-msgid "recovery_code_sent"
-msgstr "復原碼已傳送"
-
-msgid "device_added_msg"
-msgstr "此裝置已連結至%s"
-
-msgid "new_to_lantern"
-msgstr "初次使用藍燈嗎？"
-
-msgid "email_has_been_updated"
-msgstr "電子郵件已更新"
-
-msgid "email_has_been_updated_message"
-msgstr "已成功變更您的電子郵件"
-
-msgid "email_has_been_verified"
-msgstr "電子郵件已驗證"
-
-msgid "email_has_been_verified_message"
-msgstr "已成功驗證您的電子郵件"
-
-msgid "device_limit_reached"
-msgstr "已達到裝置限制"
-
-msgid "device_limit_reached_message"
-msgstr "您目前登入的裝置數量已達到上限 (3)。 若要在此裝置上登入，請選擇並移除下方的一個其他裝置。"
-
-msgid "enter_activation_code"
-msgstr "輸入啟用碼"
-
-msgid "check_your_email"
-msgstr "檢查您的電子郵件地址"
-
-msgid "please_verify_email"
-msgstr "請確認您輸入的電子郵件地址正確。"
-
-msgid "verify"
-msgstr "驗證"
-
-msgid "cannot_login"
-msgstr "无法登录 "
+msgid "frequently_asked_questions"
+msgstr "常见问题"
 
 msgid "privacy_policy"
-msgstr "私隐政策"
+msgstr "隐私政策"
 
 msgid "terms_of_service"
-msgstr "服務條款"
+msgstr "服务条款"
 
-msgid "invalid_verification_code"
-msgstr "无效的验证码"
+msgid "get_unlimited_data"
+msgstr "获取无限数据和更快速度!"
 
-msgid "wrong_seller_code"
-msgstr "经销商代码不正确。请验证并重试。 "
+msgid "private_server_options"
+msgstr "私有服务器选项"
 
-msgid "follow_us"
-msgstr "关注我们 "
+msgid "lantern_version"
+msgstr "蓝灯版本"
 
-msgid "follow_us_telegram"
-msgstr "在Telegram上關注我們"
+msgid "quit"
+msgstr "退出"
 
-msgid "follow_us_instagram"
-msgstr "請在 Instagram 上關注我們"
+msgid "device_removed"
+msgstr "设备已移除"
 
-msgid "follow_us_facebook"
-msgstr "在Facebook上關注我們"
+msgid "set_server_alias"
+msgstr "设置服务器别名"
 
-msgid "follow_us_x"
-msgstr "請在 X 上關注我們"
+msgid "this_name_pre_filled"
+msgstr "此名称将为受邀用户预填写,帮助他们识别服务器。他们可以稍后更改。"
 
-msgid "report_issue_error"
-msgstr "我们遇到了技术问题。请稍后再试。 "
+msgid "server_alias"
+msgstr "服务器别名"
 
-msgid "we_are_experiencing_technical_difficulties"
-msgstr "我们遇到了技术问题。请稍后再试。 "
+msgid "add_referral_code"
+msgstr "添加邀请码"
 
-msgid "a_temporary_error_occurred"
-msgstr "发生了临时错误 "
+msgid "referral_code"
+msgstr "邀请码"
 
-msgid "sorry_we_are_unable_to_load_that_page"
-msgstr "对不起，我们目前无法加载该页面，请点击“刷新”重试。 "
+msgid "update_fails"
+msgstr "更新失败"
 
-msgid "refresh"
-msgstr "更新"
+msgid "scan_qr_code"
+msgstr "扫描二维码"
 
-msgid "check_your_internet_connection"
-msgstr "检查您的互联网连接 "
+msgid "choose_your_server_location"
+msgstr "选择您的服务器位置"
 
-msgid "please_try"
-msgstr "请重试 "
+msgid "we_handle_configuration"
+msgstr "我们处理配置,您只需注册。"
 
-msgid "turning_off_airplane_mode"
-msgstr "关闭飞行模式 "
+msgid "90_day_free_trial"
+msgstr "90 天免费试用"
 
-msgid "turning_on_mobile_data_or_wifi"
-msgstr "打开移动数据或Wi-Fi "
+msgid "identity_changed"
+msgstr "%s 的身份已更改"
 
-msgid "check_the_signal_in_your_area"
-msgstr "打开移动数据或Wi-Fi "
+msgid "identity_changed_message"
+msgstr "%s 的安全指纹已更改。这可能表示遭到篡改或配置错误。"
 
-msgid "got_it"
-msgstr "明白了"
+msgid "recommendation"
+msgstr "建议:"
 
-msgid "fetching_configuration"
-msgstr "获取配置 "
+msgid "recommendation_message"
+msgstr "我们建议从蓝灯中移除 %s 并从您的云服务商账户中删除它,然后设置一个新服务器以确保您的连接保持安全。"
 
-msgid "establish_connection_to_server"
-msgstr "建立与服务器的连接 "
+msgid "remove_server"
+msgstr "移除服务器"
 
-msgid "file_size_limit_title"
-msgstr "达到限制 "
+msgid "server_alias_cannot_be_empty"
+msgstr "服务器别名不能为空"
 
-msgid "file_size_limit_description"
+msgid "referral_code_applied"
+msgstr "您的推荐码已应用！"
+
+msgid "referral_message_1m"
+msgstr "+ 15 天免费"
+
+msgid "referral_message_1y"
+msgstr "+ 1 个月免费"
+
+msgid "referral_message_2y"
+msgstr "+ 2个月免费"
+
+msgid "referral_code_invalid"
+msgstr "您输入的推荐码无效。请检查代码并重试。"
+
+msgid "referral_code_own_invalid"
+msgstr "你不能使用自己的推荐码。请输入其他代码。"
+
+msgid "free"
+msgstr "免费"
+
+msgid "monthly_plan"
+msgstr "月度计划："
+
+msgid "15_days_each"
+msgstr "每次+15天"
+
+msgid "annual_plan"
+msgstr "年度计划："
+
+msgid "1_month_each"
+msgstr "+1 个月 eac"
+
+msgid "two_year_plan"
+msgstr "两年计划："
+
+msgid "2_month_each"
+msgstr "+2个月"
+
+msgid "referral_code_info"
+msgstr "还不是蓝灯 Pro用户？当您的第一个推荐人订阅时，您将成为用户。"
+
+msgid "lantern_pro_license"
+msgstr "蓝灯专业版许可证"
+
+msgid "select_account"
+msgstr "选择账户"
+
+msgid "new_to_lantern"
+msgstr "初次使用蓝灯？"
+
+msgid "create_an_account"
+msgstr "创建账户"
+
+msgid "no_projects_found"
+msgstr "未找到项目"
+
+msgid "no_projects_found_desc"
+msgstr "未找到项目。请先在您的云提供商账户中创建一个项目。"
+
+msgid "add_billing_details"
 msgstr ""
-"附件大小应小于100 MB\n"
-"\n"
-" \n"
-" "
 
-msgid "lantern_pro_one_year"
-msgstr "Lantern專業版：一年計劃"
+msgid "do_billing_details_message"
+msgstr ""
 
-msgid "lantern_pro_two_year"
-msgstr "Lantern專業版：兩年計劃"
+msgid "tap"
+msgstr ""
 
-msgid "lantern_pro_one_month"
-msgstr "Lantern專業版：一個月計劃"
+msgid "below_to_go_to_do"
+msgstr ""
 
-msgid "non_renewing_subscription"
-msgstr "不續訂訂閱"
+msgid "1"
+msgstr ""
 
-msgid "restore_purchase"
-msgstr "恢復購買"
+msgid "2"
+msgstr ""
 
-msgid "skip_for_now"
-msgstr "暫時跳過"
+msgid "3"
+msgstr ""
 
-msgid "purchase_not_found"
-msgstr "找不到與提供的電子郵件相關的購買記錄"
+msgid "add_payment_method"
+msgstr ""
 
-msgid "no_previous_purchase"
-msgstr "未找到先前的購買記錄"
+msgid "return_to_lantern"
+msgstr ""
 
-msgid "warning_restore_purchase"
-msgstr "輸入您在結帳時輸入的電子郵件以恢復您的購買。"
+msgid "how_to_add_billing_details"
+msgstr ""
 
-msgid "purchase_restored"
-msgstr "購買已恢復"
+msgid "add_payment_method_message"
+msgstr ""
 
-msgid "purchase_restored_message"
-msgstr "您的購買已成功恢復"
+msgid "ok"
+msgstr ""
 
-msgid "purchase_restored_error"
-msgstr "看起來恢復購買時出了問題。請仔細檢查您輸入的電子郵件或代碼是否正確。"
-
-msgid "err_while_sending_code"
-msgstr "發送代碼時出錯，請再試一次。"
-
-msgid "email_hint"
-msgstr "電子郵件是可選的，但建議提供"
-
-msgid "email_hint_pro"
-msgstr "添加電子郵件以便在任何設備上訪問您的購買內容。沒有電子郵件，購買內容將綁定到此設備，可能會丟失。"
-
-msgid "continue_without_email"
-msgstr "繼續使用不含電子郵件"
-
-msgid "no_new_update"
-msgstr "您已在使用最新版！"
-
-msgid "error_referral"
-msgstr "使用您的推荐码时报错"
-
-msgid "proxy_error"
-msgstr "我們在啟動 Lantern 時遇到問題，請稍後再試。"
-
-msgid "proxy_settings"
-msgstr "代理設定"
-
-msgid "http_proxy"
-msgstr "HTTPS 代理"
-
-msgid "socks_proxy"
-msgstr "已複製 Socks 代理"
-
-msgid "http_proxy_copied"
-msgstr "已複製 HTTP 代理"
-
-msgid "socks_proxy_copied"
-msgstr "已複製 Socks 代理"
-
-msgid "proxy_everything"
-msgstr "代理所有內容"
-
-msgid "errorSubmittingToGooglePlay"
-msgstr "我們目前處理您的 Google Play 請求時遇到困難，請稍後再試。"
-
-msgid "no_internet_connection"
-msgstr "未偵測到網際網路連線"
-
-msgid "domain_fronting_error"
-msgstr "我們無法連接到伺服器，請稍候或嘗試關閉再開啟。"
+msgid "new_to_lantern_pro"
+msgstr ""

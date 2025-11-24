@@ -16,6 +16,14 @@ part 'home_notifier.g.dart';
 class HomeNotifier extends _$HomeNotifier {
   @override
   Future<UserResponse> build() async {
+    /// Check if user data is stored locally
+    /// If yes, load it first to avoid delay in UI
+    final cachedUser = sl<LocalStorageService>().getUser();
+    if (cachedUser != null) {
+      final userData = cachedUser;
+      appLogger.debug('Loaded user data from local storage: $userData');
+      state = AsyncValue.data(cachedUser);
+    }
     final result = await ref.read(lanternServiceProvider).getUserData();
     return result.fold(
       (failure) {
@@ -24,14 +32,14 @@ class HomeNotifier extends _$HomeNotifier {
         throw Exception('Failed to get user data');
       },
       (userData) {
-        appLogger.debug('User data: $userData');
-
+        appLogger.debug('Got the userdata: $userData');
         updateUserData(userData);
         return userData;
       },
     );
   }
 
+  /// Fetches the latest user data from the server
   Future<void> fetchUserData() async {
     final result = await ref.read(lanternServiceProvider).fetchUserData();
     result.fold(
@@ -40,12 +48,14 @@ class HomeNotifier extends _$HomeNotifier {
             'Error fetching user data: ${failure.localizedErrorMessage}');
       },
       (userData) {
-        appLogger.debug('Fetched user data: $userData');
+        appLogger.debug('Fetched user data form server: $userData');
         updateUserData(userData);
       },
     );
   }
 
+  /// Updates the user data in state and local storage.
+  /// notifies UI about changes.
   void updateUserData(UserResponse userData) {
     state = AsyncValue.data(userData);
     if (!userData.legacyUserData.isPro()) {

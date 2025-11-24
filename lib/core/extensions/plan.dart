@@ -34,9 +34,11 @@ extension IsoDateFormatter on UserResponse_UserData {
   String toDate() {
     try {
       final autoRenew = subscriptionData.autoRenew;
-      final endAt = subscriptionData.endAt;
+      final endAt = subscriptionData.endAt.toString();
       if (PlatformUtils.isIOS) {
-        final dateTime = DateTime.parse(endAt).toLocal();
+        final dateTime =
+            DateTime.fromMillisecondsSinceEpoch(int.parse(endAt) * 1000)
+                .toLocal();
         final mm = dateTime.month.toString().padLeft(2, '0');
         final dd = dateTime.day.toString().padLeft(2, '0');
         final yy = (dateTime.year % 100).toString().padLeft(2, '0');
@@ -48,7 +50,10 @@ extension IsoDateFormatter on UserResponse_UserData {
             DateTime.fromMillisecondsSinceEpoch(expiration.toInt() * 1000);
         return _ddmmyyFormatter.format(newDate);
       }
-      final dateTime = DateTime.parse(endAt).toLocal();
+      final dateTime =
+          DateTime.fromMillisecondsSinceEpoch(int.parse(endAt) * 1000)
+              .toLocal();
+
       final mm = dateTime.month.toString().padLeft(2, '0');
       final dd = dateTime.day.toString().padLeft(2, '0');
       final yy = (dateTime.year % 100).toString().padLeft(2, '0');

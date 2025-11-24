@@ -34,10 +34,9 @@ class StripeService {
 
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
-          // customerEphemeralKeySecret: ephemeralKey,
           paymentIntentClientSecret: options.clientSecret,
           customerId: options.customerId,
-          merchantDisplayName: 'Lantern',
+          merchantDisplayName: 'Lantern Pro',
           allowsDelayedPaymentMethods: true,
           googlePay: PaymentSheetGooglePay(
             merchantCountryCode: 'US',
@@ -58,9 +57,7 @@ class StripeService {
               error: AppColors.red4,
               placeholderText: AppColors.gray9,
             ),
-            shapes: PaymentSheetShape(
-              borderRadius: 16,
-            ),
+            shapes: PaymentSheetShape(borderRadius: 16),
           ),
           style: ThemeMode.light,
         ),

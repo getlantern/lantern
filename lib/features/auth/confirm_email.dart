@@ -64,7 +64,6 @@ class ConfirmEmail extends HookConsumerWidget {
               controller: codeController,
               onChanged: (String value) {
                 isPinCodeValid.value = value.length == 6;
-                appLogger.info('PIN code entered: $value');
               },
               onCompleted: (String value) {
                 isPinCodeValid.value = value.length == 6;
@@ -211,7 +210,7 @@ class ConfirmEmail extends HookConsumerWidget {
       case AuthFlow.signUp:
         // Check if user is pro or not
         final isPro =
-            sl<LocalStorageService>().getUser()?.legacyUserData.isPro() ??
+            sl<LocalStorageService>().getUser()?.isPro() ??
                 false;
         if ((isStoreVersion() || isPro) && PlatformUtils.isMobile) {
           appRouter.push(

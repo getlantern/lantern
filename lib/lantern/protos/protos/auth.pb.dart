@@ -96,26 +96,42 @@ class UserResponse_Device extends $pb.GeneratedMessage {
 
 class UserResponse_UserData_SubscriptionData extends $pb.GeneratedMessage {
   factory UserResponse_UserData_SubscriptionData({
+    $core.String? subscriptionID,
     $core.String? planID,
     $core.String? stripeCustomerID,
-    $core.String? startAt,
-    $core.String? cancelledAt,
-    $core.bool? autoRenew,
-    $core.String? subscriptionID,
     $core.String? status,
+    $core.String? cancellationReason,
+    $fixnum.Int64? createdAt,
+    $fixnum.Int64? startAt,
+    $fixnum.Int64? endAt,
+    $fixnum.Int64? cancelledAt,
+    $core.bool? autoRenew,
     $core.String? provider,
-    $core.String? createdAt,
-    $core.String? endAt,
   }) {
     final $result = create();
+    if (subscriptionID != null) {
+      $result.subscriptionID = subscriptionID;
+    }
     if (planID != null) {
       $result.planID = planID;
     }
     if (stripeCustomerID != null) {
       $result.stripeCustomerID = stripeCustomerID;
     }
+    if (status != null) {
+      $result.status = status;
+    }
+    if (cancellationReason != null) {
+      $result.cancellationReason = cancellationReason;
+    }
+    if (createdAt != null) {
+      $result.createdAt = createdAt;
+    }
     if (startAt != null) {
       $result.startAt = startAt;
+    }
+    if (endAt != null) {
+      $result.endAt = endAt;
     }
     if (cancelledAt != null) {
       $result.cancelledAt = cancelledAt;
@@ -123,20 +139,8 @@ class UserResponse_UserData_SubscriptionData extends $pb.GeneratedMessage {
     if (autoRenew != null) {
       $result.autoRenew = autoRenew;
     }
-    if (subscriptionID != null) {
-      $result.subscriptionID = subscriptionID;
-    }
-    if (status != null) {
-      $result.status = status;
-    }
     if (provider != null) {
       $result.provider = provider;
-    }
-    if (createdAt != null) {
-      $result.createdAt = createdAt;
-    }
-    if (endAt != null) {
-      $result.endAt = endAt;
     }
     return $result;
   }
@@ -145,16 +149,17 @@ class UserResponse_UserData_SubscriptionData extends $pb.GeneratedMessage {
   factory UserResponse_UserData_SubscriptionData.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'UserResponse.UserData.SubscriptionData', createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'planID', protoName: 'planID')
-    ..aOS(2, _omitFieldNames ? '' : 'stripeCustomerID', protoName: 'stripeCustomerID')
-    ..aOS(3, _omitFieldNames ? '' : 'startAt', protoName: 'startAt')
-    ..aOS(4, _omitFieldNames ? '' : 'cancelledAt', protoName: 'cancelledAt')
-    ..aOB(5, _omitFieldNames ? '' : 'autoRenew', protoName: 'autoRenew')
-    ..aOS(6, _omitFieldNames ? '' : 'subscriptionID', protoName: 'subscriptionID')
-    ..aOS(7, _omitFieldNames ? '' : 'status')
-    ..aOS(8, _omitFieldNames ? '' : 'provider')
-    ..aOS(9, _omitFieldNames ? '' : 'createdAt', protoName: 'createdAt')
-    ..aOS(10, _omitFieldNames ? '' : 'endAt', protoName: 'endAt')
+    ..aOS(1, _omitFieldNames ? '' : 'subscriptionID', protoName: 'subscriptionID')
+    ..aOS(2, _omitFieldNames ? '' : 'planID', protoName: 'planID')
+    ..aOS(3, _omitFieldNames ? '' : 'stripeCustomerID', protoName: 'stripeCustomerID')
+    ..aOS(4, _omitFieldNames ? '' : 'status')
+    ..aOS(5, _omitFieldNames ? '' : 'cancellationReason', protoName: 'cancellationReason')
+    ..aInt64(6, _omitFieldNames ? '' : 'createdAt', protoName: 'createdAt')
+    ..aInt64(7, _omitFieldNames ? '' : 'startAt', protoName: 'startAt')
+    ..aInt64(8, _omitFieldNames ? '' : 'endAt', protoName: 'endAt')
+    ..aInt64(9, _omitFieldNames ? '' : 'cancelledAt', protoName: 'cancelledAt')
+    ..aOB(10, _omitFieldNames ? '' : 'autoRenew', protoName: 'autoRenew')
+    ..aOS(11, _omitFieldNames ? '' : 'provider')
     ..hasRequiredFields = false
   ;
 
@@ -180,94 +185,103 @@ class UserResponse_UserData_SubscriptionData extends $pb.GeneratedMessage {
   static UserResponse_UserData_SubscriptionData? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.String get planID => $_getSZ(0);
+  $core.String get subscriptionID => $_getSZ(0);
   @$pb.TagNumber(1)
-  set planID($core.String v) { $_setString(0, v); }
+  set subscriptionID($core.String v) { $_setString(0, v); }
   @$pb.TagNumber(1)
-  $core.bool hasPlanID() => $_has(0);
+  $core.bool hasSubscriptionID() => $_has(0);
   @$pb.TagNumber(1)
-  void clearPlanID() => $_clearField(1);
+  void clearSubscriptionID() => $_clearField(1);
 
   @$pb.TagNumber(2)
-  $core.String get stripeCustomerID => $_getSZ(1);
+  $core.String get planID => $_getSZ(1);
   @$pb.TagNumber(2)
-  set stripeCustomerID($core.String v) { $_setString(1, v); }
+  set planID($core.String v) { $_setString(1, v); }
   @$pb.TagNumber(2)
-  $core.bool hasStripeCustomerID() => $_has(1);
+  $core.bool hasPlanID() => $_has(1);
   @$pb.TagNumber(2)
-  void clearStripeCustomerID() => $_clearField(2);
+  void clearPlanID() => $_clearField(2);
 
   @$pb.TagNumber(3)
-  $core.String get startAt => $_getSZ(2);
+  $core.String get stripeCustomerID => $_getSZ(2);
   @$pb.TagNumber(3)
-  set startAt($core.String v) { $_setString(2, v); }
+  set stripeCustomerID($core.String v) { $_setString(2, v); }
   @$pb.TagNumber(3)
-  $core.bool hasStartAt() => $_has(2);
+  $core.bool hasStripeCustomerID() => $_has(2);
   @$pb.TagNumber(3)
-  void clearStartAt() => $_clearField(3);
+  void clearStripeCustomerID() => $_clearField(3);
 
   @$pb.TagNumber(4)
-  $core.String get cancelledAt => $_getSZ(3);
+  $core.String get status => $_getSZ(3);
   @$pb.TagNumber(4)
-  set cancelledAt($core.String v) { $_setString(3, v); }
+  set status($core.String v) { $_setString(3, v); }
   @$pb.TagNumber(4)
-  $core.bool hasCancelledAt() => $_has(3);
+  $core.bool hasStatus() => $_has(3);
   @$pb.TagNumber(4)
-  void clearCancelledAt() => $_clearField(4);
+  void clearStatus() => $_clearField(4);
 
   @$pb.TagNumber(5)
-  $core.bool get autoRenew => $_getBF(4);
+  $core.String get cancellationReason => $_getSZ(4);
   @$pb.TagNumber(5)
-  set autoRenew($core.bool v) { $_setBool(4, v); }
+  set cancellationReason($core.String v) { $_setString(4, v); }
   @$pb.TagNumber(5)
-  $core.bool hasAutoRenew() => $_has(4);
+  $core.bool hasCancellationReason() => $_has(4);
   @$pb.TagNumber(5)
-  void clearAutoRenew() => $_clearField(5);
+  void clearCancellationReason() => $_clearField(5);
 
   @$pb.TagNumber(6)
-  $core.String get subscriptionID => $_getSZ(5);
+  $fixnum.Int64 get createdAt => $_getI64(5);
   @$pb.TagNumber(6)
-  set subscriptionID($core.String v) { $_setString(5, v); }
+  set createdAt($fixnum.Int64 v) { $_setInt64(5, v); }
   @$pb.TagNumber(6)
-  $core.bool hasSubscriptionID() => $_has(5);
+  $core.bool hasCreatedAt() => $_has(5);
   @$pb.TagNumber(6)
-  void clearSubscriptionID() => $_clearField(6);
+  void clearCreatedAt() => $_clearField(6);
 
   @$pb.TagNumber(7)
-  $core.String get status => $_getSZ(6);
+  $fixnum.Int64 get startAt => $_getI64(6);
   @$pb.TagNumber(7)
-  set status($core.String v) { $_setString(6, v); }
+  set startAt($fixnum.Int64 v) { $_setInt64(6, v); }
   @$pb.TagNumber(7)
-  $core.bool hasStatus() => $_has(6);
+  $core.bool hasStartAt() => $_has(6);
   @$pb.TagNumber(7)
-  void clearStatus() => $_clearField(7);
+  void clearStartAt() => $_clearField(7);
 
   @$pb.TagNumber(8)
-  $core.String get provider => $_getSZ(7);
+  $fixnum.Int64 get endAt => $_getI64(7);
   @$pb.TagNumber(8)
-  set provider($core.String v) { $_setString(7, v); }
+  set endAt($fixnum.Int64 v) { $_setInt64(7, v); }
   @$pb.TagNumber(8)
-  $core.bool hasProvider() => $_has(7);
+  $core.bool hasEndAt() => $_has(7);
   @$pb.TagNumber(8)
-  void clearProvider() => $_clearField(8);
+  void clearEndAt() => $_clearField(8);
 
   @$pb.TagNumber(9)
-  $core.String get createdAt => $_getSZ(8);
+  $fixnum.Int64 get cancelledAt => $_getI64(8);
   @$pb.TagNumber(9)
-  set createdAt($core.String v) { $_setString(8, v); }
+  set cancelledAt($fixnum.Int64 v) { $_setInt64(8, v); }
   @$pb.TagNumber(9)
-  $core.bool hasCreatedAt() => $_has(8);
+  $core.bool hasCancelledAt() => $_has(8);
   @$pb.TagNumber(9)
-  void clearCreatedAt() => $_clearField(9);
+  void clearCancelledAt() => $_clearField(9);
 
   @$pb.TagNumber(10)
-  $core.String get endAt => $_getSZ(9);
+  $core.bool get autoRenew => $_getBF(9);
   @$pb.TagNumber(10)
-  set endAt($core.String v) { $_setString(9, v); }
+  set autoRenew($core.bool v) { $_setBool(9, v); }
   @$pb.TagNumber(10)
-  $core.bool hasEndAt() => $_has(9);
+  $core.bool hasAutoRenew() => $_has(9);
   @$pb.TagNumber(10)
-  void clearEndAt() => $_clearField(10);
+  void clearAutoRenew() => $_clearField(10);
+
+  @$pb.TagNumber(11)
+  $core.String get provider => $_getSZ(10);
+  @$pb.TagNumber(11)
+  set provider($core.String v) { $_setString(10, v); }
+  @$pb.TagNumber(11)
+  $core.bool hasProvider() => $_has(10);
+  @$pb.TagNumber(11)
+  void clearProvider() => $_clearField(11);
 }
 
 class UserResponse_UserData extends $pb.GeneratedMessage {

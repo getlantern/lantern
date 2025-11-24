@@ -139,6 +139,7 @@ class _LanternAppState extends ConsumerState<LanternApp> {
                 PlatformUtils.isDesktop ? desktopWindowSize : mobileSize,
             minTextAdapt: true,
             child: I18n(
+              initialLocale: locale.toLocale,
               localizationsDelegates: [
                 GlobalMaterialLocalizations.delegate,
                 GlobalWidgetsLocalizations.delegate,
@@ -146,7 +147,6 @@ class _LanternAppState extends ConsumerState<LanternApp> {
               ],
               child: MaterialApp.router(
                 debugShowCheckedModeBanner: false,
-                locale: locale.toLocale,
                 theme: AppTheme.appTheme(),
                 themeMode: ThemeMode.light,
                 darkTheme: AppTheme.darkTheme(),

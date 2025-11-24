@@ -57,7 +57,7 @@ class AppDialog {
               onPressed: () {
                 appRouter.maybePop();
                 Future.delayed(
-                  const Duration(milliseconds: 500),
+                  const Duration(milliseconds: 400),
                   () {
                     onPressed?.call();
                   },
