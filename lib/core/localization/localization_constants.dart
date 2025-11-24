@@ -1,3 +1,4 @@
+
 const languages = [
   'en_US',
   'fa_IR',
@@ -16,6 +17,8 @@ const languages = [
   'es_CU',
   'fr_FR',
   'bn_BD',
+  'ps_AF',
+  'tk_TM',
 ];
 
 String checkSupportedLanguages(String language) {
@@ -174,7 +177,6 @@ const localizedLocaleNames = {
   'en_AS': 'English (American Samoa)',
   'en_SB': 'English (Solomon Islands)',
   'ar_MR': 'العربية (موريتانيا)',
-  'ps_AF': 'پښتو (افغانستان)',
   'es_CR': 'español (Costa Rica)',
   'fr_BI': 'français (Burundi)',
   'es_PE': 'español (Perú)',
@@ -621,5 +623,7 @@ const localizedLocaleNames = {
   'bs_Cyrl': 'босански (Ћирилица)',
   'fr_CM': 'français (Cameroun)',
   'en_VG': 'English (British Virgin Islands)',
-  'so': 'Soomaali'
+  'tk': 'Türkmençe',
+  'ps_AF': 'پښتو'
+
 };

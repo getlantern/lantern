@@ -1298,3 +1298,42 @@ msgid "no_projects_found_desc"
 msgstr ""
 "No se encontraron proyectos. Por favor crea primero un proyecto en tu cuenta"
 " del proveedor de nube."
+
+msgid "add_billing_details"
+msgstr ""
+
+msgid "do_billing_details_message"
+msgstr ""
+
+msgid "tap"
+msgstr ""
+
+msgid "below_to_go_to_do"
+msgstr ""
+
+msgid "1"
+msgstr ""
+
+msgid "2"
+msgstr ""
+
+msgid "3"
+msgstr ""
+
+msgid "add_payment_method"
+msgstr ""
+
+msgid "return_to_lantern"
+msgstr ""
+
+msgid "how_to_add_billing_details"
+msgstr ""
+
+msgid "add_payment_method_message"
+msgstr ""
+
+msgid "ok"
+msgstr ""
+
+msgid "new_to_lantern_pro"
+msgstr ""

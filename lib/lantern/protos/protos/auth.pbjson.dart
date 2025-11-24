@@ -78,16 +78,17 @@ const UserResponse_UserData$json = {
 const UserResponse_UserData_SubscriptionData$json = {
   '1': 'SubscriptionData',
   '2': [
-    {'1': 'planID', '3': 1, '4': 1, '5': 9, '10': 'planID'},
-    {'1': 'stripeCustomerID', '3': 2, '4': 1, '5': 9, '10': 'stripeCustomerID'},
-    {'1': 'startAt', '3': 3, '4': 1, '5': 9, '10': 'startAt'},
-    {'1': 'cancelledAt', '3': 4, '4': 1, '5': 9, '10': 'cancelledAt'},
-    {'1': 'autoRenew', '3': 5, '4': 1, '5': 8, '10': 'autoRenew'},
-    {'1': 'subscriptionID', '3': 6, '4': 1, '5': 9, '10': 'subscriptionID'},
-    {'1': 'status', '3': 7, '4': 1, '5': 9, '10': 'status'},
-    {'1': 'provider', '3': 8, '4': 1, '5': 9, '10': 'provider'},
-    {'1': 'createdAt', '3': 9, '4': 1, '5': 9, '10': 'createdAt'},
-    {'1': 'endAt', '3': 10, '4': 1, '5': 9, '10': 'endAt'},
+    {'1': 'subscriptionID', '3': 1, '4': 1, '5': 9, '10': 'subscriptionID'},
+    {'1': 'planID', '3': 2, '4': 1, '5': 9, '10': 'planID'},
+    {'1': 'stripeCustomerID', '3': 3, '4': 1, '5': 9, '10': 'stripeCustomerID'},
+    {'1': 'status', '3': 4, '4': 1, '5': 9, '10': 'status'},
+    {'1': 'cancellationReason', '3': 5, '4': 1, '5': 9, '10': 'cancellationReason'},
+    {'1': 'createdAt', '3': 6, '4': 1, '5': 3, '10': 'createdAt'},
+    {'1': 'startAt', '3': 7, '4': 1, '5': 3, '10': 'startAt'},
+    {'1': 'endAt', '3': 8, '4': 1, '5': 3, '10': 'endAt'},
+    {'1': 'cancelledAt', '3': 9, '4': 1, '5': 3, '10': 'cancelledAt'},
+    {'1': 'autoRenew', '3': 10, '4': 1, '5': 8, '10': 'autoRenew'},
+    {'1': 'provider', '3': 11, '4': 1, '5': 9, '10': 'provider'},
   ],
 };
 
@@ -99,7 +100,7 @@ final $typed_data.Uint8List userResponseDescriptor = $convert.base64Decode(
     'N5VXNlckRhdGEYBiABKAsyFi5Vc2VyUmVzcG9uc2UuVXNlckRhdGFSDmxlZ2FjeVVzZXJEYXRh'
     'Ei4KB2RldmljZXMYByADKAsyFC5Vc2VyUmVzcG9uc2UuRGV2aWNlUgdkZXZpY2VzGkYKBkRldm'
     'ljZRIOCgJpZBgBIAEoCVICaWQSEgoEbmFtZRgCIAEoCVIEbmFtZRIYCgdjcmVhdGVkGAMgASgD'
-    'UgdjcmVhdGVkGuoHCghVc2VyRGF0YRIWCgZ1c2VySWQYASABKANSBnVzZXJJZBISCgRjb2RlGA'
+    'UgdjcmVhdGVkGpoICghVc2VyRGF0YRIWCgZ1c2VySWQYASABKANSBnVzZXJJZBISCgRjb2RlGA'
     'IgASgJUgRjb2RlEhQKBXRva2VuGAMgASgJUgV0b2tlbhIaCghyZWZlcnJhbBgEIAEoCVIIcmVm'
     'ZXJyYWwSGAoFcGhvbmUYBSABKAlCAhgBUgVwaG9uZRIUCgVlbWFpbBgGIAEoCVIFZW1haWwSHg'
     'oKdXNlclN0YXR1cxgHIAEoCVIKdXNlclN0YXR1cxIcCgl1c2VyTGV2ZWwYCCABKAlSCXVzZXJM'
@@ -111,13 +112,14 @@ final $typed_data.Uint8List userResponseDescriptor = $convert.base64Decode(
     'V2aWNlcxgSIAMoCzIULlVzZXJSZXNwb25zZS5EZXZpY2VSB2RldmljZXMSIgoMeWluYmlFbmFi'
     'bGVkGBMgASgIUgx5aW5iaUVuYWJsZWQSUwoQc3Vic2NyaXB0aW9uRGF0YRgUIAEoCzInLlVzZX'
     'JSZXNwb25zZS5Vc2VyRGF0YS5TdWJzY3JpcHRpb25EYXRhUhBzdWJzY3JpcHRpb25EYXRhEhoK'
-    'CGRldmljZUlEGBUgASgJUghkZXZpY2VJRBrAAgoQU3Vic2NyaXB0aW9uRGF0YRIWCgZwbGFuSU'
-    'QYASABKAlSBnBsYW5JRBIqChBzdHJpcGVDdXN0b21lcklEGAIgASgJUhBzdHJpcGVDdXN0b21l'
-    'cklEEhgKB3N0YXJ0QXQYAyABKAlSB3N0YXJ0QXQSIAoLY2FuY2VsbGVkQXQYBCABKAlSC2Nhbm'
-    'NlbGxlZEF0EhwKCWF1dG9SZW5ldxgFIAEoCFIJYXV0b1JlbmV3EiYKDnN1YnNjcmlwdGlvbklE'
-    'GAYgASgJUg5zdWJzY3JpcHRpb25JRBIWCgZzdGF0dXMYByABKAlSBnN0YXR1cxIaCghwcm92aW'
-    'RlchgIIAEoCVIIcHJvdmlkZXISHAoJY3JlYXRlZEF0GAkgASgJUgljcmVhdGVkQXQSFAoFZW5k'
-    'QXQYCiABKAlSBWVuZEF0');
+    'CGRldmljZUlEGBUgASgJUghkZXZpY2VJRBrwAgoQU3Vic2NyaXB0aW9uRGF0YRImCg5zdWJzY3'
+    'JpcHRpb25JRBgBIAEoCVIOc3Vic2NyaXB0aW9uSUQSFgoGcGxhbklEGAIgASgJUgZwbGFuSUQS'
+    'KgoQc3RyaXBlQ3VzdG9tZXJJRBgDIAEoCVIQc3RyaXBlQ3VzdG9tZXJJRBIWCgZzdGF0dXMYBC'
+    'ABKAlSBnN0YXR1cxIuChJjYW5jZWxsYXRpb25SZWFzb24YBSABKAlSEmNhbmNlbGxhdGlvblJl'
+    'YXNvbhIcCgljcmVhdGVkQXQYBiABKANSCWNyZWF0ZWRBdBIYCgdzdGFydEF0GAcgASgDUgdzdG'
+    'FydEF0EhQKBWVuZEF0GAggASgDUgVlbmRBdBIgCgtjYW5jZWxsZWRBdBgJIAEoA1ILY2FuY2Vs'
+    'bGVkQXQSHAoJYXV0b1JlbmV3GAogASgIUglhdXRvUmVuZXcSGgoIcHJvdmlkZXIYCyABKAlSCH'
+    'Byb3ZpZGVy');
 
 @$core.Deprecated('Use purchaseDescriptor instead')
 const Purchase$json = {

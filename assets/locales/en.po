@@ -1230,5 +1230,11 @@ msgstr "Please add a payment method to your DigitalOcean account. If you already
 msgid "ok"
 msgstr "Ok"
 
+msgid "could_not_open_url"
+msgstr "Could not open URL"
+
 msgid "new_to_lantern_pro"
 msgstr "New to Lantern Pro?"
+
+msgid "an_error_occurred"
+msgstr "An error occurred. Please try again later."

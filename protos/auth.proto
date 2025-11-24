@@ -32,16 +32,17 @@ message UserResponse {
     repeated Device devices = 18;
     bool yinbiEnabled = 19;
     message SubscriptionData {
-      string planID = 1;
-      string stripeCustomerID = 2;
-      string startAt = 3;
-      string cancelledAt = 4;
-      bool autoRenew = 5;
-      string subscriptionID = 6;
-      string status = 7;
-      string provider = 8;
-      string createdAt = 9;
-      string endAt = 10;
+      string subscriptionID = 1;
+      string planID = 2;
+      string stripeCustomerID = 3;
+      string status = 4;
+      string cancellationReason = 5;
+      int64 createdAt = 6;
+      int64 startAt = 7;
+      int64 endAt = 8;
+      int64 cancelledAt = 9;
+      bool autoRenew = 10;
+      string provider = 11;
     }
 
     SubscriptionData subscriptionData = 20;

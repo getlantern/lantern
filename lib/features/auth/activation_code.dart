@@ -22,7 +22,7 @@ class ActivationCode extends HookConsumerWidget {
     final codeController = useTextEditingController();
     final validCode = useState(false);
     return BaseScreen(
-      title: 'Enter Activation Code',
+      title: 'lantern_pro_license'.i18n,
       body: Column(
         children: <Widget>[
           SizedBox(height: defaultSize),
@@ -86,11 +86,22 @@ class ActivationCode extends HookConsumerWidget {
         appLogger.error('Activation code failed: $failure');
         context.showSnackBarError(failure.localizedErrorMessage);
       },
-      (_) {
-        context.hideLoadingDialog();
+      (_) async {
         appLogger.info('Activation code successful');
+        await checkUserAccountStatus(ref, context);
+        context.hideLoadingDialog();
+        if (code.isEmpty) {
+          appLogger.info(
+              'No code provided, User is using OAuth skipping password creation');
+          AppDialog.showLanternProDialog(
+            context: context,
+            onPressed: () {
+              appRouter.popUntilRoot();
+            },
+          );
+          return;
+        }
 
-        checkUserAccountStatus(ref, context);
         context.pushRoute(CreatePassword(
             email: email, authFlow: AuthFlow.activationCode, code: code));
       },

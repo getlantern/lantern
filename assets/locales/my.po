@@ -1306,3 +1306,42 @@ msgid "no_projects_found_desc"
 msgstr ""
 "ပရောဂျက်များ မတွေ့ပါ။ ကျေးဇူးပြု၍ သင့် cloud ပံ့ပိုးသူ အကောင့်တွင် "
 "ပရောဂျက်တစ်ခုကို အရင်ဆုံး ဖန်တီးပါ။"
+
+msgid "add_billing_details"
+msgstr ""
+
+msgid "do_billing_details_message"
+msgstr ""
+
+msgid "tap"
+msgstr ""
+
+msgid "below_to_go_to_do"
+msgstr ""
+
+msgid "1"
+msgstr ""
+
+msgid "2"
+msgstr ""
+
+msgid "3"
+msgstr ""
+
+msgid "add_payment_method"
+msgstr ""
+
+msgid "return_to_lantern"
+msgstr ""
+
+msgid "how_to_add_billing_details"
+msgstr ""
+
+msgid "add_payment_method_message"
+msgstr ""
+
+msgid "ok"
+msgstr ""
+
+msgid "new_to_lantern_pro"
+msgstr ""
