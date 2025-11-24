@@ -378,34 +378,35 @@ class _PlansState extends ConsumerState<Plans> {
           appRouter.popUntilRoot();
         },
       );
-    } else {
-      /// User is here because they are not pro but user has created an account
-      /// There can be few reason for this
-      /// 1. App crashed before completing the purchase flow
-      /// 2. User cancelled the purchase flow while signing up
-
-      /// In both case send user to confirm email screen
-      /// Once done send user to subscription screen
-      /// THIS IS JUST TO AVOID USER FROM BLOCKING FLOW
-      context.showLoadingDialog();
-      final appSetting = ref.read(appSettingProvider);
-      final email = appSetting.email;
-      final result =
-          await ref.read(authProvider.notifier).startRecoveryByEmail(email);
-      result.fold(
-        (failure) {
-          context.hideLoadingDialog();
-          context.showSnackBar(failure.localizedErrorMessage);
-        },
-        (_) {
-          context.hideLoadingDialog();
-          appLogger.debug(
-              'User has created account but is not Pro. Sending to Confirm Email screen to verification '
-              'this is just avoid user from blocking flow.');
-
-          appRouter.push(ConfirmEmail(email: email, authFlow: AuthFlow.signUp));
-        },
-      );
+      return;
     }
+
+    /// User is here because they are not pro but user has created an account
+    /// There can be few reason for this
+    /// 1. App crashed before completing the purchase flow
+    /// 2. User cancelled the purchase flow while signing up
+
+    /// In both case send user to confirm email screen
+    /// Once done send user to subscription screen
+    /// THIS IS JUST TO AVOID USER FROM BLOCKING FLOW
+    context.showLoadingDialog();
+    final appSetting = ref.read(appSettingProvider);
+    final email = appSetting.email;
+    final result =
+        await ref.read(authProvider.notifier).startRecoveryByEmail(email);
+    result.fold(
+      (failure) {
+        context.hideLoadingDialog();
+        context.showSnackBar(failure.localizedErrorMessage);
+      },
+      (_) {
+        context.hideLoadingDialog();
+        appLogger.debug(
+            'User has created account but is not Pro. Sending to Confirm Email screen to verification '
+            'this is just avoid user from blocking flow.');
+
+        appRouter.push(ConfirmEmail(email: email, authFlow: AuthFlow.signUp));
+      },
+    );
   }
 }
