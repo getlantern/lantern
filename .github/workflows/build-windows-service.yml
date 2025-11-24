@@ -28,8 +28,8 @@ jobs:
       - name: Build Windows service
         shell: pwsh
         run: |
-          make build-lanternsvc-windows
-          Move-Item "windows/x64/runner/Release/lanternsvc.exe" "lanternsvc.exe"
+          make windows-service-build
+          Move-Item "bin\windows-amd64\lanternsvc.exe" "lanternsvc.exe"
 
       - name: Upload Windows service executable
         uses: actions/upload-artifact@v4
