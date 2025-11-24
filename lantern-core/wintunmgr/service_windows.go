@@ -140,7 +140,7 @@ func (s *Service) Start(ctx context.Context) error {
 	}
 
 	// Start the Radiance IPC control plane
-	if err := rvpn.InitIPC("", nil); err != nil {
+	if err = rvpn.InitIPC("", nil); err != nil {
 		return fmt.Errorf("init radiance IPC: %w", err)
 	}
 
