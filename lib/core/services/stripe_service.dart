@@ -5,34 +5,33 @@ import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/common/common.dart';
 
 class StripeService {
-  // Add your Stripe service methods here
-  // For example, you can create a method to initialize Stripe, handle payments, etc.
-
   Future<void> initialize() async {
-    // Initialize Stripe with your publishable key
     try {
       if (PlatformUtils.isAndroid) {
-        if (!kReleaseMode) {
-          Stripe.publishableKey = AppSecrets.stripePublishable;
-        }
+        // overridden per-session by StripeOptions
+        Stripe.publishableKey = AppSecrets.stripePublishable;
         Stripe.urlScheme = 'lantern.io';
         await Stripe.instance.applySettings();
       }
-    } catch (e) {
-      appLogger.error('Error initializing Stripe: $e');
+    } catch (e, st) {
+      appLogger.error('Error initializing Stripe', e, st);
     }
   }
 
   // This method is used to start a Stripe subscription
   // It takes the StripeOptions object and a callback function for success and error handling
-  //this used only in android
+  // this is only used by android
   Future<void> startStripeSDK({
     required StripeOptions options,
     required OnPressed onSuccess,
     required Function(dynamic error) onError,
   }) async {
-    // Start Stripe subscription logic
     try {
+      if (options.publishableKey != null &&
+          options.publishableKey!.isNotEmpty) {
+        Stripe.publishableKey = options.publishableKey!;
+      }
+
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
           // customerEphemeralKeySecret: ephemeralKey,
@@ -43,7 +42,7 @@ class StripeService {
           googlePay: PaymentSheetGooglePay(
             merchantCountryCode: 'US',
             currencyCode: 'USD',
-            testEnv: true,
+            testEnv: kDebugMode,
           ),
           appearance: PaymentSheetAppearance(
             colors: PaymentSheetAppearanceColors(

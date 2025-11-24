@@ -9,7 +9,7 @@ import 'package:lantern/core/utils/formatter.dart';
 import 'package:lantern/core/utils/screen_utils.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
-import 'package:lantern/features/auth/provider/payment_notifier.dart';
+import 'package:lantern/features/plans/provider/payment_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/plans/feature_list.dart';
 import 'package:lantern/features/plans/plans_list.dart';
