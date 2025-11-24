@@ -387,6 +387,8 @@ func (lc *LanternCore) ReportIssue(
 		})
 	}
 
+	// Attach log file if provided
+	// Path must be available on iOS
 	if logFilePath != "" {
 		report.Attachments = append(
 			report.Attachments,
