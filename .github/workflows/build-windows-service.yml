@@ -1,25 +1,15 @@
-name: Build Windows Service
+name: Windows Service
 
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
-      version:
+      branch_name:
+        description: 'Branch to run on'
         required: true
-        type: string
-      build_type:
-        required: true
-        type: string
-      installer_name:
-        required: true
-        type: string
+        default: 'main'
 
 jobs:
   build-windows:
-    env:
-      AC_USERNAME: ${{ secrets.AC_USERNAME }}
-      AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
-      BUILD_TYPE: ${{ inputs.build_type || '' }}
-      VERSION: ${{ inputs.version }}
     permissions:
       contents: "read"
       id-token: "write"
