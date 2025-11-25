@@ -9,15 +9,20 @@ part 'developer_mode_notifier.g.dart';
 class DeveloperModeNotifier extends _$DeveloperModeNotifier {
   @override
   DeveloperModeEntity build() {
+    final devSetting = ref.read(localStorageProvider).getDeveloperSetting();
+    if (devSetting != null) {
+      return devSetting;
+    }
     return DeveloperModeEntity.initial();
   }
 
   void updateTestPlayPurchaseEnabled(DeveloperModeEntity dev) {
-    state = dev.copyWith(testPlayPurchaseEnabled: true);
+    state = dev;
     ref.read(localStorageProvider).updateDeveloperSetting(state);
   }
+
   void updateTestStripePurchaseEnabled(DeveloperModeEntity dev) {
-    state = dev.copyWith(testStripePurchaseEnabled: true);
+    state = dev;
     ref.read(localStorageProvider).updateDeveloperSetting(state);
   }
 }

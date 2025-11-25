@@ -257,7 +257,13 @@ class LocalStorageService {
 
   /// Developer Mode methods
   void updateDeveloperSetting(DeveloperModeEntity devSetting) {
+    _developerModeBox.removeAll();
     _developerModeBox.put(devSetting);
+  }
+
+  DeveloperModeEntity? getDeveloperSetting() {
+    final devSetting = _developerModeBox.getAll();
+    return devSetting.isEmpty ? null : devSetting.first;
   }
 
 }

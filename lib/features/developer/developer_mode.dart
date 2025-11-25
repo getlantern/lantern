@@ -2,6 +2,7 @@ import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
 import 'package:lantern/features/developer/notifier/developer_mode_notifier.dart';
@@ -32,6 +33,7 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
               children: <Widget>[
                 AppTile(
                   label: 'Reset App',
+                  onPressed: () => resetAppData(context),
                 ),
                 DividerSpace(),
                 if (PlatformUtils.isMobile)
@@ -40,6 +42,7 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
                     trailing: SwitchButton(
                       value: developerMode.testPlayPurchaseEnabled,
                       onChanged: (bool? value) {
+                        appLogger.info('Test Play Purchase toggled: $value');
                         devNotifier.updateTestPlayPurchaseEnabled(
                           developerMode.copyWith(
                             testPlayPurchaseEnabled: value ?? false,
@@ -47,26 +50,36 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
                         );
                       },
                     ),
+
                   ),
                 DividerSpace(),
-                AppTile(
-                  label: 'Test Stripe Purchase',
-                  trailing: SwitchButton(
-                    value: developerMode.testStripePurchaseEnabled,
-                    onChanged: (bool? value) {
-                      devNotifier.updateTestStripePurchaseEnabled(
-                        developerMode.copyWith(
-                          testPlayPurchaseEnabled: value ?? false,
-                        ),
-                      );
-                    },
-                  ),
-                ),
+                // AppTile(
+                //   label: 'Test Stripe Purchase',
+                //   trailing: SwitchButton(
+                //     value: developerMode.testStripePurchaseEnabled,
+                //     onChanged: (bool? value) {
+                //       devNotifier.updateTestStripePurchaseEnabled(
+                //         developerMode.copyWith(
+                //           testPlayPurchaseEnabled: value ?? false,
+                //         ),
+                //       );
+                //     },
+                //   ),
+                // ),
               ],
             ),
           )
         ],
       ),
     );
+  }
+
+  Future<void> resetAppData(BuildContext context) async {
+    final appDir = await AppStorageUtils.getAppDirectory();
+    appDir.delete(recursive: true);
+    AppDialog.errorDialog(
+        context: context,
+        title: 'Reset',
+        content: 'Restart app the see changes.');
   }
 }

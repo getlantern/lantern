@@ -4,6 +4,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lantern/core/common/app_colors.dart';
 import 'package:lantern/core/utils/platform_utils.dart';
 
+import '../services/logger_service.dart';
+
 class SwitchButton extends StatelessWidget {
   final bool value;
   final ValueChanged<bool> onChanged;
@@ -22,7 +24,10 @@ class SwitchButton extends StatelessWidget {
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () => onChanged(!value),
+      onTap: () {
+        appLogger.info('Switch toggled: ${!value}');
+      },
+      // onTap: () => onChanged(!value),
       child: CustomAnimatedToggleSwitch<bool>(
         current: value,
         values: const [false, true],

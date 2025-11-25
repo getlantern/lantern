@@ -10,6 +10,7 @@ import 'package:lantern/core/localization/i18n.dart';
 import 'package:lantern/core/models/entity/private_server_entity.dart';
 import 'package:lantern/core/models/entity/server_location_entity.dart';
 import 'package:lantern/core/router/router.dart';
+import 'package:lantern/core/services/local_storage.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -71,6 +72,10 @@ String generatePassword() {
 }
 
 bool isStoreVersion() {
+  final LocalStorageService localStorage = sl<LocalStorageService>();
+  if (localStorage.getDeveloperSetting() != null) {
+    return localStorage.getDeveloperSetting()!.testPlayPurchaseEnabled;
+  }
   return (sl<StoreUtils>().isSideLoaded() == false);
 }
 
