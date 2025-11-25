@@ -168,7 +168,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 		LogDir:   opts.LogDir,
 		DataDir:  opts.DataDir,
 		DeviceID: opts.Deviceid,
-		LogLevel: "trace",
+		LogLevel: "debug",
 		Locale:   opts.Locale,
 	}); radErr != nil {
 		return fmt.Errorf("failed to create Radiance: %w", radErr)

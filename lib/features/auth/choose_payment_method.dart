@@ -168,8 +168,8 @@ class ChoosePaymentMethod extends HookConsumerWidget {
             onPurchaseResult(true, context, ref);
           },
           onError: (error) {
-            ///error while subscribing
-            context.showSnackBar(error.localizedDescription);
+            ///error while starting subscription
+            context.showSnackBar(error.toString());
           },
         );
       },
