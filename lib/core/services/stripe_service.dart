@@ -7,12 +7,20 @@ import 'package:lantern/core/common/common.dart';
 class StripeService {
   Future<void> initialize() async {
     try {
-      if (PlatformUtils.isAndroid) {
-        // overridden per-session by StripeOptions
-        Stripe.publishableKey = AppSecrets.stripePublishable;
-        Stripe.urlScheme = 'lantern.io';
-        await Stripe.instance.applySettings();
+      final String publishableKey;
+      if (kDebugMode) {
+        publishableKey = AppSecrets.stripeTestPublishableKey;
+      } else {
+        publishableKey = AppSecrets.stripePublishableKey;
+        if (publishableKey.isEmpty) {
+          throw StateError(
+            'Missing STRIPE_PUBLISHABLE_KEY',
+          );
+        }
       }
+      Stripe.publishableKey = publishableKey;
+
+      await Stripe.instance.applySettings();
     } catch (e, st) {
       appLogger.error('Error initializing Stripe', e, st);
     }
