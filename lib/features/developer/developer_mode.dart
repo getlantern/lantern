@@ -6,6 +6,7 @@ import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
 import 'package:lantern/features/developer/notifier/developer_mode_notifier.dart';
+import 'package:lantern/features/home/provider/home_notifier.dart';
 
 @RoutePage(name: 'DeveloperMode')
 class DeveloperMode extends StatefulHookConsumerWidget {
@@ -18,6 +19,7 @@ class DeveloperMode extends StatefulHookConsumerWidget {
 class _DeveloperModeState extends ConsumerState<DeveloperMode> {
   @override
   Widget build(BuildContext context) {
+    final user = ref.watch(homeProvider).value;
     final developerMode = ref.watch(developerModeProvider);
     final devNotifier = ref.watch(developerModeProvider.notifier);
     return BaseScreen(
@@ -50,9 +52,17 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
                         );
                       },
                     ),
-
                   ),
                 DividerSpace(),
+                SizedBox(height: defaultSize),
+                Text.rich(
+                  TextSpan(
+                    children: [
+                      TextSpan(text: 'User Id ${user?.legacyUserData.userId}')
+                    ],
+                  ),
+                )
+
                 // AppTile(
                 //   label: 'Test Stripe Purchase',
                 //   trailing: SwitchButton(

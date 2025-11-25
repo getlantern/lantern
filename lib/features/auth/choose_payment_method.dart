@@ -169,7 +169,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           },
           onError: (error) {
             ///error while subscribing
-            context.showSnackBar('purchase_not_completed'.i18n);
+            context.showSnackBar(error.localizedDescription);
           },
         );
       },

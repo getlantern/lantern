@@ -64,7 +64,7 @@ class StripeService {
       await Stripe.instance.presentPaymentSheet();
       onSuccess.call();
     } catch (e) {
-      appLogger.error('Error presenting payment sheet: $e');
+      appLogger.error('Error presenting payment sheet: ${e.toString()}');
       onError.call(e);
     }
   }
