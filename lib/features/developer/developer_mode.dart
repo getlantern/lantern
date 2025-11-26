@@ -57,7 +57,7 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
                   ),
                 ),
                 DividerSpace(),
-                if (PlatformUtils.isMobile)
+                if (PlatformUtils.isAndroid)
                   AppTile(
                     label: 'Test Play Purchase',
                     trailing: SwitchButton(
