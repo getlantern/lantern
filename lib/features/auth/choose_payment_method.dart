@@ -9,7 +9,7 @@ import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/stripe_service.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/logs_path.dart';
-import 'package:lantern/features/auth/provider/payment_notifier.dart';
+import 'package:lantern/features/plans/provider/payment_notifier.dart';
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
 import 'package:lantern/features/plans/provider/referral_notifier.dart';
 
@@ -128,17 +128,29 @@ class ChoosePaymentMethod extends HookConsumerWidget {
 
   Future<void> onSubscribe(
       Android provider, WidgetRef ref, BuildContext context) async {
+    final isDesktop = PlatformUtils.isDesktop;
+    final isAndroid = PlatformUtils.isAndroid;
+    final isAndroidSideload = isAndroid && !isStoreVersion();
+
     switch (provider.providers.name) {
       case 'stripe':
-        if (PlatformUtils.isDesktop) {
-          desktopPurchaseFlow(provider, ref, context);
+        if (isDesktop) {
+          await desktopPurchaseFlow(provider, ref, context);
           return;
         }
-        // only android side load version should be here
-        androidStripeSubscription(provider, ref, context);
+
+        if (isAndroidSideload) {
+          await androidStripeSubscription(provider, ref, context);
+          return;
+        }
+
         break;
+
       case 'shepherd':
-        paymentRedirectFlow(provider.providers.name, ref, context);
+        if (isDesktop || isAndroidSideload) {
+          await paymentRedirectFlow(provider.providers.name, ref, context);
+          return;
+        }
         break;
     }
   }
@@ -168,7 +180,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
             onPurchaseResult(true, context, ref);
           },
           onError: (error) {
-            ///error while starting subscription
+            ///error while subscribing
             context.showSnackBar(error.toString());
           },
         );

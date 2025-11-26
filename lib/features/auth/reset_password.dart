@@ -97,6 +97,7 @@ class ResetPassword extends HookConsumerWidget {
 
   Future<void> onResetPasswordTap(
       BuildContext context, String password, WidgetRef ref) async {
+    hideKeyboard();
     context.showLoadingDialog();
 
     final result = await ref
