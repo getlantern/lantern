@@ -10,6 +10,7 @@ class StripeService {
       final String publishableKey;
       if (kDebugMode) {
         publishableKey = AppSecrets.stripeTestPublishableKey;
+        appLogger.info('Found debug mode using test stripe key');
       } else {
         publishableKey = AppSecrets.stripePublishableKey;
         if (publishableKey.isEmpty) {
@@ -19,7 +20,6 @@ class StripeService {
         }
       }
       Stripe.publishableKey = publishableKey;
-
       await Stripe.instance.applySettings();
     } catch (e, st) {
       appLogger.error('Error initializing Stripe', e, st);
@@ -38,6 +38,16 @@ class StripeService {
       if (options.publishableKey != null &&
           options.publishableKey!.isNotEmpty) {
         Stripe.publishableKey = options.publishableKey!;
+      }
+      await Stripe.instance.applySettings();
+
+      /// Just a safety check to ensure the publishable key is set
+      /// before proceeding
+      if ((options.publishableKey != null && options.publishableKey!.isEmpty) ||
+          Stripe.publishableKey.isEmpty) {
+        throw StateError(
+          'Missing STRIPE_PUBLISHABLE_KEY',
+        );
       }
 
       await Stripe.instance.initPaymentSheet(
