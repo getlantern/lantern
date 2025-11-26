@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/services/app_purchase.dart';
@@ -10,6 +12,8 @@ part 'payment_notifier.g.dart';
 class PaymentNotifier extends _$PaymentNotifier {
   @override
   void build() {}
+
+  bool get _isAndroidStoreBuild => Platform.isAndroid && isStoreVersion();
 
   Future<Either<Failure, Unit>> startInAppPurchaseFlow({
     required String planId,
@@ -50,5 +54,37 @@ class PaymentNotifier extends _$PaymentNotifier {
     return ref
         .read(lanternServiceProvider)
         .paymentRedirect(provider: provider, planId: planId, email: email);
+  }
+
+  Future<Either<Failure, Unit>> startUpgradeFlow({
+    required String planId,
+    required String email,
+    required BillingType billingType,
+    required PaymentSuccessCallback onSuccess,
+    required PaymentErrorCallback onError,
+    required String provider,
+  }) async {
+    if (_isAndroidStoreBuild) {
+      // Google Play build uses IAP
+      return startInAppPurchaseFlow(
+        planId: planId,
+        onSuccess: onSuccess,
+        onError: onError,
+      );
+    }
+
+    // Desktop and Android sideload use Stripe/Shepherd
+    final redirectResult = await paymentRedirect(
+      provider: provider,
+      planId: planId,
+      email: email,
+    );
+
+    return redirectResult.match(
+      (failure) => left(failure),
+      (url) {
+        return right(unit);
+      },
+    );
   }
 }
