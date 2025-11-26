@@ -3,16 +3,14 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
-import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart'
     show AppDataEventType, AppDataEvent;
-import 'package:lantern/core/models/entity/app_data.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/datacap_info.dart';
+import 'package:lantern/core/models/entity/app_data.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
-import 'package:lantern/core/models/mapper/plan_mapper.dart';
 import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/services/app_purchase.dart';
@@ -487,8 +485,41 @@ class LanternPlatformService implements LanternCoreService {
           await _methodChannel.invokeMethod<String>('plans', channel);
       final map = jsonDecode(subData!);
       final plans = PlansData.fromJson(map);
-      sl<LocalStorageService>().savePlans(plans.toEntity());
-      appLogger.info('Plans: $map');
+      //Sort plans
+      plans.plans.sort((a, b) {
+        if (a.bestValue != b.bestValue) {
+          return a.bestValue ? -1 : 1;
+        }
+        // Then: sort by usdPrice descending
+        return b.usdPrice.compareTo(a.usdPrice);
+      });
+
+      //Sort provider
+      if (PlatformUtils.isMobile) {
+        plans.providers.android.sort(
+          (a, b) {
+            return a.providers.supportSubscription ==
+                    b.providers.supportSubscription
+                ? 0
+                : a.providers.supportSubscription
+                    ? 1
+                    : -1;
+          },
+        );
+      } else {
+        plans.providers.desktop.sort(
+          (a, b) {
+            return a.providers.supportSubscription ==
+                    b.providers.supportSubscription
+                ? 0
+                : a.providers.supportSubscription
+                    ? 1
+                    : -1;
+          },
+        );
+      }
+
+      appLogger.info('Plans: $plans');
       return Right(plans);
     } catch (e, stackTrace) {
       appLogger.error('Error fetching plans', e, stackTrace);

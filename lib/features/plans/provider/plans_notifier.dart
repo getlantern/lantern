@@ -56,13 +56,6 @@ class PlansNotifier extends _$PlansNotifier {
         throw Exception('Plans fetch failed');
       },
       (remote) async {
-        remote.plans.sort((a, b) {
-          if (a.bestValue != b.bestValue) {
-            return a.bestValue ? -1 : 1;
-          }
-          // Then: sort by usdPrice descending
-          return b.usdPrice.compareTo(a.usdPrice);
-        });
         return remote;
       },
     );
@@ -88,22 +81,6 @@ class PlansNotifier extends _$PlansNotifier {
 
   PlansData getPlanData() {
     final plansData = _getPlansFromLocalStorage()!;
-    if (PlatformUtils.isAndroid) {
-      plansData.providers.android.sort((a, b) =>
-          a.providers.supportSubscription == b.providers.supportSubscription
-              ? 0
-              : a.providers.supportSubscription
-                  ? 1
-                  : -1);
-      return plansData;
-    } else {
-      plansData.providers.desktop.sort((a, b) =>
-          a.providers.supportSubscription == b.providers.supportSubscription
-              ? 0
-              : a.providers.supportSubscription
-                  ? 1
-                  : -1);
-      return plansData;
-    }
+    return plansData;
   }
 }
