@@ -208,7 +208,6 @@ class _PlansState extends ConsumerState<Plans> {
             inputFormatters: [
               UpperCaseTextFormatter(),
             ],
-            maxLength: 6,
             hintText: 'XXXXXX',
             prefixIcon: AppImagePaths.star,
           )
