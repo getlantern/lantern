@@ -11,7 +11,6 @@ import 'package:lantern/core/models/entity/server_location_entity.dart';
 import 'package:lantern/core/models/entity/user_entity.dart';
 import 'package:lantern/core/models/entity/website.dart';
 import 'package:lantern/core/models/mapper/user_mapper.dart';
-
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:path/path.dart' as p;
 
@@ -164,13 +163,22 @@ class LocalStorageService {
 
   // User methods
   void saveUser(UserResponseEntity user) {
-    _userBox.removeAll();
-    _userBox.putAsync(user);
+    try {
+      _userBox.removeAll();
+      _userBox.putAsync(user);
+    } catch (e) {
+      appLogger.error("Error saving user to local storage", e);
+    }
   }
 
   UserResponse? getUser() {
-    final user = _userBox.getAll();
-    return user.isEmpty ? null : user.first.toUserResponse();
+    try {
+      final user = _userBox.getAll();
+      return user.isEmpty ? null : user.first.toUserResponse();
+    } catch (e) {
+      appLogger.error("Error getting user from local storage", e);
+      return null;
+    }
   }
 
   void updateAppSetting(AppSetting appSetting) {
@@ -265,5 +273,4 @@ class LocalStorageService {
     final devSetting = _developerModeBox.getAll();
     return devSetting.isEmpty ? null : devSetting.first;
   }
-
 }

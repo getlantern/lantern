@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/common/app_urls.dart';
 import 'package:lantern/core/localization/i18n.dart';
@@ -72,11 +73,14 @@ String generatePassword() {
 }
 
 bool isStoreVersion() {
-  final LocalStorageService localStorage = sl<LocalStorageService>();
-  if (localStorage.getDeveloperSetting() != null) {
-    return localStorage.getDeveloperSetting()!.testPlayPurchaseEnabled;
+  if (AppBuildInfo.buildType == 'nightly') {
+    final setting = sl<LocalStorageService>().getDeveloperSetting();
+    if (setting != null) {
+      return setting.testPlayPurchaseEnabled;
+    }
+    return !sl<StoreUtils>().isSideLoaded();
   }
-  return (sl<StoreUtils>().isSideLoaded() == false);
+  return !sl<StoreUtils>().isSideLoaded();
 }
 
 //copy to clipboard

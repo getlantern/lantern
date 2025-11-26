@@ -20,8 +20,7 @@ class HomeNotifier extends _$HomeNotifier {
     /// If yes, load it first to avoid delay in UI
     final cachedUser = sl<LocalStorageService>().getUser();
     if (cachedUser != null) {
-      final userData = cachedUser;
-      appLogger.debug('Loaded user data from local storage: $userData');
+      appLogger.debug('Loaded user data from local storage: $cachedUser');
       state = AsyncValue.data(cachedUser);
     }
     final result = await ref.read(lanternServiceProvider).getUserData();

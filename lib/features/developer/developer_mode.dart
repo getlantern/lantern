@@ -6,7 +6,8 @@ import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
 import 'package:lantern/features/developer/notifier/developer_mode_notifier.dart';
-import 'package:lantern/features/home/provider/home_notifier.dart';
+
+import '../../core/services/injection_container.dart';
 
 @RoutePage(name: 'DeveloperMode')
 class DeveloperMode extends StatefulHookConsumerWidget {
@@ -19,12 +20,14 @@ class DeveloperMode extends StatefulHookConsumerWidget {
 class _DeveloperModeState extends ConsumerState<DeveloperMode> {
   @override
   Widget build(BuildContext context) {
-    final user = ref.watch(homeProvider).value;
+    final user = sl<LocalStorageService>().getUser();
+    appLogger.info('User info: $user');
     final developerMode = ref.watch(developerModeProvider);
     final devNotifier = ref.watch(developerModeProvider.notifier);
     return BaseScreen(
       title: 'developer_mode'.i18n,
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           InfoRow(text: 'developer_mode_note'.i18n),
           SizedBox(height: defaultSize),
@@ -36,6 +39,22 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
                 AppTile(
                   label: 'Reset App',
                   onPressed: () => resetAppData(context),
+                ),
+                DividerSpace(),
+                AppTile(
+                  label: 'UserId',
+                  trailing: AppTextButton(
+                    label: user?.legacyUserData.userId?.toString() ?? 'N/A',
+
+                  ),
+                ),
+                DividerSpace(),
+                AppTile(
+                  label: 'Status',
+                  trailing: AppTextButton(
+                    label: user?.legacyUserData.userLevel ?? 'N/A',
+
+                  ),
                 ),
                 DividerSpace(),
                 if (PlatformUtils.isMobile)
@@ -53,15 +72,6 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
                       },
                     ),
                   ),
-                DividerSpace(),
-                SizedBox(height: defaultSize),
-                Text.rich(
-                  TextSpan(
-                    children: [
-                      TextSpan(text: 'User Id ${user?.legacyUserData.userId}')
-                    ],
-                  ),
-                )
 
                 // AppTile(
                 //   label: 'Test Stripe Purchase',
