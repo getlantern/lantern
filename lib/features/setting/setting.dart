@@ -158,7 +158,7 @@ class _SettingState extends ConsumerState<Setting> {
             ),
           },
           const SizedBox(height: defaultSize),
-          if (kDebugMode || AppBuildInfo.version.isNotEmpty) ...{
+          if (kDebugMode || AppBuildInfo.buildType == 'nightly') ...{
             AppCard(
               padding: EdgeInsets.zero,
               child: AppTile(
@@ -172,9 +172,7 @@ class _SettingState extends ConsumerState<Setting> {
           },
           const SizedBox(height: defaultSize),
           Padding(
-            padding: const EdgeInsets.only(
-              left: 16,
-            ),
+            padding: const EdgeInsets.only(left: 16),
             child: Text(
               'lantern_projects'.i18n,
               style: textTheme.labelLarge!.copyWith(

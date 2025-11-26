@@ -2,6 +2,7 @@
 import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lantern/core/common/app_build_info.dart';
@@ -73,7 +74,7 @@ String generatePassword() {
 }
 
 bool isStoreVersion() {
-  if (AppBuildInfo.buildType == 'nightly') {
+  if (kDebugMode || AppBuildInfo.buildType == 'nightly') {
     final setting = sl<LocalStorageService>().getDeveloperSetting();
     if (setting != null) {
       return setting.testPlayPurchaseEnabled;
