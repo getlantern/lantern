@@ -496,27 +496,15 @@ class LanternPlatformService implements LanternCoreService {
 
       //Sort provider
       if (PlatformUtils.isMobile) {
-        plans.providers.android.sort(
-          (a, b) {
-            return a.providers.supportSubscription ==
-                    b.providers.supportSubscription
-                ? 0
-                : a.providers.supportSubscription
-                    ? 1
-                    : -1;
-          },
-        );
+        plans.providers.android.sort((a, b) {
+          return (b.providers.supportSubscription ? 1 : 0) -
+              (a.providers.supportSubscription ? 1 : 0);
+        });
       } else {
-        plans.providers.desktop.sort(
-          (a, b) {
-            return a.providers.supportSubscription ==
-                    b.providers.supportSubscription
-                ? 0
-                : a.providers.supportSubscription
-                    ? 1
-                    : -1;
-          },
-        );
+        plans.providers.desktop.sort((a, b) {
+          return (b.providers.supportSubscription ? 1 : 0) -
+              (a.providers.supportSubscription ? 1 : 0);
+        });
       }
 
       appLogger.info('Plans: $plans');
