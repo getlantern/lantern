@@ -30,6 +30,10 @@ class VPNSwitch extends HookConsumerWidget {
       allowUnlistedValues: false,
       values: [false, true],
       spacing: 10.h,
+      onChanged: (value) {
+        appLogger.info('VPN Switch changed to: $value');
+        onVPNStateChange(ref, context);
+      },
       loading: false,
       height: PlatformUtils.isDesktop ? 70.h : 65.h,
       indicatorSize: Size(60.r, 60.r),
