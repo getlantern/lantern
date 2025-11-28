@@ -17,7 +17,7 @@ extension UserMapper on UserResponse {
   }
 
   bool isPro() {
-    return legacyUserData.userStatus == 'pro';
+    return legacyUserData.userLevel == 'pro';
   }
 }
 

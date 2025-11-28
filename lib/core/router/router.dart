@@ -102,8 +102,8 @@ class AppRouter extends RootStackRouter {
       page: ResetPassword.page,
     ),
     AutoRoute(
-      path: '/activation-code',
-      page: ActivationCode.page,
+      path: '/lantern-pro-license',
+      page: LanternProLicense.page,
     ),
     AutoRoute(
       path: '/device-limit-reached',

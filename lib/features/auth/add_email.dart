@@ -157,7 +157,10 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     result.fold(
       (failure) {
         context.hideLoadingDialog();
-        context.showSnackBar(failure.localizedErrorMessage);
+        AppDialog.errorDialog(
+            context: context,
+            title: 'error'.i18n,
+            content: failure.localizedErrorMessage);
       },
       (response) {
         //sign up successful
@@ -252,8 +255,8 @@ class _AddEmailState extends ConsumerState<AddEmail> {
           );
           return;
         }
-        if (widget.authFlow == AuthFlow.activationCode) {
-          appRouter.push(ActivationCode(email: email, code: ''));
+        if (widget.authFlow == AuthFlow.lanternProLicense) {
+          appRouter.push(LanternProLicense(email: email, code: ''));
           return;
         }
         appRouter

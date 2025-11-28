@@ -286,8 +286,9 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           },
         );
         break;
-      case AuthFlow.activationCode:
+      case AuthFlow.lanternProLicense:
         throw UnimplementedError('Activation code flow should not reach here');
+
       case AuthFlow.resetPassword:
         // TODO: Handle this case.
         throw UnimplementedError('reset password flow should not reach here');

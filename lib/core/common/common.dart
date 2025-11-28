@@ -14,6 +14,7 @@ import 'package:lantern/core/models/entity/server_location_entity.dart';
 import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/services/local_storage.dart';
 import 'package:lantern/core/services/logger_service.dart';
+import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../features/home/provider/home_notifier.dart';
@@ -74,6 +75,12 @@ String generatePassword() {
 }
 
 bool isStoreVersion() {
+  if (!PlatformUtils.isMobile) {
+    return false;
+  }
+  if (PlatformUtils.isIOS) {
+    return true;
+  }
   if (kDebugMode || AppBuildInfo.buildType == 'nightly') {
     final setting = sl<LocalStorageService>().getDeveloperSetting();
     if (setting != null) {

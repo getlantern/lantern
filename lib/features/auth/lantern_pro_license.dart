@@ -6,12 +6,12 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/utils/formatter.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 
-@RoutePage(name: 'ActivationCode')
-class ActivationCode extends HookConsumerWidget {
+@RoutePage(name: 'LanternProLicense')
+class LanternProLicense extends HookConsumerWidget {
   final String email;
   final String code;
 
-  const ActivationCode({
+  const LanternProLicense({
     super.key,
     required this.email,
     required this.code,
@@ -103,7 +103,7 @@ class ActivationCode extends HookConsumerWidget {
         }
 
         context.pushRoute(CreatePassword(
-            email: email, authFlow: AuthFlow.activationCode, code: code));
+            email: email, authFlow: AuthFlow.lanternProLicense, code: code));
       },
     );
   }

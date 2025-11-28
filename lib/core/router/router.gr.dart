@@ -13,28 +13,28 @@ import 'package:auto_route/auto_route.dart' as _i42;
 import 'package:collection/collection.dart' as _i46;
 import 'package:flutter/material.dart' as _i43;
 import 'package:lantern/core/common/common.dart' as _i44;
-import 'package:lantern/core/widgets/app_webview.dart' as _i4;
+import 'package:lantern/core/widgets/app_webview.dart' as _i3;
 import 'package:lantern/features/account/account.dart' as _i1;
-import 'package:lantern/features/account/delete_account.dart' as _i10;
-import 'package:lantern/features/auth/activation_code.dart' as _i2;
-import 'package:lantern/features/auth/add_email.dart' as _i3;
-import 'package:lantern/features/auth/choose_payment_method.dart' as _i6;
-import 'package:lantern/features/auth/confirm_email.dart' as _i7;
-import 'package:lantern/features/auth/create_password.dart' as _i8;
-import 'package:lantern/features/auth/device_limit_reached.dart' as _i12;
+import 'package:lantern/features/account/delete_account.dart' as _i9;
+import 'package:lantern/features/auth/add_email.dart' as _i2;
+import 'package:lantern/features/auth/choose_payment_method.dart' as _i5;
+import 'package:lantern/features/auth/confirm_email.dart' as _i6;
+import 'package:lantern/features/auth/create_password.dart' as _i7;
+import 'package:lantern/features/auth/device_limit_reached.dart' as _i11;
+import 'package:lantern/features/auth/lantern_pro_license.dart' as _i18;
 import 'package:lantern/features/auth/reset_password.dart' as _i31;
 import 'package:lantern/features/auth/reset_password_email.dart' as _i32;
 import 'package:lantern/features/auth/sign_in_email.dart' as _i35;
 import 'package:lantern/features/auth/sign_in_password.dart' as _i36;
-import 'package:lantern/features/developer/developer_mode.dart' as _i11;
-import 'package:lantern/features/home/home.dart' as _i15;
-import 'package:lantern/features/language/language.dart' as _i18;
+import 'package:lantern/features/developer/developer_mode.dart' as _i10;
+import 'package:lantern/features/home/home.dart' as _i14;
+import 'package:lantern/features/language/language.dart' as _i17;
 import 'package:lantern/features/logs/logs.dart' as _i19;
 import 'package:lantern/features/macos_extension/macos_extension_dialog.dart'
     as _i20;
 import 'package:lantern/features/plans/plans.dart' as _i23;
 import 'package:lantern/features/private_server/join_private_server.dart'
-    as _i17;
+    as _i16;
 import 'package:lantern/features/private_server/manage_private_server.dart'
     as _i21;
 import 'package:lantern/features/private_server/manually_server_setup.dart'
@@ -51,15 +51,15 @@ import 'package:lantern/features/private_server/private_sever_details.dart'
     as _i28;
 import 'package:lantern/features/qr_scanner/qr_code_scanner.dart' as _i29;
 import 'package:lantern/features/report_Issue/report_issue.dart' as _i30;
-import 'package:lantern/features/setting/download_links.dart' as _i13;
-import 'package:lantern/features/setting/follow_us.dart' as _i14;
-import 'package:lantern/features/setting/invite_friends.dart' as _i16;
+import 'package:lantern/features/setting/download_links.dart' as _i12;
+import 'package:lantern/features/setting/follow_us.dart' as _i13;
+import 'package:lantern/features/setting/invite_friends.dart' as _i15;
 import 'package:lantern/features/setting/setting.dart' as _i34;
 import 'package:lantern/features/setting/vpn_setting.dart' as _i40;
 import 'package:lantern/features/split_tunneling/apps_split_tunneling.dart'
-    as _i5;
+    as _i4;
 import 'package:lantern/features/split_tunneling/default_bypass_list.dart'
-    as _i9;
+    as _i8;
 import 'package:lantern/features/split_tunneling/split_tunneling.dart' as _i37;
 import 'package:lantern/features/split_tunneling/split_tunneling_info.dart'
     as _i38;
@@ -86,61 +86,7 @@ class Account extends _i42.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i2.ActivationCode]
-class ActivationCode extends _i42.PageRouteInfo<ActivationCodeArgs> {
-  ActivationCode({
-    _i43.Key? key,
-    required String email,
-    required String code,
-    List<_i42.PageRouteInfo>? children,
-  }) : super(
-          ActivationCode.name,
-          args: ActivationCodeArgs(key: key, email: email, code: code),
-          initialChildren: children,
-        );
-
-  static const String name = 'ActivationCode';
-
-  static _i42.PageInfo page = _i42.PageInfo(
-    name,
-    builder: (data) {
-      final args = data.argsAs<ActivationCodeArgs>();
-      return _i2.ActivationCode(
-        key: args.key,
-        email: args.email,
-        code: args.code,
-      );
-    },
-  );
-}
-
-class ActivationCodeArgs {
-  const ActivationCodeArgs({this.key, required this.email, required this.code});
-
-  final _i43.Key? key;
-
-  final String email;
-
-  final String code;
-
-  @override
-  String toString() {
-    return 'ActivationCodeArgs{key: $key, email: $email, code: $code}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! ActivationCodeArgs) return false;
-    return key == other.key && email == other.email && code == other.code;
-  }
-
-  @override
-  int get hashCode => key.hashCode ^ email.hashCode ^ code.hashCode;
-}
-
-/// generated route for
-/// [_i3.AddEmail]
+/// [_i2.AddEmail]
 class AddEmail extends _i42.PageRouteInfo<AddEmailArgs> {
   AddEmail({
     _i43.Key? key,
@@ -161,7 +107,7 @@ class AddEmail extends _i42.PageRouteInfo<AddEmailArgs> {
       final args = data.argsAs<AddEmailArgs>(
         orElse: () => const AddEmailArgs(),
       );
-      return _i3.AddEmail(
+      return _i2.AddEmail(
         key: args.key,
         authFlow: args.authFlow,
         password: args.password,
@@ -202,7 +148,7 @@ class AddEmailArgs {
 }
 
 /// generated route for
-/// [_i4.AppWebView]
+/// [_i3.AppWebView]
 class AppWebview extends _i42.PageRouteInfo<AppWebviewArgs> {
   AppWebview({
     _i43.Key? key,
@@ -221,7 +167,7 @@ class AppWebview extends _i42.PageRouteInfo<AppWebviewArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<AppWebviewArgs>();
-      return _i4.AppWebView(key: args.key, title: args.title, url: args.url);
+      return _i3.AppWebView(key: args.key, title: args.title, url: args.url);
     },
   );
 }
@@ -252,7 +198,7 @@ class AppWebviewArgs {
 }
 
 /// generated route for
-/// [_i5.AppsSplitTunneling]
+/// [_i4.AppsSplitTunneling]
 class AppsSplitTunneling extends _i42.PageRouteInfo<void> {
   const AppsSplitTunneling({List<_i42.PageRouteInfo>? children})
       : super(AppsSplitTunneling.name, initialChildren: children);
@@ -262,13 +208,13 @@ class AppsSplitTunneling extends _i42.PageRouteInfo<void> {
   static _i42.PageInfo page = _i42.PageInfo(
     name,
     builder: (data) {
-      return const _i5.AppsSplitTunneling();
+      return const _i4.AppsSplitTunneling();
     },
   );
 }
 
 /// generated route for
-/// [_i6.ChoosePaymentMethod]
+/// [_i5.ChoosePaymentMethod]
 class ChoosePaymentMethod extends _i42.PageRouteInfo<ChoosePaymentMethodArgs> {
   ChoosePaymentMethod({
     _i43.Key? key,
@@ -293,7 +239,7 @@ class ChoosePaymentMethod extends _i42.PageRouteInfo<ChoosePaymentMethodArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<ChoosePaymentMethodArgs>();
-      return _i6.ChoosePaymentMethod(
+      return _i5.ChoosePaymentMethod(
         key: args.key,
         email: args.email,
         code: args.code,
@@ -340,7 +286,7 @@ class ChoosePaymentMethodArgs {
 }
 
 /// generated route for
-/// [_i7.ConfirmEmail]
+/// [_i6.ConfirmEmail]
 class ConfirmEmail extends _i42.PageRouteInfo<ConfirmEmailArgs> {
   ConfirmEmail({
     _i43.Key? key,
@@ -365,7 +311,7 @@ class ConfirmEmail extends _i42.PageRouteInfo<ConfirmEmailArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<ConfirmEmailArgs>();
-      return _i7.ConfirmEmail(
+      return _i6.ConfirmEmail(
         key: args.key,
         email: args.email,
         password: args.password,
@@ -412,7 +358,7 @@ class ConfirmEmailArgs {
 }
 
 /// generated route for
-/// [_i8.CreatePassword]
+/// [_i7.CreatePassword]
 class CreatePassword extends _i42.PageRouteInfo<CreatePasswordArgs> {
   CreatePassword({
     _i43.Key? key,
@@ -437,7 +383,7 @@ class CreatePassword extends _i42.PageRouteInfo<CreatePasswordArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<CreatePasswordArgs>();
-      return _i8.CreatePassword(
+      return _i7.CreatePassword(
         key: args.key,
         email: args.email,
         authFlow: args.authFlow,
@@ -484,7 +430,7 @@ class CreatePasswordArgs {
 }
 
 /// generated route for
-/// [_i9.DefaultBypassLists]
+/// [_i8.DefaultBypassLists]
 class DefaultBypassLists extends _i42.PageRouteInfo<void> {
   const DefaultBypassLists({List<_i42.PageRouteInfo>? children})
       : super(DefaultBypassLists.name, initialChildren: children);
@@ -494,13 +440,13 @@ class DefaultBypassLists extends _i42.PageRouteInfo<void> {
   static _i42.PageInfo page = _i42.PageInfo(
     name,
     builder: (data) {
-      return const _i9.DefaultBypassLists();
+      return const _i8.DefaultBypassLists();
     },
   );
 }
 
 /// generated route for
-/// [_i10.DeleteAccount]
+/// [_i9.DeleteAccount]
 class DeleteAccount extends _i42.PageRouteInfo<void> {
   const DeleteAccount({List<_i42.PageRouteInfo>? children})
       : super(DeleteAccount.name, initialChildren: children);
@@ -510,13 +456,13 @@ class DeleteAccount extends _i42.PageRouteInfo<void> {
   static _i42.PageInfo page = _i42.PageInfo(
     name,
     builder: (data) {
-      return const _i10.DeleteAccount();
+      return const _i9.DeleteAccount();
     },
   );
 }
 
 /// generated route for
-/// [_i11.DeveloperMode]
+/// [_i10.DeveloperMode]
 class DeveloperMode extends _i42.PageRouteInfo<void> {
   const DeveloperMode({List<_i42.PageRouteInfo>? children})
       : super(DeveloperMode.name, initialChildren: children);
@@ -526,13 +472,13 @@ class DeveloperMode extends _i42.PageRouteInfo<void> {
   static _i42.PageInfo page = _i42.PageInfo(
     name,
     builder: (data) {
-      return const _i11.DeveloperMode();
+      return const _i10.DeveloperMode();
     },
   );
 }
 
 /// generated route for
-/// [_i12.DeviceLimitReached]
+/// [_i11.DeviceLimitReached]
 class DeviceLimitReached extends _i42.PageRouteInfo<DeviceLimitReachedArgs> {
   DeviceLimitReached({
     _i43.Key? key,
@@ -550,7 +496,7 @@ class DeviceLimitReached extends _i42.PageRouteInfo<DeviceLimitReachedArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<DeviceLimitReachedArgs>();
-      return _i12.DeviceLimitReached(key: args.key, devices: args.devices);
+      return _i11.DeviceLimitReached(key: args.key, devices: args.devices);
     },
   );
 }
@@ -585,7 +531,7 @@ class DeviceLimitReachedArgs {
 }
 
 /// generated route for
-/// [_i13.DownloadLinks]
+/// [_i12.DownloadLinks]
 class DownloadLinks extends _i42.PageRouteInfo<void> {
   const DownloadLinks({List<_i42.PageRouteInfo>? children})
       : super(DownloadLinks.name, initialChildren: children);
@@ -595,13 +541,13 @@ class DownloadLinks extends _i42.PageRouteInfo<void> {
   static _i42.PageInfo page = _i42.PageInfo(
     name,
     builder: (data) {
-      return const _i13.DownloadLinks();
+      return const _i12.DownloadLinks();
     },
   );
 }
 
 /// generated route for
-/// [_i14.FollowUs]
+/// [_i13.FollowUs]
 class FollowUs extends _i42.PageRouteInfo<void> {
   const FollowUs({List<_i42.PageRouteInfo>? children})
       : super(FollowUs.name, initialChildren: children);
@@ -611,13 +557,13 @@ class FollowUs extends _i42.PageRouteInfo<void> {
   static _i42.PageInfo page = _i42.PageInfo(
     name,
     builder: (data) {
-      return const _i14.FollowUs();
+      return const _i13.FollowUs();
     },
   );
 }
 
 /// generated route for
-/// [_i15.Home]
+/// [_i14.Home]
 class Home extends _i42.PageRouteInfo<void> {
   const Home({List<_i42.PageRouteInfo>? children})
       : super(Home.name, initialChildren: children);
@@ -627,13 +573,13 @@ class Home extends _i42.PageRouteInfo<void> {
   static _i42.PageInfo page = _i42.PageInfo(
     name,
     builder: (data) {
-      return const _i15.Home();
+      return const _i14.Home();
     },
   );
 }
 
 /// generated route for
-/// [_i16.InviteFriends]
+/// [_i15.InviteFriends]
 class InviteFriends extends _i42.PageRouteInfo<void> {
   const InviteFriends({List<_i42.PageRouteInfo>? children})
       : super(InviteFriends.name, initialChildren: children);
@@ -643,13 +589,13 @@ class InviteFriends extends _i42.PageRouteInfo<void> {
   static _i42.PageInfo page = _i42.PageInfo(
     name,
     builder: (data) {
-      return const _i16.InviteFriends();
+      return const _i15.InviteFriends();
     },
   );
 }
 
 /// generated route for
-/// [_i17.JoinPrivateServer]
+/// [_i16.JoinPrivateServer]
 class JoinPrivateServer extends _i42.PageRouteInfo<JoinPrivateServerArgs> {
   JoinPrivateServer({
     _i43.Key? key,
@@ -669,7 +615,7 @@ class JoinPrivateServer extends _i42.PageRouteInfo<JoinPrivateServerArgs> {
       final args = data.argsAs<JoinPrivateServerArgs>(
         orElse: () => const JoinPrivateServerArgs(),
       );
-      return _i17.JoinPrivateServer(
+      return _i16.JoinPrivateServer(
         key: args.key,
         deepLinkData: args.deepLinkData,
       );
@@ -707,7 +653,7 @@ class JoinPrivateServerArgs {
 }
 
 /// generated route for
-/// [_i18.Language]
+/// [_i17.Language]
 class Language extends _i42.PageRouteInfo<void> {
   const Language({List<_i42.PageRouteInfo>? children})
       : super(Language.name, initialChildren: children);
@@ -717,9 +663,67 @@ class Language extends _i42.PageRouteInfo<void> {
   static _i42.PageInfo page = _i42.PageInfo(
     name,
     builder: (data) {
-      return const _i18.Language();
+      return const _i17.Language();
     },
   );
+}
+
+/// generated route for
+/// [_i18.LanternProLicense]
+class LanternProLicense extends _i42.PageRouteInfo<LanternProLicenseArgs> {
+  LanternProLicense({
+    _i43.Key? key,
+    required String email,
+    required String code,
+    List<_i42.PageRouteInfo>? children,
+  }) : super(
+          LanternProLicense.name,
+          args: LanternProLicenseArgs(key: key, email: email, code: code),
+          initialChildren: children,
+        );
+
+  static const String name = 'LanternProLicense';
+
+  static _i42.PageInfo page = _i42.PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<LanternProLicenseArgs>();
+      return _i18.LanternProLicense(
+        key: args.key,
+        email: args.email,
+        code: args.code,
+      );
+    },
+  );
+}
+
+class LanternProLicenseArgs {
+  const LanternProLicenseArgs({
+    this.key,
+    required this.email,
+    required this.code,
+  });
+
+  final _i43.Key? key;
+
+  final String email;
+
+  final String code;
+
+  @override
+  String toString() {
+    return 'LanternProLicenseArgs{key: $key, email: $email, code: $code}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! LanternProLicenseArgs) return false;
+    return key == other.key && email == other.email && code == other.code;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ email.hashCode ^ code.hashCode;
 }
 
 /// generated route for
