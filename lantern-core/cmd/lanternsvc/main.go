@@ -139,6 +139,7 @@ func (h *lanternHandler) Execute(args []string, r <-chan svc.ChangeRequest, chan
 			if err != nil {
 				slog.Error("service worker exited unexpectedly", "error", err)
 				changes <- svc.Status{State: svc.Stopped}
+				cancel()
 				return false, 1
 			}
 		}
