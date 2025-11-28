@@ -241,14 +241,12 @@ class ConfirmEmail extends HookConsumerWidget {
   void onResendEmail(BuildContext context, WidgetRef ref) {
     switch (authFlow) {
       case AuthFlow.resetPassword:
+      case AuthFlow.lanternProLicense:
       case AuthFlow.signUp:
         appLogger.info('Resend email for sign up to $email');
         onResendCode(context, ref);
         break;
-
-      case AuthFlow.lanternProLicense:
-        throw Exception('activation should not reach this point');
-      case AuthFlow.oauth:
+        case AuthFlow.oauth:
         throw Exception('OAuth flow should not reach this point');
       case AuthFlow.changeEmail:
         resendChangeEmail(context, ref);
