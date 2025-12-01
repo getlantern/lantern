@@ -46,11 +46,8 @@ class EventHandler : FlutterPlugin {
     private var flutterEventObserver: Observer<Event<FlutterEvent>>? = null
     var job: Job? = null
     private var logsJob: Job? = null
-
     var logFile: File = File(logDir(), "lantern.log")
-
-
-   private var logsTailer: LogTailer = LogTailer();
+    private var logsTailer: LogTailer = LogTailer()
 
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         Log.d(TAG, "Event handler Attaching to engine")
@@ -217,7 +214,7 @@ class EventHandler : FlutterPlugin {
                                 events?.success(latest)
                             }
                         }
-                        delay(300)  // adjust if needed
+                        delay(1000)  // adjust if needed
                     }
                 }
             }

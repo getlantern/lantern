@@ -16,12 +16,7 @@ class DeveloperModeNotifier extends _$DeveloperModeNotifier {
     return DeveloperModeEntity.initial();
   }
 
-  void updateTestPlayPurchaseEnabled(DeveloperModeEntity dev) {
-    state = dev;
-    ref.read(localStorageProvider).updateDeveloperSetting(state);
-  }
-
-  void updateTestStripePurchaseEnabled(DeveloperModeEntity dev) {
+  void updateDeveloperSettings(DeveloperModeEntity dev) {
     state = dev;
     ref.read(localStorageProvider).updateDeveloperSetting(state);
   }

@@ -64,7 +64,7 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
                       value: developerMode.testPlayPurchaseEnabled,
                       onChanged: (bool? value) {
                         appLogger.info('Test Play Purchase toggled: $value');
-                        devNotifier.updateTestPlayPurchaseEnabled(
+                        devNotifier.updateDeveloperSettings(
                           developerMode.copyWith(
                             testPlayPurchaseEnabled: value ?? false,
                           ),
@@ -100,6 +100,6 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
     AppDialog.errorDialog(
         context: context,
         title: 'Reset',
-        content: 'Restart app the see changes.');
+        content: 'Restart app to see changes.');
   }
 }

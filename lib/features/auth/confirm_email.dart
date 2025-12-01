@@ -148,7 +148,6 @@ class ConfirmEmail extends HookConsumerWidget {
       case AuthFlow.lanternProLicense:
         validateCode(context, ref, code);
         break;
-        break;
       case AuthFlow.oauth:
         throw Exception('OAuth flow should not reach this point');
       case AuthFlow.changeEmail:
@@ -207,6 +206,7 @@ class ConfirmEmail extends HookConsumerWidget {
       case AuthFlow.resetPassword:
         appRouter.push(ResetPassword(email: email, code: code));
       case AuthFlow.signUp:
+
         /// If user is from store version no need to check anything
         /// send them to create password directly
         if (PlatformUtils.isMobile && isStoreVersion()) {
@@ -227,7 +227,6 @@ class ConfirmEmail extends HookConsumerWidget {
         break;
       case AuthFlow.lanternProLicense:
         appRouter.push(LanternProLicense(email: email, code: code));
-
         break;
       case AuthFlow.oauth:
         // TODO: Handle this case.
@@ -246,7 +245,7 @@ class ConfirmEmail extends HookConsumerWidget {
         appLogger.info('Resend email for sign up to $email');
         onResendCode(context, ref);
         break;
-        case AuthFlow.oauth:
+      case AuthFlow.oauth:
         throw Exception('OAuth flow should not reach this point');
       case AuthFlow.changeEmail:
         resendChangeEmail(context, ref);

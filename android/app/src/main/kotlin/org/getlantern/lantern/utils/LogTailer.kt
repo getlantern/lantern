@@ -20,7 +20,6 @@ class LogTailer(private val bufferSize: Int = 8192) {
 
                 val buffer = ByteArray(bytesToRead)
                 raf.readFully(buffer)
-
                 val chunk = String(buffer, charset)
                 val combined = chunk + carry
 

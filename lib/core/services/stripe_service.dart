@@ -6,7 +6,6 @@ import 'package:lantern/core/common/common.dart';
 
 class StripeService {
   Future<void> initialize() async {
-
     try {
       final String publishableKey;
       if (kDebugMode) {
