@@ -106,12 +106,13 @@ class _SettingState extends ConsumerState<Setting> {
                   onPressed: () => settingMenuTap(_SettingType.language),
                 ),
                 DividerSpace(),
-                AppTile(
-                  label: 'check_for_updates'.i18n,
-                  icon: AppImagePaths.update,
-                  onPressed: () async =>
-                      await settingMenuTap(_SettingType.checkForUpdates),
-                ),
+                if (PlatformUtils.isDesktop)
+                  AppTile(
+                    label: 'check_for_updates'.i18n,
+                    icon: AppImagePaths.update,
+                    onPressed: () async =>
+                        await settingMenuTap(_SettingType.checkForUpdates),
+                  ),
               ],
             ),
           ),
