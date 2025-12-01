@@ -17,23 +17,25 @@ class LocationSetting extends HookConsumerWidget {
     switch (serverType) {
       case ServerLocationType.auto:
         title = 'smart_location'.i18n;
-        value = serverLocation.autoLocation.serverLocation.split('[')[0].trim();
+        value = (serverLocation.displayName.isNotEmpty == true)
+            ? serverLocation.displayName
+            : serverLocation.autoLocation.serverLocation.split('[')[0].trim();
         break;
       case ServerLocationType.lanternLocation:
         title = 'selected_location'.i18n;
-        value = serverLocation.serverLocation.split('[')[0].trim();
+        value = serverLocation.displayName;
         break;
       case ServerLocationType.privateServer:
         title = serverLocation.serverName;
-        value = serverLocation.serverLocation.locationName;
+        value = serverLocation.displayName;
         break;
     }
     return SettingTile(
       label: title,
       value: value,
-      icon: serverLocation.serverLocation.countryCode.isEmpty
+      icon: serverLocation.countryCode.isEmpty
           ? AppImagePaths.location
-          : Flag(countryCode: serverLocation.serverLocation.countryCode),
+          : Flag(countryCode: serverLocation.countryCode),
       actions: [
         if (serverType == ServerLocationType.auto)
           AppImage(path: AppImagePaths.blot),

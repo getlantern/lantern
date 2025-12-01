@@ -46,12 +46,15 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
             serverType: ServerLocationType.auto.name,
             serverName: '',
             autoSelect: true,
-            serverLocation:
-                '${autoLocation.location!.city} [${CountryUtils.getCountryCode(autoLocation.location!.country)}]',
+            displayName: autoLocation.location!.city,
+            countryCode:
+                CountryUtils.getCountryCode(autoLocation.location!.country),
+            country: '',
           );
 
           updateServerLocation(autoServer);
-          appLogger.debug("Fetched auto server location: ${autoLocation.location?.toJson()}");
+          appLogger.debug(
+              "Fetched auto server location: ${autoLocation.location?.toJson()}");
         },
       );
     } else {

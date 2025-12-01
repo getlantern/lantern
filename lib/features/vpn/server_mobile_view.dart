@@ -5,6 +5,8 @@ import 'package:lantern/features/vpn/server_selection.dart';
 
 import '../../core/common/common.dart';
 
+// server_mobile_view.dart
+
 class ServerMobileView extends StatefulWidget {
   final Location_ location;
   final OnSeverSelected onServerSelected;
@@ -25,9 +27,8 @@ class _ServerMobileViewState extends State<ServerMobileView> {
   @override
   Widget build(BuildContext context) {
     return AppTile(
-      label: widget.location.city,
+      label: '${widget.location.country} - ${widget.location.city}',
       selected: widget.isSelected,
-
       icon: Flag(
         countryCode: CountryUtils.getCountryCode(widget.location.country),
       ),
@@ -36,5 +37,4 @@ class _ServerMobileViewState extends State<ServerMobileView> {
       },
     );
   }
-
 }
