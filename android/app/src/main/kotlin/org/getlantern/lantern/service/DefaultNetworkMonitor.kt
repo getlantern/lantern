@@ -12,20 +12,21 @@ import org.getlantern.lantern.utils.Bugs
 import java.net.NetworkInterface
 
 object DefaultNetworkMonitor {
-
+    private const val TAG = "DefaultNetworkMonitor"
     var defaultNetwork: Network? = null
     private var listener: InterfaceUpdateListener? = null
 
     suspend fun start() {
-        DefaultNetworkListener.start(this) {
-            defaultNetwork = it
-            checkDefaultInterfaceUpdate(it)
+        DefaultNetworkListener.start(this) { newNetwork ->
+            handleNetworkChanged(newNetwork)
         }
-        defaultNetwork = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+
+        val current = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             LanternApp.connectivity.activeNetwork
         } else {
             DefaultNetworkListener.get()
         }
+        handleNetworkChanged(current)
     }
 
     suspend fun stop() {
@@ -79,4 +80,35 @@ object DefaultNetworkMonitor {
         }
     }
 
+    private fun handleNetworkChanged(newNetwork: Network?) {
+        val previous = defaultNetwork
+        defaultNetwork = newNetwork
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+            try {
+                val lp = newNetwork?.let { LanternApp.connectivity.getLinkProperties(it) }
+                val underlying = lp?.underlyingNetworks
+                val toSet: Array<Network>? = when {
+                    underlying != null && underlying.isNotEmpty() -> underlying.toTypedArray()
+                    newNetwork != null -> arrayOf(newNetwork)
+                    else -> null
+                }
+                LanternVpnService.instance.setUnderlyingNetworks(toSet)
+            } catch (e: Exception) {
+                android.util.Log.w(TAG, "setUnderlyingNetworks failed", e)
+            }
+        }
+
+        if (previous != null && newNetwork != null && previous != newNetwork) {
+            try {
+                if (lantern.io.mobile.Mobile.isVPNConnected()) {
+                    LanternVpnService.instance.onUnderlyingNetworkChanged()
+                }
+            } catch (t: Throwable) {
+                android.util.Log.w(TAG, "Failed to handle network change", t)
+            }
+        }
+
+        checkDefaultInterfaceUpdate(newNetwork)
+    }
 }

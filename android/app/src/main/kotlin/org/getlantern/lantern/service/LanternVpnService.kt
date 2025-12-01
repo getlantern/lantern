@@ -161,6 +161,26 @@ class LanternVpnService :
         }
     }
 
+    // Called when the underlying network changes with the VPN running.
+    // Similar behavior to manual toggle
+    fun onUnderlyingNetworkChanged() {
+        serviceScope.launch {
+            try {
+                if (!lantern.io.mobile.Mobile.isVPNConnected()) {
+                    return@launch
+                }
+                Log.d(TAG, "Underlying network changed, restarting VPN")
+
+                // lightweight restart, stop VPN then start again
+                doStopVPN()
+                kotlinx.coroutines.delay(300)
+                startVPN()
+            } catch (e: Exception) {
+                Log.e(TAG, "Error restarting VPN after network change", e)
+            }
+        }
+    }
+
     private suspend fun startVPN() =
         withContext(Dispatchers.IO) {
             if (prepare(this@LanternVpnService) != null) {
