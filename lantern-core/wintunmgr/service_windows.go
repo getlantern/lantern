@@ -384,6 +384,9 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		return &Response{ID: r.ID, Result: map[string]any{"ok": true}}
 
 	case common.CmdStartTunnel:
+		if s.rServer == nil {
+			return rpcErr(r.ID, "start_error", "radiance server not initialized")
+		}
 		if err := s.rServer.StartService(ctx, "lantern", ""); err != nil {
 			return rpcErr(r.ID, "start_error", err.Error())
 		}
@@ -391,6 +394,9 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		return &Response{ID: r.ID, Result: map[string]any{"started": true}}
 
 	case common.CmdStopTunnel:
+		if s.rServer == nil {
+			return rpcErr(r.ID, "stop_error", "radiance server not initialized")
+		}
 		if err := s.rServer.StopService(ctx); err != nil {
 			return rpcErr(r.ID, "stop_error", err.Error())
 		}
@@ -398,6 +404,9 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		return &Response{ID: r.ID, Result: map[string]any{"stopped": true}}
 
 	case common.CmdIsVPNRunning:
+		if s.rServer == nil {
+			return rpcErr(r.ID, "status_error", "radiance server not initialized")
+		}
 		st := s.rServer.GetStatus()
 		return &Response{ID: r.ID, Result: map[string]any{"running": st == ripc.StatusRunning}}
 
@@ -412,6 +421,9 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		group := strings.TrimSpace(p.Location)
 		if group == "" {
 			group = "lantern"
+		}
+		if s.rServer == nil {
+			return rpcErr(r.ID, "connect_error", "radiance server not initialized")
 		}
 		if err := s.rServer.StartService(ctx, group, p.Tag); err != nil {
 			return rpcErr(r.ID, "connect_error", err.Error())
