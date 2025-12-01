@@ -73,6 +73,9 @@ func (s *Service) statusSnapshot() statusEvent {
 }
 
 func (s *Service) connectionState() string {
+	if s.rServer == nil {
+		return "Disconnected"
+	}
 	state := s.rServer.GetStatus()
 	if state == ripc.StatusRunning {
 		return "Connected"
