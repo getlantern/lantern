@@ -150,7 +150,7 @@ endif
 
 .PHONY: desktop-lib
 desktop-lib:
-	$(SETENV) CGO_LDFLAGS="$(CGO_LDFLAGS)" go build -v -trimpath -buildmode=c-shared \
+	$(SETENV) set CGO_LDFLAGS=$(CGO_LDFLAGS) go build -v -trimpath -buildmode=c-shared \
 		-tags="$(TAGS)" \
 		-ldflags="-w -s $(EXTRA_LDFLAGS)" \
 		-o $(LIB_NAME) ./$(FFI_DIR)
@@ -301,7 +301,7 @@ $(WINDOWS_SERVICE_BUILD): windows-service-build
 
 windows-service-build:
 	$(call MKDIR_P,$(dir $(WINDOWS_SERVICE_BUILD)))
-	CGO_LDFLAGS="$(WINDOWS_CGO_LDFLAGS)" go build -trimpath -tags '$(TAGS)' \
+	set CGO_LDFLAGS="$(WINDOWS_CGO_LDFLAGS)" go build -trimpath -tags '$(TAGS)' \
 		-ldflags '$(EXTRA_LDFLAGS)' \
 		-o $(WINDOWS_SERVICE_BUILD) $(WINDOWS_SERVICE_SRC)
 

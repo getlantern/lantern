@@ -41,6 +41,7 @@ type Service struct {
 	cancel     context.CancelFunc
 	subsMu     sync.RWMutex
 	statusSubs map[string]chan statusEvent
+	rServer    *ripc.Server
 }
 
 type statusEvent struct {
@@ -72,7 +73,7 @@ func (s *Service) statusSnapshot() statusEvent {
 }
 
 func (s *Service) connectionState() string {
-	state, _ := ripc.GetStatus(context.Background())
+	state := s.rServer.GetStatus()
 	if state == ripc.StatusRunning {
 		return "Connected"
 	}
@@ -140,7 +141,8 @@ func (s *Service) Start(ctx context.Context) error {
 	}
 
 	// Start the Radiance IPC control plane
-	if err = rvpn.InitIPC("", nil); err != nil {
+	s.rServer, err = rvpn.InitIPC("", nil)
+	if err != nil {
 		return fmt.Errorf("init radiance IPC: %w", err)
 	}
 
@@ -365,24 +367,6 @@ func (s *Service) setupAdapter(ctx context.Context) error {
 	return ad.Close()
 }
 
-// checkIPCUp checks if the Radiance IPC server is available
-func (s *Service) checkIPCUp(ctx context.Context, timeout time.Duration) error {
-	deadline := time.Now().Add(timeout)
-	var lastErr error
-	for time.Now().Before(deadline) {
-		if _, err := ripc.GetStatus(ctx); err == nil {
-			return nil
-		} else {
-			lastErr = err
-		}
-		time.Sleep(200 * time.Millisecond)
-	}
-	if lastErr == nil {
-		lastErr = fmt.Errorf("radiance IPC not reachable")
-	}
-	return lastErr
-}
-
 func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 	defer func() {
 		if rec := recover(); rec != nil {
@@ -400,24 +384,21 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		return &Response{ID: r.ID, Result: map[string]any{"ok": true}}
 
 	case common.CmdStartTunnel:
-		if err := ripc.StartService(ctx, "lantern", ""); err != nil {
+		if err := s.rServer.StartService(ctx, "lantern", ""); err != nil {
 			return rpcErr(r.ID, "start_error", err.Error())
 		}
 		go s.broadcastStatus()
 		return &Response{ID: r.ID, Result: map[string]any{"started": true}}
 
 	case common.CmdStopTunnel:
-		if err := ripc.StopService(ctx); err != nil {
+		if err := s.rServer.StopService(ctx); err != nil {
 			return rpcErr(r.ID, "stop_error", err.Error())
 		}
 		go s.broadcastStatus()
 		return &Response{ID: r.ID, Result: map[string]any{"stopped": true}}
 
 	case common.CmdIsVPNRunning:
-		st, err := ripc.GetStatus(ctx)
-		if err != nil {
-			return rpcErr(r.ID, "status_error", err.Error())
-		}
+		st := s.rServer.GetStatus()
 		return &Response{ID: r.ID, Result: map[string]any{"running": st == ripc.StatusRunning}}
 
 	case common.CmdConnectToServer:
@@ -432,7 +413,7 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		if group == "" {
 			group = "lantern"
 		}
-		if err := ripc.StartService(ctx, group, p.Tag); err != nil {
+		if err := s.rServer.StartService(ctx, group, p.Tag); err != nil {
 			return rpcErr(r.ID, "connect_error", err.Error())
 		}
 		go s.broadcastStatus()

@@ -549,7 +549,7 @@ func (lc *LanternCore) Plans(channel string) (string, error) {
 }
 func (lc *LanternCore) StripeBillingPortalUrl() (string, error) {
 	slog.Debug("Getting stripe billing portal")
-	billingPortal, err := lc.apiClient.StripeBillingPortalUrl()
+	billingPortal, err := lc.apiClient.StripeBillingPortalUrl(context.Background())
 	if err != nil {
 		return "", fmt.Errorf("error getting stripe billing portal: %w", err)
 	}
