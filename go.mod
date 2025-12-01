@@ -23,7 +23,7 @@ require (
 	github.com/alecthomas/assert/v2 v2.3.0
 	github.com/getlantern/golog v0.0.0-20230503153817-8e72de7e0a65
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20251120064702-0805d8324fec
+	github.com/getlantern/radiance v0.0.0-20251201213815-cf10ad38b25d
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/sagernet/sing-box v1.11.5
 	golang.org/x/mobile v0.0.0-20250711185624-d5bb5ecc55c0
@@ -175,11 +175,12 @@ require (
 	github.com/getlantern/keepcurrent v0.0.0-20240126172110-2e0264ca385d // indirect
 	github.com/getlantern/keyman v0.0.0-20230503155501-4e864ca2175b // indirect
 	github.com/getlantern/kindling v0.0.0-20251118001040-e62fa3a32e8b // indirect
+	github.com/getlantern/lantern-box v0.0.6-0.20251126211100-ec9d570ae405 // indirect
 	github.com/getlantern/lantern-water v0.0.0-20250331153903-07abebe611e8 // indirect
 	github.com/getlantern/mtime v0.0.0-20200417132445-23682092d1f7 // indirect
 	github.com/getlantern/netx v0.0.0-20240830183145-c257516187f0 // indirect
 	github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 // indirect
-	github.com/getlantern/sing-box-extensions v0.0.6-0.20251103164448-2fc19f5f1b7a // indirect
+	github.com/getlantern/pluriconfig v0.0.0-20251126214241-8cc8bc561535 // indirect
 	github.com/getlantern/timezone v0.0.0-20210901200113-3f9de9d360c9 // indirect
 	github.com/getlantern/tlsdialer/v3 v3.0.3 // indirect
 	github.com/getsentry/sentry-go v0.31.1 // indirect
@@ -187,7 +188,7 @@ require (
 	github.com/go-llsqlite/crawshaw v0.4.0 // indirect
 	github.com/go-resty/resty/v2 v2.16.5 // indirect
 	github.com/gobwas/ws v1.4.0 // indirect
-	github.com/goccy/go-yaml v1.15.13 // indirect
+	github.com/goccy/go-yaml v1.18.0 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
