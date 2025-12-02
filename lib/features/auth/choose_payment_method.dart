@@ -1,6 +1,7 @@
 import 'package:auto_route/annotations.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/extensions/plan.dart';
@@ -181,6 +182,11 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           },
           onError: (error) {
             ///error while subscribing
+            appLogger.error('Error subscribing to plan: $error');
+            if (error is StripeException) {
+              context.showSnackBar(error.localizedDescription);
+              return;
+            }
             context.showSnackBar(error.toString());
           },
         );

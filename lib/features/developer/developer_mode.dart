@@ -45,7 +45,6 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
                   label: 'UserId',
                   trailing: AppTextButton(
                     label: user?.legacyUserData.userId?.toString() ?? 'N/A',
-
                   ),
                 ),
                 DividerSpace(),
@@ -53,7 +52,6 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
                   label: 'Status',
                   trailing: AppTextButton(
                     label: user?.legacyUserData.userLevel ?? 'N/A',
-
                   ),
                 ),
                 DividerSpace(),
@@ -72,20 +70,6 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
                       },
                     ),
                   ),
-
-                // AppTile(
-                //   label: 'Test Stripe Purchase',
-                //   trailing: SwitchButton(
-                //     value: developerMode.testStripePurchaseEnabled,
-                //     onChanged: (bool? value) {
-                //       devNotifier.updateTestStripePurchaseEnabled(
-                //         developerMode.copyWith(
-                //           testPlayPurchaseEnabled: value ?? false,
-                //         ),
-                //       );
-                //     },
-                //   ),
-                // ),
               ],
             ),
           )

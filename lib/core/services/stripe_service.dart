@@ -38,6 +38,7 @@ class StripeService {
       if (options.publishableKey != null &&
           options.publishableKey!.isNotEmpty) {
         Stripe.publishableKey = options.publishableKey!;
+        appLogger.info('Using provided publishable key for API calls');
       }
       await Stripe.instance.applySettings();
 
