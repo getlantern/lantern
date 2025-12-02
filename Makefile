@@ -101,7 +101,7 @@ GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go')
 GOMOBILE_VERSION ?= latest
 GOMOBILE_REPOS = \
 	github.com/sagernet/sing-box/experimental/libbox \
-	github.com/getlantern/sing-box-extensions/ruleset \
+	github.com/getlantern/lantern-box/ruleset \
 	./lantern-core/mobile \
 	./lantern-core/utils
 
