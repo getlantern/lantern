@@ -57,10 +57,16 @@ class VPNSwitch extends HookConsumerWidget {
             ),
           );
         }
-        return Container(
-          decoration: BoxDecoration(
-            color: AppColors.gray1,
-            borderRadius: BorderRadius.circular(30.r),
+        return GestureDetector(
+          onTap: () {
+            appLogger.info('VPN Switch tapped');
+            onVPNStateChange(ref, context);
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.gray1,
+              borderRadius: BorderRadius.circular(30.r),
+            ),
           ),
         );
       },
