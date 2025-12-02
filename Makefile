@@ -143,14 +143,14 @@ require-ac-password: guard-AC_PASSWORD ## App Store Connect password - needed fo
 
 ifeq ($(OS),Windows_NT)
   NORMALIZED_CURDIR := $(shell echo $(CURDIR) | sed 's|\\\\|/|g')
-  SETENV = set CGO_ENABLED=1&& set CGO_CFLAGS=-I$(NORMALIZED_CURDIR)/dart_api_dl/include&&
+  SETENV = set CGO_ENABLED=1&& set CGO_CFLAGS=-I$(NORMALIZED_CURDIR)/dart_api_dl/include&& set CGO_LDFLAGS=$(CGO_LDFLAGS)&&
 else
   SETENV = CGO_ENABLED=1 CGO_CFLAGS=-I$(CURDIR)/dart_api_dl/include
 endif
 
 .PHONY: desktop-lib
 desktop-lib:
-	$(SETENV) CGO_LDFLAGS="$(CGO_LDFLAGS)" go build -v -trimpath -buildmode=c-shared \
+	$(SETENV) go build -v -trimpath -buildmode=c-shared \
 		-tags="$(TAGS)" \
 		-ldflags="-w -s $(EXTRA_LDFLAGS)" \
 		-o $(LIB_NAME) ./$(FFI_DIR)
@@ -301,7 +301,7 @@ $(WINDOWS_SERVICE_BUILD): windows-service-build
 
 windows-service-build:
 	$(call MKDIR_P,$(dir $(WINDOWS_SERVICE_BUILD)))
-	CGO_LDFLAGS="$(WINDOWS_CGO_LDFLAGS)" go build -trimpath -tags '$(TAGS)' \
+	set CGO_LDFLAGS="$(WINDOWS_CGO_LDFLAGS)" && go build -trimpath -tags '$(TAGS)' \
 		-ldflags '$(EXTRA_LDFLAGS)' \
 		-o $(WINDOWS_SERVICE_BUILD) $(WINDOWS_SERVICE_SRC)
 

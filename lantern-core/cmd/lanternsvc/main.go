@@ -68,9 +68,12 @@ func main() {
 
 func newWindowsService() (*wintunmgr.Manager, *wintunmgr.Service, error) {
 	wt := wintunmgr.New(adapterName, poolName, nil)
-	s := wintunmgr.NewService(wintunmgr.ServiceOptions{
+	s, err := wintunmgr.NewService(wintunmgr.ServiceOptions{
 		PipeName: servicePipeName,
 	}, wt)
+	if err != nil {
+		return nil, nil, fmt.Errorf("creating wintunmgr service: %w", err)
+	}
 	return wt, s, nil
 }
 
@@ -139,6 +142,7 @@ func (h *lanternHandler) Execute(args []string, r <-chan svc.ChangeRequest, chan
 			if err != nil {
 				slog.Error("service worker exited unexpectedly", "error", err)
 				changes <- svc.Status{State: svc.Stopped}
+				cancel()
 				return false, 1
 			}
 		}
