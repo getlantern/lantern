@@ -83,6 +83,16 @@ class HomeNotifier extends _$HomeNotifier {
     }
   }
 
+  /// Fetches the latest user data from the server if not cached locally.
+  Future<void> fetchUserDataIfNeeded() async {
+    appLogger.info("Checking if user data fetch is needed...");
+    final cachedUser = sl<LocalStorageService>().getUser();
+    if (cachedUser == null) {
+      appLogger.info("No cached user data found. Fetching from server...");
+      fetchUserData();
+    }
+  }
+
   /// Clear any user-specific data upon logout.
   /// Updates server location to fastest.
   /// Fetches available servers again.
