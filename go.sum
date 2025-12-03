@@ -239,6 +239,8 @@ github.com/getlantern/pluriconfig v0.0.0-20251126214241-8cc8bc561535 h1:rtDmW8YL
 github.com/getlantern/pluriconfig v0.0.0-20251126214241-8cc8bc561535/go.mod h1:WKJEdjMOD4IuTRYwjQHjT4bmqDl5J82RShMLxPAvi0Q=
 github.com/getlantern/radiance v0.0.0-20251202053251-c25b3e397567 h1:NYAMNIQNoNP8rMXplW0ytTmhyL67Xke5oW4mOXFcf3w=
 github.com/getlantern/radiance v0.0.0-20251202053251-c25b3e397567/go.mod h1:VvabTVXckTRNexehR+Vx1pOgYTxBtZ+h+RxyIB9d9GU=
+github.com/getlantern/radiance v0.0.0-20251202193810-1194a96b0c51 h1:uC4jR6kziVNA5R6gambcW6b+hgHj7Jbm9XIrJpixXAw=
+github.com/getlantern/radiance v0.0.0-20251202193810-1194a96b0c51/go.mod h1:VvabTVXckTRNexehR+Vx1pOgYTxBtZ+h+RxyIB9d9GU=
 github.com/getlantern/sing v0.6.13-0.20250812195008-c4468d0c7c42 h1:9mmkEsa5TlIheUyI4DfaW3+m4W01hMQprraSQzVg6mg=
 github.com/getlantern/sing v0.6.13-0.20250812195008-c4468d0c7c42/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
 github.com/getlantern/sing-box-extensions v0.0.5 h1:Oj1nDY7DIUAQcJVlQbEZB0tZV1hKZpeMbmGqU+3sHLQ=
