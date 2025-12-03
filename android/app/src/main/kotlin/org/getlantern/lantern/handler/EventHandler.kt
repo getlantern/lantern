@@ -8,6 +8,7 @@ import io.flutter.plugin.common.JSONMethodCodec
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -48,6 +49,8 @@ class EventHandler : FlutterPlugin {
     private var logsJob: Job? = null
     var logFile: File = File(logDir(), "lantern.log")
     private var logsTailer: LogTailer = LogTailer()
+    private val eventScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+
 
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         Log.d(TAG, "Event handler Attaching to engine")
@@ -73,7 +76,8 @@ class EventHandler : FlutterPlugin {
         )
         logsChannel = EventChannel(
             flutterPluginBinding.binaryMessenger,
-            LOGS)
+            LOGS
+        )
         appDataHandler = AppDataHandler(flutterPluginBinding.applicationContext)
         appDataChannel?.setStreamHandler(appDataHandler)
 
@@ -102,9 +106,11 @@ class EventHandler : FlutterPlugin {
             flutterEventObserver = null
         }
         logsChannel?.setStreamHandler(null)
+        logsJob?.cancel()
         appDataChannel?.setStreamHandler(null)
         appDataHandler?.dispose()
         appDataHandler = null
+
     }
 
 
@@ -201,12 +207,10 @@ class EventHandler : FlutterPlugin {
     private fun logsChannelListeners() {
         logsChannel?.setStreamHandler(object : EventChannel.StreamHandler {
             override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
-                logsJob = CoroutineScope(Dispatchers.IO).launch {
+                logsJob = eventScope.launch {
                     var lastSent: List<String>? = null
-
-                    while (isActive) {
+                       while (isActive) {
                         val latest = logsTailer.tail(logFile, 80)
-
                         if (latest != lastSent) {
                             lastSent = latest
 
