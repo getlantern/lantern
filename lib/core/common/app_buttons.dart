@@ -185,7 +185,7 @@ class SecondaryButton extends StatelessWidget {
 class AppTextButton extends StatelessWidget {
   final String label;
 
-  final OnPressed onPressed;
+  final OnPressed? onPressed;
 
   final Color? textColor;
   final EdgeInsets? padding;
@@ -195,7 +195,7 @@ class AppTextButton extends StatelessWidget {
   const AppTextButton({
     super.key,
     required this.label,
-    required this.onPressed,
+    this.onPressed,
     this.textColor,
     this.padding,
     this.underLine = true,

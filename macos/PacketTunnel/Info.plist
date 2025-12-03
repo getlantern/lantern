@@ -3,14 +3,20 @@
 <plist version="1.0">
 <dict>
 	<key>NetworkExtension</key>
-	<dict>
-		<key>NEMachServiceName</key>
-		<string>group.getlantern.lantern.packet</string>
-		<key>NEProviderClasses</key>
-		<dict>
-			<key>com.apple.networkextension.packet-tunnel</key>
-			<string>$(PRODUCT_MODULE_NAME).PacketTunnelProvider</string>
-		</dict>
-	</dict>
+    <dict>
+        <key>NEMachServiceName</key>
+        <string>group.getlantern.lantern.packet</string>
+        <key>NEProviderClasses</key>
+        <dict>
+            <key>com.apple.networkextension.packet-tunnel</key>
+            <string>$(PRODUCT_MODULE_NAME).PacketTunnelProvider</string>
+        </dict>
+        
+        <key>CFBundleShortVersionString</key>
+        <string>$(FLUTTER_BUILD_NAME)</string>
+
+        <key>CFBundleVersion</key>
+        <string>$(FLUTTER_BUILD_NUMBER)</string>
+    </dict>
 </dict>
 </plist>

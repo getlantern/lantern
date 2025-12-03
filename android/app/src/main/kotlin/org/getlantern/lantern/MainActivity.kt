@@ -23,6 +23,7 @@ import org.getlantern.lantern.service.QuickTileService
 import org.getlantern.lantern.utils.DeviceUtil
 import org.getlantern.lantern.utils.VpnStatusManager
 import org.getlantern.lantern.utils.isServiceRunning
+import org.getlantern.lantern.utils.setupDirs
 
 
 class MainActivity : FlutterFragmentActivity() {
@@ -40,6 +41,8 @@ class MainActivity : FlutterFragmentActivity() {
 
         instance = this
         Log.d(TAG, "Configuring FlutterEngine ${DeviceUtil.deviceId()}")
+        setupDirs()
+        Log.d(TAG, "Config directories set up")
         ///Setup handler
         flutterEngine.plugins.add(EventHandler())
         flutterEngine.plugins.add(MethodHandler())
