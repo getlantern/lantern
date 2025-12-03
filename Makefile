@@ -101,7 +101,7 @@ GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go')
 GOMOBILE_VERSION ?= latest
 GOMOBILE_REPOS = \
 	github.com/sagernet/sing-box/experimental/libbox \
-	github.com/getlantern/sing-box-extensions/ruleset \
+	github.com/getlantern/lantern-box/ruleset \
 	./lantern-core/mobile \
 	./lantern-core/utils
 
@@ -143,7 +143,7 @@ require-ac-password: guard-AC_PASSWORD ## App Store Connect password - needed fo
 
 ifeq ($(OS),Windows_NT)
   NORMALIZED_CURDIR := $(shell echo $(CURDIR) | sed 's|\\\\|/|g')
-  SETENV = set CGO_ENABLED=1&& set CGO_CFLAGS=-I$(NORMALIZED_CURDIR)/dart_api_dl/include&& set CGO_LDFLAGS=$(CGO_LDFLAGS)&&
+  SETENV = set CGO_ENABLED=1&& set CGO_CFLAGS=-I$(NORMALIZED_CURDIR)/dart_api_dl/include&& set CGO_LDFLAGS=$(WINDOWS_CGO_LDFLAGS)&&
 else
   SETENV = CGO_ENABLED=1 CGO_CFLAGS=-I$(CURDIR)/dart_api_dl/include
 endif
@@ -287,12 +287,12 @@ windows-amd64: WINDOWS_GOOS := windows
 windows-amd64: WINDOWS_GOARCH := amd64
 windows-amd64:
 	$(call MKDIR_P,$(dir $(WINDOWS_LIB_AMD64)))
-	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_AMD64) CGO_LDFLAGS="$(WINDOWS_CGO_LDFLAGS)"
+	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_AMD64)
 windows-arm64: WINDOWS_GOOS := windows
 windows-arm64: WINDOWS_GOARCH := arm64
 windows-arm64:
 	$(call MKDIR_P,$(dir $(WINDOWS_LIB_ARM64)))
-	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_ARM64) CGO_LDFLAGS="$(WINDOWS_CGO_LDFLAGS)"
+	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_ARM64)
 
 .PHONY: build-lanternsvc-windows
 build-lanternsvc-windows: $(WINDOWS_SERVICE_BUILD)
@@ -301,7 +301,7 @@ $(WINDOWS_SERVICE_BUILD): windows-service-build
 
 windows-service-build:
 	$(call MKDIR_P,$(dir $(WINDOWS_SERVICE_BUILD)))
-	set CGO_LDFLAGS="$(WINDOWS_CGO_LDFLAGS)" && go build -trimpath -tags '$(TAGS)' \
+	set CGO_LDFLAGS=$(WINDOWS_CGO_LDFLAGS) && go build -trimpath -tags '$(TAGS)' \
 		-ldflags '$(EXTRA_LDFLAGS)' \
 		-o $(WINDOWS_SERVICE_BUILD) $(WINDOWS_SERVICE_SRC)
 
