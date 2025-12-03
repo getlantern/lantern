@@ -110,7 +110,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
               SizedBox(height: defaultSize),
               DividerSpace(),
               SizedBox(height: defaultSize),
-              if (isStoreVersion())
+              if (isStoreVersion() && widget.authFlow == AuthFlow.signUp)
                 Center(
                   child: AppTextButton(
                     label: 'continue_without_email'.i18n,

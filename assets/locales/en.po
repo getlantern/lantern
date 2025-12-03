@@ -1245,3 +1245,9 @@ msgstr "Developer Mode"
 
 msgid "developer_mode_note"
 msgstr "Developer Mode is strictly for Lantern Developer to test feature while developing."
+
+msgid "invalid_activation_code"
+msgstr "Invalid activation code. Please check the code and try again."
+
+msgid "invalid_activation_code_length"
+msgstr "Activation code must be 25 characters long."
