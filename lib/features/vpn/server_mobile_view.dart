@@ -27,7 +27,6 @@ class _ServerMobileViewState extends State<ServerMobileView> {
     return AppTile(
       label: widget.location.city,
       selected: widget.isSelected,
-
       icon: Flag(
         countryCode: CountryUtils.getCountryCode(widget.location.country),
       ),
@@ -36,5 +35,4 @@ class _ServerMobileViewState extends State<ServerMobileView> {
       },
     );
   }
-
 }

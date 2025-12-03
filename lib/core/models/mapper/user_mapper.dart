@@ -131,7 +131,6 @@ extension UserData on UserDataEntity {
       invitees: invitees.split(',').toList(),
       devices: devices.map((e) => e.toDevice()).toList(),
       purchases: purchases.split(',').toList(),
-
       subscriptionData: subscriptionData.target == null
           ? null
           : subscriptionData.target!.toSubscriptionData(),

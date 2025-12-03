@@ -41,7 +41,8 @@ Future<Map<String, Map<String, String>>> fromAssetDirectory(String dir) async {
       continue;
     }
     var languageCode = fileName.split(".")[0];
-    translations.addAll(await  GettextImporter().fromAssetFile(languageCode, path));
+    translations
+        .addAll(await GettextImporter().fromAssetFile(languageCode, path));
   }
 
   return translations;

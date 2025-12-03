@@ -625,6 +625,4 @@ class LanternService implements LanternCoreService {
     }
     return _platformService.attachReferralCode(code);
   }
-
-
 }

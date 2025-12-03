@@ -201,9 +201,8 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
 
   Future<void> cancelDeployment() async {
     context.showLoadingDialog();
-    final result = await ref
-        .read(privateServerProvider.notifier)
-        .cancelDeployment();
+    final result =
+        await ref.read(privateServerProvider.notifier).cancelDeployment();
 
     result.fold(
       (l) {

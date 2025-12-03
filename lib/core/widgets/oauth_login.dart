@@ -88,8 +88,7 @@ class OAuthLogin extends HookConsumerWidget {
   Future<void> oAuthLogin(
       SignUpMethodType type, WidgetRef ref, BuildContext context) async {
     context.showLoadingDialog();
-    final result =
-        await ref.read(authProvider.notifier).oAuthLogin(type.name);
+    final result = await ref.read(authProvider.notifier).oAuthLogin(type.name);
     result.fold(
       (failure) {
         context.hideLoadingDialog();

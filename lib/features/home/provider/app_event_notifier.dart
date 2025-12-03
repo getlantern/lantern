@@ -36,7 +36,9 @@ class AppEventNotifier extends _$AppEventNotifier {
         case 'config':
           appLogger.debug('Received new config event.');
           ref
-              .read(availableServersProvider.notifier).forceFetchAvailableServers();
+              .read(availableServersProvider.notifier)
+              .forceFetchAvailableServers();
+
           /// this will also refresh user data if needed
           ref.read(homeProvider.notifier).fetchUserDataIfNeeded();
           break;

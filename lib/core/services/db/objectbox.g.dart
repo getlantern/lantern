@@ -893,11 +893,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final bundleIdParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 8, '');
-        final iconBytesParam =
-            const fb.Uint8ListReader(
-                  lazy: false,
-                ).vTableGetNullable(buffer, rootOffset, 10)
-                as Uint8List?;
+        final iconBytesParam = const fb.Uint8ListReader(
+          lazy: false,
+        ).vTableGetNullable(buffer, rootOffset, 10) as Uint8List?;
         final iconPathParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 12, '');
@@ -2007,8 +2005,8 @@ class PlansDataEntity_ {
   /// See [PlansDataEntity.providers].
   static final providers =
       obx.QueryRelationToOne<PlansDataEntity, ProvidersEntity>(
-        _entities[4].properties[1],
-      );
+    _entities[4].properties[1],
+  );
 
   /// see [PlansDataEntity.plans]
   static final plans = obx.QueryRelationToMany<PlansDataEntity, PlanEntity>(
@@ -2109,8 +2107,8 @@ class SubscriptionDataEntity_ {
   /// See [SubscriptionDataEntity.stripeCustomerID].
   static final stripeCustomerID =
       obx.QueryStringProperty<SubscriptionDataEntity>(
-        _entities[8].properties[2],
-      );
+    _entities[8].properties[2],
+  );
 
   /// See [SubscriptionDataEntity.startAt].
   static final startAt = obx.QueryStringProperty<SubscriptionDataEntity>(
@@ -2253,8 +2251,8 @@ class UserDataEntity_ {
   /// See [UserDataEntity.subscriptionData].
   static final subscriptionData =
       obx.QueryRelationToOne<UserDataEntity, SubscriptionDataEntity>(
-        _entities[9].properties[19],
-      );
+    _entities[9].properties[19],
+  );
 
   /// See [UserDataEntity.deviceID].
   static final deviceID = obx.QueryStringProperty<UserDataEntity>(
@@ -2297,14 +2295,14 @@ class UserResponseEntity_ {
   /// See [UserResponseEntity.legacyUserData].
   static final legacyUserData =
       obx.QueryRelationToOne<UserResponseEntity, UserDataEntity>(
-        _entities[10].properties[5],
-      );
+    _entities[10].properties[5],
+  );
 
   /// see [UserResponseEntity.devices]
   static final devices =
       obx.QueryRelationToMany<UserResponseEntity, DeviceEntity>(
-        _entities[10].relations[0],
-      );
+    _entities[10].relations[0],
+  );
 }
 
 /// [Website] entity fields to define ObjectBox queries.
@@ -2376,12 +2374,12 @@ class DeveloperModeEntity_ {
   /// See [DeveloperModeEntity.testPlayPurchaseEnabled].
   static final testPlayPurchaseEnabled =
       obx.QueryBooleanProperty<DeveloperModeEntity>(
-        _entities[14].properties[1],
-      );
+    _entities[14].properties[1],
+  );
 
   /// See [DeveloperModeEntity.testStripePurchaseEnabled].
   static final testStripePurchaseEnabled =
       obx.QueryBooleanProperty<DeveloperModeEntity>(
-        _entities[14].properties[2],
-      );
+    _entities[14].properties[2],
+  );
 }
