@@ -171,8 +171,12 @@ class LanternVpnService :
                 }
                 Log.d(TAG, "Underlying network changed, restarting VPN")
 
-                // lightweight restart, stop VPN then start again
-                doStopVPN()
+                // Silent, lightweight restart: no service teardown
+                doStopVPN(
+                    silent = true,
+                    keepServiceAlive = true,
+                )
+
                 kotlinx.coroutines.delay(300)
                 startVPN()
             } catch (e: Exception) {
@@ -242,25 +246,38 @@ class LanternVpnService :
         }
     }
 
-    fun doStopVPN() {
-        Log.d("LanternVpnService", "doStopVPN")
-        VpnStatusManager.postVPNStatus(VPNStatus.Disconnecting)
+    fun doStopVPN(
+        silent: Boolean = false,
+        keepServiceAlive: Boolean = false,
+    ) {
+        Log.d(TAG, "doStopVPN(silent=$silent, keepServiceAlive=$keepServiceAlive)")
+
+        if (!silent) {
+            VpnStatusManager.postVPNStatus(VPNStatus.Disconnecting)
+        }
 
         serviceScope.launch {
             try {
                 mInterface?.close()
                 mInterface = null
+
                 runCatching { Mobile.stopVPN() }
                     .onFailure { e -> Log.e(TAG, "Mobile.stopVPN() failed", e) }
 
                 runCatching { DefaultNetworkMonitor.stop() }
                     .onFailure { e -> Log.e(TAG, "DefaultNetworkMonitor.stop() failed", e) }
-                notificationHelper.stopVPNConnectedNotification(this@LanternVpnService)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    QuickTileService.triggerUpdateTileState(this@LanternVpnService, false)
+
+                if (!silent) {
+                    notificationHelper.stopVPNConnectedNotification(this@LanternVpnService)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        QuickTileService.triggerUpdateTileState(this@LanternVpnService, false)
+                    }
+                    VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
                 }
-                VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
-                serviceCleanUp()
+
+                if (!keepServiceAlive) {
+                    serviceCleanUp()
+                }
             } catch (e: Exception) {
                 Log.e(TAG, "Error stopping VPN service", e)
                 VpnStatusManager.postVPNError(
