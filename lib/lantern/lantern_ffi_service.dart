@@ -167,7 +167,8 @@ class LanternFFIService implements LanternCoreService {
   Stream<List<AppData>> appsDataStream() async* {
     try {
       final String dataDir = (await AppStorageUtils.getAppDirectory()).path;
-      final String json = _ffiService.loadInstalledApps(dataDir.toCharPtr).toDartString();
+      final String json =
+          _ffiService.loadInstalledApps(dataDir.toCharPtr).toDartString();
       if (json.isEmpty) {
         appLogger.debug("No installed apps found");
         yield [];
@@ -326,7 +327,7 @@ class LanternFFIService implements LanternCoreService {
       return Left(e.toFailure());
     }
   }
-  
+
   @override
   Future<Either<Failure, DataCapInfo>> getDataCapInfo() async {
     try {
@@ -1251,7 +1252,7 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, Unit>> updateLocal(String locale) async {
     try {
       final result = await runInBackground<String>(
-            () async {
+        () async {
           return _ffiService.updateLocale(locale.toCharPtr).toDartString();
         },
       );

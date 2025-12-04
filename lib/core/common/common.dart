@@ -2,15 +2,19 @@
 import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/common/app_urls.dart';
 import 'package:lantern/core/localization/i18n.dart';
 import 'package:lantern/core/models/entity/private_server_entity.dart';
 import 'package:lantern/core/models/entity/server_location_entity.dart';
 import 'package:lantern/core/router/router.dart';
+import 'package:lantern/core/services/local_storage.dart';
 import 'package:lantern/core/services/logger_service.dart';
+import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../features/home/provider/home_notifier.dart';
@@ -71,7 +75,20 @@ String generatePassword() {
 }
 
 bool isStoreVersion() {
-  return (sl<StoreUtils>().isSideLoaded() == false);
+  if (!PlatformUtils.isMobile) {
+    return false;
+  }
+  if (PlatformUtils.isIOS) {
+    return true;
+  }
+  if (kDebugMode || AppBuildInfo.buildType == 'nightly') {
+    final setting = sl<LocalStorageService>().getDeveloperSetting();
+    if (setting != null) {
+      return setting.testPlayPurchaseEnabled;
+    }
+    return !sl<StoreUtils>().isSideLoaded();
+  }
+  return !sl<StoreUtils>().isSideLoaded();
 }
 
 //copy to clipboard

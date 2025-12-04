@@ -118,9 +118,8 @@ class ConfirmEmail extends HookConsumerWidget {
     assert(password != null,
         'Password must be provided to delete account on back press');
     context.showLoadingDialog();
-    final result = await ref
-        .read(authProvider.notifier)
-        .deleteAccount(email, password!);
+    final result =
+        await ref.read(authProvider.notifier).deleteAccount(email, password!);
 
     result.fold(
       (failure) {
@@ -146,7 +145,7 @@ class ConfirmEmail extends HookConsumerWidget {
       case AuthFlow.resetPassword:
         validateCode(context, ref, code);
         break;
-      case AuthFlow.activationCode:
+      case AuthFlow.lanternProLicense:
         validateCode(context, ref, code);
         break;
       case AuthFlow.oauth:
@@ -187,9 +186,8 @@ class ConfirmEmail extends HookConsumerWidget {
   Future<void> validateCode(
       BuildContext context, WidgetRef ref, String code) async {
     context.showLoadingDialog();
-    final result = await ref
-        .read(authProvider.notifier)
-        .validateRecoveryCode(email, code);
+    final result =
+        await ref.read(authProvider.notifier).validateRecoveryCode(email, code);
 
     result.fold(
       (failure) {
@@ -208,21 +206,27 @@ class ConfirmEmail extends HookConsumerWidget {
       case AuthFlow.resetPassword:
         appRouter.push(ResetPassword(email: email, code: code));
       case AuthFlow.signUp:
-        // Check if user is pro or not
-        final isPro =
-            sl<LocalStorageService>().getUser()?.isPro() ??
-                false;
-        if ((isStoreVersion() || isPro) && PlatformUtils.isMobile) {
+
+        /// If user is from store version no need to check anything
+        /// send them to create password directly
+        if (PlatformUtils.isMobile && isStoreVersion()) {
+          appRouter.push(
+              CreatePassword(email: email, authFlow: authFlow, code: code));
+          return;
+        }
+
+        /// Check if user is pro or not
+        final isPro = sl<LocalStorageService>().getUser()?.isPro() ?? false;
+        if (isPro) {
           appRouter.push(
               CreatePassword(email: email, authFlow: authFlow, code: code));
           return;
         }
         appRouter.push(
             ChoosePaymentMethod(email: email, authFlow: authFlow, code: code));
-
         break;
-      case AuthFlow.activationCode:
-        appRouter.push(ActivationCode(email: email, code: code));
+      case AuthFlow.lanternProLicense:
+        appRouter.push(LanternProLicense(email: email, code: code));
         break;
       case AuthFlow.oauth:
         // TODO: Handle this case.
@@ -235,15 +239,12 @@ class ConfirmEmail extends HookConsumerWidget {
 
   void onResendEmail(BuildContext context, WidgetRef ref) {
     switch (authFlow) {
+      case AuthFlow.resetPassword:
+      case AuthFlow.lanternProLicense:
       case AuthFlow.signUp:
         appLogger.info('Resend email for sign up to $email');
         onResendCode(context, ref);
         break;
-      case AuthFlow.resetPassword:
-        onResendCode(context, ref);
-        break;
-      case AuthFlow.activationCode:
-        throw Exception('activation should not reach this point');
       case AuthFlow.oauth:
         throw Exception('OAuth flow should not reach this point');
       case AuthFlow.changeEmail:
@@ -271,9 +272,8 @@ class ConfirmEmail extends HookConsumerWidget {
 
   void onResendCode(BuildContext context, WidgetRef ref) async {
     context.showLoadingDialog();
-    final result = await ref
-        .read(authProvider.notifier)
-        .startRecoveryByEmail(email);
+    final result =
+        await ref.read(authProvider.notifier).startRecoveryByEmail(email);
     result.fold(
       (failure) {
         context.hideLoadingDialog();

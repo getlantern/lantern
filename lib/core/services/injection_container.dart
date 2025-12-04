@@ -45,13 +45,14 @@ Future<void> injectServices() async {
     await sl<LocalStorageService>().init();
     sl.registerLazySingleton(() => AppRouter());
 
-    sl.registerSingletonAsync<StripeService>(() async {
-      appLogger.info("Initializing StripeService");
-      final stripeService = StripeService();
-      await stripeService.initialize();
-      return stripeService;
-    });
-
+    if (PlatformUtils.isAndroid) {
+      sl.registerSingletonAsync<StripeService>(() async {
+        appLogger.info("Initializing StripeService");
+        final stripeService = StripeService();
+        await stripeService.initialize();
+        return stripeService;
+      });
+    }
     sl.registerSingletonAsync<NotificationService>(() async {
       appLogger.info("Initializing NotificationService");
       final notificationService = NotificationService();

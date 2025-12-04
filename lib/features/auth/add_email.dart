@@ -110,7 +110,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
               SizedBox(height: defaultSize),
               DividerSpace(),
               SizedBox(height: defaultSize),
-              if (isStoreVersion())
+              if (isStoreVersion() && widget.authFlow == AuthFlow.signUp)
                 Center(
                   child: AppTextButton(
                     label: 'continue_without_email'.i18n,
@@ -157,7 +157,10 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     result.fold(
       (failure) {
         context.hideLoadingDialog();
-        context.showSnackBar(failure.localizedErrorMessage);
+        AppDialog.errorDialog(
+            context: context,
+            title: 'error'.i18n,
+            content: failure.localizedErrorMessage);
       },
       (response) {
         //sign up successful
@@ -252,8 +255,8 @@ class _AddEmailState extends ConsumerState<AddEmail> {
           );
           return;
         }
-        if (widget.authFlow == AuthFlow.activationCode) {
-          appRouter.push(ActivationCode(email: email, code: ''));
+        if (widget.authFlow == AuthFlow.lanternProLicense) {
+          appRouter.push(LanternProLicense(email: email, code: ''));
           return;
         }
         appRouter

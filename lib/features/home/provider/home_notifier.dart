@@ -20,8 +20,7 @@ class HomeNotifier extends _$HomeNotifier {
     /// If yes, load it first to avoid delay in UI
     final cachedUser = sl<LocalStorageService>().getUser();
     if (cachedUser != null) {
-      final userData = cachedUser;
-      appLogger.debug('Loaded user data from local storage: $userData');
+      appLogger.debug('Loaded user data from local storage: $cachedUser');
       state = AsyncValue.data(cachedUser);
     }
     final result = await ref.read(lanternServiceProvider).getUserData();
@@ -81,6 +80,16 @@ class HomeNotifier extends _$HomeNotifier {
       ref
           .read(serverLocationProvider.notifier)
           .updateServerLocation(initialServerLocation());
+    }
+  }
+
+  /// Fetches the latest user data from the server if not cached locally.
+  Future<void> fetchUserDataIfNeeded() async {
+    appLogger.info("Checking if user data fetch is needed...");
+    final cachedUser = sl<LocalStorageService>().getUser();
+    if (cachedUser == null) {
+      appLogger.info("No cached user data found. Fetching from server...");
+      fetchUserData();
     }
   }
 

@@ -93,8 +93,7 @@ class DeviceLimitReached extends HookConsumerWidget {
   Future<void> removeDeviceAndLogin(
       WidgetRef ref, String deviceId, BuildContext context) async {
     context.showLoadingDialog();
-    final result =
-        await ref.read(authProvider.notifier).deviceRemove(deviceId);
+    final result = await ref.read(authProvider.notifier).deviceRemove(deviceId);
     result.fold(
       (failure) {
         context.hideLoadingDialog();

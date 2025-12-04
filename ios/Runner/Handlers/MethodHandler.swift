@@ -181,6 +181,11 @@ class MethodHandler {
         let map = call.arguments as? [String: Any]
         self.reportIssue(result: result, data: map!)
         break
+          
+      case "setBlockAdsEnabled":
+          let data = call.arguments as? [String: Any]
+          let enabled = data?["enabled"] as? Bool ?? false
+          self.setBlockAdsEnabled(result: result, enabled: enabled)
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -874,6 +879,20 @@ class MethodHandler {
 
     }
   }
+    
+    func setBlockAdsEnabled(result: @escaping FlutterResult, enabled: Bool) {
+        Task.detached {
+            var error: NSError?
+            MobileSetBlockAdsEnabled(enabled, &error)
+            if let err = error {
+                await self.handleFlutterError(err, result: result, code: "SET_BLOCK_ADS_ERROR")
+                return
+            }
+            await MainActor.run {
+                result("ok")
+            }
+        }
+    }
 
   //Utils method for hanlding Flutter errors
   private func handleFlutterError(

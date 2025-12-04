@@ -260,8 +260,8 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
             SizedBox(height: defaultSize),
             Text(
               'recommendation'.i18n,
-              style: AppTextStyles.bodyMediumBold
-                  .copyWith(color: AppColors.gray7),
+              style:
+                  AppTextStyles.bodyMediumBold.copyWith(color: AppColors.gray7),
             ),
             Text(
               'recommendation_message'.i18n.fill([server.serverName]),

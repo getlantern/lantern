@@ -17,7 +17,7 @@ extension UserMapper on UserResponse {
   }
 
   bool isPro() {
-    return legacyUserData.userStatus == 'pro';
+    return legacyUserData.userLevel == 'pro';
   }
 }
 
@@ -47,12 +47,12 @@ extension UserDataMapper on UserResponse_UserData {
     );
     user.devices.addAll(devices.map((e) => e.toEntity()));
 
-    user.subscriptionData.target = subscriptionData.toEntity();
+    user.subscriptionData.target =
+        subscriptionData.planID.isEmpty ? null : subscriptionData.toEntity();
     return user;
   }
 
   bool isPro() {
-
     return userLevel == 'pro';
   }
 }
@@ -131,7 +131,9 @@ extension UserData on UserDataEntity {
       invitees: invitees.split(',').toList(),
       devices: devices.map((e) => e.toDevice()).toList(),
       purchases: purchases.split(',').toList(),
-      subscriptionData: subscriptionData.target?.toSubscriptionData(),
+      subscriptionData: subscriptionData.target == null
+          ? null
+          : subscriptionData.target!.toSubscriptionData(),
       deviceID: deviceID,
     );
   }
@@ -160,12 +162,12 @@ extension SubscriptionDataExtension on SubscriptionDataEntity {
     return UserResponse_UserData_SubscriptionData(
       autoRenew: autoRenew,
       provider: provider,
-      endAt: Int64(int.parse(endAt)) ,
+      endAt: Int64(int.parse(endAt)),
       planID: planID,
       status: status,
-      startAt: Int64(int.parse(startAt)) ,
-      cancelledAt: Int64(int.parse(cancelledAt)) ,
-      createdAt: Int64(int.parse(createdAt)) ,
+      startAt: Int64(int.parse(startAt)),
+      cancelledAt: Int64(int.parse(cancelledAt)),
+      createdAt: Int64(int.parse(createdAt)),
       stripeCustomerID: stripeCustomerID,
       subscriptionID: subscriptionID,
     );

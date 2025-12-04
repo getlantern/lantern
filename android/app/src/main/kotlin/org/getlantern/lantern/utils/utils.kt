@@ -26,6 +26,11 @@ fun isVPNRunning(context: Context): Boolean {
 fun RoutePrefix.toIpPrefix() = IpPrefix(InetAddress.getByName(address()), prefix())
 
 
+fun setupDirs() {
+    initConfigDir()
+    logDir()
+}
+
 fun initConfigDir(): String {
     val dir = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
         File(LanternApp.application.dataDir, ".lantern")

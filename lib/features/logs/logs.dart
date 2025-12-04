@@ -4,10 +4,11 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/features/logs/provider/diagnostic_log_provider.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/core/widgets/info_row.dart';
+import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/features/logs/log_line.dart';
+import 'package:lantern/features/logs/provider/diagnostic_log_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 @RoutePage(name: 'Logs')
@@ -58,8 +59,8 @@ class Logs extends HookConsumerWidget {
         children: <Widget>[
           InfoRow(
             text: 'cannot_view_logs'.i18n,
-            onPressed: () => {},
           ),
+          const SizedBox(height: defaultSize),
           Expanded(
             child: Container(
               decoration: ShapeDecoration(
@@ -82,7 +83,7 @@ class Logs extends HookConsumerWidget {
                   );
                 },
                 loading: () => const Center(
-                  child: CircularProgressIndicator(),
+                  child: LoadingIndicator(),
                 ),
                 error: (error, stack) => Center(
                   child: Text(

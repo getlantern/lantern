@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:lantern/core/services/logger_service.dart';
+import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -37,6 +38,9 @@ class AppEventNotifier extends _$AppEventNotifier {
           ref
               .read(availableServersProvider.notifier)
               .forceFetchAvailableServers();
+
+          /// this will also refresh user data if needed
+          ref.read(homeProvider.notifier).fetchUserDataIfNeeded();
           break;
         default:
           break;

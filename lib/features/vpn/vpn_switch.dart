@@ -30,13 +30,16 @@ class VPNSwitch extends HookConsumerWidget {
       allowUnlistedValues: false,
       values: [false, true],
       spacing: 10.h,
+      onChanged: (value) {
+        appLogger.info('VPN Switch changed to: $value');
+        onVPNStateChange(ref, context);
+      },
       loading: false,
       height: PlatformUtils.isDesktop ? 70.h : 65.h,
       indicatorSize: Size(60.r, 60.r),
       iconBuilder: (context, local, global) {
         return SizedBox();
       },
-      onTap: (newValue) => onVPNStateChange(ref, context),
       foregroundIndicatorBuilder: (context, global) {
         if (vpnStatus == VPNStatus.connecting ||
             vpnStatus == VPNStatus.disconnecting) {
@@ -54,10 +57,16 @@ class VPNSwitch extends HookConsumerWidget {
             ),
           );
         }
-        return Container(
-          decoration: BoxDecoration(
-            color: AppColors.gray1,
-            borderRadius: BorderRadius.circular(30.r),
+        return GestureDetector(
+          onTap: () {
+            appLogger.info('VPN Switch tapped');
+            onVPNStateChange(ref, context);
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.gray1,
+              borderRadius: BorderRadius.circular(30.r),
+            ),
           ),
         );
       },

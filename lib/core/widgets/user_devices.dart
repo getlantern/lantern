@@ -63,8 +63,7 @@ class UserDevices extends HookConsumerWidget {
       context.showSnackBar(failure.localizedErrorMessage);
     }, (success) async {
       context.showSnackBar('device_removed'.i18n);
-      final innerResult =
-          await ref.read(homeProvider.notifier).fetchUserData();
+      final innerResult = await ref.read(homeProvider.notifier).fetchUserData();
       context.hideLoadingDialog();
     });
   }

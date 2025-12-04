@@ -138,7 +138,7 @@ class _HomeState extends ConsumerState<Home>
                     text: 'private_server_usage_message'.i18n,
                   )
                 else
-                  const DataUsage(),
+                  const SizedBox()
               },
               SizedBox(height: 8),
               _buildSetting(ref),

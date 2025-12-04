@@ -1,7 +1,9 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:auto_updater/auto_updater.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
 import 'package:lantern/core/models/mapper/user_mapper.dart';
@@ -104,12 +106,13 @@ class _SettingState extends ConsumerState<Setting> {
                   onPressed: () => settingMenuTap(_SettingType.language),
                 ),
                 DividerSpace(),
-                AppTile(
-                  label: 'check_for_updates'.i18n,
-                  icon: AppImagePaths.update,
-                  onPressed: () async =>
-                      await settingMenuTap(_SettingType.checkForUpdates),
-                ),
+                if (PlatformUtils.isDesktop)
+                  AppTile(
+                    label: 'check_for_updates'.i18n,
+                    icon: AppImagePaths.update,
+                    onPressed: () async =>
+                        await settingMenuTap(_SettingType.checkForUpdates),
+                  ),
               ],
             ),
           ),
@@ -148,22 +151,29 @@ class _SettingState extends ConsumerState<Setting> {
             const SizedBox(height: defaultSize),
             AppCard(
               padding: EdgeInsets.zero,
-              child: Column(
-                children: [
-                  AppTile(
-                    label: 'logout'.i18n,
-                    icon: AppImagePaths.signIn,
-                    onPressed: () => settingMenuTap(_SettingType.logout),
-                  ),
-                ],
+              child: AppTile(
+                label: 'logout'.i18n,
+                icon: AppImagePaths.signIn,
+                onPressed: () => settingMenuTap(_SettingType.logout),
+              ),
+            ),
+          },
+          const SizedBox(height: defaultSize),
+          if (kDebugMode || AppBuildInfo.buildType == 'nightly') ...{
+            AppCard(
+              padding: EdgeInsets.zero,
+              child: AppTile(
+                label: 'developer_mode'.i18n,
+                icon: Icon(Icons.developer_board),
+                onPressed: () {
+                  appRouter.push(const DeveloperMode());
+                },
               ),
             ),
           },
           const SizedBox(height: defaultSize),
           Padding(
-            padding: const EdgeInsets.only(
-              left: 16,
-            ),
+            padding: const EdgeInsets.only(left: 16),
             child: Text(
               'lantern_projects'.i18n,
               style: textTheme.labelLarge!.copyWith(

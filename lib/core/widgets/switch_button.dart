@@ -20,32 +20,32 @@ class SwitchButton extends StatelessWidget {
   Widget build(BuildContext context) {
     const trackWidth = 75.0;
 
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () => onChanged(!value),
-      child: CustomAnimatedToggleSwitch<bool>(
-        current: value,
-        values: const [false, true],
-        animationDuration: const Duration(milliseconds: 200),
-        onChanged: onChanged,
-        iconBuilder: (context, local, global) => const SizedBox(),
-        indicatorSize: const Size(30, 30),
-        spacing: 10.h,
-        height: PlatformUtils.isDesktop ? 40.h : 30.h,
-        wrapperBuilder: (context, global, child) {
-          return Container(
-            width: trackWidth,
-            padding: const EdgeInsets.symmetric(horizontal: 5),
-            decoration: BoxDecoration(
-              color:
-                  value ? (activeColor ?? AppColors.green5) : AppColors.gray7,
-              borderRadius: BorderRadius.circular(100),
-            ),
-            child: child,
-          );
-        },
-        foregroundIndicatorBuilder: (context, global) {
-          return Container(
+    return CustomAnimatedToggleSwitch<bool>(
+      current: value,
+      values: const [false, true],
+      animationDuration: const Duration(milliseconds: 200),
+      onChanged: onChanged,
+      iconBuilder: (context, local, global) => const SizedBox(),
+      indicatorSize: const Size(30, 30),
+      spacing: 10.h,
+      height: PlatformUtils.isDesktop ? 40.h : 30.h,
+      wrapperBuilder: (context, global, child) {
+        return Container(
+          width: trackWidth,
+          padding: const EdgeInsets.symmetric(horizontal: 5),
+          decoration: BoxDecoration(
+            color: value ? (activeColor ?? AppColors.green5) : AppColors.gray7,
+            borderRadius: BorderRadius.circular(100),
+          ),
+          child: child,
+        );
+      },
+      foregroundIndicatorBuilder: (context, global) {
+        return GestureDetector(
+          onTap: () {
+            onChanged(value ? false : true);
+          },
+          child: Container(
             decoration: const BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
@@ -57,9 +57,9 @@ class SwitchButton extends StatelessWidget {
                 ),
               ],
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }

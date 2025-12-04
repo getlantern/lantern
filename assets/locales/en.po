@@ -1165,13 +1165,13 @@ msgid "annual_plan"
 msgstr "Annual plan:"
 
 msgid "1_month_each"
-msgstr "+1 month each
+msgstr "+1 month each"
 
 msgid "two_year_plan"
 msgstr "Two-year plan:"
 
 msgid "2_month_each"
-msgstr "+2 months each
+msgstr "+2 months each"
 
 msgid "referral_code_info"
 msgstr "Not a Lantern Pro user yet? You'll become one when your first referral subscribes"
@@ -1236,5 +1236,18 @@ msgstr "Could not open URL"
 msgid "new_to_lantern_pro"
 msgstr "New to Lantern Pro?"
 
+
 msgid "an_error_occurred"
 msgstr "An error occurred. Please try again later."
+
+msgid "developer_mode"
+msgstr "Developer Mode"
+
+msgid "developer_mode_note"
+msgstr "Developer Mode is strictly for Lantern Developer to test feature while developing."
+
+msgid "invalid_activation_code"
+msgstr "Invalid activation code. Please check the code and try again."
+
+msgid "invalid_activation_code_length"
+msgstr "Activation code must be 25 characters long."
