@@ -42,9 +42,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
     return BaseScreen(
       title: '',
       appBar: CustomAppBar(
-        title: Text(
-          'server_selection'.i18n,
-        ),
+        title: Text('server_selection'.i18n),
         actions: [
           IconButton(
             icon: Icon(Icons.more_vert),
@@ -291,6 +289,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
               },
             ),
             DividerSpace(padding: EdgeInsets.zero),
+            if(storage.getPrivateServer().isNotEmpty)
             AppTile(
               label: 'manage_private_servers'.i18n,
               onPressed: () {
