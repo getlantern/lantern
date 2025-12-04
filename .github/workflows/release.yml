@@ -284,7 +284,8 @@ jobs:
 
   upload-testflight:
     needs: [publish, build-ios, set-release-metadata]
-    if: ${{ needs.set-release-metadata.outputs.platform == 'all' && needs.set-release-metadata.outputs.build_type != 'internal' }}
+    if: ${{ needs.set-release-metadata.outputs.platform == 'all'
+      && needs.set-release-metadata.outputs.build_type == 'production' }}
     runs-on: macos-15
     steps:
       - name: Download iOS Artifact
