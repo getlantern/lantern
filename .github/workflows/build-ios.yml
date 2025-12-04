@@ -7,10 +7,10 @@ on:
         required: true
         type: string
       build_type:
-        required: false
+        required: true
         type: string
       installer_name:
-        required: false
+        required: true
         type: string
 
 jobs:

@@ -178,6 +178,7 @@ jobs:
       RUN_WINDOWS: ${{ needs.set-nightly-metadata.outputs.run_windows }}
       RUN_ANDROID: ${{ needs.set-nightly-metadata.outputs.run_android }}
       RUN_LINUX: ${{ needs.set-nightly-metadata.outputs.run_linux }}
+      RUN_IOS: ${{ needs.set-nightly-metadata.outputs.run_ios }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
