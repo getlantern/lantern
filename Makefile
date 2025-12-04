@@ -143,7 +143,7 @@ require-ac-password: guard-AC_PASSWORD ## App Store Connect password - needed fo
 
 ifeq ($(OS),Windows_NT)
   NORMALIZED_CURDIR := $(shell echo $(CURDIR) | sed 's|\\\\|/|g')
-  SETENV = set CGO_ENABLED=1&& set CGO_CFLAGS=-I$(NORMALIZED_CURDIR)/dart_api_dl/include&& set CGO_LDFLAGS=$(WINDOWS_CGO_LDFLAGS)&&
+  SETENV = set CGO_ENABLED=1&& set CGO_CFLAGS=-I$(NORMALIZED_CURDIR)/dart_api_dl/include&& set CGO_LDFLAGS="$(WINDOWS_CGO_LDFLAGS)"&&
 else
   SETENV = CGO_ENABLED=1 CGO_CFLAGS=-I$(CURDIR)/dart_api_dl/include
 endif
