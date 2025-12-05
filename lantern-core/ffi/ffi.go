@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"log/slog"
 	"sync/atomic"
+	"time"
 	"unsafe"
 
 	lanterncore "github.com/getlantern/lantern-outline/lantern-core"
@@ -245,16 +246,43 @@ func reportIssue(emailC, typeC, descC, deviceC, modelC, logPathC *C.char) *C.cha
 func startVPN(_logDir, _dataDir, _locale *C.char) *C.char {
 	slog.Debug("startVPN called")
 	sendStatusToPort(Connecting)
+
+	// Track dial timing
+	startTime := time.Now()
+
 	if err := vpn_tunnel.StartVPN(nil, &utils.Opts{
 		DataDir: C.GoString(_dataDir),
 		Locale:  C.GoString(_locale),
 	}); err != nil {
+		// Calculate duration and create failure event
+		duration := time.Since(startTime).Milliseconds()
+		dialEvent := &utils.DialEvent{
+			EventType:  "dial_failure",
+			Timestamp:  time.Now().UnixMilli(),
+			Group:      "default",
+			ServerType: "auto",
+			Error:      err.Error(),
+			DurationMs: duration,
+		}
+
 		err = fmt.Errorf("unable to start vpn server: %v", err)
-		sendStatusToPort(Disconnected)
+		sendStatusToPortWithEvent(Disconnected, dialEvent)
+		slog.Error("VPN dial failed", "duration_ms", duration, "error", err)
 		return C.CString(err.Error())
 	}
-	sendStatusToPort(Connected)
-	slog.Debug("VPN server started successfully")
+
+	// Calculate duration and create success event
+	duration := time.Since(startTime).Milliseconds()
+	dialEvent := &utils.DialEvent{
+		EventType:  "dial_success",
+		Timestamp:  time.Now().UnixMilli(),
+		Group:      "default",
+		ServerType: "auto",
+		DurationMs: duration,
+	}
+
+	sendStatusToPortWithEvent(Connected, dialEvent)
+	slog.Info("VPN dial succeeded", "duration_ms", duration)
 	return C.CString("ok")
 }
 
@@ -314,6 +342,9 @@ func connectToServer(_location, _tag, _logDir, _dataDir, _locale *C.char) *C.cha
 	tag := C.GoString(_tag)
 	locationType := C.GoString(_location)
 
+	// Track dial timing
+	startTime := time.Now()
+
 	// Valid location types are:
 	// auto,
 	// privateServer,
@@ -322,19 +353,57 @@ func connectToServer(_location, _tag, _logDir, _dataDir, _locale *C.char) *C.cha
 		DataDir: C.GoString(_dataDir),
 		Locale:  C.GoString(_locale),
 	}); err != nil {
+		// Calculate duration and create failure event
+		duration := time.Since(startTime).Milliseconds()
+		dialEvent := &utils.DialEvent{
+			EventType:  "dial_failure",
+			Timestamp:  time.Now().UnixMilli(),
+			Group:      locationType,
+			Tag:        tag,
+			ServerType: locationType,
+			Error:      err.Error(),
+			DurationMs: duration,
+		}
+
+		sendStatusToPortWithEvent(Disconnected, dialEvent)
+		slog.Error("Server connection failed", "location_type", locationType, "tag", tag, "duration_ms", duration, "error", err)
 		return SendError(fmt.Errorf("Error setting private server: %v", err))
 	}
-	slog.Debug("Private server set with tag", "tag", tag)
+
+	// Calculate duration and create success event
+	duration := time.Since(startTime).Milliseconds()
+	dialEvent := &utils.DialEvent{
+		EventType:  "dial_success",
+		Timestamp:  time.Now().UnixMilli(),
+		Group:      locationType,
+		Tag:        tag,
+		ServerType: locationType,
+		DurationMs: duration,
+	}
+
+	sendStatusToPortWithEvent(Connected, dialEvent)
+	slog.Info("Server connection succeeded", "location_type", locationType, "tag", tag, "duration_ms", duration)
 	return C.CString("ok")
 }
 
 func sendStatusToPort(status VPNStatus) {
+	sendStatusToPortWithEvent(status, nil)
+}
+
+func sendStatusToPortWithEvent(status VPNStatus, dialEvent *utils.DialEvent) {
 	slog.Debug("sendStatusToPort called", "status", status)
 	if statusPort == 0 {
 		slog.Error("Status port is not set, cannot send status")
 		return
 	}
 	msg := map[string]any{"status": status}
+
+	// Include dial event data if provided
+	if dialEvent != nil {
+		msg["dial_event"] = dialEvent
+		slog.Debug("Including dial event data", "event_type", dialEvent.EventType, "duration_ms", dialEvent.DurationMs)
+	}
+
 	slog.Debug("Sending status to port", "port", statusPort)
 	data, _ := json.Marshal(msg)
 	slog.Debug("Marshalled status data", "data", string(data))
