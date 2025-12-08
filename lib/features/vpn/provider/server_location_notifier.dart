@@ -47,6 +47,7 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
             serverName: '',
             autoSelect: true,
             displayName: autoLocation.location!.city,
+            city: autoLocation.location!.city,
             countryCode:
                 CountryUtils.getCountryCode(autoLocation.location!.country),
             country: '',

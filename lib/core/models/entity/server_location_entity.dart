@@ -11,6 +11,7 @@ class ServerLocationEntity {
   final String serverType;
   final String countryCode;
   final String country;
+  final String city;
   final String displayName;
   final AutoLocationEntity autoLocation;
 
@@ -18,6 +19,7 @@ class ServerLocationEntity {
     required this.autoSelect,
     required this.countryCode,
     required this.country,
+    required this.city,
     required this.displayName,
     required this.serverName,
     required this.serverType,

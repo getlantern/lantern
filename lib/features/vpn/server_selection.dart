@@ -133,8 +133,10 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
   }
 
   Widget _buildSmartLocation(ServerLocationEntity serverLocation) {
-    final value =
-        serverLocation.autoLocation.serverLocation.split('[')[0].trim();
+    final autoCountry = serverLocation.country;
+    final autoCity = serverLocation.city;
+
+    final formatted = "$autoCountry - $autoCity";
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -149,10 +151,10 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
         AppCard(
           padding: EdgeInsets.zero,
           child: AppTile(
-            icon: serverLocation.autoLocation.serverLocation.countryCode.isEmpty
+            icon: serverLocation.countryCode.isEmpty
                 ? AppImagePaths.location
                 : Flag(countryCode: serverLocation.countryCode),
-            label: value,
+            label: formatted, // FIX
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -225,7 +227,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 3),
           child: Text(
-            serverLocation.displayName.locationName,
+            serverLocation.displayName,
             style: _textTheme!.labelMedium!.copyWith(
               color: AppColors.gray7,
             ),
@@ -252,13 +254,17 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
         context.showSnackBar(failure.localizedErrorMessage);
       },
       (success) async {
+        final auto = ref.read(serverLocationProvider);
+        final autoCountry = auto.country;
+        final autoCity = auto.city;
         final serverLocation = ServerLocationEntity(
           serverType: type.name,
           serverName: 'Smart Location',
           autoSelect: true,
-          displayName: ServerLocationType.auto.name,
-          country: '',
-          countryCode: '',
+          displayName: '$autoCountry - $autoCity',
+          city: autoCity,
+          country: autoCountry,
+          countryCode: CountryUtils.getCountryCode(autoCountry),
         );
         await ref
             .read(serverLocationProvider.notifier)
@@ -429,7 +435,8 @@ class _ServerLocationListViewState
             serverType: ServerLocationType.lanternLocation.name,
             serverName: selectedServer.tag,
             autoSelect: false,
-            displayName: selectedServer.city,
+            displayName: "${selectedServer.country} - ${selectedServer.city}",
+            city: selectedServer.city,
             country: '',
             countryCode: CountryUtils.getCountryCode(selectedServer.country),
           );
@@ -449,8 +456,10 @@ class _ServerLocationListViewState
                 serverType: ServerLocationType.lanternLocation.name,
                 serverName: selectedServer.tag,
                 autoSelect: false,
-                displayName: selectedServer.city,
-                country: '',
+                city: selectedServer.city,
+                displayName:
+                    '${selectedServer.country} - ${selectedServer.city}',
+                country: selectedServer.country,
                 countryCode:
                     CountryUtils.getCountryCode(selectedServer.country),
               );
@@ -749,6 +758,7 @@ class _PrivateServerLocationListViewState
       serverName: privateServer.serverName,
       autoSelect: false,
       displayName: privateServer.serverLocationName,
+      city: privateServer.serverLocationName,
       countryCode: privateServer.serverCountryCode,
       country: '',
     );
