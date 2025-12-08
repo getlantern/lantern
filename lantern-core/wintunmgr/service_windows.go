@@ -32,6 +32,7 @@ const (
 	StatusConnected     Status = "Connected"
 	StatusDisconnecting Status = "Disconnecting"
 	StatusDisconnected  Status = "Disconnected"
+	StatusError         Status = "Error"
 )
 
 type ServiceOptions struct {
@@ -427,6 +428,7 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 	case common.CmdStartTunnel:
 		go s.UpdateStatus(string(StatusConnecting))
 		if err := s.rServer.StartService(ctx, "lantern", ""); err != nil {
+			go s.UpdateStatus(string(StatusError))
 			return rpcErr(r.ID, "start_error", err.Error())
 		}
 		go s.UpdateStatus(string(StatusConnected))
@@ -435,6 +437,7 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 	case common.CmdStopTunnel:
 		go s.UpdateStatus(string(StatusDisconnecting))
 		if err := s.rServer.StopService(ctx); err != nil {
+			go s.UpdateStatus(string(StatusError))
 			return rpcErr(r.ID, "stop_error", err.Error())
 		}
 		go s.UpdateStatus(string(StatusDisconnected))
@@ -458,6 +461,7 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		}
 		go s.UpdateStatus(string(StatusConnecting))
 		if err := s.rServer.StartService(ctx, group, p.Tag); err != nil {
+			go s.UpdateStatus(string(StatusError))
 			return rpcErr(r.ID, "connect_error", err.Error())
 		}
 		go s.UpdateStatus(string(StatusConnected))
