@@ -91,7 +91,7 @@ IOS_FRAMEWORK_DIR := ios/Frameworks
 IOS_FRAMEWORK_BUILD := $(BIN_DIR)/ios/$(IOS_FRAMEWORK)
 IOS_DEBUG_BUILD := $(BUILD_DIR)/ios/iphoneos/Runner.app
 
-TAGS=with_gvisor,with_quic,with_wireguard,with_ech,with_utls,with_clash_api,with_grpc,with_conntrack
+TAGS=with_gvisor,with_quic,with_wireguard,with_utls,with_clash_api,with_grpc,with_conntrack
 
 WINDOWS_CGO_LDFLAGS=-static-libgcc -static-libstdc++ -static -lwinpthread
 
@@ -172,7 +172,7 @@ $(MACOS_FRAMEWORK_BUILD): $(GO_SOURCES)
 	@echo "Building macOS Framework.."
 	rm -rf $(MACOS_FRAMEWORK_BUILD) && mkdir -p $(MACOS_FRAMEWORK_DIR)
 	GOTOOLCHAIN=$(GO_VERSION) GOOS=darwin gomobile bind -v \
-		-tags=$(TAGS),netgo -trimpath \
+		-tags=$(TAGS),netgo  -trimpath \
 		-target=macos \
 		-o $(MACOS_FRAMEWORK_BUILD) \
 		-ldflags="-w -s -checklinkname=0" \
