@@ -424,7 +424,7 @@ android-release: clean android pubget gen android-apk-release
 # iOS Build
 .PHONY: install-ios-deps
 
-install-ios-deps:
+install-ios-deps: install-gomobile
 	npm install -g appdmg
 	dart pub global activate flutter_distributor
 
