@@ -506,8 +506,6 @@ class LanternPlatformService implements LanternCoreService {
               (a.providers.supportSubscription ? 1 : 0);
         });
       }
-
-      appLogger.info('Plans: $plans');
       return Right(plans);
     } catch (e, stackTrace) {
       appLogger.error('Error fetching plans', e, stackTrace);
