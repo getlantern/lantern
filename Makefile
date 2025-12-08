@@ -462,7 +462,7 @@ format:
 	@echo "Formatting Swift code..."
 	$(MAKE) swift-format
 
-ios-release: clean pubget
+ios-release: clean pubget ios
 	flutter build ipa --release --export-options-plist ./ExportOptions.plist
 	@IPA_PATH=$(shell pwd)/build/ios/ipa; \
 	echo "iOS IPA generated under: $$IPA_PATH"; \
