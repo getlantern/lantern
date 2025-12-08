@@ -50,7 +50,7 @@ android {
 
     defaultConfig {
         applicationId = "org.getlantern.lantern"
-        minSdkVersion = flutter.minSdkVersion
+        minSdkVersion = 24
         targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
