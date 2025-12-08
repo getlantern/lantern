@@ -21,6 +21,7 @@ object AppLogger {
 
     fun init(context: Context) {
         logFile = File(LanternApp.application.dataDir, ".lantern/logs/lantern_android.log")
+
         if (!logFile.exists()) {
             logFile.createNewFile()
         }
@@ -39,9 +40,10 @@ object AppLogger {
         Log.i(tag, message)
         writeAsync("INFO", tag, message)
     }
-    fun w(tag: String, message: String,tr: Throwable? = null) {
-        Log.w(tag, message,tr)
-        writeAsync("INFO", tag, message)
+
+    fun w(tag: String, message: String, tr: Throwable? = null) {
+        Log.w(tag, message, tr)
+        writeAsync("WARN", tag, message)
     }
 
     fun e(tag: String, message: String, throwable: Throwable? = null) {
@@ -59,15 +61,13 @@ object AppLogger {
     private fun writeAsync(level: String, tag: String, msg: String) {
         scope.launch {
             try {
-                rotateIfNeeded()
-
                 writer?.apply {
                     append("${timestamp()} [$level][$tag] $msg\n")
                     flush()
                 }
 
             } catch (e: Exception) {
-                AppLogger.e("MyLogger", "Log write failure", e)
+                Log.e("MyLogger", "Log write failure", e)
             }
         }
     }
@@ -98,7 +98,7 @@ object AppLogger {
     }
 
     private fun log(tag: String, msg: String) {
-        AppLogger.d(tag, msg)
+        d(tag, msg)
         writeAsync("DEBUG", tag, msg)
     }
 }

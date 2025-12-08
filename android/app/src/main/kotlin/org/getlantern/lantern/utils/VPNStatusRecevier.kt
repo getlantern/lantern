@@ -14,7 +14,6 @@ class VPNStatusReceiver() : BroadcastReceiver() {
 
             LanternVpnService.ACTION_START_VPN -> {
                 AppLogger.d("VPNStatus", "VPN Started")
-
             }
 
             LanternVpnService.ACTION_STOP_VPN -> {

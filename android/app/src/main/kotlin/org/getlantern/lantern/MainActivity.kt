@@ -7,7 +7,6 @@ import android.net.VpnService
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import io.flutter.embedding.android.FlutterFragmentActivity
@@ -53,6 +52,8 @@ class MainActivity : FlutterFragmentActivity() {
         AppLogger.d(TAG, "Configuring FlutterEngine ${DeviceUtil.deviceId()}")
         setupDirs()
         AppLogger.d(TAG, "Config directories set up")
+        AppLogger.init(this)
+        AppLogger.d(TAG, "AppLogger initialized")
         ///Setup handler
         flutterEngine.plugins.add(EventHandler())
         flutterEngine.plugins.add(MethodHandler())

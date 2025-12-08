@@ -24,7 +24,7 @@ class LanternApp : Application() {
     override fun attachBaseContext(base: Context?) {
         super.attachBaseContext(base)
         application = this
-        AppLogger.init(this)
+
     }
 
 
