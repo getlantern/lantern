@@ -105,6 +105,7 @@ class LanternVpnService :
             }
 
             ACTION_STOP_VPN -> {
+                Log.d("LanternVpnService", "Received ACTION_STOP_VPN")
                 serviceScope.launch {
                     doStopVPN()
                 }
@@ -113,11 +114,6 @@ class LanternVpnService :
 
             else -> START_STICKY
         }
-    }
-
-    override fun onRevoke() {
-        super.onRevoke()
-        destroy()
     }
 
     override fun onDestroy() {
@@ -203,6 +199,13 @@ class LanternVpnService :
             VpnStatusManager.postVPNStatus(VPNStatus.MissingPermission)
             return@withContext
         }
+        /** As soon user tries to start VPN, we show a notification that VPN is starting
+         * This is required by OS to have foreground notification as soon as VPN service starts
+         * This notification will be replaced by connected notification once VPN is connected
+         * This is to prevent crashing in case vpn is failed to start
+         */
+        notificationHelper.showStartingVPNConnectedNotification(this@LanternVpnService)
+
         runCatching {
             DefaultNetworkMonitor.start()
             Mobile.connectToServer(location, tag, this@LanternVpnService, opts())
@@ -225,7 +228,6 @@ class LanternVpnService :
     fun doStopVPN() {
         Log.d("LanternVpnService", "doStopVPN")
         VpnStatusManager.postVPNStatus(VPNStatus.Disconnecting)
-
         serviceScope.launch {
             try {
                 mInterface?.close()
@@ -253,6 +255,7 @@ class LanternVpnService :
     }
 
     private fun destroy() {
+        Log.d("LanternVpnService", "destroying LanternVpnService")
         doStopVPN()
         serviceCleanUp()
     }

@@ -30,8 +30,9 @@ object VpnStatusManager {
     }
 
     fun registerVPNStatusReceiver(service: LanternVpnService) {
+        Log.d("VpnStatusManager", "Registering VPN Status Receiver")
         if (vpnReceiver != null) return
-        vpnReceiver = VPNStatusReceiver(service)
+        vpnReceiver = VPNStatusReceiver()
         ContextCompat.registerReceiver(
             LanternApp.application,
             vpnReceiver,

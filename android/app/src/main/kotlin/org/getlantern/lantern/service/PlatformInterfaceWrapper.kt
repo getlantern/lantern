@@ -13,7 +13,6 @@ import lantern.io.libbox.Libbox
 import lantern.io.libbox.NetworkInterfaceIterator
 import lantern.io.libbox.PlatformInterface
 import lantern.io.libbox.StringIterator
-import lantern.io.libbox.TunOptions
 import lantern.io.libbox.WIFIState
 import org.getlantern.lantern.LanternApp
 import java.net.Inet6Address

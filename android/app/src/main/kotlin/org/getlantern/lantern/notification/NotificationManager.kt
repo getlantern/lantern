@@ -9,6 +9,7 @@ import android.app.Service.STOP_FOREGROUND_REMOVE
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.getSystemService
 import org.getlantern.lantern.LanternApp
@@ -168,11 +169,11 @@ class NotificationHelper {
      * @param notificationId The unique notification ID.
      * @param notification The notification object built via [buildNotification].
      */
-    private fun showForegroundNotification(
-        service: Service,
+    private fun showForegroundNotification(service: Service,
         notificationId: Int,
         notification: Notification
     ) {
+        Log.d("Notification","Showing foreground notification with ID: $notificationId")
         service.startForeground(notificationId, notification)
     }
 
@@ -196,6 +197,7 @@ class NotificationHelper {
      * Updates the existing foreground notification.
      */
     private fun updateForegroundNotification() {
+        Log.d("Notification","Updating foreground VPN notification")
         val notification = buildVpnNotification()
         notificationManager.notify(VPN_CONNECTED, notification)
     }

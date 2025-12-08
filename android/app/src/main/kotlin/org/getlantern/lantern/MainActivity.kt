@@ -5,6 +5,8 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.VpnService
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -33,7 +35,14 @@ class MainActivity : FlutterFragmentActivity() {
         const val VPN_PERMISSION_REQUEST_CODE = 7777
         const val NOTIFICATION_PERMISSION_REQUEST_CODE = 1010
         var receiverRegistered: Boolean = false
+        var pendingServiceStart: Boolean = false
     }
+
+    private var retryCount = 0
+    private val maxRetries = 5
+    private val RETRY_DELAY_MS = 2000L // 2 seconds
+
+    private val serviceStartHandler = Handler(Looper.getMainLooper())
 
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -46,11 +55,19 @@ class MainActivity : FlutterFragmentActivity() {
         ///Setup handler
         flutterEngine.plugins.add(EventHandler())
         flutterEngine.plugins.add(MethodHandler())
-        startService()
+        startLanternService()
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Check if there is a pending service start
+        if (pendingServiceStart) {
+            Log.d(TAG, "Retrying pending service start")
+            startLanternService()
+        }
+    }
 
-    private fun startService() {
+    private fun startLanternService() {
         Log.d(TAG, "Starting LanternService")
         if (isServiceRunning(this, LanternVpnService::class.java)) {
             Log.d(TAG, "LanternService is already running")
@@ -62,10 +79,37 @@ class MainActivity : FlutterFragmentActivity() {
             }
             startService(radianceIntent)
             Log.d(TAG, "LanternService started")
+            pendingServiceStart = false
+        } catch (e: IllegalStateException) {
+            Log.e(TAG, "Cannot start service in background: ${e.message}")
+            // App is in background, schedule for when app comes to foreground
+            pendingServiceStart = true
         } catch (e: Exception) {
             e.printStackTrace()
+            Log.e(TAG, "Error starting LanternService", e)
+            // Got some issue starting service, schedule immediate retry
+            handleImmediateRetry()
         }
     }
+
+    private fun handleImmediateRetry() {
+        Log.d(TAG, "Handling immediate retry for LanternService start")
+        if (retryCount < maxRetries) {
+            retryCount++
+            val delay = RETRY_DELAY_MS * retryCount // Exponential backoff
+
+            Log.d(TAG, "Scheduling immediate retry #$retryCount in ${delay}ms")
+            serviceStartHandler.postDelayed({
+                startLanternService()
+            }, delay)
+        } else {
+            Log.e(TAG, "Max retries ($maxRetries) reached. Service start failed.")
+            // Optionally notify user or handle failure
+            // Wait for app to come to foreground
+            pendingServiceStart = true
+        }
+    }
+
 
     fun startVPN() {
         if (!NotificationHelper.hasPermission()) {
