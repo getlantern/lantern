@@ -1,4 +1,3 @@
-
 const languages = [
   'en_US',
   'fa_IR',
@@ -625,5 +624,4 @@ const localizedLocaleNames = {
   'en_VG': 'English (British Virgin Islands)',
   'tk': 'Türkmençe',
   'ps_AF': 'پښتو'
-
 };

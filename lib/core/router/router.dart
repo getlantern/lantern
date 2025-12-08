@@ -102,8 +102,8 @@ class AppRouter extends RootStackRouter {
       page: ResetPassword.page,
     ),
     AutoRoute(
-      path: '/activation-code',
-      page: ActivationCode.page,
+      path: '/lantern-pro-license',
+      page: LanternProLicense.page,
     ),
     AutoRoute(
       path: '/device-limit-reached',
@@ -175,6 +175,10 @@ class AppRouter extends RootStackRouter {
       path: '/system-extension-dialog',
       page: MacOSExtensionDialog.page,
       fullscreenDialog: true,
+    ),
+    AutoRoute(
+      path: '/developer-mode',
+      page: DeveloperMode.page,
     ),
   ];
 }

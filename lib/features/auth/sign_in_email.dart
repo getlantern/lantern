@@ -100,9 +100,8 @@ class SignInEmail extends HookConsumerWidget {
     final token = result['token'];
     if (token != null) {
       context.showLoadingDialog();
-      final result = await ref
-          .read(authProvider.notifier)
-          .oAuthLoginCallback(token);
+      final result =
+          await ref.read(authProvider.notifier).oAuthLoginCallback(token);
       result.fold(
         (failure) {
           context.hideLoadingDialog();

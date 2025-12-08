@@ -96,9 +96,8 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
     context.showLoadingDialog();
     final String email =
         sl<LocalStorageService>().getUser()!.legacyUserData.email;
-    final result = await ref
-        .read(authProvider.notifier)
-        .deleteAccount(email, password);
+    final result =
+        await ref.read(authProvider.notifier).deleteAccount(email, password);
 
     result.fold(
       (failure) {

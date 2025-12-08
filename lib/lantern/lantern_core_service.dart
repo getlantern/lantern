@@ -38,7 +38,7 @@ abstract class LanternCoreService {
   Future<Either<Failure, String>> featureFlag();
 
   Future<Either<Failure, Unit>> setBlockAdsEnabled(bool enabled);
-  
+
   Future<Either<Failure, bool>> isBlockAdsEnabled();
 
   ///Payments methods

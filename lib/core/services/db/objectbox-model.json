@@ -630,9 +630,33 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "16:7100413957344193553",
+      "lastPropertyId": "3:7373006372417925915",
+      "name": "DeveloperModeEntity",
+      "properties": [
+        {
+          "id": "1:2238654845681546490",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:7656944821432278757",
+          "name": "testPlayPurchaseEnabled",
+          "type": 1
+        },
+        {
+          "id": "3:7373006372417925915",
+          "name": "testStripePurchaseEnabled",
+          "type": 1
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "15:8199208392537907961",
+  "lastEntityId": "16:7100413957344193553",
   "lastIndexId": "3:1452151582306513699",
   "lastRelationId": "3:5180174885065282242",
   "lastSequenceId": "0:0",

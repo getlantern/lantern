@@ -6,8 +6,8 @@ import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/lantern/lantern_service.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'app_setting_notifier.g.dart';
 
@@ -68,7 +68,7 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     final prev = state.blockAds;
     update(state.copyWith(blockAds: value));
 
-    final LanternService svc = ref.read(lanternServiceProvider);
+    final svc = ref.read(lanternServiceProvider);
     svc.setBlockAdsEnabled(value).then((res) {
       res.match(
         (err) {

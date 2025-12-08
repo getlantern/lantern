@@ -1,17 +1,16 @@
 import 'dart:io';
 
-import 'package:i18n_extension/default.i18n.dart';
-import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/common/app_secrets.dart';
+import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/entity/app_data.dart';
 import 'package:lantern/core/models/entity/app_setting_entity.dart';
+import 'package:lantern/core/models/entity/developer_mode_entity.dart';
 import 'package:lantern/core/models/entity/plan_entity.dart';
 import 'package:lantern/core/models/entity/private_server_entity.dart';
 import 'package:lantern/core/models/entity/server_location_entity.dart';
 import 'package:lantern/core/models/entity/user_entity.dart';
 import 'package:lantern/core/models/entity/website.dart';
 import 'package:lantern/core/models/mapper/user_mapper.dart';
-import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:path/path.dart' as p;
 
@@ -22,6 +21,7 @@ import 'db/objectbox.g.dart';
 class LocalStorageService {
   late Store _store;
 
+  late Box<DeveloperModeEntity> _developerModeBox;
   late Box<AppSetting> _appSettingBox;
   late Box<AppData> _appsBox;
   late Box<Website> _websitesBox;
@@ -72,6 +72,7 @@ class LocalStorageService {
     _userBox = _store.box<UserResponseEntity>();
     _privateServerBox = _store.box<PrivateServerEntity>();
     _serverLocationBox = _store.box<ServerLocationEntity>();
+    _developerModeBox = _store.box<DeveloperModeEntity>();
     updateInitialServerLocation();
 
     dbLogger.info(
@@ -162,13 +163,22 @@ class LocalStorageService {
 
   // User methods
   void saveUser(UserResponseEntity user) {
-    _userBox.removeAll();
-    _userBox.putAsync(user);
+    try {
+      _userBox.removeAll();
+      _userBox.putAsync(user);
+    } catch (e) {
+      appLogger.error("Error saving user to local storage", e);
+    }
   }
 
   UserResponse? getUser() {
-    final user = _userBox.getAll();
-    return user.isEmpty ? null : user.first.toUserResponse();
+    try {
+      final user = _userBox.getAll();
+      return user.isEmpty ? null : user.first.toUserResponse();
+    } catch (e) {
+      appLogger.error("Error getting user from local storage", e);
+      return null;
+    }
   }
 
   void updateAppSetting(AppSetting appSetting) {
@@ -251,5 +261,16 @@ class LocalStorageService {
             serverType: ServerLocationType.auto.name,
           )
         : server.first;
+  }
+
+  /// Developer Mode methods
+  void updateDeveloperSetting(DeveloperModeEntity devSetting) {
+    _developerModeBox.removeAll();
+    _developerModeBox.put(devSetting);
+  }
+
+  DeveloperModeEntity? getDeveloperSetting() {
+    final devSetting = _developerModeBox.getAll();
+    return devSetting.isEmpty ? null : devSetting.first;
   }
 }

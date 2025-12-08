@@ -130,8 +130,8 @@ class PrivateServerNotifier extends _$PrivateServerNotifier {
         state = status;
 
         ///reset state to initial once server is added
-       await Future.delayed(const Duration(milliseconds: 500), () {
-           resetPrivateServerState();
+        await Future.delayed(const Duration(milliseconds: 500), () {
+          resetPrivateServerState();
         });
         break;
       default:

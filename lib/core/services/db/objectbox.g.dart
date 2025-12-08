@@ -16,6 +16,7 @@ import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
 import '../../../core/models/entity/app_data.dart';
 import '../../../core/models/entity/app_setting_entity.dart';
+import '../../../core/models/entity/developer_mode_entity.dart';
 import '../../../core/models/entity/plan_entity.dart';
 import '../../../core/models/entity/private_server_entity.dart';
 import '../../../core/models/entity/server_location_entity.dart';
@@ -759,6 +760,34 @@ final _entities = <obx_int.ModelEntity>[
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
   ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(16, 7100413957344193553),
+    name: 'DeveloperModeEntity',
+    lastPropertyId: const obx_int.IdUid(3, 7373006372417925915),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 2238654845681546490),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 7656944821432278757),
+        name: 'testPlayPurchaseEnabled',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 7373006372417925915),
+        name: 'testStripePurchaseEnabled',
+        type: 1,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
 ];
 
 /// Shortcut for [obx.Store.new] that passes [getObjectBoxModel] and for Flutter
@@ -799,7 +828,7 @@ Future<obx.Store> openStore({
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(15, 8199208392537907961),
+    lastEntityId: const obx_int.IdUid(16, 7100413957344193553),
     lastIndexId: const obx_int.IdUid(3, 1452151582306513699),
     lastRelationId: const obx_int.IdUid(3, 5180174885065282242),
     lastSequenceId: const obx_int.IdUid(0, 0),
@@ -864,11 +893,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final bundleIdParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 8, '');
-        final iconBytesParam =
-            const fb.Uint8ListReader(
-                  lazy: false,
-                ).vTableGetNullable(buffer, rootOffset, 10)
-                as Uint8List?;
+        final iconBytesParam = const fb.Uint8ListReader(
+          lazy: false,
+        ).vTableGetNullable(buffer, rootOffset, 10) as Uint8List?;
         final iconPathParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 12, '');
@@ -1757,6 +1784,45 @@ obx_int.ModelDefinition getObjectBoxModel() {
         return object;
       },
     ),
+    DeveloperModeEntity: obx_int.EntityDefinition<DeveloperModeEntity>(
+      model: _entities[14],
+      toOneRelations: (DeveloperModeEntity object) => [],
+      toManyRelations: (DeveloperModeEntity object) => {},
+      getId: (DeveloperModeEntity object) => object.id,
+      setId: (DeveloperModeEntity object, int id) {
+        object.id = id;
+      },
+      objectToFB: (DeveloperModeEntity object, fb.Builder fbb) {
+        fbb.startTable(4);
+        fbb.addInt64(0, object.id);
+        fbb.addBool(1, object.testPlayPurchaseEnabled);
+        fbb.addBool(2, object.testStripePurchaseEnabled);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final testStripePurchaseEnabledParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          8,
+          false,
+        );
+        final testPlayPurchaseEnabledParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          6,
+          false,
+        );
+        final object = DeveloperModeEntity(
+          testStripePurchaseEnabled: testStripePurchaseEnabledParam,
+          testPlayPurchaseEnabled: testPlayPurchaseEnabledParam,
+        )..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+
+        return object;
+      },
+    ),
   };
 
   return obx_int.ModelDefinition(model, bindings);
@@ -1939,8 +2005,8 @@ class PlansDataEntity_ {
   /// See [PlansDataEntity.providers].
   static final providers =
       obx.QueryRelationToOne<PlansDataEntity, ProvidersEntity>(
-        _entities[4].properties[1],
-      );
+    _entities[4].properties[1],
+  );
 
   /// see [PlansDataEntity.plans]
   static final plans = obx.QueryRelationToMany<PlansDataEntity, PlanEntity>(
@@ -2041,8 +2107,8 @@ class SubscriptionDataEntity_ {
   /// See [SubscriptionDataEntity.stripeCustomerID].
   static final stripeCustomerID =
       obx.QueryStringProperty<SubscriptionDataEntity>(
-        _entities[8].properties[2],
-      );
+    _entities[8].properties[2],
+  );
 
   /// See [SubscriptionDataEntity.startAt].
   static final startAt = obx.QueryStringProperty<SubscriptionDataEntity>(
@@ -2185,8 +2251,8 @@ class UserDataEntity_ {
   /// See [UserDataEntity.subscriptionData].
   static final subscriptionData =
       obx.QueryRelationToOne<UserDataEntity, SubscriptionDataEntity>(
-        _entities[9].properties[19],
-      );
+    _entities[9].properties[19],
+  );
 
   /// See [UserDataEntity.deviceID].
   static final deviceID = obx.QueryStringProperty<UserDataEntity>(
@@ -2229,14 +2295,14 @@ class UserResponseEntity_ {
   /// See [UserResponseEntity.legacyUserData].
   static final legacyUserData =
       obx.QueryRelationToOne<UserResponseEntity, UserDataEntity>(
-        _entities[10].properties[5],
-      );
+    _entities[10].properties[5],
+  );
 
   /// see [UserResponseEntity.devices]
   static final devices =
       obx.QueryRelationToMany<UserResponseEntity, DeviceEntity>(
-        _entities[10].relations[0],
-      );
+    _entities[10].relations[0],
+  );
 }
 
 /// [Website] entity fields to define ObjectBox queries.
@@ -2295,5 +2361,25 @@ class ServerLocationEntity_ {
   /// See [ServerLocationEntity.serverType].
   static final serverType = obx.QueryStringProperty<ServerLocationEntity>(
     _entities[13].properties[4],
+  );
+}
+
+/// [DeveloperModeEntity] entity fields to define ObjectBox queries.
+class DeveloperModeEntity_ {
+  /// See [DeveloperModeEntity.id].
+  static final id = obx.QueryIntegerProperty<DeveloperModeEntity>(
+    _entities[14].properties[0],
+  );
+
+  /// See [DeveloperModeEntity.testPlayPurchaseEnabled].
+  static final testPlayPurchaseEnabled =
+      obx.QueryBooleanProperty<DeveloperModeEntity>(
+    _entities[14].properties[1],
+  );
+
+  /// See [DeveloperModeEntity.testStripePurchaseEnabled].
+  static final testStripePurchaseEnabled =
+      obx.QueryBooleanProperty<DeveloperModeEntity>(
+    _entities[14].properties[2],
   );
 }

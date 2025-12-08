@@ -341,7 +341,7 @@ class LanternVpnService :
             Opts().apply {
                 dataDir = initConfigDir()
                 logDir = logDir()
-                logLevel = if (BuildConfig.DEBUG) "debug" else "warn"
+                logLevel = "debug"
                 deviceid = DeviceUtil.deviceId()
                 locale = DeviceUtil.getLanguageCode(this@LanternVpnService)
             }

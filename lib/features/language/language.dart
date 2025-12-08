@@ -98,9 +98,8 @@ class LanguageListView extends HookConsumerWidget {
     final newLocale =
         Locale(language.split('_').first, language.split('_').last);
 
-    final result = ref
-        .read(homeProvider.notifier)
-        .updateLocale(newLocale.toString());
+    final result =
+        ref.read(homeProvider.notifier).updateLocale(newLocale.toString());
 
     result.then((either) {
       either.fold(
@@ -114,9 +113,7 @@ class LanguageListView extends HookConsumerWidget {
       );
     });
 
-    ref
-        .read(appSettingProvider.notifier)
-        .setLocale(newLocale.toString());
+    ref.read(appSettingProvider.notifier).setLocale(newLocale.toString());
 
     appRouter.maybePop();
   }

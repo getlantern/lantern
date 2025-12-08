@@ -170,7 +170,7 @@ class _PlansState extends ConsumerState<Plans> {
               label: 'lantern_pro_license'.i18n,
               onPressed: () {
                 appRouter
-                    .popAndPush(AddEmail(authFlow: AuthFlow.activationCode));
+                    .popAndPush(AddEmail(authFlow: AuthFlow.lanternProLicense));
               },
             ),
             DividerSpace(),
@@ -208,7 +208,6 @@ class _PlansState extends ConsumerState<Plans> {
             inputFormatters: [
               UpperCaseTextFormatter(),
             ],
-            maxLength: 6,
             hintText: 'XXXXXX',
             prefixIcon: AppImagePaths.star,
           )

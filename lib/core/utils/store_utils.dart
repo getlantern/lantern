@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:lantern/core/common/common.dart';
 import 'package:store_checker/store_checker.dart';
 
 class StoreUtils {
@@ -8,11 +9,12 @@ class StoreUtils {
   Future<void> init() async {
     if (!Platform.isAndroid) return;
     Source installationSource = await StoreChecker.getSource;
-
-    if (installationSource == Source.IS_INSTALLED_FROM_PLAY_STORE ||
-        installationSource == Source.IS_INSTALLED_FROM_PLAY_PACKAGE_INSTALLER) {
+    appLogger.info('Installation source: $installationSource');
+    if (installationSource == Source.IS_INSTALLED_FROM_PLAY_STORE) {
+      appLogger.info('App is installed from Play Store');
       _isPlayStoreVersion = true;
     } else {
+      appLogger.info('App is side-loaded or installed from unknown source');
       _isPlayStoreVersion = false;
     }
   }
