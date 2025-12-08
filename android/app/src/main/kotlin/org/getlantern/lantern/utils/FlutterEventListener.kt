@@ -19,7 +19,7 @@ object FlutterEventStream {
 class FlutterEventListener : FlutterEventEmitter {
     override fun sendEvent(p0: FlutterEvent?) {
         if (p0 != null) {
-            Log.d("FlutterEventListener", "Sending Flutter event: $p0")
+            AppLogger.d("FlutterEventListener", "Sending Flutter event: $p0")
             FlutterEventStream.emit(p0)
         }
     }

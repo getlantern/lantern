@@ -15,6 +15,7 @@ import lantern.io.libbox.PlatformInterface
 import lantern.io.libbox.StringIterator
 import lantern.io.libbox.WIFIState
 import org.getlantern.lantern.LanternApp
+import org.getlantern.lantern.utils.AppLogger
 import java.net.Inet6Address
 import java.net.InetSocketAddress
 import java.net.InterfaceAddress
@@ -47,7 +48,7 @@ interface PlatformInterfaceWrapper : PlatformInterface {
             if (uid == Process.INVALID_UID) error("android: connection owner not found")
             return uid
         } catch (e: Exception) {
-            Log.e("PlatformInterface", "getConnectionOwnerUid", e)
+            AppLogger.e("PlatformInterface", "getConnectionOwnerUid", e)
             e.printStackTrace(System.err)
             throw e
         }
@@ -108,7 +109,7 @@ interface PlatformInterfaceWrapper : PlatformInterface {
             runCatching {
                 boxInterface.mtu = networkInterface.mtu
             }.onFailure {
-                Log.e(
+                AppLogger.e(
                     "PlatformInterface", "failed to get mtu for interface ${boxInterface.name}", it
                 )
             }

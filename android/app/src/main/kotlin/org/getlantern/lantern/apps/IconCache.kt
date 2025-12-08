@@ -13,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import org.getlantern.lantern.utils.AppLogger
 import java.io.File
 import java.io.FileOutputStream
 import java.util.concurrent.ConcurrentHashMap
@@ -70,7 +71,7 @@ internal object IconCache {
                 writeWebp(out, bmp)
                 out.absolutePath
             }.onFailure { e ->
-                Log.w(TAG, "Icon generation failed for $pkg", e)
+                AppLogger.w(TAG, "Icon generation failed for $pkg", e)
             }.getOrNull()
         }.also {
             if (lock.isLocked.not()) {

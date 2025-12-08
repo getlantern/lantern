@@ -20,6 +20,7 @@ import lantern.io.mobile.Mobile
 import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.apps.AppFilters
 import org.getlantern.lantern.constant.VPNStatus
+import org.getlantern.lantern.utils.AppLogger
 import org.getlantern.lantern.utils.PrivateServerListener
 import org.getlantern.lantern.utils.VpnStatusManager
 import java.io.File
@@ -640,7 +641,7 @@ class MethodHandler : FlutterPlugin,
                 scope.launch {
                     result.runCatching {
                         val email = call.arguments<String>();
-                        Log.d(TAG, "Logout email: $email")
+                        AppLogger.d(TAG, "Logout email: $email")
                         val bytes = Mobile.logout(email)
                         withContext(Dispatchers.Main) {
                             success(bytes)

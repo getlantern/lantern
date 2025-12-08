@@ -17,6 +17,7 @@ import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.R
 import org.getlantern.lantern.service.LanternVpnService
 import org.getlantern.lantern.service.LanternVpnService.Companion.ACTION_STOP_VPN
+import org.getlantern.lantern.utils.AppLogger
 
 
 class NotificationHelper {
@@ -173,7 +174,7 @@ class NotificationHelper {
         notificationId: Int,
         notification: Notification
     ) {
-        Log.d("Notification","Showing foreground notification with ID: $notificationId")
+        AppLogger.d("Notification","Showing foreground notification with ID: $notificationId")
         service.startForeground(notificationId, notification)
     }
 
@@ -197,7 +198,7 @@ class NotificationHelper {
      * Updates the existing foreground notification.
      */
     private fun updateForegroundNotification() {
-        Log.d("Notification","Updating foreground VPN notification")
+        AppLogger.d("Notification","Updating foreground VPN notification")
         val notification = buildVpnNotification()
         notificationManager.notify(VPN_CONNECTED, notification)
     }

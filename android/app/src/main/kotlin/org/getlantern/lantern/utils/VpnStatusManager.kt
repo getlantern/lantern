@@ -19,7 +19,7 @@ object VpnStatusManager {
     private var vpnReceiver: VPNStatusReceiver? = null
 
     fun postVPNStatus(status: VPNStatus) {
-        Log.d("VPNStatus", "Posting VPN status: $status")
+        AppLogger.d("VPNStatus", "Posting VPN status: $status")
         vpnStatus.postValue(Event(status))
     }
 
@@ -30,7 +30,7 @@ object VpnStatusManager {
     }
 
     fun registerVPNStatusReceiver(service: LanternVpnService) {
-        Log.d("VpnStatusManager", "Registering VPN Status Receiver")
+        AppLogger.d("VpnStatusManager", "Registering VPN Status Receiver")
         if (vpnReceiver != null) return
         vpnReceiver = VPNStatusReceiver()
         ContextCompat.registerReceiver(
@@ -50,7 +50,7 @@ object VpnStatusManager {
             try {
                 LanternApp.application.unregisterReceiver(it)
             } catch (e: IllegalArgumentException) {
-                Log.e("VpnStatusManager", "Receiver not registered", e)
+                AppLogger.e("VpnStatusManager", "Receiver not registered", e)
             }
         }
         vpnReceiver = null

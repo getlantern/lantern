@@ -42,7 +42,7 @@ class LogTailer(private val bufferSize: Int = 8192) {
 
                     } catch (e: Exception) {
                         // If anything fails inside the loop, stop reading gracefully
-                        Log.e("LogTailer", "Error reading log file chunk: ${e.message}")
+                        AppLogger.e("LogTailer", "Error reading log file chunk: ${e.message}")
                         break
                     }
                 }
@@ -53,7 +53,7 @@ class LogTailer(private val bufferSize: Int = 8192) {
                 }
             }
         } catch (e: Exception) {
-            Log.e("LogTailer", "Error reading log file: ${e.message}")
+            AppLogger.e("LogTailer", "Error reading log file: ${e.message}")
         }
 
         return lines.toList()

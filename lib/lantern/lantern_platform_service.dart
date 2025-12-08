@@ -603,7 +603,7 @@ class LanternPlatformService implements LanternCoreService {
       final bytes = await _methodChannel.invokeMethod('getUserData');
       return Right(UserResponse.fromBuffer(bytes));
     } catch (e, stackTrace) {
-      appLogger.error('Error fetching user data', e, stackTrace);
+      appLogger.error('Error getting getUserData user data', e, stackTrace);
       return Left(Failure(
           error: e.toString(),
           localizedErrorMessage: (e as Exception).localizedDescription));

@@ -13,12 +13,12 @@ class VPNStatusReceiver() : BroadcastReceiver() {
             }
 
             LanternVpnService.ACTION_START_VPN -> {
-                Log.d("VPNStatus", "VPN Started")
+                AppLogger.d("VPNStatus", "VPN Started")
 
             }
 
             LanternVpnService.ACTION_STOP_VPN -> {
-                Log.d("VPNStatus", "Stopping VPN")
+                AppLogger.d("VPNStatus", "Stopping VPN")
                 LanternVpnService.instance.doStopVPN()
             }
 

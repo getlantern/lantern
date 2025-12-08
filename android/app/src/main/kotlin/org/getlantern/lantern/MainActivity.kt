@@ -22,6 +22,7 @@ import org.getlantern.lantern.handler.MethodHandler
 import org.getlantern.lantern.notification.NotificationHelper
 import org.getlantern.lantern.service.LanternVpnService
 import org.getlantern.lantern.service.QuickTileService
+import org.getlantern.lantern.utils.AppLogger
 import org.getlantern.lantern.utils.DeviceUtil
 import org.getlantern.lantern.utils.VpnStatusManager
 import org.getlantern.lantern.utils.isServiceRunning
@@ -49,9 +50,9 @@ class MainActivity : FlutterFragmentActivity() {
         super.configureFlutterEngine(flutterEngine)
 
         instance = this
-        Log.d(TAG, "Configuring FlutterEngine ${DeviceUtil.deviceId()}")
+        AppLogger.d(TAG, "Configuring FlutterEngine ${DeviceUtil.deviceId()}")
         setupDirs()
-        Log.d(TAG, "Config directories set up")
+        AppLogger.d(TAG, "Config directories set up")
         ///Setup handler
         flutterEngine.plugins.add(EventHandler())
         flutterEngine.plugins.add(MethodHandler())
@@ -62,15 +63,15 @@ class MainActivity : FlutterFragmentActivity() {
         super.onResume()
         // Check if there is a pending service start
         if (pendingServiceStart) {
-            Log.d(TAG, "Retrying pending service start")
+            AppLogger.d(TAG, "Retrying pending service start")
             startLanternService()
         }
     }
 
     private fun startLanternService() {
-        Log.d(TAG, "Starting LanternService")
+        AppLogger.d(TAG, "Starting LanternService")
         if (isServiceRunning(this, LanternVpnService::class.java)) {
-            Log.d(TAG, "LanternService is already running")
+            AppLogger.d(TAG, "LanternService is already running")
             return
         }
         try {
@@ -78,32 +79,32 @@ class MainActivity : FlutterFragmentActivity() {
                 action = LanternVpnService.ACTION_START_RADIANCE
             }
             startService(radianceIntent)
-            Log.d(TAG, "LanternService started")
+            AppLogger.d(TAG, "LanternService started")
             pendingServiceStart = false
         } catch (e: IllegalStateException) {
-            Log.e(TAG, "Cannot start service in background: ${e.message}")
+            AppLogger.e(TAG, "Cannot start service in background: ${e.message}")
             // App is in background, schedule for when app comes to foreground
             pendingServiceStart = true
         } catch (e: Exception) {
             e.printStackTrace()
-            Log.e(TAG, "Error starting LanternService", e)
+            AppLogger.e(TAG, "Error starting LanternService", e)
             // Got some issue starting service, schedule immediate retry
             handleImmediateRetry()
         }
     }
 
     private fun handleImmediateRetry() {
-        Log.d(TAG, "Handling immediate retry for LanternService start")
+        AppLogger.d(TAG, "Handling immediate retry for LanternService start")
         if (retryCount < maxRetries) {
             retryCount++
             val delay = RETRY_DELAY_MS * retryCount // Exponential backoff
 
-            Log.d(TAG, "Scheduling immediate retry #$retryCount in ${delay}ms")
+            AppLogger.d(TAG, "Scheduling immediate retry #$retryCount in ${delay}ms")
             serviceStartHandler.postDelayed({
                 startLanternService()
             }, delay)
         } else {
-            Log.e(TAG, "Max retries ($maxRetries) reached. Service start failed.")
+            AppLogger.e(TAG, "Max retries ($maxRetries) reached. Service start failed.")
             // Optionally notify user or handle failure
             // Wait for app to come to foreground
             pendingServiceStart = true
@@ -117,7 +118,7 @@ class MainActivity : FlutterFragmentActivity() {
             return
         }
         if (!isVPNServiceReady()) {
-            Log.d(TAG, "VPN service not ready")
+            AppLogger.d(TAG, "VPN service not ready")
             return
         }
 
@@ -126,10 +127,10 @@ class MainActivity : FlutterFragmentActivity() {
                 action = LanternVpnService.ACTION_START_VPN
             }
             ContextCompat.startForegroundService(this, vpnIntent)
-            Log.d(TAG, "VPN service started")
+            AppLogger.d(TAG, "VPN service started")
         } catch (e: Exception) {
             e.printStackTrace()
-            Log.e(TAG, "Error starting VPN service", e)
+            AppLogger.e(TAG, "Error starting VPN service", e)
             throw e
         }
     }
@@ -140,14 +141,14 @@ class MainActivity : FlutterFragmentActivity() {
             return
         }
         if (!isVPNServiceReady()) {
-            Log.d(TAG, "VPN service not ready")
+            AppLogger.d(TAG, "VPN service not ready")
             return
         }
         // Check if VPN is already connected
         // if so then user already have vpn on now wish to switch server
         // Do not need to create server again just switch server
         if (Mobile.isVPNConnected()) {
-            Log.d(TAG, "VPN is already connected, switching server")
+            AppLogger.d(TAG, "VPN is already connected, switching server")
             CoroutineScope(Dispatchers.Main).launch {
                 LanternVpnService.instance.connectToServer(location, tag)
             }
@@ -161,10 +162,10 @@ class MainActivity : FlutterFragmentActivity() {
                 putExtra("location", location)
             }
             ContextCompat.startForegroundService(this, vpnIntent)
-            Log.d(TAG, "VPN service started")
+            AppLogger.d(TAG, "VPN service started")
         } catch (e: Exception) {
             e.printStackTrace()
-            Log.e(TAG, "Error starting VPN service", e)
+            AppLogger.e(TAG, "Error starting VPN service", e)
             throw e
         }
     }
@@ -189,7 +190,7 @@ class MainActivity : FlutterFragmentActivity() {
                     QuickTileService.triggerUpdateTileState(this@MainActivity, false)
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "stopVPN failed", e)
+                AppLogger.e(TAG, "stopVPN failed", e)
             }
         }
     }
@@ -204,7 +205,7 @@ class MainActivity : FlutterFragmentActivity() {
                 return true;
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error preparing VPN service", e)
+            AppLogger.e(TAG, "Error preparing VPN service", e)
             return false
         }
     }

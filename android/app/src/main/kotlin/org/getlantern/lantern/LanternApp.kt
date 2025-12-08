@@ -7,7 +7,7 @@ import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
 import android.os.PowerManager
 import androidx.core.content.getSystemService
-
+import org.getlantern.lantern.utils.AppLogger
 
 
 class LanternApp : Application() {
@@ -24,6 +24,7 @@ class LanternApp : Application() {
     override fun attachBaseContext(base: Context?) {
         super.attachBaseContext(base)
         application = this
+        AppLogger.init(this)
     }
 
 

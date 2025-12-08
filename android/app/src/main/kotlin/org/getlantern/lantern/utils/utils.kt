@@ -45,7 +45,7 @@ fun initConfigDir(): String {
     if (!success) {
         throw Exception("Failed to create config directory")
     }
-    Log.d("Paths", "Created config directory ${dir.absolutePath}")
+    AppLogger.d("Paths", "Created config directory ${dir.absolutePath}")
     return dir.absolutePath
 }
 
@@ -63,7 +63,7 @@ fun logDir(): String {
     if (!success) {
         throw Exception("Failed to create logs directory")
     }
-    Log.d("Paths", "Created config directory ${dir.absolutePath}")
+    AppLogger.d("Paths", "Created config directory ${dir.absolutePath}")
     return dir.absolutePath
 }
 

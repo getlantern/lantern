@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import org.getlantern.lantern.utils.AppLogger
 import java.io.File
 import java.io.FileOutputStream
 import java.util.Locale
@@ -45,12 +46,12 @@ internal class AppDataHandler(
                 (arguments["densityDpi"] as? Number)?.toInt()?.let { densityDpi = it }
             }
         } catch (e: Exception) {
-            Log.w(TAG, "Failed to parse app stream", e)
+            AppLogger.w(TAG, "Failed to parse app stream", e)
         }
 
         job = packageFlow(sizePx, densityDpi)
             .onEach { payload -> events?.success(payload) }
-            .catch { e -> Log.w(TAG, "app_stream flow error", e) }
+            .catch { e -> AppLogger.w(TAG, "app_stream flow error", e) }
             .launchIn(scope)
     }
 
@@ -122,7 +123,7 @@ internal class AppDataHandler(
                     }
                 }
             } catch (e: Exception) {
-                Log.w(TAG, "snapshot build failed", e)
+                AppLogger.w(TAG, "snapshot build failed", e)
             }
         }
 
@@ -162,7 +163,7 @@ internal class AppDataHandler(
                                     }
                                 }
                             } catch (e: Exception) {
-                                Log.w(TAG, "delta emit failed for $pkg", e)
+                                AppLogger.w(TAG, "delta emit failed for $pkg", e)
                             }
                         }
                     }
@@ -181,7 +182,7 @@ internal class AppDataHandler(
 
         awaitClose {
             runCatching { appCtx.unregisterReceiver(receiver) }
-                .onFailure { e -> Log.w(TAG, "unregister app_stream receiver failed", e) }
+                .onFailure { e -> AppLogger.w(TAG, "unregister app_stream receiver failed", e) }
         }
     }
 

@@ -6,6 +6,7 @@ import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
 import 'package:lantern/features/home/provider/app_event_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/vpn/location_setting.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/vpn_status.dart';
@@ -96,7 +97,9 @@ class _HomeState extends ConsumerState<Home>
 
   @override
   Widget build(BuildContext context) {
-    final isUserPro = ref.isUserPro;
+    final isUserPro = ref.watch(homeProvider.select(
+      (value) => value.value?.legacyUserData.userLevel == 'pro',
+    ));
     textTheme = Theme.of(context).textTheme;
     ref.read(appEventProvider);
     return Scaffold(

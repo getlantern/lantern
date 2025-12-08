@@ -71,7 +71,7 @@ object DeviceUtil {
                 .getInstallerPackageName(activity.packageName)
             return installer != null && validInstallers.contains(installer)
         } catch (e: java.lang.Exception) {
-            Log.e(
+            AppLogger.e(
                 "DeviceUtil",
                 "Error checking store version",
                 e
