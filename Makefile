@@ -101,7 +101,7 @@ GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go')
 GOMOBILE_VERSION ?= latest
 GOMOBILE_REPOS = \
 	github.com/sagernet/sing-box/experimental/libbox \
-	github.com/getlantern/lantern-box/ruleset \
+	github.com/getlantern/sing-box-extensions/ruleset \
 	./lantern-core/mobile \
 	./lantern-core/utils
 
@@ -143,14 +143,14 @@ require-ac-password: guard-AC_PASSWORD ## App Store Connect password - needed fo
 
 ifeq ($(OS),Windows_NT)
   NORMALIZED_CURDIR := $(shell echo $(CURDIR) | sed 's|\\\\|/|g')
-  SETENV = set CGO_ENABLED=1&& set CGO_CFLAGS=-I$(NORMALIZED_CURDIR)/dart_api_dl/include&& set CGO_LDFLAGS=$(WINDOWS_CGO_LDFLAGS)&&
+  SETENV = set CGO_ENABLED=1&& set CGO_CFLAGS=-I$(NORMALIZED_CURDIR)/dart_api_dl/include&&
 else
   SETENV = CGO_ENABLED=1 CGO_CFLAGS=-I$(CURDIR)/dart_api_dl/include
 endif
 
 .PHONY: desktop-lib
 desktop-lib:
-	$(SETENV) go build -v -trimpath -buildmode=c-shared \
+	$(SETENV) CGO_LDFLAGS="$(CGO_LDFLAGS)" go build -v -trimpath -buildmode=c-shared \
 		-tags="$(TAGS)" \
 		-ldflags="-w -s $(EXTRA_LDFLAGS)" \
 		-o $(LIB_NAME) ./$(FFI_DIR)
@@ -287,12 +287,12 @@ windows-amd64: WINDOWS_GOOS := windows
 windows-amd64: WINDOWS_GOARCH := amd64
 windows-amd64:
 	$(call MKDIR_P,$(dir $(WINDOWS_LIB_AMD64)))
-	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_AMD64)
+	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_AMD64) CGO_LDFLAGS="$(WINDOWS_CGO_LDFLAGS)"
 windows-arm64: WINDOWS_GOOS := windows
 windows-arm64: WINDOWS_GOARCH := arm64
 windows-arm64:
 	$(call MKDIR_P,$(dir $(WINDOWS_LIB_ARM64)))
-	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_ARM64)
+	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_ARM64) CGO_LDFLAGS="$(WINDOWS_CGO_LDFLAGS)"
 
 .PHONY: build-lanternsvc-windows
 build-lanternsvc-windows: $(WINDOWS_SERVICE_BUILD)
