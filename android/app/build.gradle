@@ -8,9 +8,9 @@ plugins {
 def hasRelProp = { name -> project.hasProperty(name) && project.property(name)?.toString()?.trim() }
 def hasReleaseKeystore =
         hasRelProp('KEYSTORE_FILE') &&
-                hasRelProp('KEYSTORE_PWD') &&
-                hasRelProp('RELEASE_KEY_ALIAS') &&
-                hasRelProp('KEY_PWD')
+        hasRelProp('KEYSTORE_PWD') &&
+        hasRelProp('KEY_ALIAS') &&
+        hasRelProp('KEY_PWD')
 
 android {
     namespace = "org.getlantern.lantern"
