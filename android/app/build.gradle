@@ -7,10 +7,10 @@ plugins {
 
 def hasRelProp = { name -> project.hasProperty(name) && project.property(name)?.toString()?.trim() }
 def hasReleaseKeystore =
-        hasRelProp('RELEASE_STORE_FILE') &&
-        hasRelProp('RELEASE_STORE_PASSWORD') &&
-        hasRelProp('RELEASE_KEY_ALIAS') &&
-        hasRelProp('RELEASE_KEY_PASSWORD')
+        hasRelProp('KEYSTORE_FILE') &&
+                hasRelProp('KEYSTORE_PWD') &&
+                hasRelProp('RELEASE_KEY_ALIAS') &&
+                hasRelProp('KEY_PWD')
 
 android {
     namespace = "org.getlantern.lantern"
@@ -41,7 +41,7 @@ android {
     }
 
     // Use legacy packaging to helps reduce apk size
-    packagingOptions{
+    packagingOptions {
         exclude "DebugProbesKt.bin"
         jniLibs {
             useLegacyPackaging true
@@ -64,7 +64,7 @@ android {
         externalNativeBuild {
             cmake {
                 cppFlags "-std=c++14 -fexceptions -frtti"
-                arguments "-DANDROID_ARM_NEON=TRUE",'-DANDROID_STL=c++_shared'
+                arguments "-DANDROID_ARM_NEON=TRUE", '-DANDROID_STL=c++_shared'
             }
         }
         buildFeatures {
@@ -75,10 +75,10 @@ android {
     signingConfigs {
         if (hasReleaseKeystore) {
             release {
-                storeFile file(project.property('RELEASE_STORE_FILE'))
-                storePassword project.property('RELEASE_STORE_PASSWORD')
-                keyAlias project.property('RELEASE_KEY_ALIAS')
-                keyPassword project.property('RELEASE_KEY_PASSWORD')
+                storeFile file(project.property('KEYSTORE_FILE'))
+                storePassword project.property('KEYSTORE_PWD')
+                keyAlias project.property('KEY_ALIAS')
+                keyPassword project.property('KEY_PWD')
             }
         }
     }
