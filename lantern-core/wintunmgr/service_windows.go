@@ -25,6 +25,15 @@ import (
 	ripc "github.com/getlantern/radiance/vpn/ipc"
 )
 
+type Status string
+
+const (
+	StatusConnecting    Status = "Connecting"
+	StatusConnected     Status = "Connected"
+	StatusDisconnecting Status = "Disconnecting"
+	StatusDisconnected  Status = "Disconnected"
+)
+
 type ServiceOptions struct {
 	PipeName  string
 	DataDir   string
@@ -70,6 +79,49 @@ func NewService(opts ServiceOptions, wt *Manager) (*Service, error) {
 	}, nil
 }
 
+func (s *Service) Subscribe(id string) (<-chan statusEvent, func()) {
+	s.subsMu.Lock()
+	defer s.subsMu.Unlock()
+
+	// If existing
+	if ch, ok := s.statusSubs[id]; ok {
+		return ch, func() { s.Unsubscribe(id) }
+	}
+
+	// Create new channel
+	ch := make(chan statusEvent, 16)
+	s.statusSubs[id] = ch
+
+	// Send initial snapshot (non-blocking)
+	go func() {
+		select {
+		case ch <- s.statusSnapshot():
+		default:
+		}
+	}()
+
+	return ch, func() { s.Unsubscribe(id) }
+}
+
+func (s *Service) Unsubscribe(id string) {
+	s.subsMu.Lock()
+	defer s.subsMu.Unlock()
+
+	if ch, ok := s.statusSubs[id]; ok {
+		delete(s.statusSubs, id)
+		close(ch)
+	}
+}
+
+func (s *Service) UpdateStatus(state string) {
+	evt := statusEvent{
+		Event: "Status",
+		State: state,
+		Ts:    time.Now().UnixMilli(),
+	}
+	s.broadcastStatus(evt)
+}
+
 func (s *Service) statusSnapshot() statusEvent {
 	return statusEvent{
 		Event: "Status",
@@ -81,26 +133,22 @@ func (s *Service) statusSnapshot() statusEvent {
 func (s *Service) connectionState() string {
 	state := s.rServer.GetStatus()
 	if state == ripc.StatusRunning {
-		return "Connected"
+		return string(StatusConnected)
 	}
-	return "Disconnected"
+	return string(StatusDisconnected)
 }
 
-func (s *Service) broadcastStatus() {
-	evt := s.statusSnapshot()
+func (s *Service) broadcastStatus(evt statusEvent) {
 	s.subsMu.RLock()
+	defer s.subsMu.RUnlock()
 	for id, ch := range s.statusSubs {
 		select {
+		// sent ok
 		case ch <- evt:
 		default:
-			go func(id string) {
-				s.subsMu.Lock()
-				delete(s.statusSubs, id)
-				s.subsMu.Unlock()
-			}(id)
+			go s.Unsubscribe(id)
 		}
 	}
-	s.subsMu.RUnlock()
 }
 
 // token file is created at install time (we also generate if missing)
@@ -181,32 +229,25 @@ func (s *Service) Start(ctx context.Context) error {
 }
 
 func (s *Service) handleWatchStatus(ctx context.Context, connID string, enc *json.Encoder, done chan struct{}) {
-	ch := make(chan statusEvent, 8)
-	s.subsMu.Lock()
-	s.statusSubs[connID] = ch
-	s.subsMu.Unlock()
+	ch, unsub := s.Subscribe(connID)
 	enc.Encode(s.statusSnapshot())
 
 	go func() {
-		defer func() {
-			s.subsMu.Lock()
-			delete(s.statusSubs, connID)
-			s.subsMu.Unlock()
-		}()
-		prev := ""
-		t := time.NewTicker(800 * time.Millisecond)
-		defer t.Stop()
+		defer unsub()
+
 		for {
 			select {
 			case <-ctx.Done():
 				return
 			case <-done:
 				return
-			case <-t.C:
-				state := s.connectionState()
-				if state != prev {
-					prev = state
-					_ = enc.Encode(statusEvent{Event: "Status", State: state, Ts: time.Now().Unix()})
+
+			case evt, ok := <-ch:
+				if !ok {
+					return
+				}
+				if err := enc.Encode(evt); err != nil {
+					return
 				}
 			}
 		}
@@ -384,17 +425,19 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		return &Response{ID: r.ID, Result: map[string]any{"ok": true}}
 
 	case common.CmdStartTunnel:
+		go s.UpdateStatus(string(StatusConnecting))
 		if err := s.rServer.StartService(ctx, "lantern", ""); err != nil {
 			return rpcErr(r.ID, "start_error", err.Error())
 		}
-		go s.broadcastStatus()
+		go s.UpdateStatus(string(StatusConnected))
 		return &Response{ID: r.ID, Result: map[string]any{"started": true}}
 
 	case common.CmdStopTunnel:
+		go s.UpdateStatus(string(StatusDisconnecting))
 		if err := s.rServer.StopService(ctx); err != nil {
 			return rpcErr(r.ID, "stop_error", err.Error())
 		}
-		go s.broadcastStatus()
+		go s.UpdateStatus(string(StatusDisconnected))
 		return &Response{ID: r.ID, Result: map[string]any{"stopped": true}}
 
 	case common.CmdIsVPNRunning:
@@ -413,10 +456,11 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		if group == "" {
 			group = "lantern"
 		}
+		go s.UpdateStatus(string(StatusConnecting))
 		if err := s.rServer.StartService(ctx, group, p.Tag); err != nil {
 			return rpcErr(r.ID, "connect_error", err.Error())
 		}
-		go s.broadcastStatus()
+		go s.UpdateStatus(string(StatusConnected))
 		return &Response{ID: r.ID, Result: "ok"}
 
 	default:
