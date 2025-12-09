@@ -70,39 +70,6 @@ func NewService(opts ServiceOptions, wt *Manager) (*Service, error) {
 	}, nil
 }
 
-func (s *Service) statusSnapshot() statusEvent {
-	return statusEvent{
-		Event: "Status",
-		State: s.connectionState(),
-		Ts:    time.Now().Unix(),
-	}
-}
-
-func (s *Service) connectionState() string {
-	state := s.rServer.GetStatus()
-	if state == ripc.StatusRunning {
-		return "Connected"
-	}
-	return "Disconnected"
-}
-
-func (s *Service) broadcastStatus() {
-	evt := s.statusSnapshot()
-	s.subsMu.RLock()
-	for id, ch := range s.statusSubs {
-		select {
-		case ch <- evt:
-		default:
-			go func(id string) {
-				s.subsMu.Lock()
-				delete(s.statusSubs, id)
-				s.subsMu.Unlock()
-			}(id)
-		}
-	}
-	s.subsMu.RUnlock()
-}
-
 // token file is created at install time (we also generate if missing)
 func (s *Service) getToken() (string, error) {
 	if _, err := os.Stat(s.opts.TokenPath); errors.Is(err, os.ErrNotExist) {
@@ -185,32 +152,11 @@ func (s *Service) handleWatchStatus(ctx context.Context, connID string, enc *jso
 	s.subsMu.Lock()
 	s.statusSubs[connID] = ch
 	s.subsMu.Unlock()
-	enc.Encode(s.statusSnapshot())
 
-	go func() {
-		defer func() {
-			s.subsMu.Lock()
-			delete(s.statusSubs, connID)
-			s.subsMu.Unlock()
-		}()
-		prev := ""
-		t := time.NewTicker(800 * time.Millisecond)
-		defer t.Stop()
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case <-done:
-				return
-			case <-t.C:
-				state := s.connectionState()
-				if state != prev {
-					prev = state
-					_ = enc.Encode(statusEvent{Event: "Status", State: state, Ts: time.Now().Unix()})
-				}
-			}
-		}
-	}()
+	s.rServer.AddVPNStatusListener(func(status string) {
+		slog.Info("Radiance VPN status changed", "status", status)
+		_ = enc.Encode(statusEvent{Event: "Status", State: status, Ts: time.Now().Unix()})
+	})
 }
 
 func (s *Service) handleWatchLogs(ctx context.Context, enc *json.Encoder, done chan struct{}) {
@@ -387,14 +333,12 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		if err := s.rServer.StartService(ctx, "lantern", ""); err != nil {
 			return rpcErr(r.ID, "start_error", err.Error())
 		}
-		go s.broadcastStatus()
 		return &Response{ID: r.ID, Result: map[string]any{"started": true}}
 
 	case common.CmdStopTunnel:
 		if err := s.rServer.StopService(ctx); err != nil {
 			return rpcErr(r.ID, "stop_error", err.Error())
 		}
-		go s.broadcastStatus()
 		return &Response{ID: r.ID, Result: map[string]any{"stopped": true}}
 
 	case common.CmdIsVPNRunning:
@@ -416,7 +360,6 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		if err := s.rServer.StartService(ctx, group, p.Tag); err != nil {
 			return rpcErr(r.ID, "connect_error", err.Error())
 		}
-		go s.broadcastStatus()
 		return &Response{ID: r.ID, Result: "ok"}
 
 	default:
