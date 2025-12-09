@@ -21,6 +21,7 @@ import (
 
 	"github.com/Microsoft/go-winio"
 	"github.com/getlantern/lantern-outline/lantern-core/common"
+	"github.com/getlantern/radiance/servers"
 	rvpn "github.com/getlantern/radiance/vpn"
 	ripc "github.com/getlantern/radiance/vpn/ipc"
 )
@@ -58,6 +59,7 @@ type statusEvent struct {
 	Event string `json:"event"`
 	State string `json:"state"`
 	Ts    int64  `json:"ts"`
+	Error string `json:"error,omitempty"`
 }
 
 type logsEvent struct {
@@ -115,6 +117,16 @@ func (s *Service) UpdateStatus(state string) {
 		Event: "Status",
 		State: state,
 		Ts:    time.Now().UnixMilli(),
+	}
+	s.broadcastStatus(evt)
+}
+
+func (s *Service) ErrorStatus(state error) {
+	evt := statusEvent{
+		Event: "Status",
+		State: string(StatusError),
+		Ts:    time.Now().UnixMilli(),
+		Error: state.Error(),
 	}
 	s.broadcastStatus(evt)
 }
@@ -448,7 +460,7 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 			s.UpdateStatus(string(StatusConnecting))
 			// Use background context for the operation so it continues independent of the request context
 			if err := s.rServer.StartService(context.Background(), "lantern", ""); err != nil {
-				s.UpdateStatus(string(StatusError))
+				s.ErrorStatus(err)
 				slog.Error("StartService error", "error", err)
 				return
 			}
@@ -460,7 +472,7 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		go func() {
 			s.UpdateStatus(string(StatusDisconnecting))
 			if err := s.rServer.StopService(context.Background()); err != nil {
-				s.UpdateStatus(string(StatusError))
+				s.ErrorStatus(err)
 				slog.Error("StopService error", "error", err)
 				return
 			}
@@ -485,14 +497,18 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 			return rpcErr(r.ID, "bad_params", err.Error())
 		}
 		group := strings.TrimSpace(p.Location)
-		if group == "" {
-			group = "lantern"
+		switch group {
+		case "privateServer":
+			group = servers.SGUser
+		case "lanternLocation":
+			group = servers.SGLantern
 		}
+		slog.Debug("ConnectToServer request", "group", group, "tag", p.Tag)
 		// Run connect asynchronously and update status as it progresses.
 		go func(group, tag string) {
 			s.UpdateStatus(string(StatusConnecting))
 			if err := s.rServer.StartService(context.Background(), group, tag); err != nil {
-				s.UpdateStatus(string(StatusError))
+				s.ErrorStatus(err)
 				slog.Error("ConnectToServer error", "group", group, "tag", tag, "error", err)
 				return
 			}

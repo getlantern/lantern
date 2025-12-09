@@ -10,10 +10,10 @@ class LanternServiceWindows {
   LanternServiceWindows(this._rpcPipe);
 
   final PipeClient _rpcPipe;
+
   // dedicated streaming pipes
   PipeClient? _statusPipe;
   PipeClient? _logsPipe;
-
 
   Future<void> init() async {
     try {
@@ -85,11 +85,12 @@ class LanternServiceWindows {
   Stream<LanternStatus> watchVPNStatus() {
     _statusPipe ??= PipeClient(token: _rpcPipe.token);
 
-    return _statusPipe!
-        .watchStatus()
-        .map((evt) {
-      final raw = evt['state'] as String? ?? 'Disconnected';
-      return LanternStatus.fromJson({'status': raw.toLowerCase()});
+    return _statusPipe!.watchStatus().map((evt) {
+      final data = evt;
+      final raw = data['state'] as String? ?? 'Disconnected';
+      final error = data['error'];
+      return LanternStatus.fromJson(
+          {'status': raw.toLowerCase(), 'error': error});
     }).handleError((error, st) {
       appLogger.error('[WS] watchStatus() stream error', error, st);
     });
