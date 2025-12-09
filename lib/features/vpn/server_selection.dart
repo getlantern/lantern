@@ -36,7 +36,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
   @override
   Widget build(BuildContext context) {
     var serverLocation = ref.watch(serverLocationProvider);
-    final isUserPro = ref.isUserPro;
+    final isUserPro = ref.watch(isUserProProvider);
     _textTheme = Theme.of(context).textTheme;
     final isPrivateServerFound = storage.getPrivateServer().isNotEmpty;
     return BaseScreen(
