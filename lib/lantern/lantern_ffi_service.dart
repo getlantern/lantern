@@ -82,7 +82,6 @@ class LanternFFIService implements LanternCoreService {
   Future<void> init() async {
     try {
       await _setupRadiance();
-
       if (Platform.isWindows) {
         /// Start windows IPC service
         /// keep it alive but we wil use only for VPN calls

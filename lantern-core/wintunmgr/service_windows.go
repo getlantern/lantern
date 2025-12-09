@@ -93,13 +93,9 @@ func (s *Service) Subscribe(id string) (<-chan statusEvent, func()) {
 	ch := make(chan statusEvent, 16)
 	s.statusSubs[id] = ch
 
-	// Send initial snapshot (non-blocking)
-	go func() {
-		select {
-		case ch <- s.statusSnapshot():
-		default:
-		}
-	}()
+	// NOTE: we used to send an initial snapshot here. That is now handled
+	// by the watch handler (handleWatchStatus) to ensure encoding is serialized
+	// with the connection's writer mutex.
 
 	return ch, func() { s.Unsubscribe(id) }
 }
@@ -127,7 +123,7 @@ func (s *Service) statusSnapshot() statusEvent {
 	return statusEvent{
 		Event: "Status",
 		State: s.connectionState(),
-		Ts:    time.Now().Unix(),
+		Ts:    time.Now().UnixMilli(),
 	}
 }
 
@@ -147,6 +143,7 @@ func (s *Service) broadcastStatus(evt statusEvent) {
 		// sent ok
 		case ch <- evt:
 		default:
+			// If subscriber's buffer is full, unsubscribe asynchronously
 			go s.Unsubscribe(id)
 		}
 	}
@@ -229,9 +226,14 @@ func (s *Service) Start(ctx context.Context) error {
 	}
 }
 
-func (s *Service) handleWatchStatus(ctx context.Context, connID string, enc *json.Encoder, done chan struct{}) {
+func (s *Service) handleWatchStatus(ctx context.Context, connID string, enc *json.Encoder, done chan struct{}, wmu *sync.Mutex) {
 	ch, unsub := s.Subscribe(connID)
-	enc.Encode(s.statusSnapshot())
+	// Send initial snapshot (serialized with connection writer mutex)
+	func() {
+		wmu.Lock()
+		defer wmu.Unlock()
+		_ = enc.Encode(s.statusSnapshot())
+	}()
 
 	go func() {
 		defer unsub()
@@ -242,20 +244,23 @@ func (s *Service) handleWatchStatus(ctx context.Context, connID string, enc *jso
 				return
 			case <-done:
 				return
-
 			case evt, ok := <-ch:
 				if !ok {
 					return
 				}
+				// Serialize writes to the connection
+				wmu.Lock()
 				if err := enc.Encode(evt); err != nil {
+					wmu.Unlock()
 					return
 				}
+				wmu.Unlock()
 			}
 		}
 	}()
 }
 
-func (s *Service) handleWatchLogs(ctx context.Context, enc *json.Encoder, done chan struct{}) {
+func (s *Service) handleWatchLogs(ctx context.Context, enc *json.Encoder, done chan struct{}, wmu *sync.Mutex) {
 	logFile := filepath.Join(s.opts.LogDir, "lantern.log")
 	_ = os.MkdirAll(s.opts.LogDir, 0o755)
 	if _, err := os.Stat(logFile); errors.Is(err, os.ErrNotExist) {
@@ -265,7 +270,9 @@ func (s *Service) handleWatchLogs(ctx context.Context, enc *json.Encoder, done c
 	// Start by sending the most recent chunk of the log
 	const maxTail = 200
 	if last, err := readLastLines(logFile, maxTail); err == nil && len(last) > 0 {
+		wmu.Lock()
 		_ = enc.Encode(logsEvent{Event: "Logs", Lines: last, Ts: time.Now().Unix()})
+		wmu.Unlock()
 	}
 
 	// Then keep watching the file to stream new lines as they’re written
@@ -342,9 +349,11 @@ func (s *Service) handleWatchLogs(ctx context.Context, enc *json.Encoder, done c
 					}
 					lines = append(lines, ln)
 				}
-				// Send new lines to client
+				// Send new lines to client (serialized)
 				if len(lines) > 0 {
+					wmu.Lock()
 					_ = enc.Encode(logsEvent{Event: "Logs", Lines: lines, Ts: time.Now().Unix()})
+					wmu.Unlock()
 				}
 			}
 		}
@@ -354,6 +363,9 @@ func (s *Service) handleWatchLogs(ctx context.Context, enc *json.Encoder, done c
 func (s *Service) handleConn(ctx context.Context, c net.Conn, token, connID string) {
 	dec := json.NewDecoder(c)
 	enc := json.NewEncoder(c)
+
+	// writer mutex to serialize writes to this connection/encoder
+	wmu := &sync.Mutex{}
 
 	done := make(chan struct{})
 	defer func() {
@@ -374,15 +386,17 @@ func (s *Service) handleConn(ctx context.Context, c net.Conn, token, connID stri
 		cmd := string(req.Cmd)
 
 		if req.Token != token {
+			wmu.Lock()
 			_ = enc.Encode(rpcErr(req.ID, "unauthorized", "bad token"))
+			wmu.Unlock()
 			continue
 		}
 		if req.Cmd == common.CmdWatchStatus {
-			s.handleWatchStatus(ctx, connID, enc, done)
+			s.handleWatchStatus(ctx, connID, enc, done, wmu)
 			continue
 		}
 		if req.Cmd == common.CmdWatchLogs {
-			s.handleWatchLogs(ctx, enc, done)
+			s.handleWatchLogs(ctx, enc, done, wmu)
 			continue
 		}
 		start := time.Now()
@@ -394,7 +408,10 @@ func (s *Service) handleConn(ctx context.Context, c net.Conn, token, connID stri
 		} else {
 			slog.Debug("cmd ok", "conn_id", connID, "req_id", reqID, "cmd", cmd, "elapsed_ms", elapsed)
 		}
+		// Serialize response write
+		wmu.Lock()
 		_ = enc.Encode(resp)
+		wmu.Unlock()
 	}
 }
 
@@ -426,21 +443,29 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		return &Response{ID: r.ID, Result: map[string]any{"ok": true}}
 
 	case common.CmdStartTunnel:
-		go s.UpdateStatus(string(StatusConnecting))
-		if err := s.rServer.StartService(ctx, "lantern", ""); err != nil {
-			go s.UpdateStatus(string(StatusError))
-			return rpcErr(r.ID, "start_error", err.Error())
-		}
-		go s.UpdateStatus(string(StatusConnected))
+		// Start the service asynchronously so the RPC returns immediately.
+		go func() {
+			s.UpdateStatus(string(StatusConnecting))
+			// Use background context for the operation so it continues independent of the request context
+			if err := s.rServer.StartService(context.Background(), "lantern", ""); err != nil {
+				s.UpdateStatus(string(StatusError))
+				slog.Error("StartService error", "error", err)
+				return
+			}
+			s.UpdateStatus(string(StatusConnected))
+		}()
 		return &Response{ID: r.ID, Result: map[string]any{"started": true}}
 
 	case common.CmdStopTunnel:
-		go s.UpdateStatus(string(StatusDisconnecting))
-		if err := s.rServer.StopService(ctx); err != nil {
-			go s.UpdateStatus(string(StatusError))
-			return rpcErr(r.ID, "stop_error", err.Error())
-		}
-		go s.UpdateStatus(string(StatusDisconnected))
+		go func() {
+			s.UpdateStatus(string(StatusDisconnecting))
+			if err := s.rServer.StopService(context.Background()); err != nil {
+				s.UpdateStatus(string(StatusError))
+				slog.Error("StopService error", "error", err)
+				return
+			}
+			s.UpdateStatus(string(StatusDisconnected))
+		}()
 		return &Response{ID: r.ID, Result: map[string]any{"stopped": true}}
 
 	case common.CmdIsVPNRunning:
@@ -459,12 +484,16 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		if group == "" {
 			group = "lantern"
 		}
-		go s.UpdateStatus(string(StatusConnecting))
-		if err := s.rServer.StartService(ctx, group, p.Tag); err != nil {
-			go s.UpdateStatus(string(StatusError))
-			return rpcErr(r.ID, "connect_error", err.Error())
-		}
-		go s.UpdateStatus(string(StatusConnected))
+		// Run connect asynchronously and update status as it progresses.
+		go func(group, tag string) {
+			s.UpdateStatus(string(StatusConnecting))
+			if err := s.rServer.StartService(context.Background(), group, tag); err != nil {
+				s.UpdateStatus(string(StatusError))
+				slog.Error("ConnectToServer error", "group", group, "tag", tag, "error", err)
+				return
+			}
+			s.UpdateStatus(string(StatusConnected))
+		}(group, p.Tag)
 		return &Response{ID: r.ID, Result: "ok"}
 
 	default:

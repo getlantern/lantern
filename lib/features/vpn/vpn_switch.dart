@@ -96,7 +96,10 @@ class VPNSwitch extends HookConsumerWidget {
         await ref.read(vpnProvider.notifier).onVPNStateChange(context);
 
     result.fold(
-      (failure) => context.showSnackBar(failure.localizedErrorMessage),
+      (failure) {
+        context.showSnackBar(failure.localizedErrorMessage);
+        appLogger.error("Error changing VPN state: ${failure.localizedErrorMessage}");
+      },
       (_) => null,
     );
   }
