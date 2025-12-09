@@ -470,6 +470,10 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 
 	case common.CmdIsVPNRunning:
 		st := s.rServer.GetStatus()
+		//send  status asynchronously
+		go func() {
+			s.UpdateStatus(s.connectionState())
+		}()
 		return &Response{ID: r.ID, Result: map[string]any{"running": st == ripc.StatusRunning}}
 
 	case common.CmdConnectToServer:

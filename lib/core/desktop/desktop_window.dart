@@ -13,6 +13,9 @@ Future<void> configureDesktopWindow() async {
     center: true,
     titleBarStyle: TitleBarStyle.normal,
   );
+  if (PlatformUtils.isWindows){
+   await windowManager.setTitle('Lantern');
+  }
 
   await windowManager.setResizable(false);
   await windowManager.setPreventClose(true);
