@@ -3,7 +3,7 @@
 //  Lantern
 //
 
-import Flutter
+import FlutterMacOS
 import Foundation
 import Liblantern
 import NetworkExtension
