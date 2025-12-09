@@ -730,7 +730,7 @@ class MethodHandler {
   func selectCertFingerprint(result: @escaping FlutterResult, fingerprint: String) {
     Task {
       var error: NSError?
-      MobileSelectedCertFingerprint(fingerprint)
+      MobileSelectedCertFingerprint(fingerprint, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "SELECT_CERT_FINGERPRINT_ERROR")
         return
