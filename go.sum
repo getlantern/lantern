@@ -235,8 +235,8 @@ github.com/getlantern/keyman v0.0.0-20230503155501-4e864ca2175b h1:iyEuk8ARQC9Hf
 github.com/getlantern/keyman v0.0.0-20230503155501-4e864ca2175b/go.mod h1:ZJ+yDaZkJ/JU9j7EQa3UUh6ouedrNDDLA5OiowS1Iuk=
 github.com/getlantern/kindling v0.0.0-20251203201459-d8a38e5f1f1c h1:UOSuIgRRXLDK6CmLGhJPDDthqneX/eDUw+O+aiqhuhQ=
 github.com/getlantern/kindling v0.0.0-20251203201459-d8a38e5f1f1c/go.mod h1:2pp6wPmzKsqLycAbj0GlrQn2OR3Un7+VycD88EAoVrQ=
-github.com/getlantern/lantern-box v0.0.6-0.20251208211701-898d46ca0fa9 h1:VuR2nglVgWFmnxZ7puDEfCwMCf8/xJIM4OCzukhWWvY=
-github.com/getlantern/lantern-box v0.0.6-0.20251208211701-898d46ca0fa9/go.mod h1:pCEdOxXzstBjDCfywG/0PalLVCfgFtcmbV1E7uZl1nQ=
+github.com/getlantern/lantern-box v0.0.6-0.20251209160042-946bd6638382 h1:bEKwg1NjysB+ukJLylBqlHgznpm3syM+6Dyr/Cm27iE=
+github.com/getlantern/lantern-box v0.0.6-0.20251209160042-946bd6638382/go.mod h1:PjERabias2IHsZHNkC3XAUaqbvBFHdWMzyHtxO9SAAE=
 github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9 h1:6seyD2f9tz2am0YQd/Qn+q7LFiiQgnmxgwWFnVceGZw=
 github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9/go.mod h1:s0VKrlJf/z+M0U8IKHFL2hfuflocRw3SINmMacrTlMA=
 github.com/getlantern/lantern-water v0.0.0-20250331153903-07abebe611e8 h1:w5Ff0OeAOEWkAs8BxCfHilE0MsXdCrI1101rSQT8Y8w=
@@ -257,8 +257,8 @@ github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 h1:JWH5BB2o0e
 github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175/go.mod h1:h3S9LBmmzN/xM+lwYZHE4abzTtCTtidKtG+nxZcCZX0=
 github.com/getlantern/pluriconfig v0.0.0-20251126214241-8cc8bc561535 h1:rtDmW8YLAuT8r51ApR5z0d8/qjhHu3TW+divQ2C98Ac=
 github.com/getlantern/pluriconfig v0.0.0-20251126214241-8cc8bc561535/go.mod h1:WKJEdjMOD4IuTRYwjQHjT4bmqDl5J82RShMLxPAvi0Q=
-github.com/getlantern/radiance v0.0.0-20251208213635-e416fb5c79c0 h1:ZIhtzpo2B3OSJfKiQQm9yjHvFcxG4gnTgcuaaoMdXHI=
-github.com/getlantern/radiance v0.0.0-20251208213635-e416fb5c79c0/go.mod h1:UJOsQgkovDTBGdwoRzukab3JzlrFxz3dSA2Dwnwgswo=
+github.com/getlantern/radiance v0.0.0-20251209160814-214bf0eeab30 h1:dJMuDtUeTy78H/lF6aLrNRlbUtKkWt0kXtTKM+yqZj4=
+github.com/getlantern/radiance v0.0.0-20251209160814-214bf0eeab30/go.mod h1:6KA9USbrdjDOGOzRop6FuKOtLmlY7MIJveoBoVvoD3w=
 github.com/getlantern/sing v0.7.14-0.20251208213946-adbf4abe8692 h1:pK9igrNx0ipBe6xGDgwVnob3JCFwOp2bmEizwanDVk4=
 github.com/getlantern/sing v0.7.14-0.20251208213946-adbf4abe8692/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
 github.com/getlantern/sing-box-minimal v1.12.13-0.20251205011046-be268b083378 h1:qUUykWom/NFUfQhEVNJ7SsKXYTDP27nTCEoqY78FtOA=
