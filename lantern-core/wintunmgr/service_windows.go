@@ -21,6 +21,7 @@ import (
 
 	"github.com/Microsoft/go-winio"
 	"github.com/getlantern/lantern-outline/lantern-core/common"
+	"github.com/getlantern/radiance/events"
 	rvpn "github.com/getlantern/radiance/vpn"
 	ripc "github.com/getlantern/radiance/vpn/ipc"
 )
@@ -36,12 +37,10 @@ type ServiceOptions struct {
 // Service hosts the command server and manages LanternCore
 // It proxies privileged commands and interacts with Radiance IPC when available
 type Service struct {
-	opts       ServiceOptions
-	wtmgr      *Manager
-	cancel     context.CancelFunc
-	subsMu     sync.RWMutex
-	statusSubs map[string]chan statusEvent
-	rServer    *ripc.Server
+	opts    ServiceOptions
+	wtmgr   *Manager
+	cancel  context.CancelFunc
+	rServer *ripc.Server
 }
 
 type statusEvent struct {
@@ -56,6 +55,17 @@ type logsEvent struct {
 	Ts    int64    `json:"ts"`
 }
 
+type concurrentEncoder struct {
+	mu  sync.Mutex
+	enc *json.Encoder
+}
+
+func (ce *concurrentEncoder) write(v any) error {
+	ce.mu.Lock()
+	defer ce.mu.Unlock()
+	return ce.enc.Encode(v)
+}
+
 func NewService(opts ServiceOptions, wt *Manager) (*Service, error) {
 	// Start the Radiance IPC control plane
 	server, err := rvpn.InitIPC("", nil)
@@ -63,10 +73,9 @@ func NewService(opts ServiceOptions, wt *Manager) (*Service, error) {
 		return nil, fmt.Errorf("init radiance IPC: %w", err)
 	}
 	return &Service{
-		opts:       opts,
-		wtmgr:      wt,
-		statusSubs: make(map[string]chan statusEvent),
-		rServer:    server,
+		opts:    opts,
+		wtmgr:   wt,
+		rServer: server,
 	}, nil
 }
 
@@ -147,15 +156,9 @@ func (s *Service) Start(ctx context.Context) error {
 	}
 }
 
-func (s *Service) handleWatchStatus(ctx context.Context, connID string, enc *json.Encoder, done chan struct{}) {
-	ch := make(chan statusEvent, 8)
-	s.subsMu.Lock()
-	s.statusSubs[connID] = ch
-	s.subsMu.Unlock()
-
-	s.rServer.AddVPNStatusListener(func(status string) {
-		slog.Info("Radiance VPN status changed", "status", status)
-		_ = enc.Encode(statusEvent{Event: "Status", State: status, Ts: time.Now().Unix()})
+func (s *Service) handleWatchStatus(ctx context.Context, connID string, enc *concurrentEncoder, done chan struct{}) {
+	events.Subscribe(func(evt ripc.StatusUpdateEvent) {
+		enc.write(statusEvent{Event: "Status", State: evt.Status.String(), Ts: time.Now().Unix()})
 	})
 }
 
@@ -282,7 +285,7 @@ func (s *Service) handleConn(ctx context.Context, c net.Conn, token, connID stri
 			continue
 		}
 		if req.Cmd == common.CmdWatchStatus {
-			s.handleWatchStatus(ctx, connID, enc, done)
+			s.handleWatchStatus(ctx, connID, &concurrentEncoder{enc: enc}, done)
 			continue
 		}
 		if req.Cmd == common.CmdWatchLogs {
