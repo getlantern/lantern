@@ -18,11 +18,9 @@ import lantern.io.mobile.Mobile
 import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.handler.EventHandler
 import org.getlantern.lantern.handler.MethodHandler
-import org.getlantern.lantern.notification.NotificationHelper
 import org.getlantern.lantern.service.LanternVpnService
 import org.getlantern.lantern.service.QuickTileService
 import org.getlantern.lantern.utils.AppLogger
-import org.getlantern.lantern.utils.DeviceUtil
 import org.getlantern.lantern.utils.VpnStatusManager
 import org.getlantern.lantern.utils.isServiceRunning
 import org.getlantern.lantern.utils.setupDirs
@@ -36,6 +34,8 @@ class MainActivity : FlutterFragmentActivity() {
         const val NOTIFICATION_PERMISSION_REQUEST_CODE = 1010
         var receiverRegistered: Boolean = false
         var pendingServiceStart: Boolean = false
+        var isEngineConfigured: Boolean = false
+
     }
 
     private var retryCount = 0
@@ -48,8 +48,12 @@ class MainActivity : FlutterFragmentActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
+        if (isEngineConfigured) {
+            AppLogger.d(TAG, "FlutterEngine already configured, skipping")
+            return
+        }
         instance = this
-        AppLogger.d(TAG, "Configuring FlutterEngine ${DeviceUtil.deviceId()}")
+        AppLogger.d(TAG, "Configuring FlutterEngine")
         setupDirs()
         AppLogger.d(TAG, "Config directories set up")
         AppLogger.init(this)
@@ -58,7 +62,14 @@ class MainActivity : FlutterFragmentActivity() {
         flutterEngine.plugins.add(EventHandler())
         flutterEngine.plugins.add(MethodHandler())
         startLanternService()
+        isEngineConfigured = true
     }
+
+    override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
+        super.cleanUpFlutterEngine(flutterEngine)
+        isEngineConfigured = false
+    }
+
 
     override fun onResume() {
         super.onResume()
@@ -114,10 +125,6 @@ class MainActivity : FlutterFragmentActivity() {
 
 
     fun startVPN() {
-        if (!NotificationHelper.hasPermission()) {
-            askNotificationPermission()
-            return
-        }
         if (!isVPNServiceReady()) {
             AppLogger.d(TAG, "VPN service not ready")
             return
@@ -137,17 +144,13 @@ class MainActivity : FlutterFragmentActivity() {
     }
 
     fun connectToServer(location: String, tag: String) {
-        if (!NotificationHelper.hasPermission()) {
-            askNotificationPermission()
-            return
-        }
         if (!isVPNServiceReady()) {
             AppLogger.d(TAG, "VPN service not ready")
             return
         }
         // Check if VPN is already connected
         // if so then user already have vpn on now wish to switch server
-        // Do not need to create server again just switch server
+        // Do not need to create service again just switch server
         if (Mobile.isVPNConnected()) {
             AppLogger.d(TAG, "VPN is already connected, switching server")
             CoroutineScope(Dispatchers.Main).launch {

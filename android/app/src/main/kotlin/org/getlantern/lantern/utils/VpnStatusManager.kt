@@ -19,7 +19,6 @@ object VpnStatusManager {
     private var vpnReceiver: VPNStatusReceiver? = null
 
     fun postVPNStatus(status: VPNStatus) {
-        AppLogger.d("VPNStatus", "Posting VPN status: $status")
         vpnStatus.postValue(Event(status))
     }
 

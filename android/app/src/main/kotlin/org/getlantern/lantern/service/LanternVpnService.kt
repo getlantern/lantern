@@ -4,7 +4,6 @@ import android.content.Intent
 import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
-import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -37,7 +36,7 @@ class LanternVpnService :
     VpnService(),
     PlatformInterfaceWrapper {
     companion object {
-        private const val TAG = "VpnService"
+        private const val TAG = "LanternVpnService"
         private const val sessionName = "LanternVpn"
         const val ACTION_START_RADIANCE = "com.getlantern.START_RADIANCE"
         const val ACTION_START_VPN = "org.getlantern.START_VPN"
@@ -68,12 +67,13 @@ class LanternVpnService :
             VpnStatusManager.registerVPNStatusReceiver(this)
             MainActivity.receiverRegistered = true
         }
-
+        AppLogger.d(TAG, "Received action: $action")
         return when (action) {
             ACTION_START_RADIANCE -> {
                 serviceScope.launch {
                     startRadiance()
                 }
+                AppLogger.d(TAG, "Started Radiance")
                 START_NOT_STICKY
             }
 
@@ -81,6 +81,7 @@ class LanternVpnService :
                 serviceScope.launch {
                     startVPN()
                 }
+                AppLogger.d(TAG, "Started VPN")
                 START_STICKY
             }
 
@@ -91,6 +92,7 @@ class LanternVpnService :
                         intent.getStringExtra("tag") ?: "",
                     )
                 }
+                AppLogger.d(TAG, "Connecting to server")
                 START_STICKY
             }
 
@@ -102,18 +104,19 @@ class LanternVpnService :
                     startVPN()
                     notificationHelper.showVPNConnectedNotification(this@LanternVpnService)
                 }
-                START_STICKY // Return START_STICKY for ACTION_TILE_START
+                AppLogger.d(TAG, "Tile triggered VPN start")
+                START_STICKY
             }
 
             ACTION_STOP_VPN -> {
-                AppLogger.d("LanternVpnService", "Received ACTION_STOP_VPN")
+                AppLogger.d(TAG, "Received ACTION_STOP_VPN")
                 serviceScope.launch {
                     doStopVPN()
                 }
                 START_NOT_STICKY
             }
 
-            else -> START_STICKY
+            else -> START_NOT_STICKY
         }
     }
 
@@ -152,7 +155,7 @@ class LanternVpnService :
             withContext(Dispatchers.IO) {
                 Mobile.setupRadiance(opts(), flutterEventListener)
             }
-            AppLogger.d(TAG, "Radiance setup completed ${DeviceUtil.deviceId()}")
+            AppLogger.d(TAG, "Radiance setup completed")
         } catch (e: Exception) {
             AppLogger.e(TAG, "Error in Radiance setup", e)
         }
@@ -227,7 +230,7 @@ class LanternVpnService :
     }
 
     fun doStopVPN() {
-        AppLogger.d("LanternVpnService", "doStopVPN")
+        AppLogger.d(TAG, "doStopVPN")
         VpnStatusManager.postVPNStatus(VPNStatus.Disconnecting)
         serviceScope.launch {
             try {
@@ -256,18 +259,19 @@ class LanternVpnService :
     }
 
     private fun destroy() {
-        AppLogger.d("LanternVpnService", "destroying LanternVpnService")
+        AppLogger.d(TAG, "destroying LanternVpnService")
         doStopVPN()
         serviceCleanUp()
-    }
-
-    private fun serviceCleanUp() {
-        VpnStatusManager.unregisterVPNStatusReceiver(this)
-        MainActivity.receiverRegistered = false
         stopSelf()
     }
 
-    private fun createVPNBuilder(options: TunOptions): VpnService.Builder {
+    private fun serviceCleanUp() {
+        AppLogger.d(TAG, "Cleaning up service")
+        VpnStatusManager.unregisterVPNStatusReceiver(this)
+        MainActivity.receiverRegistered = false
+    }
+
+    private fun createVPNBuilder(options: TunOptions): Builder {
         val builder = Builder().setSession(sessionName).setMtu(options.mtu)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {

@@ -120,7 +120,6 @@ class EventHandler : FlutterPlugin {
             override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
                 statusObserver = Observer { event ->
                     event.contentIfNotHandled?.let { status ->
-                        AppLogger.d(TAG, "Observer VPN Status: $status")
                         when (status) {
                             VPNStatus.Connected,
                             VPNStatus.Connecting,
@@ -133,6 +132,7 @@ class EventHandler : FlutterPlugin {
                             }
 
                             VPNStatus.Error -> {
+                                AppLogger.d(TAG, "Sending VPN Status: $status")
                                 val map = mapOf(
                                     "status" to status.name,
                                     "error" to status.errorMessage,
