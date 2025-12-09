@@ -931,7 +931,7 @@ class MethodHandler {
   }
 
   @MainActor
-  private func replyOK(_ result: FlutterResult) async {
+  private func replyOK(_ result: FlutterResult) {
     result("ok")
   }
 
