@@ -302,7 +302,7 @@ $(WINDOWS_SERVICE_BUILD): windows-service-build
 
 windows-service-build:
 	$(call MKDIR_P,$(dir $(WINDOWS_SERVICE_BUILD)))
-	CGO_LDFLAGS=$(WINDOWS_CGO_LDFLAGS) go build -v -trimpath -tags '$(TAGS)' \
+	CGO_LDFLAGS="$(WINDOWS_CGO_LDFLAGS)" go build -v -trimpath -tags "$(TAGS)" \
 		-ldflags="$(EXTRA_LDFLAGS)" \
 		-o $(WINDOWS_SERVICE_BUILD) $(WINDOWS_SERVICE_SRC)
 	@echo "Built Windows service: $(WINDOWS_SERVICE_BUILD)"
