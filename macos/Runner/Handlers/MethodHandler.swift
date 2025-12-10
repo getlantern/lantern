@@ -403,7 +403,6 @@ class MethodHandler {
     }
   }
 
-
   func acknowledgeInAppPurchase(token: String, planId: String, result: @escaping FlutterResult) {
     Task {
       var error: NSError?
