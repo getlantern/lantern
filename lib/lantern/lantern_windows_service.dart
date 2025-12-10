@@ -54,6 +54,7 @@ class LanternServiceWindows {
   }
 
   Future<Either<Failure, String>> connect() async {
+    _statusCtrl.add(LanternStatus.fromJson({'status': VPNStatus.connecting}));
     try {
       await _rpcPipe.call(ServiceCommand.startTunnel.wire);
       return right('ok');
@@ -63,6 +64,7 @@ class LanternServiceWindows {
   }
 
   Future<Either<Failure, String>> disconnect() async {
+    _statusCtrl.add(LanternStatus.fromJson({'status': VPNStatus.disconnecting}));
     try {
       await _rpcPipe.call(ServiceCommand.stopTunnel.wire);
       return right('ok');
@@ -73,6 +75,7 @@ class LanternServiceWindows {
 
   Future<Either<Failure, String>> connectToServer(
       String location, String tag) async {
+    _statusCtrl.add(LanternStatus.fromJson({'status': VPNStatus.connecting}));
     try {
       await _rpcPipe.call(ServiceCommand.connectToServer.wire, {
         'location': location,
