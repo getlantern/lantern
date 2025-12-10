@@ -200,6 +200,13 @@ class MethodHandler {
         let enabled = data?["enabled"] as? Bool ?? false
         self.setBlockAdsEnabled(result: result, enabled: enabled)
 
+      // Macos System extension methods
+      case "triggerSystemExtension":
+        self.triggerSystemExtensionFlow(result: result)
+      case "isSystemExtensionInstalled":
+        self.isSystemExtensionInstalled(result: result)
+      case "openSystemExtensionSetting":
+        self.openSystemExtensionSetting(result: result)
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -854,6 +861,31 @@ class MethodHandler {
         result("ok")
       }
     }
+  }
+
+  // Macos System extension methods
+  func triggerSystemExtensionFlow(result: @escaping FlutterResult) {
+    Task.detached {
+      SystemExtensionManager.shared.activateExtension()
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  //Check if system extension is installed or not
+  func isSystemExtensionInstalled(result: @escaping FlutterResult) {
+    Task.detached {
+      SystemExtensionManager.shared.checkInstallationStatus()
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  func openSystemExtensionSetting(result: @escaping FlutterResult) {
+    SystemExtensionManager.shared.openPrivacyAndSecuritySettings()
+    result("ok")
   }
 
   // MARK: - Utils
