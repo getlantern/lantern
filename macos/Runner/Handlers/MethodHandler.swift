@@ -220,48 +220,46 @@ class MethodHandler {
       case "stripeBillingPortal":
         self.stripeBillingPortal(result: result)
         break
+
+      //Spilt Tunnling
+      case "installedApps":
+        self.installedApps(result: result)
+
+      case "isSplitTunnelingEnabled":
+        Task.detached {
+          let enabled = MobileIsSplitTunnelingEnabled()
+          await MainActor.run { result(enabled) }
+        }
+
+      case "disableSplitTunneling":
+        self.disableSplitTunneling(result: result)
+
+      case "setSplitTunnelingEnabled":
+        let enabled: Bool = requireArg(call: call, name: "enabled", result: result)!
+        self.setSplitTunnelingEnabled(enabled: enabled, result: result)
+
+      case "addSplitTunnelItem":
+        let filterType: String = requireArg(call: call, name: "filterType", result: result)!
+        let value: String = requireArg(call: call, name: "value", result: result)!
+        self.addSplitTunnelItem(result: result, filterType: filterType, value: value)
+
+      case "removeSplitTunnelItem":
+        let filterType: String = requireArg(call: call, name: "filterType", result: result)!
+        let value: String = requireArg(call: call, name: "value", result: result)!
+        self.removeSplitTunnelItem(result: result, filterType: filterType, value: value)
+
+      case "addAllItems":
+        let value: String = requireArg(call: call, name: "value", result: result)!
+        self.addAllItemsToSplitTunnel(result: result, value: value)
+
+      case "removeAllItems":
+        let value: String = requireArg(call: call, name: "value", result: result)!
+        self.removeItemsToSplitTunnel(result: result, value: value)
+
       default:
         result(FlutterMethodNotImplemented)
       }
     }
-  }
-
-  // MARK: - Argument helpers
-
-  private func decodeDict(
-    from arguments: Any?,
-    result: @escaping FlutterResult,
-    code: String = "INVALID_ARGUMENTS"
-  ) -> [String: Any]? {
-    guard let dict = arguments as? [String: Any] else {
-      result(
-        FlutterError(
-          code: code,
-          message: "Missing or invalid arguments",
-          details: nil
-        )
-      )
-      return nil
-    }
-    return dict
-  }
-
-  private func decodeValue<T>(
-    from arguments: Any?,
-    result: @escaping FlutterResult,
-    code: String = "INVALID_ARGUMENTS"
-  ) -> T? {
-    guard let value = arguments as? T else {
-      result(
-        FlutterError(
-          code: code,
-          message: "Missing or invalid arguments",
-          details: nil
-        )
-      )
-      return nil
-    }
-    return value
   }
 
   private func startVPN(result: @escaping FlutterResult) {
@@ -950,6 +948,122 @@ class MethodHandler {
     result("ok")
   }
 
+  // Split Tunneling Methods
+
+  private func installedApps(result: @escaping FlutterResult) {
+    Task {
+      let dataDir = FilePath.dataDirectory
+
+      var error: NSError?
+      let json = MobileLoadInstalledApps(dataDir.path, &error)
+
+      if let err = error {
+        result(
+          FlutterError(
+            code: "INSTALLED_APPS_ERROR",
+            message: err.localizedDescription,
+            details: err.debugDescription))
+        return
+      }
+      result(json)
+    }
+  }
+
+  func addSplitTunnelItem(
+    result: @escaping FlutterResult,
+    filterType: String,
+    value: String
+  ) {
+    Task {
+      var error: NSError?
+      MobileAddSplitTunnelItem(filterType, value, &error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "ADD_SPLIT_TUNNEL_ITEM_FAILED")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  func removeSplitTunnelItem(
+    result: @escaping FlutterResult,
+    filterType: String,
+    value: String
+  ) {
+    Task {
+      var error: NSError?
+      MobileRemoveSplitTunnelItem(filterType, value, &error)
+      if let err = error {
+        await MainActor.run {
+          result(
+            FlutterError(
+              code: "REMOVE_SPLIT_TUNNEL_ITEM_FAILED",
+              message: err.localizedDescription,
+              details: err.debugDescription))
+        }
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  func addAllItemsToSplitTunnel(result: @escaping FlutterResult, value: String) {
+    Task.detached {
+      var error: NSError?
+      MobileAddSplitTunnelItems(value, &error)
+      if let err = error {
+        await self.handleFlutterError(
+          err, result: result, code: "ADD_ALL_SPLIT_TUNNEL_ITEMS_FAILED")
+        return
+      }
+      await MainActor.run { result("ok") }
+
+    }
+  }
+
+  func removeItemsToSplitTunnel(result: @escaping FlutterResult, value: String) {
+    Task.detached {
+      var error: NSError?
+      MobileRemoveSplitTunnelItems(value, &error)
+      if let err = error {
+        await self.handleFlutterError(
+          err, result: result, code: "REMOVE_ALL_SPLIT_TUNNEL_ITEMS_FAILED")
+        return
+      }
+      await MainActor.run { result("ok") }
+    }
+  }
+
+  func disableSplitTunneling(result: @escaping FlutterResult) {
+    Task.detached {
+      var error: NSError?
+      MobileSetSplitTunnelingEnabled(false, &error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "REPORT_ISSUE_ERROR")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  private func setSplitTunnelingEnabled(enabled: Bool, result: @escaping FlutterResult) {
+    Task.detached {
+      var error: NSError?
+      MobileSetSplitTunnelingEnabled(enabled, &error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "SET_SPLIT_TUNNELING_FAILED")
+        return
+      }
+      await MainActor.run { result("ok") }
+    }
+  }
+
   // MARK: - Utils
 
   /// Helper for handling Flutter errors
@@ -974,6 +1088,66 @@ class MethodHandler {
   @MainActor
   private func replyOK(_ result: FlutterResult) {
     result("ok")
+  }
+
+  // MARK: - Argument helpers
+
+  private func decodeDict(
+    from arguments: Any?,
+    result: @escaping FlutterResult,
+    code: String = "INVALID_ARGUMENTS"
+  ) -> [String: Any]? {
+    guard let dict = arguments as? [String: Any] else {
+      result(
+        FlutterError(
+          code: code,
+          message: "Missing or invalid arguments",
+          details: nil
+        )
+      )
+      return nil
+    }
+    return dict
+  }
+
+  private func decodeValue<T>(
+    from arguments: Any?,
+    result: @escaping FlutterResult,
+    code: String = "INVALID_ARGUMENTS"
+  ) -> T? {
+    guard let value = arguments as? T else {
+      result(
+        FlutterError(
+          code: code,
+          message: "Missing or invalid arguments",
+          details: nil
+        )
+      )
+      return nil
+    }
+    return value
+  }
+
+  func requireArg<T>(
+    call: FlutterMethodCall,
+    name: String,
+    result: FlutterResult
+  ) -> T? {
+    guard
+      let arguments = call.arguments as? [String: Any],
+      let value = arguments[name] as? T
+    else {
+      result(
+        FlutterError(
+          code: "INVALID_ARGUMENTS",
+          message: "Missing or invalid argument: \(name)",
+          details: nil
+        )
+      )
+      return nil
+    }
+
+    return value
   }
 
 }
