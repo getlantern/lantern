@@ -7,6 +7,7 @@ import android.net.VpnService
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import io.flutter.embedding.android.FlutterFragmentActivity
@@ -36,10 +37,14 @@ class MainActivity : FlutterFragmentActivity() {
         var pendingServiceStart: Boolean = false
         var isEngineConfigured: Boolean = false
 
+        private var retryCount = 0
+        private val maxRetries = 5
+        private val maxRetriesResume = 5
+        private var retryCountResume = 0
+
+
     }
 
-    private var retryCount = 0
-    private val maxRetries = 5
     private val RETRY_DELAY_MS = 2000L // 2 seconds
 
     private val serviceStartHandler = Handler(Looper.getMainLooper())
@@ -49,13 +54,12 @@ class MainActivity : FlutterFragmentActivity() {
         super.configureFlutterEngine(flutterEngine)
 
         if (isEngineConfigured) {
-            AppLogger.d(TAG, "FlutterEngine already configured, skipping")
+            Log.d(TAG, "FlutterEngine already configured, skipping")
             return
         }
         instance = this
-        AppLogger.d(TAG, "Configuring FlutterEngine")
         setupDirs()
-        AppLogger.d(TAG, "Config directories set up")
+        Log.d(TAG, "Config directories set up")
         AppLogger.init(this)
         AppLogger.d(TAG, "AppLogger initialized")
         ///Setup handler
@@ -74,7 +78,8 @@ class MainActivity : FlutterFragmentActivity() {
     override fun onResume() {
         super.onResume()
         // Check if there is a pending service start
-        if (pendingServiceStart) {
+        if (pendingServiceStart && retryCountResume < maxRetriesResume) {
+            retryCountResume++
             AppLogger.d(TAG, "Retrying pending service start")
             startLanternService()
         }
@@ -93,6 +98,8 @@ class MainActivity : FlutterFragmentActivity() {
             startService(radianceIntent)
             AppLogger.d(TAG, "LanternService started")
             pendingServiceStart = false
+            retryCount = 0
+            retryCountResume=0
         } catch (e: IllegalStateException) {
             AppLogger.e(TAG, "Cannot start service in background: ${e.message}")
             // App is in background, schedule for when app comes to foreground
@@ -116,6 +123,11 @@ class MainActivity : FlutterFragmentActivity() {
                 startLanternService()
             }, delay)
         } else {
+            /*
+            * We tried multiple times but failed
+            * In between user screen might go off to background
+            * Will wait user it comes back*/
+
             AppLogger.e(TAG, "Max retries ($maxRetries) reached. Service start failed.")
             // Optionally notify user or handle failure
             // Wait for app to come to foreground

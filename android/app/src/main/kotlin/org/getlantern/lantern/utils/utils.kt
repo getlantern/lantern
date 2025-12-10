@@ -3,7 +3,6 @@ package org.getlantern.lantern.utils
 import android.content.Context
 import android.net.IpPrefix
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import lantern.io.libbox.RoutePrefix
 import org.getlantern.lantern.LanternApp

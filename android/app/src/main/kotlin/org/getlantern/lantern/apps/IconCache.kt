@@ -8,7 +8,6 @@ import android.graphics.drawable.AdaptiveIconDrawable
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.Build
-import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -17,6 +16,14 @@ import org.getlantern.lantern.utils.AppLogger
 import java.io.File
 import java.io.FileOutputStream
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.collections.forEach
+import kotlin.collections.getOrPut
+import kotlin.collections.remove
+import kotlin.io.startsWith
+import kotlin.io.use
+import kotlin.text.replace
+import kotlin.text.startsWith
+import kotlin.text.toRegex
 
 /**
  * Disk cache for rendered app icons

@@ -1,6 +1,5 @@
 package org.getlantern.lantern.handler
 
-import android.util.Log
 import androidx.lifecycle.Observer
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.EventChannel

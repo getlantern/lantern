@@ -7,7 +7,6 @@ import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
 import android.os.PowerManager
 import androidx.core.content.getSystemService
-import org.getlantern.lantern.utils.AppLogger
 
 
 class LanternApp : Application() {

@@ -19,6 +19,8 @@ object AppLogger {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
+    val simpleDateFormat = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
+
     fun init(context: Context) {
         logFile = File(LanternApp.application.dataDir, ".lantern/logs/lantern_android.log")
 
@@ -67,7 +69,7 @@ object AppLogger {
                 }
 
             } catch (e: Exception) {
-                Log.e("MyLogger", "Log write failure", e)
+                Log.e("AppLogger", "Log write failure", e)
             }
         }
     }
@@ -93,7 +95,7 @@ object AppLogger {
 
     private fun timestamp(): String {
         val now = System.currentTimeMillis()
-        return java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
+        return simpleDateFormat
             .format(java.util.Date(now))
     }
 

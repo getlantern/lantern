@@ -1,6 +1,5 @@
 package org.getlantern.lantern.utils
 
-import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import lantern.io.utils.FlutterEvent
 import lantern.io.utils.FlutterEventEmitter

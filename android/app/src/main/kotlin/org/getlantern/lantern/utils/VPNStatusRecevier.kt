@@ -3,7 +3,6 @@ package org.getlantern.lantern.utils
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import org.getlantern.lantern.service.LanternVpnService
 
 class VPNStatusReceiver() : BroadcastReceiver() {

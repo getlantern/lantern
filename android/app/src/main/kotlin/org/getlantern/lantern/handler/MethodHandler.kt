@@ -7,7 +7,6 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
-import android.util.Log
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -23,11 +22,14 @@ import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.utils.AppLogger
 import org.getlantern.lantern.utils.PrivateServerListener
 import org.getlantern.lantern.utils.VpnStatusManager
+import org.json.JSONArray
+import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
 import java.util.Locale
-import org.json.JSONArray
-import org.json.JSONObject
+import kotlin.text.Charsets
+import kotlin.text.String
+import kotlin.text.lowercase
 
 
 enum class Methods(val method: String) {

@@ -4,10 +4,8 @@ import android.app.Activity
 import android.content.Context
 import android.os.Build
 import android.provider.Settings
-import android.util.Log
-import org.getlantern.lantern.LanternApp
 import org.getlantern.lantern.BuildConfig
-
+import org.getlantern.lantern.LanternApp
 
 
 object DeviceUtil {

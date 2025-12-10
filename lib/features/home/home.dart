@@ -97,9 +97,7 @@ class _HomeState extends ConsumerState<Home>
 
   @override
   Widget build(BuildContext context) {
-    final isUserPro = ref.watch(homeProvider.select(
-      (value) => value.value?.legacyUserData.userLevel == 'pro',
-    ));
+    final isUserPro = ref.watch(isUserProProvider);
     textTheme = Theme.of(context).textTheme;
     ref.read(appEventProvider);
     return Scaffold(

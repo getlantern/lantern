@@ -65,7 +65,7 @@ class LanternVpnService :
         instance = this
         val action = intent?.action ?: return START_NOT_STICKY
         if (!MainActivity.receiverRegistered) {
-            VpnStatusManager.registerVPNStatusReceiver(this)
+            VpnStatusManager.registerVPNStatusReceiver()
             MainActivity.receiverRegistered = true
         }
         AppLogger.d(TAG, "Received action: $action")

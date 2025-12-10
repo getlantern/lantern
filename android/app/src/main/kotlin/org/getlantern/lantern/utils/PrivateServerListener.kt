@@ -1,6 +1,5 @@
 package org.getlantern.lantern.utils
 
-import android.util.Log
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import lantern.io.utils.PrivateServerEventListener
