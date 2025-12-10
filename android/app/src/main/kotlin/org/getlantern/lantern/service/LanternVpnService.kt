@@ -11,6 +11,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import lantern.io.libbox.Notification
+import lantern.io.libbox.StringIterator
 import lantern.io.libbox.TunOptions
 import lantern.io.mobile.Mobile
 import lantern.io.utils.Opts
@@ -144,6 +145,19 @@ class LanternVpnService :
 
     override fun sendNotification(notification: Notification?) {
         notificationHelper.sendNotification(notification)
+    }
+
+    override fun systemCertificates(): StringIterator {
+        //return empty iterator as we are not using system certificates
+        return object : StringIterator {
+            override fun hasNext(): Boolean = false
+            override fun len(): Int {
+                return 0
+            }
+
+            override fun next(): String = ""
+        }
+
     }
 
     override fun writeLog(p0: String?) {
