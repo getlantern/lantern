@@ -375,7 +375,6 @@ class LanternPlatformService implements LanternCoreService {
   Future<Either<Failure, Unit>> addAllItems(
       SplitTunnelFilterType type, List<String> items) async {
     try {
-      appLogger.debug('Adding all items: ${items.length} items');
       await _methodChannel.invokeMethod('addAllItems', {
         'filterType': type.value,
         'value': items.join(','),

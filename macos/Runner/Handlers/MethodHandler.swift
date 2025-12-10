@@ -200,48 +200,66 @@ class MethodHandler {
         let enabled = data?["enabled"] as? Bool ?? false
         self.setBlockAdsEnabled(result: result, enabled: enabled)
 
+      // Macos System extension methods
+      case "triggerSystemExtension":
+        self.triggerSystemExtensionFlow(result: result)
+      case "isSystemExtensionInstalled":
+        self.isSystemExtensionInstalled(result: result)
+      case "openSystemExtensionSetting":
+        self.openSystemExtensionSetting(result: result)
+
+      //Payment methods
+      case "stripeSubscriptionPaymentRedirect":
+        let data = call.arguments as? [String: Any]
+        self.stripeSubscriptionPaymentRedirect(result: result, data: data!)
+        break
+      case "paymentRedirect":
+        let data = call.arguments as? [String: Any]
+        self.paymentRedirect(result: result, data: data!)
+        break
+      case "stripeBillingPortal":
+        self.stripeBillingPortal(result: result)
+        break
+
+      //Spilt Tunnling
+      case "installedApps":
+        self.installedApps(result: result)
+
+      case "isSplitTunnelingEnabled":
+        Task.detached {
+          let enabled = MobileIsSplitTunnelingEnabled()
+          await MainActor.run { result(enabled) }
+        }
+
+      case "disableSplitTunneling":
+        self.disableSplitTunneling(result: result)
+
+      case "setSplitTunnelingEnabled":
+        let enabled: Bool = requireArg(call: call, name: "enabled", result: result)!
+        self.setSplitTunnelingEnabled(enabled: enabled, result: result)
+
+      case "addSplitTunnelItem":
+        let filterType: String = requireArg(call: call, name: "filterType", result: result)!
+        let value: String = requireArg(call: call, name: "value", result: result)!
+        self.addSplitTunnelItem(result: result, filterType: filterType, value: value)
+
+      case "removeSplitTunnelItem":
+        let filterType: String = requireArg(call: call, name: "filterType", result: result)!
+        let value: String = requireArg(call: call, name: "value", result: result)!
+        self.removeSplitTunnelItem(result: result, filterType: filterType, value: value)
+
+      case "addAllItems":
+        let value: String = requireArg(call: call, name: "value", result: result)!
+        self.addAllItemsToSplitTunnel(result: result, value: value)
+
+      case "removeAllItems":
+        let value: String = requireArg(call: call, name: "value", result: result)!
+        self.removeItemsToSplitTunnel(result: result, value: value)
+
       default:
         result(FlutterMethodNotImplemented)
       }
     }
-  }
-
-  // MARK: - Argument helpers
-
-  private func decodeDict(
-    from arguments: Any?,
-    result: @escaping FlutterResult,
-    code: String = "INVALID_ARGUMENTS"
-  ) -> [String: Any]? {
-    guard let dict = arguments as? [String: Any] else {
-      result(
-        FlutterError(
-          code: code,
-          message: "Missing or invalid arguments",
-          details: nil
-        )
-      )
-      return nil
-    }
-    return dict
-  }
-
-  private func decodeValue<T>(
-    from arguments: Any?,
-    result: @escaping FlutterResult,
-    code: String = "INVALID_ARGUMENTS"
-  ) -> T? {
-    guard let value = arguments as? T else {
-      result(
-        FlutterError(
-          code: code,
-          message: "Missing or invalid arguments",
-          details: nil
-        )
-      )
-      return nil
-    }
-    return value
   }
 
   private func startVPN(result: @escaping FlutterResult) {
@@ -320,7 +338,7 @@ class MethodHandler {
   private func plans(result: @escaping FlutterResult) {
     Task {
       var error: NSError?
-      let data = try MobilePlans("store", &error)
+      let data = MobilePlans("non-store", &error)
 
       if let error {
         await self.handleFlutterError(error, result: result, code: "PLANS_ERROR")
@@ -336,7 +354,7 @@ class MethodHandler {
   private func oauthLoginUrl(result: @escaping FlutterResult, provider: String) {
     Task {
       var error: NSError?
-      let data = try MobileOAuthLoginUrl(provider, &error)
+      let data =  MobileOAuthLoginUrl(provider, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "OAUTH_LOGIN")
         return
@@ -350,7 +368,7 @@ class MethodHandler {
   private func oauthLoginCallback(result: @escaping FlutterResult, token: String) {
     Task {
       var error: NSError?
-      let data = try MobileOAuthLoginCallback(token, &error)
+      let data =  MobileOAuthLoginCallback(token, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "OAUTH_LOGIN_CALLBACK")
         return
@@ -364,7 +382,7 @@ class MethodHandler {
   private func getUserData(result: @escaping FlutterResult) {
     Task {
       var error: NSError?
-      let data = try MobileUserData(&error)
+      let data =  MobileUserData(&error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "USER_DATA_ERROR")
         return
@@ -469,7 +487,7 @@ class MethodHandler {
       let email = data["email"] as? String ?? ""
       let password = data["password"] as? String ?? ""
       var error: NSError?
-      let payload = try MobileLogin(email, password, &error)
+      let payload =  MobileLogin(email, password, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "LOGIN_FAILED")
         return
@@ -485,7 +503,7 @@ class MethodHandler {
       let email = data["email"] as? String ?? ""
       let password = data["password"] as? String ?? ""
       var error: NSError?
-      try await MobileSignUp(email, password, &error)
+        MobileSignUp(email, password, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "SIGNUP_FAILED")
         return
@@ -497,7 +515,7 @@ class MethodHandler {
   func logout(result: @escaping FlutterResult, email: String) {
     Task {
       var error: NSError?
-      let payload = try MobileLogout(email, &error)
+      let payload =  MobileLogout(email, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "LOGOUT_FAILED")
         return
@@ -684,7 +702,6 @@ class MethodHandler {
 
   func selectCertFingerprint(result: @escaping FlutterResult, fingerprint: String) {
     Task {
-      var error: NSError?
       MobileSelectedCertFingerprint(fingerprint)
       await MainActor.run {
         result("ok")
@@ -816,7 +833,7 @@ class MethodHandler {
         return
       }
       await MainActor.run {
-        result(location ?? "")
+        result(location )
       }
     }
   }
@@ -856,6 +873,196 @@ class MethodHandler {
     }
   }
 
+  // Payment Methods
+  func stripeSubscriptionPaymentRedirect(result: @escaping FlutterResult, data: [String: Any]) {
+    Task.detached {
+      let email = data["email"] as? String ?? ""
+      let planId = data["planId"] as? String ?? ""
+      let type = data["type"] as? String ?? ""
+      var error: NSError?
+      let url = MobileStripeSubscriptionPaymentRedirect(type, planId, email, &error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "STRIPE_PAYMENT_REDIRECT_ERROR")
+        return
+      }
+      await MainActor.run {
+        result(url)
+      }
+    }
+  }
+
+  func paymentRedirect(result: @escaping FlutterResult, data: [String: Any]) {
+    Task.detached {
+      let provider = data["provider"] as? String ?? ""
+      let planId = data["planId"] as? String ?? ""
+      let email = data["email"] as? String ?? ""
+      var error: NSError?
+      let url = MobilePaymentRedirect(provider, planId, email, &error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "PAYMENT_REDIRECT_ERROR")
+        return
+      }
+      await MainActor.run {
+        result(url)
+      }
+    }
+  }
+
+  func stripeBillingPortal(result: @escaping FlutterResult) {
+    Task.detached {
+      var error: NSError?
+      let url = MobileStripeBillingPortalUrl(&error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "STRIPE_BILLING_PORTAL_ERROR")
+        return
+      }
+      await MainActor.run {
+        result(url)
+      }
+    }
+  }
+
+  // Macos System extension methods
+  func triggerSystemExtensionFlow(result: @escaping FlutterResult) {
+    Task.detached {
+      SystemExtensionManager.shared.activateExtension()
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  //Check if system extension is installed or not
+  func isSystemExtensionInstalled(result: @escaping FlutterResult) {
+    Task.detached {
+      SystemExtensionManager.shared.checkInstallationStatus()
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  func openSystemExtensionSetting(result: @escaping FlutterResult) {
+    SystemExtensionManager.shared.openPrivacyAndSecuritySettings()
+    result("ok")
+  }
+
+  // Split Tunneling Methods
+
+  private func installedApps(result: @escaping FlutterResult) {
+    Task {
+      let dataDir = FilePath.dataDirectory
+
+      var error: NSError?
+      let json = MobileLoadInstalledApps(dataDir.path, &error)
+
+      if let err = error {
+        result(
+          FlutterError(
+            code: "INSTALLED_APPS_ERROR",
+            message: err.localizedDescription,
+            details: err.debugDescription))
+        return
+      }
+      result(json)
+    }
+  }
+
+  func addSplitTunnelItem(
+    result: @escaping FlutterResult,
+    filterType: String,
+    value: String
+  ) {
+    Task {
+      var error: NSError?
+      MobileAddSplitTunnelItem(filterType, value, &error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "ADD_SPLIT_TUNNEL_ITEM_FAILED")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  func removeSplitTunnelItem(
+    result: @escaping FlutterResult,
+    filterType: String,
+    value: String
+  ) {
+    Task {
+      var error: NSError?
+      MobileRemoveSplitTunnelItem(filterType, value, &error)
+      if let err = error {
+        await MainActor.run {
+          result(
+            FlutterError(
+              code: "REMOVE_SPLIT_TUNNEL_ITEM_FAILED",
+              message: err.localizedDescription,
+              details: err.debugDescription))
+        }
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  func addAllItemsToSplitTunnel(result: @escaping FlutterResult, value: String) {
+    Task.detached {
+      var error: NSError?
+      MobileAddSplitTunnelItems(value, &error)
+      if let err = error {
+        await self.handleFlutterError(
+          err, result: result, code: "ADD_ALL_SPLIT_TUNNEL_ITEMS_FAILED")
+        return
+      }
+      await MainActor.run { result("ok") }
+
+    }
+  }
+
+  func removeItemsToSplitTunnel(result: @escaping FlutterResult, value: String) {
+    Task.detached {
+      var error: NSError?
+      MobileRemoveSplitTunnelItems(value, &error)
+      if let err = error {
+        await self.handleFlutterError(
+          err, result: result, code: "REMOVE_ALL_SPLIT_TUNNEL_ITEMS_FAILED")
+        return
+      }
+      await MainActor.run { result("ok") }
+    }
+  }
+
+  func disableSplitTunneling(result: @escaping FlutterResult) {
+    Task.detached {
+      var error: NSError?
+      MobileSetSplitTunnelingEnabled(false, &error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "REPORT_ISSUE_ERROR")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  private func setSplitTunnelingEnabled(enabled: Bool, result: @escaping FlutterResult) {
+    Task.detached {
+      var error: NSError?
+      MobileSetSplitTunnelingEnabled(enabled, &error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "SET_SPLIT_TUNNELING_FAILED")
+        return
+      }
+      await MainActor.run { result("ok") }
+    }
+  }
+
   // MARK: - Utils
 
   /// Helper for handling Flutter errors
@@ -880,6 +1087,66 @@ class MethodHandler {
   @MainActor
   private func replyOK(_ result: FlutterResult) {
     result("ok")
+  }
+
+  // MARK: - Argument helpers
+
+  private func decodeDict(
+    from arguments: Any?,
+    result: @escaping FlutterResult,
+    code: String = "INVALID_ARGUMENTS"
+  ) -> [String: Any]? {
+    guard let dict = arguments as? [String: Any] else {
+      result(
+        FlutterError(
+          code: code,
+          message: "Missing or invalid arguments",
+          details: nil
+        )
+      )
+      return nil
+    }
+    return dict
+  }
+
+  private func decodeValue<T>(
+    from arguments: Any?,
+    result: @escaping FlutterResult,
+    code: String = "INVALID_ARGUMENTS"
+  ) -> T? {
+    guard let value = arguments as? T else {
+      result(
+        FlutterError(
+          code: code,
+          message: "Missing or invalid arguments",
+          details: nil
+        )
+      )
+      return nil
+    }
+    return value
+  }
+
+  func requireArg<T>(
+    call: FlutterMethodCall,
+    name: String,
+    result: FlutterResult
+  ) -> T? {
+    guard
+      let arguments = call.arguments as? [String: Any],
+      let value = arguments[name] as? T
+    else {
+      result(
+        FlutterError(
+          code: "INVALID_ARGUMENTS",
+          message: "Missing or invalid argument: \(name)",
+          details: nil
+        )
+      )
+      return nil
+    }
+
+    return value
   }
 
 }
