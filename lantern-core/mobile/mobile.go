@@ -359,7 +359,7 @@ func CancelDeployment() error {
 }
 
 func SelectedCertFingerprint(fp string) {
-	withCore(func(c lanterncore.Core) error {
+	  withCore(func(c lanterncore.Core) error {
 		c.SelectedCertFingerprint(fp)
 		return nil
 	})

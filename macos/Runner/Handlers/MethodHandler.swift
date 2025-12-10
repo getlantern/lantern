@@ -64,9 +64,6 @@ class MethodHandler {
       case "getDataCapInfo":
         self.getDataCapInfo(result: result)
 
-      case "showManageSubscriptions":
-        self.showManageSubscriptions(result: result)
-
       case "acknowledgeInAppPurchase":
         guard
           let map = call.arguments as? [String: Any],
@@ -406,47 +403,6 @@ class MethodHandler {
     }
   }
 
-  private func showManageSubscriptions(result: @escaping FlutterResult) {
-    if #available(iOS 15.0, *) {
-      guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else {
-        result(
-          FlutterError(
-            code: "NO_WINDOW_SCENE",
-            message: "No active window scene found",
-            details: nil
-          )
-        )
-        return
-      }
-
-      Task {
-        do {
-          try await AppStore.showManageSubscriptions(in: windowScene)
-          await MainActor.run {
-            result(nil)
-          }
-        } catch {
-          await MainActor.run {
-            result(
-              FlutterError(
-                code: "FAILED_TO_OPEN",
-                message: "Failed to show subscriptions: \(error.localizedDescription)",
-                details: nil
-              )
-            )
-          }
-        }
-      }
-    } else {
-      result(
-        FlutterError(
-          code: "UNAVAILABLE",
-          message: "iOS 15 or higher is required to manage subscriptions natively",
-          details: nil
-        )
-      )
-    }
-  }
 
   func acknowledgeInAppPurchase(token: String, planId: String, result: @escaping FlutterResult) {
     Task {
@@ -730,11 +686,7 @@ class MethodHandler {
   func selectCertFingerprint(result: @escaping FlutterResult, fingerprint: String) {
     Task {
       var error: NSError?
-      MobileSelectedCertFingerprint(fingerprint, &error)
-      if let error {
-        await self.handleFlutterError(error, result: result, code: "SELECT_CERT_FINGERPRINT_ERROR")
-        return
-      }
+      MobileSelectedCertFingerprint(fingerprint)
       await MainActor.run {
         result("ok")
       }
