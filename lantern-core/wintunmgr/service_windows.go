@@ -23,6 +23,7 @@ import (
 	"github.com/getlantern/lantern-outline/lantern-core/common"
 	"github.com/getlantern/radiance/events"
 	rvpn "github.com/getlantern/radiance/vpn"
+	"github.com/getlantern/radiance/vpn/ipc"
 	ripc "github.com/getlantern/radiance/vpn/ipc"
 )
 
@@ -60,7 +61,7 @@ type concurrentEncoder struct {
 	enc *json.Encoder
 }
 
-func (ce *concurrentEncoder) write(v any) error {
+func (ce *concurrentEncoder) Encode(v any) error {
 	ce.mu.Lock()
 	defer ce.mu.Unlock()
 	return ce.enc.Encode(v)
@@ -156,13 +157,19 @@ func (s *Service) Start(ctx context.Context) error {
 	}
 }
 
-func (s *Service) handleWatchStatus(ctx context.Context, connID string, enc *concurrentEncoder, done chan struct{}) {
-	events.Subscribe(func(evt ripc.StatusUpdateEvent) {
-		enc.write(statusEvent{Event: "Status", State: evt.Status.String(), Ts: time.Now().Unix()})
+func (s *Service) handleWatchStatus(ctx context.Context, enc *concurrentEncoder) {
+	sub := events.Subscribe(func(evt ripc.StatusUpdateEvent) {
+		enc.Encode(statusEvent{Event: "Status", State: evt.Status.String(), Ts: time.Now().Unix()})
 	})
+
+	// Unsubscribe when context is done
+	go func() {
+		<-ctx.Done()
+		events.Unsubscribe(sub)
+	}()
 }
 
-func (s *Service) handleWatchLogs(ctx context.Context, enc *json.Encoder, done chan struct{}) {
+func (s *Service) handleWatchLogs(ctx context.Context, enc *concurrentEncoder, done chan struct{}) {
 	logFile := filepath.Join(s.opts.LogDir, "lantern.log")
 	_ = os.MkdirAll(s.opts.LogDir, 0o755)
 	if _, err := os.Stat(logFile); errors.Is(err, os.ErrNotExist) {
@@ -285,11 +292,11 @@ func (s *Service) handleConn(ctx context.Context, c net.Conn, token, connID stri
 			continue
 		}
 		if req.Cmd == common.CmdWatchStatus {
-			s.handleWatchStatus(ctx, connID, &concurrentEncoder{enc: enc}, done)
+			s.handleWatchStatus(ctx, &concurrentEncoder{enc: enc})
 			continue
 		}
 		if req.Cmd == common.CmdWatchLogs {
-			s.handleWatchLogs(ctx, enc, done)
+			s.handleWatchLogs(ctx, &concurrentEncoder{enc: enc}, done)
 			continue
 		}
 		start := time.Now()
@@ -333,12 +340,14 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 		return &Response{ID: r.ID, Result: map[string]any{"ok": true}}
 
 	case common.CmdStartTunnel:
+		events.Emit(ipc.StatusUpdateEvent{Status: ripc.Connecting})
 		if err := s.rServer.StartService(ctx, "lantern", ""); err != nil {
 			return rpcErr(r.ID, "start_error", err.Error())
 		}
 		return &Response{ID: r.ID, Result: map[string]any{"started": true}}
 
 	case common.CmdStopTunnel:
+		events.Emit(ipc.StatusUpdateEvent{Status: ripc.Disconnecting})
 		if err := s.rServer.StopService(ctx); err != nil {
 			return rpcErr(r.ID, "stop_error", err.Error())
 		}
