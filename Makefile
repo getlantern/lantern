@@ -13,7 +13,7 @@ LANTERN_LIB_NAME := liblantern
 LANTERN_CORE := lantern-core
 RADIANCE_REPO := github.com/getlantern/radiance
 FFI_DIR := $(LANTERN_CORE)/ffi
-EXTRA_LDFLAGS ?=
+EXTRA_LDFLAGS ?= -X '$(RADIANCE_REPO)/common.constants.AppVersion=$(VERSION)'
 
 DARWIN_APP_NAME := $(CAPITALIZED_APP).app
 DARWIN_LIB := $(LANTERN_LIB_NAME).dylib
