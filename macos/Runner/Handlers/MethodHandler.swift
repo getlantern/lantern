@@ -207,6 +207,19 @@ class MethodHandler {
         self.isSystemExtensionInstalled(result: result)
       case "openSystemExtensionSetting":
         self.openSystemExtensionSetting(result: result)
+
+      //Payment methods
+      case "stripeSubscriptionPaymentRedirect":
+        let data = call.arguments as? [String: Any]
+        self.stripeSubscriptionPaymentRedirect(result: result, data: data!)
+        break
+      case "paymentRedirect":
+        let data = call.arguments as? [String: Any]
+        self.paymentRedirect(result: result, data: data!)
+        break
+      case "stripeBillingPortal":
+        self.stripeBillingPortal(result: result)
+        break
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -327,7 +340,7 @@ class MethodHandler {
   private func plans(result: @escaping FlutterResult) {
     Task {
       var error: NSError?
-      let data = try MobilePlans("store", &error)
+      let data = try MobilePlans("non-store", &error)
 
       if let error {
         await self.handleFlutterError(error, result: result, code: "PLANS_ERROR")
@@ -859,6 +872,55 @@ class MethodHandler {
       }
       await MainActor.run {
         result("ok")
+      }
+    }
+  }
+
+  // Payment Methods
+  func stripeSubscriptionPaymentRedirect(result: @escaping FlutterResult, data: [String: Any]) {
+    Task.detached {
+      let email = data["email"] as? String ?? ""
+      let planId = data["planId"] as? String ?? ""
+      let type = data["type"] as? String ?? ""
+      var error: NSError?
+      let url = MobileStripeSubscriptionPaymentRedirect(type, planId, email, &error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "STRIPE_PAYMENT_REDIRECT_ERROR")
+        return
+      }
+      await MainActor.run {
+        result(url)
+      }
+    }
+  }
+
+  func paymentRedirect(result: @escaping FlutterResult, data: [String: Any]) {
+    Task.detached {
+      let provider = data["provider"] as? String ?? ""
+      let planId = data["planId"] as? String ?? ""
+      let email = data["email"] as? String ?? ""
+      var error: NSError?
+      let url = MobilePaymentRedirect(provider, planId, email, &error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "PAYMENT_REDIRECT_ERROR")
+        return
+      }
+      await MainActor.run {
+        result(url)
+      }
+    }
+  }
+
+  func stripeBillingPortal(result: @escaping FlutterResult) {
+    Task.detached {
+      var error: NSError?
+      let url = MobileStripeBillingPortalUrl(&error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "STRIPE_BILLING_PORTAL_ERROR")
+        return
+      }
+      await MainActor.run {
+        result(url)
       }
     }
   }
