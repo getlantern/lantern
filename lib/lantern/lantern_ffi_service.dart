@@ -419,6 +419,7 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, String>> startVPN() async {
     if (Platform.isWindows) {
+      appLogger.debug('Starting VPN on Windows via IPC');
       return _windowsService.connect();
     }
     final ffiPaths = await PlatformFfiUtils.getFfiPlatformPaths();
@@ -1277,6 +1278,7 @@ void checkAPIError(dynamic result) {
       return;
     }
     if (decoded is Map && decoded.containsKey('error')) {
+      appLogger.error('API Error: ${decoded['error']}');
       throw PlatformException(
         code: decoded['error'].toString(),
         message: decoded['error'].toString(),

@@ -17,7 +17,6 @@ on:
 
 concurrency:
   group: nightly
-  cancel-in-progress: true
 
 env:
   BUILD_TYPE: nightly
