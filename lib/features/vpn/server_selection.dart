@@ -9,6 +9,7 @@ import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/utils/country_utils.dart';
 import 'package:lantern/core/widgets/app_text.dart';
+import 'package:lantern/core/widgets/expansion_chevron.dart';
 import 'package:lantern/core/widgets/spinner.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
@@ -475,7 +476,7 @@ class _ServerLocationListViewState
   }
 }
 
-class _CountryServerTile extends StatelessWidget {
+class _CountryServerTile extends StatefulWidget {
   final String country;
   final List<Location_> locations;
   final String selectedServerTag;
@@ -486,11 +487,19 @@ class _CountryServerTile extends StatelessWidget {
     required this.locations,
     required this.selectedServerTag,
     required this.onServerSelected,
+    super.key,
   });
 
   @override
+  State<_CountryServerTile> createState() => _CountryServerTileState();
+}
+
+class _CountryServerTileState extends State<_CountryServerTile> {
+  bool _isExpanded = false;
+
+  @override
   Widget build(BuildContext context) {
-    final countryCode = CountryUtils.getCountryCode(country);
+    final countryCode = CountryUtils.getCountryCode(widget.country);
 
     if (PlatformUtils.isDesktop) {
       return Theme(
@@ -502,20 +511,19 @@ class _CountryServerTile extends StatelessWidget {
               const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           leading: Flag(countryCode: countryCode),
           title: Text(
-            country,
+            widget.country,
             style: Theme.of(context)
                 .textTheme
                 .bodyLarge!
                 .copyWith(color: AppColors.gray9),
           ),
-          trailing: Icon(
-            Icons.arrow_forward_ios_rounded,
-            color: AppColors.gray9,
-            size: 20,
-          ),
+          onExpansionChanged: (expanded) {
+            setState(() => _isExpanded = expanded);
+          },
+          trailing: ExpansionChevron(isExpanded: _isExpanded),
           shape: const RoundedRectangleBorder(side: BorderSide.none),
-          children: locations.map((loc) {
-            final isSelected = selectedServerTag == loc.tag;
+          children: widget.locations.map((loc) {
+            final isSelected = widget.selectedServerTag == loc.tag;
             return AppTile(
               contentPadding: const EdgeInsets.only(left: 46, right: 16),
               label: '${loc.country} - ${loc.city}',
@@ -537,7 +545,7 @@ class _CountryServerTile extends StatelessWidget {
 
     return AppTile(
       icon: Flag(countryCode: countryCode),
-      label: country,
+      label: widget.country,
       trailing: Icon(
         Icons.keyboard_arrow_down_rounded,
         color: AppColors.gray9,
@@ -547,29 +555,29 @@ class _CountryServerTile extends StatelessWidget {
   }
 
   void _onLocationSelected(BuildContext context, Location_ location) {
-    onServerSelected(location);
+    widget.onServerSelected(location);
   }
 
   void _showCountryBottomSheet(BuildContext context) {
     showAppBottomSheet(
       context: context,
-      title: country,
+      title: widget.country,
       scrollControlDisabledMaxHeightRatio: 0.75,
       builder: (bottomSheetContext, scrollController) {
         return ListView.separated(
           controller: scrollController,
           padding: EdgeInsets.zero,
-          itemCount: locations.length,
+          itemCount: widget.locations.length,
           separatorBuilder: (_, __) =>
               const DividerSpace(padding: EdgeInsets.zero),
           itemBuilder: (_, index) {
-            final loc = locations[index];
-            final isSelected = selectedServerTag == loc.tag;
+            final loc = widget.locations[index];
+            final isSelected = widget.selectedServerTag == loc.tag;
 
             return ServerMobileView(
               onServerSelected: (selected) {
                 Navigator.of(bottomSheetContext).pop();
-                onServerSelected(selected);
+                widget.onServerSelected(selected);
               },
               location: loc,
               isSelected: isSelected,
