@@ -173,7 +173,7 @@ func (s *Service) Start(ctx context.Context) error {
 
 func (s *Service) handleWatchStatus(ctx context.Context, enc *concurrentEncoder) {
 	sub := events.Subscribe(func(evt ripc.StatusUpdateEvent) {
-		enc.Encode(statusEvent{Event: "Status", State: evt.Status.String(), Ts: time.Now().Unix()})
+		enc.Encode(statusEvent{Event: "Status", State: evt.Status.String(), Ts: time.Now().Unix(), Error: evt.Error.Error()})
 	})
 
 	// Unsubscribe when context is done
@@ -193,9 +193,7 @@ func (s *Service) handleWatchLogs(ctx context.Context, enc *concurrentEncoder, d
 	// Start by sending the most recent chunk of the log
 	const maxTail = 200
 	if last, err := readLastLines(logFile, maxTail); err == nil && len(last) > 0 {
-		wmu.Lock()
 		_ = enc.Encode(logsEvent{Event: "Logs", Lines: last, Ts: time.Now().Unix()})
-		wmu.Unlock()
 	}
 
 	// Then keep watching the file to stream new lines as they’re written
@@ -274,9 +272,8 @@ func (s *Service) handleWatchLogs(ctx context.Context, enc *concurrentEncoder, d
 				}
 				// Send new lines to client (serialized)
 				if len(lines) > 0 {
-					wmu.Lock()
 					_ = enc.Encode(logsEvent{Event: "Logs", Lines: lines, Ts: time.Now().Unix()})
-					wmu.Unlock()
+
 				}
 			}
 		}
@@ -370,7 +367,7 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 			events.Emit(ipc.StatusUpdateEvent{Status: ripc.Connecting})
 			if err := s.rServer.StartService(ctx, "lantern", ""); err != nil {
 				slog.Error("Error starting service: %w", err)
-				events.Emit(ipc.StatusUpdateEvent{Status: ripc.ErrorStatus})
+				events.Emit(ipc.StatusUpdateEvent{Status: ripc.ErrorStatus, Error: err})
 			}
 		}()
 		return &Response{ID: r.ID, Result: map[string]any{"started": true}}
@@ -380,17 +377,13 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 			events.Emit(ipc.StatusUpdateEvent{Status: ripc.Disconnecting})
 			if err := s.rServer.StopService(ctx); err != nil {
 				slog.Error("Error stopping service: %w", err)
-				events.Emit(ipc.StatusUpdateEvent{Status: ripc.ErrorStatus})
+				events.Emit(ipc.StatusUpdateEvent{Status: ripc.ErrorStatus, Error: err})
 			}
 		}()
 		return &Response{ID: r.ID, Result: map[string]any{"stopped": true}}
 
 	case common.CmdIsVPNRunning:
 		st := s.rServer.GetStatus()
-		//send  status asynchronously
-		go func() {
-			s.UpdateStatus(s.connectionState())
-		}()
 		return &Response{ID: r.ID, Result: map[string]any{"running": st == ripc.StatusRunning}}
 
 	case common.CmdConnectToServer:
@@ -412,7 +405,7 @@ func (s *Service) dispatch(ctx context.Context, r *Request) *Response {
 			events.Emit(ipc.StatusUpdateEvent{Status: ripc.Connecting})
 			if err := s.rServer.StartService(ctx, group, p.Tag); err != nil {
 				slog.Error("Error connecting to server: %w", err)
-				events.Emit(ipc.StatusUpdateEvent{Status: ripc.ErrorStatus})
+				events.Emit(ipc.StatusUpdateEvent{Status: ripc.ErrorStatus, Error: err})
 			}
 		}(group, p.Tag)
 		return &Response{ID: r.ID, Result: "ok"}
