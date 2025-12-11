@@ -1,8 +1,8 @@
 const languages = [
   'en_US',
   'fa_IR',
-  'zh_CN',
-  'zh_HK',
+  'zh_Hans',
+  'zh_Hant',
   'ms_MY',
   'my_MM',
   'ru_RU',
@@ -34,10 +34,12 @@ String displayLanguage(String languageCode) {
   if (languageCode == 'fa_IR') {
     return 'فارسی';
   }
-  if (languageCode == 'zh_CN') {
+  if (languageCode == 'zh_Hans') {
+    //Chinese (Simplified)
     return '中文 (简体)';
   }
-  if (languageCode == 'zh_HK') {
+  if (languageCode == 'zh_Hant') {
+    //Traditional Chinese
     return '中文 (繁體)';
   }
   if (languageCode == 'es_CU') {

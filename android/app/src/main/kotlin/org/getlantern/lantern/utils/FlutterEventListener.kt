@@ -1,6 +1,5 @@
 package org.getlantern.lantern.utils
 
-import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import lantern.io.utils.FlutterEvent
 import lantern.io.utils.FlutterEventEmitter
@@ -19,7 +18,7 @@ object FlutterEventStream {
 class FlutterEventListener : FlutterEventEmitter {
     override fun sendEvent(p0: FlutterEvent?) {
         if (p0 != null) {
-            Log.d("FlutterEventListener", "Sending Flutter event: $p0")
+            AppLogger.d("FlutterEventListener", "Sending Flutter event: $p0")
             FlutterEventStream.emit(p0)
         }
     }

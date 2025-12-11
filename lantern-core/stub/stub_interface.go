@@ -9,6 +9,9 @@ func NewPlatformInterfaceStub() libbox.PlatformInterface {
 type platformInterfaceStub struct {
 }
 
+func (p *platformInterfaceStub) LocalDNSTransport() libbox.LocalDNSTransport { return nil }
+func (p *platformInterfaceStub) SystemCertificates() libbox.StringIterator   { return nil }
+
 // AutoDetectInterfaceControl implements libbox.PlatformInterface.
 func (p *platformInterfaceStub) AutoDetectInterfaceControl(fd int32) error {
 	return nil

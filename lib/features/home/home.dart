@@ -96,7 +96,7 @@ class _HomeState extends ConsumerState<Home>
 
   @override
   Widget build(BuildContext context) {
-    final isUserPro = ref.isUserPro;
+    final isUserPro = ref.watch(isUserProProvider);
     textTheme = Theme.of(context).textTheme;
     ref.read(appEventProvider);
     return Scaffold(
@@ -115,7 +115,10 @@ class _HomeState extends ConsumerState<Home>
                 appRouter.push(Setting());
               },
               icon: const AppImage(path: AppImagePaths.menu))),
-      body: _buildBody(ref, isUserPro),
+      body: SafeArea(
+
+        child: _buildBody(ref, isUserPro),
+      ),
     );
   }
 

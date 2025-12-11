@@ -5,10 +5,10 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
+import 'package:lantern/core/common/common.dart';
+import 'package:win32/win32.dart';
 import 'package:ffi/ffi.dart';
 import 'package:win32/win32.dart';
-
-
 
 class PipeClient {
   PipeClient({
@@ -181,6 +181,7 @@ class PipeClient {
           return;
         }
         if (msg == null) {
+          appLogger.info('Pipe watch $cmd ended - closing stream');
           controller.close();
           return;
         }
@@ -196,6 +197,7 @@ class PipeClient {
     };
 
     controller.onCancel = () async {
+      appLogger.info('Pipe watch $cmd cancelled - closing stream');
       stopSend?.send(true);
       iso?.kill(priority: Isolate.beforeNextEvent);
       events.close();

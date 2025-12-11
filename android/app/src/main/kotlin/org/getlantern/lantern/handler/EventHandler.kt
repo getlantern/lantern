@@ -1,6 +1,5 @@
 package org.getlantern.lantern.handler
 
-import android.util.Log
 import androidx.lifecycle.Observer
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.EventChannel
@@ -16,6 +15,7 @@ import kotlinx.coroutines.withContext
 import lantern.io.utils.FlutterEvent
 import org.getlantern.lantern.apps.AppDataHandler
 import org.getlantern.lantern.constant.VPNStatus
+import org.getlantern.lantern.utils.AppLogger
 import org.getlantern.lantern.utils.Event
 import org.getlantern.lantern.utils.FlutterEventStream
 import org.getlantern.lantern.utils.LogTailer
@@ -53,7 +53,7 @@ class EventHandler : FlutterPlugin {
 
 
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-        Log.d(TAG, "Event handler Attaching to engine")
+        AppLogger.d(TAG, "Event handler Attaching to engine")
         statusChannel = EventChannel(
             flutterPluginBinding.binaryMessenger,
             SERVICE_STATUS,
@@ -119,19 +119,19 @@ class EventHandler : FlutterPlugin {
             override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
                 statusObserver = Observer { event ->
                     event.contentIfNotHandled?.let { status ->
-                        Log.d(TAG, "Observer VPN Status: $status")
                         when (status) {
                             VPNStatus.Connected,
                             VPNStatus.Connecting,
                             VPNStatus.Disconnecting,
                             VPNStatus.Disconnected,
                             VPNStatus.MissingPermission -> {
-                                Log.d(TAG, "Sending VPN Status: $status")
+                                AppLogger.d(TAG, "Sending VPN Status: $status")
                                 val map = mapOf("status" to status.name)
                                 events?.success(map)
                             }
 
                             VPNStatus.Error -> {
+                                AppLogger.d(TAG, "Sending VPN Status: $status")
                                 val map = mapOf(
                                     "status" to status.name,
                                     "error" to status.errorMessage,
@@ -158,17 +158,17 @@ class EventHandler : FlutterPlugin {
         privateServerStatusChannel?.setStreamHandler(
             object : EventChannel.StreamHandler {
                 override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
-                    Log.d(TAG, "Private server status channel listening")
+                    AppLogger.d(TAG, "Private server status channel listening")
                     job = CoroutineScope(Dispatchers.Main).launch {
                         PrivateServerEventStream.events.collect {
-                            Log.d(TAG, "Private server event received: $it")
+                            AppLogger.d(TAG, "Private server event received: $it")
                             events?.success(it)
                         }
                     }
                 }
 
                 override fun onCancel(arguments: Any?) {
-                    Log.d(TAG, "Private server status channel cancelled")
+                    AppLogger.d(TAG, "Private server status channel cancelled")
                     job?.cancel()
 
                 }
@@ -180,7 +180,7 @@ class EventHandler : FlutterPlugin {
         appEventStatusChannel?.setStreamHandler(
             object : EventChannel.StreamHandler {
                 override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
-                    Log.d(TAG, "App event status channel listening")
+                    AppLogger.d(TAG, "App event status channel listening")
                     // Observe the LiveData
                     flutterEventObserver = Observer { wrappedEvent ->
                         wrappedEvent.contentIfNotHandled?.let { event ->
@@ -195,7 +195,7 @@ class EventHandler : FlutterPlugin {
                 }
 
                 override fun onCancel(arguments: Any?) {
-                    Log.d(TAG, "App event status channel cancelled")
+                    AppLogger.d(TAG, "App event status channel cancelled")
                     if (flutterEventObserver != null) {
                         FlutterEventStream.events.removeObserver(flutterEventObserver!!)
                     }
